@@ -14,15 +14,15 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as RouteTypes from '../constants/types/route-tree'
 import * as RouteConstants from '../constants/route-tree'
+import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
+import * as WaitingGen from './waiting-gen'
 import engine from '../engine'
 import {usernameSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
 import {putActionIfOnPath, navigateTo} from './route-tree'
 import {chatTab, teamsTab} from '../constants/tabs'
 import openSMS from '../util/sms'
-import {createDecrementWaiting, createIncrementWaiting} from '../actions/waiting-gen'
-import {createGlobalError} from '../actions/config-gen'
 import {convertToError, logError} from '../util/errors'
 
 import type {TypedState} from '../constants/reducer'
@@ -88,7 +88,7 @@ const _leaveTeam = function(action: TeamsGen.LeaveTeamPayload) {
 
 const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
   const {destSubPath, role, rootPath, sendChatNotification, sourceSubPath, teamname} = action.payload
-  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   const state: TypedState = yield Saga.select()
   const ids = SearchConstants.getUserInputItemIds(state, {searchKey: 'addToTeamSearch'})
   const collectedErrors = []
@@ -126,12 +126,12 @@ const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
   }
   yield Saga.put(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
   yield Saga.put(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
-  yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+  yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
 }
 
 const _getTeamRetentionPolicy = function*(action: TeamsGen.GetTeamRetentionPolicyPayload) {
   const {teamname} = action.payload
-  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   const state: TypedState = yield Saga.select()
   const teamID = Constants.getTeamID(state, teamname)
   if (!teamID) {
@@ -155,7 +155,7 @@ const _getTeamRetentionPolicy = function*(action: TeamsGen.GetTeamRetentionPolic
   } finally {
     yield Saga.sequentially([
       Saga.put(TeamsGen.createSetTeamRetentionPolicy({teamname, retentionPolicy})),
-      Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)})),
+      Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)})),
     ])
   }
 }
@@ -183,13 +183,13 @@ const _saveTeamRetentionPolicy = function(
   }
   return Saga.sequentially([
     Saga.put(
-      createIncrementWaiting({
+      WaitingGen.createIncrementWaiting({
         key: [Constants.teamWaitingKey(teamname), Constants.retentionWaitingKey(teamname)],
       })
     ),
     Saga.call(RPCChatTypes.localSetTeamRetentionLocalRpcPromise, {teamID, policy: servicePolicy}),
     Saga.put(
-      createDecrementWaiting({
+      WaitingGen.createDecrementWaiting({
         key: [Constants.teamWaitingKey(teamname), Constants.retentionWaitingKey(teamname)],
       })
     ),
@@ -217,7 +217,7 @@ const _updateTeamRetentionPolicy = function(
 
 const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
   const {invitees, role, teamname} = action.payload
-  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   yield Saga.put(TeamsGen.createSetTeamLoadingInvites({teamname, invitees, loadingInvites: true}))
   try {
     const res: RPCTypes.BulkRes = yield Saga.call(RPCTypes.teamsTeamAddEmailsBulkRpcPromise, {
@@ -239,7 +239,7 @@ const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
       )
     }
   } finally {
-    yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+    yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
     yield Saga.put(TeamsGen.createSetTeamLoadingInvites({teamname, invitees, loadingInvites: false}))
   }
 }
@@ -247,7 +247,7 @@ const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
 const _addToTeam = function*(action: TeamsGen.AddToTeamPayload) {
   const {teamname, username, role, sendChatNotification} = action.payload
   const waitingKeys = [Constants.teamWaitingKey(teamname), Constants.addMemberWaitingKey(teamname, username)]
-  yield Saga.put(createIncrementWaiting({key: waitingKeys}))
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: waitingKeys}))
   try {
     yield Saga.call(RPCTypes.teamsTeamAddMemberRpcPromise, {
       name: teamname,
@@ -258,20 +258,20 @@ const _addToTeam = function*(action: TeamsGen.AddToTeamPayload) {
     })
   } finally {
     // TODO handle error
-    yield Saga.put(createDecrementWaiting({key: waitingKeys}))
+    yield Saga.put(WaitingGen.createDecrementWaiting({key: waitingKeys}))
   }
 }
 
 const _editDescription = function*(action: TeamsGen.EditTeamDescriptionPayload) {
   const {teamname, description} = action.payload
-  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   try {
     yield Saga.call(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
       description,
       name: teamname,
     })
   } finally {
-    yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+    yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
     // TODO We don't get a team changed notification for this. Delete this call when CORE-7125 is finished.
     yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname})))
   }
@@ -279,7 +279,7 @@ const _editDescription = function*(action: TeamsGen.EditTeamDescriptionPayload) 
 
 const _editMembership = function*(action: TeamsGen.EditMembershipPayload) {
   const {teamname, username, role} = action.payload
-  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   try {
     yield Saga.call(RPCTypes.teamsTeamEditMemberRpcPromise, {
       name: teamname,
@@ -287,7 +287,7 @@ const _editMembership = function*(action: TeamsGen.EditMembershipPayload) {
       role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
     })
   } finally {
-    yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+    yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   }
 }
 
@@ -309,11 +309,11 @@ const _removeMemberOrPendingInvite = function*(action: TeamsGen.RemoveMemberOrPe
     Constants.teamWaitingKey(teamname),
     Constants.removeMemberWaitingKey(teamname, username || email || inviteID),
   ]
-  yield Saga.put(createIncrementWaiting({key: waitingKeys}))
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: waitingKeys}))
   try {
     yield Saga.call(RPCTypes.teamsTeamRemoveMemberRpcPromise, {email, name: teamname, username, inviteID})
   } finally {
-    yield Saga.put(createDecrementWaiting({key: waitingKeys}))
+    yield Saga.put(WaitingGen.createDecrementWaiting({key: waitingKeys}))
     yield Saga.put(TeamsGen.createSetTeamLoadingInvites({teamname, invitees, loadingInvites: false}))
   }
 }
@@ -348,7 +348,7 @@ const _inviteToTeamByPhone = function*(action: TeamsGen.InviteToTeamByPhonePaylo
 
 const _ignoreRequest = function*(action: TeamsGen.IgnoreRequestPayload) {
   const {teamname, username} = action.payload
-  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   try {
     yield Saga.call(RPCTypes.teamsTeamIgnoreRequestRpcPromise, {
       name: teamname,
@@ -356,7 +356,7 @@ const _ignoreRequest = function*(action: TeamsGen.IgnoreRequestPayload) {
     })
   } finally {
     // TODO handle error, but for now make sure loading is unset
-    yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+    yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
     // TODO get rid of this once core sends us a notification for this (CORE-7125)
     yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname}))) // getDetails will unset loading
   }
@@ -403,7 +403,7 @@ const _createNewTeamFromConversation = function*(
 
 const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGenerator<any, any> {
   const {teamname} = action.payload
-  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   yield Saga.put(TeamsGen.createGetTeamOperations({teamname}))
   yield Saga.put(TeamsGen.createGetTeamPublicity({teamname}))
   try {
@@ -511,7 +511,7 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       })
     )
   } finally {
-    yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+    yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   }
 }
 
@@ -576,20 +576,20 @@ const _getTeamOperations = function*(
 ): Saga.SagaGenerator<any, any> {
   const teamname = action.payload.teamname
 
-  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   try {
     const teamOperation = yield Saga.call(RPCTypes.teamsCanUserPerformRpcPromise, {
       name: teamname,
     })
     yield Saga.put(TeamsGen.createSetTeamCanPerform({teamname, teamOperation}))
   } finally {
-    yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+    yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   }
 }
 
 const _getTeamPublicity = function*(action: TeamsGen.GetTeamPublicityPayload): Saga.SagaGenerator<any, any> {
   const teamname = action.payload.teamname
-  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   // Get publicity settings for this team.
   const publicity: RPCTypes.TeamAndMemberShowcase = yield Saga.call(
     RPCTypes.teamsGetTeamAndMemberShowcaseRpcPromise,
@@ -615,7 +615,7 @@ const _getTeamPublicity = function*(action: TeamsGen.GetTeamPublicityPayload): S
   }
 
   yield Saga.put(TeamsGen.createSetTeamPublicitySettings({teamname, publicity: publicityMap}))
-  yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+  yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
 }
 
 function _getChannelInfo(action: TeamsGen.GetChannelInfoPayload) {
@@ -665,7 +665,7 @@ function _getChannels(action: TeamsGen.GetChannelsPayload) {
     }),
     Saga.identity(teamname),
     Saga.identity(waitingKey),
-    Saga.put(createIncrementWaiting(waitingKey)),
+    Saga.put(WaitingGen.createIncrementWaiting(waitingKey)),
   ])
 }
 
@@ -687,7 +687,7 @@ function _afterGetChannels(fromGetChannels: any[]) {
 
   return Saga.all([
     Saga.put(TeamsGen.createSetTeamChannels({teamname, channelInfos: I.Map(channelInfos)})),
-    Saga.put(createDecrementWaiting(waitingKey)),
+    Saga.put(WaitingGen.createDecrementWaiting(waitingKey)),
   ])
 }
 
@@ -786,7 +786,7 @@ const _joinConversation = function*(
       })
     )
   } catch (error) {
-    yield Saga.put(createGlobalError({globalError: convertToError(error)}))
+    yield Saga.put(ConfigGen.createGlobalError({globalError: convertToError(error)}))
   }
 }
 
@@ -808,7 +808,7 @@ const _leaveConversation = function*(
       })
     )
   } catch (error) {
-    yield Saga.put(createGlobalError({globalError: convertToError(error)}))
+    yield Saga.put(ConfigGen.createGlobalError({globalError: convertToError(error)}))
   }
 }
 
@@ -839,7 +839,7 @@ const _afterSaveCalls = results => {
   // Display any errors from the rpcs
   const errs = rpcs
     .filter(r => r.type === 'err')
-    .map(({payload}) => Saga.put(createGlobalError({globalError: convertToError(payload)})))
+    .map(({payload}) => Saga.put(ConfigGen.createGlobalError({globalError: convertToError(payload)})))
   return Saga.all([...errs, after])
 }
 
@@ -896,7 +896,7 @@ function* _createChannel(action: TeamsGen.CreateChannelPayload) {
 
 const _setMemberPublicity = function*(action: TeamsGen.SetMemberPublicityPayload, state: TypedState) {
   const {teamname, showcase} = action.payload
-  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   try {
     yield Saga.call(RPCTypes.teamsSetTeamMemberShowcaseRpcPromise, {
       isShowcased: showcase,
@@ -904,7 +904,7 @@ const _setMemberPublicity = function*(action: TeamsGen.SetMemberPublicityPayload
     })
   } finally {
     // TODO handle error, but for now make sure loading is unset
-    yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+    yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
     yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname})))
 
     // The profile showcasing page gets this data from teamList rather than teamGet, so trigger one of those too.
@@ -979,12 +979,12 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
   }
   return Saga.all([
     Saga.all(calls),
-    Saga.put(createIncrementWaiting(waitingKey)),
+    Saga.put(WaitingGen.createIncrementWaiting(waitingKey)),
     Saga.identity(
       Saga.all([
         // TODO delete this getDetails call when CORE-7125 is finished
         Saga.put(TeamsGen.createGetDetails({teamname})),
-        Saga.put(createDecrementWaiting(waitingKey)),
+        Saga.put(WaitingGen.createDecrementWaiting(waitingKey)),
       ])
     ),
   ])
@@ -1027,6 +1027,14 @@ function _setupTeamHandlers() {
       }
       return getLoadCalls()
     }
+  )
+  engine().setIncomingActionCreators(
+    'keybase.1.NotifyTeam.avatarUpdated',
+    ({name}: RPCTypes.NotifyTeamAvatarUpdatedRpcParam, _, __, getState) => [
+      getState().teams.teamnames.includes(name)
+        ? ConfigGen.createLoadTeamAvatars({teamnames: [name]})
+        : ConfigGen.createLoadAvatars({usernames: [name]}),
+    ]
   )
 }
 

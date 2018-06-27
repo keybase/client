@@ -295,6 +295,7 @@ const (
 	SCTeamBadMembership        = int(keybase1.StatusCode_SCTeamBadMembership)
 	SCTeamProvisionalCanKey    = int(keybase1.StatusCode_SCTeamProvisionalCanKey)
 	SCTeamProvisionalCannotKey = int(keybase1.StatusCode_SCTeamProvisionalCannotKey)
+	SCBadSignupUsernameDeleted = int(keybase1.StatusCode_SCBadSignupUsernameDeleted)
 )
 
 const (

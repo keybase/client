@@ -25,28 +25,6 @@ func NewSignupJoinEngine(g *libkb.GlobalContext) *SignupJoinEngine {
 	return &SignupJoinEngine{Contextified: libkb.NewContextified(g)}
 }
 
-// XXX why is this here?
-func CheckUsernameAvailable(g *libkb.GlobalContext, s string) (err error) {
-	_, err = g.API.Get(libkb.APIArg{
-		Endpoint:    "user/lookup",
-		SessionType: libkb.APISessionTypeNONE,
-		Args: libkb.HTTPArgs{
-			"username": libkb.S{Val: s},
-			"fields":   libkb.S{Val: "basics"},
-		},
-	})
-	if err == nil {
-		err = libkb.AppStatusError{
-			Code: libkb.SCBadSignupUsernameTaken,
-			Name: "BAD_SIGNUP_USERNAME_TAKEN",
-			Desc: fmt.Sprintf("Username '%s' is taken", s),
-		}
-	} else if ase, ok := err.(libkb.AppStatusError); ok && ase.Name == "NOT_FOUND" {
-		err = nil
-	}
-	return
-}
-
 func (s *SignupJoinEngine) Init() error {
 	return nil
 }
