@@ -75,22 +75,13 @@ const requestInviteError = (err, action: SignupGen.RequestInvitePayload) => {
 const checkUsernameEmail = (action: SignupGen.CheckUsernameEmailPayload) => {
   const {email, username} = action.payload
   const emailError = isValidEmail(email)
-  if (emailError) {
+  const usernameError = isValidUsername(username)
+
+  if (emailError || usernameError) {
     return Saga.put(
       SignupGen.createCheckUsernameEmailDoneError({
         email,
         emailError,
-        username,
-        usernameError: '',
-      })
-    )
-  }
-  const usernameError = isValidUsername(username)
-  if (usernameError) {
-    return Saga.put(
-      SignupGen.createCheckUsernameEmailDoneError({
-        email,
-        emailError: '',
         username,
         usernameError,
       })
@@ -214,6 +205,15 @@ const signup = (action: SignupGen.SignupPayload, state: TypedState) => {
   const {email, username, inviteCode, passphrase, devicename} = state.signup
 
   if (!email || !username || !inviteCode || !passphrase || !passphrase.stringValue() || !devicename) {
+    logger.warn(
+      'Missing data during signup phase',
+      email,
+      username,
+      inviteCode,
+      devicename,
+      !!passphrase,
+      passphrase && !!passphrase.stringValue()
+    )
     throw new Error('Missing data for signup')
   }
 
