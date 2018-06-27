@@ -1,13 +1,13 @@
 // @flow
-import codePage from './code-page/index.stories.js'
-import error from './error/index.stories.js'
-import gpgSign from './gpg-sign/index.stories.js'
-import paperKey from './paper-key/index.stories.js'
-import passphrase from './passphrase/index.stories.js'
-import selectOtherDevice from './select-other-device/index.stories.js'
-import setPublicName from './set-public-name/index.stories.js'
-// import success from './succes/index.stories.js'
-// import usernameOrEmail from './username-or-email/index.stories.js'
+import codePage from './code-page/index.stories'
+import error from './error/index.stories'
+import gpgSign from './gpg-sign/index.stories'
+import paperKey from './paper-key/index.stories'
+import passphrase from './passphrase/index.stories'
+import selectOtherDevice from './select-other-device/index.stories'
+import setPublicName from './set-public-name/index.stories'
+// import success from './succes/index.stories'
+// import usernameOrEmail from './username-or-email/index.stories'
 
 const load = () => {
   ;[
