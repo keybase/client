@@ -1,0 +1,11 @@
+// @flow
+import * as React from 'react'
+import {type StylesCrossPlatform} from '../styles'
+export type Props = {
+  title?: string,
+  onBack?: ?() => void,
+  onCancel?: ?() => void,
+  headerStyle?: StylesCrossPlatform,
+  customComponent?: ?React.Node,
+  theme?: 'light' | 'dark', // defaults to light
+}
