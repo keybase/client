@@ -878,6 +878,7 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.UnverifiedInboxUIItem) {
 	rawConv := rc.Conv
 	res.ConvID = rawConv.GetConvID().String()
+	res.TopicType = rawConv.GetTopicType()
 	res.Name = rawConv.MaxMsgSummaries[0].TlfName
 	res.Status = rawConv.Metadata.Status
 	res.Time = GetConvMtime(rawConv)
@@ -933,6 +934,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 		}
 	}
 	res.ConvID = rawConv.GetConvID().String()
+	res.TopicType = rawConv.GetTopicType()
 	res.Name = rawConv.Info.TlfName
 	res.Snippet, res.SnippetDecoration = GetConvSnippet(rawConv, currentUsername)
 	res.Channel = GetTopicName(rawConv)

@@ -85,6 +85,7 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   previewTransferState: null,
   previewURL: '',
   previewWidth: 0,
+  showPlayButton: false,
   submitState: null,
   title: '',
   transferProgress: 0,
@@ -354,6 +355,7 @@ const validUIMessagetoMessage = (
       // We treat all these like a pending text, so any data-less thing will have no message id and map to the same ordinal
       let attachment = {}
       let preview: ?RPCChatTypes.Asset
+      let full: ?RPCChatTypes.Asset
       let transferState = null
 
       if (m.messageBody.messageType === RPCChatTypes.commonMessageType.attachment) {
@@ -361,18 +363,21 @@ const validUIMessagetoMessage = (
         preview =
           attachment.preview ||
           (attachment.previews && attachment.previews.length ? attachment.previews[0] : null)
+        full = attachment.object
         if (!attachment.uploaded) {
           transferState = 'remoteUploading'
         }
       } else if (m.messageBody.messageType === RPCChatTypes.commonMessageType.attachmentuploaded) {
         attachment = m.messageBody.attachmentuploaded || {}
         preview = attachment.previews && attachment.previews.length ? attachment.previews[0] : null
+        full = attachment.object
         transferState = null
       }
       const {filename, title, size} = attachment.object
       let previewHeight = 0
       let previewWidth = 0
       let attachmentType = 'file'
+      let showPlayButton = false
 
       if (preview && preview.metadata) {
         if (
@@ -383,6 +388,14 @@ const validUIMessagetoMessage = (
           previewHeight = wh.height
           previewWidth = wh.width
           attachmentType = 'image'
+          // full is a video but preview is an image?
+          if (
+            full &&
+            full.metadata &&
+            full.metadata.assetType === RPCChatTypes.localAssetMetadataType.video
+          ) {
+            showPlayButton = true
+          }
         } else if (
           preview.metadata.assetType === RPCChatTypes.localAssetMetadataType.video &&
           preview.metadata.video
@@ -407,13 +420,14 @@ const validUIMessagetoMessage = (
         attachmentType,
         fileName: filename,
         fileSize: size,
+        fileType,
+        fileURL,
         previewHeight,
+        previewURL,
         previewWidth,
+        showPlayButton,
         title,
         transferState,
-        previewURL,
-        fileURL,
-        fileType,
       })
     }
     case RPCChatTypes.commonMessageType.join:

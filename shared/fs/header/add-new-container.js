@@ -1,4 +1,5 @@
 // @flow
+import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
 import * as FsGen from '../../actions/fs-gen'
 import flags from '../../util/feature-flags'
@@ -6,7 +7,9 @@ import {compose, setDisplayName, connect, type Dispatch, type TypedState} from '
 import AddNew from './add-new'
 import {isDarwin, isMobile, isIOS} from '../../constants/platform'
 
-const mapStateToProps = (state: TypedState) => ({})
+const mapStateToProps = (state: TypedState, {path}) => ({
+  _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+})
 
 const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({
   _newFolderRow: (parentPath: Types.Path) => dispatch(FsGen.createNewFolderRow({parentPath})),
@@ -46,13 +49,13 @@ const mobileUploadItems = (path: Types.Path, _upload) => [
   },
 ]
 
-const mergeProps = (stateProps, {_newFolderRow, _upload}, {path, style}) => {
+const mergeProps = ({_pathItem}, {_newFolderRow, _upload}, {path, style}) => {
   const pathElements = Types.getPathElements(path)
   return {
     pathElements,
     style,
     menuItems:
-      pathElements.length <= 2 || !flags.fsWritesEnabled
+      flags.fsWritesEnabled && pathElements.length > 2 && _pathItem.writable
         ? []
         : [
             ...(isMobile ? mobileUploadItems(path, _upload) : desktopUploadItems(path, _upload)),

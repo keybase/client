@@ -22,7 +22,6 @@ export const favoriteIgnore = 'fs:favoriteIgnore'
 export const favoriteIgnoreError = 'fs:favoriteIgnoreError'
 export const favoritesLoad = 'fs:favoritesLoad'
 export const favoritesLoaded = 'fs:favoritesLoaded'
-export const fileActionPopup = 'fs:fileActionPopup'
 export const filePreviewLoad = 'fs:filePreviewLoad'
 export const filePreviewLoaded = 'fs:filePreviewLoaded'
 export const folderListLoad = 'fs:folderListLoad'
@@ -92,12 +91,6 @@ type _FavoriteIgnoreErrorPayload = $ReadOnly<{|
 type _FavoriteIgnorePayload = $ReadOnly<{|path: Types.Path|}>
 type _FavoritesLoadPayload = void
 type _FavoritesLoadedPayload = $ReadOnly<{|folders: I.Map<Types.Path, Types.FavoriteItem>|}>
-type _FileActionPopupPayload = $ReadOnly<{|
-  path: Types.Path,
-  type: Types.PathType,
-  targetRect: ?ClientRect,
-  routePath: I.List<string>,
-|}>
 type _FilePreviewLoadPayload = $ReadOnly<{|path: Types.Path|}>
 type _FilePreviewLoadedPayload = $ReadOnly<{|
   path: Types.Path,
@@ -203,7 +196,6 @@ export const createFavoriteIgnore = (payload: _FavoriteIgnorePayload) => ({error
 export const createFavoriteIgnoreError = (payload: _FavoriteIgnoreErrorPayload) => ({error: false, payload, type: favoriteIgnoreError})
 export const createFavoritesLoad = (payload: _FavoritesLoadPayload) => ({error: false, payload, type: favoritesLoad})
 export const createFavoritesLoaded = (payload: _FavoritesLoadedPayload) => ({error: false, payload, type: favoritesLoaded})
-export const createFileActionPopup = (payload: _FileActionPopupPayload) => ({error: false, payload, type: fileActionPopup})
 export const createFilePreviewLoad = (payload: _FilePreviewLoadPayload) => ({error: false, payload, type: filePreviewLoad})
 export const createFilePreviewLoaded = (payload: _FilePreviewLoadedPayload) => ({error: false, payload, type: filePreviewLoaded})
 export const createFolderListLoad = (payload: _FolderListLoadPayload) => ({error: false, payload, type: folderListLoad})
@@ -252,7 +244,6 @@ export type FavoriteIgnoreErrorPayload = $Call<typeof createFavoriteIgnoreError,
 export type FavoriteIgnorePayload = $Call<typeof createFavoriteIgnore, _FavoriteIgnorePayload>
 export type FavoritesLoadPayload = $Call<typeof createFavoritesLoad, _FavoritesLoadPayload>
 export type FavoritesLoadedPayload = $Call<typeof createFavoritesLoaded, _FavoritesLoadedPayload>
-export type FileActionPopupPayload = $Call<typeof createFileActionPopup, _FileActionPopupPayload>
 export type FilePreviewLoadPayload = $Call<typeof createFilePreviewLoad, _FilePreviewLoadPayload>
 export type FilePreviewLoadedPayload = $Call<typeof createFilePreviewLoaded, _FilePreviewLoadedPayload>
 export type FolderListLoadPayload = $Call<typeof createFolderListLoad, _FolderListLoadPayload>
@@ -303,7 +294,6 @@ export type Actions =
   | FavoriteIgnorePayload
   | FavoritesLoadPayload
   | FavoritesLoadedPayload
-  | FileActionPopupPayload
   | FilePreviewLoadPayload
   | FilePreviewLoadedPayload
   | FolderListLoadPayload

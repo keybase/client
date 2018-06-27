@@ -39,6 +39,7 @@ class PaperKeyInput extends Component<Props, State> {
           floatingHintTextOverride="Paper key"
           hintText="elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt
 ruril globil cose"
+          uncontrolled={true}
         />
         <Button
           type="Primary"

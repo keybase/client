@@ -15,8 +15,7 @@ import BigTeamsDivider from './row/big-teams-divider/container'
 import Divider from './row/divider/container'
 import {debounce} from 'lodash-es'
 import {Owl} from './owl'
-
-import type {Props, RowItem} from './'
+import type {Props, RowItem, RowItemSmall} from './index.types'
 
 const NoChats = () => (
   <Box
@@ -222,3 +221,4 @@ const boxStyle = {
 }
 
 export default Inbox
+export type {RowItem, RowItemSmall}

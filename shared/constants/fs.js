@@ -29,52 +29,44 @@ export const makeNewFolder: I.RecordFactory<Types._NewFolder> = I.Record({
   parentPath: Types.stringToPath('/keybase'),
 })
 
-export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
-  badgeCount: 0,
+const pathItemMetadataDefault = {
   name: 'unknown',
   lastModifiedTimestamp: 0,
-  lastWriter: {uid: '', username: ''},
   size: 0,
+  lastWriter: {uid: '', username: ''},
   progress: 'pending',
+  badgeCount: 0,
+  writable: false,
+  tlfMeta: undefined,
+}
+
+export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
+  ...pathItemMetadataDefault,
   children: I.Set(),
   favoriteChildren: I.Set(),
-  tlfMeta: undefined,
   resetParticipants: [],
   teamID: undefined,
   type: 'folder',
 })
 
 export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
-  badgeCount: 0,
-  name: 'unknown',
-  lastModifiedTimestamp: 0,
-  lastWriter: {uid: '', username: ''},
-  size: 0,
-  progress: 'pending',
+  ...pathItemMetadataDefault,
   type: 'file',
   mimeType: '',
 })
 
 export const makeSymlink: I.RecordFactory<Types._SymlinkPathItem> = I.Record({
-  badgeCount: 0,
-  name: 'unknown',
-  lastModifiedTimestamp: 0,
-  lastWriter: {uid: '', username: ''},
-  size: 0,
-  progress: 'pending',
+  ...pathItemMetadataDefault,
   type: 'symlink',
   linkTarget: '',
 })
 
 export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Record({
-  badgeCount: 0,
-  name: 'unknown',
-  lastModifiedTimestamp: 0,
-  lastWriter: {uid: '', username: ''},
-  size: 0,
-  progress: 'pending',
+  ...pathItemMetadataDefault,
   type: 'unknown',
 })
+
+export const unknownPathItem = makeUnknownPathItem()
 
 export const makeFavoriteItem: I.RecordFactory<Types._FavoriteItem> = I.Record({
   name: 'unknown',

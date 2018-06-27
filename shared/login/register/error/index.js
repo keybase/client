@@ -216,6 +216,12 @@ const renderError = (error: RPCError) => {
           </Text>
         </Box>
       )
+    case constantsStatusCode.scdeleted:
+      return (
+        <Box style={styleContent}>
+          <Text type="Body">User has been deleted.</Text>
+        </Box>
+      )
     default:
       return (
         <Box style={styleContent}>

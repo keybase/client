@@ -11,7 +11,6 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/clockwork"
@@ -115,10 +114,9 @@ type BackgroundEphemeralPurger struct {
 	stopCh  chan chan struct{}
 	storage *storage.Storage
 
-	delay        time.Duration
-	clock        clockwork.Clock
-	outboxTicker *libkb.BgTicker
-	purgeTimer   *time.Timer
+	delay      time.Duration
+	clock      clockwork.Clock
+	purgeTimer *time.Timer
 }
 
 var _ types.EphemeralPurger = (*BackgroundEphemeralPurger)(nil)
@@ -154,8 +152,6 @@ func (b *BackgroundEphemeralPurger) Start(ctx context.Context, uid gregor1.UID) 
 	b.uid = uid
 	b.initQueue(ctx)
 
-	// Purge the outbox periodically
-	b.outboxTicker = libkb.NewBgTicker(5 * time.Minute)
 	// Immediately fire to queue any purges we picked up during initQueue
 	b.purgeTimer = time.NewTimer(0)
 	go b.loop()
@@ -181,9 +177,6 @@ func (b *BackgroundEphemeralPurger) Stop(ctx context.Context) chan struct{} {
 }
 
 func (b *BackgroundEphemeralPurger) cleanupTimers() {
-	if b.outboxTicker != nil {
-		b.outboxTicker.Stop()
-	}
 	if b.purgeTimer != nil {
 		b.purgeTimer.Stop()
 	}
@@ -255,9 +248,6 @@ func (b *BackgroundEphemeralPurger) loop() {
 			b.queueLock.Lock()
 			b.queuePurges(bgctx)
 			b.queueLock.Unlock()
-		case <-b.outboxTicker.C:
-			// Check the outbox for stuck ephemeral messages that need purging
-			storage.NewOutbox(b.G(), b.uid).EphemeralPurge(context.Background())
 		case ch := <-b.stopCh: // caller will reset looping=false
 			b.Debug(bgctx, "loop: shutting down for %s", b.uid)
 			close(ch)

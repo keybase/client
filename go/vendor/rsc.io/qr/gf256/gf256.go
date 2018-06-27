@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Package gf256 implements arithmetic over the Galois Field GF(256).
-package gf256
+package gf256 // import "rsc.io/qr/gf256"
 
 import "strconv"
 

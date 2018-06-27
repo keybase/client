@@ -3,7 +3,7 @@ import * as React from 'react'
 import {findDOMNode} from 'react-dom'
 import {Box} from './box'
 import {ModalPositionRelative} from './relative-popup-hoc.desktop'
-import type {Props} from './floating-box'
+import type {Props} from './floating-box.types'
 
 const StyleOnlyBox = (props: any) => <Box children={props.children} />
 const RelativeFloatingBox = ModalPositionRelative(StyleOnlyBox)

@@ -139,12 +139,6 @@
       "path": "Types.Path",
       "routePath?": "I.List<string>"
     },
-    "fileActionPopup": {
-      "path": "Types.Path",
-      "type": "Types.PathType",
-      "targetRect": "?ClientRect",
-      "routePath": "I.List<string>"
-    },
     "openFinderPopup": {
       "targetRect": "?ClientRect",
       "routePath": "I.List<string>"

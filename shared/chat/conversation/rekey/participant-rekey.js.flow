@@ -1,10 +1,4 @@
 // @flow
-import {Component} from 'react'
-
-export type Props = {
-  rekeyers: Array<string>,
-  onShowProfile: (username: string) => void,
-  onBack: () => void,
-}
-
-export default class ParticipantRekey extends Component<Props> {}
+import * as React from 'react'
+import type {Props} from './participant-rekey.types'
+export default class ParticipantRekey extends React.Component<Props> {}

@@ -10,51 +10,30 @@ import {
   type TypedState,
   type Dispatch,
 } from '../../util/container'
-import {navigateUp} from '../../actions/route-tree'
-import Popup from './row-action-popup'
+import PathItemAction from './path-item-action'
 import {fileUIName, isMobile, isIOS, isAndroid} from '../../constants/platform'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
-  const path = routeProps.get('path')
-  const pathItem = state.fs.pathItems.get(path) || Constants.makeUnknownPathItem()
+type OwnProps = {
+  path: Types.Path,
+  actionIconClassName?: string,
+  actionIconFontSize?: number,
+}
+
+const mapStateToProps = (state: TypedState) => {
+  const _pathItems = state.fs.pathItems
   const _username = state.config.username || undefined
-  // We need to do this counting here since it's possible between this
-  // mapStateProps and last mapStateProps call, pathItem.children remained the
-  // same, but some of the children changed from folder to file or vice versa.
-  // If we did it in mergeProps, we wouldn't be able capture that change.
-  const [childrenFolders, childrenFiles] =
-    !pathItem || pathItem.type !== 'folder'
-      ? [0, 0]
-      : pathItem.children.reduce(
-          ([currentFolders, currentFiles], p) => {
-            const pi = state.fs.pathItems.get(Types.pathConcat(path, p))
-            if (!pi) {
-              return [currentFolders, currentFiles]
-            }
-            return pi.type === 'folder'
-              ? [currentFolders + 1, currentFiles]
-              : [currentFolders, currentFiles + 1]
-          },
-          [0, 0]
-        )
 
   return {
-    _fileName: pathItem.name,
-    path,
-    pathItem,
+    _pathItems,
     _username,
-    childrenFolders,
-    childrenFiles,
     fileUIEnabled: state.favorite.fuseStatus ? state.favorite.fuseStatus.kextStarted : false,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onHidden: () => dispatch(navigateUp()),
+const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => ({
   _loadMimeType: (path: Types.Path) => dispatch(FsGen.createMimeTypeLoad({path})),
   _ignoreFolder: (path: Types.Path) => {
     dispatch(FsGen.createFavoriteIgnore({path}))
-    !isMobile && dispatch(navigateUp())
   },
 
   ...(isMobile
@@ -74,9 +53,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     : {}),
 })
 
-const getRootMenuItems = (stateProps, dispatchProps) => {
-  const {path, pathItem, fileUIEnabled, _username} = stateProps
+const getRootMenuItems = (stateProps, dispatchProps, path: Types.Path) => {
+  const {_pathItems, fileUIEnabled, _username} = stateProps
   const {_showInFileUI, _saveMedia, _shareNative, _download, _ignoreFolder} = dispatchProps
+  const pathItem = _pathItems.get(path, Constants.unknownPathItem)
   let menuItems = []
 
   !isMobile &&
@@ -118,14 +98,29 @@ const getRootMenuItems = (stateProps, dispatchProps) => {
   return menuItems
 }
 
-const mergeProps = (stateProps, dispatchProps) => {
-  const {path, pathItem, _username, childrenFolders, childrenFiles} = stateProps
-  const {onHidden, _loadMimeType} = dispatchProps
+const mergeProps = (stateProps, dispatchProps, {path, actionIconClassName, actionIconFontSize}) => {
+  const {_pathItems, _username} = stateProps
+  const {_loadMimeType} = dispatchProps
+  const pathItem = _pathItems.get(path, Constants.unknownPathItem)
+  const {childrenFolders, childrenFiles} =
+    !pathItem || pathItem.type !== 'folder'
+      ? {childrenFolders: 0, childrenFiles: 0}
+      : pathItem.children.reduce(
+          ({childrenFolders, childrenFiles}, p) => {
+            const isFolder =
+              _pathItems.get(Types.pathConcat(path, p), Constants.unknownPathItem).type === 'folder'
+            return {
+              childrenFolders: childrenFolders + (isFolder ? 1 : 0),
+              childrenFiles: childrenFiles + (isFolder ? 0 : 1),
+            }
+          },
+          {childrenFolders: 0, childrenFiles: 0}
+        )
   const pathElements = Types.getPathElements(path)
   const itemStyles = Constants.getItemStyles(pathElements, pathItem.type, _username)
-  const menuItems = getRootMenuItems(stateProps, dispatchProps)
+  const menuItems = getRootMenuItems(stateProps, dispatchProps, path)
   return {
-    type: pathItem.type || 'unknown',
+    type: pathItem.type,
     lastModifiedTimestamp: pathItem.lastModifiedTimestamp,
     lastWriter: pathItem.lastWriter.username,
     name: pathItem.name,
@@ -136,14 +131,15 @@ const mergeProps = (stateProps, dispatchProps) => {
     pathElements,
     itemStyles,
     menuItems,
-    onHidden,
     loadMimeType: () => _loadMimeType(path),
+    actionIconClassName,
+    actionIconFontSize,
   }
 }
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('Popup'),
+  setDisplayName('ConnectedPathItemAction'),
   lifecycle({
     componentDidMount() {
       if (this.props.needLoadMimeType) {
@@ -151,4 +147,4 @@ export default compose(
       }
     },
   })
-)(Popup)
+)(PathItemAction)

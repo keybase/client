@@ -55,6 +55,7 @@ export type PathItemMetadata = {
   lastWriter: RPCTypes.User,
   progress: ProgressType,
   badgeCount: number,
+  writable: boolean,
   tlfMeta?: FavoriteMetadata,
 }
 
@@ -154,14 +155,6 @@ export type Uploads = I.RecordOf<_Uploads>
 
 // 'both' is only supported on macOS
 export type OpenDialogType = 'file' | 'directory' | 'both'
-
-export type PathBreadcrumbItem = {
-  isTlfNameItem: boolean,
-  isLastItem: boolean,
-  name: string,
-  path: Path,
-  onOpenBreadcrumb: (evt?: SyntheticEvent<>) => void,
-}
 
 export type _Flags = {
   kbfsOpening: boolean,
@@ -343,6 +336,15 @@ export type ItemStyles = {
   iconSpec: PathItemIconSpec,
   textColor: string,
   textType: TextType,
+}
+
+export type PathBreadcrumbItem = {
+  isTeamTlf: boolean,
+  isLastItem: boolean,
+  name: string,
+  path: Path,
+  iconSpec: PathItemIconSpec,
+  onClick: (evt?: SyntheticEvent<>) => void,
 }
 
 export type FolderRPCWithMeta = {

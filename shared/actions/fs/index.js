@@ -37,6 +37,7 @@ const direntToMetadata = (d: RPCTypes.Dirent) => ({
   lastModifiedTimestamp: d.time,
   lastWriter: d.lastWriterUnverified,
   size: d.size,
+  writable: d.writable,
 })
 
 const makeEntry = (d: RPCTypes.Dirent) => {
@@ -100,7 +101,9 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   // Get metadata fields of the directory that we just loaded from state to
   // avoid overriding them.
   const state = yield Saga.select()
-  const {lastModifiedTimestamp, lastWriter, size}: Types.PathItemMetadata = state.fs.pathItems.get(rootPath)
+  const {lastModifiedTimestamp, lastWriter, size, writable}: Types.PathItemMetadata = state.fs.pathItems.get(
+    rootPath
+  )
 
   const pathItems: I.Map<Types.Path, Types.PathItem> = I.Map(
     entries.map(direntToPathAndPathItem).concat([
@@ -111,6 +114,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
           lastWriter,
           size,
           name: Types.getPathName(rootPath),
+          writable,
           children: I.Set(entries.map(d => d.name)),
           progress: 'loaded',
         }),
@@ -455,32 +459,10 @@ const editSuccess = (res, action, state: TypedState) => {
 
 const editFailed = (res, {payload: {editID}}) => Saga.put(FsGen.createEditFailed({editID}))
 
-function* fileActionPopup(action: FsGen.FileActionPopupPayload): Saga.SagaGenerator<any, any> {
-  const {path, type, targetRect, routePath} = action.payload
-  // We may not have the folder loaded yet, but will need metadata to know
-  // folder entry types in the popup. So dispatch an action now to load it.
-  type === 'folder' && (yield Saga.put(FsGen.createFolderListLoad({path})))
-  yield Saga.put(
-    putActionIfOnPath(
-      routePath,
-      navigateAppend([
-        {
-          props: {
-            path,
-            position: 'bottom right',
-            targetRect,
-          },
-          selected: 'pathItemAction',
-        },
-      ])
-    )
-  )
-}
-
 function* openPathItem(action: FsGen.OpenPathItemPayload): Saga.SagaGenerator<any, any> {
   const {path, routePath} = action.payload
   const state: TypedState = yield Saga.select()
-  const pathItem = state.fs.pathItems.get(path) || Constants.makeUnknownPathItem()
+  const pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
   if (pathItem.type === 'folder') {
     yield Saga.put(
       putActionIfOnPath(
@@ -551,7 +533,6 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.fork(platformSpecificSaga)
 
   // These are saga tasks that may use actions above.
-  yield Saga.safeTakeEvery(FsGen.fileActionPopup, fileActionPopup)
   yield Saga.safeTakeEvery(FsGen.openPathItem, openPathItem)
 }
 

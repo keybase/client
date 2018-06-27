@@ -78,6 +78,10 @@
         {
           "type": "boolean",
           "name": "chatkbfsedits"
+        },
+        {
+          "type": "boolean",
+          "name": "chatdev"
         }
       ]
     }
