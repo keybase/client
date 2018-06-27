@@ -45,8 +45,8 @@ type CheckErrorsResult = {
 // Reminder: hot-server doesn't reload code in here (/desktop)
 export default (callback: (err: any) => void): void => {
   logger.info('Installer check starting now')
-  if (isWindows) {
-    logger.info('Skipping installer on win32')
+  if (isWindows || isLinux) {
+    logger.info('Skipping installer on this platform')
     callback(null)
     return
   }
