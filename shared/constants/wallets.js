@@ -112,9 +112,13 @@ const getAccount = (state: TypedState, accountID: Types.AccountID) =>
 
 const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 
+const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: string) =>
+  state.wallets.paymentsMap.get(accountID, I.List()).find(p => p.id === paymentID)
+
 export {
   accountResultToAccount,
   assetsResultToAssets,
+  getPayment,
   loadEverythingWaitingKey,
   makeAccount,
   makeAssets,
