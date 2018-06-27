@@ -107,13 +107,12 @@ const mergeProps = (stateProps, dispatchProps, {path, actionIconClassName, actio
       ? {childrenFolders: 0, childrenFiles: 0}
       : pathItem.children.reduce(
           ({childrenFolders, childrenFiles}, p) => {
-            const pi = _pathItems.get(Types.pathConcat(path, p))
-            if (!pi) {
-              return {childrenFolders, childrenFiles}
+            const isFolder =
+              _pathItems.get(Types.pathConcat(path, p), Constants.unknownPathItem).type === 'folder'
+            return {
+              childrenFolders: childrenFolders + (isFolder ? 1 : 0),
+              childrenFiles: childrenFiles + (isFolder ? 0 : 1),
             }
-            return pi.type === 'folder'
-              ? {childrenFolders: childrenFolders + 1, childrenFiles}
-              : {childrenFolders, childrenFiles: childrenFiles + 1}
           },
           {childrenFolders: 0, childrenFiles: 0}
         )
