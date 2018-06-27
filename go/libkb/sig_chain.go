@@ -253,14 +253,6 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 }
 
 func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqno, t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
-	if val, err := jsonparser.GetInt(body, "status", "code"); err == nil {
-		if keybase1.StatusCode(val) == keybase1.StatusCode_SCDeleted {
-			// Do not bother trying to read the sigchain - user is
-			// deleted.
-			return nil, UserDeletedError{}
-		}
-	}
-
 	foundTail := false
 
 	var links ChainLinks
@@ -294,6 +286,16 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 	}, "sigs")
 
 	if err != nil {
+		if err == jsonparser.KeyPathNotFoundError {
+			if val, err := jsonparser.GetInt(body, "status", "code"); err == nil {
+				if keybase1.StatusCode(val) == keybase1.StatusCode_SCDeleted {
+					// We didn't find any sigs because user is deleted
+					// and we don't have access to their sigchain.
+					//return nil, UserDeletedError{}
+				}
+			}
+		}
+
 		return nil, err
 	}
 

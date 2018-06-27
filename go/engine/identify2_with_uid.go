@@ -886,7 +886,8 @@ func (e *Identify2WithUID) loadThem(m libkb.MetaContext) (err error) {
 	if e.them == nil {
 		return libkb.UserNotFoundError{UID: e.arg.Uid, Msg: "in Identify2WithUID"}
 	}
-	return libkb.UserErrorFromStatus(e.them.GetStatus())
+	//return libkb.UserErrorFromStatus(e.them.GetStatus())
+	return nil
 }
 
 func (e *Identify2WithUID) loadUsers(m libkb.MetaContext) error {
