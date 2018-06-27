@@ -1338,3 +1338,44 @@ func (k *SimpleFS) SimpleFSGetHTTPAddressAndToken(ctx context.Context) (
 
 	return resp, nil
 }
+
+// SimpleFSUserEditHistory returns the edit history for the logged-in user.
+func (k *SimpleFS) SimpleFSUserEditHistory(ctx context.Context) (
+	res []keybase1.FSFolderEditHistory, err error) {
+	session, err := libkbfs.GetCurrentSessionIfPossible(
+		ctx, k.config.KBPKI(), true)
+	// Return empty history if we are not logged in.
+	if err != nil {
+		return nil, nil
+	}
+	return k.config.UserHistory().Get(string(session.Name)), nil
+}
+
+// SimpleFSFolderEditHistory returns the edit history for the given TLF.
+func (k *SimpleFS) SimpleFSFolderEditHistory(
+	ctx context.Context, path keybase1.Path) (
+	res keybase1.FSFolderEditHistory, err error) {
+	ctx = k.makeContext(ctx)
+	t, tlfName, _, _, err := remoteTlfAndPath(path)
+	if err != nil {
+		return keybase1.FSFolderEditHistory{}, err
+	}
+	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), tlfName, t)
+	if err != nil {
+		return keybase1.FSFolderEditHistory{}, err
+	}
+
+	// Get the root node first to initialize the TLF.
+	node, _, err := k.config.KBFSOps().GetRootNode(
+		ctx, tlfHandle, libkbfs.MasterBranch)
+	if err != nil {
+		return keybase1.FSFolderEditHistory{}, err
+	}
+	if node == nil {
+		return keybase1.FSFolderEditHistory{}, nil
+	}
+
+	// Now get the edit history.
+	return k.config.KBFSOps().GetEditHistory(ctx, node.GetFolderBranch())
+}

@@ -25,9 +25,7 @@ import (
 	billy "gopkg.in/src-d/go-billy.v4"
 )
 
-func closeSimpleFS(ctx context.Context, t *testing.T, fs *SimpleFS) {
-	// Sync in-memory data to disk before shutting down and flushing
-	// the journal.
+func syncFS(ctx context.Context, t *testing.T, fs *SimpleFS) {
 	ctx, err := fs.startOpWrapContext(ctx)
 	require.NoError(t, err)
 	remoteFS, _, err := fs.getFS(ctx, keybase1.NewPathWithKbfs("/private/jdoe"))
@@ -38,7 +36,13 @@ func closeSimpleFS(ctx context.Context, t *testing.T, fs *SimpleFS) {
 		err = fs.SyncAll()
 	}
 	require.NoError(t, err)
-	err = fs.config.Shutdown(ctx)
+}
+
+func closeSimpleFS(ctx context.Context, t *testing.T, fs *SimpleFS) {
+	// Sync in-memory data to disk before shutting down and flushing
+	// the journal.
+	syncFS(ctx, t, fs)
+	err := fs.config.Shutdown(ctx)
 	require.NoError(t, err)
 }
 
@@ -645,4 +649,23 @@ func TestCopyProgress(t *testing.T) {
 
 	err = sfs.SimpleFSWait(ctx, opid)
 	require.NoError(t, err)
+}
+
+func TestTlfEditHistory(t *testing.T) {
+	ctx := context.Background()
+	sfs := newSimpleFS(
+		libkb.NewGlobalContext().Init(),
+		libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	defer closeSimpleFS(ctx, t, sfs)
+
+	path := keybase1.NewPathWithKbfs(`/private/jdoe`)
+	writeRemoteFile(ctx, t, sfs, pathAppend(path, `test1.txt`), []byte(`foo`))
+	writeRemoteFile(ctx, t, sfs, pathAppend(path, `test2.txt`), []byte(`foo`))
+	syncFS(ctx, t, sfs)
+
+	history, err := sfs.SimpleFSFolderEditHistory(ctx, path)
+	require.NoError(t, err)
+	require.Len(t, history.History, 1)
+	require.Equal(t, "jdoe", history.History[0].WriterName)
+	require.Len(t, history.History[0].Edits, 2)
 }
