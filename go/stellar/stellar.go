@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/bundle"
@@ -430,6 +431,12 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 	if err != nil {
 		return res, err
 	}
+
+	if err := ChatSendPaymentMessage(m, recipient, rres.KeybaseID); err != nil {
+		// if the chat message fails to send, just log the error
+		m.CDebugf("failed to send chat SendPayment message: %s", err)
+	}
+
 	return SendPaymentResult{
 		KbTxID:  rres.KeybaseID,
 		TxID:    rres.StellarID,
@@ -485,6 +492,12 @@ func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
 	if err != nil {
 		return res, err
 	}
+
+	if err := ChatSendPaymentMessage(m, recipient, rres.KeybaseID); err != nil {
+		// if the chat message fails to send, just log the error
+		m.CDebugf("failed to send chat SendPayment message: %s", err)
+	}
+
 	return SendPaymentResult{
 		KbTxID:      rres.KeybaseID,
 		TxID:        rres.StellarID,
@@ -1024,4 +1037,22 @@ func CreateNewAccount(m libkb.MetaContext, accountName string) (ret stellar1.Acc
 		return ret, err
 	}
 	return ret, remote.Post(m.Ctx(), m.G(), nextBundle)
+}
+
+func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipient, kbTxID stellar1.KeybaseTransactionID) error {
+	if recipient.User == nil {
+		// only send if recipient is keybase username
+		return nil
+	}
+
+	name := strings.Join([]string{m.CurrentUsername().String(), recipient.User.GetNormalizedName().String()}, ",")
+
+	msg := chat1.MessageSendPayment{
+		KbTxID: kbTxID.String(),
+	}
+
+	body := chat1.NewMessageBodyWithSendpayment(msg)
+
+	// identify already performed, so skip here
+	return m.G().ChatHelper.SendMsgByNameNonblock(m.Ctx(), name, nil, chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFIdentifyBehavior_CHAT_SKIP, body, chat1.MessageType_SENDPAYMENT)
 }
