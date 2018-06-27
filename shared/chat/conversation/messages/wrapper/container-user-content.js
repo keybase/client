@@ -8,8 +8,6 @@ import {setDisplayName, compose, connect, type TypedState} from '../../../../uti
 import {formatTimeForMessages} from '../../../../util/timestamp'
 import {isMobile} from '../../../../constants/platform'
 
-console.log('TESTING', WrapperUserContent)
-
 const howLongBetweenTimestampsMs = 1000 * 60 * 15
 
 const mapStateToProps = (state: TypedState, {message, previous, innerClass, isEditing}) => {

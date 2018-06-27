@@ -190,7 +190,7 @@ const RightSide = props => (
   </Box>
 )
 
-class MessageWrapper extends React.PureComponent<WrapperProps> {
+class MessageWrapper extends React.Component<WrapperProps> {
   render() {
     const props = this.props
     return (
@@ -203,9 +203,7 @@ class MessageWrapper extends React.PureComponent<WrapperProps> {
   }
 }
 
-class MessageWrapperUserContent extends React.PureComponent<
-  WrapperUserContentProps & FloatingMenuParentProps
-> {
+class MessageWrapperUserContent extends React.Component<WrapperUserContentProps & FloatingMenuParentProps> {
   componentDidUpdate(prevProps: WrapperUserContentProps) {
     if (this.props.measure) {
       if (
