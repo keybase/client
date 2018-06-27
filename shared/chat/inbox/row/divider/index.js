@@ -17,7 +17,7 @@ class Divider extends React.PureComponent<Props> {
       <Box style={this.props.style ? {..._toggleContainer, ...this.props.style} : _toggleContainer}>
         {this.props.showSmallTeamsExpandDivider && (
           <ClickableBox onClick={this.props.toggle} className="toggleButtonClass" style={_toggleButtonStyle}>
-            <Text type="BodySmallSemibold" style={_textStyle}>
+            <Text type="BodySmallSemibold" style={_buttonTextStyle}>
               {this.props.hiddenCount > 0 ? `+${this.props.hiddenCount} more` : 'Show less'}
             </Text>
             {this.props.hiddenCount > 0 &&
@@ -28,7 +28,7 @@ class Divider extends React.PureComponent<Props> {
         )}
         <Box style={_dividerStyle} />
         {!this.props.showSmallTeamsExpandDivider && (
-          <Text type="BodySmallSemibold" style={{padding: `4px ${globalMargins.tiny}px`}}>
+          <Text type="BodySmallSemibold" style={_dividerTextStyle}>
             Big teams
           </Text>
         )}
@@ -37,7 +37,7 @@ class Divider extends React.PureComponent<Props> {
   }
 }
 
-const _textStyle = {
+const _buttonTextStyle = {
   color: globalColors.black_60,
 }
 const _toggleButtonStyle = {
@@ -62,6 +62,13 @@ const _dividerStyle = {
   height: 1,
   marginTop: isMobile ? 16 : 8,
   width: '100%',
+}
+
+const _dividerTextStyle = {
+  marginTop: globalMargins.xtiny,
+  marginBottom: globalMargins.xtiny,
+  marginLeft: globalMargins.tiny,
+  marginRight: globalMargins.tiny,
 }
 
 const _toggleContainer = {
