@@ -107,12 +107,13 @@ const loadEverythingWaitingKey = 'wallets:loadEverything'
 
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
-const getAccount = (state: TypedState, accountID: Types.AccountID) =>
-  state.wallets.accountMap.get(accountID, makeAccount())
-
 const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 
-const getAssets = (state: TypedState, accountID: Types.AccountID) => state.wallets.assetsMap.get(accountID, I.List())
+const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
+  state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
+
+const getAssets = (state: TypedState, accountID?: Types.AccountID) =>
+  state.wallets.assetsMap.get(accountID || getSelectedAccount(state), I.List())
 
 export {
   accountResultToAccount,

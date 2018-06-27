@@ -175,19 +175,21 @@ type AssetsProps = {
   assets: Array<Props>,
 }
 
+const AssetHeader = () => (
+  <Box2
+    direction="vertical"
+    fullWidth={true}
+    style={{backgroundColor: globalColors.blue5, padding: globalMargins.xtiny}}
+  >
+    <Text type="BodySmallSemibold">Your assets</Text>
+  </Box2>
+)
+
 export class Assets extends React.Component<AssetsProps> {
   _renderRow = (i: number, row: Row): React.Node => {
     switch (row.type) {
       case 'header':
-        return (
-          <Box2
-            direction="vertical"
-            fullWidth={true}
-            style={{backgroundColor: globalColors.blue5, padding: globalMargins.xtiny}}
-          >
-            <Text type="BodySmallSemibold">Your assets</Text>
-          </Box2>
-        )
+        return <AssetHeader />
       case 'asset':
         return <AssetWrapped {...row.asset} />
       default:

@@ -1,15 +1,11 @@
 // @flow
 import {Assets} from '.'
 import {connect, type TypedState, type Dispatch} from '../../util/container'
-import {getAssets, getSelectedAccount} from '../../constants/wallets'
+import {getAssets} from '../../constants/wallets'
 
-const mapStateToProps = (state: TypedState) => {
-  const selectedAccount = getSelectedAccount(state)
-  const assets = getAssets(state, selectedAccount)
-  return {
-    assets,
-  }
-}
+const mapStateToProps = (state: TypedState) => ({
+  assets: getAssets(state),
+})
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({})
 
