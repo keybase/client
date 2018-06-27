@@ -11,8 +11,8 @@ import {
   platformStyles,
   styleSheetCreate,
 } from '../../../../../styles'
+import type {Props} from './index.types'
 import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
-import type {Props} from '.'
 
 const explodedIllustration = resolveRootAsURL('../images/icons/pattern-ashes-desktop-400-68.png')
 const explodedIllustrationUrl = urlsToImgSet({'68': explodedIllustration}, 68)

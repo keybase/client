@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Box2, Icon, Text, FloatingPicker} from '../../../../common-adapters/mobile.native'
 import {globalColors, globalMargins, styleSheetCreate} from '../../../../styles'
-import type {Props} from '.'
+import type {Props} from './index.types'
 
 const Announcement = () => (
   <Box2 direction="vertical" fullWidth={true} style={styles.announcementContainer}>
@@ -57,10 +57,15 @@ const promptContainerStyle = {
 
 type State = {selected: number}
 class SetExplodePopup extends React.Component<Props, State> {
-  state = {selected: 0}
+  constructor(props: Props) {
+    super(props)
+    this.state = {selected: props.selected || 0}
+  }
 
-  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
-    return {selected: nextProps.selected || 0}
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.selected !== prevProps.selected) {
+      this.setState({selected: this.props.selected || 0})
+    }
   }
 
   setSelected = (value: number | string) => {

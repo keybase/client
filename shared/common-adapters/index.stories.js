@@ -1,5 +1,4 @@
 // @flow
-import autosize from './autosize-input.stories'
 import avatar from './avatar.stories'
 import box from './box.stories'
 import button from './button.stories'
@@ -27,7 +26,6 @@ import text from './text.stories'
 const load = () => {
   ;[
     avatar,
-    autosize,
     box,
     button,
     buttonBar,

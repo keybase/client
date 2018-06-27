@@ -11,8 +11,8 @@ import {
 } from '../../../../../common-adapters/mobile.native'
 import {collapseStyles, globalColors, globalStyles, styleSheetCreate} from '../../../../../styles'
 import {isAndroid} from '../../../../../constants/platform'
+import type {Props} from './index.types'
 import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
-import type {Props} from '.'
 
 // If this image changes, some hard coded dimensions
 // in this file also need to change.
