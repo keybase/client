@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
-import {Avatar, Box, ClickableBox, Icon, Text} from '../../common-adapters'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {Box, Icon, Text} from '../../common-adapters'
 import AddNew from './add-new-container'
 import ConnectedBanner from '../banner/container'
 import Breadcrumb from './breadcrumb-container.desktop'

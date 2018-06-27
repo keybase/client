@@ -1,11 +1,10 @@
 // @flow
 import * as I from 'immutable'
 import * as React from 'react'
-import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
-import {Box, ClickableBox, Text, Icon} from '../../common-adapters'
+import {Box, ClickableBox, Text} from '../../common-adapters'
 import {navigateUp} from '../../actions/route-tree'
 import {connect, type Dispatch, type TypedState} from '../../util/container'
 import {type BarePreviewProps} from './bare-preview'

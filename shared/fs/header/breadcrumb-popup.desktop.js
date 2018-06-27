@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
 import {ClickableBox, Icon, Box, Text} from '../../common-adapters'
 import {globalMargins, globalStyles} from '../../styles'
 import {isMobile} from '../../constants/platform'

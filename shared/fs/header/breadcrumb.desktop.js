@@ -2,9 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
-import {Avatar, Box, ClickableBox, Icon, Text} from '../../common-adapters'
-import AddNew from './add-new-container'
-import ConnectedBanner from '../banner/container'
+import {Avatar, Box, Icon, Text} from '../../common-adapters'
 import BreadcrumbPopup from './breadcrumb-popup.desktop'
 
 type Props = {
@@ -52,7 +50,6 @@ const Breadcrumb = ({dropdownItems, shownItems}: Props) => (
 
 const stylesContainer = {
   ...globalStyles.flexBoxRow,
-  alignItems: 'center',
   left: 0,
   right: 0,
   flexGrow: 1,
