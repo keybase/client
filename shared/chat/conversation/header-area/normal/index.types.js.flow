@@ -1,0 +1,16 @@
+// @flow
+export type Props = {|
+  badgeNumber?: number,
+  canOpenInfoPanel: boolean,
+  channelName: ?string,
+  muted: boolean,
+  onCancelPending: () => void,
+  onBack: () => void,
+  onOpenFolder: null | (() => void),
+  onShowProfile: (user: string) => void,
+  onToggleInfoPanel: () => void,
+  infoPanelOpen: boolean,
+  teamName: ?string,
+  participants: Array<string>,
+  smallTeam: boolean,
+|}

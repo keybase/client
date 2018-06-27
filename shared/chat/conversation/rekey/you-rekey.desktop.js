@@ -2,8 +2,7 @@
 import * as React from 'react'
 import {Box, Button, Text, ButtonBar} from '../../../common-adapters'
 import {globalColors, globalStyles} from '../../../styles'
-
-import type {Props} from './you-rekey'
+import type {Props} from './you-rekey.types'
 
 const YouRekey = ({onRekey}: Props) => {
   return (

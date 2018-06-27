@@ -1,25 +1,6 @@
 // @flow
-import * as React from 'react'
+import type {Props, Position} from './relative-popup-hoc.types'
 
-export type Position =
-  | 'top left'
-  | 'top right'
-  | 'bottom right'
-  | 'bottom left'
-  | 'right center'
-  | 'left center'
-  | 'top center'
-  | 'bottom center'
-
-export type RelativePopupProps<PP: {}> = {
-  targetRect: ?ClientRect,
-  position: Position,
-  style?: Object,
-} & PP
-
-export type RelativePopupHocType<PP> = (
-  PopupComponent: React.ComponentType<PP>
-) => React.ComponentType<RelativePopupProps<PP>>
-
-declare var RelativePopupHoc: RelativePopupHocType<any>
+declare var RelativePopupHoc: Props<any>
 export default RelativePopupHoc
+export type {Position, Props}

@@ -2,8 +2,7 @@
 import * as React from 'react'
 import {Box, Avatar, Usernames, Text} from '../../../common-adapters'
 import {globalColors, globalStyles, globalMargins, platformStyles, desktopStyles} from '../../../styles'
-
-import type {Props} from './participant-rekey'
+import type {Props} from './participant-rekey.types'
 
 const Row = ({username, onUsernameClicked}) => (
   <Box style={rowStyle} onClick={() => onUsernameClicked(username)}>
