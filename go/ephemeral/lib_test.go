@@ -183,7 +183,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 
 		teamEKNeeded, err := ekLib.NewTeamEKNeeded(context.Background(), teamID)
 		require.NoError(t, err)
-		require.Equal(t, teamEKCreationInProgress, teamEKNeeded)
+		require.False(t, teamEKNeeded)
 	}
 
 	// If we retry keygen, we don't regenerate keys
@@ -251,22 +251,30 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	expectedTeamEKGen++
 	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, false /* teamEKCreationInProgress */)
 
-	// Expire our cache entry so we can test background creation.
-	fc.Advance(cacheEntryLifetime)
+	// Fake the teamEK creation time so we are forced to generate a new one.
+	forceEKCtime := func(generation keybase1.EkGeneration, d time.Duration) {
+		rawTeamEKBoxStorage.Get(context.Background(), teamID, generation)
+		teamEKBoxes, found, err := rawTeamEKBoxStorage.getMap(context.Background(), teamID)
+		require.NoError(t, err)
+		require.True(t, found)
+		teamEKBoxed, ok := teamEKBoxes[generation]
+		require.True(t, ok)
+		teamEKBoxed.Metadata.Ctime = keybase1.ToTime(teamEKBoxed.Metadata.Ctime.Time().Add(d))
+		err = teamEKBoxStorage.Put(context.Background(), teamID, generation, teamEKBoxed)
+		require.NoError(t, err)
+	}
+
+	// First we ensure that we don't do background generation for expired teamEKs.
+	fc.Advance(cacheEntryLifetime) // expire our cache
+	forceEKCtime(expectedTeamEKGen, -time.Second*time.Duration(KeyGenLifetimeSecs))
+	expectedTeamEKGen++
+	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, false /* teamEKCreationInProgress */)
+
+	// If we are *almost* expired, background generation is possible.
 	ch := make(chan bool, 1)
 	ekLib.setBackgroundCreationTestCh(ch)
-
-	// Fake the teamEK creation time so we are forced to generate a new one.
-	rawTeamEKBoxStorage.Get(context.Background(), teamID, expectedTeamEKGen)
-	teamEKBoxes, found, err := rawTeamEKBoxStorage.getMap(context.Background(), teamID)
-	require.NoError(t, err)
-	require.True(t, found)
-	teamEKBoxed, ok := teamEKBoxes[expectedTeamEKGen]
-	require.True(t, ok)
-	teamEKBoxed.Metadata.Ctime = keybase1.ToTime(teamEKBoxed.Metadata.Ctime.Time().Add(-time.Second * time.Duration(2*KeyGenLifetimeSecs)))
-	err = teamEKBoxStorage.Put(context.Background(), teamID, expectedTeamEKGen, teamEKBoxed)
-	require.NoError(t, err)
-
+	fc.Advance(cacheEntryLifetime) // expire our cache
+	forceEKCtime(expectedTeamEKGen, -time.Second*time.Duration(KeyGenLifetimeSecs)+(30*time.Minute))
 	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, true /* teamEKCreationInProgress */)
 	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, true /* teamEKCreationInProgress */)
 	// Signal background generation should start

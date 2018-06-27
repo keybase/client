@@ -310,7 +310,10 @@ func (e *EKLib) newTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID, mer
 	}
 	// Ok we can access the ek, check lifetime.
 	e.G().Log.CDebugf(ctx, "nextTeamEKNeeded at: %v", nextKeygenTime(ek.Metadata.Ctime))
-	return keygenNeeded(ek.Metadata.Ctime, merkleRoot), true, latestGeneration, nil
+	if backgroundKeygenPossible(ek.Metadata.Ctime.Time(), merkleRoot) {
+		return false, true, latestGeneration, nil
+	}
+	return keygenNeeded(ek.Metadata.Ctime, merkleRoot), false, latestGeneration, nil
 }
 
 type teamEKGenCacheEntry struct {
@@ -404,43 +407,41 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 	teamEKNeeded, backgroundGenPossible, latestGeneration, err := e.newTeamEKNeeded(ctx, teamID, merkleRoot)
 	if err != nil {
 		return teamEK, err
-	} else if teamEKNeeded {
-		// Our current teamEK is expired but otherwise valid, so let's create
-		// the new teamEK in the background.  For large teams and an empty UPAK
-		// cache it can be expensive to do this calculation and it's
+	} else if backgroundGenPossible {
+		// Our current teamEK is *almost* expired but otherwise valid, so let's
+		// create the new teamEK in the background. For large teams and an
+		// empty UPAK cache it can be expensive to do this calculation and it's
 		// unfortunate to block message sending while we otherwise have access
 		// to a working teamEK.
-		if backgroundGenPossible {
-			go func() {
-				if e.backgroundCreationTestCh != nil {
-					select {
-					case <-e.backgroundCreationTestCh:
-					}
+		go func() {
+			if e.backgroundCreationTestCh != nil {
+				select {
+				case <-e.backgroundCreationTestCh:
 				}
-
-				publishedMetadata, err := publishNewTeamEK(ctx, e.G(), teamID, merkleRoot)
-				// Grab the lock once we finish publishing so we do don't block
-				e.Lock()
-				defer e.Unlock()
-				if err != nil {
-					// Let's just clear the cache and try again later
-					e.G().Log.CDebugf(ctx, "Unable to GetOrCreateLatestTeamEK in the background: %v", err)
-					e.teamEKGenCache.Remove(cacheKey)
-				} else {
-					e.teamEKGenCache.Add(cacheKey, e.newCacheEntry(publishedMetadata.Generation, false))
-				}
-
-				if e.backgroundCreationTestCh != nil {
-					e.backgroundCreationTestCh <- true
-				}
-			}()
-		} else {
-			publishedMetadata, err := publishNewTeamEK(ctx, e.G(), teamID, merkleRoot)
-			if err != nil {
-				return teamEK, err
 			}
-			latestGeneration = publishedMetadata.Generation
+
+			publishedMetadata, err := publishNewTeamEK(ctx, e.G(), teamID, merkleRoot)
+			// Grab the lock once we finish publishing so we do don't block
+			e.Lock()
+			defer e.Unlock()
+			if err != nil {
+				// Let's just clear the cache and try again later
+				e.G().Log.CDebugf(ctx, "Unable to GetOrCreateLatestTeamEK in the background: %v", err)
+				e.teamEKGenCache.Remove(cacheKey)
+			} else {
+				e.teamEKGenCache.Add(cacheKey, e.newCacheEntry(publishedMetadata.Generation, false))
+			}
+
+			if e.backgroundCreationTestCh != nil {
+				e.backgroundCreationTestCh <- true
+			}
+		}()
+	} else if teamEKNeeded {
+		publishedMetadata, err := publishNewTeamEK(ctx, e.G(), teamID, merkleRoot)
+		if err != nil {
+			return teamEK, err
 		}
+		latestGeneration = publishedMetadata.Generation
 	}
 
 	teamEK, err = teamEKBoxStorage.Get(ctx, teamID, latestGeneration)
