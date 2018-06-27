@@ -36,7 +36,7 @@ function usernameText({
   const commaStyle = collapseStyles([style, styles.joinerStyle, {color: commaColor}])
   return users.map((u, i) => {
     let userStyle = {
-      ...(!isMobile ? {textDecoration: 'inherit'} : null),
+      ...(!isMobile ? {textDecoration: 'inherit', fontWeight: 'inherit'} : null),
       ...(colorFollowing && !u.you ? {color: u.following ? globalColors.green2 : globalColors.blue} : null),
       ...(colorBroken && u.broken && !u.you ? {color: redColor || globalColors.red} : null),
       ...(inline && !isMobile ? {display: 'inline'} : null),
@@ -52,7 +52,7 @@ function usernameText({
     // on native. (See DESKTOP-3963.)
     const _onUsernameClicked = onUsernameClicked
     return (
-      <Text type={type} key={u.username} style={styles.usersContainerStyle}>
+      <Text type={type} key={u.username}>
         {i !== 0 && <Text type={type}>&nbsp;</Text>}
         {i !== 0 &&
           i === users.length - 1 &&
@@ -206,7 +206,6 @@ const styles = styleSheetCreate({
   joinerStyle: platformStyles({
     isElectron: {
       textDecoration: 'none',
-      fontWeight: 'inherit',
     },
   }),
   inlineStyle: platformStyles({
@@ -216,7 +215,6 @@ const styles = styleSheetCreate({
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
       width: '100%',
-      fontWeight: 'inherit',
     },
   }),
   nonInlineStyle: platformStyles({
@@ -226,11 +224,7 @@ const styles = styleSheetCreate({
     },
     isElectron: {
       textDecoration: 'inherit',
-      fontWeight: 'inherit',
     },
-  }),
-  usersContainerStyle: platformStyles({
-    isElectron: {fontWeight: 'inherit'},
   }),
 })
 
