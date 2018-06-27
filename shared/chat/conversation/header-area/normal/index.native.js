@@ -33,10 +33,7 @@ const Wrapper = (props: {
     </ClickableBox>
     <Box2
       direction="vertical"
-      style={collapseStyles([
-        styles.contentContainer,
-        !!props.badgeNumber && {paddingLeft: globalMargins.tiny, paddingRight: globalMargins.tiny},
-      ])}
+      style={collapseStyles([styles.contentContainer, !!props.badgeNumber && styles.extraCenterPadding])}
     >
       {props.children}
     </Box2>
@@ -126,6 +123,7 @@ const styles = styleSheetCreate({
     paddingBottom: globalMargins.tiny,
     paddingTop: globalMargins.tiny,
   },
+  extraCenterPadding: {paddingLeft: globalMargins.tiny, paddingRight: globalMargins.tiny},
   leftMargin: {
     ...marginStyle,
     justifyContent: 'flex-start',
