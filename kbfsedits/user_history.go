@@ -23,57 +23,19 @@ type tlfKey struct {
 	tlfType tlf.Type
 }
 
-type tlfWithHistory struct {
-	key     tlfKey
-	history writersByRevision
-}
-
-type tlfByTime struct {
-	histories []tlfWithHistory
-	indices   map[tlfKey]int
-}
-
-func (tbm tlfByTime) Len() int {
-	return len(tbm.histories)
-}
-
-func (tbm tlfByTime) Less(i, j int) bool {
-	iHistory := tbm.histories[i].history
-	jHistory := tbm.histories[j].history
-
-	if len(iHistory) == 0 || len(iHistory[0].notifications) == 0 {
-		return false
-	} else if len(jHistory) == 0 || len(jHistory[0].notifications) == 0 {
-		return true
-	}
-
-	iTime := iHistory[0].notifications[0].Time
-	jTime := jHistory[0].notifications[0].Time
-
-	return iTime.After(jTime)
-}
-
-func (tbm tlfByTime) Swap(i, j int) {
-	tbm.histories[i], tbm.histories[j] = tbm.histories[j], tbm.histories[i]
-	tbm.indices[tbm.histories[i].key] = i
-	tbm.indices[tbm.histories[j].key] = j
-}
-
 // UserHistory keeps a sorted list of the top known TLF edit
 // histories, and can convert those histories into keybase1 protocol
 // structs.  TLF histories must be updated by an external caller
 // whenever they change.
 type UserHistory struct {
-	lock sync.RWMutex
-	tlfs tlfByTime
+	lock      sync.RWMutex
+	histories map[tlfKey]writersByRevision
 }
 
 // NewUserHistory constructs a UserHistory instance.
 func NewUserHistory() *UserHistory {
 	return &UserHistory{
-		tlfs: tlfByTime{
-			indices: make(map[tlfKey]int),
-		},
+		histories: make(map[tlfKey]writersByRevision),
 	}
 }
 
@@ -86,25 +48,17 @@ func (uh *UserHistory) UpdateHistory(
 
 	uh.lock.Lock()
 	defer uh.lock.Unlock()
-	if currIndex, ok := uh.tlfs.indices[key]; ok {
-		uh.tlfs.histories[currIndex].history = history
-	} else {
-		uh.tlfs.indices[key] = len(uh.tlfs.indices)
-		uh.tlfs.histories = append(
-			uh.tlfs.histories, tlfWithHistory{key, history})
-	}
-	sort.Sort(uh.tlfs)
+	uh.histories[key] = history
 }
 
 func (uh *UserHistory) getTlfHistoryLocked(
 	tlfName tlf.CanonicalName, tlfType tlf.Type) (
 	history keybase1.FSFolderEditHistory) {
 	key := tlfKey{tlfName, tlfType}
-	currIndex, ok := uh.tlfs.indices[key]
+	tlfHistory, ok := uh.histories[key]
 	if !ok {
 		return keybase1.FSFolderEditHistory{}
 	}
-	tlfHistory := uh.tlfs.histories[currIndex].history
 
 	folder := keybase1.Folder{
 		Name:       string(tlfName),
@@ -174,8 +128,8 @@ func (uh *UserHistory) Get() (history []keybase1.FSFolderEditHistory) {
 	defer uh.lock.RUnlock()
 
 	var clusters historyClusters
-	for _, h := range uh.tlfs.histories {
-		history := uh.getTlfHistoryLocked(h.key.tlfName, h.key.tlfType)
+	for key := range uh.histories {
+		history := uh.getTlfHistoryLocked(key.tlfName, key.tlfType)
 
 		// Break it up into individual clusters
 		for _, wh := range history.History {
@@ -204,7 +158,5 @@ func (uh *UserHistory) Get() (history []keybase1.FSFolderEditHistory) {
 func (uh *UserHistory) Clear() {
 	uh.lock.Lock()
 	defer uh.lock.Unlock()
-	uh.tlfs = tlfByTime{
-		indices: make(map[tlfKey]int),
-	}
+	uh.histories = make(map[tlfKey]writersByRevision)
 }
