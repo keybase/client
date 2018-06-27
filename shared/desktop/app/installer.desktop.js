@@ -3,7 +3,7 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import exec from './exec.desktop'
 import {keybaseBinPath} from './paths.desktop'
 import {quit} from './ctl.desktop'
-import {isWindows} from '../../constants/platform'
+import {isLinux, isWindows} from '../../constants/platform'
 import logger from '../../logger'
 import {
   ExitCodeFuseKextError,
@@ -45,8 +45,8 @@ type CheckErrorsResult = {
 // Reminder: hot-server doesn't reload code in here (/desktop)
 export default (callback: (err: any) => void): void => {
   logger.info('Installer check starting now')
-  if (isWindows) {
-    logger.info('Skipping installer on win32')
+  if (isWindows || isLinux) {
+    logger.info('Skipping installer on this platform')
     callback(null)
     return
   }

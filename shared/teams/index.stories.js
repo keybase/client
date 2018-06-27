@@ -1,5 +1,5 @@
 // @flow
-import main from './main/index.stories.js'
+import main from './main/index.stories'
 import editTeamDescription from './edit-team-description/index.stories'
 import settings from './team/settings-tab/index.stories'
 import retention from './team/settings-tab/retention/index.stories'

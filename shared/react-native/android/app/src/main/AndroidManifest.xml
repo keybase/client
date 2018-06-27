@@ -62,6 +62,9 @@
               <action android:name="com.google.android.c2dm.intent.RECEIVE" />
           </intent-filter>
       </service>
+      <service android:name="com.evernote.android.job.gcm.PlatformGcmService"
+          android:enabled="true"
+          tools:replace="android:enabled"/>
       <provider
           android:name="io.keybase.ossifrage.util.SharedFileProvider"
           android:authorities="${applicationId}.fileprovider"

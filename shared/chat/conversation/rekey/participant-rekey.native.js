@@ -10,8 +10,7 @@ import {
   ClickableBox,
 } from '../../../common-adapters/mobile.native'
 import {globalColors, globalStyles, globalMargins, desktopStyles} from '../../../styles'
-
-import type {Props} from './participant-rekey'
+import type {Props} from './participant-rekey.types'
 
 const Row = ({username, onUsernameClicked}) => (
   <ClickableBox onClick={() => onUsernameClicked(username)}>

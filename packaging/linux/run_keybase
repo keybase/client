@@ -10,6 +10,16 @@ runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
 mkdir -p "$runtime_dir"
 startup_token="$runtime_dir/startup_mode"
 
+set_autostart_vars() {
+    # To keep the autostart file stable, so that we don't have to stomp on user
+    # edits, we group everything we need to do on autostart under this one
+    # variable, which the autostart file sets.
+    if [ "${KEYBASE_AUTOSTART:-}" = 1 ] ; then
+        export KEYBASE_START_UI=hideWindow
+        export XDG_CURRENT_DESKTOP=Unity
+    fi
+}
+
 set_empty_mountdir_to_default() {
     # Set the mount point to a default value if a) nothing is set yet,
     # or b) both are set to the old default.
@@ -243,6 +253,8 @@ warn_if_weird_path() {
 }
 
 main() {
+  set_autostart_vars
+
   warn_if_weird_path
 
   # Always stop any running services. With systemd, we could've decided to just

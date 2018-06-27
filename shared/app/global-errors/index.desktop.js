@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import logger from '../../logger'
 import {Box, Text, Icon, HOCTimers, type PropsWithTimer} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles, transition} from '../../styles'
-import {ignoreDisconnectOverlay} from '../../local-debug.desktop.js'
+import {ignoreDisconnectOverlay} from '../../local-debug.desktop'
 import {RPCError} from '../../util/errors'
 
 import type {Props as _Props} from './index.types'
