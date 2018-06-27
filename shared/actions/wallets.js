@@ -43,36 +43,12 @@ const loadPaymentsSuccess = (res: any, action: WalletsGen.LoadPaymentsPayload) =
   )
 }
 
-const loadAccount = (action: WalletsGen.SelectAccountPayload) =>
-  Saga.all([
-    Saga.put(WalletsGen.createLoadAssets({accountID: action.payload.accountID})),
-    Saga.put(WalletsGen.createLoadPayments({accountID: action.payload.accountID})),
-  ])
-
-function* loadEverything(action: WalletsGen.LoadEverythingPayload) {
-  if (__DEV__) {
-    yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.loadEverythingWaitingKey}))
-    yield Saga.put(WalletsGen.createLoadAccounts())
-    yield Saga.take(WalletsGen.accountsReceived)
-    const state: TypedState = yield Saga.select()
-    const accounts = state.wallets.accountMap.keys()
-    for (const accountID of accounts) {
-      yield Saga.put(WalletsGen.createLoadAssets({accountID}))
-      yield Saga.put(WalletsGen.createLoadPayments({accountID}))
-    }
-    yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.loadEverythingWaitingKey}))
-  }
-}
-
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(WalletsGen.loadAccounts, loadAccounts, loadAccountsSuccess)
-  yield Saga.safeTakeEveryPure(WalletsGen.selectAccount, loadAccount)
   yield Saga.safeTakeEveryPure(WalletsGen.loadAssets, loadAssets, loadAssetsSuccess)
   yield Saga.safeTakeEveryPure(WalletsGen.loadPayments, loadPayments, loadPaymentsSuccess)
-  // Debugging saga -- remove before launching.
-  if (__DEV__) {
-    yield Saga.safeTakeEvery(WalletsGen.loadEverything, loadEverything)
-  }
+  yield Saga.safeTakeEveryPure(WalletsGen.selectAccount, loadAssets, loadAssetsSuccess)
+  yield Saga.safeTakeEveryPure(WalletsGen.selectAccount, loadPayments, loadPaymentsSuccess)
 }
 
 export default walletsSaga
