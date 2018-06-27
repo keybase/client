@@ -14,10 +14,8 @@ type State = {|
 |}
 
 class Devicename extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super(props)
-    this.state = {devicename: this.props.devicename}
-  }
+  state = {devicename: this.props.devicename}
+
   _onSubmit = () => {
     this.props.onSubmit(this.state.devicename)
   }

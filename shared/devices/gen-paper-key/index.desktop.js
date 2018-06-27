@@ -53,22 +53,13 @@ class SuccessRender extends Component<Props, State> {
             This is the only time you'll see this so be sure to write it down.
           </Text>
           {contents}
-          {this.props.onFinish && (
-            <Checkbox
-              style={stylesCheck}
-              label="Yes, I wrote this down."
-              checked={this.state.inWallet}
-              onCheck={inWallet => this.setState({inWallet})}
-            />
-          )}
-          {this.props.onFinish && (
-            <Button
-              type="Primary"
-              label="Done"
-              onClick={this.props.onFinish}
-              disabled={!this.state.inWallet}
-            />
-          )}
+          <Checkbox
+            style={stylesCheck}
+            label="Yes, I wrote this down."
+            checked={this.state.inWallet}
+            onCheck={inWallet => this.setState({inWallet})}
+          />
+          <Button type="Primary" label="Done" onClick={this.props.onFinish} disabled={!this.state.inWallet} />
         </Box2>
       </Box2>
     )
