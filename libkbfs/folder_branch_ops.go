@@ -825,6 +825,9 @@ func (fbo *folderBranchOps) setHeadLocked(
 				go fbo.registerAndWaitForUpdates()
 			}
 			if fbo.config.Mode().TLFEditHistoryEnabled() {
+				// The first event should initialize all the data.
+				fbo.editActivity.Add(1)
+				fbo.editChannels <- editChannelActivity{nil, "", ""}
 				go fbo.monitorEditsChat()
 			}
 		}
@@ -6757,8 +6760,13 @@ func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 
 // GetEditHistory implements the KBFSOps interface for folderBranchOps
 func (fbo *folderBranchOps) GetEditHistory(
-	_ context.Context, _ FolderBranch) (
+	ctx context.Context, _ FolderBranch) (
 	tlfHistory keybase1.FSFolderEditHistory, err error) {
+	// Wait for any outstanding edit requests.
+	if err := fbo.editActivity.Wait(ctx); err != nil {
+		return keybase1.FSFolderEditHistory{}, err
+	}
+
 	lState := makeFBOLockState()
 	md, _ := fbo.getHead(lState)
 	name := md.GetTlfHandle().GetCanonicalName()
@@ -7077,8 +7085,9 @@ func (fbo *folderBranchOps) monitorEditsChat() {
 	md, _ := fbo.getHead(lState)
 	tlfName := md.GetTlfHandle().GetCanonicalName()
 
-	idToName, nameToID, nameToNextPage := fbo.initEditChatChannels(ctx, tlfName)
-	fbo.recomputeEditHistory(ctx, tlfName, nameToID, nameToNextPage)
+	idToName := make(map[string]string)
+	nameToID := make(map[string]chat1.ConversationID)
+	nameToNextPage := make(map[string][]byte)
 
 	for {
 		select {
