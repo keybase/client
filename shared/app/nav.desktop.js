@@ -33,7 +33,7 @@ type Props = {
   routePath: I.List<string>,
 }
 
-const hotKeyTabMap: {[string]: Tab} = {
+const hotkeyTabMap: {[string]: Tab} = {
   '1': peopleTab,
   '2': chatTab,
   '3': fsTab,
@@ -41,12 +41,10 @@ const hotKeyTabMap: {[string]: Tab} = {
   '5': devicesTab,
   '6': gitTab,
   '7': settingsTab,
-}
-if (flags.walletsEnabled) {
-  hotKeyTabMap['8'] = walletsTab
+  ...(flags.walletsEnabled ? {'8': walletsTab} : {}),
 }
 
-const hotkeys = Object.keys(hotKeyTabMap).map(key => `${isDarwin ? 'command' : 'control'}+${key}`)
+const hotkeys = Object.keys(hotkeyTabMap).map(key => `${isDarwin ? 'command' : 'control'}+${key}`)
 
 class Nav extends React.Component<Props> {
   render() {
@@ -92,8 +90,9 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onHotkey: (cmd: string) => {
-    if (hotkeys.includes(cmd)) {
-      dispatch(navigateTo([hotKeyTabMap[cmd.replace(/(command|control)\+/, '')]]))
+    const tab = hotkeyTabMap[cmd.replace(/(command|control)\+/, '')]
+    if (tab) {
+      dispatch(navigateTo([tab]))
     }
   },
 })
