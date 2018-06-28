@@ -15,6 +15,9 @@ func (t *Team) ExportToTeamPlusApplicationKeys(ctx context.Context, idTime keyba
 	var applicationKeys []keybase1.TeamApplicationKey
 	loadKeys := true
 	if t.IsPublic() {
+		// If it's a public team, only try to load application keys if
+		// we are a member. If we are not, we should still be able to
+		// get team details using this func (and get an empty key list).
 		role, err := t.myRole(ctx)
 		loadKeys = err == nil && role != keybase1.TeamRole_NONE
 	}
