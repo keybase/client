@@ -85,6 +85,16 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "ParticipantType",
+      "symbols": [
+        "NONE_0",
+        "KEYBASE_1",
+        "STELLAR_2",
+        "SBS_3"
+      ]
+    },
+    {
       "type": "record",
       "name": "PaymentLocal",
       "fields": [
@@ -113,6 +123,10 @@
           "name": "amountDescription"
         },
         {
+          "type": "string",
+          "name": "amountValue"
+        },
+        {
           "type": "BalanceDelta",
           "name": "delta"
         },
@@ -129,7 +143,7 @@
           "name": "source"
         },
         {
-          "type": "string",
+          "type": "ParticipantType",
           "name": "sourceType"
         },
         {
@@ -137,7 +151,7 @@
           "name": "target"
         },
         {
-          "type": "string",
+          "type": "ParticipantType",
           "name": "targetType"
         },
         {
@@ -219,6 +233,10 @@
           "name": "amountDescription"
         },
         {
+          "type": "string",
+          "name": "amountValue"
+        },
+        {
           "type": "BalanceDelta",
           "name": "delta"
         },
@@ -235,7 +253,7 @@
           "name": "source"
         },
         {
-          "type": "string",
+          "type": "ParticipantType",
           "name": "sourceType"
         },
         {
@@ -243,7 +261,7 @@
           "name": "target"
         },
         {
-          "type": "string",
+          "type": "ParticipantType",
           "name": "targetType"
         },
         {

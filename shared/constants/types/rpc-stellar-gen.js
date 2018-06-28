@@ -45,6 +45,13 @@ export const localBalanceDelta = {
   decrease: 2,
 }
 
+export const localParticipantType = {
+  none: 0,
+  keybase: 1,
+  stellar: 2,
+  sbs: 3,
+}
+
 export const localPaymentStatus = {
   none: 0,
   pending: 1,
@@ -138,11 +145,17 @@ export type OutsideCurrencyDefinition = $ReadOnly<{name: String, symbol: Currenc
 export type OutsideExchangeRate = $ReadOnly<{currency: OutsideCurrencyCode, rate: String}>
 export type OwnAccountCLILocal = $ReadOnly<{accountID: AccountID, isPrimary: Boolean, name: String, balance?: ?Array<Balance>, exchangeRate?: ?OutsideExchangeRate}>
 export type PageCursor = $ReadOnly<{horizonCursor: String, directCursor: String, relayCursor: String}>
+export type ParticipantType =
+  | 0 // NONE_0
+  | 1 // KEYBASE_1
+  | 2 // STELLAR_2
+  | 3 // SBS_3
+
 export type PaymentCLILocal = $ReadOnly<{txID: TransactionID, time: TimeMs, status: String, statusDetail: String, amount: String, asset: Asset, displayAmount?: ?String, displayCurrency?: ?String, fromStellar: AccountID, toStellar?: ?AccountID, fromUsername?: ?String, toUsername?: ?String, toAssertion?: ?String, note: String, noteErr: String}>
 export type PaymentDetails = $ReadOnly<{summary: PaymentSummary, memo: String, memoType: String}>
-export type PaymentDetailsLocal = $ReadOnly<{id: TransactionID, time: TimeMs, statusSimplified: PaymentStatus, statusDescription: String, statusDetail: String, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, source: String, sourceType: String, target: String, targetType: String, note: String, noteErr: String, publicNote: String, publicNoteType: String}>
+export type PaymentDetailsLocal = $ReadOnly<{id: TransactionID, time: TimeMs, statusSimplified: PaymentStatus, statusDescription: String, statusDetail: String, amountDescription: String, amountValue: String, delta: BalanceDelta, worth: String, worthCurrency: String, source: String, sourceType: ParticipantType, target: String, targetType: ParticipantType, note: String, noteErr: String, publicNote: String, publicNoteType: String}>
 export type PaymentDirectPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, displayAmount: String, displayCurrency: String, noteB64: String, signedTransaction: String, quickReturn: Boolean}>
-export type PaymentLocal = $ReadOnly<{id: TransactionID, time: TimeMs, statusSimplified: PaymentStatus, statusDescription: String, statusDetail: String, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, source: String, sourceType: String, target: String, targetType: String, note: String, noteErr: String}>
+export type PaymentLocal = $ReadOnly<{id: TransactionID, time: TimeMs, statusSimplified: PaymentStatus, statusDescription: String, statusDetail: String, amountDescription: String, amountValue: String, delta: BalanceDelta, worth: String, worthCurrency: String, source: String, sourceType: ParticipantType, target: String, targetType: ParticipantType, note: String, noteErr: String}>
 export type PaymentOrErrorCLILocal = $ReadOnly<{payment?: ?PaymentCLILocal, err?: ?String}>
 export type PaymentOrErrorLocal = $ReadOnly<{payment?: ?PaymentLocal, err?: ?String}>
 export type PaymentRelayPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, toAssertion: String, relayAccount: AccountID, teamID: Keybase1.TeamID, displayAmount: String, displayCurrency: String, boxB64: String, signedTransaction: String, quickReturn: Boolean}>

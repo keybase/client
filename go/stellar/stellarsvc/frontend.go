@@ -314,6 +314,7 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		StatusDescription: summary.StatusDescription,
 		StatusDetail:      summary.StatusDetail,
 		AmountDescription: summary.AmountDescription,
+		AmountValue:       summary.AmountValue,
 		Delta:             summary.Delta,
 		Worth:             summary.Worth,
 		WorthCurrency:     summary.WorthCurrency,
@@ -355,9 +356,9 @@ func (s *Server) transformPaymentStellar(ctx context.Context, acctID stellar1.Ac
 	}
 
 	loc.Source = p.From.String()
-	loc.SourceType = ParticipantTypeStellar
+	loc.SourceType = stellar1.ParticipantType_STELLAR
 	loc.Target = p.To.String()
-	loc.TargetType = ParticipantTypeStellar
+	loc.TargetType = stellar1.ParticipantType_STELLAR
 
 	loc.StatusSimplified = stellar1.PaymentStatus_COMPLETED
 	loc.StatusDescription = strings.ToLower(loc.StatusSimplified.String())
@@ -415,10 +416,10 @@ func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.Acco
 			return nil, errors.New("recipient lookup failed")
 		}
 		loc.Target = name
-		loc.TargetType = ParticipantTypeKeybase
+		loc.TargetType = stellar1.ParticipantType_KEYBASE
 	} else {
 		loc.Target = p.ToAssertion
-		loc.TargetType = ParticipantTypeSBS
+		loc.TargetType = stellar1.ParticipantType_SBS
 	}
 
 	if p.TxStatus != stellar1.TransactionStatus_SUCCESS {
@@ -436,10 +437,10 @@ func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.Acco
 			name, err := s.lookupUsername(ctx, p.Claim.To.Uid)
 			if err == nil {
 				loc.Target = name
-				loc.TargetType = ParticipantTypeKeybase
+				loc.TargetType = stellar1.ParticipantType_KEYBASE
 			} else {
 				loc.Target = p.Claim.ToStellar.String()
-				loc.TargetType = ParticipantTypeStellar
+				loc.TargetType = stellar1.ParticipantType_STELLAR
 			}
 		} else {
 			claimantUsername, err := s.lookupUsername(ctx, p.Claim.To.Uid)
@@ -465,12 +466,12 @@ func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.Acco
 	return loc, nil
 }
 
-func (s *Server) lookupUsernameFallback(ctx context.Context, uid keybase1.UID, acctID stellar1.AccountID) (name, kind string) {
+func (s *Server) lookupUsernameFallback(ctx context.Context, uid keybase1.UID, acctID stellar1.AccountID) (name string, kind stellar1.ParticipantType) {
 	name, err := s.lookupUsername(ctx, uid)
 	if err == nil {
-		return name, ParticipantTypeKeybase
+		return name, stellar1.ParticipantType_KEYBASE
 	}
-	return acctID.String(), ParticipantTypeStellar
+	return acctID.String(), stellar1.ParticipantType_STELLAR
 }
 
 func (s *Server) lookupUsername(ctx context.Context, uid keybase1.UID) (string, error) {
@@ -1107,6 +1108,10 @@ func newPaymentLocal(txID stellar1.TransactionID, ctime stellar1.TimeMs, amount 
 	}
 
 	loc.AmountDescription = formatted
+	loc.AmountValue, err = stellar.FormatAmountXLM(amount)
+	if err != nil {
+		return nil, err
+	}
 
 	return loc, nil
 }
