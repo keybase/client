@@ -91,7 +91,11 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onHotkey: (cmd: string) => dispatch(navigateTo([hotKeyTabMap[cmd.replace(/(command|control)\+/, '')]])),
+  _onHotkey: (cmd: string) => {
+    if (hotkeys.includes(cmd)) {
+      dispatch(navigateTo([hotKeyTabMap[cmd.replace(/(command|control)\+/, '')]]))
+    }
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => {
