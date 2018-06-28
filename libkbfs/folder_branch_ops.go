@@ -6922,13 +6922,11 @@ func (fbo *folderBranchOps) initEditChatChannels(
 	ctx context.Context, name tlf.CanonicalName) (
 	idToName map[string]string,
 	nameToID map[string]chat1.ConversationID,
-	nameToNextPage map[string][]byte) {
+	nameToNextPage map[string][]byte, err error) {
 	convIDs, channelNames, err := fbo.config.Chat().GetChannels(
 		ctx, name, fbo.id().Type(), chat1.TopicType_KBFSFILEEDIT)
 	if err != nil {
-		// TODO: schedule a retry?
-		fbo.log.CWarningf(ctx, "Couldn't monitor kbfs-edits chats: %+v", err)
-		return
+		return nil, nil, nil, err
 	}
 
 	idToName = make(map[string]string, len(convIDs))
@@ -6944,7 +6942,7 @@ func (fbo *folderBranchOps) initEditChatChannels(
 			nameToNextPage[name] = nextPage
 		}
 	}
-	return idToName, nameToID, nameToNextPage
+	return idToName, nameToID, nameToNextPage, nil
 }
 
 func (fbo *folderBranchOps) getEditMessages(
@@ -7023,7 +7021,7 @@ func (fbo *folderBranchOps) handleEditActivity(
 	nameToNextPage map[string][]byte) (
 	idToNameRet map[string]string,
 	nameToIDRet map[string]chat1.ConversationID,
-	nameToNextPageRet map[string][]byte) {
+	nameToNextPageRet map[string][]byte, err error) {
 	defer func() {
 		fbo.recomputeEditHistory(ctx, tlfName, nameToIDRet, nameToNextPageRet)
 		fbo.editActivity.Done()
@@ -7048,9 +7046,7 @@ func (fbo *folderBranchOps) handleEditActivity(
 		fbo.log.CDebugf(ctx, "New edit message for %s", name)
 		err := fbo.editHistory.AddNotifications(name, []string{a.message})
 		if err != nil {
-			fbo.log.CWarningf(ctx,
-				"Couldn't add messages for conv %s: %+v", a.convID, err)
-			return
+			return nil, nil, nil, err
 		}
 	} else {
 		fbo.log.CDebugf(ctx, "New edit channel for %s", name)
@@ -7060,7 +7056,7 @@ func (fbo *folderBranchOps) handleEditActivity(
 		}
 	}
 
-	return idToName, nameToID, nameToNextPage
+	return idToName, nameToID, nameToNextPage, nil
 }
 
 func (fbo *folderBranchOps) monitorEditsChat() {
@@ -7087,8 +7083,14 @@ func (fbo *folderBranchOps) monitorEditsChat() {
 			fbo.log.CDebugf(ctx, "Shutting down chat monitoring")
 			return
 		case a := <-fbo.editChannels:
-			idToName, nameToID, nameToNextPage = fbo.handleEditActivity(
+			var err error
+			idToName, nameToID, nameToNextPage, err = fbo.handleEditActivity(
 				ctx, a, tlfName, idToName, nameToID, nameToNextPage)
+			if err != nil {
+				fbo.log.CWarningf(
+					ctx, "Couldn't handle activity %#v: %+v", a, err)
+				return
+			}
 		case <-ctx.Done():
 			return
 		}
