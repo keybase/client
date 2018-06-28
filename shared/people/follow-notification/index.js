@@ -90,10 +90,10 @@ export const MultiFollowNotification = (props: Props) => {
     >
       <Text type="Body" style={{marginTop: 2, marginBottom: globalMargins.xtiny}}>
         <Users usernames={usernames}>
-          {({index, username, following, color, text, last}) => [
+          {({index, text, last}) => [
             text,
             (!last && index !== usernames.length - 2 && ', ') || null,
-            (index === usernames.length - 2 && ' and ') || null,
+            (index === usernames.length - 2 && !props.numAdditional && ' and ') || null,
           ]}
         </Users>
         {!!props.numAdditional && props.numAdditional > 0 && ` and ${props.numAdditional} others `} started

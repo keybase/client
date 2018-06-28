@@ -7,12 +7,13 @@ import Text, {type TextType} from './text'
 import {globalColors, isMobile, styleSheetCreate} from '../styles'
 
 type Args = {
-  index: number,
-  username: string,
-  following: boolean,
   color: string,
-  text: React.Element<typeof Text>,
+  following: boolean,
+  index: number,
   last: boolean,
+  onClick: () => void,
+  text: React.Element<typeof Text>,
+  username: string,
 }
 
 type OwnProps = {
@@ -23,76 +24,67 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  return (
-    ownProps.usernames.reduce(
-      (res, username) => {
-        const following = state.config.following.includes(username)
-        res && res.usernames.push(username)
-        res && res.followings.push(following)
-        res && res.colors.push(following ? globalColors.green : globalColors.blue)
-        res &&
-          res.texts.push(
-            <Text
-              type={ownProps.textType || 'BodySemibold'}
-              style={following ? styles.following : styles.everyoneElse}
-            >
-              {username}
-            </Text>
-          )
-        return res
-      },
-      {
-        usernames: [],
-        followings: [],
-        colors: [],
-        texts: [],
-      }
-    ) || {
-      usernames: ownProps.usernames,
-      followings: [],
-      colors: [],
-      texts: [],
-    }
-  )
+  return {_following: state.config.following}
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {tracker, usernames}: OwnProps) => ({
-  onClick: (i: number) =>
+  onClick: (username: string) =>
     tracker && !isMobile
-      ? dispatch(TrackerGen.createGetProfile({username: usernames[i]}))
-      : dispatch(ProfileGen.createShowUserProfile({username: usernames[i]})),
+      ? dispatch(TrackerGen.createGetProfile({username}))
+      : dispatch(ProfileGen.createShowUserProfile({username})),
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  children: ownProps.children,
+  colors: ownProps.usernames.map(
+    u => (stateProps._following.has(u) ? globalColors.green2 : globalColors.blue)
+  ),
+  followings: ownProps.usernames.map(u => stateProps._following.has(u)),
+  onClick: dispatchProps.onClick,
+  texts: ownProps.usernames.map(username => (
+    <Text
+      type={ownProps.textType || 'BodySemibold'}
+      style={stateProps._following.has(username) ? styles.following : styles.everyoneElse}
+      key={username}
+      onClick={() => dispatchProps.onClick(username)}
+    >
+      {username}
+    </Text>
+  )),
+  usernames: ownProps.usernames,
 })
 
 const styles = styleSheetCreate({
-  following: {
-    color: globalColors.green2,
-  },
   everyoneElse: {
     color: globalColors.blue,
+  },
+  following: {
+    color: globalColors.green2,
   },
 })
 
 type Props = {
   children: Args => React.Node,
-  onClick: (i: number) => void,
-  usernames: string[],
-  followings: boolean[],
   colors: string[],
+  followings: boolean[],
+  onClick: (username: string) => void,
   texts: React.Element<typeof Text>[],
+  usernames: string[],
 }
 const Users = (props: Props) => {
   return (
     props.usernames.map((username, i, usernames) =>
       props.children({
-        index: i,
-        username,
-        following: props.followings[i],
         color: props.colors[i],
-        text: props.texts[i],
+        following: props.followings[i],
+        index: i,
         last: i === usernames.length - 1,
+        onClick: () => props.onClick(username),
+        text: props.texts[i],
+        username,
       })
     ) || null
   )
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Users)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Users)
