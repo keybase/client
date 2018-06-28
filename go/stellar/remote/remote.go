@@ -168,13 +168,6 @@ type fetchRes struct {
 
 // Fetch and unbox the latest bundle from the server.
 func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bundle, pukGen keybase1.PerUserKeyGeneration, err error) {
-	res, pukGen, _, err = Fetch2(ctx, g, false)
-	return res, pukGen, err
-}
-
-// CORE-8135 phase 2: collapse into Fetch
-func Fetch2(ctx context.Context, g *libkb.GlobalContext,
-	supportCryptV1 bool) (res stellar1.Bundle, pukGen keybase1.PerUserKeyGeneration, usedCryptV1 bool, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.Fetch", func() error { return err })()
 	arg := libkb.NewAPIArgWithNetContext(ctx, "stellar/bundle")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
@@ -186,26 +179,26 @@ func Fetch2(ctx context.Context, g *libkb.GlobalContext,
 		switch keybase1.StatusCode(err.Code) {
 		case keybase1.StatusCode_SCNotFound:
 			g.Log.CDebugf(ctx, "replacing error: %v", err)
-			return res, 0, false, UserHasNoAccountsError{}
+			return res, 0, UserHasNoAccountsError{}
 		}
 	default:
-		return res, 0, false, err
+		return res, 0, err
 	}
 	decodeRes, err := bundle.Decode(apiRes.EncryptedB64)
 	if err != nil {
-		return res, 0, false, err
+		return res, 0, err
 	}
 	pukring, err := g.GetPerUserKeyring()
 	if err != nil {
-		return res, 0, false, err
+		return res, 0, err
 	}
 	m := libkb.NewMetaContext(ctx, g)
 	puk, err := pukring.GetSeedByGenerationOrSync(m, decodeRes.Enc.Gen)
 	if err != nil {
-		return res, 0, false, err
+		return res, 0, err
 	}
-	res, _, err = bundle.Unbox2(decodeRes, apiRes.VisibleB64, supportCryptV1, puk)
-	return res, decodeRes.Enc.Gen, decodeRes.Enc.V == 1, err
+	res, _, err = bundle.Unbox(decodeRes, apiRes.VisibleB64, puk)
+	return res, decodeRes.Enc.Gen, err
 }
 
 // Make the "stellar" section of an API arg.

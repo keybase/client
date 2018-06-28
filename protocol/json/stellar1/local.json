@@ -1083,10 +1083,6 @@
         }
       ],
       "response": "string"
-    },
-    "fixupBundleCLILocal": {
-      "request": [],
-      "response": "boolean"
     }
   },
   "namespace": "stellar.1"
