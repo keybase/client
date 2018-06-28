@@ -178,7 +178,7 @@ func (m *mockChatHelper) AckMobileNotificationSuccess(ctx context.Context, pushI
 }
 
 func (m *mockChatHelper) UnboxMobilePushNotification(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, membersType chat1.ConversationMembersType, pushIDs []string, payload string) (string, error) {
+	convID chat1.ConversationID, membersType chat1.ConversationMembersType, payload string) (string, error) {
 	return "", nil
 }
 
