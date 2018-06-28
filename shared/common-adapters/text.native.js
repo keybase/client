@@ -90,7 +90,7 @@ class Text extends Component<Props> {
         }}
         selectable={this.props.selectable}
         style={style}
-        {...lineClamp(this.props.lineClamp)}
+        {...lineClamp(this.props.lineClamp, this.props.ellipsizeMode)}
         onPress={onPress}
         onLongPress={this.props.onLongPress}
         allowFontScaling={this.props.allowFontScaling}
