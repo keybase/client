@@ -4,6 +4,7 @@ import * as Types from '../../../../constants/types/chat2'
 
 export type WrapperProps = {
   message: Types.Message,
+  measure: null | (() => void),
   previous?: ?Types.Message,
   children?: React.Node,
   timestamp: string,

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {MessageWrapperUserContent} from './shared'
+import {MessageWrapper, MessageWrapperUserContent} from './shared'
 import {NativeTouchableHighlight, NativeKeyboard} from '../../../../common-adapters/mobile.native'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
 import {globalColors} from '../../../../styles'
@@ -22,5 +22,7 @@ const _NativeWrapper = (props: WrapperUserContentProps & FloatingMenuParentProps
   </NativeTouchableHighlight>
 )
 const NativeWrapper = FloatingMenuParentHOC(_NativeWrapper)
+
+export {NativeWrapper as WrapperUserContent, MessageWrapper as Wrapper}
 
 export default NativeWrapper

@@ -191,6 +191,16 @@ const RightSide = props => (
 )
 
 class MessageWrapper extends React.PureComponent<WrapperProps> {
+  componentDidUpdate(prevProps: WrapperProps) {
+    if (this.props.measure) {
+      if (
+        this.props.orangeLineAbove !== prevProps.orangeLineAbove ||
+        this.props.timestamp !== prevProps.timestamp
+      ) {
+        this.props.measure()
+      }
+    }
+  }
   render() {
     const props = this.props
     return (
@@ -208,11 +218,7 @@ class MessageWrapperUserContent extends React.PureComponent<
 > {
   componentDidUpdate(prevProps: WrapperUserContentProps) {
     if (this.props.measure) {
-      if (
-        this.props.orangeLineAbove !== prevProps.orangeLineAbove ||
-        this.props.timestamp !== prevProps.timestamp ||
-        this.props.includeHeader !== prevProps.includeHeader
-      ) {
+      if (this.props.includeHeader !== prevProps.includeHeader) {
         this.props.measure()
       }
     }
