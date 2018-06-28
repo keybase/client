@@ -23,7 +23,7 @@ const (
 	// The name of the channel in the logged-in user's private
 	// self-conversation (of type kbfs-edits) that stores a history of
 	// which TLFs the user has written to.
-	selfWriteChannel = "-self"
+	selfWriteChannel = "_self"
 
 	// The topic type of the self-write channel.
 	selfWriteType = chat1.TopicType_KBFSFILEEDIT
