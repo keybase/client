@@ -138,7 +138,6 @@ func (th *TlfHistory) AddNotifications(
 		return nil
 	}
 	if !existed {
-		wn.writerName = writerName
 		th.byWriter[writerName] = wn
 	}
 	// Invalidate the cached results.
@@ -219,7 +218,6 @@ func (r *recomputer) processNotification(
 			wn = &writerNotifications{writer, nil}
 			r.byWriter[writer] = wn
 		}
-		wn.writerName = writer
 		wn.notifications = append(wn.notifications, notification)
 
 		modified, ok := r.modifiedFiles[writer]
