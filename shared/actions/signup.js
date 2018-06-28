@@ -64,25 +64,26 @@ const validateUsernameEmail = (action: SignupGen.CheckUsernameEmailPayload, stat
   !state.signup.usernameError &&
   !state.signup.emailError &&
   Saga.call(function*() {
-    const a = yield RPCTypes.signupCheckUsernameAvailableRpcPromise(
-      {username: state.signup.username},
-      Constants.waitingKey
+    yield Saga.put(
+      yield RPCTypes.signupCheckUsernameAvailableRpcPromise(
+        {username: state.signup.username},
+        Constants.waitingKey
+      )
+        .then(r =>
+          SignupGen.createValidatedUsernameEmail({
+            email: action.payload.email,
+            username: action.payload.username,
+          })
+        )
+        .catch(err =>
+          SignupGen.createValidatedUsernameEmailError({
+            email: action.payload.email,
+            emailError: '',
+            username: action.payload.username,
+            usernameError: `Sorry, there was a problem: ${err.desc}`,
+          })
+        )
     )
-      .then(r =>
-        SignupGen.createValidatedUsernameEmail({
-          email: action.payload.email,
-          username: action.payload.username,
-        })
-      )
-      .catch(err =>
-        SignupGen.createValidatedUsernameEmailError({
-          email: action.payload.email,
-          emailError: '',
-          username: action.payload.username,
-          usernameError: `Sorry, there was a problem: ${err.desc}`,
-        })
-      )
-    yield Saga.put(a)
   })
 const showErrorOrMoveToPassphrase = (
   action: SignupGen.ValidatedUsernameEmailPayload | SignupGen.ValidatedUsernameEmailPayloadError
