@@ -20,7 +20,6 @@ const trimDeviceNames = (names: ?Array<string>): Array<string> => {
 type ContainerProps = {
   onSubmit: (deviceName: ?string) => void,
   onBack: () => void,
-  clearDeviceNameError: () => void,
   waiting: boolean,
   deviceNameError: ?string,
   existingDevices: ?Array<string>,
@@ -43,9 +42,6 @@ class _SetPublicName extends Component<ContainerProps, State> {
     this.setState({
       deviceName,
     })
-    if (this.props.deviceNameError) {
-      this.props.clearDeviceNameError()
-    }
   }
 
   render() {
@@ -61,7 +57,6 @@ class _SetPublicName extends Component<ContainerProps, State> {
 
     return (
       <SetPublicName
-        clearDeviceNameError={this.props.clearDeviceNameError}
         deviceName={this.state.deviceName}
         onChange={this._onChange}
         onSubmit={() => this.props.onSubmit(this.state.deviceName)}
@@ -90,7 +85,6 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  clearDeviceNameError: () => {},
   onBack: () => dispatch(LoginGen.createOnBack()),
   onSubmit: (deviceName: string) => {
     // map 'smart apostrophes' to ASCII (typewriter apostrophe)
