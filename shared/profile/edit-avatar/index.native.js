@@ -16,7 +16,8 @@ class EditAvatar extends React.Component<Props> {
 
   _onSave = () => {
     const filename = isIOS ? this.props.image.uri.replace('file://', '') : this.props.image.path
-    if (this._h && this._w && this._x && this._y) {
+    // Cropping is temporarily deactivated on Andoird.
+    if (isIOS) {
       this.props.onSave(filename, this._getCropCoordinates())
       return
     }
