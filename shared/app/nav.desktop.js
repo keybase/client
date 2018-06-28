@@ -31,7 +31,7 @@ type Props = {
   routePath: I.List<string>,
 }
 
-const hotKeyTabMap = {
+const hotKeyTabMap: {[string]: Tab} = {
   '1': peopleTab,
   '2': chatTab,
   '3': fsTab,
