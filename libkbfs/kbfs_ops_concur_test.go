@@ -460,27 +460,12 @@ func TestKBFSOpsConcurDeferredDoubleWritesDuringSync(t *testing.T) {
 	}
 }
 
-type modeNoHistory struct {
-	InitMode
-}
-
-func (mnh modeNoHistory) TLFEditHistoryEnabled() bool {
-	return false
-}
-
-func (mnh modeNoHistory) SendEditNotificationsEnabled() bool {
-	return false
-}
-
 // Test that a block write can happen concurrently with a block
 // read. This is a regression test for KBFS-536.
 func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
 	// TODO: Use kbfsConcurTestShutdown.
 	defer kbfsConcurTestShutdownNoCheck(t, config, ctx, cancel)
-	// Turn off tlf edit history because it messes with the FBO state
-	// asynchronously.
-	config.mode = modeNoHistory{config.Mode()}
 
 	// Turn off transient block caching.
 	config.SetBlockCache(NewBlockCacheStandard(0, 1<<30))
@@ -606,9 +591,6 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
 	// TODO: Use kbfsConcurTestShutdown.
 	defer kbfsConcurTestShutdownNoCheck(t, config, ctx, cancel)
-	// Turn off tlf edit history because it messes with the FBO state
-	// asynchronously.
-	config.mode = modeNoHistory{config.Mode()}
 
 	<-config.BlockOps().TogglePrefetcher(false)
 
@@ -699,9 +681,6 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
-	// Turn off tlf edit history because it messes with the FBO state
-	// asynchronously.
-	config.mode = modeNoHistory{config.Mode()}
 
 	<-config.BlockOps().TogglePrefetcher(false)
 

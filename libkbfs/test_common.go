@@ -327,7 +327,9 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 // `config`.
 func ConfigAsUser(config *ConfigLocal,
 	loggedInUser libkb.NormalizedUsername) *ConfigLocal {
-	return ConfigAsUserWithMode(config, loggedInUser, config.Mode().Type())
+	c := ConfigAsUserWithMode(config, loggedInUser, config.Mode().Type())
+	c.mode = config.mode // preserve any unusual test mode wrappers
+	return c
 }
 
 // NewEmptyTLFWriterKeyBundle creates a new empty kbfsmd.TLFWriterKeyBundleV2

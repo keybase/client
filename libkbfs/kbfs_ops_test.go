@@ -171,11 +171,26 @@ func kbfsTestShutdown(mockCtrl *gomock.Controller, config *ConfigMock,
 	mockCtrl.Finish()
 }
 
+type modeNoHistory struct {
+	InitMode
+}
+
+func (mnh modeNoHistory) TLFEditHistoryEnabled() bool {
+	return false
+}
+
+func (mnh modeNoHistory) SendEditNotificationsEnabled() bool {
+	return false
+}
+
 // kbfsOpsInitNoMocks returns a config that doesn't use any mocks. The
 // shutdown call is kbfsTestShutdownNoMocks.
 func kbfsOpsInitNoMocks(t *testing.T, users ...libkb.NormalizedUsername) (
 	*ConfigLocal, keybase1.UID, context.Context, context.CancelFunc) {
 	config := MakeTestConfigOrBust(t, users...)
+	// Turn off tlf edit history because it messes with the FBO state
+	// asynchronously.
+	config.mode = modeNoHistory{config.Mode()}
 	config.SetRekeyWithPromptWaitTime(individualTestTimeout)
 
 	timeoutCtx, cancel := context.WithTimeout(
@@ -3336,6 +3351,9 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 	config1, _, ctx, cancel := kbfsOpsInitNoMocks(t, "alice", "mallory")
 	// TODO: Use kbfsTestShutdownNoMocks.
 	defer kbfsTestShutdownNoMocksNoCheck(t, config1, ctx, cancel)
+	// Turn off tlf edit history because it messes with the FBO state
+	// asynchronously.
+	config1.mode = modeNoHistory{config1.Mode()}
 
 	// Create alice's TLF.
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, "alice", tlf.Private)
@@ -3350,6 +3368,7 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 
 	// Create mallory's fake TLF using the same TLF ID as alice's.
 	config2 := ConfigAsUser(config1, "mallory")
+	config2.mode = modeNoHistory{config2.Mode()}
 	crypto2 := cryptoFixedTlf{config2.Crypto(), fb1.Tlf}
 	config2.SetCrypto(crypto2)
 	mdserver2, err := NewMDServerMemory(mdServerLocalConfigAdapter{config2})
