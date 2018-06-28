@@ -9,7 +9,7 @@ import HiddenString from '../util/hidden-string'
 import {isMobile} from '../constants/platform'
 import {loginTab} from '../constants/tabs'
 import {navigateAppend, navigateTo} from '../actions/route-tree'
-import {RPCError} from '../engine/types'
+import {RPCError} from '../util/errors'
 import type {TypedState} from '../constants/reducer'
 
 const checkInviteCode = (action: SignupGen.CheckInviteCodePayload) =>
