@@ -4,6 +4,7 @@ import * as React from 'react'
 import flags from '../../util/feature-flags'
 import {Box} from '../../common-adapters'
 import {TabBarButton} from '../../common-adapters/tab-bar'
+import KeyHandler from '../../util/key-handler.desktop'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import type {Props} from './index.types'
 
@@ -91,4 +92,4 @@ const stylesSelectedTabButton = {
   color: globalColors.white,
 }
 
-export default TabBarRender
+export default KeyHandler(TabBarRender)
