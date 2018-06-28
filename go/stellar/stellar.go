@@ -1053,6 +1053,10 @@ func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipie
 
 	body := chat1.NewMessageBodyWithSendpayment(msg)
 
+	if m.G().ChatHelper == nil {
+		return errors.New("cannot send SendPayment message:  chat helper is nil")
+	}
+
 	// identify already performed, so skip here
 	return m.G().ChatHelper.SendMsgByNameNonblock(m.Ctx(), name, nil, chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFIdentifyBehavior_CHAT_SKIP, body, chat1.MessageType_SENDPAYMENT)
 }

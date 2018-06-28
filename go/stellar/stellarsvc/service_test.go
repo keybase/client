@@ -6,10 +6,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
@@ -22,8 +25,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
-	tc = externalstest.SetupTest(tb, name, depth+1)
+func SetupTest(t *testing.T, name string, depth int) (tc libkb.TestContext) {
+	tc = externalstest.SetupTest(t, name, depth+1)
 	stellar.ServiceInit(tc.G, nil)
 	teams.ServiceInit(tc.G)
 	// use an insecure triplesec in tests
@@ -34,6 +37,13 @@ func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
 		}
 		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
 	}
+
+	world := kbtest.NewChatMockWorld(t, name, 5)
+	mockRemote := kbtest.NewChatRemoteMock(world)
+
+	chatCtx := globals.NewContext(tc.G, &globals.ChatContext{})
+	tc.G.ChatHelper = chat.NewHelper(chatCtx, func() chat1.RemoteInterface { return mockRemote })
+
 	return tc
 }
 
