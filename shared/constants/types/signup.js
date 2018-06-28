@@ -11,6 +11,7 @@ export type _State = {
   emailError: string,
   inviteCode: string,
   inviteCodeError: string,
+  name: string,
   nameError: string,
   passphrase: HiddenString,
   passphraseError: HiddenString,

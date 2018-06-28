@@ -19,6 +19,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   emailError: '',
   inviteCode: '',
   inviteCodeError: '',
+  name: '',
   nameError: '',
   paperkey: new HiddenString(''),
   passphrase: new HiddenString(''),

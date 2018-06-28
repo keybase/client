@@ -14,13 +14,6 @@
       "pass1": "HiddenString",
       "pass2": "HiddenString",
     },
-    "checkPassphraseDone": {
-      "passphrase": "HiddenString",
-      "canError":{
-        "passphrase": "HiddenString",
-        "error":"HiddenString"
-      }
-    },
     "checkUsernameEmail": {
       "_description": "We want to validate a user/email",
       "username": "string",
