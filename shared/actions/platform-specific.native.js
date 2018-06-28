@@ -5,7 +5,7 @@ import * as PushConstants from '../constants/push'
 import * as PushGen from './push-gen'
 import * as PushNotifications from 'react-native-push-notification'
 import * as mime from 'react-native-mime-types'
-import RNFetchBlob from 'react-native-fetch-blob'
+import RNFetchBlob from 'rn-fetch-blob'
 import {
   PushNotificationIOS,
   CameraRoll,

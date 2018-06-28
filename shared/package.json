@@ -148,7 +148,7 @@
     "react-native": "git://github.com/keybase/react-native#keybase-fixes-off-560rc3",
     "react-native-camera": "0.10.0",
     "react-native-contacts": "2.2.0",
-    "react-native-fetch-blob": "0.10.8",
+    "rn-fetch-blob": "0.10.11",
     "react-native-image-picker": "git://github.com/keybase/react-native-image-picker#b70affdef548c355c4dc864cd72a2bc79666649e",
     "react-native-mime-types": "^2.2.1",
     "react-native-push-notification": "git://github.com/keybase/react-native-push-notification#keybase-fixes-off-302",

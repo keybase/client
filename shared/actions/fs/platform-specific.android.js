@@ -2,7 +2,7 @@
 import * as Saga from '../../util/saga'
 import * as Types from '../../constants/types/fs'
 import * as FsGen from '../fs-gen'
-import RNFetchBlob from 'react-native-fetch-blob'
+import RNFetchBlob from 'rn-fetch-blob'
 import {copy, unlink} from '../../util/file'
 import {PermissionsAndroid} from 'react-native'
 import {shareNative, saveMedia} from './common.native'
