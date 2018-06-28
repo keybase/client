@@ -60,30 +60,33 @@ const requestInviteError = (err: RPCError, action: SignupGen.RequestInvitePayloa
     })
   )
 
-const checkUsernameEmail = (_: SignupGen.CheckUsernameEmailPayload, state: TypedState) =>
+const validateUsernameEmail = (action: SignupGen.CheckUsernameEmailPayload, state: TypedState) =>
   !state.signup.usernameError &&
   !state.signup.emailError &&
-  Saga.call(
-    RPCTypes.signupCheckUsernameAvailableRpcPromise,
-    {username: state.signup.username},
-    Constants.waitingKey
-  )
-const checkUsernameEmailSuccess = (result: void, _, state: TypedState) =>
-  Saga.sequentially([
-    Saga.put(
-      SignupGen.createCheckUsernameEmailDone({email: state.signup.email, username: state.signup.username})
-    ),
-    Saga.put(navigateAppend(['passphraseSignup'], [loginTab, 'signup'])),
-  ])
-const checkUsernameEmailError = (err: RPCError, action: SignupGen.CheckUsernameEmailPayload) =>
-  Saga.put(
-    SignupGen.createCheckUsernameEmailDoneError({
-      email: action.payload.email,
-      emailError: '',
-      username: action.payload.username,
-      usernameError: `Sorry, there was a problem: ${err.desc}`,
-    })
-  )
+  Saga.call(function*() {
+    const a = yield RPCTypes.signupCheckUsernameAvailableRpcPromise(
+      {username: state.signup.username},
+      Constants.waitingKey
+    )
+      .then(r =>
+        SignupGen.createValidatedUsernameEmail({
+          email: action.payload.email,
+          username: action.payload.username,
+        })
+      )
+      .catch(err =>
+        SignupGen.createValidatedUsernameEmailError({
+          email: action.payload.email,
+          emailError: '',
+          username: action.payload.username,
+          usernameError: `Sorry, there was a problem: ${err.desc}`,
+        })
+      )
+    yield Saga.put(a)
+  })
+const showErrorOrMoveToPassphrase = (
+  action: SignupGen.ValidatedUsernameEmailPayload | SignupGen.ValidatedUsernameEmailPayloadError
+) => !action.error && Saga.put(navigateAppend(['passphraseSignup'], [loginTab, 'signup']))
 
 const moveToDeviceScreen = (_: SignupGen.CheckPassphrasePayload, state: TypedState) =>
   !state.signup.passphraseError.stringValue() &&
@@ -172,12 +175,9 @@ const resetNav = () => Saga.put(LoginGen.createNavBasedOnLoginAndInitialState())
 
 const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(SignupGen.restartSignup, resetNav)
-  yield Saga.safeTakeEveryPure(
-    SignupGen.checkUsernameEmail,
-    checkUsernameEmail,
-    checkUsernameEmailSuccess,
-    checkUsernameEmailError
-  )
+  yield Saga.safeTakeEveryPure(SignupGen.checkUsernameEmail, validateUsernameEmail)
+  yield Saga.safeTakeEveryPure(SignupGen.validatedUsernameEmail, showErrorOrMoveToPassphrase)
+
   yield Saga.safeTakeEveryPure(
     SignupGen.requestInvite,
     requestInvite,

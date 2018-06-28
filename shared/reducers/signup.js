@@ -25,7 +25,7 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
       const usernameError = isValidUsername(username)
       return state.merge({email, emailError, username, usernameError})
     }
-    case SignupGen.checkUsernameEmailDone:
+    case SignupGen.validatedUsernameEmail:
       return action.payload.email === state.email && action.payload.username === state.username
         ? state.merge({
             emailError: (action.error && action.payload.emailError) || '',
@@ -67,12 +67,6 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
         passphraseError,
       })
     }
-    case SignupGen.checkPassphraseDone:
-      return action.payload.passphrase.stringValue() === state.passphrase.stringValue()
-        ? state.merge({
-            passphraseError: (action.error && action.payload.error) || new HiddenString(''),
-          })
-        : state
     case SignupGen.submitDevicename: {
       const devicename = trim(action.payload.devicename)
       const devicenameError = devicename.length === 0 ? 'Device name must not be empty.' : ''

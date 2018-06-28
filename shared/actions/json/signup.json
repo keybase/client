@@ -19,7 +19,7 @@
       "username": "string",
       "email": "string"
     },
-    "checkUsernameEmailDone": {
+    "validatedUsernameEmail": {
       "_description": "We heard back from the server",
       "username": "string",
       "email": "string",
