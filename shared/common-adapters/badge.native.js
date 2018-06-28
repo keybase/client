@@ -23,8 +23,9 @@ const defaultBadgeStyle = {
   flex: 0,
   alignItems: 'center',
   justifyContent: 'center',
-  paddingLeft: 6,
-  paddingRight: 6,
+  minWidth: 24.5,
+  paddingLeft: 4,
+  paddingRight: 4,
   paddingTop: 4,
   paddingBottom: 2,
 }
