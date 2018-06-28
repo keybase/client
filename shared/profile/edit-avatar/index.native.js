@@ -26,8 +26,8 @@ class EditAvatar extends React.Component<Props> {
   _getCropCoordinates = () => {
     const x = this._x
     const y = this._y
-    const rH = this.props.image.height / this._h
-    const rW = this.props.image.width / this._w
+    const rH = this._h !== 0 ? this.props.image.height / this._h : 1
+    const rW = this._w !== 0 ? this.props.image.width / this._w : 1
     const x0 = rW * x
     const y0 = rH * y
     return {
