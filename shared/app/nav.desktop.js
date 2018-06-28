@@ -25,7 +25,7 @@ import RpcStats from './rpc-stats'
 
 type Props = {
   layerScreens: I.Stack<RouteTree.RenderRouteResult>,
-  onHotKey: (cmd: string) => void,
+  onHotkey: (cmd: string) => void,
   visibleScreen: RouteTree.RenderRouteResult,
   routeSelected: Tab,
   routePath: I.List<string>,
@@ -50,7 +50,7 @@ class Nav extends React.Component<Props> {
           {routeSelected !== loginTab && (
             <TabBar
               hotkeys={Object.keys(hotKeyTabMap).map(key => `${isDarwin ? 'command' : 'control'}+${key}`)}
-              onHotKey={this.props.onHotKey}
+              onHotkey={this.props.onHotkey}
               routeSelected={routeSelected}
               routePath={routePath}
             />
@@ -84,7 +84,7 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onHotKey: (cmd: string) => dispatch(navigateTo([hotKeyTabMap[cmd.replace(/(command|control)\+/, '')]])),
+  _onHotkey: (cmd: string) => dispatch(navigateTo([hotKeyTabMap[cmd.replace(/(command|control)\+/, '')]])),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => {
@@ -96,7 +96,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps): Props => {
   const layerScreens = ownProps.routeStack.filter(r => r.tags.layerOnTop)
   return {
     layerScreens,
-    onHotKey: dispatchProps._onHotKey,
+    onHotkey: dispatchProps._onHotkey,
     routePath: ownProps.routePath,
     routeSelected: ownProps.routeSelected,
     visibleScreen,
