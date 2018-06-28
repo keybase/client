@@ -23,7 +23,7 @@ const (
 	// The name of the channel in the logged-in user's private
 	// self-conversation (of type kbfs-edits) that stores a history of
 	// which TLFs the user has written to.
-	selfWriteChannel = "#self"
+	selfWriteChannel = "-self"
 
 	// The topic type of the self-write channel.
 	selfWriteType = chat1.TopicType_KBFSFILEEDIT
@@ -250,9 +250,10 @@ func (c *ChatRPC) getSelfConvInfo(ctx context.Context) (
 	if len(messages) > 0 {
 		selfMessage, err := kbfsedits.ReadSelfWrite(messages[0])
 		if err != nil {
-			return nil, nil, err
+			c.log.CDebugf(ctx, "Couldn't read the last self-write message: %+v")
+		} else {
+			lastWrittenConvID = selfMessage.ConvID
 		}
-		lastWrittenConvID = selfMessage.ConvID
 	}
 
 	c.convLock.Lock()
@@ -266,6 +267,11 @@ func (c *ChatRPC) getSelfConvInfo(ctx context.Context) (
 func (c *ChatRPC) SendTextMessage(
 	ctx context.Context, tlfName tlf.CanonicalName, tlfType tlf.Type,
 	convID chat1.ConversationID, body string) error {
+	if len(body) == 0 {
+		c.log.CDebugf(ctx, "Ignoring empty message")
+		return nil
+	}
+
 	arg := chat1.PostTextNonblockArg{
 		ConversationID:   convID,
 		TlfName:          string(tlfName),
@@ -317,7 +323,7 @@ func (c *ChatRPC) SendTextMessage(
 	}
 
 	arg = chat1.PostTextNonblockArg{
-		ConversationID:   convID,
+		ConversationID:   selfConvID,
 		TlfName:          string(session.Name),
 		TlfPublic:        false,
 		Body:             selfWriteBody,
@@ -433,6 +439,7 @@ func (c *ChatRPC) GetGroupedInbox(
 		seen[p] = true
 		results = append(results, h)
 	}
+
 	return results, nil
 }
 
@@ -441,36 +448,38 @@ func (c *ChatRPC) GetChannels(
 	ctx context.Context, tlfName tlf.CanonicalName, tlfType tlf.Type,
 	chatType chat1.TopicType) (
 	convIDs []chat1.ConversationID, channelNames []string, err error) {
-	arg := chat1.GetTLFConversationsLocalArg{
-		TlfName:     string(tlfName),
-		TopicType:   chatType,
-		MembersType: membersTypeFromTlfType(tlfType),
-	}
-	res, err := c.client.GetTLFConversationsLocal(ctx, arg)
-	if err != nil {
-		return nil, nil, err
-	}
-
 	expectedVisibility := keybase1.TLFVisibility_PRIVATE
 	if tlfType == tlf.Public {
 		expectedVisibility = keybase1.TLFVisibility_PUBLIC
 	}
-	for _, conv := range res.Convs {
-		if conv.Visibility != expectedVisibility {
+
+	arg := chat1.GetInboxAndUnboxLocalArg{
+		Query: &chat1.GetInboxLocalQuery{
+			Name: &chat1.NameQuery{
+				Name:        string(tlfName),
+				MembersType: membersTypeFromTlfType(tlfType),
+			},
+			TopicType:     &chatType,
+			TlfVisibility: &expectedVisibility,
+		},
+	}
+	res, err := c.client.GetInboxAndUnboxLocal(ctx, arg)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	for _, conv := range res.Conversations {
+		if conv.Info.Visibility != expectedVisibility {
 			// Skip any conversation that doesn't match our visibility.
 			continue
 		}
 
-		if conv.Channel == selfWriteChannel {
+		if conv.Info.TopicName == selfWriteChannel {
 			continue
 		}
 
-		id, err := chat1.MakeConvID(conv.ConvID)
-		if err != nil {
-			return nil, nil, err
-		}
-		convIDs = append(convIDs, id)
-		channelNames = append(channelNames, conv.Channel)
+		convIDs = append(convIDs, conv.Info.Id)
+		channelNames = append(channelNames, conv.Info.TopicName)
 	}
 
 	return convIDs, channelNames, nil

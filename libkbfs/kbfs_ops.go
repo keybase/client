@@ -170,7 +170,7 @@ func (fs *KBFSOpsStandard) PushConnectionStatusChange(
 		return
 	}
 
-	if newStatus == nil {
+	if newStatus == nil && fs.config.KeybaseService() != nil {
 		fs.log.CDebugf(nil, "Asking for an edit re-init after reconnection")
 		fs.editActivity.Add(1)
 		go fs.initTlfsForEditHistories()
