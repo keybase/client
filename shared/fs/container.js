@@ -46,12 +46,9 @@ const mapStateToProps = (state: TypedState, {path}) => {
 
 const mergeProps = (stateProps, dispatchProps, {routePath}) => {
   const itemNames = stateProps._itemChildren.union(stateProps._itemFavoriteChildren)
-  const pathItems = itemNames.map(name => {
-    return (
-      stateProps._pathItems.get(Types.pathConcat(stateProps.path, name)) ||
-      Constants.makeUnknownPathItem({name})
-    )
-  })
+  const pathItems = itemNames.map(name =>
+    stateProps._pathItems.get(Types.pathConcat(stateProps.path, name), Constants.makeUnknownPathItem({name}))
+  )
   const filteredPathItems = pathItems.filter(item => !(item.tlfMeta && item.tlfMeta.isIgnored)).toList()
   const username = Types.pathIsNonTeamTLFList(stateProps.path) ? stateProps._username : undefined
   const stillItems = Constants.sortPathItems(filteredPathItems, stateProps._sortSetting, username)

@@ -66,6 +66,8 @@ export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Re
   type: 'unknown',
 })
 
+export const unknownPathItem = makeUnknownPathItem()
+
 export const makeFavoriteItem: I.RecordFactory<Types._FavoriteItem> = I.Record({
   name: 'unknown',
   badgeCount: 0,

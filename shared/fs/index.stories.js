@@ -5,7 +5,7 @@ import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
 import {type ConnectedProps as ConnectedUsernamesProps} from '../common-adapters/usernames'
 import {action, storiesOf, createPropProvider} from '../stories/storybook'
-import {globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import Files from '.'
 import ConnectedStillRow from './row/still-container'
 import StillRow from './row/still'
@@ -15,8 +15,9 @@ import UploadingRow from './row/uploading'
 import {NormalPreview} from './filepreview'
 import {Box} from '../common-adapters'
 import Download from './footer/download'
-import RowActionPopup from './popups/row-action-popup'
-import FolderHeader from './header/header.desktop'
+import PathItemAction from './common/path-item-action'
+import Breadcrumb from './header/breadcrumb.desktop'
+import Banner from './banner'
 
 const folderItemStyles = {
   iconSpec: {
@@ -86,6 +87,10 @@ const provider = createPropProvider({
     onOpenBreadcrumb: action('onOpenBreadcrumb'),
     onOpenBreadcrumbDropdown: action('onOpenBreadcrumbDropdown'),
   }),
+  ConnectedBreadcrumb: () => ({
+    dropdownItems: undefined,
+    shownItems: [],
+  }),
   SortBar: ({path}: {path: Types.Path}) => ({
     sortSetting: {
       sortBy: 'name',
@@ -138,8 +143,8 @@ const provider = createPropProvider({
     onInvalidToken: action('onInvalidToken'),
     loadMimeType: action('loadMimeType'),
   }),
-  ResetBanner: () => ({
-    isUserReset: false,
+  ResetBanner: ({path}: {path: Types.Path}) => ({
+    isUserReset: Types.pathToString(path) === '/keybase/private/me,reset',
     resetParticipants: ['reset1', 'reset2', 'reset3'],
     onReAddToTeam: () => () => undefined,
     onViewProfile: () => () => undefined,
@@ -157,6 +162,7 @@ const provider = createPropProvider({
     style: {},
     menuItems: [],
   }),
+  ConnectedPathItemAction: () => pathItemActionPopupProps(Types.stringToPath('/keybase/private/meatball')),
 })
 
 const downloadCommonActions = {
@@ -165,7 +171,7 @@ const downloadCommonActions = {
   cancel: action('cancel'),
 }
 
-const rowActionPopupProps = (path: Types.Path) => {
+const pathItemActionPopupProps = (path: Types.Path) => {
   const pathElements = Types.getPathElements(path)
   return {
     size: 0,
@@ -187,6 +193,26 @@ const rowActionPopupProps = (path: Types.Path) => {
   }
 }
 
+const breadcrumbProps = (names: Array<string>) => {
+  const items = names.map((name, idx) => ({
+    isTeamTlf: idx === 2 && names[idx - 1] === 'team',
+    isLastItem: idx === names.length - 1,
+    name: name,
+    path: Types.stringToPath('/' + names.slice(0, idx + 1).join('/')),
+    iconSpec: Constants.getItemStyles(names.slice(0, idx + 1), 'folder', 'foo').iconSpec,
+    onClick: action('onClick'),
+  }))
+  return items.length > 3
+    ? {
+        dropdownItems: items.slice(0, items.length - 2),
+        shownItems: items.slice(items.length - 2),
+      }
+    : {
+        dropdownItems: undefined,
+        shownItems: items,
+      }
+}
+
 const folderHeaderProps = (names: Array<string>) => ({
   breadcrumbItems: names
     .map((name, idx) => ({
@@ -197,11 +223,7 @@ const folderHeaderProps = (names: Array<string>) => ({
       onOpenBreadcrumb: action('onOpenBreadcrumb'),
     }))
     .slice(names.length > 3 ? names.length - 2 : 0),
-  dropdownPath: names.length > 3 ? 'blah' : '',
-  isTeamPath: names[1] === 'team',
   path: Types.stringToPath('/' + names.join('/')),
-  onBack: action('onBack'),
-  onOpenBreadcrumbDropdown: action('onOpenBreadcrumbDropdown'),
   openInFileUI: action('openInFileUI'),
 })
 
@@ -279,6 +301,7 @@ const load = () => {
         <UploadingRow name="foo" itemStyles={fileItemStyles} />
         <UploadingRow name="foo" itemStyles={folderItemStyles} />
         <StillRow
+          path={Types.stringToPath('/keybase/private/foo/bar')}
           name="bar"
           type="file"
           lastModifiedTimestamp={Date.now()}
@@ -341,20 +364,20 @@ const load = () => {
         <Box style={{height: 8}} />
       </Box>
     ))
-    .add('RowActionPopup', () => (
+    .add('PathItemAction', () => (
       <Box style={{padding: globalMargins.small}}>
-        <RowActionPopup
-          {...rowActionPopupProps(Types.stringToPath('/keybase/private/meatball/folder/treat'))}
+        <PathItemAction
+          {...pathItemActionPopupProps(Types.stringToPath('/keybase/private/meatball/folder/treat'))}
         />
-        <RowActionPopup
-          {...rowActionPopupProps(
+        <PathItemAction
+          {...pathItemActionPopupProps(
             Types.stringToPath(
               '/keybase/private/meatball/treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat'
             )
           )}
         />
-        <RowActionPopup
-          {...rowActionPopupProps(
+        <PathItemAction
+          {...pathItemActionPopupProps(
             Types.stringToPath(
               '/keybaes/private/meatball/foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar'
             )
@@ -362,34 +385,34 @@ const load = () => {
         />
       </Box>
     ))
-    .add('FolderHeader', () => (
+    .add('Breadcrumbs', () => (
       <Box>
-        <FolderHeader {...folderHeaderProps(['keybase', 'private', 'foo', 'bar'])} />
-        <FolderHeader {...folderHeaderProps(['keybase', 'private', 'foo'])} />
-        <FolderHeader
-          {...folderHeaderProps([
+        <Breadcrumb {...breadcrumbProps(['keybase', 'private', 'foo', 'bar'])} />
+        <Breadcrumb {...breadcrumbProps(['keybase', 'private', 'foo'])} />
+        <Breadcrumb
+          {...breadcrumbProps([
             'keybase',
             'private',
             'foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo',
           ])}
         />
-        <FolderHeader
-          {...folderHeaderProps([
+        <Breadcrumb
+          {...breadcrumbProps([
             'keybase',
             'private',
             'foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar',
           ])}
         />
-        <FolderHeader
-          {...folderHeaderProps([
+        <Breadcrumb
+          {...breadcrumbProps([
             'keybase',
             'private',
             'foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo',
             'haha',
           ])}
         />
-        <FolderHeader
-          {...folderHeaderProps([
+        <Breadcrumb
+          {...breadcrumbProps([
             'keybase',
             'private',
             'foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar',
@@ -419,13 +442,17 @@ const load = () => {
       />
     ))
     .add('ResetBanner', () => (
-      <FolderHeader
-        {...folderHeaderProps([
-            'keybase',
-            'private',
-            'me,reset',
-          ])}
-      />
+      <Box>
+        <Banner
+          path={Types.stringToPath('/keybase/private/me,reset1,reset2,reset3')}
+          shouldShowReset={true}
+        />
+        <Box style={{height: 8}} />
+        <Banner
+          path={Types.stringToPath('/keybase/private/me,reset')}
+          shouldShowReset={true}
+        />
+      </Box>
     ))
 }
 

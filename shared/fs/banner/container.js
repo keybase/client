@@ -4,10 +4,11 @@ import {compose, connect, setDisplayName, type TypedState} from '../../util/cont
 import Banner from '.'
 
 const mapStateToProps = (state: TypedState, {path}) => {
-  const _pathItem = state.fs.pathItems.get(path, Constants.makeUnknownPathItem())
+  const _pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
   return {
     path,
-    shouldShowReset: _pathItem.type === 'folder' && !!_pathItem.tlfMeta && _pathItem.tlfMeta.resetParticipants.length > 0,
+    shouldShowReset:
+      _pathItem.type === 'folder' && !!_pathItem.tlfMeta && _pathItem.tlfMeta.resetParticipants.length > 0,
   }
 }
 
