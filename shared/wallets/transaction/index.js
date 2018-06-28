@@ -92,6 +92,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
       */
       break
   }
+  return null
 }
 
 type DetailProps = {|
@@ -172,7 +173,7 @@ const AmountXLM = (props: AmountXLMProps) => {
     : props.yourRole === 'sender'
       ? globalColors.red
       : globalColors.green
-  const amount = `${props.yourRole === 'sender' ? '-' : '+'} ${props.amountXLM}`
+  const amount = `${props.amountXLM}`
   return (
     <Text style={{color, textAlign: 'right'}} type="BodyExtrabold">
       {amount}

@@ -9,23 +9,25 @@ export type OwnProps = {
   paymentID: string,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  const payment = Constants.getPayment(state, ownProps.accountID, ownProps.paymentID)
-  const you = state.config.username
-  const yourRole = payment.source === you ? 'sender' : 'receiver'
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+  _transaction: Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
+  _you: state.config.username,
+})
+
+const mergeProps = stateProps => {
+  const tx = stateProps._transaction
+  const yourRole = Constants.paymentToYourRole(tx, stateProps._you || '')
+  const counterpartyType = Constants.paymentToCounterpartyType(tx)
   return {
-    timestamp: payment.time,
+    timestamp: tx.time,
     yourRole,
-    counterparty: yourRole === 'sender' ? payment.target : payment.source,
-    counterpartyType:
-      yourRole === 'sender'
-        ? Constants.paymentTypeToPartyType[payment.targetType]
-        : Constants.paymentTypeToPartyType[payment.sourceType],
-    amountUser: payment.worth,
-    amountXLM: payment.amountDescription,
-    memo: payment.note,
-    large: false,
+    counterparty: yourRole === 'sender' ? tx.target : tx.source,
+    counterpartyType,
+    amountUser: tx.worth,
+    amountXLM: tx.amountDescription,
+    memo: tx.note,
+    large: counterpartyType !== 'wallet',
   }
 }
 
-export default connect(mapStateToProps)(Transaction)
+export default connect(mapStateToProps, null, mergeProps)(Transaction)

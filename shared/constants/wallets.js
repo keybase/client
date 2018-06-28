@@ -103,10 +103,30 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   })
 }
 
-const paymentTypeToPartyType = {
-  sbs: 'keybaseUser',
-  stellar: 'stellarPublicKey',
-  keybase: 'keybaseUser',
+const paymentToCounterpartyType = (p: Types.Payment): 'wallet' | 'keybaseUser' | 'stellarPublicKey' => {
+  if (p.source === p.target) {
+    return 'wallet'
+  }
+  switch (p.targetType) {
+    case 'sbs':
+      return 'keybaseUser'
+    case 'stellar':
+      return 'stellarPublicKey'
+    case 'keybase':
+      return 'keybaseUser'
+  }
+  return 'stellarPublicKey'
+}
+
+const paymentToYourRole = (p: Types.Payment, username: string): 'sender' | 'receiver' => {
+  if (username === p.source) {
+    if (username === p.target && p.delta === 'increase') {
+      // transfer into this wallet
+      return 'receiver'
+    }
+    return 'sender'
+  }
+  return 'receiver'
 }
 
 const loadEverythingWaitingKey = 'wallets:loadEverything'
@@ -115,8 +135,11 @@ const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().t
 
 const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 
+const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
+  state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), I.List())
+
 const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: string) =>
-  state.wallets.paymentsMap.get(accountID, I.List()).find(p => p.id === paymentID)
+  state.wallets.paymentsMap.get(accountID, I.List()).find(p => p.id === paymentID) || makePayment()
 
 const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
@@ -127,7 +150,12 @@ const getAssets = (state: TypedState, accountID?: Types.AccountID) =>
 export {
   accountResultToAccount,
   assetsResultToAssets,
+  getAccountIDs,
+  getAccount,
+  getAssets,
   getPayment,
+  getPayments,
+  getSelectedAccount,
   loadEverythingWaitingKey,
   makeAccount,
   makeAssets,
@@ -135,9 +163,6 @@ export {
   makeReserve,
   makeState,
   paymentResultToPayment,
-  paymentTypeToPartyType,
-  getAccountIDs,
-  getAccount,
-  getAssets,
-  getSelectedAccount,
+  paymentToCounterpartyType,
+  paymentToYourRole,
 }

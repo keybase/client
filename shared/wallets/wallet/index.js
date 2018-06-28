@@ -1,9 +1,10 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
-import {Box2, Divider, SectionList, Text} from '../../common-adapters'
+import {Box2, Divider, ScrollView, SectionList, Text} from '../../common-adapters'
 import Header from './header-container'
 import Asset from '../asset/container'
+import Transaction from '../transaction/container'
 import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
 
 type Props = {
@@ -18,10 +19,18 @@ export default (props: Props) => {
       children.push(
         <Asset accountID={props.accountID} index={item.item} key={`${props.accountID}:${item.item}`} />
       )
-      if (index !== section.data.length - 1) {
-        // don't put divider after last thing in section
-        children.push(<Divider key={`${props.accountID}:${item.item}:divider`} />)
-      }
+    } else if (section.title === 'History') {
+      children.push(
+        <Transaction
+          accountID={props.accountID}
+          paymentID={item.item.paymentID}
+          key={`${props.accountID}:${item.item.paymentID}`}
+        />
+      )
+    }
+    if (index !== section.data.length - 1) {
+      // don't put divider after last thing in section
+      children.push(<Divider key={`${props.accountID}:${item.item}:divider`} />)
     }
     // TODO
     return children
@@ -42,12 +51,14 @@ export default (props: Props) => {
       gapStart={true}
       gapEnd={true}
     >
-      <Header />
-      <SectionList
-        sections={props.sections}
-        renderItem={renderItem}
-        renderSectionHeader={renderSectionHeader}
-      />
+      <ScrollView>
+        <Header />
+        <SectionList
+          sections={props.sections}
+          renderItem={renderItem}
+          renderSectionHeader={renderSectionHeader}
+        />
+      </ScrollView>
     </Box2>
   )
 }
