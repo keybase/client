@@ -3,6 +3,7 @@ import * as Types from '../constants/types/signup'
 import * as Constants from '../constants/signup'
 import * as SignupGen from '../actions/signup-gen'
 import HiddenString from '../util/hidden-string'
+import {trim} from 'lodash-es'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -47,7 +48,7 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
           })
         : state
     case SignupGen.submitDevicename:
-      return state.set('devicename', action.payload.devicename)
+      return state.set('devicename', trim(action.payload.devicename))
     case SignupGen.submitDevicenameDone:
       return action.payload.devicename === state.devicename
         ? state.set('devicenameError', (action.error && action.payload.error) || '')

@@ -22,7 +22,7 @@
       }
     },
     "checkUsernameEmail": {
-      "_description": "We want to valid a user/email",
+      "_description": "We want to validate a user/email",
       "username": "string",
       "email": "string"
     },

@@ -6,12 +6,11 @@ import * as SignupGen from './signup-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import HiddenString from '../util/hidden-string'
-import {trim} from 'lodash-es'
 import {isMobile} from '../constants/platform'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
 import {loginTab} from '../constants/tabs'
 import {navigateAppend, navigateTo} from '../actions/route-tree'
-import type {RPCError} from '../engine/types'
+import {RPCError} from '../engine/types'
 import type {TypedState} from '../constants/reducer'
 
 const checkInviteCode = (action: SignupGen.CheckInviteCodePayload) =>
@@ -44,10 +43,10 @@ const requestInvite = (action: SignupGen.RequestInvitePayload) => {
   const emailError = isValidEmail(email)
   const nameError = isValidName(name)
   if (emailError) {
-    return Saga.put(SignupGen.createRequestInviteDoneError({email, emailError, name, nameError: ''}))
+    throw SignupGen.createRequestInviteDoneError({email, emailError, name, nameError: ''})
   }
   if (nameError) {
-    return Saga.put(SignupGen.createRequestInviteDoneError({email, emailError: '', name, nameError}))
+    throw SignupGen.createRequestInviteDoneError({email, emailError: '', name, nameError})
   }
 
   return Saga.call(
@@ -57,14 +56,7 @@ const requestInvite = (action: SignupGen.RequestInvitePayload) => {
   )
 }
 
-const requestInviteSuccess = (
-  result: SignupGen.RequestInviteDonePayload | void,
-  action: SignupGen.RequestInvitePayload
-) => {
-  // rpc returns undefined, dispatches above on error return the type
-  if (result) {
-    return
-  }
+const requestInviteSuccess = (result: void, action: SignupGen.RequestInvitePayload) => {
   const {email, name} = action.payload
   return Saga.sequentially([
     Saga.put(SignupGen.createRequestInviteDone({email, name})),
@@ -72,9 +64,22 @@ const requestInviteSuccess = (
   ])
 }
 
-const requestInviteError = (err, action: SignupGen.RequestInvitePayload) => {
-  const {email, name} = action.payload
-  return Saga.put(SignupGen.createRequestInviteDoneError({email, emailError: err, name, nameError: ''}))
+const requestInviteError = (
+  err: RPCError | SignupGen.RequestInviteDonePayloadError,
+  action: SignupGen.RequestInvitePayload
+) => {
+  if (err instanceof RPCError) {
+    return Saga.put(
+      SignupGen.createRequestInviteDoneError({
+        email: action.payload.email,
+        emailError: `Sorry can't get an invite: ${err.desc}`,
+        name: action.payload.name,
+        nameError: '',
+      })
+    )
+  } else if (err) {
+    return Saga.put(err)
+  }
 }
 
 const checkUsernameEmail = (action: SignupGen.CheckUsernameEmailPayload) => {
@@ -83,27 +88,18 @@ const checkUsernameEmail = (action: SignupGen.CheckUsernameEmailPayload) => {
   const usernameError = isValidUsername(username)
 
   if (emailError || usernameError) {
-    return Saga.put(
-      SignupGen.createCheckUsernameEmailDoneError({
-        email,
-        emailError,
-        username,
-        usernameError,
-      })
-    )
+    throw SignupGen.createCheckUsernameEmailDoneError({
+      email,
+      emailError,
+      username,
+      usernameError,
+    })
   }
 
   return Saga.call(RPCTypes.signupCheckUsernameAvailableRpcPromise, {username}, Constants.waitingKey)
 }
 
-const checkUsernameEmailSuccess = (
-  result: SignupGen.CheckUsernameEmailDonePayloadError | void,
-  action: SignupGen.CheckUsernameEmailPayload
-) => {
-  // rpc returns undefined, dispatches above on error return the type
-  if (result) {
-    return
-  }
+const checkUsernameEmailSuccess = (result: void, action: SignupGen.CheckUsernameEmailPayload) => {
   const {email, username} = action.payload
   return Saga.sequentially([
     Saga.put(SignupGen.createCheckUsernameEmailDone({email, username})),
@@ -112,40 +108,20 @@ const checkUsernameEmailSuccess = (
 }
 
 const checkUsernameEmailError = (
-  err: {email: string, username: string} | RPCError,
+  err: RPCError | SignupGen.CheckUsernameEmailDonePayloadError,
   action: SignupGen.CheckUsernameEmailPayload
 ) => {
-  const {email, username} = action.payload
-  if (err.email) {
-    const e: {email: string} = (err: any)
+  if (err instanceof RPCError) {
     return Saga.put(
       SignupGen.createCheckUsernameEmailDoneError({
-        email,
-        emailError: e.email,
-        username,
-        usernameError: '',
-      })
-    )
-  } else if (err.username) {
-    const e: {username: string} = (err: any)
-    return Saga.put(
-      SignupGen.createCheckUsernameEmailDoneError({
-        email,
+        email: action.payload.email,
         emailError: '',
-        username: username,
-        usernameError: e.username,
+        username: action.payload.username,
+        usernameError: `Sorry, there was a problem: ${err.desc}`,
       })
     )
-  } else {
-    const e: RPCError = (err: any)
-    return Saga.put(
-      SignupGen.createCheckUsernameEmailDoneError({
-        email,
-        emailError: '',
-        username,
-        usernameError: `Sorry, there was a problem: ${e.desc}`,
-      })
-    )
+  } else if (err) {
+    return Saga.put(err)
   }
 }
 
@@ -182,28 +158,34 @@ const checkPassphrase = (action: SignupGen.CheckPassphrasePayload) => {
   ])
 }
 
-const submitDevicename = (action: SignupGen.SubmitDevicenamePayload) => {
-  const {devicename} = action.payload
-  if (trim(devicename).length === 0) {
-    return Saga.put(
-      SignupGen.createSubmitDevicenameDoneError({
-        devicename,
-        error: 'Device name must not be empty.',
-      })
-    )
+const submitDevicename = (action: SignupGen.SubmitDevicenamePayload, state: TypedState) => {
+  // Store trims this when saving so use this and not the raw one from the action
+  const devicename = state.signup.devicename
+  if (devicename.length === 0) {
+    throw SignupGen.createSubmitDevicenameDoneError({
+      devicename,
+      error: 'Device name must not be empty.',
+    })
   }
   return Saga.call(RPCTypes.deviceCheckDeviceNameFormatRpcPromise, {name: devicename}, Constants.waitingKey)
 }
 
 const submitDevicenameSuccess = () => Saga.put(SignupGen.createSignup())
-const submitDevicenameError = (err: RPCError, action: SignupGen.SubmitDevicenamePayload) => {
-  logger.warn('device name is invalid: ', err)
-  return Saga.put(
-    SignupGen.createSubmitDevicenameDoneError({
-      devicename: action.payload.devicename,
-      error: `Device name is invalid: ${err.desc}.`,
-    })
-  )
+const submitDevicenameError = (
+  err: RPCError | SignupGen.SubmitDevicenameDonePayloadError,
+  action: SignupGen.SubmitDevicenamePayload
+) => {
+  if (err instanceof RPCError) {
+    logger.warn('device name is invalid: ', err)
+    return Saga.put(
+      SignupGen.createSubmitDevicenameDoneError({
+        devicename: action.payload.devicename,
+        error: `Device name is invalid: ${err.desc}.`,
+      })
+    )
+  } else if (err) {
+    return Saga.put(err)
+  }
 }
 
 const signup = (action: SignupGen.SignupPayload, state: TypedState) => {
