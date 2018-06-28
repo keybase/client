@@ -3,10 +3,10 @@ import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../constants/types/fs'
 import {globalStyles, globalMargins} from '../styles'
-import {Box, Icon, List, ScrollView, Text} from '../common-adapters'
+import {Box, Divider, Icon, List, ScrollView, Text} from '../common-adapters'
 import FolderHeader from './header/container'
 import SortBar from './sortbar/container'
-import {Still, Editing, Placeholder, Uploading, rowHeight} from './row'
+import {Still, Editing, Placeholder, Uploading} from './row'
 import Footer from './footer/container'
 import {isMobile} from '../constants/platform'
 import ConnectedBanner from './banner/container'
@@ -19,11 +19,18 @@ type FolderProps = {
   routePath: I.List<string>,
 }
 
+export const wrapRow = rowContent => (
+  <Box style={stylesRowContainer}>
+    {rowContent}
+    <Divider style={stylesDivider} />
+  </Box>
+)
+
 class Files extends React.PureComponent<FolderProps> {
-  _rowRenderer = (index: number, item: Types.RowItem) => {
+  _mapItemToContent = (item: Types.RowItem) => {
     switch (item.rowType) {
       case 'placeholder':
-        return <Placeholder key={`placeholder:${item.name}`} />
+        return <Placeholder type={item.type} key={`placeholder:${item.name}`} />
       case 'still':
         return <Still key={`still:${item.name}`} path={item.path} routePath={this.props.routePath} />
       case 'uploading':
@@ -45,6 +52,8 @@ class Files extends React.PureComponent<FolderProps> {
         return <Text type="BodyError">This should not happen.</Text>
     }
   }
+
+  _rowRenderer = (index: number, item: Types.RowItem) => wrapRow(this._mapItemToContent(item))
 
   render() {
     const content = this.props.isUserReset ? (
@@ -81,6 +90,8 @@ class Files extends React.PureComponent<FolderProps> {
   }
 }
 
+const rowHeight = isMobile ? 64 : 40
+
 const styleOuterContainer = {
   height: '100%',
   position: 'relative',
@@ -106,6 +117,17 @@ const resetContainerStyle = {
   flex: 1,
   justifyContent: 'center',
   marginTop: 2 * globalMargins.xlarge,
+}
+
+const stylesRowContainer = {
+  ...globalStyles.flexBoxColumn,
+  height: rowHeight,
+  minHeight: rowHeight,
+  maxHeight: rowHeight,
+}
+
+const stylesDivider = {
+  marginLeft: 48,
 }
 
 export default Files

@@ -6,7 +6,7 @@ import * as Constants from '../constants/fs'
 import {type ConnectedProps as ConnectedUsernamesProps} from '../common-adapters/usernames'
 import {action, storiesOf, createPropProvider} from '../stories/storybook'
 import {globalColors, globalMargins} from '../styles'
-import Files from '.'
+import Files, {wrapRow} from '.'
 import ConnectedStillRow from './row/still-container'
 import StillRow from './row/still'
 import EditingRow from './row/editing'
@@ -245,102 +245,127 @@ const load = () => {
     ))
     .add('Rows', () => (
       <Box>
-        <ConnectedStillRow
-          path={Types.stringToPath('/keybase/private/a')}
-          routeProps={I.Map({path: '/keybase/private/foo'})}
-          routePath={I.List([])}
-        />
-        <EditingRow
-          name="New Folder (editing)"
-          hint="New Folder (editing)"
-          status="editing"
-          itemStyles={folderItemStyles}
-          isCreate={true}
-          {...commonRowProps}
-        />
-        <EditingRow
-          name="From Dropbox (rename) (editing)"
-          hint="From Dropbox (rename) (editing)"
-          status="editing"
-          itemStyles={folderItemStyles}
-          isCreate={false}
-          {...commonRowProps}
-        />
-        <EditingRow
-          name="New Folder (saving)"
-          hint="New Folder (saving)"
-          status="saving"
-          itemStyles={folderItemStyles}
-          isCreate={true}
-          {...commonRowProps}
-        />
-        <EditingRow
-          name="New Folder (failed)"
-          hint="New Folder (failed)"
-          status="failed"
-          itemStyles={folderItemStyles}
-          isCreate={true}
-          {...commonRowProps}
-        />
-        <UploadingRow
-          name="foo"
-          itemStyles={folderItemStyles}
-          writingToJournal={true}
-          syncing={false}
-          error={false}
-        />
-        <UploadingRow
-          name="foo"
-          itemStyles={fileItemStyles}
-          writingToJournal={true}
-          syncing={false}
-          error={false}
-        />
-        <UploadingRow
-          name="foo"
-          itemStyles={fileItemStyles}
-          writingToJournal={true}
-          syncing={true}
-          error={false}
-        />
-        <UploadingRow
-          name="foo"
-          itemStyles={fileItemStyles}
-          writingToJournal={false}
-          syncing={true}
-          error={false}
-        />
-        <UploadingRow
-          name="foo"
-          itemStyles={fileItemStyles}
-          writingToJournal={false}
-          syncing={false}
-          error={false}
-        />
-        <UploadingRow
-          name="foo"
-          itemStyles={fileItemStyles}
-          writingToJournal={false}
-          syncing={false}
-          error={true}
-        />
-        <StillRow
-          path={Types.stringToPath('/keybase/private/foo/bar')}
-          name="bar"
-          type="file"
-          lastModifiedTimestamp={Date.now()}
-          lastWriter="alice"
-          shouldShowMenu={true}
-          itemStyles={fileItemStyles}
-          badgeCount={0}
-          isDownloading={true}
-          isUserReset={false}
-          resetParticipants={[]}
-          onOpen={action('onOpen')}
-          openInFileUI={action('openInFileUI')}
-          onAction={action('onAction')}
-        />
-        <PlaceholderRow />
+        {wrapRow(
+          <ConnectedStillRow
+            path={Types.stringToPath('/keybase/private/a')}
+            routeProps={I.Map({path: '/keybase/private/foo'})}
+            routePath={I.List([])}
+          />
+        )}
+        {wrapRow(
+          <EditingRow
+            name="New Folder (editing)"
+            hint="New Folder (editing)"
+            status="editing"
+            itemStyles={folderItemStyles}
+            isCreate={true}
+            {...commonRowProps}
+          />
+        )}
+        {wrapRow(
+          <EditingRow
+            name="From Dropbox (rename) (editing)"
+            hint="From Dropbox (rename) (editing)"
+            status="editing"
+            itemStyles={folderItemStyles}
+            isCreate={false}
+            {...commonRowProps}
+          />
+        )}
+        {wrapRow(
+          <EditingRow
+            name="New Folder (saving)"
+            hint="New Folder (saving)"
+            status="saving"
+            itemStyles={folderItemStyles}
+            isCreate={true}
+            {...commonRowProps}
+          />
+        )}
+        {wrapRow(
+          <EditingRow
+            name="New Folder (failed)"
+            hint="New Folder (failed)"
+            status="failed"
+            itemStyles={folderItemStyles}
+            isCreate={true}
+            {...commonRowProps}
+          />
+        )}
+        {wrapRow(
+          <UploadingRow
+            name="foo"
+            itemStyles={folderItemStyles}
+            writingToJournal={true}
+            syncing={false}
+            error={false}
+          />
+        )}
+        {wrapRow(
+          <UploadingRow
+            name="foo"
+            itemStyles={fileItemStyles}
+            writingToJournal={true}
+            syncing={false}
+            error={false}
+          />
+        )}
+        {wrapRow(
+          <UploadingRow
+            name="foo"
+            itemStyles={fileItemStyles}
+            writingToJournal={true}
+            syncing={true}
+            error={false}
+          />
+        )}
+        {wrapRow(
+          <UploadingRow
+            name="foo"
+            itemStyles={fileItemStyles}
+            writingToJournal={false}
+            syncing={true}
+            error={false}
+          />
+        )}
+        {wrapRow(
+          <UploadingRow
+            name="foo"
+            itemStyles={fileItemStyles}
+            writingToJournal={false}
+            syncing={false}
+            error={false}
+          />
+        )}
+        {wrapRow(
+          <UploadingRow
+            name="foo"
+            itemStyles={fileItemStyles}
+            writingToJournal={false}
+            syncing={false}
+            error={true}
+          />
+        )}
+        {wrapRow(
+          <StillRow
+            path={Types.stringToPath('/keybase/private/foo/bar')}
+            name="bar"
+            type="file"
+            lastModifiedTimestamp={Date.now()}
+            lastWriter="alice"
+            shouldShowMenu={true}
+            itemStyles={fileItemStyles}
+            badgeCount={0}
+            isDownloading={true}
+            isUserReset={false}
+            resetParticipants={[]}
+            onOpen={action('onOpen')}
+            openInFileUI={action('openInFileUI')}
+            onAction={action('onAction')}
+          />
+        )}
+        {wrapRow(<PlaceholderRow type="folder" />)}
+        {wrapRow(<PlaceholderRow type="file" />)}
       </Box>
     ))
     .add('Footer Cards', () => (

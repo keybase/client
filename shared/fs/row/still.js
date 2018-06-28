@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {globalColors, globalMargins, isMobile, glamorous} from '../../styles'
 import rowStyles from './styles'
-import {Badge, Box, ClickableBox, Icon, Meta, Text, Divider} from '../../common-adapters'
+import {Badge, Box, ClickableBox, Icon, Meta, Text} from '../../common-adapters'
 import PathItemIcon from '../common/path-item-icon'
 import PathItemInfo from '../common/path-item-info'
 import PathItemAction from '../common/path-item-action-container'
@@ -68,45 +68,42 @@ const RowMeta = ({badgeCount, isDownloading, isNew, isIgnored, needsRekey}) => {
 }
 
 const Still = (props: StillProps) => (
-  <Box>
-    <HoverBox style={rowStyles.row}>
-      <ClickableBox onClick={props.onOpen} style={rowStyles.rowBox}>
-        <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon} />
-        <RowMeta badgeCount={props.badgeCount} {...props.tlfMeta} isDownloading={props.isDownloading} />
-        <Box style={rowStyles.itemBox}>
-          <Text
-            type={props.itemStyles.textType}
-            style={rowStyles.rowText(props.itemStyles.textColor)}
-            lineClamp={isMobile ? 1 : undefined}
-          >
-            {props.name}
-          </Text>
-          {props.type === 'folder' &&
-          (!props.resetParticipants || props.resetParticipants.length === 0) ? null : (
-            <PathItemInfo
-              lastModifiedTimestamp={props.lastModifiedTimestamp}
-              lastWriter={props.lastWriter}
-              resetParticipants={props.resetParticipants}
-              isUserReset={props.isUserReset}
-            />
-          )}
-        </Box>
-      </ClickableBox>
-      <Box style={rowStyles.rightBox}>
-        {!isMobile && (
-          <Icon
-            type="iconfont-finder"
-            style={pathItemActionIconStyle}
-            fontSize={pathItemActionIconFontSize}
-            onClick={props.openInFileUI}
-            className="fs-path-item-hover-icon"
+  <HoverBox style={rowStyles.rowBox}>
+    <ClickableBox onClick={props.onOpen} style={rowStyles.leftBox}>
+      <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon} />
+      <RowMeta badgeCount={props.badgeCount} {...props.tlfMeta} isDownloading={props.isDownloading} />
+      <Box style={rowStyles.itemBox}>
+        <Text
+          type={props.itemStyles.textType}
+          style={rowStyles.rowText(props.itemStyles.textColor)}
+          lineClamp={isMobile ? 1 : undefined}
+        >
+          {props.name}
+        </Text>
+        {props.type === 'folder' &&
+        (!props.resetParticipants || props.resetParticipants.length === 0) ? null : (
+          <PathItemInfo
+            lastModifiedTimestamp={props.lastModifiedTimestamp}
+            lastWriter={props.lastWriter}
+            resetParticipants={props.resetParticipants}
+            isUserReset={props.isUserReset}
           />
         )}
-        <PathItemAction path={props.path} actionIconClassName="fs-path-item-hover-icon" />
       </Box>
-    </HoverBox>
-    <Divider style={rowStyles.divider} />
-  </Box>
+    </ClickableBox>
+    <Box style={rowStyles.rightBox}>
+      {!isMobile && (
+        <Icon
+          type="iconfont-finder"
+          style={pathItemActionIconStyle}
+          fontSize={pathItemActionIconFontSize}
+          onClick={props.openInFileUI}
+          className="fs-path-item-hover-icon"
+        />
+      )}
+      <PathItemAction path={props.path} actionIconClassName="fs-path-item-hover-icon" />
+    </Box>
+  </HoverBox>
 )
 
 const pathItemActionIconStyle = {
