@@ -410,7 +410,7 @@ func (f JSONConfigFile) GetAllUsernames() (current NormalizedUsername, others []
 			return
 		}
 		nu := NewNormalizedUsername(name)
-		if !nu.Eq(current) {
+		if !nu.Eq(current) && !nu.IsNil() {
 			others = append(others, nu)
 		}
 	}
