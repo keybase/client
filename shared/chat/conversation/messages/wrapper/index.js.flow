@@ -7,3 +7,4 @@ class WrapperUserContent extends React.PureComponent<WrapperUserContentProps> {}
 
 declare export {Wrapper}
 declare export {WrapperUserContent}
+declare export default Wrapper

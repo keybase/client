@@ -190,20 +190,22 @@ const RightSide = props => (
   </Box>
 )
 
-class MessageWrapper extends React.Component<WrapperProps> {
+class MessageWrapper extends React.PureComponent<WrapperProps> {
   render() {
     const props = this.props
     return (
       <Box style={styles.container}>
         {props.orangeLineAbove && <Box style={styles.orangeLine} />}
         {props.timestamp && <Timestamp timestamp={props.timestamp} />}
-        {this.props.children}
+        {props.children}
       </Box>
     )
   }
 }
 
-class MessageWrapperUserContent extends React.Component<WrapperUserContentProps & FloatingMenuParentProps> {
+class MessageWrapperUserContent extends React.PureComponent<
+  WrapperUserContentProps & FloatingMenuParentProps
+> {
   componentDidUpdate(prevProps: WrapperUserContentProps) {
     if (this.props.measure) {
       if (
