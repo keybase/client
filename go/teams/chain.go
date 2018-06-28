@@ -577,7 +577,7 @@ func (t *TeamSigChainState) FindActiveKeybaseInvite(uid keybase1.UID) (keybase1.
 
 // --------------------------------------------------
 
-// Process a chain link.
+// AppendChainLink process a chain link.
 // It must have already been partially verified by TeamLoader.
 // `reader` is the user who is processing the chain.
 // `state` is moved into this function. There must exist no live references into it from now on.
@@ -600,7 +600,7 @@ func AppendChainLink(ctx context.Context, g *libkb.GlobalContext, reader keybase
 	return res, err
 }
 
-// Add the full inner link for a link that has already been added in stubbed form.
+// InflateLink adds the full inner link for a link that has already been added in stubbed form.
 // `state` is moved into this function. There must exist no live references into it from now on.
 func InflateLink(ctx context.Context, g *libkb.GlobalContext, reader keybase1.UserVersion, state TeamSigChainState,
 	link *chainLinkUnpacked, signer signerX) (res TeamSigChainState, err error) {
