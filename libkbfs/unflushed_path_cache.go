@@ -136,8 +136,10 @@ func (upc *unflushedPathCache) abortInitialization() {
 	defer upc.lock.Unlock()
 	upc.state = upcUninitialized
 	upc.queue = nil
-	close(upc.ready)
-	upc.ready = nil
+	if upc.ready != nil {
+		close(upc.ready)
+		upc.ready = nil
+	}
 }
 
 // unflushedPathMDInfo is the subset of metadata info needed by
@@ -329,8 +331,10 @@ func (upc *unflushedPathCache) setCacheIfPossible(cache unflushedPathsMap,
 
 	upc.unflushedPaths = cache
 	upc.chainsPopulator = cpp
-	close(upc.ready)
-	upc.ready = nil
+	if upc.ready != nil {
+		close(upc.ready)
+		upc.ready = nil
+	}
 	upc.state = upcInitialized
 	return nil
 }
