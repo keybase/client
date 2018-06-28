@@ -865,3 +865,24 @@ func NoiseXOR(secret [32]byte, noise NoiseBytes) ([]byte, error) {
 func ForceWallClock(t time.Time) time.Time {
 	return t.Round(0)
 }
+
+// Decode decodes src into dst.
+// Errors unless all of:
+// - src is valid hex
+// - src decodes into exactly len(dst) bytes
+func DecodeHexFixed(dst, src []byte) error {
+	// hex.Decode is wrapped because it does not error on short reads and panics on long reads.
+	if len(dst) != hex.DecodedLen(len(src)) {
+		return NewHexWrongLengthError(fmt.Sprintf(
+			"error decoding fixed-length hex: expected %v bytes but got %v", len(dst), hex.DecodedLen(len(src))))
+	}
+	n, err := hex.Decode(dst, src)
+	if err != nil {
+		return err
+	}
+	if n != len(dst) {
+		return NewHexWrongLengthError(fmt.Sprintf(
+			"error decoding fixed-length hex: expected %v bytes but got %v", len(dst), n))
+	}
+	return nil
+}
