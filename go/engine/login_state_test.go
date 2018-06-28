@@ -175,7 +175,7 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 }
 
 func userHasStoredSecretViaConfiguredAccounts(tc *libkb.TestContext, username string) bool {
-	m := libkb.NewMetaContext(tc, tc.G)
+	m := libkb.NewMetaContextForTest(tc)
 	configuredAccounts, err := tc.G.GetConfiguredAccounts()
 	if err != nil {
 		tc.T.Error(err)
