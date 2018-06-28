@@ -6,32 +6,38 @@ import {Input} from '../../../../common-adapters'
 import {isMobile} from '../../../../constants/platform'
 
 type MentionState = {|
-  pickSelectedCounter: number,
-  mentionFilter: string,
   channelMentionFilter: string,
-  mentionPopupOpen: boolean,
   channelMentionPopupOpen: boolean,
+  downArrowCounter: number,
+  lastSelectionKey: string,
+  mentionFilter: string,
+  mentionPopupOpen: boolean,
+  pickSelectedCounter: number,
 
   // Desktop only.
   upArrowCounter: number,
-  downArrowCounter: number,
 |}
 
 class MentionInput extends React.Component<MentionInputProps, MentionState> {
   state: MentionState = {
-    upArrowCounter: 0,
-    downArrowCounter: 0,
-    pickSelectedCounter: 0,
-    mentionFilter: '',
     channelMentionFilter: '',
-    mentionPopupOpen: false,
     channelMentionPopupOpen: false,
+    downArrowCounter: 0,
+    lastSelectionKey: '',
+    mentionFilter: '',
+    mentionPopupOpen: false,
+    pickSelectedCounter: 0,
+    upArrowCounter: 0,
   }
   _inputRef: ?Input
 
   _inputSetRef = (input: ?Input) => {
     this.props.inputSetRef(input)
     this._inputRef = input
+  }
+
+  _setLastSelectionKey = (lastSelectionKey: string) => {
+    this.setState(p => (p.lastSelectionKey !== lastSelectionKey ? {lastSelectionKey} : null))
   }
 
   _setMentionPopupOpen = (mentionPopupOpen: boolean) => {
@@ -98,18 +104,25 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
         this._setChannelMentionFilter(word.substring(1))
       }
     } else if (selection.start !== selection.end) {
-      this.state.mentionPopupOpen && this._setMentionPopupOpen(false) && this._setMentionFilter('')
+      this.state.mentionPopupOpen &&
+        this._setMentionPopupOpen(false) &&
+        this._setLastSelectionKey('') &&
+        this._setMentionFilter('')
+
       this.state.channelMentionPopupOpen &&
         this._setChannelMentionPopupOpen(false) &&
+        this._setLastSelectionKey('') &&
         this._setChannelMentionFilter('')
     } else {
       // Close popups if word doesn't begin with marker anymore
       if (this.state.mentionPopupOpen && word[0] !== '@') {
         this._setMentionFilter('')
+        this._setLastSelectionKey('')
         this._setMentionPopupOpen(false)
         return
       } else if (this.state.channelMentionPopupOpen && word[0] !== '#') {
         this._setChannelMentionFilter('')
+        this._setLastSelectionKey('')
         this._setChannelMentionPopupOpen(false)
         return
       }
@@ -130,8 +143,11 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
   // Start mobile only.
 
   onBlur = () => {
-    this.state.channelMentionPopupOpen && this._setChannelMentionPopupOpen(false)
-    this.state.mentionPopupOpen && this._setMentionPopupOpen(false)
+    this.state.channelMentionPopupOpen &&
+      this._setChannelMentionPopupOpen(false) &&
+      this._setLastSelectionKey('')
+
+    this.state.mentionPopupOpen && this._setMentionPopupOpen(false) && this._setLastSelectionKey('')
   }
 
   onFocus = () => {
@@ -193,6 +209,7 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     if (this.state.mentionPopupOpen || this.state.channelMentionPopupOpen) {
       if (e.key === 'Tab') {
         e.preventDefault()
+        this._setLastSelectionKey(e.key)
         // If you tab with a partial name typed, we pick the selected item
         if (this.state.mentionFilter.length > 0 || this.state.channelMentionFilter.length > 0) {
           this._triggerPickSelectedCounter()
@@ -206,11 +223,14 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
         }
       } else if (e.key === 'ArrowUp') {
         e.preventDefault()
+        this._setLastSelectionKey(e.key)
         this._triggerUpArrowCounter()
       } else if (e.key === 'ArrowDown') {
         e.preventDefault()
+        this._setLastSelectionKey(e.key)
         this._triggerDownArrowCounter()
       } else if (['Escape', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        this._setLastSelectionKey('')
         this._setMentionPopupOpen(false)
         this._setChannelMentionPopupOpen(false)
       }
@@ -221,13 +241,19 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
 
   _forceSubmit = () => {
     const text = this._getText()
+    const {lastSelectionKey} = this.state
     if (text) {
+      if (['ArrowUp', 'ArrowDown', 'Tab'].includes(lastSelectionKey)) {
+        this._setLastSelectionKey('')
+        return
+      }
       this.props.onSubmit(text)
     }
   }
 
   _onSubmit = (text: string) => {
     if (this.state.mentionPopupOpen || this.state.channelMentionPopupOpen) {
+      this._setLastSelectionKey('')
       if (isMobile) {
         this._setMentionPopupOpen(false)
         this._setChannelMentionPopupOpen(false)
