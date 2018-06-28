@@ -89,7 +89,7 @@ func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
 	return nil
 }
 
-func GetConfiguredAccounts(c SecretStoreContext, m MetaContext, s SecretStoreAll) ([]keybase1.ConfiguredAccount, error) {
+func GetConfiguredAccounts(m MetaContext, s SecretStoreAll) ([]keybase1.ConfiguredAccount, error) {
 
 	currentUsername, allUsernames, err := GetAllProvisionedUsernames(m)
 	if err != nil {

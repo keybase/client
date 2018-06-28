@@ -780,10 +780,10 @@ type Contextifier interface {
 }
 
 func (g *GlobalContext) GetConfiguredAccounts(ctx context.Context) ([]keybase1.ConfiguredAccount, error) {
-	m := NewContextified(g).MetaContext(ctx)
+	m := NewMetaContext(ctx, g)
 	g.secretStoreMu.Lock()
 	defer g.secretStoreMu.Unlock()
-	return GetConfiguredAccounts(g, m, g.secretStore)
+	return GetConfiguredAccounts(m, g.secretStore)
 }
 
 func (g *GlobalContext) GetAllUserNames() (NormalizedUsername, []NormalizedUsername, error) {
