@@ -93,9 +93,9 @@ protocol local {
     string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous)
 
     string source;                  // keybase username or stellar public key
-    ParticipantType sourceType;     // "keybase" or "stellar"
+    ParticipantType sourceType;     // keybase or stellar
     string target;                  // keybase username, stellar public key, or sbs assertion
-    ParticipantType targetType;     // "keybase", "stellar", or "sbs"
+    ParticipantType targetType;     // keybase, stellar, or sbs
 
     string note;                    // encrypted note
     string noteErr;            
