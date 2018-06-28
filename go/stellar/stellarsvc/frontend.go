@@ -22,9 +22,6 @@ import (
 )
 
 const WorthCurrencyErrorCode = "ERR"
-const ParticipantTypeKeybase = "keybase"
-const ParticipantTypeStellar = "stellar"
-const ParticipantTypeSBS = "sbs"
 
 func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (accts []stellar1.WalletAccountLocal, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
