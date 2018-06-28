@@ -6,9 +6,6 @@
       "accountID": "Types.AccountID",
       "assets": "Array<Types.Assets>",
     },
-    "loadEverything": {
-      "_description": "Debugging only -- load accounts/assets/payments for every account at once",
-    },
     "loadAssets": {
       "_description": "Refresh our list of assets for a given account",
       "accountID": "Types.AccountID",

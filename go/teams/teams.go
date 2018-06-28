@@ -665,7 +665,7 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) err
 	}
 
 	payload := t.sigPayload([]libkb.SigMultiItem{sigMultiItem}, sigPayloadArgs{})
-	return t.postMulti(payload)
+	return t.postMulti(libkb.NewMetaContext(ctx, t.G()), payload)
 }
 
 func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) error {
@@ -749,7 +749,7 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) 
 
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{sigParent, sigSub}
-	return t.postMulti(payload)
+	return t.postMulti(libkb.NewMetaContext(ctx, t.G()), payload)
 }
 
 func (t *Team) NumActiveInvites() int {
@@ -1057,7 +1057,7 @@ func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error
 	}
 
 	payload := t.sigPayload(sigMulti, sigPayloadArgs{})
-	err = t.postMulti(payload)
+	err = t.postMulti(libkb.NewMetaContext(ctx, t.G()), payload)
 	if err != nil {
 		return err
 	}
@@ -1188,7 +1188,7 @@ func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, linkTy
 	payload := t.sigPayload(sigMulti, sigPayloadArgs)
 
 	// send it to the server
-	return t.postMulti(payload)
+	return t.postMulti(libkb.NewMetaContext(ctx, t.G()), payload)
 }
 
 func getCurrentUserUV(ctx context.Context, g *libkb.GlobalContext) (ret keybase1.UserVersion, err error) {
@@ -1513,11 +1513,12 @@ func (t *Team) sigPayload(sigMulti []libkb.SigMultiItem, args sigPayloadArgs) li
 	return payload
 }
 
-func (t *Team) postMulti(payload libkb.JSONPayload) error {
+func (t *Team) postMulti(mctx libkb.MetaContext, payload libkb.JSONPayload) error {
 	_, err := t.G().API.PostJSON(libkb.APIArg{
 		Endpoint:    "sig/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
+		MetaContext: mctx,
 	})
 	return err
 }
@@ -1791,7 +1792,7 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 			AppType:          appType,
 		},
 	})
-	return t.postMulti(payload)
+	return t.postMulti(libkb.NewMetaContext(ctx, t.G()), payload)
 }
 
 func (t *Team) AssociateWithTLFID(ctx context.Context, tlfID keybase1.TLFID) (err error) {
@@ -1822,7 +1823,7 @@ func (t *Team) AssociateWithTLFID(ctx context.Context, tlfID keybase1.TLFID) (er
 	}
 
 	payload := t.sigPayload([]libkb.SigMultiItem{sigMultiItem}, sigPayloadArgs{})
-	return t.postMulti(payload)
+	return t.postMulti(libkb.NewMetaContext(ctx, t.G()), payload)
 }
 
 // Send notifyrouter messages.

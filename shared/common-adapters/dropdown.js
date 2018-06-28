@@ -5,6 +5,7 @@ import PopupDialog from './popup-dialog'
 import Icon from './icon'
 import {
   type StylesCrossPlatform,
+  collapseStyles,
   globalStyles,
   globalColors,
   globalMargins,
@@ -38,7 +39,7 @@ class Dropdown extends React.Component<Props, State> {
 
   render() {
     return (
-      <Box style={this.props.style}>
+      <Box style={collapseStyles([{width: isMobile ? '100%' : 270}, this.props.style])}>
         <ButtonBox onClick={this._toggleOpen}>
           {this.state.expanded && (
             <PopupDialog
@@ -75,13 +76,7 @@ class Dropdown extends React.Component<Props, State> {
               </Box>
             </PopupDialog>
           )}
-          <Box
-            style={{
-              ...globalStyles.flexBoxCenter,
-              minHeight: 40,
-              width: '100%',
-            }}
-          >
+          <Box style={{...globalStyles.flexBoxCenter, minHeight: 40, width: '100%'}}>
             {this.props.selected}
           </Box>
           <Icon type="iconfont-caret-down" inheritColor={true} fontSize={11} />
@@ -124,7 +119,7 @@ const ButtonBox = glamorous(Box)({
   borderWidth: 1,
   color: globalColors.lightGrey2,
   paddingRight: isMobile ? globalMargins.medium : globalMargins.small,
-  width: isMobile ? '100%' : 270,
+  width: '100%',
 })
 
 export default Dropdown

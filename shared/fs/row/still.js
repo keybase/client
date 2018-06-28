@@ -6,8 +6,10 @@ import rowStyles from './styles'
 import {Badge, Box, ClickableBox, Icon, Meta, Text, Divider} from '../../common-adapters'
 import PathItemIcon from '../common/path-item-icon'
 import PathItemInfo from '../common/path-item-info'
+import PathItemAction from '../common/path-item-action-container'
 
 type StillProps = {
+  path: Types.Path,
   name: string,
   type: Types.PathType,
   lastModifiedTimestamp: number,
@@ -20,7 +22,6 @@ type StillProps = {
   isUserReset: boolean,
   onOpen: () => void,
   openInFileUI: () => void,
-  onAction: (event: SyntheticEvent<>) => void,
 }
 
 const HoverBox = isMobile
@@ -95,29 +96,24 @@ const Still = (props: StillProps) => (
         {!isMobile && (
           <Icon
             type="iconfont-finder"
-            style={rowActionIconStyle}
-            fontSize={rowActionIconFontSize}
+            style={pathItemActionIconStyle}
+            fontSize={pathItemActionIconFontSize}
             onClick={props.openInFileUI}
             className="fs-path-item-hover-icon"
           />
         )}
-        <Icon
-          type="iconfont-ellipsis"
-          style={rowActionIconStyle}
-          onClick={props.onAction}
-          className="fs-path-item-hover-icon"
-        />
+        <PathItemAction path={props.path} actionIconClassName="fs-path-item-hover-icon" />
       </Box>
     </HoverBox>
     <Divider style={rowStyles.divider} />
   </Box>
 )
 
-const rowActionIconStyle = {
-  padding: globalMargins.small,
+const pathItemActionIconStyle = {
+  padding: globalMargins.tiny,
 }
 
-const rowActionIconFontSize = 16
+const pathItemActionIconFontSize = 16
 
 const styleBadgeContainer = {
   position: 'absolute',

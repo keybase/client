@@ -104,7 +104,7 @@ func NewTransientUnboxingError(inner error) UnboxingError {
 type TransientUnboxingError struct{ inner error }
 
 func (e TransientUnboxingError) Error() string {
-	return fmt.Sprintf("error unboxing chat message: %s", e.inner.Error())
+	return fmt.Sprintf("error unboxing chat message (transient): %s", e.inner.Error())
 }
 
 func (e TransientUnboxingError) IsPermanent() bool { return false }

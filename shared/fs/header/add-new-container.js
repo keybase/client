@@ -7,7 +7,7 @@ import {compose, setDisplayName, connect, type Dispatch, type TypedState} from '
 import AddNew from './add-new'
 
 const mapStateToProps = (state: TypedState, {path}) => ({
-  _pathItem: state.fs.pathItems.get(path, Constants.makeUnknownPathItem()),
+  _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({

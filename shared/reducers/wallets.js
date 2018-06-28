@@ -20,7 +20,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.selectAccount:
       return state.set('selectedAccount', action.payload.accountID)
     // Saga only actions
-    case WalletsGen.loadEverything:
     case WalletsGen.loadAssets:
     case WalletsGen.loadPayments:
     case WalletsGen.loadAccounts:
