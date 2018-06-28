@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
-import {Box2, SectionList, Text} from '../../common-adapters'
+import {Box2, Divider, SectionList, Text} from '../../common-adapters'
 import Header from './header-container'
 import Asset from '../asset/container'
 import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
@@ -13,11 +13,18 @@ type Props = {
 
 export default (props: Props) => {
   const renderItem = ({item, index, section}) => {
+    const children = []
     if (section.title === 'Your assets') {
-      return <Asset accountID={props.accountID} index={item.item} />
+      children.push(
+        <Asset accountID={props.accountID} index={item.item} key={`${props.accountID}:${item.item}`} />
+      )
+      if (index !== section.data.length - 1) {
+        // don't put divider after last thing in section
+        children.push(<Divider key={`${props.accountID}:${item.item}:divider`} />)
+      }
     }
     // TODO
-    return null
+    return children
   }
 
   const renderSectionHeader = ({section}) => (

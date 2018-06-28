@@ -32,9 +32,10 @@ export default class extends React.Component<Props, State> {
   _itemRenderer = (index, key) => {
     const item = this.state.items[index]
     const section = this.props.sections[item.sectionIndex]
+    const indexWithinSection = section.data.indexOf(item.item)
     return item.type === 'header'
       ? this.props.renderSectionHeader({section})
-      : this.props.renderItem({index, item, section})
+      : this.props.renderItem({index: indexWithinSection, item, section})
   }
 
   render() {
