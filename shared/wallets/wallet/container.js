@@ -13,7 +13,7 @@ const mergeProps = stateProps => {
   // layout is
   // 1. header (TODO: not included in list yet)
   // 2. assets header and list of assets
-  // 3. assets
+  // 3. transactions header and transactions (TODO)
   // Formatted in a SectionList
   sections.push({title: 'Your assets', data: stateProps.assets.map((a, index) => index).toArray()})
   return {accountID: stateProps.accountID, sections}
