@@ -2847,3 +2847,10 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 		IdentifyFailures: identBreaks,
 	}, nil
 }
+
+func (h *Server) GetFixedConfig(ctx context.Context) (res chat1.FixedConfig, err error) {
+	defer h.Trace(ctx, func() error { return err }, "GetFixedConfig")()
+	return chat1.FixedConfig{
+		DeletableByDeleteHistory: chat1.DeletableMessageTypesByDeleteHistory(),
+	}, nil
+}
