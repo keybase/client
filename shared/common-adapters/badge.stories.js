@@ -1,9 +1,10 @@
 // @flow
 import Badge from './badge'
 import * as React from 'react'
-import Box from './box'
+import {Box, Box2} from './box'
 import Text from './text'
 import {storiesOf} from '../stories/storybook'
+import {isMobile} from '../styles'
 
 const numbers = [3, 77, 108, 4536, 23876, 1000000000]
 
@@ -14,10 +15,20 @@ function getDigits(n: number) {
 const load = () => {
   storiesOf('Common', module).add('Badge', () =>
     numbers.map(number => (
-      <Box key={number}>
-        <Text type="Body">{getDigits(number)} digit number:</Text>
-        <Badge badgeNumber={number} badgeStyle={{width: 'auto'}} />
-      </Box>
+      <Box2
+        gap="small"
+        direction={isMobile ? 'vertical' : 'horizontal'}
+        gapStart={true}
+        gapEnd={true}
+        fullWidth={false}
+        key={number}
+        style={{alignItems: 'center'}}
+      >
+        <Text type="Header">{getDigits(number)} digit number:</Text>
+        <Box>
+          <Badge badgeNumber={number} />
+        </Box>
+      </Box2>
     ))
   )
 }
