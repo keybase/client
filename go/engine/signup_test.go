@@ -5,6 +5,7 @@ package engine
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -298,5 +299,33 @@ func TestSignupShortPassphrase(t *testing.T) {
 	}
 	if _, ok := err.(libkb.PassphraseError); !ok {
 		t.Fatalf("error type: %T, expected libkb.PassphraseError", err)
+	}
+}
+
+func TestSignupNonAsciiDeviceName(t *testing.T) {
+	tc := SetupEngineTest(t, "signup")
+	defer tc.Cleanup()
+
+	testValues := []struct {
+		deviceName string
+		valid      bool
+	}{
+		{"perfectly-reasonable", true},
+		{"definitely🙃not🐉ascii", false},
+	}
+	for _, testVal := range testValues {
+		updateDeviceName := func(arg *SignupEngineRunArg) {
+			arg.DeviceName = testVal.deviceName
+		}
+		_, err := CreateAndSignupFakeUserSafe(tc.G, "sup", updateDeviceName)
+		if testVal.valid {
+			if err != nil {
+				t.Fatalf("did not expect an error with device name %s", testVal.deviceName)
+			}
+		} else {
+			if !strings.Contains(err.Error(), libkb.CheckDeviceName.Hint) {
+				t.Fatalf("expected error message for %s to include %s", testVal.deviceName, libkb.CheckDeviceName.Hint)
+			}
+		}
 	}
 }

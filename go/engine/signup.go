@@ -212,6 +212,11 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string) er
 		IsEldest:   true,
 	}
 
+	if !libkb.CheckDeviceName.F(s.arg.DeviceName) {
+		m.CDebugf("invalid device name supplied: %s", s.arg.DeviceName)
+		return fmt.Errorf("Bad device name: %v is not %s", s.arg.DeviceName, libkb.CheckDeviceName.Hint)
+	}
+
 	switch s.arg.DeviceType {
 	case keybase1.DeviceType_DESKTOP:
 		args.DeviceType = libkb.DeviceTypeDesktop
