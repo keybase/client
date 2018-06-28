@@ -9,7 +9,7 @@ import "encoding/json"
 // ReadSelfWrite converts the given message string into the
 // SelfWriteMessage type, if possible.
 func ReadSelfWrite(msg string) (ret SelfWriteMessage, err error) {
-	err = json.Unmarshal([]byte(msg), &err)
+	err = json.Unmarshal([]byte(msg), &ret)
 	if err != nil {
 		return SelfWriteMessage{}, err
 	}
