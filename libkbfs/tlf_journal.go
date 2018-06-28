@@ -289,7 +289,7 @@ type tlfJournal struct {
 	mdJournal      *mdJournal
 	disabled       bool
 	lastFlushErr   error
-	unflushedPaths unflushedPathCache
+	unflushedPaths *unflushedPathCache
 	// An estimate of how many bytes have been written since the last
 	// squash.
 	unsquashedBytes uint64
@@ -446,6 +446,7 @@ func makeTLFJournal(
 		singleOpFlushContext: defaultFlushContext(),
 		blockJournal:         blockJournal,
 		mdJournal:            mdJournal,
+		unflushedPaths:       &unflushedPathCache{},
 		flushingBlocks:       make(map[kbfsblock.ID]bool),
 		bytesPerSecEstimate:  ewma.NewMovingAverage(),
 		bwDelegate:           bwDelegate,
@@ -1419,7 +1420,7 @@ func (j *tlfJournal) doOnMDFlushAndRemoveFlushedMDEntry(ctx context.Context,
 		// this would be the place to do it.
 
 		// Reset to initial state.
-		j.unflushedPaths = unflushedPathCache{}
+		j.unflushedPaths = &unflushedPathCache{}
 		j.unsquashedBytes = 0
 		j.flushingBlocks = make(map[kbfsblock.ID]bool)
 
@@ -1754,9 +1755,12 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 			break
 		}
 
-		// We need to init it ourselves, or wait for someone else
-		// to do it.
-		doInit, err := j.unflushedPaths.startInitializeOrWait(ctx)
+		// We need to init it ourselves, or wait for someone else to
+		// do it.  Save the cache in a local variable in case it gets
+		// cleared when the journal is flushed while it's
+		// initializing.
+		upCache := j.unflushedPaths
+		doInit, err := upCache.startInitializeOrWait(ctx)
 		if err != nil {
 			return TLFJournalStatus{}, err
 		}
@@ -1764,16 +1768,15 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 			initSuccess := false
 			defer func() {
 				if !initSuccess || err != nil {
-					j.unflushedPaths.abortInitialization()
+					upCache.abortInitialization()
 				}
 			}()
 			mdInfos, err := j.getUnflushedPathMDInfos(ctx, ibrmds)
 			if err != nil {
 				return TLFJournalStatus{}, err
 			}
-			unflushedPaths, initSuccess, err = j.unflushedPaths.initialize(
-				ctx, j.uid, j.key, j.config.Codec(),
-				j.log, cpp, mdInfos)
+			unflushedPaths, initSuccess, err = upCache.initialize(
+				ctx, j.uid, j.key, j.config.Codec(), j.log, cpp, mdInfos)
 			if err != nil {
 				return TLFJournalStatus{}, err
 			}
