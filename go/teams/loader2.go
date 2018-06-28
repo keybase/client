@@ -155,6 +155,8 @@ func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID k
 func (l *TeamLoader) verifyLink(ctx context.Context,
 	teamID keybase1.TeamID, state *keybase1.TeamData, me keybase1.UserVersion, link *chainLinkUnpacked,
 	readSubteamID keybase1.TeamID, proofSet *proofSetT) (*signerX, error) {
+	ctx, tbs := l.G().CTimeBuckets(ctx)
+	defer tbs.Record("TeamLoader.verifyLink")()
 
 	if link.isStubbed() {
 		return nil, nil
@@ -394,45 +396,37 @@ func (l *TeamLoader) toParentChildOperation(ctx context.Context,
 }
 
 // Apply a new link to the sigchain state.
+// `state` is moved into this function. There must exist no live references into it from now on.
 // `signer` may be nil iff link is stubbed.
 func (l *TeamLoader) applyNewLink(ctx context.Context,
 	state *keybase1.TeamData, link *chainLinkUnpacked,
 	signer *signerX, me keybase1.UserVersion) (*keybase1.TeamData, error) {
+	ctx, tbs := l.G().CTimeBuckets(ctx)
+	defer tbs.Record("TeamLoader.applyNewLink")()
 
 	l.G().Log.CDebugf(ctx, "TeamLoader applying link seqno:%v", link.Seqno())
 
-	var player *TeamSigChainPlayer
-	if state == nil {
-		player = NewTeamSigChainPlayer(l.G(), me)
-	} else {
-		player = NewTeamSigChainPlayerWithState(l.G(), me, TeamSigChainState{inner: state.Chain})
-	}
-
-	err := player.AppendChainLink(ctx, link, signer)
-	if err != nil {
-		return nil, err
-	}
-
-	newChainState, err := player.GetState()
-	if err != nil {
-		return nil, err
-	}
-
+	var chainState *TeamSigChainState
 	var newState *keybase1.TeamData
 	if state == nil {
 		newState = &keybase1.TeamData{
 			// Name is left blank until calculateName updates it.
 			// It shall not be blank by the time it is returned from load2.
 			Name:            keybase1.TeamName{},
-			Chain:           newChainState.inner,
 			PerTeamKeySeeds: make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem),
 			ReaderKeyMasks:  make(map[keybase1.TeamApplication]map[keybase1.PerTeamKeyGeneration]keybase1.MaskB64),
 		}
 	} else {
-		newState2 := state.DeepCopy()
-		newState2.Chain = newChainState.inner
-		newState = &newState2
+		chainState = &TeamSigChainState{inner: state.Chain}
+		newState = state
+		state = nil
 	}
+
+	newChainState, err := AppendChainLink(ctx, l.G(), me, chainState, link, signer)
+	if err != nil {
+		return nil, err
+	}
+	newState.Chain = newChainState.inner
 
 	return newState, nil
 }
@@ -451,19 +445,11 @@ func (l *TeamLoader) inflateLink(ctx context.Context,
 		return nil, NewInflateErrorWithNote(link, "no prior state")
 	}
 
-	player := NewTeamSigChainPlayerWithState(l.G(), me, TeamSigChainState{inner: state.Chain})
-
-	err := player.InflateLink(link, signer)
+	newState := state.DeepCopy() // Clone the state and chain so that our parameters don't get consumed.
+	newChainState, err := InflateLink(ctx, l.G(), me, TeamSigChainState{inner: newState.Chain}, link, signer)
 	if err != nil {
 		return nil, err
 	}
-
-	newChainState, err := player.GetState()
-	if err != nil {
-		return nil, err
-	}
-
-	newState := state.DeepCopy()
 	newState.Chain = newChainState.inner
 
 	return &newState, nil

@@ -514,6 +514,16 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			return nil, err
 		}
 	}
+
+	// If we're pulling from a previous snapshot (that, let's say, we got from a shared cache),
+	// then make sure to DeepCopy() data out of it before we start mutating it below. We used
+	// to do this every step through the new links, but that was very expensive in terms of CPU
+	// for big teams, since it was hidden quadratic behavior.
+	if ret != nil {
+		tmp := ret.DeepCopy()
+		ret = &tmp
+	}
+
 	tracer.Stage("linkloop (%v)", len(links))
 	for i, link := range links {
 		l.G().Log.CDebugf(ctx, "TeamLoader processing link seqno:%v", link.Seqno())
@@ -557,6 +567,8 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		prev = link.LinkID()
 	}
 	tbs.Log(ctx, "CachedUPAKLoader.LoadKeyV2")
+	tbs.Log(ctx, "TeamLoader.verifyLink")
+	tbs.Log(ctx, "TeamLoader.applyNewLink")
 
 	if ret == nil {
 		return nil, fmt.Errorf("team loader fault: got nil from load2")
