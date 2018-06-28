@@ -22,6 +22,7 @@ import {
 import {navigateTo} from '../actions/route-tree'
 import {connect, type TypedState, type Dispatch} from '../util/container'
 import {globalStyles} from '../styles'
+import flags from '../util/feature-flags'
 import RpcStats from './rpc-stats'
 
 type Props = {
@@ -40,7 +41,9 @@ const hotKeyTabMap: {[string]: Tab} = {
   '5': devicesTab,
   '6': gitTab,
   '7': settingsTab,
-  '8': walletsTab,
+}
+if (flags.walletsEnabled) {
+  hotKeyTabMap['8'] = walletsTab
 }
 
 class Nav extends React.Component<Props> {
