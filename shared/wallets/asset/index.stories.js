@@ -1,15 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/wallets'
-import {withStateHandlers} from '../../util/container'
 import {Box, Divider} from '../../common-adapters'
-import {action, storiesOf} from '../../stories/storybook'
+import {storiesOf} from '../../stories/storybook'
 import Asset from '.'
-
-const common = {
-  expanded: false,
-  toggleExpanded: action('toggleExpanded'),
-}
 
 const native = {
   availableToSend: '122.0000000',
@@ -62,28 +56,22 @@ const btexcadv = {
   reserves: [],
 }
 
-const expandedHOC = withStateHandlers(
-  {expanded: false},
-  {toggleExpanded: ({expanded}) => () => ({expanded: !expanded})}
-)
-const AssetWithExpanded = expandedHOC(Asset)
-
 const load = () => {
   storiesOf('Wallets/Assets', module)
     .addDecorator(story => <Box style={{maxWidth: 520}}>{story()}</Box>)
-    .add('Native currency', () => <Asset {...common} {...native} />)
-    .add('Non-native currency', () => <Asset {...common} {...keyz} />)
-    .add('Native expanded', () => <Asset {...common} {...native} expanded={true} />)
-    .add('Non-native expanded', () => <Asset {...common} {...keyz} expanded={true} />)
+    .add('Native currency', () => <Asset {...native} />)
+    .add('Non-native currency', () => <Asset {...keyz} />)
+    .add('Native expanded', () => <Asset {...native} />)
+    .add('Non-native expanded', () => <Asset {...keyz} />)
     .add('List', () => (
       <React.Fragment>
-        <AssetWithExpanded {...native} />
+        <Asset {...native} />
         <Divider />
-        <AssetWithExpanded {...keyz} />
+        <Asset {...keyz} />
         <Divider />
-        <AssetWithExpanded {...btc} />
+        <Asset {...btc} />
         <Divider />
-        <AssetWithExpanded {...btexcadv} />
+        <Asset {...btexcadv} />
       </React.Fragment>
     ))
 }
