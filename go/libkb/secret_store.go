@@ -100,9 +100,6 @@ func GetConfiguredAccounts(c SecretStoreContext, s SecretStoreAll) ([]keybase1.C
 	accounts := make(map[NormalizedUsername]keybase1.ConfiguredAccount)
 
 	for _, username := range allUsernames {
-		if username == "" {
-			continue
-		}
 		accounts[username] = keybase1.ConfiguredAccount{
 			Username: username.String(),
 		}

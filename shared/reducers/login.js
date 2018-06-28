@@ -35,7 +35,7 @@ export default function(state: Types.State = initialState, action: LoginGen.Acti
         ? state.set('configuredAccounts', I.List())
         : state.set(
             'configuredAccounts',
-            I.List((action.payload.accounts || []).map(a => Constants.makeAccount(a)))
+            I.List((action.payload.accounts || []).filter(a => a.username !== '').map(a => Constants.makeAccount(a)))
           )
     case LoginGen.waitingForResponse:
       return state.set('waitingForResponse', action.payload.waiting)
