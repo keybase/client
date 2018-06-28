@@ -19,29 +19,26 @@ type FolderProps = {
   routePath: I.List<string>,
 }
 
-export const wrapRow = rowContent => (
-  <Box style={stylesRowContainer}>
+export const wrapRow = (rowContent, key: string) => (
+  <Box style={stylesRowContainer} key={key}>
     {rowContent}
-    <Divider style={stylesDivider} />
+    <Divider key="divider" style={stylesDivider} />
   </Box>
 )
 
 class Files extends React.PureComponent<FolderProps> {
-  _mapItemToContent = (item: Types.RowItem) => {
+  _rowRenderer = (index: number, item: Types.RowItem) => {
     switch (item.rowType) {
       case 'placeholder':
-        return <Placeholder type={item.type} key={`placeholder:${item.name}`} />
+        return wrapRow(<Placeholder type={item.type} />, `placeholder:${item.name}`)
       case 'still':
-        return <Still key={`still:${item.name}`} path={item.path} routePath={this.props.routePath} />
+        return wrapRow(<Still path={item.path} routePath={this.props.routePath} />, `still:${item.name}`)
       case 'uploading':
-        return <Uploading key={`uploading:${item.name}`} path={item.path} />
+        return wrapRow(<Uploading path={item.path} />, `uploading:${item.name}`)
       case 'editing':
-        return (
-          <Editing
-            key={`editing:${Types.editIDToString(item.editID)}`}
-            editID={item.editID}
-            routePath={this.props.routePath}
-          />
+        return wrapRow(
+          <Editing editID={item.editID} routePath={this.props.routePath} />,
+          `editing:${Types.editIDToString(item.editID)}`
         )
       default:
         /*::
@@ -49,11 +46,9 @@ class Files extends React.PureComponent<FolderProps> {
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (rowType: empty) => any
       ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(rowType);
       */
-        return <Text type="BodyError">This should not happen.</Text>
+        return wrapRow(<Text type="BodyError">This should not happen.</Text>, '')
     }
   }
-
-  _rowRenderer = (index: number, item: Types.RowItem) => wrapRow(this._mapItemToContent(item))
 
   render() {
     const content = this.props.isUserReset ? (

@@ -250,7 +250,8 @@ const load = () => {
             path={Types.stringToPath('/keybase/private/a')}
             routeProps={I.Map({path: '/keybase/private/foo'})}
             routePath={I.List([])}
-          />
+          />,
+          '1'
         )}
         {wrapRow(
           <EditingRow
@@ -260,7 +261,8 @@ const load = () => {
             itemStyles={folderItemStyles}
             isCreate={true}
             {...commonRowProps}
-          />
+          />,
+          '2'
         )}
         {wrapRow(
           <EditingRow
@@ -270,7 +272,8 @@ const load = () => {
             itemStyles={folderItemStyles}
             isCreate={false}
             {...commonRowProps}
-          />
+          />,
+          '3'
         )}
         {wrapRow(
           <EditingRow
@@ -280,7 +283,8 @@ const load = () => {
             itemStyles={folderItemStyles}
             isCreate={true}
             {...commonRowProps}
-          />
+          />,
+          '4'
         )}
         {wrapRow(
           <EditingRow
@@ -290,7 +294,8 @@ const load = () => {
             itemStyles={folderItemStyles}
             isCreate={true}
             {...commonRowProps}
-          />
+          />,
+          '5'
         )}
         {wrapRow(
           <UploadingRow
@@ -299,7 +304,8 @@ const load = () => {
             writingToJournal={true}
             syncing={false}
             error={false}
-          />
+          />,
+          '6'
         )}
         {wrapRow(
           <UploadingRow
@@ -308,7 +314,8 @@ const load = () => {
             writingToJournal={true}
             syncing={false}
             error={false}
-          />
+          />,
+          '7'
         )}
         {wrapRow(
           <UploadingRow
@@ -317,7 +324,8 @@ const load = () => {
             writingToJournal={true}
             syncing={true}
             error={false}
-          />
+          />,
+          '8'
         )}
         {wrapRow(
           <UploadingRow
@@ -326,7 +334,8 @@ const load = () => {
             writingToJournal={false}
             syncing={true}
             error={false}
-          />
+          />,
+          '9'
         )}
         {wrapRow(
           <UploadingRow
@@ -335,7 +344,8 @@ const load = () => {
             writingToJournal={false}
             syncing={false}
             error={false}
-          />
+          />,
+          '10'
         )}
         {wrapRow(
           <UploadingRow
@@ -344,7 +354,8 @@ const load = () => {
             writingToJournal={false}
             syncing={false}
             error={true}
-          />
+          />,
+          '11'
         )}
         {wrapRow(
           <StillRow
@@ -362,10 +373,11 @@ const load = () => {
             onOpen={action('onOpen')}
             openInFileUI={action('openInFileUI')}
             onAction={action('onAction')}
-          />
+          />,
+          '12'
         )}
-        {wrapRow(<PlaceholderRow type="folder" />)}
-        {wrapRow(<PlaceholderRow type="file" />)}
+        {wrapRow(<PlaceholderRow type="folder" />, '13')}
+        {wrapRow(<PlaceholderRow type="file" />, '14')}
       </Box>
     ))
     .add('Footer Cards', () => (
