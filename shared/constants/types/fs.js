@@ -145,14 +145,6 @@ export type _Transfer = {
 }
 export type Transfer = I.RecordOf<_Transfer>
 
-export type PathBreadcrumbItem = {
-  isTlfNameItem: boolean,
-  isLastItem: boolean,
-  name: string,
-  path: Path,
-  onOpenBreadcrumb: (evt?: SyntheticEvent<>) => void,
-}
-
 export type _Flags = {
   kbfsOpening: boolean,
   kbfsInstalling: boolean,
@@ -350,6 +342,15 @@ export type ItemStyles = {
   iconSpec: PathItemIconSpec,
   textColor: string,
   textType: TextType,
+}
+
+export type PathBreadcrumbItem = {
+  isTeamTlf: boolean,
+  isLastItem: boolean,
+  name: string,
+  path: Path,
+  iconSpec: PathItemIconSpec,
+  onClick: (evt?: SyntheticEvent<>) => void,
 }
 
 export type FolderRPCWithMeta = {
