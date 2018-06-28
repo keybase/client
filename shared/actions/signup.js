@@ -13,52 +13,60 @@ import {RPCError} from '../util/errors'
 import type {TypedState} from '../constants/reducer'
 
 const checkInviteCode = (action: SignupGen.CheckInviteCodePayload) =>
-  Saga.call(
-    RPCTypes.signupCheckInvitationCodeRpcPromise,
-    {invitationCode: action.payload.inviteCode},
-    Constants.waitingKey
-  )
-const checkInviteCodeSuccess = (_, action: SignupGen.CheckInviteCodePayload) =>
-  Saga.sequentially([
-    Saga.put(SignupGen.createCheckInviteCodeDone({inviteCode: action.payload.inviteCode})),
-    Saga.put(navigateTo([loginTab, 'signup', 'usernameAndEmail'])),
-  ])
-const checkInviteCodeError = (_, action: SignupGen.CheckInviteCodePayload) =>
-  Saga.put(
-    SignupGen.createCheckInviteCodeDoneError({
-      error: "Sorry, that's not a valid invite code.",
-      inviteCode: action.payload.inviteCode,
-    })
-  )
+  Saga.call(function*() {
+    yield Saga.put(
+      yield RPCTypes.signupCheckInvitationCodeRpcPromise(
+        {invitationCode: action.payload.inviteCode},
+        Constants.waitingKey
+      )
+        .then(() => SignupGen.createCheckedInviteCode({inviteCode: action.payload.inviteCode}))
+        .catch((err: RPCError) =>
+          SignupGen.createCheckedInviteCodeError({error: err.desc, inviteCode: action.payload.inviteCode})
+        )
+    )
+  })
+
+const showErrorOrMoveToUserEmail = (action: SignupGen.CheckedInviteCodePayload) =>
+  !action.error && Saga.put(navigateTo([loginTab, 'signup', 'usernameAndEmail']))
 
 const requestAutoInvite = () =>
-  Saga.call(RPCTypes.signupGetInvitationCodeRpcPromise, undefined, Constants.waitingKey)
-const requestAutoInviteSuccess = (inviteCode: string) =>
-  Saga.put(SignupGen.createCheckInviteCode({inviteCode}))
-const requestAutoInviteError = () => Saga.put(navigateTo([loginTab, 'signup', 'inviteCode']))
+  Saga.call(function*() {
+    yield Saga.put(
+      yield RPCTypes.signupGetInvitationCodeRpcPromise(undefined, Constants.waitingKey)
+        .then((inviteCode: string) => SignupGen.createRequestedAutoInvite({inviteCode}))
+        .catch(() => SignupGen.createRequestedAutoInviteError())
+    )
+  })
+
+const showInviteScreen = () => navigateTo([loginTab, 'signup', 'inviteCode'])
 
 const requestInvite = (action: SignupGen.RequestInvitePayload, state: TypedState) =>
   !state.signup.emailError &&
   !state.signup.nameError &&
-  Saga.call(
-    RPCTypes.signupInviteRequestRpcPromise,
-    {email: state.signup.email, fullname: state.signup.name, notes: 'Requested through GUI app'},
-    Constants.waitingKey
-  )
-const requestInviteSuccess = (_, __, state: TypedState) =>
-  Saga.sequentially([
-    Saga.put(SignupGen.createRequestInviteDone({email: state.signup.email, name: state.signup.name})),
-    Saga.put(navigateAppend(['requestInviteSuccess'], [loginTab, 'signup'])),
-  ])
-const requestInviteError = (err: RPCError, action: SignupGen.RequestInvitePayload) =>
-  Saga.put(
-    SignupGen.createRequestInviteDoneError({
-      email: action.payload.email,
-      emailError: `Sorry can't get an invite: ${err.desc}`,
-      name: action.payload.name,
-      nameError: '',
-    })
-  )
+  Saga.call(function*() {
+    yield Saga.put(
+      yield RPCTypes.signupInviteRequestRpcPromise(
+        {email: state.signup.email, fullname: state.signup.name, notes: 'Requested through GUI app'},
+        Constants.waitingKey
+      )
+        .then(() =>
+          SignupGen.createRequestedInvite({
+            email: action.payload.email,
+            name: action.payload.name,
+          })
+        )
+        .catch(err =>
+          SignupGen.createRequestedInviteError({
+            email: action.payload.email,
+            emailError: `Sorry can't get an invite: ${err.desc}`,
+            name: action.payload.name,
+            nameError: '',
+          })
+        )
+    )
+  })
+
+const showErrorOrMoveToInviteSuccess = () => navigateAppend(['requestInviteSuccess'], [loginTab, 'signup'])
 
 const validateUsernameEmail = (action: SignupGen.CheckUsernameEmailPayload, state: TypedState) =>
   !state.signup.usernameError &&
@@ -179,24 +187,15 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(SignupGen.checkUsernameEmail, validateUsernameEmail)
   yield Saga.safeTakeEveryPure(SignupGen.validatedUsernameEmail, showErrorOrMoveToPassphrase)
 
-  yield Saga.safeTakeEveryPure(
-    SignupGen.requestInvite,
-    requestInvite,
-    requestInviteSuccess,
-    requestInviteError
-  )
-  yield Saga.safeTakeEveryPure(
-    SignupGen.requestAutoInvite,
-    requestAutoInvite,
-    requestAutoInviteSuccess,
-    requestAutoInviteError
-  )
-  yield Saga.safeTakeEveryPure(
-    SignupGen.checkInviteCode,
-    checkInviteCode,
-    checkInviteCodeSuccess,
-    checkInviteCodeError
-  )
+  yield Saga.safeTakeEveryPure(SignupGen.requestInvite, requestInvite)
+  yield Saga.safeTakeEveryPure(SignupGen.requestedInvite, showErrorOrMoveToInviteSuccess)
+
+  yield Saga.safeTakeEveryPure(SignupGen.requestAutoInvite, requestAutoInvite)
+  yield Saga.safeTakeEveryPure(SignupGen.requestedAutoInvite, showInviteScreen)
+
+  yield Saga.safeTakeEveryPure([SignupGen.requestedAutoInvite, SignupGen.checkInviteCode], checkInviteCode)
+  yield Saga.safeTakeEveryPure(SignupGen.checkedInviteCode, showErrorOrMoveToUserEmail)
+
   yield Saga.safeTakeEveryPure(SignupGen.checkPassphrase, moveToDeviceScreen)
   yield Saga.safeTakeEveryPure(
     SignupGen.submitDevicename,

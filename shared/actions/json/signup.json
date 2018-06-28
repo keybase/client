@@ -2,8 +2,12 @@
   "prelude": ["import HiddenString from '../util/hidden-string'"],
   "actions": {
     "requestAutoInvite": {},
+    "requestedAutoInvite": {
+      "inviteCode": "string",
+      "canError": { }
+    },
     "checkInviteCode": { "inviteCode": "string" },
-    "checkInviteCodeDone": {
+    "checkedInviteCode": {
       "inviteCode": "string",
       "canError": {
         "inviteCode": "string",
@@ -34,7 +38,7 @@
       "email": "string",
       "name": "string",
     },
-    "requestInviteDone": {
+    "requestedInvite": {
       "email": "string",
       "name": "string",
       "canError": {

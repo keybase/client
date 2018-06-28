@@ -9,12 +9,13 @@ import HiddenString from '../util/hidden-string'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of signup but is handled by every reducer
 export const checkInviteCode = 'signup:checkInviteCode'
-export const checkInviteCodeDone = 'signup:checkInviteCodeDone'
 export const checkPassphrase = 'signup:checkPassphrase'
 export const checkUsernameEmail = 'signup:checkUsernameEmail'
+export const checkedInviteCode = 'signup:checkedInviteCode'
 export const requestAutoInvite = 'signup:requestAutoInvite'
 export const requestInvite = 'signup:requestInvite'
-export const requestInviteDone = 'signup:requestInviteDone'
+export const requestedAutoInvite = 'signup:requestedAutoInvite'
+export const requestedInvite = 'signup:requestedInvite'
 export const restartSignup = 'signup:restartSignup'
 export const signup = 'signup:signup'
 export const signupError = 'signup:signupError'
@@ -23,11 +24,6 @@ export const submitDevicenameDone = 'signup:submitDevicenameDone'
 export const validatedUsernameEmail = 'signup:validatedUsernameEmail'
 
 // Payload Types
-type _CheckInviteCodeDonePayload = $ReadOnly<{|inviteCode: string|}>
-type _CheckInviteCodeDonePayloadError = $ReadOnly<{|
-  inviteCode: string,
-  error: string,
-|}>
 type _CheckInviteCodePayload = $ReadOnly<{|inviteCode: string|}>
 type _CheckPassphrasePayload = $ReadOnly<{|
   pass1: HiddenString,
@@ -37,18 +33,25 @@ type _CheckUsernameEmailPayload = $ReadOnly<{|
   username: string,
   email: string,
 |}>
+type _CheckedInviteCodePayload = $ReadOnly<{|inviteCode: string|}>
+type _CheckedInviteCodePayloadError = $ReadOnly<{|
+  inviteCode: string,
+  error: string,
+|}>
 type _RequestAutoInvitePayload = void
-type _RequestInviteDonePayload = $ReadOnly<{|
+type _RequestInvitePayload = $ReadOnly<{|
   email: string,
   name: string,
 |}>
-type _RequestInviteDonePayloadError = $ReadOnly<{|
+type _RequestedAutoInvitePayload = $ReadOnly<{|inviteCode: string|}>
+type _RequestedAutoInvitePayloadError = void
+type _RequestedInvitePayload = $ReadOnly<{|
+  email: string,
+  name: string,
+|}>
+type _RequestedInvitePayloadError = $ReadOnly<{|
   emailError: string,
   nameError: string,
-  email: string,
-  name: string,
-|}>
-type _RequestInvitePayload = $ReadOnly<{|
   email: string,
   name: string,
 |}>
@@ -83,13 +86,15 @@ export const createValidatedUsernameEmailError = (payload: _ValidatedUsernameEma
  */
 export const createCheckUsernameEmail = (payload: _CheckUsernameEmailPayload) => ({error: false, payload, type: checkUsernameEmail})
 export const createCheckInviteCode = (payload: _CheckInviteCodePayload) => ({error: false, payload, type: checkInviteCode})
-export const createCheckInviteCodeDone = (payload: _CheckInviteCodeDonePayload) => ({error: false, payload, type: checkInviteCodeDone})
-export const createCheckInviteCodeDoneError = (payload: _CheckInviteCodeDonePayloadError) => ({error: true, payload, type: checkInviteCodeDone})
 export const createCheckPassphrase = (payload: _CheckPassphrasePayload) => ({error: false, payload, type: checkPassphrase})
+export const createCheckedInviteCode = (payload: _CheckedInviteCodePayload) => ({error: false, payload, type: checkedInviteCode})
+export const createCheckedInviteCodeError = (payload: _CheckedInviteCodePayloadError) => ({error: true, payload, type: checkedInviteCode})
 export const createRequestAutoInvite = (payload: _RequestAutoInvitePayload) => ({error: false, payload, type: requestAutoInvite})
 export const createRequestInvite = (payload: _RequestInvitePayload) => ({error: false, payload, type: requestInvite})
-export const createRequestInviteDone = (payload: _RequestInviteDonePayload) => ({error: false, payload, type: requestInviteDone})
-export const createRequestInviteDoneError = (payload: _RequestInviteDonePayloadError) => ({error: true, payload, type: requestInviteDone})
+export const createRequestedAutoInvite = (payload: _RequestedAutoInvitePayload) => ({error: false, payload, type: requestedAutoInvite})
+export const createRequestedAutoInviteError = (payload: _RequestedAutoInvitePayloadError) => ({error: true, payload, type: requestedAutoInvite})
+export const createRequestedInvite = (payload: _RequestedInvitePayload) => ({error: false, payload, type: requestedInvite})
+export const createRequestedInviteError = (payload: _RequestedInvitePayloadError) => ({error: true, payload, type: requestedInvite})
 export const createRestartSignup = (payload: _RestartSignupPayload) => ({error: false, payload, type: restartSignup})
 export const createSignup = (payload: _SignupPayload) => ({error: false, payload, type: signup})
 export const createSignupError = (payload: _SignupErrorPayload) => ({error: false, payload, type: signupError})
@@ -98,15 +103,17 @@ export const createSubmitDevicenameDone = (payload: _SubmitDevicenameDonePayload
 export const createSubmitDevicenameDoneError = (payload: _SubmitDevicenameDonePayloadError) => ({error: true, payload, type: submitDevicenameDone})
 
 // Action Payloads
-export type CheckInviteCodeDonePayload = $Call<typeof createCheckInviteCodeDone, _CheckInviteCodeDonePayload>
-export type CheckInviteCodeDonePayloadError = $Call<typeof createCheckInviteCodeDoneError, _CheckInviteCodeDonePayloadError>
 export type CheckInviteCodePayload = $Call<typeof createCheckInviteCode, _CheckInviteCodePayload>
 export type CheckPassphrasePayload = $Call<typeof createCheckPassphrase, _CheckPassphrasePayload>
 export type CheckUsernameEmailPayload = $Call<typeof createCheckUsernameEmail, _CheckUsernameEmailPayload>
+export type CheckedInviteCodePayload = $Call<typeof createCheckedInviteCode, _CheckedInviteCodePayload>
+export type CheckedInviteCodePayloadError = $Call<typeof createCheckedInviteCodeError, _CheckedInviteCodePayloadError>
 export type RequestAutoInvitePayload = $Call<typeof createRequestAutoInvite, _RequestAutoInvitePayload>
-export type RequestInviteDonePayload = $Call<typeof createRequestInviteDone, _RequestInviteDonePayload>
-export type RequestInviteDonePayloadError = $Call<typeof createRequestInviteDoneError, _RequestInviteDonePayloadError>
 export type RequestInvitePayload = $Call<typeof createRequestInvite, _RequestInvitePayload>
+export type RequestedAutoInvitePayload = $Call<typeof createRequestedAutoInvite, _RequestedAutoInvitePayload>
+export type RequestedAutoInvitePayloadError = $Call<typeof createRequestedAutoInviteError, _RequestedAutoInvitePayloadError>
+export type RequestedInvitePayload = $Call<typeof createRequestedInvite, _RequestedInvitePayload>
+export type RequestedInvitePayloadError = $Call<typeof createRequestedInviteError, _RequestedInvitePayloadError>
 export type RestartSignupPayload = $Call<typeof createRestartSignup, _RestartSignupPayload>
 export type SignupErrorPayload = $Call<typeof createSignupError, _SignupErrorPayload>
 export type SignupPayload = $Call<typeof createSignup, _SignupPayload>
@@ -119,15 +126,17 @@ export type ValidatedUsernameEmailPayloadError = $Call<typeof createValidatedUse
 // All Actions
 // prettier-ignore
 export type Actions =
-  | CheckInviteCodeDonePayload
-  | CheckInviteCodeDonePayloadError
   | CheckInviteCodePayload
   | CheckPassphrasePayload
   | CheckUsernameEmailPayload
+  | CheckedInviteCodePayload
+  | CheckedInviteCodePayloadError
   | RequestAutoInvitePayload
-  | RequestInviteDonePayload
-  | RequestInviteDonePayloadError
   | RequestInvitePayload
+  | RequestedAutoInvitePayload
+  | RequestedAutoInvitePayloadError
+  | RequestedInvitePayload
+  | RequestedInvitePayloadError
   | RestartSignupPayload
   | SignupErrorPayload
   | SignupPayload
