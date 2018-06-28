@@ -144,13 +144,14 @@ func CreateAndSignupFakeUserPaper(tc libkb.TestContext, prefix string) *FakeUser
 	return fu
 }
 
-func CreateAndSignupFakeUserSafe(g *libkb.GlobalContext, prefix string) (*FakeUser, error) {
+func CreateAndSignupFakeUserSafe(g *libkb.GlobalContext, prefix string, fmod func(*SignupEngineRunArg)) (*FakeUser, error) {
 	fu, err := NewFakeUser(prefix)
 	if err != nil {
 		return nil, err
 	}
 
 	arg := MakeTestSignupEngineRunArg(fu)
+	fmod(&arg)
 	uis := libkb.UIs{
 		LogUI:    g.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
