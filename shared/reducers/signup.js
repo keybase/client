@@ -25,7 +25,7 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
       const usernameError = isValidUsername(username)
       return state.merge({email, emailError, username, usernameError})
     }
-    case SignupGen.validatedUsernameEmail:
+    case SignupGen.checkedUsernameEmail:
       return action.payload.email === state.email && action.payload.username === state.username
         ? state.merge({
             emailError: (action.error && action.payload.emailError) || '',
@@ -67,21 +67,20 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
         passphraseError,
       })
     }
-    case SignupGen.submitDevicename: {
+    case SignupGen.checkDevicename: {
       const devicename = trim(action.payload.devicename)
       const devicenameError = devicename.length === 0 ? 'Device name must not be empty.' : ''
       return state.merge({devicename, devicenameError})
     }
-    case SignupGen.submitDevicenameDone:
+    case SignupGen.checkedDevicename:
       return action.payload.devicename === state.devicename
         ? state.set('devicenameError', (action.error && action.payload.error) || '')
         : state
-    case SignupGen.signupError:
-      return state.set('signupError', action.payload.signupError)
+    case SignupGen.signedup:
+      return state.set('signupError', (action.error && action.payload.error) || new HiddenString(''))
     // Saga only actions
     case SignupGen.requestAutoInvite:
     case SignupGen.requestedAutoInvite:
-    case SignupGen.signup:
       return state
     default:
       /*::

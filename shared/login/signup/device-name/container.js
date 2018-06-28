@@ -12,7 +12,7 @@ const mapStateToProps = (state: TypedState) => ({
 })
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}: OwnProps) => ({
   onBack: () => dispatch(navigateUp()),
-  onSubmit: (devicename: string) => dispatch(SignupGen.createSubmitDevicename({devicename})),
+  onSubmit: (devicename: string) => dispatch(SignupGen.createCheckDevicename({devicename})),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(DeviceName)

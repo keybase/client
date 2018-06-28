@@ -310,7 +310,7 @@ const displayAndPromptSecretSaga = onBackSaga =>
 
 const promptNewDeviceNameSaga = onBackSaga =>
   function*({existingDevices, errorMessage}) {
-    yield Saga.put(SignupGen.createSubmitDevicenameDoneError({devicename: '', error: errorMessage}))
+    yield Saga.put(SignupGen.createCheckedDevicenameError({devicename: '', error: errorMessage}))
     yield Saga.put(
       navigateAppend([{props: {existingDevices}, selected: 'setPublicName'}], [loginTab, 'login'])
     )

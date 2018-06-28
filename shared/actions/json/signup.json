@@ -19,12 +19,10 @@
       "pass2": "HiddenString",
     },
     "checkUsernameEmail": {
-      "_description": "We want to validate a user/email",
       "username": "string",
       "email": "string"
     },
-    "validatedUsernameEmail": {
-      "_description": "We heard back from the server",
+    "checkedUsernameEmail": {
       "username": "string",
       "email": "string",
       "canError": {
@@ -48,13 +46,16 @@
         "name": "string"
       }
     },
-    "signup": {},
     "restartSignup": {},
-    "signupError": {"signupError": "HiddenString"},
-    "submitDevicename": {
+    "signedup": {
+      "canError": {
+        "error": "HiddenString"
+      }
+    },
+    "checkDevicename": {
       "devicename": "string",
     },
-    "submitDevicenameDone": {
+    "checkedDevicename": {
       "devicename": "string",
       "canError": {
         "devicename": "string",
