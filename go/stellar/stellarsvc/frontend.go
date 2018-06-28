@@ -381,6 +381,9 @@ func (s *Server) transformPaymentDirect(ctx context.Context, acctID stellar1.Acc
 
 	if p.To != nil {
 		loc.Target, loc.TargetType = s.lookupUsernameFallback(ctx, p.To.Uid, p.ToStellar)
+	} else {
+		loc.Target = p.ToStellar.String()
+		loc.TargetType = stellar1.ParticipantType_STELLAR
 	}
 
 	loc.StatusSimplified = p.TxStatus.ToPaymentStatus()
