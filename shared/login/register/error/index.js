@@ -17,6 +17,7 @@ const renderError = (error: RPCError) => {
   }, {})
   switch (error.code) {
     case constantsStatusCode.scdeviceprovisionoffline:
+    case constantsStatusCode.scapinetworkerror:
       return (
         <Text type="Body">
           Device provisioning failed because this device went offline. Please check your network connection
