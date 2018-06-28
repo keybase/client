@@ -17,8 +17,11 @@ import {Box} from '../common-adapters'
 import Download from './footer/download'
 import Upload from './footer/upload'
 import PathItemAction from './common/path-item-action'
+import {FloatingMenuParentHOC} from '../common-adapters/floating-menu'
 import Breadcrumb from './header/breadcrumb.desktop'
 import Banner from './banner'
+
+const FloatingPathItemAction = FloatingMenuParentHOC(PathItemAction)
 
 const folderItemStyles = {
   iconSpec: {
@@ -390,17 +393,17 @@ const load = () => {
     ))
     .add('PathItemAction', () => (
       <Box style={{padding: globalMargins.small}}>
-        <PathItemAction
+        <FloatingPathItemAction
           {...pathItemActionPopupProps(Types.stringToPath('/keybase/private/meatball/folder/treat'))}
         />
-        <PathItemAction
+        <FloatingPathItemAction
           {...pathItemActionPopupProps(
             Types.stringToPath(
               '/keybase/private/meatball/treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat'
             )
           )}
         />
-        <PathItemAction
+        <FloatingPathItemAction
           {...pathItemActionPopupProps(
             Types.stringToPath(
               '/keybaes/private/meatball/foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar'
