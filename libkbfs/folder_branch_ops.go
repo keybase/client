@@ -6947,15 +6947,6 @@ func (fbo *folderBranchOps) initEditChatChannels(
 	return idToName, nameToID, nameToNextPage
 }
 
-func (fbo *folderBranchOps) channelMatchesLoggedIn(
-	ctx context.Context, channelName string) bool {
-	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		return false
-	}
-	return string(session.Name) == channelName
-}
-
 func (fbo *folderBranchOps) getEditMessages(
 	ctx context.Context, id chat1.ConversationID, channelName string,
 	startPage []byte) (nextPage []byte) {
@@ -6968,8 +6959,7 @@ func (fbo *folderBranchOps) getEditMessages(
 			id, err)
 		return nil
 	}
-	err = fbo.editHistory.AddNotifications(
-		channelName, messages, fbo.channelMatchesLoggedIn(ctx, channelName))
+	err = fbo.editHistory.AddNotifications(channelName, messages)
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't add messages for conv %s: %+v",
 			id, err)
@@ -6984,10 +6974,17 @@ func (fbo *folderBranchOps) recomputeEditHistory(
 	nameToID map[string]chat1.ConversationID,
 	nameToNextPage map[string][]byte) {
 	gotMore := true
+
+	session, err := GetCurrentSessionIfPossible(ctx, fbo.config.KBPKI(), true)
+	if err != nil {
+		fbo.log.CWarningf(ctx, "Error getting session: %+v", err)
+		return
+	}
+
 	for gotMore {
 		// Recompute the history, and fetch more messages for any
 		// writers who need them.
-		writersWhoNeedMore := fbo.editHistory.Recompute()
+		writersWhoNeedMore := fbo.editHistory.Recompute(string(session.Name))
 		gotMore = false
 		for w, needsMore := range writersWhoNeedMore {
 			if !needsMore {
@@ -7014,7 +7011,7 @@ func (fbo *folderBranchOps) recomputeEditHistory(
 	// Update the overall user history.  TODO: if the TLF name
 	// changed, we should clean up the old user history.
 	fbo.config.UserHistory().UpdateHistory(
-		tlfName, fbo.id().Type(), fbo.editHistory)
+		tlfName, fbo.id().Type(), fbo.editHistory, string(session.Name))
 }
 
 func (fbo *folderBranchOps) handleEditActivity(
@@ -7049,8 +7046,7 @@ func (fbo *folderBranchOps) handleEditActivity(
 	}
 	if a.message != "" {
 		fbo.log.CDebugf(ctx, "New edit message for %s", name)
-		err := fbo.editHistory.AddNotifications(
-			name, []string{a.message}, fbo.channelMatchesLoggedIn(ctx, name))
+		err := fbo.editHistory.AddNotifications(name, []string{a.message})
 		if err != nil {
 			fbo.log.CWarningf(ctx,
 				"Couldn't add messages for conv %s: %+v", a.convID, err)

@@ -48,8 +48,9 @@ func NewUserHistory() *UserHistory {
 // UpdateHistory should be called whenever the edit history for a
 // given TLF gets new information.
 func (uh *UserHistory) UpdateHistory(
-	tlfName tlf.CanonicalName, tlfType tlf.Type, tlfHistory *TlfHistory) {
-	history := tlfHistory.getHistory()
+	tlfName tlf.CanonicalName, tlfType tlf.Type, tlfHistory *TlfHistory,
+	loggedInUser string) {
+	history := tlfHistory.getHistory(loggedInUser)
 	key := tlfKey{tlfName, tlfType}
 
 	uh.lock.Lock()

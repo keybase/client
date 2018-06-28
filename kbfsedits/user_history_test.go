@@ -77,21 +77,21 @@ func TestUserHistorySimple(t *testing.T) {
 	}
 	privHomeTime := keybase1.ToTime(now)
 
-	err = privSharedTH.AddNotifications(bobName, privSharedBob, false)
+	err = privSharedTH.AddNotifications(bobName, privSharedBob)
 	require.NoError(t, err)
-	err = privSharedTH.AddNotifications(aliceName, privSharedAlice, false)
-	require.NoError(t, err)
-
-	err = privHomeTH.AddNotifications(aliceName, privHomeAlice, false)
+	err = privSharedTH.AddNotifications(aliceName, privSharedAlice)
 	require.NoError(t, err)
 
-	err = publicTH.AddNotifications(aliceName, publicAlice, false)
+	err = privHomeTH.AddNotifications(aliceName, privHomeAlice)
+	require.NoError(t, err)
+
+	err = publicTH.AddNotifications(aliceName, publicAlice)
 	require.NoError(t, err)
 
 	uh := NewUserHistory()
-	uh.UpdateHistory(privSharedName, tlf.Private, privSharedTH)
-	uh.UpdateHistory(privHomeName, tlf.Private, privHomeTH)
-	uh.UpdateHistory(publicName, tlf.Public, publicTH)
+	uh.UpdateHistory(privSharedName, tlf.Private, privSharedTH, aliceName)
+	uh.UpdateHistory(privHomeName, tlf.Private, privHomeTH, aliceName)
+	uh.UpdateHistory(publicName, tlf.Public, publicTH, aliceName)
 
 	type expectInfo struct {
 		tlfName    string
@@ -141,9 +141,9 @@ func TestUserHistorySimple(t *testing.T) {
 	now = now.Add(1 * time.Minute)
 	_ = privSharedNN.make("7", NotificationCreate, aliceUID, nil, now)
 	err = privSharedTH.AddNotifications(
-		aliceName, []string{privSharedNN.encode(t)}, false)
+		aliceName, []string{privSharedNN.encode(t)})
 	require.NoError(t, err)
-	uh.UpdateHistory(privSharedName, tlf.Private, privSharedTH)
+	uh.UpdateHistory(privSharedName, tlf.Private, privSharedTH, aliceName)
 	expected[3].serverTime = keybase1.ToTime(now)
 	expected[3].num++
 	expected = append([]expectInfo{expected[3]}, expected[0:3]...)

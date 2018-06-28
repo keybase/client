@@ -20,7 +20,6 @@ const (
 type writerNotifications struct {
 	writerName    string
 	notifications notificationsByRevision
-	isLoggedIn    bool
 }
 
 // writersByRevision sorts sets of per-writer notifications in reverse
@@ -82,10 +81,11 @@ func (wbr *writersByRevision) Pop() interface{} {
 //     `getHistory()` from each one.  It may also construct pretty
 //     versions of individual edit histories for a particular TLF.
 type TlfHistory struct {
-	lock          sync.RWMutex
-	byWriter      map[string]*writerNotifications
-	computed      bool
-	cachedHistory writersByRevision
+	lock               sync.RWMutex
+	byWriter           map[string]*writerNotifications
+	computed           bool
+	cachedHistory      writersByRevision
+	cachedLoggedInUser string
 }
 
 // NewTlfHistory constructs a new TlfHistory instance.
@@ -100,7 +100,7 @@ func NewTlfHistory() *TlfHistory {
 // the caller should call `Recompute` to find out if more messages
 // should be added for any particular writer.
 func (th *TlfHistory) AddNotifications(
-	writerName string, messages []string, isLoggedIn bool) (err error) {
+	writerName string, messages []string) (err error) {
 	newEdits := make(notificationsByRevision, 0, len(messages))
 
 	// Unmarshal and sort the new messages.
@@ -128,9 +128,8 @@ func (th *TlfHistory) AddNotifications(
 	defer th.lock.Unlock()
 	wn, existed := th.byWriter[writerName]
 	if !existed {
-		wn = &writerNotifications{writerName, nil, isLoggedIn}
+		wn = &writerNotifications{writerName, nil}
 	}
-	wn.isLoggedIn = isLoggedIn
 	oldLen := len(wn.notifications)
 	newEdits = append(newEdits, wn.notifications...)
 	sort.Sort(newEdits)
@@ -144,6 +143,7 @@ func (th *TlfHistory) AddNotifications(
 	}
 	// Invalidate the cached results.
 	th.computed = false
+	th.cachedLoggedInUser = ""
 	return nil
 }
 
@@ -217,7 +217,7 @@ func (r *recomputer) processNotification(
 
 		wn, ok := r.byWriter[writer]
 		if !ok {
-			wn = &writerNotifications{writer, nil, false /* fill in later */}
+			wn = &writerNotifications{writer, nil}
 			r.byWriter[writer] = wn
 		}
 		wn.notifications = append(wn.notifications, notification)
@@ -253,7 +253,7 @@ func (r *recomputer) processNotification(
 	return false
 }
 
-func (th *TlfHistory) recomputeLocked() (
+func (th *TlfHistory) recomputeLocked(loggedInUser string) (
 	history writersByRevision, writersWhoNeedMore map[string]bool) {
 	writersWhoNeedMore = make(map[string]bool)
 
@@ -301,10 +301,9 @@ func (th *TlfHistory) recomputeLocked() (
 	}
 
 	history = make(writersByRevision, 0, len(r.byWriter))
-	for writerName, oldWn := range th.byWriter {
+	for writerName := range th.byWriter {
 		wn := r.byWriter[writerName]
 		if wn != nil && len(wn.notifications) > 0 {
-			wn.isLoggedIn = oldWn.isLoggedIn
 			history = append(history, wn)
 		}
 		if wn == nil || len(wn.notifications) < maxEditsPerWriter {
@@ -316,7 +315,7 @@ func (th *TlfHistory) recomputeLocked() (
 		// Garbage-collect any writers that don't appear in the history.
 		loggedInIndex := -1
 		for i := maxWritersPerHistory; i < len(history); i++ {
-			if history[i].isLoggedIn {
+			if history[i].writerName == loggedInUser {
 				// Don't purge the logged-in user.
 				loggedInIndex = i
 				continue
@@ -338,22 +337,23 @@ func (th *TlfHistory) recomputeLocked() (
 	}
 	th.computed = true
 	th.cachedHistory = history
+	th.cachedLoggedInUser = loggedInUser
 	return history, writersWhoNeedMore
 }
 
 func (th *TlfHistory) getHistoryIfCached() (
-	cached bool, history writersByRevision) {
+	cached bool, history writersByRevision, loggedInUser string) {
 	th.lock.RLock()
 	defer th.lock.RUnlock()
 	if th.computed {
-		return true, th.cachedHistory
+		return true, th.cachedHistory, th.cachedLoggedInUser
 	}
-	return false, nil
+	return false, nil, ""
 }
 
-func (th *TlfHistory) getHistory() writersByRevision {
-	cached, history := th.getHistoryIfCached()
-	if cached {
+func (th *TlfHistory) getHistory(loggedInUser string) writersByRevision {
+	cached, history, cachedLoggedInUser := th.getHistoryIfCached()
+	if cached && loggedInUser == cachedLoggedInUser {
 		return history
 	}
 
@@ -364,16 +364,17 @@ func (th *TlfHistory) getHistory() writersByRevision {
 		// history since we checked above.
 		return th.cachedHistory
 	}
-	history, _ = th.recomputeLocked()
+	history, _ = th.recomputeLocked(loggedInUser)
 	return history
 }
 
 // Recompute processes (and caches) the history so that it reflects
 // all recently-added notifications, and returns the names of writers
 // which don't yet have the maximum number of edits in the history.
-func (th *TlfHistory) Recompute() (writersWhoNeedMore map[string]bool) {
+func (th *TlfHistory) Recompute(loggedInUser string) (
+	writersWhoNeedMore map[string]bool) {
 	th.lock.Lock()
 	defer th.lock.Unlock()
-	_, writersWhoNeedMore = th.recomputeLocked()
+	_, writersWhoNeedMore = th.recomputeLocked(loggedInUser)
 	return writersWhoNeedMore
 }
