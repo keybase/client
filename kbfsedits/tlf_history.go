@@ -325,7 +325,10 @@ func (th *TlfHistory) recomputeLocked() (
 			delete(writersWhoNeedMore, history[i].writerName)
 		}
 		if loggedInIndex > 0 {
-			// Keep the logged-in user as the last entry.
+			// Keep the logged-in user as the last entry.  Note that
+			// `loggedInIndex` is guaranteed to be greater or equal to
+			// `maxWritersPerHistory`, so this logic swaps in the
+			// loggedIn entry (and doesn't duplicate it).
 			loggedIn := history[loggedInIndex]
 			history = history[:maxWritersPerHistory]
 			history[maxWritersPerHistory-1] = loggedIn
