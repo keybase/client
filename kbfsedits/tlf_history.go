@@ -328,9 +328,8 @@ func (th *TlfHistory) recomputeLocked(loggedInUser string) (
 			// `loggedInIndex` is guaranteed to be greater or equal to
 			// `maxWritersPerHistory`, so this logic swaps in the
 			// loggedIn entry (and doesn't duplicate it).
-			loggedIn := history[loggedInIndex]
-			history = history[:maxWritersPerHistory]
-			history[maxWritersPerHistory-1] = loggedIn
+			history = append(
+				history[:maxWritersPerHistory-1], history[loggedInIndex])
 		} else {
 			history = history[:maxWritersPerHistory]
 		}
