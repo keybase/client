@@ -46,6 +46,8 @@ if (flags.walletsEnabled) {
   hotKeyTabMap['8'] = walletsTab
 }
 
+const hotkeys = Object.keys(hotKeyTabMap).map(key => `${isDarwin ? 'command' : 'control'}+${key}`)
+
 class Nav extends React.Component<Props> {
   render() {
     const {routeSelected, routePath, visibleScreen, layerScreens} = this.props
@@ -54,7 +56,7 @@ class Nav extends React.Component<Props> {
         <Box style={stylesTabsContainer}>
           {routeSelected !== loginTab && (
             <TabBar
-              hotkeys={Object.keys(hotKeyTabMap).map(key => `${isDarwin ? 'command' : 'control'}+${key}`)}
+              hotkeys={hotkeys}
               onHotkey={this.props.onHotkey}
               routeSelected={routeSelected}
               routePath={routePath}
