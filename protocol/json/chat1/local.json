@@ -2424,6 +2424,19 @@
           "name": "identifyFailures"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "FixedConfig",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "MessageType"
+          },
+          "name": "deletableByDeleteHistory"
+        }
+      ]
     }
   ],
   "messages": {
@@ -3643,6 +3656,10 @@
         }
       ],
       "response": "GetSearchRegexpRes"
+    },
+    "getFixedConfig": {
+      "request": [],
+      "response": "FixedConfig"
     }
   },
   "namespace": "chat.1"
