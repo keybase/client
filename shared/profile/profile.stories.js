@@ -164,7 +164,6 @@ const props = {
   currentFriendshipsTab: 'Followers',
   currentlyFollowing: false,
   error: null,
-  // filename: null,
   followers,
   followersLoaded: true,
   following,
