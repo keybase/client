@@ -16,6 +16,7 @@ import {
   devicesTab,
   gitTab,
   settingsTab,
+  walletsTab,
   type Tab,
 } from '../constants/tabs'
 import {navigateTo} from '../actions/route-tree'
@@ -39,6 +40,7 @@ const hotKeyTabMap: {[string]: Tab} = {
   '5': devicesTab,
   '6': gitTab,
   '7': settingsTab,
+  '8': walletsTab,
 }
 
 class Nav extends React.Component<Props> {
