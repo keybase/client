@@ -477,14 +477,14 @@ func (k *KeybaseServiceBase) Identify(ctx context.Context, assertion, reason str
 
 	res, err := k.identifyClient.IdentifyLite(ctx, arg)
 	// IdentifyLite still returns keybase1.UserPlusKeys data (sans
-	// keys), even if it gives a NoSigChainError or a DeletedError,
+	// keys), even if it gives a NoSigChainError or a UserDeletedError,
 	// and in KBFS it's fine if the user doesn't have a full sigchain
 	// (e.g., it's just like the sharing before signup case, except
 	// the user already has a UID).  Both types of users are based
 	// entirely on server trust anyway.
 	switch err.(type) {
 	case nil:
-	case libkb.NoSigChainError, libkb.DeletedError:
+	case libkb.NoSigChainError, libkb.UserDeletedError:
 		k.log.CDebugf(ctx,
 			"Ignoring error (%s) for user %s with no sigchain; "+
 				"error type=%T", err, res.Ul.Name, err)
