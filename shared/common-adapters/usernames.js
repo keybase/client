@@ -75,7 +75,7 @@ function usernameText({
               ,
             </Text>
           )}
-        {i !== users.length - 1 && <Text type={type}>&nbsp;</Text>}
+        {i !== users.length - 1 && ' '}
       </Text>
     )
   })
@@ -213,7 +213,6 @@ const styles = styleSheetCreate({
       display: 'inline',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
-      overflowWrap: 'break-word',
       whiteSpace: 'nowrap',
     },
   }),
