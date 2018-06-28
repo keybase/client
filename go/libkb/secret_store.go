@@ -118,7 +118,7 @@ func GetConfiguredAccounts(m MetaContext, s SecretStoreAll) ([]keybase1.Configur
 	for _, username := range storedSecretUsernames {
 		nu := NewNormalizedUsername(username)
 		account, ok := accounts[nu]
-		if ok && !nu.IsNil() {
+		if ok {
 			account.HasStoredSecret = true
 			accounts[nu] = account
 		}
