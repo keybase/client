@@ -53,10 +53,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 const mergeProps = (stateProps, dispatchProps, {measure}) => {
   const {message, previous} = stateProps
 
-  const continuingTextBlock =
+  const sequentialUserMessages =
     previous &&
     previous.author === message.author &&
-    (previous.type === 'text' || previous.type === 'deleted')
+    (previous.type === 'text' || previous.type === 'deleted' || previous.type === 'attachment')
 
   const oldEnough = !!(
     previous &&
@@ -68,7 +68,7 @@ const mergeProps = (stateProps, dispatchProps, {measure}) => {
   const timestamp =
     stateProps.orangeLineAbove || !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null
 
-  const includeHeader = !previous || !continuingTextBlock
+  const includeHeader = !previous || !sequentialUserMessages
 
   let failureDescription = null
   if ((message.type === 'text' || message.type === 'attachment') && message.errorReason) {
