@@ -24,7 +24,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  return {_following: state.config.following}
+  return {following: state.config.following}
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {tracker, usernames}: OwnProps) => ({
@@ -36,21 +36,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {tracker, usernames}: OwnProps) 
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   children: ownProps.children,
-  colors: ownProps.usernames.map(
-    u => (stateProps._following.has(u) ? globalColors.green2 : globalColors.blue)
-  ),
-  followings: ownProps.usernames.map(u => stateProps._following.has(u)),
+  following: stateProps.following,
   onClick: dispatchProps.onClick,
-  texts: ownProps.usernames.map(username => (
-    <Text
-      type={ownProps.textType || 'BodySemibold'}
-      style={stateProps._following.has(username) ? styles.following : styles.everyoneElse}
-      key={username}
-      onClick={() => dispatchProps.onClick(username)}
-    >
-      {username}
-    </Text>
-  )),
   usernames: ownProps.usernames,
 })
 
@@ -65,25 +52,35 @@ const styles = styleSheetCreate({
 
 type Props = {
   children: Args => React.Node,
-  colors: string[],
-  followings: boolean[],
+  following: string[],
   onClick: (username: string) => void,
-  texts: React.Element<typeof Text>[],
+  textType?: TextType,
   usernames: string[],
 }
 const Users = (props: Props) => {
   return (
-    props.usernames.map((username, i, usernames) =>
-      props.children({
-        color: props.colors[i],
-        following: props.followings[i],
+    props.usernames.map((username, i, usernames) => {
+      const following = props.following.includes(username)
+      return props.children({
+        color: following ? globalColors.green2 : globalColors.blue,
+        following,
         index: i,
         last: i === usernames.length - 1,
         onClick: () => props.onClick(username),
-        text: props.texts[i],
+        text: (
+          <Text
+            className="hover-underline"
+            type={props.textType || 'BodySemibold'}
+            style={following ? styles.following : styles.everyoneElse}
+            key={username}
+            onClick={() => props.onClick(username)}
+          >
+            {username}
+          </Text>
+        ),
         username,
       })
-    ) || null
+    }) || null
   )
 }
 

@@ -2,30 +2,9 @@
 import React from 'react'
 import PeopleItem from '../item'
 import * as Types from '../../constants/types/people'
-import {
-  Avatar,
-  Box,
-  ClickableBox,
-  ConnectedUsernames,
-  Icon,
-  Meta,
-  ScrollView,
-  Text,
-  Users,
-} from '../../common-adapters'
+import {Avatar, Box, ClickableBox, Icon, Meta, ScrollView, Text, Users} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {isMobile} from '../../constants/platform'
-
-const connectedUsernamesProps = {
-  clickable: true,
-  inline: true,
-  colorFollowing: true,
-  type: 'BodySemibold',
-  underline: true,
-  joinerStyle: {
-    fontWeight: 'normal',
-  },
-}
 
 export type NewFollow = Types.FollowedNotification
 
@@ -54,12 +33,7 @@ export const FollowNotification = (props: Props) => {
         contentStyle={{justifyContent: 'center'}}
       >
         <Text type="Body" style={{marginTop: 2}}>
-          <ConnectedUsernames
-            {...connectedUsernamesProps}
-            usernames={[username]}
-            onUsernameClicked={props.onClickUser}
-          />{' '}
-          followed you.
+          <Users usernames={[username]}>{({text}) => text}</Users> followed you.
         </Text>
       </PeopleItem>
     </ClickableBox>
