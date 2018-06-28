@@ -5,7 +5,7 @@ import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
 import {type ConnectedProps as ConnectedUsernamesProps} from '../common-adapters/usernames'
 import {action, storiesOf, createPropProvider} from '../stories/storybook'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalColors, globalMargins} from '../styles'
 import Files from '.'
 import ConnectedStillRow from './row/still-container'
 import StillRow from './row/still'
@@ -212,20 +212,6 @@ const breadcrumbProps = (names: Array<string>) => {
         shownItems: items,
       }
 }
-
-const folderHeaderProps = (names: Array<string>) => ({
-  breadcrumbItems: names
-    .map((name, idx) => ({
-      isTlfNameItem: idx === 2,
-      isLastItem: idx === names.length - 1,
-      name: name,
-      path: Types.stringToPath('/' + names.slice(0, idx + 1).join('/')),
-      onOpenBreadcrumb: action('onOpenBreadcrumb'),
-    }))
-    .slice(names.length > 3 ? names.length - 2 : 0),
-  path: Types.stringToPath('/' + names.join('/')),
-  openInFileUI: action('openInFileUI'),
-})
 
 const commonRowProps = {
   onSubmit: action('onSubmit'),
