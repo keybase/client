@@ -872,6 +872,9 @@ func ForceWallClock(t time.Time) time.Time {
 // - src decodes into exactly len(dst) bytes
 func DecodeHexFixed(dst, src []byte) error {
 	// hex.Decode is wrapped because it does not error on short reads and panics on long reads.
+	if len(src)%2 == 1 {
+		return hex.ErrLength
+	}
 	if len(dst) != hex.DecodedLen(len(src)) {
 		return NewHexWrongLengthError(fmt.Sprintf(
 			"error decoding fixed-length hex: expected %v bytes but got %v", len(dst), hex.DecodedLen(len(src))))
