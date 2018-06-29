@@ -1,6 +1,7 @@
 package io.keybase.ossifrage;
 
 import android.app.Application;
+
 import com.evernote.android.job.JobManager;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
@@ -34,8 +35,13 @@ public class MainApplication extends Application implements ReactApplication {
     SoLoader.init(this, /* native exopackage */ false);
     JobManager manager = JobManager.create(this);
     manager.addJobCreator(new BackgroundJobCreator());
-    if (manager.getAllJobRequestsForTag(BackgroundSyncJob.TAG).size() == 0) {
-        // Setup a background job
+
+    // Make sure exactly one background job is scheduled.
+    int numBackgroundJobs = manager.getAllJobRequestsForTag(BackgroundSyncJob.TAG).size();
+    if (numBackgroundJobs == 0) {
+        BackgroundSyncJob.scheduleJob();
+    } else if (numBackgroundJobs >1 ) {
+        manager.cancelAllForTag(BackgroundSyncJob.TAG);
         BackgroundSyncJob.scheduleJob();
     }
 

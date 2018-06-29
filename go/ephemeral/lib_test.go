@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
 
@@ -113,6 +114,8 @@ func TestNewTeamEKNeeded(t *testing.T) {
 
 	teamID := createTeam(tc)
 	ekLib := NewEKLib(tc.G)
+	fc := clockwork.NewFakeClockAt(time.Now())
+	ekLib.setClock(fc)
 	deviceEKStorage := tc.G.GetDeviceEKStorage()
 	userEKBoxStorage := tc.G.GetUserEKBoxStorage()
 	teamEKBoxStorage := tc.G.GetTeamEKBoxStorage()
@@ -140,7 +143,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 		expectedUserEKGen = 1
 	}
 
-	assertKeyGenerations := func(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen keybase1.EkGeneration) {
+	assertKeyGenerations := func(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen keybase1.EkGeneration, teamEKCreationInProgress bool) {
 		teamEK, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
 		require.NoError(t, err)
 
@@ -148,8 +151,10 @@ func TestNewTeamEKNeeded(t *testing.T) {
 		cacheKey := ekLib.cacheKey(teamID)
 		val, ok := ekLib.teamEKGenCache.Get(cacheKey)
 		require.True(t, ok)
-		cacheEntry, valid := ekLib.isEntryValid(val)
-		require.True(t, valid)
+		cacheEntry, expired := ekLib.isEntryExpired(val)
+		require.False(t, expired)
+		require.NotNil(t, cacheEntry)
+		require.Equal(t, teamEKCreationInProgress, cacheEntry.CreationInProgress)
 		require.Equal(t, teamEK.Metadata.Generation, cacheEntry.Generation)
 
 		// verify deviceEK
@@ -182,8 +187,8 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	}
 
 	// If we retry keygen, we don't regenerate keys
-	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen)
-	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen)
+	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, false /* teamEKCreationInProgress */)
+	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, false /* teamEKCreationInProgress */)
 
 	rawDeviceEKStorage := NewDeviceEKStorage(tc.G)
 	rawUserEKBoxStorage := NewUserEKBoxStorage(tc.G)
@@ -194,14 +199,14 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	err = rawTeamEKBoxStorage.Delete(context.Background(), teamID, expectedTeamEKGen)
 	require.NoError(t, err)
 	teamEKBoxStorage.ClearCache()
-	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen)
+	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, false /* teamEKCreationInProgress */)
 
 	// Now let's kill our userEK, we should gracefully not regenerate
 	// since we can still fetch the userEK from the server.
 	err = rawUserEKBoxStorage.Delete(context.Background(), expectedUserEKGen)
 	require.NoError(t, err)
 	tc.G.GetDeviceEKStorage().ClearCache()
-	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen)
+	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, false /* teamEKCreationInProgress */)
 
 	// Now let's kill our deviceEK as well, and we should generate all new keys
 	err = rawDeviceEKStorage.Delete(context.Background(), expectedDeviceEKGen)
@@ -210,14 +215,14 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	expectedDeviceEKGen++
 	expectedUserEKGen++
 	expectedTeamEKGen++
-	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen)
+	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, false /* teamEKCreationInProgress */)
 
 	// If we try to access an older teamEK that we cannot access, we don't
 	// create a new teamEK
 	teamEK, err := ekLib.GetTeamEK(context.Background(), teamID, expectedTeamEKGen-1)
 	require.Error(t, err)
 	require.Equal(t, teamEK, keybase1.TeamEk{})
-	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen)
+	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, false /* teamEKCreationInProgress */)
 
 	// Now let's kill our deviceEK but corrupting a single bit in the
 	// noiseFile, so we can no longer access the latest teamEK and will
@@ -244,7 +249,46 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	expectedDeviceEKGen++
 	expectedUserEKGen++
 	expectedTeamEKGen++
-	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen)
+	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, false /* teamEKCreationInProgress */)
+
+	// Fake the teamEK creation time so we are forced to generate a new one.
+	forceEKCtime := func(generation keybase1.EkGeneration, d time.Duration) {
+		rawTeamEKBoxStorage.Get(context.Background(), teamID, generation)
+		teamEKBoxes, found, err := rawTeamEKBoxStorage.getMap(context.Background(), teamID)
+		require.NoError(t, err)
+		require.True(t, found)
+		teamEKBoxed, ok := teamEKBoxes[generation]
+		require.True(t, ok)
+		teamEKBoxed.Metadata.Ctime = keybase1.ToTime(teamEKBoxed.Metadata.Ctime.Time().Add(d))
+		err = teamEKBoxStorage.Put(context.Background(), teamID, generation, teamEKBoxed)
+		require.NoError(t, err)
+	}
+
+	// First we ensure that we don't do background generation for expired teamEKs.
+	fc.Advance(cacheEntryLifetime) // expire our cache
+	forceEKCtime(expectedTeamEKGen, -time.Second*time.Duration(KeyGenLifetimeSecs))
+	expectedTeamEKGen++
+	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, false /* teamEKCreationInProgress */)
+
+	// If we are *almost* expired, background generation is possible.
+	ch := make(chan bool, 1)
+	ekLib.setBackgroundCreationTestCh(ch)
+	fc.Advance(cacheEntryLifetime) // expire our cache
+	forceEKCtime(expectedTeamEKGen, -time.Second*time.Duration(KeyGenLifetimeSecs)+(30*time.Minute))
+	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, true /* teamEKCreationInProgress */)
+	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, true /* teamEKCreationInProgress */)
+	// Signal background generation should start
+	ch <- true
+
+	// Wait until background generation completes
+	select {
+	case <-ch:
+		expectedTeamEKGen++
+		assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, false /* teamEKCreationInProgress */)
+	case <-time.After(time.Second * 20):
+		t.Fatalf("teamEK background creation failed")
+	}
+	close(ch)
 }
 
 func TestCleanupStaleUserAndDeviceEKs(t *testing.T) {

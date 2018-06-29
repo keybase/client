@@ -1,12 +1,14 @@
 package teams
 
 import (
+	"strings"
 	"testing"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTeamPlusApplicationKeysExim(t *testing.T) {
@@ -41,5 +43,56 @@ func TestTeamPlusApplicationKeysExim(t *testing.T) {
 	}
 	if len(exported.ApplicationKeys) != len(expectedKeys) {
 		t.Fatalf("Got %v applicationKeys, expected %v", len(exported.ApplicationKeys), len(expectedKeys))
+	}
+}
+
+func TestImplicitTeamLTPAK(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+	u0, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	require.NoError(t, err)
+	u1, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	require.NoError(t, err)
+	u2, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	require.NoError(t, err)
+	displayName := strings.Join([]string{u1.Username, u2.Username}, ",")
+
+	for _, public := range []bool{true, false} {
+		createdTeam, _, impTeamName, err := LookupOrCreateImplicitTeam(context.Background(), tc.G, displayName, public)
+		require.NoError(t, err)
+		require.Equal(t, public, impTeamName.IsPublic)
+
+		t.Logf("Created team public: %t, %s %s", public, createdTeam.ID, impTeamName)
+
+		for _, u := range []*kbtest.FakeUser{u1, u2, u0, nil} {
+			require.NoError(t, tc.G.Logout())
+			if u != nil {
+				require.NoError(t, u.Login(tc.G))
+				t.Logf("Testing as user %s", u.Username)
+			} else {
+				t.Logf("Testing as unlogged user")
+			}
+
+			ret, err := LoadTeamPlusApplicationKeys(context.Background(), tc.G, createdTeam.ID,
+				keybase1.TeamApplication_KBFS, keybase1.TeamRefreshers{})
+			if !public && (u == nil || u == u0) {
+				require.Error(t, err)
+				continue
+			}
+
+			require.NoError(t, err)
+			require.True(t, ret.Implicit)
+			require.Equal(t, public, ret.Public)
+			require.Equal(t, createdTeam.ID, ret.Id)
+
+			if u == nil || u == u0 {
+				require.Empty(t, ret.ApplicationKeys)
+			} else {
+				require.NotEmpty(t, ret.ApplicationKeys)
+			}
+		}
+
+		require.NoError(t, tc.G.Logout())
+		require.NoError(t, u2.Login(tc.G))
 	}
 }

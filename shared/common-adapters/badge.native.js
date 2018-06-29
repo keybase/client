@@ -24,9 +24,10 @@ const styles = styleSheetCreate({
     borderRadius: 14,
     flex: 0,
     justifyContent: 'center',
+    minWidth: 24.5,
     paddingBottom: 2,
-    paddingLeft: 6,
-    paddingRight: 6,
+    paddingLeft: 4,
+    paddingRight: 4,
     paddingTop: 4,
   },
   text: {

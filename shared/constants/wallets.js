@@ -7,6 +7,7 @@ import {type TypedState} from './reducer'
 
 const balanceDeltaToString = invert(RPCTypes.localBalanceDelta)
 const statusSimplifiedToString = invert(RPCTypes.localPaymentStatus)
+const partyTypeToString = invert(RPCTypes.localParticipantType)
 
 const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
   amount: '',
@@ -91,12 +92,12 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
     note: p.note,
     noteErr: p.noteErr,
     source: p.source,
-    sourceType: p.sourceType,
+    sourceType: partyTypeToString[p.sourceType],
     statusDescription: p.statusDescription,
     statusDetail: p.statusDetail,
     statusSimplified: statusSimplifiedToString[p.statusSimplified],
     target: p.target,
-    targetType: p.targetType,
+    targetType: partyTypeToString[p.targetType],
     time: p.time,
     worth: p.worth,
     worthCurrency: p.worthCurrency,
@@ -107,10 +108,13 @@ const loadEverythingWaitingKey = 'wallets:loadEverything'
 
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
-const getAccount = (state: TypedState, accountID: Types.AccountID) =>
-  state.wallets.accountMap.get(accountID, makeAccount())
-
 const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
+
+const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
+  state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
+
+const getAssets = (state: TypedState, accountID?: Types.AccountID) =>
+  state.wallets.assetsMap.get(accountID || getSelectedAccount(state), I.List())
 
 export {
   accountResultToAccount,
@@ -124,5 +128,6 @@ export {
   paymentResultToPayment,
   getAccountIDs,
   getAccount,
+  getAssets,
   getSelectedAccount,
 }
