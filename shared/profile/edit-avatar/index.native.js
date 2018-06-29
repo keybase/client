@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Box, ButtonBar, StandardScreen, WaitingButton} from '../../common-adapters'
 import {NativeImage, ZoomableBox} from '../../common-adapters/mobile.native'
-import {globalColors, globalStyles, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
+import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {isIOS} from '../../constants/platform'
 import type {Props} from '.'
 
@@ -48,12 +48,7 @@ class EditAvatar extends React.Component<Props> {
 
   render() {
     return (
-      <StandardScreen
-        onCancel={this.props.onClose}
-        scrollEnabled={false}
-        style={styles.container}
-        title="Zoom and pan"
-      >
+      <StandardScreen onCancel={this.props.onClose} scrollEnabled={false} title="Zoom and pan">
         <Box
           style={{
             marginBottom: globalMargins.small,
@@ -105,12 +100,6 @@ const styles = styleSheetCreate({
     marginTop: globalMargins.tiny,
     width: '100%',
   },
-  container: platformStyles({
-    common: {
-      ...globalStyles.flexBoxColumn,
-      flex: 1,
-    },
-  }),
   zoomContainer: {
     alignSelf: 'center',
     backgroundColor: globalColors.lightGrey2,
