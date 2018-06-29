@@ -143,8 +143,7 @@ func TestConcurrentSignup(t *testing.T) {
 		mwg.Add(1)
 		go func(index int) {
 			defer mwg.Done()
-			noop := func(arg *SignupEngineRunArg) {}
-			CreateAndSignupFakeUserSafe(tc.G, "login", noop)
+			CreateAndSignupFakeUserSafe(tc.G, "login")
 			Logout(tc)
 			fmt.Printf("func caller %d done\n", index)
 		}(i)

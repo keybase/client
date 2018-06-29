@@ -317,7 +317,7 @@ func TestSignupNonAsciiDeviceName(t *testing.T) {
 		updateDeviceName := func(arg *SignupEngineRunArg) {
 			arg.DeviceName = testVal.deviceName
 		}
-		_, err := CreateAndSignupFakeUserSafe(tc.G, "sup", updateDeviceName)
+		_, err := CreateAndSignupFakeUserSafeWithArg(tc.G, "sup", updateDeviceName)
 		if testVal.valid {
 			if err != nil {
 				t.Fatalf("did not expect an error with device name %s", testVal.deviceName)
