@@ -1,17 +1,17 @@
 // @flow
 import * as React from 'react'
+import * as Types from '../../constants/types/wallets'
 import {Avatar, Box2, Divider, Icon, ConnectedUsernames, Markdown} from '../../common-adapters'
 import Text, {type TextType} from '../../common-adapters/text'
 import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {formatTimeForStellarTransaction, formatTimeForStellarTransactionDetails} from '../../util/timestamp'
 
 type Role = 'sender' | 'receiver'
-type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'account'
 
 type CounterpartyIconProps = {|
   large: boolean,
   counterparty: string,
-  counterpartyType: CounterpartyType,
+  counterpartyType: Types.CounterpartyType,
 |}
 
 export const CounterpartyIcon = (props: CounterpartyIconProps) => {
@@ -50,7 +50,7 @@ const StellarPublicKey = (props: StellarPublicKeyProps) => {
 type CounterpartyTextProps = {|
   large: boolean,
   counterparty: string,
-  counterpartyType: CounterpartyType,
+  counterpartyType: Types.CounterpartyType,
   showFullKey: boolean,
   textType?: 'Body' | 'BodySmall' | 'BodySemibold',
   textTypeSemibold?: 'BodySemibold' | 'BodySmallSemibold',
@@ -100,7 +100,7 @@ type DetailProps = {|
   pending: boolean,
   yourRole: Role,
   counterparty: string,
-  counterpartyType: CounterpartyType,
+  counterpartyType: Types.CounterpartyType,
   amountUser: string,
   isXLM: boolean,
 |}
@@ -221,7 +221,7 @@ export type Props = {|
 
   yourRole: Role,
   counterparty: string,
-  counterpartyType: CounterpartyType,
+  counterpartyType: Types.CounterpartyType,
   amountUser: string, // empty if sent with no display currency
   amountXLM: string,
 

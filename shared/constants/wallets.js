@@ -104,7 +104,7 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   })
 }
 
-const paymentToCounterpartyType = (p: Types.Payment): 'account' | 'keybaseUser' | 'stellarPublicKey' => {
+const paymentToCounterpartyType = (p: Types.Payment): Types.CounterpartyType => {
   if (p.source === p.target) {
     return 'account'
   }
