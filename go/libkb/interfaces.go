@@ -790,6 +790,6 @@ type ChatHelper interface {
 		msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error)
 	UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error
 	UnboxMobilePushNotification(ctx context.Context, uid gregor1.UID,
-		convID chat1.ConversationID, membersType chat1.ConversationMembersType, pushIDs []string, payload string) (string, error)
+		convID chat1.ConversationID, membersType chat1.ConversationMembersType, payload string) (string, error)
 	AckMobileNotificationSuccess(ctx context.Context, pushIDs []string)
 }
