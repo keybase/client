@@ -8,8 +8,6 @@ import * as KBFSGen from '../../../../../actions/kbfs-gen'
 import {navigateAppend} from '../../../../../actions/route-tree'
 import {compose, connect, isMobile, setDisplayName, type TypedState} from '../../../../../util/container'
 import {isIOS} from '../../../../../constants/platform'
-import {copyToClipboard} from '../../../../../util/clipboard'
-
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import Exploding from '.'
 
@@ -43,11 +41,6 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  _onCopy: (message: Types.Message) => {
-    if (message.type === 'text') {
-      copyToClipboard(message.text.stringValue())
-    }
-  },
   _onDeleteHistory: () => {
     dispatch(Chat2Gen.createNavigateToThread())
     dispatch(navigateAppend([{props: {message: ownProps.message}, selected: 'deleteHistoryWarning'}]))
@@ -109,10 +102,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       title: 'Delete this + everything above',
     })
   }
-  const message = ownProps.message
-  if (message.type === 'attachment') {
+  const m = ownProps.message
+  if (m.type === 'attachment') {
     if (isMobile) {
-      if (message.attachmentType === 'image') {
+      if (m.attachmentType === 'image') {
         items.push({onClick: dispatchProps._onSaveAttachment, title: 'Save'})
       }
       if (isIOS) {
@@ -120,7 +113,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       }
     } else {
       items.push(
-        !message.downloadPath
+        !m.downloadPath
           ? {onClick: dispatchProps._onDownload, title: 'Download'}
           : {onClick: dispatchProps._onShowInFinder, title: 'Show in finder'}
       )
@@ -129,7 +122,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     if (stateProps._canEdit) {
       items.push({onClick: dispatchProps._onEdit, title: 'Edit'})
     }
-    items.push({onClick: dispatchProps._onCopy(message), title: 'Copy text'})
   }
   return {
     attachTo: ownProps.attachTo,
