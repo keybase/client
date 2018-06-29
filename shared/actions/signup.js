@@ -12,6 +12,7 @@ import {navigateAppend, navigateTo, navigateUp} from '../actions/route-tree'
 import {RPCError} from '../util/errors'
 import type {TypedState} from '../constants/reducer'
 
+// Helpers ///////////////////////////////////////////////////////////
 // returns true if there are no errors, we check all errors at every transition just to be extra careful
 const noErrors = (state: TypedState) =>
   !state.signup.devicenameError &&
@@ -22,6 +23,7 @@ const noErrors = (state: TypedState) =>
   !state.signup.passphraseError.stringValue() &&
   !state.signup.signupError.stringValue()
 
+// Navigation side effects ///////////////////////////////////////////////////////////
 const resetNav = () => Saga.put(LoginGen.createNavBasedOnLoginAndInitialState())
 // When going back we clear all errors so we can fix things and move forward
 const goBackAndClearErrors = () => Saga.put(navigateUp())
@@ -40,6 +42,12 @@ const showPassphraseOnNoErrors = (_, state: TypedState) =>
 const showDeviceScreenOnNoErrors = (_: SignupGen.CheckPassphrasePayload, state: TypedState) =>
   noErrors(state) && Saga.put(navigateAppend(['deviceName'], [loginTab, 'signup']))
 
+const showErrorOrCleanupAfterSignup = (_, state: TypedState) =>
+  noErrors(state)
+    ? Saga.put(SignupGen.createRestartSignup())
+    : Saga.put(navigateAppend(['signupError'], [loginTab, 'signup']))
+
+// Validation side effects ///////////////////////////////////////////////////////////
 const checkInviteCode = (action: SignupGen.CheckInviteCodePayload) =>
   RPCTypes.signupCheckInvitationCodeRpcPromise(
     {invitationCode: action.payload.inviteCode},
@@ -105,6 +113,7 @@ const checkDevicename = (action: SignupGen.CheckDevicenamePayload, state: TypedS
       })
     )
 
+// Actually sign up ///////////////////////////////////////////////////////////
 const reallySignupOnNoErrors = (_, state: TypedState) => {
   if (!noErrors(state)) {
     logger.warn('Still has errors, bailing on really signing up')
@@ -159,11 +168,6 @@ const reallySignupOnNoErrors = (_, state: TypedState) => {
     }
   })
 }
-
-const showErrorOrCleanupAfterSignup = (_, state: TypedState) =>
-  noErrors(state)
-    ? Saga.put(SignupGen.createRestartSignup())
-    : Saga.put(navigateAppend(['signupError'], [loginTab, 'signup']))
 
 const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   // validation actions
