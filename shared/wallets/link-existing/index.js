@@ -157,7 +157,7 @@ type WrapperState = {|
 
 type WrapperProps = {
   onCancel: () => void,
-  onDone: () => void,
+  onDone: (secretKey: string, name: string) => void,
 }
 
 class Wrapper extends React.Component<WrapperProps, WrapperState> {
@@ -165,11 +165,13 @@ class Wrapper extends React.Component<WrapperProps, WrapperState> {
   _onKeyChange = (secretKey: string) => this.setState({secretKey})
   _onNameChange = (name: string) => this.setState({name})
   _onViewChange = (view: View) => this.setState({view})
+  _onDone = () => this.props.onDone(this.state.secretKey, this.state.name)
   render() {
     return (
       <LinkWallet
-        {...this.props}
         {...this.state}
+        onCancel={this.props.onCancel}
+        onDone={this._onDone}
         onKeyChange={this._onKeyChange}
         onNameChange={this._onNameChange}
         onViewChange={this._onViewChange}
@@ -180,8 +182,9 @@ class Wrapper extends React.Component<WrapperProps, WrapperState> {
 
 const styles = styleSheetCreate({
   container: {
+    height: 450,
+    maxWidth: 360,
     padding: globalMargins.medium,
-    maxWidth: 500,
   },
   contentContainer: {
     alignItems: 'center',
