@@ -19,9 +19,9 @@ type FolderProps = {
   routePath: I.List<string>,
 }
 
-export const wrapRow = (rowContent, key: string) => (
-  <Box style={stylesRowContainer} key={key}>
-    {rowContent}
+export const WrapRow = ({children}: {children: React.Node}) => (
+  <Box style={stylesRowContainer}>
+    {children}
     <Divider key="divider" style={stylesDivider} />
   </Box>
 )
@@ -30,15 +30,28 @@ class Files extends React.PureComponent<FolderProps> {
   _rowRenderer = (index: number, item: Types.RowItem) => {
     switch (item.rowType) {
       case 'placeholder':
-        return wrapRow(<Placeholder type={item.type} />, `placeholder:${item.name}`)
+        return (
+          <WrapRow key={`placeholder:${item.name}`}>
+            <Placeholder type={item.type} />
+          </WrapRow>
+        )
       case 'still':
-        return wrapRow(<Still path={item.path} routePath={this.props.routePath} />, `still:${item.name}`)
+        return (
+          <WrapRow key={`still:${item.name}`}>
+            <Still path={item.path} routePath={this.props.routePath} />
+          </WrapRow>
+        )
       case 'uploading':
-        return wrapRow(<Uploading path={item.path} />, `uploading:${item.name}`)
+        return (
+          <WrapRow key={`uploading:${item.name}`}>
+            <Uploading path={item.path} />
+          </WrapRow>
+        )
       case 'editing':
-        return wrapRow(
-          <Editing editID={item.editID} routePath={this.props.routePath} />,
-          `editing:${Types.editIDToString(item.editID)}`
+        return (
+          <WrapRow key={`editing:${Types.editIDToString(item.editID)}`}>
+            <Editing editID={item.editID} routePath={this.props.routePath} />
+          </WrapRow>
         )
       default:
         /*::
@@ -46,7 +59,11 @@ class Files extends React.PureComponent<FolderProps> {
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (rowType: empty) => any
       ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(rowType);
       */
-        return wrapRow(<Text type="BodyError">This should not happen.</Text>, '')
+        return (
+          <WrapRow key="">
+            <Text type="BodyError">This should not happen.</Text>
+          </WrapRow>
+        )
     }
   }
 
