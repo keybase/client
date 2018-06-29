@@ -38,6 +38,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   children: ownProps.children,
   following: stateProps.following,
   onClick: dispatchProps.onClick,
+  textType: ownProps.textType,
   usernames: ownProps.usernames,
 })
 
