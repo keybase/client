@@ -312,11 +312,12 @@ func TestSignupNonAsciiDeviceName(t *testing.T) {
 		{"perfectly-reasonable", nil},
 		{"definitely🙃not🐉ascii", libkb.DeviceBadNameError{}},
 	}
+
 	for _, testVal := range testValues {
-		updateDeviceName := func(arg *SignupEngineRunArg) {
-			arg.DeviceName = testVal.deviceName
-		}
-		_, err := CreateAndSignupFakeUserSafeWithArg(tc.G, "sup", updateDeviceName)
+		fu, _ := NewFakeUser("sup")
+		arg := MakeTestSignupEngineRunArg(fu)
+		arg.DeviceName = testVal.deviceName
+		_, err := CreateAndSignupFakeUserSafeWithArg(tc.G, fu, arg)
 		require.IsType(t, err, testVal.err)
 	}
 }
