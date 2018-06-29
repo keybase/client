@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {globalColors, isMobile} from '../../styles'
 import rowStyles from './styles'
-import {Box, Icon, Meta, Text, Divider} from '../../common-adapters'
+import {Box, Icon, Meta, Text} from '../../common-adapters'
 import PathItemIcon from '../common/path-item-icon'
 
 type UploadingProps = {
@@ -31,27 +31,24 @@ const getStatusText = ({error, writingToJournal, syncing}: UploadingProps): stri
 }
 
 const Uploading = (props: UploadingProps) => (
-  <Box>
-    <Box style={rowStyles.row}>
-      <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon_30} />
-      <Box style={stylesIconBadge}>
-        <Icon type="icon-addon-file-uploading" />
-      </Box>
-      <Box key="main" style={rowStyles.itemBox}>
-        <Text
-          type={props.itemStyles.textType}
-          style={rowStyles.rowText_30(props.itemStyles.textColor)}
-          lineClamp={isMobile ? 1 : undefined}
-        >
-          {props.name}
-        </Text>
-        <Meta
-          title={getStatusText(props)}
-          backgroundColor={props.error ? globalColors.red : globalColors.blue}
-        />
-      </Box>
+  <Box style={rowStyles.rowBox}>
+    <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon_30} />
+    <Box style={stylesIconBadge}>
+      <Icon type="icon-addon-file-uploading" />
     </Box>
-    <Divider style={rowStyles.divider} />
+    <Box key="main" style={rowStyles.itemBox}>
+      <Text
+        type={props.itemStyles.textType}
+        style={rowStyles.rowText_30(props.itemStyles.textColor)}
+        lineClamp={isMobile ? 1 : undefined}
+      >
+        {props.name}
+      </Text>
+      <Meta
+        title={getStatusText(props)}
+        backgroundColor={props.error ? globalColors.red : globalColors.blue}
+      />
+    </Box>
   </Box>
 )
 

@@ -3,10 +3,10 @@ import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../constants/types/fs'
 import {globalStyles, globalMargins} from '../styles'
-import {Box, Icon, List, ScrollView, Text} from '../common-adapters'
+import {Box, Divider, Icon, List, ScrollView, Text} from '../common-adapters'
 import FolderHeader from './header/container'
 import SortBar from './sortbar/container'
-import {Still, Editing, Placeholder, Uploading, rowHeight} from './row'
+import {Still, Editing, Placeholder, Uploading} from './row'
 import Footer from './footer/container'
 import {isMobile} from '../constants/platform'
 import ConnectedBanner from './banner/container'
@@ -19,22 +19,39 @@ type FolderProps = {
   routePath: I.List<string>,
 }
 
+export const WrapRow = ({children}: {children: React.Node}) => (
+  <Box style={stylesRowContainer}>
+    {children}
+    <Divider key="divider" style={stylesDivider} />
+  </Box>
+)
+
 class Files extends React.PureComponent<FolderProps> {
   _rowRenderer = (index: number, item: Types.RowItem) => {
     switch (item.rowType) {
       case 'placeholder':
-        return <Placeholder key={`placeholder:${item.name}`} />
+        return (
+          <WrapRow key={`placeholder:${item.name}`}>
+            <Placeholder type={item.type} />
+          </WrapRow>
+        )
       case 'still':
-        return <Still key={`still:${item.name}`} path={item.path} routePath={this.props.routePath} />
+        return (
+          <WrapRow key={`still:${item.name}`}>
+            <Still path={item.path} routePath={this.props.routePath} />
+          </WrapRow>
+        )
       case 'uploading':
-        return <Uploading key={`uploading:${item.name}`} path={item.path} />
+        return (
+          <WrapRow key={`uploading:${item.name}`}>
+            <Uploading path={item.path} />
+          </WrapRow>
+        )
       case 'editing':
         return (
-          <Editing
-            key={`editing:${Types.editIDToString(item.editID)}`}
-            editID={item.editID}
-            routePath={this.props.routePath}
-          />
+          <WrapRow key={`editing:${Types.editIDToString(item.editID)}`}>
+            <Editing editID={item.editID} routePath={this.props.routePath} />
+          </WrapRow>
         )
       default:
         /*::
@@ -42,7 +59,11 @@ class Files extends React.PureComponent<FolderProps> {
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (rowType: empty) => any
       ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(rowType);
       */
-        return <Text type="BodyError">This should not happen.</Text>
+        return (
+          <WrapRow key="">
+            <Text type="BodyError">This should not happen.</Text>
+          </WrapRow>
+        )
     }
   }
 
@@ -81,6 +102,8 @@ class Files extends React.PureComponent<FolderProps> {
   }
 }
 
+const rowHeight = isMobile ? 64 : 40
+
 const styleOuterContainer = {
   height: '100%',
   position: 'relative',
@@ -106,6 +129,17 @@ const resetContainerStyle = {
   flex: 1,
   justifyContent: 'center',
   marginTop: 2 * globalMargins.xlarge,
+}
+
+const stylesRowContainer = {
+  ...globalStyles.flexBoxColumn,
+  height: rowHeight,
+  minHeight: rowHeight,
+  maxHeight: rowHeight,
+}
+
+const stylesDivider = {
+  marginLeft: 48,
 }
 
 export default Files
