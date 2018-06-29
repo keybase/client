@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"sync"
+
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
-	"sync"
 )
 
 // UPAK Loader is a loader for UserPlusKeysV2AllIncarnations. It's a thin user object that is
@@ -738,7 +739,7 @@ func (u *CachedUPAKLoader) CheckDeviceForUIDAndUsername(ctx context.Context, uid
 		return NewKeyRevokedError(did.String())
 	}
 	if !n.IsNil() && !foundUsername.Eq(n) {
-		return LoggedInWrongUserError{ExistingName: foundUsername, AttemptedName: foundUsername}
+		return LoggedInWrongUserError{ExistingName: foundUsername, AttemptedName: n}
 	}
 	return nil
 }
