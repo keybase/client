@@ -24,10 +24,10 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
   state: MentionState = {
     channelMentionFilter: '',
     channelMentionPopupOpen: false,
-    downArrowCounter: 0,
     mentionFilter: '',
     mentionPopupOpen: false,
     pickSelectedCounter: 0,
+    downArrowCounter: 0,
     upArrowCounter: 0,
   }
 
@@ -41,7 +41,7 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
   }
 
   _setLastSelectionKey = (lastSelectionKey: SelectionKey) => {
-    if (this._lastSelectionKey !== lastSelectionKey) this._lastSelectionKey = lastSelectionKey
+    this._lastSelectionKey = lastSelectionKey
   }
 
   _setMentionPopupOpen = (mentionPopupOpen: boolean) => {
@@ -175,10 +175,8 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     this._replaceWordAtCursor(`@${u} `)
     this._setMentionPopupOpen(false)
 
-    // This happens if you type @notausername<enter>. We've essentially 'picked' nothing and really want to submit
-    // This is a little wonky cause this component doesn't directly know if the list is filtered all the way out
     if (options && options.notUser) {
-      this._submitAfterInsert()
+      this._maybeSubmitAfterInsert(options.notUser)
     }
   }
 
@@ -186,10 +184,8 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     this._replaceWordAtCursor(`#${c} `)
     this._setChannelMentionPopupOpen(false)
 
-    // This happens if you type #notachannel<enter>. We've essentially 'picked' nothing and really want to submit
-    // This is a little wonky cause this component doesn't directly know if the list is filtered all the way out
     if (options && options.notChannel) {
-      this._submitAfterInsert()
+      this._maybeSubmitAfterInsert(options.notChannel)
     }
   }
 
@@ -213,7 +209,6 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
 
   _triggerPickSelectedCounter = (key: SelectionKey) => {
     this._setLastSelectionKey(key)
-    console.log('jry: pick selected counter', {key})
     this.setState(({pickSelectedCounter}) => ({pickSelectedCounter: pickSelectedCounter + 1}))
   }
 
@@ -248,12 +243,12 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
 
   // End desktop only.
 
-  _submitAfterInsert = () => {
+  // If you type @notausername<enter> or #notachannel<enter>, we've essentially 'picked' nothing and really want to submit ... all the way out.
+  //
+  // If you type e.g., @notausername<tab> we don't want to do anything.
+  _maybeSubmitAfterInsert = (notUserOrChannel: boolean) => {
     const text = this._getText()
-    // This avoids a bug where a use can begin to enter a user or channel
-    // mention that does not exist, press <TAB>, and the message will send. We
-    // only want to send here if the user previously pressed enter
-    if (text && this._lastSelectionKey === 'Enter') {
+    if (text && notUserOrChannel && this._lastSelectionKey === 'Enter') {
       this._setLastSelectionKey('')
       this.props.onSubmit(text)
     }
