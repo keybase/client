@@ -43,9 +43,9 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  _onCopy: (message: Types.Message) => {
-    if (message.type === 'text') {
-      copyToClipboard(message.text.stringValue())
+  _onCopy: () => {
+    if (ownProps.message.type === 'text') {
+      copyToClipboard(ownProps.message.text.stringValue())
     }
   },
   _onDeleteHistory: () => {
@@ -129,7 +129,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     if (stateProps._canEdit) {
       items.push({onClick: dispatchProps._onEdit, title: 'Edit'})
     }
-    items.push({onClick: dispatchProps._onCopy(message), title: 'Copy text'})
+    items.push({onClick: dispatchProps._onCopy, title: 'Copy text'})
   }
   return {
     attachTo: ownProps.attachTo,
