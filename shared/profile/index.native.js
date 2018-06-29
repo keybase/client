@@ -119,17 +119,20 @@ class Profile extends Component<Props, State> {
   }
 
   _makeUserBio(loading: boolean) {
+    if (this.props.isYou && this.props.bioEditFns) {
+      this.props.bioEditFns.onEditAvatarClick = this._onClickAvatar
+    }
     return (
       <UserBio
         type="Profile"
-        // editFns={this.props.bioEditFns}
+        editFns={this.props.bioEditFns}
         avatarSize={AVATAR_SIZE}
         loading={loading}
         username={this.props.username}
         userInfo={this.props.userInfo}
         currentlyFollowing={this.props.currentlyFollowing}
         trackerState={this.props.trackerState}
-        onClickAvatar={this._onClickAvatar}
+        onClickAvatar={this.props.onClickAvatar}
         onClickFollowers={this.props.onClickFollowers}
         onClickFollowing={this.props.onClickFollowing}
       />
