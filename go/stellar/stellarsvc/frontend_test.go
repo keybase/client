@@ -564,13 +564,12 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.Equal(t, "completed", p.StatusDescription)
 		require.Empty(t, p.StatusDetail)
 		if sender {
-			require.Equal(t, "- 1,011.1230000 XLM", p.AmountDescription, "Amount")
+			require.Equal(t, "1,011.1230000 XLM", p.AmountDescription, "Amount")
 			require.Equal(t, stellar1.BalanceDelta_DECREASE, p.Delta)
 		} else {
-			require.Equal(t, "+ 1,011.1230000 XLM", p.AmountDescription, "Amount")
+			require.Equal(t, "1,011.1230000 XLM", p.AmountDescription, "Amount")
 			require.Equal(t, stellar1.BalanceDelta_INCREASE, p.Delta)
 		}
-		require.Equal(t, "1,011.1230000 XLM", p.AmountValue, "AmountValue")
 		require.Equal(t, "$321.87", p.Worth, "Worth")
 		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
 		require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")
@@ -606,13 +605,12 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.Equal(t, "completed", p.StatusDescription)
 		require.Empty(t, p.StatusDetail)
 		if sender {
-			require.Equal(t, "- 1,011.1230000 XLM", p.AmountDescription, "Amount")
+			require.Equal(t, "1,011.1230000 XLM", p.AmountDescription, "Amount")
 			require.Equal(t, stellar1.BalanceDelta_DECREASE, p.Delta)
 		} else {
-			require.Equal(t, "+ 1,011.1230000 XLM", p.AmountDescription, "Amount")
+			require.Equal(t, "1,011.1230000 XLM", p.AmountDescription, "Amount")
 			require.Equal(t, stellar1.BalanceDelta_INCREASE, p.Delta)
 		}
-		require.Equal(t, "1,011.1230000 XLM", p.AmountValue, "AmountValue")
 		require.Equal(t, "$321.87", p.Worth, "Worth")
 		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
 		require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")

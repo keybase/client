@@ -152,7 +152,6 @@ type PaymentLocal struct {
 	StatusDescription string          `codec:"statusDescription" json:"statusDescription"`
 	StatusDetail      string          `codec:"statusDetail" json:"statusDetail"`
 	AmountDescription string          `codec:"amountDescription" json:"amountDescription"`
-	AmountValue       string          `codec:"amountValue" json:"amountValue"`
 	Delta             BalanceDelta    `codec:"delta" json:"delta"`
 	Worth             string          `codec:"worth" json:"worth"`
 	WorthCurrency     string          `codec:"worthCurrency" json:"worthCurrency"`
@@ -172,7 +171,6 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 		StatusDescription: o.StatusDescription,
 		StatusDetail:      o.StatusDetail,
 		AmountDescription: o.AmountDescription,
-		AmountValue:       o.AmountValue,
 		Delta:             o.Delta.DeepCopy(),
 		Worth:             o.Worth,
 		WorthCurrency:     o.WorthCurrency,

@@ -123,10 +123,6 @@
           "name": "amountDescription"
         },
         {
-          "type": "string",
-          "name": "amountValue"
-        },
-        {
           "type": "BalanceDelta",
           "name": "delta"
         },

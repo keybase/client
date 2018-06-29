@@ -53,8 +53,7 @@ protocol local {
     PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
     string statusDescription;       // "pending", "completed", "error"
     string statusDetail;
-    string amountDescription;       // "+ 1,323.1234567 XLM"
-    string amountValue;             // "1,323.1234567 XLM" (no + or -)
+    string amountDescription;       // "1,323.1234567 XLM"
     BalanceDelta delta;             // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
     string worth;                   // "$123.23" 
     string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous)

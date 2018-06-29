@@ -311,7 +311,6 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		StatusDescription: summary.StatusDescription,
 		StatusDetail:      summary.StatusDetail,
 		AmountDescription: summary.AmountDescription,
-		AmountValue:       summary.AmountValue,
 		Delta:             summary.Delta,
 		Worth:             summary.Worth,
 		WorthCurrency:     summary.WorthCurrency,
@@ -1102,16 +1101,11 @@ func newPaymentLocal(txID stellar1.TransactionID, ctime stellar1.TimeMs, amount 
 		loc.Delta = stellar1.BalanceDelta_INCREASE
 	}
 
-	formatted, err := stellar.FormatPaymentAmountXLM(amount, loc.Delta)
+	formatted, err := stellar.FormatAmountXLM(amount)
 	if err != nil {
 		return nil, err
 	}
-
 	loc.AmountDescription = formatted
-	loc.AmountValue, err = stellar.FormatAmountXLM(amount)
-	if err != nil {
-		return nil, err
-	}
 
 	return loc, nil
 }
