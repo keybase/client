@@ -14,8 +14,8 @@ import Attachment from './attachment/container'
 import SetDescription from './set-description/container'
 import SetChannelname from './set-channelname/container'
 import Placeholder from './placeholder/container'
-import Wrapper from './wrapper/container.js'
-import WrapperUserContent from './wrapper/container-user-content.js'
+import WrapperAuthor from './wrapper/container-wrapper-author'
+import WrapperTimestamp from './wrapper/container-wrapper-timestamp'
 import {setDisplayName, connect, compose, lifecycle, type TypedState} from '../../../util/container'
 
 type Props = {
@@ -40,87 +40,87 @@ class MessageFactory extends React.PureComponent<Props> {
     switch (this.props.message.type) {
       case 'text':
         return (
-          <Wrapper {...messageWrapperProps}>
-            <WrapperUserContent
+          <WrapperTimestamp {...messageWrapperProps}>
+            <WrapperAuthor
               innerClass={TextMessage}
               isEditing={this.props.isEditing}
               message={this.props.message}
               previous={this.props.previous}
               measure={this.props.measure}
             />
-          </Wrapper>
+          </WrapperTimestamp>
         )
       case 'attachment':
         return (
-          <Wrapper {...messageWrapperProps}>
-            <WrapperUserContent
+          <WrapperTimestamp {...messageWrapperProps}>
+            <WrapperAuthor
               innerClass={Attachment}
               isEditing={this.props.isEditing}
               message={this.props.message}
               previous={this.props.previous}
               measure={this.props.measure}
             />
-          </Wrapper>
+          </WrapperTimestamp>
         )
       case 'placeholder':
         return (
-          <Wrapper {...messageWrapperProps}>
+          <WrapperTimestamp {...messageWrapperProps}>
             <Placeholder message={this.props.message} />
-          </Wrapper>
+          </WrapperTimestamp>
         )
       case 'systemInviteAccepted':
         return (
-          <Wrapper {...messageWrapperProps}>
+          <WrapperTimestamp {...messageWrapperProps}>
             <SystemInviteAccepted message={this.props.message} />
-          </Wrapper>
+          </WrapperTimestamp>
         )
       case 'systemSimpleToComplex':
         return (
-          <Wrapper {...messageWrapperProps}>
+          <WrapperTimestamp {...messageWrapperProps}>
             <SystemSimpleToComplex message={this.props.message} />
-          </Wrapper>
+          </WrapperTimestamp>
         )
       case 'systemGitPush':
         return (
-          <Wrapper {...messageWrapperProps}>
+          <WrapperTimestamp {...messageWrapperProps}>
             <SystemGitPush message={this.props.message} />
-          </Wrapper>
+          </WrapperTimestamp>
         )
       case 'systemAddedToTeam':
         return (
-          <Wrapper {...messageWrapperProps}>
+          <WrapperTimestamp {...messageWrapperProps}>
             <SystemAddedToTeam message={this.props.message} />
-          </Wrapper>
+          </WrapperTimestamp>
         )
       case 'systemJoined':
         return (
-          <Wrapper {...messageWrapperProps}>
+          <WrapperTimestamp {...messageWrapperProps}>
             <SystemJoined message={this.props.message} />
-          </Wrapper>
+          </WrapperTimestamp>
         )
       case 'systemText':
         return (
-          <Wrapper {...messageWrapperProps}>
+          <WrapperTimestamp {...messageWrapperProps}>
             <SystemText message={this.props.message} />
-          </Wrapper>
+          </WrapperTimestamp>
         )
       case 'systemLeft':
         return (
-          <Wrapper {...messageWrapperProps}>
+          <WrapperTimestamp {...messageWrapperProps}>
             <SystemLeft message={this.props.message} />
-          </Wrapper>
+          </WrapperTimestamp>
         )
       case 'setDescription':
         return (
-          <Wrapper {...messageWrapperProps}>
+          <WrapperTimestamp {...messageWrapperProps}>
             <SetDescription message={this.props.message} />
-          </Wrapper>
+          </WrapperTimestamp>
         )
       case 'setChannelname':
         return (
-          <Wrapper {...messageWrapperProps}>
+          <WrapperTimestamp {...messageWrapperProps}>
             <SetChannelname message={this.props.message} />
-          </Wrapper>
+          </WrapperTimestamp>
         )
       // case 'error':
       // return <Error message={this.props.message} />

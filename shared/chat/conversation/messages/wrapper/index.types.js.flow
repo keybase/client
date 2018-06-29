@@ -1,8 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
+import type {StylesCrossPlatform} from '../../../../styles'
 
-export type WrapperProps = {
+export type WrapperTimestampProps = {
   message: Types.Message,
   measure: null | (() => void),
   previous?: ?Types.Message,
@@ -11,7 +12,7 @@ export type WrapperProps = {
   orangeLineAbove: boolean,
 }
 
-export type WrapperUserContentProps = {
+export type WrapperAuthorProps = {
   author: string,
   exploded: boolean,
   explodedBy: string,
@@ -38,5 +39,5 @@ export type WrapperUserContentProps = {
   onCancel: null | (() => void),
   onAuthorClick: () => void,
   orangeLineAbove: boolean,
-  timestamp: string,
+  styles: StylesCrossPlatform,
 }

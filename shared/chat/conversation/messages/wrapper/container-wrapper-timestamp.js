@@ -1,5 +1,5 @@
 // @flow
-import {Wrapper} from '.'
+import {WrapperTimestamp} from '.'
 import {setDisplayName, compose, connect, type TypedState} from '../../../../util/container'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
@@ -36,4 +36,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default compose(connect(mapStateToProps, () => ({}), mergeProps), setDisplayName('Wrapper'))(Wrapper)
+export default compose(connect(mapStateToProps, () => ({}), mergeProps), setDisplayName('WrapperTimestamp'))(
+  WrapperTimestamp
+)

@@ -1,28 +1,29 @@
 // @flow
 import * as React from 'react'
-import {MessageWrapper, MessageWrapperUserContent} from './shared'
+import WrapperTimestamp from './wrapper-timestamp'
+import WrapperAuthor from './wrapper-author'
 import {NativeTouchableHighlight, NativeKeyboard} from '../../../../common-adapters/mobile.native'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
 import {globalColors} from '../../../../styles'
-import type {WrapperUserContentProps} from './index.types'
+import type {WrapperAuthorProps} from './index.types'
 
 const dismissKeyboard = () => {
   NativeKeyboard.dismiss()
 }
 
-const _NativeWrapper = (props: WrapperUserContentProps & FloatingMenuParentProps) => (
+const _NativeWrapper = (props: WrapperAuthorProps & FloatingMenuParentProps) => (
   <NativeTouchableHighlight
     onLongPress={props.exploded ? undefined : props.toggleShowingMenu}
     underlayColor={globalColors.white}
     onPress={dismissKeyboard}
   >
     <React.Fragment>
-      <MessageWrapperUserContent {...props} />
+      <WrapperAuthor {...props} />
     </React.Fragment>
   </NativeTouchableHighlight>
 )
 const NativeWrapper = FloatingMenuParentHOC(_NativeWrapper)
 
-export {NativeWrapper as WrapperUserContent, MessageWrapper as Wrapper}
+export {NativeWrapper as WrapperAuthor, WrapperTimestamp}
 
 export default NativeWrapper

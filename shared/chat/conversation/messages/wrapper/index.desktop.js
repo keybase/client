@@ -1,5 +1,6 @@
 // @flow
-import {MessageWrapper, MessageWrapperUserContent} from './shared'
+import WrapperTimestamp from './wrapper-timestamp'
+import WrapperAuthor from './wrapper-author'
 import {withHandlers} from '../../../../util/container'
 import {FloatingMenuParentHOC} from '../../../../common-adapters/floating-menu'
 
@@ -8,7 +9,6 @@ const WrapperWithFloatingMenu = withHandlers({
     const node = event.target instanceof window.HTMLElement ? event.target : null
     props.onShowMenu(node ? node.getBoundingClientRect() : null)
   },
-})(FloatingMenuParentHOC(MessageWrapperUserContent))
+})(FloatingMenuParentHOC(WrapperAuthor))
 
-export {WrapperWithFloatingMenu as WrapperUserContent, MessageWrapper as Wrapper}
-export default MessageWrapper
+export {WrapperWithFloatingMenu as WrapperAuthor, WrapperTimestamp}
