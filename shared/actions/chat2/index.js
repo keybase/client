@@ -513,7 +513,7 @@ const onChatIdentifyUpdate = update => {
 }
 
 // Get actions to update messagemap / metamap when retention policy expunge happens
-const expungeToActions = (expunge: RPCChatTypes.ExpungeInfo) => {
+const expungeToActions = (expunge: RPCChatTypes.ExpungeInfo, state: TypedState) => {
   const actions = []
   const meta = !!expunge.conv && Constants.inboxUIItemToConversationMeta(expunge.conv)
   if (meta) {
@@ -523,6 +523,7 @@ const expungeToActions = (expunge: RPCChatTypes.ExpungeInfo) => {
   actions.push(
     Chat2Gen.createMessagesWereDeleted({
       conversationIDKey,
+      deletableMessageTypes: Constants.getDeletableByDeleteHistory(state),
       upToMessageID: expunge.expunge.upto,
     })
   )
@@ -596,7 +597,7 @@ const setupChatHandlers = () => {
         case RPCChatTypes.notifyChatChatActivityType.teamtype:
           return [Chat2Gen.createInboxRefresh({reason: 'teamTypeChanged'})]
         case RPCChatTypes.notifyChatChatActivityType.expunge:
-          return activity.expunge ? expungeToActions(activity.expunge) : null
+          return activity.expunge ? expungeToActions(activity.expunge, getState()) : null
         case RPCChatTypes.notifyChatChatActivityType.ephemeralPurge:
           return activity.ephemeralPurge ? ephemeralPurgeToActions(activity.ephemeralPurge) : null
         default:
@@ -2106,6 +2107,39 @@ function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMe
   })
 }
 
+const loadStaticConfig = (action: ConfigGen.BootstrapPayload, state: TypedState) => {
+  if (state.chat2.staticConfig) {
+    // don't need it
+    return null
+  }
+  return Saga.call(RPCChatTypes.localGetStaticConfigRpcPromise)
+}
+
+const loadStaticConfigSuccess = (res: ?RPCChatTypes.StaticConfig) => {
+  if (!res) {
+    // we already had it
+    return
+  }
+  if (!res.deletableByDeleteHistory) {
+    logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
+    return
+  }
+  const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce((res, type) => {
+    const ourTypes = Constants.serviceMessageTypeToMessageTypes[type]
+    if (ourTypes) {
+      res.push(...ourTypes)
+    }
+    return res
+  }, [])
+  return Saga.put(
+    Chat2Gen.createStaticConfigLoaded({
+      staticConfig: Constants.makeStaticConfig({
+        deletableByDeleteHistory: I.Set(deletableByDeleteHistory),
+      }),
+    })
+  )
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -2240,6 +2274,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     setConvExplodingModeFailure
   )
   yield Saga.safeTakeEvery(Chat2Gen.handleSeeingExplodingMessages, handleSeeingExplodingMessages)
+  yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, loadStaticConfig, loadStaticConfigSuccess)
 }
 
 export default chat2Saga

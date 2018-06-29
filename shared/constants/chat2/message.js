@@ -25,6 +25,42 @@ export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   }
 }
 
+export const serviceMessageTypeToMessageTypes: {
+  [key: RPCChatTypes.MessageType]: Array<Types.MessageType>,
+} = {
+  [RPCChatTypes.commonMessageType.text]: ['text'],
+  [RPCChatTypes.commonMessageType.attachment]: ['attachment'],
+  [RPCChatTypes.commonMessageType.metadata]: ['setDescription'],
+  [RPCChatTypes.commonMessageType.headline]: ['setChannelname'],
+  [RPCChatTypes.commonMessageType.attachmentuploaded]: ['attachment'],
+  [RPCChatTypes.commonMessageType.join]: ['systemJoined'],
+  [RPCChatTypes.commonMessageType.leave]: ['systemLeft'],
+  [RPCChatTypes.commonMessageType.system]: [
+    'systemAddedToTeam',
+    'systemGitPush',
+    'systemInviteAccepted',
+    'systemSimpleToComplex',
+    'systemText',
+  ],
+}
+export const allMessageTypes = I.Set([
+  'attachment',
+  'deleted',
+  'setChannelname',
+  'setDescription',
+  'systemAddedToTeam',
+  'systemGitPush',
+  'systemInviteAccepted',
+  'systemJoined',
+  'systemLeft',
+  'systemSimpleToComplex',
+  'systemText',
+  'text',
+  'placeholder',
+])
+export const getDeletableByDeleteHistory = (state: TypedState) =>
+  (!!state.chat2.staticConfig && state.chat2.staticConfig.deletableByDeleteHistory) || allMessageTypes
+
 const makeMessageMinimum = {
   author: '',
   conversationIDKey: noConversationIDKey,

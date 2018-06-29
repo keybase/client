@@ -181,7 +181,9 @@ export {
 } from './meta'
 
 export {
+  allMessageTypes,
   getClientPrev,
+  getDeletableByDeleteHistory,
   getMessageID,
   isSpecialMention,
   makeMessageAttachment,
@@ -192,6 +194,7 @@ export {
   messageExplodeDescriptions,
   pathToAttachmentType,
   rpcErrorToString,
+  serviceMessageTypeToMessageTypes,
   uiMessageEditToMessage,
   uiMessageToMessage,
   upgradeMessage,

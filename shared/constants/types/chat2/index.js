@@ -84,6 +84,7 @@ export type {
   MessageSystemSimpleToComplex,
   MessageSystemText,
   MessageText,
+  MessageType,
   Ordinal,
   OutboxID,
 } from './message'

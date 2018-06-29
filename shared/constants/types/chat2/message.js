@@ -244,6 +244,8 @@ export type _MessageSetChannelname = {
 }
 export type MessageSetChannelname = I.RecordOf<_MessageSetChannelname>
 
+// If you add a message type here, you'll probably want to check
+// `deletableByDeleteHistory` stuff in constants/chat2/message
 export type Message =
   | MessageAttachment
   | MessageDeleted

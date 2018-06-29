@@ -27,7 +27,6 @@ export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
 export const leaveConversation = 'chat2:leaveConversation'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
-export const loadStaticConfig = 'chat2:loadStaticConfig'
 export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
 export const messageAttachmentNativeSave = 'chat2:messageAttachmentNativeSave'
@@ -74,6 +73,7 @@ export const setPendingConversationExistingConversationIDKey = 'chat2:setPending
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setPendingMode = 'chat2:setPendingMode'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
+export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMoreToLoad = 'chat2:updateMoreToLoad'
@@ -133,7 +133,6 @@ type _LeaveConversationPayload = $ReadOnly<{|
   dontNavigateToInbox?: boolean,
 |}>
 type _LoadOlderMessagesDueToScrollPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
-type _LoadStaticConfigPayload = void
 type _MarkConversationsStalePayload = $ReadOnly<{|
   conversationIDKeys: Array<Types.ConversationIDKey>,
   updateType: RPCChatTypes.StaleUpdateType,
@@ -214,6 +213,7 @@ type _MessagesWereDeletedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   messageIDs?: Array<RPCChatTypes.MessageID>,
   upToMessageID?: RPCChatTypes.MessageID,
+  deletableMessageTypes?: I.Set<Types.MessageType>,
   ordinals?: Array<Types.Ordinal>,
 |}>
 type _MetaDeletePayload = $ReadOnly<{|
@@ -306,6 +306,7 @@ type _SetPendingModePayload = $ReadOnly<{|
   noneDestination?: 'inbox' | 'thread',
 |}>
 type _SetupChatHandlersPayload = void
+type _StaticConfigLoadedPayload = $ReadOnly<{|staticConfig: Types.StaticConfig|}>
 type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>
 type _UpdateMoreToLoadPayload = $ReadOnly<{|
@@ -343,10 +344,6 @@ export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({e
  */
 export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({error: false, payload, type: updateConvExplodingModes})
 /**
- * Load static configuration info from the service. Only ever needs to be called once.
- */
-export const createLoadStaticConfig = (payload: _LoadStaticConfigPayload) => ({error: false, payload, type: loadStaticConfig})
-/**
  * Set a lock on the exploding mode for a conversation.
  */
 export const createSetExplodingModeLock = (payload: _SetExplodingModeLockPayload) => ({error: false, payload, type: setExplodingModeLock})
@@ -366,6 +363,10 @@ export const createSetConvRetentionPolicy = (payload: _SetConvRetentionPolicyPay
  * Some things need to happen when the user interacts with the exploding messages feature. Trigger the handler that takes care of those things.
  */
 export const createHandleSeeingExplodingMessages = (payload: _HandleSeeingExplodingMessagesPayload) => ({error: false, payload, type: handleSeeingExplodingMessages})
+/**
+ * Static configuration info was loaded from the service.
+ */
+export const createStaticConfigLoaded = (payload: _StaticConfigLoadedPayload) => ({error: false, payload, type: staticConfigLoaded})
 /**
  * When the search changes we need to find any existing conversations to stash into the metaMap
  */
@@ -445,7 +446,6 @@ export type InboxRefreshPayload = $Call<typeof createInboxRefresh, _InboxRefresh
 export type JoinConversationPayload = $Call<typeof createJoinConversation, _JoinConversationPayload>
 export type LeaveConversationPayload = $Call<typeof createLeaveConversation, _LeaveConversationPayload>
 export type LoadOlderMessagesDueToScrollPayload = $Call<typeof createLoadOlderMessagesDueToScroll, _LoadOlderMessagesDueToScrollPayload>
-export type LoadStaticConfigPayload = $Call<typeof createLoadStaticConfig, _LoadStaticConfigPayload>
 export type MarkConversationsStalePayload = $Call<typeof createMarkConversationsStale, _MarkConversationsStalePayload>
 export type MarkInitiallyLoadedThreadAsReadPayload = $Call<typeof createMarkInitiallyLoadedThreadAsRead, _MarkInitiallyLoadedThreadAsReadPayload>
 export type MessageAttachmentNativeSavePayload = $Call<typeof createMessageAttachmentNativeSave, _MessageAttachmentNativeSavePayload>
@@ -492,6 +492,7 @@ export type SetPendingConversationExistingConversationIDKeyPayload = $Call<typeo
 export type SetPendingConversationUsersPayload = $Call<typeof createSetPendingConversationUsers, _SetPendingConversationUsersPayload>
 export type SetPendingModePayload = $Call<typeof createSetPendingMode, _SetPendingModePayload>
 export type SetupChatHandlersPayload = $Call<typeof createSetupChatHandlers, _SetupChatHandlersPayload>
+export type StaticConfigLoadedPayload = $Call<typeof createStaticConfigLoaded, _StaticConfigLoadedPayload>
 export type UpdateConvExplodingModesPayload = $Call<typeof createUpdateConvExplodingModes, _UpdateConvExplodingModesPayload>
 export type UpdateConvRetentionPolicyPayload = $Call<typeof createUpdateConvRetentionPolicy, _UpdateConvRetentionPolicyPayload>
 export type UpdateMoreToLoadPayload = $Call<typeof createUpdateMoreToLoad, _UpdateMoreToLoadPayload>
@@ -518,7 +519,6 @@ export type Actions =
   | JoinConversationPayload
   | LeaveConversationPayload
   | LoadOlderMessagesDueToScrollPayload
-  | LoadStaticConfigPayload
   | MarkConversationsStalePayload
   | MarkInitiallyLoadedThreadAsReadPayload
   | MessageAttachmentNativeSavePayload
@@ -565,6 +565,7 @@ export type Actions =
   | SetPendingConversationUsersPayload
   | SetPendingModePayload
   | SetupChatHandlersPayload
+  | StaticConfigLoadedPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
   | UpdateMoreToLoadPayload
