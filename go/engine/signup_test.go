@@ -300,3 +300,24 @@ func TestSignupShortPassphrase(t *testing.T) {
 		t.Fatalf("error type: %T, expected libkb.PassphraseError", err)
 	}
 }
+
+func TestSignupNonAsciiDeviceName(t *testing.T) {
+	tc := SetupEngineTest(t, "signup")
+	defer tc.Cleanup()
+
+	testValues := []struct {
+		deviceName string
+		err        error
+	}{
+		{"perfectly-reasonable", nil},
+		{"definitely🙃not🐉ascii", libkb.DeviceBadNameError{}},
+	}
+
+	for _, testVal := range testValues {
+		fu, _ := NewFakeUser("sup")
+		arg := MakeTestSignupEngineRunArg(fu)
+		arg.DeviceName = testVal.deviceName
+		_, err := CreateAndSignupFakeUserSafeWithArg(tc.G, fu, arg)
+		require.IsType(t, err, testVal.err)
+	}
+}

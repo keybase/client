@@ -6,6 +6,7 @@ import {connect, type TypedState} from '../util/container'
 import {styleSheetCreate, platformStyles} from '../styles'
 import {printRPCStats} from '../local-debug'
 import * as Stats from '../engine/stats'
+import {isIPhoneX} from '../constants/platform'
 
 type Props = {
   username: string,
@@ -174,12 +175,19 @@ const styles = styleSheetCreate({
       left: 0,
       width: 80,
     },
-    isMobile: {
-      height: 20,
-      left: 0,
-      top: 10,
-      width: 100,
-    },
+    isMobile: isIPhoneX
+      ? {
+          bottom: 0,
+          height: 20,
+          left: 20,
+          width: 100,
+        }
+      : {
+          height: 20,
+          left: 0,
+          top: 10,
+          width: 100,
+        },
   }),
   container: {
     alignItems: 'center',
