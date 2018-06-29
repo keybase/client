@@ -4,18 +4,16 @@
 package libkb
 
 import (
-	"sync"
-
-	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"sync"
 )
 
 type SecretRetriever interface {
-	RetrieveSecret() (LKSecFullSecret, error)
+	RetrieveSecret(m MetaContext) (LKSecFullSecret, error)
 }
 
 type SecretStorer interface {
-	StoreSecret(secret LKSecFullSecret) error
+	StoreSecret(m MetaContext, secret LKSecFullSecret) error
 }
 
 // SecretStore stores/retreives the keyring-resident secrets for a given user.
@@ -27,17 +25,10 @@ type SecretStore interface {
 // SecretStoreall stores/retreives the keyring-resider secrets for **all** users
 // on this system.
 type SecretStoreAll interface {
-	RetrieveSecret(username NormalizedUsername) (LKSecFullSecret, error)
-	StoreSecret(username NormalizedUsername, secret LKSecFullSecret) error
-	ClearSecret(username NormalizedUsername) error
-	GetUsersWithStoredSecrets() ([]string, error)
-}
-
-type SecretStoreContext interface {
-	GetAllUserNames() (NormalizedUsername, []NormalizedUsername, error)
-	GetStoredSecretServiceName() string
-	GetStoredSecretAccessGroup() string
-	GetLog() logger.Logger
+	RetrieveSecret(m MetaContext, username NormalizedUsername) (LKSecFullSecret, error)
+	StoreSecret(m MetaContext, username NormalizedUsername, secret LKSecFullSecret) error
+	ClearSecret(m MetaContext, username NormalizedUsername) error
+	GetUsersWithStoredSecrets(m MetaContext) ([]string, error)
 }
 
 // SecretStoreImp is a specialization of a SecretStoreAll for just one username.
@@ -51,14 +42,14 @@ type SecretStoreImp struct {
 
 var _ SecretStore = (*SecretStoreImp)(nil)
 
-func (s *SecretStoreImp) RetrieveSecret() (LKSecFullSecret, error) {
+func (s *SecretStoreImp) RetrieveSecret(m MetaContext) (LKSecFullSecret, error) {
 	s.Lock()
 	defer s.Unlock()
 
 	if !s.secret.IsNil() {
 		return s.secret, nil
 	}
-	sec, err := s.store.RetrieveSecret(s.username)
+	sec, err := s.store.RetrieveSecret(m, s.username)
 	if err != nil {
 		return sec, err
 	}
@@ -66,13 +57,13 @@ func (s *SecretStoreImp) RetrieveSecret() (LKSecFullSecret, error) {
 	return sec, nil
 }
 
-func (s *SecretStoreImp) StoreSecret(secret LKSecFullSecret) error {
+func (s *SecretStoreImp) StoreSecret(m MetaContext, secret LKSecFullSecret) error {
 	s.Lock()
 	defer s.Unlock()
 
 	// clear out any in-memory secret in this instance
 	s.secret = LKSecFullSecret{}
-	return s.store.StoreSecret(s.username, secret)
+	return s.store.StoreSecret(m, s.username, secret)
 }
 
 // NewSecretStore returns a SecretStore interface that is only used for
@@ -109,7 +100,7 @@ func GetConfiguredAccounts(m MetaContext, s SecretStoreAll) ([]keybase1.Configur
 	}
 	var storedSecretUsernames []string
 	if s != nil {
-		storedSecretUsernames, err = s.GetUsersWithStoredSecrets()
+		storedSecretUsernames, err = s.GetUsersWithStoredSecrets(m)
 	}
 	if err != nil {
 		return nil, err
@@ -132,12 +123,12 @@ func GetConfiguredAccounts(m MetaContext, s SecretStoreAll) ([]keybase1.Configur
 	return configuredAccounts, nil
 }
 
-func ClearStoredSecret(g *GlobalContext, username NormalizedUsername) error {
-	ss := g.SecretStore()
+func ClearStoredSecret(m MetaContext, username NormalizedUsername) error {
+	ss := m.G().SecretStore()
 	if ss == nil {
 		return nil
 	}
-	return ss.ClearSecret(username)
+	return ss.ClearSecret(m, username)
 }
 
 // SecretStoreLocked protects a SecretStoreAll with a mutex. It wraps two different
@@ -146,30 +137,28 @@ func ClearStoredSecret(g *GlobalContext, username NormalizedUsername) error {
 // secret store. It's a write-through cache, so on RetrieveSecret, the memory store
 // will be checked first, and then the disk store.
 type SecretStoreLocked struct {
-	Contextified
 	sync.Mutex
 	mem  SecretStoreAll
 	disk SecretStoreAll
 }
 
-func NewSecretStoreLocked(g *GlobalContext) *SecretStoreLocked {
+func NewSecretStoreLocked(m MetaContext) *SecretStoreLocked {
 	var disk SecretStoreAll
 
 	mem := NewSecretStoreMem()
 
-	if g.Env.RememberPassphrase() {
+	if m.G().Env.RememberPassphrase() {
 		// use os-specific secret store
-		g.Log.Debug("NewSecretStoreLocked: using os-specific SecretStore")
-		disk = NewSecretStoreAll(g)
+		m.CDebugf("NewSecretStoreLocked: using os-specific SecretStore")
+		disk = NewSecretStoreAll(m)
 	} else {
 		// config or command line flag said to use in-memory secret store
-		g.Log.Debug("NewSecretStoreLocked: using memory-only SecretStore")
+		m.CDebugf("NewSecretStoreLocked: using memory-only SecretStore")
 	}
 
 	return &SecretStoreLocked{
-		Contextified: NewContextified(g),
-		mem:          mem,
-		disk:         disk,
+		mem:  mem,
+		disk: disk,
 	}
 }
 
@@ -177,75 +166,75 @@ func (s *SecretStoreLocked) isNil() bool {
 	return s.mem == nil && s.disk == nil
 }
 
-func (s *SecretStoreLocked) RetrieveSecret(username NormalizedUsername) (LKSecFullSecret, error) {
+func (s *SecretStoreLocked) RetrieveSecret(m MetaContext, username NormalizedUsername) (LKSecFullSecret, error) {
 	if s == nil || s.isNil() {
 		return LKSecFullSecret{}, nil
 	}
 	s.Lock()
 	defer s.Unlock()
 
-	res, err := s.mem.RetrieveSecret(username)
+	res, err := s.mem.RetrieveSecret(m, username)
 	if !res.IsNil() && err == nil {
 		return res, nil
 	}
 	if err != nil {
-		s.G().Log.Debug("SecretStoreLocked#RetrieveSecret: memory fetch error: %s", err.Error())
+		m.CDebugf("SecretStoreLocked#RetrieveSecret: memory fetch error: %s", err.Error())
 	}
 	if s.disk == nil {
 		return res, err
 	}
 
-	res, err = s.disk.RetrieveSecret(username)
+	res, err = s.disk.RetrieveSecret(m, username)
 	if err != nil {
 		return res, err
 	}
-	tmp := s.mem.StoreSecret(username, res)
+	tmp := s.mem.StoreSecret(m, username, res)
 	if tmp != nil {
-		s.G().Log.Debug("SecretStoreLocked#RetrieveSecret: failed to store secret in memory: %s", err.Error())
+		m.CDebugf("SecretStoreLocked#RetrieveSecret: failed to store secret in memory: %s", err.Error())
 	}
 	return res, err
 }
 
-func (s *SecretStoreLocked) StoreSecret(username NormalizedUsername, secret LKSecFullSecret) error {
+func (s *SecretStoreLocked) StoreSecret(m MetaContext, username NormalizedUsername, secret LKSecFullSecret) error {
 	if s == nil || s.isNil() {
 		return nil
 	}
 	s.Lock()
 	defer s.Unlock()
-	err := s.mem.StoreSecret(username, secret)
+	err := s.mem.StoreSecret(m, username, secret)
 	if err != nil {
-		s.G().Log.Debug("SecretStoreLocked#StoreSecret: failed to store secret in memory: %s", err.Error())
+		m.CDebugf("SecretStoreLocked#StoreSecret: failed to store secret in memory: %s", err.Error())
 	}
 	if s.disk == nil {
 		return err
 	}
-	return s.disk.StoreSecret(username, secret)
+	return s.disk.StoreSecret(m, username, secret)
 }
 
-func (s *SecretStoreLocked) ClearSecret(username NormalizedUsername) error {
+func (s *SecretStoreLocked) ClearSecret(m MetaContext, username NormalizedUsername) error {
 	if s == nil || s.isNil() {
 		return nil
 	}
 	s.Lock()
 	defer s.Unlock()
-	err := s.mem.ClearSecret(username)
+	err := s.mem.ClearSecret(m, username)
 	if err != nil {
-		s.G().Log.Debug("SecretStoreLocked#ClearSecret: failed to clear memory: %s", err.Error())
+		m.CDebugf("SecretStoreLocked#ClearSecret: failed to clear memory: %s", err.Error())
 	}
 	if s.disk == nil {
 		return err
 	}
-	return s.disk.ClearSecret(username)
+	return s.disk.ClearSecret(m, username)
 }
 
-func (s *SecretStoreLocked) GetUsersWithStoredSecrets() ([]string, error) {
+func (s *SecretStoreLocked) GetUsersWithStoredSecrets(m MetaContext) ([]string, error) {
 	if s == nil || s.isNil() {
 		return nil, nil
 	}
 	s.Lock()
 	defer s.Unlock()
 	if s.disk == nil {
-		return s.mem.GetUsersWithStoredSecrets()
+		return s.mem.GetUsersWithStoredSecrets(m)
 	}
-	return s.disk.GetUsersWithStoredSecrets()
+	return s.disk.GetUsersWithStoredSecrets(m)
 }

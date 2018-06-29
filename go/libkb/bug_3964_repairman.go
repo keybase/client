@@ -49,14 +49,14 @@ func (b *bug3964Repairman) loadLKSecServerDetails(m MetaContext, lksec *LKSec) (
 	return ret, err
 }
 
-func (b *bug3964Repairman) updateSecretStore(nun NormalizedUsername, lksec *LKSec) error {
+func (b *bug3964Repairman) updateSecretStore(m MetaContext, nun NormalizedUsername, lksec *LKSec) error {
 	fs := lksec.FullSecret()
 	ss := b.G().SecretStore()
 	if fs.IsNil() {
-		b.G().Log.Warning("Got unexpected nil full secret")
-		return ss.ClearSecret(nun)
+		m.CWarningf("Got unexpected nil full secret")
+		return ss.ClearSecret(m, nun)
 	}
-	return ss.StoreSecret(nun, fs)
+	return ss.StoreSecret(m, nun, fs)
 }
 
 func (b *bug3964Repairman) saveRepairmanVisit(nun NormalizedUsername) (err error) {
@@ -216,7 +216,7 @@ func (b *bug3964Repairman) Run(m MetaContext) (err error) {
 		return err
 	}
 
-	if ussErr := b.updateSecretStore(nun, lksec); ussErr != nil {
+	if ussErr := b.updateSecretStore(m, nun, lksec); ussErr != nil {
 		m.G().Log.CWarningf(m.Ctx(), "Error in secret store manipulation: %s", ussErr)
 	} else {
 		b.saveRepairmanVisit(nun)

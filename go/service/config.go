@@ -254,12 +254,13 @@ func (h ConfigHandler) GetRememberPassphrase(ctx context.Context, sessionID int)
 }
 
 func (h ConfigHandler) SetRememberPassphrase(ctx context.Context, arg keybase1.SetRememberPassphraseArg) error {
+	m := libkb.NewMetaContext(ctx, h.G())
 	remember, err := h.GetRememberPassphrase(ctx, arg.SessionID)
 	if err != nil {
 		return err
 	}
 	if remember == arg.Remember {
-		h.G().Log.Debug("SetRememberPassphrase: no change necessary (remember = %v)", remember)
+		m.CDebugf("SetRememberPassphrase: no change necessary (remember = %v)", remember)
 		return nil
 	}
 
@@ -271,12 +272,12 @@ func (h ConfigHandler) SetRememberPassphrase(ctx context.Context, arg keybase1.S
 	h.G().ConfigReload()
 
 	// replace the secret store
-	if err := h.G().ReplaceSecretStore(); err != nil {
-		h.G().Log.Debug("error replacing secret store for SetRememberPassphrase(%v): %s", arg.Remember, err)
+	if err := h.G().ReplaceSecretStore(ctx); err != nil {
+		m.CDebugf("error replacing secret store for SetRememberPassphrase(%v): %s", arg.Remember, err)
 		return err
 	}
 
-	h.G().Log.Debug("SetRememberPassphrase(%v) success", arg.Remember)
+	m.CDebugf("SetRememberPassphrase(%v) success", arg.Remember)
 
 	return nil
 }
