@@ -2,7 +2,8 @@
   "prelude": ["import * as Types from '../constants/types/fs'"],
   "actions": {
     "folderListLoad": {
-      "path": "Types.Path"
+      "path": "Types.Path",
+      "refreshTag?": "Types.RefreshTag"
     },
     "folderListLoaded": {
       "path": "Types.Path",
@@ -20,7 +21,8 @@
       "meta": "Types.PathItem"
     },
     "mimeTypeLoad": {
-      "path": "Types.Path"
+      "path": "Types.Path",
+      "refreshTag?": "Types.RefreshTag"
     },
     "mimeTypeLoaded": {
       "path": "Types.Path",

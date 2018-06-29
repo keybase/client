@@ -96,7 +96,10 @@ type _FilePreviewLoadedPayload = $ReadOnly<{|
   path: Types.Path,
   meta: Types.PathItem,
 |}>
-type _FolderListLoadPayload = $ReadOnly<{|path: Types.Path|}>
+type _FolderListLoadPayload = $ReadOnly<{|
+  path: Types.Path,
+  refreshTag?: Types.RefreshTag,
+|}>
 type _FolderListLoadedPayload = $ReadOnly<{|
   path: Types.Path,
   pathItems: I.Map<Types.Path, Types.PathItem>,
@@ -123,7 +126,10 @@ type _LocalHTTPServerInfoPayload = $ReadOnly<{|
   address: string,
   token: string,
 |}>
-type _MimeTypeLoadPayload = $ReadOnly<{|path: Types.Path|}>
+type _MimeTypeLoadPayload = $ReadOnly<{|
+  path: Types.Path,
+  refreshTag?: Types.RefreshTag,
+|}>
 type _MimeTypeLoadedPayload = $ReadOnly<{|
   path: Types.Path,
   mimeType: string,

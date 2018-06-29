@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as React from 'react'
-import {compose, connect, setDisplayName, type Dispatch, type TypedState} from '../util/container'
+import {compose, connect, type Dispatch, type TypedState} from '../util/container'
 import * as FsGen from '../actions/fs-gen'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
@@ -10,16 +10,19 @@ const mapStateToProps = (state: TypedState) => ({
   syncingPaths: state.fs.uploads.syncingPaths,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
-  loadFavorites: () => dispatch(FsGen.createFavoritesLoad()),
-})
+const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => {
+  const path = routeProps.get('path', Constants.defaultPath)
+  return {
+    loadFolderList: () => dispatch(FsGen.createFolderListLoad({path, refreshTag: 'main'})),
+    loadFavorites: () => dispatch(FsGen.createFavoritesLoad()),
+  }
+}
 
-const mergeProps = ({syncingPaths}, {_loadFolderList, loadFavorites}, {routeProps, routePath}) => {
+const mergeProps = ({syncingPaths}, {loadFolderList, loadFavorites}, {routeProps, routePath}) => {
   const path = routeProps.get('path', Constants.defaultPath)
   return {
     syncingPaths,
-    loadFolderList: () => _loadFolderList(path),
+    loadFolderList,
     loadFavorites,
     path,
     routePath,
@@ -43,12 +46,9 @@ const FilesLoadingHoc = (ComposedComponent: React.ComponentType<any>) =>
     componentDidUpdate(prevProps) {
       // This gets called on route changes too, e.g. when user clicks the
       // action menu. So only load folder list when path changes.
-      const pathLevel = Types.getPathLevel(this.props.path)
-      pathLevel === 2 && this.props.loadFavorites()
-
-      const childrenMayHaveChanged = this.props.syncingPaths.has(this.props.path)
-      if (this.props.path !== prevProps.path || childrenMayHaveChanged) {
+      if (this.props.path !== prevProps.path) {
         this.props.loadFolderList()
+        Types.getPathLevel(this.props.path) === 2 && this.props.loadFavorites()
       }
     }
     render() {
@@ -56,8 +56,4 @@ const FilesLoadingHoc = (ComposedComponent: React.ComponentType<any>) =>
     }
   }
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('FilesLoadingHoc'),
-  FilesLoadingHoc
-)
+export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), FilesLoadingHoc)
