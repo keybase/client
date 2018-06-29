@@ -113,22 +113,54 @@ func (e PaymentStatus) String() string {
 	return ""
 }
 
+type ParticipantType int
+
+const (
+	ParticipantType_NONE    ParticipantType = 0
+	ParticipantType_KEYBASE ParticipantType = 1
+	ParticipantType_STELLAR ParticipantType = 2
+	ParticipantType_SBS     ParticipantType = 3
+)
+
+func (o ParticipantType) DeepCopy() ParticipantType { return o }
+
+var ParticipantTypeMap = map[string]ParticipantType{
+	"NONE":    0,
+	"KEYBASE": 1,
+	"STELLAR": 2,
+	"SBS":     3,
+}
+
+var ParticipantTypeRevMap = map[ParticipantType]string{
+	0: "NONE",
+	1: "KEYBASE",
+	2: "STELLAR",
+	3: "SBS",
+}
+
+func (e ParticipantType) String() string {
+	if v, ok := ParticipantTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type PaymentLocal struct {
-	Id                TransactionID `codec:"id" json:"id"`
-	Time              TimeMs        `codec:"time" json:"time"`
-	StatusSimplified  PaymentStatus `codec:"statusSimplified" json:"statusSimplified"`
-	StatusDescription string        `codec:"statusDescription" json:"statusDescription"`
-	StatusDetail      string        `codec:"statusDetail" json:"statusDetail"`
-	AmountDescription string        `codec:"amountDescription" json:"amountDescription"`
-	Delta             BalanceDelta  `codec:"delta" json:"delta"`
-	Worth             string        `codec:"worth" json:"worth"`
-	WorthCurrency     string        `codec:"worthCurrency" json:"worthCurrency"`
-	Source            string        `codec:"source" json:"source"`
-	SourceType        string        `codec:"sourceType" json:"sourceType"`
-	Target            string        `codec:"target" json:"target"`
-	TargetType        string        `codec:"targetType" json:"targetType"`
-	Note              string        `codec:"note" json:"note"`
-	NoteErr           string        `codec:"noteErr" json:"noteErr"`
+	Id                TransactionID   `codec:"id" json:"id"`
+	Time              TimeMs          `codec:"time" json:"time"`
+	StatusSimplified  PaymentStatus   `codec:"statusSimplified" json:"statusSimplified"`
+	StatusDescription string          `codec:"statusDescription" json:"statusDescription"`
+	StatusDetail      string          `codec:"statusDetail" json:"statusDetail"`
+	AmountDescription string          `codec:"amountDescription" json:"amountDescription"`
+	Delta             BalanceDelta    `codec:"delta" json:"delta"`
+	Worth             string          `codec:"worth" json:"worth"`
+	WorthCurrency     string          `codec:"worthCurrency" json:"worthCurrency"`
+	Source            string          `codec:"source" json:"source"`
+	SourceType        ParticipantType `codec:"sourceType" json:"sourceType"`
+	Target            string          `codec:"target" json:"target"`
+	TargetType        ParticipantType `codec:"targetType" json:"targetType"`
+	Note              string          `codec:"note" json:"note"`
+	NoteErr           string          `codec:"noteErr" json:"noteErr"`
 }
 
 func (o PaymentLocal) DeepCopy() PaymentLocal {
@@ -143,9 +175,9 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 		Worth:             o.Worth,
 		WorthCurrency:     o.WorthCurrency,
 		Source:            o.Source,
-		SourceType:        o.SourceType,
+		SourceType:        o.SourceType.DeepCopy(),
 		Target:            o.Target,
-		TargetType:        o.TargetType,
+		TargetType:        o.TargetType.DeepCopy(),
 		Note:              o.Note,
 		NoteErr:           o.NoteErr,
 	}
@@ -204,23 +236,24 @@ func (o PaymentsPageLocal) DeepCopy() PaymentsPageLocal {
 }
 
 type PaymentDetailsLocal struct {
-	Id                TransactionID `codec:"id" json:"id"`
-	Time              TimeMs        `codec:"time" json:"time"`
-	StatusSimplified  PaymentStatus `codec:"statusSimplified" json:"statusSimplified"`
-	StatusDescription string        `codec:"statusDescription" json:"statusDescription"`
-	StatusDetail      string        `codec:"statusDetail" json:"statusDetail"`
-	AmountDescription string        `codec:"amountDescription" json:"amountDescription"`
-	Delta             BalanceDelta  `codec:"delta" json:"delta"`
-	Worth             string        `codec:"worth" json:"worth"`
-	WorthCurrency     string        `codec:"worthCurrency" json:"worthCurrency"`
-	Source            string        `codec:"source" json:"source"`
-	SourceType        string        `codec:"sourceType" json:"sourceType"`
-	Target            string        `codec:"target" json:"target"`
-	TargetType        string        `codec:"targetType" json:"targetType"`
-	Note              string        `codec:"note" json:"note"`
-	NoteErr           string        `codec:"noteErr" json:"noteErr"`
-	PublicNote        string        `codec:"publicNote" json:"publicNote"`
-	PublicNoteType    string        `codec:"publicNoteType" json:"publicNoteType"`
+	Id                TransactionID   `codec:"id" json:"id"`
+	Time              TimeMs          `codec:"time" json:"time"`
+	StatusSimplified  PaymentStatus   `codec:"statusSimplified" json:"statusSimplified"`
+	StatusDescription string          `codec:"statusDescription" json:"statusDescription"`
+	StatusDetail      string          `codec:"statusDetail" json:"statusDetail"`
+	AmountDescription string          `codec:"amountDescription" json:"amountDescription"`
+	AmountValue       string          `codec:"amountValue" json:"amountValue"`
+	Delta             BalanceDelta    `codec:"delta" json:"delta"`
+	Worth             string          `codec:"worth" json:"worth"`
+	WorthCurrency     string          `codec:"worthCurrency" json:"worthCurrency"`
+	Source            string          `codec:"source" json:"source"`
+	SourceType        ParticipantType `codec:"sourceType" json:"sourceType"`
+	Target            string          `codec:"target" json:"target"`
+	TargetType        ParticipantType `codec:"targetType" json:"targetType"`
+	Note              string          `codec:"note" json:"note"`
+	NoteErr           string          `codec:"noteErr" json:"noteErr"`
+	PublicNote        string          `codec:"publicNote" json:"publicNote"`
+	PublicNoteType    string          `codec:"publicNoteType" json:"publicNoteType"`
 }
 
 func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
@@ -231,13 +264,14 @@ func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 		StatusDescription: o.StatusDescription,
 		StatusDetail:      o.StatusDetail,
 		AmountDescription: o.AmountDescription,
+		AmountValue:       o.AmountValue,
 		Delta:             o.Delta.DeepCopy(),
 		Worth:             o.Worth,
 		WorthCurrency:     o.WorthCurrency,
 		Source:            o.Source,
-		SourceType:        o.SourceType,
+		SourceType:        o.SourceType.DeepCopy(),
 		Target:            o.Target,
-		TargetType:        o.TargetType,
+		TargetType:        o.TargetType.DeepCopy(),
 		Note:              o.Note,
 		NoteErr:           o.NoteErr,
 		PublicNote:        o.PublicNote,
