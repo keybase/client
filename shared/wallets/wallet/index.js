@@ -44,16 +44,9 @@ export default (props: Props) => {
   )
 
   return (
-    <Box2
-      direction="vertical"
-      style={{flexGrow: 1}}
-      fullHeight={true}
-      gap="small"
-      gapStart={true}
-      gapEnd={true}
-    >
+    <Box2 direction="vertical" style={{flexGrow: 1}} fullHeight={true} gap="small">
+      <Header />
       <ScrollView>
-        <Header />
         <SectionList
           sections={props.sections}
           renderItem={renderItem}
