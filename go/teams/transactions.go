@@ -534,29 +534,29 @@ func (tx *AddMemberTx) AddMemberBySBS(ctx context.Context, invitee keybase1.Team
 	return nil
 }
 
-func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
+func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 	team := tx.team
 	g := team.G()
 
-	defer g.CTrace(ctx, "AddMemberTx.Post", func() error { return err })()
+	defer g.CTrace(mctx.Ctx(), "AddMemberTx.Post", func() error { return err })()
 	if len(tx.payloads) == 0 {
 		return errors.New("there are no signatures to post")
 	}
 
-	g.Log.CDebugf(ctx, "AddMemberTx: Attempting to post %d signatures", len(tx.payloads))
+	g.Log.CDebugf(mctx.Ctx(), "AddMemberTx: Attempting to post %d signatures", len(tx.payloads))
 
 	// Initialize key manager.
-	if _, err := team.SharedSecret(ctx); err != nil {
+	if _, err := team.SharedSecret(mctx.Ctx()); err != nil {
 		return err
 	}
 
 	// Make sure we know recent merkle root.
-	if err := team.ForceMerkleRootUpdate(ctx); err != nil {
+	if err := team.ForceMerkleRootUpdate(mctx.Ctx()); err != nil {
 		return err
 	}
 
 	// Get admin permission, we will use the same one for all sigs.
-	admin, err := team.getAdminPermission(ctx, true)
+	admin, err := team.getAdminPermission(mctx.Ctx(), true)
 	if err != nil {
 		return err
 	}
@@ -577,7 +577,7 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		case *keybase1.TeamChangeReq:
 			// We need memberSet for this particular payload, but also keep a
 			// memberSet for entire transaction to generate boxes afterwards.
-			payloadMemberSet, err := newMemberSetChange(ctx, g, *payload)
+			payloadMemberSet, err := newMemberSetChange(mctx.Ctx(), g, *payload)
 			if err != nil {
 				return err
 			}
@@ -609,20 +609,20 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 	var merkleRoot *libkb.MerkleRoot
 	var lease *libkb.Lease
 
-	downgrades, err := team.getDowngradedUsers(ctx, memSet)
+	downgrades, err := team.getDowngradedUsers(mctx.Ctx(), memSet)
 	if err != nil {
 		return err
 	}
 	if len(downgrades) != 0 {
-		lease, merkleRoot, err = libkb.RequestDowngradeLeaseByTeam(ctx, g, team.ID, downgrades)
+		lease, merkleRoot, err = libkb.RequestDowngradeLeaseByTeam(mctx.Ctx(), g, team.ID, downgrades)
 		if err != nil {
 			return err
 		}
 		// Always cancel lease so we don't leave any hanging.
 		defer func() {
-			err := libkb.CancelDowngradeLease(ctx, g, lease.LeaseID)
+			err := libkb.CancelDowngradeLease(mctx.Ctx(), g, lease.LeaseID)
 			if err != nil {
-				g.Log.CWarningf(ctx, "Failed to cancel downgrade lease: %s", err.Error())
+				g.Log.CWarningf(mctx.Ctx(), "Failed to cancel downgrade lease: %s", err.Error())
 			}
 		}()
 	}
@@ -633,7 +633,7 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 	} else {
 		skipKeyRotation = team.CanSkipKeyRotation()
 	}
-	secretBoxes, implicitAdminBoxes, perTeamKeySection, teamEKPayload, err := team.recipientBoxes(ctx, memSet, skipKeyRotation)
+	secretBoxes, implicitAdminBoxes, perTeamKeySection, teamEKPayload, err := team.recipientBoxes(mctx.Ctx(), memSet, skipKeyRotation)
 	if err != nil {
 		return err
 	}
@@ -659,7 +659,7 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		ekLib := g.GetEKLib()
 		if ekLib != nil && len(memSet.recipients) > 0 {
 			uids := memSet.recipientUids()
-			teamEKBoxes, err = ekLib.BoxLatestTeamEK(ctx, team.ID, uids)
+			teamEKBoxes, err = ekLib.BoxLatestTeamEK(mctx.Ctx(), team.ID, uids)
 			if err != nil {
 				return err
 			}
@@ -682,13 +682,13 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 			return fmt.Errorf("Unhandled case in AddMemberTx.Post, unknown type: %T", tx.payloads[i])
 		}
 
-		sigMultiItem, linkID, err := team.sigTeamItemRaw(ctx, section, linkType,
+		sigMultiItem, linkID, err := team.sigTeamItemRaw(mctx.Ctx(), section, linkType,
 			nextSeqno, latestLinkID, merkleRoot)
 		if err != nil {
 			return err
 		}
 
-		g.Log.CDebugf(ctx, "AddMemberTx: Prepared signature %d: Type: %v SeqNo: %d Hash: %q",
+		g.Log.CDebugf(mctx.Ctx(), "AddMemberTx: Prepared signature %d: Type: %v SeqNo: %d Hash: %q",
 			i, linkType, nextSeqno, linkID)
 
 		nextSeqno++
@@ -696,8 +696,8 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		readySigs = append(readySigs, sigMultiItem)
 	}
 
-	if err := team.precheckLinksToPost(ctx, readySigs); err != nil {
-		g.Log.CDebugf(ctx, "Precheck failed: %v", err)
+	if err := team.precheckLinksToPost(mctx.Ctx(), readySigs); err != nil {
+		g.Log.CDebugf(mctx.Ctx(), "Precheck failed: %v", err)
 		return err
 	}
 
@@ -710,12 +710,12 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 	}
 	payload := team.sigPayload(readySigs, payloadArgs)
 
-	if err := team.postMulti(payload); err != nil {
+	if err := team.postMulti(mctx, payload); err != nil {
 		return err
 	}
 
-	team.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true})
+	team.notify(mctx.Ctx(), keybase1.TeamChangeSet{MembershipChanged: true})
 
-	team.storeTeamEKPayload(ctx, teamEKPayload)
+	team.storeTeamEKPayload(mctx.Ctx(), teamEKPayload)
 	return nil
 }

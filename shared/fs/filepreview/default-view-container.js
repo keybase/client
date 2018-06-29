@@ -6,7 +6,7 @@ import * as Constants from '../../constants/fs'
 import DefaultView from './default-view'
 
 const mapStateToProps = (state: TypedState, {path}) => {
-  const pathItem = state.fs.pathItems.get(path) || Constants.makeUnknownPathItem()
+  const pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
   const _username = state.config.username || undefined
   return {
     _username,

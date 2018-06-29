@@ -14,7 +14,7 @@ import (
 
 type cmdWalletBalances struct {
 	libkb.Contextified
-	address string
+	accountID string
 }
 
 func newCmdWalletBalances(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -34,16 +34,19 @@ func newCmdWalletBalances(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 
 func (c *cmdWalletBalances) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) > 1 {
-		return errors.New("one wallet address required, multiple found")
+		return errors.New("one Stellar address required, multiple found")
 	} else if len(ctx.Args()) == 1 {
-		c.address = ctx.Args()[0]
+		c.accountID = ctx.Args()[0]
 	}
 
 	return nil
 }
 
 func (c *cmdWalletBalances) runForAccountID(cli stellar1.LocalClient) error {
-	accountID := stellar1.AccountID(c.address)
+	accountID, err := libkb.ParseStellarAccountID(c.accountID)
+	if err != nil {
+		return err
+	}
 
 	dui := c.G().UI.GetDumbOutputUI()
 	balances, err := cli.BalancesLocal(context.Background(), accountID)
@@ -124,7 +127,7 @@ func (c *cmdWalletBalances) Run() error {
 		return err
 	}
 
-	if c.address == "" {
+	if c.accountID == "" {
 		return c.runForUser(cli)
 	}
 	return c.runForAccountID(cli)

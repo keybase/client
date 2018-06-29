@@ -65,6 +65,18 @@ func ctimeIsStale(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool 
 	return currentMerkleRoot.Ctime()-ctime.UnixSeconds() >= KeyLifetimeSecs
 }
 
+// If a teamEK is almost expired we allow it to be created in the background so
+// content generation is not blocked by key generation. We *cannot* create a
+// teamEK in the background if the key is expired however since the current
+// teamEK's lifetime (and supporting device/user EKs) is less than the maximum
+// lifetime of ephemeral content. This can result in content loss once the keys
+// are deleted.
+func backgroundKeygenPossible(ctime time.Time, currentMerkleRoot libkb.MerkleRoot) bool {
+	diff := keybase1.TimeFromSeconds(currentMerkleRoot.Ctime()).Time().Sub(ctime)
+	keygenInterval := time.Second * time.Duration(KeyGenLifetimeSecs)
+	return diff >= (keygenInterval-time.Hour) && diff < keygenInterval
+}
+
 func keygenNeeded(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool {
 	return currentMerkleRoot.Ctime()-ctime.UnixSeconds() >= KeyGenLifetimeSecs
 }

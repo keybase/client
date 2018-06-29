@@ -1,14 +1,6 @@
 // @flow
 import React from 'react'
-import {
-  Box,
-  Button,
-  Checkbox,
-  HeaderOrPopup,
-  Input,
-  Text,
-  ScrollView,
-} from '../../common-adapters/index'
+import {Box, Button, Checkbox, HeaderOrPopup, Input, Text, ScrollView} from '../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 import {validTeamnamePart} from '../../constants/teamname'
 
@@ -59,11 +51,11 @@ class Contents extends React.Component<Props> {
               backgroundColor: globalColors.blue,
             }}
           >
-            <Text type="BodySemibold" backgroundMode="Announcements" style={{textAlign: 'center'}}>
+            <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{textAlign: 'center'}}>
               {this._headerText()}
               {this.props.isSubteam && (
                 <Text
-                  type="BodyPrimaryLink"
+                  type="BodySmallSemiboldPrimaryLink"
                   style={{...globalStyles.fontSemibold}}
                   backgroundMode="Announcements"
                   onClickURL="https://keybase.io/docs/teams/design"
@@ -84,7 +76,7 @@ class Contents extends React.Component<Props> {
             >
               <Text
                 style={{textAlign: 'center', width: '100%'}}
-                type="BodySemibold"
+                type="BodySmallSemibold"
                 backgroundMode="HighRisk"
               >
                 {errorText}

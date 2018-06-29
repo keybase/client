@@ -68,7 +68,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.favoritesLoaded:
       const toMerge = action.payload.folders.mapEntries(([path, item]) => {
         // We ForceType because Flow keeps thinking this is a _PathItem not a FolderPathItem.
-        const original: $ForceType = state.pathItems.get(path) || Constants.makeFolder({name: item.name})
+        const original: $ForceType = state.pathItems.get(path, Constants.makeFolder({name: item.name}))
         // This cannot happen, but it's needed to make Flow happy.
         if (original.type !== 'folder') return [path, original]
 
@@ -153,7 +153,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       )
     case FsGen.newFolderRow:
       const {parentPath} = action.payload
-      const parentPathItem = state.pathItems.get(parentPath, Constants.makeUnknownPathItem())
+      const parentPathItem = state.pathItems.get(parentPath, Constants.unknownPathItem)
       if (parentPathItem.type !== 'folder') {
         console.warn(`bad parentPath: ${parentPathItem.type}`)
         return state
@@ -201,7 +201,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.refreshLocalHTTPServerInfo:
     case FsGen.shareNative:
     case FsGen.saveMedia:
-    case FsGen.fileActionPopup:
     case FsGen.openFinderPopup:
     case FsGen.mimeTypeLoad:
     case FsGen.openPathItem:
