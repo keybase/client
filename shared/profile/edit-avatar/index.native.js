@@ -15,6 +15,9 @@ class EditAvatar extends React.Component<Props> {
   _y: number = 0
 
   _onSave = () => {
+    if (!this.props.image) {
+      throw new Error('Missing image when saving avatar')
+    }
     const filename = isIOS ? this.props.image.uri.replace('file://', '') : this.props.image.path
     // Cropping is temporarily deactivated on Andoird.
     if (isIOS) {
@@ -27,8 +30,8 @@ class EditAvatar extends React.Component<Props> {
   _getCropCoordinates = () => {
     const x = this._x
     const y = this._y
-    const rH = this._h !== 0 ? this.props.image.height / this._h : 1
-    const rW = this._w !== 0 ? this.props.image.width / this._w : 1
+    const rH = this._h !== 0 && this.props.image ? this.props.image.height / this._h : 1
+    const rW = this._w !== 0 && this.props.image ? this.props.image.width / this._w : 1
     const x0 = rW * x
     const y0 = rH * y
     return {
@@ -59,8 +62,8 @@ class EditAvatar extends React.Component<Props> {
             <ZoomableBox
               bounces={false}
               contentContainerStyle={{
-                height: this.props.image.height,
-                width: this.props.image.width,
+                height: this.props.image ? this.props.image.height : AVATAR_SIZE,
+                width: this.props.image ? this.props.image.width : AVATAR_SIZE,
               }}
               // Temporarily deactive zooming on Android.
               maxZoom={isIOS ? 10 : 1}
@@ -71,10 +74,10 @@ class EditAvatar extends React.Component<Props> {
             >
               <NativeImage
                 resizeMode="contain"
-                source={{uri: `data:image/jpeg;base64,${this.props.image.data}`}}
+                source={{uri: `data:image/jpeg;base64,${this.props.image ? this.props.image.data : ''}`}}
                 style={{
-                  height: isIOS ? this.props.image.height : AVATAR_SIZE,
-                  width: isIOS ? this.props.image.width : AVATAR_SIZE,
+                  height: isIOS && this.props.image ? this.props.image.height : AVATAR_SIZE,
+                  width: isIOS && this.props.image ? this.props.image.width : AVATAR_SIZE,
                 }}
               />
             </ZoomableBox>

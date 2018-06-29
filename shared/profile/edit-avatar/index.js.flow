@@ -1,9 +1,10 @@
 // @flow
 import {Component} from 'react'
+import {type Response} from 'react-native-image-picker'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 
 export type Props = {
-  image: Object,
+  image: ?Response,
   onClose: () => void,
   onSave: (filename: string, crop?: RPCTypes.ImageCropRect) => void,
 }

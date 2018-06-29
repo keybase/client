@@ -1,5 +1,5 @@
 // @flow
-import {showImagePicker} from 'react-native-image-picker'
+import {showImagePicker, type Response} from 'react-native-image-picker'
 import * as shared from './shared'
 import * as Types from '../constants/types/profile'
 import * as Constants from '../constants/tracker'
@@ -106,7 +106,7 @@ class Profile extends Component<Props, State> {
   }
 
   _onClickAvatar = () => {
-    showImagePicker({mediaType: 'photo'}, response => {
+    showImagePicker({mediaType: 'photo'}, (response: Response) => {
       if (response.didCancel) {
         return
       }
