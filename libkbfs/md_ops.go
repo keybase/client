@@ -33,7 +33,7 @@ const (
 	// merkleGapEnforcementStartString indicates when the mdserver
 	// started rejecting new writes based on the lack of recent merkle
 	// updates (according to `maxAllowedMerkleGap` above).
-	merkleGapEnforcementStartString = "2018-05-22T13:19:00-07:00"
+	merkleGapEnforcementStartString = "2018-06-14T16:21:30-07:00"
 )
 
 var merkleGapEnforcementStart time.Time
