@@ -258,3 +258,17 @@ export type Message =
   | MessageSystemText
   | MessageText
   | MessagePlaceholder
+export type MessageType =
+  | 'attachment'
+  | 'deleted'
+  | 'setChannelname'
+  | 'setDescription'
+  | 'systemAddedToTeam'
+  | 'systemGitPush'
+  | 'systemInviteAccepted'
+  | 'systemJoined'
+  | 'systemLeft'
+  | 'systemSimpleToComplex'
+  | 'systemText'
+  | 'text'
+  | 'placeholder'

@@ -23,8 +23,13 @@ export type _QuoteInfo = {
   sourceConversationIDKey: Common.ConversationIDKey,
   targetConversationIDKey: Common.ConversationIDKey,
 }
-
 export type QuoteInfo = I.RecordOf<_QuoteInfo>
+
+// Static config data we use for various things
+export type _StaticConfig = {
+  deletableByDeleteHistory: I.Set<Message.MessageType>,
+}
+export type StaticConfig = I.RecordOf<_StaticConfig>
 
 export type _State = {
   badgeMap: I.Map<Common.ConversationIDKey, number>, // id to the badge count
@@ -41,6 +46,7 @@ export type _State = {
   explodingModes: I.Map<Common.ConversationIDKey, number>, // seconds to exploding message expiration
   quote: ?QuoteInfo, // last quoted message
   selectedConversation: Common.ConversationIDKey, // the selected conversation, if any
+  staticConfig: StaticConfig, // static config stuff from the service
   typingMap: I.Map<Common.ConversationIDKey, I.Set<string>>, // who's typing currently
   unreadMap: I.Map<Common.ConversationIDKey, number>, // how many unread messages there are
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>, // messages waiting to be sent

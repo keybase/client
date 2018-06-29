@@ -17,6 +17,10 @@ import {
 import {makeConversationMeta, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
 
+export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
+  deletableByDeleteHistory: I.Set(),
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),
   editingMap: I.Map(),
@@ -36,6 +40,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pendingOutboxToOrdinal: I.Map(),
   quote: null,
   selectedConversation: noConversationIDKey,
+  staticConfig: makeStaticConfig(),
   typingMap: I.Map(),
   unreadMap: I.Map(),
 })
