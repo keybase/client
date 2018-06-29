@@ -115,34 +115,25 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 	}
 
 	for _, d := range details.Balances {
-		// M1 only supports native balances
-		if d.Asset.Type != "native" {
-			continue
-		}
-
 		fmtAmount, err := stellar.FormatAmount(d.Amount, false)
 		if err != nil {
 			s.G().Log.CDebugf(ctx, "FormatAmount error: %s", err)
 			return nil, err
 		}
-		asset := stellar1.AccountAssetLocal{
-			Name:         d.Asset.Type,
-			BalanceTotal: fmtAmount,
-			AssetCode:    d.Asset.Code,
-			Issuer:       d.Asset.Issuer,
-		}
 
 		if d.Asset.Type == "native" {
-			asset.Name = "Lumens"
-			asset.AssetCode = "XLM"
-			asset.Issuer = "Stellar"
 			fmtAvailable, err := stellar.FormatAmount(details.Available, false)
 			if err != nil {
 				return nil, err
 			}
-			asset.BalanceAvailableToSend = fmtAvailable
-			asset.WorthCurrency = displayCurrency
-
+			asset := stellar1.AccountAssetLocal{
+				Name:                   "Lumens",
+				BalanceTotal:           fmtAmount,
+				BalanceAvailableToSend: fmtAvailable,
+				AssetCode:              "XLM",
+				Issuer:                 "Stellar",
+				WorthCurrency:          displayCurrency,
+			}
 			var displayAmount string
 			if rateErr == nil {
 				displayAmount, rateErr = stellarnet.ConvertXLMToOutside(d.Amount, rate.Rate)
@@ -161,9 +152,18 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 					asset.Worth = displayFormatted
 				}
 			}
+			assets = append(assets, asset)
+		} else {
+			assets = append(assets, stellar1.AccountAssetLocal{
+				Name:                   d.Asset.Code,
+				BalanceTotal:           fmtAmount,
+				BalanceAvailableToSend: fmtAmount,
+				AssetCode:              d.Asset.Code,
+				Issuer:                 d.Asset.Issuer,
+				Worth:                  "",
+				WorthCurrency:          "",
+			})
 		}
-
-		assets = append(assets, asset)
 	}
 
 	return assets, nil
