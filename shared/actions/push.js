@@ -81,6 +81,9 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
   }
   logger.info(`Push notification of type ${payload.type ? payload.type : 'unknown'} received.`)
 
+  const membersType: RPCChatTypes.ConversationMembersType =
+    // $ForceType
+    typeof payload.t === 'string' ? parseInt(payload.t) : payload.t
   switch (payload.type) {
     case 'chat.readmessage':
       try {
@@ -96,15 +99,18 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
     case 'chat.newmessageSilent_2':
       try {
         logger.info('Push notification: silent notification received')
-        const membersType: RPCChatTypes.ConversationMembersType =
-          // $ForceType
-          typeof payload.t === 'string' ? parseInt(payload.t) : payload.t
         const unboxRes = yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
           convID: payload.c || '',
           membersType,
           payload: payload.m || '',
           pushIDs: typeof payload.p === 'string' ? JSON.parse(payload.p) : payload.p,
+          shouldAck: true,
         })
+        if (!payload.n) {
+          // If the user doesn't have plaintext notifications set, don't
+          // display the message
+          break
+        }
         if (payload.x && payload.x > 0) {
           const num = payload.x
           const ageMS = Date.now() - num * 1000
@@ -124,6 +130,16 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
       if (!payload.userInteraction) {
         // ignore it
         break
+      }
+      // If a boxed message is attached to the notification, unbox.
+      if (payload.m) {
+        logger.info('Push notification: unboxing notification message')
+        yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
+          convID: payload.convID || '',
+          membersType,
+          payload: payload.m || '',
+          shouldAck: false,
+        })
       }
       try {
         const {convID} = payload
