@@ -6,6 +6,7 @@ import {collapseStyles, globalColors, globalMargins, styleSheetCreate, platformS
 type View = 'key' | 'name'
 
 type Props = {
+  secretKey: string,
   onCancel: () => void,
   onDone: () => void,
   onNameChange: string => void,
@@ -20,6 +21,7 @@ const LinkWallet = (props: Props) => {
     case 'key':
       return (
         <EnterKey
+          secretKey={props.secretKey}
           onCancel={props.onCancel}
           onKeyChange={props.onKeyChange}
           onNext={() => props.onViewChange('name')}
@@ -77,9 +79,14 @@ const EnterKey = (props: EnterKeyProps) => (
       </Box2>
       <InfoNote>
         <Box2 direction="vertical" fullWidth={true}>
-          <Text type="BodySmall" lineClamp={1} style={styles.textCenter}>
-            Example: SDNBUWJ34218239OAOPAMBCLDLSNBSC7632
-          </Text>
+          <Box2 direction="horizontal" gap="xtiny">
+            <Text type="BodySmall" lineClamp={1} style={styles.textCenter}>
+              Example:
+            </Text>
+            <Text type="BodySmall" lineClamp={1} ellipsizeMode="middle">
+              SDNBUWJ34218239OAOPAMBCLDLSNBSC7632
+            </Text>
+          </Box2>
           <Text type="BodySmall" style={styles.textCenter}>
             This imports a Stellar secret key so you can also use it in Keybase. You can continue to use this
             Stellar account in other wallet apps.
@@ -140,9 +147,39 @@ const EnterName = (props: EnterNameProps) => (
   </Box2>
 )
 
+type WrapperState = {|
+  secretKey: string,
+  name: string,
+  view: View,
+|}
+
+type WrapperProps = {
+  onCancel: () => void,
+  onDone: () => void,
+}
+
+class Wrapper extends React.Component<WrapperProps, WrapperState> {
+  state = {secretKey: '', name: '', view: 'key'}
+  _onKeyChange = (secretKey: string) => this.setState({secretKey})
+  _onNameChange = (name: string) => this.setState({name})
+  _onViewChange = (view: View) => this.setState({view})
+  render() {
+    return (
+      <LinkWallet
+        {...this.props}
+        {...this.state}
+        onKeyChange={this._onKeyChange}
+        onNameChange={this._onNameChange}
+        onViewChange={this._onViewChange}
+      />
+    )
+  }
+}
+
 const styles = styleSheetCreate({
   container: {
     padding: globalMargins.medium,
+    maxWidth: 500,
   },
   contentContainer: {
     alignItems: 'center',
@@ -181,4 +218,5 @@ const styles = styleSheetCreate({
   textCenter: {textAlign: 'center'},
 })
 
+export {Wrapper}
 export default LinkWallet
