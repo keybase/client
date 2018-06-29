@@ -2125,7 +2125,7 @@ const loadStaticConfigSuccess = (res: ?RPCChatTypes.StaticConfig) => {
     return
   }
   const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce((res, type) => {
-    const ourTypes = Constants.serviceMessageTypeToMessageTypes[type]
+    const ourTypes = Constants.serviceMessageTypeToMessageTypes(type)
     if (ourTypes) {
       res.push(...ourTypes)
     }
