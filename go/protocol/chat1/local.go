@@ -3981,12 +3981,12 @@ func (o GetSearchRegexpRes) DeepCopy() GetSearchRegexpRes {
 	}
 }
 
-type FixedConfig struct {
+type StaticConfig struct {
 	DeletableByDeleteHistory []MessageType `codec:"deletableByDeleteHistory" json:"deletableByDeleteHistory"`
 }
 
-func (o FixedConfig) DeepCopy() FixedConfig {
-	return FixedConfig{
+func (o StaticConfig) DeepCopy() StaticConfig {
+	return StaticConfig{
 		DeletableByDeleteHistory: (func(x []MessageType) []MessageType {
 			if x == nil {
 				return nil
@@ -4367,7 +4367,7 @@ type GetSearchRegexpArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
-type GetFixedConfigArg struct {
+type GetStaticConfigArg struct {
 }
 
 type LocalInterface interface {
@@ -4422,7 +4422,7 @@ type LocalInterface interface {
 	GetTeamRetentionLocal(context.Context, keybase1.TeamID) (*RetentionPolicy, error)
 	UpgradeKBFSConversationToImpteam(context.Context, ConversationID) error
 	GetSearchRegexp(context.Context, GetSearchRegexpArg) (GetSearchRegexpRes, error)
-	GetFixedConfig(context.Context) (FixedConfig, error)
+	GetStaticConfig(context.Context) (StaticConfig, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -5235,13 +5235,13 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"getFixedConfig": {
+			"getStaticConfig": {
 				MakeArg: func() interface{} {
-					ret := make([]GetFixedConfigArg, 1)
+					ret := make([]GetStaticConfigArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.GetFixedConfig(ctx)
+					ret, err = i.GetStaticConfig(ctx)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -5518,7 +5518,7 @@ func (c LocalClient) GetSearchRegexp(ctx context.Context, __arg GetSearchRegexpA
 	return
 }
 
-func (c LocalClient) GetFixedConfig(ctx context.Context) (res FixedConfig, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.getFixedConfig", []interface{}{GetFixedConfigArg{}}, &res)
+func (c LocalClient) GetStaticConfig(ctx context.Context) (res StaticConfig, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getStaticConfig", []interface{}{GetStaticConfigArg{}}, &res)
 	return
 }

@@ -2427,7 +2427,7 @@
     },
     {
       "type": "record",
-      "name": "FixedConfig",
+      "name": "StaticConfig",
       "fields": [
         {
           "type": {
@@ -3657,9 +3657,9 @@
       ],
       "response": "GetSearchRegexpRes"
     },
-    "getFixedConfig": {
+    "getStaticConfig": {
       "request": [],
-      "response": "FixedConfig"
+      "response": "StaticConfig"
     }
   },
   "namespace": "chat.1"

@@ -4850,13 +4850,13 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 	})
 }
 
-func TestChatSrvGetFixedConfig(t *testing.T) {
+func TestChatSrvGetStaticConfig(t *testing.T) {
 	ctc := makeChatTestContext(t, "GetSearchRegexp", 2)
 	defer ctc.cleanup()
 	tc := ctc.as(t, ctc.users()[0])
-	res, err := tc.chatLocalHandler().GetFixedConfig(tc.startCtx)
+	res, err := tc.chatLocalHandler().GetStaticConfig(tc.startCtx)
 	require.NoError(t, err)
-	require.Equal(t, chat1.FixedConfig{
+	require.Equal(t, chat1.StaticConfig{
 		DeletableByDeleteHistory: chat1.DeletableMessageTypesByDeleteHistory(),
 	}, res)
 }
