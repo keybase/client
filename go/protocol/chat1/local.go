@@ -3981,6 +3981,26 @@ func (o GetSearchRegexpRes) DeepCopy() GetSearchRegexpRes {
 	}
 }
 
+type StaticConfig struct {
+	DeletableByDeleteHistory []MessageType `codec:"deletableByDeleteHistory" json:"deletableByDeleteHistory"`
+}
+
+func (o StaticConfig) DeepCopy() StaticConfig {
+	return StaticConfig{
+		DeletableByDeleteHistory: (func(x []MessageType) []MessageType {
+			if x == nil {
+				return nil
+			}
+			var ret []MessageType
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.DeletableByDeleteHistory),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`
@@ -4347,6 +4367,9 @@ type GetSearchRegexpArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type GetStaticConfigArg struct {
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -4399,6 +4422,7 @@ type LocalInterface interface {
 	GetTeamRetentionLocal(context.Context, keybase1.TeamID) (*RetentionPolicy, error)
 	UpgradeKBFSConversationToImpteam(context.Context, ConversationID) error
 	GetSearchRegexp(context.Context, GetSearchRegexpArg) (GetSearchRegexpRes, error)
+	GetStaticConfig(context.Context) (StaticConfig, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -5211,6 +5235,17 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getStaticConfig": {
+				MakeArg: func() interface{} {
+					ret := make([]GetStaticConfigArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetStaticConfig(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -5480,5 +5515,10 @@ func (c LocalClient) UpgradeKBFSConversationToImpteam(ctx context.Context, convI
 
 func (c LocalClient) GetSearchRegexp(ctx context.Context, __arg GetSearchRegexpArg) (res GetSearchRegexpRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getSearchRegexp", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetStaticConfig(ctx context.Context) (res StaticConfig, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getStaticConfig", []interface{}{GetStaticConfigArg{}}, &res)
 	return
 }
