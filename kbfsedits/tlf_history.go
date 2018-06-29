@@ -7,10 +7,13 @@ package kbfsedits
 import (
 	"container/heap"
 	"encoding/json"
+	"fmt"
 	"path"
 	"sort"
 	"strings"
 	"sync"
+
+	"github.com/keybase/kbfs/kbfsmd"
 )
 
 const (
@@ -85,6 +88,7 @@ func (wbr *writersByRevision) Pop() interface{} {
 type TlfHistory struct {
 	lock               sync.RWMutex
 	byWriter           map[string]*writerNotifications
+	unflushed          *writerNotifications
 	computed           bool
 	cachedHistory      writersByRevision
 	cachedLoggedInUser string
@@ -149,6 +153,64 @@ func (th *TlfHistory) AddNotifications(
 	return nil
 }
 
+// AddUnflushedNotifications adds notifications to a special
+// "unflushed" list that takes precedences over the regular
+// notifications with revision numbers equal or greater to the minimum
+// unflushed revision.
+func (th *TlfHistory) AddUnflushedNotifications(
+	loggedInUser string, msgs []NotificationMessage) {
+	th.lock.Lock()
+	defer th.lock.Unlock()
+	if th.unflushed == nil {
+		th.unflushed = &writerNotifications{loggedInUser, nil}
+	}
+	if th.unflushed.writerName != loggedInUser {
+		panic(fmt.Sprintf("Logged-in user %s doesn't match unflushed user %s",
+			loggedInUser, th.unflushed.writerName))
+	}
+	newEdits := append(
+		notificationsByRevision(msgs), th.unflushed.notifications...)
+	sort.Sort(newEdits)
+	th.unflushed.notifications = newEdits.uniquify()
+	// Invalidate the cached results.
+	th.computed = false
+	th.cachedLoggedInUser = ""
+}
+
+// FlushRevision clears all any unflushed notifications with a
+// revision equal or less than `rev`.
+func (th *TlfHistory) FlushRevision(rev kbfsmd.Revision) {
+	th.lock.Lock()
+	defer th.lock.Unlock()
+	if th.unflushed == nil {
+		return
+	}
+	lastToKeep := len(th.unflushed.notifications) - 1
+	for ; lastToKeep >= 0; lastToKeep-- {
+		if th.unflushed.notifications[lastToKeep].Revision > rev {
+			break
+		}
+	}
+	if lastToKeep < len(th.unflushed.notifications)-1 {
+		th.unflushed.notifications = th.unflushed.notifications[:lastToKeep+1]
+		// Invalidate the cached results.
+		th.computed = false
+		th.cachedLoggedInUser = ""
+	}
+}
+
+// ClearAllUnflushed clears all unflushed notifications.
+func (th *TlfHistory) ClearAllUnflushed() {
+	th.lock.Lock()
+	defer th.lock.Unlock()
+	if th.unflushed != nil {
+		// Invalidate the cached results.
+		th.computed = false
+		th.cachedLoggedInUser = ""
+	}
+	th.unflushed = nil
+}
+
 type fileEvent struct {
 	delete  bool
 	newName string
@@ -159,6 +221,7 @@ type recomputer struct {
 	modifiedFiles map[string]map[string]bool // writer -> file -> bool
 	fileEvents    map[string]fileEvent       // currentName -> ultimate fate
 	numProcessed  map[string]int             // writer name -> num
+	minUnflushed  kbfsmd.Revision
 }
 
 func newRecomputer() *recomputer {
@@ -167,6 +230,7 @@ func newRecomputer() *recomputer {
 		modifiedFiles: make(map[string]map[string]bool),
 		fileEvents:    make(map[string]fileEvent),
 		numProcessed:  make(map[string]int),
+		minUnflushed:  kbfsmd.RevisionUninitialized,
 	}
 }
 
@@ -186,6 +250,13 @@ func ignoreFile(filename string) bool {
 // writer, and the caller should not send any more for that writer.
 func (r *recomputer) processNotification(
 	writer string, notification NotificationMessage) (doTrim bool) {
+	// Ignore notifications that come after any present unflushed
+	// notifications, as the local client won't be able to see them.
+	if r.minUnflushed != kbfsmd.RevisionUninitialized &&
+		notification.Revision >= r.minUnflushed {
+		return false
+	}
+
 	filename := notification.Filename
 	r.numProcessed[writer]++
 
@@ -269,9 +340,39 @@ func (th *TlfHistory) recomputeLocked(loggedInUser string) (
 	history writersByRevision, writersWhoNeedMore map[string]bool) {
 	writersWhoNeedMore = make(map[string]bool)
 
+	r := newRecomputer()
+
+	// First add all of the unflushed notifications for the logged-in
+	// writer.
+	skipLoggedIn := false
+	loggedInProcessed := 0
+	if th.unflushed != nil {
+		if th.unflushed.writerName != loggedInUser {
+			panic(fmt.Sprintf(
+				"Logged-in user %s doesn't match unflushed user %s",
+				loggedInUser, th.unflushed.writerName))
+		}
+		for _, n := range th.unflushed.notifications {
+			doTrim := r.processNotification(th.unflushed.writerName, n)
+			if doTrim {
+				skipLoggedIn = true
+				break
+			}
+		}
+		if ln := len(th.unflushed.notifications); ln > 0 {
+			r.minUnflushed = th.unflushed.notifications[ln-1].Revision
+		}
+		loggedInProcessed = r.numProcessed[th.unflushed.writerName]
+	}
+
 	// Copy the writer notifications into a heap.
 	var writersHeap writersByRevision
 	for _, wn := range th.byWriter {
+		if skipLoggedIn && wn.writerName == loggedInUser {
+			// There are enough unflushed notifications already, so
+			// skip the logged-in user.
+			continue
+		}
 		wnCopy := writerNotifications{
 			writerName:    wn.writerName,
 			notifications: make(notificationsByRevision, len(wn.notifications)),
@@ -280,8 +381,6 @@ func (th *TlfHistory) recomputeLocked(loggedInUser string) (
 		writersHeap = append(writersHeap, &wnCopy)
 	}
 	heap.Init(&writersHeap)
-
-	r := newRecomputer()
 
 	// Iterate through the heap.  The writer with the next highest
 	// revision will always be at index 0.  Process that writer's
@@ -300,6 +399,9 @@ func (th *TlfHistory) recomputeLocked(loggedInUser string) (
 			// Trim all earlier revisions because they won't be needed
 			// for the cached history.
 			numProcessed := r.numProcessed[nextWriter]
+			if loggedInUser == nextWriter {
+				numProcessed -= loggedInProcessed
+			}
 			th.byWriter[nextWriter].notifications =
 				th.byWriter[nextWriter].notifications[:numProcessed]
 		} else {
@@ -320,6 +422,13 @@ func (th *TlfHistory) recomputeLocked(loggedInUser string) (
 		}
 		if wn == nil || len(wn.notifications) < maxEditsPerWriter {
 			writersWhoNeedMore[writerName] = true
+		}
+	}
+	if _, ok := th.byWriter[loggedInUser]; !ok {
+		// The logged-in user only has unflushed edits.
+		wn := r.byWriter[loggedInUser]
+		if wn != nil && len(wn.notifications) > 0 {
+			history = append(history, wn)
 		}
 	}
 	sort.Sort(history)

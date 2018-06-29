@@ -307,3 +307,57 @@ func TestTlfHistoryTrimming(t *testing.T) {
 	}
 	checkTlfHistory(t, th, expected, aliceName)
 }
+
+func TestTlfHistoryWithUnflushed(t *testing.T) {
+	aliceName, bobName := "alice", "bob"
+	aliceUID, bobUID := keybase1.MakeTestUID(1), keybase1.MakeTestUID(2)
+	tlfID, err := tlf.MakeRandomID(tlf.Private)
+	require.NoError(t, err)
+	nn := nextNotification{1, 0, tlfID, nil}
+
+	aliceWrite1 := nn.make("a", NotificationCreate, aliceUID, nil, time.Time{})
+	aliceMessage1 := nn.encode(t)
+	bobWrite2 := nn.make("b", NotificationCreate, bobUID, nil, time.Time{})
+	bobMessage2 := nn.encode(t)
+
+	th := NewTlfHistory()
+	err = th.AddNotifications(aliceName, []string{string(aliceMessage1)})
+	require.NoError(t, err)
+	err = th.AddNotifications(bobName, []string{string(bobMessage2)})
+	require.NoError(t, err)
+
+	// Alice takes over revision 2 with a few more unflushed writes.
+	nn.nextRevision--
+	aliceWrite2 := nn.make("c", NotificationCreate, aliceUID, nil, time.Time{})
+	_ = nn.encode(t)
+	aliceWrite3 := nn.make("d", NotificationCreate, aliceUID, nil, time.Time{})
+	_ = nn.encode(t)
+	th.AddUnflushedNotifications(
+		aliceName, []NotificationMessage{aliceWrite2, aliceWrite3})
+
+	expected := writersByRevision{
+		{aliceName, []NotificationMessage{
+			aliceWrite3,
+			aliceWrite2,
+			aliceWrite1},
+		},
+	}
+	checkTlfHistory(t, th, expected, aliceName)
+
+	th.FlushRevision(2)
+	expected = writersByRevision{
+		{aliceName, []NotificationMessage{
+			aliceWrite3,
+			aliceWrite1},
+		},
+		{bobName, []NotificationMessage{bobWrite2}},
+	}
+	checkTlfHistory(t, th, expected, aliceName)
+
+	th.ClearAllUnflushed()
+	expected = writersByRevision{
+		{bobName, []NotificationMessage{bobWrite2}},
+		{aliceName, []NotificationMessage{aliceWrite1}},
+	}
+	checkTlfHistory(t, th, expected, aliceName)
+}
