@@ -40,11 +40,71 @@ const requestAutoInvite = () =>
 
 const showInviteScreen = () => navigateTo([loginTab, 'signup', 'inviteCode'])
 
+// TODO move to util/saga
+function actionToRPC<Action, RPCResult>(
+  pattern: Saga.Pattern,
+  getOptions: () => {
+    makeRPC: (Action, TypedState) => ?Promise<RPCResult> | false,
+    onSuccess: (RPCResult, Action, TypedState) => ?Object,
+    onError: (RPCError, Action, TypedState) => ?Object,
+  }
+) {
+  return Saga.safeTakeEvery(pattern, function* actionToRPCWorker(action: Action) {
+    const stateBeforeRPC: TypedState = yield Saga.select()
+    const options = getOptions()
+    try {
+      const rpc = options.makeRPC(action, stateBeforeRPC)
+      if (!rpc) {
+        return
+      }
+      const result = yield rpc
+      const stateBeforeOnSuccess: TypedState = yield Saga.select()
+      const successAction = options.onSuccess(result, action, stateBeforeOnSuccess)
+      if (successAction) {
+        yield Saga.put(successAction)
+      }
+    } catch (e) {
+      const stateBeforeOnError: TypedState = yield Saga.select()
+      const errorAction = options.onError(e, action, stateBeforeOnError)
+      if (errorAction) {
+        yield Saga.put(errorAction)
+      }
+    }
+  })
+}
+
+// const requestInvite = () => ({
+// makeRPC: (action: SignupGen.RequestInvitePayload, stateBeforeRPC: TypedState) =>
+// !stateBeforeRPC.signup.emailError &&
+// !stateBeforeRPC.signup.nameError &&
+// RPCTypes.signupInviteRequestRpcPromise(
+// {
+// email: stateBeforeRPC.signup.email,
+// fullname: stateBeforeRPC.signup.name,
+// notes: 'Requested through GUI app',
+// },
+// Constants.waitingKey
+// ),
+// onError: (err: RPCError, action: SignupGen.RequestInvitePayload, stateBeforeOnSuccess: TypedState) =>
+// SignupGen.createRequestedInviteError({
+// email: action.payload.email,
+// emailError: `Sorry can't get an invite: ${err.desc}`,
+// name: action.payload.name,
+// nameError: '',
+// }),
+// onSuccess: (result: void, action: SignupGen.RequestInvitePayload, stateBeforeOnError: TypedState) =>
+// SignupGen.createRequestedInvite({
+// email: action.payload.email,
+// name: action.payload.name,
+// }),
+// })
+
 const requestInvite = (action: SignupGen.RequestInvitePayload, state: TypedState) =>
   !state.signup.emailError &&
   !state.signup.nameError &&
-  Saga.call(function*() {
-    yield Saga.put(
+  // Saga.call(function*() {
+    // yield Saga.put(
+    Saga.put(
       yield RPCTypes.signupInviteRequestRpcPromise(
         {email: state.signup.email, fullname: state.signup.name, notes: 'Requested through GUI app'},
         Constants.waitingKey
@@ -64,7 +124,7 @@ const requestInvite = (action: SignupGen.RequestInvitePayload, state: TypedState
           })
         )
     )
-  })
+  // })
 
 const showInviteSuccessOnNoErrors = (_, state: TypedState) =>
   !state.signup.emailError &&
@@ -182,6 +242,7 @@ const cleanupSignupOnNoErrors = (_, state: TypedState) =>
 const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   // validation actions
   yield Saga.safeTakeEveryPure(SignupGen.requestInvite, requestInvite)
+  // yield actionToRPC(SignupGen.requestInvite, requestInvite)
   yield Saga.safeTakeEveryPure(SignupGen.checkUsernameEmail, checkUsernameEmail)
   yield Saga.safeTakeEveryPure(SignupGen.requestAutoInvite, requestAutoInvite)
   yield Saga.safeTakeEveryPure([SignupGen.requestedAutoInvite, SignupGen.checkInviteCode], checkInviteCode)

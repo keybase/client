@@ -319,7 +319,7 @@ function callAndWrap<R, A1, A2, A3, A4, A5, Fn: (a1: A1, a2: A2, a3: A3, a4: A4,
   return call(wrapper)
 }
 
-export type {SagaGenerator, Ok, Err, Result, Effect, PutEffect}
+export type {SagaGenerator, Ok, Err, Result, Effect, PutEffect, Pattern}
 
 export {
   actionChannel,
