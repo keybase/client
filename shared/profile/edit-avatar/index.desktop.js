@@ -101,11 +101,12 @@ class EditAvatar extends React.Component<Props, State> {
     this._filePickerSetValue('')
   }
 
-  _onDragLeave = e => {
+  _onDragLeave = (e: SyntheticDragEvent<any>) => {
+    e.persist()
     this.setState({dropping: false})
   }
 
-  _onDrop = e => {
+  _onDrop = (e: SyntheticDragEvent<any>) => {
     e.persist()
     this.setState({dropping: false})
     if (!this._validDrag(e)) {
@@ -134,9 +135,13 @@ class EditAvatar extends React.Component<Props, State> {
     }
   }
 
-  _validDrag = e => Array.prototype.map.call(e.dataTransfer.types, t => t).includes('Files')
+  _validDrag = (e: SyntheticDragEvent<any>) => {
+    e.persist()
+    return Array.prototype.map.call(e.dataTransfer.types, t => t).includes('Files')
+  }
 
-  _onDragOver = e => {
+  _onDragOver = (e: SyntheticDragEvent<any>) => {
+    e.persist()
     this.setState({dropping: true})
     if (this._validDrag(e)) {
       e.dataTransfer.dropEffect = 'copy'
@@ -150,6 +155,7 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   _onImageLoad = (e: SyntheticEvent<HTMLImageElement>) => {
+    e.persist()
     this.setState({
       hasPreview: true,
       offsetLeft: Math.round(e.currentTarget.naturalWidth / -2 + AVATAR_SIZE / 2 - AVATAR_BORDER_WIDTH),
@@ -161,7 +167,8 @@ class EditAvatar extends React.Component<Props, State> {
     })
   }
 
-  _onRangeChange = e => {
+  _onRangeChange = (e: SyntheticInputEvent<any>) => {
+    e.persist()
     const scale = e.currentTarget.value
     const scaledImageHeight = Math.round(this.state.originalImageHeight * scale)
     const scaledImageWidth = Math.round(this.state.originalImageWidth * scale)
@@ -174,6 +181,7 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   _onMouseDown = (e: SyntheticMouseEvent<any>) => {
+    e.persist()
     this.setState({
       dragStartX: e.pageX,
       dragStartY: e.pageY,
@@ -188,6 +196,7 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   _onMouseUp = (e: SyntheticMouseEvent<any>) => {
+    e.persist()
     this.setState({
       dragStopX:
         this._image && this._image.style.left ? parseInt(this._image.style.left, 10) : this.state.dragStopX,
@@ -200,6 +209,7 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   _onMouseMove = (e: SyntheticMouseEvent<any>) => {
+    e.persist()
     if (!this.state.dragging || this.state.submitting) return
 
     const dragLeft = this.state.dragStopX + e.pageX - this.state.dragStartX
@@ -214,6 +224,7 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   _onSave = e => {
+    e.persist()
     this.setState({submitting: true})
 
     const x = this.state.offsetLeft * -1
