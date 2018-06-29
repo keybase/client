@@ -49,6 +49,7 @@ type EnterKeyProps = {
   onCancel: () => void,
   onKeyChange: string => void,
   onNext: () => void,
+  secretKey: string,
 }
 
 const EnterKey = (props: EnterKeyProps) => (
@@ -61,7 +62,7 @@ const EnterKey = (props: EnterKeyProps) => (
       style={styles.contentContainer}
     >
       <Icon type="icon-wallet-add-48" style={{width: 48, height: 48}} />
-      <Text type="Header">Link an existing wallet</Text>
+      <Text type="Header">Link an existing account</Text>
       <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
         <Text type="BodySmall" style={{color: globalColors.blue}}>
           Paste your secret key
@@ -75,6 +76,7 @@ const EnterKey = (props: EnterKeyProps) => (
           inputStyle={styles.inputElement}
           style={styles.input}
           onChangeText={props.onKeyChange}
+          value={props.secretKey}
         />
       </Box2>
       <InfoNote>
@@ -118,10 +120,10 @@ const EnterName = (props: EnterNameProps) => (
       style={styles.contentContainer}
     >
       <Icon type="icon-wallet-add-48" style={{width: 48, height: 48}} />
-      <Text type="Header">Name your wallet</Text>
+      <Text type="Header">Name your account</Text>
       <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
         <Text type="BodySmall" style={{color: globalColors.blue}}>
-          Wallet name
+          Account name
         </Text>
         <Input
           hideLabel={true}
@@ -135,7 +137,7 @@ const EnterName = (props: EnterNameProps) => (
       <InfoNote>
         <Box2 direction="vertical" fullWidth={true}>
           <Text type="BodySmall" style={styles.textCenter}>
-            Your wallet name is encrypted and only visible to you.
+            Your account name is encrypted and only visible to you.
           </Text>
         </Box2>
       </InfoNote>
