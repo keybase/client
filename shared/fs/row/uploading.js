@@ -9,6 +9,25 @@ import PathItemIcon from '../common/path-item-icon'
 type UploadingProps = {
   name: string,
   itemStyles: Types.ItemStyles,
+  error: boolean,
+  writingToJournal: boolean,
+  syncing: boolean,
+}
+
+const getStatusText = ({error, writingToJournal, syncing}: UploadingProps): string => {
+  if (error) {
+    return 'Upload error'
+  }
+  if (writingToJournal && syncing) {
+    return 'Encrypting & Uploading'
+  }
+  if (writingToJournal) {
+    return 'Encrypting'
+  }
+  if (syncing) {
+    return 'Uploading'
+  }
+  return 'Done'
 }
 
 const Uploading = (props: UploadingProps) => (
@@ -26,7 +45,10 @@ const Uploading = (props: UploadingProps) => (
         >
           {props.name}
         </Text>
-        <Meta title="Encrypting & Uploading" backgroundColor={globalColors.blue} />
+        <Meta
+          title={getStatusText(props)}
+          backgroundColor={props.error ? globalColors.red : globalColors.blue}
+        />
       </Box>
     </Box>
     <Divider style={rowStyles.divider} />

@@ -31,31 +31,48 @@
       "sortSetting": "Types.SortSetting"
     },
     "download": {
-      "intent": "Types.TransferIntent",
+      "intent": "Types.DownloadIntent",
       "path": "Types.Path",
       "localPath?": "string"
     },
     "downloadStarted": {
+      "entryType?": "Types.PathType",
       "key": "string",
       "path": "Types.Path",
       "localPath": "Types.LocalPath",
-      "intent": "Types.TransferIntent",
+      "intent": "Types.DownloadIntent",
       "opID": "RPCTypes.OpID"
     },
     "downloadFinished": {
       "key": "string",
       "error?": "string"
     },
-    "transferProgress": {
+    "downloadProgress": {
       "key": "string",
       "completePortion": "number",
       "endEstimate?": "number"
     },
-    "cancelTransfer": {
+    "cancelDownload": {
       "key": "string"
     },
-    "dismissTransfer": {
+    "dismissDownload": {
       "key": "string"
+    },
+    "upload": {
+      "parentPath": "Types.Path",
+      "localPath": "string"
+    },
+    "uploadStarted": {
+      "path": "Types.Path"
+    },
+    "uploadWritingFinished": {
+      "path": "Types.Path",
+      "error?": "string"
+    },
+    "journalUpdate": {
+      "syncingPaths": "Array<Types.Path>",
+      "totalSyncingBytes": "number",
+      "endEstimate?": "?number"
     },
     "openInFileUI": {
       "path?": "string"
@@ -133,6 +150,10 @@
     "letResetUserBackIn": {
       "id": "RPCTypes.TeamID",
       "username": "string"
+    },
+    "pickAndUpload": {
+      "type": "Types.OpenDialogType",
+      "parentPath": "Types.Path"
     },
 
     "setupFSHandlers": {}

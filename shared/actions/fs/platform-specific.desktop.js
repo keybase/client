@@ -184,29 +184,33 @@ function* installFuseSaga(): Saga.SagaGenerator<any, any> {
 }
 
 const uninstallKBFSConfirm = (action: FsGen.UninstallKBFSConfirmPayload) =>
-  new Promise((resolve, reject) => SafeElectron.getDialog().showMessageBox(
-    null,
-    {
-      buttons: ['Remove & Restart', 'Cancel'],
-      detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
-      message: `Remove Keybase from ${fileUIName}`,
-      type: 'question',
-    },
-    resp => resolve(resp))
+  new Promise((resolve, reject) =>
+    SafeElectron.getDialog().showMessageBox(
+      null,
+      {
+        buttons: ['Remove & Restart', 'Cancel'],
+        detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
+        message: `Remove Keybase from ${fileUIName}`,
+        type: 'question',
+      },
+      resp => resolve(resp)
+    )
   )
 
 const uninstallKBFSConfirmSuccess = resp =>
-  (resp ? undefined : Saga.sequentially([
-    Saga.call(RPCTypes.installUninstallKBFSRpcPromise),
-    Saga.call(() => {
-        // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
-        SafeElectron.getApp().relaunch()
-        SafeElectron.getApp().exit(0)
-      }
-    ),
-  ]))
+  resp
+    ? undefined
+    : Saga.sequentially([
+        Saga.call(RPCTypes.installUninstallKBFSRpcPromise),
+        Saga.call(() => {
+          // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
+          SafeElectron.getApp().relaunch()
+          SafeElectron.getApp().exit(0)
+        }),
+      ])
 
-const openSecurityPreferences = () => Saga.call(
+const openSecurityPreferences = () =>
+  Saga.call(
     () =>
       new Promise((resolve, reject) => {
         SafeElectron.getShell().openExternal(
@@ -281,7 +285,7 @@ function openFinderPopup(action: FsGen.OpenFinderPopupPayload) {
 }
 
 function platformSpecificIntentEffect(
-  intent: Types.TransferIntent,
+  intent: Types.DownloadIntent,
   localPath: string,
   mimeType: string
 ): ?Saga.Effect {
@@ -303,12 +307,39 @@ function platformSpecificIntentEffect(
   }
 }
 
+const pickAndUpload = ({payload: {type}}: FsGen.PickAndUploadPayload) =>
+  new Promise((resolve, reject) =>
+    SafeElectron.getDialog().showOpenDialog(
+      SafeElectron.getCurrentWindowFromRemote(),
+      {
+        title: 'Select a file or folder to upload',
+        properties: [
+          'multiSelections',
+          ...(['file', 'both'].includes(type) ? ['openFile'] : []),
+          ...(['directory', 'both'].includes(type) ? ['openDirectory'] : []),
+        ],
+      },
+      filePaths => {
+        return resolve(filePaths)
+      }
+    )
+  )
+
+const pickAndUploadSuccess = (localPaths, action: FsGen.PickAndUploadPayload) =>
+  localPaths &&
+  Saga.sequentially(
+    localPaths.map(localPath =>
+      Saga.put(FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
+    )
+  )
+
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
   yield Saga.safeTakeEveryPure(FsGen.installKBFS, RPCTypes.installInstallKBFSRpcPromise, installKBFSSuccess)
   yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirm, uninstallKBFSConfirmSuccess)
+  yield Saga.safeTakeEveryPure(FsGen.pickAndUpload, pickAndUpload, pickAndUploadSuccess)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
   } else {

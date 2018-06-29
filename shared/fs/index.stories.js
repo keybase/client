@@ -15,6 +15,7 @@ import UploadingRow from './row/uploading'
 import {NormalPreview} from './filepreview'
 import {Box} from '../common-adapters'
 import Download from './footer/download'
+import Upload from './footer/upload'
 import PathItemAction from './common/path-item-action'
 import Breadcrumb from './header/breadcrumb.desktop'
 import Banner from './banner'
@@ -58,11 +59,7 @@ const rowProviders = {
       shouldShowMenu: true,
       itemStyles: folderItemStyles,
       onAction: action('onAction'),
-      resetParticipants: [
-        ...(hasAbc ? ['abc'] : []),
-        ...(hasDef ? ['def'] : []),
-        ...(hasGhi ? ['ghi'] : []),
-      ],
+      resetParticipants: [...(hasAbc ? ['abc'] : []), ...(hasDef ? ['def'] : []), ...(hasGhi ? ['ghi'] : [])],
       isUserReset: false,
     }
   },
@@ -70,8 +67,9 @@ const rowProviders = {
 
 const provider = createPropProvider({
   ...rowProviders,
-  Footer: () => ({
-    downloads: [],
+  ConnectedFooter: () => ({
+    downloadKeys: [],
+    showUploads: false,
   }),
   FolderHeader: () => ({
     breadcrumbItems: [
@@ -229,10 +227,10 @@ const load = () => {
         routePath={I.List([])}
         isUserReset={false}
         resetParticipants={['foo']}
-        stillItems={[
-          Types.stringToPath('/keybase/private'),
-          Types.stringToPath('/keybase/public'),
-          Types.stringToPath('/keybase/team'),
+        items={[
+          {rowType: 'still', path: Types.stringToPath('/keybase/private'), name: 'private'},
+          {rowType: 'still', path: Types.stringToPath('/keybase/public'), name: 'public'},
+          {rowType: 'still', path: Types.stringToPath('/keybase/team'), name: 'team'},
         ]}
         editingItems={[]}
       />
@@ -284,8 +282,48 @@ const load = () => {
           isCreate={true}
           {...commonRowProps}
         />
-        <UploadingRow name="foo" itemStyles={fileItemStyles} />
-        <UploadingRow name="foo" itemStyles={folderItemStyles} />
+        <UploadingRow
+          name="foo"
+          itemStyles={folderItemStyles}
+          writingToJournal={true}
+          syncing={false}
+          error={false}
+        />
+        <UploadingRow
+          name="foo"
+          itemStyles={fileItemStyles}
+          writingToJournal={true}
+          syncing={false}
+          error={false}
+        />
+        <UploadingRow
+          name="foo"
+          itemStyles={fileItemStyles}
+          writingToJournal={true}
+          syncing={true}
+          error={false}
+        />
+        <UploadingRow
+          name="foo"
+          itemStyles={fileItemStyles}
+          writingToJournal={false}
+          syncing={true}
+          error={false}
+        />
+        <UploadingRow
+          name="foo"
+          itemStyles={fileItemStyles}
+          writingToJournal={false}
+          syncing={false}
+          error={false}
+        />
+        <UploadingRow
+          name="foo"
+          itemStyles={fileItemStyles}
+          writingToJournal={false}
+          syncing={false}
+          error={true}
+        />
         <StillRow
           path={Types.stringToPath('/keybase/private/foo/bar')}
           name="bar"
@@ -407,6 +445,7 @@ const load = () => {
         />
       </Box>
     ))
+    .add('UploadBanner', () => <Upload files={42} timeLeft="23 min" />)
     .add('ResetRows', () => (
       <Files
         path={Types.stringToPath('/keybase')}
@@ -414,15 +453,19 @@ const load = () => {
         routePath={I.List([])}
         isUserReset={false}
         resetParticipants={[]}
-        stillItems={[
-          Types.stringToPath('/keybase/private/me'),
-          Types.stringToPath('/keybase/private/me,abc'),
-          Types.stringToPath('/keybase/private/me,abc,def'),
-          Types.stringToPath('/keybase/private/me,abc,def,ghi'),
-          Types.stringToPath('/keybase/private/me,def'),
-          Types.stringToPath('/keybase/private/me,def,ghi'),
-          Types.stringToPath('/keybase/private/me,ghi'),
-          Types.stringToPath('/keybase/private/me,abc,ghi'),
+        items={[
+          {rowType: 'still', path: Types.stringToPath('/keybase/private/me'), name: 'me'},
+          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc'), name: 'me,abc'},
+          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc,def'), name: 'me,abc,def'},
+          {
+            rowType: 'still',
+            path: Types.stringToPath('/keybase/private/me,abc,def,ghi'),
+            name: 'me,abc,def,ghi',
+          },
+          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,def'), name: 'me,def'},
+          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,def,ghi'), name: 'me,def,ghi'},
+          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,ghi'), name: 'me,ghi'},
+          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc,ghi'), name: 'me,abc,ghi'},
         ]}
         editingItems={[]}
       />
@@ -434,10 +477,7 @@ const load = () => {
           shouldShowReset={true}
         />
         <Box style={{height: 8}} />
-        <Banner
-          path={Types.stringToPath('/keybase/private/me,reset')}
-          shouldShowReset={true}
-        />
+        <Banner path={Types.stringToPath('/keybase/private/me,reset')} shouldShowReset={true} />
       </Box>
     ))
 }
