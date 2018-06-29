@@ -56,8 +56,7 @@ const mergeProps = ({_pathItem}, {_newFolderRow, _upload}, {path, style}) => {
     style,
     menuItems:
       flags.fsWritesEnabled && pathElements.length > 2 && _pathItem.writable
-        ? []
-        : [
+        ? [
             ...(isMobile ? mobileUploadItems(path, _upload) : desktopUploadItems(path, _upload)),
             {
               // TODO: jump to top of list
@@ -65,7 +64,8 @@ const mergeProps = ({_pathItem}, {_newFolderRow, _upload}, {path, style}) => {
               icon: 'iconfont-folder-new',
               title: 'New folder',
             },
-          ],
+          ]
+        : [],
   }
 }
 
