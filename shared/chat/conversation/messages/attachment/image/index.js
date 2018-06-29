@@ -6,6 +6,7 @@ import {
   ClickableBox,
   Icon,
   ProgressBar,
+  ProgressIndicator,
   iconCastPlatformStyles,
 } from '../../../../../common-adapters'
 import {
@@ -55,12 +56,16 @@ class ImageAttachment extends React.PureComponent<Props, State> {
         <Box
           style={collapseStyles([
             styles.loading,
+            !this.state.loaded ? styles.containerStyle : {},
             {
               height: this.props.height,
               width: this.props.width,
             },
           ])}
         >
+          {!this.state.loaded && (
+             <ProgressIndicator style={{margin: 'auto'}} />
+          )}
           {!!this.props.path && (
             <ImageRender
               src={this.props.path}
@@ -72,6 +77,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                   opacity: this.state.loaded ? 1 : 0,
                   width: this.props.width,
                 },
+                this.state.loaded ? null : {display: 'none'},
               ])}
             />
           )}
@@ -111,6 +117,10 @@ class ImageAttachment extends React.PureComponent<Props, State> {
 }
 
 const styles = styleSheetCreate({
+  containerStyle: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
+  },
   downloadIcon: {maxHeight: 14},
   downloadedIconWrapper: {
     ...globalStyles.flexBoxCenter,
