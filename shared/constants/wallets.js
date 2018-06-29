@@ -104,11 +104,20 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   })
 }
 
+const paymentTypeToPartyType = {
+  sbs: 'keybaseUser',
+  stellar: 'stellarPublicKey',
+  keybase: 'keybaseUser',
+}
+
 const loadEverythingWaitingKey = 'wallets:loadEverything'
 
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
 const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
+
+const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: string) =>
+  state.wallets.paymentsMap.get(accountID, I.List()).find(p => p.id === paymentID)
 
 const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
@@ -119,6 +128,7 @@ const getAssets = (state: TypedState, accountID?: Types.AccountID) =>
 export {
   accountResultToAccount,
   assetsResultToAssets,
+  getPayment,
   loadEverythingWaitingKey,
   makeAccount,
   makeAssets,
@@ -126,6 +136,7 @@ export {
   makeReserve,
   makeState,
   paymentResultToPayment,
+  paymentTypeToPartyType,
   getAccountIDs,
   getAccount,
   getAssets,

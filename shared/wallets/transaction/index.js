@@ -101,6 +101,7 @@ type DetailProps = {|
   counterparty: string,
   counterpartyType: CounterpartyType,
   amountUser: string,
+  isXLM: boolean,
 |}
 
 const Detail = (props: DetailProps) => {
@@ -117,21 +118,27 @@ const Detail = (props: DetailProps) => {
       textTypeSemibold={textTypeSemibold}
     />
   )
-  const amount = <Text type={textTypeSemibold}>{props.amountUser}</Text>
+  const amount = props.isXLM ? (
+    <Text type={textTypeSemibold}>{props.amountUser}</Text>
+  ) : (
+    <React.Fragment>
+      Lumens worth <Text type={textTypeSemibold}>{props.amountUser}</Text>
+    </React.Fragment>
+  )
 
   if (props.counterpartyType === 'wallet') {
     const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
     if (props.yourRole === 'sender') {
       return (
         <Text type={textType}>
-          {verbPhrase} Lumens worth {amount} from this wallet to {counterparty}.
+          {verbPhrase} {amount} from this wallet to {counterparty}.
         </Text>
       )
     }
 
     return (
       <Text type={textType}>
-        {verbPhrase} Lumens worth {amount} from {counterparty} to this wallet.
+        {verbPhrase} {amount} from {counterparty} to this wallet.
       </Text>
     )
   }
@@ -140,7 +147,7 @@ const Detail = (props: DetailProps) => {
     const verbPhrase = props.pending ? 'Sending' : 'You sent'
     return (
       <Text type={textType}>
-        {verbPhrase} Lumens worth {amount} to {counterparty}.
+        {verbPhrase} {amount} to {counterparty}.
       </Text>
     )
   }
@@ -148,7 +155,7 @@ const Detail = (props: DetailProps) => {
   const verbPhrase = props.pending ? 'sending' : 'sent you'
   return (
     <Text type={textType}>
-      {counterparty} {verbPhrase} Lumens worth {amount}.
+      {counterparty} {verbPhrase} {amount}.
     </Text>
   )
 }
@@ -209,7 +216,7 @@ export type Props = {|
   yourRole: Role,
   counterparty: string,
   counterpartyType: CounterpartyType,
-  amountUser: string,
+  amountUser: string, // empty if sent with no display currency
   amountXLM: string,
 
   // Ignored if yourRole is receiver and counterpartyType is
@@ -246,7 +253,8 @@ export const Transaction = (props: Props) => {
             yourRole={props.yourRole}
             counterparty={props.counterparty}
             counterpartyType={props.counterpartyType}
-            amountUser={props.amountUser}
+            amountUser={props.amountUser || props.amountXLM}
+            isXLM={!props.amountUser}
           />
           {// TODO: Consolidate memo display code below with
           // chat/conversation/messages/wallet-payment/index.js.

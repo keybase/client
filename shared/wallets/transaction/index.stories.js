@@ -87,6 +87,15 @@ const load = () => {
       {...config}
     />
   ))
+  addConfigs(stories, 'No display currency', config => (
+    <Transaction
+      counterparty="peter"
+      counterpartyType="keybaseUser"
+      amountUser=""
+      amountXLM="19.4567588 XLM"
+      {...config}
+    />
+  ))
 }
 
 export default load
