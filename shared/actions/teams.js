@@ -1117,20 +1117,14 @@ function* _addTeamWithChosenChannels(action: TeamsGen.AddTeamWithChosenChannelsP
   // update if exists, else create
   if (msgID) {
     logger.info(`${logPrefix} Updating teamsWithChosenChannels`)
-    yield Saga.call(RPCTypes.gregorUpdateItemRpcPromise, {
-      body: JSON.stringify(teams),
-      cat: Constants.chosenChannelsGregorKey,
-      dtime,
-      msgID,
-    })
   } else {
     logger.info(`${logPrefix} Creating teamsWithChosenChannels`)
-    yield Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
-      body: JSON.stringify(teams),
-      cat: Constants.chosenChannelsGregorKey,
-      dtime,
-    })
   }
+  yield Saga.call(RPCTypes.gregorUpdateCategoryRpcPromise, {
+    body: JSON.stringify(teams),
+    category: Constants.chosenChannelsGregorKey,
+    dtime,
+  })
 }
 
 function _updateChannelname(action: TeamsGen.UpdateChannelNamePayload, state: TypedState) {
