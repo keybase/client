@@ -175,18 +175,14 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     this._replaceWordAtCursor(`@${u} `)
     this._setMentionPopupOpen(false)
 
-    if (options && options.notUser) {
-      this._maybeSubmitAfterInsert(options.notUser)
-    }
+    this._maybeSubmitAfterInsert(options ? options.notUser : false)
   }
 
   insertChannelMention = (c: string, options?: {notChannel: boolean}) => {
     this._replaceWordAtCursor(`#${c} `)
     this._setChannelMentionPopupOpen(false)
 
-    if (options && options.notChannel) {
-      this._maybeSubmitAfterInsert(options.notChannel)
-    }
+    this._maybeSubmitAfterInsert(options ? options.notChannel : false)
   }
 
   // Start desktop only.
@@ -243,15 +239,16 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
 
   // End desktop only.
 
-  // If you type @notausername<enter> or #notachannel<enter>, we've essentially 'picked' nothing and really want to submit ... all the way out.
-  //
-  // If you type e.g., @notausername<tab> we don't want to do anything.
+  // If you type @notausername<enter> or #notachannel<enter>, we've essentially
+  // 'picked' nothing and really want to submit. This is a little wonky cause
+  // this component doesn't directly know if the list is filtered all the way
+  // out If you type e.g., @notausername<tab> we don't want to do anything.
   _maybeSubmitAfterInsert = (notUserOrChannel: boolean) => {
     const text = this._getText()
     if (text && notUserOrChannel && this._lastSelectionKey === 'Enter') {
-      this._setLastSelectionKey('')
       this.props.onSubmit(text)
     }
+    this._setLastSelectionKey('')
   }
 
   _onSubmit = (text: string) => {
