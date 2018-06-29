@@ -5,6 +5,7 @@ import type {SimpleProofState, UserInfo, Proof} from '../constants/types/tracker
 import type {BioEditFns} from '../common-adapters/user-bio'
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {Folder} from '../constants/types/folders'
+import type {Response} from 'react-native-image-picker'
 
 export type Props = {
   addUserToTeamsResults: string,
@@ -44,7 +45,7 @@ export type Props = {
   following: Array<Types.FriendshipUserInfo>,
   reason: ?string,
   error: ?string,
-  onEditAvatar: (filename: string) => void,
+  onEditAvatar: (image?: Response) => void,
   onClickAvatar: () => void,
   onClickFollowers: () => void,
   onClickFollowing: () => void,
