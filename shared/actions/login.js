@@ -9,7 +9,6 @@ import * as DevicesConstants from '../constants/devices'
 import * as WaitingGen from './waiting-gen'
 import * as DevicesGen from './devices-gen'
 import * as LoginGen from './login-gen'
-import * as SignupGen from './signup-gen'
 import * as ChatTypes from '../constants/types/chat2'
 import * as ChatConstants from '../constants/chat2'
 import * as Types from '../constants/types/login'
@@ -310,10 +309,13 @@ const displayAndPromptSecretSaga = onBackSaga =>
 
 const promptNewDeviceNameSaga = onBackSaga =>
   function*({existingDevices, errorMessage}) {
-    yield Saga.put(SignupGen.createCheckedDevicenameError({devicename: '', error: errorMessage}))
-    yield Saga.put(
-      navigateAppend([{props: {existingDevices}, selected: 'setPublicName'}], [loginTab, 'login'])
-    )
+    if (errorMessage) {
+      yield Saga.put(LoginGen.createSetDevicenameError({error: errorMessage}))
+    } else {
+      yield Saga.put(
+        navigateAppend([{props: {existingDevices}, selected: 'setPublicName'}], [loginTab, 'login'])
+      )
+    }
 
     const {onBack, navUp, onSubmit} = (yield Saga.race({
       navUp: Saga.take(RouteConstants.navigateUp),
@@ -325,10 +327,12 @@ const promptNewDeviceNameSaga = onBackSaga =>
       onSubmit: ?LoginGen.SubmitDeviceNamePayload,
     })
     if (onBack || navUp) {
+      yield Saga.put(LoginGen.createSetDevicenameError({error: ''}))
       yield Saga.call(onBackSaga)
       return EngineRpc.rpcCancel(InputCancelError)
     } else if (onSubmit) {
       const {deviceName} = onSubmit.payload
+      yield Saga.put(LoginGen.createSetDevicenameError({error: ''}))
       return EngineRpc.rpcResult(deviceName)
     }
   }
