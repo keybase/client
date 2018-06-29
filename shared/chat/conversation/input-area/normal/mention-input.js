@@ -242,7 +242,7 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
   // If you type @notausername<enter> or #notachannel<enter>, we've essentially
   // 'picked' nothing and really want to submit. This is a little wonky cause
   // this component doesn't directly know if the list is filtered all the way
-  // out If you type e.g., @notausername<tab> we don't want to do anything.
+  // out. If you type e.g., @notausername<tab> we don't want to do anything.
   _maybeSubmitAfterInsert = (notUserOrChannel: boolean) => {
     const text = this._getText()
     if (text && notUserOrChannel && this._lastSelectionKey === 'Enter') {
