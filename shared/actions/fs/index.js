@@ -290,12 +290,6 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
           endEstimate,
         })
       )
-      console.log({
-        msg: 'songgao',
-        syncingPaths,
-        totalSyncingBytes,
-        endEstimate,
-      })
 
       if (totalSyncingBytes <= 0) {
         break

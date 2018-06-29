@@ -21,11 +21,9 @@ const realCSS = `
 const Upload = ({files, timeLeft}: UploadProps) => (
   <Box style={stylesBox} className="uploadBoxAnimation">
     <style>{realCSS}</style>
-    <Text
-      key="files"
-      type="BodySemibold"
-      style={stylesText}
-    >{`Encrypting and uploading ${files} files...`}</Text>
+    <Text key="files" type="BodySemibold" style={stylesText}>
+      Encrypting and uploading {files} files...
+    </Text>
     {!!(timeLeft && timeLeft.length) && (
       <Text key="left" type="BodySmall" style={stylesText}>{`${timeLeft} left`}</Text>
     )}

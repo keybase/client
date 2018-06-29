@@ -320,7 +320,6 @@ const pickAndUpload = ({payload: {type}}: FsGen.PickAndUploadPayload) =>
         ],
       },
       filePaths => {
-        console.log({'SONGGAO-filePaths': filePaths})
         return resolve(filePaths)
       }
     )

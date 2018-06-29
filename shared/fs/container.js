@@ -26,7 +26,6 @@ const mapStateToProps = (state: TypedState, {path}) => {
       : []
   const isUserReset = resetParticipants.includes(_username)
   const _downloads = state.fs.downloads
-  console.log({msg: 'songgao', path, itemDetail, resetParticipants})
   return {
     _itemChildren: itemChildren,
     _itemFavoriteChildren: itemFavoriteChildren,
@@ -54,7 +53,7 @@ const getEditingRows = (
       rowType: 'editing',
       editID,
       name: edit.name,
-
+      // fields for sortable
       editType: edit.type,
       type: 'folder',
     }))
@@ -64,20 +63,26 @@ const getStillRows = (
   parentPath: Types.Path,
   names: Array<string>
 ): Array<SortableStillRowItem> =>
-  names
-    .map(name => pathItems.get(Types.pathConcat(parentPath, name), Constants.makeUnknownPathItem({name})))
-    .filter(item => !(item.tlfMeta && item.tlfMeta.isIgnored))
-    .map(item => ({
-      rowType: 'still',
-      path: Types.pathConcat(parentPath, item.name),
-      name: item.name,
+  names.reduce((items, name) => {
+    const item = pathItems.get(Types.pathConcat(parentPath, name), Constants.makeUnknownPathItem({name}))
+    if (item.tlfMeta && item.tlfMeta.isIgnored) {
+      return items
+    }
+    return [
+      ...items,
+      {
+        rowType: 'still',
+        path: Types.pathConcat(parentPath, item.name),
+        name: item.name,
+        // fields for sortable
+        type: item.type,
+        tlfMeta: item.tlfMeta,
+        lastModifiedTimestamp: item.lastModifiedTimestamp,
+      },
+    ]
+  }, [])
 
-      type: item.type,
-      tlfMeta: item.tlfMeta,
-      lastModifiedTimestamp: item.lastModifiedTimestamp,
-    }))
-
-// TODO: when we have renames, reconsile editing rows in here too.
+// TODO: when we have renames, reconcile editing rows in here too.
 const amendStillRows = (
   stills: Array<SortableStillRowItem>,
   uploads: Types.Uploads
@@ -96,6 +101,7 @@ const amendStillRows = (
       rowType: 'uploading',
       name,
       path,
+      // field for sortable
       type,
     }: SortableUploadingRowItem)
   })
