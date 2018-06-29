@@ -211,8 +211,6 @@ func (k *KeybaseServiceBase) filterRevokedKeys(
 			info.sigChainLocation = key.Base.Revocation.SigChainLocation
 		} else if reset != nil {
 			info.Time = keybase1.ToTime(keybase1.FromUnixTime(reset.Ctime))
-			// TODO(CORE-7933): get a verified sequence number from
-			// the service.
 			info.MerkleRoot.Seqno = reset.MerkleRoot.Seqno
 			info.MerkleRoot.HashMeta = reset.MerkleRoot.HashMeta
 			// If we don't have a prev seqno, then we already have the

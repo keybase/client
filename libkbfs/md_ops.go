@@ -23,7 +23,7 @@ import (
 
 const (
 	// Our contract with the server states that it won't accept KBFS
-	// writes if more than 3 hours have passed since the last Merkle
+	// writes if more than 8 hours have passed since the last Merkle
 	// roots (both global and KBFS) were published.  Add some padding
 	// to that, and if we see any gaps larger than this, we will know
 	// we shouldn't be trusting the server.  TODO: reduce this once
@@ -298,7 +298,7 @@ func (md *MDOpsStandard) checkMerkleTimes(ctx context.Context,
 func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 	ctx context.Context, rmds *RootMetadataSigned,
 	verifyingKey kbfscrypto.VerifyingKey, irmd ImmutableRootMetadata,
-	root keybase1.MerkleRootV2) (err error) {
+	root keybase1.MerkleRootV2, timeToCheck time.Time) (err error) {
 	ctx = context.WithValue(ctx, ctxMDOpsSkipKeyVerification, struct{}{})
 
 	kbfsRoot, merkleNodes, rootSeqno, err :=
@@ -319,19 +319,19 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 		// error window with respect to the revocation.
 		_, latestRootTime, err := md.config.KBPKI().GetCurrentMerkleRoot(ctx)
 		if err != nil {
-			return false, err
+			return err
 		}
 		treeID := mdToMerkleTreeID(irmd)
 		// TODO: cache the latest KBFS merkle root somewhere for a while?
 		latestKbfsRoot, err := md.config.MDServer().GetMerkleRootLatest(
 			ctx, treeID)
 		if err != nil {
-			return false, err
+			return err
 		}
 		serverOffset, _ := md.config.MDServer().OffsetFromServerTime()
 		if (serverOffset < 0 && serverOffset < -time.Hour) ||
 			(serverOffset > 0 && serverOffset > time.Hour) {
-			return false, errors.Errorf("The offset between the server clock "+
+			return errors.Errorf("The offset between the server clock "+
 				"and the local clock is too large to check the revocation "+
 				"time: %s", serverOffset)
 		}
@@ -340,7 +340,7 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 			ctx, latestRootTime, latestKbfsRoot, currServerTime,
 			maxAllowedMerkleGap)
 		if err != nil {
-			return false, err
+			return err
 		}
 
 		// Verify the chain up to the current head.  By using `ctx`,
@@ -367,22 +367,23 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 		return nil
 	}
 
-	// Check the gap between the revocation and the global/KBFS roots
-	// that include the revocation, to make sure they fall within the
-	// expected error window.  The server didn't begin enforcing this
-	// until some time into KBFS's existence though.
-	revokeTime := keybase1.FromTime(info.Time)
-	if revokeTime.After(merkleGapEnforcementStart) {
-		// TODO(KBFS-2954): get the right root time for the
-		// corresponding global root.
-		latestRootTime := time.Unix(kbfsRoot.Timestamp, 0)
-		err = md.checkMerkleTimes(
-			ctx, latestRootTime, kbfsRoot, revokeTime,
-			// Check the gap from the reverse direction, to make sure the
-			// roots were made _after_ the revoke within the gap.
-			-maxAllowedMerkleGap)
-		if err != nil {
-			return false, err
+	if !timeToCheck.IsZero() {
+		// Check the gap between the event and the global/KBFS roots
+		// that include the event, to make sure they fall within the
+		// expected error window.  The server didn't begin enforcing this
+		// until some time into KBFS's existence though.
+		if timeToCheck.After(merkleGapEnforcementStart) {
+			// TODO(KBFS-2954): get the right root time for the
+			// corresponding global root.
+			latestRootTime := time.Unix(kbfsRoot.Timestamp, 0)
+			err = md.checkMerkleTimes(
+				ctx, latestRootTime, kbfsRoot, timeToCheck,
+				// Check the gap from the reverse direction, to make sure the
+				// roots were made _after_ the revoke within the gap.
+				-maxAllowedMerkleGap)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -476,7 +477,8 @@ func (md *MDOpsStandard) verifyKey(
 		irmd.Revision(), irmd.TlfID(), info.Time, info.MerkleRoot.Seqno)
 
 	err = md.checkRevisionCameBeforeMerkle(
-		ctx, rmds, verifyingKey, irmd, info.MerkleRoot)
+		ctx, rmds, verifyingKey, irmd, info.MerkleRoot,
+		keybase1.FromTime(info.Time))
 	if err != nil {
 		return false, err
 	}
@@ -637,8 +639,9 @@ func (mbtc merkleBasedTeamChecker) IsTeamWriter(
 		return false, err
 	}
 
+	// TODO(CORE-8199): pass in the time for the writer downgrade.
 	err = mbtc.md.checkRevisionCameBeforeMerkle(
-		ctx, mbtc.rmds, verifyingKey, mbtc.irmd, root)
+		ctx, mbtc.rmds, verifyingKey, mbtc.irmd, root, time.Time{})
 	if err != nil {
 		return false, err
 	}

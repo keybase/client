@@ -1577,7 +1577,7 @@ type MDServer interface {
 	// returned metadata object.
 	FindNextMD(ctx context.Context, tlfID tlf.ID, rootSeqno keybase1.Seqno) (
 		nextKbfsRoot *kbfsmd.MerkleRoot, nextMerkleNodes [][]byte,
-		nextRootSeqno keybase1.Seqno, nextRootHash keybase1.HashMeta, err error)
+		nextRootSeqno keybase1.Seqno, err error)
 
 	// GetMerkleRootLatest returns the latest KBFS merkle root for the
 	// given tree ID.
