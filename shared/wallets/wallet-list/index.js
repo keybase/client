@@ -42,7 +42,7 @@ const _AddWallet = (props: AddProps & FloatingMenuParentProps) => {
         gapEnd={true}
       >
         <Icon type="iconfont-new" color={globalColors.blue} />
-        <Text type="BodyBigLink">Add a wallet</Text>
+        <Text type="BodyBigLink">Add an account</Text>
       </Box2>
       <FloatingMenu
         attachTo={props.attachmentRef}
