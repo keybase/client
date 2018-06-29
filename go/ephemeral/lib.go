@@ -313,7 +313,7 @@ func (e *EKLib) newTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID, mer
 	if backgroundKeygenPossible(ek.Metadata.Ctime.Time(), merkleRoot) {
 		return false, true, latestGeneration, nil
 	}
-	return keygenNeeded(ek.Metadata.Ctime.Time(), merkleRoot), latestGeneration, nil
+	return keygenNeeded(ek.Metadata.Ctime.Time(), merkleRoot), false, latestGeneration, nil
 }
 
 type teamEKGenCacheEntry struct {

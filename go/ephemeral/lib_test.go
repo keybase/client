@@ -266,7 +266,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 
 	// First we ensure that we don't do background generation for expired teamEKs.
 	fc.Advance(cacheEntryLifetime) // expire our cache
-	forceEKCtime(expectedTeamEKGen, -time.Second*time.Duration(KeyGenLifetimeSecs))
+	forceEKCtime(expectedTeamEKGen, -libkb.EphemeralKeyGenInterval)
 	expectedTeamEKGen++
 	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, false /* teamEKCreationInProgress */)
 
@@ -274,7 +274,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	ch := make(chan bool, 1)
 	ekLib.setBackgroundCreationTestCh(ch)
 	fc.Advance(cacheEntryLifetime) // expire our cache
-	forceEKCtime(expectedTeamEKGen, -time.Second*time.Duration(KeyGenLifetimeSecs)+(30*time.Minute))
+	forceEKCtime(expectedTeamEKGen, -libkb.EphemeralKeyGenInterval+30*time.Minute)
 	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, true /* teamEKCreationInProgress */)
 	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, true /* teamEKCreationInProgress */)
 	// Signal background generation should start

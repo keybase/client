@@ -64,11 +64,11 @@ func ctimeIsStale(ctime time.Time, currentMerkleRoot libkb.MerkleRoot) bool {
 // teamEK's lifetime (and supporting device/user EKs) is less than the maximum
 // lifetime of ephemeral content. This can result in content loss once the keys
 // are deleted.
-func backgroundKeygenPossible(ctime time.Time, currentMerkleRoot libkb.MerkleRoot) (isbool {
+func backgroundKeygenPossible(ctime time.Time, currentMerkleRoot libkb.MerkleRoot) bool {
 	keyAge := keybase1.TimeFromSeconds(currentMerkleRoot.Ctime()).Time().Sub(ctime)
-	isOneHourFromExpiration = diff >= (libkb.EphemeralKeyGenInterval-time.Hour)
-	isExpired = diff >= libkb.EphemeralKeyGenInterval
-	return  isOneHourFromExpiration && !isExpired
+	isOneHourFromExpiration := keyAge >= (libkb.EphemeralKeyGenInterval - time.Hour)
+	isExpired := keyAge >= libkb.EphemeralKeyGenInterval
+	return isOneHourFromExpiration && !isExpired
 }
 
 func keygenNeeded(ctime time.Time, currentMerkleRoot libkb.MerkleRoot) bool {
