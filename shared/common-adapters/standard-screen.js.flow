@@ -12,7 +12,7 @@ export type Props = {
     message: string | React.Node,
     type: NotificationType,
   },
-  style?: ?Object,
+  style?: any,
   theme?: 'light' | 'dark', // defaults to light
   scrollEnabled?: boolean,
   styleBanner?: ?Object,

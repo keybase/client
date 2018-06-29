@@ -51,7 +51,7 @@ class EditAvatar extends React.Component<Props> {
       <StandardScreen
         onCancel={this.props.onClose}
         scrollEnabled={false}
-        style={container}
+        style={styles.container}
         title="Zoom and pan"
       >
         <Box
@@ -100,18 +100,17 @@ class EditAvatar extends React.Component<Props> {
   }
 }
 
-const container = platformStyles({
-  common: {
-    ...globalStyles.flexBoxColumn,
-    flex: 1,
-  },
-})
-
 const styles = styleSheetCreate({
   button: {
     marginTop: globalMargins.tiny,
     width: '100%',
   },
+  container: platformStyles({
+    common: {
+      ...globalStyles.flexBoxColumn,
+      flex: 1,
+    },
+  }),
   zoomContainer: {
     alignSelf: 'center',
     backgroundColor: globalColors.lightGrey2,
