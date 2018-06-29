@@ -278,26 +278,34 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 			return err
 		}
 
+		// Look for invites first - invite will always be obsoleted (and
+		// removed) by membership or another invite; but membership can
+		// stay un-removed when superseded by new invite (is removed by
+		// new membership though).
 		var existingRole keybase1.TeamRole
-		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
-		if err == nil {
+		invite, existingUV, found := t.FindActiveKeybaseInvite(uv.Uid)
+		if found {
+			// User is PUKless member.
+			existingRole = invite.Role
+		} else {
+			foundUV, err := t.UserVersionByUID(ctx, uv.Uid)
+			if err != nil {
+				if _, ok := err.(libkb.NotFoundError); ok {
+					// username is neither crypto UV nor keybase invite in
+					// that team. bail out.
+					return libkb.NotFoundError{Msg: fmt.Sprintf("User %q (%s) is not a member of this team.",
+						username, uv.Uid)}
+				}
+				// ... or something else failed
+				return err
+			}
+
 			// User is existing crypto member - get their current role.
-			role, err := t.MemberRole(ctx, existingUV)
+			role, err := t.MemberRole(ctx, foundUV)
 			if err != nil {
 				return err
 			}
 			existingRole = role
-		} else {
-			// UV not found - look for invites.
-			invite, foundUV, found := t.FindActiveKeybaseInvite(uv.Uid)
-			if !found {
-				// username is neither crypto UV nor keybase invite in
-				// that team. bail out.
-				return libkb.NotFoundError{Msg: fmt.Sprintf("User %q (%s) is not a member of this team.",
-					username, uv.Uid)}
-			}
-
-			existingRole = invite.Role
 			existingUV = foundUV
 		}
 
