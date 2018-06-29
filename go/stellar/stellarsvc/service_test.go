@@ -532,7 +532,7 @@ func testRelay(t *testing.T, yank bool) {
 	require.Equal(t, stellar1.PaymentStatus_CLAIMABLE, fhistory[0].Payment.StatusSimplified)
 	require.Equal(t, "claimable", fhistory[0].Payment.StatusDescription)
 	if yank {
-		require.Equal(t, "- 3 XLM", fhistory[0].Payment.AmountDescription)
+		require.Equal(t, "3 XLM", fhistory[0].Payment.AmountDescription)
 		require.Equal(t, stellar1.BalanceDelta_DECREASE, fhistory[0].Payment.Delta)
 	} else {
 		require.Equal(t, "3 XLM", fhistory[0].Payment.AmountDescription)
