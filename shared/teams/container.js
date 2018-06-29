@@ -33,7 +33,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       ])
     )
   },
-  onHideChatBanner: () => dispatch(GregorGen.createInjectItem({category: 'sawChatBanner', body: 'true'})),
+  onHideChatBanner: () => dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'})),
   onJoinTeam: () => {
     dispatch(navigateAppend(['showJoinTeamDialog']))
   },

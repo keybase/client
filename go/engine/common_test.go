@@ -144,13 +144,7 @@ func CreateAndSignupFakeUserPaper(tc libkb.TestContext, prefix string) *FakeUser
 	return fu
 }
 
-func CreateAndSignupFakeUserSafe(g *libkb.GlobalContext, prefix string) (*FakeUser, error) {
-	fu, err := NewFakeUser(prefix)
-	if err != nil {
-		return nil, err
-	}
-
-	arg := MakeTestSignupEngineRunArg(fu)
+func CreateAndSignupFakeUserSafeWithArg(g *libkb.GlobalContext, fu *FakeUser, arg SignupEngineRunArg) (*FakeUser, error) {
 	uis := libkb.UIs{
 		LogUI:    g.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
@@ -158,11 +152,21 @@ func CreateAndSignupFakeUserSafe(g *libkb.GlobalContext, prefix string) (*FakeUs
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
 	s := NewSignupEngine(g, &arg)
-	err = RunEngine2(libkb.NewMetaContextTODO(g).WithUIs(uis), s)
+	err := RunEngine2(libkb.NewMetaContextTODO(g).WithUIs(uis), s)
 	if err != nil {
 		return nil, err
 	}
 	return fu, nil
+}
+
+func CreateAndSignupFakeUserSafe(g *libkb.GlobalContext, prefix string) (*FakeUser, error) {
+	fu, err := NewFakeUser(prefix)
+	if err != nil {
+		return nil, err
+	}
+	arg := MakeTestSignupEngineRunArg(fu)
+
+	return CreateAndSignupFakeUserSafeWithArg(g, fu, arg)
 }
 
 func CreateAndSignupFakeUserGPG(tc libkb.TestContext, prefix string) *FakeUser {

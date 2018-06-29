@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"bytes"
 	"fmt"
 	"regexp"
 	"strings"
@@ -150,4 +151,37 @@ func TestForceWallClock(t *testing.T) {
 	n := time.Now()
 	require.True(t, hasMonotonicClock(n))
 	require.False(t, hasMonotonicClock(ForceWallClock(n)))
+}
+
+func TestDecodeHexFixed(t *testing.T) {
+	units := []struct {
+		src string
+		dst []byte
+		err string
+	}{
+		{"", []byte{}, ""},
+		{"aa", []byte{170}, ""},
+		{"abcd", []byte{171, 205}, ""},
+
+		{"a", []byte{}, "encoding/hex: odd length hex string"},
+		{"aaa", []byte{170}, "encoding/hex: odd length hex string"},
+		{"aa", []byte{}, "error decoding fixed-length hex: expected 0 bytes but got 1"},
+		{"", []byte{170}, "error decoding fixed-length hex: expected 1 bytes but got 0"},
+		{"abcd", []byte{171, 205, 0}, "error decoding fixed-length hex: expected 3 bytes but got 2"},
+		{"abcd", []byte{171}, "error decoding fixed-length hex: expected 1 bytes but got 2"},
+	}
+	for i, unit := range units {
+		t.Logf("units[%v]", i)
+		buf := make([]byte, len(unit.dst))
+		err := DecodeHexFixed(buf, []byte(unit.src))
+		if unit.err != "" {
+			require.Error(t, err)
+			require.Equal(t, unit.err, err.Error())
+			empty := make([]byte, len(unit.dst))
+			require.True(t, bytes.Equal(empty, buf))
+		} else {
+			require.NoError(t, err)
+			require.Equal(t, unit.dst, buf)
+		}
+	}
 }

@@ -45,6 +45,7 @@ var deviceNameTests = []checkerTest{
 	{input: "home computer+", valid: false},
 	{input: "home computer'", valid: false},
 	{input: "home computer_", valid: false},
+	{input: "not😂ascii", valid: false},
 }
 
 func TestCheckDeviceName(t *testing.T) {

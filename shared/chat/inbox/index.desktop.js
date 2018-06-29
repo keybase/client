@@ -64,7 +64,7 @@ class Inbox extends PureComponent<Props, State> {
         <Divider
           key="divider"
           toggle={this.props.toggleSmallTeamsExpanded}
-          showSmallTeamsExpandDivider={this.props.showSmallTeamsExpandDivider}
+          showButton={row.showButton}
           smallIDsHidden={this.props.smallIDsHidden}
           style={{marginBottom: globalMargins.tiny}}
         />

@@ -76,20 +76,20 @@ const getRowsAndMetadata = createSelector(
   [getCachedSortedSmallIDs, getBigRowItems, (_, smallTeamsExpanded) => smallTeamsExpanded],
   (smallIDs, bigRows, smallTeamsExpanded) => {
     const smallTeamsBelowTheFold = Math.max(0, smallIDs.length - smallTeamsCollapsedMaxShown)
-    const showSmallTeamsExpandDivider = !!(bigRows.length && smallTeamsBelowTheFold)
-    const truncateSmallTeams = showSmallTeamsExpandDivider && !smallTeamsExpanded
+    const showButton = !!(bigRows.length && smallTeamsBelowTheFold)
+    const truncateSmallTeams = showButton && !smallTeamsExpanded
     const smallRows = (truncateSmallTeams ? smallIDs.slice(0, smallTeamsCollapsedMaxShown) : smallIDs).map(
       conversationIDKey => ({conversationIDKey, type: 'small'})
     )
     const smallIDsHidden = truncateSmallTeams ? smallIDs.slice(smallTeamsCollapsedMaxShown) : []
-    const divider = bigRows.length !== 0 ? [{type: 'divider'}] : []
+    const divider = bigRows.length !== 0 ? [{showButton, type: 'divider'}] : []
 
     return {
       rows: [...smallRows, ...divider, ...bigRows],
       showBuildATeam: bigRows.length === 0,
-      showSmallTeamsExpandDivider,
+      showSmallTeamsExpandDivider: showButton,
       smallIDsHidden,
-      smallTeamsExpanded: smallTeamsExpanded && showSmallTeamsExpandDivider, // only collapse if we're actually showing a divider,
+      smallTeamsExpanded: smallTeamsExpanded && showButton, // only collapse if we're actually showing a divider,
     }
   }
 )

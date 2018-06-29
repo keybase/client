@@ -291,4 +291,20 @@ protocol SimpleFS {
    */
   @lint("ignore")
   SimpleFSGetHTTPAddressAndTokenResponse SimpleFSGetHTTPAddressAndToken();
+
+  /**
+   simpleFSUserEditHistory returns edit histories of TLFs that the logged-in
+   user can access.  Each returned history is corresponds to a unique
+   writer-TLF pair.  They are in descending order by the modification time
+   (as recorded by the server) of the most recent edit in each history.
+   */
+  array<FSFolderEditHistory> simpleFSUserEditHistory();
+
+  /**
+   simpleFSFolderEditHistory returns the edit history for the TLF
+   described by `path`, for the most recent writers of that TLF.
+   The writers are in descending order by the modification time (as
+   recorded by the server) of their most recent edit.
+   */
+  FSFolderEditHistory simpleFSFolderEditHistory(Path path);
 }
