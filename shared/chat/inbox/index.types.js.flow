@@ -21,6 +21,7 @@ export type RowItemBig = {|
   channelname: string,
 |}
 export type RowItemDivider = {|
+  showButton: boolean,
   type: 'divider',
 |}
 

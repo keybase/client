@@ -1,10 +1,20 @@
 // @flow
 import * as React from 'react'
 import {Box, ClickableBox} from '../../../../common-adapters'
-import {glamorous, globalStyles, globalColors, isMobile, desktopStyles} from '../../../../styles'
+import {
+  glamorous,
+  globalStyles,
+  globalColors,
+  collapseStyles,
+  isMobile,
+  desktopStyles,
+  styleSheetCreate,
+  platformStyles,
+} from '../../../../styles'
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../avatars'
+import * as RowSizes from '../sizes'
 
 type Props = {
   backgroundColor: string,
@@ -41,8 +51,11 @@ class SmallTeam extends React.PureComponent<Props> {
   render() {
     const props = this.props
     return (
-      <ClickableBox onClick={props.onSelectConversation} style={{backgroundColor: props.backgroundColor}}>
-        <SmallTeamBox style={props.isSelected ? rowContainerStyleSelected : rowContainerStyle}>
+      <ClickableBox
+        onClick={props.onSelectConversation}
+        style={collapseStyles([{backgroundColor: props.backgroundColor}, styles.container])}
+      >
+        <SmallTeamBox style={props.isSelected ? styles.rowContainerSelected : styles.rowContainer}>
           {props.teamname ? (
             <TeamAvatar
               teamname={props.teamname}
@@ -58,7 +71,7 @@ class SmallTeam extends React.PureComponent<Props> {
               participants={props.participants}
             />
           )}
-          <Box style={props.isSelected ? conversationRowStyleSelected : conversationRowStyle}>
+          <Box style={props.isSelected ? styles.conversationRowSelected : styles.conversationRow}>
             <SimpleTopLine
               backgroundColor={props.backgroundColor}
               hasUnread={props.hasUnread}
@@ -91,33 +104,42 @@ class SmallTeam extends React.PureComponent<Props> {
   }
 }
 
-const conversationRowStyle = {
-  ...globalStyles.flexBoxColumn,
-  backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blue5,
-  flexGrow: 1,
-  height: '100%',
-  justifyContent: 'center',
-  paddingLeft: 8,
-  paddingRight: 8,
-}
-
-const conversationRowStyleSelected = {
-  ...conversationRowStyle,
-  backgroundColor: globalColors.blue,
-}
-const rowHeight = isMobile ? 64 : 56
-
-const rowContainerStyle = {
-  ...globalStyles.flexBoxRow,
-  ...desktopStyles.clickable,
-  backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blue5,
-  flexShrink: 0,
-  height: rowHeight,
-}
-
-const rowContainerStyleSelected = {
-  ...rowContainerStyle,
-  backgroundColor: globalColors.blue,
-}
+const styles = styleSheetCreate({
+  container: {flexShrink: 0, height: RowSizes.smallRowHeight},
+  conversationRow: {
+    ...globalStyles.flexBoxColumn,
+    backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blue5,
+    flexGrow: 1,
+    height: '100%',
+    justifyContent: 'center',
+    paddingLeft: 8,
+    paddingRight: 8,
+  },
+  conversationRowSelected: {
+    ...globalStyles.flexBoxColumn,
+    backgroundColor: globalColors.blue,
+    flexGrow: 1,
+    height: '100%',
+    justifyContent: 'center',
+    paddingLeft: 8,
+    paddingRight: 8,
+  },
+  rowContainer: platformStyles({
+    common: {
+      ...globalStyles.flexBoxRow,
+      backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blue5,
+      height: '100%',
+    },
+    isElectron: desktopStyles.clickable,
+  }),
+  rowContainerSelected: platformStyles({
+    common: {
+      ...globalStyles.flexBoxRow,
+      backgroundColor: globalColors.blue,
+      height: '100%',
+    },
+    isElectron: desktopStyles.clickable,
+  }),
+})
 
 export {SmallTeam}
