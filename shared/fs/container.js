@@ -37,7 +37,6 @@ const mapStateToProps = (state: TypedState, {path}) => {
     resetParticipants,
     _downloads,
     _uploads: state.fs.uploads,
-    path,
     progress: itemDetail.progress,
   }
 }
@@ -106,35 +105,35 @@ const amendStillRows = (
     }: SortableUploadingRowItem)
   })
 
-const placeholderRows = [
-  {rowType: 'placeholder', name: '1'},
-  {rowType: 'placeholder', name: '2'},
-  {rowType: 'placeholder', name: '3'},
+const getPlaceholderRows = type => [
+  {rowType: 'placeholder', name: '1', type},
+  {rowType: 'placeholder', name: '2', type},
+  {rowType: 'placeholder', name: '3', type},
 ]
 
-const getItemsFromStateProps = stateProps => {
+const getItemsFromStateProps = (stateProps, path: Types.Path) => {
   if (stateProps.progress === 'pending') {
-    return placeholderRows
+    return getPlaceholderRows(Types.getPathLevel(path) <= 2 ? 'folder' : 'file')
   }
 
-  const editingRows = getEditingRows(stateProps._edits, stateProps.path)
+  const editingRows = getEditingRows(stateProps._edits, path)
   const stillRows = getStillRows(
     stateProps._pathItems,
-    stateProps.path,
+    path,
     stateProps._itemChildren.union(stateProps._itemFavoriteChildren).toArray()
   )
 
   return sortRowItems(
     editingRows.concat(amendStillRows(stillRows, stateProps._uploads)),
     stateProps._sortSetting,
-    Types.pathIsNonTeamTLFList(stateProps.path) ? stateProps._username : undefined
+    Types.pathIsNonTeamTLFList(path) ? stateProps._username : undefined
   )
 }
 
-const mergeProps = (stateProps, dispatchProps, {routePath}) => ({
+const mergeProps = (stateProps, dispatchProps, {path, routePath}) => ({
   isUserReset: stateProps.isUserReset,
-  items: getItemsFromStateProps(stateProps),
-  path: stateProps.path,
+  items: getItemsFromStateProps(stateProps, path),
+  path,
   progress: stateProps.progress,
   resetParticipants: stateProps.resetParticipants,
   routePath,

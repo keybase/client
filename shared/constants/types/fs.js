@@ -402,6 +402,7 @@ export type UploadingRowItem = {
 export type PlaceholderRowItem = {
   rowType: 'placeholder',
   name: string,
+  type: 'folder' | 'file',
 }
 
 export type RowItem = StillRowItem | EditingRowItem | UploadingRowItem | PlaceholderRowItem
