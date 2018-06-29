@@ -1,4 +1,5 @@
 // @flow
+/* eslint-disable sort-keys */
 import React from 'react'
 import I from 'immutable'
 import moment from 'moment'
@@ -173,9 +174,9 @@ const provider = PropProviders.compose(
       visible: false,
       yourMessage: false,
     }),
-    Wrapper: p => {
+    WrapperTimestamp: p => {
       const {children, message, previous} = p
-      // Want to mimick the timestamp logic in MessageWrapper
+      // Want to mimick the timestamp logic in WrapperTimestamp
       const oldEnough = !!(
         previous &&
         previous.timestamp &&
@@ -190,7 +191,7 @@ const provider = PropProviders.compose(
         timestamp: !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null,
       }
     },
-    WrapperUserContent: p => ({
+    WrapperAuthor: p => ({
       author: 'a',
       exploded: false,
       explodedBy: '',
