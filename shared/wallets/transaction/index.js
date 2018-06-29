@@ -6,7 +6,7 @@ import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {formatTimeForStellarTransaction, formatTimeForStellarTransactionDetails} from '../../util/timestamp'
 
 type Role = 'sender' | 'receiver'
-type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'wallet'
+type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'account'
 
 type CounterpartyIconProps = {|
   large: boolean,
@@ -21,7 +21,7 @@ export const CounterpartyIcon = (props: CounterpartyIconProps) => {
       return <Avatar username={props.counterparty} size={size} />
     case 'stellarPublicKey':
       return <Icon type="icon-placeholder-secret-user-48" style={{height: size, width: size}} />
-    case 'wallet':
+    case 'account':
       return <Icon type="icon-wallet-add-48" style={{height: size, width: size}} />
     default:
       /*::
@@ -79,7 +79,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
           textType={textType}
         />
       )
-    case 'wallet':
+    case 'account':
       return props.large ? (
         <Text type={textType}>{props.counterparty}</Text>
       ) : (
@@ -127,19 +127,19 @@ const Detail = (props: DetailProps) => {
     </React.Fragment>
   )
 
-  if (props.counterpartyType === 'wallet') {
+  if (props.counterpartyType === 'account') {
     const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
     if (props.yourRole === 'sender') {
       return (
         <Text type={textType}>
-          {verbPhrase} {amount} from this wallet to {counterparty}.
+          {verbPhrase} {amount} from this account to {counterparty}.
         </Text>
       )
     }
 
     return (
       <Text type={textType}>
-        {verbPhrase} {amount} from {counterparty} to this wallet.
+        {verbPhrase} {amount} from {counterparty} to this account.
       </Text>
     )
   }
@@ -162,6 +162,7 @@ const Detail = (props: DetailProps) => {
 }
 
 type AmountXLMProps = {|
+  delta: 'increase' | 'decrease',
   yourRole: Role,
   amountXLM: string,
   pending: boolean,
@@ -170,12 +171,13 @@ type AmountXLMProps = {|
 const AmountXLM = (props: AmountXLMProps) => {
   const color = props.pending
     ? globalColors.black_20
-    : props.yourRole === 'sender'
+    : props.delta === 'decrease'
       ? globalColors.red
       : globalColors.green
   const amount = `${props.amountXLM}`
   return (
     <Text style={{color, textAlign: 'right'}} type="BodyExtrabold">
+      {props.delta === 'increase' ? '+ ' : '- '}
       {amount}
     </Text>
   )
@@ -210,6 +212,9 @@ export const Timestamp = (props: TimestampProps) => {
 
 export type Props = {|
   large: boolean,
+
+  // whether account balance has increased or decreased
+  delta: 'increase' | 'decrease',
 
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
@@ -270,7 +275,12 @@ export const Transaction = (props: Props) => {
               <Markdown allowFontScaling={true}>{props.memo}</Markdown>
             </Box2>
           )}
-          <AmountXLM pending={pending} yourRole={props.yourRole} amountXLM={props.amountXLM} />
+          <AmountXLM
+            delta={props.delta}
+            pending={pending}
+            yourRole={props.yourRole}
+            amountXLM={props.amountXLM}
+          />
         </Box2>
       </Box2>
     </Box2>

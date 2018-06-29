@@ -5,7 +5,7 @@ import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import Transaction, {CounterpartyIcon, CounterpartyText, Timestamp} from '../transaction'
 
 type Role = 'sender' | 'receiver'
-type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'wallet'
+type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'account'
 
 export type Props = {|
   amountUser: string,
@@ -13,6 +13,7 @@ export type Props = {|
   counterparty: string,
   counterpartyMeta?: string,
   counterpartyType: CounterpartyType,
+  delta: 'increase' | 'decrease',
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
   memo: string,
@@ -81,6 +82,7 @@ const TransactionDetails = (props: Props) => (
       amountXLM={props.amountXLM}
       counterparty={props.counterparty}
       counterpartyType={props.counterpartyType}
+      delta={props.delta}
       large={true}
       memo={props.memo}
       timestamp={props.timestamp}

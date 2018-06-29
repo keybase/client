@@ -21,6 +21,7 @@ export default (props: Props) => {
       )
     } else if (section.title === 'History') {
       children.push(
+        // $FlowIssue thinks these props aren't in `Transaction`
         <Transaction
           accountID={props.accountID}
           paymentID={item.item.paymentID}

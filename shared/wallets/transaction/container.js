@@ -20,6 +20,7 @@ const mergeProps = stateProps => {
   const counterpartyType = Constants.paymentToCounterpartyType(tx)
   return {
     timestamp: tx.time,
+    delta: tx.delta,
     yourRole,
     counterparty: yourRole === 'sender' ? tx.target : tx.source,
     counterpartyType,
@@ -30,4 +31,4 @@ const mergeProps = stateProps => {
   }
 }
 
-export default connect(mapStateToProps, null, mergeProps)(Transaction)
+export default connect(mapStateToProps, () => ({}), mergeProps)(Transaction)
