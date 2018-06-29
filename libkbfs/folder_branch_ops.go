@@ -748,6 +748,24 @@ func (fbo *folderBranchOps) setHeadLocked(
 	// kick off conflict resolution.
 	if isFirstHead && md.MergedStatus() == kbfsmd.Unmerged {
 		fbo.setBranchIDLocked(lState, md.BID())
+
+		// Set the unflushed edit history.
+		_, unmergedMDs, err := getUnmergedMDUpdates(
+			ctx, fbo.config, fbo.id(), md.BID(), md.Revision())
+		if err != nil {
+			fbo.log.CDebugf(ctx, "Couldn't get unmerged MDs: %+v", err)
+			return err
+		}
+		for _, unmergedMD := range unmergedMDs {
+			err = fbo.handleUnflushedEditNotifications(ctx, unmergedMD)
+			if err != nil {
+				fbo.log.CDebugf(ctx,
+					"Couldn't get unflushed edits for %d: %+v",
+					unmergedMD.Revision(), err)
+				return err
+			}
+		}
+
 		// Use uninitialized for the merged branch; the unmerged
 		// revision is enough to trigger conflict resolution.
 		fbo.cr.Resolve(ctx, md.Revision(), kbfsmd.RevisionUninitialized)
@@ -2379,6 +2397,28 @@ func (fbo *folderBranchOps) handleEditNotifications(
 	return fbo.sendEditNotifications(ctx, rmd, body)
 }
 
+func (fbo *folderBranchOps) handleUnflushedEditNotifications(
+	ctx context.Context, rmd ImmutableRootMetadata) error {
+	if !fbo.config.Mode().SendEditNotificationsEnabled() {
+		return nil
+	}
+
+	edits, err := fbo.makeEditNotifications(ctx, rmd)
+	if err != nil {
+		return err
+	}
+	session, err := GetCurrentSessionIfPossible(ctx, fbo.config.KBPKI(), true)
+	if err != nil {
+		return err
+	}
+	fbo.editHistory.AddUnflushedNotifications(string(session.Name), edits)
+
+	tlfName := rmd.GetTlfHandle().GetCanonicalName()
+	fbo.config.UserHistory().UpdateHistory(
+		tlfName, fbo.id().Type(), fbo.editHistory, string(session.Name))
+	return nil
+}
+
 func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, bps *blockPutState, excl Excl,
 	notifyFn func(ImmutableRootMetadata) error) (
@@ -2543,9 +2583,16 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		return err
 	}
 
-	// Send edit notifications and archive the old, unref'd blocks if
-	// journaling is off.
-	if !TLFJournalEnabled(fbo.config, fbo.id()) {
+	if TLFJournalEnabled(fbo.config, fbo.id()) {
+		// Send unflushed notifications if journaling is on.
+		err := fbo.handleUnflushedEditNotifications(ctx, irmd)
+		if err != nil {
+			fbo.log.CWarningf(ctx, "Couldn't send unflushed edit "+
+				"notifications for revision %d: %+v", irmd.Revision(), err)
+		}
+	} else {
+		// Send edit notifications and archive the old, unref'd blocks
+		// if journaling is off.
 		fbo.editActivity.Add(1)
 		go func() {
 			defer fbo.editActivity.Done()
@@ -6318,9 +6365,16 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	}
 	fbo.setBranchIDLocked(lState, kbfsmd.NullBranchID)
 
-	// Send edit notifications and archive the old, unref'd blocks if
-	// journaling is off.
-	if !TLFJournalEnabled(fbo.config, fbo.id()) {
+	if TLFJournalEnabled(fbo.config, fbo.id()) {
+		// Send unflushed notifications if journaling is on.
+		err := fbo.handleUnflushedEditNotifications(ctx, irmd)
+		if err != nil {
+			fbo.log.CWarningf(ctx, "Couldn't send unflushed edit "+
+				"notifications for revision %d: %+v", irmd.Revision(), err)
+		}
+	} else {
+		// Send edit notifications and archive the old, unref'd blocks
+		// if journaling is off.
 		fbo.editActivity.Add(1)
 		go func() {
 			defer fbo.editActivity.Done()
@@ -6440,6 +6494,14 @@ func (fbo *folderBranchOps) handleTLFBranchChange(ctx context.Context,
 	fbo.setBranchIDLocked(lState, newBID)
 	fbo.cr.Resolve(ctx, md.Revision(), kbfsmd.RevisionUninitialized)
 
+	// Fixup the edit history unflushed state.
+	fbo.editHistory.ClearAllUnflushed()
+	err = fbo.handleUnflushedEditNotifications(ctx, md)
+	if err != nil {
+		fbo.log.CWarningf(ctx, "Couldn't send unflushed edit "+
+			"notifications for revision %d: %+v", md.Revision(), err)
+	}
+
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
 	err = fbo.setHeadSuccessorLocked(ctx, lState, md, true /*rebased*/)
@@ -6494,6 +6556,15 @@ func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid kbfsmd.Branch
 		fbo.log.CWarningf(ctx, "Couldn't send edit notifications for "+
 			"revision %d: %+v", rev, err)
 	}
+
+	fbo.editHistory.FlushRevision(rev)
+	session, err := GetCurrentSessionIfPossible(ctx, fbo.config.KBPKI(), true)
+	if err != nil {
+		fbo.log.CWarningf(ctx, "Error getting session: %+v", err)
+	}
+	tlfName := rmd.GetTlfHandle().GetCanonicalName()
+	fbo.config.UserHistory().UpdateHistory(
+		tlfName, fbo.id().Type(), fbo.editHistory, string(session.Name))
 
 	if err := isArchivableMDOrError(rmd.ReadOnly()); err != nil {
 		fbo.log.CDebugf(
