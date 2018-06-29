@@ -1,6 +1,7 @@
 {
   "prelude": ["import HiddenString from '../util/hidden-string'"],
   "actions": {
+    "goBackAndClearErrors": {},
     "requestAutoInvite": {},
     "requestedAutoInvite": {
       "inviteCode": "string",

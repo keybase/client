@@ -13,6 +13,18 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
     case SignupGen.resetStore: // fallthrough
     case SignupGen.restartSignup:
       return initialState
+    case SignupGen.goBackAndClearErrors:
+      return state.merge({
+        devicenameError: '',
+        emailError: '',
+        inviteCodeError: '',
+        nameError: '',
+        passphraseError: new HiddenString(''),
+        signupError: new HiddenString(''),
+        usernameError: '',
+      })
+    case SignupGen.requestedAutoInvite:
+      return state.set('inviteCode', action.error ? '' : action.payload.inviteCode)
     case SignupGen.checkInviteCode:
       return state.set('inviteCode', action.payload.inviteCode)
     case SignupGen.checkedInviteCode:
@@ -80,7 +92,6 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
       return state.set('signupError', (action.error && action.payload.error) || new HiddenString(''))
     // Saga only actions
     case SignupGen.requestAutoInvite:
-    case SignupGen.requestedAutoInvite:
       return state
     default:
       /*::

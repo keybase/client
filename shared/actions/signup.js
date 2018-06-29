@@ -8,9 +8,12 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import HiddenString from '../util/hidden-string'
 import {isMobile} from '../constants/platform'
 import {loginTab} from '../constants/tabs'
-import {navigateAppend, navigateTo} from '../actions/route-tree'
+import {navigateAppend, navigateTo, navigateUp} from '../actions/route-tree'
 import {RPCError} from '../util/errors'
 import type {TypedState} from '../constants/reducer'
+
+// When going back we clear all errors so we can fix things and move forward
+const goBackAndClearErrors = () => Saga.put(navigateUp())
 
 const checkInviteCode = (action: SignupGen.CheckInviteCodePayload) =>
   Saga.call(function*() {
@@ -26,8 +29,8 @@ const checkInviteCode = (action: SignupGen.CheckInviteCodePayload) =>
     )
   })
 
-const showUserEmailOnNoErrors = (action: SignupGen.CheckedInviteCodePayload) =>
-  !action.error && Saga.put(navigateTo([loginTab, 'signup', 'usernameAndEmail']))
+const showUserEmailOnNoErrors = (action: SignupGen.CheckedInviteCodePayload, state: TypedState) =>
+  noErrors(state) && Saga.put(navigateTo([loginTab, 'signup', 'usernameAndEmail']))
 
 const requestAutoInvite = () =>
   Saga.call(function*() {
@@ -41,8 +44,7 @@ const requestAutoInvite = () =>
 const showInviteScreen = () => navigateTo([loginTab, 'signup', 'inviteCode'])
 
 const requestInvite = (action: SignupGen.RequestInvitePayload, state: TypedState) =>
-  !state.signup.emailError &&
-  !state.signup.nameError &&
+  noErrors(state) &&
   Saga.call(function*() {
     yield Saga.put(
       yield RPCTypes.signupInviteRequestRpcPromise(
@@ -67,13 +69,10 @@ const requestInvite = (action: SignupGen.RequestInvitePayload, state: TypedState
   })
 
 const showInviteSuccessOnNoErrors = (_, state: TypedState) =>
-  !state.signup.emailError &&
-  !state.signup.nameError &&
-  navigateAppend(['requestInviteSuccess'], [loginTab, 'signup'])
+  noErrors(state) && navigateAppend(['requestInviteSuccess'], [loginTab, 'signup'])
 
 const checkUsernameEmail = (action: SignupGen.CheckUsernameEmailPayload, state: TypedState) =>
-  !state.signup.usernameError &&
-  !state.signup.emailError &&
+  noErrors(state) &&
   Saga.call(function*() {
     yield Saga.put(
       yield RPCTypes.signupCheckUsernameAvailableRpcPromise(
@@ -98,16 +97,13 @@ const checkUsernameEmail = (action: SignupGen.CheckUsernameEmailPayload, state: 
   })
 
 const showPassphraseOnNoErrors = (_, state: TypedState) =>
-  !state.signup.emailError &&
-  !state.signup.usernameError &&
-  Saga.put(navigateAppend(['passphraseSignup'], [loginTab, 'signup']))
+  noErrors(state) && Saga.put(navigateAppend(['passphraseSignup'], [loginTab, 'signup']))
 
 const showDeviceScreenOnNoErrors = (_: SignupGen.CheckPassphrasePayload, state: TypedState) =>
-  !state.signup.passphraseError.stringValue() &&
-  Saga.put(navigateAppend(['deviceName'], [loginTab, 'signup']))
+  noErrors(state) && Saga.put(navigateAppend(['deviceName'], [loginTab, 'signup']))
 
 const checkDevicename = (action: SignupGen.CheckDevicenamePayload, state: TypedState) =>
-  !state.signup.devicenameError &&
+  noErrors(state) &&
   Saga.call(function*() {
     yield Saga.put(
       yield RPCTypes.deviceCheckDeviceNameFormatRpcPromise(
@@ -124,7 +120,22 @@ const checkDevicename = (action: SignupGen.CheckDevicenamePayload, state: TypedS
     )
   })
 
-const reallySignup = (_, state: TypedState) => {
+// returns true if there are no errors, we check all errors at every transition just to be extra careful
+const noErrors = (state: TypedState) =>
+  !state.signup.devicenameError &&
+  !state.signup.emailError &&
+  !state.signup.inviteCodeError &&
+  !state.signup.nameError &&
+  !state.signup.usernameError &&
+  !state.signup.passphraseError.stringValue() &&
+  !state.signup.signupError.stringValue()
+
+const reallySignupOnNoErrors = (_, state: TypedState) => {
+  if (!noErrors(state)) {
+    logger.warn('Still has errors, bailing on really signing up')
+    return
+  }
+
   const {email, username, inviteCode, passphrase, devicename} = state.signup
 
   if (!email || !username || !inviteCode || !passphrase || !passphrase.stringValue() || !devicename) {
@@ -149,8 +160,8 @@ const reallySignup = (_, state: TypedState) => {
             response.result(false)
           },
           // We dont show the paperkey anymore
-          'keybase.1.loginUi.displayPrimaryPaperKey': () =>
-            Saga.put(navigateAppend(['success'], [loginTab, 'signup'])),
+          'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
+          // Saga.put(navigateAppend(['success'], [loginTab, 'signup'])),
         },
         params: {
           deviceName: devicename,
@@ -176,8 +187,10 @@ const reallySignup = (_, state: TypedState) => {
 }
 
 const resetNav = () => Saga.put(LoginGen.createNavBasedOnLoginAndInitialState())
-const cleanupSignupOnNoErrors = (_, state: TypedState) =>
-  !!state.signup.signupError.stringValue() && Saga.put(SignupGen.createRestartSignup())
+const showErrorOrCleanupAfterSignup = (_, state: TypedState) =>
+  noErrors(state)
+    ? Saga.put(SignupGen.createRestartSignup())
+    : Saga.put(navigateAppend(['signupError'], [loginTab, 'signup']))
 
 const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   // validation actions
@@ -186,7 +199,6 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(SignupGen.requestAutoInvite, requestAutoInvite)
   yield Saga.safeTakeEveryPure([SignupGen.requestedAutoInvite, SignupGen.checkInviteCode], checkInviteCode)
   yield Saga.safeTakeEveryPure(SignupGen.checkDevicename, checkDevicename)
-  yield Saga.safeTakeEveryPure(SignupGen.checkedDevicename, reallySignup)
 
   // move to next screen actions
   yield Saga.safeTakeEveryPure(SignupGen.restartSignup, resetNav)
@@ -195,7 +207,12 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(SignupGen.requestedAutoInvite, showInviteScreen)
   yield Saga.safeTakeEveryPure(SignupGen.checkedInviteCode, showUserEmailOnNoErrors)
   yield Saga.safeTakeEveryPure(SignupGen.checkPassphrase, showDeviceScreenOnNoErrors)
-  yield Saga.safeTakeEveryPure(SignupGen.signedup, cleanupSignupOnNoErrors)
+  yield Saga.safeTakeEveryPure(SignupGen.signedup, showErrorOrCleanupAfterSignup)
+
+  // actually make the signup call
+  yield Saga.safeTakeEveryPure(SignupGen.checkedDevicename, reallySignupOnNoErrors)
+
+  yield Saga.safeTakeEveryPure(SignupGen.goBackAndClearErrors, goBackAndClearErrors)
 }
 
 export default signupSaga

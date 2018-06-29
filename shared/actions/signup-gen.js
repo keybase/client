@@ -15,6 +15,7 @@ export const checkUsernameEmail = 'signup:checkUsernameEmail'
 export const checkedDevicename = 'signup:checkedDevicename'
 export const checkedInviteCode = 'signup:checkedInviteCode'
 export const checkedUsernameEmail = 'signup:checkedUsernameEmail'
+export const goBackAndClearErrors = 'signup:goBackAndClearErrors'
 export const requestAutoInvite = 'signup:requestAutoInvite'
 export const requestInvite = 'signup:requestInvite'
 export const requestedAutoInvite = 'signup:requestedAutoInvite'
@@ -53,6 +54,7 @@ type _CheckedUsernameEmailPayloadError = $ReadOnly<{|
   email: string,
   username: string,
 |}>
+type _GoBackAndClearErrorsPayload = void
 type _RequestAutoInvitePayload = void
 type _RequestInvitePayload = $ReadOnly<{|
   email: string,
@@ -85,6 +87,7 @@ export const createCheckedInviteCode = (payload: _CheckedInviteCodePayload) => (
 export const createCheckedInviteCodeError = (payload: _CheckedInviteCodePayloadError) => ({error: true, payload, type: checkedInviteCode})
 export const createCheckedUsernameEmail = (payload: _CheckedUsernameEmailPayload) => ({error: false, payload, type: checkedUsernameEmail})
 export const createCheckedUsernameEmailError = (payload: _CheckedUsernameEmailPayloadError) => ({error: true, payload, type: checkedUsernameEmail})
+export const createGoBackAndClearErrors = (payload: _GoBackAndClearErrorsPayload) => ({error: false, payload, type: goBackAndClearErrors})
 export const createRequestAutoInvite = (payload: _RequestAutoInvitePayload) => ({error: false, payload, type: requestAutoInvite})
 export const createRequestInvite = (payload: _RequestInvitePayload) => ({error: false, payload, type: requestInvite})
 export const createRequestedAutoInvite = (payload: _RequestedAutoInvitePayload) => ({error: false, payload, type: requestedAutoInvite})
@@ -106,6 +109,7 @@ export type CheckedInviteCodePayload = $Call<typeof createCheckedInviteCode, _Ch
 export type CheckedInviteCodePayloadError = $Call<typeof createCheckedInviteCodeError, _CheckedInviteCodePayloadError>
 export type CheckedUsernameEmailPayload = $Call<typeof createCheckedUsernameEmail, _CheckedUsernameEmailPayload>
 export type CheckedUsernameEmailPayloadError = $Call<typeof createCheckedUsernameEmailError, _CheckedUsernameEmailPayloadError>
+export type GoBackAndClearErrorsPayload = $Call<typeof createGoBackAndClearErrors, _GoBackAndClearErrorsPayload>
 export type RequestAutoInvitePayload = $Call<typeof createRequestAutoInvite, _RequestAutoInvitePayload>
 export type RequestInvitePayload = $Call<typeof createRequestInvite, _RequestInvitePayload>
 export type RequestedAutoInvitePayload = $Call<typeof createRequestedAutoInvite, _RequestedAutoInvitePayload>
@@ -129,6 +133,7 @@ export type Actions =
   | CheckedInviteCodePayloadError
   | CheckedUsernameEmailPayload
   | CheckedUsernameEmailPayloadError
+  | GoBackAndClearErrorsPayload
   | RequestAutoInvitePayload
   | RequestInvitePayload
   | RequestedAutoInvitePayload
