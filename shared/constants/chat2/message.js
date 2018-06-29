@@ -25,6 +25,9 @@ export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   }
 }
 
+// Note flow doesn't type check these values correctly
+// https://github.com/facebook/flow/issues/252
+// so double check these!
 export const serviceMessageTypeToMessageTypes: {
   [key: RPCChatTypes.MessageType]: Array<Types.MessageType>,
 } = {
@@ -43,7 +46,7 @@ export const serviceMessageTypeToMessageTypes: {
     'systemText',
   ],
 }
-export const allMessageTypes = I.Set([
+export const allMessageTypes: I.Set<Types.MessageType> = I.Set([
   'attachment',
   'deleted',
   'setChannelname',
