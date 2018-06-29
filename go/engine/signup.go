@@ -214,7 +214,7 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string) er
 
 	if !libkb.CheckDeviceName.F(s.arg.DeviceName) {
 		m.CDebugf("invalid device name supplied: %s", s.arg.DeviceName)
-		return fmt.Errorf("Bad device name: %v is not %s", s.arg.DeviceName, libkb.CheckDeviceName.Hint)
+		return libkb.DeviceBadNameError{}
 	}
 
 	switch s.arg.DeviceType {

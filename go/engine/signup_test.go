@@ -5,7 +5,6 @@ package engine
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -308,24 +307,16 @@ func TestSignupNonAsciiDeviceName(t *testing.T) {
 
 	testValues := []struct {
 		deviceName string
-		valid      bool
+		err        error
 	}{
-		{"perfectly-reasonable", true},
-		{"definitely🙃not🐉ascii", false},
+		{"perfectly-reasonable", nil},
+		{"definitely🙃not🐉ascii", libkb.DeviceBadNameError{}},
 	}
 	for _, testVal := range testValues {
 		updateDeviceName := func(arg *SignupEngineRunArg) {
 			arg.DeviceName = testVal.deviceName
 		}
 		_, err := CreateAndSignupFakeUserSafeWithArg(tc.G, "sup", updateDeviceName)
-		if testVal.valid {
-			if err != nil {
-				t.Fatalf("did not expect an error with device name %s", testVal.deviceName)
-			}
-		} else {
-			if !strings.Contains(err.Error(), libkb.CheckDeviceName.Hint) {
-				t.Fatalf("expected error message for %s to include %s", testVal.deviceName, libkb.CheckDeviceName.Hint)
-			}
-		}
+		require.IsType(t, err, testVal.err)
 	}
 }
