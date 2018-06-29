@@ -56,7 +56,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
         <Box
           style={collapseStyles([
             styles.loading,
-            !this.state.loaded ? styles.containerStyle : {},
+            !this.state.loaded ? styles.spinner : {},
             {
               height: this.props.height,
               width: this.props.width,
@@ -117,7 +117,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
 }
 
 const styles = styleSheetCreate({
-  containerStyle: {
+  spinner: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
   },
