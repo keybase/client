@@ -9,7 +9,7 @@ import {formatDurationFromNowTo} from '../../util/timestamp'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const path = routeProps.get('path')
-  const _pathItem = state.fs.pathItems.get(path) || Constants.makeUnknownPathItem()
+  const _pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
   const _username = state.config.username || undefined
   const _transfers = state.fs.transfers
   return {

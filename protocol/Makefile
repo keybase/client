@@ -46,7 +46,7 @@ js/rpc.js: build-stamp | config
 	cp ./js/rpc* ../shared/constants/types
 
 clean:
-	rm -rf json/*/*.json js/*.js *build-stamp
+	rm -rf json/*.json json/*/*.json js/*.js *build-stamp
 	$(AVDLC) -c -b -l go -o ../go/protocol/keybase1 avdl/keybase1/*.avdl
 	$(AVDLC) -c -b -l go -o ../go/protocol/gregor1 avdl/gregor1/*.avdl
 	$(AVDLC) -c -b -l go -o ../go/protocol/chat1 avdl/chat1/*.avdl

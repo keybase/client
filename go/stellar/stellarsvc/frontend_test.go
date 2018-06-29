@@ -564,18 +564,18 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.Equal(t, "completed", p.StatusDescription)
 		require.Empty(t, p.StatusDetail)
 		if sender {
-			require.Equal(t, "- 1,011.1230000 XLM", p.AmountDescription, "Amount")
+			require.Equal(t, "1,011.1230000 XLM", p.AmountDescription, "Amount")
 			require.Equal(t, stellar1.BalanceDelta_DECREASE, p.Delta)
 		} else {
-			require.Equal(t, "+ 1,011.1230000 XLM", p.AmountDescription, "Amount")
+			require.Equal(t, "1,011.1230000 XLM", p.AmountDescription, "Amount")
 			require.Equal(t, stellar1.BalanceDelta_INCREASE, p.Delta)
 		}
 		require.Equal(t, "$321.87", p.Worth, "Worth")
 		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
 		require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")
-		require.Equal(t, "keybase", p.SourceType, "SourceType")
+		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.SourceType, "SourceType")
 		require.Equal(t, tcs[1].Fu.Username, p.Target, "Target")
-		require.Equal(t, "keybase", p.TargetType, "TargetType")
+		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.TargetType, "TargetType")
 		require.Equal(t, "here you go", p.Note)
 		require.Empty(t, p.NoteErr)
 	}
@@ -605,18 +605,18 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.Equal(t, "completed", p.StatusDescription)
 		require.Empty(t, p.StatusDetail)
 		if sender {
-			require.Equal(t, "- 1,011.1230000 XLM", p.AmountDescription, "Amount")
+			require.Equal(t, "1,011.1230000 XLM", p.AmountDescription, "Amount")
 			require.Equal(t, stellar1.BalanceDelta_DECREASE, p.Delta)
 		} else {
-			require.Equal(t, "+ 1,011.1230000 XLM", p.AmountDescription, "Amount")
+			require.Equal(t, "1,011.1230000 XLM", p.AmountDescription, "Amount")
 			require.Equal(t, stellar1.BalanceDelta_INCREASE, p.Delta)
 		}
 		require.Equal(t, "$321.87", p.Worth, "Worth")
 		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
 		require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")
-		require.Equal(t, "keybase", p.SourceType, "SourceType")
+		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.SourceType, "SourceType")
 		require.Equal(t, tcs[1].Fu.Username, p.Target, "Target")
-		require.Equal(t, "keybase", p.TargetType, "TargetType")
+		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.TargetType, "TargetType")
 		require.Equal(t, "here you go", p.Note)
 		require.Empty(t, p.NoteErr)
 		require.Equal(t, "public note", p.PublicNote)
@@ -653,6 +653,36 @@ func TestGetPaymentsLocal(t *testing.T) {
 		PublicMemo:    "public note",
 	})
 	require.NoError(t, err)
+
+	// send to stellar account ID to check target in PaymentLocal
+	sendRes, err = srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+		From:          accountIDSender,
+		To:            accountIDRecip.String(),
+		ToIsAccountID: true,
+		Amount:        "101.456",
+		Asset:         stellar1.AssetNative(),
+		WorthAmount:   "321.87",
+		WorthCurrency: &usd,
+		SecretNote:    "here you go",
+		PublicMemo:    "public note",
+	})
+	require.NoError(t, err)
+	require.Len(t, sendRes.KbTxID, 32)
+	require.False(t, sendRes.Pending)
+	senderPaymentsPage, err = srvSender.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountIDSender})
+	require.NoError(t, err)
+	senderPayments = senderPaymentsPage.Payments
+	require.Len(t, senderPayments, 3)
+	t.Logf("senderPayments: %+v", senderPayments)
+	if senderPayments[0].Err != nil {
+		t.Logf("senderPayments error: %+v", *senderPayments[0].Err)
+	}
+	p := senderPayments[0].Payment
+	require.NotNil(t, p)
+	require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")
+	require.Equal(t, stellar1.ParticipantType_KEYBASE, p.SourceType, "SourceType")
+	require.Equal(t, accountIDRecip.String(), p.Target, "Target")
+	require.Equal(t, stellar1.ParticipantType_STELLAR, p.TargetType, "TargetType")
 }
 
 func TestBuildPaymentLocal(t *testing.T) {

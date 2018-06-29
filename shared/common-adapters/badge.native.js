@@ -2,14 +2,14 @@
 import Box from './box'
 import * as React from 'react'
 import Text from './text'
-import {globalStyles, globalColors} from '../styles'
+import {collapseStyles, globalStyles, globalColors} from '../styles'
 
 import type {Props} from './badge'
 
 function Badge({badgeStyle, badgeNumber, badgeNumberStyle}: Props) {
   return (
-    <Box style={{...defaultBadgeStyle, ...badgeStyle}}>
-      <Text style={{...textStyle, ...badgeNumberStyle}} type="HeaderBig">
+    <Box style={collapseStyles([defaultBadgeStyle, badgeStyle])}>
+      <Text style={collapseStyles([textStyle, badgeNumberStyle])} type="HeaderBig">
         {badgeNumber}
       </Text>
     </Box>
@@ -23,8 +23,9 @@ const defaultBadgeStyle = {
   flex: 0,
   alignItems: 'center',
   justifyContent: 'center',
-  paddingLeft: 6,
-  paddingRight: 6,
+  minWidth: 24.5,
+  paddingLeft: 4,
+  paddingRight: 4,
   paddingTop: 4,
   paddingBottom: 2,
 }

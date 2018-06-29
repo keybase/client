@@ -15,9 +15,9 @@ function defaultColor(backgroundMode: ?Background) {
   }[backgroundMode || 'Normal']
 }
 
-function lineClamp(lines: ?number): Object {
+function lineClamp(lines: ?number, mode: ?string): Object {
   return {
-    ...(lines ? {numberOfLines: lines} : null),
+    ...(lines ? {ellipsizeMode: mode, numberOfLines: lines} : null),
   }
 }
 

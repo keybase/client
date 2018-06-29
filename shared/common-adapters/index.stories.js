@@ -1,5 +1,6 @@
 // @flow
 import avatar from './avatar.stories'
+import badge from './badge.stories'
 import box from './box.stories'
 import button from './button.stories'
 import buttonBar from './button-bar.stories'
@@ -26,6 +27,7 @@ import text from './text.stories'
 const load = () => {
   ;[
     avatar,
+    badge,
     box,
     button,
     buttonBar,
