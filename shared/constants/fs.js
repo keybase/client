@@ -85,7 +85,7 @@ export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Re
   sort: makeSortSetting(),
 })
 
-export const makeTransferMeta: I.RecordFactory<Types._TransferMeta> = I.Record({
+export const makeDownloadMeta: I.RecordFactory<Types._DownloadMeta> = I.Record({
   type: 'download',
   entryType: 'unknown',
   intent: 'none',
@@ -94,7 +94,7 @@ export const makeTransferMeta: I.RecordFactory<Types._TransferMeta> = I.Record({
   opID: null,
 })
 
-export const makeTransferState: I.RecordFactory<Types._TransferState> = I.Record({
+export const makeDownloadState: I.RecordFactory<Types._DownloadState> = I.Record({
   completePortion: 0,
   endEstimate: undefined,
   error: undefined,
@@ -102,9 +102,9 @@ export const makeTransferState: I.RecordFactory<Types._TransferState> = I.Record
   startedAt: 0,
 })
 
-export const makeTransfer: I.RecordFactory<Types._Transfer> = I.Record({
-  meta: makeTransferMeta(),
-  state: makeTransferState(),
+export const makeDownload: I.RecordFactory<Types._Download> = I.Record({
+  meta: makeDownloadMeta(),
+  state: makeDownloadState(),
 })
 
 export const makeFlags: I.RecordFactory<Types._Flags> = I.Record({
@@ -122,6 +122,15 @@ export const makeLocalHTTPServer: I.RecordFactory<Types._LocalHTTPServer> = I.Re
   token: '',
 })
 
+export const makeUploads: I.RecordFactory<Types._Uploads> = I.Record({
+  writingToJournal: I.Set(),
+  errors: I.Map(),
+
+  totalSyncingBytes: 0,
+  endEstimate: undefined,
+  syncingPaths: I.Set(),
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   flags: makeFlags(),
   fuseStatus: null,
@@ -129,7 +138,8 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   edits: I.Map(),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
   loadingPaths: I.Set(),
-  transfers: I.Map(),
+  downloads: I.Map(),
+  uploads: makeUploads(),
   localHTTPServerInfo: null,
 })
 
@@ -157,14 +167,6 @@ const makeAvatarsPathItemIconSpec = (usernames: Array<string>): Types.PathItemIc
 export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0)
 export const fsPathToRpcPathString = (p: Types.Path): string =>
   Types.pathToString(p).substring('/keybase'.length) || '/'
-
-export const sortPathItems = (
-  items: I.List<Types.PathItem>,
-  sortSetting: Types.SortSetting,
-  username?: string
-): I.List<Types.PathItem> => {
-  return items.sort(Types.sortSettingToCompareFunction(sortSetting, username))
-}
 
 const privateIconColor = globalColors.darkBlue2
 const privateTextColor = globalColors.darkBlue
@@ -317,6 +319,8 @@ export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
 
 export const makeDownloadKey = (path: Types.Path, localPath: string) =>
   `download:${Types.pathToString(path)}:${localPath}`
+export const makeUploadKey = (localPath: string, path: Types.Path) =>
+  `upload:${Types.pathToString(path)}:${localPath}`
 
 export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath> =>
   downloadFilePath(Types.getPathName(p))
@@ -561,4 +565,4 @@ export const shouldUseOldMimeType = (oldItem: Types.FilePathItem, newItem: Types
 
 export const invalidTokenError = new Error('invalid token')
 
-export const makeEditID = (): Types.EditID => Types.stringToEditID(makeUUID())
+export const makeEditID = (): Types.EditID => Types.stringToEditID(uuidv1())
