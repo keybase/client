@@ -127,13 +127,7 @@ func Decode(encryptedBundleB64 string) (res DecodeResult, err error) {
 // Does not check the prev hash.
 func Unbox(decodeRes DecodeResult, visibleBundleB64 string,
 	puk libkb.PerUserKeySeed) (res stellar1.Bundle, version stellar1.BundleVersion, err error) {
-	return Unbox2(decodeRes, visibleBundleB64, false, puk)
-}
-
-// CORE-8135 phase 2: collapse into Unbox
-func Unbox2(decodeRes DecodeResult, visibleBundleB64 string, supportCryptV1 bool,
-	puk libkb.PerUserKeySeed) (res stellar1.Bundle, version stellar1.BundleVersion, err error) {
-	versioned, err := decrypt2(decodeRes.Enc, supportCryptV1, puk)
+	versioned, err := Decrypt(decodeRes.Enc, puk)
 	if err != nil {
 		return res, version, err
 	}
@@ -176,18 +170,10 @@ func Unbox2(decodeRes DecodeResult, visibleBundleB64 string, supportCryptV1 bool
 // Does not check invariants.
 func Decrypt(encBundle stellar1.EncryptedBundle,
 	puk libkb.PerUserKeySeed) (res stellar1.BundleSecretVersioned, err error) {
-	return decrypt2(encBundle, false, puk)
-}
-
-// CORE-8135 phase 2: collapse into Decrypt
-func decrypt2(encBundle stellar1.EncryptedBundle, supportCryptV1 bool,
-	puk libkb.PerUserKeySeed) (res stellar1.BundleSecretVersioned, err error) {
 	switch encBundle.V {
 	case 1:
-		// CORE-8135 phase 2: remove v1 decryption support
-		if !supportCryptV1 {
-			return res, fmt.Errorf("stellar secret bundle encryption version 1 has been retired. Try `keybase wallet fixup`")
-		}
+		// CORE-8135
+		return res, fmt.Errorf("stellar secret bundle encryption version 1 has been retired")
 	case 2:
 	default:
 		return res, fmt.Errorf("unsupported stellar secret bundle encryption version: %v", encBundle.V)
@@ -195,9 +181,6 @@ func decrypt2(encBundle stellar1.EncryptedBundle, supportCryptV1 bool,
 
 	// Derive key
 	reason := libkb.DeriveReasonPUKStellarBundle
-	if encBundle.V == 1 {
-		reason = libkb.DeriveReasonPUKPrev
-	}
 	symmetricKey, err := puk.DeriveSymmetricKey(reason)
 	if err != nil {
 		return res, err

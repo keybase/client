@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import React from 'react'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
+import {type ConnectedProps as ConnectedUsernamesProps} from '../common-adapters/usernames'
 import {action, storiesOf, createPropProvider} from '../stories/storybook'
 import {globalColors, globalMargins} from '../styles'
 import Files from '.'
@@ -17,6 +18,7 @@ import Download from './footer/download'
 import Upload from './footer/upload'
 import PathItemAction from './common/path-item-action'
 import Breadcrumb from './header/breadcrumb.desktop'
+import Banner from './banner'
 
 const folderItemStyles = {
   iconSpec: {
@@ -44,15 +46,23 @@ const rowProviders = {
     path,
     routePath,
   }),
-  ConnectedStillRow: ({path}: {path: Types.Path}) => ({
-    name: Types.getPathName(path),
-    onOpen: () => {},
-    openInFileUI: () => {},
-    type: 'folder',
-    shouldShowMenu: true,
-    itemStyles: folderItemStyles,
-    onAction: action('onAction'),
-  }),
+  ConnectedStillRow: ({path}: {path: Types.Path}) => {
+    const pathStr = Types.pathToString(path)
+    const hasAbc = pathStr.includes('abc')
+    const hasDef = pathStr.includes('def')
+    const hasGhi = pathStr.includes('ghi')
+    return {
+      name: Types.getPathName(path),
+      onOpen: () => {},
+      openInFileUI: () => {},
+      type: 'folder',
+      shouldShowMenu: true,
+      itemStyles: folderItemStyles,
+      onAction: action('onAction'),
+      resetParticipants: [...(hasAbc ? ['abc'] : []), ...(hasDef ? ['def'] : []), ...(hasGhi ? ['ghi'] : [])],
+      isUserReset: false,
+    }
+  },
 }
 
 const provider = createPropProvider({
@@ -62,8 +72,18 @@ const provider = createPropProvider({
     showUploads: false,
   }),
   FolderHeader: () => ({
+    breadcrumbItems: [
+      {
+        name: 'keybase',
+        path: '/keybase',
+      },
+    ],
+    dropdownItems: [],
+    isTeamPath: false,
     path: Types.stringToPath('/keybase'),
-    openInFileUI: action('openInFleUI'),
+    onBack: action('onBack'),
+    onOpenBreadcrumb: action('onOpenBreadcrumb'),
+    onOpenBreadcrumbDropdown: action('onOpenBreadcrumbDropdown'),
   }),
   ConnectedBreadcrumb: () => ({
     dropdownItems: undefined,
@@ -121,16 +141,19 @@ const provider = createPropProvider({
     onInvalidToken: action('onInvalidToken'),
     loadMimeType: action('loadMimeType'),
   }),
-  ResetBanner: () => ({
-    isUserReset: false,
-    resetParticipants: ['foo'],
+  ResetBanner: ({path}: {path: Types.Path}) => ({
+    isUserReset: Types.pathToString(path) === '/keybase/private/me,reset',
+    resetParticipants: ['reset1', 'reset2', 'reset3'],
     onReAddToTeam: () => () => undefined,
     onViewProfile: () => () => undefined,
   }),
-  Usernames: () => ({
-    type: 'BodySemibold',
-    users: [{username: 'foo'}],
-    style: {color: globalColors.white},
+  Banner: ({path}: {path: Types.Path}) => ({
+    path,
+    shouldShowReset: Types.pathToString(path).includes('reset'),
+  }),
+  Usernames: (props: ConnectedUsernamesProps) => ({
+    ...props,
+    users: props.usernames.map(u => ({username: u})),
   }),
   ConnectedAddNew: () => ({
     pathElements: [],
@@ -203,7 +226,7 @@ const load = () => {
         progress="loaded"
         routePath={I.List([])}
         isUserReset={false}
-        resetParticipants={[]}
+        resetParticipants={['foo']}
         items={[
           {rowType: 'still', path: Types.stringToPath('/keybase/private'), name: 'private'},
           {rowType: 'still', path: Types.stringToPath('/keybase/public'), name: 'public'},
@@ -423,6 +446,40 @@ const load = () => {
       </Box>
     ))
     .add('UploadBanner', () => <Upload files={42} timeLeft="23 min" />)
+    .add('ResetRows', () => (
+      <Files
+        path={Types.stringToPath('/keybase')}
+        progress="loaded"
+        routePath={I.List([])}
+        isUserReset={false}
+        resetParticipants={[]}
+        items={[
+          {rowType: 'still', path: Types.stringToPath('/keybase/private/me'), name: 'me'},
+          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc'), name: 'me,abc'},
+          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc,def'), name: 'me,abc,def'},
+          {
+            rowType: 'still',
+            path: Types.stringToPath('/keybase/private/me,abc,def,ghi'),
+            name: 'me,abc,def,ghi',
+          },
+          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,def'), name: 'me,def'},
+          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,def,ghi'), name: 'me,def,ghi'},
+          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,ghi'), name: 'me,ghi'},
+          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc,ghi'), name: 'me,abc,ghi'},
+        ]}
+        editingItems={[]}
+      />
+    ))
+    .add('ResetBanner', () => (
+      <Box>
+        <Banner
+          path={Types.stringToPath('/keybase/private/me,reset1,reset2,reset3')}
+          shouldShowReset={true}
+        />
+        <Box style={{height: 8}} />
+        <Banner path={Types.stringToPath('/keybase/private/me,reset')} shouldShowReset={true} />
+      </Box>
+    ))
 }
 
 export default load

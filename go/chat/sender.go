@@ -637,8 +637,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		s.Debug(ctx, "failed to update inbox: %s", err)
 	}
 	// Send up to frontend
-	if conv.GetTopicType() == chat1.TopicType_CHAT && cerr == nil &&
-		boxed.GetMessageType() != chat1.MessageType_LEAVE {
+	if cerr == nil && boxed.GetMessageType() != chat1.MessageType_LEAVE {
 		activity := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
 			Message: utils.PresentMessageUnboxed(ctx, s.G(), unboxedMsg, boxed.ClientHeader.Sender, convID),
 			ConvID:  convID,

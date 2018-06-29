@@ -45,7 +45,7 @@ func (t *TimeBuckets) Get(bucketName string) time.Duration {
 }
 
 func (t *TimeBuckets) Log(ctx context.Context, bucketName string) {
-	t.log.CDebugf(ctx, "%s [time=%s]", bucketName, t.Get(bucketName))
+	t.log.CDebugf(ctx, "TimeBucket %s [time=%s]", bucketName, t.Get(bucketName))
 }
 
 type FinFn func()

@@ -73,7 +73,7 @@ const BOOL isDebug = NO;
   } else {
     NSLog(@"setAllFiles is true charging forward");
   }
-  
+
   // If the caller wants us to set everything in the directory, then let's do it now (one level down at least)
   NSArray<NSString*>* contents = [fm contentsOfDirectoryAtPath:path error:&error];
   if (contents == nil) {
@@ -114,7 +114,7 @@ const BOOL isDebug = NO;
   [self createBackgroundReadableDirectory:levelDBPath setAllFiles:YES];
   [self createBackgroundReadableDirectory:logPath setAllFiles:NO];
   [self createBackgroundReadableDirectory:eraseableKVPath setAllFiles:YES];
-  
+
   NSError * err;
   self.engine = [[Engine alloc] initWithSettings:@{
                                                    @"runmode": @"prod",
@@ -179,7 +179,7 @@ const BOOL isDebug = NO;
   self.resignImageView.backgroundColor = [UIColor whiteColor];
   [self.resignImageView setImage:[UIImage imageNamed:@"LaunchImage"]];
   [self.window addSubview:self.resignImageView];
-  
+
   [[UIApplication sharedApplication]
    setMinimumBackgroundFetchInterval:
    UIApplicationBackgroundFetchIntervalMinimum];
@@ -220,20 +220,26 @@ const BOOL isDebug = NO;
 // Require for handling silent notifications
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
   NSString* type = notification[@"type"];
-  if (type != nil && [type isEqualToString:@"chat.newmessageSilent_2"]) {
+  NSString* body = notification[@"m"];
+  if (type != nil && body != nil) {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
-      NSLog(@"Remote notification handle started...");
-      NSString* convID = notification[@"c"];
-      int membersType = [notification[@"t"] intValue];
-      int messageID = [notification[@"d"] intValue];
-      int badgeCount = [notification[@"b"] intValue];
-      int unixTime = [notification[@"x"] intValue];
-      NSString* soundName = notification[@"s"];
-      NSString* pushID = [notification[@"p"] objectAtIndex:0];
-      NSString* body = notification[@"m"];
-      PushNotifier* pusher = [[PushNotifier alloc] init];
+      NSLog(@"Remote notification handle for %@ started...", type);
       NSError* err = nil;
-      KeybaseHandleBackgroundNotification(convID, membersType, messageID, pushID, badgeCount, unixTime, body, soundName, pusher, &err);
+      int membersType = [notification[@"t"] intValue];
+      if ([type isEqualToString:@"chat.newmessageSilent_2"]) {
+        NSString* convID = notification[@"c"];
+        int messageID = [notification[@"d"] intValue];
+        NSString* pushID = [notification[@"p"] objectAtIndex:0];
+        int badgeCount = [notification[@"b"] intValue];
+        int unixTime = [notification[@"x"] intValue];
+        NSString* soundName = notification[@"s"];
+        PushNotifier* pusher = [[PushNotifier alloc] init];
+        KeybaseHandleBackgroundNotification(convID, membersType, messageID, pushID, badgeCount, unixTime, body, soundName, pusher, &err);
+      } else if ([type isEqualToString:@"chat.newmessage"]) {
+        NSString* convID = notification[@"convID"];
+        KeybaseHandleNotification(convID, membersType, body, &err);
+        [RCTPushNotificationManager didReceiveRemoteNotification:notification];
+      }
       if (err != nil) {
         NSLog(@"Failed to handle in engine: %@", err);
       }
@@ -245,7 +251,7 @@ const BOOL isDebug = NO;
     completionHandler(UIBackgroundFetchResultNewData);
   }
 }
-  
+
 // Required for the localNotification event.
 - (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification
 {

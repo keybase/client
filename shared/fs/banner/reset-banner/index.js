@@ -37,11 +37,12 @@ const Banner = ({
           <Text
             type="BodySemibold"
             backgroundMode="Terminal"
-            style={{...globalStyles.flexBoxRow, textAlign: 'center'}}
+            style={{paddingRight: globalMargins.large, paddingLeft: globalMargins.large}}
           >
             <ConnectedUsernames
               type="BodySemiboldLink"
               showAnd={true}
+              inline={true}
               inlineGrammar={true}
               commaColor={globalColors.white}
               clickable={true}
@@ -49,15 +50,16 @@ const Banner = ({
               usernames={resetParticipants}
               backgroundMode="Terminal"
             />
-            <Text type="BodySemibold" backgroundMode="Terminal">
-              &nbsp;lost all of their devices and{' '}
-              {resetParticipants.length === 1 ? 'this account has' : 'these accounts have'} new keys.
-            </Text>
+            &nbsp;
+            { // This needs to be in the same node as the sister
+              // ConnectedUsernames node, because otherwise it gets re-flowed
+              // awkwardly.
+              'lost all of their devices and ' +
+              (resetParticipants.length === 1 ? 'this account has' : 'these accounts have') +
+              ' new keys.\n' +
+              'If you want to let them into this folder and the matching chat, you should either:'}
           </Text>
         </Box>
-        <Text type="BodySemibold" backgroundMode="Terminal">
-          If you want to let them into this folder and the matching chat, you should either:
-        </Text>
       </Box>
       <Box style={listTextContainerStyle}>
         <Text type="BodySemibold" backgroundMode="Terminal" style={listTextContentStyle}>

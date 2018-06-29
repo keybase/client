@@ -1,5 +1,4 @@
 // @flow
-import * as I from 'immutable'
 import * as React from 'react'
 import type {Props, RouteState, RowItem, RowItemSmall, RowItemBig} from './index.types'
 export default class Inbox extends React.Component<Props> {}

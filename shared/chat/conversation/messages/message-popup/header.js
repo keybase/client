@@ -89,7 +89,7 @@ const MessagePopupHeader = (props: {
         }}
       >
         <Text type="BodySmall">
-          using device&nbsp;<Text type="BodySmallSemibold">{deviceName}</Text>
+          from device&nbsp;<Text type="BodySmallSemibold">{deviceName}</Text>
         </Text>
       </Box>
       <Text type="BodySmall">{formatTimeForPopup(timestamp)}</Text>
