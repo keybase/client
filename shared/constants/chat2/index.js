@@ -17,10 +17,6 @@ import {
 import {makeConversationMeta, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
 
-export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
-  deletableByDeleteHistory: I.Set(),
-})
-
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),
   editingMap: I.Map(),
@@ -40,7 +36,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pendingOutboxToOrdinal: I.Map(),
   quote: null,
   selectedConversation: noConversationIDKey,
-  staticConfig: makeStaticConfig(),
+  staticConfig: null,
   typingMap: I.Map(),
   unreadMap: I.Map(),
 })
@@ -54,6 +50,10 @@ export const makeQuoteInfo: I.RecordFactory<Types._QuoteInfo> = I.Record({
   ordinal: Types.numberToOrdinal(0),
   sourceConversationIDKey: Constants.noConversationIDKey,
   targetConversationIDKey: Constants.noConversationIDKey,
+})
+
+export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
+  deletableByDeleteHistory: I.Set(),
 })
 
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>

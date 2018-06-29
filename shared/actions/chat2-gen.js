@@ -27,6 +27,7 @@ export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
 export const leaveConversation = 'chat2:leaveConversation'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
+export const loadStaticConfig = 'chat2:loadStaticConfig'
 export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
 export const messageAttachmentNativeSave = 'chat2:messageAttachmentNativeSave'
@@ -132,6 +133,7 @@ type _LeaveConversationPayload = $ReadOnly<{|
   dontNavigateToInbox?: boolean,
 |}>
 type _LoadOlderMessagesDueToScrollPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
+type _LoadStaticConfigPayload = void
 type _MarkConversationsStalePayload = $ReadOnly<{|
   conversationIDKeys: Array<Types.ConversationIDKey>,
   updateType: RPCChatTypes.StaleUpdateType,
@@ -341,6 +343,10 @@ export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({e
  */
 export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({error: false, payload, type: updateConvExplodingModes})
 /**
+ * Load static configuration info from the service. Only ever needs to be called once.
+ */
+export const createLoadStaticConfig = (payload: _LoadStaticConfigPayload) => ({error: false, payload, type: loadStaticConfig})
+/**
  * Set a lock on the exploding mode for a conversation.
  */
 export const createSetExplodingModeLock = (payload: _SetExplodingModeLockPayload) => ({error: false, payload, type: setExplodingModeLock})
@@ -439,6 +445,7 @@ export type InboxRefreshPayload = $Call<typeof createInboxRefresh, _InboxRefresh
 export type JoinConversationPayload = $Call<typeof createJoinConversation, _JoinConversationPayload>
 export type LeaveConversationPayload = $Call<typeof createLeaveConversation, _LeaveConversationPayload>
 export type LoadOlderMessagesDueToScrollPayload = $Call<typeof createLoadOlderMessagesDueToScroll, _LoadOlderMessagesDueToScrollPayload>
+export type LoadStaticConfigPayload = $Call<typeof createLoadStaticConfig, _LoadStaticConfigPayload>
 export type MarkConversationsStalePayload = $Call<typeof createMarkConversationsStale, _MarkConversationsStalePayload>
 export type MarkInitiallyLoadedThreadAsReadPayload = $Call<typeof createMarkInitiallyLoadedThreadAsRead, _MarkInitiallyLoadedThreadAsReadPayload>
 export type MessageAttachmentNativeSavePayload = $Call<typeof createMessageAttachmentNativeSave, _MessageAttachmentNativeSavePayload>
@@ -511,6 +518,7 @@ export type Actions =
   | JoinConversationPayload
   | LeaveConversationPayload
   | LoadOlderMessagesDueToScrollPayload
+  | LoadStaticConfigPayload
   | MarkConversationsStalePayload
   | MarkInitiallyLoadedThreadAsReadPayload
   | MessageAttachmentNativeSavePayload

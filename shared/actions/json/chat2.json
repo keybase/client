@@ -405,6 +405,10 @@
     "handleSeeingExplodingMessages": {
       "_description":
         "Some things need to happen when the user interacts with the exploding messages feature. Trigger the handler that takes care of those things."
+    },
+    "loadStaticConfig": {
+      "_description":
+        "Load static configuration info from the service. Only ever needs to be called once."
     }
   }
 }

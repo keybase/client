@@ -46,7 +46,7 @@ export type _State = {
   explodingModes: I.Map<Common.ConversationIDKey, number>, // seconds to exploding message expiration
   quote: ?QuoteInfo, // last quoted message
   selectedConversation: Common.ConversationIDKey, // the selected conversation, if any
-  staticConfig: StaticConfig, // static config stuff from the service
+  staticConfig: ?StaticConfig, // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded
   typingMap: I.Map<Common.ConversationIDKey, I.Set<string>>, // who's typing currently
   unreadMap: I.Map<Common.ConversationIDKey, number>, // how many unread messages there are
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>, // messages waiting to be sent
