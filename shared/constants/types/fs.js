@@ -412,5 +412,5 @@ export type RowItem = StillRowItem | EditingRowItem | UploadingRowItem | Placeho
 // Note that this is not a subscrition based model where a component needs to
 // unsubscribe when it's not interested anymore. Instead, we use a simple
 // heuristic where Saga only keeps track of latest call from each component and
-// refresh only most recently reuested paths for each component.
+// refresh only the most recently reuested paths for each component.
 export type RefreshTag = 'main' | 'path-item-action-popup'

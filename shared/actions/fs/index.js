@@ -80,15 +80,15 @@ function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<
 
 // See constants/types/fs.js on what this is for.
 // We intentionally keep this here rather than in the redux store.
-const refreshTagsFolderList: Map<Types.RefreshTag, Types.Path> = new Map()
-const refreshTagsMimeType: Map<Types.RefreshTag, Types.Path> = new Map()
+const folderListRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
+const mimeTypeRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
 
 function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<any, any> {
   const opID = Constants.makeUUID()
   const {refreshTag, path: rootPath} = action.payload
   console.log({rootPath, action})
 
-  refreshTag && refreshTagsFolderList.set(refreshTag, rootPath)
+  refreshTag && folderListRefreshTags.set(refreshTag, rootPath)
 
   yield Saga.call(RPCTypes.SimpleFSSimpleFSListRpcPromise, {
     opID,
@@ -305,8 +305,8 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
         // because we are polling and things can slip through between
         // SimpleFSSyncStatus calls. So instead just always re-load them on the
         // same interval we are polling on journal status.
-        ...Array.from(refreshTagsFolderList).map(([_, path]) => Saga.put(FsGen.createFolderListLoad({path}))),
-        ...Array.from(refreshTagsMimeType).map(([_, path]) => Saga.put(FsGen.createMimeTypeLoad({path}))),
+        ...Array.from(folderListRefreshTags).map(([_, path]) => Saga.put(FsGen.createFolderListLoad({path}))),
+        ...Array.from(mimeTypeRefreshTags).map(([_, path]) => Saga.put(FsGen.createMimeTypeLoad({path}))),
       ])
 
       if (totalSyncingBytes <= 0) {
@@ -398,7 +398,7 @@ const getMimeTypePromise = (path: Types.Path, serverInfo: Types._LocalHTTPServer
 // path, and in addition triggers a mimeTypeLoaded so the loaded mime type for
 // given path is populated in the store.
 function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
-  refreshTag && refreshTagsMimeType.set(refreshTag, path)
+  refreshTag && mimeTypeRefreshTags.set(refreshTag, path)
 
   const state = yield Saga.select()
   let {address, token} = state.fs.localHTTPServerInfo || Constants.makeLocalHTTPServer()
