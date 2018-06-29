@@ -1,6 +1,9 @@
 // @flow
 import * as I from 'immutable'
 
+// Possible 'types' of things you can send or receive transactions with
+export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'account'
+
 // Reserves held against an account's XLM balance
 export type _Reserve = {
   amount: string,
