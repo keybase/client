@@ -11096,7 +11096,7 @@ react-native-wkwebview-reborn@^1.20.0:
 
 "react-native@git://github.com/keybase/react-native#keybase-fixes-off-560rc3":
   version "0.56.0-rc.3"
-  resolved "git://github.com/keybase/react-native#c53f54218a4427ce97cf5ad0a40dfb267b00d1b5"
+  resolved "git://github.com/keybase/react-native#e03f138daa3b47bdd262551968da3fe2a9331fa6"
   dependencies:
     absolute-path "^0.0.0"
     art "^0.10.0"
