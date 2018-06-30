@@ -34,6 +34,7 @@ export type _State = {
   codePageQrCodeScanned: boolean,
   codePageQrScanned: ?QRCode,
   codePageTextCode: ?HiddenString,
+  devicenameError: string,
   configuredAccounts: I.List<Account>,
   forgotPasswordError: ?Error,
   forgotPasswordSubmitting: boolean,

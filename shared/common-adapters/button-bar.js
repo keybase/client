@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import Box from './box'
-import {globalStyles, isMobile, globalMargins} from '../styles'
+import {globalStyles, isMobile, globalMargins, collapseStyles} from '../styles'
 
 type Props = {
   direction: 'row' | 'column',
@@ -56,19 +56,21 @@ class ButtonBar extends React.PureComponent<Props> {
       }
     }
 
-    const style = {
-      alignItems: this.props.fullWidth ? 'stretch' : 'center',
-      padding: this.props.fullWidth ? globalMargins.small : 0,
-      width: '100%',
-      ...(this.props.direction === 'column'
-        ? {...globalStyles.flexBoxColumn}
-        : {
-            ...globalStyles.flexBoxRow,
-            justifyContent: this.props.align,
-            ...minHeight,
-          }),
-      ...this.props.style,
-    }
+    const style = collapseStyles([
+      {
+        alignItems: this.props.fullWidth ? 'stretch' : 'center',
+        padding: this.props.fullWidth ? globalMargins.small : 0,
+        width: '100%',
+        ...(this.props.direction === 'column'
+          ? {...globalStyles.flexBoxColumn}
+          : {
+              ...globalStyles.flexBoxRow,
+              justifyContent: this.props.align,
+              ...minHeight,
+            }),
+      },
+      this.props.style,
+    ])
 
     return <Box style={style}>{childrenWithSpacing}</Box>
   }
