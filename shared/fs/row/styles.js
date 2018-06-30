@@ -1,29 +1,20 @@
 // @flow
-import {globalStyles, globalMargins, isMobile, platformStyles} from '../../styles'
+import {globalStyles, globalMargins, platformStyles} from '../../styles'
 import {memoize} from 'lodash-es'
-
-const height = isMobile ? 64 : 40
 
 const rowBox = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   flex: 1,
   minWidth: 0,
-  minHeight: height,
-}
-
-const row = {
-  ...rowBox,
-  paddingLeft: globalMargins.small,
-  justifyContent: 'space-between',
-  alignItems: 'center',
   paddingRight: globalMargins.small,
+  paddingLeft: globalMargins.small,
 }
 
 const itemBox = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
-  justifyContent: 'space-between',
+  justifyContent: 'center',
   minWidth: 0,
 }
 
@@ -63,6 +54,11 @@ const rowText_30 = memoize(color =>
   })
 )
 
+const leftBox = {
+  ...globalStyles.flexBoxRow,
+  flex: 1,
+}
+
 const rightBox = {
   ...globalStyles.flexBoxRow,
   flexShrink: 1,
@@ -70,19 +66,13 @@ const rightBox = {
   alignItems: 'center',
 }
 
-const divider = {
-  marginLeft: isMobile ? 48 : 48,
-}
-
 export default {
-  height,
-  row,
   rowBox,
   itemBox,
   pathItemIcon,
   pathItemIcon_30,
   rowText,
   rowText_30,
-  divider,
+  leftBox,
   rightBox,
 }

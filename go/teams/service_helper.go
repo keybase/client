@@ -234,7 +234,7 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		}
 		timeoutCancel()
 
-		err = tx.Post(ctx)
+		err = tx.Post(libkb.NewMetaContext(ctx, g))
 		if err != nil {
 			return err
 		}
@@ -315,7 +315,7 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 			return err
 		}
 
-		return tx.Post(ctx)
+		return tx.Post(libkb.NewMetaContext(ctx, g))
 	})
 }
 
@@ -1588,4 +1588,12 @@ func FindNextMerkleRootAfterRemoval(mctx libkb.MetaContext, arg keybase1.FindNex
 		TeamSigchainSeqno: logPoint.SigMeta.SigChainLocation.Seqno,
 		Prev:              logPoint.SigMeta.PrevMerkleRootSigned,
 	})
+}
+
+func ProfileTeamLoad(mctx libkb.MetaContext, arg keybase1.LoadTeamArg) (res keybase1.ProfileTeamLoadRes, err error) {
+	pre := mctx.G().Clock().Now()
+	_, err = Load(mctx.Ctx(), mctx.G(), arg)
+	post := mctx.G().Clock().Now()
+	res.LoadTimeNsec = post.Sub(pre).Nanoseconds()
+	return res, err
 }

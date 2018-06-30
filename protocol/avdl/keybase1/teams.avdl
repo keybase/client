@@ -835,6 +835,10 @@ protocol teams {
     boolean deleteChatHistory;
   }
 
+  record ProfileTeamLoadRes {
+    long loadTimeNsec;
+  }
+
   TeamOperation canUserPerform(string name);
 
   void teamRotateKey(TeamID teamID);
@@ -865,5 +869,11 @@ protocol teams {
    we will return just the last one.
    */
   NextMerkleRootRes findNextMerkleRootAfterTeamRemovalBySigningKey(UID uid, KID signingKey, TeamID team, boolean isPublic);
+
+  /**
+   ProfileTeamLoad loads a team and then throws it on the ground, for the purposes of profiling
+   the team load machinery.
+   */
+  ProfileTeamLoadRes profileTeamLoad(LoadTeamArg arg);
 
 }

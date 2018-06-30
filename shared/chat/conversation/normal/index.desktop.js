@@ -9,8 +9,7 @@ import logger from '../../../logger'
 import {Box, Icon, LoadingLine, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import {readImageFromClipboard} from '../../../util/clipboard.desktop'
-
-import type {Props} from '.'
+import type {Props} from './index.types'
 
 type State = {|
   showDropOverlay: boolean,

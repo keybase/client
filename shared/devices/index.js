@@ -1,7 +1,16 @@
 // @flow
 import * as Types from '../constants/types/devices'
 import React, {PureComponent} from 'react'
-import {Box2, Box, Text, List, Icon, ClickableBox, ProgressIndicator, HeaderOnMobile} from '../common-adapters'
+import {
+  Box2,
+  Box,
+  Text,
+  List,
+  Icon,
+  ClickableBox,
+  ProgressIndicator,
+  HeaderOnMobile,
+} from '../common-adapters'
 import FloatingMenu, {
   FloatingMenuParentHOC,
   type FloatingMenuParentProps,
@@ -9,7 +18,7 @@ import FloatingMenu, {
 import {RowConnector} from './row'
 import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../styles'
 
-import type {MenuItem} from '../common-adapters/popup-menu.js'
+import type {MenuItem} from '../common-adapters/popup-menu'
 
 export type Props = {
   deviceIDs: Array<Types.DeviceID>,

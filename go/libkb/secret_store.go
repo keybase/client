@@ -89,13 +89,16 @@ func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
 	return nil
 }
 
-func GetConfiguredAccounts(c SecretStoreContext, s SecretStoreAll) ([]keybase1.ConfiguredAccount, error) {
-	currentUsername, otherUsernames, err := c.GetAllUserNames()
+func GetConfiguredAccounts(m MetaContext, s SecretStoreAll) ([]keybase1.ConfiguredAccount, error) {
+
+	currentUsername, allUsernames, err := GetAllProvisionedUsernames(m)
 	if err != nil {
 		return nil, err
 	}
 
-	allUsernames := append(otherUsernames, currentUsername)
+	if !currentUsername.IsNil() {
+		allUsernames = append(allUsernames, currentUsername)
+	}
 
 	accounts := make(map[NormalizedUsername]keybase1.ConfiguredAccount)
 

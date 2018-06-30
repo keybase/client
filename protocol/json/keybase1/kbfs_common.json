@@ -112,6 +112,62 @@
     },
     {
       "type": "record",
+      "name": "FSFolderWriterEdit",
+      "fields": [
+        {
+          "type": "string",
+          "name": "filename"
+        },
+        {
+          "type": "FSNotificationType",
+          "name": "notificationType"
+        },
+        {
+          "type": "Time",
+          "name": "serverTime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FSFolderWriterEditHistory",
+      "fields": [
+        {
+          "type": "string",
+          "name": "writerName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "FSFolderWriterEdit"
+          },
+          "name": "edits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FSFolderEditHistory",
+      "fields": [
+        {
+          "type": "Folder",
+          "name": "folder"
+        },
+        {
+          "type": "Time",
+          "name": "serverTime"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "FSFolderWriterEditHistory"
+          },
+          "name": "history"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "FSSyncStatusRequest",
       "fields": [
         {

@@ -339,7 +339,7 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		if err := tx.AddMemberBySBS(ctx, verifiedInvitee, invite.Role); err != nil {
 			return err
 		}
-		if err := tx.Post(ctx); err != nil {
+		if err := tx.Post(libkb.NewMetaContext(ctx, g)); err != nil {
 			return err
 		}
 
@@ -411,7 +411,7 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 			return nil
 		}
 
-		return tx.Post(ctx)
+		return tx.Post(libkb.NewMetaContext(ctx, g))
 	})
 }
 
@@ -492,7 +492,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 		return nil
 	}
 
-	err = tx.Post(ctx)
+	err = tx.Post(libkb.NewMetaContext(ctx, g))
 	if err != nil {
 		return err
 	}

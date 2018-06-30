@@ -104,6 +104,23 @@
       ],
       "response": null,
       "oneway": true
+    },
+    "avatarUpdated": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "formats",
+          "type": {
+            "type": "array",
+            "items": "AvatarFormat"
+          }
+        }
+      ],
+      "response": null,
+      "oneway": true
     }
   },
   "namespace": "keybase.1"

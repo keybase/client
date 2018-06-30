@@ -170,6 +170,29 @@ const (
 	StatusCode_SCStellarBadPuk                 StatusCode = 3104
 	StatusCode_SCStellarMissingAccount         StatusCode = 3105
 	StatusCode_SCStellarBadPrev                StatusCode = 3106
+	StatusCode_SCStellarWrongPrimary           StatusCode = 3107
+	StatusCode_SCStellarUnsupportedCurrency    StatusCode = 3108
+	StatusCode_SCNISTWrongSize                 StatusCode = 3201
+	StatusCode_SCNISTBadMode                   StatusCode = 3202
+	StatusCode_SCNISTHashWrongSize             StatusCode = 3203
+	StatusCode_SCNISTSigWrongSize              StatusCode = 3204
+	StatusCode_SCNISTSigBadInput               StatusCode = 3205
+	StatusCode_SCNISTSigBadUID                 StatusCode = 3206
+	StatusCode_SCNISTSigBadDeviceID            StatusCode = 3207
+	StatusCode_SCNISTSigBadNonce               StatusCode = 3208
+	StatusCode_SCNISTNoSigOrHash               StatusCode = 3209
+	StatusCode_SCNISTExpired                   StatusCode = 3210
+	StatusCode_SCNISTSigRevoked                StatusCode = 3211
+	StatusCode_SCNISTKeyRevoked                StatusCode = 3212
+	StatusCode_SCNISTUserDeleted               StatusCode = 3213
+	StatusCode_SCNISTNoDevice                  StatusCode = 3214
+	StatusCode_SCNISTSigCannot_verify          StatusCode = 3215
+	StatusCode_SCNISTReplay                    StatusCode = 3216
+	StatusCode_SCNISTSigBadLifetime            StatusCode = 3217
+	StatusCode_SCNISTNotFound                  StatusCode = 3218
+	StatusCode_SCNISTBadClock                  StatusCode = 3219
+	StatusCode_SCNISTSigBadCtime               StatusCode = 3220
+	StatusCode_SCBadSignupUsernameDeleted      StatusCode = 3221
 )
 
 func (o StatusCode) DeepCopy() StatusCode { return o }
@@ -335,6 +358,29 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCStellarBadPuk":                 3104,
 	"SCStellarMissingAccount":         3105,
 	"SCStellarBadPrev":                3106,
+	"SCStellarWrongPrimary":           3107,
+	"SCStellarUnsupportedCurrency":    3108,
+	"SCNISTWrongSize":                 3201,
+	"SCNISTBadMode":                   3202,
+	"SCNISTHashWrongSize":             3203,
+	"SCNISTSigWrongSize":              3204,
+	"SCNISTSigBadInput":               3205,
+	"SCNISTSigBadUID":                 3206,
+	"SCNISTSigBadDeviceID":            3207,
+	"SCNISTSigBadNonce":               3208,
+	"SCNISTNoSigOrHash":               3209,
+	"SCNISTExpired":                   3210,
+	"SCNISTSigRevoked":                3211,
+	"SCNISTKeyRevoked":                3212,
+	"SCNISTUserDeleted":               3213,
+	"SCNISTNoDevice":                  3214,
+	"SCNISTSigCannot_verify":          3215,
+	"SCNISTReplay":                    3216,
+	"SCNISTSigBadLifetime":            3217,
+	"SCNISTNotFound":                  3218,
+	"SCNISTBadClock":                  3219,
+	"SCNISTSigBadCtime":               3220,
+	"SCBadSignupUsernameDeleted":      3221,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -498,6 +544,29 @@ var StatusCodeRevMap = map[StatusCode]string{
 	3104: "SCStellarBadPuk",
 	3105: "SCStellarMissingAccount",
 	3106: "SCStellarBadPrev",
+	3107: "SCStellarWrongPrimary",
+	3108: "SCStellarUnsupportedCurrency",
+	3201: "SCNISTWrongSize",
+	3202: "SCNISTBadMode",
+	3203: "SCNISTHashWrongSize",
+	3204: "SCNISTSigWrongSize",
+	3205: "SCNISTSigBadInput",
+	3206: "SCNISTSigBadUID",
+	3207: "SCNISTSigBadDeviceID",
+	3208: "SCNISTSigBadNonce",
+	3209: "SCNISTNoSigOrHash",
+	3210: "SCNISTExpired",
+	3211: "SCNISTSigRevoked",
+	3212: "SCNISTKeyRevoked",
+	3213: "SCNISTUserDeleted",
+	3214: "SCNISTNoDevice",
+	3215: "SCNISTSigCannot_verify",
+	3216: "SCNISTReplay",
+	3217: "SCNISTSigBadLifetime",
+	3218: "SCNISTNotFound",
+	3219: "SCNISTBadClock",
+	3220: "SCNISTSigBadCtime",
+	3221: "SCBadSignupUsernameDeleted",
 }
 
 func (e StatusCode) String() string {

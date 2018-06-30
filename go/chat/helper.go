@@ -316,7 +316,7 @@ func (h *Helper) formatPushText(ctx context.Context, uid gregor1.UID, convID cha
 }
 
 func (h *Helper) UnboxMobilePushNotification(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, membersType chat1.ConversationMembersType, pushIDs []string, payload string) (res string, err error) {
+	convID chat1.ConversationID, membersType chat1.ConversationMembersType, payload string) (res string, err error) {
 	defer h.Trace(ctx, func() error { return err }, "UnboxMobilePushNotification")()
 	// Parse the message payload
 	bMsg, err := base64.StdEncoding.DecodeString(payload)

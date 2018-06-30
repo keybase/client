@@ -26,7 +26,7 @@ import users from './users'
 import waiting from './waiting'
 import wallets from './wallets'
 import {combineReducers} from 'redux'
-import {resetStore} from '../constants/common.js'
+import {resetStore} from '../constants/common'
 import {reducerTimer} from '../dev/user-timings'
 
 import type {TypedState} from '../constants/reducer'

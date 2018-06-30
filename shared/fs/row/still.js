@@ -3,11 +3,13 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {globalColors, globalMargins, isMobile, glamorous} from '../../styles'
 import rowStyles from './styles'
-import {Badge, Box, ClickableBox, Icon, Meta, Text, Divider} from '../../common-adapters'
+import {Badge, Box, ClickableBox, Icon, Meta, Text} from '../../common-adapters'
 import PathItemIcon from '../common/path-item-icon'
 import PathItemInfo from '../common/path-item-info'
+import PathItemAction from '../common/path-item-action-container'
 
 type StillProps = {
+  path: Types.Path,
   name: string,
   type: Types.PathType,
   lastModifiedTimestamp: number,
@@ -20,7 +22,6 @@ type StillProps = {
   isUserReset: boolean,
   onOpen: () => void,
   openInFileUI: () => void,
-  onAction: (event: SyntheticEvent<>) => void,
 }
 
 const HoverBox = isMobile
@@ -67,57 +68,49 @@ const RowMeta = ({badgeCount, isDownloading, isNew, isIgnored, needsRekey}) => {
 }
 
 const Still = (props: StillProps) => (
-  <Box>
-    <HoverBox style={rowStyles.row}>
-      <ClickableBox onClick={props.onOpen} style={rowStyles.rowBox}>
-        <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon} />
-        <RowMeta badgeCount={props.badgeCount} {...props.tlfMeta} isDownloading={props.isDownloading} />
-        <Box style={rowStyles.itemBox}>
-          <Text
-            type={props.itemStyles.textType}
-            style={rowStyles.rowText(props.itemStyles.textColor)}
-            lineClamp={isMobile ? 1 : undefined}
-          >
-            {props.name}
-          </Text>
-          {props.type === 'folder' &&
-          (!props.resetParticipants || props.resetParticipants.length === 0) ? null : (
-            <PathItemInfo
-              lastModifiedTimestamp={props.lastModifiedTimestamp}
-              lastWriter={props.lastWriter}
-              resetParticipants={props.resetParticipants}
-              isUserReset={props.isUserReset}
-            />
-          )}
-        </Box>
-      </ClickableBox>
-      <Box style={rowStyles.rightBox}>
-        {!isMobile && (
-          <Icon
-            type="iconfont-finder"
-            style={rowActionIconStyle}
-            fontSize={rowActionIconFontSize}
-            onClick={props.openInFileUI}
-            className="fs-path-item-hover-icon"
+  <HoverBox style={rowStyles.rowBox}>
+    <ClickableBox onClick={props.onOpen} style={rowStyles.leftBox}>
+      <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon} />
+      <RowMeta badgeCount={props.badgeCount} {...props.tlfMeta} isDownloading={props.isDownloading} />
+      <Box style={rowStyles.itemBox}>
+        <Text
+          type={props.itemStyles.textType}
+          style={rowStyles.rowText(props.itemStyles.textColor)}
+          lineClamp={isMobile ? 1 : undefined}
+        >
+          {props.name}
+        </Text>
+        {props.type === 'folder' &&
+        (!props.resetParticipants || props.resetParticipants.length === 0) ? null : (
+          <PathItemInfo
+            lastModifiedTimestamp={props.lastModifiedTimestamp}
+            lastWriter={props.lastWriter}
+            resetParticipants={props.resetParticipants}
+            isUserReset={props.isUserReset}
           />
         )}
+      </Box>
+    </ClickableBox>
+    <Box style={rowStyles.rightBox}>
+      {!isMobile && (
         <Icon
-          type="iconfont-ellipsis"
-          style={rowActionIconStyle}
-          onClick={props.onAction}
+          type="iconfont-finder"
+          style={pathItemActionIconStyle}
+          fontSize={pathItemActionIconFontSize}
+          onClick={props.openInFileUI}
           className="fs-path-item-hover-icon"
         />
-      </Box>
-    </HoverBox>
-    <Divider style={rowStyles.divider} />
-  </Box>
+      )}
+      <PathItemAction path={props.path} actionIconClassName="fs-path-item-hover-icon" />
+    </Box>
+  </HoverBox>
 )
 
-const rowActionIconStyle = {
-  padding: globalMargins.small,
+const pathItemActionIconStyle = {
+  padding: globalMargins.tiny,
 }
 
-const rowActionIconFontSize = 16
+const pathItemActionIconFontSize = 16
 
 const styleBadgeContainer = {
   position: 'absolute',

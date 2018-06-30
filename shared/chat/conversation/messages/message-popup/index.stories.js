@@ -74,7 +74,7 @@ const provider = PropProviders.compose(
         {danger: true, onClick: action('onDeleteHistory'), title: 'Delete this + everything above'},
         ...(props.message.type === 'attachment'
           ? [{onClick: action('onDownload'), title: 'Download'}]
-          : [{onClick: action('onEdit'), title: 'Edit'}]),
+          : [{onClick: action('onEdit'), title: 'Edit'}, {onClick: action('onCopy'), title: 'Copy text'}]),
       ],
       onHidden: props.onHidden,
       position: props.position,

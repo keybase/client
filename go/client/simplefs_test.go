@@ -169,6 +169,19 @@ func (s SimpleFSMock) SimpleFSGetHTTPAddressAndToken(ctx context.Context) (keyba
 	return keybase1.SimpleFSGetHTTPAddressAndTokenResponse{}, nil
 }
 
+// SimpleFSUserEditHistory implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSUserEditHistory(ctx context.Context) (
+	res []keybase1.FSFolderEditHistory, err error) {
+	return nil, nil
+}
+
+// SimpleFSFolderEditHistory implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSFolderEditHistory(
+	ctx context.Context, path keybase1.Path) (
+	res keybase1.FSFolderEditHistory, err error) {
+	return keybase1.FSFolderEditHistory{}, nil
+}
+
 /*
  file source cases:
  1. file

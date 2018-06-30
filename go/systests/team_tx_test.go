@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 )
@@ -43,7 +44,7 @@ func testTeamTx1(t *testing.T, byUV bool) {
 		tx.AddMemberByUsername(context.Background(), tracy.username, keybase1.TeamRole_READER)
 	}
 
-	err := tx.Post(context.Background())
+	err := tx.Post(libkb.NewMetaContextForTest(*ann.tc))
 	require.NoError(t, err)
 
 	teamObj = ann.loadTeam(team, true /* admin */)
@@ -73,7 +74,7 @@ func testTeamTx1(t *testing.T, byUV bool) {
 	tx = teams.CreateAddMemberTx(teamObj)
 	tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER)
 
-	err = tx.Post(context.Background())
+	err = tx.Post(libkb.NewMetaContextForTest(*ann.tc))
 	require.NoError(t, err)
 
 	teamObj = ann.loadTeam(team, true /* admin */)
@@ -163,7 +164,7 @@ func TestTeamTxDependency(t *testing.T) {
 	// payloads := tx.DebugPayloads()
 	// require.Equal(t, 3, len(payloads))
 
-	err = tx.Post(context.Background())
+	err = tx.Post(libkb.NewMetaContextForTest(*ann.tc))
 	require.NoError(t, err)
 
 	// State is still fine even without ordering, because nor server
@@ -213,7 +214,7 @@ func TestTeamTxSweepMembers(t *testing.T) {
 	tx := teams.CreateAddMemberTx(teamObj)
 	err := tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_READER)
 	require.NoError(t, err)
-	err = tx.Post(context.Background())
+	err = tx.Post(libkb.NewMetaContextForTest(*ann.tc))
 	require.NoError(t, err)
 
 	teamObj = ann.loadTeam(team, true /* admin */)
@@ -257,7 +258,7 @@ func TestTeamTxMultipleMembers(t *testing.T) {
 		err := tx.AddMemberByUsername(context.Background(), tt.users[i].username, keybase1.TeamRole_WRITER)
 		require.NoError(t, err)
 	}
-	err := tx.Post(context.Background())
+	err := tx.Post(libkb.NewMetaContextForTest(*ann.tc))
 	require.NoError(t, err)
 
 	for i := 4; i <= 5; i++ {
@@ -273,7 +274,7 @@ func TestTeamTxMultipleMembers(t *testing.T) {
 		err := tx.AddMemberByUsername(context.Background(), tt.users[i].username, keybase1.TeamRole_WRITER)
 		require.NoError(t, err)
 	}
-	err = tx.Post(context.Background())
+	err = tx.Post(libkb.NewMetaContextForTest(*ann.tc))
 	require.NoError(t, err)
 
 	teamObj = ann.loadTeam(team, true /* admin */)
@@ -318,7 +319,7 @@ func TestTeamTxSubteamAdmins(t *testing.T) {
 	tx := teams.CreateAddMemberTx(teamObj)
 	err = tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_ADMIN)
 	require.NoError(t, err)
-	err = tx.Post(context.Background())
+	err = tx.Post(libkb.NewMetaContextForTest(*ann.tc))
 	require.NoError(t, err)
 }
 

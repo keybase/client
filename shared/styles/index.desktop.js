@@ -2,7 +2,7 @@
 import globalColors from './colors'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import path from 'path'
-import {type CollapsibleStyle} from '.'
+import {type CollapsibleStyle} from './index.types'
 import * as Shared from './shared'
 
 export const windowStyle = {
@@ -112,6 +112,18 @@ export const backgroundURL = (...to: Array<string>) => {
 export const hairlineWidth = 1
 export const styleSheetCreate = (obj: Object) => obj
 export const collapseStyles = (styles: $ReadOnlyArray<CollapsibleStyle>): Object => {
+  // fast path for a single style that passes. Often we do stuff like
+  // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
+  // case we can just take styles.myStyle and not render thrash
+  const valid = styles.filter(Boolean)
+  if (valid.length === 1) {
+    const s = valid[0]
+    if (typeof s === 'object') {
+      // $ForceType
+      return s
+    }
+  }
+
   const flattenedStyles = styles.reduce((a, e) => a.concat(e), [])
   return flattenedStyles.reduce((o, e) => (e ? {...o, ...e} : o), {})
 }
@@ -120,3 +132,4 @@ export {globalMargins, backgroundModeToColor, platformStyles} from './shared'
 export {default as glamorous} from 'glamorous'
 export {default as globalColors} from './colors'
 export const statusBarHeight = 0
+export type {StylesCrossPlatform} from './index.types'
