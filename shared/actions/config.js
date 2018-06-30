@@ -13,7 +13,6 @@ import * as NotificationsGen from '../actions/notifications-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as PinentryGen from '../actions/pinentry-gen'
-import * as SignupGen from '../actions/signup-gen'
 import engine from '../engine'
 import {checkRPCOwnership} from '../engine/index.platform'
 import {RouteStateStorage} from '../actions/route-state-storage'
@@ -161,7 +160,6 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
               )
             }
           })
-          dispatch(SignupGen.createResetSignup())
         }
       })
       .catch(error => {

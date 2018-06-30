@@ -1,6 +1,5 @@
 // @flow
 import * as LoginGen from '../../../actions/login-gen'
-import * as SignupGen from '../../../actions/signup-gen'
 import React, {Component} from 'react'
 import SetPublicName, {type State} from '.'
 import {connect, type TypedState} from '../../../util/container'
@@ -21,7 +20,6 @@ const trimDeviceNames = (names: ?Array<string>): Array<string> => {
 type ContainerProps = {
   onSubmit: (deviceName: ?string) => void,
   onBack: () => void,
-  clearDeviceNameError: () => void,
   waiting: boolean,
   deviceNameError: ?string,
   existingDevices: ?Array<string>,
@@ -44,9 +42,6 @@ class _SetPublicName extends Component<ContainerProps, State> {
     this.setState({
       deviceName,
     })
-    if (this.props.deviceNameError) {
-      this.props.clearDeviceNameError()
-    }
   }
 
   render() {
@@ -62,7 +57,6 @@ class _SetPublicName extends Component<ContainerProps, State> {
 
     return (
       <SetPublicName
-        clearDeviceNameError={this.props.clearDeviceNameError}
         deviceName={this.state.deviceName}
         onChange={this._onChange}
         onSubmit={() => this.props.onSubmit(this.state.deviceName)}
@@ -84,14 +78,13 @@ type OwnProps = RouteProps<
 >
 
 const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
-  deviceNameError: state.signup.deviceNameError,
+  deviceNameError: state.login.devicenameError,
   existingDevices: routeProps.get('existingDevices'),
   existingDevicesTrimmed: trimDeviceNames(routeProps.get('existingDevices')),
   waiting: state.engine.get('rpcWaitingStates').get('loginRpc'),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  clearDeviceNameError: () => dispatch(SignupGen.createClearDeviceNameError()),
   onBack: () => dispatch(LoginGen.createOnBack()),
   onSubmit: (deviceName: string) => {
     // map 'smart apostrophes' to ASCII (typewriter apostrophe)
