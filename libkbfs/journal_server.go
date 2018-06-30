@@ -280,6 +280,67 @@ func (j *JournalServer) hasTLFJournal(tlfID tlf.ID) bool {
 	return ok
 }
 
+func (j *JournalServer) makeFBOForJournal(
+	ctx context.Context, tj *tlfJournal, tlfID tlf.ID) error {
+	bid, err := tj.getBranchID()
+	if err != nil {
+		return err
+	}
+
+	head, err := tj.getMDHead(ctx, bid)
+	if err != nil {
+		return err
+	}
+
+	if head == (ImmutableBareRootMetadata{}) {
+		return nil
+	}
+
+	headBareHandle, err := head.MakeBareTlfHandleWithExtra()
+	if err != nil {
+		return err
+	}
+
+	handle, err := MakeTlfHandle(
+		ctx, headBareHandle, tlfID.Type(), j.config.KBPKI(),
+		j.config.KBPKI(), constIDGetter{tlfID})
+	if err != nil {
+		return err
+	}
+
+	_, _, err = j.config.KBFSOps().GetRootNode(ctx, handle, MasterBranch)
+	return err
+}
+
+// MakeFBOsForExistingJournals creates folderBranchOps objects for all
+// existing, non-empty journals.  This is useful to initialize the
+// unflushed edit history, for example.
+func (j *JournalServer) MakeFBOsForExistingJournals(ctx context.Context) {
+	var wg sync.WaitGroup
+	// Wait for all the FBOs to be initialized, after releasing the lock.
+	defer wg.Wait()
+
+	j.lock.Lock()
+	defer j.lock.Unlock()
+	for tlfID, tj := range j.tlfJournals {
+		wg.Add(1)
+		tlfID := tlfID
+		tj := tj
+		go func() {
+			defer wg.Done()
+			j.log.CDebugf(ctx,
+				"Initializing FBO for non-empty journal: %s", tlfID)
+
+			err := j.makeFBOForJournal(ctx, tj, tlfID)
+			if err != nil {
+				j.log.CWarningf(ctx,
+					"Error when making FBO for existing journal for %s: "+
+						"%+v", tlfID, err)
+			}
+		}()
+	}
+}
+
 // EnableExistingJournals turns on the write journal for all TLFs for
 // the given (UID, device) tuple (with the device identified by its
 // verifying key) with an existing journal. Any returned error means

@@ -789,6 +789,25 @@ func (fbo *folderBranchOps) setHeadLocked(
 					if journalPred >= kbfsmd.RevisionInitial {
 						fbo.setLatestMergedRevisionLocked(
 							ctx, lState, journalPred, false)
+
+						// Set the unflushed edit history.
+						mds, err := getMergedMDUpdates(
+							ctx, fbo.config, fbo.id(), journalPred+1, nil)
+						if err != nil {
+							fbo.log.CDebugf(ctx,
+								"Couldn't get journal MDs: %+v", err)
+							return err
+						}
+						for _, mergedMD := range mds {
+							err = fbo.handleUnflushedEditNotifications(
+								ctx, mergedMD)
+							if err != nil {
+								fbo.log.CDebugf(ctx,
+									"Couldn't get unflushed edits for %d: %+v",
+									mergedMD.Revision(), err)
+								return err
+							}
+						}
 					} else {
 						fbo.setLatestMergedRevisionLocked(ctx, lState,
 							md.Revision(), false)
