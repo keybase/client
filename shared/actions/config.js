@@ -126,7 +126,7 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
     })
     dispatch(registerListeners())
   } else {
-    logger.info('[bootstrap] performing bootstrap...')
+    logger.info('[bootstrap] performing bootstrap...', opts)
     Promise.all([
       dispatch(getBootstrapStatus()),
       checkRPCOwnership(),
