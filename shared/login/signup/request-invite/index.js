@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import * as Constants from '../../../constants/signup'
-import {Text, Icon, Input, WaitingButton} from '../../../common-adapters'
-import Wrapper from '../wrapper'
+import {Text, Icon} from '../../../common-adapters'
+import {Wrapper, Input, ContinueButton} from '../common'
 
 type Props = {|
   emailError: string,
@@ -40,9 +39,7 @@ class RequestInvite extends React.Component<Props, State> {
           errorText={this.props.nameError}
           onChangeText={name => this.setState({name})}
         />
-        <WaitingButton
-          waitingKey={Constants.waitingKey}
-          type="Primary"
+        <ContinueButton
           label="Request"
           disabled={!this.state.email || !this.state.name}
           onClick={this._onSubmit}
