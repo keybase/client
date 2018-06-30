@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import * as Constants from '../../../constants/signup'
-import {Icon, Text, Input, WaitingButton} from '../../../common-adapters'
-import Wrapper from '../wrapper'
+import {Icon, Text} from '../../../common-adapters'
+import {Wrapper, Input, ContinueButton} from '../common'
 
 type Props = {|
   onBack: () => void,
@@ -32,13 +31,7 @@ class InviteCode extends React.Component<Props, State> {
           onEnterKeyDown={this._onSubmit}
           onChangeText={inviteCode => this.setState({inviteCode})}
         />
-        <WaitingButton
-          waitingKey={Constants.waitingKey}
-          type="Primary"
-          label="Continue"
-          disabled={!this.state.inviteCode}
-          onClick={this._onSubmit}
-        />
+        <ContinueButton disabled={!this.state.inviteCode} onClick={this._onSubmit} />
         <Text type="BodySmall">Not invited?</Text>
         <Text type="BodySmallSecondaryLink" onClick={this.props.onRequestInvite}>
           Request an invite

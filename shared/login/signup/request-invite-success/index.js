@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Text, Icon} from '../../../common-adapters'
-import Wrapper from '../wrapper'
+import {Wrapper} from '../common'
 
 type Props = {|
   onBack: () => void,

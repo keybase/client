@@ -1,9 +1,6 @@
 // @flow
 import * as React from 'react'
-import * as Constants from '../../../constants/signup'
-import {Avatar, Input, WaitingButton} from '../../../common-adapters'
-import {isMobile} from '../../../styles'
-import Wrapper from '../wrapper'
+import {BlankAvatar, Wrapper, Input, ContinueButton} from '../common'
 
 type Props = {|
   passphrase: string,
@@ -27,7 +24,7 @@ class Passphrase extends React.Component<Props, State> {
   render() {
     return (
       <Wrapper onBack={this.props.onBack}>
-        <Avatar username="" size={isMobile ? 96 : 128} />
+        <BlankAvatar />
         <Input
           autoFocus={true}
           hintText="Create a passphrase"
@@ -43,13 +40,7 @@ class Passphrase extends React.Component<Props, State> {
           onEnterKeyDown={this._onSubmit}
           onChangeText={pass2 => this.setState({pass2})}
         />
-        <WaitingButton
-          waitingKey={Constants.waitingKey}
-          type="Primary"
-          label="Continue"
-          disabled={!this.state.pass1 || !this.state.pass2}
-          onClick={this._onSubmit}
-        />
+        <ContinueButton disabled={!this.state.pass1 || !this.state.pass2} onClick={this._onSubmit} />
       </Wrapper>
     )
   }

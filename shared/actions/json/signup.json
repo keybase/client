@@ -1,30 +1,29 @@
 {
   "prelude": ["import HiddenString from '../util/hidden-string'"],
   "actions": {
+    "goBackAndClearErrors": {},
     "requestAutoInvite": {},
-    "checkInviteCode": { "inviteCode": "string" },
-    "checkInviteCodeDone": {
+    "requestedAutoInvite": {
       "inviteCode": "string",
-      "canError": {"errorText": "string"}
+      "canError": { }
+    },
+    "checkInviteCode": { "inviteCode": "string" },
+    "checkedInviteCode": {
+      "inviteCode": "string",
+      "canError": {
+        "inviteCode": "string",
+        "error": "string"
+      }
     },
     "checkPassphrase": {
       "pass1": "HiddenString",
       "pass2": "HiddenString",
     },
-    "checkPassphraseDone": {
-      "passphrase": "HiddenString",
-      "canError":{
-        "passphrase": "HiddenString",
-        "error":"HiddenString"
-      }
-    },
     "checkUsernameEmail": {
-      "_description": "We want to valid a user/email",
       "username": "string",
       "email": "string"
     },
-    "checkUsernameEmailDone": {
-      "_description": "We heard back from the server",
+    "checkedUsernameEmail": {
       "username": "string",
       "email": "string",
       "canError": {
@@ -38,7 +37,7 @@
       "email": "string",
       "name": "string",
     },
-    "requestInviteDone": {
+    "requestedInvite": {
       "email": "string",
       "name": "string",
       "canError": {
@@ -48,14 +47,16 @@
         "name": "string"
       }
     },
-    "signup": {},
-    "resetSignup": {},
     "restartSignup": {},
-    "signupError": {"signupError": "HiddenString"},
-    "submitDevicename": {
+    "signedup": {
+      "canError": {
+        "error": "HiddenString"
+      }
+    },
+    "checkDevicename": {
       "devicename": "string",
     },
-    "submitDevicenameDone": {
+    "checkedDevicename": {
       "devicename": "string",
       "canError": {
         "devicename": "string",

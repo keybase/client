@@ -14,6 +14,8 @@ export default function(
   switch (action.type) {
     case LoginGen.resetStore:
       return initialState
+    case LoginGen.setDevicenameError:
+      return state.set('devicenameError', action.payload.error)
     case SignupGen.requestAutoInvite:
       return state.merge({justRevokedSelf: '', justDeletedSelf: ''})
     case LoginGen.setMyDeviceCodeState:
