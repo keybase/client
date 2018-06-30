@@ -81,57 +81,69 @@ func (s *BlockingSender) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.M
 }
 
 func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg chat1.MessagePlaintext,
-	conv chat1.Conversation) (chat1.MessagePlaintext, error) {
+	conv chat1.Conversation) (resMsg chat1.MessagePlaintext, err error) {
 
 	// Make sure the caller hasn't already assembled this list. For now, this
 	// should never happen, and we'll return an error just in case we make a
 	// mistake in the future. But if there's some use case in the future where
 	// a caller wants to specify custom prevs, we can relax this.
 	if len(msg.ClientHeader.Prev) != 0 {
-		return chat1.MessagePlaintext{}, fmt.Errorf("addPrevPointersToMessage expects an empty prev list")
+		return resMsg, fmt.Errorf("addPrevPointersToMessage expects an empty prev list")
 	}
 
-	res, err := s.G().ConvSource.Pull(ctx, conv.GetConvID(), msg.ClientHeader.Sender,
-		chat1.GetThreadReason_PREPARE,
-		&chat1.GetThreadQuery{
-			DisableResolveSupersedes: true,
-		},
-		s.prevPtrPagination)
-	if err != nil {
-		return chat1.MessagePlaintext{}, err
-	}
-
-	if len(res.Messages) == 0 {
-		s.Debug(ctx, "no local messages found for prev pointers")
-	}
+	var thread chat1.ThreadView
 	var prevs []chat1.MessagePreviousPointer
-	newPrevsForRegular, newPrevsForExploding, err := CheckPrevPointersAndGetUnpreved(&res)
-	if err != nil {
-		return chat1.MessagePlaintext{}, err
+	pagination := &chat1.Pagination{
+		Num: s.prevPtrPagination.Num,
+	}
+	numRetries := 5
+	for i := 0; i < numRetries; i++ {
+		thread, err = s.G().ConvSource.Pull(ctx, conv.GetConvID(), msg.ClientHeader.Sender,
+			chat1.GetThreadReason_PREPARE,
+			&chat1.GetThreadQuery{
+				DisableResolveSupersedes: true,
+			},
+			pagination)
+		if err != nil {
+			return resMsg, err
+		}
+		pagination.Next = thread.Pagination.Next
+
+		if len(thread.Messages) == 0 {
+			s.Debug(ctx, "no local messages found for prev pointers")
+		}
+		newPrevsForRegular, newPrevsForExploding, err := CheckPrevPointersAndGetUnpreved(&thread)
+		if err != nil {
+			return resMsg, err
+		}
+
+		var hasPrev bool
+		if msg.IsEphemeral() {
+			prevs = newPrevsForExploding
+			hasPrev = len(newPrevsForExploding) > 0
+		} else {
+			prevs = newPrevsForRegular
+			// If we have only sent ephemeralMessages and are now sending a regular
+			// message, we may have an empty list for newPrevsForRegular. In this
+			// case we allow the `Prev` to be empty, so we don't want to abort in
+			// the check on numPrev below.
+			hasPrev = len(newPrevsForRegular) > 0 || len(newPrevsForExploding) > 0
+		}
+
+		if hasPrev {
+			break
+		} else if thread.Pagination.Last {
+			return resMsg, fmt.Errorf("Could not find previous messages for prev pointers (of %v)", len(thread.Messages))
+		} else {
+			s.Debug(ctx, "Could not find previous messages for prev pointers (of %v), attempt: %v, retrying", len(thread.Messages), i)
+		}
 	}
 
-	var hasPrev bool
-	if msg.IsEphemeral() {
-		prevs = newPrevsForExploding
-		hasPrev = len(newPrevsForExploding) > 0
-	} else {
-		prevs = newPrevsForRegular
-		// If we have only sent ephemeralMessages and are now sending a regular
-		// message, we may have an empty list for newPrevsForRegular. In this
-		// case we allow the `Prev` to be empty, so we don't want to abort in
-		// the check on numPrev below.
-		hasPrev = len(newPrevsForRegular) > 0 || len(newPrevsForExploding) > 0
-	}
-
-	if !hasPrev {
-		return chat1.MessagePlaintext{}, fmt.Errorf("Could not find previous messages for prev pointers (of %v)", len(res.Messages))
-	}
-
-	for _, msg2 := range res.Messages {
+	for _, msg2 := range thread.Messages {
 		if msg2.IsValid() {
 			err = s.checkConvID(ctx, conv, msg, msg2)
 			if err != nil {
-				return chat1.MessagePlaintext{}, err
+				return resMsg, err
 			}
 			break
 		}
