@@ -250,3 +250,84 @@ func TestEditHistorySelfClusters(t *testing.T) {
 		),
 	)
 }
+
+func TestEditHistoryUnflushed(t *testing.T) {
+	// Bob writes one file.
+	expectedEdits1 := []expectedEdit{
+		{
+			"alice,bob",
+			keybase1.FolderType_PRIVATE,
+			"bob",
+			[]string{"/keybase/private/alice,bob/a/b"},
+		},
+	}
+	// Alice and Bob both write a second file, but alice's is unflushed.
+	expectedEdits2Alice := []expectedEdit{
+		{
+			"alice,bob",
+			keybase1.FolderType_PRIVATE,
+			"alice",
+			[]string{"/keybase/private/alice,bob/a/c"},
+		},
+		expectedEdits1[0],
+	}
+	expectedEdits2Bob := []expectedEdit{
+		{
+			"alice,bob",
+			keybase1.FolderType_PRIVATE,
+			"bob",
+			[]string{
+				"/keybase/private/alice,bob/a/d",
+				"/keybase/private/alice,bob/a/b",
+			},
+		},
+	}
+	// Alice runs CR and flushes her journal.
+	expectedEdits3 := []expectedEdit{
+		expectedEdits2Alice[0],
+		expectedEdits2Bob[0],
+	}
+
+	test(t, journal(),
+		users("alice", "bob"),
+		as(alice,
+			enableJournal(),
+			mkdir("a"),
+		),
+		as(bob,
+			mkfile("a/b", "hello"),
+		),
+		as(bob,
+			checkUserEditHistory(expectedEdits1),
+		),
+		as(alice,
+			checkUserEditHistory(expectedEdits1),
+		),
+		as(alice,
+			pauseJournal(),
+			addTime(1*time.Minute),
+			mkfile("a/c", "hello2"),
+		),
+		as(bob,
+			addTime(1*time.Minute),
+			mkfile("a/d", "hello"),
+		),
+		as(bob,
+			checkUserEditHistory(expectedEdits2Bob),
+		),
+		as(alice, noSync(),
+			checkUserEditHistory(expectedEdits2Alice),
+		),
+		as(alice, noSync(),
+			resumeJournal(),
+			// This should kick off conflict resolution.
+			flushJournal(),
+		),
+		as(alice,
+			checkUserEditHistory(expectedEdits3),
+		),
+		as(bob,
+			checkUserEditHistory(expectedEdits3),
+		),
+	)
+}
