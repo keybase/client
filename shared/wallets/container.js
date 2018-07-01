@@ -6,12 +6,14 @@ import {HeaderOnMobile} from '../common-adapters'
 
 const mapStateToProps = (state: TypedState) => ({})
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend, navigateUp}) => ({
+  navigateAppend,
   onBack: () => dispatch(navigateUp()),
   refresh: () => dispatch(WalletsGen.createLoadAccounts()),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
+  navigateAppend: dispatchProps.navigateAppend,
   onBack: dispatchProps.onBack,
   refresh: dispatchProps.refresh,
   title: 'Wallets',

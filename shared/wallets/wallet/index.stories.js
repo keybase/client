@@ -17,6 +17,7 @@ const secondWalletMock = {
 }
 
 const commonActions = {
+  navigateAppend: action('navigateAppend'),
   onDeposit: action('onDeposit'),
   onReceive: action('onReceive'),
   onSendToAnotherWallet: action('onSendToAnotherWallet'),

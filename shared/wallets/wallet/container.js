@@ -9,7 +9,11 @@ const mapStateToProps = (state: TypedState) => ({
   payments: Constants.getPayments(state),
 })
 
-const mergeProps = stateProps => {
+const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}) => ({
+  navigateAppend,
+})
+
+const mergeProps = (stateProps, dispatchProps) => {
   const sections = []
   // layout is
   // 1. header (TODO: not included in list yet)
@@ -18,7 +22,11 @@ const mergeProps = stateProps => {
   // Formatted in a SectionList
   sections.push({title: 'Your assets', data: stateProps.assets.map((a, index) => index).toArray()})
   sections.push({title: 'History', data: stateProps.payments.map(p => ({paymentID: p.id})).toArray()})
-  return {accountID: stateProps.accountID, sections}
+  return {
+    accountID: stateProps.accountID,
+    navigateAppend: dispatchProps.navigateAppend,
+    sections,
+  }
 }
 
-export default connect(mapStateToProps, null, mergeProps)(Wallet)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Wallet)
