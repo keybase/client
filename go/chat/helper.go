@@ -1068,7 +1068,8 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 					n.Debug(ctx, "found previous conversation that matches, returning")
 					return convs[0], findErr
 				}
-				n.Debug(ctx, "failed to find previous conversation on second attempt: len(convs): %d err: %s", len(convs), findErr)
+				n.Debug(ctx, "failed to find previous conversation on second attempt: len(convs): %d err: %s",
+					len(convs), findErr)
 			}
 			return res, err
 		}
