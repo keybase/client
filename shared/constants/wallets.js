@@ -15,9 +15,9 @@ const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
 })
 
 const makeState: I.RecordFactory<Types._State> = I.Record({
+  accountMap: I.Map(),
   assetsMap: I.Map(),
   paymentsMap: I.Map(),
-  accountMap: I.Map(),
   selectedAccount: Types.noAccountID,
 })
 
@@ -148,12 +148,19 @@ const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
 const getAssets = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.assetsMap.get(accountID || getSelectedAccount(state), I.List())
 
+const getFederatedAddress = (state: TypedState, accountID?: Types.AccountID) => {
+  const account = state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
+  const {username} = state.config
+  return username && account.isDefault ? `${username}*keybase.io` : ''
+}
+
 export {
   accountResultToAccount,
   assetsResultToAssets,
   getAccountIDs,
   getAccount,
   getAssets,
+  getFederatedAddress,
   getPayment,
   getPayments,
   getSelectedAccount,
