@@ -6,6 +6,7 @@ import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../common-
 
 type Props = {
   isDefaultWallet: boolean,
+  navigateAppend: (...Array<any>) => any,
   onDeposit: () => void,
   onReceive: () => void,
   onSendToAnotherWallet: () => void,
