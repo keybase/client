@@ -134,7 +134,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.RekeyProtocol(NewRekeyHandler2(xp, g, d.rekeyMaster)),
 		keybase1.NotifyFSRequestProtocol(newNotifyFSRequestHandler(xp, g)),
 		keybase1.GregorProtocol(newGregorRPCHandler(xp, g, d.gregor)),
-		chat1.LocalProtocol(newChatLocalHandler(xp, cg, d.attachmentstore, d.gregor)),
+		CancellingProtocol(g, chat1.LocalProtocol(newChatLocalHandler(xp, cg, d.attachmentstore, d.gregor))),
 		keybase1.SimpleFSProtocol(NewSimpleFSHandler(xp, g)),
 		keybase1.LogsendProtocol(NewLogsendHandler(xp, g)),
 		keybase1.AppStateProtocol(newAppStateHandler(xp, g)),
@@ -770,6 +770,9 @@ func (d *Service) OnLogout() (err error) {
 	log := func(s string) {
 		d.G().Log.Debug("Service#OnLogout: %s", s)
 	}
+
+	log("cancelling live RPCs")
+	d.G().RPCCanceller.CancelLiveContexts()
 
 	log("shutting down chat modules")
 	d.stopChatModules()

@@ -15,7 +15,9 @@ func CancellingProtocol(g *libkb.GlobalContext, prot rpc.Protocol) (res rpc.Prot
 		newDesc.MakeArg = desc.MakeArg
 		newDesc.MethodType = desc.MethodType
 		newDesc.Handler = func(ctx context.Context, arg interface{}) (interface{}, error) {
-			// register ctx on G to get cancelled
+			var ctxID string
+			ctx, ctxID = g.RPCCanceller.RegisterContext(ctx)
+			defer g.RPCCanceller.UnregisterContext(ctxID)
 			return desc.Handler(ctx, arg)
 		}
 		res.Methods[name] = newDesc

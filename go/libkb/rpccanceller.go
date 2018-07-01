@@ -35,7 +35,10 @@ func (r *RPCCanceller) RegisterContext(ctx context.Context) (context.Context, st
 func (r *RPCCanceller) UnregisterContext(id string) {
 	r.Lock()
 	defer r.Unlock()
-	delete(r.liveCtxs, id)
+	if lc, ok := r.liveCtxs[id]; ok {
+		lc.cancelFn()
+		delete(r.liveCtxs, id)
+	}
 }
 
 func (r *RPCCanceller) CancelLiveContexts() {
