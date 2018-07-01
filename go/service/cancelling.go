@@ -10,8 +10,9 @@ func CancellingProtocol(g *libkb.GlobalContext, prot rpc.Protocol) (res rpc.Prot
 	res.Name = prot.Name
 	res.WrapError = prot.WrapError
 	res.Methods = make(map[string]rpc.ServeHandlerDescription)
-	for name, desc := range prot.Methods {
+	for name, ldesc := range prot.Methods {
 		var newDesc rpc.ServeHandlerDescription
+		desc := ldesc
 		newDesc.MakeArg = desc.MakeArg
 		newDesc.MethodType = desc.MethodType
 		newDesc.Handler = func(ctx context.Context, arg interface{}) (interface{}, error) {
