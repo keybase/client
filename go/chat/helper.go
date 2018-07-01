@@ -1056,7 +1056,18 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		firstMessageBoxed, topicNameState, err := n.makeFirstMessage(ctx, triple, info.CanonicalName,
 			n.membersType, n.vis, n.topicName)
 		if err != nil {
-			return res, fmt.Errorf("error preparing message: %s", err)
+			// Check for DuplicateTopicNameError and run findExisting again to try and find it
+			switch err.(type) {
+			case DuplicateTopicNameError:
+				n.Debug(ctx, "duplicate topic name encountered, attempting to findExisting again")
+				var findErr error
+				convs, findErr = n.findExisting(ctx, findConvsTopicName)
+				if len(convs) == 1 {
+					n.Debug(ctx, "found previous conversation that matches, returning")
+					return convs[0], findErr
+				}
+			}
+			return res, err
 		}
 
 		var ncrres chat1.NewConversationRemoteRes
