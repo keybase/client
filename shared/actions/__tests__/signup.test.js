@@ -79,7 +79,7 @@ describe('checkInviteCode', () => {
     const nextState: TypedState = ({signup: reducer(getState().signup, action)}: any)
     // leaves state alone
     expect(nextState).toEqual(getState())
-    expect(_testing.showUserEmailOnNoErrors(action, nextState)).toEqual(
+    expect(_testing.showUserEmailOnNoErrors(nextState)).toEqual(
       Saga.put(navigateTo([loginTab, 'signup', 'usernameAndEmail']))
     )
   })
@@ -93,7 +93,7 @@ describe('checkInviteCode', () => {
 
     const nextState: TypedState = ({signup: reducer(preState.signup, action)}: any)
     expect(nextState.signup.inviteCodeError).toEqual(action.payload.error)
-    expect(_testing.showUserEmailOnNoErrors(action, nextState)).toEqual(false)
+    expect(_testing.showUserEmailOnNoErrors(nextState)).toEqual(false)
   })
   it("ignores error if invite doesn't match", () => {
     const preAction = SignupGen.createRequestedAutoInvite({inviteCode: 'a different invite code'})
@@ -110,8 +110,8 @@ describe('checkInviteCode', () => {
 
 describe('checkUsernameEmail', () => {
   it("ignores if there's an error", () => {
-    const getState = () => ({signup: Constants.makeState({inviteCodeError: 'invite error'})})
-    expect(_testing.checkUsernameEmail(undefined, getState())).toEqual(false)
+    const getState = (): TypedState => ({signup: Constants.makeState({inviteCodeError: 'invite error'})}: any)
+    expect(_testing.checkUsernameEmail(getState())).toEqual(false)
   })
 
   it('Updates store on success', () => {
