@@ -162,9 +162,7 @@ const reallySignupOnNoErrors = (_, state: TypedState) => {
       })
       yield Saga.put(SignupGen.createSignedup())
     } catch (error) {
-      yield Saga.put(
-        SignupGen.createSignedupError({error: new HiddenString(`Cant signup, try again? ${error.desc}`)})
-      )
+      yield Saga.put(SignupGen.createSignedupError({error: new HiddenString(error.desc)}))
     }
   })
 }
