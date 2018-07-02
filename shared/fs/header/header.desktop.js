@@ -10,9 +10,10 @@ import Breadcrumb from './breadcrumb-container.desktop'
 export type FolderHeaderProps = {
   path: Types.Path,
   openInFileUI: () => void,
+  onChat: () => void,
 }
 
-const FolderHeader = ({path, openInFileUI}: FolderHeaderProps) => (
+const FolderHeader = ({path, openInFileUI, onChat}: FolderHeaderProps) => (
   <Box style={styleHeaderContainer}>
     <Box style={styleFolderHeader}>
       {path === '/keybase' ? (
@@ -25,6 +26,17 @@ const FolderHeader = ({path, openInFileUI}: FolderHeaderProps) => (
           <Box style={styleFolderHeaderEnd}>
             <AddNew path={path} style={styleAddNew} />
             <Icon type="iconfont-finder" color={globalColors.black_40} fontSize={16} onClick={openInFileUI} />
+            {onChat && (
+              <Icon
+                type="iconfont-chat"
+                style={{
+                  marginLeft: globalMargins.small,
+                }}
+                color={globalColors.black_40}
+                fontSize={16}
+                onClick={onChat}
+              />
+            )}
           </Box>
         </Box>
       )}

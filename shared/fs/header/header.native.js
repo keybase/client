@@ -1,17 +1,18 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import {globalStyles, globalMargins} from '../../styles'
-import {BackButton, Box, Text} from '../../common-adapters'
+import {globalColors, globalStyles, globalMargins} from '../../styles'
+import {BackButton, Box, Icon, Text} from '../../common-adapters'
 import AddNew from './add-new-container'
 
 type Props = {
   path: Types.Path,
   title: string,
   onBack: () => void,
+  onChat: () => void,
 }
 
-const Header = ({title, path, onBack}: Props) => (
+const Header = ({title, path, onBack, onChat}: Props) => (
   <Box style={stylesFolderHeaderContainer}>
     <Box style={stylesFolderHeaderRow}>
       <BackButton onClick={onBack} />
@@ -23,6 +24,20 @@ const Header = ({title, path, onBack}: Props) => (
       <Box style={stylesAddNewBox}>
         <AddNew path={path} style={stylesAddNew} />
       </Box>
+      {onChat && (
+        <Box style={stylesAddNewBox}>
+          <Icon
+            type="iconfont-chat"
+            style={{
+              marginLeft: globalMargins.tiny,
+              marginTop: globalMargins.tiny,
+            }}
+            color={globalColors.black_40}
+            fontSize={22}
+            onClick={onChat}
+          />
+        </Box>
+      )}
     </Box>
   </Box>
 )
