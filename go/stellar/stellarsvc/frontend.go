@@ -51,7 +51,7 @@ func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (acc
 			s.G().Log.CDebugf(ctx, "remote.Balances failed for %q: %s", acct.AccountID, err)
 			return nil, err
 		}
-		acct.BalanceDescription, err = balanceList(balances).nativeBalanceDescription()
+		acct.BalanceDescription, err = balanceList(balances).balanceDescription()
 		if err != nil {
 			return nil, err
 		}
@@ -517,13 +517,26 @@ func (s *Server) decryptNote(ctx context.Context, txid stellar1.TransactionID, n
 
 type balanceList []stellar1.Balance
 
-func (a balanceList) nativeBalanceDescription() (string, error) {
+// Example: "56.0227002 XLM + more"
+func (a balanceList) balanceDescription() (res string, err error) {
+	var more bool
 	for _, b := range a {
 		if b.Asset.IsNativeXLM() {
-			return stellar.FormatAmountXLM(b.Amount)
+			res, err = stellar.FormatAmountXLM(b.Amount)
+			if err != nil {
+				return "", err
+			}
+		} else {
+			more = true
 		}
 	}
-	return "0 XLM", nil
+	if res == "" {
+		res = "0 XLM"
+	}
+	if more {
+		res += " + more"
+	}
+	return res, nil
 }
 
 func (s *Server) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.ChangeWalletAccountNameLocalArg) (err error) {
