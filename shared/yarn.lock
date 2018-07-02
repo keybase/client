@@ -8194,6 +8194,10 @@ jsbn@~0.1.0:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/jsbn/-/jsbn-0.1.1.tgz#a5e654c2e5a2deb5f201d96cefbca80c0ef2f513"
 
+jsc-android@224109.x.x:
+  version "224109.0.0"
+  resolved "https://registry.yarnpkg.com/jsc-android/-/jsc-android-224109.0.0.tgz#decd9f4b6f76280a01697a3be9c1e56620659c2a"
+
 jschardet@^1.4.2:
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/jschardet/-/jschardet-1.5.1.tgz#c519f629f86b3a5bedba58a88d311309eec097f9"
