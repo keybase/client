@@ -25,6 +25,13 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navigateAppend}) => ({
+  _onHotkey: (cmd: string, focusFilter: () => void) => {
+    if (cmd.endsWith('+n')) {
+      dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'}))
+    } else {
+      focusFilter()
+    }
+  },
   _onSelect: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterChanged'})),
   _onSelectNext: (
@@ -42,13 +49,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navi
     if (goodRows.length) {
       const {conversationIDKey} = goodRows[(idx + direction + goodRows.length) % goodRows.length]
       dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterArrow'}))
-    }
-  },
-  _onHotkey: (cmd: string, focusFilter: () => void) => {
-    if (cmd.endsWith('+n')) {
-      dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'}))
-    } else {
-      focusFilter()
     }
   },
   onNewChat: () => {
@@ -89,6 +89,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   refreshInbox: dispatchProps.refreshInbox,
   rows: stateProps.rows,
   showBuildATeam: stateProps.showBuildATeam,
+  showNewChat: !stateProps.rows.length,
   showSmallTeamsExpandDivider: stateProps.showSmallTeamsExpandDivider,
   smallIDsHidden: stateProps.smallIDsHidden,
   smallTeamsExpanded: stateProps.smallTeamsExpanded,

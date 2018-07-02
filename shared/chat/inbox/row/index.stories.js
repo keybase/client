@@ -1,4 +1,5 @@
 // @flow
+/* eslint-disable sort-keys */
 import React from 'react'
 import {Box} from '../../../common-adapters'
 import {storiesOf, action, createPropProvider} from '../../../stories/storybook'

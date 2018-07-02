@@ -6,6 +6,7 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {makeRow} from './row'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import Divider from './row/divider/container'
+import StartNewChat from './row/start-new-chat'
 import ChatFilterRow from './row/chat-filter-row'
 import {debounce} from 'lodash-es'
 import {isDarwin} from '../../constants/platform'
@@ -140,17 +141,21 @@ class Inbox extends PureComponent<Props, State> {
     return (
       <ErrorBoundary>
         <div style={_containerStyle}>
-          <ChatFilterRow
-            isLoading={this.props.isLoading}
-            filter={this.props.filter}
-            onNewChat={this._prepareNewChat}
-            onSetFilter={this.props.onSetFilter}
-            hotkeys={isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k']}
-            onHotkey={this.props.onHotkey}
-            filterFocusCount={this.props.filterFocusCount}
-            onSelectUp={this.props.onSelectUp}
-            onSelectDown={this.props.onSelectDown}
-          />
+          {this.props.showNewChat ? (
+            <StartNewChat onNewChat={this.props.onNewChat} />
+          ) : (
+            <ChatFilterRow
+              isLoading={this.props.isLoading}
+              filter={this.props.filter}
+              onNewChat={this._prepareNewChat}
+              onSetFilter={this.props.onSetFilter}
+              hotkeys={isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k']}
+              onHotkey={this.props.onHotkey}
+              filterFocusCount={this.props.filterFocusCount}
+              onSelectUp={this.props.onSelectUp}
+              onSelectDown={this.props.onSelectDown}
+            />
+          )}
           <NewConversation />
           <div style={_scrollableStyle} onScroll={this._onScroll}>
             <ReactList

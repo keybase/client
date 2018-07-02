@@ -45,6 +45,7 @@ export type Props = {
   onUntrustedInboxVisible: (conversationIDKeys: Array<ConversationIDKey>) => void,
   rows: Array<RowItem>,
   showBuildATeam: boolean,
+  showNewChat: boolean,
   showNewConversation: boolean,
   showSmallTeamsExpandDivider: boolean,
   smallTeamsExpanded: boolean,
