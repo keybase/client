@@ -23,6 +23,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadAssets:
     case WalletsGen.loadPayments:
     case WalletsGen.loadAccounts:
+    case WalletsGen.linkExistingAccount:
       return state
     default:
       /*::

@@ -5,11 +5,13 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/wallets'
+import HiddenString from '../util/hidden-string'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of wallets but is handled by every reducer
 export const accountsReceived = 'wallets:accountsReceived'
 export const assetsReceived = 'wallets:assetsReceived'
+export const linkExistingAccount = 'wallets:linkExistingAccount'
 export const loadAccounts = 'wallets:loadAccounts'
 export const loadAssets = 'wallets:loadAssets'
 export const loadPayments = 'wallets:loadPayments'
@@ -22,6 +24,10 @@ type _AssetsReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   assets: Array<Types.Assets>,
 |}>
+type _LinkExistingAccountPayload = $ReadOnly<{|
+  name: string,
+  secretKey: HiddenString,
+|}>
 type _LoadAccountsPayload = void
 type _LoadAssetsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
@@ -32,6 +38,10 @@ type _PaymentsReceivedPayload = $ReadOnly<{|
 type _SelectAccountPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 
 // Action Creators
+/**
+ * Link an existing Stellar account with this Keybase user.
+ */
+export const createLinkExistingAccount = (payload: _LinkExistingAccountPayload) => ({error: false, payload, type: linkExistingAccount})
 /**
  * Refresh our list of accounts
  */
@@ -64,6 +74,7 @@ export const createPaymentsReceived = (payload: _PaymentsReceivedPayload) => ({e
 // Action Payloads
 export type AccountsReceivedPayload = $Call<typeof createAccountsReceived, _AccountsReceivedPayload>
 export type AssetsReceivedPayload = $Call<typeof createAssetsReceived, _AssetsReceivedPayload>
+export type LinkExistingAccountPayload = $Call<typeof createLinkExistingAccount, _LinkExistingAccountPayload>
 export type LoadAccountsPayload = $Call<typeof createLoadAccounts, _LoadAccountsPayload>
 export type LoadAssetsPayload = $Call<typeof createLoadAssets, _LoadAssetsPayload>
 export type LoadPaymentsPayload = $Call<typeof createLoadPayments, _LoadPaymentsPayload>
@@ -75,6 +86,7 @@ export type SelectAccountPayload = $Call<typeof createSelectAccount, _SelectAcco
 export type Actions =
   | AccountsReceivedPayload
   | AssetsReceivedPayload
+  | LinkExistingAccountPayload
   | LoadAccountsPayload
   | LoadAssetsPayload
   | LoadPaymentsPayload
