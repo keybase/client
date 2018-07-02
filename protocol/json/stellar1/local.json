@@ -638,6 +638,45 @@
         "items": "CurrencyLocal"
       }
     },
+    "validateAccountIDLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": null
+    },
+    "validateSecretKeyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "secretKey",
+          "type": "SecretKey"
+        }
+      ],
+      "response": null
+    },
+    "validateAccountNameLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
     "changeWalletAccountNameLocal": {
       "request": [
         {
