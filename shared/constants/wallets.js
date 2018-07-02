@@ -83,6 +83,10 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   if (!w.payment) {
     return makePayment({error: w.err})
   }
+  if (w.payment.statusSimplified === RPCTypes.localPaymentStatus.error) {
+    // TODO make payment w/ error info when view is finished
+    return null
+  }
   const p = w.payment
   return makePayment({
     amountDescription: p.amountDescription,
@@ -105,29 +109,22 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
 }
 
 const paymentToCounterpartyType = (p: Types.Payment): Types.CounterpartyType => {
-  if (p.source === p.target) {
-    return 'account'
-  }
-  switch (p.targetType) {
+  let partyType = p.delta === 'increase' ? p.sourceType : p.targetType
+  switch (partyType) {
     case 'sbs':
+    case 'keybase':
+      if (p.source === p.target) {
+        return 'account'
+      }
       return 'keybaseUser'
     case 'stellar':
       return 'stellarPublicKey'
-    case 'keybase':
-      return 'keybaseUser'
   }
   return 'stellarPublicKey'
 }
 
 const paymentToYourRole = (p: Types.Payment, username: string): 'sender' | 'receiver' => {
-  if (username === p.source) {
-    if (username === p.target && p.delta === 'increase') {
-      // transfer into this wallet
-      return 'receiver'
-    }
-    return 'sender'
-  }
-  return 'receiver'
+  return p.delta === 'increase' ? 'receiver' : 'sender'
 }
 
 const loadEverythingWaitingKey = 'wallets:loadEverything'
