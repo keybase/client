@@ -94,7 +94,7 @@ func TestPutAndGet(t *testing.T) {
 	require.Equal(t, oneRepo.CanDelete, true)
 
 	// check that the chat system messages were sent for the two doPut calls above
-	msgs := kbtest.MockSentMessages(tc)
+	msgs := kbtest.MockSentMessages(tc.G, tc.T)
 	require.Len(t, msgs, 2)
 	require.Equal(t, msgs[0].MsgType, chat1.MessageType_SYSTEM)
 	require.Equal(t, msgs[1].MsgType, chat1.MessageType_SYSTEM)

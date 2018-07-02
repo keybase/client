@@ -1047,13 +1047,13 @@ func NewDummyAssetDeleter() DummyAssetDeleter {
 func (d DummyAssetDeleter) DeleteAssets(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, assets []chat1.Asset) {
 }
 
-func MockSentMessages(tc libkb.TestContext) []MockMessage {
-	if tc.G.ChatHelper == nil {
-		tc.T.Fatal("ChatHelper is nil")
+func MockSentMessages(g *libkb.GlobalContext, t libkb.TestingTB) []MockMessage {
+	if g.ChatHelper == nil {
+		t.Fatal("ChatHelper is nil")
 	}
-	mch, ok := tc.G.ChatHelper.(*MockChatHelper)
+	mch, ok := g.ChatHelper.(*MockChatHelper)
 	if !ok {
-		tc.T.Fatalf("ChatHelper isn't a mock: %T", tc.G.ChatHelper)
+		t.Fatalf("ChatHelper isn't a mock: %T", g.ChatHelper)
 	}
 	return mch.SentMessages
 }

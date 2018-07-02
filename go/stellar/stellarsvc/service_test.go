@@ -6,8 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/keybase/client/go/chat"
-	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
@@ -38,13 +36,7 @@ func SetupTest(t *testing.T, name string, depth int) (tc libkb.TestContext) {
 		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
 	}
 
-	world := kbtest.NewChatMockWorld(t, name, 5)
-	mockRemote := kbtest.NewChatRemoteMock(world)
-
-	chatCtx := globals.NewContext(tc.G, &globals.ChatContext{})
-	tc.G.ChatHelper = chat.NewHelper(chatCtx, func() chat1.RemoteInterface { return mockRemote })
-
-	t.Logf(">>>>>>>>>>>>>>>> created ChatHelper for testing")
+	tc.G.ChatHelper = kbtest.NewMockChatHelper()
 
 	return tc
 }
@@ -307,6 +299,9 @@ func TestSendLocalStellarAddress(t *testing.T) {
 		t.Fatal(err)
 	}
 	require.Equal(t, balances[0].Amount, "10100.0000000")
+
+	senderMsgs := kbtest.MockSentMessages(tcs[0].G, tcs[0].T)
+	require.Len(t, senderMsgs, 0)
 }
 
 func TestSendLocalKeybase(t *testing.T) {
@@ -355,6 +350,10 @@ func TestSendLocalKeybase(t *testing.T) {
 		t.Fatal(err)
 	}
 	require.Equal(t, balances[0].Amount, "10100.0000000")
+
+	senderMsgs := kbtest.MockSentMessages(tcs[0].G, tcs[0].T)
+	require.Len(t, senderMsgs, 1)
+	require.Equal(t, senderMsgs[0].MsgType, chat1.MessageType_SENDPAYMENT)
 }
 
 func TestRecentPaymentsLocal(t *testing.T) {
