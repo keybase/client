@@ -131,16 +131,22 @@ func (t TeamSigChainState) GetUserLogPoint(user keybase1.UserVersion) *keybase1.
 	return &tmp
 }
 
-// GetLastUserLogPointWithPredicate gets the last user logpoint in the series for which the given
-// predicate is true.
-func (t TeamSigChainState) GetLastUserLogPointWithPredicate(user keybase1.UserVersion, f func(keybase1.UserLogPoint) bool) *keybase1.UserLogPoint {
+// GetLastChangeLogPointWithPredicates gets the first user logpoint in the series at which
+// the second predicate is true AFTER the last user logpoint at which the first predicate is true.
+func (t TeamSigChainState) GetLastChangeLogPointWithPredicates(user keybase1.UserVersion,
+	f1 func(keybase1.UserLogPoint) bool, f2 func(keybase1.UserLogPoint) bool) *keybase1.UserLogPoint {
+
 	points := t.inner.UserLog[user]
 	if len(points) == 0 {
 		return nil
 	}
+	var closestCandidate int
 	for i := len(points) - 1; i >= 0; i-- {
-		if f(points[i]) {
-			tmp := points[i].DeepCopy()
+		if f2(points[i]) {
+			closestCandidate = i
+		}
+		if f1(points[i]) {
+			tmp := points[closestCandidate].DeepCopy()
 			return &tmp
 		}
 	}

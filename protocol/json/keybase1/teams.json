@@ -2642,6 +2642,10 @@
         {
           "name": "isPublic",
           "type": "boolean"
+        },
+        {
+          "name": "isWriter",
+          "type": "boolean"
         }
       ],
       "response": "NextMerkleRootRes",

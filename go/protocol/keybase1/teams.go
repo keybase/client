@@ -2377,6 +2377,7 @@ type FindNextMerkleRootAfterTeamRemovalBySigningKeyArg struct {
 	SigningKey KID    `codec:"signingKey" json:"signingKey"`
 	Team       TeamID `codec:"team" json:"team"`
 	IsPublic   bool   `codec:"isPublic" json:"isPublic"`
+	IsWriter   bool   `codec:"isWriter" json:"isWriter"`
 }
 
 type ProfileTeamLoadArg struct {

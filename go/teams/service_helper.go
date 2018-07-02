@@ -1582,9 +1582,25 @@ func FindNextMerkleRootAfterRemoval(mctx libkb.MetaContext, arg keybase1.FindNex
 	}
 
 	uv := vers.ToUserVersion()
-	logPoint := team.chain().GetLastUserLogPointWithPredicate(uv, func(p keybase1.UserLogPoint) bool {
-		return p.Role == keybase1.TeamRole_NONE || p.Role == keybase1.TeamRole_READER
-	})
+
+	var logPoint *keybase1.UserLogPoint
+	if arg.IsWriter {
+		writer := func(p keybase1.UserLogPoint) bool {
+			return p.Role == keybase1.TeamRole_WRITER || p.Role == keybase1.TeamRole_ADMIN || p.Role == keybase1.TeamRole_OWNER
+		}
+		notWriter := func(p keybase1.UserLogPoint) bool {
+			return p.Role == keybase1.TeamRole_READER || p.Role == keybase1.TeamRole_NONE
+		}
+		logPoint = team.chain().GetLastChangeLogPointWithPredicates(uv, writer, notWriter)
+	} else {
+		reader := func(p keybase1.UserLogPoint) bool {
+			return p.Role == keybase1.TeamRole_READER || p.Role == keybase1.TeamRole_WRITER || p.Role == keybase1.TeamRole_ADMIN || p.Role == keybase1.TeamRole_OWNER
+		}
+		notReader := func(p keybase1.UserLogPoint) bool {
+			return p.Role == keybase1.TeamRole_NONE
+		}
+		logPoint = team.chain().GetLastChangeLogPointWithPredicates(uv, reader, notReader)
+	}
 	if logPoint == nil {
 		return res, libkb.NotFoundError{Msg: fmt.Sprintf("no downgraded log point for user found")}
 	}
