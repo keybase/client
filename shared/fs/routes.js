@@ -7,15 +7,15 @@ import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
 import SecurityPrefs from './common/security-prefs-container'
 import SortBarPopupMenu from './sortbar/sort-setting-popup'
-import TransferPopup from './popups/transfer-container'
+import DownloadPopup from './popups/download-container'
 
 const _commonChildren = {
   finderAction: {
     component: RelativePopupHoc(FinderPopupMenu),
     tags: makeLeafTags({layerOnTop: true}),
   },
-  transferPopup: {
-    component: RelativePopupHoc(TransferPopup),
+  downloadPopup: {
+    component: RelativePopupHoc(DownloadPopup),
     tags: makeLeafTags({layerOnTop: true}),
   },
   securityPrefs: {

@@ -59,13 +59,16 @@ func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (acc
 		accts = append(accts, acct)
 	}
 
-	// Put the primary account first, sort by name everything else
+	// Put the primary account first, then sort by name, then by account ID
 	sort.SliceStable(accts, func(i, j int) bool {
 		if accts[i].IsDefault {
 			return true
 		}
 		if accts[j].IsDefault {
 			return false
+		}
+		if accts[i].Name == accts[j].Name {
+			return accts[i].AccountID < accts[j].AccountID
 		}
 		return accts[i].Name < accts[j].Name
 	})
@@ -136,7 +139,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 			asset.Name = "Lumens"
 			asset.AssetCode = "XLM"
 			asset.Issuer = "Stellar"
-			fmtAvailable, err := stellar.FormatAmount(details.Available, false)
+			fmtAvailable, err := stellar.FormatAmount(subtractFeeSoft(s.mctx(ctx), details.Available), false)
 			if err != nil {
 				return nil, err
 			}
@@ -807,6 +810,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 			// Check that the sender has enough asset available.
 			// Note: When adding support for sending non-XLM assets, check the asset instead of XLM here.
 			availableToSendXLM, err := bpc.AvailableXLMToSend(s.mctx(ctx), fromInfo.from)
+			availableToSendXLM = subtractFeeSoft(s.mctx(ctx), availableToSendXLM)
 			if err != nil {
 				log("error getting available balance: %v", err)
 			} else {
@@ -818,6 +822,10 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 					// Send amount is more than the available to send.
 					readyChecklist.amount = false // block sending
 					res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*", availableToSendXLM)
+					availableToSendXLMFmt, err := stellar.FormatAmount(availableToSendXLM, false)
+					if err == nil {
+						res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*", availableToSendXLMFmt)
+					}
 					if arg.Currency != nil && amountX.rate != nil {
 						// If the user entered an amount in outside currency and an exchange
 						// rate is available, attempt to show them available balance in that currency.
@@ -1121,4 +1129,20 @@ func (s *Server) CreateWalletAccountLocal(ctx context.Context, arg stellar1.Crea
 		return res, err
 	}
 	return stellar.CreateNewAccount(s.mctx(ctx), arg.Name)
+}
+
+// Subtract a 100 stroop fee from the available balance.
+// This shows the real available balance assuming an intent to send a 1 op tx.
+// Does not error out, just shows the inaccurate answer.
+func subtractFeeSoft(mctx libkb.MetaContext, availableStr string) string {
+	available, err := stellaramount.ParseInt64(availableStr)
+	if err != nil {
+		mctx.CDebugf("error parsing available balance: %v", err)
+		return availableStr
+	}
+	available -= 100
+	if available < 0 {
+		available = 0
+	}
+	return stellaramount.StringFromInt64(available)
 }
