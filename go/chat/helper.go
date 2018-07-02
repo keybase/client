@@ -625,6 +625,10 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 			vis == keybase1.TLFVisibility_PRIVATE {
 			return nil, nil
 		}
+		// Make sure team topic name makes sense
+		if topicName == "" && membersType == chat1.ConversationMembersType_TEAM {
+			topicName = globals.DefaultTeamTopic
+		}
 
 		query := &chat1.GetInboxLocalQuery{
 			Name: &chat1.NameQuery{
