@@ -56,20 +56,18 @@ class ImageAttachment extends React.PureComponent<Props, State> {
         <Box
           style={collapseStyles([
             styles.loading,
-            !this.state.loaded ? styles.spinner : {},
+            !this.state.loaded && styles.spinner,
             {
               height: this.props.height,
               width: this.props.width,
             },
           ])}
         >
-          {!this.state.loaded && (
-             <ProgressIndicator style={{margin: 'auto'}} />
-          )}
           {!!this.props.path && (
             <ImageRender
               src={this.props.path}
               onLoad={this._setLoaded}
+              loaded={this.state.loaded}
               style={collapseStyles([
                 styles.image,
                 {
@@ -77,10 +75,10 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                   opacity: this.state.loaded ? 1 : 0,
                   width: this.props.width,
                 },
-                this.state.loaded ? null : {display: 'none'},
               ])}
             />
           )}
+          {!this.state.loaded && <ProgressIndicator style={styles.progress} />}
           {this.props.showPlayButton && (
             <Icon type="icon-play-64" style={iconCastPlatformStyles(styles.playButton)} />
           )}
@@ -176,6 +174,16 @@ const styles = styleSheetCreate({
     },
     isMobile: {
       backgroundColor: globalColors.fastBlank,
+    },
+  }),
+  progress: platformStyles({
+    isElectron: {
+      margin: 'auto',
+    },
+    isMobile: {
+      width: 48,
+      position: 'absolute',
+      margin: 'auto',
     },
   }),
 })

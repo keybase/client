@@ -3,4 +3,5 @@ export type Props = {
   onLoad: () => void,
   src: string,
   style: Object,
+  loaded: boolean,
 }
