@@ -44,6 +44,8 @@ func SetupTest(t *testing.T, name string, depth int) (tc libkb.TestContext) {
 	chatCtx := globals.NewContext(tc.G, &globals.ChatContext{})
 	tc.G.ChatHelper = chat.NewHelper(chatCtx, func() chat1.RemoteInterface { return mockRemote })
 
+	t.Logf(">>>>>>>>>>>>>>>> created ChatHelper for testing")
+
 	return tc
 }
 
