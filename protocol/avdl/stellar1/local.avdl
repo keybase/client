@@ -10,7 +10,7 @@ protocol local {
     AccountID accountID;        // string "GCKLHXC22222252UOISFKYZQX7YIVDBPSZ7UUYDFK6URTG6VDRANPC5K"
     boolean isDefault;          // true if this is the default sending/receiving account
     string name;                // the user-given name for the account
-    string balanceDescription;  // example: "56.0227002 XLM"
+    string balanceDescription;  // example: "56.0227002 XLM + more"
   }
   array<WalletAccountLocal> getWalletAccountsLocal(int sessionID);
 
