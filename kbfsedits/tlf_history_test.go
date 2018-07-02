@@ -42,9 +42,10 @@ type nextNotification struct {
 	nextEvents   []NotificationMessage
 }
 
-func (nn *nextNotification) make(
+func (nn *nextNotification) makeWithType(
 	filename string, nt NotificationOpType, uid keybase1.UID,
-	params *NotificationParams, now time.Time) NotificationMessage {
+	params *NotificationParams, now time.Time,
+	entryType EntryType) NotificationMessage {
 	n := NotificationMessage{
 		Version:           NotificationV2,
 		Revision:          nn.nextRevision,
@@ -53,13 +54,19 @@ func (nn *nextNotification) make(
 		FolderID:          nn.tlfID,
 		UID:               uid,
 		Params:            params,
-		FileType:          EntryTypeFile,
+		FileType:          entryType,
 		Time:              now,
 		numWithinRevision: nn.numWithin,
 	}
 	nn.numWithin++
 	nn.nextEvents = append(nn.nextEvents, n)
 	return n
+}
+
+func (nn *nextNotification) make(
+	filename string, nt NotificationOpType, uid keybase1.UID,
+	params *NotificationParams, now time.Time) NotificationMessage {
+	return nn.makeWithType(filename, nt, uid, params, now, EntryTypeFile)
 }
 
 func (nn *nextNotification) encode(t *testing.T) string {
@@ -360,4 +367,46 @@ func TestTlfHistoryWithUnflushed(t *testing.T) {
 		{aliceName, []NotificationMessage{aliceWrite1}},
 	}
 	checkTlfHistory(t, th, expected, aliceName)
+}
+
+func TestTlfHistoryRenameParentSimple(t *testing.T) {
+	aliceName, bobName := "alice", "bob"
+	aliceUID, bobUID := keybase1.MakeTestUID(1), keybase1.MakeTestUID(2)
+	tlfID, err := tlf.MakeRandomID(tlf.Private)
+	require.NoError(t, err)
+
+	var aliceMessages, bobMessages []string
+	nn := nextNotification{1, 0, tlfID, nil}
+
+	// Alice creates modifies "a/b".  (Use truncated Keybase canonical
+	// paths because renames only matter beyond the TLF name.)
+	aliceModifyB := nn.make(
+		"/k/p/a,b/a/b", NotificationModify, aliceUID, nil, time.Time{})
+	aliceMessages = append(aliceMessages, nn.encode(t))
+
+	// Bob renames "a" to "c".
+	_ = nn.makeWithType(
+		"/k/p/a,b/c", NotificationRename, bobUID, &NotificationParams{
+			OldFilename: "/k/p/a,b/a",
+		}, time.Time{}, EntryTypeDir)
+	bobMessages = append(bobMessages, nn.encode(t))
+	aliceModifyB.Filename = "/k/p/a,b/c/b"
+
+	expected := writersByRevision{
+		{aliceName, []NotificationMessage{aliceModifyB}},
+	}
+
+	// Alice, then Bob.
+	th := NewTlfHistory()
+	err = th.AddNotifications(aliceName, aliceMessages)
+	require.NoError(t, err)
+	err = th.AddNotifications(bobName, bobMessages)
+	require.NoError(t, err)
+	checkTlfHistory(t, th, expected, aliceName)
+
+	_ = nn.make("/k/p/a,b/c/b", NotificationDelete, aliceUID, nil, time.Time{})
+	aliceMessages = append(aliceMessages, nn.encode(t))
+	err = th.AddNotifications(aliceName, aliceMessages)
+	require.NoError(t, err)
+	checkTlfHistory(t, th, writersByRevision{}, aliceName)
 }

@@ -293,6 +293,23 @@ func (r *recomputer) processNotification(
 			return false
 		}
 
+		// See if any of the parent directories were renamed, checking
+		// backwards until we get to the TLF name.
+		prefix := filename
+		suffix := ""
+		for strings.Count(prefix, "/") > 4 {
+			var finalElem string
+			prefix, finalElem = path.Split(prefix)
+			prefix = strings.TrimSuffix(prefix, "/")
+			suffix = path.Clean(path.Join(finalElem, suffix))
+			event, hasEvent := r.fileEvents[prefix]
+			if hasEvent && event.newName != "" {
+				prefix = event.newName
+			}
+		}
+		filename = path.Clean(path.Join(prefix, suffix))
+		notification.Filename = filename
+
 		// We only need one modify message per writer per file.
 		if r.modifiedFiles[writer][filename] {
 			return false
@@ -325,6 +342,22 @@ func (r *recomputer) processNotification(
 		} else {
 			r.fileEvents[notification.Params.OldFilename] =
 				fileEvent{newName: eventFilename}
+		}
+
+		// If renaming a directory, check whether there are any events
+		// for children of the directory, and rename them
+		// accordingly. TODO: there's probably a better data structure
+		// for doing this when storing events, maybe a multi-layer map
+		// structured like a file system.
+		if notification.FileType == EntryTypeDir {
+			for f, event := range r.fileEvents {
+				if strings.HasPrefix(f, eventFilename) {
+					oldF := strings.Replace(
+						f, eventFilename, notification.Params.OldFilename, -1)
+					r.fileEvents[oldF] = event
+					delete(r.fileEvents, f)
+				}
+			}
 		}
 
 		// The renamed file overwrote any existing file with the new
