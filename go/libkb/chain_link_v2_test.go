@@ -54,7 +54,9 @@ type outerLinkV2WithMetadataPointerEmbedder struct {
 }
 
 func TestOuterLinkV2WithMetadataPointerEmbedderEncode(t *testing.T) {
-	var o outerLinkV2WithMetadataPointerEmbedder
+	o := outerLinkV2WithMetadataPointerEmbedder{
+		OuterLinkV2WithMetadata: &OuterLinkV2WithMetadata{},
+	}
 	_, err := MsgpackEncode(o)
 	requireErrorHasSuffix(t, errCodecEncodeSelf, err)
 }
