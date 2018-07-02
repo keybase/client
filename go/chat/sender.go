@@ -96,6 +96,8 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 	pagination := &chat1.Pagination{
 		Num: s.prevPtrPagination.Num,
 	}
+	// If we fail to find anything to prev against after numRetries, we allow
+	// the message to be send with an empty prev list.
 	numRetries := 5
 	for i := 0; i < numRetries; i++ {
 		thread, err = s.G().ConvSource.Pull(ctx, conv.GetConvID(), msg.ClientHeader.Sender,
@@ -137,7 +139,7 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 		} else if thread.Pagination.Last {
 			return resMsg, fmt.Errorf("Could not find previous messages for prev pointers (of %v)", len(thread.Messages))
 		} else {
-			s.Debug(ctx, "Could not find previous messages for prev pointers (of %v), attempt: %v, retrying", len(thread.Messages), i)
+			s.Debug(ctx, "Could not find previous messages for prev pointers (of %v), attempt: %v of %v, retrying", len(thread.Messages), i, numRetries)
 		}
 	}
 
