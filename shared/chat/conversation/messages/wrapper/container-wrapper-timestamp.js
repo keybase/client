@@ -1,9 +1,8 @@
 // @flow
 import {WrapperTimestamp} from '.'
+import * as Constants from '../../../../constants/chat2/message'
 import {setDisplayName, compose, connect, type TypedState} from '../../../../util/container'
 import {formatTimeForMessages} from '../../../../util/timestamp'
-
-const howLongBetweenTimestampsMs = 1000 * 60 * 15
 
 const mapStateToProps = (state: TypedState, {message, previous}) => {
   const orangeLineOrdinal = state.chat2.orangeLineMap.get(message.conversationIDKey)
@@ -18,12 +17,7 @@ const mapStateToProps = (state: TypedState, {message, previous}) => {
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const {message, previous} = stateProps
 
-  const oldEnough = !!(
-    previous &&
-    previous.timestamp &&
-    message.timestamp &&
-    message.timestamp - previous.timestamp > howLongBetweenTimestampsMs
-  )
+  const oldEnough = Constants.enoughTimeBetweenMessages(message, previous)
 
   const timestamp =
     stateProps.orangeLineAbove || !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null
