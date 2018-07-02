@@ -36,6 +36,7 @@ class Splash extends React.Component<Props, State> {
 
   componentDidMount() {
     console.log('nathan-testing', 'did mount')
+    console.log('nathan-testing', this.props, '(props)')
     console.log('nathan-testing', this.state, '(did mount state)')
 
     if (!__STORYBOOK__) {
@@ -49,8 +50,8 @@ class Splash extends React.Component<Props, State> {
     }
   }
 
-  componentDidUnmount() {
-    console.log('nathan-testing', 'did unmount')
+  componentWillUnmount() {
+    console.log('nathan-testing', 'will unmount')
     console.log('nathan-testing', this.state)
   }
 
