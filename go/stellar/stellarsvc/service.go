@@ -465,6 +465,33 @@ func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendCLILoc
 	return nil
 }
 
+func (s *Server) SendRequestCLILocal(ctx context.Context, arg stellar1.SendRequestCLILocalArg) (err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "SendRequestCLILocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+
+	if !arg.Asset.IsNativeXLM() {
+		return fmt.Errorf("sending non-XLM assets is not supported")
+	}
+
+	uis := libkb.UIs{
+		IdentifyUI: s.uiSource.IdentifyUI(s.G(), 0),
+	}
+	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
+
+	err = stellar.SendRequest(m, s.remoter, stellar.SendRequestArg{
+		To:     stellarcommon.RecipientInput(arg.Recipient),
+		Amount: arg.Amount,
+	})
+	return err
+}
+
 func (s *Server) mctx(ctx context.Context) libkb.MetaContext {
 	return libkb.NewMetaContext(ctx, s.G())
 }

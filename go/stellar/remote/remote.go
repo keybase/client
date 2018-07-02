@@ -373,10 +373,7 @@ func ReleaseAutoClaimLock(ctx context.Context, g *libkb.GlobalContext, token str
 		NetContext:  ctx,
 	}
 	var res libkb.AppStatusEmbed
-	if err := g.API.PostDecode(apiArg, &res); err != nil {
-		return err
-	}
-	return nil
+	return g.API.PostDecode(apiArg, &res)
 }
 
 type nextAutoClaimResult struct {
@@ -533,4 +530,38 @@ func SetAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) error {
 	}
 	_, err := g.API.Post(apiArg)
 	return err
+}
+
+func SubmitRequest(ctx context.Context, g *libkb.GlobalContext, recipient, amount string) (reqID string, err error) {
+	payload := make(libkb.JSONPayload)
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/submitrequest",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+		NetContext:  ctx,
+	}
+	_ = apiArg
+	return "WORK IN PROGRESS", nil
+	// var res submitResult
+	// if err := g.API.PostDecode(apiArg, &res); err != nil {
+	// 	return stellar1.PaymentResult{}, err
+	// }
+	// return res.PaymentResult, nil
+}
+
+func RequestDetail(ctx context.Context, g *libkb.GlobalContext, requestID string) error {
+	payload := make(libkb.JSONPayload)
+	payload["id"] = requestID
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/requestdetail",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+		NetContext:  ctx,
+	}
+	_ = apiArg
+	// var res submitResult
+	// if err := g.API.PostDecode(apiArg, &res); err != nil {
+	// 	return stellar1.PaymentResult{}, err
+	// }
+	return nil
 }

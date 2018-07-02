@@ -740,6 +740,12 @@ type FormatLocalCurrencyStringArg struct {
 	Code   OutsideCurrencyCode `codec:"code" json:"code"`
 }
 
+type SendRequestCLILocalArg struct {
+	Recipient string `codec:"recipient" json:"recipient"`
+	Asset     Asset  `codec:"asset" json:"asset"`
+	Amount    string `codec:"amount" json:"amount"`
+}
+
 type LocalInterface interface {
 	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)
 	GetAccountAssetsLocal(context.Context, GetAccountAssetsLocalArg) ([]AccountAssetLocal, error)
@@ -778,6 +784,7 @@ type LocalInterface interface {
 	ExchangeRateLocal(context.Context, OutsideCurrencyCode) (OutsideExchangeRate, error)
 	GetAvailableLocalCurrencies(context.Context) (map[OutsideCurrencyCode]OutsideCurrencyDefinition, error)
 	FormatLocalCurrencyString(context.Context, FormatLocalCurrencyStringArg) (string, error)
+	SendRequestCLILocal(context.Context, SendRequestCLILocalArg) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -1356,6 +1363,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"sendRequestCLILocal": {
+				MakeArg: func() interface{} {
+					ret := make([]SendRequestCLILocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SendRequestCLILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SendRequestCLILocalArg)(nil), args)
+						return
+					}
+					err = i.SendRequestCLILocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1556,5 +1579,10 @@ func (c LocalClient) GetAvailableLocalCurrencies(ctx context.Context) (res map[O
 
 func (c LocalClient) FormatLocalCurrencyString(ctx context.Context, __arg FormatLocalCurrencyStringArg) (res string, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.formatLocalCurrencyString", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) SendRequestCLILocal(ctx context.Context, __arg SendRequestCLILocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.sendRequestCLILocal", []interface{}{__arg}, nil)
 	return
 }

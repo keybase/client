@@ -24,4 +24,6 @@ type Remoter interface {
 	// test would do is testing a mock.
 	GetAccountDisplayCurrency(ctx context.Context, accountID stellar1.AccountID) (string, error)
 	ExchangeRate(ctx context.Context, currency string) (stellar1.OutsideExchangeRate, error)
+	SubmitRequest(ctx context.Context, recipient, amount, teamID string) (string, error)
+	RequestDetail(ctx context.Context, requestID string) error
 }

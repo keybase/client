@@ -329,6 +329,14 @@ func (r *RemoteClientMock) ExchangeRate(ctx context.Context, currency string) (s
 	return r.Backend.ExchangeRate(ctx, r.Tc, currency)
 }
 
+func (r *RemoteClientMock) SubmitRequest(ctx context.Context, recipient, amount, teamID string) (string, error) {
+	return "", fmt.Errorf("not implemented")
+}
+
+func (r *RemoteClientMock) RequestDetail(ctx context.Context, requestID string) error {
+	return fmt.Errorf("not implemented")
+}
+
 var _ remote.Remoter = (*RemoteClientMock)(nil)
 
 // BackendMock is a mock of stellard.

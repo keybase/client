@@ -353,4 +353,6 @@ protocol local {
 
   map<OutsideCurrencyCode, OutsideCurrencyDefinition> getAvailableLocalCurrencies();
   string formatLocalCurrencyString(string amount, OutsideCurrencyCode code);
+
+  void sendRequestCLILocal(string recipient, Asset asset, string amount);
 }

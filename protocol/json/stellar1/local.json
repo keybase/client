@@ -1154,6 +1154,23 @@
         }
       ],
       "response": "string"
+    },
+    "sendRequestCLILocal": {
+      "request": [
+        {
+          "name": "recipient",
+          "type": "string"
+        },
+        {
+          "name": "asset",
+          "type": "Asset"
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "stellar.1"

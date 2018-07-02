@@ -5,8 +5,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"strings"
 
+	chatglobals "github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
@@ -1059,4 +1061,45 @@ func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipie
 
 	// identify already performed, so skip here
 	return m.G().ChatHelper.SendMsgByNameNonblock(m.Ctx(), name, nil, chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFIdentifyBehavior_CHAT_SKIP, body, chat1.MessageType_SENDPAYMENT)
+}
+
+type SendRequestArg struct {
+	To     stellarcommon.RecipientInput
+	Amount string
+}
+
+func SendRequest(m libkb.MetaContext, remoter remote.Remoter, arg SendRequestArg) (err error) {
+	defer m.CTraceTimed("Stellar.SendRequest", func() error { return err })()
+	recipient, err := LookupRecipient(m, arg.To)
+	if err != nil {
+		return err
+	}
+
+	if recipient.User == nil && recipient.Assertion == nil {
+		// This check is redundant because it's also checked by
+		// GetImplicitTeamForRecipient.
+		return fmt.Errorf("expected username or user assertion as recipient")
+	}
+
+	displayName, teamID, err := stellarcommon.GetImplicitTeamForRecipient(m.Ctx(), m.G(), recipient)
+	if err != nil {
+		return err
+	}
+
+	membersType := chat1.ConversationMembersType_IMPTEAMNATIVE
+
+	requestID, err := remoter.SubmitRequest(m.Ctx(), "", arg.Amount, teamID.String())
+	if err != nil {
+		return err
+	}
+
+	body := chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: fmt.Sprintf("stellar payment request <%s> for %s XLM", requestID, arg.Amount),
+	})
+
+	m.G().StartStandaloneChat()
+
+	err = m.G().ChatHelper.SendMsgByName(m.Ctx(), displayName, &chatglobals.DefaultTeamTopic,
+		membersType, keybase1.TLFIdentifyBehavior_CHAT_SKIP, body, chat1.MessageType_TEXT)
+	return err
 }
