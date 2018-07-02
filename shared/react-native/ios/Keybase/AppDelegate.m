@@ -221,7 +221,6 @@ const BOOL isDebug = NO;
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
   NSString* type = notification[@"type"];
   NSString* body = notification[@"m"];
-  NSLog(@"Remote notification handle for %@ started...", type);
   if (type != nil && body != nil) {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
       NSError* err = nil;

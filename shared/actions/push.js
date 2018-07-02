@@ -98,7 +98,10 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
       break
     case 'chat.newmessageSilent_2':
       try {
-        logger.info('Push notification: silent notification received, displayPlaintext: ', payload.d)
+        if (!(payload.c || payload.m)) {
+          logger.error('Push chat notification payload missing conversation ID or msgBoxed')
+          break
+        }
         const unboxRes = yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
           convID: payload.c || '',
           membersType,
@@ -131,22 +134,22 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
         // ignore it
         break
       }
-      // If a boxed message is attached to the notification, unbox.
-      if (payload.m) {
-        logger.info('Push notification: unboxing notification message')
-        yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
-          convID: payload.convID || '',
-          membersType,
-          payload: payload.m || '',
-          shouldAck: false,
-        })
-      }
       try {
         const {convID} = payload
         // Check for conversation ID so we know where to navigate to
         if (!convID) {
           logger.error('Push chat notification payload missing conversation ID')
           break
+        }
+        // If a boxed message is attached to the notification, unbox.
+        if (payload.m) {
+          logger.info('Push notification: unboxing notification message')
+          yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
+            convID: convID || '',
+            membersType,
+            payload: payload.m || '',
+            shouldAck: false,
+          })
         }
         if (handledPushThisSession) {
           break
