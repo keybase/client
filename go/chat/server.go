@@ -2316,7 +2316,7 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 	}
 	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 
-	res.Conversations, err = FindConversations(ctx, h.G(), h.DebugLabeler, h.remoteClient,
+	res.Conversations, err = FindConversations(ctx, h.G(), h.DebugLabeler, true, h.remoteClient,
 		uid, arg.TlfName, arg.TopicType, arg.MembersType, arg.Visibility, arg.TopicName, arg.OneChatPerTLF)
 	if err != nil {
 		return res, err

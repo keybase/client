@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
 import Success from '.'
-import {action, storiesOf} from '../../../stories/storybook'
-import HiddenString from '../../../util/hidden-string'
+import {action, storiesOf} from '../../stories/storybook'
+import HiddenString from '../../util/hidden-string'
 
 const props = {
   onBack: action('onBack'),

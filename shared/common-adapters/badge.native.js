@@ -6,9 +6,15 @@ import {globalStyles, globalColors, styleSheetCreate, collapseStyles} from '../s
 
 import type {Props} from './badge'
 
-function Badge({badgeStyle, badgeNumber, badgeNumberStyle}: Props) {
+function Badge({badgeStyle, badgeNumber, badgeNumberStyle, largerBadgeMinWidthFix}: Props) {
   return (
-    <Box style={collapseStyles([styles.badge, badgeStyle])}>
+    <Box
+      style={collapseStyles([
+        styles.badge,
+        largerBadgeMinWidthFix && styles.largerBadgeMinWidthFix,
+        badgeStyle,
+      ])}
+    >
       <Text style={collapseStyles([styles.text, badgeNumberStyle])} type="HeaderBig">
         {badgeNumber}
       </Text>
@@ -24,11 +30,15 @@ const styles = styleSheetCreate({
     borderRadius: 14,
     flex: 0,
     justifyContent: 'center',
-    minWidth: 24.5,
     paddingBottom: 2,
+    paddingLeft: 6,
+    paddingRight: 6,
+    paddingTop: 4,
+  },
+  largerBadgeMinWidthFix: {
+    minWidth: 24.5,
     paddingLeft: 4,
     paddingRight: 4,
-    paddingTop: 4,
   },
   text: {
     color: globalColors.white,

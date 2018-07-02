@@ -30,6 +30,7 @@ export const selectDeviceId = 'login:selectDeviceId'
 export const setCameraBrokenMode = 'login:setCameraBrokenMode'
 export const setCodePageMode = 'login:setCodePageMode'
 export const setDeletedSelf = 'login:setDeletedSelf'
+export const setDevicenameError = 'login:setDevicenameError'
 export const setMyDeviceCodeState = 'login:setMyDeviceCodeState'
 export const setOtherDeviceCodeState = 'login:setOtherDeviceCodeState'
 export const setQRCode = 'login:setQRCode'
@@ -67,6 +68,7 @@ type _SelectDeviceIdPayload = $ReadOnly<{|deviceId: string|}>
 type _SetCameraBrokenModePayload = $ReadOnly<{|codePageCameraBrokenMode: boolean|}>
 type _SetCodePageModePayload = $ReadOnly<{|codePageMode: Types.Mode|}>
 type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
+type _SetDevicenameErrorPayload = $ReadOnly<{|error: string|}>
 type _SetMyDeviceCodeStatePayload = $ReadOnly<{|codePageMyDeviceRole: Types.DeviceRole|}>
 type _SetOtherDeviceCodeStatePayload = $ReadOnly<{|codePageOtherDeviceRole: Types.DeviceRole|}>
 type _SetQRCodePayload = $ReadOnly<{|codePageQrCode: HiddenString|}>
@@ -107,6 +109,7 @@ export const createSelectDeviceId = (payload: _SelectDeviceIdPayload) => ({error
 export const createSetCameraBrokenMode = (payload: _SetCameraBrokenModePayload) => ({error: false, payload, type: setCameraBrokenMode})
 export const createSetCodePageMode = (payload: _SetCodePageModePayload) => ({error: false, payload, type: setCodePageMode})
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error: false, payload, type: setDeletedSelf})
+export const createSetDevicenameError = (payload: _SetDevicenameErrorPayload) => ({error: false, payload, type: setDevicenameError})
 export const createSetMyDeviceCodeState = (payload: _SetMyDeviceCodeStatePayload) => ({error: false, payload, type: setMyDeviceCodeState})
 export const createSetOtherDeviceCodeState = (payload: _SetOtherDeviceCodeStatePayload) => ({error: false, payload, type: setOtherDeviceCodeState})
 export const createSetQRCode = (payload: _SetQRCodePayload) => ({error: false, payload, type: setQRCode})
@@ -141,6 +144,7 @@ export type SelectDeviceIdPayload = $Call<typeof createSelectDeviceId, _SelectDe
 export type SetCameraBrokenModePayload = $Call<typeof createSetCameraBrokenMode, _SetCameraBrokenModePayload>
 export type SetCodePageModePayload = $Call<typeof createSetCodePageMode, _SetCodePageModePayload>
 export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDeletedSelfPayload>
+export type SetDevicenameErrorPayload = $Call<typeof createSetDevicenameError, _SetDevicenameErrorPayload>
 export type SetMyDeviceCodeStatePayload = $Call<typeof createSetMyDeviceCodeState, _SetMyDeviceCodeStatePayload>
 export type SetOtherDeviceCodeStatePayload = $Call<typeof createSetOtherDeviceCodeState, _SetOtherDeviceCodeStatePayload>
 export type SetQRCodePayload = $Call<typeof createSetQRCode, _SetQRCodePayload>
@@ -177,6 +181,7 @@ export type Actions =
   | SetCameraBrokenModePayload
   | SetCodePageModePayload
   | SetDeletedSelfPayload
+  | SetDevicenameErrorPayload
   | SetMyDeviceCodeStatePayload
   | SetOtherDeviceCodeStatePayload
   | SetQRCodePayload
