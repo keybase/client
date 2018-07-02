@@ -2368,6 +2368,10 @@ func (fbo *folderBranchOps) makeEditNotifications(
 			return nil, err
 		}
 
+		// The crChains creation process splits up a rename op into
+		// a delete and a create.  Turn them back into a rename.
+		chains.revertRenames(ops)
+
 		ops = pathSortedOps(make([]op, 0, len(ops)))
 		for _, chain := range chains.byMostRecent {
 			ops = append(ops, chain.ops...)
@@ -2385,6 +2389,7 @@ func (fbo *folderBranchOps) makeEditNotifications(
 	}
 
 	for _, op := range ops {
+		fbo.log.CDebugf(ctx, "Final op: %s", op)
 		edit := op.ToEditNotification(
 			rev, revTime, rmd.lastWriterVerifyingKey,
 			rmd.LastModifyingWriter(), fbo.id())
@@ -2613,6 +2618,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		// Send edit notifications and archive the old, unref'd blocks
 		// if journaling is off.
 		fbo.editActivity.Add(1)
+		fbo.log.CDebugf(ctx, "Sending notifications for %v", irmd.data.Changes.Ops)
 		go func() {
 			defer fbo.editActivity.Done()
 			ctx, cancelFunc := fbo.newCtxWithFBOID()

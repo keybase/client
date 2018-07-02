@@ -1170,3 +1170,38 @@ func (ccs *crChains) remove(ctx context.Context, log logger.Logger,
 	}
 	return chainsWithRemovals
 }
+
+func (ccs *crChains) revertRenames(oldOps []op) {
+	for _, op := range oldOps {
+		if rop, ok := op.(*renameOp); ok {
+			// Replace the corresponding createOp, and remove the
+			// rmOp.
+			oldChain, ok := ccs.byMostRecent[rop.OldDir.Ref]
+			if !ok {
+				continue
+			}
+			for i, oldOp := range oldChain.ops {
+				if rmop, ok := oldOp.(*rmOp); ok &&
+					rmop.OldName == rop.OldName {
+					rop.oldFinalPath = rmop.getFinalPath()
+					oldChain.ops = append(
+						oldChain.ops[:i], oldChain.ops[i+1:]...)
+				}
+			}
+
+			newChain := oldChain
+			if rop.NewDir != (blockUpdate{}) {
+				newChain = ccs.byMostRecent[rop.NewDir.Ref]
+			}
+
+			for i, newOp := range newChain.ops {
+				if cop, ok := newOp.(*createOp); ok &&
+					cop.renamed && cop.NewName == rop.NewName {
+					rop.setFinalPath(cop.getFinalPath())
+					newChain.ops[i] = rop
+					break
+				}
+			}
+		}
+	}
+}
