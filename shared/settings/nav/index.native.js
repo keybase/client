@@ -82,7 +82,6 @@ function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange
               badgeNumber: badgeNumbers[TabConstants.gitTab],
               icon: 'iconfont-nav-git',
               largerBadgeMinWidthFix: true,
-
               onClick: () => onTabChange(Constants.gitTab),
               text: 'Git',
             },
@@ -90,7 +89,6 @@ function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange
               badgeNumber: badgeNumbers[TabConstants.devicesTab],
               icon: 'iconfont-nav-devices',
               largerBadgeMinWidthFix: true,
-
               onClick: () => onTabChange(Constants.devicesTab),
               text: 'Devices',
             },
@@ -100,7 +98,6 @@ function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange
                     badgeNumber: badgeNumbers[TabConstants.walletsTab],
                     icon: 'iconfont-nav-wallets',
                     largerBadgeMinWidthFix: true,
-
                     onClick: () => onTabChange(Constants.walletsTab),
                     text: 'Wallet',
                   }
