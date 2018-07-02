@@ -28,7 +28,7 @@ const resetNav = () => Saga.put(LoginGen.createNavBasedOnLoginAndInitialState())
 // When going back we clear all errors so we can fix things and move forward
 const goBackAndClearErrors = () => Saga.put(navigateUp())
 
-const showUserEmailOnNoErrors = (action: SignupGen.CheckedInviteCodePayload, state: TypedState) =>
+const showUserEmailOnNoErrors = (_, state: TypedState) =>
   noErrors(state) && Saga.put(navigateTo([loginTab, 'signup', 'usernameAndEmail']))
 
 const showInviteScreen = () => navigateTo([loginTab, 'signup', 'inviteCode'])
