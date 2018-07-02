@@ -20,8 +20,8 @@ const mergeProps = (stateProps, dispatchProps) => {
   // 2. assets header and list of assets
   // 3. transactions header and transactions (TODO)
   // Formatted in a SectionList
-  sections.push({title: 'Your assets', data: stateProps.assets.map((a, index) => index).toArray()})
-  sections.push({title: 'History', data: stateProps.payments.map(p => ({paymentID: p.id})).toArray()})
+  sections.push({data: stateProps.assets.map((a, index) => index).toArray(), title: 'Your assets'})
+  sections.push({data: stateProps.payments.map(p => ({paymentID: p.id})).toArray(), title: 'History'})
   return {
     accountID: stateProps.accountID,
     navigateAppend: dispatchProps.navigateAppend,
