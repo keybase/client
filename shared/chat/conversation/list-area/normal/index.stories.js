@@ -100,7 +100,6 @@ const makeTimestampGen = (days: number = 7, threshold: number = 10) => {
 }
 
 const generateTimestamp = makeTimestampGen()
-const howLongBetweenTimestampsMs = 1000 * 60 * 15
 
 const ordinalToMessageCache = {}
 const ordinalToMessage = o => {
@@ -181,7 +180,7 @@ const provider = PropProviders.compose(
         previous &&
         previous.timestamp &&
         message.timestamp &&
-        message.timestamp - previous.timestamp > howLongBetweenTimestampsMs
+        message.timestamp - previous.timestamp > Message.howLongBetweenTimestampsMs
       )
       return {
         children,
