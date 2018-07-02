@@ -513,7 +513,7 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (err error) {
 		if st == chat1.OutboxStateType_ERROR {
 			if obr.Msg.IsEphemeral() && obr.Ctime.Time().Add(ephemeralPurgeCutoff).Before(o.clock.Now()) {
 				o.Debug(ctx, "purging ephemeral message from outbox with error state that was older than %v: %s",
-					ephemeralPurgeCutoff, obr)
+					ephemeralPurgeCutoff, obr.OutboxID)
 				ephemeralPurged = append(ephemeralPurged, obr)
 				continue
 			}
