@@ -26,7 +26,7 @@ type Outbox struct {
 }
 
 const outboxVersion = 4
-const ephemeralPurgeCutoff = time.Minute * 10
+const ephemeralPurgeCutoff = 24 * time.Hour
 const errorPurgeCutoff = time.Hour * 24 * 7 // one week
 
 type diskOutbox struct {
