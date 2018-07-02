@@ -520,7 +520,7 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (err error) {
 
 			if !obr.Msg.IsEphemeral() && obr.Ctime.Time().Add(errorPurgeCutoff).Before(o.clock.Now()) {
 				o.Debug(ctx, "purging message from outbox with error state that was older than %v: %s",
-					errorPurgeCutoff, obr)
+					errorPurgeCutoff, obr.OutboxID)
 				continue
 			}
 		}
