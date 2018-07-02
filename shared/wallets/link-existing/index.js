@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button, ButtonBar, Icon, InfoNote, Text, Input} from '../../common-adapters'
+import {Box2, Button, ButtonBar, HeaderHocHeader, Icon, InfoNote, Text, Input} from '../../common-adapters'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate, platformStyles} from '../../styles'
 
 type View = 'key' | 'name'
@@ -31,6 +31,7 @@ const LinkWallet = (props: Props) => {
       return (
         <EnterName
           name={props.name}
+          onBack={() => props.onViewChange('key')}
           onCancel={props.onCancel}
           onNameChange={props.onNameChange}
           onDone={props.onDone}
@@ -53,7 +54,12 @@ type EnterKeyProps = {
 }
 
 const EnterKey = (props: EnterKeyProps) => (
-  <Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+  <Box2
+    direction="vertical"
+    fullWidth={true}
+    fullHeight={true}
+    style={collapseStyles([styles.popupContainer, styles.container])}
+  >
     <Box2
       direction="vertical"
       gap="medium"
@@ -105,47 +111,51 @@ const EnterKey = (props: EnterKeyProps) => (
 
 type EnterNameProps = {
   name: string,
+  onBack: () => void,
   onCancel: () => void,
   onNameChange: string => void,
   onDone: () => void,
 }
 
 const EnterName = (props: EnterNameProps) => (
-  <Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-    <Box2
-      direction="vertical"
-      gap="medium"
-      fullWidth={true}
-      fullHeight={true}
-      style={styles.contentContainer}
-    >
-      <Icon type="icon-wallet-add-48" style={{width: 48, height: 48}} />
-      <Text type="Header">Name your account</Text>
-      <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
-        <Text type="BodySmall" style={{color: globalColors.blue}}>
-          Account name
-        </Text>
-        <Input
-          hideLabel={true}
-          hideUnderline={true}
-          inputStyle={collapseStyles([styles.inputElement, styles.tallSingleLineInput])}
-          style={styles.input}
-          value={props.name}
-          onChangeText={props.onNameChange}
-        />
-      </Box2>
-      <InfoNote>
-        <Box2 direction="vertical" fullWidth={true}>
-          <Text type="BodySmall" style={styles.textCenter}>
-            Your account name is encrypted and only visible to you.
+  <Box2 direction="vertical" style={styles.popupContainer}>
+    <HeaderHocHeader onBack={props.onBack} headerStyle={styles.header} />
+    <Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+      <Box2
+        direction="vertical"
+        gap="medium"
+        fullWidth={true}
+        fullHeight={true}
+        style={styles.contentContainer}
+      >
+        <Icon type="icon-wallet-add-48" style={{width: 48, height: 48}} />
+        <Text type="Header">Name your account</Text>
+        <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
+          <Text type="BodySmall" style={{color: globalColors.blue}}>
+            Account name
           </Text>
+          <Input
+            hideLabel={true}
+            hideUnderline={true}
+            inputStyle={collapseStyles([styles.inputElement, styles.tallSingleLineInput])}
+            style={styles.input}
+            value={props.name}
+            onChangeText={props.onNameChange}
+          />
         </Box2>
-      </InfoNote>
+        <InfoNote>
+          <Box2 direction="vertical" fullWidth={true}>
+            <Text type="BodySmall" style={styles.textCenter}>
+              Your account name is encrypted and only visible to you.
+            </Text>
+          </Box2>
+        </InfoNote>
+      </Box2>
+      <ButtonBar>
+        <Button type="Secondary" onClick={props.onCancel} label="Cancel" />
+        <Button type="Wallet" onClick={props.onDone} label="Done" />
+      </ButtonBar>
     </Box2>
-    <ButtonBar>
-      <Button type="Secondary" onClick={props.onCancel} label="Cancel" />
-      <Button type="Wallet" onClick={props.onDone} label="Done" />
-    </ButtonBar>
   </Box2>
 )
 
@@ -182,8 +192,6 @@ class Wrapper extends React.Component<WrapperProps, WrapperState> {
 
 const styles = styleSheetCreate({
   container: {
-    height: 450,
-    maxWidth: 360,
     padding: globalMargins.medium,
   },
   contentContainer: {
@@ -191,6 +199,11 @@ const styles = styleSheetCreate({
     alignSelf: 'flex-start',
     flex: 1,
   },
+  header: platformStyles({
+    isElectron: {
+      borderRadius: 4,
+    },
+  }),
   input: platformStyles({common: {margin: 0}, isElectron: {width: '100%'}}),
   inputContainer: platformStyles({
     common: {
@@ -213,6 +226,10 @@ const styles = styleSheetCreate({
     },
     isMobile: {minWidth: '100%', paddingBottom: globalMargins.xtiny, paddingTop: globalMargins.xtiny},
   }),
+  popupContainer: {
+    height: 450,
+    maxWidth: 360,
+  },
   tallSingleLineInput: platformStyles({
     isMobile: {
       minHeight: 32,

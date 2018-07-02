@@ -8,8 +8,8 @@ import LinkExisting from '.'
 const actions = {
   onCancel: action('onCancel'),
   onDone: action('onDone'),
-  onNameChange: action('onNameChange'),
   onKeyChange: action('onKeyChange'),
+  onNameChange: action('onNameChange'),
   onViewChange: action('onViewChange'),
 }
 
@@ -36,7 +36,7 @@ const load = () => {
     ))
     .add('Enter key', () => <LinkExisting {...enterKeyProps} />)
     .add('Enter name', () => <LinkExisting {...enterNameProps} />)
-    .add('Prefilled name', () => <LinkExisting {...enterNameProps} name="mikem's third wallet" />)
+    .add('Prefilled name', () => <LinkExisting {...enterNameProps} name="mikem's third account" />)
 }
 
 export default load
