@@ -1,10 +1,11 @@
 // @flow
-import * as Creators from '../../../actions/signup'
-import Render from '.'
+import * as SignupGen from '../../../actions/signup-gen'
+import RequestInviteSuccess from '.'
 import {connect} from '../../../util/container'
 
-const mapStateToProps = state => ({})
+const mapStateToProps = () => ({})
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onBack: () => dispatch(Creators.restartSignup()),
+  onBack: () => dispatch(SignupGen.createRestartSignup()),
 })
-export default connect(mapStateToProps, mapDispatchToProps)(Render)
+
+export default connect(mapStateToProps, mapDispatchToProps)(RequestInviteSuccess)

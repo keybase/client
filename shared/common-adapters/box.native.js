@@ -31,6 +31,7 @@ class Box2 extends React.Component<Box2Props> {
       this.props.fullHeight && styles.fullHeight,
       this.props.fullWidth && styles.fullWidth,
       !this.props.fullHeight && !this.props.fullWidth && styles.centered,
+      this.props.centerChildren && styles.centeredChildren,
       // uncomment this to get debugging colors
       // {backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`},
       this.props.style,
@@ -53,6 +54,10 @@ const HBoxGap = ({gap}) => <View style={{width: globalMargins[gap]}} />
 
 const styles = {
   centered: {alignSelf: 'center'},
+  centeredChildren: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   fullHeight: {height: '100%'},
   fullWidth: {width: '100%'},
   hbox: {

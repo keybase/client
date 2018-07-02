@@ -132,7 +132,8 @@ func (m *mockChatHelper) SendMsgByNameNonblock(ctx context.Context, name string,
 	return nil
 }
 
-func (m *mockChatHelper) FindConversations(ctx context.Context, name string, topicName *string, topicType chat1.TopicType,
+func (m *mockChatHelper) FindConversations(ctx context.Context, userLocalData bool, name string,
+	topicName *string, topicType chat1.TopicType,
 	membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error) {
 
 	conv, ok := m.convs[m.convKey(name, topicName)]
@@ -178,7 +179,7 @@ func (m *mockChatHelper) AckMobileNotificationSuccess(ctx context.Context, pushI
 }
 
 func (m *mockChatHelper) UnboxMobilePushNotification(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, membersType chat1.ConversationMembersType, pushIDs []string, payload string) (string, error) {
+	convID chat1.ConversationID, membersType chat1.ConversationMembersType, payload string) (string, error) {
 	return "", nil
 }
 

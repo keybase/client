@@ -201,7 +201,7 @@ func (p proof) lookupMerkleTreeChain(ctx context.Context, world LoaderContext) (
 	return world.merkleLookupTripleAtHashMeta(ctx, p.a.isPublic(), p.a.leafID, p.b.sigMeta.PrevMerkleRootSigned.HashMeta)
 }
 
-// check a single proof. Call to the merkle API enddpoint, and then ensure that the
+// check a single proof. Call to the merkle API endpoint, and then ensure that the
 // data that comes back fits the proof and previously checked sigchain links.
 func (p proof) check(ctx context.Context, g *libkb.GlobalContext, world LoaderContext, proofSet *proofSetT) (err error) {
 	defer func() {

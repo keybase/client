@@ -18,8 +18,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
         code: asset.assetCode,
         equivAvailableToSend: '', // XXX: Need this from core.
         equivBalance: `${asset.worth} ${asset.worthCurrency}`,
-        issuer: asset.issuer,
-        issuerAddress: '', // XXX: Need this from core.
+        issuerAccountID: asset.issuerAccountID,
+        issuerName: asset.issuerName || 'Unknown',
         name: asset.name,
         reserves: [], // XXX: Need this from core.
       },

@@ -263,13 +263,13 @@ const _handleCheckReachability = (action: GregorGen.CheckReachabilityPayload) =>
 const _handleCheckReachabilitySuccess = reachability =>
   Saga.put(GregorGen.createUpdateReachability({reachability}))
 
-function _injectItem(action: GregorGen.InjectItemPayload) {
+function _updateCategory(action: GregorGen.UpdateCategoryPayload) {
   const {category, body, dtime} = action.payload
-  return Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
+  return Saga.call(RPCTypes.gregorUpdateCategoryRpcPromise, {
     body,
-    cat: category,
-    dtime: {
-      time: dtime || 0,
+    category,
+    dtime: dtime || {
+      time: 0,
       offset: 0,
     },
   })
@@ -278,7 +278,7 @@ function _injectItem(action: GregorGen.InjectItemPayload) {
 function* gregorSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(GregorGen.pushState, _handlePushState)
   yield Saga.safeTakeEveryPure(GregorGen.pushOOBM, _handlePushOOBM)
-  yield Saga.safeTakeEveryPure(GregorGen.injectItem, _injectItem)
+  yield Saga.safeTakeEveryPure(GregorGen.updateCategory, _updateCategory)
   yield Saga.safeTakeLatestPure(
     GregorGen.checkReachability,
     _handleCheckReachability,
