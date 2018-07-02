@@ -58,8 +58,8 @@ class EditAvatar extends React.Component<Props, State> {
       originalImageHeight: 0,
       originalImageWidth: 0,
       scale: 1,
-      scaledImageHeight: 0,
-      scaledImageWidth: 0,
+      scaledImageHeight: 1,
+      scaledImageWidth: 1,
       submitting: false,
     }
   }
@@ -229,8 +229,10 @@ class EditAvatar extends React.Component<Props, State> {
 
     const x = this.state.offsetLeft * -1
     const y = this.state.offsetTop * -1
-    const rH = this.state.originalImageHeight / this.state.scaledImageHeight
-    const rW = this.state.originalImageWidth / this.state.scaledImageWidth
+    const rH =
+      this.state.scaledImageHeight !== 0 ? this.state.originalImageHeight / this.state.scaledImageHeight : 1
+    const rW =
+      this.state.scaledImageWidth !== 0 ? this.state.originalImageWidth / this.state.scaledImageWidth : 1
     const crop = {
       x0: Math.round(x * rW),
       x1: Math.round((x + AVATAR_SIZE - AVATAR_BORDER_WIDTH * 2) * rW),
