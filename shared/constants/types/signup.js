@@ -1,31 +1,23 @@
 // @flow
+import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
 
 export type AutoInviteRequestState = 'NotRequested' | 'Requested' | 'Done'
 
-export type State = {
-  deviceName: ?string,
-  deviceNameError: ?string,
-  email: ?string,
-  emailError: ?Error,
-  inviteCode: ?string,
-  inviteCodeError: ?string,
-  nameError: ?Error,
-  paperkey: ?HiddenString,
-  passphrase: ?HiddenString,
-  passphraseError: ?HiddenString,
-  phase:
-    | 'inviteCode'
-    | 'usernameAndEmail'
-    | 'passphraseSignup'
-    | 'deviceName'
-    | 'signupLoading'
-    | 'success'
-    | 'signupError'
-    | 'requestInvite'
-    | 'requestInviteSuccess',
-  signupError: ?HiddenString,
-  username: ?string,
-  usernameError: ?Error,
-  waiting: boolean,
+export type _State = {
+  devicename: string,
+  devicenameError: string,
+  email: string,
+  emailError: string,
+  inviteCode: string,
+  inviteCodeError: string,
+  name: string,
+  nameError: string,
+  passphrase: HiddenString,
+  passphraseError: HiddenString,
+  signupError: HiddenString,
+  username: string,
+  usernameError: string,
 }
+
+export type State = I.RecordOf<_State>
