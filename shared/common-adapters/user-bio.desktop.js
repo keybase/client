@@ -100,7 +100,7 @@ class BioRender extends Component<Props> {
               <Box style={{height: 16, width: 0}}>
                 <Icon
                   type="iconfont-edit"
-                  onClick={editFns.onEditAvatarClick}
+                  onClick={() => editFns.onEditAvatarClick()}
                   style={stylesEditAvatarIcon(avatarSize)}
                 />
               </Box>
