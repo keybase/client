@@ -1083,6 +1083,12 @@ func MakeEmptyUnreadUpdate(convID ConversationID) UnreadUpdate {
 	}
 }
 
+func (u UnreadUpdate) String() string {
+	return fmt.Sprintf("[d:%v c:%s u:%d nd:%d nm:%d]", u.Diff, u.ConvID, u.UnreadMessages,
+		u.UnreadNotifyingMessages[keybase1.DeviceType_DESKTOP],
+		u.UnreadNotifyingMessages[keybase1.DeviceType_MOBILE])
+}
+
 func (s TopicNameState) Bytes() []byte {
 	return []byte(s)
 }

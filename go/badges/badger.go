@@ -48,18 +48,18 @@ func (b *Badger) SetInboxVersionSource(s InboxVersionSource) {
 	b.iboxVersSource = s
 }
 
-func (b *Badger) PushState(state gregor1.State) {
+func (b *Badger) PushState(ctx context.Context, state gregor1.State) {
 	b.G().Log.Debug("Badger update with gregor state")
-	b.badgeState.UpdateWithGregor(state)
+	b.badgeState.UpdateWithGregor(ctx, state)
 	err := b.Send()
 	if err != nil {
 		b.G().Log.Warning("Badger send (pushstate) failed: %v", err)
 	}
 }
 
-func (b *Badger) PushChatUpdate(update chat1.UnreadUpdate, inboxVers chat1.InboxVers) {
+func (b *Badger) PushChatUpdate(ctx context.Context, update chat1.UnreadUpdate, inboxVers chat1.InboxVers) {
 	b.G().Log.Debug("Badger update with chat update")
-	b.badgeState.UpdateWithChat(update, inboxVers)
+	b.badgeState.UpdateWithChat(ctx, update, inboxVers)
 	err := b.Send()
 	if err != nil {
 		b.G().Log.Warning("Badger send (pushchatupdate) failed: %v", err)
@@ -99,8 +99,8 @@ func (b *Badger) Resync(ctx context.Context, chatRemote func() chat1.RemoteInter
 		b.G().Log.Debug("Badger: Resync(): unable to get state: %s", err.Error())
 		state = gregor1.State{}
 	}
-	b.badgeState.UpdateWithChatFull(*update)
-	b.badgeState.UpdateWithGregor(state)
+	b.badgeState.UpdateWithChatFull(ctx, *update)
+	b.badgeState.UpdateWithGregor(ctx, state)
 	err = b.Send()
 	if err != nil {
 		b.G().Log.Warning("Badger send (resync) failed: %v", err)
