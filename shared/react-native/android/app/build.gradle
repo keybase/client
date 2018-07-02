@@ -166,7 +166,7 @@ dependencies {
     // compile 'com.squareup.okhttp3:okhttp:3.0.1'
     compile 'org.msgpack:msgpack:0.6.12'
     compile "com.google.android.gms:play-services-gcm:10.0.0"
-    compile 'com.android.support:appcompat-v7:23.0.1'
+    compile 'com.android.support:appcompat-v7:26.0.2'
     compile "com.facebook.react:react-native:+"  // From node_modules
     compile project(':react-native-push-notification')
     compile 'org.slf4j:slf4j-api:1.7.21'
