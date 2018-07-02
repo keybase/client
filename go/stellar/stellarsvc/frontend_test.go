@@ -69,7 +69,7 @@ func TestGetAccountAssetsLocalWithBalance(t *testing.T) {
 	require.Equal(t, "Lumens", assets[0].Name)
 	require.Equal(t, "XLM", assets[0].AssetCode)
 	require.Equal(t, "10,000", assets[0].BalanceTotal)
-	require.Equal(t, "9,999", assets[0].BalanceAvailableToSend)
+	require.Equal(t, "9,998.9999900", assets[0].BalanceAvailableToSend)
 	require.Equal(t, "Stellar", assets[0].Issuer)
 	require.Equal(t, "USD", assets[0].WorthCurrency)
 	require.Equal(t, "$3,183.28", assets[0].Worth)
@@ -762,7 +762,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	t.Logf(spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToSend)
 	require.Equal(t, "", bres.ToErrMsg)
-	require.Equal(t, "Your available to send is *19.0000000 XLM*", bres.AmountErrMsg)
+	require.Equal(t, "Your available to send is *18.9999900 XLM*", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "This is *$9.55*", bres.WorthDescription)
@@ -809,12 +809,29 @@ func TestBuildPaymentLocal(t *testing.T) {
 	t.Logf(spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToSend)
 	require.Equal(t, "", bres.ToErrMsg)
-	require.Equal(t, "Your available to send is *3.9999900 XLM*", bres.AmountErrMsg)
+	require.Equal(t, "Your available to send is *3.9999800 XLM*", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "Memo is too long.", bres.PublicMemoErrMsg) // too many potatoes
 	require.Equal(t, "This is *$4.77*", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres, []stellar1.SendBannerLocal{}) // recipient is funded so banner's gone
+
+	// Send an amount so close to available to send that the fee would push it it over the edge.
+	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:   senderAccountID,
+		To:     tcs[1].Fu.Username,
+		Amount: "3.99999900",
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, false, bres.ReadyToSend)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, "Your available to send is *3.9999800 XLM*", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.PublicMemoErrMsg)
+	require.Equal(t, "This is *$1.27*", bres.WorthDescription)
+	require.Equal(t, worthInfo, bres.WorthInfo)
+	requireBannerSet(t, bres, []stellar1.SendBannerLocal{})
 
 	t.Logf("using FromSeqno")
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
