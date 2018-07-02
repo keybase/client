@@ -11,7 +11,7 @@ export type Props = {
   equivAvailableToSend: string, // non-empty only if native currency e.g. '$123.45 USD'
   equivBalance: string, // non-empty only if native currency
   expanded: boolean,
-  issuer: string, // verified issuer domain name, 'Stellar network' or 'Unknown'
+  issuerName: string, // verified issuer domain name, 'Stellar network' or 'Unknown'
   issuerAddress: string, // issuing public key
   name: string, // Asset code or 'Lumens'
   reserves: Types.Reserve[], // non-empty only if native currency
@@ -32,7 +32,7 @@ export const Asset = (props: Props) => (
               {props.name}
             </Text>
             <Text type="BodySmall" lineClamp={1}>
-              {props.issuer}
+              {props.issuerName}
             </Text>
           </Box2>
         </Box2>
