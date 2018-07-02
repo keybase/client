@@ -35,30 +35,14 @@ class Splash extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    console.log('nathan-testing', 'did mount')
-    console.log('nathan-testing', this.props, '(props)')
-    console.log('nathan-testing', this.state, '(did mount state)')
-
     if (!__STORYBOOK__) {
-      console.log('nathan-testing', 'start timeout')
       this.props.setTimeout(() => {
-        console.log('nathan-testing', this.state, '(before timeout setState)')
-        console.log('nathan-testing', 'execute timeout')
-        console.log('nathan-testing', this.state, '(after timeout setState)')
         this.setState({showFeedback: true})
-      }, 4000)
+      }, 7000)
     }
   }
 
-  componentWillUnmount() {
-    console.log('nathan-testing', 'will unmount')
-    console.log('nathan-testing', this.state)
-  }
-
   render() {
-    console.log('nathan-testing', 'render')
-    console.log('nathan-testing', this.state, '(during render)')
-
     return (
       <Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container} gap="small">
         <Icon type={this.props.failed ? 'icon-keybase-logo-logged-out-80' : 'icon-keybase-logo-80'} />
