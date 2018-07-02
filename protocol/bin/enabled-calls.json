@@ -152,5 +152,6 @@
   "keybase.1.user.profileEdit": {"promise": true},
   "stellar.1.local.getPaymentsLocal": {"promise": true},
   "stellar.1.local.getAccountAssetsLocal": {"promise": true},
-  "stellar.1.local.getWalletAccountsLocal": {"promise": true}
+  "stellar.1.local.getWalletAccountsLocal": {"promise": true},
+  "stellar.1.local.linkNewWalletAccountLocal": {"promise": true}
 }
