@@ -194,3 +194,20 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
 }
 
 export default signupSaga
+
+export const _testing = {
+  checkDevicename,
+  checkInviteCode,
+  checkUsernameEmail,
+  goBackAndClearErrors,
+  reallySignupOnNoErrors,
+  requestAutoInvite,
+  requestInvite,
+  resetNav,
+  showDeviceScreenOnNoErrors,
+  showErrorOrCleanupAfterSignup,
+  showInviteScreen,
+  showInviteSuccessOnNoErrors,
+  showPassphraseOnNoErrors,
+  showUserEmailOnNoErrors,
+}
