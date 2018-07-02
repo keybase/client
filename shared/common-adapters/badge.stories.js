@@ -1,5 +1,5 @@
 // @flow
-import Badge from './badge'
+import {Badge2} from './badge'
 import * as React from 'react'
 import {Box, Box2} from './box'
 import Text from './text'
@@ -26,7 +26,7 @@ const load = () => {
       >
         <Text type="Header">{getDigits(number)} digit number:</Text>
         <Box>
-          <Badge badgeNumber={number} />
+          <Badge2 badgeNumber={number} />
         </Box>
       </Box2>
     ))

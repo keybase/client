@@ -1,11 +1,20 @@
 // @flow
 import {Component} from 'react'
 
-export type Props = {
+export type BadgeProps = {
   badgeNumber: ?number,
   badgeStyle?: any,
   badgeNumberStyle?: Object,
   largerBadgeMinWidthFix?: boolean,
 }
 
-declare export default class Badge extends Component<Props> {}
+export type Badge2Props = {
+  number: ?number,
+  radius: ?number,
+  fontSize: ?number,
+  style?: any,
+  numberStyle?: Object,
+}
+
+declare export class Badge extends Component<BadgeProps> {}
+declare export class Badge2 extends Component<Badge2Props> {}
