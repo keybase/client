@@ -1,7 +1,16 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {Box, Text, Icon, ClickableBox} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins, isMobile, desktopStyles} from '../../../../styles'
+import {
+  globalStyles,
+  globalColors,
+  globalMargins,
+  isMobile,
+  desktopStyles,
+  styleSheetCreate,
+  platformStyles,
+} from '../../../../styles'
+import * as RowSizes from '../sizes'
 
 type Props = {
   isSelected: boolean,
@@ -17,21 +26,21 @@ type Props = {
 class BigTeamChannel extends PureComponent<Props> {
   render() {
     return (
-      <ClickableBox onClick={this.props.onSelectConversation}>
-        <Box style={channelRowContainerStyle}>
-          <Box style={this.props.isSelected ? selectedChannelBackgroundStyle : channelBackgroundStyle}>
+      <ClickableBox onClick={this.props.onSelectConversation} style={styles.container}>
+        <Box style={styles.rowContainer}>
+          <Box style={this.props.isSelected ? styles.selectedChannelBackground : styles.channelBackground}>
             <Text
               type={this.props.isSelected ? 'BodySemibold' : 'Body'}
               style={
                 this.props.isError
-                  ? textStyleError
+                  ? styles.textError
                   : this.props.isSelected
                     ? this.props.hasUnread
-                      ? textStyleSelectedBold
-                      : textStyleSelected
+                      ? styles.textSelectedBold
+                      : styles.textSelected
                     : this.props.hasUnread
-                      ? textStylePlainBold
-                      : textStylePlain
+                      ? styles.textPlainBold
+                      : styles.textPlain
               }
             >
               #{this.props.channelname}
@@ -43,25 +52,6 @@ class BigTeamChannel extends PureComponent<Props> {
       </ClickableBox>
     )
   }
-}
-
-const textStyleError = {
-  color: globalColors.red,
-}
-const textStylePlain = {
-  ...(isMobile ? {backgroundColor: globalColors.fastBlank} : {}),
-  color: globalColors.black_75_on_white,
-}
-const textStylePlainBold = {
-  ...textStylePlain,
-  ...globalStyles.fontBold,
-}
-const textStyleSelected = {
-  color: globalColors.white,
-}
-const textStyleSelectedBold = {
-  ...textStyleSelected,
-  ...globalStyles.fontBold,
 }
 
 const MutedIcon = ({isSelected}) => (
@@ -84,57 +74,75 @@ const mutedStyle = {
 }
 
 const UnreadIcon = () => (
-  <Box style={unreadContainerStyle}>
-    <Box style={unreadStyle} />
+  <Box style={styles.unreadContainer}>
+    <Box style={styles.unread} />
   </Box>
 )
 
-const unreadContainerStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  alignSelf: 'stretch',
-  flex: 1,
-  justifyContent: 'flex-end',
-}
-const unreadStyle = {
-  backgroundColor: globalColors.orange,
-  borderRadius: 6,
-  flexShrink: 0,
-  height: 8,
-  width: 8,
-}
-
-const teamRowContainerStyle = {
-  ...globalStyles.flexBoxRow,
-  ...desktopStyles.clickable,
-  alignItems: 'center',
-  flexShrink: 0,
-  maxHeight: isMobile ? globalMargins.large : globalMargins.medium,
-  minHeight: isMobile ? globalMargins.large : globalMargins.medium,
-  paddingLeft: globalMargins.tiny,
-  paddingRight: isMobile ? globalMargins.tiny : globalMargins.xtiny,
-}
-
-const channelRowContainerStyle = {
-  ...teamRowContainerStyle,
-  alignItems: 'stretch',
-  paddingRight: 0,
-}
-
-const channelBackgroundStyle = {
-  ...globalStyles.flexBoxRow,
-  ...(isMobile ? globalStyles.fillAbsolute : {width: '100%'}),
-  alignItems: 'center',
-  marginLeft: globalMargins.large,
-  paddingLeft: globalMargins.tiny,
-  paddingRight: globalMargins.tiny,
-}
-
-const selectedChannelBackgroundStyle = {
-  ...channelBackgroundStyle,
-  backgroundColor: globalColors.blue,
-  borderTopLeftRadius: 3,
-  borderBottomLeftRadius: 3,
-}
+const styles = styleSheetCreate({
+  channelBackground: {
+    ...globalStyles.flexBoxRow,
+    ...(isMobile ? globalStyles.fillAbsolute : {width: '100%'}),
+    alignItems: 'center',
+    marginLeft: globalMargins.large,
+    paddingLeft: globalMargins.tiny,
+    paddingRight: globalMargins.tiny,
+  },
+  container: {flexShrink: 0, height: RowSizes.bigRowHeight},
+  rowContainer: platformStyles({
+    common: {
+      ...globalStyles.flexBoxRow,
+      alignItems: 'stretch',
+      height: '100%',
+      paddingLeft: globalMargins.tiny,
+      paddingRight: 0,
+    },
+    isElectron: desktopStyles.clickable,
+  }),
+  selectedChannelBackground: {
+    ...globalStyles.flexBoxRow,
+    ...(isMobile ? globalStyles.fillAbsolute : {width: '100%'}),
+    alignItems: 'center',
+    backgroundColor: globalColors.blue,
+    borderBottomLeftRadius: 3,
+    borderTopLeftRadius: 3,
+    marginLeft: globalMargins.large,
+    paddingLeft: globalMargins.tiny,
+    paddingRight: globalMargins.tiny,
+  },
+  textError: {
+    color: globalColors.red,
+  },
+  textPlain: {
+    ...(isMobile ? {backgroundColor: globalColors.fastBlank} : {}),
+    color: globalColors.black_75_on_white,
+  },
+  textPlainBold: {
+    ...(isMobile ? {backgroundColor: globalColors.fastBlank} : {}),
+    color: globalColors.black_75_on_white,
+    ...globalStyles.fontBold,
+  },
+  textSelected: {
+    color: globalColors.white,
+  },
+  textSelectedBold: {
+    color: globalColors.white,
+    ...globalStyles.fontBold,
+  },
+  unread: {
+    backgroundColor: globalColors.orange,
+    borderRadius: 6,
+    flexShrink: 0,
+    height: 8,
+    width: 8,
+  },
+  unreadContainer: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+})
 
 export {BigTeamChannel}

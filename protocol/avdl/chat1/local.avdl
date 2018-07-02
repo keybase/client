@@ -881,4 +881,10 @@ protocol local {
   }
 
   GetSearchRegexpRes getSearchRegexp(int sessionID, ConversationID conversationID, string query, boolean isRegex, int maxHits, int maxMessages, int beforeContext, int afterContext, keybase1.TLFIdentifyBehavior identifyBehavior);
+
+  // Static data that changes only as often as the code.
+  StaticConfig getStaticConfig();
+  record StaticConfig {
+    array<MessageType> deletableByDeleteHistory;
+  }
 }

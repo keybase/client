@@ -6,7 +6,9 @@ function pluralize(str: string): string {
 }
 
 function toStringForLog(a: any): string {
-  if (typeof a === 'string') {
+  if (typeof a === 'undefined') {
+    return 'undefined'
+  } else if (typeof a === 'string') {
     return a
   } else if (a instanceof Error) {
     return a.stack

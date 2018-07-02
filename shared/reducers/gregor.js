@@ -26,7 +26,7 @@ export default function(state: Types.State = Constants.initialState, action: Gre
       }
     // Saga only actions
     case GregorGen.checkReachability:
-    case GregorGen.injectItem:
+    case GregorGen.updateCategory:
     case GregorGen.pushOOBM:
     case GregorGen.pushState:
       return state

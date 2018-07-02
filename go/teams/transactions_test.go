@@ -7,6 +7,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
@@ -39,7 +40,7 @@ func TestTransactions1(t *testing.T) {
 	require.IsType(t, &SCTeamInvites{}, tx.payloads[0])
 	require.IsType(t, &keybase1.TeamChangeReq{}, tx.payloads[1])
 
-	err = tx.Post(context.Background())
+	err = tx.Post(libkb.NewMetaContextForTest(tc))
 	require.NoError(t, err)
 
 	team, err = Load(context.Background(), tc.G, keybase1.LoadTeamArg{
@@ -96,7 +97,7 @@ func TestTransactionRotateKey(t *testing.T) {
 			None: []keybase1.UserVersion{otherA.GetUserVersion()},
 		},
 	}
-	err = tx.Post(context.Background())
+	err = tx.Post(libkb.NewMetaContextForTest(tc))
 	require.NoError(t, err)
 
 	// Also if the transaction didn't create new PerTeamKey, bunch of

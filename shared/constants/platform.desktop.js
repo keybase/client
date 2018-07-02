@@ -123,12 +123,15 @@ function findCacheRoot(): string {
 }
 
 function logDir(): string {
+  // See LogDir() functions in go/libkb/home.go.
+  //
+  // TODO: darwin and win32 cases are inconsistent with their LogDir()
+  // counterparts. Fix this.
   switch (process.platform) {
     case 'darwin':
       return `${getenv('HOME', '')}/Library/Logs`
     case 'linux':
-      const linuxDefaultRoot = `${getenv('HOME', '')}/.local/share`
-      return `${getenv('XDG_DATA_HOME', linuxDefaultRoot)}/${envedPathLinux[runMode]}`
+      return findCacheRoot()
     case 'win32':
       return `${getenv('LOCALAPPDATA', '')}\\${envedPathWin32[runMode]}`
   }
@@ -136,11 +139,15 @@ function logDir(): string {
 }
 
 function logFileName(): string {
+  // See DesktopLogFileName in go/libkb/constants.go.
+  //
+  // TODO: darwin and win32 cases are inconsistent with
+  // DesktopLogFileName. Fix this.
   switch (process.platform) {
     case 'darwin':
       return `${logDir()}/${envedPathOSX[runMode]}.app.log`
     case 'linux':
-      return '' // Linux is '' because we can redirect stdout
+      return `${logDir()}/Keybase.app.log`
     case 'win32':
       return `${logDir()}\\keybase.app.log`
   }

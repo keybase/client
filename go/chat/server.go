@@ -2316,7 +2316,7 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 	}
 	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 
-	res.Conversations, err = FindConversations(ctx, h.G(), h.DebugLabeler, h.remoteClient,
+	res.Conversations, err = FindConversations(ctx, h.G(), h.DebugLabeler, true, h.remoteClient,
 		uid, arg.TlfName, arg.TopicType, arg.MembersType, arg.Visibility, arg.TopicName, arg.OneChatPerTLF)
 	if err != nil {
 		return res, err
@@ -2640,8 +2640,8 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("UnboxMobilePushNotification(%s)",
 		arg.ConvID))()
-	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
 		return res, err
 	}
 	bConvID, err := hex.DecodeString(arg.ConvID)
@@ -2650,8 +2650,7 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 		return res, err
 	}
 	convID := chat1.ConversationID(bConvID)
-	if res, err = h.G().ChatHelper.UnboxMobilePushNotification(ctx, uid, convID, arg.MembersType, arg.PushIDs,
-		arg.Payload); err != nil {
+	if res, err = h.G().ChatHelper.UnboxMobilePushNotification(ctx, uid, convID, arg.MembersType, arg.Payload); err != nil {
 		return res, err
 	}
 	h.G().ChatHelper.AckMobileNotificationSuccess(ctx, arg.PushIDs)
@@ -2845,5 +2844,12 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 	return chat1.GetSearchRegexpRes{
 		Hits:             hits,
 		IdentifyFailures: identBreaks,
+	}, nil
+}
+
+func (h *Server) GetStaticConfig(ctx context.Context) (res chat1.StaticConfig, err error) {
+	defer h.Trace(ctx, func() error { return err }, "GetStaticConfig")()
+	return chat1.StaticConfig{
+		DeletableByDeleteHistory: chat1.DeletableMessageTypesByDeleteHistory(),
 	}, nil
 }

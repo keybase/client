@@ -367,7 +367,7 @@ func (g *gregorHandler) resetGregorClient(ctx context.Context) (err error) {
 	// Create client object
 	gcli := grclient.NewClient(guid, gdid, func() gregor.StateMachine {
 		return storage.NewMemEngine(of, clockwork.NewRealClock(), g.G().Log)
-	}, storage.NewLocalDB(g.G().ExternalG()), g.GetIncomingClient, g.G().Log)
+	}, storage.NewLocalDB(g.G().ExternalG()), g.GetIncomingClient, g.G().Log, clockwork.NewRealClock())
 
 	// Bring up local state
 	g.Debug(ctx, "restoring state from leveldb")

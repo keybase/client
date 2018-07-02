@@ -2,8 +2,7 @@
 import * as React from 'react'
 import {Box, Icon, Text, ConnectedUsernames} from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../../styles'
-
-import type {Props} from '.'
+import type {Props} from './index.types'
 
 const ShhIcon = () => (
   <Box style={{height: 0, position: 'relative', width: 0, alignSelf: 'flex-start'}}>

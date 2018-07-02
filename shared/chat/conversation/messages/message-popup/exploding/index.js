@@ -101,7 +101,10 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           </Box2>
         </Box2>
         <Box2 direction="horizontal">
-          <Text type="BodySmall">using device {deviceName}</Text>
+          <Text type="BodySmall">from device {deviceName}</Text>
+        </Box2>
+        <Box2 direction="horizontal">
+          <Text type="BodySmall">using exploding key</Text>
         </Box2>
         <Box2 direction="horizontal">
           <Text type="BodySmall">{formatTimeForPopup(timestamp)}</Text>

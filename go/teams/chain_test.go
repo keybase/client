@@ -78,7 +78,8 @@ func TestTeamSigChainPlay1(t *testing.T) {
 		chainLinks = append(chainLinks, chainLink)
 	}
 
-	player := NewTeamSigChainPlayer(tc.G, NewUserVersion(keybase1.UID("4bf92804c02fb7d2cd36a6d420d6f619"), 1))
+	consumer := NewUserVersion(keybase1.UID("4bf92804c02fb7d2cd36a6d420d6f619"), 1)
+	var state *TeamSigChainState
 	for _, cLink := range chainLinks {
 		link, err := unpackChainLink(&cLink)
 		require.NoError(t, err)
@@ -90,13 +91,12 @@ func TestTeamSigChainPlay1(t *testing.T) {
 				EldestSeqno: keybase1.Seqno(1),
 			}
 		}
-		err = player.AppendChainLink(context.TODO(), link, signerToX(signer))
+		newState, err := AppendChainLink(context.TODO(), tc.G, consumer, state, link, signerToX(signer))
 		require.NoError(t, err)
+		state = &newState
 	}
 
 	// Check once before and after serializing and deserializing
-	state, err := player.GetState()
-	require.NoError(t, err)
 	for i := 0; i < 2; i++ {
 		if i == 0 {
 			t.Logf("testing fresh")
@@ -136,7 +136,7 @@ func TestTeamSigChainPlay1(t *testing.T) {
 		// Reserialize
 		bs, err := encode(state.inner)
 		require.NoError(t, err, "encode")
-		state = TeamSigChainState{}
+		state = &TeamSigChainState{}
 		err = decode(bs, &state.inner)
 		require.NoError(t, err, "decode")
 	}
@@ -161,7 +161,8 @@ func TestTeamSigChainPlay2(t *testing.T) {
 		chainLinks = append(chainLinks, chainLink)
 	}
 
-	player := NewTeamSigChainPlayer(tc.G, NewUserVersion("99759da4f968b16121ece44652f01a19", 1))
+	consumer := NewUserVersion("99759da4f968b16121ece44652f01a19", 1)
+	var state *TeamSigChainState
 	for _, cLink := range chainLinks {
 		link, err := unpackChainLink(&cLink)
 		require.NoError(t, err)
@@ -173,14 +174,13 @@ func TestTeamSigChainPlay2(t *testing.T) {
 				EldestSeqno: keybase1.Seqno(1),
 			}
 		}
-		err = player.AppendChainLink(context.TODO(), link, signerToX(signer))
+		newState, err := AppendChainLink(context.TODO(), tc.G, consumer, state, link, signerToX(signer))
 		require.NoError(t, err)
+		state = &newState
 	}
 	require.NoError(t, err)
 
 	// Check once before and after serializing and deserializing
-	state, err := player.GetState()
-	require.NoError(t, err)
 	for i := 0; i < 2; i++ {
 		require.Equal(t, "t_bfaadb41", string(state.LatestLastNamePart()))
 		require.False(t, state.IsSubteam())
@@ -217,7 +217,7 @@ func TestTeamSigChainPlay2(t *testing.T) {
 		// Reserialize
 		bs, err := encode(state.inner)
 		require.NoError(t, err, "encode")
-		state = TeamSigChainState{}
+		state = &TeamSigChainState{}
 		err = decode(bs, &state.inner)
 		require.NoError(t, err, "decode")
 	}
@@ -258,7 +258,8 @@ func TestTeamSigChainWithInvites(t *testing.T) {
 		chainLinks = append(chainLinks, chainLink)
 	}
 
-	player := NewTeamSigChainPlayer(tc.G, NewUserVersion("99759da4f968b16121ece44652f01a19", 1))
+	consumer := NewUserVersion("99759da4f968b16121ece44652f01a19", 1)
+	var state *TeamSigChainState
 	for _, cLink := range chainLinks {
 		link, err := unpackChainLink(&cLink)
 		require.NoError(t, err)
@@ -270,13 +271,10 @@ func TestTeamSigChainWithInvites(t *testing.T) {
 				EldestSeqno: keybase1.Seqno(1),
 			}
 		}
-		err = player.AppendChainLink(context.TODO(), link, signerToX(signer))
+		newState, err := AppendChainLink(context.TODO(), tc.G, consumer, state, link, signerToX(signer))
 		require.NoError(t, err)
+		state = &newState
 	}
-	require.NoError(t, err)
-	// Check once before and after serializing and deserializing
-	state, err := player.GetState()
-	require.NoError(t, err)
 	checkInvite := func(s string, f func(i *keybase1.TeamInvite)) {
 		var i *keybase1.TeamInvite
 		tmp, ok := state.inner.ActiveInvites[keybase1.TeamInviteID(s)]

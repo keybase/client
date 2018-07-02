@@ -3,7 +3,7 @@ import * as React from 'react'
 import {stringToDeviceID} from '../constants/types/devices'
 import {action, storiesOf, createPropProvider} from '../stories/storybook'
 import Devices, {type Props} from '.'
-import devicePage from './device-page/index.stories.js'
+import devicePage from './device-page/index.stories'
 
 const devicesProps: Props = {
   deviceIDs: ['1', '2', '3'].map(stringToDeviceID),

@@ -91,6 +91,10 @@ func (l *chainLinkUnpacked) LinkID() libkb.LinkID {
 	return l.outerLink.LinkID()
 }
 
+func (l *chainLinkUnpacked) SigID() keybase1.SigID {
+	return l.outerLink.SigID()
+}
+
 func (l *chainLinkUnpacked) LinkType() libkb.SigchainV2Type {
 	return l.outerLink.LinkType
 }

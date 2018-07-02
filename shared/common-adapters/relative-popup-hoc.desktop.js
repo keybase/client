@@ -7,8 +7,7 @@ import ReactDOM, {findDOMNode} from 'react-dom'
 import EscapeHandler from '../util/escape-handler'
 import {connect, type Dispatch} from '../util/container'
 import {type StylesCrossPlatform, collapseStyles} from '../styles'
-
-import type {Position, RelativePopupHocType, RelativePopupProps} from './relative-popup-hoc'
+import type {Position, RelativePopupHocType, Props} from './relative-popup-hoc.types'
 
 class DOMNodeFinder extends React.Component<{
   setNode: (node: HTMLElement) => void,
@@ -267,7 +266,7 @@ const RelativePopupHoc: RelativePopupHocType<any> = PopupComponent => {
     PopupComponent
   )
 
-  const C: React.ComponentType<RelativePopupProps<any>> = connect(
+  const C: React.ComponentType<Props<any>> = connect(
     undefined,
     (dispatch: Dispatch, {navigateUp, routeProps}) => ({
       onClosePopup: () => {
@@ -278,9 +277,9 @@ const RelativePopupHoc: RelativePopupHocType<any> = PopupComponent => {
       targetRect: routeProps.get('targetRect'),
       position: routeProps.get('position'),
     })
-  )((props: RelativePopupProps<any> & {onClosePopup: () => void}) => {
+  )((props: Props<any> & {onClosePopup: () => void}) => {
     // $FlowIssue
-    return <ModalPopupComponent {...(props: RelativePopupProps<any>)} onClosePopup={props.onClosePopup} />
+    return <ModalPopupComponent {...(props: Props<any>)} onClosePopup={props.onClosePopup} />
   })
 
   return C
@@ -288,3 +287,4 @@ const RelativePopupHoc: RelativePopupHocType<any> = PopupComponent => {
 
 export {DOMNodeFinder, ModalPositionRelative}
 export default RelativePopupHoc
+export type {Position} from './relative-popup-hoc.types'

@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
@@ -31,31 +32,44 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
 
         if (item.type !== 'folder') return item
         if (!original || original.type !== 'folder') return item
-        if (original.progress === 'loaded' && item.progress === 'pending') {
-          // Don't override a loaded item into pending. This is specifically
-          // for the case where user goes back out of a folder where we could
-          // override the folder into an empty one. With this, next user
-          // navigates into the folder they would see the old list (instead of
-          // placeholder), which then gets updated when we hear back from RPC.
-          return original
+
+        // Make flow happy by referencing them with a new name that's
+        // explicitly typed.
+        const originalFolder: Types.FolderPathItem = original
+        let newItem: Types.FolderPathItem = item
+
+        if (originalFolder.progress === 'loaded' && newItem.progress === 'pending') {
+          // We don't want to override a loaded folder into pending, because
+          // otherwise next time user goes into that folder we'd show
+          // placeholders. We also don't want to simply use the original
+          // PathItem, since it's possible some metadata has updated. So use
+          // the new item, but reuse children, progress, and tlfMeta fields.
+          if (originalFolder.type === 'folder' && newItem.type === 'folder') {
+            // make flow happy
+            newItem = newItem
+              .set('children', originalFolder.children)
+              .set('tlfMeta', originalFolder.tlfMeta)
+              .set('badgeCount', originalFolder.badgeCount)
+              .set('progress', 'loaded')
+          }
         }
 
         toRemove = toRemove.concat(
-          original.children
-            .filter(child => !item.children.includes(child))
+          originalFolder.children
+            .filter(child => !newItem.children.includes(child))
             .toArray()
             .map(name => Types.pathConcat(path, name))
         )
-        console.log({msg: 'Removing entries in state.fs.pathItems', toRemove: toRemove})
 
         // Since `folderListLoaded`, `favoritesLoaded`, and `loadResetsResult`
         // can change `pathItems`, we need to make sure that neither one
         // clobbers the others' work.
-        return item
-          .set('badgeCount', original.badgeCount)
-          .set('tlfMeta', original.tlfMeta)
-          .set('favoriteChildren', original.favoriteChildren)
+        return newItem
+          .set('badgeCount', originalFolder.badgeCount)
+          .set('tlfMeta', originalFolder.tlfMeta)
+          .set('favoriteChildren', originalFolder.favoriteChildren)
       })
+      toRemove.length && console.log({msg: 'Removing entries in state.fs.pathItems', toRemove: toRemove})
       return state
         .set('pathItems', state.pathItems.filter((item, path) => !toRemove.includes(path)))
         .mergeIn(['pathItems'], toMerge)
@@ -68,7 +82,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.favoritesLoaded:
       const toMerge = action.payload.folders.mapEntries(([path, item]) => {
         // We ForceType because Flow keeps thinking this is a _PathItem not a FolderPathItem.
-        const original: $ForceType = state.pathItems.get(path) || Constants.makeFolder({name: item.name})
+        const original: $ForceType = state.pathItems.get(path, Constants.makeFolder({name: item.name}))
         // This cannot happen, but it's needed to make Flow happy.
         if (original.type !== 'folder') return [path, original]
 
@@ -89,19 +103,23 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.setIn(['pathUserSettings', path, 'sort'], sortSetting)
     case FsGen.downloadStarted: {
       const {key, path, localPath, intent, opID} = action.payload
-      const item = state.pathItems.get(path)
+      const entryType =
+        action.payload.entryType ||
+        (() => {
+          const item = state.pathItems.get(path)
+          return item ? item.type : 'unknown'
+        })()
       return state.setIn(
-        ['transfers', key],
-        Constants.makeTransfer({
-          meta: Constants.makeTransferMeta({
-            type: 'download',
-            entryType: item ? item.type : 'unknown',
+        ['downloads', key],
+        Constants.makeDownload({
+          meta: Constants.makeDownloadMeta({
+            entryType,
             intent,
             path,
             localPath,
             opID,
           }),
-          state: Constants.makeTransferState({
+          state: Constants.makeDownloadState({
             completePortion: 0,
             isDone: false,
             startedAt: Date.now(),
@@ -109,20 +127,38 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         })
       )
     }
-    case FsGen.transferProgress: {
+    case FsGen.downloadProgress: {
       const {key, completePortion, endEstimate} = action.payload
-      return state.updateIn(['transfers', key, 'state'], (original: Types.TransferState) =>
+      return state.updateIn(['downloads', key, 'state'], (original: Types.DownloadState) =>
         original.set('completePortion', completePortion).set('endEstimate', endEstimate)
       )
     }
     case FsGen.downloadFinished: {
       const {key, error} = action.payload
-      return state.updateIn(['transfers', key, 'state'], (original: Types.TransferState) =>
+      return state.updateIn(['downloads', key, 'state'], (original: Types.DownloadState) =>
         original.set('isDone', true).set('error', error)
       )
     }
-    case FsGen.dismissTransfer: {
-      return state.removeIn(['transfers', action.payload.key])
+    case FsGen.dismissDownload: {
+      return state.removeIn(['downloads', action.payload.key])
+    }
+    case FsGen.uploadStarted:
+      return state.updateIn(['uploads', 'writingToJournal'], writingToJournal =>
+        writingToJournal.add(action.payload.path)
+      )
+    case FsGen.uploadWritingFinished: {
+      const {path, error} = action.payload
+      const withError = error ? state.setIn(['uploads', 'errors', path], error) : state
+      return withError.updateIn(['uploads', 'writingToJournal'], writingToJournal =>
+        writingToJournal.remove(action.payload.path)
+      )
+    }
+    case FsGen.journalUpdate: {
+      const {syncingPaths, totalSyncingBytes, endEstimate} = action.payload
+      return state
+        .setIn(['uploads', 'syncingPaths'], I.Set(syncingPaths))
+        .setIn(['uploads', 'totalSyncingBytes'], totalSyncingBytes)
+        .setIn(['uploads', 'endEstimate'], endEstimate || undefined)
     }
     case FsGen.fuseStatusResult:
       return state.merge({fuseStatus: action.payload.status})
@@ -153,7 +189,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       )
     case FsGen.newFolderRow:
       const {parentPath} = action.payload
-      const parentPathItem = state.pathItems.get(parentPath, Constants.makeUnknownPathItem())
+      const parentPathItem = state.pathItems.get(parentPath, Constants.unknownPathItem)
       if (parentPathItem.type !== 'folder') {
         console.warn(`bad parentPath: ${parentPathItem.type}`)
         return state
@@ -177,8 +213,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         ]
       )
     case FsGen.newFolderName:
+      // $FlowFixMe
       return state.updateIn(
-        // $FlowFixMe
         ['edits', action.payload.editID],
         editItem => editItem && editItem.set('name', action.payload.name)
       )
@@ -190,7 +226,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       // $FlowFixMe
       return state.setIn(['edits', action.payload.editID, 'status'], 'failed')
     case FsGen.filePreviewLoad:
-    case FsGen.cancelTransfer:
+    case FsGen.cancelDownload:
     case FsGen.download:
     case FsGen.openInFileUI:
     case FsGen.fuseStatus:
@@ -201,12 +237,13 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.refreshLocalHTTPServerInfo:
     case FsGen.shareNative:
     case FsGen.saveMedia:
-    case FsGen.fileActionPopup:
     case FsGen.openFinderPopup:
     case FsGen.mimeTypeLoad:
     case FsGen.openPathItem:
     case FsGen.commitEdit:
     case FsGen.letResetUserBackIn:
+    case FsGen.pickAndUpload:
+    case FsGen.upload:
       return state
     default:
       /*::

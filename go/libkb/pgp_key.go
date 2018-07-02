@@ -59,16 +59,15 @@ type PGPFingerprint [PGPFingerprintLen]byte
 
 func PGPFingerprintFromHex(s string) (*PGPFingerprint, error) {
 	var fp PGPFingerprint
-	n, err := hex.Decode([]byte(fp[:]), []byte(s))
-	var ret *PGPFingerprint
-	if err != nil {
-		// Noop
-	} else if n != PGPFingerprintLen {
-		err = fmt.Errorf("Bad fingerprint; wrong length: %d", n)
-	} else {
-		ret = &fp
+	err := DecodeHexFixed(fp[:], []byte(s))
+	switch err.(type) {
+	case nil:
+		return &fp, nil
+	case HexWrongLengthError:
+		return nil, fmt.Errorf("Bad fingerprint; wrong length: %d", len(s))
+	default:
+		return nil, err
 	}
-	return ret, err
 }
 
 func PGPFingerprintFromSlice(b []byte) (*PGPFingerprint, error) {

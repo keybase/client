@@ -7,8 +7,7 @@ protocol bundle {
 
   // The same format as in chat1.EncryptedData (and KBFS, Git)
   record EncryptedBundle {
-    // CORE-8135 phase 2: ban v1 on the client and server
-    // v=1 Used an incorrect context string (CORE-8135)
+    // v=1 Used an incorrect context string. No longer supported. (CORE-8135)
     // v=2 Use the corrected context string
     int   v;              // Version of the CRYPT.
     bytes e;              // encrypted msgpacked BundleSecretVersioned (output of secretbox)
