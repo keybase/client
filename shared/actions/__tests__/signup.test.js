@@ -6,7 +6,7 @@ import * as Saga from '../../util/saga'
 import type {TypedState} from '../../constants/reducer'
 import {loginTab} from '../../constants/tabs'
 import HiddenString from '../../util/hidden-string'
-import {navigateUp, navigateTo} from '../route-tree'
+import {navigateUp, navigateTo, navigateAppend} from '../route-tree'
 import {_testing} from '../signup'
 import reducer from '../../reducers/signup'
 
@@ -130,5 +130,63 @@ describe('checkUsernameEmail', () => {
     expect(nextState.signup.usernameError).toBeTruthy()
     expect(nextState.signup.email).toEqual(action.payload.email)
     expect(nextState.signup.username).toEqual(action.payload.username)
+  })
+})
+
+describe('checkedUsernameEmail', () => {
+  it("ignores if email doesn't match", () => {
+    const getState = (): TypedState =>
+      ({signup: Constants.makeState({email: 'email@email.com', username: 'username'})}: any)
+    const action = SignupGen.createCheckedUsernameEmailError({
+      email: 'different@email.com',
+      emailError: 'a problem',
+      username: getState().signup.username,
+      usernameError: 'another problem',
+    })
+    const nextState: TypedState = ({signup: reducer(getState().signup, action)}: any)
+    // doesn't update
+    expect(nextState).toEqual(getState())
+  })
+
+  it("ignores if username doesn't match", () => {
+    const getState = (): TypedState =>
+      ({signup: Constants.makeState({email: 'email@email.com', username: 'username'})}: any)
+    const action = SignupGen.createCheckedUsernameEmailError({
+      email: getState().signup.email,
+      emailError: 'a problem',
+      username: 'different username',
+      usernameError: 'another problem',
+    })
+    const nextState: TypedState = ({signup: reducer(getState().signup, action)}: any)
+    // doesn't update
+    expect(nextState).toEqual(getState())
+  })
+
+  it('shows error', () => {
+    const getState = (): TypedState =>
+      ({signup: Constants.makeState({email: 'email@email.com', username: 'username'})}: any)
+    const action = SignupGen.createCheckedUsernameEmailError({
+      email: getState().signup.email,
+      emailError: 'a problem',
+      username: getState().signup.username,
+      usernameError: 'another problem',
+    })
+    const nextState: TypedState = ({signup: reducer(getState().signup, action)}: any)
+    expect(nextState.signup.emailError).toEqual(action.payload.emailError)
+    expect(nextState.signup.usernameError).toEqual(action.payload.usernameError)
+  })
+
+  it('shows passphrase page on success', () => {
+    const getState = (): TypedState =>
+      ({signup: Constants.makeState({email: 'email@email.com', username: 'username'})}: any)
+    const action = SignupGen.createCheckedUsernameEmail({
+      email: getState().signup.email,
+      username: getState().signup.username,
+    })
+    const nextState: TypedState = ({signup: reducer(getState().signup, action)}: any)
+    // doesn't update
+    expect(_testing.showPassphraseOnNoErrors(nextState)).toEqual(
+      Saga.put(navigateAppend(['passphraseSignup'], [loginTab, 'signup']))
+    )
   })
 })
