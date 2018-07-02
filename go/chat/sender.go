@@ -106,6 +106,8 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 			pagination)
 		if err != nil {
 			return resMsg, err
+		} else if thread.Pagination == nil {
+			break
 		}
 		pagination.Next = thread.Pagination.Next
 

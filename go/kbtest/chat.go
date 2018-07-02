@@ -309,7 +309,8 @@ type ChatRemoteMock struct {
 	CacheBodiesVersion int
 	CacheInboxVersion  int
 
-	SyncInboxFunc func(m *ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error)
+	GetThreadRemoteFunc func(m *ChatRemoteMock, ctx context.Context, arg chat1.GetThreadRemoteArg) (chat1.GetThreadRemoteRes, error)
+	SyncInboxFunc       func(m *ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error)
 }
 
 var _ chat1.RemoteInterface = (*ChatRemoteMock)(nil)
@@ -441,6 +442,9 @@ func (m *ChatRemoteMock) GetInboxByTLFIDRemote(ctx context.Context, tlfID chat1.
 }
 
 func (m *ChatRemoteMock) GetThreadRemote(ctx context.Context, arg chat1.GetThreadRemoteArg) (res chat1.GetThreadRemoteRes, err error) {
+	if m.GetThreadRemoteFunc != nil {
+		return m.GetThreadRemoteFunc(m, ctx, arg)
+	}
 	var mts map[chat1.MessageType]bool
 	if arg.Query != nil && len(arg.Query.MessageTypes) > 0 {
 		mts = make(map[chat1.MessageType]bool)
