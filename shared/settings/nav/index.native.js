@@ -28,7 +28,7 @@ function SettingsItem({
 }: {
   badgeNumber: number,
   icon?: any,
-  largerBadgeMinWidthFix?: true,
+  largerBadgeMinWidthFix?: boolean,
   onClick: () => void,
   text: string,
   textColor?: Color,
