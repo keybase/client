@@ -230,7 +230,7 @@ const BOOL isDebug = NO;
         NSString* msg = nil;
         msg = KeybaseUnboxNotification(convID, membersType, body, &err);
         // If d is set, display the plaintext notification
-        bool displayPlaintext = notification[@"d"];
+        bool displayPlaintext = notification[@"n"];
         if (displayPlaintext) {
             int messageID = [notification[@"d"] intValue];
             NSString* pushID = [notification[@"p"] objectAtIndex:0];

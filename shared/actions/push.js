@@ -109,7 +109,7 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
           pushIDs: typeof payload.p === 'string' ? JSON.parse(payload.p) : payload.p,
           shouldAck: true,
         })
-        if (!payload.d) {
+        if (payload.n !== 'true') {
           // If the user doesn't have plaintext notifications set, don't
           // display the message
           break
