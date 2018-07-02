@@ -36,7 +36,7 @@ export type _Assets = {
   assetCode: string,
   balanceAvailableToSend: string,
   balanceTotal: string,
-  issuerAddress: string,
+  issuerAccountID: string,
   issuerName: string,
   name: string,
   worth: string,
