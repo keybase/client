@@ -145,7 +145,7 @@ func (t TeamSigChainState) GetLastChangeLogPointWithPredicates(user keybase1.Use
 		if f2(points[i]) {
 			closestCandidate = i
 		}
-		if f1(points[i]) {
+		if f1(points[i]) && closestCandidate != 0 {
 			tmp := points[closestCandidate].DeepCopy()
 			return &tmp
 		}
