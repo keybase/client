@@ -41,12 +41,21 @@ const loadPaymentsSuccess = (res: any, action: WalletsGen.LoadPaymentsPayload) =
   )
 }
 
+const linkExistingAccount = (action: WalletsGen.LinkExistingAccountPayload) => {
+  const {name, secretKey} = action.payload
+  return Saga.call(RPCTypes.localLinkNewWalletAccountLocalRpcPromise, {
+    name,
+    secretKey: secretKey.stringValue(),
+  })
+}
+
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(WalletsGen.loadAccounts, loadAccounts, loadAccountsSuccess)
   yield Saga.safeTakeEveryPure(WalletsGen.loadAssets, loadAssets, loadAssetsSuccess)
   yield Saga.safeTakeEveryPure(WalletsGen.loadPayments, loadPayments, loadPaymentsSuccess)
   yield Saga.safeTakeEveryPure(WalletsGen.selectAccount, loadAssets, loadAssetsSuccess)
   yield Saga.safeTakeEveryPure(WalletsGen.selectAccount, loadPayments, loadPaymentsSuccess)
+  yield Saga.safeTakeEveryPure(WalletsGen.linkExistingAccount, linkExistingAccount)
 }
 
 export default walletsSaga
