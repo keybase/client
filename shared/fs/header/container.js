@@ -40,6 +40,6 @@ const mergeProps = ({_kbfsEnabled}, {_onBack, onChat, _openInFileUI, _openFinder
   }
 }
 
-export default compose(connect(() => ({}), mapDispatchToProps, mergeProps), setDisplayName('FolderHeader'))(
+export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('FolderHeader'))(
   FolderHeader
 )
