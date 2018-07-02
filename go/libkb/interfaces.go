@@ -782,14 +782,14 @@ type ChatHelper interface {
 	SendMsgByNameNonblock(ctx context.Context, name string, topicName *string,
 		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
 		msgType chat1.MessageType) error
-	FindConversations(ctx context.Context, name string, topicName *string, topicType chat1.TopicType,
-		membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error)
+	FindConversations(ctx context.Context, useLocalData bool, name string, topicName *string,
+		topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error)
 	FindConversationsByID(ctx context.Context, convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error)
 	GetChannelTopicName(context.Context, keybase1.TeamID, chat1.TopicType, chat1.ConversationID) (string, error)
 	GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error)
 	UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error
 	UnboxMobilePushNotification(ctx context.Context, uid gregor1.UID,
-		convID chat1.ConversationID, membersType chat1.ConversationMembersType, pushIDs []string, payload string) (string, error)
+		convID chat1.ConversationID, membersType chat1.ConversationMembersType, payload string) (string, error)
 	AckMobileNotificationSuccess(ctx context.Context, pushIDs []string)
 }

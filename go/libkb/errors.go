@@ -2368,3 +2368,11 @@ type NoTriplesecError struct{}
 
 func (e NoTriplesecError) Error() string { return "No Triplesec was available after prompt" }
 func NewNoTriplesecError() error         { return NoTriplesecError{} }
+
+//=============================================================================
+
+type HexWrongLengthError struct{ msg string }
+
+func NewHexWrongLengthError(msg string) HexWrongLengthError { return HexWrongLengthError{msg} }
+
+func (e HexWrongLengthError) Error() string { return e.msg }

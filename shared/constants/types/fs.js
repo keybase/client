@@ -115,43 +115,46 @@ export type PathUserSetting = I.RecordOf<_PathUserSetting>
 
 export type LocalPath = string
 
-export type TransferType = 'upload' | 'download'
-export type transferIntentMobile = 'camera-roll' | 'share'
-export type transferIntentWebview = 'web-view-text' | 'web-view'
-export type TransferIntent = 'none' | transferIntentMobile | transferIntentWebview
+export type DownloadIntentMobile = 'camera-roll' | 'share'
+export type DownloadIntentWebview = 'web-view-text' | 'web-view'
+export type DownloadIntent = 'none' | DownloadIntentMobile | DownloadIntentWebview
 
-export type _TransferMeta = {
-  type: TransferType,
+export type _DownloadMeta = {
   entryType: PathType,
-  intent: TransferIntent,
+  intent: DownloadIntent,
   path: Path,
   localPath: LocalPath,
   opID: RPCTypes.OpID,
 }
-export type TransferMeta = I.RecordOf<_TransferMeta>
+export type DownloadMeta = I.RecordOf<_DownloadMeta>
 
-export type _TransferState = {
+export type _DownloadState = {
   completePortion: number,
   endEstimate?: number,
   error?: string,
   isDone: boolean,
   startedAt: number,
 }
-export type TransferState = I.RecordOf<_TransferState>
+export type DownloadState = I.RecordOf<_DownloadState>
 
-export type _Transfer = {
-  meta: TransferMeta,
-  state: TransferState,
+export type _Download = {
+  meta: DownloadMeta,
+  state: DownloadState,
 }
-export type Transfer = I.RecordOf<_Transfer>
+export type Download = I.RecordOf<_Download>
 
-export type PathBreadcrumbItem = {
-  isTlfNameItem: boolean,
-  isLastItem: boolean,
-  name: string,
-  path: Path,
-  onOpenBreadcrumb: (evt?: SyntheticEvent<>) => void,
+export type _Uploads = {
+  writingToJournal: I.Set<Path>,
+  errors: I.Map<Path, string>,
+
+  totalSyncingBytes: number,
+  endEstimate?: number,
+  syncingPaths: I.Set<Path>,
 }
+export type Uploads = I.RecordOf<_Uploads>
+
+// 'both' is only supported on macOS
+export type OpenDialogType = 'file' | 'directory' | 'both'
 
 export type _Flags = {
   kbfsOpening: boolean,
@@ -176,7 +179,8 @@ export type _State = {
   edits: I.Map<EditID, Edit>,
   pathUserSettings: I.Map<Path, PathUserSetting>,
   loadingPaths: I.Set<Path>,
-  transfers: I.Map<string, Transfer>,
+  downloads: I.Map<string, Download>,
+  uploads: Uploads,
   fuseStatus: ?RPCTypes.FuseStatus,
   flags: Flags,
   localHTTPServerInfo: ?LocalHTTPServer,
@@ -184,6 +188,20 @@ export type _State = {
 export type State = I.RecordOf<_State>
 
 export type Visibility = 'private' | 'public' | 'team' | null
+
+export const direntToPathType = (d: RPCTypes.Dirent): PathType => {
+  switch (d.direntType) {
+    case RPCTypes.simpleFSDirentType.dir:
+      return 'folder'
+    case RPCTypes.simpleFSDirentType.sym:
+      return 'symlink'
+    case RPCTypes.simpleFSDirentType.file:
+    case RPCTypes.simpleFSDirentType.exec:
+      return 'file'
+    default:
+      return 'unknown'
+  }
+}
 
 export const stringToEditID = (s: string): EditID => s
 export const editIDToString = (s: EditID): string => s
@@ -252,49 +270,17 @@ export const getPathDir = (p: Path): Path => pathToString(p).slice(0, pathToStri
 const localSep = isWindows ? '\\' : '/'
 
 export const localPathConcat = (p: LocalPath, s: string): LocalPath => p + localSep + s
-export const getLocalPathName = (p: LocalPath): string => p.split(localSep).pop()
+export const getLocalPathName = (localPath: LocalPath): string => {
+  const elems = localPath.split('/')
+  for (let elem = elems.pop(); elems.length; elem = elems.pop()) {
+    if (elem !== '') {
+      return elem
+    }
+  }
+  return ''
+}
 export const getLocalPathDir = (p: LocalPath): string => p.slice(0, p.lastIndexOf(localSep))
 
-type PathItemComparer = (a: PathItem, b: PathItem) => number
-type PathItemLessThan = (a: PathItem, b: PathItem) => boolean
-
-const _comparerFromLessThan = (lt: PathItemLessThan): PathItemComparer => (a, b) =>
-  lt(a, b) ? -1 : lt(b, a) ? 1 : 0
-
-const _neutralComparer = (a: PathItem, b: PathItem): number => 0
-
-const _getMeFirstComparer = (meUsername: string): PathItemComparer =>
-  _comparerFromLessThan((a: PathItem, b: PathItem): boolean => a.name === meUsername && b.name !== meUsername)
-
-const _folderFirstComparer: PathItemComparer = _comparerFromLessThan(
-  (a: PathItem, b: PathItem): boolean =>
-    a.type === 'folder'
-      ? b.type !== 'folder' || (!!a.tlfMeta && a.tlfMeta.isNew && !(b.tlfMeta && b.tlfMeta.isNew))
-      : false
-)
-
-export const _getSortByComparer = (sortBy: SortBy): PathItemComparer => {
-  switch (sortBy) {
-    case 'name':
-      return (a: PathItem, b: PathItem): number => a.name.localeCompare(b.name)
-    case 'time':
-      return (a: PathItem, b: PathItem): number =>
-        b.lastModifiedTimestamp - a.lastModifiedTimestamp || a.name.localeCompare(b.name)
-    default:
-      throw new Error('invalid SortBy: ' + sortBy)
-  }
-}
-
-export const sortSettingToCompareFunction = (
-  {sortBy, sortOrder}: SortSetting,
-  meUsername?: string
-): PathItemComparer => {
-  const meFirstComparer = meUsername ? _getMeFirstComparer(meUsername) : _neutralComparer
-  const sortByComparer = _getSortByComparer(sortBy)
-  const multiplier = sortOrder === 'desc' ? -1 : 1
-  return (a: PathItem, b: PathItem): number =>
-    multiplier * (meFirstComparer(a, b) || _folderFirstComparer(a, b) || sortByComparer(a, b))
-}
 type sortSettingDisplayParams = {
   sortSettingText: string,
   sortSettingIconType: IconType,
@@ -352,6 +338,15 @@ export type ItemStyles = {
   textType: TextType,
 }
 
+export type PathBreadcrumbItem = {
+  isTeamTlf: boolean,
+  isLastItem: boolean,
+  name: string,
+  path: Path,
+  iconSpec: PathItemIconSpec,
+  onClick: (evt?: SyntheticEvent<>) => void,
+}
+
 export type FolderRPCWithMeta = {
   name: string,
   folderType: RPCTypes.FolderType,
@@ -385,3 +380,38 @@ export type ResetMetadata = {
   visibility: Visibility,
   resetParticipants: Array<string>,
 }
+
+export type StillRowItem = {
+  rowType: 'still',
+  path: Path,
+  name: string,
+}
+
+export type EditingRowItem = {
+  rowType: 'editing',
+  editID: EditID,
+  name: string,
+}
+
+export type UploadingRowItem = {
+  rowType: 'uploading',
+  name: string,
+  path: Path,
+}
+
+export type PlaceholderRowItem = {
+  rowType: 'placeholder',
+  name: string,
+  type: 'folder' | 'file',
+}
+
+export type RowItem = StillRowItem | EditingRowItem | UploadingRowItem | PlaceholderRowItem
+
+// RefreshTag is used by components in FsGen.folderListLoad and
+// FsGen.mimeTypeLoad actions, to indicate that it's interested in refreshing
+// such data if some FS activity notification indicates it may have changed.
+// Note that this is not a subscrition based model where a component needs to
+// unsubscribe when it's not interested anymore. Instead, we use a simple
+// heuristic where Saga only keeps track of latest call from each component and
+// refresh only the most recently reuested paths for each component.
+export type RefreshTag = 'main' | 'path-item-action-popup'

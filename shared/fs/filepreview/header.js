@@ -5,11 +5,12 @@ import {globalStyles, globalMargins, platformStyles} from '../../styles'
 import {Box, Icon, Text, BackButton} from '../../common-adapters'
 import PathItemInfo from '../common/path-item-info'
 import {isMobile} from '../../constants/platform'
+import PathItemAction from '../common/path-item-action-container'
 
 type HeaderProps = {
+  path: Types.Path,
   pathItem: Types.PathItemMetadata,
 
-  onAction: (evt?: SyntheticEvent<>) => void,
   onBack: () => void,
   onShowInFileUI: () => void,
 }
@@ -31,7 +32,7 @@ const Header = (props: HeaderProps) => (
       {!isMobile && (
         <Icon type="iconfont-finder" style={stylesHeaderIcon} onClick={props.onShowInFileUI} fontSize={16} />
       )}
-      <Icon type="iconfont-ellipsis" style={stylesHeaderIcon} onClick={props.onAction} fontSize={16} />
+      <PathItemAction path={props.path} fontSize={16} />
     </Box>
   </Box>
 )
@@ -52,10 +53,11 @@ const filePreviewHeaderStyle = {
 const stylesHeaderIcons = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
+  marginRight: globalMargins.small,
 }
 
 const stylesHeaderIcon = {
-  marginRight: globalMargins.small,
+  padding: globalMargins.tiny,
 }
 
 export default Header

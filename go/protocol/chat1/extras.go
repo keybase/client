@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -154,6 +155,9 @@ func DeletableMessageTypesByDeleteHistory() (res []MessageType) {
 			res = append(res, mt)
 		}
 	}
+	sort.Slice(res, func(i, j int) bool {
+		return res[i] < res[j]
+	})
 	return res
 }
 

@@ -1,85 +1,105 @@
 // @flow
 import * as React from 'react'
-import {ClickableBox, Box, Text, Badge} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins, isMobile} from '../../../../styles'
+import {ClickableBox, Box2, Text, Badge} from '../../../../common-adapters'
+import {
+  styleSheetCreate,
+  collapseStyles,
+  globalStyles,
+  globalColors,
+  globalMargins,
+  isMobile,
+} from '../../../../styles'
+import * as RowSizes from '../sizes'
 
 type Props = {
   badgeCount: number,
   hiddenCount: number,
   style?: any,
-  showSmallTeamsExpandDivider: boolean,
+  showButton: boolean,
   toggle: () => void,
 }
 
 class Divider extends React.PureComponent<Props> {
   render() {
     return (
-      <Box style={this.props.style ? {..._toggleContainer, ...this.props.style} : _toggleContainer}>
-        {this.props.showSmallTeamsExpandDivider && (
-          <ClickableBox onClick={this.props.toggle} className="toggleButtonClass" style={_toggleButtonStyle}>
-            <Text type="BodySmallSemibold" style={_buttonTextStyle}>
+      <Box2
+        direction="vertical"
+        style={collapseStyles([
+          this.props.showButton ? styles.containerButton : styles.containerNoButton,
+          this.props.style,
+        ])}
+        gap="tiny"
+        gapStart={true}
+        gapEnd={true}
+      >
+        {this.props.showButton && (
+          <ClickableBox onClick={this.props.toggle} className="toggleButtonClass" style={styles.toggleButton}>
+            <Text type="BodySmallSemibold" style={styles.buttonText}>
               {this.props.hiddenCount > 0 ? `+${this.props.hiddenCount} more` : 'Show less'}
             </Text>
             {this.props.hiddenCount > 0 &&
               this.props.badgeCount > 0 && (
-                <Badge badgeStyle={_badgeToggleStyle} badgeNumber={this.props.badgeCount} />
+                <Badge badgeStyle={styles.badgeToggle} badgeNumber={this.props.badgeCount} />
               )}
           </ClickableBox>
         )}
-        <Box style={_dividerStyle} />
-        {!this.props.showSmallTeamsExpandDivider && (
-          <Text type="BodySmallSemibold" style={_dividerTextStyle}>
+        <Box2 direction="vertical" style={styles.divider} />
+        {!this.props.showButton && (
+          <Text type="BodySmallSemibold" style={styles.dividerText}>
             Big teams
           </Text>
         )}
-      </Box>
+      </Box2>
     )
   }
 }
 
-const _buttonTextStyle = {
-  color: globalColors.black_60,
-}
-const _toggleButtonStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  alignSelf: 'center',
-  backgroundColor: globalColors.black_05,
-  borderRadius: 19,
-  height: isMobile ? 28 : 20,
-  paddingLeft: isMobile ? globalMargins.small : globalMargins.tiny,
-  paddingRight: isMobile ? globalMargins.small : globalMargins.tiny,
-}
-
-const _badgeStyle = {
-  marginLeft: globalMargins.xtiny,
-  marginRight: 0,
-  position: 'relative',
-}
-
-const _dividerStyle = {
-  backgroundColor: globalColors.black_05,
-  height: 1,
-  marginTop: isMobile ? 16 : 8,
-  width: '100%',
-}
-
-const _dividerTextStyle = {
-  marginTop: globalMargins.xtiny,
-  marginBottom: globalMargins.xtiny,
-  marginLeft: globalMargins.tiny,
-  marginRight: globalMargins.tiny,
-}
-
-const _toggleContainer = {
-  ...globalStyles.flexBoxColumn,
-  height: isMobile ? 56 : 'auto',
-  justifyContent: 'center',
-}
-
-const _badgeToggleStyle = {
-  ..._badgeStyle,
-  marginLeft: globalMargins.xtiny,
-}
+const styles = styleSheetCreate({
+  badge: {
+    marginLeft: globalMargins.xtiny,
+    marginRight: 0,
+    position: 'relative',
+  },
+  badgeToggle: {
+    marginLeft: globalMargins.xtiny,
+    marginRight: 0,
+    position: 'relative',
+  },
+  buttonText: {color: globalColors.black_60},
+  containerButton: {
+    ...globalStyles.flexBoxColumn,
+    height: RowSizes.dividerHeight(true),
+    justifyContent: 'center',
+    width: '100%',
+  },
+  containerNoButton: {
+    ...globalStyles.flexBoxColumn,
+    height: RowSizes.dividerHeight(false),
+    justifyContent: 'center',
+    width: '100%',
+  },
+  divider: {
+    backgroundColor: globalColors.black_05,
+    height: 1,
+    width: '100%',
+  },
+  dividerText: {
+    alignSelf: 'flex-start',
+    marginLeft: globalMargins.tiny,
+    marginRight: globalMargins.tiny,
+  },
+  toggleButton: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    alignSelf: 'center',
+    backgroundColor: globalColors.black_05,
+    borderRadius: 19,
+    flexShrink: 0,
+    paddingBottom: globalMargins.xtiny,
+    paddingLeft: isMobile ? globalMargins.small : globalMargins.tiny,
+    paddingRight: isMobile ? globalMargins.small : globalMargins.tiny,
+    paddingTop: globalMargins.xtiny,
+  },
+})
 
 export {Divider}

@@ -3,9 +3,10 @@ import * as I from 'immutable'
 import React from 'react'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
+import {type ConnectedProps as ConnectedUsernamesProps} from '../common-adapters/usernames'
 import {action, storiesOf, createPropProvider} from '../stories/storybook'
 import {globalColors, globalMargins} from '../styles'
-import Files from '.'
+import Files, {WrapRow} from '.'
 import ConnectedStillRow from './row/still-container'
 import StillRow from './row/still'
 import EditingRow from './row/editing'
@@ -14,8 +15,13 @@ import UploadingRow from './row/uploading'
 import {NormalPreview} from './filepreview'
 import {Box} from '../common-adapters'
 import Download from './footer/download'
-import RowActionPopup from './popups/row-action-popup'
-import FolderHeader from './header/header.desktop'
+import Upload from './footer/upload'
+import PathItemAction from './common/path-item-action'
+import {FloatingMenuParentHOC} from '../common-adapters/floating-menu'
+import Breadcrumb from './header/breadcrumb.desktop'
+import Banner from './banner'
+
+const FloatingPathItemAction = FloatingMenuParentHOC(PathItemAction)
 
 const folderItemStyles = {
   iconSpec: {
@@ -43,21 +49,30 @@ const rowProviders = {
     path,
     routePath,
   }),
-  ConnectedStillRow: ({path}: {path: Types.Path}) => ({
-    name: Types.getPathName(path),
-    onOpen: () => {},
-    openInFileUI: () => {},
-    type: 'folder',
-    shouldShowMenu: true,
-    itemStyles: folderItemStyles,
-    onAction: action('onAction'),
-  }),
+  ConnectedStillRow: ({path}: {path: Types.Path}) => {
+    const pathStr = Types.pathToString(path)
+    const hasAbc = pathStr.includes('abc')
+    const hasDef = pathStr.includes('def')
+    const hasGhi = pathStr.includes('ghi')
+    return {
+      name: Types.getPathName(path),
+      onOpen: () => {},
+      openInFileUI: () => {},
+      type: 'folder',
+      shouldShowMenu: true,
+      itemStyles: folderItemStyles,
+      onAction: action('onAction'),
+      resetParticipants: [...(hasAbc ? ['abc'] : []), ...(hasDef ? ['def'] : []), ...(hasGhi ? ['ghi'] : [])],
+      isUserReset: false,
+    }
+  },
 }
 
 const provider = createPropProvider({
   ...rowProviders,
-  Footer: () => ({
-    downloads: [],
+  ConnectedFooter: () => ({
+    downloadKeys: [],
+    showUploads: false,
   }),
   FolderHeader: () => ({
     breadcrumbItems: [
@@ -72,6 +87,10 @@ const provider = createPropProvider({
     onBack: action('onBack'),
     onOpenBreadcrumb: action('onOpenBreadcrumb'),
     onOpenBreadcrumbDropdown: action('onOpenBreadcrumbDropdown'),
+  }),
+  ConnectedBreadcrumb: () => ({
+    dropdownItems: undefined,
+    shownItems: [],
   }),
   SortBar: ({path}: {path: Types.Path}) => ({
     sortSetting: {
@@ -125,22 +144,26 @@ const provider = createPropProvider({
     onInvalidToken: action('onInvalidToken'),
     loadMimeType: action('loadMimeType'),
   }),
-  ResetBanner: () => ({
-    isUserReset: false,
-    resetParticipants: ['foo'],
+  ResetBanner: ({path}: {path: Types.Path}) => ({
+    isUserReset: Types.pathToString(path) === '/keybase/private/me,reset',
+    resetParticipants: ['reset1', 'reset2', 'reset3'],
     onReAddToTeam: () => () => undefined,
     onViewProfile: () => () => undefined,
   }),
-  Usernames: () => ({
-    type: 'BodySemibold',
-    users: [{username: 'foo'}],
-    style: {color: globalColors.white},
+  Banner: ({path}: {path: Types.Path}) => ({
+    path,
+    shouldShowReset: Types.pathToString(path).includes('reset'),
+  }),
+  Usernames: (props: ConnectedUsernamesProps) => ({
+    ...props,
+    users: props.usernames.map(u => ({username: u})),
   }),
   ConnectedAddNew: () => ({
     pathElements: [],
     style: {},
     menuItems: [],
   }),
+  ConnectedPathItemAction: () => pathItemActionPopupProps(Types.stringToPath('/keybase/private/meatball')),
 })
 
 const downloadCommonActions = {
@@ -149,7 +172,7 @@ const downloadCommonActions = {
   cancel: action('cancel'),
 }
 
-const rowActionPopupProps = (path: Types.Path) => {
+const pathItemActionPopupProps = (path: Types.Path) => {
   const pathElements = Types.getPathElements(path)
   return {
     size: 0,
@@ -171,23 +194,25 @@ const rowActionPopupProps = (path: Types.Path) => {
   }
 }
 
-const folderHeaderProps = (names: Array<string>) => ({
-  breadcrumbItems: names
-    .map((name, idx) => ({
-      isTlfNameItem: idx === 2,
-      isLastItem: idx === names.length - 1,
-      name: name,
-      path: Types.stringToPath('/' + names.slice(0, idx + 1).join('/')),
-      onOpenBreadcrumb: action('onOpenBreadcrumb'),
-    }))
-    .slice(names.length > 3 ? names.length - 2 : 0),
-  dropdownPath: names.length > 3 ? 'blah' : '',
-  isTeamPath: names[1] === 'team',
-  path: Types.stringToPath('/' + names.join('/')),
-  onBack: action('onBack'),
-  onOpenBreadcrumbDropdown: action('onOpenBreadcrumbDropdown'),
-  openInFileUI: action('openInFileUI'),
-})
+const breadcrumbProps = (names: Array<string>) => {
+  const items = names.map((name, idx) => ({
+    isTeamTlf: idx === 2 && names[idx - 1] === 'team',
+    isLastItem: idx === names.length - 1,
+    name: name,
+    path: Types.stringToPath('/' + names.slice(0, idx + 1).join('/')),
+    iconSpec: Constants.getItemStyles(names.slice(0, idx + 1), 'folder', 'foo').iconSpec,
+    onClick: action('onClick'),
+  }))
+  return items.length > 3
+    ? {
+        dropdownItems: items.slice(0, items.length - 2),
+        shownItems: items.slice(items.length - 2),
+      }
+    : {
+        dropdownItems: undefined,
+        shownItems: items,
+      }
+}
 
 const commonRowProps = {
   onSubmit: action('onSubmit'),
@@ -204,11 +229,11 @@ const load = () => {
         progress="loaded"
         routePath={I.List([])}
         isUserReset={false}
-        resetParticipants={[]}
-        stillItems={[
-          Types.stringToPath('/keybase/private'),
-          Types.stringToPath('/keybase/public'),
-          Types.stringToPath('/keybase/team'),
+        resetParticipants={['foo']}
+        items={[
+          {rowType: 'still', path: Types.stringToPath('/keybase/private'), name: 'private'},
+          {rowType: 'still', path: Types.stringToPath('/keybase/public'), name: 'public'},
+          {rowType: 'still', path: Types.stringToPath('/keybase/team'), name: 'team'},
         ]}
         editingItems={[]}
       />
@@ -223,61 +248,131 @@ const load = () => {
     ))
     .add('Rows', () => (
       <Box>
-        <ConnectedStillRow
-          path={Types.stringToPath('/keybase/private/a')}
-          routeProps={I.Map({path: '/keybase/private/foo'})}
-          routePath={I.List([])}
-        />
-        <EditingRow
-          name="New Folder (editing)"
-          hint="New Folder (editing)"
-          status="editing"
-          itemStyles={folderItemStyles}
-          isCreate={true}
-          {...commonRowProps}
-        />
-        <EditingRow
-          name="From Dropbox (rename) (editing)"
-          hint="From Dropbox (rename) (editing)"
-          status="editing"
-          itemStyles={folderItemStyles}
-          isCreate={false}
-          {...commonRowProps}
-        />
-        <EditingRow
-          name="New Folder (saving)"
-          hint="New Folder (saving)"
-          status="saving"
-          itemStyles={folderItemStyles}
-          isCreate={true}
-          {...commonRowProps}
-        />
-        <EditingRow
-          name="New Folder (failed)"
-          hint="New Folder (failed)"
-          status="failed"
-          itemStyles={folderItemStyles}
-          isCreate={true}
-          {...commonRowProps}
-        />
-        <UploadingRow name="foo" itemStyles={fileItemStyles} />
-        <UploadingRow name="foo" itemStyles={folderItemStyles} />
-        <StillRow
-          name="bar"
-          type="file"
-          lastModifiedTimestamp={Date.now()}
-          lastWriter="alice"
-          shouldShowMenu={true}
-          itemStyles={fileItemStyles}
-          badgeCount={0}
-          isDownloading={true}
-          isUserReset={false}
-          resetParticipants={[]}
-          onOpen={action('onOpen')}
-          openInFileUI={action('openInFileUI')}
-          onAction={action('onAction')}
-        />
-        <PlaceholderRow />
+        <WrapRow key="1">
+          <ConnectedStillRow
+            path={Types.stringToPath('/keybase/private/a')}
+            routeProps={I.Map({path: '/keybase/private/foo'})}
+            routePath={I.List([])}
+          />
+        </WrapRow>
+        <WrapRow key="2">
+          <EditingRow
+            name="New Folder (editing)"
+            hint="New Folder (editing)"
+            status="editing"
+            itemStyles={folderItemStyles}
+            isCreate={true}
+            {...commonRowProps}
+          />
+        </WrapRow>
+        <WrapRow key="3">
+          <EditingRow
+            name="From Dropbox (rename) (editing)"
+            hint="From Dropbox (rename) (editing)"
+            status="editing"
+            itemStyles={folderItemStyles}
+            isCreate={false}
+            {...commonRowProps}
+          />
+        </WrapRow>
+        <WrapRow key="4">
+          <EditingRow
+            name="New Folder (saving)"
+            hint="New Folder (saving)"
+            status="saving"
+            itemStyles={folderItemStyles}
+            isCreate={true}
+            {...commonRowProps}
+          />
+        </WrapRow>
+        <WrapRow key="5">
+          <EditingRow
+            name="New Folder (failed)"
+            hint="New Folder (failed)"
+            status="failed"
+            itemStyles={folderItemStyles}
+            isCreate={true}
+            {...commonRowProps}
+          />
+        </WrapRow>
+        <WrapRow key="6">
+          <UploadingRow
+            name="foo"
+            itemStyles={folderItemStyles}
+            writingToJournal={true}
+            syncing={false}
+            error={false}
+          />
+        </WrapRow>
+        <WrapRow key="7">
+          <UploadingRow
+            name="foo"
+            itemStyles={fileItemStyles}
+            writingToJournal={true}
+            syncing={false}
+            error={false}
+          />
+        </WrapRow>
+        <WrapRow key="8">
+          <UploadingRow
+            name="foo"
+            itemStyles={fileItemStyles}
+            writingToJournal={true}
+            syncing={true}
+            error={false}
+          />
+        </WrapRow>
+        <WrapRow key="9">
+          <UploadingRow
+            name="foo"
+            itemStyles={fileItemStyles}
+            writingToJournal={false}
+            syncing={true}
+            error={false}
+          />
+        </WrapRow>
+        <WrapRow key="10">
+          <UploadingRow
+            name="foo"
+            itemStyles={fileItemStyles}
+            writingToJournal={false}
+            syncing={false}
+            error={false}
+          />
+        </WrapRow>
+        <WrapRow key="11">
+          <UploadingRow
+            name="foo"
+            itemStyles={fileItemStyles}
+            writingToJournal={false}
+            syncing={false}
+            error={true}
+          />
+        </WrapRow>
+        <WrapRow key="12">
+          <StillRow
+            path={Types.stringToPath('/keybase/private/foo/bar')}
+            name="bar"
+            type="file"
+            lastModifiedTimestamp={Date.now()}
+            lastWriter="alice"
+            shouldShowMenu={true}
+            itemStyles={fileItemStyles}
+            badgeCount={0}
+            isDownloading={true}
+            isUserReset={false}
+            resetParticipants={[]}
+            onOpen={action('onOpen')}
+            openInFileUI={action('openInFileUI')}
+            onAction={action('onAction')}
+          />
+        </WrapRow>
+        <WrapRow key="13">
+          <PlaceholderRow type="folder" />
+        </WrapRow>
+        <WrapRow key="14">
+          <PlaceholderRow type="file" />
+        </WrapRow>
       </Box>
     ))
     .add('Footer Cards', () => (
@@ -325,20 +420,20 @@ const load = () => {
         <Box style={{height: 8}} />
       </Box>
     ))
-    .add('RowActionPopup', () => (
+    .add('PathItemAction', () => (
       <Box style={{padding: globalMargins.small}}>
-        <RowActionPopup
-          {...rowActionPopupProps(Types.stringToPath('/keybase/private/meatball/folder/treat'))}
+        <FloatingPathItemAction
+          {...pathItemActionPopupProps(Types.stringToPath('/keybase/private/meatball/folder/treat'))}
         />
-        <RowActionPopup
-          {...rowActionPopupProps(
+        <FloatingPathItemAction
+          {...pathItemActionPopupProps(
             Types.stringToPath(
               '/keybase/private/meatball/treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat'
             )
           )}
         />
-        <RowActionPopup
-          {...rowActionPopupProps(
+        <FloatingPathItemAction
+          {...pathItemActionPopupProps(
             Types.stringToPath(
               '/keybaes/private/meatball/foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar'
             )
@@ -346,40 +441,75 @@ const load = () => {
         />
       </Box>
     ))
-    .add('FolderHeader', () => (
+    .add('Breadcrumbs', () => (
       <Box>
-        <FolderHeader {...folderHeaderProps(['keybase', 'private', 'foo', 'bar'])} />
-        <FolderHeader {...folderHeaderProps(['keybase', 'private', 'foo'])} />
-        <FolderHeader
-          {...folderHeaderProps([
+        <Breadcrumb {...breadcrumbProps(['keybase', 'private', 'foo', 'bar'])} />
+        <Breadcrumb {...breadcrumbProps(['keybase', 'private', 'foo'])} />
+        <Breadcrumb
+          {...breadcrumbProps([
             'keybase',
             'private',
             'foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo',
           ])}
         />
-        <FolderHeader
-          {...folderHeaderProps([
+        <Breadcrumb
+          {...breadcrumbProps([
             'keybase',
             'private',
             'foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar',
           ])}
         />
-        <FolderHeader
-          {...folderHeaderProps([
+        <Breadcrumb
+          {...breadcrumbProps([
             'keybase',
             'private',
             'foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo',
             'haha',
           ])}
         />
-        <FolderHeader
-          {...folderHeaderProps([
+        <Breadcrumb
+          {...breadcrumbProps([
             'keybase',
             'private',
             'foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar',
             'haha',
           ])}
         />
+      </Box>
+    ))
+    .add('UploadBanner', () => <Upload files={42} timeLeft="23 min" />)
+    .add('ResetRows', () => (
+      <Files
+        path={Types.stringToPath('/keybase')}
+        progress="loaded"
+        routePath={I.List([])}
+        isUserReset={false}
+        resetParticipants={[]}
+        items={[
+          {rowType: 'still', path: Types.stringToPath('/keybase/private/me'), name: 'me'},
+          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc'), name: 'me,abc'},
+          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc,def'), name: 'me,abc,def'},
+          {
+            rowType: 'still',
+            path: Types.stringToPath('/keybase/private/me,abc,def,ghi'),
+            name: 'me,abc,def,ghi',
+          },
+          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,def'), name: 'me,def'},
+          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,def,ghi'), name: 'me,def,ghi'},
+          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,ghi'), name: 'me,ghi'},
+          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc,ghi'), name: 'me,abc,ghi'},
+        ]}
+        editingItems={[]}
+      />
+    ))
+    .add('ResetBanner', () => (
+      <Box>
+        <Banner
+          path={Types.stringToPath('/keybase/private/me,reset1,reset2,reset3')}
+          shouldShowReset={true}
+        />
+        <Box style={{height: 8}} />
+        <Banner path={Types.stringToPath('/keybase/private/me,reset')} shouldShowReset={true} />
       </Box>
     ))
 }

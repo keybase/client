@@ -18,10 +18,10 @@
     "updateSeenMsgs": {
       "seenMsgs": "Array<Types.NonNullGregorItem>"
     },
-    "injectItem": {
+    "updateCategory": {
       "category": "string",
       "body": "string",
-      "dtime?": "?Date"
+      "dtime?": "{offset: number, time: number}"
     }
   }
 }

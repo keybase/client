@@ -133,7 +133,26 @@ func (l *TeamLoader) verifySignatureAndExtractKID(ctx context.Context, outer lib
 	return outer.Verify(l.G().Log)
 }
 
+// These sigchain links are not checked dynamically. We assert that they are good.
+var whitelistedTeamLinkSigs = []keybase1.SigID{
+	// For the privacy of the users involved the issue is described only vaguely here.
+	// See CORE-8233 for more details.
+	// This team had a rotate_key link signed seconds before the revocation of the key that signed the link.
+	// Due to a bug the signing device was allowed to be revoked with a signature that pointed to a merkle
+	// root prior to the team link signature. This makes it impossible for the client to independently
+	// verify that the team link was signed before the device was revoked. But it was, it's all good.
+	"e8279d7c73b8defab299094b73800262239e5a03812040ed381cc613a3db515622",
+}
+
 func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID keybase1.TeamID, teamLinkMap linkMapT, link *chainLinkUnpacked, uid keybase1.UID, key *keybase1.PublicKeyV2NaCl, userLinkMap linkMapT, proofSet *proofSetT) {
+
+	for _, okSigID := range whitelistedTeamLinkSigs {
+		if link.SigID().Equal(okSigID) {
+			// This proof is whitelisted, so don't check it.
+			return
+		}
+	}
+
 	event1Link := newProofTerm(teamID.AsUserOrTeam(), link.SignatureMetadata(), teamLinkMap)
 	event2Revoke := key.Base.Revocation
 	if event2Revoke != nil {
@@ -155,6 +174,8 @@ func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID k
 func (l *TeamLoader) verifyLink(ctx context.Context,
 	teamID keybase1.TeamID, state *keybase1.TeamData, me keybase1.UserVersion, link *chainLinkUnpacked,
 	readSubteamID keybase1.TeamID, proofSet *proofSetT) (*signerX, error) {
+	ctx, tbs := l.G().CTimeBuckets(ctx)
+	defer tbs.Record("TeamLoader.verifyLink")()
 
 	if link.isStubbed() {
 		return nil, nil
@@ -394,45 +415,37 @@ func (l *TeamLoader) toParentChildOperation(ctx context.Context,
 }
 
 // Apply a new link to the sigchain state.
+// `state` is moved into this function. There must exist no live references into it from now on.
 // `signer` may be nil iff link is stubbed.
 func (l *TeamLoader) applyNewLink(ctx context.Context,
 	state *keybase1.TeamData, link *chainLinkUnpacked,
 	signer *signerX, me keybase1.UserVersion) (*keybase1.TeamData, error) {
+	ctx, tbs := l.G().CTimeBuckets(ctx)
+	defer tbs.Record("TeamLoader.applyNewLink")()
 
 	l.G().Log.CDebugf(ctx, "TeamLoader applying link seqno:%v", link.Seqno())
 
-	var player *TeamSigChainPlayer
-	if state == nil {
-		player = NewTeamSigChainPlayer(l.G(), me)
-	} else {
-		player = NewTeamSigChainPlayerWithState(l.G(), me, TeamSigChainState{inner: state.Chain})
-	}
-
-	err := player.AppendChainLink(ctx, link, signer)
-	if err != nil {
-		return nil, err
-	}
-
-	newChainState, err := player.GetState()
-	if err != nil {
-		return nil, err
-	}
-
+	var chainState *TeamSigChainState
 	var newState *keybase1.TeamData
 	if state == nil {
 		newState = &keybase1.TeamData{
 			// Name is left blank until calculateName updates it.
 			// It shall not be blank by the time it is returned from load2.
 			Name:            keybase1.TeamName{},
-			Chain:           newChainState.inner,
 			PerTeamKeySeeds: make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem),
 			ReaderKeyMasks:  make(map[keybase1.TeamApplication]map[keybase1.PerTeamKeyGeneration]keybase1.MaskB64),
 		}
 	} else {
-		newState2 := state.DeepCopy()
-		newState2.Chain = newChainState.inner
-		newState = &newState2
+		chainState = &TeamSigChainState{inner: state.Chain}
+		newState = state
+		state = nil
 	}
+
+	newChainState, err := AppendChainLink(ctx, l.G(), me, chainState, link, signer)
+	if err != nil {
+		return nil, err
+	}
+	newState.Chain = newChainState.inner
 
 	return newState, nil
 }
@@ -451,19 +464,11 @@ func (l *TeamLoader) inflateLink(ctx context.Context,
 		return nil, NewInflateErrorWithNote(link, "no prior state")
 	}
 
-	player := NewTeamSigChainPlayerWithState(l.G(), me, TeamSigChainState{inner: state.Chain})
-
-	err := player.InflateLink(link, signer)
+	newState := state.DeepCopy() // Clone the state and chain so that our parameters don't get consumed.
+	newChainState, err := InflateLink(ctx, l.G(), me, TeamSigChainState{inner: newState.Chain}, link, signer)
 	if err != nil {
 		return nil, err
 	}
-
-	newChainState, err := player.GetState()
-	if err != nil {
-		return nil, err
-	}
-
-	newState := state.DeepCopy()
 	newState.Chain = newChainState.inner
 
 	return &newState, nil

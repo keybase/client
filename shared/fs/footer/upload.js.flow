@@ -1,0 +1,9 @@
+// @flow
+import * as React from 'react'
+
+export type UploadProps = {
+  files: number,
+  timeLeft: string,
+}
+
+declare export default React.ComponentType<UploadProps>
