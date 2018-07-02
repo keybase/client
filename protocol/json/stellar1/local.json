@@ -51,7 +51,11 @@
         },
         {
           "type": "string",
-          "name": "issuer"
+          "name": "issuerName"
+        },
+        {
+          "type": "string",
+          "name": "issuerAccountID"
         },
         {
           "type": "string",
