@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Icon, Text, Box, iconCastPlatformStyles} from '../../../../common-adapters'
-import {type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
+import {Avatar, Icon, Text, Box, iconCastPlatformStyles} from '../../../../../common-adapters'
+import {type FloatingMenuParentProps} from '../../../../../common-adapters/floating-menu'
 import {
   globalStyles,
   globalMargins,
@@ -10,13 +10,13 @@ import {
   platformStyles,
   styleSheetCreate,
   collapseStyles,
-} from '../../../../styles'
-import SendIndicator from './chat-send'
-import MessagePopup from '../message-popup'
-import ExplodingHeightRetainer from './exploding-height-retainer'
-import ExplodingMeta from './exploding-meta'
+} from '../../../../../styles'
+import SendIndicator from '../chat-send'
+import MessagePopup from '../../message-popup'
+import ExplodingHeightRetainer from '../exploding-height-retainer'
+import ExplodingMeta from '../exploding-meta'
 
-import type {WrapperAuthorProps} from './index.types'
+import type {WrapperAuthorProps} from '../index.types'
 
 const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBroken: boolean) => {
   if (isYou) {
@@ -174,7 +174,7 @@ const RightSide = props => (
             sent={props.messageSent || props.exploded}
             failed={props.messageFailed}
             style={{marginBottom: 2}}
-            id={props.message.timestamp}
+            id={props.timestamp}
           />
         )}
       </Box>

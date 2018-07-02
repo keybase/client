@@ -1,13 +1,12 @@
 // @flow
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as ProfileGen from '../../../../actions/profile-gen'
-import * as TrackerGen from '../../../../actions/tracker-gen'
-import * as Types from '../../../../constants/types/chat2'
-import * as Constants from '../../../../constants/chat2/message'
-import {WrapperAuthor} from '.'
-import {setDisplayName, compose, connect, type TypedState} from '../../../../util/container'
-import {formatTimeForMessages} from '../../../../util/timestamp'
-import {isMobile} from '../../../../constants/platform'
+import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as ProfileGen from '../../../../../actions/profile-gen'
+import * as TrackerGen from '../../../../../actions/tracker-gen'
+import * as Types from '../../../../../constants/types/chat2'
+import * as Constants from '../../../../../constants/chat2/message'
+import {WrapperAuthor} from '../'
+import {setDisplayName, compose, connect, type TypedState} from '../../../../../util/container'
+import {isMobile} from '../../../../../constants/platform'
 
 const mapStateToProps = (state: TypedState, {message, previous, innerClass, isEditing}) => {
   const isYou = state.config.username === message.author
@@ -57,10 +56,9 @@ const mergeProps = (stateProps, dispatchProps, {measure}) => {
     previous.author === message.author &&
     (previous.type === 'text' || previous.type === 'deleted' || previous.type === 'attachment')
 
-  const oldEnough = Constants.enoughTimeBetweenMessages(message, previous)
+  const showAuthor = Constants.enoughTimeBetweenMessages(message, previous)
 
-  const timestamp =
-    stateProps.lastPositionExists || !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null
+  const timestamp = stateProps.lastPositionExists || !previous || showAuthor ? message.timestamp : null
 
   const includeHeader = !previous || !sequentialUserMessages || !!timestamp
 
@@ -101,7 +99,7 @@ const mergeProps = (stateProps, dispatchProps, {measure}) => {
     onRetry: stateProps.isYou
       ? () => message.outboxID && dispatchProps._onRetry(message.conversationIDKey, message.outboxID)
       : null,
-    timestamp,
+    timestamp: message.timestamp,
   }
 }
 

@@ -14,8 +14,8 @@ import Attachment from './attachment/container'
 import SetDescription from './set-description/container'
 import SetChannelname from './set-channelname/container'
 import Placeholder from './placeholder/container'
-import WrapperAuthor from './wrapper/container-wrapper-author'
-import WrapperTimestamp from './wrapper/container-wrapper-timestamp'
+import WrapperAuthor from './wrapper/wrapper-author/container'
+import WrapperTimestamp from './wrapper/wrapper-timestamp/container'
 import {setDisplayName, connect, compose, lifecycle, type TypedState} from '../../../util/container'
 
 type Props = {

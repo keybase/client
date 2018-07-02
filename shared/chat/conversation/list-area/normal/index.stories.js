@@ -57,7 +57,7 @@ const words = ['At', 'Et', 'Itaque', 'Nam', 'Nemo', 'Quis', 'Sed', 'Temporibus',
 
 // Generate timestamp in a range between start and end with some
 // messagesThreshold number of consecutive messages with the same timestamp
-const makeTimestampGen = () => {
+const makeTimestampGen = (days: number = 7, threshold: number = 10) => {
   const r = new Rnd(1337)
   const origin = {year: 2018, month: 0, day: 0}
 
@@ -75,7 +75,7 @@ const makeTimestampGen = () => {
       // Move the start day up by the previous number of days to avoid overlap
       start.add(dayRange, 'days')
       // Get a new date range for random timestamps
-      dayRange = r.next() % 7 + 1
+      dayRange = r.next() % days + 1
       end.add(dayRange, 'days')
 
       const diff = end.diff(start)
@@ -85,14 +85,14 @@ const makeTimestampGen = () => {
       currentTimestamp = newTimestamp.valueOf()
 
       // Reset threashold and count
-      messagesThreshold = r.next() % 10 + 1
+      messagesThreshold = r.next() % threshold + 1
       generatedCount = 1
 
       return currentTimestamp
     }
 
     if (generatedCount <= messagesThreshold) {
-      generatedCount += 1
+      generatedCount++
     }
 
     return currentTimestamp

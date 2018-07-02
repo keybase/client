@@ -40,4 +40,5 @@ export type WrapperAuthorProps = {
   onAuthorClick: () => void,
   orangeLineAbove: boolean,
   styles: StylesCrossPlatform,
+  timestamp: number,
 }

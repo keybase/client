@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
-import {Box} from '../../../../common-adapters'
-import Timestamp from './timestamp'
-import {globalStyles, globalColors, styleSheetCreate} from '../../../../styles'
-import type {WrapperTimestampProps} from './index.types'
+import {Box} from '../../../../../common-adapters'
+import Timestamp from '../timestamp'
+import {globalStyles, globalColors, styleSheetCreate} from '../../../../../styles'
+import type {WrapperTimestampProps} from '../index.types'
 
 class WrapperTimestamp extends React.PureComponent<WrapperTimestampProps> {
   componentDidUpdate(prevProps: WrapperTimestampProps) {
