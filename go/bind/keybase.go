@@ -338,27 +338,21 @@ func BackgroundSync() {
 	<-doneCh
 }
 
-func HandleBackgroundNotification(strConvID string, intMembersType, intMessageID int,
+func DisplayPlaintextNotification(strConvID, msg string, intMessageID int,
 	pushID string, badgeCount, unixTime int, body, soundName string, pusher PushNotifier) (err error) {
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 
-	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%d,%d,%s,%d,%d)",
-		strConvID, intMembersType, intMessageID, pushID, badgeCount, unixTime),
+	defer kbCtx.CTrace(ctx, fmt.Sprintf("DisplayPlaintextNotification(%s,%d,%s,%d,%d)",
+		strConvID, intMessageID, pushID, badgeCount, unixTime),
 		func() error { return err })()
 
 	age := time.Since(time.Unix(int64(unixTime), 0))
 	if age >= 15*time.Second {
-		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: stale notification: %v", age)
+		kbCtx.Log.CDebugf(ctx, "DisplayPlaintextNotification: stale notification: %v", age)
 		return errors.New("stale notification")
 	}
-
-	msg, err := unboxNotification(ctx, strConvID, intMembersType, body)
-	if err != nil {
-		return err
-	}
-
 	// Send up the local notification with our message
 	id := fmt.Sprintf("%s:%d", strConvID, intMessageID)
 	pusher.LocalNotification(id, msg, badgeCount, soundName, strConvID, "chat.newmessage")
@@ -367,26 +361,21 @@ func HandleBackgroundNotification(strConvID string, intMembersType, intMessageID
 	return nil
 }
 
-func HandleNotification(strConvID string, intMembersType int, body string) (err error) {
+func UnboxNotification(strConvID string, intMembersType int, body string) (msg string, err error) {
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 
-	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandleNotification(%s,%d)", strConvID, intMembersType),
+	defer kbCtx.CTrace(ctx, fmt.Sprintf("UnboxNotification(%s,%d)", strConvID, intMembersType),
 		func() error { return err })()
 
-	_, err = unboxNotification(ctx, strConvID, intMembersType, body)
-	return err
-}
-
-func unboxNotification(ctx context.Context, strConvID string, intMembersType int, body string) (msg string, err error) {
 	if !kbCtx.ActiveDevice.HaveKeys() {
 		return "", libkb.LoginRequiredError{}
 	}
 	uid := gregor1.UID(kbCtx.Env.GetUID().ToBytes())
 	bConvID, err := hex.DecodeString(strConvID)
 	if err != nil {
-		kbCtx.Log.CDebugf(ctx, "unboxNotification: invalid convID: %s msg: %s", strConvID,
+		kbCtx.Log.CDebugf(ctx, "UnboxNotification: invalid convID: %s msg: %s", strConvID,
 			err)
 		return "", err
 	}
@@ -394,7 +383,7 @@ func unboxNotification(ctx context.Context, strConvID string, intMembersType int
 	membersType := chat1.ConversationMembersType(intMembersType)
 	msg, err = kbCtx.ChatHelper.UnboxMobilePushNotification(ctx, uid, convID, membersType, body)
 	if err != nil {
-		kbCtx.Log.CDebugf(ctx, "unboxNotification: failed to unbox: %s", err)
+		kbCtx.Log.CDebugf(ctx, "UnboxNotification: failed to unbox: %s", err)
 		return "", err
 	}
 	return msg, nil

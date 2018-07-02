@@ -221,23 +221,29 @@ const BOOL isDebug = NO;
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
   NSString* type = notification[@"type"];
   NSString* body = notification[@"m"];
+  NSLog(@"Remote notification handle for %@ started...", type);
   if (type != nil && body != nil) {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
-      NSLog(@"Remote notification handle for %@ started...", type);
       NSError* err = nil;
       int membersType = [notification[@"t"] intValue];
       if ([type isEqualToString:@"chat.newmessageSilent_2"]) {
         NSString* convID = notification[@"c"];
-        int messageID = [notification[@"d"] intValue];
-        NSString* pushID = [notification[@"p"] objectAtIndex:0];
-        int badgeCount = [notification[@"b"] intValue];
-        int unixTime = [notification[@"x"] intValue];
-        NSString* soundName = notification[@"s"];
-        PushNotifier* pusher = [[PushNotifier alloc] init];
-        KeybaseHandleBackgroundNotification(convID, membersType, messageID, pushID, badgeCount, unixTime, body, soundName, pusher, &err);
+        NSString* msg = nil;
+        msg = KeybaseUnboxNotification(convID, membersType, body, &err);
+        // If d is set, display the plaintext notification
+        bool displayPlaintext = notification[@"d"];
+        if (displayPlaintext) {
+            int messageID = [notification[@"d"] intValue];
+            NSString* pushID = [notification[@"p"] objectAtIndex:0];
+            int badgeCount = [notification[@"b"] intValue];
+            int unixTime = [notification[@"x"] intValue];
+            NSString* soundName = notification[@"s"];
+            PushNotifier* pusher = [[PushNotifier alloc] init];
+            KeybaseDisplayPlaintextNotification(convID, msg, messageID, pushID, badgeCount, unixTime, body, soundName, pusher, &err);
+        }
       } else if ([type isEqualToString:@"chat.newmessage"]) {
         NSString* convID = notification[@"convID"];
-        KeybaseHandleNotification(convID, membersType, body, &err);
+        KeybaseUnboxNotification(convID, membersType, body, &err);
         [RCTPushNotificationManager didReceiveRemoteNotification:notification];
       }
       if (err != nil) {

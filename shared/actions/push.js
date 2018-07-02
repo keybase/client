@@ -98,7 +98,7 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
       break
     case 'chat.newmessageSilent_2':
       try {
-        logger.info('Push notification: silent notification received')
+        logger.info('Push notification: silent notification received, displayPlaintext: ', payload.d)
         const unboxRes = yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
           convID: payload.c || '',
           membersType,
@@ -106,7 +106,7 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
           pushIDs: typeof payload.p === 'string' ? JSON.parse(payload.p) : payload.p,
           shouldAck: true,
         })
-        if (!payload.n) {
+        if (!payload.d) {
           // If the user doesn't have plaintext notifications set, don't
           // display the message
           break
