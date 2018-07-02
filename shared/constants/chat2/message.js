@@ -27,7 +27,6 @@ export const getMessageID = (m: RPCChatTypes.UIMessage) => {
 
 // Map service message types to our message types.
 export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): Array<Types.MessageType> => {
-  // const types = RPCChatTypes.commonMessageType
   switch (t) {
     case RPCChatTypes.commonMessageType.text:
       return ['text']
