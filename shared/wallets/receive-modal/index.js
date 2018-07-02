@@ -19,45 +19,42 @@ type Props = {
   username: string,
 }
 
-const ReceiveModal = (props: Props) => {
-  console.warn('in receive', props)
-  return (
-    <MaybePopup onClose={props.onClose}>
-      <Box2 direction="vertical" style={containerStyle}>
-        <Icon
-          type={isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
-          style={iconCastPlatformStyles(styles.icon)}
-        />
-        <Text type="BodySmallSemibold">{props.username}’s wallet</Text>
-        <Text type="Header" style={styles.headerText}>
-          Receive
-        </Text>
-        <Text type="Body" style={styles.instructionText}>
-          To receive Lumens or assets from non-Keybase users, pass your Stellar addresses around:
-        </Text>
-        <Box2 direction="vertical" style={styles.stellarAddressContainer}>
-          <CopyText text={props.stellarAddress} />
-        </Box2>
-        {!!props.federatedAddress && (
-          <React.Fragment>
-            <Text type="Body" style={styles.orText}>
-              or
-            </Text>
-            <Box2 direction="vertical" style={styles.federatedAddressContainer}>
-              <CopyText text={props.federatedAddress} />
-            </Box2>
-          </React.Fragment>
-        )}
-        <InfoNote>
-          <Text type="BodySmall" style={styles.infoNoteText}>
-            Use the chat interface to request Lumens from a Keybase user.
-          </Text>
-        </InfoNote>
-        <Button label="Close" onClick={props.onClose} type="Secondary" />
+const ReceiveModal = (props: Props) => (
+  <MaybePopup onClose={props.onClose}>
+    <Box2 direction="vertical" style={containerStyle}>
+      <Icon
+        type={isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
+        style={iconCastPlatformStyles(styles.icon)}
+      />
+      <Text type="BodySmallSemibold">{props.username}’s wallet</Text>
+      <Text type="Header" style={styles.headerText}>
+        Receive
+      </Text>
+      <Text type="Body" style={styles.instructionText}>
+        To receive Lumens or assets from non-Keybase users, pass your Stellar addresses around:
+      </Text>
+      <Box2 direction="vertical" style={styles.stellarAddressContainer}>
+        <CopyText text={props.stellarAddress} />
       </Box2>
-    </MaybePopup>
-  )
-}
+      {!!props.federatedAddress && (
+        <React.Fragment>
+          <Text type="Body" style={styles.orText}>
+            or
+          </Text>
+          <Box2 direction="vertical" style={styles.federatedAddressContainer}>
+            <CopyText text={props.federatedAddress} />
+          </Box2>
+        </React.Fragment>
+      )}
+      <InfoNote>
+        <Text type="BodySmall" style={styles.infoNoteText}>
+          Use the chat interface to request Lumens from a Keybase user.
+        </Text>
+      </InfoNote>
+      <Button label="Close" onClick={props.onClose} type="Secondary" />
+    </Box2>
+  </MaybePopup>
+)
 
 const styles = styleSheetCreate({
   federatedAddressContainer: {
