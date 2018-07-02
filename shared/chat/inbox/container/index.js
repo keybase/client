@@ -4,7 +4,15 @@ import * as Types from '../../../constants/types/chat2'
 import * as Inbox from '..'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import {debounce} from 'lodash-es'
-import {connect, compose, lifecycle, withStateHandlers, withProps, isMobile} from '../../../util/container'
+import {
+  connect,
+  compose,
+  lifecycle,
+  setDisplayName,
+  withStateHandlers,
+  withProps,
+  isMobile,
+} from '../../../util/container'
 import type {TypedState, Dispatch} from '../../../util/container'
 import normalRowData from './normal'
 import filteredRowData from './filtered'
@@ -98,6 +106,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('InboxContainer'),
   withStateHandlers(
     {filterFocusCount: 0},
     {focusFilter: ({filterFocusCount}) => () => ({filterFocusCount: filterFocusCount + 1})}
