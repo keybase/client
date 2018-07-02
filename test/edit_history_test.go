@@ -333,3 +333,89 @@ func TestEditHistoryUnflushed(t *testing.T) {
 		),
 	)
 }
+
+func TestEditHistoryRenameParent(t *testing.T) {
+	// Bob writes one file, and alice renames the parent dir.
+	expectedEdits := []expectedEdit{
+		{
+			"alice,bob",
+			keybase1.FolderType_PRIVATE,
+			"bob",
+			[]string{"/keybase/private/alice,bob/c/b"},
+		},
+	}
+
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			mkfile("a/b", "hello"),
+		),
+		as(alice,
+			addTime(1*time.Minute),
+			rename("a", "c"),
+		),
+		as(bob,
+			checkUserEditHistory(expectedEdits),
+		),
+		as(alice,
+			checkUserEditHistory(expectedEdits),
+		),
+		as(alice,
+			addTime(1*time.Minute),
+			rm("c/b"),
+		),
+		as(bob,
+			checkUserEditHistory([]expectedEdit{}),
+		),
+		as(alice,
+			checkUserEditHistory([]expectedEdit{}),
+		),
+	)
+}
+
+func TestEditHistoryRenameParentAcrossDirs(t *testing.T) {
+	// Bob writes one file, and alice renames the parent dir into a
+	// different subdirectory.
+	expectedEdits := []expectedEdit{
+		{
+			"alice,bob",
+			keybase1.FolderType_PRIVATE,
+			"bob",
+			[]string{"/keybase/private/alice,bob/d/c/b"},
+		},
+	}
+
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+			mkdir("d"),
+		),
+		as(bob,
+			mkfile("a/b", "hello"),
+		),
+		as(alice,
+			addTime(1*time.Minute),
+			rename("a", "d/c"),
+		),
+		as(bob,
+			checkUserEditHistory(expectedEdits),
+		),
+		as(alice,
+			checkUserEditHistory(expectedEdits),
+		),
+		as(alice,
+			addTime(1*time.Minute),
+			rm("d/c/b"),
+		),
+		as(bob,
+			checkUserEditHistory([]expectedEdit{}),
+		),
+		as(alice,
+			checkUserEditHistory([]expectedEdit{}),
+		),
+	)
+}
