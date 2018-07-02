@@ -84,20 +84,20 @@ const requestInvite = (action: SignupGen.RequestInvitePayload, state: TypedState
       })
     )
 
-const checkUsernameEmail = (action: SignupGen.CheckUsernameEmailPayload, state: TypedState) =>
+const checkUsernameEmail = (_: any, state: TypedState) =>
   noErrors(state) &&
   RPCTypes.signupCheckUsernameAvailableRpcPromise({username: state.signup.username}, Constants.waitingKey)
     .then(r =>
       SignupGen.createCheckedUsernameEmail({
-        email: action.payload.email,
-        username: action.payload.username,
+        email: state.signup.email,
+        username: state.signup.username,
       })
     )
     .catch(err =>
       SignupGen.createCheckedUsernameEmailError({
-        email: action.payload.email,
+        email: state.signup.email,
         emailError: '',
-        username: action.payload.username,
+        username: state.signup.username,
         usernameError: `Sorry, there was a problem: ${err.desc}`,
       })
     )
@@ -114,7 +114,7 @@ const checkDevicename = (action: SignupGen.CheckDevicenamePayload, state: TypedS
     )
 
 // Actually sign up ///////////////////////////////////////////////////////////
-const reallySignupOnNoErrors = (_, state: TypedState) => {
+const reallySignupOnNoErrors = (_: any, state: TypedState) => {
   if (!noErrors(state)) {
     logger.warn('Still has errors, bailing on really signing up')
     return

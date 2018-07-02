@@ -49,16 +49,14 @@ describe('requestAutoInvite', () => {
 
   it('fills inviteCode, shows invite screen', () => {
     const action = SignupGen.createRequestedAutoInvite({inviteCode: 'hello world'})
-    const nextSignupState = reducer(getState().signup, action)
-    const nextState = {signup: nextSignupState}
+    const nextState = {signup: reducer(getState().signup, action)}
     expect(nextState.signup.inviteCode).toEqual(action.payload.inviteCode)
     expect(_testing.showInviteScreen()).toEqual(navigateTo([loginTab, 'signup', 'inviteCode']))
   })
 
   it('goes to invite page on error', () => {
     const action = SignupGen.createRequestedAutoInviteError()
-    const nextSignupState = reducer(getState().signup, action)
-    const nextState = {signup: nextSignupState}
+    const nextState = {signup: reducer(getState().signup, action)}
     expect(nextState).toEqual(getState())
     expect(_testing.showInviteScreen()).toEqual(navigateTo([loginTab, 'signup', 'inviteCode']))
   })
@@ -68,20 +66,17 @@ describe('checkInviteCode', () => {
   const getState = () => ({signup: Constants.makeState({})})
   it('checks requestedAutoInvite', () => {
     const action = SignupGen.createRequestedAutoInvite({inviteCode: 'invite code'})
-    const nextSignupState = reducer(getState().signup, action)
-    const nextState = {signup: nextSignupState}
+    const nextState = {signup: reducer(getState().signup, action)}
     expect(nextState.signup.inviteCode).toEqual(action.payload.inviteCode)
   })
   it('checks checkInviteCode', () => {
     const action = SignupGen.createCheckInviteCode({inviteCode: 'invite code'})
-    const nextSignupState = reducer(getState().signup, action)
-    const nextState = {signup: nextSignupState}
+    const nextState = {signup: reducer(getState().signup, action)}
     expect(nextState.signup.inviteCode).toEqual(action.payload.inviteCode)
   })
   it('shows user email page on success', () => {
     const action = SignupGen.createCheckedInviteCode({inviteCode: 'working'})
-    const nextSignupState = reducer(getState().signup, action)
-    const nextState: TypedState = ({signup: nextSignupState}: any)
+    const nextState: TypedState = ({signup: reducer(getState().signup, action)}: any)
     // leaves state alone
     expect(nextState).toEqual(getState())
     expect(_testing.showUserEmailOnNoErrors(action, nextState)).toEqual(
@@ -90,29 +85,50 @@ describe('checkInviteCode', () => {
   })
   it("shows error on fail: must match invite code. doesn't go to next screen", () => {
     const preAction = SignupGen.createRequestedAutoInvite({inviteCode: 'invite code'})
-    const preNextSignupState = reducer(getState().signup, preAction)
-    const preState: TypedState = ({signup: preNextSignupState}: any)
+    const preState: TypedState = ({signup: reducer(getState().signup, preAction)}: any)
     const action = SignupGen.createCheckedInviteCodeError({
       error: 'bad invitecode',
       inviteCode: 'invite code',
     })
 
-    const nextSignupState = reducer(preState.signup, action)
-    const nextState: TypedState = ({signup: nextSignupState}: any)
+    const nextState: TypedState = ({signup: reducer(preState.signup, action)}: any)
     expect(nextState.signup.inviteCodeError).toEqual(action.payload.error)
     expect(_testing.showUserEmailOnNoErrors(action, nextState)).toEqual(false)
   })
   it("ignores error if invite doesn't match", () => {
     const preAction = SignupGen.createRequestedAutoInvite({inviteCode: 'a different invite code'})
-    const preNextSignupState = reducer(getState().signup, preAction)
-    const preState: TypedState = ({signup: preNextSignupState}: any)
+    const preState: TypedState = ({signup: reducer(getState().signup, preAction)}: any)
     const action = SignupGen.createCheckedInviteCodeError({
       error: 'bad invitecode',
       inviteCode: 'invite code',
     })
 
-    const nextSignupState = reducer(preState.signup, action)
-    const nextState: TypedState = ({signup: nextSignupState}: any)
+    const nextState: TypedState = ({signup: reducer(preState.signup, action)}: any)
     expect(nextState).toEqual(preState)
+  })
+})
+
+describe('checkUsernameEmail', () => {
+  it("ignores if there's an error", () => {
+    const getState = () => ({signup: Constants.makeState({inviteCodeError: 'invite error'})})
+    expect(_testing.checkUsernameEmail(undefined, getState())).toEqual(false)
+  })
+
+  it('Updates store on success', () => {
+    const getState = () => ({signup: Constants.makeState({})})
+    const action = SignupGen.createCheckUsernameEmail({email: 'email@email.com', username: 'username'})
+    const nextState: TypedState = ({signup: reducer(getState().signup, action)}: any)
+    expect(nextState.signup.email).toEqual(action.payload.email)
+    expect(nextState.signup.username).toEqual(action.payload.username)
+  })
+
+  it('Locally checks simple problems', () => {
+    const getState = () => ({signup: Constants.makeState({})})
+    const action = SignupGen.createCheckUsernameEmail({email: 'notAValidEmail', username: 'a.bad.username'})
+    const nextState: TypedState = ({signup: reducer(getState().signup, action)}: any)
+    expect(nextState.signup.emailError).toBeTruthy()
+    expect(nextState.signup.usernameError).toBeTruthy()
+    expect(nextState.signup.email).toEqual(action.payload.email)
+    expect(nextState.signup.username).toEqual(action.payload.username)
   })
 })
