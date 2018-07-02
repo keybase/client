@@ -94,7 +94,7 @@ func TestGetAccountAssetsLocalEmptyBalance(t *testing.T) {
 	require.Equal(t, "XLM", assets[0].AssetCode)
 	require.Equal(t, "0", assets[0].BalanceTotal)
 	require.Equal(t, "0", assets[0].BalanceAvailableToSend)
-	require.Equal(t, "Stellar", assets[0].IssuerName)
+	require.Equal(t, "Stellar network", assets[0].IssuerName)
 	require.Equal(t, "", assets[0].IssuerAccountID)
 	require.Equal(t, "USD", assets[0].WorthCurrency)
 	require.Equal(t, "$0.00", assets[0].Worth)
