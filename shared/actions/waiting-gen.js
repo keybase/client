@@ -7,24 +7,32 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of waiting but is handled by every reducer
+export const changeWaiting = 'waiting:changeWaiting'
 export const decrementWaiting = 'waiting:decrementWaiting'
 export const incrementWaiting = 'waiting:incrementWaiting'
 
 // Payload Types
+type _ChangeWaitingPayload = $ReadOnly<{|
+  key: string | Array<string>,
+  increment: boolean,
+|}>
 type _DecrementWaitingPayload = $ReadOnly<{|key: string | Array<string>|}>
 type _IncrementWaitingPayload = $ReadOnly<{|key: string | Array<string>|}>
 
 // Action Creators
+export const createChangeWaiting = (payload: _ChangeWaitingPayload) => ({error: false, payload, type: changeWaiting})
 export const createDecrementWaiting = (payload: _DecrementWaitingPayload) => ({error: false, payload, type: decrementWaiting})
 export const createIncrementWaiting = (payload: _IncrementWaitingPayload) => ({error: false, payload, type: incrementWaiting})
 
 // Action Payloads
+export type ChangeWaitingPayload = $Call<typeof createChangeWaiting, _ChangeWaitingPayload>
 export type DecrementWaitingPayload = $Call<typeof createDecrementWaiting, _DecrementWaitingPayload>
 export type IncrementWaitingPayload = $Call<typeof createIncrementWaiting, _IncrementWaitingPayload>
 
 // All Actions
 // prettier-ignore
 export type Actions =
+  | ChangeWaitingPayload
   | DecrementWaitingPayload
   | IncrementWaitingPayload
   | {type: 'common:resetStore', payload: void}

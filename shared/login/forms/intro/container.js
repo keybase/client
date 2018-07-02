@@ -1,6 +1,6 @@
 // @flow
 import * as LoginGen from '../../../actions/login-gen'
-import {requestAutoInvite} from '../../../actions/signup'
+import * as SignupGen from '../../../actions/signup-gen'
 import Intro from '.'
 import {connect, type TypedState, type Dispatch, isMobile} from '../../../util/container'
 
@@ -23,7 +23,7 @@ const mapStateToProps = (state: TypedState) => {
 const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}: OwnProps) => ({
   _onFeedback: () => dispatch(navigateAppend(['feedback'])),
   onLogin: () => dispatch(LoginGen.createStartLogin()),
-  onSignup: () => dispatch(requestAutoInvite()),
+  onSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({

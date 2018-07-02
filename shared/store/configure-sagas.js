@@ -20,6 +20,7 @@ import routeSaga from '../actions/route-tree'
 import sagaMonitor from './saga-monitor'
 import searchSaga from '../actions/search'
 import settingsSaga from '../actions/settings'
+import signupSaga from '../actions/signup'
 import teamsSaga from '../actions/teams'
 import trackerSaga from '../actions/tracker'
 import unlockFoldersSaga from '../actions/unlock-folders'
@@ -56,6 +57,7 @@ function* mainSaga(): SagaGenerator<any, any> {
   yield fork(gitSaga)
   yield fork(peopleSaga)
   yield fork(walletsSaga)
+  yield fork(signupSaga)
 }
 
 let middleWare

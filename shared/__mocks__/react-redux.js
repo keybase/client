@@ -1,6 +1,10 @@
 // @noflow
 import * as redux from '../node_modules/react-redux'
 
+if (!__STORYBOOK__) {
+  throw new Error('Invalid load of mock')
+}
+
 // Replaces redux.connect with an implementation that accesses
 // custom prop factories in the `store`
 
