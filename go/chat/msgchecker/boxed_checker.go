@@ -61,5 +61,9 @@ func checkMessageBoxedLength(msg chat1.MessageBoxed) error {
 }
 
 func CheckMessageBoxed(msg chat1.MessageBoxed) error {
-	return checkMessageBoxedLength(msg)
+	switch msg.ClientHeader.Conv.TopicType {
+	case chat1.TopicType_NONE, chat1.TopicType_CHAT:
+		return checkMessageBoxedLength(msg)
+	}
+	return nil
 }

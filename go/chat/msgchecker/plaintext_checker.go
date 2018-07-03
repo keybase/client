@@ -105,5 +105,10 @@ func checkMessagePlaintextLength(msg chat1.MessagePlaintext) error {
 }
 
 func CheckMessagePlaintext(msg chat1.MessagePlaintext) error {
-	return checkMessagePlaintextLength(msg)
+	// only check this for chat topic type (or unknown to be safe)
+	switch msg.ClientHeader.Conv.TopicType {
+	case chat1.TopicType_NONE, chat1.TopicType_CHAT:
+		return checkMessagePlaintextLength(msg)
+	}
+	return nil
 }
