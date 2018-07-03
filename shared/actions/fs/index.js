@@ -280,6 +280,24 @@ function cancelDownload({payload: {key}}: FsGen.CancelDownloadPayload, state: Ty
   return Saga.call(RPCTypes.SimpleFSSimpleFSCancelRpcPromise, {opID})
 }
 
+const getWaitDuration = (endEstimate: ?number, lower: number, upper: number): number => {
+  if (!endEstimate) {
+    return upper
+  }
+
+  const diff = endEstimate - Date.now()
+
+  if (diff < lower) {
+    return lower
+  }
+
+  if (diff > upper) {
+    return upper
+  }
+
+  return diff
+}
+
 let polling = false
 function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
   if (polling) {
@@ -318,7 +336,7 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
       yield Saga.sequentially([
         Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true})),
         Saga.put(FsGen.createSetFlags({syncing: true})),
-        Saga.delay(2000),
+        Saga.delay(getWaitDuration(endEstimate, 100, 2000)),
       ])
     }
   } finally {
