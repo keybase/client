@@ -142,7 +142,7 @@ class Inbox extends PureComponent<Props, State> {
       <ErrorBoundary>
         <div style={_containerStyle}>
           {this.props.showNewChat ? (
-            <StartNewChat onNewChat={this.props.onNewChat} />
+            <StartNewChat onNewChat={this._prepareNewChat} />
           ) : (
             <ChatFilterRow
               isLoading={this.props.isLoading}

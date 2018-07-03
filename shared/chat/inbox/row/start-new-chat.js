@@ -10,14 +10,13 @@ type Props = {
 const StartNewChat = (props: Props) => {
   return (
     <Box style={styleContainer}>
-      <ClickableBox style={{...stylesClickableBox}} onClick={() => undefined}>
+      <ClickableBox style={{...stylesClickableBox}} onClick={props.onNewChat}>
         <Icon
           type="iconfont-compose"
           style={propsIconPlatform.style}
           color={propsIconPlatform.color}
           hoverColor="inital"
           fontSize={propsIconPlatform.fontSize}
-          onClick={props.onNewChat}
         />
         <Text type="BodyBigLink" style={{margin: globalMargins.tiny}}>
           Start a new chat
