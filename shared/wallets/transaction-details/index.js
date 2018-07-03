@@ -1,18 +1,19 @@
 // @flow
 import * as React from 'react'
+import * as Types from '../../constants/types/wallets'
 import {Box2, Divider, Icon, NameWithIcon, Text} from '../../common-adapters'
 import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import Transaction, {CounterpartyIcon, CounterpartyText, Timestamp} from '../transaction'
 
 type Role = 'sender' | 'receiver'
-type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'wallet'
 
 export type Props = {|
   amountUser: string,
   amountXLM: string,
   counterparty: string,
   counterpartyMeta?: string,
-  counterpartyType: CounterpartyType,
+  counterpartyType: Types.CounterpartyType,
+  delta: 'increase' | 'decrease',
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
   memo: string,
@@ -28,7 +29,7 @@ export type Props = {|
 type CounterpartyProps = {|
   counterparty: string,
   counterpartyMeta?: string,
-  counterpartyType: CounterpartyType,
+  counterpartyType: Types.CounterpartyType,
   isYou: boolean,
   you: string,
   yourRole: Role,
@@ -81,6 +82,7 @@ const TransactionDetails = (props: Props) => (
       amountXLM={props.amountXLM}
       counterparty={props.counterparty}
       counterpartyType={props.counterpartyType}
+      delta={props.delta}
       large={true}
       memo={props.memo}
       timestamp={props.timestamp}
