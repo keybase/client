@@ -60,6 +60,9 @@
         "secretKey": "HiddenString",
         "error": "string"
       }
+    },
+    "clearErrors": {
+      "_description": "Clear errors from the store at times like opening or closing a form dialog."
     }
   }
 }

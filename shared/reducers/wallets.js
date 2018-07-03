@@ -23,6 +23,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return action.error ? state.set('accountNameError', action.payload.error) : state
     case WalletsGen.validateSecretKey:
       return action.error ? state.set('secretKeyError', action.payload.error) : state
+    case WalletsGen.clearErrors:
+      return state.set('secretKeyError', '').set('accountNameError', '')
     // Saga only actions
     case WalletsGen.loadAssets:
     case WalletsGen.loadPayments:
