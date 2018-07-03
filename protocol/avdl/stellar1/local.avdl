@@ -64,7 +64,7 @@ protocol local {
     string source;                  // keybase username or stellar public key
     ParticipantType sourceType;     // keybase or stellar
     string target;                  // keybase username, stellar public key, or sbs assertion
-    ParticipantType targetType;     // keybase, stellar, or sbs"
+    ParticipantType targetType;     // keybase, stellar, or sbs
 
     string note;                    // secret note
     string noteErr;
@@ -98,7 +98,7 @@ protocol local {
     string source;                  // keybase username or stellar public key
     ParticipantType sourceType;     // keybase or stellar
     string target;                  // keybase username, stellar public key, or sbs assertion
-    ParticipantType targetType;     // keybase, stellar, or sbs"
+    ParticipantType targetType;     // keybase, stellar, or sbs
 
     string note;                    // secret note
     string noteErr;
