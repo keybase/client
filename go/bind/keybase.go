@@ -344,7 +344,7 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 
-	defer kbCtx.CTrace(ctx, fmt.Sprintf("DisplayPlaintextNotification(%s,%v,%d,%d,%s,%d,%d)",
+	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%v,%d,%d,%s,%d,%d)",
 		strConvID, displayPlaintext, intMembersType, intMessageID, pushID, badgeCount, unixTime),
 		func() error { return err })()
 
@@ -353,9 +353,13 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 		return err
 	}
 
+	if !displayPlaintext {
+		return nil
+	}
+
 	age := time.Since(time.Unix(int64(unixTime), 0))
 	if age >= 15*time.Second {
-		kbCtx.Log.CDebugf(ctx, "DisplayPlaintextNotification: stale notification: %v", age)
+		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: stale notification: %v", age)
 		return errors.New("stale notification")
 	}
 	// Send up the local notification with our message
