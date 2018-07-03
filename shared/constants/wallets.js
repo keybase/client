@@ -90,6 +90,10 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   if (!w.payment) {
     return makePayment({error: w.err})
   }
+  if (w.payment.statusSimplified === RPCTypes.localPaymentStatus.error) {
+    // TODO make payment w/ error info when view is finished
+    return null
+  }
   const p = w.payment
   return makePayment({
     amountDescription: p.amountDescription,
@@ -111,11 +115,36 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   })
 }
 
+const paymentToCounterpartyType = (p: Types.Payment): Types.CounterpartyType => {
+  let partyType = p.delta === 'increase' ? p.sourceType : p.targetType
+  switch (partyType) {
+    case 'sbs':
+    case 'keybase':
+      if (p.source === p.target) {
+        return 'account'
+      }
+      return 'keybaseUser'
+    case 'stellar':
+      return 'stellarPublicKey'
+  }
+  return 'stellarPublicKey'
+}
+
+const paymentToYourRole = (p: Types.Payment, username: string): 'sender' | 'receiver' => {
+  return p.delta === 'increase' ? 'receiver' : 'sender'
+}
+
 const loadEverythingWaitingKey = 'wallets:loadEverything'
 
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
 const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
+
+const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
+  state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), I.List())
+
+const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: string) =>
+  state.wallets.paymentsMap.get(accountID, I.List()).find(p => p.id === paymentID) || makePayment()
 
 const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
@@ -128,6 +157,12 @@ const linkExistingWaitingKey = 'wallets:linkExisting'
 export {
   accountResultToAccount,
   assetsResultToAssets,
+  getAccountIDs,
+  getAccount,
+  getAssets,
+  getPayment,
+  getPayments,
+  getSelectedAccount,
   linkExistingWaitingKey,
   loadEverythingWaitingKey,
   makeAccount,
@@ -136,8 +171,6 @@ export {
   makeReserve,
   makeState,
   paymentResultToPayment,
-  getAccountIDs,
-  getAccount,
-  getAssets,
-  getSelectedAccount,
+  paymentToCounterpartyType,
+  paymentToYourRole,
 }

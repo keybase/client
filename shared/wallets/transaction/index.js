@@ -1,17 +1,17 @@
 // @flow
 import * as React from 'react'
+import * as Types from '../../constants/types/wallets'
 import {Avatar, Box2, Divider, Icon, ConnectedUsernames, Markdown} from '../../common-adapters'
 import Text, {type TextType} from '../../common-adapters/text'
 import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {formatTimeForStellarTransaction, formatTimeForStellarTransactionDetails} from '../../util/timestamp'
 
 type Role = 'sender' | 'receiver'
-type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'wallet'
 
 type CounterpartyIconProps = {|
   large: boolean,
   counterparty: string,
-  counterpartyType: CounterpartyType,
+  counterpartyType: Types.CounterpartyType,
 |}
 
 export const CounterpartyIcon = (props: CounterpartyIconProps) => {
@@ -21,7 +21,7 @@ export const CounterpartyIcon = (props: CounterpartyIconProps) => {
       return <Avatar username={props.counterparty} size={size} />
     case 'stellarPublicKey':
       return <Icon type="icon-placeholder-secret-user-48" style={{height: size, width: size}} />
-    case 'wallet':
+    case 'account':
       return <Icon type="icon-wallet-add-48" style={{height: size, width: size}} />
     default:
       /*::
@@ -50,7 +50,7 @@ const StellarPublicKey = (props: StellarPublicKeyProps) => {
 type CounterpartyTextProps = {|
   large: boolean,
   counterparty: string,
-  counterpartyType: CounterpartyType,
+  counterpartyType: Types.CounterpartyType,
   showFullKey: boolean,
   textType?: 'Body' | 'BodySmall' | 'BodySemibold',
   textTypeSemibold?: 'BodySemibold' | 'BodySmallSemibold',
@@ -79,7 +79,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
           textType={textType}
         />
       )
-    case 'wallet':
+    case 'account':
       return props.large ? (
         <Text type={textType}>{props.counterparty}</Text>
       ) : (
@@ -92,6 +92,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
       */
       break
   }
+  return null
 }
 
 type DetailProps = {|
@@ -99,8 +100,9 @@ type DetailProps = {|
   pending: boolean,
   yourRole: Role,
   counterparty: string,
-  counterpartyType: CounterpartyType,
+  counterpartyType: Types.CounterpartyType,
   amountUser: string,
+  isXLM: boolean,
 |}
 
 const Detail = (props: DetailProps) => {
@@ -117,21 +119,27 @@ const Detail = (props: DetailProps) => {
       textTypeSemibold={textTypeSemibold}
     />
   )
-  const amount = <Text type={textTypeSemibold}>{props.amountUser}</Text>
+  const amount = props.isXLM ? (
+    <Text type={textTypeSemibold}>{props.amountUser}</Text>
+  ) : (
+    <React.Fragment>
+      Lumens worth <Text type={textTypeSemibold}>{props.amountUser}</Text>
+    </React.Fragment>
+  )
 
-  if (props.counterpartyType === 'wallet') {
+  if (props.counterpartyType === 'account') {
     const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
     if (props.yourRole === 'sender') {
       return (
         <Text type={textType}>
-          {verbPhrase} Lumens worth {amount} from this wallet to {counterparty}.
+          {verbPhrase} {amount} from this account to {counterparty}.
         </Text>
       )
     }
 
     return (
       <Text type={textType}>
-        {verbPhrase} Lumens worth {amount} from {counterparty} to this wallet.
+        {verbPhrase} {amount} from {counterparty} to this account.
       </Text>
     )
   }
@@ -140,7 +148,7 @@ const Detail = (props: DetailProps) => {
     const verbPhrase = props.pending ? 'Sending' : 'You sent'
     return (
       <Text type={textType}>
-        {verbPhrase} Lumens worth {amount} to {counterparty}.
+        {verbPhrase} {amount} to {counterparty}.
       </Text>
     )
   }
@@ -148,12 +156,13 @@ const Detail = (props: DetailProps) => {
   const verbPhrase = props.pending ? 'sending' : 'sent you'
   return (
     <Text type={textType}>
-      {counterparty} {verbPhrase} Lumens worth {amount}.
+      {counterparty} {verbPhrase} {amount}.
     </Text>
   )
 }
 
 type AmountXLMProps = {|
+  delta: 'increase' | 'decrease',
   yourRole: Role,
   amountXLM: string,
   pending: boolean,
@@ -162,12 +171,13 @@ type AmountXLMProps = {|
 const AmountXLM = (props: AmountXLMProps) => {
   const color = props.pending
     ? globalColors.black_20
-    : props.yourRole === 'sender'
+    : props.delta === 'decrease'
       ? globalColors.red
       : globalColors.green
-  const amount = `${props.yourRole === 'sender' ? '-' : '+'} ${props.amountXLM}`
+  const amount = `${props.amountXLM}`
   return (
     <Text style={{color, textAlign: 'right'}} type="BodyExtrabold">
+      {props.delta === 'increase' ? '+ ' : '- '}
       {amount}
     </Text>
   )
@@ -203,13 +213,16 @@ export const Timestamp = (props: TimestampProps) => {
 export type Props = {|
   large: boolean,
 
+  // whether account balance has increased or decreased
+  delta: 'increase' | 'decrease',
+
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
 
   yourRole: Role,
   counterparty: string,
-  counterpartyType: CounterpartyType,
-  amountUser: string,
+  counterpartyType: Types.CounterpartyType,
+  amountUser: string, // empty if sent with no display currency
   amountXLM: string,
 
   // Ignored if yourRole is receiver and counterpartyType is
@@ -246,7 +259,8 @@ export const Transaction = (props: Props) => {
             yourRole={props.yourRole}
             counterparty={props.counterparty}
             counterpartyType={props.counterpartyType}
-            amountUser={props.amountUser}
+            amountUser={props.amountUser || props.amountXLM}
+            isXLM={!props.amountUser}
           />
           {// TODO: Consolidate memo display code below with
           // chat/conversation/messages/wallet-payment/index.js.
@@ -261,7 +275,12 @@ export const Transaction = (props: Props) => {
               <Markdown allowFontScaling={true}>{props.memo}</Markdown>
             </Box2>
           )}
-          <AmountXLM pending={pending} yourRole={props.yourRole} amountXLM={props.amountXLM} />
+          <AmountXLM
+            delta={props.delta}
+            pending={pending}
+            yourRole={props.yourRole}
+            amountXLM={props.amountXLM}
+          />
         </Box2>
       </Box2>
     </Box2>

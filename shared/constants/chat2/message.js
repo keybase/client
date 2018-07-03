@@ -25,6 +25,67 @@ export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   }
 }
 
+// Map service message types to our message types.
+export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): Array<Types.MessageType> => {
+  switch (t) {
+    case RPCChatTypes.commonMessageType.text:
+      return ['text']
+    case RPCChatTypes.commonMessageType.attachment:
+      return ['attachment']
+    case RPCChatTypes.commonMessageType.metadata:
+      return ['setDescription']
+    case RPCChatTypes.commonMessageType.headline:
+      return ['setChannelname']
+    case RPCChatTypes.commonMessageType.attachmentuploaded:
+      return ['attachment']
+    case RPCChatTypes.commonMessageType.join:
+      return ['systemJoined']
+    case RPCChatTypes.commonMessageType.leave:
+      return ['systemLeft']
+    case RPCChatTypes.commonMessageType.system:
+      return [
+        'systemAddedToTeam',
+        'systemGitPush',
+        'systemInviteAccepted',
+        'systemSimpleToComplex',
+        'systemText',
+      ]
+    // mutations and other types we don't store directly
+    case RPCChatTypes.commonMessageType.none:
+    case RPCChatTypes.commonMessageType.edit:
+    case RPCChatTypes.commonMessageType.delete:
+    case RPCChatTypes.commonMessageType.tlfname:
+    case RPCChatTypes.commonMessageType.deletehistory:
+    case RPCChatTypes.commonMessageType.reaction:
+    case RPCChatTypes.commonMessageType.sendpayment:
+      return []
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllMessageTypesAbove: (t: empty) => any
+      // $FlowIssue can't figure out the preceding list is exhaustive
+      ifFlowErrorsHereItsCauseYouDidntHandleAllMessageTypesAbove(t);
+      */
+      return []
+  }
+}
+export const allMessageTypes: I.Set<Types.MessageType> = I.Set([
+  'attachment',
+  'deleted',
+  'setChannelname',
+  'setDescription',
+  'systemAddedToTeam',
+  'systemGitPush',
+  'systemInviteAccepted',
+  'systemJoined',
+  'systemLeft',
+  'systemSimpleToComplex',
+  'systemText',
+  'text',
+  'placeholder',
+])
+export const getDeletableByDeleteHistory = (state: TypedState) =>
+  (!!state.chat2.staticConfig && state.chat2.staticConfig.deletableByDeleteHistory) || allMessageTypes
+
 const makeMessageMinimum = {
   author: '',
   conversationIDKey: noConversationIDKey,

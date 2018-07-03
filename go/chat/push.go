@@ -616,7 +616,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			return
 		}
 		if g.badger != nil && gm.UnreadUpdate != nil {
-			g.badger.PushChatUpdate(*gm.UnreadUpdate, gm.InboxVers)
+			g.badger.PushChatUpdate(ctx, *gm.UnreadUpdate, gm.InboxVers)
 		}
 		if activity != nil {
 			g.notifyNewChatActivity(ctx, m.UID(), gm.TopicType, activity)
@@ -843,10 +843,10 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 		// Fire off badger updates
 		if g.badger != nil {
 			if update.UnreadUpdate != nil {
-				g.badger.PushChatUpdate(*update.UnreadUpdate, update.InboxVers)
+				g.badger.PushChatUpdate(ctx, *update.UnreadUpdate, update.InboxVers)
 			}
 			for _, upd := range update.UnreadUpdates {
-				g.badger.PushChatUpdate(upd, update.InboxVers)
+				g.badger.PushChatUpdate(ctx, upd, update.InboxVers)
 			}
 		}
 

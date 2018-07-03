@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
-import {Box2, ClickableBox, Divider, Icon, List, Text, iconCastPlatformStyles} from '../../common-adapters'
+import {Box2, ClickableBox, Divider, Icon, Text, iconCastPlatformStyles} from '../../common-adapters'
 import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
 
 export type Props = {
@@ -10,55 +10,71 @@ export type Props = {
   code: string, // The same as `name` except for XLM
   equivAvailableToSend: string, // non-empty only if native currency e.g. '$123.45 USD'
   equivBalance: string, // non-empty only if native currency
-  expanded: boolean,
   issuerName: string, // verified issuer domain name, 'Stellar network' or 'Unknown'
   issuerAccountID: string, // issuing public key
   name: string, // Asset code or 'Lumens'
   reserves: Types.Reserve[], // non-empty only if native currency
-  toggleExpanded: () => void,
 }
 
-export const Asset = (props: Props) => (
-  <Box2 direction="vertical" fullWidth={true}>
-    <ClickableBox onClick={props.toggleExpanded}>
-      <Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
-        <Box2 direction="horizontal" gap="tiny" style={styles.labelContainer}>
-          <Icon
-            type={props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-            style={iconCastPlatformStyles(styles.caret)}
-          />
-          <Box2 direction="vertical">
-            <Text type="BodySemibold" lineClamp={1}>
-              {props.name}
-            </Text>
-            <Text type="BodySmall" lineClamp={1}>
-              {props.issuerName}
-            </Text>
+type State = {
+  expanded: boolean,
+}
+
+export default class extends React.Component<Props, State> {
+  state = {expanded: false}
+
+  _toggleExpanded = () => {
+    this.setState(prevProps => ({
+      expanded: !prevProps.expanded,
+    }))
+  }
+
+  render() {
+    return (
+      <Box2 direction="vertical" fullWidth={true}>
+        <ClickableBox onClick={this._toggleExpanded}>
+          <Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
+            <Box2 direction="horizontal" gap="tiny" style={styles.labelContainer}>
+              <Icon
+                type={this.state.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
+                style={iconCastPlatformStyles(styles.caret)}
+              />
+              <Box2 direction="vertical">
+                <Text type="BodySemibold" lineClamp={1}>
+                  {this.props.name}
+                </Text>
+                <Text type="BodySmall" lineClamp={1}>
+                  {this.props.issuerName}
+                </Text>
+              </Box2>
+            </Box2>
+            <Box2 direction="vertical" style={styles.balanceContainer} fullHeight={true}>
+              <Text type="BodyExtrabold" lineClamp={1} style={{color: globalColors.purple2}}>
+                {this.props.balance} {this.props.code}
+              </Text>
+              <Text type="BodySmall" lineClamp={1}>
+                {this.props.equivBalance}
+              </Text>
+            </Box2>
           </Box2>
-        </Box2>
-        <Box2 direction="vertical" style={styles.balanceContainer} fullHeight={true}>
-          <Text type="BodyExtrabold" lineClamp={1} style={{color: globalColors.purple2}}>
-            {props.balance} {props.code}
-          </Text>
-          <Text type="BodySmall" lineClamp={1}>
-            {props.equivBalance}
-          </Text>
-        </Box2>
+        </ClickableBox>
+        {this.state.expanded && (
+          <Box2 direction="horizontal" fullWidth={true} style={styles.expandedRowContainer}>
+            {this.props.code === 'XLM' && (
+              <BalanceSummary
+                availableToSend={this.props.availableToSend}
+                equivAvailableToSend={this.props.equivAvailableToSend}
+                reserves={this.props.reserves}
+                total={this.props.balance}
+              />
+            )}
+            {!!this.props.issuerAccountID && <IssuerAccountID issuerAccountID={this.props.issuerAccountID} />}
+          </Box2>
+        )}
       </Box2>
-    </ClickableBox>
-    {props.expanded && (
-      <Box2 direction="horizontal" fullWidth={true} style={styles.expandedRowContainer}>
-        <BalanceSummary
-          availableToSend={props.availableToSend}
-          equivAvailableToSend={props.equivAvailableToSend}
-          reserves={props.reserves}
-          total={props.balance}
-        />
-        {!!props.issuerAccountID && <IssuerAccountID issuerAccountID={props.issuerAccountID} />}
-      </Box2>
-    )}
-  </Box2>
-)
+    )
+  }
+}
 
 type BalanceSummaryProps = {
   availableToSend: string,
@@ -120,10 +136,6 @@ const IssuerAccountID = (props: IssuerAccountIDProps) => (
 )
 
 const styles = styleSheetCreate({
-  assetHeader: {
-    backgroundColor: globalColors.blue5,
-    padding: globalMargins.xtiny,
-  },
   balanceContainer: {
     alignItems: 'flex-end',
     justifyContent: 'flex-start',
@@ -154,54 +166,3 @@ const styles = styleSheetCreate({
     flex: 1,
   },
 })
-
-export default Asset
-
-type AssetWrappedState = {
-  expanded: boolean,
-}
-
-export class AssetWrapped extends React.Component<Props, AssetWrappedState> {
-  state = {expanded: false}
-
-  _toggleExpanded = () => {
-    this.setState(prevProps => ({
-      expanded: !prevProps.expanded,
-    }))
-  }
-
-  render = () => (
-    <Asset {...this.props} expanded={this.state.expanded} toggleExpanded={this._toggleExpanded} />
-  )
-}
-
-type Row = {type: 'asset', asset: Props} | {type: 'header'}
-
-type AssetsProps = {
-  assets: Array<Row>,
-}
-
-const AssetHeader = () => (
-  <Box2 direction="vertical" fullWidth={true} style={styles.assetHeader}>
-    <Text type="BodySmallSemibold">Your assets</Text>
-  </Box2>
-)
-
-export class Assets extends React.Component<AssetsProps> {
-  _renderRow = (i: number, row: Row): React.Node => {
-    switch (row.type) {
-      case 'header':
-        return <AssetHeader />
-      case 'asset':
-        return <AssetWrapped {...row.asset} />
-      default:
-        /*::
-        declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-        ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(row.type);
-        */
-        throw new Error(`Impossible case encountered: ${row.type}`)
-    }
-  }
-
-  render = () => <List items={this.props.assets} renderItem={this._renderRow} keyProperty="key" />
-}

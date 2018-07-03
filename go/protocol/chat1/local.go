@@ -799,6 +799,16 @@ func (o MessageReaction) DeepCopy() MessageReaction {
 	}
 }
 
+type MessageSendPayment struct {
+	KbTxID string `codec:"kbTxID" json:"kbTxID"`
+}
+
+func (o MessageSendPayment) DeepCopy() MessageSendPayment {
+	return MessageSendPayment{
+		KbTxID: o.KbTxID,
+	}
+}
+
 type MessageBody struct {
 	MessageType__        MessageType                  `codec:"messageType" json:"messageType"`
 	Text__               *MessageText                 `codec:"text,omitempty" json:"text,omitempty"`
@@ -813,6 +823,7 @@ type MessageBody struct {
 	System__             *MessageSystem               `codec:"system,omitempty" json:"system,omitempty"`
 	Deletehistory__      *MessageDeleteHistory        `codec:"deletehistory,omitempty" json:"deletehistory,omitempty"`
 	Reaction__           *MessageReaction             `codec:"reaction,omitempty" json:"reaction,omitempty"`
+	Sendpayment__        *MessageSendPayment          `codec:"sendpayment,omitempty" json:"sendpayment,omitempty"`
 }
 
 func (o *MessageBody) MessageType() (ret MessageType, err error) {
@@ -875,6 +886,11 @@ func (o *MessageBody) MessageType() (ret MessageType, err error) {
 	case MessageType_REACTION:
 		if o.Reaction__ == nil {
 			err = errors.New("unexpected nil value for Reaction__")
+			return ret, err
+		}
+	case MessageType_SENDPAYMENT:
+		if o.Sendpayment__ == nil {
+			err = errors.New("unexpected nil value for Sendpayment__")
 			return ret, err
 		}
 	}
@@ -1001,6 +1017,16 @@ func (o MessageBody) Reaction() (res MessageReaction) {
 	return *o.Reaction__
 }
 
+func (o MessageBody) Sendpayment() (res MessageSendPayment) {
+	if o.MessageType__ != MessageType_SENDPAYMENT {
+		panic("wrong case accessed")
+	}
+	if o.Sendpayment__ == nil {
+		return
+	}
+	return *o.Sendpayment__
+}
+
 func NewMessageBodyWithText(v MessageText) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_TEXT,
@@ -1082,6 +1108,13 @@ func NewMessageBodyWithReaction(v MessageReaction) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_REACTION,
 		Reaction__:    &v,
+	}
+}
+
+func NewMessageBodyWithSendpayment(v MessageSendPayment) MessageBody {
+	return MessageBody{
+		MessageType__: MessageType_SENDPAYMENT,
+		Sendpayment__: &v,
 	}
 }
 
@@ -1172,6 +1205,13 @@ func (o MessageBody) DeepCopy() MessageBody {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Reaction__),
+		Sendpayment__: (func(x *MessageSendPayment) *MessageSendPayment {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Sendpayment__),
 	}
 }
 

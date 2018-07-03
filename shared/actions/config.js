@@ -95,6 +95,7 @@ const _retryBootstrap = () =>
 // TODO: It's unfortunate that we have these globals. Ideally,
 // bootstrap would be a method on an object.
 let bootstrapSetup = false
+let didInitialNav = false
 const routeStateStorage = new RouteStateStorage()
 
 // Until bootstrap is sagaized
@@ -125,7 +126,7 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
     })
     dispatch(registerListeners())
   } else {
-    logger.info('[bootstrap] performing bootstrap...')
+    logger.info('[bootstrap] performing bootstrap...', opts, didInitialNav)
     Promise.all([
       dispatch(getBootstrapStatus()),
       checkRPCOwnership(),
@@ -141,7 +142,8 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
           logger.flush()
         })
         dispatch(NotificationsGen.createListenForKBFSNotifications())
-        if (!opts.isReconnect) {
+        if (!didInitialNav) {
+          didInitialNav = true
           dispatch(async () => {
             await dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
             if (getState().config.loggedIn) {
