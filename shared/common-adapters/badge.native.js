@@ -50,42 +50,53 @@ const badgeStyles = styleSheetCreate({
 })
 
 export class Badge2 extends React.Component<Badge2Props, {}> {
+  static defaultProps = {
+    fontSize: 8,
+    radius: 10,
+    leftRightPadding: 3,
+    topBottomPadding: 3,
+  }
+
   render() {
     return (
-      <Box style={collapseStyles([badge2Styles.badge, this.props.style])}>
-        <Text type="BodyTinySemibold" style={collapseStyles([badge2Styles.text, this.props.numberStyle])}>
-          hi
+      <Box
+        style={collapseStyles([
+          badge2Styles.badge,
+          {
+            borderRadius: this.props.radius,
+            height: this.props.radius * 2,
+            minWidth: this.props.radius * 2,
+            paddingBottom: this.props.topBottomPadding,
+            paddingLeft: this.props.leftRightPadding,
+            paddingRight: this.props.leftRightPadding,
+            paddingTop: this.props.topBottomPadding,
+          },
+          this.props.style,
+        ])}
+      >
+        <Text
+          type="BodyTinySemibold"
+          style={collapseStyles([
+            badge2Styles.text,
+            this.props.numberStyle,
+            {fontSize: this.props.fontSize, lineHeight: this.props.fontSize + 5},
+          ])}
+        >
+          {this.props.number}
         </Text>
       </Box>
     )
   }
 }
 
-// ({number, radius, fontSize, style, numberStyle}: Badge2Props) {
-
-// }
-
-const radius = 100
-
-const leftRightPadding = 6
-const topBottomPadding = 4
-
 const badge2Styles = styleSheetCreate({
   badge: {
     ...globalStyles.flexBoxColumn,
     ...globalStyles.flexBoxCenter,
     backgroundColor: globalColors.orange,
-    borderRadius: radius,
-    minWidth: radius * 2,
-    minHeight: radius * 2,
-    paddingBottom: topBottomPadding,
-    paddingLeft: leftRightPadding,
-    paddingRight: leftRightPadding,
-    paddingTop: topBottomPadding,
   },
   text: {
     color: globalColors.white,
     textAlign: 'center',
-    fontSize: radius - 5,
   },
 })
