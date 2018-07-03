@@ -826,6 +826,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 				chat1.NewMessageBodyWithText(chat1.MessageText{
 					Body: fmt.Sprintf("%d", i+1),
 				}))
+			time.Sleep(100 * time.Millisecond)
 		}
 
 		_, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
