@@ -1,11 +1,9 @@
 // @flow
 import * as React from 'react'
 import Button, {type Props as ButtonProps} from './button'
-import {compose, connect, setDisplayName, withStateHandlers, type TypedState} from '../util/container'
+import {connect, type TypedState} from '../util/container'
 
 export type WaitingButtonProps = {
-  localWaiting: boolean,
-  onSetWaiting: (waiting: boolean) => void,
   storeWaiting: boolean,
   waitingKey: ?string,
 }
@@ -22,23 +20,23 @@ export type WaitingButtonProps = {
  *  waiting store (store.waiting), which will be set by a saga somewhere.
  */
 
-class WaitingButton extends React.PureComponent<ButtonProps & WaitingButtonProps> {
+class WaitingButton extends React.PureComponent<ButtonProps & WaitingButtonProps, {localWaiting: boolean}> {
+  state = {localWaiting: false}
+
   _onClick = (event: SyntheticEvent<>) => {
     if (!this.props.waitingKey) {
-      this.props.onSetWaiting(true)
+      this.setState({localWaiting: true})
     }
     this.props.onClick && this.props.onClick(event)
   }
 
-  render() {
-    return (
-      <Button
-        {...this.props}
-        onClick={this._onClick}
-        waiting={this.props.storeWaiting || this.props.localWaiting}
-      />
-    )
-  }
+  render = () => (
+    <Button
+      {...this.props}
+      onClick={this._onClick}
+      waiting={this.props.storeWaiting || this.state.localWaiting}
+    />
+  )
 }
 
 const mapStateToProps = (state: TypedState, ownProps) => {
@@ -48,12 +46,6 @@ const mapStateToProps = (state: TypedState, ownProps) => {
   }
 }
 
-export const ConnectedWaitingButton = compose(
-  connect(mapStateToProps),
-  setDisplayName('WaitingButton'),
-  withStateHandlers(({localWaiting: boolean}) => ({localWaiting: false}), {
-    onSetWaiting: () => (localWaiting: boolean) => ({localWaiting}),
-  })
-)(WaitingButton)
+export const ConnectedWaitingButton = connect(mapStateToProps)(WaitingButton)
 
 export default ConnectedWaitingButton
