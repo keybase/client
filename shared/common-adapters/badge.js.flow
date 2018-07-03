@@ -1,5 +1,6 @@
 // @flow
 import {Component} from 'react'
+import type {StylesCrossPlatform} from '../styles'
 
 export type BadgeProps = {
   badgeNumber: ?number,
@@ -14,8 +15,8 @@ export type Badge2Props = {
   fontSize: number,
   leftRightPadding: number,
   topBottomPadding: number,
-  badgeStyle?: any,
-  badgeNumberStyle?: Object,
+  badgeStyle?: StylesCrossPlatform,
+  badgeNumberStyle?: StylesCrossPlatform,
 }
 
 export type DefaultBadge2Props = {
