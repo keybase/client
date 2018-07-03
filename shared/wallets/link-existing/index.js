@@ -11,38 +11,44 @@ type Props = {
   onDone: () => void,
   onNameChange: string => void,
   onKeyChange: string => void,
-  onViewChange: View => void,
   name: string,
+}
+
+type State = {
   view: View,
 }
 
-const LinkWallet = (props: Props) => {
-  switch (props.view) {
-    case 'key':
-      return (
-        <EnterKey
-          secretKey={props.secretKey}
-          onCancel={props.onCancel}
-          onKeyChange={props.onKeyChange}
-          onNext={() => props.onViewChange('name')}
-        />
-      )
-    case 'name':
-      return (
-        <EnterName
-          name={props.name}
-          onBack={() => props.onViewChange('key')}
-          onCancel={props.onCancel}
-          onNameChange={props.onNameChange}
-          onDone={props.onDone}
-        />
-      )
-    default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (view: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(props.view);
-      */
-      throw new Error('LinkExistingWallet: Unexpected value for `view` encountered: ' + props.view)
+class LinkWallet extends React.Component<Props, State> {
+  state = {view: 'key'}
+  _onViewChange = (view: View) => this.setState(s => (s.view !== view ? {view} : null))
+  render() {
+    switch (this.state.view) {
+      case 'key':
+        return (
+          <EnterKey
+            secretKey={this.props.secretKey}
+            onCancel={this.props.onCancel}
+            onKeyChange={this.props.onKeyChange}
+            onNext={() => this._onViewChange('name')}
+          />
+        )
+      case 'name':
+        return (
+          <EnterName
+            name={this.props.name}
+            onBack={() => this._onViewChange('key')}
+            onCancel={this.props.onCancel}
+            onNameChange={this.props.onNameChange}
+            onDone={this.props.onDone}
+          />
+        )
+      default:
+        /*::
+        declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (view: empty) => any
+        ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(this.state.view);
+        */
+        throw new Error('LinkExistingWallet: Unexpected value for `view` encountered: ' + this.state.view)
+    }
   }
 }
 
@@ -162,7 +168,6 @@ const EnterName = (props: EnterNameProps) => (
 type WrapperState = {|
   secretKey: string,
   name: string,
-  view: View,
 |}
 
 type WrapperProps = {
@@ -171,10 +176,9 @@ type WrapperProps = {
 }
 
 class Wrapper extends React.Component<WrapperProps, WrapperState> {
-  state = {secretKey: '', name: '', view: 'key'}
+  state = {secretKey: '', name: ''}
   _onKeyChange = (secretKey: string) => this.setState({secretKey})
   _onNameChange = (name: string) => this.setState({name})
-  _onViewChange = (view: View) => this.setState({view})
   _onDone = () => this.props.onDone(this.state.secretKey, this.state.name)
   render() {
     return (
@@ -184,7 +188,6 @@ class Wrapper extends React.Component<WrapperProps, WrapperState> {
         onDone={this._onDone}
         onKeyChange={this._onKeyChange}
         onNameChange={this._onNameChange}
-        onViewChange={this._onViewChange}
       />
     )
   }
