@@ -1050,3 +1050,168 @@ func NewDummyAssetDeleter() DummyAssetDeleter {
 // DeleteAssets implements github.com/keybase/go/chat/storage/storage.AssetDeleter interface.
 func (d DummyAssetDeleter) DeleteAssets(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, assets []chat1.Asset) {
 }
+
+func MockSentMessages(g *libkb.GlobalContext, t libkb.TestingTB) []MockMessage {
+	if g.ChatHelper == nil {
+		t.Fatal("ChatHelper is nil")
+	}
+	mch, ok := g.ChatHelper.(*MockChatHelper)
+	if !ok {
+		t.Fatalf("ChatHelper isn't a mock: %T", g.ChatHelper)
+	}
+	return mch.SentMessages
+}
+
+// MockMessage only supports what we're currently testing (system message for git push).
+type MockMessage struct {
+	name        string
+	topicName   *string
+	membersType chat1.ConversationMembersType
+	ident       keybase1.TLFIdentifyBehavior
+	Body        chat1.MessageBody
+	MsgType     chat1.MessageType
+}
+
+type MockChatHelper struct {
+	SentMessages []MockMessage
+	convs        map[string]chat1.ConversationLocal
+}
+
+var _ libkb.ChatHelper = (*MockChatHelper)(nil)
+
+func NewMockChatHelper() *MockChatHelper {
+	return &MockChatHelper{
+		convs: make(map[string]chat1.ConversationLocal),
+	}
+}
+
+func (m *MockChatHelper) SendTextByID(ctx context.Context, convID chat1.ConversationID,
+	trip chat1.ConversationIDTriple, tlfName string, text string) error {
+	return nil
+}
+func (m *MockChatHelper) SendMsgByID(ctx context.Context, convID chat1.ConversationID,
+	trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
+	return nil
+}
+func (m *MockChatHelper) SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
+	trip chat1.ConversationIDTriple, tlfName string, text string) error {
+	return nil
+}
+func (m *MockChatHelper) SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
+	trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
+	return nil
+}
+func (m *MockChatHelper) SendTextByName(ctx context.Context, name string, topicName *string,
+	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error {
+	rb, err := libkb.RandBytes(10)
+	if err != nil {
+		return err
+	}
+	// use this to fake making channels...
+	_, ok := m.convs[m.convKey(name, topicName)]
+	if !ok {
+		v := chat1.MessageUnboxedValid{
+			ClientHeader: chat1.MessageClientHeaderVerified{
+				MessageType: chat1.MessageType_METADATA,
+			},
+			MessageBody: chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: *topicName}),
+		}
+		md := chat1.NewMessageUnboxedWithValid(v)
+		m.convs[m.convKey(name, topicName)] = chat1.ConversationLocal{
+			Info: chat1.ConversationInfoLocal{
+				Id: rb,
+			},
+			MaxMessages: []chat1.MessageUnboxed{md},
+		}
+	}
+
+	return nil
+}
+func (m *MockChatHelper) SendMsgByName(ctx context.Context, name string, topicName *string,
+	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
+	msgType chat1.MessageType) error {
+	m.SentMessages = append(m.SentMessages, MockMessage{
+		name:        name,
+		topicName:   topicName,
+		membersType: membersType,
+		ident:       ident,
+		Body:        body,
+		MsgType:     msgType,
+	})
+	return nil
+}
+func (m *MockChatHelper) SendTextByNameNonblock(ctx context.Context, name string, topicName *string,
+	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error {
+	return nil
+}
+func (m *MockChatHelper) SendMsgByNameNonblock(ctx context.Context, name string, topicName *string,
+	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
+	msgType chat1.MessageType) error {
+	m.SentMessages = append(m.SentMessages, MockMessage{
+		name:        name,
+		topicName:   topicName,
+		membersType: membersType,
+		ident:       ident,
+		Body:        body,
+		MsgType:     msgType,
+	})
+	return nil
+}
+
+func (m *MockChatHelper) FindConversations(ctx context.Context, userLocalData bool, name string,
+	topicName *string, topicType chat1.TopicType,
+	membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error) {
+
+	conv, ok := m.convs[m.convKey(name, topicName)]
+	if ok {
+		return []chat1.ConversationLocal{conv}, nil
+	}
+
+	return nil, nil
+}
+
+func (m *MockChatHelper) FindConversationsByID(ctx context.Context, convIDs []chat1.ConversationID) (convs []chat1.ConversationLocal, err error) {
+	for _, id := range convIDs {
+		for _, v := range m.convs {
+			if bytes.Equal(v.Info.Id, id) {
+				convs = append(convs, v)
+			}
+		}
+	}
+	return convs, nil
+}
+
+func (m *MockChatHelper) GetChannelTopicName(ctx context.Context, teamID keybase1.TeamID,
+	topicType chat1.TopicType, convID chat1.ConversationID) (string, error) {
+	for _, v := range m.convs {
+		if v.Info.Id.Eq(convID) {
+			return utils.GetTopicName(v), nil
+		}
+	}
+	return "", fmt.Errorf("MockChatHelper.GetChannelTopicName conv not found %v", convID)
+}
+
+func (m *MockChatHelper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	public bool) error {
+	return nil
+}
+
+func (m *MockChatHelper) GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error) {
+	return nil, nil
+}
+
+func (m *MockChatHelper) AckMobileNotificationSuccess(ctx context.Context, pushIDs []string) {
+}
+
+func (m *MockChatHelper) UnboxMobilePushNotification(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, membersType chat1.ConversationMembersType, payload string) (string, error) {
+	return "", nil
+}
+
+func (m *MockChatHelper) convKey(name string, topicName *string) string {
+	if topicName == nil {
+		return name + ":general"
+	}
+	return name + ":" + *topicName
+}

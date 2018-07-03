@@ -1888,8 +1888,12 @@ func (n *serverChatListener) ChatInboxStale(uid keybase1.UID) {
 func (n *serverChatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationStaleUpdate) {
 	n.threadsStale <- cids
 }
-func (n *serverChatListener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult) {
-	n.inboxSynced <- syncRes
+func (n *serverChatListener) ChatInboxSynced(uid keybase1.UID, topicType chat1.TopicType,
+	syncRes chat1.ChatSyncResult) {
+	switch topicType {
+	case chat1.TopicType_CHAT, chat1.TopicType_NONE:
+		n.inboxSynced <- syncRes
+	}
 }
 func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 	typ, _ := activity.ActivityType()

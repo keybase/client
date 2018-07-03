@@ -18,7 +18,7 @@ const loadAccountsSuccess = (res: ?Array<Types.Account>) =>
 const loadAssets = (action: WalletsGen.LoadAssetsPayload) =>
   Saga.call(RPCTypes.localGetAccountAssetsLocalRpcPromise, {accountID: action.payload.accountID})
 
-const loadAssetsSuccess = (res: any, action: WalletsGen.LoadAssetsPayload) => {
+const loadAssetsSuccess = (res: ?Array<RPCTypes.AccountAssetLocal>, action: WalletsGen.LoadAssetsPayload) => {
   const {accountID} = action.payload
   return Saga.put(
     WalletsGen.createAssetsReceived({
@@ -31,12 +31,12 @@ const loadAssetsSuccess = (res: any, action: WalletsGen.LoadAssetsPayload) => {
 const loadPayments = (action: WalletsGen.LoadPaymentsPayload) =>
   Saga.call(RPCTypes.localGetPaymentsLocalRpcPromise, {accountID: action.payload.accountID})
 
-const loadPaymentsSuccess = (res: any, action: WalletsGen.LoadPaymentsPayload) => {
+const loadPaymentsSuccess = (res: RPCTypes.PaymentsPageLocal, action: WalletsGen.LoadPaymentsPayload) => {
   const {accountID} = action.payload
   return Saga.put(
     WalletsGen.createPaymentsReceived({
       accountID,
-      payments: res.payments.map(elem => Constants.paymentResultToPayment(elem)),
+      payments: (res.payments || []).map(elem => Constants.paymentResultToPayment(elem)).filter(Boolean),
     })
   )
 }

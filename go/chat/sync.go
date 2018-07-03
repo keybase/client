@@ -292,7 +292,9 @@ func (s *Syncer) filterNotifyConvs(ctx context.Context, convs []chat1.Conversati
 		switch conv.GetMembersType() {
 		case chat1.ConversationMembersType_TEAM:
 			// include if this is a simple team, or the topic name has changed
-			if conv.Metadata.TeamType != chat1.TeamType_COMPLEX || m[conv.GetConvID().String()] ||
+			if conv.GetTopicType() != chat1.TopicType_CHAT ||
+				conv.Metadata.TeamType != chat1.TeamType_COMPLEX ||
+				m[conv.GetConvID().String()] ||
 				conv.GetConvID().Eq(s.GetSelectedConversation()) {
 				include = true
 			}
@@ -308,11 +310,21 @@ func (s *Syncer) filterNotifyConvs(ctx context.Context, convs []chat1.Conversati
 
 func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid keybase1.UID,
 	allConvs []chat1.UnverifiedInboxUIItem) {
+	if len(allConvs) == 0 {
+		s.Debug(ctx, "notifyIncrementalSync: no conversations given, sending a current result")
+		s.G().NotifyRouter.HandleChatInboxSynced(ctx, uid, chat1.TopicType_NONE,
+			chat1.NewChatSyncResultWithCurrent())
+		return
+	}
 	m := make(map[chat1.TopicType][]chat1.UnverifiedInboxUIItem)
 	for _, c := range allConvs {
 		m[c.TopicType] = append(m[c.TopicType], c)
 	}
-	for topicType, convs := range m {
+	for _, topicType := range chat1.TopicTypeMap {
+		if topicType == chat1.TopicType_NONE {
+			continue
+		}
+		convs := m[topicType]
 		s.G().NotifyRouter.HandleChatInboxSynced(ctx, uid, topicType,
 			chat1.NewChatSyncResultWithIncremental(chat1.ChatSyncIncrementalInfo{
 				Items: convs,

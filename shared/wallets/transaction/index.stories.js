@@ -28,7 +28,7 @@ const longMemo =
   'Stellar deal!! You guys rock. This is to show a very long private note. Blah blah blah blah. Plus, emojis. 🍺'
 
 const addConfigs = (stories, namePrefix, storyFn) => {
-  const roles = [{yourRole: 'sender'}, {yourRole: 'receiver'}]
+  const roles = [{yourRole: 'sender', delta: 'decrease'}, {yourRole: 'receiver', delta: 'increase'}]
   const sizes = [{large: true}, {large: false}]
   const memosAndTimes = [
     {memo: shortMemo, timestamp: yesterday},
@@ -78,12 +78,21 @@ const load = () => {
       {...config}
     />
   ))
-  addConfigs(stories, 'Wallet', config => (
+  addConfigs(stories, 'Account', config => (
     <Transaction
-      counterparty="Second wallet"
-      counterpartyType="wallet"
+      counterparty="Second account"
+      counterpartyType="account"
       amountUser="$100"
       amountXLM="545.2562704 XLM"
+      {...config}
+    />
+  ))
+  addConfigs(stories, 'No display currency', config => (
+    <Transaction
+      counterparty="peter"
+      counterpartyType="keybaseUser"
+      amountUser=""
+      amountXLM="19.4567588 XLM"
       {...config}
     />
   ))
