@@ -321,6 +321,9 @@ func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid keybase1.UID,
 		m[c.TopicType] = append(m[c.TopicType], c)
 	}
 	for _, topicType := range chat1.TopicTypeMap {
+		if topicType == chat1.TopicType_NONE {
+			continue
+		}
 		convs := m[topicType]
 		s.G().NotifyRouter.HandleChatInboxSynced(ctx, uid, topicType,
 			chat1.NewChatSyncResultWithIncremental(chat1.ChatSyncIncrementalInfo{

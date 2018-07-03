@@ -49,7 +49,7 @@ type NotifyListener interface {
 		resolveInfo chat1.ConversationResolveInfo)
 	ChatInboxStale(uid keybase1.UID)
 	ChatThreadsStale(uid keybase1.UID, updates []chat1.ConversationStaleUpdate)
-	ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult)
+	ChatInboxSynced(uid keybase1.UID, topicType chat1.TopicType, syncRes chat1.ChatSyncResult)
 	ChatInboxSyncStarted(uid keybase1.UID)
 	ChatTypingUpdate([]chat1.ConvTypingUpdate)
 	ChatJoinedConversation(uid keybase1.UID, convID chat1.ConversationID, conv *chat1.InboxUIItem)
@@ -100,9 +100,11 @@ func (n *NoopNotifyListener) ChatTLFResolve(uid keybase1.UID, convID chat1.Conve
 func (n *NoopNotifyListener) ChatInboxStale(uid keybase1.UID) {}
 func (n *NoopNotifyListener) ChatThreadsStale(uid keybase1.UID, updates []chat1.ConversationStaleUpdate) {
 }
-func (n *NoopNotifyListener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult) {}
-func (n *NoopNotifyListener) ChatInboxSyncStarted(uid keybase1.UID)                          {}
-func (n *NoopNotifyListener) ChatTypingUpdate([]chat1.ConvTypingUpdate)                      {}
+func (n *NoopNotifyListener) ChatInboxSynced(uid keybase1.UID, topicType chat1.TopicType,
+	syncRes chat1.ChatSyncResult) {
+}
+func (n *NoopNotifyListener) ChatInboxSyncStarted(uid keybase1.UID)     {}
+func (n *NoopNotifyListener) ChatTypingUpdate([]chat1.ConvTypingUpdate) {}
 func (n *NoopNotifyListener) ChatJoinedConversation(uid keybase1.UID, convID chat1.ConversationID,
 	conv *chat1.InboxUIItem) {
 }
@@ -717,7 +719,8 @@ func (n *NotifyRouter) HandleChatInboxSynced(ctx context.Context, uid keybase1.U
 		return
 	}
 	var wg sync.WaitGroup
-	n.G().Log.CDebugf(ctx, "+ Sending ChatInboxSynced notification")
+	typ, _ := syncRes.SyncType()
+	n.G().Log.CDebugf(ctx, "+ Sending ChatInboxSynced notification: syncTyp: %v topicType: %v", typ, topicType)
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.shouldSendChatNotification(id, topicType) {
 			wg.Add(1)
@@ -735,7 +738,7 @@ func (n *NotifyRouter) HandleChatInboxSynced(ctx context.Context, uid keybase1.U
 	})
 	wg.Wait()
 	if n.listener != nil {
-		n.listener.ChatInboxSynced(uid, syncRes)
+		n.listener.ChatInboxSynced(uid, topicType, syncRes)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent ChatInboxSynced notification")
 }
