@@ -60,11 +60,15 @@ func (n *chatListener) ChatThreadsStale(uid keybase1.UID, updates []chat1.Conver
 		panic("timeout on the threads stale channel")
 	}
 }
-func (n *chatListener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult) {
-	select {
-	case n.inboxSynced <- syncRes:
-	case <-time.After(5 * time.Second):
-		panic("timeout on the threads stale channel")
+func (n *chatListener) ChatInboxSynced(uid keybase1.UID, topicType chat1.TopicType,
+	syncRes chat1.ChatSyncResult) {
+	switch topicType {
+	case chat1.TopicType_CHAT, chat1.TopicType_NONE:
+		select {
+		case n.inboxSynced <- syncRes:
+		case <-time.After(5 * time.Second):
+			panic("timeout on the threads stale channel")
+		}
 	}
 }
 func (n *chatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
