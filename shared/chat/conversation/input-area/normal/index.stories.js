@@ -9,7 +9,7 @@ import Input, {type Props as InputProps} from '.'
 import {isMobile} from '../../../../constants/platform'
 import {stringToConversationIDKey} from '../../../../constants/types/chat2'
 
-const provider = createPropProvider(PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'), {
+const provider = createPropProvider(PropProviders.Usernames(), {
   ChannelMentionHud: ownProps => {
     const channels = ['foo', 'bar']
     return {

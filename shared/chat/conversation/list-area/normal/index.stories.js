@@ -128,99 +128,95 @@ const ordinalToMessage = o => {
   return message
 }
 
-const provider = createPropProvider(
-  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both']),
-  {
-    Channel: p => ({name: p.name}),
-    Mention: p => ({username: p.username}),
-    BottomMessage: p => ({
-      showResetParticipants: null,
-      showSuperseded: null,
-      measure: null,
-    }),
-    TopMessage: p => ({
-      conversationIDKey,
-      hasOlderResetConversation: false,
-      showRetentionNotice: false,
-      loadMoreType: 'moreToLoad',
-      showTeamOffer: false,
-      measure: p.measure,
-    }),
-    MessageFactory: ({ordinal, previous, measure}) => ({
-      message: ordinalToMessage(ordinal),
-      previous: ordinalToMessage(previous),
-      isEditing: false,
-      measure,
-    }),
-    MessagePopupText: p => ({
-      attachTo: null,
-      author: 'a',
-      deviceName: 'a',
-      deviceRevokedAt: 0,
-      deviceType: 'mobile',
-      onCopy: action('oncopy'),
-      onDelete: null,
-      onDeleteMessageHistory: null,
-      onEdit: null,
-      onHidden: action('onhidden'),
-      onQuote: null,
-      onReplyPrivately: null,
-      onViewProfile: action('onviewprofile'),
-      position: 'top left',
-      showDivider: false,
-      timestamp: 0,
-      visible: false,
-      yourMessage: false,
-    }),
-    WrapperTimestamp: p => {
-      const {children, message, previous} = p
-      // Want to mimick the timestamp logic in WrapperTimestamp
-      const oldEnough = !!(
-        previous &&
-        previous.timestamp &&
-        message.timestamp &&
-        message.timestamp - previous.timestamp > Message.howLongBetweenTimestampsMs
-      )
-      return {
-        children,
-        message,
-        orangeLineAbove: false,
-        previous,
-        timestamp: !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null,
-      }
-    },
-    WrapperAuthor: p => ({
-      author: 'a',
-      exploded: false,
-      explodedBy: '',
-      explodesAt: 0,
-      exploding: false,
-      failureDescription: '',
-      includeHeader: false,
-      innerClass: p.innerClass,
-      isBroken: false,
-      isEdited: false,
-      isEditing: false,
-      isExplodingUnreadable: false,
-      isFollowing: false,
-      isRevoked: false,
-      isYou: false,
-      measure: p.measure,
-      message: p.message,
-      messageFailed: false,
-      messageKey: p.message.ordinal,
-      messagePending: false,
-      messageSent: true,
-      onRetry: null,
-      onEdit: null,
-      onCancel: null,
-      onAuthorClick: action('onAuthorclick'),
+const provider = createPropProvider(PropProviders.Usernames(), PropProviders.Avatar(), {
+  Channel: p => ({name: p.name}),
+  Mention: p => ({username: p.username}),
+  BottomMessage: p => ({
+    showResetParticipants: null,
+    showSuperseded: null,
+    measure: null,
+  }),
+  TopMessage: p => ({
+    conversationIDKey,
+    hasOlderResetConversation: false,
+    showRetentionNotice: false,
+    loadMoreType: 'moreToLoad',
+    showTeamOffer: false,
+    measure: p.measure,
+  }),
+  MessageFactory: ({ordinal, previous, measure}) => ({
+    message: ordinalToMessage(ordinal),
+    previous: ordinalToMessage(previous),
+    isEditing: false,
+    measure,
+  }),
+  MessagePopupText: p => ({
+    attachTo: null,
+    author: 'a',
+    deviceName: 'a',
+    deviceRevokedAt: 0,
+    deviceType: 'mobile',
+    onCopy: action('oncopy'),
+    onDelete: null,
+    onDeleteMessageHistory: null,
+    onEdit: null,
+    onHidden: action('onhidden'),
+    onQuote: null,
+    onReplyPrivately: null,
+    onViewProfile: action('onviewprofile'),
+    position: 'top left',
+    showDivider: false,
+    timestamp: 0,
+    visible: false,
+    yourMessage: false,
+  }),
+  WrapperTimestamp: p => {
+    const {children, message, previous} = p
+    // Want to mimick the timestamp logic in WrapperTimestamp
+    const oldEnough = !!(
+      previous &&
+      previous.timestamp &&
+      message.timestamp &&
+      message.timestamp - previous.timestamp > Message.howLongBetweenTimestampsMs
+    )
+    return {
+      children,
+      message,
       orangeLineAbove: false,
-      timestamp: '',
-    }),
-  }
-)
+      previous,
+      timestamp: !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null,
+    }
+  },
+  WrapperAuthor: p => ({
+    author: 'a',
+    exploded: false,
+    explodedBy: '',
+    explodesAt: 0,
+    exploding: false,
+    failureDescription: '',
+    includeHeader: false,
+    innerClass: p.innerClass,
+    isBroken: false,
+    isEdited: false,
+    isEditing: false,
+    isExplodingUnreadable: false,
+    isFollowing: false,
+    isRevoked: false,
+    isYou: false,
+    measure: p.measure,
+    message: p.message,
+    messageFailed: false,
+    messageKey: p.message.ordinal,
+    messagePending: false,
+    messageSent: true,
+    onRetry: null,
+    onEdit: null,
+    onCancel: null,
+    onAuthorClick: action('onAuthorclick'),
+    orangeLineAbove: false,
+    timestamp: '',
+  }),
+})
 
 type Props = {}
 type State = {|

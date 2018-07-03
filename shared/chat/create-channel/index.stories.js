@@ -6,10 +6,7 @@ import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 import {isMobile} from '../../constants/platform'
 import CreateChannel from '.'
 
-const provider = createPropProvider(
-  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
-)
+const provider = createPropProvider(PropProviders.Usernames(), PropProviders.Avatar())
 
 const load = () => {
   storiesOf('Chat/Teams', module)

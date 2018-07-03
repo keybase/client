@@ -25,10 +25,7 @@ const commonProps: Props = {
   waitingForResponse: false,
 }
 
-const provider = createPropProvider(
-  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
-)
+const provider = createPropProvider(PropProviders.Usernames(), PropProviders.Avatar())
 
 const load = () => {
   storiesOf('Login/Login', module)

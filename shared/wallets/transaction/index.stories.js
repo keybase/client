@@ -6,10 +6,7 @@ import {Box2} from '../../common-adapters'
 import {storiesOf, createPropProvider} from '../../stories/storybook'
 import Transaction from '.'
 
-const provider = createPropProvider(
-  PropProviders.Usernames(['paul'], 'john'),
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
-)
+const provider = createPropProvider(PropProviders.Usernames(), PropProviders.Avatar())
 
 const now = new Date()
 const yesterday = moment(now)

@@ -58,32 +58,28 @@ const commonExplodingProps = {
   visible: true,
 }
 
-const provider = createPropProvider(
-  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both']),
-  {
-    ExplodingPopup: (props: ExplodingOwnProps) => ({
-      attachTo: null,
-      author: props.message.author,
-      deviceName: props.message.deviceName,
-      deviceRevokedAt: props.message.deviceRevokedAt,
-      deviceType: props.message.deviceType,
-      explodesAt: props.message.explodingTime,
-      items: [
-        {danger: true, onClick: action('onExplodeNow'), title: 'Explode now'},
-        {danger: true, onClick: action('onDeleteHistory'), title: 'Delete this + everything above'},
-        ...(props.message.type === 'attachment'
-          ? [{onClick: action('onDownload'), title: 'Download'}]
-          : [{onClick: action('onEdit'), title: 'Edit'}, {onClick: action('onCopy'), title: 'Copy text'}]),
-      ],
-      onHidden: props.onHidden,
-      position: props.position,
-      timestamp: props.message.timestamp,
-      visible: props.visible,
-      yourMessage: props.message.author === 'cjb',
-    }),
-  }
-)
+const provider = createPropProvider(PropProviders.Usernames(), PropProviders.Avatar(), {
+  ExplodingPopup: (props: ExplodingOwnProps) => ({
+    attachTo: null,
+    author: props.message.author,
+    deviceName: props.message.deviceName,
+    deviceRevokedAt: props.message.deviceRevokedAt,
+    deviceType: props.message.deviceType,
+    explodesAt: props.message.explodingTime,
+    items: [
+      {danger: true, onClick: action('onExplodeNow'), title: 'Explode now'},
+      {danger: true, onClick: action('onDeleteHistory'), title: 'Delete this + everything above'},
+      ...(props.message.type === 'attachment'
+        ? [{onClick: action('onDownload'), title: 'Download'}]
+        : [{onClick: action('onEdit'), title: 'Edit'}, {onClick: action('onCopy'), title: 'Copy text'}]),
+    ],
+    onHidden: props.onHidden,
+    position: props.position,
+    timestamp: props.message.timestamp,
+    visible: props.visible,
+    yourMessage: props.message.author === 'cjb',
+  }),
+})
 
 const load = () => {
   storiesOf('Chat/Conversation/Message popup', module)
