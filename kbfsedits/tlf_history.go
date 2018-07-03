@@ -7,7 +7,9 @@ package kbfsedits
 import (
 	"container/heap"
 	"encoding/json"
+	"path"
 	"sort"
+	"strings"
 	"sync"
 )
 
@@ -168,6 +170,11 @@ func newRecomputer() *recomputer {
 	}
 }
 
+func ignoreFile(filename string) bool {
+	_, base := path.Split(filename)
+	return strings.HasPrefix(base, "._")
+}
+
 // processNotification adds the notification to the recomputer's
 // history if it is a create/modify for a file that hasn't yet been
 // deleted.  If the file is renamed in a future revision, the added
@@ -207,6 +214,11 @@ func (r *recomputer) processNotification(
 
 		// We only care about files, so skip dir and sym creates.
 		if notification.FileType != EntryTypeFile {
+			return false
+		}
+
+		// Ignore macOS dotfiles.
+		if ignoreFile(filename) {
 			return false
 		}
 

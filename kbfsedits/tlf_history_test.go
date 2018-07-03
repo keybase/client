@@ -134,6 +134,10 @@ func TestTlfHistoryMultipleWrites(t *testing.T) {
 	aliceModC := nn.make("c", NotificationModify, aliceUID, nil, time.Time{})
 	aliceMessages = append(aliceMessages, nn.encode(t))
 
+	// Alice writes to "._c", which should be ignored.
+	_ = nn.make("._c", NotificationModify, aliceUID, nil, time.Time{})
+	aliceMessages = append(aliceMessages, nn.encode(t))
+
 	expected := writersByRevision{
 		{aliceName, []NotificationMessage{aliceModC, aliceModA}},
 		{bobName, []NotificationMessage{bobModA, bobModC, bobCreateB}},
