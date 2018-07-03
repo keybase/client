@@ -74,7 +74,7 @@ class EditAvatar extends React.Component<Props> {
             >
               <NativeImage
                 resizeMode="contain"
-                source={{uri: `data:image/jpeg;base64,${this.props.image ? this.props.image.data : ''}`}}
+                source={{uri: `${this.props.image ? this.props.image.uri : ''}`}}
                 style={{
                   height: isIOS && this.props.image ? this.props.image.height : AVATAR_SIZE,
                   width: isIOS && this.props.image ? this.props.image.width : AVATAR_SIZE,
