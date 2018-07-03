@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -78,6 +79,21 @@ func (md modeDefault) BlockManagementEnabled() bool {
 
 func (md modeDefault) QuotaReclamationEnabled() bool {
 	return true
+}
+
+func (md modeDefault) QuotaReclamationPeriod() time.Duration {
+	return 1 * time.Minute
+}
+
+func (md modeDefault) QuotaReclamationMinUnrefAge() time.Duration {
+	return 1 * time.Minute
+}
+
+func (md modeDefault) QuotaReclamationMinHeadAge() time.Duration {
+	// How old must the most recent TLF revision be before another
+	// device can run QR on that TLF?  This is large, to avoid
+	// unnecessary conflicts on the TLF between devices.
+	return 24 * time.Hour
 }
 
 func (md modeDefault) NodeCacheEnabled() bool {
@@ -186,6 +202,18 @@ func (mm modeMinimal) QuotaReclamationEnabled() bool {
 	return false
 }
 
+func (mm modeMinimal) QuotaReclamationPeriod() time.Duration {
+	return 0
+}
+
+func (mm modeMinimal) QuotaReclamationMinUnrefAge() time.Duration {
+	return 0
+}
+
+func (mm modeMinimal) QuotaReclamationMinHeadAge() time.Duration {
+	return 0
+}
+
 func (mm modeMinimal) NodeCacheEnabled() bool {
 	// If we're in minimal mode, let the node cache remain nil to
 	// ensure that the user doesn't try any data reads or writes.
@@ -255,6 +283,18 @@ func (mso modeSingleOp) QuotaReclamationEnabled() bool {
 	return false
 }
 
+func (mso modeSingleOp) QuotaReclamationPeriod() time.Duration {
+	return 0
+}
+
+func (mso modeSingleOp) QuotaReclamationMinUnrefAge() time.Duration {
+	return 0
+}
+
+func (mso modeSingleOp) QuotaReclamationMinHeadAge() time.Duration {
+	return 0
+}
+
 func (mso modeSingleOp) TLFUpdatesEnabled() bool {
 	return false
 }
@@ -322,11 +362,21 @@ func (mc modeConstrained) ConflictResolutionEnabled() bool {
 }
 
 func (mc modeConstrained) QuotaReclamationEnabled() bool {
-	// Disable QR for mobile for now, until we add a new mode mothod to
-	// indicate that this device should only self-QR. Also need to verify that
-	// the QR timer doesn't cause app wakeups.
-	// See https://github.com/keybase/kbfs/pull/1616#discussion_r195269845
-	return false
+	return true
+}
+
+func (mc modeConstrained) QuotaReclamationPeriod() time.Duration {
+	return 1 * time.Minute
+}
+
+func (mc modeConstrained) QuotaReclamationMinUnrefAge() time.Duration {
+	return 1 * time.Minute
+}
+
+func (mc modeConstrained) QuotaReclamationMinHeadAge() time.Duration {
+	// Don't ever run QR in constrained mode unless this device was
+	// the most recent writer.
+	return 0
 }
 
 func (mc modeConstrained) KBFSServiceEnabled() bool {
@@ -365,4 +415,14 @@ type modeTest struct {
 
 func (mt modeTest) IsTestMode() bool {
 	return true
+}
+
+func (mt modeTest) QuotaReclamationPeriod() time.Duration {
+	// No auto-reclamation during testing.
+	return 0
+}
+
+func (mt modeTest) QuotaReclamationMinHeadAge() time.Duration {
+	// No min head age during testing.
+	return 0
 }

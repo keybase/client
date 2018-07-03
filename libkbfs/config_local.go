@@ -42,14 +42,6 @@ const (
 	rekeyWithPromptWaitTimeDefault = 10 * time.Minute
 	// see Config doc for the purpose of DelayedCancellationGracePeriod
 	delayedCancellationGracePeriodDefault = 2 * time.Second
-	// How often do we check for stuff to reclaim?
-	qrPeriodDefault = 1 * time.Minute
-	// How long must something be unreferenced before we reclaim it?
-	qrUnrefAgeDefault = 1 * time.Minute
-	// How old must the most recent TLF revision be before another
-	// device can run QR on that TLF?  This is large, to avoid
-	// unnecessary conflicts on the TLF between devices.
-	qrMinHeadAgeDefault = 24 * time.Hour
 	// tlfValidDurationDefault is the default for tlf validity before redoing identify.
 	tlfValidDurationDefault = 6 * time.Hour
 	// bgFlushDirOpThresholdDefault is the default for how many
@@ -117,9 +109,6 @@ type ConfigLocal struct {
 	traceLock    sync.RWMutex
 	traceEnabled bool
 
-	qrPeriod                       time.Duration
-	qrUnrefAge                     time.Duration
-	qrMinHeadAge                   time.Duration
 	delayedCancellationGracePeriod time.Duration
 
 	// allKnownConfigsForTesting is used for testing, and contains all created
@@ -437,10 +426,6 @@ func NewConfigLocal(mode InitMode,
 	config.rwpWaitTime = rekeyWithPromptWaitTimeDefault
 
 	config.delayedCancellationGracePeriod = delayedCancellationGracePeriodDefault
-	config.qrPeriod = qrPeriodDefault
-	config.qrUnrefAge = qrUnrefAgeDefault
-	config.qrMinHeadAge = qrMinHeadAgeDefault
-
 	// Don't bother creating the registry if UseNilMetrics is set, or
 	// if we're in minimal mode.
 	if !metrics.UseNilMetrics && config.Mode().MetricsEnabled() {
@@ -924,21 +909,6 @@ func (c *ConfigLocal) DelayedCancellationGracePeriod() time.Duration {
 // SetDelayedCancellationGracePeriod implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) SetDelayedCancellationGracePeriod(d time.Duration) {
 	c.delayedCancellationGracePeriod = d
-}
-
-// QuotaReclamationPeriod implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) QuotaReclamationPeriod() time.Duration {
-	return c.qrPeriod
-}
-
-// QuotaReclamationMinUnrefAge implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) QuotaReclamationMinUnrefAge() time.Duration {
-	return c.qrUnrefAge
-}
-
-// QuotaReclamationMinHeadAge implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) QuotaReclamationMinHeadAge() time.Duration {
-	return c.qrMinHeadAge
 }
 
 // ReqsBufSize implements the Config interface for ConfigLocal.

@@ -1857,6 +1857,17 @@ type InitMode interface {
 	// QuotaReclamationEnabled indicates whether we should be running
 	// the quota reclamation background process.
 	QuotaReclamationEnabled() bool
+	// QuotaReclamationPeriod indicates how often should each TLF
+	// should check for quota to reclaim.  If the Duration.Seconds()
+	// == 0, quota reclamation should not run automatically.
+	QuotaReclamationPeriod() time.Duration
+	// QuotaReclamationMinUnrefAge indicates the minimum time a block
+	// must have been unreferenced before it can be reclaimed.
+	QuotaReclamationMinUnrefAge() time.Duration
+	// QuotaReclamationMinHeadAge indicates the minimum age of the
+	// most recently merged MD update before we can run reclamation,
+	// to avoid conflicting with a currently active writer.
+	QuotaReclamationMinHeadAge() time.Duration
 	// NodeCacheEnabled indicates whether we should be caching data nodes.
 	NodeCacheEnabled() bool
 	// TLFUpdatesEnabled indicates whether we should be registering
@@ -1999,17 +2010,6 @@ type Config interface {
 	// conditions.
 	DelayedCancellationGracePeriod() time.Duration
 	SetDelayedCancellationGracePeriod(time.Duration)
-	// QuotaReclamationPeriod indicates how often should each TLF
-	// should check for quota to reclaim.  If the Duration.Seconds()
-	// == 0, quota reclamation should not run automatically.
-	QuotaReclamationPeriod() time.Duration
-	// QuotaReclamationMinUnrefAge indicates the minimum time a block
-	// must have been unreferenced before it can be reclaimed.
-	QuotaReclamationMinUnrefAge() time.Duration
-	// QuotaReclamationMinHeadAge indicates the minimum age of the
-	// most recently merged MD update before we can run reclamation,
-	// to avoid conflicting with a currently active writer.
-	QuotaReclamationMinHeadAge() time.Duration
 
 	// ResetCaches clears and re-initializes all data and key caches.
 	ResetCaches()

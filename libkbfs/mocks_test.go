@@ -6070,6 +6070,42 @@ func (mr *MockInitModeMockRecorder) QuotaReclamationEnabled() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QuotaReclamationEnabled", reflect.TypeOf((*MockInitMode)(nil).QuotaReclamationEnabled))
 }
 
+// QuotaReclamationPeriod mocks base method
+func (m *MockInitMode) QuotaReclamationPeriod() time.Duration {
+	ret := m.ctrl.Call(m, "QuotaReclamationPeriod")
+	ret0, _ := ret[0].(time.Duration)
+	return ret0
+}
+
+// QuotaReclamationPeriod indicates an expected call of QuotaReclamationPeriod
+func (mr *MockInitModeMockRecorder) QuotaReclamationPeriod() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QuotaReclamationPeriod", reflect.TypeOf((*MockInitMode)(nil).QuotaReclamationPeriod))
+}
+
+// QuotaReclamationMinUnrefAge mocks base method
+func (m *MockInitMode) QuotaReclamationMinUnrefAge() time.Duration {
+	ret := m.ctrl.Call(m, "QuotaReclamationMinUnrefAge")
+	ret0, _ := ret[0].(time.Duration)
+	return ret0
+}
+
+// QuotaReclamationMinUnrefAge indicates an expected call of QuotaReclamationMinUnrefAge
+func (mr *MockInitModeMockRecorder) QuotaReclamationMinUnrefAge() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QuotaReclamationMinUnrefAge", reflect.TypeOf((*MockInitMode)(nil).QuotaReclamationMinUnrefAge))
+}
+
+// QuotaReclamationMinHeadAge mocks base method
+func (m *MockInitMode) QuotaReclamationMinHeadAge() time.Duration {
+	ret := m.ctrl.Call(m, "QuotaReclamationMinHeadAge")
+	ret0, _ := ret[0].(time.Duration)
+	return ret0
+}
+
+// QuotaReclamationMinHeadAge indicates an expected call of QuotaReclamationMinHeadAge
+func (mr *MockInitModeMockRecorder) QuotaReclamationMinHeadAge() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QuotaReclamationMinHeadAge", reflect.TypeOf((*MockInitMode)(nil).QuotaReclamationMinHeadAge))
+}
+
 // NodeCacheEnabled mocks base method
 func (m *MockInitMode) NodeCacheEnabled() bool {
 	ret := m.ctrl.Call(m, "NodeCacheEnabled")
@@ -7132,42 +7168,6 @@ func (m *MockConfig) SetDelayedCancellationGracePeriod(arg0 time.Duration) {
 // SetDelayedCancellationGracePeriod indicates an expected call of SetDelayedCancellationGracePeriod
 func (mr *MockConfigMockRecorder) SetDelayedCancellationGracePeriod(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetDelayedCancellationGracePeriod", reflect.TypeOf((*MockConfig)(nil).SetDelayedCancellationGracePeriod), arg0)
-}
-
-// QuotaReclamationPeriod mocks base method
-func (m *MockConfig) QuotaReclamationPeriod() time.Duration {
-	ret := m.ctrl.Call(m, "QuotaReclamationPeriod")
-	ret0, _ := ret[0].(time.Duration)
-	return ret0
-}
-
-// QuotaReclamationPeriod indicates an expected call of QuotaReclamationPeriod
-func (mr *MockConfigMockRecorder) QuotaReclamationPeriod() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QuotaReclamationPeriod", reflect.TypeOf((*MockConfig)(nil).QuotaReclamationPeriod))
-}
-
-// QuotaReclamationMinUnrefAge mocks base method
-func (m *MockConfig) QuotaReclamationMinUnrefAge() time.Duration {
-	ret := m.ctrl.Call(m, "QuotaReclamationMinUnrefAge")
-	ret0, _ := ret[0].(time.Duration)
-	return ret0
-}
-
-// QuotaReclamationMinUnrefAge indicates an expected call of QuotaReclamationMinUnrefAge
-func (mr *MockConfigMockRecorder) QuotaReclamationMinUnrefAge() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QuotaReclamationMinUnrefAge", reflect.TypeOf((*MockConfig)(nil).QuotaReclamationMinUnrefAge))
-}
-
-// QuotaReclamationMinHeadAge mocks base method
-func (m *MockConfig) QuotaReclamationMinHeadAge() time.Duration {
-	ret := m.ctrl.Call(m, "QuotaReclamationMinHeadAge")
-	ret0, _ := ret[0].(time.Duration)
-	return ret0
-}
-
-// QuotaReclamationMinHeadAge indicates an expected call of QuotaReclamationMinHeadAge
-func (mr *MockConfigMockRecorder) QuotaReclamationMinHeadAge() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QuotaReclamationMinHeadAge", reflect.TypeOf((*MockConfig)(nil).QuotaReclamationMinHeadAge))
 }
 
 // ResetCaches mocks base method

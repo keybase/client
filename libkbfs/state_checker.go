@@ -108,7 +108,8 @@ func (sc *StateChecker) getLastGCData(ctx context.Context,
 
 	sc.log.CDebugf(ctx, "Last qr data for TLF %s: revTime=%s, rev=%d",
 		tlfID, latestTime, latestRev)
-	return latestTime.Add(-sc.config.QuotaReclamationMinUnrefAge()), latestRev
+	return latestTime.Add(
+		-sc.config.Mode().QuotaReclamationMinUnrefAge()), latestRev
 }
 
 // CheckMergedState verifies that the state for the given tlf is

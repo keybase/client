@@ -90,7 +90,7 @@ func testQuotaReclamation(t *testing.T, ctx context.Context, config Config,
 
 	// Increase the time and make a new revision, but don't run quota
 	// reclamation yet.
-	clock.Set(now.Add(2 * config.QuotaReclamationMinUnrefAge()))
+	clock.Set(now.Add(2 * config.Mode().QuotaReclamationMinUnrefAge()))
 	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "b")
 	if err != nil {
 		t.Fatalf("Couldn't create dir: %+v", err)
@@ -198,7 +198,7 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 
 	// Increase the time, and make sure that there is still more than
 	// one block in the history
-	clock.Set(now.Add(2 * config.QuotaReclamationMinUnrefAge()))
+	clock.Set(now.Add(2 * config.Mode().QuotaReclamationMinUnrefAge()))
 
 	// Run it.
 	ops := kbfsOps.(*KBFSOpsStandard).getOpsByNode(ctx, rootNode)
@@ -355,7 +355,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 		t.Fatalf("Couldn't get blocks: %+v", err)
 	}
 
-	clock.Set(now.Add(2 * config1.QuotaReclamationMinUnrefAge()))
+	clock.Set(now.Add(2 * config1.Mode().QuotaReclamationMinUnrefAge()))
 	ops1 := kbfsOps1.(*KBFSOpsStandard).getOpsByNode(ctx, rootNode1)
 	ops1.fbm.forceQuotaReclamation()
 	err = ops1.fbm.waitForQuotaReclamations(ctx)
@@ -455,7 +455,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 
 	// Delete any blocks that happened to be put during a failed (due
 	// to recoverable block errors) update.
-	clock.Set(now.Add(2 * config1.QuotaReclamationMinUnrefAge()))
+	clock.Set(now.Add(2 * config1.Mode().QuotaReclamationMinUnrefAge()))
 	ops1.fbm.forceQuotaReclamation()
 	err = ops1.fbm.waitForQuotaReclamations(ctx)
 	if err != nil {
@@ -543,7 +543,7 @@ func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
 
 	// Make sure QR returns an error.
 	ops := config2Dev2.KBFSOps().(*KBFSOpsStandard).getOpsByNode(ctx, rootNode1)
-	timer := time.NewTimer(config2Dev2.QuotaReclamationPeriod())
+	timer := time.NewTimer(config2Dev2.Mode().QuotaReclamationPeriod())
 	ops.fbm.reclamationGroup.Add(1)
 	err = ops.fbm.doReclamation(timer)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
@@ -576,6 +576,14 @@ func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
 	}
 }
 
+type modeTestWithQR struct {
+	InitMode
+}
+
+func (mtwqr modeTestWithQR) IsTestMode() bool {
+	return true
+}
+
 // Test that quota reclamation doesn't run unless the current head is
 // at least the minimum needed age.
 func TestQuotaReclamationMinHeadAge(t *testing.T) {
@@ -584,11 +592,11 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	clock := newTestClockNow()
 	config1.SetClock(clock)
+	// Re-enable QR in test mode.
+	config1.mode = modeTestWithQR{NewInitModeFromType(InitDefault)}
 
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
-
-	config2.qrMinHeadAge = qrMinHeadAgeDefault
 
 	name := u1.String() + "," + u2.String()
 
@@ -606,7 +614,7 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 
 	// Increase the time and make a new revision, and make sure quota
 	// reclamation doesn't run.
-	clock.Add(2 * config2.QuotaReclamationMinUnrefAge())
+	clock.Add(2 * config2.Mode().QuotaReclamationMinUnrefAge())
 	_, _, err = kbfsOps1.CreateDir(ctx, rootNode1, "b")
 	if err != nil {
 		t.Fatalf("Couldn't create dir: %+v", err)
@@ -652,7 +660,7 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 	}
 
 	// Increase the time again and make sure it does run.
-	clock.Add(2 * config2.QuotaReclamationMinHeadAge())
+	clock.Add(2 * config2.Mode().QuotaReclamationMinHeadAge())
 
 	preQR2Blocks, err := bserverLocal.getAllRefsForTest(
 		ctx, rootNode2.GetFolderBranch().Tlf)
@@ -691,7 +699,7 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
 
-	clock.Add(2 * config2.QuotaReclamationMinUnrefAge())
+	clock.Add(2 * config2.Mode().QuotaReclamationMinUnrefAge())
 
 	preQR3Blocks, err := bserverLocal.getAllRefsForTest(
 		ctx, rootNode2.GetFolderBranch().Tlf)
@@ -755,7 +763,7 @@ func TestQuotaReclamationGCOpsForGCOps(t *testing.T) {
 			t.Fatalf("Couldn't sync all: %v", err)
 		}
 	}
-	clock.Add(2 * config.QuotaReclamationMinUnrefAge())
+	clock.Add(2 * config.Mode().QuotaReclamationMinUnrefAge())
 
 	// Make sure the head has a GCOp that doesn't point to just the
 	// previous revision.
@@ -789,7 +797,7 @@ func TestQuotaReclamationGCOpsForGCOps(t *testing.T) {
 		count++
 		if count == numCycles {
 			// Increase the clock so now we can GC all those GCOps.
-			clock.Add(2 * config.QuotaReclamationMinUnrefAge())
+			clock.Add(2 * config.Mode().QuotaReclamationMinUnrefAge())
 		}
 	}
 
