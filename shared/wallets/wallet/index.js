@@ -9,6 +9,7 @@ import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
 
 type Props = {
   accountID: Types.AccountID,
+  navigateAppend: (...Array<any>) => any,
   sections: any[],
 }
 
@@ -45,7 +46,7 @@ export default (props: Props) => {
 
   return (
     <Box2 direction="vertical" style={{flexGrow: 1}} fullHeight={true} gap="small">
-      <Header />
+      <Header navigateAppend={props.navigateAppend} />
       <ScrollView>
         <SectionList
           sections={props.sections}
