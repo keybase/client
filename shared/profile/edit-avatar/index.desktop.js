@@ -232,7 +232,7 @@ class EditAvatar extends React.Component<Props, State> {
     this.props.onSave(this.state.imageSource, crop)
   }
 
-  render = () => {
+  render() {
     return (
       <MaybePopup
         onClose={this.props.onClose}
