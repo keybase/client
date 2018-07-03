@@ -37,7 +37,6 @@ import (
 const (
 	numConcurrentRekeys            = 64
 	rekeysPerSecond     rate.Limit = 16
-	rekeyQueueSize                 = 1024 // 24 KB
 )
 
 // RekeyQueueStandard implements the RekeyQueue interface.
@@ -61,7 +60,7 @@ func NewRekeyQueueStandard(config Config) (rkq *RekeyQueueStandard) {
 	rkq = &RekeyQueueStandard{
 		config:   config,
 		log:      config.MakeLogger("RQ"),
-		queue:    make(chan tlf.ID, rekeyQueueSize),
+		queue:    make(chan tlf.ID, config.Mode().RekeyQueueSize()),
 		limiter:  rate.NewLimiter(rekeysPerSecond, numConcurrentRekeys),
 		pendings: make(map[tlf.ID]bool),
 		cancel:   cancel,
@@ -106,9 +105,9 @@ func (rkq *RekeyQueueStandard) Enqueue(id tlf.ID) {
 	select {
 	case rkq.queue <- id:
 	default:
-		// The queue is full; avoid blocking by spawning a goroutine.
-		rkq.log.Debug("Rekey queue is full; enqueuing %s in the background", id)
-		go func() { rkq.queue <- id }()
+		// The queue is full; drop this one for now until the next
+		// request to the server for more rekeys.
+		rkq.log.Debug("Rekey queue is full; dropping %s", id)
 	}
 }
 

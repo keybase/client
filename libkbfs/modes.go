@@ -48,6 +48,10 @@ func (md modeDefault) RekeyWorkers() int {
 	return 16
 }
 
+func (md modeDefault) RekeyQueueSize() int {
+	return 2048 // 48 KB
+}
+
 func (md modeDefault) IsTestMode() bool {
 	return false
 }
@@ -137,6 +141,10 @@ func (mm modeMinimal) PrefetchWorkers() int {
 
 func (mm modeMinimal) RekeyWorkers() int {
 	return 4
+}
+
+func (mm modeMinimal) RekeyQueueSize() int {
+	return 512 // 12 KB
 }
 
 func (mm modeMinimal) IsTestMode() bool {
@@ -239,6 +247,10 @@ func (mso modeSingleOp) RekeyWorkers() int {
 	return 0
 }
 
+func (mso modeSingleOp) RekeyQueueSize() int {
+	return 0
+}
+
 func (mso modeSingleOp) QuotaReclamationEnabled() bool {
 	return false
 }
@@ -295,6 +307,10 @@ func (mc modeConstrained) PrefetchWorkers() int {
 
 func (mc modeConstrained) RekeyWorkers() int {
 	return 4
+}
+
+func (mc modeConstrained) RekeyQueueSize() int {
+	return 1024 // 24 KB
 }
 
 func (mc modeConstrained) BackgroundFlushesEnabled() bool {

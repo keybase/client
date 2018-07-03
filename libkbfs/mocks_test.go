@@ -5986,6 +5986,18 @@ func (mr *MockInitModeMockRecorder) RekeyWorkers() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RekeyWorkers", reflect.TypeOf((*MockInitMode)(nil).RekeyWorkers))
 }
 
+// RekeyQueueSize mocks base method
+func (m *MockInitMode) RekeyQueueSize() int {
+	ret := m.ctrl.Call(m, "RekeyQueueSize")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// RekeyQueueSize indicates an expected call of RekeyQueueSize
+func (mr *MockInitModeMockRecorder) RekeyQueueSize() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RekeyQueueSize", reflect.TypeOf((*MockInitMode)(nil).RekeyQueueSize))
+}
+
 // DirtyBlockCacheEnabled mocks base method
 func (m *MockInitMode) DirtyBlockCacheEnabled() bool {
 	ret := m.ctrl.Call(m, "DirtyBlockCacheEnabled")

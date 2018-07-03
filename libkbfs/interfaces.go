@@ -1837,6 +1837,8 @@ type InitMode interface {
 	PrefetchWorkers() int
 	// RekeyWorkers returns the number of rekey workers to run.
 	RekeyWorkers() int
+	// RekeyQueueSize returns the size of the rekey queue.
+	RekeyQueueSize() int
 	// DirtyBlockCacheEnabled indicates if we should run a dirty block
 	// cache.
 	DirtyBlockCacheEnabled() bool
