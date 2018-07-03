@@ -2102,38 +2102,26 @@ function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMe
   })
 }
 
-const loadStaticConfig = (action: ConfigGen.BootstrapPayload, state: TypedState) => {
-  if (state.chat2.staticConfig) {
-    // don't need it
-    return null
-  }
-  return Saga.call(RPCChatTypes.localGetStaticConfigRpcPromise)
-}
-
-const loadStaticConfigSuccess = (res: ?RPCChatTypes.StaticConfig) => {
-  if (!res) {
-    // we already had it
-    return
-  }
-  if (!res.deletableByDeleteHistory) {
-    logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
-    return
-  }
-  const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce((res, type) => {
-    const ourTypes = Constants.serviceMessageTypeToMessageTypes(type)
-    if (ourTypes) {
-      res.push(...ourTypes)
+const loadStaticConfig = (state: TypedState, action: ConfigGen.BootstrapPayload) =>
+  !state.chat2.staticConfig &&
+  RPCChatTypes.localGetStaticConfigRpcPromise().then((res: RPCChatTypes.StaticConfig) => {
+    if (!res.deletableByDeleteHistory) {
+      logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
+      return
     }
-    return res
-  }, [])
-  return Saga.put(
-    Chat2Gen.createStaticConfigLoaded({
+    const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce((res, type) => {
+      const ourTypes = Constants.serviceMessageTypeToMessageTypes(type)
+      if (ourTypes) {
+        res.push(...ourTypes)
+      }
+      return res
+    }, [])
+    return Chat2Gen.createStaticConfigLoaded({
       staticConfig: Constants.makeStaticConfig({
         deletableByDeleteHistory: I.Set(deletableByDeleteHistory),
       }),
     })
-  )
-}
+  })
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
@@ -2268,7 +2256,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     setConvExplodingModeFailure
   )
   yield Saga.safeTakeEvery(Chat2Gen.handleSeeingExplodingMessages, handleSeeingExplodingMessages)
-  yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, loadStaticConfig, loadStaticConfigSuccess)
+  yield Saga.safeTakeEveryPurePromise(ConfigGen.bootstrapSuccess, loadStaticConfig)
 }
 
 export default chat2Saga
