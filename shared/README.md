@@ -172,6 +172,12 @@ Sometimes, especially after opening Android Studio after a run of
 for "react-native-fetch-blob", "react-native-contacts", and
 "react-native-image-picker". This seems to be harmless.
 
+Some people find turninng off Configure on demand helps:
+`Android Studio > Preferences > Build, Execution, Deployment > Compiler > [Untick] Configure on demand`
+
+If android studio can't find node, make a ~/.gradle/gradle.properties file with your node path like:
+`NODE_PATH=/usr/local/bin/node`
+
 Sometimes you'll also get an "An IDE Error has occured" message. That
 also seems to be harmless, although you may want to resync/reopen the
 project in that case.
@@ -389,6 +395,6 @@ We have some custom forks of dependencies. This is usually a temporary fix and i
 
 Take a look at [this repo](https://github.com/ncuillery/rn-diff), which contains branches for every version of react native. For example, this URL
 
- `https://github.com/ncuillery/rn-diff/compare/rn-0.51.0...rn-0.53.0` 
- 
+ `https://github.com/ncuillery/rn-diff/compare/rn-0.51.0...rn-0.53.0`
+
  generates the diff between RN versions in a bare RN app. Use this to figure out if any configuration changes are needed. If the target version isn't in `rn-diff` yet, there'll usually be a fork that has it.

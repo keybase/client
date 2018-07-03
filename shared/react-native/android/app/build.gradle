@@ -55,6 +55,12 @@ project.ext.react = [
         inputExcludes: ["android/**", "ios/**", "__test__/**", "__tests__/**", "**/*.desktop.js", "**/*.ios.js", "**/*.js.flow"]
 ]
 
+// If your android studio fails to find node, make a ~/.gradle/gradle.properties with the line:
+// NODE_PATH=/usr/local/bin/node
+project.ext.react = [
+    nodeExecutableAndArgs: hasProperty('NODE_PATH')?[NODE_PATH]:null
+]
+
 apply from: "react.gradle"
 
 /**
