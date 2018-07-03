@@ -202,7 +202,7 @@ func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 	// someone else, in which case we return true and an error.
 	err := m.ActiveDevice().CheckForUsername(m, username)
 
-	switch err.(type) {
+	switch err := err.(type) {
 	case nil:
 		return true, nil
 	case libkb.NoActiveDeviceError:
@@ -218,7 +218,7 @@ func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 		return false, err
 	case libkb.LoggedInWrongUserError:
 		if libkb.CheckEmail.F(e.usernameOrEmail) {
-			m.CDebugf("Login: already logged in, but %q email address provided. Can't determine if that is current user without further work, so just returning LoggedInError", e.usernameOrEmail)
+			m.CDebugf("Login: already logged in, but %q email address provided. Can't determine if that is current user (%q) without further work, so just returning LoggedInError", e.usernameOrEmail, err.ExistingName)
 		} else {
 			m.CDebugf(err.Error())
 		}

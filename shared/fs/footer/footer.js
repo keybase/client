@@ -2,22 +2,22 @@
 import * as React from 'react'
 import {globalStyles, globalColors} from '../../styles'
 import {Box} from '../../common-adapters'
-import Download, {type DownloadProps} from './download'
-
-type DownloadItem = {
-  key: string,
-} & DownloadProps
+import Download from './download-container'
+import Upload from './upload-container'
 
 export type FooterProps = {
-  downloads: Array<DownloadItem>,
+  downloadKeys: Array<string>,
+  showUploads: boolean,
 }
 
-const Footer = (props: FooterProps) =>
-  !!props.downloads.length && (
-    <Box style={stylesBox}>
-      {props.downloads.map(download => <Download {...download} key={download.key} />)}
-    </Box>
-  )
+const Footer = (props: FooterProps) => (
+  <React.Fragment>
+    {props.showUploads && <Upload />}
+    {!!props.downloadKeys.length && (
+      <Box style={stylesBox}>{props.downloadKeys.map(key => <Download downloadKey={key} key={key} />)}</Box>
+    )}
+  </React.Fragment>
+)
 
 const stylesBox = {
   ...globalStyles.flexBoxRow,

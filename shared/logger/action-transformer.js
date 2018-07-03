@@ -68,6 +68,7 @@ const actionTransformMap = {
   [Chat2Gen.metaNeedsUpdating]: fullOutput,
   [Chat2Gen.updateMoreToLoad]: fullOutput,
   [Chat2Gen.setConversationOffline]: fullOutput,
+  [ConfigGen.bootstrap]: fullOutput,
   [ConfigGen.globalError]: a => {
     let err = {}
     const ge = a.payload.globalError
@@ -82,6 +83,7 @@ const actionTransformMap = {
   },
   [Chat2Gen.setPendingMode]: fullOutput,
   [Chat2Gen.setPendingConversationUsers]: fullOutput,
+  [GregorGen.updateReachability]: fullOutput,
 
   [Chat2Gen.messageSend]: a => ({
     payload: {conversationIDKey: a.payload.conversationIDKey},

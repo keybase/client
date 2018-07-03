@@ -221,6 +221,7 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 				Public:      mv.ClientHeader.TlfPublic,
 				TopicType:   strings.ToLower(mv.ClientHeader.Conv.TopicType.String()),
 				MembersType: strings.ToLower(conv.GetMembersType().String()),
+				TopicName:   utils.GetTopicName(conv),
 			},
 			Sender: MsgSender{
 				UID:      mv.ClientHeader.Sender.String(),

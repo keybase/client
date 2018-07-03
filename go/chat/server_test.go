@@ -722,12 +722,13 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 		if mt == chat1.ConversationMembersType_KBFS {
 			arg.TopicName = nil
 		}
-		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		ncres, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
 		switch mt {
 		case chat1.ConversationMembersType_KBFS:
 			require.NoError(t, err)
 		case chat1.ConversationMembersType_TEAM:
-			require.Error(t, err)
+			require.NoError(t, err)
+			require.Equal(t, globals.DefaultTeamTopic, utils.GetTopicName(ncres.Conv))
 		}
 		arg.TopicName = &topicName
 		topicName = "dskjdskdjskdjskdjskdjskdjskdjskjdskjdskdskdjksdjks"
@@ -4848,6 +4849,17 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 		})
 		require.Error(t, err)
 	})
+}
+
+func TestChatSrvGetStaticConfig(t *testing.T) {
+	ctc := makeChatTestContext(t, "GetSearchRegexp", 2)
+	defer ctc.cleanup()
+	tc := ctc.as(t, ctc.users()[0])
+	res, err := tc.chatLocalHandler().GetStaticConfig(tc.startCtx)
+	require.NoError(t, err)
+	require.Equal(t, chat1.StaticConfig{
+		DeletableByDeleteHistory: chat1.DeletableMessageTypesByDeleteHistory(),
+	}, res)
 }
 
 func randSweepChannel() uint64 {

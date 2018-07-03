@@ -112,6 +112,18 @@ export const backgroundURL = (...to: Array<string>) => {
 export const hairlineWidth = 1
 export const styleSheetCreate = (obj: Object) => obj
 export const collapseStyles = (styles: $ReadOnlyArray<CollapsibleStyle>): Object => {
+  // fast path for a single style that passes. Often we do stuff like
+  // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
+  // case we can just take styles.myStyle and not render thrash
+  const valid = styles.filter(Boolean)
+  if (valid.length === 1) {
+    const s = valid[0]
+    if (typeof s === 'object') {
+      // $ForceType
+      return s
+    }
+  }
+
   const flattenedStyles = styles.reduce((a, e) => a.concat(e), [])
   return flattenedStyles.reduce((o, e) => (e ? {...o, ...e} : o), {})
 }

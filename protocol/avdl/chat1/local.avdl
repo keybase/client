@@ -170,6 +170,10 @@ protocol local {
     @mpackkey("b") @jsonkey("b")
     string body; // emoji reaction :+1:
   }
+  
+  record MessageSendPayment {
+    string kbTxID;
+  }
 
   variant MessageBody switch (MessageType messageType) {
     case TEXT: MessageText;
@@ -184,6 +188,7 @@ protocol local {
     case SYSTEM: MessageSystem;
     case DELETEHISTORY: MessageDeleteHistory;
     case REACTION: MessageReaction;
+    case SENDPAYMENT: MessageSendPayment;
   }
 
   enum OutboxStateType {
@@ -881,4 +886,10 @@ protocol local {
   }
 
   GetSearchRegexpRes getSearchRegexp(int sessionID, ConversationID conversationID, string query, boolean isRegex, int maxHits, int maxMessages, int beforeContext, int afterContext, keybase1.TLFIdentifyBehavior identifyBehavior);
+
+  // Static data that changes only as often as the code.
+  StaticConfig getStaticConfig();
+  record StaticConfig {
+    array<MessageType> deletableByDeleteHistory;
+  }
 }

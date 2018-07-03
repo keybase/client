@@ -1,10 +1,9 @@
 // @flow
 // Helper to deal with service calls in a saga friendly way
-import {getEngine} from '../engine'
+import {getEngine, Engine} from '../engine'
 import * as RS from 'redux-saga'
 import * as RSE from 'redux-saga/effects'
 import {sequentially} from '../util/saga'
-import type {Action} from '../constants/types/flux'
 import type {CommonResponseHandler, RPCError} from './types'
 import type {TypedState} from '../constants/reducer'
 import {printOutstandingRPCs} from '../local-debug'
@@ -26,16 +25,17 @@ type CallbackWithResponse = (any, CommonResponseHandler, TypedState) => ?RS.Effe
 type CallbackNoResponse = (any, TypedState) => ?RS.Effect | ?Generator<any, any, any>
 
 // TODO could have a mechanism to ensure only one is in flight at a time. maybe by some key or something
-function* call(
+function* call(p: {
   method: string,
-  param: Object,
+  params: Object,
   incomingCallMap: {[method: string]: any}, // this is typed by the generated helpers
-  waitingActionCreator?: (waiting: boolean) => Action
-): Generator<any, any, any> {
+  waitingKey?: string,
+}): Generator<any, any, any> {
+  const {method, params, incomingCallMap, waitingKey} = p
   const engine = getEngine()
 
-  if (waitingActionCreator) {
-    yield RSE.put(waitingActionCreator(true))
+  if (waitingKey) {
+    Engine.dispatchWaitingAction(waitingKey, true)
   }
 
   const buffer = RS.buffers.expanding(10)
@@ -72,13 +72,8 @@ function* call(
       }, 2000)
     }
 
-    engine._rpcOutgoing(
-      method,
-      {
-        ...param,
-        incomingCallMap: callMap,
-      },
-      (error?: RPCError, params: any) => {
+    engine._rpcOutgoing({
+      callback: (error?: RPCError, params: any) => {
         if (printOutstandingRPCs) {
           clearInterval(outstandingIntervalID)
         }
@@ -98,8 +93,11 @@ function* call(
             console.log('Engine/Saga waiting on buffer clear for method:', method)
           }
         }, 500)
-      }
-    )
+      },
+      incomingCallMap: callMap,
+      method,
+      params,
+    })
 
     return () => {}
   }, buffer) // allow the buffer to grow always
@@ -144,8 +142,8 @@ function* call(
     }
   } finally {
     // eventChannel will jump to finally when RS.END is emitted
-    if (waitingActionCreator) {
-      yield RSE.put(waitingActionCreator(false))
+    if (waitingKey) {
+      Engine.dispatchWaitingAction(waitingKey, false)
     }
 
     if (finalError) {

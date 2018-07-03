@@ -338,36 +338,24 @@ func BackgroundSync() {
 	<-doneCh
 }
 
-func HandleBackgroundNotification(strConvID string, intMembersType int, intMessageID int,
-	pushID string, badgeCount int, unixTime int, body string, soundName string, pusher PushNotifier) (err error) {
+func HandleBackgroundNotification(strConvID string, intMembersType, intMessageID int,
+	pushID string, badgeCount, unixTime int, body, soundName string, pusher PushNotifier) (err error) {
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
+
 	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%d,%d,%s,%d,%d)",
 		strConvID, intMembersType, intMessageID, pushID, badgeCount, unixTime),
 		func() error { return err })()
-	uid := gregor1.UID(kbCtx.Env.GetUID().ToBytes())
-	if !kbCtx.ActiveDevice.HaveKeys() {
-		return libkb.LoginRequiredError{}
-	}
+
 	age := time.Since(time.Unix(int64(unixTime), 0))
 	if age >= 15*time.Second {
 		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: stale notification: %v", age)
 		return errors.New("stale notification")
 	}
 
-	bConvID, err := hex.DecodeString(strConvID)
+	msg, err := unboxNotification(ctx, strConvID, intMembersType, body)
 	if err != nil {
-		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: invalid convID: %s msg: %s", strConvID,
-			err)
-		return err
-	}
-	convID := chat1.ConversationID(bConvID)
-	membersType := chat1.ConversationMembersType(intMembersType)
-	msg, err := kbCtx.ChatHelper.UnboxMobilePushNotification(ctx, uid, convID, membersType, []string{pushID},
-		body)
-	if err != nil {
-		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: failed to unbox: %s", err)
 		return err
 	}
 
@@ -377,6 +365,39 @@ func HandleBackgroundNotification(strConvID string, intMembersType int, intMessa
 	// Hit the remote server to let it know we succeeded in showing something useful
 	kbCtx.ChatHelper.AckMobileNotificationSuccess(ctx, []string{pushID})
 	return nil
+}
+
+func HandleNotification(strConvID string, intMembersType int, body string) (err error) {
+	gc := globals.NewContext(kbCtx, kbChatCtx)
+	ctx := chat.Context(context.Background(), gc,
+		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
+
+	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandleNotification(%s,%d)", strConvID, intMembersType),
+		func() error { return err })()
+
+	_, err = unboxNotification(ctx, strConvID, intMembersType, body)
+	return err
+}
+
+func unboxNotification(ctx context.Context, strConvID string, intMembersType int, body string) (msg string, err error) {
+	if !kbCtx.ActiveDevice.HaveKeys() {
+		return "", libkb.LoginRequiredError{}
+	}
+	uid := gregor1.UID(kbCtx.Env.GetUID().ToBytes())
+	bConvID, err := hex.DecodeString(strConvID)
+	if err != nil {
+		kbCtx.Log.CDebugf(ctx, "unboxNotification: invalid convID: %s msg: %s", strConvID,
+			err)
+		return "", err
+	}
+	convID := chat1.ConversationID(bConvID)
+	membersType := chat1.ConversationMembersType(intMembersType)
+	msg, err = kbCtx.ChatHelper.UnboxMobilePushNotification(ctx, uid, convID, membersType, body)
+	if err != nil {
+		kbCtx.Log.CDebugf(ctx, "unboxNotification: failed to unbox: %s", err)
+		return "", err
+	}
+	return msg, nil
 }
 
 // AppWillExit is called reliably on iOS when the app is about to terminate

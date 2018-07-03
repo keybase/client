@@ -5,6 +5,7 @@ export type Props = {
   badgeNumber: ?number,
   badgeStyle?: any,
   badgeNumberStyle?: Object,
+  largerBadgeMinWidthFix?: boolean,
 }
 
 declare export default class Badge extends Component<Props> {}

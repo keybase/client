@@ -11,8 +11,8 @@ const native = {
   code: 'XLM',
   equivAvailableToSend: '$53.41 USD',
   equivBalance: '$54.14 USD',
-  issuer: 'Stellar network',
-  issuerAddress: '',
+  issuerName: 'Stellar network',
+  issuerAccountID: '',
   name: 'Lumens',
   reserves: [
     Constants.makeReserve({amount: '1', description: 'account'}),
@@ -26,8 +26,8 @@ const keyz = {
   code: 'KEYZ',
   equivAvailableToSend: '',
   equivBalance: '',
-  issuer: 'keybase.io',
-  issuerAddress: 'GAXLYHWCWQK273FMHITINCMVTHHRBBNG7A5XWGDYRDDWCR3RSCGLIDWQ',
+  issuerName: 'keybase.io',
+  issuerAccountID: 'GAXLYHWCWQK273FMHITINCMVTHHRBBNG7A5XWGDYRDDWCR3RSCGLIDWQ',
   name: 'KEYZ',
   reserves: [],
 }
@@ -38,8 +38,8 @@ const btc = {
   code: 'BTC',
   equivAvailableToSend: '',
   equivBalance: '',
-  issuer: 'FarcicalBTCAnchor.eg',
-  issuerAddress: 'GAT7ABIQKJ6BBBH7ASKMAV5FMND3YDQLKPFJUCHR7Y5PNRTA7VLA55IW',
+  issuerName: 'FarcicalBTCAnchor.eg',
+  issuerAccountID: 'GAT7ABIQKJ6BBBH7ASKMAV5FMND3YDQLKPFJUCHR7Y5PNRTA7VLA55IW',
   name: 'BTC',
   reserves: [],
 }
@@ -50,8 +50,8 @@ const btexcadv = {
   code: 'BTEXCADV',
   equivAvailableToSend: '',
   equivBalance: '',
-  issuer: 'Unknown',
-  issuerAddress: 'GCN5SJA4CFUC7AVZGEPVVSXDEIBZYA77MAAEIA5ZXZKL5CVTJH6TUL6A',
+  issuerName: 'Unknown',
+  issuerAccountID: 'GCN5SJA4CFUC7AVZGEPVVSXDEIBZYA77MAAEIA5ZXZKL5CVTJH6TUL6A',
   name: 'BTEXCADV',
   reserves: [],
 }

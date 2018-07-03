@@ -8,45 +8,21 @@ import Passphrase from '../register/passphrase/container'
 import PaperKey from '../register/paper-key/container'
 import CodePage from '../register/code-page/container'
 import SetPublicName from '../register/set-public-name/container'
-import Success from '../register/success/container'
 import RegisterError from '../register/error/container'
 import GPGSign from '../register/gpg-sign/container'
 import Feedback from '../../settings/feedback-container'
 
 const recursiveLazyRoutes = I.Seq({
-  feedback: {
-    component: Feedback,
-  },
-  login: {
-    component: Login,
-  },
-  error: {
-    component: RegisterError,
-  },
-  usernameOrEmail: {
-    component: UsernameOrEmail,
-  },
-  selectOtherDevice: {
-    component: SelectOtherDevice,
-  },
-  passphrase: {
-    component: Passphrase,
-  },
-  gpgSign: {
-    component: GPGSign,
-  },
-  paperkey: {
-    component: PaperKey,
-  },
-  codePage: {
-    component: CodePage,
-  },
-  setPublicName: {
-    component: SetPublicName,
-  },
-  success: {
-    component: Success,
-  },
+  codePage: {component: CodePage},
+  error: {component: RegisterError},
+  feedback: {component: Feedback},
+  gpgSign: {component: GPGSign},
+  login: {component: Login},
+  paperkey: {component: PaperKey},
+  passphrase: {component: Passphrase},
+  selectOtherDevice: {component: SelectOtherDevice},
+  setPublicName: {component: SetPublicName},
+  usernameOrEmail: {component: UsernameOrEmail},
 })
   .map(routeData =>
     makeRouteDefNode({

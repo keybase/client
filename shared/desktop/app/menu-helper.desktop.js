@@ -3,6 +3,8 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import {executeActionsForContext} from '../../util/quit-helper.desktop'
 import {isDarwin} from '../../constants/platform'
 
+let devToolsState = false
+
 export default function makeMenu(window: any) {
   const editMenu = {
     label: 'Edit',
@@ -35,7 +37,15 @@ export default function makeMenu(window: any) {
             {
               label: 'Toggle Developer Tools',
               accelerator: (() => (isDarwin ? 'Alt+Command+I' : 'Ctrl+Shift+I'))(),
-              click: (item, focusedWindow) => focusedWindow && focusedWindow.toggleDevTools(),
+              click: (item, focusedWindow) => {
+                devToolsState = !devToolsState
+                SafeElectron.BrowserWindow.getAllWindows().map(
+                  bw =>
+                    devToolsState
+                      ? bw.webContents.openDevTools({mode: 'detach'})
+                      : bw.webContents.closeDevTools()
+                )
+              },
             },
           ]
         : []

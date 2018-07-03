@@ -14,17 +14,13 @@ function _checkPgpInfoForErrors(info: {...Types.PgpInfo, ...Types.PgpInfoError})
   const errorEmail1 = info.email1 && isValidEmail(info.email1)
   const errorEmail2 = info.email2 && isValidEmail(info.email2)
   const errorEmail3 = info.email3 && isValidEmail(info.email3)
-  const errorEmail1Message = errorEmail1 ? errorEmail1.message : null
-  const errorEmail2Message = errorEmail2 ? errorEmail2.message : null
-  const errorEmail3Message = errorEmail3 ? errorEmail3.message : null
   const errorName = isValidName(info.fullName)
-  const errorNameMessage = errorName ? errorName.message : null
 
   return {
     errorEmail1: !!errorEmail1,
     errorEmail2: !!errorEmail2,
     errorEmail3: !!errorEmail3,
-    errorText: errorNameMessage || errorEmail1Message || errorEmail2Message || errorEmail3Message,
+    errorText: errorName || errorEmail1 || errorEmail2 || errorEmail3,
   }
 }
 

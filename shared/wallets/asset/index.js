@@ -10,8 +10,8 @@ export type Props = {
   code: string, // The same as `name` except for XLM
   equivAvailableToSend: string, // non-empty only if native currency e.g. '$123.45 USD'
   equivBalance: string, // non-empty only if native currency
-  issuer: string, // verified issuer domain name, 'Stellar network' or 'Unknown'
-  issuerAddress: string, // issuing public key
+  issuerName: string, // verified issuer domain name, 'Stellar network' or 'Unknown'
+  issuerAccountID: string, // issuing public key
   name: string, // Asset code or 'Lumens'
   reserves: Types.Reserve[], // non-empty only if native currency
 }
@@ -44,7 +44,7 @@ export default class extends React.Component<Props, State> {
                   {this.props.name}
                 </Text>
                 <Text type="BodySmall" lineClamp={1}>
-                  {this.props.issuer}
+                  {this.props.issuerName}
                 </Text>
               </Box2>
             </Box2>
@@ -68,7 +68,7 @@ export default class extends React.Component<Props, State> {
                 total={this.props.balance}
               />
             )}
-            {!!this.props.issuerAddress && <IssuerAddress issuerAddress={this.props.issuerAddress} />}
+            {!!this.props.issuerAccountID && <IssuerAccountID issuerAccountID={this.props.issuerAccountID} />}
           </Box2>
         )}
       </Box2>
@@ -119,18 +119,18 @@ const BalanceSummary = (props: BalanceSummaryProps) => (
   </Box2>
 )
 
-type IssuerAddressProps = {
-  issuerAddress: string,
+type IssuerAccountIDProps = {
+  issuerAccountID: string,
 }
 
-const IssuerAddress = (props: IssuerAddressProps) => (
+const IssuerAccountID = (props: IssuerAccountIDProps) => (
   <Box2 direction="vertical" fullWidth={true} style={styles.balanceSummaryContainer}>
     <Text type="Body">Issuer:</Text>
     <Text type="Body" selectable={true}>
       {/* TODO (DA) make the full address copyable */}
-      {props.issuerAddress.substr(0, 12) +
+      {props.issuerAccountID.substr(0, 12) +
         '..........' +
-        props.issuerAddress.substr(props.issuerAddress.length - 12)}
+        props.issuerAccountID.substr(props.issuerAccountID.length - 12)}
     </Text>
   </Box2>
 )

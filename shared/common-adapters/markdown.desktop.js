@@ -134,7 +134,13 @@ function messageCreateComponent(type, key, children, options) {
       )
     case 'link':
       return (
-        <Text type="BodyPrimaryLink" key={key} style={linkStyle} onClickURL={options.href}>
+        <Text
+          className="hover-underline"
+          type="BodyPrimaryLink"
+          key={key}
+          style={linkStyle}
+          onClickURL={options.href}
+        >
           {children}
         </Text>
       )
