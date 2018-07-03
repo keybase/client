@@ -1,6 +1,7 @@
 // @flow
-import {action, unexpected, createPropProvider} from './storybook'
+import {action, unexpected, createPropProvider, type SelectorMap} from './storybook'
 import {mockOwnToViewProps} from '../common-adapters/avatar'
+import * as _Usernames from '../common-adapters/usernames'
 
 /**
  * Compose prop factories into a single provider
@@ -9,7 +10,7 @@ import {mockOwnToViewProps} from '../common-adapters/avatar'
  * @returns a <Provider /> that can be used in a storybook `addDecorator` to provide viewProps
  *          for connected child components
  */
-const compose = (...providers: any[]) => {
+const compose = (...providers: SelectorMap[]) => {
   return createPropProvider(providers.reduce((obj, provider) => ({...obj, ...provider}), {}))
 }
 
@@ -20,12 +21,10 @@ const compose = (...providers: any[]) => {
  *          that are needed to derive view props
  *  Output: a map of DisplayName: Function(...) that returns the
  *          view props the connected component is concerned with
- *
- *  TODO (DA) Type these props with respective OwnProps where possible
  */
 
 const Usernames = (following: string[], you?: string) => ({
-  Usernames: (props: any) => {
+  Usernames: (props: _Usernames.ConnectedProps): _Usernames.Props => {
     const {usernames} = props
     const users = (usernames || []).map(username => ({
       username,
@@ -69,11 +68,12 @@ const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: strin
   }),
 })
 
-const Common = () => compose(
-  Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  Avatar(['following', 'both'], ['followers', 'both']),
-  WaitingButton()
-)
+const Common = () =>
+  compose(
+    Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+    Avatar(['following', 'both'], ['followers', 'both']),
+    WaitingButton()
+  )
 
 export {compose}
 export {Avatar, Common, TeamDropdownMenu, Usernames, WaitingButton}
