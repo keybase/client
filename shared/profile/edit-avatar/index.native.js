@@ -52,7 +52,11 @@ class EditAvatar extends React.Component<Props> {
 
   render() {
     return (
-      <StandardScreen onCancel={this.props.onClose} scrollEnabled={false} title="Zoom and pan">
+      <StandardScreen
+        onCancel={this.props.onClose}
+        scrollEnabled={false}
+        title={isIOS ? 'Zoom and pan' : 'Upload avatar'}
+      >
         <Box style={styles.container}>
           <Box style={isIOS ? null : styles.zoomContainer}>
             <ZoomableBox
