@@ -6,7 +6,7 @@ import {globalStyles, globalColors, platformStyles} from '../styles'
 
 import type {BadgeProps} from './badge'
 
-function Badge({badgeStyle, badgeNumber, badgeNumberStyle}: BadgeProps) {
+export function Badge({badgeStyle, badgeNumber, badgeNumberStyle}: BadgeProps) {
   return (
     <Box style={{...defaultBadgeStyle, ...badgeStyle}}>
       <Text style={{...textStyle, ...badgeNumberStyle}} type="HeaderBig">
@@ -38,5 +38,3 @@ const textStyle = platformStyles({
     color: globalColors.white,
   },
 })
-
-export default Badge
