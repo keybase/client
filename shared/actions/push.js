@@ -135,19 +135,19 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
         break
       }
       try {
-        const {convID} = payload
+        const {convID, m} = payload
         // Check for conversation ID so we know where to navigate to
         if (!convID) {
           logger.error('Push chat notification payload missing conversation ID')
           break
         }
         // If a boxed message is attached to the notification, unbox.
-        if (payload.m) {
+        if (m) {
           logger.info('Push notification: unboxing notification message')
           yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
-            convID: convID || '',
+            convID,
             membersType,
-            payload: payload.m || '',
+            payload: m,
             shouldAck: false,
           })
         }
