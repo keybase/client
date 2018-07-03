@@ -28,6 +28,7 @@ func boxedFieldLengthChecker(descriptibleItemName string, actualLength int, maxL
 }
 
 func checkMessageBoxedLength(msg chat1.MessageBoxed) error {
+	textMsgLength := getBoxedMaxTextLength(msg.ClientHeader.Conv.TopicType)
 	switch msg.GetMessageType() {
 	case chat1.MessageType_ATTACHMENT,
 		chat1.MessageType_DELETE,
@@ -36,9 +37,9 @@ func checkMessageBoxedLength(msg chat1.MessageBoxed) error {
 		chat1.MessageType_ATTACHMENTUPLOADED:
 		return nil
 	case chat1.MessageType_TEXT:
-		return boxedFieldLengthChecker("TEXT message", len(msg.BodyCiphertext.E), BoxedTextMessageBodyMaxLength)
+		return boxedFieldLengthChecker("TEXT message", len(msg.BodyCiphertext.E), textMsgLength)
 	case chat1.MessageType_EDIT:
-		return boxedFieldLengthChecker("EDIT message", len(msg.BodyCiphertext.E), BoxedTextMessageBodyMaxLength)
+		return boxedFieldLengthChecker("EDIT message", len(msg.BodyCiphertext.E), textMsgLength)
 	case chat1.MessageType_REACTION:
 		return boxedFieldLengthChecker("REACTION message", len(msg.BodyCiphertext.E), BoxedReactionMessageBodyMaxLength)
 	case chat1.MessageType_HEADLINE:
@@ -61,9 +62,5 @@ func checkMessageBoxedLength(msg chat1.MessageBoxed) error {
 }
 
 func CheckMessageBoxed(msg chat1.MessageBoxed) error {
-	switch msg.ClientHeader.Conv.TopicType {
-	case chat1.TopicType_NONE, chat1.TopicType_CHAT:
-		return checkMessageBoxedLength(msg)
-	}
-	return nil
+	return checkMessageBoxedLength(msg)
 }
