@@ -57,6 +57,7 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
     case RPCChatTypes.commonMessageType.tlfname:
     case RPCChatTypes.commonMessageType.deletehistory:
     case RPCChatTypes.commonMessageType.reaction:
+    case RPCChatTypes.commonMessageType.sendpayment:
       return []
     default:
       /*::
