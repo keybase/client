@@ -292,7 +292,9 @@ func (s *Syncer) filterNotifyConvs(ctx context.Context, convs []chat1.Conversati
 		switch conv.GetMembersType() {
 		case chat1.ConversationMembersType_TEAM:
 			// include if this is a simple team, or the topic name has changed
-			if conv.Metadata.TeamType != chat1.TeamType_COMPLEX || m[conv.GetConvID().String()] ||
+			if conv.GetTopicType() != chat1.TopicType_CHAT ||
+				conv.Metadata.TeamType != chat1.TeamType_COMPLEX ||
+				m[conv.GetConvID().String()] ||
 				conv.GetConvID().Eq(s.GetSelectedConversation()) {
 				include = true
 			}
