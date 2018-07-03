@@ -20,7 +20,7 @@ class EditAvatar extends React.Component<Props> {
       throw new Error('Missing image when saving avatar')
     }
     const filename = isIOS ? this.props.image.uri.replace('file://', '') : this.props.image.path
-    // Cropping is temporarily deactivated on Andoird.
+    // Cropping is temporarily deactivated on Android.
     if (isIOS) {
       this.props.onSave(filename, this._getCropCoordinates())
       return
