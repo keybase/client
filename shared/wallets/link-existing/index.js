@@ -29,7 +29,6 @@ type State = {
 class LinkWallet extends React.Component<Props, State> {
   state = {view: 'key'}
   _onViewChange = (view: View) => this.setState(s => (s.view !== view ? {view} : null))
-  _clearErrors = () => (this.props.nameError || this.props.keyError) && this.props.onClearErrors()
 
   _onCheckKey = () => {
     this.props.onCheckKey(this.props.secretKey)
@@ -40,12 +39,21 @@ class LinkWallet extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    this._clearErrors()
+    this.props.onClearErrors()
   }
   componentWillUnmount() {
-    this._clearErrors()
+    this.props.onClearErrors()
   }
-  componentDidUpdate(prevProps: Props, prevState: State) {}
+  componentDidUpdate(prevProps: Props, prevState: State) {
+    if (this.props.secretKeyValidationState === 'valid' && this.state.view === 'key') {
+      this.props.onClearErrors()
+      this._onViewChange('name')
+    }
+    if (this.props.nameValidationState === 'valid' && this.state.view === 'name') {
+      this.props.onClearErrors()
+      this.props.onDone()
+    }
+  }
 
   render() {
     switch (this.state.view) {
