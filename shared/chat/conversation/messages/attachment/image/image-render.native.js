@@ -3,7 +3,7 @@ import * as React from 'react'
 import {NativeImage, NativeDimensions} from '../../../../../common-adapters/native-wrappers.native'
 import type {Props} from './image-render.types'
 
-export function ImageRender({onLoad, style, src}: Props) {
+export function ImageRender({onLoad, style, src, loaded}: Props) {
   const source = typeof src === 'string' ? {uri: src} : src
   return <NativeImage onLoad={onLoad} source={source} style={style} resizeMode="contain" />
 }

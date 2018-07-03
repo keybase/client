@@ -1,21 +1,19 @@
 // @flow
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as ProfileGen from '../../../../actions/profile-gen'
-import * as TrackerGen from '../../../../actions/tracker-gen'
-import * as Types from '../../../../constants/types/chat2'
-import Wrapper from '.'
-import {setDisplayName, compose, connect, type TypedState} from '../../../../util/container'
-import {formatTimeForMessages} from '../../../../util/timestamp'
-import {isMobile} from '../../../../constants/platform'
-
-const howLongBetweenTimestampsMs = 1000 * 60 * 15
+import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as ProfileGen from '../../../../../actions/profile-gen'
+import * as TrackerGen from '../../../../../actions/tracker-gen'
+import * as Types from '../../../../../constants/types/chat2'
+import * as Constants from '../../../../../constants/chat2/message'
+import {WrapperAuthor} from '../'
+import {setDisplayName, compose, connect, type TypedState} from '../../../../../util/container'
+import {isMobile} from '../../../../../constants/platform'
 
 const mapStateToProps = (state: TypedState, {message, previous, innerClass, isEditing}) => {
   const isYou = state.config.username === message.author
   const isFollowing = state.config.following.has(message.author)
   const isBroken = state.users.infoMap.getIn([message.author, 'broken'], false)
-  const orangeLineOrdinal = state.chat2.orangeLineMap.get(message.conversationIDKey)
-  const orangeLineAbove = !!previous && orangeLineOrdinal === previous.ordinal
+  const lastPositionOrdinal = state.chat2.orangeLineMap.get(message.conversationIDKey)
+  const lastPositionExists = !!previous && lastPositionOrdinal === previous.ordinal
   const messageSent = !message.submitState
   const messageFailed = message.submitState === 'failed'
   const messagePending = message.submitState === 'pending'
@@ -28,11 +26,11 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isEd
     isExplodingUnreadable,
     isFollowing,
     isYou,
+    lastPositionExists,
     message,
     messageFailed,
     messagePending,
     messageSent,
-    orangeLineAbove,
     previous,
   }
 }
@@ -53,29 +51,17 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 const mergeProps = (stateProps, dispatchProps, {measure}) => {
   const {message, previous} = stateProps
 
-  const continuingTextBlock =
+  const sequentialUserMessages =
     previous &&
     previous.author === message.author &&
-    (previous.type === 'text' || previous.type === 'deleted')
+    (previous.type === 'text' || previous.type === 'deleted' || previous.type === 'attachment')
 
-  const oldEnough = !!(
-    previous &&
-    previous.timestamp &&
-    message.timestamp &&
-    message.timestamp - previous.timestamp > howLongBetweenTimestampsMs
-  )
+  const showAuthor = Constants.enoughTimeBetweenMessages(message, previous)
 
-  // Always show a timestamp if the previous message is a concise joined/left message
-  const previousIsJoinedLeft = !!(
-    previous &&
-    (previous.type === 'systemJoined' || previous.type === 'systemLeft')
-  )
+  const timestamp = stateProps.lastPositionExists || !previous || showAuthor ? message.timestamp : null
 
-  const timestamp =
-    stateProps.orangeLineAbove || !previous || oldEnough || previousIsJoinedLeft
-      ? formatTimeForMessages(message.timestamp)
-      : null
-  const includeHeader = !previous || !continuingTextBlock || !!timestamp
+  const includeHeader = !previous || !sequentialUserMessages || !!timestamp
+
   let failureDescription = null
   if ((message.type === 'text' || message.type === 'attachment') && message.errorReason) {
     failureDescription = stateProps.isYou ? `Failed to send: ${message.errorReason}` : message.errorReason
@@ -113,11 +99,11 @@ const mergeProps = (stateProps, dispatchProps, {measure}) => {
     onRetry: stateProps.isYou
       ? () => message.outboxID && dispatchProps._onRetry(message.conversationIDKey, message.outboxID)
       : null,
-    orangeLineAbove: stateProps.orangeLineAbove,
-    timestamp,
+    timestamp: message.timestamp,
   }
 }
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Wrapper'))(
-  Wrapper
-)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('WrapperAuthor')
+)(WrapperAuthor)
