@@ -1,12 +1,13 @@
 // @flow
 import * as React from 'react'
 import {Box, ButtonBar, StandardScreen, WaitingButton} from '../../common-adapters'
-import {NativeImage, ZoomableBox} from '../../common-adapters/mobile.native'
+import {NativeDimensions, NativeImage, ZoomableBox} from '../../common-adapters/mobile.native'
 import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {isIOS} from '../../constants/platform'
 import type {Props} from '.'
 
-const AVATAR_SIZE = 250
+const {width: screenWidth} = NativeDimensions.get('window')
+const AVATAR_SIZE = screenWidth - globalMargins.medium * 2
 
 class EditAvatar extends React.Component<Props> {
   _h: number = 0
@@ -52,12 +53,7 @@ class EditAvatar extends React.Component<Props> {
   render() {
     return (
       <StandardScreen onCancel={this.props.onClose} scrollEnabled={false} title="Zoom and pan">
-        <Box
-          style={{
-            marginBottom: globalMargins.small,
-            marginTop: globalMargins.small,
-          }}
-        >
+        <Box style={styles.container}>
           <Box style={isIOS ? null : styles.zoomContainer}>
             <ZoomableBox
               bounces={false}
@@ -102,6 +98,10 @@ const styles = styleSheetCreate({
   button: {
     marginTop: globalMargins.tiny,
     width: '100%',
+  },
+  container: {
+    marginBottom: globalMargins.small,
+    marginTop: globalMargins.small,
   },
   zoomContainer: {
     alignSelf: 'center',
