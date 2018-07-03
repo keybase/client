@@ -2368,6 +2368,10 @@ func (fbo *folderBranchOps) handleEditNotifications(
 	if err != nil {
 		return err
 	}
+	if len(edits) == 0 {
+		return nil
+	}
+
 	body, err := kbfsedits.Prepare(edits)
 	if err != nil {
 		return err
