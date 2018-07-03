@@ -1,6 +1,6 @@
 // @flow
 import {action, createPropProvider} from './storybook'
-import {mockOwnToViewProps} from '../common-adapters/avatar'
+import * as _Avatar from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
 import * as _WaitingButton from '../common-adapters/waiting-button'
 import * as _TeamDropdownMenu from '../chat/conversation/info-panel/menu/container'
@@ -34,9 +34,8 @@ const WaitingButton = () => ({
   WaitingButton: (props: _WaitingButton.OwnProps): _WaitingButton.Props => ({...props, storeWaiting: false}),
 })
 
-const Avatar = (following: string[], followers: string[]) => ({
-  Avatar: (props: any) =>
-    mockOwnToViewProps(props, following.includes(props.username), followers.includes(props.username)),
+const Avatar = (follows: string[], followers: string[]) => ({
+  Avatar: (props: _Avatar.OwnProps) => _Avatar.mockOwnToViewProps(props, follows, followers, action),
 })
 
 const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: string]: number}) => ({

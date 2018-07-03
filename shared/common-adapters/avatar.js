@@ -15,7 +15,6 @@ import {
 } from '../styles'
 import {createShowUserProfile} from '../actions/profile-gen'
 import {createGetProfile} from '../actions/tracker-gen'
-import {action} from '../stories/storybook'
 import * as ConfigGen from '../actions/config-gen'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 16
@@ -248,7 +247,14 @@ const Avatar = compose(
   HOCTimers
 )(AvatarConnector)
 
-const mockOwnToViewProps = (ownProps: OwnProps, following: boolean, followsYou: boolean) => {
+const mockOwnToViewProps = (
+  ownProps: OwnProps,
+  follows: string[],
+  followers: string[],
+  action: string => () => void
+) => {
+  const following = follows.includes(ownProps.username)
+  const followsYou = followers.includes(ownProps.username)
   const isTeam = ownProps.isTeam || !!ownProps.teamname
 
   let onClick = ownProps.onClick
