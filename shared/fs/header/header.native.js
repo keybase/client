@@ -1,18 +1,11 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../constants/types/fs'
 import {globalColors, globalStyles, globalMargins} from '../../styles'
 import {BackButton, Box, Icon, Text} from '../../common-adapters'
 import AddNew from './add-new-container'
+import {type FolderHeaderProps} from './header'
 
-type Props = {
-  path: Types.Path,
-  title: string,
-  onBack: () => void,
-  onChat: () => void,
-}
-
-const Header = ({title, path, onBack, onChat}: Props) => (
+const Header = ({title, path, onBack, onChat}: FolderHeaderProps) => (
   <Box style={stylesFolderHeaderContainer}>
     <Box style={stylesFolderHeaderRow}>
       <BackButton onClick={onBack} />

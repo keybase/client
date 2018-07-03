@@ -1,17 +1,11 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../constants/types/fs'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Icon, Text} from '../../common-adapters'
 import AddNew from './add-new-container'
 import ConnectedBanner from '../banner/container'
 import Breadcrumb from './breadcrumb-container.desktop'
-
-export type FolderHeaderProps = {
-  path: Types.Path,
-  openInFileUI: () => void,
-  onChat: () => void,
-}
+import {type FolderHeaderProps} from './header'
 
 const FolderHeader = ({path, openInFileUI, onChat}: FolderHeaderProps) => (
   <Box style={styleHeaderContainer}>
