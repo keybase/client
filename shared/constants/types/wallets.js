@@ -67,11 +67,13 @@ export type Account = I.RecordOf<_Account>
 export type Assets = I.RecordOf<_Assets>
 
 export type Payment = I.RecordOf<_Payment>
-
+type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 export type _State = {
   accountMap: I.Map<AccountID, Account>,
   accountNameError: string,
+  accountNameValidationState: ValidationState,
   secretKeyError: string,
+  secretKeyValidationState: ValidationState,
   selectedAccount: AccountID,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
   paymentsMap: I.Map<AccountID, I.List<Payment>>,

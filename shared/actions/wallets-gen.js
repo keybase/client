@@ -40,18 +40,12 @@ type _PaymentsReceivedPayload = $ReadOnly<{|
   payments: Array<Types.Payment>,
 |}>
 type _SelectAccountPayload = $ReadOnly<{|accountID: Types.AccountID|}>
-type _ValidateAccountNamePayload = $ReadOnly<{|
-  name: string,
-  waitingKey?: string,
-|}>
+type _ValidateAccountNamePayload = $ReadOnly<{|name: string|}>
 type _ValidateAccountNamePayloadError = $ReadOnly<{|
   name: string,
   error: string,
 |}>
-type _ValidateSecretKeyPayload = $ReadOnly<{|
-  secretKey: HiddenString,
-  waitingKey?: string,
-|}>
+type _ValidateSecretKeyPayload = $ReadOnly<{|secretKey: HiddenString|}>
 type _ValidateSecretKeyPayloadError = $ReadOnly<{|
   secretKey: HiddenString,
   error: string,
@@ -59,12 +53,12 @@ type _ValidateSecretKeyPayloadError = $ReadOnly<{|
 
 // Action Creators
 /**
- * Ask the service to validate an account name. Optionally set a waiting key during validation.
+ * Ask the service to validate an account name.
  */
 export const createValidateAccountName = (payload: _ValidateAccountNamePayload) => ({error: false, payload, type: validateAccountName})
 export const createValidateAccountNameError = (payload: _ValidateAccountNamePayloadError) => ({error: true, payload, type: validateAccountName})
 /**
- * Ask the service to validate an account secret key. Optionally set a waiting key during validation.
+ * Ask the service to validate an account secret key.
  */
 export const createValidateSecretKey = (payload: _ValidateSecretKeyPayload) => ({error: false, payload, type: validateSecretKey})
 export const createValidateSecretKeyError = (payload: _ValidateSecretKeyPayloadError) => ({error: true, payload, type: validateSecretKey})

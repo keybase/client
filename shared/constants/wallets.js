@@ -17,7 +17,9 @@ const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
 const makeState: I.RecordFactory<Types._State> = I.Record({
   assetsMap: I.Map(),
   accountNameError: '',
+  accountNameValidationState: 'none',
   secretKeyError: '',
+  secretKeyValidationState: 'none',
   paymentsMap: I.Map(),
   accountMap: I.Map(),
   selectedAccount: Types.noAccountID,

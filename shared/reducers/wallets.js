@@ -20,11 +20,23 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.selectAccount:
       return state.set('selectedAccount', action.payload.accountID)
     case WalletsGen.validateAccountName:
-      return action.error ? state.set('accountNameError', action.payload.error) : state
+      return action.error
+        ? state
+            .set('accountNameError', action.payload.error)
+            .set('accountNameValidationState', action.payload.error ? 'error' : 'valid')
+        : state.set('accountNameValidationState', 'waiting')
     case WalletsGen.validateSecretKey:
-      return action.error ? state.set('secretKeyError', action.payload.error) : state
+      return action.error
+        ? state
+            .set('secretKeyError', action.payload.error)
+            .set('secretKeyValidationState', action.payload.error ? 'error' : 'valid')
+        : state.set('secretKeyValidationState', 'waiting')
     case WalletsGen.clearErrors:
-      return state.set('secretKeyError', '').set('accountNameError', '')
+      return state
+        .set('secretKeyError', '')
+        .set('secretKeyValidationState', 'none')
+        .set('accountNameError', '')
+        .set('accountNameValidationState', 'none')
     // Saga only actions
     case WalletsGen.loadAssets:
     case WalletsGen.loadPayments:
