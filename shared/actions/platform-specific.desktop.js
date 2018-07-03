@@ -3,7 +3,6 @@ import {showDockIcon} from '../desktop/app/dock-icon.desktop'
 import {getMainWindow} from '../desktop/remote/util.desktop'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import * as ConfigGen from './config-gen'
-import * as AppGen from './app-gen'
 import * as Saga from '../util/saga'
 
 function showShareActionSheet(options: {
@@ -103,7 +102,7 @@ function* initializeOpenAtLoginState(): Generator<any, void, any> {
 
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.setOpenAtLogin, writeElectronSettings)
-  yield Saga.safeTakeLatestPure(AppGen.showMain, showMainWindow)
+  yield Saga.safeTakeLatestPure(ConfigGen.showMain, showMainWindow)
   yield Saga.fork(initializeOpenAtLoginState)
 }
 

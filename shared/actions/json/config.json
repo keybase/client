@@ -4,6 +4,22 @@
     "import {RPCError} from '../util/errors'"
   ],
   "actions": {
+    "dumpLogs": {
+      "reason": ["'quitting through menu'"]
+    },
+    "changedFocus": {
+      "appFocused": "boolean"
+    },
+    "changedActive": {
+      "userActive": "boolean"
+    },
+    "link": {
+      "link": "string"
+    },
+    "mobileAppState": {
+      "nextAppState": ["'active'", "'background'", "'inactive'"]
+    },
+    "showMain": {},
     "loadAvatars": {
       "usernames": "Array<string>"
     },

@@ -25,6 +25,8 @@ import {loggedInSelector} from '../constants/selectors'
 import {type AsyncAction} from '../constants/types/flux'
 import {type TypedState} from '../constants/reducer'
 import shallowEqual from 'shallowequal'
+import {quit} from '../util/quit-helper'
+import dumpLogs from '../logger/dump-log-fs'
 
 const maxAvatarsPerLoad = 50
 // TODO convert to sagas
@@ -313,6 +315,35 @@ const getConfig = (state: TypedState, action: ConfigGen.LoadConfigPayload) =>
 const _setStartedDueToPush = (action: Chat2Gen.SelectConversationPayload) =>
   action.payload.reason === 'push' ? Saga.put(ConfigGen.createSetStartedDueToPush()) : undefined
 
+function _onMobileAppStateChanged(action: ConfigGen.MobileAppStatePayload) {
+  const nextAppState = action.payload.nextAppState
+
+  const appFocused = {
+    active: true,
+    background: false,
+    inactive: false,
+  }[nextAppState]
+
+  const state =
+    {
+      active: RPCTypes.appStateAppState.foreground,
+      background: RPCTypes.appStateAppState.background,
+      inactive: RPCTypes.appStateAppState.inactive,
+    }[nextAppState] || RPCTypes.appStateAppState.foreground
+  logger.info(`setting app state on service to: ${state}`)
+
+  return Saga.put(ConfigGen.createChangedFocus({appFocused}))
+}
+
+function _dumpLogs(action: ConfigGen.DumpLogsPayload) {
+  dumpLogs().then(() => {
+    // quit as soon as possible
+    if (action.payload.reason === 'quitting through menu') {
+      quit('quitButton')
+    }
+  })
+}
+
 function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, _bootstrapSuccess)
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrap, _bootstrap)
@@ -324,7 +355,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.fork(handleAvatarQueue)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, _setStartedDueToPush)
   yield Saga.safeTakeEveryPurePromise(ConfigGen.loadConfig, getConfig)
-
+  yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, _onMobileAppStateChanged)
+  yield Saga.safeTakeEveryPure(ConfigGen.dumpLogs, _dumpLogs)
   yield Saga.fork(PlatformSpecific.platformConfigSaga)
 }
 

@@ -1,5 +1,4 @@
 // @flow
-import * as AppGen from '../app-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/chat2'
@@ -711,7 +710,7 @@ const loadMoreMessages = (
   let reason: string = ''
 
   switch (action.type) {
-    case AppGen.changedFocus:
+    case ConfigGen.changedFocus:
       if (!isMobile || !action.payload.appFocused) {
         return
       }
@@ -936,7 +935,7 @@ const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: Typed
           })
         )
         dispatch(Route.switchTo([chatTab]))
-        dispatch(AppGen.createShowMain())
+        dispatch(ConfigGen.createShowMain())
       })
     })
   }
@@ -1687,7 +1686,7 @@ const markThreadAsRead = (
     | Chat2Gen.SelectConversationPayload
     | Chat2Gen.MessagesAddPayload
     | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload
-    | AppGen.ChangedFocusPayload
+    | ConfigGen.ChangedFocusPayload
     | NavigateActions,
   state: TypedState
 ) => {
@@ -2187,7 +2186,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.setPendingConversationUsers,
       Chat2Gen.markConversationsStale,
       Chat2Gen.metasReceived,
-      AppGen.changedFocus,
+      ConfigGen.changedFocus,
     ],
     loadMoreMessages,
     loadMoreMessagesSuccess
@@ -2237,7 +2236,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.messagesAdd,
       Chat2Gen.selectConversation,
       Chat2Gen.markInitiallyLoadedThreadAsRead,
-      AppGen.changedFocus,
+      ConfigGen.changedFocus,
       a => typeof a.type === 'string' && a.type.startsWith('routeTree:'),
     ],
     markThreadAsRead
