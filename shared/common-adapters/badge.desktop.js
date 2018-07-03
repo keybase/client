@@ -4,9 +4,9 @@ import * as React from 'react'
 import Text from './text'
 import {globalStyles, globalColors, platformStyles} from '../styles'
 
-import type {Props} from './badge'
+import type {BadgeProps} from './badge'
 
-function Badge({badgeStyle, badgeNumber, badgeNumberStyle}: Props) {
+function Badge({badgeStyle, badgeNumber, badgeNumberStyle}: BadgeProps) {
   return (
     <Box style={{...defaultBadgeStyle, ...badgeStyle}}>
       <Text style={{...textStyle, ...badgeNumberStyle}} type="HeaderBig">

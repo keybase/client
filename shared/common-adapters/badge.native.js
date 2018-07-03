@@ -2,11 +2,12 @@
 import Box from './box'
 import * as React from 'react'
 import Text from './text'
+// import Text from 'react-native'
 import {globalStyles, globalColors, styleSheetCreate, collapseStyles} from '../styles'
 
 import type {BadgeProps, Badge2Props} from './badge'
 
-export function Badge({badgeStyle, badgeNumber, badgeNumberStyle, largerBadgeMinWidthFix}: Props) {
+export function Badge({badgeStyle, badgeNumber, badgeNumberStyle, largerBadgeMinWidthFix}: BadgeProps) {
   return (
     <Box
       style={collapseStyles([
@@ -48,31 +49,43 @@ const badgeStyles = styleSheetCreate({
   },
 })
 
-export function Badge2({number, radius, fontSize, style, numberStyle}: Badge2Props) {
-  return (
-    <Box style={collapseStyles([badge2Styles.badge, style])}>
-      <Text style={collapseStyles([badge2Styles.text, numberStyle])} type="HeaderBig">
-        {number}
-      </Text>
-    </Box>
-  )
+export class Badge2 extends React.Component<Badge2Props, {}> {
+  render() {
+    return (
+      <Box style={collapseStyles([badge2Styles.badge, this.props.style])}>
+        <Text type="BodyTinySemibold" style={collapseStyles([badge2Styles.text, this.props.numberStyle])}>
+          hi
+        </Text>
+      </Box>
+    )
+  }
 }
+
+// ({number, radius, fontSize, style, numberStyle}: Badge2Props) {
+
+// }
+
+const radius = 100
+
+const leftRightPadding = 6
+const topBottomPadding = 4
 
 const badge2Styles = styleSheetCreate({
   badge: {
+    ...globalStyles.flexBoxColumn,
     ...globalStyles.flexBoxCenter,
     backgroundColor: globalColors.orange,
-    borderRadius: 14,
-    flex: 0,
-    paddingBottom: 2,
-    paddingLeft: 6,
-    paddingRight: 6,
-    paddingTop: 4,
+    borderRadius: radius,
+    minWidth: radius * 2,
+    minHeight: radius * 2,
+    paddingBottom: topBottomPadding,
+    paddingLeft: leftRightPadding,
+    paddingRight: leftRightPadding,
+    paddingTop: topBottomPadding,
   },
   text: {
     color: globalColors.white,
-    flex: 0,
-    fontSize: 11,
-    lineHeight: 12,
+    textAlign: 'center',
+    fontSize: radius - 5,
   },
 })

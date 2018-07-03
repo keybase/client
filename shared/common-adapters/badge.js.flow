@@ -10,8 +10,8 @@ export type BadgeProps = {
 
 export type Badge2Props = {
   number: ?number,
-  radius: ?number,
-  fontSize: ?number,
+  radius?: number,
+  fontSize?: number,
   style?: any,
   numberStyle?: Object,
 }
