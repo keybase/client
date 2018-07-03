@@ -32,6 +32,11 @@ type _LinkExistingAccountPayload = $ReadOnly<{|
   name: string,
   secretKey: HiddenString,
 |}>
+type _LinkExistingAccountPayloadError = $ReadOnly<{|
+  name: string,
+  secretKey: HiddenString,
+  error: string,
+|}>
 type _LoadAccountsPayload = void
 type _LoadAssetsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
@@ -73,6 +78,7 @@ export const createClearErrors = (payload: _ClearErrorsPayload) => ({error: fals
  * Link an existing Stellar account with this Keybase user.
  */
 export const createLinkExistingAccount = (payload: _LinkExistingAccountPayload) => ({error: false, payload, type: linkExistingAccount})
+export const createLinkExistingAccountError = (payload: _LinkExistingAccountPayloadError) => ({error: true, payload, type: linkExistingAccount})
 /**
  * Refresh our list of accounts
  */
@@ -107,6 +113,7 @@ export type AccountsReceivedPayload = $Call<typeof createAccountsReceived, _Acco
 export type AssetsReceivedPayload = $Call<typeof createAssetsReceived, _AssetsReceivedPayload>
 export type ClearErrorsPayload = $Call<typeof createClearErrors, _ClearErrorsPayload>
 export type LinkExistingAccountPayload = $Call<typeof createLinkExistingAccount, _LinkExistingAccountPayload>
+export type LinkExistingAccountPayloadError = $Call<typeof createLinkExistingAccountError, _LinkExistingAccountPayloadError>
 export type LoadAccountsPayload = $Call<typeof createLoadAccounts, _LoadAccountsPayload>
 export type LoadAssetsPayload = $Call<typeof createLoadAssets, _LoadAssetsPayload>
 export type LoadPaymentsPayload = $Call<typeof createLoadPayments, _LoadPaymentsPayload>
@@ -124,6 +131,7 @@ export type Actions =
   | AssetsReceivedPayload
   | ClearErrorsPayload
   | LinkExistingAccountPayload
+  | LinkExistingAccountPayloadError
   | LoadAccountsPayload
   | LoadAssetsPayload
   | LoadPaymentsPayload

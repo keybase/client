@@ -74,6 +74,7 @@ export type _State = {
   accountMap: I.Map<AccountID, Account>,
   accountNameError: string,
   accountNameValidationState: ValidationState,
+  linkExistingAccountError: string,
   secretKeyError: string,
   secretKeyValidationState: ValidationState,
   selectedAccount: AccountID,

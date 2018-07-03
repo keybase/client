@@ -40,7 +40,12 @@
     "linkExistingAccount": {
       "_description": "Link an existing Stellar account with this Keybase user.",
       "name": "string",
-      "secretKey": "HiddenString"
+      "secretKey": "HiddenString",
+      "canError": {
+        "name": "string",
+        "secretKey": "HiddenString",
+        "error": "string"
+      }
     },
     "validateAccountName": {
       "_description": "Ask the service to validate an account name.",

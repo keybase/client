@@ -48,10 +48,13 @@ const linkExistingAccount = (action: WalletsGen.LinkExistingAccountPayload) => {
   return RPCTypes.localLinkNewWalletAccountLocalRpcPromise({
     name,
     secretKey: secretKey.stringValue(),
-  }).then(accountID => [
-    WalletsGen.createLoadAccounts(),
-    WalletsGen.createSelectAccount({accountID: Types.stringToAccountID(accountID), show: true}),
-  ])
+  })
+    .then(accountID => [
+      WalletsGen.createLoadAccounts(),
+      WalletsGen.createSelectAccount({accountID: Types.stringToAccountID(accountID), show: true}),
+      WalletsGen.createLinkExistingAccountError({error: '', name, secretKey}),
+    ])
+    .catch(err => WalletsGen.createLinkExistingAccountError({error: err.desc, name, secretKey}))
 }
 
 const validateAccountName = (action: WalletsGen.ValidateAccountNamePayload) => {
@@ -82,7 +85,10 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(WalletsGen.loadPayments, loadPayments, loadPaymentsSuccess)
   yield Saga.safeTakeEveryPure(WalletsGen.selectAccount, loadAssets, loadAssetsSuccess)
   yield Saga.safeTakeEveryPure(WalletsGen.selectAccount, loadPayments, loadPaymentsSuccess)
-  yield Saga.safeTakeEveryPurePromise(WalletsGen.linkExistingAccount, linkExistingAccount)
+  yield Saga.safeTakeEveryPurePromise(
+    action => action.type === WalletsGen.linkExistingAccount && !action.error,
+    linkExistingAccount
+  )
   yield Saga.safeTakeEveryPurePromise(
     action => action.type === WalletsGen.validateAccountName && !action.error,
     validateAccountName

@@ -18,6 +18,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   assetsMap: I.Map(),
   accountNameError: '',
   accountNameValidationState: 'none',
+  linkExistingAccountError: '',
   secretKeyError: '',
   secretKeyValidationState: 'none',
   paymentsMap: I.Map(),
@@ -122,11 +123,6 @@ const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
 const getAssets = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.assetsMap.get(accountID || getSelectedAccount(state), I.List())
 
-const waitingKeys = {
-  linkExistingValidateName: 'linkExisting:validateName',
-  linkExistingValidateSK: 'linkExisting:validateSK',
-}
-
 export {
   accountResultToAccount,
   assetsResultToAssets,
@@ -141,5 +137,4 @@ export {
   getAccount,
   getAssets,
   getSelectedAccount,
-  waitingKeys,
 }
