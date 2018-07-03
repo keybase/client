@@ -19,6 +19,10 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.setIn(['paymentsMap', action.payload.accountID], I.List(action.payload.payments))
     case WalletsGen.selectAccount:
       return state.set('selectedAccount', action.payload.accountID)
+    case WalletsGen.validateAccountName:
+      return action.error ? state.set('accountNameError', action.payload.error) : state
+    case WalletsGen.validateSecretKey:
+      return action.error ? state.set('secretKeyError', action.payload.error) : state
     // Saga only actions
     case WalletsGen.loadAssets:
     case WalletsGen.loadPayments:

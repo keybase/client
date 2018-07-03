@@ -17,6 +17,8 @@ export const loadAssets = 'wallets:loadAssets'
 export const loadPayments = 'wallets:loadPayments'
 export const paymentsReceived = 'wallets:paymentsReceived'
 export const selectAccount = 'wallets:selectAccount'
+export const validateAccountName = 'wallets:validateAccountName'
+export const validateSecretKey = 'wallets:validateSecretKey'
 
 // Payload Types
 type _AccountsReceivedPayload = $ReadOnly<{|accounts: Array<Types.Account>|}>
@@ -36,8 +38,34 @@ type _PaymentsReceivedPayload = $ReadOnly<{|
   payments: Array<Types.Payment>,
 |}>
 type _SelectAccountPayload = $ReadOnly<{|accountID: Types.AccountID|}>
+type _ValidateAccountNamePayload = $ReadOnly<{|
+  name: string,
+  waitingKey?: string,
+|}>
+type _ValidateAccountNamePayloadError = $ReadOnly<{|
+  name: string,
+  error: string,
+|}>
+type _ValidateSecretKeyPayload = $ReadOnly<{|
+  secretKey: HiddenString,
+  waitingKey?: string,
+|}>
+type _ValidateSecretKeyPayloadError = $ReadOnly<{|
+  secretKey: HiddenString,
+  error: string,
+|}>
 
 // Action Creators
+/**
+ * Ask the service to validate an account name. Optionally set a waiting key during validation.
+ */
+export const createValidateAccountName = (payload: _ValidateAccountNamePayload) => ({error: false, payload, type: validateAccountName})
+export const createValidateAccountNameError = (payload: _ValidateAccountNamePayloadError) => ({error: true, payload, type: validateAccountName})
+/**
+ * Ask the service to validate an account secret key. Optionally set a waiting key during validation.
+ */
+export const createValidateSecretKey = (payload: _ValidateSecretKeyPayload) => ({error: false, payload, type: validateSecretKey})
+export const createValidateSecretKeyError = (payload: _ValidateSecretKeyPayloadError) => ({error: true, payload, type: validateSecretKey})
 /**
  * Link an existing Stellar account with this Keybase user.
  */
@@ -80,6 +108,10 @@ export type LoadAssetsPayload = $Call<typeof createLoadAssets, _LoadAssetsPayloa
 export type LoadPaymentsPayload = $Call<typeof createLoadPayments, _LoadPaymentsPayload>
 export type PaymentsReceivedPayload = $Call<typeof createPaymentsReceived, _PaymentsReceivedPayload>
 export type SelectAccountPayload = $Call<typeof createSelectAccount, _SelectAccountPayload>
+export type ValidateAccountNamePayload = $Call<typeof createValidateAccountName, _ValidateAccountNamePayload>
+export type ValidateAccountNamePayloadError = $Call<typeof createValidateAccountNameError, _ValidateAccountNamePayloadError>
+export type ValidateSecretKeyPayload = $Call<typeof createValidateSecretKey, _ValidateSecretKeyPayload>
+export type ValidateSecretKeyPayloadError = $Call<typeof createValidateSecretKeyError, _ValidateSecretKeyPayloadError>
 
 // All Actions
 // prettier-ignore
@@ -92,4 +124,8 @@ export type Actions =
   | LoadPaymentsPayload
   | PaymentsReceivedPayload
   | SelectAccountPayload
+  | ValidateAccountNamePayload
+  | ValidateAccountNamePayloadError
+  | ValidateSecretKeyPayload
+  | ValidateSecretKeyPayloadError
   | {type: 'common:resetStore', payload: void}

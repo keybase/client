@@ -40,6 +40,26 @@
       "_description": "Link an existing Stellar account with this Keybase user.",
       "name": "string",
       "secretKey": "HiddenString"
+    },
+    "validateAccountName": {
+      "_description":
+        "Ask the service to validate an account name. Optionally set a waiting key during validation.",
+      "name": "string",
+      "waitingKey?": "string",
+      "canError": {
+        "name": "string",
+        "error": "string"
+      }
+    },
+    "validateSecretKey": {
+      "_description":
+        "Ask the service to validate an account secret key. Optionally set a waiting key during validation.",
+      "secretKey": "HiddenString",
+      "waitingKey?": "string",
+      "canError": {
+        "secretKey": "HiddenString",
+        "error": "string"
+      }
     }
   }
 }
