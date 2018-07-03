@@ -81,7 +81,11 @@ func (c *CmdGitCreate) Run() error {
 	}
 
 	dui := c.G().UI.GetDumbOutputUI()
-	dui.Printf("Repo created! You can clone it with:\n  git clone %s\n", urlString)
+	dui.Printf(`Repo created! You can clone it with:
+  git clone %s
+Or add it as a remote to an existing repo with:
+  git remote add origin %s
+`, urlString, urlString)
 	return nil
 }
 
