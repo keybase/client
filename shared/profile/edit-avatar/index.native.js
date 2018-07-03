@@ -104,10 +104,8 @@ const styles = styleSheetCreate({
     marginTop: globalMargins.small,
   },
   zoomContainer: {
-    alignSelf: 'center',
     backgroundColor: globalColors.lightGrey2,
     borderRadius: AVATAR_SIZE,
-    flexShrink: 1,
     height: AVATAR_SIZE,
     marginBottom: globalMargins.tiny,
     overflow: 'hidden',
