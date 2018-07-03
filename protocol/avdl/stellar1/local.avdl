@@ -45,9 +45,11 @@ protocol local {
     NONE_0,
     KEYBASE_1,
     STELLAR_2,
-    SBS_3    
+    SBS_3
   }
 
+  // Summary of a payment.
+  // Keep in sync with PaymentDetailsLocal.
   record PaymentLocal {
     TransactionID id;               // For relay payments, the funding tx.
     TimeMs time;
@@ -56,15 +58,15 @@ protocol local {
     string statusDetail;
     string amountDescription;       // "1,323.1234567 XLM"
     BalanceDelta delta;             // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
-    string worth;                   // "$123.23" 
+    string worth;                   // "$123.23"
     string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous)
 
-    string source;              // keybase username or stellar public key
-    ParticipantType sourceType; // "keybase" or "stellar"
-    string target;              // keybase username, stellar public key, or sbs assertion
-    ParticipantType targetType; // "keybase", "stellar", or "sbs"
+    string source;                  // keybase username or stellar public key
+    ParticipantType sourceType;     // keybase or stellar
+    string target;                  // keybase username, stellar public key, or sbs assertion
+    ParticipantType targetType;     // keybase, stellar, or sbs
 
-    string note;
+    string note;                    // secret note
     string noteErr;
   }
 
@@ -79,17 +81,18 @@ protocol local {
   }
 
   PaymentsPageLocal getPaymentsLocal(int sessionID, AccountID accountID, union { null, PageCursor } cursor);
-  
+
+  // Details of a payment.
+  // Keep in sync with PaymentLocal.
   record PaymentDetailsLocal {
     TransactionID id;               // For relay payments, the funding tx.
     TimeMs time;
     PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
     string statusDescription;       // "pending", "completed", "error"
     string statusDetail;
-    string amountDescription;       // "+ 1,323.1234567 XLM"
-    string amountValue;             // "1,323.1234567 XLM" (no +/-)
+    string amountDescription;       // "1,323.1234567 XLM"
     BalanceDelta delta;             // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
-    string worth;                   // "$123.23" 
+    string worth;                   // "$123.23"
     string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous)
 
     string source;                  // keybase username or stellar public key
@@ -97,10 +100,10 @@ protocol local {
     string target;                  // keybase username, stellar public key, or sbs assertion
     ParticipantType targetType;     // keybase, stellar, or sbs
 
-    string note;                    // encrypted note
-    string noteErr;            
+    string note;                    // secret note
+    string noteErr;
 
-    string publicNote;              // public memo for the payment 
+    string publicNote;              // public memo for the payment
     string publicNoteType;          // public memo type: "text", "id", "hash", "return"
   }
 
