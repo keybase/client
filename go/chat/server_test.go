@@ -1271,6 +1271,7 @@ func TestChatSrvPostLocalLengthLimit(t *testing.T) {
 		users := ctc.users()
 
 		var created chat1.ConversationInfoLocal
+		var dev chat1.ConversationInfoLocal
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
 			firstConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
@@ -1290,11 +1291,20 @@ func TestChatSrvPostLocalLengthLimit(t *testing.T) {
 			created = mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 				mt, ctc.as(t, users[1]).user())
 		}
+		dev = mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_DEV,
+			mt, ctc.as(t, users[1]).user())
 
 		maxTextBody := strings.Repeat(".", msgchecker.TextMessageMaxLength)
 		_, err := postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxTextBody}))
 		require.NoError(t, err)
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxTextBody + "!"}))
+		require.Error(t, err)
+		_, err = postLocalForTest(t, ctc, users[0], dev,
+			chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxTextBody + "!"}))
+		require.NoError(t, err)
+		maxDevTextBody := strings.Repeat(".", msgchecker.DevTextMessageMaxLength)
+		_, err = postLocalForTest(t, ctc, users[0], dev,
+			chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxDevTextBody + "!"}))
 		require.Error(t, err)
 
 		maxHeadlineBody := strings.Repeat(".", msgchecker.HeadlineMaxLength)
