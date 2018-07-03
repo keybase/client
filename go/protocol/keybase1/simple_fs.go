@@ -676,15 +676,17 @@ func (o SimpleFSGetHTTPAddressAndTokenResponse) DeepCopy() SimpleFSGetHTTPAddres
 }
 
 type SimpleFSListArg struct {
-	OpID   OpID       `codec:"opID" json:"opID"`
-	Path   Path       `codec:"path" json:"path"`
-	Filter ListFilter `codec:"filter" json:"filter"`
+	OpID                OpID       `codec:"opID" json:"opID"`
+	Path                Path       `codec:"path" json:"path"`
+	Filter              ListFilter `codec:"filter" json:"filter"`
+	RefreshSubscription bool       `codec:"refreshSubscription" json:"refreshSubscription"`
 }
 
 type SimpleFSListRecursiveArg struct {
-	OpID   OpID       `codec:"opID" json:"opID"`
-	Path   Path       `codec:"path" json:"path"`
-	Filter ListFilter `codec:"filter" json:"filter"`
+	OpID                OpID       `codec:"opID" json:"opID"`
+	Path                Path       `codec:"path" json:"path"`
+	Filter              ListFilter `codec:"filter" json:"filter"`
+	RefreshSubscription bool       `codec:"refreshSubscription" json:"refreshSubscription"`
 }
 
 type SimpleFSReadListArg struct {
@@ -785,11 +787,19 @@ type SimpleFSFolderEditHistoryArg struct {
 }
 
 type SimpleFSInterface interface {
-	// Begin list of items in directory at path
-	// Retrieve results with readList()
-	// Can be a single file to get flags/status
+	// Begin list of items in directory at path.
+	// Retrieve results with readList().
+	// Can be a single file to get flags/status.
+	// If `refreshSubscription` is true and the path is a KBFS path, simpleFS
+	// will begin sending `FSPathUpdated` notifications for the for the
+	// corresponding TLF, until another call refreshes the subscription on a
+	// different TLF.
 	SimpleFSList(context.Context, SimpleFSListArg) error
-	// Begin recursive list of items in directory at path
+	// Begin recursive list of items in directory at path.
+	// If `refreshSubscription` is true and the path is a KBFS path, simpleFS
+	// will begin sending `FSPathUpdated` notifications for the for the
+	// corresponding TLF, until another call refreshes the subscription on a
+	// different TLF.
 	SimpleFSListRecursive(context.Context, SimpleFSListRecursiveArg) error
 	// Get list of Paths in progress. Can indicate status of pending
 	// to get more entries.
@@ -1226,15 +1236,23 @@ type SimpleFSClient struct {
 	Cli rpc.GenericClient
 }
 
-// Begin list of items in directory at path
-// Retrieve results with readList()
-// Can be a single file to get flags/status
+// Begin list of items in directory at path.
+// Retrieve results with readList().
+// Can be a single file to get flags/status.
+// If `refreshSubscription` is true and the path is a KBFS path, simpleFS
+// will begin sending `FSPathUpdated` notifications for the for the
+// corresponding TLF, until another call refreshes the subscription on a
+// different TLF.
 func (c SimpleFSClient) SimpleFSList(ctx context.Context, __arg SimpleFSListArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSList", []interface{}{__arg}, nil)
 	return
 }
 
-// Begin recursive list of items in directory at path
+// Begin recursive list of items in directory at path.
+// If `refreshSubscription` is true and the path is a KBFS path, simpleFS
+// will begin sending `FSPathUpdated` notifications for the for the
+// corresponding TLF, until another call refreshes the subscription on a
+// different TLF.
 func (c SimpleFSClient) SimpleFSListRecursive(ctx context.Context, __arg SimpleFSListRecursiveArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSListRecursive", []interface{}{__arg}, nil)
 	return
