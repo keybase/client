@@ -47,7 +47,7 @@ const WalletRowProvider = mockWallets => ({
   },
 })
 
-const provider = PropProviders.compose(
+const provider = PropProviders.composeAndCreate(
   PropProviders.Avatar(['following', 'both'], ['followers', 'both']),
   WalletRowProvider(mockWallets)
 )

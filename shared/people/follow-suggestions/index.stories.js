@@ -4,7 +4,7 @@ import {storiesOf, action} from '../../stories/storybook'
 import * as PropProviders from '../../stories/prop-providers'
 import FollowSuggestions, {type Props} from '.'
 
-const provider = PropProviders.compose(
+const provider = PropProviders.composeAndCreate(
   PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
   PropProviders.Avatar(['max', 'cnojima', 'cdixon'], [])
 )

@@ -6,7 +6,7 @@ import {Box2} from '../../common-adapters'
 import {action, storiesOf} from '../../stories/storybook'
 import TransactionDetails from '.'
 
-const provider = PropProviders.compose(
+const provider = PropProviders.composeAndCreate(
   PropProviders.Usernames(['paul'], 'john'),
   PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
 )

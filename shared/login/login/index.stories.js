@@ -25,7 +25,7 @@ const commonProps: Props = {
   waitingForResponse: false,
 }
 
-const provider = PropProviders.compose(
+const provider = PropProviders.composeAndCreate(
   PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
   PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
 )

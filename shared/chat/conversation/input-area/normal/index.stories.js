@@ -9,26 +9,29 @@ import Input, {type Props as InputProps} from '.'
 import {isMobile} from '../../../../constants/platform'
 import {stringToConversationIDKey} from '../../../../constants/types/chat2'
 
-const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'), {
-  ChannelMentionHud: ownProps => {
-    const channels = ['foo', 'bar']
-    return {
-      ...ownProps,
-      channels,
-    }
-  },
-  UserMentionHud: ownProps => {
-    const users = [
-      {username: 'marcopolo', fullName: 'Marco Munizaga'},
-      {username: 'trex', fullName: 'Thomas Rex'},
-      {username: 'chris', fullName: 'Chris Coyne'},
-    ]
-    return {
-      ...ownProps,
-      users,
-    }
-  },
-})
+const provider = PropProviders.composeAndCreate(
+  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  {
+    ChannelMentionHud: ownProps => {
+      const channels = ['foo', 'bar']
+      return {
+        ...ownProps,
+        channels,
+      }
+    },
+    UserMentionHud: ownProps => {
+      const users = [
+        {username: 'marcopolo', fullName: 'Marco Munizaga'},
+        {username: 'trex', fullName: 'Thomas Rex'},
+        {username: 'chris', fullName: 'Chris Coyne'},
+      ]
+      return {
+        ...ownProps,
+        users,
+      }
+    },
+  }
+)
 
 type Props = {
   isEditExploded: boolean,

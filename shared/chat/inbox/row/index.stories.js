@@ -102,7 +102,7 @@ const commonChannel = {
   isError: false,
 }
 
-const provider = PropProviders.compose(
+const provider = PropProviders.composeAndCreate(
   PropProviders.TeamDropdownMenu(),
   PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
 )

@@ -10,7 +10,7 @@ import * as _Usernames from '../common-adapters/usernames'
  * @returns a <Provider /> that can be used in a storybook `addDecorator` to provide viewProps
  *          for connected child components
  */
-const compose = (...providers: SelectorMap[]) => {
+const composeAndCreate = (...providers: SelectorMap[]) => {
   return createPropProvider(providers.reduce((obj, provider) => ({...obj, ...provider}), {}))
 }
 
@@ -69,11 +69,10 @@ const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: strin
 })
 
 const Common = () =>
-  compose(
+  composeAndCreate(
     Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
     Avatar(['following', 'both'], ['followers', 'both']),
     WaitingButton()
   )
 
-export {compose}
-export {Avatar, Common, TeamDropdownMenu, Usernames, WaitingButton}
+export {composeAndCreate, Avatar, Common, TeamDropdownMenu, Usernames, WaitingButton}

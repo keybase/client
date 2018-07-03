@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {action, storiesOf} from '../stories/storybook'
-import {Avatar, compose, Usernames} from '../stories/prop-providers'
+import {Avatar, composeAndCreate, Usernames} from '../stories/prop-providers'
 import ScrollView from './scroll-view'
 import Text from './text'
 import NameWithIcon from './name-with-icon'
@@ -22,7 +22,10 @@ const innerClick = evt => {
   action('Inner click')(evt)
 }
 
-const provider = compose(Avatar(['chrisnojima'], ['chrisnojima']), Usernames(['cecileb', 'chrisnojima']))
+const provider = composeAndCreate(
+  Avatar(['chrisnojima'], ['chrisnojima']),
+  Usernames(['cecileb', 'chrisnojima'])
+)
 
 const load = () => {
   storiesOf('Common/NameWithIcon', module)

@@ -42,7 +42,7 @@ const retentionPickerPropSelector = props => ({
   onSelect: action('onSelectRetentionPolicy'),
 })
 
-const provider = PropProviders.compose(
+const provider = PropProviders.composeAndCreate(
   PropProviders.Avatar(['following', 'both'], ['followers', 'both']),
   PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
   PropProviders.TeamDropdownMenu(),
