@@ -49,7 +49,7 @@ const badgeStyles = styleSheetCreate({
 })
 
 export class Badge2 extends React.Component<Badge2Props> {
-  static defaultProps = {fontSize: 8, radius: 10, leftRightPadding: 6, topBottomPadding: 4}
+  static defaultProps = {fontSize: 11, radius: 12, leftRightPadding: 6, topBottomPadding: 4}
 
   render() {
     return (

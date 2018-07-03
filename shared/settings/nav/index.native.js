@@ -5,7 +5,7 @@ import * as Constants from '../../constants/settings'
 import {StyleSheet} from 'react-native'
 import {globalStyles, globalColors, globalMargins, type Color} from '../../styles'
 import {
-  Badge,
+  Badge2,
   Box,
   ClickableBox,
   HeaderHoc,
@@ -45,7 +45,10 @@ function SettingsItem({
         >
           {text}
         </Text>
-        {!!badgeNumber && badgeNumber > 0 && <Badge badgeStyle={badgeStyle} badgeNumber={badgeNumber} />}
+        {!!badgeNumber &&
+          badgeNumber > 0 && (
+            <Badge2 radius={11} topBottomPadding={0} badgeStyle={badgeStyle} badgeNumber={badgeNumber} />
+          )}
       </Box>
     </ClickableBox>
   ) : null
@@ -74,21 +77,18 @@ function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange
             {
               badgeNumber: badgeNumbers[TabConstants.fsTab],
               icon: 'iconfont-nav-files',
-              largerBadgeMinWidthFix: true,
               onClick: () => onTabChange(Constants.fsTab),
               text: 'Files',
             },
             {
               badgeNumber: badgeNumbers[TabConstants.gitTab],
               icon: 'iconfont-nav-git',
-              largerBadgeMinWidthFix: true,
               onClick: () => onTabChange(Constants.gitTab),
               text: 'Git',
             },
             {
               badgeNumber: badgeNumbers[TabConstants.devicesTab],
               icon: 'iconfont-nav-devices',
-              largerBadgeMinWidthFix: true,
               onClick: () => onTabChange(Constants.devicesTab),
               text: 'Devices',
             },
@@ -97,7 +97,6 @@ function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange
                 ? {
                     badgeNumber: badgeNumbers[TabConstants.walletsTab],
                     icon: 'iconfont-nav-wallets',
-                    largerBadgeMinWidthFix: true,
                     onClick: () => onTabChange(Constants.walletsTab),
                     text: 'Wallet',
                   }
@@ -108,7 +107,6 @@ function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange
                 ? {
                     badgeNumber: 0,
                     icon: 'iconfont-nav-settings',
-                    largerBadgeMinWidthFix: true,
                     onClick: () => onTabChange(Constants.devMenuTab),
                     text: 'Dev menu',
                   }
