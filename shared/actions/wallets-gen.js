@@ -39,7 +39,10 @@ type _PaymentsReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   payments: Array<Types.Payment>,
 |}>
-type _SelectAccountPayload = $ReadOnly<{|accountID: Types.AccountID|}>
+type _SelectAccountPayload = $ReadOnly<{|
+  accountID: Types.AccountID,
+  show?: boolean,
+|}>
 type _ValidateAccountNamePayload = $ReadOnly<{|name: string|}>
 type _ValidateAccountNamePayloadError = $ReadOnly<{|
   name: string,
@@ -83,7 +86,7 @@ export const createLoadAssets = (payload: _LoadAssetsPayload) => ({error: false,
  */
 export const createLoadPayments = (payload: _LoadPaymentsPayload) => ({error: false, payload, type: loadPayments})
 /**
- * Select an account
+ * Select an account. Optionally navigate to the account page.
  */
 export const createSelectAccount = (payload: _SelectAccountPayload) => ({error: false, payload, type: selectAccount})
 /**

@@ -33,8 +33,9 @@
       "_description": "Refresh our list of accounts"
     },
     "selectAccount": {
-      "_description": "Select an account",
-      "accountID": "Types.AccountID"
+      "_description": "Select an account. Optionally navigate to the account page.",
+      "accountID": "Types.AccountID",
+      "show?": "boolean"
     },
     "linkExistingAccount": {
       "_description": "Link an existing Stellar account with this Keybase user.",

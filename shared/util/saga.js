@@ -127,7 +127,7 @@ function safeTakeEveryPurePromise<A, RA>(
     const state: TypedState = yield select()
     const toPut = yield call(f, action, state)
     if (toPut) {
-      yield put(toPut)
+      yield Array.isArray(toPut) ? sequentially(toPut.map(p => put(p))) : put(toPut)
     }
   })
 }
