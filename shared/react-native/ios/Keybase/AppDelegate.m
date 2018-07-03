@@ -227,22 +227,21 @@ const BOOL isDebug = NO;
       int membersType = [notification[@"t"] intValue];
       if ([type isEqualToString:@"chat.newmessageSilent_2"]) {
         NSString* convID = notification[@"c"];
-        NSString* msg = nil;
-        msg = KeybaseUnboxNotification(convID, membersType, body, &err);
-        // If d is set, display the plaintext notification
-        bool displayPlaintext = notification[@"n"];
-        if (displayPlaintext) {
-            int messageID = [notification[@"d"] intValue];
-            NSString* pushID = [notification[@"p"] objectAtIndex:0];
-            int badgeCount = [notification[@"b"] intValue];
-            int unixTime = [notification[@"x"] intValue];
-            NSString* soundName = notification[@"s"];
-            PushNotifier* pusher = [[PushNotifier alloc] init];
-            KeybaseDisplayPlaintextNotification(convID, msg, messageID, pushID, badgeCount, unixTime, body, soundName, pusher, &err);
-        }
+        // If n is set, display the plaintext notification
+        bool displayPlaintext = [notification[@"n"] boolValue];
+        int messageID = [notification[@"d"] intValue];
+        NSString* pushID = [notification[@"p"] objectAtIndex:0];
+        int badgeCount = [notification[@"b"] intValue];
+        int unixTime = [notification[@"x"] intValue];
+        NSString* soundName = notification[@"s"];
+        PushNotifier* pusher = [[PushNotifier alloc] init];
+        // This always tries to unbox the notification and adds a plaintext
+        // notification if displayPlaintext is set.
+        KeybaseHandleBackgroundNotification(convID, body, membersType, displayPlaintext,
+                messageID, pushID, badgeCount, unixTime, soundName, pusher, &err);
       } else if ([type isEqualToString:@"chat.newmessage"]) {
         NSString* convID = notification[@"convID"];
-        KeybaseUnboxNotification(convID, membersType, body, &err);
+        KeybaseUnboxNotification(convID, body, membersType, &err);
         [RCTPushNotificationManager didReceiveRemoteNotification:notification];
       }
       if (err != nil) {

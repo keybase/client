@@ -97,15 +97,16 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
       }
       break
     case 'chat.newmessageSilent_2':
+      const {c, m} = payload
       try {
-        if (!(payload.c || payload.m)) {
+        if (!(c && m)) {
           logger.error('Push chat notification payload missing conversation ID or msgBoxed')
           break
         }
         const unboxRes = yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
-          convID: payload.c || '',
+          convID: c,
           membersType,
-          payload: payload.m || '',
+          payload: m,
           pushIDs: typeof payload.p === 'string' ? JSON.parse(payload.p) : payload.p,
           shouldAck: true,
         })
