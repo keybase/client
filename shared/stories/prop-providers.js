@@ -3,6 +3,11 @@ import {action, unexpected, createPropProvider, type SelectorMap} from './storyb
 import {mockOwnToViewProps} from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
 
+// Compose prop factories into a single provider.
+const compose = (...providers: SelectorMap[]): SelectorMap => {
+  return providers.reduce((obj, provider) => ({...obj, ...provider}), {})
+}
+
 /**
  * Compose prop factories into a single provider
  * @param {Array<SelectorMap>} providers An array of objects of the form { DisplayName: Function(ownProps) }
@@ -11,7 +16,7 @@ import * as _Usernames from '../common-adapters/usernames'
  *          for connected child components
  */
 const composeAndCreate = (...providers: SelectorMap[]) => {
-  return createPropProvider(providers.reduce((obj, provider) => ({...obj, ...provider}), {}))
+  return createPropProvider(compose(...providers))
 }
 
 /**
@@ -75,4 +80,4 @@ const Common = () =>
     WaitingButton()
   )
 
-export {composeAndCreate, Avatar, Common, TeamDropdownMenu, Usernames, WaitingButton}
+export {compose, composeAndCreate, Avatar, Common, TeamDropdownMenu, Usernames, WaitingButton}
