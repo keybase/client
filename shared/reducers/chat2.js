@@ -618,13 +618,19 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       return state.set('typingMap', action.payload.conversationToTypers)
     }
     case Chat2Gen.messagesWereDeleted: {
-      const {conversationIDKey, messageIDs = [], ordinals = [], upToMessageID = null} = action.payload
+      const {
+        conversationIDKey,
+        deletableMessageTypes = Constants.allMessageTypes,
+        messageIDs = [],
+        ordinals = [],
+        upToMessageID = null,
+      } = action.payload
 
       let upToOrdinals = []
       if (upToMessageID) {
         const ordinalToMessage = state.messageMap.get(conversationIDKey, I.Map())
         ordinalToMessage.reduce((arr, m, ordinal) => {
-          if (m.id < upToMessageID) {
+          if (m.id < upToMessageID && deletableMessageTypes.has(m.type)) {
             arr.push(ordinal)
           }
           return arr
@@ -694,6 +700,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       return alreadyLocked ? state : state.setIn(['explodingModeLocks', conversationIDKey], mode)
     case Chat2Gen.setExplodingMessagesNew:
       return state.set('isExplodingNew', action.payload.new)
+    case Chat2Gen.staticConfigLoaded:
+      return state.set('staticConfig', action.payload.staticConfig)
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:

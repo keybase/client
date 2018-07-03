@@ -1,58 +1,66 @@
 {
   "prelude": ["import HiddenString from '../util/hidden-string'"],
   "actions": {
-    "checkInviteCode": {
+    "goBackAndClearErrors": {},
+    "requestAutoInvite": {},
+    "requestedAutoInvite": {
+      "inviteCode": "string",
+      "canError": { }
+    },
+    "checkInviteCode": { "inviteCode": "string" },
+    "checkedInviteCode": {
       "inviteCode": "string",
       "canError": {
-        "errorText": "string"
+        "inviteCode": "string",
+        "error": "string"
       }
     },
     "checkPassphrase": {
-      "passphrase": "HiddenString",
-      "canError": {
-        "passphraseError": "HiddenString"
-      }
+      "pass1": "HiddenString",
+      "pass2": "HiddenString",
     },
     "checkUsernameEmail": {
       "username": "string",
+      "email": "string"
+    },
+    "checkedUsernameEmail": {
+      "username": "string",
       "email": "string",
       "canError": {
-        "emailError": "?Error",
-        "usernameError": "?Error",
-        "email": "?string",
-        "username": "?string"
+        "emailError": "string",
+        "usernameError": "string",
+        "email": "string",
+        "username": "string"
       }
     },
-    "clearDeviceNameError": {},
     "requestInvite": {
       "email": "string",
       "name": "string",
+    },
+    "requestedInvite": {
+      "email": "string",
+      "name": "string",
       "canError": {
-        "emailError": "?Error",
-        "nameError": "?Error",
-        "email": "?string",
-        "name": "?string"
+        "emailError": "string",
+        "nameError": "string",
+        "email": "string",
+        "name": "string"
       }
     },
-    "resetSignup": {},
     "restartSignup": {},
-    "setDeviceNameError": {
-      "deviceNameError": "string"
-    },
-    "showPaperKey": {
-      "paperkey": "HiddenString"
-    },
-    "signupError": {
-      "signupError": "HiddenString"
-    },
-    "waiting": {
-      "waiting": "boolean"
-    },
-    "startRequestInvite": {},
-    "submitDeviceName": {
-      "deviceName": "string",
+    "signedup": {
       "canError": {
-        "deviceNameError": "string"
+        "error": "HiddenString"
+      }
+    },
+    "checkDevicename": {
+      "devicename": "string",
+    },
+    "checkedDevicename": {
+      "devicename": "string",
+      "canError": {
+        "devicename": "string",
+        "error": "string"
       }
     }
   }

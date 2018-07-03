@@ -151,6 +151,7 @@ function displayNewMessageNotification(
     })
   }
 
+  logger.info(`Got push notification with soundName '${soundName || ''}'`)
   PushNotifications.localNotification({
     message: text,
     soundName,

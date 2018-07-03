@@ -17,7 +17,7 @@ import (
 )
 
 // we will show some representation of an exploded message in the UI for a week
-const showExplosionLifetime = time.Hour * 24 * 7
+const ShowExplosionLifetime = time.Hour * 24 * 7
 
 type ByUID []gregor1.UID
 type ConvIDShort = []byte
@@ -514,7 +514,7 @@ func (m MessageUnboxedValid) HideExplosion(expunge *Expunge, now time.Time) bool
 	}
 	etime := m.Etime()
 	// Don't show ash lines for messages that have been expunged.
-	return etime.Time().Add(showExplosionLifetime).Before(now) || m.ServerHeader.MessageID < upTo
+	return etime.Time().Add(ShowExplosionLifetime).Before(now) || m.ServerHeader.MessageID < upTo
 }
 
 func (b MessageBody) IsNil() bool {
@@ -1081,6 +1081,12 @@ func MakeEmptyUnreadUpdate(convID ConversationID) UnreadUpdate {
 		UnreadMessages:          0,
 		UnreadNotifyingMessages: counts,
 	}
+}
+
+func (u UnreadUpdate) String() string {
+	return fmt.Sprintf("[d:%v c:%s u:%d nd:%d nm:%d]", u.Diff, u.ConvID, u.UnreadMessages,
+		u.UnreadNotifyingMessages[keybase1.DeviceType_DESKTOP],
+		u.UnreadNotifyingMessages[keybase1.DeviceType_MOBILE])
 }
 
 func (s TopicNameState) Bytes() []byte {

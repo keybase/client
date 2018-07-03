@@ -1,3 +1,0 @@
-// @flow
-import {Component} from 'react'
-export default class ErrorRender extends Component<{currentPath: any}, void> {}

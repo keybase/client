@@ -9,6 +9,7 @@ declare export class EngineChannel {
 }
 
 declare export class Engine {
+  static dispatchWaitingAction: (key: string, waiting: boolean) => void;
   reset(): void;
   cancelRPC(): void;
   cancelSession(sessionID: any): void;
@@ -21,15 +22,14 @@ declare export class Engine {
     method: string,
     actionCreator: (param: Object, response: ?Object, dispatch: Dispatch, getState: () => any) => ?any
   ): void;
-  createSession({
-    incomingCallMap?: any,
-    waitingHandler?: any,
-    cancelHandler?: any,
-    dangling?: boolean,
-    startMethod?: string,
-  }): any;
+  createSession({incomingCallMap?: any, waitingKey?: string, cancelHandler?: any, dangling?: boolean}): any;
   _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any): EngineChannel;
-  _rpcOutgoing(method: string, params: ?Object, callback: (...args: Array<any>) => void): void;
+  _rpcOutgoing({
+    method: string,
+    params: ?Object,
+    callback: (...args: Array<any>) => void,
+    waitingKey?: string,
+  }): void;
 }
 
 declare export function getEngine(): Engine

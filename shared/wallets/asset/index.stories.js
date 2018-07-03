@@ -1,15 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/wallets'
-import {withStateHandlers} from '../../util/container'
 import {Box, Divider} from '../../common-adapters'
-import {action, storiesOf} from '../../stories/storybook'
+import {storiesOf} from '../../stories/storybook'
 import Asset from '.'
-
-const common = {
-  expanded: false,
-  toggleExpanded: action('toggleExpanded'),
-}
 
 const native = {
   availableToSend: '122.0000000',
@@ -17,8 +11,8 @@ const native = {
   code: 'XLM',
   equivAvailableToSend: '$53.41 USD',
   equivBalance: '$54.14 USD',
-  issuer: 'Stellar network',
-  issuerAddress: '',
+  issuerName: 'Stellar network',
+  issuerAccountID: '',
   name: 'Lumens',
   reserves: [
     Constants.makeReserve({amount: '1', description: 'account'}),
@@ -32,8 +26,8 @@ const keyz = {
   code: 'KEYZ',
   equivAvailableToSend: '',
   equivBalance: '',
-  issuer: 'keybase.io',
-  issuerAddress: 'GAXLYHWCWQK273FMHITINCMVTHHRBBNG7A5XWGDYRDDWCR3RSCGLIDWQ',
+  issuerName: 'keybase.io',
+  issuerAccountID: 'GAXLYHWCWQK273FMHITINCMVTHHRBBNG7A5XWGDYRDDWCR3RSCGLIDWQ',
   name: 'KEYZ',
   reserves: [],
 }
@@ -44,8 +38,8 @@ const btc = {
   code: 'BTC',
   equivAvailableToSend: '',
   equivBalance: '',
-  issuer: 'FarcicalBTCAnchor.eg',
-  issuerAddress: 'GAT7ABIQKJ6BBBH7ASKMAV5FMND3YDQLKPFJUCHR7Y5PNRTA7VLA55IW',
+  issuerName: 'FarcicalBTCAnchor.eg',
+  issuerAccountID: 'GAT7ABIQKJ6BBBH7ASKMAV5FMND3YDQLKPFJUCHR7Y5PNRTA7VLA55IW',
   name: 'BTC',
   reserves: [],
 }
@@ -56,34 +50,28 @@ const btexcadv = {
   code: 'BTEXCADV',
   equivAvailableToSend: '',
   equivBalance: '',
-  issuer: 'Unknown',
-  issuerAddress: 'GCN5SJA4CFUC7AVZGEPVVSXDEIBZYA77MAAEIA5ZXZKL5CVTJH6TUL6A',
+  issuerName: 'Unknown',
+  issuerAccountID: 'GCN5SJA4CFUC7AVZGEPVVSXDEIBZYA77MAAEIA5ZXZKL5CVTJH6TUL6A',
   name: 'BTEXCADV',
   reserves: [],
 }
 
-const expandedHOC = withStateHandlers(
-  {expanded: false},
-  {toggleExpanded: ({expanded}) => () => ({expanded: !expanded})}
-)
-const AssetWithExpanded = expandedHOC(Asset)
-
 const load = () => {
   storiesOf('Wallets/Assets', module)
     .addDecorator(story => <Box style={{maxWidth: 520}}>{story()}</Box>)
-    .add('Native currency', () => <Asset {...common} {...native} />)
-    .add('Non-native currency', () => <Asset {...common} {...keyz} />)
-    .add('Native expanded', () => <Asset {...common} {...native} expanded={true} />)
-    .add('Non-native expanded', () => <Asset {...common} {...keyz} expanded={true} />)
+    .add('Native currency', () => <Asset {...native} />)
+    .add('Non-native currency', () => <Asset {...keyz} />)
+    .add('Native expanded', () => <Asset {...native} />)
+    .add('Non-native expanded', () => <Asset {...keyz} />)
     .add('List', () => (
       <React.Fragment>
-        <AssetWithExpanded {...native} />
+        <Asset {...native} />
         <Divider />
-        <AssetWithExpanded {...keyz} />
+        <Asset {...keyz} />
         <Divider />
-        <AssetWithExpanded {...btc} />
+        <Asset {...btc} />
         <Divider />
-        <AssetWithExpanded {...btexcadv} />
+        <Asset {...btexcadv} />
       </React.Fragment>
     ))
 }

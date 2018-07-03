@@ -722,12 +722,13 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 		if mt == chat1.ConversationMembersType_KBFS {
 			arg.TopicName = nil
 		}
-		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		ncres, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
 		switch mt {
 		case chat1.ConversationMembersType_KBFS:
 			require.NoError(t, err)
 		case chat1.ConversationMembersType_TEAM:
-			require.Error(t, err)
+			require.NoError(t, err)
+			require.Equal(t, globals.DefaultTeamTopic, utils.GetTopicName(ncres.Conv))
 		}
 		arg.TopicName = &topicName
 		topicName = "dskjdskdjskdjskdjskdjskdjskdjskjdskjdskdskdjksdjks"
@@ -825,6 +826,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 				chat1.NewMessageBodyWithText(chat1.MessageText{
 					Body: fmt.Sprintf("%d", i+1),
 				}))
+			time.Sleep(100 * time.Millisecond)
 		}
 
 		_, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
@@ -1887,8 +1889,12 @@ func (n *serverChatListener) ChatInboxStale(uid keybase1.UID) {
 func (n *serverChatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationStaleUpdate) {
 	n.threadsStale <- cids
 }
-func (n *serverChatListener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult) {
-	n.inboxSynced <- syncRes
+func (n *serverChatListener) ChatInboxSynced(uid keybase1.UID, topicType chat1.TopicType,
+	syncRes chat1.ChatSyncResult) {
+	switch topicType {
+	case chat1.TopicType_CHAT, chat1.TopicType_NONE:
+		n.inboxSynced <- syncRes
+	}
 }
 func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 	typ, _ := activity.ActivityType()

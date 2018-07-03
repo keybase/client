@@ -78,9 +78,17 @@ function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<
   yield Saga.put(FsGen.createFilePreviewLoaded({meta, path: rootPath}))
 }
 
+// See constants/types/fs.js on what this is for.
+// We intentionally keep this here rather than in the redux store.
+const folderListRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
+const mimeTypeRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
+
 function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<any, any> {
   const opID = Constants.makeUUID()
-  const rootPath = action.payload.path
+  const {refreshTag, path: rootPath} = action.payload
+  console.log({rootPath, action})
+
+  refreshTag && folderListRefreshTags.set(refreshTag, rootPath)
 
   yield Saga.call(RPCTypes.SimpleFSSimpleFSListRpcPromise, {
     opID,
@@ -283,26 +291,40 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
       let {syncingPaths, totalSyncingBytes, endEstimate}: RPCTypes.FSSyncStatus = yield Saga.call(
         RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise
       )
-      yield Saga.put(
-        FsGen.createJournalUpdate({
-          syncingPaths: (syncingPaths || []).map(Types.stringToPath),
-          totalSyncingBytes,
-          endEstimate,
-        })
-      )
+      yield Saga.sequentially([
+        Saga.put(
+          FsGen.createJournalUpdate({
+            syncingPaths: (syncingPaths || []).map(Types.stringToPath),
+            totalSyncingBytes,
+            endEstimate,
+          })
+        ),
+
+        // Trigger folderListLoad and mimeTypeLoad for paths that user might be
+        // looking at. Note that we are not checking the syncingPaths here,
+        // because we are polling and things can slip through between
+        // SimpleFSSyncStatus calls. So instead just always re-load them on the
+        // same interval we are polling on journal status.
+        ...Array.from(folderListRefreshTags).map(([_, path]) => Saga.put(FsGen.createFolderListLoad({path}))),
+        ...Array.from(mimeTypeRefreshTags).map(([_, path]) => Saga.put(FsGen.createMimeTypeLoad({path}))),
+      ])
 
       if (totalSyncingBytes <= 0) {
         break
       }
 
-      yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true}))
-      yield Saga.put(FsGen.createSetFlags({syncing: true}))
-      yield Saga.delay(2000)
+      yield Saga.sequentially([
+        Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true})),
+        Saga.put(FsGen.createSetFlags({syncing: true})),
+        Saga.delay(2000),
+      ])
     }
   } finally {
     polling = false
-    yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
-    yield Saga.put(FsGen.createSetFlags({syncing: false}))
+    yield Saga.sequentially([
+      Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false})),
+      Saga.put(FsGen.createSetFlags({syncing: false})),
+    ])
   }
 }
 
@@ -375,7 +397,9 @@ const getMimeTypePromise = (path: Types.Path, serverInfo: Types._LocalHTTPServer
 // that. The generator function returns the loaded mime type for the given
 // path, and in addition triggers a mimeTypeLoaded so the loaded mime type for
 // given path is populated in the store.
-function* _loadMimeType(path: Types.Path) {
+function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
+  refreshTag && mimeTypeRefreshTags.set(refreshTag, path)
+
   const state = yield Saga.select()
   let {address, token} = state.fs.localHTTPServerInfo || Constants.makeLocalHTTPServer()
   // This should finish within 2 iterations most. But just in case we bound it
@@ -399,7 +423,8 @@ function* _loadMimeType(path: Types.Path) {
   throw new Error('failed to load mime type')
 }
 
-const loadMimeType = (action: FsGen.MimeTypeLoadPayload) => Saga.call(_loadMimeType, action.payload.path)
+const loadMimeType = (action: FsGen.MimeTypeLoadPayload) =>
+  Saga.call(_loadMimeType, action.payload.path, action.payload.refreshTag)
 
 const commitEdit = (action: FsGen.CommitEditPayload, state: TypedState) => {
   const {editID} = action.payload
