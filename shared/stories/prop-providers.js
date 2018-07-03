@@ -2,6 +2,7 @@
 import {action, unexpected, createPropProvider} from './storybook'
 import {mockOwnToViewProps} from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
+import * as _WaitingButton from '../common-adapters/waiting-button'
 
 /**
  * Some common prop factory creators.
@@ -29,7 +30,7 @@ const Usernames = (following: string[], you?: string) => ({
 })
 
 const WaitingButton = () => ({
-  WaitingButton: (props: any) => props,
+  WaitingButton: (props: _WaitingButton.OwnProps): _WaitingButton.Props => ({...props, storeWaiting: false}),
 })
 
 const Avatar = (following: string[], followers: string[]) => ({
