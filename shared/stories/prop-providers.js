@@ -15,15 +15,15 @@ import * as _TeamDropdownMenu from '../chat/conversation/info-panel/menu/contain
  */
 
 const Usernames = (following: string[], you?: string) => ({
-  Usernames: (props: _Usernames.ConnectedProps): _Usernames.Props => {
-    const {usernames} = props
+  Usernames: (ownProps: _Usernames.ConnectedProps): _Usernames.Props => {
+    const {usernames} = ownProps
     const users = (usernames || []).map(username => ({
       username,
       following: following.includes(username),
       you: you ? username === you : false,
     }))
     return {
-      ...props,
+      ...ownProps,
       users,
       onUsernameClicked: action('onUsernameClicked'),
     }
@@ -31,26 +31,29 @@ const Usernames = (following: string[], you?: string) => ({
 })
 
 const WaitingButton = () => ({
-  WaitingButton: (props: _WaitingButton.OwnProps): _WaitingButton.Props => ({...props, storeWaiting: false}),
+  WaitingButton: (ownProps: _WaitingButton.OwnProps): _WaitingButton.Props => ({
+    ...ownProps,
+    storeWaiting: false,
+  }),
 })
 
 const Avatar = (follows: string[], followers: string[]) => ({
-  Avatar: (props: _Avatar.OwnProps) => _Avatar.mockOwnToViewProps(props, follows, followers, action),
+  Avatar: (ownProps: _Avatar.OwnProps) => _Avatar.mockOwnToViewProps(ownProps, follows, followers, action),
 })
 
 const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: string]: number}) => ({
-  TeamDropdownMenu: (props: _TeamDropdownMenu.OwnProps): _TeamDropdownMenu.Props => ({
-    attachTo: props.attachTo,
+  TeamDropdownMenu: (ownProps: _TeamDropdownMenu.OwnProps): _TeamDropdownMenu.Props => ({
+    attachTo: ownProps.attachTo,
     badgeSubscribe: false,
-    canAddPeople: (adminTeams && adminTeams.includes(props.teamname)) || true,
-    isSmallTeam: props.isSmallTeam,
-    manageChannelsSubtitle: props.isSmallTeam ? 'Turns this into a big team' : '',
-    manageChannelsTitle: props.isSmallTeam ? 'Create chat channels...' : 'Manage chat channels',
-    memberCount: (teamMemberCounts && teamMemberCounts[props.teamname]) || 100,
-    teamname: props.teamname,
-    visible: props.visible,
+    canAddPeople: (adminTeams && adminTeams.includes(ownProps.teamname)) || true,
+    isSmallTeam: ownProps.isSmallTeam,
+    manageChannelsSubtitle: ownProps.isSmallTeam ? 'Turns this into a big team' : '',
+    manageChannelsTitle: ownProps.isSmallTeam ? 'Create chat channels...' : 'Manage chat channels',
+    memberCount: (teamMemberCounts && teamMemberCounts[ownProps.teamname]) || 100,
+    teamname: ownProps.teamname,
+    visible: ownProps.visible,
     onAddPeople: action('onAddPeople'),
-    onHidden: props.onHidden,
+    onHidden: ownProps.onHidden,
     onInvite: action('onInvite'),
     onLeaveTeam: action('onLeaveTeam'),
     onManageChannels: action('onManageChannels'),
