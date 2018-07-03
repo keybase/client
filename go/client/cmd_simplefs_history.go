@@ -5,12 +5,13 @@ package client
 
 import (
 	"fmt"
-	"golang.org/x/net/context"
+	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 )
 
 // CmdSimpleFSHistory is the 'fs history' command.
@@ -69,7 +70,9 @@ func (c *CmdSimpleFSHistory) output(h keybase1.FSFolderEditHistory) {
 
 		ui.Printf("\n%s (%s)\n", h.Folder.ToString(), w.WriterName)
 		for _, e := range w.Edits {
-			ui.Printf("\t%s (%s)\n", e.Filename, keybase1.FromTime(e.ServerTime))
+			ui.Printf("\t%s: %s\n",
+				keybase1.FromTime(e.ServerTime).Format(time.UnixDate),
+				e.Filename)
 		}
 	}
 }
