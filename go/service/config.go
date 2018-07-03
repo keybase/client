@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strings"
 
 	"golang.org/x/net/context"
@@ -45,14 +44,6 @@ func (h ConfigHandler) GetCurrentStatus(ctx context.Context, sessionID int) (res
 		res = cs.Export()
 	}
 	return
-}
-
-func getPlatformInfo() keybase1.PlatformInfo {
-	return keybase1.PlatformInfo{
-		Os:        runtime.GOOS,
-		Arch:      runtime.GOARCH,
-		GoVersion: runtime.Version(),
-	}
 }
 
 func (h ConfigHandler) GetValue(_ context.Context, path string) (ret keybase1.ConfigValue, err error) {
@@ -123,82 +114,7 @@ func (h ConfigHandler) ClearValue(_ context.Context, path string) error {
 }
 
 func (h ConfigHandler) GetExtendedStatus(ctx context.Context, sessionID int) (res keybase1.ExtendedStatus, err error) {
-	defer h.G().Trace("ConfigHandler::GetExtendedStatus", func() error { return err })()
-
-	res.Standalone = h.G().Env.GetStandalone()
-	res.LogDir = h.G().Env.GetLogDir()
-
-	// Should work in standalone mode too
-	if h.G().ConnectionManager != nil {
-		res.Clients = h.G().ConnectionManager.ListAllLabeledConnections()
-	}
-
-	err = h.G().GetFullSelfer().WithSelf(ctx, func(me *libkb.User) error {
-		device, err := me.GetComputedKeyFamily().GetCurrentDevice(h.G())
-		if err != nil {
-			h.G().Log.Debug("| GetCurrentDevice failed: %s", err)
-			res.DeviceErr = &keybase1.LoadDeviceErr{Where: "ckf.GetCurrentDevice", Desc: err.Error()}
-		} else {
-			res.Device = device.ProtExport()
-		}
-
-		ss := h.G().SecretStore()
-		if me != nil && ss != nil {
-			s, err := ss.RetrieveSecret(me.GetNormalizedName())
-			if err == nil && !s.IsNil() {
-				res.StoredSecret = true
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		h.G().Log.Debug("| could not load me user: %s", err)
-		res.DeviceErr = &keybase1.LoadDeviceErr{Where: "libkb.LoadMe", Desc: err.Error()}
-	}
-
-	// cached device key status
-	_, _, _, sk, ek := h.G().ActiveDevice.AllFields()
-	res.DeviceSigKeyCached = sk != nil
-	res.DeviceEncKeyCached = ek != nil
-
-	m := libkb.NewMetaContext(ctx, h.G())
-	ad := m.ActiveDevice()
-	// cached paper key status
-	if pk := ad.PaperKey(m); pk != nil {
-		if pk.EncryptionKey() != nil {
-			res.PaperEncKeyCached = true
-		}
-		if pk.SigningKey() != nil {
-			res.PaperSigKeyCached = true
-		}
-	}
-
-	psc := ad.PassphraseStreamCache()
-	res.PassphraseStreamCached = psc.ValidPassphraseStream()
-	res.TsecCached = psc.ValidTsec()
-	res.SecretPromptSkip = m.ActiveDevice().SecretPromptCancelTimer().WasRecentlyCanceled(m)
-
-	current, all, err := libkb.GetAllProvisionedUsernames(m)
-	if err != nil {
-		h.G().Log.Debug("| died in GetAllUseranmes()")
-		return res, err
-	}
-	res.DefaultUsername = current.String()
-	p := make([]string, len(all))
-	for i, u := range all {
-		p[i] = u.String()
-	}
-	res.ProvisionedUsernames = p
-	res.PlatformInfo = getPlatformInfo()
-	res.DefaultDeviceID = h.G().Env.GetDeviceID()
-	res.RememberPassphrase = h.G().Env.RememberPassphrase()
-	dekNames, err := h.G().GetDeviceEKStorage().ListAllForUser(ctx)
-	if err != nil {
-		return res, err
-	}
-	res.DeviceEkNames = dekNames
-
-	return res, nil
+	return libkb.GetExtendedStatus(ctx, h.G())
 }
 
 func (h ConfigHandler) GetConfig(_ context.Context, sessionID int) (keybase1.Config, error) {

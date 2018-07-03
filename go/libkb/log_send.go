@@ -7,6 +7,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -21,6 +22,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 )
 
 // Logs is the struct to specify the path of log files
@@ -452,7 +454,7 @@ func getTraceBundle(log logger.Logger, traceDir string) []byte {
 
 // LogSend sends the tails of log files to kb, and also the last
 // few trace output files.
-func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, numBytes int, uid keybase1.UID, installID InstallID) (string, error) {
+func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, numBytes int, uid keybase1.UID, installID InstallID, mergeExtendedStatus bool) (string, error) {
 	logs := l.Logs
 	var kbfsLog string
 	var svcLog string
@@ -486,6 +488,10 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 		if logs.Trace != "" {
 			traceBundle = getTraceBundle(l.G().Log, logs.Trace)
 		}
+		// Only add extended status if we're sending logs
+		if mergeExtendedStatus {
+			statusJSON = l.mergeExtendedStatus(statusJSON)
+		}
 	} else {
 		kbfsLog = ""
 		svcLog = ""
@@ -499,4 +505,28 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 	}
 
 	return l.post(statusJSON, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog, traceBundle, uid, installID)
+}
+
+// mergeExtendedStatus adds the extended status to the given status json blob.
+// If any errors occur the original status is returned unmodified.
+func (l *LogSendContext) mergeExtendedStatus(status string) string {
+	var statusObj map[string]interface{}
+	if err := json.Unmarshal([]byte(status), &statusObj); err != nil {
+		return status
+	}
+
+	extStatus, err := GetExtendedStatus(context.TODO(), l.G())
+	if err != nil {
+		return status
+	}
+
+	statusMap := make(map[string]interface{})
+	statusMap["status"] = statusObj
+	statusMap["extstatus"] = extStatus
+
+	fullStatus, err := json.Marshal(statusMap)
+	if err != nil {
+		return status
+	}
+	return string(fullStatus)
 }
