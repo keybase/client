@@ -8,6 +8,7 @@ type View = 'key' | 'name'
 
 type Props = {
   secretKey: string,
+  linkExistingAccountError: string,
   onCancel: () => void,
   onCheckKey: (key: string) => void,
   onCheckName: (name: string) => void,
@@ -60,7 +61,7 @@ class LinkWallet extends React.Component<Props, State> {
       case 'key':
         return (
           <EnterKey
-            error={this.props.keyError}
+            error={this.props.keyError || this.props.linkExistingAccountError}
             secretKey={this.props.secretKey}
             onCancel={this.props.onCancel}
             onKeyChange={this.props.onKeyChange}
@@ -71,7 +72,7 @@ class LinkWallet extends React.Component<Props, State> {
       case 'name':
         return (
           <EnterName
-            error={this.props.nameError}
+            error={this.props.nameError || this.props.linkExistingAccountError}
             name={this.props.name}
             onBack={() => this._onViewChange('key')}
             onCancel={this.props.onCancel}
@@ -131,7 +132,7 @@ const EnterKey = (props: EnterKeyProps) => (
           value={props.secretKey}
         />
         {props.error && (
-          <Text type="BodySmall" style={{color: globalColors.red}}>
+          <Text type="BodySmall" style={styles.error}>
             {props.error}
           </Text>
         )}
@@ -196,7 +197,7 @@ const EnterName = (props: EnterNameProps) => (
             onChangeText={props.onNameChange}
           />
           {props.error && (
-            <Text type="BodySmall" style={{color: globalColors.red}}>
+            <Text type="BodySmall" style={styles.error}>
               {props.error}
             </Text>
           )}
@@ -223,6 +224,7 @@ type WrapperState = {|
 |}
 
 type WrapperProps = {
+  linkExistingAccountError: string,
   onCancel: () => void,
   onCheckKey: (key: string) => void,
   onCheckName: (name: string) => void,
@@ -243,6 +245,7 @@ class Wrapper extends React.Component<WrapperProps, WrapperState> {
     return (
       <LinkWallet
         {...this.state}
+        linkExistingAccountError={this.props.linkExistingAccountError}
         onCancel={this.props.onCancel}
         onCheckKey={this.props.onCheckKey}
         onCheckName={this.props.onCheckName}
@@ -268,6 +271,15 @@ const styles = styleSheetCreate({
     alignSelf: 'flex-start',
     flex: 1,
   },
+  error: platformStyles({
+    common: {
+      color: globalColors.red,
+      width: '100%',
+    },
+    isElectron: {
+      wordWrap: 'break-word',
+    },
+  }),
   header: platformStyles({
     isElectron: {
       borderRadius: 4,

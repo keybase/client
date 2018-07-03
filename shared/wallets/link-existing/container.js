@@ -6,6 +6,7 @@ import {Wrapper as LinkExisting} from '.'
 
 const mapStateToProps = (state: TypedState) => ({
   keyError: state.wallets.secretKeyError,
+  linkExistingAccountError: state.wallets.linkExistingAccountError,
   nameError: state.wallets.accountNameError,
   nameValidationState: state.wallets.accountNameValidationState,
   secretKeyValidationState: state.wallets.secretKeyValidationState,
@@ -16,15 +17,15 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
     dispatch(WalletsGen.createClearErrors())
     dispatch(navigateUp())
   },
-  onCheckName: (name: string) => {
-    dispatch(WalletsGen.createValidateAccountName({name}))
-  },
   onCheckKey: (key: string) => {
     dispatch(
       WalletsGen.createValidateSecretKey({
         secretKey: new HiddenString(key),
       })
     )
+  },
+  onCheckName: (name: string) => {
+    dispatch(WalletsGen.createValidateAccountName({name}))
   },
   onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
   onDone: (sk: string, name: string) => {

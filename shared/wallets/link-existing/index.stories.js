@@ -7,6 +7,9 @@ import LinkExisting from '.'
 
 const common = {
   keyError: '',
+  linkExistingAccountError: '',
+  nameError: '',
+  nameValidationState: 'none',
   onCancel: action('onCancel'),
   onCheckKey: action('onCheckKey'),
   onCheckName: action('onCheckName'),
@@ -15,8 +18,6 @@ const common = {
   onKeyChange: action('onKeyChange'),
   onNameChange: action('onNameChange'),
   onViewChange: action('onViewChange'),
-  nameError: '',
-  nameValidationState: 'none',
   secretKeyValidationState: 'none',
 }
 
