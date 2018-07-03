@@ -93,7 +93,7 @@ android {
 
     defaultConfig {
         applicationId "io.keybase.ossifrage"
-        minSdkVersion 21
+        minSdkVersion 16
         targetSdkVersion 28
         versionCode timestamp()
         versionName "2.3.0"
@@ -163,7 +163,7 @@ play {
 
 configurations.all {
     resolutionStrategy {
-        force 'org.webkit:android-jsc:r224109'
+        force 'org.webkit:android-jsc:r216113'
     }
 }
 
