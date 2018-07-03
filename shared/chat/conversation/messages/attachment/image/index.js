@@ -115,10 +115,18 @@ class ImageAttachment extends React.PureComponent<Props, State> {
 }
 
 const styles = styleSheetCreate({
-  spinner: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-  },
+  spinner: platformStyles({
+    isElectron: {
+      ...globalStyles.flexBoxColumn,
+      alignItems: 'center',
+    },
+    isMobile: {
+      ...globalStyles.flexBoxCenter,
+      alignItems: 'center',
+      margin: 'auto',
+      flex: 1,
+    },
+  }),
   downloadIcon: {maxHeight: 14},
   downloadedIconWrapper: {
     ...globalStyles.flexBoxCenter,
