@@ -15,27 +15,23 @@ const mapStateToProps = (state: TypedState, {path}) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {path, routePath}) => ({
-  _openInFileUI: () => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
-  _openFinderPopup: (evt?: SyntheticEvent<>) =>
+  _openInFileUI: isMobile ? undefined : () => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
+  _openFinderPopup: isMobile ? undefined : (evt?: SyntheticEvent<>) =>
     dispatch(FsGen.createOpenFinderPopup({targetRect: Constants.syntheticEventToTargetRect(evt), routePath})),
-  _onBack: () => dispatch(navigateUp()), // TODO: put if on route ...
+  onBack: isMobile ? () => dispatch(navigateUp()) : undefined, // TODO: put if on route ...
   onChat: () => dispatch(Chat2Gen.createPreviewConversation({
     reason: 'files',
     ...Util.tlfToParticipantsOrTeamname(Types.pathToString(path)),
   })),
 })
 
-const mergeProps = ({_kbfsEnabled}, {_onBack, onChat, _openInFileUI, _openFinderPopup}, {path}) => {
+const mergeProps = ({_kbfsEnabled}, {onBack, onChat, _openInFileUI, _openFinderPopup}, {path}) => {
   const elems = Types.getPathElements(path)
   return {
     path,
     title: elems.length > 1 ? elems[elems.length - 1] : 'Keybase Files',
-    openInFileUI: isMobile
-      ? undefined
-      : _kbfsEnabled
-        ? _openInFileUI
-        : _openFinderPopup,
-    onBack: isMobile ? _onBack : undefined,
+    openInFileUI: _kbfsEnabled ? _openInFileUI : _openFinderPopup,
+    onBack,
     onChat: elems.length > 2 ? onChat : undefined,
   }
 }
