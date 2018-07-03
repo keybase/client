@@ -26,7 +26,7 @@ const load = () => {
       >
         <Text type="Header">{getDigits(number)} digit number:</Text>
         <Box>
-          <Badge2 number={number} />
+          <Badge2 badgeNumber={number} />
         </Box>
       </Box2>
     ))

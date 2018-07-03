@@ -2,7 +2,6 @@
 import Box from './box'
 import * as React from 'react'
 import Text from './text'
-// import Text from 'react-native'
 import {globalStyles, globalColors, styleSheetCreate, collapseStyles} from '../styles'
 
 import type {BadgeProps, Badge2Props} from './badge'
@@ -49,13 +48,8 @@ const badgeStyles = styleSheetCreate({
   },
 })
 
-export class Badge2 extends React.Component<Badge2Props, {}> {
-  static defaultProps = {
-    fontSize: 8,
-    radius: 10,
-    leftRightPadding: 3,
-    topBottomPadding: 3,
-  }
+export class Badge2 extends React.Component<Badge2Props> {
+  static defaultProps = {fontSize: 8, radius: 10, leftRightPadding: 6, topBottomPadding: 4}
 
   render() {
     return (
@@ -71,18 +65,18 @@ export class Badge2 extends React.Component<Badge2Props, {}> {
             paddingRight: this.props.leftRightPadding,
             paddingTop: this.props.topBottomPadding,
           },
-          this.props.style,
+          this.props.badgeStyle,
         ])}
       >
         <Text
           type="BodyTinySemibold"
           style={collapseStyles([
             badge2Styles.text,
-            this.props.numberStyle,
+            this.props.badgeNumberStyle,
             {fontSize: this.props.fontSize, lineHeight: this.props.fontSize + 5},
           ])}
         >
-          {this.props.number}
+          {this.props.badgeNumber}
         </Text>
       </Box>
     )

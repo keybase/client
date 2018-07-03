@@ -9,14 +9,23 @@ export type BadgeProps = {
 }
 
 export type Badge2Props = {
-  number: number,
+  badgeNumber: number,
   radius: number,
   fontSize: number,
   leftRightPadding: number,
   topBottomPadding: number,
-  style?: any,
-  numberStyle?: Object,
+  badgeStyle?: any,
+  badgeNumberStyle?: Object,
+}
+
+export type DefaultBadge2Props = {
+  radius: number,
+  fontSize: number,
+  leftRightPadding: number,
+  topBottomPadding: number,
 }
 
 declare export class Badge extends Component<BadgeProps> {}
-declare export class Badge2 extends Component<Badge2Props> {}
+declare export class Badge2 extends Component<Badge2Props> {
+  static defaultProps: DefaultBadge2Props;
+}
