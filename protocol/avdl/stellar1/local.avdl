@@ -120,7 +120,7 @@ protocol local {
   void validateAccountIDLocal(int sessionID, AccountID accountID);
   void validateSecretKeyLocal(int sessionID, SecretKey secretKey);
   // Validates a name for a new account. Checks if any accounts have the same name.
-  // If there is an error getting account names, returns true.
+  // If there is an error getting account names, the error is suppressed.
   void validateAccountNameLocal(int sessionID, string name);
 
   void changeWalletAccountNameLocal(int sessionID, AccountID accountID, string newName);
