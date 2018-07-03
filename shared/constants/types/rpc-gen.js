@@ -2123,7 +2123,7 @@ export type TeamType =
   | 2 // MODERN_2
 
 export type TeamsCanUserPerformRpcParam = $ReadOnly<{name: String}>
-export type TeamsFindNextMerkleRootAfterTeamRemovalBySigningKeyRpcParam = $ReadOnly<{uid: UID, signingKey: KID, team: TeamID, isPublic: Boolean, wasReader: Boolean}>
+export type TeamsFindNextMerkleRootAfterTeamRemovalBySigningKeyRpcParam = $ReadOnly<{uid: UID, signingKey: KID, team: TeamID, isPublic: Boolean, anyRoleAllowed: Boolean}>
 export type TeamsFindNextMerkleRootAfterTeamRemovalRpcParam = $ReadOnly<{uid: UID, team: TeamID, isPublic: Boolean, teamSigchainSeqno: Seqno, prev: MerkleRootV2}>
 export type TeamsGetTarsDisabledRpcParam = $ReadOnly<{name: String}>
 export type TeamsGetTeamAndMemberShowcaseRpcParam = $ReadOnly<{name: String}>

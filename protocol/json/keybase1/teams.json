@@ -2644,7 +2644,7 @@
           "type": "boolean"
         },
         {
-          "name": "wasReader",
+          "name": "anyRoleAllowed",
           "type": "boolean"
         }
       ],

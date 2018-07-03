@@ -2374,11 +2374,11 @@ type FindNextMerkleRootAfterTeamRemovalArg struct {
 }
 
 type FindNextMerkleRootAfterTeamRemovalBySigningKeyArg struct {
-	Uid        UID    `codec:"uid" json:"uid"`
-	SigningKey KID    `codec:"signingKey" json:"signingKey"`
-	Team       TeamID `codec:"team" json:"team"`
-	IsPublic   bool   `codec:"isPublic" json:"isPublic"`
-	WasReader  bool   `codec:"wasReader" json:"wasReader"`
+	Uid            UID    `codec:"uid" json:"uid"`
+	SigningKey     KID    `codec:"signingKey" json:"signingKey"`
+	Team           TeamID `codec:"team" json:"team"`
+	IsPublic       bool   `codec:"isPublic" json:"isPublic"`
+	AnyRoleAllowed bool   `codec:"anyRoleAllowed" json:"anyRoleAllowed"`
 }
 
 type ProfileTeamLoadArg struct {

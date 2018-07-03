@@ -170,7 +170,7 @@ func TestMemberAddInvalidRole(t *testing.T) {
 // a thin wrapper around libkb.FindNextMerkleRootAfterTeamRemoval. Test that the plumbing works
 // properly. Pass in the values from the libkb inner function, to confirm that this function
 // returns the same.
-func testFindNextMerkleRootAfterRemoval(t *testing.T, tc libkb.TestContext, user *kbtest.FakeUser, id keybase1.TeamID, wasReader bool, seqno keybase1.Seqno) {
+func testFindNextMerkleRootAfterRemoval(t *testing.T, tc libkb.TestContext, user *kbtest.FakeUser, id keybase1.TeamID, anyRoleAllowed bool, seqno keybase1.Seqno) {
 	m := libkb.NewMetaContextForTest(tc)
 	upak, _, err := tc.G.GetUPAKLoader().LoadV2(libkb.NewLoadUserArgWithMetaContext(m).WithUID(user.GetUID()))
 	require.NoError(t, err)
@@ -184,11 +184,11 @@ func testFindNextMerkleRootAfterRemoval(t *testing.T, tc libkb.TestContext, user
 	}
 	require.False(t, signingKey.IsNil())
 	res, err := FindNextMerkleRootAfterRemoval(m, keybase1.FindNextMerkleRootAfterTeamRemovalBySigningKeyArg{
-		Uid:        user.GetUID(),
-		SigningKey: signingKey,
-		IsPublic:   false,
-		Team:       id,
-		WasReader:  wasReader,
+		Uid:            user.GetUID(),
+		SigningKey:     signingKey,
+		IsPublic:       false,
+		Team:           id,
+		AnyRoleAllowed: anyRoleAllowed,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, res.Res)
@@ -248,7 +248,7 @@ func TestMemberRemoveReader(t *testing.T) {
 	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	wasReader := true
+	anyRoleAllowed := true
 	if err := SetRoleReader(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
@@ -264,14 +264,14 @@ func TestMemberRemoveReader(t *testing.T) {
 	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
 
 	teamID, seqno := pollForNextMerkleRootAfterRemovalViaLibkb(t, tc, other, name)
-	testFindNextMerkleRootAfterRemoval(t, tc, other, teamID, wasReader, seqno)
+	testFindNextMerkleRootAfterRemoval(t, tc, other, teamID, anyRoleAllowed, seqno)
 }
 
 func TestMemberRemoveWriter(t *testing.T) {
 	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	wasReader := false
+	anyRoleAllowed := false
 	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
@@ -287,7 +287,7 @@ func TestMemberRemoveWriter(t *testing.T) {
 	assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
 
 	teamID, seqno := pollForNextMerkleRootAfterRemovalViaLibkb(t, tc, other, name)
-	testFindNextMerkleRootAfterRemoval(t, tc, other, teamID, wasReader, seqno)
+	testFindNextMerkleRootAfterRemoval(t, tc, other, teamID, anyRoleAllowed, seqno)
 }
 
 // make sure that adding a member creates new recipient boxes

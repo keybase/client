@@ -1584,7 +1584,7 @@ func FindNextMerkleRootAfterRemoval(mctx libkb.MetaContext, arg keybase1.FindNex
 	uv := vers.ToUserVersion()
 
 	var logPoint *keybase1.UserLogPoint
-	if arg.WasReader {
+	if arg.AnyRoleAllowed {
 		reader := func(p keybase1.UserLogPoint) bool {
 			return p.Role == keybase1.TeamRole_READER || p.Role == keybase1.TeamRole_WRITER || p.Role == keybase1.TeamRole_ADMIN || p.Role == keybase1.TeamRole_OWNER
 		}
