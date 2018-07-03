@@ -8,10 +8,15 @@ type View = 'key' | 'name'
 type Props = {
   secretKey: string,
   onCancel: () => void,
+  onClearErrors: () => void,
   onDone: () => void,
   onNameChange: string => void,
   onKeyChange: string => void,
+  keyError: string,
   name: string,
+  nameError: string,
+  waitingNameValidation: boolean,
+  waitingSecretKeyValidation: boolean,
 }
 
 type State = {
@@ -21,6 +26,14 @@ type State = {
 class LinkWallet extends React.Component<Props, State> {
   state = {view: 'key'}
   _onViewChange = (view: View) => this.setState(s => (s.view !== view ? {view} : null))
+  _clearErrors = () => (this.props.nameError || this.props.keyError) && this.props.onClearErrors()
+  componentDidMount() {
+    this._clearErrors()
+  }
+  componentWillUnmount() {
+    this._clearErrors()
+  }
+
   render() {
     switch (this.state.view) {
       case 'key':
@@ -172,7 +185,12 @@ type WrapperState = {|
 
 type WrapperProps = {
   onCancel: () => void,
+  onClearErrors: () => void,
   onDone: (secretKey: string, name: string) => void,
+  keyError: string,
+  nameError: string,
+  waitingNameValidation: boolean,
+  waitingSecretKeyValidation: boolean,
 }
 
 class Wrapper extends React.Component<WrapperProps, WrapperState> {
@@ -185,9 +203,14 @@ class Wrapper extends React.Component<WrapperProps, WrapperState> {
       <LinkWallet
         {...this.state}
         onCancel={this.props.onCancel}
+        onClearErrors={this.props.onClearErrors}
         onDone={this._onDone}
         onKeyChange={this._onKeyChange}
         onNameChange={this._onNameChange}
+        keyError={this.props.keyError}
+        nameError={this.props.nameError}
+        waitingNameValidation={this.props.waitingNameValidation}
+        waitingSecretKeyValidation={this.props.waitingSecretKeyValidation}
       />
     )
   }

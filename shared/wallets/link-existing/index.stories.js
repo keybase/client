@@ -5,23 +5,28 @@ import {Box} from '../../common-adapters'
 import {platformStyles} from '../../styles'
 import LinkExisting from '.'
 
-const actions = {
+const common = {
+  keyError: '',
   onCancel: action('onCancel'),
+  onClearErrors: action('onClearErrors'),
   onDone: action('onDone'),
   onKeyChange: action('onKeyChange'),
   onNameChange: action('onNameChange'),
   onViewChange: action('onViewChange'),
+  nameError: '',
+  waitingNameValidation: false,
+  waitingSecretKeyValidation: false,
 }
 
 const enterKeyProps = {
-  ...actions,
+  ...common,
   name: '',
   secretKey: '',
   view: 'key',
 }
 
 const enterNameProps = {
-  ...actions,
+  ...common,
   name: '',
   secretKey: '',
   view: 'name',
