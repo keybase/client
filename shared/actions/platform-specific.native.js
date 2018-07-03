@@ -311,4 +311,5 @@ export {
   showShareActionSheet,
   clearAllNotifications,
   getContentTypeFromURL,
+  platformConfigSaga,
 }
