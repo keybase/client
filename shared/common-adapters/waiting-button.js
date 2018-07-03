@@ -3,6 +3,10 @@ import * as React from 'react'
 import Button, {type Props as ButtonProps} from './button'
 import {connect, type TypedState} from '../util/container'
 
+export type OwnProps = ButtonProps & {
+  waitingKey: ?string,
+}
+
 export type Props = ButtonProps & {
   storeWaiting: boolean,
   waitingKey: ?string,
