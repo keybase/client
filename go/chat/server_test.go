@@ -877,6 +877,9 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 			require.NotNil(t, ibox.InboxRes, "nil inbox")
 			require.Equal(t, numconvs, len(ibox.InboxRes.Items))
 			for index, conv := range ibox.InboxRes.Items {
+				t.Logf("metadata snippet: index: %d snippet: %s", index, conv.LocalMetadata.Snippet)
+			}
+			for index, conv := range ibox.InboxRes.Items {
 				require.NotNil(t, conv.LocalMetadata)
 				switch mt {
 				case chat1.ConversationMembersType_TEAM:
