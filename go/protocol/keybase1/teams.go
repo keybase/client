@@ -5,6 +5,7 @@ package keybase1
 
 import (
 	"errors"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -2377,7 +2378,7 @@ type FindNextMerkleRootAfterTeamRemovalBySigningKeyArg struct {
 	SigningKey KID    `codec:"signingKey" json:"signingKey"`
 	Team       TeamID `codec:"team" json:"team"`
 	IsPublic   bool   `codec:"isPublic" json:"isPublic"`
-	IsWriter   bool   `codec:"isWriter" json:"isWriter"`
+	WasReader  bool   `codec:"wasReader" json:"wasReader"`
 }
 
 type ProfileTeamLoadArg struct {

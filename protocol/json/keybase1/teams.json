@@ -2644,7 +2644,7 @@
           "type": "boolean"
         },
         {
-          "name": "isWriter",
+          "name": "wasReader",
           "type": "boolean"
         }
       ],

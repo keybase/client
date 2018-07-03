@@ -868,7 +868,7 @@ protocol teams {
    with the given signing key being removed from the given team. If there are several such instances,
    we will return just the last one.
    */
-  NextMerkleRootRes findNextMerkleRootAfterTeamRemovalBySigningKey(UID uid, KID signingKey, TeamID team, boolean isPublic, boolean isWriter);
+  NextMerkleRootRes findNextMerkleRootAfterTeamRemovalBySigningKey(UID uid, KID signingKey, TeamID team, boolean isPublic, boolean wasReader);
 
   /**
    ProfileTeamLoad loads a team and then throws it on the ground, for the purposes of profiling
