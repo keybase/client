@@ -23,7 +23,7 @@ import {refreshRouteDef, setInitialRouteDef} from '../../actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper.desktop'
 import flags from '../../util/feature-flags'
 import InputMonitor from './input-monitor.desktop'
-import dumpLogs from '../../logger/dump-log-fs'
+import {dumpLogs} from '../../actions/platform-specific.desktop'
 
 let _store
 function setupStore() {

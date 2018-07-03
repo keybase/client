@@ -4,6 +4,9 @@ import {getMainWindow} from '../desktop/remote/util.desktop'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import * as ConfigGen from './config-gen'
 import * as Saga from '../util/saga'
+import {writeLogLinesToFile} from '../util/forward-logs'
+import logger from '../logger'
+import {quit} from '../util/quit-helper'
 
 function showShareActionSheet(options: {
   url?: ?any,
@@ -100,9 +103,25 @@ function* initializeOpenAtLoginState(): Generator<any, void, any> {
   }
 }
 
+export const dumpLogs = (action: ?ConfigGen.DumpLogsPayload) =>
+  logger
+    .dump()
+    .then(fromRender => {
+      // $ForceType
+      const globalLogger: typeof logger = SafeElectron.getRemote().getGlobal('globalLogger')
+      return globalLogger.dump().then(fromMain => writeLogLinesToFile([...fromRender, ...fromMain]))
+    })
+    .then(() => {
+      // quit as soon as possible
+      if (action && action.payload.reason === 'quitting through menu') {
+        quit('quitButton')
+      }
+    })
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.setOpenAtLogin, writeElectronSettings)
   yield Saga.safeTakeLatestPure(ConfigGen.showMain, showMainWindow)
+  yield Saga.safeTakeEveryPure(ConfigGen.dumpLogs, dumpLogs)
   yield Saga.fork(initializeOpenAtLoginState)
 }
 
