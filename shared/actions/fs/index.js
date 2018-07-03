@@ -309,7 +309,9 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
         ...Array.from(mimeTypeRefreshTags).map(([_, path]) => Saga.put(FsGen.createMimeTypeLoad({path}))),
       ])
 
-      if (totalSyncingBytes <= 0) {
+      // It's possible syncingPaths has not been emptied before
+      // totalSyncingBytes becomes 0. So check both.
+      if (totalSyncingBytes <= 0 && !(syncingPaths && syncingPaths.length)) {
         break
       }
 
