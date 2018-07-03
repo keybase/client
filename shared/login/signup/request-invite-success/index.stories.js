@@ -6,10 +6,8 @@ import * as PropProviders from '../../../stories/prop-providers'
 
 const load = () => {
   storiesOf('Signup', module)
-      .addDecorator(PropProviders.Common())
-    .add('Request Invite Success', () => (
-    <RequestInviteSuccess onBack={action('onBack')} />
-  ))
+    .addDecorator(PropProviders.CommonProvider())
+    .add('Request Invite Success', () => <RequestInviteSuccess onBack={action('onBack')} />)
 }
 
 export default load

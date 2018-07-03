@@ -13,7 +13,7 @@ const props = {
 
 const load = () => {
   storiesOf('Signup/Request Invite', module)
-    .addDecorator(PropProviders.Common())
+    .addDecorator(PropProviders.CommonProvider())
     .add('Start', () => <RequestInvite {...props} />)
     .add('Name Error', () => <RequestInvite {...props} nameError="Name bad, smash!" />)
     .add('Email Error', () => <RequestInvite {...props} emailError="Email bad, booo" />)

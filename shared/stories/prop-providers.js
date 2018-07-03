@@ -57,11 +57,12 @@ const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: strin
   }),
 })
 
-const Common = () =>
-  createPropProvider(
-    Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-    Avatar(['following', 'both'], ['followers', 'both']),
-    WaitingButton()
-  )
+const Common = () => ({
+  ...Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  ...Avatar(['following', 'both'], ['followers', 'both']),
+  ...WaitingButton(),
+})
 
-export {Avatar, Common, TeamDropdownMenu, Usernames, WaitingButton}
+const CommonProvider = () => createPropProvider(Common())
+
+export {Avatar, CommonProvider, TeamDropdownMenu, Usernames, WaitingButton}

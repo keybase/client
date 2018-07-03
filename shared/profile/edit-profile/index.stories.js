@@ -23,7 +23,7 @@ const props = {
 
 const Wrapper = ({children}) => <Box style={{display: 'flex', height: 580, minWidth: 640}}>{children}</Box>
 
-const provider = PropProviders.Common()
+const provider = PropProviders.CommonProvider()
 
 const load = () => {
   storiesOf('Profile/EditProfile', module)

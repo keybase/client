@@ -26,7 +26,7 @@ const commonActions = {
   onShowSecretKey: action('onShowSecretKey'),
 }
 
-const provider = PropProviders.Common()
+const provider = PropProviders.CommonProvider()
 
 const load = () => {
   storiesOf('Wallets/Wallet', module)
