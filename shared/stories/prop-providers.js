@@ -37,8 +37,8 @@ const WaitingButton = () => ({
   }),
 })
 
-const Avatar = (follows: string[], followers: string[]) => ({
-  Avatar: (ownProps: _Avatar.OwnProps) => _Avatar.mockOwnToViewProps(ownProps, follows, followers, action),
+const Avatar = (following: string[], followers: string[]) => ({
+  Avatar: (ownProps: _Avatar.OwnProps) => _Avatar.mockOwnToViewProps(ownProps, following, followers, action),
 })
 
 const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: string]: number}) => ({
@@ -61,9 +61,13 @@ const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: strin
   }),
 })
 
+const you = 'ayoubd'
+const following = ['max', 'cnojima', 'cdixon']
+const followers = ['max', 'akalin']
+
 const Common = () => ({
-  ...Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  ...Avatar(['following', 'both'], ['followers', 'both']),
+  ...Usernames(following, you),
+  ...Avatar(following, followers),
   ...WaitingButton(),
 })
 
