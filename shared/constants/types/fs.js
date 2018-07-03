@@ -237,10 +237,6 @@ export const getVisibilityFromElems = (elems: Array<string>) => {
       return null
   }
 }
-export const getFolderNameFromElems = (elems: Array<string>): ?string => {
-  if (elems.length < 3 || !elems[2]) return null
-  return elems[2]
-}
 export const getRPCFolderTypeFromVisibility = (v: Visibility): RPCTypes.FolderType => {
   if (v === null) return RPCTypes.favoriteFolderType.unknown
   return RPCTypes.favoriteFolderType[v]

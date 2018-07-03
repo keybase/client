@@ -21,6 +21,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {path, routePath}) => ({
   onBack: isMobile ? () => dispatch(navigateUp()) : undefined, // TODO: put if on route ...
   onChat: () => dispatch(Chat2Gen.createPreviewConversation({
     reason: 'files',
+    // tlfToParticipantsOrTeamname will route both public and private folders
+    // to a private chat, which is exactly what we want.
     ...Util.tlfToParticipantsOrTeamname(Types.pathToString(path)),
   })),
 })
