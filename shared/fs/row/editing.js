@@ -89,7 +89,6 @@ const stylesText = platformStyles({
 
 const stylesButton = {
   marginLeft: globalMargins.tiny,
-  width: 80,
 }
 
 export default Editing
