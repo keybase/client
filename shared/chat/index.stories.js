@@ -2,6 +2,7 @@
 import channelMentionHud from './conversation/input-area/channel-mention-hud/index.stories'
 import createChannel from './create-channel/index.stories'
 import inboxRow from './inbox/row/index.stories'
+import inboxFilter from './inbox/index.stories.js'
 import infoPanel from './conversation/info-panel/index.stories'
 import infoPanelNotifications from './conversation/info-panel/notifications/index.stories'
 import inputArea from './conversation/input-area/normal/index.stories'
@@ -19,6 +20,7 @@ const load = () => {
     channelMentionHud,
     createChannel,
     inboxRow,
+    inboxFilter,
     infoPanel,
     infoPanelNotifications,
     inputArea,
