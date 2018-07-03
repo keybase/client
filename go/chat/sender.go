@@ -361,11 +361,6 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		return nil, nil, nil, chat1.ChannelMention_NONE, nil, fmt.Errorf("cannot send message without type")
 	}
 
-	// Make sure it is a proper length
-	if err := msgchecker.CheckMessagePlaintext(plaintext); err != nil {
-		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
-	}
-
 	msg, err := s.addSenderToMessage(plaintext)
 	if err != nil {
 		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
@@ -378,6 +373,11 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		if err != nil {
 			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 		}
+	}
+
+	// Make sure it is a proper length
+	if err := msgchecker.CheckMessagePlaintext(plaintext); err != nil {
+		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 	}
 
 	// Make sure our delete message gets everything it should
