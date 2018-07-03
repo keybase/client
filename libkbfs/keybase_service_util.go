@@ -35,8 +35,9 @@ func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
 		if err != nil {
 			log.CWarningf(ctx,
 				"Failed to enable existing journals: %v", err)
+		} else {
+			jServer.MakeFBOsForExistingJournals(ctx)
 		}
-		jServer.MakeFBOsForExistingJournals(ctx)
 	}
 	err := config.MakeDiskBlockCacheIfNotExists()
 	if err != nil {
