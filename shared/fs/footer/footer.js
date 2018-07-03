@@ -7,12 +7,11 @@ import Upload from './upload-container'
 
 export type FooterProps = {
   downloadKeys: Array<string>,
-  showUploads: boolean,
 }
 
 const Footer = (props: FooterProps) => (
   <React.Fragment>
-    {props.showUploads && <Upload />}
+    <Upload />
     {!!props.downloadKeys.length && (
       <Box style={stylesBox}>{props.downloadKeys.map(key => <Download downloadKey={key} key={key} />)}</Box>
     )}
