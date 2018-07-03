@@ -2,12 +2,15 @@
 import * as React from 'react'
 import {Box2, Button, ButtonBar, HeaderHocHeader, Icon, InfoNote, Text, Input} from '../../common-adapters'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate, platformStyles} from '../../styles'
+import type {ValidationState} from '../../constants/types/wallets'
 
 type View = 'key' | 'name'
 
 type Props = {
   secretKey: string,
   onCancel: () => void,
+  onCheckKey: (key: string) => void,
+  onCheckName: (name: string) => void,
   onClearErrors: () => void,
   onDone: () => void,
   onNameChange: string => void,
@@ -15,8 +18,8 @@ type Props = {
   keyError: string,
   name: string,
   nameError: string,
-  waitingNameValidation: boolean,
-  waitingSecretKeyValidation: boolean,
+  nameValidationState: ValidationState,
+  secretKeyValidationState: ValidationState,
 }
 
 type State = {
@@ -27,32 +30,46 @@ class LinkWallet extends React.Component<Props, State> {
   state = {view: 'key'}
   _onViewChange = (view: View) => this.setState(s => (s.view !== view ? {view} : null))
   _clearErrors = () => (this.props.nameError || this.props.keyError) && this.props.onClearErrors()
+
+  _onCheckKey = () => {
+    this.props.onCheckKey(this.props.secretKey)
+  }
+
+  _onCheckName = () => {
+    this.props.onCheckName(this.props.name)
+  }
+
   componentDidMount() {
     this._clearErrors()
   }
   componentWillUnmount() {
     this._clearErrors()
   }
+  componentDidUpdate(prevProps: Props, prevState: State) {}
 
   render() {
     switch (this.state.view) {
       case 'key':
         return (
           <EnterKey
+            error={this.props.keyError}
             secretKey={this.props.secretKey}
             onCancel={this.props.onCancel}
             onKeyChange={this.props.onKeyChange}
-            onNext={() => this._onViewChange('name')}
+            onNext={this._onCheckKey}
+            waiting={this.props.secretKeyValidationState === 'waiting'}
           />
         )
       case 'name':
         return (
           <EnterName
+            error={this.props.nameError}
             name={this.props.name}
             onBack={() => this._onViewChange('key')}
             onCancel={this.props.onCancel}
             onNameChange={this.props.onNameChange}
-            onDone={this.props.onDone}
+            onDone={this._onCheckName}
+            waiting={this.props.nameValidationState === 'waiting'}
           />
         )
       default:
@@ -66,10 +83,12 @@ class LinkWallet extends React.Component<Props, State> {
 }
 
 type EnterKeyProps = {
+  error: string,
   onCancel: () => void,
   onKeyChange: string => void,
   onNext: () => void,
   secretKey: string,
+  waiting: boolean,
 }
 
 const EnterKey = (props: EnterKeyProps) => (
@@ -103,6 +122,11 @@ const EnterKey = (props: EnterKeyProps) => (
           onChangeText={props.onKeyChange}
           value={props.secretKey}
         />
+        {props.error && (
+          <Text type="BodySmall" style={{color: globalColors.red}}>
+            {props.error}
+          </Text>
+        )}
       </Box2>
       <InfoNote>
         <Box2 direction="vertical" fullWidth={true}>
@@ -123,17 +147,19 @@ const EnterKey = (props: EnterKeyProps) => (
     </Box2>
     <ButtonBar>
       <Button type="Secondary" onClick={props.onCancel} label="Cancel" />
-      <Button type="Wallet" onClick={props.onNext} label="Next" />
+      <Button type="Wallet" onClick={props.onNext} label="Next" waiting={props.waiting} />
     </ButtonBar>
   </Box2>
 )
 
 type EnterNameProps = {
+  error: string,
   name: string,
   onBack: () => void,
   onCancel: () => void,
   onNameChange: string => void,
   onDone: () => void,
+  waiting: boolean,
 }
 
 const EnterName = (props: EnterNameProps) => (
@@ -161,6 +187,11 @@ const EnterName = (props: EnterNameProps) => (
             value={props.name}
             onChangeText={props.onNameChange}
           />
+          {props.error && (
+            <Text type="BodySmall" style={{color: globalColors.red}}>
+              {props.error}
+            </Text>
+          )}
         </Box2>
         <InfoNote>
           <Box2 direction="vertical" fullWidth={true}>
@@ -172,7 +203,7 @@ const EnterName = (props: EnterNameProps) => (
       </Box2>
       <ButtonBar>
         <Button type="Secondary" onClick={props.onCancel} label="Cancel" />
-        <Button type="Wallet" onClick={props.onDone} label="Done" />
+        <Button type="Wallet" onClick={props.onDone} label="Done" waiting={props.waiting} />
       </ButtonBar>
     </Box2>
   </Box2>
@@ -185,12 +216,14 @@ type WrapperState = {|
 
 type WrapperProps = {
   onCancel: () => void,
+  onCheckKey: (key: string) => void,
+  onCheckName: (name: string) => void,
   onClearErrors: () => void,
   onDone: (secretKey: string, name: string) => void,
   keyError: string,
   nameError: string,
-  waitingNameValidation: boolean,
-  waitingSecretKeyValidation: boolean,
+  nameValidationState: ValidationState,
+  secretKeyValidationState: ValidationState,
 }
 
 class Wrapper extends React.Component<WrapperProps, WrapperState> {
@@ -203,14 +236,16 @@ class Wrapper extends React.Component<WrapperProps, WrapperState> {
       <LinkWallet
         {...this.state}
         onCancel={this.props.onCancel}
+        onCheckKey={this.props.onCheckKey}
+        onCheckName={this.props.onCheckName}
         onClearErrors={this.props.onClearErrors}
         onDone={this._onDone}
         onKeyChange={this._onKeyChange}
         onNameChange={this._onNameChange}
         keyError={this.props.keyError}
         nameError={this.props.nameError}
-        waitingNameValidation={this.props.waitingNameValidation}
-        waitingSecretKeyValidation={this.props.waitingSecretKeyValidation}
+        nameValidationState={this.props.nameValidationState}
+        secretKeyValidationState={this.props.secretKeyValidationState}
       />
     )
   }

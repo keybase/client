@@ -8,14 +8,16 @@ import LinkExisting from '.'
 const common = {
   keyError: '',
   onCancel: action('onCancel'),
+  onCheckKey: action('onCheckKey'),
+  onCheckName: action('onCheckName'),
   onClearErrors: action('onClearErrors'),
   onDone: action('onDone'),
   onKeyChange: action('onKeyChange'),
   onNameChange: action('onNameChange'),
   onViewChange: action('onViewChange'),
   nameError: '',
-  waitingNameValidation: false,
-  waitingSecretKeyValidation: false,
+  nameValidationState: 'none',
+  secretKeyValidationState: 'none',
 }
 
 const enterKeyProps = {
