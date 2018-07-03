@@ -5,8 +5,9 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import {connect, type TypedState} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
 import type {RouteProps} from '../../route-tree/render-route'
+import type {Response} from 'react-native-image-picker'
 
-const mapStateToProps = (state: TypedState, {routeProps}: RouteProps<{image: ?Object}, {}>) => ({
+const mapStateToProps = (state: TypedState, {routeProps}: RouteProps<{image: ?Response}, {}>) => ({
   image: routeProps.get('image'),
 })
 
