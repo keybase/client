@@ -2,9 +2,16 @@
 import * as React from 'react'
 import ResultsList from '.'
 import {Box} from '../../common-adapters'
+import {mockOwnToViewProps} from '../../common-adapters/avatar'
 import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 
 const provider = createPropProvider({
+  Avatar: (props: any) =>
+    mockOwnToViewProps(
+      props,
+      ['following', 'both'].includes(props.username),
+      ['following', 'both'].includes(props.username)
+    ),
   SearchResultRow: (props: {id: string}) => servicesResultsListMapCommonRows[props.id],
 })
 
