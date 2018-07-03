@@ -309,7 +309,7 @@ func (s *Syncer) filterNotifyConvs(ctx context.Context, convs []chat1.Conversati
 func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid keybase1.UID,
 	allConvs []chat1.UnverifiedInboxUIItem) {
 	if len(allConvs) == 0 {
-		s.Debug(ctx, "notifyIncrementalSync: no conversations give, sending a current result")
+		s.Debug(ctx, "notifyIncrementalSync: no conversations given, sending a current result")
 		s.G().NotifyRouter.HandleChatInboxSynced(ctx, uid, chat1.TopicType_NONE,
 			chat1.NewChatSyncResultWithCurrent())
 		return
@@ -318,7 +318,8 @@ func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid keybase1.UID,
 	for _, c := range allConvs {
 		m[c.TopicType] = append(m[c.TopicType], c)
 	}
-	for topicType, convs := range m {
+	for _, topicType := range chat1.TopicTypeMap {
+		convs := m[topicType]
 		s.G().NotifyRouter.HandleChatInboxSynced(ctx, uid, topicType,
 			chat1.NewChatSyncResultWithIncremental(chat1.ChatSyncIncrementalInfo{
 				Items: convs,
