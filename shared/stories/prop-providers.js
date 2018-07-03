@@ -1,8 +1,9 @@
 // @flow
-import {action, unexpected, createPropProvider} from './storybook'
+import {action, createPropProvider} from './storybook'
 import {mockOwnToViewProps} from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
 import * as _WaitingButton from '../common-adapters/waiting-button'
+import * as _TeamDropdownMenu from '../chat/conversation/info-panel/menu/container'
 
 /**
  * Some common prop factory creators.
@@ -39,13 +40,13 @@ const Avatar = (following: string[], followers: string[]) => ({
 })
 
 const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: string]: number}) => ({
-  TeamDropdownMenu: (props: any) => ({
-    _hasCanPerform: true,
-    _loadOperations: unexpected('_loadOperations'),
+  TeamDropdownMenu: (props: _TeamDropdownMenu.OwnProps): _TeamDropdownMenu.Props => ({
     attachTo: props.attachTo,
     badgeSubscribe: false,
     canAddPeople: (adminTeams && adminTeams.includes(props.teamname)) || true,
     isSmallTeam: props.isSmallTeam,
+    manageChannelsSubtitle: props.isSmallTeam ? 'Turns this into a big team' : '',
+    manageChannelsTitle: props.isSmallTeam ? 'Create chat channels...' : 'Manage chat channels',
     memberCount: (teamMemberCounts && teamMemberCounts[props.teamname]) || 100,
     teamname: props.teamname,
     visible: props.visible,
