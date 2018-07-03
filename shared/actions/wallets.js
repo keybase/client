@@ -36,7 +36,7 @@ const loadPaymentsSuccess = (res: RPCTypes.PaymentsPageLocal, action: WalletsGen
   return Saga.put(
     WalletsGen.createPaymentsReceived({
       accountID,
-      payments: (res.payments || []).map(elem => Constants.paymentResultToPayment(elem)),
+      payments: (res.payments || []).map(elem => Constants.paymentResultToPayment(elem)).filter(Boolean),
     })
   )
 }
