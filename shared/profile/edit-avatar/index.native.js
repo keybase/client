@@ -50,6 +50,28 @@ class EditAvatar extends React.Component<Props> {
     this._y = y
   }
 
+  _imageDimensions = () => {
+    if (!this.props.image) return
+
+    let height = this.props.image.height
+    let width = this.props.image.width
+
+    if (height < AVATAR_SIZE) {
+      height = AVATAR_SIZE
+      width = AVATAR_SIZE * this.props.image.width / this.props.image.height
+    }
+
+    if (width < AVATAR_SIZE) {
+      height = AVATAR_SIZE * this.props.image.height / this.props.image.width
+      width = AVATAR_SIZE
+    }
+
+    return {
+      height,
+      width,
+    }
+  }
+
   render() {
     return (
       <StandardScreen
@@ -61,10 +83,7 @@ class EditAvatar extends React.Component<Props> {
           <Box style={isIOS ? null : styles.zoomContainer}>
             <ZoomableBox
               bounces={false}
-              contentContainerStyle={{
-                height: this.props.image ? this.props.image.height : AVATAR_SIZE,
-                width: this.props.image ? this.props.image.width : AVATAR_SIZE,
-              }}
+              contentContainerStyle={this._imageDimensions()}
               // Temporarily deactive zooming on Android.
               maxZoom={isIOS ? 10 : 1}
               onZoom={isIOS ? this._onZoom : null}
@@ -73,12 +92,9 @@ class EditAvatar extends React.Component<Props> {
               style={styles.zoomContainer}
             >
               <NativeImage
-                resizeMode="contain"
+                resizeMode="cover"
                 source={{uri: `${this.props.image ? this.props.image.uri : ''}`}}
-                style={{
-                  height: isIOS && this.props.image ? this.props.image.height : AVATAR_SIZE,
-                  width: isIOS && this.props.image ? this.props.image.width : AVATAR_SIZE,
-                }}
+                style={this._imageDimensions()}
               />
             </ZoomableBox>
           </Box>
