@@ -21,6 +21,8 @@ type Props = {
   nameError: string,
   nameValidationState: ValidationState,
   secretKeyValidationState: ValidationState,
+  view?: View,
+  waiting: boolean,
 }
 
 type State = {
@@ -28,7 +30,7 @@ type State = {
 }
 
 class LinkWallet extends React.Component<Props, State> {
-  state = {view: 'key'}
+  state = {view: this.props.view || 'key'}
   _onViewChange = (view: View) => this.setState(s => (s.view !== view ? {view} : null))
 
   _onCheckKey = () => {
@@ -66,7 +68,7 @@ class LinkWallet extends React.Component<Props, State> {
             onCancel={this.props.onCancel}
             onKeyChange={this.props.onKeyChange}
             onNext={this._onCheckKey}
-            waiting={this.props.secretKeyValidationState === 'waiting'}
+            waiting={this.props.secretKeyValidationState === 'waiting' || this.props.waiting}
           />
         )
       case 'name':
@@ -78,7 +80,7 @@ class LinkWallet extends React.Component<Props, State> {
             onCancel={this.props.onCancel}
             onNameChange={this.props.onNameChange}
             onDone={this._onCheckName}
-            waiting={this.props.nameValidationState === 'waiting'}
+            waiting={this.props.nameValidationState === 'waiting' || this.props.waiting}
           />
         )
       default:
@@ -234,6 +236,7 @@ type WrapperProps = {
   nameError: string,
   nameValidationState: ValidationState,
   secretKeyValidationState: ValidationState,
+  waiting: boolean,
 }
 
 class Wrapper extends React.Component<WrapperProps, WrapperState> {
@@ -257,6 +260,7 @@ class Wrapper extends React.Component<WrapperProps, WrapperState> {
         nameError={this.props.nameError}
         nameValidationState={this.props.nameValidationState}
         secretKeyValidationState={this.props.secretKeyValidationState}
+        waiting={this.props.waiting}
       />
     )
   }

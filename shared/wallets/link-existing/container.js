@@ -1,6 +1,8 @@
 // @flow
 import {connect, type TypedState} from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
+import * as Constants from '../../constants/wallets'
+import {anyWaiting} from '../../constants/waiting'
 import HiddenString from '../../util/hidden-string'
 import {Wrapper as LinkExisting} from '.'
 
@@ -10,6 +12,7 @@ const mapStateToProps = (state: TypedState) => ({
   nameError: state.wallets.accountNameError,
   nameValidationState: state.wallets.accountNameValidationState,
   secretKeyValidationState: state.wallets.secretKeyValidationState,
+  waiting: anyWaiting(state, Constants.linkExistingWaitingKey),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({

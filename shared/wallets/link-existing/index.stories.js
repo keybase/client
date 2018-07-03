@@ -8,6 +8,7 @@ import LinkExisting from '.'
 const common = {
   keyError: '',
   linkExistingAccountError: '',
+  name: '',
   nameError: '',
   nameValidationState: 'none',
   onCancel: action('onCancel'),
@@ -18,20 +19,33 @@ const common = {
   onKeyChange: action('onKeyChange'),
   onNameChange: action('onNameChange'),
   onViewChange: action('onViewChange'),
+  secretKey: '',
   secretKeyValidationState: 'none',
+  waiting: false,
 }
 
 const enterKeyProps = {
   ...common,
-  name: '',
-  secretKey: '',
   view: 'key',
 }
 
 const enterNameProps = {
   ...common,
-  name: '',
-  secretKey: '',
+  view: 'name',
+}
+
+const keyErrorProps = {
+  ...common,
+  keyError: 'Error: invalid key',
+  secretKey: 'not a key',
+  secretKeyValidationState: 'error',
+}
+
+const nameErrorProps = {
+  ...common,
+  name: 'this is too long',
+  nameError: 'Error: name too long',
+  nameValidationState: 'error',
   view: 'name',
 }
 
@@ -45,6 +59,8 @@ const load = () => {
     .add('Enter key', () => <LinkExisting {...enterKeyProps} />)
     .add('Enter name', () => <LinkExisting {...enterNameProps} />)
     .add('Prefilled name', () => <LinkExisting {...enterNameProps} name="mikem's third account" />)
+    .add('Secret key error', () => <LinkExisting {...keyErrorProps} />)
+    .add('Name error', () => <LinkExisting {...nameErrorProps} />)
 }
 
 export default load

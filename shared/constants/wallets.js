@@ -123,9 +123,12 @@ const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
 const getAssets = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.assetsMap.get(accountID || getSelectedAccount(state), I.List())
 
+const linkExistingWaitingKey = 'wallets:linkExisting'
+
 export {
   accountResultToAccount,
   assetsResultToAssets,
+  linkExistingWaitingKey,
   loadEverythingWaitingKey,
   makeAccount,
   makeAssets,

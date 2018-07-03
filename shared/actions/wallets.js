@@ -45,10 +45,13 @@ const loadPaymentsSuccess = (res: any, action: WalletsGen.LoadPaymentsPayload) =
 
 const linkExistingAccount = (action: WalletsGen.LinkExistingAccountPayload) => {
   const {name, secretKey} = action.payload
-  return RPCTypes.localLinkNewWalletAccountLocalRpcPromise({
-    name,
-    secretKey: secretKey.stringValue(),
-  })
+  return RPCTypes.localLinkNewWalletAccountLocalRpcPromise(
+    {
+      name,
+      secretKey: secretKey.stringValue(),
+    },
+    Constants.linkExistingWaitingKey
+  )
     .then(accountID => [
       WalletsGen.createLoadAccounts(),
       WalletsGen.createSelectAccount({accountID: Types.stringToAccountID(accountID), show: true}),
