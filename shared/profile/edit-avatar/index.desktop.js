@@ -238,11 +238,6 @@ class EditAvatar extends React.Component<Props, State> {
     this.props.onSave(this.state.imageSource, crop)
   }
 
-  _className = () => {
-    if (this.state.hasPreview) return 'filled'
-    if (this.state.dropping) return 'dropping'
-  }
-
   render = () => {
     return (
       <MaybePopup
@@ -256,6 +251,7 @@ class EditAvatar extends React.Component<Props, State> {
         onMouseMove={this._onMouseMove}
       >
         <Box
+          className={this.state.dropping ? 'dropping' : ''}
           onDragLeave={this._onDragLeave}
           onDragOver={this._onDragOver}
           onDrop={this._onDrop}
@@ -266,7 +262,7 @@ class EditAvatar extends React.Component<Props, State> {
             or browse your computer for one
           </Text>
           <HoverBox
-            className={this._className}
+            className={this.state.hasPreview ? 'filled' : ''}
             onClick={this.state.hasPreview ? null : this._filePickerOpen}
             style={styles.imageContainer}
           >
@@ -342,11 +338,11 @@ const HoverBox = glamorous(Box)({
     backgroundColor: globalColors.white,
     borderColor: globalColors.lightGrey2,
   },
-  '&:hover, &.dropping': {
-    borderColor: globalColors.black_40,
-  },
-  '&:hover .icon, &.dropping .icon': {
+  '&:hover .icon, .dropping & .icon': {
     color: globalColors.black_40,
+  },
+  '&:hover, .dropping &': {
+    borderColor: globalColors.black_40,
   },
   backgroundColor: globalColors.lightGrey2,
   borderColor: globalColors.grey,
