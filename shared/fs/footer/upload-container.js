@@ -10,29 +10,33 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 // NOTE flip this to show a button to debug the upload banner animations.
-const enableDebugUploadBanner = true
+const enableDebugUploadBanner = false
+
+const getDebugToggleShow = (dispatch: Dispatch) => {
+  if (!(__DEV__ && enableDebugUploadBanner)) {
+    return undefined
+  }
+
+  let showing = false
+  return () => {
+    dispatch(
+      FsGen.createJournalUpdate({
+        syncingPaths: showing ? [] : [Types.stringToPath('/keybase')],
+        totalSyncingBytes: 0, // not needed to trigger upload banner
+      })
+    )
+    showing = !showing
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  debugToggleShow: !enableDebugUploadBanner
-    ? undefined
-    : (() => {
-        let tmp = false
-        return () => {
-          dispatch(
-            FsGen.createJournalUpdate({
-              syncingPaths: tmp ? [] : [Types.stringToPath('/keybase')],
-              totalSyncingBytes: 0, // not needed to trigger upload banner
-            })
-          )
-          tmp = !tmp
-        }
-      })(),
+  debugToggleShow: getDebugToggleShow(dispatch),
 })
 
 const mergeProps = ({_uploads}, {debugToggleShow}) =>
   ({
     files: _uploads.syncingPaths.merge(_uploads.writingToJournal).size,
-    timeLeft: '32 s' || formatDurationFromNowTo(_uploads.endEstimate),
+    timeLeft: enableDebugUploadBanner ? '32 s' : formatDurationFromNowTo(_uploads.endEstimate),
     debugToggleShow,
   }: UploadProps)
 

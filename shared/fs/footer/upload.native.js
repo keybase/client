@@ -10,7 +10,7 @@ const patternRequire = require('../../images/upload-pattern-2-600.png')
 type UploadState = {
   backgroundTop: NativeAnimated.AnimatedValue,
   uploadTop: NativeAnimated.AnimatedValue,
-  mounted: boolean,
+  showing: boolean,
 }
 
 const easing = NativeEasing.bezier(0.13, 0.72, 0.31, 0.95)
@@ -19,79 +19,89 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
   state = {
     backgroundTop: new NativeAnimated.Value(0),
     uploadTop: new NativeAnimated.Value(48),
-    mounted: false,
+    showing: false,
   }
 
-  animations = {
+  _mounted = false
+
+  _animations = {
     loop: null,
     in: null,
     out: null,
   }
 
-  startAnimationLoop() {
-    this.animations.loop = NativeAnimated.loop(
+  _startAnimationLoop() {
+    this._animations.loop = NativeAnimated.loop(
       NativeAnimated.timing(this.state.backgroundTop, {
         toValue: -80, // pattern loops on multiples of 80
         duration: 2000,
         easing: NativeEasing.linear,
       })
     )
-    this.animations.loop.start()
+    this._animations.loop.start()
   }
-  startAnimationIn() {
-    this.animations.in = NativeAnimated.timing(this.state.uploadTop, {
+  _startAnimationIn() {
+    this._animations.in = NativeAnimated.timing(this.state.uploadTop, {
       toValue: 0,
       duration: 300,
       easing,
     })
-    this.animations.in.start()
+    this._animations.in.start()
   }
-  startAnimationOut(cbIfFinish: () => void) {
-    this.animations.out = NativeAnimated.timing(this.state.uploadTop, {
+  _startAnimationOut(cbIfFinish: () => void) {
+    this._animations.out = NativeAnimated.timing(this.state.uploadTop, {
       toValue: 48,
       duration: 300,
       easing,
     })
-    this.animations.out.start(({finished}) => finished && cbIfFinish())
+    this._animations.out.start(({finished}) => finished && cbIfFinish())
   }
-  stopAnimation(animation: string) {
-    if (!this.animations[animation]) {
+  _stopAnimation(animation: string) {
+    if (!this._animations[animation]) {
       return
     }
-    this.animations[animation].stop()
-    this.animations[animation] = null
+    this._animations[animation].stop()
+    this._animations[animation] = null
+  }
+  _stopAllAnimations() {
+    this._stopAnimation('out')
+    this._stopAnimation('loop')
+    this._stopAnimation('in')
   }
 
-  enter() {
-    this.setState({mounted: true})
-    this.stopAnimation('out')
-    this.startAnimationIn()
-    this.startAnimationLoop()
+  _enter() {
+    this._stopAllAnimations()
+    this.setState({showing: true})
+    this._startAnimationIn()
+    this._startAnimationLoop()
   }
 
-  exit() {
-    this.stopAnimation('in')
-    this.startAnimationOut(() => {
-      this.stopAnimation('loop')
-      this.setState({mounted: false})
+  _exit() {
+    this._stopAnimation('in')
+    this._startAnimationOut(() => {
+      this._stopAnimation('loop')
+      this._mounted && this.setState({showing: false})
     })
+  }
+
+  componentDidMount() {
+    this._mounted = true
   }
 
   componentDidUpdate(prevProps: UploadProps) {
     if (!prevProps.files && this.props.files) {
-      this.enter()
+      this._enter()
       return
     }
 
     if (prevProps.files && !this.props.files) {
-      this.exit()
+      this._exit()
     }
   }
 
   componentWillUnmount() {
-    this.stopAnimation('in')
-    this.stopAnimation('out')
-    this.stopAnimation('loop')
+    this._stopAllAnimations()
+    this._mounted = false
   }
 
   render() {
@@ -99,7 +109,7 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
     return (
       <React.Fragment>
         {!!debugToggleShow && <Button type="Primary" onClick={debugToggleShow} label="Toggle" />}
-        {this.state.mounted && (
+        {this.state.showing && (
           <NativeAnimated.View style={{position: 'relative', top: this.state.uploadTop}}>
             <Box style={stylesBackgroundBox}>
               <NativeAnimated.Image
