@@ -217,7 +217,7 @@ func LogSend(status string, feedback string, sendLogs bool, uiLogPath, traceDir 
 	logSendContext.Logs.Desktop = uiLogPath
 	logSendContext.Logs.Trace = traceDir
 	env := kbCtx.Env
-	return logSendContext.LogSend(status, feedback, sendLogs, 10*1024*1024, env.GetUID(), env.GetInstallID())
+	return logSendContext.LogSend(status, feedback, sendLogs, 10*1024*1024, env.GetUID(), env.GetInstallID(), true /* mergeExtendedStatus */)
 }
 
 // WriteB64 sends a base64 encoded msgpack rpc payload
