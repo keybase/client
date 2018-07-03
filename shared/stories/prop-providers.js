@@ -14,7 +14,11 @@ import * as _TeamDropdownMenu from '../chat/conversation/info-panel/menu/contain
  *          view props the connected component is concerned with
  */
 
-const Usernames = (following: string[], you?: string) => ({
+const defaultYou = 'ayoubd'
+const defaultFollowing = ['max', 'cnojima', 'cdixon']
+const defaultFollowers = ['max', 'akalin']
+
+const Usernames = (following: string[] = defaultFollowing, you: string = defaultYou) => ({
   Usernames: (ownProps: _Usernames.ConnectedProps): _Usernames.Props => {
     const {usernames} = ownProps
     const users = (usernames || []).map(username => ({
@@ -37,7 +41,7 @@ const WaitingButton = () => ({
   }),
 })
 
-const Avatar = (following: string[], followers: string[]) => ({
+const Avatar = (following: string[] = defaultFollowing, followers: string[] = defaultFollowers) => ({
   Avatar: (ownProps: _Avatar.OwnProps) => _Avatar.mockOwnToViewProps(ownProps, following, followers, action),
 })
 
@@ -61,16 +65,12 @@ const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: strin
   }),
 })
 
-const you = 'ayoubd'
-const following = ['max', 'cnojima', 'cdixon']
-const followers = ['max', 'akalin']
-
 const Common = () => ({
-  ...Usernames(following, you),
-  ...Avatar(following, followers),
+  ...Usernames(),
+  ...Avatar(),
   ...WaitingButton(),
 })
 
 const CommonProvider = () => createPropProvider(Common())
 
-export {Avatar, CommonProvider, TeamDropdownMenu, Usernames, WaitingButton}
+export {Avatar, Common, CommonProvider, TeamDropdownMenu, Usernames, WaitingButton}

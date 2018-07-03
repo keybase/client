@@ -42,17 +42,12 @@ const retentionPickerPropSelector = props => ({
   onSelect: action('onSelectRetentionPolicy'),
 })
 
-const provider = createPropProvider(
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both']),
-  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  PropProviders.TeamDropdownMenu(),
-  {
-    InfoPanel: (props: InfoPanelProps) => props,
-    OnlyValidConversations: () => onlyValidConversationsProps,
-    LifecycleNotifications: () => notificationProps,
-    RetentionPicker: retentionPickerPropSelector,
-  }
-)
+const provider = createPropProvider(PropProviders.Common(), PropProviders.TeamDropdownMenu(), {
+  InfoPanel: (props: InfoPanelProps) => props,
+  OnlyValidConversations: () => onlyValidConversationsProps,
+  LifecycleNotifications: () => notificationProps,
+  RetentionPicker: retentionPickerPropSelector,
+})
 
 const commonProps = {
   selectedConversationIDKey: Constants.noConversationIDKey,
