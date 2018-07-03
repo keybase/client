@@ -4,7 +4,7 @@ import "github.com/keybase/client/go/protocol/chat1"
 
 const (
 	TextMessageMaxLength     = 10000
-	DevTextMessageMaxLength  = 1000000
+	DevTextMessageMaxLength  = 2000000
 	ReactionMessageMaxLength = 50
 	HeadlineMaxLength        = 280
 	TopicMaxLength           = 20
@@ -12,7 +12,7 @@ const (
 
 const (
 	BoxedTextMessageBodyMaxLength          = 11000
-	DevBoxedTextMessageBodyMaxLength       = 1100000
+	DevBoxedTextMessageBodyMaxLength       = 2100000
 	BoxedEditMessageBodyMaxLength          = 11000
 	BoxedReactionMessageBodyMaxLength      = 150
 	BoxedHeadlineMessageBodyMaxLength      = 380
