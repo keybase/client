@@ -101,8 +101,7 @@ class EditAvatar extends React.Component<Props, State> {
     this._filePickerSetValue('')
   }
 
-  _onDragLeave = (e: SyntheticDragEvent<any>) => {
-    e.persist()
+  _onDragLeave = () => {
     this.setState({dropping: false})
   }
 
@@ -168,7 +167,6 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   _onRangeChange = (e: SyntheticInputEvent<any>) => {
-    e.persist()
     const scale = e.currentTarget.value
     const scaledImageHeight = Math.round(this.state.originalImageHeight * scale)
     const scaledImageWidth = Math.round(this.state.originalImageWidth * scale)
@@ -195,8 +193,7 @@ class EditAvatar extends React.Component<Props, State> {
     })
   }
 
-  _onMouseUp = (e: SyntheticMouseEvent<any>) => {
-    e.persist()
+  _onMouseUp = () => {
     this.setState({
       dragStopX:
         this._image && this._image.style.left ? parseInt(this._image.style.left, 10) : this.state.dragStopX,
@@ -223,8 +220,7 @@ class EditAvatar extends React.Component<Props, State> {
     })
   }
 
-  _onSave = e => {
-    e.persist()
+  _onSave = () => {
     this.setState({submitting: true})
 
     const x = this.state.offsetLeft * -1
