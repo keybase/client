@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {storiesOf, action, unexpected} from '../../../stories/storybook'
+import {action, storiesOf, createPropProvider, unexpected} from '../../../stories/storybook'
 import * as Constants from '../../../constants/chat2'
 import * as PropProviders from '../../../stories/prop-providers'
 import {retentionPolicies} from '../../../constants/teams'
@@ -42,7 +42,7 @@ const retentionPickerPropSelector = props => ({
   onSelect: action('onSelectRetentionPolicy'),
 })
 
-const provider = PropProviders.composeAndCreate(
+const provider = createPropProvider(
   PropProviders.Avatar(['following', 'both'], ['followers', 'both']),
   PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
   PropProviders.TeamDropdownMenu(),

@@ -4,7 +4,7 @@ import * as PropProviders from '../../stories/prop-providers'
 import ResultRow from '.'
 import {Box} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
-import {storiesOf, action} from '../../stories/storybook'
+import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 
 const commonRow = {
   id: 'result',
@@ -38,7 +38,7 @@ const serviceRow = {
   rightUsername: null,
 }
 
-const provider = PropProviders.composeAndCreate(
+const provider = createPropProvider(
   PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
   PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
 )

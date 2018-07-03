@@ -2,9 +2,9 @@
 import * as React from 'react'
 import DeleteConfirm from '.'
 import * as PropProviders from '../../stories/prop-providers'
-import {action, storiesOf} from '../../stories/storybook'
+import {action, storiesOf, createPropProvider} from '../../stories/storybook'
 
-const provider = PropProviders.composeAndCreate(
+const provider = createPropProvider(
   PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
   PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
 )

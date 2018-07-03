@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {action, storiesOf} from '../stories/storybook'
-import {Avatar, composeAndCreate, Usernames} from '../stories/prop-providers'
+import {action, storiesOf, createPropProvider} from '../stories/storybook'
+import {Avatar, Usernames} from '../stories/prop-providers'
 import ScrollView from './scroll-view'
 import Text from './text'
 import NameWithIcon from './name-with-icon'
@@ -22,7 +22,7 @@ const innerClick = evt => {
   action('Inner click')(evt)
 }
 
-const provider = composeAndCreate(
+const provider = createPropProvider(
   Avatar(['chrisnojima'], ['chrisnojima']),
   Usernames(['cecileb', 'chrisnojima'])
 )

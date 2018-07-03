@@ -2,11 +2,11 @@
 import React from 'react'
 import * as PropProviders from '../../stories/prop-providers'
 import {Box} from '../../common-adapters'
-import {storiesOf, action} from '../../stories/storybook'
+import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 import {isMobile} from '../../constants/platform'
 import CreateChannel from '.'
 
-const provider = PropProviders.composeAndCreate(
+const provider = createPropProvider(
   PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
   PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
 )

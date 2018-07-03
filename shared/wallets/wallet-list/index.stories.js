@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import * as PropProviders from '../../stories/prop-providers'
-import {storiesOf, action} from '../../stories/storybook'
+import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 import {WalletList} from '.'
 import walletRow from './wallet-row/index.stories'
 import {stringToAccountID} from '../../constants/types/wallets'
@@ -47,7 +47,7 @@ const WalletRowProvider = mockWallets => ({
   },
 })
 
-const provider = PropProviders.composeAndCreate(
+const provider = createPropProvider(
   PropProviders.Avatar(['following', 'both'], ['followers', 'both']),
   WalletRowProvider(mockWallets)
 )

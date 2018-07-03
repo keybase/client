@@ -5,7 +5,7 @@ import I from 'immutable'
 import moment from 'moment'
 import {Box2, Text} from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/chat2'
-import {storiesOf, action} from '../../../../stories/storybook'
+import {storiesOf, action, createPropProvider} from '../../../../stories/storybook'
 import * as PropProviders from '../../../../stories/prop-providers'
 import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
@@ -128,7 +128,7 @@ const ordinalToMessage = o => {
   return message
 }
 
-const provider = PropProviders.composeAndCreate(
+const provider = createPropProvider(
   PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
   PropProviders.Avatar(['following', 'both'], ['followers', 'both']),
   {

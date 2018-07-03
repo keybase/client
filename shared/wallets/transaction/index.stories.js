@@ -3,10 +3,10 @@ import * as React from 'react'
 import moment from 'moment'
 import * as PropProviders from '../../stories/prop-providers'
 import {Box2} from '../../common-adapters'
-import {storiesOf} from '../../stories/storybook'
+import {storiesOf, createPropProvider} from '../../stories/storybook'
 import Transaction from '.'
 
-const provider = PropProviders.composeAndCreate(
+const provider = createPropProvider(
   PropProviders.Usernames(['paul'], 'john'),
   PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
 )

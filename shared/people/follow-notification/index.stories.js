@@ -1,12 +1,12 @@
 // @flow
 import React from 'react'
 import * as C from '../../constants/people'
-import {action, storiesOf} from '../../stories/storybook'
+import {action, storiesOf, createPropProvider} from '../../stories/storybook'
 import * as PropProviders from '../../stories/prop-providers'
 import FollowNotification, {type Props} from '.'
 import moment from 'moment'
 
-const provider = PropProviders.composeAndCreate(
+const provider = createPropProvider(
   PropProviders.Usernames(['max', 'chrisnojima'], 'ayoubd'),
   PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
 )

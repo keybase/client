@@ -1,23 +1,7 @@
 // @flow
-import {action, unexpected, createPropProvider, type SelectorMap} from './storybook'
+import {action, unexpected, createPropProvider} from './storybook'
 import {mockOwnToViewProps} from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
-
-// Compose prop factories into a single provider.
-const compose = (...providers: SelectorMap[]): SelectorMap => {
-  return providers.reduce((obj, provider) => ({...obj, ...provider}), {})
-}
-
-/**
- * Compose prop factories into a single provider
- * @param {Array<SelectorMap>} providers An array of objects of the form { DisplayName: Function(ownProps) }
- *                      that are combined in the output
- * @returns a <Provider /> that can be used in a storybook `addDecorator` to provide viewProps
- *          for connected child components
- */
-const composeAndCreate = (...providers: SelectorMap[]) => {
-  return createPropProvider(compose(...providers))
-}
 
 /**
  * Some common prop factory creators.
@@ -74,10 +58,10 @@ const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: strin
 })
 
 const Common = () =>
-  composeAndCreate(
+  createPropProvider(
     Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
     Avatar(['following', 'both'], ['followers', 'both']),
     WaitingButton()
   )
 
-export {compose, composeAndCreate, Avatar, Common, TeamDropdownMenu, Usernames, WaitingButton}
+export {Avatar, Common, TeamDropdownMenu, Usernames, WaitingButton}
