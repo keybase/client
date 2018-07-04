@@ -8,7 +8,7 @@ import (
 
 	"strings"
 
-	chatglobals "github.com/keybase/client/go/chat/globals"
+	//chatglobals "github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
@@ -1047,6 +1047,11 @@ func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipie
 		return nil
 	}
 
+	m.G().StartStandaloneChat()
+	if m.G().ChatHelper == nil {
+		return errors.New("cannot send SendPayment message:  chat helper is nil")
+	}
+
 	name := strings.Join([]string{m.CurrentUsername().String(), recipient.User.GetNormalizedName().String()}, ",")
 
 	msg := chat1.MessageSendPayment{
@@ -1054,10 +1059,6 @@ func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipie
 	}
 
 	body := chat1.NewMessageBodyWithSendpayment(msg)
-
-	if m.G().ChatHelper == nil {
-		return errors.New("cannot send SendPayment message:  chat helper is nil")
-	}
 
 	// identify already performed, so skip here
 	return m.G().ChatHelper.SendMsgByNameNonblock(m.Ctx(), name, nil, chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFIdentifyBehavior_CHAT_SKIP, body, chat1.MessageType_SENDPAYMENT)
@@ -1070,6 +1071,15 @@ type SendRequestArg struct {
 
 func SendRequest(m libkb.MetaContext, remoter remote.Remoter, arg SendRequestArg) (err error) {
 	defer m.CTraceTimed("Stellar.SendRequest", func() error { return err })()
+
+	// Make sure chat is functional. Chat message is the only way for
+	// the recipient to learn about the request, so it's essential
+	// that we are able to send REQUESTPAYMENT chat message.
+	m.G().StartStandaloneChat()
+	if m.G().ChatHelper == nil {
+		return errors.New("cannot send SendPayment message:  chat helper is nil")
+	}
+
 	recipient, err := LookupRecipient(m, arg.To)
 	if err != nil {
 		return err
@@ -1093,13 +1103,14 @@ func SendRequest(m libkb.MetaContext, remoter remote.Remoter, arg SendRequestArg
 		return err
 	}
 
-	body := chat1.NewMessageBodyWithText(chat1.MessageText{
-		Body: fmt.Sprintf("stellar payment request <%s> for %s XLM", requestID, arg.Amount),
+	body := chat1.NewMessageBodyWithRequestpayment(chat1.MessageRequestPayment{
+		RequestID: requestID,
+		Note:      "",
 	})
 
 	m.G().StartStandaloneChat()
 
-	err = m.G().ChatHelper.SendMsgByName(m.Ctx(), displayName, &chatglobals.DefaultTeamTopic,
-		membersType, keybase1.TLFIdentifyBehavior_CHAT_SKIP, body, chat1.MessageType_TEXT)
+	err = m.G().ChatHelper.SendMsgByName(m.Ctx(), displayName, nil,
+		membersType, keybase1.TLFIdentifyBehavior_CHAT_SKIP, body, chat1.MessageType_REQUESTPAYMENT)
 	return err
 }

@@ -35,7 +35,7 @@ func newCmdWalletRequest(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 		Usage:        "Request XLM from a Keybase user",
 		ArgumentHelp: "-r <recipient> <amount> <local currency>",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(cmd, "send", c)
+			cl.ChooseCommand(cmd, "request", c)
 		},
 		Flags: flags,
 	}

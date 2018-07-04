@@ -540,6 +540,19 @@ func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPaym
 	return view
 }
 
+func formatRequestPaymentMessage(g *libkb.GlobalContext, body chat1.MessageRequestPayment) string {
+	ctx := context.Background()
+
+	cli, err := GetWalletClient(g)
+	if err != nil {
+		g.Log.CDebugf(ctx, "GetWalletClient() error: %s", err)
+		return "[error getting request details]"
+	}
+
+	_ = cli
+	return "<request payment message>"
+}
+
 func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxedValid) (mv messageView, err error) {
 	mv.MessageID = m.ServerHeader.MessageID
 	mv.FromRevokedDevice = m.SenderDeviceRevokedAt != nil
@@ -603,6 +616,9 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 	case chat1.MessageType_SENDPAYMENT:
 		mv.Renderable = true
 		mv.Body = formatSendPaymentMessage(g, m.MessageBody.Sendpayment())
+	case chat1.MessageType_REQUESTPAYMENT:
+		mv.Renderable = true
+		mv.Body = formatRequestPaymentMessage(g, m.MessageBody.Requestpayment())
 	default:
 		return mv, fmt.Errorf(fmt.Sprintf("unsupported MessageType: %s", typ.String()))
 	}

@@ -88,6 +88,7 @@ export const commonMessageType = {
   deletehistory: 12,
   reaction: 13,
   sendpayment: 14,
+  requestpayment: 15,
 }
 
 export const commonNotificationKind = {
@@ -567,7 +568,7 @@ export type MembersUpdateInfo = $ReadOnly<{convID: ConversationID, members?: ?Ar
 export type MerkleRoot = $ReadOnly<{seqno: Long, hash: Bytes}>
 export type MessageAttachment = $ReadOnly<{object: Asset, preview?: ?Asset, previews?: ?Array<Asset>, metadata: Bytes, uploaded: Boolean}>
 export type MessageAttachmentUploaded = $ReadOnly<{messageID: MessageID, object: Asset, previews?: ?Array<Asset>, metadata: Bytes}>
-export type MessageBody = {messageType: 1, text: ?MessageText} | {messageType: 2, attachment: ?MessageAttachment} | {messageType: 3, edit: ?MessageEdit} | {messageType: 4, delete: ?MessageDelete} | {messageType: 5, metadata: ?MessageConversationMetadata} | {messageType: 7, headline: ?MessageHeadline} | {messageType: 8, attachmentuploaded: ?MessageAttachmentUploaded} | {messageType: 9, join: ?MessageJoin} | {messageType: 10, leave: ?MessageLeave} | {messageType: 11, system: ?MessageSystem} | {messageType: 12, deletehistory: ?MessageDeleteHistory} | {messageType: 13, reaction: ?MessageReaction} | {messageType: 14, sendpayment: ?MessageSendPayment}
+export type MessageBody = {messageType: 1, text: ?MessageText} | {messageType: 2, attachment: ?MessageAttachment} | {messageType: 3, edit: ?MessageEdit} | {messageType: 4, delete: ?MessageDelete} | {messageType: 5, metadata: ?MessageConversationMetadata} | {messageType: 7, headline: ?MessageHeadline} | {messageType: 8, attachmentuploaded: ?MessageAttachmentUploaded} | {messageType: 9, join: ?MessageJoin} | {messageType: 10, leave: ?MessageLeave} | {messageType: 11, system: ?MessageSystem} | {messageType: 12, deletehistory: ?MessageDeleteHistory} | {messageType: 13, reaction: ?MessageReaction} | {messageType: 14, sendpayment: ?MessageSendPayment} | {messageType: 15, requestpayment: ?MessageRequestPayment}
 export type MessageBoxed = $ReadOnly<{version: MessageBoxedVersion, serverHeader?: ?MessageServerHeader, clientHeader: MessageClientHeader, headerCiphertext: SealedData, bodyCiphertext: EncryptedData, verifyKey: Bytes, keyGeneration: Int}>
 export type MessageBoxedVersion =
   | 0 // VNONE_0
@@ -590,6 +591,7 @@ export type MessageLeave = $ReadOnly<{}>
 export type MessagePlaintext = $ReadOnly<{clientHeader: MessageClientHeader, messageBody: MessageBody}>
 export type MessagePreviousPointer = $ReadOnly<{id: MessageID, hash: Hash}>
 export type MessageReaction = $ReadOnly<{messageID: MessageID, body: String}>
+export type MessageRequestPayment = $ReadOnly<{requestID: String, note: String}>
 export type MessageSendPayment = $ReadOnly<{kbTxID: String}>
 export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy: MessageID, reactionIDs?: ?Array<MessageID>, ctime: Gregor1.Time, now: Gregor1.Time, rtime?: ?Gregor1.Time}>
 export type MessageSummary = $ReadOnly<{msgID: MessageID, messageType: MessageType, tlfName: String, tlfPublic: Boolean, ctime: Gregor1.Time}>
@@ -625,6 +627,7 @@ export type MessageType =
   | 12 // DELETEHISTORY_12
   | 13 // REACTION_13
   | 14 // SENDPAYMENT_14
+  | 15 // REQUESTPAYMENT_15
 
 export type MessageUnboxed = {state: 1, valid: ?MessageUnboxedValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?OutboxRecord} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
 export type MessageUnboxedError = $ReadOnly<{errType: MessageUnboxedErrorType, errMsg: String, internalErrMsg: String, versionKind: VersionKind, versionNumber: Int, isCritical: Boolean, senderUsername: String, senderDeviceName: String, senderDeviceType: String, messageID: MessageID, messageType: MessageType, ctime: Gregor1.Time, isEphemeral: Boolean, isEphemeralExpired: Boolean, etime: Gregor1.Time}>
