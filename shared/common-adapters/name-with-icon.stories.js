@@ -22,7 +22,7 @@ const innerClick = evt => {
   action('Inner click')(evt)
 }
 
-const provider = PropProviders.Common()
+const provider = PropProviders.CommonProvider()
 
 const load = () => {
   storiesOf('Common/NameWithIcon', module)
