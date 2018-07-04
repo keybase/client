@@ -2,10 +2,10 @@
 import React from 'react'
 import {Box} from '../../common-adapters'
 import * as PropProviders from '../../stories/prop-providers'
-import {storiesOf, action, createPropProvider} from '../../stories/storybook'
+import {storiesOf, action} from '../../stories/storybook'
 import NewRepo from '.'
 
-const provider = createPropProvider(PropProviders.WaitingButton())
+const provider = PropProviders.CommonProvider()
 
 const load = () => {
   storiesOf('Git/New', module)
