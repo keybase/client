@@ -47,10 +47,7 @@ const WalletRowProvider = mockWallets => ({
   },
 })
 
-const provider = createPropProvider(
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both']),
-  WalletRowProvider(mockWallets)
-)
+const provider = createPropProvider(PropProviders.Common(), WalletRowProvider(mockWallets))
 
 const accountIDs = Object.keys(mockWallets).map(s => stringToAccountID(s))
 

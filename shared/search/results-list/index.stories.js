@@ -5,8 +5,7 @@ import {Box} from '../../common-adapters'
 import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 import * as PropProviders from '../../stories/prop-providers'
 
-const provider = createPropProvider({
-  ...PropProviders.Avatar(['following', 'both'], ['following', 'both']),
+const provider = createPropProvider(PropProviders.Common(), {
   SearchResultRow: (props: {id: string}) => servicesResultsListMapCommonRows[props.id],
 })
 

@@ -102,10 +102,7 @@ const commonChannel = {
   isError: false,
 }
 
-const provider = createPropProvider(
-  PropProviders.TeamDropdownMenu(),
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
-)
+const provider = createPropProvider(PropProviders.Common(), PropProviders.TeamDropdownMenu())
 
 const load = () => {
   storiesOf('Chat/Inbox', module)
