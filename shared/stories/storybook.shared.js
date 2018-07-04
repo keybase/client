@@ -22,7 +22,7 @@ const unexpected = (name: string) => () => {
 // work around this issue
 let uniqueProviderKey = 1
 const createPropProvider = (...maps: SelectorMap[]) => {
-  const merged = maps.reduce((obj, map) => ({...obj, ...merged}), {})
+  const merged: SelectorMap = maps.reduce((obj, merged) => ({...obj, ...merged}), {})
 
   return (story: () => React.Node) => (
     <Provider key={`provider:${uniqueProviderKey++}`} store={createStore(state => state, merged)}>
