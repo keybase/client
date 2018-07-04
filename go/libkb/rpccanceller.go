@@ -8,6 +8,10 @@ import (
 
 type RPCCancellerKey string
 
+func NewRPCCancellerKey() RPCCancellerKey {
+	return RPCCancellerKey(RandStringB64(3))
+}
+
 type liveContext struct {
 	ctx      context.Context
 	cancelFn context.CancelFunc
@@ -29,7 +33,7 @@ func (r *RPCCanceller) RegisterContext(ctx context.Context) (context.Context, RP
 	defer r.Unlock()
 	var lc liveContext
 	lc.ctx, lc.cancelFn = context.WithCancel(ctx)
-	id := RPCCancellerKey(RandStringB64(3))
+	id := NewRPCCancellerKey()
 	r.liveCtxs[id] = lc
 	return lc.ctx, id
 }
