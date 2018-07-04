@@ -1,10 +1,13 @@
 // @flow
 import * as React from 'react'
-import {storiesOf, action} from '../../stories/storybook'
+import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 import * as PropProviders from '../../stories/prop-providers'
 import FollowSuggestions, {type Props} from '.'
 
-const provider = PropProviders.CommonProvider()
+const provider = createPropProvider(
+  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  PropProviders.Avatar(['max', 'cnojima', 'cdixon'], [])
+)
 
 const props1: Props = {
   onClickUser: action('onClickUser'),
