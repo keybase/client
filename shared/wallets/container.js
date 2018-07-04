@@ -11,7 +11,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   refresh: () => dispatch(WalletsGen.createLoadAccounts()),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  navigateAppend: ownProps.navigateAppend,
   onBack: dispatchProps.onBack,
   refresh: dispatchProps.refresh,
   title: 'Wallets',

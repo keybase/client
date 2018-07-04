@@ -7,6 +7,7 @@ import Header from './header'
 const mapStateToProps = (state: TypedState) => {
   const selectedAccount = Constants.getAccount(state)
   return {
+    accountID: selectedAccount.accountID,
     isDefaultWallet: selectedAccount.isDefault,
     keybaseUser: state.config.username,
     walletName: selectedAccount.name || Types.accountIDToString(selectedAccount.accountID),
@@ -14,9 +15,17 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const nyi = () => console.log('Not yet implemented')
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, ownProps) => ({
+  _onReceive: (accountID: Types.AccountID) =>
+    dispatch(
+      ownProps.navigateAppend([
+        {
+          props: {accountID},
+          selected: 'receive',
+        },
+      ])
+    ),
   onDeposit: nyi,
-  onReceive: nyi,
   onSendToAnotherWallet: nyi,
   onSendToKeybaseUser: nyi,
   onSendToStellarAddress: nyi,
@@ -24,4 +33,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onShowSecretKey: nyi,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Header)
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...stateProps,
+  ...dispatchProps,
+  onReceive: () => dispatchProps._onReceive(stateProps.accountID),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Header)
