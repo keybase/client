@@ -6,6 +6,8 @@ import (
 	"golang.org/x/net/context"
 )
 
+type RPCCancellerKey string
+
 type liveContext struct {
 	ctx      context.Context
 	cancelFn context.CancelFunc
@@ -13,26 +15,26 @@ type liveContext struct {
 
 type RPCCanceller struct {
 	sync.Mutex
-	liveCtxs map[string]liveContext
+	liveCtxs map[RPCCancellerKey]liveContext
 }
 
 func NewRPCCanceller() *RPCCanceller {
 	return &RPCCanceller{
-		liveCtxs: make(map[string]liveContext),
+		liveCtxs: make(map[RPCCancellerKey]liveContext),
 	}
 }
 
-func (r *RPCCanceller) RegisterContext(ctx context.Context) (context.Context, string) {
+func (r *RPCCanceller) RegisterContext(ctx context.Context) (context.Context, RPCCancellerKey) {
 	r.Lock()
 	defer r.Unlock()
 	var lc liveContext
 	lc.ctx, lc.cancelFn = context.WithCancel(ctx)
-	id, _ := RandHexString("", 8)
+	id := RPCCancellerKey(RandStringB64(3))
 	r.liveCtxs[id] = lc
-	return lc.ctx, id
+	return lc.ctx, RPCCancellerKey(id)
 }
 
-func (r *RPCCanceller) UnregisterContext(id string) {
+func (r *RPCCanceller) UnregisterContext(id RPCCancellerKey) {
 	r.Lock()
 	defer r.Unlock()
 	if lc, ok := r.liveCtxs[id]; ok {
