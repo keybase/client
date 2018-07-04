@@ -35,6 +35,7 @@ type KeybaseServiceMeasured struct {
 	favoriteDeleteTimer              metrics.Timer
 	favoriteListTimer                metrics.Timer
 	notifyTimer                      metrics.Timer
+	notifyPathUpdatedTimer           metrics.Timer
 	putGitMetadataTimer              metrics.Timer
 }
 
@@ -60,6 +61,7 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 	favoriteDeleteTimer := metrics.GetOrRegisterTimer("KeybaseService.FavoriteDelete", r)
 	favoriteListTimer := metrics.GetOrRegisterTimer("KeybaseService.FavoriteList", r)
 	notifyTimer := metrics.GetOrRegisterTimer("KeybaseService.Notify", r)
+	notifyPathUpdatedTimer := metrics.GetOrRegisterTimer("KeybaseService.NotifyPathUpdated", r)
 	putGitMetadataTimer := metrics.GetOrRegisterTimer(
 		"KeybaseService.PutGitMetadata", r)
 	return KeybaseServiceMeasured{
@@ -79,6 +81,7 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 		favoriteDeleteTimer:              favoriteDeleteTimer,
 		favoriteListTimer:                favoriteListTimer,
 		notifyTimer:                      notifyTimer,
+		notifyPathUpdatedTimer:           notifyPathUpdatedTimer,
 		putGitMetadataTimer:              putGitMetadataTimer,
 	}
 }
@@ -229,6 +232,16 @@ func (k KeybaseServiceMeasured) FavoriteList(ctx context.Context, sessionID int)
 func (k KeybaseServiceMeasured) Notify(ctx context.Context, notification *keybase1.FSNotification) (err error) {
 	k.notifyTimer.Time(func() {
 		err = k.delegate.Notify(ctx, notification)
+	})
+	return err
+}
+
+// NotifyPathUpdated implements the KeybaseService interface for
+// KeybaseServiceMeasured.
+func (k KeybaseServiceMeasured) NotifyPathUpdated(
+	ctx context.Context, path string) (err error) {
+	k.notifyPathUpdatedTimer.Time(func() {
+		err = k.delegate.NotifyPathUpdated(ctx, path)
 	})
 	return err
 }

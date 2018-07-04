@@ -53,6 +53,7 @@ type KeybaseServiceBase struct {
 
 	lastNotificationFilenameLock sync.Mutex
 	lastNotificationFilename     string
+	lastPathUpdated              string
 	lastSyncNotificationPath     string
 }
 
@@ -1087,6 +1088,25 @@ func (k *KeybaseServiceBase) Notify(ctx context.Context, notification *keybase1.
 		}
 	}()
 	return k.kbfsClient.FSEvent(ctx, *notification)
+}
+
+// NotifyPathUpdated implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) NotifyPathUpdated(
+	ctx context.Context, path string) error {
+	// Reduce log spam by not repeating log lines for
+	// notifications with the same filename.
+	//
+	// TODO: Only do this in debug mode.
+	func() {
+		k.lastNotificationFilenameLock.Lock()
+		defer k.lastNotificationFilenameLock.Unlock()
+		if path != k.lastPathUpdated {
+			k.lastPathUpdated = path
+			k.log.CDebugf(ctx, "Sending path updated notification for %s", path)
+		}
+	}()
+	return k.kbfsClient.FSPathUpdate(ctx, path)
 }
 
 // NotifySyncStatus implements the KeybaseService interface for

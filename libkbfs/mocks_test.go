@@ -1737,6 +1737,18 @@ func (mr *MockKeybaseServiceMockRecorder) Notify(ctx, notification interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockKeybaseService)(nil).Notify), ctx, notification)
 }
 
+// NotifyPathUpdated mocks base method
+func (m *MockKeybaseService) NotifyPathUpdated(ctx context.Context, path string) error {
+	ret := m.ctrl.Call(m, "NotifyPathUpdated", ctx, path)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NotifyPathUpdated indicates an expected call of NotifyPathUpdated
+func (mr *MockKeybaseServiceMockRecorder) NotifyPathUpdated(ctx, path interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyPathUpdated", reflect.TypeOf((*MockKeybaseService)(nil).NotifyPathUpdated), ctx, path)
+}
+
 // NotifySyncStatus mocks base method
 func (m *MockKeybaseService) NotifySyncStatus(ctx context.Context, status *keybase1.FSPathSyncStatus) error {
 	ret := m.ctrl.Call(m, "NotifySyncStatus", ctx, status)
@@ -2522,6 +2534,18 @@ func (m *MockKBPKI) Notify(ctx context.Context, notification *keybase1.FSNotific
 // Notify indicates an expected call of Notify
 func (mr *MockKBPKIMockRecorder) Notify(ctx, notification interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockKBPKI)(nil).Notify), ctx, notification)
+}
+
+// NotifyPathUpdated mocks base method
+func (m *MockKBPKI) NotifyPathUpdated(ctx context.Context, path string) error {
+	ret := m.ctrl.Call(m, "NotifyPathUpdated", ctx, path)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NotifyPathUpdated indicates an expected call of NotifyPathUpdated
+func (mr *MockKBPKIMockRecorder) NotifyPathUpdated(ctx, path interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyPathUpdated", reflect.TypeOf((*MockKBPKI)(nil).NotifyPathUpdated), ctx, path)
 }
 
 // MockKeyMetadata is a mock of KeyMetadata interface

@@ -544,6 +544,9 @@ type KeybaseService interface {
 	// Notify sends a filesystem notification.
 	Notify(ctx context.Context, notification *keybase1.FSNotification) error
 
+	// NotifyPathUpdated sends a path updated notification.
+	NotifyPathUpdated(ctx context.Context, path string) error
+
 	// NotifySyncStatus sends a sync status notification.
 	NotifySyncStatus(ctx context.Context,
 		status *keybase1.FSPathSyncStatus) error
@@ -736,6 +739,9 @@ type KBPKI interface {
 
 	// Notify sends a filesystem notification.
 	Notify(ctx context.Context, notification *keybase1.FSNotification) error
+
+	// NotifyPathUpdated sends a path updated notification.
+	NotifyPathUpdated(ctx context.Context, path string) error
 }
 
 // KeyMetadata is an interface for something that holds key

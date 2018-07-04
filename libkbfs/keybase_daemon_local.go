@@ -894,6 +894,12 @@ func (k *KeybaseDaemonLocal) Notify(ctx context.Context, notification *keybase1.
 	return checkContext(ctx)
 }
 
+// NotifyPathUpdated implements KeybaseDaemon for KeybaseDeamonLocal.
+func (k *KeybaseDaemonLocal) NotifyPathUpdated(
+	ctx context.Context, _ string) error {
+	return checkContext(ctx)
+}
+
 // NotifySyncStatus implements KeybaseDaemon for KeybaseDeamonLocal.
 func (k *KeybaseDaemonLocal) NotifySyncStatus(ctx context.Context,
 	_ *keybase1.FSPathSyncStatus) error {
