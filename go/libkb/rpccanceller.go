@@ -31,7 +31,7 @@ func (r *RPCCanceller) RegisterContext(ctx context.Context) (context.Context, RP
 	lc.ctx, lc.cancelFn = context.WithCancel(ctx)
 	id := RPCCancellerKey(RandStringB64(3))
 	r.liveCtxs[id] = lc
-	return lc.ctx, RPCCancellerKey(id)
+	return lc.ctx, id
 }
 
 func (r *RPCCanceller) UnregisterContext(id RPCCancellerKey) {
