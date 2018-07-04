@@ -687,6 +687,13 @@ type SimpleFSListRecursiveArg struct {
 	Filter ListFilter `codec:"filter" json:"filter"`
 }
 
+type SimpleFSListRecursiveToDepthArg struct {
+	OpID   OpID       `codec:"opID" json:"opID"`
+	Path   Path       `codec:"path" json:"path"`
+	Filter ListFilter `codec:"filter" json:"filter"`
+	Depth  int        `codec:"depth" json:"depth"`
+}
+
 type SimpleFSReadListArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 }
@@ -791,6 +798,8 @@ type SimpleFSInterface interface {
 	SimpleFSList(context.Context, SimpleFSListArg) error
 	// Begin recursive list of items in directory at path
 	SimpleFSListRecursive(context.Context, SimpleFSListRecursiveArg) error
+	// Begin recursive list of items in directory at path up to a given depth
+	SimpleFSListRecursiveToDepth(context.Context, SimpleFSListRecursiveToDepthArg) error
 	// Get list of Paths in progress. Can indicate status of pending
 	// to get more entries.
 	SimpleFSReadList(context.Context, OpID) (SimpleFSListResult, error)
@@ -892,6 +901,22 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 						return
 					}
 					err = i.SimpleFSListRecursive(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"simpleFSListRecursiveToDepth": {
+				MakeArg: func() interface{} {
+					ret := make([]SimpleFSListRecursiveToDepthArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SimpleFSListRecursiveToDepthArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SimpleFSListRecursiveToDepthArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSListRecursiveToDepth(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1237,6 +1262,12 @@ func (c SimpleFSClient) SimpleFSList(ctx context.Context, __arg SimpleFSListArg)
 // Begin recursive list of items in directory at path
 func (c SimpleFSClient) SimpleFSListRecursive(ctx context.Context, __arg SimpleFSListRecursiveArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSListRecursive", []interface{}{__arg}, nil)
+	return
+}
+
+// Begin recursive list of items in directory at path up to a given depth
+func (c SimpleFSClient) SimpleFSListRecursiveToDepth(ctx context.Context, __arg SimpleFSListRecursiveToDepthArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSListRecursiveToDepth", []interface{}{__arg}, nil)
 	return
 }
 

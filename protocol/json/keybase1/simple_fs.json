@@ -426,6 +426,28 @@
       "response": null,
       "doc": "Begin recursive list of items in directory at path"
     },
+    "simpleFSListRecursiveToDepth": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "path",
+          "type": "Path"
+        },
+        {
+          "name": "filter",
+          "type": "ListFilter"
+        },
+        {
+          "name": "depth",
+          "type": "int"
+        }
+      ],
+      "response": null,
+      "doc": "Begin recursive list of items in directory at path up to a given depth"
+    },
     "simpleFSReadList": {
       "request": [
         {
