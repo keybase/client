@@ -101,6 +101,7 @@ func (h *Server) handleOfflineError(ctx context.Context, err error,
 	res chat1.OfflinableResult) error {
 
 	errKind := IsOfflineError(err)
+	h.Debug(ctx, "handleOfflineError: errType: %T", err)
 	if errKind != OfflineErrorKindOnline {
 		h.Debug(ctx, "handleOfflineError: setting offline: err: %s", err)
 		res.SetOffline()
