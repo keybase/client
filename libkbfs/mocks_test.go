@@ -2987,6 +2987,16 @@ func (mr *MockReporterMockRecorder) Notify(ctx, notification interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockReporter)(nil).Notify), ctx, notification)
 }
 
+// NotifyPathUpdated mocks base method
+func (m *MockReporter) NotifyPathUpdated(ctx context.Context, path string) {
+	m.ctrl.Call(m, "NotifyPathUpdated", ctx, path)
+}
+
+// NotifyPathUpdated indicates an expected call of NotifyPathUpdated
+func (mr *MockReporterMockRecorder) NotifyPathUpdated(ctx, path interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyPathUpdated", reflect.TypeOf((*MockReporter)(nil).NotifyPathUpdated), ctx, path)
+}
+
 // NotifySyncStatus mocks base method
 func (m *MockReporter) NotifySyncStatus(ctx context.Context, status *keybase1.FSPathSyncStatus) {
 	m.ctrl.Call(m, "NotifySyncStatus", ctx, status)

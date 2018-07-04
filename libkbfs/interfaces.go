@@ -877,6 +877,8 @@ type Reporter interface {
 	AllKnownErrors() []ReportedError
 	// Notify sends the given notification to any sink.
 	Notify(ctx context.Context, notification *keybase1.FSNotification)
+	// NotifyPathUpdated sends the given notification to any sink.
+	NotifyPathUpdated(ctx context.Context, path string)
 	// NotifySyncStatus sends the given path sync status to any sink.
 	NotifySyncStatus(ctx context.Context, status *keybase1.FSPathSyncStatus)
 	// SuppressNotifications suppresses notifications. See
