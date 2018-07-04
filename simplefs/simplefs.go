@@ -95,6 +95,10 @@ type SimpleFS struct {
 	// values are removed by SimpleFSWait (or SimpleFSCancel).
 	inProgress map[keybase1.OpID]*inprogress
 
+	subscribeLock     sync.RWMutex
+	subscribeCurrPath string
+	subscribeCurrFB   libkbfs.FolderBranch
+
 	localHTTPServer *libhttpserver.Server
 }
 
@@ -413,6 +417,81 @@ func isFiltered(filter keybase1.ListFilter, name string) bool {
 	return false
 }
 
+func (k *SimpleFS) getFolderBranchFromPath(
+	ctx context.Context, path keybase1.Path) (
+	libkbfs.FolderBranch, string, error) {
+	t, tlfName, _, _, err := remoteTlfAndPath(path)
+	if err != nil {
+		return libkbfs.FolderBranch{}, "", err
+	}
+	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), tlfName, t)
+	if err != nil {
+		return libkbfs.FolderBranch{}, "", err
+	}
+
+	// Get the root node first to initialize the TLF.
+	node, _, err := k.config.KBFSOps().GetRootNode(
+		ctx, tlfHandle, libkbfs.MasterBranch)
+	if err != nil {
+		return libkbfs.FolderBranch{}, "", err
+	}
+	if node == nil {
+		return libkbfs.FolderBranch{}, tlfHandle.GetCanonicalPath(), nil
+	}
+	return node.GetFolderBranch(), tlfHandle.GetCanonicalPath(), nil
+}
+
+func (k *SimpleFS) refreshSubscription(
+	ctx context.Context, path keybase1.Path) error {
+	pType, err := path.PathType()
+	if err != nil {
+		return err
+	}
+	if pType != keybase1.PathType_KBFS {
+		k.log.CDebugf(ctx, "Ignoring subscription for path of type %s", pType)
+		return nil
+	}
+
+	k.subscribeLock.Lock()
+	defer k.subscribeLock.Unlock()
+
+	// TODO: when favorites caching is ready, handle folder-list paths
+	// like `/keybase/private` here.
+
+	fb, subscribePath, err := k.getFolderBranchFromPath(ctx, path)
+	if err != nil {
+		return err
+	}
+	if fb == (libkbfs.FolderBranch{}) {
+		k.log.CDebugf(
+			ctx, "Ignoring subscription for empty TLF %s", subscribePath)
+		return nil
+	}
+
+	if k.subscribeCurrPath == subscribePath {
+		return nil
+	}
+
+	if k.subscribeCurrPath != "" {
+		err = k.config.Notifier().UnregisterFromChanges(
+			[]libkbfs.FolderBranch{k.subscribeCurrFB}, k)
+		if err != nil {
+			return err
+		}
+	}
+
+	k.log.CDebugf(ctx, "Subscribing to %s", subscribePath)
+	err = k.config.Notifier().RegisterForChanges(
+		[]libkbfs.FolderBranch{fb}, k)
+	if err != nil {
+		return err
+	}
+	k.subscribeCurrPath = subscribePath
+	k.subscribeCurrFB = fb
+	return nil
+}
+
 // SimpleFSList - Begin list of items in directory at path
 // Retrieve results with readList()
 // Cannot be a single file to get flags/status,
@@ -450,6 +529,15 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 					return nil
 				default:
 					return err
+				}
+
+				if arg.RefreshSubscription {
+					// TODO: move this higher when we handle
+					// subscribing to the favorites list.
+					err = k.refreshSubscription(ctx, arg.Path)
+					if err != nil {
+						return err
+					}
 				}
 
 				// With listing, we don't know the totals ahead of time,
@@ -494,7 +582,7 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 //
 func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 	path keybase1.Path, filter keybase1.ListFilter,
-	finalDepth int) func(context.Context) error {
+	finalDepth int, refreshSubscription bool) func(context.Context) error {
 	return func(ctx context.Context) (err error) {
 		// A stack of paths to process - ordering does not matter.
 		// Here we don't walk symlinks, so no loops possible.
@@ -513,6 +601,13 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 			return nil
 		default:
 			return err
+		}
+
+		if refreshSubscription {
+			err = k.refreshSubscription(ctx, path)
+			if err != nil {
+				return err
+			}
 		}
 
 		// With listing, we don't know the totals ahead of time,
@@ -583,7 +678,7 @@ func (k *SimpleFS) SimpleFSListRecursiveToDepth(ctx context.Context, arg keybase
 			keybase1.ListToDepthArgs{
 				OpID: arg.OpID, Path: arg.Path, Filter: arg.Filter, Depth: arg.Depth,
 			}),
-		k.listRecursiveToDepth(arg.OpID, arg.Path, arg.Filter, arg.Depth),
+		k.listRecursiveToDepth(arg.OpID, arg.Path, arg.Filter, arg.Depth, arg.RefreshSubscription),
 	)
 }
 
@@ -594,7 +689,7 @@ func (k *SimpleFS) SimpleFSListRecursive(ctx context.Context, arg keybase1.Simpl
 			keybase1.ListArgs{
 				OpID: arg.OpID, Path: arg.Path, Filter: arg.Filter,
 			}),
-		k.listRecursiveToDepth(arg.OpID, arg.Path, arg.Filter, -1),
+		k.listRecursiveToDepth(arg.OpID, arg.Path, arg.Filter, -1, arg.RefreshSubscription),
 	)
 }
 
@@ -1391,28 +1486,42 @@ func (k *SimpleFS) SimpleFSFolderEditHistory(
 	ctx context.Context, path keybase1.Path) (
 	res keybase1.FSFolderEditHistory, err error) {
 	ctx = k.makeContext(ctx)
-	t, tlfName, _, _, err := remoteTlfAndPath(path)
+	fb, _, err := k.getFolderBranchFromPath(ctx, path)
 	if err != nil {
 		return keybase1.FSFolderEditHistory{}, err
 	}
-	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-		ctx, k.config.KBPKI(), k.config.MDOps(), tlfName, t)
-	if err != nil {
-		return keybase1.FSFolderEditHistory{}, err
-	}
-
-	// Get the root node first to initialize the TLF.
-	node, _, err := k.config.KBFSOps().GetRootNode(
-		ctx, tlfHandle, libkbfs.MasterBranch)
-	if err != nil {
-		return keybase1.FSFolderEditHistory{}, err
-	}
-	if node == nil {
+	if fb == (libkbfs.FolderBranch{}) {
 		return keybase1.FSFolderEditHistory{}, nil
 	}
 
 	// Now get the edit history.
-	return k.config.KBFSOps().GetEditHistory(ctx, node.GetFolderBranch())
+	return k.config.KBFSOps().GetEditHistory(ctx, fb)
+}
+
+var _ libkbfs.Observer = (*SimpleFS)(nil)
+
+// LocalChange implements the libkbfs.Observer interface for SimpleFS.
+func (k *SimpleFS) LocalChange(
+	_ context.Context, _ libkbfs.Node, _ libkbfs.WriteRange) {
+	// No-op.
+}
+
+// BatchChanges implements the libkbfs.Observer interface for SimpleFS.
+func (k *SimpleFS) BatchChanges(
+	ctx context.Context, changes []libkbfs.NodeChange, _ []libkbfs.NodeID) {
+	k.subscribeLock.RLock()
+	defer k.subscribeLock.RUnlock()
+	for _, nc := range changes {
+		fb := nc.Node.GetFolderBranch()
+		if fb == k.subscribeCurrFB {
+			k.config.Reporter().NotifyPathUpdated(ctx, k.subscribeCurrPath)
+		}
+	}
+}
+
+// TlfHandleChange implements the libkbfs.Observer interface for SimpleFS.
+func (k *SimpleFS) TlfHandleChange(_ context.Context, _ *libkbfs.TlfHandle) {
+	// TODO: the GUI might eventually care about a handle change.
 }
 
 // SimpleFSSuppressNotifications suppresses FSEvent and FSSyncEvent
