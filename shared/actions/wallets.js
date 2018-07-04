@@ -4,6 +4,7 @@ import * as Types from '../constants/types/wallets'
 import * as RPCTypes from '../constants/types/rpc-stellar-gen'
 import * as Saga from '../util/saga'
 import * as WalletsGen from './wallets-gen'
+import HiddenString from '../util/hidden-string'
 
 const loadAccounts = (action: WalletsGen.LoadAccountsPayload) =>
   Saga.call(RPCTypes.localGetWalletAccountsLocalRpcPromise)
@@ -41,7 +42,21 @@ const loadPaymentsSuccess = (res: RPCTypes.PaymentsPageLocal, action: WalletsGen
   )
 }
 
+const exportSecretKey = (action: WalletsGen.ExportSecretKeyPayload) =>
+  Saga.call(RPCTypes.localExportSecretKeyLocalRpcPromise, {accountID: action.payload.accountID})
+
+const exportSecretKeySuccess = (res: RPCTypes.SecretKey, action: WalletsGen.ExportSecretKeyPayload) => {
+  console.warn('res is', res)
+  const {accountID} = action.payload
+  return Saga.put(
+    WalletsGen.createSecretKeyReceived({
+      accountID,
+      secretKey: new HiddenString(res),
+    })
+  )
+}
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEveryPure(WalletsGen.exportSecretKey, exportSecretKey, exportSecretKeySuccess)
   yield Saga.safeTakeEveryPure(WalletsGen.loadAccounts, loadAccounts, loadAccountsSuccess)
   yield Saga.safeTakeEveryPure(WalletsGen.loadAssets, loadAssets, loadAssetsSuccess)
   yield Saga.safeTakeEveryPure(WalletsGen.loadPayments, loadPayments, loadPaymentsSuccess)

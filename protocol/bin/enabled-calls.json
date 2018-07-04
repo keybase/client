@@ -151,7 +151,8 @@
   "keybase.1.user.listTrackers2": {"promise": true},
   "keybase.1.user.loadMySettings": {"promise": true},
   "keybase.1.user.profileEdit": {"promise": true},
-  "stellar.1.local.getPaymentsLocal": {"promise": true},
+  "stellar.1.local.exportSecretKeyLocal": {"promise": true},
   "stellar.1.local.getAccountAssetsLocal": {"promise": true},
+  "stellar.1.local.getPaymentsLocal": {"promise": true},
   "stellar.1.local.getWalletAccountsLocal": {"promise": true}
 }

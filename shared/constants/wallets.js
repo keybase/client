@@ -18,6 +18,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   accountMap: I.Map(),
   assetsMap: I.Map(),
   paymentsMap: I.Map(),
+  secretKeyMap: I.Map(),
   selectedAccount: Types.noAccountID,
 })
 

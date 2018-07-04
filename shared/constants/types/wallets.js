@@ -1,5 +1,6 @@
 // @flow
 import * as I from 'immutable'
+import HiddenString from '../../util/hidden-string'
 
 // Possible 'types' of things you can send or receive transactions with
 export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'account'
@@ -73,8 +74,9 @@ export type Payment = I.RecordOf<_Payment>
 
 export type _State = {
   accountMap: I.Map<AccountID, Account>,
-  selectedAccount: AccountID,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
   paymentsMap: I.Map<AccountID, I.List<Payment>>,
+  secretKeyMap: I.Map<AccountID, HiddenString>,
+  selectedAccount: AccountID,
 }
 export type State = I.RecordOf<_State>
