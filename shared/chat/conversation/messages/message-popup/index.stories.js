@@ -58,7 +58,7 @@ const commonExplodingProps = {
   visible: true,
 }
 
-const provider = createPropProvider(PropProviders.Usernames(), PropProviders.Avatar(), {
+const provider = createPropProvider(PropProviders.Common(), {
   ExplodingPopup: (props: ExplodingOwnProps) => ({
     attachTo: null,
     author: props.message.author,

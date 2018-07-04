@@ -2,9 +2,9 @@
 import * as React from 'react'
 import DeleteConfirm from '.'
 import * as PropProviders from '../../stories/prop-providers'
-import {action, storiesOf, createPropProvider} from '../../stories/storybook'
+import {action, storiesOf} from '../../stories/storybook'
 
-const provider = createPropProvider(PropProviders.Usernames(), PropProviders.Avatar())
+const provider = PropProviders.CommonProvider()
 
 const load = () => {
   storiesOf('Settings', module)

@@ -128,7 +128,7 @@ const ordinalToMessage = o => {
   return message
 }
 
-const provider = createPropProvider(PropProviders.Usernames(), PropProviders.Avatar(), {
+const provider = createPropProvider(PropProviders.Common(), {
   Channel: p => ({name: p.name}),
   Mention: p => ({username: p.username}),
   BottomMessage: p => ({

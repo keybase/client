@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as PropProviders from '../../stories/prop-providers'
 import Login, {type Props} from '.'
-import {action, storiesOf, createPropProvider} from '../../stories/storybook'
+import {action, storiesOf} from '../../stories/storybook'
 
 const commonProps: Props = {
   error: '',
@@ -25,7 +25,7 @@ const commonProps: Props = {
   waitingForResponse: false,
 }
 
-const provider = createPropProvider(PropProviders.Usernames(), PropProviders.Avatar())
+const provider = PropProviders.CommonProvider()
 
 const load = () => {
   storiesOf('Login/Login', module)

@@ -4,7 +4,7 @@ import * as PropProviders from '../../stories/prop-providers'
 import ResultRow from '.'
 import {Box} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
-import {storiesOf, action, createPropProvider} from '../../stories/storybook'
+import {storiesOf, action} from '../../stories/storybook'
 
 const commonRow = {
   id: 'result',
@@ -38,7 +38,7 @@ const serviceRow = {
   rightUsername: null,
 }
 
-const provider = createPropProvider(PropProviders.Usernames(), PropProviders.Avatar())
+const provider = PropProviders.CommonProvider()
 
 const load = () => {
   storiesOf('Search', module)

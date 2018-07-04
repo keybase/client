@@ -3,10 +3,10 @@ import * as React from 'react'
 import moment from 'moment'
 import * as PropProviders from '../../stories/prop-providers'
 import {Box2} from '../../common-adapters'
-import {action, storiesOf, createPropProvider} from '../../stories/storybook'
+import {action, storiesOf} from '../../stories/storybook'
 import TransactionDetails from '.'
 
-const provider = createPropProvider(PropProviders.Usernames(), PropProviders.Avatar())
+const provider = PropProviders.CommonProvider()
 
 const now = new Date()
 const yesterday = moment(now)

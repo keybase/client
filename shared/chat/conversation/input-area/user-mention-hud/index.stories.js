@@ -5,10 +5,10 @@ import * as PropProviders from '../../../../stories/prop-providers'
 import {MentionRowRenderer, MentionHud} from '.'
 import {compose, withStateHandlers} from '../../../../util/container'
 import {Box, Button, Input, ButtonBar} from '../../../../common-adapters'
-import {storiesOf, action, createPropProvider} from '../../../../stories/storybook'
+import {storiesOf, action} from '../../../../stories/storybook'
 import {globalStyles} from '../../../../styles'
 
-const provider = createPropProvider(PropProviders.Usernames(), PropProviders.Avatar())
+const provider = PropProviders.CommonProvider()
 
 const UpDownFilterHoc = compose(
   withStateHandlers(

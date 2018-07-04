@@ -1,12 +1,12 @@
 // @flow
 import React from 'react'
 import * as C from '../../constants/people'
-import {action, storiesOf, createPropProvider} from '../../stories/storybook'
+import {action, storiesOf} from '../../stories/storybook'
 import * as PropProviders from '../../stories/prop-providers'
 import FollowNotification, {type Props} from '.'
 import moment from 'moment'
 
-const provider = createPropProvider(PropProviders.Usernames(), PropProviders.Avatar())
+const provider = PropProviders.CommonProvider()
 
 const singleFollowProps1: Props = {
   type: 'notification',

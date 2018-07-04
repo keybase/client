@@ -2,11 +2,11 @@
 import React from 'react'
 import * as PropProviders from '../../stories/prop-providers'
 import {Box} from '../../common-adapters'
-import {storiesOf, action, createPropProvider} from '../../stories/storybook'
+import {storiesOf, action} from '../../stories/storybook'
 import {isMobile} from '../../constants/platform'
 import CreateChannel from '.'
 
-const provider = createPropProvider(PropProviders.Usernames(), PropProviders.Avatar())
+const provider = PropProviders.CommonProvider()
 
 const load = () => {
   storiesOf('Chat/Teams', module)
