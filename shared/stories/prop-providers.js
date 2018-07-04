@@ -47,6 +47,7 @@ const Avatar = (following: string[] = defaultFollowing, followers: string[] = de
 
 const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: string]: number}) => ({
   TeamDropdownMenu: (ownProps: _TeamDropdownMenu.OwnProps): _TeamDropdownMenu.Props => ({
+    _loadOperations: action('_loadOperations'),
     attachTo: ownProps.attachTo,
     badgeSubscribe: false,
     canAddPeople: (adminTeams && adminTeams.includes(ownProps.teamname)) || true,

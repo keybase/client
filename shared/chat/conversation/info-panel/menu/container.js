@@ -10,7 +10,7 @@ import {
   type TypedState,
   createCachedSelector,
 } from '../../../../util/container'
-import {type Props, InfoPanelMenu} from '.'
+import {type Props as _Props, InfoPanelMenu} from '.'
 import {navigateAppend, navigateTo, switchTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
 
@@ -22,7 +22,9 @@ export type OwnProps = {
   visible: boolean,
 }
 
-export type {Props}
+export type Props = _Props & {
+  _loadOperations: () => void,
+}
 
 const moreThanOneSubscribedChannel = createCachedSelector(
   (state, _) => state.chat2.metaMap,
