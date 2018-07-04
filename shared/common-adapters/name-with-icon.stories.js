@@ -24,7 +24,7 @@ const innerClick = evt => {
 
 const provider = createPropProvider(
   Avatar(['chrisnojima'], ['chrisnojima']),
-  Usernames(['cecileb', 'chrisnojima'])
+  Usernames(['cecileb', 'chrisnojima'], 'akalin')
 )
 
 const load = () => {

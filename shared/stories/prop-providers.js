@@ -24,7 +24,7 @@ const Usernames = (following: string[] = defaultFollowing, you: string = default
     const users = (usernames || []).map(username => ({
       username,
       following: following.includes(username),
-      you: you ? username === you : false,
+      you: username === you,
     }))
     return {
       ...ownProps,
