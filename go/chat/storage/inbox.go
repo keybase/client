@@ -154,6 +154,7 @@ func (i *Inbox) writeDiskInbox(ctx context.Context, ibox inboxDiskData) Error {
 	ibox.ServerVersion = vers.InboxVers
 	ibox.Version = inboxVersion
 	ibox.Conversations = i.summarizeConvs(ibox.Conversations)
+	sort.Sort(ByDatabaseOrder(ibox.Conversations))
 	i.Debug(ctx, "writeDiskInbox: version: %d disk version: %d server version: %d convs: %d",
 		ibox.InboxVersion, ibox.Version, ibox.ServerVersion, len(ibox.Conversations))
 	inboxMemCache.Put(i.uid, &ibox)
@@ -291,10 +292,6 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, convs []chat1.Conversati
 			ibox.Conversations[index].LocalMetadata = rcm
 		}
 	}
-
-	// Make sure that the inbox is in the write order before writing out
-	sort.Sort(ByDatabaseOrder(ibox.Conversations))
-
 	// Write out new inbox
 	return i.writeDiskInbox(ctx, ibox)
 }
@@ -348,10 +345,6 @@ func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convsIn []chat1
 		Conversations: i.mergeConvs(utils.RemoteConvs(convs), ibox.Conversations),
 		Queries:       append(ibox.Queries, qp),
 	}
-
-	// Make sure that the inbox is in the write order before writing out
-	sort.Sort(ByDatabaseOrder(data.Conversations))
-
 	// Write out new inbox
 	return i.writeDiskInbox(ctx, data)
 }
@@ -1341,13 +1334,10 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 			Conv: conv,
 		})
 	}
-	sort.Sort(ByDatabaseOrder(ibox.Conversations))
-
 	i.Debug(ctx, "Sync: old vers: %v new vers: %v convs: %d", oldVers, ibox.InboxVersion, len(convs))
 	if err = i.writeDiskInbox(ctx, ibox); err != nil {
 		return res, err
 	}
-
 	// Filter the conversations for the result
 	res.FilteredConvs = i.applyQuery(ctx, &chat1.GetInboxQuery{
 		ConvIDs: utils.PluckConvIDs(convs),
@@ -1409,7 +1399,6 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,
 		}
 		ibox.Conversations = append(ibox.Conversations, conv)
 	}
-	sort.Sort(ByDatabaseOrder(ibox.Conversations))
 
 	// Update all lists with other people joining and leaving
 	convMap := make(map[string]*types.RemoteConversation)
