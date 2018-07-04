@@ -500,60 +500,18 @@ func formatSystemMessage(body chat1.MessageSystem) string {
 }
 
 func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPayment) string {
-	// XXX use this?  or CLI version?
-	/*
-		arg := stellar1.GetPaymentDetailsLocalArg{
-			// AccountID: ???
-			Id: body.KbTxID,
-		}
-	*/
+	ctx := context.Background()
+
 	cli, err := GetWalletClient(g)
 	if err != nil {
-		// debug(err)
+		g.Log.CDebugf(ctx, "GetWalletClient() error: %s", err)
 		return "[error getting payment details]"
 	}
-	details, err := cli.PaymentDetailCLILocal(context.Background(), body.KbTxID)
+	details, err := cli.PaymentDetailCLILocal(ctx, body.KbTxID)
 	if err != nil {
-		// debug(err)
+		g.Log.CDebugf(ctx, "PaymentDetailCLILocal() error: %s", err)
 		return "[error getting payment details]"
 	}
-
-	/*
-		type PaymentCLILocal struct {
-			TxID            TransactionID `codec:"txID" json:"txID"`
-			Time            TimeMs        `codec:"time" json:"time"`
-			Status          string        `codec:"status" json:"status"`
-			StatusDetail    string        `codec:"statusDetail" json:"statusDetail"`
-			Amount          string        `codec:"amount" json:"amount"`
-			Asset           Asset         `codec:"asset" json:"asset"`
-			DisplayAmount   *string       `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
-			DisplayCurrency *string       `codec:"displayCurrency,omitempty" json:"displayCurrency,omitempty"`
-			FromStellar     AccountID     `codec:"fromStellar" json:"fromStellar"`
-			ToStellar       *AccountID    `codec:"toStellar,omitempty" json:"toStellar,omitempty"`
-			FromUsername    *string       `codec:"fromUsername,omitempty" json:"fromUsername,omitempty"`
-			ToUsername      *string       `codec:"toUsername,omitempty" json:"toUsername,omitempty"`
-			ToAssertion     *string       `codec:"toAssertion,omitempty" json:"toAssertion,omitempty"`
-			Note            string        `codec:"note" json:"note"`
-			NoteErr         string        `codec:"noteErr" json:"noteErr"`
-		}
-	*/
-
-	// status == completed;
-	//
-	// sent 123.12312312 XLM
-	// > note
-	//
-	// status == pending;
-	// sending 123.12312312 XLM
-	// > note
-	//
-	// displayamount:
-	//
-	// sent Lumens worth $3.00 (64.12312312 XLM)
-	// > note
-	//
-	// error/unknown
-	// error sending payment: StatusDetails
 
 	ls := strings.ToLower(details.Status)
 	if ls != "completed" && ls != "pending" {
@@ -574,7 +532,12 @@ func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPaym
 		amountDescription = amountXLM
 	}
 
-	return verb + " " + amountDescription
+	view := verb + " " + amountDescription
+	if details.Note != "" {
+		view += "\n> " + details.Note
+	}
+
+	return view
 }
 
 func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxedValid) (mv messageView, err error) {
