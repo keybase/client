@@ -286,16 +286,7 @@ const getWaitDuration = (endEstimate: ?number, lower: number, upper: number): nu
   }
 
   const diff = endEstimate - Date.now()
-
-  if (diff < lower) {
-    return lower
-  }
-
-  if (diff > upper) {
-    return upper
-  }
-
-  return diff
+  return diff < lower ? lower : diff > upper ? upper : diff
 }
 
 let polling = false
