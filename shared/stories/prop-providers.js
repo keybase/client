@@ -74,4 +74,4 @@ const Common = () => ({
 
 const CommonProvider = () => createPropProvider(Common())
 
-export {Common, CommonProvider, TeamDropdownMenu}
+export {Avatar, Common, CommonProvider, TeamDropdownMenu}
