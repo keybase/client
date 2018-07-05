@@ -11501,9 +11501,9 @@ react-native-wkwebview-reborn@^1.20.0:
   dependencies:
     fbjs "^0.8.3"
 
-"react-native@git://github.com/keybase/react-native#keybase-fixes-off-560rc3":
-  version "0.56.0-rc.3"
-  resolved "git://github.com/keybase/react-native#e03f138daa3b47bdd262551968da3fe2a9331fa6"
+"react-native@git://github.com/keybase/react-native#keybase-fixes-off-560":
+  version "0.56.0"
+  resolved "git://github.com/keybase/react-native#bc69185c1928f6cefd94d0f8ffdbe7487f2ce1ca"
   dependencies:
     absolute-path "^0.0.0"
     art "^0.10.0"

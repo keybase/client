@@ -94,13 +94,13 @@ android {
     dexOptions {
         jumboMode true
     }
-    compileSdkVersion 27
-    buildToolsVersion "27.0.3"
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
         applicationId "io.keybase.ossifrage"
-        minSdkVersion 16
-        targetSdkVersion 28
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode timestamp()
         versionName "2.3.0"
         ndk {
@@ -178,7 +178,7 @@ dependencies {
     // compile 'com.squareup.okhttp3:okhttp:3.0.1'
     compile 'org.msgpack:msgpack:0.6.12'
     compile "com.google.android.gms:play-services-gcm:10.0.0"
-    compile 'com.android.support:appcompat-v7:26.0.2'
+    compile "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
     compile "com.facebook.react:react-native:+"  // From node_modules
     compile project(':react-native-push-notification')
     compile 'org.slf4j:slf4j-api:1.7.21'

@@ -359,13 +359,6 @@
 			remoteGlobalIDString = 3D3CD9181DE5FBD800167DC4;
 			remoteInfo = "jschelpers-tvOS";
 		};
-		DBC1271D20EE7028002D9ED4 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = DBC1271920EE7028002D9ED4 /* RNFetchBlob.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = A15C300E1CD25C330074CB35;
-			remoteInfo = RNFetchBlob;
-		};
 		DBC1272320EE7039002D9ED4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = DBC1271F20EE7039002D9ED4 /* RNFetchBlob.xcodeproj */;
@@ -452,7 +445,6 @@
 		DBBCC6111D9C4A8100312652 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		DBBCC6121D9C4A8100312652 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		DBBCC6171D9C5C6A00312652 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		DBC1271920EE7028002D9ED4 /* RNFetchBlob.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RNFetchBlob.xcodeproj; path = "../../../node_modules/rn-fetch-blob/ios/RNFetchBlob.xcodeproj"; sourceTree = "<group>"; };
 		DBC1271F20EE7039002D9ED4 /* RNFetchBlob.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RNFetchBlob.xcodeproj; path = "../../node_modules/rn-fetch-blob/ios/RNFetchBlob.xcodeproj"; sourceTree = "<group>"; };
 		DBCE36231B90F14800ECADDE /* Engine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Engine.h; sourceTree = "<group>"; };
 		DBCE36241B90F14800ECADDE /* Engine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Engine.m; sourceTree = "<group>"; };
@@ -790,14 +782,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		DBC1271A20EE7028002D9ED4 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				DBC1271E20EE7028002D9ED4 /* libRNFetchBlob.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		DBC1272020EE7039002D9ED4 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -826,7 +810,6 @@
 		DBDCF3031B8D03DD00BA95D8 /* Keybase */ = {
 			isa = PBXGroup;
 			children = (
-				DBC1271920EE7028002D9ED4 /* RNFetchBlob.xcodeproj */,
 				C3A47BAA1E8B035500974A63 /* sounds */,
 				005BF9961BB9C6B000BD8953 /* Keybase.entitlements */,
 				DBBCC6111D9C4A8100312652 /* AppDelegate.h */,
@@ -1050,10 +1033,6 @@
 				{
 					ProductGroup = DBC1272020EE7039002D9ED4 /* Products */;
 					ProjectRef = DBC1271F20EE7039002D9ED4 /* RNFetchBlob.xcodeproj */;
-				},
-				{
-					ProductGroup = DBC1271A20EE7028002D9ED4 /* Products */;
-					ProjectRef = DBC1271920EE7028002D9ED4 /* RNFetchBlob.xcodeproj */;
 				},
 				{
 					ProductGroup = 27429AEA1E64A7A90058A4F9 /* Products */;
@@ -1363,13 +1342,6 @@
 			remoteRef = DB7417C01E1FFF1000CEC6B7 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		DBC1271E20EE7028002D9ED4 /* libRNFetchBlob.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libRNFetchBlob.a;
-			remoteRef = DBC1271D20EE7028002D9ED4 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		DBC1272420EE7039002D9ED4 /* libRNFetchBlob.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -1454,7 +1426,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# uncomment this if you want to skip bundling\n# export SKIP_BUNDLING=1\n../../node_modules/react-native/scripts/react-native-xcode.sh";
+			shellScript = "# uncomment this if you want to skip bundling\n# export SKIP_BUNDLING=0\ncwd=$(pwd)\nexport NODE_BINARY=\"$cwd/../../node_modules/@babel/node/bin/babel-node.js\"\n../../node_modules/react-native/scripts/react-native-xcode.sh";
 		};
 		DB75391E1D776CC400AFA61B /* Bundle React Native code and images */ = {
 			isa = PBXShellScriptBuildPhase;
