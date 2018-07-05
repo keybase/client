@@ -24,10 +24,10 @@ import (
 	billy "gopkg.in/src-d/go-billy.v4"
 )
 
-func syncFS(ctx context.Context, t *testing.T, fs *SimpleFS) {
+func syncFS(ctx context.Context, t *testing.T, fs *SimpleFS, tlf string) {
 	ctx, err := fs.startOpWrapContext(ctx)
 	require.NoError(t, err)
-	remoteFS, _, err := fs.getFS(ctx, keybase1.NewPathWithKbfs("/private/jdoe"))
+	remoteFS, _, err := fs.getFS(ctx, keybase1.NewPathWithKbfs(tlf))
 	require.NoError(t, err)
 	if fs, ok := remoteFS.(*libfs.FS); ok {
 		err = fs.SyncAll()
@@ -40,7 +40,7 @@ func syncFS(ctx context.Context, t *testing.T, fs *SimpleFS) {
 func closeSimpleFS(ctx context.Context, t *testing.T, fs *SimpleFS) {
 	// Sync in-memory data to disk before shutting down and flushing
 	// the journal.
-	syncFS(ctx, t, fs)
+	syncFS(ctx, t, fs, "/private/jdoe")
 	err := fs.config.Shutdown(ctx)
 	require.NoError(t, err)
 }
@@ -747,11 +747,79 @@ func TestTlfEditHistory(t *testing.T) {
 	path := keybase1.NewPathWithKbfs(`/private/jdoe`)
 	writeRemoteFile(ctx, t, sfs, pathAppend(path, `test1.txt`), []byte(`foo`))
 	writeRemoteFile(ctx, t, sfs, pathAppend(path, `test2.txt`), []byte(`foo`))
-	syncFS(ctx, t, sfs)
+	syncFS(ctx, t, sfs, "/private/jdoe")
 
 	history, err := sfs.SimpleFSFolderEditHistory(ctx, path)
 	require.NoError(t, err)
 	require.Len(t, history.History, 1)
 	require.Equal(t, "jdoe", history.History[0].WriterName)
 	require.Len(t, history.History[0].Edits, 2)
+}
+
+type subscriptionReporter struct {
+	libkbfs.Reporter
+	lastPath string
+}
+
+func (sr *subscriptionReporter) NotifyPathUpdated(
+	_ context.Context, path string) {
+	sr.lastPath = path
+}
+
+func TestRefreshSubscription(t *testing.T) {
+	ctx := context.Background()
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	sfs := newSimpleFS(libkb.NewGlobalContext().Init(), config)
+	defer closeSimpleFS(ctx, t, sfs)
+	sr := &subscriptionReporter{config.Reporter(), ""}
+	config.SetReporter(sr)
+
+	path1 := keybase1.NewPathWithKbfs(`/private/jdoe`)
+
+	t.Log("Writing a file with no subscription")
+	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test1.txt`), []byte(`foo`))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	require.Equal(t, "", sr.lastPath)
+
+	t.Log("Subscribe, and make sure we get a notification")
+	opid, err := sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+		OpID:                opid,
+		Path:                path1,
+		RefreshSubscription: true,
+	})
+	require.NoError(t, err)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+
+	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test2.txt`), []byte(`foo`))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	require.Equal(t, "/keybase"+path1.Kbfs(), sr.lastPath)
+
+	t.Log("Make a public TLF")
+	path2 := keybase1.NewPathWithKbfs(`/public/jdoe`)
+	writeRemoteFile(ctx, t, sfs, pathAppend(path2, `test.txt`), []byte(`foo`))
+	syncFS(ctx, t, sfs, "/public/jdoe")
+
+	// now subscribe to a different one, and make sure the old
+	// subscription goes away.
+	opid2, err := sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+		OpID:                opid2,
+		Path:                path2,
+		RefreshSubscription: true,
+	})
+	require.NoError(t, err)
+	err = sfs.SimpleFSWait(ctx, opid2)
+	require.NoError(t, err)
+
+	writeRemoteFile(ctx, t, sfs, pathAppend(path2, `test2.txt`), []byte(`foo`))
+	syncFS(ctx, t, sfs, "/public/jdoe")
+	require.Equal(t, "/keybase"+path2.Kbfs(), sr.lastPath)
+
+	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test3.txt`), []byte(`foo`))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	require.Equal(t, "/keybase"+path2.Kbfs(), sr.lastPath)
 }
