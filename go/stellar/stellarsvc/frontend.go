@@ -125,7 +125,8 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 		}
 
 		if d.Asset.IsNativeXLM() {
-			fmtAvailable, err := stellar.FormatAmount(subtractFeeSoft(s.mctx(ctx), details.Available), false)
+			availableAmount := subtractFeeSoft(s.mctx(ctx), details.Available)
+			fmtAvailable, err := stellar.FormatAmount(availableAmount, false)
 			if err != nil {
 				return nil, err
 			}
@@ -138,23 +139,36 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				BalanceAvailableToSend: fmtAvailable,
 				WorthCurrency:          displayCurrency,
 			}
-			var displayAmount string
-			if rateErr == nil {
-				displayAmount, rateErr = stellarnet.ConvertXLMToOutside(d.Amount, rate.Rate)
-			}
-			if rateErr != nil {
-				s.G().Log.CDebugf(ctx, "error converting XLM to display currency: %s", rateErr)
-				asset.Worth = "Currency conversion error"
-				asset.WorthCurrency = WorthCurrencyErrorCode
-			} else {
-				displayFormatted, err := stellar.FormatCurrency(ctx, s.G(), displayAmount, stellar1.OutsideCurrencyCode(displayCurrency))
-				if err != nil {
-					s.G().Log.CDebugf(ctx, "error formatting currency: %s", err)
-					asset.Worth = "Currency conversion error"
-					asset.WorthCurrency = WorthCurrencyErrorCode
-				} else {
-					asset.Worth = displayFormatted
+			fillWorths := func() (err error) {
+				if rateErr != nil {
+					return fmt.Errorf("rate error: %v", rateErr)
 				}
+				outsideAmount, err := stellarnet.ConvertXLMToOutside(d.Amount, rate.Rate)
+				if err != nil {
+					return fmt.Errorf("converting amount: %v", err)
+				}
+				fmtWorth, err := stellar.FormatCurrency(ctx, s.G(), outsideAmount, rate.Currency)
+				if err != nil {
+					return fmt.Errorf("formatting converted amount: %v", err)
+				}
+				asset.Worth = fmtWorth
+				outsideAvailableAmount, err := stellarnet.ConvertXLMToOutside(availableAmount, rate.Rate)
+				if err != nil {
+					return fmt.Errorf("converting available amount: %v", err)
+				}
+				fmtAvailableWorth, err := stellar.FormatCurrency(ctx, s.G(), outsideAvailableAmount, rate.Currency)
+				if err != nil {
+					return fmt.Errorf("formatting converted available amount: %v", err)
+				}
+				asset.AvailableToSendWorth = fmtAvailableWorth
+				return nil
+			}
+			err = fillWorths()
+			if err != nil {
+				s.G().Log.CDebugf(ctx, "error populating converted worth fields: %v", err)
+				asset.WorthCurrency = WorthCurrencyErrorCode
+				asset.Worth = "Currency conversion error"
+				asset.AvailableToSendWorth = "Currency conversion error"
 			}
 			assets = append(assets, asset)
 		} else {
@@ -165,8 +179,9 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				IssuerAccountID:        d.Asset.Issuer,
 				BalanceTotal:           fmtAmount,
 				BalanceAvailableToSend: fmtAmount,
-				Worth:         "",
-				WorthCurrency: "",
+				WorthCurrency:          "",
+				Worth:                  "",
+				AvailableToSendWorth:   "",
 			})
 		}
 	}
