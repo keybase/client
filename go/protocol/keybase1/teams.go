@@ -5,7 +5,6 @@ package keybase1
 
 import (
 	"errors"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -2437,7 +2436,8 @@ type TeamsInterface interface {
 	FindNextMerkleRootAfterTeamRemoval(context.Context, FindNextMerkleRootAfterTeamRemovalArg) (NextMerkleRootRes, error)
 	// FindNextMerkleRootAfterTeamRemovalBySigningKey find the first Merkle root that contains the user
 	// with the given signing key being removed from the given team. If there are several such instances,
-	// we will return just the last one.
+	// we will return just the last one. When anyRoleAllowed is false, the team removal is any drop in
+	// permissions from Writer (or above) to Reader (or below).
 	FindNextMerkleRootAfterTeamRemovalBySigningKey(context.Context, FindNextMerkleRootAfterTeamRemovalBySigningKeyArg) (NextMerkleRootRes, error)
 	// ProfileTeamLoad loads a team and then throws it on the ground, for the purposes of profiling
 	// the team load machinery.
@@ -3406,7 +3406,8 @@ func (c TeamsClient) FindNextMerkleRootAfterTeamRemoval(ctx context.Context, __a
 
 // FindNextMerkleRootAfterTeamRemovalBySigningKey find the first Merkle root that contains the user
 // with the given signing key being removed from the given team. If there are several such instances,
-// we will return just the last one.
+// we will return just the last one. When anyRoleAllowed is false, the team removal is any drop in
+// permissions from Writer (or above) to Reader (or below).
 func (c TeamsClient) FindNextMerkleRootAfterTeamRemovalBySigningKey(ctx context.Context, __arg FindNextMerkleRootAfterTeamRemovalBySigningKeyArg) (res NextMerkleRootRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.findNextMerkleRootAfterTeamRemovalBySigningKey", []interface{}{__arg}, &res)
 	return

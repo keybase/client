@@ -2649,7 +2649,7 @@
         }
       ],
       "response": "NextMerkleRootRes",
-      "doc": "FindNextMerkleRootAfterTeamRemovalBySigningKey find the first Merkle root that contains the user\n   with the given signing key being removed from the given team. If there are several such instances,\n   we will return just the last one."
+      "doc": "FindNextMerkleRootAfterTeamRemovalBySigningKey find the first Merkle root that contains the user\n   with the given signing key being removed from the given team. If there are several such instances,\n   we will return just the last one. When anyRoleAllowed is false, the team removal is any drop in\n   permissions from Writer (or above) to Reader (or below)."
     },
     "profileTeamLoad": {
       "request": [
