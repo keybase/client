@@ -1,6 +1,7 @@
 // @flow
 import {Component} from 'react'
 import * as Types from '../constants/types/profile'
+import type {Response} from 'react-native-image-picker'
 import type {SimpleProofState, UserInfo, Proof} from '../constants/types/tracker'
 import type {BioEditFns} from '../common-adapters/user-bio'
 import type {MissingProof} from '../common-adapters/user-proofs'
@@ -44,7 +45,7 @@ export type Props = {
   following: Array<Types.FriendshipUserInfo>,
   reason: ?string,
   error: ?string,
-  onEditAvatar: (filename: string) => void,
+  onEditAvatar: (image?: Response) => void,
   onClickAvatar: () => void,
   onClickFollowers: () => void,
   onClickFollowing: () => void,

@@ -105,23 +105,21 @@ class Profile extends Component<Props, State> {
     })
   }
 
-  _onClickAvatar = () => {
-    showImagePicker({mediaType: 'photo'}, (response: Response) => {
-      if (response.didCancel) {
-        return
-      }
-      if (response.error) {
-        console.error(response.error)
-        throw new Error(response.error)
-      }
-      this.props.onEditAvatar(response)
-    })
-  }
+  _onClickAvatar = () =>
+    this.props.isYou
+      ? showImagePicker({mediaType: 'photo'}, (response: Response) => {
+          if (response.didCancel) {
+            return
+          }
+          if (response.error) {
+            console.error(response.error)
+            throw new Error(response.error)
+          }
+          this.props.onEditAvatar(response)
+        })
+      : undefined
 
   _makeUserBio(loading: boolean) {
-    if (this.props.isYou && this.props.bioEditFns) {
-      this.props.bioEditFns.onEditAvatarClick = this._onClickAvatar
-    }
     return (
       <UserBio
         type="Profile"
@@ -132,7 +130,7 @@ class Profile extends Component<Props, State> {
         userInfo={this.props.userInfo}
         currentlyFollowing={this.props.currentlyFollowing}
         trackerState={this.props.trackerState}
-        onClickAvatar={this.props.onClickAvatar}
+        onClickAvatar={this._onClickAvatar}
         onClickFollowers={this.props.onClickFollowers}
         onClickFollowing={this.props.onClickFollowing}
       />

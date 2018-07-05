@@ -103,7 +103,7 @@ class BioRender extends Component<Props> {
         <Box style={stylesAvatarWrapper(avatarSize)}>
           <Avatar
             style={stylesAvatar}
-            onClick={editFns ? editFns.onEditAvatarClick : onClickAvatar}
+            onClick={onClickAvatar}
             username={username}
             size={avatarSize}
             showFollowingStatus={true}
