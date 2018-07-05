@@ -45,6 +45,7 @@ type State = {
 const AVATAR_CONTAINER_SIZE = 175
 const AVATAR_BORDER_SIZE = 5
 const AVATAR_SIZE = AVATAR_CONTAINER_SIZE - AVATAR_BORDER_SIZE * 2
+const SCALE_OFFSET = 5
 
 class EditAvatar extends React.Component<Props, State> {
   _file: ?HTMLInputElement
@@ -65,7 +66,7 @@ class EditAvatar extends React.Component<Props, State> {
       offsetTop: 0,
       originalImageHeight: 0,
       originalImageWidth: 0,
-      scale: 1,
+      scale: SCALE_OFFSET,
       scaledImageHeight: 1,
       scaledImageWidth: 1,
       submitting: false,
@@ -159,27 +160,51 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   _onImageLoad = (e: SyntheticEvent<HTMLImageElement>) => {
+    let height = e.currentTarget.naturalHeight
+    let width = e.currentTarget.naturalWidth
+    let scale = SCALE_OFFSET
+
+    if (height < AVATAR_SIZE) {
+      height = AVATAR_SIZE
+      scale = e.currentTarget.naturalHeight / AVATAR_SIZE + SCALE_OFFSET
+      width = AVATAR_SIZE * e.currentTarget.naturalWidth / e.currentTarget.naturalHeight
+    }
+
+    if (width < AVATAR_SIZE) {
+      height = AVATAR_SIZE * e.currentTarget.naturalHeight / e.currentTarget.naturalWidth
+      scale = e.currentTarget.naturalWidth / AVATAR_SIZE + SCALE_OFFSET
+      width = AVATAR_SIZE
+    }
+
     this.setState({
       hasPreview: true,
-      offsetLeft: Math.round(
-        e.currentTarget.naturalWidth / -2 + AVATAR_CONTAINER_SIZE / 2 - AVATAR_BORDER_SIZE
-      ),
-      offsetTop: Math.round(
-        e.currentTarget.naturalHeight / -2 + AVATAR_CONTAINER_SIZE / 2 - AVATAR_BORDER_SIZE
-      ),
+      offsetLeft: Math.round(width / -2 + AVATAR_SIZE / 2),
+      offsetTop: Math.round(height / -2 + AVATAR_SIZE / 2),
       originalImageHeight: e.currentTarget.naturalHeight,
       originalImageWidth: e.currentTarget.naturalWidth,
-      scaledImageHeight: e.currentTarget.naturalHeight,
-      scaledImageWidth: e.currentTarget.naturalWidth,
+      scale,
+      scaledImageHeight: height,
+      scaledImageWidth: width,
     })
   }
 
   _onRangeChange = (e: SyntheticInputEvent<any>) => {
     const scale = e.currentTarget.value
-    const scaledImageHeight = Math.round(this.state.originalImageHeight * scale)
-    const scaledImageWidth = Math.round(this.state.originalImageWidth * scale)
+    const scaledImageHeight = Math.round(this.state.originalImageHeight * (scale / SCALE_OFFSET))
+    const scaledImageWidth = Math.round(this.state.originalImageWidth * (scale / SCALE_OFFSET))
+
+    if (scaledImageHeight < AVATAR_SIZE || scaledImageWidth < AVATAR_SIZE) return
+
+    const offsetLeft =
+      this._image && this._image.style.left ? parseInt(this._image.style.left, 10) : this.state.dragStopX
+    const offsetTop =
+      this._image && this._image.style.top ? parseInt(this._image.style.top, 10) : this.state.dragStopY
+    const offsetLeftLimit = AVATAR_SIZE - scaledImageWidth
+    const offsetTopLimit = AVATAR_SIZE - scaledImageHeight
 
     this.setState({
+      offsetLeft: clamp(offsetLeft, offsetLeftLimit, 0),
+      offsetTop: clamp(offsetTop, offsetTopLimit, 0),
       scale,
       scaledImageHeight,
       scaledImageWidth,
@@ -308,7 +333,7 @@ class EditAvatar extends React.Component<Props, State> {
           <input
             disabled={!this.state.hasPreview || this.state.submitting}
             min={1}
-            max={5}
+            max={10}
             onChange={this._onRangeChange}
             onMouseMove={e => e.stopPropagation()}
             step="any"
