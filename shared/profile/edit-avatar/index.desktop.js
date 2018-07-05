@@ -189,8 +189,6 @@ class EditAvatar extends React.Component<Props, State> {
     const scaledImageHeight = Math.round(this.state.startingImageHeight * scale)
     const scaledImageWidth = Math.round(this.state.startingImageWidth * scale)
 
-    if (scaledImageHeight < AVATAR_SIZE || scaledImageWidth < AVATAR_SIZE) return
-
     const offsetLeft =
       this._image && this._image.style.left ? parseInt(this._image.style.left, 10) : this.state.dragStopX
     const offsetTop =
