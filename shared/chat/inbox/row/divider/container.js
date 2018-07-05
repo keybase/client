@@ -17,6 +17,8 @@ const getOwnProps = (_, {smallIDsHidden}: OwnProps) => ({smallIDsHidden})
 const dividerSelector = createSelector([getBadges, getOwnProps], (badgeMap, ownProps) => {
   const badgeCount = (ownProps.smallIDsHidden || []).reduce((total, id) => total + badgeMap.get(id, 0), 0)
 
+  console.log('JRY', {ownProps})
+
   return {
     badgeCount,
     hiddenCount: ownProps.smallIDsHidden.length,

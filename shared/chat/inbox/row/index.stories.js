@@ -150,6 +150,7 @@ const load = () => {
           hasUnread={true}
         />
         <BigTeamChannel {...commonChannel} teamname="Keybase" channelname="#video-games" isMuted={true} />
+
         <BigTeamHeader badgeSubscribe={false} memberCount={30} teamname="techtonica" />
         <BigTeamChannel {...commonChannel} teamname="techtonica" channelname="#general" isSelected={true} />
         <BigTeamChannel {...commonChannel} teamname="techtonica" channelname="#ignore-selected-below" />

@@ -24,7 +24,6 @@ class ModalLessPopupMenu extends Component<ModalLessPopupMenuProps> {
     .menu-hover-danger:hover .subtitle { color: ${globalColors.white}; }
     `
 
-    console.log('JRY: ', {ModalLessPopupMenu: this.props})
     return (
       <Box>
         <style>{realCSS}</style>
@@ -40,7 +39,6 @@ class ModalLessPopupMenu extends Component<ModalLessPopupMenuProps> {
               }}
             >
               {this.props.items.filter(Boolean).map((i, idx) => {
-                console.log('JRY:', {i, idx})
                 if (i === 'Divider') {
                   return <Divider key={idx} />
                 }

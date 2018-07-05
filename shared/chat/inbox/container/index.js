@@ -106,7 +106,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('InboxContainer'),
+  setDisplayName('Inbox'),
   withStateHandlers(
     {filterFocusCount: 0},
     {focusFilter: ({filterFocusCount}) => () => ({filterFocusCount: filterFocusCount + 1})}
