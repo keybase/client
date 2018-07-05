@@ -139,11 +139,11 @@ take effect. Then you'll want to configure the right group and permissions
 for `/dev/kvm`. From [this StackExchange answer](https://unix.stackexchange.com/questions/373872/non-root-user-can-not-use-enable-kvm),
 
 1. Create the file `/etc/udev/rules.d/65-kvm.rules` as root
-1. Put the following line inside this file:
+2. Put the following line inside this file:
 ```
 KERNEL=="kvm", NAME="%k", GROUP="kvm", MODE="0660"
 ```
-1. Reload rules with `udevadm control --reload-rules && udevadm trigger`
+3. Reload rules with `udevadm control --reload-rules && udevadm trigger`
 
 Follow instructions at
 https://developer.android.com/ndk/guides/index.html to install and
