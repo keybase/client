@@ -75,8 +75,7 @@
     "transformIgnorePatterns": [
       "node_modules/(?!universalify|fs-extra|react-redux|@storybook|lodash-es).+\\.js"
     ],
-    "setupFiles": [
-    ],
+    "setupFiles": [],
     "setupTestFrameworkScriptFile": "<rootDir>/test/setupTestFrameworkScriptFile.js",
     "testPathIgnorePatterns": [
       "/node_modules/"
