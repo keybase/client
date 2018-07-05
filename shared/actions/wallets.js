@@ -45,15 +45,14 @@ const loadPaymentsSuccess = (res: RPCTypes.PaymentsPageLocal, action: WalletsGen
 const exportSecretKey = (action: WalletsGen.ExportSecretKeyPayload) =>
   Saga.call(RPCTypes.localExportSecretKeyLocalRpcPromise, {accountID: action.payload.accountID})
 
-const exportSecretKeySuccess = (res: RPCTypes.SecretKey, action: WalletsGen.ExportSecretKeyPayload) => {
-  const {accountID} = action.payload
-  return Saga.put(
+const exportSecretKeySuccess = (res: RPCTypes.SecretKey, action: WalletsGen.ExportSecretKeyPayload) =>
+  Saga.put(
     WalletsGen.createSecretKeyReceived({
-      accountID,
+      accountID: action.payload.accountID,
       secretKey: new HiddenString(res),
     })
   )
-}
+
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(WalletsGen.exportSecretKey, exportSecretKey, exportSecretKeySuccess)
   yield Saga.safeTakeEveryPure(WalletsGen.loadAccounts, loadAccounts, loadAccountsSuccess)
