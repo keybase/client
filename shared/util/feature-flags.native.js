@@ -6,7 +6,7 @@ const ff: FeatureFlags = {
   admin: __DEV__,
   explodingMessagesEnabled: true,
   fsEnabled: true,
-  fsWritesEnabled: __DEV__,
+  fsWritesEnabled: true,
   plansEnabled: false,
   walletsEnabled: __DEV__,
 }
