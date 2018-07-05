@@ -1,4 +1,4 @@
-Oh my god so many steps I'm really sorry.
+== Running a build ==
 
 Clone kbfs adjacent to client (this repo). The exact path doesn't
 matter.
@@ -36,3 +36,15 @@ If you want to test the build without pushing live, set
 KEYBASE_DRY_RUN=1 in the environment. Be very careful not to typo that
 variable. You should see "This build+push is a DRY RUN." after all the
 git fetches in the build output, if you did this right.
+
+== Making changes ==
+
+The most common change is bumping the version of Go we're using. Do that
+in the Dockerfile in this directory. Whenenever you make changes that
+affect the docker image, you also need to bump its version number in
+docker_build.sh. Look for the line that looks like this:
+
+    image=keybase_packaging_v16
+
+Increment that number, so that everyone who's running these builds
+automatically rebuilds the docker image with your change.
