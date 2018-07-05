@@ -3569,6 +3569,10 @@
             "type": "array",
             "items": "string"
           }
+        },
+        {
+          "name": "shouldAck",
+          "type": "boolean"
         }
       ],
       "response": "string"
