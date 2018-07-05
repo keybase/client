@@ -119,8 +119,7 @@ func (ss *SecretSyncer) loadFromStorage(m MetaContext, uid keybase1.UID) (err er
 	return nil
 }
 
-func (ss *SecretSyncer) syncFromServer(m MetaContext, uid keybase1.UID, sr SessionReader,
-	forceReload bool) (err error) {
+func (ss *SecretSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceReload bool) (err error) {
 	hargs := HTTPArgs{}
 
 	if ss.keys != nil && !forceReload {
@@ -132,7 +131,6 @@ func (ss *SecretSyncer) syncFromServer(m MetaContext, uid keybase1.UID, sr Sessi
 		Endpoint:    "key/fetch_private",
 		Args:        hargs,
 		SessionType: APISessionTypeREQUIRED,
-		SessionR:    sr,
 		RetryCount:  5, // It's pretty bad to fail this, so retry.
 		MetaContext: m,
 	})
