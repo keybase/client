@@ -476,9 +476,9 @@ func (a *InternalAPIEngine) getURL(arg APIArg) url.URL {
 }
 
 func (a *InternalAPIEngine) sessionArgs(m MetaContext, arg APIArg) (tok, csrf string, err error) {
-	if arg.SessionR != nil {
-		m.CDebugf("using args from SessionR")
-		tok, csrf = arg.SessionR.APIArgs()
+	if m.apiTokener != nil {
+		m.CDebugf("Using apiTokener session and CSRF token")
+		tok, csrf = m.apiTokener.Tokens()
 		return tok, csrf, nil
 	}
 
