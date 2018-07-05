@@ -116,6 +116,35 @@ HAX. Instead, follow the instructions in
 https://issuetracker.google.com/issues/62395878#comment7 , i.e. put
 `HVF = on` in `~/.android/advancedFeatures.ini`.
 
+If you're installing on Linux, you'll want to get KVM set
+up. Otherwise, you'll see this message:
+
+```sh
+./emulator @Nexus_5X_API_28_x86
+emulator: ERROR: x86 emulation currently requires hardware acceleration!
+Please ensure KVM is properly installed and usable.
+CPU acceleration status: This user doesn't have permissions to use KVM (/dev/kvm)
+```
+Normally, `/dev/kvm` can only be used by `root`, but you don't
+want to run things as root regularly. Instead, make a `kvm` group and
+add your current user in it:
+
+```sh
+# As root
+addgroup kvm
+usermod -a -G kvm $USER
+```
+You may have to log out and re-log in, or even reboot, for this to
+take effect. Then you'll want to configure the right group and permissions
+for `/dev/kvm`. From [this StackExchange answer](https://unix.stackexchange.com/questions/373872/non-root-user-can-not-use-enable-kvm),
+
+1. Create the file `/etc/udev/rules.d/65-kvm.rules` as root
+1. Put the following line inside this file:
+```
+KERNEL=="kvm", NAME="%k", GROUP="kvm", MODE="0660"
+```
+1. Reload rules with `udevadm control --reload-rules && udevadm trigger`
+
 Follow instructions at
 https://developer.android.com/ndk/guides/index.html to install and
 configure the Android NDK.
@@ -216,8 +245,11 @@ To run the emulator, do:
 cd $ANDROID_HOME/emulator
 
 emulator -list-avds
+
 # Nexus_5X_API_27_x86 is an example avd.
-emulator @Nexus_5X_API_27_x86
+#
+# The leading './' is needed on Linux.
+./emulator @Nexus_5X_API_27_x86
 ```
 
 assuming you've set the `$ANDROID_HOME` variable and added
