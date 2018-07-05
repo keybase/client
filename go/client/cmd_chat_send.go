@@ -159,11 +159,11 @@ func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	}
 
 	if c.ephemeralLifetime != 0 {
-		if c.ephemeralLifetime > libkb.MaxEphemeralLifetime {
-			return fmt.Errorf("ephemeral lifetime cannot exceed %v", libkb.MaxEphemeralLifetime)
+		if c.ephemeralLifetime > libkb.MaxEphemeralContentLifetime {
+			return fmt.Errorf("ephemeral lifetime cannot exceed %v", libkb.MaxEphemeralContentLifetime)
 		}
-		if c.ephemeralLifetime < libkb.MinEphemeralLifetime {
-			return fmt.Errorf("ephemeral lifetime must be at least %v", libkb.MinEphemeralLifetime)
+		if c.ephemeralLifetime < libkb.MinEphemeralContentLifetime {
+			return fmt.Errorf("ephemeral lifetime must be at least %v", libkb.MinEphemeralContentLifetime)
 		}
 	}
 

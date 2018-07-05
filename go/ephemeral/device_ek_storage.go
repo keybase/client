@@ -260,7 +260,7 @@ func (s *DeviceEKStorage) GetAllActive(ctx context.Context, merkleRoot libkb.Mer
 		// Skip expired keys. Expired keys are spared from deletion past for a
 		// window past their expiry date, in case they're needed for
 		// decryption, but they're never signed over or used for encryption.
-		if ctimeIsStale(deviceEK.Metadata.Ctime, merkleRoot) {
+		if ctimeIsStale(deviceEK.Metadata.Ctime.Time(), merkleRoot) {
 			continue
 		}
 		// Collect out of order, then sort below.
@@ -329,11 +329,11 @@ func (s *DeviceEKStorage) DeleteExpired(ctx context.Context, merkleRoot libkb.Me
 
 	// Fall back to the device's local time if we don't have a merkle root so
 	// we can complete deletions offline.
-	var now keybase1.Time
+	var now time.Time
 	if merkleRoot.IsNil() {
-		now = keybase1.ToTime(time.Now())
+		now = time.Now()
 	} else {
-		now = keybase1.TimeFromSeconds(merkleRoot.Ctime())
+		now = keybase1.TimeFromSeconds(merkleRoot.Ctime()).Time()
 	}
 
 	keyMap := make(keyExpiryMap)

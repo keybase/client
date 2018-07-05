@@ -98,7 +98,7 @@ var chatFlags = map[string]cli.Flag{
 		Name: "exploding-lifetime",
 		Usage: fmt.Sprintf(`Make this message an exploding message and set the lifetime for the given duration.
 	The maximum lifetime is %v (one week) and the minimum lifetime is %v. Cannot be used in conjunction with --public.`,
-			libkb.MaxEphemeralLifetime, libkb.MinEphemeralLifetime),
+			libkb.MaxEphemeralContentLifetime, libkb.MinEphemeralContentLifetime),
 	},
 }
 

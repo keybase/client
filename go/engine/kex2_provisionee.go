@@ -634,7 +634,7 @@ func (e *Kex2Provisionee) ephemeralKeygen(m libkb.MetaContext, userEKBox *keybas
 		return deviceEKStatement, deviceEKStatementSig, nil, err
 	}
 
-	deviceEKStatement, deviceEKStatementSig, err = ekLib.SignedDeviceEKStatementFromSeed(m.Ctx(), userEKBox.DeviceEkGeneration, e.deviceEKSeed, signingKey, []keybase1.DeviceEkMetadata{})
+	deviceEKStatement, deviceEKStatementSig, err = ekLib.SignedDeviceEKStatementFromSeed(m.Ctx(), userEKBox.DeviceEkGeneration, e.deviceEKSeed, signingKey)
 	if err != nil {
 		return deviceEKStatement, deviceEKStatementSig, nil, err
 	}
