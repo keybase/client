@@ -12,18 +12,15 @@ export type BadgeProps = {
 export type Badge2Props = {
   badgeNumber: number,
   fontSize: number,
-  height: number,
+  height?: number,
   leftRightPadding: number,
-  topBottomPadding: number,
   badgeStyle?: StylesCrossPlatform,
   badgeNumberStyle?: StylesCrossPlatform,
 }
 
 export type DefaultBadge2Props = {
-  height: number,
   fontSize: number,
   leftRightPadding: number,
-  topBottomPadding: number,
 }
 
 declare export class Badge extends Component<BadgeProps> {}

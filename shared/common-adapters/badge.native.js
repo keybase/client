@@ -49,21 +49,23 @@ const badgeStyles = styleSheetCreate({
 })
 
 export class Badge2 extends React.Component<Badge2Props> {
-  static defaultProps = {fontSize: 11, height: 24, leftRightPadding: 6, topBottomPadding: 4}
+  static defaultProps = {fontSize: 11, leftRightPadding: 6}
 
   render() {
+    // Default to a top and bottom padding of 4px (8px total)
+    // Padding less this can result in badges being wider than their height for single digit numbers
+    const height = this.props.height || this.props.fontSize + 8
+
     return (
       <Box
         style={collapseStyles([
           badge2Styles.badge,
           {
-            borderRadius: this.props.height / 2,
-            height: this.props.height,
-            minWidth: this.props.height,
-            paddingBottom: this.props.topBottomPadding,
+            borderRadius: 14,
+            height,
+            minWidth: height,
             paddingLeft: this.props.leftRightPadding,
             paddingRight: this.props.leftRightPadding,
-            paddingTop: this.props.topBottomPadding,
           },
           this.props.badgeStyle,
         ])}
@@ -73,7 +75,7 @@ export class Badge2 extends React.Component<Badge2Props> {
           style={collapseStyles([
             badge2Styles.text,
             this.props.badgeNumberStyle,
-            {fontSize: this.props.fontSize, lineHeight: this.props.fontSize + 5},
+            {fontSize: this.props.fontSize, lineHeight: height},
           ])}
         >
           {this.props.badgeNumber}
