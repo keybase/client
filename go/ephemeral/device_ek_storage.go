@@ -350,7 +350,7 @@ func (s *DeviceEKStorage) DeleteExpired(ctx context.Context, merkleRoot libkb.Me
 		keyMap[generation] = ctime
 	}
 
-	expired = getExpiredGenerations(context.Background(), s.G(), keyMap, now)
+	expired = s.getExpiredGenerations(context.Background(), keyMap, now)
 	epick := libkb.FirstErrorPicker{}
 	for _, generation := range expired {
 		epick.Push(s.delete(ctx, generation))
@@ -358,6 +358,68 @@ func (s *DeviceEKStorage) DeleteExpired(ctx context.Context, merkleRoot libkb.Me
 
 	epick.Push(s.deletedWrongEldestSeqno(ctx))
 	return expired, epick.Error()
+}
+
+// getExpiredGenerations calculates which keys have expired and are safe to
+// delete. Keys normally expire after `libkb.MaxEphemeralContentLifetime`
+// unless there has been a gap in their generation. If there has been a gap of
+// more than a day (the normal generation time), a key can be re-used for up to
+// `libkb.MaxEphemeralKeyStaleness` until it is considered expired. To
+// determine expiration, we look at all of the current keys and account for any
+// gaps since we don't want to expire a key if it is still used to encrypt a
+// different key or ephemeral content. With deviceEKs we also have to account
+// for a deviceEK being created out of lock step with a userEK. Consider the
+// following scenario:
+//
+// At t=0, deviceA creates deviceEK_A_1 and userEK_1. At t=0.5, deviceB creates
+// devicekEK_B_1. At t=1, deviceEK_A_2 and userEK_2 are created and at t=1.5
+// deviceEK_B_2 is created. deviceEK_B_1 cannot be deleted until userEK_2 is
+// expired, or deviceB will delete it's deviceEK early. Since userEK_3 has not
+// yet been created, we may have to keep deviceEK_B_1 around until userEK_2 is
+// stale, at which time no more teamEKs will be encrypted by it. To account for
+// this (without having to interact with the userEK level via server
+// assistance) we extend the lifetime of deviceEK_B_1 to expire
+// `libkb.MaxEphemeralContentLifetime` after the creation of deviceEK_B_3, with
+// a maximum window of `libkb.MaxEphemeralKeyStaleness`. This is correct
+// because userEK_3 *must* be created at or before deviceEK_B_3's creation.
+func (s *DeviceEKStorage) getExpiredGenerations(ctx context.Context, keyMap keyExpiryMap, now time.Time) (expired []keybase1.EkGeneration) {
+	// Sort the generations we have so we can walk through them in order.
+	var keys []keybase1.EkGeneration
+	for k := range keyMap {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+
+	// Sort the generations we have so we can walk through them in order.
+	for i, generation := range keys {
+		keyCtime := keyMap[generation].Time()
+
+		expiryOffset1 := libkb.MaxEphemeralKeyStaleness
+		if i < len(keys)-1 {
+			expiryOffset1 = keyMap[keys[i+1]].Time().Sub(keyCtime)
+			// Offset can be max libkb.MaxEphemeralKeyStaleness
+			if expiryOffset1 > libkb.MaxEphemeralKeyStaleness {
+				expiryOffset1 = libkb.MaxEphemeralKeyStaleness
+			}
+		}
+
+		expiryOffset2 := libkb.MaxEphemeralKeyStaleness
+		if i < len(keys)-2 {
+			expiryOffset2 = keyMap[keys[i+2]].Time().Sub(keyMap[keys[i+1]].Time())
+			// Offset can be max libkb.MaxEphemeralKeyStaleness
+			if expiryOffset2 > libkb.MaxEphemeralKeyStaleness {
+				expiryOffset2 = libkb.MaxEphemeralKeyStaleness
+			}
+		}
+
+		expiryOffset := expiryOffset1 + expiryOffset2
+		if now.Sub(keyCtime) >= (libkb.MinEphemeralKeyLifetime + expiryOffset) {
+			s.G().Log.CDebugf(ctx, "getExpiredGenerations: expired generation:%v, now: %v, keyCtime:%v, expiryOffset:%v, keyMap: %v, i:%v",
+				generation, now, keyCtime, expiryOffset, keyMap, i)
+			expired = append(expired, generation)
+		}
+	}
+	return expired
 }
 
 func (s *DeviceEKStorage) deletedWrongEldestSeqno(ctx context.Context) (err error) {

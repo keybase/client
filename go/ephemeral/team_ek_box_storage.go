@@ -261,8 +261,10 @@ func (s *TeamEKBoxStorage) DeleteExpired(ctx context.Context, teamID keybase1.Te
 		return nil, nil
 	}
 
+	merkleCtime := keybase1.TimeFromSeconds(merkleRoot.Ctime()).Time()
 	for gen, teamEKBox := range teamEKBoxes {
-		if ctimeIsStale(teamEKBox.Metadata.Ctime.Time(), merkleRoot) {
+		keyAge := merkleCtime.Sub(teamEKBox.Metadata.Ctime.Time())
+		if keyAge >= libkb.MinEphemeralKeyLifetime {
 			expired = append(expired, gen)
 		}
 	}
