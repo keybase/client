@@ -305,6 +305,7 @@ class EditAvatar extends React.Component<Props, State> {
             min={1}
             max={5}
             onChange={this._onRangeChange}
+            onMouseMove={e => e.stopPropagation()}
             step="any"
             style={styles.slider}
             type="range"
