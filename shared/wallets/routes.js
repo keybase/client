@@ -2,6 +2,7 @@
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import Container from './container'
 import ReceiveModal from './receive-modal/container'
+import ExportSecretKey from './export-secret-key/container'
 import {isMobile} from '../constants/platform'
 
 const routeTree = makeRouteDefNode({
@@ -9,6 +10,11 @@ const routeTree = makeRouteDefNode({
     receive: {
       children: {},
       component: ReceiveModal,
+      tags: makeLeafTags({layerOnTop: !isMobile}),
+    },
+    exportSecretKey: {
+      children: {},
+      component: ExportSecretKey,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
   },

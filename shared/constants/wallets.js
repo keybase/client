@@ -154,6 +154,9 @@ const getFederatedAddress = (state: TypedState, accountID?: Types.AccountID) => 
   return username && account.isDefault ? `${username}*keybase.io` : ''
 }
 
+const getSecretKey = (state: TypedState, accountID: Types.AccountID) =>
+  state.wallets.secretKeyMap.get(accountID)
+
 export {
   accountResultToAccount,
   assetsResultToAssets,
@@ -163,6 +166,7 @@ export {
   getFederatedAddress,
   getPayment,
   getPayments,
+  getSecretKey,
   getSelectedAccount,
   loadEverythingWaitingKey,
   makeAccount,
