@@ -8,10 +8,7 @@ import {Box, Button, Input, ButtonBar} from '../../../../common-adapters'
 import {storiesOf, action} from '../../../../stories/storybook'
 import {globalStyles} from '../../../../styles'
 
-const provider = PropProviders.compose(
-  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
-)
+const provider = PropProviders.CommonProvider()
 
 const UpDownFilterHoc = compose(
   withStateHandlers(

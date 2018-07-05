@@ -19,7 +19,7 @@ const teamNameToIsOpen = {
   techtonica: true,
 }
 
-const provider = PropProviders.Common()
+const provider = PropProviders.CommonProvider()
 
 const load = () => {
   storiesOf('Teams/Main', module)

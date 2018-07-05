@@ -309,7 +309,7 @@ func TestChatMessageUnboxWithPairwiseMacsCorrupted(t *testing.T) {
 	}
 
 	// Check that we get the right failure type.
-	permErr, ok := err.(*PermanentUnboxingError)
+	permErr, ok := err.(PermanentUnboxingError)
 	if !ok {
 		t.Fatalf("expected PermanentUnboxingError, got %T", err)
 	}
@@ -364,7 +364,7 @@ func TestChatMessageUnboxWithPairwiseMacsMissing(t *testing.T) {
 	}
 
 	// Check that we get the right failure type.
-	permErr, ok := err.(*PermanentUnboxingError)
+	permErr, ok := err.(PermanentUnboxingError)
 	if !ok {
 		t.Fatalf("expected PermanentUnboxingError, got %T", err)
 	}
