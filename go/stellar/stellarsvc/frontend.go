@@ -124,18 +124,18 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 			return nil, err
 		}
 
-		if d.Asset.Type == "native" {
+		if d.Asset.IsNativeXLM() {
 			fmtAvailable, err := stellar.FormatAmount(subtractFeeSoft(s.mctx(ctx), details.Available), false)
 			if err != nil {
 				return nil, err
 			}
 			asset := stellar1.AccountAssetLocal{
 				Name:                   "Lumens",
-				BalanceTotal:           fmtAmount,
-				BalanceAvailableToSend: fmtAvailable,
 				AssetCode:              "XLM",
 				IssuerName:             "Stellar network",
 				IssuerAccountID:        "",
+				BalanceTotal:           fmtAmount,
+				BalanceAvailableToSend: fmtAvailable,
 				WorthCurrency:          displayCurrency,
 			}
 			var displayAmount string
@@ -160,13 +160,13 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 		} else {
 			assets = append(assets, stellar1.AccountAssetLocal{
 				Name:                   d.Asset.Code,
-				BalanceTotal:           fmtAmount,
-				BalanceAvailableToSend: fmtAmount,
 				AssetCode:              d.Asset.Code,
 				IssuerName:             "", // TODO get verified asset names
 				IssuerAccountID:        d.Asset.Issuer,
-				Worth:                  "",
-				WorthCurrency:          "",
+				BalanceTotal:           fmtAmount,
+				BalanceAvailableToSend: fmtAmount,
+				Worth:         "",
+				WorthCurrency: "",
 			})
 		}
 	}
