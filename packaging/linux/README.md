@@ -16,6 +16,11 @@ Once that's set up, here's the command to kick off a build.
 
     ./docker_build.sh prerelease origin/master
 
+If the code signing GPG key is password protected in your setup (which
+it should be, unless you're the automated build machine), the build will
+probably prompt you to enter that passphrase twice, once to export it
+from your local keyring and again to import it inside the docker
+container.
 
 You can replace `origin/master` with any commit or branch name, to
 choose what gets built. The `prerelease` target is kind of a legacy
@@ -29,5 +34,5 @@ If you need to forcibly skip CI, set NOWAIT=1 in the environment.
 
 If you want to test the build without pushing live, set
 KEYBASE_DRY_RUN=1 in the environment. Be very careful not to typo that
-variable. You should see "This build+push is a DRY RUN." early in the
-build output if you did this right.
+variable. You should see "This build+push is a DRY RUN." after all the
+git fetches in the build output, if you did this right.
