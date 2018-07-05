@@ -1582,26 +1582,23 @@ func FindNextMerkleRootAfterRemoval(mctx libkb.MetaContext, arg keybase1.FindNex
 	}
 
 	uv := vers.ToUserVersion()
-
-	var logPoint *keybase1.UserLogPoint
-	if arg.AnyRoleAllowed {
-		reader := func(p keybase1.UserLogPoint) bool {
-			return p.Role == keybase1.TeamRole_READER || p.Role == keybase1.TeamRole_WRITER || p.Role == keybase1.TeamRole_ADMIN || p.Role == keybase1.TeamRole_OWNER
+	logPoints := team.chain().inner.UserLog[uv]
+	demotionPredicate := func(p keybase1.UserLogPoint) bool {
+		if arg.AnyRoleAllowed {
+			return !p.Role.IsReaderOrAbove()
 		}
-		notReader := func(p keybase1.UserLogPoint) bool {
-			return p.Role == keybase1.TeamRole_NONE
-		}
-		logPoint = team.chain().GetLastChangeLogPointWithPredicates(uv, reader, notReader)
-	} else {
-		writer := func(p keybase1.UserLogPoint) bool {
-			return p.Role == keybase1.TeamRole_WRITER || p.Role == keybase1.TeamRole_ADMIN || p.Role == keybase1.TeamRole_OWNER
-		}
-		notWriter := func(p keybase1.UserLogPoint) bool {
-			return p.Role == keybase1.TeamRole_READER || p.Role == keybase1.TeamRole_NONE
-		}
-		logPoint = team.chain().GetLastChangeLogPointWithPredicates(uv, writer, notWriter)
+		return !p.Role.IsWriterOrAbove()
 	}
-	if logPoint == nil {
+	var earliestDemotion int
+	var logPoint keybase1.UserLogPoint
+	for i := len(logPoints) - 1; i >= 0; i-- {
+		if demotionPredicate(logPoints[i]) {
+			earliestDemotion = i
+		} else if earliestDemotion != 0 {
+			logPoint = logPoints[earliestDemotion].DeepCopy()
+		}
+	}
+	if &logPoint == nil {
 		return res, libkb.NotFoundError{Msg: fmt.Sprintf("no downgraded log point for user found")}
 	}
 
