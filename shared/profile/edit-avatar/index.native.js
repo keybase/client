@@ -53,10 +53,8 @@ class EditAvatar extends React.Component<Props> {
   _imageDimensions = () => {
     if (!this.props.image) return
 
-    // Cropping is temporarily deactivated on Android. So, we’re restricting
-    // the image to the avatar bounds.
-    let height = isIOS ? this.props.image.height : AVATAR_SIZE
-    let width = isIOS ? this.props.image.width : AVATAR_SIZE
+    let height = AVATAR_SIZE
+    let width = AVATAR_SIZE
 
     if (height <= AVATAR_SIZE) {
       height = AVATAR_SIZE
