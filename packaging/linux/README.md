@@ -12,13 +12,22 @@ instructions for installing them.
 Set up docker. The build image will be created automatically, so long as
 the basics like `docker ps` are working.
 
-Run the prerelease build. (The production build is deprecated.)
+Once that's set up, here's the command to kick off a build.
 
     ./docker_build.sh prerelease origin/master
+
+
+You can replace `origin/master` with any commit or branch name, to
+choose what gets built. The `prerelease` target is kind of a legacy
+name, and it's required.
+
+You can ctrl-c the build if you need to kill it, but PLEASE DO NOT do
+that once it's finished building and started pushing. The result would
+be corrupt repo metadata for everyone on Ubuntu/Deb/RPM.
 
 If you need to forcibly skip CI, set NOWAIT=1 in the environment.
 
 If you want to test the build without pushing live, set
 KEYBASE_DRY_RUN=1 in the environment. Be very careful not to typo that
-one. You should see "This build+push is a DRY RUN." early in the build
-output if you did this right.
+variable. You should see "This build+push is a DRY RUN." early in the
+build output if you did this right.
