@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import Box from './box'
 import Avatar from './avatar'
 import Text from './text'
-import {Button} from '../common-adapters'
+import {Button, Icon} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {stateColors} from '../util/tracker'
 
@@ -108,6 +108,9 @@ class BioRender extends Component<Props> {
             size={avatarSize}
             showFollowingStatus={true}
           />
+          {editFns && (
+            <Icon type="iconfont-edit" onClick={onClickAvatar} style={stylesAvatarEditIcon(avatarSize)} />
+          )}
         </Box>
         <Box style={stylesContent}>
           <Text
@@ -184,6 +187,10 @@ const stylesAvatarWrapper = (avatarSize: number) => ({
   alignItems: 'center',
   height: avatarSize,
   marginTop: -avatarSize / 2,
+})
+const stylesAvatarEditIcon = (avatarSize: number) => ({
+  bottom: 16,
+  left: avatarSize / 2 - 8,
 })
 const stylesAvatar = {}
 const stylesContent = {
