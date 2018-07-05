@@ -164,13 +164,24 @@ func (fs *KBFSOpsStandard) PushConnectionStatusChange(
 	service string, newStatus error) {
 	fs.currentStatus.PushConnectionStatusChange(service, newStatus)
 
+	if fs.config.KeybaseService() == nil {
+		return
+	}
+
 	switch service {
 	case KeybaseServiceName, GregorServiceName:
 	default:
 		return
 	}
 
-	if newStatus == nil && fs.config.KeybaseService() != nil {
+	fs.opsLock.Lock()
+	defer fs.opsLock.Unlock()
+
+	for _, fbo := range fs.ops {
+		fbo.PushConnectionStatusChange(service, newStatus)
+	}
+
+	if newStatus == nil {
 		fs.log.CDebugf(nil, "Asking for an edit re-init after reconnection")
 		fs.editActivity.Add(1)
 		go fs.initTlfsForEditHistories()
