@@ -61,7 +61,7 @@ export class Badge2 extends React.Component<Badge2Props> {
         style={collapseStyles([
           badge2Styles.badge,
           {
-            borderRadius: 14,
+            borderRadius: height,
             height,
             minWidth: height,
             paddingLeft: this.props.leftRightPadding,
