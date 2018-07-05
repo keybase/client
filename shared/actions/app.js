@@ -3,7 +3,6 @@ import logger from '../logger'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as AppGen from './app-gen'
-import {showMainWindow} from './platform-specific'
 import {quit} from '../util/quit-helper'
 import dumpLogs from '../logger/dump-log-fs'
 
@@ -27,10 +26,6 @@ function _onMobileAppStateChanged(action: AppGen.MobileAppStatePayload) {
   return Saga.put(AppGen.createChangedFocus({appFocused}))
 }
 
-function _onShowMain() {
-  showMainWindow()
-}
-
 function _dumpLogs(action: AppGen.DumpLogsPayload) {
   dumpLogs().then(() => {
     // quit as soon as possible
@@ -41,7 +36,6 @@ function _dumpLogs(action: AppGen.DumpLogsPayload) {
 }
 
 function* appStateSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeLatestPure(AppGen.showMain, _onShowMain)
   yield Saga.safeTakeEveryPure(AppGen.mobileAppState, _onMobileAppStateChanged)
   yield Saga.safeTakeEveryPure(AppGen.dumpLogs, _dumpLogs)
 }
