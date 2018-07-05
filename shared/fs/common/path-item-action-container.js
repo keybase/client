@@ -124,6 +124,7 @@ const mergeProps = (stateProps, dispatchProps, {path, actionIconClassName, actio
     name: pathItem.name,
     size: pathItem.size,
     needLoadMimeType: pathItem.type === 'file' && pathItem.mimeType === '',
+    needFolderList: pathItem.type === 'folder',
     childrenFolders,
     childrenFiles,
     pathElements,
@@ -145,10 +146,9 @@ export default compose(
       if (!this.props.showingMenu || (prevProps.showingMenu && this.props.path === prevProps.path)) {
         return
       }
-      this.props.loadFolderList()
-      if (this.props.needLoadMimeType) {
-        this.props.loadMimeType()
-      }
+      // TODO: get rid of these when we have notifications in place.
+      this.props.needFolderList && this.props.loadFolderList()
+      this.props.needLoadMimeType && this.props.loadMimeType()
     },
   })
 )(PathItemAction)
