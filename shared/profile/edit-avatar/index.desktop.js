@@ -42,8 +42,9 @@ type State = {
   submitting: boolean,
 }
 
-const AVATAR_SIZE = 175
-const AVATAR_BORDER_WIDTH = 5
+const AVATAR_CONTAINER_SIZE = 175
+const AVATAR_BORDER_SIZE = 5
+const AVATAR_SIZE = AVATAR_CONTAINER_SIZE - AVATAR_BORDER_SIZE * 2
 
 class EditAvatar extends React.Component<Props, State> {
   _file: ?HTMLInputElement
@@ -160,8 +161,12 @@ class EditAvatar extends React.Component<Props, State> {
   _onImageLoad = (e: SyntheticEvent<HTMLImageElement>) => {
     this.setState({
       hasPreview: true,
-      offsetLeft: Math.round(e.currentTarget.naturalWidth / -2 + AVATAR_SIZE / 2 - AVATAR_BORDER_WIDTH),
-      offsetTop: Math.round(e.currentTarget.naturalHeight / -2 + AVATAR_SIZE / 2 - AVATAR_BORDER_WIDTH),
+      offsetLeft: Math.round(
+        e.currentTarget.naturalWidth / -2 + AVATAR_CONTAINER_SIZE / 2 - AVATAR_BORDER_SIZE
+      ),
+      offsetTop: Math.round(
+        e.currentTarget.naturalHeight / -2 + AVATAR_CONTAINER_SIZE / 2 - AVATAR_BORDER_SIZE
+      ),
       originalImageHeight: e.currentTarget.naturalHeight,
       originalImageWidth: e.currentTarget.naturalWidth,
       scaledImageHeight: e.currentTarget.naturalHeight,
@@ -212,8 +217,8 @@ class EditAvatar extends React.Component<Props, State> {
 
     const dragLeft = this.state.dragStopX + e.pageX - this.state.dragStartX
     const dragTop = this.state.dragStopY + e.pageY - this.state.dragStartY
-    const dragLeftLimit = AVATAR_SIZE - AVATAR_BORDER_WIDTH * 2 - this.state.scaledImageWidth
-    const dragTopLimit = AVATAR_SIZE - AVATAR_BORDER_WIDTH * 2 - this.state.scaledImageHeight
+    const dragLeftLimit = AVATAR_SIZE - this.state.scaledImageWidth
+    const dragTopLimit = AVATAR_SIZE - this.state.scaledImageHeight
 
     this.setState({
       offsetLeft: clamp(dragLeft, dragLeftLimit, 0),
@@ -232,9 +237,9 @@ class EditAvatar extends React.Component<Props, State> {
       this.state.scaledImageWidth !== 0 ? this.state.originalImageWidth / this.state.scaledImageWidth : 1
     const crop = {
       x0: Math.round(x * rW),
-      x1: Math.round((x + AVATAR_SIZE - AVATAR_BORDER_WIDTH * 2) * rW),
+      x1: Math.round((x + AVATAR_SIZE) * rW),
       y0: Math.round(y * rH),
-      y1: Math.round((y + AVATAR_SIZE - AVATAR_BORDER_WIDTH * 2) * rH),
+      y1: Math.round((y + AVATAR_SIZE) * rH),
     }
     this.props.onSave(this.state.imageSource, crop)
   }
@@ -354,17 +359,17 @@ const HoverBox = glamorous(Box)({
   },
   backgroundColor: globalColors.lightGrey2,
   borderColor: globalColors.grey,
-  borderRadius: AVATAR_SIZE,
+  borderRadius: AVATAR_CONTAINER_SIZE,
   borderStyle: 'dashed',
-  borderWidth: AVATAR_BORDER_WIDTH,
+  borderWidth: AVATAR_BORDER_SIZE,
   cursor: 'pointer',
   flex: 0,
-  height: AVATAR_SIZE,
+  height: AVATAR_CONTAINER_SIZE,
   marginBottom: globalMargins.small,
   marginTop: globalMargins.medium,
   overflow: 'hidden',
   position: 'relative',
-  width: AVATAR_SIZE,
+  width: AVATAR_CONTAINER_SIZE,
 })
 
 const styles = styleSheetCreate({
