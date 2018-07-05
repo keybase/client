@@ -11,8 +11,8 @@ export type BadgeProps = {
 
 export type Badge2Props = {
   badgeNumber: number,
-  radius: number,
   fontSize: number,
+  height: number,
   leftRightPadding: number,
   topBottomPadding: number,
   badgeStyle?: StylesCrossPlatform,
@@ -20,7 +20,7 @@ export type Badge2Props = {
 }
 
 export type DefaultBadge2Props = {
-  radius: number,
+  height: number,
   fontSize: number,
   leftRightPadding: number,
   topBottomPadding: number,

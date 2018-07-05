@@ -49,7 +49,7 @@ const badgeStyles = styleSheetCreate({
 })
 
 export class Badge2 extends React.Component<Badge2Props> {
-  static defaultProps = {fontSize: 11, radius: 12, leftRightPadding: 6, topBottomPadding: 4}
+  static defaultProps = {fontSize: 11, height: 24, leftRightPadding: 6, topBottomPadding: 4}
 
   render() {
     return (
@@ -57,9 +57,9 @@ export class Badge2 extends React.Component<Badge2Props> {
         style={collapseStyles([
           badge2Styles.badge,
           {
-            borderRadius: this.props.radius,
-            height: this.props.radius * 2,
-            minWidth: this.props.radius * 2,
+            borderRadius: this.props.height / 2,
+            height: this.props.height,
+            minWidth: this.props.height,
             paddingBottom: this.props.topBottomPadding,
             paddingLeft: this.props.leftRightPadding,
             paddingRight: this.props.leftRightPadding,
