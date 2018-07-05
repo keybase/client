@@ -98,7 +98,7 @@ const chrisUsers = [
   },
 ]
 
-const provider = PropProviders.Common()
+const provider = PropProviders.CommonProvider()
 
 const load = () => {
   storiesOf('Search/UserInput', module)
