@@ -48,3 +48,8 @@ docker_build.sh. Look for the line that looks like this:
 
 Increment that number, so that everyone who's running these builds
 automatically rebuilds the docker image with your change.
+
+== Setting up the automated slackbot ==
+
+Clone https://github.com/keybase/slackbot and follow the instructions in
+systemd/README.md.
