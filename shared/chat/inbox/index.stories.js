@@ -1,6 +1,8 @@
 // @flow
+/* eslint-disable sort-keys */
 import * as React from 'react'
 import * as I from 'immutable'
+import * as Constants from '../../constants/types/chat2'
 
 import * as PropProviders from '../../stories/prop-providers'
 import {storiesOf, action} from '../../stories/storybook'
@@ -17,15 +19,24 @@ import Inbox from '.'
 /*
  * Rows
  */
-const makeRowItemSmall = () => ({type: 'small', conversationIDKey: ''})
-const makeRowItemBigTeamLabel = (isFiltered: boolean = false) => ({type: 'bigTeamsLabel', isFiltered})
-const makeRowItemBigHeader = (teamname: string) => ({type: 'bigHeader', teamname})
+
+const makeRowItemSmall = (conversationIDKey: string = '') => ({
+  type: 'small',
+  conversationIDKey: Constants.stringToConversationIDKey(conversationIDKey),
+})
+const makeRowItemBigHeader = (teamname: string = '') => ({type: 'bigHeader', teamname})
+const makeRowItemBigChannel = (conversationIDKey, teamname, channelname) => ({
+  type: 'big',
+  teamname,
+  channelname,
+  conversationIDKey: Constants.stringToConversationIDKey(conversationIDKey),
+})
 const makeRowItemDivider = () => ({type: 'divider'})
 
 /*
  * Component Prop Map
  *
- * componentMap: [coversationIDKey] -> PropProvider props
+ * mapPropProviderProps: [coversationIDKey] -> PropProvider props
  */
 
 const commonSmallTeam = {
@@ -37,8 +48,10 @@ const commonSmallTeam = {
   isLocked: false,
   isMuted: false,
   isSelected: false,
+  isFinalized: false,
   onSelectConversation: action('onSelectConversation'),
   participants: ['chris'],
+  participantNeedToRekey: false,
   rekeyInfo: null,
   showBold: false,
   snippet: 'snippet',
@@ -49,9 +62,10 @@ const commonSmallTeam = {
   unreadCount: 0,
   usernameColor: globalColors.darkBlue,
   youAreReset: false,
+  youNeedToRekey: false,
 }
 
-const commonSmallFiltered = {
+const commonSmallFilter = {
   backgroundColor: globalColors.white,
   isLocked: false,
   isMuted: false,
@@ -73,27 +87,110 @@ const commonBigChannel = {
   showBold: false,
 }
 
-const commonBigFiltered = {
+const commonBigFilter = {
   isSelected: false,
   onSelectConversation: action('onSelectConversation'),
   teamname: 'stripe',
 }
 
-const componentMap = {
-  smallFiltered1: {},
-  smallFiltered1: {},
-  smallFiltered1: {},
-  smallTeam1: {},
-  smallTeam2: {},
-  smallTeam3: {},
-  smallTeam4: {},
-  smallTeam5: {},
+const mapPropProviderProps = {
+  // Small Teams
+  smallTeamA: {
+    ...commonSmallTeam,
+    conversationIDKey: '3',
+    hasUnread: false,
+    hasBadge: false,
+    showBold: false,
+    snippet: 'elisa: Hopefully not',
+    teamname: 'fortgreenmoms',
+    timestamp: 'Tue',
+  },
+  smallTeamB: {
+    ...commonSmallTeam,
+    conversationIDKey: '1',
+    hasUnread: true,
+    hasBadge: true,
+    showBold: true,
+    snippet: 'in the top-drawer i believe',
+    subColor: globalColors.black_75,
+    usernameColor: globalColors.black_75,
+  },
+  smallTeamC: {
+    ...commonSmallTeam,
+    conversationIDKey: '2',
+    hasUnread: false,
+    hasBadge: false,
+    participants: ['jzila'],
+    showBold: false,
+    snippet: "I don't know that I would want.",
+    timestamp: '5:12 pm',
+  },
+  smallTeamD: {
+    ...commonSmallTeam,
+    conversationIDKey: '5',
+    hasBadge: false,
+    hasResetUsers: true,
+    hasUnread: false,
+    participants: ['jzila'],
+    showBold: false,
+    snippet: "I don't know that I would want.",
+    timestamp: '5:12 pm',
+  },
+  smallTeamE: {
+    ...commonSmallTeam,
+    backgroundColor: globalColors.blue,
+    conversationIDKey: '4',
+    hasUnread: false,
+    hasBadge: false,
+    iconHoverColor: globalColors.white_75,
+    isSelected: true,
+    showBold: false,
+    snippet: 'jork: what article?',
+    subColor: globalColors.white,
+    teamname: 'atracks',
+    timestamp: '5:13 pm',
+    usernameColor: globalColors.white,
+  },
+
+  // Small Teams Filter
+  smallFilterA: {},
+  smallFilterB: {},
+  smallFilterC: {},
+
+  // Big Team A
+  bigTeamAHeader: {},
+  bigTeamAChannel1: {},
+  bigTeamAChannel2: {},
+  bigTeamAChannel3: {},
+
+  // Big Team B
+  bigTeamBHeader: {},
+  bigTeamBChannel1: {},
+  bigTeamBChannel2: {},
+  bigTeamBChannel3: {},
+  bigTeamBChannel4: {},
 }
 
 /*
  * Prop Provider Helpers
  */
-const getComponentProps = own => componentMap[own.conversationIDKey]
+
+/*
+ * Look up the correct props to return for a given row component
+ * Called from the row component's prop provider
+ * Uses either conversationIDKey or teamname as a key in mapPropProviderProps
+ */
+const getPropProviderProps = own => {
+  if (own.conversationIDKey) {
+    const props = mapPropProviderProps[own.conversationIDKey]
+    return {
+      ...props,
+      key: props.conversationIDKey,
+    }
+  }
+
+  return mapPropProviderProps[own.teamname]
+}
 
 /*
  * Inbox
@@ -103,45 +200,45 @@ const propsInboxCommon = {
   filterFocusCount: 0,
   isLoading: false,
   nowOverride: 0, // just for dumb rendering
-  onNewChat: () => {},
-  onSelectUp: () => {},
-  onSelectDown: () => {},
-  onHotkey: () => {},
-  onSetFilter: () => {},
-  onUntrustedInboxVisible: () => {},
+  onHotkey: () => action('onHotkey'),
+  onNewChat: () => action('onNewChat'),
+  onSelectDown: () => action('onSelectDown'),
+  onSelectUp: () => action('onSelectUp'),
+  onSetFilter: () => action('onSelectFilter'),
+  onUntrustedInboxVisible: () => action('onUntrustedInboxVisible'),
   rows: [],
   showBuildATeam: false,
   showNewChat: false,
   showNewConversation: false,
   showSmallTeamsExpandDivider: false,
-  smallTeamsExpanded: false,
   smallIDsHidden: [],
-  toggleSmallTeamsExpanded: () => {},
+  smallTeamsExpanded: false,
+  toggleSmallTeamsExpanded: () => action('toggleSmallTeamsExpanded'),
 }
 
 const propsInboxEmpty = {
   ...propsInboxCommon,
-  onNewChat: action('onNewChat'),
   showNewChat: true,
 }
 
 const propsInboxSimple = {
   ...propsInboxCommon,
   rows: [
-    // TODO: Generate different row values using the makeRowItem functions above
+    makeRowItemSmall('smallTeamA'),
+    makeRowItemSmall('smallTeamB'),
+    makeRowItemSmall('smallTeamC'),
+    makeRowItemSmall('smallTeamD'),
+    makeRowItemSmall('smallTeamE'),
   ],
 }
 
-// TODO: Write propProviders for
+/*
+ * Prop Providers
+ */
 const provider = PropProviders.compose(
   PropProviders.TeamDropdownMenu(),
   PropProviders.Avatar(['following', 'both'], ['followers', 'both']),
   {
-    BigTeamChannel: getComponentProps,
-    BigTeamHeader: getComponentProps,
-    BigTeamsDivider: getComponentProps,
-    FilterBigTeamChannel: getComponentProps,
-    FilterSmallTeam: getComponentProps,
     NewChooser: p => ({
       isSelected: false,
       onCancel: () => {},
@@ -149,7 +246,17 @@ const provider = PropProviders.compose(
       shouldShow: false,
       users: I.OrderedSet(['']),
     }),
-    SmallTeam: getComponentProps,
+    SmallTeam: p => {
+      // console.log('SmallTeam Prop Proivder')
+      // console.log({ownProps: p})
+      const viewProps = getPropProviderProps(p)
+      // console.log({viewProps})
+      return viewProps
+    },
+    BigTeamHeader: getPropProviderProps,
+    BigTeamChannel: getPropProviderProps,
+    FilterSmallTeam: getPropProviderProps,
+    FilterBigTeamChannel: getPropProviderProps,
   }
 )
 
@@ -159,6 +266,9 @@ const load = () => {
     .addDecorator(provider)
     .add('Empty', () => {
       return <Inbox {...propsInboxEmpty} />
+    })
+    .add('Simple', () => {
+      return <Inbox {...propsInboxSimple} />
     })
 }
 
