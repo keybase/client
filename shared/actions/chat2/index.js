@@ -24,11 +24,7 @@ import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
 import {NotifyPopup} from '../../native/notifications'
-import {
-  showMainWindow,
-  saveAttachmentToCameraRoll,
-  downloadAndShowShareActionSheet,
-} from '../platform-specific'
+import {saveAttachmentToCameraRoll, downloadAndShowShareActionSheet} from '../platform-specific'
 import {tmpDir, downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import flags from '../../util/feature-flags'
@@ -940,7 +936,7 @@ const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: Typed
           })
         )
         dispatch(Route.switchTo([chatTab]))
-        showMainWindow()
+        dispatch(AppGen.createShowMain())
       })
     })
   }
