@@ -350,8 +350,7 @@ func (mc modeConstrained) TLFEditHistoryEnabled() bool {
 }
 
 func (mc modeConstrained) SendEditNotificationsEnabled() bool {
-	// TODO: turn this on once we allow mobile writes.
-	return false
+	return true
 }
 
 func (mc modeConstrained) LocalHTTPServerEnabled() bool {
