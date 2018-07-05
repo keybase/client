@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -25,6 +26,7 @@ import (
 // safe by forwarding requests to individual per-folder-branch
 // handlers that are go-routine-safe.
 type KBFSOpsStandard struct {
+	g        *libkb.GlobalContext
 	config   Config
 	log      logger.Logger
 	deferLog logger.Logger
@@ -54,9 +56,11 @@ var _ KBFSOps = (*KBFSOpsStandard)(nil)
 const longOperationDebugDumpDuration = time.Minute
 
 // NewKBFSOpsStandard constructs a new KBFSOpsStandard object.
-func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
+func NewKBFSOpsStandard(
+	g *libkb.GlobalContext, config Config) *KBFSOpsStandard {
 	log := config.MakeLogger("")
 	kops := &KBFSOpsStandard{
+		g:                     g,
 		config:                config,
 		log:                   log,
 		deferLog:              log.CloneWithAddedDepth(1),
@@ -330,7 +334,7 @@ func (fs *KBFSOpsStandard) getOpsNoAdd(
 	if !ok {
 		// TODO: add some interface for specifying the type of the
 		// branch; for now assume online and read-write.
-		ops = newFolderBranchOps(ctx, fs.config, fb, standard)
+		ops = newFolderBranchOps(ctx, fs.g, fs.config, fb, standard)
 		fs.ops[fb] = ops
 	}
 	return ops

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/keybase/backoff"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
@@ -66,6 +67,7 @@ type blocksToDelete struct {
 // particular TLF.  It archives historical blocks and reclaims quota
 // usage, all in the background.
 type folderBlockManager struct {
+	g            *libkb.GlobalContext
 	config       Config
 	log          logger.Logger
 	shutdownChan chan struct{}
@@ -117,11 +119,13 @@ type folderBlockManager struct {
 	lastReclamationTime time.Time
 }
 
-func newFolderBlockManager(config Config, fb FolderBranch,
+func newFolderBlockManager(
+	g *libkb.GlobalContext, config Config, fb FolderBranch,
 	helper fbmHelper) *folderBlockManager {
 	tlfStringFull := fb.Tlf.String()
 	log := config.MakeLogger(fmt.Sprintf("FBM %s", tlfStringFull[:8]))
 	fbm := &folderBlockManager{
+		g:            g,
 		config:       config,
 		log:          log,
 		shutdownChan: make(chan struct{}),

@@ -368,7 +368,8 @@ var _ KBFSOps = (*folderBranchOps)(nil)
 var _ fbmHelper = (*folderBranchOps)(nil)
 
 // newFolderBranchOps constructs a new folderBranchOps object.
-func newFolderBranchOps(ctx context.Context, config Config, fb FolderBranch,
+func newFolderBranchOps(
+	ctx context.Context, g *libkb.GlobalContext, config Config, fb FolderBranch,
 	bType branchType) *folderBranchOps {
 	var nodeCache NodeCache
 	if config.Mode().NodeCacheEnabled() {
@@ -440,7 +441,7 @@ func newFolderBranchOps(ctx context.Context, config Config, fb FolderBranch,
 		log:          log,
 	}
 	fbo.cr = NewConflictResolver(config, fbo)
-	fbo.fbm = newFolderBlockManager(config, fb, fbo)
+	fbo.fbm = newFolderBlockManager(g, config, fb, fbo)
 	fbo.rekeyFSM = NewRekeyFSM(fbo)
 	if config.DoBackgroundFlushes() {
 		go fbo.backgroundFlusher()

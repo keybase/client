@@ -123,7 +123,7 @@ func MakeTestConfigOrBustLoggedInWithMode(
 		return log
 	})
 
-	kbfsOps := NewKBFSOpsStandard(config)
+	kbfsOps := NewKBFSOpsStandard(libkb.NewGlobalContext().Init(), config)
 	config.SetKBFSOps(kbfsOps)
 	config.SetNotifier(kbfsOps)
 
@@ -231,7 +231,7 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 	c.SetMetadataVersion(config.MetadataVersion())
 	c.SetRekeyWithPromptWaitTime(config.RekeyWithPromptWaitTime())
 
-	kbfsOps := NewKBFSOpsStandard(c)
+	kbfsOps := NewKBFSOpsStandard(libkb.NewGlobalContext().Init(), c)
 	c.SetKBFSOps(kbfsOps)
 	c.SetNotifier(kbfsOps)
 
