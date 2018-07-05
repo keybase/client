@@ -246,7 +246,7 @@ class EditAvatar extends React.Component<Props, State> {
         styleCover={collapseStyles([
           styles.cover,
           {
-            cursor: !this.state.hasPreview ? 'default' : this.state.dragging ? 'grabbing' : 'grab',
+            cursor: this.state.dragging ? '-webkit-grabbing' : 'default',
           },
         ])}
         onMouseUp={this._onMouseUp}
@@ -337,6 +337,10 @@ const HoverBox = glamorous(Box)({
     backgroundColor: globalColors.white,
     borderColor: globalColors.lightGrey2,
     borderStyle: 'solid',
+    cursor: '-webkit-grab',
+  },
+  '&.filled:active': {
+    cursor: '-webkit-grabbing',
   },
   '&.filled:hover': {
     backgroundColor: globalColors.white,
