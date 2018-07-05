@@ -60,11 +60,15 @@ func (n *chatListener) ChatThreadsStale(uid keybase1.UID, updates []chat1.Conver
 		panic("timeout on the threads stale channel")
 	}
 }
-func (n *chatListener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult) {
-	select {
-	case n.inboxSynced <- syncRes:
-	case <-time.After(5 * time.Second):
-		panic("timeout on the threads stale channel")
+func (n *chatListener) ChatInboxSynced(uid keybase1.UID, topicType chat1.TopicType,
+	syncRes chat1.ChatSyncResult) {
+	switch topicType {
+	case chat1.TopicType_CHAT, chat1.TopicType_NONE:
+		select {
+		case n.inboxSynced <- syncRes:
+		case <-time.After(5 * time.Second):
+			panic("timeout on the threads stale channel")
+		}
 	}
 }
 func (n *chatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
@@ -966,9 +970,10 @@ func TestKBFSCryptKeysBit(t *testing.T) {
 func TestPrevPointerAddition(t *testing.T) {
 	mt := chat1.ConversationMembersType_TEAM
 	runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
-		ctx, world, ri, _, blockingSender, _ := setupTest(t, 1)
+		ctx, world, ri2, _, blockingSender, _ := setupTest(t, 1)
 		defer world.Cleanup()
 
+		ri := ri2.(*kbtest.ChatRemoteMock)
 		var ephemeralMetadata *chat1.MsgEphemeralMetadata
 		if ephemeralLifetime != nil {
 			ephemeralMetadata = &chat1.MsgEphemeralMetadata{
@@ -993,6 +998,40 @@ func TestPrevPointerAddition(t *testing.T) {
 				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
 			}, 0, nil)
 			require.NoError(t, err)
+		}
+
+		// Hide all ephemeral messages by advancing the clock enough to hide
+		// the "ash" lines.  We also mock out the server call so we can
+		// simulate a chat with only long exploded ephemeral messages.
+		if ephemeralLifetime != nil {
+			t.Logf("expiry all ephemeral messages")
+			world.Fc.Advance(time.Second*time.Duration(*ephemeralLifetime) + chat1.ShowExplosionLifetime)
+			// Mock out server call for new messages
+			ri.GetThreadRemoteFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, arg chat1.GetThreadRemoteArg) (chat1.GetThreadRemoteRes, error) {
+				return chat1.GetThreadRemoteRes{
+					Thread: chat1.ThreadViewBoxed{
+						Pagination: &chat1.Pagination{},
+					},
+				}, nil
+			}
+			// Prepare a regular message and make sure it gets prev pointers
+			boxed, pendingAssetDeletes, _, _, _, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:              conv.Metadata.IdTriple,
+					Sender:            uid,
+					TlfName:           u.Username,
+					MessageType:       chat1.MessageType_TEXT,
+					EphemeralMetadata: ephemeralMetadata,
+				},
+				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
+			}, mt, &conv)
+			require.NoError(t, err)
+			require.Empty(t, pendingAssetDeletes)
+			// With all of the messages filtered because they exploded and the
+			// server not returning results, we give up and don't attach any
+			// prevs.
+			require.Empty(t, boxed.ClientHeader.Prev, "empty prev pointers")
+			ri.GetThreadRemoteFunc = nil
 		}
 
 		// Nuke the body cache

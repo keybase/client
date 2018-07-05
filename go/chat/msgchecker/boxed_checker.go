@@ -28,6 +28,7 @@ func boxedFieldLengthChecker(descriptibleItemName string, actualLength int, maxL
 }
 
 func checkMessageBoxedLength(msg chat1.MessageBoxed) error {
+	textMsgLength := getBoxedMaxTextLength(msg.ClientHeader.Conv.TopicType)
 	switch msg.GetMessageType() {
 	case chat1.MessageType_ATTACHMENT,
 		chat1.MessageType_DELETE,
@@ -36,9 +37,9 @@ func checkMessageBoxedLength(msg chat1.MessageBoxed) error {
 		chat1.MessageType_ATTACHMENTUPLOADED:
 		return nil
 	case chat1.MessageType_TEXT:
-		return boxedFieldLengthChecker("TEXT message", len(msg.BodyCiphertext.E), BoxedTextMessageBodyMaxLength)
+		return boxedFieldLengthChecker("TEXT message", len(msg.BodyCiphertext.E), textMsgLength)
 	case chat1.MessageType_EDIT:
-		return boxedFieldLengthChecker("EDIT message", len(msg.BodyCiphertext.E), BoxedTextMessageBodyMaxLength)
+		return boxedFieldLengthChecker("EDIT message", len(msg.BodyCiphertext.E), textMsgLength)
 	case chat1.MessageType_REACTION:
 		return boxedFieldLengthChecker("REACTION message", len(msg.BodyCiphertext.E), BoxedReactionMessageBodyMaxLength)
 	case chat1.MessageType_HEADLINE:
@@ -55,6 +56,9 @@ func checkMessageBoxedLength(msg chat1.MessageBoxed) error {
 	case chat1.MessageType_DELETEHISTORY:
 		return boxedFieldLengthChecker("DELETEHISTORY message", len(msg.BodyCiphertext.E),
 			BoxedDeleteHistoryMessageBodyMaxLength)
+	case chat1.MessageType_SENDPAYMENT:
+		return boxedFieldLengthChecker("SENDPAYMENT message", len(msg.BodyCiphertext.E),
+			BoxedSendPaymentMessageBodyMaxLength)
 	default:
 		return fmt.Errorf("unknown message type: %v", msg.GetMessageType())
 	}

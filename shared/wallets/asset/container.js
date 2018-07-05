@@ -1,37 +1,31 @@
 // @flow
-import {Assets} from '.'
-import {connect, type TypedState, type Dispatch} from '../../util/container'
-import {getAssets} from '../../constants/wallets'
+import * as Types from '../../constants/types/wallets'
+import * as Constants from '../../constants/wallets'
+import {connect, type TypedState} from '../../util/container'
+import Asset from '.'
 
-const mapStateToProps = (state: TypedState) => ({
-  assets: getAssets(state),
+type OwnProps = {
+  accountID: Types.AccountID,
+  index: number,
+}
+
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+  _asset: Constants.getAssets(state, ownProps.accountID).get(ownProps.index, Constants.makeAssets()),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
-
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const assets = stateProps.assets
-    .map(asset => ({
-      asset: {
-        availableToSend: asset.balanceAvailableToSend,
-        balance: asset.balanceTotal,
-        code: asset.assetCode,
-        equivAvailableToSend: '', // XXX: Need this from core.
-        equivBalance: `${asset.worth} ${asset.worthCurrency}`,
-        issuer: asset.issuer,
-        issuerAddress: '', // XXX: Need this from core.
-        name: asset.name,
-        reserves: [], // XXX: Need this from core.
-      },
-      type: 'asset',
-    }))
-    .toArray()
-  if (assets.length > 0) {
-    assets.unshift({type: 'header'})
-  }
+  const asset = stateProps._asset
   return {
-    assets,
+    availableToSend: asset.balanceAvailableToSend,
+    balance: asset.balanceTotal,
+    code: asset.assetCode,
+    equivAvailableToSend: '', // XXX: Need this from core.
+    equivBalance: `${asset.worth} ${asset.worthCurrency}`,
+    issuerAccountID: asset.issuerAccountID,
+    issuerName: asset.issuerName || 'Unknown',
+    name: asset.name,
+    reserves: [], // XXX: Need this from core.
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Assets)
+export default connect(mapStateToProps, null, mergeProps)(Asset)

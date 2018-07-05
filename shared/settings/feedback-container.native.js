@@ -1,6 +1,7 @@
 // @flow
 import logger from '../logger'
 import * as I from 'immutable'
+import * as ChatConstants from '../constants/chat2'
 import React, {Component} from 'react'
 import {HeaderHoc, HOCTimers, type PropsWithTimer} from '../common-adapters'
 import Feedback from './feedback.native'
@@ -122,6 +123,7 @@ const extraChatLogs = (state: TypedState) => {
   const chat = state.chat2
   const c = state.chat2.selectedConversation
   if (c) {
+    const metaMap: Object = ChatConstants.getMeta(state, c).toJS()
     return I.Map({
       badgeMap: chat.badgeMap.get(c),
       editingMap: chat.editingMap.get(c),
@@ -136,10 +138,31 @@ const extraChatLogs = (state: TypedState) => {
       })),
       messageOrdinals: chat.messageOrdinals.get(c),
       metaMap: {
-        ...chat.metaMap.get(c, I.Map()).toJS(),
-        channelname: 'X',
-        description: 'X',
-        snippet: 'X',
+        channelname: 'x',
+        conversationIDKey: metaMap.conversationIDKey,
+        description: 'x',
+        inboxVersion: metaMap.inboxVersion,
+        isMuted: metaMap.isMuted,
+        membershipType: metaMap.membershipType,
+        notificationsDesktop: metaMap.notificationsDesktop,
+        notificationsGlobalIgnoreMentions: metaMap.notificationsGlobalIgnoreMentions,
+        notificationsMobile: metaMap.notificationsMobile,
+        offline: metaMap.offline,
+        participants: 'x',
+        rekeyers: metaMap.rekeyers && metaMap.rekeyers.size,
+        resetParticipants: metaMap.resetParticipants && metaMap.resetParticipants.size,
+        retentionPolicy: metaMap.retentionPolicy,
+        snippet: 'x',
+        snippetDecoration: 'x',
+        supersededBy: metaMap.supersededBy,
+        supersedes: metaMap.supersedes,
+        teamRetentionPolicy: metaMap.teamRetentionPolicy,
+        teamType: metaMap.teamType,
+        teamname: metaMap.teamname,
+        timestamp: metaMap.timestamp,
+        tlfname: metaMap.tlfname,
+        trustedState: metaMap.trustedState,
+        wasFinalizedBy: metaMap.wasFinalizedBy,
       },
       pendingMode: chat.pendingMode,
       pendingOutboxToOrdinal: chat.pendingOutboxToOrdinal.get(c),

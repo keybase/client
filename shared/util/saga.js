@@ -118,13 +118,41 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
   return results
 }
 
+// Helper that expects a function which returns a promise that resolves to a put
+function safeTakeEveryPurePromise<A, RA>(
+  pattern: Pattern,
+  f: (state: TypedState, action: A) => null | false | Promise<RA>
+) {
+  return safeTakeEveryPure(pattern, function*(action: A) {
+    const state: TypedState = yield select()
+    const toPut = yield call(f, state, action)
+    if (toPut) {
+      yield put(toPut)
+    }
+  })
+}
+
+// like safeTakeEveryPure but simpler, only 2 params and gives you a state first
+function safeTakeEveryPureSimple<A, FinalAction>(
+  pattern: Pattern,
+  f: (state: TypedState, action: A) => null | false | FinalAction
+) {
+  return safeTakeEveryPure(pattern, function*(action: A) {
+    const state: TypedState = yield select()
+    const result = yield call(f, state, action)
+    if (result) {
+      yield result
+    }
+  })
+}
+
 // Like safeTakeEvery but the worker is pure (not a generator) optionally pass in a third argument
 // Which is a selector function that will select some state and pass it to pureWorker
 // whatever purework returns will be yielded on.
 // i.e. it can return put(someAction). That effectively transforms the input action into another action
 // It can also return all([put(action1), put(action2)]) to dispatch multiple actions
 function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
-  pattern: string | Array<any> | Function,
+  pattern: Pattern,
   pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
   actionCreatorsWithResult?: ?(result: R, action: A, updatedState: TypedState) => FinalAction,
   actionCreatorsWithError?: ?(result: R, action: A) => FinalActionError
@@ -344,6 +372,8 @@ export {
   race,
   safeTakeEvery,
   safeTakeEveryPure,
+  safeTakeEveryPurePromise,
+  safeTakeEveryPureSimple,
   safeTakeLatest,
   safeTakeLatestPure,
   safeTakeLatestWithCatch,

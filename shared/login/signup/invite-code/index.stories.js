@@ -2,24 +2,21 @@
 import * as React from 'react'
 import InviteCode from '.'
 import {action, storiesOf} from '../../../stories/storybook'
+import * as PropProviders from '../../../stories/prop-providers'
 
 const props = {
-  inviteCode: undefined,
-  inviteCodeErrorText: undefined,
+  error: undefined,
   onBack: action('onBack'),
-  onInviteCodeSubmit: action('onInviteCodeSubmit'),
   onRequestInvite: action('onRequestInvite'),
-  waiting: false,
+  onSubmit: action('onInviteCodeSubmit'),
 }
 
 const load = () => {
   storiesOf('Signup/Invite Code', module)
+    .addDecorator(PropProviders.CommonProvider())
     .add('Start', () => <InviteCode {...props} />)
-    .add('Code', () => <InviteCode {...props} inviteCode={'Code Entered'} />)
-    .add('Waiting', () => <InviteCode {...props} inviteCode={'Code Entered'} waiting={true} />)
-    .add('Error', () => (
-      <InviteCode {...props} inviteCode={'Code Entered'} inviteCodeErrorText={'This is an error'} />
-    ))
+    .add('Code', () => <InviteCode {...props} />)
+    .add('Error', () => <InviteCode {...props} error="This is an error" />)
 }
 
 export default load

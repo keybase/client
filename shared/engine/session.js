@@ -1,5 +1,5 @@
 // @flow
-import type {SessionID, WaitingHandlerType, EndHandlerType, MethodKey} from './types'
+import type {SessionID, EndHandlerType, MethodKey} from './types'
 import type {IncomingCallMapType} from '../constants/types/rpc-gen'
 import type {invokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
@@ -10,12 +10,14 @@ import {measureStart, measureStop} from '../dev/user-timings'
 
 // A session is a series of calls back and forth tied together with a single sessionID
 class Session {
+  // used to deal with waiting, set by engine
+  static _dispatchWaitingAction: (key: string, waiting: boolean) => void
   // Our id
   _id: SessionID
   // Map of methods => callbacks
   _incomingCallMap: IncomingCallMapType | {}
   // Let the outside know we're waiting
-  _waitingHandler: ?WaitingHandlerType
+  _waitingKey: string
   // Tell engine we're done
   _endHandler: ?EndHandlerType
   // Sequence IDs we've seen. Value is true if we've responded (often we get cancel after we've replied)
@@ -36,22 +38,22 @@ class Session {
   _outgoingRequests: Array<Object> = []
   _incomingRequests: Array<Object> = []
 
-  constructor(
+  constructor(p: {
     sessionID: SessionID,
     incomingCallMap: ?IncomingCallMapType,
-    waitingHandler: ?WaitingHandlerType,
+    waitingKey?: string,
     invoke: invokeType,
     endHandler: EndHandlerType,
     cancelHandler?: ?CancelHandlerType,
-    dangling?: boolean = false
-  ) {
-    this._id = sessionID
-    this._incomingCallMap = incomingCallMap || {}
-    this._waitingHandler = waitingHandler
-    this._invoke = invoke
-    this._endHandler = endHandler
-    this._cancelHandler = cancelHandler
-    this._dangling = dangling
+    dangling?: boolean,
+  }) {
+    this._id = p.sessionID
+    this._incomingCallMap = p.incomingCallMap || {}
+    this._waitingKey = p.waitingKey || ''
+    this._invoke = p.invoke
+    this._endHandler = p.endHandler
+    this._cancelHandler = p.cancelHandler
+    this._dangling = p.dangling || false
   }
 
   setId(sessionID: SessionID) {
@@ -79,8 +81,9 @@ class Session {
         reason: `[${waiting ? '+' : '-'}waiting]`,
         type: 'engineInternal',
       })
-      // Call the outer handler with all the params it needs
-      this._waitingHandler && this._waitingHandler(waiting, method, this._id)
+      if (this._waitingKey) {
+        Session._dispatchWaitingAction(this._waitingKey, waiting)
+      }
 
       // Request is finished, do cleanup
       if (!waiting) {

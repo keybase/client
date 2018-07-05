@@ -10,7 +10,7 @@ const props = {
   onAck: action('onAck'),
 }
 
-const provider = PropProviders.Common()
+const provider = PropProviders.CommonProvider()
 
 const load = () => {
   storiesOf('Profile/EditAvatar', module)

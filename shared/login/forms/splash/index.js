@@ -38,7 +38,7 @@ class Splash extends React.Component<Props, State> {
     if (!__STORYBOOK__) {
       this.props.setTimeout(() => {
         this.setState({showFeedback: true})
-      }, 4000)
+      }, 7000)
     }
   }
 

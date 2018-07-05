@@ -20,7 +20,7 @@ const props = {
   waitingForResponse: false,
 }
 
-const provider = PropProviders.Common()
+const provider = PropProviders.CommonProvider()
 
 const load = () => {
   storiesOf('Register/Passphrase', module)

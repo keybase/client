@@ -51,7 +51,7 @@ func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (acc
 			s.G().Log.CDebugf(ctx, "remote.Balances failed for %q: %s", acct.AccountID, err)
 			return nil, err
 		}
-		acct.BalanceDescription, err = balanceList(balances).nativeBalanceDescription()
+		acct.BalanceDescription, err = balanceList(balances).balanceDescription()
 		if err != nil {
 			return nil, err
 		}
@@ -59,13 +59,16 @@ func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (acc
 		accts = append(accts, acct)
 	}
 
-	// Put the primary account first, sort by name everything else
+	// Put the primary account first, then sort by name, then by account ID
 	sort.SliceStable(accts, func(i, j int) bool {
 		if accts[i].IsDefault {
 			return true
 		}
 		if accts[j].IsDefault {
 			return false
+		}
+		if accts[i].Name == accts[j].Name {
+			return accts[i].AccountID < accts[j].AccountID
 		}
 		return accts[i].Name < accts[j].Name
 	})
@@ -115,34 +118,26 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 	}
 
 	for _, d := range details.Balances {
-		// M1 only supports native balances
-		if d.Asset.Type != "native" {
-			continue
-		}
-
 		fmtAmount, err := stellar.FormatAmount(d.Amount, false)
 		if err != nil {
 			s.G().Log.CDebugf(ctx, "FormatAmount error: %s", err)
 			return nil, err
 		}
-		asset := stellar1.AccountAssetLocal{
-			Name:         d.Asset.Type,
-			BalanceTotal: fmtAmount,
-			AssetCode:    d.Asset.Code,
-			Issuer:       d.Asset.Issuer,
-		}
 
 		if d.Asset.Type == "native" {
-			asset.Name = "Lumens"
-			asset.AssetCode = "XLM"
-			asset.Issuer = "Stellar"
-			fmtAvailable, err := stellar.FormatAmount(details.Available, false)
+			fmtAvailable, err := stellar.FormatAmount(subtractFeeSoft(s.mctx(ctx), details.Available), false)
 			if err != nil {
 				return nil, err
 			}
-			asset.BalanceAvailableToSend = fmtAvailable
-			asset.WorthCurrency = displayCurrency
-
+			asset := stellar1.AccountAssetLocal{
+				Name:                   "Lumens",
+				BalanceTotal:           fmtAmount,
+				BalanceAvailableToSend: fmtAvailable,
+				AssetCode:              "XLM",
+				IssuerName:             "Stellar network",
+				IssuerAccountID:        "",
+				WorthCurrency:          displayCurrency,
+			}
 			var displayAmount string
 			if rateErr == nil {
 				displayAmount, rateErr = stellarnet.ConvertXLMToOutside(d.Amount, rate.Rate)
@@ -161,9 +156,19 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 					asset.Worth = displayFormatted
 				}
 			}
+			assets = append(assets, asset)
+		} else {
+			assets = append(assets, stellar1.AccountAssetLocal{
+				Name:                   d.Asset.Code,
+				BalanceTotal:           fmtAmount,
+				BalanceAvailableToSend: fmtAmount,
+				AssetCode:              d.Asset.Code,
+				IssuerName:             "", // TODO get verified asset names
+				IssuerAccountID:        d.Asset.Issuer,
+				Worth:                  "",
+				WorthCurrency:          "",
+			})
 		}
-
-		assets = append(assets, asset)
 	}
 
 	return assets, nil
@@ -517,13 +522,26 @@ func (s *Server) decryptNote(ctx context.Context, txid stellar1.TransactionID, n
 
 type balanceList []stellar1.Balance
 
-func (a balanceList) nativeBalanceDescription() (string, error) {
+// Example: "56.0227002 XLM + more"
+func (a balanceList) balanceDescription() (res string, err error) {
+	var more bool
 	for _, b := range a {
 		if b.Asset.IsNativeXLM() {
-			return stellar.FormatAmountXLM(b.Amount)
+			res, err = stellar.FormatAmountXLM(b.Amount)
+			if err != nil {
+				return "", err
+			}
+		} else {
+			more = true
 		}
 	}
-	return "0 XLM", nil
+	if res == "" {
+		res = "0 XLM"
+	}
+	if more {
+		res += " + more"
+	}
+	return res, nil
 }
 
 func (s *Server) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.ChangeWalletAccountNameLocalArg) (err error) {
@@ -807,6 +825,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 			// Check that the sender has enough asset available.
 			// Note: When adding support for sending non-XLM assets, check the asset instead of XLM here.
 			availableToSendXLM, err := bpc.AvailableXLMToSend(s.mctx(ctx), fromInfo.from)
+			availableToSendXLM = subtractFeeSoft(s.mctx(ctx), availableToSendXLM)
 			if err != nil {
 				log("error getting available balance: %v", err)
 			} else {
@@ -818,6 +837,10 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 					// Send amount is more than the available to send.
 					readyChecklist.amount = false // block sending
 					res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*", availableToSendXLM)
+					availableToSendXLMFmt, err := stellar.FormatAmount(availableToSendXLM, false)
+					if err == nil {
+						res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*", availableToSendXLMFmt)
+					}
 					if arg.Currency != nil && amountX.rate != nil {
 						// If the user entered an amount in outside currency and an exchange
 						// rate is available, attempt to show them available balance in that currency.
@@ -1121,4 +1144,20 @@ func (s *Server) CreateWalletAccountLocal(ctx context.Context, arg stellar1.Crea
 		return res, err
 	}
 	return stellar.CreateNewAccount(s.mctx(ctx), arg.Name)
+}
+
+// Subtract a 100 stroop fee from the available balance.
+// This shows the real available balance assuming an intent to send a 1 op tx.
+// Does not error out, just shows the inaccurate answer.
+func subtractFeeSoft(mctx libkb.MetaContext, availableStr string) string {
+	available, err := stellaramount.ParseInt64(availableStr)
+	if err != nil {
+		mctx.CDebugf("error parsing available balance: %v", err)
+		return availableStr
+	}
+	available -= 100
+	if available < 0 {
+		available = 0
+	}
+	return stellaramount.StringFromInt64(available)
 }

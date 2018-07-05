@@ -51,7 +51,11 @@
         },
         {
           "type": "string",
-          "name": "issuer"
+          "name": "issuerName"
+        },
+        {
+          "type": "string",
+          "name": "issuerAccountID"
         },
         {
           "type": "string",
@@ -227,10 +231,6 @@
         {
           "type": "string",
           "name": "amountDescription"
-        },
-        {
-          "type": "string",
-          "name": "amountValue"
         },
         {
           "type": "BalanceDelta",

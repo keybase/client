@@ -545,6 +545,16 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageSendPayment",
+      "fields": [
+        {
+          "type": "string",
+          "name": "kbTxID"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageBody",
       "switch": {
@@ -635,6 +645,13 @@
             "def": false
           },
           "body": "MessageReaction"
+        },
+        {
+          "label": {
+            "name": "SENDPAYMENT",
+            "def": false
+          },
+          "body": "MessageSendPayment"
         }
       ]
     },
