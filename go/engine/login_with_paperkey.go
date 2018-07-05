@@ -97,7 +97,7 @@ func (e *LoginWithPaperKey) Run(m libkb.MetaContext) error {
 	}
 	m.CDebugf("Got LKS secret")
 
-	err = secretStore.StoreSecret(secret)
+	err = secretStore.StoreSecret(m, secret)
 	if err != nil {
 		return err
 	}

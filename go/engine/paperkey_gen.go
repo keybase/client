@@ -193,7 +193,7 @@ func (e *PaperKeyGen) getClientHalfFromSecretStore(m libkb.MetaContext) (clientH
 		return clientHalf, ppgen, errors.New("No secret store available")
 	}
 
-	secret, err := secretStore.RetrieveSecret()
+	secret, err := secretStore.RetrieveSecret(m)
 	if err != nil {
 		return clientHalf, ppgen, err
 	}
