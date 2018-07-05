@@ -119,8 +119,8 @@ https://issuetracker.google.com/issues/62395878#comment7 , i.e. put
 If you're installing on Linux, you'll want to get KVM set
 up. Otherwise, you'll see this message:
 
-```sh
-./emulator @Nexus_5X_API_28_x86
+```
+> ./emulator @Nexus_5X_API_28_x86
 emulator: ERROR: x86 emulation currently requires hardware acceleration!
 Please ensure KVM is properly installed and usable.
 CPU acceleration status: This user doesn't have permissions to use KVM (/dev/kvm)
