@@ -264,6 +264,10 @@ func (s *TeamEKBoxStorage) DeleteExpired(ctx context.Context, teamID keybase1.Te
 	merkleCtime := keybase1.TimeFromSeconds(merkleRoot.Ctime()).Time()
 	for gen, teamEKBox := range teamEKBoxes {
 		keyAge := merkleCtime.Sub(teamEKBox.Metadata.Ctime.Time())
+		// TeamEKs will never encrypt new data if the current key is older than
+		// libkb.EphemeralKeyGenInterval, thus the maximum lifetime of
+		// ephemeral content will not exceed libkb.MinEphemeralKeyLifetime =
+		// libkb.MaxEphemeralContentLifetime + libkb.EphemeralKeyGenInterval
 		if keyAge >= libkb.MinEphemeralKeyLifetime {
 			expired = append(expired, gen)
 		}

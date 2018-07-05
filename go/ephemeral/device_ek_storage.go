@@ -390,10 +390,11 @@ func (s *DeviceEKStorage) getExpiredGenerations(ctx context.Context, keyMap keyE
 	}
 	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
 
-	// Sort the generations we have so we can walk through them in order.
 	for i, generation := range keys {
 		keyCtime := keyMap[generation].Time()
 
+		// Offset between the current key and the generation after it. Allowed
+		// to be at most libkb.MaxEphemeralKeyStaleness
 		expiryOffset1 := libkb.MaxEphemeralKeyStaleness
 		if i < len(keys)-1 {
 			expiryOffset1 = keyMap[keys[i+1]].Time().Sub(keyCtime)
@@ -403,10 +404,12 @@ func (s *DeviceEKStorage) getExpiredGenerations(ctx context.Context, keyMap keyE
 			}
 		}
 
+		// Offset between the key one generation older and two generations
+		// older than the current key. Allowed to be at most
+		// libkb.MaxEphemeralKeyStaleness
 		expiryOffset2 := libkb.MaxEphemeralKeyStaleness
 		if i < len(keys)-2 {
 			expiryOffset2 = keyMap[keys[i+2]].Time().Sub(keyMap[keys[i+1]].Time())
-			// Offset can be max libkb.MaxEphemeralKeyStaleness
 			if expiryOffset2 > libkb.MaxEphemeralKeyStaleness {
 				expiryOffset2 = libkb.MaxEphemeralKeyStaleness
 			}
