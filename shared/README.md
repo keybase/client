@@ -364,6 +364,22 @@ See [this
 link](https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers)
 for how to increase the watch limit; I set mine to 65536.
 
+On Android 28 and above HTTP traffic is disabled by default which can block
+Metro Bundler from running properly. We have manually allowed `127.0.0.1` to
+have HTTP traffic, so if you see an error about connecting to the bundler
+server you should manually change the dev server URL and then kill and restart
+the app:
+
+```sh
+# First enable loopback
+adb reverse tcp:8081 tcp:8081
+# Opens react native debug menu
+# https://facebook.github.io/react-native/docs/debugging.html#accessing-the-in-app-developer-menu
+adb shell input keyevent 82
+# Now tap "Dev settings" and set "Debug server host & port for device to
+# "127.0.0.1:8081"
+```
+
 #### Native inspector
 
 If you get this error message on trying to open the inspector:
@@ -389,6 +405,6 @@ We have some custom forks of dependencies. This is usually a temporary fix and i
 
 Take a look at [this repo](https://github.com/ncuillery/rn-diff), which contains branches for every version of react native. For example, this URL
 
- `https://github.com/ncuillery/rn-diff/compare/rn-0.51.0...rn-0.53.0` 
- 
+ `https://github.com/ncuillery/rn-diff/compare/rn-0.51.0...rn-0.53.0`
+
  generates the diff between RN versions in a bare RN app. Use this to figure out if any configuration changes are needed. If the target version isn't in `rn-diff` yet, there'll usually be a fork that has it.
