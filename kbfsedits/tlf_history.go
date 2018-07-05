@@ -234,9 +234,15 @@ func newRecomputer() *recomputer {
 	}
 }
 
+var filesToIgnore = map[string]bool{
+	".Trashes":   true,
+	".fseventsd": true,
+	".DS_Store":  true,
+}
+
 func ignoreFile(filename string) bool {
 	_, base := path.Split(filename)
-	return strings.HasPrefix(base, "._")
+	return filesToIgnore[base] || strings.HasPrefix(base, "._")
 }
 
 // processNotification adds the notification to the recomputer's
