@@ -22,7 +22,6 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 // Logs is the struct to specify the path of log files
@@ -515,7 +514,7 @@ func (l *LogSendContext) mergeExtendedStatus(status string) string {
 		return status
 	}
 
-	extStatus, err := GetExtendedStatus(context.TODO(), l.G())
+	extStatus, err := GetExtendedStatus(NewMetaContextTODO(l.G()))
 	if err != nil {
 		return status
 	}

@@ -114,7 +114,7 @@ func (h ConfigHandler) ClearValue(_ context.Context, path string) error {
 }
 
 func (h ConfigHandler) GetExtendedStatus(ctx context.Context, sessionID int) (res keybase1.ExtendedStatus, err error) {
-	return libkb.GetExtendedStatus(ctx, h.G())
+	return libkb.GetExtendedStatus(libkb.NewMetaContext(ctx, h.G()))
 }
 
 func (h ConfigHandler) GetConfig(_ context.Context, sessionID int) (keybase1.Config, error) {
