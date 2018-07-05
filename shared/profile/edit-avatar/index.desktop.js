@@ -13,7 +13,14 @@ import {
   iconCastPlatformStyles,
 } from '../../common-adapters'
 import {EDIT_AVATAR_ZINDEX} from '../../constants/profile'
-import {glamorous, globalColors, globalMargins, globalStyles, styleSheetCreate} from '../../styles'
+import {
+  collapseStyles,
+  glamorous,
+  globalColors,
+  globalMargins,
+  globalStyles,
+  styleSheetCreate,
+} from '../../styles'
 import type {Props} from '.'
 
 type State = {
@@ -236,10 +243,12 @@ class EditAvatar extends React.Component<Props, State> {
     return (
       <MaybePopup
         onClose={this.props.onClose}
-        styleCover={{
-          cursor: this.state.hasPreview && this.state.dragging ? 'grabbing' : 'default',
-          zIndex: EDIT_AVATAR_ZINDEX,
-        }}
+        styleCover={collapseStyles([
+          styles.cover,
+          {
+            cursor: !this.state.hasPreview ? 'default' : this.state.dragging ? 'grabbing' : 'grab',
+          },
+        ])}
         onMouseUp={this._onMouseUp}
         onMouseDown={this._onMouseDown}
         onMouseMove={this._onMouseMove}
@@ -252,7 +261,7 @@ class EditAvatar extends React.Component<Props, State> {
           style={styles.container}
         >
           <Text type="BodyBig">Drag and drop a new profile image</Text>
-          <Text type="BodyPrimaryLink" onClick={this._filePickerOpen}>
+          <Text type="BodyPrimaryLink" className="hover-underline" onClick={this._filePickerOpen}>
             or browse your computer for one
           </Text>
           <HoverBox
@@ -360,6 +369,9 @@ const styles = styleSheetCreate({
     minWidth: 460,
     paddingBottom: globalMargins.xlarge,
     paddingTop: globalMargins.xlarge,
+  },
+  cover: {
+    zIndex: EDIT_AVATAR_ZINDEX,
   },
   hidden: {
     display: 'none',
