@@ -371,14 +371,14 @@ server you should manually change the dev server URL and then kill and restart
 the app:
 
 ```sh
-# First enable loopback
+# Enable loopback
 adb reverse tcp:8081 tcp:8081
-# Opens react native debug menu
-# https://facebook.github.io/react-native/docs/debugging.html#accessing-the-in-app-developer-menu
-adb shell input keyevent 82
-# Now tap "Dev settings" and set "Debug server host & port for device to
-# "127.0.0.1:8081"
 ```
+
+Then open the [react native debug
+menu](https://facebook.github.io/react-native/docs/debugging.html#accessing-the-in-app-developer-menu),
+tap "Dev settings" and set "Debug server host & port for device" to
+`127.0.0.1:8081`
 
 #### Native inspector
 
