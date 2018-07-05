@@ -46,7 +46,6 @@ const exportSecretKey = (action: WalletsGen.ExportSecretKeyPayload) =>
   Saga.call(RPCTypes.localExportSecretKeyLocalRpcPromise, {accountID: action.payload.accountID})
 
 const exportSecretKeySuccess = (res: RPCTypes.SecretKey, action: WalletsGen.ExportSecretKeyPayload) => {
-  console.warn('res is', res)
   const {accountID} = action.payload
   return Saga.put(
     WalletsGen.createSecretKeyReceived({
