@@ -1178,9 +1178,20 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 			// Use a channel that will never fire instead.
 			timerChan = make(chan time.Time)
 		}
+
+		state := keybase1.AppState_FOREGROUND
 		select {
 		case <-fbm.shutdownChan:
 			return
+		case state = <-fbm.g.AppState.NextUpdate(&state):
+			for state != keybase1.AppState_FOREGROUND {
+				fbm.log.CDebugf(context.Background(),
+					"Pausing QR while not foregrounded: state=%s", state)
+				state = <-fbm.g.AppState.NextUpdate(&state)
+			}
+			fbm.log.CDebugf(
+				context.Background(), "Resuming QR while foregrounded")
+			continue
 		case <-timerChan:
 			fbm.reclamationGroup.Add(1)
 		case <-fbm.forceReclamationChan:
