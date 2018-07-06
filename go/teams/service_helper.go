@@ -1590,16 +1590,17 @@ func FindNextMerkleRootAfterRemoval(mctx libkb.MetaContext, arg keybase1.FindNex
 		return !p.Role.IsWriterOrAbove()
 	}
 	var earliestDemotion int
-	var logPoint keybase1.UserLogPoint
+	var logPoint *keybase1.UserLogPoint
 	for i := len(logPoints) - 1; i >= 0; i-- {
 		if demotionPredicate(logPoints[i]) {
 			earliestDemotion = i
 		} else if earliestDemotion != 0 {
-			logPoint = logPoints[earliestDemotion].DeepCopy()
+			p := logPoints[earliestDemotion].DeepCopy()
+			logPoint = &p
 			break
 		}
 	}
-	if &logPoint == nil {
+	if logPoint == nil {
 		return res, libkb.NotFoundError{Msg: fmt.Sprintf("no downgraded log point for user found")}
 	}
 
