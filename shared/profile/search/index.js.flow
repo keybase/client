@@ -1,6 +1,5 @@
 // @flow
 import {Component} from 'react'
-import type {UserDetails} from '../../search/user-input'
 
 export type Props = {
   onClick: (id: string) => void,
