@@ -46,8 +46,10 @@ func (n *NotifyRouterActivityRouter) Start(ctx context.Context, uid gregor1.UID)
 func (n *NotifyRouterActivityRouter) Stop(ctx context.Context) chan struct{} {
 	n.Lock()
 	defer n.Unlock()
+	if n.running {
+		close(n.notifyCh)
+	}
 	n.running = false
-	close(n.notifyCh)
 	ch := make(chan struct{})
 	close(ch)
 	return ch

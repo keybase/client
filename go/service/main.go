@@ -587,8 +587,18 @@ func (d *Service) chatOutboxPurgeCheck() {
 			}
 			gregorUID := gregor1.UID(uid.ToBytes())
 			g := globals.NewContext(d.G(), d.ChatG())
-			if err := storage.NewOutbox(g, gregorUID).OutboxPurge(context.Background()); err != nil {
+			ephemeralPurged, err := storage.NewOutbox(g, gregorUID).OutboxPurge(context.Background())
+			if err != nil {
 				m.CDebugf("OutboxPurge error: %s", err)
+				continue
+			}
+			if len(ephemeralPurged) > 0 {
+				act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
+					OutboxRecords:    ephemeralPurged,
+					IsEphemeralPurge: true,
+				})
+				d.ChatG().ActivityNotifier.Activity(context.Background(), gregorUID, chat1.TopicType_NONE,
+					&act)
 			}
 		}
 	}()

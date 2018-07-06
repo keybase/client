@@ -493,17 +493,17 @@ func (o *Outbox) SprinkleIntoThread(ctx context.Context, convID chat1.Conversati
 // they leave it). Currently we purge anything that is in the error state and
 // has been in the outbox for > errorPurgeCutoff minutes for regular messages
 // or ephemeralPurgeCutoff minutes for ephemeral messages.
-func (o *Outbox) OutboxPurge(ctx context.Context) (err error) {
+func (o *Outbox) OutboxPurge(ctx context.Context) (ephemeralPurged []chat1.OutboxRecord, err error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
 	obox, rerr := o.readDiskOutbox(ctx)
 	if rerr != nil {
-		return o.maybeNuke(rerr, o.dbKey())
+		return ephemeralPurged, o.maybeNuke(rerr, o.dbKey())
 	}
 
-	var ephemeralPurged, recs []chat1.OutboxRecord
+	var recs []chat1.OutboxRecord
 	for _, obr := range obox.Records {
 		st, err := obr.State.State()
 		if err != nil {
@@ -531,16 +531,9 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (err error) {
 
 	// Write out diskbox
 	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
-		return o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
+		return ephemeralPurged, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
 	}
 
-	if len(ephemeralPurged) > 0 {
-		act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
-			OutboxRecords:    ephemeralPurged,
-			IsEphemeralPurge: true,
-		})
-		o.G().ActivityNotifier.Activity(context.Background(), o.GetUID(), chat1.TopicType_NONE, &act)
-	}
-	return nil
+	return ephemeralPurged, nil
 }

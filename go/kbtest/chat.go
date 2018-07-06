@@ -47,6 +47,9 @@ func (c ChatTestContext) Cleanup() {
 	if c.ChatG.FetchRetrier != nil {
 		<-c.ChatG.FetchRetrier.Stop(context.TODO())
 	}
+	if c.ChatG.ActivityNotifier != nil {
+		<-c.ChatG.ActivityNotifier.Stop(context.TODO())
+	}
 	c.TestContext.Cleanup()
 }
 
