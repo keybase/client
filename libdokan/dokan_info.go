@@ -30,19 +30,19 @@ func (ep *errorPrinter) Printf(s string, os ...interface{}) {
 
 func debugFileInfo(epc *errorPrinter, path string) {
 	f, err := os.Open(path)
-	epc.Printf("debugFileInfo: open(%q) -> %v, %v\n", path, f, err)
+	epc.Printf("debugFileInfo: open(%q) -> %v, %+v\n", path, f, err)
 	if err != nil {
 		return
 	}
 	defer f.Close()
 	fi, err := f.Stat()
-	epc.Printf("debugFileInfo: stat(%q) -> %v, %v\n", path, fi, err)
+	epc.Printf("debugFileInfo: stat(%q) -> %v, %+v\n", path, fi, err)
 	if fi != nil {
 		epc.Printf("debugFileInfo: modtime is %v\n", fi.ModTime())
 	}
 	h := sha256.New()
 	n, err := io.Copy(h, f)
-	epc.Printf("debugFileInfo: read bytes -> %v, %v\n", n, err)
+	epc.Printf("debugFileInfo: read bytes -> %d, %+v\n", n, err)
 	if err != nil {
 		return
 	}
@@ -68,7 +68,7 @@ func logDokanServiceInfo(epc *errorPrinter) {
 	epc.Printf("Running 'sc query dokan1'")
 	bs, err := exec.Command("sc", "query", "dokan1").CombinedOutput()
 	if err != nil {
-		epc.Printf("exec.Command error: %v\n", err)
+		epc.Printf("exec.Command error: %+v\n", err)
 		return
 	}
 	epc.Printf("%s\n", bs)
