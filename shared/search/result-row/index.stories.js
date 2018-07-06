@@ -7,36 +7,26 @@ import {Box} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 
-const commonRow = {
+const defaultRow: Props = {
   id: 'result',
-  onClick: action('On click'),
-  onShowTracker: action('Show tracker'),
-  selected: false,
-  showTrackerButton: false,
-  userIsInTeam: false,
-}
-const kbRow = {
-  ...commonRow,
+
   leftFollowingState: 'NoState',
   leftFullname: 'John Zila',
   leftIcon: null,
   leftService: 'Keybase',
   leftUsername: 'jzila',
-  rightFollowingState: 'NoState',
-  rightIcon: null,
-  rightService: null,
-  rightUsername: null,
-}
 
-const serviceRow = {
-  ...commonRow,
-  leftFollowingState: 'NoState',
-  leftFullname: 'John Zila',
-  leftUsername: 'jzila',
   rightFollowingState: 'NoState',
   rightIcon: null,
   rightService: null,
   rightUsername: null,
+
+  showTrackerButton: false,
+  onShowTracker: action('Show tracker'),
+  onClick: action('On click'),
+  onMouseOver: action('On mouse over'),
+  selected: false,
+  userIsInTeam: false,
 }
 
 const ownProps = {
@@ -48,7 +38,7 @@ const ownProps = {
 }
 
 const mockOwnPropsToProps = (ownProps: OwnProps): Props => {
-  const result = kbRow
+  const result = defaultRow
   const leftFollowingState = 'NotFollowing'
   const rightFollowingState = 'NotFollowing'
   return {
@@ -73,35 +63,35 @@ const load = () => {
     .add('Result row', () => {
       return (
         <Box style={isMobile ? {} : {width: 480}}>
-          <ResultRow {...kbRow} />
-          <ResultRow {...kbRow} selected={true} />
-          <ResultRow {...kbRow} leftFollowingState="Following" />
-          <ResultRow {...kbRow} leftFollowingState="NotFollowing" />
-          <ResultRow {...kbRow} leftFollowingState="You" />
-          <ResultRow {...kbRow} showTrackerButton={true} />
+          <ResultRow {...defaultRow} />
+          <ResultRow {...defaultRow} selected={true} />
+          <ResultRow {...defaultRow} leftFollowingState="Following" />
+          <ResultRow {...defaultRow} leftFollowingState="NotFollowing" />
+          <ResultRow {...defaultRow} leftFollowingState="You" />
+          <ResultRow {...defaultRow} showTrackerButton={true} />
           <ResultRow
-            {...kbRow}
+            {...defaultRow}
             leftFullname="John Zila on GitHub"
             rightIcon="iconfont-identity-github"
             rightService="GitHub"
             rightUsername="jzilagithub"
           />
           <ResultRow
-            {...kbRow}
+            {...defaultRow}
             rightIcon="iconfont-identity-github"
             rightService="GitHub"
             rightUsername="jzilagithub"
           />
-          <ResultRow {...serviceRow} leftIcon="icon-twitter-logo-24" leftService="Twitter" />
+          <ResultRow {...defaultRow} leftIcon="icon-twitter-logo-24" leftService="Twitter" />
           <ResultRow
-            {...serviceRow}
+            {...defaultRow}
             leftIcon="icon-twitter-logo-24"
             leftService="Twitter"
             rightService="Keybase"
             rightUsername="jzila"
           />
           <ResultRow
-            {...serviceRow}
+            {...defaultRow}
             leftIcon="icon-twitter-logo-24"
             leftService="Twitter"
             rightFollowingState="Following"
@@ -109,7 +99,7 @@ const load = () => {
             rightUsername="jzila"
           />
           <ResultRow
-            {...serviceRow}
+            {...defaultRow}
             leftIcon="icon-twitter-logo-24"
             leftService="Twitter"
             rightFollowingState="NotFollowing"
@@ -117,17 +107,17 @@ const load = () => {
             rightUsername="jzila"
           />
           <ResultRow
-            {...serviceRow}
+            {...defaultRow}
             leftIcon="icon-twitter-logo-24"
             leftService="Twitter"
             rightFollowingState="You"
             rightService="Keybase"
             rightUsername="jzila"
           />
-          <ResultRow {...serviceRow} leftIcon="icon-facebook-logo-24" leftService="Facebook" />
-          <ResultRow {...serviceRow} leftIcon="icon-github-logo-24" leftService="GitHub" />
-          <ResultRow {...serviceRow} leftIcon="icon-reddit-logo-24" leftService="Reddit" />
-          <ResultRow {...serviceRow} leftIcon="icon-hacker-news-logo-24" leftService="Hacker News" />
+          <ResultRow {...defaultRow} leftIcon="icon-facebook-logo-24" leftService="Facebook" />
+          <ResultRow {...defaultRow} leftIcon="icon-github-logo-24" leftService="GitHub" />
+          <ResultRow {...defaultRow} leftIcon="icon-reddit-logo-24" leftService="Reddit" />
+          <ResultRow {...defaultRow} leftIcon="icon-hacker-news-logo-24" leftService="Hacker News" />
         </Box>
       )
     })
