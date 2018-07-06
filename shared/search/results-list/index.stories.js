@@ -64,12 +64,15 @@ Object.keys(connectPropsMap).forEach(id => {
   }
 })
 
+const onMouseOver = action('onMouseOver')
+
 // Can extend to vary items based on ownProps.searchKey if needed.
 const mockOwnPropsToProps = (ownProps: OwnProps): Props => {
   return {
     ...ownProps,
     pending: false,
     items: Object.keys(connectPropsMap),
+    onMouseOver,
     selectedId: null,
     showSearchSuggestions: false,
   }
@@ -77,10 +80,9 @@ const mockOwnPropsToProps = (ownProps: OwnProps): Props => {
 
 const defaultOwnProps: OwnProps = {
   searchKey: 'search-key',
-  disableIfInTeamName: '',
-  onClick: action('onClick'),
-  onMouseOver: action('onMouseOver'),
   onShowTracker: action('onShowTracker'),
+  onClick: action('onClick'),
+  disableIfInTeamName: '',
 }
 
 const defaultProps = mockOwnPropsToProps(defaultOwnProps)
