@@ -13,7 +13,7 @@ import {withStateHandlers, withHandlers, compose, lifecycle} from 'recompose'
 
 import type {TypedState} from '../../constants/reducer'
 
-type OwnProps = {|
+export type OwnProps = {|
   searchKey: string,
   autoFocus?: boolean,
   focusInputCounter?: number,
