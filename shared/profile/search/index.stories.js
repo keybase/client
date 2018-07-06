@@ -66,10 +66,33 @@ const props = {
   keyPath: ['searchChat'],
 }
 
+const inputCommon = {
+  autoFocus: false,
+  onAddSelectedUser: action('Add selected user'),
+  onCancel: action('Cancel'),
+  onChangeText: action('Change text'),
+  onClearSearch: action('Clear search'),
+  onClickAddButton: action('Add button click'),
+  onEnterEmptyText: action('onEnterEmptyText'),
+  onMoveSelectDown: action('Move select down'),
+  onMoveSelectUp: action('Move select up'),
+  onRemoveUser: action('Remove user'),
+  placeholder: 'Type someone',
+  selectedSearchId: null,
+
+  userItems: [],
+  usernameText: '',
+
+  search: action('search'),
+}
+
 const provider = createPropProvider(PropProviders.Common(), {
   SearchResultRow: (props: {id: string}) => servicesResultsListMapCommonRows[props.id],
   Chooser: () => {
     return props
+  },
+  UserInput: () => {
+    return inputCommon
   },
 })
 
