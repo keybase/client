@@ -23,7 +23,6 @@ const commonServicesResultMapPropsKB = {
   rightIcon: null,
   rightService: null,
   rightUsername: null,
-  showTrackerButton: false,
 }
 
 const servicesResultsListMapCommonRows = {

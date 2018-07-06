@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as PropProviders from '../../stories/prop-providers'
 import ResultRow, {type Props} from '.'
 import ConnectedResultRow, {type OwnProps} from './container'
+import {makeSearchResult} from '../../constants/search'
 import {type SearchResultId, type SearchResult} from '../../constants/types/search'
 import {Box} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
@@ -22,7 +23,6 @@ const defaultProps: Props = {
   rightService: null,
   rightUsername: null,
 
-  showTrackerButton: false,
   onShowTracker: action('Show tracker'),
   onClick: action('On click'),
   onMouseOver: action('On mouse over'),
@@ -36,20 +36,15 @@ const ownProps = {
   selected: false,
   onClick: action('On click'),
   onMouseOver: action('On mouse over'),
-  onShowTracker: action('Show tracker'),
 }
 
-const mockOwnPropsToProps = (ownProps: OwnProps, results: {[id: SearchResultId]: SearchResult}): Props => {
-  const result = results[ownProps.id]
+const mockOwnPropsToProps = (ownProps: OwnProps, results: {[id: SearchResultId]: ?SearchResult}): Props => {
+  const result: SearchResult = results[ownProps.id] || makeSearchResult()
   const leftFollowingState = 'NotFollowing'
   const rightFollowingState = 'NotFollowing'
   return {
+    ...ownProps,
     ...result,
-    selected: false,
-    onClick: ownProps.onClick,
-    onMouseOver: ownProps.onMouseOver,
-    onShowTracker: ownProps.onShowTracker,
-    showTrackerButton: !!ownProps.onShowTracker,
     leftFollowingState,
     rightFollowingState,
     userIsInTeam: false,
@@ -71,7 +66,7 @@ const load = () => {
           <ResultRow {...defaultProps} leftFollowingState="Following" />
           <ResultRow {...defaultProps} leftFollowingState="NotFollowing" />
           <ResultRow {...defaultProps} leftFollowingState="You" />
-          <ResultRow {...defaultProps} showTrackerButton={true} />
+          <ResultRow {...defaultProps} onShowTracker={action('Show tracker')} />
           <ResultRow
             {...defaultProps}
             leftFullname="John Zila on GitHub"
