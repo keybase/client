@@ -1,4 +1,0 @@
-// @flow
-import * as React from 'react'
-export type Props = {url: string}
-declare export default class QRImage extends React.Component<Props> {}

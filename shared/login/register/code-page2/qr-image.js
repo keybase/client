@@ -10,7 +10,8 @@ type Props = {
 
 const cellSize = 2
 
-class Qr extends React.PureComponent<Props> {
+// Just rendering a bunch of divs. this is ok (maybe slow) . will have to see about native. if not go back to doing the image thing
+class QrImage extends React.PureComponent<Props> {
   render() {
     const qr = QRCodeGen(4, 'L')
     qr.addData(this.props.code)
@@ -22,8 +23,9 @@ class Qr extends React.PureComponent<Props> {
       for (let y = 0; y < size; ++y) {
         children.push(
           <Box
+            key={`${x}:${y}`}
             style={{
-              backgroundColor: globalColors.blue3,
+              backgroundColor: qr.isDark(x, y) ? globalColors.blue : globalColors.transparent,
               height: cellSize,
               left: x * cellSize,
               position: 'absolute',
@@ -35,8 +37,9 @@ class Qr extends React.PureComponent<Props> {
       }
     }
 
-    return <React.Fragment>{children}</React.Fragment>
+    const dim = size * cellSize
+    return <Box style={{height: dim, position: 'relative', width: dim}}>{children}</Box>
   }
 }
 
-export default Qr
+export default QrImage

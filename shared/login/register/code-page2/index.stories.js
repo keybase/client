@@ -3,7 +3,6 @@ import * as PropProviders from '../../../stories/prop-providers'
 import * as React from 'react'
 import CodePage2 from '.'
 import {action, storiesOf} from '../../../stories/storybook'
-import {qrGenerate} from '../../../constants/login'
 // import * as Helper from './helper'
 
 const textCode = 'scrub disagree sheriff holiday cabin habit mushroom member four'
@@ -20,7 +19,6 @@ const derivedProps = (
       : 'oldMacMini'
     : ''
   return {
-    QRUrl: qrGenerate(textCode),
     currentDeviceAlreadyProvisioned,
     currentDeviceName,
     currentDeviceType,

@@ -175,12 +175,18 @@ const Qr = (p: Props & {children: React.Node}) => {
   const instructions = (
     <Box2 direction="vertical">
       {p.currentDeviceAlreadyProvisioned ? (
-        <Text type="Body">
-          In <Text type="BodySemiboldItalic">{p.otherDeviceName}</Text>, go to Devices > Add new > New phone.
+        <Text type="HeaderBig" style={styles.instructions}>
+          In{' '}
+          <Text type="HeaderBigExtrabold" style={styles.instructions}>
+            {p.otherDeviceName}
+          </Text>, go to Devices > Add new > New phone.
         </Text>
       ) : (
-        <Text type="Body">
-          Ready to provision using <Text type="BodySemiboldItalic">{p.otherDeviceName}</Text>
+        <Text type="HeaderBig" style={styles.instructions}>
+          Ready to provision using{' '}
+          <Text type="HeaderBigExtrabold" style={styles.instructions}>
+            {p.otherDeviceName}
+          </Text>
         </Text>
       )}
     </Box2>
@@ -193,7 +199,7 @@ const Qr = (p: Props & {children: React.Node}) => {
         direction="vertical"
       >
         <Box2 direction="vertical" style={styles.qrImageContainer}>
-          <QRImage url={p.QRUrl} />
+          <QRImage code={p.textCode} />
         </Box2>
         <QRScan onScan={p.onSubmitTextCode} />
       </Box2>
@@ -250,6 +256,10 @@ const Qr = (p: Props & {children: React.Node}) => {
 // }
 
 const styles = styleSheetCreate({
+  instructions: {
+    color: globalColors.white,
+    textAlign: 'center',
+  },
   qrHolder: {
     backgroundColor: globalColors.white,
     borderRadius: 8,

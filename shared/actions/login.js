@@ -44,13 +44,14 @@ const InputCancelError = {
 }
 
 function _generateQRCode(_, state: TypedState) {
-  if (state.login.codePageTextCode) {
-    return Saga.put(
-      LoginGen.createSetQRCode({
-        codePageQrCode: new HiddenString(Constants.qrGenerate(state.login.codePageTextCode.stringValue())),
-      })
-    )
-  }
+  // TODO clean this up
+  // if (state.login.codePageTextCode) {
+    // return Saga.put(
+      // LoginGen.createSetQRCode({
+        // codePageQrCode: new HiddenString(Constants.qrGenerate(state.login.codePageTextCode.stringValue())),
+      // })
+    // )
+  // }
 }
 
 function* getAccounts(): Generator<any, void, any> {

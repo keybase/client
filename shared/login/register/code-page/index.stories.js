@@ -3,7 +3,7 @@ import * as React from 'react'
 import CodePage from '.'
 import {action, storiesOf} from '../../../stories/storybook'
 import {
-  qrGenerate,
+  // qrGenerate,
   codePageDeviceRoleExistingPhone,
   codePageDeviceRoleExistingComputer,
 } from '../../../constants/login'
@@ -17,7 +17,7 @@ const props = {
   onBack: action('onBack'),
   onChangeText: action('onChangeText'),
   onKeyDown: action('onKeyDown'),
-  qrCode: qrGenerate('derive jump shop federal'),
+  // qrCode: qrGenerate('derive jump shop federal'),
   qrCodeScanned: false,
   qrScanned: action('qrScanned'),
   resetQRCodeScanned: action('resetQRCodeScanned'),

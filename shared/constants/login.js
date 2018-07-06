@@ -41,15 +41,6 @@ function defaultModeForDeviceRoles(
   return null
 }
 
-// function qrGenerate(code: string): string {
-// const QRCodeGen = require('qrcode-generator')
-// const qr = QRCodeGen(4, 'L')
-// qr.addData(code)
-// qr.make()
-// // return qr.createDataURL(2, 0)
-// renderTo2dContext
-// }
-
 const makeAccount: I.RecordFactory<Types._Account> = I.Record({
   hasStoredSecret: false,
   username: '',
@@ -79,4 +70,4 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   waitingForResponse: false,
 })
 
-export {makeState, qrGenerate, defaultModeForDeviceRoles, makeAccount}
+export {makeState, defaultModeForDeviceRoles, makeAccount}
