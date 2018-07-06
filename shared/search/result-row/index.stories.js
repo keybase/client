@@ -55,6 +55,8 @@ const makeSelectorMap = (resultMap: SearchResultMap = defaultSearchResultMap) =>
 
 const provider = createPropProvider(PropProviders.Common(), makeSelectorMap())
 
+const onShowTracker = action('Show tracker')
+
 const load = () => {
   storiesOf('Search', module)
     .addDecorator(provider)
@@ -67,7 +69,7 @@ const load = () => {
         <ResultRow {...defaultProps} leftFollowingState="Following" />
         <ResultRow {...defaultProps} leftFollowingState="NotFollowing" />
         <ResultRow {...defaultProps} leftFollowingState="You" />
-        <ResultRow {...defaultProps} onShowTracker={action('Show tracker')} />
+        <ResultRow {...defaultProps} onShowTracker={onShowTracker} />
         <ResultRow
           {...defaultProps}
           leftFullname="John Zila on GitHub"
@@ -119,7 +121,9 @@ const load = () => {
         <ResultRow {...defaultProps} leftIcon="icon-hacker-news-logo-24" leftService="Hacker News" />
       </React.Fragment>
     ))
-    .add('Result row (connected)', () => <ConnectedResultRow {...defaultOwnProps} />)
+    .add('Result row (connected)', () => (
+      <ConnectedResultRow {...defaultOwnProps} onShowTracker={onShowTracker} />
+    ))
 }
 
 export default load
