@@ -9,28 +9,7 @@ import {Box} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 
-const defaultProps: Props = {
-  id: 'result',
-
-  leftFollowingState: 'NoState',
-  leftFullname: 'John Zila',
-  leftIcon: null,
-  leftService: 'Keybase',
-  leftUsername: 'jzila',
-
-  rightFollowingState: 'NoState',
-  rightIcon: null,
-  rightService: null,
-  rightUsername: null,
-
-  onShowTracker: action('Show tracker'),
-  onClick: action('On click'),
-  onMouseOver: action('On mouse over'),
-  selected: false,
-  userIsInTeam: false,
-}
-
-const ownProps = {
+const defaultOwnProps: OwnProps = {
   disableIfInTeamName: '',
   id: 'result',
   selected: false,
@@ -40,7 +19,7 @@ const ownProps = {
 
 type SearchResultMap = {[id: SearchResultId]: ?SearchResult}
 
-const defaultSearchResultMap = {
+const defaultSearchResultMap: SearchResultMap = {
   result: {
     id: 'result',
 
@@ -67,6 +46,8 @@ const mockOwnPropsToProps = (resultMap: SearchResultMap, ownProps: OwnProps): Pr
     userIsInTeam: false,
   }
 }
+
+const defaultProps = mockOwnPropsToProps(defaultSearchResultMap, defaultOwnProps)
 
 const makeSelectorMap = (resultMap: SearchResultMap = defaultSearchResultMap) => ({
   SearchResultRow: ownProps => mockOwnPropsToProps(resultMap, ownProps),
@@ -141,7 +122,7 @@ const load = () => {
     .add('Result row (connected)', () => {
       return (
         <Box style={isMobile ? {} : {width: 480}}>
-          <ConnectedResultRow {...ownProps} />
+          <ConnectedResultRow {...defaultOwnProps} />
         </Box>
       )
     })
