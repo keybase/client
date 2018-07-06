@@ -119,7 +119,8 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
           pushIDs: typeof payload.p === 'string' ? JSON.parse(payload.p) : payload.p,
           shouldAck: displayPlaintext,
         })
-        if (unboxRes && displayPlaintext) {
+        const state: TypedState = yield Saga.select()
+        if (unboxRes && displayPlaintext && !state.config.appFocused) {
           yield Saga.call(displayNewMessageNotification, unboxRes, payload.c, payload.b, payload.d, payload.s)
         }
       } catch (err) {
