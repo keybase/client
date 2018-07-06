@@ -162,10 +162,12 @@ const retentionPolicies = {
 
 const userIsActiveInTeamHelper = (
   state: TypedState,
-  username: string,
-  service: Service,
+  _username: ?string,
+  _service: ?Service,
   teamname: string
 ) => {
+  const username = _username || ''
+  const service = _service || ''
   if (service !== 'Keybase') {
     return false
   }
