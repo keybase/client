@@ -86,7 +86,6 @@ const mimeTypeRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
 function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<any, any> {
   const opID = Constants.makeUUID()
   const {refreshTag, path: rootPath} = action.payload
-  console.log({rootPath, action})
 
   refreshTag && folderListRefreshTags.set(refreshTag, rootPath)
 
@@ -255,9 +254,6 @@ function* upload(action: FsGen.UploadPayload) {
       kbfs: Constants.fsPathToRpcPathString(path),
     },
   })
-
-  // TODO: Are we sure this happens after the file shows up in destination?
-  yield Saga.call(folderList, FsGen.createFolderListLoad({path: parentPath}))
 
   try {
     yield Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
@@ -554,11 +550,8 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     yield Saga.safeTakeEveryPure(FsGen.commitEdit, commitEdit, editSuccess, editFailed)
   }
 
-  if (!isMobile) {
-    // TODO: enable these when we need it on mobile.
-    yield Saga.safeTakeEvery(FsGen.fsActivity, pollSyncStatusUntilDone)
-    yield Saga.safeTakeEveryPure(FsGen.setupFSHandlers, _setupFSHandlers)
-  }
+  yield Saga.safeTakeEvery(FsGen.fsActivity, pollSyncStatusUntilDone)
+  yield Saga.safeTakeEveryPure(FsGen.setupFSHandlers, _setupFSHandlers)
 
   yield Saga.fork(platformSpecificSaga)
 
