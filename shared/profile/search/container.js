@@ -1,7 +1,7 @@
 // @flow
 import Search, {type Props} from '.'
 import {createShowUserProfile} from '../../actions/profile-gen'
-import {compose, defaultProps, connect} from '../../util/container'
+import {connect} from '../../util/container'
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleInfoPanel}: Props) => ({
   onClick: username => {
@@ -13,9 +13,4 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleInf
   },
 })
 
-export default compose(
-  connect(undefined, mapDispatchToProps),
-  defaultProps({
-    placeholder: 'Type someone',
-  })
-)(Search)
+export default connect(null, mapDispatchToProps)(Search)
