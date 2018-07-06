@@ -19,6 +19,7 @@ type ChatContext struct {
 	TeamChannelSource   types.TeamChannelSource   // source of all channels in a team
 	AttachmentURLSrv    types.AttachmentURLSrv    // source of URLs for loading attachments
 	EphemeralPurger     types.EphemeralPurger     // triggers background purges of ephemeral chats
+	ActivityNotifier    types.ActivityNotifier    // notify clients of chat of new activity
 }
 
 type Context struct {
