@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as PropProviders from '../../stories/prop-providers'
-import UserInput from '.'
+import UserInput, {type UserDetails} from '.'
 import ConnectedUserInput, {type OwnProps, type Props} from './container'
 import {Box} from '../../common-adapters'
 import {compose, withStateHandlers} from 'recompose'
@@ -110,19 +110,22 @@ const chrisUsers = [
 const defaultProps: Props = {
   ...inputCommon,
   onChangeText: unexpected('search should be used instead'),
-  userItems: maxUsers,
+  userItems: [],
   usernameText: '',
   search: action('search'),
 }
 
 // TODO: Actually do something here.
-const mockOwnPropsToProps = (ownProps: OwnProps): Props => {
-  return defaultProps
+const mockOwnPropsToProps = (userItems: Array<UserDetails>, ownProps: OwnProps): Props => {
+  return {
+    ...defaultProps,
+    userItems,
+  }
 }
 
-export const makeSelectorMap = () => ({
+export const makeSelectorMap = (userItems: Array<UserDetails> = maxUsers) => ({
   ...PropProviders.Common(),
-  UserInput: mockOwnPropsToProps,
+  UserInput: ownProps => mockOwnPropsToProps(userItems, ownProps),
 })
 
 const provider = createPropProvider(makeSelectorMap())
