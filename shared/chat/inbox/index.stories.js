@@ -8,7 +8,7 @@ import * as PropProviders from '../../stories/prop-providers'
 import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 import {isMobile, globalColors, globalMargins} from '../../styles'
 
-import Inbox from './container'
+import Inbox from '.'
 
 // import {SmallTeam} from './small-team'
 // import {FilterSmallTeam} from './filter-small-team'
@@ -340,10 +340,10 @@ const propsInboxDivider = {
   ...propsInboxCommon,
   smallTeamsExpanded: false,
   smallIDsHidden: [
-    mapPropProviderProps['smallTeamC'].conversationIDKey,
-    mapPropProviderProps['smallTeamD'].conversationIDKey,
-    mapPropProviderProps['smallTeamE'].conversationIDKey,
-    mapPropProviderProps['smallTeamF'].conversationIDKey,
+    Constants.stringToConversationIDKey(mapPropProviderProps['smallTeamC'].conversationIDKey),
+    Constants.stringToConversationIDKey(mapPropProviderProps['smallTeamD'].conversationIDKey),
+    Constants.stringToConversationIDKey(mapPropProviderProps['smallTeamE'].conversationIDKey),
+    Constants.stringToConversationIDKey(mapPropProviderProps['smallTeamF'].conversationIDKey),
   ],
   rows: [
     // Small
@@ -404,26 +404,26 @@ const provider = createPropProvider(
   PropProviders.Common(),
   PropProviders.TeamDropdownMenu(undefined, teamMemberCounts),
   {
-    Inbox: p => {
-      switch (p.type) {
-        case 'empty':
-          return propsInboxEmpty
-        case 'simple':
-          return propsInboxSimple
-        case 'bigteams':
-          return propsInboxTeam
-        case 'divider':
-          const {rows, smallIDsHidden} = propsInboxDivider
-          return {
-            ...propsInboxDivider,
-            rows: rows.slice(Math.max(0, smallIDsHidden.length - 1), rows.length),
-          }
-        case 'filter':
-          return propsInboxFilter
-        default:
-          return propsInboxCommon
-      }
-    },
+    // Inbox: p => {
+    //   switch (p.type) {
+    //     case 'empty':
+    //       return propsInboxEmpty
+    //     case 'simple':
+    //       return propsInboxSimple
+    //     case 'bigteams':
+    //       return propsInboxTeam
+    //     case 'divider':
+    //       const {rows, smallIDsHidden} = propsInboxDivider
+    //       return {
+    //         ...propsInboxDivider,
+    //         rows: rows.slice(Math.max(0, smallIDsHidden.length - 1), rows.length),
+    //       }
+    //     case 'filter':
+    //       return propsInboxFilter
+    //     default:
+    //       return propsInboxCommon
+    //   }
+    // },
     NewChooser: p => ({
       isSelected: false,
       onCancel: action('onCancel'),
@@ -456,23 +456,22 @@ const provider = createPropProvider(
 )
 
 const load = () => {
-  const routeState = I.Record({smallTeamsExpanded: false})
   storiesOf('Chat/Inbox')
     .addDecorator(provider)
     .add('Empty', () => {
-      return <Inbox type="empty" routeState={routeState} />
+      return <Inbox {...propsInboxEmpty} />
     })
     .add('Simple', () => {
-      return <Inbox type="simple" routeState={routeState} />
+      return <Inbox {...propsInboxSimple} />
     })
     .add('Big Teams', () => {
-      return <Inbox type="bigteams" routeState={routeState} />
+      return <Inbox {...propsInboxTeam} />
     })
     .add('Divider', () => {
-      return <Inbox type="divider" routeState={routeState} />
+      return <Inbox {...propsInboxDivider} />
     })
     .add('Filter', () => {
-      return <Inbox type="filter" routeState={routeState} />
+      return <Inbox {...propsInboxFilter} />
     })
 }
 
