@@ -97,7 +97,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
       kbfs: Constants.fsPathToRpcPathString(rootPath),
     },
     filter: RPCTypes.simpleFSListFilter.filterAllHidden,
-    refreshSubscription,
+    refreshSubscription: false,
   })
 
   yield Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
