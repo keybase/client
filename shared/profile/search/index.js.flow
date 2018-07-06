@@ -2,7 +2,7 @@
 import {Component} from 'react'
 
 export type Props = {
-  onClick: (id: string) => void,
+  onClick: (username: string) => void,
   onClose: () => void,
 }
 
