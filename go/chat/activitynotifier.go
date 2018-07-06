@@ -39,7 +39,7 @@ func (n *NotifyRouterActivityRouter) Start(ctx context.Context, uid gregor1.UID)
 	if n.running {
 		return
 	}
-	n.notifyCh = make(chan func(), 5000)
+	n.notifyCh = make(chan func(), 1000)
 	go n.notifyLoop()
 }
 

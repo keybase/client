@@ -356,6 +356,7 @@ func (d *Service) startChatModules() {
 		g.ConvLoader.Start(context.Background(), uid)
 		g.FetchRetrier.Start(context.Background(), uid)
 		g.EphemeralPurger.Start(context.Background(), uid)
+		g.ActivityNotifier.Start(context.Background(), uid)
 	}
 }
 
@@ -364,6 +365,7 @@ func (d *Service) stopChatModules() {
 	<-d.ChatG().ConvLoader.Stop(context.Background())
 	<-d.ChatG().FetchRetrier.Stop(context.Background())
 	<-d.ChatG().EphemeralPurger.Stop(context.Background())
+	<-d.ChatG().ActivityNotifier.Stop(context.Background())
 }
 
 func (d *Service) createChatModules() {
@@ -386,6 +388,7 @@ func (d *Service) createChatModules() {
 	g.FetchRetrier = chat.NewFetchRetrier(g)
 	g.ConvLoader = chat.NewBackgroundConvLoader(g)
 	g.EphemeralPurger = chat.NewBackgroundEphemeralPurger(g, chatStorage)
+	g.ActivityNotifier = chat.NewNotifyRouterActivityRouter(g)
 
 	// Set up push handler with the badger
 	d.badger.SetInboxVersionSource(storage.NewInboxVersionSource(g))
