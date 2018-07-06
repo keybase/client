@@ -6,8 +6,7 @@ import React from 'react'
 import ServiceFilter from '../services-filter'
 import UserInput from '.'
 import {Box, Text} from '../../common-adapters'
-import {connect} from 'react-redux'
-import {createShallowEqualSelector} from '../../util/container'
+import {connect, createShallowEqualSelector, setDisplayName} from '../../util/container'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {parseUserId, serviceIdToIcon} from '../../util/platforms'
 import {withStateHandlers, withHandlers, compose, lifecycle} from 'recompose'
@@ -138,6 +137,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {searchKey}) => ({
 
 const ConnectedUserInput = compose(
   connect(mapStateToProps, mapDispatchToProps),
+  setDisplayName('UserInput'),
   withStateHandlers(
     {searchText: '', selectedService: 'Keybase'},
     {
