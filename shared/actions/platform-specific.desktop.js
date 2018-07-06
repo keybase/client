@@ -3,10 +3,12 @@ import {showDockIcon} from '../desktop/app/dock-icon.desktop'
 import {getMainWindow} from '../desktop/remote/util.desktop'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import * as ConfigGen from './config-gen'
+import * as LoginGen from './login-gen'
 import * as Saga from '../util/saga'
 import {writeLogLinesToFile} from '../util/forward-logs'
 import logger from '../logger'
 import {quit} from '../util/quit-helper'
+import {type TypedState} from '../constants/reducer'
 
 function showShareActionSheet(options: {
   url?: ?any,
@@ -118,11 +120,14 @@ export const dumpLogs = (action: ?ConfigGen.DumpLogsPayload) =>
       }
     })
 
+const onBootstrapped = (state: TypedState) => Saga.put(LoginGen.createNavBasedOnLoginAndInitialState())
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.setOpenAtLogin, writeElectronSettings)
   yield Saga.safeTakeLatestPure(ConfigGen.showMain, showMainWindow)
   yield Saga.safeTakeEveryPure(ConfigGen.dumpLogs, dumpLogs)
   yield Saga.fork(initializeOpenAtLoginState)
+  yield Saga.safeTakeEveryPureSimple(ConfigGen.bootstrapSuccess, onBootstrapped)
 }
 
 export {
