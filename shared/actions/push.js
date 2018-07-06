@@ -103,27 +103,23 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
           logger.error('Push chat notification payload missing conversation ID or msgBoxed')
           break
         }
-        const unboxRes = yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
-          convID: c,
-          membersType,
-          payload: m,
-          pushIDs: typeof payload.p === 'string' ? JSON.parse(payload.p) : payload.p,
-          shouldAck: true,
-        })
-        if (payload.n !== 'true') {
-          // If the user doesn't have plaintext notifications set, don't
-          // display the message
-          break
-        }
+        let displayPlaintext = payload.n === 'true'
         if (payload.x && payload.x > 0) {
           const num = payload.x
           const ageMS = Date.now() - num * 1000
           if (ageMS > 15000) {
             logger.info('Push notification: silent notification is stale:', ageMS)
-            break
+            displayPlaintext = false
           }
         }
-        if (unboxRes) {
+        const unboxRes = yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
+          convID: c,
+          membersType,
+          payload: m,
+          pushIDs: typeof payload.p === 'string' ? JSON.parse(payload.p) : payload.p,
+          shouldAck: displayPlaintext,
+        })
+        if (unboxRes && displayPlaintext) {
           yield Saga.call(displayNewMessageNotification, unboxRes, payload.c, payload.b, payload.d, payload.s)
         }
       } catch (err) {
