@@ -9,4 +9,4 @@ export type Props = {
   navigateUp: () => void,
 }
 
-export default class Render extends Component<Props> {}
+export default class Search extends Component<Props> {}
