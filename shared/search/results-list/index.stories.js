@@ -4,7 +4,6 @@ import ResultsList from '.'
 import ConnectedResultsList, {type OwnProps, type Props} from './container'
 import {Box} from '../../common-adapters'
 import {storiesOf, action, createPropProvider} from '../../stories/storybook'
-import * as PropProviders from '../../stories/prop-providers'
 import {
   type ConnectPropsMap as RowConnectPropsMap,
   makeSelectorMap as makeRowSelectorMap,
@@ -92,7 +91,7 @@ const makeSelectorMap = () => ({
   ResultsList: mockOwnPropsToProps,
 })
 
-const provider = createPropProvider(PropProviders.Common(), makeSelectorMap())
+const provider = createPropProvider(makeSelectorMap())
 
 const load = () => {
   storiesOf('Search/ResultsList', module)

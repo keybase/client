@@ -63,10 +63,11 @@ const defaultOwnProps: OwnProps = {
 const defaultProps = mockOwnPropsToProps(defaultConnectPropsMap, defaultOwnProps)
 
 export const makeSelectorMap = (connectPropsMap: ConnectPropsMap = defaultConnectPropsMap) => ({
+  ...PropProviders.Common(),
   SearchResultRow: (ownProps: OwnProps): Props => mockOwnPropsToProps(connectPropsMap, ownProps),
 })
 
-const provider = createPropProvider(PropProviders.Common(), makeSelectorMap())
+const provider = createPropProvider(makeSelectorMap())
 
 const onShowTracker = action('Show tracker')
 
