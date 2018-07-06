@@ -6,7 +6,7 @@ import {followStateHelper} from '../../constants/search'
 import {type SearchResultId} from '../../constants/types/search'
 import {connect, type TypedState, setDisplayName, compose} from '../../util/container'
 
-type OwnProps = {
+export type OwnProps = {
   disableIfInTeamName: ?string,
   id: SearchResultId,
   onClick: () => void,

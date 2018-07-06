@@ -130,7 +130,9 @@ const Line = () => (
   />
 )
 
-const SearchResultRow = (props: Types.RowProps) => (
+export type Props = Types.RowProps
+
+const SearchResultRow = (props: Props) => (
   <ClickableBox
     style={_clickableBoxStyle[(!!props.selected).toString()]}
     underlayColor={globalColors.blue4}

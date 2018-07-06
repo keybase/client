@@ -1,10 +1,11 @@
 // @flow
 import * as React from 'react'
 import * as PropProviders from '../../stories/prop-providers'
-import ResultRow from '.'
+import ResultRow, {type Props} from '.'
+import ConnectedResultRow, {type OwnProps} from './container'
 import {Box} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
-import {storiesOf, action} from '../../stories/storybook'
+import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 
 const commonRow = {
   id: 'result',
@@ -38,12 +39,38 @@ const serviceRow = {
   rightUsername: null,
 }
 
-const provider = PropProviders.CommonProvider()
+const ownProps = {
+  disableIfInTeamName: '',
+  id: 'result',
+  onClick: action('On click'),
+  onMouseOver: action('On click'),
+  onShowTracker: action('Show tracker'),
+}
+
+const mockOwnPropsToProps = (ownProps: OwnProps): Props => {
+  const result = kbRow
+  const leftFollowingState = 'NotFollowing'
+  const rightFollowingState = 'NotFollowing'
+  return {
+    ...result,
+    onClick: ownProps.onClick,
+    onMouseOver: ownProps.onMouseOver,
+    onShowTracker: ownProps.onShowTracker,
+    showTrackerButton: !!ownProps.onShowTracker,
+    leftFollowingState,
+    rightFollowingState,
+    userIsInTeam: false,
+  }
+}
+
+const provider = createPropProvider(PropProviders.Common(), {
+  SearchResultRow: mockOwnPropsToProps,
+})
 
 const load = () => {
   storiesOf('Search', module)
     .addDecorator(provider)
-    .add('Result', () => {
+    .add('Result row', () => {
       return (
         <Box style={isMobile ? {} : {width: 480}}>
           <ResultRow {...kbRow} />
@@ -101,6 +128,13 @@ const load = () => {
           <ResultRow {...serviceRow} leftIcon="icon-github-logo-24" leftService="GitHub" />
           <ResultRow {...serviceRow} leftIcon="icon-reddit-logo-24" leftService="Reddit" />
           <ResultRow {...serviceRow} leftIcon="icon-hacker-news-logo-24" leftService="Hacker News" />
+        </Box>
+      )
+    })
+    .add('Result row (connected)', () => {
+      return (
+        <Box style={isMobile ? {} : {width: 480}}>
+          <ConnectedResultRow {...ownProps} />
         </Box>
       )
     })
