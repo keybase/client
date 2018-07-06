@@ -488,8 +488,9 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, ImmutableRootMetadata{}, head)
 
-	serviceLoggedIn(
+	wg := serviceLoggedIn(
 		ctx, config, session, TLFJournalBackgroundWorkPaused)
+	wg.Wait()
 
 	// Get the block.
 
@@ -593,8 +594,9 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	session, err = config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
-	serviceLoggedIn(
+	wg := serviceLoggedIn(
 		ctx, config, session, TLFJournalBackgroundWorkPaused)
+	wg.Wait()
 
 	err = jServer.Enable(ctx, tlfID, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
@@ -655,8 +657,9 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	session, err = config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
-	serviceLoggedIn(
+	wg = serviceLoggedIn(
 		ctx, config, session, TLFJournalBackgroundWorkPaused)
+	wg.Wait()
 
 	// Only user 1's block and MD should be visible.
 
@@ -681,8 +684,9 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	session, err = config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
-	serviceLoggedIn(
+	wg = serviceLoggedIn(
 		ctx, config, session, TLFJournalBackgroundWorkPaused)
+	wg.Wait()
 
 	// Only user 2's block and MD should be visible.
 

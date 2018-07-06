@@ -1316,7 +1316,8 @@ func (c *ConfigLocal) EnableJournaling(
 			return err
 		}
 
-		jServer.MakeFBOsForExistingJournals(ctx)
+		wg := jServer.MakeFBOsForExistingJournals(ctx)
+		wg.Wait()
 		return nil
 	}()
 	switch {

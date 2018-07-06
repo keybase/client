@@ -314,11 +314,14 @@ func (j *JournalServer) makeFBOForJournal(
 
 // MakeFBOsForExistingJournals creates folderBranchOps objects for all
 // existing, non-empty journals.  This is useful to initialize the
-// unflushed edit history, for example.
-func (j *JournalServer) MakeFBOsForExistingJournals(ctx context.Context) {
+// unflushed edit history, for example.  It returns a wait group that
+// the caller can use to determine when all the FBOs have been
+// initialized.  If the caller is not going to wait on the group, it
+// should provoide a context that won't be canceled before the wait
+// group is finished.
+func (j *JournalServer) MakeFBOsForExistingJournals(
+	ctx context.Context) *sync.WaitGroup {
 	var wg sync.WaitGroup
-	// Wait for all the FBOs to be initialized, after releasing the lock.
-	defer wg.Wait()
 
 	j.lock.Lock()
 	defer j.lock.Unlock()
@@ -339,6 +342,7 @@ func (j *JournalServer) MakeFBOsForExistingJournals(ctx context.Context) {
 			}
 		}()
 	}
+	return &wg
 }
 
 // EnableExistingJournals turns on the write journal for all TLFs for

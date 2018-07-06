@@ -5,6 +5,8 @@
 package libkbfs
 
 import (
+	"sync"
+
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
 )
@@ -27,7 +29,7 @@ func EnableAdminFeature(ctx context.Context, runMode libkb.RunMode, config Confi
 // serviceLoggedIn should be called when a new user logs in. It
 // shouldn't be called again until after serviceLoggedOut is called.
 func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
-	bws TLFJournalBackgroundWorkStatus) {
+	bws TLFJournalBackgroundWorkStatus) (wg *sync.WaitGroup) {
 	log := config.MakeLogger("")
 	if jServer, err := GetJournalServer(config); err == nil {
 		err := jServer.EnableExistingJournals(
@@ -36,7 +38,15 @@ func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
 			log.CWarningf(ctx,
 				"Failed to enable existing journals: %v", err)
 		} else {
-			jServer.MakeFBOsForExistingJournals(ctx)
+			// Initializing the FBOs uses the mdserver, and this
+			// function might be called as part of MDServer.OnConnect,
+			// so be safe and initialize them in the background to
+			// avoid deadlocks.
+			newCtx := CtxWithRandomIDReplayable(context.Background(),
+				CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID, log)
+			log.CDebugf(ctx, "Making FBOs in background: %s=%v",
+				CtxKeybaseServiceOpID, newCtx.Value(CtxKeybaseServiceIDKey))
+			wg = jServer.MakeFBOsForExistingJournals(newCtx)
 		}
 	}
 	err := config.MakeDiskBlockCacheIfNotExists()
@@ -55,6 +65,7 @@ func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
 	}
 	config.KBFSOps().RefreshCachedFavorites(ctx)
 	config.KBFSOps().PushStatusChange()
+	return wg
 }
 
 // serviceLoggedOut should be called when the current user logs out.
