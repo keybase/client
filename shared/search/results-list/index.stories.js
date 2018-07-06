@@ -72,31 +72,18 @@ const props = {
   showSearchSuggestions: false,
 }
 
-const Wrapper = ({children}) => <Box style={{width: 420}}>{children}</Box>
-
 const load = () => {
   storiesOf('Search/ResultsList', module)
     .addDecorator(provider)
+    .addDecorator(story => <Box style={{width: 420}}>{story()}</Box>)
     .add('keybaseResults', () => (
-      <Wrapper>
-        <ResultsList {...props} items={['chris', 'cjb', 'jzila']} keyPath={['searchChat']} />
-      </Wrapper>
+      <ResultsList {...props} items={['chris', 'cjb', 'jzila']} keyPath={['searchChat']} />
     ))
-    .add('keybaseResultsOne', () => (
-      <Wrapper>
-        <ResultsList {...props} items={['chris']} keyPath={['searchChat']} />
-      </Wrapper>
-    ))
+    .add('keybaseResultsOne', () => <ResultsList {...props} items={['chris']} keyPath={['searchChat']} />)
     .add('facebookResults', () => (
-      <Wrapper>
-        <ResultsList {...props} items={['chris-fb', 'cjb-fb', 'jzila-fb']} keyPath={['searchChat']} />
-      </Wrapper>
+      <ResultsList {...props} items={['chris-fb', 'cjb-fb', 'jzila-fb']} keyPath={['searchChat']} />
     ))
-    .add('noResults', () => (
-      <Wrapper>
-        <ResultsList {...props} items={[]} keyPath={['searchChat']} />
-      </Wrapper>
-    ))
+    .add('noResults', () => <ResultsList {...props} items={[]} keyPath={['searchChat']} />)
 }
 
 export default load
