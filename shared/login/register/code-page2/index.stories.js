@@ -4,43 +4,69 @@ import * as React from 'react'
 import CodePage2 from '.'
 import {action, storiesOf} from '../../../stories/storybook'
 import {qrGenerate} from '../../../constants/login'
-import * as Helper from './helper'
+// import * as Helper from './helper'
 
 const textCode = 'scrub disagree sheriff holiday cabin habit mushroom member four'
-
-const props = (currentDeviceAlreadyProvisioned, currentDeviceType, otherDeviceName, otherDeviceType) => {
+// Not using the container on purpose since i want every variant
+const derivedProps = (
+  currentDeviceAlreadyProvisioned,
+  currentDeviceType,
+  otherDeviceName,
+  otherDeviceType
+) => {
   const currentDeviceName = currentDeviceAlreadyProvisioned
     ? currentDeviceType === 'phone'
       ? 'oldPhone6'
       : 'oldMacMini'
     : ''
-
-  const options = Helper.getOptions({
+  return {
+    QRUrl: qrGenerate(textCode),
     currentDeviceAlreadyProvisioned,
     currentDeviceName,
     currentDeviceType,
+    onSubmitTextCode: action('onSubmitTextCode'),
     otherDeviceName,
     otherDeviceType,
+    textCode,
     username: currentDeviceAlreadyProvisioned ? 'cnojima123' : '',
-  })
-
-  return {
-    currentDeviceAlreadyProvisioned,
-    currentDeviceType,
-    defaultTab: options.defaultTab,
-    enterQrCodeInstructions: options.enterQrCodeInstructions,
-    enterTextCodeInputHint: options.enterTextCodeInputHint,
-    enterTextCodeInstructions: options.enterTextCodeInstructions,
-    isValidLookingCode: value => value.split(' ').length === 12,
-    onSubmitTextCode: action('onSubmitTextCode'),
-    otherDeviceType,
-    validTabs: options.validTabs,
-    viewQrCode: qrGenerate(textCode),
-    viewQrCodeInstructions: options.viewQrCodeInstructions,
-    viewTextCode: textCode,
-    viewTextCodeInstructions: options.viewTextCodeInstructions,
   }
 }
+// const props = (currentDeviceAlreadyProvisioned, currentDeviceType, otherDeviceName, otherDeviceType) => {
+// const currentDeviceName = currentDeviceAlreadyProvisioned
+// ? currentDeviceType === 'phone'
+// ? 'oldPhone6'
+// : 'oldMacMini'
+// : ''
+
+// const options = Helper.getOptions({
+// currentDeviceAlreadyProvisioned,
+// currentDeviceName,
+// currentDeviceType,
+// otherDeviceName,
+// otherDeviceType,
+// textCode,
+// username: currentDeviceAlreadyProvisioned ? 'cnojima123' : '',
+// })
+
+// return {
+// // currentDeviceAlreadyProvisioned,
+// // currentDeviceType,
+// defaultTab: options.defaultTab,
+// // enterQrCodeInstructions: options.enterQrCodeInstructions,
+// // enterTextCodeInputHint: options.enterTextCodeInputHint,
+// // enterTextCodeInstructions: options.enterTextCodeInstructions,
+// // isValidLookingCode: value => value.split(' ').length === 12,
+// onSubmitTextCode: action('onSubmitTextCode'),
+// // otherDeviceType,
+// // tabInstructions: options.tabInstructions,
+// // validTabs: options.validTabs,
+// // viewQrCode: qrGenerate(textCode),
+// tabDetails: options.tabDetails,
+// // viewQrCodeInstructions: options.viewQrCodeInstructions,
+// // viewTextCode: textCode,
+// // viewTextCodeInstructions: options.viewTextCodeInstructions,
+// }
+// }
 
 const load = () => {
   // make it easy to see both sides of the provisioning
@@ -63,23 +89,31 @@ const load = () => {
       case 'phone':
         otherName = 'newiPhoneX'
         break
-      case null:
+      default:
         otherName = ''
-        break
     }
 
     const storyName = `${provisioned ? 'An Existing' : 'A New'} ${current} ${
       provisioned ? ' adding ' : ' added by '
     } ${provisioned ? 'a New' : 'An Existing'} ${otherType}`
 
-    let s = storiesOf(`Register/CodePage2`, module).addDecorator(PropProviders.Common())
-    const p = props(provisioned, current, otherName, otherType)
+    let s = storiesOf(`Register/CodePage2`, module).addDecorator(PropProviders.CommonProvider())
+    const allTabs = ['QR', 'enterText', 'viewText']
+
+    // const name = provisioned ? (current === 'phone' ? 'oldPhone6' : 'oldMacMini') : ''
+    // username: currentDeviceAlreadyProvisioned ? 'cnojima123' : '',
+    // const p = props(provisioned, current, otherName, otherType)
     // We want to snapshot all variants, but also want to ensure the default tab logic works
-    const tabs = [null, ...p.validTabs]
+    // provisioned={provisioned}
+    // current={current}
+    // otherName={otherName}
+    // otherType={otherType}
+    // defaultTab={tab || p.defaultTab}
+    const tabs = [null, ...allTabs]
     tabs.forEach(
       tab =>
         (s = s.add(`${storyName}:${tab || 'defaultTab'}`, () => (
-          <CodePage2 {...p} defaultTab={tab || p.defaultTab} />
+          <CodePage2 {...derivedProps(provisioned, current, otherName, otherType)} />
         )))
     )
   })

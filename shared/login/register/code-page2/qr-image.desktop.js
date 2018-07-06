@@ -14,9 +14,9 @@ const styles = styleSheetCreate({
       backgroundPosition: '-24px -24px',
       backgroundRepeat: 'no-repeat',
       backgroundSize: '248px 248px',
-      height: 200,
+      height: 64,
       imageRendering: 'pixelated',
-      width: 200,
+      width: 64,
     },
   }),
 })
