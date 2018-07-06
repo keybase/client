@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import ResultsList from '.'
-import ConnectedResultsList from './container'
+import ConnectedResultsList, {type OwnProps, type Props} from './container'
 import {Box} from '../../common-adapters'
 import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 import * as PropProviders from '../../stories/prop-providers'
@@ -64,11 +64,17 @@ Object.keys(connectPropsMap).forEach(id => {
   }
 })
 
-const provider = createPropProvider(PropProviders.Common(), makeRowSelectorMap(connectPropsMap), {
-  ResultsList: ownProps => props,
-})
+const mockOwnPropsToProps = (ownProps: OwnProps): Props => {
+  return {
+    ...ownProps,
+    pending: false,
+    items: Object.keys(connectPropsMap),
+    selectedId: null,
+    showSearchSuggestions: false,
+  }
+}
 
-const ownProps = {
+const defaultOwnProps: OwnProps = {
   searchKey: 'search-key',
   disableIfInTeamName: '',
   onClick: action('onClick'),
@@ -76,25 +82,26 @@ const ownProps = {
   onShowTracker: action('onShowTracker'),
 }
 
-const props = {
-  disableIfInTeamName: '',
-  items: Object.keys(connectPropsMap),
-  onClick: action('onClick'),
-  onMouseOver: action('onMouseOver'),
-  onShowTracker: action('onShowTracker'),
-  selectedId: null,
-  showSearchSuggestions: false,
-}
+const defaultProps = mockOwnPropsToProps(defaultOwnProps)
+
+const makeSelectorMap = () => ({
+  ...makeRowSelectorMap(connectPropsMap),
+  ResultsList: mockOwnPropsToProps,
+})
+
+const provider = createPropProvider(PropProviders.Common(), makeSelectorMap())
 
 const load = () => {
   storiesOf('Search/ResultsList', module)
     .addDecorator(provider)
     .addDecorator(story => <Box style={{width: 420}}>{story()}</Box>)
-    .add('keybaseResults', () => <ResultsList {...props} items={['chris', 'cjb', 'jzila']} />)
-    .add('keybaseResultsOne', () => <ResultsList {...props} items={['chris']} />)
-    .add('facebookResults', () => <ResultsList {...props} items={['chris-fb', 'cjb-fb', 'jzila-fb']} />)
-    .add('noResults', () => <ResultsList {...props} items={[]} />)
-    .add('connected', () => <ConnectedResultsList {...ownProps} />)
+    .add('keybaseResults', () => <ResultsList {...defaultProps} items={['chris', 'cjb', 'jzila']} />)
+    .add('keybaseResultsOne', () => <ResultsList {...defaultProps} items={['chris']} />)
+    .add('facebookResults', () => (
+      <ResultsList {...defaultProps} items={['chris-fb', 'cjb-fb', 'jzila-fb']} />
+    ))
+    .add('noResults', () => <ResultsList {...defaultProps} items={[]} />)
+    .add('connected', () => <ConnectedResultsList {...defaultOwnProps} />)
 }
 
 export default load

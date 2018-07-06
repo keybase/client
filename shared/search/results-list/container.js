@@ -2,11 +2,11 @@
 import {connect, compose, setDisplayName, type TypedState} from '../../util/container'
 import React from 'react'
 import {ProgressIndicator, Box} from '../../common-adapters'
-import SearchResultsList from '.'
+import SearchResultsList, {type Props as _Props} from '.'
 import * as SearchGen from '../../actions/search-gen'
 import {globalMargins} from '../../styles'
 
-type OwnProps = {
+export type OwnProps = {
   searchKey: string,
   onShowTracker?: (id: string) => void,
   onClick?: (id: string) => void,
@@ -48,6 +48,8 @@ const styleSpinner = {
   marginBottom: globalMargins.medium,
   width: 24,
 }
+
+export type Props = _Props & {pending: boolean}
 
 const Chooser = props => (props.pending ? <Progress style={props.style} /> : <SearchResultsList {...props} />)
 export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('ResultsList'))(Chooser)
