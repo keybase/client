@@ -4,8 +4,6 @@
 package badges
 
 import (
-	"sync"
-
 	"golang.org/x/net/context"
 
 	grclient "github.com/keybase/client/go/gregor/client"
@@ -33,7 +31,6 @@ func (n nullInboxVersionSource) GetInboxVersion(ctx context.Context, uid gregor1
 // - All chat.activity gregor OOBMs
 // - Logout
 type Badger struct {
-	sync.Mutex
 	libkb.Contextified
 	badgeState     *BadgeState
 	iboxVersSource InboxVersionSource
