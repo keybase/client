@@ -1,34 +1,22 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, ClickableBox, Dropdown, Input, PopupDialog, Text, ButtonBar} from '../../common-adapters'
-import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
+import * as I from 'immutable'
+import {
+  Box,
+  Box2,
+  Button,
+  ClickableBox,
+  Dropdown,
+  Input,
+  PopupDialog,
+  Text,
+  ButtonBar,
+} from '../../common-adapters'
+import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {capitalize} from 'lodash-es'
 import {teamRoleTypes} from '../../constants/teams'
 import {type TeamRoleType} from '../../constants/types/teams'
-
-const MaybePopup = isMobile
-  ? (props: {onClose: () => void, children: React.Node}) => (
-      <Box style={{height: '100%', width: '100%'}} children={props.children} />
-    )
-  : (props: {onClose: () => void, children: React.Node}) => (
-      <PopupDialog
-        onClose={props.onClose}
-        styleCover={_styleCover}
-        styleContainer={_styleContainer}
-        children={props.children}
-      />
-    )
-
-type Props = {
-  invitees: string,
-  name: string,
-  onClose: () => void,
-  onInvite: () => void,
-  onInviteesChange: (invitees: string) => void,
-  onOpenRolePicker: (currentSelectedRole: TeamRoleType, selectedRoleCallback: (TeamRoleType) => void) => void,
-  onRoleChange: (role: TeamRoleType) => void,
-  role: TeamRoleType,
-}
+import type {DesktopProps as Props} from '.'
 
 const _makeDropdownItem = (item: string) => (
   <Box
@@ -46,81 +34,116 @@ const _makeDropdownItem = (item: string) => (
 
 const _makeDropdownItems = () => teamRoleTypes.map(item => _makeDropdownItem(item))
 
-const InviteByEmail = (props: Props) => (
-  <MaybePopup onClose={props.onClose}>
-    <Box style={{...globalStyles.flexBoxColumn}}>
-      <Box
-        style={{
-          ...globalStyles.flexBoxColumn,
-          alignItems: 'center',
-          margin: globalMargins.medium,
-        }}
-      >
-        {!isMobile && (
-          <Text style={styleInside} type="Header">
-            Invite by email
-          </Text>
-        )}
-        <Box
-          style={{
-            ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
-            alignItems: 'center',
-            margin: globalMargins.tiny,
-          }}
-        >
-          <Text style={{margin: globalMargins.tiny}} type="Body">
-            Add these team members to {props.name} as:
-          </Text>
-          <ClickableBox
-            onClick={() =>
-              props.onOpenRolePicker(props.role, (selectedRole: TeamRoleType) =>
-                props.onRoleChange(selectedRole)
-              )
-            }
-            underlayColor="rgba(0, 0, 0, 0)"
-          >
-            <Dropdown
-              items={_makeDropdownItems()}
-              selected={_makeDropdownItem(props.role)}
-              onChanged={(node: React.Node) => {
-                // $FlowIssue doesn't understand key will be string
-                const selectedRole: TeamRoleType = (node && node.key) || null
-                props.onRoleChange(selectedRole)
-              }}
-            />
-          </ClickableBox>
-        </Box>
-        <Text type="BodySmallSemibold" style={{alignSelf: 'flex-start'}}>
-          Enter multiple email addresses, separated by commas
-        </Text>
-        <Box
-          style={{
-            border: `1px solid ${globalColors.black_40}`,
-            marginBottom: globalMargins.small,
-            width: '100%',
-          }}
-        >
-          <Input
-            autoFocus={true}
-            multiline={true}
-            hideUnderline={true}
-            onChangeText={invitees => props.onInviteesChange(invitees)}
-            rowsMin={3}
-            rowsMax={8}
-            style={styleInside}
-            value={props.invitees}
-            small={true}
-            inputStyle={styleInput}
-          />
-        </Box>
+type State = {
+  invitees: string,
+  malformedEmails: I.Set<string>,
+  role: TeamRoleType,
+}
+class InviteByEmailDesktop extends React.Component<Props, State> {
+  state = {invitees: '', malformedEmails: I.Set(), role: 'reader'}
+  _input: ?Input
 
-        <ButtonBar>
-          <Button label="Invite" onClick={props.onInvite} type="Primary" />
-        </ButtonBar>
-      </Box>
-    </Box>
-  </MaybePopup>
-)
+  componentDidUpdate(prevProps: Props, prevState: State) {
+    // update contents of input box if we get a new list of malformed emails
+    if (this.props.malformedEmails !== prevState.malformedEmails && this.props.malformedEmails.size > 0) {
+      this._setMalformedEmails(this.props.malformedEmails)
+    }
+  }
+
+  componentWillUnmount() {
+    this.props.onClearInviteError()
+  }
+
+  _setMalformedEmails = (malformedEmails: I.Set<string>) => {
+    this.setState({malformedEmails, invitees: malformedEmails.join('\n')})
+  }
+
+  _setRole = (role: TeamRoleType) => this.setState({role})
+
+  _onInvite = () => this.props.onInvite(this.state.invitees, this.state.role)
+
+  render() {
+    const props = this.props
+    return (
+      <PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
+        <Box style={{...globalStyles.flexBoxColumn}}>
+          <Box
+            style={{
+              ...globalStyles.flexBoxColumn,
+              alignItems: 'center',
+              margin: globalMargins.medium,
+            }}
+          >
+            <Text style={styleInside} type="Header">
+              Invite by email
+            </Text>
+            <Box
+              style={{
+                ...globalStyles.flexBoxRow,
+                alignItems: 'center',
+                margin: globalMargins.tiny,
+              }}
+            >
+              <Text style={{margin: globalMargins.tiny}} type="Body">
+                Add these team members to {props.name} as:
+              </Text>
+              <ClickableBox
+                onClick={() => props.onOpenRolePicker(this.state.role, this._setRole)}
+                underlayColor={globalColors.transparent}
+              >
+                <Dropdown
+                  items={_makeDropdownItems()}
+                  selected={_makeDropdownItem(this.state.role)}
+                  onChanged={(node: React.Node) => {
+                    // $FlowIssue doesn't understand key will be string
+                    const selectedRole: TeamRoleType = (node && node.key) || null
+                    this._setRole(selectedRole)
+                  }}
+                  style={{width: 100}}
+                />
+              </ClickableBox>
+            </Box>
+            <Text type="BodySmallSemibold" style={{alignSelf: 'flex-start'}}>
+              Enter multiple email addresses, separated by commas
+            </Text>
+            <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={{alignItems: 'flex-start'}}>
+              <Box
+                style={{
+                  border: `1px solid ${globalColors.black_20}`,
+                  borderRadius: 4,
+                  width: '100%',
+                }}
+              >
+                <Input
+                  autoFocus={true}
+                  multiline={true}
+                  hideUnderline={true}
+                  onChangeText={invitees => this.setState({invitees})}
+                  ref={i => (this._input = i)}
+                  rowsMin={3}
+                  rowsMax={8}
+                  value={this.state.invitees}
+                  style={styleInside}
+                  small={true}
+                  inputStyle={styleInput}
+                />
+              </Box>
+              {props.errorMessage && (
+                <Text type="BodySmall" style={{color: globalColors.red}}>
+                  {props.errorMessage}
+                </Text>
+              )}
+            </Box2>
+
+            <ButtonBar>
+              <Button label="Invite" onClick={this._onInvite} type="Primary" />
+            </ButtonBar>
+          </Box>
+        </Box>
+      </PopupDialog>
+    )
+  }
+}
 
 const styleInside = {
   padding: globalMargins.tiny,
@@ -135,9 +158,9 @@ const styleInput = {
 }
 
 const _styleCover = {
-  alignItems: 'stretch',
+  alignItems: 'center',
   backgroundColor: globalColors.black_75,
-  justifyContent: 'stretch',
+  justifyContent: 'center',
 }
 
 const _styleContainer = {
@@ -146,8 +169,6 @@ const _styleContainer = {
   backgroundColor: globalColors.white,
   borderRadius: 5,
   boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
-  position: 'relative',
-  top: 10,
 }
 
-export default InviteByEmail
+export {InviteByEmailDesktop}

@@ -149,7 +149,7 @@ func (l ephemeralLifetime) Valid() bool {
 	if d == 0 {
 		return true // nil val
 	}
-	return d <= libkb.MaxEphemeralLifetime && d >= libkb.MinEphemeralLifetime
+	return d <= libkb.MaxEphemeralContentLifetime && d >= libkb.MinEphemeralContentLifetime
 }
 
 type sendOptionsV1 struct {

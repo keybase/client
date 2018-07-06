@@ -2,12 +2,18 @@
 import React, {Component} from 'react'
 import Text from './text'
 import shallowEqual from 'shallowequal'
-import {collapseStyles, platformStyles, styleSheetCreate, globalStyles, globalColors, globalMargins} from '../styles'
+import {
+  collapseStyles,
+  platformStyles,
+  styleSheetCreate,
+  globalStyles,
+  globalColors,
+} from '../styles'
 import {isMobile} from '../constants/platform'
 import {compose, connect, setDisplayName} from '../util/container'
 import {type TypedState} from '../constants/reducer'
 import {createShowUserProfile} from '../actions/profile-gen'
-import {createGetProfile} from '../actions/tracker-gen.js'
+import {createGetProfile} from '../actions/tracker-gen'
 import type {Props, PlaintextProps} from './usernames'
 
 function usernameText({
@@ -15,26 +21,19 @@ function usernameText({
   users,
   style,
   commaColor,
+  joinerStyle,
   inline,
   redColor,
   backgroundMode,
   colorFollowing,
   colorBroken = true,
+  colorYou,
   onUsernameClicked,
   underline = false,
   inlineGrammar = false,
   showAnd = false,
 }: Props) {
-  const andStyle = collapseStyles([
-    style,
-    styles.andStyle,
-    {color: commaColor},
-  ])
-  const commaStyle = collapseStyles([
-    style,
-    styles.commaStyle,
-    {color: commaColor},
-  ])
+  const derivedJoinerStyle = collapseStyles([joinerStyle, styles.joinerStyle, {color: commaColor}])
   return users.map((u, i) => {
     let userStyle = {
       ...(!isMobile ? {textDecoration: 'inherit'} : null),
@@ -42,6 +41,9 @@ function usernameText({
       ...(colorBroken && u.broken && !u.you ? {color: redColor || globalColors.red} : null),
       ...(inline && !isMobile ? {display: 'inline'} : null),
       ...(u.you ? globalStyles.italic : null),
+      ...(colorYou && u.you
+        ? {color: typeof colorYou === 'string' ? colorYou : globalColors.black_75}
+        : null),
     }
     userStyle = collapseStyles([style, userStyle])
 
@@ -51,15 +53,13 @@ function usernameText({
     const _onUsernameClicked = onUsernameClicked
     return (
       <Text type={type} key={u.username}>
-        {i !== 0 && i === users.length - 1 && showAnd && (
-          <Text
-            type={type}
-            backgroundMode={backgroundMode}
-            style={andStyle}
-          >
-            and
-          </Text>
-        )}
+        {i !== 0 &&
+          i === users.length - 1 &&
+          showAnd && (
+            <Text type={type} backgroundMode={backgroundMode} style={derivedJoinerStyle}>
+              {'and '}
+            </Text>
+          )}
         <Text
           type={type}
           backgroundMode={backgroundMode}
@@ -71,15 +71,11 @@ function usernameText({
         </Text>
         {i !== users.length - 1 &&
         (!inlineGrammar || users.length > 2) && ( // Injecting the commas here so we never wrap and have newlines starting with a ,
-            <Text
-              type={type}
-              backgroundMode={backgroundMode}
-              style={commaStyle}
-            >
+            <Text type={type} backgroundMode={backgroundMode} style={derivedJoinerStyle}>
               ,
             </Text>
           )}
-        {inlineGrammar && ' '}
+        {i !== users.length - 1 && ' '}
       </Text>
     )
   })
@@ -207,16 +203,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 const styles = styleSheetCreate({
-  andStyle: platformStyles({
-    common: {
-      marginLeft: globalMargins.xtiny,
-      marginRight: globalMargins.xtiny,
+  joinerStyle: platformStyles({
+    isElectron: {
+      textDecoration: 'none',
     },
-    isElectron: {textDecoration: 'none'},
-  }),
-  commaStyle: platformStyles({
-    common: {marginRight: 1},
-    isElectron: {textDecoration: 'none'},
   }),
   inlineStyle: platformStyles({
     isElectron: {
@@ -224,7 +214,6 @@ const styles = styleSheetCreate({
       overflow: 'hidden',
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
-      width: '100%',
     },
   }),
   nonInlineStyle: platformStyles({
@@ -232,9 +221,14 @@ const styles = styleSheetCreate({
       ...globalStyles.flexBoxRow,
       flexWrap: 'wrap',
     },
-    isElectron: {textDecoration: 'inherit'},
+    isElectron: {
+      textDecoration: 'inherit',
+    },
   }),
 })
 
-const ConnectedUsernames = compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Usernames'))(Usernames)
+const ConnectedUsernames = compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('Usernames')
+)(Usernames)
 export {usernameText, Usernames, PlaintextUsernames, ConnectedUsernames}

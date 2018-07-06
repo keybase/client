@@ -15,8 +15,9 @@ import BigTeamsDivider from './row/big-teams-divider/container'
 import Divider from './row/divider/container'
 import {debounce} from 'lodash-es'
 import {Owl} from './owl'
+import * as RowSizes from './row/sizes'
 
-import type {Props, RowItem} from './'
+import type {Props, RowItem, RowItemSmall} from './index.types'
 
 const NoChats = () => (
   <Box
@@ -42,11 +43,11 @@ type State = {
 class Inbox extends React.PureComponent<Props, State> {
   _list: any
   // Help us calculate row heights and offsets quickly
-  _dividerIndex = -1
+  _dividerIndex: number = -1
+  // 2 different sizes
+  _dividerShowButton: boolean = false
 
-  state = {
-    showFloating: false,
-  }
+  state = {showFloating: false}
 
   _renderItem = ({item, index}) => {
     const row = item
@@ -54,6 +55,7 @@ class Inbox extends React.PureComponent<Props, State> {
       return (
         <Divider
           key="divider"
+          showButton={row.showButton}
           toggle={this.props.toggleSmallTeamsExpanded}
           smallIDsHidden={this.props.smallIDsHidden}
         />
@@ -82,12 +84,6 @@ class Inbox extends React.PureComponent<Props, State> {
       (row.type === 'big' && row.conversationIDKey) ||
       'missingkey'
     )
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.rows !== prevProps.rows) {
-      this._dividerIndex = this.props.rows.findIndex(r => r.type === 'divider')
-    }
   }
 
   _askForUnboxing = (rows: Array<RowItem>) => {
@@ -144,36 +140,43 @@ class Inbox extends React.PureComponent<Props, State> {
     this._list = r
   }
 
-  _itemTypeToHeight = {
-    big: globalMargins.large,
-    bigHeader: globalMargins.large,
-    divider: 56,
-    small: globalMargins.xlarge,
-  }
-
   _getItemLayout = (data, index) => {
     // We cache the divider location so we can divide the list into small and large. We can calculate the small cause they're all
     // the same height. We iterate over the big since that list is small and we don't know the number of channels easily
-    const smallHeight = this._itemTypeToHeight['small']
+    const smallHeight = RowSizes.smallRowHeight
     if (index < this._dividerIndex || this._dividerIndex === -1) {
-      return {index, length: smallHeight, offset: index ? smallHeight * index : 0}
+      const offset = index ? smallHeight * index : 0
+      const length = smallHeight
+      return {index, length, offset}
     }
 
-    const dividerHeight = this._itemTypeToHeight['divider']
+    const dividerHeight = RowSizes.dividerHeight(this._dividerShowButton)
     if (index === this._dividerIndex) {
-      return {index, length: dividerHeight, offset: smallHeight * index}
+      const offset = smallHeight * index
+      const length = dividerHeight
+      return {index, length, offset}
     }
 
     let offset = smallHeight * (this._dividerIndex - 1) + dividerHeight
 
     for (let i = this._dividerIndex; i < index; ++i) {
-      offset += this._itemTypeToHeight[data[i].type]
+      const h = data[index].type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
+      offset += h
     }
-
-    return {index, length: this._itemTypeToHeight[data[index].type], offset}
+    const length = data[index].type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
+    return {index, length, offset}
   }
 
   render() {
+    this._dividerShowButton = false
+    this._dividerIndex = this.props.rows.findIndex(r => {
+      if (r.type === 'divider') {
+        this._dividerShowButton = r.showButton
+        return true
+      }
+      return false
+    })
+
     const noChats = !this.props.isLoading && !this.props.rows.length && !this.props.filter && <NoChats />
     const owl = !this.props.rows.length && !!this.props.filter && <Owl />
     const floatingDivider = this.state.showFloating &&
@@ -222,3 +225,4 @@ const boxStyle = {
 }
 
 export default Inbox
+export type {RowItem, RowItemSmall}

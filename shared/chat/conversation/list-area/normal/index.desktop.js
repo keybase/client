@@ -15,9 +15,8 @@ import {ErrorBoundary} from '../../../../common-adapters'
 import {copyToClipboard} from '../../../../util/clipboard'
 import {debounce, throttle, chunk} from 'lodash-es'
 import {globalColors, globalStyles} from '../../../../styles'
+import type {Props} from './index.types'
 import shallowEqual from 'shallowequal'
-
-import type {Props} from '.'
 
 // hot reload isn't supported with debouncing currently so just ignore hot here
 if (module.hot) {

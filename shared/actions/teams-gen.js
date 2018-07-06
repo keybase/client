@@ -43,6 +43,7 @@ export const saveChannelMembership = 'teams:saveChannelMembership'
 export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
 export const setAddUserToTeamsResults = 'teams:setAddUserToTeamsResults'
 export const setChannelCreationError = 'teams:setChannelCreationError'
+export const setEmailInviteError = 'teams:setEmailInviteError'
 export const setLoaded = 'teams:setLoaded'
 export const setMemberPublicity = 'teams:setMemberPublicity'
 export const setNewTeamInfo = 'teams:setNewTeamInfo'
@@ -99,7 +100,7 @@ type _AddUserToTeamsPayload = $ReadOnly<{|
 type _BadgeAppForTeamsPayload = $ReadOnly<{|
   newTeamNames: Array<string>,
   newTeamAccessRequests: Array<string>,
-  teamsWithResetUsers: Array<$ReadOnly<{id: Buffer, teamname: string, username: string}>>,
+  teamsWithResetUsers: Array<$ReadOnly<{id: Buffer, teamname: string, username: string, uid: string}>>,
 |}>
 type _CheckRequestedAccessPayload = $ReadOnly<{|teamname: string|}>
 type _ClearTeamRequestsPayload = $ReadOnly<{|teamname: string|}>
@@ -190,6 +191,10 @@ type _SaveTeamRetentionPolicyPayload = $ReadOnly<{|
 |}>
 type _SetAddUserToTeamsResultsPayload = $ReadOnly<{|results: string|}>
 type _SetChannelCreationErrorPayload = $ReadOnly<{|error: string|}>
+type _SetEmailInviteErrorPayload = $ReadOnly<{|
+  message: string,
+  malformed: Array<string>,
+|}>
 type _SetLoadedPayload = $ReadOnly<{|loaded: boolean|}>
 type _SetMemberPublicityPayload = $ReadOnly<{|
   teamname: string,
@@ -328,6 +333,7 @@ export const createRemoveParticipant = (payload: _RemoveParticipantPayload) => (
 export const createSaveChannelMembership = (payload: _SaveChannelMembershipPayload) => ({error: false, payload, type: saveChannelMembership})
 export const createSetAddUserToTeamsResults = (payload: _SetAddUserToTeamsResultsPayload) => ({error: false, payload, type: setAddUserToTeamsResults})
 export const createSetChannelCreationError = (payload: _SetChannelCreationErrorPayload) => ({error: false, payload, type: setChannelCreationError})
+export const createSetEmailInviteError = (payload: _SetEmailInviteErrorPayload) => ({error: false, payload, type: setEmailInviteError})
 export const createSetLoaded = (payload: _SetLoadedPayload) => ({error: false, payload, type: setLoaded})
 export const createSetMemberPublicity = (payload: _SetMemberPublicityPayload) => ({error: false, payload, type: setMemberPublicity})
 export const createSetNewTeamInfo = (payload: _SetNewTeamInfoPayload) => ({error: false, payload, type: setNewTeamInfo})
@@ -390,6 +396,7 @@ export type SaveChannelMembershipPayload = $Call<typeof createSaveChannelMembers
 export type SaveTeamRetentionPolicyPayload = $Call<typeof createSaveTeamRetentionPolicy, _SaveTeamRetentionPolicyPayload>
 export type SetAddUserToTeamsResultsPayload = $Call<typeof createSetAddUserToTeamsResults, _SetAddUserToTeamsResultsPayload>
 export type SetChannelCreationErrorPayload = $Call<typeof createSetChannelCreationError, _SetChannelCreationErrorPayload>
+export type SetEmailInviteErrorPayload = $Call<typeof createSetEmailInviteError, _SetEmailInviteErrorPayload>
 export type SetLoadedPayload = $Call<typeof createSetLoaded, _SetLoadedPayload>
 export type SetMemberPublicityPayload = $Call<typeof createSetMemberPublicity, _SetMemberPublicityPayload>
 export type SetNewTeamInfoPayload = $Call<typeof createSetNewTeamInfo, _SetNewTeamInfoPayload>
@@ -454,6 +461,7 @@ export type Actions =
   | SaveTeamRetentionPolicyPayload
   | SetAddUserToTeamsResultsPayload
   | SetChannelCreationErrorPayload
+  | SetEmailInviteErrorPayload
   | SetLoadedPayload
   | SetMemberPublicityPayload
   | SetNewTeamInfoPayload

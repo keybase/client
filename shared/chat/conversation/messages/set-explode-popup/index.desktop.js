@@ -3,7 +3,7 @@ import * as React from 'react'
 import {type MessageExplodeDescription} from '../../../../constants/types/chat2'
 import {Box2, Icon, Text, FloatingMenu} from '../../../../common-adapters'
 import {platformStyles, globalColors, globalMargins} from '../../../../styles'
-import type {Props} from '.'
+import type {Props} from './index.types'
 
 type HeaderProps = {
   isNew: boolean,
@@ -19,17 +19,14 @@ const Header = (props: HeaderProps) => (
           fontSize={48}
           style={platformStyles({isElectron: {display: 'block', lineHeight: '28px', maxHeight: 28}})}
         />
-        <Text type="BodySemibold" backgroundMode="Announcements" style={{textAlign: 'center'}}>
+        <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{textAlign: 'center'}}>
           Set a timeout on your messages and watch them
-        </Text>
-        <Text type="BodySemibold" backgroundMode="Announcements">
-          E X P L O D E
+          E&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;P&nbsp;&nbsp;&nbsp;L&nbsp;&nbsp;&nbsp;O&nbsp;&nbsp;&nbsp;D&nbsp;&nbsp;&nbsp;E.
         </Text>
         <Text
-          type="BodySmallInlineLink"
+          type="BodySmallSemiboldInlineLink"
           backgroundMode="Announcements"
-          className="hover-underline"
-          style={{marginTop: globalMargins.xtiny}}
+          className="underline"
           onClickURL="https://keybase.io/blog/keybase-exploding-messages"
         >
           Learn more

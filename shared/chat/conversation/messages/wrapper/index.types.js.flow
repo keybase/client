@@ -1,0 +1,44 @@
+// @flow
+import * as React from 'react'
+import * as Types from '../../../../constants/types/chat2'
+import type {StylesCrossPlatform} from '../../../../styles'
+
+export type WrapperTimestampProps = {
+  message: Types.Message,
+  measure: null | (() => void),
+  previous?: ?Types.Message,
+  children?: React.Node,
+  timestamp: string,
+  orangeLineAbove: boolean,
+}
+
+export type WrapperAuthorProps = {
+  author: string,
+  exploded: boolean,
+  explodedBy: string,
+  explodesAt: number,
+  exploding: boolean,
+  failureDescription: string,
+  includeHeader: boolean,
+  innerClass: React.ComponentType<any>,
+  isBroken: boolean,
+  isEdited: boolean,
+  isEditing: boolean,
+  isExplodingUnreadable: boolean,
+  isFollowing: boolean,
+  isRevoked: boolean,
+  isYou: boolean,
+  measure: null | (() => void),
+  message: Types.MessageText | Types.MessageAttachment,
+  messageFailed: boolean,
+  messageKey: string,
+  messagePending: boolean,
+  messageSent: boolean,
+  onRetry: null | (() => void),
+  onEdit: null | (() => void),
+  onCancel: null | (() => void),
+  onAuthorClick: () => void,
+  orangeLineAbove: boolean,
+  styles: StylesCrossPlatform,
+  timestamp: number,
+}

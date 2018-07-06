@@ -6,7 +6,7 @@ import * as Constants from '../../constants/fs'
 import DefaultView from './default-view'
 
 const mapStateToProps = (state: TypedState, {path}) => {
-  const pathItem = state.fs.pathItems.get(path) || Constants.makeUnknownPathItem()
+  const pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
   const _username = state.config.username || undefined
   return {
     _username,
@@ -20,14 +20,14 @@ const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({
   _download: (path: Types.Path) => dispatch(FsGen.createDownload({path, intent: 'none'})),
   _openFinderPopup: (evt?: SyntheticEvent<>) =>
     dispatch(FsGen.createOpenFinderPopup({targetRect: Constants.syntheticEventToTargetRect(evt), routePath})),
-  _save: (path: Types.Path) => dispatch(FsGen.createSave({path, routePath})),
-  _share: (path: Types.Path) => dispatch(FsGen.createShare({path, routePath})),
+  _saveMedia: (path: Types.Path) => dispatch(FsGen.createSaveMedia({path, routePath})),
+  _shareNative: (path: Types.Path) => dispatch(FsGen.createShareNative({path, routePath})),
   _showInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
   const {fileUIEnabled, _path, pathItem, _username} = stateProps
-  const {_download, _openFinderPopup, _save, _share, _showInFileUI} = dispatchProps
+  const {_download, _openFinderPopup, _saveMedia, _shareNative, _showInFileUI} = dispatchProps
   const itemStyles = Constants.getItemStyles(Types.getPathElements(_path), pathItem.type, _username)
   return {
     fileUIEnabled,
@@ -35,8 +35,8 @@ const mergeProps = (stateProps, dispatchProps) => {
     pathItem,
 
     onDownload: () => _download(_path),
-    onSave: () => _save(_path),
-    onShare: () => _share(_path),
+    onSave: () => _saveMedia(_path),
+    onShare: () => _shareNative(_path),
     onShowInFileUI: fileUIEnabled ? () => _showInFileUI(_path) : _openFinderPopup,
   }
 }

@@ -50,6 +50,11 @@ func (a *AppState) Update(state keybase1.AppState) {
 		for _, ch := range a.updateChs {
 			ch <- state
 		}
+		// cancel RPCs if we go into the background
+		switch a.state {
+		case keybase1.AppState_BACKGROUND:
+			a.G().RPCCanceller.CancelLiveContexts()
+		}
 		a.updateChs = nil
 	} else {
 		a.G().Log.Debug("AppState.Update: ignoring update: %v, we are currently in state: %v",

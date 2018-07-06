@@ -92,7 +92,7 @@ func (e *RevokeSigsEngine) Run(m libkb.MetaContext) error {
 	if err = sigKey.CheckSecretKey(); err != nil {
 		return err
 	}
-	proof, err := me.RevokeSigsProof(sigKey, sigIDsToRevoke, merkleRoot)
+	proof, err := me.RevokeSigsProof(m, sigKey, sigIDsToRevoke, merkleRoot)
 	if err != nil {
 		return err
 	}

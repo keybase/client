@@ -195,7 +195,7 @@ func TestLocalKeySecurityStoreSecret(t *testing.T) {
 		t.Skip("No SecretStore on this platform")
 	}
 
-	_, err := secretStore.RetrieveSecret()
+	_, err := secretStore.RetrieveSecret(NewMetaContextForTest(tc))
 	if err == nil {
 		t.Fatal("User unexpectedly has secret")
 	}
@@ -210,7 +210,7 @@ func TestLocalKeySecurityStoreSecret(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	storedSecret, err := secretStore.RetrieveSecret()
+	storedSecret, err := secretStore.RetrieveSecret(NewMetaContextForTest(tc))
 	if err != nil {
 		t.Error(err)
 	}
@@ -219,7 +219,7 @@ func TestLocalKeySecurityStoreSecret(t *testing.T) {
 		t.Errorf("Expected %v, got %v", secret, storedSecret)
 	}
 
-	err = tc.G.SecretStore().ClearSecret(fu.NormalizedUsername())
+	err = tc.G.SecretStore().ClearSecret(NewMetaContextForTest(tc), fu.NormalizedUsername())
 	if err != nil {
 		t.Error(err)
 	}
@@ -298,5 +298,26 @@ func TestSignupShortPassphrase(t *testing.T) {
 	}
 	if _, ok := err.(libkb.PassphraseError); !ok {
 		t.Fatalf("error type: %T, expected libkb.PassphraseError", err)
+	}
+}
+
+func TestSignupNonAsciiDeviceName(t *testing.T) {
+	tc := SetupEngineTest(t, "signup")
+	defer tc.Cleanup()
+
+	testValues := []struct {
+		deviceName string
+		err        error
+	}{
+		{"perfectly-reasonable", nil},
+		{"definitely🙃not🐉ascii", libkb.DeviceBadNameError{}},
+	}
+
+	for _, testVal := range testValues {
+		fu, _ := NewFakeUser("sup")
+		arg := MakeTestSignupEngineRunArg(fu)
+		arg.DeviceName = testVal.deviceName
+		_, err := CreateAndSignupFakeUserSafeWithArg(tc.G, fu, arg)
+		require.IsType(t, err, testVal.err)
 	}
 }

@@ -6,8 +6,7 @@ import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
 import {Box, LoadingLine, Text, HeaderHocHeader} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
-
-import type {Props} from '.'
+import type {Props} from './index.types'
 
 const Offline = () => (
   <Box
@@ -21,7 +20,7 @@ const Offline = () => (
       width: '100%',
     }}
   >
-    <Text style={{color: globalColors.black_40, textAlign: 'center'}} type="BodySemibold">
+    <Text style={{textAlign: 'center'}} type="BodySmallSemibold">
       Couldn't load all chat messages due to network connectivity. Retrying...
     </Text>
   </Box>

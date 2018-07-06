@@ -275,12 +275,41 @@ func (o TeamMembers) DeepCopy() TeamMembers {
 	}
 }
 
+type TeamMemberStatus int
+
+const (
+	TeamMemberStatus_ACTIVE  TeamMemberStatus = 0
+	TeamMemberStatus_RESET   TeamMemberStatus = 1
+	TeamMemberStatus_DELETED TeamMemberStatus = 2
+)
+
+func (o TeamMemberStatus) DeepCopy() TeamMemberStatus { return o }
+
+var TeamMemberStatusMap = map[string]TeamMemberStatus{
+	"ACTIVE":  0,
+	"RESET":   1,
+	"DELETED": 2,
+}
+
+var TeamMemberStatusRevMap = map[TeamMemberStatus]string{
+	0: "ACTIVE",
+	1: "RESET",
+	2: "DELETED",
+}
+
+func (e TeamMemberStatus) String() string {
+	if v, ok := TeamMemberStatusRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type TeamMemberDetails struct {
-	Uv       UserVersion `codec:"uv" json:"uv"`
-	Username string      `codec:"username" json:"username"`
-	FullName FullName    `codec:"fullName" json:"fullName"`
-	Active   bool        `codec:"active" json:"active"`
-	NeedsPUK bool        `codec:"needsPUK" json:"needsPUK"`
+	Uv       UserVersion      `codec:"uv" json:"uv"`
+	Username string           `codec:"username" json:"username"`
+	FullName FullName         `codec:"fullName" json:"fullName"`
+	NeedsPUK bool             `codec:"needsPUK" json:"needsPUK"`
+	Status   TeamMemberStatus `codec:"status" json:"status"`
 }
 
 func (o TeamMemberDetails) DeepCopy() TeamMemberDetails {
@@ -288,8 +317,8 @@ func (o TeamMemberDetails) DeepCopy() TeamMemberDetails {
 		Uv:       o.Uv.DeepCopy(),
 		Username: o.Username,
 		FullName: o.FullName.DeepCopy(),
-		Active:   o.Active,
 		NeedsPUK: o.NeedsPUK,
+		Status:   o.Status.DeepCopy(),
 	}
 }
 
@@ -748,15 +777,15 @@ func (o TeamInvite) DeepCopy() TeamInvite {
 }
 
 type AnnotatedTeamInvite struct {
-	Role            TeamRole       `codec:"role" json:"role"`
-	Id              TeamInviteID   `codec:"id" json:"id"`
-	Type            TeamInviteType `codec:"type" json:"type"`
-	Name            TeamInviteName `codec:"name" json:"name"`
-	Uv              UserVersion    `codec:"uv" json:"uv"`
-	Inviter         UserVersion    `codec:"inviter" json:"inviter"`
-	InviterUsername string         `codec:"inviterUsername" json:"inviterUsername"`
-	TeamName        string         `codec:"teamName" json:"teamName"`
-	UserActive      bool           `codec:"userActive" json:"userActive"`
+	Role            TeamRole         `codec:"role" json:"role"`
+	Id              TeamInviteID     `codec:"id" json:"id"`
+	Type            TeamInviteType   `codec:"type" json:"type"`
+	Name            TeamInviteName   `codec:"name" json:"name"`
+	Uv              UserVersion      `codec:"uv" json:"uv"`
+	Inviter         UserVersion      `codec:"inviter" json:"inviter"`
+	InviterUsername string           `codec:"inviterUsername" json:"inviterUsername"`
+	TeamName        string           `codec:"teamName" json:"teamName"`
+	Status          TeamMemberStatus `codec:"status" json:"status"`
 }
 
 func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
@@ -769,7 +798,7 @@ func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
 		Inviter:         o.Inviter.DeepCopy(),
 		InviterUsername: o.InviterUsername,
 		TeamName:        o.TeamName,
-		UserActive:      o.UserActive,
+		Status:          o.Status.DeepCopy(),
 	}
 }
 
@@ -1667,21 +1696,21 @@ func (o TeamList) DeepCopy() TeamList {
 }
 
 type AnnotatedMemberInfo struct {
-	UserID              UID           `codec:"userID" json:"uid"`
-	TeamID              TeamID        `codec:"teamID" json:"team_id"`
-	Username            string        `codec:"username" json:"username"`
-	FullName            string        `codec:"fullName" json:"full_name"`
-	FqName              string        `codec:"fqName" json:"fq_name"`
-	IsImplicitTeam      bool          `codec:"isImplicitTeam" json:"is_implicit_team"`
-	IsOpenTeam          bool          `codec:"isOpenTeam" json:"is_open_team"`
-	Role                TeamRole      `codec:"role" json:"role"`
-	Implicit            *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
-	NeedsPUK            bool          `codec:"needsPUK" json:"needsPUK"`
-	MemberCount         int           `codec:"memberCount" json:"member_count"`
-	EldestSeqno         Seqno         `codec:"eldestSeqno" json:"member_eldest_seqno"`
-	Active              bool          `codec:"active" json:"active"`
-	AllowProfilePromote bool          `codec:"allowProfilePromote" json:"allow_profile_promote"`
-	IsMemberShowcased   bool          `codec:"isMemberShowcased" json:"is_member_showcased"`
+	UserID              UID              `codec:"userID" json:"uid"`
+	TeamID              TeamID           `codec:"teamID" json:"team_id"`
+	Username            string           `codec:"username" json:"username"`
+	FullName            string           `codec:"fullName" json:"full_name"`
+	FqName              string           `codec:"fqName" json:"fq_name"`
+	IsImplicitTeam      bool             `codec:"isImplicitTeam" json:"is_implicit_team"`
+	IsOpenTeam          bool             `codec:"isOpenTeam" json:"is_open_team"`
+	Role                TeamRole         `codec:"role" json:"role"`
+	Implicit            *ImplicitRole    `codec:"implicit,omitempty" json:"implicit,omitempty"`
+	NeedsPUK            bool             `codec:"needsPUK" json:"needsPUK"`
+	MemberCount         int              `codec:"memberCount" json:"member_count"`
+	EldestSeqno         Seqno            `codec:"eldestSeqno" json:"member_eldest_seqno"`
+	AllowProfilePromote bool             `codec:"allowProfilePromote" json:"allow_profile_promote"`
+	IsMemberShowcased   bool             `codec:"isMemberShowcased" json:"is_member_showcased"`
+	Status              TeamMemberStatus `codec:"status" json:"status"`
 }
 
 func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
@@ -1704,9 +1733,9 @@ func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
 		NeedsPUK:            o.NeedsPUK,
 		MemberCount:         o.MemberCount,
 		EldestSeqno:         o.EldestSeqno.DeepCopy(),
-		Active:              o.Active,
 		AllowProfilePromote: o.AllowProfilePromote,
 		IsMemberShowcased:   o.IsMemberShowcased,
+		Status:              o.Status.DeepCopy(),
 	}
 }
 
@@ -2076,6 +2105,16 @@ func (o TeamOperation) DeepCopy() TeamOperation {
 	}
 }
 
+type ProfileTeamLoadRes struct {
+	LoadTimeNsec int64 `codec:"loadTimeNsec" json:"loadTimeNsec"`
+}
+
+func (o ProfileTeamLoadRes) DeepCopy() ProfileTeamLoadRes {
+	return ProfileTeamLoadRes{
+		LoadTimeNsec: o.LoadTimeNsec,
+	}
+}
+
 type TeamDebugRes struct {
 	Chain TeamSigChainState `codec:"chain" json:"chain"`
 }
@@ -2100,9 +2139,8 @@ type TeamCreateWithSettingsArg struct {
 }
 
 type TeamGetArg struct {
-	SessionID   int    `codec:"sessionID" json:"sessionID"`
-	Name        string `codec:"name" json:"name"`
-	ForceRepoll bool   `codec:"forceRepoll" json:"forceRepoll"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
 }
 
 type TeamImplicitAdminsArg struct {
@@ -2341,6 +2379,10 @@ type FindNextMerkleRootAfterTeamRemovalBySigningKeyArg struct {
 	IsPublic   bool   `codec:"isPublic" json:"isPublic"`
 }
 
+type ProfileTeamLoadArg struct {
+	Arg LoadTeamArg `codec:"arg" json:"arg"`
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
@@ -2395,6 +2437,9 @@ type TeamsInterface interface {
 	// with the given signing key being removed from the given team. If there are several such instances,
 	// we will return just the last one.
 	FindNextMerkleRootAfterTeamRemovalBySigningKey(context.Context, FindNextMerkleRootAfterTeamRemovalBySigningKeyArg) (NextMerkleRootRes, error)
+	// ProfileTeamLoad loads a team and then throws it on the ground, for the purposes of profiling
+	// the team load machinery.
+	ProfileTeamLoad(context.Context, LoadTeamArg) (ProfileTeamLoadRes, error)
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -3105,6 +3150,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"profileTeamLoad": {
+				MakeArg: func() interface{} {
+					ret := make([]ProfileTeamLoadArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ProfileTeamLoadArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ProfileTeamLoadArg)(nil), args)
+						return
+					}
+					ret, err = i.ProfileTeamLoad(ctx, (*typedArgs)[0].Arg)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -3346,5 +3407,13 @@ func (c TeamsClient) FindNextMerkleRootAfterTeamRemoval(ctx context.Context, __a
 // we will return just the last one.
 func (c TeamsClient) FindNextMerkleRootAfterTeamRemovalBySigningKey(ctx context.Context, __arg FindNextMerkleRootAfterTeamRemovalBySigningKeyArg) (res NextMerkleRootRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.findNextMerkleRootAfterTeamRemovalBySigningKey", []interface{}{__arg}, &res)
+	return
+}
+
+// ProfileTeamLoad loads a team and then throws it on the ground, for the purposes of profiling
+// the team load machinery.
+func (c TeamsClient) ProfileTeamLoad(ctx context.Context, arg LoadTeamArg) (res ProfileTeamLoadRes, err error) {
+	__arg := ProfileTeamLoadArg{Arg: arg}
+	err = c.Cli.Call(ctx, "keybase.1.teams.profileTeamLoad", []interface{}{__arg}, &res)
 	return
 }

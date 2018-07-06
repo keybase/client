@@ -738,14 +738,14 @@ func TestGregorBadgesOOBM(t *testing.T) {
 	t.Logf("client setup complete")
 
 	t.Logf("sending first chat update")
-	h.badger.PushChatUpdate(chat1.UnreadUpdate{
+	h.badger.PushChatUpdate(context.TODO(), chat1.UnreadUpdate{
 		ConvID:         chat1.ConversationID(`a`),
 		UnreadMessages: 2,
 	}, 0)
 	_ = listener.getBadgeState(t)
 
 	t.Logf("sending second chat update")
-	h.badger.PushChatUpdate(chat1.UnreadUpdate{
+	h.badger.PushChatUpdate(context.TODO(), chat1.UnreadUpdate{
 		ConvID:         chat1.ConversationID(`b`),
 		UnreadMessages: 2,
 	}, 1)
@@ -756,7 +756,7 @@ func TestGregorBadgesOOBM(t *testing.T) {
 
 	t.Logf("resyncing")
 	// Instead of calling badger.Resync, reach in and twiddle the knobs.
-	h.badger.State().UpdateWithChatFull(chat1.UnreadUpdateFull{
+	h.badger.State().UpdateWithChatFull(context.TODO(), chat1.UnreadUpdateFull{
 		InboxVers: chat1.InboxVers(4),
 		Updates: []chat1.UnreadUpdate{
 			{ConvID: chat1.ConversationID(`b`), UnreadMessages: 0},
@@ -764,7 +764,7 @@ func TestGregorBadgesOOBM(t *testing.T) {
 		},
 		InboxSyncStatus: chat1.SyncInboxResType_CLEAR,
 	})
-	h.badger.Send()
+	h.badger.Send(context.TODO())
 	bs = listener.getBadgeState(t)
 	require.Equal(t, 1, badgeStateStats(bs).UnreadChatConversations, "unread chat convs")
 	require.Equal(t, 3, badgeStateStats(bs).UnreadChatMessages, "unread chat messages")
@@ -971,13 +971,12 @@ func TestOfflineConsume(t *testing.T) {
 	defer h.Shutdown()
 
 	fclient := newFlakeyIncomingClient(func() gregor1.IncomingInterface { return server })
+	fc := clockwork.NewFakeClock()
 	client := grclient.NewClient(uid, nil, func() gregor.StateMachine {
 		return storage.NewMemEngine(gregor1.ObjFactory{}, clockwork.NewRealClock(), tc.G.GetLog())
-	}, storage.NewLocalDB(tc.G), func() gregor1.IncomingInterface { return fclient }, tc.G.GetLog())
+	}, storage.NewLocalDB(tc.G), func() gregor1.IncomingInterface { return fclient }, tc.G.GetLog(), fc)
 	tev := grclient.NewTestingEvents()
 	client.TestingEvents = tev
-	fc := clockwork.NewFakeClock()
-	client.Clock = fc
 	h.gregorCli = client
 
 	// Try to consume offline

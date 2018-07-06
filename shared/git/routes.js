@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import MainPage from './container.js'
+import MainPage from './container'
 import NewRepo from './new-repo/container'
 import DeleteRepo from './delete-repo/container'
 import SelectChannel from './select-channel/container'

@@ -38,4 +38,6 @@ protocol NotifyTeam {
   void teamAbandoned(TeamID teamID) oneway;
 
   void teamExit(TeamID teamID) oneway;
+
+  void avatarUpdated(string name, array<AvatarFormat> formats) oneway;
 }

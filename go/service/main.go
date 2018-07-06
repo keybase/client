@@ -129,16 +129,16 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.TestProtocol(NewTestHandler(xp, g)),
 		keybase1.TrackProtocol(NewTrackHandler(xp, g)),
 		keybase1.UserProtocol(NewUserHandler(xp, g, d.ChatG())),
-		keybase1.ApiserverProtocol(NewAPIServerHandler(xp, g)),
+		CancellingProtocol(g, keybase1.ApiserverProtocol(NewAPIServerHandler(xp, g))),
 		keybase1.PaperprovisionProtocol(NewPaperProvisionHandler(xp, g)),
 		keybase1.RekeyProtocol(NewRekeyHandler2(xp, g, d.rekeyMaster)),
 		keybase1.NotifyFSRequestProtocol(newNotifyFSRequestHandler(xp, g)),
 		keybase1.GregorProtocol(newGregorRPCHandler(xp, g, d.gregor)),
-		chat1.LocalProtocol(newChatLocalHandler(xp, cg, d.attachmentstore, d.gregor)),
+		CancellingProtocol(g, chat1.LocalProtocol(newChatLocalHandler(xp, cg, d.attachmentstore, d.gregor))),
 		keybase1.SimpleFSProtocol(NewSimpleFSHandler(xp, g)),
 		keybase1.LogsendProtocol(NewLogsendHandler(xp, g)),
 		keybase1.AppStateProtocol(newAppStateHandler(xp, g)),
-		keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, cg, d.gregor)),
+		CancellingProtocol(g, keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, cg, d.gregor))),
 		keybase1.BadgerProtocol(newBadgerHandler(xp, g, d.badger)),
 		keybase1.MerkleProtocol(newMerkleHandler(xp, g)),
 		keybase1.GitProtocol(NewGitHandler(xp, g)),
@@ -329,6 +329,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// backgrounded.
 	ctx := context.Background()
 	d.tryLogin(ctx)
+	d.chatOutboxPurgeCheck()
 	d.hourlyChecks()
 	d.slowChecks() // 6 hours
 	d.createChatModules()
@@ -566,6 +567,30 @@ func (d *Service) writeServiceInfo() error {
 	return rtInfo.WriteFile(d.G().Env.GetServiceInfoPath(), d.G().Log)
 }
 
+func (d *Service) chatOutboxPurgeCheck() {
+	ticker := libkb.NewBgTicker(5 * time.Minute)
+	m := libkb.NewMetaContextBackground(d.G()).WithLogTag("OBOXPRGE")
+	d.G().PushShutdownHook(func() error {
+		m.CDebugf("stopping chatOutboxPurgeCheck loop")
+		ticker.Stop()
+		return nil
+	})
+	go func() {
+		for {
+			<-ticker.C
+			uid := d.G().Env.GetUID()
+			if uid.IsNil() {
+				continue
+			}
+			gregorUID := gregor1.UID(uid.ToBytes())
+			g := globals.NewContext(d.G(), d.ChatG())
+			if err := storage.NewOutbox(g, gregorUID).OutboxPurge(context.Background()); err != nil {
+				m.CDebugf("OutboxPurge error: %s", err)
+			}
+		}
+	}()
+}
+
 func (d *Service) hourlyChecks() {
 	ticker := libkb.NewBgTicker(1 * time.Hour)
 	m := libkb.NewMetaContextBackground(d.G()).WithLogTag("HRLY")
@@ -586,7 +611,9 @@ func (d *Service) hourlyChecks() {
 			m.CDebugf("+ hourly check loop")
 			ekLib := m.G().GetEKLib()
 			m.CDebugf("| checking if ephemeral keys need to be created or deleted")
-			ekLib.KeygenIfNeeded(m.Ctx())
+			if err := ekLib.KeygenIfNeeded(m.Ctx()); err != nil {
+				m.CDebugf("KeygenIfNeeded error: %s", err)
+			}
 
 			m.CDebugf("| checking if current device revoked")
 			if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
@@ -740,18 +767,20 @@ func (d *Service) OnLogin() error {
 
 func (d *Service) OnLogout() (err error) {
 	defer d.G().Trace("Service#OnLogout", func() error { return err })()
-
 	log := func(s string) {
 		d.G().Log.Debug("Service#OnLogout: %s", s)
 	}
 
-	log("shutting down gregor")
-	if d.gregor != nil {
-		d.gregor.Shutdown()
-	}
+	log("cancelling live RPCs")
+	d.G().RPCCanceller.CancelLiveContexts()
 
 	log("shutting down chat modules")
 	d.stopChatModules()
+
+	log("shutting down gregor")
+	if d.gregor != nil {
+		d.gregor.Reset()
+	}
 
 	log("shutting down rekeyMaster")
 	d.rekeyMaster.Logout()

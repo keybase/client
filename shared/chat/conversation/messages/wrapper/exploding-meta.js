@@ -20,6 +20,8 @@ import {
 } from '../../../../styles'
 import {type TickerID, addTicker, removeTicker} from '../../../../util/second-timer'
 import {formatDurationShort} from '../../../../util/timestamp'
+import SharedTimer, {type SharedTimerID} from '../../../../util/shared-timers'
+import {animationDuration} from './exploding-height-retainer'
 
 const oneMinuteInMs = 60 * 1000
 const oneHourInMs = oneMinuteInMs * 60
@@ -28,6 +30,7 @@ const oneDayInMs = oneHourInMs * 24
 type Props = PropsWithTimer<{
   exploded: boolean,
   explodesAt: number,
+  messageKey: string,
   onClick: ?() => void,
   pending: boolean,
 }>
@@ -43,6 +46,7 @@ class ExplodingMeta extends React.Component<Props, State> {
     mode: 'none',
   }
   tickerID: TickerID
+  sharedTimerID: SharedTimerID
 
   componentDidMount() {
     if (this.state.mode === 'none' && (Date.now() >= this.props.explodesAt || this.props.exploded)) {
@@ -55,11 +59,17 @@ class ExplodingMeta extends React.Component<Props, State> {
   componentDidUpdate(prevProps: Props, prevState: State) {
     if (this.props.exploded && !prevProps.exploded) {
       this.setState({mode: 'boom'})
+      SharedTimer.removeObserver(this.props.messageKey, this.sharedTimerID)
+      this.sharedTimerID = SharedTimer.addObserver(() => this.setState({mode: 'hidden'}), {
+        key: this.props.messageKey,
+        ms: animationDuration,
+      })
     }
   }
 
   componentWillUnmount() {
     removeTicker(this.tickerID)
+    SharedTimer.removeObserver(this.props.messageKey, this.sharedTimerID)
   }
 
   _updateLoop = () => {
@@ -82,7 +92,9 @@ class ExplodingMeta extends React.Component<Props, State> {
   _secondLoop = () => {
     const difference = this.props.explodesAt - Date.now()
     if (difference <= 0 || this.props.exploded) {
-      this.setState({mode: 'boom'})
+      if (this.state.mode === 'countdown') {
+        this.setState({mode: 'boom'})
+      }
       removeTicker(this.tickerID)
       return
     }

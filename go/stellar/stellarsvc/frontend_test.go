@@ -69,8 +69,9 @@ func TestGetAccountAssetsLocalWithBalance(t *testing.T) {
 	require.Equal(t, "Lumens", assets[0].Name)
 	require.Equal(t, "XLM", assets[0].AssetCode)
 	require.Equal(t, "10,000", assets[0].BalanceTotal)
-	require.Equal(t, "9,999", assets[0].BalanceAvailableToSend)
-	require.Equal(t, "Stellar", assets[0].Issuer)
+	require.Equal(t, "9,998.9999900", assets[0].BalanceAvailableToSend)
+	require.Equal(t, "Stellar network", assets[0].IssuerName)
+	require.Equal(t, "", assets[0].IssuerAccountID)
 	require.Equal(t, "USD", assets[0].WorthCurrency)
 	require.Equal(t, "$3,183.28", assets[0].Worth)
 }
@@ -93,7 +94,8 @@ func TestGetAccountAssetsLocalEmptyBalance(t *testing.T) {
 	require.Equal(t, "XLM", assets[0].AssetCode)
 	require.Equal(t, "0", assets[0].BalanceTotal)
 	require.Equal(t, "0", assets[0].BalanceAvailableToSend)
-	require.Equal(t, "Stellar", assets[0].Issuer)
+	require.Equal(t, "Stellar network", assets[0].IssuerName)
+	require.Equal(t, "", assets[0].IssuerAccountID)
 	require.Equal(t, "USD", assets[0].WorthCurrency)
 	require.Equal(t, "$0.00", assets[0].Worth)
 }
@@ -564,18 +566,18 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.Equal(t, "completed", p.StatusDescription)
 		require.Empty(t, p.StatusDetail)
 		if sender {
-			require.Equal(t, "- 1,011.1230000 XLM", p.AmountDescription, "Amount")
+			require.Equal(t, "1,011.1230000 XLM", p.AmountDescription, "Amount")
 			require.Equal(t, stellar1.BalanceDelta_DECREASE, p.Delta)
 		} else {
-			require.Equal(t, "+ 1,011.1230000 XLM", p.AmountDescription, "Amount")
+			require.Equal(t, "1,011.1230000 XLM", p.AmountDescription, "Amount")
 			require.Equal(t, stellar1.BalanceDelta_INCREASE, p.Delta)
 		}
 		require.Equal(t, "$321.87", p.Worth, "Worth")
 		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
 		require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")
-		require.Equal(t, "keybase", p.SourceType, "SourceType")
+		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.SourceType, "SourceType")
 		require.Equal(t, tcs[1].Fu.Username, p.Target, "Target")
-		require.Equal(t, "keybase", p.TargetType, "TargetType")
+		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.TargetType, "TargetType")
 		require.Equal(t, "here you go", p.Note)
 		require.Empty(t, p.NoteErr)
 	}
@@ -605,18 +607,18 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.Equal(t, "completed", p.StatusDescription)
 		require.Empty(t, p.StatusDetail)
 		if sender {
-			require.Equal(t, "- 1,011.1230000 XLM", p.AmountDescription, "Amount")
+			require.Equal(t, "1,011.1230000 XLM", p.AmountDescription, "Amount")
 			require.Equal(t, stellar1.BalanceDelta_DECREASE, p.Delta)
 		} else {
-			require.Equal(t, "+ 1,011.1230000 XLM", p.AmountDescription, "Amount")
+			require.Equal(t, "1,011.1230000 XLM", p.AmountDescription, "Amount")
 			require.Equal(t, stellar1.BalanceDelta_INCREASE, p.Delta)
 		}
 		require.Equal(t, "$321.87", p.Worth, "Worth")
 		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
 		require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")
-		require.Equal(t, "keybase", p.SourceType, "SourceType")
+		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.SourceType, "SourceType")
 		require.Equal(t, tcs[1].Fu.Username, p.Target, "Target")
-		require.Equal(t, "keybase", p.TargetType, "TargetType")
+		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.TargetType, "TargetType")
 		require.Equal(t, "here you go", p.Note)
 		require.Empty(t, p.NoteErr)
 		require.Equal(t, "public note", p.PublicNote)
@@ -653,6 +655,36 @@ func TestGetPaymentsLocal(t *testing.T) {
 		PublicMemo:    "public note",
 	})
 	require.NoError(t, err)
+
+	// send to stellar account ID to check target in PaymentLocal
+	sendRes, err = srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+		From:          accountIDSender,
+		To:            accountIDRecip.String(),
+		ToIsAccountID: true,
+		Amount:        "101.456",
+		Asset:         stellar1.AssetNative(),
+		WorthAmount:   "321.87",
+		WorthCurrency: &usd,
+		SecretNote:    "here you go",
+		PublicMemo:    "public note",
+	})
+	require.NoError(t, err)
+	require.Len(t, sendRes.KbTxID, 32)
+	require.False(t, sendRes.Pending)
+	senderPaymentsPage, err = srvSender.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountIDSender})
+	require.NoError(t, err)
+	senderPayments = senderPaymentsPage.Payments
+	require.Len(t, senderPayments, 3)
+	t.Logf("senderPayments: %+v", senderPayments)
+	if senderPayments[0].Err != nil {
+		t.Logf("senderPayments error: %+v", *senderPayments[0].Err)
+	}
+	p := senderPayments[0].Payment
+	require.NotNil(t, p)
+	require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")
+	require.Equal(t, stellar1.ParticipantType_KEYBASE, p.SourceType, "SourceType")
+	require.Equal(t, accountIDRecip.String(), p.Target, "Target")
+	require.Equal(t, stellar1.ParticipantType_STELLAR, p.TargetType, "TargetType")
 }
 
 func TestBuildPaymentLocal(t *testing.T) {
@@ -732,7 +764,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	t.Logf(spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToSend)
 	require.Equal(t, "", bres.ToErrMsg)
-	require.Equal(t, "Your available to send is *19.0000000 XLM*", bres.AmountErrMsg)
+	require.Equal(t, "Your available to send is *18.9999900 XLM*", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "This is *$9.55*", bres.WorthDescription)
@@ -779,12 +811,29 @@ func TestBuildPaymentLocal(t *testing.T) {
 	t.Logf(spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToSend)
 	require.Equal(t, "", bres.ToErrMsg)
-	require.Equal(t, "Your available to send is *3.9999900 XLM*", bres.AmountErrMsg)
+	require.Equal(t, "Your available to send is *3.9999800 XLM*", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "Memo is too long.", bres.PublicMemoErrMsg) // too many potatoes
 	require.Equal(t, "This is *$4.77*", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres, []stellar1.SendBannerLocal{}) // recipient is funded so banner's gone
+
+	// Send an amount so close to available to send that the fee would push it it over the edge.
+	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:   senderAccountID,
+		To:     tcs[1].Fu.Username,
+		Amount: "3.99999900",
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, false, bres.ReadyToSend)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, "Your available to send is *3.9999800 XLM*", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.PublicMemoErrMsg)
+	require.Equal(t, "This is *$1.27*", bres.WorthDescription)
+	require.Equal(t, worthInfo, bres.WorthInfo)
+	requireBannerSet(t, bres, []stellar1.SendBannerLocal{})
 
 	t.Logf("using FromSeqno")
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{

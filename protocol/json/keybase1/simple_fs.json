@@ -81,6 +81,10 @@
         {
           "type": "User",
           "name": "lastWriterUnverified"
+        },
+        {
+          "type": "boolean",
+          "name": "writable"
         }
       ]
     },
@@ -660,6 +664,24 @@
       "response": "SimpleFSGetHTTPAddressAndTokenResponse",
       "doc": "This RPC generates a random token to be used by a client that needs to\n   access KBFS content through HTTP. It's fine to call this RPC more than once,\n   but it's probably best to call this once and keep using it. Clients should\n   be using HTTP GET methods, with requests in the form of:\n\n     http://<address>/<kbfs_path>?token=<token>\n\n   If the provided token is invalid, 403 Forbidden is returned, with a HTML\n   document that has title of \"KBFS HTTP Token Invalid\". When receiving such\n   response, client should call this RPC (again) to get a new token.",
       "lint": "ignore"
+    },
+    "simpleFSUserEditHistory": {
+      "request": [],
+      "response": {
+        "type": "array",
+        "items": "FSFolderEditHistory"
+      },
+      "doc": "simpleFSUserEditHistory returns edit histories of TLFs that the logged-in\n   user can access.  Each returned history is corresponds to a unique\n   writer-TLF pair.  They are in descending order by the modification time\n   (as recorded by the server) of the most recent edit in each history."
+    },
+    "simpleFSFolderEditHistory": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": "FSFolderEditHistory",
+      "doc": "simpleFSFolderEditHistory returns the edit history for the TLF\n   described by `path`, for the most recent writers of that TLF.\n   The writers are in descending order by the modification time (as\n   recorded by the server) of their most recent edit."
     }
   },
   "namespace": "keybase.1"

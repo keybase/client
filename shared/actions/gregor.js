@@ -12,7 +12,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as ChatConstants from '../constants/chat2/'
 import engine from '../engine'
-import {folderFromPath} from '../constants/favorite.js'
+import {folderFromPath} from '../constants/favorite'
 import {nativeReachabilityEvents} from '../util/reachability'
 import {type Dispatch} from '../constants/types/flux'
 import {type State as GregorState, type OutOfBandMessage} from '../constants/types/rpc-gregor-gen'
@@ -178,67 +178,17 @@ function handleConvExplodingModes(items: Array<Types.NonNullGregorItem>) {
   return Saga.put(Chat2Gen.createUpdateConvExplodingModes({modes}))
 }
 
-function getIsExplodingNewDismissActions(items: Array<Types.NonNullGregorItem>) {
-  const seenExplodings = items.filter(i => i.item.category === ChatConstants.seenExplodingGregorKey)
-  const newExplodings = items.filter(i => i.item.category === ChatConstants.newExplodingGregorKey)
-
-  if (seenExplodings.length > 1) {
-    logger.warn('Found some extra seenExploding gregor items. Dismissing...')
-  }
-
-  const ret = []
-  let oldestSeenExploding
-  if (seenExplodings.length > 1) {
-    // keep the oldest one, dismiss the rest
-    oldestSeenExploding = seenExplodings.sort((a, b) => (a.md.ctime > b.md.ctime ? 0 : 1)).pop()
-    ret.push(...seenExplodings)
-  } else if (seenExplodings.length === 1) {
-    oldestSeenExploding = seenExplodings[0]
-  }
-
-  // keep the oldest one, or dismiss all if oldest one was created > offset between seenExploding and newExploding
-  const oldest = newExplodings.sort((a, b) => (a.md.ctime > b.md.ctime ? 0 : 1)).pop()
-  if (
-    oldestSeenExploding &&
-    oldest &&
-    oldest.md.ctime - oldestSeenExploding.md.ctime > ChatConstants.newExplodingGregorOffset
-  ) {
-    newExplodings.push(oldest)
-  }
-  ret.push(...newExplodings)
-
-  if (newExplodings.length) {
-    logger.warn('Found some extra newExploding gregor items. Dismissing...')
-  }
-
-  return ret.map(i => Saga.call(RPCTypes.gregorDismissItemRpcPromise, {id: i.md.msgID}))
-}
-
 function handleIsExplodingNew(items: Array<Types.NonNullGregorItem>) {
   const seenExploding = items.find(i => i.item.category === ChatConstants.seenExplodingGregorKey)
-  const newExploding = items.find(i => i.item.category === ChatConstants.newExplodingGregorKey)
-  const actions = getIsExplodingNewDismissActions(items)
-  if (!seenExploding && !newExploding) {
-    // neither exist. we haven't been here before - set flag in store to new.
-    actions.push(Saga.put(Chat2Gen.createSetExplodingMessagesNew({new: true})))
-  } else if (!seenExploding) {
-    // newExploding && !seenExploding. this should never happen
-    logger.warn('Got newExploding but not seenExploding! Setting seenExploding...')
-    actions.push(
-      Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
-        cat: ChatConstants.seenExplodingGregorKey,
-        body: 'true',
-        dtime: {time: 0, offset: 0},
-      })
-    )
-  } else if (!newExploding) {
-    // seenExploding but not newExploding, set flag in store to old
-    actions.push(Saga.put(Chat2Gen.createSetExplodingMessagesNew({new: false})))
-  } else {
-    // both exist. exploding messages are new.
-    actions.push(Saga.put(Chat2Gen.createSetExplodingMessagesNew({new: true})))
+  let isNew = true
+  if (seenExploding) {
+    const body = seenExploding.item.body.toString()
+    const when = parseInt(body, 10)
+    if (!isNaN(when)) {
+      isNew = Date.now() - when < ChatConstants.newExplodingGregorOffset
+    }
   }
-  return Saga.all(actions)
+  return Saga.put(Chat2Gen.createSetExplodingMessagesNew({new: isNew}))
 }
 
 function _handlePushState(pushAction: GregorGen.PushStatePayload) {
@@ -313,13 +263,13 @@ const _handleCheckReachability = (action: GregorGen.CheckReachabilityPayload) =>
 const _handleCheckReachabilitySuccess = reachability =>
   Saga.put(GregorGen.createUpdateReachability({reachability}))
 
-function _injectItem(action: GregorGen.InjectItemPayload) {
+function _updateCategory(action: GregorGen.UpdateCategoryPayload) {
   const {category, body, dtime} = action.payload
-  return Saga.call(RPCTypes.gregorInjectItemRpcPromise, {
+  return Saga.call(RPCTypes.gregorUpdateCategoryRpcPromise, {
     body,
-    cat: category,
-    dtime: {
-      time: dtime || 0,
+    category,
+    dtime: dtime || {
+      time: 0,
       offset: 0,
     },
   })
@@ -328,7 +278,7 @@ function _injectItem(action: GregorGen.InjectItemPayload) {
 function* gregorSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(GregorGen.pushState, _handlePushState)
   yield Saga.safeTakeEveryPure(GregorGen.pushOOBM, _handlePushOOBM)
-  yield Saga.safeTakeEveryPure(GregorGen.injectItem, _injectItem)
+  yield Saga.safeTakeEveryPure(GregorGen.updateCategory, _updateCategory)
   yield Saga.safeTakeLatestPure(
     GregorGen.checkReachability,
     _handleCheckReachability,

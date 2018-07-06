@@ -292,7 +292,9 @@ func (s *Syncer) filterNotifyConvs(ctx context.Context, convs []chat1.Conversati
 		switch conv.GetMembersType() {
 		case chat1.ConversationMembersType_TEAM:
 			// include if this is a simple team, or the topic name has changed
-			if conv.Metadata.TeamType != chat1.TeamType_COMPLEX || m[conv.GetConvID().String()] ||
+			if conv.GetTopicType() != chat1.TopicType_CHAT ||
+				conv.Metadata.TeamType != chat1.TeamType_COMPLEX ||
+				m[conv.GetConvID().String()] ||
 				conv.GetConvID().Eq(s.GetSelectedConversation()) {
 				include = true
 			}
@@ -304,6 +306,30 @@ func (s *Syncer) filterNotifyConvs(ctx context.Context, convs []chat1.Conversati
 		}
 	}
 	return res
+}
+
+func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid keybase1.UID,
+	allConvs []chat1.UnverifiedInboxUIItem) {
+	if len(allConvs) == 0 {
+		s.Debug(ctx, "notifyIncrementalSync: no conversations given, sending a current result")
+		s.G().NotifyRouter.HandleChatInboxSynced(ctx, uid, chat1.TopicType_NONE,
+			chat1.NewChatSyncResultWithCurrent())
+		return
+	}
+	m := make(map[chat1.TopicType][]chat1.UnverifiedInboxUIItem)
+	for _, c := range allConvs {
+		m[c.TopicType] = append(m[c.TopicType], c)
+	}
+	for _, topicType := range chat1.TopicTypeMap {
+		if topicType == chat1.TopicType_NONE {
+			continue
+		}
+		convs := m[topicType]
+		s.G().NotifyRouter.HandleChatInboxSynced(ctx, uid, topicType,
+			chat1.NewChatSyncResultWithIncremental(chat1.ChatSyncIncrementalInfo{
+				Items: convs,
+			}))
+	}
 }
 
 func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
@@ -362,10 +388,12 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			s.Debug(ctx, "Sync: failed to clear inbox: %s", err.Error())
 		}
 		// Send notifications for a full clear
-		s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid, chat1.NewChatSyncResultWithClear())
+		s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid, chat1.TopicType_NONE,
+			chat1.NewChatSyncResultWithClear())
 	case chat1.SyncInboxResType_CURRENT:
 		s.Debug(ctx, "Sync: version is current, standing pat: %v", vers)
-		s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid, chat1.NewChatSyncResultWithCurrent())
+		s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid, chat1.TopicType_NONE,
+			chat1.NewChatSyncResultWithCurrent())
 	case chat1.SyncInboxResType_INCREMENTAL:
 		incr := syncRes.InboxRes.Incremental()
 		s.Debug(ctx, "Sync: version out of date, but can incrementally sync: old vers: %v vers: %v convs: %d",
@@ -377,7 +405,8 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			s.Debug(ctx, "Sync: failed to sync conversations to inbox: %s", err.Error())
 
 			// Send notifications for a full clear
-			s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid, chat1.NewChatSyncResultWithClear())
+			s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid, chat1.TopicType_NONE,
+				chat1.NewChatSyncResultWithClear())
 		} else {
 			s.handleMembersTypeChanged(ctx, uid, iboxSyncRes.MembersTypeChanged)
 			s.handleFilteredConvs(ctx, uid, incr.Convs, iboxSyncRes.FilteredConvs)
@@ -387,15 +416,13 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			if s.shouldDoFullReloadFromIncremental(ctx, iboxSyncRes, incr.Convs) {
 				// If we get word we should full clear the inbox (like if the user left a conversation),
 				// then just reload everything
-				s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid, chat1.NewChatSyncResultWithClear())
+				s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid, chat1.TopicType_NONE,
+					chat1.NewChatSyncResultWithClear())
 			} else {
 				// Send notifications for a successful partial sync
 				convs := utils.PresentRemoteConversations(
 					utils.RemoteConvs(s.filterNotifyConvs(ctx, incr.Convs, iboxSyncRes.TopicNameChanged)))
-				s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid,
-					chat1.NewChatSyncResultWithIncremental(chat1.ChatSyncIncrementalInfo{
-						Items: convs,
-					}))
+				s.notifyIncrementalSync(ctx, kuid, convs)
 			}
 		}
 

@@ -1,0 +1,27 @@
+{
+  "protocol": "gregor",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "PaymentStatusMsg",
+      "fields": [
+        {
+          "type": "KeybaseTransactionID",
+          "name": "kbTxID"
+        },
+        {
+          "type": "TransactionID",
+          "name": "txID"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "stellar.1"
+}

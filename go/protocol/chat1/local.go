@@ -799,6 +799,16 @@ func (o MessageReaction) DeepCopy() MessageReaction {
 	}
 }
 
+type MessageSendPayment struct {
+	KbTxID string `codec:"kbTxID" json:"kbTxID"`
+}
+
+func (o MessageSendPayment) DeepCopy() MessageSendPayment {
+	return MessageSendPayment{
+		KbTxID: o.KbTxID,
+	}
+}
+
 type MessageBody struct {
 	MessageType__        MessageType                  `codec:"messageType" json:"messageType"`
 	Text__               *MessageText                 `codec:"text,omitempty" json:"text,omitempty"`
@@ -813,6 +823,7 @@ type MessageBody struct {
 	System__             *MessageSystem               `codec:"system,omitempty" json:"system,omitempty"`
 	Deletehistory__      *MessageDeleteHistory        `codec:"deletehistory,omitempty" json:"deletehistory,omitempty"`
 	Reaction__           *MessageReaction             `codec:"reaction,omitempty" json:"reaction,omitempty"`
+	Sendpayment__        *MessageSendPayment          `codec:"sendpayment,omitempty" json:"sendpayment,omitempty"`
 }
 
 func (o *MessageBody) MessageType() (ret MessageType, err error) {
@@ -875,6 +886,11 @@ func (o *MessageBody) MessageType() (ret MessageType, err error) {
 	case MessageType_REACTION:
 		if o.Reaction__ == nil {
 			err = errors.New("unexpected nil value for Reaction__")
+			return ret, err
+		}
+	case MessageType_SENDPAYMENT:
+		if o.Sendpayment__ == nil {
+			err = errors.New("unexpected nil value for Sendpayment__")
 			return ret, err
 		}
 	}
@@ -1001,6 +1017,16 @@ func (o MessageBody) Reaction() (res MessageReaction) {
 	return *o.Reaction__
 }
 
+func (o MessageBody) Sendpayment() (res MessageSendPayment) {
+	if o.MessageType__ != MessageType_SENDPAYMENT {
+		panic("wrong case accessed")
+	}
+	if o.Sendpayment__ == nil {
+		return
+	}
+	return *o.Sendpayment__
+}
+
 func NewMessageBodyWithText(v MessageText) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_TEXT,
@@ -1082,6 +1108,13 @@ func NewMessageBodyWithReaction(v MessageReaction) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_REACTION,
 		Reaction__:    &v,
+	}
+}
+
+func NewMessageBodyWithSendpayment(v MessageSendPayment) MessageBody {
+	return MessageBody{
+		MessageType__: MessageType_SENDPAYMENT,
+		Sendpayment__: &v,
 	}
 }
 
@@ -1172,6 +1205,13 @@ func (o MessageBody) DeepCopy() MessageBody {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Reaction__),
+		Sendpayment__: (func(x *MessageSendPayment) *MessageSendPayment {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Sendpayment__),
 	}
 }
 
@@ -3981,6 +4021,26 @@ func (o GetSearchRegexpRes) DeepCopy() GetSearchRegexpRes {
 	}
 }
 
+type StaticConfig struct {
+	DeletableByDeleteHistory []MessageType `codec:"deletableByDeleteHistory" json:"deletableByDeleteHistory"`
+}
+
+func (o StaticConfig) DeepCopy() StaticConfig {
+	return StaticConfig{
+		DeletableByDeleteHistory: (func(x []MessageType) []MessageType {
+			if x == nil {
+				return nil
+			}
+			var ret []MessageType
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.DeletableByDeleteHistory),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`
@@ -4310,6 +4370,7 @@ type UnboxMobilePushNotificationArg struct {
 	ConvID      string                  `codec:"convID" json:"convID"`
 	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
 	PushIDs     []string                `codec:"pushIDs" json:"pushIDs"`
+	ShouldAck   bool                    `codec:"shouldAck" json:"shouldAck"`
 }
 
 type AddTeamMemberAfterResetArg struct {
@@ -4345,6 +4406,9 @@ type GetSearchRegexpArg struct {
 	BeforeContext    int                          `codec:"beforeContext" json:"beforeContext"`
 	AfterContext     int                          `codec:"afterContext" json:"afterContext"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+type GetStaticConfigArg struct {
 }
 
 type LocalInterface interface {
@@ -4399,6 +4463,7 @@ type LocalInterface interface {
 	GetTeamRetentionLocal(context.Context, keybase1.TeamID) (*RetentionPolicy, error)
 	UpgradeKBFSConversationToImpteam(context.Context, ConversationID) error
 	GetSearchRegexp(context.Context, GetSearchRegexpArg) (GetSearchRegexpRes, error)
+	GetStaticConfig(context.Context) (StaticConfig, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -5211,6 +5276,17 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getStaticConfig": {
+				MakeArg: func() interface{} {
+					ret := make([]GetStaticConfigArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetStaticConfig(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -5480,5 +5556,10 @@ func (c LocalClient) UpgradeKBFSConversationToImpteam(ctx context.Context, convI
 
 func (c LocalClient) GetSearchRegexp(ctx context.Context, __arg GetSearchRegexpArg) (res GetSearchRegexpRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getSearchRegexp", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetStaticConfig(ctx context.Context) (res StaticConfig, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getStaticConfig", []interface{}{GetStaticConfigArg{}}, &res)
 	return
 }

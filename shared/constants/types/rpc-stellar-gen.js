@@ -45,6 +45,13 @@ export const localBalanceDelta = {
   decrease: 2,
 }
 
+export const localParticipantType = {
+  none: 0,
+  keybase: 1,
+  stellar: 2,
+  sbs: 3,
+}
+
 export const localPaymentStatus = {
   none: 0,
   pending: 1,
@@ -60,10 +67,10 @@ export const remotePaymentSummaryType = {
   direct: 2,
   relay: 3,
 }
-export const localGetAccountAssetsLocalRpcPromise = (request: LocalGetAccountAssetsLocalRpcParam): Promise<LocalGetAccountAssetsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getAccountAssetsLocal', request, (error: RPCError, result: LocalGetAccountAssetsLocalResult) => (error ? reject(error) : resolve(result))))
-export const localGetPaymentsLocalRpcPromise = (request: LocalGetPaymentsLocalRpcParam): Promise<LocalGetPaymentsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getPaymentsLocal', request, (error: RPCError, result: LocalGetPaymentsLocalResult) => (error ? reject(error) : resolve(result))))
-export const localGetWalletAccountsLocalRpcPromise = (request: LocalGetWalletAccountsLocalRpcParam): Promise<LocalGetWalletAccountsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('stellar.1.local.getWalletAccountsLocal', request, (error: RPCError, result: LocalGetWalletAccountsLocalResult) => (error ? reject(error) : resolve(result))))
-export type AccountAssetLocal = $ReadOnly<{name: String, balanceTotal: String, balanceAvailableToSend: String, assetCode: String, issuer: String, worth: String, worthCurrency: String}>
+export const localGetAccountAssetsLocalRpcPromise = (params: LocalGetAccountAssetsLocalRpcParam, waitingKey?: string): Promise<LocalGetAccountAssetsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getAccountAssetsLocal', params, callback: (error: RPCError, result: LocalGetAccountAssetsLocalResult) => (error ? reject(error) : resolve(result))}))
+export const localGetPaymentsLocalRpcPromise = (params: LocalGetPaymentsLocalRpcParam, waitingKey?: string): Promise<LocalGetPaymentsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getPaymentsLocal', params, callback: (error: RPCError, result: LocalGetPaymentsLocalResult) => (error ? reject(error) : resolve(result))}))
+export const localGetWalletAccountsLocalRpcPromise = (params: LocalGetWalletAccountsLocalRpcParam, waitingKey?: string): Promise<LocalGetWalletAccountsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getWalletAccountsLocal', params, callback: (error: RPCError, result: LocalGetWalletAccountsLocalResult) => (error ? reject(error) : resolve(result))}))
+export type AccountAssetLocal = $ReadOnly<{name: String, balanceTotal: String, balanceAvailableToSend: String, assetCode: String, issuerName: String, issuerAccountID: String, worth: String, worthCurrency: String}>
 export type AccountDetails = $ReadOnly<{accountID: AccountID, seqno: String, balances?: ?Array<Balance>, subentryCount: Int, available: String}>
 export type AccountID = String
 export type AccountMode =
@@ -138,11 +145,17 @@ export type OutsideCurrencyDefinition = $ReadOnly<{name: String, symbol: Currenc
 export type OutsideExchangeRate = $ReadOnly<{currency: OutsideCurrencyCode, rate: String}>
 export type OwnAccountCLILocal = $ReadOnly<{accountID: AccountID, isPrimary: Boolean, name: String, balance?: ?Array<Balance>, exchangeRate?: ?OutsideExchangeRate}>
 export type PageCursor = $ReadOnly<{horizonCursor: String, directCursor: String, relayCursor: String}>
+export type ParticipantType =
+  | 0 // NONE_0
+  | 1 // KEYBASE_1
+  | 2 // STELLAR_2
+  | 3 // SBS_3
+
 export type PaymentCLILocal = $ReadOnly<{txID: TransactionID, time: TimeMs, status: String, statusDetail: String, amount: String, asset: Asset, displayAmount?: ?String, displayCurrency?: ?String, fromStellar: AccountID, toStellar?: ?AccountID, fromUsername?: ?String, toUsername?: ?String, toAssertion?: ?String, note: String, noteErr: String}>
 export type PaymentDetails = $ReadOnly<{summary: PaymentSummary, memo: String, memoType: String}>
-export type PaymentDetailsLocal = $ReadOnly<{id: TransactionID, time: TimeMs, statusSimplified: PaymentStatus, statusDescription: String, statusDetail: String, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, source: String, sourceType: String, target: String, targetType: String, note: String, noteErr: String, publicNote: String, publicNoteType: String}>
+export type PaymentDetailsLocal = $ReadOnly<{id: TransactionID, time: TimeMs, statusSimplified: PaymentStatus, statusDescription: String, statusDetail: String, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, source: String, sourceType: ParticipantType, target: String, targetType: ParticipantType, note: String, noteErr: String, publicNote: String, publicNoteType: String}>
 export type PaymentDirectPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, displayAmount: String, displayCurrency: String, noteB64: String, signedTransaction: String, quickReturn: Boolean}>
-export type PaymentLocal = $ReadOnly<{id: TransactionID, time: TimeMs, statusSimplified: PaymentStatus, statusDescription: String, statusDetail: String, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, source: String, sourceType: String, target: String, targetType: String, note: String, noteErr: String}>
+export type PaymentLocal = $ReadOnly<{id: TransactionID, time: TimeMs, statusSimplified: PaymentStatus, statusDescription: String, statusDetail: String, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, source: String, sourceType: ParticipantType, target: String, targetType: ParticipantType, note: String, noteErr: String}>
 export type PaymentOrErrorCLILocal = $ReadOnly<{payment?: ?PaymentCLILocal, err?: ?String}>
 export type PaymentOrErrorLocal = $ReadOnly<{payment?: ?PaymentLocal, err?: ?String}>
 export type PaymentRelayPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, toAssertion: String, relayAccount: AccountID, teamID: Keybase1.TeamID, displayAmount: String, displayCurrency: String, boxB64: String, signedTransaction: String, quickReturn: Boolean}>
@@ -155,6 +168,7 @@ export type PaymentStatus =
   | 4 // ERROR_4
   | 5 // UNKNOWN_5
 
+export type PaymentStatusMsg = $ReadOnly<{kbTxID: KeybaseTransactionID, txID: TransactionID}>
 export type PaymentStrategy =
   | 0 // NONE_0
   | 1 // DIRECT_1

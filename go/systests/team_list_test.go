@@ -76,8 +76,7 @@ func TestTeamList(t *testing.T) {
 	// Examine results from TeamGet
 
 	details, err := teamCli.TeamGet(context.TODO(), keybase1.TeamGetArg{
-		Name:        team.name,
-		ForceRepoll: true,
+		Name: team.name,
 	})
 	require.NoError(t, err)
 
@@ -88,27 +87,27 @@ func TestTeamList(t *testing.T) {
 
 	annMember := findMember(ann, details.Members.Owners)
 	require.NotNil(t, annMember)
-	require.True(t, annMember.Active)
+	require.True(t, annMember.Status.IsActive())
 	require.False(t, annMember.NeedsPUK)
 
 	bobMember := findMember(bob, details.Members.Writers)
 	require.NotNil(t, bobMember)
-	require.True(t, bobMember.Active)
+	require.True(t, bobMember.Status.IsActive())
 	require.False(t, bobMember.NeedsPUK)
 
 	pamMember := findMember(pam, details.Members.Writers)
 	require.NotNil(t, pamMember)
-	require.False(t, pamMember.Active)
+	require.True(t, pamMember.Status.IsReset())
 	require.False(t, pamMember.NeedsPUK)
 
 	johnMember := findMember(john, details.Members.Writers)
 	require.NotNil(t, johnMember)
-	require.True(t, johnMember.Active)
+	require.True(t, johnMember.Status.IsActive())
 	require.True(t, johnMember.NeedsPUK)
 
 	edMember := findMember(ed, details.Members.Writers)
 	require.NotNil(t, edMember)
-	require.True(t, edMember.Active)
+	require.True(t, edMember.Status.IsActive())
 	require.True(t, edMember.NeedsPUK)
 
 	require.Equal(t, 1, len(details.AnnotatedActiveInvites))
@@ -168,8 +167,7 @@ func TestTeamListOpenTeamFilter(t *testing.T) {
 	tom.reset()
 
 	details, err := ann.teamsClient.TeamGet(context.Background(), keybase1.TeamGetArg{
-		Name:        team,
-		ForceRepoll: true,
+		Name: team,
 	})
 	require.NoError(t, err)
 
@@ -254,8 +252,7 @@ func TestTeamDuplicateUIDList(t *testing.T) {
 
 	teamCli := ann.teamsClient
 	details, err := teamCli.TeamGet(context.TODO(), keybase1.TeamGetArg{
-		Name:        team,
-		ForceRepoll: true,
+		Name: team,
 	})
 	require.NoError(t, err)
 
@@ -263,7 +260,7 @@ func TestTeamDuplicateUIDList(t *testing.T) {
 	// (because of reset) invite.
 	require.Equal(t, 1, len(details.Members.Writers))
 	member := details.Members.Writers[0]
-	require.True(t, member.Active)
+	require.True(t, member.Status.IsActive())
 	require.False(t, member.NeedsPUK)
 
 	// Check both functions: slow TeamListVerified, and fast (server

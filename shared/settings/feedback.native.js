@@ -70,14 +70,16 @@ class Feedback extends Component<Props> {
         <Box
           style={{
             flex: 0,
-            height: globalMargins.large,
             ...globalStyles.flexBoxRow,
             backgroundColor: globalColors.green,
             alignItems: 'center',
+            minHeight: 40,
+            paddingBottom: globalMargins.tiny,
+            paddingTop: globalMargins.tiny,
             opacity: showSuccessBanner ? 1 : 0,
           }}
         >
-          <Text type="BodySemibold" backgroundMode="Success" style={{flex: 1, textAlign: 'center'}}>
+          <Text type="BodySmallSemibold" backgroundMode="Success" style={{flex: 1, textAlign: 'center'}}>
             Thanks! Your feedback was sent.
           </Text>
         </Box>
@@ -112,6 +114,7 @@ class Feedback extends Component<Props> {
               inputStyle={{textAlign: 'left'}}
               multiline={true}
               rowsMin={3}
+              rowsMax={3}
               hintText="Please tell us what you were doing, your experience, or anything else we should know. Thanks!"
               value={feedback}
               onChangeText={onChangeFeedback}

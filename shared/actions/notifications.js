@@ -33,6 +33,7 @@ function* _listenSaga(): Saga.SagaGenerator<any, any> {
     tracking: true,
     users: true,
     chatkbfsedits: false,
+    chatdev: false,
   }
 
   const engineInst: Engine = yield Saga.call(engine)
@@ -75,7 +76,6 @@ function _onRecievedBadgeState(action: NotificationsGen.ReceivedBadgeStatePayloa
         teamsWithResetUsers: teamsWithResetUsers || [],
       })
     ),
-    Saga.put(FsGen.createFavoritesLoad()),
   ])
 }
 

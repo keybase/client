@@ -51,11 +51,28 @@ protocol kbfsCommon {
     UID writerUid;
     Time localTime;
     FolderType folderType;
-}
+  }
 
   record FSEditListRequest {
     Folder folder;
     int requestID;
+  }
+
+  record FSFolderWriterEdit {
+    string filename;
+    FSNotificationType notificationType;
+    Time serverTime;
+  }
+
+  record FSFolderWriterEditHistory {
+    string writerName;
+    array<FSFolderWriterEdit> edits;
+  }
+
+  record FSFolderEditHistory {
+    Folder folder;
+    Time serverTime;
+    array<FSFolderWriterEditHistory> history;
   }
 
   record FSSyncStatusRequest {
@@ -77,12 +94,8 @@ protocol kbfsCommon {
   }
 
   record FSSyncStatus {
-    // How many total encrypted, padded bytes are still syncing, across
-    // all TLFs?
     int64 totalSyncingBytes;
-    // How many outstanding operations are there across all TLFs?
-    int64 totalSyncingOps;
-    // Individual status for each path without standing operations.
-    array<FSPathSyncStatus> pathStatuses;
+    array<string> syncingPaths;
+    union { null, Time} endEstimate;
   }
 }

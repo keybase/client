@@ -29,29 +29,33 @@ func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id
 	return team.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application)
 }
 
-func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keybase1.TeamMembers, forceRepoll bool) (keybase1.TeamMembersDetails, error) {
+func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keybase1.TeamMembers) (keybase1.TeamMembersDetails, error) {
 	var ret keybase1.TeamMembersDetails
 	var err error
-	ret.Owners, err = userVersionsToDetails(ctx, g, m.Owners, forceRepoll)
+	ret.Owners, err = userVersionsToDetails(ctx, g, m.Owners)
 	if err != nil {
 		return ret, err
 	}
-	ret.Admins, err = userVersionsToDetails(ctx, g, m.Admins, forceRepoll)
+	ret.Admins, err = userVersionsToDetails(ctx, g, m.Admins)
 	if err != nil {
 		return ret, err
 	}
-	ret.Writers, err = userVersionsToDetails(ctx, g, m.Writers, forceRepoll)
+	ret.Writers, err = userVersionsToDetails(ctx, g, m.Writers)
 	if err != nil {
 		return ret, err
 	}
-	ret.Readers, err = userVersionsToDetails(ctx, g, m.Readers, forceRepoll)
+	ret.Readers, err = userVersionsToDetails(ctx, g, m.Readers)
 	if err != nil {
 		return ret, err
 	}
 	return ret, nil
 }
 
-func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepoll bool) (res keybase1.TeamDetails, err error) {
+// Details returns TeamDetails for team name. Keybase-type invites are
+// returned as members. It always repolls to ensure latest version of
+// a team, but member infos (username, full name, if they reset or not)
+// are subject to UIDMapper caching.
+func Details(ctx context.Context, g *libkb.GlobalContext, name string) (res keybase1.TeamDetails, err error) {
 	tracer := g.CTimeTracer(ctx, "TeamDetails", true)
 	defer tracer.Finish()
 
@@ -65,7 +69,7 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 	}
 	res.KeyGeneration = t.Generation()
 	tracer.Stage("members")
-	res.Members, err = members(ctx, g, t, forceRepoll)
+	res.Members, err = members(ctx, g, t)
 	if err != nil {
 		return res, err
 	}
@@ -95,18 +99,18 @@ func ImplicitAdmins(ctx context.Context, g *libkb.GlobalContext, teamID keybase1
 		return nil, err
 	}
 
-	return userVersionsToDetails(ctx, g, uvs, true /* forceRepoll */)
+	return userVersionsToDetails(ctx, g, uvs)
 }
 
-func members(ctx context.Context, g *libkb.GlobalContext, t *Team, forceRepoll bool) (keybase1.TeamMembersDetails, error) {
+func members(ctx context.Context, g *libkb.GlobalContext, t *Team) (keybase1.TeamMembersDetails, error) {
 	members, err := t.Members()
 	if err != nil {
 		return keybase1.TeamMembersDetails{}, err
 	}
-	return membersUIDsToUsernames(ctx, g, members, forceRepoll)
+	return membersUIDsToUsernames(ctx, g, members)
 }
 
-func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []keybase1.UserVersion, forceRepoll bool) (ret []keybase1.TeamMemberDetails, err error) {
+func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []keybase1.UserVersion) (ret []keybase1.TeamMemberDetails, err error) {
 	uids := make([]keybase1.UID, len(uvs), len(uvs))
 	for i, uv := range uvs {
 		uids[i] = uv.Uid
@@ -120,11 +124,14 @@ func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []ke
 
 	for i, uv := range uvs {
 		pkg := packages[i]
-		active := true
+		status := keybase1.TeamMemberStatus_ACTIVE
 		var fullName keybase1.FullName
 		if pkg.FullName != nil {
 			if pkg.FullName.EldestSeqno != uv.EldestSeqno {
-				active = false
+				status = keybase1.TeamMemberStatus_RESET
+			}
+			if pkg.FullName.Status == keybase1.StatusCode_SCDeleted {
+				status = keybase1.TeamMemberStatus_DELETED
 			}
 			fullName = pkg.FullName.FullName
 		}
@@ -132,7 +139,7 @@ func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []ke
 			Uv:       uvs[i],
 			Username: pkg.NormalizedUsername.String(),
 			FullName: fullName,
-			Active:   active,
+			Status:   status,
 		}
 	}
 	return ret, nil
@@ -227,7 +234,7 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		}
 		timeoutCancel()
 
-		err = tx.Post(ctx)
+		err = tx.Post(libkb.NewMetaContext(ctx, g))
 		if err != nil {
 			return err
 		}
@@ -271,26 +278,34 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 			return err
 		}
 
+		// Look for invites first - invite will always be obsoleted (and
+		// removed) by membership or another invite; but membership can
+		// stay un-removed when superseded by new invite (is removed by
+		// new membership though).
 		var existingRole keybase1.TeamRole
-		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
-		if err == nil {
+		invite, existingUV, found := t.FindActiveKeybaseInvite(uv.Uid)
+		if found {
+			// User is PUKless member.
+			existingRole = invite.Role
+		} else {
+			foundUV, err := t.UserVersionByUID(ctx, uv.Uid)
+			if err != nil {
+				if _, ok := err.(libkb.NotFoundError); ok {
+					// username is neither crypto UV nor keybase invite in
+					// that team. bail out.
+					return libkb.NotFoundError{Msg: fmt.Sprintf("User %q (%s) is not a member of this team.",
+						username, uv.Uid)}
+				}
+				// ... or something else failed
+				return err
+			}
+
 			// User is existing crypto member - get their current role.
-			role, err := t.MemberRole(ctx, existingUV)
+			role, err := t.MemberRole(ctx, foundUV)
 			if err != nil {
 				return err
 			}
 			existingRole = role
-		} else {
-			// UV not found - look for invites.
-			invite, foundUV, found := t.FindActiveKeybaseInvite(uv.Uid)
-			if !found {
-				// username is neither crypto UV nor keybase invite in
-				// that team. bail out.
-				return libkb.NotFoundError{Msg: fmt.Sprintf("User %q (%s) is not a member of this team.",
-					username, uv.Uid)}
-			}
-
-			existingRole = invite.Role
 			existingUV = foundUV
 		}
 
@@ -308,7 +323,7 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 			return err
 		}
 
-		return tx.Post(ctx)
+		return tx.Post(libkb.NewMetaContext(ctx, g))
 	})
 }
 
@@ -337,12 +352,21 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 
 		var invites []SCTeamInvite
 		for _, email := range emailList {
-			addr, err := mail.ParseAddress(email)
-			if err != nil {
-				g.Log.CDebugf(ctx, "team %s: skipping malformed email %q: %s", teamname, email, err)
+			addr, parseErr := mail.ParseAddress(email)
+			if parseErr != nil {
+				g.Log.CDebugf(ctx, "team %s: skipping malformed email %q: %s", teamname, email, parseErr)
 				res.Malformed = append(res.Malformed, email)
 				continue
 			}
+
+			// api server side of this only accepts x.yy domain name:
+			parts := strings.Split(addr.Address, ".")
+			if len(parts[len(parts)-1]) < 2 {
+				g.Log.CDebugf(ctx, "team %s: skipping malformed email (domain) %q: %s", teamname, email, parseErr)
+				res.Malformed = append(res.Malformed, email)
+				continue
+			}
+
 			name := keybase1.TeamInviteName(addr.Address)
 			existing, err := t.HasActiveInvite(name, "email")
 			if err != nil {
@@ -1572,4 +1596,12 @@ func FindNextMerkleRootAfterRemoval(mctx libkb.MetaContext, arg keybase1.FindNex
 		TeamSigchainSeqno: logPoint.SigMeta.SigChainLocation.Seqno,
 		Prev:              logPoint.SigMeta.PrevMerkleRootSigned,
 	})
+}
+
+func ProfileTeamLoad(mctx libkb.MetaContext, arg keybase1.LoadTeamArg) (res keybase1.ProfileTeamLoadRes, err error) {
+	pre := mctx.G().Clock().Now()
+	_, err = Load(mctx.Ctx(), mctx.G(), arg)
+	post := mctx.G().Clock().Now()
+	res.LoadTimeNsec = post.Sub(pre).Nanoseconds()
+	return res, err
 }

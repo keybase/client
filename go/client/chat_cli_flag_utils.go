@@ -52,7 +52,7 @@ var chatFlags = map[string]cli.Flag{
 	"number": cli.IntFlag{
 		Name:  "number,n",
 		Usage: `Limit number of items`,
-		Value: 5,
+		Value: 15,
 	},
 	"unread-first": cli.IntFlag{
 		Name:  "unread-first",
@@ -98,7 +98,7 @@ var chatFlags = map[string]cli.Flag{
 		Name: "exploding-lifetime",
 		Usage: fmt.Sprintf(`Make this message an exploding message and set the lifetime for the given duration.
 	The maximum lifetime is %v (one week) and the minimum lifetime is %v. Cannot be used in conjunction with --public.`,
-			libkb.MaxEphemeralLifetime, libkb.MinEphemeralLifetime),
+			libkb.MaxEphemeralContentLifetime, libkb.MinEphemeralContentLifetime),
 	},
 }
 
@@ -168,7 +168,7 @@ func annotateResolvingRequest(g *libkb.GlobalContext, req *chatConversationResol
 	if err != nil {
 		return err
 	}
-	switch *userOrTeamResult {
+	switch userOrTeamResult {
 	case keybase1.UserOrTeamResult_USER:
 		if g.Env.GetChatMemberType() == "impteam" {
 			req.MembersType = chat1.ConversationMembersType_IMPTEAMNATIVE
@@ -198,6 +198,7 @@ func makeChatCLIConversationFetcher(ctx *cli.Context, tlfName string, markAsRead
 		chat1.MessageType_JOIN,
 		chat1.MessageType_LEAVE,
 		chat1.MessageType_SYSTEM,
+		chat1.MessageType_SENDPAYMENT,
 	}
 	fetcher.query.Limit = chat1.UnreadFirstNumLimit{
 		NumRead: 2,

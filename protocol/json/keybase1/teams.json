@@ -192,6 +192,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "TeamMemberStatus",
+      "symbols": [
+        "ACTIVE_0",
+        "RESET_1",
+        "DELETED_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "TeamMemberDetails",
       "fields": [
@@ -209,12 +218,12 @@
         },
         {
           "type": "boolean",
-          "name": "active"
-        },
-        {
-          "type": "boolean",
           "name": "needsPUK",
           "lint": "ignore"
+        },
+        {
+          "type": "TeamMemberStatus",
+          "name": "status"
         }
       ]
     },
@@ -558,8 +567,8 @@
           "name": "teamName"
         },
         {
-          "type": "boolean",
-          "name": "userActive"
+          "type": "TeamMemberStatus",
+          "name": "status"
         }
       ]
     },
@@ -1476,10 +1485,6 @@
         },
         {
           "type": "boolean",
-          "name": "active"
-        },
-        {
-          "type": "boolean",
           "name": "allowProfilePromote",
           "jsonkey": "allow_profile_promote"
         },
@@ -1487,6 +1492,10 @@
           "type": "boolean",
           "name": "isMemberShowcased",
           "jsonkey": "is_member_showcased"
+        },
+        {
+          "type": "TeamMemberStatus",
+          "name": "status"
         }
       ]
     },
@@ -1877,6 +1886,16 @@
     },
     {
       "type": "record",
+      "name": "ProfileTeamLoadRes",
+      "fields": [
+        {
+          "type": "long",
+          "name": "loadTimeNsec"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamDebugRes",
       "fields": [
         {
@@ -1934,10 +1953,6 @@
         {
           "name": "name",
           "type": "string"
-        },
-        {
-          "name": "forceRepoll",
-          "type": "boolean"
         }
       ],
       "response": "TeamDetails"
@@ -2631,6 +2646,16 @@
       ],
       "response": "NextMerkleRootRes",
       "doc": "FindNextMerkleRootAfterTeamRemovalBySigningKey find the first Merkle root that contains the user\n   with the given signing key being removed from the given team. If there are several such instances,\n   we will return just the last one."
+    },
+    "profileTeamLoad": {
+      "request": [
+        {
+          "name": "arg",
+          "type": "LoadTeamArg"
+        }
+      ],
+      "response": "ProfileTeamLoadRes",
+      "doc": "ProfileTeamLoad loads a team and then throws it on the ground, for the purposes of profiling\n   the team load machinery."
     }
   },
   "namespace": "keybase.1"

@@ -73,6 +73,7 @@ export const setPendingConversationExistingConversationIDKey = 'chat2:setPending
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setPendingMode = 'chat2:setPendingMode'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
+export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMoreToLoad = 'chat2:updateMoreToLoad'
@@ -212,6 +213,7 @@ type _MessagesWereDeletedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   messageIDs?: Array<RPCChatTypes.MessageID>,
   upToMessageID?: RPCChatTypes.MessageID,
+  deletableMessageTypes?: I.Set<Types.MessageType>,
   ordinals?: Array<Types.Ordinal>,
 |}>
 type _MetaDeletePayload = $ReadOnly<{|
@@ -245,7 +247,7 @@ type _MuteConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   muted: boolean,
 |}>
-type _NavigateToInboxPayload = void
+type _NavigateToInboxPayload = $ReadOnly<{|findNewConversation: boolean|}>
 type _NavigateToThreadPayload = void
 type _NotificationSettingsUpdatedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -304,6 +306,7 @@ type _SetPendingModePayload = $ReadOnly<{|
   noneDestination?: 'inbox' | 'thread',
 |}>
 type _SetupChatHandlersPayload = void
+type _StaticConfigLoadedPayload = $ReadOnly<{|staticConfig: Types.StaticConfig|}>
 type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>
 type _UpdateMoreToLoadPayload = $ReadOnly<{|
@@ -360,6 +363,10 @@ export const createSetConvRetentionPolicy = (payload: _SetConvRetentionPolicyPay
  * Some things need to happen when the user interacts with the exploding messages feature. Trigger the handler that takes care of those things.
  */
 export const createHandleSeeingExplodingMessages = (payload: _HandleSeeingExplodingMessagesPayload) => ({error: false, payload, type: handleSeeingExplodingMessages})
+/**
+ * Static configuration info was loaded from the service.
+ */
+export const createStaticConfigLoaded = (payload: _StaticConfigLoadedPayload) => ({error: false, payload, type: staticConfigLoaded})
 /**
  * When the search changes we need to find any existing conversations to stash into the metaMap
  */
@@ -485,6 +492,7 @@ export type SetPendingConversationExistingConversationIDKeyPayload = $Call<typeo
 export type SetPendingConversationUsersPayload = $Call<typeof createSetPendingConversationUsers, _SetPendingConversationUsersPayload>
 export type SetPendingModePayload = $Call<typeof createSetPendingMode, _SetPendingModePayload>
 export type SetupChatHandlersPayload = $Call<typeof createSetupChatHandlers, _SetupChatHandlersPayload>
+export type StaticConfigLoadedPayload = $Call<typeof createStaticConfigLoaded, _StaticConfigLoadedPayload>
 export type UpdateConvExplodingModesPayload = $Call<typeof createUpdateConvExplodingModes, _UpdateConvExplodingModesPayload>
 export type UpdateConvRetentionPolicyPayload = $Call<typeof createUpdateConvRetentionPolicy, _UpdateConvRetentionPolicyPayload>
 export type UpdateMoreToLoadPayload = $Call<typeof createUpdateMoreToLoad, _UpdateMoreToLoadPayload>
@@ -557,6 +565,7 @@ export type Actions =
   | SetPendingConversationUsersPayload
   | SetPendingModePayload
   | SetupChatHandlersPayload
+  | StaticConfigLoadedPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
   | UpdateMoreToLoadPayload

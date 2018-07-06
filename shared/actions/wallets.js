@@ -3,9 +3,7 @@ import * as Constants from '../constants/wallets'
 import * as Types from '../constants/types/wallets'
 import * as RPCTypes from '../constants/types/rpc-stellar-gen'
 import * as Saga from '../util/saga'
-import * as WaitingGen from './waiting-gen'
 import * as WalletsGen from './wallets-gen'
-import type {TypedState} from '../util/container'
 
 const loadAccounts = (action: WalletsGen.LoadAccountsPayload) =>
   Saga.call(RPCTypes.localGetWalletAccountsLocalRpcPromise)
@@ -20,7 +18,7 @@ const loadAccountsSuccess = (res: ?Array<Types.Account>) =>
 const loadAssets = (action: WalletsGen.LoadAssetsPayload) =>
   Saga.call(RPCTypes.localGetAccountAssetsLocalRpcPromise, {accountID: action.payload.accountID})
 
-const loadAssetsSuccess = (res: any, action: WalletsGen.LoadAssetsPayload) => {
+const loadAssetsSuccess = (res: ?Array<RPCTypes.AccountAssetLocal>, action: WalletsGen.LoadAssetsPayload) => {
   const {accountID} = action.payload
   return Saga.put(
     WalletsGen.createAssetsReceived({
@@ -33,39 +31,22 @@ const loadAssetsSuccess = (res: any, action: WalletsGen.LoadAssetsPayload) => {
 const loadPayments = (action: WalletsGen.LoadPaymentsPayload) =>
   Saga.call(RPCTypes.localGetPaymentsLocalRpcPromise, {accountID: action.payload.accountID})
 
-const loadPaymentsSuccess = (res: any, action: WalletsGen.LoadPaymentsPayload) => {
+const loadPaymentsSuccess = (res: RPCTypes.PaymentsPageLocal, action: WalletsGen.LoadPaymentsPayload) => {
   const {accountID} = action.payload
   return Saga.put(
     WalletsGen.createPaymentsReceived({
       accountID,
-      payments: res.map(elem => Constants.paymentResultToPayment(elem)),
+      payments: (res.payments || []).map(elem => Constants.paymentResultToPayment(elem)).filter(Boolean),
     })
   )
-}
-
-function* loadEverything(action: WalletsGen.LoadEverythingPayload) {
-  if (__DEV__) {
-    yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.loadEverythingWaitingKey}))
-    yield Saga.put(WalletsGen.createLoadAccounts())
-    yield Saga.take(WalletsGen.accountsReceived)
-    const state: TypedState = yield Saga.select()
-    const accounts = state.wallets.accountMap.keys()
-    for (const accountID of accounts) {
-      yield Saga.put(WalletsGen.createLoadAssets({accountID}))
-      yield Saga.put(WalletsGen.createLoadPayments({accountID}))
-    }
-    yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.loadEverythingWaitingKey}))
-  }
 }
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(WalletsGen.loadAccounts, loadAccounts, loadAccountsSuccess)
   yield Saga.safeTakeEveryPure(WalletsGen.loadAssets, loadAssets, loadAssetsSuccess)
   yield Saga.safeTakeEveryPure(WalletsGen.loadPayments, loadPayments, loadPaymentsSuccess)
-  // Debugging saga -- remove before launching.
-  if (__DEV__) {
-    yield Saga.safeTakeEvery(WalletsGen.loadEverything, loadEverything)
-  }
+  yield Saga.safeTakeEveryPure(WalletsGen.selectAccount, loadAssets, loadAssetsSuccess)
+  yield Saga.safeTakeEveryPure(WalletsGen.selectAccount, loadPayments, loadPaymentsSuccess)
 }
 
 export default walletsSaga

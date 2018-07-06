@@ -3,6 +3,7 @@ package chat
 import (
 	"container/heap"
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -10,10 +11,8 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 )
 
@@ -115,10 +114,9 @@ type BackgroundEphemeralPurger struct {
 	stopCh  chan chan struct{}
 	storage *storage.Storage
 
-	delay        time.Duration
-	clock        clockwork.Clock
-	outboxTicker *libkb.BgTicker
-	purgeTimer   *time.Timer
+	delay      time.Duration
+	clock      clockwork.Clock
+	purgeTimer *time.Timer
 }
 
 var _ types.EphemeralPurger = (*BackgroundEphemeralPurger)(nil)
@@ -154,8 +152,6 @@ func (b *BackgroundEphemeralPurger) Start(ctx context.Context, uid gregor1.UID) 
 	b.uid = uid
 	b.initQueue(ctx)
 
-	// Purge the outbox periodically
-	b.outboxTicker = libkb.NewBgTicker(5 * time.Minute)
 	// Immediately fire to queue any purges we picked up during initQueue
 	b.purgeTimer = time.NewTimer(0)
 	go b.loop()
@@ -181,27 +177,24 @@ func (b *BackgroundEphemeralPurger) Stop(ctx context.Context) chan struct{} {
 }
 
 func (b *BackgroundEphemeralPurger) cleanupTimers() {
-	if b.outboxTicker != nil {
-		b.outboxTicker.Stop()
-	}
 	if b.purgeTimer != nil {
 		b.purgeTimer.Stop()
 	}
 }
 
-func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) {
-	b.Debug(ctx, "Queue purgeInfo: %v, queue: %v", purgeInfo, len(b.pq.queue))
-
+func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) error {
 	b.queueLock.Lock()
 	defer b.queueLock.Unlock()
 
 	if b.pq == nil {
-		panic("Must call Start before adding to the Queue")
+		return fmt.Errorf("Must call Start() before adding to the Queue")
 	}
+
+	b.Debug(ctx, "Queue purgeInfo: %v, queue: %v", purgeInfo, len(b.pq.queue))
 
 	// We only keep active items in the queue.
 	if !purgeInfo.IsActive {
-		return
+		return nil
 	}
 
 	// If we are starting the queue or get an earlier expiration time, reset or start the timer
@@ -210,6 +203,7 @@ func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.E
 		b.resetTimer(purgeInfo)
 	}
 	b.updateQueue(purgeInfo)
+	return nil
 }
 
 // Read all purgeInfo from disk and startup our queue.
@@ -254,9 +248,6 @@ func (b *BackgroundEphemeralPurger) loop() {
 			b.queueLock.Lock()
 			b.queuePurges(bgctx)
 			b.queueLock.Unlock()
-		case <-b.outboxTicker.C:
-			// Check the outbox for stuck ephemeral messages that need purging
-			storage.NewOutbox(b.G(), b.uid).EphemeralPurge(context.Background())
 		case ch := <-b.stopCh: // caller will reset looping=false
 			b.Debug(bgctx, "loop: shutting down for %s", b.uid)
 			close(ch)
@@ -279,7 +270,7 @@ func (b *BackgroundEphemeralPurger) queuePurges(ctx context.Context) bool {
 		nextPurgeTime := purgeInfo.NextPurgeTime.Time()
 		if nextPurgeTime.Before(now) || nextPurgeTime.Equal(now) {
 			job := types.NewConvLoaderJob(purgeInfo.ConvID, &chat1.Pagination{},
-				types.ConvLoaderPriorityHigh, newConvLoaderEphemeralPurgeHook(b.G(), b.storage, b.uid, &purgeInfo))
+				types.ConvLoaderPriorityHigh, newConvLoaderEphemeralPurgeHook(b.G(), b.uid, &purgeInfo))
 			if err := b.G().ConvLoader.Queue(ctx, job); err != nil {
 				b.Debug(ctx, "convLoader Queue error %s", err)
 			}
@@ -315,33 +306,10 @@ func (b *BackgroundEphemeralPurger) resetTimer(purgeInfo chat1.EphemeralPurgeInf
 	b.purgeTimer.Reset(duration)
 }
 
-func newConvLoaderEphemeralPurgeHook(g *globals.Context, chatStorage *storage.Storage, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
+func newConvLoaderEphemeralPurgeHook(g *globals.Context, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 	return func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
-		_, explodedMsgs, err := chatStorage.EphemeralPurge(ctx, job.ConvID, uid, purgeInfo)
-		if err != nil {
+		if _, _, err := g.ConvSource.EphemeralPurge(ctx, job.ConvID, uid, purgeInfo); err != nil {
 			g.GetLog().CDebugf(ctx, "ephemeralPurge: %s", err)
-		} else {
-			if len(explodedMsgs) > 0 {
-				ib, err := g.InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
-					ConvIDs: []chat1.ConversationID{job.ConvID},
-				}, nil)
-				if err != nil || len(ib.Convs) != 1 {
-					g.GetLog().CDebugf(ctx, "FindConversationsByID: convs: %v err: %v", ib.Convs, err)
-					return
-				}
-				inboxUIItem := utils.PresentConversationLocal(ib.Convs[0], g.Env.GetUsername().String())
-
-				purgedMsgs := []chat1.UIMessage{}
-				for _, msg := range explodedMsgs {
-					purgedMsgs = append(purgedMsgs, utils.PresentMessageUnboxed(ctx, g, msg, uid, job.ConvID))
-				}
-				act := chat1.NewChatActivityWithEphemeralPurge(chat1.EphemeralPurgeNotifInfo{
-					ConvID: job.ConvID,
-					Msgs:   purgedMsgs,
-					Conv:   &inboxUIItem,
-				})
-				g.NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(uid.String()), &act)
-			}
 		}
 	}
 }

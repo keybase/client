@@ -1,4 +1,5 @@
 // @flow
+/* eslint-disable sort-keys */
 import * as React from 'react'
 import PlatformInput from './platform-input'
 import {type MentionInputProps} from './types'
@@ -6,32 +7,41 @@ import {Input} from '../../../../common-adapters'
 import {isMobile} from '../../../../constants/platform'
 
 type MentionState = {|
-  pickSelectedCounter: number,
-  mentionFilter: string,
   channelMentionFilter: string,
-  mentionPopupOpen: boolean,
   channelMentionPopupOpen: boolean,
+  mentionFilter: string,
+  mentionPopupOpen: boolean,
+  pickSelectedCounter: number,
 
   // Desktop only.
-  upArrowCounter: number,
   downArrowCounter: number,
+  upArrowCounter: number,
 |}
+
+type SelectionKey = 'Enter' | 'Tab' | ''
 
 class MentionInput extends React.Component<MentionInputProps, MentionState> {
   state: MentionState = {
-    upArrowCounter: 0,
-    downArrowCounter: 0,
-    pickSelectedCounter: 0,
-    mentionFilter: '',
     channelMentionFilter: '',
-    mentionPopupOpen: false,
     channelMentionPopupOpen: false,
+    mentionFilter: '',
+    mentionPopupOpen: false,
+    pickSelectedCounter: 0,
+    downArrowCounter: 0,
+    upArrowCounter: 0,
   }
+
+  _lastSelectionKey: SelectionKey = ''
+
   _inputRef: ?Input
 
   _inputSetRef = (input: ?Input) => {
     this.props.inputSetRef(input)
     this._inputRef = input
+  }
+
+  _setLastSelectionKey = (lastSelectionKey: SelectionKey) => {
+    this._lastSelectionKey = lastSelectionKey
   }
 
   _setMentionPopupOpen = (mentionPopupOpen: boolean) => {
@@ -98,18 +108,27 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
         this._setChannelMentionFilter(word.substring(1))
       }
     } else if (selection.start !== selection.end) {
-      this.state.mentionPopupOpen && this._setMentionPopupOpen(false) && this._setMentionFilter('')
-      this.state.channelMentionPopupOpen &&
-        this._setChannelMentionPopupOpen(false) &&
+      if (this.state.mentionPopupOpen) {
+        this._setMentionPopupOpen(false)
+        this._setLastSelectionKey('')
+        this._setMentionFilter('')
+      }
+
+      if (this.state.channelMentionPopupOpen) {
+        this._setChannelMentionPopupOpen(false)
+        this._setLastSelectionKey('')
         this._setChannelMentionFilter('')
+      }
     } else {
       // Close popups if word doesn't begin with marker anymore
       if (this.state.mentionPopupOpen && word[0] !== '@') {
         this._setMentionFilter('')
+        this._setLastSelectionKey('')
         this._setMentionPopupOpen(false)
         return
       } else if (this.state.channelMentionPopupOpen && word[0] !== '#') {
         this._setChannelMentionFilter('')
+        this._setLastSelectionKey('')
         this._setChannelMentionPopupOpen(false)
         return
       }
@@ -130,8 +149,15 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
   // Start mobile only.
 
   onBlur = () => {
-    this.state.channelMentionPopupOpen && this._setChannelMentionPopupOpen(false)
-    this.state.mentionPopupOpen && this._setMentionPopupOpen(false)
+    if (this.state.channelMentionPopupOpen) {
+      this._setChannelMentionPopupOpen(false)
+      this._setLastSelectionKey('')
+    }
+
+    if (this.state.mentionPopupOpen) {
+      this._setMentionPopupOpen(false)
+      this._setLastSelectionKey('')
+    }
   }
 
   onFocus = () => {
@@ -149,22 +175,14 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     this._replaceWordAtCursor(`@${u} `)
     this._setMentionPopupOpen(false)
 
-    // This happens if you type @notausername<enter>. We've essentially 'picked' nothing and really want to submit
-    // This is a little wonky cause this component doesn't directly know if the list is filtered all the way out
-    if (options && options.notUser) {
-      this._forceSubmit()
-    }
+    this._maybeSubmitAfterInsert(options ? options.notUser : false)
   }
 
   insertChannelMention = (c: string, options?: {notChannel: boolean}) => {
     this._replaceWordAtCursor(`#${c} `)
     this._setChannelMentionPopupOpen(false)
 
-    // This happens if you type #notachannel<enter>. We've essentially 'picked' nothing and really want to submit
-    // This is a little wonky cause this component doesn't directly know if the list is filtered all the way out
-    if (options && options.notChannel) {
-      this._forceSubmit()
-    }
+    this._maybeSubmitAfterInsert(options ? options.notChannel : false)
   }
 
   // Start desktop only.
@@ -185,7 +203,8 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     this.setState(({downArrowCounter}) => ({downArrowCounter: downArrowCounter + 1}))
   }
 
-  _triggerPickSelectedCounter = () => {
+  _triggerPickSelectedCounter = (key: SelectionKey) => {
+    this._setLastSelectionKey(key)
     this.setState(({pickSelectedCounter}) => ({pickSelectedCounter: pickSelectedCounter + 1}))
   }
 
@@ -195,7 +214,7 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
         e.preventDefault()
         // If you tab with a partial name typed, we pick the selected item
         if (this.state.mentionFilter.length > 0 || this.state.channelMentionFilter.length > 0) {
-          this._triggerPickSelectedCounter()
+          this._triggerPickSelectedCounter('Tab')
           return
         }
         // else we move you up/down
@@ -211,6 +230,7 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
         e.preventDefault()
         this._triggerDownArrowCounter()
       } else if (['Escape', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        this._setLastSelectionKey('')
         this._setMentionPopupOpen(false)
         this._setChannelMentionPopupOpen(false)
       }
@@ -219,15 +239,21 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
 
   // End desktop only.
 
-  _forceSubmit = () => {
+  // If you type @notausername<enter> or #notachannel<enter>, we've essentially
+  // 'picked' nothing and really want to submit. This is a little wonky cause
+  // this component doesn't directly know if the list is filtered all the way
+  // out. If you type e.g., @notausername<tab> we don't want to do anything.
+  _maybeSubmitAfterInsert = (notUserOrChannel: boolean) => {
     const text = this._getText()
-    if (text) {
+    if (text && notUserOrChannel && this._lastSelectionKey === 'Enter') {
       this.props.onSubmit(text)
     }
+    this._setLastSelectionKey('')
   }
 
   _onSubmit = (text: string) => {
     if (this.state.mentionPopupOpen || this.state.channelMentionPopupOpen) {
+      this._setLastSelectionKey('')
       if (isMobile) {
         this._setMentionPopupOpen(false)
         this._setChannelMentionPopupOpen(false)
@@ -235,12 +261,20 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
         // On desktop, this is triggered on Enter, so if a mention
         // popup is open we actually just want to pick whatever's
         // selected.
-        this._triggerPickSelectedCounter()
+        this._triggerPickSelectedCounter('Enter')
         return
       }
     }
 
+    this._setLastSelectionKey('')
     this.props.onSubmit(text)
+  }
+
+  componentDidUpdate = (prevProps: MentionInputProps) => {
+    if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
+      this._setMentionPopupOpen(false)
+      this._setChannelMentionPopupOpen(false)
+    }
   }
 
   render = () => (

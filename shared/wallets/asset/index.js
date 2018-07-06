@@ -10,56 +10,70 @@ export type Props = {
   code: string, // The same as `name` except for XLM
   equivAvailableToSend: string, // non-empty only if native currency e.g. '$123.45 USD'
   equivBalance: string, // non-empty only if native currency
-  expanded: boolean,
-  issuer: string, // verified issuer domain name, 'Stellar network' or 'Unknown'
-  issuerAddress: string, // issuing public key
+  issuerName: string, // verified issuer domain name, 'Stellar network' or 'Unknown'
+  issuerAccountID: string, // issuing public key
   name: string, // Asset code or 'Lumens'
   reserves: Types.Reserve[], // non-empty only if native currency
-  toggleExpanded: () => void,
 }
 
-export const Asset = (props: Props) => {
-  const caretType = props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'
-  return (
-    <Box2 direction="vertical" fullWidth={true}>
-      <ClickableBox onClick={props.toggleExpanded}>
-        <Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
-          <Box2 direction="horizontal" gap="tiny" style={styles.labelContainer}>
-            <Icon type={caretType} style={iconCastPlatformStyles(styles.caret)} />
-            <Box2 direction="vertical">
-              <Text type="BodySemibold" lineClamp={1}>
-                {props.name}
+type State = {
+  expanded: boolean,
+}
+
+export default class extends React.Component<Props, State> {
+  state = {expanded: false}
+
+  _toggleExpanded = () => {
+    this.setState(prevProps => ({
+      expanded: !prevProps.expanded,
+    }))
+  }
+
+  render() {
+    return (
+      <Box2 direction="vertical" fullWidth={true}>
+        <ClickableBox onClick={this._toggleExpanded}>
+          <Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
+            <Box2 direction="horizontal" gap="tiny" style={styles.labelContainer}>
+              <Icon
+                type={this.state.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
+                style={iconCastPlatformStyles(styles.caret)}
+              />
+              <Box2 direction="vertical">
+                <Text type="BodySemibold" lineClamp={1}>
+                  {this.props.name}
+                </Text>
+                <Text type="BodySmall" lineClamp={1}>
+                  {this.props.issuerName}
+                </Text>
+              </Box2>
+            </Box2>
+            <Box2 direction="vertical" style={styles.balanceContainer} fullHeight={true}>
+              <Text type="BodyExtrabold" lineClamp={1} style={{color: globalColors.purple2}}>
+                {this.props.balance} {this.props.code}
               </Text>
               <Text type="BodySmall" lineClamp={1}>
-                {props.issuer}
+                {this.props.equivBalance}
               </Text>
             </Box2>
           </Box2>
-          <Box2 direction="vertical" style={styles.balanceContainer} fullHeight={true}>
-            <Text type="BodyExtrabold" lineClamp={1} style={{color: globalColors.purple2}}>
-              {props.balance} {props.code}
-            </Text>
-            <Text type="BodySmall" lineClamp={1}>
-              {props.equivBalance}
-            </Text>
+        </ClickableBox>
+        {this.state.expanded && (
+          <Box2 direction="horizontal" fullWidth={true} style={styles.expandedRowContainer}>
+            {this.props.code === 'XLM' && (
+              <BalanceSummary
+                availableToSend={this.props.availableToSend}
+                equivAvailableToSend={this.props.equivAvailableToSend}
+                reserves={this.props.reserves}
+                total={this.props.balance}
+              />
+            )}
+            {!!this.props.issuerAccountID && <IssuerAccountID issuerAccountID={this.props.issuerAccountID} />}
           </Box2>
-        </Box2>
-      </ClickableBox>
-      {props.expanded && (
-        <Box2 direction="horizontal" fullWidth={true} style={styles.expandedRowContainer}>
-          {!!props.reserves.length && (
-            <BalanceSummary
-              availableToSend={props.availableToSend}
-              equivAvailableToSend={props.equivAvailableToSend}
-              reserves={props.reserves}
-              total={props.balance}
-            />
-          )}
-          {!!props.issuerAddress && <IssuerAddress issuerAddress={props.issuerAddress} />}
-        </Box2>
-      )}
-    </Box2>
-  )
+        )}
+      </Box2>
+    )
+  }
 }
 
 type BalanceSummaryProps = {
@@ -105,18 +119,18 @@ const BalanceSummary = (props: BalanceSummaryProps) => (
   </Box2>
 )
 
-type IssuerAddressProps = {
-  issuerAddress: string,
+type IssuerAccountIDProps = {
+  issuerAccountID: string,
 }
 
-const IssuerAddress = (props: IssuerAddressProps) => (
+const IssuerAccountID = (props: IssuerAccountIDProps) => (
   <Box2 direction="vertical" fullWidth={true} style={styles.balanceSummaryContainer}>
     <Text type="Body">Issuer:</Text>
     <Text type="Body" selectable={true}>
       {/* TODO (DA) make the full address copyable */}
-      {props.issuerAddress.substr(0, 12) +
+      {props.issuerAccountID.substr(0, 12) +
         '..........' +
-        props.issuerAddress.substr(props.issuerAddress.length - 12)}
+        props.issuerAccountID.substr(props.issuerAccountID.length - 12)}
     </Text>
   </Box2>
 )
@@ -152,5 +166,3 @@ const styles = styleSheetCreate({
     flex: 1,
   },
 })
-
-export default Asset

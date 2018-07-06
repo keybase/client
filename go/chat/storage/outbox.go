@@ -26,7 +26,8 @@ type Outbox struct {
 }
 
 const outboxVersion = 4
-const ephemeralPurgeCutoff = time.Minute * 10
+const ephemeralPurgeCutoff = 24 * time.Hour
+const errorPurgeCutoff = time.Hour * 24 * 7 // one week
 
 type diskOutbox struct {
 	Version int                  `codec:"V"`
@@ -157,7 +158,7 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 	}
 	obox.Records = append(obox.Records, rec)
 
-	// Write out box
+	// Write out diskbox
 	obox.Version = outboxVersion
 	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
 		return rec, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
@@ -197,7 +198,7 @@ func (o *Outbox) PullAllConversations(ctx context.Context, includeErrors bool, r
 		}
 	}
 	if remove {
-		// Write out box
+		// Write out diskbox
 		obox.Records = errors
 		obox.Version = outboxVersion
 		if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
@@ -256,7 +257,7 @@ func (o *Outbox) RecordFailedAttempt(ctx context.Context, oldObr chat1.OutboxRec
 		sort.Sort(ByCtimeOrder(recs))
 	}
 
-	// Write out box
+	// Write out diskbox
 	obox.Records = recs
 	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
 		return o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
@@ -325,7 +326,7 @@ func (o *Outbox) MarkAsError(ctx context.Context, obr chat1.OutboxRecord, errRec
 		sort.Sort(ByCtimeOrder(recs))
 	}
 
-	// Write out box
+	// Write out diskbox
 	obox.Records = recs
 	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
 		return res, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
@@ -360,7 +361,7 @@ func (o *Outbox) RetryMessage(ctx context.Context, obid chat1.OutboxID,
 		recs = append(recs, obr)
 	}
 
-	// Write out box
+	// Write out diskbox
 	obox.Records = recs
 	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
 		return o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
@@ -487,11 +488,12 @@ func (o *Outbox) SprinkleIntoThread(ctx context.Context, convID chat1.Conversati
 	return nil
 }
 
-// EphemeralPurge is called periodically to ensure exploding messages don't hang out too
+// OutboxPurge is called periodically to ensure messages don't hang out too
 // long in the outbox (since they are not encrypted with ephemeral keys until
 // they leave it). Currently we purge anything that is in the error state and
-// has been in the outbox for > ephemeralPurgeCutoff minutes.
-func (o *Outbox) EphemeralPurge(ctx context.Context) (err error) {
+// has been in the outbox for > errorPurgeCutoff minutes for regular messages
+// or ephemeralPurgeCutoff minutes for ephemeral messages.
+func (o *Outbox) OutboxPurge(ctx context.Context) (err error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
 
@@ -501,19 +503,24 @@ func (o *Outbox) EphemeralPurge(ctx context.Context) (err error) {
 		return o.maybeNuke(rerr, o.dbKey())
 	}
 
-	var purged, recs []chat1.OutboxRecord
-	now := o.clock.Now()
+	var ephemeralPurged, recs []chat1.OutboxRecord
 	for _, obr := range obox.Records {
-		if obr.Msg.IsEphemeral() {
-			st, err := obr.State.State()
-			if err != nil {
-				o.Debug(ctx, "purging ephemeral message from outbox with error getting state: %s", err)
-				purged = append(purged, obr)
+		st, err := obr.State.State()
+		if err != nil {
+			o.Debug(ctx, "purging message from outbox with error getting state: %s", err)
+			continue
+		}
+		if st == chat1.OutboxStateType_ERROR {
+			if obr.Msg.IsEphemeral() && obr.Ctime.Time().Add(ephemeralPurgeCutoff).Before(o.clock.Now()) {
+				o.Debug(ctx, "purging ephemeral message from outbox with error state that was older than %v: %s",
+					ephemeralPurgeCutoff, obr.OutboxID)
+				ephemeralPurged = append(ephemeralPurged, obr)
 				continue
 			}
-			if st == chat1.OutboxStateType_ERROR && obr.Ctime.Time().Add(ephemeralPurgeCutoff).Before(now) {
-				o.Debug(ctx, "purging ephemeral message from outbox with error state that was older than %v: %s", ephemeralPurgeCutoff, err)
-				purged = append(purged, obr)
+
+			if !obr.Msg.IsEphemeral() && obr.Ctime.Time().Add(errorPurgeCutoff).Before(o.clock.Now()) {
+				o.Debug(ctx, "purging message from outbox with error state that was older than %v: %s",
+					errorPurgeCutoff, obr.OutboxID)
 				continue
 			}
 		}
@@ -522,19 +529,19 @@ func (o *Outbox) EphemeralPurge(ctx context.Context) (err error) {
 
 	obox.Records = recs
 
-	// Write out box
+	// Write out diskbox
 	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
 		return o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
 	}
 
-	if len(purged) > 0 {
+	if len(ephemeralPurged) > 0 {
 		act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
-			OutboxRecords:    purged,
+			OutboxRecords:    ephemeralPurged,
 			IsEphemeralPurge: true,
 		})
 		o.G().NotifyRouter.HandleNewChatActivity(context.Background(),
-			keybase1.UID(o.GetUID().String()), &act)
+			keybase1.UID(o.GetUID().String()), chat1.TopicType_NONE, &act)
 	}
 	return nil
 }

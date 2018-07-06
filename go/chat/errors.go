@@ -33,7 +33,7 @@ type UnboxingError interface {
 var _ error = (UnboxingError)(nil)
 
 func NewPermanentUnboxingError(inner error) UnboxingError {
-	return &PermanentUnboxingError{inner}
+	return PermanentUnboxingError{inner}
 }
 
 type PermanentUnboxingError struct{ inner error }
@@ -98,13 +98,13 @@ func (e PermanentUnboxingError) InternalError() string {
 //=============================================================================
 
 func NewTransientUnboxingError(inner error) UnboxingError {
-	return &TransientUnboxingError{inner}
+	return TransientUnboxingError{inner}
 }
 
 type TransientUnboxingError struct{ inner error }
 
 func (e TransientUnboxingError) Error() string {
-	return fmt.Sprintf("error unboxing chat message: %s", e.inner.Error())
+	return fmt.Sprintf("error unboxing chat message (transient): %s", e.inner.Error())
 }
 
 func (e TransientUnboxingError) IsPermanent() bool { return false }
@@ -392,6 +392,22 @@ type ImpteamUpgradeBadteamError struct {
 
 func (e ImpteamUpgradeBadteamError) Error() string {
 	return fmt.Sprintf("bad iteam found in upgraded conv: %s", e.Msg)
+}
+
+//=============================================================================
+
+type UnknownTLFNameError struct {
+	tlfName string
+}
+
+func NewUnknownTLFNameError(name string) UnknownTLFNameError {
+	return UnknownTLFNameError{
+		tlfName: name,
+	}
+}
+
+func (e UnknownTLFNameError) Error() string {
+	return fmt.Sprintf("unknown conversation name: %s", e.tlfName)
 }
 
 //=============================================================================

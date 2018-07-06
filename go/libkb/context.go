@@ -8,11 +8,16 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type APITokener interface {
+	Tokens() (session, csrf string)
+}
+
 type MetaContext struct {
 	ctx          context.Context
 	g            *GlobalContext
 	loginContext LoginContext
 	activeDevice *ActiveDevice
+	apiTokener   APITokener
 	uis          UIs
 }
 
@@ -36,6 +41,11 @@ func NewMetaContext(ctx context.Context, g *GlobalContext) MetaContext {
 
 func (m MetaContext) WithLoginContext(l LoginContext) MetaContext {
 	m.loginContext = l
+	return m
+}
+
+func (m MetaContext) WithAPITokener(t APITokener) MetaContext {
+	m.apiTokener = t
 	return m
 }
 
@@ -616,7 +626,7 @@ func (m MetaContext) SyncSecrets() (ss *SecretSyncer, err error) {
 
 func (m MetaContext) SyncSecretsForUID(u keybase1.UID) (ss *SecretSyncer, err error) {
 	defer m.CTrace("MetaContext#SyncSecrets", func() error { return err })()
-	return m.ActiveDevice().SyncSecretsForUID(m, u)
+	return m.ActiveDevice().SyncSecretsForUID(m, u, false /* force */)
 }
 
 func (m MetaContext) ProvisionalSessionArgs() (token string, csrf string) {

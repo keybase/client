@@ -71,8 +71,7 @@ func Encrypt(bundle stellar1.BundleSecretVersioned, pukGen keybase1.PerUserKeyGe
 	}
 
 	// Derive key
-	// TODO: We're passing the wrong context in here. We need to migrate to libkb.DeriveReasonPUKStellarBundle. (CORE-8135)
-	symmetricKey, err := puk.DeriveSymmetricKey(libkb.DeriveReasonPUKPrev)
+	symmetricKey, err := puk.DeriveSymmetricKey(libkb.DeriveReasonPUKStellarBundle)
 	if err != nil {
 		return res, resB64, err
 	}
@@ -87,7 +86,7 @@ func Encrypt(bundle stellar1.BundleSecretVersioned, pukGen keybase1.PerUserKeyGe
 
 	// Annotate
 	res = stellar1.EncryptedBundle{
-		V:   1,
+		V:   2,
 		E:   secbox,
 		N:   nonce,
 		Gen: pukGen,
@@ -171,17 +170,23 @@ func Unbox(decodeRes DecodeResult, visibleBundleB64 string,
 // Does not check invariants.
 func Decrypt(encBundle stellar1.EncryptedBundle,
 	puk libkb.PerUserKeySeed) (res stellar1.BundleSecretVersioned, err error) {
+	switch encBundle.V {
+	case 1:
+		// CORE-8135
+		return res, fmt.Errorf("stellar secret bundle encryption version 1 has been retired")
+	case 2:
+	default:
+		return res, fmt.Errorf("unsupported stellar secret bundle encryption version: %v", encBundle.V)
+	}
+
 	// Derive key
-	// TODO: We're passing the wrong context in here. We need to migrate to libkb.DeriveReasonPUKStellarBundle. (CORE-8135)
-	symmetricKey, err := puk.DeriveSymmetricKey(libkb.DeriveReasonPUKPrev)
+	reason := libkb.DeriveReasonPUKStellarBundle
+	symmetricKey, err := puk.DeriveSymmetricKey(reason)
 	if err != nil {
 		return res, err
 	}
 
 	// Secretbox
-	if encBundle.V != 1 {
-		return res, fmt.Errorf("unsupported stellar secret bundle encryption version: %v", encBundle.V)
-	}
 	clearpack, ok := secretbox.Open(nil, encBundle.E,
 		(*[libkb.NaclDHNonceSize]byte)(&encBundle.N),
 		(*[libkb.NaclSecretBoxKeySize]byte)(&symmetricKey))

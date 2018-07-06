@@ -219,9 +219,9 @@ class UserInput extends Component<Props, State> {
                   onClick={onClickAddButton}
                   type="iconfont-add"
                   style={{
-                    height: 16,
+                    height: 22,
                   }}
-                  fontSize={16}
+                  fontSize={22}
                   color={globalColors.blue}
                 />
               )}
@@ -245,9 +245,9 @@ const _pillStyle = {
 
 const _pillTextStyle = platformStyles({
   isMobile: {
-    fontSize: 14,
-    height: 22,
-    lineHeight: 20,
+    ...getTextStyle('BodySemibold'),
+    height: 23,
+    lineHeight: 21,
   },
 })
 
@@ -256,8 +256,8 @@ const _inputStyle = platformStyles({
     ...getTextStyle('BodySemibold'),
     color: globalColors.black_75,
     fontWeight: '600',
-    height: 22,
-    lineHeight: 20,
+    height: 23,
+    lineHeight: 21,
     paddingBottom: 2,
     paddingTop: 2,
   },

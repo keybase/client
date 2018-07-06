@@ -184,7 +184,7 @@ func (e *Kex2Provisioner) GetHelloArg() (arg keybase1.HelloArg, err error) {
 	}
 
 	// generate a skeleton key proof
-	sigBody, err := e.skeletonProof()
+	sigBody, err := e.skeletonProof(m)
 	if err != nil {
 		return arg, err
 	}
@@ -332,7 +332,7 @@ func (e *Kex2Provisioner) sessionForY() (token, csrf string, err error) {
 
 // skeletonProof generates a partial key proof structure that
 // device Y can fill in.
-func (e *Kex2Provisioner) skeletonProof() (string, error) {
+func (e *Kex2Provisioner) skeletonProof(m libkb.MetaContext) (string, error) {
 
 	// Set the local sigchain guard to tell background tasks
 	// to stay off the sigchain while we do this.
@@ -353,7 +353,7 @@ func (e *Kex2Provisioner) skeletonProof() (string, error) {
 		Contextified:   libkb.NewContextified(e.G()),
 	}
 
-	jw, err := libkb.KeyProof(delg)
+	jw, err := libkb.KeyProof(m, delg)
 	if err != nil {
 		return "", err
 	}

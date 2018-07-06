@@ -1,35 +1,9 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../../../constants/types/chat2'
+import type {WrapperTimestampProps, WrapperAuthorProps} from './index.types'
 
-export type Props = {
-  author: string,
-  exploded: boolean,
-  explodedBy: string,
-  explodesAt: number,
-  exploding: boolean,
-  failureDescription: string,
-  includeHeader: boolean,
-  innerClass: React.ComponentType<any>,
-  isBroken: boolean,
-  isEdited: boolean,
-  isEditing: boolean,
-  isExplodingUnreadable: boolean,
-  isFollowing: boolean,
-  isRevoked: boolean,
-  isYou: boolean,
-  measure: null | (() => void),
-  message: Types.MessageText | Types.MessageAttachment,
-  messageFailed: boolean,
-  messageKey: string,
-  messagePending: boolean,
-  messageSent: boolean,
-  onRetry: null | (() => void),
-  onEdit: null | (() => void),
-  onCancel: null | (() => void),
-  onAuthorClick: () => void,
-  orangeLineAbove: boolean,
-  timestamp: string,
-}
+class WrapperTimestamp extends React.PureComponent<WrapperTimestampProps> {}
+class WrapperAuthor extends React.PureComponent<WrapperAuthorProps> {}
 
-export default class Wrapper extends React.Component<Props> {}
+declare export {WrapperTimestamp}
+declare export {WrapperAuthor}

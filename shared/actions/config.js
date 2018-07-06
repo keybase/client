@@ -13,14 +13,13 @@ import * as NotificationsGen from '../actions/notifications-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as PinentryGen from '../actions/pinentry-gen'
-import * as SignupGen from '../actions/signup-gen'
+import * as PlatformSpecific from './platform-specific'
 import engine from '../engine'
 import {checkRPCOwnership} from '../engine/index.platform'
 import {RouteStateStorage} from '../actions/route-state-storage'
 import {createConfigurePush} from './push-gen'
 import {createGetPeopleData} from './people-gen'
 import {defaultNumFollowSuggestions} from '../constants/people'
-import {getAppState, setAppState} from './platform-specific'
 import {isMobile, isSimulator} from '../constants/platform'
 import {loggedInSelector} from '../constants/selectors'
 import {type AsyncAction} from '../constants/types/flux'
@@ -96,6 +95,7 @@ const _retryBootstrap = () =>
 // TODO: It's unfortunate that we have these globals. Ideally,
 // bootstrap would be a method on an object.
 let bootstrapSetup = false
+let didInitialNav = false
 const routeStateStorage = new RouteStateStorage()
 
 // Until bootstrap is sagaized
@@ -126,7 +126,7 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
     })
     dispatch(registerListeners())
   } else {
-    logger.info('[bootstrap] performing bootstrap...')
+    logger.info('[bootstrap] performing bootstrap...', opts, didInitialNav)
     Promise.all([
       dispatch(getBootstrapStatus()),
       checkRPCOwnership(),
@@ -142,7 +142,8 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
           logger.flush()
         })
         dispatch(NotificationsGen.createListenForKBFSNotifications())
-        if (!opts.isReconnect) {
+        if (!didInitialNav) {
+          didInitialNav = true
           dispatch(async () => {
             await dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
             if (getState().config.loggedIn) {
@@ -161,7 +162,6 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
               )
             }
           })
-          dispatch(SignupGen.createResetSignup())
         }
       })
       .catch(error => {
@@ -302,29 +302,13 @@ function* handleAvatarQueue() {
   }
 }
 
-function _setOpenAtLogin(action: ConfigGen.SetOpenAtLoginPayload) {
-  if (action.payload.writeFile) {
-    setAppState({openAtLogin: action.payload.open})
-  }
-}
-
-function* _getAppState(): Generator<any, void, any> {
-  const state = yield Saga.call(getAppState)
-  if (state) {
-    yield Saga.put(ConfigGen.createSetOpenAtLogin({open: state.openAtLogin, writeFile: false}))
-  }
-}
-
-function _loadConfig(action: ConfigGen.LoadConfigPayload) {
-  return Saga.call(RPCTypes.configGetConfigRpcPromise)
-}
-
-function _afterLoadConfig(config: RPCTypes.Config, action: ConfigGen.LoadConfigPayload) {
-  if (action.payload.logVersion) {
-    logger.info(`Keybase version: ${config.version}`)
-  }
-  return Saga.put(ConfigGen.createConfigLoaded({config}))
-}
+const getConfig = (state: TypedState, action: ConfigGen.LoadConfigPayload) =>
+  RPCTypes.configGetConfigRpcPromise().then((config: RPCTypes.Config) => {
+    if (action.payload.logVersion) {
+      logger.info(`Keybase version: ${config.version}`)
+    }
+    return ConfigGen.createConfigLoaded({config})
+  })
 
 const _setStartedDueToPush = (action: Chat2Gen.SelectConversationPayload) =>
   action.payload.reason === 'push' ? Saga.put(ConfigGen.createSetStartedDueToPush()) : undefined
@@ -338,10 +322,10 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ConfigGen.loadAvatars, addToAvatarQueue)
   yield Saga.safeTakeEvery(ConfigGen.loadTeamAvatars, addToAvatarQueue)
   yield Saga.fork(handleAvatarQueue)
-  yield Saga.safeTakeEveryPure(ConfigGen.setOpenAtLogin, _setOpenAtLogin)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, _setStartedDueToPush)
-  yield Saga.safeTakeEveryPure(ConfigGen.loadConfig, _loadConfig, _afterLoadConfig)
-  yield Saga.fork(_getAppState)
+  yield Saga.safeTakeEveryPurePromise(ConfigGen.loadConfig, getConfig)
+
+  yield Saga.fork(PlatformSpecific.platformConfigSaga)
 }
 
 export {getExtendedStatus}

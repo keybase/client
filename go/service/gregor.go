@@ -211,6 +211,7 @@ type gregorHandler struct {
 	cli               rpc.GenericClient
 	pingCli           rpc.GenericClient
 	sessionID         gregor1.SessionID
+	firstConnectMu    sync.Mutex
 	firstConnect      bool
 	forceSessionCheck bool
 
@@ -318,6 +319,18 @@ func (g *gregorHandler) GetClient() chat1.RemoteInterface {
 	return chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), g.cli)}
 }
 
+func (g *gregorHandler) isFirstConnect() bool {
+	g.firstConnectMu.Lock()
+	defer g.firstConnectMu.Unlock()
+	return g.firstConnect
+}
+
+func (g *gregorHandler) setFirstConnect(val bool) {
+	g.firstConnectMu.Lock()
+	defer g.firstConnectMu.Unlock()
+	g.firstConnect = val
+}
+
 func (g *gregorHandler) resetGregorClient(ctx context.Context) (err error) {
 	defer g.G().Trace("gregorHandler#newGregorClient", func() error { return err })()
 	of := gregor1.ObjFactory{}
@@ -354,7 +367,7 @@ func (g *gregorHandler) resetGregorClient(ctx context.Context) (err error) {
 	// Create client object
 	gcli := grclient.NewClient(guid, gdid, func() gregor.StateMachine {
 		return storage.NewMemEngine(of, clockwork.NewRealClock(), g.G().Log)
-	}, storage.NewLocalDB(g.G().ExternalG()), g.GetIncomingClient, g.G().Log)
+	}, storage.NewLocalDB(g.G().ExternalG()), g.GetIncomingClient, g.G().Log, clockwork.NewRealClock())
 
 	// Bring up local state
 	g.Debug(ctx, "restoring state from leveldb")
@@ -478,7 +491,7 @@ func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 				g.Warning(context.Background(), "Cannot get state in PushHandler: %s", err)
 				return
 			}
-			g.badger.PushState(s)
+			g.badger.PushState(context.Background(), s)
 		}
 	}
 }
@@ -530,7 +543,7 @@ func (g *gregorHandler) pushState(r keybase1.PushReason) {
 	// Only send this state update on reception of new data, not a reconnect since we will
 	// be sending that on a different code path altogether (see OnConnect).
 	if g.badger != nil && r != keybase1.PushReason_RECONNECTED {
-		g.badger.PushState(s)
+		g.badger.PushState(context.Background(), s)
 	}
 }
 
@@ -631,7 +644,7 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 
 	// Get time of the last message we synced (unless this is our first time syncing)
 	var t time.Time
-	if !g.firstConnect {
+	if !g.isFirstConnect() {
 		pt := gcli.StateMachineLatestCTime(ctx)
 		if pt != nil {
 			t = *pt
@@ -747,7 +760,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		Session:   token,
 		InboxVers: iboxVers,
 		Ctime:     latestCtime,
-		Fresh:     g.firstConnect,
+		Fresh:     g.isFirstConnect(),
 		ProtVers:  chat1.SyncAllProtVers_V1,
 		HostName:  g.GetURI().Host,
 	})
@@ -767,6 +780,13 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		return fmt.Errorf("error authenticating: %s", err)
 	}
 
+	// Sync badge state in the background
+	if g.badger != nil {
+		if err := g.badger.Resync(ctx, g.GetClient, gcli, &syncAllRes.Badge); err != nil {
+			g.chatLog.Debug(ctx, "badger failure: %s", err)
+		}
+	}
+
 	// Sync chat data using a Syncer object
 	if err := g.G().Syncer.Connected(ctx, chatCli, uid, &syncAllRes.Chat); err != nil {
 		return fmt.Errorf("error running chat sync: %s", err)
@@ -777,13 +797,6 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		&syncAllRes.Notification); err != nil {
 		g.chatLog.Debug(ctx, "serverSync: failure: %s", err)
 		return fmt.Errorf("error running state sync: %s", err)
-	}
-
-	// Sync badge state in the background
-	if g.badger != nil {
-		if err := g.badger.Resync(ctx, g.GetClient, gcli, &syncAllRes.Badge); err != nil {
-			g.chatLog.Debug(ctx, "badger failure: %s", err)
-		}
 	}
 
 	// Call out to reachability module if we have one
@@ -800,7 +813,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	}(g.makeReconnectOobm())
 
 	// No longer first connect if we are now connected
-	g.firstConnect = false
+	g.setFirstConnect(false)
 	// On successful login we can reset this guy to not force a check
 	g.forceSessionCheck = false
 	g.chatLog.Debug(ctx, "OnConnect complete")
@@ -1239,6 +1252,7 @@ func (g *gregorHandler) Shutdown() {
 
 func (g *gregorHandler) Reset() error {
 	g.Shutdown()
+	g.setFirstConnect(true)
 	return g.resetGregorClient(context.TODO())
 }
 

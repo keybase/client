@@ -157,6 +157,7 @@ type Dirent struct {
 	Name                 string     `codec:"name" json:"name"`
 	DirentType           DirentType `codec:"direntType" json:"direntType"`
 	LastWriterUnverified User       `codec:"lastWriterUnverified" json:"lastWriterUnverified"`
+	Writable             bool       `codec:"writable" json:"writable"`
 }
 
 func (o Dirent) DeepCopy() Dirent {
@@ -166,6 +167,7 @@ func (o Dirent) DeepCopy() Dirent {
 		Name:                 o.Name,
 		DirentType:           o.DirentType.DeepCopy(),
 		LastWriterUnverified: o.LastWriterUnverified.DeepCopy(),
+		Writable:             o.Writable,
 	}
 }
 
@@ -775,6 +777,13 @@ type SimpleFSSyncStatusArg struct {
 type SimpleFSGetHTTPAddressAndTokenArg struct {
 }
 
+type SimpleFSUserEditHistoryArg struct {
+}
+
+type SimpleFSFolderEditHistoryArg struct {
+	Path Path `codec:"path" json:"path"`
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path
 	// Retrieve results with readList()
@@ -839,6 +848,16 @@ type SimpleFSInterface interface {
 	// document that has title of "KBFS HTTP Token Invalid". When receiving such
 	// response, client should call this RPC (again) to get a new token.
 	SimpleFSGetHTTPAddressAndToken(context.Context) (SimpleFSGetHTTPAddressAndTokenResponse, error)
+	// simpleFSUserEditHistory returns edit histories of TLFs that the logged-in
+	// user can access.  Each returned history is corresponds to a unique
+	// writer-TLF pair.  They are in descending order by the modification time
+	// (as recorded by the server) of the most recent edit in each history.
+	SimpleFSUserEditHistory(context.Context) ([]FSFolderEditHistory, error)
+	// simpleFSFolderEditHistory returns the edit history for the TLF
+	// described by `path`, for the most recent writers of that TLF.
+	// The writers are in descending order by the modification time (as
+	// recorded by the server) of their most recent edit.
+	SimpleFSFolderEditHistory(context.Context, Path) (FSFolderEditHistory, error)
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -1172,6 +1191,33 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"simpleFSUserEditHistory": {
+				MakeArg: func() interface{} {
+					ret := make([]SimpleFSUserEditHistoryArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.SimpleFSUserEditHistory(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"simpleFSFolderEditHistory": {
+				MakeArg: func() interface{} {
+					ret := make([]SimpleFSFolderEditHistoryArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SimpleFSFolderEditHistoryArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SimpleFSFolderEditHistoryArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSFolderEditHistory(ctx, (*typedArgs)[0].Path)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1334,5 +1380,24 @@ func (c SimpleFSClient) SimpleFSSyncStatus(ctx context.Context) (res FSSyncStatu
 // response, client should call this RPC (again) to get a new token.
 func (c SimpleFSClient) SimpleFSGetHTTPAddressAndToken(ctx context.Context) (res SimpleFSGetHTTPAddressAndTokenResponse, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken", []interface{}{SimpleFSGetHTTPAddressAndTokenArg{}}, &res)
+	return
+}
+
+// simpleFSUserEditHistory returns edit histories of TLFs that the logged-in
+// user can access.  Each returned history is corresponds to a unique
+// writer-TLF pair.  They are in descending order by the modification time
+// (as recorded by the server) of the most recent edit in each history.
+func (c SimpleFSClient) SimpleFSUserEditHistory(ctx context.Context) (res []FSFolderEditHistory, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSUserEditHistory", []interface{}{SimpleFSUserEditHistoryArg{}}, &res)
+	return
+}
+
+// simpleFSFolderEditHistory returns the edit history for the TLF
+// described by `path`, for the most recent writers of that TLF.
+// The writers are in descending order by the modification time (as
+// recorded by the server) of their most recent edit.
+func (c SimpleFSClient) SimpleFSFolderEditHistory(ctx context.Context, path Path) (res FSFolderEditHistory, err error) {
+	__arg := SimpleFSFolderEditHistoryArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSFolderEditHistory", []interface{}{__arg}, &res)
 	return
 }

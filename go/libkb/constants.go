@@ -295,6 +295,7 @@ const (
 	SCTeamBadMembership        = int(keybase1.StatusCode_SCTeamBadMembership)
 	SCTeamProvisionalCanKey    = int(keybase1.StatusCode_SCTeamProvisionalCanKey)
 	SCTeamProvisionalCannotKey = int(keybase1.StatusCode_SCTeamProvisionalCannotKey)
+	SCBadSignupUsernameDeleted = int(keybase1.StatusCode_SCBadSignupUsernameDeleted)
 )
 
 const (
@@ -695,7 +696,16 @@ const noiseFileLen = 1024 * 1024 * 2
 
 // NOTE if you change these values you should change them in
 // go/chatbase/storage/ephemeral.go as well.
-const MaxEphemeralLifetime = time.Hour * 24 * 7
-const MinEphemeralLifetime = time.Second * 30
+const MaxEphemeralContentLifetime = time.Hour * 24 * 7
+const MinEphemeralContentLifetime = time.Second * 30
+
+// NOTE: If you change this value you should change it in lib/constants.iced
+// and go/ekreaperd/reaper.go as well.
+// Keys last at most one week
+const MaxEphemeralKeyStaleness = time.Hour * 24 * 30 // one month
+// Everyday we want to generate a new key if possible
+const EphemeralKeyGenInterval = time.Hour * 24 // one day
+// Our keys must last at least this long.
+const MinEphemeralKeyLifetime = MaxEphemeralContentLifetime + EphemeralKeyGenInterval
 
 const MaxTeamMembersForPairwiseMAC = 100

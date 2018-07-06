@@ -3,8 +3,9 @@ import * as React from 'react'
 import ResultsList from '.'
 import {Box} from '../../common-adapters'
 import {storiesOf, action, createPropProvider} from '../../stories/storybook'
+import * as PropProviders from '../../stories/prop-providers'
 
-const provider = createPropProvider({
+const provider = createPropProvider(PropProviders.Common(), {
   SearchResultRow: (props: {id: string}) => servicesResultsListMapCommonRows[props.id],
 })
 

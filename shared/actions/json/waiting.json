@@ -6,6 +6,10 @@
     },
     "decrementWaiting": {
       "key": ["string", "Array<string>"]
-    }
+    },
+    "changeWaiting": {
+      "key": ["string", "Array<string>"],
+      "increment": "boolean"
+    },
   }
 }

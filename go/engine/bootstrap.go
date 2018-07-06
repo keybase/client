@@ -75,7 +75,7 @@ func (e *Bootstrap) Run(m libkb.MetaContext) error {
 		}
 
 		m.CDebugf("connected, running full tracker2 syncer")
-		if err := libkb.RunSyncer(m, ts, e.status.Uid, false, nil); err != nil {
+		if err := libkb.RunSyncer(m, ts, e.status.Uid, false /* loggedIn */, false /* forceReload */); err != nil {
 			m.CWarningf("error running Tracker2Syncer: %s", err)
 			return nil
 		}

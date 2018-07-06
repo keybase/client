@@ -178,7 +178,7 @@ func (e *DeviceKeygen) Push(m libkb.MetaContext, pargs *DeviceKeygenPushArgs) er
 
 		pukSigProducer = func() (libkb.JSONPayload, error) {
 			gen := keybase1.PerUserKeyGeneration(1)
-			return libkb.PerUserKeyProofReverseSigned(e.args.Me, *e.perUserKeySeed, gen, encSigner)
+			return libkb.PerUserKeyProofReverseSigned(m, e.args.Me, *e.perUserKeySeed, gen, encSigner)
 		}
 	}
 
@@ -333,12 +333,7 @@ func (e *DeviceKeygen) pushLKS(m libkb.MetaContext) {
 		return
 	}
 
-	// send it to api server
-	var sr libkb.SessionReader
-	if lctx := m.LoginContext(); lctx != nil {
-		sr = lctx.LocalSession()
-	}
-	e.pushErr = libkb.PostDeviceLKS(m, sr, e.args.DeviceID, e.args.DeviceType, serverHalf, e.args.Lks.Generation(), chr, chrk)
+	e.pushErr = libkb.PostDeviceLKS(m, e.args.DeviceID, e.args.DeviceType, serverHalf, e.args.Lks.Generation(), chr, chrk)
 	if e.pushErr != nil {
 		return
 	}

@@ -84,13 +84,19 @@ protocol teams {
     array<UserVersion> readers;
   }
 
+  enum TeamMemberStatus {
+    ACTIVE_0,
+    RESET_1,
+    DELETED_2
+  }
+
   record TeamMemberDetails {
     UserVersion uv;
     string username;
     FullName fullName;
-    boolean active;
     @lint("ignore")
     boolean needsPUK;
+    TeamMemberStatus status;
   }
 
   record TeamMembersDetails {
@@ -204,7 +210,7 @@ protocol teams {
     UserVersion inviter;
     string inviterUsername;
     string teamName;
-    boolean userActive;
+    TeamMemberStatus status;
   }
 
   record TeamEncryptedKBFSKeyset {
@@ -607,11 +613,11 @@ protocol teams {
     int memberCount;
     @jsonkey("member_eldest_seqno")
     Seqno eldestSeqno;
-    boolean active;
     @jsonkey("allow_profile_promote")
     boolean allowProfilePromote;
     @jsonkey("is_member_showcased")
     boolean isMemberShowcased;
+    TeamMemberStatus status;
   }
 
   record AnnotatedTeamList {
@@ -683,8 +689,9 @@ protocol teams {
 
   TeamCreateResult teamCreateWithSettings(int sessionID, string name, boolean joinSubteam, TeamSettings settings);
 
-  // A user can hope for success if and only if they are a member of the team or an admin of any of its ancestors.
-  TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
+  // A user can hope for success if and only if they are a member of
+  // the team or an admin of any of its ancestors.
+  TeamDetails teamGet(int sessionID, string name);
 
   // List all the admins of ancestor teams.
   // Includes admins of the specified team only if they are also admins of ancestor teams.
@@ -828,6 +835,10 @@ protocol teams {
     boolean deleteChatHistory;
   }
 
+  record ProfileTeamLoadRes {
+    long loadTimeNsec;
+  }
+
   TeamOperation canUserPerform(string name);
 
   void teamRotateKey(TeamID teamID);
@@ -858,5 +869,11 @@ protocol teams {
    we will return just the last one.
    */
   NextMerkleRootRes findNextMerkleRootAfterTeamRemovalBySigningKey(UID uid, KID signingKey, TeamID team, boolean isPublic);
+
+  /**
+   ProfileTeamLoad loads a team and then throws it on the ground, for the purposes of profiling
+   the team load machinery.
+   */
+  ProfileTeamLoadRes profileTeamLoad(LoadTeamArg arg);
 
 }

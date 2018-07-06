@@ -31,6 +31,10 @@
     "setAddUserToTeamsResults": {
       "results": "string"
     },
+    "setEmailInviteError": {
+      "message": "string",
+      "malformed": "Array<string>"
+    },
     "getChannelInfo": {
       "_description":
         "Fetches the channel information for a single channel in a team from the server.",
@@ -243,7 +247,8 @@
     "badgeAppForTeams": {
       "newTeamNames": "Array<string>",
       "newTeamAccessRequests": "Array<string>",
-      "teamsWithResetUsers": "Array<$ReadOnly<{id: Buffer, teamname: string, username: string}>>"
+      "teamsWithResetUsers":
+        "Array<$ReadOnly<{id: Buffer, teamname: string, username: string, uid: string}>>"
     },
     "checkRequestedAccess": {
       "teamname": "string"

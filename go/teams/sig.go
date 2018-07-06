@@ -18,6 +18,13 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
+// metaContext returns a GlobalContext + a TODO context, since we're not
+// threading through contexts through this library. In the future, we should
+// fix this.
+func metaContext(g *libkb.GlobalContext) libkb.MetaContext {
+	return libkb.NewMetaContextTODO(g)
+}
+
 func TeamRootSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, teamSection SCTeamSection) (*jsonw.Wrapper, error) {
 	ret, err := libkb.ProofMetadata{
 		SigningUser: me,
@@ -27,7 +34,7 @@ func TeamRootSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.G
 		Seqno:       1,
 		SigVersion:  libkb.KeybaseSignatureV2,
 		SeqType:     seqTypeForTeamPublicness(teamSection.Public),
-	}.ToJSON(g)
+	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +74,7 @@ func NewSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb
 		SeqType:     seqTypeForTeamPublicness(parentTeam.IsPublic()), // children are as public as their parent
 		Seqno:       parentTeam.GetLatestSeqno() + 1,
 		PrevLinkID:  prevLinkID,
-	}.ToJSON(g)
+	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +111,7 @@ func SubteamHeadSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libk
 		Seqno:       1,
 		SigVersion:  libkb.KeybaseSignatureV2,
 		SeqType:     seqTypeForTeamPublicness(subteamTeamSection.Public),
-	}.ToJSON(g)
+	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +144,7 @@ func RenameSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key li
 		PrevLinkID:  prev,
 		SigVersion:  libkb.KeybaseSignatureV2,
 		SeqType:     seqTypeForTeamPublicness(teamSection.Public),
-	}.ToJSON(g)
+	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +174,7 @@ func RenameUpPointerSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key 
 		PrevLinkID:  prev,
 		SigVersion:  libkb.KeybaseSignatureV2,
 		SeqType:     seqTypeForTeamPublicness(teamSection.Public),
-	}.ToJSON(g)
+	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +229,7 @@ func ChangeSig(g *libkb.GlobalContext, me libkb.UserForSignatures, prev libkb.Li
 		SigVersion:  libkb.KeybaseSignatureV2,
 		SeqType:     seqTypeForTeamPublicness(teamSection.Public),
 		MerkleRoot:  merkleRoot,
-	}.ToJSON(g)
+	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
 	}
@@ -263,7 +270,6 @@ func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 
 	defer g.CTraceTimed(ctx, "precheckLinksToPost", func() error { return err })()
 
-	var player *TeamSigChainPlayer
 	isAdmin := true
 	if state != nil {
 		role, err := state.GetUserRole(me)
@@ -271,12 +277,11 @@ func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 			role = keybase1.TeamRole_NONE
 		}
 		isAdmin = role.IsAdminOrAbove()
-	}
 
-	if state == nil {
-		player = NewTeamSigChainPlayer(g, me)
-	} else {
-		player = NewTeamSigChainPlayerWithState(g, me, *state)
+		// As an optimization, AppendChainLink consumes its state.
+		// We don't consume our state parameter.
+		// So clone state before we pass it along to be consumed.
+		state = state.DeepCopyToPtr()
 	}
 
 	signer := signerX{
@@ -306,10 +311,11 @@ func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 			return NewPrecheckStructuralError("link missing inner", nil)
 		}
 
-		err = player.AppendChainLink(ctx, link2, &signer)
+		newState, err := AppendChainLink(ctx, g, me, state, link2, &signer)
 		if err != nil {
 			return NewPrecheckAppendError(err)
 		}
+		state = &newState
 	}
 
 	return nil

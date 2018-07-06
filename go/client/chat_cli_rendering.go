@@ -499,6 +499,47 @@ func formatSystemMessage(body chat1.MessageSystem) string {
 	return "<unknown system message>"
 }
 
+func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPayment) string {
+	ctx := context.Background()
+
+	cli, err := GetWalletClient(g)
+	if err != nil {
+		g.Log.CDebugf(ctx, "GetWalletClient() error: %s", err)
+		return "[error getting payment details]"
+	}
+	details, err := cli.PaymentDetailCLILocal(ctx, body.KbTxID)
+	if err != nil {
+		g.Log.CDebugf(ctx, "PaymentDetailCLILocal() error: %s", err)
+		return "[error getting payment details]"
+	}
+
+	ls := strings.ToLower(details.Status)
+	if ls != "completed" && ls != "pending" {
+		return fmt.Sprintf("error sending payment: %s", details.StatusDetail)
+	}
+
+	verb := "sent"
+	if ls == "pending" {
+		verb = "sending"
+	}
+
+	amountXLM := fmt.Sprintf("%s XLM", libkb.StellarSimplifyAmount(details.Amount))
+
+	var amountDescription string
+	if details.DisplayAmount != nil && details.DisplayCurrency != nil && len(*details.DisplayAmount) > 0 && len(*details.DisplayAmount) > 0 {
+		amountDescription = fmt.Sprintf("Lumens worth %s %s (%s)", *details.DisplayAmount, *details.DisplayCurrency, amountXLM)
+	} else {
+		amountDescription = amountXLM
+	}
+
+	view := verb + " " + amountDescription
+	if details.Note != "" {
+		view += "\n> " + details.Note
+	}
+
+	return view
+}
+
 func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxedValid) (mv messageView, err error) {
 	mv.MessageID = m.ServerHeader.MessageID
 	mv.FromRevokedDevice = m.SenderDeviceRevokedAt != nil
@@ -559,6 +600,9 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 	case chat1.MessageType_SYSTEM:
 		mv.Renderable = true
 		mv.Body = formatSystemMessage(m.MessageBody.System())
+	case chat1.MessageType_SENDPAYMENT:
+		mv.Renderable = true
+		mv.Body = formatSendPaymentMessage(g, m.MessageBody.Sendpayment())
 	default:
 		return mv, fmt.Errorf(fmt.Sprintf("unsupported MessageType: %s", typ.String()))
 	}

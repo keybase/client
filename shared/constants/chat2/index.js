@@ -36,6 +36,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pendingOutboxToOrdinal: I.Map(),
   quote: null,
   selectedConversation: noConversationIDKey,
+  staticConfig: null,
   typingMap: I.Map(),
   unreadMap: I.Map(),
 })
@@ -49,6 +50,10 @@ export const makeQuoteInfo: I.RecordFactory<Types._QuoteInfo> = I.Record({
   ordinal: Types.numberToOrdinal(0),
   sourceConversationIDKey: Constants.noConversationIDKey,
   targetConversationIDKey: Constants.noConversationIDKey,
+})
+
+export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
+  deletableByDeleteHistory: I.Set(),
 })
 
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
@@ -122,14 +127,9 @@ export const isInfoPanelOpen = (state: TypedState) => {
 export const creatingLoadingKey = 'creatingConvo'
 
 // When we see that exploding messages are in the app, we set
-// seenExplodingGregorKey as well as newExplodingGregorKey.
-// newExploding.. is set with a dtime of a couple days.
-// seenExploding.. never expires.
-// 1. Neither exist: new and user hasn't seen them
-// 2. Both exist: new and user has seen them
-// 3. One exists (seenExploding...): old; unset tag
-export const seenExplodingGregorKey = 'hasSeenExplodingMessages'
-export const newExplodingGregorKey = 'explodingMessagesAreNew'
+// seenExplodingGregorKey. Once newExplodingGregorOffset time
+// passes, we stop showing the 'NEW' tag.
+export const seenExplodingGregorKey = 'chat.seenExplodingMessages'
 export const newExplodingGregorOffset = 1000 * 3600 * 24 * 3 // 3 days in ms
 export const getIsExplodingNew = (state: TypedState) => state.chat2.get('isExplodingNew')
 export const explodingModeGregorKeyPrefix = 'exploding:'
@@ -181,7 +181,9 @@ export {
 } from './meta'
 
 export {
+  allMessageTypes,
   getClientPrev,
+  getDeletableByDeleteHistory,
   getMessageID,
   isSpecialMention,
   makeMessageAttachment,
@@ -192,6 +194,7 @@ export {
   messageExplodeDescriptions,
   pathToAttachmentType,
   rpcErrorToString,
+  serviceMessageTypeToMessageTypes,
   uiMessageEditToMessage,
   uiMessageToMessage,
   upgradeMessage,

@@ -69,6 +69,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   codePageQrScanned: null,
   codePageTextCode: null,
   configuredAccounts: I.List(),
+  devicenameError: '',
   forgotPasswordError: null,
   forgotPasswordSubmitting: false,
   forgotPasswordSuccess: false,

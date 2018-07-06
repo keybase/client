@@ -24,8 +24,8 @@ func NewLoginHandler(xp rpc.Transporter, g *libkb.GlobalContext) *LoginHandler {
 	}
 }
 
-func (h *LoginHandler) GetConfiguredAccounts(_ context.Context, sessionID int) ([]keybase1.ConfiguredAccount, error) {
-	return h.G().GetConfiguredAccounts()
+func (h *LoginHandler) GetConfiguredAccounts(context context.Context, sessionID int) ([]keybase1.ConfiguredAccount, error) {
+	return h.G().GetConfiguredAccounts(context)
 }
 
 func (h *LoginHandler) Logout(ctx context.Context, sessionID int) (err error) {
@@ -62,8 +62,9 @@ func (h *LoginHandler) RecoverAccountFromEmailAddress(_ context.Context, email s
 	return nil
 }
 
-func (h *LoginHandler) ClearStoredSecret(_ context.Context, arg keybase1.ClearStoredSecretArg) error {
-	return libkb.ClearStoredSecret(h.G(), libkb.NewNormalizedUsername(arg.Username))
+func (h *LoginHandler) ClearStoredSecret(ctx context.Context, arg keybase1.ClearStoredSecretArg) error {
+	m := libkb.NewMetaContext(ctx, h.G())
+	return libkb.ClearStoredSecret(m, libkb.NewNormalizedUsername(arg.Username))
 }
 
 func (h *LoginHandler) PaperKey(ctx context.Context, sessionID int) error {

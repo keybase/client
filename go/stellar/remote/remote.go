@@ -32,11 +32,13 @@ func ShouldCreate(ctx context.Context, g *libkb.GlobalContext) (shouldCreate, ha
 func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle stellar1.Bundle) (err error) {
 	defer g.CTraceTimed(ctx, "Stellar.PostWithChainlink", func() error { return err })()
 
+	m := libkb.NewMetaContext(ctx, g)
+
 	uid := g.ActiveDevice.UID()
 	if uid.IsNil() {
 		return libkb.NoUIDError{}
 	}
-	g.Log.CDebugf(ctx, "Stellar.PostWithChainLink: load self")
+	m.CDebugf("Stellar.PostWithChainLink: load self")
 	loadMeArg := libkb.NewLoadUserArg(g).
 		WithNetContext(ctx).
 		WithUID(uid).
@@ -74,15 +76,15 @@ func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle 
 	if !stellarAccount.IsPrimary {
 		return errors.New("initial stellar account is not primary")
 	}
-	g.Log.CDebugf(ctx, "Stellar.PostWithChainLink: revision:%v accountID:%v pukGen:%v", clearBundle.Revision, stellarAccount.AccountID, pukGen)
+	m.CDebugf("Stellar.PostWithChainLink: revision:%v accountID:%v pukGen:%v", clearBundle.Revision, stellarAccount.AccountID, pukGen)
 	boxed, err := bundle.Box(clearBundle, pukGen, pukSeed)
 	if err != nil {
 		return err
 	}
 
-	g.Log.CDebugf(ctx, "Stellar.PostWithChainLink: make sigs")
+	m.CDebugf("Stellar.PostWithChainLink: make sigs")
 
-	sig, err := libkb.StellarProofReverseSigned(me, stellarAccount.AccountID, stellarAccount.Signers[0], sigKey)
+	sig, err := libkb.StellarProofReverseSigned(m, me, stellarAccount.AccountID, stellarAccount.Signers[0], sigKey)
 	if err != nil {
 		return err
 	}
@@ -95,11 +97,12 @@ func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle 
 
 	addWalletServerArg(payload, boxed.EncB64, boxed.VisB64, int(boxed.FormatVersion))
 
-	g.Log.CDebugf(ctx, "Stellar.PostWithChainLink: post")
-	_, err = g.API.PostJSON(libkb.APIArg{
+	m.CDebugf("Stellar.PostWithChainLink: post")
+	_, err = m.G().API.PostJSON(libkb.APIArg{
 		Endpoint:    "key/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
+		MetaContext: m,
 	})
 	if err != nil {
 		return err

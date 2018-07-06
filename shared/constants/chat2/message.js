@@ -25,6 +25,67 @@ export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   }
 }
 
+// Map service message types to our message types.
+export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): Array<Types.MessageType> => {
+  switch (t) {
+    case RPCChatTypes.commonMessageType.text:
+      return ['text']
+    case RPCChatTypes.commonMessageType.attachment:
+      return ['attachment']
+    case RPCChatTypes.commonMessageType.metadata:
+      return ['setDescription']
+    case RPCChatTypes.commonMessageType.headline:
+      return ['setChannelname']
+    case RPCChatTypes.commonMessageType.attachmentuploaded:
+      return ['attachment']
+    case RPCChatTypes.commonMessageType.join:
+      return ['systemJoined']
+    case RPCChatTypes.commonMessageType.leave:
+      return ['systemLeft']
+    case RPCChatTypes.commonMessageType.system:
+      return [
+        'systemAddedToTeam',
+        'systemGitPush',
+        'systemInviteAccepted',
+        'systemSimpleToComplex',
+        'systemText',
+      ]
+    // mutations and other types we don't store directly
+    case RPCChatTypes.commonMessageType.none:
+    case RPCChatTypes.commonMessageType.edit:
+    case RPCChatTypes.commonMessageType.delete:
+    case RPCChatTypes.commonMessageType.tlfname:
+    case RPCChatTypes.commonMessageType.deletehistory:
+    case RPCChatTypes.commonMessageType.reaction:
+    case RPCChatTypes.commonMessageType.sendpayment:
+      return []
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllMessageTypesAbove: (t: empty) => any
+      // $FlowIssue can't figure out the preceding list is exhaustive
+      ifFlowErrorsHereItsCauseYouDidntHandleAllMessageTypesAbove(t);
+      */
+      return []
+  }
+}
+export const allMessageTypes: I.Set<Types.MessageType> = I.Set([
+  'attachment',
+  'deleted',
+  'setChannelname',
+  'setDescription',
+  'systemAddedToTeam',
+  'systemGitPush',
+  'systemInviteAccepted',
+  'systemJoined',
+  'systemLeft',
+  'systemSimpleToComplex',
+  'systemText',
+  'text',
+  'placeholder',
+])
+export const getDeletableByDeleteHistory = (state: TypedState) =>
+  (!!state.chat2.staticConfig && state.chat2.staticConfig.deletableByDeleteHistory) || allMessageTypes
+
 const makeMessageMinimum = {
   author: '',
   conversationIDKey: noConversationIDKey,
@@ -50,6 +111,8 @@ const makeMessageExplodable = {
   explodingTime: Date.now(),
   explodingUnreadable: false,
 }
+
+export const howLongBetweenTimestampsMs: number = 1000 * 60 * 15
 
 export const makeMessagePlaceholder: I.RecordFactory<MessageTypes._MessagePlaceholder> = I.Record({
   ...makeMessageCommon,
@@ -85,6 +148,7 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   previewTransferState: null,
   previewURL: '',
   previewWidth: 0,
+  showPlayButton: false,
   submitState: null,
   title: '',
   transferProgress: 0,
@@ -354,6 +418,7 @@ const validUIMessagetoMessage = (
       // We treat all these like a pending text, so any data-less thing will have no message id and map to the same ordinal
       let attachment = {}
       let preview: ?RPCChatTypes.Asset
+      let full: ?RPCChatTypes.Asset
       let transferState = null
 
       if (m.messageBody.messageType === RPCChatTypes.commonMessageType.attachment) {
@@ -361,18 +426,21 @@ const validUIMessagetoMessage = (
         preview =
           attachment.preview ||
           (attachment.previews && attachment.previews.length ? attachment.previews[0] : null)
+        full = attachment.object
         if (!attachment.uploaded) {
           transferState = 'remoteUploading'
         }
       } else if (m.messageBody.messageType === RPCChatTypes.commonMessageType.attachmentuploaded) {
         attachment = m.messageBody.attachmentuploaded || {}
         preview = attachment.previews && attachment.previews.length ? attachment.previews[0] : null
+        full = attachment.object
         transferState = null
       }
       const {filename, title, size} = attachment.object
       let previewHeight = 0
       let previewWidth = 0
       let attachmentType = 'file'
+      let showPlayButton = false
 
       if (preview && preview.metadata) {
         if (
@@ -383,6 +451,14 @@ const validUIMessagetoMessage = (
           previewHeight = wh.height
           previewWidth = wh.width
           attachmentType = 'image'
+          // full is a video but preview is an image?
+          if (
+            full &&
+            full.metadata &&
+            full.metadata.assetType === RPCChatTypes.localAssetMetadataType.video
+          ) {
+            showPlayButton = true
+          }
         } else if (
           preview.metadata.assetType === RPCChatTypes.localAssetMetadataType.video &&
           preview.metadata.video
@@ -407,13 +483,14 @@ const validUIMessagetoMessage = (
         attachmentType,
         fileName: filename,
         fileSize: size,
+        fileType,
+        fileURL,
         previewHeight,
+        previewURL,
         previewWidth,
+        showPlayButton,
         title,
         transferState,
-        previewURL,
-        fileURL,
-        fileType,
       })
     }
     case RPCChatTypes.commonMessageType.join:
@@ -721,6 +798,17 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
   }
   return m
 }
+
+export const enoughTimeBetweenMessages = (
+  message: MessageTypes.Message,
+  previous: ?MessageTypes.Message
+): boolean =>
+  Boolean(
+    previous &&
+      previous.timestamp &&
+      message.timestamp &&
+      message.timestamp - previous.timestamp > howLongBetweenTimestampsMs
+  )
 
 export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
   {text: 'Never (turn off)', seconds: 0},

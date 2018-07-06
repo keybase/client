@@ -242,3 +242,24 @@ func (s *SimpleFSHandler) SimpleFSGetHTTPAddressAndToken(ctx context.Context) (k
 	}
 	return cli.SimpleFSGetHTTPAddressAndToken(ctx)
 }
+
+// SimpleFSUserEditHistory implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSUserEditHistory(ctx context.Context) (
+	res []keybase1.FSFolderEditHistory, err error) {
+	cli, err := s.client()
+	if err != nil {
+		return nil, err
+	}
+	return cli.SimpleFSUserEditHistory(ctx)
+}
+
+// SimpleFSFolderEditHistory implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSFolderEditHistory(
+	ctx context.Context, path keybase1.Path) (
+	res keybase1.FSFolderEditHistory, err error) {
+	cli, err := s.client()
+	if err != nil {
+		return keybase1.FSFolderEditHistory{}, err
+	}
+	return cli.SimpleFSFolderEditHistory(ctx, path)
+}

@@ -50,8 +50,8 @@ func TestLookupImplicitTeams(t *testing.T) {
 
 		createdTeam, _, impTeamName, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName,
 			public)
-		tlfid0 := createdTeam.KBFSTLFID()
 		require.NoError(t, err)
+		tlfid0 := createdTeam.KBFSTLFID()
 		require.Equal(t, public, impTeamName.IsPublic)
 		require.True(t, tlfid0.IsNil())
 
@@ -97,6 +97,20 @@ func TestLookupImplicitTeams(t *testing.T) {
 	require.Error(t, err)
 	_, _, _, err = LookupOrCreateImplicitTeam(context.TODO(), tc.G, "dksjdskjs/sxs?", true)
 	require.Error(t, err)
+
+	// Create the same team right on top of each other
+	displayName = strings.Join(usernames, ",") + ",josecanseco@twitter"
+	ch := make(chan error, 2)
+	go func() {
+		_, _, _, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName, false)
+		ch <- err
+	}()
+	go func() {
+		_, _, _, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName, false)
+		ch <- err
+	}()
+	require.NoError(t, <-ch)
+	require.NoError(t, <-ch)
 }
 
 // Test an implicit team where one user does not yet have a PUK.
@@ -388,6 +402,32 @@ func TestImplicitInvalidLinks(t *testing.T) {
 	}
 }
 
+func TestImpTeamAddInviteWithoutCanceling(t *testing.T) {
+	fus, tcs, cleanup := setupNTestsWithPukless(t, 2, 1)
+	defer cleanup()
+
+	impteamName := strings.Join([]string{fus[0].Username, fus[1].Username}, ",")
+	t.Logf("created implicit team: %s", impteamName)
+
+	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, impteamName, false /*isPublic*/)
+	require.NoError(t, err)
+
+	t.Logf("created team id: %s", teamObj.ID)
+
+	kbtest.ResetAccount(*tcs[1], fus[1])
+	fus[1].EldestSeqno = 0
+
+	// Adding new version of user without canceling old invite should
+	// fail on the server side.
+	invite := SCTeamInvite{
+		Type: "keybase",
+		Name: fus[1].GetUserVersion().TeamInviteName(),
+		ID:   NewInviteID(),
+	}
+	err = teamObj.postInvite(context.Background(), invite, keybase1.TeamRole_OWNER)
+	require.IsType(t, libkb.AppStatusError{}, err)
+}
+
 func TestTeamListImplicit(t *testing.T) {
 	fus, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
@@ -431,4 +471,49 @@ func TestTeamListImplicit(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Len(t, list.Teams, 4)
+}
+
+func TestReAddMemberWithSameUV(t *testing.T) {
+	fus, tcs, cleanup := setupNTestsWithPukless(t, 4, 2)
+	defer cleanup()
+
+	ann := fus[0] // crypto user
+	bob := fus[1] // crypto user
+	jun := fus[2] // pukless user
+	hal := fus[3] // pukless user (eldest=0)
+
+	kbtest.ResetAccount(*tcs[3], fus[3])
+
+	impteamName := strings.Join([]string{ann.Username, bob.Username, jun.Username, hal.Username}, ",")
+	t.Logf("ann creates an implicit team: %v", impteamName)
+	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, impteamName, false /*isPublic*/)
+	require.NoError(t, err)
+
+	t.Logf("created team id: %s", teamObj.ID)
+
+	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
+	require.IsType(t, libkb.ExistsError{}, err)
+
+	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, jun.Username)
+	require.IsType(t, libkb.ExistsError{}, err)
+
+	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, hal.Username)
+	require.IsType(t, libkb.ExistsError{}, err)
+
+	// Now, the fun part (bug CORE-8099):
+
+	// Bob resets, ann re-adds bob by posting an "invite" link, so
+	// from chain point of view there are two active memberships for
+	// bob: cryptomember from before reset and invite from after reset
+	// (it's an implicit team weirdness - "invite" link has no way of
+	// removing old membership).
+
+	kbtest.ResetAccount(*tcs[1], fus[1])
+	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
+	require.NoError(t, err)
+
+	// Subsequent calls should start failing with ExistsError again
+	// and cancel old invite and add new one for same UV.
+	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
+	require.IsType(t, libkb.ExistsError{}, err)
 }

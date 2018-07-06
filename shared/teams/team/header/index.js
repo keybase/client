@@ -85,6 +85,7 @@ const _TeamHeader = (props: Props) => (
                 marginRight: 8,
               }}
               color={globalColors.white}
+              size={22}
             />
           </Button>
         )}

@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
@@ -22,8 +23,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
-	tc = externalstest.SetupTest(tb, name, depth+1)
+func SetupTest(t *testing.T, name string, depth int) (tc libkb.TestContext) {
+	tc = externalstest.SetupTest(t, name, depth+1)
 	stellar.ServiceInit(tc.G, nil)
 	teams.ServiceInit(tc.G)
 	// use an insecure triplesec in tests
@@ -34,6 +35,9 @@ func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
 		}
 		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
 	}
+
+	tc.G.ChatHelper = kbtest.NewMockChatHelper()
+
 	return tc
 }
 
@@ -295,6 +299,9 @@ func TestSendLocalStellarAddress(t *testing.T) {
 		t.Fatal(err)
 	}
 	require.Equal(t, balances[0].Amount, "10100.0000000")
+
+	senderMsgs := kbtest.MockSentMessages(tcs[0].G, tcs[0].T)
+	require.Len(t, senderMsgs, 0)
 }
 
 func TestSendLocalKeybase(t *testing.T) {
@@ -343,6 +350,10 @@ func TestSendLocalKeybase(t *testing.T) {
 		t.Fatal(err)
 	}
 	require.Equal(t, balances[0].Amount, "10100.0000000")
+
+	senderMsgs := kbtest.MockSentMessages(tcs[0].G, tcs[0].T)
+	require.Len(t, senderMsgs, 1)
+	require.Equal(t, senderMsgs[0].MsgType, chat1.MessageType_SENDPAYMENT)
 }
 
 func TestRecentPaymentsLocal(t *testing.T) {
@@ -532,7 +543,7 @@ func testRelay(t *testing.T, yank bool) {
 	require.Equal(t, stellar1.PaymentStatus_CLAIMABLE, fhistory[0].Payment.StatusSimplified)
 	require.Equal(t, "claimable", fhistory[0].Payment.StatusDescription)
 	if yank {
-		require.Equal(t, "- 3 XLM", fhistory[0].Payment.AmountDescription)
+		require.Equal(t, "3 XLM", fhistory[0].Payment.AmountDescription)
 		require.Equal(t, stellar1.BalanceDelta_DECREASE, fhistory[0].Payment.Delta)
 	} else {
 		require.Equal(t, "3 XLM", fhistory[0].Payment.AmountDescription)

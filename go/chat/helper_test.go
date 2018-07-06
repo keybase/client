@@ -116,3 +116,49 @@ func TestSendTextByName(t *testing.T) {
 		}
 	})
 }
+func TestTopicNameRace(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_KBFS:
+			return
+		}
+		ctc := makeChatTestContext(t, "TestTopicNameRace", 1)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		ctx := ctc.as(t, users[0]).startCtx
+		ri := ctc.as(t, users[0]).ri
+		tc := ctc.world.Tcs[users[0].Username]
+		uid := users[0].User.GetUID().ToBytes()
+		t.Logf("uid: %s", uid)
+		first := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_DEV, mt)
+
+		// spam create conversation with same name
+		type ncRes struct {
+			convID chat1.ConversationID
+			err    error
+		}
+		topicName := "LOSERS"
+		attempts := 2
+		retCh := make(chan ncRes, attempts)
+		for i := 0; i < attempts; i++ {
+			go func() {
+				ctx = CtxAddLogTags(ctx, tc.Context())
+				conv, err := NewConversation(ctx, tc.Context(), uid, first.TlfName, &topicName,
+					chat1.TopicType_DEV, mt, keybase1.TLFVisibility_PRIVATE,
+					func() chat1.RemoteInterface { return ri })
+				retCh <- ncRes{convID: conv.GetConvID(), err: err}
+			}()
+		}
+		var convID chat1.ConversationID
+		for i := 0; i < attempts; i++ {
+			res := <-retCh
+			require.NoError(t, res.err)
+			if convID.IsNil() {
+				convID = res.convID
+			} else {
+				require.Equal(t, convID, res.convID)
+			}
+		}
+	})
+}

@@ -6,10 +6,7 @@ import * as PropProviders from '../../stories/prop-providers'
 import FollowNotification, {type Props} from '.'
 import moment from 'moment'
 
-const provider = PropProviders.compose(
-  PropProviders.Usernames(['max', 'chrisnojima'], 'ayoubd'),
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
-)
+const provider = PropProviders.CommonProvider()
 
 const singleFollowProps1: Props = {
   type: 'notification',
@@ -51,6 +48,14 @@ const multiFollowProps2: Props = {
     C.makeFollowedNotification({username: 'mmaxim'}),
     C.makeFollowedNotification({username: 'chrisnojima'}),
     C.makeFollowedNotification({username: 'chris'}),
+    C.makeFollowedNotification({username: 'jzila'}),
+    C.makeFollowedNotification({username: 'akalin'}),
+    C.makeFollowedNotification({username: 'zanderz'}),
+    C.makeFollowedNotification({username: 'songgao'}),
+    C.makeFollowedNotification({username: 'strib'}),
+    C.makeFollowedNotification({username: 'oconnor663'}),
+    C.makeFollowedNotification({username: 'mlsteele'}),
+    C.makeFollowedNotification({username: 'joshblum'}),
   ],
   badged: false,
   notificationTime: moment()

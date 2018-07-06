@@ -5,6 +5,7 @@ import * as PushConstants from '../constants/push'
 import * as PushGen from './push-gen'
 import * as PushNotifications from 'react-native-push-notification'
 import * as mime from 'react-native-mime-types'
+import * as Saga from '../util/saga'
 import RNFetchBlob from 'react-native-fetch-blob'
 import {
   PushNotificationIOS,
@@ -41,20 +42,6 @@ function getShownPushPrompt(): Promise<boolean> {
 
 function checkPermissions() {
   return new Promise((resolve, reject) => PushNotifications.checkPermissions(resolve))
-}
-
-function showMainWindow() {
-  return () => {
-    // nothing
-  }
-}
-
-function getAppState() {
-  return Promise.resolve({})
-}
-
-function setAppState(toMerge: Object) {
-  throw new Error('setAppState not implemented in mobile')
 }
 
 function showShareActionSheet(options: {
@@ -135,7 +122,13 @@ function clearAllNotifications() {
   PushNotifications.cancelAllLocalNotifications()
 }
 
-function displayNewMessageNotification(text: string, convID: ?string, badgeCount: ?number, myMsgID: ?number) {
+function displayNewMessageNotification(
+  text: string,
+  convID: ?string,
+  badgeCount: ?number,
+  myMsgID: ?number,
+  soundName: ?string
+) {
   // Dismiss any non-plaintext notifications for the same message ID
   if (isIOS) {
     PushNotificationIOS.getDeliveredNotifications(param => {
@@ -145,9 +138,10 @@ function displayNewMessageNotification(text: string, convID: ?string, badgeCount
     })
   }
 
+  logger.info(`Got push notification with soundName '${soundName || ''}'`)
   PushNotifications.localNotification({
     message: text,
-    soundName: 'keybasemessage.wav',
+    soundName,
     userInfo: {
       convID: convID,
       type: 'chat.newmessage',
@@ -302,15 +296,14 @@ const getContentTypeFromURL = (
           cb({error})
         })
 
+function* platformConfigSaga(): Saga.SagaGenerator<any, any> {}
+
 export {
   openAppSettings,
   checkPermissions,
   displayNewMessageNotification,
   downloadAndShowShareActionSheet,
-  getAppState,
-  setAppState,
   requestPushPermissions,
-  showMainWindow,
   configurePush,
   saveAttachmentDialog,
   saveAttachmentToCameraRoll,
@@ -318,4 +311,5 @@ export {
   showShareActionSheet,
   clearAllNotifications,
   getContentTypeFromURL,
+  platformConfigSaga,
 }

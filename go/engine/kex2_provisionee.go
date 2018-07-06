@@ -41,10 +41,10 @@ type Kex2Provisionee struct {
 }
 
 // Kex2Provisionee implements kex2.Provisionee, libkb.UserBasic,
-// and libkb.SessionReader interfaces.
+// and libkb.APITokener interfaces.
 var _ kex2.Provisionee = (*Kex2Provisionee)(nil)
 var _ libkb.UserBasic = (*Kex2Provisionee)(nil)
-var _ libkb.SessionReader = (*Kex2Provisionee)(nil)
+var _ libkb.APITokener = (*Kex2Provisionee)(nil)
 
 // NewKex2Provisionee creates a Kex2Provisionee engine.
 func NewKex2Provisionee(g *libkb.GlobalContext, device *libkb.Device, secret kex2.Secret, salt []byte) *Kex2Provisionee {
@@ -280,7 +280,7 @@ func (e *Kex2Provisionee) handleDidCounterSign(m libkb.MetaContext, sig []byte, 
 	}
 
 	// make a keyproof for the dh key, signed w/ e.eddsa
-	dhSig, dhSigID, err := e.dhKeyProof(e.dh, decSig.eldestKID, decSig.seqno, decSig.linkID)
+	dhSig, dhSigID, err := e.dhKeyProof(m, e.dh, decSig.eldestKID, decSig.seqno, decSig.linkID)
 	if err != nil {
 		return err
 	}
@@ -400,27 +400,11 @@ func (e *Kex2Provisionee) GetUID() keybase1.UID {
 	return e.uid
 }
 
-// APIArgs implements libkb.SessionReader interface.
-func (e *Kex2Provisionee) APIArgs() (token, csrf string) {
+// Tokens implements the APITokener interface. This is the only implementer, but it's
+// a pretty unusual case --- the provisioned device is giving us, the provisionee,
+// a session and CSRF token to use for the server.
+func (e *Kex2Provisionee) Tokens() (token, csrf string) {
 	return string(e.sessionToken), string(e.csrfToken)
-}
-
-// Invalidate implements libkb.SessionReader interface.
-func (e *Kex2Provisionee) Invalidate() {
-	e.sessionToken = ""
-	e.csrfToken = ""
-}
-
-// IsLoggedIn implements libkb.SessionReader interface.  For the
-// sake of kex2 provisionee, we are logged in because we have a
-// session token.
-func (e *Kex2Provisionee) IsLoggedIn() bool {
-	return true
-}
-
-// Logout implements libkb.SessionReader interface.  Noop.
-func (e *Kex2Provisionee) Logout() error {
-	return nil
 }
 
 // Device returns the new device struct.
@@ -509,7 +493,7 @@ func (e *Kex2Provisionee) postSigs(signingArgs, encryptArgs *libkb.HTTPArgs, per
 		Endpoint:    "key/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
-		SessionR:    e,
+		MetaContext: e.mctx.WithAPITokener(e),
 	}
 
 	_, err := e.G().API.PostJSON(arg)
@@ -534,7 +518,7 @@ func makeKeyArgs(sigID keybase1.SigID, sig []byte, delType libkb.DelegationType,
 	return &args, nil
 }
 
-func (e *Kex2Provisionee) dhKeyProof(dh libkb.GenericKey, eldestKID keybase1.KID, seqno int, linkID libkb.LinkID) (sig string, sigID keybase1.SigID, err error) {
+func (e *Kex2Provisionee) dhKeyProof(m libkb.MetaContext, dh libkb.GenericKey, eldestKID keybase1.KID, seqno int, linkID libkb.LinkID) (sig string, sigID keybase1.SigID, err error) {
 	delg := libkb.Delegator{
 		ExistingKey:    e.eddsa,
 		NewKey:         dh,
@@ -548,7 +532,7 @@ func (e *Kex2Provisionee) dhKeyProof(dh libkb.GenericKey, eldestKID keybase1.KID
 		Contextified:   libkb.NewContextified(e.G()),
 	}
 
-	jw, err := libkb.KeyProof(delg)
+	jw, err := libkb.KeyProof(m, delg)
 	if err != nil {
 		return "", "", err
 	}
@@ -580,7 +564,7 @@ func (e *Kex2Provisionee) pushLKSServerHalf(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	err = libkb.PostDeviceLKS(m, e, e.device.ID, e.device.Type, e.lks.GetServerHalf(), e.lks.Generation(), chrText, chrKID)
+	err = libkb.PostDeviceLKS(m.WithAPITokener(e), e.device.ID, e.device.Type, e.lks.GetServerHalf(), e.lks.Generation(), chrText, chrKID)
 	if err != nil {
 		return err
 	}
@@ -634,7 +618,7 @@ func (e *Kex2Provisionee) ephemeralKeygen(m libkb.MetaContext, userEKBox *keybas
 		return deviceEKStatement, deviceEKStatementSig, nil, err
 	}
 
-	deviceEKStatement, deviceEKStatementSig, err = ekLib.SignedDeviceEKStatementFromSeed(m.Ctx(), userEKBox.DeviceEkGeneration, e.deviceEKSeed, signingKey, []keybase1.DeviceEkMetadata{})
+	deviceEKStatement, deviceEKStatementSig, err = ekLib.SignedDeviceEKStatementFromSeed(m.Ctx(), userEKBox.DeviceEkGeneration, e.deviceEKSeed, signingKey)
 	if err != nil {
 		return deviceEKStatement, deviceEKStatementSig, nil, err
 	}

@@ -25,7 +25,7 @@ func pollForMembershipUpdate(team smuTeam, ann *smuUser, bob *smuUser, cam *smuU
 		for _, member := range d.Members.Writers {
 			switch member.Username {
 			case bob.username:
-				return !member.Active
+				return member.Status.IsReset()
 			}
 		}
 		return false
@@ -35,7 +35,7 @@ func pollForMembershipUpdate(team smuTeam, ann *smuUser, bob *smuUser, cam *smuU
 	for _, member := range details.Members.Admins {
 		switch member.Username {
 		case ann.username:
-			require.True(ann.ctx.t, member.Active)
+			require.True(ann.ctx.t, member.Status.IsActive())
 		default:
 			ann.ctx.t.Fatalf("unknown admin: %s", member.Username)
 		}
@@ -43,9 +43,9 @@ func pollForMembershipUpdate(team smuTeam, ann *smuUser, bob *smuUser, cam *smuU
 	for _, member := range details.Members.Writers {
 		switch member.Username {
 		case bob.username:
-			require.False(ann.ctx.t, member.Active)
+			require.True(ann.ctx.t, member.Status.IsReset())
 		case cam.username:
-			require.True(ann.ctx.t, member.Active)
+			require.True(ann.ctx.t, member.Status.IsActive())
 		default:
 			ann.ctx.t.Fatalf("unknown writer: %s (%+v)", member.Username, details)
 		}
@@ -502,8 +502,7 @@ func TestTeamRemoveMemberAfterDelete(t *testing.T) {
 	t.Logf("Calling TeamGet")
 
 	details, err := cli.TeamGet(context.Background(), keybase1.TeamGetArg{
-		Name:        team.name,
-		ForceRepoll: true,
+		Name: team.name,
 	})
 	require.NoError(t, err)
 
@@ -666,7 +665,7 @@ func TestTeamListAfterReset(t *testing.T) {
 		if w.Username == bob.username {
 			require.False(t, found, "wasn't found twice")
 			require.True(t, w.Uv.EldestSeqno > 1, "reset eldest seqno")
-			require.True(t, w.Active, "is active")
+			require.True(t, w.Status.IsActive(), "is active")
 			found = true
 		}
 	}
@@ -737,7 +736,6 @@ func testTeamResetBadgesAndDismiss(t *testing.T, readd bool) {
 
 	// users[1] logs in after reset
 	tt.users[1].loginAfterReset()
-	clearServerUIDMapCache(tt.users[1].tc.G, t, []keybase1.UID{tt.users[1].uid})
 
 	// Either re-adding or removing user from the team should clear
 	// the reset badge.

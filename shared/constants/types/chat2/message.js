@@ -97,6 +97,7 @@ export type AttachmentType = 'image' | 'file'
 
 export type _MessageAttachment = {
   attachmentType: AttachmentType,
+  showPlayButton: boolean,
   author: string,
   conversationIDKey: Common.ConversationIDKey,
   fileURL: string,
@@ -243,6 +244,8 @@ export type _MessageSetChannelname = {
 }
 export type MessageSetChannelname = I.RecordOf<_MessageSetChannelname>
 
+// If you add a message type here, you'll probably want to check
+// `deletableByDeleteHistory` stuff in constants/chat2/message
 export type Message =
   | MessageAttachment
   | MessageDeleted
@@ -257,3 +260,17 @@ export type Message =
   | MessageSystemText
   | MessageText
   | MessagePlaceholder
+export type MessageType =
+  | 'attachment'
+  | 'deleted'
+  | 'setChannelname'
+  | 'setDescription'
+  | 'systemAddedToTeam'
+  | 'systemGitPush'
+  | 'systemInviteAccepted'
+  | 'systemJoined'
+  | 'systemLeft'
+  | 'systemSimpleToComplex'
+  | 'systemText'
+  | 'text'
+  | 'placeholder'

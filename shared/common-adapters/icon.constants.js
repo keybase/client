@@ -246,6 +246,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-file-downloading-24.png'),
   },
+  'icon-file-placeholder-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-file-placeholder-32.png'),
+  },
   'icon-file-private-32': {
     isFont: false,
     extension: 'png',
@@ -290,6 +295,11 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-files-public-delete-64.png'),
+  },
+  'icon-folder-placeholder-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-placeholder-32.png'),
   },
   'icon-folder-private-16': {
     isFont: false,
@@ -1470,6 +1480,11 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-user-add-32.png'),
+  },
+  'icon-wallet-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-wallet-64.png'),
   },
   'icon-wallet-add-48': {
     isFont: false,

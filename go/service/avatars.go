@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/gregor"
@@ -58,7 +59,10 @@ func (r *avatarGregorHandler) Create(ctx context.Context, cli gregor1.IncomingIn
 	case "avatar.clear_cache_for_name":
 		return true, r.clearName(ctx, cli, item)
 	default:
-		return false, fmt.Errorf("unknown avatarGregorHandler category: %q", category)
+		if strings.HasPrefix(category, "avatar.") {
+			return false, fmt.Errorf("unknown avatarGregorHandler category: %q", category)
+		}
+		return false, nil
 	}
 }
 
@@ -88,6 +92,8 @@ func (r *avatarGregorHandler) clearName(ctx context.Context, cli gregor1.Incomin
 		if err := r.source.ClearCacheForName(ctx, msg.Name, msg.Formats); err != nil {
 			return err
 		}
+
+		r.G().NotifyRouter.HandleAvatarUpdated(ctx, msg.Name, msg.Formats)
 	}
 
 	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())

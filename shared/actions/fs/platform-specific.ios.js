@@ -2,11 +2,11 @@
 import * as Saga from '../../util/saga'
 import * as Types from '../../constants/types/fs'
 import * as FsGen from '../fs-gen'
-import {share, save} from './common.native'
+import {shareNative, saveMedia, pickAndUpload, pickAndUploadSuccess} from './common.native'
 import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
 
 function platformSpecificIntentEffect(
-  intent: Types.TransferIntent,
+  intent: Types.DownloadIntent,
   localPath: string,
   mimeType: string
 ): ?Saga.Effect {
@@ -29,8 +29,9 @@ function platformSpecificIntentEffect(
 }
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPure(FsGen.share, share)
-  yield Saga.safeTakeEvery(FsGen.save, save)
+  yield Saga.safeTakeEveryPure(FsGen.shareNative, shareNative)
+  yield Saga.safeTakeEveryPure(FsGen.saveMedia, saveMedia)
+  yield Saga.safeTakeEveryPure(FsGen.pickAndUpload, pickAndUpload, pickAndUploadSuccess)
 }
 
 export {platformSpecificIntentEffect, platformSpecificSaga}

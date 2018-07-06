@@ -132,7 +132,7 @@ func (c *CmdLogSend) Run() error {
 		c.G().Log.Info("Not sending up a UID for logged in user; none found")
 	}
 
-	id, err := logSendContext.LogSend(statusJSON, c.feedback, true, c.numBytes, uid, installID)
+	id, err := logSendContext.LogSend(statusJSON, c.feedback, true, c.numBytes, uid, installID, false /* mergeExtendedStatus */)
 	if err != nil {
 		return err
 	}
@@ -169,7 +169,12 @@ func (c *CmdLogSend) getFeedback() error {
 	ui := c.G().UI.GetTerminalUI()
 	var err error
 	for err == nil {
-		in, err := ui.Prompt(0, "Enter feedback (or ENTER to send): ")
+		var in string
+		if c.feedback == "" {
+			in, err = ui.Prompt(0, "Enter feedback (or <Enter> to send): ")
+		} else {
+			in, err = ui.Prompt(0, "More feedback (or press <Enter> when done): ")
+		}
 		if err != nil {
 			return err
 		}

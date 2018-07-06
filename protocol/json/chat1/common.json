@@ -143,7 +143,8 @@
         "LEAVE_10",
         "SYSTEM_11",
         "DELETEHISTORY_12",
-        "REACTION_13"
+        "REACTION_13",
+        "SENDPAYMENT_14"
       ],
       "go": "nostring"
     },
@@ -182,7 +183,8 @@
       "symbols": [
         "NEWMESSAGES_0",
         "PLAINTEXTMOBILE_1",
-        "PLAINTEXTDESKTOP_2"
+        "PLAINTEXTDESKTOP_2",
+        "DEFAULTSOUNDMOBILE_3"
       ]
     },
     {
@@ -222,6 +224,10 @@
         {
           "type": "ConversationID",
           "name": "convID"
+        },
+        {
+          "type": "TopicType",
+          "name": "topicType"
         }
       ]
     },

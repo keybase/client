@@ -57,7 +57,6 @@ const _styleContainer = {
   height: '100%',
 }
 
-export {default as AutosizeInput} from './autosize-input'
 export {default as Avatar} from './avatar'
 export {default as BackButton} from './back-button'
 export {default as Badge} from './badge'
@@ -96,6 +95,7 @@ export {default as MultiAvatar} from './multi-avatar.js'
 export {default as Meta} from './meta'
 export {default as NameWithIcon} from './name-with-icon'
 export {default as NewInput} from './new-input'
+export {default as OrientedImage} from './oriented-image'
 export {default as PlainInput} from './plain-input'
 export {default as PlatformIcon} from './platform-icon'
 export {default as PopupDialog} from './popup-dialog'
@@ -104,6 +104,7 @@ export {default as ProgressBar} from './progress-bar'
 export {default as ProgressIndicator} from './progress-indicator'
 export {default as RadioButton} from './radio-button'
 export {default as ScrollView} from './scroll-view'
+export {default as SectionList} from './section-list'
 export {default as StandardScreen} from './standard-screen'
 export {default as TabBar} from './tab-bar'
 export {default as Tabs} from './tabs'

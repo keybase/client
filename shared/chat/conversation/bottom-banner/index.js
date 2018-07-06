@@ -30,7 +30,7 @@ const BannerBox = props => (
 )
 
 const BannerText = props => (
-  <Text type="BodySemibold" backgroundMode="Announcements" style={{textAlign: 'center'}} {...props} />
+  <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{textAlign: 'center'}} {...props} />
 )
 
 function brokenSeparator(idx, item, arr) {
@@ -48,7 +48,7 @@ const BrokenTrackerBanner = ({users, onClick}: BrokenTrackerProps) =>
     <BannerBox color={globalColors.red}>
       <BannerText>
         <BannerText>Some of&nbsp;</BannerText>
-        <BannerText type="BodySemiboldLink" onClick={() => onClick(users[0])}>
+        <BannerText type="BodySmallSemiboldPrimaryLink" onClick={() => onClick(users[0])}>
           {users[0]}
         </BannerText>
         <BannerText>'s proofs have changed since you last followed them.</BannerText>
@@ -60,7 +60,7 @@ const BrokenTrackerBanner = ({users, onClick}: BrokenTrackerProps) =>
         {intersperseFn(
           brokenSeparator,
           users.map((user, idx) => (
-            <BannerText type="BodySemiboldLink" key={user} onClick={() => onClick(user)}>
+            <BannerText type="BodySmallSemiboldPrimaryLink" key={user} onClick={() => onClick(user)}>
               {user}
             </BannerText>
           ))

@@ -1,32 +1,31 @@
 // @flow
 import * as I from 'immutable'
-import {
-  compose,
-  connect,
-  lifecycle,
-  mapProps,
-  setDisplayName,
-  type Dispatch,
-  type TypedState,
-} from '../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../util/container'
 import Files from '.'
-import * as FsGen from '../actions/fs-gen'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
+import {
+  sortRowItems,
+  type SortableStillRowItem,
+  type SortableEditingRowItem,
+  type SortableUploadingRowItem,
+  type SortableRowItem,
+} from './utils/sort'
 import SecurityPrefsPromptingHoc from './common/security-prefs-prompting-hoc'
+import FilesLoadingHoc from './files-loading-hoc'
 
 const mapStateToProps = (state: TypedState, {path}) => {
-  const itemDetail = state.fs.pathItems.get(path)
-  const itemChildren =
-    itemDetail && itemDetail.type === 'folder' ? itemDetail.get('children', I.Set()) : I.Set()
+  const itemDetail = state.fs.pathItems.get(path, Constants.makeUnknownPathItem())
+  const itemChildren = itemDetail.type === 'folder' ? itemDetail.get('children', I.Set()) : I.Set()
   const itemFavoriteChildren =
-    itemDetail && itemDetail.type === 'folder' ? itemDetail.get('favoriteChildren', I.Set()) : I.Set()
+    itemDetail.type === 'folder' ? itemDetail.get('favoriteChildren', I.Set()) : I.Set()
   const _username = state.config.username || undefined
   const resetParticipants =
     itemDetail.type === 'folder' && !!itemDetail.tlfMeta && itemDetail.tlfMeta.resetParticipants.length > 0
       ? itemDetail.tlfMeta.resetParticipants.map(i => i.username)
       : []
   const isUserReset = resetParticipants.includes(_username)
+  const _downloads = state.fs.downloads
   return {
     _itemChildren: itemChildren,
     _itemFavoriteChildren: itemFavoriteChildren,
@@ -36,69 +35,113 @@ const mapStateToProps = (state: TypedState, {path}) => {
     _username,
     isUserReset,
     resetParticipants,
-    path,
-    progress: itemDetail ? itemDetail.progress : 'pending',
+    _downloads,
+    _uploads: state.fs.uploads,
+    progress: itemDetail.progress,
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, {routePath}) => {
-  const itemNames = stateProps._itemChildren.union(stateProps._itemFavoriteChildren)
-  const pathItems = itemNames.map(name => {
-    return (
-      stateProps._pathItems.get(Types.pathConcat(stateProps.path, name)) ||
-      Constants.makeUnknownPathItem({name})
-    )
+const getEditingRows = (
+  edits: I.Map<Types.EditID, Types.Edit>,
+  parentPath: Types.Path
+): Array<SortableEditingRowItem> =>
+  edits
+    .filter(edit => edit.parentPath === parentPath)
+    .toArray()
+    .map(([editID, edit]) => ({
+      rowType: 'editing',
+      editID,
+      name: edit.name,
+      // fields for sortable
+      editType: edit.type,
+      type: 'folder',
+    }))
+
+const getStillRows = (
+  pathItems: I.Map<Types.Path, Types.PathItem>,
+  parentPath: Types.Path,
+  names: Array<string>
+): Array<SortableStillRowItem> =>
+  names.reduce((items, name) => {
+    const item = pathItems.get(Types.pathConcat(parentPath, name), Constants.makeUnknownPathItem({name}))
+    if (item.tlfMeta && item.tlfMeta.isIgnored) {
+      return items
+    }
+    return [
+      ...items,
+      {
+        rowType: 'still',
+        path: Types.pathConcat(parentPath, item.name),
+        name: item.name,
+        // fields for sortable
+        type: item.type,
+        tlfMeta: item.tlfMeta,
+        lastModifiedTimestamp: item.lastModifiedTimestamp,
+      },
+    ]
+  }, [])
+
+// TODO: when we have renames, reconcile editing rows in here too.
+const amendStillRows = (
+  stills: Array<SortableStillRowItem>,
+  uploads: Types.Uploads
+): Array<SortableRowItem> =>
+  stills.map(still => {
+    const {name, type, path} = still
+    if (type === 'folder') {
+      // Don't show an upload row for folders.
+      return still
+    }
+    if (!uploads.writingToJournal.has(path) && !uploads.syncingPaths.has(path)) {
+      // The entry is absent from uploads. So just show a still row.
+      return still
+    }
+    return ({
+      rowType: 'uploading',
+      name,
+      path,
+      // field for sortable
+      type,
+    }: SortableUploadingRowItem)
   })
-  const filteredPathItems = pathItems.filter(item => !(item.tlfMeta && item.tlfMeta.isIgnored)).toList()
-  const username = Types.pathIsNonTeamTLFList(stateProps.path) ? stateProps._username : undefined
-  const stillItems = Constants.sortPathItems(filteredPathItems, stateProps._sortSetting, username)
-    .map(({name}) => Types.pathConcat(stateProps.path, name))
-    .toArray()
-  const editingItems = stateProps._edits
-    .filter(edit => edit.parentPath === stateProps.path)
-    .keySeq()
-    .toArray()
-    .sort()
-  return {
-    stillItems,
-    editingItems,
-    isUserReset: stateProps.isUserReset,
-    resetParticipants: stateProps.resetParticipants,
-    path: stateProps.path,
-    progress: stateProps.progress,
-    routePath,
+
+const getPlaceholderRows = type => [
+  {rowType: 'placeholder', name: '1', type},
+  {rowType: 'placeholder', name: '2', type},
+  {rowType: 'placeholder', name: '3', type},
+]
+
+const getItemsFromStateProps = (stateProps, path: Types.Path) => {
+  if (stateProps.progress === 'pending') {
+    return getPlaceholderRows(Types.getPathLevel(path) <= 2 ? 'folder' : 'file')
   }
+
+  const editingRows = getEditingRows(stateProps._edits, path)
+  const stillRows = getStillRows(
+    stateProps._pathItems,
+    path,
+    stateProps._itemChildren.union(stateProps._itemFavoriteChildren).toArray()
+  )
+
+  return sortRowItems(
+    editingRows.concat(amendStillRows(stillRows, stateProps._uploads)),
+    stateProps._sortSetting,
+    Types.pathIsNonTeamTLFList(path) ? stateProps._username : undefined
+  )
 }
 
-const ConnectedFiles = compose(connect(mapStateToProps, undefined, mergeProps), setDisplayName('Files'))(
-  Files
-)
+const mergeProps = (stateProps, dispatchProps, {path, routePath}) => ({
+  isUserReset: stateProps.isUserReset,
+  items: getItemsFromStateProps(stateProps, path),
+  path,
+  progress: stateProps.progress,
+  resetParticipants: stateProps.resetParticipants,
+  routePath,
+})
 
-const FilesLoadingHoc = compose(
-  connect(undefined, (dispatch: Dispatch) => ({
-    loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
-    loadFavorites: () => dispatch(FsGen.createFavoritesLoad()),
-  })),
-  mapProps(({routePath, routeProps, loadFolderList, loadFavorites}) => ({
-    routePath,
-    path: routeProps.get('path', Constants.defaultPath),
-    loadFolderList,
-    loadFavorites,
-  })),
-  lifecycle({
-    componentDidMount() {
-      this.props.loadFolderList(this.props.path)
-      this.props.loadFavorites()
-    },
-    componentDidUpdate(prevProps) {
-      // This gets called on route changes too, e.g. when user clicks the
-      // action menu. So only load folder list when path changes.
-      const pathLevel = Types.getPathLevel(this.props.path)
-      this.props.path !== prevProps.path && this.props.loadFolderList(this.props.path)
-      pathLevel === 2 && this.props.loadFavorites()
-    },
-  }),
-  setDisplayName('FilesLoadingHoc')
-)(ConnectedFiles)
-
-export default SecurityPrefsPromptingHoc(FilesLoadingHoc)
+export default compose(
+  SecurityPrefsPromptingHoc,
+  FilesLoadingHoc,
+  connect(mapStateToProps, undefined, mergeProps),
+  setDisplayName('Files')
+)(Files)

@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func publishAndVerifyUserEK(t *testing.T, tc libkb.TestContext, merkleRoot libkb.MerkleRoot, uid keybase1.UID, existingMetadata []keybase1.UserEkMetadata) keybase1.EkGeneration {
+func publishAndVerifyUserEK(t *testing.T, tc libkb.TestContext, merkleRoot libkb.MerkleRoot, uid keybase1.UID) keybase1.EkGeneration {
 
 	uids := []keybase1.UID{uid}
 	publishedMetadata, err := publishNewUserEK(context.Background(), tc.G, merkleRoot)
@@ -29,7 +29,6 @@ func publishAndVerifyUserEK(t *testing.T, tc libkb.TestContext, merkleRoot libkb
 	require.NotNil(t, statement)
 	currentMetadata := statement.CurrentUserEkMetadata
 	require.Equal(t, currentMetadata, publishedMetadata)
-	require.Equal(t, existingMetadata, statement.ExistingUserEkMetadata)
 
 	// We've stored the result in local storage
 	userEKBoxStorage := tc.G.GetUserEKBoxStorage()
@@ -39,16 +38,6 @@ func publishAndVerifyUserEK(t *testing.T, tc libkb.TestContext, merkleRoot libkb
 	require.NoError(t, err)
 	require.Equal(t, ek.Metadata, publishedMetadata)
 	return maxGeneration
-}
-
-func getExistingMetadata(t *testing.T, tc libkb.TestContext, uid keybase1.UID) []keybase1.UserEkMetadata {
-	uids := []keybase1.UID{uid}
-	prevStatements, err := fetchUserEKStatements(context.Background(), tc.G, uids)
-	require.NoError(t, err)
-	prevStatement, ok := prevStatements[uid]
-	require.True(t, ok)
-	existingMetadata := prevStatement.ExistingUserEkMetadata
-	return append(existingMetadata, prevStatement.CurrentUserEkMetadata)
 }
 
 func TestNewUserEK(t *testing.T) {
@@ -61,8 +50,7 @@ func TestNewUserEK(t *testing.T) {
 	merkleRoot := *merkleRootPtr
 
 	uid := tc.G.Env.GetUID()
-	existingMetadata := getExistingMetadata(t, tc, uid)
-	maxGeneration := publishAndVerifyUserEK(t, tc, merkleRoot, uid, existingMetadata)
+	maxGeneration := publishAndVerifyUserEK(t, tc, merkleRoot, uid)
 
 	rawStorage := NewUserEKBoxStorage(tc.G)
 	// Put our storage in a bad state by deleting the maxGeneration
@@ -80,8 +68,7 @@ func TestNewUserEK(t *testing.T) {
 	err = user.Login(tc.G)
 	require.NoError(t, err)
 
-	existingMetadata2 := getExistingMetadata(t, tc, uid)
-	publishAndVerifyUserEK(t, tc, merkleRoot, uid, existingMetadata2)
+	publishAndVerifyUserEK(t, tc, merkleRoot, uid)
 }
 
 // TODO: test cases chat verify we can detect invalid signatures and bad metadata
@@ -153,19 +140,15 @@ func testDeviceRevoke(t *testing.T, skipUserEKForTesting bool) {
 	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(m, libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
-	var existingMetadata []keybase1.UserEkMetadata
 	ekLib := NewEKLib(tc.G)
 	needed, err := ekLib.NewUserEKNeeded(context.Background())
 	require.NoError(t, err)
 	if skipUserEKForTesting {
 		require.True(t, needed)
-		existingMetadata = []keybase1.UserEkMetadata{}
 	} else {
 		require.False(t, needed)
-		existingMetadata = statement.ExistingUserEkMetadata
-		existingMetadata = append(existingMetadata, statement.CurrentUserEkMetadata)
 	}
-	publishAndVerifyUserEK(t, tc, merkleRoot, uid, existingMetadata)
+	publishAndVerifyUserEK(t, tc, merkleRoot, uid)
 }
 
 func TestPukRollNewUserEK(t *testing.T) {
@@ -205,7 +188,5 @@ func TestPukRollNewUserEK(t *testing.T) {
 	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(m, libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
-	existingMetadata := secondStatement.ExistingUserEkMetadata
-	existingMetadata = append(existingMetadata, secondStatement.CurrentUserEkMetadata)
-	publishAndVerifyUserEK(t, tc, merkleRoot, uid, existingMetadata)
+	publishAndVerifyUserEK(t, tc, merkleRoot, uid)
 }
