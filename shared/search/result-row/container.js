@@ -1,9 +1,8 @@
 // @flow
 import SearchResultRow from '.'
-import {type RecordOf} from 'immutable'
 import {userIsActiveInTeamHelper} from '../../constants/teams'
 import {followStateHelper, makeSearchResult} from '../../constants/search'
-import {type SearchResultId, type SearchResult} from '../../constants/types/search'
+import {type SearchResultId} from '../../constants/types/search'
 import {connect, type TypedState, setDisplayName, compose} from '../../util/container'
 
 export type OwnProps = {
@@ -18,8 +17,7 @@ const mapStateToProps = (
   state: TypedState,
   {disableIfInTeamName, id, onClick, onMouseOver, onShowTracker}: OwnProps
 ) => {
-  const resultRecord: RecordOf<SearchResult> = state.entities.search.searchResults.get(id, makeSearchResult())
-  const result: SearchResult = resultRecord.toObject()
+  const result = state.entities.search.searchResults.get(id, makeSearchResult()).toObject()
   const leftFollowingState = followStateHelper(state, result.leftUsername, result.leftService)
   const rightFollowingState = followStateHelper(state, result.rightUsername, result.rightService)
   const leftIsInTeam = disableIfInTeamName
