@@ -76,14 +76,10 @@ const load = () => {
   storiesOf('Search/ResultsList', module)
     .addDecorator(provider)
     .addDecorator(story => <Box style={{width: 420}}>{story()}</Box>)
-    .add('keybaseResults', () => (
-      <ResultsList {...props} items={['chris', 'cjb', 'jzila']} keyPath={['searchChat']} />
-    ))
-    .add('keybaseResultsOne', () => <ResultsList {...props} items={['chris']} keyPath={['searchChat']} />)
-    .add('facebookResults', () => (
-      <ResultsList {...props} items={['chris-fb', 'cjb-fb', 'jzila-fb']} keyPath={['searchChat']} />
-    ))
-    .add('noResults', () => <ResultsList {...props} items={[]} keyPath={['searchChat']} />)
+    .add('keybaseResults', () => <ResultsList {...props} items={['chris', 'cjb', 'jzila']} />)
+    .add('keybaseResultsOne', () => <ResultsList {...props} items={['chris']} />)
+    .add('facebookResults', () => <ResultsList {...props} items={['chris-fb', 'cjb-fb', 'jzila-fb']} />)
+    .add('noResults', () => <ResultsList {...props} items={[]} />)
 }
 
 export default load
