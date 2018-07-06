@@ -107,20 +107,24 @@ const chrisUsers = [
   },
 ]
 
-const defaultProps: Props = {
-  ...inputCommon,
-  onChangeText: unexpected('search should be used instead'),
-  userItems: [],
-  usernameText: '',
-  search: action('search'),
-}
-
 // TODO: Actually do something here.
 const mockOwnPropsToProps = (userItems: Array<UserDetails>, ownProps: OwnProps): Props => {
-  return {
-    ...defaultProps,
+  const props = {
+    ...inputCommon,
+    onChangeText: unexpected('search should be used instead'),
+    onClickAddButton: unexpected('search should be used instead'),
+    usernameText: '',
+    search: action('search'),
+
     userItems,
   }
+
+  if (ownProps.onExitSearch) {
+    props.onCancel = ownProps.onExitSearch
+    props.onEnterEmptyText = ownProps.onExitSearch
+  }
+
+  return props
 }
 
 export const makeSelectorMap = (userItems: Array<UserDetails> = maxUsers) => ({
