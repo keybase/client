@@ -485,6 +485,106 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 		})
 }
 
+// listRecursiveToDepthAsync returns a function that recursively lists folders,
+// up to a given depth. A depth of -1 is treated as unlimited. The function
+// also updates progress for the passed-in opID as it progresses, and then sets
+// the result for the opID when it completes.
+//
+// TODO: refactor SimpleFSList to use this too (finalDepth = 0)
+//
+func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
+	path keybase1.Path, filter keybase1.ListFilter,
+	finalDepth int) func(context.Context) error {
+	return func(ctx context.Context) (err error) {
+		// A stack of paths to process - ordering does not matter.
+		// Here we don't walk symlinks, so no loops possible.
+		type pathStackElem struct {
+			path  string
+			depth int
+		}
+		var paths []pathStackElem
+
+		fs, finalElem, err := k.getFS(ctx, path)
+		switch err.(type) {
+		case nil:
+		case libfs.TlfDoesNotExist:
+			// TLF doesn't exist yet; just return an empty result.
+			k.setResult(opID, keybase1.SimpleFSListResult{})
+			return nil
+		default:
+			return err
+		}
+
+		// With listing, we don't know the totals ahead of time,
+		// so just start with a 0 total.
+		k.setProgressTotals(opID, 0, 0)
+		fi, err := fs.Stat(finalElem)
+		if err != nil {
+			return err
+		}
+		var des []keybase1.Dirent
+		if !fi.IsDir() {
+			var d keybase1.Dirent
+			err := setStat(&d, fi)
+			if err != nil {
+				return err
+			}
+			des = append(des, d)
+			// Leave paths empty so we can skip the loop below.
+		} else {
+			// Start with a depth of 0
+			paths = append(paths, pathStackElem{finalElem, 0})
+		}
+
+		for len(paths) > 0 {
+			// Take last element and shorten.
+			pathElem := paths[len(paths)-1]
+			paths = paths[:len(paths)-1]
+
+			fis, err := fs.ReadDir(pathElem.path)
+			if err != nil {
+				return err
+			}
+			for _, fi := range fis {
+				// We can only get here if we're listing a
+				// directory, not a single file, so we should
+				// always filter.
+				if isFiltered(filter, fi.Name()) {
+					continue
+				}
+
+				var de keybase1.Dirent
+				err := setStat(&de, fi)
+				if err != nil {
+					return err
+				}
+				des = append(des, de)
+				// Only recurse if the caller requested infinite depth (-1), or
+				// if the current path has a depth less than the desired final
+				// depth of recursion.
+				if fi.IsDir() && (finalDepth == -1 || pathElem.depth < finalDepth) {
+					paths = append(paths, pathStackElem{stdpath.Join(pathElem.path, fi.Name()), pathElem.depth + 1})
+				}
+			}
+			k.updateReadProgress(opID, 0, int64(len(fis)))
+		}
+		k.setResult(opID, keybase1.SimpleFSListResult{Entries: des})
+
+		return nil
+	}
+}
+
+// SimpleFSListRecursiveToDepth - Begin recursive list of items in directory at path up to a given depth.
+func (k *SimpleFS) SimpleFSListRecursiveToDepth(ctx context.Context, arg keybase1.SimpleFSListRecursiveToDepthArg) error {
+	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_LIST_RECURSIVE,
+		keybase1.NewOpDescriptionWithListRecursive(
+			keybase1.ListArgs{
+				OpID: arg.OpID, Path: arg.Path, Filter: arg.Filter,
+			}),
+		k.listRecursiveToDepth(arg.OpID, arg.Path, arg.Filter, arg.Depth),
+	)
+}
+
 // SimpleFSListRecursive - Begin recursive list of items in directory at path
 func (k *SimpleFS) SimpleFSListRecursive(ctx context.Context, arg keybase1.SimpleFSListRecursiveArg) error {
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_LIST_RECURSIVE,
@@ -492,75 +592,8 @@ func (k *SimpleFS) SimpleFSListRecursive(ctx context.Context, arg keybase1.Simpl
 			keybase1.ListArgs{
 				OpID: arg.OpID, Path: arg.Path, Filter: arg.Filter,
 			}),
-		func(ctx context.Context) (err error) {
-			// A stack of paths to process - ordering does not matter.
-			// Here we don't walk symlinks, so no loops possible.
-			var paths []string
-
-			fs, finalElem, err := k.getFS(ctx, arg.Path)
-			switch err.(type) {
-			case nil:
-			case libfs.TlfDoesNotExist:
-				// TLF doesn't exist yet; just return an empty result.
-				k.setResult(arg.OpID, keybase1.SimpleFSListResult{})
-				return nil
-			default:
-				return err
-			}
-
-			// With listing, we don't know the totals ahead of time,
-			// so just start with a 0 total.
-			k.setProgressTotals(arg.OpID, 0, 0)
-			fi, err := fs.Stat(finalElem)
-			if err != nil {
-				return err
-			}
-			var des []keybase1.Dirent
-			if !fi.IsDir() {
-				var d keybase1.Dirent
-				err := setStat(&d, fi)
-				if err != nil {
-					return err
-				}
-				des = append(des, d)
-				// Leave paths empty so we can skip the loop below.
-			} else {
-				paths = append(paths, finalElem)
-			}
-
-			for len(paths) > 0 {
-				// Take last element and shorten.
-				path := paths[len(paths)-1]
-				paths = paths[:len(paths)-1]
-
-				fis, err := fs.ReadDir(path)
-				if err != nil {
-					return err
-				}
-				for _, fi := range fis {
-					// We can only get here if we're listing a
-					// directory, not a single file, so we should
-					// always filter.
-					if isFiltered(arg.Filter, fi.Name()) {
-						continue
-					}
-
-					var de keybase1.Dirent
-					err := setStat(&de, fi)
-					if err != nil {
-						return err
-					}
-					des = append(des, de)
-					if fi.IsDir() {
-						paths = append(paths, stdpath.Join(path, fi.Name()))
-					}
-				}
-				k.updateReadProgress(arg.OpID, 0, int64(len(fis)))
-			}
-			k.setResult(arg.OpID, keybase1.SimpleFSListResult{Entries: des})
-
-			return nil
-		})
+		k.listRecursiveToDepth(arg.OpID, arg.Path, arg.Filter, -1),
+	)
 }
 
 // SimpleFSReadList - Get list of Paths in progress. Can indicate status of pending
