@@ -123,7 +123,7 @@ function safeTakeEveryPurePromise<A, RA>(
   pattern: Pattern,
   f: (state: TypedState, action: A) => null | false | Promise<RA>
 ) {
-  return safeTakeEveryPure(pattern, function*(action: A) {
+  return safeTakeEvery(pattern, function*(action: A) {
     const state: TypedState = yield select()
     const toPut = yield call(f, state, action)
     if (toPut) {
