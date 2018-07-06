@@ -7,7 +7,7 @@ import {Box} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 
-const defaultRow: Props = {
+const defaultProps: Props = {
   id: 'result',
 
   leftFollowingState: 'NoState',
@@ -38,7 +38,7 @@ const ownProps = {
 }
 
 const mockOwnPropsToProps = (ownProps: OwnProps): Props => {
-  const result = defaultRow
+  const result = defaultProps
   const leftFollowingState = 'NotFollowing'
   const rightFollowingState = 'NotFollowing'
   return {
@@ -63,35 +63,35 @@ const load = () => {
     .add('Result row', () => {
       return (
         <Box style={isMobile ? {} : {width: 480}}>
-          <ResultRow {...defaultRow} />
-          <ResultRow {...defaultRow} selected={true} />
-          <ResultRow {...defaultRow} leftFollowingState="Following" />
-          <ResultRow {...defaultRow} leftFollowingState="NotFollowing" />
-          <ResultRow {...defaultRow} leftFollowingState="You" />
-          <ResultRow {...defaultRow} showTrackerButton={true} />
+          <ResultRow {...defaultProps} />
+          <ResultRow {...defaultProps} selected={true} />
+          <ResultRow {...defaultProps} leftFollowingState="Following" />
+          <ResultRow {...defaultProps} leftFollowingState="NotFollowing" />
+          <ResultRow {...defaultProps} leftFollowingState="You" />
+          <ResultRow {...defaultProps} showTrackerButton={true} />
           <ResultRow
-            {...defaultRow}
+            {...defaultProps}
             leftFullname="John Zila on GitHub"
             rightIcon="iconfont-identity-github"
             rightService="GitHub"
             rightUsername="jzilagithub"
           />
           <ResultRow
-            {...defaultRow}
+            {...defaultProps}
             rightIcon="iconfont-identity-github"
             rightService="GitHub"
             rightUsername="jzilagithub"
           />
-          <ResultRow {...defaultRow} leftIcon="icon-twitter-logo-24" leftService="Twitter" />
+          <ResultRow {...defaultProps} leftIcon="icon-twitter-logo-24" leftService="Twitter" />
           <ResultRow
-            {...defaultRow}
+            {...defaultProps}
             leftIcon="icon-twitter-logo-24"
             leftService="Twitter"
             rightService="Keybase"
             rightUsername="jzila"
           />
           <ResultRow
-            {...defaultRow}
+            {...defaultProps}
             leftIcon="icon-twitter-logo-24"
             leftService="Twitter"
             rightFollowingState="Following"
@@ -99,7 +99,7 @@ const load = () => {
             rightUsername="jzila"
           />
           <ResultRow
-            {...defaultRow}
+            {...defaultProps}
             leftIcon="icon-twitter-logo-24"
             leftService="Twitter"
             rightFollowingState="NotFollowing"
@@ -107,17 +107,17 @@ const load = () => {
             rightUsername="jzila"
           />
           <ResultRow
-            {...defaultRow}
+            {...defaultProps}
             leftIcon="icon-twitter-logo-24"
             leftService="Twitter"
             rightFollowingState="You"
             rightService="Keybase"
             rightUsername="jzila"
           />
-          <ResultRow {...defaultRow} leftIcon="icon-facebook-logo-24" leftService="Facebook" />
-          <ResultRow {...defaultRow} leftIcon="icon-github-logo-24" leftService="GitHub" />
-          <ResultRow {...defaultRow} leftIcon="icon-reddit-logo-24" leftService="Reddit" />
-          <ResultRow {...defaultRow} leftIcon="icon-hacker-news-logo-24" leftService="Hacker News" />
+          <ResultRow {...defaultProps} leftIcon="icon-facebook-logo-24" leftService="Facebook" />
+          <ResultRow {...defaultProps} leftIcon="icon-github-logo-24" leftService="GitHub" />
+          <ResultRow {...defaultProps} leftIcon="icon-reddit-logo-24" leftService="Reddit" />
+          <ResultRow {...defaultProps} leftIcon="icon-hacker-news-logo-24" leftService="Hacker News" />
         </Box>
       )
     })
