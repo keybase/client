@@ -114,7 +114,7 @@ const ManageChannels = (props: Props) => {
           {props.teamname}
         </Text>
         {channelDisplay}
-        <ScrollView style={{alignSelf: 'flex-start', width: '100%', paddingBottom: globalMargins.xlarge}}>
+        <ScrollView style={{alignSelf: 'flex-start', marginBottom: globalMargins.xlarge, width: '100%'}}>
           {props.channels.map(c => (
             <Row
               key={c.convID}
