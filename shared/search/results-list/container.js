@@ -15,13 +15,10 @@ type OwnProps = {
 }
 
 const mapStateToProps = ({entities}: TypedState, {disableIfInTeamName, searchKey}: OwnProps) => {
-  const searchResultIds = entities.getIn(['search', 'searchKeyToResults', searchKey])
-  const pending = entities.getIn(['search', 'searchKeyToPending', searchKey], false)
-  const showSearchSuggestions = entities.getIn(
-    ['search', 'searchKeyToShowSearchSuggestion', searchKey],
-    false
-  )
-  const selectedId = entities.getIn(['search', 'searchKeyToSelectedId', searchKey])
+  const searchResultIds = entities.search.searchKeyToResults.get(searchKey)
+  const pending = entities.search.searchKeyToPending.get(searchKey, false)
+  const showSearchSuggestions = entities.search.searchKeyToShowSearchSuggestion.get(searchKey, false)
+  const selectedId = entities.search.searchKeyToSelectedId.get(searchKey)
   return {
     disableIfInTeamName,
     items: searchResultIds && searchResultIds.toArray(),
