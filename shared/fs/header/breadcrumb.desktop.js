@@ -29,7 +29,7 @@ const Breadcrumb = ({dropdownItems, shownItems}: Props) => (
           </Box>
         ) : (
           <Box style={stylesBreadcrumbLastItemBox}>
-            <Text type={'BodyBig'} selectable={true}>
+            <Text type="BodyBig" selectable={true}>
               {// We are splitting on ',' here, so it won't work for
               // long names that don't have comma. If this becomes a
               // problem, we might have to do smarter splitting that
