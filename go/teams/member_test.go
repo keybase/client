@@ -267,6 +267,9 @@ func TestMemberRemoveReader(t *testing.T) {
 	testFindNextMerkleRootAfterRemoval(t, tc, other, teamID, anyRoleAllowed, seqno)
 }
 
+// Set up log points for a user in a team with roles of
+// Writer->Reader->Writer->Reader and verify that the first merkle root
+// after the last demotion from writer points to the last sequence number.
 func TestMemberRemoveWriter(t *testing.T) {
 	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
@@ -275,14 +278,22 @@ func TestMemberRemoveWriter(t *testing.T) {
 	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
-
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, name, other.Username, keybase1.TeamRole_WRITER)
 
 	if err := SetRoleReader(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
+	assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
 
+	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
+		t.Fatal(err)
+	}
+	assertRole(tc, name, other.Username, keybase1.TeamRole_WRITER)
+
+	if err := SetRoleReader(context.TODO(), tc.G, name, other.Username); err != nil {
+		t.Fatal(err)
+	}
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
 

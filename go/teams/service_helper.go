@@ -1596,6 +1596,7 @@ func FindNextMerkleRootAfterRemoval(mctx libkb.MetaContext, arg keybase1.FindNex
 			earliestDemotion = i
 		} else if earliestDemotion != 0 {
 			logPoint = logPoints[earliestDemotion].DeepCopy()
+			break
 		}
 	}
 	if &logPoint == nil {
