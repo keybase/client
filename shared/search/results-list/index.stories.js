@@ -4,9 +4,12 @@ import ResultsList from '.'
 import {Box} from '../../common-adapters'
 import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 import * as PropProviders from '../../stories/prop-providers'
-import {type ConnectPropsMap, makeSelectorMap} from '../result-row/index.stories'
+import {
+  type ConnectPropsMap as RowConnectPropsMap,
+  makeSelectorMap as makeRowSelectorMap,
+} from '../result-row/index.stories'
 
-const connectPropsMap: ConnectPropsMap = {
+const connectPropsMap: RowConnectPropsMap = {
   chris: {
     leftFullname: 'chris on GitHub',
     leftIcon: null,
@@ -60,7 +63,7 @@ Object.keys(connectPropsMap).forEach(id => {
   }
 })
 
-const provider = createPropProvider(PropProviders.Common(), makeSelectorMap(connectPropsMap))
+const provider = createPropProvider(PropProviders.Common(), makeRowSelectorMap(connectPropsMap))
 
 const props = {
   disableIfInTeamName: '',
