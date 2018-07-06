@@ -47,7 +47,7 @@ type State = {
 }
 
 const AVATAR_CONTAINER_SIZE = 175
-const AVATAR_BORDER_SIZE = 5
+const AVATAR_BORDER_SIZE = 4
 const AVATAR_SIZE = AVATAR_CONTAINER_SIZE - AVATAR_BORDER_SIZE * 2
 const VIEWPORT_CENTER = AVATAR_SIZE / 2
 
@@ -392,16 +392,23 @@ const HoverBox = glamorous(Box)({
     backgroundColor: globalColors.white,
     borderColor: globalColors.lightGrey2,
   },
-  '&:hover .icon, .dropping & .icon': {
+  '&:hover': {
+    borderColor: globalColors.black_40,
+  },
+  '&:hover .icon': {
     color: globalColors.black_40,
   },
-  '&:hover, .dropping &': {
-    borderColor: globalColors.black_40,
+  '.dropping &': {
+    backgroundColor: globalColors.blue_60,
+    borderColor: globalColors.blue_60,
+  },
+  '.dropping & .icon': {
+    color: globalColors.blue_60,
   },
   backgroundColor: globalColors.lightGrey2,
   borderColor: globalColors.grey,
   borderRadius: AVATAR_CONTAINER_SIZE,
-  borderStyle: 'dashed',
+  borderStyle: 'dotted',
   borderWidth: AVATAR_BORDER_SIZE,
   cursor: 'pointer',
   flex: 0,
