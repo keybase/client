@@ -14,7 +14,7 @@ const Wrapper = ({children}) => (
 
 const provider = createPropProvider({
   ...makeResultsListSelectorMap(),
-  ...makeUserInputSelectorMap(),
+  ...makeUserInputSelectorMap([]),
 })
 
 const load = () => {
