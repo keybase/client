@@ -7,7 +7,6 @@ import {
   Icon,
   InfoNote,
   MaybePopup,
-  ProgressIndicator,
   Text,
   iconCastPlatformStyles,
 } from '../../common-adapters'
@@ -37,13 +36,9 @@ export default class extends React.Component<Props> {
           <Text type="Header" style={styles.headerText}>
             Secret key
           </Text>
-          {this.props.secretKey ? (
+          {!!this.props.secretKey && (
             <Box2 direction="vertical" style={styles.secretKeyContainer}>
               <CopyText withReveal={true} text={this.props.secretKey} />
-            </Box2>
-          ) : (
-            <Box2 direction="vertical" style={styles.progressContainer}>
-              <ProgressIndicator />
             </Box2>
           )}
           <InfoNote>
