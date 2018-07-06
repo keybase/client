@@ -344,7 +344,7 @@ func TestNonblockTimer(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// Send a bunch of nonblocking messages
+	// Send a bunch of blocking messages
 	var sentRef []sentRecord
 	for i := 0; i < 5; i++ {
 		_, msgBoxed, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
@@ -404,7 +404,7 @@ func TestNonblockTimer(t *testing.T) {
 	default:
 	}
 
-	// Send a bunch of nonblocking messages
+	// Send a bunch of blocking messages
 	for i := 0; i < 5; i++ {
 		_, msgBoxed, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
@@ -445,6 +445,7 @@ func TestNonblockTimer(t *testing.T) {
 			require.Fail(t, "event not received")
 		}
 
+		t.Logf("OUTBOXID: %s", obids[i/2])
 		require.Equal(t, i+1, olen, "wrong length")
 		require.Equal(t, listener.obids[i], obids[i/2], "wrong obid")
 	}
