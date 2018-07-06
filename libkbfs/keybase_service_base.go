@@ -1046,7 +1046,7 @@ func (k *KeybaseServiceBase) CurrentSession(ctx context.Context, sessionID int) 
 
 	if newSession && k.config != nil {
 		// Don't hold the lock while calling `serviceLoggedIn`.
-		serviceLoggedIn(ctx, k.config, s, TLFJournalBackgroundWorkEnabled)
+		_ = serviceLoggedIn(ctx, k.config, s, TLFJournalBackgroundWorkEnabled)
 	}
 
 	return s, nil
