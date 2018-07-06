@@ -456,22 +456,23 @@ const provider = createPropProvider(
 )
 
 const load = () => {
-  storiesOf('Chat/NewStuff')
+  const routeState = I.Record({smallTeamsExpanded: false})
+  storiesOf('Chat/Inbox')
     .addDecorator(provider)
     .add('Empty', () => {
-      return <Inbox type="empty" />
+      return <Inbox type="empty" routeState={routeState} />
     })
     .add('Simple', () => {
-      return <Inbox type="simple" />
+      return <Inbox type="simple" routeState={routeState} />
     })
     .add('Big Teams', () => {
-      return <Inbox type="bigteams" />
+      return <Inbox type="bigteams" routeState={routeState} />
     })
     .add('Divider', () => {
-      return <Inbox type="divider" />
+      return <Inbox type="divider" routeState={routeState} />
     })
     .add('Filter', () => {
-      return <Inbox type="filter" />
+      return <Inbox type="filter" routeState={routeState} />
     })
 }
 
