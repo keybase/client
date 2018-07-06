@@ -248,7 +248,6 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.ChatHelper = NewHelper(g, getRI)
 	g.TeamChannelSource = NewCachingTeamChannelSource(g, getRI)
 	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
-	g.ActivityNotifier.Start(context.TODO(), uid)
 
 	searcher := NewSearcher(g)
 	// Force small pages during tests to ensure we fetch context from new pages

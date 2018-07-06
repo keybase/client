@@ -16,43 +16,34 @@ type NotifyRouterActivityRouter struct {
 	globals.Contextified
 	sync.Mutex
 
-	running  bool
-	notifyCh chan func()
+	notifyCh   chan func()
+	shutdownCh chan struct{}
 }
 
 func NewNotifyRouterActivityRouter(g *globals.Context) *NotifyRouterActivityRouter {
-	return &NotifyRouterActivityRouter{
+	n := &NotifyRouterActivityRouter{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "NotifyRouterActivityRouter", false),
+		notifyCh:     make(chan func(), 5000),
+		shutdownCh:   make(chan struct{}),
 	}
+	go n.notifyLoop()
+	g.PushShutdownHook(func() error {
+		close(n.shutdownCh)
+		return nil
+	})
+	return n
 }
 
 func (n *NotifyRouterActivityRouter) notifyLoop() {
-	for f := range n.notifyCh {
-		f()
+	for {
+		select {
+		case f := <-n.notifyCh:
+			f()
+		case <-n.shutdownCh:
+			return
+		}
 	}
-}
-
-func (n *NotifyRouterActivityRouter) Start(ctx context.Context, uid gregor1.UID) {
-	n.Lock()
-	defer n.Unlock()
-	if n.running {
-		return
-	}
-	n.notifyCh = make(chan func(), 1000)
-	go n.notifyLoop()
-}
-
-func (n *NotifyRouterActivityRouter) Stop(ctx context.Context) chan struct{} {
-	n.Lock()
-	defer n.Unlock()
-	if n.running {
-		close(n.notifyCh)
-	}
-	n.running = false
-	ch := make(chan struct{})
-	close(ch)
-	return ch
 }
 
 func (n *NotifyRouterActivityRouter) kuid(uid gregor1.UID) keybase1.UID {

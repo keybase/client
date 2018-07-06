@@ -225,8 +225,6 @@ type TeamChannelSource interface {
 }
 
 type ActivityNotifier interface {
-	Resumable
-
 	Activity(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType, activity *chat1.ChatActivity)
 	TypingUpdate(ctx context.Context, updates []chat1.ConvTypingUpdate)
 	JoinedConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
