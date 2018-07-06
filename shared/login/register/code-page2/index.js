@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box2, Text, Icon, Input, WaitingButton} from '../../../common-adapters'
+import {Button, Box2, Text, Icon, Input, WaitingButton} from '../../../common-adapters'
 import {
   globalStyles,
   globalColors,
@@ -68,23 +68,24 @@ type State = {
 // </Box2>
 // )
 
-const _tabsMap = {
-  QR: 'Scan QR Code',
-  enterText: 'Enter a text code',
-  viewText: 'See a text code',
-}
+// const _tabsMap = {
+// QR: 'Scan QR Code',
+// enterText: 'Enter a text code',
+// viewText: 'See a text code',
+// }
 
-const Tabs = (props: {tabs: Array<Tab>, selected: Tab, onSelect: Tab => void}) =>
-  props.tabs.map(tab => (
-    <Text
-      key={tab}
-      type={tab === props.selected ? 'BodySecondaryLink' : 'BodyPrimaryLink'}
-      style={styles.tab}
-      onClick={() => props.onSelect(tab)}
-    >
-      {_tabsMap[tab]}
-    </Text>
-  ))
+const Tabs = (props: {tabs: Array<Tab>, selected: Tab, onSelect: Tab => void}) => (
+  <Box2 direction="horizontal" gap="small">
+    {props.tabs.map(tab => (
+      <Button
+        type={tab === props.selected ? 'Primary' : 'Secondary'}
+        key={tab}
+        label={tab}
+        onClick={() => props.onSelect(tab)}
+      />
+    ))}
+  </Box2>
+)
 
 class CodePage2 extends React.Component<Props, State> {
   constructor(props: Props) {
@@ -124,8 +125,8 @@ class CodePage2 extends React.Component<Props, State> {
   // }
   // }
 
-  _validTabs = () => {
-    if (this.props.currentDeviceType === 'desktop' && this.props.otherDeviceType === 'desktop') {
+  static _validTabs = (currentDeviceType, otherDeviceType) => {
+    if (currentDeviceType === 'desktop' && otherDeviceType === 'desktop') {
       return ['viewText', 'enterText']
     } else {
       return ['QR', 'viewText', 'enterText']
@@ -152,17 +153,25 @@ class CodePage2 extends React.Component<Props, State> {
 
   render() {
     return (
-      <Box2 direction="vertical">
-        <Qr {...this.props} />
-        <Box2 direction="horizontal" gap="small">
-          <Tabs tabs={this._validTabs()} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
-        </Box2>
+      <Box2
+        direction="vertical"
+        style={{backgroundColor: globalColors.blue2}}
+        fullWidth={true}
+        fullHeight={true}
+      >
+        <Qr {...this.props}>
+          <Tabs
+            tabs={CodePage2._validTabs(this.props.currentDeviceType, this.props.otherDeviceType)}
+            selected={this.state.tab}
+            onSelect={tab => this.setState({tab})}
+          />
+        </Qr>
       </Box2>
     )
   }
 }
 
-const Qr = (p: Props) => {
+const Qr = (p: Props & {children: React.Node}) => {
   const instructions = (
     <Box2 direction="vertical">
       {p.currentDeviceAlreadyProvisioned ? (
@@ -177,22 +186,18 @@ const Qr = (p: Props) => {
     </Box2>
   )
   return (
-    <Box2
-      direction="vertical"
-      style={styles.qrContainer}
-      gap="medium"
-      gapStart={true}
-      fullWidth={true}
-      fullHeight={true}
-    >
+    <Box2 direction="vertical" gap="medium" gapStart={true} fullWidth={true}>
       {instructions}
       <Box2
         style={collapseStyles([styles.qrHolder, p.currentDeviceAlreadyProvisioned && styles.qrHolderFlip])}
         direction="vertical"
       >
-        <QRImage url={p.QRUrl} />
+        <Box2 direction="vertical" style={styles.qrImageContainer}>
+          <QRImage url={p.QRUrl} />
+        </Box2>
         <QRScan onScan={p.onSubmitTextCode} />
       </Box2>
+      {p.children}
     </Box2>
   )
 }
@@ -245,21 +250,20 @@ const Qr = (p: Props) => {
 // }
 
 const styles = styleSheetCreate({
-  qrContainer: {
-    backgroundColor: globalColors.blue2,
-  },
   qrHolder: {
-    width: 220,
     backgroundColor: globalColors.white,
     borderRadius: 8,
+    flexDirection: 'column',
     padding: 4,
+    width: 220,
   },
   qrHolderFlip: {
-    flexDirection: 'column-flip',
+    flexDirection: 'column-reverse',
   },
-  // panelContainer: {
-  // alignItems: 'center',
-  // },
+  qrImageContainer: {
+    paddingBottom: 30,
+    paddingTop: 30,
+  },
   tabs: {
     padding: globalMargins.small,
   },

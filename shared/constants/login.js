@@ -46,10 +46,7 @@ function qrGenerate(code: string): string {
   const qr = QRCodeGen(4, 'L')
   qr.addData(code)
   qr.make()
-  let tag = qr.createImgTag(10)
-  const src = tag.split(' ')[1]
-  const qrCode = src.split('"')[1]
-  return qrCode
+  return qr.createDataURL(2, 0)
 }
 
 const makeAccount: I.RecordFactory<Types._Account> = I.Record({

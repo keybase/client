@@ -10747,9 +10747,9 @@ q@~0.9.6:
   version "0.9.7"
   resolved "https://registry.yarnpkg.com/q/-/q-0.9.7.tgz#4de2e6cb3b29088c9e4cbc03bf9d42fb96ce2f75"
 
-qrcode-generator@1.3.1:
-  version "1.3.1"
-  resolved "https://registry.yarnpkg.com/qrcode-generator/-/qrcode-generator-1.3.1.tgz#eedcbe967ceba5585f0f4b8d9d7916961a335369"
+"qrcode-generator@git://github.com/keybase/qrcode-generator#keybase-changes-off-140":
+  version "1.4.0"
+  resolved "git://github.com/keybase/qrcode-generator#3c4fa106586febdc5353bc82e6f6adce0221bf01"
 
 qs@6.5.1, qs@^6.5.1, qs@~6.5.1:
   version "6.5.1"

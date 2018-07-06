@@ -69,6 +69,11 @@ const derivedProps = (
 // }
 
 const load = () => {
+  storiesOf(`Register/CodePage2`, module).add(
+    "<Type1> adding Type2 means from that Type1 is provisioning Type2 and we're seeing it from Type1's perspective",
+    () => null
+  )
+
   // make it easy to see both sides of the provisioning
   const variants = [
     {current: 'desktop', otherType: 'desktop', provisioned: true},
@@ -93,12 +98,17 @@ const load = () => {
         otherName = ''
     }
 
-    const storyName = `${provisioned ? 'An Existing' : 'A New'} ${current} ${
-      provisioned ? ' adding ' : ' added by '
-    } ${provisioned ? 'a New' : 'An Existing'} ${otherType}`
+    // We're looking at this from current's perspective
+    const currentTypeName = `<${current}>`
+    const n1 = provisioned ? currentTypeName : otherType
+    const n2 = provisioned ? otherType : currentTypeName
+    const storyName = `${n1} adding ${n2}`
+    // const storyName = `${provisioned ? 'An Existing' : 'A New'} ${current} ${
+    // provisioned ? ' adding ' : ' added by '
+    // } ${provisioned ? 'a New' : 'An Existing'} ${otherType}`
 
     let s = storiesOf(`Register/CodePage2`, module).addDecorator(PropProviders.CommonProvider())
-    const allTabs = ['QR', 'enterText', 'viewText']
+    // const allTabs = ['QR', 'enterText', 'viewText']
 
     // const name = provisioned ? (current === 'phone' ? 'oldPhone6' : 'oldMacMini') : ''
     // username: currentDeviceAlreadyProvisioned ? 'cnojima123' : '',
@@ -109,10 +119,10 @@ const load = () => {
     // otherName={otherName}
     // otherType={otherType}
     // defaultTab={tab || p.defaultTab}
-    const tabs = [null, ...allTabs]
+    const tabs = [null, ...CodePage2._validTabs(current, otherType)]
     tabs.forEach(
       tab =>
-        (s = s.add(`${storyName}:${tab || 'defaultTab'}`, () => (
+        (s = s.add(`${storyName} (tab: ${tab || 'defaultTab'})`, () => (
           <CodePage2 {...derivedProps(provisioned, current, otherName, otherType)} />
         )))
     )
