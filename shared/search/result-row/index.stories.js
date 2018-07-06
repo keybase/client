@@ -11,7 +11,7 @@ import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 
 const defaultOwnProps: OwnProps = {
   disableIfInTeamName: '',
-  id: 'result',
+  id: 'jzila',
   selected: false,
   onClick: action('On click'),
   onMouseOver: action('On mouse over'),
@@ -20,8 +20,8 @@ const defaultOwnProps: OwnProps = {
 type SearchResultMap = {[id: SearchResultId]: ?SearchResult}
 
 const defaultSearchResultMap: SearchResultMap = {
-  result: {
-    id: 'result',
+  jzila: {
+    id: 'jzila',
 
     leftFullname: 'John Zila',
     leftIcon: null,
