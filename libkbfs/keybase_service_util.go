@@ -30,6 +30,7 @@ func EnableAdminFeature(ctx context.Context, runMode libkb.RunMode, config Confi
 // shouldn't be called again until after serviceLoggedOut is called.
 func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
 	bws TLFJournalBackgroundWorkStatus) (wg *sync.WaitGroup) {
+	wg = &sync.WaitGroup{} // To avoid returning a nil pointer.
 	log := config.MakeLogger("")
 	if jServer, err := GetJournalServer(config); err == nil {
 		err := jServer.EnableExistingJournals(
