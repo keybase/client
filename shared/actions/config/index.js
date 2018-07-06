@@ -1,32 +1,29 @@
 // @flow
-import logger from '../logger'
-import * as I from 'immutable'
-import * as Chat2Gen from './chat2-gen'
-import * as KBFSGen from './kbfs-gen'
-import * as FsGen from './fs-gen'
-import * as ConfigGen from './config-gen'
-import * as TeamsGen from './teams-gen'
-import * as LoginGen from './login-gen'
-import * as Constants from '../constants/config'
-import * as GregorCreators from '../actions/gregor'
-import * as NotificationsGen from '../actions/notifications-gen'
-import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Saga from '../util/saga'
-import * as PinentryGen from '../actions/pinentry-gen'
-import * as PlatformSpecific from './platform-specific'
-import engine from '../engine'
-import {checkRPCOwnership} from '../engine/index.platform'
-import {RouteStateStorage} from '../actions/route-state-storage'
-import {createConfigurePush} from './push-gen'
-import {createGetPeopleData} from './people-gen'
-import {defaultNumFollowSuggestions} from '../constants/people'
-import {isMobile, isSimulator} from '../constants/platform'
-import {loggedInSelector} from '../constants/selectors'
-import {type AsyncAction} from '../constants/types/flux'
-import {type TypedState} from '../constants/reducer'
-import shallowEqual from 'shallowequal'
+import logger from '../../logger'
+import * as KBFSGen from '../kbfs-gen'
+import * as FsGen from '../fs-gen'
+import * as ConfigGen from '../config-gen'
+import * as TeamsGen from '../teams-gen'
+import * as LoginGen from '../login-gen'
+import * as Constants from '../../constants/config'
+import * as GregorCreators from '../gregor'
+import * as NotificationsGen from '../notifications-gen'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as Saga from '../../util/saga'
+import * as PinentryGen from '../pinentry-gen'
+import * as PlatformSpecific from '../platform-specific'
+import avatarSaga from './avatar'
+import engine from '../../engine'
+import {checkRPCOwnership} from '../../engine/index.platform'
+import {RouteStateStorage} from '../route-state-storage'
+import {createConfigurePush} from '../push-gen'
+import {createGetPeopleData} from '../people-gen'
+import {defaultNumFollowSuggestions} from '../../constants/people'
+import {isMobile, isSimulator} from '../../constants/platform'
+import {loggedInSelector} from '../../constants/selectors'
+import {type AsyncAction} from '../../constants/types/flux'
+import {type TypedState} from '../../constants/reducer'
 
-const maxAvatarsPerLoad = 50
 // TODO convert to sagas
 
 isMobile &&
@@ -221,87 +218,6 @@ function _bootstrapSuccess(action: ConfigGen.BootstrapSuccessPayload, state: Typ
   return Saga.sequentially(actions)
 }
 
-function _validNames(names: Array<string>) {
-  return names.filter(name => !!name.match(/^([.a-z0-9_-]{1,1000})$/i))
-}
-
-const avatarsToLoad = {
-  teams: I.Set(),
-  users: I.Set(),
-}
-
-function* addToAvatarQueue(action: ConfigGen.LoadAvatarsPayload | ConfigGen.LoadTeamAvatarsPayload) {
-  if (action.type === ConfigGen.loadAvatars) {
-    const usernames = _validNames(action.payload.usernames)
-    avatarsToLoad.users = avatarsToLoad.users.concat(usernames)
-  } else {
-    const teamnames = _validNames(action.payload.teamnames)
-    avatarsToLoad.teams = avatarsToLoad.teams.concat(teamnames)
-  }
-
-  if (avatarChannel) {
-    yield Saga.put(avatarChannel, 'queue')
-  }
-}
-
-const avatarSizes = [960, 256, 192]
-function* avatarCallAndHandle(names: Array<string>, method: Function) {
-  try {
-    const resp = yield Saga.call(method, {
-      formats: avatarSizes.map(s => `square_${s}`),
-      names,
-    })
-
-    const state: TypedState = yield Saga.select()
-    const old = state.config.avatars
-    const nameToUrlMap = Object.keys(resp.picmap).reduce((nameToUrlMap, name) => {
-      const vals = avatarSizes.reduce((map, s) => {
-        map[s] = resp.picmap[name][`square_${s}`] || null
-        return map
-      }, {})
-
-      // only send if it changed
-      if (!old[name] || !shallowEqual(old[name], vals)) {
-        nameToUrlMap[name] = vals
-      }
-
-      return nameToUrlMap
-    }, {})
-
-    yield Saga.put(ConfigGen.createLoadedAvatars({nameToUrlMap}))
-  } catch (error) {
-    if (error.code === RPCTypes.constantsStatusCode.scinputerror) {
-      yield Saga.put(ConfigGen.createGlobalError({globalError: error}))
-    }
-  }
-}
-
-let avatarChannel
-function* handleAvatarQueue() {
-  avatarChannel = yield Saga.channel(Saga.buffers.dropping(1))
-  while (true) {
-    yield Saga.call(Saga.delay, 100)
-    yield Saga.take(avatarChannel)
-
-    const usernames = avatarsToLoad.users.take(maxAvatarsPerLoad).toArray()
-    avatarsToLoad.users = avatarsToLoad.users.skip(maxAvatarsPerLoad)
-    if (usernames.length) {
-      yield Saga.call(avatarCallAndHandle, usernames, RPCTypes.avatarsLoadUserAvatarsRpcPromise)
-    }
-
-    const teamnames = avatarsToLoad.teams.take(maxAvatarsPerLoad).toArray()
-    avatarsToLoad.teams = avatarsToLoad.teams.skip(maxAvatarsPerLoad)
-    if (teamnames.length) {
-      yield Saga.call(avatarCallAndHandle, teamnames, RPCTypes.avatarsLoadTeamAvatarsRpcPromise)
-    }
-
-    // more to load?
-    if (avatarsToLoad.users.size || avatarsToLoad.teams.size) {
-      yield Saga.put(avatarChannel, 'queue')
-    }
-  }
-}
-
 const getConfig = (state: TypedState, action: ConfigGen.LoadConfigPayload) =>
   RPCTypes.configGetConfigRpcPromise().then((config: RPCTypes.Config) => {
     if (action.payload.logVersion) {
@@ -310,42 +226,15 @@ const getConfig = (state: TypedState, action: ConfigGen.LoadConfigPayload) =>
     return ConfigGen.createConfigLoaded({config})
   })
 
-const _setStartedDueToPush = (action: Chat2Gen.SelectConversationPayload) =>
-  action.payload.reason === 'push' ? Saga.put(ConfigGen.createSetStartedDueToPush()) : undefined
-
-function _onMobileAppStateChanged(action: ConfigGen.MobileAppStatePayload) {
-  const nextAppState = action.payload.nextAppState
-
-  const appFocused = {
-    active: true,
-    background: false,
-    inactive: false,
-  }[nextAppState]
-
-  const state =
-    {
-      active: RPCTypes.appStateAppState.foreground,
-      background: RPCTypes.appStateAppState.background,
-      inactive: RPCTypes.appStateAppState.inactive,
-    }[nextAppState] || RPCTypes.appStateAppState.foreground
-  logger.info(`setting app state on service to: ${state}`)
-
-  return Saga.put(ConfigGen.createChangedFocus({appFocused}))
-}
-
 function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, _bootstrapSuccess)
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrap, _bootstrap)
   yield Saga.safeTakeEveryPure(ConfigGen.clearRouteState, _clearRouteState)
   yield Saga.safeTakeEveryPure(ConfigGen.persistRouteState, _persistRouteState)
   yield Saga.safeTakeEveryPure(ConfigGen.retryBootstrap, _retryBootstrap)
-  yield Saga.safeTakeEvery(ConfigGen.loadAvatars, addToAvatarQueue)
-  yield Saga.safeTakeEvery(ConfigGen.loadTeamAvatars, addToAvatarQueue)
-  yield Saga.fork(handleAvatarQueue)
-  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, _setStartedDueToPush)
   yield Saga.safeTakeEveryPurePromise(ConfigGen.loadConfig, getConfig)
-  yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, _onMobileAppStateChanged)
   yield Saga.fork(PlatformSpecific.platformConfigSaga)
+  yield Saga.fork(avatarSaga)
 }
 
 export {getExtendedStatus}
