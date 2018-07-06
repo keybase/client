@@ -887,19 +887,6 @@ func (fbo *folderBranchOps) setHeadLocked(
 	return nil
 }
 
-// setInitialHeadUntrustedLocked is for when the given RootMetadata
-// was fetched not due to a user action, i.e. via a Rekey
-// notification, and we don't have a TLF name to check against.
-func (fbo *folderBranchOps) setInitialHeadUntrustedLocked(ctx context.Context,
-	lState *lockState, md ImmutableRootMetadata) error {
-	fbo.mdWriterLock.AssertLocked(lState)
-	fbo.headLock.AssertLocked(lState)
-	if fbo.head != (ImmutableRootMetadata{}) {
-		return errors.New("Unexpected non-nil head in setInitialHeadUntrustedLocked")
-	}
-	return fbo.setHeadLocked(ctx, lState, md, headUntrusted)
-}
-
 // setNewInitialHeadLocked is for when we're creating a brand-new TLF.
 // This is trusted.
 func (fbo *folderBranchOps) setNewInitialHeadLocked(ctx context.Context,
@@ -923,7 +910,7 @@ func (fbo *folderBranchOps) setInitialHeadTrustedLocked(ctx context.Context,
 	fbo.mdWriterLock.AssertLocked(lState)
 	fbo.headLock.AssertLocked(lState)
 	if fbo.head != (ImmutableRootMetadata{}) {
-		return errors.New("Unexpected non-nil head in setInitialHeadUntrustedLocked")
+		return errors.New("Unexpected non-nil head in setInitialHeadTrustedLocked")
 	}
 	return fbo.setHeadLocked(ctx, lState, md, headTrusted)
 }
