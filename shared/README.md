@@ -116,6 +116,35 @@ HAX. Instead, follow the instructions in
 https://issuetracker.google.com/issues/62395878#comment7 , i.e. put
 `HVF = on` in `~/.android/advancedFeatures.ini`.
 
+If you're installing on Linux, you'll want to get KVM set
+up. Otherwise, you'll see this message:
+
+```
+> ./emulator @Nexus_5X_API_28_x86
+emulator: ERROR: x86 emulation currently requires hardware acceleration!
+Please ensure KVM is properly installed and usable.
+CPU acceleration status: This user doesn't have permissions to use KVM (/dev/kvm)
+```
+Normally, `/dev/kvm` can only be used by `root`, but you don't
+want to run things as root regularly. Instead, make a `kvm` group and
+add your current user in it:
+
+```sh
+# As root
+addgroup kvm
+usermod -a -G kvm $USER
+```
+You may have to log out and re-log in, or even reboot, for this to
+take effect. Then you'll want to configure the right group and permissions
+for `/dev/kvm`. From [this StackExchange answer](https://unix.stackexchange.com/questions/373872/non-root-user-can-not-use-enable-kvm),
+
+1. Create the file `/etc/udev/rules.d/65-kvm.rules` as root
+2. Put the following line inside this file:
+```
+KERNEL=="kvm", NAME="%k", GROUP="kvm", MODE="0660"
+```
+3. Reload rules with `udevadm control --reload-rules && udevadm trigger`
+
 Follow instructions at
 https://developer.android.com/ndk/guides/index.html to install and
 configure the Android NDK.
@@ -216,8 +245,11 @@ To run the emulator, do:
 cd $ANDROID_HOME/emulator
 
 emulator -list-avds
+
 # Nexus_5X_API_27_x86 is an example avd.
-emulator @Nexus_5X_API_27_x86
+#
+# The leading './' is needed on Linux.
+./emulator @Nexus_5X_API_27_x86
 ```
 
 assuming you've set the `$ANDROID_HOME` variable and added
@@ -364,6 +396,22 @@ See [this
 link](https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers)
 for how to increase the watch limit; I set mine to 65536.
 
+On Android 28 and above HTTP traffic is disabled by default which can block
+Metro Bundler from running properly. We have manually allowed `127.0.0.1` to
+have HTTP traffic, so if you see an error about connecting to the bundler
+server you should manually change the dev server URL and then kill and restart
+the app:
+
+```sh
+# Enable loopback
+adb reverse tcp:8081 tcp:8081
+```
+
+Then open the [react native debug
+menu](https://facebook.github.io/react-native/docs/debugging.html#accessing-the-in-app-developer-menu),
+tap "Dev settings" and set "Debug server host & port for device" to
+`127.0.0.1:8081`
+
 #### Native inspector
 
 If you get this error message on trying to open the inspector:
@@ -389,6 +437,6 @@ We have some custom forks of dependencies. This is usually a temporary fix and i
 
 Take a look at [this repo](https://github.com/ncuillery/rn-diff), which contains branches for every version of react native. For example, this URL
 
- `https://github.com/ncuillery/rn-diff/compare/rn-0.51.0...rn-0.53.0` 
- 
+ `https://github.com/ncuillery/rn-diff/compare/rn-0.51.0...rn-0.53.0`
+
  generates the diff between RN versions in a bare RN app. Use this to figure out if any configuration changes are needed. If the target version isn't in `rn-diff` yet, there'll usually be a fork that has it.

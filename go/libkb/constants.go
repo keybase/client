@@ -705,5 +705,7 @@ const MinEphemeralContentLifetime = time.Second * 30
 const MaxEphemeralKeyStaleness = time.Hour * 24 * 30 // one month
 // Everyday we want to generate a new key if possible
 const EphemeralKeyGenInterval = time.Hour * 24 // one day
+// Our keys must last at least this long.
+const MinEphemeralKeyLifetime = MaxEphemeralContentLifetime + EphemeralKeyGenInterval
 
 const MaxTeamMembersForPairwiseMAC = 100

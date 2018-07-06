@@ -370,17 +370,6 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 	return nil
 }
 
-func UnboxNotification(strConvID, body string, intMembersType int) (err error) {
-	gc := globals.NewContext(kbCtx, kbChatCtx)
-	ctx := chat.Context(context.Background(), gc,
-		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
-
-	defer kbCtx.CTrace(ctx, fmt.Sprintf("UnboxNotification(%s,%d)", strConvID, intMembersType),
-		func() error { return err })()
-	_, err = unboxNotification(ctx, strConvID, body, intMembersType)
-	return err
-}
-
 func unboxNotification(ctx context.Context, strConvID, body string, intMembersType int) (msg string, err error) {
 	if !kbCtx.ActiveDevice.HaveKeys() {
 		return "", libkb.LoginRequiredError{}

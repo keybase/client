@@ -3,7 +3,9 @@ package ephemeral
 import (
 	"context"
 	"fmt"
+	"sort"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -292,7 +294,43 @@ func (s *UserEKBoxStorage) DeleteExpired(ctx context.Context, merkleRoot libkb.M
 		keyMap[generation] = userEKBoxed.Metadata.Ctime
 	}
 
-	expired = getExpiredGenerations(context.Background(), s.G(), keyMap, keybase1.TimeFromSeconds(merkleRoot.Ctime()).Time())
+	expired = s.getExpiredGenerations(ctx, keyMap, keybase1.TimeFromSeconds(merkleRoot.Ctime()).Time())
 	err = s.deleteMany(ctx, expired)
 	return expired, err
+}
+
+// getExpiredGenerations calculates which keys have expired and are safe to
+// delete.  Keys normally expire after `libkb.MaxEphemeralContentLifetime`
+// unless there has been a gap in their generation. If there has been a gap of
+// more than a day (the normal generation time), a key can be re-used for up to
+// `libkb.MaxEphemeralKeyStaleness` until it is considered expired. To
+// determine expiration, we look at all of the current keys and account for any
+// gaps since we don't want to expire a key if it is still used to encrypt a
+// different key or ephemeral content.
+func (s *UserEKBoxStorage) getExpiredGenerations(ctx context.Context, keyMap keyExpiryMap, now time.Time) (expired []keybase1.EkGeneration) {
+	// Sort the generations we have so we can walk through them in order.
+	var keys []keybase1.EkGeneration
+	for k := range keyMap {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+
+	for i, generation := range keys {
+		keyCtime := keyMap[generation].Time()
+		expiryOffset := libkb.MaxEphemeralKeyStaleness
+		if i < len(keys)-1 {
+			expiryOffset = keyMap[keys[i+1]].Time().Sub(keyCtime)
+			// Offset can be max libkb.MaxEphemeralKeyStaleness
+			if expiryOffset > libkb.MaxEphemeralKeyStaleness {
+				expiryOffset = libkb.MaxEphemeralKeyStaleness
+			}
+		}
+		if now.Sub(keyCtime) >= (libkb.MinEphemeralKeyLifetime + expiryOffset) {
+			s.G().Log.CDebugf(ctx, "getExpiredGenerations: expired generation:%v, now: %v, keyCtime:%v, expiryOffset:%v, keyMap: %v, i:%v, %v, %v",
+				generation, now, keyCtime, expiryOffset, keyMap, i, now.Sub(keyCtime), (libkb.MinEphemeralKeyLifetime + expiryOffset))
+			expired = append(expired, generation)
+		}
+	}
+
+	return expired
 }
