@@ -7,8 +7,10 @@ const long = 20
 const small = 2
 const padding = 5
 
+const BadLines = () => null
+
 // Note: duplicating the lines here vs a series of maps / permutations so its more readable
-const QRScanLines = () => (
+const GoodLines = () => (
   <React.Fragment>
     <Box style={collapseStyles([styles.common, {height: long, left: padding, top: padding, width: small}])} />
     <Box style={collapseStyles([styles.common, {height: small, left: padding, top: padding, width: long}])} />
@@ -32,6 +34,8 @@ const QRScanLines = () => (
     />
   </React.Fragment>
 )
+
+const QRScanLines = ({canScan}: {canScan: boolean}) => (canScan ? <GoodLines /> : <BadLines />)
 
 const styles = styleSheetCreate({
   common: {

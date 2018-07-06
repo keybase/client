@@ -176,17 +176,17 @@ const Qr = (p: Props & {children: React.Node}) => {
     <Box2 direction="vertical">
       {p.currentDeviceAlreadyProvisioned ? (
         <Text type="HeaderBig" style={styles.instructions}>
-          In{' '}
-          <Text type="HeaderBigExtrabold" style={styles.instructions}>
-            {p.otherDeviceName}
-          </Text>, go to Devices > Add new > New phone.
-        </Text>
-      ) : (
-        <Text type="HeaderBig" style={styles.instructions}>
           Ready to provision using{' '}
           <Text type="HeaderBigExtrabold" style={styles.instructions}>
             {p.otherDeviceName}
           </Text>
+        </Text>
+      ) : (
+        <Text type="HeaderBig" style={styles.instructions}>
+          In{' '}
+          <Text type="HeaderBigExtrabold" style={styles.instructions}>
+            {p.otherDeviceName}
+          </Text>, go to Devices > Add new > New phone.
         </Text>
       )}
     </Box2>

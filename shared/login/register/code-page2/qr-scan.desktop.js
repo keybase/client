@@ -16,7 +16,7 @@ const QRScan = () => (
       position: 'relative',
     }}
   >
-    <QRScanLines />
+    <QRScanLines canScan={true} />
   </Box2>
 )
 export default QRScan
