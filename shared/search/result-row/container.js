@@ -14,24 +14,21 @@ export type OwnProps = {
   onShowTracker?: () => void,
 }
 
-const mapStateToProps = (
-  state: TypedState,
-  {disableIfInTeamName, id, onClick, onMouseOver, onShowTracker}: OwnProps
-) => {
-  const result = state.entities.search.searchResults.get(id, makeSearchResult()).toObject()
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+  const result = state.entities.search.searchResults.get(ownProps.id, makeSearchResult()).toObject()
   const leftFollowingState = followStateHelper(state, result.leftUsername, result.leftService)
   const rightFollowingState = followStateHelper(state, result.rightUsername, result.rightService)
   const leftIsInTeam = userIsActiveInTeamHelper(
     state,
     result.leftUsername,
     result.leftService,
-    disableIfInTeamName
+    ownProps.disableIfInTeamName
   )
   const rightIsInTeam = userIsActiveInTeamHelper(
     state,
     result.rightUsername,
     result.rightService,
-    disableIfInTeamName
+    ownProps.disableIfInTeamName
   )
   return {
     ...result,
