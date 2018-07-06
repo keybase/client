@@ -8,6 +8,7 @@ import BigTeamsDivider from './row/big-teams-divider/container'
 import Divider from './row/divider/container'
 import StartNewChat from './row/start-new-chat'
 import ChatFilterRow from './row/chat-filter-row'
+import BuildTeam from './row/build-team'
 import {debounce} from 'lodash-es'
 import {isDarwin} from '../../constants/platform'
 import {Owl} from './owl'
@@ -138,6 +139,7 @@ class Inbox extends PureComponent<Props, State> {
       this.props.showSmallTeamsExpandDivider && (
         <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
       )
+    const buildTeam = this.props.showBuildATeam && <BuildTeam onBuildTeam={this.props.onBuildTeam} />
     return (
       <ErrorBoundary>
         <div style={_containerStyle}>
@@ -168,7 +170,7 @@ class Inbox extends PureComponent<Props, State> {
             />
           </div>
           {owl}
-          {floatingDivider}
+          {floatingDivider || buildTeam}
         </div>
       </ErrorBoundary>
     )

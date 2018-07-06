@@ -37,6 +37,7 @@ export type Props = {
   filterFocusCount: number,
   isLoading: boolean,
   nowOverride?: number, // just for dumb rendering
+  onBuildTeam: () => void, // routes to team tab
   onNewChat: () => void,
   onSelectUp: () => void,
   onSelectDown: () => void,

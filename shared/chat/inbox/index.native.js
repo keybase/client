@@ -12,6 +12,7 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {makeRow} from './row'
 import StartNewChat from './row/start-new-chat'
 import ChatFilterRow from './row/chat-filter-row'
+import BuildTeam from './row/build-team'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import Divider from './row/divider/container'
 import {debounce} from 'lodash-es'
@@ -184,6 +185,7 @@ class Inbox extends React.PureComponent<Props, State> {
       this.props.showSmallTeamsExpandDivider && (
         <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
       )
+    const buildTeam = this.props.showBuildATeam && <BuildTeam onBuildTeam={this.props.onBuildTeam} />
     const HeadComponent = this.props.showNewChat ? (
       <StartNewChat onNewChat={this.props.onNewChat} />
     ) : (
@@ -214,7 +216,7 @@ class Inbox extends React.PureComponent<Props, State> {
           />
           {noChats}
           {owl}
-          {floatingDivider}
+          {floatingDivider || buildTeam}
         </Box>
       </ErrorBoundary>
     )

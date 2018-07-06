@@ -162,6 +162,21 @@ const mapPropProviderProps = {
     subColor: globalColors.black_40,
     usernameColor: globalColors.black_40,
   },
+  smallTeamG: {
+    ...commonSmallTeam,
+    conversationIDKey: '7',
+    participants: ['nathunsmitty'],
+    snippet: 'whoops',
+    timestamp: '11:06 am',
+    snippetDecoration: '💣',
+  },
+  smallTeamH: {
+    conversationIDKey: '8',
+    participants: ['nathunsmitty'],
+    snippet: 'lol',
+    timestamp: '1:37 pm',
+    snippetDecoration: '💥',
+  },
 
   // Big Team A
   bigTeamAHeader: {
@@ -287,6 +302,7 @@ const propsInboxCommon = {
   filterFocusCount: 0,
   isLoading: false,
   nowOverride: 0, // just for dumb rendering
+  onBuildTeam: action('onBuildTeam'),
   onHotkey: action('onHotkey'),
   onNewChat: action('onNewChat'),
   onSelectDown: action('onSelectDown'),
@@ -306,6 +322,7 @@ const propsInboxCommon = {
 const propsInboxEmpty = {
   ...propsInboxCommon,
   showNewChat: true,
+  showBuildATeam: true,
 }
 
 const propsInboxSimple = {

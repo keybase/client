@@ -1,9 +1,11 @@
 // @flow
+import {debounce} from 'lodash-es'
 import * as Constants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat2'
-import * as Inbox from '..'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import {debounce} from 'lodash-es'
+import * as Route from '../../../actions/route-tree'
+import * as Inbox from '..'
+import {teamsTab} from '../../../constants/tabs'
 import {
   connect,
   compose,
@@ -22,6 +24,7 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
   const smallTeamsExpanded = routeState.get('smallTeamsExpanded')
   const rowMetadata = filter ? filteredRowData(state) : normalRowData(state, smallTeamsExpanded)
   const _selectedConversationIDKey = Constants.getSelectedConversation(state)
+  const showBuildATeam = state.teams.teamnames.size === 0
 
   return {
     ...rowMetadata,
@@ -29,10 +32,13 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
     filter,
     isLoading: !state.chat2.loadingMap.isEmpty(),
     neverLoaded: state.chat2.metaMap.isEmpty(),
+    showBuildATeam,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navigateAppend}) => ({
+  // Route to the teams tab and open the NewTeamDialog component
+  _onBuildTeam: () => dispatch(Route.navigateTo([teamsTab])),
   _onHotkey: (cmd: string, focusFilter: () => void) => {
     if (cmd.endsWith('+n')) {
       dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'}))
@@ -83,6 +89,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   filter: stateProps.filter,
   isLoading: stateProps.isLoading,
   neverLoaded: stateProps.neverLoaded,
+  onBuildTeam: dispatchProps._onBuildTeam,
   onNewChat: dispatchProps.onNewChat,
   onSelect: (conversationIDKey: Types.ConversationIDKey) => dispatchProps._onSelect(conversationIDKey),
   onSelectDebounced: debounce(
