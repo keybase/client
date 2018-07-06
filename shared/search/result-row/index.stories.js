@@ -38,8 +38,25 @@ const ownProps = {
   onMouseOver: action('On mouse over'),
 }
 
-const mockOwnPropsToProps = (ownProps: OwnProps, results: {[id: SearchResultId]: ?SearchResult}): Props => {
-  const result: SearchResult = results[ownProps.id] || makeSearchResult()
+type SearchResultMap = {[id: SearchResultId]: ?SearchResult}
+
+const defaultSearchResultMap = {
+  result: {
+    id: 'result',
+
+    leftFullname: 'John Zila',
+    leftIcon: null,
+    leftService: 'Keybase',
+    leftUsername: 'jzila',
+
+    rightIcon: null,
+    rightService: null,
+    rightUsername: null,
+  },
+}
+
+const mockOwnPropsToProps = (resultMap: SearchResultMap, ownProps: OwnProps): Props => {
+  const result: SearchResult = resultMap[ownProps.id] || makeSearchResult()
   const leftFollowingState = 'NotFollowing'
   const rightFollowingState = 'NotFollowing'
   return {
@@ -51,9 +68,11 @@ const mockOwnPropsToProps = (ownProps: OwnProps, results: {[id: SearchResultId]:
   }
 }
 
-const provider = createPropProvider(PropProviders.Common(), {
-  SearchResultRow: ownProps => mockOwnPropsToProps(ownProps, {}),
+const makeSelectorMap = (resultMap: SearchResultMap = defaultSearchResultMap) => ({
+  SearchResultRow: ownProps => mockOwnPropsToProps(resultMap, ownProps),
 })
+
+const provider = createPropProvider(PropProviders.Common(), makeSelectorMap())
 
 const load = () => {
   storiesOf('Search', module)
