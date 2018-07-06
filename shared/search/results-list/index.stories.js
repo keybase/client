@@ -65,8 +65,9 @@ const provider = createPropProvider(PropProviders.Common(), makeSelectorMap(conn
 const props = {
   disableIfInTeamName: '',
   items: Object.keys(connectPropsMap),
-  onClick: () => action('onClick'),
-  onShowTracker: () => action('onShowTracker'),
+  onClick: action('onClick'),
+  onMouseOver: action('onMouseOver'),
+  onShowTracker: action('onShowTracker'),
   selectedId: null,
   showSearchSuggestions: false,
 }
