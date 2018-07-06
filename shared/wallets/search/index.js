@@ -8,6 +8,7 @@ import {globalStyles} from '../../styles'
 export type Props = {
   onClick: (username: string) => void,
   onClose: () => void,
+  onShowTracker: (username: string) => void,
 }
 
 const searchKey = 'walletSearch'
@@ -23,7 +24,12 @@ const Search = (props: Props) => (
       disableListBuilding={true}
       disableServiceFilter={true}
     />
-    <ResultsList searchKey={searchKey} onClick={props.onClick} disableListBuilding={true} />
+    <ResultsList
+      searchKey={searchKey}
+      onClick={props.onClick}
+      onShowTracker={props.onShowTracker}
+      disableListBuilding={true}
+    />
   </StandardScreen>
 )
 

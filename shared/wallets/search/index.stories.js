@@ -68,7 +68,11 @@ const load = () => {
     .addDecorator(provider)
     .add('Normal', () => (
       <Wrapper>
-        <Search onClick={action('onClick')} onClose={action('onClose')} />
+        <Search
+          onClick={action('onClick')}
+          onClose={action('onClose')}
+          onShowTracker={action('onShowTracker')}
+        />
       </Wrapper>
     ))
 }
