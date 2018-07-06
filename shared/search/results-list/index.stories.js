@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import ResultsList from '.'
+import ConnectedResultsList from './container'
 import {Box} from '../../common-adapters'
 import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 import * as PropProviders from '../../stories/prop-providers'
@@ -63,7 +64,17 @@ Object.keys(connectPropsMap).forEach(id => {
   }
 })
 
-const provider = createPropProvider(PropProviders.Common(), makeRowSelectorMap(connectPropsMap))
+const provider = createPropProvider(PropProviders.Common(), makeRowSelectorMap(connectPropsMap), {
+  ResultsList: ownProps => props,
+})
+
+const ownProps = {
+  searchKey: 'search-key',
+  disableIfInTeamName: '',
+  onClick: action('onClick'),
+  onMouseOver: action('onMouseOver'),
+  onShowTracker: action('onShowTracker'),
+}
 
 const props = {
   disableIfInTeamName: '',
@@ -83,6 +94,7 @@ const load = () => {
     .add('keybaseResultsOne', () => <ResultsList {...props} items={['chris']} />)
     .add('facebookResults', () => <ResultsList {...props} items={['chris-fb', 'cjb-fb', 'jzila-fb']} />)
     .add('noResults', () => <ResultsList {...props} items={[]} />)
+    .add('connected', () => <ConnectedResultsList {...ownProps} />)
 }
 
 export default load

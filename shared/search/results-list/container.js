@@ -1,5 +1,5 @@
 // @flow
-import {connect, type TypedState} from '../../util/container'
+import {connect, compose, setDisplayName, type TypedState} from '../../util/container'
 import React from 'react'
 import {ProgressIndicator, Box} from '../../common-adapters'
 import SearchResultsList from '.'
@@ -50,4 +50,4 @@ const styleSpinner = {
 }
 
 const Chooser = props => (props.pending ? <Progress style={props.style} /> : <SearchResultsList {...props} />)
-export default connect(mapStateToProps, mapDispatchToProps)(Chooser)
+export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('ResultsList'))(Chooser)
