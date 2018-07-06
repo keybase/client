@@ -3,7 +3,6 @@ import {Component} from 'react'
 
 export type Props = {
   onClick: (id: string) => void,
-  showAddButton: boolean,
   onClose: () => void,
   placeholder: string,
   navigateUp: () => void,

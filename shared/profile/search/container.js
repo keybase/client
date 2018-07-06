@@ -17,6 +17,5 @@ export default compose(
   connect(undefined, mapDispatchToProps),
   defaultProps({
     placeholder: 'Type someone',
-    showAddButton: false,
   })
 )(Search)
