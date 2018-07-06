@@ -67,6 +67,7 @@ const commonProps = {
   ],
   onBack: unexpected('onBack'),
   onShowProfile: (username: string) => action(`onShowProfile(${username})`),
+  canDeleteHistory: true,
 }
 
 const conversationProps = {
@@ -80,6 +81,7 @@ const conversationProps = {
   canSetRetention: false,
   description: "You shouldn't be seeing this",
 
+  onShowClearConversationDialog: action('onShowClearConversationDialog'),
   onShowBlockConversationDialog: action('onShowBlockConversationDialog'),
   onShowNewTeamDialog: action('onShowNewTeamDialog'),
 
@@ -98,6 +100,7 @@ const teamCommonProps = {
   canEditChannel: true,
   canSetRetention: true,
 
+  onShowClearConversationDialog: unexpected('onShowClearConversationDialog'),
   onShowBlockConversationDialog: unexpected('onShowBlockConversationDialog'),
   onShowNewTeamDialog: unexpected('onShowNewTeamDialog'),
 

@@ -15,12 +15,9 @@ type OwnProps = RouteProps<
 >
 
 const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
-  const message = routeProps.get('message')
   const teamname = routeProps.get('teamname')
-  const timestamp = moment(message.timestamp).format('dddd, MMMM Do YYYY, h:mm:ss a')
   return {
     teamname,
-    timestamp,
   }
 }
 

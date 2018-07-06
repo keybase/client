@@ -48,6 +48,7 @@ type InfoPanelProps = {
 
   // Used for conversations.
   onShowBlockConversationDialog: () => void,
+  onShowClearConversationDialog: () => void,
   onShowNewTeamDialog: () => void,
 
   // Used for small and big teams.
@@ -56,6 +57,7 @@ type InfoPanelProps = {
 
   // Used for big teams.
   canEditChannel: boolean,
+  canDeleteHistory: boolean,
   description: ?string,
   onEditChannel: () => void,
   onLeaveConversation: () => void,
@@ -146,6 +148,12 @@ type BlockThisConversationRow = {
   onShowBlockConversationDialog: () => void,
 }
 
+type ClearThisConversationRow = {
+  type: 'clear entire conversation',
+  key: 'clear entire conversation',
+  onShowClearConversationDialog: () => void,
+}
+
 type ParticipantCountRow = {
   type: 'participant count',
   key: 'participant count',
@@ -193,6 +201,7 @@ type TeamHeaderRow =
   | NotificationsRow
   | ParticipantCountRow
   | RetentionRow
+  | ClearThisConversationRow
   | SmallTeamHeaderRow
   | BigTeamHeaderRow
   | JoinChannelRow
@@ -205,6 +214,7 @@ type Row =
   | DividerRow
   | NotificationsRow
   | TurnIntoTeamRow
+  | ClearThisConversationRow
   | BlockThisConversationRow
   | TeamHeaderRow
 
@@ -232,6 +242,9 @@ const typeSizeEstimator = (row: Row): number => {
       return 47
 
     case 'block this conversation':
+      return 17
+
+    case 'clear entire conversation':
       return 17
 
     case 'participant count':
@@ -296,6 +309,16 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             key="block this conversation"
             caption="Block this conversation"
             onClick={row.onShowBlockConversationDialog}
+            icon="iconfont-remove"
+          />
+        )
+
+      case 'clear entire conversation':
+        return (
+          <CaptionedDangerIcon
+            key="clear entire conversation"
+            caption="Clear entire conversation"
+            onClick={row.onShowClearConversationDialog}
             icon="iconfont-remove"
           />
         )
@@ -439,6 +462,21 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             teamname: props.teamname || '',
             entityType: 'small team',
           },
+          ...(props.canDeleteHistory
+            ? [
+              {
+                type: 'divider',
+                marginTop: 8,
+                key: nextKey(),
+                marginBottom: globalMargins.small,
+              },
+              {
+                type: 'clear entire conversation',
+                key: 'clear entire conversation',
+                onShowClearConversationDialog: props.onShowClearConversationDialog,
+              },
+            ]
+            : []),
           {
             type: 'divider',
             marginTop: 8,
@@ -544,6 +582,21 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               entityType: 'channel',
               teamname: props.teamname || '',
             },
+            ...(props.canDeleteHistory
+              ? [
+                {
+                  type: 'divider',
+                  marginTop: 8,
+                  key: nextKey(),
+                  marginBottom: globalMargins.small,
+                },
+                {
+                  type: 'clear entire conversation',
+                  key: 'clear entire conversation',
+                  onShowClearConversationDialog: props.onShowClearConversationDialog,
+                },
+              ]
+              : []),
             {
               type: 'divider',
               marginTop: 8,
@@ -591,6 +644,17 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           key: 'retention',
           canSetRetention: true,
           entityType: 'adhoc',
+        },
+        {
+          type: 'divider',
+          marginTop: 8,
+          key: nextKey(),
+          marginBottom: globalMargins.small,
+        },
+        {
+          type: 'clear entire conversation',
+          key: 'clear entire conversation',
+          onShowClearConversationDialog: props.onShowClearConversationDialog,
         },
         {
           type: 'divider',

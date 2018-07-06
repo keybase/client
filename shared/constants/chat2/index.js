@@ -66,6 +66,19 @@ export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.unreadMap.get(id, 0) > 0
 export const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
 
+export const getLastMessage = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
+  const mmap = state.chat2.messageMap.get(conversationIDKey)
+  if (mmap) {
+    const ordinals = getMessageOrdinals(state, conversationIDKey)
+    const ordinal = ordinals.findLast(o => {
+      const m = mmap.get(o)
+      return m && !!m.id
+    })
+    return mmap.get(ordinal)
+  }
+  return null
+}
+
 export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
   const ordinal = state.chat2.editingMap.get(id)
   if (!ordinal) {

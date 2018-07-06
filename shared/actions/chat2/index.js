@@ -1715,16 +1715,7 @@ const markThreadAsRead = (
     return
   }
 
-  let message
-  const mmap = state.chat2.messageMap.get(conversationIDKey)
-  if (mmap) {
-    const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
-    const ordinal = ordinals.findLast(o => {
-      const m = mmap.get(o)
-      return m && !!m.id
-    })
-    message = mmap.get(ordinal)
-  }
+  let message = Constants.getLastMessage(state, conversationIDKey)
 
   if (!message) {
     logger.info('marking read bail on no messages')
@@ -1742,7 +1733,12 @@ const markThreadAsRead = (
 const deleteMessageHistory = (action: Chat2Gen.MessageDeletePayload, state: TypedState) => {
   const {conversationIDKey, ordinal} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
-  const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  let message = Constants.getMessage(state, conversationIDKey, ordinal)
+
+  if (!message) {
+    message = Constants.getLastMessage(state, conversationIDKey)
+  }
+
   if (!message) {
     throw new Error('Deleting message history with no message?')
   }

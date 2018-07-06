@@ -21,15 +21,18 @@ type OwnProps = {
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const conversationIDKey = ownProps.conversationIDKey
   const meta = Constants.getMeta(state, conversationIDKey)
+  const lastMessage = Constants.getLastMessage(state, conversationIDKey)
 
   let admin = false
   let canEditChannel = false
   let canSetRetention = false
+  let canDeleteHistory = false
   if (meta.teamname) {
     const yourOperations = getCanPerform(state, meta.teamname)
     admin = yourOperations.manageMembers
     canEditChannel = yourOperations.editChannelDescription
     canSetRetention = yourOperations.setRetentionPolicy
+    canDeleteHistory = lastMessage && (meta.teamType === 'adhoc' || yourOperations.deleteChatHistory)
   }
 
   return {
@@ -38,12 +41,14 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     admin,
     canEditChannel,
     canSetRetention,
+    canDeleteHistory,
     channelname: meta.channelname,
     description: meta.description,
     isPreview: meta.membershipType === 'youArePreviewing',
     selectedConversationIDKey: conversationIDKey,
     smallTeam: meta.teamType !== 'big',
     teamname: meta.teamname,
+    lastMessage,
   }
 }
 
@@ -51,6 +56,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, onBack}) => 
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: false})),
   onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
   onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
+  _onShowClearConversationDialog: (message: Types.Message) => {
+    dispatch(Chat2Gen.createNavigateToThread())
+    dispatch(Route.navigateAppend([{props: {message}, selected: 'deleteHistoryWarning'}]))
+  },
   onShowBlockConversationDialog: () => {
     dispatch(
       Route.navigateAppend([
@@ -94,6 +103,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onJoinChannel: dispatchProps.onJoinChannel,
   onLeaveConversation: dispatchProps.onLeaveConversation,
   onShowBlockConversationDialog: dispatchProps.onShowBlockConversationDialog,
+  onShowClearConversationDialog: () => {stateProps.lastMessage && dispatchProps._onShowClearConversationDialog(stateProps.lastMessage)},
   onShowNewTeamDialog: dispatchProps.onShowNewTeamDialog,
   onShowProfile: dispatchProps.onShowProfile,
   onLeaveTeam: () => dispatchProps._onLeaveTeam(stateProps.teamname),

@@ -8,10 +8,9 @@ type Props = {
   name: string,
   onBack: () => void,
   onDeleteHistory: () => void,
-  timestamp: string,
 }
 
-const DeleteHistoryWarning = ({errorText, name, onBack, timestamp, onDeleteHistory}: Props) => (
+const DeleteHistoryWarning = ({errorText, name, onBack, onDeleteHistory}: Props) => (
   <Box
     style={{
       ...globalStyles.flexBoxColumn,
@@ -24,10 +23,10 @@ const DeleteHistoryWarning = ({errorText, name, onBack, timestamp, onDeleteHisto
   >
     <Icon type={isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
     <Text style={{padding: globalMargins.small}} type="Header">
-      Delete this message + everything above?
+      Delete conversation history?
     </Text>
     <Text style={{padding: globalMargins.small}} type="Body">
-      You are about to delete <Text type="BodySemibold">all messages up to {timestamp}</Text>. For everyone.
+      You are about to delete all the messages in this conversation. For everyone.
     </Text>
     <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xlarge}}>
       <Button type="Secondary" style={{marginLeft: globalMargins.tiny}} onClick={onBack} label="Cancel" />
@@ -35,7 +34,7 @@ const DeleteHistoryWarning = ({errorText, name, onBack, timestamp, onDeleteHisto
         type="Danger"
         style={{marginLeft: globalMargins.tiny}}
         onClick={onDeleteHistory}
-        label="Yes, delete these messages"
+        label="Yes, clear for everyone"
       />
     </Box>
   </Box>

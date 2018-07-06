@@ -25,7 +25,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const yourMessage = ownProps.message.author === state.config.username
   const meta = Constants.getMeta(state, ownProps.message.conversationIDKey)
   const _canDeleteHistory =
-    meta.teamType === 'adhoc' || TeamConstants.getCanPerform(state, meta.teamname).deleteChatHistory
+  meta.teamType === 'adhoc' || TeamConstants.getCanPerform(state, meta.teamname).deleteChatHistory
   const _canExplodeNow = yourMessage || _canDeleteHistory
   return {
     _canDeleteHistory,
@@ -47,10 +47,6 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
     if (ownProps.message.type === 'text') {
       copyToClipboard(ownProps.message.text.stringValue())
     }
-  },
-  _onDeleteHistory: () => {
-    dispatch(Chat2Gen.createNavigateToThread())
-    dispatch(navigateAppend([{props: {message: ownProps.message}, selected: 'deleteHistoryWarning'}]))
   },
   _onDownload: () =>
     dispatch(
@@ -100,13 +96,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       danger: true,
       onClick: dispatchProps._onExplodeNow,
       title: 'Explode now',
-    })
-  }
-  if (stateProps._canDeleteHistory) {
-    items.push({
-      danger: true,
-      onClick: dispatchProps._onDeleteHistory,
-      title: 'Delete this + everything above',
     })
   }
   const message = ownProps.message

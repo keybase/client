@@ -41,10 +41,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     )
     dispatch(Chat2Gen.createNavigateToThread())
   },
-  _onDeleteMessageHistory: (message: Types.Message) => {
-    dispatch(Chat2Gen.createNavigateToThread())
-    dispatch(Route.navigateAppend([{props: {message}, selected: 'deleteHistoryWarning'}]))
-  },
+
   _onDownload: (message: Types.MessageAttachment) => {
     dispatch(
       Chat2Gen.createAttachmentDownload({
@@ -84,9 +81,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     deviceRevokedAt: message.deviceRevokedAt,
     deviceType: message.deviceType,
     onDelete: yourMessage ? () => dispatchProps._onDelete(message) : null,
-    onDeleteMessageHistory: stateProps._canDeleteHistory
-      ? () => dispatchProps._onDeleteMessageHistory(message)
-      : null,
     onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
     onHidden: () => ownProps.onHidden(),
     onSaveAttachment:
