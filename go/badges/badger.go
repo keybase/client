@@ -38,6 +38,7 @@ type Badger struct {
 	badgeState     *BadgeState
 	iboxVersSource InboxVersionSource
 	notifyCh       chan keybase1.BadgeState
+	shutdownCh     chan struct{}
 	running        bool
 }
 
@@ -47,18 +48,24 @@ func NewBadger(g *libkb.GlobalContext) *Badger {
 		badgeState:     NewBadgeState(g.Log),
 		iboxVersSource: nullInboxVersionSource{},
 		notifyCh:       make(chan keybase1.BadgeState, 1000),
+		shutdownCh:     make(chan struct{}),
 	}
 	go b.notifyLoop()
 	g.PushShutdownHook(func() error {
-		close(b.notifyCh)
+		close(b.shutdownCh)
 		return nil
 	})
 	return b
 }
 
 func (b *Badger) notifyLoop() {
-	for state := range b.notifyCh {
-		b.G().NotifyRouter.HandleBadgeState(state)
+	for {
+		select {
+		case state := <-b.notifyCh:
+			b.G().NotifyRouter.HandleBadgeState(state)
+		case <-b.shutdownCh:
+			return
+		}
 	}
 }
 
