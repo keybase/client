@@ -46,29 +46,28 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           // the new item, but reuse children, progress, and tlfMeta fields.
           if (originalFolder.type === 'folder' && item.type === 'folder') {
             // make flow happy
-            newItem = item
-              .set('children', originalFolder.children)
-              .set('progress', 'loaded')
+            newItem = item.set('children', originalFolder.children).set('progress', 'loaded')
           }
         }
 
-        originalFolder.children
-          .filter(child => !newItem.children.includes(child))
-          .toArray()
-          .map(name => Types.pathConcat(path, name))
-          .forEach(v => toRemove.add(v))
+        originalFolder.children.forEach(
+          name => !newItem.children.includes(name) && toRemove.add(Types.pathConcat(path, name))
+        )
 
         // Since `folderListLoaded`, `favoritesLoaded`, and `loadResetsResult`
         // can change `pathItems`, we need to make sure that neither one
         // clobbers the others' work.
-        return newItem
-          .set('badgeCount', originalFolder.badgeCount)
-          .set('tlfMeta', originalFolder.tlfMeta)
-          .set('favoriteChildren', originalFolder.favoriteChildren)
+        return newItem.withMutations(i =>
+          i
+            .set('badgeCount', originalFolder.badgeCount)
+            .set('tlfMeta', originalFolder.tlfMeta)
+            .set('favoriteChildren', originalFolder.favoriteChildren)
+        )
       })
       return state
-        .set('pathItems', state.pathItems.withMutations(pathItems =>
-          pathItems.deleteAll(toRemove).merge(toMerge))
+        .set(
+          'pathItems',
+          state.pathItems.withMutations(pathItems => pathItems.deleteAll(toRemove).merge(toMerge))
         )
         .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
     }
