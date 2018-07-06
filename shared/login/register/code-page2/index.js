@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Button, Box2, Text, Icon, Input, WaitingButton} from '../../../common-adapters'
+import {Button, Box2, Text, Icon, PlainInput, WaitingButton} from '../../../common-adapters'
 import {
   collapseStyles,
   globalColors,
@@ -147,7 +147,32 @@ const Qr = (props: Props) => (
   </Box2>
 )
 
-const EnterText = (props: Props) => null
+class EnterText extends React.Component<Props, {code: string}> {
+  state = {code: ''}
+
+  _submit = () => {
+    this.props.onSubmitTextCode(this.state.code)
+  }
+
+  render() {
+    return (
+      <Box2 direction="vertical" style={styles.enterTextContainer}>
+        <PlainInput
+          placeholderColor={globalColors.green}
+          multiline={true}
+          onChangeText={code => this.setState({code})}
+          onEnterKeyDown={this._submit}
+          rowsMin={2}
+          placeholder="Type the 10-word secret code"
+          textType="Terminal"
+          style={styles.enterTextInput}
+          value={this.state.code}
+        />
+        <Button type="Primary" label="Submit" onClick={this._submit} />
+      </Box2>
+    )
+  }
+}
 
 const ViewText = (props: Props) => (
   <Box2 direction="vertical" style={styles.viewTextContainer}>
@@ -182,6 +207,21 @@ const styles = styleSheetCreate({
   container: {
     justifyContent: 'space-between',
     padding: globalMargins.large,
+  },
+  enterTextContainer: {
+    maxWidth: isMobile ? 300 : 460,
+    paddingBottom: 20,
+    paddingLeft: 64,
+    paddingRight: 64,
+    paddingTop: 20,
+  },
+  enterTextInput: {
+    backgroundColor: globalColors.white,
+    borderRadius: 4,
+  },
+  enterTextInputInside: {
+    ...globalStyles.fontTerminalSemibold,
+    color: globalColors.green,
   },
   instructions: {
     color: globalColors.white,
