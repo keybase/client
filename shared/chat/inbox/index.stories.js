@@ -375,7 +375,7 @@ const propsInboxDivider = {
 
 const propsInboxFilter = {
   ...propsInboxCommon,
-  filer: ' ',
+  filter: ' ',
   rows: [
     // Small
     makeRowItemSmall('smallFilterTeamA'),
@@ -404,26 +404,6 @@ const provider = createPropProvider(
   PropProviders.Common(),
   PropProviders.TeamDropdownMenu(undefined, teamMemberCounts),
   {
-    // Inbox: p => {
-    //   switch (p.type) {
-    //     case 'empty':
-    //       return propsInboxEmpty
-    //     case 'simple':
-    //       return propsInboxSimple
-    //     case 'bigteams':
-    //       return propsInboxTeam
-    //     case 'divider':
-    //       const {rows, smallIDsHidden} = propsInboxDivider
-    //       return {
-    //         ...propsInboxDivider,
-    //         rows: rows.slice(Math.max(0, smallIDsHidden.length - 1), rows.length),
-    //       }
-    //     case 'filter':
-    //       return propsInboxFilter
-    //     default:
-    //       return propsInboxCommon
-    //   }
-    // },
     NewChooser: p => ({
       isSelected: false,
       onCancel: action('onCancel'),
@@ -432,7 +412,6 @@ const provider = createPropProvider(
       users: I.OrderedSet(['']),
     }),
     Divider: p => {
-      console.log('JRY', {p})
       return {
         badgeCount: 0,
         showButton: p.showButton,
@@ -447,11 +426,7 @@ const provider = createPropProvider(
     BigTeamHeader: getPropProviderProps,
     BigTeamChannel: getPropProviderProps,
     FilterSmallTeam: getPropProviderProps,
-    FilterBigTeamChannel: p => {
-      const props = getPropProviderProps(p)
-      console.log({p, props})
-      return props
-    },
+    FilterBigTeamChannel: getPropProviderProps,
   }
 )
 
