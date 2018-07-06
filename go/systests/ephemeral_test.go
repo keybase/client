@@ -12,7 +12,7 @@ import (
 	context "golang.org/x/net/context"
 )
 
-func TestNewTeamEKNotif(t *testing.T) {
+func TestEphemeralNewTeamEKNotif(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -50,11 +50,11 @@ func checkNewTeamEKNotifications(tc *libkb.TestContext, notifications *teamNotif
 	}
 }
 
-func TestAddMemberWithTeamEK(t *testing.T) {
+func TestEphemeralAddMemberWithTeamEK(t *testing.T) {
 	runAddMember(t, true /* createTeamEK*/)
 }
 
-func TestAddMemberNoTeamEK(t *testing.T) {
+func TestEphemeralAddMemberNoTeamEK(t *testing.T) {
 	runAddMember(t, false /* createTeamEK*/)
 }
 
@@ -110,7 +110,7 @@ func runAddMember(t *testing.T, createTeamEK bool) {
 	require.Equal(t, annTeamEK.Metadata, expectedMetadata)
 }
 
-func TestResetMember(t *testing.T) {
+func TestEphemeralResetMember(t *testing.T) {
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
@@ -181,11 +181,11 @@ func TestResetMember(t *testing.T) {
 	require.Equal(t, joeTeamEk.Metadata, expectedMetadata2)
 }
 
-func TestRotateWithTeamEK(t *testing.T) {
+func TestEphemeralRotateWithTeamEK(t *testing.T) {
 	runRotate(t, true /* createTeamEK*/)
 }
 
-func TestRotateNoTeamEK(t *testing.T) {
+func TestEphemeralRotateNoTeamEK(t *testing.T) {
 	runRotate(t, false /* createTeamEK*/)
 }
 
@@ -235,7 +235,7 @@ func runRotate(t *testing.T, createTeamEK bool) {
 	require.Equal(t, maxGeneration, expectedMaxGeneration)
 }
 
-func TestRotateSkipTeamEKRoll(t *testing.T) {
+func TestEphemeralRotateSkipTeamEKRoll(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -288,7 +288,7 @@ func TestRotateSkipTeamEKRoll(t *testing.T) {
 	require.Equal(t, teamEKPreRoll.Metadata.Generation+1, metadata.Generation)
 }
 
-func TestNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
+func TestEphemeralNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 

@@ -13,6 +13,7 @@ func TestSecretStoreOps(t *testing.T) {
 
 	tc := SetupTest(t, "secret store ops", 1)
 	defer tc.Cleanup()
+	m := NewMetaContextForTest(tc)
 
 	nu := NewNormalizedUsername("username")
 	expectedSecret1 := []byte("test secret 1test secret 1test s")
@@ -20,14 +21,14 @@ func TestSecretStoreOps(t *testing.T) {
 
 	var err error
 
-	if err = tc.G.SecretStore().ClearSecret(nu); err != nil {
+	if err = tc.G.SecretStore().ClearSecret(m, nu); err != nil {
 		t.Error(err)
 	}
 
 	// TODO: Use platform-independent errors so they can be
 	// checked for.
 	var secret LKSecFullSecret
-	if secret, err = tc.G.SecretStore().RetrieveSecret(nu); err == nil {
+	if secret, err = tc.G.SecretStore().RetrieveSecret(m, nu); err == nil {
 		t.Error("RetrieveSecret unexpectedly returned a nil error")
 	}
 
@@ -40,11 +41,11 @@ func TestSecretStoreOps(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err = tc.G.SecretStore().StoreSecret(nu, secret); err != nil {
+	if err = tc.G.SecretStore().StoreSecret(m, nu, secret); err != nil {
 		t.Error(err)
 	}
 
-	if secret, err = tc.G.SecretStore().RetrieveSecret(nu); err != nil {
+	if secret, err = tc.G.SecretStore().RetrieveSecret(m, nu); err != nil {
 		t.Error(err)
 	}
 
@@ -57,11 +58,11 @@ func TestSecretStoreOps(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err = tc.G.SecretStore().StoreSecret(nu, secret); err != nil {
+	if err = tc.G.SecretStore().StoreSecret(m, nu, secret); err != nil {
 		t.Error(err)
 	}
 
-	if secret, err = tc.G.SecretStore().RetrieveSecret(nu); err != nil {
+	if secret, err = tc.G.SecretStore().RetrieveSecret(m, nu); err != nil {
 		t.Error(err)
 	}
 
@@ -69,7 +70,7 @@ func TestSecretStoreOps(t *testing.T) {
 		t.Errorf("Retrieved secret %s, expected %s", string(secret.Bytes()), string(expectedSecret2))
 	}
 
-	if err = tc.G.SecretStore().ClearSecret(nu); err != nil {
+	if err = tc.G.SecretStore().ClearSecret(m, nu); err != nil {
 		t.Error(err)
 	}
 }
@@ -78,8 +79,9 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 
 	tc := SetupTest(t, "get users with stored secrets", 1)
 	defer tc.Cleanup()
+	m := NewMetaContextForTest(tc)
 
-	usernames, err := tc.G.SecretStore().GetUsersWithStoredSecrets()
+	usernames, err := tc.G.SecretStore().GetUsersWithStoredSecrets(m)
 	if err != nil {
 		t.Error(err)
 	}
@@ -96,12 +98,12 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 	for i := 0; i < len(expectedUsernames); i++ {
 		expectedUsernames[i] = fmt.Sprintf("account with unicode テスト %d", i)
 
-		if err := tc.G.SecretStore().StoreSecret(NewNormalizedUsername(expectedUsernames[i]), fs); err != nil {
+		if err := tc.G.SecretStore().StoreSecret(m, NewNormalizedUsername(expectedUsernames[i]), fs); err != nil {
 			t.Error(err)
 		}
 	}
 
-	usernames, err = tc.G.SecretStore().GetUsersWithStoredSecrets()
+	usernames, err = tc.G.SecretStore().GetUsersWithStoredSecrets(m)
 	if err != nil {
 		t.Error(err)
 	}
@@ -120,13 +122,13 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 	}
 
 	for i := 0; i < len(expectedUsernames); i++ {
-		err = tc.G.SecretStore().ClearSecret(NewNormalizedUsername(expectedUsernames[i]))
+		err = tc.G.SecretStore().ClearSecret(m, NewNormalizedUsername(expectedUsernames[i]))
 		if err != nil {
 			t.Error(err)
 		}
 	}
 
-	usernames, err = tc.G.SecretStore().GetUsersWithStoredSecrets()
+	usernames, err = tc.G.SecretStore().GetUsersWithStoredSecrets(m)
 	if err != nil {
 		t.Error(err)
 	}

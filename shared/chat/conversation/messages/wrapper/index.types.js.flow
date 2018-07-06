@@ -1,8 +1,18 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
+import type {StylesCrossPlatform} from '../../../../styles'
 
-export type Props = {
+export type WrapperTimestampProps = {
+  message: Types.Message,
+  measure: null | (() => void),
+  previous?: ?Types.Message,
+  children?: React.Node,
+  timestamp: string,
+  orangeLineAbove: boolean,
+}
+
+export type WrapperAuthorProps = {
   author: string,
   exploded: boolean,
   explodedBy: string,
@@ -29,5 +39,6 @@ export type Props = {
   onCancel: null | (() => void),
   onAuthorClick: () => void,
   orangeLineAbove: boolean,
-  timestamp: string,
+  styles: StylesCrossPlatform,
+  timestamp: number,
 }

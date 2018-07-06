@@ -18,7 +18,7 @@ func (k KeychainSecretStore) accessible() keychain.Accessible {
 	return keychain.AccessibleAfterFirstUnlockThisDeviceOnly
 }
 
-func (k KeychainSecretStore) accessGroup() string {
+func (k KeychainSecretStore) accessGroup(m MetaContext) string {
 	// Don't use access group on OS X
 	return ""
 }

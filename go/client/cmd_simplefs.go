@@ -41,6 +41,7 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			NewCmdSimpleFSPs(cl, g),
 			NewCmdSimpleFSWrite(cl, g),
 			NewCmdSimpleFSDebug(cl, g),
+			NewCmdSimpleFSHistory(cl, g),
 		},
 	}
 }

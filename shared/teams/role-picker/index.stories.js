@@ -28,7 +28,7 @@ const roleConfirmProps = {
   confirm: true,
 }
 
-const provider = PropProviders.Common()
+const provider = PropProviders.CommonProvider()
 
 const load = () => {
   storiesOf('Teams/Roles', module)

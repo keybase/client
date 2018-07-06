@@ -3,7 +3,8 @@ import type {UserList} from '../common-adapters/usernames'
 
 // Parses the folder name and returns an array of usernames
 export function parseFolderNameToUsers(yourUsername: ?string, folderName: string): UserList {
-  const [writers, readers = ''] = folderName.split('#')
+  const [userList] = splitByFirstOccurrenceOf(folderName, ' ')
+  const [writers, readers = ''] = userList.split('#')
 
   const writersParsed = writers.split(',').map(u => ({
     username: u,

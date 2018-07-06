@@ -217,7 +217,7 @@ func LogSend(status string, feedback string, sendLogs bool, uiLogPath, traceDir 
 	logSendContext.Logs.Desktop = uiLogPath
 	logSendContext.Logs.Trace = traceDir
 	env := kbCtx.Env
-	return logSendContext.LogSend(status, feedback, sendLogs, 10*1024*1024, env.GetUID(), env.GetInstallID())
+	return logSendContext.LogSend(status, feedback, sendLogs, 10*1024*1024, env.GetUID(), env.GetInstallID(), true /* mergeExtendedStatus */)
 }
 
 // WriteB64 sends a base64 encoded msgpack rpc payload
@@ -338,27 +338,30 @@ func BackgroundSync() {
 	<-doneCh
 }
 
-func HandleBackgroundNotification(strConvID string, intMembersType, intMessageID int,
-	pushID string, badgeCount, unixTime int, body, soundName string, pusher PushNotifier) (err error) {
+func HandleBackgroundNotification(strConvID, body string, intMembersType int, displayPlaintext bool, intMessageID int,
+	pushID string, badgeCount, unixTime int, soundName string, pusher PushNotifier) (err error) {
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 
-	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%d,%d,%s,%d,%d)",
-		strConvID, intMembersType, intMessageID, pushID, badgeCount, unixTime),
+	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%v,%d,%d,%s,%d,%d)",
+		strConvID, displayPlaintext, intMembersType, intMessageID, pushID, badgeCount, unixTime),
 		func() error { return err })()
+
+	msg, err := unboxNotification(ctx, strConvID, body, intMembersType)
+	if err != nil {
+		return err
+	}
+
+	if !displayPlaintext {
+		return nil
+	}
 
 	age := time.Since(time.Unix(int64(unixTime), 0))
 	if age >= 15*time.Second {
 		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: stale notification: %v", age)
 		return errors.New("stale notification")
 	}
-
-	msg, err := unboxNotification(ctx, strConvID, intMembersType, body)
-	if err != nil {
-		return err
-	}
-
 	// Send up the local notification with our message
 	id := fmt.Sprintf("%s:%d", strConvID, intMessageID)
 	pusher.LocalNotification(id, msg, badgeCount, soundName, strConvID, "chat.newmessage")
@@ -367,19 +370,7 @@ func HandleBackgroundNotification(strConvID string, intMembersType, intMessageID
 	return nil
 }
 
-func HandleNotification(strConvID string, intMembersType int, body string) (err error) {
-	gc := globals.NewContext(kbCtx, kbChatCtx)
-	ctx := chat.Context(context.Background(), gc,
-		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
-
-	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandleNotification(%s,%d)", strConvID, intMembersType),
-		func() error { return err })()
-
-	_, err = unboxNotification(ctx, strConvID, intMembersType, body)
-	return err
-}
-
-func unboxNotification(ctx context.Context, strConvID string, intMembersType int, body string) (msg string, err error) {
+func unboxNotification(ctx context.Context, strConvID, body string, intMembersType int) (msg string, err error) {
 	if !kbCtx.ActiveDevice.HaveKeys() {
 		return "", libkb.LoginRequiredError{}
 	}

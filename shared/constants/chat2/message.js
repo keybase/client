@@ -112,6 +112,8 @@ const makeMessageExplodable = {
   explodingUnreadable: false,
 }
 
+export const howLongBetweenTimestampsMs: number = 1000 * 60 * 15
+
 export const makeMessagePlaceholder: I.RecordFactory<MessageTypes._MessagePlaceholder> = I.Record({
   ...makeMessageCommon,
   type: 'placeholder',
@@ -796,6 +798,17 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
   }
   return m
 }
+
+export const enoughTimeBetweenMessages = (
+  message: MessageTypes.Message,
+  previous: ?MessageTypes.Message
+): boolean =>
+  Boolean(
+    previous &&
+      previous.timestamp &&
+      message.timestamp &&
+      message.timestamp - previous.timestamp > howLongBetweenTimestampsMs
+  )
 
 export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
   {text: 'Never (turn off)', seconds: 0},

@@ -28,34 +28,34 @@ const resetNav = () => Saga.put(LoginGen.createNavBasedOnLoginAndInitialState())
 // When going back we clear all errors so we can fix things and move forward
 const goBackAndClearErrors = () => Saga.put(navigateUp())
 
-const showUserEmailOnNoErrors = (action: SignupGen.CheckedInviteCodePayload, state: TypedState) =>
+const showUserEmailOnNoErrors = (state: TypedState) =>
   noErrors(state) && Saga.put(navigateTo([loginTab, 'signup', 'usernameAndEmail']))
 
 const showInviteScreen = () => navigateTo([loginTab, 'signup', 'inviteCode'])
 
-const showInviteSuccessOnNoErrors = (_, state: TypedState) =>
+const showInviteSuccessOnNoErrors = (state: TypedState) =>
   noErrors(state) && navigateAppend(['requestInviteSuccess'], [loginTab, 'signup'])
 
-const showPassphraseOnNoErrors = (_, state: TypedState) =>
+const showPassphraseOnNoErrors = (state: TypedState) =>
   noErrors(state) && Saga.put(navigateAppend(['passphraseSignup'], [loginTab, 'signup']))
 
-const showDeviceScreenOnNoErrors = (_: SignupGen.CheckPassphrasePayload, state: TypedState) =>
+const showDeviceScreenOnNoErrors = (state: TypedState) =>
   noErrors(state) && Saga.put(navigateAppend(['deviceName'], [loginTab, 'signup']))
 
-const showErrorOrCleanupAfterSignup = (_, state: TypedState) =>
+const showErrorOrCleanupAfterSignup = (state: TypedState) =>
   noErrors(state)
     ? Saga.put(SignupGen.createRestartSignup())
     : Saga.put(navigateAppend(['signupError'], [loginTab, 'signup']))
 
 // Validation side effects ///////////////////////////////////////////////////////////
-const checkInviteCode = (action: SignupGen.CheckInviteCodePayload) =>
+const checkInviteCode = (state: TypedState) =>
   RPCTypes.signupCheckInvitationCodeRpcPromise(
-    {invitationCode: action.payload.inviteCode},
+    {invitationCode: state.signup.inviteCode},
     Constants.waitingKey
   )
-    .then(() => SignupGen.createCheckedInviteCode({inviteCode: action.payload.inviteCode}))
+    .then(() => SignupGen.createCheckedInviteCode({inviteCode: state.signup.inviteCode}))
     .catch((err: RPCError) =>
-      SignupGen.createCheckedInviteCodeError({error: err.desc, inviteCode: action.payload.inviteCode})
+      SignupGen.createCheckedInviteCodeError({error: err.desc, inviteCode: state.signup.inviteCode})
     )
 
 const requestAutoInvite = () =>
@@ -63,7 +63,7 @@ const requestAutoInvite = () =>
     .then((inviteCode: string) => SignupGen.createRequestedAutoInvite({inviteCode}))
     .catch(() => SignupGen.createRequestedAutoInviteError())
 
-const requestInvite = (action: SignupGen.RequestInvitePayload, state: TypedState) =>
+const requestInvite = (state: TypedState) =>
   noErrors(state) &&
   RPCTypes.signupInviteRequestRpcPromise(
     {email: state.signup.email, fullname: state.signup.name, notes: 'Requested through GUI app'},
@@ -71,50 +71,50 @@ const requestInvite = (action: SignupGen.RequestInvitePayload, state: TypedState
   )
     .then(() =>
       SignupGen.createRequestedInvite({
-        email: action.payload.email,
-        name: action.payload.name,
+        email: state.signup.email,
+        name: state.signup.name,
       })
     )
     .catch(err =>
       SignupGen.createRequestedInviteError({
-        email: action.payload.email,
+        email: state.signup.email,
         emailError: `Sorry can't get an invite: ${err.desc}`,
-        name: action.payload.name,
+        name: state.signup.name,
         nameError: '',
       })
     )
 
-const checkUsernameEmail = (action: SignupGen.CheckUsernameEmailPayload, state: TypedState) =>
+const checkUsernameEmail = (state: TypedState) =>
   noErrors(state) &&
   RPCTypes.signupCheckUsernameAvailableRpcPromise({username: state.signup.username}, Constants.waitingKey)
     .then(r =>
       SignupGen.createCheckedUsernameEmail({
-        email: action.payload.email,
-        username: action.payload.username,
+        email: state.signup.email,
+        username: state.signup.username,
       })
     )
     .catch(err =>
       SignupGen.createCheckedUsernameEmailError({
-        email: action.payload.email,
+        email: state.signup.email,
         emailError: '',
-        username: action.payload.username,
+        username: state.signup.username,
         usernameError: `Sorry, there was a problem: ${err.desc}`,
       })
     )
 
-const checkDevicename = (action: SignupGen.CheckDevicenamePayload, state: TypedState) =>
+const checkDevicename = (state: TypedState) =>
   noErrors(state) &&
   RPCTypes.deviceCheckDeviceNameFormatRpcPromise({name: state.signup.devicename}, Constants.waitingKey)
-    .then(() => SignupGen.createCheckedDevicename({devicename: action.payload.devicename}))
+    .then(() => SignupGen.createCheckedDevicename({devicename: state.signup.devicename}))
     .catch(error =>
       SignupGen.createCheckedDevicenameError({
-        devicename: action.payload.devicename,
+        devicename: state.signup.devicename,
         error: `Device name is invalid: ${error.desc}.`,
       })
     )
 
 // Actually sign up ///////////////////////////////////////////////////////////
-const reallySignupOnNoErrors = (_, state: TypedState) => {
+const reallySignupOnNoErrors = (state: TypedState) => {
   if (!noErrors(state)) {
     logger.warn('Still has errors, bailing on really signing up')
     return
@@ -179,18 +179,35 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPurePromise(SignupGen.checkDevicename, checkDevicename)
 
   // move to next screen actions
-  yield Saga.safeTakeEveryPure(SignupGen.restartSignup, resetNav)
-  yield Saga.safeTakeEveryPure(SignupGen.requestedInvite, showInviteSuccessOnNoErrors)
-  yield Saga.safeTakeEveryPure(SignupGen.checkedUsernameEmail, showPassphraseOnNoErrors)
-  yield Saga.safeTakeEveryPure(SignupGen.requestedAutoInvite, showInviteScreen)
-  yield Saga.safeTakeEveryPure(SignupGen.checkedInviteCode, showUserEmailOnNoErrors)
-  yield Saga.safeTakeEveryPure(SignupGen.checkPassphrase, showDeviceScreenOnNoErrors)
-  yield Saga.safeTakeEveryPure(SignupGen.signedup, showErrorOrCleanupAfterSignup)
+  yield Saga.safeTakeEveryPureSimple(SignupGen.restartSignup, resetNav)
+  yield Saga.safeTakeEveryPureSimple(SignupGen.requestedInvite, showInviteSuccessOnNoErrors)
+  yield Saga.safeTakeEveryPureSimple(SignupGen.checkedUsernameEmail, showPassphraseOnNoErrors)
+  yield Saga.safeTakeEveryPureSimple(SignupGen.requestedAutoInvite, showInviteScreen)
+  yield Saga.safeTakeEveryPureSimple(SignupGen.checkedInviteCode, showUserEmailOnNoErrors)
+  yield Saga.safeTakeEveryPureSimple(SignupGen.checkPassphrase, showDeviceScreenOnNoErrors)
+  yield Saga.safeTakeEveryPureSimple(SignupGen.signedup, showErrorOrCleanupAfterSignup)
 
   // actually make the signup call
-  yield Saga.safeTakeEveryPure(SignupGen.checkedDevicename, reallySignupOnNoErrors)
+  yield Saga.safeTakeEveryPureSimple(SignupGen.checkedDevicename, reallySignupOnNoErrors)
 
-  yield Saga.safeTakeEveryPure(SignupGen.goBackAndClearErrors, goBackAndClearErrors)
+  yield Saga.safeTakeEveryPureSimple(SignupGen.goBackAndClearErrors, goBackAndClearErrors)
 }
 
 export default signupSaga
+
+export const _testing = {
+  checkDevicename,
+  checkInviteCode,
+  checkUsernameEmail,
+  goBackAndClearErrors,
+  reallySignupOnNoErrors,
+  requestAutoInvite,
+  requestInvite,
+  resetNav,
+  showDeviceScreenOnNoErrors,
+  showErrorOrCleanupAfterSignup,
+  showInviteScreen,
+  showInviteSuccessOnNoErrors,
+  showPassphraseOnNoErrors,
+  showUserEmailOnNoErrors,
+}

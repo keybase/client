@@ -5,6 +5,7 @@ import * as RPCTypes from '../constants/types/rpc-stellar-gen'
 import * as Saga from '../util/saga'
 import * as WalletsGen from './wallets-gen'
 import * as Route from './route-tree'
+import type {TypedState} from '../constants/reducer'
 import {walletsTab} from '../constants/tabs'
 
 const loadAccounts = (action: WalletsGen.LoadAccountsPayload) =>
@@ -43,7 +44,7 @@ const loadPaymentsSuccess = (res: RPCTypes.PaymentsPageLocal, action: WalletsGen
   )
 }
 
-const linkExistingAccount = (action: WalletsGen.LinkExistingAccountPayload) => {
+const linkExistingAccount = (state: TypedState, action: WalletsGen.LinkExistingAccountPayload) => {
   const {name, secretKey} = action.payload
   return RPCTypes.localLinkNewWalletAccountLocalRpcPromise(
     {
@@ -60,14 +61,14 @@ const linkExistingAccount = (action: WalletsGen.LinkExistingAccountPayload) => {
     .catch(err => WalletsGen.createLinkExistingAccountError({error: err.desc, name, secretKey}))
 }
 
-const validateAccountName = (action: WalletsGen.ValidateAccountNamePayload) => {
+const validateAccountName = (state: TypedState, action: WalletsGen.ValidateAccountNamePayload) => {
   const {name} = action.payload
   return RPCTypes.localValidateAccountNameLocalRpcPromise({name})
     .then(() => WalletsGen.createValidateAccountNameError({error: '', name}))
     .catch(err => WalletsGen.createValidateAccountNameError({error: err.desc, name}))
 }
 
-const validateSecretKey = (action: WalletsGen.ValidateSecretKeyPayload) => {
+const validateSecretKey = (state: TypedState, action: WalletsGen.ValidateSecretKeyPayload) => {
   const {secretKey} = action.payload
   return RPCTypes.localValidateSecretKeyLocalRpcPromise({secretKey: secretKey.stringValue()})
     .then(() => WalletsGen.createValidateSecretKeyError({error: '', secretKey}))

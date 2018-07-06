@@ -220,26 +220,23 @@ const BOOL isDebug = NO;
 // Require for handling silent notifications
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
   NSString* type = notification[@"type"];
-  NSString* body = notification[@"m"];
-  if (type != nil && body != nil) {
+  if (type != nil && [type isEqualToString:@"chat.newmessageSilent_2"]) {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
-      NSLog(@"Remote notification handle for %@ started...", type);
       NSError* err = nil;
+      NSString* convID = notification[@"c"];
+      NSString* body = notification[@"m"];
       int membersType = [notification[@"t"] intValue];
-      if ([type isEqualToString:@"chat.newmessageSilent_2"]) {
-        NSString* convID = notification[@"c"];
-        int messageID = [notification[@"d"] intValue];
-        NSString* pushID = [notification[@"p"] objectAtIndex:0];
-        int badgeCount = [notification[@"b"] intValue];
-        int unixTime = [notification[@"x"] intValue];
-        NSString* soundName = notification[@"s"];
-        PushNotifier* pusher = [[PushNotifier alloc] init];
-        KeybaseHandleBackgroundNotification(convID, membersType, messageID, pushID, badgeCount, unixTime, body, soundName, pusher, &err);
-      } else if ([type isEqualToString:@"chat.newmessage"]) {
-        NSString* convID = notification[@"convID"];
-        KeybaseHandleNotification(convID, membersType, body, &err);
-        [RCTPushNotificationManager didReceiveRemoteNotification:notification];
-      }
+      bool displayPlaintext = [notification[@"n"] boolValue];
+      int messageID = [notification[@"d"] intValue];
+      NSString* pushID = [notification[@"p"] objectAtIndex:0];
+      int badgeCount = [notification[@"b"] intValue];
+      int unixTime = [notification[@"x"] intValue];
+      NSString* soundName = notification[@"s"];
+      PushNotifier* pusher = [[PushNotifier alloc] init];
+      // This always tries to unbox the notification and adds a plaintext
+      // notification if displayPlaintext is set.
+      KeybaseHandleBackgroundNotification(convID, body, membersType, displayPlaintext,
+            messageID, pushID, badgeCount, unixTime, soundName, pusher, &err);
       if (err != nil) {
         NSLog(@"Failed to handle in engine: %@", err);
       }
