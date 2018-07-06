@@ -137,7 +137,7 @@ function safeTakeEveryPureSimple<A, FinalAction>(
   pattern: Pattern,
   f: (state: TypedState, action: A) => null | false | FinalAction
 ) {
-  return safeTakeEveryPure(pattern, function*(action: A) {
+  return safeTakeEvery(pattern, function*(action: A) {
     const state: TypedState = yield select()
     yield f(state, action)
   })
