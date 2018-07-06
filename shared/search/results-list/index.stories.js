@@ -4,67 +4,67 @@ import ResultsList from '.'
 import {Box} from '../../common-adapters'
 import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 import * as PropProviders from '../../stories/prop-providers'
+import {type ConnectPropsMap, makeSelectorMap} from '../result-row/index.stories'
 
-const provider = createPropProvider(PropProviders.Common(), {
-  SearchResultRow: (props: {id: string}) => servicesResultsListMapCommonRows[props.id],
-})
-
-const commonServicesResultMapPropsKB = {
-  id: '0',
-  leftFollowingState: 'NoState',
-  leftFullname: 'John Zila',
-  leftIcon: 'jzila',
-  leftService: 'Keybase',
-  leftUsername: 'jzila',
-  onShowTracker: () => action('showtracker'),
-  rightFollowingState: 'NoState',
-  rightIcon: null,
-  rightService: null,
-  rightUsername: null,
-}
-
-const servicesResultsListMapCommonRows = {
+const connectPropsMap: ConnectPropsMap = {
   chris: {
-    ...commonServicesResultMapPropsKB,
-    leftFollowingState: 'Following',
     leftFullname: 'chris on GitHub',
+    leftIcon: null,
+    leftService: 'Keybase',
     leftUsername: 'chris',
+
     rightIcon: 'iconfont-identity-github',
     rightService: 'GitHub',
     rightUsername: 'chrisname',
+
+    leftFollowingState: 'Following',
+    rightFollowingState: 'NoState',
+    userIsInTeam: false,
   },
   cjb: {
-    ...commonServicesResultMapPropsKB,
-    leftFollowingState: 'NotFollowing',
     leftFullname: 'cjb on facebook',
+    leftIcon: null,
+    leftService: 'Keybase',
     leftUsername: 'cjb',
+
     rightIcon: 'iconfont-identity-facebook',
     rightService: 'Facebook',
     rightUsername: 'cjbname',
+
+    leftFollowingState: 'NotFollowing',
+    rightFollowingState: 'NoState',
+    userIsInTeam: false,
   },
   jzila: {
-    ...commonServicesResultMapPropsKB,
-    leftFollowingState: 'NoState',
     leftFullname: 'jzila on twitter',
+    leftIcon: null,
+    leftService: 'Keybase',
     leftUsername: 'jzila',
+
     rightIcon: 'iconfont-identity-twitter',
     rightService: 'Twitter',
     rightUsername: 'jzilatwit',
+
+    leftFollowingState: 'NotFollowing',
+    rightFollowingState: 'NoState',
+    userIsInTeam: false,
   },
 }
 
-Object.keys(servicesResultsListMapCommonRows).forEach(name => {
-  servicesResultsListMapCommonRows[name + '-fb'] = {
-    ...servicesResultsListMapCommonRows[name],
+Object.keys(connectPropsMap).forEach(id => {
+  connectPropsMap[id + '-fb'] = {
+    ...connectPropsMap[id],
     leftFollowingState: 'NoState',
     leftIcon: 'icon-facebook-logo-24',
     leftService: 'Facebook',
   }
 })
 
+const provider = createPropProvider(PropProviders.Common(), makeSelectorMap(connectPropsMap))
+
 const props = {
   disableIfInTeamName: '',
-  items: Object.keys(servicesResultsListMapCommonRows),
+  items: Object.keys(connectPropsMap),
   onClick: () => action('onClick'),
   onShowTracker: () => action('onShowTracker'),
   selectedId: null,

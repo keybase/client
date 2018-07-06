@@ -8,7 +8,7 @@ import {Box} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 
-type ConnectProps = $Exact<$Diff<Props, OwnProps>>
+export type ConnectProps = $Exact<$Diff<Props, OwnProps>>
 
 const defaultConnectProps = {
   leftFullname: null,
@@ -20,12 +20,12 @@ const defaultConnectProps = {
   rightService: null,
   rightUsername: null,
 
-  leftFollowingState: 'NotFollowing',
-  rightFollowingState: 'NotFollowing',
+  leftFollowingState: 'NoState',
+  rightFollowingState: 'NoState',
   userIsInTeam: false,
 }
 
-type ConnectPropsMap = {[id: SearchResultId]: ?ConnectProps}
+export type ConnectPropsMap = {[id: SearchResultId]: ?ConnectProps}
 
 const defaultConnectPropsMap: ConnectPropsMap = {
   jzila: {
@@ -62,8 +62,8 @@ const defaultOwnProps: OwnProps = {
 
 const defaultProps = mockOwnPropsToProps(defaultConnectPropsMap, defaultOwnProps)
 
-const makeSelectorMap = (connectPropsMap: ConnectPropsMap = defaultConnectPropsMap) => ({
-  SearchResultRow: ownProps => mockOwnPropsToProps(connectPropsMap, ownProps),
+export const makeSelectorMap = (connectPropsMap: ConnectPropsMap = defaultConnectPropsMap) => ({
+  SearchResultRow: (ownProps: OwnProps): Props => mockOwnPropsToProps(connectPropsMap, ownProps),
 })
 
 const provider = createPropProvider(PropProviders.Common(), makeSelectorMap())
