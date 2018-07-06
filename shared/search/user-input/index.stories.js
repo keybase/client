@@ -110,6 +110,7 @@ const chrisUsers = [
 // TODO: Actually do something here.
 const mockOwnPropsToProps = (userItems: Array<UserDetails>, ownProps: OwnProps): Props => {
   const props = {
+    ...ownProps,
     ...inputCommon,
     onChangeText: unexpected('search should be used instead'),
     onClickAddButton: unexpected('search should be used instead'),

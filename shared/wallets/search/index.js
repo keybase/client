@@ -17,9 +17,11 @@ const Search = (props: Props) => (
   <StandardScreen style={styleContainer} onCancel={props.onClose} title="Wallet search">
     <UserInput
       searchKey={searchKey}
-      onExitSearch={props.onClose}
       autoFocus={true}
       placeholder={placeholder}
+      onExitSearch={props.onClose}
+      disableListBuilding={true}
+      disableServiceFilter={true}
     />
     <ResultsList searchKey={searchKey} onClick={props.onClick} disableListBuilding={true} />
   </StandardScreen>
