@@ -263,25 +263,27 @@ func (o FileContent) DeepCopy() FileContent {
 type AsyncOps int
 
 const (
-	AsyncOps_LIST           AsyncOps = 0
-	AsyncOps_LIST_RECURSIVE AsyncOps = 1
-	AsyncOps_READ           AsyncOps = 2
-	AsyncOps_WRITE          AsyncOps = 3
-	AsyncOps_COPY           AsyncOps = 4
-	AsyncOps_MOVE           AsyncOps = 5
-	AsyncOps_REMOVE         AsyncOps = 6
+	AsyncOps_LIST                    AsyncOps = 0
+	AsyncOps_LIST_RECURSIVE          AsyncOps = 1
+	AsyncOps_READ                    AsyncOps = 2
+	AsyncOps_WRITE                   AsyncOps = 3
+	AsyncOps_COPY                    AsyncOps = 4
+	AsyncOps_MOVE                    AsyncOps = 5
+	AsyncOps_REMOVE                  AsyncOps = 6
+	AsyncOps_LIST_RECURSIVE_TO_DEPTH AsyncOps = 7
 )
 
 func (o AsyncOps) DeepCopy() AsyncOps { return o }
 
 var AsyncOpsMap = map[string]AsyncOps{
-	"LIST":           0,
-	"LIST_RECURSIVE": 1,
-	"READ":           2,
-	"WRITE":          3,
-	"COPY":           4,
-	"MOVE":           5,
-	"REMOVE":         6,
+	"LIST":                    0,
+	"LIST_RECURSIVE":          1,
+	"READ":                    2,
+	"WRITE":                   3,
+	"COPY":                    4,
+	"MOVE":                    5,
+	"REMOVE":                  6,
+	"LIST_RECURSIVE_TO_DEPTH": 7,
 }
 
 var AsyncOpsRevMap = map[AsyncOps]string{
@@ -292,6 +294,7 @@ var AsyncOpsRevMap = map[AsyncOps]string{
 	4: "COPY",
 	5: "MOVE",
 	6: "REMOVE",
+	7: "LIST_RECURSIVE_TO_DEPTH",
 }
 
 func (e AsyncOps) String() string {
@@ -338,6 +341,22 @@ func (o ListArgs) DeepCopy() ListArgs {
 		OpID:   o.OpID.DeepCopy(),
 		Path:   o.Path.DeepCopy(),
 		Filter: o.Filter.DeepCopy(),
+	}
+}
+
+type ListToDepthArgs struct {
+	OpID   OpID       `codec:"opID" json:"opID"`
+	Path   Path       `codec:"path" json:"path"`
+	Filter ListFilter `codec:"filter" json:"filter"`
+	Depth  int        `codec:"depth" json:"depth"`
+}
+
+func (o ListToDepthArgs) DeepCopy() ListToDepthArgs {
+	return ListToDepthArgs{
+		OpID:   o.OpID.DeepCopy(),
+		Path:   o.Path.DeepCopy(),
+		Filter: o.Filter.DeepCopy(),
+		Depth:  o.Depth,
 	}
 }
 
@@ -412,14 +431,15 @@ func (o MoveArgs) DeepCopy() MoveArgs {
 }
 
 type OpDescription struct {
-	AsyncOp__       AsyncOps    `codec:"asyncOp" json:"asyncOp"`
-	List__          *ListArgs   `codec:"list,omitempty" json:"list,omitempty"`
-	ListRecursive__ *ListArgs   `codec:"listRecursive,omitempty" json:"listRecursive,omitempty"`
-	Read__          *ReadArgs   `codec:"read,omitempty" json:"read,omitempty"`
-	Write__         *WriteArgs  `codec:"write,omitempty" json:"write,omitempty"`
-	Copy__          *CopyArgs   `codec:"copy,omitempty" json:"copy,omitempty"`
-	Move__          *MoveArgs   `codec:"move,omitempty" json:"move,omitempty"`
-	Remove__        *RemoveArgs `codec:"remove,omitempty" json:"remove,omitempty"`
+	AsyncOp__              AsyncOps         `codec:"asyncOp" json:"asyncOp"`
+	List__                 *ListArgs        `codec:"list,omitempty" json:"list,omitempty"`
+	ListRecursive__        *ListArgs        `codec:"listRecursive,omitempty" json:"listRecursive,omitempty"`
+	ListRecursiveToDepth__ *ListToDepthArgs `codec:"listRecursiveToDepth,omitempty" json:"listRecursiveToDepth,omitempty"`
+	Read__                 *ReadArgs        `codec:"read,omitempty" json:"read,omitempty"`
+	Write__                *WriteArgs       `codec:"write,omitempty" json:"write,omitempty"`
+	Copy__                 *CopyArgs        `codec:"copy,omitempty" json:"copy,omitempty"`
+	Move__                 *MoveArgs        `codec:"move,omitempty" json:"move,omitempty"`
+	Remove__               *RemoveArgs      `codec:"remove,omitempty" json:"remove,omitempty"`
 }
 
 func (o *OpDescription) AsyncOp() (ret AsyncOps, err error) {
@@ -432,6 +452,11 @@ func (o *OpDescription) AsyncOp() (ret AsyncOps, err error) {
 	case AsyncOps_LIST_RECURSIVE:
 		if o.ListRecursive__ == nil {
 			err = errors.New("unexpected nil value for ListRecursive__")
+			return ret, err
+		}
+	case AsyncOps_LIST_RECURSIVE_TO_DEPTH:
+		if o.ListRecursiveToDepth__ == nil {
+			err = errors.New("unexpected nil value for ListRecursiveToDepth__")
 			return ret, err
 		}
 	case AsyncOps_READ:
@@ -481,6 +506,16 @@ func (o OpDescription) ListRecursive() (res ListArgs) {
 		return
 	}
 	return *o.ListRecursive__
+}
+
+func (o OpDescription) ListRecursiveToDepth() (res ListToDepthArgs) {
+	if o.AsyncOp__ != AsyncOps_LIST_RECURSIVE_TO_DEPTH {
+		panic("wrong case accessed")
+	}
+	if o.ListRecursiveToDepth__ == nil {
+		return
+	}
+	return *o.ListRecursiveToDepth__
 }
 
 func (o OpDescription) Read() (res ReadArgs) {
@@ -547,6 +582,13 @@ func NewOpDescriptionWithListRecursive(v ListArgs) OpDescription {
 	}
 }
 
+func NewOpDescriptionWithListRecursiveToDepth(v ListToDepthArgs) OpDescription {
+	return OpDescription{
+		AsyncOp__:              AsyncOps_LIST_RECURSIVE_TO_DEPTH,
+		ListRecursiveToDepth__: &v,
+	}
+}
+
 func NewOpDescriptionWithRead(v ReadArgs) OpDescription {
 	return OpDescription{
 		AsyncOp__: AsyncOps_READ,
@@ -599,6 +641,13 @@ func (o OpDescription) DeepCopy() OpDescription {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ListRecursive__),
+		ListRecursiveToDepth__: (func(x *ListToDepthArgs) *ListToDepthArgs {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ListRecursiveToDepth__),
 		Read__: (func(x *ReadArgs) *ReadArgs {
 			if x == nil {
 				return nil

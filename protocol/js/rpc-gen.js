@@ -608,6 +608,7 @@ export const simpleFSAsyncOps = {
   copy: 4,
   move: 5,
   remove: 6,
+  listRecursiveToDepth: 7,
 }
 
 export const simpleFSDirentType = {
@@ -873,6 +874,7 @@ export type AsyncOps =
   | 4 // COPY_4
   | 5 // MOVE_5
   | 6 // REMOVE_6
+  | 7 // LIST_RECURSIVE_TO_DEPTH_7
 
 export type AvatarClearCacheMsg = $ReadOnly<{name: String, formats?: ?Array<AvatarFormat>}>
 export type AvatarFormat = String
@@ -1325,6 +1327,7 @@ export type ListFilter =
   | 1 // FILTER_ALL_HIDDEN_1
 
 export type ListResult = $ReadOnly<{files?: ?Array<File>}>
+export type ListToDepthArgs = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter, depth: Int}>
 export type LoadAvatarsRes = $ReadOnly<{picmap: {[key: string]: {[key: string]: AvatarUrl}}}>
 export type LoadDeviceErr = $ReadOnly<{where: String, desc: String}>
 export type LoadTeamArg = $ReadOnly<{ID: TeamID, name: String, public: Boolean, needAdmin: Boolean, refreshUIDMapper: Boolean, refreshers: TeamRefreshers, forceFullReload: Boolean, forceRepoll: Boolean, staleOK: Boolean, allowNameLookupBurstCache: Boolean}>
@@ -1442,7 +1445,7 @@ export type NotifyTeamTeamDeletedRpcParam = $ReadOnly<{teamID: TeamID}>
 export type NotifyTeamTeamExitRpcParam = $ReadOnly<{teamID: TeamID}>
 export type NotifyTrackingTrackingChangedRpcParam = $ReadOnly<{uid: UID, username: String, isTracking: Boolean}>
 export type NotifyUsersUserChangedRpcParam = $ReadOnly<{uid: UID}>
-export type OpDescription = {asyncOp: 0, list: ?ListArgs} | {asyncOp: 1, listRecursive: ?ListArgs} | {asyncOp: 2, read: ?ReadArgs} | {asyncOp: 3, write: ?WriteArgs} | {asyncOp: 4, copy: ?CopyArgs} | {asyncOp: 5, move: ?MoveArgs} | {asyncOp: 6, remove: ?RemoveArgs}
+export type OpDescription = {asyncOp: 0, list: ?ListArgs} | {asyncOp: 1, listRecursive: ?ListArgs} | {asyncOp: 7, listRecursiveToDepth: ?ListToDepthArgs} | {asyncOp: 2, read: ?ReadArgs} | {asyncOp: 3, write: ?WriteArgs} | {asyncOp: 4, copy: ?CopyArgs} | {asyncOp: 5, move: ?MoveArgs} | {asyncOp: 6, remove: ?RemoveArgs}
 export type OpID = any
 export type OpProgress = $ReadOnly<{start: Time, endEstimate: Time, opType: AsyncOps, bytesTotal: Int64, bytesRead: Int64, bytesWritten: Int64, filesTotal: Int64, filesRead: Int64, filesWritten: Int64}>
 export type OpenFlags =
