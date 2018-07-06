@@ -6,7 +6,7 @@ import ConnectedUserInput, {type OwnProps, type Props} from './container'
 import {Box} from '../../common-adapters'
 import {compose, withStateHandlers} from 'recompose'
 import {isMobile} from '../../constants/platform'
-import {action, storiesOf, createPropProvider} from '../../stories/storybook'
+import {action, storiesOf, createPropProvider, unexpected} from '../../stories/storybook'
 
 const defaultOwnProps: OwnProps = {
   searchKey: 'search key',
@@ -109,6 +109,7 @@ const chrisUsers = [
 
 const defaultProps: Props = {
   ...inputCommon,
+  onChangeText: unexpected('search should be used instead'),
   userItems: maxUsers,
   usernameText: '',
   search: action('search'),
