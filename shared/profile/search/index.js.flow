@@ -4,7 +4,6 @@ import {Component} from 'react'
 export type Props = {
   onClick: (id: string) => void,
   onClose: () => void,
-  navigateUp: () => void,
 }
 
 export default class Search extends Component<Props> {}
