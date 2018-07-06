@@ -26,25 +26,27 @@ func (o WalletAccountLocal) DeepCopy() WalletAccountLocal {
 
 type AccountAssetLocal struct {
 	Name                   string `codec:"name" json:"name"`
-	BalanceTotal           string `codec:"balanceTotal" json:"balanceTotal"`
-	BalanceAvailableToSend string `codec:"balanceAvailableToSend" json:"balanceAvailableToSend"`
 	AssetCode              string `codec:"assetCode" json:"assetCode"`
 	IssuerName             string `codec:"issuerName" json:"issuerName"`
 	IssuerAccountID        string `codec:"issuerAccountID" json:"issuerAccountID"`
-	Worth                  string `codec:"worth" json:"worth"`
+	BalanceTotal           string `codec:"balanceTotal" json:"balanceTotal"`
+	BalanceAvailableToSend string `codec:"balanceAvailableToSend" json:"balanceAvailableToSend"`
 	WorthCurrency          string `codec:"worthCurrency" json:"worthCurrency"`
+	Worth                  string `codec:"worth" json:"worth"`
+	AvailableToSendWorth   string `codec:"availableToSendWorth" json:"availableToSendWorth"`
 }
 
 func (o AccountAssetLocal) DeepCopy() AccountAssetLocal {
 	return AccountAssetLocal{
 		Name:                   o.Name,
-		BalanceTotal:           o.BalanceTotal,
-		BalanceAvailableToSend: o.BalanceAvailableToSend,
 		AssetCode:              o.AssetCode,
 		IssuerName:             o.IssuerName,
 		IssuerAccountID:        o.IssuerAccountID,
-		Worth:                  o.Worth,
+		BalanceTotal:           o.BalanceTotal,
+		BalanceAvailableToSend: o.BalanceAvailableToSend,
 		WorthCurrency:          o.WorthCurrency,
+		Worth:                  o.Worth,
+		AvailableToSendWorth:   o.AvailableToSendWorth,
 	}
 }
 
