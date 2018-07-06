@@ -111,7 +111,9 @@ class BottomLine extends PureComponent<Props> {
           <Markdown preview={true} style={style}>
             {this.props.snippet}
           </Markdown>
-          {snippetDecoration}
+          <Box2 direction="vertical" centerChildren={true}>
+            {snippetDecoration}
+          </Box2>
         </Box2>
       )
     } else {
