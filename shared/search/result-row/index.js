@@ -90,8 +90,8 @@ const Middle = ({rightService, rightIcon, rightUsername, rightFollowingState}) =
   )
 }
 
-const Right = ({showTrackerButton, onShowTracker}) => {
-  return showTrackerButton ? (
+const Right = ({onShowTracker}) => {
+  return onShowTracker ? (
     <Icon
       type="iconfont-usercard"
       onClick={onShowTracker}
@@ -153,7 +153,7 @@ const SearchResultRow = (props: Props) => (
         rightService={props.rightService}
         rightUsername={props.rightUsername}
       />
-      <Right showTrackerButton={props.showTrackerButton} onShowTracker={props.onShowTracker} />
+      <Right onShowTracker={props.onShowTracker} />
       <RightEdge showCheckmark={props.userIsInTeam} />
       <Line />
     </Box>

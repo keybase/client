@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as PropProviders from '../../stories/prop-providers'
 import ResultRow, {type Props} from '.'
 import ConnectedResultRow, {type OwnProps} from './container'
+import {type SearchResultId, type SearchResult} from '../../constants/types/search'
 import {Box} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 import {storiesOf, action, createPropProvider} from '../../stories/storybook'
@@ -32,17 +33,19 @@ const defaultProps: Props = {
 const ownProps = {
   disableIfInTeamName: '',
   id: 'result',
+  selected: false,
   onClick: action('On click'),
   onMouseOver: action('On click'),
   onShowTracker: action('Show tracker'),
 }
 
-const mockOwnPropsToProps = (ownProps: OwnProps): Props => {
-  const result = defaultProps
+const mockOwnPropsToProps = (ownProps: OwnProps, results: {[id: SearchResultId]: SearchResult}): Props => {
+  const result = results[ownProps.id]
   const leftFollowingState = 'NotFollowing'
   const rightFollowingState = 'NotFollowing'
   return {
     ...result,
+    selected: false,
     onClick: ownProps.onClick,
     onMouseOver: ownProps.onMouseOver,
     onShowTracker: ownProps.onShowTracker,
@@ -54,7 +57,7 @@ const mockOwnPropsToProps = (ownProps: OwnProps): Props => {
 }
 
 const provider = createPropProvider(PropProviders.Common(), {
-  SearchResultRow: mockOwnPropsToProps,
+  SearchResultRow: ownProps => mockOwnPropsToProps(ownProps, {}),
 })
 
 const load = () => {

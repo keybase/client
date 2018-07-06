@@ -164,10 +164,11 @@ const userIsActiveInTeamHelper = (
   state: TypedState,
   _username: ?string,
   _service: ?Service,
-  teamname: string
+  _teamname: ?string
 ) => {
   const username = _username || ''
   const service = _service || ''
+  const teamname = _teamname || ''
   if (service !== 'Keybase') {
     return false
   }

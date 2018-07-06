@@ -8,6 +8,7 @@ import {connect, type TypedState, setDisplayName, compose} from '../../util/cont
 export type OwnProps = {
   disableIfInTeamName: ?string,
   id: SearchResultId,
+  selected: boolean,
   onClick: () => void,
   onMouseOver?: () => void,
   onShowTracker?: () => void,
@@ -20,18 +21,20 @@ const mapStateToProps = (
   const result = state.entities.search.searchResults.get(id, makeSearchResult()).toObject()
   const leftFollowingState = followStateHelper(state, result.leftUsername, result.leftService)
   const rightFollowingState = followStateHelper(state, result.rightUsername, result.rightService)
-  const leftIsInTeam = disableIfInTeamName
-    ? userIsActiveInTeamHelper(state, result.leftUsername, result.leftService, disableIfInTeamName)
-    : false
-  const rightIsInTeam = disableIfInTeamName
-    ? userIsActiveInTeamHelper(state, result.rightUsername, result.rightService, disableIfInTeamName)
-    : false
+  const leftIsInTeam = userIsActiveInTeamHelper(
+    state,
+    result.leftUsername,
+    result.leftService,
+    disableIfInTeamName
+  )
+  const rightIsInTeam = userIsActiveInTeamHelper(
+    state,
+    result.rightUsername,
+    result.rightService,
+    disableIfInTeamName
+  )
   return {
     ...result,
-    onClick,
-    onMouseOver,
-    onShowTracker,
-    showTrackerButton: !!onShowTracker,
     leftFollowingState,
     rightFollowingState,
     userIsInTeam: leftIsInTeam || rightIsInTeam,
