@@ -2,12 +2,13 @@
 import * as React from 'react'
 import {Button, Box2, Text, Icon, Input, WaitingButton} from '../../../common-adapters'
 import {
-  globalStyles,
+  collapseStyles,
   globalColors,
   globalMargins,
+  globalStyles,
+  isMobile,
   platformStyles,
   styleSheetCreate,
-  collapseStyles,
 } from '../../../styles'
 import QRImage from './qr-image'
 import QRScan from './qr-scan'
@@ -33,46 +34,9 @@ type Props = {
   onSubmitTextCode: string => void,
 }
 
-// type Options = {
-// defaultTab: Tab,
-// // validTabs: Array<Tab>,
-// tabDetails: {[tab: Tab]: TabDetails},
-// }
-
-// type Props = {
-// // currentDeviceAlreadyProvisioned: boolean,
-// // currentDeviceType: DeviceType,
-// // otherDeviceType: DeviceType,
-// defaultTab: Tab,
-// // validTabs: Array<Tab>,
-// tabDetails: {[tab: Tab]: TabDetails},
-// // enterQrCodeInstructions: string,
-// // enterTextCodeInputHint: string,
-// // enterTextCodeInstructions: React.Node,
-// // isValidLookingCode: string => boolean,
-// onSubmitTextCode: (textCode: string) => void,
-// // viewQrCode: string,
-// // viewQrCodeInstructions: string,
-// // viewTextCode: string,
-// // viewTextCodeInstructions: string,
-// }
-
 type State = {
   tab: Tab,
 }
-
-// const PanelContainer = ({instructions, children, }) => (
-// <Box2 direction="vertical" style={styles.panelContainer} gap="medium" gapStart={true}>
-// {instructions}
-// {children}
-// </Box2>
-// )
-
-// const _tabsMap = {
-// QR: 'Scan QR Code',
-// enterText: 'Enter a text code',
-// viewText: 'See a text code',
-// }
 
 const Tabs = (props: {tabs: Array<Tab>, selected: Tab, onSelect: Tab => void}) => (
   <Box2 direction="horizontal" gap="small">
@@ -101,30 +65,6 @@ class CodePage2 extends React.Component<Props, State> {
     }
   }
 
-  // _getContent = () => {
-  // switch (this.state.tab) {
-  // case 'scanQR':
-  // return (
-  // <ScanQR onScan={this.props.onSubmitTextCode} instructions={this.props.viewQrCodeInstructions} />
-  // )
-  // case 'viewQR':
-  // return <ViewQR url={this.props.viewQrCode} instructions={this.props.viewQrCodeInstructions} />
-  // case 'enterText':
-  // return (
-  // <EnterText
-  // isValidLookingCode={this.props.isValidLookingCode}
-  // instructions={this.props.enterTextCodeInstructions}
-  // inputHint={this.props.enterTextCodeInputHint}
-  // onSubmit={this.props.onSubmitTextCode}
-  // />
-  // )
-  // case 'viewText':
-  // return <ViewText code={this.props.viewTextCode} instructions={this.props.viewTextCodeInstructions} />
-  // default:
-  // return null
-  // }
-  // }
-
   static _validTabs = (currentDeviceType, otherDeviceType) => {
     if (currentDeviceType === 'desktop' && otherDeviceType === 'desktop') {
       return ['viewText', 'enterText']
@@ -151,140 +91,131 @@ class CodePage2 extends React.Component<Props, State> {
     throw new Error('Impossible defaultTab')
   }
 
+  _tabBackground = () => (this.state.tab === 'QR' ? globalColors.blue2 : globalColors.green)
+
   render() {
+    let content
+    switch (this.state.tab) {
+      case 'QR':
+        content = <Qr {...this.props} />
+        break
+      case 'viewText':
+        content = <ViewText {...this.props} />
+        break
+      case 'enterText':
+        content = <EnterText {...this.props} />
+        break
+      default:
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (action: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(this.state.tab);
+      */
+        content = null
+    }
     return (
       <Box2
         direction="vertical"
-        style={{backgroundColor: globalColors.blue2}}
+        style={collapseStyles([styles.container, {backgroundColor: this._tabBackground()}])}
         fullWidth={true}
         fullHeight={true}
       >
-        <Qr {...this.props}>
-          <Tabs
-            tabs={CodePage2._validTabs(this.props.currentDeviceType, this.props.otherDeviceType)}
-            selected={this.state.tab}
-            onSelect={tab => this.setState({tab})}
-          />
-        </Qr>
+        <Instructions {...this.props} />
+        {content}
+
+        <Tabs
+          tabs={CodePage2._validTabs(this.props.currentDeviceType, this.props.otherDeviceType)}
+          selected={this.state.tab}
+          onSelect={tab => this.setState({tab})}
+        />
       </Box2>
     )
   }
 }
 
-const Qr = (p: Props & {children: React.Node}) => {
-  const instructions = (
-    <Box2 direction="vertical">
-      {p.currentDeviceAlreadyProvisioned ? (
-        <Text type="HeaderBig" style={styles.instructions}>
-          Ready to provision using{' '}
-          <Text type="HeaderBigExtrabold" style={styles.instructions}>
-            {p.otherDeviceName}
-          </Text>
-        </Text>
-      ) : (
-        <Text type="HeaderBig" style={styles.instructions}>
-          In{' '}
-          <Text type="HeaderBigExtrabold" style={styles.instructions}>
-            {p.otherDeviceName}
-          </Text>, go to Devices > Add new > New phone.
-        </Text>
-      )}
+const Qr = (props: Props) => (
+  <Box2
+    style={collapseStyles([
+      styles.qrContainer,
+      props.currentDeviceAlreadyProvisioned && styles.qrContainerFlip,
+    ])}
+    direction="vertical"
+  >
+    <Box2 direction="vertical" style={styles.qrImageContainer}>
+      <QRImage code={props.textCode} />
     </Box2>
-  )
-  return (
-    <Box2 direction="vertical" gap="medium" gapStart={true} fullWidth={true}>
-      {instructions}
-      <Box2
-        style={collapseStyles([styles.qrHolder, p.currentDeviceAlreadyProvisioned && styles.qrHolderFlip])}
-        direction="vertical"
-      >
-        <Box2 direction="vertical" style={styles.qrImageContainer}>
-          <QRImage code={p.textCode} />
-        </Box2>
-        <QRScan onScan={p.onSubmitTextCode} />
-      </Box2>
-      {p.children}
-    </Box2>
-  )
-}
+    <QRScan onScan={props.onSubmitTextCode} />
+  </Box2>
+)
 
-// const tabDetails = (p: CommonParam): {[tab: Tab]: TabDetails} => {
-// if (p.currentDeviceAlreadyProvisioned) {
-// if (p.otherDeviceType === 'phone') {
-// return {
-// QR: (
-// <Box2 direction="vertical">
-// <Text type="Body">
-// In <Text type="BodySemiboldItalic">{p.otherDeviceName}</Text>, go to Devices > Add new > New
-// phone.
-// </Text>
-// </Box2>
-// ),
-// }
-// if (p.currentDeviceType === 'phone') {
-// } else {
-// }
-// } else {
-// if (p.otherDeviceType === 'phone') {
-// return {QR: <QR {...p} />}
-// }
-// }
-// }
-// }
+const EnterText = (props: Props) => null
 
-// export const getOptions = (p: CommonParam): Options => {
-// return {
-// defaultTab: defaultTab(p),
-// // enterQrCodeInstructions: p.currentDeviceAlreadyProvisioned
-// // ? howToViewQRCodeOnNewDevice(p)
-// // : howToViewQRCodeOnExistingDevice(p),
-// // enterTextCodeInputHint: p.currentDeviceAlreadyProvisioned
-// // ? enterTextCodeInputHintForNewDevice(p)
-// // : enterTextCodeInputHintForExistingDevice(p),
-// // enterTextCodeInstructions: p.currentDeviceAlreadyProvisioned
-// // ? howToGetTextCodeOnNewDevice(p)
-// // : howToGetTextCodeOnExistingDevice(p),
-// validTabs: validTabs(p),
-// tabDetails: tabDetails(p),
-// // viewTextCodeInstructions: p.currentDeviceAlreadyProvisioned
-// // ? howToEnterTextCodeOnNewDevice(p)
-// // : howToEnterTextCodeOnExistingDevice(p),
-// // viewQrCodeInstructions: p.currentDeviceAlreadyProvisioned
-// // ? howToScanQRCodeOnNewDevice(p)
-// // : howToScanQRCodeOnExistingDevice(p),
-// }
-// }
+const ViewText = (props: Props) => (
+  <Box2 direction="vertical" style={styles.viewTextContainer}>
+    <Text type="Terminal" style={styles.viewTextCode}>
+      {props.textCode}
+    </Text>
+  </Box2>
+)
+
+const Instructions = (p: Props) => (
+  <Box2 direction="vertical">
+    {p.currentDeviceAlreadyProvisioned ? (
+      <Text type="HeaderBig" style={styles.instructions}>
+        Ready to provision using{' '}
+        <Text type="HeaderBigExtrabold" style={styles.instructions}>
+          {p.otherDeviceName}
+        </Text>
+      </Text>
+    ) : (
+      <Text type="HeaderBig" style={styles.instructions}>
+        In{' '}
+        <Text type="HeaderBigExtrabold" style={styles.instructions}>
+          {p.otherDeviceName}
+        </Text>, go to {p.otherDeviceType === 'phone' ? 'Settings > ' : ''}Devices > Add new > New{' '}
+        {p.otherDeviceType}.
+      </Text>
+    )}
+  </Box2>
+)
 
 const styles = styleSheetCreate({
+  container: {
+    justifyContent: 'space-between',
+    padding: globalMargins.large,
+  },
   instructions: {
     color: globalColors.white,
     textAlign: 'center',
   },
-  qrHolder: {
+  qrContainer: {
     backgroundColor: globalColors.white,
     borderRadius: 8,
     flexDirection: 'column',
     padding: 4,
     width: 220,
   },
-  qrHolderFlip: {
+  qrContainerFlip: {
     flexDirection: 'column-reverse',
   },
   qrImageContainer: {
     paddingBottom: 30,
     paddingTop: 30,
   },
-  tabs: {
-    padding: globalMargins.small,
-  },
-  textCode: {
-    borderRadius: 4,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    color: globalColors.darkBlue,
-    maxWidth: 300,
-    padding: 20,
+  viewTextCode: {
+    ...globalStyles.fontTerminalSemibold,
+    color: globalColors.white,
+    fontSize: 16,
+    maxWidth: isMobile ? 200 : 330,
     textAlign: 'center',
+  },
+  viewTextContainer: {
+    backgroundColor: globalColors.green2,
+    borderRadius: 4,
+    maxWidth: isMobile ? 300 : 460,
+    paddingBottom: 20,
+    paddingLeft: 64,
+    paddingRight: 64,
+    paddingTop: 20,
   },
 })
 export default CodePage2
