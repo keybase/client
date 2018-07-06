@@ -2,7 +2,7 @@
 import * as React from 'react'
 import ResultsList from '../../search/results-list/container'
 import UserInput from '../../search/user-input/container'
-import {StandardScreen} from '../../common-adapters'
+import {Box2, StandardScreen, Text} from '../../common-adapters'
 import {globalStyles} from '../../styles'
 
 export type Props = {
@@ -16,14 +16,17 @@ const placeholder = 'Search Keybase'
 
 const Search = (props: Props) => (
   <StandardScreen style={styleContainer} onCancel={props.onClose} title="Wallet search">
-    <UserInput
-      searchKey={searchKey}
-      autoFocus={true}
-      placeholder={placeholder}
-      onExitSearch={props.onClose}
-      disableListBuilding={true}
-      disableServiceFilter={true}
-    />
+    <Box2 direction="horizontal">
+      <Text type="Body">To:</Text>
+      <UserInput
+        searchKey={searchKey}
+        autoFocus={true}
+        placeholder={placeholder}
+        onExitSearch={props.onClose}
+        disableListBuilding={true}
+        disableServiceFilter={true}
+      />
+    </Box2>
     <ResultsList
       searchKey={searchKey}
       onClick={props.onClick}
