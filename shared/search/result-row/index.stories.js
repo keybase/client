@@ -8,14 +8,6 @@ import {Box} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 
-const defaultOwnProps: OwnProps = {
-  disableIfInTeamName: '',
-  id: 'jzila',
-  selected: false,
-  onClick: action('On click'),
-  onMouseOver: action('On mouse over'),
-}
-
 type ConnectProps = $Exact<$Diff<Props, OwnProps>>
 
 const defaultConnectProps = {
@@ -58,6 +50,14 @@ const mockOwnPropsToProps = (connectPropsMap: ConnectPropsMap, ownProps: OwnProp
     ...ownProps,
     ...result,
   }
+}
+
+const defaultOwnProps: OwnProps = {
+  disableIfInTeamName: '',
+  id: 'jzila',
+  selected: false,
+  onClick: action('On click'),
+  onMouseOver: action('On mouse over'),
 }
 
 const defaultProps = mockOwnPropsToProps(defaultConnectPropsMap, defaultOwnProps)
