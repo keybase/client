@@ -102,6 +102,9 @@ func checkPendingOp(ctx context.Context,
 	case keybase1.AsyncOps_LIST_RECURSIVE:
 		list := o.ListRecursive()
 		assert.Equal(t, list.Path, src, "Expected matching path in operation")
+	case keybase1.AsyncOps_LIST_RECURSIVE_TO_DEPTH:
+		list := o.ListRecursiveToDepth()
+		assert.Equal(t, list.Path, src, "Expected matching path in operation")
 	// TODO: read is not async
 	case keybase1.AsyncOps_READ:
 		read := o.Read()
