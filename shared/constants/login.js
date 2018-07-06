@@ -41,13 +41,14 @@ function defaultModeForDeviceRoles(
   return null
 }
 
-function qrGenerate(code: string): string {
-  const QRCodeGen = require('qrcode-generator')
-  const qr = QRCodeGen(4, 'L')
-  qr.addData(code)
-  qr.make()
-  return qr.createDataURL(2, 0)
-}
+// function qrGenerate(code: string): string {
+// const QRCodeGen = require('qrcode-generator')
+// const qr = QRCodeGen(4, 'L')
+// qr.addData(code)
+// qr.make()
+// // return qr.createDataURL(2, 0)
+// renderTo2dContext
+// }
 
 const makeAccount: I.RecordFactory<Types._Account> = I.Record({
   hasStoredSecret: false,
