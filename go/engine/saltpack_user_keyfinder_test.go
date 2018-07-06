@@ -6,12 +6,15 @@
 package engine
 
 import (
-	"github.com/keybase/client/go/libkb"
 	"testing"
+
+	"github.com/keybase/client/go/libkb"
 )
 
-func TestDeviceKeyfinder(t *testing.T) {
-	tc := SetupEngineTest(t, "DeviceKeyfinder")
+// TODO add more tests here, for device keys and paper keys and various combinations.
+
+func TestSaltpackUserKeyfinder(t *testing.T) {
+	tc := SetupEngineTest(t, "SaltpackUserKeyfinder")
 	defer tc.Cleanup()
 
 	u1 := CreateAndSignupFakeUser(tc, "naclp")
@@ -23,17 +26,17 @@ func TestDeviceKeyfinder(t *testing.T) {
 	}
 
 	uis := libkb.UIs{IdentifyUI: trackUI, SecretUI: u3.NewSecretUI()}
-	arg := DeviceKeyfinderArg{
-		Users:           []string{u1.Username, u2.Username, u3.Username},
-		NeedEncryptKeys: true,
+	arg := libkb.SaltpackRecipientKeyfinderArg{
+		Recipients:    []string{u1.Username, u2.Username, u3.Username},
+		UseEntityKeys: true,
 	}
-	eng := NewDeviceKeyfinder(tc.G, arg)
+	eng := NewSaltpackUserKeyfinder(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
-	up := eng.UsersPlusKeysV2()
+	up := eng.GetPublicKIDs()
 	if len(up) != 3 {
 		t.Errorf("number of users found: %d, expected 3", len(up))
 	}

@@ -9,18 +9,16 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"strings"
 
-	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/saltpack"
 )
 
 func SaltpackDecrypt(
 	ctx context.Context, g *GlobalContext, source io.Reader, sink io.WriteCloser,
-	deviceEncryptionKey NaclDHKeyPair,
+	decryptionKeyring saltpack.SigncryptKeyring,
 	checkSenderMki func(*saltpack.MessageKeyInfo) error,
-	checkSenderSigningKey func(saltpack.SigningPublicKey) error) (*saltpack.MessageKeyInfo, error) {
+	checkSenderSigningKey func(saltpack.SigningPublicKey) error,
+	keyResolver saltpack.SymmetricKeyResolver) (*saltpack.MessageKeyInfo, error) {
 
 	sc, newSource, err := ClassifyStream(source)
 	if err != nil {
@@ -49,7 +47,7 @@ func SaltpackDecrypt(
 	}
 
 	// mki will be set for DH mode, senderSigningKey will be set for signcryption mode
-	plainsource, mki, senderSigningKey, typ, err := peekTypeAndMakeDecoder(ctx, g, dearmored, naclKeyring(deviceEncryptionKey))
+	plainsource, mki, senderSigningKey, typ, err := peekTypeAndMakeDecoder(ctx, g, dearmored, decryptionKeyring, keyResolver)
 
 	if err != nil {
 		return mki, err
@@ -92,7 +90,7 @@ func SaltpackDecrypt(
 	return mki, nil
 }
 
-func peekTypeAndMakeDecoder(ctx context.Context, g *GlobalContext, dearmored io.Reader, keyring naclKeyring) (io.Reader, *saltpack.MessageKeyInfo, saltpack.SigningPublicKey, saltpack.MessageType, error) {
+func peekTypeAndMakeDecoder(ctx context.Context, g *GlobalContext, dearmored io.Reader, keyring saltpack.SigncryptKeyring, keyResolver saltpack.SymmetricKeyResolver) (io.Reader, *saltpack.MessageKeyInfo, saltpack.SigningPublicKey, saltpack.MessageType, error) {
 	// How much do we need to peek to get at the mode number?
 	// - bin tag (2, 3, or 5 bytes)
 	// - array tag (1 byte)
@@ -148,100 +146,9 @@ func peekTypeAndMakeDecoder(ctx context.Context, g *GlobalContext, dearmored io.
 		mki, plainsource, err := saltpack.NewDecryptStream(saltpack.CheckKnownMajorVersion, peekable, keyring)
 		return plainsource, mki, nil, typ, err
 	case saltpack.MessageTypeSigncryption:
-		senderPublic, plainsource, err := saltpack.NewSigncryptOpenStream(peekable, keyring, NewTlfKeyResolver(ctx, g))
+		senderPublic, plainsource, err := saltpack.NewSigncryptOpenStream(peekable, keyring, keyResolver)
 		return plainsource, nil, senderPublic, typ, err
 	default:
 		return nil, nil, nil, -1, fmt.Errorf("unexpected message mode when peeking: %d", typ)
 	}
-}
-
-type TlfKeyResolver struct {
-	Contextified
-	ctx context.Context
-}
-
-var _ saltpack.SymmetricKeyResolver = (*TlfKeyResolver)(nil)
-
-func NewTlfKeyResolver(ctx context.Context, g *GlobalContext) *TlfKeyResolver {
-	return &TlfKeyResolver{NewContextified(g), ctx}
-}
-
-func (r *TlfKeyResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.SymmetricKey, error) {
-	tlfPseudonyms := []TlfPseudonym{}
-	for _, identifier := range identifiers {
-		pseudonym := TlfPseudonym{}
-		if len(pseudonym) != len(identifier) {
-			return nil, fmt.Errorf("identifier is the wrong length for a TLF pseudonym (%d != %d)", len(pseudonym), len(identifier))
-		}
-		copy(pseudonym[:], identifier)
-		tlfPseudonyms = append(tlfPseudonyms, pseudonym)
-	}
-
-	results, err := GetTlfPseudonyms(r.ctx, r.G(), tlfPseudonyms)
-	if err != nil {
-		return nil, err
-	}
-
-	symmetricKeys := []*saltpack.SymmetricKey{}
-	for _, result := range results {
-		if result.Err != nil {
-			r.G().Log.CDebugf(r.ctx, "skipping unresolved pseudonym: %s", result.Err)
-			symmetricKeys = append(symmetricKeys, nil)
-			continue
-		}
-		r.G().Log.CDebugf(r.ctx, "resolved pseudonym for %s, fetching key", result.Info.Name)
-		symmetricKey, err := r.getSymmetricKey(*result.Info)
-		if err != nil {
-			return nil, err
-		}
-		symmetricKeys = append(symmetricKeys, symmetricKey)
-	}
-	return symmetricKeys, nil
-}
-
-func (r *TlfKeyResolver) getCryptKeys(ctx context.Context, name string) (keybase1.GetTLFCryptKeysRes, error) {
-	xp := r.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
-	if xp == nil {
-		return keybase1.GetTLFCryptKeysRes{}, KBFSNotRunningError{}
-	}
-	cli := &keybase1.TlfKeysClient{
-		Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(r.G()), LogTagsFromContext),
-	}
-	return cli.GetTLFCryptKeys(ctx, keybase1.TLFQuery{
-		TlfName:          name,
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-	})
-}
-
-func (r *TlfKeyResolver) getSymmetricKey(info TlfPseudonymServerInfo) (*saltpack.SymmetricKey, error) {
-	// NOTE: In order to handle finalized TLFs (which is one of the main
-	// benefits of using TLF keys to begin with, for forward readability), we
-	// need the server to tell us what the current, potentially-finalized name
-	// of the TLF is. If that's not the same as what the name was when the
-	// message was sent, we can't necessarily check that the server is being
-	// honest. That's ok insofar as we're not relying on these keys for
-	// authenticity, but it's a drag to not be able to use the pseudonym
-	// machinery.
-
-	// TODO: Check as much as we can, if the original TLF was fully resolved.
-	// This is a little tricky, because the current TLF name parsing code lives
-	// in chat and depends on externals, and it would create a circular
-	// dependency if we pulled it directly into libkb.
-
-	// Strip "/keybase/private/" from the name.
-	basename := strings.TrimPrefix(info.UntrustedCurrentName, "/keybase/private/")
-	if len(basename) >= len(info.UntrustedCurrentName) {
-		return nil, fmt.Errorf("unexpected prefix, expected '/keybase/private', found %q", info.UntrustedCurrentName)
-	}
-	res, err := r.getCryptKeys(r.ctx, basename)
-	if err != nil {
-		return nil, err
-	}
-	for _, key := range res.CryptKeys {
-		if KeyGen(key.KeyGeneration) == info.KeyGen {
-			// Success!
-			return (*saltpack.SymmetricKey)(&key.Key), nil
-		}
-	}
-	return nil, fmt.Errorf("no keys in TLF %q matched generation %d", basename, info.KeyGen)
 }

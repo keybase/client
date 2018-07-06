@@ -17,13 +17,15 @@ import (
 
 type CmdEncrypt struct {
 	libkb.Contextified
-	filter             UnixFilter
-	recipients         []string
-	binary             bool
-	anonymousSender    bool
-	currentDevicesOnly bool // the public-facing term for "encryption-only mode"
-	noSelfEncrypt      bool
-	saltpackVersion    int
+	filter           UnixFilter
+	recipients       []string
+	binary           bool
+	useEntityKeys    bool
+	useDeviceKeys    bool
+	usePaperKeys     bool
+	noSelfEncrypt    bool
+	authenticityType keybase1.AuthenticityType
+	saltpackVersion  int
 }
 
 func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -44,17 +46,26 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			Name:  "o, outfile",
 			Usage: "Specify an outfile (stdout by default).",
 		},
-		cli.BoolFlag{
-			Name:  "anonymous",
-			Usage: "Don't include a sender.",
+		cli.BoolTFlag{ // True by default!
+			Name:  "use-entity-keys",
+			Usage: "Use per user/per team keys for encryption. Default is true.",
 		},
 		cli.BoolFlag{
-			Name:  "current-devices-only", // the public-facing term for "encryption-only mode"
-			Usage: "Don't use any forward-compatible keys or server assistance.",
+			Name:  "use-device-keys",
+			Usage: "Use the device keys of all the user recipients (and memebers of teams) for encryption. Not supported for large teams (a warning will be issued).",
 		},
 		cli.BoolFlag{
-			Name:  "no-self",
-			Usage: "Don't encrypt for yourself. Requires --current-devices-only.",
+			Name:  "use-paper-keys",
+			Usage: "Use the paper keys of all the user recipients (and memebers of teams) for encryption. Not supported for large teams (a warning will be issued).",
+		},
+		cli.BoolFlag{
+			Name:  "no-self-encrypt",
+			Usage: "Don't encrypt for yourself.",
+		},
+		cli.StringFlag{
+			Name:  "auth-type",
+			Value: "SIGNED",
+			Usage: "How to guarantee sender authenticity: SIGNED|REPUDIABLE|ANONYMOUS. Uses this device's key for signing, pairwise MACs for repudiability, nothing if anonymous.",
 		},
 		cli.IntFlag{
 			Name:  "saltpack-version",
@@ -65,12 +76,11 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 	return cli.Command{
 		Name:         "encrypt",
 		ArgumentHelp: "<usernames...>",
-		Usage:        "Encrypt messages or files for keybase users",
+		Usage:        "Encrypt messages or files for keybase users and teams",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdEncrypt{
 				Contextified: libkb.NewContextified(g),
 			}, "encrypt", c)
-			cl.SetNoStandalone() // needs KBFS in SaltpackEncrypt.getCryptKeys
 		},
 		Flags: flags,
 	}
@@ -97,12 +107,14 @@ func (c *CmdEncrypt) Run() error {
 	}
 
 	opts := keybase1.SaltpackEncryptOptions{
-		Recipients:         c.recipients,
-		AnonymousSender:    c.anonymousSender,
-		EncryptionOnlyMode: c.currentDevicesOnly,
-		NoSelfEncrypt:      c.noSelfEncrypt,
-		Binary:             c.binary,
-		SaltpackVersion:    c.saltpackVersion,
+		Recipients:       c.recipients,
+		AuthenticityType: c.authenticityType,
+		UseEntityKeys:    c.useEntityKeys,
+		UseDeviceKeys:    c.useDeviceKeys,
+		UsePaperKeys:     c.usePaperKeys,
+		NoSelfEncrypt:    c.noSelfEncrypt,
+		Binary:           c.binary,
+		SaltpackVersion:  c.saltpackVersion,
 	}
 	arg := keybase1.SaltpackEncryptArg{Source: src, Sink: snk, Opts: opts}
 	err = cli.SaltpackEncrypt(context.TODO(), arg)
@@ -127,15 +139,20 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 	msg := ctx.String("message")
 	outfile := ctx.String("outfile")
 	infile := ctx.String("infile")
-	c.anonymousSender = ctx.Bool("anonymous")
-	c.currentDevicesOnly = ctx.Bool("current-devices-only")
-	c.noSelfEncrypt = ctx.Bool("no-self")
-	if c.noSelfEncrypt && !c.currentDevicesOnly {
-		// TODO: Back-compat hack for docker tests. Remove this after landing,
-		// and re-enable the error below.
-		c.currentDevicesOnly = true
-		// return errors.New("--no-self requires --current-devices-only")
+	c.useEntityKeys = ctx.Bool("use-entity-keys")
+	c.useDeviceKeys = ctx.Bool("use-device-keys")
+	c.usePaperKeys = ctx.Bool("use-paper-keys")
+	var ok bool
+	if c.authenticityType, ok = keybase1.AuthenticityTypeMap[ctx.String("auth-type")]; !ok {
+		return errors.New("invalid auth-type option provided")
 	}
+	if c.useEntityKeys && c.authenticityType == keybase1.AuthenticityType_REPUDIABLE {
+		return errors.New("cannot use --use-entity-keys and --auth-type=repudiable together")
+	}
+	if !(c.useEntityKeys || c.useDeviceKeys || c.usePaperKeys) {
+		return errors.New("please choose at least one type of keys (between --use-entity-keys, --use-device-keys, --use-paper-keys")
+	}
+	c.noSelfEncrypt = ctx.Bool("no-self-encrypt")
 	c.binary = ctx.Bool("binary")
 	c.saltpackVersion = ctx.Int("saltpack-version")
 	return c.filter.FilterInit(c.G(), msg, infile, outfile)

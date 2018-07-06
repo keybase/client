@@ -8,13 +8,44 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type AuthenticityType int
+
+const (
+	AuthenticityType_SIGNED     AuthenticityType = 0
+	AuthenticityType_REPUDIABLE AuthenticityType = 1
+	AuthenticityType_ANONYMOUS  AuthenticityType = 2
+)
+
+func (o AuthenticityType) DeepCopy() AuthenticityType { return o }
+
+var AuthenticityTypeMap = map[string]AuthenticityType{
+	"SIGNED":     0,
+	"REPUDIABLE": 1,
+	"ANONYMOUS":  2,
+}
+
+var AuthenticityTypeRevMap = map[AuthenticityType]string{
+	0: "SIGNED",
+	1: "REPUDIABLE",
+	2: "ANONYMOUS",
+}
+
+func (e AuthenticityType) String() string {
+	if v, ok := AuthenticityTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type SaltpackEncryptOptions struct {
-	Recipients         []string `codec:"recipients" json:"recipients"`
-	AnonymousSender    bool     `codec:"anonymousSender" json:"anonymousSender"`
-	EncryptionOnlyMode bool     `codec:"encryptionOnlyMode" json:"encryptionOnlyMode"`
-	NoSelfEncrypt      bool     `codec:"noSelfEncrypt" json:"noSelfEncrypt"`
-	Binary             bool     `codec:"binary" json:"binary"`
-	SaltpackVersion    int      `codec:"saltpackVersion" json:"saltpackVersion"`
+	Recipients       []string         `codec:"recipients" json:"recipients"`
+	AuthenticityType AuthenticityType `codec:"authenticityType" json:"authenticityType"`
+	UseEntityKeys    bool             `codec:"useEntityKeys" json:"useEntityKeys"`
+	UseDeviceKeys    bool             `codec:"useDeviceKeys" json:"useDeviceKeys"`
+	UsePaperKeys     bool             `codec:"usePaperKeys" json:"usePaperKeys"`
+	NoSelfEncrypt    bool             `codec:"noSelfEncrypt" json:"noSelfEncrypt"`
+	Binary           bool             `codec:"binary" json:"binary"`
+	SaltpackVersion  int              `codec:"saltpackVersion" json:"saltpackVersion"`
 }
 
 func (o SaltpackEncryptOptions) DeepCopy() SaltpackEncryptOptions {
@@ -30,25 +61,29 @@ func (o SaltpackEncryptOptions) DeepCopy() SaltpackEncryptOptions {
 			}
 			return ret
 		})(o.Recipients),
-		AnonymousSender:    o.AnonymousSender,
-		EncryptionOnlyMode: o.EncryptionOnlyMode,
-		NoSelfEncrypt:      o.NoSelfEncrypt,
-		Binary:             o.Binary,
-		SaltpackVersion:    o.SaltpackVersion,
+		AuthenticityType: o.AuthenticityType.DeepCopy(),
+		UseEntityKeys:    o.UseEntityKeys,
+		UseDeviceKeys:    o.UseDeviceKeys,
+		UsePaperKeys:     o.UsePaperKeys,
+		NoSelfEncrypt:    o.NoSelfEncrypt,
+		Binary:           o.Binary,
+		SaltpackVersion:  o.SaltpackVersion,
 	}
 }
 
 type SaltpackDecryptOptions struct {
-	Interactive      bool `codec:"interactive" json:"interactive"`
-	ForceRemoteCheck bool `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
-	UsePaperKey      bool `codec:"usePaperKey" json:"usePaperKey"`
+	Interactive                    bool `codec:"interactive" json:"interactive"`
+	ForceRemoteCheck               bool `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
+	UsePaperKey                    bool `codec:"usePaperKey" json:"usePaperKey"`
+	UseLegacyKBFSPseudonymResolver bool `codec:"useLegacyKBFSPseudonymResolver" json:"useLegacyKBFSPseudonymResolver"`
 }
 
 func (o SaltpackDecryptOptions) DeepCopy() SaltpackDecryptOptions {
 	return SaltpackDecryptOptions{
-		Interactive:      o.Interactive,
-		ForceRemoteCheck: o.ForceRemoteCheck,
-		UsePaperKey:      o.UsePaperKey,
+		Interactive:                    o.Interactive,
+		ForceRemoteCheck:               o.ForceRemoteCheck,
+		UsePaperKey:                    o.UsePaperKey,
+		UseLegacyKBFSPseudonymResolver: o.UseLegacyKBFSPseudonymResolver,
 	}
 }
 

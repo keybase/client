@@ -26,49 +26,51 @@ type CmdDecrypt struct {
 }
 
 func NewCmdDecrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	flags := []cli.Flag{
+		cli.StringFlag{
+			Name:  "i, infile",
+			Usage: "Specify an input file.",
+		},
+		cli.StringFlag{
+			Name:  "m, message",
+			Usage: "Provide the message on the command line.",
+		},
+		cli.StringFlag{
+			Name:  "o, outfile",
+			Usage: "Specify an outfile (stdout by default).",
+		},
+		cli.BoolFlag{
+			Name:  "interactive",
+			Usage: "Interactive prompt for decryption after sender verification",
+		},
+		cli.BoolFlag{
+			Name:  "f, force",
+			Usage: "Force unprompted decryption, even on an identify failure",
+		},
+		cli.BoolFlag{
+			Name:  "paperkey",
+			Usage: "Use a paper key for decryption",
+		},
+		cli.BoolFlag{
+			Name:  "use-legacy-kbfs-keys",
+			Usage: "Try decrypting using legacy kbfs keys. Try this to decrypt messages produced by older versions of keybase if they do not decrypt normally.",
+		},
+		cli.StringFlag{
+			Name:  "encryptor-outfile",
+			Usage: "Write the Keybase name of the encryptor to this file",
+		},
+	}
+
 	return cli.Command{
 		Name:  "decrypt",
 		Usage: "Decrypt messages or files for keybase users",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdDecryptRunner(g), "decrypt", c)
+			cl.ChooseCommand(&CmdDecrypt{
+				Contextified: libkb.NewContextified(g),
+				opts:         keybase1.SaltpackDecryptOptions{ForceRemoteCheck: true},
+			}, "decrypt", c)
 		},
-		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "i, infile",
-				Usage: "Specify an input file.",
-			},
-			cli.StringFlag{
-				Name:  "m, message",
-				Usage: "Provide the message on the command line.",
-			},
-			cli.StringFlag{
-				Name:  "o, outfile",
-				Usage: "Specify an outfile (stdout by default).",
-			},
-			cli.BoolFlag{
-				Name:  "interactive",
-				Usage: "Interactive prompt for decryption after sender verification",
-			},
-			cli.BoolFlag{
-				Name:  "f, force",
-				Usage: "Force unprompted decryption, even on an identify failure",
-			},
-			cli.BoolFlag{
-				Name:  "paperkey",
-				Usage: "Use a paper key for decryption",
-			},
-			cli.StringFlag{
-				Name:  "encryptor-outfile",
-				Usage: "Write the Keybase name of the encryptor to this file",
-			},
-		},
-	}
-}
-
-func NewCmdDecryptRunner(g *libkb.GlobalContext) *CmdDecrypt {
-	return &CmdDecrypt{
-		Contextified: libkb.NewContextified(g),
-		opts:         keybase1.SaltpackDecryptOptions{ForceRemoteCheck: true},
+		Flags: flags,
 	}
 }
 
@@ -133,6 +135,7 @@ func (c *CmdDecrypt) Run() error {
 		c.explainDecryptionFailure(&info)
 	} else if c.senderfile != nil {
 		if info.Sender.Username != "" {
+			// TODO Is it intended to not pick up this error later when this function returns?
 			if _, err := c.senderfile.Write([]byte(info.Sender.Username)); err != nil {
 				c.G().Log.Errorf("failure writing sender file: %s", err)
 			}
@@ -164,6 +167,8 @@ func (c *CmdDecrypt) ParseArgv(ctx *cli.Context) error {
 	}
 	c.opts.Interactive = interactive
 	c.opts.UsePaperKey = ctx.Bool("paperkey")
+	c.opts.UseLegacyKBFSPseudonymResolver = ctx.Bool("use-legacy-kbfs-keys")
+
 	msg := ctx.String("message")
 	outfile := ctx.String("outfile")
 	infile := ctx.String("infile")

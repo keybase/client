@@ -766,29 +766,39 @@ func (k KeyUnimplementedError) Error() string {
 }
 
 type NoPGPEncryptionKeyError struct {
-	User         string
-	HasDeviceKey bool
+	User                    string
+	HasKeybaseEncryptionKey bool
 }
 
 func (e NoPGPEncryptionKeyError) Error() string {
 	var other string
-	if e.HasDeviceKey {
-		other = "; they do have a device key, so you can `keybase encrypt` to them instead"
+	if e.HasKeybaseEncryptionKey {
+		other = "; they do have a keybase key, so you can `keybase encrypt` to them instead"
 	}
 	return fmt.Sprintf("User %s doesn't have a PGP key%s", e.User, other)
 }
 
 type NoNaClEncryptionKeyError struct {
-	User      string
-	HasPGPKey bool
+	Username     string
+	HasPGPKey    bool
+	HasPUK       bool
+	HasDeviceKey bool
+	HasPaperKey  bool
 }
 
 func (e NoNaClEncryptionKeyError) Error() string {
 	var other string
-	if e.HasPGPKey {
+	if e.HasPUK {
+		other = "; they do have a per user key, so you can use the flag `--use-entity-keys` to them instead"
+	} else if e.HasDeviceKey {
+		other = "; they do have a device key, so you can use the flag `--use-device-keys` to them instead"
+	} else if e.HasPaperKey {
+		other = "; they do have a per user key, so you can use the flag `--use-paper-keys` to them instead"
+	} else if e.HasPGPKey {
 		other = "; they do have a PGP key, so you can `keybase pgp encrypt` to them instead"
 	}
-	return fmt.Sprintf("User %s doesn't have a device key%s", e.User, other)
+
+	return fmt.Sprintf("User %s doesn't have the key type(s) requested%s", e.Username, other)
 }
 
 //=============================================================================
@@ -2083,6 +2093,22 @@ func (e PseudonymGetError) Error() string {
 }
 
 var _ error = (*PseudonymGetError)(nil)
+
+//=============================================================================
+
+// PseudonymGetError is sometimes written by unmarshaling (some fields of) a server response.
+type KeyPseudonymGetError struct {
+	msg string
+}
+
+func (e KeyPseudonymGetError) Error() string {
+	if e.msg == "" {
+		return "Pseudonym could not be resolved"
+	}
+	return e.msg
+}
+
+var _ error = (*KeyPseudonymGetError)(nil)
 
 //=============================================================================
 

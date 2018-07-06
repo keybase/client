@@ -143,12 +143,12 @@ func (e *PGPPurge) encryptToFile(m libkb.MetaContext, bundle *libkb.PGPKeyBundle
 		Source: &buf,
 		Sink:   out,
 		Opts: keybase1.SaltpackEncryptOptions{
-			// Signcryption mode would require KBFS and network access, which
-			// we don't necessarily want. The purge backup isn't expected to
-			// leave the current device anyway.
-			EncryptionOnlyMode: true,
+			AuthenticityType: keybase1.AuthenticityType_SIGNED,
+			UsePaperKeys:     true,
+			UseDeviceKeys:    true,
+			UseEntityKeys:    true,
 		},
 	}
-	eng := NewSaltpackEncrypt(e.G(), arg)
+	eng := NewSaltpackEncrypt(e.G(), arg, NewSaltpackUserKeyfinderAsInterface)
 	return RunEngine2(m, eng)
 }

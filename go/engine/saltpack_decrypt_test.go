@@ -3,6 +3,8 @@
 
 package engine
 
+// TODO updated tests in this file before merging PR
+
 import (
 	"crypto/rand"
 	"errors"
@@ -14,6 +16,8 @@ import (
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/saltpackKeyHelpers/saltpackHelperMocks"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
@@ -39,10 +43,19 @@ func (s fakeSaltpackUI) SaltpackVerifyBadSender(_ context.Context, arg keybase1.
 	return &FakeBadSenderError{arg.Sender.SenderType}
 }
 
+func initPerUserKeyringInTestContext(t *testing.T, tc libkb.TestContext) {
+	kr, err := tc.G.GetPerUserKeyring()
+	require.NoError(t, err)
+	err = kr.Sync(libkb.NewMetaContext(context.Background(), tc.G))
+	require.NoError(t, err)
+}
+
 func TestSaltpackDecrypt(t *testing.T) {
 	tc := SetupEngineTest(t, "SaltpackDecrypt")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "naclp")
+
+	initPerUserKeyringInTestContext(t, tc)
 
 	// encrypt a message
 	msg := "10 days in Japan"
@@ -55,11 +68,13 @@ func TestSaltpackDecrypt(t *testing.T) {
 	}
 	// Should encrypt for self, too.
 	arg := &SaltpackEncryptArg{
+		Opts: keybase1.SaltpackEncryptOptions{
+			UseEntityKeys: true,
+		},
 		Source: strings.NewReader(msg),
 		Sink:   sink,
 	}
-	enc := NewSaltpackEncrypt(tc.G, arg)
-	enc.skipTLFKeysForTesting = true
+	enc := NewSaltpackEncrypt(tc.G, arg, NewSaltpackUserKeyfinderAsInterface)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, enc); err != nil {
 		t.Fatal(err)
@@ -74,7 +89,7 @@ func TestSaltpackDecrypt(t *testing.T) {
 		Source: strings.NewReader(out),
 		Sink:   decoded,
 	}
-	dec := NewSaltpackDecrypt(tc.G, decarg)
+	dec := NewSaltpackDecrypt(tc.G, decarg, saltpackHelperMocks.NewMockPseudonymResolver(t))
 	if err := RunEngine2(m, dec); err != nil {
 		t.Fatal(err)
 	}
@@ -101,7 +116,7 @@ HTngZWUk8Tjn6Q8zrnnoB92G1G+rZHAiChgBFQCaYDBsWa0Pia6Vm+10OAIulGGj
 		Source: strings.NewReader(pgpMsg),
 		Sink:   decoded,
 	}
-	dec = NewSaltpackDecrypt(tc.G, decarg)
+	dec = NewSaltpackDecrypt(tc.G, decarg, saltpackHelperMocks.NewMockPseudonymResolver(t))
 	err := RunEngine2(m, dec)
 	if wse, ok := err.(libkb.WrongCryptoFormatError); !ok {
 		t.Fatalf("Wanted a WrongCryptoFormat error, but got %T (%v)", err, err)
@@ -158,13 +173,13 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 		Sink:   sink,
 		Opts: keybase1.SaltpackEncryptOptions{
 			NoSelfEncrypt: true,
+			UseEntityKeys: true,
 			Recipients: []string{
 				trackUser.Username,
 			},
 		},
 	}
-	enc := NewSaltpackEncrypt(tc.G, arg)
-	enc.skipTLFKeysForTesting = true
+	enc := NewSaltpackEncrypt(tc.G, arg, NewSaltpackUserKeyfinderAsInterface)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, enc); err != nil {
 		t.Fatal(err)
@@ -172,12 +187,11 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 	out := sink.String()
 
 	// Also output a anonymous-sender message
-	arg.Opts.AnonymousSender = true
+	arg.Opts.AuthenticityType = keybase1.AuthenticityType_ANONYMOUS
 	sink = libkb.NewBufferCloser()
 	arg.Source = strings.NewReader(msg)
 	arg.Sink = sink
-	enc = NewSaltpackEncrypt(tc.G, arg)
-	enc.skipTLFKeysForTesting = true
+	enc = NewSaltpackEncrypt(tc.G, arg, NewSaltpackUserKeyfinderAsInterface)
 	if err := RunEngine2(m, enc); err != nil {
 		t.Fatal(err)
 	}
@@ -207,7 +221,8 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 		Source: strings.NewReader(out),
 		Sink:   decoded,
 	}
-	dec := NewSaltpackDecrypt(tc.G, decarg)
+	initPerUserKeyringInTestContext(t, tc)
+	dec := NewSaltpackDecrypt(tc.G, decarg, saltpackHelperMocks.NewMockPseudonymResolver(t))
 	spui.f = func(arg keybase1.SaltpackPromptForDecryptArg) error {
 		if arg.Sender.SenderType != keybase1.SaltpackSenderType_TRACKING_OK {
 			t.Fatalf("Bad sender type: %v", arg.Sender.SenderType)
@@ -229,7 +244,8 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 		Source: strings.NewReader(outHidden),
 		Sink:   decoded,
 	}
-	dec = NewSaltpackDecrypt(tc.G, decarg)
+	initPerUserKeyringInTestContext(t, tc)
+	dec = NewSaltpackDecrypt(tc.G, decarg, saltpackHelperMocks.NewMockPseudonymResolver(t))
 	spui.f = func(arg keybase1.SaltpackPromptForDecryptArg) error {
 		if arg.Sender.SenderType != keybase1.SaltpackSenderType_ANONYMOUS {
 			t.Fatalf("Bad sender type: %v", arg.Sender.SenderType)
@@ -265,7 +281,8 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 			ForceRemoteCheck: true,
 		},
 	}
-	dec = NewSaltpackDecrypt(tc.G, decarg)
+	initPerUserKeyringInTestContext(t, tc)
+	dec = NewSaltpackDecrypt(tc.G, decarg, saltpackHelperMocks.NewMockPseudonymResolver(t))
 	errTrackingBroke := errors.New("tracking broke")
 	spui.f = func(arg keybase1.SaltpackPromptForDecryptArg) error {
 		if arg.Sender.SenderType != keybase1.SaltpackSenderType_TRACKING_BROKE {
@@ -279,9 +296,9 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 }
 
 // The error info that this test is looking for is only available in legacy
-// encryption-only mode messages. Modern encryption-only messages are
-// all-anonymous-recipients by default, and signcryption messages have opaque
-// receivers.
+// saltpack encryption (i.e. repudiable) mode messages (originally called
+// encryption-only mode). Modern repudiable messages always have all-anonymous-recipients,
+// and signcryption messages have opaque receivers.
 func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 
 	// device X (provisioner) context:
@@ -323,13 +340,10 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 			Recipients: []string{
 				userX.Username,
 			},
-			// The error messages in this test only work for visible
-			// recipients, which is only a thing in encryption-only mode. Even
-			// still, we need a testing flag to enable them, below.
-			EncryptionOnlyMode: true,
+			AuthenticityType: keybase1.AuthenticityType_REPUDIABLE,
 		},
 	}
-	enc := NewSaltpackEncrypt(tcZ.G, arg)
+	enc := NewSaltpackEncrypt(tcZ.G, arg, NewSaltpackUserKeyfinderAsInterface)
 	m := NewMetaContextForTest(tcZ).WithUIs(uis)
 	// The error messages in this test only work for visible recipients, which
 	// aren't the default anymore.
@@ -346,7 +360,7 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 		Source: strings.NewReader(out),
 		Sink:   decoded,
 	}
-	dec := NewSaltpackDecrypt(tcX.G, decarg)
+	dec := NewSaltpackDecrypt(tcX.G, decarg, saltpackHelperMocks.NewMockPseudonymResolver(t))
 	spui.f = func(arg keybase1.SaltpackPromptForDecryptArg) error {
 		if arg.Sender.SenderType != keybase1.SaltpackSenderType_NOT_TRACKED {
 			t.Fatalf("Bad sender type: %v", arg.Sender.SenderType)
@@ -426,7 +440,7 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 		Source: strings.NewReader(out),
 		Sink:   decoded,
 	}
-	dec = NewSaltpackDecrypt(tcY.G, decarg)
+	dec = NewSaltpackDecrypt(tcY.G, decarg, saltpackHelperMocks.NewMockPseudonymResolver(t))
 	spui.f = func(arg keybase1.SaltpackPromptForDecryptArg) error {
 		t.Fatal("should not be prompted for decryption")
 		return nil
@@ -509,7 +523,7 @@ func TestSaltpackDecryptWithPaperKey(t *testing.T) {
 			UsePaperKey: true,
 		},
 	}
-	dec := NewSaltpackDecrypt(tc.G, decarg)
+	dec := NewSaltpackDecrypt(tc.G, decarg, saltpackHelperMocks.NewMockPseudonymResolver(t))
 	uis := libkb.UIs{
 		IdentifyUI: &FakeIdentifyUI{},
 		// Here's where the paper key goes in!

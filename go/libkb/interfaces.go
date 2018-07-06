@@ -800,3 +800,34 @@ type Resolver interface {
 	ResolveWithBody(input string) ResolveResult
 	Resolve(input string) ResolveResult
 }
+
+type EnginePrereqs struct {
+	TemporarySession bool
+	Device           bool
+}
+
+type Engine2 interface {
+	Run(MetaContext) error
+	Prereqs() EnginePrereqs
+	UIConsumer
+}
+
+type SaltpackRecipientKeyfinderEngineInterface interface {
+	Engine2
+	GetPublicKIDs() []keybase1.KID
+	GetSymmetricKeys() []SaltpackReceiverSymmetricKey
+}
+
+type SaltpackRecipientKeyfinderArg struct {
+	Recipients    []string // Could be users (even as assertions) or teams
+	Self          *User
+	NoSelfEncrypt bool
+	UseEntityKeys bool // Both per user and per team keys (and implicit teams for non existing users)
+	UsePaperKeys  bool
+	UseDeviceKeys bool // Does not include Paper Keys
+}
+
+type SaltpackReceiverSymmetricKey struct {
+	Key        [32]byte
+	Identifier []byte
+}

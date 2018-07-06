@@ -12,6 +12,15 @@
   ],
   "types": [
     {
+      "type": "enum",
+      "name": "AuthenticityType",
+      "symbols": [
+        "SIGNED_0",
+        "REPUDIABLE_1",
+        "ANONYMOUS_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "SaltpackEncryptOptions",
       "fields": [
@@ -23,12 +32,20 @@
           "name": "recipients"
         },
         {
-          "type": "boolean",
-          "name": "anonymousSender"
+          "type": "AuthenticityType",
+          "name": "authenticityType"
         },
         {
           "type": "boolean",
-          "name": "encryptionOnlyMode"
+          "name": "useEntityKeys"
+        },
+        {
+          "type": "boolean",
+          "name": "useDeviceKeys"
+        },
+        {
+          "type": "boolean",
+          "name": "usePaperKeys"
         },
         {
           "type": "boolean",
@@ -59,6 +76,10 @@
         {
           "type": "boolean",
           "name": "usePaperKey"
+        },
+        {
+          "type": "boolean",
+          "name": "useLegacyKBFSPseudonymResolver"
         }
       ]
     },

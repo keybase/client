@@ -7,7 +7,9 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/saltpackKeyHelpers"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/keybase/saltpack"
 	"golang.org/x/net/context"
 )
 
@@ -67,7 +69,13 @@ func (h *SaltpackHandler) SaltpackDecrypt(ctx context.Context, arg keybase1.Salt
 		SaltpackUI: h.getSaltpackUI(arg.SessionID),
 		SessionID:  arg.SessionID,
 	}
-	eng := engine.NewSaltpackDecrypt(h.G(), earg)
+	var resolver saltpack.SymmetricKeyResolver
+	if arg.Opts.UseLegacyKBFSPseudonymResolver {
+		resolver = saltpackKeyHelpers.NewLegacyKBFSResolver(ctx, h.G())
+	} else {
+		resolver = saltpackKeyHelpers.NewKeyPseudonymResolver(ctx, h.G())
+	}
+	eng := engine.NewSaltpackDecrypt(h.G(), earg, resolver)
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	err = engine.RunEngine2(m, eng)
 	info = eng.MessageInfo()
@@ -89,7 +97,7 @@ func (h *SaltpackHandler) SaltpackEncrypt(ctx context.Context, arg keybase1.Salt
 		SecretUI:   h.getSecretUI(arg.SessionID, h.G()),
 		SessionID:  arg.SessionID,
 	}
-	eng := engine.NewSaltpackEncrypt(h.G(), earg)
+	eng := engine.NewSaltpackEncrypt(h.G(), earg, saltpackKeyHelpers.NewSaltpackRecipientKeyfinderEngine)
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	return engine.RunEngine2(m, eng)
 }
