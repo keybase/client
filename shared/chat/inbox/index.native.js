@@ -10,6 +10,7 @@ import {
 } from '../../common-adapters/mobile.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {makeRow} from './row'
+import StartNewChat from './row/start-new-chat'
 import ChatFilterRow from './row/chat-filter-row'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import Divider from './row/divider/container'
@@ -183,21 +184,24 @@ class Inbox extends React.PureComponent<Props, State> {
       this.props.showSmallTeamsExpandDivider && (
         <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
       )
+    const HeadComponent = this.props.showNewChat ? (
+      <StartNewChat onNewChat={this.props.onNewChat} />
+    ) : (
+      <ChatFilterRow
+        isLoading={this.props.isLoading}
+        filter={this.props.filter}
+        onNewChat={this.props.onNewChat}
+        onSetFilter={this.props.onSetFilter}
+        onSelectUp={this.props.onSelectUp}
+        onSelectDown={this.props.onSelectDown}
+        filterFocusCount={this.props.filterFocusCount}
+      />
+    )
     return (
       <ErrorBoundary>
         <Box style={boxStyle}>
           <NativeFlatList
-            ListHeaderComponent={
-              <ChatFilterRow
-                isLoading={this.props.isLoading}
-                filter={this.props.filter}
-                onNewChat={this.props.onNewChat}
-                onSetFilter={this.props.onSetFilter}
-                onSelectUp={this.props.onSelectUp}
-                onSelectDown={this.props.onSelectDown}
-                filterFocusCount={this.props.filterFocusCount}
-              />
-            }
+            ListHeaderComponent={HeadComponent}
             data={this.props.rows}
             keyExtractor={this._keyExtractor}
             renderItem={this._renderItem}

@@ -6,7 +6,7 @@ import * as Constants from '../../constants/types/chat2'
 
 import * as PropProviders from '../../stories/prop-providers'
 import {storiesOf, action, createPropProvider} from '../../stories/storybook'
-import {globalColors, globalMargins} from '../../styles'
+import {isMobile, globalColors, globalMargins} from '../../styles'
 
 import Inbox from './container'
 
@@ -139,18 +139,18 @@ const mapPropProviderProps = {
   },
   smallTeamE: {
     ...commonSmallTeam,
-    backgroundColor: globalColors.blue,
+    backgroundColor: isMobile ? commonSmallFilter.backgroundColor : globalColors.blue,
     conversationIDKey: '4',
     hasUnread: false,
     hasBadge: false,
     iconHoverColor: globalColors.white_75,
-    isSelected: true,
+    isSelected: !isMobile,
     showBold: false,
     snippet: 'jork: what article?',
-    subColor: globalColors.white,
+    subColor: isMobile ? commonSmallTeam.subColor : globalColors.white,
     teamname: 'atracks',
     timestamp: '5:13 pm',
-    usernameColor: globalColors.white,
+    usernameColor: isMobile ? commonSmallTeam.usernameColor : globalColors.white,
   },
   smallTeamF: {
     ...commonSmallTeam,
@@ -204,7 +204,7 @@ const mapPropProviderProps = {
     ...commonBigChannel,
     teamname: 'techtonica',
     channelname: 'general',
-    isSelected: true,
+    isSelected: !isMobile,
   },
   bigTeamBChannel2: {
     ...commonBigChannel,
@@ -283,7 +283,7 @@ const getPropProviderProps = own => {
  * Inbox
  */
 const propsInboxCommon = {
-  filter: ' ',
+  filter: '',
   filterFocusCount: 0,
   isLoading: false,
   nowOverride: 0, // just for dumb rendering
@@ -375,6 +375,7 @@ const propsInboxDivider = {
 
 const propsInboxFilter = {
   ...propsInboxCommon,
+  filer: ' ',
   rows: [
     // Small
     makeRowItemSmall('smallFilterTeamA'),
