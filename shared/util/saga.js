@@ -139,10 +139,7 @@ function safeTakeEveryPureSimple<A, FinalAction>(
 ) {
   return safeTakeEveryPure(pattern, function*(action: A) {
     const state: TypedState = yield select()
-    const result = yield call(f, state, action)
-    if (result) {
-      yield result
-    }
+    yield f(state, action)
   })
 }
 

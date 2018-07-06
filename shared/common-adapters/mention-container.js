@@ -15,7 +15,7 @@ const mapStateToProps = (
     return {theme: 'highlight'}
   }
 
-  if (Selectors.usernameSelector(state) === username) {
+  if (state.config.username === username) {
     return {theme: 'highlight'}
   }
 
