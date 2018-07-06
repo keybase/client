@@ -86,7 +86,7 @@ const defaultOwnProps: OwnProps = {
 
 const defaultProps = mockOwnPropsToProps(defaultOwnProps)
 
-const makeSelectorMap = () => ({
+export const makeSelectorMap = () => ({
   ...makeRowSelectorMap(connectPropsMap),
   ResultsList: mockOwnPropsToProps,
 })
