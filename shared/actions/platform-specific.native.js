@@ -1,5 +1,8 @@
 // @flow
 import logger from '../logger'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import * as Chat2Gen from './chat2-gen'
+import * as ConfigGen from './config-gen'
 import * as PushTypes from '../constants/types/push'
 import * as PushConstants from '../constants/push'
 import * as PushGen from './push-gen'
@@ -296,7 +299,42 @@ const getContentTypeFromURL = (
           cb({error})
         })
 
-function* platformConfigSaga(): Saga.SagaGenerator<any, any> {}
+const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
+  let appFocused
+  let logState
+  switch (action.payload.nextAppState) {
+    case 'active':
+      appFocused = true
+      logState = RPCTypes.appStateAppState.foreground
+      break
+    case 'background':
+      appFocused = false
+      logState = RPCTypes.appStateAppState.background
+      break
+    case 'inactive':
+      appFocused = false
+      logState = RPCTypes.appStateAppState.inactive
+      break
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (v: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(action.payload.nextAppState);
+      */
+      appFocused = false
+      logState = RPCTypes.appStateAppState.foreground
+  }
+
+  logger.info(`setting app state on service to: ${logState}`)
+  return Saga.put(ConfigGen.createChangedFocus({appFocused}))
+}
+
+const setStartedDueToPush = (action: Chat2Gen.SelectConversationPayload) =>
+  action.payload.reason === 'push' ? Saga.put(ConfigGen.createSetStartedDueToPush()) : undefined
+
+function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
+  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, setStartedDueToPush)
+}
 
 export {
   openAppSettings,
