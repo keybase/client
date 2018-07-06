@@ -64,6 +64,7 @@ Object.keys(connectPropsMap).forEach(id => {
   }
 })
 
+// Can extend to vary items based on ownProps.searchKey if needed.
 const mockOwnPropsToProps = (ownProps: OwnProps): Props => {
   return {
     ...ownProps,
