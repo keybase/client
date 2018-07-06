@@ -4,7 +4,7 @@ import * as HocHelpers from '../helpers'
 import * as SearchGen from '../../actions/search-gen'
 import React from 'react'
 import ServiceFilter from '../services-filter'
-import UserInput from '.'
+import UserInput, {type Props as _Props} from '.'
 import {Box, Text} from '../../common-adapters'
 import {connect, createShallowEqualSelector, setDisplayName} from '../../util/container'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
@@ -134,6 +134,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {searchKey}) => ({
     dispatch(SearchGen.createUpdateSelectedSearchResult({searchKey, id}))
   },
 })
+
+export type Props = _Props & {
+  // From onChangeSelectedSearchResultHoc.
+  search: Function,
+}
 
 const ConnectedUserInput = compose(
   connect(mapStateToProps, mapDispatchToProps),

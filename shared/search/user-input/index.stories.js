@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as PropProviders from '../../stories/prop-providers'
 import UserInput from '.'
-import ConnectedUserInput, {type OwnProps} from './container'
+import ConnectedUserInput, {type OwnProps, type Props} from './container'
 import {Box} from '../../common-adapters'
 import {compose, withStateHandlers} from 'recompose'
 import {isMobile} from '../../constants/platform'
@@ -107,19 +107,24 @@ const chrisUsers = [
   },
 ]
 
-const provider = createPropProvider({
+const defaultProps: Props = {
+  ...inputCommon,
+  userItems: maxUsers,
+  usernameText: '',
+  search: action('search'),
+}
+
+// TODO: Actually do something here.
+const mockOwnPropsToProps = (ownProps: OwnProps): Props => {
+  return defaultProps
+}
+
+export const makeSelectorMap = () => ({
   ...PropProviders.Common(),
-  UserInput: ownProps => {
-    return {
-      ...inputCommon,
-
-      userItems: [],
-      usernameText: '',
-
-      search: action('search'),
-    }
-  },
+  UserInput: mockOwnPropsToProps,
 })
+
+const provider = createPropProvider(makeSelectorMap())
 
 const load = () => {
   storiesOf('Search/UserInput', module)
