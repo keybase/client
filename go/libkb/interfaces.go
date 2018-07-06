@@ -670,7 +670,7 @@ type EKLib interface {
 	PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	NewEphemeralSeed() (keybase1.Bytes32, error)
 	DeriveDeviceDHKey(seed keybase1.Bytes32) *NaclDHKeyPair
-	SignedDeviceEKStatementFromSeed(ctx context.Context, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey GenericKey, existingMetadata []keybase1.DeviceEkMetadata) (keybase1.DeviceEkStatement, string, error)
+	SignedDeviceEKStatementFromSeed(ctx context.Context, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey GenericKey) (keybase1.DeviceEkStatement, string, error)
 	BoxLatestUserEK(ctx context.Context, receiverKey NaclDHKeyPair, deviceEKGeneration keybase1.EkGeneration) (*keybase1.UserEkBoxed, error)
 	PrepareNewUserEK(ctx context.Context, merkleRoot MerkleRoot, pukSeed PerUserKeySeed) (string, []keybase1.UserEkBoxMetadata, keybase1.UserEkMetadata, *keybase1.UserEkBoxed, error)
 	BoxLatestTeamEK(ctx context.Context, teamID keybase1.TeamID, uids []keybase1.UID) (*[]keybase1.TeamEkBoxMetadata, error)

@@ -390,7 +390,7 @@ func (a *ActiveDevice) SyncSecretsForUID(m MetaContext, u keybase1.UID, force bo
 	if uid.IsNil() {
 		return nil, fmt.Errorf("can't run secret syncer without a UID")
 	}
-	err = RunSyncer(m, s, uid, true, nil, force)
+	err = RunSyncer(m, s, uid, true, force)
 	if err != nil {
 		return nil, err
 	}

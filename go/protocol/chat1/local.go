@@ -4370,6 +4370,7 @@ type UnboxMobilePushNotificationArg struct {
 	ConvID      string                  `codec:"convID" json:"convID"`
 	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
 	PushIDs     []string                `codec:"pushIDs" json:"pushIDs"`
+	ShouldAck   bool                    `codec:"shouldAck" json:"shouldAck"`
 }
 
 type AddTeamMemberAfterResetArg struct {

@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {Box} from '../../../common-adapters'
-import {storiesOf, action} from '../../../stories/storybook'
+import {storiesOf, action, createPropProvider} from '../../../stories/storybook'
 import * as PropProviders from '../../../stories/prop-providers'
 import {globalColors} from '../../../styles'
 import {SmallTeam} from './small-team'
@@ -102,10 +102,7 @@ const commonChannel = {
   isError: false,
 }
 
-const provider = PropProviders.compose(
-  PropProviders.TeamDropdownMenu(),
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
-)
+const provider = createPropProvider(PropProviders.Common(), PropProviders.TeamDropdownMenu())
 
 const load = () => {
   storiesOf('Chat/Inbox', module)

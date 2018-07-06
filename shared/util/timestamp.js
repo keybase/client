@@ -45,15 +45,27 @@ export function formatTimeForMessages(time: number, nowOverride?: number): strin
   }
 }
 
-export const formatTimeForFS = (time: number): string =>
-  moment(time).calendar(null, {
-    sameDay: '[Today]',
-    lastDay: '[Yesterday]',
-    lastWeek: 'ddd',
+const calendarFormatsForFS = {
+  noUpperCaseFirst: {
+    sameDay: '[today at] LT',
+    lastDay: '[yesterday at] LT',
+    lastWeek: 'ddd [at] LT',
     sameElse: function(now) {
       return this.year() !== now.year() ? 'ddd MMM D YYYY [at] LT' : 'ddd MMM D [at] LT'
     },
-  })
+  },
+  upperCaseFirst: {
+    sameDay: '[Today at] LT',
+    lastDay: '[Yesterday at] LT',
+    lastWeek: 'ddd [at] LT',
+    sameElse: function(now) {
+      return this.year() !== now.year() ? 'ddd MMM D YYYY [at] LT' : 'ddd MMM D [at] LT'
+    },
+  },
+}
+
+export const formatTimeForFS = (time: number, dontUpperCase: boolean): string =>
+  moment(time).calendar(null, calendarFormatsForFS[dontUpperCase ? 'noUpperCaseFirst' : 'upperCaseFirst'])
 
 export const formatDurationFromNowTo = (timeInFuture?: number): string => {
   if (!timeInFuture) {

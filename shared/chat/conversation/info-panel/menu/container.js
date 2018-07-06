@@ -10,16 +10,20 @@ import {
   type TypedState,
   createCachedSelector,
 } from '../../../../util/container'
-import {InfoPanelMenu} from '.'
+import {type Props as _Props, InfoPanelMenu} from '.'
 import {navigateAppend, navigateTo, switchTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
 
-type OwnProps = {
+export type OwnProps = {
   attachTo: ?Component<any, any>,
   onHidden: () => void,
   isSmallTeam: boolean,
   teamname: string,
   visible: boolean,
+}
+
+export type Props = _Props & {
+  _loadOperations: () => void,
 }
 
 const moreThanOneSubscribedChannel = createCachedSelector(

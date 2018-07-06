@@ -6,16 +6,17 @@ import Wallet from './wallet/container'
 import {globalColors, styleSheetCreate} from '../styles'
 
 type Props = {
+  navigateAppend: () => void,
   refresh: () => void,
   waitingKey: string,
 }
 
-const Wallets = ({refresh, waitingKey}: Props) => (
+const Wallets = ({navigateAppend, refresh, waitingKey}: Props) => (
   <Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
     <Box2 direction="vertical" fullHeight={true} style={styles.walletListContainer}>
       <WalletList style={{height: '100%'}} />
     </Box2>
-    <Wallet />
+    <Wallet navigateAppend={navigateAppend} />
   </Box2>
 )
 

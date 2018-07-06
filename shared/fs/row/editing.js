@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles, isMobile, glamorous} from '../../styles'
 import rowStyles from './styles'
 import {Icon, ClickableBox, Input, Box, Button, Text} from '../../common-adapters'
 import PathItemIcon from '../common/path-item-icon'
@@ -16,6 +16,17 @@ type EditingProps = {
   onUpdate: (name: string) => void,
   onCancel: () => void,
 }
+
+const HoverClickableBox = isMobile
+  ? ClickableBox
+  : glamorous(ClickableBox)({
+      '& .fs-path-item-editing-trash-icon': {
+        color: globalColors.black_40,
+      },
+      '& .fs-path-item-editing-trash-icon:hover': {
+        color: globalColors.black_60,
+      },
+    })
 
 const Editing = (props: EditingProps) => (
   <Box style={rowStyles.rowBox}>
@@ -44,9 +55,9 @@ const Editing = (props: EditingProps) => (
         waiting={props.status === 'saving'}
         onClick={props.status === 'saving' ? undefined : props.onSubmit}
       />
-      <ClickableBox style={stylesCancelBox} onClick={props.onCancel}>
-        <Icon type="iconfont-trash" color={globalColors.black_40} style={stylesIconCancel} />
-      </ClickableBox>
+      <HoverClickableBox style={stylesCancelBox} onClick={props.onCancel}>
+        <Icon type="iconfont-trash" className="fs-path-item-editing-trash-icon" style={stylesIconCancel} />
+      </HoverClickableBox>
     </Box>
   </Box>
 )
@@ -78,7 +89,6 @@ const stylesText = platformStyles({
 
 const stylesButton = {
   marginLeft: globalMargins.tiny,
-  width: 80,
 }
 
 export default Editing

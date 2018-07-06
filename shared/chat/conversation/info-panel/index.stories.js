@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {storiesOf, action, unexpected} from '../../../stories/storybook'
+import {action, storiesOf, createPropProvider, unexpected} from '../../../stories/storybook'
 import * as Constants from '../../../constants/chat2'
 import * as PropProviders from '../../../stories/prop-providers'
 import {retentionPolicies} from '../../../constants/teams'
@@ -42,16 +42,12 @@ const retentionPickerPropSelector = props => ({
   onSelect: action('onSelectRetentionPolicy'),
 })
 
-const provider = PropProviders.compose(
-  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  PropProviders.TeamDropdownMenu(),
-  {
-    InfoPanel: (props: InfoPanelProps) => props,
-    OnlyValidConversations: () => onlyValidConversationsProps,
-    LifecycleNotifications: () => notificationProps,
-    RetentionPicker: retentionPickerPropSelector,
-  }
-)
+const provider = createPropProvider(PropProviders.Common(), PropProviders.TeamDropdownMenu(), {
+  InfoPanel: (props: InfoPanelProps) => props,
+  OnlyValidConversations: () => onlyValidConversationsProps,
+  LifecycleNotifications: () => notificationProps,
+  RetentionPicker: retentionPickerPropSelector,
+})
 
 const commonProps = {
   selectedConversationIDKey: Constants.noConversationIDKey,

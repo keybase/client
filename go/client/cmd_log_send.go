@@ -132,7 +132,7 @@ func (c *CmdLogSend) Run() error {
 		c.G().Log.Info("Not sending up a UID for logged in user; none found")
 	}
 
-	id, err := logSendContext.LogSend(statusJSON, c.feedback, true, c.numBytes, uid, installID)
+	id, err := logSendContext.LogSend(statusJSON, c.feedback, true, c.numBytes, uid, installID, false /* mergeExtendedStatus */)
 	if err != nil {
 		return err
 	}

@@ -56,6 +56,9 @@ func checkMessageBoxedLength(msg chat1.MessageBoxed) error {
 	case chat1.MessageType_DELETEHISTORY:
 		return boxedFieldLengthChecker("DELETEHISTORY message", len(msg.BodyCiphertext.E),
 			BoxedDeleteHistoryMessageBodyMaxLength)
+	case chat1.MessageType_SENDPAYMENT:
+		return boxedFieldLengthChecker("SENDPAYMENT message", len(msg.BodyCiphertext.E),
+			BoxedSendPaymentMessageBodyMaxLength)
 	default:
 		return fmt.Errorf("unknown message type: %v", msg.GetMessageType())
 	}

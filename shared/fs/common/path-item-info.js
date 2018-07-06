@@ -50,7 +50,7 @@ const PathItemInfo = (props: Props) => (
       !!props.lastModifiedTimestamp && (
         <Text type="BodySmall" lineClamp={isMobile ? 1 : undefined}>
           {(props.startWithLastModified ? 'Last modified ' : '') +
-            formatTimeForFS(props.lastModifiedTimestamp)}
+            formatTimeForFS(props.lastModifiedTimestamp, !!props.startWithLastModified)}
         </Text>
       )
     )}
