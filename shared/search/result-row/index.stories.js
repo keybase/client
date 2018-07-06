@@ -35,7 +35,7 @@ const ownProps = {
   id: 'result',
   selected: false,
   onClick: action('On click'),
-  onMouseOver: action('On click'),
+  onMouseOver: action('On mouse over'),
   onShowTracker: action('Show tracker'),
 }
 
