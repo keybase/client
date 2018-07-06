@@ -4,7 +4,6 @@ import {Box2} from '../../common-adapters'
 import {action, storiesOf, createPropProvider} from '../../stories/storybook'
 import Search from '.'
 import {makeSelectorMap as makeResultsListSelectorMap} from '../../search/results-list/index.stories'
-import {type UserDetails} from '../../search/user-input'
 import {makeSelectorMap as makeUserInputSelectorMap} from '../../search/user-input/index.stories'
 
 const Wrapper = ({children}) => (
@@ -13,17 +12,9 @@ const Wrapper = ({children}) => (
   </Box2>
 )
 
-const selectedUser: UserDetails = {
-  followingState: 'Following',
-  icon: null,
-  id: 'chris',
-  service: 'Keybase',
-  username: 'chris',
-}
-
 const provider = createPropProvider({
   ...makeResultsListSelectorMap(),
-  ...makeUserInputSelectorMap([selectedUser]),
+  ...makeUserInputSelectorMap([]),
 })
 
 const load = () => {
