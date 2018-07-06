@@ -745,7 +745,8 @@ type SimpleFSRemoveArg struct {
 }
 
 type SimpleFSStatArg struct {
-	Path Path `codec:"path" json:"path"`
+	Path                Path `codec:"path" json:"path"`
+	RefreshSubscription bool `codec:"refreshSubscription" json:"refreshSubscription"`
 }
 
 type SimpleFSMakeOpidArg struct {
@@ -829,7 +830,11 @@ type SimpleFSInterface interface {
 	// Remove file or directory from filesystem
 	SimpleFSRemove(context.Context, SimpleFSRemoveArg) error
 	// Get info about file
-	SimpleFSStat(context.Context, Path) (Dirent, error)
+	// If `refreshSubscription` is true and the path is a KBFS path, simpleFS
+	// will begin sending `FSPathUpdated` notifications for the for the
+	// corresponding TLF, until another call refreshes the subscription on a
+	// different TLF.
+	SimpleFSStat(context.Context, SimpleFSStatArg) (Dirent, error)
 	// Convenience helper for generating new random value
 	SimpleFSMakeOpid(context.Context) (OpID, error)
 	// Close OpID, cancels any pending operation.
@@ -1077,7 +1082,7 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]SimpleFSStatArg)(nil), args)
 						return
 					}
-					ret, err = i.SimpleFSStat(ctx, (*typedArgs)[0].Path)
+					ret, err = i.SimpleFSStat(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1327,8 +1332,11 @@ func (c SimpleFSClient) SimpleFSRemove(ctx context.Context, __arg SimpleFSRemove
 }
 
 // Get info about file
-func (c SimpleFSClient) SimpleFSStat(ctx context.Context, path Path) (res Dirent, err error) {
-	__arg := SimpleFSStatArg{Path: path}
+// If `refreshSubscription` is true and the path is a KBFS path, simpleFS
+// will begin sending `FSPathUpdated` notifications for the for the
+// corresponding TLF, until another call refreshes the subscription on a
+// different TLF.
+func (c SimpleFSClient) SimpleFSStat(ctx context.Context, __arg SimpleFSStatArg) (res Dirent, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSStat", []interface{}{__arg}, &res)
 	return
 }

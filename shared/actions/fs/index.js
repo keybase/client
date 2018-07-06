@@ -72,6 +72,7 @@ function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<
       PathType: RPCTypes.simpleFSPathType.kbfs,
       kbfs: Constants.fsPathToRpcPathString(rootPath),
     },
+    refreshSubscription: false,
   })
 
   const meta = makeEntry(dirent)

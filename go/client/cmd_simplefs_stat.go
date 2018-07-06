@@ -40,7 +40,9 @@ func (c *CmdSimpleFSStat) Run() error {
 		return err
 	}
 
-	e, err := cli.SimpleFSStat(context.TODO(), c.path)
+	e, err := cli.SimpleFSStat(context.TODO(), keybase1.SimpleFSStatArg{
+		Path: c.path,
+	})
 	if err != nil {
 		return err
 	}

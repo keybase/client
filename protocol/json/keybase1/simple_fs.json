@@ -599,10 +599,14 @@
         {
           "name": "path",
           "type": "Path"
+        },
+        {
+          "name": "refreshSubscription",
+          "type": "boolean"
         }
       ],
       "response": "Dirent",
-      "doc": "Get info about file"
+      "doc": "Get info about file\n   If `refreshSubscription` is true and the path is a KBFS path, simpleFS\n     will begin sending `FSPathUpdated` notifications for the for the\n     corresponding TLF, until another call refreshes the subscription on a\n     different TLF."
     },
     "simpleFSMakeOpid": {
       "request": [],

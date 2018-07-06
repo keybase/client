@@ -234,8 +234,12 @@ protocol SimpleFS {
 
   /**
    Get info about file
+   If `refreshSubscription` is true and the path is a KBFS path, simpleFS
+     will begin sending `FSPathUpdated` notifications for the for the
+     corresponding TLF, until another call refreshes the subscription on a
+     different TLF.
    */
-  Dirent simpleFSStat(Path path);
+  Dirent simpleFSStat(Path path, boolean refreshSubscription);
 
   /**
    Convenience helper for generating new random value
