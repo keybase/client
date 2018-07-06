@@ -3,8 +3,7 @@ import * as React from 'react'
 import * as PropProviders from '../../stories/prop-providers'
 import ResultRow, {type Props} from '.'
 import ConnectedResultRow, {type OwnProps} from './container'
-import {makeSearchResult} from '../../constants/search'
-import {type SearchResultId, type SearchResult} from '../../constants/types/search'
+import {type SearchResultId} from '../../constants/types/search'
 import {Box} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 import {storiesOf, action, createPropProvider} from '../../stories/storybook'
@@ -17,12 +16,27 @@ const defaultOwnProps: OwnProps = {
   onMouseOver: action('On mouse over'),
 }
 
-type SearchResultMap = {[id: SearchResultId]: ?SearchResult}
+type ConnectProps = $Exact<$Diff<Props, OwnProps>>
 
-const defaultSearchResultMap: SearchResultMap = {
+const defaultConnectProps = {
+  leftFullname: null,
+  leftIcon: null,
+  leftService: 'Keybase',
+  leftUsername: '',
+
+  rightIcon: null,
+  rightService: null,
+  rightUsername: null,
+
+  leftFollowingState: 'NotFollowing',
+  rightFollowingState: 'NotFollowing',
+  userIsInTeam: false,
+}
+
+type ConnectPropsMap = {[id: SearchResultId]: ?ConnectProps}
+
+const defaultConnectPropsMap: ConnectPropsMap = {
   jzila: {
-    id: 'jzila',
-
     leftFullname: 'John Zila',
     leftIcon: null,
     leftService: 'Keybase',
@@ -31,26 +45,25 @@ const defaultSearchResultMap: SearchResultMap = {
     rightIcon: null,
     rightService: null,
     rightUsername: null,
+
+    leftFollowingState: 'NotFollowing',
+    rightFollowingState: 'NotFollowing',
+    userIsInTeam: false,
   },
 }
 
-const mockOwnPropsToProps = (resultMap: SearchResultMap, ownProps: OwnProps): Props => {
-  const result: SearchResult = resultMap[ownProps.id] || makeSearchResult()
-  const leftFollowingState = 'NotFollowing'
-  const rightFollowingState = 'NotFollowing'
+const mockOwnPropsToProps = (connectPropsMap: ConnectPropsMap, ownProps: OwnProps): Props => {
+  const result: ConnectProps = connectPropsMap[ownProps.id] || defaultConnectProps
   return {
     ...ownProps,
     ...result,
-    leftFollowingState,
-    rightFollowingState,
-    userIsInTeam: false,
   }
 }
 
-const defaultProps = mockOwnPropsToProps(defaultSearchResultMap, defaultOwnProps)
+const defaultProps = mockOwnPropsToProps(defaultConnectPropsMap, defaultOwnProps)
 
-const makeSelectorMap = (resultMap: SearchResultMap = defaultSearchResultMap) => ({
-  SearchResultRow: ownProps => mockOwnPropsToProps(resultMap, ownProps),
+const makeSelectorMap = (connectPropsMap: ConnectPropsMap = defaultConnectPropsMap) => ({
+  SearchResultRow: ownProps => mockOwnPropsToProps(connectPropsMap, ownProps),
 })
 
 const provider = createPropProvider(PropProviders.Common(), makeSelectorMap())
