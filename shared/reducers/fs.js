@@ -87,10 +87,12 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           // Since `folderListLoaded`, `favoritesLoaded`, and `loadResetsResult`
           // can change `pathItems`, we need to make sure that neither one
           // clobbers the others' work.
-          original
-            .set('badgeCount', item.badgeCount)
-            .set('tlfMeta', item.tlfMeta)
-            .set('favoriteChildren', item.favoriteChildren),
+          original.withMutations(i =>
+            i
+              .set('badgeCount', item.badgeCount)
+              .set('tlfMeta', item.tlfMeta)
+              .set('favoriteChildren', item.favoriteChildren)
+          ),
         ]
       })
       return state.mergeIn(['pathItems'], toMerge)
