@@ -48,6 +48,18 @@ You can set environment variables for debugging:
 | KEYBASE_RPC_DELAY_RESULT | Number of ms to delay all RPC call callbacks (requires debug mode) |
 | NO_DASHBOARD | Don't show dashboard |
 
+You can also edit `~/Library/Logs/Keybase.app.debug` on macOS,
+`$HOME/.cache/keybase.app.debug` on Linux, or
+`%localappdata%\Keybase\keybase.app.debug` on Windows (see
+`platform.desktop.js`) to add debugging keys. In particular, you probably want
+```json
+{
+  "showDevTools": true
+}
+```
+instead of toggling the dev tools after launch because of a bug where
+not all source files are available if the dev tools aren't opened at launch.
+
 ### iOS
 
 ```sh
