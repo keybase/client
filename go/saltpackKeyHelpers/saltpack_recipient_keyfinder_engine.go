@@ -107,6 +107,11 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupRecipients(m libkb.MetaContext)
 			return err
 		}
 
+		// TODO What is this the canonical way to tell if a user is logged in?? I will need to update the other checks too.
+		if e.Arg.Self == nil {
+			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a registered user. To encrypt for a team you belong to or for someone non yet on keybase, you need to login first", u))
+		}
+
 		err = e.lookupTeam(m, u) // For existing teams
 		if err == nil {
 			continue
@@ -121,7 +126,7 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupRecipients(m libkb.MetaContext)
 			return err
 		}
 
-		return fmt.Errorf("Cannot encrypt for %v: it is not a valid social assertion or a registered user or team", u)
+		return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a valid social assertion or a registered user or team", u))
 	}
 	return nil
 }
@@ -163,6 +168,10 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupTeam(m libkb.MetaContext, teamN
 		upakLoader := e.G().GetUPAKLoader()
 
 		for _, uid := range members.AllUIDs() {
+			if e.Arg.NoSelfEncrypt && e.Arg.Self.GetUID() == uid {
+				m.CDebugf("skipping device keys for %v as part of team %v because of NoSelfEncrypt", uid, teamName)
+				continue
+			}
 			// TODO: SHOULD I EXCLUDE ANY MEMBERS HERE? Inactive? Implicit Admins?
 			arg := libkb.NewLoadUserByUIDArg(m.Ctx(), m.G(), uid)
 			upak, _, err := upakLoader.LoadV2(arg)
