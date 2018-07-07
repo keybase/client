@@ -376,7 +376,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	}
 
 	// Make sure it is a proper length
-	if err := msgchecker.CheckMessagePlaintext(plaintext); err != nil {
+	if err := msgchecker.CheckMessagePlaintext(msg); err != nil {
 		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 	}
 
