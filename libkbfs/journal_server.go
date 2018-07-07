@@ -308,6 +308,11 @@ func (j *JournalServer) makeFBOForJournal(
 		return err
 	}
 
+	// TODO: since we're likely just initializing this TLF to get the
+	// unflushed edit history, it would be better to do it in a way
+	// that doesn't force an identify (which might lead to unexpected
+	// tracker popups).  But this situation is so rare, it's probably
+	// not worth all the plumbing that would take.
 	_, _, err = j.config.KBFSOps().GetRootNode(ctx, handle, MasterBranch)
 	return err
 }

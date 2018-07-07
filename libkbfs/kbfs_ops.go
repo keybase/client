@@ -1206,12 +1206,18 @@ func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
 	// that doesn't have one yet.  Also make sure there's one for the
 	// logged-in user's public folder.
 	for _, h := range handles {
-		fs.log.CDebugf(ctx, "Initializing TLF %s for the edit history",
-			h.GetCanonicalPath())
-		_, _, err := fs.GetRootNode(ctx, h, MasterBranch)
-		if err != nil {
-			fs.log.CWarningf(ctx, "Couldn't get root node for %s: %+v",
-				h.GetCanonicalName(), err)
+		if h.tlfID != tlf.NullID {
+			fs.log.CDebugf(ctx, "Initializing TLF %s (%s) for the edit history",
+				h.GetCanonicalPath(), h.tlfID)
+			ops := fs.getOpsNoAdd(ctx, FolderBranch{h.tlfID, MasterBranch})
+			// Don't initialize the entire TLF, because we don't want
+			// to run identifies on it.  Instead, just start the
+			// chat-monitoring part.
+			ops.startMonitorChat(h.GetCanonicalName())
+		} else {
+			fs.log.CWarningf(ctx,
+				"Handle %s for existing folder unexpectedly has no TLF ID",
+				h.GetCanonicalName())
 		}
 	}
 }

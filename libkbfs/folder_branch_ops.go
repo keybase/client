@@ -350,6 +350,7 @@ type folderBranchOps struct {
 	forcedFastForwards kbfssync.RepeatedWaitGroup
 	merkleFetches      kbfssync.RepeatedWaitGroup
 	editActivity       kbfssync.RepeatedWaitGroup
+	launchEditMonitor  sync.Once
 
 	muLastGetHead sync.Mutex
 	// We record a timestamp everytime getHead or getTrustedHead is called, and
@@ -712,6 +713,19 @@ func (fbo *folderBranchOps) validateHeadLocked(
 	return nil
 }
 
+func (fbo *folderBranchOps) startMonitorChat(tlfName tlf.CanonicalName) {
+	if !fbo.config.Mode().TLFEditHistoryEnabled() {
+		return
+	}
+
+	fbo.launchEditMonitor.Do(func() {
+		// The first event should initialize all the data.
+		fbo.editActivity.Add(1)
+		fbo.editChannels <- editChannelActivity{nil, "", ""}
+		go fbo.monitorEditsChat(tlfName)
+	})
+}
+
 func (fbo *folderBranchOps) setHeadLocked(
 	ctx context.Context, lState *lockState,
 	md ImmutableRootMetadata, headStatus headTrustStatus) error {
@@ -862,12 +876,7 @@ func (fbo *folderBranchOps) setHeadLocked(
 				fbo.updateDoneChan = make(chan struct{})
 				go fbo.registerAndWaitForUpdates()
 			}
-			if fbo.config.Mode().TLFEditHistoryEnabled() {
-				// The first event should initialize all the data.
-				fbo.editActivity.Add(1)
-				fbo.editChannels <- editChannelActivity{nil, "", ""}
-				go fbo.monitorEditsChat()
-			}
+			fbo.startMonitorChat(md.GetTlfHandle().GetCanonicalName())
 		}
 
 		// If journaling is enabled, we should make sure to enable it
@@ -7147,7 +7156,7 @@ func (fbo *folderBranchOps) handleEditActivity(
 	return idToName, nameToID, nameToNextPage, nil
 }
 
-func (fbo *folderBranchOps) monitorEditsChat() {
+func (fbo *folderBranchOps) monitorEditsChat(tlfName tlf.CanonicalName) {
 	ctx, cancelFunc := fbo.newCtxWithFBOID()
 	defer cancelFunc()
 	fbo.log.CDebugf(ctx, "Starting kbfs-edits chat monitoring")
@@ -7155,11 +7164,6 @@ func (fbo *folderBranchOps) monitorEditsChat() {
 	fbo.cancelEditsLock.Lock()
 	fbo.cancelEdits = cancelFunc
 	fbo.cancelEditsLock.Unlock()
-
-	// Register for all the channels of this chat.
-	lState := makeFBOLockState()
-	md, _ := fbo.getHead(lState)
-	tlfName := md.GetTlfHandle().GetCanonicalName()
 
 	idToName := make(map[string]string)
 	nameToID := make(map[string]chat1.ConversationID)
