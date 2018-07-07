@@ -287,14 +287,12 @@ const getWaitDuration = (endEstimate: ?number, lower: number, upper: number): nu
 
 let polling = false
 function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
-  console.log('songgao - pollSyncStatusUntilDone')
   if (polling) {
     return
   }
   polling = true
   try {
     while (1) {
-      console.log('songgao - suppress')
       yield Saga.call(RPCTypes.SimpleFSSimpleFSSuppressNotificationsRpcPromise, {
         nextSuppressIn: 4 /* 4 seconds */,
       })
