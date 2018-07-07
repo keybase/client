@@ -947,7 +947,6 @@ func TestKBFSFileEditSize(t *testing.T) {
 		body := strings.Repeat("M", 100000)
 		_, _, err = blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
-				Conv:        conv.Info.Triple,
 				Sender:      uid,
 				TlfName:     tlfName,
 				MessageType: chat1.MessageType_TEXT,
