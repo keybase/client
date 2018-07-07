@@ -287,12 +287,17 @@ const getWaitDuration = (endEstimate: ?number, lower: number, upper: number): nu
 
 let polling = false
 function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
+  console.log('songgao - pollSyncStatusUntilDone')
   if (polling) {
     return
   }
   polling = true
   try {
     while (1) {
+      console.log('songgao - suppress')
+      yield Saga.call(RPCTypes.SimpleFSSimpleFSSuppressNotificationsRpcPromise, {
+        nextSuppressIn: 4 /* 4 seconds */,
+      })
       let {syncingPaths, totalSyncingBytes, endEstimate}: RPCTypes.FSSyncStatus = yield Saga.call(
         RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise
       )
@@ -323,7 +328,7 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
       yield Saga.sequentially([
         Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true})),
         Saga.put(FsGen.createSetFlags({syncing: true})),
-        Saga.delay(getWaitDuration(endEstimate, 100, 2000)),
+        Saga.delay(getWaitDuration(endEstimate, 100, 4000)), // 0.1s to 4s
       ])
     }
   } finally {
@@ -337,6 +342,7 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
 
 function _setupFSHandlers() {
   engine().setIncomingActionCreators('keybase.1.NotifyFS.FSSyncActivity', () => [FsGen.createFsActivity()])
+  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSActivity', () => [FsGen.createFsActivity()])
 }
 
 function refreshLocalHTTPServerInfo() {
