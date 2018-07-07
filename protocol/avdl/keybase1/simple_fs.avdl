@@ -307,4 +307,17 @@ protocol SimpleFS {
    recorded by the server) of their most recent edit.
    */
   FSFolderEditHistory simpleFSFolderEditHistory(Path path);
+
+  // suppressNotifications suppresses KBFS notifications, particularly FSEvent
+  // and FSSyncEvent.
+  //
+  // Caller should call this again after nextSuppressIn to continue
+  // suppressing.  If no such call is made in 2*nextSuppressIn, KBFS will
+  // resume notifications.
+
+  // When resuming notifications, if a notification would have happened since
+  // last suppressNotifications call but was suppressed, this notification will
+  // go through. If multiple notifications would have happened, only one of
+  // them is sent at resuming.
+  void simpleFSSuppressNotifications(int nextSuppressIn);
 }
