@@ -2,6 +2,7 @@ package chat
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -922,6 +923,39 @@ func TestAtMentionsEdit(t *testing.T) {
 	require.NoError(t, err)
 	require.Zero(t, len(atMentions))
 	require.Equal(t, chat1.ChannelMention_ALL, chanMention)
+}
+
+func TestKBFSFileEditSize(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+		ctx, world, ri, _, blockingSender, _ := setupTest(t, 1)
+		defer world.Cleanup()
+
+		u := world.GetUsers()[0]
+		uid := u.User.GetUID().ToBytes()
+		tlfName := u.Username
+		tc := userTc(t, world, u)
+		conv, err := NewConversation(ctx, tc.Context(), uid, tlfName, nil, chat1.TopicType_KBFSFILEEDIT,
+			chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE,
+			func() chat1.RemoteInterface { return ri })
+		require.NoError(t, err)
+
+		body := strings.Repeat("M", 100000)
+		_, _, err = blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        conv.Info.Triple,
+				Sender:      uid,
+				TlfName:     tlfName,
+				MessageType: chat1.MessageType_TEXT,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: body}),
+		}, 0, nil)
+		require.NoError(t, err)
+	})
 }
 
 func TestKBFSCryptKeysBit(t *testing.T) {
