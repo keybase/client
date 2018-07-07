@@ -2,20 +2,19 @@
 import * as React from 'react'
 import ResultsList from '../../search/results-list/container'
 import UserInput from '../../search/user-input/container'
-import {Box2, StandardScreen, Text} from '../../common-adapters'
-import {globalStyles} from '../../styles'
+import {Box2, Text} from '../../common-adapters'
 
-export type Props = {
+export type Props = {|
   onClick: (username: string) => void,
   onClose: () => void,
   onShowTracker: (username: string) => void,
-}
+|}
 
 const searchKey = 'walletSearch'
 const placeholder = 'Search Keybase'
 
 const Search = (props: Props) => (
-  <StandardScreen style={styleContainer} onCancel={props.onClose} title="Wallet search">
+  <Box2 direction="vertical">
     <Box2 direction="horizontal">
       <Text type="Body">To:</Text>
       <UserInput
@@ -33,16 +32,7 @@ const Search = (props: Props) => (
       onShowTracker={props.onShowTracker}
       disableListBuilding={true}
     />
-  </StandardScreen>
+  </Box2>
 )
-
-const styleContainer = {
-  ...globalStyles.flexBoxColumn,
-  // StandardScreen supplies padding we don't want.
-  paddingTop: 0,
-  paddingBottom: 0,
-  paddingLeft: 0,
-  paddingRight: 0,
-}
 
 export default Search
