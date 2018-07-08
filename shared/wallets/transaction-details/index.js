@@ -17,6 +17,7 @@ export type Props = {|
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
   memo: string,
+  navigateAppend: (...Array<any>) => any,
   onViewTransaction?: () => void,
   publicMemo?: string,
   // A null timestamp means the transaction is still pending.

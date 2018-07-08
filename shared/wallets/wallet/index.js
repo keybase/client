@@ -25,6 +25,7 @@ export default (props: Props) => {
         // $FlowIssue thinks these props aren't in `Transaction`
         <Transaction
           accountID={props.accountID}
+          navigateAppend={props.navigateAppend}
           paymentID={item.item.paymentID}
           key={`${props.accountID}:${item.item.paymentID}`}
         />
