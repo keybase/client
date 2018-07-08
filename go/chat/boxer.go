@@ -416,7 +416,7 @@ func (b *Boxer) unbox(ctx context.Context, boxed chat1.MessageBoxed,
 	case chat1.MessageBoxedVersion_V2, chat1.MessageBoxedVersion_V3, chat1.MessageBoxedVersion_V4:
 		res, err := b.unboxV2orV3orV4(ctx, boxed, membersType, encryptionKey, ephemeralSeed)
 		if err != nil {
-			b.Debug(ctx, "error unboxing message version: %v, %v", boxed.Version, err)
+			b.Debug(ctx, "error unboxing message version: %v, %s", boxed.Version, err)
 		}
 		return res, err
 	// NOTE: When adding new versions here, you must also update
