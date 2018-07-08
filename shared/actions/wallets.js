@@ -9,11 +9,14 @@ const loadAccounts = (action: WalletsGen.LoadAccountsPayload) =>
   Saga.call(RPCTypes.localGetWalletAccountsLocalRpcPromise)
 
 const loadAccountsSuccess = (res: ?Array<Types.Account>) =>
-  Saga.put(
-    WalletsGen.createAccountsReceived({
-      accounts: (res || []).map(account => Constants.accountResultToAccount(account)),
-    })
-  )
+  Saga.sequentially([
+    Saga.put(
+      WalletsGen.createAccountsReceived({
+        accounts: (res || []).map(account => Constants.accountResultToAccount(account)),
+      })
+    ),
+    Saga.put(WalletsGen.createMaybeSelectDefaultAccount()),
+  ])
 
 const loadAssets = (action: WalletsGen.LoadAssetsPayload) =>
   Saga.call(RPCTypes.localGetAccountAssetsLocalRpcPromise, {accountID: action.payload.accountID})

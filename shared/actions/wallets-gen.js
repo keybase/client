@@ -13,6 +13,7 @@ export const assetsReceived = 'wallets:assetsReceived'
 export const loadAccounts = 'wallets:loadAccounts'
 export const loadAssets = 'wallets:loadAssets'
 export const loadPayments = 'wallets:loadPayments'
+export const maybeSelectDefaultAccount = 'wallets:maybeSelectDefaultAccount'
 export const paymentsReceived = 'wallets:paymentsReceived'
 export const selectAccount = 'wallets:selectAccount'
 
@@ -25,6 +26,7 @@ type _AssetsReceivedPayload = $ReadOnly<{|
 type _LoadAccountsPayload = void
 type _LoadAssetsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
+type _MaybeSelectDefaultAccountPayload = void
 type _PaymentsReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   payments: Array<Types.Payment>,
@@ -49,6 +51,10 @@ export const createLoadPayments = (payload: _LoadPaymentsPayload) => ({error: fa
  */
 export const createSelectAccount = (payload: _SelectAccountPayload) => ({error: false, payload, type: selectAccount})
 /**
+ * Select the default account if none is selected
+ */
+export const createMaybeSelectDefaultAccount = (payload: _MaybeSelectDefaultAccountPayload) => ({error: false, payload, type: maybeSelectDefaultAccount})
+/**
  * Update our store of account data
  */
 export const createAccountsReceived = (payload: _AccountsReceivedPayload) => ({error: false, payload, type: accountsReceived})
@@ -67,6 +73,7 @@ export type AssetsReceivedPayload = $Call<typeof createAssetsReceived, _AssetsRe
 export type LoadAccountsPayload = $Call<typeof createLoadAccounts, _LoadAccountsPayload>
 export type LoadAssetsPayload = $Call<typeof createLoadAssets, _LoadAssetsPayload>
 export type LoadPaymentsPayload = $Call<typeof createLoadPayments, _LoadPaymentsPayload>
+export type MaybeSelectDefaultAccountPayload = $Call<typeof createMaybeSelectDefaultAccount, _MaybeSelectDefaultAccountPayload>
 export type PaymentsReceivedPayload = $Call<typeof createPaymentsReceived, _PaymentsReceivedPayload>
 export type SelectAccountPayload = $Call<typeof createSelectAccount, _SelectAccountPayload>
 
@@ -78,6 +85,7 @@ export type Actions =
   | LoadAccountsPayload
   | LoadAssetsPayload
   | LoadPaymentsPayload
+  | MaybeSelectDefaultAccountPayload
   | PaymentsReceivedPayload
   | SelectAccountPayload
   | {type: 'common:resetStore', payload: void}
