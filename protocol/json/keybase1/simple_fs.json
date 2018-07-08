@@ -686,7 +686,7 @@
     "simpleFSSuppressNotifications": {
       "request": [
         {
-          "name": "nextSuppressIn",
+          "name": "suppressDurationSec",
           "type": "int"
         }
       ],

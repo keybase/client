@@ -265,10 +265,10 @@ func (s *SimpleFSHandler) SimpleFSFolderEditHistory(
 }
 
 // SimpleFSSuppressNotifications implements the SimpleFSInterface.
-func (s *SimpleFSHandler) SimpleFSSuppressNotifications(ctx context.Context, nextSuppressIn int) error {
+func (s *SimpleFSHandler) SimpleFSSuppressNotifications(ctx context.Context, suppressDurationSec int) error {
 	cli, err := s.client()
 	if err != nil {
 		return err
 	}
-	return cli.SimpleFSSuppressNotifications(ctx, nextSuppressIn)
+	return cli.SimpleFSSuppressNotifications(ctx, suppressDurationSec)
 }

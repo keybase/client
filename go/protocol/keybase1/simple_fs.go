@@ -785,7 +785,7 @@ type SimpleFSFolderEditHistoryArg struct {
 }
 
 type SimpleFSSuppressNotificationsArg struct {
-	NextSuppressIn int `codec:"nextSuppressIn" json:"nextSuppressIn"`
+	SuppressDurationSec int `codec:"suppressDurationSec" json:"suppressDurationSec"`
 }
 
 type SimpleFSInterface interface {
@@ -1234,7 +1234,7 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]SimpleFSSuppressNotificationsArg)(nil), args)
 						return
 					}
-					err = i.SimpleFSSuppressNotifications(ctx, (*typedArgs)[0].NextSuppressIn)
+					err = i.SimpleFSSuppressNotifications(ctx, (*typedArgs)[0].SuppressDurationSec)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1423,8 +1423,8 @@ func (c SimpleFSClient) SimpleFSFolderEditHistory(ctx context.Context, path Path
 	return
 }
 
-func (c SimpleFSClient) SimpleFSSuppressNotifications(ctx context.Context, nextSuppressIn int) (err error) {
-	__arg := SimpleFSSuppressNotificationsArg{NextSuppressIn: nextSuppressIn}
+func (c SimpleFSClient) SimpleFSSuppressNotifications(ctx context.Context, suppressDurationSec int) (err error) {
+	__arg := SimpleFSSuppressNotificationsArg{SuppressDurationSec: suppressDurationSec}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSuppressNotifications", []interface{}{__arg}, nil)
 	return
 }
