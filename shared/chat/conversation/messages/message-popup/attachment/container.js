@@ -2,7 +2,6 @@
 import type {Component} from 'react'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as KBFSGen from '../../../../../actions/kbfs-gen'
-import * as Route from '../../../../../actions/route-tree'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
 import {getCanPerform} from '../../../../../constants/teams'

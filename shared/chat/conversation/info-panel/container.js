@@ -103,7 +103,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onJoinChannel: dispatchProps.onJoinChannel,
   onLeaveConversation: dispatchProps.onLeaveConversation,
   onShowBlockConversationDialog: dispatchProps.onShowBlockConversationDialog,
-  onShowClearConversationDialog: () => {stateProps.lastMessage && dispatchProps._onShowClearConversationDialog(stateProps.lastMessage)},
+  onShowClearConversationDialog: () => { stateProps.lastMessage && dispatchProps._onShowClearConversationDialog(stateProps.lastMessage) },
   onShowNewTeamDialog: dispatchProps.onShowNewTeamDialog,
   onShowProfile: dispatchProps.onShowProfile,
   onLeaveTeam: () => dispatchProps._onLeaveTeam(stateProps.teamname),

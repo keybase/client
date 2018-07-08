@@ -3,7 +3,6 @@ import * as Types from '../../constants/types/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import DeleteHistoryWarning from '.'
 import {type RouteProps} from '../../route-tree/render-route'
-import moment from 'moment'
 import {compose, connect, type TypedState, type Dispatch} from '../../util/container'
 
 type OwnProps = RouteProps<

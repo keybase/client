@@ -319,7 +319,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             key="clear entire conversation"
             caption="Clear entire conversation"
             onClick={row.onShowClearConversationDialog}
-            icon="iconfont-remove"
+            icon="iconfont-fire"
           />
         )
 
