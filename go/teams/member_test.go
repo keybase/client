@@ -166,11 +166,9 @@ func TestMemberAddInvalidRole(t *testing.T) {
 	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
 }
 
-// testFindNextMerkleRootAfterRemoval tests teams.FindNextMerkleRootAfterRemoval, which is
-// a thin wrapper around libkb.FindNextMerkleRootAfterTeamRemoval. Test that the plumbing works
-// properly. Pass in the values from the libkb inner function, to confirm that this function
-// returns the same.
-func testFindNextMerkleRootAfterRemoval(t *testing.T, tc libkb.TestContext, user *kbtest.FakeUser, id keybase1.TeamID, seqno keybase1.Seqno) {
+// getFindNextMerkleRootAfterRemoval calls out to teams.FindNextMerkleRootAfterRemoval, which is
+// a thin wrapper around libkb.FindNextMerkleRootAfterTeamRemoval.
+func getFindNextMerkleRootAfterRemoval(t *testing.T, tc libkb.TestContext, user *kbtest.FakeUser, id keybase1.TeamID, anyRoleAllowed bool) (res keybase1.NextMerkleRootRes, err error) {
 	m := libkb.NewMetaContextForTest(tc)
 	upak, _, err := tc.G.GetUPAKLoader().LoadV2(libkb.NewLoadUserArgWithMetaContext(m).WithUID(user.GetUID()))
 	require.NoError(t, err)
@@ -183,15 +181,13 @@ func testFindNextMerkleRootAfterRemoval(t *testing.T, tc libkb.TestContext, user
 		}
 	}
 	require.False(t, signingKey.IsNil())
-	res, err := FindNextMerkleRootAfterRemoval(m, keybase1.FindNextMerkleRootAfterTeamRemovalBySigningKeyArg{
-		Uid:        user.GetUID(),
-		SigningKey: signingKey,
-		IsPublic:   false,
-		Team:       id,
+	return FindNextMerkleRootAfterRemoval(m, keybase1.FindNextMerkleRootAfterTeamRemovalBySigningKeyArg{
+		Uid:            user.GetUID(),
+		SigningKey:     signingKey,
+		IsPublic:       false,
+		Team:           id,
+		AnyRoleAllowed: anyRoleAllowed,
 	})
-	require.NoError(t, err)
-	require.NotNil(t, res.Res)
-	require.Equal(t, res.Res.Seqno, seqno)
 }
 
 // Check that `libkb.FindNextMerkleRootAfterTeamRemoval` works. To do so,
@@ -243,45 +239,87 @@ func pollForNextMerkleRootAfterRemovalViaLibkb(t *testing.T, tc libkb.TestContex
 	return tid, seqno
 }
 
-func TestMemberRemove(t *testing.T) {
+func TestMemberRemoveReader(t *testing.T) {
 	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
+	anyRoleAllowed := true
+	if err := SetRoleReader(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
-
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
-	assertRole(tc, name, other.Username, keybase1.TeamRole_WRITER)
+	assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
 
 	if err := RemoveMember(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
-
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
 
-	teamID, seqno := pollForNextMerkleRootAfterRemovalViaLibkb(t, tc, other, name)
-	testFindNextMerkleRootAfterRemoval(t, tc, other, teamID, seqno)
+	teamID, expectedSeqno := pollForNextMerkleRootAfterRemovalViaLibkb(t, tc, other, name)
+	res, err := getFindNextMerkleRootAfterRemoval(t, tc, other, teamID, anyRoleAllowed)
+
+	require.NoError(t, err)
+	require.NotNil(t, res.Res)
+	require.Equal(t, res.Res.Seqno, expectedSeqno)
 }
 
-func TestMemberChangeRole(t *testing.T) {
+// Set up log points for a user in a team with roles of
+// Writer->Reader->Writer->Reader and verify that the first merkle root
+// after the last demotion from writer points to the last sequence number.
+func TestMemberRemoveWriter(t *testing.T) {
 	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
+	anyRoleAllowed := false
 	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
-
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, name, other.Username, keybase1.TeamRole_WRITER)
 
 	if err := SetRoleReader(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
+	assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
 
+	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
+		t.Fatal(err)
+	}
+	assertRole(tc, name, other.Username, keybase1.TeamRole_WRITER)
+
+	if err := SetRoleReader(context.TODO(), tc.G, name, other.Username); err != nil {
+		t.Fatal(err)
+	}
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
+
+	teamID, expectedSeqno := pollForNextMerkleRootAfterRemovalViaLibkb(t, tc, other, name)
+	res, err := getFindNextMerkleRootAfterRemoval(t, tc, other, teamID, anyRoleAllowed)
+
+	require.NoError(t, err)
+	require.NotNil(t, res.Res)
+	require.Equal(t, res.Res.Seqno, expectedSeqno)
+}
+
+func TestMemberRemoveWithoutDemotion(t *testing.T) {
+	tc, owner, other, _, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	anyRoleAllowed := true
+	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
+		t.Fatal(err)
+	}
+	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
+	assertRole(tc, name, other.Username, keybase1.TeamRole_WRITER)
+
+	team, err := GetForTestByStringName(context.TODO(), tc.G, name)
+	require.NoError(t, err)
+	res, err := getFindNextMerkleRootAfterRemoval(t, tc, other, team.ID, anyRoleAllowed)
+
+	require.Nil(t, res.Res)
+	require.Error(t, err)
+	require.IsType(t, libkb.NotFoundError{}, err)
 }
 
 // make sure that adding a member creates new recipient boxes

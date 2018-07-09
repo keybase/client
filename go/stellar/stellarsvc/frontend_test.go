@@ -68,12 +68,13 @@ func TestGetAccountAssetsLocalWithBalance(t *testing.T) {
 	require.Len(t, assets, 1)
 	require.Equal(t, "Lumens", assets[0].Name)
 	require.Equal(t, "XLM", assets[0].AssetCode)
-	require.Equal(t, "10,000", assets[0].BalanceTotal)
-	require.Equal(t, "9,998.9999900", assets[0].BalanceAvailableToSend)
 	require.Equal(t, "Stellar network", assets[0].IssuerName)
 	require.Equal(t, "", assets[0].IssuerAccountID)
+	require.Equal(t, "10,000", assets[0].BalanceTotal)
+	require.Equal(t, "9,998.9999900", assets[0].BalanceAvailableToSend)
 	require.Equal(t, "USD", assets[0].WorthCurrency)
 	require.Equal(t, "$3,183.28", assets[0].Worth)
+	require.Equal(t, "$3,182.96", assets[0].AvailableToSendWorth)
 }
 
 func TestGetAccountAssetsLocalEmptyBalance(t *testing.T) {
@@ -92,12 +93,13 @@ func TestGetAccountAssetsLocalEmptyBalance(t *testing.T) {
 	require.Len(t, assets, 1)
 	require.Equal(t, "Lumens", assets[0].Name)
 	require.Equal(t, "XLM", assets[0].AssetCode)
-	require.Equal(t, "0", assets[0].BalanceTotal)
-	require.Equal(t, "0", assets[0].BalanceAvailableToSend)
 	require.Equal(t, "Stellar network", assets[0].IssuerName)
 	require.Equal(t, "", assets[0].IssuerAccountID)
+	require.Equal(t, "0", assets[0].BalanceTotal)
+	require.Equal(t, "0", assets[0].BalanceAvailableToSend)
 	require.Equal(t, "USD", assets[0].WorthCurrency)
 	require.Equal(t, "$0.00", assets[0].Worth)
+	require.Equal(t, "$0.00", assets[0].AvailableToSendWorth)
 }
 
 func TestGetDisplayCurrenciesLocal(t *testing.T) {

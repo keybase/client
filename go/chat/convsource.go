@@ -1050,7 +1050,7 @@ func (s *HybridConversationSource) expungeNotify(ctx context.Context, uid gregor
 			Expunge: *mergeRes.Expunged,
 			Conv:    inboxItem,
 		})
-		s.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(uid.String()), topicType, &act)
+		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &act)
 	}
 }
 
@@ -1076,7 +1076,7 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 			Msgs:   purgedMsgs,
 			Conv:   inboxItem,
 		})
-		s.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(uid.String()), topicType, &act)
+		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &act)
 	}
 }
 

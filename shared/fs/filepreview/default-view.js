@@ -88,6 +88,8 @@ const stylesContainer = platformStyles({
   },
   isMobile: {
     marginTop: 32,
+    paddingLeft: 40,
+    paddingRight: 40,
   },
   isElectron: {
     marginTop: globalMargins.medium,
@@ -107,7 +109,7 @@ const stylesSymlink = {
 
 const stylesNoOpenMobile = {
   marginTop: globalMargins.medium,
-  width: 295,
+  textAlign: 'center',
 }
 
 export default DefaultView

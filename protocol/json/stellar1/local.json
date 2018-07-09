@@ -39,14 +39,6 @@
         },
         {
           "type": "string",
-          "name": "balanceTotal"
-        },
-        {
-          "type": "string",
-          "name": "balanceAvailableToSend"
-        },
-        {
-          "type": "string",
           "name": "assetCode"
         },
         {
@@ -59,11 +51,23 @@
         },
         {
           "type": "string",
-          "name": "worth"
+          "name": "balanceTotal"
+        },
+        {
+          "type": "string",
+          "name": "balanceAvailableToSend"
         },
         {
           "type": "string",
           "name": "worthCurrency"
+        },
+        {
+          "type": "string",
+          "name": "worth"
+        },
+        {
+          "type": "string",
+          "name": "availableToSendWorth"
         }
       ]
     },

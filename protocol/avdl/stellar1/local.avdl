@@ -16,13 +16,20 @@ protocol local {
 
   record AccountAssetLocal {
     string name;                    // "Lumens" for native. AssetCode like "BTC" for non-native.
-    string balanceTotal;            // "280.9192933"
-    string balanceAvailableToSend;  // "279.9192933". Same as balanceTotal for non-native.
     string assetCode;               // "XLM", "BTC"
     string issuerName;              // "Stellar network" for native. Blank or like "stronghold.com" for non-native.
     string issuerAccountID;         // "" for native. Like "GCKLHXC22222252UOISFKYZQX7YIVDBPSZ7UUYDFK6URTG6VDRANPC5K" for non-native.
+
+    string balanceTotal;            // "280.9192933"
+    string balanceAvailableToSend;  // Available to send. Like "279.9192933". Same as balanceTotal for non-native.
+
+    string worthCurrency;           // "USD", "CAD", etc. If it is "ERR" then an exchange rate error occurred. Blank for non-native.
     string worth;                   // "$98.13" or error string if worthCurrency == "ERR". Blank for non-native.
-    string worthCurrency;           // "USD", "CAD", etc.  if it is "ERR" then an exchange rate error occurred. Blank for non-native.
+    // Available to send in worthCurrency.
+    // Like $97.83"" for native.
+    // Blank for non-native.
+    // Error string when worthCurrency is "ERR".
+    string availableToSendWorth;
   }
   array<AccountAssetLocal> getAccountAssetsLocal(int sessionID, AccountID accountID);
 
