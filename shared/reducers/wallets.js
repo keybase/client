@@ -34,14 +34,21 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         secretKeyValidationState: action.error ? 'error' : 'valid',
       })
     case WalletsGen.clearErrors:
-      return state
-        .set('secretKeyError', '')
-        .set('secretKeyValidationState', 'none')
-        .set('accountNameError', '')
-        .set('accountNameValidationState', 'none')
-        .set('linkExistingAccountError', '')
+      return state.merge({
+        accountNameError: '',
+        accountNameValidationState: 'none',
+        linkExistingAccountError: '',
+        secretKeyError: '',
+        secretKeyValidationState: 'none',
+      })
     case WalletsGen.linkExistingAccount:
-      return state.set('linkExistingAccountError', '')
+      return state.merge({
+        accountNameError: '',
+        accountNameValidationState: 'none',
+        linkExistingAccountError: '',
+        secretKeyError: '',
+        secretKeyValidationState: 'none',
+      })
     case WalletsGen.linkedExistingAccount:
       return action.error
         ? state.set('linkExistingAccountError', action.payload.error)
