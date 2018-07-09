@@ -16,10 +16,7 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
-  onCancel: () => {
-    dispatch(WalletsGen.createClearErrors())
-    dispatch(navigateUp())
-  },
+  onCancel: () => dispatch(navigateUp()),
   onCheckKey: (key: string) => {
     dispatch(
       WalletsGen.createValidateSecretKey({
