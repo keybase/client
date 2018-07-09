@@ -129,6 +129,21 @@ func (l *TeamLoader) loadUserAndKeyFromLinkInner(ctx context.Context,
 	return signerUV, key, linkMap, nil
 }
 
+// Get the UV from a link but using server-trust and without verifying anything.
+func (l *TeamLoader) loadUserAndKeyFromLinkInnerNoVerify(ctx context.Context,
+	link *chainLinkUnpacked) (signerUV keybase1.UserVersion, err error) {
+	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#loadUserAndKeyFromLinkInnerNoVerify(%d)", int(link.inner.Seqno)), func() error { return err })()
+	keySection := link.inner.Body.Key
+	if keySection == nil {
+		return signerUV, libkb.NoUIDError{}
+	}
+	// Use the UID from the link body and EldestSeqno from the server-trust API response.
+	if link.source.EldestSeqno == 0 {
+		return signerUV, fmt.Errorf("missing server hint for team sigchain link signer")
+	}
+	return NewUserVersion(keySection.UID, link.source.EldestSeqno), nil
+}
+
 func (l *TeamLoader) verifySignatureAndExtractKID(ctx context.Context, outer libkb.OuterLinkV2WithMetadata) (keybase1.KID, error) {
 	return outer.Verify(l.G().Log)
 }
@@ -195,26 +210,38 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		return nil, err
 	}
 
-	signerUV, key, linkMap, err := l.loadUserAndKeyFromLinkInner(ctx, *link.inner)
-	if err != nil {
-		return nil, err
-	}
+	fullVerify := link.LinkType() != libkb.SigchainV2TypeTeamLeave
 
-	if !kid.Equal(key.Base.Kid) {
-		return nil, libkb.NewWrongKidError(kid, key.Base.Kid)
-	}
+	var signerUV keybase1.UserVersion
+	if fullVerify {
+		var key *keybase1.PublicKeyV2NaCl
+		var linkMap linkMapT
+		signerUV, key, linkMap, err = l.loadUserAndKeyFromLinkInner(ctx, *link.inner)
+		if err != nil {
+			return nil, err
+		}
 
-	teamLinkMap := make(linkMapT)
-	if state != nil {
-		// copy over the stored links
-		for k, v := range state.Chain.LinkIDs {
-			teamLinkMap[k] = v
+		if !kid.Equal(key.Base.Kid) {
+			return nil, libkb.NewWrongKidError(kid, key.Base.Kid)
+		}
+
+		teamLinkMap := make(linkMapT)
+		if state != nil {
+			// copy over the stored links
+			for k, v := range state.Chain.LinkIDs {
+				teamLinkMap[k] = v
+			}
+		}
+		// add on the link that is being checked
+		teamLinkMap[link.Seqno()] = link.LinkID().Export()
+
+		l.addProofsForKeyInUserSigchain(ctx, teamID, teamLinkMap, link, signerUV.Uid, key, linkMap, proofSet)
+	} else {
+		signerUV, err = l.loadUserAndKeyFromLinkInnerNoVerify(ctx, link)
+		if err != nil {
+			return nil, err
 		}
 	}
-	// add on the link that is being checked
-	teamLinkMap[link.Seqno()] = link.LinkID().Export()
-
-	l.addProofsForKeyInUserSigchain(ctx, teamID, teamLinkMap, link, signerUV.Uid, key, linkMap, proofSet)
 
 	signer := signerX{signer: signerUV}
 
