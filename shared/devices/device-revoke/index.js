@@ -14,7 +14,7 @@ export type Props = {
   waiting: boolean,
 }
 
-const Header = ({name, icon}) => (
+const Header = ({name, icon}: {name: string, icon: IconType}) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
     <Icon type={icon} />
     <Text type="BodySemibold" style={styleName}>
@@ -23,7 +23,17 @@ const Header = ({name, icon}) => (
   </Box>
 )
 
-const Body = ({endangeredTLFs, name, currentDevice, waiting}) => (
+const Body = ({
+  endangeredTLFs,
+  name,
+  currentDevice,
+  waiting,
+}: {
+  endangeredTLFs: Array<string>,
+  name: string,
+  currentDevice: boolean,
+  waiting: boolean,
+}) => (
   <Box>
     <Box style={styleHeader}>
       <Text type="BodySemibold">Are you sure you want to revoke </Text>
