@@ -156,16 +156,24 @@ protocol SimpleFS {
   }
 
   /**
-   Begin list of items in directory at path
-   Retrieve results with readList()
-   Can be a single file to get flags/status
+   Begin list of items in directory at path.
+   Retrieve results with readList().
+   Can be a single file to get flags/status.
+   If `refreshSubscription` is true and the path is a KBFS path, simpleFS
+     will begin sending `FSPathUpdated` notifications for the for the
+     corresponding TLF, until another call refreshes the subscription on a
+     different TLF.
    */
-  void simpleFSList(OpID opID, Path path, ListFilter filter);
+  void simpleFSList(OpID opID, Path path, ListFilter filter, boolean refreshSubscription);
 
   /**
-   Begin recursive list of items in directory at path
-   */
-  void simpleFSListRecursive(OpID opID, Path path, ListFilter filter);
+   Begin recursive list of items in directory at path.
+   If `refreshSubscription` is true and the path is a KBFS path, simpleFS
+     will begin sending `FSPathUpdated` notifications for the for the
+     corresponding TLF, until another call refreshes the subscription on a
+     different TLF.
+*/
+  void simpleFSListRecursive(OpID opID, Path path, ListFilter filter, boolean refreshSubscription);
 
   /**
    Get list of Paths in progress. Can indicate status of pending
