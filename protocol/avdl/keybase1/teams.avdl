@@ -866,9 +866,10 @@ protocol teams {
   /**
    FindNextMerkleRootAfterTeamRemovalBySigningKey find the first Merkle root that contains the user
    with the given signing key being removed from the given team. If there are several such instances,
-   we will return just the last one.
+   we will return just the last one. When anyRoleAllowed is false, the team removal is any drop in
+   permissions from Writer (or above) to Reader (or below).
    */
-  NextMerkleRootRes findNextMerkleRootAfterTeamRemovalBySigningKey(UID uid, KID signingKey, TeamID team, boolean isPublic);
+  NextMerkleRootRes findNextMerkleRootAfterTeamRemovalBySigningKey(UID uid, KID signingKey, TeamID team, boolean isPublic, boolean anyRoleAllowed);
 
   /**
    ProfileTeamLoad loads a team and then throws it on the ground, for the purposes of profiling
