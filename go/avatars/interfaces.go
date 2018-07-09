@@ -13,6 +13,7 @@ type Source interface {
 	LoadTeams(context.Context, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
 
 	ClearCacheForName(context.Context, string, []keybase1.AvatarFormat) error
+	OnCacheCleared(context.Context) // Called after leveldb data goes away after db nuke
 
 	StartBackgroundTasks()
 	StopBackgroundTasks()

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -85,6 +86,7 @@ func NewFullCachingSource(g *libkb.GlobalContext, staleThreshold time.Duration, 
 func (c *FullCachingSource) StartBackgroundTasks() {
 	go c.monitorAppState()
 	c.populateCacheCh = make(chan populateArg, 100)
+	os.MkdirAll(c.getCacheDir(), os.ModePerm)
 	for i := 0; i < 10; i++ {
 		go c.populateCacheWorker()
 	}
@@ -93,10 +95,6 @@ func (c *FullCachingSource) StartBackgroundTasks() {
 func (c *FullCachingSource) StopBackgroundTasks() {
 	close(c.populateCacheCh)
 	c.diskLRU.Flush(context.Background(), c.G())
-}
-
-func (c *FullCachingSource) isMobile() bool {
-	return c.G().GetAppType() == libkb.MobileAppType
 }
 
 func (c *FullCachingSource) debug(ctx context.Context, msg string, args ...interface{}) {
@@ -169,7 +167,7 @@ func (c *FullCachingSource) getCacheDir() string {
 	if len(c.tempDir) > 0 {
 		return c.tempDir
 	}
-	return c.G().GetCacheDir()
+	return filepath.Join(c.G().GetCacheDir(), "avatars")
 }
 
 func (c *FullCachingSource) getFullFilename(fileName string) string {
@@ -373,4 +371,26 @@ func (c *FullCachingSource) LoadTeams(ctx context.Context, teams []string, forma
 func (c *FullCachingSource) ClearCacheForName(ctx context.Context, name string, formats []keybase1.AvatarFormat) (err error) {
 	defer c.G().Trace(fmt.Sprintf("FullCachingSource.ClearCacheForUser(%q,%v)", name, formats), func() error { return err })()
 	return c.clearName(ctx, name, formats)
+}
+
+func (c *FullCachingSource) unlinkAllAvatars(ctx context.Context, dirpath string) {
+	files, err := filepath.Glob(filepath.Join(dirpath, "avatar*.avatar"))
+	if err != nil {
+		c.debug(ctx, "unlinkAllAvatars: failed to clear files from %q: %s", dirpath, err)
+		return
+	}
+
+	c.debug(ctx, "unlinkAllAvatars: found %d avatars files to delete in %s", len(files), dirpath)
+	for _, v := range files {
+		if err := os.Remove(v); err != nil {
+			c.debug(ctx, "unlinkAllAvatars: failed to delete file %q: %s", v, err)
+		}
+	}
+}
+
+func (c *FullCachingSource) OnCacheCleared(ctx context.Context) {
+	c.unlinkAllAvatars(ctx, c.getCacheDir())
+	// Avatars used to be in main cache directory before we started
+	// saving them to `avatars/` subdir.
+	c.unlinkAllAvatars(ctx, c.G().GetCacheDir())
 }
