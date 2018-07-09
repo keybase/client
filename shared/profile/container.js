@@ -19,6 +19,7 @@ import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {peopleTab} from '../constants/tabs'
 import {connect, type TypedState} from '../util/container'
 
+import type {Response} from 'react-native-image-picker'
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {RouteProps} from '../route-tree/render-route'
 import type {Props} from '.'

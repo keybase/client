@@ -1,5 +1,6 @@
 // @flow
 import * as LoginGen from '../../actions/login-gen'
+import * as SignupGen from '../../actions/signup-gen'
 import HiddenString from '../../util/hidden-string'
 import Login, {type Props} from '.'
 import {
@@ -10,7 +11,6 @@ import {
   connect,
   type TypedState,
 } from '../../util/container'
-import {requestAutoInvite} from '../../actions/signup'
 
 const mapStateToProps = (state: TypedState) => {
   const _accounts = state.login.configuredAccounts
@@ -30,7 +30,7 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend}) => ({
   onForgotPassphrase: () => dispatch(LoginGen.createOpenAccountResetPage()),
   onLogin: (user: string, passphrase: string) =>
     dispatch(LoginGen.createRelogin({passphrase: new HiddenString(passphrase), usernameOrEmail: user})),
-  onSignup: () => dispatch(requestAutoInvite()),
+  onSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
   onSomeoneElse: () => dispatch(LoginGen.createStartLogin()),
 })
 

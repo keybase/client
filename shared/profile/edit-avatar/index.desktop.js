@@ -13,7 +13,14 @@ import {
   iconCastPlatformStyles,
 } from '../../common-adapters'
 import {EDIT_AVATAR_ZINDEX} from '../../constants/profile'
-import {glamorous, globalColors, globalMargins, globalStyles, styleSheetCreate} from '../../styles'
+import {
+  collapseStyles,
+  glamorous,
+  globalColors,
+  globalMargins,
+  globalStyles,
+  styleSheetCreate,
+} from '../../styles'
 import type {Props} from '.'
 
 type State = {
@@ -25,18 +32,24 @@ type State = {
   dropping: boolean,
   hasPreview: boolean,
   imageSource: string,
+  naturalImageHeight: number,
+  naturalImageWidth: number,
   offsetLeft: number,
   offsetTop: number,
-  originalImageHeight: number,
-  originalImageWidth: number,
   scale: number,
   scaledImageHeight: number,
   scaledImageWidth: number,
+  startingImageHeight: number,
+  startingImageWidth: number,
   submitting: boolean,
+  viewingCenterX: number,
+  viewingCenterY: number,
 }
 
-const AVATAR_SIZE = 175
-const AVATAR_BORDER_WIDTH = 5
+const AVATAR_CONTAINER_SIZE = 175
+const AVATAR_BORDER_SIZE = 4
+const AVATAR_SIZE = AVATAR_CONTAINER_SIZE - AVATAR_BORDER_SIZE * 2
+const VIEWPORT_CENTER = AVATAR_SIZE / 2
 
 class EditAvatar extends React.Component<Props, State> {
   _file: ?HTMLInputElement
@@ -53,14 +66,18 @@ class EditAvatar extends React.Component<Props, State> {
       dropping: false,
       hasPreview: false,
       imageSource: '',
+      naturalImageHeight: 0,
+      naturalImageWidth: 0,
       offsetLeft: 0,
       offsetTop: 0,
-      originalImageHeight: 0,
-      originalImageWidth: 0,
       scale: 1,
-      scaledImageHeight: 0,
-      scaledImageWidth: 0,
+      scaledImageHeight: 1,
+      scaledImageWidth: 1,
+      startingImageHeight: 1,
+      startingImageWidth: 1,
       submitting: false,
+      viewingCenterX: 0,
+      viewingCenterY: 0,
     }
   }
 
@@ -101,13 +118,11 @@ class EditAvatar extends React.Component<Props, State> {
     this._filePickerSetValue('')
   }
 
-  _onDragLeave = (e: SyntheticDragEvent<any>) => {
-    e.persist()
+  _onDragLeave = () => {
     this.setState({dropping: false})
   }
 
   _onDrop = (e: SyntheticDragEvent<any>) => {
-    e.persist()
     this.setState({dropping: false})
     if (!this._validDrag(e)) {
       return
@@ -136,12 +151,10 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   _validDrag = (e: SyntheticDragEvent<any>) => {
-    e.persist()
     return Array.prototype.map.call(e.dataTransfer.types, t => t).includes('Files')
   }
 
   _onDragOver = (e: SyntheticDragEvent<any>) => {
-    e.persist()
     this.setState({dropping: true})
     if (this._validDrag(e)) {
       e.dataTransfer.dropEffect = 'copy'
@@ -155,25 +168,50 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   _onImageLoad = (e: SyntheticEvent<HTMLImageElement>) => {
-    e.persist()
+    // TODO: Make RPC to check file size and warn them before they try submitting.
+
+    let height = AVATAR_SIZE
+    let width = AVATAR_SIZE * e.currentTarget.naturalWidth / e.currentTarget.naturalHeight
+
+    if (width < AVATAR_SIZE) {
+      height = AVATAR_SIZE * e.currentTarget.naturalHeight / e.currentTarget.naturalWidth
+      width = AVATAR_SIZE
+    }
+
     this.setState({
       hasPreview: true,
-      offsetLeft: Math.round(e.currentTarget.naturalWidth / -2 + AVATAR_SIZE / 2 - AVATAR_BORDER_WIDTH),
-      offsetTop: Math.round(e.currentTarget.naturalHeight / -2 + AVATAR_SIZE / 2 - AVATAR_BORDER_WIDTH),
-      originalImageHeight: e.currentTarget.naturalHeight,
-      originalImageWidth: e.currentTarget.naturalWidth,
-      scaledImageHeight: e.currentTarget.naturalHeight,
-      scaledImageWidth: e.currentTarget.naturalWidth,
+      naturalImageHeight: e.currentTarget.naturalHeight,
+      naturalImageWidth: e.currentTarget.naturalWidth,
+      offsetLeft: width / -2 + VIEWPORT_CENTER,
+      offsetTop: height / -2 + VIEWPORT_CENTER,
+      scaledImageHeight: height,
+      scaledImageWidth: width,
+      startingImageHeight: height,
+      startingImageWidth: width,
+      viewingCenterX: e.currentTarget.naturalWidth / 2,
+      viewingCenterY: e.currentTarget.naturalHeight / 2,
     })
   }
 
   _onRangeChange = (e: SyntheticInputEvent<any>) => {
-    e.persist()
-    const scale = e.currentTarget.value
-    const scaledImageHeight = Math.round(this.state.originalImageHeight * scale)
-    const scaledImageWidth = Math.round(this.state.originalImageWidth * scale)
+    const scale = parseFloat(e.currentTarget.value)
+    const scaledImageHeight = this.state.startingImageHeight * scale
+    const scaledImageWidth = this.state.startingImageWidth * scale
+    const ratio = this.state.naturalImageWidth / scaledImageWidth
+    const offsetLeft = clamp(
+      VIEWPORT_CENTER - this.state.viewingCenterX / ratio,
+      AVATAR_SIZE - scaledImageWidth,
+      0
+    )
+    const offsetTop = clamp(
+      VIEWPORT_CENTER - this.state.viewingCenterY / ratio,
+      AVATAR_SIZE - scaledImageHeight,
+      0
+    )
 
     this.setState({
+      offsetLeft,
+      offsetTop,
       scale,
       scaledImageHeight,
       scaledImageWidth,
@@ -181,7 +219,6 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   _onMouseDown = (e: SyntheticMouseEvent<any>) => {
-    e.persist()
     this.setState({
       dragStartX: e.pageX,
       dragStartY: e.pageY,
@@ -195,8 +232,7 @@ class EditAvatar extends React.Component<Props, State> {
     })
   }
 
-  _onMouseUp = (e: SyntheticMouseEvent<any>) => {
-    e.persist()
+  _onMouseUp = () => {
     this.setState({
       dragStopX:
         this._image && this._image.style.left ? parseInt(this._image.style.left, 10) : this.state.dragStopX,
@@ -209,66 +245,73 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   _onMouseMove = (e: SyntheticMouseEvent<any>) => {
-    e.persist()
     if (!this.state.dragging || this.state.submitting) return
 
-    const dragLeft = this.state.dragStopX + e.pageX - this.state.dragStartX
-    const dragTop = this.state.dragStopY + e.pageY - this.state.dragStartY
-    const dragLeftLimit = AVATAR_SIZE - AVATAR_BORDER_WIDTH * 2 - this.state.scaledImageWidth
-    const dragTopLimit = AVATAR_SIZE - AVATAR_BORDER_WIDTH * 2 - this.state.scaledImageHeight
+    const offsetLeft = clamp(
+      this.state.dragStopX + e.pageX - this.state.dragStartX,
+      AVATAR_SIZE - this.state.scaledImageWidth,
+      0
+    )
+    const offsetTop = clamp(
+      this.state.dragStopY + e.pageY - this.state.dragStartY,
+      AVATAR_SIZE - this.state.scaledImageHeight,
+      0
+    )
+    const ratio = this.state.naturalImageWidth / this.state.scaledImageWidth
+    const viewingCenterX = (VIEWPORT_CENTER - this.state.offsetLeft) * ratio
+    const viewingCenterY = (VIEWPORT_CENTER - this.state.offsetTop) * ratio
 
     this.setState({
-      offsetLeft: clamp(dragLeft, dragLeftLimit, 0),
-      offsetTop: clamp(dragTop, dragTopLimit, 0),
+      offsetLeft,
+      offsetTop,
+      viewingCenterX,
+      viewingCenterY,
     })
   }
 
-  _onSave = e => {
-    e.persist()
+  _onSave = () => {
     this.setState({submitting: true})
 
     const x = this.state.offsetLeft * -1
     const y = this.state.offsetTop * -1
-    const rH = this.state.originalImageHeight / this.state.scaledImageHeight
-    const rW = this.state.originalImageWidth / this.state.scaledImageWidth
+    const ratio =
+      this.state.scaledImageWidth !== 0 ? this.state.naturalImageWidth / this.state.scaledImageWidth : 1
     const crop = {
-      x0: Math.round(x * rW),
-      x1: Math.round((x + AVATAR_SIZE - AVATAR_BORDER_WIDTH * 2) * rW),
-      y0: Math.round(y * rH),
-      y1: Math.round((y + AVATAR_SIZE - AVATAR_BORDER_WIDTH * 2) * rH),
+      x0: Math.round(x * ratio),
+      x1: Math.round((x + AVATAR_SIZE) * ratio),
+      y0: Math.round(y * ratio),
+      y1: Math.round((y + AVATAR_SIZE) * ratio),
     }
     this.props.onSave(this.state.imageSource, crop)
   }
 
-  _className = () => {
-    if (this.state.hasPreview) return 'filled'
-    if (this.state.dropping) return 'dropping'
-  }
-
-  render = () => {
+  render() {
     return (
       <MaybePopup
         onClose={this.props.onClose}
-        styleCover={{
-          cursor: this.state.hasPreview && this.state.dragging ? 'grabbing' : 'default',
-          zIndex: EDIT_AVATAR_ZINDEX,
-        }}
+        styleCover={collapseStyles([
+          styles.cover,
+          {
+            cursor: this.state.dragging ? '-webkit-grabbing' : 'default',
+          },
+        ])}
         onMouseUp={this._onMouseUp}
         onMouseDown={this._onMouseDown}
         onMouseMove={this._onMouseMove}
       >
         <Box
+          className={this.state.dropping ? 'dropping' : ''}
           onDragLeave={this._onDragLeave}
           onDragOver={this._onDragOver}
           onDrop={this._onDrop}
           style={styles.container}
         >
           <Text type="BodyBig">Drag and drop a new profile image</Text>
-          <Text type="BodyPrimaryLink" onClick={this._filePickerOpen}>
+          <Text type="BodyPrimaryLink" className="hover-underline" onClick={this._filePickerOpen}>
             or browse your computer for one
           </Text>
           <HoverBox
-            className={this._className}
+            className={this.state.hasPreview ? 'filled' : ''}
             onClick={this.state.hasPreview ? null : this._filePickerOpen}
             style={styles.imageContainer}
           >
@@ -306,8 +349,9 @@ class EditAvatar extends React.Component<Props, State> {
           <input
             disabled={!this.state.hasPreview || this.state.submitting}
             min={1}
-            max={5}
+            max={10}
             onChange={this._onRangeChange}
+            onMouseMove={e => e.stopPropagation()}
             step="any"
             style={styles.slider}
             type="range"
@@ -339,30 +383,41 @@ const HoverBox = glamorous(Box)({
     backgroundColor: globalColors.white,
     borderColor: globalColors.lightGrey2,
     borderStyle: 'solid',
+    cursor: '-webkit-grab',
+  },
+  '&.filled:active': {
+    cursor: '-webkit-grabbing',
   },
   '&.filled:hover': {
     backgroundColor: globalColors.white,
     borderColor: globalColors.lightGrey2,
   },
-  '&:hover, &.dropping': {
+  '&:hover': {
     borderColor: globalColors.black_40,
   },
-  '&:hover .icon, &.dropping .icon': {
+  '&:hover .icon': {
     color: globalColors.black_40,
+  },
+  '.dropping &': {
+    backgroundColor: globalColors.blue_60,
+    borderColor: globalColors.blue_60,
+  },
+  '.dropping & .icon': {
+    color: globalColors.blue_60,
   },
   backgroundColor: globalColors.lightGrey2,
   borderColor: globalColors.grey,
-  borderRadius: AVATAR_SIZE,
-  borderStyle: 'dashed',
-  borderWidth: AVATAR_BORDER_WIDTH,
+  borderRadius: AVATAR_CONTAINER_SIZE,
+  borderStyle: 'dotted',
+  borderWidth: AVATAR_BORDER_SIZE,
   cursor: 'pointer',
   flex: 0,
-  height: AVATAR_SIZE,
+  height: AVATAR_CONTAINER_SIZE,
   marginBottom: globalMargins.small,
   marginTop: globalMargins.medium,
   overflow: 'hidden',
   position: 'relative',
-  width: AVATAR_SIZE,
+  width: AVATAR_CONTAINER_SIZE,
 })
 
 const styles = styleSheetCreate({
@@ -372,6 +427,9 @@ const styles = styleSheetCreate({
     minWidth: 460,
     paddingBottom: globalMargins.xlarge,
     paddingTop: globalMargins.xlarge,
+  },
+  cover: {
+    zIndex: EDIT_AVATAR_ZINDEX,
   },
   hidden: {
     display: 'none',

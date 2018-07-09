@@ -2,5 +2,5 @@
 import * as Saga from '../../util/saga'
 import * as Types from '../../constants/types/fs'
 
-declare export function platformSpecificIntentEffect(intent: Types.TransferIntent, localPath: string, mimeType: string): ?Saga.Effect
+declare export function platformSpecificIntentEffect(intent: Types.DownloadIntent, localPath: string, mimeType: string): ?Saga.Effect
 declare export function platformSpecificSaga(): Saga.SagaGenerator<any, any>

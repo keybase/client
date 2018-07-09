@@ -4,10 +4,7 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../styles'
 import {Box, ClickableBox, Icon, Text} from '../../common-adapters'
-import FloatingMenu, {
-  FloatingMenuParentHOC,
-  type FloatingMenuParentProps,
-} from '../../common-adapters/floating-menu'
+import FloatingMenu, {type FloatingMenuParentProps} from '../../common-adapters/floating-menu'
 import {type MenuItem} from '../../common-adapters/popup-menu'
 import PathItemIcon from '../common/path-item-icon'
 import PathItemInfo from '../common/path-item-info'
@@ -124,4 +121,4 @@ const actionIconStyle = {
   padding: globalMargins.tiny,
 }
 
-export default FloatingMenuParentHOC(PathItemAction)
+export default PathItemAction

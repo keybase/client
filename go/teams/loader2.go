@@ -133,7 +133,26 @@ func (l *TeamLoader) verifySignatureAndExtractKID(ctx context.Context, outer lib
 	return outer.Verify(l.G().Log)
 }
 
+// These sigchain links are not checked dynamically. We assert that they are good.
+var whitelistedTeamLinkSigs = []keybase1.SigID{
+	// For the privacy of the users involved the issue is described only vaguely here.
+	// See CORE-8233 for more details.
+	// This team had a rotate_key link signed seconds before the revocation of the key that signed the link.
+	// Due to a bug the signing device was allowed to be revoked with a signature that pointed to a merkle
+	// root prior to the team link signature. This makes it impossible for the client to independently
+	// verify that the team link was signed before the device was revoked. But it was, it's all good.
+	"e8279d7c73b8defab299094b73800262239e5a03812040ed381cc613a3db515622",
+}
+
 func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID keybase1.TeamID, teamLinkMap linkMapT, link *chainLinkUnpacked, uid keybase1.UID, key *keybase1.PublicKeyV2NaCl, userLinkMap linkMapT, proofSet *proofSetT) {
+
+	for _, okSigID := range whitelistedTeamLinkSigs {
+		if link.SigID().Equal(okSigID) {
+			// This proof is whitelisted, so don't check it.
+			return
+		}
+	}
+
 	event1Link := newProofTerm(teamID.AsUserOrTeam(), link.SignatureMetadata(), teamLinkMap)
 	event2Revoke := key.Base.Revocation
 	if event2Revoke != nil {

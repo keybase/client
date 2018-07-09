@@ -1,8 +1,0 @@
-// @flow
-import React, {Component} from 'react'
-
-export type Props = {
-  onBack: () => void,
-}
-
-export default class Render extends Component<Props> {}

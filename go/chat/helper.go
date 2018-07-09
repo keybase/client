@@ -122,7 +122,8 @@ func (h *Helper) SendMsgByNameNonblock(ctx context.Context, name string, topicNa
 	return helper.SendBody(ctx, body, msgType)
 }
 
-func (h *Helper) FindConversations(ctx context.Context, name string, topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error) {
+func (h *Helper) FindConversations(ctx context.Context, useLocalData bool, name string, topicName *string,
+	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error) {
 	kuid, err := CurrentUID(h.G())
 	if err != nil {
 		return nil, err
@@ -134,8 +135,8 @@ func (h *Helper) FindConversations(ctx context.Context, name string, topicName *
 	if topicName != nil {
 		tname = *topicName
 	}
-	convs, err := FindConversations(ctx, h.G(), h.DebugLabeler, h.ri, uid, name, topicType, membersType, vis,
-		tname, &oneChat)
+	convs, err := FindConversations(ctx, h.G(), h.DebugLabeler, useLocalData, h.ri, uid, name, topicType,
+		membersType, vis, tname, &oneChat)
 	return convs, err
 }
 
@@ -611,7 +612,8 @@ func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.D
 }
 
 func FindConversations(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
-	ri func() chat1.RemoteInterface, uid gregor1.UID, tlfName string, topicType chat1.TopicType,
+	useLocalData bool, ri func() chat1.RemoteInterface, uid gregor1.UID, tlfName string,
+	topicType chat1.TopicType,
 	membersTypeIn chat1.ConversationMembersType, vis keybase1.TLFVisibility, topicName string,
 	oneChatPerTLF *bool) (res []chat1.ConversationLocal, err error) {
 
@@ -622,6 +624,10 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 		if g.GetEnv().GetChatMemberType() != "kbfs" && membersType == chat1.ConversationMembersType_KBFS &&
 			vis == keybase1.TLFVisibility_PRIVATE {
 			return nil, nil
+		}
+		// Make sure team topic name makes sense
+		if topicName == "" && membersType == chat1.ConversationMembersType_TEAM {
+			topicName = globals.DefaultTeamTopic
 		}
 
 		query := &chat1.GetInboxLocalQuery{
@@ -635,7 +641,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 			OneChatTypePerTLF: oneChatPerTLF,
 		}
 
-		inbox, err := g.InboxSource.Read(ctx, uid, nil, true, query, nil)
+		inbox, err := g.InboxSource.Read(ctx, uid, nil, useLocalData, query, nil)
 		if err != nil {
 			// don't error out if the TLF name is just unknown, treat it as a complete miss
 			if _, ok := err.(UnknownTLFNameError); !ok {
@@ -961,15 +967,15 @@ func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName strin
 }
 
 func (n *newConversationHelper) findConversations(ctx context.Context,
-	membersType chat1.ConversationMembersType, topicName string) ([]chat1.ConversationLocal, error) {
+	membersType chat1.ConversationMembersType, topicName string, useLocalData bool) ([]chat1.ConversationLocal, error) {
 	onechatpertlf := true
-	return FindConversations(ctx, n.G(), n.DebugLabeler, n.ri, n.uid, n.tlfName, n.topicType, membersType,
-		n.vis, topicName, &onechatpertlf)
+	return FindConversations(ctx, n.G(), n.DebugLabeler, useLocalData, n.ri, n.uid, n.tlfName, n.topicType,
+		membersType, n.vis, topicName, &onechatpertlf)
 }
 
-func (n *newConversationHelper) findExisting(ctx context.Context, topicName string) (res []chat1.ConversationLocal, err error) {
+func (n *newConversationHelper) findExisting(ctx context.Context, topicName string, useLocalData bool) (res []chat1.ConversationLocal, err error) {
 	// proceed to findConversations for requested member type
-	return n.findConversations(ctx, n.membersType, topicName)
+	return n.findConversations(ctx, n.membersType, topicName, useLocalData)
 }
 
 func (n *newConversationHelper) create(ctx context.Context) (res chat1.ConversationLocal, reserr error) {
@@ -996,7 +1002,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	// user and such. For the most part, the CLI just uses FindConversationsLocal though, so it
 	// should hopefully just result in a bunch of cache hits on the second invocation.
 
-	convs, err := n.findExisting(ctx, findConvsTopicName)
+	convs, err := n.findExisting(ctx, findConvsTopicName, true)
 
 	// If we find one conversation, then just return it as if we created it.
 	if len(convs) == 1 {
@@ -1056,7 +1062,20 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		firstMessageBoxed, topicNameState, err := n.makeFirstMessage(ctx, triple, info.CanonicalName,
 			n.membersType, n.vis, n.topicName)
 		if err != nil {
-			return res, fmt.Errorf("error preparing message: %s", err)
+			// Check for DuplicateTopicNameError and run findExisting again to try and find it
+			switch err.(type) {
+			case DuplicateTopicNameError:
+				n.Debug(ctx, "duplicate topic name encountered, attempting to findExisting again")
+				var findErr error
+				convs, findErr = n.findExisting(ctx, findConvsTopicName, false)
+				if len(convs) == 1 {
+					n.Debug(ctx, "found previous conversation that matches, returning")
+					return convs[0], findErr
+				}
+				n.Debug(ctx, "failed to find previous conversation on second attempt: len(convs): %d err: %s",
+					len(convs), findErr)
+			}
+			return res, err
 		}
 
 		var ncrres chat1.NewConversationRemoteRes

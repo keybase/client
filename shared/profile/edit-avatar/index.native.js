@@ -1,12 +1,13 @@
 // @flow
 import * as React from 'react'
 import {Box, ButtonBar, StandardScreen, WaitingButton} from '../../common-adapters'
-import {NativeImage, ZoomableBox} from '../../common-adapters/mobile.native'
+import {NativeDimensions, NativeImage, ZoomableBox} from '../../common-adapters/mobile.native'
 import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {isIOS} from '../../constants/platform'
 import type {Props} from '.'
 
-const AVATAR_SIZE = 250
+const {width: screenWidth} = NativeDimensions.get('window')
+const AVATAR_SIZE = screenWidth - globalMargins.medium * 2
 
 class EditAvatar extends React.Component<Props> {
   _h: number = 0
@@ -19,7 +20,7 @@ class EditAvatar extends React.Component<Props> {
       throw new Error('Missing image when saving avatar')
     }
     const filename = isIOS ? this.props.image.uri.replace('file://', '') : this.props.image.path
-    // Cropping is temporarily deactivated on Andoird.
+    // Cropping is temporarily deactivated on Android.
     if (isIOS) {
       this.props.onSave(filename, this._getCropCoordinates())
       return
@@ -49,22 +50,39 @@ class EditAvatar extends React.Component<Props> {
     this._y = y
   }
 
+  _imageDimensions = () => {
+    if (!this.props.image) return
+
+    let height = AVATAR_SIZE
+    let width = AVATAR_SIZE * this.props.image.width / this.props.image.height
+
+    if (width < AVATAR_SIZE) {
+      height = AVATAR_SIZE * this.props.image.height / this.props.image.width
+      width = AVATAR_SIZE
+    }
+
+    return {
+      height,
+      // We need to center the image on Android because this is how the backend
+      // will crop it when we don’t pass cropping coordinates.
+      marginLeft: isIOS ? null : (width - AVATAR_SIZE) / -2,
+      marginTop: isIOS ? null : (height - AVATAR_SIZE) / -2,
+      width,
+    }
+  }
+
   render() {
     return (
-      <StandardScreen onCancel={this.props.onClose} scrollEnabled={false} title="Zoom and pan">
-        <Box
-          style={{
-            marginBottom: globalMargins.small,
-            marginTop: globalMargins.small,
-          }}
-        >
+      <StandardScreen
+        onCancel={this.props.onClose}
+        scrollEnabled={false}
+        title={isIOS ? 'Zoom and pan' : 'Upload avatar'}
+      >
+        <Box style={styles.container}>
           <Box style={isIOS ? null : styles.zoomContainer}>
             <ZoomableBox
               bounces={false}
-              contentContainerStyle={{
-                height: this.props.image ? this.props.image.height : AVATAR_SIZE,
-                width: this.props.image ? this.props.image.width : AVATAR_SIZE,
-              }}
+              contentContainerStyle={this._imageDimensions()}
               // Temporarily deactive zooming on Android.
               maxZoom={isIOS ? 10 : 1}
               onZoom={isIOS ? this._onZoom : null}
@@ -73,12 +91,9 @@ class EditAvatar extends React.Component<Props> {
               style={styles.zoomContainer}
             >
               <NativeImage
-                resizeMode="contain"
-                source={{uri: `data:image/jpeg;base64,${this.props.image ? this.props.image.data : ''}`}}
-                style={{
-                  height: isIOS && this.props.image ? this.props.image.height : AVATAR_SIZE,
-                  width: isIOS && this.props.image ? this.props.image.width : AVATAR_SIZE,
-                }}
+                resizeMode="cover"
+                source={{uri: `${this.props.image ? this.props.image.uri : ''}`}}
+                style={this._imageDimensions()}
               />
             </ZoomableBox>
           </Box>
@@ -103,11 +118,13 @@ const styles = styleSheetCreate({
     marginTop: globalMargins.tiny,
     width: '100%',
   },
+  container: {
+    marginBottom: globalMargins.small,
+    marginTop: globalMargins.small,
+  },
   zoomContainer: {
-    alignSelf: 'center',
     backgroundColor: globalColors.lightGrey2,
     borderRadius: AVATAR_SIZE,
-    flexShrink: 1,
     height: AVATAR_SIZE,
     marginBottom: globalMargins.tiny,
     overflow: 'hidden',

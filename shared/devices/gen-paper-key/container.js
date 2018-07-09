@@ -1,6 +1,6 @@
 // @flow
 import * as DevicesGen from '../../actions/devices-gen'
-import Render from '../../login/signup/success'
+import Render from '.'
 import {connect} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
 

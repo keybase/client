@@ -290,6 +290,10 @@ func (o OuterLinkV2WithMetadata) LinkID() LinkID {
 	return ComputeLinkID(o.raw)
 }
 
+func (o OuterLinkV2WithMetadata) SigID() keybase1.SigID {
+	return o.sigID
+}
+
 func (o OuterLinkV2WithMetadata) Raw() []byte {
 	return o.raw
 }

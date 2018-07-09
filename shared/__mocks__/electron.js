@@ -1,4 +1,7 @@
 // @noflow
+if (!__STORYBOOK__) {
+  throw new Error('Invalid load of mock')
+}
 // Does not fully mock members
 // Add properties & functions as necessary
 export const clipboard = {writeText: s => {}}

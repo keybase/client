@@ -2,8 +2,6 @@
 import Placeholder from './placeholder'
 import Still from './still-container'
 import Editing from './editing-container'
-import rowStyles from './styles'
+import Uploading from './uploading-container'
 
-const rowHeight = rowStyles.height
-
-export {Still, Editing, Placeholder, rowHeight}
+export {Still, Editing, Placeholder, Uploading}

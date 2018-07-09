@@ -12,6 +12,7 @@ import {
 } from '../../util/container'
 import PathItemAction from './path-item-action'
 import {fileUIName, isMobile, isIOS, isAndroid} from '../../constants/platform'
+import {FloatingMenuParentHOC} from '../../common-adapters/floating-menu'
 
 type OwnProps = {
   path: Types.Path,
@@ -31,24 +32,21 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => ({
-  _loadMimeType: (path: Types.Path) => dispatch(FsGen.createMimeTypeLoad({path})),
-  _ignoreFolder: (path: Types.Path) => {
-    dispatch(FsGen.createFavoriteIgnore({path}))
-  },
-
+  loadFolderList: () => dispatch(FsGen.createFolderListLoad({path, refreshTag: 'path-item-action-popup'})),
+  loadMimeType: () => dispatch(FsGen.createMimeTypeLoad({path, refreshTag: 'path-item-action-popup'})),
+  _ignoreFolder: () => dispatch(FsGen.createFavoriteIgnore({path})),
   ...(isMobile
     ? {
-        _saveMedia: (path: Types.Path) => dispatch(FsGen.createSaveMedia({path})),
-        _shareNative: (path: Types.Path) => dispatch(FsGen.createShareNative({path})),
+        _saveMedia: () => dispatch(FsGen.createSaveMedia({path})),
+        _shareNative: () => dispatch(FsGen.createShareNative({path})),
       }
     : {
-        _showInFileUI: (path: Types.Path) =>
-          dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
+        _showInFileUI: () => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
       }),
 
   ...(!isIOS
     ? {
-        _download: (path: Types.Path) => dispatch(FsGen.createDownload({path, intent: 'none'})),
+        _download: () => dispatch(FsGen.createDownload({path, intent: 'none'})),
       }
     : {}),
 })
@@ -63,7 +61,7 @@ const getRootMenuItems = (stateProps, dispatchProps, path: Types.Path) => {
     fileUIEnabled &&
     menuItems.push({
       title: 'Show in ' + fileUIName,
-      onClick: () => _showInFileUI(path),
+      onClick: () => _showInFileUI(),
     })
 
   isMobile &&
@@ -71,27 +69,27 @@ const getRootMenuItems = (stateProps, dispatchProps, path: Types.Path) => {
     Constants.isMedia(pathItem) &&
     menuItems.push({
       title: 'Save',
-      onClick: () => _saveMedia(path),
+      onClick: () => _saveMedia(),
     })
 
   const shouldShowShareNative = isMobile && pathItem.type === 'file'
   shouldShowShareNative &&
     menuItems.push({
       title: 'Send to other app',
-      onClick: () => _shareNative(path),
+      onClick: () => _shareNative(),
     })
 
   const shouldDownload = (isAndroid && pathItem.type !== 'folder') || !isMobile
   shouldDownload &&
     menuItems.push({
       title: 'Download a copy',
-      onClick: () => _download(path),
+      onClick: () => _download(),
     })
 
   Constants.showIgnoreFolder(path, pathItem, _username) &&
     menuItems.push({
       title: 'Ignore this folder',
-      onClick: () => _ignoreFolder(path),
+      onClick: () => _ignoreFolder(),
       subTitle: 'The folder will no longer appear in your folders list.',
       danger: true,
     })
@@ -100,7 +98,7 @@ const getRootMenuItems = (stateProps, dispatchProps, path: Types.Path) => {
 
 const mergeProps = (stateProps, dispatchProps, {path, actionIconClassName, actionIconFontSize}) => {
   const {_pathItems, _username} = stateProps
-  const {_loadMimeType} = dispatchProps
+  const {loadFolderList, loadMimeType} = dispatchProps
   const pathItem = _pathItems.get(path, Constants.unknownPathItem)
   const {childrenFolders, childrenFiles} =
     !pathItem || pathItem.type !== 'folder'
@@ -131,7 +129,8 @@ const mergeProps = (stateProps, dispatchProps, {path, actionIconClassName, actio
     pathElements,
     itemStyles,
     menuItems,
-    loadMimeType: () => _loadMimeType(path),
+    loadMimeType,
+    loadFolderList,
     actionIconClassName,
     actionIconFontSize,
   }
@@ -140,8 +139,13 @@ const mergeProps = (stateProps, dispatchProps, {path, actionIconClassName, actio
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   setDisplayName('ConnectedPathItemAction'),
+  FloatingMenuParentHOC,
   lifecycle({
-    componentDidMount() {
+    componentDidUpdate(prevProps) {
+      if (!this.props.showingMenu || (prevProps.showingMenu && this.props.path === prevProps.path)) {
+        return
+      }
+      this.props.loadFolderList()
       if (this.props.needLoadMimeType) {
         this.props.loadMimeType()
       }

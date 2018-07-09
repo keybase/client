@@ -3,83 +3,71 @@ import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../constants/types/fs'
 import {globalStyles, globalMargins} from '../styles'
-import {Box, Icon, List, ScrollView, Text} from '../common-adapters'
+import {Box, Divider, Icon, List, ScrollView, Text} from '../common-adapters'
 import FolderHeader from './header/container'
 import SortBar from './sortbar/container'
-import {Still, Editing, Placeholder, rowHeight} from './row'
+import {Still, Editing, Placeholder, Uploading} from './row'
 import Footer from './footer/container'
 import {isMobile} from '../constants/platform'
 import ConnectedBanner from './banner/container'
 
 type FolderProps = {
-  stillItems: Array<Types.Path>,
-  editingItems: Array<Types.EditID>,
+  items: Array<Types.RowItem>,
   isUserReset: boolean,
   resetParticipants: Array<string>,
   path: Types.Path,
   routePath: I.List<string>,
-  progress: 'pending' | 'loaded',
 }
 
-type StillRowItem = {
-  type: 'still',
-  path: Types.Path,
-}
-
-type EditingRowItem = {
-  type: 'editing',
-  editID: Types.EditID,
-}
-
-type PlaceholderRowItem = {
-  type: 'placeholder',
-  key: string,
-}
-
-type RowItem = StillRowItem | EditingRowItem | PlaceholderRowItem
+export const WrapRow = ({children}: {children: React.Node}) => (
+  <Box style={stylesRowContainer}>
+    {children}
+    <Divider key="divider" style={stylesDivider} />
+  </Box>
+)
 
 class Files extends React.PureComponent<FolderProps> {
-  _mapPropsToRowItems = (): Array<RowItem> =>
-    this.props.progress === 'pending'
-      ? [{type: 'placeholder', key: '1'}, {type: 'placeholder', key: '2'}, {type: 'placeholder', key: '3'}]
-      : this.props.editingItems
-          .map((editID: Types.EditID): EditingRowItem => ({
-            type: 'editing',
-            editID,
-          }))
-          .concat(
-            this.props.stillItems.map((path: Types.Path): StillRowItem => ({
-              type: 'still',
-              path,
-            }))
-          )
-
-  _rowRenderer = (index: number, item: RowItem) => {
-    switch (item.type) {
+  _rowRenderer = (index: number, item: Types.RowItem) => {
+    switch (item.rowType) {
       case 'placeholder':
-        return <Placeholder key={item.key} />
+        return (
+          <WrapRow key={`placeholder:${item.name}`}>
+            <Placeholder type={item.type} />
+          </WrapRow>
+        )
       case 'still':
-        return <Still key={Types.pathToString(item.path)} path={item.path} routePath={this.props.routePath} />
+        return (
+          <WrapRow key={`still:${item.name}`}>
+            <Still path={item.path} routePath={this.props.routePath} />
+          </WrapRow>
+        )
+      case 'uploading':
+        return (
+          <WrapRow key={`uploading:${item.name}`}>
+            <Uploading path={item.path} />
+          </WrapRow>
+        )
       case 'editing':
         return (
-          <Editing
-            key={Types.editIDToString(item.editID)}
-            editID={item.editID}
-            routePath={this.props.routePath}
-          />
+          <WrapRow key={`editing:${Types.editIDToString(item.editID)}`}>
+            <Editing editID={item.editID} routePath={this.props.routePath} />
+          </WrapRow>
         )
       default:
         /*::
-      let type = item.type
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(type);
+      let rowType = item.rowType
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (rowType: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(rowType);
       */
-        return <Text type="BodyError">This should not happen.</Text>
+        return (
+          <WrapRow key="">
+            <Text type="BodyError">This should not happen.</Text>
+          </WrapRow>
+        )
     }
   }
 
   render() {
-    const rowItems = this._mapPropsToRowItems()
     const content = this.props.isUserReset ? (
       <Box style={globalStyles.flexBoxColumn}>
         <Box style={resetContainerStyle}>
@@ -87,8 +75,8 @@ class Files extends React.PureComponent<FolderProps> {
           <Icon type="icon-access-denied-266" />
         </Box>
       </Box>
-    ) : rowItems && rowItems.length ? (
-      <List fixedHeight={rowHeight} items={rowItems} renderItem={this._rowRenderer} />
+    ) : this.props.items && this.props.items.length ? (
+      <List fixedHeight={rowHeight} items={this.props.items} renderItem={this._rowRenderer} />
     ) : (
       <Box style={stylesEmptyContainer}>
         <Text type="BodySmall">This is an empty folder.</Text>
@@ -113,6 +101,8 @@ class Files extends React.PureComponent<FolderProps> {
     )
   }
 }
+
+const rowHeight = isMobile ? 64 : 40
 
 const styleOuterContainer = {
   height: '100%',
@@ -139,6 +129,17 @@ const resetContainerStyle = {
   flex: 1,
   justifyContent: 'center',
   marginTop: 2 * globalMargins.xlarge,
+}
+
+const stylesRowContainer = {
+  ...globalStyles.flexBoxColumn,
+  height: rowHeight,
+  minHeight: rowHeight,
+  maxHeight: rowHeight,
+}
+
+const stylesDivider = {
+  marginLeft: 48,
 }
 
 export default Files
