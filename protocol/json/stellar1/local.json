@@ -104,10 +104,20 @@
     },
     {
       "type": "record",
-      "name": "PaymentLocal",
+      "name": "PaymentID",
       "fields": [
         {
           "type": "TransactionID",
+          "name": "txID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentLocal",
+      "fields": [
+        {
+          "type": "PaymentID",
           "name": "id"
         },
         {
@@ -213,8 +223,12 @@
       "name": "PaymentDetailsLocal",
       "fields": [
         {
-          "type": "TransactionID",
+          "type": "PaymentID",
           "name": "id"
+        },
+        {
+          "type": "TransactionID",
+          "name": "txID"
         },
         {
           "type": "TimeMs",
@@ -625,7 +639,7 @@
         },
         {
           "name": "id",
-          "type": "TransactionID"
+          "type": "PaymentID"
         }
       ],
       "response": "PaymentDetailsLocal"

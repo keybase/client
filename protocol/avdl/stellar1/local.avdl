@@ -55,10 +55,14 @@ protocol local {
     SBS_3
   }
 
+  record PaymentID {
+    TransactionID txID;
+  }
+
   // Summary of a payment.
   // Keep in sync with PaymentDetailsLocal.
   record PaymentLocal {
-    TransactionID id;               // For relay payments, the funding tx.
+    PaymentID id;                   // For relay payments, the funding tx.
     TimeMs time;
     PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
     string statusDescription;       // "pending", "completed", "error"
@@ -92,7 +96,8 @@ protocol local {
   // Details of a payment.
   // Keep in sync with PaymentLocal.
   record PaymentDetailsLocal {
-    TransactionID id;               // For relay payments, the funding tx.
+    PaymentID id;
+    TransactionID txID;             // For relay payments, the funding tx.
     TimeMs time;
     PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
     string statusDescription;       // "pending", "completed", "error"
@@ -117,7 +122,7 @@ protocol local {
   // accountID should be the accountID that you want the details for.
   // This is used for formatting the amountDescription to know if it is a payment that
   // increases or decreases the balance.
-  PaymentDetailsLocal getPaymentDetailsLocal(int sessionID, AccountID accountID, TransactionID id);
+  PaymentDetailsLocal getPaymentDetailsLocal(int sessionID, AccountID accountID, PaymentID id);
 
   record CurrencyLocal {
     string description;  // "USD ($)", "CAD ($)", etc.
