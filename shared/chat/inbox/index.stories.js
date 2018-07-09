@@ -292,6 +292,7 @@ const getPropProviderProps = own => {
  * Inbox
  */
 const propsInboxCommon = {
+  focusFilter: () => {},
   filter: '',
   filterFocusCount: 0,
   isLoading: false,
@@ -299,9 +300,6 @@ const propsInboxCommon = {
   onBuildTeam: action('onBuildTeam'),
   onHotkey: action('onHotkey'),
   onNewChat: action('onNewChat'),
-  onSelectDown: action('onSelectDown'),
-  onSelectUp: action('onSelectUp'),
-  onSetFilter: action('onSelectFilter'),
   onUntrustedInboxVisible: action('onUntrustedInboxVisible'),
   rows: [],
   showBuildATeam: false,
@@ -415,6 +413,20 @@ const provider = createPropProvider(
   PropProviders.Common(),
   PropProviders.TeamDropdownMenu(undefined, teamMemberCounts),
   {
+    ChatInboxHeaderContainer: p => {
+      const showNewChat = !(p.rows.length || p.filter)
+      return {
+        fitler: p.filter,
+        fitlerFocuscount: p.filterFocusCount,
+        isLoading: false,
+        onHotkey: action('onHotkey'),
+        onNewChat: action('onNewChat'),
+        onSelectDown: action('onSelectDown'),
+        onSelectUp: action('onSelectUp'),
+        onSetFilter: action('onSetFilter'),
+        showNewChat,
+      }
+    },
     NewChooser: p => ({
       isSelected: false,
       onCancel: action('onCancel'),

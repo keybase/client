@@ -10,8 +10,7 @@ import {
 } from '../../common-adapters/mobile.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {makeRow} from './row'
-import StartNewChat from './row/start-new-chat'
-import ChatFilterRow from './row/chat-filter-row'
+import ChatInboxHeader from './row/chat-inbox-header/container'
 import BuildTeam from './row/build-team'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import Divider from './row/divider/container'
@@ -186,17 +185,12 @@ class Inbox extends React.PureComponent<Props, State> {
         <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
       )
     const buildTeam = this.props.showBuildATeam && <BuildTeam onBuildTeam={this.props.onBuildTeam} />
-    const HeadComponent = this.props.showNewChat ? (
-      <StartNewChat onNewChat={this.props.onNewChat} />
-    ) : (
-      <ChatFilterRow
-        isLoading={this.props.isLoading}
-        filter={this.props.filter}
-        onNewChat={this.props.onNewChat}
-        onSetFilter={this.props.onSetFilter}
-        onSelectUp={this.props.onSelectUp}
-        onSelectDown={this.props.onSelectDown}
+    const HeadComponent = (
+      <ChatInboxHeader
         filterFocusCount={this.props.filterFocusCount}
+        focusFilter={this.props.focusFilter}
+        onNewChat={this.props.onNewChat}
+        rows={this.props.rows}
       />
     )
     return (
