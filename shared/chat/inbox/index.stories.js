@@ -10,12 +10,6 @@ import {isMobile, globalColors, globalMargins} from '../../styles'
 
 import Inbox from '.'
 
-// import {SmallTeam} from './small-team'
-// import {FilterSmallTeam} from './filter-small-team'
-// import {BigTeamHeader} from './big-team-header'
-// import {BigTeamChannel} from './big-team-channel'
-// import {FilterBigTeamChannel} from './filter-big-team-channel'
-
 /*
  * Rows
  */

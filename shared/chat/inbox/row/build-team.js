@@ -21,11 +21,9 @@ const DividerBox = glamorous(Box)({
     ? {backgroundColor: globalColors.fastBlank}
     : {
         ':hover': {
-          borderBottomColor: globalColors.black_10,
-          borderTopColor: globalColors.black_10,
-          color: globalColors.black_40,
+          borderBottomColor: globalColors.lightGrey,
+          borderTopColor: globalColors.lightGrey,
         },
-        color: globalColors.black_20,
       }),
   alignItems: 'center',
   borderStyle: 'solid',
