@@ -28,6 +28,7 @@ type EKLib struct {
 	// state.
 	clock                    clockwork.Clock
 	backgroundCreationTestCh chan bool
+	stopCh                   chan struct{}
 }
 
 func NewEKLib(g *libkb.GlobalContext) *EKLib {
@@ -40,9 +41,18 @@ func NewEKLib(g *libkb.GlobalContext) *EKLib {
 		Contextified:   libkb.NewContextified(g),
 		teamEKGenCache: nlru,
 		clock:          clockwork.NewRealClock(),
+		stopCh:         make(chan struct{}),
 	}
 	go ekLib.backgroundKeygen()
 	return ekLib
+}
+
+func (e *EKLib) Shutdown() {
+	e.Lock()
+	defer e.Unlock()
+	if e.stopCh != nil {
+		e.stopCh <- struct{}{}
+	}
 }
 
 func (e *EKLib) backgroundKeygen() {
@@ -72,6 +82,9 @@ func (e *EKLib) backgroundKeygen() {
 			if state == keybase1.AppState_BACKGROUNDACTIVE {
 				runIfNeeded()
 			}
+		case <-e.stopCh:
+			close(e.stopCh)
+			return
 		}
 	}
 }
