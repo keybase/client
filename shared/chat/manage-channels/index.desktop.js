@@ -108,6 +108,20 @@ const ManageChannels = (props: Props) => {
   }
   return (
     <PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
+      {props.canCreateChannels && (
+        <Box style={_createStyle}>
+          <Icon
+            style={_createIcon}
+            type="iconfont-new"
+            onClick={props.onCreate}
+            hoverColor={_hoverColor}
+            color={globalColors.blue}
+          />
+          <Text type="BodyBigLink" onClick={props.onCreate}>
+            New chat channel
+          </Text>
+        </Box>
+      )}
       <Box style={_boxStyle}>
         <Avatar isTeam={true} teamname={props.teamname} size={32} />
         <Text type="BodySmallSemibold" style={{color: globalColors.darkBlue, marginTop: globalMargins.xtiny}}>
@@ -129,20 +143,6 @@ const ManageChannels = (props: Props) => {
             />
           ))}
         </ScrollView>
-        {props.canCreateChannels && (
-          <Box style={_createStyle}>
-            <Icon
-              style={_createIcon}
-              type="iconfont-new"
-              onClick={props.onCreate}
-              hoverColor={_hoverColor}
-              color={globalColors.blue}
-            />
-            <Text type="BodyBigLink" onClick={props.onCreate}>
-              New chat channel
-            </Text>
-          </Box>
-        )}
         <ButtonBar style={{alignSelf: 'flex-end'}}>
           <Button type="Secondary" label="Cancel" onClick={props.onClose} />
           <WaitingButton
