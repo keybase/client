@@ -1,5 +1,6 @@
 // @flow
 import * as I from 'immutable'
+import HiddenString from '../../util/hidden-string'
 
 // Possible 'types' of things you can send or receive transactions with
 export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'account'
@@ -75,9 +76,11 @@ export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
 export type _State = {
   accountMap: I.Map<AccountID, Account>,
+  accountName: string,
   accountNameError: string,
   accountNameValidationState: ValidationState,
   linkExistingAccountError: string,
+  secretKey: HiddenString,
   secretKeyError: string,
   secretKeyValidationState: ValidationState,
   selectedAccount: AccountID,
