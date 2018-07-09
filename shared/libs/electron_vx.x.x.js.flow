@@ -15,12 +15,15 @@ declare module 'electron' {
   // Main process:
   declare var app: ?electron$App
   declare var autoUpdater: ?electron$autoUpdater
+  // $FlowFixMe
   declare var BrowserWindow: ?typeof electron$BrowserWindow
   declare var contentTracing: ?electron$contentTracing
   declare var dialog: ?electron$dialog
   declare var globalShortcut: ?electron$globalShortcut
   declare var ipcMain: ?electron$IpcMain
+  // $FlowFixMe
   declare var Menu: ?typeof electron$Menu
+  // $FlowFixMe
   declare var MenuItem: ?typeof electron$MenuItem
   declare var powerMonitor: ?electron$powerMonitor
   declare var powerSaveBlocker: ?electron$powerSaveBlocker
@@ -564,7 +567,11 @@ type electron$powerMonitor = {}
  * https://github.com/electron/electron/blob/master/docs/api/power-save-blocker.md
  */
 
-type electron$powerSaveBlocker = {}
+type electron$powerSaveBlocker = {
+  start: ('prevent-app-suspension' | 'prevent-display-sleep') => number,
+  stop: number => void,
+  isStarted: number => boolean,
+}
 
 /**
  * https://github.com/electron/electron/blob/master/docs/api/protocol.md

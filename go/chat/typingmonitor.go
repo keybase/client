@@ -88,7 +88,7 @@ func (t *TypingMonitor) notifyConvUpdateLocked(ctx context.Context, convID chat1
 		ConvID: convID,
 		Typers: typers,
 	}
-	t.G().NotifyRouter.HandleChatTypingUpdate(ctx, []chat1.ConvTypingUpdate{update})
+	t.G().ActivityNotifier.TypingUpdate(ctx, []chat1.ConvTypingUpdate{update})
 }
 
 func (t *TypingMonitor) Update(ctx context.Context, typer chat1.TyperInfo, convID chat1.ConversationID,
