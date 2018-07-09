@@ -20,17 +20,19 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.selectAccount:
       return state.set('selectedAccount', action.payload.accountID)
     case WalletsGen.validateAccountName:
-      return action.error
-        ? state
-            .set('accountNameError', action.payload.error)
-            .set('accountNameValidationState', action.payload.error ? 'error' : 'valid')
-        : state.set('accountNameValidationState', 'waiting')
+      return state.merge({accountNameError: '', accountNameValidationState: 'waiting'})
+    case WalletsGen.validatedAccountName:
+      return state.merge({
+        accountNameError: action.error ? action.payload.error : '',
+        accountNameValidationState: action.error ? 'error' : 'valid',
+      })
     case WalletsGen.validateSecretKey:
-      return action.error
-        ? state
-            .set('secretKeyError', action.payload.error)
-            .set('secretKeyValidationState', action.payload.error ? 'error' : 'valid')
-        : state.set('secretKeyValidationState', 'waiting')
+      return state.merge({secretKeyError: '', secretKeyValidationState: 'waiting'})
+    case WalletsGen.validatedSecretKey:
+      return state.merge({
+        secretKeyError: action.error ? action.payload.error : '',
+        secretKeyValidationState: action.error ? 'error' : 'valid',
+      })
     case WalletsGen.clearErrors:
       return state
         .set('secretKeyError', '')
@@ -49,13 +51,12 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             linkExistingAccountError: '',
             secretKeyError: '',
             secretKeyValidationState: 'none',
+            selectedAccount: action.payload.accountID,
           })
     // Saga only actions
     case WalletsGen.loadAssets:
     case WalletsGen.loadPayments:
     case WalletsGen.loadAccounts:
-    case WalletsGen.validatedAccountName:
-    case WalletsGen.validatedSecretKey:
       return state
     default:
       /*::

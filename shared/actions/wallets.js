@@ -60,10 +60,7 @@ const linkExistingAccount = (state: TypedState, action: WalletsGen.LinkExistingA
     Constants.linkExistingWaitingKey
   )
     .then(accountIDString => Types.stringToAccountID(accountIDString))
-    .then(accountID => [
-      WalletsGen.createSelectAccount({accountID, show: true}),
-      WalletsGen.createLinkedExistingAccount({accountID}),
-    ])
+    .then(accountID => WalletsGen.createLinkedExistingAccount({accountID}))
     .catch(err => {
       logger.warn(`Error linking existing account: ${err.desc}`)
       return WalletsGen.createLinkedExistingAccountError({error: err.desc, name, secretKey})
