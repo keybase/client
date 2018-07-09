@@ -319,7 +319,19 @@ func TestListRecursive(t *testing.T) {
 	require.NoError(t, err)
 	listResult, err = sfs.SimpleFSReadList(ctx, opid)
 	require.NoError(t, err)
-	require.Len(t, listResult.Entries, 7)
+	require.Len(t, listResult.Entries, 4)
+	sort.Slice(listResult.Entries, func(i, j int) bool {
+		return strings.Compare(listResult.Entries[i].Name,
+			listResult.Entries[j].Name) < 0
+	})
+	for i, e := range []string{
+		"a",
+		"a/.testfile",
+		"a/aa",
+		"a/ab",
+	} {
+		require.Equal(t, e, listResult.Entries[i].Name)
+	}
 }
 
 func TestCopyToLocal(t *testing.T) {

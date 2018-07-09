@@ -579,9 +579,9 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 // SimpleFSListRecursiveToDepth - Begin recursive list of items in directory at path up to a given depth.
 func (k *SimpleFS) SimpleFSListRecursiveToDepth(ctx context.Context, arg keybase1.SimpleFSListRecursiveToDepthArg) error {
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_LIST_RECURSIVE_TO_DEPTH,
-		keybase1.NewOpDescriptionWithListRecursive(
-			keybase1.ListArgs{
-				OpID: arg.OpID, Path: arg.Path, Filter: arg.Filter,
+		keybase1.NewOpDescriptionWithListRecursiveToDepth(
+			keybase1.ListToDepthArgs{
+				OpID: arg.OpID, Path: arg.Path, Filter: arg.Filter, Depth: arg.Depth,
 			}),
 		k.listRecursiveToDepth(arg.OpID, arg.Path, arg.Filter, arg.Depth),
 	)
