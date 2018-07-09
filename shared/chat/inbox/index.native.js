@@ -10,8 +10,8 @@ import {
 } from '../../common-adapters/mobile.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {makeRow} from './row'
+import BuildTeam from './row/build-team/container'
 import ChatInboxHeader from './row/chat-inbox-header/container'
-import BuildTeam from './row/build-team'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import Divider from './row/divider/container'
 import {debounce} from 'lodash-es'
@@ -184,7 +184,6 @@ class Inbox extends React.PureComponent<Props, State> {
       this.props.showSmallTeamsExpandDivider && (
         <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
       )
-    const buildTeam = this.props.showBuildATeam && <BuildTeam onBuildTeam={this.props.onBuildTeam} />
     const HeadComponent = (
       <ChatInboxHeader
         filterFocusCount={this.props.filterFocusCount}
@@ -210,7 +209,7 @@ class Inbox extends React.PureComponent<Props, State> {
           />
           {noChats}
           {owl}
-          {floatingDivider || buildTeam}
+          {floatingDivider || <BuildTeam />}
         </Box>
       </ErrorBoundary>
     )

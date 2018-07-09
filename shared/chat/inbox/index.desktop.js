@@ -4,10 +4,10 @@ import ReactList from 'react-list'
 import {ErrorBoundary} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {makeRow} from './row'
+import BuildTeam from './row/build-team/container'
 import ChatInboxHeader from './row/chat-inbox-header/container'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import Divider from './row/divider/container'
-import BuildTeam from './row/build-team'
 import {debounce} from 'lodash-es'
 import {Owl} from './owl'
 import NewConversation from './new-conversation/container'
@@ -137,7 +137,6 @@ class Inbox extends PureComponent<Props, State> {
       this.props.showSmallTeamsExpandDivider && (
         <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
       )
-    const buildTeam = this.props.showBuildATeam && <BuildTeam onBuildTeam={this.props.onBuildTeam} />
     return (
       <ErrorBoundary>
         <div style={_containerStyle}>
@@ -159,7 +158,7 @@ class Inbox extends PureComponent<Props, State> {
             />
           </div>
           {owl}
-          {floatingDivider || buildTeam}
+          {floatingDivider || <BuildTeam />}
         </div>
       </ErrorBoundary>
     )

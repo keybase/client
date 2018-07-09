@@ -416,16 +416,27 @@ const provider = createPropProvider(
     ChatInboxHeaderContainer: p => {
       const showNewChat = !(p.rows.length || p.filter)
       return {
-        fitler: p.filter,
-        fitlerFocuscount: p.filterFocusCount,
-        isLoading: false,
-        onHotkey: action('onHotkey'),
+        focusFilter: () => {},
+        filterFocusCount: p.filterFocusCount,
         onNewChat: action('onNewChat'),
-        onSelectDown: action('onSelectDown'),
-        onSelectUp: action('onSelectUp'),
-        onSetFilter: action('onSetFilter'),
+        rows: p.rows,
         showNewChat,
       }
+    },
+    ChatFilterRowContainer: p => ({
+      focusFilter: () => {},
+      fitler: p.filter,
+      filterFocusCount: p.filterFocusCount,
+      isLoading: false,
+      onHotkey: action('onHotkey'),
+      onNewChat: action('onNewChat'),
+      onSelectDown: action('onSelectDown'),
+      onSelectUp: action('onSelectUp'),
+      onSetFilter: action('onSetFilter'),
+    }),
+    BuildTeam: p => {
+      console.log('JRY', p)
+      return p
     },
     NewChooser: p => ({
       isSelected: false,

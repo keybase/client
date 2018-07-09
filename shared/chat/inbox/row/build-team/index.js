@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {ClickableBox, Box, Text} from '../../../common-adapters'
+import {ClickableBox, Box, Text} from '../../../../common-adapters'
 import {
   platformStyles,
   globalStyles,
@@ -9,7 +9,7 @@ import {
   glamorous,
   styleSheetCreate,
   isMobile,
-} from '../../../styles'
+} from '../../../../styles'
 
 type Props = {
   onBuildTeam: () => void,
