@@ -5,23 +5,44 @@ import * as RPCTypes from '../constants/types/rpc-stellar-gen'
 import * as Saga from '../util/saga'
 import * as WalletsGen from './wallets-gen'
 import * as Route from './route-tree'
+import logger from '../logger'
 import type {TypedState} from '../constants/reducer'
 import {walletsTab} from '../constants/tabs'
 
-const loadAccounts = (action: WalletsGen.LoadAccountsPayload) =>
-  Saga.call(RPCTypes.localGetWalletAccountsLocalRpcPromise)
+const loadAccounts = (action: WalletsGen.LoadAccountsPayload | WalletsGen.LinkedExistingAccountPayload) =>
+  !action.error && Saga.call(RPCTypes.localGetWalletAccountsLocalRpcPromise)
 
-const loadAccountsSuccess = (res: ?Array<Types.Account>) =>
-  Saga.put(
-    WalletsGen.createAccountsReceived({
-      accounts: (res || []).map(account => Constants.accountResultToAccount(account)),
-    })
-  )
+const loadAccountsSuccess = (
+  res: ?Array<Types.Account>,
+  action: WalletsGen.LoadAccountsPayload | WalletsGen.LinkedExistingAccountPayload
+) =>
+  action.error
+    ? null
+    : Saga.put(
+        WalletsGen.createAccountsReceived({
+          accounts: (res || []).map(account => Constants.accountResultToAccount(account)),
+        })
+      )
 
-const loadAssets = (action: WalletsGen.LoadAssetsPayload) =>
+const loadAssets = (
+  action:
+    | WalletsGen.LoadAssetsPayload
+    | WalletsGen.SelectAccountPayload
+    | WalletsGen.LinkedExistingAccountPayload
+) =>
+  !action.error &&
   Saga.call(RPCTypes.localGetAccountAssetsLocalRpcPromise, {accountID: action.payload.accountID})
 
-const loadAssetsSuccess = (res: ?Array<RPCTypes.AccountAssetLocal>, action: WalletsGen.LoadAssetsPayload) => {
+const loadAssetsSuccess = (
+  res: ?Array<RPCTypes.AccountAssetLocal>,
+  action:
+    | WalletsGen.LoadAssetsPayload
+    | WalletsGen.SelectAccountPayload
+    | WalletsGen.LinkedExistingAccountPayload
+) => {
+  if (action.error) {
+    return
+  }
   const {accountID} = action.payload
   return Saga.put(
     WalletsGen.createAssetsReceived({
@@ -31,10 +52,24 @@ const loadAssetsSuccess = (res: ?Array<RPCTypes.AccountAssetLocal>, action: Wall
   )
 }
 
-const loadPayments = (action: WalletsGen.LoadPaymentsPayload) =>
-  Saga.call(RPCTypes.localGetPaymentsLocalRpcPromise, {accountID: action.payload.accountID})
+const loadPayments = (
+  action:
+    | WalletsGen.LoadPaymentsPayload
+    | WalletsGen.SelectAccountPayload
+    | WalletsGen.LinkedExistingAccountPayload
+) =>
+  !action.error && Saga.call(RPCTypes.localGetPaymentsLocalRpcPromise, {accountID: action.payload.accountID})
 
-const loadPaymentsSuccess = (res: RPCTypes.PaymentsPageLocal, action: WalletsGen.LoadPaymentsPayload) => {
+const loadPaymentsSuccess = (
+  res: RPCTypes.PaymentsPageLocal,
+  action:
+    | WalletsGen.LoadPaymentsPayload
+    | WalletsGen.SelectAccountPayload
+    | WalletsGen.LinkedExistingAccountPayload
+) => {
+  if (action.error) {
+    return
+  }
   const {accountID} = action.payload
   return Saga.put(
     WalletsGen.createPaymentsReceived({
@@ -53,55 +88,68 @@ const linkExistingAccount = (state: TypedState, action: WalletsGen.LinkExistingA
     },
     Constants.linkExistingWaitingKey
   )
+    .then(accountIDString => Types.stringToAccountID(accountIDString))
     .then(accountID => [
-      WalletsGen.createLoadAccounts(),
-      WalletsGen.createSelectAccount({accountID: Types.stringToAccountID(accountID), show: true}),
-      WalletsGen.createLinkExistingAccountError({error: '', name, secretKey}),
+      WalletsGen.createSelectAccount({accountID, show: true}),
+      WalletsGen.createLinkedExistingAccount({accountID}),
     ])
-    .catch(err => WalletsGen.createLinkExistingAccountError({error: err.desc, name, secretKey}))
+    .catch(err => WalletsGen.createLinkedExistingAccountError({error: err.desc, name, secretKey}))
 }
 
 const validateAccountName = (state: TypedState, action: WalletsGen.ValidateAccountNamePayload) => {
   const {name} = action.payload
   return RPCTypes.localValidateAccountNameLocalRpcPromise({name})
-    .then(() => WalletsGen.createValidateAccountNameError({error: '', name}))
-    .catch(err => WalletsGen.createValidateAccountNameError({error: err.desc, name}))
+    .then(() => WalletsGen.createValidatedAccountName({name}))
+    .catch(err => {
+      logger.warn(`Errpr`)
+      return WalletsGen.createValidatedAccountNameError({error: err.desc, name})
+    })
 }
 
 const validateSecretKey = (state: TypedState, action: WalletsGen.ValidateSecretKeyPayload) => {
   const {secretKey} = action.payload
   return RPCTypes.localValidateSecretKeyLocalRpcPromise({secretKey: secretKey.stringValue()})
-    .then(() => WalletsGen.createValidateSecretKeyError({error: '', secretKey}))
-    .catch(err => WalletsGen.createValidateSecretKeyError({error: err.desc, secretKey}))
+    .then(() => WalletsGen.createValidatedSecretKey({secretKey}))
+    .catch(err => WalletsGen.createValidatedSecretKeyError({error: err.desc, secretKey}))
 }
 
-const navigateToAccount = (action: WalletsGen.SelectAccountPayload) => {
-  const {show} = action.payload
-  if (!show) {
+const navigateToAccount = (
+  action: WalletsGen.SelectAccountPayload | WalletsGen.LinkedExistingAccountPayload
+) => {
+  if (action.type === WalletsGen.linkedExistingAccount && action.error) {
+    // Link existing failed, don't nav
+    return
+  }
+  if (action.type === WalletsGen.selectAccount && !action.payload.show) {
+    // we don't want to show, don't nav
     return
   }
   return Saga.put(Route.navigateTo([{props: {}, selected: walletsTab}, {props: {}, selected: null}]))
 }
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPure(WalletsGen.loadAccounts, loadAccounts, loadAccountsSuccess)
-  yield Saga.safeTakeEveryPure(WalletsGen.loadAssets, loadAssets, loadAssetsSuccess)
-  yield Saga.safeTakeEveryPure(WalletsGen.loadPayments, loadPayments, loadPaymentsSuccess)
-  yield Saga.safeTakeEveryPure(WalletsGen.selectAccount, loadAssets, loadAssetsSuccess)
-  yield Saga.safeTakeEveryPure(WalletsGen.selectAccount, loadPayments, loadPaymentsSuccess)
-  yield Saga.safeTakeEveryPurePromise(
-    action => action.type === WalletsGen.linkExistingAccount && !action.error,
-    linkExistingAccount
+  yield Saga.safeTakeEveryPure(
+    [WalletsGen.loadAccounts, WalletsGen.linkedExistingAccount],
+    loadAccounts,
+    loadAccountsSuccess
   )
-  yield Saga.safeTakeEveryPurePromise(
-    action => action.type === WalletsGen.validateAccountName && !action.error,
-    validateAccountName
+  yield Saga.safeTakeEveryPure(
+    [WalletsGen.loadAssets, WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
+    loadAssets,
+    loadAssetsSuccess
   )
-  yield Saga.safeTakeEveryPurePromise(
-    action => action.type === WalletsGen.validateSecretKey && !action.error,
-    validateSecretKey
+  yield Saga.safeTakeEveryPure(
+    [WalletsGen.loadPayments, WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
+    loadPayments,
+    loadPaymentsSuccess
   )
-  yield Saga.safeTakeEveryPure(WalletsGen.selectAccount, navigateToAccount)
+  yield Saga.safeTakeEveryPurePromise(WalletsGen.linkExistingAccount, linkExistingAccount)
+  yield Saga.safeTakeEveryPurePromise(WalletsGen.validateAccountName, validateAccountName)
+  yield Saga.safeTakeEveryPurePromise(WalletsGen.validateSecretKey, validateSecretKey)
+  yield Saga.safeTakeEveryPure(
+    [WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
+    navigateToAccount
+  )
 }
 
 export default walletsSaga

@@ -39,13 +39,23 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         .set('accountNameValidationState', 'none')
         .set('linkExistingAccountError', '')
     case WalletsGen.linkExistingAccount:
+      return state.set('linkExistingAccountError', '')
+    case WalletsGen.linkedExistingAccount:
       return action.error
         ? state.set('linkExistingAccountError', action.payload.error)
-        : state.set('linkExistingAccountError', '')
+        : state.merge({
+            accountNameError: '',
+            accountNameValidationState: 'none',
+            linkExistingAccountError: '',
+            secretKeyError: '',
+            secretKeyValidationState: 'none',
+          })
     // Saga only actions
     case WalletsGen.loadAssets:
     case WalletsGen.loadPayments:
     case WalletsGen.loadAccounts:
+    case WalletsGen.validatedAccountName:
+    case WalletsGen.validatedSecretKey:
       return state
     default:
       /*::
