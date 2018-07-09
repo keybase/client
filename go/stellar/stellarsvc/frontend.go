@@ -315,7 +315,7 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		return payment, err
 	}
 
-	details, err := s.remoter.PaymentDetails(ctx, arg.Id.String())
+	details, err := s.remoter.PaymentDetails(ctx, arg.Id.TxID.String())
 	if err != nil {
 		return payment, err
 	}
@@ -327,6 +327,7 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 
 	payment = stellar1.PaymentDetailsLocal{
 		Id:                summary.Id,
+		TxID:              summary.Id.TxID,
 		Time:              summary.Time,
 		StatusSimplified:  summary.StatusSimplified,
 		StatusDescription: summary.StatusDescription,
