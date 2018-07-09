@@ -529,6 +529,7 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 			if err != nil {
 				return err
 			}
+			d.Name = finalElem
 			des = append(des, d)
 			// Leave paths empty so we can skip the loop below.
 		} else {
@@ -558,12 +559,13 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 				if err != nil {
 					return err
 				}
+				de.Name = stdpath.Join(pathElem.path, fi.Name())
 				des = append(des, de)
 				// Only recurse if the caller requested infinite depth (-1), or
 				// if the current path has a depth less than the desired final
 				// depth of recursion.
 				if fi.IsDir() && (finalDepth == -1 || pathElem.depth < finalDepth) {
-					paths = append(paths, pathStackElem{stdpath.Join(pathElem.path, fi.Name()), pathElem.depth + 1})
+					paths = append(paths, pathStackElem{de.Name, pathElem.depth + 1})
 				}
 			}
 			k.updateReadProgress(opID, 0, int64(len(fis)))
