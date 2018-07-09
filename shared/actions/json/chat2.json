@@ -213,10 +213,9 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
     },
-    // Deletes a message and above
+    // Deletes all messages
     "messageDeleteHistory": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
     },
     // Update why we have a pending conversation, either we're searching or we have a fixed set of users (you clicked a folder for example)
     // Use `noneDestination` to specify where the user should end up after setting it to 'none'

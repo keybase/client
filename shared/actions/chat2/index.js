@@ -1715,7 +1715,16 @@ const markThreadAsRead = (
     return
   }
 
-  let message = Constants.getLastMessage(state, conversationIDKey)
+  let message
+  const mmap = state.chat2.messageMap.get(conversationIDKey)
+  if (mmap) {
+    const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
+    const ordinal = ordinals.findLast(o => {
+      const m = mmap.get(o)
+      return m && !!m.id
+    })
+    message = mmap.get(ordinal)
+  }
 
   if (!message) {
     logger.info('marking read bail on no messages')
@@ -1731,31 +1740,22 @@ const markThreadAsRead = (
 
 // Delete a message and any older
 const deleteMessageHistory = (action: Chat2Gen.MessageDeletePayload, state: TypedState) => {
-  const {conversationIDKey, ordinal} = action.payload
+  const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
-  let message = Constants.getMessage(state, conversationIDKey, ordinal)
-
-  if (!message) {
-    message = Constants.getLastMessage(state, conversationIDKey)
-  }
-
-  if (!message) {
-    throw new Error('Deleting message history with no message?')
-  }
 
   if (!meta.tlfname) {
     logger.warn('Deleting message history for non-existent TLF:')
     return
   }
 
-  const param: RPCChatTypes.LocalPostDeleteHistoryThroughRpcParam = {
+  const param: RPCChatTypes.LocalPostDeleteHistoryByAgeRpcParam = {
     conversationID: Types.keyToConversationID(conversationIDKey),
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-    through: message.id,
     tlfName: meta.tlfname,
     tlfPublic: false,
+    age: 0,
   }
-  return Saga.call(RPCChatTypes.localPostDeleteHistoryThroughRpcPromise, param)
+  return Saga.call(RPCChatTypes.localPostDeleteHistoryByAgeRpcPromise, param)
 }
 
 // Get the rights a user has on certain actions in a team

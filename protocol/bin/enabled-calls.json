@@ -18,7 +18,7 @@
   "chat.1.local.makePreview": {"promise": true},
   "chat.1.local.markAsReadLocal": {"promise": true},
   "chat.1.local.newConversationLocal": {"promise": true},
-  "chat.1.local.postDeleteHistoryThrough": {"promise": true},
+  "chat.1.local.postDeleteHistoryByAge": {"promise": true},
   "chat.1.local.postDeleteNonblock": {"promise": true},
   "chat.1.local.postEditNonblock": {"promise": true},
   "chat.1.local.postFileAttachmentLocal": {"engineSaga": true},

@@ -151,10 +151,7 @@ type _MessageAttachmentUploadedPayload = $ReadOnly<{|
   placeholderID: RPCChatTypes.MessageID,
   message: Types.MessageAttachment,
 |}>
-type _MessageDeleteHistoryPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
-|}>
+type _MessageDeleteHistoryPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _MessageDeletePayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,

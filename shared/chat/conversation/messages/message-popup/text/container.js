@@ -45,7 +45,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     ),
   _onDeleteMessageHistory: (message: Types.Message) => {
     dispatch(Chat2Gen.createNavigateToThread())
-    dispatch(Route.navigateAppend([{props: {message}, selected: 'deleteHistoryWarning'}]))
+    dispatch(
+      Route.navigateAppend([
+        {props: {conversationIDKey: message.conversationIDKey}, selected: 'deleteHistoryWarning'},
+      ])
+    )
   },
   _onEdit: (message: Types.Message) => {
     dispatch(

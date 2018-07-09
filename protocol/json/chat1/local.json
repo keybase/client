@@ -298,12 +298,7 @@
     {
       "type": "record",
       "name": "MessageDeleteHistory",
-      "fields": [
-        {
-          "type": "MessageID",
-          "name": "upto"
-        }
-      ]
+      "fields": []
     },
     {
       "type": "record",

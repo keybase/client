@@ -7,7 +7,7 @@ import {compose, connect, type TypedState, type Dispatch} from '../../util/conta
 
 type OwnProps = RouteProps<
   {
-    message: Types.Message,
+    conversationIDKey: Types.ConversationIDKey,
     teamname: string,
   },
   {}
@@ -24,12 +24,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}: OwnPro
   onBack: () => dispatch(navigateUp()),
   onClose: () => dispatch(navigateUp()),
   onDeleteHistory: () => {
-    const message = routeProps.get('message')
+    const conversationIDKey = routeProps.get('conversationIDKey')
     dispatch(navigateUp())
     dispatch(
       Chat2Gen.createMessageDeleteHistory({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
+        conversationIDKey: conversationIDKey,
       })
     )
   },
