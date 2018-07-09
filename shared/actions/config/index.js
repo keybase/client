@@ -20,7 +20,6 @@ import {defaultNumFollowSuggestions} from '../../constants/people'
 import {isMobile} from '../../constants/platform'
 import {type AsyncAction} from '../../constants/types/flux'
 import {type TypedState} from '../../constants/reducer'
-
 // TODO convert to sagas
 
 isMobile &&
