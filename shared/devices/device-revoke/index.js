@@ -60,7 +60,9 @@ const Body = ({
                 <Text type="BodySemibold" style={{marginRight: globalMargins.tiny}}>
                   •
                 </Text>
-                <Text type="BodySemibold">{tlf}</Text>
+                <Text type="BodySemibold" selectable={true}>
+                  {tlf}
+                </Text>
               </Box>
             ))}
           </Box>
