@@ -99,11 +99,12 @@ function* call(p: {
       params,
     })
 
+    // Must return an unsubscribe function, we just ignore this
     return () => {}
   }, buffer) // allow the buffer to grow always
 
   let finalParams: any
-  let finalError: ?RPCError
+  let finalError: ?RPCError | ?Error
   try {
     while (true) {
       // Take things that we put into the eventChannel above
@@ -140,6 +141,9 @@ function* call(p: {
         finalError = res.error
       }
     }
+  } catch (e) {
+    // capture errors when we handle the callbacks and treat the whole process as an error
+    finalError = e
   } finally {
     // eventChannel will jump to finally when RS.END is emitted
     if (waitingKey) {

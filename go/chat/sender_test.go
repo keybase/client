@@ -2,6 +2,7 @@ package chat
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -247,6 +248,8 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.PushHandler = pushHandler
 	g.ChatHelper = NewHelper(g, getRI)
 	g.TeamChannelSource = NewCachingTeamChannelSource(g, getRI)
+	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
+
 	searcher := NewSearcher(g)
 	// Force small pages during tests to ensure we fetch context from new pages
 	searcher.pageSize = 2
@@ -342,7 +345,7 @@ func TestNonblockTimer(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// Send a bunch of nonblocking messages
+	// Send a bunch of blocking messages
 	var sentRef []sentRecord
 	for i := 0; i < 5; i++ {
 		_, msgBoxed, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
@@ -402,7 +405,7 @@ func TestNonblockTimer(t *testing.T) {
 	default:
 	}
 
-	// Send a bunch of nonblocking messages
+	// Send a bunch of blocking messages
 	for i := 0; i < 5; i++ {
 		_, msgBoxed, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
@@ -443,6 +446,7 @@ func TestNonblockTimer(t *testing.T) {
 			require.Fail(t, "event not received")
 		}
 
+		t.Logf("OUTBOXID: %s", obids[i/2])
 		require.Equal(t, i+1, olen, "wrong length")
 		require.Equal(t, listener.obids[i], obids[i/2], "wrong obid")
 	}
@@ -919,6 +923,38 @@ func TestAtMentionsEdit(t *testing.T) {
 	require.NoError(t, err)
 	require.Zero(t, len(atMentions))
 	require.Equal(t, chat1.ChannelMention_ALL, chanMention)
+}
+
+func TestKBFSFileEditSize(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+		ctx, world, ri, _, blockingSender, _ := setupTest(t, 1)
+		defer world.Cleanup()
+
+		u := world.GetUsers()[0]
+		uid := u.User.GetUID().ToBytes()
+		tlfName := u.Username
+		tc := userTc(t, world, u)
+		conv, err := NewConversation(ctx, tc.Context(), uid, tlfName, nil, chat1.TopicType_KBFSFILEEDIT,
+			chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE,
+			func() chat1.RemoteInterface { return ri })
+		require.NoError(t, err)
+
+		body := strings.Repeat("M", 100000)
+		_, _, err = blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Sender:      uid,
+				TlfName:     tlfName,
+				MessageType: chat1.MessageType_TEXT,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: body}),
+		}, 0, nil)
+		require.NoError(t, err)
+	})
 }
 
 func TestKBFSCryptKeysBit(t *testing.T) {
