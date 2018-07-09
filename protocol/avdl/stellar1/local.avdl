@@ -132,6 +132,12 @@ protocol local {
   }
   array<CurrencyLocal> getDisplayCurrenciesLocal(int sessionID);
 
+  void validateAccountIDLocal(int sessionID, AccountID accountID);
+  void validateSecretKeyLocal(int sessionID, SecretKey secretKey);
+  // Validates a name for a new account. Checks if any accounts have the same name.
+  // If there is an error getting account names, the error is suppressed.
+  void validateAccountNameLocal(int sessionID, string name);
+
   void changeWalletAccountNameLocal(int sessionID, AccountID accountID, string newName);
   void setWalletAccountAsDefaultLocal(int sessionID, AccountID accountID);
 
