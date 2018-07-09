@@ -81,7 +81,6 @@ function* _toggleNotificationsSaga(): Saga.SagaGenerator<any, any> {
       if (groupName === Constants.securityGroup) {
         // Special case this since it will go to chat settings endpoint
         for (const key in group.settings) {
-          // TODO blacklist default setting if on android >= 26
           const setting = group.settings[key]
           chatGlobalArg[
             `${ChatTypes.commonGlobalAppNotificationSetting[setting.name]}`
