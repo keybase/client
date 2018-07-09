@@ -114,7 +114,7 @@ const ManageChannels = (props: Props) => {
           {props.teamname}
         </Text>
         {channelDisplay}
-        <ScrollView style={{alignSelf: 'flex-start', marginBottom: globalMargins.xlarge, width: '100%'}}>
+        <ScrollView style={{width: '100%', flex: 1}}>
           {props.channels.map(c => (
             <Row
               key={c.convID}
@@ -143,19 +143,17 @@ const ManageChannels = (props: Props) => {
             </Text>
           </Box>
         )}
-        <Box style={{flex: 2, ...globalStyles.flexBoxColumn, justifyContent: 'flex-end'}}>
-          <ButtonBar>
-            <Button type="Secondary" label="Cancel" onClick={props.onClose} />
-            <WaitingButton
-              type="Primary"
-              label={props.unsavedSubscriptions ? 'Save' : 'Saved'}
-              waitingKey={props.waitingKey}
-              disabled={!props.unsavedSubscriptions}
-              onClick={props.onSaveSubscriptions}
-              style={{marginLeft: globalMargins.tiny}}
-            />
-          </ButtonBar>
-        </Box>
+        <ButtonBar style={{alignSelf: 'flex-end'}}>
+          <Button type="Secondary" label="Cancel" onClick={props.onClose} />
+          <WaitingButton
+            type="Primary"
+            label={props.unsavedSubscriptions ? 'Save' : 'Saved'}
+            waitingKey={props.waitingKey}
+            disabled={!props.unsavedSubscriptions}
+            onClick={props.onSaveSubscriptions}
+            style={{marginLeft: globalMargins.tiny}}
+          />
+        </ButtonBar>
       </Box>
     </PopupDialog>
   )
