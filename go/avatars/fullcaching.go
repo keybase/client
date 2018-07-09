@@ -235,6 +235,7 @@ func (c *FullCachingSource) populateCacheWorker() {
 		found, ent, err := c.diskLRU.Get(ctx, c.G(), key)
 		if err != nil {
 			c.debug(ctx, "populateCacheWorker: failed to read previous entry in LRU: %s", err)
+			libkb.DiscardAndCloseBody(resp)
 			continue
 		}
 		if found {
@@ -243,6 +244,7 @@ func (c *FullCachingSource) populateCacheWorker() {
 
 		// Save to disk
 		path, err := c.commitAvatarToDisk(ctx, resp.Body, previousPath)
+		libkb.DiscardAndCloseBody(resp)
 		if err != nil {
 			c.debug(ctx, "populateCacheWorker: failed to write to disk: %s", err)
 			continue
