@@ -1,18 +1,14 @@
 // @flow
 import * as React from 'react'
-import {isDarwin} from '../../../../constants/platform'
-import ChatFilterRow from '../chat-filter-row'
+import * as Inbox from '../..'
+import ChatFilterRow from '../chat-filter-row/container'
 import StartNewChat from '../start-new-chat'
 
 type Props = {
-  filter: string,
-  filterFocusCount: number,
-  isLoading: boolean,
-  onHotkey: (cmd: string) => void,
   onNewChat: () => void,
-  onSelectDown: () => void,
-  onSelectUp: () => void,
-  onSetFilter: (filter: string) => void,
+  filterFocusCount: number,
+  focusFilter: () => void,
+  rows: Array<Inbox.RowItem>,
   showNewChat: boolean,
 }
 
@@ -21,15 +17,10 @@ const ChatInboxHeader = (props: Props) =>
     <StartNewChat onNewChat={props.onNewChat} />
   ) : (
     <ChatFilterRow
-      isLoading={props.isLoading}
-      filter={props.filter}
       onNewChat={props.onNewChat}
-      onSetFilter={props.onSetFilter}
-      hotkeys={isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k']}
-      onHotkey={props.onHotkey}
+      focusFilter={props.focusFilter}
       filterFocusCount={props.filterFocusCount}
-      onSelectUp={props.onSelectUp}
-      onSelectDown={props.onSelectDown}
+      rows={props.rows}
     />
   )
 
