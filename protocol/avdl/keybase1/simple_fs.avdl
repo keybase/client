@@ -319,7 +319,7 @@ protocol SimpleFS {
   // last suppressNotifications call but was suppressed, this notification will
   // go through. If multiple notifications would have happened, only one of
   // them is sent at resuming. Since only one of them is sent at resuming, if
-  // suppressiong is used caller shouldn't depend on the completeness of
+  // suppressing is used caller shouldn't depend on the completeness of
   // notifications such as any differential nature of the data between
   // different notifications.
   void simpleFSSuppressNotifications(int suppressDurationSec);
