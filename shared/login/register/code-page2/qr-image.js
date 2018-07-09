@@ -6,12 +6,12 @@ import QRCodeGen from 'qrcode-generator'
 
 type Props = {
   code: string,
+  cellSize: number,
 }
-
-const cellSize = 2
 
 // Just rendering a bunch of divs. this is ok (maybe slow) . will have to see about native. if not go back to doing the image thing
 class QrImage extends React.PureComponent<Props> {
+  static defaultProps = {cellSize: 2}
   render() {
     const qr = QRCodeGen(4, 'L')
     qr.addData(this.props.code)
@@ -26,18 +26,18 @@ class QrImage extends React.PureComponent<Props> {
             key={`${x}:${y}`}
             style={{
               backgroundColor: qr.isDark(x, y) ? globalColors.blue : globalColors.transparent,
-              height: cellSize,
-              left: x * cellSize,
+              height: this.props.cellSize,
+              left: x * this.props.cellSize,
               position: 'absolute',
-              top: y * cellSize,
-              width: cellSize,
+              top: y * this.props.cellSize,
+              width: this.props.cellSize,
             }}
           />
         )
       }
     }
 
-    const dim = size * cellSize
+    const dim = size * this.props.cellSize
     return <Box style={{height: dim, position: 'relative', width: dim}}>{children}</Box>
   }
 }

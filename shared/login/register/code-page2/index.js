@@ -129,20 +129,25 @@ class CodePage2 extends React.Component<Props, State> {
   }
 }
 
-const Qr = (props: Props) => (
-  <Box2
-    style={collapseStyles([
-      styles.qrContainer,
-      props.currentDeviceAlreadyProvisioned && styles.qrContainerFlip,
-    ])}
-    direction="vertical"
-  >
-    <Box2 direction="vertical" style={styles.qrImageContainer}>
-      <QRImage code={props.textCode} />
+const Qr = (props: Props) =>
+  props.currentDeviceType === 'desktop' ? (
+    <Box2 direction="vertical" style={styles.qrOnlyContainer}>
+      <QRImage code={props.textCode} cellSize={3} />
     </Box2>
-    <QRScan onScan={props.onSubmitTextCode} />
-  </Box2>
-)
+  ) : (
+    <Box2
+      style={collapseStyles([
+        styles.qrContainer,
+        props.currentDeviceAlreadyProvisioned && styles.qrContainerFlip,
+      ])}
+      direction="vertical"
+    >
+      <Box2 direction="vertical" style={styles.qrImageContainer}>
+        <QRImage code={props.textCode} />
+      </Box2>
+      <QRScan onScan={props.onSubmitTextCode} />
+    </Box2>
+  )
 
 class EnterText extends React.Component<Props, {code: string}> {
   state = {code: ''}
@@ -189,14 +194,14 @@ const Instructions = (p: Props) => (
     {p.currentDeviceAlreadyProvisioned ? (
       <Text type="Header" style={styles.instructions}>
         Ready to provision using{' '}
-        <Text type="HeaderExtrabold" style={styles.instructions}>
+        <Text type="Header" style={styles.instructionsItalic}>
           {p.otherDeviceName}
         </Text>
       </Text>
     ) : (
       <Text type="Header" style={styles.instructions}>
         In{' '}
-        <Text type="HeaderExtrabold" style={styles.instructions}>
+        <Text type="Header" style={styles.instructionsItalic}>
           {p.otherDeviceName}
         </Text>, go to {p.otherDeviceType === 'phone' ? 'Settings > ' : ''}Devices > Add new > New{' '}
         {p.otherDeviceType}.
@@ -230,6 +235,11 @@ const styles = styleSheetCreate({
     color: globalColors.white,
     textAlign: 'center',
   },
+  instructionsItalic: {
+    ...globalStyles.italic,
+    color: globalColors.white,
+    textAlign: 'center',
+  },
   qrContainer: {
     backgroundColor: globalColors.white,
     borderRadius: 8,
@@ -243,6 +253,11 @@ const styles = styleSheetCreate({
   qrImageContainer: {
     paddingBottom: 30,
     paddingTop: 30,
+  },
+  qrOnlyContainer: {
+    backgroundColor: globalColors.white,
+    borderRadius: 8,
+    padding: 20,
   },
   viewTextCode: {
     ...globalStyles.fontTerminalSemibold,
