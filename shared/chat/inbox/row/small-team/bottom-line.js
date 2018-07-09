@@ -104,6 +104,8 @@ class BottomLine extends PureComponent<Props> {
         case '\u{1F4A3}': // Bomb emoji (💣)
           snippetDecoration = <Icon type="iconfont-bomb" fontSize={12} />
           break
+        default:
+          snippetDecoration = this.props.snippetDecoration
       }
 
       content = (
@@ -111,9 +113,11 @@ class BottomLine extends PureComponent<Props> {
           <Markdown preview={true} style={style}>
             {this.props.snippet}
           </Markdown>
-          <Box2 direction="vertical" centerChildren={true}>
-            {snippetDecoration}
-          </Box2>
+          {snippetDecoration && (
+            <Box2 direction="vertical" centerChildren={true}>
+              {snippetDecoration}
+            </Box2>
+          )}
         </Box2>
       )
     } else {
