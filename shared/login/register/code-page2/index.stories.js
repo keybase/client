@@ -121,7 +121,7 @@ const load = () => {
     tabs.forEach(
       tab =>
         (s = s.add(`${storyName} (tab: ${tab || 'defaultTab'})`, () => (
-          <CodePage2 {...derivedProps(provisioned, current, otherName, otherType)} />
+          <CodePage2 {...derivedProps(provisioned, current, otherName, otherType)} tabOverride={tab} />
         )))
     )
   })

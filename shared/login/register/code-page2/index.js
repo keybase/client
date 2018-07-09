@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Constants from '../../../constants/login'
 import {Button, Box2, Text, Icon, PlainInput, WaitingButton} from '../../../common-adapters'
 import {
   collapseStyles,
@@ -29,8 +30,9 @@ type Props = {
   currentDeviceName: string,
   otherDeviceName: string,
   otherDeviceType: DeviceType,
+  // only in storybook
+  tabOverride?: Tab,
   textCode: string,
-  QRUrl: string,
   onSubmitTextCode: string => void,
 }
 
@@ -54,7 +56,9 @@ const Tabs = (props: {tabs: Array<Tab>, selected: Tab, onSelect: Tab => void}) =
 class CodePage2 extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
-    this.state = {tab: this._defaultTab(this.props)}
+    this.state = {
+      tab: (__STORYBOOK__ && this.props.tabOverride) || this._defaultTab(this.props),
+    }
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -156,7 +160,7 @@ class EnterText extends React.Component<Props, {code: string}> {
 
   render() {
     return (
-      <Box2 direction="vertical" style={styles.enterTextContainer}>
+      <Box2 direction="vertical" style={styles.enterTextContainer} gap="small">
         <PlainInput
           placeholderColor={globalColors.green}
           multiline={true}
@@ -168,7 +172,12 @@ class EnterText extends React.Component<Props, {code: string}> {
           style={styles.enterTextInput}
           value={this.state.code}
         />
-        <Button type="Primary" label="Submit" onClick={this._submit} />
+        <WaitingButton
+          type="Primary"
+          label="Submit"
+          onClick={this._submit}
+          waitingKey={Constants.keyWaitingKey}
+        />
       </Box2>
     )
   }
@@ -185,16 +194,16 @@ const ViewText = (props: Props) => (
 const Instructions = (p: Props) => (
   <Box2 direction="vertical">
     {p.currentDeviceAlreadyProvisioned ? (
-      <Text type="HeaderBig" style={styles.instructions}>
+      <Text type="Header" style={styles.instructions}>
         Ready to provision using{' '}
-        <Text type="HeaderBigExtrabold" style={styles.instructions}>
+        <Text type="HeaderExtrabold" style={styles.instructions}>
           {p.otherDeviceName}
         </Text>
       </Text>
     ) : (
-      <Text type="HeaderBig" style={styles.instructions}>
+      <Text type="Header" style={styles.instructions}>
         In{' '}
-        <Text type="HeaderBigExtrabold" style={styles.instructions}>
+        <Text type="HeaderExtrabold" style={styles.instructions}>
           {p.otherDeviceName}
         </Text>, go to {p.otherDeviceType === 'phone' ? 'Settings > ' : ''}Devices > Add new > New{' '}
         {p.otherDeviceType}.
@@ -209,19 +218,20 @@ const styles = styleSheetCreate({
     padding: globalMargins.large,
   },
   enterTextContainer: {
-    maxWidth: isMobile ? 300 : 460,
-    paddingBottom: 20,
-    paddingLeft: 64,
-    paddingRight: 64,
-    paddingTop: 20,
+    alignItems: 'center',
+    alignSelf: 'stretch',
   },
   enterTextInput: {
+    ...globalStyles.fontTerminalSemibold,
     backgroundColor: globalColors.white,
     borderRadius: 4,
-  },
-  enterTextInputInside: {
-    ...globalStyles.fontTerminalSemibold,
     color: globalColors.green,
+    fontSize: 16,
+    maxWidth: isMobile ? 300 : 460,
+    paddingBottom: 15,
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingTop: 15,
   },
   instructions: {
     color: globalColors.white,

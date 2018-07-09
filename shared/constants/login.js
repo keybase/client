@@ -12,6 +12,8 @@ export const codePageModeShowCode = 'codePageModeShowCode'
 export const codePageModeEnterText = 'codePageModeEnterText'
 export const codePageModeShowText = 'codePageModeShowText'
 
+export const keyWaitingKey = 'login:key-waiting'
+
 function defaultModeForDeviceRoles(
   myDeviceRole: Types.DeviceRole,
   otherDeviceRole: Types.DeviceRole,
