@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Confirm, Box, Text, Icon, ProgressIndicator, type IconType} from '../../common-adapters'
+import {Confirm, Box, Text, Icon, type IconType} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 
 export type Props = {
@@ -23,7 +23,7 @@ const Header = ({name, icon}) => (
   </Box>
 )
 
-const Body = ({endangeredTLFs, name, currentDevice, waiting}) => (
+const Body = ({endangeredTLFs, name, currentDevice}) => (
   <Box>
     <Box style={styleHeader}>
       <Text type="BodySemibold">Are you sure you want to revoke </Text>
@@ -35,27 +35,23 @@ const Body = ({endangeredTLFs, name, currentDevice, waiting}) => (
       <Text type="BodySemibold">?</Text>
     </Box>
 
-    {waiting ? (
-      <ProgressIndicator />
-    ) : (
-      endangeredTLFs.length > 0 && (
+    {endangeredTLFs.length > 0 && (
+      <Box>
         <Box>
-          <Box>
-            <Text type="Body">You may lose access to these folders forever:</Text>
-          </Box>
-
-          <Box style={styleDevicesContainer}>
-            {endangeredTLFs.map(tlf => (
-              <Box key={tlf} style={styleTLF}>
-                <Text type="BodySemibold" style={{marginRight: globalMargins.tiny}}>
-                  •
-                </Text>
-                <Text type="BodySemibold">{tlf}</Text>
-              </Box>
-            ))}
-          </Box>
+          <Text type="Body">You may lose access to these folders forever:</Text>
         </Box>
-      )
+
+        <Box style={styleDevicesContainer}>
+          {endangeredTLFs.map(tlf => (
+            <Box key={tlf} style={styleTLF}>
+              <Text type="BodySemibold" style={{marginRight: globalMargins.tiny}}>
+                •
+              </Text>
+              <Text type="BodySemibold">{tlf}</Text>
+            </Box>
+          ))}
+        </Box>
+      </Box>
     )}
   </Box>
 )
@@ -63,12 +59,7 @@ const Body = ({endangeredTLFs, name, currentDevice, waiting}) => (
 const DeviceRevoke = (props: Props) => (
   <Confirm
     body={
-      <Body
-        endangeredTLFs={props.endangeredTLFs}
-        name={props.name}
-        currentDevice={props.currentDevice}
-        waiting={props.waiting}
-      />
+      <Body endangeredTLFs={props.endangeredTLFs} name={props.name} currentDevice={props.currentDevice} />
     }
     danger={true}
     header={<Header name={props.name} icon={props.icon} />}
