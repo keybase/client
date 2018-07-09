@@ -733,6 +733,7 @@ export const SimpleFSSimpleFSListRpcPromise = (params: SimpleFSSimpleFSListRpcPa
 export const SimpleFSSimpleFSOpenRpcPromise = (params: SimpleFSSimpleFSOpenRpcParam, waitingKey?: string): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSOpen', params, callback: (error: RPCError, result: void) => (error ? reject(error) : resolve())}))
 export const SimpleFSSimpleFSReadListRpcPromise = (params: SimpleFSSimpleFSReadListRpcParam, waitingKey?: string): Promise<SimpleFSSimpleFSReadListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSReadList', params, callback: (error: RPCError, result: SimpleFSSimpleFSReadListResult) => (error ? reject(error) : resolve(result))}))
 export const SimpleFSSimpleFSStatRpcPromise = (params: SimpleFSSimpleFSStatRpcParam, waitingKey?: string): Promise<SimpleFSSimpleFSStatResult> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSStat', params, callback: (error: RPCError, result: SimpleFSSimpleFSStatResult) => (error ? reject(error) : resolve(result))}))
+export const SimpleFSSimpleFSSuppressNotificationsRpcPromise = (params: SimpleFSSimpleFSSuppressNotificationsRpcParam, waitingKey?: string): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSuppressNotifications', params, callback: (error: RPCError, result: void) => (error ? reject(error) : resolve())}))
 export const SimpleFSSimpleFSSyncStatusRpcPromise = (params: SimpleFSSimpleFSSyncStatusRpcParam, waitingKey?: string): Promise<SimpleFSSimpleFSSyncStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSyncStatus', params, callback: (error: RPCError, result: SimpleFSSimpleFSSyncStatusResult) => (error ? reject(error) : resolve(result))}))
 export const SimpleFSSimpleFSWaitRpcPromise = (params: SimpleFSSimpleFSWaitRpcParam, waitingKey?: string): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSWait', params, callback: (error: RPCError, result: void) => (error ? reject(error) : resolve())}))
 export const accountEmailChangeRpcPromise = (params: AccountEmailChangeRpcParam, waitingKey?: string): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.emailChange', params, callback: (error: RPCError, result: void) => (error ? reject(error) : resolve())}))
@@ -1800,6 +1801,7 @@ export type SimpleFSSimpleFSRemoveRpcParam = $ReadOnly<{opID: OpID, path: Path}>
 export type SimpleFSSimpleFSRenameRpcParam = $ReadOnly<{src: Path, dest: Path}>
 export type SimpleFSSimpleFSSetStatRpcParam = $ReadOnly<{dest: Path, flag: DirentType}>
 export type SimpleFSSimpleFSStatRpcParam = $ReadOnly<{path: Path}>
+export type SimpleFSSimpleFSSuppressNotificationsRpcParam = $ReadOnly<{suppressDurationSec: Int}>
 export type SimpleFSSimpleFSSyncStatusRpcParam = void
 export type SimpleFSSimpleFSUserEditHistoryRpcParam = void
 export type SimpleFSSimpleFSWaitRpcParam = $ReadOnly<{opID: OpID}>
