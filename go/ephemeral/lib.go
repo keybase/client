@@ -36,10 +36,43 @@ func NewEKLib(g *libkb.GlobalContext) *EKLib {
 		// lru.New only panics if size <= 0
 		log.Panicf("Could not create lru cache: %v", err)
 	}
-	return &EKLib{
+	ekLib := &EKLib{
 		Contextified:   libkb.NewContextified(g),
 		teamEKGenCache: nlru,
 		clock:          clockwork.NewRealClock(),
+	}
+	go ekLib.backgroundKeygen()
+	return ekLib
+}
+
+func (e *EKLib) backgroundKeygen() {
+	ctx := context.Background()
+	e.G().Log.CDebugf(ctx, "backgroundKeygen: starting up")
+	keygenInterval := time.Hour
+	lastRunAt := time.Now()
+	runIfNeeded := func() {
+		if lastRunAt.Sub(libkb.ForceWallClock(time.Now())) >= keygenInterval {
+			if err := e.KeygenIfNeeded(ctx); err != nil {
+				e.G().Log.CDebugf(ctx, "backgroundKeygen keygenIfNeeded error: %s", err)
+			}
+			lastRunAt = time.Now()
+		}
+	}
+
+	runIfNeeded()
+	ticker := libkb.NewBgTicker(keygenInterval)
+	state := keybase1.AppState_FOREGROUND
+	// Run every hour but also check if enough wall clock time has elapsed when
+	// we are in a BACKGROUNDACTIVE state.
+	for {
+		select {
+		case <-ticker.C:
+			runIfNeeded()
+		case state = <-e.G().AppState.NextUpdate(&state):
+			if state == keybase1.AppState_BACKGROUNDACTIVE {
+				runIfNeeded()
+			}
+		}
 	}
 }
 
