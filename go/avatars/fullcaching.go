@@ -181,6 +181,9 @@ func (c *FullCachingSource) commitAvatarToDisk(ctx context.Context, data io.Read
 		// We already have the image, let's re-use the same file
 		c.debug(ctx, "commitAvatarToDisk: using previous path: %s", previousPath)
 		if file, err = os.OpenFile(previousPath, os.O_RDWR, os.ModeAppend); err != nil {
+			// NOTE: Even if we don't have this file anymore (e.g. user
+			// might have removed it manually), OpenFile will not error
+			// out, but create a new file on given path.
 			return path, err
 		}
 		path = file.Name()
