@@ -1,27 +1,20 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../../constants/login'
-import {Button, Box2, Text, Icon, PlainInput, WaitingButton} from '../../../common-adapters'
+import {Button, Box2, Text, PlainInput, WaitingButton} from '../../../common-adapters'
 import {
   collapseStyles,
   globalColors,
   globalMargins,
   globalStyles,
   isMobile,
-  platformStyles,
   styleSheetCreate,
 } from '../../../styles'
 import QRImage from './qr-image'
 import QRScan from './qr-scan'
-// import {qrGenerate} from '../../../constants/login'
-// import type {Tab, DeviceType} from './helper'
 
 export type DeviceType = 'phone' | 'desktop'
 export type Tab = 'QR' | 'enterText' | 'viewText'
-
-// type TabDetails = {
-// component: React.Node,
-// }
 
 type Props = {
   username: string,
@@ -31,7 +24,7 @@ type Props = {
   otherDeviceName: string,
   otherDeviceType: DeviceType,
   // only in storybook
-  tabOverride?: Tab,
+  tabOverride?: ?Tab,
   textCode: string,
   onSubmitTextCode: string => void,
 }
@@ -166,7 +159,7 @@ class EnterText extends React.Component<Props, {code: string}> {
           multiline={true}
           onChangeText={code => this.setState({code})}
           onEnterKeyDown={this._submit}
-          rowsMin={2}
+          rowsMin={3}
           placeholder="Type the 10-word secret code"
           textType="Terminal"
           style={styles.enterTextInput}
