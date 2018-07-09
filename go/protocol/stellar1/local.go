@@ -26,25 +26,27 @@ func (o WalletAccountLocal) DeepCopy() WalletAccountLocal {
 
 type AccountAssetLocal struct {
 	Name                   string `codec:"name" json:"name"`
-	BalanceTotal           string `codec:"balanceTotal" json:"balanceTotal"`
-	BalanceAvailableToSend string `codec:"balanceAvailableToSend" json:"balanceAvailableToSend"`
 	AssetCode              string `codec:"assetCode" json:"assetCode"`
 	IssuerName             string `codec:"issuerName" json:"issuerName"`
 	IssuerAccountID        string `codec:"issuerAccountID" json:"issuerAccountID"`
-	Worth                  string `codec:"worth" json:"worth"`
+	BalanceTotal           string `codec:"balanceTotal" json:"balanceTotal"`
+	BalanceAvailableToSend string `codec:"balanceAvailableToSend" json:"balanceAvailableToSend"`
 	WorthCurrency          string `codec:"worthCurrency" json:"worthCurrency"`
+	Worth                  string `codec:"worth" json:"worth"`
+	AvailableToSendWorth   string `codec:"availableToSendWorth" json:"availableToSendWorth"`
 }
 
 func (o AccountAssetLocal) DeepCopy() AccountAssetLocal {
 	return AccountAssetLocal{
 		Name:                   o.Name,
-		BalanceTotal:           o.BalanceTotal,
-		BalanceAvailableToSend: o.BalanceAvailableToSend,
 		AssetCode:              o.AssetCode,
 		IssuerName:             o.IssuerName,
 		IssuerAccountID:        o.IssuerAccountID,
-		Worth:                  o.Worth,
+		BalanceTotal:           o.BalanceTotal,
+		BalanceAvailableToSend: o.BalanceAvailableToSend,
 		WorthCurrency:          o.WorthCurrency,
+		Worth:                  o.Worth,
+		AvailableToSendWorth:   o.AvailableToSendWorth,
 	}
 }
 
@@ -147,8 +149,18 @@ func (e ParticipantType) String() string {
 	return ""
 }
 
+type PaymentID struct {
+	TxID TransactionID `codec:"txID" json:"txID"`
+}
+
+func (o PaymentID) DeepCopy() PaymentID {
+	return PaymentID{
+		TxID: o.TxID.DeepCopy(),
+	}
+}
+
 type PaymentLocal struct {
-	Id                TransactionID   `codec:"id" json:"id"`
+	Id                PaymentID       `codec:"id" json:"id"`
 	Time              TimeMs          `codec:"time" json:"time"`
 	StatusSimplified  PaymentStatus   `codec:"statusSimplified" json:"statusSimplified"`
 	StatusDescription string          `codec:"statusDescription" json:"statusDescription"`
@@ -238,7 +250,8 @@ func (o PaymentsPageLocal) DeepCopy() PaymentsPageLocal {
 }
 
 type PaymentDetailsLocal struct {
-	Id                TransactionID   `codec:"id" json:"id"`
+	Id                PaymentID       `codec:"id" json:"id"`
+	TxID              TransactionID   `codec:"txID" json:"txID"`
 	Time              TimeMs          `codec:"time" json:"time"`
 	StatusSimplified  PaymentStatus   `codec:"statusSimplified" json:"statusSimplified"`
 	StatusDescription string          `codec:"statusDescription" json:"statusDescription"`
@@ -260,6 +273,7 @@ type PaymentDetailsLocal struct {
 func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 	return PaymentDetailsLocal{
 		Id:                o.Id.DeepCopy(),
+		TxID:              o.TxID.DeepCopy(),
 		Time:              o.Time.DeepCopy(),
 		StatusSimplified:  o.StatusSimplified.DeepCopy(),
 		StatusDescription: o.StatusDescription,
@@ -543,9 +557,9 @@ type GetPaymentsLocalArg struct {
 }
 
 type GetPaymentDetailsLocalArg struct {
-	SessionID int           `codec:"sessionID" json:"sessionID"`
-	AccountID AccountID     `codec:"accountID" json:"accountID"`
-	Id        TransactionID `codec:"id" json:"id"`
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+	Id        PaymentID `codec:"id" json:"id"`
 }
 
 type GetDisplayCurrenciesLocalArg struct {

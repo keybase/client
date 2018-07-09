@@ -1,7 +1,7 @@
 // @flow
 import logger from '../logger'
 import * as Constants from '../constants/push'
-import * as AppGen from './app-gen'
+import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as PushGen from './push-gen'
 import * as WaitingGen from './waiting-gen'
@@ -103,27 +103,24 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
           logger.error('Push chat notification payload missing conversation ID or msgBoxed')
           break
         }
-        const unboxRes = yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
-          convID: c,
-          membersType,
-          payload: m,
-          pushIDs: typeof payload.p === 'string' ? JSON.parse(payload.p) : payload.p,
-          shouldAck: true,
-        })
-        if (payload.n !== 'true') {
-          // If the user doesn't have plaintext notifications set, don't
-          // display the message
-          break
-        }
+        let displayPlaintext = payload.n === 'true'
         if (payload.x && payload.x > 0) {
           const num = payload.x
           const ageMS = Date.now() - num * 1000
           if (ageMS > 15000) {
             logger.info('Push notification: silent notification is stale:', ageMS)
-            break
+            displayPlaintext = false
           }
         }
-        if (unboxRes) {
+        const unboxRes = yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
+          convID: c,
+          membersType,
+          payload: m,
+          pushIDs: typeof payload.p === 'string' ? JSON.parse(payload.p) : payload.p,
+          shouldAck: displayPlaintext,
+        })
+        const state: TypedState = yield Saga.select()
+        if (unboxRes && displayPlaintext && !state.config.appFocused) {
           yield Saga.call(displayNewMessageNotification, unboxRes, payload.c, payload.b, payload.d, payload.s)
         }
       } catch (err) {
@@ -142,16 +139,6 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
           logger.error('Push chat notification payload missing conversation ID')
           break
         }
-        // If a boxed message is attached to the notification, unbox.
-        if (m) {
-          logger.info('Push notification: unboxing notification message')
-          yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
-            convID,
-            membersType,
-            payload: m,
-            shouldAck: false,
-          })
-        }
         if (handledPushThisSession) {
           break
         }
@@ -165,8 +152,19 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
         )
         yield Saga.put(Chat2Gen.createSetLoading({key: `pushLoad:${conversationIDKey}`, loading: true}))
         yield Saga.put(switchTo([chatTab, 'conversation']))
+        // If a boxed message is attached to the notification, unbox.
+        if (m) {
+          logger.info('Push notification: unboxing notification message')
+          yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
+            convID,
+            membersType,
+            payload: m,
+            shouldAck: false,
+          })
+        }
       } catch (err) {
         logger.error('failed to handle new message push', err)
+        handledPushThisSession = false
       }
       break
     case 'follow':
@@ -294,7 +292,7 @@ function* deletePushTokenSaga(): Saga.SagaGenerator<any, any> {
   }
 }
 
-function* mobileAppStateSaga(action: AppGen.MobileAppStatePayload) {
+function* mobileAppStateSaga(action: ConfigGen.MobileAppStatePayload) {
   const nextAppState = action.payload.nextAppState
   if (isIOS && nextAppState === 'active') {
     console.log('Checking push permissions')
@@ -323,8 +321,8 @@ function* pushSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(PushGen.configurePush, configurePushSaga)
   yield Saga.safeTakeEvery(PushGen.checkIOSPush, checkIOSPushSaga)
   yield Saga.safeTakeEvery(PushGen.notification, pushNotificationSaga)
-  yield Saga.safeTakeEveryPure(AppGen.mobileAppState, resetHandledPush)
-  yield Saga.safeTakeEvery(AppGen.mobileAppState, mobileAppStateSaga)
+  yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, resetHandledPush)
+  yield Saga.safeTakeEvery(ConfigGen.mobileAppState, mobileAppStateSaga)
 }
 
 export default pushSaga

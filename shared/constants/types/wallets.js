@@ -1,5 +1,6 @@
 // @flow
 import * as I from 'immutable'
+import * as StellarRPCTypes from './rpc-stellar-gen'
 
 // Possible 'types' of things you can send or receive transactions with
 export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'account'
@@ -50,7 +51,7 @@ export type _Payment = {
   amountDescription: string,
   delta: 'none' | 'increase' | 'decrease',
   error: ?string,
-  id: string,
+  id: ?StellarRPCTypes.PaymentID,
   note: string,
   noteErr: string,
   source: string,
