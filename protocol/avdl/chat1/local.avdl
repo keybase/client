@@ -170,6 +170,10 @@ protocol local {
     @mpackkey("b") @jsonkey("b")
     string body; // emoji reaction :+1:
   }
+  
+  record MessageSendPayment {
+    string kbTxID;
+  }
 
   variant MessageBody switch (MessageType messageType) {
     case TEXT: MessageText;
@@ -184,6 +188,7 @@ protocol local {
     case SYSTEM: MessageSystem;
     case DELETEHISTORY: MessageDeleteHistory;
     case REACTION: MessageReaction;
+    case SENDPAYMENT: MessageSendPayment;
   }
 
   enum OutboxStateType {
@@ -863,7 +868,7 @@ protocol local {
   GlobalAppNotificationSettings getGlobalAppNotificationSettingsLocal();
 
   // Unpack message from a push notification
-  string unboxMobilePushNotification(string payload, string convID, ConversationMembersType membersType, array<string> pushIDs);
+  string unboxMobilePushNotification(string payload, string convID, ConversationMembersType membersType, array<string> pushIDs, boolean shouldAck);
 
   // Convenience interface for adding someone back to a reset team convo
   void addTeamMemberAfterReset(string username, ConversationID convID);

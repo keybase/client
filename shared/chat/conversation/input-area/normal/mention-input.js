@@ -270,6 +270,13 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     this.props.onSubmit(text)
   }
 
+  componentDidUpdate = (prevProps: MentionInputProps) => {
+    if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
+      this._setMentionPopupOpen(false)
+      this._setChannelMentionPopupOpen(false)
+    }
+  }
+
   render = () => (
     <PlatformInput
       {...this.props}

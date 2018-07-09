@@ -3,7 +3,7 @@ import * as React from 'react'
 import {Avatar, Box, FloatingMenu, Text} from '../../../../common-adapters'
 import {collapseStyles, globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
 
-type Props = {
+export type Props = {
   attachTo: ?React.Component<any, any>,
   badgeSubscribe: boolean,
   canAddPeople: boolean,

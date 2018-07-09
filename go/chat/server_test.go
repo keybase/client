@@ -354,6 +354,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.PushHandler = pushHandler
 	g.TeamChannelSource = NewCachingTeamChannelSource(g, func() chat1.RemoteInterface { return ri })
 	g.AttachmentURLSrv = DummyAttachmentHTTPSrv{}
+	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 
@@ -826,6 +827,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 				chat1.NewMessageBodyWithText(chat1.MessageText{
 					Body: fmt.Sprintf("%d", i+1),
 				}))
+			time.Sleep(100 * time.Millisecond)
 		}
 
 		_, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
@@ -876,6 +878,13 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 			require.NotNil(t, ibox.InboxRes, "nil inbox")
 			require.Equal(t, numconvs, len(ibox.InboxRes.Items))
 			for index, conv := range ibox.InboxRes.Items {
+				t.Logf("metadata snippet: index: %d snippet: %s time: %v", index, conv.LocalMetadata.Snippet,
+					conv.Time)
+			}
+			sort.Slice(ibox.InboxRes.Items, func(i, j int) bool {
+				return ibox.InboxRes.Items[i].Time.After(ibox.InboxRes.Items[j].Time)
+			})
+			for index, conv := range ibox.InboxRes.Items {
 				require.NotNil(t, conv.LocalMetadata)
 				switch mt {
 				case chat1.ConversationMembersType_TEAM:
@@ -883,7 +892,8 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 						continue
 					}
 					require.Equal(t, fmt.Sprintf("%d", numconvs-index-1), conv.LocalMetadata.ChannelName)
-					require.Equal(t, fmt.Sprintf("%s: %d", users[numconvs-index-1].Username, numconvs-index-1),
+					require.Equal(t,
+						fmt.Sprintf("%s: %d", users[numconvs-index-1].Username, numconvs-index-1),
 						conv.LocalMetadata.Snippet)
 					require.Zero(t, len(conv.LocalMetadata.WriterNames))
 				default:
@@ -1270,6 +1280,7 @@ func TestChatSrvPostLocalLengthLimit(t *testing.T) {
 		users := ctc.users()
 
 		var created chat1.ConversationInfoLocal
+		var dev chat1.ConversationInfoLocal
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
 			firstConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
@@ -1289,11 +1300,20 @@ func TestChatSrvPostLocalLengthLimit(t *testing.T) {
 			created = mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 				mt, ctc.as(t, users[1]).user())
 		}
+		dev = mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_DEV,
+			mt, ctc.as(t, users[1]).user())
 
 		maxTextBody := strings.Repeat(".", msgchecker.TextMessageMaxLength)
 		_, err := postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxTextBody}))
 		require.NoError(t, err)
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxTextBody + "!"}))
+		require.Error(t, err)
+		_, err = postLocalForTest(t, ctc, users[0], dev,
+			chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxTextBody + "!"}))
+		require.NoError(t, err)
+		maxDevTextBody := strings.Repeat(".", msgchecker.DevTextMessageMaxLength)
+		_, err = postLocalForTest(t, ctc, users[0], dev,
+			chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxDevTextBody + "!"}))
 		require.Error(t, err)
 
 		maxHeadlineBody := strings.Repeat(".", msgchecker.HeadlineMaxLength)
@@ -1888,8 +1908,12 @@ func (n *serverChatListener) ChatInboxStale(uid keybase1.UID) {
 func (n *serverChatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationStaleUpdate) {
 	n.threadsStale <- cids
 }
-func (n *serverChatListener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult) {
-	n.inboxSynced <- syncRes
+func (n *serverChatListener) ChatInboxSynced(uid keybase1.UID, topicType chat1.TopicType,
+	syncRes chat1.ChatSyncResult) {
+	switch topicType {
+	case chat1.TopicType_CHAT, chat1.TopicType_NONE:
+		n.inboxSynced <- syncRes
+	}
 }
 func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 	typ, _ := activity.ActivityType()

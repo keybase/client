@@ -56,7 +56,7 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
       })
     }
     case SignupGen.requestedInvite:
-      return action.payload.email === state.email && action.payload.name === state.username
+      return action.payload.email === state.email && action.payload.name === state.name
         ? state.merge({
             emailError: (action.error && action.payload.emailError) || '',
             nameError: (action.error && action.payload.nameError) || '',

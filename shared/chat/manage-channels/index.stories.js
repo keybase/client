@@ -59,7 +59,7 @@ const channelState = channels.reduce((acc: Types.ChannelMembershipState, c) => {
   return acc
 }, {})
 
-const provider = PropProviders.Common()
+const provider = PropProviders.CommonProvider()
 
 const load = () => {
   storiesOf('Chat/Teams', module)

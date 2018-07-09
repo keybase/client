@@ -6,7 +6,7 @@ import * as PropProviders from '../../../stories/prop-providers'
 
 const load = () => {
   storiesOf('Signup', module)
-    .addDecorator(PropProviders.Common())
+    .addDecorator(PropProviders.CommonProvider())
     .add('Error', () => (
       <Error error="This is an error" onBack={action('onBack')} onRestart={action('onRestart')} />
     ))

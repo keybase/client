@@ -29,22 +29,17 @@ const rightColumnStyle = platformStyles({
 
 const rowHeight = isMobile ? 56 : 48
 
-const backgroundColor = globalColors.white
 const backgroundColorSelected = globalColors.blue
 
 const styles = styleSheetCreate({
   avatar: {marginRight: globalMargins.xtiny},
 
-  container: {
-    backgroundColor,
-  },
   containerSelected: {
     backgroundColor: backgroundColorSelected,
   },
 
   containerBox: {
     height: rowHeight,
-    backgroundColor,
   },
   containerBoxSelected: {
     height: rowHeight,
@@ -64,7 +59,6 @@ const styles = styleSheetCreate({
     ...globalStyles.fontSemibold,
     ...rightColumnStyle,
     color: globalColors.darkBlue,
-    backgroundColor,
     fontSize: 13,
   },
   titleSelected: {
@@ -78,7 +72,6 @@ const styles = styleSheetCreate({
   amount: {
     ...rightColumnStyle,
     color: globalColors.black_40,
-    backgroundColor,
     fontSize: 11,
   },
   amountSelected: {
@@ -91,10 +84,7 @@ const styles = styleSheetCreate({
 
 const WalletRow = (props: Props) => {
   return (
-    <ClickableBox
-      onClick={props.onSelect}
-      style={props.isSelected ? styles.containerSelected : styles.container}
-    >
+    <ClickableBox onClick={props.onSelect} style={(props.isSelected && styles.containerSelected) || null}>
       <Box2
         style={props.isSelected ? styles.containerBoxSelected : styles.containerBox}
         direction="horizontal"

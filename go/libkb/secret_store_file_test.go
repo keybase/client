@@ -12,6 +12,10 @@ import (
 	"testing"
 )
 
+func newNilMetaContext() MetaContext {
+	return NewMetaContextTODO(nil)
+}
+
 func testSSDir(t *testing.T) (string, func()) {
 	td, err := ioutil.TempDir("", "ss")
 	if err != nil {
@@ -52,9 +56,10 @@ func TestSecretStoreFileRetrieveSecret(t *testing.T) {
 	}
 
 	ss := NewSecretStoreFile(td)
+	m := newNilMetaContext()
 
 	for name, test := range cases {
-		secret, err := ss.RetrieveSecret(test.username)
+		secret, err := ss.RetrieveSecret(m, test.username)
 		if err != test.err {
 			t.Fatalf("%s: err: %v, expected %v", name, err, test.err)
 		}
@@ -77,16 +82,17 @@ func TestSecretStoreFileStoreSecret(t *testing.T) {
 	}
 
 	ss := NewSecretStoreFile(td)
+	m := newNilMetaContext()
 
 	for name, test := range cases {
 		fs, err := newLKSecFullSecretFromBytes(test.secret)
 		if err != nil {
 			t.Fatalf("failed to make new full secret: %s", err)
 		}
-		if err := ss.StoreSecret(test.username, fs); err != nil {
+		if err := ss.StoreSecret(m, test.username, fs); err != nil {
 			t.Fatalf("%s: %s", name, err)
 		}
-		secret, err := ss.RetrieveSecret(test.username)
+		secret, err := ss.RetrieveSecret(m, test.username)
 		if err != nil {
 			t.Fatalf("%s: %s", name, err)
 		}
@@ -101,12 +107,13 @@ func TestSecretStoreFileClearSecret(t *testing.T) {
 	defer tdClean()
 
 	ss := NewSecretStoreFile(td)
+	m := newNilMetaContext()
 
-	if err := ss.ClearSecret("alice"); err != nil {
+	if err := ss.ClearSecret(m, "alice"); err != nil {
 		t.Fatal(err)
 	}
 
-	secret, err := ss.RetrieveSecret("alice")
+	secret, err := ss.RetrieveSecret(m, "alice")
 	if err != ErrSecretForUserNotFound {
 		t.Fatalf("err: %v, expected %v", err, ErrSecretForUserNotFound)
 	}
@@ -120,8 +127,9 @@ func TestSecretStoreFileGetUsersWithStoredSecrets(t *testing.T) {
 	defer tdClean()
 
 	ss := NewSecretStoreFile(td)
+	m := newNilMetaContext()
 
-	users, err := ss.GetUsersWithStoredSecrets()
+	users, err := ss.GetUsersWithStoredSecrets(m)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -141,11 +149,11 @@ func TestSecretStoreFileGetUsersWithStoredSecrets(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := ss.StoreSecret("xavier", fs); err != nil {
+	if err := ss.StoreSecret(m, "xavier", fs); err != nil {
 		t.Fatal(err)
 	}
 
-	users, err = ss.GetUsersWithStoredSecrets()
+	users, err = ss.GetUsersWithStoredSecrets(m)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -163,11 +171,11 @@ func TestSecretStoreFileGetUsersWithStoredSecrets(t *testing.T) {
 		t.Errorf("user 2: %s, expected xavier", users[2])
 	}
 
-	if err := ss.ClearSecret("bob"); err != nil {
+	if err := ss.ClearSecret(m, "bob"); err != nil {
 		t.Fatal(err)
 	}
 
-	users, err = ss.GetUsersWithStoredSecrets()
+	users, err = ss.GetUsersWithStoredSecrets(m)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -215,9 +223,10 @@ func TestSecretStoreFileRetrieveUpgrade(t *testing.T) {
 	assertNotExists(t, filepath.Join(td, "bob.ns2"))
 
 	ss := NewSecretStoreFile(td)
+	m := newNilMetaContext()
 
 	// retrieve secret for alice should upgrade from alice.ss to alice.ss2
-	secret, err := ss.RetrieveSecret("alice")
+	secret, err := ss.RetrieveSecret(m, "alice")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -226,7 +235,7 @@ func TestSecretStoreFileRetrieveUpgrade(t *testing.T) {
 	assertExists(t, filepath.Join(td, "alice.ss2"))
 	assertExists(t, filepath.Join(td, "alice.ns2"))
 
-	secretUpgraded, err := ss.RetrieveSecret("alice")
+	secretUpgraded, err := ss.RetrieveSecret(m, "alice")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -253,7 +262,8 @@ func TestSecretStoreFileNoise(t *testing.T) {
 		t.Fatal(err)
 	}
 	ss := NewSecretStoreFile(td)
-	ss.StoreSecret("ogden", lksec)
+	m := newNilMetaContext()
+	ss.StoreSecret(m, "ogden", lksec)
 	noise, err := ioutil.ReadFile(filepath.Join(td, "ogden.ns2"))
 	if err != nil {
 		t.Fatal(err)
@@ -266,7 +276,7 @@ func TestSecretStoreFileNoise(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	corrupt, err := ss.RetrieveSecret("ogden")
+	corrupt, err := ss.RetrieveSecret(m, "ogden")
 	if err != nil {
 		t.Fatal(err)
 	}

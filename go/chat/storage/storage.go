@@ -15,7 +15,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-var maxFetchNum = 10000
+var maxFetchNum = 1000
 
 type ResultCollector interface {
 	Push(msg chat1.MessageUnboxed)

@@ -9,6 +9,7 @@
   "chat.1.local.getGlobalAppNotificationSettingsLocal": {"promise": true},
   "chat.1.local.getInboxAndUnboxUILocal": {"promise": true},
   "chat.1.local.getInboxNonblockLocal": {"engineSaga": true},
+  "chat.1.local.getStaticConfig": {"promise": true},
   "chat.1.local.getTLFConversationsLocal": {"promise": true},
   "chat.1.local.getTeamRetentionLocal": {"promise": true},
   "chat.1.local.getThreadNonblock": {"engineSaga": true},

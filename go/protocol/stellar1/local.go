@@ -26,23 +26,27 @@ func (o WalletAccountLocal) DeepCopy() WalletAccountLocal {
 
 type AccountAssetLocal struct {
 	Name                   string `codec:"name" json:"name"`
+	AssetCode              string `codec:"assetCode" json:"assetCode"`
+	IssuerName             string `codec:"issuerName" json:"issuerName"`
+	IssuerAccountID        string `codec:"issuerAccountID" json:"issuerAccountID"`
 	BalanceTotal           string `codec:"balanceTotal" json:"balanceTotal"`
 	BalanceAvailableToSend string `codec:"balanceAvailableToSend" json:"balanceAvailableToSend"`
-	AssetCode              string `codec:"assetCode" json:"assetCode"`
-	Issuer                 string `codec:"issuer" json:"issuer"`
-	Worth                  string `codec:"worth" json:"worth"`
 	WorthCurrency          string `codec:"worthCurrency" json:"worthCurrency"`
+	Worth                  string `codec:"worth" json:"worth"`
+	AvailableToSendWorth   string `codec:"availableToSendWorth" json:"availableToSendWorth"`
 }
 
 func (o AccountAssetLocal) DeepCopy() AccountAssetLocal {
 	return AccountAssetLocal{
 		Name:                   o.Name,
+		AssetCode:              o.AssetCode,
+		IssuerName:             o.IssuerName,
+		IssuerAccountID:        o.IssuerAccountID,
 		BalanceTotal:           o.BalanceTotal,
 		BalanceAvailableToSend: o.BalanceAvailableToSend,
-		AssetCode:              o.AssetCode,
-		Issuer:                 o.Issuer,
-		Worth:                  o.Worth,
 		WorthCurrency:          o.WorthCurrency,
+		Worth:                  o.Worth,
+		AvailableToSendWorth:   o.AvailableToSendWorth,
 	}
 }
 
@@ -242,7 +246,6 @@ type PaymentDetailsLocal struct {
 	StatusDescription string          `codec:"statusDescription" json:"statusDescription"`
 	StatusDetail      string          `codec:"statusDetail" json:"statusDetail"`
 	AmountDescription string          `codec:"amountDescription" json:"amountDescription"`
-	AmountValue       string          `codec:"amountValue" json:"amountValue"`
 	Delta             BalanceDelta    `codec:"delta" json:"delta"`
 	Worth             string          `codec:"worth" json:"worth"`
 	WorthCurrency     string          `codec:"worthCurrency" json:"worthCurrency"`
@@ -264,7 +267,6 @@ func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 		StatusDescription: o.StatusDescription,
 		StatusDetail:      o.StatusDetail,
 		AmountDescription: o.AmountDescription,
-		AmountValue:       o.AmountValue,
 		Delta:             o.Delta.DeepCopy(),
 		Worth:             o.Worth,
 		WorthCurrency:     o.WorthCurrency,

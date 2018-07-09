@@ -15,9 +15,9 @@ const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
 })
 
 const makeState: I.RecordFactory<Types._State> = I.Record({
+  accountMap: I.Map(),
   assetsMap: I.Map(),
   paymentsMap: I.Map(),
-  accountMap: I.Map(),
   selectedAccount: Types.noAccountID,
 })
 
@@ -40,7 +40,8 @@ const makeAssets: I.RecordFactory<Types._Assets> = I.Record({
   assetCode: '',
   balanceAvailableToSend: '',
   balanceTotal: '',
-  issuer: '',
+  issuerAccountID: '',
+  issuerName: '',
   name: '',
   worth: '',
   worthCurrency: '',
@@ -51,7 +52,8 @@ const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     assetCode: w.assetCode,
     balanceAvailableToSend: w.balanceAvailableToSend,
     balanceTotal: w.balanceTotal,
-    issuer: w.issuer,
+    issuerAccountID: w.issuerAccountID,
+    issuerName: w.issuerName,
     name: w.name,
     worth: w.worth,
     worthCurrency: w.worthCurrency,
@@ -83,6 +85,10 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   if (!w.payment) {
     return makePayment({error: w.err})
   }
+  if (w.payment.statusSimplified === RPCTypes.localPaymentStatus.error) {
+    // TODO make payment w/ error info when view is finished
+    return null
+  }
   const p = w.payment
   return makePayment({
     amountDescription: p.amountDescription,
@@ -104,11 +110,36 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   })
 }
 
+const paymentToCounterpartyType = (p: Types.Payment): Types.CounterpartyType => {
+  let partyType = p.delta === 'increase' ? p.sourceType : p.targetType
+  switch (partyType) {
+    case 'sbs':
+    case 'keybase':
+      if (p.source === p.target) {
+        return 'account'
+      }
+      return 'keybaseUser'
+    case 'stellar':
+      return 'stellarPublicKey'
+  }
+  return 'stellarPublicKey'
+}
+
+const paymentToYourRole = (p: Types.Payment, username: string): 'sender' | 'receiver' => {
+  return p.delta === 'increase' ? 'receiver' : 'sender'
+}
+
 const loadEverythingWaitingKey = 'wallets:loadEverything'
 
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
 const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
+
+const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
+  state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), I.List())
+
+const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: string) =>
+  state.wallets.paymentsMap.get(accountID, I.List()).find(p => p.id === paymentID) || makePayment()
 
 const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
@@ -116,9 +147,22 @@ const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
 const getAssets = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.assetsMap.get(accountID || getSelectedAccount(state), I.List())
 
+const getFederatedAddress = (state: TypedState, accountID?: Types.AccountID) => {
+  const account = state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
+  const {username} = state.config
+  return username && account.isDefault ? `${username}*keybase.io` : ''
+}
+
 export {
   accountResultToAccount,
   assetsResultToAssets,
+  getAccountIDs,
+  getAccount,
+  getAssets,
+  getFederatedAddress,
+  getPayment,
+  getPayments,
+  getSelectedAccount,
   loadEverythingWaitingKey,
   makeAccount,
   makeAssets,
@@ -126,8 +170,6 @@ export {
   makeReserve,
   makeState,
   paymentResultToPayment,
-  getAccountIDs,
-  getAccount,
-  getAssets,
-  getSelectedAccount,
+  paymentToCounterpartyType,
+  paymentToYourRole,
 }

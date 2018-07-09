@@ -1002,7 +1002,7 @@ export type DeviceDeviceHistoryListRpcParam = void
 export type DeviceDeviceListRpcParam = void
 export type DeviceEk = $ReadOnly<{seed: Bytes32, metadata: DeviceEkMetadata}>
 export type DeviceEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time, deviceCtime: Time}>
-export type DeviceEkStatement = $ReadOnly<{currentDeviceEkMetadata: DeviceEkMetadata, existingDeviceEkMetadata?: ?Array<DeviceEkMetadata>}>
+export type DeviceEkStatement = $ReadOnly<{currentDeviceEkMetadata: DeviceEkMetadata}>
 export type DeviceID = String
 export type DeviceType =
   | 0 // DESKTOP_0
@@ -2051,7 +2051,7 @@ export type TeamEk = $ReadOnly<{seed: Bytes32, metadata: TeamEkMetadata}>
 export type TeamEkBoxMetadata = $ReadOnly<{box: String, recipientGeneration: EkGeneration, recipientUID: UID}>
 export type TeamEkBoxed = $ReadOnly<{box: String, userEkGeneration: EkGeneration, metadata: TeamEkMetadata}>
 export type TeamEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
-export type TeamEkStatement = $ReadOnly<{currentTeamEkMetadata: TeamEkMetadata, existingTeamEkMetadata?: ?Array<TeamEkMetadata>}>
+export type TeamEkStatement = $ReadOnly<{currentTeamEkMetadata: TeamEkMetadata}>
 export type TeamEncryptedKBFSKeyset = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 export type TeamEncryptedKBFSKeysetHash = String
 export type TeamExitRow = $ReadOnly<{id: TeamID}>
@@ -2124,7 +2124,7 @@ export type TeamType =
   | 2 // MODERN_2
 
 export type TeamsCanUserPerformRpcParam = $ReadOnly<{name: String}>
-export type TeamsFindNextMerkleRootAfterTeamRemovalBySigningKeyRpcParam = $ReadOnly<{uid: UID, signingKey: KID, team: TeamID, isPublic: Boolean}>
+export type TeamsFindNextMerkleRootAfterTeamRemovalBySigningKeyRpcParam = $ReadOnly<{uid: UID, signingKey: KID, team: TeamID, isPublic: Boolean, anyRoleAllowed: Boolean}>
 export type TeamsFindNextMerkleRootAfterTeamRemovalRpcParam = $ReadOnly<{uid: UID, team: TeamID, isPublic: Boolean, teamSigchainSeqno: Seqno, prev: MerkleRootV2}>
 export type TeamsGetTarsDisabledRpcParam = $ReadOnly<{name: String}>
 export type TeamsGetTeamAndMemberShowcaseRpcParam = $ReadOnly<{name: String}>
@@ -2240,7 +2240,7 @@ export type UserEk = $ReadOnly<{seed: Bytes32, metadata: UserEkMetadata}>
 export type UserEkBoxMetadata = $ReadOnly<{box: String, recipientGeneration: EkGeneration, recipientDeviceID: DeviceID}>
 export type UserEkBoxed = $ReadOnly<{box: String, deviceEkGeneration: EkGeneration, metadata: UserEkMetadata}>
 export type UserEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
-export type UserEkStatement = $ReadOnly<{currentUserEkMetadata: UserEkMetadata, existingUserEkMetadata?: ?Array<UserEkMetadata>}>
+export type UserEkStatement = $ReadOnly<{currentUserEkMetadata: UserEkMetadata}>
 export type UserFindNextMerkleRootAfterResetRpcParam = $ReadOnly<{uid: UID, resetSeqno: Seqno, prev: ResetMerkleRoot}>
 export type UserFindNextMerkleRootAfterRevokeRpcParam = $ReadOnly<{uid: UID, kid: KID, loc: SigChainLocation, prev: MerkleRootV2}>
 export type UserGetUPAKRpcParam = $ReadOnly<{uid: UID}>

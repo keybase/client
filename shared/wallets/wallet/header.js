@@ -1,11 +1,12 @@
 // @flow
 import * as React from 'react'
 import {Box2, Button, ClickableBox, Text, Avatar, FloatingMenu} from '../../common-adapters'
-import {globalColors, globalMargins} from '../../styles'
+import {styleSheetCreate} from '../../styles'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../common-adapters/floating-menu'
 
 type Props = {
   isDefaultWallet: boolean,
+  navigateAppend: (...Array<any>) => any,
   onDeposit: () => void,
   onReceive: () => void,
   onSendToAnotherWallet: () => void,
@@ -18,21 +19,22 @@ type Props = {
 }
 
 const Header = (props: Props) => (
-  <Box2 direction="vertical" fullWidth={true}>
-    <Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={{justifyContent: 'center'}}>
+  <Box2
+    direction="vertical"
+    fullWidth={true}
+    gap="tiny"
+    gapStart={true}
+    gapEnd={true}
+    style={styles.noShrink}
+  >
+    <Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.centerChildren}>
       {props.keybaseUser && <Avatar size={16} username={props.keybaseUser} />}
-      <Text style={{alignSelf: 'center'}} type="BodySemibold">
-        {props.walletName}
-      </Text>
+      <Text type="BodySemibold">{props.walletName}</Text>
     </Box2>
-    <Box2 direction="horizontal" fullWidth={true} gap="tiny" style={{justifyContent: 'center'}}>
+    <Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.centerChildren}>
       {props.isDefaultWallet && <Text type="BodySmall">Default Keybase wallet</Text>}
     </Box2>
-    <Box2
-      direction="horizontal"
-      gap="tiny"
-      style={{justifyContent: 'center', paddingTop: globalMargins.tiny}}
-    >
+    <Box2 direction="horizontal" gap="tiny" style={styles.centerChildren}>
       <SendButton
         onSendToKeybaseUser={props.onSendToKeybaseUser}
         onSendToStellarAddress={props.onSendToStellarAddress}
@@ -72,11 +74,7 @@ class _SendButton extends React.PureComponent<SendProps & FloatingMenuParentProp
 
   render() {
     return (
-      <ClickableBox
-        onClick={this.props.toggleShowingMenu}
-        style={{backgroundColor: globalColors.white}}
-        ref={this.props.setAttachmentRef}
-      >
+      <ClickableBox onClick={this.props.toggleShowingMenu} ref={this.props.setAttachmentRef}>
         <Box2 direction="horizontal" fullWidth={true} gap="xsmall">
           <Button onClick={null} type="Wallet" label="Send" />
         </Box2>
@@ -117,11 +115,7 @@ class _DropdownButton extends React.PureComponent<DropdownProps & FloatingMenuPa
 
   render() {
     return (
-      <ClickableBox
-        onClick={this.props.toggleShowingMenu}
-        style={{backgroundColor: globalColors.white}}
-        ref={this.props.setAttachmentRef}
-      >
+      <ClickableBox onClick={this.props.toggleShowingMenu} ref={this.props.setAttachmentRef}>
         <Box2 direction="horizontal" fullWidth={true} gap="xsmall">
           <Button onClick={null} type="Secondary" label="..." />
         </Box2>
@@ -137,6 +131,14 @@ class _DropdownButton extends React.PureComponent<DropdownProps & FloatingMenuPa
     )
   }
 }
+
+const styles = styleSheetCreate({
+  centerChildren: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noShrink: {flexShrink: 0},
+})
 
 const SendButton = FloatingMenuParentHOC(_SendButton)
 

@@ -6,10 +6,7 @@ import {Box2} from '../../common-adapters'
 import {action, storiesOf} from '../../stories/storybook'
 import TransactionDetails from '.'
 
-const provider = PropProviders.compose(
-  PropProviders.Usernames(['paul'], 'john'),
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
-)
+const provider = PropProviders.CommonProvider()
 
 const now = new Date()
 const yesterday = moment(now)
@@ -32,6 +29,7 @@ const load = () => {
         counterparty="yen"
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
+        delta="decrease"
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
         yourRole="sender"
@@ -46,6 +44,7 @@ const load = () => {
       <TransactionDetails
         counterparty="G43289XXXXX34OPL"
         counterpartyType="stellarPublicKey"
+        delta="decrease"
         amountUser="$15.65"
         amountXLM="42.535091 XLM"
         yourRole="sender"
@@ -61,6 +60,7 @@ const load = () => {
         counterparty="yen"
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
+        delta="decrease"
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
         yourRole="sender"
@@ -76,6 +76,7 @@ const load = () => {
         counterparty="yen"
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
+        delta="increase"
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
         yourRole="receiver"
@@ -92,6 +93,7 @@ const load = () => {
         counterparty="yen"
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
+        delta="increase"
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
         yourRole="receiver"
@@ -100,10 +102,11 @@ const load = () => {
         you="cjb"
       />
     ))
-    .add('Received from another wallet', () => (
+    .add('Received from another account', () => (
       <TransactionDetails
-        counterparty="Second wallet"
-        counterpartyType="wallet"
+        counterparty="Second account"
+        counterpartyType="account"
+        delta="increase"
         amountUser="$100"
         amountXLM="545.2562704 XLM"
         yourRole="receiver"

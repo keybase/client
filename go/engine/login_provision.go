@@ -1085,7 +1085,7 @@ func (e *loginProvision) verifyLocalStorage(m libkb.MetaContext) {
 	e.verifyRegularFile(m, "secretkeys", m.G().SKBFilenameForUser(normUsername))
 
 	// check secret stored
-	secret, err := m.G().SecretStore().RetrieveSecret(normUsername)
+	secret, err := m.G().SecretStore().RetrieveSecret(m, normUsername)
 	if err != nil {
 		m.CDebugf("loginProvision(verify): failed to retrieve secret for %s: %s", e.username, err)
 	}

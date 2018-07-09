@@ -39,6 +39,18 @@
         },
         {
           "type": "string",
+          "name": "assetCode"
+        },
+        {
+          "type": "string",
+          "name": "issuerName"
+        },
+        {
+          "type": "string",
+          "name": "issuerAccountID"
+        },
+        {
+          "type": "string",
           "name": "balanceTotal"
         },
         {
@@ -47,11 +59,7 @@
         },
         {
           "type": "string",
-          "name": "assetCode"
-        },
-        {
-          "type": "string",
-          "name": "issuer"
+          "name": "worthCurrency"
         },
         {
           "type": "string",
@@ -59,7 +67,7 @@
         },
         {
           "type": "string",
-          "name": "worthCurrency"
+          "name": "availableToSendWorth"
         }
       ]
     },
@@ -227,10 +235,6 @@
         {
           "type": "string",
           "name": "amountDescription"
-        },
-        {
-          "type": "string",
-          "name": "amountValue"
         },
         {
           "type": "BalanceDelta",

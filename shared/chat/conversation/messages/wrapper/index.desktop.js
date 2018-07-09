@@ -1,13 +1,14 @@
 // @flow
-import Wrapper from './shared'
+import WrapperTimestamp from './wrapper-timestamp'
+import WrapperAuthor from './wrapper-author'
 import {withHandlers} from '../../../../util/container'
 import {FloatingMenuParentHOC} from '../../../../common-adapters/floating-menu'
 
-const WrapperWithFloatingMenu = FloatingMenuParentHOC(Wrapper)
-
-export default withHandlers({
+const WrapperWithFloatingMenu = withHandlers({
   onShowMenu: props => event => {
     const node = event.target instanceof window.HTMLElement ? event.target : null
     props.onShowMenu(node ? node.getBoundingClientRect() : null)
   },
-})(WrapperWithFloatingMenu)
+})(FloatingMenuParentHOC(WrapperAuthor))
+
+export {WrapperWithFloatingMenu as WrapperAuthor, WrapperTimestamp}

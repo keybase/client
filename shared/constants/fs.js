@@ -113,7 +113,7 @@ export const makeFlags: I.RecordFactory<Types._Flags> = I.Record({
   fuseInstalling: false,
   kextPermissionError: false,
   securityPrefsPropmted: false,
-  showBanner: false,
+  showBanner: true,
   syncing: false,
 })
 

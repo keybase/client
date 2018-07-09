@@ -2,6 +2,7 @@ package chat
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -60,11 +61,15 @@ func (n *chatListener) ChatThreadsStale(uid keybase1.UID, updates []chat1.Conver
 		panic("timeout on the threads stale channel")
 	}
 }
-func (n *chatListener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult) {
-	select {
-	case n.inboxSynced <- syncRes:
-	case <-time.After(5 * time.Second):
-		panic("timeout on the threads stale channel")
+func (n *chatListener) ChatInboxSynced(uid keybase1.UID, topicType chat1.TopicType,
+	syncRes chat1.ChatSyncResult) {
+	switch topicType {
+	case chat1.TopicType_CHAT, chat1.TopicType_NONE:
+		select {
+		case n.inboxSynced <- syncRes:
+		case <-time.After(5 * time.Second):
+			panic("timeout on the threads stale channel")
+		}
 	}
 }
 func (n *chatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
@@ -243,6 +248,8 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.PushHandler = pushHandler
 	g.ChatHelper = NewHelper(g, getRI)
 	g.TeamChannelSource = NewCachingTeamChannelSource(g, getRI)
+	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
+
 	searcher := NewSearcher(g)
 	// Force small pages during tests to ensure we fetch context from new pages
 	searcher.pageSize = 2
@@ -338,7 +345,7 @@ func TestNonblockTimer(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// Send a bunch of nonblocking messages
+	// Send a bunch of blocking messages
 	var sentRef []sentRecord
 	for i := 0; i < 5; i++ {
 		_, msgBoxed, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
@@ -398,7 +405,7 @@ func TestNonblockTimer(t *testing.T) {
 	default:
 	}
 
-	// Send a bunch of nonblocking messages
+	// Send a bunch of blocking messages
 	for i := 0; i < 5; i++ {
 		_, msgBoxed, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
@@ -439,6 +446,7 @@ func TestNonblockTimer(t *testing.T) {
 			require.Fail(t, "event not received")
 		}
 
+		t.Logf("OUTBOXID: %s", obids[i/2])
 		require.Equal(t, i+1, olen, "wrong length")
 		require.Equal(t, listener.obids[i], obids[i/2], "wrong obid")
 	}
@@ -917,6 +925,38 @@ func TestAtMentionsEdit(t *testing.T) {
 	require.Equal(t, chat1.ChannelMention_ALL, chanMention)
 }
 
+func TestKBFSFileEditSize(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+		ctx, world, ri, _, blockingSender, _ := setupTest(t, 1)
+		defer world.Cleanup()
+
+		u := world.GetUsers()[0]
+		uid := u.User.GetUID().ToBytes()
+		tlfName := u.Username
+		tc := userTc(t, world, u)
+		conv, err := NewConversation(ctx, tc.Context(), uid, tlfName, nil, chat1.TopicType_KBFSFILEEDIT,
+			chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE,
+			func() chat1.RemoteInterface { return ri })
+		require.NoError(t, err)
+
+		body := strings.Repeat("M", 100000)
+		_, _, err = blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Sender:      uid,
+				TlfName:     tlfName,
+				MessageType: chat1.MessageType_TEXT,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: body}),
+		}, 0, nil)
+		require.NoError(t, err)
+	})
+}
+
 func TestKBFSCryptKeysBit(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctx, world, ri, _, blockingSender, _ := setupTest(t, 1)
@@ -966,9 +1006,10 @@ func TestKBFSCryptKeysBit(t *testing.T) {
 func TestPrevPointerAddition(t *testing.T) {
 	mt := chat1.ConversationMembersType_TEAM
 	runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
-		ctx, world, ri, _, blockingSender, _ := setupTest(t, 1)
+		ctx, world, ri2, _, blockingSender, _ := setupTest(t, 1)
 		defer world.Cleanup()
 
+		ri := ri2.(*kbtest.ChatRemoteMock)
 		var ephemeralMetadata *chat1.MsgEphemeralMetadata
 		if ephemeralLifetime != nil {
 			ephemeralMetadata = &chat1.MsgEphemeralMetadata{
@@ -993,6 +1034,40 @@ func TestPrevPointerAddition(t *testing.T) {
 				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
 			}, 0, nil)
 			require.NoError(t, err)
+		}
+
+		// Hide all ephemeral messages by advancing the clock enough to hide
+		// the "ash" lines.  We also mock out the server call so we can
+		// simulate a chat with only long exploded ephemeral messages.
+		if ephemeralLifetime != nil {
+			t.Logf("expiry all ephemeral messages")
+			world.Fc.Advance(time.Second*time.Duration(*ephemeralLifetime) + chat1.ShowExplosionLifetime)
+			// Mock out server call for new messages
+			ri.GetThreadRemoteFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, arg chat1.GetThreadRemoteArg) (chat1.GetThreadRemoteRes, error) {
+				return chat1.GetThreadRemoteRes{
+					Thread: chat1.ThreadViewBoxed{
+						Pagination: &chat1.Pagination{},
+					},
+				}, nil
+			}
+			// Prepare a regular message and make sure it gets prev pointers
+			boxed, pendingAssetDeletes, _, _, _, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:              conv.Metadata.IdTriple,
+					Sender:            uid,
+					TlfName:           u.Username,
+					MessageType:       chat1.MessageType_TEXT,
+					EphemeralMetadata: ephemeralMetadata,
+				},
+				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
+			}, mt, &conv)
+			require.NoError(t, err)
+			require.Empty(t, pendingAssetDeletes)
+			// With all of the messages filtered because they exploded and the
+			// server not returning results, we give up and don't attach any
+			// prevs.
+			require.Empty(t, boxed.ClientHeader.Prev, "empty prev pointers")
+			ri.GetThreadRemoteFunc = nil
 		}
 
 		// Nuke the body cache

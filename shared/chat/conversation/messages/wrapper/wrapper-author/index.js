@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Icon, Text, Box, iconCastPlatformStyles} from '../../../../common-adapters'
-import {type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
+import {Avatar, Icon, Text, Box, iconCastPlatformStyles} from '../../../../../common-adapters'
+import {type FloatingMenuParentProps} from '../../../../../common-adapters/floating-menu'
 import {
   globalStyles,
   globalMargins,
@@ -10,14 +10,13 @@ import {
   platformStyles,
   styleSheetCreate,
   collapseStyles,
-} from '../../../../styles'
-import Timestamp from './timestamp'
-import SendIndicator from './chat-send'
-import MessagePopup from '../message-popup'
-import ExplodingHeightRetainer from './exploding-height-retainer'
-import ExplodingMeta from './exploding-meta'
+} from '../../../../../styles'
+import SendIndicator from '../chat-send'
+import MessagePopup from '../../message-popup'
+import ExplodingHeightRetainer from '../exploding-height-retainer'
+import ExplodingMeta from '../exploding-meta'
 
-import type {Props} from './index.types'
+import type {WrapperAuthorProps} from '../index.types'
 
 const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBroken: boolean) => {
   if (isYou) {
@@ -100,6 +99,8 @@ const Failure = ({failureDescription, isExplodingUnreadable, onEdit, onRetry, on
   )
 }
 
+const sendIndicatorWidth = 32
+
 const LeftSide = props => (
   <Box style={styles.leftSide}>
     {props.includeHeader && <UserAvatar author={props.author} onAuthorClick={props.onAuthorClick} />}
@@ -173,7 +174,7 @@ const RightSide = props => (
             sent={props.messageSent || props.exploded}
             failed={props.messageFailed}
             style={{marginBottom: 2}}
-            id={props.message.timestamp}
+            id={props.timestamp}
           />
         )}
       </Box>
@@ -190,14 +191,10 @@ const RightSide = props => (
   </Box>
 )
 
-class MessageWrapper extends React.PureComponent<Props & FloatingMenuParentProps> {
-  componentDidUpdate(prevProps: Props) {
+class WrapperAuthor extends React.PureComponent<WrapperAuthorProps & FloatingMenuParentProps> {
+  componentDidUpdate(prevProps: WrapperAuthorProps) {
     if (this.props.measure) {
-      if (
-        this.props.orangeLineAbove !== prevProps.orangeLineAbove ||
-        this.props.timestamp !== prevProps.timestamp ||
-        this.props.includeHeader !== prevProps.includeHeader
-      ) {
+      if (this.props.includeHeader !== prevProps.includeHeader) {
         this.props.measure()
       }
     }
@@ -206,28 +203,21 @@ class MessageWrapper extends React.PureComponent<Props & FloatingMenuParentProps
   render() {
     const props = this.props
     return (
-      <Box style={styles.container}>
-        {props.orangeLineAbove && <Box style={styles.orangeLine} />}
-        {props.timestamp && <Timestamp timestamp={props.timestamp} />}
-        <Box
-          style={collapseStyles([
-            styles.leftRightContainer,
-            props.showingMenu && styles.selected,
-            props.includeHeader && styles.hasHeader,
-          ])}
-        >
-          <LeftSide {...props} />
-          <RightSide {...props} />
-        </Box>
+      <Box
+        style={collapseStyles([
+          styles.leftRightContainer,
+          props.showingMenu && styles.selected,
+          props.includeHeader && styles.hasHeader,
+        ])}
+      >
+        <LeftSide {...props} />
+        <RightSide {...props} />
       </Box>
     )
   }
 }
 
-const sendIndicatorWidth = 32
-
 const styles = styleSheetCreate({
-  container: {...globalStyles.flexBoxColumn, width: '100%'},
   edited: {backgroundColor: globalColors.white, color: globalColors.black_20_on_white},
   ellipsis: {marginLeft: globalMargins.tiny, marginRight: globalMargins.xtiny},
   exclamation: {
@@ -254,7 +244,6 @@ const styles = styleSheetCreate({
       marginLeft: globalMargins.tiny,
     },
   }),
-  orangeLine: {backgroundColor: globalColors.orange, height: 1, width: '100%'},
   rightSide: {
     ...globalStyles.flexBoxColumn,
     flex: 1,
@@ -304,4 +293,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default MessageWrapper
+export default WrapperAuthor

@@ -86,7 +86,6 @@ const mimeTypeRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
 function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<any, any> {
   const opID = Constants.makeUUID()
   const {refreshTag, path: rootPath} = action.payload
-  console.log({rootPath, action})
 
   refreshTag && folderListRefreshTags.set(refreshTag, rootPath)
 
@@ -256,9 +255,6 @@ function* upload(action: FsGen.UploadPayload) {
     },
   })
 
-  // TODO: Are we sure this happens after the file shows up in destination?
-  yield Saga.call(folderList, FsGen.createFolderListLoad({path: parentPath}))
-
   try {
     yield Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
     yield Saga.put(FsGen.createUploadWritingFinished({path}))
@@ -278,6 +274,15 @@ function cancelDownload({payload: {key}}: FsGen.CancelDownloadPayload, state: Ty
     meta: {opID},
   } = download
   return Saga.call(RPCTypes.SimpleFSSimpleFSCancelRpcPromise, {opID})
+}
+
+const getWaitDuration = (endEstimate: ?number, lower: number, upper: number): number => {
+  if (!endEstimate) {
+    return upper
+  }
+
+  const diff = endEstimate - Date.now()
+  return diff < lower ? lower : diff > upper ? upper : diff
 }
 
 let polling = false
@@ -309,14 +314,16 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
         ...Array.from(mimeTypeRefreshTags).map(([_, path]) => Saga.put(FsGen.createMimeTypeLoad({path}))),
       ])
 
-      if (totalSyncingBytes <= 0) {
+      // It's possible syncingPaths has not been emptied before
+      // totalSyncingBytes becomes 0. So check both.
+      if (totalSyncingBytes <= 0 && !(syncingPaths && syncingPaths.length)) {
         break
       }
 
       yield Saga.sequentially([
         Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true})),
         Saga.put(FsGen.createSetFlags({syncing: true})),
-        Saga.delay(2000),
+        Saga.delay(getWaitDuration(endEstimate, 100, 2000)),
       ])
     }
   } finally {
@@ -543,11 +550,8 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     yield Saga.safeTakeEveryPure(FsGen.commitEdit, commitEdit, editSuccess, editFailed)
   }
 
-  if (!isMobile) {
-    // TODO: enable these when we need it on mobile.
-    yield Saga.safeTakeEvery(FsGen.fsActivity, pollSyncStatusUntilDone)
-    yield Saga.safeTakeEveryPure(FsGen.setupFSHandlers, _setupFSHandlers)
-  }
+  yield Saga.safeTakeEvery(FsGen.fsActivity, pollSyncStatusUntilDone)
+  yield Saga.safeTakeEveryPure(FsGen.setupFSHandlers, _setupFSHandlers)
 
   yield Saga.fork(platformSpecificSaga)
 

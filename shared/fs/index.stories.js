@@ -72,7 +72,10 @@ const provider = createPropProvider({
   ...rowProviders,
   ConnectedFooter: () => ({
     downloadKeys: [],
-    showUploads: false,
+  }),
+  ConnectedUpload: () => ({
+    files: 0,
+    timeLeft: '',
   }),
   FolderHeader: () => ({
     breadcrumbItems: [

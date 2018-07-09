@@ -322,7 +322,7 @@ func TestStorageBasic(t *testing.T) {
 func TestStorageLargeList(t *testing.T) {
 	_, storage, uid := setupStorageTest(t, "large list")
 
-	msgs := makeMsgRange(2000)
+	msgs := makeMsgRange(1000)
 	conv := makeConversation(msgs[0].GetMessageID())
 
 	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)

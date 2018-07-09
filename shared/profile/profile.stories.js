@@ -231,7 +231,7 @@ const proofsPending = proofsDefault.map((proof, idx) => ({
   state: checking,
 }))
 
-const provider = PropProviders.Common()
+const provider = PropProviders.CommonProvider()
 
 const load = () => {
   storiesOf('Profile/Profile', module)

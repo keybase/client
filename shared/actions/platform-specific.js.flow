@@ -1,12 +1,10 @@
 // @flow
+import * as Saga from '../util/saga'
 declare export function checkPermissions(): Promise<boolean>
 declare export function getShownPushPrompt(): Promise<0 | 1>
 declare export function openAppSettings(): void
 declare export function requestPushPermissions(): Promise<void>
 declare export function configurePush(): void
-declare export function showMainWindow(): void
-declare export function getAppState(): Promise<Object>
-declare export function setAppState(toMerge: Object): void
 declare export function showShareActionSheet(options: {url?: ?any, message?: ?any}): Promise<{
   completed: boolean,
   method: string,
@@ -28,3 +26,5 @@ declare export function getContentTypeFromURL(
   url: string,
   cb: {error?: any, statusCode?: number, contentType?: string}
 ): Promise<string>
+
+declare export function platformConfigSaga(): Saga.SagaGenerator<any, any>

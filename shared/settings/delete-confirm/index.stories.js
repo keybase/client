@@ -4,10 +4,7 @@ import DeleteConfirm from '.'
 import * as PropProviders from '../../stories/prop-providers'
 import {action, storiesOf} from '../../stories/storybook'
 
-const provider = PropProviders.compose(
-  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
-)
+const provider = PropProviders.CommonProvider()
 
 const load = () => {
   storiesOf('Settings', module)

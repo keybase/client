@@ -5,6 +5,7 @@ import * as PushConstants from '../constants/push'
 import * as PushGen from './push-gen'
 import * as PushNotifications from 'react-native-push-notification'
 import * as mime from 'react-native-mime-types'
+import * as Saga from '../util/saga'
 import RNFetchBlob from 'react-native-fetch-blob'
 import {
   PushNotificationIOS,
@@ -41,20 +42,6 @@ function getShownPushPrompt(): Promise<boolean> {
 
 function checkPermissions() {
   return new Promise((resolve, reject) => PushNotifications.checkPermissions(resolve))
-}
-
-function showMainWindow() {
-  return () => {
-    // nothing
-  }
-}
-
-function getAppState() {
-  return Promise.resolve({})
-}
-
-function setAppState(toMerge: Object) {
-  throw new Error('setAppState not implemented in mobile')
 }
 
 function showShareActionSheet(options: {
@@ -151,6 +138,7 @@ function displayNewMessageNotification(
     })
   }
 
+  logger.info(`Got push notification with soundName '${soundName || ''}'`)
   PushNotifications.localNotification({
     message: text,
     soundName,
@@ -308,15 +296,14 @@ const getContentTypeFromURL = (
           cb({error})
         })
 
+function* platformConfigSaga(): Saga.SagaGenerator<any, any> {}
+
 export {
   openAppSettings,
   checkPermissions,
   displayNewMessageNotification,
   downloadAndShowShareActionSheet,
-  getAppState,
-  setAppState,
   requestPushPermissions,
-  showMainWindow,
   configurePush,
   saveAttachmentDialog,
   saveAttachmentToCameraRoll,
@@ -324,4 +311,5 @@ export {
   showShareActionSheet,
   clearAllNotifications,
   getContentTypeFromURL,
+  platformConfigSaga,
 }

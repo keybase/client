@@ -249,7 +249,7 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 			if conv != nil {
 				topicType = conv.GetTopicType()
 			}
-			g.G().NotifyRouter.HandleChatTLFFinalize(ctx, keybase1.UID(uid.String()),
+			g.G().ActivityNotifier.TLFFinalize(ctx, uid,
 				convID, topicType, update.FinalizeInfo, g.presentUIItem(ctx, conv, uid))
 		}
 	}(bctx)
@@ -303,7 +303,7 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 		}
 		g.Debug(ctx, "TlfResolve: convID: %s new TLF name: %s", updateConv.GetConvID(),
 			updateConv.Info.TlfName)
-		g.G().NotifyRouter.HandleChatTLFResolve(ctx, keybase1.UID(uid.String()),
+		g.G().ActivityNotifier.TLFResolve(ctx, uid,
 			update.ConvID, updateConv.GetTopicType(), resolveInfo)
 	}(bctx)
 
@@ -616,10 +616,10 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			return
 		}
 		if g.badger != nil && gm.UnreadUpdate != nil {
-			g.badger.PushChatUpdate(*gm.UnreadUpdate, gm.InboxVers)
+			g.badger.PushChatUpdate(ctx, *gm.UnreadUpdate, gm.InboxVers)
 		}
 		if activity != nil {
-			g.notifyNewChatActivity(ctx, m.UID(), gm.TopicType, activity)
+			g.notifyNewChatActivity(ctx, m.UID().(gregor1.UID), gm.TopicType, activity)
 		} else {
 			g.Debug(ctx, "chat activity: skipping notify, activity is nil")
 		}
@@ -627,36 +627,25 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 	return nil
 }
 
-func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID,
-	topicType chat1.TopicType, activity *chat1.ChatActivity) error {
-	kbUID, err := keybase1.UIDFromString(hex.EncodeToString(uid.Bytes()))
-	if err != nil {
-		return err
-	}
-	g.G().NotifyRouter.HandleNewChatActivity(ctx, kbUID, topicType, activity)
-	return nil
+func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor1.UID,
+	topicType chat1.TopicType, activity *chat1.ChatActivity) {
+	g.G().ActivityNotifier.Activity(ctx, uid, topicType, activity)
 }
 
 func (g *PushHandler) notifyJoinChannel(ctx context.Context, uid gregor1.UID,
 	conv chat1.ConversationLocal) {
-	kuid := keybase1.UID(uid.String())
-	g.G().NotifyRouter.HandleChatJoinedConversation(ctx, kuid, conv.GetConvID(),
+	g.G().ActivityNotifier.JoinedConversation(ctx, uid, conv.GetConvID(),
 		conv.GetTopicType(), g.presentUIItem(ctx, &conv, uid))
 }
 
 func (g *PushHandler) notifyLeftChannel(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, topicType chat1.TopicType) {
-	kuid := keybase1.UID(uid.String())
-	g.G().NotifyRouter.HandleChatLeftConversation(ctx, kuid, convID, topicType)
+	g.G().ActivityNotifier.LeftConversation(ctx, uid, convID, topicType)
 }
 
 func (g *PushHandler) notifyReset(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, topicType chat1.TopicType) {
-	if topicType != chat1.TopicType_CHAT {
-		return
-	}
-	kuid := keybase1.UID(uid.String())
-	g.G().NotifyRouter.HandleChatResetConversation(ctx, kuid, convID, topicType)
+	g.G().ActivityNotifier.ResetConversation(ctx, uid, convID, topicType)
 }
 
 func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
@@ -782,10 +771,7 @@ func (g *PushHandler) UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBa
 		if err = g.G().ConvSource.Clear(ctx, update.ConvID, uid); err != nil {
 			g.Debug(ctx, "UpgradeKBFSToImpteam: failed to clear convsource: %s", err)
 		}
-
-		g.G().NotifyRouter.HandleChatKBFSToImpteamUpgrade(ctx, keybase1.UID(uid.String()), update.ConvID,
-			update.TopicType)
-
+		g.G().ActivityNotifier.KBFSToImpteamUpgrade(ctx, uid, update.ConvID, update.TopicType)
 		return nil
 	}(bctx)
 
@@ -843,10 +829,10 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 		// Fire off badger updates
 		if g.badger != nil {
 			if update.UnreadUpdate != nil {
-				g.badger.PushChatUpdate(*update.UnreadUpdate, update.InboxVers)
+				g.badger.PushChatUpdate(ctx, *update.UnreadUpdate, update.InboxVers)
 			}
 			for _, upd := range update.UnreadUpdates {
-				g.badger.PushChatUpdate(upd, update.InboxVers)
+				g.badger.PushChatUpdate(ctx, upd, update.InboxVers)
 			}
 		}
 
@@ -917,7 +903,7 @@ func (g *PushHandler) SetConvRetention(ctx context.Context, m gregor.OutOfBandMe
 			return
 		}
 		// Send notify for the conv
-		g.G().NotifyRouter.HandleChatSetConvRetention(ctx, keybase1.UID(uid.String()),
+		g.G().ActivityNotifier.SetConvRetention(ctx, uid,
 			conv.GetConvID(), conv.GetTopicType(), g.presentUIItem(ctx, conv, uid))
 	}(bctx)
 
@@ -972,8 +958,7 @@ func (g *PushHandler) SetTeamRetention(ctx context.Context, m gregor.OutOfBandMe
 			}
 		}
 		for topicType, items := range convUIItems {
-			g.G().NotifyRouter.HandleChatSetTeamRetention(ctx, keybase1.UID(uid.String()), update.TeamID,
-				topicType, items)
+			g.G().ActivityNotifier.SetTeamRetention(ctx, uid, update.TeamID, topicType, items)
 		}
 	}(bctx)
 
