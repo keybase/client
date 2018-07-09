@@ -64,7 +64,10 @@ const linkExistingAccount = (state: TypedState, action: WalletsGen.LinkExistingA
       WalletsGen.createSelectAccount({accountID, show: true}),
       WalletsGen.createLinkedExistingAccount({accountID}),
     ])
-    .catch(err => WalletsGen.createLinkedExistingAccountError({error: err.desc, name, secretKey}))
+    .catch(err => {
+      logger.warn(`Error linking existing account: ${err.desc}`)
+      return WalletsGen.createLinkedExistingAccountError({error: err.desc, name, secretKey})
+    })
 }
 
 const validateAccountName = (state: TypedState, action: WalletsGen.ValidateAccountNamePayload) => {
@@ -72,7 +75,7 @@ const validateAccountName = (state: TypedState, action: WalletsGen.ValidateAccou
   return RPCTypes.localValidateAccountNameLocalRpcPromise({name})
     .then(() => WalletsGen.createValidatedAccountName({name}))
     .catch(err => {
-      logger.warn(`Errpr`)
+      logger.warn(`Error validating account name: ${err.desc}`)
       return WalletsGen.createValidatedAccountNameError({error: err.desc, name})
     })
 }
@@ -81,7 +84,10 @@ const validateSecretKey = (state: TypedState, action: WalletsGen.ValidateSecretK
   const {secretKey} = action.payload
   return RPCTypes.localValidateSecretKeyLocalRpcPromise({secretKey: secretKey.stringValue()})
     .then(() => WalletsGen.createValidatedSecretKey({secretKey}))
-    .catch(err => WalletsGen.createValidatedSecretKeyError({error: err.desc, secretKey}))
+    .catch(err => {
+      logger.warn(`Error validating secret key: ${err.desc}`)
+      return WalletsGen.createValidatedSecretKeyError({error: err.desc, secretKey})
+    })
 }
 
 const navigateToAccount = (
