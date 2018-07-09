@@ -11041,7 +11041,7 @@ react-native-mime-types@^2.2.1:
 
 "react-native-push-notification@git://github.com/keybase/react-native-push-notification#keybase-fixes-off-302":
   version "3.0.2"
-  resolved "git://github.com/keybase/react-native-push-notification#dafbaf7503feffcfab88288e38c28a578d2e2cf5"
+  resolved "git://github.com/keybase/react-native-push-notification#add2393eb774af85bdce71e8d5ffb83e89a3f19a"
 
 react-native-tab-view@^0.0.67:
   version "0.0.67"
