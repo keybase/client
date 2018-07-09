@@ -20,7 +20,6 @@ import (
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	billy "gopkg.in/src-d/go-billy.v4"
 )
@@ -83,47 +82,47 @@ func checkPendingOp(ctx context.Context,
 	ops, err := sfs.SimpleFSGetOps(ctx)
 
 	if !pending {
-		assert.Len(t, ops, 0, "Expected zero pending operations")
+		require.Len(t, ops, 0, "Expected zero pending operations")
 		return
 	}
 
-	assert.True(t, len(ops) > 0, "Expected at least one pending operation")
+	require.True(t, len(ops) > 0, "Expected at least one pending operation")
 
 	o := ops[0]
 	op, err := o.AsyncOp()
 	require.NoError(t, err)
-	assert.Equal(t, expectedOp, op, "Expected at least one pending operation")
+	require.Equal(t, expectedOp, op, "Expected at least one pending operation")
 
 	// TODO: verify read/write arguments
 	switch op {
 	case keybase1.AsyncOps_LIST:
 		list := o.List()
-		assert.Equal(t, list.Path, src, "Expected matching path in operation")
+		require.Equal(t, list.Path, src, "Expected matching path in operation")
 	case keybase1.AsyncOps_LIST_RECURSIVE:
 		list := o.ListRecursive()
-		assert.Equal(t, list.Path, src, "Expected matching path in operation")
+		require.Equal(t, list.Path, src, "Expected matching path in operation")
 	case keybase1.AsyncOps_LIST_RECURSIVE_TO_DEPTH:
 		list := o.ListRecursiveToDepth()
-		assert.Equal(t, list.Path, src, "Expected matching path in operation")
+		require.Equal(t, list.Path, src, "Expected matching path in operation")
 	// TODO: read is not async
 	case keybase1.AsyncOps_READ:
 		read := o.Read()
-		assert.Equal(t, read.Path, src, "Expected matching path in operation")
+		require.Equal(t, read.Path, src, "Expected matching path in operation")
 	// TODO: write is not asynce
 	case keybase1.AsyncOps_WRITE:
 		write := o.Write()
-		assert.Equal(t, write.Path, src, "Expected matching path in operation")
+		require.Equal(t, write.Path, src, "Expected matching path in operation")
 	case keybase1.AsyncOps_COPY:
 		copy := o.Copy()
-		assert.Equal(t, copy.Src, src, "Expected matching path in operation")
-		assert.Equal(t, copy.Dest, dest, "Expected matching path in operation")
+		require.Equal(t, copy.Src, src, "Expected matching path in operation")
+		require.Equal(t, copy.Dest, dest, "Expected matching path in operation")
 	case keybase1.AsyncOps_MOVE:
 		move := o.Move()
-		assert.Equal(t, move.Src, src, "Expected matching path in operation")
-		assert.Equal(t, move.Dest, dest, "Expected matching path in operation")
+		require.Equal(t, move.Src, src, "Expected matching path in operation")
+		require.Equal(t, move.Dest, dest, "Expected matching path in operation")
 	case keybase1.AsyncOps_REMOVE:
 		remove := o.Remove()
-		assert.Equal(t, remove.Path, src, "Expected matching path in operation")
+		require.Equal(t, remove.Path, src, "Expected matching path in operation")
 	}
 }
 
@@ -145,7 +144,7 @@ func TestList(t *testing.T) {
 	require.NoError(t, err)
 	listResult, err := sfs.SimpleFSReadList(ctx, opid)
 	require.NoError(t, err)
-	assert.Len(t, listResult.Entries, 3, "Expected 3 directory entries in listing")
+	require.Len(t, listResult.Entries, 3, "Expected 3 directory entries in listing")
 	sort.Slice(listResult.Entries, func(i, j int) bool {
 		return strings.Compare(listResult.Entries[i].Name,
 			listResult.Entries[j].Name) < 0
@@ -167,7 +166,7 @@ func TestList(t *testing.T) {
 	require.NoError(t, err)
 	listResult, err = sfs.SimpleFSReadList(ctx, opid)
 	require.NoError(t, err)
-	assert.Len(t, listResult.Entries, 1, "Expected 1 directory entries in listing")
+	require.Len(t, listResult.Entries, 1, "Expected 1 directory entries in listing")
 	require.Equal(t, listResult.Entries[0].Name, "jdoe")
 
 	// make a temp remote directory + files we will clean up later
@@ -196,7 +195,7 @@ func TestList(t *testing.T) {
 	require.Equal(
 		t, "jdoe", listResult.Entries[1].LastWriterUnverified.Username)
 
-	assert.Len(t, listResult.Entries, 2, "Expected 2 directory entries in listing")
+	require.Len(t, listResult.Entries, 2, "Expected 2 directory entries in listing")
 
 	// Assume we've exhausted the list now, so expect error
 	_, err = sfs.SimpleFSReadList(ctx, opid)
@@ -221,7 +220,7 @@ func TestList(t *testing.T) {
 	listResult, err = sfs.SimpleFSReadList(ctx, opid)
 	require.NoError(t, err)
 
-	assert.Len(t, listResult.Entries, 1, "Expected 1 directory entries in listing")
+	require.Len(t, listResult.Entries, 1, "Expected 1 directory entries in listing")
 	require.Equal(
 		t, "jdoe", listResult.Entries[0].LastWriterUnverified.Username)
 
@@ -243,7 +242,7 @@ func TestList(t *testing.T) {
 	require.NoError(t, err)
 	listResult, err = sfs.SimpleFSReadList(ctx, opid)
 	require.NoError(t, err)
-	assert.Len(
+	require.Len(
 		t, listResult.Entries, 3, "Expected 3 directory entries in listing")
 
 	// A single, requested hidden file shows up even if the filter is on.
@@ -260,8 +259,63 @@ func TestList(t *testing.T) {
 	require.NoError(t, err)
 	listResult, err = sfs.SimpleFSReadList(ctx, opid)
 	require.NoError(t, err)
-	assert.Len(
+	require.Len(
 		t, listResult.Entries, 1, "Expected 1 directory entries in listing")
+}
+
+func TestListRecursive(t *testing.T) {
+	ctx := context.Background()
+	sfs := newSimpleFS(libkb.NewGlobalContext().Init(), libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	defer closeSimpleFS(ctx, t, sfs)
+
+	pathRoot := keybase1.NewPathWithKbfs(`/`)
+	opid, err := sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSListRecursive(ctx, keybase1.SimpleFSListRecursiveArg{
+		OpID: opid,
+		Path: pathRoot,
+	})
+	require.NoError(t, err)
+	checkPendingOp(ctx, t, sfs, opid, keybase1.AsyncOps_LIST_RECURSIVE, pathRoot, keybase1.Path{}, true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+	listResult, err := sfs.SimpleFSReadList(ctx, opid)
+	require.NoError(t, err)
+	require.Len(t, listResult.Entries, 5, "Expected 3 directory entries in listing")
+	sort.Slice(listResult.Entries, func(i, j int) bool {
+		return strings.Compare(listResult.Entries[i].Name,
+			listResult.Entries[j].Name) < 0
+	})
+	require.Equal(t, listResult.Entries[0].Name, "private")
+	require.Equal(t, listResult.Entries[1].Name, "public")
+	require.Equal(t, listResult.Entries[2].Name, "team")
+	require.Equal(t, listResult.Entries[3].Name, "jdoe")
+	require.Equal(t, listResult.Entries[4].Name, "jdoe")
+
+	// make a temp remote directory + files we will clean up later
+	path1 := keybase1.NewPathWithKbfs(`/private/jdoe/a`)
+	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `aa/test1.txt`), []byte(`foo`))
+	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `ab/test2.txt`), []byte(`foo`))
+	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `.testfile`), []byte(`foo`))
+	opid, err = sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+
+	pathPrivate := keybase1.NewPathWithKbfs(`/private`)
+	opid, err = sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSListRecursiveToDepth(ctx, keybase1.SimpleFSListRecursiveToDepthArg{
+		OpID:  opid,
+		Path:  pathPrivate,
+		Depth: 1,
+	})
+	require.NoError(t, err)
+	checkPendingOp(ctx, t, sfs, opid, keybase1.AsyncOps_LIST_RECURSIVE_TO_DEPTH, pathPrivate, keybase1.Path{}, true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+	listResult, err = sfs.SimpleFSReadList(ctx, opid)
+	require.NoError(t, err)
+	require.Len(t, listResult.Entries, 7, "Expected 1 directory entries in listing")
+	require.Equal(t, listResult.Entries[0].Name, "jdoe")
 }
 
 func TestCopyToLocal(t *testing.T) {
@@ -303,7 +357,7 @@ func TestCopyToLocal(t *testing.T) {
 
 	exists, err := libkb.FileExists(filepath.Join(tempdir2, "test1.txt"))
 	require.NoError(t, err)
-	assert.True(t, exists, "File copy destination must exist")
+	require.True(t, exists, "File copy destination must exist")
 }
 
 func TestCopyRecursive(t *testing.T) {
