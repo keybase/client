@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -67,6 +68,8 @@ type FullCachingSource struct {
 
 	populateCacheCh chan populateArg
 
+	dirCreator sync.Once
+
 	// testing
 	populateSuccessCh chan struct{}
 	tempDir           string
@@ -86,7 +89,6 @@ func NewFullCachingSource(g *libkb.GlobalContext, staleThreshold time.Duration, 
 func (c *FullCachingSource) StartBackgroundTasks() {
 	go c.monitorAppState()
 	c.populateCacheCh = make(chan populateArg, 100)
-	os.MkdirAll(c.getCacheDir(), os.ModePerm)
 	for i := 0; i < 10; i++ {
 		go c.populateCacheWorker()
 	}
@@ -175,6 +177,11 @@ func (c *FullCachingSource) getFullFilename(fileName string) string {
 }
 
 func (c *FullCachingSource) commitAvatarToDisk(ctx context.Context, data io.ReadCloser, previousPath string) (path string, err error) {
+	c.dirCreator.Do(func() {
+		err := os.MkdirAll(c.getCacheDir(), os.ModePerm)
+		c.debug(ctx, "creating directory for avatars %q: %v", c.getCacheDir(), err)
+	})
+
 	var file *os.File
 	shouldRename := false
 	if len(previousPath) > 0 {
