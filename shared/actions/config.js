@@ -149,10 +149,10 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
         })
         dispatch(NotificationsGen.createListenForKBFSNotifications())
         if (!didInitialNav) {
-          didInitialNav = true
           dispatch(async () => {
             await dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
             if (getState().config.loggedIn) {
+              didInitialNav = true
               // If we're logged in, restore any saved route state and
               // then nav again based on it.
               // load people tab info on startup as well
