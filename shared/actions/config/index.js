@@ -2,6 +2,7 @@
 import logger from '../../logger'
 import * as KBFSGen from '../kbfs-gen'
 import * as FsGen from '../fs-gen'
+import * as LoginGen from '../login-gen'
 import * as ConfigGen from '../config-gen'
 import * as TeamsGen from '../teams-gen'
 import * as Constants from '../../constants/config'
@@ -90,6 +91,12 @@ const _retryBootstrap = () =>
 let bootstrapSetup = false
 let didInitialNav = false
 
+// we need to reset this if you log out, else we won't get configured accounts.
+// This is a MESS, so i'm going to clean it up soon
+const clearDidInitialNav = () => {
+  didInitialNav = false
+}
+
 // Until bootstrap is sagaized
 function _bootstrap({payload}: ConfigGen.BootstrapPayload) {
   return Saga.put(bootstrap(payload))
@@ -135,10 +142,10 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
         })
         dispatch(NotificationsGen.createListenForKBFSNotifications())
         if (!didInitialNav) {
-          didInitialNav = true
           dispatch(async () => {
             if (getState().config.loggedIn) {
               // TODO move these to a bootstrapSuccess handler
+              didInitialNav = true
               // If we're logged in, restore any saved route state and
               // then nav again based on it.
               // load people tab info on startup as well
@@ -192,6 +199,7 @@ const getConfig = (state: TypedState, action: ConfigGen.LoadConfigPayload) =>
   })
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEveryPure(LoginGen.logout, clearDidInitialNav)
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrap, _bootstrap)
   yield Saga.safeTakeEveryPure(ConfigGen.retryBootstrap, _retryBootstrap)
   yield Saga.safeTakeEveryPurePromise(ConfigGen.loadConfig, getConfig)

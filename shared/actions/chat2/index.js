@@ -882,7 +882,9 @@ const loadMoreMessages = (
         },
         waitingKey: loadingKey,
       })
-      yield Saga.put(Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results.offline}))
+      yield Saga.put(
+        Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results && results.offline})
+      )
     } finally {
       yield Saga.put(Chat2Gen.createClearLoading({key: `pushLoad:${conversationIDKey}`}))
     }
