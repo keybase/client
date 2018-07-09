@@ -10,6 +10,7 @@ const isSimulator = false
 const isIPhoneX = false
 const isDeviceSecureAndroid: boolean = false
 const isAndroidNewerThanM: boolean = false
+const isAndroidNewerThanN: boolean = false
 
 const isElectron = true
 const isDarwin = process.platform === 'darwin'
@@ -187,6 +188,7 @@ export {
   fileUIName,
   isAndroid,
   isAndroidNewerThanM,
+  isAndroidNewerThanN,
   isDarwin,
   isDeviceSecureAndroid,
   isElectron,

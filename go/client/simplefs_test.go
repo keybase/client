@@ -182,6 +182,11 @@ func (s SimpleFSMock) SimpleFSFolderEditHistory(
 	return keybase1.FSFolderEditHistory{}, nil
 }
 
+// SimpleFSSuppressNotifications implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSSuppressNotifications(_ context.Context, _ int) error {
+	return nil
+}
+
 /*
  file source cases:
  1. file

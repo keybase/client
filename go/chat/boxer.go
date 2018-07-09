@@ -416,7 +416,7 @@ func (b *Boxer) unbox(ctx context.Context, boxed chat1.MessageBoxed,
 	case chat1.MessageBoxedVersion_V2, chat1.MessageBoxedVersion_V3, chat1.MessageBoxedVersion_V4:
 		res, err := b.unboxV2orV3orV4(ctx, boxed, membersType, encryptionKey, ephemeralSeed)
 		if err != nil {
-			b.Debug(ctx, "error unboxing message version: %v", boxed.Version)
+			b.Debug(ctx, "error unboxing message version: %v, %s", boxed.Version, err)
 		}
 		return res, err
 	// NOTE: When adding new versions here, you must also update
@@ -741,16 +741,7 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 	// intended for our device, and error out if it's missing or invalid. If it
 	// is valid, then we *don't* validate the message signing key. That is,
 	// even though signEncryptOpen will check a signature in the end, we no
-	// longer care what signing key it's using. That means we're compatible
-	// with two different scenarios, to support gradual rollout:
-	// V3) Pairwise MACs are included, but also the signing key is still the
-	//     same as in regular messages. Clients with MAC support can check MACs,
-	//     but clients without MAC support ignore the MACs and keep working. We
-	//     don't have repudiability yet, but we can gradually roll out support.
-	// V4) Pairwise MACs are included, and the signing key is an all-zeros
-	//     dummy. Clients with MAC support won't notice this change. At this
-	//     point clients without MAC support will break (so we should pair this
-	//     with a version bump), and we will finally have repudiability.
+	// longer care what signing key it's using.
 	if len(boxed.ClientHeader.PairwiseMacs) > 0 {
 		if boxed.Version != chat1.MessageBoxedVersion_V3 && !bytes.Equal(boxed.VerifyKey, dummySigningKey().GetKID().ToBytes()) {
 			return nil, NewPermanentUnboxingError(fmt.Errorf("expected dummy signing key (%s), got %s", dummySigningKey().GetKID(), hex.EncodeToString(boxed.VerifyKey)))
@@ -1344,8 +1335,7 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 			ctx, tlfName, msg.ClientHeader.Conv.Tlfid, membersType, msg.ClientHeader.TlfPublic)
 		if err != nil {
 			return nil, err
-		}
-		if shouldPairwiseMAC {
+		} else if shouldPairwiseMAC {
 			if len(recipients) == 0 {
 				return nil, fmt.Errorf("unexpected empty pairwise recipients list")
 			}

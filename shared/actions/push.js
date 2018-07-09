@@ -139,16 +139,6 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
           logger.error('Push chat notification payload missing conversation ID')
           break
         }
-        // If a boxed message is attached to the notification, unbox.
-        if (m) {
-          logger.info('Push notification: unboxing notification message')
-          yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
-            convID,
-            membersType,
-            payload: m,
-            shouldAck: false,
-          })
-        }
         if (handledPushThisSession) {
           break
         }
@@ -162,8 +152,19 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
         )
         yield Saga.put(Chat2Gen.createSetLoading({key: `pushLoad:${conversationIDKey}`, loading: true}))
         yield Saga.put(switchTo([chatTab, 'conversation']))
+        // If a boxed message is attached to the notification, unbox.
+        if (m) {
+          logger.info('Push notification: unboxing notification message')
+          yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
+            convID,
+            membersType,
+            payload: m,
+            shouldAck: false,
+          })
+        }
       } catch (err) {
         logger.error('failed to handle new message push', err)
+        handledPushThisSession = false
       }
       break
     case 'follow':
