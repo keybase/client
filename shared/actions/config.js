@@ -98,6 +98,12 @@ let bootstrapSetup = false
 let didInitialNav = false
 const routeStateStorage = new RouteStateStorage()
 
+// we need to reset this if you log out, else we won't get configured accounts.
+// This is a MESS, so i'm going to clean it up soon
+const clearDidInitialNav = () => {
+  didInitialNav = false
+}
+
 // Until bootstrap is sagaized
 function _bootstrap({payload}: ConfigGen.BootstrapPayload) {
   return Saga.put(bootstrap(payload))
@@ -314,6 +320,7 @@ const _setStartedDueToPush = (action: Chat2Gen.SelectConversationPayload) =>
   action.payload.reason === 'push' ? Saga.put(ConfigGen.createSetStartedDueToPush()) : undefined
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEveryPure(LoginGen.logout, clearDidInitialNav)
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, _bootstrapSuccess)
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrap, _bootstrap)
   yield Saga.safeTakeEveryPure(ConfigGen.clearRouteState, _clearRouteState)
