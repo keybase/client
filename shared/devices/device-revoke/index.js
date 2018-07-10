@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import {type DeviceType, deviceTypeToIconType} from '../../constants/types/devices'
 import {Confirm, Box, Text, Icon, ProgressIndicator, type IconType} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 
@@ -7,21 +8,24 @@ export type Props = {
   currentDevice: boolean,
   deviceID: string,
   endangeredTLFs: Array<string>,
-  icon: IconType,
+  type: DeviceType,
   name: string,
   onCancel: () => void,
   onSubmit: () => void,
   waiting: boolean,
 }
 
-const Header = ({name, icon}: {name: string, icon: IconType}) => (
-  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-    <Icon type={icon} />
-    <Text type="BodySemibold" style={styleName}>
-      {name}
-    </Text>
-  </Box>
-)
+const Header = ({name, type}: {name: string, type: DeviceType}) => {
+  const icon: IconType = deviceTypeToIconType(type)
+  return (
+    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+      <Icon type={icon} />
+      <Text type="BodySemibold" style={styleName}>
+        {name}
+      </Text>
+    </Box>
+  )
+}
 
 const Body = ({
   endangeredTLFs,
@@ -83,7 +87,7 @@ const DeviceRevoke = (props: Props) => (
       />
     }
     danger={true}
-    header={<Header name={props.name} icon={props.icon} />}
+    header={<Header name={props.name} type={props.type} />}
     onCancel={props.onCancel}
     onSubmit={props.waiting ? null : props.onSubmit}
     disabled={!!props.waiting}

@@ -7,7 +7,7 @@ const devicesProps: Props = {
   currentDevice: true,
   deviceID: 'my computer',
   endangeredTLFs: ['nathunsmitty', 'nathunsmitty,chrisnojima', 'nathunsmitty,chrisnojima,jacobyoung'],
-  icon: 'icon-paper-key-revoke-48',
+  type: 'backup',
   name: 'my computer',
   onCancel: action('oncancel'),
   onSubmit: action('onsubmit'),
