@@ -2,13 +2,29 @@
 import * as React from 'react'
 import {Provider} from 'react-redux'
 import {createStore} from 'redux'
+import {GatewayProvider, GatewayDest} from 'react-gateway'
 import {type SelectorMap} from './storybook'
 import {Text, Box} from '../common-adapters'
-import {globalColors, globalStyles} from '../styles'
+import {platformStyles, globalColors, globalStyles} from '../styles'
 
 const unexpected = (name: string) => () => {
   throw new Error(`unexpected ${name}`)
 }
+
+// On mobile the GatewayDest wrapper needs to fill the entire screen, so we set fillAbsolute
+// However on desktop, if the wrapper takes the full screen it will cover the other components
+const styleDestBox = platformStyles({
+  isElectron: {
+    position: 'absolute',
+  },
+  isMobile: {
+    ...globalStyles.fillAbsolute,
+  },
+})
+
+// we set pointerEvents to 'box-none' so that the wrapping box will not catch
+// touch events and they will be passed down to the child (popup)
+const DestBox = props => <Box pointerEvents="box-none" style={styleDestBox} {...props} />
 
 /**
  * Creates a provider using a faux store of closures that compute derived viewProps
@@ -24,9 +40,21 @@ let uniqueProviderKey = 1
 const createPropProvider = (...maps: SelectorMap[]) => {
   const merged: SelectorMap = maps.reduce((obj, merged) => ({...obj, ...merged}), {})
 
+  /*
+   * GatewayDest and GatewayProvider need to be wrapped by the Provider here in
+   * order for storybook to correctly mock connected components inside of
+   * popups.
+   * React.Fragment is used to render StorybookErrorBoundary and GatewayDest as
+   * children to GatewayProvider which only takes one child
+   */
   return (story: () => React.Node) => (
     <Provider key={`provider:${uniqueProviderKey++}`} store={createStore(state => state, merged)}>
-      <StorybookErrorBoundary children={story()} />
+      <GatewayProvider key="gatewayprovider">
+        <React.Fragment>
+          <StorybookErrorBoundary children={story()} />
+          <GatewayDest component={DestBox} name="popup-root" />
+        </React.Fragment>
+      </GatewayProvider>
     </Provider>
   )
 }
