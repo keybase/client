@@ -485,6 +485,88 @@
           "name": "kbTxID"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "RequestPost",
+      "fields": [
+        {
+          "type": [
+            null,
+            "keybase1.UserVersion"
+          ],
+          "name": "toUser"
+        },
+        {
+          "type": "string",
+          "name": "toAssertion"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "asset"
+        },
+        {
+          "type": [
+            null,
+            "OutsideCurrencyCode"
+          ],
+          "name": "currency"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RequestDetails",
+      "fields": [
+        {
+          "type": "KeybaseRequestID",
+          "name": "id"
+        },
+        {
+          "type": "keybase1.UserVersion",
+          "name": "fromUser"
+        },
+        {
+          "type": [
+            null,
+            "keybase1.UserVersion"
+          ],
+          "name": "toUser"
+        },
+        {
+          "type": "string",
+          "name": "toAssertion"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "asset"
+        },
+        {
+          "type": [
+            null,
+            "OutsideCurrencyCode"
+          ],
+          "name": "currency"
+        },
+        {
+          "type": "KeybaseTransactionID",
+          "name": "fundingKbTxID"
+        }
+      ]
     }
   ],
   "messages": {
@@ -652,6 +734,32 @@
         }
       ],
       "response": "boolean"
+    },
+    "submitRequest": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "request",
+          "type": "RequestPost"
+        }
+      ],
+      "response": "KeybaseRequestID"
+    },
+    "requestDetails": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "reqID",
+          "type": "KeybaseRequestID"
+        }
+      ],
+      "response": "RequestDetails"
     },
     "ping": {
       "request": [],
