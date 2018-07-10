@@ -176,7 +176,7 @@ func (t TransactionStatus) Details(errMsg string) (status, detail string) {
 
 func NewPaymentLocal(txid TransactionID, ctime TimeMs) *PaymentLocal {
 	return &PaymentLocal{
-		Id:   txid,
+		Id:   PaymentID{TxID: txid},
 		Time: ctime,
 	}
 }

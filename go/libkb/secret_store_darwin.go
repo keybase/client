@@ -23,7 +23,7 @@ func (k KeychainSecretStore) serviceName(m MetaContext) string {
 func (k KeychainSecretStore) StoreSecret(m MetaContext, accountName NormalizedUsername, secret LKSecFullSecret) (err error) {
 	// Base64 encode to make it easy to work with Keychain Access (since we are using a password item and secret is not utf-8)
 	encodedSecret := base64.StdEncoding.EncodeToString(secret.Bytes())
-	item := keychain.NewGenericPassword(k.serviceName(m), string(accountName), "", []byte(encodedSecret), k.accessGroup())
+	item := keychain.NewGenericPassword(k.serviceName(m), string(accountName), "", []byte(encodedSecret), k.accessGroup(m))
 	item.SetSynchronizable(k.synchronizable())
 	item.SetAccessible(k.accessible())
 	m.CDebugf("KeychainSecretStore.StoreSecret(%s): deleting item before adding new one", accountName)
@@ -94,7 +94,7 @@ func (k KeychainSecretStore) ClearSecret(m MetaContext, accountName NormalizedUs
 	m.CDebugf("KeychainSecretStore.ClearSecret(%s)", accountName)
 	var query keychain.Item
 	if isIOS {
-		query = keychain.NewGenericPassword(k.serviceName(m), string(accountName), "", nil, k.accessGroup())
+		query = keychain.NewGenericPassword(k.serviceName(m), string(accountName), "", nil, k.accessGroup(m))
 	} else {
 		query = keychain.NewGenericPassword(k.serviceName(m), string(accountName), "", nil, "")
 		query.SetMatchLimit(keychain.MatchLimitAll)

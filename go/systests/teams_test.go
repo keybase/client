@@ -667,6 +667,18 @@ func (u *userPlusDevice) lookupImplicitTeam2(create bool, displayName string, pu
 	return res, err
 }
 
+func (u *userPlusDevice) delayMerkleTeam(teamID keybase1.TeamID) {
+	_, err := u.tc.G.API.Post(libkb.APIArg{
+		Endpoint: "test/merkled/delay_team",
+		Args: libkb.HTTPArgs{
+			"tid": libkb.S{Val: teamID.String()},
+		},
+		SessionType: libkb.APISessionTypeREQUIRED,
+		MetaContext: libkb.NewMetaContextForTest(*u.tc),
+	})
+	require.NoError(u.tc.T, err)
+}
+
 func (u *userPlusDevice) newSecretUI() *libkb.TestSecretUI {
 	return &libkb.TestSecretUI{Passphrase: u.passphrase}
 }
@@ -946,8 +958,10 @@ func TestTeamSignedByRevokedDevice(t *testing.T) {
 	// the loader
 	bob := tt.addUser("bob")
 
-	teamName := alice.createTeam()
-	alice.addTeamMember(teamName, bob.username, keybase1.TeamRole_ADMIN)
+	teamID, teamName := alice.createTeam2()
+	// Delay team sigs in the merkle queue to try to elicit a bad race. As a regression test for CORE-8233.
+	alice.delayMerkleTeam(teamID)
+	alice.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_ADMIN)
 
 	t.Logf("alice revokes the device used to sign team links")
 	var revokedKID keybase1.KID
@@ -993,7 +1007,7 @@ func TestTeamSignedByRevokedDevice(t *testing.T) {
 
 	t.Logf("bob loads the team")
 	_, err := teams.Load(context.TODO(), bob.tc.G, keybase1.LoadTeamArg{
-		Name:            teamName,
+		Name:            teamName.String(),
 		ForceRepoll:     true,
 		ForceFullReload: true, // don't use the cache
 	})

@@ -8,12 +8,6 @@ import (
 	"time"
 )
 
-type SessionReader interface {
-	APIArgs() (token, csrf string)
-	IsLoggedIn() bool
-	Invalidate()
-}
-
 type Session struct {
 	Contextified
 	token    string

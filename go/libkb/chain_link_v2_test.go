@@ -1,10 +1,20 @@
 package libkb
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
+
+// requireErrorHasSuffix makes sure that err's string has
+// expectedErrSuffix's string as a suffix. This is necessary as
+// go-codec prepends stuff to any errors it catches.
+func requireErrorHasSuffix(t *testing.T, expectedErrSuffix, err error) {
+	t.Helper()
+	require.Error(t, err)
+	require.True(t, strings.HasSuffix(err.Error(), expectedErrSuffix.Error()), "Expected %q to have %q as a suffix", err, expectedErrSuffix)
+}
 
 // Test that various ways in which OuterLinkV2WithMetadata may be
 // encoded/decoded all fail.
@@ -12,15 +22,15 @@ import (
 func TestOuterLinkV2WithMetadataEncode(t *testing.T) {
 	var o OuterLinkV2WithMetadata
 	_, err := MsgpackEncode(o)
-	require.Equal(t, errCodecEncodeSelf, err)
+	requireErrorHasSuffix(t, errCodecEncodeSelf, err)
 	_, err = MsgpackEncode(&o)
-	require.Equal(t, errCodecEncodeSelf, err)
+	requireErrorHasSuffix(t, errCodecEncodeSelf, err)
 }
 
 func TestOuterLinkV2WithMetadataDecode(t *testing.T) {
 	var o OuterLinkV2WithMetadata
 	err := MsgpackDecode(&o, []byte{0x1, 0x2})
-	require.Equal(t, errCodecDecodeSelf, err)
+	requireErrorHasSuffix(t, errCodecDecodeSelf, err)
 }
 
 type outerLinkV2WithMetadataEmbedder struct {
@@ -30,13 +40,13 @@ type outerLinkV2WithMetadataEmbedder struct {
 func TestOuterLinkV2WithMetadataEmbedderEncode(t *testing.T) {
 	var o outerLinkV2WithMetadataEmbedder
 	_, err := MsgpackEncode(o)
-	require.Equal(t, errCodecEncodeSelf, err)
+	requireErrorHasSuffix(t, errCodecEncodeSelf, err)
 }
 
 func TestOuterLinkV2WithMetadataEmbedderDecode(t *testing.T) {
 	var o outerLinkV2WithMetadataEmbedder
 	err := MsgpackDecode(&o, []byte{0x1, 0x2})
-	require.Equal(t, errCodecDecodeSelf, err)
+	requireErrorHasSuffix(t, errCodecDecodeSelf, err)
 }
 
 type outerLinkV2WithMetadataPointerEmbedder struct {
@@ -44,15 +54,17 @@ type outerLinkV2WithMetadataPointerEmbedder struct {
 }
 
 func TestOuterLinkV2WithMetadataPointerEmbedderEncode(t *testing.T) {
-	var o outerLinkV2WithMetadataPointerEmbedder
+	o := outerLinkV2WithMetadataPointerEmbedder{
+		OuterLinkV2WithMetadata: &OuterLinkV2WithMetadata{},
+	}
 	_, err := MsgpackEncode(o)
-	require.Equal(t, errCodecEncodeSelf, err)
+	requireErrorHasSuffix(t, errCodecEncodeSelf, err)
 }
 
 func TestOuterLinkV2WithMetadataPointerEmbedderDecode(t *testing.T) {
 	var o outerLinkV2WithMetadataPointerEmbedder
 	err := MsgpackDecode(&o, []byte{0x1, 0x2})
-	require.Equal(t, errCodecDecodeSelf, err)
+	requireErrorHasSuffix(t, errCodecDecodeSelf, err)
 }
 
 type outerLinkV2WithMetadataContainer struct {
@@ -62,7 +74,7 @@ type outerLinkV2WithMetadataContainer struct {
 func TestOuterLinkV2WithMetadataContainerEncode(t *testing.T) {
 	var o outerLinkV2WithMetadataContainer
 	_, err := MsgpackEncode(o)
-	require.Equal(t, errCodecEncodeSelf, err)
+	requireErrorHasSuffix(t, errCodecEncodeSelf, err)
 }
 
 func TestOuterLinkV2WithMetadataContainerDecode(t *testing.T) {
@@ -73,7 +85,7 @@ func TestOuterLinkV2WithMetadataContainerDecode(t *testing.T) {
 
 	var o outerLinkV2WithMetadataContainer
 	err = MsgpackDecode(&o, bytes)
-	require.Equal(t, errCodecDecodeSelf, err)
+	requireErrorHasSuffix(t, errCodecDecodeSelf, err)
 }
 
 type outerLinkV2WithMetadataPointerContainer struct {
@@ -85,7 +97,7 @@ func TestOuterLinkV2WithMetadataPointerContainerEncode(t *testing.T) {
 		O: &OuterLinkV2WithMetadata{},
 	}
 	_, err := MsgpackEncode(o)
-	require.Equal(t, errCodecEncodeSelf, err)
+	requireErrorHasSuffix(t, errCodecEncodeSelf, err)
 }
 
 func TestOuterLinkV2WithMetadataPointerContainerDecode(t *testing.T) {
@@ -96,5 +108,5 @@ func TestOuterLinkV2WithMetadataPointerContainerDecode(t *testing.T) {
 
 	var o outerLinkV2WithMetadataPointerContainer
 	err = MsgpackDecode(&o, bytes)
-	require.Equal(t, errCodecDecodeSelf, err)
+	requireErrorHasSuffix(t, errCodecDecodeSelf, err)
 }

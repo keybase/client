@@ -45,7 +45,14 @@ function SettingsItem({
         >
           {text}
         </Text>
-        {!!badgeNumber && badgeNumber > 0 && <Badge badgeStyle={badgeStyle} badgeNumber={badgeNumber} />}
+        {!!badgeNumber &&
+          badgeNumber > 0 && (
+            <Badge
+              badgeStyle={badgeStyle}
+              badgeNumber={badgeNumber}
+              largerBadgeMinWidthFix={largerBadgeMinWidthFix}
+            />
+          )}
       </Box>
     </ClickableBox>
   ) : null

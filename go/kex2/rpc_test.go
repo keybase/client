@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"io"
+	"strings"
 	"testing"
 	"time"
 
@@ -225,6 +226,13 @@ func eeq(e1, e2 error) bool {
 	return e1 != nil && e1.Error() == e2.Error()
 }
 
+// errHasSuffix makes sure that err's string has errSuffix's string as
+// a suffix. This is necessary as go-codec prepends stuff to any
+// errors it catches.
+func errHasSuffix(err, errSuffix error) bool {
+	return err != nil && strings.HasSuffix(err.Error(), errSuffix.Error())
+}
+
 func TestFullProtocolXProvisioneeFailHello(t *testing.T) {
 	results := testProtocolXWithBehavior(t, BadProvisioneeFailHello)
 	if !eeq(results[0], ErrHandleHello) {
@@ -248,7 +256,7 @@ func TestFullProtocolXProvisioneeFailDidCounterSign(t *testing.T) {
 func TestFullProtocolXProvisioneeSlowHello(t *testing.T) {
 	results := testProtocolXWithBehavior(t, BadProvisioneeSlowHello)
 	for i, e := range results {
-		if !eeq(e, ErrTimedOut) && !eeq(e, io.EOF) && !eeq(e, ErrHelloTimeout) {
+		if !errHasSuffix(e, ErrTimedOut) && !errHasSuffix(e, io.EOF) && !errHasSuffix(e, ErrHelloTimeout) {
 			t.Fatalf("Bad error %d: %v", i, e)
 		}
 	}

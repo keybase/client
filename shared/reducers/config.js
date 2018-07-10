@@ -4,7 +4,6 @@ import * as I from 'immutable'
 import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
 import * as ConfigGen from '../actions/config-gen'
-import * as AppGen from '../actions/app-gen'
 
 const initialState = Constants.makeState()
 
@@ -12,8 +11,8 @@ export default function(
   state: Types.State = initialState,
   action:
     | ConfigGen.Actions
-    | AppGen.ChangedFocusPayload
-    | AppGen.ChangedActivePayload
+    | ConfigGen.ChangedFocusPayload
+    | ConfigGen.ChangedActivePayload
     | {type: 'remote:updateMenubarWindowID', payload: {id: number}}
 ): Types.State {
   switch (action.type) {
@@ -74,11 +73,11 @@ export default function(
     }
     case ConfigGen.setInitialState:
       return state.set('initialState', action.payload.initialState)
-    case AppGen.changedFocus:
+    case ConfigGen.changedFocus:
       return state
         .set('appFocused', action.payload.appFocused)
         .set('appFocusedCount', state.appFocusedCount + 1)
-    case AppGen.changedActive:
+    case ConfigGen.changedActive:
       return state.set('userActive', action.payload.userActive)
     case ConfigGen.loadedAvatars: {
       const {nameToUrlMap} = action.payload
@@ -105,6 +104,10 @@ export default function(
     case ConfigGen.persistRouteState:
     case ConfigGen.retryBootstrap:
     case ConfigGen.loadConfig:
+    case ConfigGen.dumpLogs:
+    case ConfigGen.link:
+    case ConfigGen.mobileAppState:
+    case ConfigGen.showMain:
       return state
     default:
       /*::
