@@ -1,4 +1,4 @@
-package saltpackHelperMocks
+package saltpackkeysmocks
 
 import (
 	"encoding/hex"

@@ -1,4 +1,4 @@
-package saltpackKeyHelpers
+package saltpackkeys
 
 import (
 	"fmt"

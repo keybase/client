@@ -9,6 +9,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
@@ -154,7 +155,7 @@ func MakeAndPostKeyPseudonyms(m MetaContext, pnymInfos *[]KeyPseudonymInfo) (err
 
 	_, err = m.G().API.PostJSON(APIArg{
 		MetaContext: m,
-		Endpoint:    "team/key_pseudonym/put",
+		Endpoint:    "team/key_pseudonym",
 		JSONPayload: payload,
 		SessionType: APISessionTypeREQUIRED,
 	})
@@ -174,16 +175,15 @@ func GetKeyPseudonyms(m MetaContext, pnyms []KeyPseudonym) ([]KeyPseudonymOrErro
 		pnymStrings = append(pnymStrings, x.String())
 	}
 
-	payload := make(JSONPayload)
-	payload["key_pseudonyms"] = pnymStrings
-
 	var res getKeyPseudonymsRes
-	err := m.G().API.PostDecode(
+	err := m.G().API.GetDecode(
 		APIArg{
 			MetaContext: m,
-			Endpoint:    "team/key_pseudonym/get",
+			Endpoint:    "team/key_pseudonym",
 			SessionType: APISessionTypeREQUIRED,
-			JSONPayload: payload,
+			Args: HTTPArgs{
+				"key_pseudonyms": S{Val: strings.Join(pnymStrings, ",")},
+			},
 		},
 		&res)
 	if err != nil {

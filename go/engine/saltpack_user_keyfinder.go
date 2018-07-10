@@ -214,41 +214,25 @@ func (e *SaltpackUserKeyfinder) AddPUK(m libkb.MetaContext, upk *keybase1.UserPl
 		return nil
 	}
 
-	if e.hasRecipientDeviceOrPaperKeys(upk.Uid) {
+	if e.hasRecipientEntityKeys(upk.Uid.AsUserOrTeam()) {
 		// This user's keys were already added
 		return nil
 	}
 
-	var keys []keybase1.KID
-
 	hasPUK := len(upk.PerUserKeys) > 0
-	hasPaperKey := false
-	hasDeviceKey := false
 
-	if e.Arg.UseEntityKeys {
-		maxGen := -1
-		var lk keybase1.KID
-		for _, k := range upk.PerUserKeys {
-			if k.Gen > maxGen {
-				maxGen = k.Gen
-				lk = k.EncKID
+	if !hasPUK {
+		hasPaperKey := false
+		hasDeviceKey := false
+		for KID, key := range upk.DeviceKeys {
+			if libkb.KIDIsDeviceEncrypt(KID) && key.Parent != nil && libkb.IsPaperKey(upk.DeviceKeys[*key.Parent]) {
+				hasPaperKey = true
+			}
+			if libkb.KIDIsDeviceEncrypt(KID) && key.Parent != nil && !libkb.IsPaperKey(upk.DeviceKeys[*key.Parent]) {
+				hasDeviceKey = true
 			}
 		}
-		m.CDebugf("adding user %v's latest per user key", upk.Username)
-		keys = []keybase1.KID{lk}
-	}
 
-	for KID, key := range upk.DeviceKeys {
-		if libkb.KIDIsDeviceEncrypt(KID) && key.Parent != nil && libkb.IsPaperKey(upk.DeviceKeys[*key.Parent]) {
-			hasPaperKey = true
-		}
-
-		if libkb.KIDIsDeviceEncrypt(KID) && key.Parent != nil && !libkb.IsPaperKey(upk.DeviceKeys[*key.Parent]) {
-			hasDeviceKey = true
-		}
-	}
-
-	if len(keys) == 0 {
 		return libkb.NoNaClEncryptionKeyError{
 			Username:     upk.Username,
 			HasPGPKey:    len(upk.PGPKeys) > 0,
@@ -258,7 +242,21 @@ func (e *SaltpackUserKeyfinder) AddPUK(m libkb.MetaContext, upk *keybase1.UserPl
 		}
 	}
 
-	e.RecipientEntityKeyMap[upk.Uid.AsUserOrTeam()] = keys
+	// We ensured above that the user has a PUK, so the loop below will be executed at least once
+	maxGen := -1
+	var lk keybase1.KID
+	for _, k := range upk.PerUserKeys {
+		if k.Gen > maxGen {
+			maxGen = k.Gen
+			lk = k.EncKID
+		}
+	}
+	if lk == "" {
+		panic("This should never happen, user has a PUK with a nil KID")
+	}
+
+	m.CDebugf("adding user %v's latest per user key", upk.Username)
+	e.RecipientEntityKeyMap[upk.Uid.AsUserOrTeam()] = []keybase1.KID{lk}
 
 	return nil
 }
