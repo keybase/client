@@ -167,7 +167,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): PropsWithout
 
   const style = collapseStyles([
     ownProps.style,
-    onClick && platformStyles({isElectron: desktopStyles.clickable}),
+    (onClick || ownProps.onEditAvatarClick) && platformStyles({isElectron: desktopStyles.clickable}),
   ])
 
   let url = stateProps._urlMap ? urlsToImgSet(stateProps._urlMap, ownProps.size) : null

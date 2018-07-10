@@ -49,7 +49,7 @@ const NameWithIconVertical = (props: Props) => {
       {isAvatar && (
         <Avatar
           editable={props.editableIcon}
-          onEditAvatarClick={props.onEditIcon}
+          onEditAvatarClick={props.editableIcon ? props.onEditIcon : undefined}
           showFollowingStatus={true}
           size={adapterProps.iconSize}
           username={props.username}
@@ -109,7 +109,7 @@ const NameWithIconHorizontal = (props: Props) => {
       {isAvatar && (
         <Avatar
           editable={props.editableIcon}
-          onEditAvatarClick={props.onEditIcon}
+          onEditAvatarClick={props.editableIcon ? props.onEditIcon : undefined}
           size={commonHeight}
           username={props.username}
           teamname={props.teamname}
