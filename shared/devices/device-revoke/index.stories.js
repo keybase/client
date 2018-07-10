@@ -16,7 +16,7 @@ const devicesProps: Props = {
 
 const load = () => {
   storiesOf('Devices/Revoke', module)
-    .add('Paperkey', () => <DeviceRevoke {...devicesProps} />)
+    .add('Paper key', () => <DeviceRevoke {...devicesProps} />)
     .add('Mobile Device', () => <DeviceRevoke {...devicesProps} />)
     .add('Desktop Device', () => <DeviceRevoke {...devicesProps} />)
     .add('Current Device', () => <DeviceRevoke {...devicesProps} />)
