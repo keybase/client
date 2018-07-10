@@ -51,7 +51,7 @@ func (e *EKLib) Shutdown() {
 	e.Lock()
 	defer e.Unlock()
 	if e.stopCh != nil {
-		e.stopCh <- struct{}{}
+		close(e.stopCh)
 	}
 }
 
@@ -83,7 +83,6 @@ func (e *EKLib) backgroundKeygen() {
 				runIfNeeded()
 			}
 		case <-e.stopCh:
-			close(e.stopCh)
 			return
 		}
 	}
