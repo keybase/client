@@ -1,6 +1,6 @@
 // @flow
 import TeamsContainer from './container'
-import {MaybePopupHoc, EditAvatar} from '../common-adapters'
+import {MaybePopupHoc} from '../common-adapters'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import AddPeopleDialog from './add-people/container'
 import InviteByEmailDialog from './invite-by-email/container'
@@ -8,6 +8,7 @@ import NewTeamDialog from './new-team/container'
 import JoinTeamDialog from './join-team/container'
 import ManageChannels from '../chat/manage-channels/container'
 import EditChannel from '../chat/manage-channels/edit-channel-container'
+import EditTeamAvatar from '../profile/edit-avatar/container'
 import EditTeamDescription from './edit-team-description/container'
 import CreateChannel from '../chat/create-channel/container'
 import ReallyLeaveTeam from './really-leave-team/container'
@@ -104,7 +105,7 @@ const teamRoute = makeRouteDefNode({
       component: Member,
     },
     editTeamAvatar: {
-      component: EditAvatar,
+      component: EditTeamAvatar,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
     editTeamDescription: {
