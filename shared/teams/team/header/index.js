@@ -6,6 +6,7 @@ import AddPeopleHow from './add-people-how/container'
 import {Box, Button, ButtonBar, Icon, Meta, NameWithIcon, Text} from '../../../common-adapters'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
+import type {Response} from 'react-native-image-picker'
 
 export type Props = {
   canChat: boolean,
@@ -23,6 +24,7 @@ export type Props = {
   onAddSelf: () => void,
   onChat: () => void,
   onEditDescription: () => void,
+  onEditIcon: (teamname: string, sendChatNotification: boolean, image?: Response) => void,
 } & FloatingMenuParentProps
 
 const _TeamHeader = (props: Props) => (
@@ -46,6 +48,8 @@ const _TeamHeader = (props: Props) => (
     <Box style={stylesTeamHeader}>
       {/* Summary */}
       <NameWithIcon
+        editableIcon={props.canEditDescription}
+        onEditIcon={() => props.onEditIcon(props.teamname, true)}
         size="large"
         teamname={props.teamname}
         title={props.teamname}

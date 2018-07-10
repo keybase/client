@@ -27,9 +27,11 @@ export type OwnProps = {|
   borderColor?: string,
   children?: React.Node,
   clickToProfile?: 'tracker' | 'profile', // If set, go to profile on mobile and tracker/profile on desktop
+  editable?: boolean,
   isTeam?: boolean,
   loadingColor?: string,
   onClick?: () => void,
+  onEditAvatarClick?: (e: SyntheticEvent<Element>) => void,
   opacity?: number,
   size: AvatarSize,
   skipBackground?: boolean,
@@ -44,6 +46,7 @@ type PropsWithoutTimer = {
   askForUserData?: () => void,
   borderColor?: string,
   children?: React.Node,
+  editable?: boolean,
   followIconSize: number,
   followIconType: ?IconType,
   followIconStyle: ?$PropertyType<IconProps, 'style'>,
@@ -53,6 +56,7 @@ type PropsWithoutTimer = {
   loadingColor?: string,
   name: string,
   onClick?: () => void,
+  onEditAvatarClick?: (e: SyntheticEvent<Element>) => void,
   opacity?: number,
   size: AvatarSize,
   skipBackground?: boolean,
@@ -185,6 +189,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): PropsWithout
     askForUserData,
     borderColor: ownProps.borderColor,
     children: ownProps.children,
+    editable: ownProps.editable,
     followIconSize: _followIconSize(ownProps.size, stateProps.followsYou, stateProps.following),
     followIconStyle: followSizeToStyle[ownProps.size] || null,
     followIconType: _followIconType(ownProps.size, stateProps.followsYou, stateProps.following),
@@ -194,6 +199,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): PropsWithout
     loadingColor: ownProps.loadingColor,
     name: name || '',
     onClick,
+    onEditAvatarClick: ownProps.onEditAvatarClick,
     opacity: ownProps.opacity,
     size: ownProps.size,
     skipBackground: ownProps.skipBackground,
@@ -225,19 +231,20 @@ class AvatarConnector extends React.PureComponent<Props> {
       this.props.askForUserData()
     }
   }
-
   render() {
     return (
       <Render
         skipBackground={this.props.skipBackground}
         borderColor={this.props.borderColor}
         children={this.props.children}
+        editable={this.props.editable}
         followIconSize={this.props.followIconSize}
         followIconStyle={this.props.followIconStyle}
         followIconType={this.props.followIconType}
         isTeam={this.props.isTeam}
         loadingColor={this.props.loadingColor}
         onClick={this.props.onClick}
+        onEditAvatarClick={this.props.onEditAvatarClick}
         opacity={this.props.opacity}
         size={this.props.size}
         style={this.props.style}

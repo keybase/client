@@ -21,11 +21,13 @@ type Size = 'small' | 'default' | 'large'
 type Props = {
   horizontal?: boolean,
   colorFollowing?: boolean,
+  editableIcon?: boolean,
   icon?: IconType,
   title?: string, // for non-users
   metaOne?: string | React.Node,
   metaTwo?: string | React.Node,
   onClick?: any => void,
+  onEditIcon?: any => void,
   size?: Size,
   containerStyle?: StylesCrossPlatform,
   metaStyle?: StylesCrossPlatform,
@@ -46,6 +48,8 @@ const NameWithIconVertical = (props: Props) => {
     >
       {isAvatar && (
         <Avatar
+          editable={props.editableIcon}
+          onEditAvatarClick={props.onEditIcon}
           showFollowingStatus={true}
           size={adapterProps.iconSize}
           username={props.username}
@@ -104,6 +108,8 @@ const NameWithIconHorizontal = (props: Props) => {
     >
       {isAvatar && (
         <Avatar
+          editable={props.editableIcon}
+          onEditAvatarClick={props.onEditIcon}
           size={commonHeight}
           username={props.username}
           teamname={props.teamname}

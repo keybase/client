@@ -4,9 +4,10 @@ import React, {Component} from 'react'
 import Box from './box'
 import Avatar from './avatar'
 import Text from './text'
-import {Button, Icon} from '../common-adapters'
+import {Button} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {stateColors} from '../util/tracker'
+import flags from '../util/feature-flags'
 
 import type {AvatarSize} from './avatar'
 import type {Props} from './user-bio'
@@ -102,15 +103,14 @@ class BioRender extends Component<Props> {
         <Box style={stylesHeaderBar(avatarSize, trackerStateColors.header.background)} />
         <Box style={stylesAvatarWrapper(avatarSize)}>
           <Avatar
+            editable={!!editFns && flags.avatarUploadsEnabled}
             style={stylesAvatar}
-            onClick={onClickAvatar}
+            onClick={onClickAvatar ? () => onClickAvatar() : undefined}
+            onEditAvatarClick={onClickAvatar}
             username={username}
             size={avatarSize}
             showFollowingStatus={true}
           />
-          {editFns && (
-            <Icon type="iconfont-edit" onClick={onClickAvatar} style={stylesAvatarEditIcon(avatarSize)} />
-          )}
         </Box>
         <Box style={stylesContent}>
           <Text
@@ -187,10 +187,6 @@ const stylesAvatarWrapper = (avatarSize: number) => ({
   alignItems: 'center',
   height: avatarSize,
   marginTop: -avatarSize / 2,
-})
-const stylesAvatarEditIcon = (avatarSize: number) => ({
-  bottom: 16,
-  left: avatarSize / 2 - 8,
 })
 const stylesAvatar = {}
 const stylesContent = {

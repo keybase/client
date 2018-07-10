@@ -6,6 +6,7 @@ import {globalStyles, globalColors, globalMargins, platformStyles, desktopStyles
 import {stateColors} from '../util/tracker'
 import type {AvatarSize} from './avatar'
 import type {Props} from './user-bio'
+import flags from '../util/feature-flags'
 
 class BioLoading extends Component<{style?: any, avatarSize: AvatarSize, loading: boolean}, void> {
   render() {
@@ -90,21 +91,26 @@ class BioRender extends Component<Props> {
             }}
           >
             <Avatar
-              onClick={onClickAvatar}
-              style={onClickAvatar ? platformStyles({isElectron: desktopStyles.clickable}) : null}
+              editable={!!editFns && flags.avatarUploadsEnabled}
+              onClick={editFns ? () => editFns.onEditAvatarClick() : onClickAvatar}
+              onEditAvatarClick={editFns ? () => editFns.onEditAvatarClick() : undefined}
+              style={
+                onClickAvatar || !!editFns ? platformStyles({isElectron: desktopStyles.clickable}) : null
+              }
               username={username}
               size={avatarSize}
               showFollowingStatus={true}
             />
-            {editFns && (
-              <Box style={{height: 16, width: 0}}>
-                <Icon
-                  type="iconfont-edit"
-                  onClick={() => editFns.onEditAvatarClick()}
-                  style={stylesEditAvatarIcon(avatarSize)}
-                />
-              </Box>
-            )}
+            {editFns &&
+              !flags.avatarUploadsEnabled && (
+                <Box style={{height: 16, width: 0}}>
+                  <Icon
+                    type="iconfont-edit"
+                    onClick={() => editFns.onEditAvatarClick()}
+                    style={stylesEditAvatarIcon(avatarSize)}
+                  />
+                </Box>
+              )}
           </Box>
           <Box style={{...stylesContent, ...desktopStyles.fadeOpacity, opacity: loading ? 0 : 1}}>
             <Text
@@ -215,7 +221,6 @@ const stylesEditAvatarIcon = avatarSize => ({
   paddingTop: avatarSize,
   paddingLeft: avatarSize,
 })
-
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',

@@ -1,6 +1,7 @@
 // @flow
 export type FeatureFlags = {|
   admin: boolean,
+  avatarUploadsEnabled: boolean,
   explodingMessagesEnabled: boolean,
   fsEnabled: boolean,
   fsWritesEnabled: boolean,

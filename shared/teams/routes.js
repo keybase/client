@@ -1,6 +1,6 @@
 // @flow
 import TeamsContainer from './container'
-import {MaybePopupHoc} from '../common-adapters'
+import {MaybePopupHoc, EditAvatar} from '../common-adapters'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import AddPeopleDialog from './add-people/container'
 import InviteByEmailDialog from './invite-by-email/container'
@@ -102,6 +102,10 @@ const teamRoute = makeRouteDefNode({
         reallyRemoveMember,
       },
       component: Member,
+    },
+    editTeamAvatar: {
+      component: EditAvatar,
+      tags: makeLeafTags({layerOnTop: !isMobile}),
     },
     editTeamDescription: {
       children: {},

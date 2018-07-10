@@ -5,8 +5,9 @@ import {action, storiesOf} from '../../stories/storybook'
 import EditAvatar from '.'
 
 const props = {
-  onClose: action('onClose'),
-  onSave: action('onSave'),
+  hasAvatar: true,
+  keybaseUsername: 'thedude',
+  onAck: action('onAck'),
 }
 
 const provider = PropProviders.CommonProvider()
@@ -15,7 +16,7 @@ const load = () => {
   storiesOf('Profile/EditAvatar', module)
     .addDecorator(provider)
     .add('Has', () => <EditAvatar {...props} />)
-    .add('Missing', () => <EditAvatar {...props} />)
+    .add('Missing', () => <EditAvatar {...props} hasAvatar={false} />)
 }
 
 export default load

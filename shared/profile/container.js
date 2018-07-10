@@ -18,6 +18,7 @@ import {isTesting} from '../local-debug'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {peopleTab} from '../constants/tabs'
 import {connect, type TypedState} from '../util/container'
+import flags from '../util/feature-flags'
 
 import type {Response} from 'react-native-image-picker'
 import type {MissingProof} from '../common-adapters/user-proofs'
@@ -85,7 +86,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
   onClickFollowers: (username: string) => dispatch(ProfileGen.createOnClickFollowers({username})),
   onClickFollowing: (username: string) => dispatch(ProfileGen.createOnClickFollowing({username})),
   onClickShowcaseOffer: () => dispatch(navigateAppend(['showcaseTeamOffer'])),
-  onEditAvatar: (image?: Response) => dispatch(navigateAppend([{props: {image}, selected: 'editAvatar'}])),
+  onEditAvatar: (image?: Response) =>
+    flags.avatarUploadsEnabled
+      ? dispatch(navigateAppend([{props: {image}, selected: 'editAvatar'}]))
+      : dispatch(navigateAppend(['editAvatarPlaceholder'])),
   onEditProfile: () => dispatch(navigateAppend(['editProfile'])),
   onFolderClick: folder => dispatch(KBFSGen.createOpen({path: folder.path})),
   onFollow: (username: string) => dispatch(TrackerGen.createFollow({localIgnore: false, username})),

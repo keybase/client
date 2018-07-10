@@ -3,6 +3,7 @@ import {connect, type TypedState} from '../../../util/container'
 import * as Constants from '../../../constants/teams'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Types from '../../../constants/types/teams'
+import type {Response} from 'react-native-image-picker'
 import {createAddResultsToUserInput} from '../../../actions/search-gen'
 import {navigateAppend} from '../../../actions/route-tree'
 import {TeamHeader} from '.'
@@ -36,6 +37,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
   },
   onChat: () => dispatch(Chat2Gen.createPreviewConversation({teamname, reason: 'teamHeader'})),
   onEditDescription: () => dispatch(navigateAppend([{props: {teamname}, selected: 'editTeamDescription'}])),
+  onEditIcon: (teamname: string, sendChatNotification: boolean, image?: Response) =>
+    dispatch(navigateAppend([{props: {image, sendChatNotification, teamname}, selected: 'editTeamAvatar'}])),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -48,6 +51,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onAddSelf: () => dispatchProps._onAddSelf(stateProps._you),
   onChat: dispatchProps.onChat,
   onEditDescription: dispatchProps.onEditDescription,
+  onEditIcon: dispatchProps.onEditIcon,
   openTeam: stateProps.openTeam,
   role: stateProps.role,
   teamname: ownProps.teamname,

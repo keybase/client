@@ -1,20 +1,25 @@
 // @flow
 import EditAvatar from '.'
-import * as ProfileGen from '../../actions/profile-gen'
-import * as RPCTypes from '../../constants/types/rpc-gen'
 import {connect, type TypedState} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
-import type {RouteProps} from '../../route-tree/render-route'
-import type {Response} from 'react-native-image-picker'
 
-const mapStateToProps = (state: TypedState, {routeProps}: RouteProps<{image: ?Response}, {}>) => ({
-  image: routeProps.get('image'),
-})
+const mapStateToProps = (state: TypedState) => {
+  const username = state.config.username
+  if (!username) {
+    throw new Error('Not logged in')
+  }
+
+  const trackerState = username && state.tracker.userTrackers[username]
+  const userProofs = trackerState && trackerState.proofs
+  const hasAvatarProof = userProofs && userProofs.some(p => p.type === 'github' || p.type === 'twitter')
+  return {
+    keybaseUsername: username,
+    hasAvatar: hasAvatarProof,
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onClose: () => dispatch(navigateUp()),
-  onSave: (filename: string, crop?: RPCTypes.ImageCropRect) =>
-    dispatch(ProfileGen.createUploadAvatar({crop, filename})),
+  onAck: () => dispatch(navigateUp()),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(EditAvatar)

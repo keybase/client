@@ -4,6 +4,7 @@ import type {FeatureFlags} from './feature-flags'
 
 const ff: FeatureFlags = {
   admin: __DEV__,
+  avatarUploadsEnabled: __DEV__,
   explodingMessagesEnabled: true,
   fsEnabled: true,
   fsWritesEnabled: true,
