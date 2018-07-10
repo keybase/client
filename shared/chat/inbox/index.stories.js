@@ -3,8 +3,9 @@
 import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../constants/types/chat2'
-
 import * as PropProviders from '../../stories/prop-providers'
+
+import {isDarwin} from '../../constants/platform'
 import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 import {isMobile, globalColors, globalMargins} from '../../styles'
 
@@ -13,7 +14,6 @@ import Inbox from '.'
 /*
  * Rows
  */
-
 const makeRowItemSmall = (conversationIDKey: string = '') => ({
   type: 'small',
   conversationIDKey: Constants.stringToConversationIDKey(conversationIDKey),
@@ -273,7 +273,7 @@ const mapPropProviderProps = {
 
 /*
  * Look up the correct props to return for a given row component
- * Called from the row component's prop provider
+ * Called from the row component's PropProvider
  * Uses either conversationIDKey or teamname as a key in mapPropProviderProps
  */
 const getPropProviderProps = own => {
@@ -285,7 +285,7 @@ const getPropProviderProps = own => {
     }
   }
 
-  return mapPropProviderProps[own.teamname]
+  return own.teamnames ? mapPropProviderProps[own.teamname] : {}
 }
 
 /*
@@ -409,6 +409,13 @@ const teamMemberCounts = {
   techtonica: 30,
   stripe: 1337,
 }
+
+/* Define a teamsEmpty to be used by BuildTeam PropProvider to
+ * determine if story is 'Empty' teams. This is done because showBuildATeam
+ * can't de derived from ownProps.
+ */
+let teamsEmpty = false
+
 const provider = createPropProvider(
   PropProviders.Common(),
   PropProviders.TeamDropdownMenu(undefined, teamMemberCounts),
@@ -423,21 +430,23 @@ const provider = createPropProvider(
         showNewChat,
       }
     },
-    ChatFilterRowContainer: p => ({
+    ChatFilterRow: p => ({
       focusFilter: () => {},
       fitler: p.filter,
       filterFocusCount: p.filterFocusCount,
       isLoading: false,
+      hotkeys: isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k'],
       onHotkey: action('onHotkey'),
       onNewChat: action('onNewChat'),
       onSelectDown: action('onSelectDown'),
       onSelectUp: action('onSelectUp'),
       onSetFilter: action('onSetFilter'),
+      rows: p.rows,
     }),
-    BuildTeam: p => {
-      console.log('JRY', p)
-      return p
-    },
+    BuildTeam: p => ({
+      onBuildTeam: action('onBuildTeam'),
+      showBuildATeam: teamsEmpty,
+    }),
     NewChooser: p => ({
       isSelected: false,
       onCancel: action('onCancel'),
@@ -445,19 +454,19 @@ const provider = createPropProvider(
       shouldShow: false,
       users: I.OrderedSet(['']),
     }),
-    Divider: p => {
-      return {
-        badgeCount: 0,
-        showButton: p.showButton,
-        hiddenCount: p.smallIDsHidden.length,
-        style: {marginBottom: globalMargins.tiny},
-        toggle: action('onToggle'),
-      }
-    },
+    Divider: p => ({
+      badgeCount: 0,
+      showButton: p.showButton,
+      hiddenCount: p.smallIDsHidden.length,
+      style: {marginBottom: globalMargins.tiny},
+      toggle: action('onToggle'),
+    }),
     // BigTeamHeader is wrapped by FloatingMenuParent
     FloatingMenuParent: getPropProviderProps,
     SmallTeam: getPropProviderProps,
-    BigTeamHeader: getPropProviderProps,
+    BigTeamHeader: p => {
+      return getPropProviderProps(p)
+    },
     BigTeamChannel: getPropProviderProps,
     FilterSmallTeam: getPropProviderProps,
     FilterBigTeamChannel: getPropProviderProps,
@@ -468,18 +477,23 @@ const load = () => {
   storiesOf('Chat/Inbox')
     .addDecorator(provider)
     .add('Empty', () => {
+      teamsEmpty = true
       return <Inbox {...propsInboxEmpty} />
     })
     .add('Simple', () => {
+      teamsEmpty = false
       return <Inbox {...propsInboxSimple} />
     })
     .add('Big Teams', () => {
+      teamsEmpty = false
       return <Inbox {...propsInboxTeam} />
     })
     .add('Divider', () => {
+      teamsEmpty = false
       return <Inbox {...propsInboxDivider} />
     })
     .add('Filter', () => {
+      teamsEmpty = false
       return <Inbox {...propsInboxFilter} />
     })
 }

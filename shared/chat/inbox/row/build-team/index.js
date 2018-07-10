@@ -13,6 +13,7 @@ import {
 
 type Props = {
   onBuildTeam: () => void,
+  showBuildATeam: boolean,
 }
 
 const DividerBox = glamorous(Box)({
@@ -37,15 +38,16 @@ const DividerBox = glamorous(Box)({
   width: '100%',
 })
 
-const BuildTeam = ({showBuildATeam, onBuildTeam}: Props) => (
-  <ClickableBox title="Make a new team" onClick={onBuildTeam} style={styles.container}>
-    <DividerBox>
-      <Box style={styles.text}>
-        <Text type="BodySmallSemibold">Build a team!</Text>
-      </Box>
-    </DividerBox>
-  </ClickableBox>
-)
+const BuildTeam = ({showBuildATeam, onBuildTeam}: Props) =>
+  showBuildATeam ? (
+    <ClickableBox title="Make a new team" onClick={onBuildTeam} style={styles.container}>
+      <DividerBox>
+        <Box style={styles.text}>
+          <Text type="BodySmallSemibold">Build a team!</Text>
+        </Box>
+      </DividerBox>
+    </ClickableBox>
+  ) : null
 
 const styles = styleSheetCreate({
   container: platformStyles({

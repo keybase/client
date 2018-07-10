@@ -64,12 +64,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onSelectDown: () => dispatchProps._onSelectNext(ownProps.rows, stateProps._selectedConversationIDKey, 1),
   onSelectUp: () => dispatchProps._onSelectNext(ownProps.rows, stateProps._selectedConversationIDKey, -1),
   onSetFilter: dispatchProps.onSetFilter,
-  showNewChat: !(ownProps.rows.length || stateProps.filter),
 })
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('ChatFilterRowContainer'),
+  setDisplayName('ChatFilterRow'),
   withProps(props => ({
     onHotkey: (cmd: string) => props._onHotkey(cmd),
   }))
