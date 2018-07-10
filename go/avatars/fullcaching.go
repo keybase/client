@@ -182,7 +182,9 @@ func (c *FullCachingSource) commitAvatarToDisk(ctx context.Context, data io.Read
 		// started saving them to `avatars/` subdir. If user has just
 		// updated to client with new path, it's fine to have them
 		// start clean.
-		c.unlinkAllAvatars(ctx, c.G().GetCacheDir())
+		if len(c.tempDir) == 0 {
+			c.unlinkAllAvatars(ctx, c.G().GetCacheDir())
+		}
 
 		err := os.MkdirAll(c.getCacheDir(), os.ModePerm)
 		c.debug(ctx, "creating directory for avatars %q: %v", c.getCacheDir(), err)
