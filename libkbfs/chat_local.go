@@ -36,7 +36,7 @@ type newConvCB func(context.Context, *TlfHandle, chat1.ConversationID, string)
 
 type chatLocalSharedData struct {
 	lock          sync.RWMutex
-	newChannelCBs []newConvCB
+	newChannelCBs map[Config]newConvCB
 	convs         convLocalByTypeMap
 	convsByID     convLocalByIDMap
 }
@@ -72,9 +72,11 @@ func newChatLocalWithData(config Config, data *chatLocalSharedData) *chatLocal {
 // newChatLocal constructs a new local chat implementation.
 func newChatLocal(config Config) *chatLocal {
 	return newChatLocalWithData(config, &chatLocalSharedData{
-		convs:         make(convLocalByTypeMap),
-		convsByID:     make(convLocalByIDMap),
-		newChannelCBs: []newConvCB{config.KBFSOps().NewNotificationChannel},
+		convs:     make(convLocalByTypeMap),
+		convsByID: make(convLocalByIDMap),
+		newChannelCBs: map[Config]newConvCB{
+			config: config.KBFSOps().NewNotificationChannel,
+		},
 	})
 }
 
@@ -128,7 +130,20 @@ func (c *chatLocal) GetConversationID(
 	if err != nil {
 		return nil, err
 	}
-	for _, cb := range c.data.newChannelCBs {
+	for config, cb := range c.data.newChannelCBs {
+		// Only send notifications to those that can read the TLF.
+		session, err := config.KBPKI().GetCurrentSession(ctx)
+		if err != nil {
+			return nil, err
+		}
+		isReader, err := isReaderFromHandle(ctx, h, config.KBPKI(), session.UID)
+		if err != nil {
+			return nil, err
+		}
+		if !isReader {
+			continue
+		}
+
 		cb(ctx, h, id, channelName)
 	}
 
@@ -324,8 +339,7 @@ func (c *chatLocal) copy(config Config) *chatLocal {
 	copy := newChatLocalWithData(config, c.data)
 	c.data.lock.Lock()
 	defer c.data.lock.Unlock()
-	c.data.newChannelCBs = append(
-		c.data.newChannelCBs, config.KBFSOps().NewNotificationChannel)
+	c.data.newChannelCBs[config] = config.KBFSOps().NewNotificationChannel
 	return copy
 }
 
