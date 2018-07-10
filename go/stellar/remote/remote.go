@@ -558,7 +558,7 @@ type requestDetailsResult struct {
 	Request stellar1.RequestDetails `json:"request"`
 }
 
-func RequestDetail(ctx context.Context, g *libkb.GlobalContext, requestID stellar1.KeybaseRequestID) (ret stellar1.RequestDetails, err error) {
+func RequestDetails(ctx context.Context, g *libkb.GlobalContext, requestID stellar1.KeybaseRequestID) (ret stellar1.RequestDetails, err error) {
 	payload := make(libkb.JSONPayload)
 	payload["id"] = requestID
 	apiArg := libkb.APIArg{

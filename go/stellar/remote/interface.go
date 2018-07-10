@@ -25,5 +25,5 @@ type Remoter interface {
 	GetAccountDisplayCurrency(ctx context.Context, accountID stellar1.AccountID) (string, error)
 	ExchangeRate(ctx context.Context, currency string) (stellar1.OutsideExchangeRate, error)
 	SubmitRequest(ctx context.Context, post stellar1.RequestPost) (stellar1.KeybaseRequestID, error)
-	RequestDetail(ctx context.Context, requestID stellar1.KeybaseRequestID) (stellar1.RequestDetails, error)
+	RequestDetails(ctx context.Context, requestID stellar1.KeybaseRequestID) (stellar1.RequestDetails, error)
 }

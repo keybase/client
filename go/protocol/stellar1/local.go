@@ -672,6 +672,10 @@ type SendPaymentLocalArg struct {
 	QuickReturn   bool                 `codec:"quickReturn" json:"quickReturn"`
 }
 
+type GetRequestDetailsLocalArg struct {
+	ReqID KeybaseRequestID `codec:"reqID" json:"reqID"`
+}
+
 type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
@@ -770,6 +774,7 @@ type LocalInterface interface {
 	GetSendAssetChoicesLocal(context.Context, GetSendAssetChoicesLocalArg) ([]SendAssetChoiceLocal, error)
 	BuildPaymentLocal(context.Context, BuildPaymentLocalArg) (BuildPaymentResLocal, error)
 	SendPaymentLocal(context.Context, SendPaymentLocalArg) (SendPaymentResLocal, error)
+	GetRequestDetailsLocal(context.Context, KeybaseRequestID) (RequestDetails, error)
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
@@ -1144,6 +1149,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getRequestDetailsLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetRequestDetailsLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetRequestDetailsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetRequestDetailsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetRequestDetailsLocal(ctx, (*typedArgs)[0].ReqID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"balancesLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]BalancesLocalArg, 1)
@@ -1499,6 +1520,12 @@ func (c LocalClient) BuildPaymentLocal(ctx context.Context, __arg BuildPaymentLo
 
 func (c LocalClient) SendPaymentLocal(ctx context.Context, __arg SendPaymentLocalArg) (res SendPaymentResLocal, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.sendPaymentLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetRequestDetailsLocal(ctx context.Context, reqID KeybaseRequestID) (res RequestDetails, err error) {
+	__arg := GetRequestDetailsLocalArg{ReqID: reqID}
+	err = c.Cli.Call(ctx, "stellar.1.local.getRequestDetailsLocal", []interface{}{__arg}, &res)
 	return
 }
 

@@ -274,6 +274,8 @@ protocol local {
     boolean pending;
   }
 
+  RequestDetails getRequestDetailsLocal(KeybaseRequestID reqID);
+
   // -------------------------------------------------------
   // CLI protocol
   // -------------------------------------------------------

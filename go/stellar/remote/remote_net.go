@@ -74,6 +74,6 @@ func (r *RemoteNet) SubmitRequest(ctx context.Context, post stellar1.RequestPost
 	return SubmitRequest(ctx, r.G(), post)
 }
 
-func (r *RemoteNet) RequestDetail(ctx context.Context, requestID stellar1.KeybaseRequestID) (stellar1.RequestDetails, error) {
-	return RequestDetail(ctx, r.G(), requestID)
+func (r *RemoteNet) RequestDetails(ctx context.Context, requestID stellar1.KeybaseRequestID) (stellar1.RequestDetails, error) {
+	return RequestDetails(ctx, r.G(), requestID)
 }

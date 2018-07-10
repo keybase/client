@@ -973,6 +973,15 @@
       ],
       "response": "SendPaymentResLocal"
     },
+    "getRequestDetailsLocal": {
+      "request": [
+        {
+          "name": "reqID",
+          "type": "KeybaseRequestID"
+        }
+      ],
+      "response": "RequestDetails"
+    },
     "balancesLocal": {
       "request": [
         {

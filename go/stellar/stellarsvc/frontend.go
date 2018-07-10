@@ -1209,15 +1209,32 @@ func newPaymentLocal(txID stellar1.TransactionID, ctime stellar1.TimeMs, amount 
 
 func (s *Server) CreateWalletAccountLocal(ctx context.Context, arg stellar1.CreateWalletAccountLocalArg) (res stellar1.AccountID, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RPCName:       "CreateWalletAccountLocal",
-		Err:           &err,
-		RequireWallet: true,
+		RPCName: "CreateWalletAccountLocal",
+		Err:     &err,
 	})
 	defer fin()
 	if err != nil {
 		return res, err
 	}
 	return stellar.CreateNewAccount(s.mctx(ctx), arg.Name)
+}
+
+func (s *Server) GetRequestDetailsLocal(ctx context.Context, reqID stellar1.KeybaseRequestID) (res stellar1.RequestDetails, err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName: "GetRequestDetailsLocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	details, err := s.remoter.RequestDetails(ctx, reqID)
+	if err != nil {
+		return res, err
+	}
+
+	return details, nil
 }
 
 // Subtract a 100 stroop fee from the available balance.

@@ -329,12 +329,12 @@ func (r *RemoteClientMock) ExchangeRate(ctx context.Context, currency string) (s
 	return r.Backend.ExchangeRate(ctx, r.Tc, currency)
 }
 
-func (r *RemoteClientMock) SubmitRequest(ctx context.Context, recipient, amount, teamID string) (string, error) {
-	return "", fmt.Errorf("not implemented")
+func (r *RemoteClientMock) SubmitRequest(ctx context.Context, post stellar1.RequestPost) (res stellar1.KeybaseRequestID, err error) {
+	return res, fmt.Errorf("not implemented")
 }
 
-func (r *RemoteClientMock) RequestDetail(ctx context.Context, requestID string) error {
-	return fmt.Errorf("not implemented")
+func (r *RemoteClientMock) RequestDetails(ctx context.Context, requestID stellar1.KeybaseRequestID) (res stellar1.RequestDetails, err error) {
+	return res, fmt.Errorf("not implemented")
 }
 
 var _ remote.Remoter = (*RemoteClientMock)(nil)
