@@ -1,7 +1,6 @@
 package saltpackKeyHelpers
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
@@ -18,14 +17,13 @@ import (
 
 // Resolves old kbfs pseudonyms.
 type TlfKeyResolver struct {
-	libkb.Contextified
-	ctx context.Context
+	m libkb.MetaContext
 }
 
 var _ saltpack.SymmetricKeyResolver = (*TlfKeyResolver)(nil)
 
-func NewLegacyKBFSResolver(ctx context.Context, g *libkb.GlobalContext) saltpack.SymmetricKeyResolver {
-	return &TlfKeyResolver{libkb.NewContextified(g), ctx}
+func NewLegacyKBFSResolver(m libkb.MetaContext) saltpack.SymmetricKeyResolver {
+	return &TlfKeyResolver{m: m}
 }
 
 func (r *TlfKeyResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.SymmetricKey, error) {
@@ -39,7 +37,7 @@ func (r *TlfKeyResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Symmetri
 		tlfPseudonyms = append(tlfPseudonyms, pseudonym)
 	}
 
-	results, err := libkb.GetTlfPseudonyms(r.ctx, r.G(), tlfPseudonyms)
+	results, err := libkb.GetTlfPseudonyms(r.m.Ctx(), r.m.G(), tlfPseudonyms)
 	if err != nil {
 		return nil, err
 	}
@@ -47,12 +45,12 @@ func (r *TlfKeyResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Symmetri
 	symmetricKeys := []*saltpack.SymmetricKey{}
 	for _, result := range results {
 		if result.Err != nil {
-			r.G().Log.CDebugf(r.ctx, "skipping unresolved pseudonym: %s", result.Err)
+			r.m.CDebugf("skipping unresolved pseudonym: %s", result.Err)
 			symmetricKeys = append(symmetricKeys, nil)
 			continue
 		}
-		r.G().Log.CDebugf(r.ctx, "resolved pseudonym for %s, fetching key", result.Info.Name)
-		symmetricKey, err := r.getSymmetricKey(*result.Info)
+		r.m.CDebugf("resolved pseudonym for %s, fetching key", result.Info.Name)
+		symmetricKey, err := r.getSymmetricKey(r.m, *result.Info)
 		if err != nil {
 			return nil, err
 		}
@@ -61,21 +59,21 @@ func (r *TlfKeyResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Symmetri
 	return symmetricKeys, nil
 }
 
-func (r *TlfKeyResolver) getCryptKeys(ctx context.Context, name string) (keybase1.GetTLFCryptKeysRes, error) {
-	xp := r.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
+func (r *TlfKeyResolver) getCryptKeys(m libkb.MetaContext, name string) (keybase1.GetTLFCryptKeysRes, error) {
+	xp := m.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
 	if xp == nil {
 		return keybase1.GetTLFCryptKeysRes{}, libkb.KBFSNotRunningError{}
 	}
 	cli := &keybase1.TlfKeysClient{
-		Cli: rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(r.G()), libkb.LogTagsFromContext),
+		Cli: rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(r.m.G()), libkb.LogTagsFromContext),
 	}
-	return cli.GetTLFCryptKeys(ctx, keybase1.TLFQuery{
+	return cli.GetTLFCryptKeys(m.Ctx(), keybase1.TLFQuery{
 		TlfName:          name,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 }
 
-func (r *TlfKeyResolver) getSymmetricKey(info libkb.TlfPseudonymServerInfo) (*saltpack.SymmetricKey, error) {
+func (r *TlfKeyResolver) getSymmetricKey(m libkb.MetaContext, info libkb.TlfPseudonymServerInfo) (*saltpack.SymmetricKey, error) {
 	// NOTE: In order to handle finalized TLFs (which is one of the main
 	// benefits of using TLF keys to begin with, for forward readability), we
 	// need the server to tell us what the current, potentially-finalized name
@@ -95,7 +93,7 @@ func (r *TlfKeyResolver) getSymmetricKey(info libkb.TlfPseudonymServerInfo) (*sa
 	if len(basename) >= len(info.UntrustedCurrentName) {
 		return nil, fmt.Errorf("unexpected prefix, expected '/keybase/private', found %q", info.UntrustedCurrentName)
 	}
-	res, err := r.getCryptKeys(r.ctx, basename)
+	res, err := r.getCryptKeys(m, basename)
 	if err != nil {
 		return nil, err
 	}
@@ -110,14 +108,13 @@ func (r *TlfKeyResolver) getSymmetricKey(info libkb.TlfPseudonymServerInfo) (*sa
 
 // Resolves new Key Pseudonyms (depends on teams).
 type KeyPseudonymResolver struct {
-	libkb.Contextified
-	ctx context.Context
+	m libkb.MetaContext
 }
 
 var _ saltpack.SymmetricKeyResolver = (*KeyPseudonymResolver)(nil)
 
-func NewKeyPseudonymResolver(ctx context.Context, g *libkb.GlobalContext) *KeyPseudonymResolver {
-	return &KeyPseudonymResolver{libkb.NewContextified(g), ctx}
+func NewKeyPseudonymResolver(m libkb.MetaContext) *KeyPseudonymResolver {
+	return &KeyPseudonymResolver{m: m}
 }
 
 func (r *KeyPseudonymResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.SymmetricKey, error) {
@@ -131,7 +128,7 @@ func (r *KeyPseudonymResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Sy
 		keyPseudonyms = append(keyPseudonyms, pseudonym)
 	}
 
-	results, err := libkb.GetKeyPseudonyms(r.ctx, r.G(), keyPseudonyms)
+	results, err := libkb.GetKeyPseudonyms(r.m, keyPseudonyms)
 	if err != nil {
 		return nil, err
 	}
@@ -139,11 +136,11 @@ func (r *KeyPseudonymResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Sy
 	symmetricKeys := []*saltpack.SymmetricKey{}
 	for _, result := range results {
 		if result.Err != nil {
-			r.G().Log.CDebugf(r.ctx, "skipping unresolved pseudonym: %s", result.Err)
+			r.m.CDebugf("skipping unresolved pseudonym: %s", result.Err)
 			symmetricKeys = append(symmetricKeys, nil)
 			continue
 		}
-		r.G().Log.CDebugf(r.ctx, "resolved pseudonym for %s, fetching key", result.Info.ID)
+		r.m.CDebugf("resolved pseudonym for %s, fetching key", result.Info.ID)
 		symmetricKey, err := r.getSymmetricKey(result.Info.ID, result.Info.KeyGen)
 		if err != nil {
 			return nil, err
@@ -158,7 +155,7 @@ func (r *KeyPseudonymResolver) getSymmetricKey(id keybase1.UserOrTeamID, gen lib
 	// For now resolving key pseudonyms for users is not necessary, as keybase encrypt does not
 	// use symmetric per user encryption keys.
 
-	team, err := teams.Load(r.ctx, r.G(), keybase1.LoadTeamArg{
+	team, err := teams.Load(r.m.Ctx(), r.m.G(), keybase1.LoadTeamArg{
 		ID: keybase1.TeamID(id),
 	})
 	if err != nil {
@@ -166,7 +163,7 @@ func (r *KeyPseudonymResolver) getSymmetricKey(id keybase1.UserOrTeamID, gen lib
 	}
 
 	var key keybase1.TeamApplicationKey
-	key, err = team.SaltpackEncryptionKeyAtGeneration(r.ctx, keybase1.PerTeamKeyGeneration(gen))
+	key, err = team.SaltpackEncryptionKeyAtGeneration(r.m.Ctx(), keybase1.PerTeamKeyGeneration(gen))
 	if err != nil {
 		return nil, err
 	}

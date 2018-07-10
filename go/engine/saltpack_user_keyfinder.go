@@ -14,26 +14,23 @@ import (
 // SaltpackUserKeyfinder is an engine to find Per User Keys (PUK). Users can also be loaded by assertions, possibly tracking them if necessary.
 // This engine does not find per team keys, which capability is implemented by SaltpackRecipientKeyfinder in the saltpackKeyHelpers package.
 type SaltpackUserKeyfinder struct {
-	libkb.Contextified
 	Arg                           libkb.SaltpackRecipientKeyfinderArg
 	RecipientEntityKeyMap         map[keybase1.UserOrTeamID]([]keybase1.KID)
 	RecipientDeviceAndPaperKeyMap map[keybase1.UID]([]keybase1.KID)
 }
 
 // NewSaltpackUserKeyfinder creates a SaltpackUserKeyfinder engine.
-func NewSaltpackUserKeyfinderAsInterface(g *libkb.GlobalContext, Arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface {
+func NewSaltpackUserKeyfinderAsInterface(Arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface {
 	return &SaltpackUserKeyfinder{
-		Contextified: libkb.NewContextified(g),
-		Arg:          Arg,
+		Arg: Arg,
 		RecipientEntityKeyMap:         make(map[keybase1.UserOrTeamID]([]keybase1.KID)),
 		RecipientDeviceAndPaperKeyMap: make(map[keybase1.UID]([]keybase1.KID)),
 	}
 }
 
-func NewSaltpackUserKeyfinder(g *libkb.GlobalContext, Arg libkb.SaltpackRecipientKeyfinderArg) *SaltpackUserKeyfinder {
+func NewSaltpackUserKeyfinder(Arg libkb.SaltpackRecipientKeyfinderArg) *SaltpackUserKeyfinder {
 	return &SaltpackUserKeyfinder{
-		Contextified: libkb.NewContextified(g),
-		Arg:          Arg,
+		Arg: Arg,
 		RecipientEntityKeyMap:         make(map[keybase1.UserOrTeamID]([]keybase1.KID)),
 		RecipientDeviceAndPaperKeyMap: make(map[keybase1.UID]([]keybase1.KID)),
 	}
@@ -127,8 +124,8 @@ func (e *SaltpackUserKeyfinder) LookupUser(m libkb.MetaContext, user string) err
 	if engRes == nil {
 		return fmt.Errorf("Null result from Identify2")
 	}
-	arg := libkb.NewLoadUserByUIDArg(m.Ctx(), e.G(), engRes.Upk.GetUID())
-	upak, _, err := e.G().GetUPAKLoader().LoadV2(arg)
+	arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(engRes.Upk.GetUID())
+	upak, _, err := m.G().GetUPAKLoader().LoadV2(arg)
 	if err != nil {
 		return err
 	}
@@ -176,8 +173,7 @@ func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *
 			hasPaperKey = true
 			if e.Arg.UsePaperKeys {
 				keys = append(keys, KID)
-				// TODO Is it ok to put recipient names in the logs?
-				e.G().Log.CDebugf(m.Ctx(), "adding user %v's paper key", upk.Username)
+				m.CDebugf("adding user %v's paper key", upk.Username)
 			}
 		}
 
@@ -185,8 +181,7 @@ func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *
 			hasDeviceKey = true
 			if e.Arg.UseDeviceKeys {
 				keys = append(keys, KID)
-				// TODO SENSITIVE! Remove from Logs
-				e.G().Log.CDebugf(m.Ctx(), "adding user %v's device key", upk.Username)
+				m.CDebugf("adding user %v's device key", upk.Username)
 			}
 		}
 	}
@@ -202,10 +197,10 @@ func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *
 	}
 
 	if e.Arg.UseDeviceKeys && !hasDeviceKey {
-		e.G().Log.CWarningf(m.Ctx(), "User %v does not have a device key (they can still decrypt the message with a paper key).", upk.Username)
+		m.CWarningf("User %v does not have a device key (they can still decrypt the message with a paper key).", upk.Username)
 	}
 	if e.Arg.UsePaperKeys && !hasPaperKey {
-		e.G().Log.CWarningf(m.Ctx(), "User %v does not have a paper key (they can still decrypt the message with a non paper device key).", upk.Username)
+		m.CWarningf("User %v does not have a paper key (they can still decrypt the message with a non paper device key).", upk.Username)
 	}
 
 	e.RecipientDeviceAndPaperKeyMap[upk.Uid] = keys
@@ -239,8 +234,7 @@ func (e *SaltpackUserKeyfinder) AddPUK(m libkb.MetaContext, upk *keybase1.UserPl
 				lk = k.EncKID
 			}
 		}
-		// TODO SENSITIVE! Remove from Logs
-		e.G().Log.CDebugf(m.Ctx(), "adding user %v's latest per user key", upk.Username)
+		m.CDebugf("adding user %v's latest per user key", upk.Username)
 		keys = []keybase1.KID{lk}
 	}
 

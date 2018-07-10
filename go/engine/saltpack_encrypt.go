@@ -21,10 +21,9 @@ type SaltpackEncryptArg struct {
 // for a set of users.  It will track them if necessary.
 type SaltpackEncrypt struct {
 	arg *SaltpackEncryptArg
-	libkb.Contextified
-	me *libkb.User
+	me  *libkb.User
 
-	newKeyfinderHook (func(g *libkb.GlobalContext, arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface)
+	newKeyfinderHook (func(arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface)
 
 	// Legacy encryption-only messages include a lot more information about
 	// receivers, and it's nice to keep the helpful errors working while those
@@ -33,10 +32,9 @@ type SaltpackEncrypt struct {
 }
 
 // NewSaltpackEncrypt creates a SaltpackEncrypt engine.
-func NewSaltpackEncrypt(g *libkb.GlobalContext, arg *SaltpackEncryptArg, newKeyfinderHook func(g *libkb.GlobalContext, arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface) *SaltpackEncrypt {
+func NewSaltpackEncrypt(arg *SaltpackEncryptArg, newKeyfinderHook func(arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface) *SaltpackEncrypt {
 	return &SaltpackEncrypt{
 		arg:              arg,
-		Contextified:     libkb.NewContextified(g),
 		newKeyfinderHook: newKeyfinderHook,
 	}
 }
@@ -63,7 +61,7 @@ func (e *SaltpackEncrypt) SubConsumers() []libkb.UIConsumer {
 	// TODO potentially KeyfinderHook might return a different UIConsumer depending on its arguments,
 	// which might make this call problematica, but it is not doing it right now.
 	return []libkb.UIConsumer{
-		e.newKeyfinderHook(e.G(), libkb.SaltpackRecipientKeyfinderArg{}),
+		e.newKeyfinderHook(libkb.SaltpackRecipientKeyfinderArg{}),
 	}
 }
 
@@ -96,7 +94,7 @@ func (e *SaltpackEncrypt) Run(m libkb.MetaContext) (err error) {
 		UseDeviceKeys: e.arg.Opts.UseDeviceKeys,
 	}
 
-	kf := e.newKeyfinderHook(m.G(), kfarg)
+	kf := e.newKeyfinderHook(kfarg)
 	if err := RunEngine2(m, kf); err != nil {
 		return err
 	}
@@ -164,7 +162,7 @@ func (e *SaltpackEncrypt) Run(m libkb.MetaContext) (err error) {
 	}
 
 	if e.arg.Opts.AuthenticityType != keybase1.AuthenticityType_ANONYMOUS && e.me == nil {
-		m.G().Log.CWarningf(m.Ctx(), "Switching to auth-type=anonymous, since you are not logged in.")
+		m.CWarningf("Switching to auth-type=anonymous, since you are not logged in.")
 	}
 
 	saltpackVersion, err := libkb.SaltpackVersionFromArg(e.arg.Opts.SaltpackVersion)

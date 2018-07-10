@@ -21,17 +21,15 @@ import (
 // SaltpackRecipientKeyfinder extends the functionality of engine.SaltpackUserKeyfinder (which can only find user keys but not team keys).
 // This is a separate object (and also not part of the engine package) to avoid circular dependencies (as teams depends on engine).
 type SaltpackRecipientKeyfinderEngine struct {
-	libkb.Contextified
 	*engine.SaltpackUserKeyfinder
 	SymmetricEntityKeyMap map[keybase1.TeamID](keybase1.TeamApplicationKey)
 	SaltpackSymmetricKeys []libkb.SaltpackReceiverSymmetricKey
 }
 
 // SaltpackNewRecipientKeyfinder creates a SaltpackRecipientKeyfinder engine.
-func NewSaltpackRecipientKeyfinderEngine(g *libkb.GlobalContext, arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface {
+func NewSaltpackRecipientKeyfinderEngine(arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface {
 	return &SaltpackRecipientKeyfinderEngine{
-		Contextified:          libkb.NewContextified(g),
-		SaltpackUserKeyfinder: engine.NewSaltpackUserKeyfinder(g, arg),
+		SaltpackUserKeyfinder: engine.NewSaltpackUserKeyfinder(arg),
 		SymmetricEntityKeyMap: make(map[keybase1.TeamID](keybase1.TeamApplicationKey)),
 	}
 }
@@ -81,7 +79,7 @@ func (e *SaltpackRecipientKeyfinderEngine) uploadKeyPseudonymsAndGenerateSymmetr
 	}
 
 	// Post the pseudonyms in a batch. This will populate the KeyPseudonym field of each element of pseudonymInfos
-	err := libkb.MakeAndPostKeyPseudonyms(m.Ctx(), m.G(), &pseudonymInfos)
+	err := libkb.MakeAndPostKeyPseudonyms(m, &pseudonymInfos)
 	if err != nil {
 		return err
 	}
@@ -140,7 +138,7 @@ func (e teamNotFoundError) Error() string {
 }
 
 func (e *SaltpackRecipientKeyfinderEngine) lookupTeam(m libkb.MetaContext, teamName string) error {
-	team, err := teams.Load(m.Ctx(), e.G(), keybase1.LoadTeamArg{
+	team, err := teams.Load(m.Ctx(), m.G(), keybase1.LoadTeamArg{
 		Name: teamName,
 	})
 	// TODO: Need to be more granular and separate actual NotFound (which should not block the lookupRecipients loop as we want to try social assertions)
@@ -156,7 +154,7 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupTeam(m libkb.MetaContext, teamN
 		if err != nil {
 			return err
 		}
-		e.G().Log.CDebugf(m.Ctx(), "Adding team key for team %v", teamName)
+		m.CDebugf("Adding team key for team %v", teamName)
 		e.SymmetricEntityKeyMap[team.ID] = appKey
 	}
 
@@ -165,7 +163,7 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupTeam(m libkb.MetaContext, teamN
 		if err != nil {
 			return err
 		}
-		upakLoader := e.G().GetUPAKLoader()
+		upakLoader := m.G().GetUPAKLoader()
 
 		for _, uid := range members.AllUIDs() {
 			if e.Arg.NoSelfEncrypt && e.Arg.Self.GetUID() == uid {
@@ -212,7 +210,7 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupImplicitTeam(m libkb.MetaContex
 		return invalidAssertionError{fmt.Errorf("invalid recipient %q: %s", socialAssertionForNonExistingUser, err)}
 	}
 
-	team, _, impTeamName, err := teams.LookupOrCreateImplicitTeam(m.Ctx(), e.G(), e.Arg.Self.GetName()+","+socialAssertionForNonExistingUser, false)
+	team, _, impTeamName, err := teams.LookupOrCreateImplicitTeam(m.Ctx(), m.G(), e.Arg.Self.GetName()+","+socialAssertionForNonExistingUser, false)
 
 	if err != nil {
 		return err
@@ -223,8 +221,8 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupImplicitTeam(m libkb.MetaContex
 		if err != nil {
 			return err
 		}
-		e.G().Log.CDebugf(m.Ctx(), "Adding team key for implicit team %v", impTeamName)
-		e.G().Log.CWarningf(m.Ctx(), "Encrypting for %v who is not yet a keybase user: one of your devices will need to be online after they join keybase, or they won't be able to decrypt it.", socialAssertionForNonExistingUser)
+		m.CDebugf("Adding team key for implicit team %v", impTeamName)
+		m.CWarningf("Encrypting for %v who is not yet a keybase user: one of your devices will need to be online after they join keybase, or they won't be able to decrypt it.", socialAssertionForNonExistingUser)
 		e.SymmetricEntityKeyMap[team.ID] = appKey
 	} else {
 		return fmt.Errorf("encrypting for %v (who is not yet on keybase) requires --use-entity-keys.", socialAssertionForNonExistingUser)

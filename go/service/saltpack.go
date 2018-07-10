@@ -70,13 +70,13 @@ func (h *SaltpackHandler) SaltpackDecrypt(ctx context.Context, arg keybase1.Salt
 		SessionID:  arg.SessionID,
 	}
 	var resolver saltpack.SymmetricKeyResolver
-	if arg.Opts.UseLegacyKBFSPseudonymResolver {
-		resolver = saltpackKeyHelpers.NewLegacyKBFSResolver(ctx, h.G())
-	} else {
-		resolver = saltpackKeyHelpers.NewKeyPseudonymResolver(ctx, h.G())
-	}
-	eng := engine.NewSaltpackDecrypt(h.G(), earg, resolver)
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	if arg.Opts.UseLegacyKBFSPseudonymResolver {
+		resolver = saltpackKeyHelpers.NewLegacyKBFSResolver(m)
+	} else {
+		resolver = saltpackKeyHelpers.NewKeyPseudonymResolver(m)
+	}
+	eng := engine.NewSaltpackDecrypt(earg, resolver)
 	err = engine.RunEngine2(m, eng)
 	info = eng.MessageInfo()
 	return info, err
@@ -97,7 +97,7 @@ func (h *SaltpackHandler) SaltpackEncrypt(ctx context.Context, arg keybase1.Salt
 		SecretUI:   h.getSecretUI(arg.SessionID, h.G()),
 		SessionID:  arg.SessionID,
 	}
-	eng := engine.NewSaltpackEncrypt(h.G(), earg, saltpackKeyHelpers.NewSaltpackRecipientKeyfinderEngine)
+	eng := engine.NewSaltpackEncrypt(earg, saltpackKeyHelpers.NewSaltpackRecipientKeyfinderEngine)
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	return engine.RunEngine2(m, eng)
 }

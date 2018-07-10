@@ -12,8 +12,6 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
-
-	context "golang.org/x/net/context"
 )
 
 // KeyPseudonym is a "random looking" identifier which refers to a specific application key belonging to a user or team
@@ -127,7 +125,7 @@ func MakeKeyPseudonym(info KeyPseudonymInfo) (KeyPseudonym, error) {
 }
 
 // MakeAndPostKeyPseudonyms fills the KeyPseudonym field of each of the pnymInfos with the appropriate KeyPseudonym.
-func MakeAndPostKeyPseudonyms(ctx context.Context, g *GlobalContext, pnymInfos *[]KeyPseudonymInfo) (err error) {
+func MakeAndPostKeyPseudonyms(m MetaContext, pnymInfos *[]KeyPseudonymInfo) (err error) {
 	var pnymReqs []keyPseudonymReq
 
 	if len(*pnymInfos) == 0 {
@@ -154,7 +152,8 @@ func MakeAndPostKeyPseudonyms(ctx context.Context, g *GlobalContext, pnymInfos *
 	payload := make(JSONPayload)
 	payload["key_pseudonyms"] = pnymReqs
 
-	_, err = g.API.PostJSON(APIArg{
+	_, err = m.G().API.PostJSON(APIArg{
+		MetaContext: m,
 		Endpoint:    "team/key_pseudonym/put",
 		JSONPayload: payload,
 		SessionType: APISessionTypeREQUIRED,
@@ -169,7 +168,7 @@ func MakeAndPostKeyPseudonyms(ctx context.Context, g *GlobalContext, pnymInfos *
 // The output structs are returned in the order corresponding to the inputs.
 // The top-level error is filled if the entire request fails.
 // The each-struct errors may be filled for per-pseudonym errors.
-func GetKeyPseudonyms(ctx context.Context, g *GlobalContext, pnyms []KeyPseudonym) ([]KeyPseudonymOrError, error) {
+func GetKeyPseudonyms(m MetaContext, pnyms []KeyPseudonym) ([]KeyPseudonymOrError, error) {
 	var pnymStrings []string
 	for _, x := range pnyms {
 		pnymStrings = append(pnymStrings, x.String())
@@ -179,12 +178,12 @@ func GetKeyPseudonyms(ctx context.Context, g *GlobalContext, pnyms []KeyPseudony
 	payload["key_pseudonyms"] = pnymStrings
 
 	var res getKeyPseudonymsRes
-	err := g.API.PostDecode(
+	err := m.G().API.PostDecode(
 		APIArg{
+			MetaContext: m,
 			Endpoint:    "team/key_pseudonym/get",
 			SessionType: APISessionTypeREQUIRED,
 			JSONPayload: payload,
-			NetContext:  ctx,
 		},
 		&res)
 	if err != nil {
@@ -198,13 +197,13 @@ func GetKeyPseudonyms(ctx context.Context, g *GlobalContext, pnyms []KeyPseudony
 	}
 	var resList []KeyPseudonymOrError
 	for i, received := range res.KeyPseudonyms {
-		resList = append(resList, checkAndConvertKeyPseudonymFromServer(ctx, g, pnyms[i], received))
+		resList = append(resList, checkAndConvertKeyPseudonymFromServer(pnyms[i], received))
 	}
 
 	return resList, nil
 }
 
-func checkAndConvertKeyPseudonymFromServer(ctx context.Context, g *GlobalContext, req KeyPseudonym, received getKeyPseudonymRes) KeyPseudonymOrError {
+func checkAndConvertKeyPseudonymFromServer(req KeyPseudonym, received getKeyPseudonymRes) KeyPseudonymOrError {
 	mkErr := func(err error) KeyPseudonymOrError {
 		return KeyPseudonymOrError{
 			Info: nil,
@@ -245,14 +244,14 @@ func checkAndConvertKeyPseudonymFromServer(ctx context.Context, g *GlobalContext
 		x.Info = &info
 	}
 
-	err := checkKeyPseudonymFromServer(ctx, g, req, x)
+	err := checkKeyPseudonymFromServer(req, x)
 	if err != nil {
 		return mkErr(err)
 	}
 	return x
 }
 
-func checkKeyPseudonymFromServer(ctx context.Context, g *GlobalContext, req KeyPseudonym, received KeyPseudonymOrError) error {
+func checkKeyPseudonymFromServer(req KeyPseudonym, received KeyPseudonymOrError) error {
 	// Exactly one of Info and Err should exist
 	if (received.Info == nil) == (received.Err == nil) {
 		return &KeyPseudonymGetError{fmt.Sprintf("invalid server response for key_pseudonym get: %s", req)}
@@ -277,7 +276,7 @@ func checkKeyPseudonymFromServer(ctx context.Context, g *GlobalContext, req KeyP
 	return nil
 }
 
-// Nonces are used as HMAC keys.
+// RandomPseudonymNonce returns a random nonce, which is used as an HMAC key.
 func RandomPseudonymNonce() KeyPseudonymNonce {
 	slice, err := RandBytes(32)
 	if err != nil {

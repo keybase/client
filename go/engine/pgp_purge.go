@@ -149,6 +149,6 @@ func (e *PGPPurge) encryptToFile(m libkb.MetaContext, bundle *libkb.PGPKeyBundle
 			UseEntityKeys:    true,
 		},
 	}
-	eng := NewSaltpackEncrypt(e.G(), arg, NewSaltpackUserKeyfinderAsInterface)
+	eng := NewSaltpackEncrypt(arg, NewSaltpackUserKeyfinderAsInterface)
 	return RunEngine2(m, eng)
 }

@@ -21,16 +21,14 @@ type SaltpackDecryptArg struct {
 
 // SaltpackDecrypt decrypts data read from a source into a sink.
 type SaltpackDecrypt struct {
-	libkb.Contextified
 	arg          *SaltpackDecryptArg
 	res          keybase1.SaltpackEncryptedMessageInfo
 	pnymResolver saltpack.SymmetricKeyResolver
 }
 
 // NewSaltpackDecrypt creates a SaltpackDecrypt engine.
-func NewSaltpackDecrypt(g *libkb.GlobalContext, arg *SaltpackDecryptArg, pnymResolver saltpack.SymmetricKeyResolver) *SaltpackDecrypt {
+func NewSaltpackDecrypt(arg *SaltpackDecryptArg, pnymResolver saltpack.SymmetricKeyResolver) *SaltpackDecrypt {
 	return &SaltpackDecrypt{
-		Contextified: libkb.NewContextified(g),
 		arg:          arg,
 		pnymResolver: pnymResolver,
 	}
@@ -75,7 +73,7 @@ func (e *SaltpackDecrypt) promptForDecrypt(m libkb.MetaContext, publicKey keybas
 		},
 	}
 
-	spsiEng := NewSaltpackSenderIdentify(e.G(), &spsiArg)
+	spsiEng := NewSaltpackSenderIdentify(m.G(), &spsiArg)
 	if err = RunEngine2(m, spsiEng); err != nil {
 		return err
 	}
@@ -86,8 +84,8 @@ func (e *SaltpackDecrypt) promptForDecrypt(m libkb.MetaContext, publicKey keybas
 	e.res.Sender = arg.Sender
 
 	usedDelegateUI := false
-	if e.G().UIRouter != nil {
-		if ui, err := e.G().UIRouter.GetIdentifyUI(); err == nil && ui != nil {
+	if m.G().UIRouter != nil {
+		if ui, err := m.G().UIRouter.GetIdentifyUI(); err == nil && ui != nil {
 			usedDelegateUI = true
 		}
 	}
@@ -141,7 +139,7 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 		addToKeyring(keyring, &encryptionNaclKeyPair)
 	} else {
 		// This does require you to be logged in.
-		if !e.G().ActiveDevice.HaveKeys() {
+		if !m.G().ActiveDevice.HaveKeys() {
 			return libkb.LoginRequiredError{}
 		}
 
@@ -152,8 +150,7 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 		if err != nil {
 			return err
 		}
-		// TODO is it ok to add a device key in the logs?
-		e.G().Log.CDebugf(m.Ctx(), "adding device key for decryption: %v", key.GetKID())
+		m.CDebugf("adding device key for decryption: %v", key.GetKID())
 		addToKeyring(keyring, key)
 
 		perUserKeyring, err := m.G().GetPerUserKeyring()
@@ -163,8 +160,7 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 		pukGen := perUserKeyring.CurrentGeneration()
 		for i := 1; i <= int(pukGen); i++ {
 			key, err = perUserKeyring.GetEncryptionKeyByGeneration(m, keybase1.PerUserKeyGeneration(i))
-			// TODO as above, can we aff the KID to the logs?
-			e.G().Log.Warning("adding per user key at generation %v for decryption: %v", i, key.GetKID())
+			m.CDebugf("adding per user key at generation %v for decryption: %v", i, key.GetKID())
 			if err != nil {
 				return err
 			}
@@ -189,7 +185,7 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 		return e.promptForDecrypt(m, kidToIdentify, isAnon)
 	}
 
-	e.G().Log.Debug("| SaltpackDecrypt")
+	m.CDebugf("| SaltpackDecrypt")
 	var mki *saltpack.MessageKeyInfo
 	mki, err = libkb.SaltpackDecrypt(m.Ctx(), m.G(), e.arg.Source, e.arg.Sink, keyring, hookMki, hookSenderSigningKey, e.pnymResolver)
 	if err == saltpack.ErrNoDecryptionKey {
