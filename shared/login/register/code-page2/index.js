@@ -191,9 +191,11 @@ class EnterText extends React.Component<Props, {code: string}> {
           value={this.state.code}
         />
         <WaitingButton
-          type="Primary"
+          fullWidth={true}
+          type="PrimaryGreenActive"
           label="Submit"
           onClick={this._submit}
+          style={styles.enterTextButton}
           waitingKey={Constants.keyWaitingKey}
         />
       </Box2>
@@ -270,6 +272,10 @@ const styles = styleSheetCreate({
   container: {
     justifyContent: 'space-between',
     padding: globalMargins.large,
+  },
+  enterTextButton: {
+    maxWidth: isMobile ? 300 : 460,
+    width: '100%',
   },
   enterTextContainer: {
     alignItems: 'center',
