@@ -175,8 +175,7 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onUsernameClicked: (username: string) =>
-     dispatch(createShowUserProfile({username}))
+  _onUsernameClicked: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
