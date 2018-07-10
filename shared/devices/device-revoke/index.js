@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {type DeviceType} from '../../constants/types/devices'
 import {Confirm, Box, Text, Icon, ProgressIndicator, type IconType} from '../../common-adapters'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
+import {globalColors, globalMargins, globalStyles, styleSheetCreate, isMobile} from '../../styles'
 
 export type Props = {
   currentDevice: boolean,
@@ -24,7 +24,7 @@ const Header = ({name, type}: {name: string, type: DeviceType}) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
       <Icon type={icon} />
-      <Text type="BodySemibold" style={styleName}>
+      <Text type="BodySemibold" style={styles.name}>
         {name}
       </Text>
     </Box>
@@ -43,7 +43,7 @@ const Body = ({
   waiting: boolean,
 }) => (
   <Box>
-    <Box style={styleHeader}>
+    <Box style={styles.header}>
       <Text type="BodySemibold">Are you sure you want to revoke </Text>
       {currentDevice ? (
         <Text type="BodySemibold">your current device</Text>
@@ -62,9 +62,9 @@ const Body = ({
             <Text type="Body">You may lose access to these folders forever:</Text>
           </Box>
 
-          <Box style={styleDevicesContainer}>
+          <Box style={styles.container}>
             {endangeredTLFs.map(tlf => (
-              <Box key={tlf} style={styleTLF}>
+              <Box key={tlf} style={styles.TLF}>
                 <Text type="BodySemibold" style={{marginRight: globalMargins.tiny}}>
                   •
                 </Text>
@@ -84,7 +84,8 @@ const DeviceRevoke = (props: Props) => (
   <Confirm
     body={
       <Body
-        endangeredTLFs={props.endangeredTLFs}
+        // endangeredTLFs={props.endangeredTLFs}
+        endangeredTLFs={['nathunsmitty']}
         name={props.name}
         currentDevice={props.currentDevice}
         waiting={props.waiting}
@@ -100,33 +101,34 @@ const DeviceRevoke = (props: Props) => (
   />
 )
 
-const styleHeader = {
-  marginBottom: globalMargins.tiny,
-}
-
-const styleTLF = {
-  marginBottom: globalMargins.xtiny,
-}
-
-const styleName = {
-  color: globalColors.red,
-  fontStyle: 'italic',
-  marginTop: 4,
-  textDecorationLine: 'line-through',
-}
-
-const styleDevicesContainer = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'flex-start',
-  alignSelf: 'center',
-  border: '1px solid ' + globalColors.black_05,
-  borderRadius: 4,
-  height: 162,
-  marginBottom: globalMargins.small,
-  marginTop: globalMargins.small,
-  overflowY: 'scroll',
-  padding: globalMargins.small,
-  width: 440,
-}
+const styles = styleSheetCreate({
+  header: {
+    marginBottom: globalMargins.tiny,
+  },
+  TLF: {
+    marginBottom: globalMargins.xtiny,
+  },
+  name: {
+    color: globalColors.red,
+    fontStyle: 'italic',
+    marginTop: 4,
+    textDecorationLine: 'line-through',
+  },
+  container: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'flex-start',
+    alignSelf: 'center',
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: globalColors.black_05,
+    borderRadius: 4,
+    height: 162,
+    marginBottom: globalMargins.small,
+    marginTop: globalMargins.small,
+    // overflowY: 'scroll',
+    padding: globalMargins.small,
+    width: 440,
+  },
+})
 
 export default DeviceRevoke
