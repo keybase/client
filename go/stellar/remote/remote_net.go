@@ -70,10 +70,10 @@ func (r *RemoteNet) ExchangeRate(ctx context.Context, currency string) (stellar1
 	return ExchangeRate(ctx, r.G(), currency)
 }
 
-func (r *RemoteNet) SubmitRequest(ctx context.Context, recipient, amount, teamID string) (string, error) {
-	return SubmitRequest(ctx, r.G(), recipient, amount)
+func (r *RemoteNet) SubmitRequest(ctx context.Context, post stellar1.RequestPost) (stellar1.KeybaseRequestID, error) {
+	return SubmitRequest(ctx, r.G(), post)
 }
 
-func (r *RemoteNet) RequestDetail(ctx context.Context, requestID string) error {
+func (r *RemoteNet) RequestDetail(ctx context.Context, requestID stellar1.KeybaseRequestID) (stellar1.RequestDetails, error) {
 	return RequestDetail(ctx, r.G(), requestID)
 }

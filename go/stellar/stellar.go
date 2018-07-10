@@ -1065,52 +1065,68 @@ func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipie
 }
 
 type SendRequestArg struct {
-	To     stellarcommon.RecipientInput
-	Amount string
+	To       stellarcommon.RecipientInput
+	Amount   string
+	Asset    *stellar1.Asset
+	Currency *stellar1.OutsideCurrencyCode
 }
 
-func SendRequest(m libkb.MetaContext, remoter remote.Remoter, arg SendRequestArg) (err error) {
+func SendRequest(m libkb.MetaContext, remoter remote.Remoter, arg SendRequestArg) (ret stellar1.KeybaseRequestID, err error) {
 	defer m.CTraceTimed("Stellar.SendRequest", func() error { return err })()
+
+	if arg.Asset != nil && !arg.Asset.IsNativeXLM() {
+		return ret, fmt.Errorf("requesting non-XLM assets is not supported")
+	}
+
+	if arg.Asset == nil && arg.Currency == nil {
+		return ret, fmt.Errorf("expected either Asset or Currency, got none")
+	} else if arg.Asset != nil && arg.Currency != nil {
+		return ret, fmt.Errorf("expected either Asset or Currency, got both")
+	}
 
 	// Make sure chat is functional. Chat message is the only way for
 	// the recipient to learn about the request, so it's essential
 	// that we are able to send REQUESTPAYMENT chat message.
 	m.G().StartStandaloneChat()
 	if m.G().ChatHelper == nil {
-		return errors.New("cannot send SendPayment message:  chat helper is nil")
+		return ret, errors.New("cannot send SendPayment message: chat helper is nil")
 	}
 
 	recipient, err := LookupRecipient(m, arg.To)
 	if err != nil {
-		return err
+		return ret, err
 	}
 
-	if recipient.User == nil && recipient.Assertion == nil {
-		// This check is redundant because it's also checked by
-		// GetImplicitTeamForRecipient.
-		return fmt.Errorf("expected username or user assertion as recipient")
+	post := stellar1.RequestPost{
+		Amount:   arg.Amount,
+		Asset:    arg.Asset,
+		Currency: arg.Currency,
 	}
 
-	displayName, teamID, err := stellarcommon.GetImplicitTeamForRecipient(m.Ctx(), m.G(), recipient)
+	if recipient.User != nil {
+		post.ToAssertion = recipient.User.GetName()
+		uv := recipient.User.ToUserVersion()
+		post.ToUser = &uv
+	} else if recipient.Assertion != nil {
+		post.ToAssertion = recipient.Assertion.String()
+	} else {
+		return ret, fmt.Errorf("expected username or user assertion as recipient")
+	}
+
+	requestID, err := remoter.SubmitRequest(m.Ctx(), post)
 	if err != nil {
-		return err
-	}
-
-	membersType := chat1.ConversationMembersType_IMPTEAMNATIVE
-
-	requestID, err := remoter.SubmitRequest(m.Ctx(), "", arg.Amount, teamID.String())
-	if err != nil {
-		return err
+		return ret, err
 	}
 
 	body := chat1.NewMessageBodyWithRequestpayment(chat1.MessageRequestPayment{
-		RequestID: requestID,
+		RequestID: requestID.String(),
 		Note:      "",
 	})
 
-	m.G().StartStandaloneChat()
+	displayName := strings.Join([]string{m.CurrentUsername().String(), recipient.User.GetNormalizedName().String()}, ",")
 
+	membersType := chat1.ConversationMembersType_IMPTEAMNATIVE
 	err = m.G().ChatHelper.SendMsgByName(m.Ctx(), displayName, nil,
 		membersType, keybase1.TLFIdentifyBehavior_CHAT_SKIP, body, chat1.MessageType_REQUESTPAYMENT)
-	return err
+	return requestID, err
 }

@@ -476,18 +476,16 @@ func (s *Server) SendRequestCLILocal(ctx context.Context, arg stellar1.SendReque
 		return err
 	}
 
-	if !arg.Asset.IsNativeXLM() {
-		return fmt.Errorf("sending non-XLM assets is not supported")
-	}
-
 	uis := libkb.UIs{
 		IdentifyUI: s.uiSource.IdentifyUI(s.G(), 0),
 	}
 	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
 
-	err = stellar.SendRequest(m, s.remoter, stellar.SendRequestArg{
-		To:     stellarcommon.RecipientInput(arg.Recipient),
-		Amount: arg.Amount,
+	_, err = stellar.SendRequest(m, s.remoter, stellar.SendRequestArg{
+		To:       stellarcommon.RecipientInput(arg.Recipient),
+		Amount:   arg.Amount,
+		Asset:    arg.Asset,
+		Currency: arg.Currency,
 	})
 	return err
 }

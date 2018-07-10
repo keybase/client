@@ -741,9 +741,10 @@ type FormatLocalCurrencyStringArg struct {
 }
 
 type SendRequestCLILocalArg struct {
-	Recipient string `codec:"recipient" json:"recipient"`
-	Asset     Asset  `codec:"asset" json:"asset"`
-	Amount    string `codec:"amount" json:"amount"`
+	Recipient string               `codec:"recipient" json:"recipient"`
+	Asset     *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
+	Currency  *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
+	Amount    string               `codec:"amount" json:"amount"`
 }
 
 type LocalInterface interface {

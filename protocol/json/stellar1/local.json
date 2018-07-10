@@ -1163,7 +1163,17 @@
         },
         {
           "name": "asset",
-          "type": "Asset"
+          "type": [
+            null,
+            "Asset"
+          ]
+        },
+        {
+          "name": "currency",
+          "type": [
+            null,
+            "OutsideCurrencyCode"
+          ]
         },
         {
           "name": "amount",

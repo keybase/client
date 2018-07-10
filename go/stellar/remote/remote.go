@@ -532,36 +532,44 @@ func SetAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) error {
 	return err
 }
 
-func SubmitRequest(ctx context.Context, g *libkb.GlobalContext, recipient, amount string) (reqID string, err error) {
+type submitRequestResult struct {
+	libkb.AppStatusEmbed
+	RequestID stellar1.KeybaseRequestID `json:"request_id"`
+}
+
+func SubmitRequest(ctx context.Context, g *libkb.GlobalContext, post stellar1.RequestPost) (ret stellar1.KeybaseRequestID, err error) {
 	payload := make(libkb.JSONPayload)
+	payload["request"] = post
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/submitrequest",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
 		NetContext:  ctx,
 	}
-	_ = apiArg
-	return "WORK IN PROGRESS", nil
-	// var res submitResult
-	// if err := g.API.PostDecode(apiArg, &res); err != nil {
-	// 	return stellar1.PaymentResult{}, err
-	// }
-	// return res.PaymentResult, nil
+	var res submitRequestResult
+	if err := g.API.PostDecode(apiArg, &res); err != nil {
+		return ret, err
+	}
+	return res.RequestID, nil
 }
 
-func RequestDetail(ctx context.Context, g *libkb.GlobalContext, requestID string) error {
+type requestDetailsResult struct {
+	libkb.AppStatusEmbed
+	Request stellar1.RequestDetails `json:"request"`
+}
+
+func RequestDetail(ctx context.Context, g *libkb.GlobalContext, requestID stellar1.KeybaseRequestID) (ret stellar1.RequestDetails, err error) {
 	payload := make(libkb.JSONPayload)
 	payload["id"] = requestID
 	apiArg := libkb.APIArg{
-		Endpoint:    "stellar/requestdetail",
+		Endpoint:    "stellar/requestdetails",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
 		NetContext:  ctx,
 	}
-	_ = apiArg
-	// var res submitResult
-	// if err := g.API.PostDecode(apiArg, &res); err != nil {
-	// 	return stellar1.PaymentResult{}, err
-	// }
-	return nil
+	var res requestDetailsResult
+	if err := g.API.PostDecode(apiArg, &res); err != nil {
+		return ret, err
+	}
+	return res.Request, nil
 }

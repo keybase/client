@@ -71,9 +71,10 @@ func (c *CmdWalletRequest) Run() error {
 		return err
 	}
 
+	xlm := stellar1.AssetNative()
 	arg := stellar1.SendRequestCLILocalArg{
 		Recipient: c.RecipientName,
-		Asset:     stellar1.AssetNative(),
+		Asset:     &xlm,
 		Amount:    c.Amount,
 	}
 
