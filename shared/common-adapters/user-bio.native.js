@@ -7,7 +7,6 @@ import Text from './text'
 import {Button} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {stateColors} from '../util/tracker'
-import flags from '../util/feature-flags'
 
 import type {AvatarSize} from './avatar'
 import type {Props} from './user-bio'
@@ -103,9 +102,9 @@ class BioRender extends Component<Props> {
         <Box style={stylesHeaderBar(avatarSize, trackerStateColors.header.background)} />
         <Box style={stylesAvatarWrapper(avatarSize)}>
           <Avatar
-            editable={!!editFns && flags.avatarUploadsEnabled}
+            editable={!!editFns}
             style={stylesAvatar}
-            onClick={onClickAvatar ? () => onClickAvatar() : undefined}
+            onClick={onClickAvatar}
             onEditAvatarClick={onClickAvatar}
             username={username}
             size={avatarSize}
