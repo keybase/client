@@ -4,7 +4,6 @@
  */
 import '../../dev/user-timings'
 import Main from '../../app/main.desktop'
-import * as AppGen from '../../actions/app-gen'
 import * as DevGen from '../../actions/dev-gen'
 import * as NotificationsGen from '../../actions/notifications-gen'
 import * as React from 'react'
@@ -24,7 +23,7 @@ import {refreshRouteDef, setInitialRouteDef} from '../../actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper.desktop'
 import flags from '../../util/feature-flags'
 import InputMonitor from './input-monitor.desktop'
-import dumpLogs from '../../logger/dump-log-fs'
+import {dumpLogs} from '../../actions/platform-specific.desktop'
 
 let _store
 function setupStore() {
@@ -92,17 +91,17 @@ function setupApp(store) {
   SafeElectron.getIpcRenderer().send('install-check')
 
   var inputMonitor = new InputMonitor(function(isActive) {
-    store.dispatch(AppGen.createChangedActive({userActive: isActive}))
+    store.dispatch(ConfigGen.createChangedActive({userActive: isActive}))
     SafeElectron.getIpcRenderer().send('setAppState', {isUserActive: isActive})
   })
   inputMonitor.startActiveTimer()
 
   window.addEventListener('focus', () => {
     inputMonitor.goActive()
-    store.dispatch(AppGen.createChangedFocus({appFocused: true}))
+    store.dispatch(ConfigGen.createChangedFocus({appFocused: true}))
   })
   window.addEventListener('blur', () => {
-    store.dispatch(AppGen.createChangedFocus({appFocused: false}))
+    store.dispatch(ConfigGen.createChangedFocus({appFocused: false}))
   })
 
   const subsetsRemotesCareAbout = store => {

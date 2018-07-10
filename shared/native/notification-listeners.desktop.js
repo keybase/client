@@ -4,7 +4,7 @@ import sharedNotificationActions from './notification-listeners.shared'
 import {kbfsNotification} from '../util/kbfs-notifications'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {isWindows} from '../constants/platform'
-import dumpLogs from '../logger/dump-log-fs'
+import {dumpLogs} from '../actions/platform-specific.desktop'
 import engine from '../engine'
 import {NotifyPopup} from './notifications'
 

@@ -6016,9 +6016,9 @@ flow-annotation-check@1.8.0:
     glob "7.1.1"
     load-pkg "^3.0.1"
 
-flow-bin@0.75.0:
-  version "0.75.0"
-  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.75.0.tgz#b96d1ee99d3b446a3226be66b4013224ce9df260"
+flow-bin@0.76.0:
+  version "0.76.0"
+  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.76.0.tgz#eb00036991c3abc106743fcbc7ee321f02aa4faa"
 
 flow-coverage-report@^0.5.0:
   version "0.5.0"
@@ -11041,7 +11041,7 @@ react-native-mime-types@^2.2.1:
 
 "react-native-push-notification@git://github.com/keybase/react-native-push-notification#keybase-fixes-off-302":
   version "3.0.2"
-  resolved "git://github.com/keybase/react-native-push-notification#dafbaf7503feffcfab88288e38c28a578d2e2cf5"
+  resolved "git://github.com/keybase/react-native-push-notification#add2393eb774af85bdce71e8d5ffb83e89a3f19a"
 
 react-native-tab-view@^0.0.67:
   version "0.0.67"

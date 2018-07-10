@@ -96,6 +96,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
       kbfs: Constants.fsPathToRpcPathString(rootPath),
     },
     filter: RPCTypes.simpleFSListFilter.filterAllHidden,
+    refreshSubscription: false,
   })
 
   yield Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
@@ -293,6 +294,9 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
   polling = true
   try {
     while (1) {
+      yield Saga.call(RPCTypes.SimpleFSSimpleFSSuppressNotificationsRpcPromise, {
+        suppressDurationSec: 8,
+      })
       let {syncingPaths, totalSyncingBytes, endEstimate}: RPCTypes.FSSyncStatus = yield Saga.call(
         RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise
       )
@@ -323,7 +327,7 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
       yield Saga.sequentially([
         Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true})),
         Saga.put(FsGen.createSetFlags({syncing: true})),
-        Saga.delay(getWaitDuration(endEstimate, 100, 2000)),
+        Saga.delay(getWaitDuration(endEstimate, 100, 4000)), // 0.1s to 4s
       ])
     }
   } finally {
@@ -337,6 +341,7 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
 
 function _setupFSHandlers() {
   engine().setIncomingActionCreators('keybase.1.NotifyFS.FSSyncActivity', () => [FsGen.createFsActivity()])
+  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSActivity', () => [FsGen.createFsActivity()])
 }
 
 function refreshLocalHTTPServerInfo() {

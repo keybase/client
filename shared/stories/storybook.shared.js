@@ -35,6 +35,7 @@ class StorybookErrorBoundary extends React.Component<
   any,
   {hasError: boolean, error: ?Error, info: ?{componentStack: string}}
 > {
+  // $FlowIssue doesn't like us overriding the definition
   componentDidCatch: ?Function
 
   constructor(props: any) {

@@ -165,5 +165,40 @@ protocol remote {
   // ask the stellar network whether the master key for the account has power
   boolean isMasterKeyActive(keybase1.UserVersion caller, AccountID accountID);
 
+  record RequestPost {
+    // User being asked for payment - Keybase user or an assertion. If
+    // `toUser` is not null, `toAssertion` shall be the username. For
+    // SBS, `toUser` is null, and `toAssertion` is social assertion.
+    union { null, keybase1.UserVersion } toUser;
+    string toAssertion;
+
+    // Amount of XLM or other Stellar asset, or outside currency.
+    string amount;
+    // User can either ask for specific amount of given Stellar asset,
+    // or an amount of outside currency (user making the payment does
+    // the conversion in this case).
+    union { null, Asset } asset;
+    union { null, OutsideCurrencyCode } currency;
+  }
+  KeybaseRequestID submitRequest(keybase1.UserVersion caller, RequestPost request);
+
+  record RequestDetails {
+    KeybaseRequestID id;
+
+    // User asking for payment - creator of the request.
+    keybase1.UserVersion fromUser;
+    // User being asked for payment - Keybase user or SBS assertion.
+    union { null, keybase1.UserVersion } toUser;
+    string toAssertion;
+
+    string amount;
+    union { null, Asset } asset;
+    union { null, OutsideCurrencyCode } currency;
+
+    // Payment ID if funded, empty if not funded.
+    KeybaseTransactionID fundingKbTxID;
+  }
+  RequestDetails requestDetails(keybase1.UserVersion caller, KeybaseRequestID reqID);
+
   string ping();
 }
