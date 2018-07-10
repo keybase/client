@@ -248,6 +248,7 @@ export const constantsStatusCode = {
   scephemeralkeymissingbox: 2902,
   scephemeralkeywrongnumberofkeys: 2903,
   scephemeralkeymismatchedkey: 2904,
+  scephemeralpairwisemacsmissinguids: 2905,
   scstellarerror: 3100,
   scstellarbadinput: 3101,
   scstellarwrongrevision: 3102,
@@ -1966,6 +1967,7 @@ export type StatusCode =
   | 2902 // SCEphemeralKeyMissingBox_2902
   | 2903 // SCEphemeralKeyWrongNumberOfKeys_2903
   | 2904 // SCEphemeralKeyMismatchedKey_2904
+  | 2905 // SCEphemeralPairwiseMACsMissingUIDs_2905
   | 3100 // SCStellarError_3100
   | 3101 // SCStellarBadInput_3101
   | 3102 // SCStellarWrongRevision_3102

@@ -677,6 +677,14 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 			e.CanKey = true
 		}
 		return e
+	case SCEphemeralPairwiseMACsMissingUIDs:
+		e := EphemeralPairwiseMACsMissingUIDsError{}
+		uids := []keybase1.UID{}
+		for _, field := range s.Fields {
+			uids = append(uids, keybase1.UID(field.Value))
+		}
+		e.UIDs = uids
+		return e
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -2248,6 +2256,18 @@ func (e TeamProvisionalError) ToStatus() keybase1.Status {
 	ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "PreResolveDisplayName", Value: e.PreResolveDisplayName})
 	if e.IsPublic {
 		ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "IsPublic", Value: "1"})
+	}
+	return ret
+}
+
+func (e EphemeralPairwiseMACsMissingUIDsError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCEphemeralPairwiseMACsMissingUIDs
+	ret.Name = "EPHEMERAL_PAIRWISE_MACS_MISSING_UIDS"
+	for _, uid := range e.UIDs {
+		ret.Fields = append(ret.Fields, keybase1.StringKVPair{
+			Key:   "uid",
+			Value: uid.String(),
+		})
 	}
 	return ret
 }
