@@ -13,7 +13,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/saltpackKeyHelpers/saltpackHelperMocks"
+	"github.com/keybase/client/go/saltpackkeys/saltpackkeysmocks"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
@@ -63,7 +63,7 @@ func TestSaltpackEncrypt(t *testing.T) {
 			Sink:   sink,
 		}
 
-		eng := NewSaltpackEncrypt(tc.G, arg, NewSaltpackUserKeyfinderAsInterface)
+		eng := NewSaltpackEncrypt(arg, NewSaltpackUserKeyfinderAsInterface)
 		m := NewMetaContextForTest(tc).WithUIs(uis)
 		if err := RunEngine2(m, eng); err != nil {
 			t.Fatal(err)
@@ -113,7 +113,7 @@ func TestSaltpackEncryptHideRecipients(t *testing.T) {
 			Sink:   sink,
 		}
 
-		eng := NewSaltpackEncrypt(tc.G, arg, NewSaltpackUserKeyfinderAsInterface)
+		eng := NewSaltpackEncrypt(arg, NewSaltpackUserKeyfinderAsInterface)
 		m := NewMetaContextForTest(tc).WithUIs(uis)
 		if err := RunEngine2(m, eng); err != nil {
 			t.Fatal(err)
@@ -182,7 +182,7 @@ func TestSaltpackEncryptAnonymousSigncryption(t *testing.T) {
 			Sink:   encsink,
 		}
 
-		enceng := NewSaltpackEncrypt(tc.G, encarg, NewSaltpackUserKeyfinderAsInterface)
+		enceng := NewSaltpackEncrypt(encarg, NewSaltpackUserKeyfinderAsInterface)
 		m := NewMetaContextForTest(tc).WithUIs(uis)
 		if err := RunEngine2(m, enceng); err != nil {
 			t.Fatal(err)
@@ -210,7 +210,7 @@ func TestSaltpackEncryptAnonymousSigncryption(t *testing.T) {
 			Source: strings.NewReader(encsink.String()),
 			Sink:   decsink,
 		}
-		deceng := NewSaltpackDecrypt(tc.G, decarg, saltpackHelperMocks.NewMockPseudonymResolver(t))
+		deceng := NewSaltpackDecrypt(decarg, saltpackkeysmocks.NewMockPseudonymResolver(t))
 		if err := RunEngine2(m, deceng); err != nil {
 			t.Fatal(err)
 		}
@@ -266,7 +266,7 @@ func TestSaltpackEncryptAnonymousEncryptionOnly(t *testing.T) {
 			Sink:   encsink,
 		}
 
-		enceng := NewSaltpackEncrypt(tc.G, encarg, NewSaltpackUserKeyfinderAsInterface)
+		enceng := NewSaltpackEncrypt(encarg, NewSaltpackUserKeyfinderAsInterface)
 		m := NewMetaContextForTest(tc).WithUIs(uis)
 		if err := RunEngine2(m, enceng); err != nil {
 			t.Fatal(err)
@@ -294,7 +294,7 @@ func TestSaltpackEncryptAnonymousEncryptionOnly(t *testing.T) {
 			Source: strings.NewReader(encsink.String()),
 			Sink:   decsink,
 		}
-		deceng := NewSaltpackDecrypt(tc.G, decarg, saltpackHelperMocks.NewMockPseudonymResolver(t))
+		deceng := NewSaltpackDecrypt(decarg, saltpackkeysmocks.NewMockPseudonymResolver(t))
 		if err := RunEngine2(m, deceng); err != nil {
 			t.Fatal(err)
 		}
@@ -337,7 +337,7 @@ func TestSaltpackEncryptSelfNoKey(t *testing.T) {
 		Sink:   sink,
 	}
 
-	eng := NewSaltpackEncrypt(tc.G, arg, NewSaltpackUserKeyfinderAsInterface)
+	eng := NewSaltpackEncrypt(arg, NewSaltpackUserKeyfinderAsInterface)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	if _, ok := err.(libkb.NoDeviceError); !ok {
@@ -358,14 +358,15 @@ func TestSaltpackEncryptLoggedOut(t *testing.T) {
 	arg := &SaltpackEncryptArg{
 		Opts: keybase1.SaltpackEncryptOptions{
 			Recipients: []string{"t_tracy+t_tracy@rooter", "t_george", "t_kb+gbrltest@twitter"},
-			// Only the non-signing encryption mode works when you're logged out.
+			// Only anonymous mode works when you're logged out.
 			AuthenticityType: keybase1.AuthenticityType_ANONYMOUS,
+			UseEntityKeys:    true,
 		},
 		Source: strings.NewReader("track and encrypt, track and encrypt"),
 		Sink:   sink,
 	}
 
-	eng := NewSaltpackEncrypt(tc.G, arg, NewSaltpackUserKeyfinderAsInterface)
+	eng := NewSaltpackEncrypt(arg, NewSaltpackUserKeyfinderAsInterface)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	if err != nil {
@@ -396,14 +397,15 @@ func TestSaltpackEncryptNoNaclOnlyPGP(t *testing.T) {
 		Opts: keybase1.SaltpackEncryptOptions{
 			Recipients:    []string{u2.Username},
 			NoSelfEncrypt: true,
+			// TODO REMOVE
 			// no-self is only supported in the encryption-only mode
-			AuthenticityType: keybase1.AuthenticityType_ANONYMOUS,
+			//AuthenticityType: keybase1.AuthenticityType_ANONYMOUS,
 		},
 		Source: strings.NewReader(msg),
 		Sink:   sink,
 	}
 
-	eng := NewSaltpackEncrypt(tc.G, arg, NewSaltpackUserKeyfinderAsInterface)
+	eng := NewSaltpackEncrypt(arg, NewSaltpackUserKeyfinderAsInterface)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	if perr, ok := err.(libkb.NoNaClEncryptionKeyError); !ok {
@@ -438,12 +440,13 @@ func TestSaltpackEncryptNoSelf(t *testing.T) {
 		Opts: keybase1.SaltpackEncryptOptions{
 			Recipients:    []string{u1.Username},
 			NoSelfEncrypt: true,
+			UseEntityKeys: true,
 		},
 		Source: strings.NewReader(msg),
 		Sink:   sink,
 	}
 
-	eng := NewSaltpackEncrypt(tc.G, arg, NewSaltpackUserKeyfinderAsInterface)
+	eng := NewSaltpackEncrypt(arg, NewSaltpackUserKeyfinderAsInterface)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
@@ -460,7 +463,7 @@ func TestSaltpackEncryptNoSelf(t *testing.T) {
 		Source: strings.NewReader(string(out)),
 		Sink:   decoded,
 	}
-	dec := NewSaltpackDecrypt(tc.G, decarg, saltpackHelperMocks.NewMockPseudonymResolver(t))
+	dec := NewSaltpackDecrypt(decarg, saltpackkeysmocks.NewMockPseudonymResolver(t))
 	err := RunEngine2(m, dec)
 	if _, ok := err.(libkb.NoDecryptionKeyError); !ok {
 		t.Fatalf("Expected err type %T, but got %T", libkb.NoDecryptionKeyError{}, err)
@@ -471,7 +474,7 @@ func TestSaltpackEncryptNoSelf(t *testing.T) {
 
 	m = m.WithSecretUI(u1.NewSecretUI())
 	decarg.Source = strings.NewReader(string(out))
-	dec = NewSaltpackDecrypt(tc.G, decarg, saltpackHelperMocks.NewMockPseudonymResolver(t))
+	dec = NewSaltpackDecrypt(decarg, saltpackkeysmocks.NewMockPseudonymResolver(t))
 	err = RunEngine2(m, dec)
 	if err != nil {
 		t.Fatal(err)
@@ -501,10 +504,11 @@ func TestSaltpackEncryptBinary(t *testing.T) {
 		Source: strings.NewReader(msg),
 		Sink:   sink,
 		Opts: keybase1.SaltpackEncryptOptions{
-			Binary: true,
+			Binary:        true,
+			UseEntityKeys: true,
 		},
 	}
-	enc := NewSaltpackEncrypt(tc.G, arg, NewSaltpackUserKeyfinderAsInterface)
+	enc := NewSaltpackEncrypt(arg, NewSaltpackUserKeyfinderAsInterface)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, enc); err != nil {
 		t.Fatal(err)
@@ -517,7 +521,7 @@ func TestSaltpackEncryptBinary(t *testing.T) {
 		Source: strings.NewReader(out),
 		Sink:   decoded,
 	}
-	dec := NewSaltpackDecrypt(tc.G, decarg, saltpackHelperMocks.NewMockPseudonymResolver(t))
+	dec := NewSaltpackDecrypt(decarg, saltpackkeysmocks.NewMockPseudonymResolver(t))
 	if err := RunEngine2(m, dec); err != nil {
 		t.Fatal(err)
 	}
@@ -547,12 +551,13 @@ func TestSaltpackEncryptForceVersion(t *testing.T) {
 				Recipients:       []string{u1.Username},
 				Binary:           true,
 				SaltpackVersion:  versionFlag, // This is what we're testing!
+				UseEntityKeys:    true,
 			},
 			Source: strings.NewReader("testing version flag"),
 			Sink:   sink,
 		}
 
-		eng := NewSaltpackEncrypt(tc.G, arg, NewSaltpackUserKeyfinderAsInterface)
+		eng := NewSaltpackEncrypt(arg, NewSaltpackUserKeyfinderAsInterface)
 		m := NewMetaContextForTest(tc).WithUIs(uis)
 		if err := RunEngine2(m, eng); err != nil {
 			t.Fatal(err)

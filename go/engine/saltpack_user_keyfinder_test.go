@@ -30,7 +30,7 @@ func TestSaltpackUserKeyfinder(t *testing.T) {
 		Recipients:    []string{u1.Username, u2.Username, u3.Username},
 		UseEntityKeys: true,
 	}
-	eng := NewSaltpackUserKeyfinder(tc.G, arg)
+	eng := NewSaltpackUserKeyfinder(arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)

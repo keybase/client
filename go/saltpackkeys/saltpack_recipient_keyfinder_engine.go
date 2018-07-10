@@ -147,6 +147,11 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupTeam(m libkb.MetaContext, teamN
 		return teamNotFoundError{error: err}
 	}
 
+	// A user can load a public team that they are not part of (and therefore have no keys for).
+	if !team.IsMember(m.Ctx(), e.Arg.Self.ToUserVersion()) {
+		return fmt.Errorf("cannot encrypt for team %s because you are not a member", teamName)
+	}
+
 	// Note: when we encrypt for a team with --use-entity-keys set, we use just the per team key, and do not add
 	// all the per user keys of the individual members.
 	if e.Arg.UseEntityKeys {
@@ -202,12 +207,12 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupImplicitTeam(m libkb.MetaContex
 	expr, err = externals.AssertionParse(socialAssertionForNonExistingUser)
 	if err != nil {
 		m.CDebugf("error parsing assertion: %s", err)
-		return invalidAssertionError{fmt.Errorf("invalid recipient %q: %s", socialAssertionForNonExistingUser, err)}
+		return invalidAssertionError{fmt.Errorf("invalid recipient: %q, err: %s", socialAssertionForNonExistingUser, err)}
 	}
 	_, err = expr.ToSocialAssertion()
 	if err != nil {
-		m.CDebugf("not a social assertion: %s (%s)", socialAssertionForNonExistingUser, expr)
-		return invalidAssertionError{fmt.Errorf("invalid recipient %q: %s", socialAssertionForNonExistingUser, err)}
+		m.CDebugf("not a social assertion: %s (%s), err: %+v", socialAssertionForNonExistingUser, expr, err)
+		return invalidAssertionError{fmt.Errorf("invalid recipient: %q, err: %s", socialAssertionForNonExistingUser, err)}
 	}
 
 	team, _, impTeamName, err := teams.LookupOrCreateImplicitTeam(m.Ctx(), m.G(), e.Arg.Self.GetName()+","+socialAssertionForNonExistingUser, false)
@@ -221,8 +226,8 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupImplicitTeam(m libkb.MetaContex
 		if err != nil {
 			return err
 		}
-		m.CDebugf("Adding team key for implicit team %v", impTeamName)
-		m.CWarningf("Encrypting for %v who is not yet a keybase user: one of your devices will need to be online after they join keybase, or they won't be able to decrypt it.", socialAssertionForNonExistingUser)
+		m.CDebugf("adding team key for implicit team %v", impTeamName)
+		m.CWarningf("encrypting for %v who is not yet a keybase user: one of your devices will need to be online after they join keybase, or they won't be able to decrypt it.", socialAssertionForNonExistingUser)
 		e.SymmetricEntityKeyMap[team.ID] = appKey
 	} else {
 		return fmt.Errorf("encrypting for %v (who is not yet on keybase) requires --use-entity-keys.", socialAssertionForNonExistingUser)

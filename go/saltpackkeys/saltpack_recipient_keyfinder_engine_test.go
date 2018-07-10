@@ -3,6 +3,7 @@
 package saltpackkeys
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -12,29 +13,16 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 )
 
-// TODO add more tests here before merging PR.
+// TODO add tests to retrieve keys for teams (also implicit) before merging PR.
 
-// copied from the engine package
-func SetupEngineTest(tb libkb.TestingTB, name string) libkb.TestContext {
-	tc := externalstest.SetupTest(tb, name, 2)
-
-	// use an insecure triplesec in tests
-	tc.G.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
-		warner := func() { tc.G.Log.Warning("Installing insecure Triplesec with weak stretch parameters") }
-		isProduction := func() bool {
-			return tc.G.Env.GetRunMode() == libkb.ProductionRunMode
-		}
-		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
-	}
-
-	return tc
+func SetupKeyfinderEngineTest(tb libkb.TestingTB, name string) libkb.TestContext {
+	return externalstest.SetupTestWithInsecureTriplesec(tb, name)
 }
 
 func TestSaltpackRecipientKeyfinderPUKs(t *testing.T) {
-	tc := SetupEngineTest(t, "SaltpackRecipientKeyfinderEngine")
+	tc := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine")
 	defer tc.Cleanup()
 
 	u1, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
@@ -88,7 +76,7 @@ func TestSaltpackRecipientKeyfinderPUKs(t *testing.T) {
 }
 
 func TestSaltpackRecipientKeyfinderFailsOnNonExistingUserWithoutLogin(t *testing.T) {
-	tc := SetupEngineTest(t, "SaltpackRecipientKeyfinderEngine")
+	tc := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine")
 	defer tc.Cleanup()
 
 	u3, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
@@ -112,7 +100,7 @@ func TestSaltpackRecipientKeyfinderFailsOnNonExistingUserWithoutLogin(t *testing
 }
 
 func TestSaltpackRecipientKeyfinderFailsOnNonExistingUserWithLogin(t *testing.T) {
-	tc := SetupEngineTest(t, "SaltpackRecipientKeyfinderEngine")
+	tc := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine")
 	defer tc.Cleanup()
 
 	u3, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
@@ -136,7 +124,7 @@ func TestSaltpackRecipientKeyfinderFailsOnNonExistingUserWithLogin(t *testing.T)
 }
 
 func TestSaltpackRecipientKeyfinderPUKSelfEncrypt(t *testing.T) {
-	tc := SetupEngineTest(t, "SaltpackRecipientKeyfinderEngine")
+	tc := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine")
 	defer tc.Cleanup()
 
 	u1, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
@@ -191,7 +179,7 @@ func TestSaltpackRecipientKeyfinderPUKSelfEncrypt(t *testing.T) {
 }
 
 func TestSaltpackRecipientKeyfinderPUKNoSelfEncrypt(t *testing.T) {
-	tc := SetupEngineTest(t, "SaltpackRecipientKeyfinderEngine")
+	tc := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine")
 	defer tc.Cleanup()
 
 	u1, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
@@ -243,7 +231,7 @@ func TestSaltpackRecipientKeyfinderPUKNoSelfEncrypt(t *testing.T) {
 }
 
 func TestSaltpackRecipientKeyfinderFailsIfUserHasNoPUK(t *testing.T) {
-	tc := SetupEngineTest(t, "SaltpackRecipientKeyfinderEngine")
+	tc := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine")
 	defer tc.Cleanup()
 
 	u1, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
@@ -304,13 +292,23 @@ func TestSaltpackRecipientKeyfinderFailsIfUserHasNoPUK(t *testing.T) {
 }
 
 func TestSaltpackRecipientKeyfinderDeviceKeys(t *testing.T) {
-	tc := SetupEngineTest(t, "SaltpackRecipientKeyfinderEngine")
+	tc := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine")
 	defer tc.Cleanup()
 
 	u1, err := kbtest.CreateAndSignupFakeUserPaper("spkfe", tc.G)
 	require.NoError(t, err)
-	u2, err := kbtest.CreateAndSignupFakeUserPaper("spkfe", tc.G)
+
+	// u2 has 2 devices
+	u2, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
 	require.NoError(t, err)
+	tcY := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine2") // context for second device
+	defer tcY.Cleanup()
+	kbtest.ProvisionNewDeviceKex(&tc, &tcY, u2)
+	tc.G.BustLocalUserCache(u2.GetUID())
+	tc.G.GetUPAKLoader().ClearMemory()
+	u2new, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(libkb.NewMetaContextForTest(tc)))
+	require.NoError(t, err)
+
 	u3, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
 	require.NoError(t, err)
 
@@ -330,8 +328,8 @@ func TestSaltpackRecipientKeyfinderDeviceKeys(t *testing.T) {
 	}
 
 	fPUKs := eng.GetPublicKIDs()
-	if len(fPUKs) != 3 {
-		t.Errorf("number of device keys found: %d, expected 3", len(fPUKs))
+	if len(fPUKs) != 4 {
+		t.Errorf("number of device keys found: %d, expected 4", len(fPUKs))
 	}
 	fPUKSet := make(map[keybase1.KID]struct{})
 	for _, fPUK := range fPUKs {
@@ -344,7 +342,13 @@ func TestSaltpackRecipientKeyfinderDeviceKeys(t *testing.T) {
 	if _, ok := fPUKSet[KID]; !ok {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
-	key, err = u2.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u2.User.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
+	key, err = u2new.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u2new.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
+	require.NoError(t, err)
+	KID = key.GetKID()
+	if _, ok := fPUKSet[KID]; !ok {
+		t.Errorf("expected to find key %v, which was not retrieved", KID)
+	}
+	key, err = u2new.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u2new.GetComputedKeyFamily().GetAllActiveDevices()[1].ID)
 	require.NoError(t, err)
 	KID = key.GetKID()
 	if _, ok := fPUKSet[KID]; !ok {
@@ -364,15 +368,24 @@ func TestSaltpackRecipientKeyfinderDeviceKeys(t *testing.T) {
 
 }
 
+func selectOneActivePaperDeviceID(u *libkb.User) (keybase1.DeviceID, error) {
+	for _, d := range u.GetComputedKeyFamily().GetAllActiveDevices() {
+		if d.Type == libkb.DeviceTypePaper {
+			return d.ID, nil
+		}
+	}
+	return "", fmt.Errorf("No paper devices found")
+}
+
 func TestSaltpackRecipientKeyfinderPaperKeys(t *testing.T) {
-	tc := SetupEngineTest(t, "SaltpackRecipientKeyfinderEngine")
+	tc := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine")
 	defer tc.Cleanup()
 
-	u1, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
+	u1, err := kbtest.CreateAndSignupFakeUserPaper("spkfe", tc.G)
 	require.NoError(t, err)
-	u2, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
+	u2, err := kbtest.CreateAndSignupFakeUserPaper("spkfe", tc.G)
 	require.NoError(t, err)
-	u3, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
+	u3, err := kbtest.CreateAndSignupFakeUserPaper("spkfe", tc.G)
 	require.NoError(t, err)
 
 	trackUI := &kbtest.FakeIdentifyUI{
@@ -381,8 +394,8 @@ func TestSaltpackRecipientKeyfinderPaperKeys(t *testing.T) {
 
 	uis := libkb.UIs{IdentifyUI: trackUI, SecretUI: u3.NewSecretUI()}
 	arg := libkb.SaltpackRecipientKeyfinderArg{
-		Recipients:    []string{u1.Username, u2.Username, u3.Username},
-		UseEntityKeys: true,
+		Recipients:   []string{u1.Username, u2.Username, u3.Username},
+		UsePaperKeys: true,
 	}
 	eng := NewSaltpackRecipientKeyfinderEngine(arg)
 	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
@@ -392,21 +405,34 @@ func TestSaltpackRecipientKeyfinderPaperKeys(t *testing.T) {
 
 	fPUKs := eng.GetPublicKIDs()
 	if len(fPUKs) != 3 {
-		t.Errorf("number of per user keys found: %d, expected 3", len(fPUKs))
+		t.Errorf("number of device keys found: %d, expected 3", len(fPUKs))
 	}
 	fPUKSet := make(map[keybase1.KID]struct{})
 	for _, fPUK := range fPUKs {
 		fPUKSet[fPUK] = struct{}{}
 	}
-	KID := u1.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
+
+	id, err := selectOneActivePaperDeviceID(u1.User)
+	require.NoError(t, err)
+	key, err := u1.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(id)
+	require.NoError(t, err)
+	KID := key.GetKID()
 	if _, ok := fPUKSet[KID]; !ok {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
-	KID = u2.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
+	id, err = selectOneActivePaperDeviceID(u1.User)
+	require.NoError(t, err)
+	key, err = u1.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(id)
+	require.NoError(t, err)
+	KID = key.GetKID()
 	if _, ok := fPUKSet[KID]; !ok {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
-	KID = u3.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
+	id, err = selectOneActivePaperDeviceID(u1.User)
+	require.NoError(t, err)
+	key, err = u1.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(id)
+	require.NoError(t, err)
+	KID = key.GetKID()
 	if _, ok := fPUKSet[KID]; !ok {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
@@ -415,18 +441,27 @@ func TestSaltpackRecipientKeyfinderPaperKeys(t *testing.T) {
 	if len(symKeys) != 0 {
 		t.Errorf("number of symmetric keys found: %d, expected 0", len(symKeys))
 	}
-
 }
 
-func TestSaltpackRecipientKeyfinderDeviceAndPUKs(t *testing.T) {
-	tc := SetupEngineTest(t, "SaltpackRecipientKeyfinderEngine")
+func TestSaltpackRecipientKeyfinderDevicePaperAndPerUserKeys(t *testing.T) {
+	tc := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine")
 	defer tc.Cleanup()
 
-	u1, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
+	u1, err := kbtest.CreateAndSignupFakeUserPaper("spkfe", tc.G)
 	require.NoError(t, err)
-	u2, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
+
+	// u2 has 2 devices + 1 paper device
+	u2, err := kbtest.CreateAndSignupFakeUserPaper("spkfe", tc.G)
 	require.NoError(t, err)
-	u3, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
+	tcY := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine2") // context for second device
+	defer tcY.Cleanup()
+	kbtest.ProvisionNewDeviceKex(&tc, &tcY, u2)
+	tc.G.BustLocalUserCache(u2.GetUID())
+	tc.G.GetUPAKLoader().ClearMemory()
+	u2new, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(libkb.NewMetaContextForTest(tc)))
+	require.NoError(t, err)
+
+	u3, err := kbtest.CreateAndSignupFakeUserPaper("spkfe", tc.G)
 	require.NoError(t, err)
 
 	trackUI := &kbtest.FakeIdentifyUI{
@@ -436,6 +471,8 @@ func TestSaltpackRecipientKeyfinderDeviceAndPUKs(t *testing.T) {
 	uis := libkb.UIs{IdentifyUI: trackUI, SecretUI: u3.NewSecretUI()}
 	arg := libkb.SaltpackRecipientKeyfinderArg{
 		Recipients:    []string{u1.Username, u2.Username, u3.Username},
+		UseDeviceKeys: true,
+		UsePaperKeys:  true,
 		UseEntityKeys: true,
 	}
 	eng := NewSaltpackRecipientKeyfinderEngine(arg)
@@ -445,137 +482,37 @@ func TestSaltpackRecipientKeyfinderDeviceAndPUKs(t *testing.T) {
 	}
 
 	fPUKs := eng.GetPublicKIDs()
-	if len(fPUKs) != 3 {
-		t.Errorf("number of per user keys found: %d, expected 3", len(fPUKs))
+	if len(fPUKs) != 10 { // 3 keys per user (1 paper, 1 device, 1 puk), plus an extra device for u2
+		t.Errorf("number of device keys found: %d, expected 4", len(fPUKs))
 	}
 	fPUKSet := make(map[keybase1.KID]struct{})
 	for _, fPUK := range fPUKs {
 		fPUKSet[fPUK] = struct{}{}
 	}
-	KID := u1.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
-	if _, ok := fPUKSet[KID]; !ok {
-		t.Errorf("expected to find key %v, which was not retrieved", KID)
-	}
-	KID = u2.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
-	if _, ok := fPUKSet[KID]; !ok {
-		t.Errorf("expected to find key %v, which was not retrieved", KID)
-	}
-	KID = u3.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
-	if _, ok := fPUKSet[KID]; !ok {
-		t.Errorf("expected to find key %v, which was not retrieved", KID)
-	}
 
+	allKeyFamilies := []*libkb.ComputedKeyFamily{}
+	allKeyFamilies = append(allKeyFamilies, u1.User.GetComputedKeyFamily())
+	allKeyFamilies = append(allKeyFamilies, u2new.GetComputedKeyFamily())
+	allKeyFamilies = append(allKeyFamilies, u3.User.GetComputedKeyFamily())
+
+	var allKIDs []keybase1.KID
+	for _, kf := range allKeyFamilies {
+		for _, d := range kf.GetAllActiveDevices() {
+			k, err := kf.GetEncryptionSubkeyForDevice(d.ID)
+			require.NoError(t, err)
+			allKIDs = append(allKIDs, k.GetKID())
+		}
+		allKIDs = append(allKIDs, kf.GetLatestPerUserKey().EncKID)
+	}
+	require.Equal(t, 10, len(allKIDs)) // 3 keys for u1 and u3 (1 paper, 1 device, 1 puk), 4 for u2 (has 2 devices)
+
+	for _, KID := range allKIDs {
+		if _, ok := fPUKSet[KID]; !ok {
+			t.Errorf("expected to find key %v, which was not retrieved", KID)
+		}
+	}
 	symKeys := eng.GetSymmetricKeys()
 	if len(symKeys) != 0 {
 		t.Errorf("number of symmetric keys found: %d, expected 0", len(symKeys))
 	}
-
-}
-
-func TestSaltpackRecipientKeyfinderPaperAndPUKs(t *testing.T) {
-	tc := SetupEngineTest(t, "SaltpackRecipientKeyfinderEngine")
-	defer tc.Cleanup()
-
-	u1, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
-	require.NoError(t, err)
-	u2, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
-	require.NoError(t, err)
-	u3, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
-	require.NoError(t, err)
-
-	trackUI := &kbtest.FakeIdentifyUI{
-		Proofs: make(map[string]string),
-	}
-
-	uis := libkb.UIs{IdentifyUI: trackUI, SecretUI: u3.NewSecretUI()}
-	arg := libkb.SaltpackRecipientKeyfinderArg{
-		Recipients:    []string{u1.Username, u2.Username, u3.Username},
-		UseEntityKeys: true,
-	}
-	eng := NewSaltpackRecipientKeyfinderEngine(arg)
-	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
-	if err := engine.RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
-	}
-
-	fPUKs := eng.GetPublicKIDs()
-	if len(fPUKs) != 3 {
-		t.Errorf("number of per user keys found: %d, expected 3", len(fPUKs))
-	}
-	fPUKSet := make(map[keybase1.KID]struct{})
-	for _, fPUK := range fPUKs {
-		fPUKSet[fPUK] = struct{}{}
-	}
-	KID := u1.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
-	if _, ok := fPUKSet[KID]; !ok {
-		t.Errorf("expected to find key %v, which was not retrieved", KID)
-	}
-	KID = u2.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
-	if _, ok := fPUKSet[KID]; !ok {
-		t.Errorf("expected to find key %v, which was not retrieved", KID)
-	}
-	KID = u3.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
-	if _, ok := fPUKSet[KID]; !ok {
-		t.Errorf("expected to find key %v, which was not retrieved", KID)
-	}
-
-	symKeys := eng.GetSymmetricKeys()
-	if len(symKeys) != 0 {
-		t.Errorf("number of symmetric keys found: %d, expected 0", len(symKeys))
-	}
-
-}
-
-func TestSaltpackRecipientKeyfinderAllKeys(t *testing.T) {
-	tc := SetupEngineTest(t, "SaltpackRecipientKeyfinderEngine")
-	defer tc.Cleanup()
-
-	u1, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
-	require.NoError(t, err)
-	u2, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
-	require.NoError(t, err)
-	u3, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
-	require.NoError(t, err)
-
-	trackUI := &kbtest.FakeIdentifyUI{
-		Proofs: make(map[string]string),
-	}
-
-	uis := libkb.UIs{IdentifyUI: trackUI, SecretUI: u3.NewSecretUI()}
-	arg := libkb.SaltpackRecipientKeyfinderArg{
-		Recipients:    []string{u1.Username, u2.Username, u3.Username},
-		UseEntityKeys: true,
-	}
-	eng := NewSaltpackRecipientKeyfinderEngine(arg)
-	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
-	if err := engine.RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
-	}
-
-	fPUKs := eng.GetPublicKIDs()
-	if len(fPUKs) != 3 {
-		t.Errorf("number of per user keys found: %d, expected 3", len(fPUKs))
-	}
-	fPUKSet := make(map[keybase1.KID]struct{})
-	for _, fPUK := range fPUKs {
-		fPUKSet[fPUK] = struct{}{}
-	}
-	KID := u1.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
-	if _, ok := fPUKSet[KID]; !ok {
-		t.Errorf("expected to find key %v, which was not retrieved", KID)
-	}
-	KID = u2.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
-	if _, ok := fPUKSet[KID]; !ok {
-		t.Errorf("expected to find key %v, which was not retrieved", KID)
-	}
-	KID = u3.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
-	if _, ok := fPUKSet[KID]; !ok {
-		t.Errorf("expected to find key %v, which was not retrieved", KID)
-	}
-
-	symKeys := eng.GetSymmetricKeys()
-	if len(symKeys) != 0 {
-		t.Errorf("number of symmetric keys found: %d, expected 0", len(symKeys))
-	}
-
 }
