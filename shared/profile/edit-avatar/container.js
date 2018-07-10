@@ -5,8 +5,13 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {connect, type TypedState} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
+import type {RouteProps} from '../../route-tree/render-route'
+import type {Response} from 'react-native-image-picker'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => ({
+const mapStateToProps = (
+  state: TypedState,
+  {routeProps}: RouteProps<{image: Response, sendChatNotification: boolean, teamname: string}, {}>
+) => ({
   image: routeProps.get('image'),
   sendChatNotification: routeProps.get('sendChatNotification'),
   teamname: routeProps.get('teamname'),
@@ -18,9 +23,9 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: Props) => ({
     filename: string,
     teamname: string,
     sendChatNotification: boolean,
-    crop?: RPCTypes.ImageCropRect
+    crop: RPCTypes.ImageCropRect
   ) => dispatch(TeamsGen.createUploadTeamAvatar({crop, filename, sendChatNotification, teamname})),
-  onSaveUserAvatar: (filename: string, crop?: RPCTypes.ImageCropRect) =>
+  onSaveUserAvatar: (filename: string, crop: RPCTypes.ImageCropRect) =>
     dispatch(ProfileGen.createUploadAvatar({crop, filename})),
 })
 
