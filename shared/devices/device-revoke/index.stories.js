@@ -4,10 +4,10 @@ import {action, storiesOf} from '../../stories/storybook'
 import DeviceRevoke, {type Props} from '.'
 
 const devicesProps: Props = {
-  currentDevice: true,
-  deviceID: 'my computer',
-  endangeredTLFs: ['nathunsmitty', 'nathunsmitty,chrisnojima', 'nathunsmitty,chrisnojima,jacobyoung'],
-  type: 'backup',
+  currentDevice: false,
+  deviceID: 'id',
+  type: 'desktop',
+  endangeredTLFs: [],
   name: 'my computer',
   onCancel: action('oncancel'),
   onSubmit: action('onsubmit'),
@@ -16,12 +16,17 @@ const devicesProps: Props = {
 
 const load = () => {
   storiesOf('Devices/Revoke', module)
-    .add('Paper key', () => <DeviceRevoke {...devicesProps} />)
-    .add('Mobile Device', () => <DeviceRevoke {...devicesProps} />)
+    .add('Paper key', () => <DeviceRevoke {...devicesProps} type="backup" name="my paper key" />)
+    .add('Mobile Device', () => <DeviceRevoke {...devicesProps} type="mobile" name="my iphone" />)
     .add('Desktop Device', () => <DeviceRevoke {...devicesProps} />)
-    .add('Current Device', () => <DeviceRevoke {...devicesProps} />)
-    .add('Device Loading', () => <DeviceRevoke {...devicesProps} />)
-    .add('Device with Endangered TLFs', () => <DeviceRevoke {...devicesProps} />)
+    .add('Current Device', () => <DeviceRevoke {...devicesProps} currentDevice={true} />)
+    .add('Device Loading', () => <DeviceRevoke {...devicesProps} waiting={true} />)
+    .add('Device with Endangered TLFs', () => (
+      <DeviceRevoke
+        {...devicesProps}
+        endangeredTLFs={['nathunsmitty', 'nathunsmitty,chrisnojima', 'nathunsmitty,chrisnojima,jacobyoung']}
+      />
+    ))
 }
 
 export default load
