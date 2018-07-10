@@ -1,8 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../../constants/login'
-import {Button, Box2, Text, PlainInput, WaitingButton} from '../../../common-adapters'
+import {Icon, Button, Box2, Text, PlainInput, WaitingButton} from '../../../common-adapters'
 import {
+  platformStyles,
   collapseStyles,
   globalColors,
   globalMargins,
@@ -12,6 +13,7 @@ import {
 } from '../../../styles'
 import QRImage from './qr-image'
 import QRScan from './qr-scan'
+import {intersperseFn} from '../../../util/arrays'
 
 export type DeviceType = 'phone' | 'desktop'
 export type Tab = 'QR' | 'enterText' | 'viewText'
@@ -132,7 +134,7 @@ class CodePage2 extends React.Component<Props, State> {
 const Qr = (props: Props) =>
   props.currentDeviceType === 'desktop' ? (
     <Box2 direction="vertical" style={styles.qrOnlyContainer}>
-      <QRImage code={props.textCode} cellSize={3} />
+      <QRImage code={props.textCode} cellSize={5} />
     </Box2>
   ) : (
     <Box2
@@ -160,7 +162,7 @@ class EnterText extends React.Component<Props, {code: string}> {
     return (
       <Box2 direction="vertical" style={styles.enterTextContainer} gap="small">
         <PlainInput
-          placeholderColor={globalColors.green}
+          placeholderColor={globalColors.green2}
           multiline={true}
           onChangeText={code => this.setState({code})}
           onEnterKeyDown={this._submit}
@@ -189,28 +191,64 @@ const ViewText = (props: Props) => (
   </Box2>
 )
 
+const JoinWithCaret = ({children}) =>
+  intersperseFn(
+    idx => (
+      <Icon key={idx} type="iconfont-arrow-right" color={globalColors.white} boxStyle={styles.arrowBox} />
+    ),
+    React.Children.toArray(children)
+  )
+
 const Instructions = (p: Props) => (
   <Box2 direction="vertical">
     {p.currentDeviceAlreadyProvisioned ? (
-      <Text type="Header" style={styles.instructions}>
-        Ready to provision using{' '}
+      <React.Fragment>
+        <Text type="Header" style={styles.instructions}>
+          Ready to provision using
+        </Text>
         <Text type="Header" style={styles.instructionsItalic}>
           {p.otherDeviceName}
         </Text>
-      </Text>
+      </React.Fragment>
     ) : (
-      <Text type="Header" style={styles.instructions}>
-        In{' '}
-        <Text type="Header" style={styles.instructionsItalic}>
-          {p.otherDeviceName}
-        </Text>, go to {p.otherDeviceType === 'phone' ? 'Settings > ' : ''}Devices > Add new > New{' '}
-        {p.otherDeviceType}.
-      </Text>
+      <React.Fragment>
+        <Text type="Header" style={styles.instructions}>
+          In
+          <Text type="Header" style={styles.instructionsItalic}>
+            {' '}
+            {p.otherDeviceName}
+          </Text>
+          , go to
+        </Text>
+        <Text type="Header" style={styles.instructions}>
+          <JoinWithCaret>
+            <Text type="Header" style={styles.instructions}>
+              Devices
+            </Text>
+            <Text type="Header" style={styles.instructions}>
+              Add new
+            </Text>
+            <Text type="Header" style={styles.instructions}>
+              New {p.otherDeviceType === 'desktop' ? 'computer' : 'phone'}.
+            </Text>
+          </JoinWithCaret>
+        </Text>
+      </React.Fragment>
     )}
   </Box2>
 )
 
 const styles = styleSheetCreate({
+  arrowBox: platformStyles({
+    common: {
+      marginLeft: 2,
+      marginRight: 2,
+      marginTop: 2,
+    },
+    isElectron: {
+      display: 'inline-block',
+    },
+  }),
   container: {
     justifyContent: 'space-between',
     padding: globalMargins.large,
@@ -234,6 +272,10 @@ const styles = styleSheetCreate({
   instructions: {
     color: globalColors.white,
     textAlign: 'center',
+  },
+  instructionsContainer: {
+    alignItems: 'center',
+    flexWrap: 'wrap',
   },
   instructionsItalic: {
     ...globalStyles.italic,

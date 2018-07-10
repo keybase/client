@@ -99,7 +99,7 @@ class Icon extends Component<Props, void> {
       ])
 
       return (
-        <Box>
+        <Box style={this.props.boxStyle}>
           <StyledSpan
             alt={this.props.hint}
             color={color}
