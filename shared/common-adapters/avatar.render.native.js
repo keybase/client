@@ -114,7 +114,11 @@ class AvatarRender extends React.PureComponent<Props, State> {
     const containerStyle = collapseStyles([styles[`box:${size}`], this.props.style])
 
     return (
-      <ClickableBox onClick={this.props.onClick} feedback={false} style={containerStyle}>
+      <ClickableBox
+        onClick={this.props.onEditAvatarClick ? this.props.onEditAvatarClick : this.props.onClick}
+        feedback={false}
+        style={containerStyle}
+      >
         <Box style={containerStyle}>
           {!this.props.skipBackground &&
             (!this.props.skipBackgroundAfterLoaded || !this.state.loaded) && (
