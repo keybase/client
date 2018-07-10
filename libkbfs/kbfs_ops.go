@@ -1108,7 +1108,7 @@ func (fs *KBFSOpsStandard) NewNotificationChannel(
 	fav := handle.ToFavorite()
 	if ops, ok := fs.opsByFav[fav]; ok {
 		ops.NewNotificationChannel(ctx, handle, convID, channelName)
-	} else {
+	} else if handle.tlfID != tlf.NullID {
 		fs.editActivity.Add(1)
 		go func() {
 			defer fs.editActivity.Done()
@@ -1116,12 +1116,16 @@ func (fs *KBFSOpsStandard) NewNotificationChannel(
 				handle.GetCanonicalPath())
 			ctx := CtxWithRandomIDReplayable(
 				context.Background(), CtxFBOIDKey, CtxFBOOpID, fs.log)
-			_, _, err := fs.GetRootNode(ctx, handle, MasterBranch)
-			if err != nil {
-				fs.log.CWarningf(ctx, "Couldn't get root node for %s: %+v",
-					handle.GetCanonicalName(), err)
-			}
+			ops := fs.getOpsNoAdd(ctx, FolderBranch{handle.tlfID, MasterBranch})
+			// Don't initialize the entire TLF, because we don't want
+			// to run identifies on it.  Instead, just start the
+			// chat-monitoring part.
+			ops.startMonitorChat(handle.GetCanonicalName())
 		}()
+	} else {
+		fs.log.CWarningf(ctx,
+			"Handle %s for existing folder unexpectedly has no TLF ID",
+			handle.GetCanonicalName())
 	}
 }
 
