@@ -29,6 +29,7 @@ import {globalStyles, globalColors, globalMargins, statusBarHeight, isIPhoneX} f
 import {stateColors} from '../util/tracker'
 import {usernameText} from '../common-adapters/usernames'
 import {ADD_TO_TEAM_ZINDEX, AVATAR_SIZE} from '../constants/profile'
+import flags from '../util/feature-flags'
 
 import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 import type {Proof} from '../constants/types/tracker'
@@ -106,7 +107,7 @@ class Profile extends Component<Props, State> {
   }
 
   _onClickAvatar = () =>
-    this.props.isYou
+    this.props.isYou && flags.avatarUploadsEnabled
       ? showImagePicker({mediaType: 'photo'}, (response: Response) => {
           if (response.didCancel) {
             return
