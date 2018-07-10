@@ -177,9 +177,7 @@ const mapStateToProps = (state: TypedState) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onUsernameClicked: (username: string) =>
-    isMobile
-      ? dispatch(createShowUserProfile({username}))
-      : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+     dispatch(createShowUserProfile({username}))
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
