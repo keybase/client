@@ -486,6 +486,84 @@ func (o AutoClaim) DeepCopy() AutoClaim {
 	}
 }
 
+type RequestPost struct {
+	ToUser      *keybase1.UserVersion `codec:"toUser,omitempty" json:"toUser,omitempty"`
+	ToAssertion string                `codec:"toAssertion" json:"toAssertion"`
+	Amount      string                `codec:"amount" json:"amount"`
+	Asset       *Asset                `codec:"asset,omitempty" json:"asset,omitempty"`
+	Currency    *OutsideCurrencyCode  `codec:"currency,omitempty" json:"currency,omitempty"`
+}
+
+func (o RequestPost) DeepCopy() RequestPost {
+	return RequestPost{
+		ToUser: (func(x *keybase1.UserVersion) *keybase1.UserVersion {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ToUser),
+		ToAssertion: o.ToAssertion,
+		Amount:      o.Amount,
+		Asset: (func(x *Asset) *Asset {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Asset),
+		Currency: (func(x *OutsideCurrencyCode) *OutsideCurrencyCode {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Currency),
+	}
+}
+
+type RequestDetails struct {
+	Id            KeybaseRequestID      `codec:"id" json:"id"`
+	FromUser      keybase1.UserVersion  `codec:"fromUser" json:"fromUser"`
+	ToUser        *keybase1.UserVersion `codec:"toUser,omitempty" json:"toUser,omitempty"`
+	ToAssertion   string                `codec:"toAssertion" json:"toAssertion"`
+	Amount        string                `codec:"amount" json:"amount"`
+	Asset         *Asset                `codec:"asset,omitempty" json:"asset,omitempty"`
+	Currency      *OutsideCurrencyCode  `codec:"currency,omitempty" json:"currency,omitempty"`
+	FundingKbTxID KeybaseTransactionID  `codec:"fundingKbTxID" json:"fundingKbTxID"`
+}
+
+func (o RequestDetails) DeepCopy() RequestDetails {
+	return RequestDetails{
+		Id:       o.Id.DeepCopy(),
+		FromUser: o.FromUser.DeepCopy(),
+		ToUser: (func(x *keybase1.UserVersion) *keybase1.UserVersion {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ToUser),
+		ToAssertion: o.ToAssertion,
+		Amount:      o.Amount,
+		Asset: (func(x *Asset) *Asset {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Asset),
+		Currency: (func(x *OutsideCurrencyCode) *OutsideCurrencyCode {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Currency),
+		FundingKbTxID: o.FundingKbTxID.DeepCopy(),
+	}
+}
+
 type BalancesArg struct {
 	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
 	AccountID AccountID            `codec:"accountID" json:"accountID"`
@@ -546,6 +624,16 @@ type IsMasterKeyActiveArg struct {
 	AccountID AccountID            `codec:"accountID" json:"accountID"`
 }
 
+type SubmitRequestArg struct {
+	Caller  keybase1.UserVersion `codec:"caller" json:"caller"`
+	Request RequestPost          `codec:"request" json:"request"`
+}
+
+type RequestDetailsArg struct {
+	Caller keybase1.UserVersion `codec:"caller" json:"caller"`
+	ReqID  KeybaseRequestID     `codec:"reqID" json:"reqID"`
+}
+
 type PingArg struct {
 }
 
@@ -562,6 +650,8 @@ type RemoteInterface interface {
 	ReleaseAutoClaimLock(context.Context, ReleaseAutoClaimLockArg) error
 	NextAutoClaim(context.Context, keybase1.UserVersion) (*AutoClaim, error)
 	IsMasterKeyActive(context.Context, IsMasterKeyActiveArg) (bool, error)
+	SubmitRequest(context.Context, SubmitRequestArg) (KeybaseRequestID, error)
+	RequestDetails(context.Context, RequestDetailsArg) (RequestDetails, error)
 	Ping(context.Context) (string, error)
 }
 
@@ -761,6 +851,38 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"submitRequest": {
+				MakeArg: func() interface{} {
+					ret := make([]SubmitRequestArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SubmitRequestArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SubmitRequestArg)(nil), args)
+						return
+					}
+					ret, err = i.SubmitRequest(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"requestDetails": {
+				MakeArg: func() interface{} {
+					ret := make([]RequestDetailsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]RequestDetailsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]RequestDetailsArg)(nil), args)
+						return
+					}
+					ret, err = i.RequestDetails(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"ping": {
 				MakeArg: func() interface{} {
 					ret := make([]PingArg, 1)
@@ -839,6 +961,16 @@ func (c RemoteClient) NextAutoClaim(ctx context.Context, caller keybase1.UserVer
 
 func (c RemoteClient) IsMasterKeyActive(ctx context.Context, __arg IsMasterKeyActiveArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.isMasterKeyActive", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) SubmitRequest(ctx context.Context, __arg SubmitRequestArg) (res KeybaseRequestID, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.submitRequest", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) RequestDetails(ctx context.Context, __arg RequestDetailsArg) (res RequestDetails, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.requestDetails", []interface{}{__arg}, &res)
 	return
 }
 
