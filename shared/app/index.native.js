@@ -1,5 +1,5 @@
 // @flow
-import * as AppGen from '../actions/app-gen'
+import * as ConfigGen from '../actions/config-gen'
 import Main from './main'
 import React, {Component} from 'react'
 import configureStore from '../store/configure-store'
@@ -62,11 +62,11 @@ class Keybase extends Component<any> {
   }
 
   _handleOpenURL(event: {url: string}) {
-    this.store.dispatch(AppGen.createLink({link: event.url}))
+    this.store.dispatch(ConfigGen.createLink({link: event.url}))
   }
 
   _handleAppStateChange = (nextAppState: 'active' | 'background' | 'inactive') => {
-    this.store.dispatch(AppGen.createMobileAppState({nextAppState}))
+    this.store.dispatch(ConfigGen.createMobileAppState({nextAppState}))
   }
 
   render() {

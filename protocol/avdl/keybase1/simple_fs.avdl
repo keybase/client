@@ -156,16 +156,24 @@ protocol SimpleFS {
   }
 
   /**
-   Begin list of items in directory at path
-   Retrieve results with readList()
-   Can be a single file to get flags/status
+   Begin list of items in directory at path.
+   Retrieve results with readList().
+   Can be a single file to get flags/status.
+   If `refreshSubscription` is true and the path is a KBFS path, simpleFS
+     will begin sending `FSPathUpdated` notifications for the for the
+     corresponding TLF, until another call refreshes the subscription on a
+     different TLF.
    */
-  void simpleFSList(OpID opID, Path path, ListFilter filter);
+  void simpleFSList(OpID opID, Path path, ListFilter filter, boolean refreshSubscription);
 
   /**
-   Begin recursive list of items in directory at path
-   */
-  void simpleFSListRecursive(OpID opID, Path path, ListFilter filter);
+   Begin recursive list of items in directory at path.
+   If `refreshSubscription` is true and the path is a KBFS path, simpleFS
+     will begin sending `FSPathUpdated` notifications for the for the
+     corresponding TLF, until another call refreshes the subscription on a
+     different TLF.
+*/
+  void simpleFSListRecursive(OpID opID, Path path, ListFilter filter, boolean refreshSubscription);
 
   /**
    Get list of Paths in progress. Can indicate status of pending
@@ -307,4 +315,20 @@ protocol SimpleFS {
    recorded by the server) of their most recent edit.
    */
   FSFolderEditHistory simpleFSFolderEditHistory(Path path);
+
+  // suppressNotifications suppresses KBFS notifications, particularly FSEvent
+  // and FSSyncEvent.
+  //
+  // Caller should call this again after (suppressDurationSec / 2) to continue
+  // suppressing.  If no such call is made in suppressDurationSec, KBFS will
+  // resume notifications.
+
+  // When resuming notifications, if a notification would have happened since
+  // last suppressNotifications call but was suppressed, this notification will
+  // go through. If multiple notifications would have happened, only one of
+  // them is sent at resuming. Since only one of them is sent at resuming, if
+  // suppressing is used caller shouldn't depend on the completeness of
+  // notifications such as any differential nature of the data between
+  // different notifications.
+  void simpleFSSuppressNotifications(int suppressDurationSec);
 }

@@ -269,7 +269,7 @@ function rpcPromiseGen(methodName, name, response, requestType, responseType) {
   const resultType = responseType !== 'null' ? `${capitalize(name)}Result` : 'void'
   return `export const ${name}RpcPromise = (params: ${requestType}, waitingKey?: string): Promise<${resultType}> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: ${methodName}, params, callback: (error: RPCError, result: ${resultType}) => error ? reject(error) : resolve(${
     resultType === 'void' ? '' : 'result'
-  })}))`
+  }), waitingKey}))`
 }
 
 // Type parsing

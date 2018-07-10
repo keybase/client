@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -314,7 +315,7 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		return payment, err
 	}
 
-	details, err := s.remoter.PaymentDetails(ctx, arg.Id.String())
+	details, err := s.remoter.PaymentDetails(ctx, arg.Id.TxID.String())
 	if err != nil {
 		return payment, err
 	}
@@ -326,6 +327,7 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 
 	payment = stellar1.PaymentDetailsLocal{
 		Id:                summary.Id,
+		TxID:              summary.Id.TxID,
 		Time:              summary.Time,
 		StatusSimplified:  summary.StatusSimplified,
 		StatusDescription: summary.StatusDescription,
@@ -557,6 +559,63 @@ func (a balanceList) balanceDescription() (res string, err error) {
 		res += " + more"
 	}
 	return res, nil
+}
+
+func (s *Server) ValidateAccountIDLocal(ctx context.Context, arg stellar1.ValidateAccountIDLocalArg) (err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName: "ValidateAccountIDLocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+	_, err = libkb.ParseStellarAccountID(arg.AccountID.String())
+	return err
+}
+
+func (s *Server) ValidateSecretKeyLocal(ctx context.Context, arg stellar1.ValidateSecretKeyLocalArg) (err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName: "ValidateSecretKeyLocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+	_, _, _, err = libkb.ParseStellarSecretKey(arg.SecretKey.SecureNoLogString())
+	return err
+}
+
+func (s *Server) ValidateAccountNameLocal(ctx context.Context, arg stellar1.ValidateAccountNameLocalArg) (err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName: "ValidateAccountNameLocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+	if arg.Name == "" {
+		// No name is always acceptable.
+		return nil
+	}
+	if utf8.RuneCountInString(arg.Name) > 60 {
+		return fmt.Errorf("account name is too long")
+	}
+	// If this becomes a bottleneck, cache non-critical wallet info on G.Stellar.
+	currentBundle, _, err := remote.Fetch(ctx, s.G())
+	if err != nil {
+		s.G().Log.CErrorf(ctx, "error fetching bundle: %v", err)
+		// Return nil since the name is probably fine.
+		return nil
+	}
+	for _, account := range currentBundle.Accounts {
+		if arg.Name == account.Name {
+			return fmt.Errorf("that account name is already taken")
+		}
+	}
+	return nil
 }
 
 func (s *Server) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.ChangeWalletAccountNameLocalArg) (err error) {

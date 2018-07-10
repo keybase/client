@@ -8,6 +8,7 @@ protocol common {
   @typedef("string") record KeybaseTransactionID {}
   @typedef("long")   record TimeMs {} // ms since epoch
   @typedef("bytes")  record Hash {}
+  @typedef("string") record KeybaseRequestID {}
 
   record Asset {
     string type;
