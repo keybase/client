@@ -15,7 +15,13 @@ const devicesProps: Props = {
 }
 
 const load = () => {
-  storiesOf('Devices/Revoke', module).add('Current Device', () => <DeviceRevoke {...devicesProps} />)
+  storiesOf('Devices/Revoke', module)
+    .add('Paperkey', () => <DeviceRevoke {...devicesProps} />)
+    .add('Mobile Device', () => <DeviceRevoke {...devicesProps} />)
+    .add('Desktop Device', () => <DeviceRevoke {...devicesProps} />)
+    .add('Current Device', () => <DeviceRevoke {...devicesProps} />)
+    .add('Device Loading', () => <DeviceRevoke {...devicesProps} />)
+    .add('Device with Endangered TLFs', () => <DeviceRevoke {...devicesProps} />)
 }
 
 export default load
