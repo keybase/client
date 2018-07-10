@@ -58,8 +58,7 @@ const PathItemInfo = (props: Props) => (
       <Text type="BodySmall" style={writerTextStyle} lineClamp={isMobile ? 1 : undefined}>
         &nbsp;by&nbsp;
         <ConnectedUsernames
-          type="BodySmall"
-          style={writerStyle}
+          type="BodySmallSecondaryLink"
           usernames={[props.lastWriter]}
           inline={true}
           clickable={true}
@@ -70,12 +69,6 @@ const PathItemInfo = (props: Props) => (
     )}
   </Box>
 )
-
-const writerStyle = platformStyles({
-  common: {
-    color: globalColors.black_60,
-  },
-})
 
 const timeWriterBoxStyle = {
   ...globalStyles.flexBoxRow,
