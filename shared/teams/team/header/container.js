@@ -37,8 +37,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
   },
   onChat: () => dispatch(Chat2Gen.createPreviewConversation({teamname, reason: 'teamHeader'})),
   onEditDescription: () => dispatch(navigateAppend([{props: {teamname}, selected: 'editTeamDescription'}])),
-  onEditIcon: (teamname: string, sendChatNotification: boolean, image?: Response) =>
-    dispatch(navigateAppend([{props: {image, sendChatNotification, teamname}, selected: 'editTeamAvatar'}])),
+  onEditIcon: (image?: Response) =>
+    dispatch(
+      navigateAppend([{props: {image, sendChatNotification: true, teamname}, selected: 'editTeamAvatar'}])
+    ),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

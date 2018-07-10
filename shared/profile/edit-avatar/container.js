@@ -27,9 +27,11 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: Props) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps: Props) => ({
   onClose: dispatchProps.onClose,
   onSave: (filename: string, crop: RPCTypes.ImageCropRect, teamname: string, sendChatNotification: boolean) =>
-    ownProps.isTeam
+    stateProps.teamname
       ? dispatchProps.onSaveTeamAvatar(filename, teamname, sendChatNotification, crop)
       : dispatchProps.onSaveUserAvatar(filename, crop),
+  sendChatNotification: stateProps.sendChatNotification,
+  teamname: stateProps.teamname,
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(EditAvatar)

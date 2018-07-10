@@ -24,7 +24,7 @@ export type Props = {
   onAddSelf: () => void,
   onChat: () => void,
   onEditDescription: () => void,
-  onEditIcon: (teamname: string, sendChatNotification: boolean, image?: Response) => void,
+  onEditIcon: (image?: Response) => void,
 } & FloatingMenuParentProps
 
 const _TeamHeader = (props: Props) => (
@@ -49,7 +49,7 @@ const _TeamHeader = (props: Props) => (
       {/* Summary */}
       <NameWithIcon
         editableIcon={props.canEditDescription}
-        onEditIcon={() => props.onEditIcon(props.teamname, true)}
+        onEditIcon={props.onEditIcon}
         size="large"
         teamname={props.teamname}
         title={props.teamname}

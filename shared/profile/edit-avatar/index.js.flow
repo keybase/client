@@ -5,7 +5,6 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 
 export type Props = {
   image?: ?Response,
-  isTeam?: boolean,
   onClose: () => void,
   onSave: (
     filename: string,
