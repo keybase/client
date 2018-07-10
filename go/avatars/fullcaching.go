@@ -68,7 +68,7 @@ type FullCachingSource struct {
 
 	populateCacheCh chan populateArg
 
-	dirCreator sync.Once
+	prepareDirs sync.Once
 
 	// testing
 	populateSuccessCh chan struct{}
@@ -177,7 +177,7 @@ func (c *FullCachingSource) getFullFilename(fileName string) string {
 }
 
 func (c *FullCachingSource) commitAvatarToDisk(ctx context.Context, data io.ReadCloser, previousPath string) (path string, err error) {
-	c.dirCreator.Do(func() {
+	c.prepareDirs.Do(func() {
 		// Avatars used to be in main cache directory before we
 		// started saving them to `avatars/` subdir. If user has just
 		// updated to client with new path, it's fine to have them
