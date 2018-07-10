@@ -21,7 +21,6 @@ type APIArg struct {
 	Args            HTTPArgs
 	JSONPayload     JSONPayload
 	SessionType     APISessionType
-	SessionR        SessionReader
 	HTTPStatus      []int
 	AppStatusCodes  []int
 	InitialTimeout  time.Duration // optional

@@ -5,7 +5,7 @@ import {Box2} from '../../../common-adapters'
 import {storiesOf, action} from '../../../stories/storybook'
 import {WalletRow} from '.'
 
-const provider = PropProviders.Common()
+const provider = PropProviders.CommonProvider()
 
 const onSelect = action('onSelect')
 

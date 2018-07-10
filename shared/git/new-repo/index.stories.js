@@ -5,9 +5,7 @@ import * as PropProviders from '../../stories/prop-providers'
 import {storiesOf, action} from '../../stories/storybook'
 import NewRepo from '.'
 
-const provider = PropProviders.compose(
-  PropProviders.WaitingButton(),
-)
+const provider = PropProviders.CommonProvider()
 
 const load = () => {
   storiesOf('Git/New', module)

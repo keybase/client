@@ -28,8 +28,6 @@ protocol ephemeral {
   record DeviceEkStatement {
     @jsonkey("current_device_ek_metadata")
     DeviceEkMetadata currentDeviceEkMetadata;
-    @jsonkey("existing_device_ek_metadata")
-    array<DeviceEkMetadata> existingDeviceEkMetadata;
   }
 
   record DeviceEk {
@@ -42,8 +40,6 @@ protocol ephemeral {
   record UserEkStatement {
     @jsonkey("current_user_ek_metadata")
     UserEkMetadata currentUserEkMetadata;
-    @jsonkey("existing_user_ek_metadata")
-    array<UserEkMetadata> existingUserEkMetadata;
   }
 
   record UserEkMetadata {
@@ -89,8 +85,6 @@ protocol ephemeral {
   record TeamEkStatement {
     @jsonkey("current_team_ek_metadata")
     TeamEkMetadata currentTeamEkMetadata;
-    @jsonkey("existing_team_ek_metadata")
-    array<TeamEkMetadata> existingTeamEkMetadata;
   }
 
   record TeamEkBoxed {

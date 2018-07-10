@@ -1,37 +1,83 @@
 {
-  "prelude": ["import * as Types from '../constants/types/wallets'"],
+  "prelude": [
+    "import * as Types from '../constants/types/wallets'",
+    "import HiddenString from '../util/hidden-string'"
+  ],
   "actions": {
     "assetsReceived": {
       "_description": "Update our store of assets data",
       "accountID": "Types.AccountID",
-      "assets": "Array<Types.Assets>",
+      "assets": "Array<Types.Assets>"
     },
     "loadAssets": {
       "_description": "Refresh our list of assets for a given account",
-      "accountID": "Types.AccountID",
+      "accountID": "Types.AccountID"
     },
     "loadPayments": {
       "_description": "Refresh our list of payments for a given account",
-      "accountID": "Types.AccountID",
+      "accountID": "Types.AccountID"
     },
     "loadAccounts": {
-      "_description": "Refresh our list of accounts",
+      "_description": "Refresh our list of accounts"
     },
     "paymentsReceived": {
       "_description": "Update our store of payments data",
       "accountID": "Types.AccountID",
-      "payments": "Array<Types.Payment>",
+      "payments": "Array<Types.Payment>"
     },
     "accountsReceived": {
       "_description": "Update our store of account data",
-      "accounts": "Array<Types.Account>",
+      "accounts": "Array<Types.Account>"
     },
     "loadAccounts": {
-      "_description": "Refresh our list of accounts",
+      "_description": "Refresh our list of accounts"
     },
     "selectAccount": {
-      "_description": "Select an account",
+      "_description": "Select an account. Optionally navigate to the account page.",
       "accountID": "Types.AccountID",
+      "show?": "boolean"
     },
+    "linkExistingAccount": {
+      "_description": "Link an existing Stellar account with this Keybase user.",
+      "name": "string",
+      "secretKey": "HiddenString"
+    },
+    "linkedExistingAccount": {
+      "_description":
+        "The service responded with an error or that the link existing operation succeeded",
+      "accountID": "Types.AccountID",
+      "canError": {
+        "name": "string",
+        "secretKey": "HiddenString",
+        "error": "string"
+      }
+    },
+    "validateAccountName": {
+      "_description": "Ask the service to validate an account name.",
+      "name": "string"
+    },
+    "validatedAccountName": {
+      "_description": "The service responded with an error or that the account name is valid.",
+      "name": "string",
+      "canError": {
+        "name": "string",
+        "error": "string"
+      }
+    },
+    "validateSecretKey": {
+      "_description": "Ask the service to validate an account secret key.",
+      "secretKey": "HiddenString"
+    },
+    "validatedSecretKey": {
+      "_description": "The service responded with an error or that the secret key is valid.",
+      "secretKey": "HiddenString",
+      "canError": {
+        "secretKey": "HiddenString",
+        "error": "string"
+      }
+    },
+    "clearErrors": {
+      "_description": "Clear errors from the store at times like opening or closing a form dialog."
+    }
   }
 }

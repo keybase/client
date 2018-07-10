@@ -101,6 +101,7 @@ func (h *Server) handleOfflineError(ctx context.Context, err error,
 	res chat1.OfflinableResult) error {
 
 	errKind := IsOfflineError(err)
+	h.Debug(ctx, "handleOfflineError: errType: %T", err)
 	if errKind != OfflineErrorKindOnline {
 		h.Debug(ctx, "handleOfflineError: setting offline: err: %s", err)
 		res.SetOffline()
@@ -2653,7 +2654,9 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 	if res, err = h.G().ChatHelper.UnboxMobilePushNotification(ctx, uid, convID, arg.MembersType, arg.Payload); err != nil {
 		return res, err
 	}
-	h.G().ChatHelper.AckMobileNotificationSuccess(ctx, arg.PushIDs)
+	if arg.ShouldAck {
+		h.G().ChatHelper.AckMobileNotificationSuccess(ctx, arg.PushIDs)
+	}
 	return res, nil
 }
 

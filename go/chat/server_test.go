@@ -354,6 +354,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.PushHandler = pushHandler
 	g.TeamChannelSource = NewCachingTeamChannelSource(g, func() chat1.RemoteInterface { return ri })
 	g.AttachmentURLSrv = DummyAttachmentHTTPSrv{}
+	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 
@@ -877,6 +878,13 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 			require.NotNil(t, ibox.InboxRes, "nil inbox")
 			require.Equal(t, numconvs, len(ibox.InboxRes.Items))
 			for index, conv := range ibox.InboxRes.Items {
+				t.Logf("metadata snippet: index: %d snippet: %s time: %v", index, conv.LocalMetadata.Snippet,
+					conv.Time)
+			}
+			sort.Slice(ibox.InboxRes.Items, func(i, j int) bool {
+				return ibox.InboxRes.Items[i].Time.After(ibox.InboxRes.Items[j].Time)
+			})
+			for index, conv := range ibox.InboxRes.Items {
 				require.NotNil(t, conv.LocalMetadata)
 				switch mt {
 				case chat1.ConversationMembersType_TEAM:
@@ -884,7 +892,8 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 						continue
 					}
 					require.Equal(t, fmt.Sprintf("%d", numconvs-index-1), conv.LocalMetadata.ChannelName)
-					require.Equal(t, fmt.Sprintf("%s: %d", users[numconvs-index-1].Username, numconvs-index-1),
+					require.Equal(t,
+						fmt.Sprintf("%s: %d", users[numconvs-index-1].Username, numconvs-index-1),
 						conv.LocalMetadata.Snippet)
 					require.Zero(t, len(conv.LocalMetadata.WriterNames))
 				default:

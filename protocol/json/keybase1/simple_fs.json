@@ -403,10 +403,14 @@
         {
           "name": "filter",
           "type": "ListFilter"
+        },
+        {
+          "name": "refreshSubscription",
+          "type": "boolean"
         }
       ],
       "response": null,
-      "doc": "Begin list of items in directory at path\n   Retrieve results with readList()\n   Can be a single file to get flags/status"
+      "doc": "Begin list of items in directory at path.\n   Retrieve results with readList().\n   Can be a single file to get flags/status.\n   If `refreshSubscription` is true and the path is a KBFS path, simpleFS\n     will begin sending `FSPathUpdated` notifications for the for the\n     corresponding TLF, until another call refreshes the subscription on a\n     different TLF."
     },
     "simpleFSListRecursive": {
       "request": [
@@ -421,10 +425,14 @@
         {
           "name": "filter",
           "type": "ListFilter"
+        },
+        {
+          "name": "refreshSubscription",
+          "type": "boolean"
         }
       ],
       "response": null,
-      "doc": "Begin recursive list of items in directory at path"
+      "doc": "Begin recursive list of items in directory at path.\n   If `refreshSubscription` is true and the path is a KBFS path, simpleFS\n     will begin sending `FSPathUpdated` notifications for the for the\n     corresponding TLF, until another call refreshes the subscription on a\n     different TLF."
     },
     "simpleFSReadList": {
       "request": [
@@ -682,6 +690,15 @@
       ],
       "response": "FSFolderEditHistory",
       "doc": "simpleFSFolderEditHistory returns the edit history for the TLF\n   described by `path`, for the most recent writers of that TLF.\n   The writers are in descending order by the modification time (as\n   recorded by the server) of their most recent edit."
+    },
+    "simpleFSSuppressNotifications": {
+      "request": [
+        {
+          "name": "suppressDurationSec",
+          "type": "int"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

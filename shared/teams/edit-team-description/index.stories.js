@@ -16,7 +16,7 @@ const sharedProps = {
   waitingKey: 'test',
 }
 
-const provider = PropProviders.Common()
+const provider = PropProviders.CommonProvider()
 
 const load = () => {
   storiesOf('Teams/Edit team description', module)

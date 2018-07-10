@@ -2,6 +2,11 @@
 import {showDockIcon} from '../desktop/app/dock-icon.desktop'
 import {getMainWindow} from '../desktop/remote/util.desktop'
 import * as SafeElectron from '../util/safe-electron.desktop'
+import * as ConfigGen from './config-gen'
+import * as Saga from '../util/saga'
+import {writeLogLinesToFile} from '../util/forward-logs'
+import logger from '../logger'
+import {quit} from '../util/quit-helper'
 
 function showShareActionSheet(options: {
   url?: ?any,
@@ -31,18 +36,7 @@ function configurePush() {
   throw new Error('Configure Push not needed on this platform')
 }
 
-function setAppState(toMerge: Object) {
-  SafeElectron.getIpcRenderer().send('setAppState', toMerge)
-}
-
-function getAppState() {
-  return new Promise((resolve, reject) => {
-    SafeElectron.getIpcRenderer().once('getAppStateReply', (event, data) => resolve(data))
-    SafeElectron.getIpcRenderer().send('getAppState')
-  })
-}
-
-function showMainWindow() {
+const showMainWindow = () => {
   const mw = getMainWindow()
   mw && mw.show()
   showDockIcon()
@@ -91,15 +85,52 @@ const getContentTypeFromURL = (
   req.end()
 }
 
+const writeElectronSettings = (action: ConfigGen.SetOpenAtLoginPayload) =>
+  action.payload.writeFile &&
+  SafeElectron.getIpcRenderer().send('setAppState', {openAtLogin: action.payload.open})
+
+// get this value from electron and update our store version
+function* initializeOpenAtLoginState(): Generator<any, void, any> {
+  const getAppState = () =>
+    new Promise((resolve, reject) => {
+      SafeElectron.getIpcRenderer().once('getAppStateReply', (event, data) => resolve(data))
+      SafeElectron.getIpcRenderer().send('getAppState')
+    })
+
+  const state = yield Saga.call(getAppState)
+  if (state) {
+    yield Saga.put(ConfigGen.createSetOpenAtLogin({open: state.openAtLogin, writeFile: false}))
+  }
+}
+
+export const dumpLogs = (action: ?ConfigGen.DumpLogsPayload) =>
+  logger
+    .dump()
+    .then(fromRender => {
+      // $ForceType
+      const globalLogger: typeof logger = SafeElectron.getRemote().getGlobal('globalLogger')
+      return globalLogger.dump().then(fromMain => writeLogLinesToFile([...fromRender, ...fromMain]))
+    })
+    .then(() => {
+      // quit as soon as possible
+      if (action && action.payload.reason === 'quitting through menu') {
+        quit('quitButton')
+      }
+    })
+
+function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEveryPure(ConfigGen.setOpenAtLogin, writeElectronSettings)
+  yield Saga.safeTakeLatestPure(ConfigGen.showMain, showMainWindow)
+  yield Saga.safeTakeEveryPure(ConfigGen.dumpLogs, dumpLogs)
+  yield Saga.fork(initializeOpenAtLoginState)
+}
+
 export {
   checkPermissions,
   getShownPushPrompt,
   openAppSettings,
   requestPushPermissions,
-  showMainWindow,
   configurePush,
-  getAppState,
-  setAppState,
   saveAttachmentDialog,
   saveAttachmentToCameraRoll,
   showShareActionSheet,
@@ -107,4 +138,5 @@ export {
   displayNewMessageNotification,
   clearAllNotifications,
   getContentTypeFromURL,
+  platformConfigSaga,
 }

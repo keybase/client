@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -8,6 +9,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/stretchr/testify/require"
 )
 
 func testTail(t *testing.T, testname, filename string, count, actual int, first, last string) {
@@ -57,4 +59,26 @@ func TestTailMulti(t *testing.T) {
 	}
 	testTail(t, "follow", stem, 100000, 99996, "13334", "29999")
 	testTail(t, "follow", stem, 10000, 9996, "28334", "29999")
+}
+
+func TestMergeExtendedStatus(t *testing.T) {
+	tc := SetupTest(t, "MergedExtendedStatus", 1)
+	defer tc.Cleanup()
+	lsCtx := LogSendContext{
+		Contextified: NewContextified(tc.G),
+	}
+
+	// invalid json is skipped
+	fullStatus := lsCtx.mergeExtendedStatus("")
+	require.Equal(t, fullStatus, "")
+
+	// Status is merged in under the key 'status'
+	status := `{"status":{"foo":"bar"}}`
+	fullStatus = lsCtx.mergeExtendedStatus(status)
+	require.True(t, strings.Contains(fullStatus, status))
+	fullStatusMap := map[string]interface{}{}
+	err := json.Unmarshal([]byte(fullStatus), &fullStatusMap)
+	require.NoError(t, err)
+	_, ok := fullStatusMap["status"]
+	require.True(t, ok)
 }
