@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import React from 'react'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
+import * as PropProviders from '../stories/prop-providers'
 import {type ConnectedProps as ConnectedUsernamesProps} from '../common-adapters/usernames'
 import {action, storiesOf, createPropProvider} from '../stories/storybook'
 import {globalColors, globalMargins} from '../styles'
@@ -69,7 +70,7 @@ const rowProviders = {
   },
 }
 
-const provider = createPropProvider({
+const provider = createPropProvider(PropProviders.Common(), {
   ...rowProviders,
   ConnectedDownloads: () => ({
     downloadKeys: ['file 1', 'blah 2', 'yo 3'],
