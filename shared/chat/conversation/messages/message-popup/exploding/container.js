@@ -24,7 +24,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const yourMessage = ownProps.message.author === state.config.username
   const meta = Constants.getMeta(state, ownProps.message.conversationIDKey)
   const _canDeleteHistory =
-  meta.teamType === 'adhoc' || TeamConstants.getCanPerform(state, meta.teamname).deleteChatHistory
+    meta.teamType === 'adhoc' || TeamConstants.getCanPerform(state, meta.teamname).deleteChatHistory
   const _canExplodeNow = yourMessage || _canDeleteHistory
   return {
     _canDeleteHistory,

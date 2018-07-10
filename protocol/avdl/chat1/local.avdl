@@ -89,7 +89,10 @@ protocol local {
     case CHANGEAVATAR: MessageSystemChangeAvatar;
   }
 
-  record MessageDeleteHistory {}
+  record MessageDeleteHistory {
+    // Delete messages up to this ID (exclusive).
+    MessageID upto;
+  }
 
   record AssetMetadataImage {
     int width;

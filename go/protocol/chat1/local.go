@@ -460,10 +460,13 @@ func (o MessageSystem) DeepCopy() MessageSystem {
 }
 
 type MessageDeleteHistory struct {
+	Upto MessageID `codec:"upto" json:"upto"`
 }
 
 func (o MessageDeleteHistory) DeepCopy() MessageDeleteHistory {
-	return MessageDeleteHistory{}
+	return MessageDeleteHistory{
+		Upto: o.Upto.DeepCopy(),
+	}
 }
 
 type AssetMetadataImage struct {
