@@ -14,6 +14,7 @@ class AvatarUpload extends React.Component<Props> {
   _w: number = 0
   _x: number = 0
   _y: number = 0
+  _z: boolean = false
 
   _onSave = () => {
     if (!this.props.image) {
@@ -21,8 +22,8 @@ class AvatarUpload extends React.Component<Props> {
     }
     const filename = isIOS ? this.props.image.uri.replace('file://', '') : this.props.image.path
     // Cropping is temporarily deactivated on Android.
-    let crop = {x0: 0, x1: 0, y0: 0, y1: 0}
-    if (isIOS) {
+    let crop
+    if (isIOS && this._z) {
       crop = this._getCropCoordinates()
     }
     this.props.onSave(filename, crop, this.props.teamname, this.props.sendChatNotification)
@@ -48,6 +49,7 @@ class AvatarUpload extends React.Component<Props> {
     this._w = width
     this._x = x
     this._y = y
+    this._z = true
   }
 
   _imageDimensions = () => {
