@@ -178,6 +178,12 @@ func (c *FullCachingSource) getFullFilename(fileName string) string {
 
 func (c *FullCachingSource) commitAvatarToDisk(ctx context.Context, data io.ReadCloser, previousPath string) (path string, err error) {
 	c.dirCreator.Do(func() {
+		// Avatars used to be in main cache directory before we
+		// started saving them to `avatars/` subdir. If user has just
+		// updated to client with new path, it's fine to have them
+		// start clean.
+		c.unlinkAllAvatars(ctx, c.G().GetCacheDir())
+
 		err := os.MkdirAll(c.getCacheDir(), os.ModePerm)
 		c.debug(ctx, "creating directory for avatars %q: %v", c.getCacheDir(), err)
 	})
@@ -189,7 +195,7 @@ func (c *FullCachingSource) commitAvatarToDisk(ctx context.Context, data io.Read
 		c.debug(ctx, "commitAvatarToDisk: using previous path: %s", previousPath)
 		if file, err = os.OpenFile(previousPath, os.O_RDWR, os.ModeAppend); err != nil {
 			// NOTE: Even if we don't have this file anymore (e.g. user
-			// might have removed it manually), OpenFile will not error
+			// raced us to remove it manually), OpenFile will not error
 			// out, but create a new file on given path.
 			return path, err
 		}
@@ -400,7 +406,4 @@ func (c *FullCachingSource) unlinkAllAvatars(ctx context.Context, dirpath string
 
 func (c *FullCachingSource) OnCacheCleared(ctx context.Context) {
 	c.unlinkAllAvatars(ctx, c.getCacheDir())
-	// Avatars used to be in main cache directory before we started
-	// saving them to `avatars/` subdir.
-	c.unlinkAllAvatars(ctx, c.G().GetCacheDir())
 }
