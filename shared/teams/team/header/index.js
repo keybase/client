@@ -3,10 +3,11 @@ import * as React from 'react'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import AddPeopleHow from './add-people-how/container'
-import {Box, Button, ButtonBar, Icon, Meta, NameWithIcon, Text} from '../../../common-adapters'
+import {Box, Button, ButtonBar, Icon, Meta, Text} from '../../../common-adapters'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 import type {Response} from 'react-native-image-picker'
+import NameWithIconWrapper from './name-with-icon-wrapper'
 
 export type Props = {
   canChat: boolean,
@@ -47,12 +48,10 @@ const _TeamHeader = (props: Props) => (
     )}
     <Box style={stylesTeamHeader}>
       {/* Summary */}
-      <NameWithIcon
-        editableIcon={props.canEditDescription}
+      <NameWithIconWrapper
+        canEditDescription={props.canEditDescription}
         onEditIcon={props.onEditIcon}
-        size="large"
         teamname={props.teamname}
-        title={props.teamname}
         metaOne={
           <Box style={globalStyles.flexBoxRow}>
             <Text type="BodySmall">TEAM</Text>
