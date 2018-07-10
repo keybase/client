@@ -16,6 +16,7 @@ import {
 import {createShowUserProfile} from '../actions/profile-gen'
 import {createGetProfile} from '../actions/tracker-gen'
 import * as ConfigGen from '../actions/config-gen'
+import flags from '../util/feature-flags'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 16
 type URLType = any
@@ -237,14 +238,18 @@ class AvatarConnector extends React.PureComponent<Props> {
         skipBackground={this.props.skipBackground}
         borderColor={this.props.borderColor}
         children={this.props.children}
-        editable={this.props.editable}
+        editable={flags.avatarUploadsEnabled && this.props.editable}
         followIconSize={this.props.followIconSize}
         followIconStyle={this.props.followIconStyle}
         followIconType={this.props.followIconType}
         isTeam={this.props.isTeam}
         loadingColor={this.props.loadingColor}
         onClick={this.props.onClick}
-        onEditAvatarClick={this.props.onEditAvatarClick}
+        onEditAvatarClick={
+          flags.avatarUploadsEnabled && this.props.onEditAvatarClick
+            ? this.props.onEditAvatarClick
+            : undefined
+        }
         opacity={this.props.opacity}
         size={this.props.size}
         style={this.props.style}
