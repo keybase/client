@@ -13,7 +13,6 @@ import {isMobile} from '../constants/platform'
 import {compose, connect, setDisplayName} from '../util/container'
 import {type TypedState} from '../constants/reducer'
 import {createShowUserProfile} from '../actions/profile-gen'
-import {createGetProfile} from '../actions/tracker-gen'
 import type {Props, PlaintextProps} from './usernames'
 
 function usernameText({
