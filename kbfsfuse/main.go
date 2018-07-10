@@ -80,6 +80,10 @@ func start() *libfs.Error {
 	} else {
 		mountDir = flag.Arg(0)
 	}
+	err := os.MkdirAll(mountDir, os.ModePerm)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	if len(flag.Args()) > 1 {
 		fmt.Print(getUsageString(ctx))
