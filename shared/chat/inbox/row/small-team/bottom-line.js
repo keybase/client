@@ -104,7 +104,7 @@ class BottomLine extends PureComponent<Props> {
           exploded = true
           break
         case '\u{1F4A3}': // Bomb emoji (💣)
-          snippetDecoration = <Icon type="iconfont-bomb" fontSize={12} />
+          snippetDecoration = <Icon type="iconfont-bomb" fontSize={isMobile ? 16 : 12} />
           break
         default:
           snippetDecoration = this.props.snippetDecoration
