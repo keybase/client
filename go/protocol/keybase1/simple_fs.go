@@ -739,10 +739,11 @@ type SimpleFSListRecursiveArg struct {
 }
 
 type SimpleFSListRecursiveToDepthArg struct {
-	OpID   OpID       `codec:"opID" json:"opID"`
-	Path   Path       `codec:"path" json:"path"`
-	Filter ListFilter `codec:"filter" json:"filter"`
-	Depth  int        `codec:"depth" json:"depth"`
+	OpID                OpID       `codec:"opID" json:"opID"`
+	Path                Path       `codec:"path" json:"path"`
+	Filter              ListFilter `codec:"filter" json:"filter"`
+	RefreshSubscription bool       `codec:"refreshSubscription" json:"refreshSubscription"`
+	Depth               int        `codec:"depth" json:"depth"`
 }
 
 type SimpleFSReadListArg struct {

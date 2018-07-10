@@ -188,7 +188,7 @@ protocol SimpleFS {
   /**
    Begin recursive list of items in directory at path up to a given depth
    */
-  void simpleFSListRecursiveToDepth(OpID opID, Path path, ListFilter filter, int depth);
+  void simpleFSListRecursiveToDepth(OpID opID, Path path, ListFilter filter, boolean refreshSubscription, int depth);
 
   /**
    Get list of Paths in progress. Can indicate status of pending

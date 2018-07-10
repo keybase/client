@@ -479,6 +479,10 @@
           "type": "ListFilter"
         },
         {
+          "name": "refreshSubscription",
+          "type": "boolean"
+        },
+        {
           "name": "depth",
           "type": "int"
         }
