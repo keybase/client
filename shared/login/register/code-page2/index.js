@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../../constants/login'
-import {Icon, Button, Box2, Text, PlainInput, WaitingButton} from '../../../common-adapters'
+import {Image, Icon, Button, Box2, Text, PlainInput, WaitingButton} from '../../../common-adapters'
 import {
   platformStyles,
   collapseStyles,
@@ -14,6 +14,9 @@ import {
 import QRImage from './qr-image'
 import QRScan from './qr-scan'
 import {intersperseFn} from '../../../util/arrays'
+
+const blueBackground = require('../../../images/illustrations/bg-provisioning-blue.png')
+const greenBackground = require('../../../images/illustrations/bg-provisioning-green.png')
 
 export type DeviceType = 'phone' | 'desktop'
 export type Tab = 'QR' | 'enterText' | 'viewText'
@@ -33,41 +36,6 @@ type Props = {
 
 type State = {
   tab: Tab,
-}
-
-const SwitchTab = (props: {selected: Tab, onSelect: Tab => void} & Props) => {
-  if (props.currentDeviceType === 'desktop' && props.otherDeviceType === 'desktop') {
-    return <Box2 direction="horizontal" />
-  }
-
-  let label
-  let icon
-  let tab
-
-  if (props.selected === 'QR') {
-    label = 'Type secret instead'
-    icon = 'iconfont-arrow-right'
-    if (props.currentDeviceType === 'phone' && props.otherDeviceType === 'phone') {
-      tab = props.currentDeviceAlreadyProvisioned ? 'enterText' : 'viewText'
-    } else if (props.currentDeviceType === 'phone') {
-      tab = 'viewText'
-    } else {
-      tab = 'enterText'
-    }
-  } else {
-    label = 'Scan QR instead'
-    icon = 'iconfont-arrow-left'
-    tab = 'QR'
-  }
-
-  return (
-    <Box2 direction="horizontal" gap="xtiny" style={styles.switchTabContainer}>
-      <Icon type={icon} color={globalColors.white} />
-      <Text type="Header" onClick={() => props.onSelect(tab)} style={styles.switchTab}>
-        {label}
-      </Text>
-    </Box2>
-  )
 }
 
 class CodePage2 extends React.Component<Props, State> {
@@ -140,6 +108,7 @@ class CodePage2 extends React.Component<Props, State> {
         fullWidth={true}
         fullHeight={true}
       >
+        <Image src={blueBackground} style={styles.background} />
         <Instructions {...this.props} />
         {content}
 
@@ -147,6 +116,41 @@ class CodePage2 extends React.Component<Props, State> {
       </Box2>
     )
   }
+}
+
+const SwitchTab = (props: {selected: Tab, onSelect: Tab => void} & Props) => {
+  if (props.currentDeviceType === 'desktop' && props.otherDeviceType === 'desktop') {
+    return <Box2 direction="horizontal" />
+  }
+
+  let label
+  let icon
+  let tab
+
+  if (props.selected === 'QR') {
+    label = 'Type secret instead'
+    icon = 'iconfont-arrow-right'
+    if (props.currentDeviceType === 'phone' && props.otherDeviceType === 'phone') {
+      tab = props.currentDeviceAlreadyProvisioned ? 'enterText' : 'viewText'
+    } else if (props.currentDeviceType === 'phone') {
+      tab = 'viewText'
+    } else {
+      tab = 'enterText'
+    }
+  } else {
+    label = 'Scan QR instead'
+    icon = 'iconfont-arrow-left'
+    tab = 'QR'
+  }
+
+  return (
+    <Box2 direction="horizontal" gap="xtiny" style={styles.switchTabContainer}>
+      <Icon type={icon} color={globalColors.white} />
+      <Text type="Header" onClick={() => props.onSelect(tab)} style={styles.switchTab}>
+        {label}
+      </Text>
+    </Box2>
+  )
 }
 
 const Qr = (props: Props) =>
@@ -192,7 +196,8 @@ class EnterText extends React.Component<Props, {code: string}> {
         />
         <WaitingButton
           fullWidth={true}
-          type="PrimaryGreenActive"
+          type="PrimaryColoredBackground"
+          backgroundMode="Green"
           label="Submit"
           onClick={this._submit}
           style={styles.enterTextButton}
@@ -269,6 +274,16 @@ const styles = styleSheetCreate({
       display: 'inline-block',
     },
   }),
+  background: {
+    ...globalStyles.fillAbsolute,
+    bottom: 0,
+    left: undefined,
+    marginBottom: 'auto',
+    marginTop: 'auto',
+    right: -230,
+    top: 0,
+    zIndex: 1,
+  },
   container: {
     justifyContent: 'space-between',
     padding: globalMargins.large,
@@ -277,10 +292,15 @@ const styles = styleSheetCreate({
     maxWidth: isMobile ? 300 : 460,
     width: '100%',
   },
-  enterTextContainer: {
-    alignItems: 'center',
-    alignSelf: 'stretch',
-  },
+  enterTextContainer: platformStyles({
+    common: {
+      alignItems: 'center',
+      alignSelf: 'stretch',
+    },
+    isElectron: {
+      zIndex: 2,
+    },
+  }),
   enterTextInput: {
     ...globalStyles.fontTerminalSemibold,
     backgroundColor: globalColors.white,

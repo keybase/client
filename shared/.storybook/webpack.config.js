@@ -45,6 +45,11 @@ module.exports = (storybookBaseConfig, configType) => {
       use: ['null-loader'],
     },
     {
+      include: path.resolve(__dirname, '../images/illustrations'),
+      test: [/.*\.(gif|png)$/],
+      use: [fileLoaderRule],
+    },
+    {
       test: [/emoji-datasource.*\.(gif|png)$/, /\.ttf$/],
       use: [fileLoaderRule],
     },

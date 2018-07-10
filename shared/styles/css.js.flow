@@ -395,7 +395,7 @@ export type _StylesDesktop = {|
   wordSpacing?: string,
   wordWrap?: string,
   writingMode?: string,
-  zIndex?: string,
+  zIndex?: number,
 |}
 
 export type StylesDesktop = null | _StylesDesktop | $ReadOnlyArray<_StylesDesktop | null | false | void>

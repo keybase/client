@@ -3,8 +3,8 @@ import * as React from 'react'
 import {Box} from '../../../common-adapters'
 import {globalColors, styleSheetCreate, collapseStyles} from '../../../styles'
 
-const long = 20
-const small = 2
+const long = 22
+const small = 4
 const padding = 5
 
 const BadLines = () => null
@@ -39,7 +39,7 @@ const QRScanLines = ({canScan}: {canScan: boolean}) => (canScan ? <GoodLines /> 
 
 const styles = styleSheetCreate({
   common: {
-    backgroundColor: globalColors.blue2,
+    backgroundColor: globalColors.blue,
     position: 'absolute',
   },
 })
