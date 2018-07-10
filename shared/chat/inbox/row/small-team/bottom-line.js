@@ -100,11 +100,11 @@ class BottomLine extends PureComponent<Props> {
       // We want to use these emojis to render the correct custom icon.
       switch (this.props.snippetDecoration) {
         case '\u{1F4A5}': // Explosion (Collision) emoji (💥)
-          snippetDecoration = <Icon type="iconfont-boom" fontSize={26} color={globalColors.black_75} />
+          snippetDecoration = <Icon type="iconfont-boom" fontSize={26} />
           exploded = true
           break
         case '\u{1F4A3}': // Bomb emoji (💣)
-          snippetDecoration = <Icon type="iconfont-bomb" fontSize={16} color={globalColors.black_75} />
+          snippetDecoration = <Icon type="iconfont-bomb" fontSize={12} />
           break
         default:
           snippetDecoration = this.props.snippetDecoration
