@@ -189,10 +189,12 @@ func (md *MDServerMemory) getHandleID(ctx context.Context, handle tlf.Handle,
 			return tlf.NullID, false, kbfsmd.ServerError{Err: err}
 		}
 		if !isReader {
-			return tlf.NullID, false, kbfsmd.ServerErrorUnauthorized{}
+			return tlf.NullID, false, errors.WithStack(
+				kbfsmd.ServerErrorUnauthorized{})
 		}
 	} else if !handle.IsReader(session.UID.AsUserOrTeam()) {
-		return tlf.NullID, false, kbfsmd.ServerErrorUnauthorized{}
+		return tlf.NullID, false, errors.WithStack(
+			kbfsmd.ServerErrorUnauthorized{})
 	}
 
 	if md.implicitTeamsEnabled {
@@ -267,7 +269,8 @@ func (md *MDServerMemory) checkGetParamsRLocked(
 			return kbfsmd.NullBranchID, kbfsmd.ServerError{Err: err}
 		}
 		if !ok {
-			return kbfsmd.NullBranchID, kbfsmd.ServerErrorUnauthorized{}
+			return kbfsmd.NullBranchID, errors.WithStack(
+				kbfsmd.ServerErrorUnauthorized{})
 		}
 	}
 
@@ -543,7 +546,7 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 			return kbfsmd.ServerError{Err: err}
 		}
 		if !ok {
-			return kbfsmd.ServerErrorUnauthorized{}
+			return errors.WithStack(kbfsmd.ServerErrorUnauthorized{})
 		}
 	}
 
