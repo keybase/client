@@ -21,7 +21,7 @@ const ReactButton = (props: Props) => (
   <ButtonBox onClick={props.onClick} style={styles.buttonBox}>
     <Box2 centerChildren={true} direction="horizontal" gap="xtiny" style={styles.container}>
       <Emoji size={14} emojiName={props.emoji} />
-      <Text type="BodySmall">{props.count}</Text>
+      <Text type="BodySmallBold">{props.count}</Text>
     </Box2>
   </ButtonBox>
 )
