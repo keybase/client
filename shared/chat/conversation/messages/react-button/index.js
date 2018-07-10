@@ -1,9 +1,17 @@
 // @flow
 import * as React from 'react'
 import {Box2, ClickableBox, Emoji, Text} from '../../../../common-adapters'
-import {glamorous, globalColors, globalMargins, styleSheetCreate, transition} from '../../../../styles'
+import {
+  collapseStyles,
+  glamorous,
+  globalColors,
+  globalMargins,
+  styleSheetCreate,
+  transition,
+} from '../../../../styles'
 
-type Props = {
+export type Props = {
+  active: boolean,
   count: number,
   emoji: string,
   onClick: () => void,
@@ -18,7 +26,10 @@ const ButtonBox = glamorous(ClickableBox)({
 })
 
 const ReactButton = (props: Props) => (
-  <ButtonBox onClick={props.onClick} style={styles.buttonBox}>
+  <ButtonBox
+    onClick={props.onClick}
+    style={collapseStyles([styles.buttonBox, props.active && styles.active])}
+  >
     <Box2 centerChildren={true} direction="horizontal" gap="xtiny" style={styles.container}>
       <Emoji size={14} emojiName={props.emoji} />
       <Text type="BodySmallBold">{props.count}</Text>
@@ -27,6 +38,10 @@ const ReactButton = (props: Props) => (
 )
 
 const styles = styleSheetCreate({
+  active: {
+    backgroundColor: globalColors.blue4,
+    borderColor: globalColors.blue,
+  },
   buttonBox: {
     borderRadius: 12,
     borderStyle: 'solid',

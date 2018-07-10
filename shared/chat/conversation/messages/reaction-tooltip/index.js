@@ -1,11 +1,13 @@
 // @flow
 import * as React from 'react'
+import * as MessageTypes from '../../../../constants/types/chat2/message'
 import {Box2, FloatingBox, NameWithIcon, List, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, styleSheetCreate} from '../../../../styles'
-import ReactButton from '../react-button'
+import ReactButton from '../react-button/container'
 
 type Props = {
   attachmentRef?: ?React.Component<any, any>,
+  messageID: MessageTypes.MessageID,
   onHidden: () => void,
   onReact: string => void,
   emoji: string,
@@ -23,7 +25,7 @@ const ReactionTooltip = (props: Props) => {
           fullWidth={true}
           style={styles.buttonContainer}
         >
-          <ReactButton count={props.users.length} emoji={props.emoji} onClick={() => {}} />
+          <ReactButton messageID={props.messageID} emoji={props.emoji} />
           <Text type="Terminal" style={styles.emojiText}>
             {props.emoji}
           </Text>
