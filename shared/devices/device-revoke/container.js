@@ -16,8 +16,8 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     currentDevice: device.currentDevice,
     deviceID,
     endangeredTLFs: state.devices.idToEndangeredTLFs.get(deviceID, I.Set()),
-    type: device.type,
     name: device.name,
+    type: device.type,
     waiting: Constants.isWaiting(state),
   }
 }
@@ -31,10 +31,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   currentDevice: stateProps.currentDevice,
   deviceID: stateProps.deviceID,
   endangeredTLFs: stateProps.endangeredTLFs.toArray(),
-  type: stateProps.type,
   name: stateProps.name,
   onCancel: dispatchProps.onCancel,
   onSubmit: dispatchProps.onSubmit,
+  type: stateProps.type,
   waiting: stateProps.waiting,
 })
 
