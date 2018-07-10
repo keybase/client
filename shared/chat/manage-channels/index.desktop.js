@@ -108,13 +108,27 @@ const ManageChannels = (props: Props) => {
   }
   return (
     <PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
+      {props.canCreateChannels && (
+        <Box style={_createStyle}>
+          <Icon
+            style={_createIcon}
+            type="iconfont-new"
+            onClick={props.onCreate}
+            hoverColor={_hoverColor}
+            color={globalColors.blue}
+          />
+          <Text type="BodyBigLink" onClick={props.onCreate}>
+            New chat channel
+          </Text>
+        </Box>
+      )}
       <Box style={_boxStyle}>
         <Avatar isTeam={true} teamname={props.teamname} size={32} />
         <Text type="BodySmallSemibold" style={{color: globalColors.darkBlue, marginTop: globalMargins.xtiny}}>
           {props.teamname}
         </Text>
         {channelDisplay}
-        <ScrollView style={{alignSelf: 'flex-start', width: '100%', paddingBottom: globalMargins.xlarge}}>
+        <ScrollView style={{width: '100%', flex: 1}}>
           {props.channels.map(c => (
             <Row
               key={c.convID}
@@ -129,33 +143,17 @@ const ManageChannels = (props: Props) => {
             />
           ))}
         </ScrollView>
-        {props.canCreateChannels && (
-          <Box style={_createStyle}>
-            <Icon
-              style={_createIcon}
-              type="iconfont-new"
-              onClick={props.onCreate}
-              hoverColor={_hoverColor}
-              color={globalColors.blue}
-            />
-            <Text type="BodyBigLink" onClick={props.onCreate}>
-              New chat channel
-            </Text>
-          </Box>
-        )}
-        <Box style={{flex: 2, ...globalStyles.flexBoxColumn, justifyContent: 'flex-end'}}>
-          <ButtonBar>
-            <Button type="Secondary" label="Cancel" onClick={props.onClose} />
-            <WaitingButton
-              type="Primary"
-              label={props.unsavedSubscriptions ? 'Save' : 'Saved'}
-              waitingKey={props.waitingKey}
-              disabled={!props.unsavedSubscriptions}
-              onClick={props.onSaveSubscriptions}
-              style={{marginLeft: globalMargins.tiny}}
-            />
-          </ButtonBar>
-        </Box>
+        <ButtonBar style={{alignSelf: 'flex-end'}}>
+          <Button type="Secondary" label="Cancel" onClick={props.onClose} />
+          <WaitingButton
+            type="Primary"
+            label={props.unsavedSubscriptions ? 'Save' : 'Saved'}
+            waitingKey={props.waitingKey}
+            disabled={!props.unsavedSubscriptions}
+            onClick={props.onSaveSubscriptions}
+            style={{marginLeft: globalMargins.tiny}}
+          />
+        </ButtonBar>
       </Box>
     </PopupDialog>
   )
