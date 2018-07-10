@@ -35,18 +35,40 @@ type State = {
   tab: Tab,
 }
 
-const Tabs = (props: {tabs: Array<Tab>, selected: Tab, onSelect: Tab => void}) => (
-  <Box2 direction="horizontal" gap="small">
-    {props.tabs.map(tab => (
-      <Button
-        type={tab === props.selected ? 'Primary' : 'Secondary'}
-        key={tab}
-        label={tab}
-        onClick={() => props.onSelect(tab)}
-      />
-    ))}
-  </Box2>
-)
+const SwitchTab = (props: {selected: Tab, onSelect: Tab => void} & Props) => {
+  if (props.currentDeviceType === 'desktop' && props.otherDeviceType === 'desktop') {
+    return <Box2 direction="horizontal" />
+  }
+
+  let label
+  let icon
+  let tab
+
+  if (props.selected === 'QR') {
+    label = 'Type secret instead'
+    icon = 'iconfont-arrow-right'
+    if (props.currentDeviceType === 'phone' && props.otherDeviceType === 'phone') {
+      tab = props.currentDeviceAlreadyProvisioned ? 'enterText' : 'viewText'
+    } else if (props.currentDeviceType === 'phone') {
+      tab = 'viewText'
+    } else {
+      tab = 'enterText'
+    }
+  } else {
+    label = 'Scan QR instead'
+    icon = 'iconfont-arrow-left'
+    tab = 'QR'
+  }
+
+  return (
+    <Box2 direction="horizontal" gap="xtiny" style={styles.switchTabContainer}>
+      <Icon type={icon} color={globalColors.white} />
+      <Text type="Header" onClick={() => props.onSelect(tab)} style={styles.switchTab}>
+        {label}
+      </Text>
+    </Box2>
+  )
+}
 
 class CodePage2 extends React.Component<Props, State> {
   constructor(props: Props) {
@@ -121,11 +143,7 @@ class CodePage2 extends React.Component<Props, State> {
         <Instructions {...this.props} />
         {content}
 
-        <Tabs
-          tabs={CodePage2._validTabs(this.props.currentDeviceType, this.props.otherDeviceType)}
-          selected={this.state.tab}
-          onSelect={tab => this.setState({tab})}
-        />
+        <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
       </Box2>
     )
   }
@@ -300,6 +318,12 @@ const styles = styleSheetCreate({
     backgroundColor: globalColors.white,
     borderRadius: 8,
     padding: 20,
+  },
+  switchTab: {
+    color: globalColors.white,
+  },
+  switchTabContainer: {
+    alignItems: 'center',
   },
   viewTextCode: {
     ...globalStyles.fontTerminalSemibold,
