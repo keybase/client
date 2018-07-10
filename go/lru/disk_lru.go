@@ -319,7 +319,7 @@ func (d *DiskLRU) Put(ctx context.Context, lctx libkb.LRUContext, key string, va
 	defer func() {
 		// Commit the index
 		if err == nil && index != nil && index.IsDirty() {
-			d.writeIndex(ctx, lctx, index, false)
+			d.writeIndex(ctx, lctx, index, true)
 		}
 	}()
 

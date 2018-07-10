@@ -142,6 +142,15 @@ func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.Conversatio
 	return url
 }
 
+func (r *AttachmentHTTPSrv) servePendingPreview(w http.ResponseWriter, req *http.Request) {
+	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
+		NewSimpleIdentifyNotifier(r.G()))
+	defer r.Trace(ctx, func() error { return nil }, "servePendingPreview")()
+
+	outboxID := req.URL.Query().Get("obid")
+
+}
+
 func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
@@ -340,7 +349,7 @@ func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Wri
 	}
 	if found {
 		c.Debug(ctx, "FetchAttachment: cache hit for: %s filepath: %s", asset.Path, path)
-		fileReader, err := os.OpenFile(path, os.O_RDONLY, os.ModeAppend)
+		fileReader, err := os.Open(path)
 		defer c.closeFile(fileReader)
 		if err != nil {
 			c.Debug(ctx, "FetchAttachment: failed to read cached file, removing: %s", err)
