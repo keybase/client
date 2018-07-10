@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../../constants/login'
-import {Image, Icon, Button, Box2, Text, PlainInput, WaitingButton} from '../../../common-adapters'
+import {Image, Icon, Box2, Text, PlainInput, WaitingButton} from '../../../common-adapters'
 import {
   platformStyles,
   collapseStyles,
