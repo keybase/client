@@ -62,6 +62,7 @@ const PathItemInfo = (props: Props) => (
           usernames={[props.lastWriter]}
           inline={true}
           clickable={true}
+          underline={true}
         />
       </Text>
     ) : (
