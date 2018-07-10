@@ -138,9 +138,9 @@ class AvatarRender extends React.PureComponent<Props, State> {
             type="iconfont-edit"
             onClick={this.props.onEditAvatarClick}
             style={{
-              bottom: 0,
+              bottom: this.props.isTeam ? -2 : 0,
               position: 'absolute',
-              right: 0,
+              right: this.props.isTeam ? -18 : 0,
             }}
           />
         )}
