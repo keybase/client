@@ -101,18 +101,26 @@ class CodePage2 extends React.Component<Props, State> {
       */
         content = null
     }
+
     return (
       <Box2
         direction="vertical"
-        style={collapseStyles([styles.container, {backgroundColor: this._tabBackground()}])}
         fullWidth={true}
         fullHeight={true}
+        style={{backgroundColor: this._tabBackground()}}
       >
-        <Image src={blueBackground} style={styles.background} />
-        <Instructions {...this.props} />
-        {content}
+        <Image
+          src={this.state.tab === 'QR' ? blueBackground : greenBackground}
+          style={
+            this.props.currentDeviceAlreadyProvisioned ? styles.backgroundOnLeft : styles.backgroundOnRight
+          }
+        />
+        <Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
+          <Instructions {...this.props} />
+          {content}
 
-        <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
+          <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
+        </Box2>
       </Box2>
     )
   }
@@ -274,7 +282,16 @@ const styles = styleSheetCreate({
       display: 'inline-block',
     },
   }),
-  background: {
+  backgroundOnLeft: {
+    ...globalStyles.fillAbsolute,
+    bottom: 0,
+    left: -230,
+    marginBottom: 'auto',
+    marginTop: 'auto',
+    right: undefined,
+    top: 0,
+  },
+  backgroundOnRight: {
     ...globalStyles.fillAbsolute,
     bottom: 0,
     left: undefined,
@@ -282,25 +299,25 @@ const styles = styleSheetCreate({
     marginTop: 'auto',
     right: -230,
     top: 0,
-    zIndex: 1,
   },
-  container: {
-    justifyContent: 'space-between',
-    padding: globalMargins.large,
-  },
+  container: platformStyles({
+    common: {
+      justifyContent: 'space-between',
+      padding: globalMargins.large,
+    },
+    isElectron: {
+      // else the background can go above things, annoyingly
+      zIndex: 1,
+    },
+  }),
   enterTextButton: {
     maxWidth: isMobile ? 300 : 460,
     width: '100%',
   },
-  enterTextContainer: platformStyles({
-    common: {
-      alignItems: 'center',
-      alignSelf: 'stretch',
-    },
-    isElectron: {
-      zIndex: 2,
-    },
-  }),
+  enterTextContainer: {
+    alignItems: 'center',
+    alignSelf: 'stretch',
+  },
   enterTextInput: {
     ...globalStyles.fontTerminalSemibold,
     backgroundColor: globalColors.white,
