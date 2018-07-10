@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import type {DeviceType} from '../../constants/types/devices'
 import type {Time} from '../../constants/types/rpc-gen'
 import {Meta, NameWithIcon, Box, Text, Button, Box2, HeaderHoc, type IconType} from '../../common-adapters'
 import {globalStyles, globalColors, styleSheetCreate, collapseStyles} from '../../styles'
@@ -13,7 +14,7 @@ export type TimelineItem = {
 type Props = {
   currentDevice: boolean,
   deviceID: string,
-  icon: IconType,
+  type: DeviceType,
   name: string,
   onBack: () => void,
   revokeName: ?string,
@@ -76,9 +77,15 @@ const Render = (props: Props) => {
     metaOne = <Meta title="revoked" style={styles.meta} backgroundColor={globalColors.red} />
   }
 
+  const icon: IconType = {
+    backup: 'icon-paper-key-64',
+    desktop: 'icon-computer-64',
+    mobile: 'icon-phone-64',
+  }[props.type]
+
   return (
     <Box2 direction="vertical" gap="small" fullWidth={true}>
-      <NameWithIcon icon={props.icon} title={props.name} metaOne={metaOne} />
+      <NameWithIcon icon={icon} title={props.name} metaOne={metaOne} />
       <Timeline timeline={props.timeline} />
       {!props.revokedAt && (
         <Button

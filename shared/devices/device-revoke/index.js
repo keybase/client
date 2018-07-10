@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
-import {type DeviceType, deviceTypeToIconType} from '../../constants/types/devices'
+import {type DeviceType} from '../../constants/types/devices'
 import {Confirm, Box, Text, Icon, ProgressIndicator, type IconType} from '../../common-adapters'
-import {globalColors, globalMargins, globalStyles} from '../../styles'
+import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 
 export type Props = {
   currentDevice: boolean,
@@ -16,7 +16,11 @@ export type Props = {
 }
 
 const Header = ({name, type}: {name: string, type: DeviceType}) => {
-  const icon: IconType = deviceTypeToIconType(type)
+  const icon: IconType = {
+    backup: isMobile ? 'icon-paper-key-revoke-64' : 'icon-paper-key-revoke-48',
+    desktop: isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48',
+    mobile: isMobile ? 'icon-phone-revoke-64' : 'icon-phone-revoke-48',
+  }[type]
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
       <Icon type={icon} />

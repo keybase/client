@@ -44,13 +44,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
     dispatch(DevicesGen.createShowRevokePage({deviceID: routeProps.get('deviceID')})),
 })
 
-const icon = type =>
-  ({
-    backup: 'icon-paper-key-64',
-    desktop: 'icon-computer-64',
-    mobile: 'icon-phone-64',
-  }[type])
-
 const revokeName = type =>
   ({
     backup: 'paper key',
@@ -61,7 +54,6 @@ const revokeName = type =>
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   currentDevice: stateProps.device.currentDevice,
   deviceID: stateProps.device.deviceID,
-  icon: icon(stateProps.device.type),
   name: stateProps.device.name,
   onBack: dispatchProps.onBack,
   revokeName: revokeName(stateProps.device.type),

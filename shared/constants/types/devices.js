@@ -1,8 +1,5 @@
 // @flow
 import * as I from 'immutable'
-import type {IconType} from '../../common-adapters'
-import {isMobile} from '../../styles'
-
 export type DeviceType = 'mobile' | 'desktop' | 'backup'
 export opaque type DeviceID: string = string
 export type _DeviceDetail = {
@@ -35,14 +32,6 @@ export function stringToDeviceType(s: string): DeviceType {
       console.log('Unknown Device Type %s. Defaulting to `desktop`', s)
       return 'desktop'
   }
-}
-
-export function deviceTypeToIconType(type: DeviceType): IconType {
-  return {
-    backup: isMobile ? 'icon-paper-key-revoke-64' : 'icon-paper-key-revoke-48',
-    desktop: isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48',
-    mobile: isMobile ? 'icon-phone-revoke-64' : 'icon-phone-revoke-48',
-  }[type]
 }
 
 export function stringToDeviceID(s: string): DeviceID {
