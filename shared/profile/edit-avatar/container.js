@@ -30,6 +30,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: Props) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: Props) => ({
+  image: stateProps.image,
   onClose: dispatchProps.onClose,
   onSave: (filename: string, crop: RPCTypes.ImageCropRect, teamname: string, sendChatNotification: boolean) =>
     stateProps.teamname

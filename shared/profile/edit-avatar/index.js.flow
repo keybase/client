@@ -8,7 +8,7 @@ export type Props = {
   onClose: () => void,
   onSave: (
     filename: string,
-    crop: RPCTypes.ImageCropRect,
+    crop?: RPCTypes.ImageCropRect,
     teamname?: string,
     sendChatNotification?: boolean
   ) => void,
