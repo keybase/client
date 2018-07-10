@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from './types/login'
+import HiddenString from '../util/hidden-string'
 
 export const codePageDeviceRoleExistingPhone = 'codePageDeviceRoleExistingPhone'
 export const codePageDeviceRoleNewPhone = 'codePageDeviceRoleNewPhone'
@@ -49,16 +50,10 @@ const makeAccount: I.RecordFactory<Types._Account> = I.Record({
 })
 
 const makeState: I.RecordFactory<Types._State> = I.Record({
-  codePageCameraBrokenMode: false,
-  codePageCodeCountDown: 0,
-  codePageEnterCodeErrorText: '',
-  codePageMode: null,
-  codePageMyDeviceRole: null,
-  codePageOtherDeviceRole: null,
-  codePageQrCode: null,
-  codePageQrCodeScanned: false,
-  codePageQrScanned: null,
-  codePageTextCode: null,
+  codePageOtherDeviceName: '',
+  codePageOtherDeviceType: 'phone',
+  codePageTextCode: new HiddenString(''),
+  codePageTextCodeError: '',
   configuredAccounts: I.List(),
   devicenameError: '',
   forgotPasswordError: null,

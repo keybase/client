@@ -58,7 +58,7 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onBack: () => dispatch(LoginGen.createOnBack()),
   onSubmit: (paperkey: string) =>
-    dispatch(LoginGen.createSubmitPassphrase({passphrase: new HiddenString(paperkey), storeSecret: false})),
+    dispatch(LoginGen.createSubmitPassphrase({passphrase: new HiddenString(paperkey)})),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(_PaperKey)

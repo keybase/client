@@ -5,86 +5,35 @@
   ],
   "actions": {
     "startLogin": {},
-    "submitUsernameOrEmail": {
-      "usernameOrEmail": "string"
-    },
+    "submitUsernameOrEmail": { "usernameOrEmail": "string" },
     "relogin": {
       "usernameOrEmail": "string",
       "passphrase": "HiddenString"
     },
-    "submitPassphrase": {
-      "passphrase": "HiddenString",
-      "storeSecret": "boolean"
-    },
+    "submitPassphrase": { "passphrase": "HiddenString", },
     "onBack": {},
     "onWont": {},
     "onFinish": {},
-    "qrScanned": {
-      "phrase": "HiddenString"
-    },
-    "provisionTextCodeEntered": {
-      "phrase": "HiddenString"
-    },
-    "selectDeviceId": {
-      "deviceId": "string"
-    },
-    "chooseGPGMethod": {
-      "exportKey": "boolean"
-    },
-    "submitDeviceName": {
-      "deviceName": "string"
-    },
-    "setDevicenameError": {
-      "error": "string",
-    },
-    "setCodePageMode": {
-      "codePageMode": "Types.Mode"
-    },
+    "qrScanned": { "phrase": "HiddenString" },
+    "provisionTextCodeEntered": { "phrase": "HiddenString" },
+    "selectDeviceId": { "deviceId": "string" },
+    "chooseGPGMethod": { "exportKey": "boolean" },
+    "submitDeviceName": { "deviceName": "string" },
+    "setDevicenameError": { "error": "string", },
     "openAccountResetPage": {},
-    "setTextCode": {
-      "codePageEnterCodeErrorText": "string",
-      "codePageTextCode": "HiddenString"
-    },
-    "setQRCode": {
-      "codePageQrCode": "HiddenString"
-    },
-    "clearQRCode": {},
-    "setMyDeviceCodeState": {
-      "codePageMyDeviceRole": "Types.DeviceRole"
-    },
-    "setOtherDeviceCodeState": {
-      "codePageOtherDeviceRole": "Types.DeviceRole"
-    },
-    "loginError": {
-      "error": "string"
-    },
-    "provisioningError": {
-      "error": "Error"
-    },
-    "resetQRCodeScanned": {},
+    "setTextCode": { "textCode": "HiddenString" },
+    "loginError": { "error": "string" },
+    "provisioningError": { "error": "Error" },
     "logout": {},
-    "addNewDevice": {
-      "role": "Types.DeviceRole"
-    },
+    "addNewDevice": { "role": "Types.DeviceRole" },
     "logoutDone": {},
-    "setCameraBrokenMode": {
-      "codePageCameraBrokenMode": "boolean"
-    },
     "navBasedOnLoginAndInitialState": {},
-    "waitingForResponse": {
-      "waiting": "boolean"
-    },
-    "setRevokedSelf": {
-      "revoked": "string"
-    },
-    "setDeletedSelf": {
-      "deletedUsername": "string"
-    },
+    "waitingForResponse": { "waiting": "boolean" },
+    "setRevokedSelf": { "revoked": "string" },
+    "setDeletedSelf": { "deletedUsername": "string" },
     "configuredAccounts": {
       "accounts": "?Array<{|hasStoredSecret: boolean, username: string|}>",
-      "canError": {
-        "error": "Error"
-      }
+      "canError": { "error": "Error" }
     }
   }
 }

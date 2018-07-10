@@ -11,7 +11,6 @@ import HiddenString from '../util/hidden-string'
 export const resetStore = 'common:resetStore' // not a part of login but is handled by every reducer
 export const addNewDevice = 'login:addNewDevice'
 export const chooseGPGMethod = 'login:chooseGPGMethod'
-export const clearQRCode = 'login:clearQRCode'
 export const configuredAccounts = 'login:configuredAccounts'
 export const loginError = 'login:loginError'
 export const logout = 'login:logout'
@@ -25,15 +24,9 @@ export const provisionTextCodeEntered = 'login:provisionTextCodeEntered'
 export const provisioningError = 'login:provisioningError'
 export const qrScanned = 'login:qrScanned'
 export const relogin = 'login:relogin'
-export const resetQRCodeScanned = 'login:resetQRCodeScanned'
 export const selectDeviceId = 'login:selectDeviceId'
-export const setCameraBrokenMode = 'login:setCameraBrokenMode'
-export const setCodePageMode = 'login:setCodePageMode'
 export const setDeletedSelf = 'login:setDeletedSelf'
 export const setDevicenameError = 'login:setDevicenameError'
-export const setMyDeviceCodeState = 'login:setMyDeviceCodeState'
-export const setOtherDeviceCodeState = 'login:setOtherDeviceCodeState'
-export const setQRCode = 'login:setQRCode'
 export const setRevokedSelf = 'login:setRevokedSelf'
 export const setTextCode = 'login:setTextCode'
 export const startLogin = 'login:startLogin'
@@ -45,7 +38,6 @@ export const waitingForResponse = 'login:waitingForResponse'
 // Payload Types
 type _AddNewDevicePayload = $ReadOnly<{|role: Types.DeviceRole|}>
 type _ChooseGPGMethodPayload = $ReadOnly<{|exportKey: boolean|}>
-type _ClearQRCodePayload = void
 type _ConfiguredAccountsPayload = $ReadOnly<{|accounts: ?Array<{|hasStoredSecret: boolean, username: string|}>|}>
 type _ConfiguredAccountsPayloadError = $ReadOnly<{|error: Error|}>
 type _LoginErrorPayload = $ReadOnly<{|error: string|}>
@@ -63,33 +55,20 @@ type _ReloginPayload = $ReadOnly<{|
   usernameOrEmail: string,
   passphrase: HiddenString,
 |}>
-type _ResetQRCodeScannedPayload = void
 type _SelectDeviceIdPayload = $ReadOnly<{|deviceId: string|}>
-type _SetCameraBrokenModePayload = $ReadOnly<{|codePageCameraBrokenMode: boolean|}>
-type _SetCodePageModePayload = $ReadOnly<{|codePageMode: Types.Mode|}>
 type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
 type _SetDevicenameErrorPayload = $ReadOnly<{|error: string|}>
-type _SetMyDeviceCodeStatePayload = $ReadOnly<{|codePageMyDeviceRole: Types.DeviceRole|}>
-type _SetOtherDeviceCodeStatePayload = $ReadOnly<{|codePageOtherDeviceRole: Types.DeviceRole|}>
-type _SetQRCodePayload = $ReadOnly<{|codePageQrCode: HiddenString|}>
 type _SetRevokedSelfPayload = $ReadOnly<{|revoked: string|}>
-type _SetTextCodePayload = $ReadOnly<{|
-  codePageEnterCodeErrorText: string,
-  codePageTextCode: HiddenString,
-|}>
+type _SetTextCodePayload = $ReadOnly<{|textCode: HiddenString|}>
 type _StartLoginPayload = void
 type _SubmitDeviceNamePayload = $ReadOnly<{|deviceName: string|}>
-type _SubmitPassphrasePayload = $ReadOnly<{|
-  passphrase: HiddenString,
-  storeSecret: boolean,
-|}>
+type _SubmitPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
 type _SubmitUsernameOrEmailPayload = $ReadOnly<{|usernameOrEmail: string|}>
 type _WaitingForResponsePayload = $ReadOnly<{|waiting: boolean|}>
 
 // Action Creators
 export const createAddNewDevice = (payload: _AddNewDevicePayload) => ({error: false, payload, type: addNewDevice})
 export const createChooseGPGMethod = (payload: _ChooseGPGMethodPayload) => ({error: false, payload, type: chooseGPGMethod})
-export const createClearQRCode = (payload: _ClearQRCodePayload) => ({error: false, payload, type: clearQRCode})
 export const createConfiguredAccounts = (payload: _ConfiguredAccountsPayload) => ({error: false, payload, type: configuredAccounts})
 export const createConfiguredAccountsError = (payload: _ConfiguredAccountsPayloadError) => ({error: true, payload, type: configuredAccounts})
 export const createLoginError = (payload: _LoginErrorPayload) => ({error: false, payload, type: loginError})
@@ -104,15 +83,9 @@ export const createProvisionTextCodeEntered = (payload: _ProvisionTextCodeEntere
 export const createProvisioningError = (payload: _ProvisioningErrorPayload) => ({error: false, payload, type: provisioningError})
 export const createQrScanned = (payload: _QrScannedPayload) => ({error: false, payload, type: qrScanned})
 export const createRelogin = (payload: _ReloginPayload) => ({error: false, payload, type: relogin})
-export const createResetQRCodeScanned = (payload: _ResetQRCodeScannedPayload) => ({error: false, payload, type: resetQRCodeScanned})
 export const createSelectDeviceId = (payload: _SelectDeviceIdPayload) => ({error: false, payload, type: selectDeviceId})
-export const createSetCameraBrokenMode = (payload: _SetCameraBrokenModePayload) => ({error: false, payload, type: setCameraBrokenMode})
-export const createSetCodePageMode = (payload: _SetCodePageModePayload) => ({error: false, payload, type: setCodePageMode})
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error: false, payload, type: setDeletedSelf})
 export const createSetDevicenameError = (payload: _SetDevicenameErrorPayload) => ({error: false, payload, type: setDevicenameError})
-export const createSetMyDeviceCodeState = (payload: _SetMyDeviceCodeStatePayload) => ({error: false, payload, type: setMyDeviceCodeState})
-export const createSetOtherDeviceCodeState = (payload: _SetOtherDeviceCodeStatePayload) => ({error: false, payload, type: setOtherDeviceCodeState})
-export const createSetQRCode = (payload: _SetQRCodePayload) => ({error: false, payload, type: setQRCode})
 export const createSetRevokedSelf = (payload: _SetRevokedSelfPayload) => ({error: false, payload, type: setRevokedSelf})
 export const createSetTextCode = (payload: _SetTextCodePayload) => ({error: false, payload, type: setTextCode})
 export const createStartLogin = (payload: _StartLoginPayload) => ({error: false, payload, type: startLogin})
@@ -124,7 +97,6 @@ export const createWaitingForResponse = (payload: _WaitingForResponsePayload) =>
 // Action Payloads
 export type AddNewDevicePayload = $Call<typeof createAddNewDevice, _AddNewDevicePayload>
 export type ChooseGPGMethodPayload = $Call<typeof createChooseGPGMethod, _ChooseGPGMethodPayload>
-export type ClearQRCodePayload = $Call<typeof createClearQRCode, _ClearQRCodePayload>
 export type ConfiguredAccountsPayload = $Call<typeof createConfiguredAccounts, _ConfiguredAccountsPayload>
 export type ConfiguredAccountsPayloadError = $Call<typeof createConfiguredAccountsError, _ConfiguredAccountsPayloadError>
 export type LoginErrorPayload = $Call<typeof createLoginError, _LoginErrorPayload>
@@ -139,15 +111,9 @@ export type ProvisionTextCodeEnteredPayload = $Call<typeof createProvisionTextCo
 export type ProvisioningErrorPayload = $Call<typeof createProvisioningError, _ProvisioningErrorPayload>
 export type QrScannedPayload = $Call<typeof createQrScanned, _QrScannedPayload>
 export type ReloginPayload = $Call<typeof createRelogin, _ReloginPayload>
-export type ResetQRCodeScannedPayload = $Call<typeof createResetQRCodeScanned, _ResetQRCodeScannedPayload>
 export type SelectDeviceIdPayload = $Call<typeof createSelectDeviceId, _SelectDeviceIdPayload>
-export type SetCameraBrokenModePayload = $Call<typeof createSetCameraBrokenMode, _SetCameraBrokenModePayload>
-export type SetCodePageModePayload = $Call<typeof createSetCodePageMode, _SetCodePageModePayload>
 export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDeletedSelfPayload>
 export type SetDevicenameErrorPayload = $Call<typeof createSetDevicenameError, _SetDevicenameErrorPayload>
-export type SetMyDeviceCodeStatePayload = $Call<typeof createSetMyDeviceCodeState, _SetMyDeviceCodeStatePayload>
-export type SetOtherDeviceCodeStatePayload = $Call<typeof createSetOtherDeviceCodeState, _SetOtherDeviceCodeStatePayload>
-export type SetQRCodePayload = $Call<typeof createSetQRCode, _SetQRCodePayload>
 export type SetRevokedSelfPayload = $Call<typeof createSetRevokedSelf, _SetRevokedSelfPayload>
 export type SetTextCodePayload = $Call<typeof createSetTextCode, _SetTextCodePayload>
 export type StartLoginPayload = $Call<typeof createStartLogin, _StartLoginPayload>
@@ -161,7 +127,6 @@ export type WaitingForResponsePayload = $Call<typeof createWaitingForResponse, _
 export type Actions =
   | AddNewDevicePayload
   | ChooseGPGMethodPayload
-  | ClearQRCodePayload
   | ConfiguredAccountsPayload
   | ConfiguredAccountsPayloadError
   | LoginErrorPayload
@@ -176,15 +141,9 @@ export type Actions =
   | ProvisioningErrorPayload
   | QrScannedPayload
   | ReloginPayload
-  | ResetQRCodeScannedPayload
   | SelectDeviceIdPayload
-  | SetCameraBrokenModePayload
-  | SetCodePageModePayload
   | SetDeletedSelfPayload
   | SetDevicenameErrorPayload
-  | SetMyDeviceCodeStatePayload
-  | SetOtherDeviceCodeStatePayload
-  | SetQRCodePayload
   | SetRevokedSelfPayload
   | SetTextCodePayload
   | StartLoginPayload

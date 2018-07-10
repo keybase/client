@@ -65,7 +65,7 @@ const mapDispatchToProps = (dispatch: any) => ({
   },
   onBack: () => dispatch(LoginGen.createOnBack()),
   onSubmit: (passphrase: string) =>
-    dispatch(LoginGen.createSubmitPassphrase({passphrase: new HiddenString(passphrase), storeSecret: false})),
+    dispatch(LoginGen.createSubmitPassphrase({passphrase: new HiddenString(passphrase)})),
 })
 
 const mergeProps = (stateProps, dispatchProps, {routeProps}) => ({

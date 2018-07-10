@@ -2,6 +2,7 @@
 import logger from '../logger'
 import * as Constants from '../constants/push'
 import * as ConfigGen from './config-gen'
+import * as LoginGen from './login-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as PushGen from './push-gen'
 import * as WaitingGen from './waiting-gen'
@@ -266,30 +267,25 @@ function* checkIOSPushSaga(): Saga.SagaGenerator<any, any> {
   }
 }
 
-function* deletePushTokenSaga(): Saga.SagaGenerator<any, any> {
-  try {
-    const state: TypedState = yield Saga.select()
-    const {tokenType} = pushSelector(state)
-    if (!tokenType) {
-      // No push token to remove.
-      logger.info('Not deleting push token -- none to remove')
-      return
-    }
-
-    const deviceID = deviceIDSelector(state)
-    if (!deviceID) {
-      throw new Error('No device id available for saving push token')
-    }
-
-    const args = [{key: 'device_id', value: deviceID}, {key: 'token_type', value: tokenType}]
-
-    yield Saga.call(RPCTypes.apiserverDeleteRpcPromise, {
-      endpoint: 'device/push_token',
-      args: args,
-    })
-  } catch (err) {
-    logger.warn('Error trying to delete push token:', err)
+const deletePushToken = (state: TypedState) => {
+  const {tokenType} = pushSelector(state)
+  if (!tokenType) {
+    // No push token to remove.
+    logger.info('Not deleting push token -- none to remove')
+    return
   }
+
+  const deviceID = deviceIDSelector(state)
+  if (!deviceID) {
+    logger.info('No device id available for saving push token')
+    return
+  }
+
+  const args = [{key: 'device_id', value: deviceID}, {key: 'token_type', value: tokenType}]
+  return Saga.call(RPCTypes.apiserverDeleteRpcPromise, {
+    args: args,
+    endpoint: 'device/push_token',
+  })
 }
 
 function* mobileAppStateSaga(action: ConfigGen.MobileAppStatePayload) {
@@ -323,8 +319,7 @@ function* pushSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(PushGen.notification, pushNotificationSaga)
   yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, resetHandledPush)
   yield Saga.safeTakeEvery(ConfigGen.mobileAppState, mobileAppStateSaga)
+  yield Saga.safeTakeEveryPureSimple(LoginGen.logout, deletePushToken)
 }
 
 export default pushSaga
-
-export {deletePushTokenSaga}
