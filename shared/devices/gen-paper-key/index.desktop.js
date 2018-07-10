@@ -19,12 +19,7 @@ type State = {
 }
 
 class SuccessRender extends Component<Props, State> {
-  state: State
-
-  constructor(props: Props) {
-    super(props)
-    this.state = {inWallet: false}
-  }
+  state = {inWallet: false}
 
   render() {
     const contents = this.props.paperkey ? (
