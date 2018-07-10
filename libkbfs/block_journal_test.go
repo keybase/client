@@ -453,13 +453,13 @@ func TestBlockJournalFlush(t *testing.T) {
 		var partialEntries blockEntriesToFlush
 		var rev kbfsmd.Revision
 		if end > firstValidJournalOrdinal+1 {
-			partialEntries, rev, err = j.getNextEntriesToFlush(ctx, end-1,
-				maxJournalBlockFlushBatchSize)
+			partialEntries, _, rev, err = j.getNextEntriesToFlush(
+				ctx, end-1, maxJournalBlockFlushBatchSize)
 			require.NoError(t, err)
 			require.Equal(t, rev, kbfsmd.RevisionUninitialized)
 		}
 
-		entries, rev, err := j.getNextEntriesToFlush(ctx, end,
+		entries, b, rev, err := j.getNextEntriesToFlush(ctx, end,
 			maxJournalBlockFlushBatchSize)
 		require.NoError(t, err)
 		require.Equal(t, partialEntries.length()+1, entries.length())
@@ -473,6 +473,7 @@ func TestBlockJournalFlush(t *testing.T) {
 		flushedBytes, err = j.removeFlushedEntries(
 			ctx, entries, tlfID, reporter)
 		require.NoError(t, err)
+		require.Equal(t, b, flushedBytes)
 
 		removedBytes, removedFiles = goGCForTest(t, ctx, j)
 		return flushedBytes, removedBytes, removedFiles
@@ -537,7 +538,7 @@ func flushBlockJournalOne(ctx context.Context, t *testing.T,
 	flushedBytes, removedFiles, removedBytes int64) {
 	first, err := j.j.readEarliestOrdinal()
 	require.NoError(t, err)
-	entries, _, err := j.getNextEntriesToFlush(ctx, first+1,
+	entries, b, _, err := j.getNextEntriesToFlush(ctx, first+1,
 		maxJournalBlockFlushBatchSize)
 	require.NoError(t, err)
 	require.Equal(t, 1, entries.length())
@@ -548,6 +549,7 @@ func flushBlockJournalOne(ctx context.Context, t *testing.T,
 	flushedBytes, err = j.removeFlushedEntries(
 		ctx, entries, tlfID, reporter)
 	require.NoError(t, err)
+	require.Equal(t, b, flushedBytes)
 
 	removedBytes, removedFiles = goGCForTest(t, ctx, j)
 	require.NoError(t, err)
@@ -683,10 +685,11 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 
 	end, err := j.end()
 	require.NoError(t, err)
-	entries, _, err := j.getNextEntriesToFlush(ctx, end,
+	entries, b, _, err := j.getNextEntriesToFlush(ctx, end,
 		maxJournalBlockFlushBatchSize)
 	require.NoError(t, err)
 	require.Equal(t, 0, entries.length())
+	require.Equal(t, int64(0), b)
 
 	// Make sure the ordinals and blocks are flushed.
 	testBlockJournalGCd(t, j)
@@ -715,7 +718,7 @@ func TestBlockJournalFlushMDRevMarker(t *testing.T) {
 	// can be flushed.
 	last, err := j.j.readLatestOrdinal()
 	require.NoError(t, err)
-	entries, gotRev, err := j.getNextEntriesToFlush(ctx, last+1,
+	entries, b, gotRev, err := j.getNextEntriesToFlush(ctx, last+1,
 		maxJournalBlockFlushBatchSize)
 	require.NoError(t, err)
 	require.Equal(t, rev, gotRev)
@@ -728,6 +731,7 @@ func TestBlockJournalFlushMDRevMarker(t *testing.T) {
 		ctx, entries, tlfID, reporter)
 	require.NoError(t, err)
 	require.Equal(t, int64(len(data)), flushedBytes)
+	require.Equal(t, b, flushedBytes)
 	removedBytes, removedFiles := goGCForTest(t, ctx, j)
 	require.NoError(t, err)
 	require.Equal(t, int64(len(data)), removedBytes)
@@ -777,7 +781,7 @@ func TestBlockJournalFlushMDRevMarkerForPendingLocalSquash(t *testing.T) {
 	// marker).
 	last, err := j.j.readLatestOrdinal()
 	require.NoError(t, err)
-	entries, gotRev, err := j.getNextEntriesToFlush(ctx, last+1,
+	entries, b, gotRev, err := j.getNextEntriesToFlush(ctx, last+1,
 		maxJournalBlockFlushBatchSize)
 	require.NoError(t, err)
 	require.Equal(t, rev-1, gotRev)
@@ -795,6 +799,7 @@ func TestBlockJournalFlushMDRevMarkerForPendingLocalSquash(t *testing.T) {
 		ctx, entries, tlfID, reporter)
 	require.NoError(t, err)
 	require.Equal(t, int64(len(data1)+len(data4)), flushedBytes)
+	require.Equal(t, b, flushedBytes)
 	removedBytes, removedFiles := goGCForTest(t, ctx, j)
 	require.NoError(t, err)
 	require.Equal(t, int64(len(data1)+len(data2)+len(data3)+len(data4)),
@@ -850,7 +855,7 @@ func TestBlockJournalIgnoreBlocks(t *testing.T) {
 	// Flush and make sure we only flush the non-ignored blocks.
 	last, err := j.j.readLatestOrdinal()
 	require.NoError(t, err)
-	entries, gotRev, err := j.getNextEntriesToFlush(ctx, last+1,
+	entries, b, gotRev, err := j.getNextEntriesToFlush(ctx, last+1,
 		maxJournalBlockFlushBatchSize)
 	require.NoError(t, err)
 	require.Equal(t, kbfsmd.RevisionUninitialized, gotRev)
@@ -868,6 +873,7 @@ func TestBlockJournalIgnoreBlocks(t *testing.T) {
 		ctx, entries, tlfID, reporter)
 	require.NoError(t, err)
 	require.Equal(t, int64(len(data1)+len(data4)), flushedBytes)
+	require.Equal(t, b, flushedBytes)
 
 	// Flush everything.
 	removedBytes, removedFiles := goGCForTest(t, ctx, j)
@@ -916,7 +922,7 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 	flushAll := func() int64 {
 		last, err := j.j.readLatestOrdinal()
 		require.NoError(t, err)
-		entries, _, err := j.getNextEntriesToFlush(ctx, last+1,
+		entries, b, _, err := j.getNextEntriesToFlush(ctx, last+1,
 			maxJournalBlockFlushBatchSize)
 		require.NoError(t, err)
 		err = flushBlockEntries(ctx, j.log, j.deferLog, blockServer,
@@ -926,6 +932,7 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 		flushedBytes, err := j.removeFlushedEntries(
 			ctx, entries, tlfID, reporter)
 		require.NoError(t, err)
+		require.Equal(t, b, flushedBytes)
 		return flushedBytes
 	}
 	flushedBytes := flushAll()
@@ -942,11 +949,12 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 	// No more blocks to flush though.
 	end, err := j.end()
 	require.NoError(t, err)
-	entries, gotRev, err := j.getNextEntriesToFlush(ctx, end,
+	entries, b, gotRev, err := j.getNextEntriesToFlush(ctx, end,
 		maxJournalBlockFlushBatchSize)
 	require.NoError(t, err)
 	require.Equal(t, 0, entries.length())
 	require.Equal(t, kbfsmd.RevisionUninitialized, gotRev)
+	require.Equal(t, int64(0), b)
 
 	// Add a few more blocks and save those too.
 	data5 := []byte{17, 18, 19, 20}

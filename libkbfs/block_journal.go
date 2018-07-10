@@ -628,31 +628,32 @@ func (be blockEntriesToFlush) clearFlushingBlockIDs(ids map[kbfsblock.ID]bool) {
 // kbfsmd.RevisionUninitialized is returned.
 func (j *blockJournal) getNextEntriesToFlush(
 	ctx context.Context, end journalOrdinal, maxToFlush int) (
-	entries blockEntriesToFlush, maxMDRevToFlush kbfsmd.Revision, err error) {
+	entries blockEntriesToFlush, bytesToFlush int64,
+	maxMDRevToFlush kbfsmd.Revision, err error) {
 	first, err := j.j.readEarliestOrdinal()
 	if ioutil.IsNotExist(err) {
-		return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized, nil
+		return blockEntriesToFlush{}, 0, kbfsmd.RevisionUninitialized, nil
 	} else if err != nil {
-		return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized, err
+		return blockEntriesToFlush{}, 0, kbfsmd.RevisionUninitialized, err
 	}
 
 	if first >= end {
-		return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized,
+		return blockEntriesToFlush{}, 0, kbfsmd.RevisionUninitialized,
 			errors.Errorf("Trying to flush past the "+
 				"start of the journal (first=%d, end=%d)", first, end)
 	}
 
 	realEnd, err := j.end()
 	if realEnd == 0 {
-		return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized,
+		return blockEntriesToFlush{}, 0, kbfsmd.RevisionUninitialized,
 			errors.Errorf("There was an earliest "+
 				"ordinal %d, but no latest ordinal", first)
 	} else if err != nil {
-		return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized, err
+		return blockEntriesToFlush{}, 0, kbfsmd.RevisionUninitialized, err
 	}
 
 	if end > realEnd {
-		return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized,
+		return blockEntriesToFlush{}, 0, kbfsmd.RevisionUninitialized,
 			errors.Errorf("Trying to flush past the "+
 				"end of the journal (realEnd=%d, end=%d)", realEnd, end)
 	}
@@ -669,7 +670,7 @@ func (j *blockJournal) getNextEntriesToFlush(
 	for ordinal := first; ordinal < loopEnd; ordinal++ {
 		entry, err := j.readJournalEntry(ordinal)
 		if err != nil {
-			return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized, err
+			return blockEntriesToFlush{}, 0, kbfsmd.RevisionUninitialized, err
 		}
 
 		if entry.Ignore {
@@ -688,13 +689,16 @@ func (j *blockJournal) getNextEntriesToFlush(
 		case blockPutOp:
 			id, bctx, err := entry.getSingleContext()
 			if err != nil {
-				return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized, err
+				return blockEntriesToFlush{}, 0,
+					kbfsmd.RevisionUninitialized, err
 			}
 
 			data, serverHalf, err = j.s.getData(id)
 			if err != nil {
-				return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized, err
+				return blockEntriesToFlush{}, 0,
+					kbfsmd.RevisionUninitialized, err
 			}
+			bytesToFlush += int64(len(data))
 
 			entries.puts.addNewBlock(
 				BlockPointer{ID: id, Context: bctx},
@@ -704,7 +708,8 @@ func (j *blockJournal) getNextEntriesToFlush(
 		case addRefOp:
 			id, bctx, err := entry.getSingleContext()
 			if err != nil {
-				return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized, err
+				return blockEntriesToFlush{}, 0,
+					kbfsmd.RevisionUninitialized, err
 			}
 
 			entries.adds.addNewBlock(
@@ -714,7 +719,7 @@ func (j *blockJournal) getNextEntriesToFlush(
 
 		case mdRevMarkerOp:
 			if entry.Revision < maxMDRevToFlush {
-				return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized,
+				return blockEntriesToFlush{}, 0, kbfsmd.RevisionUninitialized,
 					errors.Errorf("Max MD revision decreased in block journal "+
 						"from %d to %d", entry.Revision, maxMDRevToFlush)
 			}
@@ -728,7 +733,7 @@ func (j *blockJournal) getNextEntriesToFlush(
 		entries.all = append(entries.all, entry)
 	}
 	entries.first = first
-	return entries, maxMDRevToFlush, nil
+	return entries, bytesToFlush, maxMDRevToFlush, nil
 }
 
 // flushNonBPSBlockJournalEntry flushes journal entries that can't be

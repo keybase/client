@@ -1675,7 +1675,8 @@ func testTLFJournalResolveBranch(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.NoError(t, err)
 	require.Equal(t, firstRevision+1, newMDEnd)
 
-	blocks, maxMD, err := tlfJournal.getNextBlockEntriesToFlush(ctx, blockEnd)
+	blocks, b, maxMD, err := tlfJournal.getNextBlockEntriesToFlush(
+		ctx, blockEnd)
 	require.NoError(t, err)
 	require.Equal(t, firstRevision, maxMD)
 	// 3 blocks, 3 old MD markers, 1 new MD marker
@@ -1686,6 +1687,8 @@ func testTLFJournalResolveBranch(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.Len(t, blocks.other, 5)
 	require.Equal(t, bids[0], blocks.puts.blockStates[0].blockPtr.ID)
 	require.Equal(t, bids[2], blocks.puts.blockStates[1].blockPtr.ID)
+	// 2 bytes of data in 2 unignored blocks.
+	require.Equal(t, int64(2), b)
 
 	// resolveBranch resumes background work.
 	delegate.requireNextState(ctx, bwIdle)

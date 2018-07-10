@@ -299,6 +299,8 @@ type tlfJournal struct {
 	// regular time intervals, this ends up weighting the average by
 	// number of samples.
 	bytesPerSecEstimate ewma.MovingAverage
+	currBytesFlushing   int64
+	currFlushStarted    time.Time
 
 	bwDelegate tlfJournalBWDelegate
 }
@@ -1019,11 +1021,12 @@ func (j *tlfJournal) checkServerForConflicts(ctx context.Context,
 
 func (j *tlfJournal) getNextBlockEntriesToFlush(
 	ctx context.Context, end journalOrdinal) (
-	entries blockEntriesToFlush, maxMDRevToFlush kbfsmd.Revision, err error) {
+	entries blockEntriesToFlush, bytesToFlush int64,
+	maxMDRevToFlush kbfsmd.Revision, err error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
-		return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized, err
+		return blockEntriesToFlush{}, 0, kbfsmd.RevisionUninitialized, err
 	}
 
 	return j.blockJournal.getNextEntriesToFlush(ctx, end,
@@ -1031,7 +1034,7 @@ func (j *tlfJournal) getNextBlockEntriesToFlush(
 }
 
 func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
-	entries blockEntriesToFlush, timeToFlush time.Duration) error {
+	entries blockEntriesToFlush, flushEnded time.Time) error {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -1056,6 +1059,9 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 			storedBytesBefore, storedBytesAfter))
 	}
 
+	timeToFlush := flushEnded.Sub(j.currFlushStarted)
+	j.currBytesFlushing = 0
+	j.currFlushStarted = time.Time{}
 	if flushedBytes > 0 {
 		j.bytesPerSecEstimate.Add(float64(flushedBytes) / timeToFlush.Seconds())
 	}
@@ -1067,11 +1073,19 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 	return nil
 }
 
+func (j *tlfJournal) startFlush(bytesToFlush int64) {
+	j.journalLock.Lock()
+	defer j.journalLock.Unlock()
+	j.currBytesFlushing = bytesToFlush
+	j.currFlushStarted = j.config.Clock().Now()
+}
+
 func (j *tlfJournal) flushBlockEntries(
 	ctx context.Context, end journalOrdinal) (
 	numFlushed int, maxMDRevToFlush kbfsmd.Revision,
 	converted bool, err error) {
-	entries, maxMDRevToFlush, err := j.getNextBlockEntriesToFlush(ctx, end)
+	entries, bytesToFlush, maxMDRevToFlush, err := j.getNextBlockEntriesToFlush(
+		ctx, end)
 	if err != nil {
 		return 0, kbfsmd.RevisionUninitialized, false, err
 	}
@@ -1116,7 +1130,7 @@ func (j *tlfJournal) flushBlockEntries(
 	// usually happen, because flushing is paused while CR is
 	// happening.  flush() has to make sure to get the new MD journal
 	// end, and we need to make sure `maxMDRevToFlush` is still valid.
-	startFlush := j.config.Clock().Now()
+	j.startFlush(bytesToFlush)
 	eg.Go(func() error {
 		defer convertCancel()
 		return flushBlockEntries(groupCtx, j.log, j.deferLog,
@@ -1161,7 +1175,7 @@ func (j *tlfJournal) flushBlockEntries(
 		return 0, kbfsmd.RevisionUninitialized, false, err
 	}
 
-	err = j.removeFlushedBlockEntries(ctx, entries, endFlush.Sub(startFlush))
+	err = j.removeFlushedBlockEntries(ctx, entries, endFlush)
 	if err != nil {
 		return 0, kbfsmd.RevisionUninitialized, false, err
 	}
@@ -1588,15 +1602,40 @@ func (j *tlfJournal) getJournalStatusLocked() (TLFJournalStatus, error) {
 	quotaUsed, quotaLimit := j.diskLimiter.getQuotaInfo(j.chargedTo)
 	var endEstimate *time.Time
 	if unflushedBytes > 0 {
+		now := j.config.Clock().Now()
+		bwEstimate := j.bytesPerSecEstimate.Value()
+
+		// How long do we think is remaining in the current flush?
+		timeLeftInCurrFlush := time.Duration(0)
+		if j.currBytesFlushing > 0 {
+			timeFlushingSoFar := now.Sub(j.currFlushStarted)
+			totalExpectedTime := time.Duration(0)
+			if bwEstimate > 0 {
+				totalExpectedTime = time.Duration(
+					float64(j.currBytesFlushing)/bwEstimate) * time.Second
+			}
+
+			if totalExpectedTime > timeFlushingSoFar {
+				timeLeftInCurrFlush = totalExpectedTime - timeFlushingSoFar
+			} else {
+				// Arbitrarily say that there's one second left, if
+				// we've taken longer than expected to flush so far.
+				timeLeftInCurrFlush = 1 * time.Second
+			}
+		}
+
+		// Add the estimate for the blocks that haven't started flushing yet.
+
 		// If we have no estimate for this TLF yet, pick 10 seconds
 		// arbitrarily.
-		now := j.config.Clock().Now()
-		t := now.Add(10 * time.Second)
-		bwEstimate := j.bytesPerSecEstimate.Value()
+		restOfTimeLeftEstimate := 10 * time.Second
 		if bwEstimate > 0 {
-			t = now.Add(
-				time.Duration(float64(unflushedBytes)/bwEstimate) * time.Second)
+			bytesLeft := unflushedBytes - j.currBytesFlushing
+			restOfTimeLeftEstimate = time.Duration(
+				float64(bytesLeft)/bwEstimate) * time.Second
 		}
+
+		t := now.Add(timeLeftInCurrFlush + restOfTimeLeftEstimate)
 		endEstimate = &t
 	}
 	return TLFJournalStatus{
