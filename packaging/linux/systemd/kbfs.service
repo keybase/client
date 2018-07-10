@@ -9,7 +9,7 @@ Type=notify
 # means that error codes from this command are ignored. Without this line,
 # `systemctl --user restart kbfs.service` will hit mount failures if there
 # are any running shells cd'd into a Keybase folder.
-ExecStartPre=-/bin/sh -c 'fusermount -uz "$(keybase config get mountdir|sed s/\x5c"//g)"'
+ExecStartPre=-/bin/sh -c 'fusermount -uz "$(keybase config get -d -b mountdir)"'
 ExecStart=/usr/bin/kbfsfuse -debug -log-to-file
 Restart=on-failure
 
