@@ -46,9 +46,6 @@
       "_description": "Update our store of account data",
       "accounts": "Array<Types.Account>",
     },
-    "loadAccounts": {
-      "_description": "Refresh our list of accounts",
-    },
     "selectAccount": {
       "_description": "Select an account. Optionally navigate to the account page.",
       "accountID": "Types.AccountID",
