@@ -4,13 +4,14 @@
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
-    "startLogin": {},
-    "submitUsernameOrEmail": { "usernameOrEmail": "string" },
     "login": {
       "usernameOrEmail": "string",
       "passphrase": "HiddenString"
     },
+    "startLogin": {},
+    "submitUsernameOrEmail": { "usernameOrEmail": "string" },
     "submitPassphrase": { "passphrase": "HiddenString", },
+
     "onBack": {},
     "onWont": {},
     "onFinish": {},

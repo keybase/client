@@ -18,6 +18,8 @@ export default function(
     case LoginGen.login: // fallthrough
     case LoginGen.startLogin:
       return state.merge({justDeletedSelf: '', justRevokedSelf: '', loginError: ''})
+    case LoginGen.submitUsernameOrEmail:
+      return state.set('provisionUsernameOrEmail', action.payload.usernameOrEmail)
     case LoginGen.setDevicenameError:
       return state.set('devicenameError', action.payload.error)
     case LoginGen.setTextCode: {
@@ -55,7 +57,6 @@ export default function(
     case LoginGen.selectDeviceId:
     case LoginGen.submitDeviceName:
     case LoginGen.submitPassphrase:
-    case LoginGen.submitUsernameOrEmail:
       return state
     default:
       /*::

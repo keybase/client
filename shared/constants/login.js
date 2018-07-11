@@ -23,6 +23,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   justDeletedSelf: null,
   justRevokedSelf: null,
   loginError: '',
+  provisionUsernameOrEmail: '',
   registerUserPassError: null,
   registerUserPassLoading: false,
 })
