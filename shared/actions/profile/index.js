@@ -56,7 +56,7 @@ function _showUserProfile(action: ProfileGen.ShowUserProfilePayload, state: Type
   const {username: userId} = action.payload
   const searchResultMap = Selectors.searchResultMapSelector(state)
   const username = SearchConstants.maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, userId)
-  const me = Selectors.usernameSelector(state) || ''
+  const me = state.config.username || ''
   // Get the peopleTab path
   const peopleRouteProps = getPathProps(state.routeTree.routeState, [peopleTab])
   const onlyProfilesPath = Constants.getProfilePath(peopleRouteProps, username, me, state)

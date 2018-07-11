@@ -18,7 +18,6 @@ import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as WaitingGen from './waiting-gen'
 import engine from '../engine'
-import {usernameSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
 import {putActionIfOnPath, navigateTo, navigateUp} from './route-tree'
 import {chatTab, teamsTab} from '../constants/tabs'
@@ -380,7 +379,7 @@ const _createNewTeamFromConversation = function*(
 ): Saga.SagaGenerator<any, any> {
   const {conversationIDKey, teamname} = action.payload
   const state: TypedState = yield Saga.select()
-  const me = usernameSelector(state)
+  const me = state.config.username
   let participants: Array<string> = []
 
   const meta = ChatConstants.getMeta(state, conversationIDKey)
@@ -706,7 +705,7 @@ function _afterGetChannels(fromGetChannels: any[]) {
 
 const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
-  const username = usernameSelector(state)
+  const username = state.config.username
   if (!username) {
     logger.warn('getTeams while logged out')
     return
