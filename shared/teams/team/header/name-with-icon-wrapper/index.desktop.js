@@ -6,7 +6,7 @@ import type {Props} from '.'
 const NameWithIconWrapper = (props: Props) => (
   <NameWithIcon
     editableIcon={props.canEditDescription}
-    onEditIcon={props.onEditIcon}
+    onEditIcon={() => props.onEditIcon()}
     size="large"
     teamname={props.teamname}
     title={props.teamname}
