@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
-import {Box2, Divider, ScrollView, SectionList, Text} from '../../common-adapters'
+import {Box2, Divider, SectionList, Text} from '../../common-adapters'
 import Header from './header-container'
 import Asset from '../asset/container'
 import Transaction from '../transaction/container'
@@ -45,13 +45,11 @@ export default (props: Props) => {
   return (
     <Box2 direction="vertical" style={{flexGrow: 1}} fullHeight={true} gap="small">
       <Header navigateAppend={props.navigateAppend} />
-      <ScrollView>
-        <SectionList
-          sections={props.sections}
-          renderItem={renderItem}
-          renderSectionHeader={renderSectionHeader}
-        />
-      </ScrollView>
+      <SectionList
+        sections={props.sections}
+        renderItem={renderItem}
+        renderSectionHeader={renderSectionHeader}
+      />
     </Box2>
   )
 }

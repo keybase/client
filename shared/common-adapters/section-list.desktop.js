@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import ReactList from 'react-list'
+import ScrollView from './scroll-view'
 import type {Props} from './section-list'
 
 type State = {
@@ -39,6 +40,10 @@ export default class extends React.Component<Props, State> {
   }
 
   render() {
-    return <ReactList itemRenderer={this._itemRenderer} length={this.state.items.length} />
+    return (
+      <ScrollView>
+        <ReactList itemRenderer={this._itemRenderer} length={this.state.items.length} />
+      </ScrollView>
+    )
   }
 }

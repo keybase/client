@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
 import * as MessageTypes from '../../../../constants/types/chat2/message'
-import {Box2, NameWithIcon, Overlay, ScrollView, SectionList, Text} from '../../../../common-adapters'
-import {globalColors, globalMargins, styleSheetCreate} from '../../../../styles'
+import {Box2, NameWithIcon, Overlay, SectionList, Text} from '../../../../common-adapters'
+import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../../../styles'
 import ReactButton from '../react-button/container'
 
 type Props = {
@@ -24,14 +24,8 @@ const ReactionTooltip = (props: Props) => {
   }))
   return (
     <Overlay attachTo={props.attachmentRef} onHidden={props.onHidden} position="top right">
-      <Box2 direction="vertical" gap="tiny" style={{maxHeight: 320, width: 240}}>
-        <ScrollView style={{paddingBottom: globalMargins.tiny, paddingTop: globalMargins.tiny}}>
-          <SectionList
-            sections={sections}
-            renderItem={renderItem}
-            renderSectionHeader={renderSectionHeader}
-          />
-        </ScrollView>
+      <Box2 direction="vertical" gap="tiny" style={styles.listContainer}>
+        <SectionList sections={sections} renderItem={renderItem} renderSectionHeader={renderSectionHeader} />
       </Box2>
     </Overlay>
   )
@@ -75,11 +69,26 @@ const renderSectionHeader = ({
 const styles = styleSheetCreate({
   buttonContainer: {
     alignItems: 'center',
+    backgroundColor: globalColors.white,
     flexShrink: 0,
+    paddingBottom: globalMargins.tiny,
+    paddingTop: globalMargins.tiny,
   },
   emojiText: {
     color: globalColors.black_40,
   },
+  listContainer: platformStyles({
+    common: {
+      maxHeight: 320,
+    },
+    isElectron: {
+      width: 240,
+    },
+    isMobile: {
+      backgroundColor: globalColors.white,
+      width: '100%',
+    },
+  }),
   userContainer: {
     paddingBottom: globalMargins.xtiny,
     paddingLeft: globalMargins.tiny + globalMargins.medium,
