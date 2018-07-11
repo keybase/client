@@ -154,7 +154,8 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps) => ({
     isMobile || desktopDest === 'profile'
       ? dispatch(createShowUserProfile({username}))
       : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
-  onClick: flags.avatarUploadsEnabled ? ownProps.onEditAvatarClick : ownProps.onClick,
+  onClick:
+    flags.avatarUploadsEnabled && ownProps.onEditAvatarClick ? ownProps.onEditAvatarClick : ownProps.onClick,
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): PropsWithoutTimer => {
