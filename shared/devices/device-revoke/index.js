@@ -84,8 +84,7 @@ const DeviceRevoke = (props: Props) => (
   <Confirm
     body={
       <Body
-        // endangeredTLFs={props.endangeredTLFs}
-        endangeredTLFs={['nathunsmitty']}
+        endangeredTLFs={props.endangeredTLFs}
         name={props.name}
         currentDevice={props.currentDevice}
         waiting={props.waiting}
