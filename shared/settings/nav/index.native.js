@@ -2,8 +2,14 @@
 import * as React from 'react'
 import * as TabConstants from '../../constants/tabs'
 import * as Constants from '../../constants/settings'
-import {StyleSheet} from 'react-native'
-import {globalStyles, globalColors, globalMargins, type Color} from '../../styles'
+import {
+  globalStyles,
+  globalColors,
+  globalMargins,
+  type Color,
+  hairlineWidth,
+  styleSheetCreate,
+} from '../../styles'
 import {
   Badge2,
   Box,
@@ -34,7 +40,7 @@ function SettingsItem({
   textColor?: Color,
 }) {
   return text ? (
-    <ClickableBox onClick={onClick} style={itemStyle}>
+    <ClickableBox onClick={onClick} style={styles.item}>
       <Box style={{...globalStyles.flexBoxRow}}>
         {icon && (
           <Icon type={icon} color={globalColors.black_20} style={{marginRight: globalMargins.small}} />
@@ -47,7 +53,7 @@ function SettingsItem({
         </Text>
         {!!badgeNumber &&
           badgeNumber > 0 && (
-            <Badge2 radius={11} topBottomPadding={0} badgeStyle={badgeStyle} badgeNumber={badgeNumber} />
+            <Badge2 radius={11} topBottomPadding={0} badgeStyle={styles.badge} badgeNumber={badgeNumber} />
           )}
       </Box>
     </ClickableBox>
@@ -65,7 +71,7 @@ function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange
       renderItem={renderItem}
       renderSectionHeader={({section: {title}}) =>
         title ? (
-          <Text type="BodySmallSemibold" style={sectionTitleStyle}>
+          <Text type="BodySmallSemibold" style={styles.sectionTitle}>
             {title}
           </Text>
         ) : null
@@ -170,30 +176,30 @@ function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange
   )
 }
 
-const itemStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  borderBottomColor: globalColors.black_05,
-  borderBottomWidth: StyleSheet.hairlineWidth,
-  height: 56,
-  paddingLeft: globalMargins.small,
-  paddingRight: globalMargins.small,
-  position: 'relative',
-}
-
-const badgeStyle = {
-  marginLeft: 4,
-  marginRight: 0,
-  marginTop: 2,
-}
-
-const sectionTitleStyle = {
-  backgroundColor: globalColors.blue5,
-  color: globalColors.black_40,
-  paddingBottom: 7,
-  paddingLeft: globalMargins.small,
-  paddingRight: globalMargins.small,
-  paddingTop: 7,
-}
+const styles = styleSheetCreate({
+  item: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    borderBottomColor: globalColors.black_05,
+    borderBottomWidth: hairlineWidth,
+    height: 56,
+    paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small,
+    position: 'relative',
+  },
+  badge: {
+    marginLeft: 4,
+    marginRight: 0,
+    marginTop: 2,
+  },
+  sectionTitle: {
+    backgroundColor: globalColors.blue5,
+    color: globalColors.black_40,
+    paddingBottom: 7,
+    paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small,
+    paddingTop: 7,
+  },
+})
 
 export default HeaderHoc(SettingsNav)
