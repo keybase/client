@@ -546,31 +546,45 @@ const login = (_: any, action: LoginGen.LoginPayload) =>
   Saga.call(function*() {
     try {
       const cancelOnCallback = (params, response, state) => {
-        // $FlowIssue code gen doesn't understand cancel flow
-        response({
+        response.error({
           code: RPCTypes.constantsStatusCode.scgeneric,
           desc: 'Canceling RPC',
         })
       }
+      const ignoreCallback = (params, state) => {}
 
       yield RPCTypes.loginLoginRpcSaga({
         // cancel if we get any of these callbacks, we're logging in, not provisioning
         incomingCallMap: {
           'keybase.1.gpgUi.selectKey': cancelOnCallback,
-          'keybase.1.loginUi.displayPrimaryPaperKey': cancelOnCallback,
+          'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
           'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
           'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
-          'keybase.1.provisionUi.DisplaySecretExchanged': cancelOnCallback,
+          'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
           'keybase.1.provisionUi.PromptNewDeviceName': cancelOnCallback,
-          'keybase.1.provisionUi.ProvisioneeSuccess': cancelOnCallback,
-          'keybase.1.provisionUi.ProvisionerSuccess': cancelOnCallback,
+          'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
+          'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
           'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
           'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
-          'keybase.1.secretUi.getPassphrase': (params, response, state) => {
-            response.result({
-              passphrase: action.payload.passphrase.stringValue(),
-              storeSecret: false,
-            })
+          'keybase.1.secretUi.getPassphrase': (
+            params: RPCTypes.SecretUiGetPassphraseRpcParam,
+            response,
+            state
+          ) => {
+            if (params.pinentry.type === RPCTypes.passphraseCommonPassphraseType.passPhrase) {
+              // Service asking us again due to a bad passphrase?
+              if (params.pinentry.retryLabel) {
+                cancelOnCallback(params, response, state)
+                return Saga.put(LoginGen.createLoginError({error: params.pinentry.retryLabel}))
+              } else {
+                response.result({
+                  passphrase: action.payload.passphrase.stringValue(),
+                  storeSecret: false,
+                })
+              }
+            } else {
+              cancelOnCallback(params, response, state)
+            }
           },
         },
         params: {
