@@ -231,7 +231,7 @@ const Instructions = (p: Props) => (
           Ready to provision using
         </Text>
         <Text type="Header" style={styles.instructionsItalic}>
-          {p.otherDeviceName}.
+          {p.currentDeviceName}.
         </Text>
       </React.Fragment>
     ) : (
