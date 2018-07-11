@@ -29,7 +29,7 @@ const Header = ({name, type}: {name: string, type: DeviceType}) => {
     mobile: isMobile ? 'icon-phone-revoke-64' : 'icon-phone-revoke-48',
   }[type]
   return (
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+    <Box style={styles.header}>
       <Icon type={icon} />
       <Text type="BodySemibold" style={styles.name}>
         {name}
@@ -45,7 +45,7 @@ const Body = (props: {
   waiting: boolean,
 }) => (
   <Box>
-    <Box style={styles.header}>
+    <Box style={styles.bodyHeader}>
       <Text type="BodySemibold">Are you sure you want to revoke </Text>
       {props.currentDevice ? (
         <Text type="BodySemibold">your current device</Text>
@@ -104,6 +104,10 @@ const DeviceRevoke = (props: Props) => (
 
 const styles = styleSheetCreate({
   header: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
+  },
+  bodyHeader: {
     marginBottom: globalMargins.tiny,
   },
   TLF: {
