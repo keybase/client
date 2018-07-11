@@ -279,7 +279,7 @@ protocol local {
 
     // User asking for payment - creator of the request.
     string fromAssertion; // creator username
-    boolean fromIsCurrentUser; // is this request coming from us?
+    boolean fromCurrentUser; // is this request coming from us?
 
     // User being asked for payment.
     ParticipantType toUserType; // keybase or SBS
@@ -298,10 +298,8 @@ protocol local {
     string amountStellar; // "123.23"
     string amountStellarDescription; // "123.23 XLM"
 
-    boolean completed;
-    string statusDescription;
-
     // Payment ID if funded, empty if not funded.
+    boolean completed;
     KeybaseTransactionID fundingKbTxID;
   }
   RequestDetailsLocal getRequestDetailsLocal(KeybaseRequestID reqID);

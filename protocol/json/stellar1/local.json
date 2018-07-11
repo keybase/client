@@ -441,7 +441,7 @@
         },
         {
           "type": "boolean",
-          "name": "fromIsCurrentUser"
+          "name": "fromCurrentUser"
         },
         {
           "type": "ParticipantType",
@@ -484,10 +484,6 @@
         {
           "type": "boolean",
           "name": "completed"
-        },
-        {
-          "type": "string",
-          "name": "statusDescription"
         },
         {
           "type": "KeybaseTransactionID",

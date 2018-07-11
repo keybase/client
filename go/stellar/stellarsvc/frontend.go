@@ -1210,8 +1210,8 @@ func newPaymentLocal(txID stellar1.TransactionID, ctime stellar1.TimeMs, amount 
 func (s *Server) CreateWalletAccountLocal(ctx context.Context, arg stellar1.CreateWalletAccountLocalArg) (res stellar1.AccountID, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
 		RPCName:       "CreateWalletAccountLocal",
-		RequireWallet: true,
 		Err:           &err,
+		RequireWallet: true,
 	})
 	defer fin()
 	if err != nil {
@@ -1241,15 +1241,15 @@ func (s *Server) GetRequestDetailsLocal(ctx context.Context, reqID stellar1.Keyb
 	}
 
 	res = stellar1.RequestDetailsLocal{
-		Id:                details.Id,
-		FromAssertion:     fromAssertion,
-		FromIsCurrentUser: s.G().GetMyUID().Equal(details.FromUser.Uid),
-		ToAssertion:       details.ToAssertion,
-		Amount:            details.Amount,
-		Asset:             details.Asset,
-		Currency:          details.Currency,
-		Completed:         !details.FundingKbTxID.IsNil(),
-		FundingKbTxID:     details.FundingKbTxID,
+		Id:              details.Id,
+		FromAssertion:   fromAssertion,
+		FromCurrentUser: s.G().GetMyUID().Equal(details.FromUser.Uid),
+		ToAssertion:     details.ToAssertion,
+		Amount:          details.Amount,
+		Asset:           details.Asset,
+		Currency:        details.Currency,
+		Completed:       !details.FundingKbTxID.IsNil(),
+		FundingKbTxID:   details.FundingKbTxID,
 	}
 
 	if details.ToUser != nil {
@@ -1286,8 +1286,15 @@ func (s *Server) GetRequestDetailsLocal(ctx context.Context, reqID stellar1.Keyb
 			s.G().Log.CDebugf(ctx, "error converting outside currency to XLM: %v", err)
 		}
 	} else if details.Asset != nil {
+		// TODO: Pass info about issuer if Asset is not XLM.
+		var code string
+		if details.Asset.IsNativeXLM() {
+			code = "XLM"
+		} else {
+			code = details.Asset.Code
+		}
 		res.AmountStellar = details.Amount
-		xlmDesc, err := stellar.FormatAmountWithSuffix(details.Amount, false, "XLM")
+		xlmDesc, err := stellar.FormatAmountWithSuffix(details.Amount, false, code)
 		if err == nil {
 			res.AmountDescription = xlmDesc
 			res.AmountStellarDescription = xlmDesc

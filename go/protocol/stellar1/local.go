@@ -400,7 +400,7 @@ func (o SendPaymentResLocal) DeepCopy() SendPaymentResLocal {
 type RequestDetailsLocal struct {
 	Id                       KeybaseRequestID     `codec:"id" json:"id"`
 	FromAssertion            string               `codec:"fromAssertion" json:"fromAssertion"`
-	FromIsCurrentUser        bool                 `codec:"fromIsCurrentUser" json:"fromIsCurrentUser"`
+	FromCurrentUser          bool                 `codec:"fromCurrentUser" json:"fromCurrentUser"`
 	ToUserType               ParticipantType      `codec:"toUserType" json:"toUserType"`
 	ToAssertion              string               `codec:"toAssertion" json:"toAssertion"`
 	Amount                   string               `codec:"amount" json:"amount"`
@@ -410,18 +410,17 @@ type RequestDetailsLocal struct {
 	AmountStellar            string               `codec:"amountStellar" json:"amountStellar"`
 	AmountStellarDescription string               `codec:"amountStellarDescription" json:"amountStellarDescription"`
 	Completed                bool                 `codec:"completed" json:"completed"`
-	StatusDescription        string               `codec:"statusDescription" json:"statusDescription"`
 	FundingKbTxID            KeybaseTransactionID `codec:"fundingKbTxID" json:"fundingKbTxID"`
 }
 
 func (o RequestDetailsLocal) DeepCopy() RequestDetailsLocal {
 	return RequestDetailsLocal{
-		Id:                o.Id.DeepCopy(),
-		FromAssertion:     o.FromAssertion,
-		FromIsCurrentUser: o.FromIsCurrentUser,
-		ToUserType:        o.ToUserType.DeepCopy(),
-		ToAssertion:       o.ToAssertion,
-		Amount:            o.Amount,
+		Id:              o.Id.DeepCopy(),
+		FromAssertion:   o.FromAssertion,
+		FromCurrentUser: o.FromCurrentUser,
+		ToUserType:      o.ToUserType.DeepCopy(),
+		ToAssertion:     o.ToAssertion,
+		Amount:          o.Amount,
 		Asset: (func(x *Asset) *Asset {
 			if x == nil {
 				return nil
@@ -440,7 +439,6 @@ func (o RequestDetailsLocal) DeepCopy() RequestDetailsLocal {
 		AmountStellar:            o.AmountStellar,
 		AmountStellarDescription: o.AmountStellarDescription,
 		Completed:                o.Completed,
-		StatusDescription:        o.StatusDescription,
 		FundingKbTxID:            o.FundingKbTxID.DeepCopy(),
 	}
 }

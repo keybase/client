@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
 	"strings"
 
 	"github.com/keybase/client/go/engine"
@@ -1074,10 +1073,6 @@ type SendRequestArg struct {
 func SendRequest(m libkb.MetaContext, remoter remote.Remoter, arg SendRequestArg) (ret stellar1.KeybaseRequestID, err error) {
 	defer m.CTraceTimed("Stellar.SendRequest", func() error { return err })()
 
-	if arg.Asset != nil && !arg.Asset.IsNativeXLM() {
-		return ret, fmt.Errorf("requesting non-XLM assets is not supported")
-	}
-
 	if arg.Asset == nil && arg.Currency == nil {
 		return ret, fmt.Errorf("expected either Asset or Currency, got none")
 	} else if arg.Asset != nil && arg.Currency != nil {
@@ -1119,7 +1114,7 @@ func SendRequest(m libkb.MetaContext, remoter remote.Remoter, arg SendRequestArg
 	}
 
 	if recipient.User != nil {
-		post.ToAssertion = recipient.User.GetName()
+		post.ToAssertion = recipient.User.GetNormalizedName().String()
 		uv := recipient.User.ToUserVersion()
 		post.ToUser = &uv
 	} else if recipient.Assertion != nil {
@@ -1138,7 +1133,7 @@ func SendRequest(m libkb.MetaContext, remoter remote.Remoter, arg SendRequestArg
 		Note:      arg.Message,
 	})
 
-	displayName := strings.Join([]string{m.CurrentUsername().String(), recipient.User.GetNormalizedName().String()}, ",")
+	displayName := strings.Join([]string{m.CurrentUsername().String(), post.ToAssertion}, ",")
 
 	membersType := chat1.ConversationMembersType_IMPTEAMNATIVE
 	err = m.G().ChatHelper.SendMsgByName(m.Ctx(), displayName, nil,
