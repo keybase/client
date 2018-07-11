@@ -2,7 +2,7 @@
 import Box from './box'
 import * as React from 'react'
 import Text from './text'
-import {globalStyles, globalColors, styleSheetCreate, collapseStyles} from '../styles'
+import {globalStyles, globalColors, styleSheetCreate, collapseStyles, platformStyles} from '../styles'
 
 import type {BadgeProps, Badge2Props} from './badge'
 
@@ -23,29 +23,50 @@ export function Badge({badgeStyle, badgeNumber, badgeNumberStyle, largerBadgeMin
 }
 
 const badgeStyles = styleSheetCreate({
-  badge: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    backgroundColor: globalColors.orange,
-    borderRadius: 14,
-    flex: 0,
-    justifyContent: 'center',
-    paddingBottom: 2,
-    paddingLeft: 6,
-    paddingRight: 6,
-    paddingTop: 4,
-  },
+  badge: platformStyles({
+    common: {
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
+      backgroundColor: globalColors.orange,
+      justifyContent: 'center',
+    },
+    isElectron: {
+      borderRadius: 10,
+      height: 16,
+      marginLeft: 'auto',
+      marginRight: 8,
+      minWidth: 16,
+      paddingLeft: 4,
+      paddingRight: 5,
+    },
+    isMobile: {
+      borderRadius: 14,
+      flex: 0,
+      paddingBottom: 2,
+      paddingLeft: 6,
+      paddingRight: 6,
+      paddingTop: 4,
+    },
+  }),
   largerBadgeMinWidthFix: {
     minWidth: 24.5,
     paddingLeft: 4,
     paddingRight: 4,
   },
-  text: {
-    color: globalColors.white,
-    flex: 0,
-    fontSize: 11,
-    lineHeight: 12,
-  },
+  text: platformStyles({
+    common: {
+      color: globalColors.white,
+      flex: 0,
+    },
+    isElectron: {
+      lineHeight: '8px',
+      fontSize: 9,
+    },
+    isMobile: {
+      fontSize: 11,
+      lineHeight: 12,
+    },
+  }),
 })
 
 export class Badge2 extends React.Component<Badge2Props> {
