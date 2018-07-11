@@ -24,7 +24,11 @@ const load = () => {
     .add('Device with Endangered TLFs', () => (
       <DeviceRevoke
         {...devicesProps}
-        endangeredTLFs={['nathunsmitty', 'nathunsmitty,chrisnojima', 'nathunsmitty,chrisnojima,jacobyoung']}
+        endangeredTLFs={[
+          'nathunsmitty',
+          'nathunsmitty,chrisnojima',
+          'nathunsmitty,chrisnojima,jacobyoung,verylongtlfname',
+        ]}
       />
     ))
 }

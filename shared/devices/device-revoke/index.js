@@ -45,14 +45,12 @@ const Body = (props: {
   waiting: boolean,
 }) => (
   <Box>
-    <Box style={styles.bodyHeader}>
-      <Text type="BodySemibold">Are you sure you want to revoke </Text>
-      {props.currentDevice ? (
-        <Text type="BodySemibold">your current device</Text>
-      ) : (
-        <Text type="BodySemiboldItalic">{props.name}</Text>
-      )}
-      <Text type="BodySemibold">?</Text>
+    <Box style={styles.body}>
+      <Text type="BodySemibold" style={styles.bodyText}>
+        Are you sure you want to revoke{' '}
+        {props.currentDevice ? 'your current device' : <Text type="BodySemiboldItalic">{props.name}</Text>}
+        ?
+      </Text>
     </Box>
 
     {props.waiting ? (
@@ -64,9 +62,9 @@ const Body = (props: {
             <Text type="Body">You may lose access to these folders forever:</Text>
           </Box>
 
-          <Box style={styles.container}>
+          <Box style={styles.tlfContainer}>
             {props.endangeredTLFs.map(tlf => (
-              <Box key={tlf} style={styles.TLF}>
+              <Box key={tlf} style={styles.tlfEntry}>
                 <Text type="BodySemibold" style={{marginRight: globalMargins.tiny}}>
                   •
                 </Text>
@@ -107,11 +105,16 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
   },
-  bodyHeader: {
+  body: {
     marginBottom: globalMargins.tiny,
   },
-  TLF: {
+  bodyText: {
+    textAlign: 'center',
+  },
+  tlfEntry: {
     marginBottom: globalMargins.xtiny,
+    // Mobile
+    flexDirection: 'row',
   },
   name: {
     color: globalColors.red,
@@ -119,7 +122,7 @@ const styles = styleSheetCreate({
     marginTop: 4,
     textDecorationLine: 'line-through',
   },
-  container: platformStyles({
+  tlfContainer: platformStyles({
     common: {
       ...globalStyles.flexBoxColumn,
       alignItems: 'flex-start',
@@ -128,14 +131,17 @@ const styles = styleSheetCreate({
       borderStyle: 'solid',
       borderColor: globalColors.black_05,
       borderRadius: 4,
-      height: 162,
       marginBottom: globalMargins.small,
       marginTop: globalMargins.small,
       padding: globalMargins.small,
-      width: 440,
     },
     isElectron: {
+      minHeight: 162,
       overflowY: 'scroll',
+      width: 440,
+    },
+    isMobile: {
+      width: '100%',
     },
   }),
 })
