@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {TouchableWithoutFeedback} from 'react-native'
-import {Box2} from './box'
+import Box, {Box2} from './box'
 import FloatingBox from './floating-box'
 import type {Props} from './overlay'
 import {collapseStyles, globalColors, globalStyles, styleSheetCreate} from '../styles'
@@ -17,7 +17,8 @@ const Overlay = (props: Props) => {
         style={collapseStyles([styles.container, !!props.color && {color: props.color}])}
       >
         <TouchableWithoutFeedback onPress={props.onHidden}>
-          <Box2 direction="vertical" style={styles.flexOne} />
+          {/* This has to be a `Box` so `TouchableWithoutFeedback`'s touch responders get piped through to the `View` */}
+          <Box style={styles.flexOne} />
         </TouchableWithoutFeedback>
         {props.children}
       </Box2>
