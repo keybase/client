@@ -19,6 +19,18 @@
       "notify": "",
       "lint": "ignore"
     },
+    "FSPathUpdated": {
+      "request": [
+        {
+          "name": "path",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "oneway": true,
+      "notify": "",
+      "lint": "ignore"
+    },
     "FSSyncActivity": {
       "request": [
         {

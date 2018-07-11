@@ -153,7 +153,8 @@
         "WRITE_3",
         "COPY_4",
         "MOVE_5",
-        "REMOVE_6"
+        "REMOVE_6",
+        "LIST_RECURSIVE_TO_DEPTH_7"
       ]
     },
     {
@@ -179,6 +180,28 @@
         {
           "type": "ListFilter",
           "name": "filter"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ListToDepthArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "path"
+        },
+        {
+          "type": "ListFilter",
+          "name": "filter"
+        },
+        {
+          "type": "int",
+          "name": "depth"
         }
       ]
     },
@@ -296,6 +319,13 @@
         },
         {
           "label": {
+            "name": "LIST_RECURSIVE_TO_DEPTH",
+            "def": false
+          },
+          "body": "ListToDepthArgs"
+        },
+        {
+          "label": {
             "name": "READ",
             "def": false
           },
@@ -403,10 +433,14 @@
         {
           "name": "filter",
           "type": "ListFilter"
+        },
+        {
+          "name": "refreshSubscription",
+          "type": "boolean"
         }
       ],
       "response": null,
-      "doc": "Begin list of items in directory at path\n   Retrieve results with readList()\n   Can be a single file to get flags/status"
+      "doc": "Begin list of items in directory at path.\n   Retrieve results with readList().\n   Can be a single file to get flags/status.\n   If `refreshSubscription` is true and the path is a KBFS path, simpleFS\n     will begin sending `FSPathUpdated` notifications for the for the\n     corresponding TLF, until another call refreshes the subscription on a\n     different TLF."
     },
     "simpleFSListRecursive": {
       "request": [
@@ -421,10 +455,40 @@
         {
           "name": "filter",
           "type": "ListFilter"
+        },
+        {
+          "name": "refreshSubscription",
+          "type": "boolean"
         }
       ],
       "response": null,
-      "doc": "Begin recursive list of items in directory at path"
+      "doc": "Begin recursive list of items in directory at path.\n   If `refreshSubscription` is true and the path is a KBFS path, simpleFS\n     will begin sending `FSPathUpdated` notifications for the for the\n     corresponding TLF, until another call refreshes the subscription on a\n     different TLF."
+    },
+    "simpleFSListRecursiveToDepth": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "path",
+          "type": "Path"
+        },
+        {
+          "name": "filter",
+          "type": "ListFilter"
+        },
+        {
+          "name": "refreshSubscription",
+          "type": "boolean"
+        },
+        {
+          "name": "depth",
+          "type": "int"
+        }
+      ],
+      "response": null,
+      "doc": "Begin recursive list of items in directory at path up to a given depth"
     },
     "simpleFSReadList": {
       "request": [
