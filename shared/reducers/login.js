@@ -15,9 +15,9 @@ export default function(
     case LoginGen.resetStore:
       return initialState
     case SignupGen.requestAutoInvite: // fallthrough
-    case LoginGen.relogin: // fallthrough
+    case LoginGen.login: // fallthrough
     case LoginGen.startLogin:
-      return state.merge({justDeletedSelf: '', justRevokedSelf: ''})
+      return state.merge({justDeletedSelf: '', justRevokedSelf: '', loginError: ''})
     case LoginGen.setDevicenameError:
       return state.set('devicenameError', action.payload.error)
     case LoginGen.setTextCode: {

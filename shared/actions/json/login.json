@@ -6,7 +6,7 @@
   "actions": {
     "startLogin": {},
     "submitUsernameOrEmail": { "usernameOrEmail": "string" },
-    "relogin": {
+    "login": {
       "usernameOrEmail": "string",
       "passphrase": "HiddenString"
     },

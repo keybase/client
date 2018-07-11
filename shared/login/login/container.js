@@ -29,7 +29,7 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend}) => ({
   onFeedback: () => dispatch(navigateAppend(['feedback'])),
   onForgotPassphrase: () => dispatch(LoginGen.createOpenAccountResetPage()),
   onLogin: (user: string, passphrase: string) =>
-    dispatch(LoginGen.createRelogin({passphrase: new HiddenString(passphrase), usernameOrEmail: user})),
+    dispatch(LoginGen.createLogin({passphrase: new HiddenString(passphrase), usernameOrEmail: user})),
   onSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
   onSomeoneElse: () => dispatch(LoginGen.createStartLogin()),
 })

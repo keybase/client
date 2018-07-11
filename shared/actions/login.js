@@ -542,11 +542,54 @@ const showUsernameEmailScreen = () => Saga.put(navigateTo(['login', 'usernameOrE
 // }
 // }
 
-function _relogin({payload: {usernameOrEmail, passphrase}}: LoginGen.ReloginPayload) {
-  return Saga.call(Saga.sequentially, [
-    Saga.call(Saga.sequentially, [Saga.call(loginFlowSaga, usernameOrEmail, passphrase)]),
-  ])
-}
+const login = (_: any, action: LoginGen.LoginPayload) =>
+  Saga.call(function*() {
+    try {
+      const cancelOnCallback = (params, response, state) => {
+        // $FlowIssue code gen doesn't understand cancel flow
+        response({
+          code: RPCTypes.constantsStatusCode.scgeneric,
+          desc: 'Canceling RPC',
+        })
+      }
+
+      yield RPCTypes.loginLoginRpcSaga({
+        // cancel if we get any of these callbacks, we're logging in, not provisioning
+        incomingCallMap: {
+          'keybase.1.gpgUi.selectKey': cancelOnCallback,
+          'keybase.1.loginUi.displayPrimaryPaperKey': cancelOnCallback,
+          'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
+          'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
+          'keybase.1.provisionUi.DisplaySecretExchanged': cancelOnCallback,
+          'keybase.1.provisionUi.PromptNewDeviceName': cancelOnCallback,
+          'keybase.1.provisionUi.ProvisioneeSuccess': cancelOnCallback,
+          'keybase.1.provisionUi.ProvisionerSuccess': cancelOnCallback,
+          'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
+          'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
+          'keybase.1.secretUi.getPassphrase': (params, response, state) => {
+            response.result({
+              passphrase: action.payload.passphrase.stringValue(),
+              storeSecret: false,
+            })
+          },
+        },
+        params: {
+          clientType: RPCTypes.commonClientType.guiMain,
+          deviceType,
+          usernameOrEmail: action.payload.usernameOrEmail,
+        },
+        waitingKey: Constants.keyWaitingKey,
+      })
+    } catch (e) {
+    } finally {
+    }
+  })
+
+// function _relogin({payload: {usernameOrEmail, passphrase}}: LoginGen.ReloginPayload) {
+// return Saga.call(Saga.sequentially, [
+// Saga.call(Saga.sequentially, [Saga.call(loginFlowSaga, usernameOrEmail, passphrase)]),
+// ])
+// }
 
 function* _addNewDevice({payload: {role}}: LoginGen.AddNewDevicePayload) {
   const _deviceTypeMap: {[key: string]: any} = {
@@ -615,14 +658,13 @@ const logout = () =>
     Saga.put(LoginGen.createLogoutDone()),
   ])
 
-const clearError = () => Saga.put(LoginGen.createLoginError({error: ''}))
-
 // TODO more pure functions
 function* loginSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPureSimple(LoginGen.startLogin, showUsernameEmailScreen)
+  // Actually log in
+  yield Saga.safeTakeEveryPureSimple(LoginGen.login, login)
 
-  // yield Saga.safeTakeEveryPure(LoginGen.relogin, _relogin)
-  // yield Saga.safeTakeLatest([LoginGen.startLogin, LoginGen.relogin], clearError)
+  // Screen sagas
+  yield Saga.safeTakeEveryPureSimple(LoginGen.startLogin, showUsernameEmailScreen)
   yield Saga.safeTakeEveryPure(LoginGen.openAccountResetPage, openAccountResetPageSaga)
   yield Saga.safeTakeLatest(LoginGen.navBasedOnLoginAndInitialState, navBasedOnLoginAndInitialState)
   yield Saga.safeTakeEveryPure(LoginGen.logoutDone, logoutDone)

@@ -98,7 +98,7 @@
   "keybase.1.login.accountDelete": {"promise": true},
   "keybase.1.login.deprovision": {"promise": true},
   "keybase.1.login.getConfiguredAccounts": {"promise": true},
-  "keybase.1.login.login": {"channelMap": true},
+  "keybase.1.login.login": {"channelMap": true, "engineSaga": true},
   "keybase.1.login.logout": {"promise": true},
   "keybase.1.login.paperKey": {"channelMap": true},
   "keybase.1.login.paperKeySubmit": {"promise": true},
