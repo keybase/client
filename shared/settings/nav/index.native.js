@@ -61,7 +61,6 @@ function SettingsNav(props: Props) {
             {
               ...(__DEV__
                 ? {
-                    badgeNumber: 0,
                     icon: 'iconfont-nav-settings',
                     onClick: () => props.onTabChange(Constants.devMenuTab),
                     text: 'Dev menu',
@@ -79,14 +78,12 @@ function SettingsNav(props: Props) {
               text: 'Notifications',
             },
             {
-              badgeNumber: 0,
               onClick: () => props.onTabChange(Constants.passphraseTab),
               text: 'Change passphrase',
             },
             {
               ...(isAndroid
                 ? {
-                    badgeNumber: 0,
                     onClick: () => props.onTabChange(Constants.screenprotectorTab),
                     text: 'Screen Protector',
                   }
@@ -97,10 +94,10 @@ function SettingsNav(props: Props) {
         },
         {
           data: [
-            {badgeNumber: 0, onClick: () => props.onTabChange(Constants.aboutTab), text: 'About'},
-            {badgeNumber: 0, onClick: () => props.onTabChange(Constants.feedbackTab), text: 'Feedback'},
-            {badgeNumber: 0, onClick: () => props.onTabChange(Constants.advancedTab), text: 'Advanced'},
-            {badgeNumber: 0, onClick: props.onLogout, text: 'Sign out', textColor: globalColors.red},
+            {onClick: () => props.onTabChange(Constants.aboutTab), text: 'About'},
+            {onClick: () => props.onTabChange(Constants.feedbackTab), text: 'Feedback'},
+            {onClick: () => props.onTabChange(Constants.advancedTab), text: 'Advanced'},
+            {onClick: props.onLogout, text: 'Sign out', textColor: globalColors.red},
           ],
           title: 'More',
         },
