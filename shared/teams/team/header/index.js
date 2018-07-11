@@ -7,11 +7,11 @@ import {Box, Button, ButtonBar, Icon, Meta, NameWithIcon, Text} from '../../../c
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
 import {
   collapseStyles,
+  desktopStyles,
   globalColors,
   globalMargins,
   globalStyles,
   isMobile,
-  platformStyles,
 } from '../../../styles'
 
 export type Props = {
@@ -71,15 +71,11 @@ const _TeamHeader = (props: Props) => (
           className={props.description ? 'hover-underline' : ''}
           style={collapseStyles([
             {
+              ...(props.description ? desktopStyles.editable : desktopStyles.clickable),
               color: props.description ? globalColors.black_75 : globalColors.black_20,
               maxWidth: 560,
               paddingTop: globalMargins.tiny,
             },
-            platformStyles({
-              isElectron: {
-                cursor: props.description ? 'text' : 'pointer',
-              },
-            }),
           ])}
           onClick={props.canEditDescription ? props.onEditDescription : null}
           type={props.canEditDescription ? 'BodySecondaryLink' : 'Body'}
