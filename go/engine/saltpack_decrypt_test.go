@@ -3,8 +3,6 @@
 
 package engine
 
-// TODO updated tests in this file before merging PR
-
 import (
 	"errors"
 	"fmt"

@@ -15,6 +15,7 @@ import (
 // This engine does not find per team keys, which capability is implemented by SaltpackRecipientKeyfinder in the saltpackKeyHelpers package.
 type SaltpackUserKeyfinder struct {
 	Arg                           libkb.SaltpackRecipientKeyfinderArg
+	Self                          *libkb.User
 	RecipientEntityKeyMap         map[keybase1.UserOrTeamID]([]keybase1.KID)
 	RecipientDeviceAndPaperKeyMap map[keybase1.UID]([]keybase1.KID)
 }
@@ -75,18 +76,44 @@ func (e *SaltpackUserKeyfinder) GetSymmetricKeys() []libkb.SaltpackReceiverSymme
 func (e *SaltpackUserKeyfinder) Run(m libkb.MetaContext) (err error) {
 	defer m.CTrace("SaltpackUserKeyfinder#Run", func() error { return err })()
 
-	if e.Arg.Self != nil && !e.Arg.NoSelfEncrypt {
-		var selfUpk *keybase1.UserPlusKeysV2AllIncarnations
-		selfUpk, err = e.Arg.Self.ExportToUPKV2AllIncarnations()
-		if err != nil {
-			return err
-		}
-		e.AddUserRecipient(m, &selfUpk.Current)
+	err = e.AddOwnKeysIfNeeded(m)
+	if err != nil {
+		return err
 	}
 
 	err = e.lookupRecipients(m)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (e *SaltpackUserKeyfinder) AddOwnKeysIfNeeded(m libkb.MetaContext) error {
+	if !e.Arg.NoSelfEncrypt {
+		err := e.LoadSelfIfLoggedIn(m)
+		if err != nil {
+			return err
+		}
+		if e.Self == nil {
+			return libkb.NewLoginRequiredError("need to be logged in or use --no-self-encrypt")
+		}
+		selfUpk, err := e.Self.ExportToUPKV2AllIncarnations()
+		if err != nil {
+			return err
+		}
+		e.AddUserRecipient(m, &selfUpk.Current)
+	}
+	return nil
+}
+
+func (e *SaltpackUserKeyfinder) LoadSelfIfLoggedIn(m libkb.MetaContext) (err error) {
+	if e.Self == nil { // If Self is not nil, it was already loaded
+		if loggedIn, uid := isLoggedIn(m); loggedIn {
+			e.Self, err = libkb.LoadMeByMetaContextAndUID(m, uid)
+			if err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }

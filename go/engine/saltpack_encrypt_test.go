@@ -283,6 +283,7 @@ func TestSaltpackEncryptLoggedOut(t *testing.T) {
 			UseDeviceKeys: true,
 			// Only anonymous mode works when you're logged out.
 			AuthenticityType: keybase1.AuthenticityType_ANONYMOUS,
+			NoSelfEncrypt:    true,
 		},
 		Source: strings.NewReader("track and encrypt, track and encrypt"),
 		Sink:   sink,

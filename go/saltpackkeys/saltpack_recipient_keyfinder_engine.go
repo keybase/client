@@ -42,13 +42,14 @@ func (e *SaltpackRecipientKeyfinderEngine) Name() string {
 func (e *SaltpackRecipientKeyfinderEngine) Run(m libkb.MetaContext) (err error) {
 	defer m.CTrace("SaltpackRecipientKeyfinder#Run", func() error { return err })()
 
-	if e.Arg.Self != nil && !e.Arg.NoSelfEncrypt {
-		var selfUpk *keybase1.UserPlusKeysV2AllIncarnations
-		selfUpk, err = e.Arg.Self.ExportToUPKV2AllIncarnations()
-		if err != nil {
-			return err
-		}
-		e.AddUserRecipient(m, &selfUpk.Current)
+	err = e.LoadSelfIfLoggedIn(m)
+	if err != nil {
+		return err
+	}
+
+	err = e.AddOwnKeysIfNeeded(m)
+	if err != nil {
+		return err
 	}
 
 	err = e.lookupRecipients(m)
@@ -105,8 +106,7 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupRecipients(m libkb.MetaContext)
 			return err
 		}
 
-		// TODO What is this the canonical way to tell if a user is logged in?? I will need to update the other checks too.
-		if e.Arg.Self == nil {
+		if e.Self == nil {
 			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a registered user. To encrypt for a team you belong to or for someone non yet on keybase, you need to login first", u))
 		}
 
@@ -148,12 +148,12 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupTeam(m libkb.MetaContext, teamN
 	}
 
 	// A user can load a public team that they are not part of (and therefore have no keys for).
-	if !team.IsMember(m.Ctx(), e.Arg.Self.ToUserVersion()) {
+	if !team.IsMember(m.Ctx(), e.Self.ToUserVersion()) {
 		return fmt.Errorf("cannot encrypt for team %s because you are not a member", teamName)
 	}
 
 	// Note: when we encrypt for a team with --use-entity-keys set, we use just the per team key, and do not add
-	// all the per user keys of the individual members.
+	// all the per user keys of the individual members (except for the sender's PUK, which is added unless --no-self-encrypt is set).
 	if e.Arg.UseEntityKeys {
 		appKey, err := team.SaltpackEncryptionKeyLatest(m.Ctx())
 		if err != nil {
@@ -171,7 +171,7 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupTeam(m libkb.MetaContext, teamN
 		upakLoader := m.G().GetUPAKLoader()
 
 		for _, uid := range members.AllUIDs() {
-			if e.Arg.NoSelfEncrypt && e.Arg.Self.GetUID() == uid {
+			if e.Arg.NoSelfEncrypt && e.Self.GetUID() == uid {
 				m.CDebugf("skipping device keys for %v as part of team %v because of NoSelfEncrypt", uid, teamName)
 				continue
 			}
@@ -198,7 +198,7 @@ func (e invalidAssertionError) Error() string {
 
 func (e *SaltpackRecipientKeyfinderEngine) lookupImplicitTeam(m libkb.MetaContext, socialAssertionForNonExistingUser string) (err error) {
 	// Implicit teams require login.
-	if e.Arg.Self == nil {
+	if e.Self == nil {
 		return libkb.LoginRequiredError{}
 	}
 
@@ -215,7 +215,7 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupImplicitTeam(m libkb.MetaContex
 		return invalidAssertionError{fmt.Errorf("invalid recipient: %q, err: %s", socialAssertionForNonExistingUser, err)}
 	}
 
-	team, _, impTeamName, err := teams.LookupOrCreateImplicitTeam(m.Ctx(), m.G(), e.Arg.Self.GetName()+","+socialAssertionForNonExistingUser, false)
+	team, _, impTeamName, err := teams.LookupOrCreateImplicitTeam(m.Ctx(), m.G(), e.Self.GetName()+","+socialAssertionForNonExistingUser, false)
 
 	if err != nil {
 		return err

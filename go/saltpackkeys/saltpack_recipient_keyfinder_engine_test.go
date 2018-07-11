@@ -3,6 +3,9 @@
 package saltpackkeys
 
 import (
+	"bytes"
+	"context"
+	"encoding/hex"
 	"fmt"
 	"testing"
 
@@ -13,9 +16,8 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 )
-
-// TODO add tests to retrieve keys for teams (also implicit) before merging PR.
 
 func SetupKeyfinderEngineTest(tb libkb.TestingTB, name string) libkb.TestContext {
 	return externalstest.SetupTestWithInsecureTriplesec(tb, name)
@@ -47,24 +49,24 @@ func TestSaltpackRecipientKeyfinderPUKs(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fPUKs := eng.GetPublicKIDs()
-	if len(fPUKs) != 3 {
-		t.Errorf("number of per user keys found: %d, expected 3", len(fPUKs))
+	fDHKeys := eng.GetPublicKIDs()
+	if len(fDHKeys) != 3 {
+		t.Errorf("number of per user keys found: %d, expected 3", len(fDHKeys))
 	}
-	fPUKSet := make(map[keybase1.KID]struct{})
-	for _, fPUK := range fPUKs {
-		fPUKSet[fPUK] = struct{}{}
+	fDHKeyset := make(map[keybase1.KID]struct{})
+	for _, fPUK := range fDHKeys {
+		fDHKeyset[fPUK] = struct{}{}
 	}
 	KID := u1.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
-	if _, ok := fPUKSet[KID]; !ok {
+	if _, ok := fDHKeyset[KID]; !ok {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
 	KID = u2.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
-	if _, ok := fPUKSet[KID]; !ok {
+	if _, ok := fDHKeyset[KID]; !ok {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
 	KID = u3.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
-	if _, ok := fPUKSet[KID]; !ok {
+	if _, ok := fDHKeyset[KID]; !ok {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
 
@@ -91,6 +93,7 @@ func TestSaltpackRecipientKeyfinderFailsOnNonExistingUserWithoutLogin(t *testing
 	arg := libkb.SaltpackRecipientKeyfinderArg{
 		Recipients:    []string{"not_a_user"},
 		UseEntityKeys: true,
+		NoSelfEncrypt: true,
 	}
 	eng := NewSaltpackRecipientKeyfinderEngine(arg)
 	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
@@ -114,7 +117,6 @@ func TestSaltpackRecipientKeyfinderFailsOnNonExistingUserWithLogin(t *testing.T)
 	arg := libkb.SaltpackRecipientKeyfinderArg{
 		Recipients:    []string{"not_a_user"},
 		UseEntityKeys: true,
-		Self:          u3.User,
 	}
 	eng := NewSaltpackRecipientKeyfinderEngine(arg)
 	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
@@ -142,7 +144,6 @@ func TestSaltpackRecipientKeyfinderPUKSelfEncrypt(t *testing.T) {
 	arg := libkb.SaltpackRecipientKeyfinderArg{
 		Recipients:    []string{u1.Username, u2.Username},
 		UseEntityKeys: true,
-		Self:          u3.User, // Since Self is set, this user's keys should be included.
 	}
 	eng := NewSaltpackRecipientKeyfinderEngine(arg)
 	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
@@ -150,24 +151,24 @@ func TestSaltpackRecipientKeyfinderPUKSelfEncrypt(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fPUKs := eng.GetPublicKIDs()
-	if len(fPUKs) != 3 {
-		t.Errorf("number of per user keys found: %d, expected 3", len(fPUKs))
+	fDHKeys := eng.GetPublicKIDs()
+	if len(fDHKeys) != 3 {
+		t.Errorf("number of per user keys found: %d, expected 3", len(fDHKeys))
 	}
-	fPUKSet := make(map[keybase1.KID]struct{})
-	for _, fPUK := range fPUKs {
-		fPUKSet[fPUK] = struct{}{}
+	fDHKeyset := make(map[keybase1.KID]struct{})
+	for _, fPUK := range fDHKeys {
+		fDHKeyset[fPUK] = struct{}{}
 	}
 	KID := u1.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
-	if _, ok := fPUKSet[KID]; !ok {
+	if _, ok := fDHKeyset[KID]; !ok {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
 	KID = u2.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
-	if _, ok := fPUKSet[KID]; !ok {
+	if _, ok := fDHKeyset[KID]; !ok {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
 	KID = u3.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
-	if _, ok := fPUKSet[KID]; !ok {
+	if _, ok := fDHKeyset[KID]; !ok {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
 
@@ -198,7 +199,6 @@ func TestSaltpackRecipientKeyfinderPUKNoSelfEncrypt(t *testing.T) {
 		Recipients:    []string{u1.Username, u2.Username},
 		UseEntityKeys: true,
 		NoSelfEncrypt: true, // Since this is set, u3's keys should NOT be included.
-		Self:          u3.User,
 	}
 	eng := NewSaltpackRecipientKeyfinderEngine(arg)
 	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
@@ -206,20 +206,20 @@ func TestSaltpackRecipientKeyfinderPUKNoSelfEncrypt(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fPUKs := eng.GetPublicKIDs()
-	if len(fPUKs) != 2 {
-		t.Errorf("number of per user keys found: %d, expected 2", len(fPUKs))
+	fDHKeys := eng.GetPublicKIDs()
+	if len(fDHKeys) != 2 {
+		t.Errorf("number of per user keys found: %d, expected 2", len(fDHKeys))
 	}
-	fPUKSet := make(map[keybase1.KID]struct{})
-	for _, fPUK := range fPUKs {
-		fPUKSet[fPUK] = struct{}{}
+	fDHKeyset := make(map[keybase1.KID]struct{})
+	for _, fPUK := range fDHKeys {
+		fDHKeyset[fPUK] = struct{}{}
 	}
 	KID := u1.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
-	if _, ok := fPUKSet[KID]; !ok {
+	if _, ok := fDHKeyset[KID]; !ok {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
 	KID = u2.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
-	if _, ok := fPUKSet[KID]; !ok {
+	if _, ok := fDHKeyset[KID]; !ok {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
 
@@ -239,11 +239,6 @@ func TestSaltpackRecipientKeyfinderFailsIfUserHasNoPUK(t *testing.T) {
 	u2, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
 	require.NoError(t, err)
 
-	// u3 will have NO PUK
-	tc.Tp.DisableUpgradePerUserKey = true
-	u3, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
-	require.NoError(t, err)
-
 	trackUI := &kbtest.FakeIdentifyUI{
 		Proofs: make(map[string]string),
 	}
@@ -252,37 +247,40 @@ func TestSaltpackRecipientKeyfinderFailsIfUserHasNoPUK(t *testing.T) {
 	arg := libkb.SaltpackRecipientKeyfinderArg{
 		Recipients:    []string{u1.Username},
 		UseEntityKeys: true,
-		Self:          u2.User,
 	}
 	eng := NewSaltpackRecipientKeyfinderEngine(arg)
 	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
 
-	// This should work with no errors, as u3 is not involved.
+	// This should work with no errors.
 	if err := engine.RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
-	fPUKs := eng.GetPublicKIDs()
-	if len(fPUKs) != 2 {
-		t.Errorf("number of per user keys found: %d, expected 2", len(fPUKs))
+	fDHKeys := eng.GetPublicKIDs()
+	if len(fDHKeys) != 2 {
+		t.Errorf("number of per user keys found: %d, expected 2", len(fDHKeys))
 	}
-	fPUKSet := make(map[keybase1.KID]struct{})
-	for _, fPUK := range fPUKs {
-		fPUKSet[fPUK] = struct{}{}
+	fDHKeyset := make(map[keybase1.KID]struct{})
+	for _, fPUK := range fDHKeys {
+		fDHKeyset[fPUK] = struct{}{}
 	}
 	KID := u1.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
-	if _, ok := fPUKSet[KID]; !ok {
+	if _, ok := fDHKeyset[KID]; !ok {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
 	KID = u2.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
-	if _, ok := fPUKSet[KID]; !ok {
+	if _, ok := fDHKeyset[KID]; !ok {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
+
+	// Now, let's create a user without PUK
+	tc.Tp.DisableUpgradePerUserKey = true
+	u3, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
+	require.NoError(t, err)
 
 	// This should fail, as u3 has no PUK
 	arg = libkb.SaltpackRecipientKeyfinderArg{
 		Recipients:    []string{u1.Username, u3.Username},
 		UseEntityKeys: true,
-		Self:          u2.User,
 	}
 	eng = NewSaltpackRecipientKeyfinderEngine(arg)
 	err = engine.RunEngine2(m, eng)
@@ -327,37 +325,37 @@ func TestSaltpackRecipientKeyfinderDeviceKeys(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fPUKs := eng.GetPublicKIDs()
-	if len(fPUKs) != 4 {
-		t.Errorf("number of device keys found: %d, expected 4", len(fPUKs))
+	fDHKeys := eng.GetPublicKIDs()
+	if len(fDHKeys) != 4 {
+		t.Errorf("number of device keys found: %d, expected 4", len(fDHKeys))
 	}
-	fPUKSet := make(map[keybase1.KID]struct{})
-	for _, fPUK := range fPUKs {
-		fPUKSet[fPUK] = struct{}{}
+	fDHKeyset := make(map[keybase1.KID]struct{})
+	for _, fPUK := range fDHKeys {
+		fDHKeyset[fPUK] = struct{}{}
 	}
 
 	key, err := u1.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u1.User.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
 	require.NoError(t, err)
 	KID := key.GetKID()
-	if _, ok := fPUKSet[KID]; !ok {
+	if _, ok := fDHKeyset[KID]; !ok {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
 	key, err = u2new.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u2new.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
 	require.NoError(t, err)
 	KID = key.GetKID()
-	if _, ok := fPUKSet[KID]; !ok {
+	if _, ok := fDHKeyset[KID]; !ok {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
 	key, err = u2new.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u2new.GetComputedKeyFamily().GetAllActiveDevices()[1].ID)
 	require.NoError(t, err)
 	KID = key.GetKID()
-	if _, ok := fPUKSet[KID]; !ok {
+	if _, ok := fDHKeyset[KID]; !ok {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
 	key, err = u3.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u3.User.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
 	require.NoError(t, err)
 	KID = key.GetKID()
-	if _, ok := fPUKSet[KID]; !ok {
+	if _, ok := fDHKeyset[KID]; !ok {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
 
@@ -403,13 +401,13 @@ func TestSaltpackRecipientKeyfinderPaperKeys(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fPUKs := eng.GetPublicKIDs()
-	if len(fPUKs) != 3 {
-		t.Errorf("number of device keys found: %d, expected 3", len(fPUKs))
+	fDHKeys := eng.GetPublicKIDs()
+	if len(fDHKeys) != 3 {
+		t.Errorf("number of device keys found: %d, expected 3", len(fDHKeys))
 	}
-	fPUKSet := make(map[keybase1.KID]struct{})
-	for _, fPUK := range fPUKs {
-		fPUKSet[fPUK] = struct{}{}
+	fDHKeyset := make(map[keybase1.KID]struct{})
+	for _, fPUK := range fDHKeys {
+		fDHKeyset[fPUK] = struct{}{}
 	}
 
 	id, err := selectOneActivePaperDeviceID(u1.User)
@@ -417,7 +415,7 @@ func TestSaltpackRecipientKeyfinderPaperKeys(t *testing.T) {
 	key, err := u1.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(id)
 	require.NoError(t, err)
 	KID := key.GetKID()
-	if _, ok := fPUKSet[KID]; !ok {
+	if _, ok := fDHKeyset[KID]; !ok {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
 	id, err = selectOneActivePaperDeviceID(u1.User)
@@ -425,7 +423,7 @@ func TestSaltpackRecipientKeyfinderPaperKeys(t *testing.T) {
 	key, err = u1.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(id)
 	require.NoError(t, err)
 	KID = key.GetKID()
-	if _, ok := fPUKSet[KID]; !ok {
+	if _, ok := fDHKeyset[KID]; !ok {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
 	id, err = selectOneActivePaperDeviceID(u1.User)
@@ -433,7 +431,7 @@ func TestSaltpackRecipientKeyfinderPaperKeys(t *testing.T) {
 	key, err = u1.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(id)
 	require.NoError(t, err)
 	KID = key.GetKID()
-	if _, ok := fPUKSet[KID]; !ok {
+	if _, ok := fDHKeyset[KID]; !ok {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
 
@@ -481,13 +479,13 @@ func TestSaltpackRecipientKeyfinderDevicePaperAndPerUserKeys(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fPUKs := eng.GetPublicKIDs()
-	if len(fPUKs) != 10 { // 3 keys per user (1 paper, 1 device, 1 puk), plus an extra device for u2
-		t.Errorf("number of device keys found: %d, expected 4", len(fPUKs))
+	fDHKeys := eng.GetPublicKIDs()
+	if len(fDHKeys) != 10 { // 3 keys per user (1 paper, 1 device, 1 puk), plus an extra device for u2
+		t.Errorf("number of device keys found: %d, expected 4", len(fDHKeys))
 	}
-	fPUKSet := make(map[keybase1.KID]struct{})
-	for _, fPUK := range fPUKs {
-		fPUKSet[fPUK] = struct{}{}
+	fDHKeyset := make(map[keybase1.KID]struct{})
+	for _, fPUK := range fDHKeys {
+		fDHKeyset[fPUK] = struct{}{}
 	}
 
 	allKeyFamilies := []*libkb.ComputedKeyFamily{}
@@ -507,7 +505,7 @@ func TestSaltpackRecipientKeyfinderDevicePaperAndPerUserKeys(t *testing.T) {
 	require.Equal(t, 10, len(allKIDs)) // 3 keys for u1 and u3 (1 paper, 1 device, 1 puk), 4 for u2 (has 2 devices)
 
 	for _, KID := range allKIDs {
-		if _, ok := fPUKSet[KID]; !ok {
+		if _, ok := fDHKeyset[KID]; !ok {
 			t.Errorf("expected to find key %v, which was not retrieved", KID)
 		}
 	}
@@ -515,4 +513,255 @@ func TestSaltpackRecipientKeyfinderDevicePaperAndPerUserKeys(t *testing.T) {
 	if len(symKeys) != 0 {
 		t.Errorf("number of symmetric keys found: %d, expected 0", len(symKeys))
 	}
+}
+
+func TestSaltpackRecipientKeyfinderExistingUserAssertions(t *testing.T) {
+	tc := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine")
+	defer tc.Cleanup()
+
+	u1, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
+	require.NoError(t, err)
+
+	trackUI := &kbtest.FakeIdentifyUI{
+		Proofs: make(map[string]string),
+	}
+
+	uis := libkb.UIs{IdentifyUI: trackUI, SecretUI: u1.NewSecretUI()}
+	arg := libkb.SaltpackRecipientKeyfinderArg{
+		Recipients:    []string{"t_tracy+t_tracy@rooter", "t_george", "t_kb+gbrltest@twitter"},
+		UseDeviceKeys: true,
+		NoSelfEncrypt: true,
+	}
+	eng := NewSaltpackRecipientKeyfinderEngine(arg)
+	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	if err := engine.RunEngine2(m, eng); err != nil {
+		t.Fatal(err)
+	}
+
+	fDHKeys := eng.GetPublicKIDs()
+	if len(fDHKeys) != 6 { // t_tracy has 1 device (+ a paper key, excluded here), t_george has 2 devices and a web key, t_kb has a device and a web key.
+		t.Errorf("number of DH keys found: %d, expected 3", len(fDHKeys))
+	}
+
+	symKeys := eng.GetSymmetricKeys()
+	if len(symKeys) != 0 {
+		t.Errorf("number of symmetric keys found: %d, expected 0", len(symKeys))
+	}
+
+}
+
+func createTeam(tc libkb.TestContext) (keybase1.TeamID, string) {
+	teams.ServiceInit(tc.G)
+
+	b, err := libkb.RandBytes(4)
+	require.NoError(tc.T, err)
+	name := "t_" + hex.EncodeToString(b)
+	teamID, err := teams.CreateRootTeam(context.TODO(), tc.G, name, keybase1.TeamSettings{})
+	require.NoError(tc.T, err)
+	require.NotNil(tc.T, teamID)
+
+	return *teamID, name
+}
+
+func TestSaltpackRecipientKeyfinderTeam(t *testing.T) {
+	tc := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine")
+	defer tc.Cleanup()
+
+	u1, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
+	require.NoError(t, err)
+	u2, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
+	require.NoError(t, err)
+
+	_, teamName := createTeam(tc)
+	_, err = teams.AddMember(context.TODO(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	u3, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
+	require.NoError(t, err)
+
+	u3.Login(tc.G)
+
+	trackUI := &kbtest.FakeIdentifyUI{
+		Proofs: make(map[string]string),
+	}
+
+	// u3 is not part of the team, keyfinding should fail.
+	uis := libkb.UIs{IdentifyUI: trackUI, SecretUI: u3.NewSecretUI()}
+	arg := libkb.SaltpackRecipientKeyfinderArg{
+		Recipients:    []string{teamName},
+		UseEntityKeys: true,
+	}
+	eng := NewSaltpackRecipientKeyfinderEngine(arg)
+	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	err = engine.RunEngine2(m, eng)
+	if _, ok := err.(libkb.RecipientNotFoundError); !ok {
+		t.Fatalf("expected error type libkb.RecipientNotFoundError, got %T (%s)", err, err)
+	}
+	kbtest.Logout(tc)
+
+	// u2 is part of the team, keyfinding should succeed.
+	u2.Login(tc.G)
+	uis = libkb.UIs{IdentifyUI: trackUI, SecretUI: u3.NewSecretUI()}
+	eng = NewSaltpackRecipientKeyfinderEngine(arg)
+	m = libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	err = engine.RunEngine2(m, eng)
+	require.NoError(t, err)
+
+	fDHKeys := eng.GetPublicKIDs()
+	if len(fDHKeys) != 1 { // We requested Entity Keys only, so no PUKs or Device Keys (except for the sender's own key)
+		t.Errorf("number of DH keys found: %d, expected 1", len(fDHKeys))
+	}
+	fDHKeyset := make(map[keybase1.KID]struct{})
+	for _, fPUK := range fDHKeys {
+		fDHKeyset[fPUK] = struct{}{}
+	}
+
+	u2PUK := u2.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
+	if _, ok := fDHKeyset[u2PUK]; !ok {
+		t.Errorf("expected to find key %v, which was not retrieved", u2PUK)
+	}
+
+	symKeys := eng.GetSymmetricKeys()
+	if len(symKeys) != 1 {
+		t.Errorf("number of symmetric keys found: %d, expected 1", len(symKeys))
+	}
+
+	team, err := teams.Load(m.Ctx(), m.G(), keybase1.LoadTeamArg{Name: teamName})
+	require.NoError(t, err)
+	teamSaltpackKey, err := team.SaltpackEncryptionKeyLatest(m.Ctx())
+	require.NoError(t, err)
+	require.True(t, bytes.Equal(teamSaltpackKey.Key[:], symKeys[0].Key[:]))
+
+	// Now we look for keys for a team, without including the sender's keys
+	arg = libkb.SaltpackRecipientKeyfinderArg{
+		Recipients:    []string{teamName},
+		UseEntityKeys: true,
+		NoSelfEncrypt: true,
+	}
+	eng = NewSaltpackRecipientKeyfinderEngine(arg)
+	err = engine.RunEngine2(m, eng)
+	require.NoError(t, err)
+
+	fDHKeys = eng.GetPublicKIDs()
+	if len(fDHKeys) != 0 {
+		t.Errorf("number of DH keys found: %d, expected 0", len(fDHKeys))
+	}
+
+	symKeys = eng.GetSymmetricKeys()
+	if len(symKeys) != 1 {
+		t.Errorf("number of symmetric keys found: %d, expected 1", len(symKeys))
+	}
+
+	require.True(t, bytes.Equal(teamSaltpackKey.Key[:], symKeys[0].Key[:]))
+
+	// Now we look for keys for a team, including the device keys of the members
+	arg = libkb.SaltpackRecipientKeyfinderArg{
+		Recipients:    []string{teamName},
+		UseEntityKeys: true,
+		UseDeviceKeys: true,
+	}
+	eng = NewSaltpackRecipientKeyfinderEngine(arg)
+	err = engine.RunEngine2(m, eng)
+	require.NoError(t, err)
+
+	fDHKeys = eng.GetPublicKIDs()
+	if len(fDHKeys) != 3 { // 1 device key for u1, 1 device key + 1 puk for u2 (as he is the sender).
+		t.Errorf("number of DH keys found: %d, expected 3", len(fDHKeys))
+	}
+	fDHKeyset = make(map[keybase1.KID]struct{})
+	for _, fPUK := range fDHKeys {
+		fDHKeyset[fPUK] = struct{}{}
+	}
+
+	if _, ok := fDHKeyset[u2PUK]; !ok {
+		t.Errorf("expected to find key %v, which was not retrieved", u2PUK)
+	}
+	key, err := u1.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u1.User.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
+	require.NoError(t, err)
+	KID := key.GetKID()
+	if _, ok := fDHKeyset[KID]; !ok {
+		t.Errorf("expected to find key %v, which was not retrieved", KID)
+	}
+	key, err = u2.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u2.User.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
+	require.NoError(t, err)
+	KID = key.GetKID()
+	if _, ok := fDHKeyset[KID]; !ok {
+		t.Errorf("expected to find key %v, which was not retrieved", KID)
+	}
+
+	symKeys = eng.GetSymmetricKeys()
+	if len(symKeys) != 1 {
+		t.Errorf("number of symmetric keys found: %d, expected 1", len(symKeys))
+	}
+	require.True(t, bytes.Equal(teamSaltpackKey.Key[:], symKeys[0].Key[:]))
+
+}
+
+func TestSaltpackRecipientKeyfinderImplicitTeam(t *testing.T) {
+	tc := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine")
+	defer tc.Cleanup()
+
+	teams.ServiceInit(tc.G)
+
+	// First, try to get keys for a non existing user assertion without logging in, which should fail
+	b, err := libkb.RandBytes(4)
+	require.NoError(tc.T, err)
+	nonExistingUserAssertion := "u_" + hex.EncodeToString(b) + "@rooter"
+
+	trackUI := &kbtest.FakeIdentifyUI{
+		Proofs: make(map[string]string),
+	}
+
+	uis := libkb.UIs{IdentifyUI: trackUI}
+	arg := libkb.SaltpackRecipientKeyfinderArg{
+		Recipients:    []string{nonExistingUserAssertion},
+		UseEntityKeys: true,
+		NoSelfEncrypt: true,
+	}
+	eng := NewSaltpackRecipientKeyfinderEngine(arg)
+	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	err = engine.RunEngine2(m, eng) // Should fail
+	if _, ok := err.(libkb.RecipientNotFoundError); !ok {
+		t.Fatalf("expected error type libkb.RecipientNotFoundError, got %T (%s)", err, err)
+	}
+
+	// Now, retry with a valid user logged in, which should succeed
+	u1, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
+	require.NoError(t, err)
+	u1.Login(tc.G)
+
+	uis = libkb.UIs{IdentifyUI: trackUI, SecretUI: u1.NewSecretUI()}
+	arg = libkb.SaltpackRecipientKeyfinderArg{
+		Recipients:    []string{nonExistingUserAssertion},
+		UseEntityKeys: true,
+	}
+	eng = NewSaltpackRecipientKeyfinderEngine(arg)
+	m = libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	err = engine.RunEngine2(m, eng)
+	require.NoError(t, err)
+
+	fDHKeys := eng.GetPublicKIDs()
+	if len(fDHKeys) != 1 { // This is the sender's own PUK
+		t.Errorf("number of DH keys found: %d, expected 1", len(fDHKeys))
+	}
+	fDHKeyset := make(map[keybase1.KID]struct{})
+	for _, fPUK := range fDHKeys {
+		fDHKeyset[fPUK] = struct{}{}
+	}
+
+	u1PUK := u1.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
+	if _, ok := fDHKeyset[u1PUK]; !ok {
+		t.Errorf("expected to find key %v, which was not retrieved", u1PUK)
+	}
+
+	symKeys := eng.GetSymmetricKeys()
+	if len(symKeys) != 1 {
+		t.Errorf("number of symmetric keys found: %d, expected 1", len(symKeys))
+	}
+
+	team, _, _, err := teams.LookupImplicitTeam(m.Ctx(), m.G(), u1.Username+","+nonExistingUserAssertion, false)
+	require.NoError(t, err)
+	teamSaltpackKey, err := team.SaltpackEncryptionKeyLatest(m.Ctx())
+	require.NoError(t, err)
+	require.True(t, bytes.Equal(teamSaltpackKey.Key[:], symKeys[0].Key[:]))
 }

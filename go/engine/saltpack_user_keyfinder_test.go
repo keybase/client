@@ -11,7 +11,9 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-// TODO add more tests here, for device keys and paper keys and various combinations.
+// Note: a lot of the functionality of SaltpackUserKeyfinder is tested through the SaltpackRecipientKeyfinderEngine (in go/saltpackkeys),
+// which is used by the `keybase encrypt` command and calls this SaltpackUserKeyfinder to resolve keys for individual existing users.
+// Tests are not repeated here for efficiency reasons.
 
 func TestSaltpackUserKeyfinder(t *testing.T) {
 	tc := SetupEngineTest(t, "SaltpackUserKeyfinder")
