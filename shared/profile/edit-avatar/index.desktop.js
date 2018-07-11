@@ -8,6 +8,7 @@ import {
   ButtonBar,
   Icon,
   MaybePopup,
+  ProgressIndicator,
   Text,
   WaitingButton,
   iconCastPlatformStyles,
@@ -32,6 +33,7 @@ type State = {
   dropping: boolean,
   hasPreview: boolean,
   imageSource: string,
+  loading: boolean,
   naturalImageHeight: number,
   naturalImageWidth: number,
   offsetLeft: number,
@@ -66,6 +68,7 @@ class EditAvatar extends React.Component<Props, State> {
       dropping: false,
       hasPreview: false,
       imageSource: '',
+      loading: false,
       naturalImageHeight: 0,
       naturalImageWidth: 0,
       offsetLeft: 0,
@@ -100,6 +103,7 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   _pickFile = () => {
+    this.setState({loading: true})
     const fileList = this._filePickerFiles()
     const paths = fileList.length
       ? Array.prototype.map
@@ -123,7 +127,7 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   _onDrop = (e: SyntheticDragEvent<any>) => {
-    this.setState({dropping: false})
+    this.setState({dropping: false, loading: true})
     if (!this._validDrag(e)) {
       return
     }
@@ -180,6 +184,7 @@ class EditAvatar extends React.Component<Props, State> {
 
     this.setState({
       hasPreview: true,
+      loading: false,
       naturalImageHeight: e.currentTarget.naturalHeight,
       naturalImageWidth: e.currentTarget.naturalWidth,
       offsetLeft: width / -2 + VIEWPORT_CENTER,
@@ -323,6 +328,11 @@ class EditAvatar extends React.Component<Props, State> {
               style={styles.hidden}
               type="file"
             />
+            {this.state.loading && (
+              <Box style={styles.spinnerContainer}>
+                <ProgressIndicator style={iconCastPlatformStyles(styles.spinner)} />
+              </Box>
+            )}
             <img
               ref={this._imageSetRef}
               src={this.state.imageSource}
@@ -331,20 +341,22 @@ class EditAvatar extends React.Component<Props, State> {
                 left: `${this.state.offsetLeft}px`,
                 position: 'absolute',
                 top: `${this.state.offsetTop}px`,
+                visibility: this.state.loading ? 'hidden' : 'visible',
                 width: this.state.scaledImageWidth,
               }}
               onDragStart={e => e.preventDefault()}
               onLoad={this._onImageLoad}
             />
-            {!this.state.hasPreview && (
-              <Icon
-                className="icon"
-                color={globalColors.grey}
-                fontSize={48}
-                style={iconCastPlatformStyles(styles.icon)}
-                type="iconfont-camera"
-              />
-            )}
+            {!this.state.loading &&
+              !this.state.hasPreview && (
+                <Icon
+                  className="icon"
+                  color={globalColors.grey}
+                  fontSize={48}
+                  style={iconCastPlatformStyles(styles.icon)}
+                  type="iconfont-camera"
+                />
+              )}
           </HoverBox>
           <input
             disabled={!this.state.hasPreview || this.state.submitting}
@@ -440,6 +452,18 @@ const styles = styleSheetCreate({
     marginTop: -21,
     position: 'absolute',
     top: '50%',
+  },
+  spinner: {
+    left: '50%',
+    marginLeft: -30,
+    marginTop: -30,
+    position: 'absolute',
+    top: '50%',
+  },
+  spinnerContainer: {
+    backgroundColor: globalColors.lightGrey2,
+    height: '100%',
+    width: '100%',
   },
 })
 
