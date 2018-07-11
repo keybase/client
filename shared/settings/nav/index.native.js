@@ -10,8 +10,6 @@ import SettingsItem from './settings-item'
 
 import type {Props} from './index'
 
-// <Badge2 radius={11} topBottomPadding={0} badgeStyle={styles.badge} badgeNumber={badgeNumber} />
-
 const renderItem = ({item}) => {
   return item.text ? <SettingsItem {...item} /> : null
 }
