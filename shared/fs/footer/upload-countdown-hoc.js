@@ -47,36 +47,37 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
 
     _tickerID: ?IntervalID = null
 
-    _tick = () => {
-      const {mode, glueTTL, displayDuration} = this.state
-      const newDisplayDuration = displayDuration > 1000 ? displayDuration - 1000 : 0
-      const newGlueTTL = glueTTL > 1 ? glueTTL - 1 : 0
-      switch (mode) {
-        case 'hidden':
-          this._stopTicker()
-          break
-        case 'count-down':
-          this.setState({
-            displayDuration: newDisplayDuration,
-            glueTTL: newGlueTTL,
-          })
-          break
-        case 'sticky':
-          this.setState({
-            mode: newGlueTTL > 0 ? 'sticky' : 'hidden',
-            glueTTL: newGlueTTL,
-            displayDuration: newDisplayDuration,
-          })
-          break
-        default:
-          /*::
+    _tick = () =>
+      this.setState(prevState => {
+        const {mode, glueTTL, displayDuration} = prevState
+        const newDisplayDuration = displayDuration > 1000 ? displayDuration - 1000 : 0
+        const newGlueTTL = glueTTL > 1 ? glueTTL - 1 : 0
+        switch (mode) {
+          case 'hidden':
+            this._stopTicker()
+            return {}
+          case 'count-down':
+            return {
+              displayDuration: newDisplayDuration,
+              glueTTL: newGlueTTL,
+            }
+          case 'sticky':
+            return {
+              mode: newGlueTTL > 0 ? 'sticky' : 'hidden',
+              glueTTL: newGlueTTL,
+              displayDuration: newDisplayDuration,
+            }
+          default:
+            /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (mode: empty) => any
       ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(mode);
       */
-          break
-      }
-    }
+            return {}
+        }
+      })
 
+    // Idempotently start the ticker. If the ticker has already been started,
+    // this is a no-op.
     _startTicker = () => {
       if (this._tickerID) {
         return
@@ -84,6 +85,8 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
       this._tickerID = this.props.setInterval(this._tick, tickInterval)
     }
 
+    // Idempotently stop the ticker. If the ticker is not running, this is a
+    // no-op.
     _stopTicker = () => {
       if (!this._tickerID) {
         return
@@ -96,35 +99,33 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
       if (this.props.files === prevProps.files && this.props.endEstimate === prevProps.endEstimate) {
         return
       }
-      const isUploading = !!this.props.files
-      const displayDuration = this.props.endEstimate ? this.props.endEstimate - Date.now() : 0
-      const {mode, glueTTL} = this.state
-      switch (mode) {
-        case 'hidden':
-          if (isUploading) {
-            this._startTicker()
-            this.setState({
-              mode: 'count-down',
-              glueTTL: initialGlueTTL,
+      this.setState((prevState, props) => {
+        const isUploading = !!props.files
+        const displayDuration = props.endEstimate ? props.endEstimate - Date.now() : 0
+        const {mode, glueTTL} = prevState
+        switch (mode) {
+          case 'hidden':
+            if (isUploading) {
+              this._startTicker()
+              return {
+                mode: 'count-down',
+                glueTTL: initialGlueTTL,
+                displayDuration,
+              }
+            }
+            return {}
+          case 'count-down':
+            if (isUploading) {
+              return {
+                displayDuration,
+              }
+            }
+            return {
+              mode: glueTTL > 0 ? 'sticky' : 'hidden',
               displayDuration,
-            })
-          }
-          break
-        case 'count-down':
-          if (isUploading) {
-            this.setState({
-              displayDuration,
-            })
-            break
-          }
-          this.setState({
-            mode: glueTTL > 0 ? 'sticky' : 'hidden',
-            displayDuration,
-          })
-          break
-        case 'sticky':
-          this.setState(
-            isUploading
+            }
+          case 'sticky':
+            return isUploading
               ? {
                   mode: 'count-down',
                   displayDuration,
@@ -132,15 +133,14 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
               : {
                   displayDuration,
                 }
-          )
-          break
-        default:
-          /*::
+          default:
+            /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (mode: empty) => any
       ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(mode);
       */
-          break
-      }
+            return {}
+        }
+      })
     }
 
     render() {
