@@ -541,7 +541,7 @@ func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPaym
 	return view
 }
 
-func formatRequestPaymentMessage(g *libkb.GlobalContext, body chat1.MessageRequestPayment) string {
+func formatRequestPaymentMessage(g *libkb.GlobalContext, body chat1.MessageRequestPayment) (view string) {
 	const formattingErrorStr = "[error getting request details]"
 	ctx := context.Background()
 
@@ -557,15 +557,13 @@ func formatRequestPaymentMessage(g *libkb.GlobalContext, body chat1.MessageReque
 		return formattingErrorStr
 	}
 
-	var converted string
 	if details.Currency != nil {
-		converted = fmt.Sprintf(" (%s)", details.AmountStellarDescription)
+		view = fmt.Sprintf("requested Lumens worth %s (%s)", details.AmountDescription,
+			details.AmountStellarDescription)
+	} else {
+		view = fmt.Sprintf("requested %s", details.AmountDescription)
 	}
-	from := details.FromAssertion
-	if details.FromIsCurrentUser {
-		from += " (you)"
-	}
-	view := fmt.Sprintf("%s requests %s%s.", from, details.AmountDescription, converted)
+
 	if len(body.Note) > 0 {
 		view += "\n> " + body.Note
 	}
