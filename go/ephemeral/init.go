@@ -13,6 +13,11 @@ func NewEphemeralStorageAndInstall(g *libkb.GlobalContext) {
 	g.SetEKLib(ekLib)
 	g.AddLoginHook(ekLib)
 	g.AddLogoutHook(ekLib)
+	g.PushShutdownHook(func() error {
+		g.Log.Debug("stopping background eklib loop")
+		ekLib.Shutdown()
+		return nil
+	})
 }
 
 func ServiceInit(g *libkb.GlobalContext) {
