@@ -1,13 +1,14 @@
 // @flow
 import * as React from 'react'
 import * as MessageTypes from '../../../../constants/types/chat2/message'
-import {Box2, Icon, NameWithIcon, Overlay, SectionList, Text} from '../../../../common-adapters'
+import {Box2, ClickableBox, Icon, NameWithIcon, Overlay, SectionList, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../../styles'
 import ReactButton from '../react-button/container'
 
 type Props = {
   attachmentRef?: ?React.Component<any, any>,
   messageID: MessageTypes.MessageID,
+  onAddReaction: () => void,
   onHidden: () => void,
   onReact: string => void,
   reactions: Array<{
@@ -36,10 +37,14 @@ const ReactionTooltip = (props: Props) => {
         )}
         <SectionList sections={sections} renderItem={renderItem} renderSectionHeader={renderSectionHeader} />
         {isMobile && (
-          <Box2 centerChildren={true} direction="horizontal" gap="tiny" style={styles.addReactionButton}>
-            <Icon type="iconfont-add" color={globalColors.black_40} fontSize={22} />{' '}
-            <Text type="BodySemibold">Add a reaction</Text>
-          </Box2>
+          <ClickableBox onClick={props.onAddReaction}>
+            <Box2 centerChildren={true} direction="horizontal" gap="xtiny" style={styles.addReactionButton}>
+              <Icon type="iconfont-reacji" color={globalColors.black_40} fontSize={22} />{' '}
+              <Text type="BodySemibold" style={styles.addReactionButtonText}>
+                Add a reaction
+              </Text>
+            </Box2>
+          </ClickableBox>
         )}
       </Box2>
     </Overlay>
@@ -89,11 +94,14 @@ const styles = styleSheetCreate({
     borderWidth: 2,
     height: 40,
     marginBottom: globalMargins.large,
-    marginLeft: globalMargins.xlarge,
-    marginRight: globalMargins.xlarge,
+    marginLeft: globalMargins.large,
+    marginRight: globalMargins.large,
     marginTop: globalMargins.xtiny,
     paddingLeft: globalMargins.large,
     paddingRight: globalMargins.large,
+  },
+  addReactionButtonText: {
+    color: globalColors.black_40,
   },
   buttonContainer: {
     alignItems: 'center',

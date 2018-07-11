@@ -8,11 +8,16 @@ import ReactionTooltip from '.'
 
 const provider = createPropProvider(Common(), ReactButton)
 
+const actions = {
+  onAddReaction: action('onAddReaction'),
+  onHidden: action('onHidden'),
+  onReact: action('onReact'),
+}
+
 const examples = [
   {
+    ...actions,
     messageID: Types.numberToMessageID(0),
-    onHidden: action('onHidden'),
-    onReact: action('onReact'),
     reactions: [
       {
         emoji: ':+1:',
@@ -31,9 +36,8 @@ const examples = [
     ],
   },
   {
+    ...actions,
     messageID: Types.numberToMessageID(0),
-    onHidden: action('onHidden'),
-    onReact: action('onReact'),
     reactions: [
       {
         emoji: ':face_with_cowboy_hat:',
@@ -42,9 +46,8 @@ const examples = [
     ],
   },
   {
+    ...actions,
     messageID: Types.numberToMessageID(0),
-    onHidden: action('onHidden'),
-    onReact: action('onReact'),
     reactions: [
       {
         emoji: ':face_with_cowboy_hat:',
