@@ -49,12 +49,12 @@
     "selectAccount": {
       "_description": "Select an account. Optionally navigate to the account page.",
       "accountID": "Types.AccountID",
-      "show?": "boolean"
+      "show?": "boolean",
     },
     "linkExistingAccount": {
       "_description": "Link an existing Stellar account with this Keybase user.",
       "name": "string",
-      "secretKey": "HiddenString"
+      "secretKey": "HiddenString",
     },
     "linkedExistingAccount": {
       "_description":
@@ -63,35 +63,35 @@
       "canError": {
         "name": "string",
         "secretKey": "HiddenString",
-        "error": "string"
+        "error": "string",
       }
     },
     "validateAccountName": {
       "_description": "Ask the service to validate an account name.",
-      "name": "string"
+      "name": "string",
     },
     "validatedAccountName": {
       "_description": "The service responded with an error or that the account name is valid.",
       "name": "string",
       "canError": {
         "name": "string",
-        "error": "string"
+        "error": "string",
       }
     },
     "validateSecretKey": {
       "_description": "Ask the service to validate an account secret key.",
-      "secretKey": "HiddenString"
+      "secretKey": "HiddenString",
     },
     "validatedSecretKey": {
       "_description": "The service responded with an error or that the secret key is valid.",
       "secretKey": "HiddenString",
       "canError": {
         "secretKey": "HiddenString",
-        "error": "string"
+        "error": "string",
       }
     },
     "clearErrors": {
-      "_description": "Clear errors from the store at times like opening or closing a form dialog."
+      "_description": "Clear errors from the store at times like opening or closing a form dialog.",
     }
   }
 }
