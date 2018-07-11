@@ -13,7 +13,7 @@ import {
 } from '../../../styles'
 import QRImage from './qr-image'
 import QRScan from './qr-scan'
-import {intersperseFn} from '../../../util/arrays'
+import {iconMeta} from '../../../common-adapters/icon.constants'
 
 const blueBackground = require('../../../images/illustrations/bg-provisioning-blue.png')
 const greenBackground = require('../../../images/illustrations/bg-provisioning-green.png')
@@ -192,7 +192,6 @@ class EnterText extends React.Component<Props, {code: string}> {
     return (
       <Box2 direction="vertical" style={styles.enterTextContainer} gap="small">
         <PlainInput
-          placeholderColor={globalColors.green2}
           multiline={true}
           onChangeText={code => this.setState({code})}
           onEnterKeyDown={this._submit}
@@ -224,14 +223,6 @@ const ViewText = (props: Props) => (
   </Box2>
 )
 
-const JoinWithCaret = ({children}) =>
-  intersperseFn(
-    idx => (
-      <Icon key={idx} type="iconfont-arrow-right" color={globalColors.white} boxStyle={styles.arrowBox} />
-    ),
-    React.Children.toArray(children)
-  )
-
 const Instructions = (p: Props) => (
   <Box2 direction="vertical">
     {p.currentDeviceAlreadyProvisioned ? (
@@ -240,7 +231,7 @@ const Instructions = (p: Props) => (
           Ready to provision using
         </Text>
         <Text type="Header" style={styles.instructionsItalic}>
-          {p.otherDeviceName}
+          {p.otherDeviceName}.
         </Text>
       </React.Fragment>
     ) : (
@@ -254,17 +245,19 @@ const Instructions = (p: Props) => (
           , go to
         </Text>
         <Text type="Header" style={styles.instructions}>
-          <JoinWithCaret>
-            <Text type="Header" style={styles.instructions}>
-              Devices
-            </Text>
-            <Text type="Header" style={styles.instructions}>
-              Add new
-            </Text>
-            <Text type="Header" style={styles.instructions}>
-              New {p.otherDeviceType === 'desktop' ? 'computer' : 'phone'}.
-            </Text>
-          </JoinWithCaret>
+          Devices
+          <Text type="Header" style={styles.instructionsCarets}>
+            {` ${String.fromCharCode(iconMeta['iconfont-arrow-right'].charCode || 0)} `}
+          </Text>
+          <Text type="Header" style={styles.instructions}>
+            Add new
+          </Text>
+          <Text type="Header" style={styles.instructionsCarets}>
+            {` ${String.fromCharCode(iconMeta['iconfont-arrow-right'].charCode || 0)} `}
+          </Text>
+          <Text type="Header" style={styles.instructions}>
+            New {p.currentDeviceType === 'desktop' ? 'computer' : 'phone'}.
+          </Text>
         </Text>
       </React.Fragment>
     )}
@@ -272,16 +265,6 @@ const Instructions = (p: Props) => (
 )
 
 const styles = styleSheetCreate({
-  arrowBox: platformStyles({
-    common: {
-      marginLeft: 2,
-      marginRight: 2,
-      marginTop: 2,
-    },
-    isElectron: {
-      display: 'inline-block',
-    },
-  }),
   backgroundOnLeft: {
     ...globalStyles.fillAbsolute,
     bottom: 0,
@@ -322,7 +305,7 @@ const styles = styleSheetCreate({
     ...globalStyles.fontTerminalSemibold,
     backgroundColor: globalColors.white,
     borderRadius: 4,
-    color: globalColors.green,
+    color: globalColors.green2,
     fontSize: 16,
     maxWidth: isMobile ? 300 : 460,
     paddingBottom: 15,
@@ -334,6 +317,21 @@ const styles = styleSheetCreate({
     color: globalColors.white,
     textAlign: 'center',
   },
+  instructionsCarets: platformStyles({
+    common: {
+      color: globalColors.white,
+      fontFamily: 'kb',
+      fontStyle: 'normal',
+      fontWeight: 'normal',
+      textAlign: 'center',
+    },
+    isElectron: {
+      WebkitFontSmoothing: 'antialiased',
+      fontVariant: 'normal',
+      speak: 'none',
+      textTransform: 'none',
+    },
+  }),
   instructionsContainer: {
     alignItems: 'center',
     flexWrap: 'wrap',

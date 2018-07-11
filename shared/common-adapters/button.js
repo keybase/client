@@ -195,7 +195,7 @@ const labelStyles = styleSheetCreate({
   SecondaryLabelOnTerminal: {...commonLabel, color: globalColors.white},
   WalletLabel: commonLabel,
   PrimaryColoredBackgroundLabelRed: {...commonLabel, color: globalColors.red},
-  PrimaryColoredBackgroundLabelGreen: {...commonLabel, color: globalColors.green},
+  PrimaryColoredBackgroundLabelGreen: {...commonLabel, color: globalColors.green2},
   PrimaryColoredBackgroundLabelBlue: {...commonLabel, color: globalColors.blue},
   PrimaryColoredBackgroundLabelBlack: {...commonLabel, color: globalColors.black},
   SecondaryColoredBackgroundLabel: {...commonLabel, color: globalColors.white},
