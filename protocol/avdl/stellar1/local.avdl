@@ -274,7 +274,34 @@ protocol local {
     boolean pending;
   }
 
-  RequestDetails getRequestDetailsLocal(KeybaseRequestID reqID);
+  record RequestDetailsLocal {
+    KeybaseRequestID id;
+
+    // User asking for payment - creator of the request.
+    string fromAssertion; // creator username
+
+    // User being asked for payment.
+    ParticipantType toUserType; // keybase or SBS
+    string toAssertion; // keybase username or sbs assertion.
+
+    string amount;
+    union { null, Asset } asset;
+    union { null, OutsideCurrencyCode } currency;
+
+    string amountDescription;
+
+    // if asking for currency - this is the converted amount of XLM to
+    // send.
+    union { null, string } amountStellar;
+    union { null, string } amountStellarDescription;
+
+    boolean completed;
+    string statusDescription;
+
+    // Payment ID if funded, empty if not funded.
+    KeybaseTransactionID fundingKbTxID;
+  }
+  RequestDetailsLocal getRequestDetailsLocal(KeybaseRequestID reqID);
 
   // -------------------------------------------------------
   // CLI protocol

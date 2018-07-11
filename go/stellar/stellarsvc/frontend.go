@@ -1219,7 +1219,7 @@ func (s *Server) CreateWalletAccountLocal(ctx context.Context, arg stellar1.Crea
 	return stellar.CreateNewAccount(s.mctx(ctx), arg.Name)
 }
 
-func (s *Server) GetRequestDetailsLocal(ctx context.Context, reqID stellar1.KeybaseRequestID) (res stellar1.RequestDetails, err error) {
+func (s *Server) GetRequestDetailsLocal(ctx context.Context, reqID stellar1.KeybaseRequestID) (res stellar1.RequestDetailsLocal, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
 		RPCName: "GetRequestDetailsLocal",
 		Err:     &err,
@@ -1234,7 +1234,27 @@ func (s *Server) GetRequestDetailsLocal(ctx context.Context, reqID stellar1.Keyb
 		return res, err
 	}
 
-	return details, nil
+	fromAssertion, err := s.lookupUsername(ctx, details.FromUser.Uid)
+	if err != nil {
+		return res, fmt.Errorf("Failed to lookup username for %s: %s", details.FromUser.Uid, err)
+	}
+
+	res = stellar1.RequestDetailsLocal{
+		Id:            details.Id,
+		FromAssertion: fromAssertion,
+		ToAssertion:   details.ToAssertion,
+		Amount:        details.Amount,
+		Asset:         details.Asset,
+		Currency:      details.Currency,
+		Completed:     !details.FundingKbTxID.IsNil(),
+		FundingKbTxID: details.FundingKbTxID,
+	}
+
+	if details.Currency != nil {
+
+	}
+
+	return res, nil
 }
 
 // Subtract a 100 stroop fee from the available balance.

@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"golang.org/x/net/context"
 	emoji "gopkg.in/kyokomi/emoji.v1"
 )
@@ -541,16 +542,22 @@ func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPaym
 }
 
 func formatRequestPaymentMessage(g *libkb.GlobalContext, body chat1.MessageRequestPayment) string {
+	const formattingErrorStr = "[error getting request details]"
 	ctx := context.Background()
 
 	cli, err := GetWalletClient(g)
 	if err != nil {
 		g.Log.CDebugf(ctx, "GetWalletClient() error: %s", err)
-		return "[error getting request details]"
+		return formattingErrorStr
 	}
 
-	_ = cli
-	return "<request payment message>"
+	details, err := cli.GetRequestDetailsLocal(ctx, stellar1.KeybaseRequestID(body.RequestID))
+	if err != nil {
+		g.Log.CDebugf(ctx, "GetRequestDetailsLocal failed with: %s", err)
+		return formattingErrorStr
+	}
+
+	return fmt.Sprintf("%s requests %s units of money", details.FromAssertion, details.Amount)
 }
 
 func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxedValid) (mv messageView, err error) {

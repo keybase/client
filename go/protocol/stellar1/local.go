@@ -397,6 +397,64 @@ func (o SendPaymentResLocal) DeepCopy() SendPaymentResLocal {
 	}
 }
 
+type RequestDetailsLocal struct {
+	Id                       KeybaseRequestID     `codec:"id" json:"id"`
+	FromAssertion            string               `codec:"fromAssertion" json:"fromAssertion"`
+	ToUserType               ParticipantType      `codec:"toUserType" json:"toUserType"`
+	ToAssertion              string               `codec:"toAssertion" json:"toAssertion"`
+	Amount                   string               `codec:"amount" json:"amount"`
+	Asset                    *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
+	Currency                 *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
+	AmountDescription        string               `codec:"amountDescription" json:"amountDescription"`
+	AmountStellar            *string              `codec:"amountStellar,omitempty" json:"amountStellar,omitempty"`
+	AmountStellarDescription *string              `codec:"amountStellarDescription,omitempty" json:"amountStellarDescription,omitempty"`
+	Completed                bool                 `codec:"completed" json:"completed"`
+	StatusDescription        string               `codec:"statusDescription" json:"statusDescription"`
+	FundingKbTxID            KeybaseTransactionID `codec:"fundingKbTxID" json:"fundingKbTxID"`
+}
+
+func (o RequestDetailsLocal) DeepCopy() RequestDetailsLocal {
+	return RequestDetailsLocal{
+		Id:            o.Id.DeepCopy(),
+		FromAssertion: o.FromAssertion,
+		ToUserType:    o.ToUserType.DeepCopy(),
+		ToAssertion:   o.ToAssertion,
+		Amount:        o.Amount,
+		Asset: (func(x *Asset) *Asset {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Asset),
+		Currency: (func(x *OutsideCurrencyCode) *OutsideCurrencyCode {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Currency),
+		AmountDescription: o.AmountDescription,
+		AmountStellar: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.AmountStellar),
+		AmountStellarDescription: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.AmountStellarDescription),
+		Completed:         o.Completed,
+		StatusDescription: o.StatusDescription,
+		FundingKbTxID:     o.FundingKbTxID.DeepCopy(),
+	}
+}
+
 type SendResultCLILocal struct {
 	KbTxID KeybaseTransactionID `codec:"kbTxID" json:"kbTxID"`
 	TxID   TransactionID        `codec:"txID" json:"txID"`
@@ -774,7 +832,7 @@ type LocalInterface interface {
 	GetSendAssetChoicesLocal(context.Context, GetSendAssetChoicesLocalArg) ([]SendAssetChoiceLocal, error)
 	BuildPaymentLocal(context.Context, BuildPaymentLocalArg) (BuildPaymentResLocal, error)
 	SendPaymentLocal(context.Context, SendPaymentLocalArg) (SendPaymentResLocal, error)
-	GetRequestDetailsLocal(context.Context, KeybaseRequestID) (RequestDetails, error)
+	GetRequestDetailsLocal(context.Context, KeybaseRequestID) (RequestDetailsLocal, error)
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
@@ -1523,7 +1581,7 @@ func (c LocalClient) SendPaymentLocal(ctx context.Context, __arg SendPaymentLoca
 	return
 }
 
-func (c LocalClient) GetRequestDetailsLocal(ctx context.Context, reqID KeybaseRequestID) (res RequestDetails, err error) {
+func (c LocalClient) GetRequestDetailsLocal(ctx context.Context, reqID KeybaseRequestID) (res RequestDetailsLocal, err error) {
 	__arg := GetRequestDetailsLocalArg{ReqID: reqID}
 	err = c.Cli.Call(ctx, "stellar.1.local.getRequestDetailsLocal", []interface{}{__arg}, &res)
 	return

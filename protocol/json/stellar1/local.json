@@ -429,6 +429,76 @@
     },
     {
       "type": "record",
+      "name": "RequestDetailsLocal",
+      "fields": [
+        {
+          "type": "KeybaseRequestID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "fromAssertion"
+        },
+        {
+          "type": "ParticipantType",
+          "name": "toUserType"
+        },
+        {
+          "type": "string",
+          "name": "toAssertion"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "asset"
+        },
+        {
+          "type": [
+            null,
+            "OutsideCurrencyCode"
+          ],
+          "name": "currency"
+        },
+        {
+          "type": "string",
+          "name": "amountDescription"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "amountStellar"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "amountStellarDescription"
+        },
+        {
+          "type": "boolean",
+          "name": "completed"
+        },
+        {
+          "type": "string",
+          "name": "statusDescription"
+        },
+        {
+          "type": "KeybaseTransactionID",
+          "name": "fundingKbTxID"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SendResultCLILocal",
       "fields": [
         {
@@ -980,7 +1050,7 @@
           "type": "KeybaseRequestID"
         }
       ],
-      "response": "RequestDetails"
+      "response": "RequestDetailsLocal"
     },
     "balancesLocal": {
       "request": [

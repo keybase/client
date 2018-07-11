@@ -560,15 +560,17 @@ type requestDetailsResult struct {
 
 func RequestDetails(ctx context.Context, g *libkb.GlobalContext, requestID stellar1.KeybaseRequestID) (ret stellar1.RequestDetails, err error) {
 	payload := make(libkb.JSONPayload)
-	payload["id"] = requestID
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/requestdetails",
 		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"id": libkb.S{Val: requestID.String()},
+		},
 		JSONPayload: payload,
 		NetContext:  ctx,
 	}
 	var res requestDetailsResult
-	if err := g.API.PostDecode(apiArg, &res); err != nil {
+	if err := g.API.GetDecode(apiArg, &res); err != nil {
 		return ret, err
 	}
 	return res.Request, nil
