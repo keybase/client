@@ -80,6 +80,7 @@ export type _State = {
   accountName: string,
   accountNameError: string,
   accountNameValidationState: ValidationState,
+  exportedSecretKey: HiddenString,
   linkExistingAccountError: string,
   secretKey: HiddenString,
   secretKeyError: string,
@@ -87,7 +88,6 @@ export type _State = {
   selectedAccount: AccountID,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
   paymentsMap: I.Map<AccountID, I.List<Payment>>,
-  secretKeyMap: I.Map<AccountID, HiddenString>,
   selectedAccount: AccountID,
 }
 export type State = I.RecordOf<_State>

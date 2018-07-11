@@ -19,11 +19,13 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.paymentsReceived:
       return state.setIn(['paymentsMap', action.payload.accountID], I.List(action.payload.payments))
     case WalletsGen.secretKeyReceived:
-      return state.setIn(['secretKeyMap', action.payload.accountID], action.payload.secretKey)
+      return state.set('exportedSecretKey', action.payload.secretKey)
     case WalletsGen.secretKeySeen:
-      return state.set('secretKeyMap', I.Map())
+      return state.set('exportedSecretKey', new HiddenString(''))
     case WalletsGen.selectAccount:
-      return state.set('selectedAccount', action.payload.accountID)
+      return state
+        .set('exportedSecretKey', new HiddenString(''))
+        .set('selectedAccount', action.payload.accountID)
     case WalletsGen.validateAccountName:
       return state.merge({
         accountName: action.payload.name,

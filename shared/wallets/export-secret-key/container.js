@@ -11,10 +11,10 @@ export type OwnProps = {
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const accountID = routeProps.get('accountID')
-  const secretKey = Constants.getSecretKey(state, accountID)
+  const secretKey = Constants.getSecretKey(state, accountID).stringValue()
   return {
     accountID,
-    secretKey: secretKey && secretKey.stringValue(),
+    secretKey,
     username: state.config.username,
   }
 }
