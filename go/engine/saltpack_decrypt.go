@@ -143,6 +143,12 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 			return libkb.LoginRequiredError{}
 		}
 
+		// Only used in the makeMessageInfo call, which is helpful for old messages (one cannot encrypt messages with visible recipients any more).
+		me, err = libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m))
+		if err != nil {
+			return err
+		}
+
 		// Get the device encryption key and per user keys.
 		var key *libkb.NaclDHKeyPair
 		var err error

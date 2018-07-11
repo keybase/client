@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
@@ -83,6 +84,10 @@ func (e *SaltpackEncrypt) Run(m libkb.MetaContext) (err error) {
 
 	if err = e.loadMe(m); err != nil {
 		return err
+	}
+
+	if !(e.arg.Opts.UseEntityKeys || e.arg.Opts.UseDeviceKeys || e.arg.Opts.UsePaperKeys) {
+		return fmt.Errorf("no key type for encryption was specified")
 	}
 
 	kfarg := libkb.SaltpackRecipientKeyfinderArg{

@@ -6,14 +6,11 @@ package engine
 // TODO updated tests in this file before merging PR
 
 import (
-	"crypto/rand"
 	"errors"
 	"fmt"
 	"strings"
-	"sync"
 	"testing"
 
-	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/saltpackkeys/saltpackkeysmocks"
@@ -300,14 +297,14 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 // encryption-only mode). Modern repudiable messages always have all-anonymous-recipients,
 // and signcryption messages have opaque receivers.
 func TestSaltpackNoEncryptionForDevice(t *testing.T) {
+	// userX has one device (device X) and a paper key. userZ will encrypt for X a message,
+	// then userX will add a new device (Y) which should not be able to decrypt the message
+	// (as we are not using PUKs) but will receive an helpful error message which tells them
+	// which other devices to use to decrypt.
 
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
-
-	// device Y (provisionee) context:
-	tcY := SetupEngineTest(t, "kex2provionee")
-	defer tcY.Cleanup()
 
 	// device Z is the encryptor's device
 	tcZ := SetupEngineTest(t, "encryptor")
@@ -315,10 +312,6 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUserPaper(tcX, "naclp")
-	var secretX kex2.Secret
-	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
-	}
 
 	encryptor := CreateAndSignupFakeUser(tcZ, "naclp")
 	spui := testDecryptSaltpackUI{}
@@ -340,6 +333,8 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 			Recipients: []string{
 				userX.Username,
 			},
+			UseDeviceKeys:    true,
+			UsePaperKeys:     true,
 			AuthenticityType: keybase1.AuthenticityType_REPUDIABLE,
 		},
 	}
@@ -383,54 +378,10 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 		t.Fatalf("decoded: %s, expected: %s", decmsg, msg)
 	}
 
-	// Now make a new device
-	secretCh := make(chan kex2.Secret)
-
-	// provisionee calls login:
-	uis = libkb.UIs{
-		ProvisionUI: newTestProvisionUISecretCh(secretCh),
-		LoginUI:     &libkb.TestLoginUI{Username: userX.Username},
-		LogUI:       tcY.G.UI.GetLogUI(),
-		SecretUI:    &libkb.TestSecretUI{},
-		GPGUI:       &gpgtestui{},
-	}
-	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-
-	var wg sync.WaitGroup
-
-	// start provisionee
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		m := NewMetaContextForTest(tcY).WithUIs(uis)
-		if err := RunEngine2(m, eng); err != nil {
-			t.Errorf("login error: %s", err)
-			return
-		}
-	}()
-
-	// start provisioner
-	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
-		uis := libkb.UIs{
-			SecretUI:    userX.NewSecretUI(),
-			ProvisionUI: newTestProvisionUI(),
-		}
-		m := NewMetaContextForTest(tcX).WithUIs(uis)
-		if err := RunEngine2(m, provisioner); err != nil {
-			t.Errorf("provisioner error: %s", err)
-			return
-		}
-	}()
-	secretFromY := <-secretCh
-	provisioner.AddSecret(secretFromY)
-
-	wg.Wait()
-
-	if err := AssertProvisioned(tcY); err != nil {
+	// Now make a new device for userX
+	tcY, Cleanup := provisionNewDeviceKex(&tcX, userX)
+	defer Cleanup()
+	if err := AssertProvisioned(*tcY); err != nil {
 		t.Fatal(err)
 	}
 
@@ -451,7 +402,7 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 		LogUI:      tcY.G.UI.GetLogUI(),
 		SaltpackUI: &spui,
 	}
-	m = NewMetaContextForTest(tcY).WithUIs(uis)
+	m = NewMetaContextForTest(*tcY).WithUIs(uis)
 	if err := RunEngine2(m, dec); err == nil {
 		t.Fatal("Should have seen a decryption error")
 	}
