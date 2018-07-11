@@ -2,66 +2,18 @@
 import * as React from 'react'
 import * as TabConstants from '../../constants/tabs'
 import * as Constants from '../../constants/settings'
-import {
-  globalStyles,
-  globalColors,
-  globalMargins,
-  type Color,
-  hairlineWidth,
-  styleSheetCreate,
-} from '../../styles'
-import {
-  Badge2,
-  Box,
-  ClickableBox,
-  HeaderHoc,
-  Icon,
-  NativeSectionList,
-  Text,
-} from '../../common-adapters/mobile.native'
+import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
+import {HeaderHoc, NativeSectionList, Text} from '../../common-adapters/mobile.native'
 import {isAndroid} from '../../constants/platform'
 import flags from '../../util/feature-flags'
+import SettingsItem from './settings-item'
 
 import type {Props} from './index'
 
-function SettingsItem({
-  badgeNumber,
-  icon,
-  largerBadgeMinWidthFix,
-  onClick,
-  text,
-  textColor,
-}: {
-  badgeNumber: number,
-  icon?: any,
-  largerBadgeMinWidthFix?: boolean,
-  onClick: () => void,
-  text: string,
-  textColor?: Color,
-}) {
-  return text ? (
-    <ClickableBox onClick={onClick} style={styles.item}>
-      <Box style={{...globalStyles.flexBoxRow}}>
-        {icon && (
-          <Icon type={icon} color={globalColors.black_20} style={{marginRight: globalMargins.small}} />
-        )}
-        <Text
-          type="BodySemibold"
-          style={{color: textColor || globalColors.black_75, position: 'relative', top: 3}}
-        >
-          {text}
-        </Text>
-        {!!badgeNumber &&
-          badgeNumber > 0 && (
-            <Badge2 radius={11} topBottomPadding={0} badgeStyle={styles.badge} badgeNumber={badgeNumber} />
-          )}
-      </Box>
-    </ClickableBox>
-  ) : null
-}
+// <Badge2 radius={11} topBottomPadding={0} badgeStyle={styles.badge} badgeNumber={badgeNumber} />
 
 const renderItem = ({item}) => {
-  return <SettingsItem {...item} />
+  return item.text ? <SettingsItem {...item} /> : null
 }
 
 function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange, onLogout}: Props) {
@@ -177,21 +129,6 @@ function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange
 }
 
 const styles = styleSheetCreate({
-  item: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    borderBottomColor: globalColors.black_05,
-    borderBottomWidth: hairlineWidth,
-    height: 56,
-    paddingLeft: globalMargins.small,
-    paddingRight: globalMargins.small,
-    position: 'relative',
-  },
-  badge: {
-    marginLeft: 4,
-    marginRight: 0,
-    marginTop: 2,
-  },
   sectionTitle: {
     backgroundColor: globalColors.blue5,
     color: globalColors.black_40,

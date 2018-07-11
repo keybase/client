@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import type {SettingsItemProps} from './index'
-import {Box, Badge, ClickableBox, Text, Icon} from '../../common-adapters'
+import {Box, Badge2, ClickableBox, Text, Icon} from '../../common-adapters'
 import {
   platformStyles,
   globalStyles,
@@ -46,7 +46,10 @@ export default function SettingsItem({
         >
           {text}
         </Text>
-        {!!badgeNumber && badgeNumber > 0 && <Badge badgeStyle={styles.badge} badgeNumber={badgeNumber} />}
+        {!!badgeNumber &&
+          badgeNumber > 0 && (
+            <Badge2 fontSize={12} height={24} badgeNumber={badgeNumber} badgeStyle={styles.badge} />
+          )}
       </Box>
     </ClickableBox>
   )
@@ -73,9 +76,7 @@ const styles = styleSheetCreate({
     },
   }),
   badge: {
-    marginLeft: 4,
-    marginRight: 0,
-    marginTop: 2,
+    marginLeft: 6,
   },
   itemText: platformStyles({
     isElectron: {
