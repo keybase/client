@@ -46,9 +46,6 @@
       "_description": "Update our store of account data",
       "accounts": "Array<Types.Account>",
     },
-    "maybeSelectDefaultAccount": {
-      "_description": "Select the default account if none is selected",
-    },
     "selectAccount": {
       "_description": "Select an account. Optionally navigate to the account page.",
       "accountID": "Types.AccountID",

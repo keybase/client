@@ -113,8 +113,13 @@ const exportSecretKeySuccess = (res: RPCTypes.SecretKey, action: WalletsGen.Expo
     })
   )
 
-const maybeSelectDefaultAccount = (action: WalletsGen.MaybeSelectDefaultAccountPayload) =>
-  Saga.put(WalletsGen.createMaybeSelectDefaultAccount())
+const maybeSelectDefaultAccount = (action: WalletsGen.AccountsReceivedPayload, state: TypedState) =>
+  state.wallets.get('selectedAccount') === Types.noAccountID &&
+  Saga.put(
+    WalletsGen.createSelectAccount({
+      accountID: state.wallets.accountMap.find(account => account.isDefault).accountID,
+    })
+  )
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPurePromise(

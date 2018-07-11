@@ -18,7 +18,6 @@ export const linkedExistingAccount = 'wallets:linkedExistingAccount'
 export const loadAccounts = 'wallets:loadAccounts'
 export const loadAssets = 'wallets:loadAssets'
 export const loadPayments = 'wallets:loadPayments'
-export const maybeSelectDefaultAccount = 'wallets:maybeSelectDefaultAccount'
 export const paymentsReceived = 'wallets:paymentsReceived'
 export const secretKeyReceived = 'wallets:secretKeyReceived'
 export const secretKeySeen = 'wallets:secretKeySeen'
@@ -49,7 +48,6 @@ type _LinkedExistingAccountPayloadError = $ReadOnly<{|
 type _LoadAccountsPayload = void
 type _LoadAssetsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
-type _MaybeSelectDefaultAccountPayload = void
 type _PaymentsReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   payments: Array<Types.Payment>,
@@ -118,10 +116,6 @@ export const createLoadPayments = (payload: _LoadPaymentsPayload) => ({error: fa
  */
 export const createSelectAccount = (payload: _SelectAccountPayload) => ({error: false, payload, type: selectAccount})
 /**
- * Select the default account if none is selected
- */
-export const createMaybeSelectDefaultAccount = (payload: _MaybeSelectDefaultAccountPayload) => ({error: false, payload, type: maybeSelectDefaultAccount})
-/**
  * The service responded with an error or that the account name is valid.
  */
 export const createValidatedAccountName = (payload: _ValidatedAccountNamePayload) => ({error: false, payload, type: validatedAccountName})
@@ -164,7 +158,6 @@ export type LinkedExistingAccountPayloadError = $Call<typeof createLinkedExistin
 export type LoadAccountsPayload = $Call<typeof createLoadAccounts, _LoadAccountsPayload>
 export type LoadAssetsPayload = $Call<typeof createLoadAssets, _LoadAssetsPayload>
 export type LoadPaymentsPayload = $Call<typeof createLoadPayments, _LoadPaymentsPayload>
-export type MaybeSelectDefaultAccountPayload = $Call<typeof createMaybeSelectDefaultAccount, _MaybeSelectDefaultAccountPayload>
 export type PaymentsReceivedPayload = $Call<typeof createPaymentsReceived, _PaymentsReceivedPayload>
 export type SecretKeyReceivedPayload = $Call<typeof createSecretKeyReceived, _SecretKeyReceivedPayload>
 export type SecretKeySeenPayload = $Call<typeof createSecretKeySeen, _SecretKeySeenPayload>
@@ -189,7 +182,6 @@ export type Actions =
   | LoadAccountsPayload
   | LoadAssetsPayload
   | LoadPaymentsPayload
-  | MaybeSelectDefaultAccountPayload
   | PaymentsReceivedPayload
   | SecretKeyReceivedPayload
   | SecretKeySeenPayload

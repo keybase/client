@@ -16,10 +16,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.set('accountMap', accountMap)
     case WalletsGen.assetsReceived:
       return state.setIn(['assetsMap', action.payload.accountID], I.List(action.payload.assets))
-    case WalletsGen.maybeSelectDefaultAccount:
-      return state.get('selectedAccount') === Types.noAccountID
-        ? state.set('selectedAccount', state.accountMap.find(account => account.isDefault).accountID)
-        : state
     case WalletsGen.paymentsReceived:
       return state.setIn(['paymentsMap', action.payload.accountID], I.List(action.payload.payments))
     case WalletsGen.secretKeyReceived:
