@@ -449,6 +449,8 @@ type HybridConversationSource struct {
 	numExpungeReload int
 	storage          *storage.Storage
 	lockTab          *conversationLockTab
+
+	blackoutPullForTesting bool
 }
 
 var _ types.ConversationSource = (*HybridConversationSource)(nil)
@@ -737,6 +739,9 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, true, true); err != nil {
 				return thread, err
 			}
+			if s.blackoutPullForTesting {
+				thread.Messages = nil
+			}
 			return thread, nil
 		}
 		s.Debug(ctx, "Pull: cache miss: err: %s", err.Error())
@@ -782,6 +787,9 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	// Run post process stuff
 	if err = s.postProcessThread(ctx, uid, unboxConv, &thread, query, nil, true, true); err != nil {
 		return thread, err
+	}
+	if s.blackoutPullForTesting {
+		thread.Messages = nil
 	}
 	return thread, nil
 }
