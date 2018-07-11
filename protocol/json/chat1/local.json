@@ -2256,7 +2256,7 @@
             null,
             "string"
           ],
-          "name": "filename"
+          "name": "url"
         },
         {
           "type": [
@@ -3327,8 +3327,8 @@
           "type": "LocalFileSource"
         },
         {
-          "name": "outputDir",
-          "type": "string"
+          "name": "outboxID",
+          "type": "OutboxID"
         }
       ],
       "response": "MakePreviewRes"

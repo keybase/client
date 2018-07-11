@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"regexp"
@@ -1451,19 +1450,11 @@ func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res
 	}
 
 	if pre.Preview != nil {
-		f, err := ioutil.TempFile(arg.OutputDir, "prev")
-		if err != nil {
-			return res, err
-		}
 		buf := pre.Preview.Bytes()
-		n, err := f.Write(buf)
-		f.Close()
-		if err != nil {
-			return res, err
+		if err := storage.NewPendingPreviews(h.G()).Put(ctx, arg.OutboxID, buf); err != nil {
+			return err
 		}
-		if n != len(buf) {
-			return res, io.ErrShortWrite
-		}
+
 		name := f.Name()
 		if strings.HasPrefix(pre.ContentType, "image/") {
 			suffix := strings.TrimPrefix(pre.ContentType, "image/")

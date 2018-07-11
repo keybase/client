@@ -2,6 +2,7 @@ package encrypteddb
 
 import (
 	"io/ioutil"
+	"os"
 
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
@@ -39,4 +40,8 @@ func (f *EncryptedFile) Put(ctx context.Context, data interface{}) error {
 		return err
 	}
 	return ioutil.WriteFile(f.path, b, 0644)
+}
+
+func (f *EncryptedFile) Remove(ctx context.Context) error {
+	return os.Remove(f.path)
 }

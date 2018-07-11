@@ -3763,7 +3763,7 @@ func (o DownloadAttachmentLocalRes) DeepCopy() DownloadAttachmentLocalRes {
 
 type MakePreviewRes struct {
 	MimeType     string         `codec:"mimeType" json:"mimeType"`
-	Filename     *string        `codec:"filename,omitempty" json:"filename,omitempty"`
+	Url          *string        `codec:"url,omitempty" json:"url,omitempty"`
 	Metadata     *AssetMetadata `codec:"metadata,omitempty" json:"metadata,omitempty"`
 	BaseMetadata *AssetMetadata `codec:"baseMetadata,omitempty" json:"baseMetadata,omitempty"`
 }
@@ -3771,13 +3771,13 @@ type MakePreviewRes struct {
 func (o MakePreviewRes) DeepCopy() MakePreviewRes {
 	return MakePreviewRes{
 		MimeType: o.MimeType,
-		Filename: (func(x *string) *string {
+		Url: (func(x *string) *string {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x)
 			return &tmp
-		})(o.Filename),
+		})(o.Url),
 		Metadata: (func(x *AssetMetadata) *AssetMetadata {
 			if x == nil {
 				return nil
@@ -4287,7 +4287,7 @@ type DownloadFileAttachmentLocalArg struct {
 type MakePreviewArg struct {
 	SessionID  int             `codec:"sessionID" json:"sessionID"`
 	Attachment LocalFileSource `codec:"attachment" json:"attachment"`
-	OutputDir  string          `codec:"outputDir" json:"outputDir"`
+	OutboxID   OutboxID        `codec:"outboxID" json:"outboxID"`
 }
 
 type CancelPostArg struct {
