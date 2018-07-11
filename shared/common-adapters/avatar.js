@@ -154,13 +154,13 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps) => ({
     isMobile || desktopDest === 'profile'
       ? dispatch(createShowUserProfile({username}))
       : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
-  _onClick: () => (flags.avatarUploadsEnabled ? ownProps.onEditAvatarClick : undefined),
+  onClick: flags.avatarUploadsEnabled ? ownProps.onEditAvatarClick : ownProps.onClick,
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): PropsWithoutTimer => {
   const isTeam = ownProps.isTeam || !!ownProps.teamname
 
-  let onClick = ownProps.onClick
+  let onClick = dispatchProps.onClick
   if (!onClick && ownProps.clickToProfile && ownProps.username) {
     const u = ownProps.username
     const desktopDest = ownProps.clickToProfile
@@ -169,7 +169,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): PropsWithout
 
   const style = collapseStyles([
     ownProps.style,
-    (onClick || dispatchProps.onEditAvatarClick) && platformStyles({isElectron: desktopStyles.clickable}),
+    onClick && platformStyles({isElectron: desktopStyles.clickable}),
   ])
 
   let url = stateProps._urlMap ? urlsToImgSet(stateProps._urlMap, ownProps.size) : null
@@ -200,7 +200,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): PropsWithout
     isTeam,
     loadingColor: ownProps.loadingColor,
     name: name || '',
-    onClick: dispatchProps.onEditAvatarClick ? dispatchProps.onEditAvatarClick : onClick,
+    onClick,
     opacity: ownProps.opacity,
     size: ownProps.size,
     skipBackground: ownProps.skipBackground,
