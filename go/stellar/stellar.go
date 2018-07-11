@@ -8,7 +8,6 @@ import (
 
 	"strings"
 
-	//chatglobals "github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"

@@ -1209,8 +1209,9 @@ func newPaymentLocal(txID stellar1.TransactionID, ctime stellar1.TimeMs, amount 
 
 func (s *Server) CreateWalletAccountLocal(ctx context.Context, arg stellar1.CreateWalletAccountLocalArg) (res stellar1.AccountID, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RPCName: "CreateWalletAccountLocal",
-		Err:     &err,
+		RPCName:       "CreateWalletAccountLocal",
+		RequireWallet: true,
+		Err:           &err,
 	})
 	defer fin()
 	if err != nil {
