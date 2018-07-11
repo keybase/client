@@ -176,6 +176,7 @@ type ConfigReader interface {
 	GetUpdateLastChecked() keybase1.Time
 	GetUpdateURL() string
 	GetUpdateDisabled() (bool, bool)
+	GetDeviceCloneToken(NormalizedUsername) DeviceCloneToken
 }
 
 type UpdaterConfigReader interface {
@@ -204,6 +205,7 @@ type ConfigWriter interface {
 	SetUpdateLastChecked(keybase1.Time) error
 	SetBug3964RepairTime(NormalizedUsername, time.Time) error
 	SetRememberPassphrase(bool) error
+	SetDeviceCloneToken(un NormalizedUsername, d DeviceCloneToken) error
 	Reset()
 	BeginTransaction() (ConfigWriterTransacter, error)
 }
