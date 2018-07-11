@@ -8,47 +8,47 @@ import SettingsItem from './settings-item'
 
 import type {Props} from './index'
 
-function SettingsNav({badgeNumbers, selectedTab, onTabChange, onLogout}: Props) {
+function SettingsNav(props: Props) {
   return (
     <Box style={styleNavBox}>
       <SettingsItem
         text="Your account"
-        selected={selectedTab === Constants.landingTab}
-        onClick={() => onTabChange(Constants.landingTab)}
+        selected={props.selectedTab === Constants.landingTab}
+        onClick={() => props.onTabChange(Constants.landingTab)}
       />
       <SettingsItem
         text="Invitations"
-        selected={selectedTab === Constants.invitationsTab}
-        onClick={() => onTabChange(Constants.invitationsTab)}
+        selected={props.selectedTab === Constants.invitationsTab}
+        onClick={() => props.onTabChange(Constants.invitationsTab)}
       />
       <SettingsItem
         text="Notifications"
-        selected={selectedTab === Constants.notificationsTab}
-        onClick={() => onTabChange(Constants.notificationsTab)}
+        selected={props.selectedTab === Constants.notificationsTab}
+        onClick={() => props.onTabChange(Constants.notificationsTab)}
       />
       <SettingsItem
         text="Advanced"
-        selected={selectedTab === Constants.advancedTab}
-        onClick={() => onTabChange(Constants.advancedTab)}
+        selected={props.selectedTab === Constants.advancedTab}
+        onClick={() => props.onTabChange(Constants.advancedTab)}
       />
       {flags.fsEnabled && (
         <SettingsItem
           text="Files"
-          selected={selectedTab === Constants.fsTab}
-          onClick={() => onTabChange(Constants.fsTab)}
+          selected={props.selectedTab === Constants.fsTab}
+          onClick={() => props.onTabChange(Constants.fsTab)}
         />
       )}
       <SettingsItem
         text="Delete me"
-        selected={selectedTab === Constants.deleteMeTab}
-        onClick={() => onTabChange(Constants.deleteMeTab)}
+        selected={props.selectedTab === Constants.deleteMeTab}
+        onClick={() => props.onTabChange(Constants.deleteMeTab)}
       />
-      <SettingsItem text="Sign out" selected={false} onClick={onLogout} />
+      <SettingsItem text="Sign out" selected={false} onClick={props.onLogout} />
       {__DEV__ && (
         <SettingsItem
           text="😎 &nbsp; Dev Menu"
-          selected={selectedTab === Constants.devMenuTab}
-          onClick={() => onTabChange(Constants.devMenuTab)}
+          selected={props.selectedTab === Constants.devMenuTab}
+          onClick={() => props.onTabChange(Constants.devMenuTab)}
         />
       )}
     </Box>

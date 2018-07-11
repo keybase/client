@@ -14,7 +14,7 @@ const renderItem = ({item}) => {
   return item.text ? <SettingsItem {...item} /> : null
 }
 
-function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange, onLogout}: Props) {
+function SettingsNav(props: Props) {
   return (
     <NativeSectionList
       keyExtractor={(item, index) => item.text + index}
@@ -31,29 +31,29 @@ function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange
         {
           data: [
             {
-              badgeNumber: badgeNumbers[TabConstants.fsTab],
+              badgeNumber: props.badgeNumbers[TabConstants.fsTab],
               icon: 'iconfont-nav-files',
-              onClick: () => onTabChange(Constants.fsTab),
+              onClick: () => props.onTabChange(Constants.fsTab),
               text: 'Files',
             },
             {
-              badgeNumber: badgeNumbers[TabConstants.gitTab],
+              badgeNumber: props.badgeNumbers[TabConstants.gitTab],
               icon: 'iconfont-nav-git',
-              onClick: () => onTabChange(Constants.gitTab),
+              onClick: () => props.onTabChange(Constants.gitTab),
               text: 'Git',
             },
             {
-              badgeNumber: badgeNumbers[TabConstants.devicesTab],
+              badgeNumber: props.badgeNumbers[TabConstants.devicesTab],
               icon: 'iconfont-nav-devices',
-              onClick: () => onTabChange(Constants.devicesTab),
+              onClick: () => props.onTabChange(Constants.devicesTab),
               text: 'Devices',
             },
             {
               ...(flags.walletsEnabled
                 ? {
-                    badgeNumber: badgeNumbers[TabConstants.walletsTab],
+                    badgeNumber: props.badgeNumbers[TabConstants.walletsTab],
                     icon: 'iconfont-nav-wallets',
-                    onClick: () => onTabChange(Constants.walletsTab),
+                    onClick: () => props.onTabChange(Constants.walletsTab),
                     text: 'Wallet',
                   }
                 : {}),
@@ -63,7 +63,7 @@ function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange
                 ? {
                     badgeNumber: 0,
                     icon: 'iconfont-nav-settings',
-                    onClick: () => onTabChange(Constants.devMenuTab),
+                    onClick: () => props.onTabChange(Constants.devMenuTab),
                     text: 'Dev menu',
                   }
                 : {}),
@@ -74,20 +74,20 @@ function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange
         {
           data: [
             {
-              badgeNumber: badgeNotifications ? 1 : 0,
-              onClick: () => onTabChange(Constants.notificationsTab),
+              badgeNumber: props.badgeNotifications ? 1 : 0,
+              onClick: () => props.onTabChange(Constants.notificationsTab),
               text: 'Notifications',
             },
             {
               badgeNumber: 0,
-              onClick: () => onTabChange(Constants.passphraseTab),
+              onClick: () => props.onTabChange(Constants.passphraseTab),
               text: 'Change passphrase',
             },
             {
               ...(isAndroid
                 ? {
                     badgeNumber: 0,
-                    onClick: () => onTabChange(Constants.screenprotectorTab),
+                    onClick: () => props.onTabChange(Constants.screenprotectorTab),
                     text: 'Screen Protector',
                   }
                 : {}),
@@ -97,27 +97,10 @@ function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange
         },
         {
           data: [
-            {
-              badgeNumber: 0,
-              onClick: () => onTabChange(Constants.aboutTab),
-              text: 'About',
-            },
-            {
-              badgeNumber: 0,
-              onClick: () => onTabChange(Constants.feedbackTab),
-              text: 'Feedback',
-            },
-            {
-              badgeNumber: 0,
-              onClick: () => onTabChange(Constants.advancedTab),
-              text: 'Advanced',
-            },
-            {
-              badgeNumber: 0,
-              onClick: onLogout,
-              text: 'Sign out',
-              textColor: globalColors.red,
-            },
+            {badgeNumber: 0, onClick: () => props.onTabChange(Constants.aboutTab), text: 'About'},
+            {badgeNumber: 0, onClick: () => props.onTabChange(Constants.feedbackTab), text: 'Feedback'},
+            {badgeNumber: 0, onClick: () => props.onTabChange(Constants.advancedTab), text: 'Advanced'},
+            {badgeNumber: 0, onClick: props.onLogout, text: 'Sign out', textColor: globalColors.red},
           ],
           title: 'More',
         },
