@@ -18,7 +18,7 @@ const examples = [
         emoji: ':+1:',
         users: [
           {username: 'ayoubd', fullName: 'Danny Ayoub'},
-          {username: 'cnojima', fullName: 'Chris Nojima'},
+          {username: 'chrisnojima', fullName: 'Chris Nojima'},
           {username: 'cecileb', fullName: 'Cecile Boucheron'},
           {username: 'chris', fullName: 'Chris Coyne'},
           {username: 'cjb', fullName: 'Chris Ball'},
@@ -38,6 +38,39 @@ const examples = [
       {
         emoji: ':face_with_cowboy_hat:',
         users: [{username: 'ayoubd', fullName: 'Danny Ayoub'}],
+      },
+    ],
+  },
+  {
+    messageID: Types.numberToMessageID(0),
+    onHidden: action('onHidden'),
+    onReact: action('onReact'),
+    reactions: [
+      {
+        emoji: ':face_with_cowboy_hat:',
+        users: [{username: 'ayoubd', fullName: 'Danny Ayoub'}],
+      },
+      {
+        emoji: ':spider:',
+        users: [
+          {username: 'chris', fullName: 'Chris Coyne'},
+          {username: 'jacobyoung', fullName: 'Jacob Young'},
+        ],
+      },
+      {
+        emoji: ':bee:',
+        users: [
+          {username: 'mlsteele', fullName: 'Miles Steele'},
+          {username: 'chrisnojima', fullName: 'Chris Nojima'},
+        ],
+      },
+      {
+        emoji: ':honey_pot:',
+        users: [
+          {username: 'mikem', fullName: 'Mike Maxim'},
+          {username: 'ayoubd', fullName: 'Danny Ayoub'},
+          {username: 'patrick', fullName: 'Patrick Crosby'},
+        ],
       },
     ],
   },
