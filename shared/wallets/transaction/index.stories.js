@@ -3,7 +3,7 @@ import * as React from 'react'
 import moment from 'moment'
 import * as PropProviders from '../../stories/prop-providers'
 import {Box2} from '../../common-adapters'
-import {storiesOf} from '../../stories/storybook'
+import {action, storiesOf} from '../../stories/storybook'
 import Transaction from '.'
 
 const provider = PropProviders.CommonProvider()
@@ -40,7 +40,13 @@ const addConfigs = (stories, namePrefix, storyFn) => {
       stories.add(namePrefix + ` (${r.yourRole} - ${s.large ? 'large' : 'small'})`, () => {
         const components = []
         memosAndTimes.forEach(t => {
-          components.push(storyFn({key: components.length, ...r, ...s, ...t}))
+          components.push(storyFn({
+            key: components.length,
+            ...r,
+            ...s,
+            ...t,
+            onSelectTransaction: action('onSelectTransaction'),
+          }))
         })
         return components
       })

@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
-import {Avatar, Box2, Divider, Icon, ConnectedUsernames, Markdown} from '../../common-adapters'
+import {Avatar, Box2, ClickableBox, Divider, Icon, ConnectedUsernames, Markdown} from '../../common-adapters'
 import Text, {type TextType} from '../../common-adapters/text'
 import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {formatTimeForStellarTransaction, formatTimeForStellarTransactionDetails} from '../../util/timestamp'
@@ -228,61 +228,66 @@ export type Props = {|
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
   memo: string,
+
+  onSelectTransaction?: () => void,
 |}
 
 export const Transaction = (props: Props) => {
+  console.warn('onSelectTransaction', props.onSelectTransaction)
   const pending = !props.timestamp
   const showMemo =
     props.large && !(props.yourRole === 'receiver' && props.counterpartyType === 'stellarPublicKey')
   return (
     <Box2 direction="vertical" fullWidth={true}>
-      {pending && (
-        <Box2
-          direction="vertical"
-          fullWidth={true}
-          style={{backgroundColor: globalColors.blue5, padding: globalMargins.xtiny}}
-        >
-          <Text type="BodySmallSemibold">Pending</Text>
-        </Box2>
-      )}
-      <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-        <CounterpartyIcon
-          counterparty={props.counterparty}
-          counterpartyType={props.counterpartyType}
-          large={props.large}
-        />
-        <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
-          <Timestamp relative={true} timestamp={props.timestamp} />
-          <Detail
-            large={props.large}
-            pending={pending}
-            yourRole={props.yourRole}
+      <ClickableBox onClick={props.onSelectTransaction}>
+        {pending && (
+          <Box2
+            direction="vertical"
+            fullWidth={true}
+            style={{backgroundColor: globalColors.blue5, padding: globalMargins.xtiny}}
+          >
+            <Text type="BodySmallSemibold">Pending</Text>
+          </Box2>
+        )}
+        <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+          <CounterpartyIcon
             counterparty={props.counterparty}
             counterpartyType={props.counterpartyType}
-            amountUser={props.amountUser || props.amountXLM}
-            isXLM={!props.amountUser}
+            large={props.large}
           />
-          {// TODO: Consolidate memo display code below with
-          // chat/conversation/messages/wallet-payment/index.js.
-          showMemo && (
-            <Box2
-              direction="horizontal"
-              gap="small"
-              fullWidth={true}
-              style={{marginTop: globalMargins.xtiny}}
-            >
-              <Divider vertical={true} style={styles.quoteMarker} />
-              <Markdown allowFontScaling={true}>{props.memo}</Markdown>
-            </Box2>
-          )}
-          <AmountXLM
-            delta={props.delta}
-            pending={pending}
-            yourRole={props.yourRole}
-            amountXLM={props.amountXLM}
-          />
+          <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
+            <Timestamp relative={true} timestamp={props.timestamp} />
+            <Detail
+              large={props.large}
+              pending={pending}
+              yourRole={props.yourRole}
+              counterparty={props.counterparty}
+              counterpartyType={props.counterpartyType}
+              amountUser={props.amountUser || props.amountXLM}
+              isXLM={!props.amountUser}
+            />
+            {// TODO: Consolidate memo display code below with
+            // chat/conversation/messages/wallet-payment/index.js.
+            showMemo && (
+              <Box2
+                direction="horizontal"
+                gap="small"
+                fullWidth={true}
+                style={{marginTop: globalMargins.xtiny}}
+              >
+                <Divider vertical={true} style={styles.quoteMarker} />
+                <Markdown allowFontScaling={true}>{props.memo}</Markdown>
+              </Box2>
+            )}
+            <AmountXLM
+              delta={props.delta}
+              pending={pending}
+              yourRole={props.yourRole}
+              amountXLM={props.amountXLM}
+            />
+          </Box2>
         </Box2>
-      </Box2>
+      </ClickableBox>
     </Box2>
   )
 }
