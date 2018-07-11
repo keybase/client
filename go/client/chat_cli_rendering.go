@@ -557,7 +557,12 @@ func formatRequestPaymentMessage(g *libkb.GlobalContext, body chat1.MessageReque
 		return formattingErrorStr
 	}
 
-	return fmt.Sprintf("%s requests %s units of money", details.FromAssertion, details.Amount)
+	var converted string
+	if details.Currency != nil {
+		converted = fmt.Sprintf(" (%s)", details.AmountStellarDescription)
+	}
+	return fmt.Sprintf("%s requests %s%s.", details.FromAssertion,
+		details.AmountDescription, converted)
 }
 
 func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxedValid) (mv messageView, err error) {

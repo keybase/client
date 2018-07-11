@@ -470,17 +470,11 @@
           "name": "amountDescription"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": "string",
           "name": "amountStellar"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": "string",
           "name": "amountStellarDescription"
         },
         {

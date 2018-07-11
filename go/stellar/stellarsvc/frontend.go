@@ -1250,8 +1250,50 @@ func (s *Server) GetRequestDetailsLocal(ctx context.Context, reqID stellar1.Keyb
 		FundingKbTxID: details.FundingKbTxID,
 	}
 
-	if details.Currency != nil {
+	if details.ToUser != nil {
+		res.ToUserType = stellar1.ParticipantType_KEYBASE
+	} else {
+		res.ToUserType = stellar1.ParticipantType_SBS
+	}
 
+	if details.Currency != nil {
+		converToXLM := func() error {
+			rate, err := s.remoter.ExchangeRate(ctx, details.Currency.String())
+			if err != nil {
+				return err
+			}
+			amountDesc, err := stellar.FormatCurrency(ctx, s.G(), details.Amount, rate.Currency)
+			if err != nil {
+				return err
+			}
+			xlms, err := stellarnet.ConvertOutsideToXLM(res.Amount, rate.Rate)
+			if err != nil {
+				return err
+			}
+			xlmDesc, err := stellar.FormatAmountWithSuffix(xlms, false, "XLM")
+			if err != nil {
+				return err
+			}
+			res.AmountDescription = amountDesc
+			res.AmountStellar = xlms
+			res.AmountStellarDescription = xlmDesc
+			return nil
+		}
+
+		if err := converToXLM(); err != nil {
+			s.G().Log.CDebugf(ctx, "error converting outside currency to XLM: %v", err)
+		}
+	} else if details.Asset != nil {
+		res.AmountStellar = details.Amount
+		xlmDesc, err := stellar.FormatAmountWithSuffix(details.Amount, false, "XLM")
+		if err == nil {
+			res.AmountDescription = xlmDesc
+			res.AmountStellarDescription = xlmDesc
+		} else {
+			s.G().Log.CDebugf(ctx, "error formatting Stellar amount: %v", err)
+		}
+	} else {
+		return stellar1.RequestDetailsLocal{}, fmt.Errorf("malformed request - currency/asset not defined")
 	}
 
 	return res, nil

@@ -406,8 +406,8 @@ type RequestDetailsLocal struct {
 	Asset                    *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
 	Currency                 *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
 	AmountDescription        string               `codec:"amountDescription" json:"amountDescription"`
-	AmountStellar            *string              `codec:"amountStellar,omitempty" json:"amountStellar,omitempty"`
-	AmountStellarDescription *string              `codec:"amountStellarDescription,omitempty" json:"amountStellarDescription,omitempty"`
+	AmountStellar            string               `codec:"amountStellar" json:"amountStellar"`
+	AmountStellarDescription string               `codec:"amountStellarDescription" json:"amountStellarDescription"`
 	Completed                bool                 `codec:"completed" json:"completed"`
 	StatusDescription        string               `codec:"statusDescription" json:"statusDescription"`
 	FundingKbTxID            KeybaseTransactionID `codec:"fundingKbTxID" json:"fundingKbTxID"`
@@ -434,24 +434,12 @@ func (o RequestDetailsLocal) DeepCopy() RequestDetailsLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Currency),
-		AmountDescription: o.AmountDescription,
-		AmountStellar: (func(x *string) *string {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x)
-			return &tmp
-		})(o.AmountStellar),
-		AmountStellarDescription: (func(x *string) *string {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x)
-			return &tmp
-		})(o.AmountStellarDescription),
-		Completed:         o.Completed,
-		StatusDescription: o.StatusDescription,
-		FundingKbTxID:     o.FundingKbTxID.DeepCopy(),
+		AmountDescription:        o.AmountDescription,
+		AmountStellar:            o.AmountStellar,
+		AmountStellarDescription: o.AmountStellarDescription,
+		Completed:                o.Completed,
+		StatusDescription:        o.StatusDescription,
+		FundingKbTxID:            o.FundingKbTxID.DeepCopy(),
 	}
 }
 

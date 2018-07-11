@@ -288,12 +288,14 @@ protocol local {
     union { null, Asset } asset;
     union { null, OutsideCurrencyCode } currency;
 
+    // Formatted amount of either outside currency or stellar lumens.
     string amountDescription;
 
-    // if asking for currency - this is the converted amount of XLM to
-    // send.
-    union { null, string } amountStellar;
-    union { null, string } amountStellarDescription;
+    // Amount of Stellar lumens and formatted amount of Stellar
+    // lumens. It's either same as amountDescription, or amount of
+    // stellars after converting from outside currency.
+    string amountStellar;
+    string amountStellarDescription;
 
     boolean completed;
     string statusDescription;
