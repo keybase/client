@@ -114,7 +114,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 		s.G().Log.CDebugf(ctx, "Using default display currency %s for account %s", displayCurrency, arg.AccountID)
 	}
 	rate, rateErr := s.remoter.ExchangeRate(ctx, displayCurrency)
-	if err != nil {
+	if rateErr != nil {
 		s.G().Log.CDebugf(ctx, "exchange rate error: %s", rateErr)
 	}
 
