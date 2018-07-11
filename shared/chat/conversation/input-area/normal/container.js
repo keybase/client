@@ -34,6 +34,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
 
   return {
     _editOrdinal: editInfo ? editInfo.ordinal : null,
+    _isExplodingModeLocked: Constants.isExplodingModeLocked(state, conversationIDKey),
     _you,
     conversationIDKey,
     editText: editInfo ? editInfo.text : '',
@@ -110,7 +111,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   },
   setUnsentText: (text: string) => {
     const unset = text.length <= 0
-    dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, unset)
+    if (stateProps._isExplodingModeLocked ? unset : !unset) {
+      // if it's locked and we want to unset, unset it
+      // alternatively, if it's not locked and we want to set it, set it
+      dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, unset)
+    }
     setUnsentText(stateProps.conversationIDKey, text)
   },
   typing: stateProps.typing,

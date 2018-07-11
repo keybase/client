@@ -19,7 +19,7 @@
     },
     "loadAssets": {
       "_description": "Refresh our list of assets for a given account",
-      "accountID": "Types.AccountID",
+      "accountID": "Types.AccountID"
     },
     "loadAccounts": {
       "_description": "Refresh our list of accounts",
@@ -42,9 +42,59 @@
       "_description": "Clear exported secret keys from our store once they've been seen",
       "accountID": "Types.AccountID",
     },
-    "selectAccount": {
-      "_description": "Select an account",
-      "accountID": "Types.AccountID",
+    "accountsReceived": {
+      "_description": "Update our store of account data",
+      "accounts": "Array<Types.Account>",
     },
+    "loadAccounts": {
+      "_description": "Refresh our list of accounts",
+    },
+    "selectAccount": {
+      "_description": "Select an account. Optionally navigate to the account page.",
+      "accountID": "Types.AccountID",
+      "show?": "boolean"
+    },
+    "linkExistingAccount": {
+      "_description": "Link an existing Stellar account with this Keybase user.",
+      "name": "string",
+      "secretKey": "HiddenString"
+    },
+    "linkedExistingAccount": {
+      "_description":
+        "The service responded with an error or that the link existing operation succeeded",
+      "accountID": "Types.AccountID",
+      "canError": {
+        "name": "string",
+        "secretKey": "HiddenString",
+        "error": "string"
+      }
+    },
+    "validateAccountName": {
+      "_description": "Ask the service to validate an account name.",
+      "name": "string"
+    },
+    "validatedAccountName": {
+      "_description": "The service responded with an error or that the account name is valid.",
+      "name": "string",
+      "canError": {
+        "name": "string",
+        "error": "string"
+      }
+    },
+    "validateSecretKey": {
+      "_description": "Ask the service to validate an account secret key.",
+      "secretKey": "HiddenString"
+    },
+    "validatedSecretKey": {
+      "_description": "The service responded with an error or that the secret key is valid.",
+      "secretKey": "HiddenString",
+      "canError": {
+        "secretKey": "HiddenString",
+        "error": "string"
+      }
+    },
+    "clearErrors": {
+      "_description": "Clear errors from the store at times like opening or closing a form dialog."
+    }
   }
 }

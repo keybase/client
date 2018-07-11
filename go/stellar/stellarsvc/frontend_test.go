@@ -68,12 +68,13 @@ func TestGetAccountAssetsLocalWithBalance(t *testing.T) {
 	require.Len(t, assets, 1)
 	require.Equal(t, "Lumens", assets[0].Name)
 	require.Equal(t, "XLM", assets[0].AssetCode)
-	require.Equal(t, "10,000", assets[0].BalanceTotal)
-	require.Equal(t, "9,998.9999900", assets[0].BalanceAvailableToSend)
 	require.Equal(t, "Stellar network", assets[0].IssuerName)
 	require.Equal(t, "", assets[0].IssuerAccountID)
+	require.Equal(t, "10,000", assets[0].BalanceTotal)
+	require.Equal(t, "9,998.9999900", assets[0].BalanceAvailableToSend)
 	require.Equal(t, "USD", assets[0].WorthCurrency)
 	require.Equal(t, "$3,183.28", assets[0].Worth)
+	require.Equal(t, "$3,182.96", assets[0].AvailableToSendWorth)
 }
 
 func TestGetAccountAssetsLocalEmptyBalance(t *testing.T) {
@@ -92,12 +93,13 @@ func TestGetAccountAssetsLocalEmptyBalance(t *testing.T) {
 	require.Len(t, assets, 1)
 	require.Equal(t, "Lumens", assets[0].Name)
 	require.Equal(t, "XLM", assets[0].AssetCode)
-	require.Equal(t, "0", assets[0].BalanceTotal)
-	require.Equal(t, "0", assets[0].BalanceAvailableToSend)
 	require.Equal(t, "Stellar network", assets[0].IssuerName)
 	require.Equal(t, "", assets[0].IssuerAccountID)
+	require.Equal(t, "0", assets[0].BalanceTotal)
+	require.Equal(t, "0", assets[0].BalanceAvailableToSend)
 	require.Equal(t, "USD", assets[0].WorthCurrency)
 	require.Equal(t, "$0.00", assets[0].Worth)
+	require.Equal(t, "$0.00", assets[0].AvailableToSendWorth)
 }
 
 func TestGetDisplayCurrenciesLocal(t *testing.T) {
@@ -118,6 +120,60 @@ func TestGetDisplayCurrenciesLocal(t *testing.T) {
 	require.Equal(t, "$", currencies[1].Symbol)
 }
 
+func TestValidateAccountID(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	units := []struct {
+		s  string
+		ok bool
+	}{
+		{"GCTXTGK45J3PAPOPK7XLZVZVJYAFTSTWRDWOCRPN5ICQWHQLTBLNN4AQ", true},
+		{"gctxtgk45j3papopk7xlzvzvjyaftstwrdwocrpn5icqwhqltblnn4aq", true},
+		{"GCTXTGK45J3PAPOPK7XLZVZVJYAFTSTWRDWOCRPN5ICQWHQLTBLNN4A", false},
+		{"GCTXTGK45J3PAPOPK7XLZVZVJYAFTSTWRDWOCRPN5ICQWHQLTBLNN4AQQ", false},
+		{"GCTXTGK45J3PAPOPK7XLZVZVJYAFTSTWRDWOCRPN5ICQWHQLTBLNN4AR", false},
+		{"", false},
+		{"a", false},
+	}
+	for _, u := range units {
+		t.Logf("unit: %v", u)
+		err := tcs[0].Srv.ValidateAccountIDLocal(context.Background(), stellar1.ValidateAccountIDLocalArg{AccountID: stellar1.AccountID(u.s)})
+		if u.ok {
+			require.NoError(t, err)
+		} else {
+			require.Error(t, err)
+		}
+	}
+}
+
+func TestValidateSecretKey(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	units := []struct {
+		s  string
+		ok bool
+	}{
+		{"SDXUQS3V6JVO7IN6ZGYEGAUMHJBZK7O7644XIRSCSQ5PFONFK3LO2SCY", true},
+		{"sdxuqs3v6jvo7in6zgyegaumhjbzk7o7644xirscsq5pfonfk3lo2scy", true},
+		{"SDXUQS3V6JVO7IN6ZGYEGAUMHJBZK7O7644XIRSCSQ5PFONFK3LO2SC", false},
+		{"SDXUQS3V6JVO7IN6ZGYEGAUMHJBZK7O7644XIRSCSQ5PFONFK3LO2SCYY", false},
+		{"SDXUQS3V6JVO7IN6ZGYEGAUMHJBZK7O7644XIRSCSQ5PFONFK3LO2SCZ", false},
+		{"", false},
+		{"a", false},
+	}
+	for _, u := range units {
+		t.Logf("unit: %v", u)
+		err := tcs[0].Srv.ValidateSecretKeyLocal(context.Background(), stellar1.ValidateSecretKeyLocalArg{SecretKey: stellar1.SecretKey(u.s)})
+		if u.ok {
+			require.NoError(t, err)
+		} else {
+			require.Error(t, err)
+		}
+	}
+}
+
 func TestChangeWalletName(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
@@ -132,11 +188,26 @@ func TestChangeWalletName(t *testing.T) {
 	require.Len(t, accs, 1)
 	require.Equal(t, accs[0].Name, "")
 
+	chk := func(name string, expected string) {
+		err = tcs[0].Srv.ValidateAccountNameLocal(context.Background(), stellar1.ValidateAccountNameLocalArg{Name: name})
+		if expected == "" {
+			require.NoError(t, err)
+		} else {
+			require.Error(t, err)
+			require.Equal(t, expected, err.Error())
+		}
+	}
+
+	chk("", "")
+	chk("office lunch money", "")
+	chk("savings", "")
 	err = tcs[0].Srv.ChangeWalletAccountNameLocal(context.Background(), stellar1.ChangeWalletAccountNameLocalArg{
 		AccountID: accs[0].AccountID,
 		NewName:   "office lunch money",
 	})
 	require.NoError(t, err)
+	chk("office lunch money", "that account name is already taken")
+	chk("career debter", "")
 
 	accs, err = tcs[0].Srv.WalletGetAccountsCLILocal(context.Background())
 	require.NoError(t, err)
@@ -150,6 +221,10 @@ func TestChangeWalletName(t *testing.T) {
 		NewName:   "savings",
 	})
 	require.Error(t, err)
+	chk("savings", "")
+
+	chk("an account used for saving up for the elephant's new pajamas", "")
+	chk("an account used for saving up for the elephant's prev pajamas", "account name is too long")
 }
 
 func TestSetAccountAsDefault(t *testing.T) {

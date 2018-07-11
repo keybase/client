@@ -21,7 +21,7 @@ function* _listenSaga(): Saga.SagaGenerator<any, any> {
     chat: true,
     ephemeral: false,
     favorites: false,
-    kbfs: !isMobile,
+    kbfs: true,
     kbfsrequest: !isMobile,
     keyfamily: false,
     paperkeys: false,

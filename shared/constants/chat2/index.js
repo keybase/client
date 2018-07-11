@@ -147,6 +147,8 @@ export const getConversationExplodingMode = (state: TypedState, c: Types.Convers
   }
   return mode
 }
+export const isExplodingModeLocked = (state: TypedState, c: Types.ConversationIDKey) =>
+  state.chat2.getIn(['explodingModeLocks', c], null) !== null
 
 export const makeInboxQuery = (
   convIDKeys: Array<Types.ConversationIDKey>

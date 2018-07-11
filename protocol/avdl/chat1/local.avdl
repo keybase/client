@@ -868,7 +868,7 @@ protocol local {
   GlobalAppNotificationSettings getGlobalAppNotificationSettingsLocal();
 
   // Unpack message from a push notification
-  string unboxMobilePushNotification(string payload, string convID, ConversationMembersType membersType, array<string> pushIDs);
+  string unboxMobilePushNotification(string payload, string convID, ConversationMembersType membersType, array<string> pushIDs, boolean shouldAck);
 
   // Convenience interface for adding someone back to a reset team convo
   void addTeamMemberAfterReset(string username, ConversationID convID);

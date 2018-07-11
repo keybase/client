@@ -50,7 +50,6 @@ func TestNewTeamEK(t *testing.T) {
 	currentMetadata := statement.CurrentTeamEkMetadata
 	require.Equal(t, currentMetadata, publishedMetadata)
 	require.EqualValues(t, 1, currentMetadata.Generation)
-	require.Equal(t, statement.ExistingTeamEkMetadata, []keybase1.TeamEkMetadata{})
 
 	// We've stored the result in local storage
 	teamEKBoxStorage := tc.G.GetTeamEKBoxStorage()

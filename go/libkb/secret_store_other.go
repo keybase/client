@@ -5,7 +5,8 @@
 
 package libkb
 
-func NewSecretStoreAll(g *GlobalContext) SecretStoreAll {
+func NewSecretStoreAll(m MetaContext) SecretStoreAll {
+	g := m.G()
 	s := NewSecretStoreFile(g.Env.GetDataDir())
 	s.notifyCreate = func(name NormalizedUsername) { notifySecretStoreCreate(g, name) }
 	return s
@@ -60,15 +61,15 @@ func notifySecretStoreCreate(g *GlobalContext, username NormalizedUsername) {
 const pgpStorageWarningText = `
 Policy change on passphrases
 
-We've gotten lots of feedback that it's annoying as all hell to enter a 
-Keybase passphrase after restarts and updates. The consensus is you can 
-trust a device's storage to keep a secret that's specific to that device.  
+We've gotten lots of feedback that it's annoying as all hell to enter a
+Keybase passphrase after restarts and updates. The consensus is you can
+trust a device's storage to keep a secret that's specific to that device.
 Passphrases stink, like passed gas, and are bloody painful, like passed stones.
 
-Note, however: on this device you have a PGP private key in Keybase's local 
-keychain.  Some people want to type a passphrase to unlock their PGP key, and 
-this new policy would bypass that. If you're such a person, you can run the 
-following command to remove your PGP private key. 
+Note, however: on this device you have a PGP private key in Keybase's local
+keychain.  Some people want to type a passphrase to unlock their PGP key, and
+this new policy would bypass that. If you're such a person, you can run the
+following command to remove your PGP private key.
 
     keybase pgp purge
 

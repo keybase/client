@@ -1,10 +1,14 @@
 // @flow
 import logger from '../logger'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import * as Chat2Gen from './chat2-gen'
+import * as ConfigGen from './config-gen'
 import * as PushTypes from '../constants/types/push'
 import * as PushConstants from '../constants/push'
 import * as PushGen from './push-gen'
 import * as PushNotifications from 'react-native-push-notification'
 import * as mime from 'react-native-mime-types'
+import * as Saga from '../util/saga'
 import RNFetchBlob from 'react-native-fetch-blob'
 import {
   PushNotificationIOS,
@@ -41,20 +45,6 @@ function getShownPushPrompt(): Promise<boolean> {
 
 function checkPermissions() {
   return new Promise((resolve, reject) => PushNotifications.checkPermissions(resolve))
-}
-
-function showMainWindow() {
-  return () => {
-    // nothing
-  }
-}
-
-function getAppState() {
-  return Promise.resolve({})
-}
-
-function setAppState(toMerge: Object) {
-  throw new Error('setAppState not implemented in mobile')
 }
 
 function showShareActionSheet(options: {
@@ -309,15 +299,49 @@ const getContentTypeFromURL = (
           cb({error})
         })
 
+const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
+  let appFocused
+  let logState
+  switch (action.payload.nextAppState) {
+    case 'active':
+      appFocused = true
+      logState = RPCTypes.appStateAppState.foreground
+      break
+    case 'background':
+      appFocused = false
+      logState = RPCTypes.appStateAppState.background
+      break
+    case 'inactive':
+      appFocused = false
+      logState = RPCTypes.appStateAppState.inactive
+      break
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (v: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(action.payload.nextAppState);
+      */
+      appFocused = false
+      logState = RPCTypes.appStateAppState.foreground
+  }
+
+  logger.info(`setting app state on service to: ${logState}`)
+  return Saga.put(ConfigGen.createChangedFocus({appFocused}))
+}
+
+const setStartedDueToPush = (action: Chat2Gen.SelectConversationPayload) =>
+  action.payload.reason === 'push' ? Saga.put(ConfigGen.createSetStartedDueToPush()) : undefined
+
+function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
+  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, setStartedDueToPush)
+}
+
 export {
   openAppSettings,
   checkPermissions,
   displayNewMessageNotification,
   downloadAndShowShareActionSheet,
-  getAppState,
-  setAppState,
   requestPushPermissions,
-  showMainWindow,
   configurePush,
   saveAttachmentDialog,
   saveAttachmentToCameraRoll,
@@ -325,4 +349,5 @@ export {
   showShareActionSheet,
   clearAllNotifications,
   getContentTypeFromURL,
+  platformConfigSaga,
 }

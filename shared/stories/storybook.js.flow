@@ -6,7 +6,7 @@ export type SelectorMap = {
 
 declare function storiesOf(name: string, module: any): any
 declare function action(name: string): any
-declare function createPropProvider(map: SelectorMap): React.Node => React.Node
+declare function createPropProvider(...maps: SelectorMap[]): (() => React.Node) => React.Node
 declare function unexpected(name: string): () => void
 
 export {action, storiesOf, createPropProvider, unexpected}

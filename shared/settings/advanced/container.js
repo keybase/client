@@ -10,24 +10,16 @@ import {connect, type TypedState} from '../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
   openAtLogin: state.config.openAtLogin,
-  traceInProgress: Constants.traceInProgress(state),
   processorProfileInProgress: Constants.processorProfileInProgress(state),
+  traceInProgress: Constants.traceInProgress(state),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onBack: () => {
-    dispatch(navigateUp())
-  },
-  onDBNuke: () => {
-    dispatch(navigateAppend(['dbNukeConfirm']))
-  },
-  onTrace: (durationSeconds: number) => {
-    dispatch(createTrace({durationSeconds}))
-  },
-  onProcessorProfile: (durationSeconds: number) => {
-    dispatch(createProcessorProfile({durationSeconds}))
-  },
+  onBack: () => dispatch(navigateUp()),
+  onDBNuke: () => dispatch(navigateAppend(['dbNukeConfirm'])),
+  onProcessorProfile: (durationSeconds: number) => dispatch(createProcessorProfile({durationSeconds})),
   onSetOpenAtLogin: (open: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({open, writeFile: true})),
+  onTrace: (durationSeconds: number) => dispatch(createTrace({durationSeconds})),
 })
 
 const connectedAdvanced = compose(connect(mapStateToProps, mapDispatchToProps), HeaderHoc)(Advanced)

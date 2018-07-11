@@ -46,8 +46,9 @@ func getPlatformInfo() keybase1.PlatformInfo {
 	}
 }
 
-func GetExtendedStatus(ctx context.Context, g *GlobalContext) (res keybase1.ExtendedStatus, err error) {
-	defer g.Trace("GetExtendedStatus", func() error { return err })()
+func GetExtendedStatus(m MetaContext) (res keybase1.ExtendedStatus, err error) {
+	defer m.CTrace("GetExtendedStatus", func() error { return err })()
+	g := m.G()
 
 	res.Standalone = g.Env.GetStandalone()
 	res.LogDir = g.Env.GetLogDir()
@@ -57,10 +58,10 @@ func GetExtendedStatus(ctx context.Context, g *GlobalContext) (res keybase1.Exte
 		res.Clients = g.ConnectionManager.ListAllLabeledConnections()
 	}
 
-	err = g.GetFullSelfer().WithSelf(ctx, func(me *User) error {
+	err = g.GetFullSelfer().WithSelf(m.Ctx(), func(me *User) error {
 		device, err := me.GetComputedKeyFamily().GetCurrentDevice(g)
 		if err != nil {
-			g.Log.Debug("| GetCurrentDevice failed: %s", err)
+			m.CDebugf("| GetCurrentDevice failed: %s", err)
 			res.DeviceErr = &keybase1.LoadDeviceErr{Where: "ckf.GetCurrentDevice", Desc: err.Error()}
 		} else {
 			res.Device = device.ProtExport()
@@ -68,7 +69,7 @@ func GetExtendedStatus(ctx context.Context, g *GlobalContext) (res keybase1.Exte
 
 		ss := g.SecretStore()
 		if me != nil && ss != nil {
-			s, err := ss.RetrieveSecret(me.GetNormalizedName())
+			s, err := ss.RetrieveSecret(m, me.GetNormalizedName())
 			if err == nil && !s.IsNil() {
 				res.StoredSecret = true
 			}
@@ -76,7 +77,7 @@ func GetExtendedStatus(ctx context.Context, g *GlobalContext) (res keybase1.Exte
 		return nil
 	})
 	if err != nil {
-		g.Log.Debug("| could not load me user: %s", err)
+		m.CDebugf("| could not load me user: %s", err)
 		res.DeviceErr = &keybase1.LoadDeviceErr{Where: "libkb.LoadMe", Desc: err.Error()}
 	}
 
@@ -85,7 +86,6 @@ func GetExtendedStatus(ctx context.Context, g *GlobalContext) (res keybase1.Exte
 	res.DeviceSigKeyCached = sk != nil
 	res.DeviceEncKeyCached = ek != nil
 
-	m := NewMetaContext(ctx, g)
 	ad := m.ActiveDevice()
 	// cached paper key status
 	if pk := ad.PaperKey(m); pk != nil {
@@ -104,7 +104,7 @@ func GetExtendedStatus(ctx context.Context, g *GlobalContext) (res keybase1.Exte
 
 	current, all, err := GetAllProvisionedUsernames(m)
 	if err != nil {
-		g.Log.Debug("| died in GetAllUseranmes()")
+		m.CDebugf("| died in GetAllUseranmes()")
 		return res, err
 	}
 	res.DefaultUsername = current.String()
@@ -119,7 +119,7 @@ func GetExtendedStatus(ctx context.Context, g *GlobalContext) (res keybase1.Exte
 	// DeviceEK status, can be nil if user is logged out
 	deviceEKStorage := g.GetDeviceEKStorage()
 	if deviceEKStorage != nil {
-		dekNames, err := deviceEKStorage.ListAllForUser(ctx)
+		dekNames, err := deviceEKStorage.ListAllForUser(m.Ctx())
 		if err != nil {
 			return res, err
 		}

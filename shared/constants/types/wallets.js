@@ -1,5 +1,6 @@
 // @flow
 import * as I from 'immutable'
+import * as StellarRPCTypes from './rpc-stellar-gen'
 import HiddenString from '../../util/hidden-string'
 
 // Possible 'types' of things you can send or receive transactions with
@@ -51,7 +52,7 @@ export type _Payment = {
   amountDescription: string,
   delta: 'none' | 'increase' | 'decrease',
   error: ?string,
-  id: string,
+  id: ?StellarRPCTypes.PaymentID,
   note: string,
   noteErr: string,
   source: string,
@@ -72,8 +73,18 @@ export type Assets = I.RecordOf<_Assets>
 
 export type Payment = I.RecordOf<_Payment>
 
+export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
+
 export type _State = {
   accountMap: I.Map<AccountID, Account>,
+  accountName: string,
+  accountNameError: string,
+  accountNameValidationState: ValidationState,
+  linkExistingAccountError: string,
+  secretKey: HiddenString,
+  secretKeyError: string,
+  secretKeyValidationState: ValidationState,
+  selectedAccount: AccountID,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
   paymentsMap: I.Map<AccountID, I.List<Payment>>,
   secretKeyMap: I.Map<AccountID, HiddenString>,

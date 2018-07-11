@@ -1,5 +1,4 @@
 // @flow
-import appStateSaga from '../actions/app'
 import chat2Saga from '../actions/chat2'
 import configSaga from '../actions/config'
 import createSagaMiddleware from 'redux-saga'
@@ -49,7 +48,6 @@ function* mainSaga(): SagaGenerator<any, any> {
   yield fork(routeSaga)
   yield fork(searchSaga)
   yield fork(settingsSaga)
-  yield fork(appStateSaga)
   yield fork(trackerSaga)
   yield fork(teamsSaga)
   yield fork(unlockFoldersSaga)

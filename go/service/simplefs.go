@@ -54,6 +54,16 @@ func (s *SimpleFSHandler) SimpleFSListRecursive(ctx context.Context, arg keybase
 	return cli.SimpleFSListRecursive(ctx, arg)
 }
 
+// SimpleFSListRecursiveToDepth - Begin recursive list of items in directory at
+// path to a given depth.
+func (s *SimpleFSHandler) SimpleFSListRecursiveToDepth(ctx context.Context, arg keybase1.SimpleFSListRecursiveToDepthArg) error {
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSListRecursiveToDepth(ctx, arg)
+}
+
 // SimpleFSReadList - Get list of Paths in progress. Can indicate status of pending
 // to get more entries.
 func (s *SimpleFSHandler) SimpleFSReadList(ctx context.Context, arg keybase1.OpID) (keybase1.SimpleFSListResult, error) {
@@ -262,4 +272,13 @@ func (s *SimpleFSHandler) SimpleFSFolderEditHistory(
 		return keybase1.FSFolderEditHistory{}, err
 	}
 	return cli.SimpleFSFolderEditHistory(ctx, path)
+}
+
+// SimpleFSSuppressNotifications implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSSuppressNotifications(ctx context.Context, suppressDurationSec int) error {
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSSuppressNotifications(ctx, suppressDurationSec)
 }

@@ -1,20 +1,27 @@
 // @flow
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
+import {MaybePopupHoc} from '../common-adapters'
+import {isMobile} from '../constants/platform'
+import LinkExisting from './link-existing/container'
 import Container from './container'
 import ReceiveModal from './receive-modal/container'
 import ExportSecretKey from './export-secret-key/container'
-import {isMobile} from '../constants/platform'
 
 const routeTree = makeRouteDefNode({
   children: {
-    receive: {
-      children: {},
-      component: ReceiveModal,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
     exportSecretKey: {
       children: {},
       component: ExportSecretKey,
+      tags: makeLeafTags({layerOnTop: !isMobile}),
+    },
+    linkExisting: {
+      children: {},
+      component: MaybePopupHoc(isMobile)(LinkExisting),
+      tags: makeLeafTags({layerOnTop: !isMobile}),
+    },
+    receive: {
+      children: {},
+      component: ReceiveModal,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
   },

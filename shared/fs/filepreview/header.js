@@ -19,7 +19,9 @@ const Header = (props: HeaderProps) => (
   <Box style={globalStyles.flexBoxRow}>
     <BackButton key="back" onClick={props.onBack} style={stylesClose} />
     <Box style={filePreviewHeaderStyle}>
-      <Text type="BodyBig">{props.pathItem.name}</Text>
+      <Text type="BodyBig" selectable={true}>
+        {props.pathItem.name}
+      </Text>
       {!isMobile && (
         <PathItemInfo
           lastModifiedTimestamp={props.pathItem.lastModifiedTimestamp}

@@ -266,7 +266,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 
 	// First we ensure that we don't do background generation for expired teamEKs.
 	fc.Advance(cacheEntryLifetime) // expire our cache
-	forceEKCtime(expectedTeamEKGen, -time.Second*time.Duration(KeyGenLifetimeSecs))
+	forceEKCtime(expectedTeamEKGen, -libkb.EphemeralKeyGenInterval)
 	expectedTeamEKGen++
 	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, false /* teamEKCreationInProgress */)
 
@@ -274,7 +274,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	ch := make(chan bool, 1)
 	ekLib.setBackgroundCreationTestCh(ch)
 	fc.Advance(cacheEntryLifetime) // expire our cache
-	forceEKCtime(expectedTeamEKGen, -time.Second*time.Duration(KeyGenLifetimeSecs)+(30*time.Minute))
+	forceEKCtime(expectedTeamEKGen, -libkb.EphemeralKeyGenInterval+30*time.Minute)
 	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, true /* teamEKCreationInProgress */)
 	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, true /* teamEKCreationInProgress */)
 	// Signal background generation should start
@@ -298,11 +298,11 @@ func TestCleanupStaleUserAndDeviceEKs(t *testing.T) {
 	seed, err := newDeviceEphemeralSeed()
 	require.NoError(t, err)
 	s := tc.G.GetDeviceEKStorage()
-	ctimeExpired := keybase1.TimeFromSeconds(time.Now().Unix() - KeyLifetimeSecs*3)
+	ctimeExpired := time.Now().Add(-libkb.MaxEphemeralKeyStaleness * 3)
 	err = s.Put(context.Background(), 0, keybase1.DeviceEk{
 		Seed: keybase1.Bytes32(seed),
 		Metadata: keybase1.DeviceEkMetadata{
-			Ctime: ctimeExpired,
+			Ctime: keybase1.ToTime(ctimeExpired),
 		},
 	})
 	require.NoError(t, err)
@@ -326,12 +326,12 @@ func TestCleanupStaleUserAndDeviceEKsOffline(t *testing.T) {
 	seed, err := newDeviceEphemeralSeed()
 	require.NoError(t, err)
 	s := tc.G.GetDeviceEKStorage()
-	ctimeExpired := keybase1.TimeFromSeconds(time.Now().Unix() - KeyLifetimeSecs*3)
+	ctimeExpired := time.Now().Add(-libkb.MaxEphemeralKeyStaleness * 3)
 	err = s.Put(context.Background(), 0, keybase1.DeviceEk{
 		Seed: keybase1.Bytes32(seed),
 		Metadata: keybase1.DeviceEkMetadata{
-			Ctime:       ctimeExpired,
-			DeviceCtime: ctimeExpired,
+			Ctime:       keybase1.ToTime(ctimeExpired),
+			DeviceCtime: keybase1.ToTime(ctimeExpired),
 		},
 	})
 	require.NoError(t, err)

@@ -16,13 +16,20 @@ protocol local {
 
   record AccountAssetLocal {
     string name;                    // "Lumens" for native. AssetCode like "BTC" for non-native.
-    string balanceTotal;            // "280.9192933"
-    string balanceAvailableToSend;  // "279.9192933". Same as balanceTotal for non-native.
     string assetCode;               // "XLM", "BTC"
     string issuerName;              // "Stellar network" for native. Blank or like "stronghold.com" for non-native.
     string issuerAccountID;         // "" for native. Like "GCKLHXC22222252UOISFKYZQX7YIVDBPSZ7UUYDFK6URTG6VDRANPC5K" for non-native.
+
+    string balanceTotal;            // "280.9192933"
+    string balanceAvailableToSend;  // Available to send. Like "279.9192933". Same as balanceTotal for non-native.
+
+    string worthCurrency;           // "USD", "CAD", etc. If it is "ERR" then an exchange rate error occurred. Blank for non-native.
     string worth;                   // "$98.13" or error string if worthCurrency == "ERR". Blank for non-native.
-    string worthCurrency;           // "USD", "CAD", etc.  if it is "ERR" then an exchange rate error occurred. Blank for non-native.
+    // Available to send in worthCurrency.
+    // Like $97.83"" for native.
+    // Blank for non-native.
+    // Error string when worthCurrency is "ERR".
+    string availableToSendWorth;
   }
   array<AccountAssetLocal> getAccountAssetsLocal(int sessionID, AccountID accountID);
 
@@ -48,10 +55,14 @@ protocol local {
     SBS_3
   }
 
+  record PaymentID {
+    TransactionID txID;
+  }
+
   // Summary of a payment.
   // Keep in sync with PaymentDetailsLocal.
   record PaymentLocal {
-    TransactionID id;               // For relay payments, the funding tx.
+    PaymentID id;                   // For relay payments, the funding tx.
     TimeMs time;
     PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
     string statusDescription;       // "pending", "completed", "error"
@@ -85,7 +96,8 @@ protocol local {
   // Details of a payment.
   // Keep in sync with PaymentLocal.
   record PaymentDetailsLocal {
-    TransactionID id;               // For relay payments, the funding tx.
+    PaymentID id;
+    TransactionID txID;             // For relay payments, the funding tx.
     TimeMs time;
     PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
     string statusDescription;       // "pending", "completed", "error"
@@ -110,7 +122,7 @@ protocol local {
   // accountID should be the accountID that you want the details for.
   // This is used for formatting the amountDescription to know if it is a payment that
   // increases or decreases the balance.
-  PaymentDetailsLocal getPaymentDetailsLocal(int sessionID, AccountID accountID, TransactionID id);
+  PaymentDetailsLocal getPaymentDetailsLocal(int sessionID, AccountID accountID, PaymentID id);
 
   record CurrencyLocal {
     string description;  // "USD ($)", "CAD ($)", etc.
@@ -119,6 +131,12 @@ protocol local {
     string name;         // "US Dollar", "Thai Baht", etc.
   }
   array<CurrencyLocal> getDisplayCurrenciesLocal(int sessionID);
+
+  void validateAccountIDLocal(int sessionID, AccountID accountID);
+  void validateSecretKeyLocal(int sessionID, SecretKey secretKey);
+  // Validates a name for a new account. Checks if any accounts have the same name.
+  // If there is an error getting account names, the error is suppressed.
+  void validateAccountNameLocal(int sessionID, string name);
 
   void changeWalletAccountNameLocal(int sessionID, AccountID accountID, string newName);
   void setWalletAccountAsDefaultLocal(int sessionID, AccountID accountID);

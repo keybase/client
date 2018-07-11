@@ -33,7 +33,7 @@ type UnboxingError interface {
 var _ error = (UnboxingError)(nil)
 
 func NewPermanentUnboxingError(inner error) UnboxingError {
-	return &PermanentUnboxingError{inner}
+	return PermanentUnboxingError{inner}
 }
 
 type PermanentUnboxingError struct{ inner error }
@@ -98,7 +98,7 @@ func (e PermanentUnboxingError) InternalError() string {
 //=============================================================================
 
 func NewTransientUnboxingError(inner error) UnboxingError {
-	return &TransientUnboxingError{inner}
+	return TransientUnboxingError{inner}
 }
 
 type TransientUnboxingError struct{ inner error }

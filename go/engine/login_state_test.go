@@ -190,7 +190,7 @@ func userHasStoredSecretViaConfiguredAccounts(tc *libkb.TestContext, username st
 }
 
 func userHasStoredSecretViaSecretStore(tc *libkb.TestContext, username string) bool {
-	secret, err := tc.G.SecretStore().RetrieveSecret(libkb.NewNormalizedUsername(username))
+	secret, err := tc.G.SecretStore().RetrieveSecret(NewMetaContextForTest(*tc), libkb.NewNormalizedUsername(username))
 	// TODO: Have RetrieveSecret return platform-independent errors
 	// so that we can make sure we got the right one.
 	return (!secret.IsNil() && err == nil)
@@ -244,7 +244,7 @@ func TestLoginWithStoredSecret(t *testing.T) {
 
 	Logout(tc)
 
-	if err := libkb.ClearStoredSecret(tc.G, fu.NormalizedUsername()); err != nil {
+	if err := libkb.ClearStoredSecret(mctx, fu.NormalizedUsername()); err != nil {
 		t.Error(err)
 	}
 
