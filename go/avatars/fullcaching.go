@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -66,6 +68,8 @@ type FullCachingSource struct {
 
 	populateCacheCh chan populateArg
 
+	prepareDirs sync.Once
+
 	// testing
 	populateSuccessCh chan struct{}
 	tempDir           string
@@ -93,10 +97,6 @@ func (c *FullCachingSource) StartBackgroundTasks() {
 func (c *FullCachingSource) StopBackgroundTasks() {
 	close(c.populateCacheCh)
 	c.diskLRU.Flush(context.Background(), c.G())
-}
-
-func (c *FullCachingSource) isMobile() bool {
-	return c.G().GetAppType() == libkb.MobileAppType
 }
 
 func (c *FullCachingSource) debug(ctx context.Context, msg string, args ...interface{}) {
@@ -169,7 +169,7 @@ func (c *FullCachingSource) getCacheDir() string {
 	if len(c.tempDir) > 0 {
 		return c.tempDir
 	}
-	return c.G().GetCacheDir()
+	return filepath.Join(c.G().GetCacheDir(), "avatars")
 }
 
 func (c *FullCachingSource) getFullFilename(fileName string) string {
@@ -177,12 +177,28 @@ func (c *FullCachingSource) getFullFilename(fileName string) string {
 }
 
 func (c *FullCachingSource) commitAvatarToDisk(ctx context.Context, data io.ReadCloser, previousPath string) (path string, err error) {
+	c.prepareDirs.Do(func() {
+		// Avatars used to be in main cache directory before we
+		// started saving them to `avatars/` subdir. If user has just
+		// updated to client with new path, it's fine to have them
+		// start clean.
+		if len(c.tempDir) == 0 {
+			c.unlinkAllAvatars(ctx, c.G().GetCacheDir())
+		}
+
+		err := os.MkdirAll(c.getCacheDir(), os.ModePerm)
+		c.debug(ctx, "creating directory for avatars %q: %v", c.getCacheDir(), err)
+	})
+
 	var file *os.File
 	shouldRename := false
 	if len(previousPath) > 0 {
 		// We already have the image, let's re-use the same file
 		c.debug(ctx, "commitAvatarToDisk: using previous path: %s", previousPath)
 		if file, err = os.OpenFile(previousPath, os.O_RDWR, os.ModeAppend); err != nil {
+			// NOTE: Even if we don't have this file anymore (e.g. user
+			// raced us to remove it manually), OpenFile will not error
+			// out, but create a new file on given path.
 			return path, err
 		}
 		path = file.Name()
@@ -235,6 +251,7 @@ func (c *FullCachingSource) populateCacheWorker() {
 		found, ent, err := c.diskLRU.Get(ctx, c.G(), key)
 		if err != nil {
 			c.debug(ctx, "populateCacheWorker: failed to read previous entry in LRU: %s", err)
+			libkb.DiscardAndCloseBody(resp)
 			continue
 		}
 		if found {
@@ -243,6 +260,7 @@ func (c *FullCachingSource) populateCacheWorker() {
 
 		// Save to disk
 		path, err := c.commitAvatarToDisk(ctx, resp.Body, previousPath)
+		libkb.DiscardAndCloseBody(resp)
 		if err != nil {
 			c.debug(ctx, "populateCacheWorker: failed to write to disk: %s", err)
 			continue
@@ -371,4 +389,23 @@ func (c *FullCachingSource) LoadTeams(ctx context.Context, teams []string, forma
 func (c *FullCachingSource) ClearCacheForName(ctx context.Context, name string, formats []keybase1.AvatarFormat) (err error) {
 	defer c.G().Trace(fmt.Sprintf("FullCachingSource.ClearCacheForUser(%q,%v)", name, formats), func() error { return err })()
 	return c.clearName(ctx, name, formats)
+}
+
+func (c *FullCachingSource) unlinkAllAvatars(ctx context.Context, dirpath string) {
+	files, err := filepath.Glob(filepath.Join(dirpath, "avatar*.avatar"))
+	if err != nil {
+		c.debug(ctx, "unlinkAllAvatars: failed to clear files from %q: %s", dirpath, err)
+		return
+	}
+
+	c.debug(ctx, "unlinkAllAvatars: found %d avatars files to delete in %s", len(files), dirpath)
+	for _, v := range files {
+		if err := os.Remove(v); err != nil {
+			c.debug(ctx, "unlinkAllAvatars: failed to delete file %q: %s", v, err)
+		}
+	}
+}
+
+func (c *FullCachingSource) OnCacheCleared(ctx context.Context) {
+	c.unlinkAllAvatars(ctx, c.getCacheDir())
 }
