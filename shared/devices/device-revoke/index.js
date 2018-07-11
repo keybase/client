@@ -2,7 +2,14 @@
 import * as React from 'react'
 import {type DeviceType} from '../../constants/types/devices'
 import {Confirm, Box, Text, Icon, ProgressIndicator, type IconType} from '../../common-adapters'
-import {globalColors, globalMargins, globalStyles, styleSheetCreate, isMobile} from '../../styles'
+import {
+  globalColors,
+  globalMargins,
+  globalStyles,
+  styleSheetCreate,
+  isMobile,
+  platformStyles,
+} from '../../styles'
 
 export type Props = {
   currentDevice: boolean,
@@ -31,12 +38,7 @@ const Header = ({name, type}: {name: string, type: DeviceType}) => {
   )
 }
 
-const Body = ({
-  endangeredTLFs,
-  name,
-  currentDevice,
-  waiting,
-}: {
+const Body = (props: {
   endangeredTLFs: Array<string>,
   name: string,
   currentDevice: boolean,
@@ -45,25 +47,25 @@ const Body = ({
   <Box>
     <Box style={styles.header}>
       <Text type="BodySemibold">Are you sure you want to revoke </Text>
-      {currentDevice ? (
+      {props.currentDevice ? (
         <Text type="BodySemibold">your current device</Text>
       ) : (
-        <Text type="BodySemiboldItalic">{name}</Text>
+        <Text type="BodySemiboldItalic">{props.name}</Text>
       )}
       <Text type="BodySemibold">?</Text>
     </Box>
 
-    {waiting ? (
+    {props.waiting ? (
       <ProgressIndicator />
     ) : (
-      endangeredTLFs.length > 0 && (
+      props.endangeredTLFs.length > 0 && (
         <Box>
           <Box>
             <Text type="Body">You may lose access to these folders forever:</Text>
           </Box>
 
           <Box style={styles.container}>
-            {endangeredTLFs.map(tlf => (
+            {props.endangeredTLFs.map(tlf => (
               <Box key={tlf} style={styles.TLF}>
                 <Text type="BodySemibold" style={{marginRight: globalMargins.tiny}}>
                   •
@@ -113,21 +115,25 @@ const styles = styleSheetCreate({
     marginTop: 4,
     textDecorationLine: 'line-through',
   },
-  container: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'flex-start',
-    alignSelf: 'center',
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: globalColors.black_05,
-    borderRadius: 4,
-    height: 162,
-    marginBottom: globalMargins.small,
-    marginTop: globalMargins.small,
-    // overflowY: 'scroll',
-    padding: globalMargins.small,
-    width: 440,
-  },
+  container: platformStyles({
+    common: {
+      ...globalStyles.flexBoxColumn,
+      alignItems: 'flex-start',
+      alignSelf: 'center',
+      borderWidth: 1,
+      borderStyle: 'solid',
+      borderColor: globalColors.black_05,
+      borderRadius: 4,
+      height: 162,
+      marginBottom: globalMargins.small,
+      marginTop: globalMargins.small,
+      padding: globalMargins.small,
+      width: 440,
+    },
+    isElectron: {
+      overflowY: 'scroll',
+    },
+  }),
 })
 
 export default DeviceRevoke
