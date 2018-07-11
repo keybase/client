@@ -33,10 +33,9 @@ export const startLogin = 'login:startLogin'
 export const submitDeviceName = 'login:submitDeviceName'
 export const submitPassphrase = 'login:submitPassphrase'
 export const submitUsernameOrEmail = 'login:submitUsernameOrEmail'
-export const waitingForResponse = 'login:waitingForResponse'
 
 // Payload Types
-type _AddNewDevicePayload = $ReadOnly<{|role: Types.DeviceRole|}>
+type _AddNewDevicePayload = $ReadOnly<{|otherDeviceType: 'desktop' | 'phone' | 'paperkey'|}>
 type _ChooseGPGMethodPayload = $ReadOnly<{|exportKey: boolean|}>
 type _ConfiguredAccountsPayload = $ReadOnly<{|accounts: ?Array<{|hasStoredSecret: boolean, username: string|}>|}>
 type _ConfiguredAccountsPayloadError = $ReadOnly<{|error: Error|}>
@@ -64,7 +63,6 @@ type _StartLoginPayload = void
 type _SubmitDeviceNamePayload = $ReadOnly<{|deviceName: string|}>
 type _SubmitPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
 type _SubmitUsernameOrEmailPayload = $ReadOnly<{|usernameOrEmail: string|}>
-type _WaitingForResponsePayload = $ReadOnly<{|waiting: boolean|}>
 
 // Action Creators
 export const createAddNewDevice = (payload: _AddNewDevicePayload) => ({error: false, payload, type: addNewDevice})
@@ -92,7 +90,6 @@ export const createStartLogin = (payload: _StartLoginPayload) => ({error: false,
 export const createSubmitDeviceName = (payload: _SubmitDeviceNamePayload) => ({error: false, payload, type: submitDeviceName})
 export const createSubmitPassphrase = (payload: _SubmitPassphrasePayload) => ({error: false, payload, type: submitPassphrase})
 export const createSubmitUsernameOrEmail = (payload: _SubmitUsernameOrEmailPayload) => ({error: false, payload, type: submitUsernameOrEmail})
-export const createWaitingForResponse = (payload: _WaitingForResponsePayload) => ({error: false, payload, type: waitingForResponse})
 
 // Action Payloads
 export type AddNewDevicePayload = $Call<typeof createAddNewDevice, _AddNewDevicePayload>
@@ -120,7 +117,6 @@ export type StartLoginPayload = $Call<typeof createStartLogin, _StartLoginPayloa
 export type SubmitDeviceNamePayload = $Call<typeof createSubmitDeviceName, _SubmitDeviceNamePayload>
 export type SubmitPassphrasePayload = $Call<typeof createSubmitPassphrase, _SubmitPassphrasePayload>
 export type SubmitUsernameOrEmailPayload = $Call<typeof createSubmitUsernameOrEmail, _SubmitUsernameOrEmailPayload>
-export type WaitingForResponsePayload = $Call<typeof createWaitingForResponse, _WaitingForResponsePayload>
 
 // All Actions
 // prettier-ignore
@@ -150,5 +146,4 @@ export type Actions =
   | SubmitDeviceNamePayload
   | SubmitPassphrasePayload
   | SubmitUsernameOrEmailPayload
-  | WaitingForResponsePayload
   | {type: 'common:resetStore', payload: void}

@@ -4,7 +4,6 @@ import * as DevicesGen from '../actions/devices-gen'
 import * as I from 'immutable'
 import * as LoginGen from '../actions/login-gen'
 import * as Constants from '../constants/devices'
-import * as LoginConstants from '../constants/login'
 import {compose, lifecycle, connect, createSelector, type TypedState, type Dispatch} from '../util/container'
 
 const getIdToDetail = (state: TypedState) => state.devices.idToDetail
@@ -44,11 +43,9 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navigateUp}) => ({
-  _addNewComputer: () =>
-    dispatch(LoginGen.createAddNewDevice({role: LoginConstants.codePageDeviceRoleNewComputer})),
+  _addNewComputer: () => dispatch(LoginGen.createAddNewDevice({otherDeviceType: 'desktop'})),
   _addNewPaperKey: () => dispatch(DevicesGen.createPaperKeyMake()),
-  _addNewPhone: () =>
-    dispatch(LoginGen.createAddNewDevice({role: LoginConstants.codePageDeviceRoleNewPhone})),
+  _addNewPhone: () => dispatch(LoginGen.createAddNewDevice({otherDeviceType: 'phone'})),
   _loadDevices: () => dispatch(DevicesGen.createDevicesLoad()),
   onBack: () => dispatch(navigateUp()),
   onToggleShowRevoked: () => {

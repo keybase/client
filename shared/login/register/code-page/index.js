@@ -208,7 +208,7 @@ class EnterText extends React.Component<Props, {code: string}> {
           label="Submit"
           onClick={this._submit}
           style={styles.enterTextButton}
-          waitingKey={Constants.keyWaitingKey}
+          waitingKey={Constants.waitingKey}
         />
       </Box2>
     )

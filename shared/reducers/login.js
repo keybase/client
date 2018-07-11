@@ -34,8 +34,6 @@ export default function(
         'configuredAccounts',
         I.List(((!action.payload.error && action.payload.accounts) || []).map(a => Constants.makeAccount(a)))
       )
-    case LoginGen.waitingForResponse:
-      return state.set('waitingForResponse', action.payload.waiting)
     case LoginGen.loginError:
       return state.set('loginError', action.payload.error)
     case LoginGen.setRevokedSelf:

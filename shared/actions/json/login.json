@@ -25,10 +25,9 @@
     "loginError": { "error": "string" },
     "provisioningError": { "error": "Error" },
     "logout": {},
-    "addNewDevice": { "role": "Types.DeviceRole" },
+    "addNewDevice": { "otherDeviceType": ["'desktop'", "'phone'", "'paperkey'"] },
     "logoutDone": {},
     "navBasedOnLoginAndInitialState": {},
-    "waitingForResponse": { "waiting": "boolean" },
     "setRevokedSelf": { "revoked": "string" },
     "setDeletedSelf": { "deletedUsername": "string" },
     "configuredAccounts": {

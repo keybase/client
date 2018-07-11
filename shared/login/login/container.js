@@ -1,5 +1,6 @@
 // @flow
 import * as LoginGen from '../../actions/login-gen'
+import * as Constants from '../../constants/login'
 import * as SignupGen from '../../actions/signup-gen'
 import HiddenString from '../../util/hidden-string'
 import Login, {type Props} from '.'
@@ -20,7 +21,7 @@ const mapStateToProps = (state: TypedState) => {
     _accounts,
     _defaultUsername,
     error: state.login.loginError,
-    waitingForResponse: state.login.waitingForResponse,
+    waitingForResponse: !!state.waiting.get(Constants.waitingKey),
   }
 }
 

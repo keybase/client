@@ -100,7 +100,7 @@ class Button extends React.Component<Props> {
           >
             {this.props.label}
           </Text>
-          {this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
+          {!!this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
         </Box>
       </ClickableBox>
     )

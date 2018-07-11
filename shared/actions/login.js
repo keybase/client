@@ -10,14 +10,12 @@ import * as DevicesGen from './devices-gen'
 import * as LoginGen from './login-gen'
 import * as ChatTypes from '../constants/types/chat2'
 import * as ChatConstants from '../constants/chat2'
-import * as Types from '../constants/types/login'
 import * as Constants from '../constants/login'
 import * as EngineRpc from '../constants/engine'
 import * as RouteTypes from '../constants/types/route-tree'
 import * as RouteConstants from '../constants/route-tree'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import {getPath} from '../route-tree'
 import HiddenString from '../util/hidden-string'
 import openURL from '../util/open-url'
 import {RPCError} from '../util/errors'
@@ -542,6 +540,7 @@ const showUsernameEmailScreen = () => Saga.put(navigateTo(['login', 'usernameOrE
 // }
 // }
 
+// Actually do a user/pass login. Don't get sucked into a provisioning flow
 const login = (_: any, action: LoginGen.LoginPayload) =>
   Saga.call(function*() {
     try {
@@ -592,65 +591,51 @@ const login = (_: any, action: LoginGen.LoginPayload) =>
           deviceType,
           usernameOrEmail: action.payload.usernameOrEmail,
         },
-        waitingKey: Constants.keyWaitingKey,
+        waitingKey: Constants.waitingKey,
       })
     } catch (e) {
-    } finally {
+      return Saga.put(LoginGen.createLoginError({error: e.message}))
     }
   })
 
-// function _relogin({payload: {usernameOrEmail, passphrase}}: LoginGen.ReloginPayload) {
-// return Saga.call(Saga.sequentially, [
-// Saga.call(Saga.sequentially, [Saga.call(loginFlowSaga, usernameOrEmail, passphrase)]),
-// ])
-// }
-
 function* _addNewDevice({payload: {role}}: LoginGen.AddNewDevicePayload) {
-  const _deviceTypeMap: {[key: string]: any} = {
-    [Constants.codePageDeviceRoleNewComputer]: RPCTypes.commonDeviceType.desktop,
-    [Constants.codePageDeviceRoleNewPhone]: RPCTypes.commonDeviceType.mobile,
-  }
-
-  yield Saga.put(WaitingGen.createIncrementWaiting({key: DevicesConstants.waitingKey}))
-
-  const onBackSaga = function*(): Generator<any, void, any> {
-    yield Saga.put(DevicesGen.createDevicesLoad())
-    yield Saga.put(navigateTo(DevicesConstants.devicesTabLocation))
-  }
-
-  const onSuccessSaga = function*(): Generator<any, any, any> {
-    yield Saga.call(onBackSaga)
-    return EngineRpc.rpcResult()
-  }
-
-  const secretExchangedSaga = function*() {
-    // yield Saga.put(LoginGen.createClearQRCode())
-    return EngineRpc.rpcResult()
-  }
-  const chooseDeviceTypeSaga = function*() {
-    const deviceType = _deviceTypeMap[role]
-    // yield Saga.call(setCodePageOtherDeviceRole, role)
-    return EngineRpc.rpcResult(deviceType)
-  }
-
-  const addDeviceSagas = {
-    ...kex2Sagas(onBackSaga, onSuccessSaga),
-    'keybase.1.provisionUi.DisplaySecretExchanged': secretExchangedSaga,
-    'keybase.1.provisionUi.chooseDeviceType': chooseDeviceTypeSaga,
-  }
-
-  const addDeviceRpc = new EngineRpc.EngineRpcCall(
-    addDeviceSagas,
-    RPCTypes.deviceDeviceAddRpcChannelMap,
-    'addDeviceRpc',
-    {},
-    true // should cancel on finished+error
-  )
-
-  yield Saga.call(addDeviceRpc.run)
-  yield Saga.call(onBackSaga)
-
-  yield Saga.put(WaitingGen.createDecrementWaiting({key: DevicesConstants.waitingKey}))
+  // const _deviceTypeMap: {[key: string]: any} = {
+  // [Constants.codePageDeviceRoleNewComputer]: RPCTypes.commonDeviceType.desktop,
+  // [Constants.codePageDeviceRoleNewPhone]: RPCTypes.commonDeviceType.mobile,
+  // }
+  // yield Saga.put(WaitingGen.createIncrementWaiting({key: DevicesConstants.waitingKey}))
+  // const onBackSaga = function*(): Generator<any, void, any> {
+  // yield Saga.put(DevicesGen.createDevicesLoad())
+  // yield Saga.put(navigateTo(DevicesConstants.devicesTabLocation))
+  // }
+  // const onSuccessSaga = function*(): Generator<any, any, any> {
+  // yield Saga.call(onBackSaga)
+  // return EngineRpc.rpcResult()
+  // }
+  // const secretExchangedSaga = function*() {
+  // // yield Saga.put(LoginGen.createClearQRCode())
+  // return EngineRpc.rpcResult()
+  // }
+  // const chooseDeviceTypeSaga = function*() {
+  // const deviceType = _deviceTypeMap[role]
+  // // yield Saga.call(setCodePageOtherDeviceRole, role)
+  // return EngineRpc.rpcResult(deviceType)
+  // }
+  // const addDeviceSagas = {
+  // ...kex2Sagas(onBackSaga, onSuccessSaga),
+  // 'keybase.1.provisionUi.DisplaySecretExchanged': secretExchangedSaga,
+  // 'keybase.1.provisionUi.chooseDeviceType': chooseDeviceTypeSaga,
+  // }
+  // const addDeviceRpc = new EngineRpc.EngineRpcCall(
+  // addDeviceSagas,
+  // RPCTypes.deviceDeviceAddRpcChannelMap,
+  // 'addDeviceRpc',
+  // {},
+  // true // should cancel on finished+error
+  // )
+  // yield Saga.call(addDeviceRpc.run)
+  // yield Saga.call(onBackSaga)
+  // yield Saga.put(WaitingGen.createDecrementWaiting({key: DevicesConstants.waitingKey}))
 }
 
 const openAccountResetPageSaga = () => Saga.call(openURL, 'https://keybase.io/#password-reset')
@@ -665,10 +650,7 @@ const logoutDone = () =>
 const logout = () =>
   Saga.sequentially([
     Saga.put(ConfigGen.createClearRouteState()),
-    // TODO use waiting gen
-    Saga.put(LoginGen.createWaitingForResponse({waiting: true})),
-    Saga.call(RPCTypes.loginLogoutRpcPromise),
-    Saga.put(LoginGen.createWaitingForResponse({waiting: false})),
+    Saga.call(RPCTypes.loginLogoutRpcPromise, undefined, Constants.waitingKey),
     Saga.put(LoginGen.createLogoutDone()),
   ])
 
@@ -679,9 +661,9 @@ function* loginSaga(): Saga.SagaGenerator<any, any> {
 
   // Screen sagas
   yield Saga.safeTakeEveryPureSimple(LoginGen.startLogin, showUsernameEmailScreen)
-  yield Saga.safeTakeEveryPure(LoginGen.openAccountResetPage, openAccountResetPageSaga)
+  yield Saga.safeTakeEveryPureSimple(LoginGen.openAccountResetPage, openAccountResetPageSaga)
   yield Saga.safeTakeLatest(LoginGen.navBasedOnLoginAndInitialState, navBasedOnLoginAndInitialState)
-  yield Saga.safeTakeEveryPure(LoginGen.logoutDone, logoutDone)
+  yield Saga.safeTakeEveryPureSimple(LoginGen.logoutDone, logoutDone)
   yield Saga.safeTakeEveryPureSimple(LoginGen.logout, logout)
 
   yield Saga.safeTakeEveryPure([LoginGen.onBack, RouteConstants.navigateUp], maybeNavigateToLoginRoot)

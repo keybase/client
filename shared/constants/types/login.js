@@ -28,15 +28,6 @@ export type _State = {
   codePageOtherDeviceType: 'phone' | 'desktop' | 'paperkey',
   codePageTextCode: HiddenString,
   codePageTextCodeError: string,
-  // codePageCameraBrokenMode: boolean,
-  // codePageEnterCodeErrorText: string,
-  // codePageMode: ?Mode,
-  // codePageMyDeviceRole: ?DeviceRole,
-  // codePageOtherDeviceRole: ?DeviceRole,
-  // codePageQrCode: ?QRCode,
-  // codePageQrCodeScanned: boolean,
-  // codePageQrScanned: ?QRCode,
-  // codePageTextCode: ?HiddenString,
   devicenameError: string,
   configuredAccounts: I.List<Account>,
   forgotPasswordError: ?Error,
@@ -47,7 +38,6 @@ export type _State = {
   loginError: string,
   registerUserPassError: ?string,
   registerUserPassLoading: boolean,
-  waitingForResponse: boolean,
 }
 
 export type State = I.RecordOf<_State>
