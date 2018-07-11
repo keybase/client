@@ -22,17 +22,17 @@ export type Props = {
   waiting: boolean,
 }
 
-const Header = ({name, type}: {name: string, type: DeviceType}) => {
+const Header = (props: {name: string, type: DeviceType}) => {
   const icon: IconType = {
     backup: isMobile ? 'icon-paper-key-revoke-64' : 'icon-paper-key-revoke-48',
     desktop: isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48',
     mobile: isMobile ? 'icon-phone-revoke-64' : 'icon-phone-revoke-48',
-  }[type]
+  }[props.type]
   return (
     <Box style={styles.header}>
       <Icon type={icon} />
       <Text type="BodySemibold" style={styles.name}>
-        {name}
+        {props.name}
       </Text>
     </Box>
   )
