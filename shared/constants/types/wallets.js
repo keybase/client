@@ -88,6 +88,5 @@ export type _State = {
   selectedAccount: AccountID,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
   paymentsMap: I.Map<AccountID, I.List<Payment>>,
-  selectedAccount: AccountID,
 }
 export type State = I.RecordOf<_State>
