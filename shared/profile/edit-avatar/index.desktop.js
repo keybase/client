@@ -2,6 +2,7 @@
 import * as React from 'react'
 import fs from 'fs'
 import {clamp} from 'lodash-es'
+import HOCTimers, {type PropsWithTimer} from '../../common-adapters/hoc-timers'
 import {
   Box,
   Button,
@@ -22,7 +23,9 @@ import {
   globalStyles,
   styleSheetCreate,
 } from '../../styles'
-import type {Props} from '.'
+import type {_Props} from '.'
+
+type Props = PropsWithTimer<_Props>
 
 type State = {
   dragStartX: number,
@@ -183,8 +186,6 @@ class EditAvatar extends React.Component<Props, State> {
     }
 
     this.setState({
-      hasPreview: true,
-      loading: false,
       naturalImageHeight: e.currentTarget.naturalHeight,
       naturalImageWidth: e.currentTarget.naturalWidth,
       offsetLeft: width / -2 + VIEWPORT_CENTER,
@@ -196,6 +197,13 @@ class EditAvatar extends React.Component<Props, State> {
       viewingCenterX: e.currentTarget.naturalWidth / 2,
       viewingCenterY: e.currentTarget.naturalHeight / 2,
     })
+
+    this.props.setTimeout(() => {
+      this.setState({
+        hasPreview: true,
+        loading: false,
+      })
+    }, 1500)
   }
 
   _onRangeChange = (e: SyntheticInputEvent<any>) => {
@@ -339,9 +347,10 @@ class EditAvatar extends React.Component<Props, State> {
               style={{
                 height: this.state.scaledImageHeight,
                 left: `${this.state.offsetLeft}px`,
+                opacity: this.state.loading ? 0 : 1,
                 position: 'absolute',
                 top: `${this.state.offsetTop}px`,
-                visibility: this.state.loading ? 'hidden' : 'visible',
+                transition: 'opacity 0.25s ease-in',
                 width: this.state.scaledImageWidth,
               }}
               onDragStart={e => e.preventDefault()}
@@ -467,4 +476,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default EditAvatar
+export default HOCTimers(EditAvatar)
