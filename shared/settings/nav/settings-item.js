@@ -56,6 +56,9 @@ export default function SettingsItem({
 }
 
 const styles = styleSheetCreate({
+  badge: {
+    marginLeft: 6,
+  },
   item: platformStyles({
     common: {
       ...globalStyles.flexBoxRow,
@@ -66,8 +69,8 @@ const styles = styleSheetCreate({
     },
     isElectron: {
       textTransform: 'uppercase',
-      width: '100%',
       height: 32,
+      width: '100%',
     },
     isMobile: {
       borderBottomColor: globalColors.black_05,
@@ -75,9 +78,6 @@ const styles = styleSheetCreate({
       height: 56,
     },
   }),
-  badge: {
-    marginLeft: 6,
-  },
   itemText: platformStyles({
     isElectron: {
       color: globalColors.black_60,
