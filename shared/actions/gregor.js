@@ -17,7 +17,6 @@ import {nativeReachabilityEvents} from '../util/reachability'
 import {type Dispatch} from '../constants/types/flux'
 import {type State as GregorState, type OutOfBandMessage} from '../constants/types/rpc-gregor-gen'
 import {type TypedState} from '../constants/reducer'
-import {usernameSelector, loggedInSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
 import {stringToConversationIDKey} from '../constants/types/chat2'
 import {chosenChannelsGregorKey} from '../constants/teams'
@@ -46,7 +45,7 @@ function registerReachability() {
 
         // Gregor reachability is only valid if we're logged in
         // TODO remove this when core stops sending us these when we're logged out
-        if (loggedInSelector(getState())) {
+        if (getState().config.loggedIn) {
           actions.push(GregorGen.createUpdateReachability({reachability}))
 
           if (reachability.reachable === RPCTypes.reachabilityReachable.yes) {
@@ -218,7 +217,7 @@ function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>)
     .filter(m => m.action === 'create')
 
   const state: TypedState = yield Saga.select()
-  const username = usernameSelector(state)
+  const username = state.config.username
   if (!username) {
     return
   }
