@@ -106,7 +106,7 @@ class AvatarRender extends React.PureComponent<Props, State> {
 
     return (
       <div
-        onClick={this.props.onEditAvatarClick ? this.props.onEditAvatarClick : this.props.onClick}
+        onClick={this.props.onClick}
         style={collapseStyles([
           desktopStyles.noSelect,
           {

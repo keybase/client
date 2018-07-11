@@ -31,7 +31,7 @@ export type OwnProps = {|
   editable?: boolean,
   isTeam?: boolean,
   loadingColor?: string,
-  onClick?: () => void,
+  onClick?: (e?: SyntheticEvent<Element>) => void,
   onEditAvatarClick?: (e: SyntheticEvent<Element>) => void,
   opacity?: number,
   size: AvatarSize,
@@ -56,7 +56,7 @@ type PropsWithoutTimer = {
   isTeam: boolean,
   loadingColor?: string,
   name: string,
-  onClick?: () => void,
+  onClick?: (e?: SyntheticEvent<Element>) => void,
   onEditAvatarClick?: (e: SyntheticEvent<Element>) => void,
   opacity?: number,
   size: AvatarSize,
@@ -146,7 +146,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, ownProps) => ({
   _askForTeamUserData: (teamname: string) =>
     dispatch(ConfigGen.createLoadTeamAvatars({teamnames: [teamname]})),
   _askForUserData: (username: string) => _askForUserDataQueueUp(username, dispatch),
@@ -154,6 +154,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     isMobile || desktopDest === 'profile'
       ? dispatch(createShowUserProfile({username}))
       : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+  _onClick: () => (flags.avatarUploadsEnabled ? ownProps.onEditAvatarClick : undefined),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): PropsWithoutTimer => {
@@ -168,8 +169,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): PropsWithout
 
   const style = collapseStyles([
     ownProps.style,
-    (onClick || (flags.avatarUploadsEnabled && ownProps.onEditAvatarClick)) &&
-      platformStyles({isElectron: desktopStyles.clickable}),
+    (onClick || dispatchProps.onEditAvatarClick) && platformStyles({isElectron: desktopStyles.clickable}),
   ])
 
   let url = stateProps._urlMap ? urlsToImgSet(stateProps._urlMap, ownProps.size) : null
@@ -200,8 +200,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): PropsWithout
     isTeam,
     loadingColor: ownProps.loadingColor,
     name: name || '',
-    onClick,
-    onEditAvatarClick: ownProps.onEditAvatarClick,
+    onClick: dispatchProps.onEditAvatarClick ? dispatchProps.onEditAvatarClick : onClick,
     opacity: ownProps.opacity,
     size: ownProps.size,
     skipBackground: ownProps.skipBackground,
@@ -246,11 +245,7 @@ class AvatarConnector extends React.PureComponent<Props> {
         isTeam={this.props.isTeam}
         loadingColor={this.props.loadingColor}
         onClick={this.props.onClick}
-        onEditAvatarClick={
-          flags.avatarUploadsEnabled && this.props.onEditAvatarClick
-            ? this.props.onEditAvatarClick
-            : undefined
-        }
+        onEditAvatarClick={this.props.onEditAvatarClick}
         opacity={this.props.opacity}
         size={this.props.size}
         style={this.props.style}
