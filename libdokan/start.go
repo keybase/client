@@ -124,8 +124,12 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 		}
 		log.CDebugf(ctx, "New folder name guess: %q %q", newFolderName, newFolderAltName)
 
+		st, err := os.Lstat(options.MountPoint)
+		log.CDebugf(ctx, "Before mount check (should fail) Lstat(%q): %v,%v", options.MountPoint, st, err)
+
 		err = startMounting(options, log, mi)
 		if err != nil {
+			logDokanInfo(ctx, log)
 			// Abort on error if we were force mounting, otherwise continue.
 			if options.ForceMount {
 				// Cleanup when exiting in case the mount got dirty.
