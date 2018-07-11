@@ -15,7 +15,7 @@ export type MenuItem = {|
 export type Props = {
   items: Array<MenuItem | 'Divider' | null>, // Divider is not used on native
   header?: ?MenuItem,
-  onHidden?: ?() => void,
+  onHidden: () => void,
   style?: Object,
   styleCatcher?: ?Object,
   hoverColor?: string,
@@ -24,7 +24,7 @@ export type Props = {
 export type ModalLessPopupMenuProps = {
   items: Array<MenuItem | 'Divider' | null>,
   header?: ?MenuItem,
-  onHidden?: ?() => void,
+  onHidden: () => void,
   closeOnClick?: boolean,
   style?: Object,
   hoverColor?: string,
