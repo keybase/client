@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as MessageTypes from '../../../../constants/types/chat2/message'
 import {Box2, NameWithIcon, Overlay, SectionList, Text} from '../../../../common-adapters'
-import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../../../styles'
+import {globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../../styles'
 import ReactButton from '../react-button/container'
 
 type Props = {
@@ -26,6 +26,14 @@ const ReactionTooltip = (props: Props) => {
   return (
     <Overlay attachTo={props.attachmentRef} onHidden={props.onHidden} position="top right">
       <Box2 direction="vertical" gap="tiny" style={styles.listContainer}>
+        {isMobile && (
+          <Box2 direction="horizontal">
+            <Text type="BodySemiboldLink" onClick={props.onHidden} style={styles.closeButton}>
+              Close
+            </Text>
+            <Box2 direction="horizontal" style={{flex: 1}} />
+          </Box2>
+        )}
         <SectionList sections={sections} renderItem={renderItem} renderSectionHeader={renderSectionHeader} />
       </Box2>
     </Overlay>
@@ -75,18 +83,20 @@ const styles = styleSheetCreate({
     paddingBottom: globalMargins.tiny,
     paddingTop: globalMargins.tiny,
   },
+  closeButton: {
+    padding: globalMargins.small,
+  },
   emojiText: {
     color: globalColors.black_40,
   },
   listContainer: platformStyles({
-    common: {
-      maxHeight: 320,
-    },
     isElectron: {
+      maxHeight: 320,
       width: 240,
     },
     isMobile: {
       backgroundColor: globalColors.white,
+      maxHeight: '90%',
       width: '100%',
     },
   }),
