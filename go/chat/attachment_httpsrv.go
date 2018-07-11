@@ -43,6 +43,10 @@ func (d DummyAttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.Convers
 	return ""
 }
 
+func (d DummyAttachmentHTTPSrv_ GetPendingPreviewURL(ctx context.Context, outboxID chat1.OutboxID) string {
+	return ""
+}
+
 func (d DummyAttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {
 	return DummyAttachmentFetcher{}
 }
@@ -55,6 +59,7 @@ type AttachmentHTTPSrv struct {
 	utils.DebugLabeler
 
 	endpoint string
+	pendingEndpoint string
 	httpSrv  *libkb.HTTPSrv
 	urlMap   *lru.Cache
 	fetcher  types.AttachmentFetcher
@@ -73,6 +78,7 @@ func NewAttachmentHTTPSrv(g *globals.Context, fetcher types.AttachmentFetcher, r
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "AttachmentHTTPSrv", false),
 		httpSrv:      libkb.NewHTTPSrv(g.ExternalG(), libkb.NewPortRangeListenerSource(16423, 18000)),
 		endpoint:     "at",
+		pendingEndpoint: "pe",
 		ri:           ri,
 		urlMap:       l,
 		fetcher:      fetcher,
@@ -108,6 +114,7 @@ func (r *AttachmentHTTPSrv) startHTTPSrv() {
 		return
 	}
 	r.httpSrv.HandleFunc("/"+r.endpoint, r.serve)
+	r.httpSrv.HandleFunc("/"+r.pendingEndpoint, r.servePendingPreview)
 }
 
 func (r *AttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {
@@ -142,12 +149,19 @@ func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.Conversatio
 	return url
 }
 
+func (r *AttachmentHTTPSrv) GetPendingPreviewURL(ctx context.Context, outboxID chat1.outboxID) string {
+	defer r.Trace(ctx, func() error { return nil }, "GetPendingPreviewURL(%s)", outboxID)()
+	url := fmt.Sprintf("http://%s/%s?key=%s", addr, r.pendingEndpoint, outboxID)
+	r.Debug(ctx, "GetPendingPreviewURL: handler URL: outboxID: %s %s", convID, msgID, url)
+	return url
+}
+
 func (r *AttachmentHTTPSrv) servePendingPreview(w http.ResponseWriter, req *http.Request) {
 	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
 	defer r.Trace(ctx, func() error { return nil }, "servePendingPreview")()
 
-	outboxID := req.URL.Query().Get("obid")
+	outboxID := req.URL.Query().Get("key")
 
 }
 
