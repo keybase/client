@@ -37,6 +37,12 @@ func (s SimpleFSMock) SimpleFSListRecursive(ctx context.Context, arg keybase1.Si
 	return nil
 }
 
+// SimpleFSListRecursiveToDepth - Begin recursive list of items in directory at
+// path to a given depth.
+func (s SimpleFSMock) SimpleFSListRecursiveToDepth(ctx context.Context, arg keybase1.SimpleFSListRecursiveToDepthArg) error {
+	return nil
+}
+
 // SimpleFSReadList - Get list of Paths in progress. Can indicate status of pending
 // to get more entries.
 func (s SimpleFSMock) SimpleFSReadList(ctx context.Context, arg keybase1.OpID) (keybase1.SimpleFSListResult, error) {

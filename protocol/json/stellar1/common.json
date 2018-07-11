@@ -46,6 +46,12 @@
     },
     {
       "type": "record",
+      "name": "KeybaseRequestID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "Asset",
       "fields": [
         {
