@@ -80,6 +80,11 @@ func (e *EKLib) backgroundKeygen() {
 			runIfNeeded()
 		case state = <-e.G().AppState.NextUpdate(&state):
 			if state == keybase1.AppState_BACKGROUNDACTIVE {
+				// Before running  we pause briefly so we don't stampede for
+				// resources with other background tasks. libkb.BgTicker
+				// handles this internally, so we only need to throttle on
+				// AppState change.
+				time.Sleep(time.Second)
 				runIfNeeded()
 			}
 		case <-e.stopCh:
