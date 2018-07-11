@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as MessageTypes from '../../../../constants/types/chat2/message'
-import {Box2, NameWithIcon, Overlay, SectionList, Text} from '../../../../common-adapters'
+import {Box2, Icon, NameWithIcon, Overlay, SectionList, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../../styles'
 import ReactButton from '../react-button/container'
 
@@ -35,6 +35,12 @@ const ReactionTooltip = (props: Props) => {
           </Box2>
         )}
         <SectionList sections={sections} renderItem={renderItem} renderSectionHeader={renderSectionHeader} />
+        {isMobile && (
+          <Box2 centerChildren={true} direction="horizontal" gap="tiny" style={styles.addReactionButton}>
+            <Icon type="iconfont-add" color={globalColors.black_40} fontSize={22} />{' '}
+            <Text type="BodySemibold">Add a reaction</Text>
+          </Box2>
+        )}
       </Box2>
     </Overlay>
   )
@@ -76,6 +82,19 @@ const renderSectionHeader = ({
 )
 
 const styles = styleSheetCreate({
+  addReactionButton: {
+    borderColor: globalColors.black_05,
+    borderRadius: 20,
+    borderStyle: 'solid',
+    borderWidth: 2,
+    height: 40,
+    marginBottom: globalMargins.large,
+    marginLeft: globalMargins.xlarge,
+    marginRight: globalMargins.xlarge,
+    marginTop: globalMargins.xtiny,
+    paddingLeft: globalMargins.large,
+    paddingRight: globalMargins.large,
+  },
   buttonContainer: {
     alignItems: 'center',
     backgroundColor: globalColors.white,
