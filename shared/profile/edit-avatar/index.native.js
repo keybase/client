@@ -21,9 +21,9 @@ class AvatarUpload extends React.Component<Props> {
       throw new Error('Missing image when saving avatar')
     }
     const filename = isIOS ? this.props.image.uri.replace('file://', '') : this.props.image.path
-    // Cropping is temporarily deactivated on Android.
     let crop
-    if (isIOS && this._z) {
+    // Only set the cropping coordinates if they’ve zoomed the image.
+    if (this._z) {
       crop = this._getCropCoordinates()
     }
     this.props.onSave(filename, crop, this.props.teamname, this.props.sendChatNotification)
@@ -65,10 +65,6 @@ class AvatarUpload extends React.Component<Props> {
 
     return {
       height,
-      // We need to center the image on Android because this is how the backend
-      // will crop it when we don’t pass cropping coordinates.
-      marginLeft: isIOS ? null : (width - AVATAR_SIZE) / -2,
-      marginTop: isIOS ? null : (height - AVATAR_SIZE) / -2,
       width,
     }
   }
@@ -85,9 +81,8 @@ class AvatarUpload extends React.Component<Props> {
             <ZoomableBox
               bounces={false}
               contentContainerStyle={this._imageDimensions()}
-              // Temporarily deactive zooming on Android.
-              maxZoom={isIOS ? 10 : 1}
-              onZoom={isIOS ? this._onZoom : null}
+              maxZoom={10}
+              onZoom={this._onZoom}
               showsHorizontalScrollIndicator={false}
               showsVerticalScrollIndicator={false}
               style={styles.zoomContainer}

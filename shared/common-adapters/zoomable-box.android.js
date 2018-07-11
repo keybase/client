@@ -163,8 +163,18 @@ class ZoomableBox extends React.Component<Props, State> {
           scale: this.scale(),
           scaleOffset: 1,
         })
-        this._panZoomCalculator.releaseTouches()
-        this._panZoomCalculator.releaseGestureState()
+
+        const height = this.state.layoutHeight * this.scale()
+        const width = this.state.layoutWidth * this.scale()
+        const x = (height - this.state.layoutHeight) / 2 - this.panX()
+        const y = (width - this.state.layoutWidth) / 2 - this.panY()
+        this.props.onZoom &&
+          this.props.onZoom({
+            height,
+            width,
+            x,
+            y,
+          })
       },
       onPanResponderTerminate: (evt, gestureState) => {
         // Gesture cancelled
