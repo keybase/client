@@ -265,7 +265,7 @@ export type _StylesDesktop = {|
   left?: Dimension,
   letterSpacing?: string,
   lineBreak?: string,
-  lineHeight?: string,
+  lineHeight?: Dimension,
   listStyle?: string,
   listStyleImage?: string,
   listStylePosition?: string,
