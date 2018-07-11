@@ -1,7 +1,6 @@
 // @flow
 // Look at this doc: https://goo.gl/7B6p4H
 import logger from '../logger'
-import * as AppGen from './app-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
 import * as DevicesTypes from '../constants/types/devices'
@@ -124,7 +123,7 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
     if (initialState) {
       const {url, tab, conversation} = (initialState: InitialState)
       if (url) {
-        yield Saga.put(AppGen.createLink({link: url}))
+        yield Saga.put(ConfigGen.createLink({link: url}))
       } else if (tab && isValidInitialTab(tab)) {
         if (tab === chatTab && conversation && ChatConstants.isValidConversationIDKey(conversation)) {
           yield Saga.put(
