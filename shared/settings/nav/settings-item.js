@@ -48,7 +48,7 @@ export default function SettingsItem({
         </Text>
         {!!badgeNumber &&
           badgeNumber > 0 && (
-            <Badge2 fontSize={12} height={24} badgeNumber={badgeNumber} badgeStyle={styles.badge} />
+            <Badge2 fontSize={12} height={25} badgeNumber={badgeNumber} badgeStyle={styles.badge} />
           )}
       </Box>
     </ClickableBox>
