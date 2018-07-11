@@ -23,16 +23,13 @@ class SectionList extends React.Component<Props, State> {
   }
 
   _makeItems = () => {
-    return this.props.sections.reduce(
-      (arr, section, sectionIndex) => {
-        const next = []
-        next.push({type: 'header', sectionIndex})
-        section.data.length && next.push(...section.data.map(item => ({item, sectionIndex, type: 'body'})))
-        arr.push(next)
-        return arr
-      },
-      [[]]
-    )
+    return this.props.sections.reduce((arr, section, sectionIndex) => {
+      const next = []
+      next.push({sectionIndex, key: section.key || sectionIndex, type: 'header'})
+      section.data.length && next.push(...section.data.map(item => ({item, sectionIndex, type: 'body'})))
+      arr.push(next)
+      return arr
+    }, [])
   }
 
   _storeItems = () => this.setState({items: this._makeItems()})
@@ -42,7 +39,9 @@ class SectionList extends React.Component<Props, State> {
     const section = this.props.sections[item.sectionIndex]
     const indexWithinSection = section.data.indexOf(item.item)
     return item.type === 'header' ? (
-      <Box style={styles.sectionHeader}>{this.props.renderSectionHeader({section})}</Box>
+      <Box key={item.key || key} style={styles.sectionHeader}>
+        {this.props.renderSectionHeader({section})}
+      </Box>
     ) : (
       this.props.renderItem({index: indexWithinSection, item: item.item, section})
     )
@@ -52,7 +51,11 @@ class SectionList extends React.Component<Props, State> {
     return (
       <ScrollView>
         {this.state.items.map((item, index) => (
-          <ReactList key={index} itemRenderer={this._itemRenderer(index)} length={item.length} />
+          <ReactList
+            key={this.props.sections[index].key || index}
+            itemRenderer={this._itemRenderer(index)}
+            length={item.length}
+          />
         ))}
       </ScrollView>
     )
@@ -63,7 +66,7 @@ const styles = styleSheetCreate({
   sectionHeader: platformStyles({
     isElectron: {
       position: 'sticky',
-      top: -1,
+      top: 0,
       zIndex: '1', // needed to be on top of newly created stacking context
     },
   }),

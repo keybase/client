@@ -18,8 +18,9 @@ type Props = {
 
 const ReactionTooltip = (props: Props) => {
   const sections = props.reactions.map(r => ({
+    data: r.users.map(u => ({...u, key: `${u.username}`})),
+    key: r.emoji,
     messageID: props.messageID,
-    data: r.users,
     title: r.emoji,
   }))
   return (
@@ -31,12 +32,12 @@ const ReactionTooltip = (props: Props) => {
   )
 }
 
-type ListItem = {fullName: string, username: string}
+type ListItem = {fullName: string, key: string, username: string}
 
 const renderItem = ({item}: {item: ListItem}) => {
   return (
     <NameWithIcon
-      key={item.username}
+      key={item.key}
       colorFollowing={true}
       containerStyle={styles.userContainer}
       horizontal={true}

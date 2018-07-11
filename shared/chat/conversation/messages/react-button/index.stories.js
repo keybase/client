@@ -8,7 +8,7 @@ import ReactButton, {type Props as ViewProps} from '.'
 export const propProvider = {
   ReactButton: (props: OwnProps): ViewProps => ({
     active: [':face_with_cowboy_hat:', ':honey_pot:'].includes(props.emoji),
-    count: {':+1:': 2, ':face_with_cowboy_hat:': 1}[props.emoji] || 1,
+    count: {':+1:': 2, ':face_with_cowboy_hat:': 1, ':honey_pot:': 12}[props.emoji] || 1,
     emoji: props.emoji,
     onClick: action('onReact'),
   }),
