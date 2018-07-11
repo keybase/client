@@ -38,8 +38,11 @@ public class MainApplication extends Application implements ReactApplication {
 
     // Make sure exactly one background job is scheduled.
     int numBackgroundJobs = manager.getAllJobRequestsForTag(BackgroundSyncJob.TAG).size();
-    if (numBackgroundJobs > 1 ) {
+    if (numBackgroundJobs == 0) {
+        BackgroundSyncJob.scheduleJob();
+    } else if (numBackgroundJobs >1 ) {
         manager.cancelAllForTag(BackgroundSyncJob.TAG);
+        BackgroundSyncJob.scheduleJob();
     }
 
     logFile = this.getFileStreamPath("android.log");

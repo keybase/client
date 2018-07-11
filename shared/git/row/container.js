@@ -8,7 +8,6 @@ import {navigateAppend} from '../../actions/route-tree'
 import {gitTab, settingsTab} from '../../constants/tabs'
 import {gitTab as settingsGitTab} from '../../constants/settings'
 import {copyToClipboard} from '../../util/clipboard'
-import {usernameSelector} from '../../constants/selectors'
 import openURL from '../../util/open-url'
 import {isMobile} from '../../constants/platform'
 
@@ -19,7 +18,7 @@ const mapStateToProps = (state: TypedState, {id, expanded}) => {
     expanded,
     isNew: state.entities.getIn(['git', 'isNew', id], false),
     lastEditUserFollowing: state.config.following.has(git.lastEditUser),
-    you: usernameSelector(state),
+    you: state.config.username,
   }
 }
 
