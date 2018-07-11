@@ -1240,14 +1240,15 @@ func (s *Server) GetRequestDetailsLocal(ctx context.Context, reqID stellar1.Keyb
 	}
 
 	res = stellar1.RequestDetailsLocal{
-		Id:            details.Id,
-		FromAssertion: fromAssertion,
-		ToAssertion:   details.ToAssertion,
-		Amount:        details.Amount,
-		Asset:         details.Asset,
-		Currency:      details.Currency,
-		Completed:     !details.FundingKbTxID.IsNil(),
-		FundingKbTxID: details.FundingKbTxID,
+		Id:                details.Id,
+		FromAssertion:     fromAssertion,
+		FromIsCurrentUser: s.G().GetMyUID().Equal(details.FromUser.Uid),
+		ToAssertion:       details.ToAssertion,
+		Amount:            details.Amount,
+		Asset:             details.Asset,
+		Currency:          details.Currency,
+		Completed:         !details.FundingKbTxID.IsNil(),
+		FundingKbTxID:     details.FundingKbTxID,
 	}
 
 	if details.ToUser != nil {
@@ -1262,7 +1263,7 @@ func (s *Server) GetRequestDetailsLocal(ctx context.Context, reqID stellar1.Keyb
 			if err != nil {
 				return err
 			}
-			amountDesc, err := stellar.FormatCurrency(ctx, s.G(), details.Amount, rate.Currency)
+			amountDesc, err := stellar.FormatAmountWithSuffix(details.Amount, false, rate.Currency.String())
 			if err != nil {
 				return err
 			}

@@ -486,6 +486,7 @@ func (s *Server) SendRequestCLILocal(ctx context.Context, arg stellar1.SendReque
 		Amount:   arg.Amount,
 		Asset:    arg.Asset,
 		Currency: arg.Currency,
+		Message:  arg.Message,
 	})
 	return err
 }

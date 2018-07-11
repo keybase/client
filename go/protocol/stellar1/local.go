@@ -400,6 +400,7 @@ func (o SendPaymentResLocal) DeepCopy() SendPaymentResLocal {
 type RequestDetailsLocal struct {
 	Id                       KeybaseRequestID     `codec:"id" json:"id"`
 	FromAssertion            string               `codec:"fromAssertion" json:"fromAssertion"`
+	FromIsCurrentUser        bool                 `codec:"fromIsCurrentUser" json:"fromIsCurrentUser"`
 	ToUserType               ParticipantType      `codec:"toUserType" json:"toUserType"`
 	ToAssertion              string               `codec:"toAssertion" json:"toAssertion"`
 	Amount                   string               `codec:"amount" json:"amount"`
@@ -415,11 +416,12 @@ type RequestDetailsLocal struct {
 
 func (o RequestDetailsLocal) DeepCopy() RequestDetailsLocal {
 	return RequestDetailsLocal{
-		Id:            o.Id.DeepCopy(),
-		FromAssertion: o.FromAssertion,
-		ToUserType:    o.ToUserType.DeepCopy(),
-		ToAssertion:   o.ToAssertion,
-		Amount:        o.Amount,
+		Id:                o.Id.DeepCopy(),
+		FromAssertion:     o.FromAssertion,
+		FromIsCurrentUser: o.FromIsCurrentUser,
+		ToUserType:        o.ToUserType.DeepCopy(),
+		ToAssertion:       o.ToAssertion,
+		Amount:            o.Amount,
 		Asset: (func(x *Asset) *Asset {
 			if x == nil {
 				return nil
@@ -795,6 +797,7 @@ type SendRequestCLILocalArg struct {
 	Asset     *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
 	Currency  *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
 	Amount    string               `codec:"amount" json:"amount"`
+	Message   string               `codec:"message" json:"message"`
 }
 
 type LocalInterface interface {

@@ -440,6 +440,10 @@
           "name": "fromAssertion"
         },
         {
+          "type": "boolean",
+          "name": "fromIsCurrentUser"
+        },
+        {
           "type": "ParticipantType",
           "name": "toUserType"
         },
@@ -1250,6 +1254,10 @@
         },
         {
           "name": "amount",
+          "type": "string"
+        },
+        {
+          "name": "message",
           "type": "string"
         }
       ],

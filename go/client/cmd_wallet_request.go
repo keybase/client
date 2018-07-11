@@ -14,17 +14,18 @@ import (
 
 type CmdWalletRequest struct {
 	libkb.Contextified
-	RecipientName string
+	Recipient     string
 	TLFName       string
 	Amount        string
 	LocalCurrency string
+	Message       string
 }
 
 func newCmdWalletRequest(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	flags := []cli.Flag{
 		cli.StringFlag{
-			Name:  "r, recipient",
-			Usage: "Username or user assertion to send the request to.",
+			Name:  "m, message",
+			Usage: "Include a message with the request.",
 		},
 	}
 	cmd := &CmdWalletRequest{
@@ -33,7 +34,7 @@ func newCmdWalletRequest(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 	return cli.Command{
 		Name:         "request",
 		Usage:        "Request XLM from a Keybase user",
-		ArgumentHelp: "-r <recipient> <amount> <local currency>",
+		ArgumentHelp: "<recipient> <amount> <local currency> [-m message]",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "request", c)
 		},
@@ -42,19 +43,22 @@ func newCmdWalletRequest(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 }
 
 func (c *CmdWalletRequest) ParseArgv(ctx *cli.Context) error {
-	if len(ctx.Args()) < 1 {
-		return errors.New("request expects at least amount argument")
-	} else if len(ctx.Args()) > 2 {
-		return errors.New("request expects at most two arguments (amount and currency)")
+	if len(ctx.Args()) > 3 {
+		return errors.New("request expects at most three arguments")
+	} else if len(ctx.Args()) < 2 {
+		return errors.New("request expects at least two arguments (recipient and amount)")
 	}
-	c.RecipientName = ctx.String("recipient")
-	if c.RecipientName == "" {
-		return errors.New("recipient argument (-r) is required")
+
+	c.Recipient = ctx.Args()[0]
+	// TODO ensure amount is numeric and does not contain escape characters
+	c.Amount = ctx.Args()[1]
+	if len(ctx.Args()) == 3 {
+		c.LocalCurrency = strings.ToUpper(ctx.Args()[2])
+		if len(c.LocalCurrency) != 3 {
+			return errors.New("Invalid currency code")
+		}
 	}
-	c.Amount = ctx.Args()[0]
-	if len(ctx.Args()) > 1 {
-		c.LocalCurrency = strings.ToUpper(ctx.Args()[1])
-	}
+	c.Message = ctx.String("message")
 	return nil
 }
 
@@ -71,11 +75,18 @@ func (c *CmdWalletRequest) Run() error {
 		return err
 	}
 
-	xlm := stellar1.AssetNative()
 	arg := stellar1.SendRequestCLILocalArg{
-		Recipient: c.RecipientName,
-		Asset:     &xlm,
+		Recipient: c.Recipient,
+		Message:   c.Message,
 		Amount:    c.Amount,
+	}
+
+	if c.LocalCurrency != "" && c.LocalCurrency != "XLM" {
+		currency := stellar1.OutsideCurrencyCode(c.LocalCurrency)
+		arg.Currency = &currency
+	} else {
+		xlm := stellar1.AssetNative()
+		arg.Asset = &xlm
 	}
 
 	err = cli.SendRequestCLILocal(context.Background(), arg)

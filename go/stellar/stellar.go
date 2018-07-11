@@ -1069,6 +1069,7 @@ type SendRequestArg struct {
 	Amount   string
 	Asset    *stellar1.Asset
 	Currency *stellar1.OutsideCurrencyCode
+	Message  string
 }
 
 func SendRequest(m libkb.MetaContext, remoter remote.Remoter, arg SendRequestArg) (ret stellar1.KeybaseRequestID, err error) {
@@ -1082,6 +1083,21 @@ func SendRequest(m libkb.MetaContext, remoter remote.Remoter, arg SendRequestArg
 		return ret, fmt.Errorf("expected either Asset or Currency, got none")
 	} else if arg.Asset != nil && arg.Currency != nil {
 		return ret, fmt.Errorf("expected either Asset or Currency, got both")
+	}
+
+	if arg.Asset != nil && !arg.Asset.IsNativeXLM() {
+		return ret, fmt.Errorf("sending non-XLM assets is not supported")
+	}
+
+	if arg.Currency != nil {
+		conf, err := m.G().GetStellar().GetServerDefinitions(m.Ctx())
+		if err != nil {
+			return ret, err
+		}
+		_, ok := conf.GetCurrencyLocal(*arg.Currency)
+		if !ok {
+			return ret, fmt.Errorf("unrecognized currency code %q", arg.Currency)
+		}
 	}
 
 	// Make sure chat is functional. Chat message is the only way for
@@ -1120,7 +1136,7 @@ func SendRequest(m libkb.MetaContext, remoter remote.Remoter, arg SendRequestArg
 
 	body := chat1.NewMessageBodyWithRequestpayment(chat1.MessageRequestPayment{
 		RequestID: requestID.String(),
-		Note:      "",
+		Note:      arg.Message,
 	})
 
 	displayName := strings.Join([]string{m.CurrentUsername().String(), recipient.User.GetNormalizedName().String()}, ",")

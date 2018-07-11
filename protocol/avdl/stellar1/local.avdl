@@ -279,6 +279,7 @@ protocol local {
 
     // User asking for payment - creator of the request.
     string fromAssertion; // creator username
+    boolean fromIsCurrentUser; // is this request coming from us?
 
     // User being asked for payment.
     ParticipantType toUserType; // keybase or SBS
@@ -289,13 +290,13 @@ protocol local {
     union { null, OutsideCurrencyCode } currency;
 
     // Formatted amount of either outside currency or stellar lumens.
-    string amountDescription;
+    string amountDescription; // "123.23 CAD"
 
     // Amount of Stellar lumens and formatted amount of Stellar
     // lumens. It's either same as amountDescription, or amount of
     // stellars after converting from outside currency.
-    string amountStellar;
-    string amountStellarDescription;
+    string amountStellar; // "123.23"
+    string amountStellarDescription; // "123.23 XLM"
 
     boolean completed;
     string statusDescription;
@@ -386,5 +387,5 @@ protocol local {
   string formatLocalCurrencyString(string amount, OutsideCurrencyCode code);
 
   void sendRequestCLILocal(string recipient, union { null, Asset } asset, 
-    union { null, OutsideCurrencyCode } currency, string amount);
+    union { null, OutsideCurrencyCode } currency, string amount, string message);
 }

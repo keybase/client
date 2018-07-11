@@ -561,8 +561,15 @@ func formatRequestPaymentMessage(g *libkb.GlobalContext, body chat1.MessageReque
 	if details.Currency != nil {
 		converted = fmt.Sprintf(" (%s)", details.AmountStellarDescription)
 	}
-	return fmt.Sprintf("%s requests %s%s.", details.FromAssertion,
-		details.AmountDescription, converted)
+	from := details.FromAssertion
+	if details.FromIsCurrentUser {
+		from += " (you)"
+	}
+	view := fmt.Sprintf("%s requests %s%s.", from, details.AmountDescription, converted)
+	if len(body.Note) > 0 {
+		view += "\n> " + body.Note
+	}
+	return view
 }
 
 func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxedValid) (mv messageView, err error) {
