@@ -299,6 +299,28 @@ func (m MessageUnboxed) IsValidFull() bool {
 	return bodyType == headerType
 }
 
+// IsValidDeleted returns whether a message is valid and has been deleted.
+// This statement does not hold: IsValidFull != IsValidDeleted
+func (m MessageUnboxed) IsValidDeleted() bool {
+	if !m.IsValid() {
+		return false
+	}
+	valid := m.Valid()
+	headerType := valid.ClientHeader.MessageType
+	switch headerType {
+	case MessageType_NONE:
+		return false
+	case MessageType_TLFNAME:
+		// Undeletable and may have no body
+		return false
+	}
+	bodyType, err := valid.MessageBody.MessageType()
+	if err != nil {
+		return false
+	}
+	return bodyType == MessageType_NONE
+}
+
 func (m *MessageUnboxed) DebugString() string {
 	if m == nil {
 		return "[nil]"
