@@ -1,6 +1,6 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Text, Markdown, Box, Box2, Meta} from '../../../../common-adapters'
+import {Text, Markdown, Box, Box2, Meta, Icon} from '../../../../common-adapters'
 import {
   globalStyles,
   globalColors,
@@ -93,14 +93,35 @@ class BottomLine extends PureComponent<Props> {
         style = baseStyle
       }
 
+      let snippetDecoration
+      let exploded = false
+
+      // `snippetDecoration` will either be an explosion emoji, bomb emoji, or empty string.
+      // We want to use these emojis to render the correct custom icon.
+      switch (this.props.snippetDecoration) {
+        case '\u{1F4A5}': // Explosion (Collision) emoji (💥)
+          snippetDecoration = <Icon type="iconfont-boom" fontSize={26} />
+          exploded = true
+          break
+        case '\u{1F4A3}': // Bomb emoji (💣)
+          snippetDecoration = <Icon type="iconfont-bomb" fontSize={isMobile ? 16 : 12} />
+          break
+        default:
+          snippetDecoration = this.props.snippetDecoration
+      }
+
       content = (
         <Box2 direction="horizontal" style={styles.bottomLineBox}>
-          <Markdown preview={true} style={style}>
-            {this.props.snippet}
-          </Markdown>
-          <Text type="BodySmall" style={{color: globalColors.black}}>
-            {this.props.snippetDecoration}
-          </Text>
+          {!exploded && (
+            <Markdown preview={true} style={style}>
+              {this.props.snippet}
+            </Markdown>
+          )}
+          {snippetDecoration && (
+            <Box2 direction="vertical" centerChildren={true}>
+              {snippetDecoration}
+            </Box2>
+          )}
         </Box2>
       )
     } else {
