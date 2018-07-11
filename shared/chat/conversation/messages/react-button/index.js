@@ -6,6 +6,8 @@ import {
   glamorous,
   globalColors,
   globalMargins,
+  isMobile,
+  platformStyles,
   styleSheetCreate,
   transition,
 } from '../../../../styles'
@@ -18,10 +20,14 @@ export type Props = {
 }
 
 const ButtonBox = glamorous(ClickableBox)({
-  ':hover': {
-    backgroundColor: globalColors.blue4,
-    borderColor: globalColors.blue,
-  },
+  ...(isMobile
+    ? {}
+    : {
+        ':hover': {
+          backgroundColor: globalColors.blue4,
+          borderColor: globalColors.blue,
+        },
+      }),
   borderColor: globalColors.black_05,
 })
 
@@ -45,16 +51,20 @@ const styles = styleSheetCreate({
   buttonBox: {
     borderRadius: 12,
     borderStyle: 'solid',
-    borderWidth: '2px',
+    borderWidth: 2,
     ...transition('border-color', 'background-color'),
   },
-  container: {
-    height: 24,
-    paddingBottom: globalMargins.tiny,
-    paddingLeft: globalMargins.xtiny,
-    paddingRight: globalMargins.xtiny,
-    paddingTop: globalMargins.tiny,
-  },
+  container: platformStyles({
+    common: {
+      height: 24,
+      paddingLeft: globalMargins.xtiny,
+      paddingRight: globalMargins.xtiny,
+    },
+    isElectron: {
+      paddingBottom: globalMargins.tiny,
+      paddingTop: globalMargins.tiny,
+    },
+  }),
 })
 
 export default ReactButton

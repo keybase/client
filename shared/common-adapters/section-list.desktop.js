@@ -35,7 +35,7 @@ export default class extends React.Component<Props, State> {
     const indexWithinSection = section.data.indexOf(item.item)
     return item.type === 'header'
       ? this.props.renderSectionHeader({section})
-      : this.props.renderItem({index: indexWithinSection, item, section})
+      : this.props.renderItem({index: indexWithinSection, item: item.item, section})
   }
 
   render() {

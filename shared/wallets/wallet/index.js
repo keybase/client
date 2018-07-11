@@ -17,22 +17,20 @@ export default (props: Props) => {
   const renderItem = ({item, index, section}) => {
     const children = []
     if (section.title === 'Your assets') {
-      children.push(
-        <Asset accountID={props.accountID} index={item.item} key={`${props.accountID}:${item.item}`} />
-      )
+      children.push(<Asset accountID={props.accountID} index={item} key={`${props.accountID}:${item}`} />)
     } else if (section.title === 'History') {
       children.push(
         // $FlowIssue thinks these props aren't in `Transaction`
         <Transaction
           accountID={props.accountID}
-          paymentID={item.item.paymentID}
-          key={`${props.accountID}:${item.item.paymentID}`}
+          paymentID={item.paymentID}
+          key={`${props.accountID}:${item.paymentID}`}
         />
       )
     }
     if (index !== section.data.length - 1) {
       // don't put divider after last thing in section
-      children.push(<Divider key={`${props.accountID}:${item.item}:divider`} />)
+      children.push(<Divider key={`${props.accountID}:${item}:divider`} />)
     }
     // TODO
     return children
