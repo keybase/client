@@ -196,7 +196,7 @@ class EnterText extends React.Component<Props, {code: string}> {
           onChangeText={code => this.setState({code})}
           onEnterKeyDown={this._submit}
           rowsMin={3}
-          placeholder="Type the 10-word secret code"
+          placeholder={`Type the ${this.props.otherDeviceType === 'phone' ? '9' : '8'}-word secret code`}
           textType="Terminal"
           style={styles.enterTextInput}
           value={this.state.code}
