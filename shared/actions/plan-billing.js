@@ -136,8 +136,8 @@ function* fetchBillingOverviewSaga(): Saga.SagaGenerator<any, any> {
 
 function* fetchBillingAndQuotaSaga(): Saga.SagaGenerator<any, any> {
   try {
-    const usernameSelector = ({config: {username}}: TypedState) => username
-    const username = yield Saga.select(usernameSelector)
+    const state: TypedState = yield Saga.select()
+    const username = state.config.username
 
     const results: any = yield Saga.call(RPCTypes.apiserverGetRpcPromise, {
       endpoint: 'user/lookup',

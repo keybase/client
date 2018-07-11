@@ -1426,10 +1426,10 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-team-placeholder-avatar-960.png'),
   },
-  'icon-team-sparkles-48-40': {
+  'icon-team-sparkles-64-40': {
     isFont: false,
     extension: 'png',
-    require: require('../images/icons/icon-team-sparkles-48-40.png'),
+    require: require('../images/icons/icon-team-sparkles-64-40.png'),
   },
   'icon-terminal-32': {
     isFont: false,

@@ -155,6 +155,7 @@ protocol constants {
     SCEphemeralKeyMissingBox_2902,
     SCEphemeralKeyWrongNumberOfKeys_2903,
     SCEphemeralKeyMismatchedKey_2904,
+    SCEphemeralPairwiseMACsMissingUIDs_2905,
     SCStellarError_3100,
     SCStellarBadInput_3101,
     SCStellarWrongRevision_3102,
