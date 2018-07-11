@@ -1,6 +1,5 @@
 // @flow
 // Styles from our designers
-import type {Background} from '../common-adapters/text'
 import * as CSS from './css'
 export {default as globalColors} from './colors'
 
