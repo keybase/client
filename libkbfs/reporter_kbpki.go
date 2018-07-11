@@ -268,6 +268,7 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 	suppressTimer := time.NewTimer(0)
 	suppressed := false
 	var stagedNotification *keybase1.FSNotification
+	var stagedPath string
 	var stagedStatus *keybase1.FSPathSyncStatus
 
 	for {
@@ -287,7 +288,9 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 			if !ok {
 				return
 			}
-			if err := r.config.KeybaseService().NotifyPathUpdated(
+			if suppressed {
+				stagedPath = path
+			} else if err := r.config.KeybaseService().NotifyPathUpdated(
 				ctx, path); err != nil {
 				r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
 					"notification for path: %s", err)
@@ -317,6 +320,14 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 						"notification: %s", err)
 				}
 				stagedNotification = nil
+			}
+			if stagedPath != "" {
+				if err := r.config.KeybaseService().NotifyPathUpdated(
+					ctx, stagedPath); err != nil {
+					r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
+						"notification for path: %s", err)
+				}
+				stagedPath = ""
 			}
 			if stagedStatus != nil {
 				if err := r.config.KeybaseService().NotifySyncStatus(ctx,
