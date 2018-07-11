@@ -5,7 +5,14 @@ import * as Types from '../../../constants/types/teams'
 import AddPeopleHow from './add-people-how/container'
 import {Box, Button, ButtonBar, Icon, Meta, NameWithIcon, Text} from '../../../common-adapters'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
+import {
+  collapseStyles,
+  globalColors,
+  globalMargins,
+  globalStyles,
+  isMobile,
+  platformStyles,
+} from '../../../styles'
 
 export type Props = {
   canChat: boolean,
@@ -61,11 +68,19 @@ const _TeamHeader = (props: Props) => (
       {/* Description */}
       {!props.loading && (props.canEditDescription || props.description) ? (
         <Text
-          style={{
-            paddingTop: globalMargins.tiny,
-            color: props.description ? globalColors.black_75 : globalColors.black_20,
-            maxWidth: 560,
-          }}
+          className={props.description ? 'hover-underline' : ''}
+          style={collapseStyles([
+            {
+              color: props.description ? globalColors.black_75 : globalColors.black_20,
+              maxWidth: 560,
+              paddingTop: globalMargins.tiny,
+            },
+            platformStyles({
+              isElectron: {
+                cursor: props.description ? 'text' : 'pointer',
+              },
+            }),
+          ])}
           onClick={props.canEditDescription ? props.onEditDescription : null}
           type={props.canEditDescription ? 'BodySecondaryLink' : 'Body'}
         >
