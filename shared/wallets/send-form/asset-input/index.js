@@ -3,6 +3,40 @@ import * as React from 'react'
 import {Box2, Icon, NewInput, Text} from '../../../common-adapters'
 import {collapseStyles, globalColors, styleSheetCreate} from '../../../styles'
 
+
+type WarningTextProps = {|
+  asset: string
+  payee?: string
+  warningType: 'overmax' | 'badAsset',
+|}
+
+export const WarningText = (props: CounterpartyTextProps) => {
+  const assetPrompt = <Text type={textTypeSemibold}>{props.asset}</Text>
+
+  switch (props.warningType) {
+    case 'overmax':
+      return (
+        <Text>
+          Your available to send is {assetPrompt}
+        </Text>
+      )
+    case 'badAsset':
+      return (
+        <Text>
+          {props.payee} doesn't accept {assetPrompt}
+        </Text>
+        <Text>
+          Please pick another asset.
+        </Text>
+      )
+    default:
+
+      break
+  }
+  return null
+}
+
+
 type Props = {
   bottomLabel: string,
   displayUnit: string,
