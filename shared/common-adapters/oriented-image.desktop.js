@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import fs from 'fs'
 import EXIF from 'exif-js'
 import {noop, isNumber} from 'lodash-es'
 import logger from '../logger'
@@ -46,9 +47,24 @@ const makeStyleTransform = (orientation: ?number): string => {
   return transform
 }
 
+/*
+ * OrientedImage handles two situations of reading EXIF orienation bits.
+ * 1. When the user is adding an image, we want to render a preview of the
+ * image with the correct exif orientation
+ * 2. Once the image has been uploaded we will have to reorient the image again
+ * while viewing in full screen (this is due to Chrome not respecting EXIF
+ * orientation on images since 2012)
+ *
+ * When rendering a preview, the image location is on the user's file system.
+ * That means that in order to read the raw image data for EXIF, we will need
+ * to render the image into a canvas element and read the bytes using the
+ * Canvas API. Croppie will take care of this and simply render the oriented
+ * image in a canvas element for us.
+ */
 class OrientedImage extends React.Component<Props, State> {
   static defaultProps = {
     onLoad: noop,
+    preview: false,
   }
 
   state = {
@@ -57,7 +73,8 @@ class OrientedImage extends React.Component<Props, State> {
 
   _hasComponentMounted = false
 
-  _handleData = src => img => {
+  // Parse and update img exif data
+  _readOrientation = (src, img) => {
     const orientation: ?number = EXIF.getTag(img, 'Orientation')
     // If there is no Orientation data set for the image, then mark it as null
     // in the cache to avoid subsequent calls to EXIF
@@ -74,6 +91,43 @@ class OrientedImage extends React.Component<Props, State> {
     })
   }
 
+  // EXIF will make a local HTTP request for images that have been uploaded to the Keybase service.
+  // If the image is base64 encoded (local) it will read the exif data from the dataURI (no HTTP request)
+  _readExifData = src => {
+    return new Promise((resolve, reject) => {
+      const ret = EXIF.getData({src}, function() {
+        resolve(this)
+      })
+      if (!ret) reject(new Error('EXIF failed to fetch image data'))
+    })
+  }
+
+  // When the user uploads a local image, we need to read the content directly
+  // from the filesystem and encode the result as a base64 iamge so that EXIF
+  // can process the orientation without attempting to make an HTTP request to
+  // the local image which would violate CORS.
+  _loadImageLocal = src => {
+    return new Promise((resolve, reject) => {
+      fs.readFile(src, (err, buffer) => {
+        if (err) return reject(err)
+
+        const imageBase64 = buffer.toString('base64')
+        const dataURI = `data:image/jpeg;base64,${imageBase64}`
+        resolve(dataURI)
+      })
+    })
+  }
+
+  _handleImageLoadSuccess = (src, img) => {
+    if (!this._hasComponentMounted) return
+    this._readOrientation(src, img)
+  }
+
+  // Don't perform transforms if the image cannot be loaded or there is no EXIF data
+  _handleImgeLoadFailure = src => {
+    _cacheStyleTransforms[src] = NO_TRANSFORM
+  }
+
   _setTranformForExifOrientation(src) {
     if (!this._hasComponentMounted) return
 
@@ -86,20 +140,15 @@ class OrientedImage extends React.Component<Props, State> {
       return this.setState({styleTransform: _cacheStyleTransforms[src]})
     }
 
-    // EXIF will make an HTTP request locally to 127.0.0.1:* to fetch the
-    // image that the keybase service is serving
-    // img = this refers to the image ArrayBuffer fetched from the local server.
-    const handleData = this._handleData(src)
-    const _hasComponentMounted = () => this._hasComponentMounted
-
-    try {
-      EXIF.getData({src}, function() {
-        if (!_hasComponentMounted()) return
-        handleData(this)
-      })
-    } catch (_) {
-      // Mark src as null in the cache to avoid making subsequent calls.
-      _cacheStyleTransforms[src] = NO_TRANSFORM
+    if (this.props.preview) {
+      this._loadImageLocal(src)
+        .then(dataURI => this._readExifData(dataURI))
+        .then(img => this._handleImageLoadSuccess(src, img))
+        .catch(() => this._handleImgeLoadFailure(src))
+    } else {
+      this._readExifData(src)
+        .then(img => this._handleImageLoadSuccess(src, img))
+        .catch(() => this._handleImgeLoadFailure(src))
     }
   }
 
