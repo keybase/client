@@ -213,6 +213,11 @@ export const localOutboxStateType = {
   error: 1,
 }
 
+export const localPreviewLocationTyp = {
+  url: 0,
+  file: 1,
+}
+
 export const notifyChatChatActivityType = {
   reserved: 0,
   incomingMessage: 1,
@@ -531,7 +536,7 @@ export type LocalGetThreadNonblockRpcParam = $ReadOnly<{conversationID: Conversa
 export type LocalJoinConversationByIDLocalRpcParam = $ReadOnly<{convID: ConversationID}>
 export type LocalJoinConversationLocalRpcParam = $ReadOnly<{tlfName: String, topicType: TopicType, visibility: Keybase1.TLFVisibility, topicName: String}>
 export type LocalLeaveConversationLocalRpcParam = $ReadOnly<{convID: ConversationID}>
-export type LocalMakePreviewRpcParam = $ReadOnly<{attachment: LocalFileSource, outputDir: String}>
+export type LocalMakePreviewRpcParam = $ReadOnly<{attachment: LocalFileSource, outboxID: OutboxID}>
 export type LocalMarkAsReadLocalRpcParam = $ReadOnly<{conversationID: ConversationID, msgID: MessageID}>
 export type LocalNewConversationLocalRpcParam = $ReadOnly<{tlfName: String, topicType: TopicType, tlfVisibility: Keybase1.TLFVisibility, topicName?: ?String, membersType: ConversationMembersType, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 export type LocalPostAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, outboxID?: ?OutboxID, ephemeralLifetime?: ?Gregor1.DurationSec}>
@@ -560,7 +565,7 @@ export type LocalSource = $ReadOnly<{source: Keybase1.Stream, filename: String, 
 export type LocalUnboxMobilePushNotificationRpcParam = $ReadOnly<{payload: String, convID: String, membersType: ConversationMembersType, pushIDs?: ?Array<String>, shouldAck: Boolean}>
 export type LocalUpdateTypingRpcParam = $ReadOnly<{conversationID: ConversationID, typing: Boolean}>
 export type LocalUpgradeKBFSConversationToImpteamRpcParam = $ReadOnly<{convID: ConversationID}>
-export type MakePreviewRes = $ReadOnly<{mimeType: String, filename?: ?String, metadata?: ?AssetMetadata, baseMetadata?: ?AssetMetadata}>
+export type MakePreviewRes = $ReadOnly<{mimeType: String, location?: ?PreviewLocation, metadata?: ?AssetMetadata, baseMetadata?: ?AssetMetadata}>
 export type MarkAsReadLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
 export type MarkAsReadRes = $ReadOnly<{rateLimit?: ?RateLimit}>
 export type MemberInfo = $ReadOnly<{member: String, status: ConversationMemberStatus}>
@@ -697,6 +702,11 @@ export type Pagination = $ReadOnly<{next: Bytes, previous: Bytes, num: Int, last
 export type PostLocalNonblockRes = $ReadOnly<{rateLimits?: ?Array<RateLimit>, outboxID: OutboxID, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type PostLocalRes = $ReadOnly<{rateLimits?: ?Array<RateLimit>, messageID: MessageID, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type PostRemoteRes = $ReadOnly<{msgHeader: MessageServerHeader, rateLimit?: ?RateLimit}>
+export type PreviewLocation = {ltyp: 0, url: ?String} | {ltyp: 1, file: ?String}
+export type PreviewLocationTyp =
+  | 0 // URL_0
+  | 1 // FILE_1
+
 export type RateLimit = $ReadOnly<{name: String, callsRemaining: Int, windowReset: Int, maxCalls: Int}>
 export type Reaction = $ReadOnly<{username: String, reactionMsgID: MessageID}>
 export type ReactionMap = $ReadOnly<{reactions: {[key: string]: ?Array<Reaction>}}>

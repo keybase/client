@@ -804,13 +804,23 @@ protocol local {
   @lint("ignore")
   DownloadAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
 
+  enum PreviewLocationTyp {
+    URL_0,
+    FILE_1
+  }
+
+  variant PreviewLocation switch (PreviewLocationTyp ltyp) {
+    case URL: string;
+    case FILE: string;
+  }
+
   record MakePreviewRes {
     string mimeType;        // this will always be populated
-    union {null, string} filename;    // will exist if service is able to make a preview
+    union {null, PreviewLocation} location;    // will exist if service is able to make a preview
     union {null, AssetMetadata} metadata; // will exist if service is able to make a preview
     union {null, AssetMetadata} baseMetadata; // will exist if service is able to get base metadata
   }
-  MakePreviewRes makePreview(int sessionID, LocalFileSource attachment, string outputDir);
+  MakePreviewRes makePreview(int sessionID, LocalFileSource attachment, OutboxID outboxID);
 
   @lint("ignore")
   void CancelPost(OutboxID outboxID);

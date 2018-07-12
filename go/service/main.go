@@ -8,6 +8,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"path/filepath"
 	"runtime"
 	"runtime/pprof"
 	"runtime/trace"
@@ -347,6 +348,23 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	go d.identifySelf()
 }
 
+func (d *Service) purgeOldChatAttachmentData() {
+	purge := func(glob string) {
+		files, err := filepath.Glob(filepath.Join(d.G().GetCacheDir(), glob))
+		if err != nil {
+			d.G().Log.Debug("purgeOldChatAttachmentData: failed to get %s files: %s", glob, err)
+		} else {
+			for _, f := range files {
+				if err := os.Remove(f); err != nil {
+					d.G().Log.Debug("purgeOldChatAttachmentData: failed to remove: name: %s err: %s", f, err)
+				}
+			}
+		}
+	}
+	purge("kbchat*")
+	purge("prev*")
+}
+
 func (d *Service) startChatModules() {
 	uid := d.G().Env.GetUID()
 	if !uid.IsNil() {
@@ -357,6 +375,7 @@ func (d *Service) startChatModules() {
 		g.FetchRetrier.Start(context.Background(), uid)
 		g.EphemeralPurger.Start(context.Background(), uid)
 	}
+	d.purgeOldChatAttachmentData()
 }
 
 func (d *Service) stopChatModules() {
