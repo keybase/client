@@ -15,6 +15,7 @@ import {
 } from '../../../common-adapters'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
 import {
+  collapseStyles,
   globalColors,
   globalMargins,
   globalStyles,
@@ -77,11 +78,12 @@ const _TeamHeader = (props: Props) => (
       {/* Description */}
       {!props.loading && (props.canEditDescription || props.description) ? (
         <Text
-          style={{
-            paddingTop: globalMargins.tiny,
-            color: props.description ? globalColors.black_75 : globalColors.black_20,
-            maxWidth: 560,
-          }}
+          style={collapseStyles([
+            styles.description,
+            {
+              color: props.description ? globalColors.black_75 : globalColors.black_20,
+            },
+          ])}
           onClick={props.canEditDescription ? props.onEditDescription : null}
           type={props.canEditDescription ? 'BodySecondaryLink' : 'Body'}
         >
@@ -92,18 +94,11 @@ const _TeamHeader = (props: Props) => (
       )}
 
       {/* Actions */}
-      <ButtonBar direction="row" style={isMobile ? {width: 'auto', marginBottom: -8} : undefined}>
+      <ButtonBar direction="row" style={styles.buttonBar}>
         {props.loading && <ProgressIndicator style={styles.progressIndicator} />}
         {props.canChat && (
           <Button type="Primary" label="Chat" onClick={props.onChat}>
-            <Icon
-              type="iconfont-chat"
-              style={{
-                marginRight: 8,
-              }}
-              color={globalColors.white}
-              size={22}
-            />
+            <Icon type="iconfont-chat" style={styles.chatIcon} color={globalColors.white} size={22} />
           </Button>
         )}
         {props.canManageMembers && (
@@ -126,30 +121,16 @@ const _TeamHeader = (props: Props) => (
 
       {/* CLI hint */}
       {!isMobile && (
-        <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', margin: 20}}>
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginBottom: globalMargins.xtiny}}>
-            <Box style={{backgroundColor: globalColors.black_05, height: 1, width: 24}} />
-            <Icon
-              style={{
-                paddingLeft: globalMargins.tiny,
-                paddingRight: globalMargins.tiny,
-              }}
-              color={globalColors.black_10}
-              type="iconfont-info"
-            />
-            <Box style={{backgroundColor: globalColors.black_05, height: 1, width: 24}} />
+        <Box style={styles.cliContainer}>
+          <Box style={styles.cliIconWrapper}>
+            <Box style={styles.cliIconLine} />
+            <Icon style={styles.cliIcon} color={globalColors.black_10} type="iconfont-info" />
+            <Box style={styles.cliIconLine} />
           </Box>
-          <Text type="BodySmall" style={{textAlign: 'center'}}>
+          <Text type="BodySmall" style={styles.cliInstructionText}>
             You can also manage teams from the terminal:
           </Text>
-          <Text
-            type="TerminalInline"
-            selectable={true}
-            style={{
-              marginLeft: globalMargins.xtiny,
-              marginTop: globalMargins.xtiny,
-            }}
-          >
+          <Text type="TerminalInline" selectable={true} style={styles.cliTerminalText}>
             keybase team --help
           </Text>
         </Box>
@@ -189,6 +170,41 @@ const styles = styleSheetCreate({
     color: globalColors.white,
     textAlign: 'center',
   },
+  buttonBar: platformStyles({
+    isMobile: {
+      marginBottom: -8,
+      width: 'auto',
+    },
+  }),
+  chatIcon: {
+    marginRight: 8,
+  },
+  cliContainer: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    margin: 20,
+  },
+  cliIcon: {
+    paddingLeft: globalMargins.tiny,
+    paddingRight: globalMargins.tiny,
+  },
+  cliIconLine: {
+    backgroundColor: globalColors.black_05,
+    height: 1,
+    width: 24,
+  },
+  cliIconWrapper: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    marginBottom: globalMargins.xtiny,
+  },
+  cliInstructionText: {
+    textAlign: 'center',
+  },
+  cliTerminalText: {
+    marginLeft: globalMargins.xtiny,
+    marginTop: globalMargins.xtiny,
+  },
   container: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
@@ -196,6 +212,10 @@ const styles = styleSheetCreate({
     height: '100%',
     position: 'relative',
     width: '100%',
+  },
+  description: {
+    maxWidth: 560,
+    paddingTop: globalMargins.tiny,
   },
   meta: {
     alignSelf: 'center',
@@ -209,11 +229,12 @@ const styles = styleSheetCreate({
     common: {
       ...globalStyles.flexBoxColumn,
       alignItems: 'center',
-      paddingLeft: isMobile ? 0 : globalMargins.medium,
-      paddingRight: isMobile ? 0 : globalMargins.medium,
-      paddingTop: isMobile ? globalMargins.medium : globalMargins.tiny,
+      paddingLeft: globalMargins.medium,
+      paddingRight: globalMargins.medium,
+      paddingTop: globalMargins.tiny,
     },
     isElectron: {
+      paddingTop: globalMargins.medium,
       textAlign: 'center',
     },
   }),
