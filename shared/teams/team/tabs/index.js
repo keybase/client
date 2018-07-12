@@ -60,7 +60,7 @@ const TeamTabs = (props: TeamTabsProps) => {
 
   tabs.push(
     isMobile ? (
-      <Icon key="settings" type="iconfont-nav-settings" style={{alignSelf: 'center'}} />
+      <Icon key="settings" type="iconfont-nav-settings" style={styles.icon} />
     ) : (
       <Text key="settings" type="BodySmallSemibold" style={styles.tabText}>
         SETTINGS
@@ -102,6 +102,9 @@ const styles = styleSheetCreate({
       flexGrow: 1,
     },
   }),
+  icon: {
+    alignSelf: 'center',
+  },
   tab: platformStyles({
     isMobile: {
       paddingLeft: globalMargins.tiny,
