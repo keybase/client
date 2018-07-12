@@ -41,6 +41,11 @@ export default function(
         error: '',
         provisionSelectedDevice: state.provisionDevices.find(d => d.name === action.payload.name),
       })
+    case LoginGen.submitProvisionTextCode:
+      return state.merge({
+        codePageTextCode: action.payload.phrase,
+        error: '',
+      })
     case LoginGen.submitProvisionDeviceName:
       if (state.provisionExistingDevices.indexOf(state.provisionDeviceName) !== -1) {
         return state.merge({
@@ -82,7 +87,6 @@ export default function(
     case LoginGen.launchAccountResetWebPage:
     case LoginGen.submitProvisionPasswordInsteadOfDevice:
     case LoginGen.launchForgotPasswordWebPage:
-    case LoginGen.submitProvisionTextCodeEntered:
     case LoginGen.submitPassphrase:
       return state
     default:

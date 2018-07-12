@@ -419,6 +419,24 @@ const displayAndPromptSecretHandler = (
     })
   )
 }
+const submitProvisionTextCode = (state: TypedState) => {
+  // local error, ignore
+  if (state.login.error) {
+    return
+  }
+
+  const response = provisioningManager.getAndClearResponse('keybase.1.provisionUi.DisplayAndPromptSecret')
+  if (!response || !response.result) {
+    throw new Error('Tried to submit a code but missing callback')
+  }
+
+  if (!state.login.codePageTextCode.stringValue()) {
+    response.error()
+    throw new Error('Tried to submit a code but missing in store')
+  }
+
+  response.result(state.login.codePageTextCode.stringValue())
+}
 
 /**
  * We are starting the provisioning process. This is largely controlled by the daemon. We get a callback to show various
@@ -492,6 +510,7 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   // Submits
   yield Saga.safeTakeEveryPureSimple(LoginGen.submitProvisionDeviceSelect, submitProvisionDeviceSelect)
   yield Saga.safeTakeEveryPureSimple(LoginGen.submitProvisionDeviceName, submitProvisionDeviceName)
+  yield Saga.safeTakeEveryPureSimple(LoginGen.submitProvisionTextCode, submitProvisionTextCode)
 
   // Screens
   yield Saga.safeTakeEveryPureSimple(LoginGen.showDeviceList, showDeviceList)

@@ -33,7 +33,7 @@ export const submitPassphrase = 'login:submitPassphrase'
 export const submitProvisionDeviceName = 'login:submitProvisionDeviceName'
 export const submitProvisionDeviceSelect = 'login:submitProvisionDeviceSelect'
 export const submitProvisionPasswordInsteadOfDevice = 'login:submitProvisionPasswordInsteadOfDevice'
-export const submitProvisionTextCodeEntered = 'login:submitProvisionTextCodeEntered'
+export const submitProvisionTextCode = 'login:submitProvisionTextCode'
 export const submitUsernameOrEmail = 'login:submitUsernameOrEmail'
 
 // Payload Types
@@ -74,7 +74,7 @@ type _SubmitPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
 type _SubmitProvisionDeviceNamePayload = $ReadOnly<{|name: string|}>
 type _SubmitProvisionDeviceSelectPayload = $ReadOnly<{|name: string|}>
 type _SubmitProvisionPasswordInsteadOfDevicePayload = void
-type _SubmitProvisionTextCodeEnteredPayload = $ReadOnly<{|phrase: HiddenString|}>
+type _SubmitProvisionTextCodePayload = $ReadOnly<{|phrase: HiddenString|}>
 type _SubmitUsernameOrEmailPayload = $ReadOnly<{|usernameOrEmail: string|}>
 
 // Action Creators
@@ -109,7 +109,7 @@ export const createSubmitPassphrase = (payload: _SubmitPassphrasePayload) => ({e
 export const createSubmitProvisionDeviceName = (payload: _SubmitProvisionDeviceNamePayload) => ({error: false, payload, type: submitProvisionDeviceName})
 export const createSubmitProvisionDeviceSelect = (payload: _SubmitProvisionDeviceSelectPayload) => ({error: false, payload, type: submitProvisionDeviceSelect})
 export const createSubmitProvisionPasswordInsteadOfDevice = (payload: _SubmitProvisionPasswordInsteadOfDevicePayload) => ({error: false, payload, type: submitProvisionPasswordInsteadOfDevice})
-export const createSubmitProvisionTextCodeEntered = (payload: _SubmitProvisionTextCodeEnteredPayload) => ({error: false, payload, type: submitProvisionTextCodeEntered})
+export const createSubmitProvisionTextCode = (payload: _SubmitProvisionTextCodePayload) => ({error: false, payload, type: submitProvisionTextCode})
 export const createSubmitUsernameOrEmail = (payload: _SubmitUsernameOrEmailPayload) => ({error: false, payload, type: submitUsernameOrEmail})
 
 // Action Payloads
@@ -138,7 +138,7 @@ export type SubmitPassphrasePayload = $Call<typeof createSubmitPassphrase, _Subm
 export type SubmitProvisionDeviceNamePayload = $Call<typeof createSubmitProvisionDeviceName, _SubmitProvisionDeviceNamePayload>
 export type SubmitProvisionDeviceSelectPayload = $Call<typeof createSubmitProvisionDeviceSelect, _SubmitProvisionDeviceSelectPayload>
 export type SubmitProvisionPasswordInsteadOfDevicePayload = $Call<typeof createSubmitProvisionPasswordInsteadOfDevice, _SubmitProvisionPasswordInsteadOfDevicePayload>
-export type SubmitProvisionTextCodeEnteredPayload = $Call<typeof createSubmitProvisionTextCodeEntered, _SubmitProvisionTextCodeEnteredPayload>
+export type SubmitProvisionTextCodePayload = $Call<typeof createSubmitProvisionTextCode, _SubmitProvisionTextCodePayload>
 export type SubmitUsernameOrEmailPayload = $Call<typeof createSubmitUsernameOrEmail, _SubmitUsernameOrEmailPayload>
 
 // All Actions
@@ -169,6 +169,6 @@ export type Actions =
   | SubmitProvisionDeviceNamePayload
   | SubmitProvisionDeviceSelectPayload
   | SubmitProvisionPasswordInsteadOfDevicePayload
-  | SubmitProvisionTextCodeEnteredPayload
+  | SubmitProvisionTextCodePayload
   | SubmitUsernameOrEmailPayload
   | {type: 'common:resetStore', payload: void}
