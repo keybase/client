@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"sort"
 	"strings"
@@ -3123,12 +3124,20 @@ func TestChatSrvMakePreview(t *testing.T) {
 		},
 		OutboxID: outboxID,
 	}
+	ri := ctc.as(t, user).ri
+	tc := ctc.world.Tcs[user.Username]
+	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(), DummyAttachmentFetcher{},
+		func() chat1.RemoteInterface { return ri })
 	res, err := ctc.as(t, user).chatLocalHandler().MakePreview(context.TODO(), arg)
 	require.NoError(t, err)
 	require.NotNil(t, res.Location)
 	typ, err := res.Location.Ltyp()
 	require.NoError(t, err)
 	require.Equal(t, chat1.PreviewLocationTyp_URL, typ)
+	require.True(t, strings.Contains(res.Location.Url(), outboxID.String()))
+	resp, err := http.Get(res.Location.Url())
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode)
 	require.NotNil(t, res.Metadata)
 	require.Equal(t, "image/jpeg", res.MimeType)
 	img := res.Metadata.Image()
