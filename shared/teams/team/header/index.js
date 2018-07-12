@@ -5,7 +5,14 @@ import * as Types from '../../../constants/types/teams'
 import AddPeopleHow from './add-people-how/container'
 import {Box, Button, ButtonBar, Icon, Meta, NameWithIcon, Text} from '../../../common-adapters'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
+import {
+  globalColors,
+  globalMargins,
+  globalStyles,
+  isMobile,
+  platformStyles,
+  styleSheetCreate,
+} from '../../../styles'
 
 export type Props = {
   canChat: boolean,
@@ -26,16 +33,16 @@ export type Props = {
 } & FloatingMenuParentProps
 
 const _TeamHeader = (props: Props) => (
-  <Box style={stylesContainer}>
+  <Box style={styles.container}>
     {props.canJoinTeam && (
-      <Box key="add yourself" style={stylesAddYourselfBanner}>
-        <Text type="BodySemibold" style={stylesAddYourselfBannerText}>
+      <Box key="add yourself" style={styles.addYourselfBanner}>
+        <Text type="BodySemibold" style={styles.addYourselfBannerText}>
           You are not a member of this team.
         </Text>
         <Text
           backgroundMode="Information"
           type="BodySemiboldLink"
-          style={stylesAddYourselfBannerText}
+          style={styles.addYourselfBannerText}
           onClick={props.onAddSelf}
           underline={true}
         >
@@ -43,7 +50,7 @@ const _TeamHeader = (props: Props) => (
         </Text>
       </Box>
     )}
-    <Box style={stylesTeamHeader}>
+    <Box style={styles.teamHeader}>
       {/* Summary */}
       <NameWithIcon
         size="large"
@@ -52,7 +59,7 @@ const _TeamHeader = (props: Props) => (
         metaOne={
           <Box style={globalStyles.flexBoxRow}>
             <Text type="BodySmall">TEAM</Text>
-            {props.openTeam && <Meta style={stylesMeta} title="open" backgroundColor={globalColors.green} />}
+            {props.openTeam && <Meta style={styles.meta} title="open" backgroundColor={globalColors.green} />}
           </Box>
         }
         metaTwo={getTeamSubtitle(props.memberCount, props.role)}
@@ -154,46 +161,52 @@ const getTeamSubtitle = (memberCount: number, role: Types.MaybeTeamRoleType): st
   return res
 }
 
-const stylesContainer = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flex: 1,
-  width: '100%',
-  height: '100%',
-  position: 'relative',
-}
-
-const stylesAddYourselfBanner = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  alignSelf: 'stretch',
-  backgroundColor: globalColors.blue,
-  justifyContent: 'center',
-  minHeight: 40,
-  marginBottom: globalMargins.tiny,
-  paddingBottom: globalMargins.tiny,
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
-  paddingTop: globalMargins.tiny,
-}
-
-const stylesAddYourselfBannerText = {
-  color: globalColors.white,
-  textAlign: 'center',
-}
-
-const stylesTeamHeader = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  textAlign: 'center',
-  paddingLeft: isMobile ? 0 : globalMargins.medium,
-  paddingRight: isMobile ? 0 : globalMargins.medium,
-  paddingTop: isMobile ? globalMargins.medium : globalMargins.tiny,
-}
-
-const stylesMeta = {
-  alignSelf: 'center',
-  marginLeft: globalMargins.tiny,
-}
+const styles = styleSheetCreate({
+  addYourselfBanner: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    backgroundColor: globalColors.blue,
+    justifyContent: 'center',
+    marginBottom: globalMargins.tiny,
+    minHeight: 40,
+    paddingBottom: globalMargins.tiny,
+    paddingLeft: globalMargins.medium,
+    paddingRight: globalMargins.medium,
+    paddingTop: globalMargins.tiny,
+  },
+  addYourselfBannerText: {
+    color: globalColors.white,
+    textAlign: 'center',
+  },
+  container: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    flex: 1,
+    height: '100%',
+    position: 'relative',
+    width: '100%',
+  },
+  meta: {
+    alignSelf: 'center',
+    marginLeft: globalMargins.tiny,
+  },
+  progressIndicator: {
+    height: 17,
+    width: 17,
+  },
+  teamHeader: platformStyles({
+    common: {
+      ...globalStyles.flexBoxColumn,
+      alignItems: 'center',
+      paddingLeft: isMobile ? 0 : globalMargins.medium,
+      paddingRight: isMobile ? 0 : globalMargins.medium,
+      paddingTop: isMobile ? globalMargins.medium : globalMargins.tiny,
+    },
+    isElectron: {
+      textAlign: 'center',
+    },
+  }),
+})
 
 export {TeamHeader}
