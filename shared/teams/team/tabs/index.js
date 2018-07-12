@@ -2,7 +2,15 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
-import {Badge, Box, Icon, Tabs, Text} from '../../../common-adapters'
+import {
+  iconCastPlatformStyles,
+  Badge,
+  Box,
+  Icon,
+  ProgressIndicator,
+  Tabs,
+  Text,
+} from '../../../common-adapters'
 import {globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../styles'
 
 type TeamTabsProps = {
@@ -60,13 +68,17 @@ const TeamTabs = (props: TeamTabsProps) => {
 
   tabs.push(
     isMobile ? (
-      <Icon key="settings" type="iconfont-nav-settings" style={styles.icon} />
+      <Icon key="settings" type="iconfont-nav-settings" style={iconCastPlatformStyles(styles.icon)} />
     ) : (
       <Text key="settings" type="BodySmallSemibold" style={styles.tabText}>
         SETTINGS
       </Text>
     )
   )
+
+  if (!isMobile && props.loading) {
+    tabs.push(<ProgressIndicator style={styles.progressIndicator} />)
+  }
 
   const onSelect = (tab: any) => {
     const key = tab && tab.key
@@ -104,6 +116,10 @@ const styles = styleSheetCreate({
   }),
   icon: {
     alignSelf: 'center',
+  },
+  progressIndicator: {
+    height: 17,
+    width: 17,
   },
   tab: platformStyles({
     isMobile: {

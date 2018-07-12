@@ -4,13 +4,13 @@ import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import AddPeopleHow from './add-people-how/container'
 import {
+  iconCastPlatformStyles,
   Box,
   Button,
   ButtonBar,
   Icon,
   Meta,
   NameWithIcon,
-  ProgressIndicator,
   Text,
 } from '../../../common-adapters'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
@@ -76,7 +76,7 @@ const _TeamHeader = (props: Props) => (
       />
 
       {/* Description */}
-      {!props.loading && (props.canEditDescription || props.description) ? (
+      {props.canEditDescription || props.description ? (
         <Text
           style={collapseStyles([
             styles.description,
@@ -95,10 +95,14 @@ const _TeamHeader = (props: Props) => (
 
       {/* Actions */}
       <ButtonBar direction="row" style={styles.buttonBar}>
-        {props.loading && <ProgressIndicator style={styles.progressIndicator} />}
         {props.canChat && (
           <Button type="Primary" label="Chat" onClick={props.onChat}>
-            <Icon type="iconfont-chat" style={styles.chatIcon} color={globalColors.white} size={22} />
+            <Icon
+              type="iconfont-chat"
+              style={iconCastPlatformStyles(styles.chatIcon)}
+              color={globalColors.white}
+              size={22}
+            />
           </Button>
         )}
         {props.canManageMembers && (
@@ -124,7 +128,11 @@ const _TeamHeader = (props: Props) => (
         <Box style={styles.cliContainer}>
           <Box style={styles.cliIconWrapper}>
             <Box style={styles.cliIconLine} />
-            <Icon style={styles.cliIcon} color={globalColors.black_10} type="iconfont-info" />
+            <Icon
+              style={iconCastPlatformStyles(styles.cliIcon)}
+              color={globalColors.black_10}
+              type="iconfont-info"
+            />
             <Box style={styles.cliIconLine} />
           </Box>
           <Text type="BodySmall" style={styles.cliInstructionText}>
@@ -220,10 +228,6 @@ const styles = styleSheetCreate({
   meta: {
     alignSelf: 'center',
     marginLeft: globalMargins.tiny,
-  },
-  progressIndicator: {
-    height: 17,
-    width: 17,
   },
   teamHeader: platformStyles({
     common: {
