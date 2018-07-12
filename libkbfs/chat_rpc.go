@@ -366,7 +366,10 @@ func (c *ChatRPC) getLastSelfWrittenHandles(
 			h, err := GetHandleFromFolderNameAndType(
 				ctx, c.config.KBPKI(), c.config.MDOps(), tlfName, tlfType)
 			if err != nil {
-				return nil, err
+				c.log.CDebugf(ctx,
+					"Ignoring errors getting handle for %s/%s: %+v",
+					tlfName, tlfType, err)
+				continue
 			}
 
 			p := h.GetCanonicalPath()
@@ -429,7 +432,9 @@ func (c *ChatRPC) GetGroupedInbox(
 		h, err := GetHandleFromFolderNameAndType(
 			ctx, c.config.KBPKI(), c.config.MDOps(), info.TlfName, tlfType)
 		if err != nil {
-			return nil, err
+			c.log.CDebugf(ctx, "Ignoring errors getting handle for %s/%s: %+v",
+				info.TlfName, tlfType, err)
+			continue
 		}
 
 		p := h.GetCanonicalPath()
