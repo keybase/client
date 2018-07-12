@@ -809,6 +809,18 @@ func (o MessageSendPayment) DeepCopy() MessageSendPayment {
 	}
 }
 
+type MessageRequestPayment struct {
+	RequestID string `codec:"requestID" json:"requestID"`
+	Note      string `codec:"note" json:"note"`
+}
+
+func (o MessageRequestPayment) DeepCopy() MessageRequestPayment {
+	return MessageRequestPayment{
+		RequestID: o.RequestID,
+		Note:      o.Note,
+	}
+}
+
 type MessageBody struct {
 	MessageType__        MessageType                  `codec:"messageType" json:"messageType"`
 	Text__               *MessageText                 `codec:"text,omitempty" json:"text,omitempty"`
@@ -824,6 +836,7 @@ type MessageBody struct {
 	Deletehistory__      *MessageDeleteHistory        `codec:"deletehistory,omitempty" json:"deletehistory,omitempty"`
 	Reaction__           *MessageReaction             `codec:"reaction,omitempty" json:"reaction,omitempty"`
 	Sendpayment__        *MessageSendPayment          `codec:"sendpayment,omitempty" json:"sendpayment,omitempty"`
+	Requestpayment__     *MessageRequestPayment       `codec:"requestpayment,omitempty" json:"requestpayment,omitempty"`
 }
 
 func (o *MessageBody) MessageType() (ret MessageType, err error) {
@@ -891,6 +904,11 @@ func (o *MessageBody) MessageType() (ret MessageType, err error) {
 	case MessageType_SENDPAYMENT:
 		if o.Sendpayment__ == nil {
 			err = errors.New("unexpected nil value for Sendpayment__")
+			return ret, err
+		}
+	case MessageType_REQUESTPAYMENT:
+		if o.Requestpayment__ == nil {
+			err = errors.New("unexpected nil value for Requestpayment__")
 			return ret, err
 		}
 	}
@@ -1027,6 +1045,16 @@ func (o MessageBody) Sendpayment() (res MessageSendPayment) {
 	return *o.Sendpayment__
 }
 
+func (o MessageBody) Requestpayment() (res MessageRequestPayment) {
+	if o.MessageType__ != MessageType_REQUESTPAYMENT {
+		panic("wrong case accessed")
+	}
+	if o.Requestpayment__ == nil {
+		return
+	}
+	return *o.Requestpayment__
+}
+
 func NewMessageBodyWithText(v MessageText) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_TEXT,
@@ -1115,6 +1143,13 @@ func NewMessageBodyWithSendpayment(v MessageSendPayment) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_SENDPAYMENT,
 		Sendpayment__: &v,
+	}
+}
+
+func NewMessageBodyWithRequestpayment(v MessageRequestPayment) MessageBody {
+	return MessageBody{
+		MessageType__:    MessageType_REQUESTPAYMENT,
+		Requestpayment__: &v,
 	}
 }
 
@@ -1212,6 +1247,13 @@ func (o MessageBody) DeepCopy() MessageBody {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Sendpayment__),
+		Requestpayment__: (func(x *MessageRequestPayment) *MessageRequestPayment {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Requestpayment__),
 	}
 }
 

@@ -125,6 +125,7 @@ export type LocalGetDisplayCurrenciesLocalRpcParam = void
 export type LocalGetDisplayCurrencyLocalRpcParam = $ReadOnly<{accountID: AccountID}>
 export type LocalGetPaymentDetailsLocalRpcParam = $ReadOnly<{accountID: AccountID, id: PaymentID}>
 export type LocalGetPaymentsLocalRpcParam = $ReadOnly<{accountID: AccountID, cursor?: ?PageCursor}>
+export type LocalGetRequestDetailsLocalRpcParam = $ReadOnly<{reqID: KeybaseRequestID}>
 export type LocalGetSendAssetChoicesLocalRpcParam = $ReadOnly<{from: AccountID, to: String}>
 export type LocalGetWalletAccountPublicKeyLocalRpcParam = $ReadOnly<{accountID: AccountID}>
 export type LocalGetWalletAccountSecretKeyLocalRpcParam = $ReadOnly<{accountID: AccountID}>
@@ -132,6 +133,7 @@ export type LocalGetWalletAccountsLocalRpcParam = void
 export type LocalGetWalletSettingsLocalRpcParam = void
 export type LocalImportSecretKeyLocalRpcParam = $ReadOnly<{secretKey: SecretKey, makePrimary: Boolean}>
 export type LocalLinkNewWalletAccountLocalRpcParam = $ReadOnly<{secretKey: SecretKey, name: String}>
+export type LocalMakeRequestCLILocalRpcParam = $ReadOnly<{recipient: String, asset?: ?Asset, currency?: ?OutsideCurrencyCode, amount: String, note: String}>
 export type LocalOwnAccountLocalRpcParam = $ReadOnly<{accountID: AccountID}>
 export type LocalPaymentDetailCLILocalRpcParam = $ReadOnly<{txID: String}>
 export type LocalRecentPaymentsCLILocalRpcParam = $ReadOnly<{accountID?: ?AccountID}>
@@ -218,6 +220,7 @@ export type RemoteSubmitRelayClaimRpcParam = $ReadOnly<{caller: Keybase1.UserVer
 export type RemoteSubmitRelayPaymentRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, payment: PaymentRelayPost}>
 export type RemoteSubmitRequestRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, request: RequestPost}>
 export type RequestDetails = $ReadOnly<{id: KeybaseRequestID, fromUser: Keybase1.UserVersion, toUser?: ?Keybase1.UserVersion, toAssertion: String, amount: String, asset?: ?Asset, currency?: ?OutsideCurrencyCode, fundingKbTxID: KeybaseTransactionID}>
+export type RequestDetailsLocal = $ReadOnly<{id: KeybaseRequestID, fromAssertion: String, fromCurrentUser: Boolean, toUserType: ParticipantType, toAssertion: String, amount: String, asset?: ?Asset, currency?: ?OutsideCurrencyCode, amountDescription: String, amountStellar: String, amountStellarDescription: String, completed: Boolean, fundingKbTxID: KeybaseTransactionID}>
 export type RequestPost = $ReadOnly<{toUser?: ?Keybase1.UserVersion, toAssertion: String, amount: String, asset?: ?Asset, currency?: ?OutsideCurrencyCode}>
 export type SecretKey = String
 export type SendAssetChoiceLocal = $ReadOnly<{asset: Asset, enabled: Boolean, left: String, right: String, subtext: String}>
@@ -249,6 +252,7 @@ type LocalGetDisplayCurrenciesLocalResult = ?Array<CurrencyLocal>
 type LocalGetDisplayCurrencyLocalResult = CurrencyLocal
 type LocalGetPaymentDetailsLocalResult = PaymentDetailsLocal
 type LocalGetPaymentsLocalResult = PaymentsPageLocal
+type LocalGetRequestDetailsLocalResult = RequestDetailsLocal
 type LocalGetSendAssetChoicesLocalResult = ?Array<SendAssetChoiceLocal>
 type LocalGetWalletAccountPublicKeyLocalResult = String
 type LocalGetWalletAccountSecretKeyLocalResult = SecretKey
@@ -279,4 +283,4 @@ type RemoteSubmitRequestResult = KeybaseRequestID
 
 export type IncomingCallMapType = {||}
 
-// Not enabled calls. To enable add to enabled-calls.json: 'stellar.1.local.getPaymentDetailsLocal' 'stellar.1.local.getDisplayCurrenciesLocal' 'stellar.1.local.validateAccountIDLocal' 'stellar.1.local.changeWalletAccountNameLocal' 'stellar.1.local.setWalletAccountAsDefaultLocal' 'stellar.1.local.deleteWalletAccountLocal' 'stellar.1.local.createWalletAccountLocal' 'stellar.1.local.changeDisplayCurrencyLocal' 'stellar.1.local.getDisplayCurrencyLocal' 'stellar.1.local.getWalletSettingsLocal' 'stellar.1.local.setAcceptedDisclaimerLocal' 'stellar.1.local.getWalletAccountPublicKeyLocal' 'stellar.1.local.getSendAssetChoicesLocal' 'stellar.1.local.buildPaymentLocal' 'stellar.1.local.sendPaymentLocal' 'stellar.1.local.balancesLocal' 'stellar.1.local.sendCLILocal' 'stellar.1.local.claimCLILocal' 'stellar.1.local.recentPaymentsCLILocal' 'stellar.1.local.paymentDetailCLILocal' 'stellar.1.local.walletInitLocal' 'stellar.1.local.walletDumpLocal' 'stellar.1.local.walletGetAccountsCLILocal' 'stellar.1.local.ownAccountLocal' 'stellar.1.local.importSecretKeyLocal' 'stellar.1.local.exportSecretKeyLocal' 'stellar.1.local.setDisplayCurrency' 'stellar.1.local.exchangeRateLocal' 'stellar.1.local.getAvailableLocalCurrencies' 'stellar.1.local.formatLocalCurrencyString' 'stellar.1.remote.balances' 'stellar.1.remote.details' 'stellar.1.remote.recentPayments' 'stellar.1.remote.paymentDetails' 'stellar.1.remote.accountSeqno' 'stellar.1.remote.submitPayment' 'stellar.1.remote.submitRelayPayment' 'stellar.1.remote.submitRelayClaim' 'stellar.1.remote.acquireAutoClaimLock' 'stellar.1.remote.releaseAutoClaimLock' 'stellar.1.remote.nextAutoClaim' 'stellar.1.remote.isMasterKeyActive' 'stellar.1.remote.submitRequest' 'stellar.1.remote.requestDetails' 'stellar.1.remote.ping'
+// Not enabled calls. To enable add to enabled-calls.json: 'stellar.1.local.getPaymentDetailsLocal' 'stellar.1.local.getDisplayCurrenciesLocal' 'stellar.1.local.validateAccountIDLocal' 'stellar.1.local.changeWalletAccountNameLocal' 'stellar.1.local.setWalletAccountAsDefaultLocal' 'stellar.1.local.deleteWalletAccountLocal' 'stellar.1.local.createWalletAccountLocal' 'stellar.1.local.changeDisplayCurrencyLocal' 'stellar.1.local.getDisplayCurrencyLocal' 'stellar.1.local.getWalletSettingsLocal' 'stellar.1.local.setAcceptedDisclaimerLocal' 'stellar.1.local.getWalletAccountPublicKeyLocal' 'stellar.1.local.getSendAssetChoicesLocal' 'stellar.1.local.buildPaymentLocal' 'stellar.1.local.sendPaymentLocal' 'stellar.1.local.getRequestDetailsLocal' 'stellar.1.local.balancesLocal' 'stellar.1.local.sendCLILocal' 'stellar.1.local.claimCLILocal' 'stellar.1.local.recentPaymentsCLILocal' 'stellar.1.local.paymentDetailCLILocal' 'stellar.1.local.walletInitLocal' 'stellar.1.local.walletDumpLocal' 'stellar.1.local.walletGetAccountsCLILocal' 'stellar.1.local.ownAccountLocal' 'stellar.1.local.importSecretKeyLocal' 'stellar.1.local.exportSecretKeyLocal' 'stellar.1.local.setDisplayCurrency' 'stellar.1.local.exchangeRateLocal' 'stellar.1.local.getAvailableLocalCurrencies' 'stellar.1.local.formatLocalCurrencyString' 'stellar.1.local.makeRequestCLILocal' 'stellar.1.remote.balances' 'stellar.1.remote.details' 'stellar.1.remote.recentPayments' 'stellar.1.remote.paymentDetails' 'stellar.1.remote.accountSeqno' 'stellar.1.remote.submitPayment' 'stellar.1.remote.submitRelayPayment' 'stellar.1.remote.submitRelayClaim' 'stellar.1.remote.acquireAutoClaimLock' 'stellar.1.remote.releaseAutoClaimLock' 'stellar.1.remote.nextAutoClaim' 'stellar.1.remote.isMasterKeyActive' 'stellar.1.remote.submitRequest' 'stellar.1.remote.requestDetails' 'stellar.1.remote.ping'
