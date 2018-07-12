@@ -4,7 +4,7 @@ import {
   Box,
   Button,
   Icon,
-  Image,
+  OrientedImage,
   Input,
   PopupDialog,
   Text,
@@ -109,7 +109,8 @@ class GetTitles extends React.Component<Props, State> {
           <Box style={isMobile ? stylesMobile : stylesDesktop}>
             <Box style={{...globalStyles.flexBoxCenter, height: 150, width: 150}}>
               {info.type === 'image' ? (
-                <Image
+                <OrientedImage
+                  localFile={true}
                   src={path}
                   style={isMobile ? {height: 150, width: 150} : {maxHeight: '100%', maxWidth: '100%'}}
                 />
