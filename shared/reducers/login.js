@@ -24,6 +24,8 @@ export default function(
         error: initialState.error,
         provisionUsernameOrEmail: action.payload.usernameOrEmail,
       })
+    case LoginGen.submitProvisionPassphrase:
+      return state.merge({error: initialState.error})
     case LoginGen.showNewDeviceNamePage:
       return state.merge({
         error: action.payload.error || initialState.error,

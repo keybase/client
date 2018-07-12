@@ -173,6 +173,19 @@ const getPassphraseHandler = (params: RPCTypes.SecretUiGetPassphraseRpcParam, re
     throw new Error('Got confused about passphrase entry. Please send a log to us!')
   }
 }
+const submitProvisionPassphrase = (state: TypedState, action: LoginGen.SubmitProvisionPassphrasePayload) => {
+  // local error, ignore
+  if (state.login.error) {
+    return
+  }
+
+  const response = provisioningManager.getAndClearResponse('keybase.1.secretUi.getPassphrase')
+  if (!response || !response.result) {
+    throw new Error('Tried to submit passphrase but missing callback')
+  }
+
+  response.result({passphrase: action.payload.passphrase.stringValue(), storeSecret: false})
+}
 
 /**
  * We are starting the provisioning process. This is largely controlled by the daemon. We get a callback to show various
@@ -231,17 +244,20 @@ const startProvisioning = (state: TypedState) =>
     }
   })
 
-const showDeviceList = (state: TypedState) =>
+const showDeviceListPage = (state: TypedState) =>
   !state.login.error && Saga.put(RouteTree.navigateAppend(['selectOtherDevice'], [Tabs.loginTab, 'login']))
 
-const showNewDeviceName = (state: TypedState) =>
+const showNewDeviceNamePage = (state: TypedState) =>
   !state.login.error && Saga.put(RouteTree.navigateAppend(['setPublicName'], [Tabs.loginTab, 'login']))
 
 const showCodePage = (state: TypedState) =>
   !state.login.error && Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.loginTab, 'login']))
 
-const showGPG = (state: TypedState) =>
+const showGPGPage = (state: TypedState) =>
   !state.login.error && Saga.put(RouteTree.navigateAppend(['gpgSign'], [Tabs.loginTab, 'login']))
+
+const showPassphrasePage = (state: TypedState) =>
+  !state.login.error && Saga.put(RouteTree.navigateAppend(['passphrase'], [Tabs.loginTab, 'login']))
 
 function* provisionSaga(): Saga.SagaGenerator<any, any> {
   // Start provision
@@ -252,12 +268,14 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPureSimple(LoginGen.submitProvisionDeviceName, submitProvisionDeviceName)
   yield Saga.safeTakeEveryPureSimple(LoginGen.submitProvisionTextCode, submitProvisionTextCode)
   yield Saga.safeTakeEveryPureSimple(LoginGen.submitProvisionGPGMethod, submitProvisionGPGMethod)
+  yield Saga.safeTakeEveryPureSimple(LoginGen.submitProvisionPassphrase, submitProvisionPassphrase)
 
   // Screens
-  yield Saga.safeTakeEveryPureSimple(LoginGen.showDeviceListPage, showDeviceList)
-  yield Saga.safeTakeEveryPureSimple(LoginGen.showNewDeviceNamePage, showNewDeviceName)
+  yield Saga.safeTakeEveryPureSimple(LoginGen.showDeviceListPage, showDeviceListPage)
+  yield Saga.safeTakeEveryPureSimple(LoginGen.showNewDeviceNamePage, showNewDeviceNamePage)
   yield Saga.safeTakeEveryPureSimple(LoginGen.showCodePage, showCodePage)
-  yield Saga.safeTakeEveryPureSimple(LoginGen.showGPGPage, showGPG)
+  yield Saga.safeTakeEveryPureSimple(LoginGen.showGPGPage, showGPGPage)
+  yield Saga.safeTakeEveryPureSimple(LoginGen.showPassphrasePage, showPassphrasePage)
 
   // TODO
   // yield Saga.safeTakeLatest(LoginGen.addNewDevice, _addNewDevice)

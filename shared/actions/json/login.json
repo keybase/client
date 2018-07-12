@@ -11,6 +11,7 @@
     "startLogin": {},
     "submitUsernameOrEmail": { "usernameOrEmail": "string" },
     "submitPassphrase": { "passphrase": "HiddenString", },
+    "submitProvisionPassphrase": { "passphrase": "HiddenString", },
     "submitProvisionTextCode": { "phrase": "HiddenString" },
     "submitProvisionDeviceSelect": { "name": "string" },
     "submitProvisionPasswordInsteadOfDevice": {},
