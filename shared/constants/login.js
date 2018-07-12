@@ -23,6 +23,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   forgotPasswordSuccess: false,
   justDeletedSelf: null,
   justRevokedSelf: null,
+  provisionDeviceName: '',
   provisionDevices: I.List(),
   provisionDevicesCanSelectNoDevice: false,
   provisionExistingDevices: I.List(),

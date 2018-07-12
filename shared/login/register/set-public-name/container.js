@@ -15,7 +15,7 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  _onSubmit: (deviceName: string) => dispatch(LoginGen.createSubmitDeviceName({deviceName})),
+  _onSubmit: (name: string) => dispatch(LoginGen.createSubmitProvisionDeviceName({name})),
   onBack: () => dispatch(ownProps.navigateUp()),
 })
 

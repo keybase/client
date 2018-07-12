@@ -5,7 +5,7 @@ import * as Waiting from '../actions/waiting-gen'
 
 const changeHelper = (state: Types.State, keys: Array<string>, diff: 1 | -1) =>
   state.withMutations(st => {
-    keys.forEach(k => st.update(k, diff === 1 ? 0 : 1, n => n + diff))
+    keys.forEach(k => st.update(k, 0, n => n + diff))
   })
 
 function reducer(state: Types.State = Constants.initialState, action: Waiting.Actions): Types.State {

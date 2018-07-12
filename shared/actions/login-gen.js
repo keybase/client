@@ -21,9 +21,6 @@ export const logoutDone = 'login:logoutDone'
 export const navBasedOnLoginAndInitialState = 'login:navBasedOnLoginAndInitialState'
 export const onBack = 'login:onBack'
 export const onFinish = 'login:onFinish'
-export const provisionDeviceSelect = 'login:provisionDeviceSelect'
-export const provisionPasswordInsteadOfDevice = 'login:provisionPasswordInsteadOfDevice'
-export const provisionTextCodeEntered = 'login:provisionTextCodeEntered'
 export const provisioningError = 'login:provisioningError'
 export const qrScanned = 'login:qrScanned'
 export const setDeletedSelf = 'login:setDeletedSelf'
@@ -32,8 +29,11 @@ export const setTextCode = 'login:setTextCode'
 export const showDeviceList = 'login:showDeviceList'
 export const showNewDeviceName = 'login:showNewDeviceName'
 export const startLogin = 'login:startLogin'
-export const submitDeviceName = 'login:submitDeviceName'
 export const submitPassphrase = 'login:submitPassphrase'
+export const submitProvisionDeviceName = 'login:submitProvisionDeviceName'
+export const submitProvisionDeviceSelect = 'login:submitProvisionDeviceSelect'
+export const submitProvisionPasswordInsteadOfDevice = 'login:submitProvisionPasswordInsteadOfDevice'
+export const submitProvisionTextCodeEntered = 'login:submitProvisionTextCodeEntered'
 export const submitUsernameOrEmail = 'login:submitUsernameOrEmail'
 
 // Payload Types
@@ -53,9 +53,6 @@ type _LogoutPayload = void
 type _NavBasedOnLoginAndInitialStatePayload = void
 type _OnBackPayload = void
 type _OnFinishPayload = void
-type _ProvisionDeviceSelectPayload = $ReadOnly<{|name: string|}>
-type _ProvisionPasswordInsteadOfDevicePayload = void
-type _ProvisionTextCodeEnteredPayload = $ReadOnly<{|phrase: HiddenString|}>
 type _ProvisioningErrorPayload = $ReadOnly<{|error: Error|}>
 type _QrScannedPayload = $ReadOnly<{|phrase: HiddenString|}>
 type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
@@ -70,8 +67,11 @@ type _ShowNewDeviceNamePayload = $ReadOnly<{|
   error: string,
 |}>
 type _StartLoginPayload = void
-type _SubmitDeviceNamePayload = $ReadOnly<{|deviceName: string|}>
 type _SubmitPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
+type _SubmitProvisionDeviceNamePayload = $ReadOnly<{|name: string|}>
+type _SubmitProvisionDeviceSelectPayload = $ReadOnly<{|name: string|}>
+type _SubmitProvisionPasswordInsteadOfDevicePayload = void
+type _SubmitProvisionTextCodeEnteredPayload = $ReadOnly<{|phrase: HiddenString|}>
 type _SubmitUsernameOrEmailPayload = $ReadOnly<{|usernameOrEmail: string|}>
 
 // Action Creators
@@ -96,17 +96,17 @@ export const createLogoutDone = (payload: _LogoutDonePayload) => ({error: false,
 export const createNavBasedOnLoginAndInitialState = (payload: _NavBasedOnLoginAndInitialStatePayload) => ({error: false, payload, type: navBasedOnLoginAndInitialState})
 export const createOnBack = (payload: _OnBackPayload) => ({error: false, payload, type: onBack})
 export const createOnFinish = (payload: _OnFinishPayload) => ({error: false, payload, type: onFinish})
-export const createProvisionDeviceSelect = (payload: _ProvisionDeviceSelectPayload) => ({error: false, payload, type: provisionDeviceSelect})
-export const createProvisionPasswordInsteadOfDevice = (payload: _ProvisionPasswordInsteadOfDevicePayload) => ({error: false, payload, type: provisionPasswordInsteadOfDevice})
-export const createProvisionTextCodeEntered = (payload: _ProvisionTextCodeEnteredPayload) => ({error: false, payload, type: provisionTextCodeEntered})
 export const createProvisioningError = (payload: _ProvisioningErrorPayload) => ({error: false, payload, type: provisioningError})
 export const createQrScanned = (payload: _QrScannedPayload) => ({error: false, payload, type: qrScanned})
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error: false, payload, type: setDeletedSelf})
 export const createSetRevokedSelf = (payload: _SetRevokedSelfPayload) => ({error: false, payload, type: setRevokedSelf})
 export const createSetTextCode = (payload: _SetTextCodePayload) => ({error: false, payload, type: setTextCode})
 export const createStartLogin = (payload: _StartLoginPayload) => ({error: false, payload, type: startLogin})
-export const createSubmitDeviceName = (payload: _SubmitDeviceNamePayload) => ({error: false, payload, type: submitDeviceName})
 export const createSubmitPassphrase = (payload: _SubmitPassphrasePayload) => ({error: false, payload, type: submitPassphrase})
+export const createSubmitProvisionDeviceName = (payload: _SubmitProvisionDeviceNamePayload) => ({error: false, payload, type: submitProvisionDeviceName})
+export const createSubmitProvisionDeviceSelect = (payload: _SubmitProvisionDeviceSelectPayload) => ({error: false, payload, type: submitProvisionDeviceSelect})
+export const createSubmitProvisionPasswordInsteadOfDevice = (payload: _SubmitProvisionPasswordInsteadOfDevicePayload) => ({error: false, payload, type: submitProvisionPasswordInsteadOfDevice})
+export const createSubmitProvisionTextCodeEntered = (payload: _SubmitProvisionTextCodeEnteredPayload) => ({error: false, payload, type: submitProvisionTextCodeEntered})
 export const createSubmitUsernameOrEmail = (payload: _SubmitUsernameOrEmailPayload) => ({error: false, payload, type: submitUsernameOrEmail})
 
 // Action Payloads
@@ -123,9 +123,6 @@ export type LogoutPayload = $Call<typeof createLogout, _LogoutPayload>
 export type NavBasedOnLoginAndInitialStatePayload = $Call<typeof createNavBasedOnLoginAndInitialState, _NavBasedOnLoginAndInitialStatePayload>
 export type OnBackPayload = $Call<typeof createOnBack, _OnBackPayload>
 export type OnFinishPayload = $Call<typeof createOnFinish, _OnFinishPayload>
-export type ProvisionDeviceSelectPayload = $Call<typeof createProvisionDeviceSelect, _ProvisionDeviceSelectPayload>
-export type ProvisionPasswordInsteadOfDevicePayload = $Call<typeof createProvisionPasswordInsteadOfDevice, _ProvisionPasswordInsteadOfDevicePayload>
-export type ProvisionTextCodeEnteredPayload = $Call<typeof createProvisionTextCodeEntered, _ProvisionTextCodeEnteredPayload>
 export type ProvisioningErrorPayload = $Call<typeof createProvisioningError, _ProvisioningErrorPayload>
 export type QrScannedPayload = $Call<typeof createQrScanned, _QrScannedPayload>
 export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDeletedSelfPayload>
@@ -134,8 +131,11 @@ export type SetTextCodePayload = $Call<typeof createSetTextCode, _SetTextCodePay
 export type ShowDeviceListPayload = $Call<typeof createShowDeviceList, _ShowDeviceListPayload>
 export type ShowNewDeviceNamePayload = $Call<typeof createShowNewDeviceName, _ShowNewDeviceNamePayload>
 export type StartLoginPayload = $Call<typeof createStartLogin, _StartLoginPayload>
-export type SubmitDeviceNamePayload = $Call<typeof createSubmitDeviceName, _SubmitDeviceNamePayload>
 export type SubmitPassphrasePayload = $Call<typeof createSubmitPassphrase, _SubmitPassphrasePayload>
+export type SubmitProvisionDeviceNamePayload = $Call<typeof createSubmitProvisionDeviceName, _SubmitProvisionDeviceNamePayload>
+export type SubmitProvisionDeviceSelectPayload = $Call<typeof createSubmitProvisionDeviceSelect, _SubmitProvisionDeviceSelectPayload>
+export type SubmitProvisionPasswordInsteadOfDevicePayload = $Call<typeof createSubmitProvisionPasswordInsteadOfDevice, _SubmitProvisionPasswordInsteadOfDevicePayload>
+export type SubmitProvisionTextCodeEnteredPayload = $Call<typeof createSubmitProvisionTextCodeEntered, _SubmitProvisionTextCodeEnteredPayload>
 export type SubmitUsernameOrEmailPayload = $Call<typeof createSubmitUsernameOrEmail, _SubmitUsernameOrEmailPayload>
 
 // All Actions
@@ -154,9 +154,6 @@ export type Actions =
   | NavBasedOnLoginAndInitialStatePayload
   | OnBackPayload
   | OnFinishPayload
-  | ProvisionDeviceSelectPayload
-  | ProvisionPasswordInsteadOfDevicePayload
-  | ProvisionTextCodeEnteredPayload
   | ProvisioningErrorPayload
   | QrScannedPayload
   | SetDeletedSelfPayload
@@ -165,7 +162,10 @@ export type Actions =
   | ShowDeviceListPayload
   | ShowNewDeviceNamePayload
   | StartLoginPayload
-  | SubmitDeviceNamePayload
   | SubmitPassphrasePayload
+  | SubmitProvisionDeviceNamePayload
+  | SubmitProvisionDeviceSelectPayload
+  | SubmitProvisionPasswordInsteadOfDevicePayload
+  | SubmitProvisionTextCodeEnteredPayload
   | SubmitUsernameOrEmailPayload
   | {type: 'common:resetStore', payload: void}

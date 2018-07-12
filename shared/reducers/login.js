@@ -43,11 +43,24 @@ export default function(
         provisionDevices: I.List(action.payload.devices),
         provisionDevicesCanSelectNoDevice: action.payload.canSelectNoDevice,
       })
-    case LoginGen.provisionDeviceSelect:
-      return state.set(
-        'provisionSelectedDevice',
-        state.provisionDevices.find(d => d.name === action.payload.name)
-      )
+    case LoginGen.submitProvisionDeviceSelect:
+      return state.merge({
+        error: '',
+        provisionSelectedDevice: state.provisionDevices.find(d => d.name === action.payload.name),
+      })
+    case LoginGen.submitProvisionDeviceName:
+      if (state.provisionExistingDevices.indexOf(state.provisionDeviceName) !== -1) {
+        return state.merge({
+          error: `The device name: '${
+            state.provisionDeviceName
+          }' is already taken. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.`,
+          provisionDeviceName: action.payload.name,
+        })
+      }
+      return state.merge({
+        error: '',
+        provisionDeviceName: action.payload.name,
+      })
     case LoginGen.configuredAccounts:
       return state.set(
         'configuredAccounts',
@@ -69,10 +82,9 @@ export default function(
     case LoginGen.onBack:
     case LoginGen.onFinish:
     case LoginGen.launchAccountResetWebPage:
-    case LoginGen.provisionPasswordInsteadOfDevice:
+    case LoginGen.submitProvisionPasswordInsteadOfDevice:
     case LoginGen.launchForgotPasswordWebPage:
-    case LoginGen.provisionTextCodeEntered:
-    case LoginGen.submitDeviceName:
+    case LoginGen.submitProvisionTextCodeEntered:
     case LoginGen.submitPassphrase:
       return state
     default:

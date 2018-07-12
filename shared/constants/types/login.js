@@ -45,6 +45,7 @@ export type _State = {
   // shared by all errors, we only ever want one error
   error: string,
   provisionUsernameOrEmail: string,
+  provisionDeviceName: string,
   provisionDevices: I.List<Device>,
   provisionDevicesCanSelectNoDevice: boolean,
   provisionSelectedDevice: ?Device,

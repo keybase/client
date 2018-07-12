@@ -387,23 +387,37 @@ class ProvisioningManager {
 
 let provisioningManager = new ProvisioningManager()
 
-const provisionDeviceSelect = (state: TypedState) => {
+const submitProvisionDeviceSelect = (state: TypedState) => {
   const response = provisioningManager.getAndClearResponse('keybase.1.provisionUi.chooseDevice')
   if (!response || !response.result) {
-    throw new Error('Tried to submit a device name but missing callback')
+    throw new Error('Tried to submit a device choice but missing callback')
   }
 
   if (!state.login.provisionSelectedDevice) {
     response.error()
-    throw new Error('Tried to submit a device name but missing device in store')
+    throw new Error('Tried to submit a device choice but missing device in store')
   }
+
   response.result(state.login.provisionSelectedDevice.id)
 }
 
-const provisionNewName = (state: TypedState) => {
-  // const nameTakenError = nameTaken
-  // ? `The device name: '${deviceName}' is already taken. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.`
-  // : null
+const submitProvisionDeviceName = (state: TypedState) => {
+  // local error, ignore
+  if (state.login.error) {
+    return
+  }
+
+  const response = provisioningManager.getAndClearResponse('keybase.1.provisionUi.PromptNewDeviceName')
+  if (!response || !response.result) {
+    throw new Error('Tried to submit a device name but missing callback')
+  }
+
+  if (!state.login.provisionDeviceName) {
+    response.error()
+    throw new Error('Tried to submit a device name but missing in store')
+  }
+
+  response.result(state.login.provisionDeviceName)
 }
 
 /**
@@ -497,7 +511,8 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPureSimple(LoginGen.submitUsernameOrEmail, startProvisioning)
 
   // Submits
-  yield Saga.safeTakeEveryPureSimple(LoginGen.provisionDeviceSelect, provisionDeviceSelect)
+  yield Saga.safeTakeEveryPureSimple(LoginGen.submitProvisionDeviceSelect, submitProvisionDeviceSelect)
+  yield Saga.safeTakeEveryPureSimple(LoginGen.submitProvisionDeviceName, submitProvisionDeviceName)
 
   // Screens
   yield Saga.safeTakeEveryPureSimple(LoginGen.showDeviceList, showDeviceList)
