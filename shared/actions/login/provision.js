@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../constants/login'
+import * as WaitingGen from '../waiting-gen'
 import * as LoginGen from '../login-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
@@ -428,6 +429,9 @@ const startProvisioning = (state: TypedState) =>
       }
       const ignoreCallback = (params, state) => {}
 
+      // We don't want the waiting key to be positive during this whole process so we do a decrement first so its not going 1,2,1,2,1,2
+      yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.waitingKey}))
+
       yield RPCTypes.loginLoginRpcSaga({
         // cancel if we get any of these callbacks, we're logging in, not provisioning
         incomingCallMap: {
@@ -476,6 +480,9 @@ const startProvisioning = (state: TypedState) =>
       })
     } catch (e) {
       yield Saga.put(LoginGen.createLoginError({error: niceError(e)}))
+    } finally {
+      // Reset us to zero
+      yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.waitingKey}))
     }
   })
 

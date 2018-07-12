@@ -33,13 +33,14 @@ export function setupLoginHMR(cb: () => void) {
 
 function* getAccounts(): Generator<any, void, any> {
   try {
-    yield Saga.put(WaitingGen.createIncrementWaiting({key: DevicesConstants.waitingKey}))
-    const accounts = yield Saga.call(RPCTypes.loginGetConfiguredAccountsRpcPromise)
+    const accounts = yield Saga.call(
+      RPCTypes.loginGetConfiguredAccountsRpcPromise,
+      undefined,
+      DevicesConstants.waitingKey
+    )
     yield Saga.put(LoginGen.createConfiguredAccounts({accounts}))
   } catch (error) {
     yield Saga.put(LoginGen.createConfiguredAccountsError({error}))
-  } finally {
-    yield Saga.put(WaitingGen.createDecrementWaiting({key: DevicesConstants.waitingKey}))
   }
 }
 
@@ -168,6 +169,9 @@ const login = (_: any, action: LoginGen.LoginPayload) =>
       }
       const ignoreCallback = (params, state) => {}
 
+      // We don't want the waiting key to be positive during this whole process so we do a decrement first so its not going 1,2,1,2,1,2
+      yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.waitingKey}))
+
       yield RPCTypes.loginLoginRpcSaga({
         // cancel if we get any of these callbacks, we're logging in, not provisioning
         incomingCallMap: {
@@ -211,6 +215,9 @@ const login = (_: any, action: LoginGen.LoginPayload) =>
       })
     } catch (e) {
       yield Saga.put(LoginGen.createLoginError({error: niceError(e)}))
+    } finally {
+      // Reset us to zero
+      yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.waitingKey}))
     }
   })
 

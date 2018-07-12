@@ -3,7 +3,6 @@ import * as I from 'immutable'
 import * as DeviceTypes from './types/devices'
 import * as Types from './types/login'
 import * as RPCTypes from './types/rpc-gen'
-import {RPCError} from '../util/errors'
 import HiddenString from '../util/hidden-string'
 
 export const waitingKey = 'login:waiting'
