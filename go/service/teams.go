@@ -225,8 +225,10 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 	result.ChatSending = true
 	go func() {
 		ctx := libkb.WithLogTag(context.Background(), "BG")
-		err := teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), arg.Name,
-			result.User.Username)
+		// xxx testing whether this is used in tests
+		// err := teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), arg.Name,
+		// 	result.User.Username)
+		var err error
 		if err != nil {
 			h.G().Log.CDebugf(ctx, "send team welcome message: error: %v", err)
 		} else {
