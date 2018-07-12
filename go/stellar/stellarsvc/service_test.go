@@ -668,7 +668,7 @@ func TestRequestPayment(t *testing.T) {
 		Recipient: tcs[1].Fu.Username,
 		Asset:     &xlm,
 		Amount:    "10",
-		Message:   "hello world",
+		Note:      "hello world",
 	})
 	require.NoError(t, err)
 

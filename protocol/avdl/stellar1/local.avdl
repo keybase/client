@@ -385,5 +385,5 @@ protocol local {
   string formatLocalCurrencyString(string amount, OutsideCurrencyCode code);
 
   void makeRequestCLILocal(string recipient, union { null, Asset } asset, 
-    union { null, OutsideCurrencyCode } currency, string amount, string message);
+    union { null, OutsideCurrencyCode } currency, string amount, string note);
 }

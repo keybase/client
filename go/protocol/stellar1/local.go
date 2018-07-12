@@ -795,7 +795,7 @@ type MakeRequestCLILocalArg struct {
 	Asset     *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
 	Currency  *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
 	Amount    string               `codec:"amount" json:"amount"`
-	Message   string               `codec:"message" json:"message"`
+	Note      string               `codec:"note" json:"note"`
 }
 
 type LocalInterface interface {

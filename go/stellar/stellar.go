@@ -1067,7 +1067,7 @@ type MakeRequestArg struct {
 	Amount   string
 	Asset    *stellar1.Asset
 	Currency *stellar1.OutsideCurrencyCode
-	Message  string
+	Note     string
 }
 
 func MakeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg) (ret stellar1.KeybaseRequestID, err error) {
@@ -1130,7 +1130,7 @@ func MakeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 
 	body := chat1.NewMessageBodyWithRequestpayment(chat1.MessageRequestPayment{
 		RequestID: requestID.String(),
-		Note:      arg.Message,
+		Note:      arg.Note,
 	})
 
 	displayName := strings.Join([]string{m.CurrentUsername().String(), post.ToAssertion}, ",")

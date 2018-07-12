@@ -18,7 +18,7 @@ type CmdWalletRequest struct {
 	TLFName       string
 	Amount        string
 	LocalCurrency string
-	Message       string
+	Note          string
 }
 
 func newCmdWalletRequest(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -58,7 +58,7 @@ func (c *CmdWalletRequest) ParseArgv(ctx *cli.Context) error {
 			return errors.New("Invalid currency code")
 		}
 	}
-	c.Message = ctx.String("message")
+	c.Note = ctx.String("message")
 	return nil
 }
 
@@ -77,7 +77,7 @@ func (c *CmdWalletRequest) Run() error {
 
 	arg := stellar1.MakeRequestCLILocalArg{
 		Recipient: c.Recipient,
-		Message:   c.Message,
+		Note:      c.Note,
 		Amount:    c.Amount,
 	}
 

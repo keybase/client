@@ -1253,7 +1253,7 @@
           "type": "string"
         },
         {
-          "name": "message",
+          "name": "note",
           "type": "string"
         }
       ],

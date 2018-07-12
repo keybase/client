@@ -486,7 +486,7 @@ func (s *Server) MakeRequestCLILocal(ctx context.Context, arg stellar1.MakeReque
 		Amount:   arg.Amount,
 		Asset:    arg.Asset,
 		Currency: arg.Currency,
-		Message:  arg.Message,
+		Note:     arg.Note,
 	})
 	return err
 }
