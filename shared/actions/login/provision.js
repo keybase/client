@@ -364,32 +364,29 @@ type ValidCallbacks =
   | 'keybase.1.provisionUi.chooseGPGMethod'
   | 'keybase.1.secretUi.getPassphrase'
 
-const callbackResponses: {[key: ValidCallbacks]: any} = {
-  'keybase.1.gpgUi.selectKey': null,
-  'keybase.1.loginUi.displayPrimaryPaperKey': null,
-  'keybase.1.loginUi.getEmailOrUsername': null,
-  'keybase.1.provisionUi.DisplayAndPromptSecret': null,
-  'keybase.1.provisionUi.DisplaySecretExchanged': null,
-  'keybase.1.provisionUi.PromptNewDeviceName': null,
-  'keybase.1.provisionUi.ProvisioneeSuccess': null,
-  'keybase.1.provisionUi.ProvisionerSuccess': null,
-  'keybase.1.provisionUi.chooseDevice': null,
-  'keybase.1.provisionUi.chooseGPGMethod': null,
-  'keybase.1.secretUi.getPassphrase': null,
+class StashedReponseManager {
+  _stashedResponse = null
+  _stashedResponseKey: ?ValidCallbacks = null
+
+  stashResponse = (key: ValidCallbacks, response: any) => {
+    this._stashedResponse = response
+    this._stashedResponseKey = key
+  }
+
+  getAndClearResponse = (key: ValidCallbacks) => {
+    if (this._stashedResponseKey !== key) {
+      throw new Error(`Invalid response key used wants: ${key} has: ${this._stashedResponseKey || ''}`)
+    }
+    const response = this._stashedResponse
+    this._stashedResponse = null
+    return response
+  }
 }
 
-function setResponse<A>(key: ValidCallbacks, response: A) {
-  callbackResponses[key] = response
-}
-
-const getAndClearResponse = (key: ValidCallbacks) => {
-  const response = callbackResponses[key]
-  callbackResponses[key] = null
-  return response
-}
+let stashedReponseManager = new StashedReponseManager()
 
 const provisionDeviceSelect = (state: TypedState) => {
-  const response = getAndClearResponse('keybase.1.provisionUi.chooseDevice')
+  const response = stashedReponseManager.getAndClearResponse('keybase.1.provisionUi.chooseDevice')
   if (!response || !response.result) {
     throw new Error('Tried to submit a device name but missing callback')
   }
@@ -407,6 +404,8 @@ const provisionDeviceSelect = (state: TypedState) => {
  */
 const startProvisioning = (state: TypedState) =>
   Saga.call(function*() {
+    // Make a new handler each time just in case
+    stashedReponseManager = new StashedReponseManager()
     try {
       const usernameOrEmail = state.login.provisionUsernameOrEmail
       if (!usernameOrEmail) {
@@ -437,7 +436,7 @@ const startProvisioning = (state: TypedState) =>
             response,
             state
           ) => {
-            setResponse('keybase.1.provisionUi.chooseDevice', response)
+            stashedReponseManager.stashResponse('keybase.1.provisionUi.chooseDevice', response)
             return Saga.put(
               LoginGen.createShowDeviceList({
                 canSelectNoDevice: params.canSelectNoDevice,
