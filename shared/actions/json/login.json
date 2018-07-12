@@ -16,24 +16,27 @@
     "submitProvisionPasswordInsteadOfDevice": {},
     "submitProvisionDeviceName": { "name": "string" },
     "submitProvisionGPGMethod": { "exportKey": "boolean" },
-    "showDeviceList": {
+    "showDeviceListPage": {
       "_description": "Show the list of devices the user can use to provision a device",
       "canSelectNoDevice": "boolean",
       "devices": "Array<Types.Device>"
     },
-    "showNewDeviceName": {
+    "showNewDeviceNamePage": {
       "_description": "Ask the user for a new device name",
       "existingDevices": "Array<string>",
-      "error": "string"
+      "error": "?HiddenString"
     },
     "showCodePage": {
       "code": "HiddenString",
-      "error": "string"
+      "error": "?HiddenString"
     },
-    "showGPG": {},
+    "showGPGPage": {},
+    "showPassphrasePage": {
+      "error": "?HiddenString"
+    },
     "launchAccountResetWebPage": {},
     "launchForgotPasswordWebPage": {},
-    "loginError": { "error": "string" },
+    "loginError": { "error": "?HiddenString" },
     "logout": {},
     "loggedout": {},
 

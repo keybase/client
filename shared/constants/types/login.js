@@ -43,7 +43,7 @@ export type _State = {
   justDeletedSelf: ?string,
   justRevokedSelf: ?string,
   // shared by all errors, we only ever want one error
-  error: string,
+  error: HiddenString,
   provisionUsernameOrEmail: string,
   provisionDeviceName: string,
   provisionDevices: I.List<Device>,

@@ -26,7 +26,7 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: any, {navigateAppend}) => ({
-  _resetError: () => dispatch(LoginGen.createLoginError({error: ''})),
+  _resetError: () => dispatch(LoginGen.createLoginError({error: new HiddenString('')})),
   onFeedback: () => dispatch(navigateAppend(['feedback'])),
   onForgotPassphrase: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
   onLogin: (user: string, passphrase: string) =>

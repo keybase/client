@@ -23,9 +23,10 @@ export const onFinish = 'login:onFinish'
 export const setDeletedSelf = 'login:setDeletedSelf'
 export const setRevokedSelf = 'login:setRevokedSelf'
 export const showCodePage = 'login:showCodePage'
-export const showDeviceList = 'login:showDeviceList'
-export const showGPG = 'login:showGPG'
-export const showNewDeviceName = 'login:showNewDeviceName'
+export const showDeviceListPage = 'login:showDeviceListPage'
+export const showGPGPage = 'login:showGPGPage'
+export const showNewDeviceNamePage = 'login:showNewDeviceNamePage'
+export const showPassphrasePage = 'login:showPassphrasePage'
 export const startLogin = 'login:startLogin'
 export const submitPassphrase = 'login:submitPassphrase'
 export const submitProvisionDeviceName = 'login:submitProvisionDeviceName'
@@ -42,7 +43,7 @@ type _ConfiguredAccountsPayloadError = $ReadOnly<{|error: Error|}>
 type _LaunchAccountResetWebPagePayload = void
 type _LaunchForgotPasswordWebPagePayload = void
 type _LoggedoutPayload = void
-type _LoginErrorPayload = $ReadOnly<{|error: string|}>
+type _LoginErrorPayload = $ReadOnly<{|error: ?HiddenString|}>
 type _LoginPayload = $ReadOnly<{|
   usernameOrEmail: string,
   passphrase: HiddenString,
@@ -55,17 +56,18 @@ type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
 type _SetRevokedSelfPayload = $ReadOnly<{|revoked: string|}>
 type _ShowCodePagePayload = $ReadOnly<{|
   code: HiddenString,
-  error: string,
+  error: ?HiddenString,
 |}>
-type _ShowDeviceListPayload = $ReadOnly<{|
+type _ShowDeviceListPagePayload = $ReadOnly<{|
   canSelectNoDevice: boolean,
   devices: Array<Types.Device>,
 |}>
-type _ShowGPGPayload = void
-type _ShowNewDeviceNamePayload = $ReadOnly<{|
+type _ShowGPGPagePayload = void
+type _ShowNewDeviceNamePagePayload = $ReadOnly<{|
   existingDevices: Array<string>,
-  error: string,
+  error: ?HiddenString,
 |}>
+type _ShowPassphrasePagePayload = $ReadOnly<{|error: ?HiddenString|}>
 type _StartLoginPayload = void
 type _SubmitPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
 type _SubmitProvisionDeviceNamePayload = $ReadOnly<{|name: string|}>
@@ -79,11 +81,11 @@ type _SubmitUsernameOrEmailPayload = $ReadOnly<{|usernameOrEmail: string|}>
 /**
  * Ask the user for a new device name
  */
-export const createShowNewDeviceName = (payload: _ShowNewDeviceNamePayload) => ({error: false, payload, type: showNewDeviceName})
+export const createShowNewDeviceNamePage = (payload: _ShowNewDeviceNamePagePayload) => ({error: false, payload, type: showNewDeviceNamePage})
 /**
  * Show the list of devices the user can use to provision a device
  */
-export const createShowDeviceList = (payload: _ShowDeviceListPayload) => ({error: false, payload, type: showDeviceList})
+export const createShowDeviceListPage = (payload: _ShowDeviceListPagePayload) => ({error: false, payload, type: showDeviceListPage})
 export const createAddNewDevice = (payload: _AddNewDevicePayload) => ({error: false, payload, type: addNewDevice})
 export const createConfiguredAccounts = (payload: _ConfiguredAccountsPayload) => ({error: false, payload, type: configuredAccounts})
 export const createConfiguredAccountsError = (payload: _ConfiguredAccountsPayloadError) => ({error: true, payload, type: configuredAccounts})
@@ -99,7 +101,8 @@ export const createOnFinish = (payload: _OnFinishPayload) => ({error: false, pay
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error: false, payload, type: setDeletedSelf})
 export const createSetRevokedSelf = (payload: _SetRevokedSelfPayload) => ({error: false, payload, type: setRevokedSelf})
 export const createShowCodePage = (payload: _ShowCodePagePayload) => ({error: false, payload, type: showCodePage})
-export const createShowGPG = (payload: _ShowGPGPayload) => ({error: false, payload, type: showGPG})
+export const createShowGPGPage = (payload: _ShowGPGPagePayload) => ({error: false, payload, type: showGPGPage})
+export const createShowPassphrasePage = (payload: _ShowPassphrasePagePayload) => ({error: false, payload, type: showPassphrasePage})
 export const createStartLogin = (payload: _StartLoginPayload) => ({error: false, payload, type: startLogin})
 export const createSubmitPassphrase = (payload: _SubmitPassphrasePayload) => ({error: false, payload, type: submitPassphrase})
 export const createSubmitProvisionDeviceName = (payload: _SubmitProvisionDeviceNamePayload) => ({error: false, payload, type: submitProvisionDeviceName})
@@ -125,9 +128,10 @@ export type OnFinishPayload = $Call<typeof createOnFinish, _OnFinishPayload>
 export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDeletedSelfPayload>
 export type SetRevokedSelfPayload = $Call<typeof createSetRevokedSelf, _SetRevokedSelfPayload>
 export type ShowCodePagePayload = $Call<typeof createShowCodePage, _ShowCodePagePayload>
-export type ShowDeviceListPayload = $Call<typeof createShowDeviceList, _ShowDeviceListPayload>
-export type ShowGPGPayload = $Call<typeof createShowGPG, _ShowGPGPayload>
-export type ShowNewDeviceNamePayload = $Call<typeof createShowNewDeviceName, _ShowNewDeviceNamePayload>
+export type ShowDeviceListPagePayload = $Call<typeof createShowDeviceListPage, _ShowDeviceListPagePayload>
+export type ShowGPGPagePayload = $Call<typeof createShowGPGPage, _ShowGPGPagePayload>
+export type ShowNewDeviceNamePagePayload = $Call<typeof createShowNewDeviceNamePage, _ShowNewDeviceNamePagePayload>
+export type ShowPassphrasePagePayload = $Call<typeof createShowPassphrasePage, _ShowPassphrasePagePayload>
 export type StartLoginPayload = $Call<typeof createStartLogin, _StartLoginPayload>
 export type SubmitPassphrasePayload = $Call<typeof createSubmitPassphrase, _SubmitPassphrasePayload>
 export type SubmitProvisionDeviceNamePayload = $Call<typeof createSubmitProvisionDeviceName, _SubmitProvisionDeviceNamePayload>
@@ -155,9 +159,10 @@ export type Actions =
   | SetDeletedSelfPayload
   | SetRevokedSelfPayload
   | ShowCodePagePayload
-  | ShowDeviceListPayload
-  | ShowGPGPayload
-  | ShowNewDeviceNamePayload
+  | ShowDeviceListPagePayload
+  | ShowGPGPagePayload
+  | ShowNewDeviceNamePagePayload
+  | ShowPassphrasePagePayload
   | StartLoginPayload
   | SubmitPassphrasePayload
   | SubmitProvisionDeviceNamePayload

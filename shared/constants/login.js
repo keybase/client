@@ -17,7 +17,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   codePageOtherDeviceType: 'phone',
   codePageTextCode: new HiddenString(''),
   configuredAccounts: I.List(),
-  error: '',
+  error: new HiddenString(''),
   forgotPasswordError: null,
   forgotPasswordSubmitting: false,
   forgotPasswordSuccess: false,

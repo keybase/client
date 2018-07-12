@@ -24,6 +24,7 @@ import {type InitialState} from '../../constants/types/config'
 import {type TypedState} from '../../constants/reducer'
 import provisionSaga from './provision'
 import {niceError} from '../../util/errors'
+import HiddenString from '../../util/hidden-string'
 
 // Login dips into the routing dep tree, so we need to tell
 // webpack that we can still handle updates that propagate to here.
@@ -174,7 +175,7 @@ const getPassphraseHandler = passphrase => (
     // Service asking us again due to a bad passphrase?
     if (params.pinentry.retryLabel) {
       cancelOnCallback(params, response, state)
-      return Saga.put(LoginGen.createLoginError({error: params.pinentry.retryLabel}))
+      return Saga.put(LoginGen.createLoginError({error: new HiddenString(params.pinentry.retryLabel)}))
     } else {
       response.result({
         passphrase,
@@ -216,7 +217,7 @@ const login = (_: any, action: LoginGen.LoginPayload) =>
         waitingKey: Constants.waitingKey,
       })
     } catch (e) {
-      yield Saga.put(LoginGen.createLoginError({error: niceError(e)}))
+      yield Saga.put(LoginGen.createLoginError({error: new HiddenString(niceError(e))}))
     } finally {
       // Reset us to zero
       yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.waitingKey}))

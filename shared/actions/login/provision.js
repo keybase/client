@@ -11,308 +11,6 @@ import HiddenString from '../../util/hidden-string'
 import {type TypedState} from '../../constants/reducer'
 import {niceError} from '../../util/errors'
 
-// function* selectKeySaga() {
-// return EngineRpc.rpcError(new RPCError('Not supported in GUI', RPCTypes.constantsStatusCode.sckeynotfound))
-// }
-
-// const displayPrimaryPaperKeySaga = onBackSaga =>
-// function*({phrase}) {
-// yield Saga.put(
-// navigateAppend(
-// [
-// {
-// props: {
-// paperkey: new HiddenString(phrase),
-// title: 'Your new paper key!',
-// waiting: false,
-// },
-// selected: 'success',
-// },
-// ],
-// [loginTab, 'login']
-// )
-// )
-
-// const {onBack, navUp, onFinish} = (yield Saga.race({
-// navUp: Saga.take(RouteConstants.navigateUp),
-// onBack: Saga.take(LoginGen.onBack),
-// onFinish: Saga.take(LoginGen.onFinish),
-// }): {
-// onBack: ?LoginGen.OnBackPayload,
-// navUp: ?RouteTypes.NavigateUp,
-// onFinish: ?LoginGen.OnFinishPayload,
-// })
-// if (onBack || navUp) {
-// yield Saga.call(onBackSaga)
-// return EngineRpc.rpcCancel(InputCancelError)
-// } else if (onFinish) {
-// return EngineRpc.rpcResult()
-// }
-// }
-
-// const getEmailOrUsernameSaga = onBackSaga =>
-// function*() {
-// yield Saga.put(
-// navigateAppend(
-// [
-// {
-// props: {},
-// selected: 'usernameOrEmail',
-// },
-// ],
-// [loginTab, 'login']
-// )
-// )
-
-// const {onBack, navUp, onSubmit} = (yield Saga.race({
-// navUp: Saga.take(RouteConstants.navigateUp),
-// onBack: Saga.take(LoginGen.onBack),
-// onSubmit: Saga.take(LoginGen.submitUsernameOrEmail),
-// }): {
-// onBack: ?LoginGen.OnBackPayload,
-// navUp: ?RouteTypes.NavigateUp,
-// onSubmit: ?LoginGen.SubmitUsernameOrEmailPayload,
-// })
-// if (onBack || navUp) {
-// yield Saga.call(onBackSaga)
-// return EngineRpc.rpcCancel(InputCancelError)
-// } else if (onSubmit) {
-// const {usernameOrEmail} = onSubmit.payload
-// if (!usernameOrEmail) {
-// logger.error('no email')
-// }
-// return EngineRpc.rpcResult(usernameOrEmail)
-// }
-// }
-
-// const promptNewDeviceNameSaga = onBackSaga =>
-// function*({existingDevices, errorMessage}) {
-// if (errorMessage) {
-// yield Saga.put(LoginGen.createSetDevicenameError({error: errorMessage}))
-// } else {
-// yield Saga.put(
-// navigateAppend([{props: {existingDevices}, selected: 'setPublicName'}], [loginTab, 'login'])
-// )
-// }
-
-// const {onBack, navUp, onSubmit} = (yield Saga.race({
-// navUp: Saga.take(RouteConstants.navigateUp),
-// onBack: Saga.take(LoginGen.onBack),
-// onSubmit: Saga.take(LoginGen.submitDeviceName),
-// }): {
-// onBack: ?LoginGen.OnBackPayload,
-// navUp: ?RouteTypes.NavigateUp,
-// onSubmit: ?LoginGen.SubmitDeviceNamePayload,
-// })
-// if (onBack || navUp) {
-// yield Saga.put(LoginGen.createSetDevicenameError({error: ''}))
-// yield Saga.call(onBackSaga)
-// return EngineRpc.rpcCancel(InputCancelError)
-// } else if (onSubmit) {
-// const {deviceName} = onSubmit.payload
-// yield Saga.put(LoginGen.createSetDevicenameError({error: ''}))
-// return EngineRpc.rpcResult(deviceName)
-// }
-// }
-
-// const onChooseDevice = (params: ProvisionUiChooseDeviceRpcParam, result, state) => {
-// yield Saga.put(
-// navigateAppend(
-// [{props: {canSelectNoDevice, devices}, selected: 'selectOtherDevice'}],
-// [loginTab, 'login']
-// )
-// )
-// const {onBack, navUp, onWont, onSelect} = (yield Saga.race({
-// navUp: Saga.take(RouteConstants.navigateUp),
-// onBack: Saga.take(LoginGen.onBack),
-// onSelect: Saga.take(LoginGen.selectDeviceId),
-// onWont: Saga.take(LoginGen.onWont),
-// }): {
-// onBack: ?LoginGen.OnBackPayload,
-// navUp: ?RouteTypes.NavigateUp,
-// onWont: ?LoginGen.OnWontPayload,
-// onSelect: ?LoginGen.SelectDeviceIdPayload,
-// })
-// if (onBack || navUp) {
-// yield Saga.call(onBackSaga)
-// return EngineRpc.rpcCancel(InputCancelError)
-// } else if (onWont) {
-// return EngineRpc.rpcResult('')
-// } else if (onSelect) {
-// const deviceID = onSelect.payload.deviceId
-// const device = (devices || []).find(d => d.deviceID === deviceID)
-// if (device) {
-// const role = ({
-// desktop: Constants.codePageDeviceRoleExistingComputer,
-// mobile: Constants.codePageDeviceRoleExistingPhone,
-// }: {[key: DevicesTypes.DeviceType]: Types.DeviceRole})[DevicesTypes.stringToDeviceType(device.type)]
-// if (role) {
-// yield Saga.call(setCodePageOtherDeviceRole, role)
-// }
-// return EngineRpc.rpcResult(deviceID)
-// }
-// }
-// }
-
-// const chooseGPGMethodSaga = onBackSaga =>
-// function*() {
-// yield Saga.put(navigateAppend(['gpgSign'], [loginTab, 'login']))
-
-// const {onBack, navUp, onSubmit} = (yield Saga.race({
-// navUp: Saga.take(RouteConstants.navigateUp),
-// onBack: Saga.take(LoginGen.onBack),
-// onSubmit: Saga.take(LoginGen.chooseGPGMethod),
-// }): {
-// onBack: ?LoginGen.OnBackPayload,
-// navUp: ?RouteTypes.NavigateUp,
-// onSubmit: ?LoginGen.ChooseGPGMethodPayload,
-// })
-// if (onBack || navUp) {
-// yield Saga.call(onBackSaga)
-// return EngineRpc.rpcCancel(InputCancelError)
-// } else if (onSubmit) {
-// const exportKey = onSubmit.payload.exportKey
-
-// return EngineRpc.rpcResult(
-// exportKey ? RPCTypes.provisionUiGPGMethod.gpgImport : RPCTypes.provisionUiGPGMethod.gpgSign
-// )
-// }
-// }
-
-// const defaultGetPassphraseSaga = onBackSaga =>
-// function*({pinentry: {type, prompt, username, retryLabel}}) {
-// switch (type) {
-// case RPCTypes.passphraseCommonPassphraseType.paperKey:
-// const destination = {
-// props: {
-// error: retryLabel,
-// },
-// selected: 'paperkey',
-// }
-
-// const state: TypedState = yield Saga.select()
-// const currentPath = pathSelector(state)
-// if (currentPath.last() === 'paperkey') {
-// yield Saga.put(navigateTo(currentPath.pop().push(destination)))
-// } else {
-// yield Saga.put(navigateAppend([destination], [loginTab, 'login']))
-// }
-// break
-// case RPCTypes.passphraseCommonPassphraseType.passPhrase:
-// yield Saga.put(
-// navigateAppend(
-// [
-// {
-// props: {
-// error: retryLabel,
-// prompt,
-// username,
-// },
-// selected: 'passphrase',
-// },
-// ],
-// [loginTab, 'login']
-// )
-// )
-// break
-// default:
-// return EngineRpc.rpcError(
-// new RPCError('Unknown getPassphrase type', RPCTypes.constantsStatusCode.scnotfound)
-// )
-// }
-
-// const {onBack, navUp, onSubmit} = (yield Saga.race({
-// navUp: Saga.take(RouteConstants.navigateUp),
-// onBack: Saga.take(LoginGen.onBack),
-// onSubmit: Saga.take(LoginGen.submitPassphrase),
-// }): {
-// onBack: ?LoginGen.OnBackPayload,
-// navUp: ?RouteTypes.NavigateUp,
-// onSubmit: ?LoginGen.SubmitPassphrasePayload,
-// })
-// if (onBack || navUp) {
-// yield Saga.call(onBackSaga)
-// return EngineRpc.rpcCancel(InputCancelError)
-// } else if (onSubmit) {
-// const passphrase = onSubmit.payload.passphrase.stringValue()
-// return EngineRpc.rpcResult({passphrase, storeSecret: false})
-// }
-// }
-
-// function* handleProvisioningError(error): Generator<any, void, any> {
-// yield Saga.put(LoginGen.createProvisioningError({error}))
-// yield Saga.put(
-// navigateAppend(
-// [
-// {
-// props: {
-// error,
-// },
-// selected: 'error',
-// },
-// ],
-// [loginTab, 'login']
-// )
-// )
-// yield Saga.race({onBack: Saga.take(LoginGen.onBack), navUp: Saga.take(RouteConstants.navigateUp)})
-// yield Saga.call(navigateToLoginRoot)
-// }
-
-// function* loginFlowSaga(usernameOrEmail, passphrase): Generator<any, void, any> {
-// // If there is passphrase, use that.
-// const passphraseEntered = passphrase && passphrase.stringValue && passphrase.stringValue() !== ''
-// const passphraseSaga = passphraseEntered
-// ? onBackSaga => () =>
-// EngineRpc.rpcResult({
-// passphrase: passphrase ? passphrase.stringValue() : 'NEVER HAPPENS',
-// storeSecret: false,
-// })
-// : defaultGetPassphraseSaga
-
-// const loginSagas = kex2Sagas(navigateToLoginRoot, EngineRpc.passthroughResponseSaga, passphraseSaga)
-
-// const loginRpcCall = new EngineRpc.EngineRpcCall(
-// loginSagas,
-// RPCTypes.loginLoginRpcChannelMap,
-// 'loginRpc',
-// {
-// clientType: RPCTypes.commonClientType.guiMain,
-// deviceType,
-// usernameOrEmail,
-// },
-// true // finished error should cancel
-// )
-
-// try {
-// const result = yield Saga.call(loginRpcCall.run)
-
-// if (EngineRpc.isFinished(result)) {
-// const {error} = result.payload
-
-// if (error) {
-// logger.debug('login call error', error)
-// if (error.code === RPCTypes.constantsStatusCode.scbadloginpassword) {
-// // Stay on the login form
-// yield Saga.put(LoginGen.createLoginError({error: 'Looks like a bad passphrase.'}))
-// } else {
-// // Show the error on the error page
-// yield Saga.call(handleProvisioningError, error)
-// }
-// } else {
-// yield Saga.call(navBasedOnLoginAndInitialState)
-// }
-// } else if (result === EngineRpc.BailedEarly) {
-// logger.debug('Bailed early')
-// yield Saga.put(navigateTo(['login'], [loginTab]))
-// } else {
-// yield Saga.put(navigateTo(['login'], [loginTab]))
-// }
-// } catch (error) {
-// yield Saga.call(handleProvisioningError, error)
-// logger.debug('error in loginRPC:', error)
-// }
-// }
-
 type ValidCallbacks =
   | 'keybase.1.gpgUi.selectKey'
   | 'keybase.1.loginUi.displayPrimaryPaperKey'
@@ -352,7 +50,7 @@ let provisioningManager = new ProvisioningManager()
 const chooseDeviceHandler = (params: RPCTypes.ProvisionUiChooseDeviceRpcParam, response, state) => {
   provisioningManager.stashResponse('keybase.1.provisionUi.chooseDevice', response)
   return Saga.put(
-    LoginGen.createShowDeviceList({
+    LoginGen.createShowDeviceListPage({
       canSelectNoDevice: params.canSelectNoDevice,
       devices: (params.devices || []).map(d => Constants.rpcDeviceToDevice(d)),
     })
@@ -380,8 +78,8 @@ const promptNewDeviceNameHandler = (
 ) => {
   provisioningManager.stashResponse('keybase.1.provisionUi.PromptNewDeviceName', response)
   return Saga.put(
-    LoginGen.createShowNewDeviceName({
-      error: params.errorMessage,
+    LoginGen.createShowNewDeviceNamePage({
+      error: params.errorMessage ? new HiddenString(params.errorMessage) : null,
       existingDevices: params.existingDevices || [],
     })
   )
@@ -415,7 +113,7 @@ const displayAndPromptSecretHandler = (
   return Saga.put(
     LoginGen.createShowCodePage({
       code: new HiddenString(params.phrase),
-      error: params.previousErr,
+      error: params.previousErr ? new HiddenString(params.previousErr) : null,
     })
   )
 }
@@ -441,7 +139,7 @@ const submitProvisionTextCode = (state: TypedState) => {
 // Trying to use gpg flow
 const chooseGPGMethodHandler = (params: RPCTypes.ProvisionUiChooseGPGMethodRpcParam, response, state) => {
   provisioningManager.stashResponse('keybase.1.provisionUi.chooseGPGMethod', response)
-  return Saga.put(LoginGen.createShowGPG())
+  return Saga.put(LoginGen.createShowGPGPage())
 }
 const submitProvisionGPGMethod = (state: TypedState, action: LoginGen.SubmitProvisionGPGMethodPayload) => {
   // local error, ignore
@@ -457,6 +155,23 @@ const submitProvisionGPGMethod = (state: TypedState, action: LoginGen.SubmitProv
   response.result(
     action.payload.exportKey ? RPCTypes.provisionUiGPGMethod.gpgImport : RPCTypes.provisionUiGPGMethod.gpgSign
   )
+}
+
+// User has an uploaded key so we can use a passphrase
+const getPassphraseHandler = (params: RPCTypes.SecretUiGetPassphraseRpcParam, response, state) => {
+  provisioningManager.stashResponse('keybase.1.secretUi.getPassphrase', response)
+
+  if (params.pinentry.type === RPCTypes.passphraseCommonPassphraseType.passPhrase) {
+    let error = ''
+    // Service asking us again due to a bad passphrase?
+    if (params.pinentry.retryLabel) {
+      error = params.pinentry.retryLabel
+    }
+
+    return Saga.put(LoginGen.createShowPassphrasePage({error: error ? new HiddenString(error) : null}))
+  } else {
+    throw new Error('Got confused about passphrase entry. Please send a log to us!')
+  }
 }
 
 /**
@@ -499,7 +214,7 @@ const startProvisioning = (state: TypedState) =>
           'keybase.1.provisionUi.chooseDevice': chooseDeviceHandler,
           // TODO test this
           'keybase.1.provisionUi.chooseGPGMethod': chooseGPGMethodHandler,
-          'keybase.1.secretUi.getPassphrase': cancelOnCallback,
+          'keybase.1.secretUi.getPassphrase': getPassphraseHandler,
         },
         params: {
           clientType: RPCTypes.commonClientType.guiMain,
@@ -509,7 +224,7 @@ const startProvisioning = (state: TypedState) =>
         waitingKey: Constants.waitingKey,
       })
     } catch (e) {
-      yield Saga.put(LoginGen.createLoginError({error: niceError(e)}))
+      yield Saga.put(LoginGen.createLoginError({error: new HiddenString(niceError(e))}))
     } finally {
       // Reset us to zero
       yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.waitingKey}))
@@ -539,10 +254,10 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPureSimple(LoginGen.submitProvisionGPGMethod, submitProvisionGPGMethod)
 
   // Screens
-  yield Saga.safeTakeEveryPureSimple(LoginGen.showDeviceList, showDeviceList)
-  yield Saga.safeTakeEveryPureSimple(LoginGen.showNewDeviceName, showNewDeviceName)
+  yield Saga.safeTakeEveryPureSimple(LoginGen.showDeviceListPage, showDeviceList)
+  yield Saga.safeTakeEveryPureSimple(LoginGen.showNewDeviceNamePage, showNewDeviceName)
   yield Saga.safeTakeEveryPureSimple(LoginGen.showCodePage, showCodePage)
-  yield Saga.safeTakeEveryPureSimple(LoginGen.showGPG, showGPG)
+  yield Saga.safeTakeEveryPureSimple(LoginGen.showGPGPage, showGPG)
 
   // TODO
   // yield Saga.safeTakeLatest(LoginGen.addNewDevice, _addNewDevice)
