@@ -84,6 +84,7 @@ type ReporterKBPKI struct {
 	notifySyncBuffer chan *keybase1.FSPathSyncStatus
 	suppressCh       chan time.Duration
 	canceler         func()
+	done             <-chan struct{}
 }
 
 // NewReporterKBPKI creates a new ReporterKBPKI.
@@ -99,6 +100,7 @@ func NewReporterKBPKI(config Config, maxErrors, bufSize int) *ReporterKBPKI {
 	}
 	var ctx context.Context
 	ctx, r.canceler = context.WithCancel(context.Background())
+	r.done = ctx.Done()
 	go r.send(ctx)
 	return r
 }
@@ -251,7 +253,11 @@ func (r *ReporterKBPKI) NotifySyncStatus(ctx context.Context,
 // SuppressNotifications implements the Reporter interface for ReporterKBPKI.
 func (r *ReporterKBPKI) SuppressNotifications(
 	ctx context.Context, suppressDuration time.Duration) {
-	r.suppressCh <- suppressDuration
+	select {
+	case r.suppressCh <- suppressDuration:
+	case <-ctx.Done():
+	case <-r.done:
+	}
 }
 
 // Shutdown implements the Reporter interface for ReporterKBPKI.
@@ -259,7 +265,6 @@ func (r *ReporterKBPKI) Shutdown() {
 	r.canceler()
 	close(r.notifyBuffer)
 	close(r.notifySyncBuffer)
-	close(r.suppressCh)
 }
 
 // send takes notifications out of notifyBuffer and notifySyncBuffer
