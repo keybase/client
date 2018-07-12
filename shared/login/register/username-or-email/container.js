@@ -1,10 +1,14 @@
 // @flow
 import * as LoginGen from '../../../actions/login-gen'
+import * as Constants from '../../../constants/login'
 import UsernameOrEmail from '.'
 import {connect, type TypedState} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
-  waitingForResponse: state.engine.get('rpcWaitingStates').get('loginRpc'),
+  error: state.login.error,
+  // So we can clear the error if the name is changed
+  submittedUsernameOrEmail: state.login.provisionUsernameOrEmail,
+  waitingForResponse: state.waiting.get(Constants.waitingKey),
 })
 
 const dispatchToProps = (dispatch: Dispatch) => ({

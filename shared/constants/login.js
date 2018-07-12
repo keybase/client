@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import * as DeviceTypes from './types/devices'
 import * as Types from './types/login'
 import * as RPCTypes from './types/rpc-gen'
+import {RPCError} from '../util/errors'
 import HiddenString from '../util/hidden-string'
 
 export const waitingKey = 'login:waiting'
@@ -16,21 +17,18 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   codePageOtherDeviceName: '',
   codePageOtherDeviceType: 'phone',
   codePageTextCode: new HiddenString(''),
-  codePageTextCodeError: '',
   configuredAccounts: I.List(),
+  error: '',
   forgotPasswordError: null,
   forgotPasswordSubmitting: false,
   forgotPasswordSuccess: false,
   justDeletedSelf: null,
   justRevokedSelf: null,
-  loginError: '',
   provisionDevices: I.List(),
   provisionDevicesCanSelectNoDevice: false,
   provisionExistingDevices: I.List(),
-  provisionNewNameError: '',
   provisionSelectedDevice: null,
   provisionUsernameOrEmail: '',
-  registerUserPassError: null,
   registerUserPassLoading: false,
 })
 

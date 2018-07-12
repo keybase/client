@@ -1,5 +1,7 @@
 // @flow
 import logger from '../logger'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import {capitalize} from 'lodash'
 
 export class RPCError {
   // Fields to make RPCError 'look' like Error, since we don't want to
@@ -80,4 +82,42 @@ export function convertToRPCError(
 
 export function logError(error: any) {
   logger.info(`logError: ${JSON.stringify(error)}`)
+}
+
+export const niceError = (e: RPCError) => {
+  if (!e) {
+    return ''
+  }
+  switch (e.code) {
+    case RPCTypes.constantsStatusCode.scbadloginusernotfound:
+      return 'Looks like an incorrect user'
+    case RPCTypes.constantsStatusCode.scbadloginpassword:
+      return 'Looks like a bad passphrase.'
+    case RPCTypes.constantsStatusCode.scdeleted:
+      return 'This user looks deleted.'
+    case RPCTypes.constantsStatusCode.scalreadyloggedin:
+      return 'You seem to be already logged in'
+    case RPCTypes.constantsStatusCode.screloginrequired:
+      return 'You need to re-login'
+    case RPCTypes.constantsStatusCode.scnospaceondevice:
+      return "Spaces aren't allowed in device names"
+    case RPCTypes.constantsStatusCode.scbademail:
+      return "This doesn't seem like a valid email"
+    case RPCTypes.constantsStatusCode.scbadsignupusernametaken:
+      return 'This username is already taken'
+    case RPCTypes.constantsStatusCode.scbadinvitationcode:
+      return "This invite code doesn't look right"
+    case RPCTypes.constantsStatusCode.scdevicebadname:
+      return 'Seems like an invalid device name'
+    case RPCTypes.constantsStatusCode.scdevicenameinuse:
+    case RPCTypes.constantsStatusCode.scgenericapierror:
+    case RPCTypes.constantsStatusCode.sctimeout:
+    case RPCTypes.constantsStatusCode.scapinetworkerror:
+      return 'Looks like the internet is gone...'
+    case RPCTypes.constantsStatusCode.scbadsignupusernamedeleted:
+      return 'Looks like this user was deleted, or something'
+  }
+
+  const caps = capitalize(e.desc || e.message || 'Unknown error')
+  return caps.endsWith('.') ? caps : `${caps}.`
 }

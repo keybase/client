@@ -35,21 +35,20 @@ export type _State = {
   codePageOtherDeviceName: string,
   codePageOtherDeviceType: 'phone' | 'desktop' | 'paperkey',
   codePageTextCode: HiddenString,
-  codePageTextCodeError: string,
   configuredAccounts: I.List<Account>,
+  // TODO remove
   forgotPasswordError: ?Error,
   forgotPasswordSubmitting: boolean,
   forgotPasswordSuccess: boolean,
   justDeletedSelf: ?string,
   justRevokedSelf: ?string,
-  loginError: string,
+  // shared by all errors, we only ever want one error
+  error: string,
   provisionUsernameOrEmail: string,
   provisionDevices: I.List<Device>,
   provisionDevicesCanSelectNoDevice: boolean,
   provisionSelectedDevice: ?Device,
   provisionExistingDevices: I.List<string>,
-  provisionNewNameError: string,
-  registerUserPassError: ?string,
   registerUserPassLoading: boolean,
 }
 

@@ -38,6 +38,9 @@ class UsernameOrEmail extends Component<Props, State> {
           <Input
             autoFocus={true}
             style={stylesInput}
+            errorText={
+              this.props.submittedUsernameOrEmail === this.state.usernameOrEmail ? this.props.error : ''
+            }
             hintText="Username or email"
             floatingHintTextOverride="Username or email"
             onChangeText={text => this.onChange(text)}

@@ -23,6 +23,7 @@ import loginRouteTree from '../../app/routes-login'
 import {type InitialState} from '../../constants/types/config'
 import {type TypedState} from '../../constants/reducer'
 import provisionSaga from './provision'
+import {niceError} from '../../util/errors'
 
 // Login dips into the routing dep tree, so we need to tell
 // webpack that we can still handle updates that propagate to here.
@@ -209,7 +210,7 @@ const login = (_: any, action: LoginGen.LoginPayload) =>
         waitingKey: Constants.waitingKey,
       })
     } catch (e) {
-      return Saga.put(LoginGen.createLoginError({error: e.message}))
+      yield Saga.put(LoginGen.createLoginError({error: niceError(e)}))
     }
   })
 

@@ -38,6 +38,9 @@ class UsernameOrEmail extends Component<Props, State> {
             autoFocus={true}
             style={stylesInput}
             hintText="Username or email"
+            errorText={
+              this.props.submittedUsernameOrEmail === this.state.usernameOrEmail ? this.props.error : ''
+            }
             onEnterKeyDown={() => this.onSubmit()}
             onChangeText={text => this.onChange(text)}
             value={this.state.usernameOrEmail}

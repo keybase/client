@@ -7,6 +7,7 @@ import * as RouteTree from '../route-tree'
 import * as Tabs from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../constants/reducer'
+import {niceError} from '../../util/errors'
 
 // function* selectKeySaga() {
 // return EngineRpc.rpcError(new RPCError('Not supported in GUI', RPCTypes.constantsStatusCode.sckeynotfound))
@@ -443,8 +444,8 @@ const startProvisioning = (state: TypedState) =>
             provisioningManager.stashResponse('keybase.1.provisionUi.PromptNewDeviceName', response)
             return Saga.put(
               LoginGen.createShowNewDeviceName({
-                existingDevices: params.existingDevices || [],
                 error: params.errorMessage,
+                existingDevices: params.existingDevices || [],
               })
             )
           },
@@ -474,12 +475,15 @@ const startProvisioning = (state: TypedState) =>
         waitingKey: Constants.waitingKey,
       })
     } catch (e) {
-      return Saga.put(LoginGen.createLoginError({error: e.message}))
+      yield Saga.put(LoginGen.createLoginError({error: niceError(e)}))
     }
   })
 
 const showDeviceList = () =>
   Saga.put(RouteTree.navigateAppend(['selectOtherDevice'], [Tabs.loginTab, 'login']))
+
+const showNewDeviceName = () =>
+  Saga.put(RouteTree.navigateAppend(['setPublicName'], [Tabs.loginTab, 'login']))
 
 function* provisionSaga(): Saga.SagaGenerator<any, any> {
   // Start provision
@@ -490,6 +494,7 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
 
   // Screens
   yield Saga.safeTakeEveryPureSimple(LoginGen.showDeviceList, showDeviceList)
+  yield Saga.safeTakeEveryPureSimple(LoginGen.showNewDeviceName, showNewDeviceName)
 
   // TODO
   // yield Saga.safeTakeLatest(LoginGen.addNewDevice, _addNewDevice)

@@ -17,13 +17,16 @@ export default function(
     case SignupGen.requestAutoInvite: // fallthrough
     case LoginGen.login: // fallthrough
     case LoginGen.startLogin:
-      return state.merge({justDeletedSelf: '', justRevokedSelf: '', loginError: ''})
+      return state.merge({error: '', justDeletedSelf: '', justRevokedSelf: ''})
     case LoginGen.submitUsernameOrEmail:
-      return state.set('provisionUsernameOrEmail', action.payload.usernameOrEmail)
+      return state.merge({
+        error: '',
+        provisionUsernameOrEmail: action.payload.usernameOrEmail,
+      })
     case LoginGen.showNewDeviceName:
       return state.merge({
+        error: action.payload.error,
         provisionExistingDevices: I.List(action.payload.existingDevices),
-        provisionNewNameError: action.payload.error,
       })
     case LoginGen.setTextCode: {
       return state.merge({
@@ -36,6 +39,7 @@ export default function(
       return state // TODO
     case LoginGen.showDeviceList:
       return state.merge({
+        error: '',
         provisionDevices: I.List(action.payload.devices),
         provisionDevicesCanSelectNoDevice: action.payload.canSelectNoDevice,
       })
@@ -50,7 +54,7 @@ export default function(
         I.List(((!action.payload.error && action.payload.accounts) || []).map(a => Constants.makeAccount(a)))
       )
     case LoginGen.loginError:
-      return state.set('loginError', action.payload.error)
+      return state.set('error', action.payload.error)
     case LoginGen.setRevokedSelf:
       return state.set('justRevokedSelf', action.payload.revoked)
     case LoginGen.setDeletedSelf:

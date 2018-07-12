@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState) => {
   return {
     _accounts,
     _defaultUsername,
-    error: state.login.loginError,
+    error: state.login.error,
     waitingForResponse: !!state.waiting.get(Constants.waitingKey),
   }
 }
