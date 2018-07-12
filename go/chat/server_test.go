@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"sort"
 	"strings"
@@ -3115,57 +3116,48 @@ func TestChatSrvMakePreview(t *testing.T) {
 	user := ctc.users()[0]
 
 	// make a preview of a jpg
+	outboxID, err := storage.NewOutboxID()
+	require.NoError(t, err)
 	arg := chat1.MakePreviewArg{
 		Attachment: chat1.LocalFileSource{
 			Filename: "testdata/ship.jpg",
 		},
-		OutputDir: os.TempDir(),
+		OutboxID: outboxID,
 	}
+	ri := ctc.as(t, user).ri
+	tc := ctc.world.Tcs[user.Username]
+	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(), DummyAttachmentFetcher{},
+		func() chat1.RemoteInterface { return ri })
 	res, err := ctc.as(t, user).chatLocalHandler().MakePreview(context.TODO(), arg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if res.Filename == nil {
-		t.Fatal("expected filename")
-	}
-	if !strings.HasSuffix(*res.Filename, ".jpeg") {
-		t.Fatalf("expected .jpeg suffix, got %q", *res.Filename)
-	}
-	defer os.Remove(*res.Filename)
-	if res.Metadata == nil {
-		t.Fatal("expected metadata")
-	}
-	if res.MimeType != "image/jpeg" {
-		t.Fatalf("mime type: %q, expected image/jpeg", res.MimeType)
-	}
+	require.NoError(t, err)
+	require.NotNil(t, res.Location)
+	typ, err := res.Location.Ltyp()
+	require.NoError(t, err)
+	require.Equal(t, chat1.PreviewLocationTyp_URL, typ)
+	require.True(t, strings.Contains(res.Location.Url(), outboxID.String()))
+	resp, err := http.Get(res.Location.Url())
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode)
+	require.NotNil(t, res.Metadata)
+	require.Equal(t, "image/jpeg", res.MimeType)
 	img := res.Metadata.Image()
-	if img.Width != 640 {
-		t.Errorf("width: %d, expected 640", img.Width)
-	}
-	if img.Height != 480 {
-		t.Errorf("height: %d, expected 480", img.Width)
-	}
+	require.Equal(t, 640, img.Width)
+	require.Equal(t, 480, img.Height)
 
 	// MakePreview(pdf) shouldn't generate a preview file, but should return mimetype
+	outboxID, err = storage.NewOutboxID()
+	require.NoError(t, err)
 	arg = chat1.MakePreviewArg{
 		Attachment: chat1.LocalFileSource{
 			Filename: "testdata/weather.pdf",
 		},
-		OutputDir: os.TempDir(),
+		OutboxID: outboxID,
 	}
 	res, err = ctc.as(t, user).chatLocalHandler().MakePreview(context.TODO(), arg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if res.Filename != nil {
-		t.Fatalf("expected no preview file, got %q", *res.Filename)
-	}
-	if res.Metadata != nil {
-		t.Fatalf("expected no metadata, got %+v", res.Metadata)
-	}
-	if res.MimeType != "application/pdf" {
-		t.Fatalf("mime type: %q, expected application/pdf", res.MimeType)
-	}
+	require.NoError(t, err)
+	require.Nil(t, res.Location)
+	require.Nil(t, res.Metadata)
+	require.Equal(t, "application/pdf", res.MimeType)
 }
 
 func inMessageTypes(x chat1.MessageType, ys []chat1.MessageType) bool {

@@ -1220,6 +1220,94 @@ func (s *Server) CreateWalletAccountLocal(ctx context.Context, arg stellar1.Crea
 	return stellar.CreateNewAccount(s.mctx(ctx), arg.Name)
 }
 
+func (s *Server) GetRequestDetailsLocal(ctx context.Context, reqID stellar1.KeybaseRequestID) (res stellar1.RequestDetailsLocal, err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName: "GetRequestDetailsLocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	details, err := s.remoter.RequestDetails(ctx, reqID)
+	if err != nil {
+		return res, err
+	}
+
+	fromAssertion, err := s.lookupUsername(ctx, details.FromUser.Uid)
+	if err != nil {
+		return res, fmt.Errorf("Failed to lookup username for %s: %s", details.FromUser.Uid, err)
+	}
+
+	res = stellar1.RequestDetailsLocal{
+		Id:              details.Id,
+		FromAssertion:   fromAssertion,
+		FromCurrentUser: s.G().GetMyUID().Equal(details.FromUser.Uid),
+		ToAssertion:     details.ToAssertion,
+		Amount:          details.Amount,
+		Asset:           details.Asset,
+		Currency:        details.Currency,
+		Completed:       !details.FundingKbTxID.IsNil(),
+		FundingKbTxID:   details.FundingKbTxID,
+	}
+
+	if details.ToUser != nil {
+		res.ToUserType = stellar1.ParticipantType_KEYBASE
+	} else {
+		res.ToUserType = stellar1.ParticipantType_SBS
+	}
+
+	if details.Currency != nil {
+		converToXLM := func() error {
+			rate, err := s.remoter.ExchangeRate(ctx, details.Currency.String())
+			if err != nil {
+				return err
+			}
+			amountDesc, err := stellar.FormatAmountWithSuffix(details.Amount, false, rate.Currency.String())
+			if err != nil {
+				return err
+			}
+			xlms, err := stellarnet.ConvertOutsideToXLM(res.Amount, rate.Rate)
+			if err != nil {
+				return err
+			}
+			xlmDesc, err := stellar.FormatAmountWithSuffix(xlms, false, "XLM")
+			if err != nil {
+				return err
+			}
+			res.AmountDescription = amountDesc
+			res.AmountStellar = xlms
+			res.AmountStellarDescription = xlmDesc
+			return nil
+		}
+
+		if err := converToXLM(); err != nil {
+			s.G().Log.CDebugf(ctx, "error converting outside currency to XLM: %v", err)
+		}
+	} else if details.Asset != nil {
+		// TODO: Pass info about issuer if Asset is not XLM.
+		var code string
+		if details.Asset.IsNativeXLM() {
+			code = "XLM"
+		} else {
+			code = details.Asset.Code
+		}
+		res.AmountStellar = details.Amount
+		xlmDesc, err := stellar.FormatAmountWithSuffix(details.Amount, false, code)
+		if err == nil {
+			res.AmountDescription = xlmDesc
+			res.AmountStellarDescription = xlmDesc
+		} else {
+			s.G().Log.CDebugf(ctx, "error formatting Stellar amount: %v", err)
+		}
+	} else {
+		return stellar1.RequestDetailsLocal{}, fmt.Errorf("malformed request - currency/asset not defined")
+	}
+
+	return res, nil
+}
+
 // Subtract a 100 stroop fee from the available balance.
 // This shows the real available balance assuming an intent to send a 1 op tx.
 // Does not error out, just shows the inaccurate answer.
