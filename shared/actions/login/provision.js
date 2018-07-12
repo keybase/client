@@ -350,6 +350,39 @@ import {type TypedState} from '../../constants/reducer'
 // }
 // }
 
+// We need to manage replying to these rpc calls so we stash the response objects in a map here
+const callbackResponses: {[key: string]: any} = {
+  'keybase.1.gpgUi.selectKey': null,
+  'keybase.1.loginUi.displayPrimaryPaperKey': null,
+  'keybase.1.loginUi.getEmailOrUsername': null,
+  'keybase.1.provisionUi.DisplayAndPromptSecret': null,
+  'keybase.1.provisionUi.DisplaySecretExchanged': null,
+  'keybase.1.provisionUi.PromptNewDeviceName': null,
+  'keybase.1.provisionUi.ProvisioneeSuccess': null,
+  'keybase.1.provisionUi.ProvisionerSuccess': null,
+  'keybase.1.provisionUi.chooseDevice': null,
+  'keybase.1.provisionUi.chooseGPGMethod': null,
+  'keybase.1.secretUi.getPassphrase': null,
+}
+
+const provisionDeviceSelect = (state: TypedState) => {
+  const response = callbackResponses['keybase.1.provisionUi.chooseDevice']
+  if (!response) {
+    response.error()
+    throw new Error('Tried to submit a device name but missing callback')
+  }
+
+  if (!state.login.provisionSelectedDevice) {
+    response.error()
+    throw new Error('Tried to submit a device name but missing device in store')
+  }
+  response.result(state.login.provisionSelectedDevice.id)
+}
+
+/**
+ * We are starting the provisioning process. This is largely controlled by the daemon. We get a callback to show various
+ * screens and we stash the result object so we can show the screen. When the submit on that screen is done we find the callbackResponses and respond and wait
+ */
 const startProvisioning = (state: TypedState) =>
   Saga.call(function*() {
     try {
@@ -379,10 +412,10 @@ const startProvisioning = (state: TypedState) =>
           'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
           'keybase.1.provisionUi.chooseDevice': (
             params: RPCTypes.ProvisionUiChooseDeviceRpcParam,
-            result,
+            response,
             state
           ) => {
-            // TODO use a simpler type than RPCTypes.
+            callbackResponses['keybase.1.provisionUi.chooseDevice'] = response
             return Saga.put(
               LoginGen.createShowDeviceList({
                 canSelectNoDevice: params.canSelectNoDevice,
@@ -411,6 +444,9 @@ const showDeviceList = () =>
 function* provisionSaga(): Saga.SagaGenerator<any, any> {
   // Start provision
   yield Saga.safeTakeEveryPureSimple(LoginGen.submitUsernameOrEmail, startProvisioning)
+
+  // Submits
+  yield Saga.safeTakeEveryPureSimple(LoginGen.provisionDeviceSelect, provisionDeviceSelect)
 
   // Screens
   yield Saga.safeTakeEveryPureSimple(LoginGen.showDeviceList, showDeviceList)

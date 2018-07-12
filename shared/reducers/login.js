@@ -37,8 +37,10 @@ export default function(
         provisionDevicesCanSelectNoDevice: action.payload.canSelectNoDevice,
       })
     case LoginGen.provisionDeviceSelect:
-      // TODO
-      return state
+      return state.set(
+        'provisionSelectedDevice',
+        state.provisionDevices.find(d => d.name === action.payload.name)
+      )
     case LoginGen.configuredAccounts:
       return state.set(
         'configuredAccounts',

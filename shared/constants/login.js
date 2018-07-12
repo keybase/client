@@ -27,6 +27,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   loginError: '',
   provisionDevices: I.List(),
   provisionDevicesCanSelectNoDevice: false,
+  provisionSelectedDevice: null,
   provisionUsernameOrEmail: '',
   registerUserPassError: null,
   registerUserPassLoading: false,

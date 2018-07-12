@@ -47,6 +47,7 @@ export type _State = {
   provisionUsernameOrEmail: string,
   provisionDevices: I.List<Device>,
   provisionDevicesCanSelectNoDevice: boolean,
+  provisionSelectedDevice: ?Device,
   registerUserPassError: ?string,
   registerUserPassLoading: boolean,
 }
