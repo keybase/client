@@ -8,20 +8,22 @@ const (
 	ReactionMessageMaxLength = 50
 	HeadlineMaxLength        = 280
 	TopicMaxLength           = 20
+	PaymentTextMaxLength     = 240
 )
 
 const (
-	BoxedTextMessageBodyMaxLength          = 11000
-	DevBoxedTextMessageBodyMaxLength       = 1100000
-	BoxedEditMessageBodyMaxLength          = 11000
-	BoxedReactionMessageBodyMaxLength      = 150
-	BoxedHeadlineMessageBodyMaxLength      = 380
-	BoxedMetadataMessageBodyMaxLength      = 200
-	BoxedJoinMessageBodyMaxLength          = 200
-	BoxedLeaveMessageBodyMaxLength         = 200
-	BoxedSystemMessageBodyMaxLength        = 5000
-	BoxedDeleteHistoryMessageBodyMaxLength = 200
-	BoxedSendPaymentMessageBodyMaxLength   = 200
+	BoxedTextMessageBodyMaxLength           = 11000
+	DevBoxedTextMessageBodyMaxLength        = 1100000
+	BoxedEditMessageBodyMaxLength           = 11000
+	BoxedReactionMessageBodyMaxLength       = 150
+	BoxedHeadlineMessageBodyMaxLength       = 380
+	BoxedMetadataMessageBodyMaxLength       = 200
+	BoxedJoinMessageBodyMaxLength           = 200
+	BoxedLeaveMessageBodyMaxLength          = 200
+	BoxedSystemMessageBodyMaxLength         = 5000
+	BoxedDeleteHistoryMessageBodyMaxLength  = 200
+	BoxedSendPaymentMessageBodyMaxLength    = 200
+	BoxedRequestPaymentMessageBodyMaxLength = 500
 )
 
 func getMaxTextLength(topicType chat1.TopicType) (textMsgLength int) {

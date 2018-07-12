@@ -1,32 +1,25 @@
 // @flow
-import logger from '../logger'
-import * as I from 'immutable'
-import * as Chat2Gen from './chat2-gen'
-import * as KBFSGen from './kbfs-gen'
-import * as FsGen from './fs-gen'
-import * as ConfigGen from './config-gen'
-import * as TeamsGen from './teams-gen'
-import * as LoginGen from './login-gen'
-import * as Constants from '../constants/config'
-import * as GregorCreators from '../actions/gregor'
-import * as NotificationsGen from '../actions/notifications-gen'
-import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Saga from '../util/saga'
-import * as PinentryGen from '../actions/pinentry-gen'
-import * as PlatformSpecific from './platform-specific'
-import engine from '../engine'
-import {checkRPCOwnership} from '../engine/index.platform'
-import {RouteStateStorage} from '../actions/route-state-storage'
-import {createConfigurePush} from './push-gen'
-import {createGetPeopleData} from './people-gen'
-import {defaultNumFollowSuggestions} from '../constants/people'
-import {isMobile, isSimulator} from '../constants/platform'
-import {loggedInSelector} from '../constants/selectors'
-import {type AsyncAction} from '../constants/types/flux'
-import {type TypedState} from '../constants/reducer'
-import shallowEqual from 'shallowequal'
-
-const maxAvatarsPerLoad = 50
+import logger from '../../logger'
+import * as KBFSGen from '../kbfs-gen'
+import * as FsGen from '../fs-gen'
+import * as LoginGen from '../login-gen'
+import * as ConfigGen from '../config-gen'
+import * as TeamsGen from '../teams-gen'
+import * as Constants from '../../constants/config'
+import * as GregorCreators from '../gregor'
+import * as NotificationsGen from '../notifications-gen'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as Saga from '../../util/saga'
+import * as PinentryGen from '../pinentry-gen'
+import * as PlatformSpecific from '../platform-specific'
+import avatarSaga from './avatar'
+import engine from '../../engine'
+import {checkRPCOwnership} from '../../engine/index.platform'
+import {createGetPeopleData} from '../people-gen'
+import {defaultNumFollowSuggestions} from '../../constants/people'
+import {isMobile} from '../../constants/platform'
+import {type AsyncAction} from '../../constants/types/flux'
+import {type TypedState} from '../../constants/reducer'
 // TODO convert to sagas
 
 isMobile &&
@@ -96,7 +89,6 @@ const _retryBootstrap = () =>
 // bootstrap would be a method on an object.
 let bootstrapSetup = false
 let didInitialNav = false
-const routeStateStorage = new RouteStateStorage()
 
 // we need to reset this if you log out, else we won't get configured accounts.
 // This is a MESS, so i'm going to clean it up soon
@@ -150,15 +142,13 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
         dispatch(NotificationsGen.createListenForKBFSNotifications())
         if (!didInitialNav) {
           dispatch(async () => {
-            await dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
             if (getState().config.loggedIn) {
+              // TODO move these to a bootstrapSuccess handler
               didInitialNav = true
               // If we're logged in, restore any saved route state and
               // then nav again based on it.
               // load people tab info on startup as well
               // also load the teamlist for auxiliary information around the app
-              await dispatch(routeStateStorage.load)
-              await dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
               await dispatch(TeamsGen.createGetTeams())
               await dispatch(
                 createGetPeopleData({
@@ -187,16 +177,6 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
   }
 }
 
-// Until routeStateStorage is sagaized.
-function* _clearRouteState(action: ConfigGen.ClearRouteStatePayload) {
-  yield Saga.put(routeStateStorage.clear)
-}
-
-// Until routeStateStorage is sagaized.
-function _persistRouteState(action: ConfigGen.PersistRouteStatePayload) {
-  return Saga.put(routeStateStorage.store)
-}
-
 const getBootstrapStatus = (): AsyncAction => dispatch =>
   new Promise((resolve, reject) => {
     RPCTypes.configGetBootstrapStatusRpcPromise()
@@ -209,105 +189,6 @@ const getBootstrapStatus = (): AsyncAction => dispatch =>
       })
   })
 
-function _bootstrapSuccess(action: ConfigGen.BootstrapSuccessPayload, state: TypedState) {
-  if (!isMobile) {
-    return null
-  }
-
-  const actions = []
-  const pushLoaded = state.config.pushLoaded
-  const loggedIn = loggedInSelector(state)
-  if (!pushLoaded && loggedIn) {
-    if (!isSimulator) {
-      actions.push(Saga.put(createConfigurePush()))
-    }
-    actions.push(Saga.put(ConfigGen.createPushLoaded({pushLoaded: true})))
-  }
-
-  return Saga.sequentially(actions)
-}
-
-function _validNames(names: Array<string>) {
-  return names.filter(name => !!name.match(/^([.a-z0-9_-]{1,1000})$/i))
-}
-
-const avatarsToLoad = {
-  teams: I.Set(),
-  users: I.Set(),
-}
-
-function* addToAvatarQueue(action: ConfigGen.LoadAvatarsPayload | ConfigGen.LoadTeamAvatarsPayload) {
-  if (action.type === ConfigGen.loadAvatars) {
-    const usernames = _validNames(action.payload.usernames)
-    avatarsToLoad.users = avatarsToLoad.users.concat(usernames)
-  } else {
-    const teamnames = _validNames(action.payload.teamnames)
-    avatarsToLoad.teams = avatarsToLoad.teams.concat(teamnames)
-  }
-
-  if (avatarChannel) {
-    yield Saga.put(avatarChannel, 'queue')
-  }
-}
-
-const avatarSizes = [960, 256, 192]
-function* avatarCallAndHandle(names: Array<string>, method: Function) {
-  try {
-    const resp = yield Saga.call(method, {
-      formats: avatarSizes.map(s => `square_${s}`),
-      names,
-    })
-
-    const state: TypedState = yield Saga.select()
-    const old = state.config.avatars
-    const nameToUrlMap = Object.keys(resp.picmap).reduce((nameToUrlMap, name) => {
-      const vals = avatarSizes.reduce((map, s) => {
-        map[s] = resp.picmap[name][`square_${s}`] || null
-        return map
-      }, {})
-
-      // only send if it changed
-      if (!old[name] || !shallowEqual(old[name], vals)) {
-        nameToUrlMap[name] = vals
-      }
-
-      return nameToUrlMap
-    }, {})
-
-    yield Saga.put(ConfigGen.createLoadedAvatars({nameToUrlMap}))
-  } catch (error) {
-    if (error.code === RPCTypes.constantsStatusCode.scinputerror) {
-      yield Saga.put(ConfigGen.createGlobalError({globalError: error}))
-    }
-  }
-}
-
-let avatarChannel
-function* handleAvatarQueue() {
-  avatarChannel = yield Saga.channel(Saga.buffers.dropping(1))
-  while (true) {
-    yield Saga.call(Saga.delay, 100)
-    yield Saga.take(avatarChannel)
-
-    const usernames = avatarsToLoad.users.take(maxAvatarsPerLoad).toArray()
-    avatarsToLoad.users = avatarsToLoad.users.skip(maxAvatarsPerLoad)
-    if (usernames.length) {
-      yield Saga.call(avatarCallAndHandle, usernames, RPCTypes.avatarsLoadUserAvatarsRpcPromise)
-    }
-
-    const teamnames = avatarsToLoad.teams.take(maxAvatarsPerLoad).toArray()
-    avatarsToLoad.teams = avatarsToLoad.teams.skip(maxAvatarsPerLoad)
-    if (teamnames.length) {
-      yield Saga.call(avatarCallAndHandle, teamnames, RPCTypes.avatarsLoadTeamAvatarsRpcPromise)
-    }
-
-    // more to load?
-    if (avatarsToLoad.users.size || avatarsToLoad.teams.size) {
-      yield Saga.put(avatarChannel, 'queue')
-    }
-  }
-}
-
 const getConfig = (state: TypedState, action: ConfigGen.LoadConfigPayload) =>
   RPCTypes.configGetConfigRpcPromise().then((config: RPCTypes.Config) => {
     if (action.payload.logVersion) {
@@ -316,23 +197,13 @@ const getConfig = (state: TypedState, action: ConfigGen.LoadConfigPayload) =>
     return ConfigGen.createConfigLoaded({config})
   })
 
-const _setStartedDueToPush = (action: Chat2Gen.SelectConversationPayload) =>
-  action.payload.reason === 'push' ? Saga.put(ConfigGen.createSetStartedDueToPush()) : undefined
-
 function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(LoginGen.logout, clearDidInitialNav)
-  yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, _bootstrapSuccess)
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrap, _bootstrap)
-  yield Saga.safeTakeEveryPure(ConfigGen.clearRouteState, _clearRouteState)
-  yield Saga.safeTakeEveryPure(ConfigGen.persistRouteState, _persistRouteState)
   yield Saga.safeTakeEveryPure(ConfigGen.retryBootstrap, _retryBootstrap)
-  yield Saga.safeTakeEvery(ConfigGen.loadAvatars, addToAvatarQueue)
-  yield Saga.safeTakeEvery(ConfigGen.loadTeamAvatars, addToAvatarQueue)
-  yield Saga.fork(handleAvatarQueue)
-  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, _setStartedDueToPush)
   yield Saga.safeTakeEveryPurePromise(ConfigGen.loadConfig, getConfig)
-
   yield Saga.fork(PlatformSpecific.platformConfigSaga)
+  yield Saga.fork(avatarSaga)
 }
 
 export {getExtendedStatus}

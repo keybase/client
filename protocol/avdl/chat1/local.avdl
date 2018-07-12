@@ -175,6 +175,11 @@ protocol local {
     string kbTxID;
   }
 
+  record MessageRequestPayment {
+    string requestID;
+    string note;
+  }
+
   variant MessageBody switch (MessageType messageType) {
     case TEXT: MessageText;
     case ATTACHMENT: MessageAttachment;
@@ -189,6 +194,7 @@ protocol local {
     case DELETEHISTORY: MessageDeleteHistory;
     case REACTION: MessageReaction;
     case SENDPAYMENT: MessageSendPayment;
+    case REQUESTPAYMENT: MessageRequestPayment;
   }
 
   enum OutboxStateType {

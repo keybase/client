@@ -55,10 +55,14 @@ protocol local {
     SBS_3
   }
 
+  record PaymentID {
+    TransactionID txID;
+  }
+
   // Summary of a payment.
   // Keep in sync with PaymentDetailsLocal.
   record PaymentLocal {
-    TransactionID id;               // For relay payments, the funding tx.
+    PaymentID id;                   // For relay payments, the funding tx.
     TimeMs time;
     PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
     string statusDescription;       // "pending", "completed", "error"
@@ -92,7 +96,8 @@ protocol local {
   // Details of a payment.
   // Keep in sync with PaymentLocal.
   record PaymentDetailsLocal {
-    TransactionID id;               // For relay payments, the funding tx.
+    PaymentID id;
+    TransactionID txID;             // For relay payments, the funding tx.
     TimeMs time;
     PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
     string statusDescription;       // "pending", "completed", "error"
@@ -117,7 +122,7 @@ protocol local {
   // accountID should be the accountID that you want the details for.
   // This is used for formatting the amountDescription to know if it is a payment that
   // increases or decreases the balance.
-  PaymentDetailsLocal getPaymentDetailsLocal(int sessionID, AccountID accountID, TransactionID id);
+  PaymentDetailsLocal getPaymentDetailsLocal(int sessionID, AccountID accountID, PaymentID id);
 
   record CurrencyLocal {
     string description;  // "USD ($)", "CAD ($)", etc.
@@ -126,6 +131,12 @@ protocol local {
     string name;         // "US Dollar", "Thai Baht", etc.
   }
   array<CurrencyLocal> getDisplayCurrenciesLocal(int sessionID);
+
+  void validateAccountIDLocal(int sessionID, AccountID accountID);
+  void validateSecretKeyLocal(int sessionID, SecretKey secretKey);
+  // Validates a name for a new account. Checks if any accounts have the same name.
+  // If there is an error getting account names, the error is suppressed.
+  void validateAccountNameLocal(int sessionID, string name);
 
   void changeWalletAccountNameLocal(int sessionID, AccountID accountID, string newName);
   void setWalletAccountAsDefaultLocal(int sessionID, AccountID accountID);
@@ -263,6 +274,36 @@ protocol local {
     boolean pending;
   }
 
+  record RequestDetailsLocal {
+    KeybaseRequestID id;
+
+    // User asking for payment - creator of the request.
+    string fromAssertion; // creator username
+    boolean fromCurrentUser; // is this request coming from us?
+
+    // User being asked for payment.
+    ParticipantType toUserType; // keybase or SBS
+    string toAssertion; // keybase username or sbs assertion.
+
+    string amount;
+    union { null, Asset } asset;
+    union { null, OutsideCurrencyCode } currency;
+
+    // Formatted amount of either outside currency or stellar lumens.
+    string amountDescription; // "123.23 CAD"
+
+    // Amount of Stellar lumens and formatted amount of Stellar
+    // lumens. It's either same as amountDescription, or amount of
+    // stellars after converting from outside currency.
+    string amountStellar; // "123.23"
+    string amountStellarDescription; // "123.23 XLM"
+
+    // Payment ID if funded, empty if not funded.
+    boolean completed;
+    KeybaseTransactionID fundingKbTxID;
+  }
+  RequestDetailsLocal getRequestDetailsLocal(KeybaseRequestID reqID);
+
   // -------------------------------------------------------
   // CLI protocol
   // -------------------------------------------------------
@@ -342,4 +383,7 @@ protocol local {
 
   map<OutsideCurrencyCode, OutsideCurrencyDefinition> getAvailableLocalCurrencies();
   string formatLocalCurrencyString(string amount, OutsideCurrencyCode code);
+
+  void makeRequestCLILocal(string recipient, union { null, Asset } asset, 
+    union { null, OutsideCurrencyCode } currency, string amount, string note);
 }

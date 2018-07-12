@@ -1,6 +1,6 @@
 // @flow
 import logger from '../../logger'
-import * as AppGen from '../app-gen'
+import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/profile'
 import * as TrackerGen from '../tracker-gen'
 import * as ProfileGen from '../profile-gen'
@@ -45,7 +45,7 @@ function _showUserProfile(action: ProfileGen.ShowUserProfilePayload, state: Type
   const {username: userId} = action.payload
   const searchResultMap = Selectors.searchResultMapSelector(state)
   const username = SearchConstants.maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, userId)
-  const me = Selectors.usernameSelector(state) || ''
+  const me = state.config.username || ''
   // Get the peopleTab path
   const peopleRouteProps = getPathProps(state.routeTree.routeState, [peopleTab])
   const onlyProfilesPath = Constants.getProfilePath(peopleRouteProps, username, me, state)
@@ -104,7 +104,7 @@ function _openURLIfNotNull(nullableThing, url, metaText): void {
   openURL(url)
 }
 
-function _onAppLink(action: AppGen.LinkPayload, state: TypedState) {
+function _onAppLink(action: ConfigGen.LinkPayload, state: TypedState) {
   const {loggedIn} = state.config
   if (!loggedIn) {
     logger.info('AppLink: not logged in')
@@ -176,7 +176,7 @@ function* _profileSaga(): Saga.SagaGenerator<any, any> {
   )
   yield Saga.safeTakeEveryPure(ProfileGen.outputInstructionsActionLink, _outputInstructionsActionLink)
   yield Saga.safeTakeEveryPure(ProfileGen.showUserProfile, _showUserProfile)
-  yield Saga.safeTakeEveryPure(AppGen.link, _onAppLink)
+  yield Saga.safeTakeEveryPure(ConfigGen.link, _onAppLink)
 }
 
 function* profileSaga(): Saga.SagaGenerator<any, any> {

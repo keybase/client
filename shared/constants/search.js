@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as Types from './types/search'
 import * as SearchGen from '../actions/search-gen'
-import {amIFollowing, usernameSelector} from './selectors'
+import {amIFollowing} from './selectors'
 import type {IconType} from '../common-adapters'
 import {createSelector} from 'reselect'
 import type {TypedState} from './reducer'
@@ -31,7 +31,7 @@ function serviceIdToService(serviceId: string): Types.Service {
 }
 
 function followStateHelper(state: TypedState, username: string, service: Types.Service) {
-  const me = usernameSelector(state)
+  const me = state.config.username
   if (service === 'Keybase') {
     if (username === me) {
       return 'You'
