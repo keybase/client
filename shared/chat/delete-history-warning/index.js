@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
-import {Box, Button, HeaderOnMobile, Icon, PopupDialog, ScrollView, Text} from '../../common-adapters'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
+import {Box, Button, HeaderOnMobile, Icon, MaybePopup, Text} from '../../common-adapters'
+import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../styles'
 
 type Props = {
   errorText: string,
@@ -10,15 +10,8 @@ type Props = {
   onDeleteHistory: () => void,
 }
 
-const Wrapper = ({children, onBack}) =>
-  isMobile ? (
-    <ScrollView style={{...globalStyles.fillAbsolute, ...globalStyles.flexBoxColumn}} children={children} />
-  ) : (
-    <PopupDialog onClose={onBack} children={children} />
-  )
-
 const DeleteHistoryWarning = ({errorText, name, onBack, onDeleteHistory}: Props) => (
-  <Wrapper onBack={onBack}>
+  <MaybePopup onClose={onBack}>
     <Box
       style={{
         ...globalStyles.flexBoxColumn,
@@ -37,28 +30,45 @@ const DeleteHistoryWarning = ({errorText, name, onBack, onDeleteHistory}: Props)
       <Text style={{padding: globalMargins.small}} type="Body">
         You are about to delete all the messages in this conversation. For everyone.
       </Text>
-      <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xlarge}}>
-        <Button type="Secondary" style={{marginLeft: globalMargins.tiny}} onClick={onBack} label="Cancel" />
-        <Button
-          type="Danger"
-          style={{marginLeft: globalMargins.tiny}}
-          onClick={onDeleteHistory}
-          label="Yes, clear for everyone"
-        />
+      <Box style={styleButtonBox}>
+        <Button type="Secondary" style={styleButton} onClick={onBack} label="Cancel" />
+        <Button type="Danger" style={styleButton} onClick={onDeleteHistory} label="Yes, clear for everyone" />
       </Box>
     </Box>
-  </Wrapper>
+  </MaybePopup>
 )
 
-const stylePadding = isMobile
-  ? {
-      paddingTop: globalMargins.xlarge,
-    }
-  : {
-      marginBottom: 40,
-      marginLeft: 80,
-      marginRight: 80,
-      marginTop: 40,
-    }
+const stylePadding = platformStyles({
+  isMobile: {
+    paddingTop: globalMargins.xlarge,
+  },
+  isElectron: {
+    marginBottom: 40,
+    marginLeft: 80,
+    marginRight: 80,
+    marginTop: 40,
+  },
+})
+
+const styleButtonBox = platformStyles({
+  common: {
+    marginTop: globalMargins.xlarge,
+  },
+  isMobile: {
+    ...globalStyles.flexBoxColumn,
+  },
+  isElectron: {
+    ...globalStyles.flexBoxRow,
+  },
+})
+
+const styleButton = platformStyles({
+  isElectron: {
+    marginLeft: globalMargins.tiny,
+  },
+  isMobile: {
+    marginTop: globalMargins.tiny,
+  },
+})
 
 export default HeaderOnMobile(DeleteHistoryWarning)
