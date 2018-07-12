@@ -10,7 +10,6 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -1452,20 +1451,10 @@ func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res
 	if pre.Preview != nil {
 		buf := pre.Preview.Bytes()
 		if err := storage.NewPendingPreviews(h.G()).Put(ctx, arg.OutboxID, buf); err != nil {
-			return err
+			return res, err
 		}
-
-		name := f.Name()
-		if strings.HasPrefix(pre.ContentType, "image/") {
-			suffix := strings.TrimPrefix(pre.ContentType, "image/")
-			suffixName := name + "." + suffix
-			h.Debug(ctx, "renaming preview file %q to %q", name, suffixName)
-			if err := os.Rename(name, suffixName); err != nil {
-				return res, err
-			}
-			name = suffixName
-		}
-		res.Filename = &name
+		loc := chat1.NewPreviewLocationWithUrl(h.G().AttachmentURLSrv.GetPendingPreviewURL(ctx, arg.OutboxID))
+		res.Location = &loc
 
 		md := pre.PreviewMetadata()
 		var empty chat1.AssetMetadata
@@ -1479,6 +1468,25 @@ func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res
 		}
 	}
 
+	return res, nil
+}
+
+func (h *Server) makePreviewSource(loc chat1.PreviewLocation) (res attachments.AssetSource, err error) {
+	ptyp, err := loc.Ltyp()
+	if err != nil {
+		return res, err
+	}
+	switch ptyp {
+	case chat1.PreviewLocationTyp_URL:
+		res, err = attachments.NewHTTPSource(loc.Url())
+		if err != nil {
+			return res, err
+		}
+	case chat1.PreviewLocationTyp_FILE:
+		res, err = attachments.NewFileSource(chat1.LocalFileSource{
+			Filename: loc.File(),
+		})
+	}
 	return res, nil
 }
 
@@ -1504,13 +1512,8 @@ func (h *Server) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachme
 
 	if arg.Preview != nil {
 		parg.Preview = new(attachmentPreview)
-		if arg.Preview.Filename != nil {
-			parg.Preview.source, err = attachments.NewFileSource(chat1.LocalFileSource{
-				Filename: *arg.Preview.Filename,
-			})
-			if err != nil {
-				return res, err
-			}
+		if arg.Preview.Location != nil {
+			parg.Preview.source, err = h.makePreviewSource(*arg.Preview.Location)
 		}
 		if arg.Preview.Metadata != nil {
 			parg.Preview.md = arg.Preview.Metadata
@@ -1551,10 +1554,8 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 
 	if arg.Preview != nil {
 		parg.Preview = new(attachmentPreview)
-		if arg.Preview.Filename != nil && *arg.Preview.Filename != "" {
-			parg.Preview.source, err = attachments.NewFileSource(chat1.LocalFileSource{
-				Filename: *arg.Preview.Filename,
-			})
+		if arg.Preview.Location != nil {
+			parg.Preview.source, err = h.makePreviewSource(*arg.Preview.Location)
 			if err != nil {
 				return res, err
 			}

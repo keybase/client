@@ -666,6 +666,11 @@ func (t ConversationIDTriple) Derivable(cid ConversationID) bool {
 	return bytes.Equal(h[2:], []byte(cid[2:]))
 }
 
+func MakeOutboxID(s string) (OutboxID, error) {
+	b, err := hex.DecodeString(s)
+	return OutboxID(b), err
+}
+
 func (o *OutboxID) Eq(r *OutboxID) bool {
 	if o != nil && r != nil {
 		return bytes.Equal(*o, *r)

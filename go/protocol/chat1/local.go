@@ -3761,23 +3761,125 @@ func (o DownloadAttachmentLocalRes) DeepCopy() DownloadAttachmentLocalRes {
 	}
 }
 
-type MakePreviewRes struct {
-	MimeType     string         `codec:"mimeType" json:"mimeType"`
-	Url          *string        `codec:"url,omitempty" json:"url,omitempty"`
-	Metadata     *AssetMetadata `codec:"metadata,omitempty" json:"metadata,omitempty"`
-	BaseMetadata *AssetMetadata `codec:"baseMetadata,omitempty" json:"baseMetadata,omitempty"`
+type PreviewLocationTyp int
+
+const (
+	PreviewLocationTyp_URL  PreviewLocationTyp = 0
+	PreviewLocationTyp_FILE PreviewLocationTyp = 1
+)
+
+func (o PreviewLocationTyp) DeepCopy() PreviewLocationTyp { return o }
+
+var PreviewLocationTypMap = map[string]PreviewLocationTyp{
+	"URL":  0,
+	"FILE": 1,
 }
 
-func (o MakePreviewRes) DeepCopy() MakePreviewRes {
-	return MakePreviewRes{
-		MimeType: o.MimeType,
-		Url: (func(x *string) *string {
+var PreviewLocationTypRevMap = map[PreviewLocationTyp]string{
+	0: "URL",
+	1: "FILE",
+}
+
+func (e PreviewLocationTyp) String() string {
+	if v, ok := PreviewLocationTypRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type PreviewLocation struct {
+	Ltyp__ PreviewLocationTyp `codec:"ltyp" json:"ltyp"`
+	Url__  *string            `codec:"url,omitempty" json:"url,omitempty"`
+	File__ *string            `codec:"file,omitempty" json:"file,omitempty"`
+}
+
+func (o *PreviewLocation) Ltyp() (ret PreviewLocationTyp, err error) {
+	switch o.Ltyp__ {
+	case PreviewLocationTyp_URL:
+		if o.Url__ == nil {
+			err = errors.New("unexpected nil value for Url__")
+			return ret, err
+		}
+	case PreviewLocationTyp_FILE:
+		if o.File__ == nil {
+			err = errors.New("unexpected nil value for File__")
+			return ret, err
+		}
+	}
+	return o.Ltyp__, nil
+}
+
+func (o PreviewLocation) Url() (res string) {
+	if o.Ltyp__ != PreviewLocationTyp_URL {
+		panic("wrong case accessed")
+	}
+	if o.Url__ == nil {
+		return
+	}
+	return *o.Url__
+}
+
+func (o PreviewLocation) File() (res string) {
+	if o.Ltyp__ != PreviewLocationTyp_FILE {
+		panic("wrong case accessed")
+	}
+	if o.File__ == nil {
+		return
+	}
+	return *o.File__
+}
+
+func NewPreviewLocationWithUrl(v string) PreviewLocation {
+	return PreviewLocation{
+		Ltyp__: PreviewLocationTyp_URL,
+		Url__:  &v,
+	}
+}
+
+func NewPreviewLocationWithFile(v string) PreviewLocation {
+	return PreviewLocation{
+		Ltyp__: PreviewLocationTyp_FILE,
+		File__: &v,
+	}
+}
+
+func (o PreviewLocation) DeepCopy() PreviewLocation {
+	return PreviewLocation{
+		Ltyp__: o.Ltyp__.DeepCopy(),
+		Url__: (func(x *string) *string {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x)
 			return &tmp
-		})(o.Url),
+		})(o.Url__),
+		File__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.File__),
+	}
+}
+
+type MakePreviewRes struct {
+	MimeType     string           `codec:"mimeType" json:"mimeType"`
+	Location     *PreviewLocation `codec:"location,omitempty" json:"location,omitempty"`
+	Metadata     *AssetMetadata   `codec:"metadata,omitempty" json:"metadata,omitempty"`
+	BaseMetadata *AssetMetadata   `codec:"baseMetadata,omitempty" json:"baseMetadata,omitempty"`
+}
+
+func (o MakePreviewRes) DeepCopy() MakePreviewRes {
+	return MakePreviewRes{
+		MimeType: o.MimeType,
+		Location: (func(x *PreviewLocation) *PreviewLocation {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Location),
 		Metadata: (func(x *AssetMetadata) *AssetMetadata {
 			if x == nil {
 				return nil

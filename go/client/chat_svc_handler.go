@@ -392,8 +392,9 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 
 	// check for preview
 	if len(opts.Preview) > 0 {
+		loc := chat1.NewPreviewLocationWithFile(opts.Preview)
 		arg.Preview = &chat1.MakePreviewRes{
-			Filename: &opts.Preview,
+			Location: &loc,
 		}
 	}
 
@@ -475,8 +476,9 @@ func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOp
 
 	// check for preview
 	if len(opts.Preview) > 0 {
+		loc := chat1.NewPreviewLocationWithFile(opts.Preview)
 		arg.Preview = &chat1.MakePreviewRes{
-			Filename: &opts.Preview,
+			Location: &loc,
 		}
 	}
 

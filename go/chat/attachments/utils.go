@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -63,8 +62,4 @@ func AssetFromMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, 
 		}
 	}
 	return res, nil
-}
-
-func PreviewFromOutboxID(ctx context.Context, g *globals.Context, uid gregor1.UID, outboxID chat1.OutboxID) {
-	storage.NewOutbox()
 }
