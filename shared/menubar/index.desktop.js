@@ -43,9 +43,10 @@ class MenubarRender extends Component<Props, State> {
 
   constructor(props: Props) {
     super(props)
-    SafeElectron.getRemote()
-      .getCurrentWindow()
-      .on('show', this._onShow)
+    const remote = SafeElectron.getRemote()
+    if (remote.getCurrentWindow) {
+      remote.getCurrentWindow().on('show', this._onShow)
+    }
   }
 
   render() {
