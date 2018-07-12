@@ -28,13 +28,6 @@ export default function(
         error: action.payload.error,
         provisionExistingDevices: I.List(action.payload.existingDevices),
       })
-    case LoginGen.setTextCode: {
-      return state.merge({
-        // TODO error
-        // codePageTextCodeError: action.payload.codePageEnterCodeErrorText,
-        codePageTextCode: action.payload.textCode,
-      })
-    }
     case LoginGen.qrScanned:
       return state // TODO
     case LoginGen.showDeviceList:
@@ -60,6 +53,11 @@ export default function(
       return state.merge({
         error: '',
         provisionDeviceName: action.payload.name,
+      })
+    case LoginGen.showCodePage:
+      return state.merge({
+        codePageTextCode: action.payload.code,
+        error: action.payload.error,
       })
     case LoginGen.configuredAccounts:
       return state.set(

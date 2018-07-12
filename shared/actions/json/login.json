@@ -25,6 +25,10 @@
       "existingDevices": "Array<string>",
       "error": "string"
     },
+    "showCodePage": {
+      "code": "HiddenString",
+      "error": "string"
+    },
 
     // TODO remove
     "onBack": {},
@@ -33,7 +37,6 @@
     "chooseGPGMethod": { "exportKey": "boolean" },
     "launchAccountResetWebPage": {},
     "launchForgotPasswordWebPage": {},
-    "setTextCode": { "textCode": "HiddenString" },
     "loginError": { "error": "string" },
     "provisioningError": { "error": "Error" },
     "logout": {},

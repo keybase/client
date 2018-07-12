@@ -25,7 +25,7 @@ export const provisioningError = 'login:provisioningError'
 export const qrScanned = 'login:qrScanned'
 export const setDeletedSelf = 'login:setDeletedSelf'
 export const setRevokedSelf = 'login:setRevokedSelf'
-export const setTextCode = 'login:setTextCode'
+export const showCodePage = 'login:showCodePage'
 export const showDeviceList = 'login:showDeviceList'
 export const showNewDeviceName = 'login:showNewDeviceName'
 export const startLogin = 'login:startLogin'
@@ -57,7 +57,10 @@ type _ProvisioningErrorPayload = $ReadOnly<{|error: Error|}>
 type _QrScannedPayload = $ReadOnly<{|phrase: HiddenString|}>
 type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
 type _SetRevokedSelfPayload = $ReadOnly<{|revoked: string|}>
-type _SetTextCodePayload = $ReadOnly<{|textCode: HiddenString|}>
+type _ShowCodePagePayload = $ReadOnly<{|
+  code: HiddenString,
+  error: string,
+|}>
 type _ShowDeviceListPayload = $ReadOnly<{|
   canSelectNoDevice: boolean,
   devices: Array<Types.Device>,
@@ -100,7 +103,7 @@ export const createProvisioningError = (payload: _ProvisioningErrorPayload) => (
 export const createQrScanned = (payload: _QrScannedPayload) => ({error: false, payload, type: qrScanned})
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error: false, payload, type: setDeletedSelf})
 export const createSetRevokedSelf = (payload: _SetRevokedSelfPayload) => ({error: false, payload, type: setRevokedSelf})
-export const createSetTextCode = (payload: _SetTextCodePayload) => ({error: false, payload, type: setTextCode})
+export const createShowCodePage = (payload: _ShowCodePagePayload) => ({error: false, payload, type: showCodePage})
 export const createStartLogin = (payload: _StartLoginPayload) => ({error: false, payload, type: startLogin})
 export const createSubmitPassphrase = (payload: _SubmitPassphrasePayload) => ({error: false, payload, type: submitPassphrase})
 export const createSubmitProvisionDeviceName = (payload: _SubmitProvisionDeviceNamePayload) => ({error: false, payload, type: submitProvisionDeviceName})
@@ -127,7 +130,7 @@ export type ProvisioningErrorPayload = $Call<typeof createProvisioningError, _Pr
 export type QrScannedPayload = $Call<typeof createQrScanned, _QrScannedPayload>
 export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDeletedSelfPayload>
 export type SetRevokedSelfPayload = $Call<typeof createSetRevokedSelf, _SetRevokedSelfPayload>
-export type SetTextCodePayload = $Call<typeof createSetTextCode, _SetTextCodePayload>
+export type ShowCodePagePayload = $Call<typeof createShowCodePage, _ShowCodePagePayload>
 export type ShowDeviceListPayload = $Call<typeof createShowDeviceList, _ShowDeviceListPayload>
 export type ShowNewDeviceNamePayload = $Call<typeof createShowNewDeviceName, _ShowNewDeviceNamePayload>
 export type StartLoginPayload = $Call<typeof createStartLogin, _StartLoginPayload>
@@ -158,7 +161,7 @@ export type Actions =
   | QrScannedPayload
   | SetDeletedSelfPayload
   | SetRevokedSelfPayload
-  | SetTextCodePayload
+  | ShowCodePagePayload
   | ShowDeviceListPayload
   | ShowNewDeviceNamePayload
   | StartLoginPayload

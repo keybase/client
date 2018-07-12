@@ -7,6 +7,7 @@ import * as Saga from '../../util/saga'
 import * as RouteTree from '../route-tree'
 import * as Tabs from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
+import HiddenString from '../../util/hidden-string'
 import {type TypedState} from '../../constants/reducer'
 import {niceError} from '../../util/errors'
 
@@ -404,6 +405,21 @@ const submitProvisionDeviceName = (state: TypedState) => {
   response.result(state.login.provisionDeviceName)
 }
 
+// We now need to exchange a secret sentence. Either side can move the process forward
+const displayAndPromptSecretHandler = (
+  params: RPCTypes.ProvisionUiDisplayAndPromptSecretRpcParam,
+  response,
+  state
+) => {
+  provisioningManager.stashResponse('keybase.1.provisionUi.DisplayAndPromptSecret', response)
+  return Saga.put(
+    LoginGen.createShowCodePage({
+      code: new HiddenString(params.phrase),
+      error: params.previousErr,
+    })
+  )
+}
+
 /**
  * We are starting the provisioning process. This is largely controlled by the daemon. We get a callback to show various
  * screens and we stash the result object so we can show the screen. When the submit on that screen is done we find the stashedReponse and respond and wait
@@ -436,7 +452,7 @@ const startProvisioning = (state: TypedState) =>
           'keybase.1.gpgUi.selectKey': cancelOnCallback,
           'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
           'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
-          'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
+          'keybase.1.provisionUi.DisplayAndPromptSecret': displayAndPromptSecretHandler,
           'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
           'keybase.1.provisionUi.PromptNewDeviceName': promptNewDeviceNameHandler,
           'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
