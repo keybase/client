@@ -23,9 +23,9 @@ import {
   globalStyles,
   styleSheetCreate,
 } from '../../styles'
-import type {_Props} from '.'
+import type {Props} from '.'
 
-type Props = PropsWithTimer<_Props>
+type _Props = PropsWithTimer<Props>
 
 type State = {
   dragStartX: number,
@@ -56,11 +56,11 @@ const AVATAR_BORDER_SIZE = 4
 const AVATAR_SIZE = AVATAR_CONTAINER_SIZE - AVATAR_BORDER_SIZE * 2
 const VIEWPORT_CENTER = AVATAR_SIZE / 2
 
-class EditAvatar extends React.Component<Props, State> {
+class EditAvatar extends React.Component<_Props, State> {
   _file: ?HTMLInputElement
   _image: ?HTMLImageElement
 
-  constructor(props: Props) {
+  constructor(props: _Props) {
     super(props)
     this.state = {
       dragStartX: 0,
