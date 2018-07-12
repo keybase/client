@@ -41,7 +41,7 @@ func (s *DeviceEKStorage) keyPrefixFromUsername(username libkb.NormalizedUsernam
 }
 
 func (s *DeviceEKStorage) keyPrefix(ctx context.Context) (prefix string, err error) {
-	uv, err := getCurrentUserUV(ctx, s.G())
+	uv, err := s.G().GetMeUV(ctx)
 	if err != nil {
 		return prefix, err
 	}
@@ -432,7 +432,7 @@ func (s *DeviceEKStorage) deletedWrongEldestSeqno(ctx context.Context) (err erro
 	if err != nil {
 		return err
 	}
-	uv, err := getCurrentUserUV(ctx, s.G())
+	uv, err := s.G().GetMeUV(ctx)
 	if err != nil {
 		return err
 	}
