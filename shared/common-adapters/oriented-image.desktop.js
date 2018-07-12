@@ -36,7 +36,7 @@ const exifOrientaionMap = {
 }
 
 const makeStyleTransform = (orientation: ?number): string => {
-  // In the event that we get a missing orienation from EXIF library
+  // In the event that we get a missing orientation from EXIF library
   if (!orientation) return ''
 
   const transform = exifOrientaionMap[orientation]
@@ -48,7 +48,7 @@ const makeStyleTransform = (orientation: ?number): string => {
 }
 
 /*
- * OrientedImage handles two situations of reading EXIF orienation bits.
+ * OrientedImage handles two situations of reading EXIF orientation bits.
  * 1. When the user is adding an image, we want to render a preview of the
  * image with the correct exif orientation
  * 2. Once the image has been uploaded we will have to reorient the image again
@@ -74,12 +74,12 @@ class OrientedImage extends React.Component<Props, State> {
   _hasComponentMounted = false
 
   // Parse and update img exif data
-  _readOrientation = (src, img) => {
-    const orientation: ?number = EXIF.getTag(img, 'Orientation')
+  _setOrientation = (src, orientation: ?number) => {
     // If there is no Orientation data set for the image, then mark it as null
     // in the cache to avoid subsequent calls to EXIF
     if (!isNumber(orientation)) {
       _cacheStyleTransforms[src] = NO_TRANSFORM
+      return
     }
 
     const newTransform: string = makeStyleTransform(orientation)
@@ -92,11 +92,11 @@ class OrientedImage extends React.Component<Props, State> {
   }
 
   // EXIF will make a local HTTP request for images that have been uploaded to the Keybase service.
-  // If the image is base64 encoded (local) it will read the exif data from the dataURI (no HTTP request)
-  _readExifData = src => {
+  _fetchExifUploaded = src => {
     return new Promise((resolve, reject) => {
       const ret = EXIF.getData({src}, function() {
-        resolve(this)
+        const orientation = EXIF.getTag(this, 'Orientation')
+        resolve(orientation)
       })
       if (!ret) reject(new Error('EXIF failed to fetch image data'))
     })
@@ -106,21 +106,22 @@ class OrientedImage extends React.Component<Props, State> {
   // from the filesystem and encode the result as a base64 iamge so that EXIF
   // can process the orientation without attempting to make an HTTP request to
   // the local image which would violate CORS.
-  _loadImageLocal = src => {
+  _readExifLocal = src => {
     return new Promise((resolve, reject) => {
-      fs.readFile(src, (err, buffer) => {
+      fs.readFile(src, (err, data) => {
         if (err) return reject(err)
 
-        const imageBase64 = buffer.toString('base64')
-        const dataURI = `data:image/jpeg;base64,${imageBase64}`
-        resolve(dataURI)
+        // data is a Node Buffer which is backed by a JavaScript ArrayBuffer.
+        // EXIF.readFromBinaryFile takes an ArrayBuffer
+        const tags = EXIF.readFromBinaryFile(data.buffer)
+        tags ? resolve(tags['Orientation']) : reject(new Error('EXIF failed to read exif data'))
       })
     })
   }
 
-  _handleImageLoadSuccess = (src, img) => {
+  _handleImageLoadSuccess = (src, orientation) => {
     if (!this._hasComponentMounted) return
-    this._readOrientation(src, img)
+    this._setOrientation(src, orientation)
   }
 
   // Don't perform transforms if the image cannot be loaded or there is no EXIF data
@@ -141,13 +142,12 @@ class OrientedImage extends React.Component<Props, State> {
     }
 
     if (this.props.preview) {
-      this._loadImageLocal(src)
-        .then(dataURI => this._readExifData(dataURI))
-        .then(img => this._handleImageLoadSuccess(src, img))
+      this._readExifLocal(src)
+        .then(orientation => this._handleImageLoadSuccess(src, orientation))
         .catch(() => this._handleImgeLoadFailure(src))
     } else {
-      this._readExifData(src)
-        .then(img => this._handleImageLoadSuccess(src, img))
+      this._fetchExifUploaded(src)
+        .then(orientation => this._handleImageLoadSuccess(src, orientation))
         .catch(() => this._handleImgeLoadFailure(src))
     }
   }

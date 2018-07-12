@@ -4,7 +4,6 @@ import {
   Box,
   Button,
   Icon,
-  // Image,
   OrientedImage,
   Input,
   PopupDialog,
