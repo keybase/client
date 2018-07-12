@@ -1080,7 +1080,7 @@ func MakeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 	}
 
 	if arg.Asset != nil && !arg.Asset.IsNativeXLM() {
-		return ret, fmt.Errorf("sending non-XLM assets is not supported")
+		return ret, fmt.Errorf("requesting non-XLM assets is not supported")
 	}
 
 	if arg.Currency != nil {
@@ -1099,7 +1099,7 @@ func MakeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 	// that we are able to send REQUESTPAYMENT chat message.
 	m.G().StartStandaloneChat()
 	if m.G().ChatHelper == nil {
-		return ret, errors.New("cannot send MakeRequest message: chat helper is nil")
+		return ret, errors.New("cannot send RequestPayment message: chat helper is nil")
 	}
 
 	recipient, err := LookupRecipient(m, arg.To)
