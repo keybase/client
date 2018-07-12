@@ -490,6 +490,16 @@ func (s *HybridConversationSource) isContinuousPush(ctx context.Context, convID 
 	return continuousUpdate, nil
 }
 
+// removePendingPreview removes any attachment previews from pending preview storage
+func (s *HybridConversationSource) removePendingPreview(ctx context.Context, msg chat1.MessageUnboxed) {
+	if msg.GetMessageType() == chat1.MessageType_ATTACHMENT {
+		outboxID := msg.OutboxID()
+		if outboxID != nil {
+			storage.NewPendingPreviews(s.G()).Remove(ctx, *outboxID)
+		}
+	}
+}
+
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msg chat1.MessageBoxed) (decmsg chat1.MessageUnboxed, continuousUpdate bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Push")()
@@ -524,9 +534,12 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 		})
 	}
 
+	// Add to the local storage
 	if err = s.mergeMaybeNotify(ctx, convID, uid, []chat1.MessageUnboxed{decmsg}); err != nil {
 		return decmsg, continuousUpdate, err
 	}
+	// Remove any pending previews from storage
+	s.removePendingPreview(ctx, decmsg)
 
 	return decmsg, continuousUpdate, nil
 }
@@ -546,7 +559,6 @@ func (s *HybridConversationSource) PushUnboxed(ctx context.Context, convID chat1
 	if err = s.mergeMaybeNotify(ctx, convID, uid, []chat1.MessageUnboxed{msg}); err != nil {
 		return continuousUpdate, err
 	}
-
 	return continuousUpdate, nil
 }
 

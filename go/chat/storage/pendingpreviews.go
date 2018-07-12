@@ -3,6 +3,7 @@ package storage
 import (
 	"bytes"
 	"io"
+	"os"
 	"path/filepath"
 
 	"github.com/keybase/client/go/encrypteddb"
@@ -52,12 +53,17 @@ func (p *PendingPreviews) Get(ctx context.Context, outboxID chat1.OutboxID) (res
 
 func (p *PendingPreviews) Put(ctx context.Context, outboxID chat1.OutboxID, preview []byte) (err error) {
 	defer p.Trace(ctx, func() error { return err }, "Put(%s)", outboxID)()
+	if err := os.MkdirAll(p.getDir(), os.ModePerm); err != nil {
+		return err
+	}
 	file := encrypteddb.NewFile(p.G().ExternalG(), p.getPath(outboxID), p.keyFn())
 	return file.Put(ctx, preview)
 }
 
-func (p *PendingPreviews) Remove(ctx context.Context, outboxID chat1.OutboxID) (err error) {
-	defer p.Trace(ctx, func() error { return err }, "Remove(%s)", outboxID)()
+func (p *PendingPreviews) Remove(ctx context.Context, outboxID chat1.OutboxID) {
+	defer p.Trace(ctx, func() error { return nil }, "Remove(%s)", outboxID)()
 	file := encrypteddb.NewFile(p.G().ExternalG(), p.getPath(outboxID), p.keyFn())
-	return file.Remove(ctx)
+	if err := file.Remove(ctx); err != nil {
+		p.Debug(ctx, "Remove: failed: %s", err)
+	}
 }
