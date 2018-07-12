@@ -3,6 +3,7 @@ import {connect, type TypedState} from '../../../util/container'
 import * as Constants from '../../../constants/teams'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Types from '../../../constants/types/teams'
+import {anyWaiting} from '../../../constants/waiting'
 import {createAddResultsToUserInput} from '../../../actions/search-gen'
 import {navigateAppend} from '../../../actions/route-tree'
 import {TeamHeader} from '.'
@@ -20,6 +21,7 @@ const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
     canJoinTeam: yourOperations.joinTeam,
     canManageMembers: yourOperations.manageMembers,
     description: Constants.getTeamPublicitySettings(state, teamname).description,
+    loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
     memberCount: Constants.getTeamMemberCount(state, teamname),
     openTeam: Constants.getTeamSettings(state, teamname).open,
     role: Constants.getRole(state, teamname),
@@ -44,6 +46,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   canJoinTeam: stateProps.canJoinTeam,
   canManageMembers: stateProps.canManageMembers,
   description: stateProps.description,
+  loading: stateProps.loading,
   memberCount: stateProps.memberCount,
   onAddSelf: () => dispatchProps._onAddSelf(stateProps._you),
   onChat: dispatchProps.onChat,

@@ -3,7 +3,16 @@ import * as React from 'react'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import AddPeopleHow from './add-people-how/container'
-import {Box, Button, ButtonBar, Icon, Meta, NameWithIcon, Text} from '../../../common-adapters'
+import {
+  Box,
+  Button,
+  ButtonBar,
+  Icon,
+  Meta,
+  NameWithIcon,
+  ProgressIndicator,
+  Text,
+} from '../../../common-adapters'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
 import {
   globalColors,
@@ -84,6 +93,7 @@ const _TeamHeader = (props: Props) => (
 
       {/* Actions */}
       <ButtonBar direction="row" style={isMobile ? {width: 'auto', marginBottom: -8} : undefined}>
+        {props.loading && <ProgressIndicator style={styles.progressIndicator} />}
         {props.canChat && (
           <Button type="Primary" label="Chat" onClick={props.onChat}>
             <Icon

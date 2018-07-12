@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
-import {Badge, Box, Icon, ProgressIndicator, Tabs, Text} from '../../../common-adapters'
 import {Badge, Box, Icon, Tabs, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../styles'
 
@@ -68,10 +67,6 @@ const TeamTabs = (props: TeamTabsProps) => {
       </Text>
     )
   )
-
-  if (loading) {
-    tabs.push(<ProgressIndicator style={{alignSelf: 'center', width: 17, height: 17}} />)
-  }
 
   const onSelect = (tab: any) => {
     const key = tab && tab.key
