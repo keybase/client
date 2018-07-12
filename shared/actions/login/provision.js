@@ -351,8 +351,20 @@ import {type TypedState} from '../../constants/reducer'
 // }
 
 // We need to manage replying to these rpc calls so we stash the response objects in a map here
-// $FlowIssue we want to use star
-const callbackResponses: {[key: *]: ?{result?: (...Array<any>) => void, error: Function}} = {
+type ValidCallbacks =
+  | 'keybase.1.gpgUi.selectKey'
+  | 'keybase.1.loginUi.displayPrimaryPaperKey'
+  | 'keybase.1.loginUi.getEmailOrUsername'
+  | 'keybase.1.provisionUi.DisplayAndPromptSecret'
+  | 'keybase.1.provisionUi.DisplaySecretExchanged'
+  | 'keybase.1.provisionUi.PromptNewDeviceName'
+  | 'keybase.1.provisionUi.ProvisioneeSuccess'
+  | 'keybase.1.provisionUi.ProvisionerSuccess'
+  | 'keybase.1.provisionUi.chooseDevice'
+  | 'keybase.1.provisionUi.chooseGPGMethod'
+  | 'keybase.1.secretUi.getPassphrase'
+
+const callbackResponses: {[key: ValidCallbacks]: any} = {
   'keybase.1.gpgUi.selectKey': null,
   'keybase.1.loginUi.displayPrimaryPaperKey': null,
   'keybase.1.loginUi.getEmailOrUsername': null,
@@ -366,18 +378,17 @@ const callbackResponses: {[key: *]: ?{result?: (...Array<any>) => void, error: F
   'keybase.1.secretUi.getPassphrase': null,
 }
 
-function setResponse<A>(key: $Keys<typeof callbackResponses>, response: A) {
+function setResponse<A>(key: ValidCallbacks, response: A) {
   callbackResponses[key] = response
 }
 
-const getAndClearResponse = (key: $Keys<typeof callbackResponses>) => {
+const getAndClearResponse = (key: ValidCallbacks) => {
   const response = callbackResponses[key]
   callbackResponses[key] = null
   return response
 }
 
 const provisionDeviceSelect = (state: TypedState) => {
-  const response2 = getAndClearResponse('keybase.1.provisionUi.chooseDeviceaaaa')
   const response = getAndClearResponse('keybase.1.provisionUi.chooseDevice')
   if (!response || !response.result) {
     throw new Error('Tried to submit a device name but missing callback')
