@@ -12,6 +12,7 @@ type State = {
   styleTransform: string,
 }
 
+const uploadedSrc = /https?:\/\/127.0.0.1:.*$/i
 const NO_TRANSFORM = 'notransform'
 
 const _cacheStyleTransforms: {[src: string]: string} = {}
@@ -103,14 +104,15 @@ class OrientedImage extends React.Component<Props, State> {
   // can extract the EXIF data
   _readExifLocal = src => {
     return new Promise((resolve, reject) => {
-      fs.readFile(src, (err, data) => {
-        if (err) return reject(err)
-
+      try {
         // data is a Node Buffer which is backed by a JavaScript ArrayBuffer.
         // EXIF.readFromBinaryFile takes an ArrayBuffer
+        const data = fs.readFileSync(src)
         const tags = EXIF.readFromBinaryFile(data.buffer)
         tags ? resolve(tags['Orientation']) : reject(new Error('EXIF failed to read exif data'))
-      })
+      } catch (err) {
+        reject(err)
+      }
     })
   }
 
@@ -136,12 +138,13 @@ class OrientedImage extends React.Component<Props, State> {
       return this.setState({styleTransform: _cacheStyleTransforms[src]})
     }
 
-    if (this.props.localFile) {
-      this._readExifLocal(src)
+    // Uploaded file served from Keybase service
+    if (uploadedSrc.test(src)) {
+      this._fetchExifUploaded(src)
         .then(orientation => this._handleImageLoadSuccess(src, orientation))
         .catch(() => this._handleImgeLoadFailure(src))
     } else {
-      this._fetchExifUploaded(src)
+      this._readExifLocal(src)
         .then(orientation => this._handleImageLoadSuccess(src, orientation))
         .catch(() => this._handleImgeLoadFailure(src))
     }
