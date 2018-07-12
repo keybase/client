@@ -84,46 +84,6 @@ import {niceError} from '../../util/errors'
 // }
 // }
 
-// // TODO type this
-// type DisplayAndPromptSecretArgs = any
-// const displayAndPromptSecretSaga = onBackSaga =>
-// function*({phrase, previousErr}: DisplayAndPromptSecretArgs) {
-// // TODO handl err
-// yield Saga.put(
-// LoginGen.createSetTextCode({
-// textCode: new HiddenString(phrase),
-// // codePageEnterCodeErrorText: previousErr,
-// })
-// )
-
-// // If we have an error, we're already on the right page.
-// if (!previousErr) {
-// yield Saga.put(navigateAppend(['codePage']))
-// }
-
-// const {textEntered, qrScanned, onBack, navUp} = (yield Saga.race({
-// navUp: Saga.take(RouteConstants.navigateUp),
-// onBack: Saga.take(LoginGen.onBack),
-// qrScanned: Saga.take(LoginGen.qrScanned),
-// textEntered: Saga.take(LoginGen.provisionTextCodeEntered),
-// }): {
-// onBack: ?LoginGen.OnBackPayload,
-// navUp: ?RouteTypes.NavigateUp,
-// qrScanned: ?LoginGen.QrScannedPayload,
-// textEntered: ?LoginGen.ProvisionTextCodeEnteredPayload,
-// })
-// if (onBack || navUp) {
-// yield Saga.call(onBackSaga)
-// return EngineRpc.rpcCancel(InputCancelError)
-// } else if (qrScanned) {
-// const phrase: HiddenString = qrScanned.payload.phrase
-// return EngineRpc.rpcResult({phrase: phrase.stringValue(), secret: null})
-// } else if (textEntered) {
-// const phrase: HiddenString = textEntered.payload.phrase
-// return EngineRpc.rpcResult({phrase: phrase.stringValue(), secret: null})
-// }
-// }
-
 // const promptNewDeviceNameSaga = onBackSaga =>
 // function*({existingDevices, errorMessage}) {
 // if (errorMessage) {
@@ -387,6 +347,16 @@ class ProvisioningManager {
 
 let provisioningManager = new ProvisioningManager()
 
+// Choosing a device to use to provision
+const chooseDeviceHandler = (params: RPCTypes.ProvisionUiChooseDeviceRpcParam, response, state) => {
+  provisioningManager.stashResponse('keybase.1.provisionUi.chooseDevice', response)
+  return Saga.put(
+    LoginGen.createShowDeviceList({
+      canSelectNoDevice: params.canSelectNoDevice,
+      devices: (params.devices || []).map(d => Constants.rpcDeviceToDevice(d)),
+    })
+  )
+}
 const submitProvisionDeviceSelect = (state: TypedState) => {
   const response = provisioningManager.getAndClearResponse('keybase.1.provisionUi.chooseDevice')
   if (!response || !response.result) {
@@ -401,6 +371,20 @@ const submitProvisionDeviceSelect = (state: TypedState) => {
   response.result(state.login.provisionSelectedDevice.id)
 }
 
+// Choosing a name for this new device
+const promptNewDeviceNameHandler = (
+  params: RPCTypes.ProvisionUiPromptNewDeviceNameRpcParam,
+  response,
+  state
+) => {
+  provisioningManager.stashResponse('keybase.1.provisionUi.PromptNewDeviceName', response)
+  return Saga.put(
+    LoginGen.createShowNewDeviceName({
+      error: params.errorMessage,
+      existingDevices: params.existingDevices || [],
+    })
+  )
+}
 const submitProvisionDeviceName = (state: TypedState) => {
   // local error, ignore
   if (state.login.error) {
@@ -454,34 +438,10 @@ const startProvisioning = (state: TypedState) =>
           'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
           'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
           'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
-          'keybase.1.provisionUi.PromptNewDeviceName': (
-            params: RPCTypes.ProvisionUiPromptNewDeviceNameRpcParam,
-            response,
-            state
-          ) => {
-            provisioningManager.stashResponse('keybase.1.provisionUi.PromptNewDeviceName', response)
-            return Saga.put(
-              LoginGen.createShowNewDeviceName({
-                error: params.errorMessage,
-                existingDevices: params.existingDevices || [],
-              })
-            )
-          },
+          'keybase.1.provisionUi.PromptNewDeviceName': promptNewDeviceNameHandler,
           'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
           'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
-          'keybase.1.provisionUi.chooseDevice': (
-            params: RPCTypes.ProvisionUiChooseDeviceRpcParam,
-            response,
-            state
-          ) => {
-            provisioningManager.stashResponse('keybase.1.provisionUi.chooseDevice', response)
-            return Saga.put(
-              LoginGen.createShowDeviceList({
-                canSelectNoDevice: params.canSelectNoDevice,
-                devices: (params.devices || []).map(d => Constants.rpcDeviceToDevice(d)),
-              })
-            )
-          },
+          'keybase.1.provisionUi.chooseDevice': chooseDeviceHandler,
           'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
           'keybase.1.secretUi.getPassphrase': cancelOnCallback,
         },
