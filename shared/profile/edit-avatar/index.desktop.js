@@ -319,14 +319,21 @@ class EditAvatar extends React.Component<_Props, State> {
           onDrop={this._onDrop}
           style={styles.container}
         >
-          <Text type="BodyBig">Drag and drop a new profile image.</Text>
-          <Text type="BodyPrimaryLink" className="hover-underline" onClick={this._filePickerOpen}>
-            or browse your computer for one
+          <Text type="Body" style={styles.instructions}>
+            Drag and drop a {this.props.teamname ? 'team' : 'profile'} avatar or{' '}
+            <Text type="BodyPrimaryLink" className="hover-underline" onClick={this._filePickerOpen}>
+              browse your computer for one
+            </Text>.
           </Text>
           <HoverBox
             className={this.state.hasPreview ? 'filled' : ''}
             onClick={this.state.hasPreview ? null : this._filePickerOpen}
-            style={styles.imageContainer}
+            style={collapseStyles([
+              styles.imageContainer,
+              {
+                borderRadius: this.props.teamname ? 32 : AVATAR_CONTAINER_SIZE,
+              },
+            ])}
           >
             <input
               accept="image/*"
@@ -367,17 +374,19 @@ class EditAvatar extends React.Component<_Props, State> {
                 />
               )}
           </HoverBox>
-          <input
-            disabled={!this.state.hasPreview || this.state.submitting}
-            min={1}
-            max={10}
-            onChange={this._onRangeChange}
-            onMouseMove={e => e.stopPropagation()}
-            step="any"
-            style={styles.slider}
-            type="range"
-            value={this.state.scale}
-          />
+          {this.state.hasPreview && (
+            <input
+              disabled={!this.state.hasPreview || this.state.submitting}
+              min={1}
+              max={10}
+              onChange={this._onRangeChange}
+              onMouseMove={e => e.stopPropagation()}
+              step="any"
+              style={styles.slider}
+              type="range"
+              value={this.state.scale}
+            />
+          )}
           <ButtonBar>
             <Button
               disabled={this.state.submitting}
@@ -428,7 +437,6 @@ const HoverBox = glamorous(Box)({
   },
   backgroundColor: globalColors.lightGrey2,
   borderColor: globalColors.grey,
-  borderRadius: AVATAR_CONTAINER_SIZE,
   borderStyle: 'dotted',
   borderWidth: AVATAR_BORDER_SIZE,
   cursor: 'pointer',
@@ -461,6 +469,10 @@ const styles = styleSheetCreate({
     marginTop: -21,
     position: 'absolute',
     top: '50%',
+  },
+  instructions: {
+    maxWidth: 200,
+    textAlign: 'center',
   },
   spinner: {
     left: '50%',
