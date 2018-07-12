@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/keybase/client/go/saltpackKeyHelpers/saltpackHelperMocks"
+	"github.com/keybase/client/go/saltpackkeys/saltpackkeysmocks"
 	"github.com/keybase/saltpack"
 	saltpackBasic "github.com/keybase/saltpack/basic"
 	"github.com/stretchr/testify/require"
@@ -87,7 +87,7 @@ func TestSaltpackEncDec(t *testing.T) {
 
 		_, err = SaltpackDecrypt(context.TODO(), tc.G,
 			strings.NewReader(ciphertext),
-			&buf, keyring, nil, nil, saltpackHelperMocks.NewMockPseudonymResolver(t))
+			&buf, keyring, nil, nil, saltpackkeysmocks.NewMockPseudonymResolver(t))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -110,7 +110,7 @@ func TestSaltpackEncDec(t *testing.T) {
 		keyring.ImportBoxKey((*[NaclDHKeysize]byte)(&key.Public), (*[NaclDHKeysize]byte)(key.Private))
 
 		_, err = SaltpackDecrypt(context.TODO(), tc.G,
-			strings.NewReader(ciphertext), &buf, keyring, nil, nil, saltpackHelperMocks.NewMockPseudonymResolver(t))
+			strings.NewReader(ciphertext), &buf, keyring, nil, nil, saltpackkeysmocks.NewMockPseudonymResolver(t))
 		// An unauthorized receiver trying to decrypt should receive an error
 		require.Equal(t, err, saltpack.ErrNoDecryptionKey)
 	}
