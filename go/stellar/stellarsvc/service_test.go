@@ -664,7 +664,7 @@ func TestRequestPayment(t *testing.T) {
 	defer cleanup()
 
 	xlm := stellar1.AssetNative()
-	err := tcs[0].Srv.SendRequestCLILocal(context.Background(), stellar1.SendRequestCLILocalArg{
+	err := tcs[0].Srv.MakeRequestCLILocal(context.Background(), stellar1.MakeRequestCLILocalArg{
 		Recipient: tcs[1].Fu.Username,
 		Asset:     &xlm,
 		Amount:    "10",

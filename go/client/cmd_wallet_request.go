@@ -75,7 +75,7 @@ func (c *CmdWalletRequest) Run() error {
 		return err
 	}
 
-	arg := stellar1.SendRequestCLILocalArg{
+	arg := stellar1.MakeRequestCLILocalArg{
 		Recipient: c.Recipient,
 		Message:   c.Message,
 		Amount:    c.Amount,
@@ -89,7 +89,7 @@ func (c *CmdWalletRequest) Run() error {
 		arg.Asset = &xlm
 	}
 
-	err = cli.SendRequestCLILocal(context.Background(), arg)
+	err = cli.MakeRequestCLILocal(context.Background(), arg)
 	if err != nil {
 		return err
 	}

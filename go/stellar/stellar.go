@@ -1062,7 +1062,7 @@ func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipie
 	return m.G().ChatHelper.SendMsgByNameNonblock(m.Ctx(), name, nil, chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFIdentifyBehavior_CHAT_SKIP, body, chat1.MessageType_SENDPAYMENT)
 }
 
-type SendRequestArg struct {
+type MakeRequestArg struct {
 	To       stellarcommon.RecipientInput
 	Amount   string
 	Asset    *stellar1.Asset
@@ -1070,8 +1070,8 @@ type SendRequestArg struct {
 	Message  string
 }
 
-func SendRequest(m libkb.MetaContext, remoter remote.Remoter, arg SendRequestArg) (ret stellar1.KeybaseRequestID, err error) {
-	defer m.CTraceTimed("Stellar.SendRequest", func() error { return err })()
+func MakeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg) (ret stellar1.KeybaseRequestID, err error) {
+	defer m.CTraceTimed("Stellar.MakeRequest", func() error { return err })()
 
 	if arg.Asset == nil && arg.Currency == nil {
 		return ret, fmt.Errorf("expected either Asset or Currency, got none")
@@ -1099,7 +1099,7 @@ func SendRequest(m libkb.MetaContext, remoter remote.Remoter, arg SendRequestArg
 	// that we are able to send REQUESTPAYMENT chat message.
 	m.G().StartStandaloneChat()
 	if m.G().ChatHelper == nil {
-		return ret, errors.New("cannot send SendPayment message: chat helper is nil")
+		return ret, errors.New("cannot send MakeRequest message: chat helper is nil")
 	}
 
 	recipient, err := LookupRecipient(m, arg.To)

@@ -1228,7 +1228,7 @@
       ],
       "response": "string"
     },
-    "sendRequestCLILocal": {
+    "makeRequestCLILocal": {
       "request": [
         {
           "name": "recipient",

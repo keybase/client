@@ -465,9 +465,9 @@ func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendCLILoc
 	return nil
 }
 
-func (s *Server) SendRequestCLILocal(ctx context.Context, arg stellar1.SendRequestCLILocalArg) (err error) {
+func (s *Server) MakeRequestCLILocal(ctx context.Context, arg stellar1.MakeRequestCLILocalArg) (err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RPCName:       "SendRequestCLILocal",
+		RPCName:       "MakeRequestCLILocal",
 		Err:           &err,
 		RequireWallet: true,
 	})
@@ -481,7 +481,7 @@ func (s *Server) SendRequestCLILocal(ctx context.Context, arg stellar1.SendReque
 	}
 	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
 
-	_, err = stellar.SendRequest(m, s.remoter, stellar.SendRequestArg{
+	_, err = stellar.MakeRequest(m, s.remoter, stellar.MakeRequestArg{
 		To:       stellarcommon.RecipientInput(arg.Recipient),
 		Amount:   arg.Amount,
 		Asset:    arg.Asset,
