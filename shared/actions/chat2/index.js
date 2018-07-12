@@ -1376,7 +1376,8 @@ const _maybeAutoselectNewestConversation = (
     action.payload.conversationIDKey === selected
   ) {
     // Intentional fall-through -- force select a new one
-  } else if (selected !== Constants.noConversationIDKey) {
+  } else if (Constants.isValidConversationIDKey(selected)) {
+    // Stay with our existing convo if it was not empty or pending
     return
   }
 
