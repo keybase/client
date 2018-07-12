@@ -1,97 +1,43 @@
 // @flow
+// TODO merge desktop and native views
 import * as LoginGen from '../../../actions/login-gen'
-import React, {Component} from 'react'
-import SetPublicName, {type State} from '.'
-import {connect, type TypedState} from '../../../util/container'
+import * as Constants from '../../../constants/login'
+import SetPublicName from '.'
+import {connect, type TypedState, withStateHandlers, compose} from '../../../util/container'
 import {type RouteProps} from '../../../route-tree/render-route'
 
-const trimDeviceName = (s: ?string): string => {
-  if (!s) return ''
-  return s.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
+type OwnProps = RouteProps<{deviceName: string}, {}>
+
+const mapStateToProps = (state: TypedState) => ({
+  _existingDevices: state.login.provisionExistingDevices.toArray(),
+  deviceNameError: state.login.provisionNewNameError,
+  waiting: !!state.waiting.get(Constants.waitingKey),
+})
+
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+  _onSubmit: (deviceName: string) => dispatch(LoginGen.createSubmitDeviceName({deviceName})),
+  onBack: () => dispatch(ownProps.navigateUp()),
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const nameTaken = stateProps._existingDevices.indexOf(ownProps.deviceName) !== -1
+  const submitEnabled = !!(ownProps.deviceName.length >= 3 && ownProps.deviceName.length <= 64 && !nameTaken)
+  const onSubmit = submitEnabled ? () => dispatchProps._onSubmit(ownProps.deviceName) : null
+  return {
+    deviceNameError: stateProps.deviceNameError,
+    existingDevices: stateProps._existingDevices,
+    onBack: dispatchProps.onBack,
+    onSubmit,
+    waiting: stateProps.waiting,
+  }
 }
 
-const trimDeviceNames = (names: ?Array<string>): Array<string> => {
-  if (!names) return []
-  return names.map(n => {
-    return trimDeviceName(n)
-  })
-}
-
-type ContainerProps = {
-  onSubmit: (deviceName: ?string) => void,
-  onBack: () => void,
-  waiting: boolean,
-  deviceNameError: ?string,
-  existingDevices: ?Array<string>,
-  existingDevicesTrimmed: ?Array<string>,
-}
-
-// TODO remove this class
-class _SetPublicName extends Component<ContainerProps, State> {
-  state: State
-
-  constructor(props: ContainerProps) {
-    super(props)
-
-    this.state = {
-      deviceName: null,
+export default compose(
+  withStateHandlers(
+    {deviceName: '', submitEnabled: false},
+    {
+      onChange: () => (deviceName: string) => ({deviceName: Constants.cleanDeviceName(deviceName)}),
     }
-  }
-
-  _onChange = (deviceName: string) => {
-    this.setState({
-      deviceName,
-    })
-  }
-
-  render() {
-    const deviceName = this.state.deviceName || ''
-    const deviceNameTrimmed: string = trimDeviceName(this.state.deviceName)
-    const nameTaken = !!(
-      this.props.existingDevicesTrimmed && this.props.existingDevicesTrimmed.indexOf(deviceNameTrimmed) !== -1
-    )
-    const submitEnabled = !!(deviceNameTrimmed.length >= 3 && deviceName.length <= 64 && !nameTaken)
-    const nameTakenError = nameTaken
-      ? `The device name: '${deviceName}' is already taken. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.`
-      : null
-
-    return (
-      <SetPublicName
-        deviceName={this.state.deviceName}
-        onChange={this._onChange}
-        onSubmit={() => this.props.onSubmit(this.state.deviceName)}
-        onBack={this.props.onBack}
-        deviceNameError={nameTakenError || this.props.deviceNameError}
-        existingDevices={this.props.existingDevices}
-        submitEnabled={submitEnabled}
-        waiting={this.props.waiting}
-      />
-    )
-  }
-}
-
-type OwnProps = RouteProps<
-  {
-    existingDevices?: ?Array<string>,
-  },
-  {}
->
-
-const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
-  deviceNameError: state.login.devicenameError,
-  existingDevices: routeProps.get('existingDevices'),
-  existingDevicesTrimmed: trimDeviceNames(routeProps.get('existingDevices')),
-  waiting: state.engine.get('rpcWaitingStates').get('loginRpc'),
-})
-
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onBack: () => dispatch(LoginGen.createOnBack()),
-  onSubmit: (deviceName: string) => {
-    // map 'smart apostrophes' to ASCII (typewriter apostrophe)
-    dispatch(
-      LoginGen.createSubmitDeviceName({deviceName: deviceName.replace(/[\u2018\u2019\u0060\u00B4]/g, "'")})
-    )
-  },
-})
-
-export default connect(mapStateToProps, mapDispatchToProps)(_SetPublicName)
+  ),
+  connect(mapStateToProps, mapDispatchToProps, mergeProps)
+)(SetPublicName)

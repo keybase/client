@@ -16,6 +16,12 @@
       "canSelectNoDevice": "boolean",
       "devices": "Array<Types.Device>"
     },
+    "showNewDeviceName": {
+      "_description": "Ask the user for a new device name",
+      "existingDevices": "Array<string>",
+      "error": "string"
+    },
+
     // TODO remove
     "onBack": {},
     "onFinish": {},
@@ -25,7 +31,6 @@
     "provisionPasswordInsteadOfDevice": {},
     "chooseGPGMethod": { "exportKey": "boolean" },
     "submitDeviceName": { "deviceName": "string" },
-    "setDevicenameError": { "error": "string", },
     "launchAccountResetWebPage": {},
     "launchForgotPasswordWebPage": {},
     "setTextCode": { "textCode": "HiddenString" },

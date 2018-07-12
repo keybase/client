@@ -20,8 +20,11 @@ export default function(
       return state.merge({justDeletedSelf: '', justRevokedSelf: '', loginError: ''})
     case LoginGen.submitUsernameOrEmail:
       return state.set('provisionUsernameOrEmail', action.payload.usernameOrEmail)
-    case LoginGen.setDevicenameError:
-      return state.set('devicenameError', action.payload.error)
+    case LoginGen.showNewDeviceName:
+      return state.merge({
+        provisionExistingDevices: I.List(action.payload.existingDevices),
+        provisionNewNameError: action.payload.error,
+      })
     case LoginGen.setTextCode: {
       return state.merge({
         // TODO error

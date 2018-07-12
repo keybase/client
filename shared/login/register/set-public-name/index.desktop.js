@@ -1,4 +1,5 @@
 // @flow
+// TODO merge  this and native
 import Container from '../../forms/container'
 import * as React from 'react'
 import {Text, Button, Input, Icon} from '../../../common-adapters'
@@ -6,15 +7,7 @@ import {globalMargins} from '../../../styles'
 
 import type {Props} from '.'
 
-const SetPublicName = ({
-  onBack,
-  onSubmit,
-  onChange,
-  deviceNameError,
-  deviceName,
-  waiting,
-  submitEnabled = true,
-}: Props) => {
+const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName, waiting}: Props) => {
   return (
     <Container style={stylesContainer} onBack={onBack}>
       <Text type="Header" style={stylesHeader}>
@@ -26,17 +19,17 @@ const SetPublicName = ({
         errorText={deviceNameError}
         style={stylesInput}
         hintText="Device name"
-        onEnterKeyDown={submitEnabled ? onSubmit : () => {}}
-        onChangeText={text => onChange(text)}
+        onEnterKeyDown={onSubmit}
+        onChangeText={onChange}
         value={deviceName}
       />
       <Button
         type="Primary"
         style={stylesButton}
-        disabled={!submitEnabled}
+        disabled={!onSubmit}
         waiting={waiting}
         label="Continue"
-        onClick={() => onSubmit()}
+        onClick={onSubmit}
       />
     </Container>
   )

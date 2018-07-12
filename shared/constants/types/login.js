@@ -37,7 +37,6 @@ export type _State = {
   codePageTextCode: HiddenString,
   codePageTextCodeError: string,
   configuredAccounts: I.List<Account>,
-  devicenameError: string,
   forgotPasswordError: ?Error,
   forgotPasswordSubmitting: boolean,
   forgotPasswordSuccess: boolean,
@@ -48,6 +47,8 @@ export type _State = {
   provisionDevices: I.List<Device>,
   provisionDevicesCanSelectNoDevice: boolean,
   provisionSelectedDevice: ?Device,
+  provisionExistingDevices: I.List<string>,
+  provisionNewNameError: string,
   registerUserPassError: ?string,
   registerUserPassLoading: boolean,
 }

@@ -350,7 +350,6 @@ import {type TypedState} from '../../constants/reducer'
 // }
 // }
 
-// We need to manage replying to these rpc calls so we stash the response objects in a map here
 type ValidCallbacks =
   | 'keybase.1.gpgUi.selectKey'
   | 'keybase.1.loginUi.displayPrimaryPaperKey'
@@ -364,7 +363,8 @@ type ValidCallbacks =
   | 'keybase.1.provisionUi.chooseGPGMethod'
   | 'keybase.1.secretUi.getPassphrase'
 
-class StashedReponseManager {
+// The provisioning flow is very stateful so we keep that state here.
+class ProvisioningManager {
   _stashedResponse = null
   _stashedResponseKey: ?ValidCallbacks = null
 
@@ -383,10 +383,10 @@ class StashedReponseManager {
   }
 }
 
-let stashedReponseManager = new StashedReponseManager()
+let provisioningManager = new ProvisioningManager()
 
 const provisionDeviceSelect = (state: TypedState) => {
-  const response = stashedReponseManager.getAndClearResponse('keybase.1.provisionUi.chooseDevice')
+  const response = provisioningManager.getAndClearResponse('keybase.1.provisionUi.chooseDevice')
   if (!response || !response.result) {
     throw new Error('Tried to submit a device name but missing callback')
   }
@@ -398,14 +398,21 @@ const provisionDeviceSelect = (state: TypedState) => {
   response.result(state.login.provisionSelectedDevice.id)
 }
 
+const provisionNewName = (state: TypedState) => {
+  // const nameTakenError = nameTaken
+  // ? `The device name: '${deviceName}' is already taken. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.`
+  // : null
+}
+
 /**
  * We are starting the provisioning process. This is largely controlled by the daemon. We get a callback to show various
- * screens and we stash the result object so we can show the screen. When the submit on that screen is done we find the callbackResponses and respond and wait
+ * screens and we stash the result object so we can show the screen. When the submit on that screen is done we find the stashedReponse and respond and wait
  */
 const startProvisioning = (state: TypedState) =>
   Saga.call(function*() {
     // Make a new handler each time just in case
-    stashedReponseManager = new StashedReponseManager()
+    provisioningManager = new ProvisioningManager()
+
     try {
       const usernameOrEmail = state.login.provisionUsernameOrEmail
       if (!usernameOrEmail) {
@@ -428,7 +435,19 @@ const startProvisioning = (state: TypedState) =>
           'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
           'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
           'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
-          'keybase.1.provisionUi.PromptNewDeviceName': cancelOnCallback,
+          'keybase.1.provisionUi.PromptNewDeviceName': (
+            params: RPCTypes.ProvisionUiPromptNewDeviceNameRpcParam,
+            response,
+            state
+          ) => {
+            provisioningManager.stashResponse('keybase.1.provisionUi.PromptNewDeviceName', response)
+            return Saga.put(
+              LoginGen.createShowNewDeviceName({
+                existingDevices: params.existingDevices || [],
+                error: params.errorMessage,
+              })
+            )
+          },
           'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
           'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
           'keybase.1.provisionUi.chooseDevice': (
@@ -436,7 +455,7 @@ const startProvisioning = (state: TypedState) =>
             response,
             state
           ) => {
-            stashedReponseManager.stashResponse('keybase.1.provisionUi.chooseDevice', response)
+            provisioningManager.stashResponse('keybase.1.provisionUi.chooseDevice', response)
             return Saga.put(
               LoginGen.createShowDeviceList({
                 canSelectNoDevice: params.canSelectNoDevice,
@@ -471,6 +490,9 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
 
   // Screens
   yield Saga.safeTakeEveryPureSimple(LoginGen.showDeviceList, showDeviceList)
+
+  // TODO
+  // yield Saga.safeTakeLatest(LoginGen.addNewDevice, _addNewDevice)
 }
 
 export default provisionSaga

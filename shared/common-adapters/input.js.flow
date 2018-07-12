@@ -52,7 +52,7 @@ export type Props = {
 
   // Looks like desktop only, but used on mobile for onSubmitEditing (!).
   // TODO: Have a separate onSubmitEditing prop.
-  onEnterKeyDown?: (event: SyntheticKeyboardEvent<>) => void,
+  onEnterKeyDown?: ?(event: SyntheticKeyboardEvent<>) => void,
 
   // TODO this is a short term hack to have this be uncontrolled. I think likely by default we would want this to be uncontrolled but
   // i'm afraid of touching this now while I'm fixing a crash.

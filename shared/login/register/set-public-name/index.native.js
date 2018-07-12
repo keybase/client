@@ -6,16 +6,7 @@ import {globalMargins} from '../../../styles'
 
 import type {Props} from '.'
 
-const SetPublicName = ({
-  onBack,
-  onSubmit,
-  onChange,
-  deviceNameError,
-  deviceName,
-  waiting,
-  submitEnabled,
-}: Props) => {
-  const enabled = submitEnabled == null ? true : submitEnabled
+const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName, waiting}: Props) => {
   return (
     <Container style={stylesContainer} onBack={onBack}>
       <Text type="Header" style={{textAlign: 'center'}}>
@@ -28,8 +19,8 @@ const SetPublicName = ({
         errorText={deviceNameError}
         floatingHintTextOverride="Device name"
         hintText="Device name"
-        onEnterKeyDown={enabled ? onSubmit : () => {}}
-        onChangeText={deviceName => onChange(deviceName)}
+        onEnterKeyDown={onSubmit}
+        onChangeText={onChange}
         value={deviceName}
       />
       <Button
@@ -37,10 +28,10 @@ const SetPublicName = ({
         type="Primary"
         fullWidth={true}
         enabled={deviceName}
-        disabled={!enabled}
+        disabled={!onSubmit}
         waiting={waiting}
         label="Continue"
-        onClick={() => onSubmit()}
+        onClick={onSubmit}
       />
     </Container>
   )

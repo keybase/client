@@ -18,7 +18,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   codePageTextCode: new HiddenString(''),
   codePageTextCodeError: '',
   configuredAccounts: I.List(),
-  devicenameError: '',
   forgotPasswordError: null,
   forgotPasswordSubmitting: false,
   forgotPasswordSuccess: false,
@@ -27,6 +26,8 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   loginError: '',
   provisionDevices: I.List(),
   provisionDevicesCanSelectNoDevice: false,
+  provisionExistingDevices: I.List(),
+  provisionNewNameError: '',
   provisionSelectedDevice: null,
   provisionUsernameOrEmail: '',
   registerUserPassError: null,
@@ -54,3 +55,11 @@ export const rpcDeviceToDevice = (d: RPCTypes.Device) => {
       throw new Error('Invalid device type detected: ' + type)
   }
 }
+
+export const cleanDeviceName = (name: string) =>
+  name
+    // lower case alpha numerics
+    .replace(/[^a-zA-Z0-9]/g, '')
+    // map 'smart apostrophes' to ASCII (typewriter apostrophe)
+    .replace(/[\u2018\u2019\u0060\u00B4]/g, "'")
+    .toLowerCase()

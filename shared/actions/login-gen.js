@@ -27,10 +27,10 @@ export const provisionTextCodeEntered = 'login:provisionTextCodeEntered'
 export const provisioningError = 'login:provisioningError'
 export const qrScanned = 'login:qrScanned'
 export const setDeletedSelf = 'login:setDeletedSelf'
-export const setDevicenameError = 'login:setDevicenameError'
 export const setRevokedSelf = 'login:setRevokedSelf'
 export const setTextCode = 'login:setTextCode'
 export const showDeviceList = 'login:showDeviceList'
+export const showNewDeviceName = 'login:showNewDeviceName'
 export const startLogin = 'login:startLogin'
 export const submitDeviceName = 'login:submitDeviceName'
 export const submitPassphrase = 'login:submitPassphrase'
@@ -59,12 +59,15 @@ type _ProvisionTextCodeEnteredPayload = $ReadOnly<{|phrase: HiddenString|}>
 type _ProvisioningErrorPayload = $ReadOnly<{|error: Error|}>
 type _QrScannedPayload = $ReadOnly<{|phrase: HiddenString|}>
 type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
-type _SetDevicenameErrorPayload = $ReadOnly<{|error: string|}>
 type _SetRevokedSelfPayload = $ReadOnly<{|revoked: string|}>
 type _SetTextCodePayload = $ReadOnly<{|textCode: HiddenString|}>
 type _ShowDeviceListPayload = $ReadOnly<{|
   canSelectNoDevice: boolean,
   devices: Array<Types.Device>,
+|}>
+type _ShowNewDeviceNamePayload = $ReadOnly<{|
+  existingDevices: Array<string>,
+  error: string,
 |}>
 type _StartLoginPayload = void
 type _SubmitDeviceNamePayload = $ReadOnly<{|deviceName: string|}>
@@ -72,6 +75,10 @@ type _SubmitPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
 type _SubmitUsernameOrEmailPayload = $ReadOnly<{|usernameOrEmail: string|}>
 
 // Action Creators
+/**
+ * Ask the user for a new device name
+ */
+export const createShowNewDeviceName = (payload: _ShowNewDeviceNamePayload) => ({error: false, payload, type: showNewDeviceName})
 /**
  * Show the list of devices the user can use to provision a device
  */
@@ -95,7 +102,6 @@ export const createProvisionTextCodeEntered = (payload: _ProvisionTextCodeEntere
 export const createProvisioningError = (payload: _ProvisioningErrorPayload) => ({error: false, payload, type: provisioningError})
 export const createQrScanned = (payload: _QrScannedPayload) => ({error: false, payload, type: qrScanned})
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error: false, payload, type: setDeletedSelf})
-export const createSetDevicenameError = (payload: _SetDevicenameErrorPayload) => ({error: false, payload, type: setDevicenameError})
 export const createSetRevokedSelf = (payload: _SetRevokedSelfPayload) => ({error: false, payload, type: setRevokedSelf})
 export const createSetTextCode = (payload: _SetTextCodePayload) => ({error: false, payload, type: setTextCode})
 export const createStartLogin = (payload: _StartLoginPayload) => ({error: false, payload, type: startLogin})
@@ -123,10 +129,10 @@ export type ProvisionTextCodeEnteredPayload = $Call<typeof createProvisionTextCo
 export type ProvisioningErrorPayload = $Call<typeof createProvisioningError, _ProvisioningErrorPayload>
 export type QrScannedPayload = $Call<typeof createQrScanned, _QrScannedPayload>
 export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDeletedSelfPayload>
-export type SetDevicenameErrorPayload = $Call<typeof createSetDevicenameError, _SetDevicenameErrorPayload>
 export type SetRevokedSelfPayload = $Call<typeof createSetRevokedSelf, _SetRevokedSelfPayload>
 export type SetTextCodePayload = $Call<typeof createSetTextCode, _SetTextCodePayload>
 export type ShowDeviceListPayload = $Call<typeof createShowDeviceList, _ShowDeviceListPayload>
+export type ShowNewDeviceNamePayload = $Call<typeof createShowNewDeviceName, _ShowNewDeviceNamePayload>
 export type StartLoginPayload = $Call<typeof createStartLogin, _StartLoginPayload>
 export type SubmitDeviceNamePayload = $Call<typeof createSubmitDeviceName, _SubmitDeviceNamePayload>
 export type SubmitPassphrasePayload = $Call<typeof createSubmitPassphrase, _SubmitPassphrasePayload>
@@ -154,10 +160,10 @@ export type Actions =
   | ProvisioningErrorPayload
   | QrScannedPayload
   | SetDeletedSelfPayload
-  | SetDevicenameErrorPayload
   | SetRevokedSelfPayload
   | SetTextCodePayload
   | ShowDeviceListPayload
+  | ShowNewDeviceNamePayload
   | StartLoginPayload
   | SubmitDeviceNamePayload
   | SubmitPassphrasePayload

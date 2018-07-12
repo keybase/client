@@ -5,12 +5,10 @@ import {action, storiesOf} from '../../../stories/storybook'
 
 const props = {
   deviceName: 'MobilePhone',
-  deviceNameError: null,
-  existingDevices: [],
+  deviceNameError: '',
   onBack: action('onBack'),
   onChange: action('onChange'),
   onSubmit: action('onSubmit'),
-  submitEnabled: true,
   waiting: false,
 }
 
