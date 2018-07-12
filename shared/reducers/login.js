@@ -28,8 +28,6 @@ export default function(
         error: action.payload.error,
         provisionExistingDevices: I.List(action.payload.existingDevices),
       })
-    case LoginGen.qrScanned:
-      return state // TODO
     case LoginGen.showDeviceList:
       return state.merge({
         error: '',
@@ -76,11 +74,10 @@ export default function(
     case LoginGen.setDeletedSelf:
       return state.set('justDeletedSelf', action.payload.deletedUsername)
     // Saga only actions
-    case LoginGen.provisioningError:
     case LoginGen.addNewDevice:
     case LoginGen.chooseGPGMethod:
     case LoginGen.logout:
-    case LoginGen.logoutDone:
+    case LoginGen.loggedout:
     case LoginGen.navBasedOnLoginAndInitialState:
     case LoginGen.onBack:
     case LoginGen.onFinish:

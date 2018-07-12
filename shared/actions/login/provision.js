@@ -435,7 +435,7 @@ const submitProvisionTextCode = (state: TypedState) => {
     throw new Error('Tried to submit a code but missing in store')
   }
 
-  response.result(state.login.codePageTextCode.stringValue())
+  response.result({code: null, phrase: state.login.codePageTextCode.stringValue()})
 }
 
 /**

@@ -226,7 +226,7 @@ const login = (_: any, action: LoginGen.LoginPayload) =>
 const launchForgotPasswordWebPage = () => Saga.call(openURL, 'https://keybase.io/#password-reset')
 const launchAccountResetWebPage = () => Saga.call(openURL, 'https://keybase.io/#account-reset')
 
-const logoutDone = () =>
+const loggedout = () =>
   Saga.sequentially([
     Saga.put({payload: undefined, type: LoginGen.resetStore}),
     Saga.call(navBasedOnLoginAndInitialState),
@@ -237,7 +237,7 @@ const logout = () =>
   Saga.sequentially([
     Saga.put(ConfigGen.createClearRouteState()),
     Saga.call(RPCTypes.loginLogoutRpcPromise, undefined, Constants.waitingKey),
-    Saga.put(LoginGen.createLogoutDone()),
+    Saga.put(LoginGen.createLoggedout()),
   ])
 
 // TODO more pure functions
@@ -248,9 +248,9 @@ function* loginSaga(): Saga.SagaGenerator<any, any> {
   // Screen sagas
   yield Saga.safeTakeEveryPureSimple(LoginGen.startLogin, showUsernameEmailScreen)
   yield Saga.safeTakeLatest(LoginGen.navBasedOnLoginAndInitialState, navBasedOnLoginAndInitialState)
-  yield Saga.safeTakeEveryPureSimple(LoginGen.logoutDone, logoutDone)
+  yield Saga.safeTakeEveryPureSimple(LoginGen.loggedout, loggedout)
   yield Saga.safeTakeEveryPureSimple(LoginGen.logout, logout)
-  yield Saga.safeTakeEveryPureSimple([ConfigGen.readyForBootstrap, LoginGen.logoutDone], getAccounts)
+  yield Saga.safeTakeEveryPureSimple([ConfigGen.readyForBootstrap, LoginGen.loggedout], getAccounts)
 
   yield Saga.safeTakeEveryPure([LoginGen.onBack, RouteConstants.navigateUp], maybeNavigateToLoginRoot)
 

@@ -14,15 +14,13 @@ export const chooseGPGMethod = 'login:chooseGPGMethod'
 export const configuredAccounts = 'login:configuredAccounts'
 export const launchAccountResetWebPage = 'login:launchAccountResetWebPage'
 export const launchForgotPasswordWebPage = 'login:launchForgotPasswordWebPage'
+export const loggedout = 'login:loggedout'
 export const login = 'login:login'
 export const loginError = 'login:loginError'
 export const logout = 'login:logout'
-export const logoutDone = 'login:logoutDone'
 export const navBasedOnLoginAndInitialState = 'login:navBasedOnLoginAndInitialState'
 export const onBack = 'login:onBack'
 export const onFinish = 'login:onFinish'
-export const provisioningError = 'login:provisioningError'
-export const qrScanned = 'login:qrScanned'
 export const setDeletedSelf = 'login:setDeletedSelf'
 export const setRevokedSelf = 'login:setRevokedSelf'
 export const showCodePage = 'login:showCodePage'
@@ -43,18 +41,16 @@ type _ConfiguredAccountsPayload = $ReadOnly<{|accounts: ?Array<{|hasStoredSecret
 type _ConfiguredAccountsPayloadError = $ReadOnly<{|error: Error|}>
 type _LaunchAccountResetWebPagePayload = void
 type _LaunchForgotPasswordWebPagePayload = void
+type _LoggedoutPayload = void
 type _LoginErrorPayload = $ReadOnly<{|error: string|}>
 type _LoginPayload = $ReadOnly<{|
   usernameOrEmail: string,
   passphrase: HiddenString,
 |}>
-type _LogoutDonePayload = void
 type _LogoutPayload = void
 type _NavBasedOnLoginAndInitialStatePayload = void
 type _OnBackPayload = void
 type _OnFinishPayload = void
-type _ProvisioningErrorPayload = $ReadOnly<{|error: Error|}>
-type _QrScannedPayload = $ReadOnly<{|phrase: HiddenString|}>
 type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
 type _SetRevokedSelfPayload = $ReadOnly<{|revoked: string|}>
 type _ShowCodePagePayload = $ReadOnly<{|
@@ -92,15 +88,13 @@ export const createConfiguredAccounts = (payload: _ConfiguredAccountsPayload) =>
 export const createConfiguredAccountsError = (payload: _ConfiguredAccountsPayloadError) => ({error: true, payload, type: configuredAccounts})
 export const createLaunchAccountResetWebPage = (payload: _LaunchAccountResetWebPagePayload) => ({error: false, payload, type: launchAccountResetWebPage})
 export const createLaunchForgotPasswordWebPage = (payload: _LaunchForgotPasswordWebPagePayload) => ({error: false, payload, type: launchForgotPasswordWebPage})
+export const createLoggedout = (payload: _LoggedoutPayload) => ({error: false, payload, type: loggedout})
 export const createLogin = (payload: _LoginPayload) => ({error: false, payload, type: login})
 export const createLoginError = (payload: _LoginErrorPayload) => ({error: false, payload, type: loginError})
 export const createLogout = (payload: _LogoutPayload) => ({error: false, payload, type: logout})
-export const createLogoutDone = (payload: _LogoutDonePayload) => ({error: false, payload, type: logoutDone})
 export const createNavBasedOnLoginAndInitialState = (payload: _NavBasedOnLoginAndInitialStatePayload) => ({error: false, payload, type: navBasedOnLoginAndInitialState})
 export const createOnBack = (payload: _OnBackPayload) => ({error: false, payload, type: onBack})
 export const createOnFinish = (payload: _OnFinishPayload) => ({error: false, payload, type: onFinish})
-export const createProvisioningError = (payload: _ProvisioningErrorPayload) => ({error: false, payload, type: provisioningError})
-export const createQrScanned = (payload: _QrScannedPayload) => ({error: false, payload, type: qrScanned})
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error: false, payload, type: setDeletedSelf})
 export const createSetRevokedSelf = (payload: _SetRevokedSelfPayload) => ({error: false, payload, type: setRevokedSelf})
 export const createShowCodePage = (payload: _ShowCodePagePayload) => ({error: false, payload, type: showCodePage})
@@ -119,15 +113,13 @@ export type ConfiguredAccountsPayload = $Call<typeof createConfiguredAccounts, _
 export type ConfiguredAccountsPayloadError = $Call<typeof createConfiguredAccountsError, _ConfiguredAccountsPayloadError>
 export type LaunchAccountResetWebPagePayload = $Call<typeof createLaunchAccountResetWebPage, _LaunchAccountResetWebPagePayload>
 export type LaunchForgotPasswordWebPagePayload = $Call<typeof createLaunchForgotPasswordWebPage, _LaunchForgotPasswordWebPagePayload>
+export type LoggedoutPayload = $Call<typeof createLoggedout, _LoggedoutPayload>
 export type LoginErrorPayload = $Call<typeof createLoginError, _LoginErrorPayload>
 export type LoginPayload = $Call<typeof createLogin, _LoginPayload>
-export type LogoutDonePayload = $Call<typeof createLogoutDone, _LogoutDonePayload>
 export type LogoutPayload = $Call<typeof createLogout, _LogoutPayload>
 export type NavBasedOnLoginAndInitialStatePayload = $Call<typeof createNavBasedOnLoginAndInitialState, _NavBasedOnLoginAndInitialStatePayload>
 export type OnBackPayload = $Call<typeof createOnBack, _OnBackPayload>
 export type OnFinishPayload = $Call<typeof createOnFinish, _OnFinishPayload>
-export type ProvisioningErrorPayload = $Call<typeof createProvisioningError, _ProvisioningErrorPayload>
-export type QrScannedPayload = $Call<typeof createQrScanned, _QrScannedPayload>
 export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDeletedSelfPayload>
 export type SetRevokedSelfPayload = $Call<typeof createSetRevokedSelf, _SetRevokedSelfPayload>
 export type ShowCodePagePayload = $Call<typeof createShowCodePage, _ShowCodePagePayload>
@@ -150,15 +142,13 @@ export type Actions =
   | ConfiguredAccountsPayloadError
   | LaunchAccountResetWebPagePayload
   | LaunchForgotPasswordWebPagePayload
+  | LoggedoutPayload
   | LoginErrorPayload
   | LoginPayload
-  | LogoutDonePayload
   | LogoutPayload
   | NavBasedOnLoginAndInitialStatePayload
   | OnBackPayload
   | OnFinishPayload
-  | ProvisioningErrorPayload
-  | QrScannedPayload
   | SetDeletedSelfPayload
   | SetRevokedSelfPayload
   | ShowCodePagePayload
