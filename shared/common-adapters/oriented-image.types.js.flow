@@ -5,5 +5,4 @@ export type Props = {
   src: string,
   style?: StylesDesktop,
   onLoad?: () => void,
-  localFile?: boolean,
 }
