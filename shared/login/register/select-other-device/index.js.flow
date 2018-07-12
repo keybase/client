@@ -1,14 +1,14 @@
 // @flow
+// TODO merge desktop/native for this view
 import {Component} from 'react'
-import type {DeviceType} from '../../../constants/types/devices'
+import * as Types from '../../../constants/types/login'
 
 export type Props = {|
-  canSelectNoDevice: boolean,
-  devices: Array<{|deviceID: string, name: string, type: DeviceType|}>,
-  onSelect: (id: string) => void,
-  onWont: () => void,
+  devices: Array<Types.Device>,
+  onSelect: (name: string) => void,
+  onResetAccount: () => void,
   onBack: () => void,
-  onReset: () => void,
+  onUsePasswordInstead: ?() => void,
 |}
 
 export default class SelectOtherDevice extends Component<Props> {}

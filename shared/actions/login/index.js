@@ -12,17 +12,17 @@ import * as Constants from '../../constants/login'
 import * as EngineRpc from '../../constants/engine'
 import * as RouteTypes from '../../constants/types/route-tree'
 import * as RouteConstants from '../../constants/route-tree'
+import * as RouteTree from '../route-tree'
 import * as Saga from '../../util/saga'
+import * as Tabs from '../../constants/tabs'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import HiddenString from '../../util/hidden-string'
 import openURL from '../../util/open-url'
 import {RPCError} from '../../util/errors'
-import {chatTab, loginTab, peopleTab, isValidInitialTab} from '../../constants/tabs'
 import {getExtendedStatus} from '../config'
 import {isMobile} from '../../constants/platform'
 import appRouteTree from '../../app/routes-app'
 import loginRouteTree from '../../app/routes-login'
-import {pathSelector, navigateTo, navigateAppend, switchRouteDef} from '../route-tree'
 import {type InitialState} from '../../constants/types/config'
 import {type TypedState} from '../../constants/reducer'
 import provisionSaga from './provision'
@@ -70,13 +70,13 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
 
   // All branches except for when loggedIn is true,
   // loggedInUserNavigated is false, and and initialState is null
-  // yield a switchRouteDef action with appRouteTree or
+  // yield a RouteTree.switchRouteDef action with appRouteTree or
   // loginRouteTree, and must finish by yielding an action which sets
   // state.routeTree.loggedInUserNavigated to true; see
   // loggedInUserNavigatedReducer.
   if (justDeletedSelf) {
-    yield Saga.put(switchRouteDef(loginRouteTree))
-    yield Saga.put(navigateTo([loginTab]))
+    yield Saga.put(RouteTree.switchRouteDef(loginRouteTree))
+    yield Saga.put(RouteTree.navigateTo([Tabs.loginTab]))
   } else if (loggedIn) {
     // If the user has already performed a navigation action, or if
     // we've already applied the initialState, do nothing.
@@ -84,14 +84,14 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
       return
     }
 
-    yield Saga.put(switchRouteDef(appRouteTree))
+    yield Saga.put(RouteTree.switchRouteDef(appRouteTree))
 
     if (initialState) {
       const {url, tab, conversation} = (initialState: InitialState)
       if (url) {
         yield Saga.put(ConfigGen.createLink({link: url}))
-      } else if (tab && isValidInitialTab(tab)) {
-        if (tab === chatTab && conversation && ChatConstants.isValidConversationIDKey(conversation)) {
+      } else if (tab && Tabs.isValidInitialTab(tab)) {
+        if (tab === Tabs.chatTab && conversation && ChatConstants.isValidConversationIDKey(conversation)) {
           yield Saga.put(
             Chat2Gen.createSelectConversation({
               conversationIDKey: ChatTypes.stringToConversationIDKey(conversation),
@@ -99,38 +99,41 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
             })
           )
           yield Saga.put(
-            navigateTo(isMobile ? [chatTab, 'conversation'] : [chatTab], null, 'initial-restore')
+            RouteTree.navigateTo(
+              isMobile ? [Tabs.chatTab, 'conversation'] : [Tabs.chatTab],
+              null,
+              'initial-restore'
+            )
           )
         } else {
-          yield Saga.put(navigateTo([tab], null, 'initial-restore'))
+          yield Saga.put(RouteTree.navigateTo([tab], null, 'initial-restore'))
         }
       } else {
-        yield Saga.put(navigateTo([peopleTab], null, 'initial-restore'))
+        yield Saga.put(RouteTree.navigateTo([Tabs.peopleTab], null, 'initial-restore'))
       }
     } else {
       // If the initial state is not set yet, navigate to the people
       // tab without setting state.routeTree.loggedInUserNavigated to true.
-      yield Saga.put(navigateTo([peopleTab], null, 'initial-default'))
+      yield Saga.put(RouteTree.navigateTo([Tabs.peopleTab], null, 'initial-default'))
     }
   } else if (registered) {
     // relogging in
-    yield Saga.put(switchRouteDef(loginRouteTree))
+    yield Saga.put(RouteTree.switchRouteDef(loginRouteTree))
     yield Saga.put.resolve(getExtendedStatus())
-    yield Saga.call(getAccounts)
     // We may have logged successfully in by now, check before trying to navigate
     const state = yield Saga.select()
     if (state.config.loggedIn) {
       return
     }
-    yield Saga.put(navigateTo(['login'], [loginTab]))
+    yield Saga.put(RouteTree.navigateTo(['login'], [Tabs.loginTab]))
   } else if (loginError) {
     // show error on login screen
-    yield Saga.put(switchRouteDef(loginRouteTree))
-    yield Saga.put(navigateTo(['login'], [loginTab]))
+    yield Saga.put(RouteTree.switchRouteDef(loginRouteTree))
+    yield Saga.put(RouteTree.navigateTo(['login'], [Tabs.loginTab]))
   } else {
     // no idea
-    yield Saga.put(switchRouteDef(loginRouteTree))
-    yield Saga.put(navigateTo([loginTab]))
+    yield Saga.put(RouteTree.switchRouteDef(loginRouteTree))
+    yield Saga.put(RouteTree.navigateTo([Tabs.loginTab]))
   }
 }
 
@@ -156,7 +159,7 @@ function* navigateToLoginRoot(): Generator<any, void, any> {
   const state: TypedState = yield Saga.select()
   const numAccounts = state.login.configuredAccounts ? state.login.configuredAccounts.size : 0
   const route = numAccounts ? ['login'] : []
-  yield Saga.put(navigateTo(route, [loginTab]))
+  yield Saga.put(RouteTree.navigateTo(route, [Tabs.loginTab]))
 }
 
 function* selectKeySaga() {
@@ -166,7 +169,7 @@ function* selectKeySaga() {
 const displayPrimaryPaperKeySaga = onBackSaga =>
   function*({phrase}) {
     yield Saga.put(
-      navigateAppend(
+      RouteTree.navigateAppend(
         [
           {
             props: {
@@ -177,7 +180,7 @@ const displayPrimaryPaperKeySaga = onBackSaga =>
             selected: 'success',
           },
         ],
-        [loginTab, 'login']
+        [Tabs.loginTab, 'login']
       )
     )
 
@@ -201,14 +204,14 @@ const displayPrimaryPaperKeySaga = onBackSaga =>
 const getEmailOrUsernameSaga = onBackSaga =>
   function*() {
     yield Saga.put(
-      navigateAppend(
+      RouteTree.navigateAppend(
         [
           {
             props: {},
             selected: 'usernameOrEmail',
           },
         ],
-        [loginTab, 'login']
+        [Tabs.loginTab, 'login']
       )
     )
 
@@ -247,7 +250,7 @@ const displayAndPromptSecretSaga = onBackSaga =>
 
     // If we have an error, we're already on the right page.
     if (!previousErr) {
-      yield Saga.put(navigateAppend(['codePage']))
+      yield Saga.put(RouteTree.navigateAppend(['codePage']))
     }
 
     const {textEntered, qrScanned, onBack, navUp} = (yield Saga.race({
@@ -279,7 +282,10 @@ const promptNewDeviceNameSaga = onBackSaga =>
       yield Saga.put(LoginGen.createSetDevicenameError({error: errorMessage}))
     } else {
       yield Saga.put(
-        navigateAppend([{props: {existingDevices}, selected: 'setPublicName'}], [loginTab, 'login'])
+        RouteTree.navigateAppend(
+          [{props: {existingDevices}, selected: 'setPublicName'}],
+          [Tabs.loginTab, 'login']
+        )
       )
     }
 
@@ -307,7 +313,7 @@ const promptNewDeviceNameSaga = onBackSaga =>
 const chooseDeviceSaga = onBackSaga =>
   function*({devices, canSelectNoDevice}: {devices: Array<RPCTypes.Device>, canSelectNoDevice: boolean}) {
     // yield Saga.put(
-    // navigateAppend(
+    // RouteTree.navigateAppend(
     // [{props: {canSelectNoDevice, devices}, selected: 'selectOtherDevice'}],
     // [loginTab, 'login']
     // )
@@ -346,7 +352,7 @@ const chooseDeviceSaga = onBackSaga =>
 
 const chooseGPGMethodSaga = onBackSaga =>
   function*() {
-    yield Saga.put(navigateAppend(['gpgSign'], [loginTab, 'login']))
+    yield Saga.put(RouteTree.navigateAppend(['gpgSign'], [Tabs.loginTab, 'login']))
 
     const {onBack, navUp, onSubmit} = (yield Saga.race({
       navUp: Saga.take(RouteConstants.navigateUp),
@@ -381,16 +387,16 @@ const defaultGetPassphraseSaga = onBackSaga =>
         }
 
         const state: TypedState = yield Saga.select()
-        const currentPath = pathSelector(state)
+        const currentPath = RouteTree.pathSelector(state)
         if (currentPath.last() === 'paperkey') {
-          yield Saga.put(navigateTo(currentPath.pop().push(destination)))
+          yield Saga.put(RouteTree.navigateTo(currentPath.pop().push(destination)))
         } else {
-          yield Saga.put(navigateAppend([destination], [loginTab, 'login']))
+          yield Saga.put(RouteTree.navigateAppend([destination], [Tabs.loginTab, 'login']))
         }
         break
       case RPCTypes.passphraseCommonPassphraseType.passPhrase:
         yield Saga.put(
-          navigateAppend(
+          RouteTree.navigateAppend(
             [
               {
                 props: {
@@ -401,7 +407,7 @@ const defaultGetPassphraseSaga = onBackSaga =>
                 selected: 'passphrase',
               },
             ],
-            [loginTab, 'login']
+            [Tabs.loginTab, 'login']
           )
         )
         break
@@ -432,7 +438,7 @@ const defaultGetPassphraseSaga = onBackSaga =>
 function* handleProvisioningError(error): Generator<any, void, any> {
   yield Saga.put(LoginGen.createProvisioningError({error}))
   yield Saga.put(
-    navigateAppend(
+    RouteTree.navigateAppend(
       [
         {
           props: {
@@ -441,7 +447,7 @@ function* handleProvisioningError(error): Generator<any, void, any> {
           selected: 'error',
         },
       ],
-      [loginTab, 'login']
+      [Tabs.loginTab, 'login']
     )
   )
   yield Saga.race({onBack: Saga.take(LoginGen.onBack), navUp: Saga.take(RouteConstants.navigateUp)})
@@ -510,7 +516,7 @@ const maybeNavigateToLoginRoot = (
   if (
     action.type === RouteConstants.navigateUp &&
     state.routeTree.routeState &&
-    state.routeTree.routeState.selected !== loginTab
+    state.routeTree.routeState.selected !== Tabs.loginTab
   ) {
     // naving but not on login
     return
@@ -519,7 +525,8 @@ const maybeNavigateToLoginRoot = (
   return Saga.call(navigateToLoginRoot)
 }
 
-const showUsernameEmailScreen = () => Saga.put(navigateTo(['login', 'usernameOrEmail'], [loginTab]))
+const showUsernameEmailScreen = () =>
+  Saga.put(RouteTree.navigateTo(['login', 'usernameOrEmail'], [Tabs.loginTab]))
 // function* _startLogin() {
 // const {onBack, navUp, onSubmit} = (yield Saga.race({
 // navUp: Saga.take(RouteConstants.navigateUp),
@@ -636,7 +643,8 @@ function* _addNewDevice({payload: {role}}: LoginGen.AddNewDevicePayload) {
   // yield Saga.put(WaitingGen.createDecrementWaiting({key: DevicesConstants.waitingKey}))
 }
 
-const openAccountResetPageSaga = () => Saga.call(openURL, 'https://keybase.io/#password-reset')
+const launchForgotPasswordWebPage = () => Saga.call(openURL, 'https://keybase.io/#password-reset')
+const launchAccountResetWebPage = () => Saga.call(openURL, 'https://keybase.io/#account-reset')
 
 const logoutDone = () =>
   Saga.sequentially([
@@ -659,13 +667,16 @@ function* loginSaga(): Saga.SagaGenerator<any, any> {
 
   // Screen sagas
   yield Saga.safeTakeEveryPureSimple(LoginGen.startLogin, showUsernameEmailScreen)
-  yield Saga.safeTakeEveryPureSimple(LoginGen.openAccountResetPage, openAccountResetPageSaga)
   yield Saga.safeTakeLatest(LoginGen.navBasedOnLoginAndInitialState, navBasedOnLoginAndInitialState)
   yield Saga.safeTakeEveryPureSimple(LoginGen.logoutDone, logoutDone)
   yield Saga.safeTakeEveryPureSimple(LoginGen.logout, logout)
+  yield Saga.safeTakeEveryPureSimple([ConfigGen.readyForBootstrap, LoginGen.logoutDone], getAccounts)
 
   yield Saga.safeTakeEveryPure([LoginGen.onBack, RouteConstants.navigateUp], maybeNavigateToLoginRoot)
   // yield Saga.safeTakeLatest(LoginGen.addNewDevice, _addNewDevice)
+
+  yield Saga.safeTakeEveryPureSimple(LoginGen.launchForgotPasswordWebPage, launchForgotPasswordWebPage)
+  yield Saga.safeTakeEveryPureSimple(LoginGen.launchAccountResetWebPage, launchAccountResetWebPage)
 
   yield Saga.fork(provisionSaga)
 }

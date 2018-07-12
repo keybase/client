@@ -1,5 +1,6 @@
 // @flow
 import * as I from 'immutable'
+import * as DeviceTypes from './devices'
 import HiddenString from '../../util/hidden-string'
 
 export type Mode =
@@ -23,6 +24,13 @@ export type _Account = {
 }
 export type Account = I.RecordOf<_Account>
 
+export type _Device = {|
+  id: DeviceTypes.DeviceID,
+  name: string,
+  type: DeviceTypes.DeviceType,
+|}
+export type Device = I.RecordOf<_Device>
+
 export type _State = {
   codePageOtherDeviceName: string,
   codePageOtherDeviceType: 'phone' | 'desktop' | 'paperkey',
@@ -37,6 +45,8 @@ export type _State = {
   justRevokedSelf: ?string,
   loginError: string,
   provisionUsernameOrEmail: string,
+  provisionDevices: I.List<Device>,
+  provisionDevicesCanSelectNoDevice: boolean,
   registerUserPassError: ?string,
   registerUserPassLoading: boolean,
 }

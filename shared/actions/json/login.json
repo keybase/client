@@ -11,17 +11,23 @@
     "startLogin": {},
     "submitUsernameOrEmail": { "usernameOrEmail": "string" },
     "submitPassphrase": { "passphrase": "HiddenString", },
-
+    "showDeviceList": {
+      "_description": "Show the list of devices the user can use to provision a device",
+      "canSelectNoDevice": "boolean",
+      "devices": "Array<Types.Device>"
+    },
+    // TODO remove
     "onBack": {},
-    "onWont": {},
     "onFinish": {},
     "qrScanned": { "phrase": "HiddenString" },
     "provisionTextCodeEntered": { "phrase": "HiddenString" },
-    "selectDeviceId": { "deviceId": "string" },
+    "provisionDeviceSelect": { "name": "string" },
+    "provisionPasswordInsteadOfDevice": {},
     "chooseGPGMethod": { "exportKey": "boolean" },
     "submitDeviceName": { "deviceName": "string" },
     "setDevicenameError": { "error": "string", },
-    "openAccountResetPage": {},
+    "launchAccountResetWebPage": {},
+    "launchForgotPasswordWebPage": {},
     "setTextCode": { "textCode": "HiddenString" },
     "loginError": { "error": "string" },
     "provisioningError": { "error": "Error" },

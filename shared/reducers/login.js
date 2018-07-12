@@ -31,6 +31,14 @@ export default function(
     }
     case LoginGen.qrScanned:
       return state // TODO
+    case LoginGen.showDeviceList:
+      return state.merge({
+        provisionDevices: I.List(action.payload.devices),
+        provisionDevicesCanSelectNoDevice: action.payload.canSelectNoDevice,
+      })
+    case LoginGen.provisionDeviceSelect:
+      // TODO
+      return state
     case LoginGen.configuredAccounts:
       return state.set(
         'configuredAccounts',
@@ -51,10 +59,10 @@ export default function(
     case LoginGen.navBasedOnLoginAndInitialState:
     case LoginGen.onBack:
     case LoginGen.onFinish:
-    case LoginGen.onWont:
-    case LoginGen.openAccountResetPage:
+    case LoginGen.launchAccountResetWebPage:
+    case LoginGen.provisionPasswordInsteadOfDevice:
+    case LoginGen.launchForgotPasswordWebPage:
     case LoginGen.provisionTextCodeEntered:
-    case LoginGen.selectDeviceId:
     case LoginGen.submitDeviceName:
     case LoginGen.submitPassphrase:
       return state

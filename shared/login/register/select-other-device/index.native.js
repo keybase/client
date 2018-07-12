@@ -1,4 +1,5 @@
 // @flow
+// TODO merge this and desktop
 import Container from '../../forms/container'
 import * as React from 'react'
 import {
@@ -14,7 +15,7 @@ import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import type {DeviceType} from '../../../constants/types/devices'
 import type {Props} from '.'
 
-const Row = ({deviceID, name, type, onSelect}) => {
+const Row = ({name, type, onSelect}) => {
   const iconType: IconType = ({
     mobile: 'icon-phone-48',
     desktop: 'icon-computer-48',
@@ -22,7 +23,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
   }: {[key: DeviceType]: IconType})[type]
 
   const onPress = e => {
-    onSelect(deviceID)
+    onSelect(name)
     e && e.preventDefault()
   }
 
@@ -44,7 +45,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
   )
 }
 
-const ResetOption = ({onReset}) => (
+const ResetOption = ({onResetAccount}) => (
   <Box>
     <Box style={stylesRow} className="deviceRow">
       <Box style={stylesIconName}>
@@ -81,7 +82,7 @@ const ResetOption = ({onReset}) => (
           </Text>
           <Text
             type="BodyPrimaryLink"
-            onClick={onReset}
+            onClick={onResetAccount}
             style={{
               color: globalColors.red,
               paddingBottom: globalMargins.tiny,
@@ -96,8 +97,8 @@ const ResetOption = ({onReset}) => (
   </Box>
 )
 
-const SelectOtherDevice = ({onBack, devices, onWont, onSelect, canSelectNoDevice, onReset}: Props) => (
-  <Container style={stylesContainer} onBack={onBack} outerStyle={{paddingLeft: 0, paddingRight: 0}}>
+const SelectOtherDevice = (props: Props) => (
+  <Container style={stylesContainer} onBack={props.onBack} outerStyle={{paddingLeft: 0, paddingRight: 0}}>
     <Box style={globalStyles.flexBoxColumn}>
       <Text type="Header" style={stylesInstructions}>
         Please prove you're you
@@ -107,11 +108,11 @@ const SelectOtherDevice = ({onBack, devices, onWont, onSelect, canSelectNoDevice
       </Text>
     </Box>
     <NativeScrollView style={stylesDevicesContainer}>
-      {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
-      <ResetOption onReset={onReset} />
+      {props.devices.map(d => <Row onSelect={props.onSelect} {...d} key={d.name} />)}
+      <ResetOption onResetAccount={props.onResetAccount} />
     </NativeScrollView>
-    {canSelectNoDevice && (
-      <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={onWont}>
+    {props.onUsePasswordInstead && (
+      <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={props.onUsePasswordInstead}>
         Log in with your passphrase
       </Text>
     )}

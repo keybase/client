@@ -1,4 +1,5 @@
 // @flow
+// TODO merge this and native
 import Container from '../../forms/container.desktop'
 import * as React from 'react'
 import {Box, Text, Icon, type IconType} from '../../../common-adapters'
@@ -7,7 +8,7 @@ import glamorous from 'glamorous'
 import {type DeviceType} from '../../../constants/types/devices'
 import {type Props} from '.'
 
-const Row = ({deviceID, name, type, onSelect}) => {
+const Row = ({name, type, onSelect}) => {
   const iconType: IconType = ({
     mobile: 'icon-phone-32',
     desktop: 'icon-computer-32',
@@ -15,7 +16,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
   }: {[key: DeviceType]: IconType})[type]
 
   const onClick = e => {
-    onSelect(deviceID)
+    onSelect(name)
     e && e.preventDefault()
   }
 
@@ -35,7 +36,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
   )
 }
 
-const ResetOption = ({onReset}) => (
+const ResetOption = ({onResetAccount}) => (
   <Box>
     <DeviceBox>
       <Box style={stylesIconName}>
@@ -52,7 +53,11 @@ const ResetOption = ({onReset}) => (
         <Box style={globalStyles.flexBoxColumn}>
           <Text type="Body">
             Uh oh. I don't have any of these devices anymore, or I've uninstalled Keybase from all of them.
-            <Text type="BodyPrimaryLink" onClick={onReset} style={{color: globalColors.red, marginLeft: 2}}>
+            <Text
+              type="BodyPrimaryLink"
+              onClick={onResetAccount}
+              style={{color: globalColors.red, marginLeft: 2}}
+            >
               Reset account
             </Text>
           </Text>
@@ -62,17 +67,17 @@ const ResetOption = ({onReset}) => (
   </Box>
 )
 
-const SelectOtherDevice = ({onBack, devices, onWont, onSelect, canSelectNoDevice, onReset}: Props) => (
-  <Container style={stylesContainer} onBack={onBack}>
+const SelectOtherDevice = (props: Props) => (
+  <Container style={stylesContainer} onBack={props.onBack}>
     <Text type="Header" style={stylesHeader}>
       Which Keybase install would you like to connect with?
     </Text>
     <Box style={stylesDevicesContainer}>
-      {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
-      <ResetOption onReset={onReset} />
+      {props.devices.map(d => <Row onSelect={props.onSelect} {...d} key={d.name} />)}
+      <ResetOption onResetAccount={props.onResetAccount} />
     </Box>
-    {canSelectNoDevice && (
-      <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={onWont}>
+    {props.onUsePasswordInstead && (
+      <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={props.onUsePasswordInstead}>
         Log in with your passphrase
       </Text>
     )}

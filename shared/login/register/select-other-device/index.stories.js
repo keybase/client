@@ -2,24 +2,49 @@
 import * as React from 'react'
 import SelectOtherDevice from '.'
 import {action, storiesOf} from '../../../stories/storybook'
+import * as Constants from '../../../constants/login'
 
-const mockDevices = [['iphone', 'mobile'], ['Home Computer', 'desktop'], ['Android Nexus 5x', 'mobile']].map(
-  ([name, type], i) => ({deviceID: i.toString(), name, type})
-)
+const rd = {
+  cTime: 0,
+  encryptKey: '',
+  lastUsedTime: 0,
+  mTime: 0,
+  status: 0,
+  verifyKey: '',
+}
 
 const props = {
-  canSelectNoDevice: true,
-  devices: mockDevices,
+  devices: [
+    Constants.rpcDeviceToDevice({...rd, deviceID: '1', name: 'iphone', type: 'mobile'}),
+    Constants.rpcDeviceToDevice({
+      ...rd,
+      deviceID: '2',
+      name: 'Home Computer',
+      type: 'desktop',
+    }),
+    Constants.rpcDeviceToDevice({
+      ...rd,
+      deviceID: '3',
+      name: 'Android Nexus 5x',
+      type: 'mobile',
+    }),
+    Constants.rpcDeviceToDevice({
+      ...rd,
+      deviceID: '4',
+      name: 'Tuba Contest',
+      type: 'backup',
+    }),
+  ],
   onBack: action('onBack'),
-  onReset: action('onReset'),
+  onResetAccount: action('onResetAccount'),
   onSelect: action('onSelect'),
-  onWont: action('onWont'),
+  onUsePasswordInstead: action('onUsePasswordInstead'),
 }
 
 const load = () => {
   storiesOf('Register/SelectOtherDevice', module)
     .add('Normal', () => <SelectOtherDevice {...props} />)
-    .add('NoUserPassLogin', () => <SelectOtherDevice {...props} canSelectNoDevice={false} />)
+    .add('NoUserPassLogin', () => <SelectOtherDevice {...props} onUsePasswordInstead={null} />)
 }
 
 export default load

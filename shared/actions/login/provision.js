@@ -3,6 +3,8 @@ import * as Constants from '../../constants/login'
 import * as LoginGen from '../login-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
+import * as RouteTree from '../route-tree'
+import * as Tabs from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../constants/reducer'
 
@@ -150,45 +152,43 @@ import {type TypedState} from '../../constants/reducer'
 // }
 // }
 
-// // TODO change types in rpc-gen to generate this
-// const chooseDeviceSaga = onBackSaga =>
-// function*({devices, canSelectNoDevice}: {devices: Array<RPCTypes.Device>, canSelectNoDevice: boolean}) {
-// // yield Saga.put(
-// // navigateAppend(
-// // [{props: {canSelectNoDevice, devices}, selected: 'selectOtherDevice'}],
-// // [loginTab, 'login']
-// // )
-// // )
-// // const {onBack, navUp, onWont, onSelect} = (yield Saga.race({
-// // navUp: Saga.take(RouteConstants.navigateUp),
-// // onBack: Saga.take(LoginGen.onBack),
-// // onSelect: Saga.take(LoginGen.selectDeviceId),
-// // onWont: Saga.take(LoginGen.onWont),
-// // }): {
-// // onBack: ?LoginGen.OnBackPayload,
-// // navUp: ?RouteTypes.NavigateUp,
-// // onWont: ?LoginGen.OnWontPayload,
-// // onSelect: ?LoginGen.SelectDeviceIdPayload,
-// // })
-// // if (onBack || navUp) {
-// // yield Saga.call(onBackSaga)
-// // return EngineRpc.rpcCancel(InputCancelError)
-// // } else if (onWont) {
-// // return EngineRpc.rpcResult('')
-// // } else if (onSelect) {
-// // const deviceID = onSelect.payload.deviceId
-// // const device = (devices || []).find(d => d.deviceID === deviceID)
-// // if (device) {
-// // const role = ({
-// // desktop: Constants.codePageDeviceRoleExistingComputer,
-// // mobile: Constants.codePageDeviceRoleExistingPhone,
-// // }: {[key: DevicesTypes.DeviceType]: Types.DeviceRole})[DevicesTypes.stringToDeviceType(device.type)]
-// // if (role) {
-// // yield Saga.call(setCodePageOtherDeviceRole, role)
-// // }
-// // return EngineRpc.rpcResult(deviceID)
-// // }
-// // }
+// const onChooseDevice = (params: ProvisionUiChooseDeviceRpcParam, result, state) => {
+// yield Saga.put(
+// navigateAppend(
+// [{props: {canSelectNoDevice, devices}, selected: 'selectOtherDevice'}],
+// [loginTab, 'login']
+// )
+// )
+// const {onBack, navUp, onWont, onSelect} = (yield Saga.race({
+// navUp: Saga.take(RouteConstants.navigateUp),
+// onBack: Saga.take(LoginGen.onBack),
+// onSelect: Saga.take(LoginGen.selectDeviceId),
+// onWont: Saga.take(LoginGen.onWont),
+// }): {
+// onBack: ?LoginGen.OnBackPayload,
+// navUp: ?RouteTypes.NavigateUp,
+// onWont: ?LoginGen.OnWontPayload,
+// onSelect: ?LoginGen.SelectDeviceIdPayload,
+// })
+// if (onBack || navUp) {
+// yield Saga.call(onBackSaga)
+// return EngineRpc.rpcCancel(InputCancelError)
+// } else if (onWont) {
+// return EngineRpc.rpcResult('')
+// } else if (onSelect) {
+// const deviceID = onSelect.payload.deviceId
+// const device = (devices || []).find(d => d.deviceID === deviceID)
+// if (device) {
+// const role = ({
+// desktop: Constants.codePageDeviceRoleExistingComputer,
+// mobile: Constants.codePageDeviceRoleExistingPhone,
+// }: {[key: DevicesTypes.DeviceType]: Types.DeviceRole})[DevicesTypes.stringToDeviceType(device.type)]
+// if (role) {
+// yield Saga.call(setCodePageOtherDeviceRole, role)
+// }
+// return EngineRpc.rpcResult(deviceID)
+// }
+// }
 // }
 
 // const chooseGPGMethodSaga = onBackSaga =>
@@ -377,7 +377,19 @@ const startProvisioning = (state: TypedState) =>
           'keybase.1.provisionUi.PromptNewDeviceName': cancelOnCallback,
           'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
           'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
-          'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
+          'keybase.1.provisionUi.chooseDevice': (
+            params: RPCTypes.ProvisionUiChooseDeviceRpcParam,
+            result,
+            state
+          ) => {
+            // TODO use a simpler type than RPCTypes.
+            return Saga.put(
+              LoginGen.createShowDeviceList({
+                canSelectNoDevice: params.canSelectNoDevice,
+                devices: (params.devices || []).map(d => Constants.rpcDeviceToDevice(d)),
+              })
+            )
+          },
           'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
           'keybase.1.secretUi.getPassphrase': cancelOnCallback,
         },
@@ -393,9 +405,15 @@ const startProvisioning = (state: TypedState) =>
     }
   })
 
+const showDeviceList = () =>
+  Saga.put(RouteTree.navigateAppend(['selectOtherDevice'], [Tabs.loginTab, 'login']))
+
 function* provisionSaga(): Saga.SagaGenerator<any, any> {
   // Start provision
   yield Saga.safeTakeEveryPureSimple(LoginGen.submitUsernameOrEmail, startProvisioning)
+
+  // Screens
+  yield Saga.safeTakeEveryPureSimple(LoginGen.showDeviceList, showDeviceList)
 }
 
 export default provisionSaga

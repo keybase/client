@@ -60,9 +60,7 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: any) => ({
-  onForgotPassphrase: () => {
-    dispatch(LoginGen.createOpenAccountResetPage())
-  },
+  onForgotPassphrase: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
   onBack: () => dispatch(LoginGen.createOnBack()),
   onSubmit: (passphrase: string) =>
     dispatch(LoginGen.createSubmitPassphrase({passphrase: new HiddenString(passphrase)})),

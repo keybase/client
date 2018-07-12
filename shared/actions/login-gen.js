@@ -12,6 +12,8 @@ export const resetStore = 'common:resetStore' // not a part of login but is hand
 export const addNewDevice = 'login:addNewDevice'
 export const chooseGPGMethod = 'login:chooseGPGMethod'
 export const configuredAccounts = 'login:configuredAccounts'
+export const launchAccountResetWebPage = 'login:launchAccountResetWebPage'
+export const launchForgotPasswordWebPage = 'login:launchForgotPasswordWebPage'
 export const login = 'login:login'
 export const loginError = 'login:loginError'
 export const logout = 'login:logout'
@@ -19,16 +21,16 @@ export const logoutDone = 'login:logoutDone'
 export const navBasedOnLoginAndInitialState = 'login:navBasedOnLoginAndInitialState'
 export const onBack = 'login:onBack'
 export const onFinish = 'login:onFinish'
-export const onWont = 'login:onWont'
-export const openAccountResetPage = 'login:openAccountResetPage'
+export const provisionDeviceSelect = 'login:provisionDeviceSelect'
+export const provisionPasswordInsteadOfDevice = 'login:provisionPasswordInsteadOfDevice'
 export const provisionTextCodeEntered = 'login:provisionTextCodeEntered'
 export const provisioningError = 'login:provisioningError'
 export const qrScanned = 'login:qrScanned'
-export const selectDeviceId = 'login:selectDeviceId'
 export const setDeletedSelf = 'login:setDeletedSelf'
 export const setDevicenameError = 'login:setDevicenameError'
 export const setRevokedSelf = 'login:setRevokedSelf'
 export const setTextCode = 'login:setTextCode'
+export const showDeviceList = 'login:showDeviceList'
 export const startLogin = 'login:startLogin'
 export const submitDeviceName = 'login:submitDeviceName'
 export const submitPassphrase = 'login:submitPassphrase'
@@ -39,6 +41,8 @@ type _AddNewDevicePayload = $ReadOnly<{|otherDeviceType: 'desktop' | 'phone' | '
 type _ChooseGPGMethodPayload = $ReadOnly<{|exportKey: boolean|}>
 type _ConfiguredAccountsPayload = $ReadOnly<{|accounts: ?Array<{|hasStoredSecret: boolean, username: string|}>|}>
 type _ConfiguredAccountsPayloadError = $ReadOnly<{|error: Error|}>
+type _LaunchAccountResetWebPagePayload = void
+type _LaunchForgotPasswordWebPagePayload = void
 type _LoginErrorPayload = $ReadOnly<{|error: string|}>
 type _LoginPayload = $ReadOnly<{|
   usernameOrEmail: string,
@@ -49,26 +53,35 @@ type _LogoutPayload = void
 type _NavBasedOnLoginAndInitialStatePayload = void
 type _OnBackPayload = void
 type _OnFinishPayload = void
-type _OnWontPayload = void
-type _OpenAccountResetPagePayload = void
+type _ProvisionDeviceSelectPayload = $ReadOnly<{|name: string|}>
+type _ProvisionPasswordInsteadOfDevicePayload = void
 type _ProvisionTextCodeEnteredPayload = $ReadOnly<{|phrase: HiddenString|}>
 type _ProvisioningErrorPayload = $ReadOnly<{|error: Error|}>
 type _QrScannedPayload = $ReadOnly<{|phrase: HiddenString|}>
-type _SelectDeviceIdPayload = $ReadOnly<{|deviceId: string|}>
 type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
 type _SetDevicenameErrorPayload = $ReadOnly<{|error: string|}>
 type _SetRevokedSelfPayload = $ReadOnly<{|revoked: string|}>
 type _SetTextCodePayload = $ReadOnly<{|textCode: HiddenString|}>
+type _ShowDeviceListPayload = $ReadOnly<{|
+  canSelectNoDevice: boolean,
+  devices: Array<Types.Device>,
+|}>
 type _StartLoginPayload = void
 type _SubmitDeviceNamePayload = $ReadOnly<{|deviceName: string|}>
 type _SubmitPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
 type _SubmitUsernameOrEmailPayload = $ReadOnly<{|usernameOrEmail: string|}>
 
 // Action Creators
+/**
+ * Show the list of devices the user can use to provision a device
+ */
+export const createShowDeviceList = (payload: _ShowDeviceListPayload) => ({error: false, payload, type: showDeviceList})
 export const createAddNewDevice = (payload: _AddNewDevicePayload) => ({error: false, payload, type: addNewDevice})
 export const createChooseGPGMethod = (payload: _ChooseGPGMethodPayload) => ({error: false, payload, type: chooseGPGMethod})
 export const createConfiguredAccounts = (payload: _ConfiguredAccountsPayload) => ({error: false, payload, type: configuredAccounts})
 export const createConfiguredAccountsError = (payload: _ConfiguredAccountsPayloadError) => ({error: true, payload, type: configuredAccounts})
+export const createLaunchAccountResetWebPage = (payload: _LaunchAccountResetWebPagePayload) => ({error: false, payload, type: launchAccountResetWebPage})
+export const createLaunchForgotPasswordWebPage = (payload: _LaunchForgotPasswordWebPagePayload) => ({error: false, payload, type: launchForgotPasswordWebPage})
 export const createLogin = (payload: _LoginPayload) => ({error: false, payload, type: login})
 export const createLoginError = (payload: _LoginErrorPayload) => ({error: false, payload, type: loginError})
 export const createLogout = (payload: _LogoutPayload) => ({error: false, payload, type: logout})
@@ -76,12 +89,11 @@ export const createLogoutDone = (payload: _LogoutDonePayload) => ({error: false,
 export const createNavBasedOnLoginAndInitialState = (payload: _NavBasedOnLoginAndInitialStatePayload) => ({error: false, payload, type: navBasedOnLoginAndInitialState})
 export const createOnBack = (payload: _OnBackPayload) => ({error: false, payload, type: onBack})
 export const createOnFinish = (payload: _OnFinishPayload) => ({error: false, payload, type: onFinish})
-export const createOnWont = (payload: _OnWontPayload) => ({error: false, payload, type: onWont})
-export const createOpenAccountResetPage = (payload: _OpenAccountResetPagePayload) => ({error: false, payload, type: openAccountResetPage})
+export const createProvisionDeviceSelect = (payload: _ProvisionDeviceSelectPayload) => ({error: false, payload, type: provisionDeviceSelect})
+export const createProvisionPasswordInsteadOfDevice = (payload: _ProvisionPasswordInsteadOfDevicePayload) => ({error: false, payload, type: provisionPasswordInsteadOfDevice})
 export const createProvisionTextCodeEntered = (payload: _ProvisionTextCodeEnteredPayload) => ({error: false, payload, type: provisionTextCodeEntered})
 export const createProvisioningError = (payload: _ProvisioningErrorPayload) => ({error: false, payload, type: provisioningError})
 export const createQrScanned = (payload: _QrScannedPayload) => ({error: false, payload, type: qrScanned})
-export const createSelectDeviceId = (payload: _SelectDeviceIdPayload) => ({error: false, payload, type: selectDeviceId})
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error: false, payload, type: setDeletedSelf})
 export const createSetDevicenameError = (payload: _SetDevicenameErrorPayload) => ({error: false, payload, type: setDevicenameError})
 export const createSetRevokedSelf = (payload: _SetRevokedSelfPayload) => ({error: false, payload, type: setRevokedSelf})
@@ -96,6 +108,8 @@ export type AddNewDevicePayload = $Call<typeof createAddNewDevice, _AddNewDevice
 export type ChooseGPGMethodPayload = $Call<typeof createChooseGPGMethod, _ChooseGPGMethodPayload>
 export type ConfiguredAccountsPayload = $Call<typeof createConfiguredAccounts, _ConfiguredAccountsPayload>
 export type ConfiguredAccountsPayloadError = $Call<typeof createConfiguredAccountsError, _ConfiguredAccountsPayloadError>
+export type LaunchAccountResetWebPagePayload = $Call<typeof createLaunchAccountResetWebPage, _LaunchAccountResetWebPagePayload>
+export type LaunchForgotPasswordWebPagePayload = $Call<typeof createLaunchForgotPasswordWebPage, _LaunchForgotPasswordWebPagePayload>
 export type LoginErrorPayload = $Call<typeof createLoginError, _LoginErrorPayload>
 export type LoginPayload = $Call<typeof createLogin, _LoginPayload>
 export type LogoutDonePayload = $Call<typeof createLogoutDone, _LogoutDonePayload>
@@ -103,16 +117,16 @@ export type LogoutPayload = $Call<typeof createLogout, _LogoutPayload>
 export type NavBasedOnLoginAndInitialStatePayload = $Call<typeof createNavBasedOnLoginAndInitialState, _NavBasedOnLoginAndInitialStatePayload>
 export type OnBackPayload = $Call<typeof createOnBack, _OnBackPayload>
 export type OnFinishPayload = $Call<typeof createOnFinish, _OnFinishPayload>
-export type OnWontPayload = $Call<typeof createOnWont, _OnWontPayload>
-export type OpenAccountResetPagePayload = $Call<typeof createOpenAccountResetPage, _OpenAccountResetPagePayload>
+export type ProvisionDeviceSelectPayload = $Call<typeof createProvisionDeviceSelect, _ProvisionDeviceSelectPayload>
+export type ProvisionPasswordInsteadOfDevicePayload = $Call<typeof createProvisionPasswordInsteadOfDevice, _ProvisionPasswordInsteadOfDevicePayload>
 export type ProvisionTextCodeEnteredPayload = $Call<typeof createProvisionTextCodeEntered, _ProvisionTextCodeEnteredPayload>
 export type ProvisioningErrorPayload = $Call<typeof createProvisioningError, _ProvisioningErrorPayload>
 export type QrScannedPayload = $Call<typeof createQrScanned, _QrScannedPayload>
-export type SelectDeviceIdPayload = $Call<typeof createSelectDeviceId, _SelectDeviceIdPayload>
 export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDeletedSelfPayload>
 export type SetDevicenameErrorPayload = $Call<typeof createSetDevicenameError, _SetDevicenameErrorPayload>
 export type SetRevokedSelfPayload = $Call<typeof createSetRevokedSelf, _SetRevokedSelfPayload>
 export type SetTextCodePayload = $Call<typeof createSetTextCode, _SetTextCodePayload>
+export type ShowDeviceListPayload = $Call<typeof createShowDeviceList, _ShowDeviceListPayload>
 export type StartLoginPayload = $Call<typeof createStartLogin, _StartLoginPayload>
 export type SubmitDeviceNamePayload = $Call<typeof createSubmitDeviceName, _SubmitDeviceNamePayload>
 export type SubmitPassphrasePayload = $Call<typeof createSubmitPassphrase, _SubmitPassphrasePayload>
@@ -125,6 +139,8 @@ export type Actions =
   | ChooseGPGMethodPayload
   | ConfiguredAccountsPayload
   | ConfiguredAccountsPayloadError
+  | LaunchAccountResetWebPagePayload
+  | LaunchForgotPasswordWebPagePayload
   | LoginErrorPayload
   | LoginPayload
   | LogoutDonePayload
@@ -132,16 +148,16 @@ export type Actions =
   | NavBasedOnLoginAndInitialStatePayload
   | OnBackPayload
   | OnFinishPayload
-  | OnWontPayload
-  | OpenAccountResetPagePayload
+  | ProvisionDeviceSelectPayload
+  | ProvisionPasswordInsteadOfDevicePayload
   | ProvisionTextCodeEnteredPayload
   | ProvisioningErrorPayload
   | QrScannedPayload
-  | SelectDeviceIdPayload
   | SetDeletedSelfPayload
   | SetDevicenameErrorPayload
   | SetRevokedSelfPayload
   | SetTextCodePayload
+  | ShowDeviceListPayload
   | StartLoginPayload
   | SubmitDeviceNamePayload
   | SubmitPassphrasePayload
