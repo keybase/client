@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import type {SettingsItemProps} from './index'
-import {Box, Badge2, ClickableBox, Text, Icon} from '../../common-adapters'
+import {Badge2, ClickableBox, Text, Icon} from '../../common-adapters'
 import {
   platformStyles,
   globalStyles,
@@ -36,21 +36,19 @@ export default function SettingsItem({
       ])}
     >
       {icon && <Icon type={icon} color={globalColors.black_20} style={{marginRight: globalMargins.small}} />}
-      <Box style={globalStyles.flexBoxRow}>
-        <Text
-          type={'BodySmallSemibold'}
-          style={collapseStyles([
-            selected ? styles.selectedText : styles.itemText,
-            textColor ? {color: textColor} : {},
-          ])}
-        >
-          {text}
-        </Text>
-        {!!badgeNumber &&
-          badgeNumber > 0 && (
-            <Badge2 fontSize={12} height={25} badgeNumber={badgeNumber} badgeStyle={styles.badge} />
-          )}
-      </Box>
+      <Text
+        type={'BodySmallSemibold'}
+        style={collapseStyles([
+          selected ? styles.selectedText : styles.itemText,
+          textColor ? {color: textColor} : {},
+        ])}
+      >
+        {text}
+      </Text>
+      {!!badgeNumber &&
+        badgeNumber > 0 && (
+          <Badge2 badgeNumber={badgeNumber} fontSize={12} height={25} badgeStyle={styles.badge} />
+        )}
     </ClickableBox>
   )
 }
@@ -84,8 +82,6 @@ const styles = styleSheetCreate({
     },
     isMobile: {
       color: globalColors.black_75,
-      position: 'relative',
-      top: 3,
     },
   }),
   selectedText: {
