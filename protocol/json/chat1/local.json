@@ -555,6 +555,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageRequestPayment",
+      "fields": [
+        {
+          "type": "string",
+          "name": "requestID"
+        },
+        {
+          "type": "string",
+          "name": "note"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageBody",
       "switch": {
@@ -652,6 +666,13 @@
             "def": false
           },
           "body": "MessageSendPayment"
+        },
+        {
+          "label": {
+            "name": "REQUESTPAYMENT",
+            "def": false
+          },
+          "body": "MessageRequestPayment"
         }
       ]
     },

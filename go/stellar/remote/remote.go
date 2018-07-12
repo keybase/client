@@ -373,10 +373,7 @@ func ReleaseAutoClaimLock(ctx context.Context, g *libkb.GlobalContext, token str
 		NetContext:  ctx,
 	}
 	var res libkb.AppStatusEmbed
-	if err := g.API.PostDecode(apiArg, &res); err != nil {
-		return err
-	}
-	return nil
+	return g.API.PostDecode(apiArg, &res)
 }
 
 type nextAutoClaimResult struct {
@@ -533,4 +530,46 @@ func SetAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) error {
 	}
 	_, err := g.API.Post(apiArg)
 	return err
+}
+
+type submitRequestResult struct {
+	libkb.AppStatusEmbed
+	RequestID stellar1.KeybaseRequestID `json:"request_id"`
+}
+
+func SubmitRequest(ctx context.Context, g *libkb.GlobalContext, post stellar1.RequestPost) (ret stellar1.KeybaseRequestID, err error) {
+	payload := make(libkb.JSONPayload)
+	payload["request"] = post
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/submitrequest",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+		NetContext:  ctx,
+	}
+	var res submitRequestResult
+	if err := g.API.PostDecode(apiArg, &res); err != nil {
+		return ret, err
+	}
+	return res.RequestID, nil
+}
+
+type requestDetailsResult struct {
+	libkb.AppStatusEmbed
+	Request stellar1.RequestDetails `json:"request"`
+}
+
+func RequestDetails(ctx context.Context, g *libkb.GlobalContext, requestID stellar1.KeybaseRequestID) (ret stellar1.RequestDetails, err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/requestdetails",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"id": libkb.S{Val: requestID.String()},
+		},
+		NetContext: ctx,
+	}
+	var res requestDetailsResult
+	if err := g.API.GetDecode(apiArg, &res); err != nil {
+		return ret, err
+	}
+	return res.Request, nil
 }

@@ -329,6 +329,20 @@ func (r *RemoteClientMock) ExchangeRate(ctx context.Context, currency string) (s
 	return r.Backend.ExchangeRate(ctx, r.Tc, currency)
 }
 
+func (r *RemoteClientMock) SubmitRequest(ctx context.Context, post stellar1.RequestPost) (res stellar1.KeybaseRequestID, err error) {
+	// Pretend that this was sent somewhere and we got real RequestID.
+	b, err := libkb.RandBytesWithSuffix(stellar1.KeybaseRequestIDLen, stellar1.KeybaseRequestIDSuffix)
+	if err != nil {
+		return "", err
+	}
+
+	return stellar1.KeybaseRequestIDFromString(hex.EncodeToString(b))
+}
+
+func (r *RemoteClientMock) RequestDetails(ctx context.Context, requestID stellar1.KeybaseRequestID) (res stellar1.RequestDetails, err error) {
+	return res, fmt.Errorf("RemoteClientMock.RequestDetails not implemented")
+}
+
 var _ remote.Remoter = (*RemoteClientMock)(nil)
 
 // BackendMock is a mock of stellard.
