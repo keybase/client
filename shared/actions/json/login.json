@@ -15,6 +15,7 @@
     "submitProvisionDeviceSelect": { "name": "string" },
     "submitProvisionPasswordInsteadOfDevice": {},
     "submitProvisionDeviceName": { "name": "string" },
+    "submitProvisionGPGMethod": { "exportKey": "boolean" },
     "showDeviceList": {
       "_description": "Show the list of devices the user can use to provision a device",
       "canSelectNoDevice": "boolean",
@@ -29,6 +30,7 @@
       "code": "HiddenString",
       "error": "string"
     },
+    "showGPG": {},
     "launchAccountResetWebPage": {},
     "launchForgotPasswordWebPage": {},
     "loginError": { "error": "string" },
@@ -38,7 +40,6 @@
     // TODO remove
     "onBack": {},
     "onFinish": {},
-    "chooseGPGMethod": { "exportKey": "boolean" },
     "addNewDevice": { "otherDeviceType": ["'desktop'", "'phone'", "'paperkey'"] },
     "navBasedOnLoginAndInitialState": {},
     "setRevokedSelf": { "revoked": "string" },

@@ -438,6 +438,27 @@ const submitProvisionTextCode = (state: TypedState) => {
   response.result({code: null, phrase: state.login.codePageTextCode.stringValue()})
 }
 
+// Trying to use gpg flow
+const chooseGPGMethodHandler = (params: RPCTypes.ProvisionUiChooseGPGMethodRpcParam, response, state) => {
+  provisioningManager.stashResponse('keybase.1.provisionUi.chooseGPGMethod', response)
+  return Saga.put(LoginGen.createShowGPG())
+}
+const submitProvisionGPGMethod = (state: TypedState, action: LoginGen.SubmitProvisionGPGMethodPayload) => {
+  // local error, ignore
+  if (state.login.error) {
+    return
+  }
+
+  const response = provisioningManager.getAndClearResponse('keybase.1.provisionUi.chooseGPGMethod')
+  if (!response || !response.result) {
+    throw new Error('Tried to submit gpg export but missing callback')
+  }
+
+  response.result(
+    action.payload.exportKey ? RPCTypes.provisionUiGPGMethod.gpgImport : RPCTypes.provisionUiGPGMethod.gpgSign
+  )
+}
+
 /**
  * We are starting the provisioning process. This is largely controlled by the daemon. We get a callback to show various
  * screens and we stash the result object so we can show the screen. When the submit on that screen is done we find the stashedReponse and respond and wait
@@ -476,7 +497,8 @@ const startProvisioning = (state: TypedState) =>
           'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
           'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
           'keybase.1.provisionUi.chooseDevice': chooseDeviceHandler,
-          'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
+          // TODO test this
+          'keybase.1.provisionUi.chooseGPGMethod': chooseGPGMethodHandler,
           'keybase.1.secretUi.getPassphrase': cancelOnCallback,
         },
         params: {
@@ -503,6 +525,9 @@ const showNewDeviceName = (state: TypedState) =>
 const showCodePage = (state: TypedState) =>
   !state.login.error && Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.loginTab, 'login']))
 
+const showGPG = (state: TypedState) =>
+  !state.login.error && Saga.put(RouteTree.navigateAppend(['gpgSign'], [Tabs.loginTab, 'login']))
+
 function* provisionSaga(): Saga.SagaGenerator<any, any> {
   // Start provision
   yield Saga.safeTakeEveryPureSimple(LoginGen.submitUsernameOrEmail, startProvisioning)
@@ -511,11 +536,13 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPureSimple(LoginGen.submitProvisionDeviceSelect, submitProvisionDeviceSelect)
   yield Saga.safeTakeEveryPureSimple(LoginGen.submitProvisionDeviceName, submitProvisionDeviceName)
   yield Saga.safeTakeEveryPureSimple(LoginGen.submitProvisionTextCode, submitProvisionTextCode)
+  yield Saga.safeTakeEveryPureSimple(LoginGen.submitProvisionGPGMethod, submitProvisionGPGMethod)
 
   // Screens
   yield Saga.safeTakeEveryPureSimple(LoginGen.showDeviceList, showDeviceList)
   yield Saga.safeTakeEveryPureSimple(LoginGen.showNewDeviceName, showNewDeviceName)
   yield Saga.safeTakeEveryPureSimple(LoginGen.showCodePage, showCodePage)
+  yield Saga.safeTakeEveryPureSimple(LoginGen.showGPG, showGPG)
 
   // TODO
   // yield Saga.safeTakeLatest(LoginGen.addNewDevice, _addNewDevice)

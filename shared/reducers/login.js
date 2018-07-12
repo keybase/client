@@ -75,8 +75,9 @@ export default function(
       return state.set('justDeletedSelf', action.payload.deletedUsername)
     // Saga only actions
     case LoginGen.addNewDevice:
-    case LoginGen.chooseGPGMethod:
+    case LoginGen.submitProvisionGPGMethod:
     case LoginGen.logout:
+    case LoginGen.showGPG:
     case LoginGen.loggedout:
     case LoginGen.navBasedOnLoginAndInitialState:
     case LoginGen.onBack:

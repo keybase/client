@@ -10,7 +10,6 @@ import HiddenString from '../util/hidden-string'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of login but is handled by every reducer
 export const addNewDevice = 'login:addNewDevice'
-export const chooseGPGMethod = 'login:chooseGPGMethod'
 export const configuredAccounts = 'login:configuredAccounts'
 export const launchAccountResetWebPage = 'login:launchAccountResetWebPage'
 export const launchForgotPasswordWebPage = 'login:launchForgotPasswordWebPage'
@@ -25,18 +24,19 @@ export const setDeletedSelf = 'login:setDeletedSelf'
 export const setRevokedSelf = 'login:setRevokedSelf'
 export const showCodePage = 'login:showCodePage'
 export const showDeviceList = 'login:showDeviceList'
+export const showGPG = 'login:showGPG'
 export const showNewDeviceName = 'login:showNewDeviceName'
 export const startLogin = 'login:startLogin'
 export const submitPassphrase = 'login:submitPassphrase'
 export const submitProvisionDeviceName = 'login:submitProvisionDeviceName'
 export const submitProvisionDeviceSelect = 'login:submitProvisionDeviceSelect'
+export const submitProvisionGPGMethod = 'login:submitProvisionGPGMethod'
 export const submitProvisionPasswordInsteadOfDevice = 'login:submitProvisionPasswordInsteadOfDevice'
 export const submitProvisionTextCode = 'login:submitProvisionTextCode'
 export const submitUsernameOrEmail = 'login:submitUsernameOrEmail'
 
 // Payload Types
 type _AddNewDevicePayload = $ReadOnly<{|otherDeviceType: 'desktop' | 'phone' | 'paperkey'|}>
-type _ChooseGPGMethodPayload = $ReadOnly<{|exportKey: boolean|}>
 type _ConfiguredAccountsPayload = $ReadOnly<{|accounts: ?Array<{|hasStoredSecret: boolean, username: string|}>|}>
 type _ConfiguredAccountsPayloadError = $ReadOnly<{|error: Error|}>
 type _LaunchAccountResetWebPagePayload = void
@@ -61,6 +61,7 @@ type _ShowDeviceListPayload = $ReadOnly<{|
   canSelectNoDevice: boolean,
   devices: Array<Types.Device>,
 |}>
+type _ShowGPGPayload = void
 type _ShowNewDeviceNamePayload = $ReadOnly<{|
   existingDevices: Array<string>,
   error: string,
@@ -69,6 +70,7 @@ type _StartLoginPayload = void
 type _SubmitPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
 type _SubmitProvisionDeviceNamePayload = $ReadOnly<{|name: string|}>
 type _SubmitProvisionDeviceSelectPayload = $ReadOnly<{|name: string|}>
+type _SubmitProvisionGPGMethodPayload = $ReadOnly<{|exportKey: boolean|}>
 type _SubmitProvisionPasswordInsteadOfDevicePayload = void
 type _SubmitProvisionTextCodePayload = $ReadOnly<{|phrase: HiddenString|}>
 type _SubmitUsernameOrEmailPayload = $ReadOnly<{|usernameOrEmail: string|}>
@@ -83,7 +85,6 @@ export const createShowNewDeviceName = (payload: _ShowNewDeviceNamePayload) => (
  */
 export const createShowDeviceList = (payload: _ShowDeviceListPayload) => ({error: false, payload, type: showDeviceList})
 export const createAddNewDevice = (payload: _AddNewDevicePayload) => ({error: false, payload, type: addNewDevice})
-export const createChooseGPGMethod = (payload: _ChooseGPGMethodPayload) => ({error: false, payload, type: chooseGPGMethod})
 export const createConfiguredAccounts = (payload: _ConfiguredAccountsPayload) => ({error: false, payload, type: configuredAccounts})
 export const createConfiguredAccountsError = (payload: _ConfiguredAccountsPayloadError) => ({error: true, payload, type: configuredAccounts})
 export const createLaunchAccountResetWebPage = (payload: _LaunchAccountResetWebPagePayload) => ({error: false, payload, type: launchAccountResetWebPage})
@@ -98,17 +99,18 @@ export const createOnFinish = (payload: _OnFinishPayload) => ({error: false, pay
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error: false, payload, type: setDeletedSelf})
 export const createSetRevokedSelf = (payload: _SetRevokedSelfPayload) => ({error: false, payload, type: setRevokedSelf})
 export const createShowCodePage = (payload: _ShowCodePagePayload) => ({error: false, payload, type: showCodePage})
+export const createShowGPG = (payload: _ShowGPGPayload) => ({error: false, payload, type: showGPG})
 export const createStartLogin = (payload: _StartLoginPayload) => ({error: false, payload, type: startLogin})
 export const createSubmitPassphrase = (payload: _SubmitPassphrasePayload) => ({error: false, payload, type: submitPassphrase})
 export const createSubmitProvisionDeviceName = (payload: _SubmitProvisionDeviceNamePayload) => ({error: false, payload, type: submitProvisionDeviceName})
 export const createSubmitProvisionDeviceSelect = (payload: _SubmitProvisionDeviceSelectPayload) => ({error: false, payload, type: submitProvisionDeviceSelect})
+export const createSubmitProvisionGPGMethod = (payload: _SubmitProvisionGPGMethodPayload) => ({error: false, payload, type: submitProvisionGPGMethod})
 export const createSubmitProvisionPasswordInsteadOfDevice = (payload: _SubmitProvisionPasswordInsteadOfDevicePayload) => ({error: false, payload, type: submitProvisionPasswordInsteadOfDevice})
 export const createSubmitProvisionTextCode = (payload: _SubmitProvisionTextCodePayload) => ({error: false, payload, type: submitProvisionTextCode})
 export const createSubmitUsernameOrEmail = (payload: _SubmitUsernameOrEmailPayload) => ({error: false, payload, type: submitUsernameOrEmail})
 
 // Action Payloads
 export type AddNewDevicePayload = $Call<typeof createAddNewDevice, _AddNewDevicePayload>
-export type ChooseGPGMethodPayload = $Call<typeof createChooseGPGMethod, _ChooseGPGMethodPayload>
 export type ConfiguredAccountsPayload = $Call<typeof createConfiguredAccounts, _ConfiguredAccountsPayload>
 export type ConfiguredAccountsPayloadError = $Call<typeof createConfiguredAccountsError, _ConfiguredAccountsPayloadError>
 export type LaunchAccountResetWebPagePayload = $Call<typeof createLaunchAccountResetWebPage, _LaunchAccountResetWebPagePayload>
@@ -124,11 +126,13 @@ export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDelet
 export type SetRevokedSelfPayload = $Call<typeof createSetRevokedSelf, _SetRevokedSelfPayload>
 export type ShowCodePagePayload = $Call<typeof createShowCodePage, _ShowCodePagePayload>
 export type ShowDeviceListPayload = $Call<typeof createShowDeviceList, _ShowDeviceListPayload>
+export type ShowGPGPayload = $Call<typeof createShowGPG, _ShowGPGPayload>
 export type ShowNewDeviceNamePayload = $Call<typeof createShowNewDeviceName, _ShowNewDeviceNamePayload>
 export type StartLoginPayload = $Call<typeof createStartLogin, _StartLoginPayload>
 export type SubmitPassphrasePayload = $Call<typeof createSubmitPassphrase, _SubmitPassphrasePayload>
 export type SubmitProvisionDeviceNamePayload = $Call<typeof createSubmitProvisionDeviceName, _SubmitProvisionDeviceNamePayload>
 export type SubmitProvisionDeviceSelectPayload = $Call<typeof createSubmitProvisionDeviceSelect, _SubmitProvisionDeviceSelectPayload>
+export type SubmitProvisionGPGMethodPayload = $Call<typeof createSubmitProvisionGPGMethod, _SubmitProvisionGPGMethodPayload>
 export type SubmitProvisionPasswordInsteadOfDevicePayload = $Call<typeof createSubmitProvisionPasswordInsteadOfDevice, _SubmitProvisionPasswordInsteadOfDevicePayload>
 export type SubmitProvisionTextCodePayload = $Call<typeof createSubmitProvisionTextCode, _SubmitProvisionTextCodePayload>
 export type SubmitUsernameOrEmailPayload = $Call<typeof createSubmitUsernameOrEmail, _SubmitUsernameOrEmailPayload>
@@ -137,7 +141,6 @@ export type SubmitUsernameOrEmailPayload = $Call<typeof createSubmitUsernameOrEm
 // prettier-ignore
 export type Actions =
   | AddNewDevicePayload
-  | ChooseGPGMethodPayload
   | ConfiguredAccountsPayload
   | ConfiguredAccountsPayloadError
   | LaunchAccountResetWebPagePayload
@@ -153,11 +156,13 @@ export type Actions =
   | SetRevokedSelfPayload
   | ShowCodePagePayload
   | ShowDeviceListPayload
+  | ShowGPGPayload
   | ShowNewDeviceNamePayload
   | StartLoginPayload
   | SubmitPassphrasePayload
   | SubmitProvisionDeviceNamePayload
   | SubmitProvisionDeviceSelectPayload
+  | SubmitProvisionGPGMethodPayload
   | SubmitProvisionPasswordInsteadOfDevicePayload
   | SubmitProvisionTextCodePayload
   | SubmitUsernameOrEmailPayload
