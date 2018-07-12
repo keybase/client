@@ -19,7 +19,7 @@ type Props = {
 
 const ReactionTooltip = (props: Props) => {
   const sections = props.reactions.map(r => ({
-    data: r.users.map(u => ({...u, key: `${u.username}`})),
+    data: r.users.map(u => ({...u, key: `${u.username}:${r.emoji}`})),
     key: r.emoji,
     messageID: props.messageID,
     title: r.emoji,
