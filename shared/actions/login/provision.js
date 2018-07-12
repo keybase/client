@@ -476,11 +476,14 @@ const startProvisioning = (state: TypedState) =>
     }
   })
 
-const showDeviceList = () =>
-  Saga.put(RouteTree.navigateAppend(['selectOtherDevice'], [Tabs.loginTab, 'login']))
+const showDeviceList = (state: TypedState) =>
+  !state.login.error && Saga.put(RouteTree.navigateAppend(['selectOtherDevice'], [Tabs.loginTab, 'login']))
 
-const showNewDeviceName = () =>
-  Saga.put(RouteTree.navigateAppend(['setPublicName'], [Tabs.loginTab, 'login']))
+const showNewDeviceName = (state: TypedState) =>
+  !state.login.error && Saga.put(RouteTree.navigateAppend(['setPublicName'], [Tabs.loginTab, 'login']))
+
+const showCodePage = (state: TypedState) =>
+  !state.login.error && Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.loginTab, 'login']))
 
 function* provisionSaga(): Saga.SagaGenerator<any, any> {
   // Start provision
@@ -493,6 +496,7 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   // Screens
   yield Saga.safeTakeEveryPureSimple(LoginGen.showDeviceList, showDeviceList)
   yield Saga.safeTakeEveryPureSimple(LoginGen.showNewDeviceName, showNewDeviceName)
+  yield Saga.safeTakeEveryPureSimple(LoginGen.showCodePage, showCodePage)
 
   // TODO
   // yield Saga.safeTakeLatest(LoginGen.addNewDevice, _addNewDevice)
