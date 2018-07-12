@@ -157,18 +157,39 @@ const maybeNavigateToLoginRoot = (
 const showUsernameEmailScreen = () =>
   Saga.put(RouteTree.navigateTo(['login', 'usernameOrEmail'], [Tabs.loginTab]))
 
+const cancelOnCallback = (params, response, state) => {
+  response.error({
+    code: RPCTypes.constantsStatusCode.scgeneric,
+    desc: 'Canceling RPC',
+  })
+}
+const ignoreCallback = (params, state) => {}
+
+const getPassphraseHandler = passphrase => (
+  params: RPCTypes.SecretUiGetPassphraseRpcParam,
+  response,
+  state
+) => {
+  if (params.pinentry.type === RPCTypes.passphraseCommonPassphraseType.passPhrase) {
+    // Service asking us again due to a bad passphrase?
+    if (params.pinentry.retryLabel) {
+      cancelOnCallback(params, response, state)
+      return Saga.put(LoginGen.createLoginError({error: params.pinentry.retryLabel}))
+    } else {
+      response.result({
+        passphrase,
+        storeSecret: false,
+      })
+    }
+  } else {
+    cancelOnCallback(params, response, state)
+  }
+}
+
 // Actually do a user/pass login. Don't get sucked into a provisioning flow
 const login = (_: any, action: LoginGen.LoginPayload) =>
   Saga.call(function*() {
     try {
-      const cancelOnCallback = (params, response, state) => {
-        response.error({
-          code: RPCTypes.constantsStatusCode.scgeneric,
-          desc: 'Canceling RPC',
-        })
-      }
-      const ignoreCallback = (params, state) => {}
-
       // We don't want the waiting key to be positive during this whole process so we do a decrement first so its not going 1,2,1,2,1,2
       yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.waitingKey}))
 
@@ -185,26 +206,7 @@ const login = (_: any, action: LoginGen.LoginPayload) =>
           'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
           'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
           'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
-          'keybase.1.secretUi.getPassphrase': (
-            params: RPCTypes.SecretUiGetPassphraseRpcParam,
-            response,
-            state
-          ) => {
-            if (params.pinentry.type === RPCTypes.passphraseCommonPassphraseType.passPhrase) {
-              // Service asking us again due to a bad passphrase?
-              if (params.pinentry.retryLabel) {
-                cancelOnCallback(params, response, state)
-                return Saga.put(LoginGen.createLoginError({error: params.pinentry.retryLabel}))
-              } else {
-                response.result({
-                  passphrase: action.payload.passphrase.stringValue(),
-                  storeSecret: false,
-                })
-              }
-            } else {
-              cancelOnCallback(params, response, state)
-            }
-          },
+          'keybase.1.secretUi.getPassphrase': getPassphraseHandler(action.payload.passphrase.stringValue()),
         },
         params: {
           clientType: RPCTypes.commonClientType.guiMain,
