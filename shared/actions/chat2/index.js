@@ -671,6 +671,7 @@ const setupChatHandlers = () => {
 
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduce((arr, key) => {
   switch (key) {
+    case 'none':
     case 'edit': // daemon filters this out for us so we can ignore
     case 'delete':
     case 'attachmentuploaded':

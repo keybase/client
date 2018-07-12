@@ -185,3 +185,5 @@ func (c *URLCachingSource) ClearCacheForName(ctx context.Context, name string, f
 	defer c.G().Trace(fmt.Sprintf("URLCachingSource.ClearCacheForUser(%s,%v)", name, formats), func() error { return err })()
 	return c.clearName(ctx, name, formats)
 }
+
+func (c *URLCachingSource) OnCacheCleared(ctx context.Context) {}
