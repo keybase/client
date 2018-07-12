@@ -55,11 +55,8 @@ const makeStyleTransform = (orientation: ?number): string => {
  * while viewing in full screen (this is due to Chrome not respecting EXIF
  * orientation on images since 2012)
  *
- * When rendering a preview, the image location is on the user's file system.
- * That means that in order to read the raw image data for EXIF, we will need
- * to render the image into a canvas element and read the bytes using the
- * Canvas API. Croppie will take care of this and simply render the oriented
- * image in a canvas element for us.
+ * When rendering a preview, the image location on the user's filesystem we
+ * read the data directly using fs and have EXIF operate on the bytes.
  */
 class OrientedImage extends React.Component<Props, State> {
   static defaultProps = {
@@ -102,10 +99,8 @@ class OrientedImage extends React.Component<Props, State> {
     })
   }
 
-  // When the user uploads a local image, we need to read the content directly
-  // from the filesystem and encode the result as a base64 iamge so that EXIF
-  // can process the orientation without attempting to make an HTTP request to
-  // the local image which would violate CORS.
+  // Read the file contents directly into a buffer and pass it to EXIF which
+  // can extract the EXIF data
   _readExifLocal = src => {
     return new Promise((resolve, reject) => {
       fs.readFile(src, (err, data) => {
@@ -141,7 +136,7 @@ class OrientedImage extends React.Component<Props, State> {
       return this.setState({styleTransform: _cacheStyleTransforms[src]})
     }
 
-    if (this.props.preview) {
+    if (this.props.localFile) {
       this._readExifLocal(src)
         .then(orientation => this._handleImageLoadSuccess(src, orientation))
         .catch(() => this._handleImgeLoadFailure(src))

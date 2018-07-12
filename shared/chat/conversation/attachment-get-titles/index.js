@@ -110,8 +110,7 @@ class GetTitles extends React.Component<Props, State> {
             <Box style={{...globalStyles.flexBoxCenter, height: 150, width: 150}}>
               {info.type === 'image' ? (
                 <OrientedImage
-                  preview={true}
-                  onLoad={() => {}}
+                  localFile={true}
                   src={path}
                   style={isMobile ? {height: 150, width: 150} : {maxHeight: '100%', maxWidth: '100%'}}
                 />
