@@ -228,7 +228,7 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 		err := teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), arg.Name,
 			result.User.Username)
 		if err != nil {
-			h.G().Log.CWarningf(ctx, "send team welcome message: %v", err)
+			h.G().Log.CDebugf(ctx, "send team welcome message: %v", err)
 		} else {
 			h.G().Log.CDebugf(ctx, "send team welcome message: success", err)
 		}
