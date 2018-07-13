@@ -376,6 +376,24 @@ const load = () => {
         <WrapRow key="14">
           <PlaceholderRow type="file" />
         </WrapRow>
+        <WrapRow key="15">
+          <StillRow
+            path={Types.stringToPath('/keybase/private/foo/bar/baz')}
+            name="qux"
+            type="file"
+            lastModifiedTimestamp={Date.now()}
+            lastWriter="bob"
+            shouldShowMenu={true}
+            itemStyles={fileItemStyles}
+            badgeCount={3}
+            isDownloading={false}
+            isUserReset={false}
+            resetParticipants={[]}
+            onOpen={action('onOpen')}
+            openInFileUI={action('openInFileUI')}
+            onAction={action('onAction')}
+          />{' '}
+        </WrapRow>
       </Box>
     ))
     .add('Footer Cards', () => (
