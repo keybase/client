@@ -12,7 +12,7 @@ export type Device = I.RecordOf<_Device>
 
 export type _State = {
   codePageOtherDeviceName: string,
-  codePageOtherDeviceType: 'phone' | 'desktop' | 'paperkey',
+  codePageOtherDeviceType: 'mobile' | 'desktop',
   codePageTextCode: HiddenString,
   // shared by all errors, we only ever want one error
   error: HiddenString,
