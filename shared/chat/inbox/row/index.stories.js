@@ -90,6 +90,22 @@ const mocks = [
     timestamp: '5:13 pm',
     usernameColor: globalColors.white,
   },
+  {
+    ...simpleCommon,
+    conversationIDKey: '6',
+    participants: ['nathunsmitty'],
+    snippet: 'whoops',
+    timestamp: '11:06 am',
+    snippetDecoration: '💣',
+  },
+  {
+    ...simpleCommon,
+    conversationIDKey: '7',
+    participants: ['nathunsmitty'],
+    snippet: 'lol',
+    timestamp: '1:37 pm',
+    snippetDecoration: '💥',
+  },
 ]
 
 const commonChannel = {

@@ -273,6 +273,7 @@ type AttachmentFetcher interface {
 type AttachmentURLSrv interface {
 	GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
 		preview bool) string
+	GetPendingPreviewURL(ctx context.Context, outboxID chat1.OutboxID) string
 	GetAttachmentFetcher() AttachmentFetcher
 }
 
