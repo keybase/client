@@ -121,6 +121,7 @@ protocol gregor {
         array<ConversationMember> joined;
         array<ConversationMember> removed;
         array<ConversationMember> reset;
+        array<ConversationMember> deleted;
         array<ConversationID> previewed; // only IDs the user receiving the message has previews are in here
 
         union { null, UnreadUpdate } unreadUpdate;

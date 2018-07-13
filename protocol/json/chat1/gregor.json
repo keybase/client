@@ -412,6 +412,13 @@
         {
           "type": {
             "type": "array",
+            "items": "ConversationMember"
+          },
+          "name": "deleted"
+        },
+        {
+          "type": {
+            "type": "array",
             "items": "ConversationID"
           },
           "name": "previewed"

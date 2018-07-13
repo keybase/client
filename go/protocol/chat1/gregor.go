@@ -323,6 +323,7 @@ type UpdateConversationMembership struct {
 	Joined        []ConversationMember `codec:"joined" json:"joined"`
 	Removed       []ConversationMember `codec:"removed" json:"removed"`
 	Reset         []ConversationMember `codec:"reset" json:"reset"`
+	Deleted       []ConversationMember `codec:"deleted" json:"deleted"`
 	Previewed     []ConversationID     `codec:"previewed" json:"previewed"`
 	UnreadUpdate  *UnreadUpdate        `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
 	UnreadUpdates []UnreadUpdate       `codec:"unreadUpdates" json:"unreadUpdates"`
@@ -364,6 +365,17 @@ func (o UpdateConversationMembership) DeepCopy() UpdateConversationMembership {
 			}
 			return ret
 		})(o.Reset),
+		Deleted: (func(x []ConversationMember) []ConversationMember {
+			if x == nil {
+				return nil
+			}
+			var ret []ConversationMember
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Deleted),
 		Previewed: (func(x []ConversationID) []ConversationID {
 			if x == nil {
 				return nil

@@ -144,7 +144,8 @@
     REMOVED_1, // removed from channel forcibly
     LEFT_2,    // voluntarily left conversation
     PREVIEW_3, // use is previewing the channel from an @mention
-    RESET_4    // status of having an account reset in an impteam
+    RESET_4,    // status of having an account reset in an impteam
+    DELETED_5  // status of having a deleted account in an impteam
   }
 
   record Pagination {
@@ -239,6 +240,7 @@
 
     array<gregor1.UID> allList;   // all of the users in the conversation
     array<gregor1.UID> resetList; // all of the reset users in the conversation (only for TEAM and IMPTEAM chats)
+    array<gregor1.UID> deletedList; // all of the deleted users in the conversation (only for TEAM and IMPTEAM chats)
   }
 
   record ConversationNotificationInfo {

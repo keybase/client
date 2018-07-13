@@ -281,7 +281,8 @@
         "REMOVED_1",
         "LEFT_2",
         "PREVIEW_3",
-        "RESET_4"
+        "RESET_4",
+        "DELETED_5"
       ]
     },
     {
@@ -576,6 +577,13 @@
             "items": "gregor1.UID"
           },
           "name": "resetList"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          },
+          "name": "deletedList"
         }
       ],
       "mpackkey": "em",
