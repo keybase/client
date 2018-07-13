@@ -18,7 +18,7 @@ type DeviceCloneTokenEngine struct {
 	libkb.Contextified
 }
 
-// NewDeviceCloneToken creates a new DeviceCloneTokenEngine.
+// NewDeviceCloneTokenEngine creates a new DeviceCloneTokenEngine.
 func NewDeviceCloneTokenEngine(g *libkb.GlobalContext) *DeviceCloneTokenEngine {
 	return &DeviceCloneTokenEngine{Contextified: libkb.NewContextified(g)}
 }
@@ -70,7 +70,6 @@ func (e *DeviceCloneTokenEngine) Run(m libkb.MetaContext) error {
 	if p == "" {
 		//first run
 		p = libkb.DefaultCloneTokenValue
-		s = ""
 	}
 	if s == "" {
 		buf := make([]byte, 16)

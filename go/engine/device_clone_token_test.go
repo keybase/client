@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
 )
 
 func getPersistedToken(m libkb.MetaContext, un libkb.NormalizedUsername) libkb.DeviceCloneToken {
@@ -30,6 +31,12 @@ func runAndGet(m libkb.MetaContext, un libkb.NormalizedUsername) (d libkb.Device
 	return
 }
 
+func assertSuccessfulRun(tc libkb.TestContext, d libkb.DeviceCloneToken, err error) {
+	require.NoError(tc.T, err)
+	require.Equal(tc.T, d.Stage, "")
+	require.True(tc.T, isValidToken(d.Prior))
+}
+
 func TestDeviceCloneTokenFirstRun(t *testing.T) {
 	tc := SetupEngineTest(t, "DeviceCloneTokenEngine")
 	defer tc.Cleanup()
@@ -38,18 +45,8 @@ func TestDeviceCloneTokenFirstRun(t *testing.T) {
 
 	d, err := runAndGet(m, un)
 
-	if err != nil {
-		t.Fatal(err)
-	}
-	if d.Stage != "" {
-		t.Errorf("expected `stage` token to be '', got %v", d.Stage)
-	}
-	if d.Clones != 1 {
-		t.Errorf("expected `clones` to be 1, got %v", d.Clones)
-	}
-	if !isValidToken(d.Prior) {
-		t.Errorf("expected `prior` token to be 32 hex chars, got %v", d.Prior)
-	}
+	assertSuccessfulRun(tc, d, err)
+	require.Equal(tc.T, d.Clones, 1)
 }
 
 func TestDeviceCloneTokenSuccessfulUpdate(t *testing.T) {
@@ -57,30 +54,15 @@ func TestDeviceCloneTokenSuccessfulUpdate(t *testing.T) {
 	defer tc.Cleanup()
 	un := libkb.NewNormalizedUsername(CreateAndSignupFakeUser(tc, "fu").Username)
 	m := NewMetaContextForTest(tc)
-
 	//setup: perform an initial run
 	d0, err := runAndGet(m, un)
-	if err != nil {
-		t.Fatal(err)
-	}
-	// actual test run
+	require.NoError(tc.T, err)
+
 	d, err := runAndGet(m, un)
 
-	if err != nil {
-		t.Fatal(err)
-	}
-	if d.Stage != "" {
-		t.Errorf("expected `stage` token to be '', got %v", d.Stage)
-	}
-	if d.Clones != 1 {
-		t.Errorf("expected `clones` to be 1, got %v", d.Clones)
-	}
-	if d.Prior == d0.Prior {
-		t.Errorf("expected `prior` token to have changed")
-	}
-	if !isValidToken(d.Prior) {
-		t.Errorf("expected `prior` token to be 32 hex chars, got %v", d.Prior)
-	}
+	assertSuccessfulRun(tc, d, err)
+	require.NotEqual(tc.T, d.Prior, d0.Prior)
+	require.Equal(tc.T, d.Clones, 1)
 }
 
 func TestDeviceCloneTokenRecoveryFromFailureBeforeServer(t *testing.T) {
@@ -88,7 +70,6 @@ func TestDeviceCloneTokenRecoveryFromFailureBeforeServer(t *testing.T) {
 	defer tc.Cleanup()
 	un := libkb.NewNormalizedUsername(CreateAndSignupFakeUser(tc, "fu").Username)
 	m := NewMetaContextForTest(tc)
-
 	// setup: persist tokens as if the process failed
 	// before the server received the update
 	d0 := libkb.DeviceCloneToken{
@@ -97,21 +78,12 @@ func TestDeviceCloneTokenRecoveryFromFailureBeforeServer(t *testing.T) {
 		Clones: 1,
 	}
 	persistToken(m, un, d0)
-	//actual test run
+
 	d, err := runAndGet(m, un)
 
-	if err != nil {
-		t.Fatal(err)
-	}
-	if d.Clones != 1 {
-		t.Errorf("expected `clones` to be 1, got %v", d.Clones)
-	}
-	if d.Stage != "" {
-		t.Errorf("expected `stage` token to be '', got %v", d.Stage)
-	}
-	if d.Prior != d0.Stage {
-		t.Errorf("expected `prior` token to be %v, got %v", d0.Stage, d.Prior)
-	}
+	assertSuccessfulRun(tc, d, err)
+	require.Equal(tc.T, d.Prior, d0.Stage)
+	require.Equal(tc.T, d.Clones, 1)
 }
 
 func TestDeviceCloneTokenRecoveryFromFailureAfterServer(t *testing.T) {
@@ -119,31 +91,18 @@ func TestDeviceCloneTokenRecoveryFromFailureAfterServer(t *testing.T) {
 	defer tc.Cleanup()
 	un := libkb.NewNormalizedUsername(CreateAndSignupFakeUser(tc, "fu").Username)
 	m := NewMetaContextForTest(tc)
-
 	// setup: run twice. then reset the persistence to where it would have been
 	// if the server got the second update but did not ack it successfully to the client.
 	d0, err := runAndGet(m, un)
 	d1, err := runAndGet(m, un)
 	tmp := libkb.DeviceCloneToken{Prior: d0.Prior, Stage: d1.Prior, Clones: 1}
 	persistToken(m, un, tmp)
-	// actual test run
-	d2, err := runAndGet(m, un)
 
-	if err != nil {
-		t.Fatal(err)
-	}
-	if d2.Clones != 1 {
-		t.Errorf("expected `clones` to be 1, got %v", d2.Clones)
-	}
-	if d2.Stage != "" {
-		t.Errorf("expected `stage` token to be '', got %v", d2.Stage)
-	}
-	if d2.Prior != d1.Prior {
-		t.Errorf("expected `prior` token to be %v, got %v", d1.Prior, d2.Prior)
-	}
-	if !isValidToken(d2.Prior) {
-		t.Errorf("expected `prior` token to be 32 hex chars, got %v", d2.Prior)
-	}
+	d, err := runAndGet(m, un)
+
+	assertSuccessfulRun(tc, d, err)
+	require.Equal(tc.T, d.Prior, d1.Prior)
+	require.Equal(tc.T, d.Clones, 1)
 }
 
 func TestDeviceCloneTokenCloneDetected(t *testing.T) {
@@ -151,31 +110,17 @@ func TestDeviceCloneTokenCloneDetected(t *testing.T) {
 	defer tc.Cleanup()
 	un := libkb.NewNormalizedUsername(CreateAndSignupFakeUser(tc, "fu").Username)
 	m := NewMetaContextForTest(tc)
-
-	//setup: perform two runs, and then manually put
-	//old tokens back in the database
+	// setup: perform two runs, and then manually persist the earlier
+	// prior token to simulate a subsequent run by a cloned device
 	d0, err := runAndGet(m, un)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	_, err = runAndGet(m, un)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	persistToken(m, un, d0)
-	// actual test run
+
 	d, err := runAndGet(m, un)
 
-	if d.Clones != 2 {
-		t.Errorf("expected `clones` to be 2, got %v", d.Clones)
-	}
-	if !isValidToken(d.Prior) {
-		t.Errorf("expected `prior` token to be 32 hex chars, got %v", d.Prior)
-	}
-	if d.Prior == d0.Stage {
-		t.Errorf("expected `prior` token to be different from the previous Stage")
-	}
-	if d.Stage != "" {
-		t.Errorf("expected `stage` token to be '', got %v", d.Stage)
-	}
+	assertSuccessfulRun(tc, d, err)
+	require.NotEqual(tc.T, d.Prior, d0.Stage, "despite there being a clone, the token still needs to change")
+	require.Equal(tc.T, d.Clones, 2)
 }
