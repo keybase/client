@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {action, storiesOf} from '../../../stories/storybook'
 import {Box} from '../../../common-adapters'
-import AssetInput from '.'
+import AssetInput, {WarningText} from '.'
 
 const common = {
   onChangeAmount: action('onChangeAmount'),
@@ -33,12 +33,31 @@ export const props3 = {
   inputPlaceholder: '0.0000000',
 }
 
+const warning1 = {
+  asset: '128.4567890 XLM',
+  warningType: 'overmax',
+}
+
+const warning2 = {
+  asset: '$13',
+  warningType: 'overmax',
+}
+
+const warning3 = {
+  asset: 'BTC/Stronghold.com',
+  warningType: 'badAsset',
+  payee: 'russel',
+}
+
 const load = () => {
   storiesOf('Wallets/SendForm/Asset input', module)
     .addDecorator(story => <Box style={{maxWidth: 500, padding: 20}}>{story()}</Box>)
     .add('XLM worth USD', () => <AssetInput {...props1} />)
     .add('XLM', () => <AssetInput {...props3} />)
     .add('Asset', () => <AssetInput {...props2} />)
+    .add('XLM over warning', () => <AssetInput {...props1} warning={WarningText(warning1)} />)
+    .add('USD over warning', () => <AssetInput {...props3} warning={WarningText(warning2)} />)
+    .add('asset type warning', () => <AssetInput {...props2} warning={WarningText(warning3)} />)
 }
 
 export default load

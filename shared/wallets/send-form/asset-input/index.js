@@ -3,39 +3,36 @@ import * as React from 'react'
 import {Box2, Icon, NewInput, Text} from '../../../common-adapters'
 import {collapseStyles, globalColors, styleSheetCreate} from '../../../styles'
 
-
 type WarningTextProps = {|
-  asset: string
-  payee?: string
+  asset: string,
+  payee?: string,
   warningType: 'overmax' | 'badAsset',
 |}
 
-export const WarningText = (props: CounterpartyTextProps) => {
-  const assetPrompt = <Text type={textTypeSemibold}>{props.asset}</Text>
+export const WarningText = (props: WarningTextProps) => {
+  const assetPrompt = (
+    <Text type="BodySmallSemibold" style={{color: globalColors.red}}>
+      {props.asset}
+    </Text>
+  )
 
   switch (props.warningType) {
     case 'overmax':
-      return (
-        <Text>
-          Your available to send is {assetPrompt}
-        </Text>
-      )
+      return <Text type="BodySmallError">Your available to send is {assetPrompt}</Text>
     case 'badAsset':
       return (
-        <Text>
-          {props.payee} doesn't accept {assetPrompt}
-        </Text>
-        <Text>
-          Please pick another asset.
-        </Text>
+        <React.Fragment>
+          <Text type="BodySmallError">
+            {props.payee} doesn't accept {assetPrompt}
+          </Text>
+          <Text type="BodySmallError">Please pick another asset.</Text>
+        </React.Fragment>
       )
     default:
-
       break
   }
   return null
 }
-
 
 type Props = {
   bottomLabel: string,
@@ -45,6 +42,7 @@ type Props = {
   onChangeDisplayUnit: () => void,
   onClickInfo: () => void,
   topLabel: string,
+  warning?: React.Node,
 }
 
 const AssetInput = (props: Props) => (
@@ -57,20 +55,24 @@ const AssetInput = (props: Props) => (
     <NewInput
       type="number"
       decoration={
-        <Box2 direction="vertical" style={styles.flexEnd}>
-          <Text type="HeaderBigExtrabold" style={styles.colorPurple2}>
-            {props.displayUnit}
-          </Text>
-          <Text type="BodySmallPrimaryLink" onClick={props.onChangeDisplayUnit}>
-            Change
-          </Text>
-        </Box2>
+        <React.Fragment>
+          <Box2 direction="vertical" style={styles.flexEnd}>
+            <Text type="HeaderBigExtrabold" style={styles.colorPurple2}>
+              {props.displayUnit}
+            </Text>
+            <Text type="BodySmallPrimaryLink" onClick={props.onChangeDisplayUnit}>
+              Change
+            </Text>
+          </Box2>
+          {props.warning}
+        </React.Fragment>
       }
       style={styles.colorPurple2}
       onChangeText={props.onChangeAmount}
       textType="HeaderBigExtrabold"
       placeholder={props.inputPlaceholder}
       placeholderColor={globalColors.purple2_40}
+      error={!!props.warning}
     />
     <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
       <Text type="BodySmall" style={styles.labelMargin}>
