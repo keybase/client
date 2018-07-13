@@ -115,6 +115,11 @@ const styles = styleSheetCreate({
     marginTop: 4,
     textDecorationLine: 'line-through',
   },
+  tlfEntry: {
+    flexDirection: 'row',
+    marginBottom: globalMargins.xtiny,
+    textAlign: 'left',
+  },
   tlfListContainer: platformStyles({
     common: {
       ...globalStyles.flexBoxColumn,
@@ -136,12 +141,6 @@ const styles = styleSheetCreate({
       width: '100%',
     },
   }),
-
-  tlfEntry: {
-    flexDirection: 'row',
-    marginBottom: globalMargins.xtiny,
-    textAlign: 'left',
-  },
 })
 
 export default DeviceRevoke
