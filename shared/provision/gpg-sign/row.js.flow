@@ -1,0 +1,15 @@
+// @flow
+import * as React from 'react'
+import type {IconType} from '../../common-adapters'
+
+export type Props = {
+  onClick: () => void,
+  icon: IconType,
+  title: string,
+  subTitle?: string,
+  style?: Object,
+  children?: any,
+}
+
+export default class Row extends React.Component<Props> {}
+export class RowCSS extends React.Component<{}, void> {}

@@ -1,0 +1,13 @@
+// @flow
+import * as React from 'react'
+
+export type Props = {|
+  onBack: () => void,
+  onChange: (deviceName: string) => void,
+  onSubmit: null | (() => void),
+  deviceName: string,
+  deviceNameError: string,
+  waiting: boolean,
+|}
+
+declare export default class SetPublicName extends React.Component<Props> {}
