@@ -34,9 +34,13 @@ import (
 const (
 	// Max supported size of a directory entry name.
 	maxNameBytesDefault = 255
-	// Maximum supported plaintext size of a directory in KBFS. TODO:
-	// increase this once we support levels of indirection for directories.
-	maxDirBytesDefault = MaxBlockSizeBytesDefault
+	// Maximum supported plaintext size of a directory in KBFS.  Make
+	// it bigger than the default block size because we added the
+	// revision skiplist to the directory entries and we didn't want
+	// to break legacy directories in the case that all of their
+	// entries got updated EntryInfos.  TODO: increase this once we
+	// support levels of indirection for directories.
+	maxDirBytesDefault = MaxBlockSizeBytesDefault * 1.5
 	// Default time after setting the rekey bit before prompting for a
 	// paper key.
 	rekeyWithPromptWaitTimeDefault = 10 * time.Minute
