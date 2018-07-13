@@ -1037,7 +1037,8 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	ctx, cancel := context.WithCancel(fbm.ctxWithFBMID(context.Background()))
 	fbm.setReclamationCancel(cancel)
 	defer fbm.cancelReclamation()
-	defer timer.Reset(fbm.config.Mode().QuotaReclamationPeriod())
+	nextPeriod := fbm.config.Mode().QuotaReclamationPeriod()
+	defer timer.Reset(nextPeriod)
 	defer fbm.reclamationGroup.Done()
 
 	// Don't set a context deadline.  For users that have written a
@@ -1094,6 +1095,11 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		}
 		if !reclamationTime.IsZero() {
 			fbm.lastReclamationTime = reclamationTime
+		}
+		if !complete {
+			// If there's more data to reclaim, only wait a short
+			// while before the next QR attempt.
+			nextPeriod = 1 * time.Minute
 		}
 	}()
 
