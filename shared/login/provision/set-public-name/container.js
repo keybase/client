@@ -10,7 +10,7 @@ type OwnProps = RouteProps<{deviceName: string}, {}>
 
 const mapStateToProps = (state: TypedState) => ({
   _existingDevices: state.provision.existingDevices.toArray(),
-  deviceNameError: state.provision.error,
+  deviceNameError: state.provision.error.stringValue(),
   waiting: !!state.waiting.get(Constants.waitingKey),
 })
 

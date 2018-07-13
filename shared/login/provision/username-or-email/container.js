@@ -8,7 +8,7 @@ import {type RouteProps} from '../../../route-tree/render-route'
 type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = (state: TypedState) => ({
-  error: state.login.error,
+  error: state.login.error.stringValue(),
   // So we can clear the error if the name is changed
   submittedUsernameOrEmail: state.provision.usernameOrEmail,
   waitingForResponse: state.waiting.get(Constants.waitingKey),

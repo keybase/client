@@ -86,7 +86,7 @@ const promptNewDeviceNameHandler = (
 }
 const submitProvisionDeviceName = (state: TypedState) => {
   // local error, ignore
-  if (state.provision.error) {
+  if (state.provision.error.stringValue()) {
     return
   }
 
@@ -119,7 +119,7 @@ const displayAndPromptSecretHandler = (
 }
 const submitProvisionTextCode = (state: TypedState) => {
   // local error, ignore
-  if (state.provision.error) {
+  if (state.provision.error.stringValue()) {
     return
   }
 
@@ -146,7 +146,7 @@ const submitProvisionGPGMethod = (
   action: ProvisionGen.SubmitProvisionGPGMethodPayload
 ) => {
   // local error, ignore
-  if (state.provision.error) {
+  if (state.provision.error.stringValue()) {
     return
   }
 
@@ -181,7 +181,7 @@ const submitProvisionPassphrase = (
   action: ProvisionGen.SubmitProvisionPassphrasePayload
 ) => {
   // local error, ignore
-  if (state.provision.error) {
+  if (state.provision.error.stringValue()) {
     return
   }
 
@@ -197,6 +197,11 @@ const submitProvisionPassphrase = (
  * We are starting the provisioning process. This is largely controlled by the daemon. We get a callback to show various
  * screens and we stash the result object so we can show the screen. When the submit on that screen is done we find the stashedReponse and respond and wait
  */
+const cancelDesc = 'Canceling RPC'
+const cancelOnCallback = (params, response, state) => {
+  response.error({code: RPCTypes.constantsStatusCode.scgeneric, desc: cancelDesc})
+}
+const ignoreCallback = (params, state) => {}
 const startProvisioning = (state: TypedState) =>
   Saga.call(function*() {
     // Make a new handler each time just in case
@@ -207,14 +212,6 @@ const startProvisioning = (state: TypedState) =>
       if (!usernameOrEmail) {
         return
       }
-
-      const cancelOnCallback = (params, response, state) => {
-        response.error({
-          code: RPCTypes.constantsStatusCode.scgeneric,
-          desc: 'Canceling RPC',
-        })
-      }
-      const ignoreCallback = (params, state) => {}
 
       // We don't want the waiting key to be positive during this whole process so we do a decrement first so its not going 1,2,1,2,1,2
       yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.waitingKey}))
@@ -243,7 +240,10 @@ const startProvisioning = (state: TypedState) =>
         waitingKey: Constants.waitingKey,
       })
     } catch (e) {
-      yield Saga.put(ProvisionGen.createProvisionError({error: new HiddenString(niceError(e))}))
+      // If we're canceling then ignore the error
+      if (e.desc !== cancelDesc) {
+        yield Saga.put(ProvisionGen.createProvisionError({error: new HiddenString(niceError(e))}))
+      }
     } finally {
       // Reset us to zero
       yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.waitingKey}))
@@ -251,20 +251,24 @@ const startProvisioning = (state: TypedState) =>
   })
 
 const showDeviceListPage = (state: TypedState) =>
-  !state.provision.error &&
+  !state.provision.error.stringValue() &&
   Saga.put(RouteTree.navigateAppend(['selectOtherDevice'], [Tabs.loginTab, 'login']))
 
 const showNewDeviceNamePage = (state: TypedState) =>
-  !state.provision.error && Saga.put(RouteTree.navigateAppend(['setPublicName'], [Tabs.loginTab, 'login']))
+  !state.provision.error.stringValue() &&
+  Saga.put(RouteTree.navigateAppend(['setPublicName'], [Tabs.loginTab, 'login']))
 
 const showCodePage = (state: TypedState) =>
-  !state.provision.error && Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.loginTab, 'login']))
+  !state.provision.error.stringValue() &&
+  Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.loginTab, 'login']))
 
 const showGPGPage = (state: TypedState) =>
-  !state.provision.error && Saga.put(RouteTree.navigateAppend(['gpgSign'], [Tabs.loginTab, 'login']))
+  !state.provision.error.stringValue() &&
+  Saga.put(RouteTree.navigateAppend(['gpgSign'], [Tabs.loginTab, 'login']))
 
 const showPassphrasePage = (state: TypedState) =>
-  !state.provision.error && Saga.put(RouteTree.navigateAppend(['passphrase'], [Tabs.loginTab, 'login']))
+  !state.provision.error.stringValue() &&
+  Saga.put(RouteTree.navigateAppend(['passphrase'], [Tabs.loginTab, 'login']))
 
 function* provisionSaga(): Saga.SagaGenerator<any, any> {
   // Start provision

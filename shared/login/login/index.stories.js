@@ -6,7 +6,6 @@ import {action, storiesOf} from '../../stories/storybook'
 
 const commonProps: Props = {
   error: '',
-  onBack: action('onBack'),
   onFeedback: action('onFeedback'),
   onForgotPassphrase: action('onForgotPassphrase'),
   onLogin: action('onLogin'),
@@ -15,8 +14,6 @@ const commonProps: Props = {
   onSubmit: action('onSubmit'),
   passphrase: '',
   passphraseChange: action('passphraseChange'),
-  saveInKeychain: false,
-  saveInKeychainChange: action('saveInKeychainChange'),
   selectedUser: null,
   selectedUserChange: action('selectedUserChange'),
   showTyping: false,

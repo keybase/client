@@ -157,10 +157,11 @@ const maybeNavigateToLoginRoot = (
 const showUsernameEmailScreen = () =>
   Saga.put(RouteTree.navigateTo(['login', 'usernameOrEmail'], [Tabs.loginTab]))
 
+const cancelDesc = 'Canceling RPC'
 const cancelOnCallback = (params, response, state) => {
   response.error({
     code: RPCTypes.constantsStatusCode.scgeneric,
-    desc: 'Canceling RPC',
+    desc: cancelDesc,
   })
 }
 const ignoreCallback = (params, state) => {}
@@ -216,7 +217,10 @@ const login = (_: any, action: LoginGen.LoginPayload) =>
         waitingKey: Constants.waitingKey,
       })
     } catch (e) {
-      yield Saga.put(LoginGen.createLoginError({error: new HiddenString(niceError(e))}))
+      // If we're canceling then ignore the error
+      if (e.desc !== cancelDesc) {
+        yield Saga.put(LoginGen.createLoginError({error: new HiddenString(niceError(e))}))
+      }
     } finally {
       // Reset us to zero
       yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.waitingKey}))
