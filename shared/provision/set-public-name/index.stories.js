@@ -13,7 +13,7 @@ const props = {
 }
 
 const load = () => {
-  storiesOf('Register/SetPublicName', module)
+  storiesOf('Provision/SetPublicName', module)
     .add('Normal', () => <SetPublicName {...props} />)
     .add('Error', () => <SetPublicName {...props} deviceNameError={'Name taken'} />)
 }

@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/login'
-import {Image, Icon, Box2, Text, PlainInput, WaitingButton} from '../../common-adapters'
+import {Image, Icon, Box2, Text, PlainInput, WaitingButton, BackButton} from '../../common-adapters'
 import {
   platformStyles,
   collapseStyles,
@@ -18,10 +18,10 @@ import {iconMeta} from '../../common-adapters/icon.constants'
 const blueBackground = require('../../images/illustrations/bg-provisioning-blue.png')
 const greenBackground = require('../../images/illustrations/bg-provisioning-green.png')
 
-export type DeviceType = 'phone' | 'desktop'
+export type DeviceType = 'mobile' | 'desktop'
 export type Tab = 'QR' | 'enterText' | 'viewText'
 
-type Props = {
+type Props = {|
   username: string,
   currentDeviceAlreadyProvisioned: boolean,
   currentDeviceType: DeviceType,
@@ -31,8 +31,9 @@ type Props = {
   // only in storybook
   tabOverride?: ?Tab,
   textCode: string,
+  onBack: () => void,
   onSubmitTextCode: string => void,
-}
+|}
 
 type State = {
   tab: Tab,
@@ -71,7 +72,7 @@ class CodePage2 extends React.Component<Props, State> {
     const getTabOrOpposite = tabToShowToNew =>
       props.currentDeviceAlreadyProvisioned ? oppositeTabMap[tabToShowToNew] : tabToShowToNew
 
-    if (props.currentDeviceType === 'phone') {
+    if (props.currentDeviceType === 'mobile') {
       return getTabOrOpposite('QR')
     } else if (props.currentDeviceType === 'desktop') {
       return props.otherDeviceType === 'desktop' ? getTabOrOpposite('viewText') : getTabOrOpposite('QR')
@@ -109,6 +110,12 @@ class CodePage2 extends React.Component<Props, State> {
         fullHeight={true}
         style={{backgroundColor: this._tabBackground()}}
       >
+        <BackButton
+          onClick={this.props.onBack}
+          iconColor={globalColors.white}
+          style={styles.backButton}
+          textStyle={styles.backButtonText}
+        />
         <Image
           src={this.state.tab === 'QR' ? blueBackground : greenBackground}
           style={
@@ -138,9 +145,9 @@ const SwitchTab = (props: {selected: Tab, onSelect: Tab => void} & Props) => {
   if (props.selected === 'QR') {
     label = 'Type secret instead'
     icon = 'iconfont-arrow-right'
-    if (props.currentDeviceType === 'phone' && props.otherDeviceType === 'phone') {
+    if (props.currentDeviceType === 'mobile' && props.otherDeviceType === 'mobile') {
       tab = props.currentDeviceAlreadyProvisioned ? 'enterText' : 'viewText'
-    } else if (props.currentDeviceType === 'phone') {
+    } else if (props.currentDeviceType === 'mobile') {
       tab = 'viewText'
     } else {
       tab = 'enterText'
@@ -196,7 +203,7 @@ class EnterText extends React.Component<Props, {code: string}> {
           onChangeText={code => this.setState({code})}
           onEnterKeyDown={this._submit}
           rowsMin={3}
-          placeholder={`Type the ${this.props.otherDeviceType === 'phone' ? '9' : '8'}-word secret code`}
+          placeholder={`Type the ${this.props.otherDeviceType === 'mobile' ? '9' : '8'}-word secret code`}
           textType="Terminal"
           style={styles.enterTextInput}
           value={this.state.code}
@@ -256,7 +263,7 @@ const Instructions = (p: Props) => (
             {` ${String.fromCharCode(iconMeta['iconfont-arrow-right'].charCode || 0)} `}
           </Text>
           <Text type="Header" style={styles.instructions}>
-            New {p.currentDeviceType === 'desktop' ? 'computer' : 'phone'}.
+            New {p.currentDeviceType === 'desktop' ? 'computer' : 'mobile'}.
           </Text>
         </Text>
       </React.Fragment>
@@ -265,6 +272,13 @@ const Instructions = (p: Props) => (
 )
 
 const styles = styleSheetCreate({
+  backButton: {
+    marginLeft: globalMargins.medium,
+    marginTop: globalMargins.medium,
+  },
+  backButtonText: {
+    color: globalColors.white,
+  },
   backgroundOnLeft: {
     ...globalStyles.fillAbsolute,
     bottom: 0,

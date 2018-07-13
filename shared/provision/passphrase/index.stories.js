@@ -23,7 +23,7 @@ const props = {
 const provider = PropProviders.CommonProvider()
 
 const load = () => {
-  storiesOf('Register/Passphrase', module)
+  storiesOf('Provision/Passphrase', module)
     .addDecorator(provider)
     .add('None', () => <Passphrase {...props} />)
     .add('Error', () => <Passphrase {...props} error={'error here!'} />)

@@ -15,7 +15,7 @@ const props = {
 }
 
 const load = () => {
-  storiesOf('Register/Error', module)
+  storiesOf('Provision/Error', module)
     .add('Normal', () => <Error {...props} />)
     .add('DeviceNoProvision', () => (
       <Error

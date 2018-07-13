@@ -89,6 +89,8 @@ export const niceError = (e: RPCError) => {
     return ''
   }
   switch (e.code) {
+    case RPCTypes.constantsStatusCode.scnotfound:
+      return "Sorry, can't find that username"
     case RPCTypes.constantsStatusCode.scbadloginusernotfound:
       return 'Looks like an incorrect user'
     case RPCTypes.constantsStatusCode.scbadloginpassword:

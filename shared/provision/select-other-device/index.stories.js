@@ -42,7 +42,7 @@ const props = {
 }
 
 const load = () => {
-  storiesOf('Register/SelectOtherDevice', module)
+  storiesOf('Provision/SelectOtherDevice', module)
     .add('Normal', () => <SelectOtherDevice {...props} />)
     .add('NoUserPassLogin', () => <SelectOtherDevice {...props} onUsePasswordInstead={null} />)
 }

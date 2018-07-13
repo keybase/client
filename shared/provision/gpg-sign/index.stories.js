@@ -4,7 +4,7 @@ import {Text} from '../../common-adapters'
 import {storiesOf} from '../../stories/storybook'
 
 const load = () => {
-  storiesOf('Register/GPGSign', module).add('GPGSign', () => <Text type="Body">TODO</Text>)
+  storiesOf('Provision/GPGSign', module).add('GPGSign', () => <Text type="Body">TODO</Text>)
 }
 
 export default load

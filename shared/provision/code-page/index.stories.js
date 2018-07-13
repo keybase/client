@@ -13,7 +13,7 @@ const derivedProps = (
   otherDeviceType
 ) => {
   const currentDeviceName = currentDeviceAlreadyProvisioned
-    ? currentDeviceType === 'phone'
+    ? currentDeviceType === 'mobile'
       ? 'oldPhone6'
       : 'oldMacMini'
     : ''
@@ -30,7 +30,7 @@ const derivedProps = (
 }
 
 const load = () => {
-  storiesOf(`Register/CodePage2`, module).add(
+  storiesOf(`Provision/CodePage2`, module).add(
     "<Type1> adding Type2 means from that Type1 is provisioning Type2 and we're seeing it from Type1's perspective",
     () => null
   )
@@ -39,12 +39,12 @@ const load = () => {
   const variants = [
     {current: 'desktop', otherType: 'desktop', provisioned: true},
     {current: 'desktop', otherType: 'desktop', provisioned: false},
-    {current: 'phone', otherType: 'phone', provisioned: true},
-    {current: 'phone', otherType: 'phone', provisioned: false},
-    {current: 'phone', otherType: 'desktop', provisioned: true},
-    {current: 'desktop', otherType: 'phone', provisioned: false},
-    {current: 'phone', otherType: 'desktop', provisioned: false},
-    {current: 'desktop', otherType: 'phone', provisioned: true},
+    {current: 'mobile', otherType: 'mobile', provisioned: true},
+    {current: 'mobile', otherType: 'mobile', provisioned: false},
+    {current: 'mobile', otherType: 'desktop', provisioned: true},
+    {current: 'desktop', otherType: 'mobile', provisioned: false},
+    {current: 'mobile', otherType: 'desktop', provisioned: false},
+    {current: 'desktop', otherType: 'mobile', provisioned: true},
   ]
   variants.forEach(({current, provisioned, otherType}) => {
     let otherName
@@ -52,7 +52,7 @@ const load = () => {
       case 'desktop':
         otherName = 'newMacbookPro13'
         break
-      case 'phone':
+      case 'mobile':
         otherName = 'newiPhoneX'
         break
       default:
@@ -65,7 +65,7 @@ const load = () => {
     const n2 = provisioned ? otherType : currentTypeName
     const storyName = `${n1} adding ${n2}`
 
-    let s = storiesOf(`Register/CodePage2`, module).addDecorator(PropProviders.CommonProvider())
+    let s = storiesOf(`Provision/CodePage2`, module).addDecorator(PropProviders.CommonProvider())
     const tabs = [null, ...CodePage2._validTabs(current, otherType)]
     tabs.forEach(
       tab =>

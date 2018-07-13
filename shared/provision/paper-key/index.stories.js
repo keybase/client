@@ -4,7 +4,7 @@ import PaperKey from '.'
 import {action, storiesOf} from '../../stories/storybook'
 
 const load = () => {
-  storiesOf('Register', module).add('PaperKey', () => (
+  storiesOf('Provision', module).add('PaperKey', () => (
     <PaperKey
       onBack={action('onBack')}
       onSubmit={action('onSubmit')}
