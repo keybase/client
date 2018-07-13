@@ -79,4 +79,11 @@ func TestPrevRevisions(t *testing.T) {
 	pr = pr.addRevision(rev, gcRev)
 	require.Len(t, pr, len(minPrevRevisionSlotCounts)-1)
 	checkRevRevisions(t, pr, gcRev, rev, i+1)
+	t.Log("Garbage collect everything")
+	gcRev = pr[0].Revision
+	i++
+	rev = kbfsmd.Revision((i + 1) * 2)
+	pr = pr.addRevision(rev, gcRev)
+	require.Len(t, pr, 1)
+	checkRevRevisions(t, pr, gcRev, rev, i+1)
 }

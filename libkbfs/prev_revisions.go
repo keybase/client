@@ -45,16 +45,13 @@ func (pr PrevRevisions) addRevision(
 	copy(ret, pr)
 	numDropped := 0
 	for i, prc := range ret {
-		if prc.Count == 0 {
-			// A count of 0 indicates an empty slot.
-			break
-		} else if prc.Count == 255 {
+		if prc.Count == 255 {
 			panic("Previous revision count is about to overflow")
 		} else if prc.Revision >= r {
 			panic(fmt.Sprintf("Existing prev revision %d is already bigger "+
 				"than immediate prev revision %d", prc.Revision, r))
 		} else if prc.Revision <= minRev {
-			// This revision is too old, so remove it.
+			// This revision is too old (or is empty), so remove it.
 			ret[i] = PrevRevisionAndCount{
 				Revision: kbfsmd.RevisionUninitialized,
 				Count:    0,
@@ -64,7 +61,9 @@ func (pr PrevRevisions) addRevision(
 		}
 		ret[i].Count++
 	}
-	if numDropped > 1 {
+	if numDropped == len(ret) {
+		ret = ret[:1] // Leave just enough room for the next revision.
+	} else if numDropped > 1 {
 		ret = ret[:len(ret)-(numDropped-1)]
 	}
 	for i := len(ret) - 1; i >= 1; i-- {
