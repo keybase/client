@@ -28,6 +28,11 @@ func NewInitModeFromType(t InitModeType) InitMode {
 	}
 }
 
+const (
+	defaultQRPeriod      = 1 * time.Hour
+	defaultQRMinUnrefAge = 2 * 7 * 24 * time.Hour // 2 weeks
+)
+
 // Default mode:
 
 type modeDefault struct {
@@ -82,18 +87,18 @@ func (md modeDefault) QuotaReclamationEnabled() bool {
 }
 
 func (md modeDefault) QuotaReclamationPeriod() time.Duration {
-	return 1 * time.Minute
+	return defaultQRPeriod
 }
 
 func (md modeDefault) QuotaReclamationMinUnrefAge() time.Duration {
-	return 1 * time.Minute
+	return defaultQRMinUnrefAge
 }
 
 func (md modeDefault) QuotaReclamationMinHeadAge() time.Duration {
 	// How old must the most recent TLF revision be before another
 	// device can run QR on that TLF?  This is large, to avoid
 	// unnecessary conflicts on the TLF between devices.
-	return 24 * time.Hour
+	return defaultQRMinUnrefAge + 24*time.Hour
 }
 
 func (md modeDefault) NodeCacheEnabled() bool {
@@ -366,11 +371,11 @@ func (mc modeConstrained) QuotaReclamationEnabled() bool {
 }
 
 func (mc modeConstrained) QuotaReclamationPeriod() time.Duration {
-	return 1 * time.Minute
+	return defaultQRPeriod
 }
 
 func (mc modeConstrained) QuotaReclamationMinUnrefAge() time.Duration {
-	return 1 * time.Minute
+	return defaultQRMinUnrefAge
 }
 
 func (mc modeConstrained) QuotaReclamationMinHeadAge() time.Duration {
@@ -420,6 +425,12 @@ func (mt modeTest) IsTestMode() bool {
 func (mt modeTest) QuotaReclamationPeriod() time.Duration {
 	// No auto-reclamation during testing.
 	return 0
+}
+
+func (mt modeTest) QuotaReclamationMinUnrefAge() time.Duration {
+	// Smaller archival window by default during testing, for
+	// backwards compatibility with old tests.
+	return 1 * time.Minute
 }
 
 func (mt modeTest) QuotaReclamationMinHeadAge() time.Duration {
