@@ -26,7 +26,6 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
     case ProvisionGen.showDeviceListPage:
       return state.merge({
         devices: I.List(action.payload.devices),
-        devicesCanSelectNoDevice: action.payload.canSelectNoDevice,
         error: initialState.error,
       })
     case ProvisionGen.submitDeviceSelect:
@@ -66,7 +65,6 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
       })
     // Saga only actions
     case ProvisionGen.addNewDevice:
-    case ProvisionGen.submitPasswordInsteadOfDevice:
     case ProvisionGen.showGPGPage:
     case ProvisionGen.submitGPGMethod:
       return state

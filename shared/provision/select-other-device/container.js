@@ -8,11 +8,9 @@ import {type RouteProps} from '../../route-tree/render-route'
 type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = (state: TypedState) => ({
-  _canSelectNoDevice: state.provision.devicesCanSelectNoDevice,
   devices: state.provision.devices,
 })
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  _onUsePasswordInstead: () => dispatch(ProvisionGen.createSubmitPasswordInsteadOfDevice()),
   onBack: () => dispatch(ownProps.navigateUp()),
   onResetAccount: () => {
     dispatch(LoginGen.createLaunchAccountResetWebPage())
@@ -26,7 +24,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   onBack: dispatchProps.onBack,
   onResetAccount: dispatchProps.onResetAccount,
   onSelect: dispatchProps.onSelect,
-  onUsePasswordInstead: stateProps._canSelectNoDevice ? dispatchProps._onUsePasswordInstead : null,
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SelectOtherDevice)

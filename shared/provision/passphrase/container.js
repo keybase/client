@@ -1,6 +1,7 @@
 // @flow
+import * as ProvisionGen from '../../actions/provision-gen'
 import * as LoginGen from '../../actions/login-gen'
-import * as Constants from '../../constants/login'
+import * as Constants from '../../constants/provision'
 import HiddenString from '../../util/hidden-string'
 import Passphrase from '.'
 import React, {Component} from 'react'
@@ -60,6 +61,7 @@ class _Passphrase extends Component<Props, State> {
 }
 
 const mapStateToProps = (state: TypedState) => ({
+  error: state.provision.error.stringValue(),
   waitingForResponse: !!state.waiting.get(Constants.waitingKey),
 })
 
@@ -67,7 +69,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   onBack: () => dispatch(ownProps.navigateUp()),
   onForgotPassphrase: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
   onSubmit: (passphrase: string) =>
-    dispatch(LoginGen.createSubmitPassphrase({passphrase: new HiddenString(passphrase)})),
+    dispatch(ProvisionGen.createSubmitPassphrase({passphrase: new HiddenString(passphrase)})),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(_Passphrase)

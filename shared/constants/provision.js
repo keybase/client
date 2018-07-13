@@ -14,7 +14,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   configuredAccounts: I.List(),
   deviceName: '',
   devices: I.List(),
-  devicesCanSelectNoDevice: false,
   error: new HiddenString(''),
   existingDevices: I.List(),
   selectedDevice: null,

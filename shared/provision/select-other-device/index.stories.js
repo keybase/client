@@ -38,13 +38,10 @@ const props = {
   onBack: action('onBack'),
   onResetAccount: action('onResetAccount'),
   onSelect: action('onSelect'),
-  onUsePasswordInstead: action('onUsePasswordInstead'),
 }
 
 const load = () => {
-  storiesOf('Provision/SelectOtherDevice', module)
-    .add('Normal', () => <SelectOtherDevice {...props} />)
-    .add('NoUserPassLogin', () => <SelectOtherDevice {...props} onUsePasswordInstead={null} />)
+  storiesOf('Provision/SelectOtherDevice', module).add('Normal', () => <SelectOtherDevice {...props} />)
 }
 
 export default load

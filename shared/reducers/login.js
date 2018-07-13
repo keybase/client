@@ -36,7 +36,6 @@ export default function(
     case LoginGen.onFinish:
     case LoginGen.launchAccountResetWebPage:
     case LoginGen.launchForgotPasswordWebPage:
-    case LoginGen.submitPassphrase:
       return state
     default:
       /*::

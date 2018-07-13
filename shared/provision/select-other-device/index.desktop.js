@@ -70,11 +70,6 @@ const SelectOtherDevice = (props: Props) => (
       {props.devices.map(d => <Row onSelect={props.onSelect} {...d} key={d.name} />)}
       <ResetOption onResetAccount={props.onResetAccount} />
     </Box>
-    {props.onUsePasswordInstead && (
-      <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={props.onUsePasswordInstead}>
-        Log in with your passphrase
-      </Text>
-    )}
   </Container>
 )
 

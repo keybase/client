@@ -19,7 +19,6 @@ export type _State = {
   usernameOrEmail: string,
   deviceName: string,
   devices: I.List<Device>,
-  devicesCanSelectNoDevice: boolean,
   selectedDevice: ?Device,
   existingDevices: I.List<string>,
 }

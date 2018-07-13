@@ -21,7 +21,6 @@ export const onFinish = 'login:onFinish'
 export const setDeletedSelf = 'login:setDeletedSelf'
 export const setRevokedSelf = 'login:setRevokedSelf'
 export const startLogin = 'login:startLogin'
-export const submitPassphrase = 'login:submitPassphrase'
 
 // Payload Types
 type _ConfiguredAccountsPayload = $ReadOnly<{|accounts: ?Array<{|hasStoredSecret: boolean, username: string|}>|}>
@@ -40,7 +39,6 @@ type _OnFinishPayload = void
 type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
 type _SetRevokedSelfPayload = $ReadOnly<{|revoked: string|}>
 type _StartLoginPayload = void
-type _SubmitPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
 
 // Action Creators
 export const createConfiguredAccounts = (payload: _ConfiguredAccountsPayload) => ({error: false, payload, type: configuredAccounts})
@@ -56,7 +54,6 @@ export const createOnFinish = (payload: _OnFinishPayload) => ({error: false, pay
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error: false, payload, type: setDeletedSelf})
 export const createSetRevokedSelf = (payload: _SetRevokedSelfPayload) => ({error: false, payload, type: setRevokedSelf})
 export const createStartLogin = (payload: _StartLoginPayload) => ({error: false, payload, type: startLogin})
-export const createSubmitPassphrase = (payload: _SubmitPassphrasePayload) => ({error: false, payload, type: submitPassphrase})
 
 // Action Payloads
 export type ConfiguredAccountsPayload = $Call<typeof createConfiguredAccounts, _ConfiguredAccountsPayload>
@@ -72,7 +69,6 @@ export type OnFinishPayload = $Call<typeof createOnFinish, _OnFinishPayload>
 export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDeletedSelfPayload>
 export type SetRevokedSelfPayload = $Call<typeof createSetRevokedSelf, _SetRevokedSelfPayload>
 export type StartLoginPayload = $Call<typeof createStartLogin, _StartLoginPayload>
-export type SubmitPassphrasePayload = $Call<typeof createSubmitPassphrase, _SubmitPassphrasePayload>
 
 // All Actions
 // prettier-ignore
@@ -90,5 +86,4 @@ export type Actions =
   | SetDeletedSelfPayload
   | SetRevokedSelfPayload
   | StartLoginPayload
-  | SubmitPassphrasePayload
   | {type: 'common:resetStore', payload: void}

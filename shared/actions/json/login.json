@@ -9,7 +9,6 @@
       "passphrase": "HiddenString"
     },
     "startLogin": {},
-    "submitPassphrase": { "passphrase": "HiddenString", },
     "launchAccountResetWebPage": {},
     "launchForgotPasswordWebPage": {},
     "loginError": { "error": "?HiddenString" },

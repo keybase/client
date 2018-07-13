@@ -51,7 +51,6 @@ const chooseDeviceHandler = (params: RPCTypes.ProvisionUiChooseDeviceRpcParam, r
   provisioningManager.stashResponse('keybase.1.provisionUi.chooseDevice', response)
   return Saga.put(
     ProvisionGen.createShowDeviceListPage({
-      canSelectNoDevice: params.canSelectNoDevice,
       devices: (params.devices || []).map(d => Constants.rpcDeviceToDevice(d)),
     })
   )
