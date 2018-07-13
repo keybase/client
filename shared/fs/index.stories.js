@@ -13,7 +13,8 @@ import EditingRow from './row/editing'
 import PlaceholderRow from './row/placeholder'
 import UploadingRow from './row/uploading'
 import {NormalPreview} from './filepreview'
-import {Box} from '../common-adapters'
+import {Box, Box2, Text} from '../common-adapters'
+import Downloads from './footer/downloads'
 import Download from './footer/download'
 import Upload from './footer/upload'
 import PathItemAction from './common/path-item-action'
@@ -70,12 +71,22 @@ const rowProviders = {
 
 const provider = createPropProvider({
   ...rowProviders,
-  ConnectedFooter: () => ({
-    downloadKeys: [],
+  ConnectedDownloads: () => ({
+    downloadKeys: ['file 1', 'blah 2', 'yo 3', 'haha 4', 'O_O 5'],
+    openDownloadFolder: action('openDownloadFolder'),
   }),
   ConnectedUpload: () => ({
-    files: 0,
-    timeLeft: '',
+    files: 1,
+    timeLeft: '42 s',
+  }),
+  ConnectedDownload: ({downloadKey}) => ({
+    filename: downloadKey,
+    completePortion: downloadKey.split('').reduce((num, char) => (num + char.charCodeAt(0)) % 100, 0) / 100,
+    progressText: '42 s',
+    isDone: false,
+    open: action('open'),
+    dismiss: action('dismiss'),
+    cancel: action('cancel'),
   }),
   FolderHeader: () => ({
     breadcrumbItems: [
@@ -378,7 +389,30 @@ const load = () => {
         </WrapRow>
       </Box>
     ))
-    .add('Footer Cards', () => (
+    .add('Downloads', () => (
+      <Box2 direction="vertical">
+        <Text type="Header">1 item</Text>
+        <Downloads downloadKeys={['file 1']} openDownloadFolder={action('openDownloadFolder')} />
+        <Text type="Header">2 items</Text>
+        <Downloads downloadKeys={['file 1', 'blah 2']} openDownloadFolder={action('openDownloadFolder')} />
+        <Text type="Header">3 items</Text>
+        <Downloads
+          downloadKeys={['file 1', 'blah 2', 'yo 3']}
+          openDownloadFolder={action('openDownloadFolder')}
+        />
+        <Text type="Header">4 items</Text>
+        <Downloads
+          downloadKeys={['file 1', 'blah 2', 'yo 3', 'haha 4']}
+          openDownloadFolder={action('openDownloadFolder')}
+        />
+        <Text type="Header">5 items</Text>
+        <Downloads
+          downloadKeys={['file 1', 'blah 2', 'yo 3', 'haha 4', 'O_O 5']}
+          openDownloadFolder={action('openDownloadFolder')}
+        />
+      </Box2>
+    ))
+    .add('Download Cards', () => (
       <Box>
         <Box style={{height: 8}} />
         <Download

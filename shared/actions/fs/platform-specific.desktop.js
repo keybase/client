@@ -1,6 +1,7 @@
 // @flow
 import * as FsGen from '../fs-gen'
 import * as Saga from '../../util/saga'
+import {downloadFolder} from '../../util/file.desktop'
 import * as Config from '../../constants/config'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
@@ -107,7 +108,7 @@ function _open(openPath: string) {
 }
 
 function openInFileUISaga({payload: {path}}: FsGen.OpenInFileUIPayload, state: TypedState) {
-  const openPath = path || Config.defaultKBFSPath
+  const openPath = path || downloadFolder
   const enabled = state.fs.fuseStatus && state.fs.fuseStatus.kextStarted
   if (isLinux || enabled) {
     return Saga.call(_open, openPath)
