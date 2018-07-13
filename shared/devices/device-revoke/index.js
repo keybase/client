@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {type DeviceType} from '../../constants/types/devices'
-import {Confirm, Box, Text, Icon, ProgressIndicator, type IconType} from '../../common-adapters'
+import {Confirm, Box, List, Text, Icon, ProgressIndicator, type IconType} from '../../common-adapters'
 import {
   globalColors,
   globalMargins,
@@ -38,57 +38,55 @@ const Header = (props: {name: string, type: DeviceType}) => {
   )
 }
 
-const Body = (props: {
-  endangeredTLFs: Array<string>,
-  name: string,
-  currentDevice: boolean,
-  waiting: boolean,
-}) => (
-  <Box>
-    <Box style={styles.body}>
-      <Text type="BodySemibold" style={styles.bodyText}>
-        Are you sure you want to revoke{' '}
-        {props.currentDevice ? 'your current device' : <Text type="BodySemiboldItalic">{props.name}</Text>}
-        ?
+class EndangeredTLFList extends React.Component<{endangeredTLFs: Array<string>, waiting: boolean}, {}> {
+  _renderTLFEntry = (index: number, tlf: string) => (
+    <Box key={index} style={styles.tlfEntry}>
+      <Text type="BodySemibold" style={{marginRight: globalMargins.tiny}}>
+        •
+      </Text>
+      <Text type="BodySemibold" selectable={true}>
+        {tlf}
       </Text>
     </Box>
-
-    {props.waiting ? (
-      <ProgressIndicator />
-    ) : (
-      props.endangeredTLFs.length > 0 && (
+  )
+  render() {
+    if (this.props.waiting) {
+      return <ProgressIndicator />
+    } else if (this.props.endangeredTLFs.length > 0) {
+      return (
         <Box>
           <Box>
             <Text type="Body">You may lose access to these folders forever:</Text>
           </Box>
-
-          <Box style={styles.tlfContainer}>
-            {props.endangeredTLFs.map(tlf => (
-              <Box key={tlf} style={styles.tlfEntry}>
-                <Text type="BodySemibold" style={{marginRight: globalMargins.tiny}}>
-                  •
-                </Text>
-                <Text type="BodySemibold" selectable={true}>
-                  {tlf}
-                </Text>
-              </Box>
-            ))}
-          </Box>
+          <List
+            items={this.props.endangeredTLFs}
+            renderItem={this._renderTLFEntry}
+            style={styles.tlfContainer}
+          />
         </Box>
       )
-    )}
+    }
+    return null
+  }
+}
+
+const BodyText = (props: {name: string, currentDevice: boolean}) => (
+  <Box style={styles.body}>
+    <Text type="BodySemibold" style={styles.bodyText}>
+      Are you sure you want to revoke{' '}
+      {props.currentDevice ? 'your current device' : <Text type="BodySemiboldItalic">{props.name}</Text>}
+      ?
+    </Text>
   </Box>
 )
 
 const DeviceRevoke = (props: Props) => (
   <Confirm
     body={
-      <Body
-        endangeredTLFs={props.endangeredTLFs}
-        name={props.name}
-        currentDevice={props.currentDevice}
-        waiting={props.waiting}
-      />
+      <Box>
+        <BodyText name={props.name} currentDevice={props.currentDevice} />
+        <EndangeredTLFList endangeredTLFs={props.endangeredTLFs} waiting={props.waiting} />
+      </Box>
     }
     danger={true}
     header={<Header name={props.name} type={props.type} />}
@@ -114,6 +112,7 @@ const styles = styleSheetCreate({
   tlfEntry: {
     marginBottom: globalMargins.xtiny,
     flexDirection: 'row',
+    textAlign: 'left',
   },
   name: {
     color: globalColors.red,
@@ -126,10 +125,10 @@ const styles = styleSheetCreate({
       ...globalStyles.flexBoxColumn,
       alignItems: 'flex-start',
       alignSelf: 'center',
-      borderWidth: 1,
-      borderStyle: 'solid',
       borderColor: globalColors.black_05,
       borderRadius: 4,
+      borderStyle: 'solid',
+      borderWidth: 1,
       marginBottom: globalMargins.small,
       marginTop: globalMargins.small,
       padding: globalMargins.small,
