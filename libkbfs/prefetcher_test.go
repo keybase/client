@@ -32,6 +32,7 @@ func makeRandomDirEntry(
 			101,
 			102,
 			"",
+			nil,
 		},
 		codec.UnknownFieldSetHandler{},
 	}

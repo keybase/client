@@ -746,7 +746,7 @@ func TestKBFSOpsGetBaseDirChildrenHidesFiles(t *testing.T) {
 	for c, ei := range children {
 		if de, ok := dirBlock.Children[c]; !ok {
 			t.Errorf("No such child: %s", c)
-		} else if de.EntryInfo != ei {
+		} else if !de.EntryInfo.Eq(ei) {
 			t.Errorf("Wrong EntryInfo for child %s: %v", c, ei)
 		}
 	}
@@ -779,7 +779,7 @@ func TestKBFSOpsGetBaseDirChildrenCacheSuccess(t *testing.T) {
 	for c, ei := range children {
 		if de, ok := dirBlock.Children[c]; !ok {
 			t.Errorf("No such child: %s", c)
-		} else if de.EntryInfo != ei {
+		} else if !de.EntryInfo.Eq(ei) {
 			t.Errorf("Wrong EntryInfo for child %s: %v", c, ei)
 		}
 	}
@@ -912,7 +912,7 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 	for c, ei := range children {
 		if de, ok := dirBlock.Children[c]; !ok {
 			t.Errorf("No such child: %s", c)
-		} else if de.EntryInfo != ei {
+		} else if !de.EntryInfo.Eq(ei) {
 			t.Errorf("Wrong EntryInfo for child %s: %v", c, ei)
 		}
 	}
@@ -954,7 +954,7 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 	bPath := ops.nodeCache.PathFromNode(bn)
 	expectedBNode := pathNode{makeBP(bID, rmd, config, u), "b"}
 	expectedBNode.KeyGen = kbfsmd.FirstValidKeyGen
-	if ei != dirBlock.Children["b"].EntryInfo {
+	if !ei.Eq(dirBlock.Children["b"].EntryInfo) {
 		t.Errorf("Lookup returned a bad entry info: %v vs %v",
 			ei, dirBlock.Children["b"].EntryInfo)
 	} else if bPath.path[2] != expectedBNode {
@@ -995,7 +995,7 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error on Lookup: %+v", err)
 	}
-	if ei != dirBlock.Children["b"].EntryInfo {
+	if !ei.Eq(dirBlock.Children["b"].EntryInfo) {
 		t.Errorf("Lookup returned a bad directory entry: %v vs %v",
 			ei, dirBlock.Children["b"].EntryInfo)
 	} else if bn != nil {
@@ -1122,7 +1122,7 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error on Stat: %+v", err)
 	}
-	if ei != dirBlock.Children["b"].EntryInfo {
+	if !ei.Eq(dirBlock.Children["b"].EntryInfo) {
 		t.Errorf("Stat returned a bad entry info: %v vs %v",
 			ei, dirBlock.Children["b"].EntryInfo)
 	}

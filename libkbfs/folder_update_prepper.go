@@ -293,6 +293,7 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 			refPath = *refPath.parentPath()
 		}
 		de.BlockInfo = info
+		de.PrevRevisions = de.PrevRevisions.addRevision(md.Revision())
 
 		if doSetTime {
 			if mtime {

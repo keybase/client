@@ -34,6 +34,7 @@ func makeFakeDirEntry(t *testing.T, typ EntryType, size uint64) DirEntry {
 			101,
 			102,
 			"",
+			nil,
 		},
 		codec.UnknownFieldSetHandler{},
 	}

@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/kbfs/kbfsmd"
 	kbgitkbfs "github.com/keybase/kbfs/protocol/kbgitkbfs1"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -547,6 +548,38 @@ type EntryInfo struct {
 	// If this is a team TLF, we want to track the last writer of an
 	// entry, since in the block, only the team ID will be tracked.
 	TeamWriter keybase1.UID `codec:"tw,omitempty"`
+	// Tracks a skiplist of the previous revisions for this entry.
+	PrevRevisions PrevRevisions `codec:"pr,omitempty"`
+}
+
+func init() {
+	if reflect.ValueOf(EntryInfo{}).NumField() != 7 {
+		panic(errors.New(
+			"Unexpected number of fields in EntryInfo; " +
+				"please update EntryInfo.Eq() for your " +
+				"new or removed field"))
+	}
+}
+
+// Eq returns true if `other` is equal to `ei`.
+func (ei EntryInfo) Eq(other EntryInfo) bool {
+	eq := ei.Type == other.Type &&
+		ei.Size == other.Size &&
+		ei.SymPath == other.SymPath &&
+		ei.Mtime == other.Mtime &&
+		ei.Ctime == other.Ctime &&
+		ei.TeamWriter == other.TeamWriter &&
+		len(ei.PrevRevisions) == len(other.PrevRevisions)
+	if !eq {
+		return false
+	}
+	for i, pr := range ei.PrevRevisions {
+		otherPR := other.PrevRevisions[i]
+		if pr.Revision != otherPR.Revision || pr.Count != otherPR.Count {
+			return false
+		}
+	}
+	return true
 }
 
 // ReportedError represents an error reported by KBFS.
