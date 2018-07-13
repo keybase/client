@@ -1168,12 +1168,36 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	return fbm.finalizeReclamation(ctx, ptrs, zeroRefCounts, latestRev)
 }
 
+func isPermanentQRError(err error) bool {
+	switch errors.Cause(err).(type) {
+	case WriteAccessError, kbfsmd.MetadataIsFinalError,
+		RevokedDeviceVerificationError:
+		return true
+	default:
+		return false
+	}
+}
+
 func (fbm *folderBlockManager) reclaimQuotaInBackground() {
+	autoQR := true
 	timer := time.NewTimer(fbm.config.Mode().QuotaReclamationPeriod())
+
+	if fbm.config.Mode().QuotaReclamationPeriod().Seconds() != 0 {
+		// Run QR once immediately at the start of the period.
+		fbm.reclamationGroup.Add(1)
+		err := fbm.doReclamation(timer)
+		if isPermanentQRError(err) {
+			autoQR = false
+			fbm.log.CDebugf(context.Background(),
+				"Permanently stopping QR due to initial error: %+v", err)
+		}
+	}
+
 	timerChan := timer.C
 	for {
 		// Don't let the timer fire if auto-reclamation is turned off.
-		if fbm.config.Mode().QuotaReclamationPeriod().Seconds() == 0 {
+		if !autoQR ||
+			fbm.config.Mode().QuotaReclamationPeriod().Seconds() == 0 {
 			timer.Stop()
 			// Use a channel that will never fire instead.
 			timerChan = make(chan time.Time)
@@ -1198,14 +1222,13 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 		}
 
 		err := fbm.doReclamation(timer)
-		switch errors.Cause(err).(type) {
-		case WriteAccessError, kbfsmd.MetadataIsFinalError,
-			RevokedDeviceVerificationError:
+		if isPermanentQRError(err) {
 			// If we can't write the MD, don't bother with the timer
 			// anymore. Don't completely shut down, since we don't
 			// want forced reclamations to hang.
 			timer.Stop()
 			timerChan = make(chan time.Time)
+			autoQR = false
 			fbm.log.CDebugf(context.Background(),
 				"Permanently stopping QR due to error: %+v", err)
 		}
