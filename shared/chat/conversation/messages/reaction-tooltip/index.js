@@ -1,13 +1,13 @@
 // @flow
 import * as React from 'react'
-import * as MessageTypes from '../../../../constants/types/chat2/message'
+import * as Types from '../../../../constants/types/chat2'
 import {Box2, ClickableBox, Icon, NameWithIcon, Overlay, SectionList, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../../styles'
 import ReactButton from '../react-button/container'
 
 type Props = {
   attachmentRef?: ?React.Component<any, any>,
-  messageID: MessageTypes.MessageID,
+  messageID: Types.MessageID,
   onAddReaction: () => void,
   onHidden: () => void,
   onReact: string => void,
@@ -69,7 +69,7 @@ const renderItem = ({item}: {item: ListItem}) => {
 const renderSectionHeader = ({
   section,
 }: {
-  section: {data: Array<any>, messageID: MessageTypes.MessageID, title: string},
+  section: {data: Array<any>, messageID: Types.MessageID, title: string},
 }) => (
   <Box2
     key={section.title}

@@ -8,23 +8,26 @@ const mapStateToProps = (state: TypedState, {message, previous}) => {
   const orangeLineOrdinal = state.chat2.orangeLineMap.get(message.conversationIDKey)
   const orangeLineAbove = !!previous && orangeLineOrdinal === previous.ordinal
   return {
-    message,
+    _message: message,
+    messageID: message.id,
     orangeLineAbove,
     previous,
   }
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const {message, previous} = stateProps
+  const {_message, messageID, previous} = stateProps
 
-  const showTimestamp = Constants.enoughTimeBetweenMessages(message, previous)
+  const showTimestamp = Constants.enoughTimeBetweenMessages(_message, previous)
 
   const timestamp =
-    stateProps.orangeLineAbove || !previous || showTimestamp ? formatTimeForMessages(message.timestamp) : null
+    stateProps.orangeLineAbove || !previous || showTimestamp
+      ? formatTimeForMessages(_message.timestamp)
+      : null
 
   return {
     children: ownProps.children,
-    message,
+    messageID,
     orangeLineAbove: stateProps.orangeLineAbove,
     timestamp,
   }

@@ -1,13 +1,20 @@
 // @flow
 import {compose, connect, setDisplayName, type TypedState} from '../../../../util/container'
-import * as MessageTypes from '../../../../constants/types/chat2/message'
+import * as Types from '../../../../constants/types/chat2'
 import ReactionsRow from '.'
 
 export type OwnProps = {
-  messageID: MessageTypes.MessageID,
+  messageID: Types.MessageID,
 }
 
 // TODO
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({})
 
-export default compose(connect(mapStateToProps), setDisplayName('ReactionsRow'))(ReactionsRow)
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...ownProps,
+  emojis: [],
+})
+
+export default compose(connect(mapStateToProps, null, mergeProps), setDisplayName('ReactionsRow'))(
+  ReactionsRow
+)

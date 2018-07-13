@@ -1,11 +1,11 @@
 // @flow
 import {compose, connect, setDisplayName, type TypedState} from '../../../../util/container'
-import * as MessageTypes from '../../../../constants/types/chat2/message'
+import * as Types from '../../../../constants/types/chat2'
 import ReactButton from '.'
 
 export type OwnProps = {
   emoji: string,
-  messageID: MessageTypes.MessageID,
+  messageID: Types.MessageID,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {

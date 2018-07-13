@@ -52,11 +52,11 @@ const styles = styleSheetCreate({
     borderRadius: 12,
     borderStyle: 'solid',
     borderWidth: 2,
+    height: 24,
     ...transition('border-color', 'background-color'),
   },
   container: platformStyles({
     common: {
-      height: 24,
       paddingLeft: globalMargins.xtiny,
       paddingRight: globalMargins.xtiny,
     },
