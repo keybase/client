@@ -45,7 +45,7 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
 const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navigateUp}) => ({
   _addNewComputer: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'})),
   _addNewPaperKey: () => dispatch(DevicesGen.createPaperKeyMake()),
-  _addNewPhone: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'phone'})),
+  _addNewPhone: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'})),
   _loadDevices: () => dispatch(DevicesGen.createDevicesLoad()),
   onBack: () => dispatch(navigateUp()),
   onToggleShowRevoked: () => {

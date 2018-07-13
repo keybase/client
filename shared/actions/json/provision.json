@@ -32,6 +32,6 @@
     "showPaperkeyPage": {
       "error": "?HiddenString"
     },
-    "addNewDevice": { "otherDeviceType": ["'desktop'", "'phone'", "'paperkey'"] },
+    "addNewDevice": { "otherDeviceType": ["'desktop'", "'mobile'"] },
   }
 }

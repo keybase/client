@@ -26,7 +26,7 @@ export const submitTextCode = 'provision:submitTextCode'
 export const submitUsernameOrEmail = 'provision:submitUsernameOrEmail'
 
 // Payload Types
-type _AddNewDevicePayload = $ReadOnly<{|otherDeviceType: 'desktop' | 'phone' | 'paperkey'|}>
+type _AddNewDevicePayload = $ReadOnly<{|otherDeviceType: 'desktop' | 'mobile'|}>
 type _ProvisionErrorPayload = $ReadOnly<{|error: ?HiddenString|}>
 type _ShowCodePagePayload = $ReadOnly<{|
   code: HiddenString,
