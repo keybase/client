@@ -664,7 +664,7 @@ func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok 
 }
 
 func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) error {
-	uv, err := getCurrentUserUV(ctx, g)
+	uv, err := g.GetMeUV(ctx)
 	if err != nil {
 		return err
 	}
@@ -717,7 +717,7 @@ func ProcessSeitanV2(ikey SeitanIKeyV2, uv keybase1.UserVersion, kbtime keybase1
 }
 
 func AcceptSeitanV2(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKeyV2) error {
-	uv, err := getCurrentUserUV(ctx, g)
+	uv, err := g.GetMeUV(ctx)
 	if err != nil {
 		return err
 	}

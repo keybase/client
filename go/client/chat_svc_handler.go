@@ -392,8 +392,9 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 
 	// check for preview
 	if len(opts.Preview) > 0 {
+		loc := chat1.NewPreviewLocationWithFile(opts.Preview)
 		arg.Preview = &chat1.MakePreviewRes{
-			Filename: &opts.Preview,
+			Location: &loc,
 		}
 	}
 
@@ -475,8 +476,9 @@ func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOp
 
 	// check for preview
 	if len(opts.Preview) > 0 {
+		loc := chat1.NewPreviewLocationWithFile(opts.Preview)
 		arg.Preview = &chat1.MakePreviewRes{
-			Filename: &opts.Preview,
+			Location: &loc,
 		}
 	}
 
@@ -938,6 +940,7 @@ func (c *chatServiceHandler) convertMsgBody(mb chat1.MessageBody) MsgContent {
 		Metadata:           mb.Metadata__,
 		AttachmentUploaded: mb.Attachmentuploaded__,
 		SendPayment:        mb.Sendpayment__,
+		RequestPayment:     mb.Requestpayment__,
 	}
 }
 
@@ -1060,6 +1063,7 @@ type MsgContent struct {
 	Metadata           *chat1.MessageConversationMetadata `json:"metadata,omitempty"`
 	AttachmentUploaded *chat1.MessageAttachmentUploaded   `json:"attachment_uploaded,omitempty"`
 	SendPayment        *chat1.MessageSendPayment          `json:"send_payment,omitempty"`
+	RequestPayment     *chat1.MessageRequestPayment       `json:"request_payment,omitempty"`
 }
 
 // MsgSummary is used to display JSON details for a message.
