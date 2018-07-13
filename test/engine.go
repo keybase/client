@@ -97,6 +97,9 @@ type Engine interface {
 	// GetMtime is called by the test harness as the given user to get
 	// the mtime of the given file.
 	GetMtime(u User, file Node) (mtime time.Time, err error)
+	// GetPrevResions is called by the test harness as the given user
+	// to get the previous revisions of the given file.
+	GetPrevRevisions(u User, file Node) (revs libkbfs.PrevRevisions, err error)
 	// SyncAll is called by the test harness as the given user to
 	// flush all writes buffered in memory to disk.
 	SyncAll(u User, tlfName string, t tlf.Type) (err error)

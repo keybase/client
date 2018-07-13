@@ -283,11 +283,15 @@ func TestCrConflictSetattrVsRecreatedFileInRoot(t *testing.T) {
 			lsdir("", m{"a$": "EXEC", crnameEsc("a", bob): "FILE"}),
 			read("a", "hello"),
 			read(crname("a", bob), "world"),
+			checkPrevRevisions("a", []uint8{1}),
+			checkPrevRevisions(crname("a", bob), []uint8{1}),
 		),
 		as(alice,
 			lsdir("", m{"a$": "EXEC", crnameEsc("a", bob): "FILE"}),
 			read("a", "hello"),
 			read(crname("a", bob), "world"),
+			checkPrevRevisions("a", []uint8{1}),
+			checkPrevRevisions(crname("a", bob), []uint8{1}),
 		),
 	)
 }
@@ -342,11 +346,13 @@ func TestCrConflictCauseRenameOfMergedRecreatedFile(t *testing.T) {
 			lsdir("a/", m{"b$": "DIR", crnameEsc("b", alice): "FILE"}),
 			read(crname("a/b", alice), "world"),
 			read("a/b/c", "uh oh"),
+			checkPrevRevisions("a", []uint8{1, 2, 3}),
 		),
 		as(alice,
 			lsdir("a/", m{"b$": "DIR", crnameEsc("b", alice): "FILE"}),
 			read(crname("a/b", alice), "world"),
 			read("a/b/c", "uh oh"),
+			checkPrevRevisions("a", []uint8{1, 2, 3}),
 		),
 	)
 }

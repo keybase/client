@@ -61,10 +61,12 @@ func TestCreateFileInRoot(t *testing.T) {
 		as(alice,
 			lsdir("", m{"a$": "FILE"}),
 			read("a", "hello"),
+			checkPrevRevisions("a", []uint8{1}),
 		),
 		as(bob,
 			lsdir("", m{"a$": "FILE"}),
 			read("a", "hello"),
+			checkPrevRevisions("a", []uint8{1}),
 		),
 	)
 }
@@ -210,10 +212,13 @@ func TestRenameInDir(t *testing.T) {
 		as(alice,
 			lsdir("a", m{"c$": "FILE"}),
 			read("a/c", "hello"),
+			// The directory underwent two revisions.
+			checkPrevRevisions("a", []uint8{1, 2}),
 		),
 		as(bob,
 			lsdir("a", m{"c$": "FILE"}),
 			read("a/c", "hello"),
+			checkPrevRevisions("a", []uint8{1, 2}),
 		),
 	)
 }

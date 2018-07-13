@@ -945,6 +945,28 @@ func checkUnflushedPaths(expectedPaths []string) fileOp {
 	}, IsInit, fmt.Sprintf("checkUnflushedPaths(%s)", expectedPaths)}
 }
 
+func checkPrevRevisions(filepath string, counts []uint8) fileOp {
+	return fileOp{func(c *ctx) error {
+		file, _, err := c.getNode(filepath, noCreate, resolveAllSyms)
+		if err != nil {
+			return err
+		}
+		pr, err := c.engine.GetPrevRevisions(c.user, file)
+		if err != nil {
+			return err
+		}
+		if len(pr) != len(counts) {
+			return fmt.Errorf("Wrong number of prev revisions: %v", pr)
+		}
+		for i, c := range counts {
+			if c != pr[i].Count {
+				return fmt.Errorf("Unexpected prev revision counts: %v", pr)
+			}
+		}
+		return nil
+	}, Defaults, fmt.Sprintf("prevRevisions(%s, %v)", filepath, counts)}
+}
+
 type expectedEdit struct {
 	tlfName string
 	tlfType keybase1.FolderType

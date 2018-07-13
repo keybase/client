@@ -551,6 +551,28 @@ func (*fsEngine) GetMtime(u User, file Node) (mtime time.Time, err error) {
 	return fi.ModTime(), err
 }
 
+type prevRevisions struct {
+	PrevRevisions libkbfs.PrevRevisions
+}
+
+// GetPrevRevisions implements the Engine interface.
+func (*fsEngine) GetPrevRevisions(u User, file Node) (
+	revs libkbfs.PrevRevisions, err error) {
+	n := file.(fsNode)
+	d, f := filepath.Split(n.path)
+	fullPath := filepath.Join(d, libfs.FileInfoPrefix+f)
+	buf, err := ioutil.ReadFile(fullPath)
+	if err != nil {
+		return nil, err
+	}
+	var pr prevRevisions
+	err = json.Unmarshal(buf, &pr)
+	if err != nil {
+		return nil, err
+	}
+	return pr.PrevRevisions, nil
+}
+
 // SyncAll implements the Engine interface.
 func (e *fsEngine) SyncAll(
 	user User, tlfName string, t tlf.Type) (err error) {

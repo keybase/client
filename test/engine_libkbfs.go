@@ -490,6 +490,27 @@ func (k *LibKBFS) GetMtime(u User, file Node) (mtime time.Time, err error) {
 	return time.Unix(0, info.Mtime), nil
 }
 
+// GetPrevRevisions implements the Engine interface.
+func (k *LibKBFS) GetPrevRevisions(u User, file Node) (
+	revs libkbfs.PrevRevisions, err error) {
+	config := u.(*libkbfs.ConfigLocal)
+	kbfsOps := config.KBFSOps()
+	var info libkbfs.EntryInfo
+	ctx, cancel := k.newContext(u)
+	defer cancel()
+	if node, ok := file.(libkbfs.Node); ok {
+		info, err = kbfsOps.Stat(ctx, node)
+	} else if node, ok := file.(libkbfsSymNode); ok {
+		// Stat doesn't work for symlinks, so use lookup
+		_, info, err = kbfsOps.Lookup(ctx, node.parentDir.(libkbfs.Node),
+			node.name)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return info.PrevRevisions, nil
+}
+
 // getRootNode is like GetRootDir, but doesn't check the canonical TLF
 // name.
 func getRootNode(ctx context.Context, config libkbfs.Config, tlfName string,
