@@ -98,7 +98,10 @@ const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
     yield Saga.call(RPCTypes.teamsTeamAddMembersRpcPromise, {
       name: teamname,
       assertions: ids,
-      role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
+      role:
+        RPCTypes.teamsTeamRole[role] === undefined
+          ? RPCTypes.teamsTeamRole.none
+          : RPCTypes.teamsTeamRole[role],
       sendChatNotification,
     })
     // Success, dismiss the create team dialog and clear out search results
@@ -108,6 +111,7 @@ const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
     )
     yield Saga.put(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
     yield Saga.put(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
+    yield Saga.put(TeamsGen.createSetTeamInviteError({error: ''}))
   } catch (error) {
     logger.error(`Error adding to ${teamname}: ${error.desc}`)
     // Some errors, leave the search results so user can figure out what happened
