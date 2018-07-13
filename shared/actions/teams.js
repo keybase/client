@@ -1,6 +1,6 @@
 // @flow
 import logger from '../logger'
-import {map, last, upperFirst} from 'lodash-es'
+import {map, last} from 'lodash-es'
 import * as I from 'immutable'
 import * as SearchGen from './search-gen'
 import * as TeamsGen from './teams-gen'
@@ -91,50 +91,28 @@ const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
   const state: TypedState = yield Saga.select()
   const ids = SearchConstants.getUserInputItemIds(state, {searchKey: 'addToTeamSearch'})
   logger.info(`Adding ${ids.length} people to ${teamname}`)
-  const collectedErrors = []
-  const errorUsers = []
   for (const id of ids) {
-    try {
-      logger.info(`Adding ${id}`)
-      yield Saga.call(RPCTypes.teamsTeamAddMemberRpcPromise, {
-        name: teamname,
-        email: '',
-        username: id,
-        role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
-        sendChatNotification,
-      })
-    } catch (error) {
-      logger.error(`Error adding ${id} to ${teamname}: ${error.desc}`)
-      errorUsers.push(id)
-      if (error.desc === 'You cannot invite an owner to a team.') {
-        // This error comes through as error code scgeneric, so if we want
-        // to rewrite it we have to match on the string itself.
-        const [username, service] = id.split('@')
-        collectedErrors.push(
-          `${upperFirst(
-            service
-          )} user @${username} doesn't have a Keybase account yet, so you can't add them as an owner; you can add them as reader or writer.`
-        )
-      } else {
-        collectedErrors.push(`Error adding ${id}: ${error.desc}`)
-      }
-    }
+    logger.info(`Adding ${id}`)
   }
-  if (collectedErrors.length === 0) {
-    logger.info(`Successfully added ${ids.length} users to ${teamname}`)
+  try {
+    yield Saga.call(RPCTypes.teamsTeamAddMembersRpcPromise, {
+      name: teamname,
+      assertions: ids,
+      role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
+      sendChatNotification,
+    })
     // Success, dismiss the create team dialog and clear out search results
+    logger.info(`Successfully added ${ids.length} users to ${teamname}`)
     yield Saga.put(
       putActionIfOnPath(rootPath.concat(sourceSubPath), navigateTo(destSubPath, rootPath), rootPath)
     )
     yield Saga.put(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
     yield Saga.put(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
-  } else {
+  } catch (error) {
+    logger.error(`Error adding to ${teamname}: ${error.desc}`)
     // Some errors, leave the search results so user can figure out what happened
     logger.info(`Displaying addPeopleToTeam errors...`)
-    yield Saga.put(TeamsGen.createSetTeamInviteError({error: collectedErrors.join('\n')}))
-    yield Saga.put(
-      SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: errorUsers})
-    )
+    yield Saga.put(TeamsGen.createSetTeamInviteError({error: error.desc}))
   }
   yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
 }
