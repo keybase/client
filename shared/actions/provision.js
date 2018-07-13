@@ -56,7 +56,7 @@ const chooseDeviceHandler = (params: RPCTypes.ProvisionUiChooseDeviceRpcParam, r
     })
   )
 }
-const submitProvisionDeviceSelect = (state: TypedState) => {
+const submitDeviceSelect = (state: TypedState) => {
   const response = provisioningManager.getAndClearResponse('keybase.1.provisionUi.chooseDevice')
   if (!response || !response.result) {
     throw new Error('Tried to submit a device choice but missing callback')
@@ -84,7 +84,7 @@ const promptNewDeviceNameHandler = (
     })
   )
 }
-const submitProvisionDeviceName = (state: TypedState) => {
+const submitDeviceName = (state: TypedState) => {
   // local error, ignore
   if (state.provision.error.stringValue()) {
     return
@@ -117,7 +117,7 @@ const displayAndPromptSecretHandler = (
     })
   )
 }
-const submitProvisionTextCode = (state: TypedState) => {
+const submitTextCode = (state: TypedState) => {
   // local error, ignore
   if (state.provision.error.stringValue()) {
     return
@@ -141,10 +141,7 @@ const chooseGPGMethodHandler = (params: RPCTypes.ProvisionUiChooseGPGMethodRpcPa
   provisioningManager.stashResponse('keybase.1.provisionUi.chooseGPGMethod', response)
   return Saga.put(ProvisionGen.createShowGPGPage())
 }
-const submitProvisionGPGMethod = (
-  state: TypedState,
-  action: ProvisionGen.SubmitProvisionGPGMethodPayload
-) => {
+const submitGPGMethod = (state: TypedState, action: ProvisionGen.SubmitGPGMethodPayload) => {
   // local error, ignore
   if (state.provision.error.stringValue()) {
     return
@@ -176,10 +173,7 @@ const getPassphraseHandler = (params: RPCTypes.SecretUiGetPassphraseRpcParam, re
     throw new Error('Got confused about passphrase entry. Please send a log to us!')
   }
 }
-const submitProvisionPassphrase = (
-  state: TypedState,
-  action: ProvisionGen.SubmitProvisionPassphrasePayload
-) => {
+const submitPassphrase = (state: TypedState, action: ProvisionGen.SubmitPassphrasePayload) => {
   // local error, ignore
   if (state.provision.error.stringValue()) {
     return
@@ -275,11 +269,11 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitUsernameOrEmail, startProvisioning)
 
   // Submits
-  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitProvisionDeviceSelect, submitProvisionDeviceSelect)
-  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitProvisionDeviceName, submitProvisionDeviceName)
-  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitProvisionTextCode, submitProvisionTextCode)
-  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitProvisionGPGMethod, submitProvisionGPGMethod)
-  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitProvisionPassphrase, submitProvisionPassphrase)
+  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitDeviceSelect, submitDeviceSelect)
+  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitDeviceName, submitDeviceName)
+  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitTextCode, submitTextCode)
+  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitGPGMethod, submitGPGMethod)
+  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitPassphrase, submitPassphrase)
 
   // Screens
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.showDeviceListPage, showDeviceListPage)

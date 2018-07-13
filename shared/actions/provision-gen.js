@@ -16,12 +16,12 @@ export const showDeviceListPage = 'provision:showDeviceListPage'
 export const showGPGPage = 'provision:showGPGPage'
 export const showNewDeviceNamePage = 'provision:showNewDeviceNamePage'
 export const showPassphrasePage = 'provision:showPassphrasePage'
-export const submitProvisionDeviceName = 'provision:submitProvisionDeviceName'
-export const submitProvisionDeviceSelect = 'provision:submitProvisionDeviceSelect'
-export const submitProvisionGPGMethod = 'provision:submitProvisionGPGMethod'
-export const submitProvisionPassphrase = 'provision:submitProvisionPassphrase'
-export const submitProvisionPasswordInsteadOfDevice = 'provision:submitProvisionPasswordInsteadOfDevice'
-export const submitProvisionTextCode = 'provision:submitProvisionTextCode'
+export const submitDeviceName = 'provision:submitDeviceName'
+export const submitDeviceSelect = 'provision:submitDeviceSelect'
+export const submitGPGMethod = 'provision:submitGPGMethod'
+export const submitPassphrase = 'provision:submitPassphrase'
+export const submitPasswordInsteadOfDevice = 'provision:submitPasswordInsteadOfDevice'
+export const submitTextCode = 'provision:submitTextCode'
 export const submitUsernameOrEmail = 'provision:submitUsernameOrEmail'
 
 // Payload Types
@@ -41,12 +41,12 @@ type _ShowNewDeviceNamePagePayload = $ReadOnly<{|
   error: ?HiddenString,
 |}>
 type _ShowPassphrasePagePayload = $ReadOnly<{|error: ?HiddenString|}>
-type _SubmitProvisionDeviceNamePayload = $ReadOnly<{|name: string|}>
-type _SubmitProvisionDeviceSelectPayload = $ReadOnly<{|name: string|}>
-type _SubmitProvisionGPGMethodPayload = $ReadOnly<{|exportKey: boolean|}>
-type _SubmitProvisionPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
-type _SubmitProvisionPasswordInsteadOfDevicePayload = void
-type _SubmitProvisionTextCodePayload = $ReadOnly<{|phrase: HiddenString|}>
+type _SubmitDeviceNamePayload = $ReadOnly<{|name: string|}>
+type _SubmitDeviceSelectPayload = $ReadOnly<{|name: string|}>
+type _SubmitGPGMethodPayload = $ReadOnly<{|exportKey: boolean|}>
+type _SubmitPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
+type _SubmitPasswordInsteadOfDevicePayload = void
+type _SubmitTextCodePayload = $ReadOnly<{|phrase: HiddenString|}>
 type _SubmitUsernameOrEmailPayload = $ReadOnly<{|usernameOrEmail: string|}>
 
 // Action Creators
@@ -63,12 +63,12 @@ export const createProvisionError = (payload: _ProvisionErrorPayload) => ({error
 export const createShowCodePage = (payload: _ShowCodePagePayload) => ({error: false, payload, type: showCodePage})
 export const createShowGPGPage = (payload: _ShowGPGPagePayload) => ({error: false, payload, type: showGPGPage})
 export const createShowPassphrasePage = (payload: _ShowPassphrasePagePayload) => ({error: false, payload, type: showPassphrasePage})
-export const createSubmitProvisionDeviceName = (payload: _SubmitProvisionDeviceNamePayload) => ({error: false, payload, type: submitProvisionDeviceName})
-export const createSubmitProvisionDeviceSelect = (payload: _SubmitProvisionDeviceSelectPayload) => ({error: false, payload, type: submitProvisionDeviceSelect})
-export const createSubmitProvisionGPGMethod = (payload: _SubmitProvisionGPGMethodPayload) => ({error: false, payload, type: submitProvisionGPGMethod})
-export const createSubmitProvisionPassphrase = (payload: _SubmitProvisionPassphrasePayload) => ({error: false, payload, type: submitProvisionPassphrase})
-export const createSubmitProvisionPasswordInsteadOfDevice = (payload: _SubmitProvisionPasswordInsteadOfDevicePayload) => ({error: false, payload, type: submitProvisionPasswordInsteadOfDevice})
-export const createSubmitProvisionTextCode = (payload: _SubmitProvisionTextCodePayload) => ({error: false, payload, type: submitProvisionTextCode})
+export const createSubmitDeviceName = (payload: _SubmitDeviceNamePayload) => ({error: false, payload, type: submitDeviceName})
+export const createSubmitDeviceSelect = (payload: _SubmitDeviceSelectPayload) => ({error: false, payload, type: submitDeviceSelect})
+export const createSubmitGPGMethod = (payload: _SubmitGPGMethodPayload) => ({error: false, payload, type: submitGPGMethod})
+export const createSubmitPassphrase = (payload: _SubmitPassphrasePayload) => ({error: false, payload, type: submitPassphrase})
+export const createSubmitPasswordInsteadOfDevice = (payload: _SubmitPasswordInsteadOfDevicePayload) => ({error: false, payload, type: submitPasswordInsteadOfDevice})
+export const createSubmitTextCode = (payload: _SubmitTextCodePayload) => ({error: false, payload, type: submitTextCode})
 export const createSubmitUsernameOrEmail = (payload: _SubmitUsernameOrEmailPayload) => ({error: false, payload, type: submitUsernameOrEmail})
 
 // Action Payloads
@@ -79,12 +79,12 @@ export type ShowDeviceListPagePayload = $Call<typeof createShowDeviceListPage, _
 export type ShowGPGPagePayload = $Call<typeof createShowGPGPage, _ShowGPGPagePayload>
 export type ShowNewDeviceNamePagePayload = $Call<typeof createShowNewDeviceNamePage, _ShowNewDeviceNamePagePayload>
 export type ShowPassphrasePagePayload = $Call<typeof createShowPassphrasePage, _ShowPassphrasePagePayload>
-export type SubmitProvisionDeviceNamePayload = $Call<typeof createSubmitProvisionDeviceName, _SubmitProvisionDeviceNamePayload>
-export type SubmitProvisionDeviceSelectPayload = $Call<typeof createSubmitProvisionDeviceSelect, _SubmitProvisionDeviceSelectPayload>
-export type SubmitProvisionGPGMethodPayload = $Call<typeof createSubmitProvisionGPGMethod, _SubmitProvisionGPGMethodPayload>
-export type SubmitProvisionPassphrasePayload = $Call<typeof createSubmitProvisionPassphrase, _SubmitProvisionPassphrasePayload>
-export type SubmitProvisionPasswordInsteadOfDevicePayload = $Call<typeof createSubmitProvisionPasswordInsteadOfDevice, _SubmitProvisionPasswordInsteadOfDevicePayload>
-export type SubmitProvisionTextCodePayload = $Call<typeof createSubmitProvisionTextCode, _SubmitProvisionTextCodePayload>
+export type SubmitDeviceNamePayload = $Call<typeof createSubmitDeviceName, _SubmitDeviceNamePayload>
+export type SubmitDeviceSelectPayload = $Call<typeof createSubmitDeviceSelect, _SubmitDeviceSelectPayload>
+export type SubmitGPGMethodPayload = $Call<typeof createSubmitGPGMethod, _SubmitGPGMethodPayload>
+export type SubmitPassphrasePayload = $Call<typeof createSubmitPassphrase, _SubmitPassphrasePayload>
+export type SubmitPasswordInsteadOfDevicePayload = $Call<typeof createSubmitPasswordInsteadOfDevice, _SubmitPasswordInsteadOfDevicePayload>
+export type SubmitTextCodePayload = $Call<typeof createSubmitTextCode, _SubmitTextCodePayload>
 export type SubmitUsernameOrEmailPayload = $Call<typeof createSubmitUsernameOrEmail, _SubmitUsernameOrEmailPayload>
 
 // All Actions
@@ -97,11 +97,11 @@ export type Actions =
   | ShowGPGPagePayload
   | ShowNewDeviceNamePagePayload
   | ShowPassphrasePagePayload
-  | SubmitProvisionDeviceNamePayload
-  | SubmitProvisionDeviceSelectPayload
-  | SubmitProvisionGPGMethodPayload
-  | SubmitProvisionPassphrasePayload
-  | SubmitProvisionPasswordInsteadOfDevicePayload
-  | SubmitProvisionTextCodePayload
+  | SubmitDeviceNamePayload
+  | SubmitDeviceSelectPayload
+  | SubmitGPGMethodPayload
+  | SubmitPassphrasePayload
+  | SubmitPasswordInsteadOfDevicePayload
+  | SubmitTextCodePayload
   | SubmitUsernameOrEmailPayload
   | {type: 'common:resetStore', payload: void}

@@ -13,7 +13,7 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
       return initialState
     case ProvisionGen.provisionError:
       return state.set('error', action.payload.error || initialState.error)
-    case ProvisionGen.submitProvisionPassphrase:
+    case ProvisionGen.submitPassphrase:
       return state.merge({error: initialState.error})
     case ProvisionGen.showNewDeviceNamePage:
       return state.merge({
@@ -26,17 +26,17 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         devicesCanSelectNoDevice: action.payload.canSelectNoDevice,
         error: initialState.error,
       })
-    case ProvisionGen.submitProvisionDeviceSelect:
+    case ProvisionGen.submitDeviceSelect:
       return state.merge({
         error: initialState.error,
         selectedDevice: state.devices.find(d => d.name === action.payload.name),
       })
-    case ProvisionGen.submitProvisionTextCode:
+    case ProvisionGen.submitTextCode:
       return state.merge({
         codePageTextCode: action.payload.phrase,
         error: initialState.error,
       })
-    case ProvisionGen.submitProvisionDeviceName:
+    case ProvisionGen.submitDeviceName:
       if (state.existingDevices.indexOf(state.deviceName) !== -1) {
         return state.merge({
           deviceName: action.payload.name,
@@ -64,9 +64,9 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
     // Saga only actions
     case ProvisionGen.addNewDevice:
     case ProvisionGen.showPassphrasePage:
-    case ProvisionGen.submitProvisionPasswordInsteadOfDevice:
+    case ProvisionGen.submitPasswordInsteadOfDevice:
     case ProvisionGen.showGPGPage:
-    case ProvisionGen.submitProvisionGPGMethod:
+    case ProvisionGen.submitGPGMethod:
       return state
     default:
       /*::

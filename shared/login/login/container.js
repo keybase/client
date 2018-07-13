@@ -47,7 +47,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     ...stateProps,
     ...dispatchProps,
-    ...ownProps,
     lastUser,
     serverURI: 'https://keybase.io',
     users: users.toArray(),

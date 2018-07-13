@@ -12,13 +12,13 @@ const mapStateToProps = (state: TypedState) => ({
   devices: state.provision.devices,
 })
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  _onUsePasswordInstead: () => dispatch(ProvisionGen.createSubmitProvisionPasswordInsteadOfDevice()),
+  _onUsePasswordInstead: () => dispatch(ProvisionGen.createSubmitPasswordInsteadOfDevice()),
   onBack: () => dispatch(ownProps.navigateUp()),
   onResetAccount: () => {
     dispatch(LoginGen.createLaunchAccountResetWebPage())
     dispatch(ownProps.navigateUp())
   },
-  onSelect: (name: string) => dispatch(ProvisionGen.createSubmitProvisionDeviceSelect({name})),
+  onSelect: (name: string) => dispatch(ProvisionGen.createSubmitDeviceSelect({name})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({

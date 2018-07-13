@@ -6,12 +6,12 @@
   "actions": {
     "provisionError": { "error": "?HiddenString" },
     "submitUsernameOrEmail": { "usernameOrEmail": "string" },
-    "submitProvisionPassphrase": { "passphrase": "HiddenString", },
-    "submitProvisionTextCode": { "phrase": "HiddenString" },
-    "submitProvisionDeviceSelect": { "name": "string" },
-    "submitProvisionPasswordInsteadOfDevice": {},
-    "submitProvisionDeviceName": { "name": "string" },
-    "submitProvisionGPGMethod": { "exportKey": "boolean" },
+    "submitPassphrase": { "passphrase": "HiddenString", },
+    "submitTextCode": { "phrase": "HiddenString" },
+    "submitDeviceSelect": { "name": "string" },
+    "submitPasswordInsteadOfDevice": {},
+    "submitDeviceName": { "name": "string" },
+    "submitGPGMethod": { "exportKey": "boolean" },
     "showDeviceListPage": {
       "_description": "Show the list of devices the user can use to provision a device",
       "canSelectNoDevice": "boolean",

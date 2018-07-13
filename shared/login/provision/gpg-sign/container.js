@@ -8,7 +8,7 @@ type OwnProps = RouteProps<{}, {}>
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   onBack: () => dispatch(ownProps.navigateUp()),
-  onSubmit: exportKey => dispatch(ProvisionGen.createSubmitProvisionGPGMethod({exportKey})),
+  onSubmit: exportKey => dispatch(ProvisionGen.createSubmitGPGMethod({exportKey})),
 })
 
 export default connect(undefined, mapDispatchToProps)(GPGSign)
