@@ -629,7 +629,7 @@ protocol teams {
     boolean invited;
     union{null, User} user;
     boolean emailSent;
-    boolean chatSent;
+    boolean chatSending;
   }
 
   record TeamJoinRequest {
