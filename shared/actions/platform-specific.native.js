@@ -1,14 +1,17 @@
 // @flow
 import logger from '../logger'
+import {type TypedState} from '../constants/reducer'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
+import * as LoginGen from './login-gen'
 import * as PushTypes from '../constants/types/push'
 import * as PushConstants from '../constants/push'
 import * as PushGen from './push-gen'
 import * as PushNotifications from 'react-native-push-notification'
 import * as mime from 'react-native-mime-types'
 import * as Saga from '../util/saga'
+import {RouteStateStorage} from './route-state-storage.native'
 import RNFetchBlob from 'react-native-fetch-blob'
 import {
   PushNotificationIOS,
@@ -21,7 +24,7 @@ import {
 } from 'react-native'
 import {eventChannel} from 'redux-saga'
 import {isDevApplePushToken} from '../local-debug'
-import {isIOS, isAndroid} from '../constants/platform'
+import {isIOS, isAndroid, isSimulator} from '../constants/platform'
 
 // Used to listen to the java intent for notifications
 let RNEmitter
@@ -331,9 +334,30 @@ const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
 const setStartedDueToPush = (action: Chat2Gen.SelectConversationPayload) =>
   action.payload.reason === 'push' ? Saga.put(ConfigGen.createSetStartedDueToPush()) : undefined
 
+const routeStateStorage = new RouteStateStorage()
+
+// Until routeStateStorage is sagaized.
+const clearRouteState = () => Saga.put.resolve(routeStateStorage.clear)
+const persistRouteState = () => Saga.put.resolve(routeStateStorage.store)
+
+const onBootstrapped = (state: TypedState) =>
+  Saga.sequentially([
+    Saga.put.resolve(routeStateStorage.load),
+    Saga.put(LoginGen.createNavBasedOnLoginAndInitialState()),
+    ...(!state.config.pushLoaded && state.config.loggedIn && !isSimulator
+      ? [Saga.put(PushGen.createConfigurePush())]
+      : []),
+    ...(!state.config.pushLoaded && state.config.loggedIn
+      ? [Saga.put(ConfigGen.createPushLoaded({pushLoaded: true}))]
+      : []),
+  ])
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, setStartedDueToPush)
+  yield Saga.safeTakeEveryPure(ConfigGen.clearRouteState, clearRouteState)
+  yield Saga.safeTakeEveryPure(ConfigGen.persistRouteState, persistRouteState)
+  yield Saga.safeTakeEveryPureSimple(ConfigGen.bootstrapSuccess, onBootstrapped)
 }
 
 export {

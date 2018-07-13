@@ -88,6 +88,7 @@ export const commonMessageType = {
   deletehistory: 12,
   reaction: 13,
   sendpayment: 14,
+  requestpayment: 15,
 }
 
 export const commonNotificationKind = {
@@ -210,6 +211,11 @@ export const localOutboxErrorType = {
 export const localOutboxStateType = {
   sending: 0,
   error: 1,
+}
+
+export const localPreviewLocationTyp = {
+  url: 0,
+  file: 1,
 }
 
 export const notifyChatChatActivityType = {
@@ -530,7 +536,7 @@ export type LocalGetThreadNonblockRpcParam = $ReadOnly<{conversationID: Conversa
 export type LocalJoinConversationByIDLocalRpcParam = $ReadOnly<{convID: ConversationID}>
 export type LocalJoinConversationLocalRpcParam = $ReadOnly<{tlfName: String, topicType: TopicType, visibility: Keybase1.TLFVisibility, topicName: String}>
 export type LocalLeaveConversationLocalRpcParam = $ReadOnly<{convID: ConversationID}>
-export type LocalMakePreviewRpcParam = $ReadOnly<{attachment: LocalFileSource, outputDir: String}>
+export type LocalMakePreviewRpcParam = $ReadOnly<{attachment: LocalFileSource, outboxID: OutboxID}>
 export type LocalMarkAsReadLocalRpcParam = $ReadOnly<{conversationID: ConversationID, msgID: MessageID}>
 export type LocalNewConversationLocalRpcParam = $ReadOnly<{tlfName: String, topicType: TopicType, tlfVisibility: Keybase1.TLFVisibility, topicName?: ?String, membersType: ConversationMembersType, identifyBehavior: Keybase1.TLFIdentifyBehavior}>
 export type LocalPostAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, outboxID?: ?OutboxID, ephemeralLifetime?: ?Gregor1.DurationSec}>
@@ -559,7 +565,7 @@ export type LocalSource = $ReadOnly<{source: Keybase1.Stream, filename: String, 
 export type LocalUnboxMobilePushNotificationRpcParam = $ReadOnly<{payload: String, convID: String, membersType: ConversationMembersType, pushIDs?: ?Array<String>, shouldAck: Boolean}>
 export type LocalUpdateTypingRpcParam = $ReadOnly<{conversationID: ConversationID, typing: Boolean}>
 export type LocalUpgradeKBFSConversationToImpteamRpcParam = $ReadOnly<{convID: ConversationID}>
-export type MakePreviewRes = $ReadOnly<{mimeType: String, filename?: ?String, metadata?: ?AssetMetadata, baseMetadata?: ?AssetMetadata}>
+export type MakePreviewRes = $ReadOnly<{mimeType: String, location?: ?PreviewLocation, metadata?: ?AssetMetadata, baseMetadata?: ?AssetMetadata}>
 export type MarkAsReadLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
 export type MarkAsReadRes = $ReadOnly<{rateLimit?: ?RateLimit}>
 export type MemberInfo = $ReadOnly<{member: String, status: ConversationMemberStatus}>
@@ -567,7 +573,7 @@ export type MembersUpdateInfo = $ReadOnly<{convID: ConversationID, members?: ?Ar
 export type MerkleRoot = $ReadOnly<{seqno: Long, hash: Bytes}>
 export type MessageAttachment = $ReadOnly<{object: Asset, preview?: ?Asset, previews?: ?Array<Asset>, metadata: Bytes, uploaded: Boolean}>
 export type MessageAttachmentUploaded = $ReadOnly<{messageID: MessageID, object: Asset, previews?: ?Array<Asset>, metadata: Bytes}>
-export type MessageBody = {messageType: 1, text: ?MessageText} | {messageType: 2, attachment: ?MessageAttachment} | {messageType: 3, edit: ?MessageEdit} | {messageType: 4, delete: ?MessageDelete} | {messageType: 5, metadata: ?MessageConversationMetadata} | {messageType: 7, headline: ?MessageHeadline} | {messageType: 8, attachmentuploaded: ?MessageAttachmentUploaded} | {messageType: 9, join: ?MessageJoin} | {messageType: 10, leave: ?MessageLeave} | {messageType: 11, system: ?MessageSystem} | {messageType: 12, deletehistory: ?MessageDeleteHistory} | {messageType: 13, reaction: ?MessageReaction} | {messageType: 14, sendpayment: ?MessageSendPayment}
+export type MessageBody = {messageType: 1, text: ?MessageText} | {messageType: 2, attachment: ?MessageAttachment} | {messageType: 3, edit: ?MessageEdit} | {messageType: 4, delete: ?MessageDelete} | {messageType: 5, metadata: ?MessageConversationMetadata} | {messageType: 7, headline: ?MessageHeadline} | {messageType: 8, attachmentuploaded: ?MessageAttachmentUploaded} | {messageType: 9, join: ?MessageJoin} | {messageType: 10, leave: ?MessageLeave} | {messageType: 11, system: ?MessageSystem} | {messageType: 12, deletehistory: ?MessageDeleteHistory} | {messageType: 13, reaction: ?MessageReaction} | {messageType: 14, sendpayment: ?MessageSendPayment} | {messageType: 15, requestpayment: ?MessageRequestPayment}
 export type MessageBoxed = $ReadOnly<{version: MessageBoxedVersion, serverHeader?: ?MessageServerHeader, clientHeader: MessageClientHeader, headerCiphertext: SealedData, bodyCiphertext: EncryptedData, verifyKey: Bytes, keyGeneration: Int}>
 export type MessageBoxedVersion =
   | 0 // VNONE_0
@@ -590,6 +596,7 @@ export type MessageLeave = $ReadOnly<{}>
 export type MessagePlaintext = $ReadOnly<{clientHeader: MessageClientHeader, messageBody: MessageBody}>
 export type MessagePreviousPointer = $ReadOnly<{id: MessageID, hash: Hash}>
 export type MessageReaction = $ReadOnly<{messageID: MessageID, body: String}>
+export type MessageRequestPayment = $ReadOnly<{requestID: String, note: String}>
 export type MessageSendPayment = $ReadOnly<{kbTxID: String}>
 export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy: MessageID, reactionIDs?: ?Array<MessageID>, ctime: Gregor1.Time, now: Gregor1.Time, rtime?: ?Gregor1.Time}>
 export type MessageSummary = $ReadOnly<{msgID: MessageID, messageType: MessageType, tlfName: String, tlfPublic: Boolean, ctime: Gregor1.Time}>
@@ -625,6 +632,7 @@ export type MessageType =
   | 12 // DELETEHISTORY_12
   | 13 // REACTION_13
   | 14 // SENDPAYMENT_14
+  | 15 // REQUESTPAYMENT_15
 
 export type MessageUnboxed = {state: 1, valid: ?MessageUnboxedValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?OutboxRecord} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
 export type MessageUnboxedError = $ReadOnly<{errType: MessageUnboxedErrorType, errMsg: String, internalErrMsg: String, versionKind: VersionKind, versionNumber: Int, isCritical: Boolean, senderUsername: String, senderDeviceName: String, senderDeviceType: String, messageID: MessageID, messageType: MessageType, ctime: Gregor1.Time, isEphemeral: Boolean, isEphemeralExpired: Boolean, etime: Gregor1.Time}>
@@ -694,6 +702,11 @@ export type Pagination = $ReadOnly<{next: Bytes, previous: Bytes, num: Int, last
 export type PostLocalNonblockRes = $ReadOnly<{rateLimits?: ?Array<RateLimit>, outboxID: OutboxID, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type PostLocalRes = $ReadOnly<{rateLimits?: ?Array<RateLimit>, messageID: MessageID, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type PostRemoteRes = $ReadOnly<{msgHeader: MessageServerHeader, rateLimit?: ?RateLimit}>
+export type PreviewLocation = {ltyp: 0, url: ?String} | {ltyp: 1, file: ?String}
+export type PreviewLocationTyp =
+  | 0 // URL_0
+  | 1 // FILE_1
+
 export type RateLimit = $ReadOnly<{name: String, callsRemaining: Int, windowReset: Int, maxCalls: Int}>
 export type Reaction = $ReadOnly<{username: String, reactionMsgID: MessageID}>
 export type ReactionMap = $ReadOnly<{reactions: {[key: string]: ?Array<Reaction>}}>

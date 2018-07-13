@@ -109,3 +109,5 @@ func (s *SimpleSource) LoadTeams(ctx context.Context, teams []string, formats []
 func (s *SimpleSource) ClearCacheForName(ctx context.Context, name string, formats []keybase1.AvatarFormat) (err error) {
 	return nil
 }
+
+func (s *SimpleSource) OnCacheCleared(ctx context.Context) {}

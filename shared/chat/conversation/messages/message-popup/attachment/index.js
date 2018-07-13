@@ -28,9 +28,9 @@ type Props = {
 
 const AttachmentPopupMenu = (props: Props) => {
   const items = [
-    'Divider',
     ...(props.yourMessage
       ? [
+          'Divider',
           {
             danger: true,
             disabled: !props.onDelete,

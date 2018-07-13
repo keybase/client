@@ -24,7 +24,7 @@ import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
 import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, downloadAndShowShareActionSheet} from '../platform-specific'
-import {tmpDir, downloadFilePath} from '../../util/file'
+import {downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import flags from '../../util/feature-flags'
 
@@ -671,6 +671,7 @@ const setupChatHandlers = () => {
 
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduce((arr, key) => {
   switch (key) {
+    case 'none':
     case 'edit': // daemon filters this out for us so we can ignore
     case 'delete':
     case 'attachmentuploaded':
@@ -1375,7 +1376,8 @@ const _maybeAutoselectNewestConversation = (
     action.payload.conversationIDKey === selected
   ) {
     // Intentional fall-through -- force select a new one
-  } else if (selected !== Constants.noConversationIDKey) {
+  } else if (Constants.isValidConversationIDKey(selected)) {
+    // Stay with our existing convo if it was not empty or pending
     return
   }
 
@@ -1525,17 +1527,25 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
 
   // Make the previews
   const previews: Array<?RPCChatTypes.MakePreviewRes> = yield Saga.sequentially(
-    paths.map(filename =>
+    paths.map((filename, i) =>
       Saga.call(
         RPCChatTypes.localMakePreviewRpcPromise,
         ({
           attachment: {filename},
-          outputDir: tmpDir(),
+          outboxID: outboxIDs[i],
         }: RPCChatTypes.LocalMakePreviewRpcParam)
       )
     )
   )
-  const previewURLs = previews.map(preview => (preview && preview.filename) || '')
+  const previewURLs = previews.map(
+    preview =>
+      preview &&
+      preview.location &&
+      preview.location.ltyp === RPCChatTypes.localPreviewLocationTyp.url &&
+      preview.location.url
+        ? preview.location.url
+        : ''
+  )
 
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (!meta) {

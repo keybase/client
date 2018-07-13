@@ -8,6 +8,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"path/filepath"
 	"runtime"
 	"runtime/pprof"
 	"runtime/trace"
@@ -347,6 +348,23 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	go d.identifySelf()
 }
 
+func (d *Service) purgeOldChatAttachmentData() {
+	purge := func(glob string) {
+		files, err := filepath.Glob(filepath.Join(d.G().GetCacheDir(), glob))
+		if err != nil {
+			d.G().Log.Debug("purgeOldChatAttachmentData: failed to get %s files: %s", glob, err)
+		} else {
+			for _, f := range files {
+				if err := os.Remove(f); err != nil {
+					d.G().Log.Debug("purgeOldChatAttachmentData: failed to remove: name: %s err: %s", f, err)
+				}
+			}
+		}
+	}
+	purge("kbchat*")
+	purge("prev*")
+}
+
 func (d *Service) startChatModules() {
 	uid := d.G().Env.GetUID()
 	if !uid.IsNil() {
@@ -357,6 +375,7 @@ func (d *Service) startChatModules() {
 		g.FetchRetrier.Start(context.Background(), uid)
 		g.EphemeralPurger.Start(context.Background(), uid)
 	}
+	d.purgeOldChatAttachmentData()
 }
 
 func (d *Service) stopChatModules() {
@@ -615,17 +634,9 @@ func (d *Service) hourlyChecks() {
 		if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
 			m.CDebugf("LogoutAndDeprovisionIfRevoked error: %s", err)
 		}
-		ekLib := m.G().GetEKLib()
-		ekLib.KeygenIfNeeded(m.Ctx())
 		for {
 			<-ticker.C
 			m.CDebugf("+ hourly check loop")
-			ekLib := m.G().GetEKLib()
-			m.CDebugf("| checking if ephemeral keys need to be created or deleted")
-			if err := ekLib.KeygenIfNeeded(m.Ctx()); err != nil {
-				m.CDebugf("KeygenIfNeeded error: %s", err)
-			}
-
 			m.CDebugf("| checking if current device revoked")
 			if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
 				m.CDebugf("LogoutAndDeprovisionIfRevoked error: %s", err)
@@ -1193,4 +1204,9 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 	d.startChatModules()
 
 	return nil
+}
+
+// Called by CtlHandler after DbNuke finishes and succeeds.
+func (d *Service) onDbNuke(ctx context.Context) {
+	d.avatarLoader.OnCacheCleared(ctx)
 }

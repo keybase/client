@@ -2,6 +2,7 @@ package teams
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
@@ -9,18 +10,10 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, team, user string) (res bool) {
-	var err error
-	defer func() {
-		if err != nil {
-			g.Log.CWarningf(ctx, "failed to send team welcome message: %s", err.Error())
-		}
-	}()
-
+func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, team, user string) (err error) {
 	teamDetails, err := Details(ctx, g, team)
 	if err != nil {
-		g.Log.CDebugf(ctx, "failed to get team details for welcome message: %s", err)
-		return false
+		return fmt.Errorf("getting team details: %v", err)
 	}
 
 	var ownerNames, adminNames, writerNames, readerNames []string
@@ -52,13 +45,9 @@ func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, tea
 	// coming from a standalone launch.
 	g.StartStandaloneChat()
 
-	if err = g.ChatHelper.SendMsgByName(ctx, team, &globals.DefaultTeamTopic,
+	return g.ChatHelper.SendMsgByName(ctx, team, &globals.DefaultTeamTopic,
 		chat1.ConversationMembersType_TEAM, keybase1.TLFIdentifyBehavior_CHAT_CLI, body,
-		chat1.MessageType_SYSTEM); err != nil {
-		return false
-	}
-
-	return true
+		chat1.MessageType_SYSTEM)
 }
 
 func SendChatInviteWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, team string,

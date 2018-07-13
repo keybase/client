@@ -27,7 +27,7 @@ const DeleteHistoryWarning = ({errorText, name, onCancel, onDeleteHistory}: Prop
       <Text style={{padding: globalMargins.small}} type="Header">
         Delete conversation history?
       </Text>
-      <Text style={{padding: globalMargins.small}} type="Body">
+      <Text style={styleText} type="Body">
         You are about to delete all the messages in this conversation. For everyone.
       </Text>
       <Box style={styleButtonBox}>
@@ -79,6 +79,15 @@ const styleButton = platformStyles({
   },
   isMobile: {
     marginTop: globalMargins.tiny,
+  },
+})
+
+const styleText = platformStyles({
+  common: {
+    padding: globalMargins.small,
+  },
+  isMobile: {
+    textAlign: 'center',
   },
 })
 
