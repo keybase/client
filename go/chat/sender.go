@@ -423,19 +423,22 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	chanMention := chat1.ChannelMention_NONE
 	switch plaintext.ClientHeader.MessageType {
 	case chat1.MessageType_TEXT:
-		if err = checkHeaderBodyTypeMatch(); err != nil {
+		err = checkHeaderBodyTypeMatch()
+		if err != nil {
 			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 		}
 		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
 			plaintext.MessageBody.Text().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
 	case chat1.MessageType_EDIT:
-		if err = checkHeaderBodyTypeMatch(); err != nil {
+		err = checkHeaderBodyTypeMatch()
+		if err != nil {
 			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 		}
 		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
 			plaintext.MessageBody.Edit().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
 	case chat1.MessageType_SYSTEM:
-		if err = checkHeaderBodyTypeMatch(); err != nil {
+		err = checkHeaderBodyTypeMatch()
+		if err != nil {
 			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 		}
 		atMentions, chanMention = utils.SystemMessageMentions(ctx, plaintext.MessageBody.System(),
@@ -627,11 +630,6 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				// If we hit the stale previous state error, that means we should try again, since our view is
 				// out of date.
 				s.Debug(ctx, "failed because of stale previous state, trying the whole thing again")
-				continue
-			case libkb.EphemeralPairwiseMACsMissingUIDsError:
-				merr := err.(libkb.EphemeralPairwiseMACsMissingUIDsError)
-				s.Debug(ctx, "failed because of missing KIDs for pairwise MACs, reloading UPAKs for %v and retrying.", merr.UIDs)
-				utils.ForceReloadUPAKsForUIDs(ctx, s.G(), merr.UIDs)
 				continue
 			default:
 				s.Debug(ctx, "failed to PostRemote, bailing: %s", err.Error())
