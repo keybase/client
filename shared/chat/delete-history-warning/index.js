@@ -6,17 +6,12 @@ import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} fro
 type Props = {
   errorText: string,
   name: string,
-  onBack: () => void,
   onCancel: () => void,
   onDeleteHistory: () => void,
 }
 
-const cancelButton = (onClick: () => void) => {
-  return <Button type="Secondary" style={styleButton} onClick={onClick} label="Cancel" fullWidth={isMobile} />
-}
-
-const DeleteHistoryWarning = ({errorText, name, onCancel, onBack, onDeleteHistory}: Props) => (
-  <MaybePopup onClose={onCancel || onBack}>
+const DeleteHistoryWarning = ({errorText, name, onCancel, onDeleteHistory}: Props) => (
+  <MaybePopup onClose={onCancel}>
     <Box
       style={{
         ...globalStyles.flexBoxColumn,
@@ -36,7 +31,7 @@ const DeleteHistoryWarning = ({errorText, name, onCancel, onBack, onDeleteHistor
         You are about to delete all the messages in this conversation. For everyone.
       </Text>
       <Box style={styleButtonBox}>
-        {!isMobile && cancelButton(onCancel || onBack)}
+        <Button type="Secondary" style={styleButton} onClick={onCancel} label="Cancel" fullWidth={isMobile} />
         <Button
           type="Danger"
           style={styleButton}
@@ -44,7 +39,6 @@ const DeleteHistoryWarning = ({errorText, name, onCancel, onBack, onDeleteHistor
           label="Yes, clear for everyone"
           fullWidth={isMobile}
         />
-        {isMobile && cancelButton(onCancel || onBack)}
       </Box>
     </Box>
   </MaybePopup>
@@ -71,6 +65,8 @@ const styleButtonBox = platformStyles({
     flex: 1,
     alignItems: 'stretch',
     width: '100%',
+    flexDirection: 'column-reverse',
+    paddingTop: globalMargins.xlarge,
   },
   isElectron: {
     ...globalStyles.flexBoxRow,

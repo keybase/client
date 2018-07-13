@@ -22,9 +22,8 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}: OwnProps) => ({
-  onCancel: isMobile ? () => dispatch(navigateUp()) : null,
+  onCancel: () => dispatch(navigateUp()),
   onBack: isMobile ? null : () => dispatch(navigateUp()),
-  onClose: () => dispatch(navigateUp()),
   onDeleteHistory: () => {
     const conversationIDKey = routeProps.get('conversationIDKey')
     dispatch(navigateUp())
