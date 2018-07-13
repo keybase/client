@@ -419,6 +419,7 @@ type UIMessageValid struct {
 	ExplodedBy            *string                `codec:"explodedBy,omitempty" json:"explodedBy,omitempty"`
 	Etime                 gregor1.Time           `codec:"etime" json:"etime"`
 	Reactions             ReactionMap            `codec:"reactions" json:"reactions"`
+	HasPairwiseMacs       bool                   `codec:"hasPairwiseMacs" json:"hasPairwiseMacs"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -483,8 +484,9 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			tmp := (*x)
 			return &tmp
 		})(o.ExplodedBy),
-		Etime:     o.Etime.DeepCopy(),
-		Reactions: o.Reactions.DeepCopy(),
+		Etime:           o.Etime.DeepCopy(),
+		Reactions:       o.Reactions.DeepCopy(),
+		HasPairwiseMacs: o.HasPairwiseMacs,
 	}
 }
 

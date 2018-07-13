@@ -1081,6 +1081,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			ExplodedBy:            valid.ExplodedBy(),
 			Etime:                 valid.Etime(),
 			Reactions:             valid.Reactions,
+			HasPairwiseMacs:       valid.HasPairwiseMacs(),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body string
