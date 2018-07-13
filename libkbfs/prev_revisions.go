@@ -5,6 +5,8 @@
 package libkbfs
 
 import (
+	"fmt"
+
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfsmd"
 )
@@ -31,8 +33,10 @@ type PrevRevisions []PrevRevisionAndCount
 
 // addRevision returns a copy of `pr` with a new immediately-previous
 // revision added, with the existing entries moved or overwritten to
-// accomodate the new entry, and with increased counts.
-func (pr PrevRevisions) addRevision(r kbfsmd.Revision) (ret PrevRevisions) {
+// accomodate the new entry, and with increased counts.  Any existing
+// revisions smaller than or equal to minRev will be removed.
+func (pr PrevRevisions) addRevision(
+	r, minRev kbfsmd.Revision) (ret PrevRevisions) {
 	newLength := len(pr)
 	if newLength < len(minPrevRevisionSlotCounts) {
 		newLength++
@@ -45,6 +49,16 @@ func (pr PrevRevisions) addRevision(r kbfsmd.Revision) (ret PrevRevisions) {
 			break
 		} else if prc.Count == 255 {
 			panic("Previous revision count is about to overflow")
+		} else if prc.Revision >= r {
+			panic(fmt.Sprintf("Existing prev revision %d is already bigger "+
+				"than immediate prev revision %d", prc.Revision, r))
+		} else if prc.Revision <= minRev {
+			// This revision is too old, so remove it.
+			ret[i] = PrevRevisionAndCount{
+				Revision: kbfsmd.RevisionUninitialized,
+				Count:    0,
+			}
+			continue
 		}
 		ret[i].Count++
 	}
