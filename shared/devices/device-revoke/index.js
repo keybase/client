@@ -113,7 +113,6 @@ const styles = styleSheetCreate({
   },
   tlfEntry: {
     marginBottom: globalMargins.xtiny,
-    // Mobile
     flexDirection: 'row',
   },
   name: {
