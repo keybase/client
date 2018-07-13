@@ -125,7 +125,6 @@ class CodePage2 extends React.Component<Props, State> {
         <Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
           <Instructions {...this.props} />
           {content}
-
           <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
         </Box2>
       </Box2>
@@ -133,7 +132,7 @@ class CodePage2 extends React.Component<Props, State> {
   }
 }
 
-const SwitchTab = (props: {selected: Tab, onSelect: Tab => void} & Props) => {
+const SwitchTab = (props: {|...Props, selected: Tab, onSelect: Tab => void|}) => {
   if (props.currentDeviceType === 'desktop' && props.otherDeviceType === 'desktop') {
     return <Box2 direction="horizontal" />
   }

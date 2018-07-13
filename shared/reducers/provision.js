@@ -12,8 +12,11 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
     case ProvisionGen.resetStore:
       return initialState
     case ProvisionGen.provisionError:
+    case ProvisionGen.showPassphrasePage: // fallthrough
+    case ProvisionGen.showPaperkeyPage: // fallthrough
       return state.set('error', action.payload.error || initialState.error)
-    case ProvisionGen.submitPassphrase:
+    case ProvisionGen.submitPassphrase: // fallthrough
+    case ProvisionGen.submitPaperkey:
       return state.merge({error: initialState.error})
     case ProvisionGen.showNewDeviceNamePage:
       return state.merge({
@@ -63,7 +66,6 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
       })
     // Saga only actions
     case ProvisionGen.addNewDevice:
-    case ProvisionGen.showPassphrasePage:
     case ProvisionGen.submitPasswordInsteadOfDevice:
     case ProvisionGen.showGPGPage:
     case ProvisionGen.submitGPGMethod:

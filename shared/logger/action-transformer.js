@@ -7,7 +7,6 @@ import * as RouteTreeConstants from '../constants/route-tree'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as GregorGen from '../actions/gregor-gen'
-import * as EngineGen from '../actions/engine-gen'
 import {getPath} from '../route-tree'
 import type {TypedState} from '../constants/reducer'
 import * as Entity from '../constants/types/entities'
@@ -56,7 +55,6 @@ const actionTransformMap = {
   [ConfigGen.loadTeamAvatars]: nullTransform,
   [ConfigGen.loadedAvatars]: nullTransform,
   [ConfigGen.persistRouteState]: nullTransform,
-  [EngineGen.waitingForRpc]: nullTransform,
   [GregorGen.pushOOBM]: nullTransform,
   [ConfigGen.changedFocus]: nullTransform,
   [Chat2Gen.updateTypers]: nullTransform,

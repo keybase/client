@@ -17,7 +17,6 @@
     "loggedout": {},
 
     // TODO remove
-    "onBack": {},
     "onFinish": {},
     "navBasedOnLoginAndInitialState": {},
     "setRevokedSelf": { "revoked": "string" },

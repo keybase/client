@@ -23,24 +23,17 @@ const Row = ({name, type, onSelect}) => {
     backup: 'icon-paper-key-48',
   }: {[key: DeviceType]: IconType})[type]
 
-  const onPress = e => {
-    onSelect(name)
-    e && e.preventDefault()
-  }
-
   return (
-    <ClickableBox style={stylesRow} onClick={onPress}>
+    <ClickableBox style={stylesRow} onClick={() => onSelect(name)}>
       <Box style={stylesIconName}>
         <Box style={stylesIconContainer}>
           <Icon style={stylesIcon} type={iconType} color={colorIcon} />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-          <Text type="BodySemiboldItalic" onClick={onPress}>
-            {name}
-          </Text>
+          <Text type="BodySemiboldItalic">{name}</Text>
           {type === 'backup' && <Text type="BodySmall">Paper key</Text>}
         </Box>
-        <Button label="Use..." type="Secondary" small={true} onClick={onPress} />
+        <Button label="Use..." type="Secondary" small={true} onClick={() => {}} />
       </Box>
     </ClickableBox>
   )

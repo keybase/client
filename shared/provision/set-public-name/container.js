@@ -6,7 +6,7 @@ import SetPublicName from '.'
 import {connect, type TypedState, withStateHandlers, compose} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
 
-type OwnProps = RouteProps<{deviceName: string, onChange: (text: string) => void}, {}>
+type OwnProps = {deviceName: string, onChange: (text: string) => void} & RouteProps<{}, {}>
 
 const mapStateToProps = (state: TypedState) => ({
   _existingDevices: state.provision.existingDevices,

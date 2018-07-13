@@ -4,7 +4,6 @@ import chat2 from './chat2'
 import config from './config'
 import dev from './dev'
 import devices from './devices'
-import engine from './engine'
 import entities from './entities'
 import favorite from './favorite'
 import fs from './fs'
@@ -37,7 +36,6 @@ const reducers = {
   config,
   dev,
   devices,
-  engine,
   entities,
   favorite,
   fs,

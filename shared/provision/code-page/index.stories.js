@@ -21,6 +21,7 @@ const derivedProps = (
     currentDeviceAlreadyProvisioned,
     currentDeviceName,
     currentDeviceType,
+    onBack: action('onBack'),
     onSubmitTextCode: action('onSubmitTextCode'),
     otherDeviceName,
     otherDeviceType,

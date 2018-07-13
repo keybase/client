@@ -17,7 +17,6 @@ export const login = 'login:login'
 export const loginError = 'login:loginError'
 export const logout = 'login:logout'
 export const navBasedOnLoginAndInitialState = 'login:navBasedOnLoginAndInitialState'
-export const onBack = 'login:onBack'
 export const onFinish = 'login:onFinish'
 export const setDeletedSelf = 'login:setDeletedSelf'
 export const setRevokedSelf = 'login:setRevokedSelf'
@@ -37,7 +36,6 @@ type _LoginPayload = $ReadOnly<{|
 |}>
 type _LogoutPayload = void
 type _NavBasedOnLoginAndInitialStatePayload = void
-type _OnBackPayload = void
 type _OnFinishPayload = void
 type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
 type _SetRevokedSelfPayload = $ReadOnly<{|revoked: string|}>
@@ -54,7 +52,6 @@ export const createLogin = (payload: _LoginPayload) => ({error: false, payload, 
 export const createLoginError = (payload: _LoginErrorPayload) => ({error: false, payload, type: loginError})
 export const createLogout = (payload: _LogoutPayload) => ({error: false, payload, type: logout})
 export const createNavBasedOnLoginAndInitialState = (payload: _NavBasedOnLoginAndInitialStatePayload) => ({error: false, payload, type: navBasedOnLoginAndInitialState})
-export const createOnBack = (payload: _OnBackPayload) => ({error: false, payload, type: onBack})
 export const createOnFinish = (payload: _OnFinishPayload) => ({error: false, payload, type: onFinish})
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error: false, payload, type: setDeletedSelf})
 export const createSetRevokedSelf = (payload: _SetRevokedSelfPayload) => ({error: false, payload, type: setRevokedSelf})
@@ -71,7 +68,6 @@ export type LoginErrorPayload = $Call<typeof createLoginError, _LoginErrorPayloa
 export type LoginPayload = $Call<typeof createLogin, _LoginPayload>
 export type LogoutPayload = $Call<typeof createLogout, _LogoutPayload>
 export type NavBasedOnLoginAndInitialStatePayload = $Call<typeof createNavBasedOnLoginAndInitialState, _NavBasedOnLoginAndInitialStatePayload>
-export type OnBackPayload = $Call<typeof createOnBack, _OnBackPayload>
 export type OnFinishPayload = $Call<typeof createOnFinish, _OnFinishPayload>
 export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDeletedSelfPayload>
 export type SetRevokedSelfPayload = $Call<typeof createSetRevokedSelf, _SetRevokedSelfPayload>
@@ -90,7 +86,6 @@ export type Actions =
   | LoginPayload
   | LogoutPayload
   | NavBasedOnLoginAndInitialStatePayload
-  | OnBackPayload
   | OnFinishPayload
   | SetDeletedSelfPayload
   | SetRevokedSelfPayload

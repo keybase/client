@@ -157,23 +157,29 @@ const submitGPGMethod = (state: TypedState, action: ProvisionGen.SubmitGPGMethod
   )
 }
 
-// User has an uploaded key so we can use a passphrase
+// User has an uploaded key so we can use a passphrase OR they selected a paperkey
 const getPassphraseHandler = (params: RPCTypes.SecretUiGetPassphraseRpcParam, response, state) => {
   provisioningManager.stashResponse('keybase.1.secretUi.getPassphrase', response)
 
-  if (params.pinentry.type === RPCTypes.passphraseCommonPassphraseType.passPhrase) {
-    let error = ''
-    // Service asking us again due to a bad passphrase?
-    if (params.pinentry.retryLabel) {
-      error = params.pinentry.retryLabel
-    }
+  let error = ''
+  // Service asking us again due to an error?
+  if (params.pinentry.retryLabel) {
+    error = params.pinentry.retryLabel
+  }
 
-    return Saga.put(ProvisionGen.createShowPassphrasePage({error: error ? new HiddenString(error) : null}))
-  } else {
-    throw new Error('Got confused about passphrase entry. Please send a log to us!')
+  switch (params.pinentry.type) {
+    case RPCTypes.passphraseCommonPassphraseType.passPhrase:
+      return Saga.put(ProvisionGen.createShowPassphrasePage({error: error ? new HiddenString(error) : null}))
+    case RPCTypes.passphraseCommonPassphraseType.paperKey:
+      return Saga.put(ProvisionGen.createShowPaperkeyPage({error: error ? new HiddenString(error) : null}))
+    default:
+      throw new Error('Got confused about passphrase entry. Please send a log to us!')
   }
 }
-const submitPassphrase = (state: TypedState, action: ProvisionGen.SubmitPassphrasePayload) => {
+const submitPassphraseOrPaperkey = (
+  state: TypedState,
+  action: ProvisionGen.SubmitPassphrasePayload | ProvisionGen.SubmitPaperkeyPayload
+) => {
   // local error, ignore
   if (state.provision.error.stringValue()) {
     return
@@ -184,7 +190,12 @@ const submitPassphrase = (state: TypedState, action: ProvisionGen.SubmitPassphra
     throw new Error('Tried to submit passphrase but missing callback')
   }
 
-  response.result({passphrase: action.payload.passphrase.stringValue(), storeSecret: false})
+  const passphrase =
+    action.type === ProvisionGen.submitPassphrase
+      ? action.payload.passphrase.stringValue()
+      : action.payload.paperkey.stringValue()
+
+  response.result({passphrase, storeSecret: false})
 }
 
 /**
@@ -264,6 +275,10 @@ const showPassphrasePage = (state: TypedState) =>
   !state.provision.error.stringValue() &&
   Saga.put(RouteTree.navigateAppend(['passphrase'], [Tabs.loginTab, 'login']))
 
+const showPaperkeyPage = (state: TypedState) =>
+  !state.provision.error.stringValue() &&
+  Saga.put(RouteTree.navigateAppend(['paperkey'], [Tabs.loginTab, 'login']))
+
 function* provisionSaga(): Saga.SagaGenerator<any, any> {
   // Start provision
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitUsernameOrEmail, startProvisioning)
@@ -273,7 +288,10 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitDeviceName, submitDeviceName)
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitTextCode, submitTextCode)
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitGPGMethod, submitGPGMethod)
-  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitPassphrase, submitPassphrase)
+  yield Saga.safeTakeEveryPureSimple(
+    [ProvisionGen.submitPassphrase, ProvisionGen.submitPaperkey],
+    submitPassphraseOrPaperkey
+  )
 
   // Screens
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.showDeviceListPage, showDeviceListPage)
@@ -281,6 +299,7 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.showCodePage, showCodePage)
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.showGPGPage, showGPGPage)
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.showPassphrasePage, showPassphrasePage)
+  yield Saga.safeTakeEveryPureSimple(ProvisionGen.showPaperkeyPage, showPaperkeyPage)
 
   // TODO
   // yield Saga.safeTakeLatest(ProvisionGen.addNewDevice, _addNewDevice)

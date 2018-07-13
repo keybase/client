@@ -1,11 +1,16 @@
 // @flow
-import * as LoginGen from '../../actions/login-gen'
 import RenderError from '.'
-import {connect, type Dispatch} from '../../util/container'
+import {connect, type Dispatch, type TypedState} from '../../util/container'
+import {type RouteProps} from '../../route-tree/render-route'
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
-  onBack: () => dispatch(LoginGen.createOnBack()),
-  error: routeProps.get('error'),
+type OwnProps = RouteProps<{}, {}>
+
+const mapStateToProps = (state: TypedState) => ({
+  error: state.login.error.stringValue(),
 })
 
-export default connect(null, mapDispatchToProps)(RenderError)
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+  onBack: () => dispatch(ownProps.navigateUp()),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(RenderError)

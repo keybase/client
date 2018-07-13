@@ -33,7 +33,6 @@ export default function(
     case LoginGen.logout:
     case LoginGen.loggedout:
     case LoginGen.navBasedOnLoginAndInitialState:
-    case LoginGen.onBack:
     case LoginGen.onFinish:
     case LoginGen.launchAccountResetWebPage:
     case LoginGen.launchForgotPasswordWebPage:

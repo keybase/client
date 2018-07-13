@@ -16,21 +16,14 @@ const Row = ({name, type, onSelect}) => {
     backup: 'icon-paper-key-32',
   }: {[key: DeviceType]: IconType})[type]
 
-  const onClick = e => {
-    onSelect(name)
-    e && e.preventDefault()
-  }
-
   return (
     <Box>
-      <DeviceBox onClick={onClick}>
+      <DeviceBox onClick={() => onSelect(name)}>
         <Box style={stylesIconName}>
           <Box style={stylesIconContainer}>
             <Icon style={stylesIcon} type={iconType} color={colorIcon} />
           </Box>
-          <Text type="BodySemiboldItalic" onClick={onClick}>
-            {name}
-          </Text>
+          <Text type="BodySemiboldItalic">{name}</Text>
         </Box>
       </DeviceBox>
     </Box>

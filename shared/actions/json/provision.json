@@ -7,6 +7,7 @@
     "provisionError": { "error": "?HiddenString" },
     "submitUsernameOrEmail": { "usernameOrEmail": "string" },
     "submitPassphrase": { "passphrase": "HiddenString", },
+    "submitPaperkey": { "paperkey": "HiddenString", },
     "submitTextCode": { "phrase": "HiddenString" },
     "submitDeviceSelect": { "name": "string" },
     "submitPasswordInsteadOfDevice": {},
@@ -28,6 +29,9 @@
     },
     "showGPGPage": {},
     "showPassphrasePage": {
+      "error": "?HiddenString"
+    },
+    "showPaperkeyPage": {
       "error": "?HiddenString"
     },
     "addNewDevice": { "otherDeviceType": ["'desktop'", "'phone'", "'paperkey'"] },

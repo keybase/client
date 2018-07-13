@@ -138,10 +138,7 @@ function* navigateToLoginRoot(): Generator<any, void, any> {
   yield Saga.put(RouteTree.navigateTo(route, [Tabs.loginTab]))
 }
 
-const maybeNavigateToLoginRoot = (
-  action: LoginGen.OnBackPayload | RouteTypes.NavigateUp,
-  state: TypedState
-) => {
+const maybeNavigateToLoginRoot = (action: RouteTypes.NavigateUp, state: TypedState) => {
   if (
     action.type === RouteConstants.navigateUp &&
     state.routeTree.routeState &&
@@ -256,7 +253,7 @@ function* loginSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPureSimple(LoginGen.logout, logout)
   yield Saga.safeTakeEveryPureSimple([ConfigGen.readyForBootstrap, LoginGen.loggedout], getAccounts)
 
-  yield Saga.safeTakeEveryPure([LoginGen.onBack, RouteConstants.navigateUp], maybeNavigateToLoginRoot)
+  yield Saga.safeTakeEveryPure(RouteConstants.navigateUp, maybeNavigateToLoginRoot)
 
   yield Saga.safeTakeEveryPureSimple(LoginGen.launchForgotPasswordWebPage, launchForgotPasswordWebPage)
   yield Saga.safeTakeEveryPureSimple(LoginGen.launchAccountResetWebPage, launchAccountResetWebPage)

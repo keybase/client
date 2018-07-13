@@ -1,9 +1,13 @@
 // @flow
 import * as LoginGen from '../../actions/login-gen'
+import * as Constants from '../../constants/login'
 import HiddenString from '../../util/hidden-string'
 import Passphrase from '.'
 import React, {Component} from 'react'
 import {connect, type TypedState} from '../../util/container'
+import {type RouteProps} from '../../route-tree/render-route'
+
+type OwnProps = RouteProps<{}, {}>
 
 type State = {
   showTyping: boolean,
@@ -56,20 +60,14 @@ class _Passphrase extends Component<Props, State> {
 }
 
 const mapStateToProps = (state: TypedState) => ({
-  waitingForResponse: state.engine.get('rpcWaitingStates').get('loginRpc'),
+  waitingForResponse: !!state.waiting.get(Constants.waitingKey),
 })
 
-const mapDispatchToProps = (dispatch: any) => ({
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+  onBack: () => dispatch(ownProps.navigateUp()),
   onForgotPassphrase: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
-  onBack: () => dispatch(LoginGen.createOnBack()),
   onSubmit: (passphrase: string) =>
     dispatch(LoginGen.createSubmitPassphrase({passphrase: new HiddenString(passphrase)})),
 })
 
-const mergeProps = (stateProps, dispatchProps, {routeProps}) => ({
-  ...stateProps,
-  ...dispatchProps,
-  ...routeProps.toObject(),
-})
-
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(_Passphrase)
+export default connect(mapStateToProps, mapDispatchToProps)(_Passphrase)
