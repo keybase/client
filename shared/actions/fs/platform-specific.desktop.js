@@ -1,5 +1,6 @@
 // @flow
 import * as FsGen from '../fs-gen'
+import * as ConfigGen from '../config-gen'
 import * as Saga from '../../util/saga'
 import {downloadFolder} from '../../util/file.desktop'
 import * as Config from '../../constants/config'
@@ -107,11 +108,48 @@ function _open(openPath: string) {
   })
 }
 
+function* openWithCurrentMountDir(openPath: string): Saga.SagaGenerator<any, any> {
+  const goodPath = path.posix.normalize(openPath)
+  if (!openPath.startsWith(Config.defaultKBFSPath)) {
+    throw new Error(`openWithCurrentMountDir requires ${Config.defaultKBFSPath} prefix: ${openPath}`)
+  }
+
+  // turns '/keybase/private/alice' to 'private/alice'
+  const subPath = goodPath
+    .split('/')
+    .slice(2)
+    .join(path.sep)
+
+  const state: TypedState = yield Saga.select()
+  let {
+    config: {kbfsPath},
+  } = state
+
+  if (!kbfsPath) {
+    kbfsPath = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
+
+    if (!kbfsPath) {
+      throw new Error('No kbfsPath (RPC)')
+    }
+
+    yield Saga.put(ConfigGen.createChangeKBFSPath({kbfsPath}))
+  }
+
+  const resolvedPath = path.resolve(kbfsPath, subPath)
+  // Check to make sure our resolved path starts with the kbfsPath
+  // i.e. (not opening a folder outside kbfs)
+  if (!resolvedPath.startsWith(kbfsPath)) {
+    throw new Error(`openWithCurrentMountDir requires ${kbfsPath} prefix: ${goodPath}`)
+  }
+
+  yield Saga.call(_open, resolvedPath)
+}
+
 function openInFileUISaga({payload: {path}}: FsGen.OpenInFileUIPayload, state: TypedState) {
   const openPath = path || downloadFolder
   const enabled = state.fs.fuseStatus && state.fs.fuseStatus.kextStarted
   if (isLinux || enabled) {
-    return Saga.call(_open, openPath)
+    return Saga.call(openWithCurrentMountDir, openPath)
   } else {
     return Saga.put(navigateTo([fsTab, {props: {path: Types.stringToPath(openPath)}, selected: 'folder'}]))
   }

@@ -77,8 +77,7 @@ const provider = createPropProvider({
     openDownloadFolder: action('openDownloadFolder'),
   }),
   ConnectedUpload: () => ({
-    files: 1,
-    timeLeft: '42 s',
+    files: 0,
   }),
   ConnectedDownload: ({downloadKey}) => ({
     filename: downloadKey,
@@ -520,7 +519,7 @@ const load = () => {
         />
       </Box>
     ))
-    .add('UploadBanner', () => <Upload files={42} timeLeft="23 min" />)
+    .add('UploadBanner', () => <Upload files={42} timeLeft="23 min" showing={true} />)
     .add('ResetRows', () => (
       <Files
         path={Types.stringToPath('/keybase')}

@@ -1994,6 +1994,9 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			listener := newServerChatListener()
 			ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
 			ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+			if ephemeralLifetime != nil {
+				tc.m.G().GetUPAKLoader().ClearMemory()
+			}
 
 			assertEphemeral := func(ephemeralLifetime *gregor1.DurationSec, unboxed chat1.UIMessage) {
 				valid := unboxed.Valid()
