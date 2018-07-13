@@ -4,6 +4,7 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import DeleteHistoryWarning from '.'
 import {type RouteProps} from '../../route-tree/render-route'
 import {compose, connect, type TypedState, type Dispatch} from '../../util/container'
+import {isMobile} from '../../constants/platform'
 
 type OwnProps = RouteProps<
   {
@@ -21,7 +22,8 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}: OwnProps) => ({
-  onBack: () => dispatch(navigateUp()),
+  onCancel: isMobile ? () => dispatch(navigateUp()) : null,
+  onBack: isMobile ? null : () => dispatch(navigateUp()),
   onClose: () => dispatch(navigateUp()),
   onDeleteHistory: () => {
     const conversationIDKey = routeProps.get('conversationIDKey')
@@ -37,7 +39,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}: OwnPro
 const mergeProps = (stateProps, dispatchProps) => ({
   ...stateProps,
   ...dispatchProps,
-  title: 'Delete message history',
 })
 
 export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(DeleteHistoryWarning)
