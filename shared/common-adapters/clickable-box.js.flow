@@ -22,6 +22,8 @@ export type Props = {
   onMouseLeave?: ?() => void,
   onMouseDown?: ?() => void,
   onMouseUp?: ?() => void,
+  tooltip?: string,
+  tooltipMultiline?: boolean,
 }
 
 declare export default class ClickableBox extends Component<Props> {}

@@ -192,7 +192,11 @@ function ModalPositionRelative<PP>(
       this.state = {style: {}}
     }
 
-    _computeStyle = (targetRect: ?ClientRect) => {
+    _computeStyle = (targetRect: ?ClientRect, is2ndCall?: boolean) => {
+      // If we need to center, the offset calculation depends on rendered
+      // bounding rect. So call the method in async again in order to get the
+      // calculation correct.
+      const need2ndCall = !is2ndCall && includes(this.props.position, 'center')
       if (!targetRect) return
       const popupNode = this.popupNode
       if (!(popupNode instanceof HTMLElement)) {
@@ -203,8 +207,10 @@ function ModalPositionRelative<PP>(
       const style = collapseStyles([
         computePopupStyle(this.props.position, targetRect, popupNode.getBoundingClientRect()),
         this.props.style,
+        need2ndCall ? {opacity: 0} : {},
       ])
       this.setState({style})
+      need2ndCall && setTimeout(() => this._computeStyle(this.props.targetRect, true))
     }
 
     componentDidUpdate(prevProps: ModalPositionRelativeProps<PP>) {

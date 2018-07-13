@@ -18,13 +18,21 @@ const Downloads = (props: DownloadsProps) =>
       </Box>
       <Box style={styles.buttonsBox}>
         {props.thereAreMore ? (
-          <ClickableBox style={styles.iconBoxEllipsis} onClick={props.openDownloadFolder}>
+          <ClickableBox
+            style={styles.iconBoxEllipsis}
+            onClick={props.openDownloadFolder}
+            tooltip="Open Downloads folder"
+          >
             <Icon type="iconfont-ellipsis" hint="Open downloads folder" color={globalColors.black_40} />
           </ClickableBox>
         ) : (
           <Box /> /* have a box here to make space-between work */
         )}
-        <ClickableBox style={styles.iconBoxOpenDownload} onClick={props.openDownloadFolder}>
+        <ClickableBox
+          style={styles.iconBoxOpenDownload}
+          onClick={props.openDownloadFolder}
+          tooltip="Open Downloads folder"
+        >
           <Icon type="iconfont-folder-downloads" hint="Open downloads folder" color={globalColors.black_40} />
         </ClickableBox>
       </Box>
