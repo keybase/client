@@ -650,6 +650,23 @@ func (d *Service) hourlyChecks() {
 	}()
 }
 
+func (d *Service) deviceCloneSelfCheck() error {
+	eng := engine.NewDeviceCloneTokenEngine(d.G())
+	m := libkb.NewMetaContextBackground(d.G())
+
+	beforeClones := eng.ClonesCount(m)
+	if err := engine.RunEngine2(m, eng); err != nil {
+		return err
+	}
+	newClones := eng.ClonesCount(m) - beforeClones
+	d.G().Log.Debug("deviceCloneSelfCheck: is there a new clone? %v", (newClones > 0))
+	if newClones > 0 {
+		d.G().Log.Debug("deviceCloneSelfCheck: notifying user %v -> %v restarts", beforeClones, newClones+beforeClones)
+		d.G().NotifyRouter.HandleDeviceCloneNotification(newClones)
+	}
+	return nil
+}
+
 func (d *Service) slowChecks() {
 	ticker := libkb.NewBgTicker(6 * time.Hour)
 	d.G().PushShutdownHook(func() error {
@@ -664,6 +681,10 @@ func (d *Service) slowChecks() {
 			d.G().Log.Debug("| checking if current device should log out")
 			if err := d.G().LogoutSelfCheck(); err != nil {
 				d.G().Log.Debug("LogoutSelfCheck error: %s", err)
+			}
+			d.G().Log.Debug("| checking if current device is a clone")
+			if err := d.deviceCloneSelfCheck(); err != nil {
+				d.G().Log.Debug("deviceCloneSelfCheck error: %s", err)
 			}
 			d.G().Log.Debug("- slow checks loop")
 		}

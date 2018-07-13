@@ -68,6 +68,7 @@ type NotifyListener interface {
 	TeamExit(teamID keybase1.TeamID)
 	NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	AvatarUpdated(name string, formats []keybase1.AvatarFormat)
+	DeviceCloneCountChanged(newClones int)
 }
 
 type NoopNotifyListener struct{}
@@ -127,6 +128,7 @@ func (n *NoopNotifyListener) TeamDeleted(teamID keybase1.TeamID)                
 func (n *NoopNotifyListener) TeamExit(teamID keybase1.TeamID)                                    {}
 func (n *NoopNotifyListener) NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration) {}
 func (n *NoopNotifyListener) AvatarUpdated(name string, formats []keybase1.AvatarFormat)         {}
+func (n *NoopNotifyListener) DeviceCloneCountChanged(newClones int)                              {}
 
 // NotifyRouter routes notifications to the various active RPC
 // connections. It's careful only to route to those who are interested
@@ -548,6 +550,35 @@ func (n *NotifyRouter) HandleFavoritesChanged(uid keybase1.UID) {
 		n.listener.FavoritesChanged(uid)
 	}
 	n.G().Log.Debug("- Sent favorites changed notification")
+}
+
+// HandleDeviceCloneNotification is called whenever
+// ALEX: add better comment here
+// It will broadcast the messages to all curious listeners.
+func (n *NotifyRouter) HandleDeviceCloneNotification(newClones int) {
+	if n == nil {
+		return
+	}
+
+	n.G().Log.Debug("+ Sending device clone notification")
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `DeviceClone` notification type
+		if n.getNotificationChannels(id).DeviceClone {
+			// In the background do...
+			go func() {
+				// A send of a `DeviceCloneCountChanged` RPC with the number of newly discovered clones
+				(keybase1.NotifyDeviceCloneClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).DeviceCloneCountChanged(context.Background(), newClones)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.DeviceCloneCountChanged(newClones)
+	}
+	n.G().Log.Debug("- Sent device clone notification")
 }
 
 func (n *NotifyRouter) shouldSendChatNotification(id ConnectionID, topicType chat1.TopicType) bool {
