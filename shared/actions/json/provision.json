@@ -1,0 +1,35 @@
+{
+  "prelude": [
+    "import * as Types from '../constants/types/provision'",
+    "import HiddenString from '../util/hidden-string'"
+  ],
+  "actions": {
+    "provisionError": { "error": "?HiddenString" },
+    "submitUsernameOrEmail": { "usernameOrEmail": "string" },
+    "submitProvisionPassphrase": { "passphrase": "HiddenString", },
+    "submitProvisionTextCode": { "phrase": "HiddenString" },
+    "submitProvisionDeviceSelect": { "name": "string" },
+    "submitProvisionPasswordInsteadOfDevice": {},
+    "submitProvisionDeviceName": { "name": "string" },
+    "submitProvisionGPGMethod": { "exportKey": "boolean" },
+    "showDeviceListPage": {
+      "_description": "Show the list of devices the user can use to provision a device",
+      "canSelectNoDevice": "boolean",
+      "devices": "Array<Types.Device>"
+    },
+    "showNewDeviceNamePage": {
+      "_description": "Ask the user for a new device name",
+      "existingDevices": "Array<string>",
+      "error": "?HiddenString"
+    },
+    "showCodePage": {
+      "code": "HiddenString",
+      "error": "?HiddenString"
+    },
+    "showGPGPage": {},
+    "showPassphrasePage": {
+      "error": "?HiddenString"
+    },
+    "addNewDevice": { "otherDeviceType": ["'desktop'", "'phone'", "'paperkey'"] },
+  }
+}

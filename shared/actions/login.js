@@ -1,35 +1,34 @@
 // @flow
 // Look at this doc: https://goo.gl/7B6p4H
-import logger from '../../logger'
-import * as Chat2Gen from '../chat2-gen'
-import * as ConfigGen from '../config-gen'
-import * as DevicesConstants from '../../constants/devices'
-import * as WaitingGen from '../waiting-gen'
-import * as LoginGen from '../login-gen'
-import * as ChatTypes from '../../constants/types/chat2'
-import * as ChatConstants from '../../constants/chat2'
-import * as Constants from '../../constants/login'
-import * as RouteTypes from '../../constants/types/route-tree'
-import * as RouteConstants from '../../constants/route-tree'
-import * as RouteTree from '../route-tree'
-import * as Saga from '../../util/saga'
-import * as Tabs from '../../constants/tabs'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import openURL from '../../util/open-url'
-import {getExtendedStatus} from '../config'
-import {isMobile} from '../../constants/platform'
-import appRouteTree from '../../app/routes-app'
-import loginRouteTree from '../../app/routes-login'
-import {type InitialState} from '../../constants/types/config'
-import {type TypedState} from '../../constants/reducer'
-import provisionSaga from './provision'
-import {niceError} from '../../util/errors'
-import HiddenString from '../../util/hidden-string'
+import logger from '../logger'
+import * as Chat2Gen from './chat2-gen'
+import * as ConfigGen from './config-gen'
+import * as DevicesConstants from '../constants/devices'
+import * as WaitingGen from './waiting-gen'
+import * as LoginGen from './login-gen'
+import * as ChatTypes from '../constants/types/chat2'
+import * as ChatConstants from '../constants/chat2'
+import * as Constants from '../constants/login'
+import * as RouteTypes from '../constants/types/route-tree'
+import * as RouteConstants from '../constants/route-tree'
+import * as RouteTree from './route-tree'
+import * as Saga from '../util/saga'
+import * as Tabs from '../constants/tabs'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import openURL from '../util/open-url'
+import {getExtendedStatus} from './config'
+import {isMobile} from '../constants/platform'
+import appRouteTree from '../app/routes-app'
+import loginRouteTree from '../app/routes-login'
+import {type InitialState} from '../constants/types/config'
+import {type TypedState} from '../constants/reducer'
+import {niceError} from '../util/errors'
+import HiddenString from '../util/hidden-string'
 
 // Login dips into the routing dep tree, so we need to tell
 // webpack that we can still handle updates that propagate to here.
 export function setupLoginHMR(cb: () => void) {
-  module.hot && module.hot.accept(['../../app/routes-app', '../../app/routes-login'], cb)
+  module.hot && module.hot.accept(['../app/routes-app', '../app/routes-login'], cb)
 }
 
 function* getAccounts(): Generator<any, void, any> {
@@ -257,8 +256,6 @@ function* loginSaga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.safeTakeEveryPureSimple(LoginGen.launchForgotPasswordWebPage, launchForgotPasswordWebPage)
   yield Saga.safeTakeEveryPureSimple(LoginGen.launchAccountResetWebPage, launchAccountResetWebPage)
-
-  yield Saga.fork(provisionSaga)
 }
 
 export default loginSaga

@@ -1,7 +1,7 @@
 // @flow
 // TODO merge desktop and native views
-import * as LoginGen from '../../../actions/login-gen'
-import * as Constants from '../../../constants/login'
+import * as ProvisionGen from '../../../actions/provision-gen'
+import * as Constants from '../../../constants/provision'
 import SetPublicName from '.'
 import {connect, type TypedState, withStateHandlers, compose} from '../../../util/container'
 import {type RouteProps} from '../../../route-tree/render-route'
@@ -9,13 +9,13 @@ import {type RouteProps} from '../../../route-tree/render-route'
 type OwnProps = RouteProps<{deviceName: string}, {}>
 
 const mapStateToProps = (state: TypedState) => ({
-  _existingDevices: state.login.provisionExistingDevices.toArray(),
-  deviceNameError: state.login.error,
+  _existingDevices: state.provision.existingDevices.toArray(),
+  deviceNameError: state.provision.error,
   waiting: !!state.waiting.get(Constants.waitingKey),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  _onSubmit: (name: string) => dispatch(LoginGen.createSubmitProvisionDeviceName({name})),
+  _onSubmit: (name: string) => dispatch(ProvisionGen.createSubmitProvisionDeviceName({name})),
   onBack: () => dispatch(ownProps.navigateUp()),
 })
 

@@ -10,6 +10,7 @@ import favorite from './favorite'
 import fs from './fs'
 import gregor from './gregor'
 import login from './login'
+import provision from './provision'
 import notifications from './notifications'
 import people from './people'
 import pinentry from './pinentry'
@@ -47,6 +48,7 @@ const reducers = {
   pinentry,
   planBilling,
   profile,
+  provision,
   push,
   routeTree,
   settings,

@@ -1,4 +1,5 @@
 // @flow
+import * as ProvisionGen from '../../../actions/provision-gen'
 import * as LoginGen from '../../../actions/login-gen'
 import SelectOtherDevice from '.'
 import {connect, type TypedState, type Dispatch} from '../../../util/container'
@@ -7,17 +8,17 @@ import {type RouteProps} from '../../../route-tree/render-route'
 type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = (state: TypedState) => ({
-  _canSelectNoDevice: state.login.provisionDevicesCanSelectNoDevice,
-  devices: state.login.provisionDevices,
+  _canSelectNoDevice: state.provision.devicesCanSelectNoDevice,
+  devices: state.provision.devices,
 })
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  _onUsePasswordInstead: () => dispatch(LoginGen.createSubmitProvisionPasswordInsteadOfDevice()),
+  _onUsePasswordInstead: () => dispatch(ProvisionGen.createSubmitProvisionPasswordInsteadOfDevice()),
   onBack: () => dispatch(ownProps.navigateUp()),
   onResetAccount: () => {
     dispatch(LoginGen.createLaunchAccountResetWebPage())
     dispatch(ownProps.navigateUp())
   },
-  onSelect: (name: string) => dispatch(LoginGen.createSubmitProvisionDeviceSelect({name})),
+  onSelect: (name: string) => dispatch(ProvisionGen.createSubmitProvisionDeviceSelect({name})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({

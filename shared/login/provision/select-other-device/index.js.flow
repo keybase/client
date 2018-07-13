@@ -1,7 +1,7 @@
 // @flow
 // TODO merge desktop/native for this view
 import {Component} from 'react'
-import * as Types from '../../../constants/types/login'
+import * as Types from '../../../constants/types/provision'
 
 export type Props = {|
   devices: Array<Types.Device>,

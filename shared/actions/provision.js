@@ -1,15 +1,15 @@
 // @flow
-import * as Constants from '../../constants/login'
-import * as WaitingGen from '../waiting-gen'
-import * as LoginGen from '../login-gen'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Saga from '../../util/saga'
-import * as RouteTree from '../route-tree'
-import * as Tabs from '../../constants/tabs'
-import {isMobile} from '../../constants/platform'
-import HiddenString from '../../util/hidden-string'
-import {type TypedState} from '../../constants/reducer'
-import {niceError} from '../../util/errors'
+import * as Constants from '../constants/provision'
+import * as WaitingGen from './waiting-gen'
+import * as ProvisionGen from './provision-gen'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import * as Saga from '../util/saga'
+import * as RouteTree from './route-tree'
+import * as Tabs from '../constants/tabs'
+import {isMobile} from '../constants/platform'
+import HiddenString from '../util/hidden-string'
+import {type TypedState} from '../constants/reducer'
+import {niceError} from '../util/errors'
 
 type ValidCallbacks =
   | 'keybase.1.gpgUi.selectKey'
@@ -50,7 +50,7 @@ let provisioningManager = new ProvisioningManager()
 const chooseDeviceHandler = (params: RPCTypes.ProvisionUiChooseDeviceRpcParam, response, state) => {
   provisioningManager.stashResponse('keybase.1.provisionUi.chooseDevice', response)
   return Saga.put(
-    LoginGen.createShowDeviceListPage({
+    ProvisionGen.createShowDeviceListPage({
       canSelectNoDevice: params.canSelectNoDevice,
       devices: (params.devices || []).map(d => Constants.rpcDeviceToDevice(d)),
     })
@@ -62,12 +62,12 @@ const submitProvisionDeviceSelect = (state: TypedState) => {
     throw new Error('Tried to submit a device choice but missing callback')
   }
 
-  if (!state.login.provisionSelectedDevice) {
+  if (!state.provision.selectedDevice) {
     response.error()
     throw new Error('Tried to submit a device choice but missing device in store')
   }
 
-  response.result(state.login.provisionSelectedDevice.id)
+  response.result(state.provision.selectedDevice.id)
 }
 
 // Choosing a name for this new device
@@ -78,7 +78,7 @@ const promptNewDeviceNameHandler = (
 ) => {
   provisioningManager.stashResponse('keybase.1.provisionUi.PromptNewDeviceName', response)
   return Saga.put(
-    LoginGen.createShowNewDeviceNamePage({
+    ProvisionGen.createShowNewDeviceNamePage({
       error: params.errorMessage ? new HiddenString(params.errorMessage) : null,
       existingDevices: params.existingDevices || [],
     })
@@ -86,7 +86,7 @@ const promptNewDeviceNameHandler = (
 }
 const submitProvisionDeviceName = (state: TypedState) => {
   // local error, ignore
-  if (state.login.error) {
+  if (state.provision.error) {
     return
   }
 
@@ -95,12 +95,12 @@ const submitProvisionDeviceName = (state: TypedState) => {
     throw new Error('Tried to submit a device name but missing callback')
   }
 
-  if (!state.login.provisionDeviceName) {
+  if (!state.provision.deviceName) {
     response.error()
     throw new Error('Tried to submit a device name but missing in store')
   }
 
-  response.result(state.login.provisionDeviceName)
+  response.result(state.provision.deviceName)
 }
 
 // We now need to exchange a secret sentence. Either side can move the process forward
@@ -111,7 +111,7 @@ const displayAndPromptSecretHandler = (
 ) => {
   provisioningManager.stashResponse('keybase.1.provisionUi.DisplayAndPromptSecret', response)
   return Saga.put(
-    LoginGen.createShowCodePage({
+    ProvisionGen.createShowCodePage({
       code: new HiddenString(params.phrase),
       error: params.previousErr ? new HiddenString(params.previousErr) : null,
     })
@@ -119,7 +119,7 @@ const displayAndPromptSecretHandler = (
 }
 const submitProvisionTextCode = (state: TypedState) => {
   // local error, ignore
-  if (state.login.error) {
+  if (state.provision.error) {
     return
   }
 
@@ -128,22 +128,25 @@ const submitProvisionTextCode = (state: TypedState) => {
     throw new Error('Tried to submit a code but missing callback')
   }
 
-  if (!state.login.codePageTextCode.stringValue()) {
+  if (!state.provision.codePageTextCode.stringValue()) {
     response.error()
     throw new Error('Tried to submit a code but missing in store')
   }
 
-  response.result({code: null, phrase: state.login.codePageTextCode.stringValue()})
+  response.result({code: null, phrase: state.provision.codePageTextCode.stringValue()})
 }
 
 // Trying to use gpg flow
 const chooseGPGMethodHandler = (params: RPCTypes.ProvisionUiChooseGPGMethodRpcParam, response, state) => {
   provisioningManager.stashResponse('keybase.1.provisionUi.chooseGPGMethod', response)
-  return Saga.put(LoginGen.createShowGPGPage())
+  return Saga.put(ProvisionGen.createShowGPGPage())
 }
-const submitProvisionGPGMethod = (state: TypedState, action: LoginGen.SubmitProvisionGPGMethodPayload) => {
+const submitProvisionGPGMethod = (
+  state: TypedState,
+  action: ProvisionGen.SubmitProvisionGPGMethodPayload
+) => {
   // local error, ignore
-  if (state.login.error) {
+  if (state.provision.error) {
     return
   }
 
@@ -168,14 +171,17 @@ const getPassphraseHandler = (params: RPCTypes.SecretUiGetPassphraseRpcParam, re
       error = params.pinentry.retryLabel
     }
 
-    return Saga.put(LoginGen.createShowPassphrasePage({error: error ? new HiddenString(error) : null}))
+    return Saga.put(ProvisionGen.createShowPassphrasePage({error: error ? new HiddenString(error) : null}))
   } else {
     throw new Error('Got confused about passphrase entry. Please send a log to us!')
   }
 }
-const submitProvisionPassphrase = (state: TypedState, action: LoginGen.SubmitProvisionPassphrasePayload) => {
+const submitProvisionPassphrase = (
+  state: TypedState,
+  action: ProvisionGen.SubmitProvisionPassphrasePayload
+) => {
   // local error, ignore
-  if (state.login.error) {
+  if (state.provision.error) {
     return
   }
 
@@ -197,7 +203,7 @@ const startProvisioning = (state: TypedState) =>
     provisioningManager = new ProvisioningManager()
 
     try {
-      const usernameOrEmail = state.login.provisionUsernameOrEmail
+      const usernameOrEmail = state.provision.usernameOrEmail
       if (!usernameOrEmail) {
         return
       }
@@ -237,7 +243,7 @@ const startProvisioning = (state: TypedState) =>
         waitingKey: Constants.waitingKey,
       })
     } catch (e) {
-      yield Saga.put(LoginGen.createLoginError({error: new HiddenString(niceError(e))}))
+      yield Saga.put(ProvisionGen.createProvisionError({error: new HiddenString(niceError(e))}))
     } finally {
       // Reset us to zero
       yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.waitingKey}))
@@ -245,40 +251,41 @@ const startProvisioning = (state: TypedState) =>
   })
 
 const showDeviceListPage = (state: TypedState) =>
-  !state.login.error && Saga.put(RouteTree.navigateAppend(['selectOtherDevice'], [Tabs.loginTab, 'login']))
+  !state.provision.error &&
+  Saga.put(RouteTree.navigateAppend(['selectOtherDevice'], [Tabs.loginTab, 'login']))
 
 const showNewDeviceNamePage = (state: TypedState) =>
-  !state.login.error && Saga.put(RouteTree.navigateAppend(['setPublicName'], [Tabs.loginTab, 'login']))
+  !state.provision.error && Saga.put(RouteTree.navigateAppend(['setPublicName'], [Tabs.loginTab, 'login']))
 
 const showCodePage = (state: TypedState) =>
-  !state.login.error && Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.loginTab, 'login']))
+  !state.provision.error && Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.loginTab, 'login']))
 
 const showGPGPage = (state: TypedState) =>
-  !state.login.error && Saga.put(RouteTree.navigateAppend(['gpgSign'], [Tabs.loginTab, 'login']))
+  !state.provision.error && Saga.put(RouteTree.navigateAppend(['gpgSign'], [Tabs.loginTab, 'login']))
 
 const showPassphrasePage = (state: TypedState) =>
-  !state.login.error && Saga.put(RouteTree.navigateAppend(['passphrase'], [Tabs.loginTab, 'login']))
+  !state.provision.error && Saga.put(RouteTree.navigateAppend(['passphrase'], [Tabs.loginTab, 'login']))
 
 function* provisionSaga(): Saga.SagaGenerator<any, any> {
   // Start provision
-  yield Saga.safeTakeEveryPureSimple(LoginGen.submitUsernameOrEmail, startProvisioning)
+  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitUsernameOrEmail, startProvisioning)
 
   // Submits
-  yield Saga.safeTakeEveryPureSimple(LoginGen.submitProvisionDeviceSelect, submitProvisionDeviceSelect)
-  yield Saga.safeTakeEveryPureSimple(LoginGen.submitProvisionDeviceName, submitProvisionDeviceName)
-  yield Saga.safeTakeEveryPureSimple(LoginGen.submitProvisionTextCode, submitProvisionTextCode)
-  yield Saga.safeTakeEveryPureSimple(LoginGen.submitProvisionGPGMethod, submitProvisionGPGMethod)
-  yield Saga.safeTakeEveryPureSimple(LoginGen.submitProvisionPassphrase, submitProvisionPassphrase)
+  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitProvisionDeviceSelect, submitProvisionDeviceSelect)
+  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitProvisionDeviceName, submitProvisionDeviceName)
+  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitProvisionTextCode, submitProvisionTextCode)
+  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitProvisionGPGMethod, submitProvisionGPGMethod)
+  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitProvisionPassphrase, submitProvisionPassphrase)
 
   // Screens
-  yield Saga.safeTakeEveryPureSimple(LoginGen.showDeviceListPage, showDeviceListPage)
-  yield Saga.safeTakeEveryPureSimple(LoginGen.showNewDeviceNamePage, showNewDeviceNamePage)
-  yield Saga.safeTakeEveryPureSimple(LoginGen.showCodePage, showCodePage)
-  yield Saga.safeTakeEveryPureSimple(LoginGen.showGPGPage, showGPGPage)
-  yield Saga.safeTakeEveryPureSimple(LoginGen.showPassphrasePage, showPassphrasePage)
+  yield Saga.safeTakeEveryPureSimple(ProvisionGen.showDeviceListPage, showDeviceListPage)
+  yield Saga.safeTakeEveryPureSimple(ProvisionGen.showNewDeviceNamePage, showNewDeviceNamePage)
+  yield Saga.safeTakeEveryPureSimple(ProvisionGen.showCodePage, showCodePage)
+  yield Saga.safeTakeEveryPureSimple(ProvisionGen.showGPGPage, showGPGPage)
+  yield Saga.safeTakeEveryPureSimple(ProvisionGen.showPassphrasePage, showPassphrasePage)
 
   // TODO
-  // yield Saga.safeTakeLatest(LoginGen.addNewDevice, _addNewDevice)
+  // yield Saga.safeTakeLatest(ProvisionGen.addNewDevice, _addNewDevice)
 }
 
 export default provisionSaga

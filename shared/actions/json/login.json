@@ -9,32 +9,7 @@
       "passphrase": "HiddenString"
     },
     "startLogin": {},
-    "submitUsernameOrEmail": { "usernameOrEmail": "string" },
     "submitPassphrase": { "passphrase": "HiddenString", },
-    "submitProvisionPassphrase": { "passphrase": "HiddenString", },
-    "submitProvisionTextCode": { "phrase": "HiddenString" },
-    "submitProvisionDeviceSelect": { "name": "string" },
-    "submitProvisionPasswordInsteadOfDevice": {},
-    "submitProvisionDeviceName": { "name": "string" },
-    "submitProvisionGPGMethod": { "exportKey": "boolean" },
-    "showDeviceListPage": {
-      "_description": "Show the list of devices the user can use to provision a device",
-      "canSelectNoDevice": "boolean",
-      "devices": "Array<Types.Device>"
-    },
-    "showNewDeviceNamePage": {
-      "_description": "Ask the user for a new device name",
-      "existingDevices": "Array<string>",
-      "error": "?HiddenString"
-    },
-    "showCodePage": {
-      "code": "HiddenString",
-      "error": "?HiddenString"
-    },
-    "showGPGPage": {},
-    "showPassphrasePage": {
-      "error": "?HiddenString"
-    },
     "launchAccountResetWebPage": {},
     "launchForgotPasswordWebPage": {},
     "loginError": { "error": "?HiddenString" },
@@ -44,7 +19,6 @@
     // TODO remove
     "onBack": {},
     "onFinish": {},
-    "addNewDevice": { "otherDeviceType": ["'desktop'", "'phone'", "'paperkey'"] },
     "navBasedOnLoginAndInitialState": {},
     "setRevokedSelf": { "revoked": "string" },
     "setDeletedSelf": { "deletedUsername": "string" },

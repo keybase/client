@@ -10,6 +10,7 @@ import type {State as Favorite} from '../constants/types/favorite'
 import type {State as Gregor} from '../constants/types/gregor'
 import type {State as FS} from '../constants/types/fs'
 import type {State as Login} from '../constants/types/login'
+import type {State as Provision} from '../constants/types/provision'
 import type {State as Notification} from '../constants/types/notifications'
 import type {State as Pinentry} from '../constants/types/pinentry'
 import type {State as Profile} from '../constants/types/profile'
@@ -36,6 +37,7 @@ export type TypedState = $ReadOnly<{|
   fs: FS,
   gregor: Gregor,
   login: Login,
+  provision: Provision,
   notifications: Notification,
   people: People,
   pinentry: Pinentry,

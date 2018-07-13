@@ -2,7 +2,7 @@
 import * as React from 'react'
 import SelectOtherDevice from '.'
 import {action, storiesOf} from '../../../stories/storybook'
-import * as Constants from '../../../constants/login'
+import * as Constants from '../../../constants/provision'
 
 const rd = {
   cTime: 0,
