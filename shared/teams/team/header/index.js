@@ -15,6 +15,7 @@ import {
 } from '../../../common-adapters'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
 import {
+  desktopStyles,
   collapseStyles,
   globalColors,
   globalMargins,
@@ -78,11 +79,17 @@ const _TeamHeader = (props: Props) => (
       {/* Description */}
       {props.canEditDescription || props.description ? (
         <Text
+          className={props.description ? 'hover-underline' : ''}
           style={collapseStyles([
             styles.description,
-            {
-              color: props.description ? globalColors.black_75 : globalColors.black_20,
-            },
+            platformStyles({
+              common: {
+                color: props.description ? globalColors.black_75 : globalColors.black_20,
+              },
+              isElectron: {
+                ...(props.description ? desktopStyles.editable : desktopStyles.clickable),
+              },
+            }),
           ])}
           onClick={props.canEditDescription ? props.onEditDescription : null}
           type={props.canEditDescription ? 'BodySecondaryLink' : 'Body'}

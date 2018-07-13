@@ -1,6 +1,5 @@
 // @flow
 // Styles from our designers
-import type {Background} from '../common-adapters/text'
 import * as CSS from './css'
 export {default as globalColors} from './colors'
 
@@ -29,6 +28,7 @@ declare export var globalStyles: {
 }
 declare export var desktopStyles: {
   clickable?: CSS._StylesDesktop,
+  editable?: CSS._StylesDesktop,
   fadeOpacity?: CSS._StylesDesktop,
   noSelect?: CSS._StylesDesktop,
   scrollable?: CSS._StylesDesktop, // TODO this is used a lot of places like it's a global style but we should use scrollview instead
