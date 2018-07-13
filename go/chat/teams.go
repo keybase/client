@@ -294,10 +294,12 @@ func batchLoadEncryptionKIDs(ctx context.Context, g *libkb.GlobalContext, uvs []
 	return ret, err
 }
 
+const pairseMACDisabled = true
+
 func shouldPairwiseMAC(ctx context.Context, g *globals.Context, loader *TeamLoader, tlfName string,
 	tlfID chat1.TLFID, membersType chat1.ConversationMembersType, public bool) (should bool, kids []keybase1.KID, err error) {
 
-	if public {
+	if pairseMACDisabled || public {
 		return false, nil, nil
 	}
 
