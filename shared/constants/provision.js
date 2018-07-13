@@ -10,6 +10,7 @@ export const waitingKey = 'provision:waiting'
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   codePageOtherDeviceName: '',
   codePageOtherDeviceType: 'mobile',
+  codePageOtherDeviceId: '',
   codePageTextCode: new HiddenString(''),
   configuredAccounts: I.List(),
   deviceName: '',

@@ -26,7 +26,6 @@ const derivedProps = (
     otherDeviceName,
     otherDeviceType,
     textCode,
-    username: currentDeviceAlreadyProvisioned ? 'cnojima123' : '',
   }
 }
 

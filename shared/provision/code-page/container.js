@@ -8,19 +8,15 @@ import {type RouteProps} from '../../route-tree/render-route'
 type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  const otherDevice = state.provision.selectedDevice
-  if (!otherDevice) {
-    throw new Error('Code page but no device? Not allowed')
-  }
-
+  const currentDeviceAlreadyProvisioned = !!state.config.deviceName
   return {
-    currentDeviceAlreadyProvisioned: !!state.config.deviceName,
-    currentDeviceName: state.provision.deviceName,
+    currentDeviceAlreadyProvisioned,
+    // we either have a name for real or we asked on a previous screen
+    currentDeviceName: currentDeviceAlreadyProvisioned ? state.config.deviceName : state.provision.deviceName,
     currentDeviceType: isMobile ? 'mobile' : 'desktop',
-    otherDeviceName: otherDevice.name,
-    otherDeviceType: otherDevice.type,
+    otherDeviceName: state.provision.codePageOtherDeviceName,
+    otherDeviceType: state.provision.codePageOtherDeviceType,
     textCode: state.provision.codePageTextCode.stringValue(),
-    username: state.config.username || '',
   }
 }
 
@@ -39,7 +35,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   otherDeviceName: stateProps.otherDeviceName,
   otherDeviceType: stateProps.otherDeviceType,
   textCode: stateProps.textCode,
-  username: stateProps.username,
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(CodePage2)

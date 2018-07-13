@@ -22,7 +22,6 @@ export type DeviceType = 'mobile' | 'desktop'
 export type Tab = 'QR' | 'enterText' | 'viewText'
 
 type Props = {|
-  username: string,
   currentDeviceAlreadyProvisioned: boolean,
   currentDeviceType: DeviceType,
   currentDeviceName: string,
@@ -35,9 +34,9 @@ type Props = {|
   onSubmitTextCode: string => void,
 |}
 
-type State = {
+type State = {|
   tab: Tab,
-}
+|}
 
 class CodePage2 extends React.Component<Props, State> {
   constructor(props: Props) {
@@ -108,7 +107,7 @@ class CodePage2 extends React.Component<Props, State> {
         direction="vertical"
         fullWidth={true}
         fullHeight={true}
-        style={{backgroundColor: this._tabBackground()}}
+        style={collapseStyles([styles.codePageContainer, {backgroundColor: this._tabBackground()}])}
       >
         <BackButton
           onClick={this.props.onBack}
@@ -295,6 +294,10 @@ const styles = styleSheetCreate({
     marginTop: 'auto',
     right: -230,
     top: 0,
+  },
+  codePageContainer: {
+    overflow: 'hidden',
+    position: 'relative',
   },
   container: platformStyles({
     common: {

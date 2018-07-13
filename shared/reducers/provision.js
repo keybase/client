@@ -23,15 +23,27 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         error: action.payload.error || initialState.error,
         existingDevices: I.List(action.payload.existingDevices),
       })
+    case ProvisionGen.addNewDevice:
+      return state.merge({
+        codePageOtherDeviceType: action.payload.otherDeviceType,
+        error: initialState.error,
+      })
     case ProvisionGen.showDeviceListPage:
       return state.merge({
         devices: I.List(action.payload.devices),
         error: initialState.error,
       })
     case ProvisionGen.submitDeviceSelect:
+      const selectedDevice = state.devices.find(d => d.name === action.payload.name)
+      if (!selectedDevice) {
+        throw new Error('Selected a non existant device?')
+      }
       return state.merge({
+        codePageOtherDeviceName: selectedDevice.name,
+        // only desktop or mobile, paperkey we treat as mobile but its never used in the flow
+        codePageOtherDeviceType: selectedDevice.type === 'desktop' ? 'desktop' : 'mobile',
+        codePageOtherDeviceId: selectedDevice.id,
         error: initialState.error,
-        selectedDevice: state.devices.find(d => d.name === action.payload.name),
       })
     case ProvisionGen.submitTextCode:
       return state.merge({
@@ -64,7 +76,6 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         usernameOrEmail: action.payload.usernameOrEmail,
       })
     // Saga only actions
-    case ProvisionGen.addNewDevice:
     case ProvisionGen.showGPGPage:
     case ProvisionGen.submitGPGMethod:
       return state
