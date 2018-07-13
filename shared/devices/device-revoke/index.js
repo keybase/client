@@ -31,7 +31,7 @@ const Header = (props: {name: string, type: DeviceType}) => {
   return (
     <Box style={styles.header}>
       <Icon type={icon} />
-      <Text type="BodySemibold" style={styles.name}>
+      <Text type="BodySemibold" style={styles.headerDeviceName}>
         {props.name}
       </Text>
     </Box>
@@ -61,7 +61,7 @@ class EndangeredTLFList extends React.Component<{endangeredTLFs: Array<string>, 
           <List
             items={this.props.endangeredTLFs}
             renderItem={this._renderTLFEntry}
-            style={styles.tlfContainer}
+            style={styles.tlfListContainer}
           />
         </Box>
       )
@@ -71,7 +71,7 @@ class EndangeredTLFList extends React.Component<{endangeredTLFs: Array<string>, 
 }
 
 const BodyText = (props: {name: string, currentDevice: boolean}) => (
-  <Box style={styles.body}>
+  <Box style={styles.bodyTextContainer}>
     <Text type="BodySemibold" style={styles.bodyText}>
       Are you sure you want to revoke{' '}
       {props.currentDevice ? 'your current device' : <Text type="BodySemiboldItalic">{props.name}</Text>}
@@ -99,28 +99,23 @@ const DeviceRevoke = (props: Props) => (
 )
 
 const styles = styleSheetCreate({
+  bodyText: {
+    textAlign: 'center',
+  },
+  bodyTextContainer: {
+    marginBottom: globalMargins.tiny,
+  },
   header: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
   },
-  body: {
-    marginBottom: globalMargins.tiny,
-  },
-  bodyText: {
-    textAlign: 'center',
-  },
-  tlfEntry: {
-    marginBottom: globalMargins.xtiny,
-    flexDirection: 'row',
-    textAlign: 'left',
-  },
-  name: {
+  headerDeviceName: {
     color: globalColors.red,
     fontStyle: 'italic',
     marginTop: 4,
     textDecorationLine: 'line-through',
   },
-  tlfContainer: platformStyles({
+  tlfListContainer: platformStyles({
     common: {
       ...globalStyles.flexBoxColumn,
       alignItems: 'flex-start',
@@ -135,13 +130,18 @@ const styles = styleSheetCreate({
     },
     isElectron: {
       minHeight: 162,
-      overflowY: 'scroll',
       width: 440,
     },
     isMobile: {
       width: '100%',
     },
   }),
+
+  tlfEntry: {
+    flexDirection: 'row',
+    marginBottom: globalMargins.xtiny,
+    textAlign: 'left',
+  },
 })
 
 export default DeviceRevoke
