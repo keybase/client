@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libfs"
@@ -316,16 +315,8 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 			if err := oc.ReturningFileAllowed(); err != nil {
 				return nil, 0, err
 			}
-			node, _, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, path[0][len(libfs.FileInfoPrefix):])
-			if err != nil {
-				return nil, 0, err
-			}
-			nmd, err := d.folder.fs.config.KBFSOps().GetNodeMetadata(ctx, node)
-			if err != nil {
-				return nil, 0, err
-			}
-			return &SpecialReadFile{read: fileInfo(nmd).read, fs: d.folder.fs},
-				dokan.ExistingFile, nil
+			name := path[0][len(libfs.FileInfoPrefix):]
+			return NewFileInfoFile(d.folder.fs, d.node, name), 0, nil
 		}
 
 		newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, path[0])
@@ -396,13 +387,6 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 	}
 	d.refcount.Increase()
 	return d, dokan.ExistingDir, nil
-}
-
-type fileInfo libkbfs.NodeMetadata
-
-func (fi fileInfo) read(ctx context.Context) ([]byte, time.Time, error) {
-	bs, err := libfs.PrettyJSON(fi)
-	return bs, time.Time{}, err
 }
 
 func openFile(ctx context.Context, oc *openContext, path []string, f *File) (dokan.File, dokan.CreateStatus, error) {
