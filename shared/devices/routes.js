@@ -1,5 +1,5 @@
 // @flow
-import CodePage from '../login/provision/code-page/container'
+import CodePage from '../provision/code-page/container'
 import DevicePage from './device-page/container'
 import Devices from './container'
 import GenPaperKey from './gen-paper-key/container'

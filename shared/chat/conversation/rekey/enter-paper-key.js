@@ -1,5 +1,5 @@
 // @flow
-import EnterPaperkey from '../../../login/provision/paper-key'
+import EnterPaperkey from '../../../provision/paper-key'
 import {createCheckPaperKey} from '../../../actions/unlock-folders-gen'
 import {connect, compose, withStateHandlers} from '../../../util/container'
 import {navigateUp} from '../../../actions/route-tree'
