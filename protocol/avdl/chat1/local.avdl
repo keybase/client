@@ -296,7 +296,7 @@ protocol local {
     // Whether or not the message was signed using pairwise MACs. Only valid
     // for V4 where pairwise MACs are used for exploding messages.
     @mpackkey("pm") @jsonkey("pm")
-    boolean hasPairwiseMacs;
+    union { null, boolean } hasPairwiseMacs;
   }
 
   // HeaderPlaintext is a variant container for all the

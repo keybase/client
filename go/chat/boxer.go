@@ -891,6 +891,10 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, serverHeader *chat1.Mes
 			return chat1.MessageClientHeaderVerified{}, nil,
 				NewPermanentUnboxingError(fmt.Errorf("HeaderSignature non-nil in MBV2"))
 		}
+		hasPairwiseMacs := false
+		if hp.HasPairwiseMacs != nil {
+			hasPairwiseMacs = *hp.HasPairwiseMacs
+		}
 		return chat1.MessageClientHeaderVerified{
 			Conv:              hp.Conv,
 			TlfName:           hp.TlfName,
@@ -905,7 +909,7 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, serverHeader *chat1.Mes
 			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
 			EphemeralMetadata: hp.EphemeralMetadata,
 			Rtime:             rtime,
-			HasPairwiseMacs:   hp.HasPairwiseMacs,
+			HasPairwiseMacs:   hasPairwiseMacs,
 		}, hp.BodyHash, nil
 	// NOTE: When adding new versions here, you must also update
 	// chat1/extras.go so MessageUnboxedError.ParseableVersion understands the
@@ -1610,7 +1614,7 @@ func (b *Boxer) boxV2orV3orV4(ctx context.Context, messagePlaintext chat1.Messag
 		EphemeralMetadata: messagePlaintext.ClientHeader.EphemeralMetadata,
 		// In MessageBoxed.V2 HeaderSignature is nil.
 		HeaderSignature: nil,
-		HasPairwiseMacs: usePairwiseMacs,
+		HasPairwiseMacs: &usePairwiseMacs,
 	})
 
 	// signencrypt the header

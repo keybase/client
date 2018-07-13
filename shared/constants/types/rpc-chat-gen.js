@@ -485,7 +485,7 @@ export type Hash = Bytes
 export type HeaderPlaintext = {version: 1, v1: ?HeaderPlaintextV1} | {version: 2, v2: ?HeaderPlaintextUnsupported} | {version: 3, v3: ?HeaderPlaintextUnsupported} | {version: 4, v4: ?HeaderPlaintextUnsupported} | {version: 5, v5: ?HeaderPlaintextUnsupported} | {version: 6, v6: ?HeaderPlaintextUnsupported} | {version: 7, v7: ?HeaderPlaintextUnsupported} | {version: 8, v8: ?HeaderPlaintextUnsupported} | {version: 9, v9: ?HeaderPlaintextUnsupported} | {version: 10, v10: ?HeaderPlaintextUnsupported}
 export type HeaderPlaintextMetaInfo = $ReadOnly<{crit: Boolean}>
 export type HeaderPlaintextUnsupported = $ReadOnly<{mi: HeaderPlaintextMetaInfo}>
-export type HeaderPlaintextV1 = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, bodyHash: Hash, outboxInfo?: ?OutboxInfo, outboxID?: ?OutboxID, headerSignature?: ?SignatureInfo, merkleRoot?: ?MerkleRoot, ephemeralMetadata?: ?MsgEphemeralMetadata, hasPairwiseMacs: Boolean}>
+export type HeaderPlaintextV1 = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, bodyHash: Hash, outboxInfo?: ?OutboxInfo, outboxID?: ?OutboxID, headerSignature?: ?SignatureInfo, merkleRoot?: ?MerkleRoot, ephemeralMetadata?: ?MsgEphemeralMetadata, hasPairwiseMacs?: ?Boolean}>
 export type HeaderPlaintextVersion =
   | 1 // V1_1
   | 2 // V2_2

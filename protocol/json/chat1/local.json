@@ -891,7 +891,10 @@
           "jsonkey": "em"
         },
         {
-          "type": "boolean",
+          "type": [
+            null,
+            "boolean"
+          ],
           "name": "hasPairwiseMacs",
           "mpackkey": "pm",
           "jsonkey": "pm"
