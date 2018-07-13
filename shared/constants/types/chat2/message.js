@@ -9,6 +9,7 @@ import type {DeviceType} from '../devices'
 // The actual ID the server uses for operations (edit, delete etc)
 export opaque type MessageID: number = number
 export const numberToMessageID = (n: number): MessageID => n
+export const messageIDToNumber = (n: MessageID): number => n
 
 // We use the ordinal as the primary ID throughout the UI. The reason we have this vs a messageID is
 // 1. We don't have messageIDs for messages we're trying to send (pending messages)
