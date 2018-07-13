@@ -5,6 +5,10 @@ import {Box, Text} from '../common-adapters/index'
 import EscapeHandler from '../util/escape-handler'
 import {globalColors, globalMargins, globalStyles, desktopStyles} from '../styles'
 
+// TODO refactor to use Overlay and consolidate some of these files
+// popup-menu / relative-popup-hoc / floating-menu
+// probably all can go in floating-menu now that everything uses that
+
 class ModalLessPopupMenu extends Component<ModalLessPopupMenuProps> {
   render() {
     const realCSS = `
