@@ -4,8 +4,8 @@ import * as Types from '../../../../constants/types/teams'
 import * as Constants from '../../../../constants/teams'
 import {TeamRow} from '../../../main/team-list'
 import {connect, type TypedState} from '../../../../util/container'
-import {navigateAppend} from '../../../../actions/route-tree'
-import * as KBFSGen from '../../../../actions/kbfs-gen'
+import {navigateAppend, navigateTo} from '../../../../actions/route-tree'
+import {folderLocation} from '../../../../fs/util'
 
 type OwnProps = {
   teamname: string,
@@ -22,7 +22,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   _onManageChat: (teamname: Types.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
   _onOpenFolder: (teamname: Types.Teamname) =>
-    dispatch(KBFSGen.createOpen({path: `/keybase/team/${teamname}`})),
+    dispatch(navigateTo(folderLocation(`/keybase/team/${teamname}`))),
   _onViewTeam: (teamname: Types.Teamname) => {
     dispatch(navigateAppend([{props: {teamname}, selected: 'team'}]))
   },

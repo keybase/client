@@ -4,7 +4,6 @@ import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/chat2'
 import * as RPCGregorTypes from '../../constants/types/rpc-gregor-gen'
 import * as I from 'immutable'
-import * as KBFSGen from '../kbfs-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Route from '../route-tree'
@@ -27,6 +26,7 @@ import {saveAttachmentToCameraRoll, downloadAndShowShareActionSheet} from '../pl
 import {downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import flags from '../../util/feature-flags'
+import {folderLocation} from '../../fs/util'
 
 // Ask the service to refresh the inbox
 const inboxRefresh = (
@@ -1414,7 +1414,7 @@ const openFolder = (action: Chat2Gen.OpenFolderPayload, state: TypedState) => {
     meta.teamType !== 'adhoc'
       ? teamFolder(meta.teamname)
       : privateFolderWithUsers(meta.participants.toArray())
-  return Saga.put(KBFSGen.createOpen({path}))
+  return Saga.put(Route.navigateTo(folderLocation(path)))
 }
 
 const getRecommendations = (

@@ -1,6 +1,5 @@
 // @flow
 import logger from '../logger'
-import * as KBFSGen from '../actions/kbfs-gen'
 import * as TrackerGen from '../actions/tracker-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ProfileGen from '../actions/profile-gen'
@@ -8,16 +7,16 @@ import * as TeamsGen from '../actions/teams-gen'
 import * as Constants from '../constants/tracker'
 import * as TrackerTypes from '../constants/types/tracker'
 import * as Types from '../constants/types/profile'
-import {pathFromFolder} from '../constants/favorite'
 import {isInSomeTeam} from '../constants/teams'
 import ErrorComponent from '../common-adapters/error-profile'
 import Profile from './index'
 import * as React from 'react'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {isTesting} from '../local-debug'
-import {navigateAppend, navigateUp} from '../actions/route-tree'
+import {navigateAppend, navigateUp, navigateTo} from '../actions/route-tree'
 import {peopleTab} from '../constants/tabs'
 import {connect, type TypedState} from '../util/container'
+import {folderLocation} from '../fs/util'
 
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {RouteProps} from '../route-tree/render-route'
@@ -74,8 +73,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
   onBack: () => dispatch(navigateUp()),
   onBrowsePublicFolder: (username: string) =>
     dispatch(
-      KBFSGen.createOpen({path: pathFromFolder({isPublic: true, isTeam: false, users: [{username}]}).path})
-    ),
+      navigateTo(folderLocation(`/keybase/public/${username}`))),
   onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
   onChat: username =>
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'profile'})),
@@ -86,20 +84,13 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
   onClickShowcaseOffer: () => dispatch(navigateAppend(['showcaseTeamOffer'])),
   onEditAvatar: () => dispatch(navigateAppend(['editAvatar'])),
   onEditProfile: () => dispatch(navigateAppend(['editProfile'])),
-  onFolderClick: folder => dispatch(KBFSGen.createOpen({path: folder.path})),
+  onFolderClick: folder => dispatch(navigateTo(folderLocation(folder.path))),
   onFollow: (username: string) => dispatch(TrackerGen.createFollow({localIgnore: false, username})),
   onMissingProofClick: (missingProof: MissingProof) =>
     dispatch(ProfileGen.createAddProof({platform: missingProof.type})),
   onOpenPrivateFolder: (myUsername: string, theirUsername: string) =>
     dispatch(
-      KBFSGen.createOpen({
-        path: pathFromFolder({
-          isPublic: false,
-          isTeam: false,
-          users: [{username: theirUsername}, {username: myUsername}],
-        }).path,
-      })
-    ),
+      navigateTo(folderLocation(`/keybase/private/${myUsername},${theirUsername}`))),
   onRecheckProof: (proof: TrackerTypes.Proof) => dispatch(ProfileGen.createCheckProof()),
   onRevokeProof: (proof: TrackerTypes.Proof) =>
     dispatch(

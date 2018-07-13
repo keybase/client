@@ -1,9 +1,10 @@
 // @flow
-import * as KBFSGen from '../../actions/kbfs-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import {connect, type TypedState} from '../../util/container'
 import {privateFolderWithUsers} from '../../constants/config'
 import NonUserProfile from '.'
+import {navigateTo} from '../../actions/route-tree'
+import {folderLocation} from '../../fs/util'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const {avatar, fullname, fullUsername, profileUrl, serviceName, username} = routeProps.toObject()
@@ -16,7 +17,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
   onOpenPrivateFolder: (myUsername, username) => {
     if (myUsername && username) {
-      dispatch(KBFSGen.createOpen({path: privateFolderWithUsers([username, myUsername])}))
+      dispatch(navigateTo(folderLocation(privateFolderWithUsers([username, myUsername]))))
     }
   },
   onStartChat: (username: string) => {

@@ -13,6 +13,7 @@ import {
 import {type Props as _Props, InfoPanelMenu} from '.'
 import {navigateAppend, navigateTo, switchTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
+import {folderLocation} from '../../../../fs/util'
 
 export type OwnProps = {
   attachTo: ?Component<any, any>,
@@ -96,6 +97,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
   onViewTeam: () => {
     dispatch(navigateTo([{selected: 'team', props: {teamname}}], [teamsTab]))
     dispatch(switchTo([teamsTab]))
+  },
+  onTeamFolder: () => {
+    dispatch(navigateTo(folderLocation(`/keybase/team/${teamname}`)))
   },
 })
 
