@@ -72,7 +72,8 @@ const rowProviders = {
 const provider = createPropProvider({
   ...rowProviders,
   ConnectedDownloads: () => ({
-    downloadKeys: ['file 1', 'blah 2', 'yo 3', 'haha 4', 'O_O 5'],
+    downloadKeys: ['file 1', 'blah 2', 'yo 3'],
+    thereAreMore: true,
     openDownloadFolder: action('openDownloadFolder'),
   }),
   ConnectedUpload: () => ({
@@ -392,22 +393,27 @@ const load = () => {
     .add('Downloads', () => (
       <Box2 direction="vertical">
         <Text type="Header">1 item</Text>
-        <Downloads downloadKeys={['file 1']} openDownloadFolder={action('openDownloadFolder')} />
+        <Downloads
+          downloadKeys={['file 1']}
+          thereAreMore={false}
+          openDownloadFolder={action('openDownloadFolder')}
+        />
         <Text type="Header">2 items</Text>
-        <Downloads downloadKeys={['file 1', 'blah 2']} openDownloadFolder={action('openDownloadFolder')} />
+        <Downloads
+          downloadKeys={['file 1', 'blah 2']}
+          thereAreMore={false}
+          openDownloadFolder={action('openDownloadFolder')}
+        />
         <Text type="Header">3 items</Text>
         <Downloads
           downloadKeys={['file 1', 'blah 2', 'yo 3']}
+          thereAreMore={false}
           openDownloadFolder={action('openDownloadFolder')}
         />
-        <Text type="Header">4 items</Text>
+        <Text type="Header">4+ items</Text>
         <Downloads
-          downloadKeys={['file 1', 'blah 2', 'yo 3', 'haha 4']}
-          openDownloadFolder={action('openDownloadFolder')}
-        />
-        <Text type="Header">5 items</Text>
-        <Downloads
-          downloadKeys={['file 1', 'blah 2', 'yo 3', 'haha 4', 'O_O 5']}
+          downloadKeys={['file 1', 'blah 2', 'yo 3']}
+          thereAreMore={true}
           openDownloadFolder={action('openDownloadFolder')}
         />
       </Box2>

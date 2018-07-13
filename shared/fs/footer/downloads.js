@@ -1,24 +1,23 @@
 // @flow
 import * as React from 'react'
-import {globalStyles, globalMargins, globalColors, styleSheetCreate, isMobile} from '../../styles'
+import {globalStyles, globalMargins, globalColors, styleSheetCreate} from '../../styles'
 import {Box2, Box, Icon, ClickableBox} from '../../common-adapters'
 import Download from './download-container'
 
 export type DownloadsProps = {
   downloadKeys: Array<string>,
+  thereAreMore: boolean,
   openDownloadFolder?: () => void,
 }
-
-const maxNumCards = isMobile ? 1 : 3
 
 const Downloads = (props: DownloadsProps) =>
   !!props.downloadKeys.length && (
     <Box2 direction="horizontal" fullWidth={true} style={styles.box}>
       <Box style={styles.downloadsBox}>
-        {props.downloadKeys.slice(0, maxNumCards).map(key => <Download downloadKey={key} key={key} />)}
+        {props.downloadKeys.map(key => <Download downloadKey={key} key={key} />)}
       </Box>
       <Box style={styles.buttonsBox}>
-        {props.downloadKeys.length > maxNumCards ? (
+        {props.thereAreMore ? (
           <ClickableBox style={styles.iconBoxEllipsis} onClick={props.openDownloadFolder}>
             <Icon type="iconfont-ellipsis" hint="Open downloads folder" color={globalColors.black_40} />
           </ClickableBox>

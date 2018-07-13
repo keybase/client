@@ -52,7 +52,6 @@ const stylesDownload = memoize((errored: boolean) => ({
   justifyContent: 'flex-start',
   marginLeft: globalMargins.xtiny,
   width: 140,
-  minWidth: 140, // needed to avoid shrinking
 }))
 
 const stylesIconBox = {
