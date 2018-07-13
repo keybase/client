@@ -149,6 +149,7 @@ const mapPropProviderProps = {
   smallTeamF: {
     ...commonSmallTeam,
     conversationIDKey: '6',
+    participants: ['jacobyoung'],
     hasUnread: false,
     hasBadge: false,
     showBold: false,
@@ -325,6 +326,9 @@ const propsInboxSimple = {
     makeRowItemSmall('smallTeamC'),
     makeRowItemSmall('smallTeamD'),
     makeRowItemSmall('smallTeamE'),
+    makeRowItemSmall('smallTeamF'),
+    makeRowItemSmall('smallTeamG'),
+    makeRowItemSmall('smallTeamH'),
   ],
 }
 
