@@ -4,7 +4,6 @@ import * as Constants from '../constants/login'
 import * as Types from '../constants/types/login'
 import * as LoginGen from '../actions/login-gen'
 import * as SignupGen from '../actions/signup-gen'
-import HiddenString from '../util/hidden-string'
 
 const initialState = Constants.makeState()
 

@@ -1,9 +1,9 @@
 // @flow
-import * as LoginGen from '../../../actions/login-gen'
-import * as React from 'react'
+// import * as LoginGen from '../../../actions/login-gen'
+// import * as React from 'react'
 import CodePage2 from '.'
 import {connect, type TypedState, type Dispatch} from '../../../util/container'
-import HiddenString from '../../../util/hidden-string'
+// import HiddenString from '../../../util/hidden-string'
 
 type OwnProps = {}
 
