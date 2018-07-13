@@ -43,6 +43,7 @@ func (pr PrevRevisions) addRevision(
 	}
 	ret = make(PrevRevisions, newLength)
 	copy(ret, pr)
+	numDropped := 0
 	for i, prc := range ret {
 		if prc.Count == 0 {
 			// A count of 0 indicates an empty slot.
@@ -58,9 +59,13 @@ func (pr PrevRevisions) addRevision(
 				Revision: kbfsmd.RevisionUninitialized,
 				Count:    0,
 			}
+			numDropped++
 			continue
 		}
 		ret[i].Count++
+	}
+	if numDropped > 1 {
+		ret = ret[:len(ret)-(numDropped-1)]
 	}
 	for i := len(ret) - 1; i >= 1; i-- {
 		toMove := ret[i-1]
