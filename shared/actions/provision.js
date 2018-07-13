@@ -309,6 +309,8 @@ const addNewDevice = (state: TypedState) =>
         params: undefined,
         waitingKey: Constants.waitingKey,
       })
+      // Done, nav out
+      yield Saga.put(RouteTree.navigateTo([], [Tabs.devicesTab]))
     } catch (e) {
       // If we're canceling then ignore the error
       if (e.desc !== cancelDesc) {
