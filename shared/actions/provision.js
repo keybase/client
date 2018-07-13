@@ -221,7 +221,6 @@ const startProvisioning = (state: TypedState) =>
       yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.waitingKey}))
 
       yield RPCTypes.loginLoginRpcSaga({
-        // cancel if we get any of these callbacks, we're logging in, not provisioning
         incomingCallMap: {
           'keybase.1.gpgUi.selectKey': cancelOnCallback,
           'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
@@ -241,6 +240,43 @@ const startProvisioning = (state: TypedState) =>
           deviceType: isMobile ? 'mobile' : 'desktop',
           usernameOrEmail,
         },
+        waitingKey: Constants.waitingKey,
+      })
+    } catch (e) {
+      // If we're canceling then ignore the error
+      if (e.desc !== cancelDesc) {
+        yield Saga.put(ProvisionGen.createProvisionError({error: new HiddenString(niceError(e))}))
+      }
+    } finally {
+      // Reset us to zero
+      yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.waitingKey}))
+    }
+  })
+
+const addNewDevice = (state: TypedState) =>
+  Saga.call(function*() {
+    // Make a new handler each time just in case
+    provisioningManager = new ProvisioningManager()
+
+    try {
+      const usernameOrEmail = state.provision.usernameOrEmail
+      if (!usernameOrEmail) {
+        return
+      }
+
+      // We don't want the waiting key to be positive during this whole process so we do a decrement first so its not going 1,2,1,2,1,2
+      yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.waitingKey}))
+
+      yield RPCTypes.deviceDeviceAddRpcSaga({
+        incomingCallMap: {
+          'keybase.1.provisionUi.DisplayAndPromptSecret': displayAndPromptSecretHandler,
+          'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
+          'keybase.1.provisionUi.PromptNewDeviceName': promptNewDeviceNameHandler,
+          'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
+          'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
+          'keybase.1.provisionUi.chooseDevice': chooseDeviceHandler,
+        },
+        params: undefined,
         waitingKey: Constants.waitingKey,
       })
     } catch (e) {
@@ -281,6 +317,7 @@ const showPaperkeyPage = (state: TypedState) =>
 function* provisionSaga(): Saga.SagaGenerator<any, any> {
   // Start provision
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitUsernameOrEmail, startProvisioning)
+  yield Saga.safeTakeEveryPureSimple(ProvisionGen.addNewDevice, addNewDevice)
 
   // Submits
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitDeviceSelect, submitDeviceSelect)
@@ -299,9 +336,6 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.showGPGPage, showGPGPage)
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.showPassphrasePage, showPassphrasePage)
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.showPaperkeyPage, showPaperkeyPage)
-
-  // TODO
-  // yield Saga.safeTakeLatest(ProvisionGen.addNewDevice, _addNewDevice)
 }
 
 export default provisionSaga

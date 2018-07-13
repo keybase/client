@@ -148,10 +148,4 @@ const stylesIcon = {
 
 const colorIcon = globalColors.black
 
-const stylesWont = {
-  marginTop: globalMargins.medium,
-  marginBottom: globalMargins.medium,
-  alignSelf: 'center',
-}
-
 export default SelectOtherDevice

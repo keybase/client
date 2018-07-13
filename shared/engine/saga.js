@@ -27,7 +27,7 @@ type CallbackNoResponse = (any, TypedState) => ?RS.Effect | ?Generator<any, any,
 // TODO could have a mechanism to ensure only one is in flight at a time. maybe by some key or something
 function* call(p: {
   method: string,
-  params: Object,
+  params: ?Object,
   incomingCallMap: {[method: string]: any}, // this is typed by the generated helpers
   waitingKey?: string,
 }): Generator<any, any, any> {

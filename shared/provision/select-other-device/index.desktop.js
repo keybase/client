@@ -111,11 +111,6 @@ const stylesIcon = {
 
 const colorIcon = globalColors.black
 
-const stylesWont = {
-  marginTop: globalMargins.medium,
-  alignSelf: 'center',
-}
-
 const DeviceBox = glamorous(Box)({
   ...stylesRow,
   borderBottom: `1px solid ${globalColors.black_05}`,
