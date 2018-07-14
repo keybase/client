@@ -3,37 +3,6 @@ import * as React from 'react'
 import {Box2, Icon, NewInput, Text} from '../../../common-adapters'
 import {collapseStyles, globalColors, styleSheetCreate} from '../../../styles'
 
-type WarningTextProps = {|
-  asset: string,
-  payee?: string,
-  warningType: 'overmax' | 'badAsset',
-|}
-
-export const WarningText = (props: WarningTextProps) => {
-  const assetPrompt = (
-    <Text type="BodySmallSemibold" style={{color: globalColors.red}}>
-      {props.asset}
-    </Text>
-  )
-
-  switch (props.warningType) {
-    case 'overmax':
-      return <Text type="BodySmallError">Your available to send is {assetPrompt}</Text>
-    case 'badAsset':
-      return (
-        <React.Fragment>
-          <Text type="BodySmallError">
-            {props.payee} doesn't accept {assetPrompt}
-          </Text>
-          <Text type="BodySmallError">Please pick another asset.</Text>
-        </React.Fragment>
-      )
-    default:
-      break
-  }
-  return null
-}
-
 type Props = {
   bottomLabel: string,
   displayUnit: string,
@@ -42,7 +11,8 @@ type Props = {
   onChangeDisplayUnit: () => void,
   onClickInfo: () => void,
   topLabel: string,
-  warning?: React.Node,
+  warningAsset?: string,
+  warningPayee?: string,
 }
 
 const AssetInput = (props: Props) => (
@@ -71,9 +41,26 @@ const AssetInput = (props: Props) => (
       textType="HeaderBigExtrabold"
       placeholder={props.inputPlaceholder}
       placeholderColor={globalColors.purple2_40}
-      error={!!props.warning}
+      error={!!props.warningAsset}
     />
-    {props.warning}
+    {props.warningAsset &&
+      !props.warningPayee && (
+        <Text type="BodySmallError">
+          Your available to send is{' '}
+          <Text type="BodySmallSemibold" style={{color: globalColors.red}}>
+            {props.warningAsset}
+          </Text>
+        </Text>
+      )}
+    {props.warningPayee && (
+      <Text type="BodySmallError">
+        {props.warningPayee} doesn't accept{' '}
+        <Text type="BodySmallSemibold" style={{color: globalColors.red}}>
+          {props.warningAsset}
+        </Text>
+        . Please pick another asset.
+      </Text>
+    )}
     <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
       <Text type="BodySmall" style={styles.labelMargin}>
         {props.bottomLabel}

@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {action, storiesOf} from '../../../stories/storybook'
 import {Box} from '../../../common-adapters'
-import AssetInput, {WarningText} from '.'
+import AssetInput from '.'
 
 const common = {
   onChangeAmount: action('onChangeAmount'),
@@ -34,19 +34,19 @@ export const props3 = {
 }
 
 const warning1 = {
-  asset: '$13',
+  warningAsset: '$13',
   warningType: 'overmax',
 }
 
 const warning2 = {
-  asset: '128.4567890 XLM',
+  warningAsset: '128.4567890 XLM',
   warningType: 'overmax',
 }
 
 const warning3 = {
-  asset: 'BTC/Stronghold.com',
+  warningAsset: 'BTC/Stronghold.com',
   warningType: 'badAsset',
-  payee: 'russel',
+  warningPayee: 'russel',
 }
 
 const load = () => {
@@ -55,9 +55,9 @@ const load = () => {
     .add('XLM worth USD', () => <AssetInput {...props1} />)
     .add('XLM', () => <AssetInput {...props3} />)
     .add('Asset', () => <AssetInput {...props2} />)
-    .add('USD over warning', () => <AssetInput {...props1} warning={WarningText(warning1)} />)
-    .add('XLM over warning', () => <AssetInput {...props3} warning={WarningText(warning2)} />)
-    .add('asset type warning', () => <AssetInput {...props2} warning={WarningText(warning3)} />)
+    .add('USD over warning', () => <AssetInput {...props1} {...warning1} />)
+    .add('XLM over warning', () => <AssetInput {...props2} {...warning2} />)
+    .add('asset type warning', () => <AssetInput {...props3} {...warning3} />)
 }
 
 export default load
