@@ -34,12 +34,12 @@ export const props3 = {
 }
 
 const warning1 = {
-  asset: '128.4567890 XLM',
+  asset: '$13',
   warningType: 'overmax',
 }
 
 const warning2 = {
-  asset: '$13',
+  asset: '128.4567890 XLM',
   warningType: 'overmax',
 }
 
@@ -55,8 +55,8 @@ const load = () => {
     .add('XLM worth USD', () => <AssetInput {...props1} />)
     .add('XLM', () => <AssetInput {...props3} />)
     .add('Asset', () => <AssetInput {...props2} />)
-    .add('XLM over warning', () => <AssetInput {...props1} warning={WarningText(warning1)} />)
-    .add('USD over warning', () => <AssetInput {...props3} warning={WarningText(warning2)} />)
+    .add('USD over warning', () => <AssetInput {...props1} warning={WarningText(warning1)} />)
+    .add('XLM over warning', () => <AssetInput {...props3} warning={WarningText(warning2)} />)
     .add('asset type warning', () => <AssetInput {...props2} warning={WarningText(warning3)} />)
 }
 

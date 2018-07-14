@@ -64,7 +64,6 @@ const AssetInput = (props: Props) => (
               Change
             </Text>
           </Box2>
-          {props.warning}
         </React.Fragment>
       }
       style={styles.colorPurple2}
@@ -74,6 +73,7 @@ const AssetInput = (props: Props) => (
       placeholderColor={globalColors.purple2_40}
       error={!!props.warning}
     />
+    {props.warning}
     <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
       <Text type="BodySmall" style={styles.labelMargin}>
         {props.bottomLabel}
