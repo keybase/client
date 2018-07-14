@@ -273,7 +273,6 @@ type AddMembersRes struct {
 func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, assertions []string, role keybase1.TeamRole) (res []AddMembersRes, err error) {
 	tracer := g.CTimeTracer(ctx, "team.AddMembers", true)
 	defer tracer.Finish()
-	res = make([]AddMembersRes, len(assertions))
 	teamName, err := keybase1.TeamNameFromString(teamname)
 	if err != nil {
 		return res, err
@@ -283,102 +282,29 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, as
 		return res, err
 	}
 
-	tracer.Stage("resolves")
-	type luvpbu struct {
-		Index            int
-		Assertion        string
-		ResolvedUsername libkb.NormalizedUsername
-		UV               keybase1.UserVersion
-	}
-	var addInTransaction []luvpbu
-	var addOutOfTransaction []luvpbu
-
-	for i, assertion := range assertions {
-		g.Log.CDebugf(ctx, "team.AddMembers: resolving %v %v", i, assertion)
-		uwop := luvpbu{Index: i, Assertion: assertion}
-		var inviteRequired bool
-		uwop.ResolvedUsername, uwop.UV, err = loadUserVersionPlusByUsername(ctx, g, assertion)
-		g.Log.CDebugf(ctx, "team.AddMembers: loadUserVersionPlusByUsername(%s) -> (%s, %v, %v)", assertion, uwop.ResolvedUsername, uwop.UV, err)
+	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		team, err := GetForTeamManagementByTeamID(ctx, g, teamID, true /*needAdmin*/)
 		if err != nil {
-			if err == errInviteRequired {
-				inviteRequired = true
-			} else if _, ok := err.(libkb.NotFoundError); ok {
-				return res, libkb.NotFoundError{
-					Msg: fmt.Sprintf("User not found: %v", assertion),
-				}
-			} else {
-				return res, fmt.Errorf("Error adding user '%v': %v", assertion, err)
-			}
+			return err
 		}
-		res[i].Invitation = inviteRequired
-		res[i].Username = uwop.ResolvedUsername
-		if inviteRequired && !uwop.UV.Uid.Exists() {
-			// Handle social invites without transactions.
-			addOutOfTransaction = append(addOutOfTransaction, uwop)
-		} else {
-			addInTransaction = append(addInTransaction, uwop)
-		}
-	}
-	g.Log.CDebugf(ctx, "team.AddMembers: %v in tx, %v out of tx", len(addInTransaction), len(addOutOfTransaction))
 
-	// Post the first group in a transaction
-	tracer.Stage("tx")
-	if len(addInTransaction) > 0 {
-		err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
-			team, err := GetForTeamManagementByTeamID(ctx, g, teamID, true /*needAdmin*/)
+		tx := CreateAddMemberTx(team)
+		for _, as := range assertions {
+			err = tx.AddMemberByAssertion(ctx, as, role)
 			if err != nil {
-				return err
+				return fmt.Errorf("Error adding user '%v': %v", as, err)
 			}
 
-			tx := CreateAddMemberTx(team)
-			for _, uwop := range addInTransaction {
-				err = tx.AddMemberByUsername(ctx, uwop.ResolvedUsername.String(), role)
-				if err != nil {
-					return fmt.Errorf("Error adding user '%v': %v", uwop.Assertion, err)
-				}
-
-				timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
-				if err := tx.CompleteSocialInvitesFor(timeoutCtx, uwop.UV, uwop.Assertion); err != nil {
-					g.Log.CWarningf(ctx, "Failed in CompleteSocialInvitesFor, no invites will be cleared. Err was: %v", err)
-				}
-				timeoutCancel()
-			}
-
-			return tx.Post(libkb.NewMetaContext(ctx, g))
-		})
-		if err != nil {
-			return res, err
+			// timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
+			// if err := tx.CompleteSocialInvitesFor(timeoutCtx, uwop.UV, uwop.Assertion); err != nil {
+			// 	g.Log.CWarningf(ctx, "Failed in CompleteSocialInvitesFor, no invites will be cleared. Err was: %v", err)
+			// }
+			// timeoutCancel()
 		}
-		for _, uwop := range addInTransaction {
-			res[uwop.Index].Succeeded = true
-		}
-	}
 
-	// Post the second group without a transaction.
-	tracer.Stage("stragglers")
-	for _, uwop := range addOutOfTransaction {
-		g.Log.CDebugf(ctx, "team.AddMembers: adding stragger %v", uwop.Assertion)
-		err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
-			team, err := GetForTeamManagementByTeamID(ctx, g, teamID, true /*needAdmin*/)
-			if err != nil {
-				return err
-			}
-			_, err = team.InviteMember(ctx, uwop.Assertion, role, uwop.ResolvedUsername, uwop.UV)
-			if err != nil && strings.Contains(err.Error(), "cannot invite an owner") {
-				return fmt.Errorf("%v doesn't have a Keybase account yet, so you can't add them as an owner; "+
-					"you can add them as reader or writer", uwop.Assertion)
-			}
-			if err != nil {
-				return fmt.Errorf("Error adding user '%v': %v", uwop.Assertion, err)
-			}
-			return nil
-		})
-		if err != nil {
-			return res, err
-		}
-		res[uwop.Index].Succeeded = true
-	}
-	return res, nil
+		return tx.Post(libkb.NewMetaContext(ctx, g))
+	})
+	return res, err
 }
 
 func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
