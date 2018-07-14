@@ -142,7 +142,7 @@ class Engine {
         if (Object.keys(this._sessionsMap).filter(k => !this._sessionsMap[k].getDangling()).length) {
           localLog('outstandingSessionDebugger: ', this._sessionsMap)
         }
-      }, 10 * 1000)
+      }, 1 * 1000)
     }
   }
 

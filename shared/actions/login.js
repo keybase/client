@@ -139,11 +139,7 @@ function* navigateToLoginRoot(): Generator<any, void, any> {
 }
 
 const maybeNavigateToLoginRoot = (action: RouteTypes.NavigateUp, state: TypedState) => {
-  if (
-    action.type === RouteConstants.navigateUp &&
-    state.routeTree.routeState &&
-    state.routeTree.routeState.selected !== Tabs.loginTab
-  ) {
+  if (state.routeTree.routeState && state.routeTree.routeState.selected !== Tabs.loginTab) {
     // naving but not on login
     return
   }

@@ -1,5 +1,8 @@
 // @flow
+import * as I from 'immutable'
 import * as Constants from '../constants/provision'
+import * as RouteConstants from '../constants/route-tree'
+import * as RouteTypes from '../constants/types/route-tree'
 import * as WaitingGen from './waiting-gen'
 import * as ProvisionGen from './provision-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -26,10 +29,10 @@ type ValidCallbacks =
 
 const cancelDesc = 'Canceling RPC'
 
-const cancelOnCallback = (params, response, state) => {
+const cancelOnCallback = (_, response, __) => {
   response.error({code: RPCTypes.constantsStatusCode.scgeneric, desc: cancelDesc})
 }
-const ignoreCallback = (params, state) => {}
+const ignoreCallback = (_, __) => {}
 
 // The provisioning flow is very stateful so we use a class to handle bookkeeping
 // We only allow one manager to be alive at a time
@@ -256,6 +259,25 @@ class ProvisioningManager {
     this._addingANewDevice
       ? Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.devicesTab]))
       : Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.loginTab, 'login']))
+
+  maybeCancelProvision = (state: TypedState, action: RouteTypes.NavigateUp) => {
+    // We're not waiting on anything
+    if (!this._stashedResponse) {
+      return
+    }
+
+    const root = state.routeTree.routeState && state.routeTree.routeState.selected
+    const response = this._stashedResponse
+
+    if (
+      (this._addingANewDevice && root === Tabs.devicesTab) ||
+      (!this._addingANewDevice && root === Tabs.loginTab)
+    ) {
+      cancelOnCallback(null, response, null)
+      this._stashedResponse = null
+      this._stashedResponseKey = null
+    }
+  }
 }
 
 // Never let this be null to help flow
@@ -332,6 +354,8 @@ const submitPassphraseOrPaperkey = (
   state: TypedState,
   action: ProvisionGen.SubmitPassphrasePayload | ProvisionGen.SubmitPaperkeyPayload
 ) => theProvisioningManager.submitPassphraseOrPaperkey(state, action)
+const maybeCancelProvision = (state: TypedState, action: RouteTypes.NavigateUp) =>
+  theProvisioningManager.maybeCancelProvision(state, action)
 
 const showDeviceListPage = (state: TypedState) =>
   !state.provision.error.stringValue() &&
@@ -378,6 +402,8 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.showGPGPage, showGPGPage)
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.showPassphrasePage, showPassphrasePage)
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.showPaperkeyPage, showPaperkeyPage)
+
+  yield Saga.safeTakeEveryPureSimple(RouteConstants.navigateUp, maybeCancelProvision)
 }
 
 export default provisionSaga
