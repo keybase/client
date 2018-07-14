@@ -1337,3 +1337,29 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, donnyPerms.DeleteChatHistory)
 	require.False(t, donnyPerms.Chat)
 }
+
+func TestBatchAddMembers(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUser("alice")
+	bob := tt.addUser("bob")
+	john := tt.addPuklessUser("john")
+	rob := tt.addPuklessUser("rob")
+	tt.logUserNames()
+
+	teamName := alice.createTeam()
+
+	assertions := []string{
+		bob.username,
+		john.username,
+		rob.username,
+		bob.username + "@rooter",
+		rob.username + "@rooter",
+	}
+	role := keybase1.TeamRole_WRITER
+	res, err := teams.AddMembers(context.Background(), alice.tc.G, teamName, assertions, role)
+	_ = res
+
+	require.NoError(t, err)
+}

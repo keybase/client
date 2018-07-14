@@ -17,6 +17,10 @@ type AddMemberTx struct {
 	team     *Team
 	payloads []interface{} // *SCTeamInvites or *keybase1.TeamChangeReq
 
+	// We need two separate payloads for social invites and keybase
+	// invites because they cannot be mixed in one link.
+	isForSocialInvites map[int]bool
+
 	completedInvites map[keybase1.TeamInviteID]bool
 
 	// Do not rotate team key, even on member removals.
@@ -25,8 +29,9 @@ type AddMemberTx struct {
 
 func CreateAddMemberTx(t *Team) *AddMemberTx {
 	return &AddMemberTx{
-		team:             t,
-		completedInvites: make(map[keybase1.TeamInviteID]bool),
+		team:               t,
+		isForSocialInvites: make(map[int]bool),
+		completedInvites:   make(map[keybase1.TeamInviteID]bool),
 	}
 }
 
@@ -50,13 +55,31 @@ func (tx *AddMemberTx) IsEmpty() bool {
 // satisfied.
 
 func (tx *AddMemberTx) invitePayload() *SCTeamInvites {
-	for _, v := range tx.payloads {
+	for i, v := range tx.payloads {
 		if ret, ok := v.(*SCTeamInvites); ok {
-			return ret
+			if !tx.isForSocialInvites[i] {
+				return ret
+			}
 		}
 	}
 
 	ret := &SCTeamInvites{}
+	tx.isForSocialInvites[len(tx.payloads)] = false
+	tx.payloads = append(tx.payloads, ret)
+	return ret
+}
+
+func (tx *AddMemberTx) invitePayloadSocial() *SCTeamInvites {
+	for i, v := range tx.payloads {
+		if ret, ok := v.(*SCTeamInvites); ok {
+			if tx.isForSocialInvites[i] {
+				return ret
+			}
+		}
+	}
+
+	ret := &SCTeamInvites{}
+	tx.isForSocialInvites[len(tx.payloads)] = true
 	tx.payloads = append(tx.payloads, ret)
 	return ret
 }
@@ -104,15 +127,25 @@ func appendToInviteList(inv SCTeamInvite, list *[]SCTeamInvite) *[]SCTeamInvite 
 	return &tmp
 }
 
-// createInvite queues Keybase-type invite for given UV and role.
-func (tx *AddMemberTx) createInvite(uv keybase1.UserVersion, role keybase1.TeamRole) {
+// createKeybaseInvite queues Keybase-type invite for given UV and role.
+func (tx *AddMemberTx) createKeybaseInvite(uv keybase1.UserVersion, role keybase1.TeamRole) {
 	// Preconditions: UV is a PUKless user, and not already in the
 	// team, role is valid enum value and not NONE or OWNER.
-	payload := tx.invitePayload()
+	tx.createInvite("keybase", uv.TeamInviteName(), role)
+}
+
+// createInvite queues invite with invite name for role.
+func (tx *AddMemberTx) createInvite(typ string, name keybase1.TeamInviteName, role keybase1.TeamRole) {
+	var payload *SCTeamInvites
+	if typ == "keybase" {
+		payload = tx.invitePayload()
+	} else {
+		payload = tx.invitePayloadSocial()
+	}
 
 	invite := SCTeamInvite{
-		Type: "keybase",
-		Name: uv.TeamInviteName(),
+		Type: typ,
+		Name: name,
 		ID:   NewInviteID(),
 	}
 
@@ -253,7 +286,7 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 	tx.sweepCryptoMembers(uv.Uid)
 
 	if !hasPUK {
-		tx.createInvite(uv, role)
+		tx.createKeybaseInvite(uv, role)
 	} else {
 		tx.addMember(uv, role)
 	}
@@ -335,6 +368,33 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 	}
 
 	return tx.addMemberByUPKV2(ctx, upak.Current, role)
+}
+
+func (tx *AddMemberTx) AddMemberByAssertion(ctx context.Context, assertion string, role keybase1.TeamRole) (err error) {
+	team := tx.team
+	g := team.G()
+
+	res := g.Resolver.ResolveWithBody(assertion)
+	rErr := res.GetError()
+	if rErr == nil {
+		upak, err := loadUPAK2(ctx, g, res.GetUID(), true /* forcePoll */)
+		if err != nil {
+			return err
+		}
+
+		return tx.addMemberByUPKV2(ctx, upak.Current, role)
+	} else if e, ok := rErr.(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
+		typ, name, err := team.parseSocial(assertion)
+		if err != nil {
+			return err
+		}
+		g.Log.Debug("team %s invite sbs member %s/%s", team.Name(), typ, name)
+
+		tx.createInvite(typ, keybase1.TeamInviteName(name), role)
+		return nil
+	}
+
+	return rErr
 }
 
 func (tx *AddMemberTx) CompleteInviteByID(ctx context.Context, inviteID keybase1.TeamInviteID, uv keybase1.UserVersion) error {
@@ -452,7 +512,7 @@ func (tx *AddMemberTx) ReAddMemberToImplicitTeam(uv keybase1.UserVersion, hasPUK
 			return err
 		}
 	} else {
-		tx.createInvite(uv, role)
+		tx.createKeybaseInvite(uv, role)
 		tx.sweepKeybaseInvites(uv.Uid)
 		// We cannot sweep crypto members here because we need to
 		// ensure that we are only posting one link, and if we want to
