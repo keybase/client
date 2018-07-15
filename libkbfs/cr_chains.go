@@ -1079,6 +1079,29 @@ func (ccs *crChains) changeOriginal(oldOriginal BlockPointer,
 	return nil
 }
 
+func (ccs *crChains) findPathForDeleted(mostRecent BlockPointer) path {
+	// Find the parent chain that deleted this one.
+	for ptr, chain := range ccs.byMostRecent {
+		for _, op := range chain.ops {
+			ro, ok := op.(*rmOp)
+			if !ok {
+				continue
+			}
+			for _, unref := range ro.Unrefs() {
+				if unref == mostRecent {
+					// If the path isn't set yet, recurse.
+					p := ro.getFinalPath()
+					if !p.isValid() {
+						p = ccs.findPathForDeleted(ptr)
+					}
+					return p.ChildPath(ro.OldName, mostRecent)
+				}
+			}
+		}
+	}
+	return path{}
+}
+
 // getPaths returns a sorted slice of most recent paths to all the
 // nodes in the given CR chains that were directly modified during a
 // branch, and which existed at both the start and the end of the
@@ -1148,6 +1171,17 @@ func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 		}
 		for _, ro := range renameOps[ptr] {
 			ro.oldFinalPath = p
+		}
+	}
+
+	// Fill in the paths for any deleted entries.
+	for ptr, chain := range ccs.byMostRecent {
+		if !ccs.isDeleted(chain.original) {
+			continue
+		}
+		p := ccs.findPathForDeleted(ptr)
+		for _, op := range chain.ops {
+			op.setFinalPath(p)
 		}
 	}
 
