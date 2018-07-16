@@ -4,23 +4,7 @@ import {action, storiesOf, createPropProvider} from '../../../../stories/storybo
 import * as PropProviders from '../../../../stories/prop-providers'
 import {UsernameHeader, ChannelHeader} from '.'
 
-const provider = createPropProvider(PropProviders.Common())
-
-// const defaultProps = {
-//   badgeNumber: 2,
-//   canOpenInfoPanel: false,
-//   channelName: 'general',
-//   infoPanelOpen: false,
-//   muted: false,
-//   onBack: action('onBack'),
-//   onCancelPending: action('onCancelPending'),
-//   onOpenFolder: action('onOpenFolder'),
-//   onShowProfile: action('onShowProfile'),
-//   onToggleInfoPanel: action('onToggleInfoPanel'),
-//   participants: ['nathunsmitty'],
-//   smallTeam: true,
-//   teamName: 'cool team',
-// }
+const provider = createPropProvider(PropProviders.Usernames())
 
 const defaultProps = {
   badgeNumber: 1,
