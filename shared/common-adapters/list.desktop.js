@@ -1,7 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
-import {globalStyles, collapseStyles} from '../styles'
+import {globalStyles, collapseStyles, styleSheetCreate, platformStyles} from '../styles'
 
 import type {Props} from './list'
 
@@ -36,9 +36,9 @@ class List extends PureComponent<Props<any>, void> {
 
   render() {
     return (
-      <div style={{flexGrow: 1, position: 'relative', ...this.props.style}}>
-        <div style={collapseStyles([globalStyles.fillAbsolute, {padding: 'inherit'}])}>
-          <div style={{height: '100%', overflowY: 'auto', width: '100%'}}>
+      <div style={collapseStyles([styles.outerDiv, this.props.style])}>
+        <div style={globalStyles.fillAbsolute}>
+          <div style={styles.innerDiv}>
             <ReactList
               ref={this._setListRef}
               useTranslate3d={false}
@@ -54,5 +54,19 @@ class List extends PureComponent<Props<any>, void> {
     )
   }
 }
+
+const styles = styleSheetCreate({
+  innerDiv: platformStyles({
+    isElectron: {
+      height: '100%',
+      overflowY: 'auto',
+      width: '100%',
+    },
+  }),
+  outerDiv: {
+    flexGrow: 1,
+    position: 'relative',
+  },
+})
 
 export default List
