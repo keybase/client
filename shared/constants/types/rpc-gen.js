@@ -2039,7 +2039,7 @@ export type TLFVisibility =
 
 export type TeamAcceptOrRequestResult = $ReadOnly<{wasToken: Boolean, wasSeitan: Boolean, wasTeamName: Boolean, wasOpenTeam: Boolean}>
 export type TeamAccessRequest = $ReadOnly<{uid: UID, eldestSeqno: Seqno}>
-export type TeamAddMemberResult = $ReadOnly<{invited: Boolean, user?: ?User, emailSent: Boolean, chatSent: Boolean}>
+export type TeamAddMemberResult = $ReadOnly<{invited: Boolean, user?: ?User, emailSent: Boolean, chatSending: Boolean}>
 export type TeamAndMemberShowcase = $ReadOnly<{teamShowcase: TeamShowcase, isMemberShowcased: Boolean}>
 export type TeamApplication =
   | 1 // KBFS_1
