@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/login'
-import {Image, Icon, Box2, Text, PlainInput, WaitingButton, BackButton} from '../../common-adapters'
+import {RequireImage, Icon, Box2, Text, PlainInput, WaitingButton, BackButton} from '../../common-adapters'
 import {
   platformStyles,
   collapseStyles,
@@ -115,13 +115,23 @@ class CodePage2 extends React.Component<Props, State> {
           style={styles.backButton}
           textStyle={styles.backButtonText}
         />
-        <Image
-          src={this.state.tab === 'QR' ? blueBackground : greenBackground}
+        <Box2
+          direction="vertical"
+          fullHeight={true}
           style={
-            this.props.currentDeviceAlreadyProvisioned ? styles.backgroundOnLeft : styles.backgroundOnRight
+            this.props.currentDeviceAlreadyProvisioned
+              ? styles.imageContainerOnLeft
+              : styles.imageContainerOnRight
           }
-        />
-        <Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
+        >
+          <RequireImage
+            src={this.state.tab === 'QR' ? blueBackground : greenBackground}
+            style={
+              this.props.currentDeviceAlreadyProvisioned ? styles.backgroundOnLeft : styles.backgroundOnRight
+            }
+          />
+        </Box2>
+        <Box2 direction="vertical" style={styles.container} fullWidth={true}>
           <Instructions {...this.props} />
           {content}
           <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
@@ -270,30 +280,24 @@ const Instructions = (p: Props) => (
 )
 
 const styles = styleSheetCreate({
-  backButton: {
-    marginLeft: globalMargins.medium,
-    marginTop: globalMargins.medium,
-  },
+  backButton: platformStyles({
+    isElectron: {
+      marginLeft: globalMargins.medium,
+      marginTop: globalMargins.medium,
+    },
+    isMobile: {
+      marginLeft: 0,
+      marginTop: 0,
+    },
+  }),
   backButtonText: {
     color: globalColors.white,
   },
   backgroundOnLeft: {
-    ...globalStyles.fillAbsolute,
-    bottom: 0,
-    left: -230,
-    marginBottom: 'auto',
-    marginTop: 'auto',
-    right: undefined,
-    top: 0,
+    marginLeft: -230,
   },
   backgroundOnRight: {
-    ...globalStyles.fillAbsolute,
-    bottom: 0,
-    left: undefined,
-    marginBottom: 'auto',
-    marginTop: 'auto',
-    right: -230,
-    top: 0,
+    marginRight: -230,
   },
   codePageContainer: {
     overflow: 'hidden',
@@ -302,11 +306,16 @@ const styles = styleSheetCreate({
   container: platformStyles({
     common: {
       justifyContent: 'space-between',
-      padding: globalMargins.large,
     },
     isElectron: {
+      height: '100%',
+      padding: globalMargins.large,
       // else the background can go above things, annoyingly
       zIndex: 1,
+    },
+    isMobile: {
+      flexGrow: 1,
+      padding: globalMargins.small,
     },
   }),
   enterTextButton: {
@@ -314,20 +323,39 @@ const styles = styleSheetCreate({
     width: '100%',
   },
   enterTextContainer: {
-    alignItems: 'center',
+    alignItems: isMobile ? 'stretch' : 'center',
     alignSelf: 'stretch',
   },
-  enterTextInput: {
-    ...globalStyles.fontTerminalSemibold,
-    backgroundColor: globalColors.white,
-    borderRadius: 4,
-    color: globalColors.green2,
-    fontSize: 16,
-    maxWidth: isMobile ? 300 : 460,
-    paddingBottom: 15,
-    paddingLeft: 20,
-    paddingRight: 20,
-    paddingTop: 15,
+  enterTextInput: platformStyles({
+    common: {
+      ...globalStyles.fontTerminalSemibold,
+      backgroundColor: globalColors.white,
+      borderRadius: 4,
+      color: globalColors.green2,
+      fontSize: 16,
+      paddingBottom: 15,
+      paddingLeft: 20,
+      paddingRight: 20,
+      paddingTop: 15,
+    },
+    isElectron: {
+      maxWidth: 460,
+    },
+    isMobile: {
+      maxWidth: 360,
+    },
+  }),
+  imageContainerOnLeft: {
+    ...globalStyles.fillAbsolute,
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  imageContainerOnRight: {
+    ...globalStyles.fillAbsolute,
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
   },
   instructions: {
     color: globalColors.white,
@@ -357,13 +385,20 @@ const styles = styleSheetCreate({
     color: globalColors.white,
     textAlign: 'center',
   },
-  qrContainer: {
-    backgroundColor: globalColors.white,
-    borderRadius: 8,
-    flexDirection: 'column',
-    padding: 4,
-    width: 220,
-  },
+  qrContainer: platformStyles({
+    common: {
+      backgroundColor: globalColors.white,
+      borderRadius: 8,
+      flexDirection: 'column',
+      padding: 4,
+    },
+    isElectron: {
+      width: 220,
+    },
+    isMobile: {
+      width: 200,
+    },
+  }),
   qrContainerFlip: {
     flexDirection: 'column-reverse',
   },
@@ -382,21 +417,39 @@ const styles = styleSheetCreate({
   switchTabContainer: {
     alignItems: 'center',
   },
-  viewTextCode: {
-    ...globalStyles.fontTerminalSemibold,
-    color: globalColors.white,
-    fontSize: 16,
-    maxWidth: isMobile ? 200 : 330,
-    textAlign: 'center',
-  },
-  viewTextContainer: {
-    backgroundColor: globalColors.green2,
-    borderRadius: 4,
-    maxWidth: isMobile ? 300 : 460,
-    paddingBottom: 20,
-    paddingLeft: 64,
-    paddingRight: 64,
-    paddingTop: 20,
-  },
+  viewTextCode: platformStyles({
+    common: {
+      ...globalStyles.fontTerminalSemibold,
+      color: globalColors.white,
+      fontSize: 16,
+      textAlign: 'center',
+    },
+    isElectron: {
+      maxWidth: 330,
+    },
+    isMobile: {},
+  }),
+  viewTextContainer: platformStyles({
+    common: {
+      backgroundColor: globalColors.green2,
+      borderRadius: 4,
+    },
+    isElectron: {
+      alignItems: 'center',
+      maxWidth: 460,
+      paddingBottom: 20,
+      paddingLeft: 64,
+      paddingRight: 64,
+      paddingTop: 20,
+    },
+    isMobile: {
+      alignItems: 'center',
+      alignSelf: 'stretch',
+      paddingBottom: 20,
+      paddingLeft: 20,
+      paddingRight: 20,
+      paddingTop: 20,
+    },
+  }),
 })
 export default CodePage2

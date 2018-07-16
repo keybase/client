@@ -9,7 +9,8 @@ const load = () => {
 
   const StorybookUI = getStorybookUI({
     host: 'localhost',
-    onDeviceUI: true,
+    // set this to false to hide the in-app UI and just use the web ui
+    onDeviceUI: false,
     port: 7007,
   })
 

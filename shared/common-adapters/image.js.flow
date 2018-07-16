@@ -1,4 +1,6 @@
 // @flow
+import * as React from 'react'
+import type {StylesCrossPlatform} from '../styles'
 
 export type Props = {
   src: string,
@@ -6,4 +8,10 @@ export type Props = {
   onLoad?: () => void,
 }
 
-export default function(props: Props) {}
+export type ReqProps = {|
+  src: any,
+  style?: ?StylesCrossPlatform,
+|}
+
+export default class FileImage extends React.Component<Props> {}
+export class RequireImage extends React.Component<ReqProps> {}
