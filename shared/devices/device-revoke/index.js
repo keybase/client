@@ -44,7 +44,7 @@ class EndangeredTLFList extends React.Component<{endangeredTLFs: Array<string>, 
       <Text type="BodySemibold" style={{marginRight: globalMargins.tiny}}>
         •
       </Text>
-      <Text type="BodySemibold" selectable={true}>
+      <Text type="BodySemibold" selectable={true} style={{flex: 1}}>
         {tlf}
       </Text>
     </Box>
@@ -58,11 +58,13 @@ class EndangeredTLFList extends React.Component<{endangeredTLFs: Array<string>, 
           <Box>
             <Text type="Body">You may lose access to these folders forever:</Text>
           </Box>
-          <List
-            items={this.props.endangeredTLFs}
-            renderItem={this._renderTLFEntry}
-            style={styles.tlfListContainer}
-          />
+          <Box style={styles.tlfListContainer}>
+            <List
+              items={this.props.endangeredTLFs}
+              renderItem={this._renderTLFEntry}
+              style={styles.tlfList}
+            />
+          </Box>
         </Box>
       )
     }
@@ -115,29 +117,36 @@ const styles = styleSheetCreate({
     marginTop: 4,
     textDecorationLine: 'line-through',
   },
-  tlfEntry: {
-    flexDirection: 'row',
-    marginBottom: globalMargins.xtiny,
-    textAlign: 'left',
+  tlfEntry: platformStyles({
+    common: {
+      flexDirection: 'row',
+      marginBottom: globalMargins.xtiny,
+    },
+    isElectron: {
+      textAlign: 'left',
+    },
+  }),
+  tlfList: {
+    margin: globalMargins.small,
+    flex: 1,
   },
   tlfListContainer: platformStyles({
     common: {
       ...globalStyles.flexBoxColumn,
-      alignItems: 'flex-start',
-      alignSelf: 'center',
+      alignContent: 'center',
       borderColor: globalColors.black_05,
       borderRadius: 4,
       borderStyle: 'solid',
       borderWidth: 1,
       marginBottom: globalMargins.small,
       marginTop: globalMargins.small,
-      padding: globalMargins.small,
     },
     isElectron: {
-      minHeight: 162,
+      height: 162,
       width: 440,
     },
     isMobile: {
+      height: 176,
       width: '100%',
     },
   }),
