@@ -1,18 +1,13 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../constants/types/fs'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Icon, Text} from '../../common-adapters'
 import AddNew from './add-new-container'
 import ConnectedBanner from '../banner/container'
 import Breadcrumb from './breadcrumb-container.desktop'
+import {type FolderHeaderProps} from './header'
 
-export type FolderHeaderProps = {
-  path: Types.Path,
-  openInFileUI: () => void,
-}
-
-const FolderHeader = ({path, openInFileUI}: FolderHeaderProps) => (
+const FolderHeader = ({path, openInFileUI, onChat}: FolderHeaderProps) => (
   <Box style={styleHeaderContainer}>
     <Box style={styleFolderHeader}>
       {path === '/keybase' ? (
@@ -25,6 +20,17 @@ const FolderHeader = ({path, openInFileUI}: FolderHeaderProps) => (
           <Box style={styleFolderHeaderEnd}>
             <AddNew path={path} style={styleAddNew} />
             <Icon type="iconfont-finder" color={globalColors.black_40} fontSize={16} onClick={openInFileUI} />
+            {onChat && (
+              <Icon
+                type="iconfont-chat"
+                style={{
+                  marginLeft: globalMargins.small,
+                }}
+                color={globalColors.black_40}
+                fontSize={16}
+                onClick={onChat}
+              />
+            )}
           </Box>
         </Box>
       )}

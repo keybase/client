@@ -8,6 +8,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"path/filepath"
 	"runtime"
 	"runtime/pprof"
 	"runtime/trace"
@@ -129,16 +130,16 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.TestProtocol(NewTestHandler(xp, g)),
 		keybase1.TrackProtocol(NewTrackHandler(xp, g)),
 		keybase1.UserProtocol(NewUserHandler(xp, g, d.ChatG())),
-		keybase1.ApiserverProtocol(NewAPIServerHandler(xp, g)),
+		CancellingProtocol(g, keybase1.ApiserverProtocol(NewAPIServerHandler(xp, g))),
 		keybase1.PaperprovisionProtocol(NewPaperProvisionHandler(xp, g)),
 		keybase1.RekeyProtocol(NewRekeyHandler2(xp, g, d.rekeyMaster)),
 		keybase1.NotifyFSRequestProtocol(newNotifyFSRequestHandler(xp, g)),
 		keybase1.GregorProtocol(newGregorRPCHandler(xp, g, d.gregor)),
-		chat1.LocalProtocol(newChatLocalHandler(xp, cg, d.attachmentstore, d.gregor)),
+		CancellingProtocol(g, chat1.LocalProtocol(newChatLocalHandler(xp, cg, d.attachmentstore, d.gregor))),
 		keybase1.SimpleFSProtocol(NewSimpleFSHandler(xp, g)),
 		keybase1.LogsendProtocol(NewLogsendHandler(xp, g)),
 		keybase1.AppStateProtocol(newAppStateHandler(xp, g)),
-		keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, cg, d.gregor)),
+		CancellingProtocol(g, keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, cg, d.gregor))),
 		keybase1.BadgerProtocol(newBadgerHandler(xp, g, d.badger)),
 		keybase1.MerkleProtocol(newMerkleHandler(xp, g)),
 		keybase1.GitProtocol(NewGitHandler(xp, g)),
@@ -347,6 +348,23 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	go d.identifySelf()
 }
 
+func (d *Service) purgeOldChatAttachmentData() {
+	purge := func(glob string) {
+		files, err := filepath.Glob(filepath.Join(d.G().GetCacheDir(), glob))
+		if err != nil {
+			d.G().Log.Debug("purgeOldChatAttachmentData: failed to get %s files: %s", glob, err)
+		} else {
+			for _, f := range files {
+				if err := os.Remove(f); err != nil {
+					d.G().Log.Debug("purgeOldChatAttachmentData: failed to remove: name: %s err: %s", f, err)
+				}
+			}
+		}
+	}
+	purge("kbchat*")
+	purge("prev*")
+}
+
 func (d *Service) startChatModules() {
 	uid := d.G().Env.GetUID()
 	if !uid.IsNil() {
@@ -357,6 +375,7 @@ func (d *Service) startChatModules() {
 		g.FetchRetrier.Start(context.Background(), uid)
 		g.EphemeralPurger.Start(context.Background(), uid)
 	}
+	d.purgeOldChatAttachmentData()
 }
 
 func (d *Service) stopChatModules() {
@@ -386,6 +405,7 @@ func (d *Service) createChatModules() {
 	g.FetchRetrier = chat.NewFetchRetrier(g)
 	g.ConvLoader = chat.NewBackgroundConvLoader(g)
 	g.EphemeralPurger = chat.NewBackgroundEphemeralPurger(g, chatStorage)
+	g.ActivityNotifier = chat.NewNotifyRouterActivityRouter(g)
 
 	// Set up push handler with the badger
 	d.badger.SetInboxVersionSource(storage.NewInboxVersionSource(g))
@@ -584,8 +604,18 @@ func (d *Service) chatOutboxPurgeCheck() {
 			}
 			gregorUID := gregor1.UID(uid.ToBytes())
 			g := globals.NewContext(d.G(), d.ChatG())
-			if err := storage.NewOutbox(g, gregorUID).OutboxPurge(context.Background()); err != nil {
+			ephemeralPurged, err := storage.NewOutbox(g, gregorUID).OutboxPurge(context.Background())
+			if err != nil {
 				m.CDebugf("OutboxPurge error: %s", err)
+				continue
+			}
+			if len(ephemeralPurged) > 0 {
+				act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
+					OutboxRecords:    ephemeralPurged,
+					IsEphemeralPurge: true,
+				})
+				d.ChatG().ActivityNotifier.Activity(context.Background(), gregorUID, chat1.TopicType_NONE,
+					&act)
 			}
 		}
 	}()
@@ -604,17 +634,9 @@ func (d *Service) hourlyChecks() {
 		if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
 			m.CDebugf("LogoutAndDeprovisionIfRevoked error: %s", err)
 		}
-		ekLib := m.G().GetEKLib()
-		ekLib.KeygenIfNeeded(m.Ctx())
 		for {
 			<-ticker.C
 			m.CDebugf("+ hourly check loop")
-			ekLib := m.G().GetEKLib()
-			m.CDebugf("| checking if ephemeral keys need to be created or deleted")
-			if err := ekLib.KeygenIfNeeded(m.Ctx()); err != nil {
-				m.CDebugf("KeygenIfNeeded error: %s", err)
-			}
-
 			m.CDebugf("| checking if current device revoked")
 			if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
 				m.CDebugf("LogoutAndDeprovisionIfRevoked error: %s", err)
@@ -770,6 +792,9 @@ func (d *Service) OnLogout() (err error) {
 	log := func(s string) {
 		d.G().Log.Debug("Service#OnLogout: %s", s)
 	}
+
+	log("cancelling live RPCs")
+	d.G().RPCCanceller.CancelLiveContexts()
 
 	log("shutting down chat modules")
 	d.stopChatModules()
@@ -1179,4 +1204,9 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 	d.startChatModules()
 
 	return nil
+}
+
+// Called by CtlHandler after DbNuke finishes and succeeds.
+func (d *Service) onDbNuke(ctx context.Context) {
+	d.avatarLoader.OnCacheCleared(ctx)
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/s3"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -43,6 +44,10 @@ func (d DummyAttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.Convers
 	return ""
 }
 
+func (d DummyAttachmentHTTPSrv) GetPendingPreviewURL(ctx context.Context, outboxID chat1.OutboxID) string {
+	return ""
+}
+
 func (d DummyAttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {
 	return DummyAttachmentFetcher{}
 }
@@ -54,11 +59,12 @@ type AttachmentHTTPSrv struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	endpoint string
-	httpSrv  *libkb.HTTPSrv
-	urlMap   *lru.Cache
-	fetcher  types.AttachmentFetcher
-	ri       func() chat1.RemoteInterface
+	endpoint        string
+	pendingEndpoint string
+	httpSrv         *libkb.HTTPSrv
+	urlMap          *lru.Cache
+	fetcher         types.AttachmentFetcher
+	ri              func() chat1.RemoteInterface
 }
 
 var _ types.AttachmentURLSrv = (*AttachmentHTTPSrv)(nil)
@@ -69,13 +75,14 @@ func NewAttachmentHTTPSrv(g *globals.Context, fetcher types.AttachmentFetcher, r
 		panic(err)
 	}
 	r := &AttachmentHTTPSrv{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "AttachmentHTTPSrv", false),
-		httpSrv:      libkb.NewHTTPSrv(g.ExternalG(), libkb.NewPortRangeListenerSource(16423, 18000)),
-		endpoint:     "at",
-		ri:           ri,
-		urlMap:       l,
-		fetcher:      fetcher,
+		Contextified:    globals.NewContextified(g),
+		DebugLabeler:    utils.NewDebugLabeler(g.GetLog(), "AttachmentHTTPSrv", false),
+		httpSrv:         libkb.NewHTTPSrv(g.ExternalG(), libkb.NewPortRangeListenerSource(16423, 18000)),
+		endpoint:        "at",
+		pendingEndpoint: "pe",
+		ri:              ri,
+		urlMap:          l,
+		fetcher:         fetcher,
 	}
 	r.startHTTPSrv()
 	g.PushShutdownHook(func() error {
@@ -108,6 +115,7 @@ func (r *AttachmentHTTPSrv) startHTTPSrv() {
 		return
 	}
 	r.httpSrv.HandleFunc("/"+r.endpoint, r.serve)
+	r.httpSrv.HandleFunc("/"+r.pendingEndpoint, r.servePendingPreview)
 }
 
 func (r *AttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {
@@ -142,22 +150,49 @@ func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.Conversatio
 	return url
 }
 
+func (r *AttachmentHTTPSrv) GetPendingPreviewURL(ctx context.Context, outboxID chat1.OutboxID) string {
+	defer r.Trace(ctx, func() error { return nil }, "GetPendingPreviewURL(%s)", outboxID)()
+	addr, err := r.httpSrv.Addr()
+	if err != nil {
+		r.Debug(ctx, "GetPendingPreviewURL: failed to get HTTP server address: %s", err)
+		return ""
+	}
+	url := fmt.Sprintf("http://%s/%s?key=%s", addr, r.pendingEndpoint, outboxID)
+	r.Debug(ctx, "GetPendingPreviewURL: handler URL: outboxID: %s %s", outboxID, url)
+	return url
+}
+
+func (r *AttachmentHTTPSrv) servePendingPreview(w http.ResponseWriter, req *http.Request) {
+	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
+		NewSimpleIdentifyNotifier(r.G()))
+	defer r.Trace(ctx, func() error { return nil }, "servePendingPreview")()
+	strOutboxID := req.URL.Query().Get("key")
+	outboxID, err := chat1.MakeOutboxID(strOutboxID)
+	if err != nil {
+		r.makeError(ctx, w, 400, "invalid outbox ID: %s", err)
+		return
+	}
+	preview, err := storage.NewPendingPreviews(r.G()).Get(ctx, outboxID)
+	if err != nil {
+		r.makeError(ctx, w, 500, "error reading preview: %s", err)
+		return
+	}
+	if _, err := io.Copy(w, preview); err != nil {
+		r.makeError(ctx, w, 500, "failed to write resposne: %s", err)
+		return
+	}
+}
+
+func (r *AttachmentHTTPSrv) makeError(ctx context.Context, w http.ResponseWriter, code int, msg string,
+	args ...interface{}) {
+	r.Debug(ctx, "serve: error code: %d msg %s", code, fmt.Sprintf(msg, args...))
+	w.WriteHeader(code)
+}
+
 func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
 	defer r.Trace(ctx, func() error { return nil }, "serve")()
-
-	var response struct {
-		code int
-		msg  string
-	}
-	makeError := func(code int, msg string, args ...interface{}) {
-		response.code = code
-		response.msg = fmt.Sprintf(msg, args...)
-		r.Debug(ctx, "serve: error code: %d msg %s", response.code, response.msg)
-		w.WriteHeader(response.code)
-	}
-
 	key := req.URL.Query().Get("key")
 	preview := false
 	if "true" == req.URL.Query().Get("prev") {
@@ -167,7 +202,7 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	pairInt, ok := r.urlMap.Get(key)
 	r.Unlock()
 	if !ok {
-		makeError(404, "key not found in URL map")
+		r.makeError(ctx, w, 404, "key not found in URL map")
 		return
 	}
 
@@ -175,15 +210,15 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	uid := gregor1.UID(r.G().Env.GetUID().ToBytes())
 	asset, err := attachments.AssetFromMessage(ctx, r.G(), uid, pair.ConvID, pair.MsgID, preview)
 	if err != nil {
-		makeError(500, "failed to get asset: %s", err)
+		r.makeError(ctx, w, 500, "failed to get asset: %s", err)
 		return
 	}
 	if len(asset.Path) == 0 {
-		makeError(404, "attachment not uploaded yet, no path")
+		r.makeError(ctx, w, 404, "attachment not uploaded yet, no path")
 		return
 	}
 	if err := r.fetcher.FetchAttachment(ctx, w, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
-		makeError(500, "failed to fetch attachment: %s", err)
+		r.makeError(ctx, w, 500, "failed to fetch attachment: %s", err)
 		return
 	}
 }
@@ -340,7 +375,7 @@ func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Wri
 	}
 	if found {
 		c.Debug(ctx, "FetchAttachment: cache hit for: %s filepath: %s", asset.Path, path)
-		fileReader, err := os.OpenFile(path, os.O_RDONLY, os.ModeAppend)
+		fileReader, err := os.Open(path)
 		defer c.closeFile(fileReader)
 		if err != nil {
 			c.Debug(ctx, "FetchAttachment: failed to read cached file, removing: %s", err)

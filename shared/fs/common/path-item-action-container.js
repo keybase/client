@@ -13,6 +13,7 @@ import {
 import PathItemAction from './path-item-action'
 import {fileUIName, isMobile, isIOS, isAndroid} from '../../constants/platform'
 import {FloatingMenuParentHOC} from '../../common-adapters/floating-menu'
+import {copyToClipboard} from '../../util/clipboard'
 
 type OwnProps = {
   path: Types.Path,
@@ -35,6 +36,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => ({
   loadFolderList: () => dispatch(FsGen.createFolderListLoad({path, refreshTag: 'path-item-action-popup'})),
   loadMimeType: () => dispatch(FsGen.createMimeTypeLoad({path, refreshTag: 'path-item-action-popup'})),
   _ignoreFolder: () => dispatch(FsGen.createFavoriteIgnore({path})),
+  copyPath: () => copyToClipboard(Types.pathToString(path)),
   ...(isMobile
     ? {
         _saveMedia: () => dispatch(FsGen.createSaveMedia({path})),
@@ -53,7 +55,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => ({
 
 const getRootMenuItems = (stateProps, dispatchProps, path: Types.Path) => {
   const {_pathItems, fileUIEnabled, _username} = stateProps
-  const {_showInFileUI, _saveMedia, _shareNative, _download, _ignoreFolder} = dispatchProps
+  const {_showInFileUI, _saveMedia, _shareNative, _download, _ignoreFolder, copyPath} = dispatchProps
   const pathItem = _pathItems.get(path, Constants.unknownPathItem)
   let menuItems = []
 
@@ -93,6 +95,11 @@ const getRootMenuItems = (stateProps, dispatchProps, path: Types.Path) => {
       subTitle: 'The folder will no longer appear in your folders list.',
       danger: true,
     })
+
+  menuItems.push({
+    title: 'Copy path',
+    onClick: copyPath,
+  })
   return menuItems
 }
 
@@ -124,6 +131,7 @@ const mergeProps = (stateProps, dispatchProps, {path, actionIconClassName, actio
     name: pathItem.name,
     size: pathItem.size,
     needLoadMimeType: pathItem.type === 'file' && pathItem.mimeType === '',
+    needFolderList: pathItem.type === 'folder',
     childrenFolders,
     childrenFiles,
     pathElements,
@@ -145,10 +153,9 @@ export default compose(
       if (!this.props.showingMenu || (prevProps.showingMenu && this.props.path === prevProps.path)) {
         return
       }
-      this.props.loadFolderList()
-      if (this.props.needLoadMimeType) {
-        this.props.loadMimeType()
-      }
+      // TODO: get rid of these when we have notifications in place.
+      this.props.needFolderList && this.props.loadFolderList()
+      this.props.needLoadMimeType && this.props.loadMimeType()
     },
   })
 )(PathItemAction)

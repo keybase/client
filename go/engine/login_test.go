@@ -3763,7 +3763,7 @@ func assertPassphraseStreamCache(tc libkb.TestContext) {
 }
 
 func assertSecretStored(tc libkb.TestContext, username string) {
-	secret, err := tc.G.SecretStore().RetrieveSecret(libkb.NewNormalizedUsername(username))
+	secret, err := tc.G.SecretStore().RetrieveSecret(NewMetaContextForTest(tc), libkb.NewNormalizedUsername(username))
 	require.NoError(tc.T, err, "no error fetching secret")
 	require.False(tc.T, secret.IsNil(), "secret was non-nil")
 }

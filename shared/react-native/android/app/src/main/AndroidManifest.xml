@@ -20,6 +20,7 @@
       android:name=".MainApplication"
       android:allowBackup="true"
       android:fullBackupContent="@xml/backup_rules"
+      android:networkSecurityConfig="@xml/network_security_config"
       android:label="@string/app_name"
       android:icon="@mipmap/ic_launcher"
       android:theme="@style/AppTheme">
@@ -62,9 +63,16 @@
               <action android:name="com.google.android.c2dm.intent.RECEIVE" />
           </intent-filter>
       </service>
-      <service android:name="com.evernote.android.job.gcm.PlatformGcmService"
-          android:enabled="true"
-          tools:replace="android:enabled"/>
+        <service
+            android:name="com.evernote.android.job.gcm.PlatformGcmService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE"
+            tools:replace="android:enabled">
+            <intent-filter>
+                <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY"/>
+            </intent-filter>
+        </service>
       <provider
           android:name="io.keybase.ossifrage.util.SharedFileProvider"
           android:authorities="${applicationId}.fileprovider"
@@ -74,8 +82,5 @@
               android:name="android.support.FILE_PROVIDER_PATHS"
               android:resource="@xml/fileprovider"/>
       </provider>
-
-
     </application>
-
 </manifest>

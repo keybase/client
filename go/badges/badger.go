@@ -34,13 +34,35 @@ type Badger struct {
 	libkb.Contextified
 	badgeState     *BadgeState
 	iboxVersSource InboxVersionSource
+	notifyCh       chan keybase1.BadgeState
+	shutdownCh     chan struct{}
+	running        bool
 }
 
 func NewBadger(g *libkb.GlobalContext) *Badger {
-	return &Badger{
+	b := &Badger{
 		Contextified:   libkb.NewContextified(g),
 		badgeState:     NewBadgeState(g.Log),
 		iboxVersSource: nullInboxVersionSource{},
+		notifyCh:       make(chan keybase1.BadgeState, 1000),
+		shutdownCh:     make(chan struct{}),
+	}
+	go b.notifyLoop()
+	g.PushShutdownHook(func() error {
+		close(b.shutdownCh)
+		return nil
+	})
+	return b
+}
+
+func (b *Badger) notifyLoop() {
+	for {
+		select {
+		case state := <-b.notifyCh:
+			b.G().NotifyRouter.HandleBadgeState(state)
+		case <-b.shutdownCh:
+			return
+		}
 	}
 }
 
@@ -48,21 +70,21 @@ func (b *Badger) SetInboxVersionSource(s InboxVersionSource) {
 	b.iboxVersSource = s
 }
 
-func (b *Badger) PushState(state gregor1.State) {
-	b.G().Log.Debug("Badger update with gregor state")
-	b.badgeState.UpdateWithGregor(state)
-	err := b.Send()
+func (b *Badger) PushState(ctx context.Context, state gregor1.State) {
+	b.G().Log.CDebugf(ctx, "Badger update with gregor state")
+	b.badgeState.UpdateWithGregor(ctx, state)
+	err := b.Send(ctx)
 	if err != nil {
 		b.G().Log.Warning("Badger send (pushstate) failed: %v", err)
 	}
 }
 
-func (b *Badger) PushChatUpdate(update chat1.UnreadUpdate, inboxVers chat1.InboxVers) {
-	b.G().Log.Debug("Badger update with chat update")
-	b.badgeState.UpdateWithChat(update, inboxVers)
-	err := b.Send()
+func (b *Badger) PushChatUpdate(ctx context.Context, update chat1.UnreadUpdate, inboxVers chat1.InboxVers) {
+	b.G().Log.CDebugf(ctx, "Badger update with chat update")
+	b.badgeState.UpdateWithChat(ctx, update, inboxVers)
+	err := b.Send(ctx)
 	if err != nil {
-		b.G().Log.Warning("Badger send (pushchatupdate) failed: %v", err)
+		b.G().Log.CDebugf(ctx, "Badger send (pushchatupdate) failed: %v", err)
 	}
 }
 
@@ -70,17 +92,14 @@ func (b *Badger) inboxVersion(ctx context.Context) chat1.InboxVers {
 	uid := b.G().Env.GetUID()
 	vers, err := b.iboxVersSource.GetInboxVersion(ctx, uid.ToBytes())
 	if err != nil {
-		b.G().Log.Debug("Badger: inboxVersion error: %s", err.Error())
+		b.G().Log.CDebugf(ctx, "Badger: inboxVersion error: %s", err.Error())
 		return chat1.InboxVers(0)
 	}
 	return vers
 }
 
 func (b *Badger) Resync(ctx context.Context, chatRemote func() chat1.RemoteInterface,
-	gcli *grclient.Client, update *chat1.UnreadUpdateFull) error {
-	b.G().Log.Debug("Badger resync req")
-
-	var err error
+	gcli *grclient.Client, update *chat1.UnreadUpdateFull) (err error) {
 	if update == nil {
 		iboxVersion := b.inboxVersion(ctx)
 		b.G().Log.Debug("Badger: Resync(): using inbox version: %v", iboxVersion)
@@ -91,41 +110,41 @@ func (b *Badger) Resync(ctx context.Context, chatRemote func() chat1.RemoteInter
 			return err
 		}
 	} else {
-		b.G().Log.Debug("Badger: Resync(): skipping remote call, data previously obtained")
+		b.G().Log.CDebugf(ctx, "Badger: Resync(): skipping remote call, data previously obtained")
 	}
 
 	state, err := gcli.StateMachineState(ctx, nil, false)
 	if err != nil {
-		b.G().Log.Debug("Badger: Resync(): unable to get state: %s", err.Error())
+		b.G().Log.CDebugf(ctx, "Badger: Resync(): unable to get state: %s", err.Error())
 		state = gregor1.State{}
 	}
-	b.badgeState.UpdateWithChatFull(*update)
-	b.badgeState.UpdateWithGregor(state)
-	err = b.Send()
+	b.badgeState.UpdateWithChatFull(ctx, *update)
+	b.badgeState.UpdateWithGregor(ctx, state)
+	err = b.Send(ctx)
 	if err != nil {
-		b.G().Log.Warning("Badger send (resync) failed: %v", err)
+		b.G().Log.CDebugf(ctx, "Badger send (resync) failed: %v", err)
 	} else {
-		b.G().Log.Debug("Badger resync complete")
+		b.G().Log.CDebugf(ctx, "Badger resync complete")
 	}
 	return err
 }
 
 func (b *Badger) Clear(ctx context.Context) {
 	b.badgeState.Clear()
-	err := b.Send()
+	err := b.Send(ctx)
 	if err != nil {
-		b.G().Log.Warning("Badger send (clear) failed: %v", err)
+		b.G().Log.CDebugf(ctx, "Badger send (clear) failed: %v", err)
 	}
 }
 
 // Send the badgestate to electron
-func (b *Badger) Send() error {
+func (b *Badger) Send(ctx context.Context) error {
 	state, err := b.badgeState.Export()
 	if err != nil {
 		return err
 	}
-	b.log(state)
-	b.G().NotifyRouter.HandleBadgeState(state)
+	b.log(ctx, state)
+	b.notifyCh <- state
 	return nil
 }
 
@@ -134,7 +153,7 @@ func (b *Badger) State() *BadgeState {
 }
 
 // Log a copy of the badgestate with some zeros stripped off for brevity.
-func (b *Badger) log(state1 keybase1.BadgeState) {
+func (b *Badger) log(ctx context.Context, state1 keybase1.BadgeState) {
 	var state2 keybase1.BadgeState
 	state2 = state1
 	state2.Conversations = nil
@@ -156,5 +175,5 @@ func (b *Badger) log(state1 keybase1.BadgeState) {
 		}
 		state2.Conversations = append(state2.Conversations, c2)
 	}
-	b.G().Log.Debug("Badger send: %+v", state2)
+	b.G().Log.CDebugf(ctx, "Badger send: %+v", state2)
 }

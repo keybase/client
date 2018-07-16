@@ -100,6 +100,7 @@ func (h *gregorFirehoseHandler) IsAlive() bool {
 }
 
 func (h *gregorFirehoseHandler) PushState(s gregor1.State, r keybase1.PushReason) {
+	defer h.G().Trace("gregorFirehoseHandler#PushState", func() error { return nil })()
 	err := h.cli.PushState(context.Background(), keybase1.PushStateArg{State: s, Reason: r})
 	if err != nil {
 		h.G().Log.Error(fmt.Sprintf("Error in firehose push state: %s", err))
@@ -122,7 +123,7 @@ func (h *gregorFirehoseHandler) filterOOBMs(v []gregor1.OutOfBandMessage) []greg
 }
 
 func (h *gregorFirehoseHandler) PushOutOfBandMessages(v []gregor1.OutOfBandMessage) {
-
+	defer h.G().Trace("gregorFirehoseHandler#PushOutOfBandMessages", func() error { return nil })()
 	nOrig := len(v)
 
 	// Filter OOBMs down to wanted systems if we have a filter installed
@@ -491,7 +492,7 @@ func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 				g.Warning(context.Background(), "Cannot get state in PushHandler: %s", err)
 				return
 			}
-			g.badger.PushState(s)
+			g.badger.PushState(context.Background(), s)
 		}
 	}
 }
@@ -543,7 +544,7 @@ func (g *gregorHandler) pushState(r keybase1.PushReason) {
 	// Only send this state update on reception of new data, not a reconnect since we will
 	// be sending that on a different code path altogether (see OnConnect).
 	if g.badger != nil && r != keybase1.PushReason_RECONNECTED {
-		g.badger.PushState(s)
+		g.badger.PushState(context.Background(), s)
 	}
 }
 
@@ -780,6 +781,13 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		return fmt.Errorf("error authenticating: %s", err)
 	}
 
+	// Sync badge state in the background
+	if g.badger != nil {
+		if err := g.badger.Resync(ctx, g.GetClient, gcli, &syncAllRes.Badge); err != nil {
+			g.chatLog.Debug(ctx, "badger failure: %s", err)
+		}
+	}
+
 	// Sync chat data using a Syncer object
 	if err := g.G().Syncer.Connected(ctx, chatCli, uid, &syncAllRes.Chat); err != nil {
 		return fmt.Errorf("error running chat sync: %s", err)
@@ -790,13 +798,6 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		&syncAllRes.Notification); err != nil {
 		g.chatLog.Debug(ctx, "serverSync: failure: %s", err)
 		return fmt.Errorf("error running state sync: %s", err)
-	}
-
-	// Sync badge state in the background
-	if g.badger != nil {
-		if err := g.badger.Resync(ctx, g.GetClient, gcli, &syncAllRes.Badge); err != nil {
-			g.chatLog.Debug(ctx, "badger failure: %s", err)
-		}
 	}
 
 	// Call out to reachability module if we have one

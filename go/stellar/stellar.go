@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/bundle"
@@ -430,6 +431,12 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 	if err != nil {
 		return res, err
 	}
+
+	if err := ChatSendPaymentMessage(m, recipient, rres.KeybaseID); err != nil {
+		// if the chat message fails to send, just log the error
+		m.CDebugf("failed to send chat SendPayment message: %s", err)
+	}
+
 	return SendPaymentResult{
 		KbTxID:  rres.KeybaseID,
 		TxID:    rres.StellarID,
@@ -485,6 +492,12 @@ func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
 	if err != nil {
 		return res, err
 	}
+
+	if err := ChatSendPaymentMessage(m, recipient, rres.KeybaseID); err != nil {
+		// if the chat message fails to send, just log the error
+		m.CDebugf("failed to send chat SendPayment message: %s", err)
+	}
+
 	return SendPaymentResult{
 		KbTxID:      rres.KeybaseID,
 		TxID:        rres.StellarID,
@@ -1024,4 +1037,106 @@ func CreateNewAccount(m libkb.MetaContext, accountName string) (ret stellar1.Acc
 		return ret, err
 	}
 	return ret, remote.Post(m.Ctx(), m.G(), nextBundle)
+}
+
+func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipient, kbTxID stellar1.KeybaseTransactionID) error {
+	if recipient.User == nil {
+		// only send if recipient is keybase username
+		return nil
+	}
+
+	m.G().StartStandaloneChat()
+	if m.G().ChatHelper == nil {
+		return errors.New("cannot send SendPayment message:  chat helper is nil")
+	}
+
+	name := strings.Join([]string{m.CurrentUsername().String(), recipient.User.GetNormalizedName().String()}, ",")
+
+	msg := chat1.MessageSendPayment{
+		KbTxID: kbTxID.String(),
+	}
+
+	body := chat1.NewMessageBodyWithSendpayment(msg)
+
+	// identify already performed, so skip here
+	return m.G().ChatHelper.SendMsgByNameNonblock(m.Ctx(), name, nil, chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFIdentifyBehavior_CHAT_SKIP, body, chat1.MessageType_SENDPAYMENT)
+}
+
+type MakeRequestArg struct {
+	To       stellarcommon.RecipientInput
+	Amount   string
+	Asset    *stellar1.Asset
+	Currency *stellar1.OutsideCurrencyCode
+	Note     string
+}
+
+func MakeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg) (ret stellar1.KeybaseRequestID, err error) {
+	defer m.CTraceTimed("Stellar.MakeRequest", func() error { return err })()
+
+	if arg.Asset == nil && arg.Currency == nil {
+		return ret, fmt.Errorf("expected either Asset or Currency, got none")
+	} else if arg.Asset != nil && arg.Currency != nil {
+		return ret, fmt.Errorf("expected either Asset or Currency, got both")
+	}
+
+	if arg.Asset != nil && !arg.Asset.IsNativeXLM() {
+		return ret, fmt.Errorf("requesting non-XLM assets is not supported")
+	}
+
+	if arg.Currency != nil {
+		conf, err := m.G().GetStellar().GetServerDefinitions(m.Ctx())
+		if err != nil {
+			return ret, err
+		}
+		_, ok := conf.GetCurrencyLocal(*arg.Currency)
+		if !ok {
+			return ret, fmt.Errorf("unrecognized currency code %q", arg.Currency)
+		}
+	}
+
+	// Make sure chat is functional. Chat message is the only way for
+	// the recipient to learn about the request, so it's essential
+	// that we are able to send REQUESTPAYMENT chat message.
+	m.G().StartStandaloneChat()
+	if m.G().ChatHelper == nil {
+		return ret, errors.New("cannot send RequestPayment message: chat helper is nil")
+	}
+
+	recipient, err := LookupRecipient(m, arg.To)
+	if err != nil {
+		return ret, err
+	}
+
+	post := stellar1.RequestPost{
+		Amount:   arg.Amount,
+		Asset:    arg.Asset,
+		Currency: arg.Currency,
+	}
+
+	if recipient.User != nil {
+		post.ToAssertion = recipient.User.GetNormalizedName().String()
+		uv := recipient.User.ToUserVersion()
+		post.ToUser = &uv
+	} else if recipient.Assertion != nil {
+		post.ToAssertion = recipient.Assertion.String()
+	} else {
+		return ret, fmt.Errorf("expected username or user assertion as recipient")
+	}
+
+	requestID, err := remoter.SubmitRequest(m.Ctx(), post)
+	if err != nil {
+		return ret, err
+	}
+
+	body := chat1.NewMessageBodyWithRequestpayment(chat1.MessageRequestPayment{
+		RequestID: requestID.String(),
+		Note:      arg.Note,
+	})
+
+	displayName := strings.Join([]string{m.CurrentUsername().String(), post.ToAssertion}, ",")
+
+	membersType := chat1.ConversationMembersType_IMPTEAMNATIVE
+	err = m.G().ChatHelper.SendMsgByName(m.Ctx(), displayName, nil,
+		membersType, keybase1.TLFIdentifyBehavior_CHAT_SKIP, body, chat1.MessageType_REQUESTPAYMENT)
+	return requestID, err
 }

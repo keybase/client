@@ -170,6 +170,15 @@ protocol local {
     @mpackkey("b") @jsonkey("b")
     string body; // emoji reaction :+1:
   }
+  
+  record MessageSendPayment {
+    string kbTxID;
+  }
+
+  record MessageRequestPayment {
+    string requestID;
+    string note;
+  }
 
   variant MessageBody switch (MessageType messageType) {
     case TEXT: MessageText;
@@ -184,6 +193,8 @@ protocol local {
     case SYSTEM: MessageSystem;
     case DELETEHISTORY: MessageDeleteHistory;
     case REACTION: MessageReaction;
+    case SENDPAYMENT: MessageSendPayment;
+    case REQUESTPAYMENT: MessageRequestPayment;
   }
 
   enum OutboxStateType {
@@ -793,13 +804,23 @@ protocol local {
   @lint("ignore")
   DownloadAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
 
+  enum PreviewLocationTyp {
+    URL_0,
+    FILE_1
+  }
+
+  variant PreviewLocation switch (PreviewLocationTyp ltyp) {
+    case URL: string;
+    case FILE: string;
+  }
+
   record MakePreviewRes {
     string mimeType;        // this will always be populated
-    union {null, string} filename;    // will exist if service is able to make a preview
+    union {null, PreviewLocation} location;    // will exist if service is able to make a preview
     union {null, AssetMetadata} metadata; // will exist if service is able to make a preview
     union {null, AssetMetadata} baseMetadata; // will exist if service is able to get base metadata
   }
-  MakePreviewRes makePreview(int sessionID, LocalFileSource attachment, string outputDir);
+  MakePreviewRes makePreview(int sessionID, LocalFileSource attachment, OutboxID outboxID);
 
   @lint("ignore")
   void CancelPost(OutboxID outboxID);
@@ -863,7 +884,7 @@ protocol local {
   GlobalAppNotificationSettings getGlobalAppNotificationSettingsLocal();
 
   // Unpack message from a push notification
-  string unboxMobilePushNotification(string payload, string convID, ConversationMembersType membersType, array<string> pushIDs);
+  string unboxMobilePushNotification(string payload, string convID, ConversationMembersType membersType, array<string> pushIDs, boolean shouldAck);
 
   // Convenience interface for adding someone back to a reset team convo
   void addTeamMemberAfterReset(string username, ConversationID convID);

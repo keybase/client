@@ -186,7 +186,7 @@ func CheckPostedViaSigID(m MetaContext, sigID keybase1.SigID) (found bool, statu
 	return rfound, keybase1.ProofStatus(rstatus), keybase1.ProofState(rstate), rerr
 }
 
-func PostDeviceLKS(m MetaContext, sr SessionReader, deviceID keybase1.DeviceID, deviceType string, serverHalf LKSecServerHalf,
+func PostDeviceLKS(m MetaContext, deviceID keybase1.DeviceID, deviceType string, serverHalf LKSecServerHalf,
 	ppGen PassphraseGeneration,
 	clientHalfRecovery string, clientHalfRecoveryKID keybase1.KID) error {
 	m.CDebugf("| PostDeviceLKS: %s", deviceID)
@@ -210,7 +210,6 @@ func PostDeviceLKS(m MetaContext, sr SessionReader, deviceID keybase1.DeviceID, 
 			"platform":        S{Val: GetPlatformString()},
 		},
 		RetryCount:  10,
-		SessionR:    sr,
 		MetaContext: m,
 	}
 	_, err := m.G().API.Post(arg)

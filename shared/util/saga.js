@@ -121,14 +121,25 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
 // Helper that expects a function which returns a promise that resolves to a put
 function safeTakeEveryPurePromise<A, RA>(
   pattern: Pattern,
-  f: (action: A, state: TypedState) => null | false | Promise<RA>
+  f: (state: TypedState, action: A) => null | false | Promise<RA>
 ) {
-  return safeTakeEveryPure(pattern, function*(action: A) {
+  return safeTakeEvery(pattern, function*(action: A) {
     const state: TypedState = yield select()
-    const toPut = yield call(f, action, state)
+    const toPut = yield call(f, state, action)
     if (toPut) {
       yield put(toPut)
     }
+  })
+}
+
+// like safeTakeEveryPure but simpler, only 2 params and gives you a state first
+function safeTakeEveryPureSimple<A, FinalAction>(
+  pattern: Pattern,
+  f: (state: TypedState, action: A) => null | false | FinalAction
+) {
+  return safeTakeEvery(pattern, function*(action: A) {
+    const state: TypedState = yield select()
+    yield f(state, action)
   })
 }
 
@@ -359,6 +370,7 @@ export {
   safeTakeEvery,
   safeTakeEveryPure,
   safeTakeEveryPurePromise,
+  safeTakeEveryPureSimple,
   safeTakeLatest,
   safeTakeLatestPure,
   safeTakeLatestWithCatch,

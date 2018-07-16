@@ -4,11 +4,11 @@
 
 import * as I from 'immutable'
 import * as RouteTreeConstants from '../constants/route-tree'
-import * as AppGen from '../actions/app-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as GregorGen from '../actions/gregor-gen'
 import * as EngineGen from '../actions/engine-gen'
+import * as WaitingGen from '../actions/waiting-gen'
 import {getPath} from '../route-tree'
 import type {TypedState} from '../constants/reducer'
 import * as Entity from '../constants/types/entities'
@@ -59,7 +59,7 @@ const actionTransformMap = {
   [ConfigGen.persistRouteState]: nullTransform,
   [EngineGen.waitingForRpc]: nullTransform,
   [GregorGen.pushOOBM]: nullTransform,
-  [AppGen.changedFocus]: nullTransform,
+  [ConfigGen.changedFocus]: nullTransform,
   [Chat2Gen.updateTypers]: nullTransform,
 
   [Chat2Gen.setLoading]: fullOutput,
@@ -68,6 +68,7 @@ const actionTransformMap = {
   [Chat2Gen.metaNeedsUpdating]: fullOutput,
   [Chat2Gen.updateMoreToLoad]: fullOutput,
   [Chat2Gen.setConversationOffline]: fullOutput,
+  [ConfigGen.bootstrap]: fullOutput,
   [ConfigGen.globalError]: a => {
     let err = {}
     const ge = a.payload.globalError
@@ -82,6 +83,7 @@ const actionTransformMap = {
   },
   [Chat2Gen.setPendingMode]: fullOutput,
   [Chat2Gen.setPendingConversationUsers]: fullOutput,
+  [GregorGen.updateReachability]: fullOutput,
 
   [Chat2Gen.messageSend]: a => ({
     payload: {conversationIDKey: a.payload.conversationIDKey},
@@ -95,6 +97,9 @@ const actionTransformMap = {
     payload: {conversationIDKey: a.payload.conversationIDKey},
     type: a.type,
   }),
+
+  [WaitingGen.incrementWaiting]: fullOutput,
+  [WaitingGen.decrementWaiting]: fullOutput,
 }
 
 const transformActionForLog = (action: any, state: TypedState) =>

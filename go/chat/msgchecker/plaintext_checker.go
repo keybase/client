@@ -70,6 +70,8 @@ func checkMessagePlaintextLength(msg chat1.MessagePlaintext) error {
 	if err != nil {
 		return err
 	}
+
+	textMsgLength := getMaxTextLength(msg.ClientHeader.Conv.TopicType)
 	switch mtype {
 	case chat1.MessageType_ATTACHMENT,
 		chat1.MessageType_DELETE,
@@ -79,22 +81,29 @@ func checkMessagePlaintextLength(msg chat1.MessagePlaintext) error {
 		chat1.MessageType_JOIN,
 		chat1.MessageType_LEAVE,
 		chat1.MessageType_SYSTEM,
-		chat1.MessageType_DELETEHISTORY:
+		chat1.MessageType_DELETEHISTORY,
+		chat1.MessageType_SENDPAYMENT:
 		return nil
 	case chat1.MessageType_TEXT:
-		return plaintextFieldLengthChecker("message", len(msg.MessageBody.Text().Body), TextMessageMaxLength)
+		return plaintextFieldLengthChecker("message", len(msg.MessageBody.Text().Body), textMsgLength)
 	case chat1.MessageType_EDIT:
-		return plaintextFieldLengthChecker("message edit", len(msg.MessageBody.Edit().Body), TextMessageMaxLength)
+		return plaintextFieldLengthChecker("message edit", len(msg.MessageBody.Edit().Body),
+			textMsgLength)
 	case chat1.MessageType_REACTION:
-		return plaintextFieldLengthChecker("message reaction", len(msg.MessageBody.Reaction().Body), ReactionMessageMaxLength)
+		return plaintextFieldLengthChecker("message reaction", len(msg.MessageBody.Reaction().Body),
+			ReactionMessageMaxLength)
 	case chat1.MessageType_HEADLINE:
-		return plaintextFieldLengthChecker("headline", len(msg.MessageBody.Headline().Headline), HeadlineMaxLength)
+		return plaintextFieldLengthChecker("headline", len(msg.MessageBody.Headline().Headline),
+			HeadlineMaxLength)
 	case chat1.MessageType_METADATA:
 		topicNameRes := validateTopicName(msg.MessageBody.Metadata().ConversationTitle)
 		if validateTopicNameResOK != topicNameRes {
 			return errors.New(topicNameRes.String())
 		}
 		return nil
+	case chat1.MessageType_REQUESTPAYMENT:
+		return plaintextFieldLengthChecker("request payment note",
+			len(msg.MessageBody.Requestpayment().Note), PaymentTextMaxLength)
 	default:
 		typ, err := msg.MessageBody.MessageType()
 		if err != nil {

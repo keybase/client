@@ -174,13 +174,14 @@ func (tc *TestContext) SimulateServiceRestart() {
 }
 
 func (tc TestContext) ClearAllStoredSecrets() error {
-	usernames, err := tc.G.GetUsersWithStoredSecrets()
+	m := NewMetaContextForTest(tc)
+	usernames, err := tc.G.GetUsersWithStoredSecrets(m.Ctx())
 	if err != nil {
 		return err
 	}
 	for _, username := range usernames {
 		nu := NewNormalizedUsername(username)
-		err = ClearStoredSecret(tc.G, nu)
+		err = ClearStoredSecret(m, nu)
 		if err != nil {
 			return err
 		}
@@ -234,7 +235,8 @@ func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestCo
 
 	// SecretStoreFile needs test home directory
 	g.secretStoreMu.Lock()
-	g.secretStore = NewSecretStoreLocked(g)
+	m := NewMetaContextTODO(g)
+	g.secretStore = NewSecretStoreLocked(m)
 	g.secretStoreMu.Unlock()
 
 	g.ConfigureLogging()

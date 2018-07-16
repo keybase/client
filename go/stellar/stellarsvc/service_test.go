@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
@@ -22,8 +23,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
-	tc = externalstest.SetupTest(tb, name, depth+1)
+func SetupTest(t *testing.T, name string, depth int) (tc libkb.TestContext) {
+	tc = externalstest.SetupTest(t, name, depth+1)
 	stellar.ServiceInit(tc.G, nil)
 	teams.ServiceInit(tc.G)
 	// use an insecure triplesec in tests
@@ -34,6 +35,9 @@ func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
 		}
 		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
 	}
+
+	tc.G.ChatHelper = kbtest.NewMockChatHelper()
+
 	return tc
 }
 
@@ -295,6 +299,9 @@ func TestSendLocalStellarAddress(t *testing.T) {
 		t.Fatal(err)
 	}
 	require.Equal(t, balances[0].Amount, "10100.0000000")
+
+	senderMsgs := kbtest.MockSentMessages(tcs[0].G, tcs[0].T)
+	require.Len(t, senderMsgs, 0)
 }
 
 func TestSendLocalKeybase(t *testing.T) {
@@ -343,6 +350,10 @@ func TestSendLocalKeybase(t *testing.T) {
 		t.Fatal(err)
 	}
 	require.Equal(t, balances[0].Amount, "10100.0000000")
+
+	senderMsgs := kbtest.MockSentMessages(tcs[0].G, tcs[0].T)
+	require.Len(t, senderMsgs, 1)
+	require.Equal(t, senderMsgs[0].MsgType, chat1.MessageType_SENDPAYMENT)
 }
 
 func TestRecentPaymentsLocal(t *testing.T) {
@@ -646,6 +657,24 @@ func TestDefaultCurrency(t *testing.T) {
 	require.NoError(t, err)
 	require.IsType(t, stellar1.CurrencyLocal{}, currencyObj)
 	require.Equal(t, stellar1.OutsideCurrencyCode("EUR"), currencyObj.Code)
+}
+
+func TestRequestPayment(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	xlm := stellar1.AssetNative()
+	err := tcs[0].Srv.MakeRequestCLILocal(context.Background(), stellar1.MakeRequestCLILocalArg{
+		Recipient: tcs[1].Fu.Username,
+		Asset:     &xlm,
+		Amount:    "10",
+		Note:      "hello world",
+	})
+	require.NoError(t, err)
+
+	senderMsgs := kbtest.MockSentMessages(tcs[0].G, tcs[0].T)
+	require.Len(t, senderMsgs, 1)
+	require.Equal(t, senderMsgs[0].MsgType, chat1.MessageType_REQUESTPAYMENT)
 }
 
 type TestContext struct {

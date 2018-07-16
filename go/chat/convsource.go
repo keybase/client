@@ -106,7 +106,7 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	s.Debug(ctx, "postProcessThread: thread messages after type filter: %d", len(thread.Messages))
 	// If we have exploded any messages while fetching them from cache, remove
 	// them now.
-	thread.Messages = utils.FilterExploded(conv.GetExpunge(), thread.Messages)
+	thread.Messages = utils.FilterExploded(conv.GetExpunge(), thread.Messages, s.boxer.clock.Now())
 	s.Debug(ctx, "postProcessThread: thread messages after explode filter: %d", len(thread.Messages))
 
 	// Fetch outbox and tack onto the result
@@ -490,6 +490,16 @@ func (s *HybridConversationSource) isContinuousPush(ctx context.Context, convID 
 	return continuousUpdate, nil
 }
 
+// removePendingPreview removes any attachment previews from pending preview storage
+func (s *HybridConversationSource) removePendingPreview(ctx context.Context, msg chat1.MessageUnboxed) {
+	if msg.GetMessageType() == chat1.MessageType_ATTACHMENT {
+		outboxID := msg.OutboxID()
+		if outboxID != nil {
+			storage.NewPendingPreviews(s.G()).Remove(ctx, *outboxID)
+		}
+	}
+}
+
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msg chat1.MessageBoxed) (decmsg chat1.MessageUnboxed, continuousUpdate bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Push")()
@@ -524,9 +534,12 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 		})
 	}
 
+	// Add to the local storage
 	if err = s.mergeMaybeNotify(ctx, convID, uid, []chat1.MessageUnboxed{decmsg}); err != nil {
 		return decmsg, continuousUpdate, err
 	}
+	// Remove any pending previews from storage
+	s.removePendingPreview(ctx, decmsg)
 
 	return decmsg, continuousUpdate, nil
 }
@@ -546,7 +559,6 @@ func (s *HybridConversationSource) PushUnboxed(ctx context.Context, convID chat1
 	if err = s.mergeMaybeNotify(ctx, convID, uid, []chat1.MessageUnboxed{msg}); err != nil {
 		return continuousUpdate, err
 	}
-
 	return continuousUpdate, nil
 }
 
@@ -1050,7 +1062,7 @@ func (s *HybridConversationSource) expungeNotify(ctx context.Context, uid gregor
 			Expunge: *mergeRes.Expunged,
 			Conv:    inboxItem,
 		})
-		s.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(uid.String()), topicType, &act)
+		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &act)
 	}
 }
 
@@ -1076,7 +1088,7 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 			Msgs:   purgedMsgs,
 			Conv:   inboxItem,
 		})
-		s.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(uid.String()), topicType, &act)
+		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &act)
 	}
 }
 

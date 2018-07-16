@@ -16,7 +16,7 @@ const props = {
 
 const load = () => {
   storiesOf('Signup/Username email', module)
-    .addDecorator(PropProviders.Common())
+    .addDecorator(PropProviders.CommonProvider())
     .addDecorator(story => (
       <Box2 direction="vertical" style={{height: '100%', width: '100%'}}>
         {story()}

@@ -39,6 +39,18 @@
         },
         {
           "type": "string",
+          "name": "assetCode"
+        },
+        {
+          "type": "string",
+          "name": "issuerName"
+        },
+        {
+          "type": "string",
+          "name": "issuerAccountID"
+        },
+        {
+          "type": "string",
           "name": "balanceTotal"
         },
         {
@@ -47,11 +59,7 @@
         },
         {
           "type": "string",
-          "name": "assetCode"
-        },
-        {
-          "type": "string",
-          "name": "issuer"
+          "name": "worthCurrency"
         },
         {
           "type": "string",
@@ -59,7 +67,7 @@
         },
         {
           "type": "string",
-          "name": "worthCurrency"
+          "name": "availableToSendWorth"
         }
       ]
     },
@@ -96,10 +104,20 @@
     },
     {
       "type": "record",
-      "name": "PaymentLocal",
+      "name": "PaymentID",
       "fields": [
         {
           "type": "TransactionID",
+          "name": "txID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentLocal",
+      "fields": [
+        {
+          "type": "PaymentID",
           "name": "id"
         },
         {
@@ -205,8 +223,12 @@
       "name": "PaymentDetailsLocal",
       "fields": [
         {
-          "type": "TransactionID",
+          "type": "PaymentID",
           "name": "id"
+        },
+        {
+          "type": "TransactionID",
+          "name": "txID"
         },
         {
           "type": "TimeMs",
@@ -227,10 +249,6 @@
         {
           "type": "string",
           "name": "amountDescription"
-        },
-        {
-          "type": "string",
-          "name": "amountValue"
         },
         {
           "type": "BalanceDelta",
@@ -406,6 +424,70 @@
         {
           "type": "boolean",
           "name": "pending"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RequestDetailsLocal",
+      "fields": [
+        {
+          "type": "KeybaseRequestID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "fromAssertion"
+        },
+        {
+          "type": "boolean",
+          "name": "fromCurrentUser"
+        },
+        {
+          "type": "ParticipantType",
+          "name": "toUserType"
+        },
+        {
+          "type": "string",
+          "name": "toAssertion"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "asset"
+        },
+        {
+          "type": [
+            null,
+            "OutsideCurrencyCode"
+          ],
+          "name": "currency"
+        },
+        {
+          "type": "string",
+          "name": "amountDescription"
+        },
+        {
+          "type": "string",
+          "name": "amountStellar"
+        },
+        {
+          "type": "string",
+          "name": "amountStellarDescription"
+        },
+        {
+          "type": "boolean",
+          "name": "completed"
+        },
+        {
+          "type": "KeybaseTransactionID",
+          "name": "fundingKbTxID"
         }
       ]
     },
@@ -621,7 +703,7 @@
         },
         {
           "name": "id",
-          "type": "TransactionID"
+          "type": "PaymentID"
         }
       ],
       "response": "PaymentDetailsLocal"
@@ -637,6 +719,45 @@
         "type": "array",
         "items": "CurrencyLocal"
       }
+    },
+    "validateAccountIDLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": null
+    },
+    "validateSecretKeyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "secretKey",
+          "type": "SecretKey"
+        }
+      ],
+      "response": null
+    },
+    "validateAccountNameLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": null
     },
     "changeWalletAccountNameLocal": {
       "request": [
@@ -916,6 +1037,15 @@
       ],
       "response": "SendPaymentResLocal"
     },
+    "getRequestDetailsLocal": {
+      "request": [
+        {
+          "name": "reqID",
+          "type": "KeybaseRequestID"
+        }
+      ],
+      "response": "RequestDetailsLocal"
+    },
     "balancesLocal": {
       "request": [
         {
@@ -1097,6 +1227,37 @@
         }
       ],
       "response": "string"
+    },
+    "makeRequestCLILocal": {
+      "request": [
+        {
+          "name": "recipient",
+          "type": "string"
+        },
+        {
+          "name": "asset",
+          "type": [
+            null,
+            "Asset"
+          ]
+        },
+        {
+          "name": "currency",
+          "type": [
+            null,
+            "OutsideCurrencyCode"
+          ]
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        },
+        {
+          "name": "note",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "stellar.1"

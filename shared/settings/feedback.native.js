@@ -114,6 +114,7 @@ class Feedback extends Component<Props> {
               inputStyle={{textAlign: 'left'}}
               multiline={true}
               rowsMin={3}
+              rowsMax={3}
               hintText="Please tell us what you were doing, your experience, or anything else we should know. Thanks!"
               value={feedback}
               onChangeText={onChangeFeedback}

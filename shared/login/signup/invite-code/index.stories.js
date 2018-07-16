@@ -13,7 +13,7 @@ const props = {
 
 const load = () => {
   storiesOf('Signup/Invite Code', module)
-    .addDecorator(PropProviders.Common())
+    .addDecorator(PropProviders.CommonProvider())
     .add('Start', () => <InviteCode {...props} />)
     .add('Code', () => <InviteCode {...props} />)
     .add('Error', () => <InviteCode {...props} error="This is an error" />)

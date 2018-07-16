@@ -1,5 +1,4 @@
 // @flow
-import * as AppGen from '../app-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/chat2'
@@ -24,12 +23,8 @@ import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
 import {NotifyPopup} from '../../native/notifications'
-import {
-  showMainWindow,
-  saveAttachmentToCameraRoll,
-  downloadAndShowShareActionSheet,
-} from '../platform-specific'
-import {tmpDir, downloadFilePath} from '../../util/file'
+import {saveAttachmentToCameraRoll, downloadAndShowShareActionSheet} from '../platform-specific'
+import {downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import flags from '../../util/feature-flags'
 
@@ -513,7 +508,7 @@ const onChatIdentifyUpdate = update => {
 }
 
 // Get actions to update messagemap / metamap when retention policy expunge happens
-const expungeToActions = (expunge: RPCChatTypes.ExpungeInfo) => {
+const expungeToActions = (expunge: RPCChatTypes.ExpungeInfo, state: TypedState) => {
   const actions = []
   const meta = !!expunge.conv && Constants.inboxUIItemToConversationMeta(expunge.conv)
   if (meta) {
@@ -523,6 +518,7 @@ const expungeToActions = (expunge: RPCChatTypes.ExpungeInfo) => {
   actions.push(
     Chat2Gen.createMessagesWereDeleted({
       conversationIDKey,
+      deletableMessageTypes: Constants.getDeletableByDeleteHistory(state),
       upToMessageID: expunge.expunge.upto,
     })
   )
@@ -596,7 +592,7 @@ const setupChatHandlers = () => {
         case RPCChatTypes.notifyChatChatActivityType.teamtype:
           return [Chat2Gen.createInboxRefresh({reason: 'teamTypeChanged'})]
         case RPCChatTypes.notifyChatChatActivityType.expunge:
-          return activity.expunge ? expungeToActions(activity.expunge) : null
+          return activity.expunge ? expungeToActions(activity.expunge, getState()) : null
         case RPCChatTypes.notifyChatChatActivityType.ephemeralPurge:
           return activity.ephemeralPurge ? ephemeralPurgeToActions(activity.ephemeralPurge) : null
         default:
@@ -675,6 +671,7 @@ const setupChatHandlers = () => {
 
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduce((arr, key) => {
   switch (key) {
+    case 'none':
     case 'edit': // daemon filters this out for us so we can ignore
     case 'delete':
     case 'attachmentuploaded':
@@ -700,21 +697,21 @@ const reasonToRPCReason = (reason: string): RPCChatTypes.GetThreadReason => {
 
 // Load new messages on a thread. We call this when you select a conversation, we get a thread-is-stale notification, or when you scroll up and want more messages
 const loadMoreMessages = (
+  state: TypedState,
   action:
     | Chat2Gen.SelectConversationPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
     | Chat2Gen.SetPendingConversationUsersPayload
     | Chat2Gen.MarkConversationsStalePayload
     | Chat2Gen.MetasReceivedPayload
-    | Chat2Gen.SetPendingConversationExistingConversationIDKeyPayload,
-  state: TypedState
+    | Chat2Gen.SetPendingConversationExistingConversationIDKeyPayload
 ) => {
   // Get the conversationIDKey
   let key = null
   let reason: string = ''
 
   switch (action.type) {
-    case AppGen.changedFocus:
+    case ConfigGen.changedFocus:
       if (!isMobile || !action.payload.appFocused) {
         return
       }
@@ -859,43 +856,40 @@ const loadMoreMessages = (
     return actions
   }
 
-  const makeCall = RPCChatTypes.localGetThreadNonblockRpcSaga({
-    incomingCallMap: {
-      'chat.1.chatUi.chatThreadCached': p => onGotThread(p, 'cached'),
-      'chat.1.chatUi.chatThreadFull': p => onGotThread(p, 'full'),
-    },
-    params: {
-      cbMode: RPCChatTypes.localGetThreadNonblockCbMode.incremental,
-      conversationID,
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      pagination: {
-        last: false,
-        next: isScrollingBack ? 'deadbeef' : '', // daemon treats this as a boolean essentially. string means to scroll back, null means an initial load
-        num: numberOfMessagesToLoad,
-        previous: '',
-      },
-      pgmode: RPCChatTypes.localGetThreadNonblockPgMode.server,
-      query: {
-        disableResolveSupersedes: false,
-        markAsRead: false,
-        messageTypes: loadThreadMessageTypes,
-      },
-      reason: reasonToRPCReason(reason),
-    },
-    waitingKey: loadingKey,
+  return Saga.call(function*() {
+    try {
+      const results: RPCChatTypes.NonblockFetchRes = yield RPCChatTypes.localGetThreadNonblockRpcSaga({
+        incomingCallMap: {
+          'chat.1.chatUi.chatThreadCached': p => onGotThread(p, 'cached'),
+          'chat.1.chatUi.chatThreadFull': p => onGotThread(p, 'full'),
+        },
+        params: {
+          cbMode: RPCChatTypes.localGetThreadNonblockCbMode.incremental,
+          conversationID,
+          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+          pagination: {
+            last: false,
+            next: isScrollingBack ? 'deadbeef' : '', // daemon treats this as a boolean essentially. string means to scroll back, null means an initial load
+            num: numberOfMessagesToLoad,
+            previous: '',
+          },
+          pgmode: RPCChatTypes.localGetThreadNonblockPgMode.server,
+          query: {
+            disableResolveSupersedes: false,
+            markAsRead: false,
+            messageTypes: loadThreadMessageTypes,
+          },
+          reason: reasonToRPCReason(reason),
+        },
+        waitingKey: loadingKey,
+      })
+      yield Saga.put(
+        Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results && results.offline})
+      )
+    } finally {
+      yield Saga.put(Chat2Gen.createClearLoading({key: `pushLoad:${conversationIDKey}`}))
+    }
   })
-  return Saga.all([
-    Saga.identity(conversationIDKey),
-    makeCall,
-    Saga.put(Chat2Gen.createClearLoading({key: `pushLoad:${conversationIDKey}`})),
-  ])
-}
-
-const loadMoreMessagesSuccess = (results: ?Array<any>) => {
-  if (!results) return
-  const conversationIDKey: Types.ConversationIDKey = results[0]
-  const res: RPCChatTypes.NonblockFetchRes = results[1]
-  return Saga.put(Chat2Gen.createSetConversationOffline({conversationIDKey, offline: res.offline}))
 }
 
 const clearInboxFilter = (
@@ -939,7 +933,7 @@ const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: Typed
           })
         )
         dispatch(Route.switchTo([chatTab]))
-        showMainWindow()
+        dispatch(ConfigGen.createShowMain())
       })
     })
   }
@@ -1382,7 +1376,8 @@ const _maybeAutoselectNewestConversation = (
     action.payload.conversationIDKey === selected
   ) {
     // Intentional fall-through -- force select a new one
-  } else if (selected !== Constants.noConversationIDKey) {
+  } else if (Constants.isValidConversationIDKey(selected)) {
+    // Stay with our existing convo if it was not empty or pending
     return
   }
 
@@ -1532,17 +1527,25 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
 
   // Make the previews
   const previews: Array<?RPCChatTypes.MakePreviewRes> = yield Saga.sequentially(
-    paths.map(filename =>
+    paths.map((filename, i) =>
       Saga.call(
         RPCChatTypes.localMakePreviewRpcPromise,
         ({
           attachment: {filename},
-          outputDir: tmpDir(),
+          outboxID: outboxIDs[i],
         }: RPCChatTypes.LocalMakePreviewRpcParam)
       )
     )
   )
-  const previewURLs = previews.map(preview => (preview && preview.filename) || '')
+  const previewURLs = previews.map(
+    preview =>
+      preview &&
+      preview.location &&
+      preview.location.ltyp === RPCChatTypes.localPreviewLocationTyp.url &&
+      preview.location.url
+        ? preview.location.url
+        : ''
+  )
 
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (!meta) {
@@ -1690,7 +1693,7 @@ const markThreadAsRead = (
     | Chat2Gen.SelectConversationPayload
     | Chat2Gen.MessagesAddPayload
     | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload
-    | AppGen.ChangedFocusPayload
+    | ConfigGen.ChangedFocusPayload
     | NavigateActions,
   state: TypedState
 ) => {
@@ -2106,6 +2109,27 @@ function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMe
   })
 }
 
+const loadStaticConfig = (state: TypedState, action: ConfigGen.BootstrapPayload) =>
+  !state.chat2.staticConfig &&
+  RPCChatTypes.localGetStaticConfigRpcPromise().then((res: RPCChatTypes.StaticConfig) => {
+    if (!res.deletableByDeleteHistory) {
+      logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
+      return
+    }
+    const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce((res, type) => {
+      const ourTypes = Constants.serviceMessageTypeToMessageTypes(type)
+      if (ourTypes) {
+        res.push(...ourTypes)
+      }
+      return res
+    }, [])
+    return Chat2Gen.createStaticConfigLoaded({
+      staticConfig: Constants.makeStaticConfig({
+        deletableByDeleteHistory: I.Set(deletableByDeleteHistory),
+      }),
+    })
+  })
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -2149,7 +2173,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure([Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation], unboxRows)
 
   // Load the selected thread
-  yield Saga.safeTakeEveryPure(
+  yield Saga.safeTakeEveryPureSimple(
     [
       Chat2Gen.selectConversation,
       Chat2Gen.setPendingConversationExistingConversationIDKey,
@@ -2157,10 +2181,9 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.setPendingConversationUsers,
       Chat2Gen.markConversationsStale,
       Chat2Gen.metasReceived,
-      AppGen.changedFocus,
+      ConfigGen.changedFocus,
     ],
-    loadMoreMessages,
-    loadMoreMessagesSuccess
+    loadMoreMessages
   )
 
   yield Saga.safeTakeEveryPure(Chat2Gen.messageRetry, messageRetry)
@@ -2207,7 +2230,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.messagesAdd,
       Chat2Gen.selectConversation,
       Chat2Gen.markInitiallyLoadedThreadAsRead,
-      AppGen.changedFocus,
+      ConfigGen.changedFocus,
       a => typeof a.type === 'string' && a.type.startsWith('routeTree:'),
     ],
     markThreadAsRead
@@ -2240,6 +2263,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     setConvExplodingModeFailure
   )
   yield Saga.safeTakeEvery(Chat2Gen.handleSeeingExplodingMessages, handleSeeingExplodingMessages)
+  yield Saga.safeTakeEveryPurePromise(ConfigGen.bootstrapSuccess, loadStaticConfig)
 }
 
 export default chat2Saga

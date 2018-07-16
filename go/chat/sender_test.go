@@ -2,6 +2,8 @@ package chat
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -60,11 +62,15 @@ func (n *chatListener) ChatThreadsStale(uid keybase1.UID, updates []chat1.Conver
 		panic("timeout on the threads stale channel")
 	}
 }
-func (n *chatListener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult) {
-	select {
-	case n.inboxSynced <- syncRes:
-	case <-time.After(5 * time.Second):
-		panic("timeout on the threads stale channel")
+func (n *chatListener) ChatInboxSynced(uid keybase1.UID, topicType chat1.TopicType,
+	syncRes chat1.ChatSyncResult) {
+	switch topicType {
+	case chat1.TopicType_CHAT, chat1.TopicType_NONE:
+		select {
+		case n.inboxSynced <- syncRes:
+		case <-time.After(5 * time.Second):
+			panic("timeout on the threads stale channel")
+		}
 	}
 }
 func (n *chatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
@@ -243,6 +249,8 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.PushHandler = pushHandler
 	g.ChatHelper = NewHelper(g, getRI)
 	g.TeamChannelSource = NewCachingTeamChannelSource(g, getRI)
+	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
+
 	searcher := NewSearcher(g)
 	// Force small pages during tests to ensure we fetch context from new pages
 	searcher.pageSize = 2
@@ -338,7 +346,7 @@ func TestNonblockTimer(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// Send a bunch of nonblocking messages
+	// Send a bunch of blocking messages
 	var sentRef []sentRecord
 	for i := 0; i < 5; i++ {
 		_, msgBoxed, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
@@ -398,7 +406,7 @@ func TestNonblockTimer(t *testing.T) {
 	default:
 	}
 
-	// Send a bunch of nonblocking messages
+	// Send a bunch of blocking messages
 	for i := 0; i < 5; i++ {
 		_, msgBoxed, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
@@ -439,6 +447,7 @@ func TestNonblockTimer(t *testing.T) {
 			require.Fail(t, "event not received")
 		}
 
+		t.Logf("OUTBOXID: %s", obids[i/2])
 		require.Equal(t, i+1, olen, "wrong length")
 		require.Equal(t, listener.obids[i], obids[i/2], "wrong obid")
 	}
@@ -917,6 +926,38 @@ func TestAtMentionsEdit(t *testing.T) {
 	require.Equal(t, chat1.ChannelMention_ALL, chanMention)
 }
 
+func TestKBFSFileEditSize(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+		ctx, world, ri, _, blockingSender, _ := setupTest(t, 1)
+		defer world.Cleanup()
+
+		u := world.GetUsers()[0]
+		uid := u.User.GetUID().ToBytes()
+		tlfName := u.Username
+		tc := userTc(t, world, u)
+		conv, err := NewConversation(ctx, tc.Context(), uid, tlfName, nil, chat1.TopicType_KBFSFILEEDIT,
+			chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE,
+			func() chat1.RemoteInterface { return ri })
+		require.NoError(t, err)
+
+		body := strings.Repeat("M", 100000)
+		_, _, err = blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Sender:      uid,
+				TlfName:     tlfName,
+				MessageType: chat1.MessageType_TEXT,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: body}),
+		}, 0, nil)
+		require.NoError(t, err)
+	})
+}
+
 func TestKBFSCryptKeysBit(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctx, world, ri, _, blockingSender, _ := setupTest(t, 1)
@@ -966,9 +1007,10 @@ func TestKBFSCryptKeysBit(t *testing.T) {
 func TestPrevPointerAddition(t *testing.T) {
 	mt := chat1.ConversationMembersType_TEAM
 	runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
-		ctx, world, ri, _, blockingSender, _ := setupTest(t, 1)
+		ctx, world, ri2, _, blockingSender, _ := setupTest(t, 1)
 		defer world.Cleanup()
 
+		ri := ri2.(*kbtest.ChatRemoteMock)
 		var ephemeralMetadata *chat1.MsgEphemeralMetadata
 		if ephemeralLifetime != nil {
 			ephemeralMetadata = &chat1.MsgEphemeralMetadata{
@@ -993,6 +1035,40 @@ func TestPrevPointerAddition(t *testing.T) {
 				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
 			}, 0, nil)
 			require.NoError(t, err)
+		}
+
+		// Hide all ephemeral messages by advancing the clock enough to hide
+		// the "ash" lines.  We also mock out the server call so we can
+		// simulate a chat with only long exploded ephemeral messages.
+		if ephemeralLifetime != nil {
+			t.Logf("expiry all ephemeral messages")
+			world.Fc.Advance(time.Second*time.Duration(*ephemeralLifetime) + chat1.ShowExplosionLifetime)
+			// Mock out server call for new messages
+			ri.GetThreadRemoteFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, arg chat1.GetThreadRemoteArg) (chat1.GetThreadRemoteRes, error) {
+				return chat1.GetThreadRemoteRes{
+					Thread: chat1.ThreadViewBoxed{
+						Pagination: &chat1.Pagination{},
+					},
+				}, nil
+			}
+			// Prepare a regular message and make sure it gets prev pointers
+			boxed, pendingAssetDeletes, _, _, _, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:              conv.Metadata.IdTriple,
+					Sender:            uid,
+					TlfName:           u.Username,
+					MessageType:       chat1.MessageType_TEXT,
+					EphemeralMetadata: ephemeralMetadata,
+				},
+				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
+			}, mt, &conv)
+			require.NoError(t, err)
+			require.Empty(t, pendingAssetDeletes)
+			// With all of the messages filtered because they exploded and the
+			// server not returning results, we give up and don't attach any
+			// prevs.
+			require.Empty(t, boxed.ClientHeader.Prev, "empty prev pointers")
+			ri.GetThreadRemoteFunc = nil
 		}
 
 		// Nuke the body cache
@@ -1191,4 +1267,97 @@ func compareAssetLists(t *testing.T, got []chat1.Asset, expected []chat1.Asset, 
 	}
 
 	return match
+}
+
+func TestPairwiseMACChecker(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		// Don't run this test for kbfs
+		switch mt {
+		case chat1.ConversationMembersType_KBFS:
+			return
+		default:
+		}
+
+		ctc := makeChatTestContext(t, "TestPairwiseMACChecker", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		firstConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt, users[1])
+		ctx := ctc.as(t, users[0]).startCtx
+		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+			chat1.NewConversationLocalArg{
+				TlfName:       firstConv.TlfName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   mt,
+			})
+		require.NoError(t, err)
+		conv := ncres.Conv.Info
+
+		tc := ctc.world.Tcs[users[0].Username]
+		uid1 := users[0].User.GetUID()
+		uid2 := users[1].User.GetUID()
+		ri := ctc.as(t, users[0]).ri
+		boxer := NewBoxer(tc.Context())
+		getRI := func() chat1.RemoteInterface { return ri }
+		g := globals.NewContext(tc.G, tc.ChatG)
+		blockingSender := NewBlockingSender(g, boxer, nil, getRI)
+
+		text := "hi"
+		msg := textMsgWithSender(t, text, uid1.ToBytes(), chat1.MessageBoxedVersion_V3)
+		// Pairwise MACs rely on the sender's DeviceID in the header.
+		deviceID := make([]byte, libkb.DeviceIDLen)
+		err = tc.G.ActiveDevice.DeviceID().ToBytes(deviceID)
+		require.NoError(t, err)
+		msg.ClientHeader.TlfName = firstConv.TlfName
+		msg.ClientHeader.SenderDevice = gregor1.DeviceID(deviceID)
+
+		key := cryptKey(t)
+		signKP := getSigningKeyPairForTest(t, tc, users[0])
+		encryptionKeypair, err := tc.G.ActiveDevice.NaclEncryptionKey()
+		require.NoError(t, err)
+
+		// Missing recipients uid2
+		pairwiseMACRecipients := []keybase1.KID{encryptionKeypair.GetKID()}
+
+		boxed, err := boxer.box(context.TODO(), msg, key, nil, signKP, chat1.MessageBoxedVersion_V3, pairwiseMACRecipients)
+		require.NoError(t, err)
+
+		_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
+			ConversationID: conv.Id, MessageBoxed: *boxed,
+		})
+		require.Error(t, err)
+		require.IsType(t, libkb.EphemeralPairwiseMACsMissingUIDsError{}, err)
+		merr := err.(libkb.EphemeralPairwiseMACsMissingUIDsError)
+		require.Equal(t, []keybase1.UID{keybase1.UID(uid2)}, merr.UIDs)
+
+		// Bogus recipients, both uids are missing
+		pairwiseMACRecipients = []keybase1.KID{"012141487209e42c6b39f7d9bcbda02a8e8045e4bcab10b571a5fa250ae72012bd3f0a"}
+		boxed, err = boxer.box(context.TODO(), msg, key, nil, signKP, chat1.MessageBoxedVersion_V3, pairwiseMACRecipients)
+		require.NoError(t, err)
+
+		_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
+			ConversationID: conv.Id,
+			MessageBoxed:   *boxed,
+		})
+		require.Error(t, err)
+		require.IsType(t, libkb.EphemeralPairwiseMACsMissingUIDsError{}, err)
+		merr = err.(libkb.EphemeralPairwiseMACsMissingUIDsError)
+		sortUIDs := func(uids []keybase1.UID) { sort.Slice(uids, func(i, j int) bool { return uids[i] < uids[j] }) }
+		expectedUIDs := []keybase1.UID{keybase1.UID(uid1), keybase1.UID(uid2)}
+		sortUIDs(expectedUIDs)
+		sortUIDs(merr.UIDs)
+		require.Equal(t, expectedUIDs, merr.UIDs)
+
+		// Including all devices works
+		_, _, err = blockingSender.Send(ctx, conv.Id, msg, 0, nil)
+		require.NoError(t, err)
+
+		tv, err := tc.Context().ConvSource.Pull(ctx, conv.Id, uid1.ToBytes(), chat1.GetThreadReason_GENERAL, nil, nil)
+		require.NoError(t, err)
+		require.Len(t, tv.Messages, 2)
+		msgUnboxed := tv.Messages[0]
+		require.True(t, msgUnboxed.IsValid())
+		require.Equal(t, msgUnboxed.Valid().MessageBody.Text().Body, text)
+	})
 }

@@ -1,10 +1,17 @@
 // @flow
 import logger from '../logger'
+import {type TypedState} from '../constants/reducer'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import * as Chat2Gen from './chat2-gen'
+import * as ConfigGen from './config-gen'
+import * as LoginGen from './login-gen'
 import * as PushTypes from '../constants/types/push'
 import * as PushConstants from '../constants/push'
 import * as PushGen from './push-gen'
 import * as PushNotifications from 'react-native-push-notification'
 import * as mime from 'react-native-mime-types'
+import * as Saga from '../util/saga'
+import {RouteStateStorage} from './route-state-storage.native'
 import RNFetchBlob from 'react-native-fetch-blob'
 import {
   PushNotificationIOS,
@@ -17,7 +24,7 @@ import {
 } from 'react-native'
 import {eventChannel} from 'redux-saga'
 import {isDevApplePushToken} from '../local-debug'
-import {isIOS, isAndroid} from '../constants/platform'
+import {isIOS, isAndroid, isSimulator} from '../constants/platform'
 
 // Used to listen to the java intent for notifications
 let RNEmitter
@@ -41,20 +48,6 @@ function getShownPushPrompt(): Promise<boolean> {
 
 function checkPermissions() {
   return new Promise((resolve, reject) => PushNotifications.checkPermissions(resolve))
-}
-
-function showMainWindow() {
-  return () => {
-    // nothing
-  }
-}
-
-function getAppState() {
-  return Promise.resolve({})
-}
-
-function setAppState(toMerge: Object) {
-  throw new Error('setAppState not implemented in mobile')
 }
 
 function showShareActionSheet(options: {
@@ -151,6 +144,7 @@ function displayNewMessageNotification(
     })
   }
 
+  logger.info(`Got push notification with soundName '${soundName || ''}'`)
   PushNotifications.localNotification({
     message: text,
     soundName,
@@ -308,15 +302,70 @@ const getContentTypeFromURL = (
           cb({error})
         })
 
+const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
+  let appFocused
+  let logState
+  switch (action.payload.nextAppState) {
+    case 'active':
+      appFocused = true
+      logState = RPCTypes.appStateAppState.foreground
+      break
+    case 'background':
+      appFocused = false
+      logState = RPCTypes.appStateAppState.background
+      break
+    case 'inactive':
+      appFocused = false
+      logState = RPCTypes.appStateAppState.inactive
+      break
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (v: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(action.payload.nextAppState);
+      */
+      appFocused = false
+      logState = RPCTypes.appStateAppState.foreground
+  }
+
+  logger.info(`setting app state on service to: ${logState}`)
+  return Saga.put(ConfigGen.createChangedFocus({appFocused}))
+}
+
+const setStartedDueToPush = (action: Chat2Gen.SelectConversationPayload) =>
+  action.payload.reason === 'push' ? Saga.put(ConfigGen.createSetStartedDueToPush()) : undefined
+
+const routeStateStorage = new RouteStateStorage()
+
+// Until routeStateStorage is sagaized.
+const clearRouteState = () => Saga.put.resolve(routeStateStorage.clear)
+const persistRouteState = () => Saga.put.resolve(routeStateStorage.store)
+
+const onBootstrapped = (state: TypedState) =>
+  Saga.sequentially([
+    Saga.put.resolve(routeStateStorage.load),
+    Saga.put(LoginGen.createNavBasedOnLoginAndInitialState()),
+    ...(!state.config.pushLoaded && state.config.loggedIn && !isSimulator
+      ? [Saga.put(PushGen.createConfigurePush())]
+      : []),
+    ...(!state.config.pushLoaded && state.config.loggedIn
+      ? [Saga.put(ConfigGen.createPushLoaded({pushLoaded: true}))]
+      : []),
+  ])
+
+function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
+  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, setStartedDueToPush)
+  yield Saga.safeTakeEveryPure(ConfigGen.clearRouteState, clearRouteState)
+  yield Saga.safeTakeEveryPure(ConfigGen.persistRouteState, persistRouteState)
+  yield Saga.safeTakeEveryPureSimple(ConfigGen.bootstrapSuccess, onBootstrapped)
+}
+
 export {
   openAppSettings,
   checkPermissions,
   displayNewMessageNotification,
   downloadAndShowShareActionSheet,
-  getAppState,
-  setAppState,
   requestPushPermissions,
-  showMainWindow,
   configurePush,
   saveAttachmentDialog,
   saveAttachmentToCameraRoll,
@@ -324,4 +373,5 @@ export {
   showShareActionSheet,
   clearAllNotifications,
   getContentTypeFromURL,
+  platformConfigSaga,
 }

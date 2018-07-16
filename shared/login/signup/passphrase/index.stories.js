@@ -13,7 +13,7 @@ const props = {
 
 const load = () => {
   storiesOf('Signup/Passphrase', module)
-    .addDecorator(PropProviders.Common())
+    .addDecorator(PropProviders.CommonProvider())
     .add('Start', () => <Passphrase {...props} />)
     .add('Error', () => <Passphrase {...props} error="This is an error" />)
 }

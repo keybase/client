@@ -2,8 +2,10 @@
 import * as React from 'react'
 
 export type UploadProps = {
+  showing: boolean,
   files: number,
   timeLeft: string,
+  debugToggleShow?: ()=>void
 }
 
 declare export default React.ComponentType<UploadProps>

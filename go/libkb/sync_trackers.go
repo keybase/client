@@ -109,7 +109,7 @@ func (t *TrackerSyncer) getLoadedVersion() int {
 
 func (t *TrackerSyncer) needsLogin(m MetaContext) bool { return false }
 
-func (t *TrackerSyncer) syncFromServer(m MetaContext, uid keybase1.UID, sr SessionReader, forceReload bool) (err error) {
+func (t *TrackerSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceReload bool) (err error) {
 
 	lv := t.getLoadedVersion()
 

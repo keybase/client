@@ -224,6 +224,33 @@ type TeamChannelSource interface {
 	ChannelsChanged(context.Context, chat1.TLFID)
 }
 
+type ActivityNotifier interface {
+	Activity(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType, activity *chat1.ChatActivity)
+	TypingUpdate(ctx context.Context, updates []chat1.ConvTypingUpdate)
+	JoinedConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		topicType chat1.TopicType, conv *chat1.InboxUIItem)
+	LeftConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		topicType chat1.TopicType)
+	ResetConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		topicType chat1.TopicType)
+	KBFSToImpteamUpgrade(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		topicType chat1.TopicType)
+	SetConvRetention(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		topicType chat1.TopicType, conv *chat1.InboxUIItem)
+	SetTeamRetention(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID, topicType chat1.TopicType,
+		convs []chat1.InboxUIItem)
+
+	InboxSyncStarted(ctx context.Context, uid gregor1.UID)
+	InboxSynced(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType, syncRes chat1.ChatSyncResult)
+	InboxStale(ctx context.Context, uid gregor1.UID)
+	ThreadsStale(ctx context.Context, uid gregor1.UID, updates []chat1.ConversationStaleUpdate)
+
+	TLFFinalize(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType,
+		finalizeInfo chat1.ConversationFinalizeInfo, conv *chat1.InboxUIItem)
+	TLFResolve(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType,
+		resolveInfo chat1.ConversationResolveInfo)
+}
+
 type IdentifyNotifier interface {
 	Reset()
 	ResetOnGUIConnect()
@@ -246,6 +273,7 @@ type AttachmentFetcher interface {
 type AttachmentURLSrv interface {
 	GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
 		preview bool) string
+	GetPendingPreviewURL(ctx context.Context, outboxID chat1.OutboxID) string
 	GetAttachmentFetcher() AttachmentFetcher
 }
 

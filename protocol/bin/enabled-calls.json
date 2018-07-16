@@ -9,6 +9,7 @@
   "chat.1.local.getGlobalAppNotificationSettingsLocal": {"promise": true},
   "chat.1.local.getInboxAndUnboxUILocal": {"promise": true},
   "chat.1.local.getInboxNonblockLocal": {"engineSaga": true},
+  "chat.1.local.getStaticConfig": {"promise": true},
   "chat.1.local.getTLFConversationsLocal": {"promise": true},
   "chat.1.local.getTeamRetentionLocal": {"promise": true},
   "chat.1.local.getThreadNonblock": {"engineSaga": true},
@@ -37,11 +38,13 @@
   "keybase.1.SimpleFS.simpleFSCheck": {"promise": true},
   "keybase.1.SimpleFS.simpleFSCopyRecursive": {"promise": true},
   "keybase.1.SimpleFS.simpleFSList": {"promise": true},
+  "keybase.1.SimpleFS.simpleFSListRecursiveToDepth": {"promise": true},
   "keybase.1.SimpleFS.simpleFSReadList": {"promise": true},
   "keybase.1.SimpleFS.simpleFSStat": {"promise": true},
   "keybase.1.SimpleFS.simpleFSSyncStatus": {"promise": true},
   "keybase.1.SimpleFS.simpleFSWait": {"promise": true},
   "keybase.1.SimpleFS.simpleFSOpen": {"promise": true},
+  "keybase.1.SimpleFS.simpleFSSuppressNotifications": {"promise": true},
   "keybase.1.account.emailChange": {"promise": true},
   "keybase.1.account.hasServerKeys": {"promise": true},
   "keybase.1.account.passphraseChange": {"promise": true},
@@ -152,5 +155,8 @@
   "keybase.1.user.profileEdit": {"promise": true},
   "stellar.1.local.getPaymentsLocal": {"promise": true},
   "stellar.1.local.getAccountAssetsLocal": {"promise": true},
-  "stellar.1.local.getWalletAccountsLocal": {"promise": true}
+  "stellar.1.local.getWalletAccountsLocal": {"promise": true},
+  "stellar.1.local.linkNewWalletAccountLocal": {"promise": true},
+  "stellar.1.local.validateAccountNameLocal": {"promise": true},
+  "stellar.1.local.validateSecretKeyLocal": {"promise": true}
 }

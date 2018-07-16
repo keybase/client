@@ -4,12 +4,12 @@ import {Set} from 'immutable'
 import {Box2} from '../../../../common-adapters/box'
 import {platformStyles} from '../../../../styles'
 import * as PropProviders from '../../../../stories/prop-providers'
-import {action, storiesOf} from '../../../../stories/storybook'
+import {action, storiesOf, createPropProvider} from '../../../../stories/storybook'
 import Input, {type Props as InputProps} from '.'
 import {isMobile} from '../../../../constants/platform'
 import {stringToConversationIDKey} from '../../../../constants/types/chat2'
 
-const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'), {
+const provider = createPropProvider(PropProviders.Common(), {
   ChannelMentionHud: ownProps => {
     const channels = ['foo', 'bar']
     return {

@@ -221,6 +221,7 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 				Public:      mv.ClientHeader.TlfPublic,
 				TopicType:   strings.ToLower(mv.ClientHeader.Conv.TopicType.String()),
 				MembersType: strings.ToLower(conv.GetMembersType().String()),
+				TopicName:   utils.GetTopicName(conv),
 			},
 			Sender: MsgSender{
 				UID:      mv.ClientHeader.Sender.String(),
@@ -391,8 +392,9 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 
 	// check for preview
 	if len(opts.Preview) > 0 {
+		loc := chat1.NewPreviewLocationWithFile(opts.Preview)
 		arg.Preview = &chat1.MakePreviewRes{
-			Filename: &opts.Preview,
+			Location: &loc,
 		}
 	}
 
@@ -474,8 +476,9 @@ func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOp
 
 	// check for preview
 	if len(opts.Preview) > 0 {
+		loc := chat1.NewPreviewLocationWithFile(opts.Preview)
 		arg.Preview = &chat1.MakePreviewRes{
-			Filename: &opts.Preview,
+			Location: &loc,
 		}
 	}
 
@@ -901,36 +904,7 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, id chat1.Conv
 		return gilres.Conversations, gilres.RateLimits, nil
 	}
 
-	tlfClient, err := GetTlfClient(c.G())
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var tlfName string
-	switch channel.GetMembersType(c.G().GetEnv()) {
-	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
-		chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		tlfQ := keybase1.TLFQuery{
-			TlfName:          channel.Name,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		}
-		if channel.Public {
-			cname, err := tlfClient.PublicCanonicalTLFNameAndID(ctx, tlfQ)
-			if err != nil {
-				return nil, nil, err
-			}
-			tlfName = cname.CanonicalName.String()
-		} else {
-			cname, err := tlfClient.CompleteAndCanonicalizePrivateTlfName(ctx, tlfQ)
-			if err != nil {
-				return nil, nil, err
-			}
-			tlfName = cname.CanonicalName.String()
-		}
-	default:
-		tlfName = channel.Name
-	}
-
+	tlfName := channel.Name
 	vis := keybase1.TLFVisibility_PRIVATE
 	if channel.Public {
 		vis = keybase1.TLFVisibility_PUBLIC
@@ -939,7 +913,6 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, id chat1.Conv
 	if err != nil {
 		return nil, nil, err
 	}
-
 	findRes, err := client.FindConversationsLocal(ctx, chat1.FindConversationsLocalArg{
 		TlfName:          tlfName,
 		MembersType:      channel.GetMembersType(c.G().GetEnv()),
@@ -966,6 +939,8 @@ func (c *chatServiceHandler) convertMsgBody(mb chat1.MessageBody) MsgContent {
 		Delete:             mb.Delete__,
 		Metadata:           mb.Metadata__,
 		AttachmentUploaded: mb.Attachmentuploaded__,
+		SendPayment:        mb.Sendpayment__,
+		RequestPayment:     mb.Requestpayment__,
 	}
 }
 
@@ -1087,6 +1062,8 @@ type MsgContent struct {
 	Delete             *chat1.MessageDelete               `json:"delete,omitempty"`
 	Metadata           *chat1.MessageConversationMetadata `json:"metadata,omitempty"`
 	AttachmentUploaded *chat1.MessageAttachmentUploaded   `json:"attachment_uploaded,omitempty"`
+	SendPayment        *chat1.MessageSendPayment          `json:"send_payment,omitempty"`
+	RequestPayment     *chat1.MessageRequestPayment       `json:"request_payment,omitempty"`
 }
 
 // MsgSummary is used to display JSON details for a message.

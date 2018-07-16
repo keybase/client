@@ -233,6 +233,8 @@ const (
 	MessageType_SYSTEM             MessageType = 11
 	MessageType_DELETEHISTORY      MessageType = 12
 	MessageType_REACTION           MessageType = 13
+	MessageType_SENDPAYMENT        MessageType = 14
+	MessageType_REQUESTPAYMENT     MessageType = 15
 )
 
 func (o MessageType) DeepCopy() MessageType { return o }
@@ -252,6 +254,8 @@ var MessageTypeMap = map[string]MessageType{
 	"SYSTEM":             11,
 	"DELETEHISTORY":      12,
 	"REACTION":           13,
+	"SENDPAYMENT":        14,
+	"REQUESTPAYMENT":     15,
 }
 
 var MessageTypeRevMap = map[MessageType]string{
@@ -269,6 +273,8 @@ var MessageTypeRevMap = map[MessageType]string{
 	11: "SYSTEM",
 	12: "DELETEHISTORY",
 	13: "REACTION",
+	14: "SENDPAYMENT",
+	15: "REQUESTPAYMENT",
 }
 
 type TopicType int

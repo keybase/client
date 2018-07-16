@@ -13,7 +13,7 @@ import {
 import {globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../styles'
 
 type Props = {
-  federatedAddress: string,
+  federatedAddress?: string,
   onClose: () => void,
   stellarAddress: string,
   username: string,
@@ -36,12 +36,16 @@ const ReceiveModal = (props: Props) => (
       <Box2 direction="vertical" style={styles.stellarAddressContainer}>
         <CopyText text={props.stellarAddress} />
       </Box2>
-      <Text type="Body" style={styles.orText}>
-        or
-      </Text>
-      <Box2 direction="vertical" style={styles.federatedAddressContainer}>
-        <CopyText text={props.federatedAddress} />
-      </Box2>
+      {!!props.federatedAddress && (
+        <React.Fragment>
+          <Text type="Body" style={styles.orText}>
+            or
+          </Text>
+          <Box2 direction="vertical" style={styles.federatedAddressContainer}>
+            <CopyText text={props.federatedAddress} />
+          </Box2>
+        </React.Fragment>
+      )}
       <InfoNote>
         <Text type="BodySmall" style={styles.infoNoteText}>
           Use the chat interface to request Lumens from a Keybase user.

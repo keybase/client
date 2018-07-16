@@ -1,6 +1,5 @@
 // @flow
 import {connect, type TypedState, type Dispatch, isMobile} from '../../util/container'
-import {usernameSelector} from '../../constants/selectors'
 import TabBarRender from '.'
 import KeyHandler from '../../util/key-handler.desktop'
 import {chatTab, peopleTab, profileTab, type Tab} from '../../constants/tabs'
@@ -9,7 +8,7 @@ import {createShowUserProfile} from '../../actions/profile-gen'
 
 const mapStateToProps = (state: TypedState) => ({
   _badgeNumbers: state.notifications.get('navBadges'),
-  username: usernameSelector(state),
+  username: state.config.username,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeSelected, routePath}) => ({

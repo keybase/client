@@ -36,6 +36,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pendingOutboxToOrdinal: I.Map(),
   quote: null,
   selectedConversation: noConversationIDKey,
+  staticConfig: null,
   typingMap: I.Map(),
   unreadMap: I.Map(),
 })
@@ -49,6 +50,10 @@ export const makeQuoteInfo: I.RecordFactory<Types._QuoteInfo> = I.Record({
   ordinal: Types.numberToOrdinal(0),
   sourceConversationIDKey: Constants.noConversationIDKey,
   targetConversationIDKey: Constants.noConversationIDKey,
+})
+
+export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
+  deletableByDeleteHistory: I.Set(),
 })
 
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
@@ -142,6 +147,8 @@ export const getConversationExplodingMode = (state: TypedState, c: Types.Convers
   }
   return mode
 }
+export const isExplodingModeLocked = (state: TypedState, c: Types.ConversationIDKey) =>
+  state.chat2.getIn(['explodingModeLocks', c], null) !== null
 
 export const makeInboxQuery = (
   convIDKeys: Array<Types.ConversationIDKey>
@@ -176,7 +183,9 @@ export {
 } from './meta'
 
 export {
+  allMessageTypes,
   getClientPrev,
+  getDeletableByDeleteHistory,
   getMessageID,
   isSpecialMention,
   makeMessageAttachment,
@@ -187,6 +196,7 @@ export {
   messageExplodeDescriptions,
   pathToAttachmentType,
   rpcErrorToString,
+  serviceMessageTypeToMessageTypes,
   uiMessageEditToMessage,
   uiMessageToMessage,
   upgradeMessage,

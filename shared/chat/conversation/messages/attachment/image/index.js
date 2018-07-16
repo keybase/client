@@ -6,6 +6,7 @@ import {
   ClickableBox,
   Icon,
   ProgressBar,
+  ProgressIndicator,
   iconCastPlatformStyles,
 } from '../../../../../common-adapters'
 import {
@@ -55,6 +56,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
         <Box
           style={collapseStyles([
             styles.loading,
+            !this.state.loaded && styles.spinner,
             {
               height: this.props.height,
               width: this.props.width,
@@ -65,6 +67,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
             <ImageRender
               src={this.props.path}
               onLoad={this._setLoaded}
+              loaded={this.state.loaded}
               style={collapseStyles([
                 styles.image,
                 {
@@ -75,6 +78,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
               ])}
             />
           )}
+          {!this.state.loaded && <ProgressIndicator style={styles.progress} />}
           {this.props.showPlayButton && (
             <Icon type="icon-play-64" style={iconCastPlatformStyles(styles.playButton)} />
           )}
@@ -111,6 +115,18 @@ class ImageAttachment extends React.PureComponent<Props, State> {
 }
 
 const styles = styleSheetCreate({
+  spinner: platformStyles({
+    isElectron: {
+      ...globalStyles.flexBoxColumn,
+      alignItems: 'center',
+    },
+    isMobile: {
+      ...globalStyles.flexBoxCenter,
+      alignItems: 'center',
+      margin: 'auto',
+      flex: 1,
+    },
+  }),
   downloadIcon: {maxHeight: 14},
   downloadedIconWrapper: {
     ...globalStyles.flexBoxCenter,
@@ -166,6 +182,16 @@ const styles = styleSheetCreate({
     },
     isMobile: {
       backgroundColor: globalColors.fastBlank,
+    },
+  }),
+  progress: platformStyles({
+    isElectron: {
+      margin: 'auto',
+    },
+    isMobile: {
+      width: 48,
+      position: 'absolute',
+      margin: 'auto',
     },
   }),
 })

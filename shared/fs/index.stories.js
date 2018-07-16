@@ -72,7 +72,10 @@ const provider = createPropProvider({
   ...rowProviders,
   ConnectedFooter: () => ({
     downloadKeys: [],
-    showUploads: false,
+  }),
+  ConnectedUpload: () => ({
+    files: 0,
+    endEstimate: Date.now() + 10000,
   }),
   FolderHeader: () => ({
     breadcrumbItems: [
@@ -477,7 +480,7 @@ const load = () => {
         />
       </Box>
     ))
-    .add('UploadBanner', () => <Upload files={42} timeLeft="23 min" />)
+    .add('UploadBanner', () => <Upload files={42} timeLeft="23 min" showing={true} />)
     .add('ResetRows', () => (
       <Files
         path={Types.stringToPath('/keybase')}

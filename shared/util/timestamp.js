@@ -45,29 +45,38 @@ export function formatTimeForMessages(time: number, nowOverride?: number): strin
   }
 }
 
-export const formatTimeForFS = (time: number): string =>
-  moment(time).calendar(null, {
-    sameDay: '[Today]',
-    lastDay: '[Yesterday]',
-    lastWeek: 'ddd',
+const calendarFormatsForFS = {
+  noUpperCaseFirst: {
+    sameDay: '[today at] LT',
+    lastDay: '[yesterday at] LT',
+    lastWeek: 'ddd [at] LT',
     sameElse: function(now) {
       return this.year() !== now.year() ? 'ddd MMM D YYYY [at] LT' : 'ddd MMM D [at] LT'
     },
-  })
+  },
+  upperCaseFirst: {
+    sameDay: '[Today at] LT',
+    lastDay: '[Yesterday at] LT',
+    lastWeek: 'ddd [at] LT',
+    sameElse: function(now) {
+      return this.year() !== now.year() ? 'ddd MMM D YYYY [at] LT' : 'ddd MMM D [at] LT'
+    },
+  },
+}
 
-export const formatDurationFromNowTo = (timeInFuture?: number): string => {
-  if (!timeInFuture) {
+export const formatTimeForFS = (time: number, dontUpperCase: boolean): string =>
+  moment(time).calendar(null, calendarFormatsForFS[dontUpperCase ? 'noUpperCaseFirst' : 'upperCaseFirst'])
+
+export const formatDuration = (duration: number): string => {
+  if (!duration) {
     return ''
   }
-  const d = moment.duration(-moment().diff(timeInFuture))
-  if (d.hours()) {
-    return `${d.hours()} hr`
-  } else if (d.minutes()) {
-    return `${d.minutes()} min`
-  } else {
-    return `${d.seconds()} s`
-  }
+  const d = moment.duration(duration)
+  return d.hours() ? `${d.hours()} hr` : d.minutes() ? `${d.minutes()} min` : `${d.seconds()} s`
 }
+
+export const formatDurationFromNowTo = (timeInFuture?: number): string =>
+  timeInFuture ? formatDuration(timeInFuture - Date.now()) : ''
 
 export function formatTimeForPopup(time: number): string {
   const m = moment(time)

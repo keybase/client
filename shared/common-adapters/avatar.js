@@ -15,7 +15,6 @@ import {
 } from '../styles'
 import {createShowUserProfile} from '../actions/profile-gen'
 import {createGetProfile} from '../actions/tracker-gen'
-import {action} from '../stories/storybook'
 import * as ConfigGen from '../actions/config-gen'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 16
@@ -41,7 +40,7 @@ export type OwnProps = {|
   showFollowingStatus?: boolean, // show the green dots or not
 |}
 
-type Props = PropsWithTimer<{
+type PropsWithoutTimer = {
   askForUserData?: () => void,
   borderColor?: string,
   children?: React.Node,
@@ -62,7 +61,9 @@ type Props = PropsWithTimer<{
   teamname?: ?string,
   url: URLType,
   username?: ?string,
-}>
+}
+
+type Props = PropsWithTimer<PropsWithoutTimer>
 
 const avatarPlaceHolders: {[key: string]: IconType} = {
   '192': 'icon-placeholder-avatar-192',
@@ -150,7 +151,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): PropsWithoutTimer => {
   const isTeam = ownProps.isTeam || !!ownProps.teamname
 
   let onClick = ownProps.onClick
@@ -171,8 +172,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 
   const askForUserData = isTeam
-    ? () => ownProps.teamname && dispatchProps._askForTeamUserData(ownProps.teamname)
-    : () => ownProps.username && dispatchProps._askForUserData(ownProps.username)
+    ? () => {
+        ownProps.teamname && dispatchProps._askForTeamUserData(ownProps.teamname)
+      }
+    : () => {
+        ownProps.username && dispatchProps._askForUserData(ownProps.username)
+      }
 
   const name = isTeam ? ownProps.teamname : ownProps.username
 
@@ -187,7 +192,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     followsYou: stateProps.followsYou,
     isTeam,
     loadingColor: ownProps.loadingColor,
-    name,
+    name: name || '',
     onClick,
     opacity: ownProps.opacity,
     size: ownProps.size,
@@ -248,7 +253,14 @@ const Avatar = compose(
   HOCTimers
 )(AvatarConnector)
 
-const mockOwnToViewProps = (ownProps: OwnProps, following: boolean, followsYou: boolean) => {
+const mockOwnToViewProps = (
+  ownProps: OwnProps,
+  follows: string[],
+  followers: string[],
+  action: string => (...args: any[]) => void
+): Props => {
+  const following = follows.includes(ownProps.username)
+  const followsYou = followers.includes(ownProps.username)
   const isTeam = ownProps.isTeam || !!ownProps.teamname
 
   let onClick = ownProps.onClick
@@ -262,14 +274,33 @@ const mockOwnToViewProps = (ownProps: OwnProps, following: boolean, followsYou: 
   ])
   const url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
 
+  const name = isTeam ? ownProps.teamname : ownProps.username
+
+  const setInterval = action('setInterval')
+  const setTimeout = action('setTimeout')
+
   return {
+    clearInterval: action('clearInterval'),
+    clearTimeout: action('clearTimeout'),
+    setInterval: (...args) => {
+      setInterval(...args)
+      return (0: any)
+    },
+    setTimeout: (...args) => {
+      setTimeout(...args)
+      return (0: any)
+    },
+
     borderColor: ownProps.borderColor,
     children: ownProps.children,
     followIconSize: _followIconSize(ownProps.size, followsYou, following),
     followIconStyle: followSizeToStyle[ownProps.size],
     followIconType: _followIconType(ownProps.size, followsYou, following),
+    following,
+    followsYou,
     isTeam,
     loadingColor: ownProps.loadingColor,
+    name: name || '',
     onClick,
     opacity: ownProps.opacity,
     size: ownProps.size,

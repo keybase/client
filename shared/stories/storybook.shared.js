@@ -21,16 +21,21 @@ const unexpected = (name: string) => () => {
 // Redux doesn't allow swapping the store given a single provider so we use a new key to force a new provider to
 // work around this issue
 let uniqueProviderKey = 1
-const createPropProvider = (map: SelectorMap) => (story: () => React.Node) => (
-  <Provider key={`provider:${uniqueProviderKey++}`} store={createStore(state => state, map)}>
-    <StorybookErrorBoundary children={story()} />
-  </Provider>
-)
+const createPropProvider = (...maps: SelectorMap[]) => {
+  const merged: SelectorMap = maps.reduce((obj, merged) => ({...obj, ...merged}), {})
+
+  return (story: () => React.Node) => (
+    <Provider key={`provider:${uniqueProviderKey++}`} store={createStore(state => state, merged)}>
+      <StorybookErrorBoundary children={story()} />
+    </Provider>
+  )
+}
 
 class StorybookErrorBoundary extends React.Component<
   any,
   {hasError: boolean, error: ?Error, info: ?{componentStack: string}}
 > {
+  // $FlowIssue doesn't like us overriding the definition
   componentDidCatch: ?Function
 
   constructor(props: any) {

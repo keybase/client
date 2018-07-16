@@ -143,7 +143,9 @@
         "LEAVE_10",
         "SYSTEM_11",
         "DELETEHISTORY_12",
-        "REACTION_13"
+        "REACTION_13",
+        "SENDPAYMENT_14",
+        "REQUESTPAYMENT_15"
       ],
       "go": "nostring"
     },

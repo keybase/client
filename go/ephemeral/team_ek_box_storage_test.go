@@ -139,7 +139,7 @@ func TestTeamEKStorageKeyFormat(t *testing.T) {
 	defer tc.Cleanup()
 
 	s := NewTeamEKBoxStorage(tc.G)
-	uv, err := getCurrentUserUV(context.Background(), tc.G)
+	uv, err := tc.G.GetMeUV(context.Background())
 	require.NoError(t, err)
 
 	teamID := createTeam(tc)

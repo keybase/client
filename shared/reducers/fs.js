@@ -20,7 +20,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         return Constants.shouldUseOldMimeType(original, meta) ? meta.set('mimeType', original.mimeType) : meta
       })
     case FsGen.folderListLoaded: {
-      let toRemove = []
+      let toRemove = new Set()
       const toMerge = action.payload.pathItems.map((item, path) => {
         const original = state.pathItems.get(path)
 
@@ -38,41 +38,37 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         const originalFolder: Types.FolderPathItem = original
         let newItem: Types.FolderPathItem = item
 
-        if (originalFolder.progress === 'loaded' && newItem.progress === 'pending') {
+        if (originalFolder.progress === 'loaded' && item.progress === 'pending') {
           // We don't want to override a loaded folder into pending, because
           // otherwise next time user goes into that folder we'd show
           // placeholders. We also don't want to simply use the original
           // PathItem, since it's possible some metadata has updated. So use
           // the new item, but reuse children, progress, and tlfMeta fields.
-          if (originalFolder.type === 'folder' && newItem.type === 'folder') {
+          if (originalFolder.type === 'folder' && item.type === 'folder') {
             // make flow happy
-            newItem = newItem
-              .set('children', originalFolder.children)
-              .set('tlfMeta', originalFolder.tlfMeta)
-              .set('badgeCount', originalFolder.badgeCount)
-              .set('progress', 'loaded')
+            newItem = item.set('children', originalFolder.children).set('progress', 'loaded')
           }
         }
 
-        toRemove = toRemove.concat(
-          originalFolder.children
-            .filter(child => !newItem.children.includes(child))
-            .toArray()
-            .map(name => Types.pathConcat(path, name))
+        originalFolder.children.forEach(
+          name => !newItem.children.includes(name) && toRemove.add(Types.pathConcat(path, name))
         )
 
         // Since `folderListLoaded`, `favoritesLoaded`, and `loadResetsResult`
         // can change `pathItems`, we need to make sure that neither one
         // clobbers the others' work.
-        return newItem
-          .set('badgeCount', originalFolder.badgeCount)
-          .set('tlfMeta', originalFolder.tlfMeta)
-          .set('favoriteChildren', originalFolder.favoriteChildren)
+        return newItem.withMutations(i =>
+          i
+            .set('badgeCount', originalFolder.badgeCount)
+            .set('tlfMeta', originalFolder.tlfMeta)
+            .set('favoriteChildren', originalFolder.favoriteChildren)
+        )
       })
-      toRemove.length && console.log({msg: 'Removing entries in state.fs.pathItems', toRemove: toRemove})
       return state
-        .set('pathItems', state.pathItems.filter((item, path) => !toRemove.includes(path)))
-        .mergeIn(['pathItems'], toMerge)
+        .set(
+          'pathItems',
+          state.pathItems.withMutations(pathItems => pathItems.deleteAll(toRemove).merge(toMerge))
+        )
         .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
     }
     case FsGen.folderListLoad:
@@ -91,10 +87,12 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           // Since `folderListLoaded`, `favoritesLoaded`, and `loadResetsResult`
           // can change `pathItems`, we need to make sure that neither one
           // clobbers the others' work.
-          original
-            .set('badgeCount', item.badgeCount)
-            .set('tlfMeta', item.tlfMeta)
-            .set('favoriteChildren', item.favoriteChildren),
+          original.withMutations(i =>
+            i
+              .set('badgeCount', item.badgeCount)
+              .set('tlfMeta', item.tlfMeta)
+              .set('favoriteChildren', item.favoriteChildren)
+          ),
         ]
       })
       return state.mergeIn(['pathItems'], toMerge)

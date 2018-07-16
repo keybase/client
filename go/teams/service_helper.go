@@ -278,26 +278,34 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 			return err
 		}
 
+		// Look for invites first - invite will always be obsoleted (and
+		// removed) by membership or another invite; but membership can
+		// stay un-removed when superseded by new invite (is removed by
+		// new membership though).
 		var existingRole keybase1.TeamRole
-		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
-		if err == nil {
+		invite, existingUV, found := t.FindActiveKeybaseInvite(uv.Uid)
+		if found {
+			// User is PUKless member.
+			existingRole = invite.Role
+		} else {
+			foundUV, err := t.UserVersionByUID(ctx, uv.Uid)
+			if err != nil {
+				if _, ok := err.(libkb.NotFoundError); ok {
+					// username is neither crypto UV nor keybase invite in
+					// that team. bail out.
+					return libkb.NotFoundError{Msg: fmt.Sprintf("User %q (%s) is not a member of this team.",
+						username, uv.Uid)}
+				}
+				// ... or something else failed
+				return err
+			}
+
 			// User is existing crypto member - get their current role.
-			role, err := t.MemberRole(ctx, existingUV)
+			role, err := t.MemberRole(ctx, foundUV)
 			if err != nil {
 				return err
 			}
 			existingRole = role
-		} else {
-			// UV not found - look for invites.
-			invite, foundUV, found := t.FindActiveKeybaseInvite(uv.Uid)
-			if !found {
-				// username is neither crypto UV nor keybase invite in
-				// that team. bail out.
-				return libkb.NotFoundError{Msg: fmt.Sprintf("User %q (%s) is not a member of this team.",
-					username, uv.Uid)}
-			}
-
-			existingRole = invite.Role
 			existingUV = foundUV
 		}
 
@@ -656,7 +664,7 @@ func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok 
 }
 
 func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) error {
-	uv, err := getCurrentUserUV(ctx, g)
+	uv, err := g.GetMeUV(ctx)
 	if err != nil {
 		return err
 	}
@@ -709,7 +717,7 @@ func ProcessSeitanV2(ikey SeitanIKeyV2, uv keybase1.UserVersion, kbtime keybase1
 }
 
 func AcceptSeitanV2(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKeyV2) error {
-	uv, err := getCurrentUserUV(ctx, g)
+	uv, err := g.GetMeUV(ctx)
 	if err != nil {
 		return err
 	}
@@ -1574,9 +1582,24 @@ func FindNextMerkleRootAfterRemoval(mctx libkb.MetaContext, arg keybase1.FindNex
 	}
 
 	uv := vers.ToUserVersion()
-	logPoint := team.chain().GetLastUserLogPointWithPredicate(uv, func(p keybase1.UserLogPoint) bool {
-		return p.Role == keybase1.TeamRole_NONE || p.Role == keybase1.TeamRole_READER
-	})
+	logPoints := team.chain().inner.UserLog[uv]
+	demotionPredicate := func(p keybase1.UserLogPoint) bool {
+		if arg.AnyRoleAllowed {
+			return !p.Role.IsReaderOrAbove()
+		}
+		return !p.Role.IsWriterOrAbove()
+	}
+	var earliestDemotion int
+	var logPoint *keybase1.UserLogPoint
+	for i := len(logPoints) - 1; i >= 0; i-- {
+		if demotionPredicate(logPoints[i]) {
+			earliestDemotion = i
+		} else if earliestDemotion != 0 {
+			p := logPoints[earliestDemotion].DeepCopy()
+			logPoint = &p
+			break
+		}
+	}
 	if logPoint == nil {
 		return res, libkb.NotFoundError{Msg: fmt.Sprintf("no downgraded log point for user found")}
 	}

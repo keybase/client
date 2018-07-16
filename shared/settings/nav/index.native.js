@@ -21,12 +21,14 @@ import type {Props} from './index'
 function SettingsItem({
   badgeNumber,
   icon,
+  largerBadgeMinWidthFix,
   onClick,
   text,
   textColor,
 }: {
   badgeNumber: number,
   icon?: any,
+  largerBadgeMinWidthFix?: boolean,
   onClick: () => void,
   text: string,
   textColor?: Color,
@@ -43,7 +45,14 @@ function SettingsItem({
         >
           {text}
         </Text>
-        {!!badgeNumber && badgeNumber > 0 && <Badge badgeStyle={badgeStyle} badgeNumber={badgeNumber} />}
+        {!!badgeNumber &&
+          badgeNumber > 0 && (
+            <Badge
+              badgeStyle={badgeStyle}
+              badgeNumber={badgeNumber}
+              largerBadgeMinWidthFix={largerBadgeMinWidthFix}
+            />
+          )}
       </Box>
     </ClickableBox>
   ) : null
@@ -72,18 +81,21 @@ function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange
             {
               badgeNumber: badgeNumbers[TabConstants.fsTab],
               icon: 'iconfont-nav-files',
+              largerBadgeMinWidthFix: true,
               onClick: () => onTabChange(Constants.fsTab),
               text: 'Files',
             },
             {
               badgeNumber: badgeNumbers[TabConstants.gitTab],
               icon: 'iconfont-nav-git',
+              largerBadgeMinWidthFix: true,
               onClick: () => onTabChange(Constants.gitTab),
               text: 'Git',
             },
             {
               badgeNumber: badgeNumbers[TabConstants.devicesTab],
               icon: 'iconfont-nav-devices',
+              largerBadgeMinWidthFix: true,
               onClick: () => onTabChange(Constants.devicesTab),
               text: 'Devices',
             },
@@ -92,6 +104,7 @@ function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange
                 ? {
                     badgeNumber: badgeNumbers[TabConstants.walletsTab],
                     icon: 'iconfont-nav-wallets',
+                    largerBadgeMinWidthFix: true,
                     onClick: () => onTabChange(Constants.walletsTab),
                     text: 'Wallet',
                   }
@@ -102,6 +115,7 @@ function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange
                 ? {
                     badgeNumber: 0,
                     icon: 'iconfont-nav-settings',
+                    largerBadgeMinWidthFix: true,
                     onClick: () => onTabChange(Constants.devMenuTab),
                     text: 'Dev menu',
                   }
