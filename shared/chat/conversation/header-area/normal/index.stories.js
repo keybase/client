@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {action, storiesOf, createPropProvider} from '../../../../stories/storybook'
 import * as PropProviders from '../../../../stories/prop-providers'
-import {UsernameHeader} from '.'
+import {UsernameHeader, ChannelHeader} from '.'
 
 const provider = createPropProvider(PropProviders.Common())
 
@@ -25,7 +25,7 @@ const provider = createPropProvider(PropProviders.Common())
 const defaultProps = {
   badgeNumber: 1,
   canOpenInfoPanel: true,
-  channelName: '',
+  channelName: 'nyc',
   infoPanelOpen: false,
   muted: false,
   onBack: action('onBack'),
@@ -35,13 +35,19 @@ const defaultProps = {
   onToggleInfoPanel: action('onToggleInfoPanel'),
   participants: ['joshblum', 'ayoubd'],
   smallTeam: true,
-  teamName: '',
+  teamName: 'keybase',
 }
 
 const load = () => {
   storiesOf('Chat/Header', module)
     .addDecorator(provider)
-    .add('Normal', () => <UsernameHeader {...defaultProps} />)
+    .add('Username Header', () => <UsernameHeader {...defaultProps} />)
+    .add('Username Header with info panel open', () => (
+      <UsernameHeader {...defaultProps} infoPanelOpen={true} />
+    ))
+    .add('Username Header muted', () => <UsernameHeader {...defaultProps} muted={true} />)
+    .add('Channel Header for small team', () => <ChannelHeader {...defaultProps} />)
+    .add('Channel Header for big team', () => <ChannelHeader {...defaultProps} smallTeam={false} />)
 }
 
 export default load
