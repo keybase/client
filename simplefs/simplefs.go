@@ -1441,17 +1441,26 @@ func (k *SimpleFS) SimpleFSDumpDebuggingInfo(ctx context.Context) error {
 // SimpleFSSyncStatus - Get sync status.
 func (k *SimpleFS) SimpleFSSyncStatus(ctx context.Context) (keybase1.FSSyncStatus, error) {
 	ctx = k.makeContext(ctx)
-	status, _, err := k.config.KBFSOps().Status(ctx)
-	if err != nil {
-		k.log.CDebugf(ctx, "calling KBFSOps Status error; sending empty response")
+	jServer, jErr := libkbfs.GetJournalServer(k.config)
+	if jErr != nil {
+		k.log.CDebugf(ctx, "Journal not enabled; sending empty response")
 		return keybase1.FSSyncStatus{}, nil
 	}
+	status, tlfIDs := jServer.Status(ctx)
+	err := libkbfs.FillInJournalStatusUnflushedPaths(
+		ctx, k.config, &status, tlfIDs)
+	if err != nil {
+		k.log.CDebugf(ctx, "Error setting unflushed paths: %+v; "+
+			"sending empty response", err)
+		return keybase1.FSSyncStatus{}, nil
+	}
+
 	k.log.CDebugf(ctx, "Sending sync status response with %d syncing bytes",
-		status.JournalServer.UnflushedBytes)
+		status.UnflushedBytes)
 	return keybase1.FSSyncStatus{
-		TotalSyncingBytes: status.JournalServer.UnflushedBytes,
-		SyncingPaths:      status.JournalServer.UnflushedPaths,
-		EndEstimate:       keybase1.ToTimePtr(status.JournalServer.EndEstimate),
+		TotalSyncingBytes: status.UnflushedBytes,
+		SyncingPaths:      status.UnflushedPaths,
+		EndEstimate:       keybase1.ToTimePtr(status.EndEstimate),
 	}, nil
 }
 

@@ -48,7 +48,9 @@ func WaitForTLFJournal(ctx context.Context, config Config, tlfID tlf.ID,
 	return nil
 }
 
-func fillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
+// FillInJournalStatusUnflushedPaths adds the unflushed paths to the
+// given journal status.
+func FillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
 	jStatus *JournalServerStatus, tlfIDs []tlf.ID) error {
 	if len(tlfIDs) == 0 {
 		// Nothing to do.

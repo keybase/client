@@ -915,7 +915,7 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	if jErr == nil {
 		status, tlfIDs := jServer.Status(ctx)
 		jServerStatus = &status
-		err := fillInJournalStatusUnflushedPaths(
+		err := FillInJournalStatusUnflushedPaths(
 			ctx, fs.config, jServerStatus, tlfIDs)
 		if err != nil {
 			// The caller might depend on the channel (e.g., in
