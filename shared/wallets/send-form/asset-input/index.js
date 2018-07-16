@@ -25,16 +25,14 @@ const AssetInput = (props: Props) => (
     <NewInput
       type="number"
       decoration={
-        <React.Fragment>
-          <Box2 direction="vertical" style={styles.flexEnd}>
-            <Text type="HeaderBigExtrabold" style={styles.colorPurple2}>
-              {props.displayUnit}
-            </Text>
-            <Text type="BodySmallPrimaryLink" onClick={props.onChangeDisplayUnit}>
-              Change
-            </Text>
-          </Box2>
-        </React.Fragment>
+        <Box2 direction="vertical" style={styles.flexEnd}>
+          <Text type="HeaderBigExtrabold" style={styles.colorPurple2}>
+            {props.displayUnit}
+          </Text>
+          <Text type="BodySmallPrimaryLink" onClick={props.onChangeDisplayUnit}>
+            Change
+          </Text>
+        </Box2>
       }
       style={styles.colorPurple2}
       onChangeText={props.onChangeAmount}
