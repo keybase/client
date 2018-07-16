@@ -192,11 +192,7 @@ function ModalPositionRelative<PP>(
       this.state = {style: {}}
     }
 
-    _computeStyle = (targetRect: ?ClientRect, is2ndCall?: boolean) => {
-      // If we need to center, the offset calculation depends on rendered
-      // bounding rect. So call the method in async again in order to get the
-      // calculation correct.
-      const need2ndCall = !is2ndCall && includes(this.props.position, 'center')
+    _computeStyle = (targetRect: ?ClientRect) => {
       if (!targetRect) return
       const popupNode = this.popupNode
       if (!(popupNode instanceof HTMLElement)) {
@@ -207,15 +203,32 @@ function ModalPositionRelative<PP>(
       const style = collapseStyles([
         computePopupStyle(this.props.position, targetRect, popupNode.getBoundingClientRect()),
         this.props.style,
-        need2ndCall ? {opacity: 0} : {},
       ])
       this.setState({style})
-      need2ndCall && setTimeout(() => this._computeStyle(this.props.targetRect, true))
     }
 
-    componentDidUpdate(prevProps: ModalPositionRelativeProps<PP>) {
+    getSnapshotBeforeUpdate(prevProps) {
+      const {width, height} = this.popupNode
+        ? this.popupNode.getBoundingClientRect()
+        : {width: -1, height: -1}
+      return {width, height}
+    }
+
+    componentDidUpdate(prevProps: ModalPositionRelativeProps<PP>, prevState, snapshot) {
       if (this.props.targetRect && this.props.targetRect !== prevProps.targetRect) {
         this._computeStyle(this.props.targetRect)
+      }
+
+      if (includes(this.props.position, 'center')) {
+        // If we need to center, the offset calculation depends on rendered
+        // bounding rect. If rendering changes the bounding rect, we need to
+        // re-calculate offsets.
+        const {width, height} = this.popupNode
+          ? this.popupNode.getBoundingClientRect()
+          : {width: -1, height: -1}
+        if (snapshot.width !== width || snapshot.height !== height) {
+          this._computeStyle(this.props.targetRect)
+        }
       }
     }
 

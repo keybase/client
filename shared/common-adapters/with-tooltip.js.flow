@@ -1,0 +1,12 @@
+// @flow
+import * as React from 'react'
+import {type StylesCrossPlatform} from '../styles'
+
+export type Props = {
+  text: string,
+  multiline?: boolean,
+  containerStyle?: StylesCrossPlatform,
+  children: React.Node,
+}
+
+declare export default class WithTooltip extends React.Component<Props> {}

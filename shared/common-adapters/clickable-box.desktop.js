@@ -2,20 +2,16 @@
 import * as React from 'react'
 import {collapseStyles, globalStyles, desktopStyles} from '../styles'
 
-import Tooltip from './tooltip.desktop'
 import type {Props} from './clickable-box'
 
-const needMouseEnterLeaveHandlers = (props: Props): boolean =>
-  !!(props.hoverColor || props.underlayColor || props.tooltip || props.onMouseEnter || props.onMouseLeave)
+const needMouseEnterLeaveHandlers = (props: Props): boolean => {
+  return !!(props.hoverColor || props.underlayColor || props.onMouseEnter || props.onMouseLeave)
+}
 
-class ClickableBox extends React.Component<
-  Props & {children: any},
-  {mouseDown: boolean, mouseIn: boolean, attachmentRef: any}
-> {
+class ClickableBox extends React.Component<Props & {children: any}, {mouseDown: boolean, mouseIn: boolean}> {
   state = {
     mouseDown: false,
     mouseIn: false,
-    attachmentRef: null,
   }
   _onMouseEnter = () => {
     this.setState({mouseIn: true})
@@ -33,19 +29,9 @@ class ClickableBox extends React.Component<
     this.setState({mouseDown: false})
     this.props.onMouseUp && this.props.onMouseUp()
   }
-  _setAttachmentRef = attachmentRef => this.setState({attachmentRef})
 
   render() {
-    const {
-      style,
-      children,
-      underlayColor,
-      hoverColor,
-      onClick,
-      tooltip,
-      tooltipMultiline,
-      ...otherProps
-    } = this.props
+    const {style, children, underlayColor, hoverColor, onClick, ...otherProps} = this.props
 
     // div on desktop doesn't support onLongPress, but we allow the common
     // ClickableBox component to pass one down for mobile, so strip it out here.
@@ -76,31 +62,20 @@ class ClickableBox extends React.Component<
     }
 
     return (
-      <React.Fragment>
-        <div
-          {...otherProps}
-          onMouseDown={this._onMouseDown}
-          // Set onMouseEnter/Leave only if needed, so that any hover
-          // properties of children elements work.
-          onMouseEnter={needMouseEnterLeaveHandlers(this.props) ? this._onMouseEnter : undefined}
-          onMouseLeave={needMouseEnterLeaveHandlers(this.props) ? this._onMouseLeave : undefined}
-          onMouseUp={this._onMouseUp}
-          onClick={onClick}
-          style={collapseStyles([_containerStyle, onClick ? desktopStyles.clickable : null, style])}
-          ref={tooltip ? this._setAttachmentRef : undefined}
-        >
-          {underlay}
-          {children}
-        </div>
-        {!!tooltip && (
-          <Tooltip
-            visible={this.state.mouseIn}
-            attachTo={this.state.attachmentRef}
-            text={tooltip}
-            multiline={tooltipMultiline}
-          />
-        )}
-      </React.Fragment>
+      <div
+        {...otherProps}
+        onMouseDown={this._onMouseDown}
+        // Set onMouseEnter/Leave only if needed, so that any hover
+        // properties of children elements work.
+        onMouseEnter={needMouseEnterLeaveHandlers(this.props) ? this._onMouseEnter : undefined}
+        onMouseLeave={needMouseEnterLeaveHandlers(this.props) ? this._onMouseLeave : undefined}
+        onMouseUp={this._onMouseUp}
+        onClick={onClick}
+        style={collapseStyles([_containerStyle, onClick ? desktopStyles.clickable : null, style])}
+      >
+        {underlay}
+        {children}
+      </div>
     )
   }
 }

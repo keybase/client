@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {globalStyles, globalMargins, globalColors, styleSheetCreate} from '../../styles'
-import {Box2, Box, Icon, ClickableBox} from '../../common-adapters'
+import {Box2, Box, Icon, ClickableBox, WithTooltip} from '../../common-adapters'
 import Download from './download-container'
 
 export type DownloadsProps = {
@@ -18,23 +18,23 @@ const Downloads = (props: DownloadsProps) =>
       </Box>
       <Box style={styles.buttonsBox}>
         {props.thereAreMore ? (
-          <ClickableBox
-            style={styles.iconBoxEllipsis}
-            onClick={props.openDownloadFolder}
-            tooltip="Open Downloads folder"
-          >
-            <Icon type="iconfont-ellipsis" hint="Open downloads folder" color={globalColors.black_40} />
-          </ClickableBox>
+          <WithTooltip text="Open Downloads folder">
+            <ClickableBox style={styles.iconBoxEllipsis} onClick={props.openDownloadFolder}>
+              <Icon type="iconfont-ellipsis" hint="Open downloads folder" color={globalColors.black_40} />
+            </ClickableBox>
+          </WithTooltip>
         ) : (
           <Box /> /* have a box here to make space-between work */
         )}
-        <ClickableBox
-          style={styles.iconBoxOpenDownload}
-          onClick={props.openDownloadFolder}
-          tooltip="Open Downloads folder"
-        >
-          <Icon type="iconfont-folder-downloads" hint="Open downloads folder" color={globalColors.black_40} />
-        </ClickableBox>
+        <WithTooltip text="Open Downloads folder">
+          <ClickableBox style={styles.iconBoxOpenDownload} onClick={props.openDownloadFolder}>
+            <Icon
+              type="iconfont-folder-downloads"
+              hint="Open downloads folder"
+              color={globalColors.black_40}
+            />
+          </ClickableBox>
+        </WithTooltip>
       </Box>
     </Box2>
   )
