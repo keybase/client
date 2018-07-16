@@ -245,6 +245,13 @@
       "emoji": "string",
       "ordinal": "Types.Ordinal"
     },
+    "messageWasReactedTo": {
+      "_description": "A reaction was added to a message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "emoji": "string",
+      "messageID": "RPCChatTypes.MessageID",
+      "sender": "string"
+    },
     // Resend a message
     "messageRetry": {
       "conversationIDKey": "Types.ConversationIDKey",

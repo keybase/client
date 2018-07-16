@@ -320,6 +320,25 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
             )
           }
           break
+        case RPCChatTypes.commonMessageType.reaction: {
+          if (body.reaction) {
+            actions.push(
+              Chat2Gen.createMessageWasReactedTo({
+                conversationIDKey,
+                emoji: body.reaction.body,
+                messageID: body.reaction.messageID,
+                sender: valid.senderUsername,
+              })
+            )
+          } else {
+            logger.warn(
+              `Got reaction message with no reaction body. ConvID: ${conversationIDKey} MessageID: ${
+                valid.messageID
+              }`
+            )
+          }
+          break
+        }
       }
     }
   }

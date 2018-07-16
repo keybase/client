@@ -42,6 +42,7 @@ export const messageSend = 'chat2:messageSend'
 export const messageSetEditing = 'chat2:messageSetEditing'
 export const messageSetQuoting = 'chat2:messageSetQuoting'
 export const messageWasEdited = 'chat2:messageWasEdited'
+export const messageWasReactedTo = 'chat2:messageWasReactedTo'
 export const messagesAdd = 'chat2:messagesAdd'
 export const messagesExploded = 'chat2:messagesExploded'
 export const messagesWereDeleted = 'chat2:messagesWereDeleted'
@@ -200,6 +201,12 @@ type _MessageWasEditedPayload = $ReadOnly<{|
   mentionsChannel: 'none' | 'all' | 'here',
   mentionsChannelName: I.Map<string, Types.ConversationIDKey>,
 |}>
+type _MessageWasReactedToPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  emoji: string,
+  messageID: RPCChatTypes.MessageID,
+  sender: string,
+|}>
 type _MessagesAddPayload = $ReadOnly<{|
   context: {type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey},
   messages: Array<Types.Message>,
@@ -329,6 +336,10 @@ type _UpdateTeamRetentionPolicyPayload = $ReadOnly<{|convs: Array<RPCChatTypes.I
 type _UpdateTypersPayload = $ReadOnly<{|conversationToTypers: I.Map<Types.ConversationIDKey, I.Set<string>>|}>
 
 // Action Creators
+/**
+ * A reaction was added to a message
+ */
+export const createMessageWasReactedTo = (payload: _MessageWasReactedToPayload) => ({error: false, payload, type: messageWasReactedTo})
 /**
  * Actually start a conversation
  */
@@ -471,6 +482,7 @@ export type MessageSendPayload = $Call<typeof createMessageSend, _MessageSendPay
 export type MessageSetEditingPayload = $Call<typeof createMessageSetEditing, _MessageSetEditingPayload>
 export type MessageSetQuotingPayload = $Call<typeof createMessageSetQuoting, _MessageSetQuotingPayload>
 export type MessageWasEditedPayload = $Call<typeof createMessageWasEdited, _MessageWasEditedPayload>
+export type MessageWasReactedToPayload = $Call<typeof createMessageWasReactedTo, _MessageWasReactedToPayload>
 export type MessagesAddPayload = $Call<typeof createMessagesAdd, _MessagesAddPayload>
 export type MessagesExplodedPayload = $Call<typeof createMessagesExploded, _MessagesExplodedPayload>
 export type MessagesWereDeletedPayload = $Call<typeof createMessagesWereDeleted, _MessagesWereDeletedPayload>
@@ -545,6 +557,7 @@ export type Actions =
   | MessageSetEditingPayload
   | MessageSetQuotingPayload
   | MessageWasEditedPayload
+  | MessageWasReactedToPayload
   | MessagesAddPayload
   | MessagesExplodedPayload
   | MessagesWereDeletedPayload

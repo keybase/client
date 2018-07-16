@@ -617,6 +617,32 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.updateTypers: {
       return state.set('typingMap', action.payload.conversationToTypers)
     }
+    case Chat2Gen.messageWasReactedTo: {
+      const {conversationIDKey, emoji, messageID, sender} = action.payload
+      const ordinal = messageIDToOrdinal(
+        state.messageMap,
+        state.pendingOutboxToOrdinal,
+        conversationIDKey,
+        messageID
+      )
+      if (!ordinal) {
+        return state
+      }
+      return state.update('messageMap', messageMap =>
+        messageMap.update(conversationIDKey, I.Map(), (map: I.Map<Types.Ordinal, Types.Message>) => {
+          return map.update(ordinal, message => {
+            if (!message || message.type === 'deleted' || message.type === 'placeholder') {
+              return message
+            }
+            let reactions = message.reactions
+            if (!reactions.get(emoji)) {
+              reactions = reactions.set(emoji, I.Set())
+            }
+            reactions = reactions.update(emoji, I.Set(), rs => rs.add(Constants.makeReaction()))
+          })
+        })
+      )
+    }
     case Chat2Gen.messagesWereDeleted: {
       const {
         conversationIDKey,
