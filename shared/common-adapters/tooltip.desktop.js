@@ -37,6 +37,7 @@ const stylesContainerCommon = {
   paddingRight: globalMargins.tiny,
   justifyContent: 'center',
   marginBottom: globalMargins.xtiny,
+  marginTop: globalMargins.xtiny,
 }
 
 const styles = styleSheetCreate({

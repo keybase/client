@@ -34,6 +34,7 @@ class WithTooltip extends React.Component<Props, State> {
           attachTo={this.state.attachmentRef}
           text={this.props.text}
           multiline={this.props.multiline}
+          position={this.props.position}
         />
       </div>
     )
