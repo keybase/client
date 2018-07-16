@@ -4,6 +4,7 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/keybase/cli"
@@ -19,6 +20,7 @@ type CmdSimpleFSQuota struct {
 	git      bool
 	bytes    bool
 	archived bool
+	json     bool
 }
 
 // NewCmdSimpleFSQuota creates a new cli.Command.
@@ -40,11 +42,15 @@ func NewCmdSimpleFSQuota(
 			},
 			cli.BoolFlag{
 				Name:  "bytes",
-				Usage: "show all data in bytes",
+				Usage: "show all data in units of bytes",
 			},
 			cli.BoolFlag{
 				Name:  "archived",
 				Usage: "show archived usage",
+			},
+			cli.BoolFlag{
+				Name:  "json",
+				Usage: "show output in json format",
 			},
 		},
 	}
@@ -58,8 +64,11 @@ func (c *CmdSimpleFSQuota) Run() error {
 	}
 
 	usage, err := cli.SimpleFSGetUserQuotaUsage(context.TODO())
-	c.output(usage)
-	return err
+	if err != nil {
+		return err
+	}
+
+	return c.output(usage)
 }
 
 func (c *CmdSimpleFSQuota) humanizeBytes(n int64) string {
@@ -79,7 +88,13 @@ func (c *CmdSimpleFSQuota) humanizeBytes(n int64) string {
 	return fmt.Sprintf("%.2f GB", float64(n)/gbf)
 }
 
-func (c *CmdSimpleFSQuota) output(usage keybase1.SimpleFSQuotaUsage) {
+type simpleFSQuotaStruct struct {
+	UsageBytes    int64
+	ArchivedBytes int64 `json:",omitempty"`
+	QuotaBytes    int64
+}
+
+func (c *CmdSimpleFSQuota) output(usage keybase1.SimpleFSQuotaUsage) error {
 	ui := c.G().UI.GetTerminalUI()
 	usageBytes, archiveBytes, limitBytes :=
 		usage.UsageBytes, usage.ArchiveBytes, usage.LimitBytes
@@ -89,11 +104,28 @@ func (c *CmdSimpleFSQuota) output(usage keybase1.SimpleFSQuotaUsage) {
 			usage.GitUsageBytes, usage.GitArchiveBytes, usage.GitLimitBytes
 	}
 
+	if c.json {
+		data := simpleFSQuotaStruct{
+			UsageBytes: usageBytes,
+			QuotaBytes: limitBytes,
+		}
+		if c.archived {
+			data.ArchivedBytes = archiveBytes
+		}
+		output, err := json.Marshal(data)
+		if err != nil {
+			return err
+		}
+		ui.Printf("%s\n", output)
+		return nil
+	}
+
 	ui.Printf("Usage:\t\t%s\n", c.humanizeBytes(usageBytes))
 	if c.archived {
 		ui.Printf("Archived:\t%s\n", c.humanizeBytes(archiveBytes))
 	}
 	ui.Printf("Quota:\t\t%s\n", c.humanizeBytes(limitBytes))
+	return nil
 }
 
 // ParseArgv gets the optional -r switch
@@ -101,6 +133,7 @@ func (c *CmdSimpleFSQuota) ParseArgv(ctx *cli.Context) error {
 	c.git = ctx.Bool("git")
 	c.bytes = ctx.Bool("bytes")
 	c.archived = ctx.Bool("archived")
+	c.json = ctx.Bool("json")
 	return nil
 }
 
