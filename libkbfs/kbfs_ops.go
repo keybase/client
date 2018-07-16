@@ -892,15 +892,16 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	defer timeTrackerDone()
 
 	session, err := fs.config.KBPKI().GetCurrentSession(ctx)
-	var usageBytes, limitBytes int64 = -1, -1
-	var gitUsageBytes, gitLimitBytes int64 = -1, -1
+	var usageBytes, archiveBytes, limitBytes int64 = -1, -1, -1
+	var gitUsageBytes, gitArchiveBytes, gitLimitBytes int64 = -1, -1, -1
 	// Don't request the quota info until we're sure we've
 	// authenticated with our password.  TODO: fix this in the
 	// service/GUI by handling multiple simultaneous passphrase
 	// requests at once.
 	if err == nil && fs.config.MDServer().IsConnected() {
 		var quErr error
-		_, usageBytes, limitBytes, gitUsageBytes, gitLimitBytes, quErr =
+		_, usageBytes, archiveBytes, limitBytes,
+			gitUsageBytes, gitArchiveBytes, gitLimitBytes, quErr =
 			fs.quotaUsage.GetAllTypes(ctx, 0, 0)
 		if quErr != nil {
 			// The error is ignored here so that other fields can still be populated
@@ -937,8 +938,10 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 		CurrentUser:     session.Name.String(),
 		IsConnected:     fs.config.MDServer().IsConnected(),
 		UsageBytes:      usageBytes,
+		ArchiveBytes:    archiveBytes,
 		LimitBytes:      limitBytes,
 		GitUsageBytes:   gitUsageBytes,
+		GitArchiveBytes: gitArchiveBytes,
 		GitLimitBytes:   gitLimitBytes,
 		FailingServices: failures,
 		JournalServer:   jServerStatus,

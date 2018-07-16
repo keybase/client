@@ -169,7 +169,7 @@ func (f *FS) GetDiskFreeSpace(ctx context.Context) (freeSpace dokan.FreeSpace, e
 			f.log.CDebugf(ctx, err.Error())
 		}
 	}()
-	_, usageBytes, limitBytes, err := f.quotaUsage.Get(
+	_, usageBytes, _, limitBytes, err := f.quotaUsage.Get(
 		ctx, quotaUsageStaleTolerance/2, quotaUsageStaleTolerance)
 	if err != nil {
 		return dokan.FreeSpace{}, errToDokan(err)

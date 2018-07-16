@@ -165,12 +165,12 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 
 	// Set initial quota usage and refresh quotaUsage's cache.
 	qbs.setUserQuotaInfo(1010, 1000, 2010, 2000)
-	_, _, _, err = quotaUsage.Get(ctx, 0, 0)
+	_, _, _, _, err = quotaUsage.Get(ctx, 0, 0)
 	require.NoError(t, err)
 
 	// Set team quota to be under the limit for now.
 	qbs.setTeamQuotaInfo(teamID, 0, 1000)
-	_, _, _, err = teamQuotaUsage.Get(ctx, 0, 0)
+	_, _, _, _, err = teamQuotaUsage.Get(ctx, 0, 0)
 	require.NoError(t, err)
 
 	tlfID1 := tlf.FakeID(1, tlf.Private)
@@ -239,7 +239,7 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 	// Now up the team usage, so teams (and their subteams) should get
 	// an error.
 	qbs.setTeamQuotaInfo(teamID, 1010, 1000)
-	_, _, _, err = teamQuotaUsage.Get(ctx, 0, 0)
+	_, _, _, _, err = teamQuotaUsage.Get(ctx, 0, 0)
 	require.NoError(t, err)
 	clock.Add(time.Minute)
 	err = blockServer.Put(ctx, tlfID2, bID, bCtx, data, serverHalf)
@@ -278,7 +278,7 @@ func TestJournalServerOverDiskLimitError(t *testing.T) {
 
 	// Set initial quota usage and refresh quotaUsage's cache.
 	qbs.setUserQuotaInfo(1010, 1000, 2010, 2000)
-	_, _, _, err := quotaUsage.Get(ctx, 0, 0)
+	_, _, _, _, err := quotaUsage.Get(ctx, 0, 0)
 	require.NoError(t, err)
 
 	tlfID1 := tlf.FakeID(1, tlf.Private)

@@ -393,7 +393,7 @@ func (f *FS) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.Sta
 		// reading a public TLF while logged out can fail on macOS.
 		return nil
 	}
-	_, usageBytes, limitBytes, err := f.quotaUsage.Get(
+	_, usageBytes, _, limitBytes, err := f.quotaUsage.Get(
 		ctx, quotaUsageStaleTolerance/2, quotaUsageStaleTolerance)
 	if err != nil {
 		f.log.CDebugf(ctx, "Getting quota usage error: %v", err)

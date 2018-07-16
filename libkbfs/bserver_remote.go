@@ -533,7 +533,15 @@ func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *kbfsblo
 		b.log.LazyTrace(ctx, "BServer: GetUserQuotaInfo done (err=%v)", err)
 	}()
 	res, err := b.getConn.getClient().GetUserQuotaInfo(ctx)
-	return kbfsblock.ParseGetQuotaInfoRes(b.config.Codec(), res, err)
+	info, err = kbfsblock.ParseGetQuotaInfoRes(b.config.Codec(), res, err)
+	if err != nil {
+		return nil, err
+	}
+	for f, us := range info.Folders {
+		b.log.CDebugf(ctx, "Folder %s, archivedBytes=%d, gitArchiveBytes=%d",
+			f, us.Bytes[kbfsblock.UsageArchive], us.Bytes[kbfsblock.UsageGitArchive])
+	}
+	return info, nil
 }
 
 // GetTeamQuotaInfo implements the BlockServer interface for BlockServerRemote

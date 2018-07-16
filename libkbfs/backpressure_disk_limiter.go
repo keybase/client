@@ -715,7 +715,7 @@ func makeDefaultBackpressureDiskLimiterParams(
 		},
 		quotaFn: func(ctx context.Context, chargedTo keybase1.UserOrTeamID) (
 			int64, int64) {
-			timestamp, usageBytes, limitBytes, err :=
+			timestamp, usageBytes, _, limitBytes, err :=
 				quotaUsage(chargedTo).Get(ctx, 1*time.Minute, math.MaxInt64)
 			if err != nil {
 				return 0, math.MaxInt64
