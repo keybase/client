@@ -429,6 +429,70 @@
     },
     {
       "type": "record",
+      "name": "RequestDetailsLocal",
+      "fields": [
+        {
+          "type": "KeybaseRequestID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "fromAssertion"
+        },
+        {
+          "type": "boolean",
+          "name": "fromCurrentUser"
+        },
+        {
+          "type": "ParticipantType",
+          "name": "toUserType"
+        },
+        {
+          "type": "string",
+          "name": "toAssertion"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "asset"
+        },
+        {
+          "type": [
+            null,
+            "OutsideCurrencyCode"
+          ],
+          "name": "currency"
+        },
+        {
+          "type": "string",
+          "name": "amountDescription"
+        },
+        {
+          "type": "string",
+          "name": "amountStellar"
+        },
+        {
+          "type": "string",
+          "name": "amountStellarDescription"
+        },
+        {
+          "type": "boolean",
+          "name": "completed"
+        },
+        {
+          "type": "KeybaseTransactionID",
+          "name": "fundingKbTxID"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SendResultCLILocal",
       "fields": [
         {
@@ -973,6 +1037,15 @@
       ],
       "response": "SendPaymentResLocal"
     },
+    "getRequestDetailsLocal": {
+      "request": [
+        {
+          "name": "reqID",
+          "type": "KeybaseRequestID"
+        }
+      ],
+      "response": "RequestDetailsLocal"
+    },
     "balancesLocal": {
       "request": [
         {
@@ -1154,6 +1227,37 @@
         }
       ],
       "response": "string"
+    },
+    "makeRequestCLILocal": {
+      "request": [
+        {
+          "name": "recipient",
+          "type": "string"
+        },
+        {
+          "name": "asset",
+          "type": [
+            null,
+            "Asset"
+          ]
+        },
+        {
+          "name": "currency",
+          "type": [
+            null,
+            "OutsideCurrencyCode"
+          ]
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        },
+        {
+          "name": "note",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "stellar.1"

@@ -779,7 +779,7 @@ func MobilePermissionDeniedCheck(g *GlobalContext, err error, msg string) {
 		return
 	}
 	g.Log.Warning("file open permission denied on mobile (%s): %s", msg, err)
-	panic(fmt.Sprintf("panic due to file open permission denied on mobile (%s)", msg))
+	os.Exit(4)
 }
 
 // IsNoSpaceOnDeviceError will return true if err is an `os` error

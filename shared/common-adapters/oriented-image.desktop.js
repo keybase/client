@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import fs from 'fs'
 import EXIF from 'exif-js'
 import {noop, isNumber} from 'lodash-es'
 import logger from '../logger'
@@ -11,6 +12,7 @@ type State = {
   styleTransform: string,
 }
 
+const uploadedSrc = /https?:\/\/127.0.0.1:.*$/i
 const NO_TRANSFORM = 'notransform'
 
 const _cacheStyleTransforms: {[src: string]: string} = {}
@@ -35,7 +37,7 @@ const exifOrientaionMap = {
 }
 
 const makeStyleTransform = (orientation: ?number): string => {
-  // In the event that we get a missing orienation from EXIF library
+  // In the event that we get a missing orientation from EXIF library
   if (!orientation) return ''
 
   const transform = exifOrientaionMap[orientation]
@@ -46,9 +48,21 @@ const makeStyleTransform = (orientation: ?number): string => {
   return transform
 }
 
+/*
+ * OrientedImage handles two situations of reading EXIF orientation bits.
+ * 1. When the user is adding an image, we want to render a preview of the
+ * image with the correct exif orientation
+ * 2. Once the image has been uploaded we will have to reorient the image again
+ * while viewing in full screen (this is due to Chrome not respecting EXIF
+ * orientation on images since 2012)
+ *
+ * When rendering a preview, the image location on the user's filesystem we
+ * read the data directly using fs and have EXIF operate on the bytes.
+ */
 class OrientedImage extends React.Component<Props, State> {
   static defaultProps = {
     onLoad: noop,
+    preview: false,
   }
 
   state = {
@@ -57,12 +71,13 @@ class OrientedImage extends React.Component<Props, State> {
 
   _hasComponentMounted = false
 
-  _handleData = src => img => {
-    const orientation: ?number = EXIF.getTag(img, 'Orientation')
+  // Parse and update img exif data
+  _setOrientation = (src, orientation: ?number) => {
     // If there is no Orientation data set for the image, then mark it as null
     // in the cache to avoid subsequent calls to EXIF
     if (!isNumber(orientation)) {
       _cacheStyleTransforms[src] = NO_TRANSFORM
+      return
     }
 
     const newTransform: string = makeStyleTransform(orientation)
@@ -72,6 +87,43 @@ class OrientedImage extends React.Component<Props, State> {
       _cacheStyleTransforms[this.props.src] = newTransform
       return {styleTransform: newTransform}
     })
+  }
+
+  // EXIF will make a local HTTP request for images that have been uploaded to the Keybase service.
+  _fetchExifUploaded = src => {
+    return new Promise((resolve, reject) => {
+      const ret = EXIF.getData({src}, function() {
+        const orientation = EXIF.getTag(this, 'Orientation')
+        resolve(orientation)
+      })
+      if (!ret) reject(new Error('EXIF failed to fetch image data'))
+    })
+  }
+
+  // Read the file contents directly into a buffer and pass it to EXIF which
+  // can extract the EXIF data
+  _readExifLocal = src => {
+    return new Promise((resolve, reject) => {
+      try {
+        // data is a Node Buffer which is backed by a JavaScript ArrayBuffer.
+        // EXIF.readFromBinaryFile takes an ArrayBuffer
+        const data = fs.readFileSync(src)
+        const tags = EXIF.readFromBinaryFile(data.buffer)
+        tags ? resolve(tags['Orientation']) : reject(new Error('EXIF failed to read exif data'))
+      } catch (err) {
+        reject(err)
+      }
+    })
+  }
+
+  _handleImageLoadSuccess = (src, orientation) => {
+    if (!this._hasComponentMounted) return
+    this._setOrientation(src, orientation)
+  }
+
+  // Don't perform transforms if the image cannot be loaded or there is no EXIF data
+  _handleImgeLoadFailure = src => {
+    _cacheStyleTransforms[src] = NO_TRANSFORM
   }
 
   _setTranformForExifOrientation(src) {
@@ -86,20 +138,15 @@ class OrientedImage extends React.Component<Props, State> {
       return this.setState({styleTransform: _cacheStyleTransforms[src]})
     }
 
-    // EXIF will make an HTTP request locally to 127.0.0.1:* to fetch the
-    // image that the keybase service is serving
-    // img = this refers to the image ArrayBuffer fetched from the local server.
-    const handleData = this._handleData(src)
-    const _hasComponentMounted = () => this._hasComponentMounted
-
-    try {
-      EXIF.getData({src}, function() {
-        if (!_hasComponentMounted()) return
-        handleData(this)
-      })
-    } catch (_) {
-      // Mark src as null in the cache to avoid making subsequent calls.
-      _cacheStyleTransforms[src] = NO_TRANSFORM
+    // Uploaded file served from Keybase service
+    if (uploadedSrc.test(src)) {
+      this._fetchExifUploaded(src)
+        .then(orientation => this._handleImageLoadSuccess(src, orientation))
+        .catch(() => this._handleImgeLoadFailure(src))
+    } else {
+      this._readExifLocal(src)
+        .then(orientation => this._handleImageLoadSuccess(src, orientation))
+        .catch(() => this._handleImgeLoadFailure(src))
     }
   }
 

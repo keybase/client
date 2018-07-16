@@ -205,6 +205,24 @@ func (hash Hash) Eq(other Hash) bool {
 	return bytes.Equal(hash, other)
 }
 
+func (m MessageUnboxed) OutboxID() *OutboxID {
+	if state, err := m.State(); err == nil {
+		switch state {
+		case MessageUnboxedState_VALID:
+			return m.Valid().ClientHeader.OutboxID
+		case MessageUnboxedState_ERROR:
+			return nil
+		case MessageUnboxedState_PLACEHOLDER:
+			return nil
+		case MessageUnboxedState_OUTBOX:
+			return m.Outbox().Msg.ClientHeader.OutboxID
+		default:
+			return nil
+		}
+	}
+	return nil
+}
+
 func (m MessageUnboxed) GetMessageID() MessageID {
 	if state, err := m.State(); err == nil {
 		switch state {
@@ -589,6 +607,10 @@ func (m MessageBoxed) Summary() MessageSummary {
 	return s
 }
 
+func (m MessageBoxed) OutboxInfo() *OutboxInfo {
+	return m.ClientHeader.OutboxInfo
+}
+
 func (m MessageBoxed) KBFSEncrypted() bool {
 	return m.ClientHeader.KbfsCryptKeysUsed == nil || *m.ClientHeader.KbfsCryptKeysUsed
 }
@@ -664,6 +686,11 @@ func (t ConversationIDTriple) Derivable(cid ConversationID) bool {
 		return false
 	}
 	return bytes.Equal(h[2:], []byte(cid[2:]))
+}
+
+func MakeOutboxID(s string) (OutboxID, error) {
+	b, err := hex.DecodeString(s)
+	return OutboxID(b), err
 }
 
 func (o *OutboxID) Eq(r *OutboxID) bool {

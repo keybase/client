@@ -26,6 +26,7 @@ func TestKeygenIfNeeded(t *testing.T) {
 	defer tc.Cleanup()
 
 	ekLib := NewEKLib(tc.G)
+	defer ekLib.Shutdown()
 	deviceEKStorage := tc.G.GetDeviceEKStorage()
 	userEKBoxStorage := tc.G.GetUserEKBoxStorage()
 
@@ -114,6 +115,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 
 	teamID := createTeam(tc)
 	ekLib := NewEKLib(tc.G)
+	defer ekLib.Shutdown()
 	fc := clockwork.NewFakeClockAt(time.Now())
 	ekLib.setClock(fc)
 	deviceEKStorage := tc.G.GetDeviceEKStorage()
@@ -308,6 +310,7 @@ func TestCleanupStaleUserAndDeviceEKs(t *testing.T) {
 	require.NoError(t, err)
 
 	ekLib := NewEKLib(tc.G)
+	defer ekLib.Shutdown()
 	err = ekLib.CleanupStaleUserAndDeviceEKs(context.Background())
 	require.NoError(t, err)
 
@@ -337,6 +340,7 @@ func TestCleanupStaleUserAndDeviceEKsOffline(t *testing.T) {
 	require.NoError(t, err)
 
 	ekLib := NewEKLib(tc.G)
+	defer ekLib.Shutdown()
 	err = ekLib.keygenIfNeeded(context.Background(), libkb.MerkleRoot{})
 	require.Error(t, err)
 	require.Equal(t, SkipKeygenNilMerkleRoot, err.Error())
