@@ -1,5 +1,4 @@
 // @flow
-import * as I from 'immutable'
 import * as Constants from '../constants/provision'
 import * as RouteConstants from '../constants/route-tree'
 import * as RouteTypes from '../constants/types/route-tree'
