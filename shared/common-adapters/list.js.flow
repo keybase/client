@@ -1,10 +1,11 @@
 // @flow
 import * as React from 'react'
+import type {StylesCrossPlatform} from '../styles'
 
 export type Props<Item> = {
   indexAsKey?: boolean,
   items: Array<Item>,
-  style?: any,
+  style?: StylesCrossPlatform,
   fixedHeight?: ?number,
   renderItem: (index: number, item: Item) => React.Node,
   keyProperty?: string, // if passed uses item[keyProperty] for the item keys (does nothing on desktop)
