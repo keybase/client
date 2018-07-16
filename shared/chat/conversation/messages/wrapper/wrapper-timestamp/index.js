@@ -25,7 +25,7 @@ class WrapperTimestamp extends React.PureComponent<WrapperTimestampProps> {
         {props.orangeLineAbove && <Box style={styles.orangeLine} />}
         {props.timestamp && <Timestamp timestamp={props.timestamp} />}
         {props.children}
-        <ReactionsRow messageID={props.messageID} />
+        <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
       </Box>
     )
   }

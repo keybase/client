@@ -4,8 +4,9 @@ import * as Types from '../../../../constants/types/chat2'
 import ReactButton from '.'
 
 export type OwnProps = {
+  conversationIDKey: Types.ConversationIDKey,
   emoji: string,
-  messageID: Types.MessageID,
+  ordinal: Types.Ordinal,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {

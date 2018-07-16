@@ -6,13 +6,21 @@ import ReactButton from '../react-button/container'
 import {styleSheetCreate} from '../../../../styles'
 
 export type Props = {
+  conversationIDKey: Types.ConversationIDKey,
   emojis: Array<string>,
-  messageID: Types.MessageID,
+  ordinal: Types.Ordinal,
 }
 
 const ReactionsRow = (props: Props) => (
   <Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.container}>
-    {props.emojis.map(emoji => <ReactButton key={emoji} emoji={emoji} messageID={props.messageID} />)}
+    {props.emojis.map(emoji => (
+      <ReactButton
+        key={emoji}
+        conversationIDKey={props.conversationIDKey}
+        emoji={emoji}
+        ordinal={props.ordinal}
+      />
+    ))}
   </Box2>
 )
 

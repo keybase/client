@@ -241,6 +241,7 @@
     },
     "toggleMessageReaction": {
       "_description": "Toggle a reaction on a message.",
+      "conversationIDKey": "Types.ConversationIDKey",
       "emoji": "string",
       "messageID": "RPCChatTypes.MessageID"
     },

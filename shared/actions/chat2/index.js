@@ -2130,6 +2130,21 @@ const loadStaticConfig = (state: TypedState, action: ConfigGen.BootstrapPayload)
     })
   })
 
+const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, state: TypedState) => {
+  const {conversationIDKey, emoji, messageID} = action.payload
+  const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+  const meta = Constants.getMeta(state, conversationIDKey)
+  return Saga.call(RPCChatTypes.localPostReactionNonblockRpcPromise, {
+    body: emoji,
+    clientPrev,
+    conversationID: Types.keyToConversationID(conversationIDKey),
+    identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
+    supersedes: messageID,
+    tlfName: meta.tlfname,
+    tlfPublic: false,
+  })
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -2263,6 +2278,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     setConvExplodingModeFailure
   )
   yield Saga.safeTakeEvery(Chat2Gen.handleSeeingExplodingMessages, handleSeeingExplodingMessages)
+  yield Saga.safeTakeEveryPure(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
   yield Saga.safeTakeEveryPurePromise(ConfigGen.bootstrapSuccess, loadStaticConfig)
 }
 

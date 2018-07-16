@@ -4,7 +4,8 @@ import * as Types from '../../../../constants/types/chat2'
 import type {StylesCrossPlatform} from '../../../../styles'
 
 export type WrapperTimestampProps = {
-  messageID: Types.MessageID,
+  conversationIDKey: Types.ConversationIDKey,
+  ordinal: Types.Ordinal,
   measure: null | (() => void),
   previous?: ?Types.Message,
   children?: React.Node,

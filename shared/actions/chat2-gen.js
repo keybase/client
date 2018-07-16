@@ -309,6 +309,7 @@ type _SetPendingModePayload = $ReadOnly<{|
 type _SetupChatHandlersPayload = void
 type _StaticConfigLoadedPayload = $ReadOnly<{|staticConfig: Types.StaticConfig|}>
 type _ToggleMessageReactionPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
   emoji: string,
   messageID: RPCChatTypes.MessageID,
 |}>

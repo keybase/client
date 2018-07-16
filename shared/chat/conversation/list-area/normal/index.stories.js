@@ -111,7 +111,7 @@ const ordinalToMessage = o => {
   }
 
   const message = Message.makeMessageText({
-    id: o,
+    ordinal: o,
     text: new HiddenString(String(o) + extra),
     timestamp: generateTimestamp(),
   })
@@ -174,7 +174,8 @@ const provider = createPropProvider(PropProviders.Common(), {
     )
     return {
       children,
-      messageID: message.id,
+      conversationIDKey: message.conversationIDKey,
+      ordinal: message.ordinal,
       orangeLineAbove: false,
       previous,
       timestamp: !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null,

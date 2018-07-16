@@ -9,14 +9,15 @@ const mapStateToProps = (state: TypedState, {message, previous}) => {
   const orangeLineAbove = !!previous && orangeLineOrdinal === previous.ordinal
   return {
     _message: message,
-    messageID: message.id,
+    conversationIDKey: message.conversationIDKey,
     orangeLineAbove,
+    ordinal: message.ordinal,
     previous,
   }
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const {_message, messageID, previous} = stateProps
+  const {_message, ordinal, previous} = stateProps
 
   const showTimestamp = Constants.enoughTimeBetweenMessages(_message, previous)
 
@@ -27,8 +28,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
   return {
     children: ownProps.children,
-    messageID,
+    conversationIDKey: stateProps.conversationIDKey,
     orangeLineAbove: stateProps.orangeLineAbove,
+    ordinal,
     timestamp,
   }
 }

@@ -7,7 +7,8 @@ import ReactButton from '../react-button/container'
 
 type Props = {
   attachmentRef?: ?React.Component<any, any>,
-  messageID: Types.MessageID,
+  conversationIDKey: Types.ConversationIDKey,
+  ordinal: Types.Ordinal,
   onAddReaction: () => void,
   onHidden: () => void,
   onReact: string => void,
@@ -19,9 +20,10 @@ type Props = {
 
 const ReactionTooltip = (props: Props) => {
   const sections = props.reactions.map(r => ({
+    conversationIDKey: props.conversationIDKey,
     data: r.users.map(u => ({...u, key: `${u.username}:${r.emoji}`})),
     key: r.emoji,
-    messageID: props.messageID,
+    ordinal: props.ordinal,
     title: r.emoji,
   }))
   return (
@@ -69,7 +71,12 @@ const renderItem = ({item}: {item: ListItem}) => {
 const renderSectionHeader = ({
   section,
 }: {
-  section: {data: Array<any>, messageID: Types.MessageID, title: string},
+  section: {
+    conversationIDKey: Types.ConversationIDKey,
+    data: Array<any>,
+    ordinal: Types.Ordinal,
+    title: string,
+  },
 }) => (
   <Box2
     key={section.title}
@@ -79,7 +86,11 @@ const renderSectionHeader = ({
     fullWidth={true}
     style={styles.buttonContainer}
   >
-    <ReactButton messageID={section.messageID} emoji={section.title} />
+    <ReactButton
+      conversationIDKey={section.conversationIDKey}
+      ordinal={section.ordinal}
+      emoji={section.title}
+    />
     <Text type="Terminal" style={styles.emojiText}>
       {section.title}
     </Text>
