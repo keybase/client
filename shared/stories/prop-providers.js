@@ -21,11 +21,10 @@ const defaultFollowers = ['max', 'akalin']
 const Usernames = (following: string[] = defaultFollowing, you: string = defaultYou) => ({
   Usernames: (ownProps: _Usernames.ConnectedProps): _Usernames.Props => {
     const {usernames} = ownProps
-    const users = (usernames || []).map(username => ({
-      username,
-      following: following.includes(username),
-      you: username === you,
-    }))
+    const users = (usernames || [])
+      .map(username => ({username, following: following.includes(username), you: username === you}))
+      .filter(u => !ownProps.skipSelf || !u.you)
+
     return {
       ...ownProps,
       users,

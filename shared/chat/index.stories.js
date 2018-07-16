@@ -13,6 +13,7 @@ import userMentionHud from './conversation/input-area/user-mention-hud/index.sto
 import messages from './conversation/messages/index.stories'
 import startConversation from './conversation/list-area/start-conversation/index.stories'
 import thread from './conversation/list-area/normal/index.stories'
+import headerArea from './conversation/header-area/normal/index.stories'
 
 const load = () => {
   ;[
@@ -30,6 +31,7 @@ const load = () => {
     userMentionHud,
     startConversation,
     thread,
+    headerArea,
   ].forEach(load => load())
 }
 

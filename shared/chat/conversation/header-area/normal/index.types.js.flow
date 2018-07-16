@@ -4,7 +4,7 @@ export type Props = {|
   canOpenInfoPanel: boolean,
   channelName: ?string,
   muted: boolean,
-  onCancelPending: () => void,
+  onCancelPending: null | (() => void),
   onBack: () => void,
   onOpenFolder: null | (() => void),
   onShowProfile: (user: string) => void,
