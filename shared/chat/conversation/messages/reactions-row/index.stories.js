@@ -1,18 +1,31 @@
 // @flow
-import {} from '../../../../stories/storybook'
+import {Rnd} from '../../../../stories/storybook'
+import * as I from 'immutable'
 import * as Types from '../../../../constants/types/chat2'
+import {emojiIndexByName} from '../../../../markdown/parser'
 import type {OwnProps} from './container'
 import type {Props as ViewProps} from '.'
 
-const messageIDToEmojis = {
-  '95': [':bee:', ':eyes:', ':musical_keyboard:', ':battery:'],
-  '97': [':globe_with_meridians:', ':face_with_cowboy_hat:'],
-  '99': [':+1:', ':-1:'],
+const emojiNames = Object.keys(emojiIndexByName)
+const numEmojis = emojiNames.length
+
+const messageIDToEmojis = (m: Types.MessageID) => {
+  const n = Types.messageIDToNumber(m)
+  if (n % 4 === 0) {
+    const r = new Rnd(n)
+    const numReactions = r.next() % 5
+    const res = []
+    for (let i = 0; i < numReactions; i++) {
+      res.push(emojiNames[r.next() % numEmojis])
+    }
+    return I.Set(res).toArray()
+  }
+  return []
 }
 
 export const propProvider = {
   ReactionsRow: (props: OwnProps): ViewProps => ({
-    emojis: messageIDToEmojis[Types.messageIDToNumber(props.messageID)] || [],
+    emojis: messageIDToEmojis(props.messageID),
     messageID: props.messageID,
   }),
 }
