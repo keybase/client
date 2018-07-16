@@ -403,7 +403,7 @@ const load = () => {
             onOpen={action('onOpen')}
             openInFileUI={action('openInFileUI')}
             onAction={action('onAction')}
-          />{' '}
+          />
         </WrapRow>
       </Box>
     ))
