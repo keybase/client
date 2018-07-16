@@ -788,8 +788,8 @@ func (o MessageLeave) DeepCopy() MessageLeave {
 }
 
 type MessageReaction struct {
-	MessageID MessageID `codec:"m" json:"m"`
-	Body      string    `codec:"b" json:"b"`
+	MessageID MessageID `codec:"messageID" json:"messageID"`
+	Body      string    `codec:"body" json:"body"`
 }
 
 func (o MessageReaction) DeepCopy() MessageReaction {

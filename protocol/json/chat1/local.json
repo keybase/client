@@ -532,15 +532,11 @@
       "fields": [
         {
           "type": "MessageID",
-          "name": "messageID",
-          "mpackkey": "m",
-          "jsonkey": "m"
+          "name": "messageID"
         },
         {
           "type": "string",
-          "name": "body",
-          "mpackkey": "b",
-          "jsonkey": "b"
+          "name": "body"
         }
       ]
     },
