@@ -2131,7 +2131,13 @@ const loadStaticConfig = (state: TypedState, action: ConfigGen.BootstrapPayload)
   })
 
 const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, state: TypedState) => {
-  const {conversationIDKey, emoji, messageID} = action.payload
+  const {conversationIDKey, emoji, ordinal} = action.payload
+  const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  if (!message) {
+    logger.warn(`toggleMessageReaction: no message found`)
+    return
+  }
+  const messageID = message.id
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
   const meta = Constants.getMeta(state, conversationIDKey)
   return Saga.call(RPCChatTypes.localPostReactionNonblockRpcPromise, {

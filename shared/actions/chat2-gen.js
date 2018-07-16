@@ -311,7 +311,7 @@ type _StaticConfigLoadedPayload = $ReadOnly<{|staticConfig: Types.StaticConfig|}
 type _ToggleMessageReactionPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   emoji: string,
-  messageID: RPCChatTypes.MessageID,
+  ordinal: Types.Ordinal,
 |}>
 type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>
