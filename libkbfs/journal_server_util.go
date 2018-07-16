@@ -145,11 +145,9 @@ func fillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
 		}
 		// Pick the latest end estimate.
 		for e := range endEstimates {
-			if e != nil {
-				if jStatus.EndEstimate == nil ||
-					jStatus.EndEstimate.Before(*e) {
-					jStatus.EndEstimate = e
-				}
+			if e != nil &&
+				(jStatus.EndEstimate == nil || jStatus.EndEstimate.Before(*e)) {
+				jStatus.EndEstimate = e
 			}
 		}
 	}
