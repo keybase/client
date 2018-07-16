@@ -2,6 +2,7 @@
 import * as Constants from '../constants/provision'
 import * as RouteConstants from '../constants/route-tree'
 import * as RouteTypes from '../constants/types/route-tree'
+import * as DevicesGen from './devices-gen'
 import * as WaitingGen from './waiting-gen'
 import * as ProvisionGen from './provision-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -12,6 +13,9 @@ import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 import {type TypedState} from '../constants/reducer'
 import {niceError} from '../util/errors'
+import {devicesTab as settingsDevicesTab} from '../constants/settings'
+
+const devicesRoot = isMobile ? [Tabs.settingsTab, settingsDevicesTab] : [Tabs.devicesTab]
 
 type ValidCallbacks =
   | 'keybase.1.gpgUi.selectKey'
@@ -256,7 +260,7 @@ class ProvisioningManager {
 
   showCodePage = () =>
     this._addingANewDevice
-      ? Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.devicesTab]))
+      ? Saga.put(RouteTree.navigateAppend(['codePage'], devicesRoot))
       : Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.loginTab, 'login']))
 
   maybeCancelProvision = (state: TypedState, action: RouteTypes.NavigateUp) => {
@@ -269,7 +273,7 @@ class ProvisioningManager {
     const response = this._stashedResponse
 
     if (
-      (this._addingANewDevice && root === Tabs.devicesTab) ||
+      (this._addingANewDevice && root === devicesRoot[0]) ||
       (!this._addingANewDevice && root === Tabs.loginTab)
     ) {
       cancelOnCallback(null, response, null)
@@ -330,8 +334,9 @@ const addNewDevice = (state: TypedState) =>
         params: undefined,
         waitingKey: Constants.waitingKey,
       })
-      // Done, nav out
-      yield Saga.put(RouteTree.navigateTo([], [Tabs.devicesTab]))
+      // Now refresh and nav back
+      yield Saga.put(DevicesGen.createDevicesLoad({}))
+      yield Saga.put(RouteTree.navigateTo([], devicesRoot))
     } catch (e) {
       // If we're canceling then ignore the error
       if (e.desc !== cancelDesc) {

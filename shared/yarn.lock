@@ -10986,10 +10986,11 @@ react-modal@^3.4.2:
     react-lifecycles-compat "^3.0.0"
     warning "^3.0.0"
 
-react-native-camera@0.10.0:
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/react-native-camera/-/react-native-camera-0.10.0.tgz#5d973c9a8aab95f68aede395ba310eae0c3cecdd"
+react-native-camera@1.1.4:
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/react-native-camera/-/react-native-camera-1.1.4.tgz#5a01be906507cc2f232405f903c52c9d99988dba"
   dependencies:
+    lodash "^4.17.4"
     prop-types "^15.5.10"
 
 react-native-compat@^1.0.0:

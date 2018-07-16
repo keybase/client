@@ -109,12 +109,6 @@ class CodePage2 extends React.Component<Props, State> {
         fullHeight={true}
         style={collapseStyles([styles.codePageContainer, {backgroundColor: this._tabBackground()}])}
       >
-        <BackButton
-          onClick={this.props.onBack}
-          iconColor={globalColors.white}
-          style={styles.backButton}
-          textStyle={styles.backButtonText}
-        />
         <Box2
           direction="vertical"
           fullHeight={true}
@@ -131,6 +125,12 @@ class CodePage2 extends React.Component<Props, State> {
             }
           />
         </Box2>
+        <BackButton
+          onClick={this.props.onBack}
+          iconColor={globalColors.white}
+          style={styles.backButton}
+          textStyle={styles.backButtonText}
+        />
         <Box2 direction="vertical" style={styles.container} fullWidth={true}>
           <Instructions {...this.props} />
           {content}
@@ -192,7 +192,7 @@ const Qr = (props: Props) =>
       <Box2 direction="vertical" style={styles.qrImageContainer}>
         <QRImage code={props.textCode} />
       </Box2>
-      <QRScan onScan={props.onSubmitTextCode} />
+      <QRScan onScan={props.onSubmitTextCode} onOpenSettings={props.onOpenSettings} />
     </Box2>
   )
 
