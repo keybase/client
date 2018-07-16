@@ -31,6 +31,7 @@ type Props = {|
   tabOverride?: ?Tab,
   textCode: string,
   onBack: () => void,
+  onOpenSettings: () => void,
   onSubmitTextCode: string => void,
 |}
 

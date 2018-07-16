@@ -2,6 +2,8 @@
 import * as PropProviders from '../../stories/prop-providers'
 import * as React from 'react'
 import CodePage2 from '.'
+import QRScanNotAuthorized from './qr-scan-not-authorized'
+import {Box2} from '../../common-adapters'
 import {action, storiesOf} from '../../stories/storybook'
 
 const textCode = 'scrub disagree sheriff holiday cabin habit mushroom member four'
@@ -22,6 +24,7 @@ const derivedProps = (
     currentDeviceName,
     currentDeviceType,
     onBack: action('onBack'),
+    onOpenSettings: action('onOpenSettings'),
     onSubmitTextCode: action('onSubmitTextCode'),
     otherDeviceName,
     otherDeviceType,
@@ -74,6 +77,12 @@ const load = () => {
         )))
     )
   })
+
+  storiesOf(`Provision/CodePage2`, module).add('QR Scan Not Authorized', () => (
+    <Box2 direction="vertical" style={{height: 200, width: 200}}>
+      <QRScanNotAuthorized onOpenSettings={action('onOpenSettings')} />
+    </Box2>
+  ))
 }
 
 export default load

@@ -335,7 +335,7 @@ const addNewDevice = (state: TypedState) =>
         waitingKey: Constants.waitingKey,
       })
       // Now refresh and nav back
-      yield Saga.put(DevicesGen.createDevicesLoad({}))
+      yield Saga.put(DevicesGen.createDevicesLoad())
       yield Saga.put(RouteTree.navigateTo([], devicesRoot))
     } catch (e) {
       // If we're canceling then ignore the error

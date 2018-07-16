@@ -1,21 +1,11 @@
 // @flow
 import * as React from 'react'
 import {RNCamera} from 'react-native-camera'
-import {Text, Box2, Icon} from '../../common-adapters'
+import {Box2} from '../../common-adapters'
 import {globalColors, styleSheetCreate} from '../../styles'
 import QRScanLines from './qr-scan-lines'
-
-const NotAuthorized = ({onOpenSettings}) => (
-  <Box2 direction="vertical">
-    <Icon type="icon-access-denied-266" />
-    <Text type="BodyTiny">
-      You need to allow access to the camera.
-      <Text type="BodyTiny" onClick={onOpenSettings}>
-        Open settings
-      </Text>
-    </Text>
-  </Box2>
-)
+import QRScanNotAuthorized from './qr-scan-not-authorized'
+import type {Props} from './qr-scan'
 
 const QRScan = (props: Props) => (
   <Box2 direction="vertical" style={styles.container}>
@@ -26,12 +16,11 @@ const QRScan = (props: Props) => (
       flashMode={RNCamera.Constants.FlashMode.off}
       permissionDialogTitle={'Permission to use camera'}
       permissionDialogMessage={'We need access to your camera to scan in the secret code'}
-      notAuthorizedView={<NotAuthorized onOpenSettings={props.onOpenSettings} />}
+      notAuthorizedView={<QRScanNotAuthorized onOpenSettings={props.onOpenSettings} />}
       onBarCodeRead={({data}) => props.onScan(data)}
       barCodeTypes={[RNCamera.Constants.BarCodeType.qr]}
       style={styles.camera}
     />
-
     <QRScanLines canScan={true} />
   </Box2>
 )
