@@ -1539,3 +1539,20 @@ func (k *SimpleFS) SimpleFSSuppressNotifications(ctx context.Context, suppressDu
 	k.config.Reporter().SuppressNotifications(ctx, time.Duration(suppressDurationSec)*time.Second)
 	return nil
 }
+
+// SimpleFSGetUserQuotaUsage returns the quota usage information for
+// the logged-in user.
+func (k *SimpleFS) SimpleFSGetUserQuotaUsage(ctx context.Context) (
+	res keybase1.SimpleFSQuotaUsage, err error) {
+	status, _, err := k.config.KBFSOps().Status(ctx)
+	if err != nil {
+		return keybase1.SimpleFSQuotaUsage{}, err
+	}
+	res.UsageBytes = status.UsageBytes
+	res.ArchiveBytes = status.ArchiveBytes
+	res.LimitBytes = status.LimitBytes
+	res.GitUsageBytes = status.GitUsageBytes
+	res.GitArchiveBytes = status.GitArchiveBytes
+	res.GitLimitBytes = status.GitLimitBytes
+	return res, nil
+}
