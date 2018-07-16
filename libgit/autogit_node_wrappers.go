@@ -21,22 +21,20 @@ import (
 // * `rootWrapper.wrap()` is installed as a root node wrapper, and wraps
 //   the root node for each TLF in a `rootNode` instance.
 // * `rootNode` allows .kbfs_autogit to be auto-created when it is
-//   looked up, and wraps it two ways, as both a `readonlyNode`, and
+//   looked up, and wraps it two ways, as both a `libkbfs.ReadonlyNode`, and
 //   an `autogitRootNode`.
-// * `readonlyNode` is always marked as read-only, unless
-//   `ctxReadWriteKey` has a non-nil value in the context.
 // * `autogitRootNode` allows the auto-creation of subdirectories
 //   representing TLF types, e.g. .kbfs_autogit/private or
 //   .kbfs_autogit/public.  It wraps child nodes two ways, as both a
-//   `readonlyNode`, and an `tlfTypeNode`.
+//   `libkbfs.ReadonlyNode`, and an `tlfTypeNode`.
 // * `tlfTypeNode` allows the auto-creation of subdirectories
 //   representing TLFs, e.g. .kbfs_autogit/private/max or
 //   .kbfs_autogit/team/keybase.  It wraps child nodes in two ways, as
-//   a `readOnlyNode` and a `tlfNode`.
+//   a `libkbfs.ReadonlyNode` and a `tlfNode`.
 // * `tlfNode` allows auto-creation of subdirectories representing
 //   valid repository checkouts of the corresponding TLF, e.g.
 //   `.kbfs_autogit/private/chris/dotfiles`.  It wraps child nodes in
-//   two ways, as both a `readonlyNode` and a `repoNode`.  It allows
+//   two ways, as both a `libkbfs.ReadonlyNode` and a `repoNode`.  It allows
 //   repo directories to be removed via `RemoveDir` if the caller has
 //   write permissions to the TLF where the autogit resides.
 // * `repoNode` allow auto-clone and auto-pull of the corresponding
@@ -53,7 +51,7 @@ import (
 //   up-to-date asynchronously if the repo changes.  If the operation
 //   is a clone, a "CLONING" file will be visible in the directory
 //   until the clone completes.  `repoNode` wraps each child node as a
-//   `readonlyNode`.
+//   `libkbfs.ReadonlyNode`.
 
 type ctxReadWriteKeyType int
 type ctxSkipPopulateKeyType int
@@ -63,7 +61,6 @@ const (
 
 	autogitWrapTimeout = 10 * time.Second
 
-	ctxReadWriteKey    ctxReadWriteKeyType    = 1
 	ctxSkipPopulateKey ctxSkipPopulateKeyType = 1
 
 	public  = "public"
@@ -157,7 +154,7 @@ func (rn *repoNode) populate(ctx context.Context) bool {
 	// If the directory is empty, clone it.  Otherwise, pull it.
 	var doneCh <-chan struct{}
 	cloneNeeded := len(children) == 0
-	ctx = context.WithValue(ctx, ctxReadWriteKey, struct{}{})
+	ctx = context.WithValue(ctx, libkbfs.CtxReadWriteKey, struct{}{})
 	branch := "master"
 	if cloneNeeded {
 		doneCh, err = rn.am.Clone(
@@ -285,7 +282,7 @@ func (tn tlfNode) ShouldCreateMissedLookup(
 		return false, ctx, libkbfs.File, ""
 	}
 
-	ctx = context.WithValue(ctx, ctxReadWriteKey, struct{}{})
+	ctx = context.WithValue(ctx, libkbfs.CtxReadWriteKey, struct{}{})
 	if name != normalizedRepoName {
 		return true, ctx, libkbfs.Sym, normalizedRepoName
 	}
@@ -352,7 +349,7 @@ func (ttn tlfTypeNode) ShouldCreateMissedLookup(
 	_, err := libkbfs.ParseTlfHandle(
 		ctx, ttn.am.config.KBPKI(), ttn.am.config.MDOps(), name, ttn.tlfType)
 
-	ctx = context.WithValue(ctx, ctxReadWriteKey, struct{}{})
+	ctx = context.WithValue(ctx, libkbfs.CtxReadWriteKey, struct{}{})
 	switch e := errors.Cause(err).(type) {
 	case nil:
 		return true, ctx, libkbfs.Dir, ""
@@ -400,7 +397,7 @@ func (arn autogitRootNode) ShouldCreateMissedLookup(
 	bool, context.Context, libkbfs.EntryType, string) {
 	switch name {
 	case public, private, team:
-		ctx = context.WithValue(ctx, ctxReadWriteKey, struct{}{})
+		ctx = context.WithValue(ctx, libkbfs.CtxReadWriteKey, struct{}{})
 		return true, ctx, libkbfs.Dir, ""
 	default:
 		return arn.Node.ShouldCreateMissedLookup(ctx, name)
@@ -428,24 +425,6 @@ func (arn autogitRootNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	}
 }
 
-// readonlyNode is a read-only node by default, unless `ctxReadWriteKey`
-// has a value set in the context.
-type readonlyNode struct {
-	libkbfs.Node
-}
-
-var _ libkbfs.Node = (*readonlyNode)(nil)
-
-// Readonly implements the Node interface for readonlyNode.
-func (rn readonlyNode) Readonly(ctx context.Context) bool {
-	return ctx.Value(ctxReadWriteKey) == nil
-}
-
-// WrapChild implements the Node interface for readonlyNode.
-func (rn readonlyNode) WrapChild(child libkbfs.Node) libkbfs.Node {
-	return &readonlyNode{rn.Node.WrapChild(child)}
-}
-
 // rootNode is a Node wrapper around a TLF root node, that causes the
 // autogit root to be created when it is accessed.
 type rootNode struct {
@@ -460,7 +439,7 @@ var _ libkbfs.Node = (*rootNode)(nil)
 func (rn rootNode) ShouldCreateMissedLookup(ctx context.Context, name string) (
 	bool, context.Context, libkbfs.EntryType, string) {
 	if name == autogitRoot {
-		ctx = context.WithValue(ctx, ctxReadWriteKey, struct{}{})
+		ctx = context.WithValue(ctx, libkbfs.CtxReadWriteKey, struct{}{})
 		ctx = context.WithValue(ctx, libkbfs.CtxAllowNameKey, autogitRoot)
 		return true, ctx, libkbfs.Dir, ""
 	}
@@ -472,7 +451,7 @@ func (rn rootNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	child = rn.Node.WrapChild(child)
 	if child.GetBasename() == autogitRoot {
 		return &autogitRootNode{
-			Node: &readonlyNode{child},
+			Node: &libkbfs.ReadonlyNode{Node: child},
 			am:   rn.am,
 		}
 	}
