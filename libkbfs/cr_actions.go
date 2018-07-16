@@ -174,12 +174,14 @@ func (cuea *copyUnmergedEntryAction) do(ctx context.Context,
 		cuea.toName = newName
 	}
 
+	mergedEntry, mergedEntryOk := mergedBlock.Children[cuea.toName]
+
 	if cuea.sizeOnly {
-		if entry, ok := mergedBlock.Children[cuea.toName]; ok {
-			entry.Size = unmergedEntry.Size
-			entry.EncodedSize = unmergedEntry.EncodedSize
-			entry.BlockPointer = unmergedEntry.BlockPointer
-			mergedBlock.Children[cuea.toName] = entry
+		if mergedEntryOk {
+			mergedEntry.Size = unmergedEntry.Size
+			mergedEntry.EncodedSize = unmergedEntry.EncodedSize
+			mergedEntry.BlockPointer = unmergedEntry.BlockPointer
+			mergedBlock.Children[cuea.toName] = mergedEntry
 			return nil
 		}
 		// copy any attrs that were explicitly set on the unmerged
@@ -192,6 +194,14 @@ func (cuea *copyUnmergedEntryAction) do(ctx context.Context,
 				unmergedEntry.Mtime = cuea.unmergedEntry.Mtime
 			}
 		}
+	}
+
+	// Throw out all the unmerged revisions and start over with the
+	// merged revisions.
+	if mergedEntryOk {
+		unmergedEntry.PrevRevisions = mergedEntry.PrevRevisions
+	} else {
+		unmergedEntry.PrevRevisions = nil
 	}
 
 	mergedBlock.Children[cuea.toName] = unmergedEntry
@@ -756,6 +766,7 @@ func (rma *renameMergedAction) do(ctx context.Context,
 		unmergedEntry.Type = Sym
 		unmergedEntry.SymPath = rma.symPath
 	}
+	unmergedEntry.PrevRevisions = nil
 	mergedBlock.Children[rma.fromName] = unmergedEntry
 
 	return nil
