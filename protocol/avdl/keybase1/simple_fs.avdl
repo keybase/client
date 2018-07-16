@@ -11,13 +11,14 @@ protocol SimpleFS {
   Caller provides OpID to one of these methods to begin an operation:
     simpleFSList
     simpleFSListRecursive
+    simpleFSListRecursiveToDepth
     simpleFSCopy
     simpleFSOpen
     simpleFSMove
     simpleFSRemove
   then calls one of the following until status is no longer pending
   or operation is cancelled:
-    simpleFSReadList (after list or listRecursive)
+    simpleFSReadList (after list, listRecursive, or listRecursiveToDepth)
     simpleFSRead (after open)
     simpleFSWrite (after open)
     simpleFSCheck (after copy, move or remove)
@@ -89,7 +90,8 @@ protocol SimpleFS {
     WRITE_3,
     COPY_4,
     MOVE_5,
-    REMOVE_6
+    REMOVE_6,
+    LIST_RECURSIVE_TO_DEPTH_7
   }
 
   enum ListFilter {
@@ -101,6 +103,13 @@ protocol SimpleFS {
     OpID opID;
     Path path;
     ListFilter filter;
+  }
+
+  record ListToDepthArgs {
+    OpID opID;
+    Path path;
+    ListFilter filter;
+    int depth;
   }
 
   record RemoveArgs {
@@ -136,6 +145,7 @@ protocol SimpleFS {
   variant OpDescription switch (AsyncOps asyncOp) {
     case LIST: ListArgs;
     case LIST_RECURSIVE: ListArgs;
+    case LIST_RECURSIVE_TO_DEPTH: ListToDepthArgs;
     case READ: ReadArgs;
     case WRITE: WriteArgs;
     case COPY: CopyArgs;
@@ -174,6 +184,11 @@ protocol SimpleFS {
      different TLF.
 */
   void simpleFSListRecursive(OpID opID, Path path, ListFilter filter, boolean refreshSubscription);
+
+  /**
+   Begin recursive list of items in directory at path up to a given depth
+   */
+  void simpleFSListRecursiveToDepth(OpID opID, Path path, ListFilter filter, boolean refreshSubscription, int depth);
 
   /**
    Get list of Paths in progress. Can indicate status of pending

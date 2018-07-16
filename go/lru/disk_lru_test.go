@@ -123,14 +123,23 @@ func TestDiskLRUFlush(t *testing.T) {
 	require.NoError(t, err)
 	select {
 	case <-l.flushCh:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no flush")
+	}
+	get := func() {
+		found, getRes, err := l.Get(ctx, tc.G, k)
+		require.NoError(t, err)
+		require.True(t, found)
+		require.Equal(t, v, getRes.Value.(string))
+	}
+	get()
+	select {
+	case <-l.flushCh:
 		require.Fail(t, "no flush")
 	default:
 	}
 	clock.Advance(time.Hour)
-	found, getRes, err := l.Get(ctx, tc.G, k)
-	require.NoError(t, err)
-	require.True(t, found)
-	require.Equal(t, v, getRes.Value.(string))
+	get()
 	select {
 	case <-l.flushCh:
 	case <-time.After(20 * time.Second):

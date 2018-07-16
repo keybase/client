@@ -13,7 +13,6 @@ import {isMobile} from '../constants/platform'
 import {compose, connect, setDisplayName} from '../util/container'
 import {type TypedState} from '../constants/reducer'
 import {createShowUserProfile} from '../actions/profile-gen'
-import {createGetProfile} from '../actions/tracker-gen'
 import type {Props, PlaintextProps} from './usernames'
 
 function usernameText({
@@ -176,10 +175,7 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onUsernameClicked: (username: string) =>
-    isMobile
-      ? dispatch(createShowUserProfile({username}))
-      : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+  _onUsernameClicked: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {

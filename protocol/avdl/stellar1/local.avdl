@@ -274,6 +274,36 @@ protocol local {
     boolean pending;
   }
 
+  record RequestDetailsLocal {
+    KeybaseRequestID id;
+
+    // User asking for payment - creator of the request.
+    string fromAssertion; // creator username
+    boolean fromCurrentUser; // is this request coming from us?
+
+    // User being asked for payment.
+    ParticipantType toUserType; // keybase or SBS
+    string toAssertion; // keybase username or sbs assertion.
+
+    string amount;
+    union { null, Asset } asset;
+    union { null, OutsideCurrencyCode } currency;
+
+    // Formatted amount of either outside currency or stellar lumens.
+    string amountDescription; // "123.23 CAD"
+
+    // Amount of Stellar lumens and formatted amount of Stellar
+    // lumens. It's either same as amountDescription, or amount of
+    // stellars after converting from outside currency.
+    string amountStellar; // "123.23"
+    string amountStellarDescription; // "123.23 XLM"
+
+    // Payment ID if funded, empty if not funded.
+    boolean completed;
+    KeybaseTransactionID fundingKbTxID;
+  }
+  RequestDetailsLocal getRequestDetailsLocal(KeybaseRequestID reqID);
+
   // -------------------------------------------------------
   // CLI protocol
   // -------------------------------------------------------
@@ -353,4 +383,7 @@ protocol local {
 
   map<OutsideCurrencyCode, OutsideCurrencyDefinition> getAvailableLocalCurrencies();
   string formatLocalCurrencyString(string amount, OutsideCurrencyCode code);
+
+  void makeRequestCLILocal(string recipient, union { null, Asset } asset, 
+    union { null, OutsideCurrencyCode } currency, string amount, string note);
 }
