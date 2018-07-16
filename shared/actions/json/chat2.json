@@ -239,6 +239,11 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString"
     },
+    "toggleMessageReaction": {
+      "_description": "Toggle a reaction on a message.",
+      "emoji": "string",
+      "messageID": "RPCChatTypes.MessageID"
+    },
     // Resend a message
     "messageRetry": {
       "conversationIDKey": "Types.ConversationIDKey",
