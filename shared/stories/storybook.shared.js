@@ -49,7 +49,7 @@ const createPropProvider = (...maps: SelectorMap[]) => {
    */
   return (story: () => React.Node) => (
     <Provider key={`provider:${uniqueProviderKey++}`} store={createStore(state => state, merged)}>
-      <GatewayProvider key="gatewayprovider">
+      <GatewayProvider>
         <React.Fragment>
           <StorybookErrorBoundary children={story()} />
           <GatewayDest component={DestBox} name="popup-root" />
