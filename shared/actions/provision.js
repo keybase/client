@@ -307,10 +307,10 @@ const startProvisioning = (state: TypedState) =>
         },
         waitingKey: Constants.waitingKey,
       })
-    } catch (e) {
+    } catch (finalError) {
       // If we're canceling then ignore the error
-      if (e.desc !== cancelDesc) {
-        yield Saga.put(ProvisionGen.createProvisionError({error: new HiddenString(niceError(e))}))
+      if (finalError.desc !== cancelDesc) {
+        yield Saga.put(ProvisionGen.createShowFinalErrorPage({finalError}))
       }
     } finally {
       // Reset us to zero
@@ -379,6 +379,9 @@ const showPaperkeyPage = (state: TypedState) =>
   !state.provision.error.stringValue() &&
   Saga.put(RouteTree.navigateAppend(['paperkey'], [Tabs.loginTab, 'login']))
 
+const showFinalErrorPage = (state: TypedState) =>
+  state.provision.finalError && Saga.put(RouteTree.navigateAppend(['error'], [Tabs.loginTab, 'login']))
+
 function* provisionSaga(): Saga.SagaGenerator<any, any> {
   // Start provision
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitUsernameOrEmail, startProvisioning)
@@ -401,6 +404,7 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.showGPGPage, showGPGPage)
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.showPassphrasePage, showPassphrasePage)
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.showPaperkeyPage, showPaperkeyPage)
+  yield Saga.safeTakeEveryPureSimple(ProvisionGen.showFinalErrorPage, showFinalErrorPage)
 
   yield Saga.safeTakeEveryPureSimple(RouteConstants.navigateUp, maybeCancelProvision)
 }

@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import * as DeviceTypes from './devices'
 import HiddenString from '../../util/hidden-string'
+import {RPCError} from '../../util/errors'
 
 export type _Device = {|
   id: DeviceTypes.DeviceID,
@@ -17,6 +18,8 @@ export type _State = {
   codePageTextCode: HiddenString,
   // shared by all errors, we only ever want one error
   error: HiddenString,
+  // if the entire process is dead, we store the whole error so we can render a lot of details about it
+  finalError: ?RPCError,
   usernameOrEmail: string,
   deviceName: string,
   devices: I.List<Device>,

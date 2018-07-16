@@ -8,15 +8,16 @@ import HiddenString from '../util/hidden-string'
 export const waitingKey = 'provision:waiting'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
+  codePageOtherDeviceId: '',
   codePageOtherDeviceName: '',
   codePageOtherDeviceType: 'mobile',
-  codePageOtherDeviceId: '',
   codePageTextCode: new HiddenString(''),
   configuredAccounts: I.List(),
   deviceName: '',
   devices: I.List(),
   error: new HiddenString(''),
   existingDevices: I.List(),
+  finalError: null,
   selectedDevice: null,
   usernameOrEmail: '',
 })

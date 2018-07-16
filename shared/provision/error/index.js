@@ -2,15 +2,46 @@
 // TODO remove Container
 import Container from '../../login/forms/container'
 import * as React from 'react'
-import openURL from '../../util/open-url'
 import {RPCError} from '../../util/errors'
 import {constantsStatusCode} from '../../constants/types/rpc-gen'
-import {Box, Text, Markdown} from '../../common-adapters'
-import {globalStyles, globalMargins, isMobile, platformStyles} from '../../styles'
+import {Box2, Text, Markdown} from '../../common-adapters'
+import {styleSheetCreate, globalStyles, globalMargins, isMobile, platformStyles} from '../../styles'
 
-import type {Props} from '.'
+type Props = {
+  error: RPCError,
+  onAccountReset: () => void,
+  onBack: () => void,
+  onBack: () => void,
+  onKBHome: () => void,
+  onPasswordReset: () => void,
+}
 
-const renderError = (error: RPCError) => {
+const List = p => (
+  <Box2 direction="vertical" style={styles.list}>
+    {p.children}
+  </Box2>
+)
+
+const Wrapper = p => (
+  <Container onBack={p.onBack}>
+    <Text type="Header" style={styles.header}>
+      There was an error provisioning
+    </Text>
+    <Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true} style={styles.container}>
+      {p.children}
+    </Box2>
+  </Container>
+)
+
+// Normally this would be a component but I want the children to be flat so i can use a Box2 as the parent and have nice gaps
+const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Props) => {
+  if (!error) {
+    return (
+      <Wrapper onBack={onBack}>
+        <Text type="Body">Unknown error: Please report this to us</Text>
+      </Wrapper>
+    )
+  }
   const fields = (Array.isArray(error.fields) ? error.fields : []).reduce((acc, f) => {
     const k = f && typeof f.key === 'string' ? f.key : ''
     acc[k] = f.value || ''
@@ -20,47 +51,42 @@ const renderError = (error: RPCError) => {
     case constantsStatusCode.scdeviceprovisionoffline:
     case constantsStatusCode.scapinetworkerror:
       return (
-        <Text type="Body">
-          Device provisioning failed because this device went offline. Please check your network connection
-          and try again.
-        </Text>
+        <Wrapper onBack={onBack}>
+          <Text type="Body">Device provisioning failed because this device went offline.</Text>
+          <Text type="Body">Please check your network connection and try again.</Text>
+        </Wrapper>
       )
     case constantsStatusCode.scdevicenoprovision:
       return (
-        <Box style={styleContent}>
-          <Box style={styleText}>
-            <Text type="Body" style={centerText}>
-              You can't authorize by passphrase, since you have established device or paper keys. You can go
-              back and pick a device or paper key, or{' '}
-              <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/#account-reset')}>
-                reset your account entirely
-              </Text>
-              .
+        <Wrapper onBack={onBack}>
+          <Text type="Body" style={styles.centerText}>
+            You can't authorize by passphrase, since you have established device or paper keys.
+          </Text>
+          <Text type="Body" style={styles.centerText}>
+            You can go back and pick a device or paper key, or{' '}
+            <Text type="BodyPrimaryLink" onClick={onAccountReset}>
+              reset your account entirely
             </Text>
-          </Box>
-        </Box>
+            .
+          </Text>
+        </Wrapper>
       )
     case constantsStatusCode.scdeviceprevprovisioned:
       return (
-        <Text type="Body">
-          You have already provisioned this device. Please use 'keybase login [username]' to log in.
-        </Text>
+        <Wrapper onBack={onBack}>
+          <Text type="Body">You have already provisioned this device. </Text>
+          <Text type="Body">Please use 'keybase login [username]' to log in. </Text>
+        </Wrapper>
       )
     case constantsStatusCode.sckeynomatchinggpg:
       if (fields.has_active_device) {
         return (
-          <Box style={styleContent}>
-            <Box style={styleText}>
-              <Text type="Body">
-                You can't provision using solely a passphrase, since you have active device keys.
-              </Text>
-            </Box>
-            <Box style={{...styleText, marginTop: 16}}>
-              <Text type="BodySemibold" style={{textAlign: 'left'}}>
-                You have options:
-              </Text>
-            </Box>
-            <Box style={{styleList}}>
+          <Wrapper onBack={onBack}>
+            <Text type="Body">
+              You can't provision using solely a passphrase, since you have active device keys.
+            </Text>
+            <Text type="BodySemibold">You have options:</Text>
+            <List>
               <Text type="Body"> - Go back and select a device or paper key</Text>
               <Text type="Body"> - Install Keybase on a machine that has your PGP private key in it</Text>
               <Text type="Body">
@@ -70,28 +96,24 @@ const renderError = (error: RPCError) => {
               <Text type="Body">
                 {' '}
                 - or,{' '}
-                <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/#account-reset')}>
+                <Text type="BodyPrimaryLink" onClick={onAccountReset}>
                   reset your account entirely
                 </Text>
                 .
               </Text>
-            </Box>
-          </Box>
+            </List>
+          </Wrapper>
         )
       } else {
         return (
-          <Box style={styleContent}>
-            <Box style={styleText}>
-              <Text type="Body">
-                You can't provision using a passphrase, since you've established a PGP key.
-              </Text>
-            </Box>
-            <Box style={{...styleText, marginTop: 16}}>
-              <Text type="BodySemibold" style={{textAlign: 'left'}}>
-                You have options:
-              </Text>
-            </Box>
-            <Box style={styleList}>
+          <Wrapper onBack={onBack}>
+            <Text type="Body">
+              You can't provision using a passphrase, since you've established a PGP key.
+            </Text>
+            <Text type="BodySemibold" style={{textAlign: 'left'}}>
+              You have options:
+            </Text>
+            <List>
               <Text type="Body">
                 {' '}
                 - Use <Text type="TerminalInline">keybase login</Text> on the command line to log in
@@ -110,74 +132,64 @@ const renderError = (error: RPCError) => {
               <Text type="Body">
                 {' '}
                 - Or,{' '}
-                <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/#account-reset')}>
+                <Text type="BodyPrimaryLink" onClick={onAccountReset}>
                   reset your account entirely
                 </Text>
                 .
               </Text>
-            </Box>
-          </Box>
+            </List>
+          </Wrapper>
         )
       }
     case constantsStatusCode.sckeynotfound:
-      return (
-        <Box style={styleContent}>
-          {error.desc ? (
-            <Markdown>{error.desc}</Markdown>
-          ) : (
-            <Box style={styleText}>
-              <Text type="Body" style={centerText}>
-                Your PGP keychain has multiple keys installed, and we're not sure which one to use to
-                provision your account. Please run <Text type="TerminalInline">keybase login</Text> on the
-                command line to continue.
-              </Text>
-            </Box>
-          )}
-        </Box>
+      return error.desc ? (
+        <Wrapper onBack={onBack}>
+          <Markdown>{error.desc}</Markdown>
+        </Wrapper>
+      ) : (
+        <Wrapper onBack={onBack}>
+          <Text type="Body" style={styles.centerText}>
+            Your PGP keychain has multiple keys installed, and we're not sure which one to use to provision
+            your account. continue.
+          </Text>
+          <Text type="Body" style={styles.centerText}>
+            Please run <Text type="TerminalInline">keybase login</Text> on the command line to
+          </Text>
+        </Wrapper>
       )
     case constantsStatusCode.scnotfound:
       return (
-        <Box style={styleContent}>
-          <Box style={styleText}>
-            <Text type="Body" style={centerText}>
-              The username you provided doesn't exist on Keybase, please try logging in again with a different
-              username.
-            </Text>
-          </Box>
-        </Box>
+        <Wrapper onBack={onBack}>
+          <Text type="Body" style={styles.centerText}>
+            The username you provided doesn't exist on Keybase.
+          </Text>
+          <Text type="Body" style={styles.centerText}>
+            Please try logging in again with a different username.
+          </Text>
+        </Wrapper>
       )
     case constantsStatusCode.scbadloginpassword:
       return (
-        <Box style={styleContent}>
-          <Box style={{...globalStyles.flexBoxColumn, ...styleText}}>
-            <Text type="Body">Looks like that's a bad passphrase.</Text>
-            <Text
-              type="BodyPrimaryLink"
-              onClick={() => openURL('https://keybase.io/#password-reset')}
-              style={centerText}
-            >
-              Reset your passphrase?
-            </Text>
-          </Box>
-        </Box>
+        <Wrapper onBack={onBack}>
+          <Text type="Body">Looks like that's a bad passphrase.</Text>
+          <Text type="BodyPrimaryLink" onClick={onPasswordReset} style={styles.centerText}>
+            Reset your passphrase?
+          </Text>
+        </Wrapper>
       )
     case constantsStatusCode.sckeysyncedpgpnotfound:
     case constantsStatusCode.scgpgunavailable:
     case constantsStatusCode.sckeynosecret:
       return (
-        <Box style={styleContent}>
-          <Box style={styleText}>
-            <Text type="Body" style={centerText}>
-              Sorry, your account is already established with a PGP public key, but we can't access the
-              corresponding private key.
-            </Text>
-          </Box>
-          <Box style={{...styleText, marginTop: 16}}>
-            <Text type="BodySemibold" style={{textAlign: 'left'}}>
-              You have options:
-            </Text>
-          </Box>
-          <Box style={styleList}>
+        <Wrapper onBack={onBack}>
+          <Text type="Body" style={styles.centerText}>
+            Sorry, your account is already established with a PGP public key, but we can't access the
+            corresponding private key.
+          </Text>
+          <Text type="BodySemibold" style={{textAlign: 'left'}}>
+            You have options:
+          </Text>
+          <List>
             <Text type="Body">
               {' '}
               - Run <Text type="TerminalInline">keybase login</Text> on the device with the corresponding PGP
@@ -190,97 +202,80 @@ const renderError = (error: RPCError) => {
             <Text type="Body">
               {' '}
               - Or, if none of the above are possible,{' '}
-              <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/#account-reset')}>
+              <Text type="BodyPrimaryLink" onClick={onAccountReset}>
                 reset your account and start fresh
               </Text>
             </Text>
-          </Box>
-        </Box>
+          </List>
+        </Wrapper>
       )
     case constantsStatusCode.scinputcanceled:
       return (
-        <Box style={styleContent}>
+        <Wrapper onBack={onBack}>
           <Text type="Body">Login Cancelled</Text>
-        </Box>
+        </Wrapper>
       )
     case constantsStatusCode.sckeycorrupted:
       return (
-        <Box style={styleContent}>
+        <Wrapper onBack={onBack}>
           <Text type="Body">{error.message}</Text>
+          <Text type="Body">We were able to generate a PGP signature but it was rejected by the server.</Text>
+          <Text type="Body">This often means that this PGP key is expired or unusable.</Text>
           <Text type="Body">
-            {' '}
-            We were able to generate a PGP signature but it was rejected by the server. This often means that
-            this PGP key is expired or unusable. You can update your key on{' '}
-            <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/')}>
+            You can update your key on{' '}
+            <Text type="BodyPrimaryLink" onClick={onKBHome}>
               keybase.io
             </Text>
             .
           </Text>
-        </Box>
+        </Wrapper>
       )
     case constantsStatusCode.scdeleted:
       return (
-        <Box style={styleContent}>
+        <Wrapper onBack={onBack}>
           <Text type="Body">User has been deleted.</Text>
-        </Box>
+        </Wrapper>
       )
     default:
       return (
-        <Box style={styleContent}>
-          <Text style={styleErrorTitle} type="Body" selectable={true}>
-            {error.desc}
+        <Wrapper onBack={onBack}>
+          <Text type="Body">
+            <Text type="Body" selectable={true}>
+              {error.desc}
+            </Text>
+            <Text type="BodySmall" selectable={true}>
+              {' '}
+              {error.details}
+            </Text>
           </Text>
-          <Text type="BodySmall" selectable={true}>
-            {error.details}
-          </Text>
-        </Box>
+        </Wrapper>
       )
   }
 }
 
-const Render = ({onBack, error}: Props) => (
-  <Container onBack={onBack}>
-    <Text type="Header" style={styleHeader}>
-      There was an error provisioning
-    </Text>
-    {renderError(error)}
-  </Container>
-)
-
-const centerText = platformStyles({
-  common: {
-    textAlign: 'center',
+const styles = styleSheetCreate({
+  centerText: platformStyles({
+    common: {
+      textAlign: 'center',
+    },
+    isElectron: {
+      display: 'inline-block',
+    },
+  }),
+  container: {
+    maxWidth: 550,
   },
-  isElectron: {
-    display: 'inline-block',
+  header: {
+    alignSelf: 'center',
+    marginTop: 46,
+    marginBottom: 20,
+  },
+  list: {
+    marginBottom: 10,
+    maxWidth: 460,
+    ...globalStyles.flexBoxColumn,
+    marginLeft: globalMargins.tiny,
   },
 })
-
-const styleHeader = {
-  alignSelf: 'center',
-  marginTop: 46,
-  marginBottom: 20,
-}
-
-const styleText = {
-  marginBottom: 10,
-  maxWidth: 460,
-}
-
-const styleList = {
-  ...styleText,
-  ...globalStyles.flexBoxColumn,
-  marginLeft: globalMargins.tiny,
-}
-
-const styleContent = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flex: 1,
-}
-
-const styleErrorTitle = {
-  marginBottom: globalMargins.tiny,
-}
 
 export default Render

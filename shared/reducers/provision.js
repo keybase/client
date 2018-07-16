@@ -18,6 +18,8 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
     case ProvisionGen.submitPassphrase: // fallthrough
     case ProvisionGen.submitPaperkey:
       return state.merge({error: initialState.error})
+    case ProvisionGen.showFinalErrorPage:
+      return state.merge({finalError: action.payload.finalError})
     case ProvisionGen.showNewDeviceNamePage:
       return state.merge({
         error: action.payload.error || initialState.error,
@@ -73,6 +75,7 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
     case ProvisionGen.submitUsernameOrEmail:
       return state.merge({
         error: initialState.error,
+        finalError: null,
         usernameOrEmail: action.payload.usernameOrEmail,
       })
     // Saga only actions

@@ -6,6 +6,7 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/provision'
 import HiddenString from '../util/hidden-string'
+import {RPCError} from '../util/errors'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of provision but is handled by every reducer
@@ -13,6 +14,7 @@ export const addNewDevice = 'provision:addNewDevice'
 export const provisionError = 'provision:provisionError'
 export const showCodePage = 'provision:showCodePage'
 export const showDeviceListPage = 'provision:showDeviceListPage'
+export const showFinalErrorPage = 'provision:showFinalErrorPage'
 export const showGPGPage = 'provision:showGPGPage'
 export const showNewDeviceNamePage = 'provision:showNewDeviceNamePage'
 export const showPaperkeyPage = 'provision:showPaperkeyPage'
@@ -33,6 +35,7 @@ type _ShowCodePagePayload = $ReadOnly<{|
   error: ?HiddenString,
 |}>
 type _ShowDeviceListPagePayload = $ReadOnly<{|devices: Array<Types.Device>|}>
+type _ShowFinalErrorPagePayload = $ReadOnly<{|finalError: RPCError|}>
 type _ShowGPGPagePayload = void
 type _ShowNewDeviceNamePagePayload = $ReadOnly<{|
   existingDevices: Array<string>,
@@ -60,6 +63,7 @@ export const createShowDeviceListPage = (payload: _ShowDeviceListPagePayload) =>
 export const createAddNewDevice = (payload: _AddNewDevicePayload) => ({error: false, payload, type: addNewDevice})
 export const createProvisionError = (payload: _ProvisionErrorPayload) => ({error: false, payload, type: provisionError})
 export const createShowCodePage = (payload: _ShowCodePagePayload) => ({error: false, payload, type: showCodePage})
+export const createShowFinalErrorPage = (payload: _ShowFinalErrorPagePayload) => ({error: false, payload, type: showFinalErrorPage})
 export const createShowGPGPage = (payload: _ShowGPGPagePayload) => ({error: false, payload, type: showGPGPage})
 export const createShowPaperkeyPage = (payload: _ShowPaperkeyPagePayload) => ({error: false, payload, type: showPaperkeyPage})
 export const createShowPassphrasePage = (payload: _ShowPassphrasePagePayload) => ({error: false, payload, type: showPassphrasePage})
@@ -76,6 +80,7 @@ export type AddNewDevicePayload = $Call<typeof createAddNewDevice, _AddNewDevice
 export type ProvisionErrorPayload = $Call<typeof createProvisionError, _ProvisionErrorPayload>
 export type ShowCodePagePayload = $Call<typeof createShowCodePage, _ShowCodePagePayload>
 export type ShowDeviceListPagePayload = $Call<typeof createShowDeviceListPage, _ShowDeviceListPagePayload>
+export type ShowFinalErrorPagePayload = $Call<typeof createShowFinalErrorPage, _ShowFinalErrorPagePayload>
 export type ShowGPGPagePayload = $Call<typeof createShowGPGPage, _ShowGPGPagePayload>
 export type ShowNewDeviceNamePagePayload = $Call<typeof createShowNewDeviceNamePage, _ShowNewDeviceNamePagePayload>
 export type ShowPaperkeyPagePayload = $Call<typeof createShowPaperkeyPage, _ShowPaperkeyPagePayload>
@@ -95,6 +100,7 @@ export type Actions =
   | ProvisionErrorPayload
   | ShowCodePagePayload
   | ShowDeviceListPagePayload
+  | ShowFinalErrorPagePayload
   | ShowGPGPagePayload
   | ShowNewDeviceNamePagePayload
   | ShowPaperkeyPagePayload
