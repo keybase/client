@@ -1,6 +1,9 @@
 // @noflow
-import {connect} from '../__mocks__/react-redux'
-// Monkeypatch redux connect
-const redux = require('react-redux')
-// $FlowIssue doens't like writing over readonly stuff :)
-redux.connect = connect
+const inject = () => {
+  // Monkeypatch redux connect
+  const redux = require('react-redux')
+  const connect = require('../__mocks__/react-redux').connect
+  redux.connect = connect
+}
+
+export default inject

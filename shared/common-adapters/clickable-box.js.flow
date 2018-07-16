@@ -15,6 +15,7 @@ export type Props = {
   feedback?: boolean,
   // mobile only
   activeOpacity?: number,
+  pointerEvents?: 'auto' | 'none' | 'box-none' | 'box-only' | null,
   // desktop only
   hoverColor?: ?string,
   onMouseOver?: ?(event: SyntheticEvent<>) => void,

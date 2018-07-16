@@ -33,7 +33,7 @@ const Row = ({name, type, onSelect}) => {
           <Text type="BodySemiboldItalic">{name}</Text>
           {type === 'backup' && <Text type="BodySmall">Paper key</Text>}
         </Box>
-        <Button label="Use..." type="Secondary" small={true} onClick={() => {}} />
+        <Button label="Use..." type="Secondary" small={true} />
       </Box>
     </ClickableBox>
   )
