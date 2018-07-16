@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"regexp"
 	"sort"
@@ -31,7 +30,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
-	"golang.org/x/sync/errgroup"
 )
 
 type ServerConnection interface {
@@ -51,7 +49,6 @@ type Server struct {
 	serverConn     ServerConnection
 	uiSource       UISource
 	boxer          *Boxer
-	store          *attachments.Store
 	identNotifier  types.IdentifyNotifier
 	clock          clockwork.Clock
 	convPageStatus map[string]chat1.Pagination
@@ -65,14 +62,12 @@ type Server struct {
 
 var _ chat1.LocalInterface = (*Server)(nil)
 
-func NewServer(g *globals.Context, store *attachments.Store, serverConn ServerConnection,
-	uiSource UISource) *Server {
+func NewServer(g *globals.Context, serverConn ServerConnection, uiSource UISource) *Server {
 	return &Server{
 		Contextified:   globals.NewContextified(g),
 		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "Server", false),
 		serverConn:     serverConn,
 		uiSource:       uiSource,
-		store:          store,
 		boxer:          NewBoxer(g),
 		identNotifier:  NewCachingIdentifyNotifier(g),
 		clock:          clockwork.NewRealClock(),
@@ -1109,7 +1104,7 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	}
 	arg.Msg.ClientHeader.EphemeralMetadata = metadata
 
-	sender := NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient)
+	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 
 	_, msgBoxed, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil)
 	if err != nil {
@@ -1365,7 +1360,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	arg.Msg.ClientHeader.EphemeralMetadata = metadata
 
 	// Create non block sender
-	sender := NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient)
+	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 	nonblockSender := NewNonblockingSender(h.G(), sender)
 
 	obid, _, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev, arg.OutboxID)
@@ -1434,481 +1429,109 @@ func (h *Server) processReactionMessage(ctx context.Context, uid gregor1.UID, co
 // MakePreview implements chat1.LocalInterface.MakePreview.
 func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res chat1.MakePreviewRes, err error) {
 	defer h.Trace(ctx, func() error { return err }, "MakePreview")()
-	src, err := attachments.NewFileSource(arg.Attachment)
+	pre, err := attachments.PreprocessAsset(ctx, h.DebugLabeler, arg.Filename)
 	if err != nil {
 		return chat1.MakePreviewRes{}, err
 	}
-	defer src.Close()
-	pre, err := h.preprocessAsset(ctx, arg.SessionID, src, nil)
-	if err != nil {
-		return chat1.MakePreviewRes{}, err
-	}
-
-	res = chat1.MakePreviewRes{
-		MimeType: pre.ContentType,
-	}
-
 	if pre.Preview != nil {
-		buf := pre.Preview.Bytes()
-		if err := storage.NewPendingPreviews(h.G()).Put(ctx, arg.OutboxID, buf); err != nil {
+		if err := attachments.NewPendingPreviews(h.G()).Put(ctx, arg.OutboxID, pre); err != nil {
 			return res, err
 		}
-		loc := chat1.NewPreviewLocationWithUrl(h.G().AttachmentURLSrv.GetPendingPreviewURL(ctx, arg.OutboxID))
-		res.Location = &loc
-
-		md := pre.PreviewMetadata()
-		var empty chat1.AssetMetadata
-		if md != empty {
-			res.Metadata = &md
-		}
-
-		baseMd := pre.BaseMetadata()
-		if baseMd != empty {
-			res.BaseMetadata = &baseMd
-		}
+		return pre.Export(func() *chat1.PreviewLocation {
+			loc := chat1.NewPreviewLocationWithUrl(h.G().AttachmentURLSrv.GetPendingPreviewURL(ctx,
+				arg.OutboxID))
+			return &loc
+		})
 	}
-
-	return res, nil
+	return pre.Export(func() *chat1.PreviewLocation { return nil })
 }
 
-func (h *Server) makePreviewSource(loc chat1.PreviewLocation) (res attachments.AssetSource, err error) {
-	ptyp, err := loc.Ltyp()
+func (h *Server) initiateAttachmentUpload(ctx context.Context, arg chat1.PostFileAttachmentArg) (uresChan chan types.AttachmentUploadResult, msg chat1.MessagePlaintext, err error) {
+	if arg.OutboxID == nil {
+		arg.OutboxID = new(chat1.OutboxID)
+		if *arg.OutboxID, err = storage.NewOutboxID(); err != nil {
+			return uresChan, msg, err
+		}
+	}
+	uid := h.getUID()
+	uresChan, err = h.G().AttachmentUploader.Register(ctx, uid, arg.ConversationID, *arg.OutboxID, arg.Title,
+		arg.Filename, arg.Metadata)
+	if err != nil {
+		return uresChan, msg, err
+	}
+	msg = chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			MessageType: chat1.MessageType_ATTACHMENT,
+			TlfName:     arg.TlfName,
+			TlfPublic:   arg.Visibility == keybase1.TLFVisibility_PUBLIC,
+			OutboxID:    arg.OutboxID,
+		},
+	}
+	if arg.EphemeralLifetime != nil {
+		msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
+			Lifetime: *arg.EphemeralLifetime,
+		}
+	}
+	return uresChan, msg, nil
+}
+
+func (h *Server) PostFileAttachmentLocalNonblock(ctx context.Context,
+	arg chat1.PostFileAttachmentLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.Arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentLocalNonblock")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	if os.Getenv("CHAT_S3_FAKE") == "1" {
+		ctx = s3.NewFakeS3Context(ctx)
+	}
+	_, msg, err := h.initiateAttachmentUpload(ctx, arg.Arg)
 	if err != nil {
 		return res, err
 	}
-	switch ptyp {
-	case chat1.PreviewLocationTyp_URL:
-		res, err = attachments.NewHTTPSource(loc.Url())
-		if err != nil {
-			return res, err
-		}
-	case chat1.PreviewLocationTyp_FILE:
-		res, err = attachments.NewFileSource(chat1.LocalFileSource{
-			Filename: loc.File(),
-		})
-	}
-	return res, nil
-}
-
-// PostAttachmentLocal implements chat1.LocalInterface.PostAttachmentLocal.
-func (h *Server) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachmentLocalArg) (res chat1.PostLocalRes, err error) {
-	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "PostAttachmentLocal")()
-	defer func() { h.setResultRateLimit(ctx, &res) }()
-	parg := postAttachmentArg{
-		SessionID:         arg.SessionID,
-		ConversationID:    arg.ConversationID,
-		TlfName:           arg.TlfName,
-		Visibility:        arg.Visibility,
-		Attachment:        attachments.NewStreamSource(arg.Attachment),
-		Title:             arg.Title,
-		Metadata:          arg.Metadata,
-		IdentifyBehavior:  arg.IdentifyBehavior,
-		OutboxID:          arg.OutboxID,
-		EphemeralLifetime: arg.EphemeralLifetime,
-	}
-	defer parg.Attachment.Close()
-
-	if arg.Preview != nil {
-		parg.Preview = new(attachmentPreview)
-		if arg.Preview.Location != nil {
-			parg.Preview.source, err = h.makePreviewSource(*arg.Preview.Location)
-		}
-		if arg.Preview.Metadata != nil {
-			parg.Preview.md = arg.Preview.Metadata
-		}
-		if arg.Preview.BaseMetadata != nil {
-			parg.Preview.baseMd = arg.Preview.BaseMetadata
-		}
-		parg.Preview.mimeType = arg.Preview.MimeType
-		defer parg.Preview.source.Close()
-	}
-
-	return h.postAttachmentLocal(ctx, parg)
+	return h.PostLocalNonblock(ctx, chat1.PostLocalNonblockArg{
+		ConversationID:   arg.Arg.ConversationID,
+		IdentifyBehavior: arg.Arg.IdentifyBehavior,
+		Msg:              msg,
+		OutboxID:         msg.ClientHeader.OutboxID,
+		ClientPrev:       arg.ClientPrev,
+	})
 }
 
 // PostFileAttachmentLocal implements chat1.LocalInterface.PostFileAttachmentLocal.
 func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFileAttachmentLocalArg) (res chat1.PostLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	ctx = Context(ctx, h.G(), arg.Arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentLocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	parg := postAttachmentArg{
-		SessionID:         arg.SessionID,
-		ConversationID:    arg.ConversationID,
-		TlfName:           arg.TlfName,
-		Visibility:        arg.Visibility,
-		Title:             arg.Title,
-		Metadata:          arg.Metadata,
-		IdentifyBehavior:  arg.IdentifyBehavior,
-		OutboxID:          arg.OutboxID,
-		EphemeralLifetime: arg.EphemeralLifetime,
-	}
-	asrc, err := attachments.NewFileSource(arg.Attachment)
-	if err != nil {
-		return chat1.PostLocalRes{}, err
-	}
-	parg.Attachment = asrc
-	defer parg.Attachment.Close()
-
-	if arg.Preview != nil {
-		parg.Preview = new(attachmentPreview)
-		if arg.Preview.Location != nil {
-			parg.Preview.source, err = h.makePreviewSource(*arg.Preview.Location)
-			if err != nil {
-				return res, err
-			}
-			defer parg.Preview.source.Close()
-		}
-		if arg.Preview.Metadata != nil {
-			parg.Preview.md = arg.Preview.Metadata
-		}
-		if arg.Preview.BaseMetadata != nil {
-			parg.Preview.baseMd = arg.Preview.BaseMetadata
-		}
-		parg.Preview.mimeType = arg.Preview.MimeType
-	}
-
-	return h.postAttachmentLocal(ctx, parg)
-}
-
-type attachmentPreview struct {
-	source   attachments.AssetSource
-	mimeType string
-	md       *chat1.AssetMetadata
-	baseMd   *chat1.AssetMetadata
-}
-
-// postAttachmentArg is a shared arg struct for the multiple PostAttachment* endpoints
-type postAttachmentArg struct {
-	SessionID         int
-	ConversationID    chat1.ConversationID
-	TlfName           string
-	Visibility        keybase1.TLFVisibility
-	Attachment        attachments.AssetSource
-	Preview           *attachmentPreview
-	Title             string
-	Metadata          []byte
-	IdentifyBehavior  keybase1.TLFIdentifyBehavior
-	OutboxID          *chat1.OutboxID
-	EphemeralLifetime *gregor1.DurationSec
-}
-
-func (h *Server) postAttachmentLocal(ctx context.Context, arg postAttachmentArg) (res chat1.PostLocalRes, err error) {
-	if os.Getenv("KEYBASE_CHAT_ATTACHMENT_UNORDERED") == "" {
-		return h.postAttachmentLocalInOrder(ctx, arg)
-	}
-
 	if os.Getenv("CHAT_S3_FAKE") == "1" {
 		ctx = s3.NewFakeS3Context(ctx)
 	}
-	chatUI := h.getChatUI(arg.SessionID)
-	progress := func(bytesComplete, bytesTotal int64) {
-		parg := chat1.ChatAttachmentUploadProgressArg{
-			SessionID:     arg.SessionID,
-			BytesComplete: bytesComplete,
-			BytesTotal:    bytesTotal,
-		}
-		chatUI.ChatAttachmentUploadProgress(ctx, parg)
-	}
 
-	// preprocess asset (get content type, create preview if possible)
-	pre, err := h.preprocessAsset(ctx, arg.SessionID, arg.Attachment, arg.Preview)
-	if err != nil {
-		return chat1.PostLocalRes{}, err
-	}
-	if pre.Preview != nil {
-		h.Debug(ctx, "postAttachmentLocal: created preview in preprocess")
-		md := pre.PreviewMetadata()
-		baseMd := pre.BaseMetadata()
-		arg.Preview = &attachmentPreview{
-			source:   pre.Preview,
-			md:       &md,
-			baseMd:   &baseMd,
-			mimeType: pre.PreviewContentType,
-		}
-	}
-
-	// get s3 upload params from server
-	params, err := h.remoteClient().GetS3Params(ctx, arg.ConversationID)
-	if err != nil {
-		return chat1.PostLocalRes{}, err
-	}
-
-	// upload attachment and (optional) preview concurrently
-	var object chat1.Asset
-	var preview *chat1.Asset
-	var g errgroup.Group
-
-	h.Debug(ctx, "postAttachmentLocal: uploading assets")
-	g.Go(func() error {
-		chatUI.ChatAttachmentUploadStart(ctx, pre.BaseMetadata(), 0)
-		var err error
-		object, err = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, arg.ConversationID, progress)
-		chatUI.ChatAttachmentUploadDone(ctx)
-		if err != nil {
-			h.Debug(ctx, "postAttachmentLocal: error uploading primary asset to s3: %s", err)
-		}
-		return err
-	})
-
-	if arg.Preview != nil && arg.Preview.source != nil {
-		g.Go(func() error {
-			chatUI.ChatAttachmentPreviewUploadStart(ctx, pre.PreviewMetadata())
-			// copy the params so as not to mess with the main params above
-			previewParams := params
-
-			// add preview suffix to object key (P in hex)
-			// the s3path in gregor is expecting hex here
-			previewParams.ObjectKey += "50"
-			prev, err := h.uploadAsset(ctx, arg.SessionID, previewParams, arg.Preview.source, arg.ConversationID, nil)
-			chatUI.ChatAttachmentPreviewUploadDone(ctx)
-			if err == nil {
-				preview = &prev
-			} else {
-				h.Debug(ctx, "postAttachmentLocal: error uploading preview asset to s3: %s", err)
-			}
-			return err
-		})
-	} else {
-		g.Go(func() error {
-			chatUI.ChatAttachmentPreviewUploadStart(ctx, chat1.AssetMetadata{})
-			chatUI.ChatAttachmentPreviewUploadDone(ctx)
-			return nil
-		})
-	}
-
-	h.Debug(ctx, "postAttachmentLocal: waiting for frontend")
-	if err := g.Wait(); err != nil {
-		return chat1.PostLocalRes{}, err
-	}
-	h.Debug(ctx, "postAttachmentLocal: frontend returned")
-
-	// note that we only want to set the Title to what the user entered,
-	// even if that is nothing.
-	object.Title = arg.Title
-	object.MimeType = pre.ContentType
-	object.Metadata = pre.BaseMetadata()
-
+	uresChan, msg, err := h.initiateAttachmentUpload(ctx, arg.Arg)
+	// Wait for upload
+	ures := <-uresChan
 	attachment := chat1.MessageAttachment{
-		Object:   object,
-		Metadata: arg.Metadata,
+		Object:   ures.Object,
+		Metadata: arg.Arg.Metadata,
 		Uploaded: true,
 	}
-	if preview != nil {
+	if ures.Preview != nil {
 		h.Debug(ctx, "postAttachmentLocal: attachment preview asset added")
-		preview.Title = arg.Title
-		preview.MimeType = pre.PreviewContentType
-		preview.Metadata = pre.PreviewMetadata()
-		preview.Tag = chat1.AssetTag_PRIMARY
-		attachment.Previews = []chat1.Asset{*preview}
-		attachment.Preview = preview
+		attachment.Previews = []chat1.Asset{*ures.Preview}
+		attachment.Preview = ures.Preview
 	}
-
-	// edit the placeholder  attachment message with the asset information
-	postArg := chat1.PostLocalArg{
-		ConversationID: arg.ConversationID,
-		Msg: chat1.MessagePlaintext{
-			MessageBody: chat1.NewMessageBodyWithAttachment(attachment),
-		},
-		IdentifyBehavior: arg.IdentifyBehavior,
-	}
-
-	// set msg client header explicitly
-	postArg.Msg.ClientHeader.MessageType = chat1.MessageType_ATTACHMENT
-	postArg.Msg.ClientHeader.TlfName = arg.TlfName
-	postArg.Msg.ClientHeader.TlfPublic = arg.Visibility == keybase1.TLFVisibility_PUBLIC
-
-	if arg.EphemeralLifetime != nil {
-		postArg.Msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
-			Lifetime: *arg.EphemeralLifetime,
-		}
-	}
+	msg.MessageBody = chat1.NewMessageBodyWithAttachment(attachment)
 
 	h.Debug(ctx, "postAttachmentLocal: attachment assets uploaded, posting attachment message")
-	plres, err := h.PostLocal(ctx, postArg)
+	plres, err := h.PostLocal(ctx, chat1.PostLocalArg{
+		ConversationID:   arg.Arg.ConversationID,
+		IdentifyBehavior: arg.Arg.IdentifyBehavior,
+		Msg:              msg,
+	})
 	if err != nil {
 		h.Debug(ctx, "postAttachmentLocal: error posting attachment message: %s", err)
 	} else {
 		h.Debug(ctx, "postAttachmentLocal: posted attachment message successfully")
-	}
-
-	return plres, err
-}
-
-func (h *Server) postAttachmentLocalInOrder(ctx context.Context, arg postAttachmentArg) (res chat1.PostLocalRes, err error) {
-	h.Debug(ctx, "postAttachmentLocalInOrder: using postAttachmentLocalInOrder flow to upload attachment")
-	if os.Getenv("CHAT_S3_FAKE") == "1" {
-		ctx = s3.NewFakeS3Context(ctx)
-	}
-	chatUI := h.getChatUI(arg.SessionID)
-	progress := func(bytesComplete, bytesTotal int64) {
-		parg := chat1.ChatAttachmentUploadProgressArg{
-			SessionID:     arg.SessionID,
-			BytesComplete: bytesComplete,
-			BytesTotal:    bytesTotal,
-		}
-		chatUI.ChatAttachmentUploadProgress(ctx, parg)
-	}
-
-	// preprocess asset (get content type, create preview if possible)
-	pre, err := h.preprocessAsset(ctx, arg.SessionID, arg.Attachment, arg.Preview)
-	if err != nil {
-		return chat1.PostLocalRes{}, err
-	}
-	if pre.Preview != nil {
-		h.Debug(ctx, "postAttachmentLocalInOrder: created preview in preprocess")
-		md := pre.PreviewMetadata()
-		baseMd := pre.BaseMetadata()
-		arg.Preview = &attachmentPreview{
-			source:   pre.Preview,
-			md:       &md,
-			baseMd:   &baseMd,
-			mimeType: pre.PreviewContentType,
-		}
-	}
-
-	// Send a placeholder attachment message that will
-	// be edited after the assets are uploaded.  Sending
-	// it now to preserve the order of send messages.
-	placeholder, err := h.postAttachmentPlaceholder(ctx, arg)
-	if err != nil {
-		return placeholder, err
-	}
-	h.Debug(ctx, "postAttachmentLocalInOrder: placeholder message id: %v", placeholder.MessageID)
-
-	// if there are any errors going forward, delete the placeholder message
-	defer func() {
-		if err == nil {
-			return
-		}
-
-		h.Debug(ctx, "postAttachmentLocalInOrder: error after placeholder message sent, deleting placeholder message")
-		deleteArg := chat1.PostDeleteNonblockArg{
-			ConversationID:   arg.ConversationID,
-			IdentifyBehavior: arg.IdentifyBehavior,
-			Supersedes:       placeholder.MessageID,
-			TlfName:          arg.TlfName,
-			TlfPublic:        arg.Visibility == keybase1.TLFVisibility_PUBLIC,
-		}
-		_, derr := h.PostDeleteNonblock(ctx, deleteArg)
-		if derr != nil {
-			h.Debug(ctx, "error deleting placeholder message: %s", derr)
-		}
-	}()
-
-	// get s3 upload params from server
-	var s3params chat1.S3Params
-	var s3err error
-	s3ParamsCh := make(chan struct{})
-	go func() {
-		s3params, s3err = h.remoteClient().GetS3Params(ctx, arg.ConversationID)
-		close(s3ParamsCh)
-	}()
-
-	// upload attachment and (optional) preview concurrently
-	var object chat1.Asset
-	var preview *chat1.Asset
-	var g errgroup.Group
-
-	h.Debug(ctx, "postAttachmentLocalInOrder: uploading assets")
-	g.Go(func() error {
-		chatUI.ChatAttachmentUploadStart(ctx, pre.BaseMetadata(), placeholder.MessageID)
-		<-s3ParamsCh
-		if s3err != nil {
-			return s3err
-		}
-		var err error
-		object, err = h.uploadAsset(ctx, arg.SessionID, s3params, arg.Attachment, arg.ConversationID,
-			progress)
-		chatUI.ChatAttachmentUploadDone(ctx)
-		if err != nil {
-			h.Debug(ctx, "postAttachmentLocalInOrder: error uploading primary asset to s3: %s", err)
-		}
-		return err
-	})
-
-	if arg.Preview != nil && arg.Preview.source != nil {
-		g.Go(func() error {
-			chatUI.ChatAttachmentPreviewUploadStart(ctx, pre.PreviewMetadata())
-			<-s3ParamsCh
-			if s3err != nil {
-				return s3err
-			}
-			// copy the params so as not to mess with the main params above
-			previewParams := s3params
-
-			// add preview suffix to object key (P in hex)
-			// the s3path in gregor is expecting hex here
-			previewParams.ObjectKey += "50"
-			prev, err := h.uploadAsset(ctx, arg.SessionID, previewParams, arg.Preview.source, arg.ConversationID, nil)
-			chatUI.ChatAttachmentPreviewUploadDone(ctx)
-			if err == nil {
-				preview = &prev
-			} else {
-				h.Debug(ctx, "postAttachmentLocalInOrder: error uploading preview asset to s3: %s", err)
-			}
-			return err
-		})
-	} else {
-		g.Go(func() error {
-			chatUI.ChatAttachmentPreviewUploadStart(ctx, chat1.AssetMetadata{})
-			chatUI.ChatAttachmentPreviewUploadDone(ctx)
-			return nil
-		})
-	}
-
-	if err := g.Wait(); err != nil {
-		return chat1.PostLocalRes{}, err
-	}
-
-	// note that we only want to set the Title to what the user entered,
-	// even if that is nothing.
-	object.Title = arg.Title
-	object.MimeType = pre.ContentType
-	object.Metadata = pre.BaseMetadata()
-
-	uploaded := chat1.MessageAttachmentUploaded{
-		MessageID: placeholder.MessageID,
-		Object:    object,
-		Metadata:  arg.Metadata,
-	}
-	if preview != nil {
-		preview.Title = arg.Title
-		preview.MimeType = pre.PreviewContentType
-		preview.Metadata = pre.PreviewMetadata()
-		preview.Tag = chat1.AssetTag_PRIMARY
-		uploaded.Previews = []chat1.Asset{*preview}
-	}
-
-	// edit the placeholder attachment message with the asset information
-	postArg := chat1.PostLocalArg{
-		ConversationID: arg.ConversationID,
-		Msg: chat1.MessagePlaintext{
-			MessageBody: chat1.NewMessageBodyWithAttachmentuploaded(uploaded),
-		},
-		IdentifyBehavior: arg.IdentifyBehavior,
-	}
-
-	// set msg client header explicitly
-	postArg.Msg.ClientHeader.MessageType = chat1.MessageType_ATTACHMENTUPLOADED
-	postArg.Msg.ClientHeader.Supersedes = placeholder.MessageID
-	postArg.Msg.ClientHeader.TlfName = arg.TlfName
-	postArg.Msg.ClientHeader.TlfPublic = arg.Visibility == keybase1.TLFVisibility_PUBLIC
-
-	if arg.EphemeralLifetime != nil {
-		postArg.Msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
-			Lifetime: *arg.EphemeralLifetime,
-		}
-	}
-
-	h.Debug(ctx, "postAttachmentLocalInOrder: attachment assets uploaded, posting attachment message")
-	plres, err := h.PostLocal(ctx, postArg)
-	if err != nil {
-		h.Debug(ctx, "postAttachmentLocalInOrder: error posting attachment message: %s", err)
-	} else {
-		h.Debug(ctx, "postAttachmentLocalInOrder: posted attachment message successfully")
 	}
 
 	return plres, err
@@ -1997,7 +1620,8 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, a
 	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
 	fetcher := h.G().AttachmentURLSrv.GetAttachmentFetcher()
-	if err := fetcher.FetchAttachment(ctx, arg.Sink, arg.ConversationID, obj, h.remoteClient, h, progress); err != nil {
+	if err := fetcher.FetchAttachment(ctx, arg.Sink, arg.ConversationID, obj, h.remoteClient,
+		attachments.NewS3Signer(h.remoteClient), progress); err != nil {
 		arg.Sink.Close()
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
@@ -2033,8 +1657,14 @@ func (h *Server) RetryPost(ctx context.Context, arg chat1.RetryPostArg) (err err
 	// Mark as retry in the outbox
 	uid := h.G().Env.GetUID()
 	outbox := storage.NewOutbox(h.G(), uid.ToBytes())
-	if err = outbox.RetryMessage(ctx, arg.OutboxID, arg.IdentifyBehavior); err != nil {
+	obr, err := outbox.RetryMessage(ctx, arg.OutboxID, arg.IdentifyBehavior)
+	if err != nil {
 		return err
+	}
+	if obr.IsAttachment() {
+		if _, err := h.G().AttachmentUploader.Retry(ctx, obr.OutboxID); err != nil {
+			h.Debug(ctx, "RetryPost: failed to retry attachment upload: %s", err)
+		}
 	}
 
 	// Force the send loop to try again
@@ -2071,230 +1701,6 @@ func (h *Server) assertLoggedInUID(ctx context.Context) (uid gregor1.UID, err er
 		return uid, libkb.LoginRequiredError{}
 	}
 	return gregor1.UID(k1uid.ToBytes()), nil
-}
-
-// Sign implements github.com/keybase/go/chat/s3.Signer interface.
-func (h *Server) Sign(payload []byte) ([]byte, error) {
-	arg := chat1.S3SignArg{
-		Payload: payload,
-		Version: 1,
-	}
-	return h.remoteClient().S3Sign(context.Background(), arg)
-}
-
-func (h *Server) postAttachmentPlaceholder(ctx context.Context, arg postAttachmentArg) (chat1.PostLocalRes, error) {
-	if arg.OutboxID == nil {
-		// generate outbox id
-		obid, err := storage.NewOutboxID()
-		if err != nil {
-			return chat1.PostLocalRes{}, err
-		}
-
-		chatUI := h.getChatUI(arg.SessionID)
-		chatUI.ChatAttachmentUploadOutboxID(ctx, chat1.ChatAttachmentUploadOutboxIDArg{SessionID: arg.SessionID, OutboxID: obid})
-
-		arg.OutboxID = &obid
-	}
-
-	attachment := chat1.MessageAttachment{
-		Metadata: arg.Metadata,
-		Object: chat1.Asset{
-			Title: arg.Title,
-		},
-	}
-	if arg.Preview != nil {
-		asset := chat1.Asset{
-			MimeType: arg.Preview.mimeType,
-		}
-		if arg.Preview.md != nil {
-			asset.Metadata = *arg.Preview.md
-		}
-		attachment.Previews = []chat1.Asset{asset}
-	}
-	postArg := chat1.PostLocalArg{
-		ConversationID: arg.ConversationID,
-		Msg: chat1.MessagePlaintext{
-			ClientHeader: chat1.MessageClientHeader{
-				TlfName:     arg.TlfName,
-				TlfPublic:   arg.Visibility == keybase1.TLFVisibility_PUBLIC,
-				MessageType: chat1.MessageType_ATTACHMENT,
-				OutboxID:    arg.OutboxID,
-			},
-			MessageBody: chat1.NewMessageBodyWithAttachment(attachment),
-		},
-		IdentifyBehavior: arg.IdentifyBehavior,
-	}
-
-	if arg.EphemeralLifetime != nil {
-		postArg.Msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
-			Lifetime: *arg.EphemeralLifetime,
-		}
-	}
-
-	h.Debug(ctx, "posting attachment placeholder message")
-	res, err := h.PostLocal(ctx, postArg)
-	if err != nil {
-		h.Debug(ctx, "error posting attachment placeholder message: %s", err)
-	} else {
-		h.Debug(ctx, "posted attachment placeholder message successfully")
-	}
-
-	return res, err
-
-}
-
-type dimension struct {
-	Width  int `json:"width"`
-	Height int `json:"height"`
-}
-
-func (d *dimension) Empty() bool {
-	return d.Width == 0 && d.Height == 0
-}
-
-func (d *dimension) Encode() string {
-	if d.Width == 0 && d.Height == 0 {
-		return ""
-	}
-	enc, err := json.Marshal(d)
-	if err != nil {
-		return ""
-	}
-	return string(enc)
-}
-
-type preprocess struct {
-	ContentType        string
-	Preview            *attachments.BufferSource
-	PreviewContentType string
-	BaseDim            *dimension
-	BaseDurationMs     int
-	PreviewDim         *dimension
-	PreviewDurationMs  int
-}
-
-func (p *preprocess) BaseMetadata() chat1.AssetMetadata {
-	if p.BaseDim == nil || p.BaseDim.Empty() {
-		return chat1.AssetMetadata{}
-	}
-	if p.BaseDurationMs > 0 {
-		return chat1.NewAssetMetadataWithVideo(chat1.AssetMetadataVideo{Width: p.BaseDim.Width, Height: p.BaseDim.Height, DurationMs: p.BaseDurationMs})
-	}
-	return chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{Width: p.BaseDim.Width, Height: p.BaseDim.Height})
-}
-
-func (p *preprocess) PreviewMetadata() chat1.AssetMetadata {
-	if p.PreviewDim == nil || p.PreviewDim.Empty() {
-		return chat1.AssetMetadata{}
-	}
-	if p.PreviewDurationMs > 0 {
-		return chat1.NewAssetMetadataWithVideo(chat1.AssetMetadataVideo{Width: p.PreviewDim.Width, Height: p.PreviewDim.Height, DurationMs: p.PreviewDurationMs})
-	}
-	return chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{Width: p.PreviewDim.Width, Height: p.PreviewDim.Height})
-}
-
-func (h *Server) preprocessAsset(ctx context.Context, sessionID int, attachment attachments.AssetSource,
-	preview *attachmentPreview) (*preprocess, error) {
-	// create a buffered stream
-	cli := h.getStreamUICli()
-	src, err := attachment.Open(sessionID, cli)
-	if err != nil {
-		return nil, err
-	}
-	defer src.Reset()
-
-	head := make([]byte, 512)
-	_, err = io.ReadFull(src, head)
-	if err != nil && err != io.ErrUnexpectedEOF {
-		return nil, err
-	}
-
-	p := preprocess{
-		ContentType: http.DetectContentType(head),
-	}
-
-	h.Debug(ctx, "detected attachment content type %s", p.ContentType)
-
-	if preview == nil {
-		h.Debug(ctx, "no attachment preview included by client, seeing if possible to generate")
-		src.Reset()
-		previewRes, err := attachments.Preview(ctx, h.G().Log, src, p.ContentType, attachment.Basename(),
-			attachment.FileSize())
-		if err != nil {
-			h.Debug(ctx, "error making preview: %s", err)
-			return nil, err
-		}
-		if previewRes != nil {
-			h.Debug(ctx, "made preview for attachment asset")
-			p.Preview = previewRes.Source
-			p.PreviewContentType = previewRes.ContentType
-			if previewRes.BaseWidth > 0 || previewRes.BaseHeight > 0 {
-				p.BaseDim = &dimension{Width: previewRes.BaseWidth, Height: previewRes.BaseHeight}
-			}
-			if previewRes.PreviewWidth > 0 || previewRes.PreviewHeight > 0 {
-				p.PreviewDim = &dimension{Width: previewRes.PreviewWidth, Height: previewRes.PreviewHeight}
-			}
-			p.BaseDurationMs = previewRes.BaseDurationMs
-			p.PreviewDurationMs = previewRes.PreviewDurationMs
-		}
-	} else {
-		h.Debug(ctx, "attachment preview info provided, populating metadata")
-		p.PreviewContentType = preview.mimeType
-		if preview.md != nil {
-			typ, err := preview.md.AssetType()
-			if err != nil {
-				return nil, err
-			}
-			switch typ {
-			case chat1.AssetMetadataType_IMAGE:
-				p.PreviewDim = &dimension{Width: preview.md.Image().Width, Height: preview.md.Image().Height}
-			case chat1.AssetMetadataType_VIDEO:
-				p.PreviewDurationMs = preview.md.Video().DurationMs
-				p.PreviewDim = &dimension{Width: preview.md.Video().Width, Height: preview.md.Video().Height}
-			case chat1.AssetMetadataType_AUDIO:
-				p.PreviewDurationMs = preview.md.Audio().DurationMs
-			}
-		}
-		if preview.baseMd != nil {
-			typ, err := preview.baseMd.AssetType()
-			if err != nil {
-				return nil, err
-			}
-			switch typ {
-			case chat1.AssetMetadataType_IMAGE:
-				p.BaseDim = &dimension{Width: preview.baseMd.Image().Width, Height: preview.baseMd.Image().Height}
-			case chat1.AssetMetadataType_VIDEO:
-				p.BaseDurationMs = preview.baseMd.Video().DurationMs
-				p.BaseDim = &dimension{Width: preview.baseMd.Video().Width, Height: preview.baseMd.Video().Height}
-			case chat1.AssetMetadataType_AUDIO:
-				p.BaseDurationMs = preview.baseMd.Audio().DurationMs
-			}
-		}
-	}
-
-	return &p, nil
-}
-
-func (h *Server) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params,
-	local attachments.AssetSource, conversationID chat1.ConversationID, progress types.ProgressReporter) (chat1.Asset, error) {
-	// create a buffered stream
-	cli := h.getStreamUICli()
-	src, err := local.Open(sessionID, cli)
-	if err != nil {
-		return chat1.Asset{}, err
-	}
-
-	task := attachments.UploadTask{
-		S3Params:       params,
-		Filename:       local.Basename(),
-		FileSize:       local.FileSize(),
-		Plaintext:      src,
-		S3Signer:       h,
-		ConversationID: conversationID,
-		UserID:         h.G().Env.GetUID(),
-		Progress:       progress,
-	}
-	return h.store.UploadAsset(ctx, &task)
 }
 
 func (h *Server) FindConversationsLocal(ctx context.Context,

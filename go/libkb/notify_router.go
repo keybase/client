@@ -59,6 +59,9 @@ type NotifyListener interface {
 	ChatSetConvRetention(uid keybase1.UID, convID chat1.ConversationID)
 	ChatSetTeamRetention(uid keybase1.UID, teamID keybase1.TeamID)
 	ChatKBFSToImpteamUpgrade(uid keybase1.UID, convID chat1.ConversationID)
+	ChatAttachmentUploadStart(uid keybase1.UID, convID chat1.ConversationID, outboxID chat1.OutboxID)
+	ChatAttachmentUploadProgress(uid keybase1.UID, convID chat1.ConversationID, outboxID chat1.OutboxID,
+		bytesComplete, bytesTotal int64)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
@@ -117,9 +120,15 @@ func (n *NoopNotifyListener) Chat(uid keybase1.UID, convID chat1.ConversationID)
 func (n *NoopNotifyListener) ChatSetConvRetention(uid keybase1.UID, convID chat1.ConversationID)     {}
 func (n *NoopNotifyListener) ChatSetTeamRetention(uid keybase1.UID, teamID keybase1.TeamID)          {}
 func (n *NoopNotifyListener) ChatKBFSToImpteamUpgrade(uid keybase1.UID, convID chat1.ConversationID) {}
-func (n *NoopNotifyListener) PGPKeyInSecretStoreFile()                                               {}
-func (n *NoopNotifyListener) BadgeState(badgeState keybase1.BadgeState)                              {}
-func (n *NoopNotifyListener) ReachabilityChanged(r keybase1.Reachability)                            {}
+func (n *NoopNotifyListener) ChatAttachmentUploadStart(uid keybase1.UID, convID chat1.ConversationID,
+	outboxID chat1.OutboxID) {
+}
+func (n *NoopNotifyListener) ChatAttachmentUploadProgress(uid keybase1.UID, convID chat1.ConversationID,
+	outboxID chat1.OutboxID, bytesComplete, bytesTotal int64) {
+}
+func (n *NoopNotifyListener) PGPKeyInSecretStoreFile()                    {}
+func (n *NoopNotifyListener) BadgeState(badgeState keybase1.BadgeState)   {}
+func (n *NoopNotifyListener) ReachabilityChanged(r keybase1.Reachability) {}
 func (n *NoopNotifyListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet) {
 }
 func (n *NoopNotifyListener) TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet) {
@@ -965,6 +974,68 @@ func (n *NotifyRouter) HandleChatKBFSToImpteamUpgrade(ctx context.Context, uid k
 		n.listener.ChatKBFSToImpteamUpgrade(uid, convID)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent ChatKBFSToImpteamUpgrade notification")
+}
+
+func (n *NotifyRouter) HandleChatAttachmentUploadStart(ctx context.Context, uid keybase1.UID,
+	convID chat1.ConversationID, outboxID chat1.OutboxID) {
+	if n == nil {
+		return
+	}
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending ChatAttachmentUploadStart notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Chatattachments {
+			wg.Add(1)
+			go func() {
+				(chat1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).ChatAttachmentUploadStart(context.Background(), chat1.ChatAttachmentUploadStartArg{
+					Uid:      uid,
+					ConvID:   convID,
+					OutboxID: outboxID,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.ChatAttachmentUploadStart(uid, convID, outboxID)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent ChatAttachmentUploadStart notification")
+}
+
+func (n *NotifyRouter) HandleChatAttachmentUploadProgress(ctx context.Context, uid keybase1.UID,
+	convID chat1.ConversationID, outboxID chat1.OutboxID, bytesComplete, bytesTotal int64) {
+	if n == nil {
+		return
+	}
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending ChatAttachmentUploadProgress notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Chatattachments {
+			wg.Add(1)
+			go func() {
+				(chat1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).ChatAttachmentUploadProgress(context.Background(), chat1.ChatAttachmentUploadProgressArg{
+					Uid:           uid,
+					ConvID:        convID,
+					OutboxID:      outboxID,
+					BytesComplete: bytesComplete,
+					BytesTotal:    bytesTotal,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.ChatAttachmentUploadProgress(uid, convID, outboxID, bytesComplete, bytesTotal)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent ChatAttachmentUploadProgress notification")
 }
 
 func (n *NotifyRouter) HandleChatSetConvRetention(ctx context.Context, uid keybase1.UID,

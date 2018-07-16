@@ -214,6 +214,7 @@ export {
   makeReaction,
   messageExplodeDescriptions,
   pathToAttachmentType,
+  previewSpecs,
   rpcErrorToString,
   serviceMessageTypeToMessageTypes,
   uiMessageEditToMessage,

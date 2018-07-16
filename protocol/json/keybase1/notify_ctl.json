@@ -85,7 +85,11 @@
         },
         {
           "type": "boolean",
+<<<<<<< HEAD
           "name": "deviceclone"
+=======
+          "name": "chatattachments"
+>>>>>>> rework attachment send flow to run through Deliverer
         }
       ]
     }

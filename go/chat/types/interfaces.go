@@ -249,6 +249,11 @@ type ActivityNotifier interface {
 		finalizeInfo chat1.ConversationFinalizeInfo, conv *chat1.InboxUIItem)
 	TLFResolve(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType,
 		resolveInfo chat1.ConversationResolveInfo)
+
+	AttachmentUploadStart(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		outboxID chat1.OutboxID)
+	AttachmentUploadProgress(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		outboxID chat1.OutboxID, bytesComplete, bytesTotal int64)
 }
 
 type IdentifyNotifier interface {
@@ -286,4 +291,12 @@ type EphemeralPurger interface {
 	Resumable
 
 	Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) error
+}
+
+type AttachmentUploader interface {
+	Register(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		outboxID chat1.OutboxID, title, filename string, metadata []byte) (chan AttachmentUploadResult, error)
+	Status(ctx context.Context, outboxID chat1.OutboxID) (AttachmentUploaderTaskStatus, AttachmentUploadResult, error)
+	Retry(ctx context.Context, outboxID chat1.OutboxID) (chan AttachmentUploadResult, error)
+	Complete(ctx context.Context, outboxID chat1.OutboxID)
 }

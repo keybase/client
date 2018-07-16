@@ -289,7 +289,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 		t.Fatalf("user %s is not found", user.Username)
 	}
 	g := globals.NewContext(tc.G, tc.ChatG)
-	h := NewServer(g, nil, nil, testUISource{})
+	h := NewServer(g, nil, testUISource{})
 	uid := gregor1.UID(user.User.GetUID().ToBytes())
 
 	var tlf *kbtest.TlfMock
@@ -332,7 +332,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	h.setTestRemoteClient(ri)
 
 	tc.G.SetService()
-	baseSender := NewBlockingSender(g, h.boxer, nil, func() chat1.RemoteInterface { return ri })
+	baseSender := NewBlockingSender(g, h.boxer, func() chat1.RemoteInterface { return ri })
 	deliverer := NewDeliverer(g, baseSender)
 	deliverer.SetClock(c.world.Fc)
 	if useRemoteMock {
@@ -3136,9 +3136,7 @@ func TestChatSrvMakePreview(t *testing.T) {
 	outboxID, err := storage.NewOutboxID()
 	require.NoError(t, err)
 	arg := chat1.MakePreviewArg{
-		Attachment: chat1.LocalFileSource{
-			Filename: "testdata/ship.jpg",
-		},
+		Filename: "testdata/ship.jpg",
 		OutboxID: outboxID,
 	}
 	ri := ctc.as(t, user).ri
@@ -3165,9 +3163,7 @@ func TestChatSrvMakePreview(t *testing.T) {
 	outboxID, err = storage.NewOutboxID()
 	require.NoError(t, err)
 	arg = chat1.MakePreviewArg{
-		Attachment: chat1.LocalFileSource{
-			Filename: "testdata/weather.pdf",
-		},
+		Filename: "testdata/weather.pdf",
 		OutboxID: outboxID,
 	}
 	res, err = ctc.as(t, user).chatLocalHandler().MakePreview(context.TODO(), arg)
@@ -3935,7 +3931,7 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		plarg.Msg.MessageBody = chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{
 			ConversationTitle: "ANOTHERONE",
 		})
-		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()), nil,
+		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 			func() chat1.RemoteInterface { return ri })
 		msg1, _, _, _, ts1, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote)
 		require.NoError(t, err)
@@ -4001,7 +3997,7 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		}
 		ri := ctc.as(t, users[0]).ri
-		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()), nil,
+		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 			func() chat1.RemoteInterface { return ri })
 		msg, _, _, _, _, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote)
 		require.NoError(t, err)
@@ -4384,7 +4380,7 @@ func TestChatSrvDeleteConversationConfirmed(t *testing.T) {
 	g := globals.NewContext(gc, &cc)
 
 	ui := fakeUISource{}
-	h := NewServer(g, nil, nil, &ui)
+	h := NewServer(g, nil, &ui)
 
 	var ri fakeRemoteInterface
 	h.setTestRemoteClient(&ri)
@@ -4409,7 +4405,7 @@ func TestChatSrvDeleteConversationUnconfirmed(t *testing.T) {
 	ui := fakeUISource{
 		chatUI: chatUI,
 	}
-	h := NewServer(g, nil, nil, &ui)
+	h := NewServer(g, nil, &ui)
 
 	var ri fakeRemoteInterface
 	h.setTestRemoteClient(&ri)

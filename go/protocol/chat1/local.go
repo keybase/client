@@ -1294,6 +1294,7 @@ const (
 	OutboxErrorType_EXPIRED         OutboxErrorType = 5
 	OutboxErrorType_TOOMANYATTEMPTS OutboxErrorType = 6
 	OutboxErrorType_ALREADY_DELETED OutboxErrorType = 7
+	OutboxErrorType_UPLOADFAILED    OutboxErrorType = 8
 )
 
 func (o OutboxErrorType) DeepCopy() OutboxErrorType { return o }
@@ -1307,6 +1308,7 @@ var OutboxErrorTypeMap = map[string]OutboxErrorType{
 	"EXPIRED":         5,
 	"TOOMANYATTEMPTS": 6,
 	"ALREADY_DELETED": 7,
+	"UPLOADFAILED":    8,
 }
 
 var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
@@ -1318,6 +1320,7 @@ var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
 	5: "EXPIRED",
 	6: "TOOMANYATTEMPTS",
 	7: "ALREADY_DELETED",
+	8: "UPLOADFAILED",
 }
 
 func (e OutboxErrorType) String() string {
@@ -1423,6 +1426,7 @@ type OutboxRecord struct {
 	Msg              MessagePlaintext             `codec:"Msg" json:"Msg"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 	Ordinal          int                          `codec:"ordinal" json:"ordinal"`
+	Preview          *MakePreviewRes              `codec:"preview,omitempty" json:"preview,omitempty"`
 }
 
 func (o OutboxRecord) DeepCopy() OutboxRecord {
@@ -1434,6 +1438,13 @@ func (o OutboxRecord) DeepCopy() OutboxRecord {
 		Msg:              o.Msg.DeepCopy(),
 		IdentifyBehavior: o.IdentifyBehavior.DeepCopy(),
 		Ordinal:          o.Ordinal,
+		Preview: (func(x *MakePreviewRes) *MakePreviewRes {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Preview),
 	}
 }
 
@@ -3745,27 +3756,46 @@ func (o GetMessagesLocalRes) DeepCopy() GetMessagesLocalRes {
 	}
 }
 
-type LocalSource struct {
-	Source   keybase1.Stream `codec:"source" json:"source"`
-	Filename string          `codec:"filename" json:"filename"`
-	Size     int             `codec:"size" json:"size"`
+type PostFileAttachmentArg struct {
+	ConversationID    ConversationID               `codec:"conversationID" json:"conversationID"`
+	TlfName           string                       `codec:"tlfName" json:"tlfName"`
+	Visibility        keybase1.TLFVisibility       `codec:"visibility" json:"visibility"`
+	Filename          string                       `codec:"filename" json:"filename"`
+	Title             string                       `codec:"title" json:"title"`
+	Metadata          []byte                       `codec:"metadata" json:"metadata"`
+	IdentifyBehavior  keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	OutboxID          *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	EphemeralLifetime *gregor1.DurationSec         `codec:"ephemeralLifetime,omitempty" json:"ephemeralLifetime,omitempty"`
 }
 
-func (o LocalSource) DeepCopy() LocalSource {
-	return LocalSource{
-		Source:   o.Source.DeepCopy(),
-		Filename: o.Filename,
-		Size:     o.Size,
-	}
-}
-
-type LocalFileSource struct {
-	Filename string `codec:"filename" json:"filename"`
-}
-
-func (o LocalFileSource) DeepCopy() LocalFileSource {
-	return LocalFileSource{
-		Filename: o.Filename,
+func (o PostFileAttachmentArg) DeepCopy() PostFileAttachmentArg {
+	return PostFileAttachmentArg{
+		ConversationID: o.ConversationID.DeepCopy(),
+		TlfName:        o.TlfName,
+		Visibility:     o.Visibility.DeepCopy(),
+		Filename:       o.Filename,
+		Title:          o.Title,
+		Metadata: (func(x []byte) []byte {
+			if x == nil {
+				return nil
+			}
+			return append([]byte{}, x...)
+		})(o.Metadata),
+		IdentifyBehavior: o.IdentifyBehavior.DeepCopy(),
+		OutboxID: (func(x *OutboxID) *OutboxID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.OutboxID),
+		EphemeralLifetime: (func(x *gregor1.DurationSec) *gregor1.DurationSec {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.EphemeralLifetime),
 	}
 }
 
@@ -4382,32 +4412,15 @@ type GetMessagesLocalArg struct {
 	IdentifyBehavior         keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
-type PostAttachmentLocalArg struct {
-	SessionID         int                          `codec:"sessionID" json:"sessionID"`
-	ConversationID    ConversationID               `codec:"conversationID" json:"conversationID"`
-	TlfName           string                       `codec:"tlfName" json:"tlfName"`
-	Visibility        keybase1.TLFVisibility       `codec:"visibility" json:"visibility"`
-	Attachment        LocalSource                  `codec:"attachment" json:"attachment"`
-	Preview           *MakePreviewRes              `codec:"preview,omitempty" json:"preview,omitempty"`
-	Title             string                       `codec:"title" json:"title"`
-	Metadata          []byte                       `codec:"metadata" json:"metadata"`
-	IdentifyBehavior  keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
-	OutboxID          *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	EphemeralLifetime *gregor1.DurationSec         `codec:"ephemeralLifetime,omitempty" json:"ephemeralLifetime,omitempty"`
+type PostFileAttachmentLocalArg struct {
+	SessionID int                   `codec:"sessionID" json:"sessionID"`
+	Arg       PostFileAttachmentArg `codec:"arg" json:"arg"`
 }
 
-type PostFileAttachmentLocalArg struct {
-	SessionID         int                          `codec:"sessionID" json:"sessionID"`
-	ConversationID    ConversationID               `codec:"conversationID" json:"conversationID"`
-	TlfName           string                       `codec:"tlfName" json:"tlfName"`
-	Visibility        keybase1.TLFVisibility       `codec:"visibility" json:"visibility"`
-	Attachment        LocalFileSource              `codec:"attachment" json:"attachment"`
-	Preview           *MakePreviewRes              `codec:"preview,omitempty" json:"preview,omitempty"`
-	Title             string                       `codec:"title" json:"title"`
-	Metadata          []byte                       `codec:"metadata" json:"metadata"`
-	IdentifyBehavior  keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
-	OutboxID          *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	EphemeralLifetime *gregor1.DurationSec         `codec:"ephemeralLifetime,omitempty" json:"ephemeralLifetime,omitempty"`
+type PostFileAttachmentLocalNonblockArg struct {
+	SessionID  int                   `codec:"sessionID" json:"sessionID"`
+	Arg        PostFileAttachmentArg `codec:"arg" json:"arg"`
+	ClientPrev MessageID             `codec:"clientPrev" json:"clientPrev"`
 }
 
 type DownloadAttachmentLocalArg struct {
@@ -4429,9 +4442,9 @@ type DownloadFileAttachmentLocalArg struct {
 }
 
 type MakePreviewArg struct {
-	SessionID  int             `codec:"sessionID" json:"sessionID"`
-	Attachment LocalFileSource `codec:"attachment" json:"attachment"`
-	OutboxID   OutboxID        `codec:"outboxID" json:"outboxID"`
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Filename  string   `codec:"filename" json:"filename"`
+	OutboxID  OutboxID `codec:"outboxID" json:"outboxID"`
 }
 
 type CancelPostArg struct {
@@ -4581,8 +4594,8 @@ type LocalInterface interface {
 	GetInboxSummaryForCLILocal(context.Context, GetInboxSummaryForCLILocalQuery) (GetInboxSummaryForCLILocalRes, error)
 	GetConversationForCLILocal(context.Context, GetConversationForCLILocalQuery) (GetConversationForCLILocalRes, error)
 	GetMessagesLocal(context.Context, GetMessagesLocalArg) (GetMessagesLocalRes, error)
-	PostAttachmentLocal(context.Context, PostAttachmentLocalArg) (PostLocalRes, error)
 	PostFileAttachmentLocal(context.Context, PostFileAttachmentLocalArg) (PostLocalRes, error)
+	PostFileAttachmentLocalNonblock(context.Context, PostFileAttachmentLocalNonblockArg) (PostLocalNonblockRes, error)
 	DownloadAttachmentLocal(context.Context, DownloadAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
 	MakePreview(context.Context, MakePreviewArg) (MakePreviewRes, error)
@@ -5009,22 +5022,6 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"postAttachmentLocal": {
-				MakeArg: func() interface{} {
-					ret := make([]PostAttachmentLocalArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]PostAttachmentLocalArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]PostAttachmentLocalArg)(nil), args)
-						return
-					}
-					ret, err = i.PostAttachmentLocal(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 			"postFileAttachmentLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]PostFileAttachmentLocalArg, 1)
@@ -5037,6 +5034,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.PostFileAttachmentLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"postFileAttachmentLocalNonblock": {
+				MakeArg: func() interface{} {
+					ret := make([]PostFileAttachmentLocalNonblockArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PostFileAttachmentLocalNonblockArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PostFileAttachmentLocalNonblockArg)(nil), args)
+						return
+					}
+					ret, err = i.PostFileAttachmentLocalNonblock(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -5566,13 +5579,13 @@ func (c LocalClient) GetMessagesLocal(ctx context.Context, __arg GetMessagesLoca
 	return
 }
 
-func (c LocalClient) PostAttachmentLocal(ctx context.Context, __arg PostAttachmentLocalArg) (res PostLocalRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.postAttachmentLocal", []interface{}{__arg}, &res)
+func (c LocalClient) PostFileAttachmentLocal(ctx context.Context, __arg PostFileAttachmentLocalArg) (res PostLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postFileAttachmentLocal", []interface{}{__arg}, &res)
 	return
 }
 
-func (c LocalClient) PostFileAttachmentLocal(ctx context.Context, __arg PostFileAttachmentLocalArg) (res PostLocalRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.postFileAttachmentLocal", []interface{}{__arg}, &res)
+func (c LocalClient) PostFileAttachmentLocalNonblock(ctx context.Context, __arg PostFileAttachmentLocalNonblockArg) (res PostLocalNonblockRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postFileAttachmentLocalNonblock", []interface{}{__arg}, &res)
 	return
 }
 

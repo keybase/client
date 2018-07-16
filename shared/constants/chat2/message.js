@@ -405,6 +405,33 @@ const clampAttachmentPreviewSize = ({width = 0, height = 0}) =>
         width: clamp(width || 0, 0, maxAttachmentPreviewSize),
       }
 
+export const previewSpecs = (preview: ?RPCChatTypes.AssetMetadata, full: ?RPCChatTypes.AssetMetadata) => {
+  const res = {
+    height: 0,
+    width: 0,
+    attachmentType: 'file',
+    showPlayButton: false,
+  }
+  if (preview) {
+    if (preview.assetType === RPCChatTypes.localAssetMetadataType.image && preview.image) {
+      const wh = clampAttachmentPreviewSize(preview.image)
+      res.height = wh.height
+      res.width = wh.width
+      res.attachmentType = 'image'
+      // full is a video but preview is an image?
+      if (full && full.assetType === RPCChatTypes.localAssetMetadataType.video) {
+        res.showPlayButton = true
+      }
+    } else if (preview.assetType === RPCChatTypes.localAssetMetadataType.video && preview.video) {
+      const wh = clampAttachmentPreviewSize(preview.video)
+      res.height = wh.height
+      res.width = wh.width
+      res.attachmentType = 'image'
+    }
+  }
+  return res
+}
+
 const validUIMessagetoMessage = (
   conversationIDKey: Types.ConversationIDKey,
   uiMessage: RPCChatTypes.UIMessage,
@@ -476,38 +503,8 @@ const validUIMessagetoMessage = (
         transferState = null
       }
       const {filename, title, size} = attachment.object
-      let previewHeight = 0
-      let previewWidth = 0
-      let attachmentType = 'file'
-      let showPlayButton = false
 
-      if (preview && preview.metadata) {
-        if (
-          preview.metadata.assetType === RPCChatTypes.localAssetMetadataType.image &&
-          preview.metadata.image
-        ) {
-          const wh = clampAttachmentPreviewSize(preview.metadata.image)
-          previewHeight = wh.height
-          previewWidth = wh.width
-          attachmentType = 'image'
-          // full is a video but preview is an image?
-          if (
-            full &&
-            full.metadata &&
-            full.metadata.assetType === RPCChatTypes.localAssetMetadataType.video
-          ) {
-            showPlayButton = true
-          }
-        } else if (
-          preview.metadata.assetType === RPCChatTypes.localAssetMetadataType.video &&
-          preview.metadata.video
-        ) {
-          const wh = clampAttachmentPreviewSize(preview.metadata.video)
-          previewHeight = wh.height
-          previewWidth = wh.width
-          attachmentType = 'image'
-        }
-      }
+      const pre = previewSpecs(preview && preview.metadata, full && full.metadata)
       let previewURL = ''
       let fileURL = ''
       let fileType = ''
@@ -519,15 +516,15 @@ const validUIMessagetoMessage = (
 
       return makeMessageAttachment({
         ...common,
-        attachmentType,
+        attachmentType: pre.attachmentType,
         fileName: filename,
         fileSize: size,
         fileType,
         fileURL,
-        previewHeight,
+        previewHeight: pre.height,
         previewURL,
-        previewWidth,
-        showPlayButton,
+        previewWidth: pre.width,
+        showPlayButton: pre.showPlayButton,
         title,
         transferState,
       })
@@ -589,6 +586,7 @@ export const rpcErrorToString = (error: RPCChatTypes.OutboxStateError) => {
 }
 
 const outboxUIMessagetoMessage = (
+  state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
   uiMessage: RPCChatTypes.UIMessage,
   o: RPCChatTypes.UIMessageOutbox,
@@ -600,18 +598,46 @@ const outboxUIMessagetoMessage = (
       ? rpcErrorToString(o.state.error)
       : null
 
-  return makeMessageText({
-    author: you,
-    conversationIDKey,
-    deviceName: yourDevice,
-    deviceType: isMobile ? 'mobile' : 'desktop',
-    errorReason,
-    ordinal: Types.numberToOrdinal(o.ordinal),
-    outboxID: Types.stringToOutboxID(o.outboxID),
-    submitState: 'pending',
-    text: new HiddenString(o.body),
-    timestamp: o.ctime,
-  })
+  switch (o.messageType) {
+    case RPCChatTypes.commonMessageType.attachment:
+      const titles = ['']
+      const previewURLs = ['']
+      const pre = [previewSpecs(null, null)]
+      if (o.preview) {
+        previewURLs[0] =
+          o.preview.location &&
+          o.preview.location.ltyp === RPCChatTypes.localPreviewLocationTyp.url &&
+          o.preview.location.url
+            ? o.preview.location.url
+            : ''
+        const md = o.preview && o.preview.metadata
+        pre[0] = previewSpecs(md, null)
+      }
+      return makePendingAttachmentMessages(
+        state,
+        conversationIDKey,
+        titles,
+        previewURLs,
+        pre,
+        [Types.stringToOutboxID(o.outboxID)],
+        [Types.numberToOrdinal(o.ordinal)],
+        [!errorReason ? '' : errorReason],
+        0
+      )[0]
+    case RPCChatTypes.commonMessageType.text:
+      return makeMessageText({
+        author: you,
+        conversationIDKey,
+        deviceName: yourDevice,
+        deviceType: isMobile ? 'mobile' : 'desktop',
+        errorReason,
+        ordinal: Types.numberToOrdinal(o.ordinal),
+        outboxID: Types.stringToOutboxID(o.outboxID),
+        submitState: 'pending',
+        text: new HiddenString(o.body),
+        timestamp: o.ctime,
+      })
+  }
 }
 
 const placeholderUIMessageToMessage = (
@@ -653,6 +679,7 @@ const errorUIMessagetoMessage = (
 }
 
 export const uiMessageToMessage = (
+  state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
   uiMessage: RPCChatTypes.UIMessage,
   you: string,
@@ -671,7 +698,14 @@ export const uiMessageToMessage = (
       return null
     case RPCChatTypes.chatUiMessageUnboxedState.outbox:
       if (uiMessage.outbox) {
-        return outboxUIMessagetoMessage(conversationIDKey, uiMessage, uiMessage.outbox, you, yourDevice)
+        return outboxUIMessagetoMessage(
+          state,
+          conversationIDKey,
+          uiMessage,
+          uiMessage.outbox,
+          you,
+          yourDevice
+        )
       }
       return null
     case RPCChatTypes.chatUiMessageUnboxedState.placeholder:
@@ -728,48 +762,61 @@ export const makePendingTextMessage = (
 export const makePendingAttachmentMessages = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
-  attachmentTypes: Types.AttachmentType[],
   titles: string[],
   previewURLs: string[],
+  previewSpecs: Types.PreviewSpec[],
   outboxIDs: Types.OutboxID[],
+  inOrdinals: Types.Ordinal[],
+  errorReasons: string[],
   explodeTime?: number
 ) => {
-  if (attachmentTypes.length - titles.length + previewURLs.length - outboxIDs.length !== 0) {
+  if (
+    previewSpecs.length !== previewURLs.length ||
+    previewSpecs.length !== outboxIDs.length ||
+    previewSpecs.length !== errorReasons.length
+  ) {
     // some are not the same size. no good.
     throw new Error(
-      `makePendingAttachments: got arrays of differing lengths: (${attachmentTypes.length}, ${
-        titles.length
-      }, ${previewURLs.length}, ${outboxIDs.length})`
+      `makePendingAttachments: got arrays of differing lengths: (${previewSpecs.length}, ${titles.length}, ${
+        previewURLs.length
+      }, ${outboxIDs.length}, ${errorReasons.length})`
     )
   }
   const lastOrdinal =
     state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
   // arbitrarily reduce on attachmentTypes to get the same length
-  const ordinals = attachmentTypes.reduce((ords, _) => {
-    if (ords.length === 0) {
-      ords.push(nextFractionalOrdinal(lastOrdinal))
-      return ords
-    }
-    ords.push(nextFractionalOrdinal(ords[ords.length - 1]))
-    return ords
-  }, [])
+  const ordinals =
+    inOrdinals.length > 0
+      ? inOrdinals
+      : previewSpecs.reduce((ords, _) => {
+          if (ords.length === 0) {
+            ords.push(nextFractionalOrdinal(lastOrdinal))
+            return ords
+          }
+          ords.push(nextFractionalOrdinal(ords[ords.length - 1]))
+          return ords
+        }, [])
 
   const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
 
   const res = []
-  for (let i = 0; i < attachmentTypes.length; i++) {
+  for (let i = 0; i < previewSpecs.length; i++) {
     res.push(
       makeMessageAttachment({
         ...explodeInfo,
-        attachmentType: attachmentTypes[i],
+        attachmentType: previewSpecs[i].attachmentType,
         author: state.config.username || '',
         conversationIDKey,
         deviceName: '',
         previewURL: previewURLs[i],
+        previewWidth: previewSpecs[i].width,
+        previewHeight: previewSpecs[i].height,
+        showPlayButton: previewSpecs[i].showPlayButton,
         deviceType: isMobile ? 'mobile' : 'desktop',
         id: Types.numberToMessageID(0),
         ordinal: ordinals[i],
         outboxID: outboxIDs[i],
+        errorReason: errorReasons[i].length === 0 ? null : errorReasons[i],
         submitState: 'pending',
         timestamp: Date.now(),
         title: titles[i],

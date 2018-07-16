@@ -8,6 +8,7 @@ import (
 
 	"sync"
 
+	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -72,6 +73,34 @@ func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.U
 		}))
 }
 
+func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread *chat1.ThreadView) {
+	pp := attachments.NewPendingPreviews(s.G())
+	for index, m := range thread.Messages {
+		typ, err := m.State()
+		if err != nil {
+			s.Debug(ctx, "addPendingPreviews: failed to get state: %s", err)
+			continue
+		}
+		if typ != chat1.MessageUnboxedState_OUTBOX {
+			continue
+		}
+		obr := m.Outbox()
+		pre, err := pp.Get(ctx, obr.OutboxID)
+		if err != nil {
+			s.Debug(ctx, "addPendingPreviews: failed to get pending preview: outboxID: %s err: %s",
+				obr.OutboxID, err)
+			continue
+		}
+		mpr, err := pre.Export(func() *chat1.PreviewLocation {
+			loc := chat1.NewPreviewLocationWithUrl(s.G().AttachmentURLSrv.GetPendingPreviewURL(ctx,
+				obr.OutboxID))
+			return &loc
+		})
+		obr.Preview = &mpr
+		thread.Messages[index] = chat1.NewMessageUnboxedWithOutbox(obr)
+	}
+}
+
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
 	conv types.UnboxConversationInfo, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
 	superXform supersedesTransform, checkPrev bool, patchPagination bool) (err error) {
@@ -124,6 +153,8 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 			return err
 		}
 	}
+	// Add attachment previews to pending messages
+	s.addPendingPreviews(ctx, thread)
 
 	return nil
 }
@@ -498,12 +529,12 @@ func (s *HybridConversationSource) isContinuousPush(ctx context.Context, convID 
 	return continuousUpdate, nil
 }
 
-// removePendingPreview removes any attachment previews from pending preview storage
-func (s *HybridConversationSource) removePendingPreview(ctx context.Context, msg chat1.MessageUnboxed) {
+// completeAttachmentUpload removes any attachment previews from pending preview storage
+func (s *HybridConversationSource) completeAttachmentUpload(ctx context.Context, msg chat1.MessageUnboxed) {
 	if msg.GetMessageType() == chat1.MessageType_ATTACHMENT {
 		outboxID := msg.OutboxID()
 		if outboxID != nil {
-			storage.NewPendingPreviews(s.G()).Remove(ctx, *outboxID)
+			s.G().AttachmentUploader.Complete(ctx, *outboxID)
 		}
 	}
 }
@@ -547,7 +578,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 		return decmsg, continuousUpdate, err
 	}
 	// Remove any pending previews from storage
-	s.removePendingPreview(ctx, decmsg)
+	s.completeAttachmentUpload(ctx, decmsg)
 
 	return decmsg, continuousUpdate, nil
 }

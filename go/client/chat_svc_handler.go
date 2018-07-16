@@ -337,103 +337,6 @@ func (c *chatServiceHandler) ReactionV1(ctx context.Context, opts reactionOption
 // AttachV1 implements ChatServiceHandler.AttachV1.
 func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
 	var rl []chat1.RateLimit
-	if opts.NoStream {
-		return c.attachV1NoStream(ctx, opts)
-	}
-	convID, err := chat1.MakeConvID(opts.ConversationID)
-	if err != nil {
-		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
-	}
-	sarg := sendArgV1{
-		conversationID:    convID,
-		channel:           opts.Channel,
-		mtype:             chat1.MessageType_ATTACHMENT,
-		ephemeralLifetime: opts.EphemeralLifetime,
-	}
-
-	existing, existingRl, err := c.getExistingConvs(ctx, sarg.conversationID, sarg.channel)
-	if err != nil {
-		return c.errReply(err)
-	}
-	rl = append(rl, existingRl...)
-	header, err := c.makePostHeader(ctx, sarg, existing)
-	if err != nil {
-		return c.errReply(err)
-	}
-	rl = append(rl, header.rateLimits...)
-
-	info, fsource, err := c.fileInfo(opts.Filename)
-	if err != nil {
-		return c.errReply(err)
-	}
-	defer fsource.Close()
-	src := c.G().XStreams.ExportReader(fsource)
-
-	vis := keybase1.TLFVisibility_PRIVATE
-	if header.clientHeader.TlfPublic {
-		vis = keybase1.TLFVisibility_PUBLIC
-	}
-
-	var ephemeralLifetime *gregor1.DurationSec
-	if header.clientHeader.EphemeralMetadata != nil {
-		ephemeralLifetime = &header.clientHeader.EphemeralMetadata.Lifetime
-	}
-	arg := chat1.PostAttachmentLocalArg{
-		ConversationID: header.conversationID,
-		TlfName:        header.clientHeader.TlfName,
-		Visibility:     vis,
-		Attachment: chat1.LocalSource{
-			Filename: info.Name(),
-			Size:     int(info.Size()),
-			Source:   src,
-		},
-		Title:             opts.Title,
-		EphemeralLifetime: ephemeralLifetime,
-	}
-
-	// check for preview
-	if len(opts.Preview) > 0 {
-		loc := chat1.NewPreviewLocationWithFile(opts.Preview)
-		arg.Preview = &chat1.MakePreviewRes{
-			Location: &loc,
-		}
-	}
-
-	ui := &ChatUI{
-		Contextified: libkb.NewContextified(c.G()),
-		terminal:     c.G().UI.GetTerminalUI(),
-	}
-
-	client, err := GetChatLocalClient(c.G())
-	if err != nil {
-		return c.errReply(err)
-	}
-	protocols := []rpc.Protocol{
-		NewStreamUIProtocol(c.G()),
-		chat1.ChatUiProtocol(ui),
-	}
-	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
-		return c.errReply(err)
-	}
-	pres, err := client.PostAttachmentLocal(ctx, arg)
-	if err != nil {
-		return c.errReply(err)
-	}
-	rl = append(rl, pres.RateLimits...)
-
-	res := SendRes{
-		Message: "attachment sent",
-		RateLimits: RateLimits{
-			RateLimits: c.aggRateLimits(rl),
-		},
-	}
-
-	return Reply{Result: res}
-}
-
-// attachV1NoStream uses PostFileAttachmentLocal instead of PostAttachmentLocal.
-func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOptionsV1) Reply {
-	var rl []chat1.RateLimit
 	convID, err := chat1.MakeConvID(opts.ConversationID)
 	if err != nil {
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
@@ -464,26 +367,20 @@ func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOp
 	if header.clientHeader.EphemeralMetadata != nil {
 		ephemeralLifetime = &header.clientHeader.EphemeralMetadata.Lifetime
 	}
-	arg := chat1.PostFileAttachmentLocalArg{
-		ConversationID: header.conversationID,
-		TlfName:        header.clientHeader.TlfName,
-		Visibility:     vis,
-		Attachment: chat1.LocalFileSource{
-			Filename: opts.Filename,
-		},
+	arg := chat1.PostFileAttachmentArg{
+		ConversationID:    header.conversationID,
+		TlfName:           header.clientHeader.TlfName,
+		Visibility:        vis,
+		Filename:          opts.Filename,
 		Title:             opts.Title,
 		EphemeralLifetime: ephemeralLifetime,
 	}
 
-	// check for preview
-	if len(opts.Preview) > 0 {
-		loc := chat1.NewPreviewLocationWithFile(opts.Preview)
-		arg.Preview = &chat1.MakePreviewRes{
-			Location: &loc,
-		}
-	}
-
 	ui := &ChatUI{
+		Contextified: libkb.NewContextified(c.G()),
+		terminal:     c.G().UI.GetTerminalUI(),
+	}
+	notify := &ChatNotifications{
 		Contextified: libkb.NewContextified(c.G()),
 		terminal:     c.G().UI.GetTerminalUI(),
 	}
@@ -495,15 +392,38 @@ func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOp
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(c.G()),
 		chat1.ChatUiProtocol(ui),
+		chat1.NotifyChatProtocol(notify),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return c.errReply(err)
 	}
-	pres, err := client.PostFileAttachmentLocal(ctx, arg)
+	cli, err := GetNotifyCtlClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
-	rl = append(rl, pres.RateLimits...)
+	channels := keybase1.NotificationChannels{
+		Chatattachments: true,
+	}
+	if err := cli.SetNotifications(context.TODO(), channels); err != nil {
+		return c.errReply(err)
+	}
+
+	if opts.Nonblock {
+		var pres chat1.PostLocalNonblockRes
+		pres, err = client.PostFileAttachmentLocalNonblock(ctx, chat1.PostFileAttachmentLocalNonblockArg{
+			Arg: arg,
+		})
+		rl = append(rl, pres.RateLimits...)
+	} else {
+		var pres chat1.PostLocalRes
+		pres, err = client.PostFileAttachmentLocal(ctx, chat1.PostFileAttachmentLocalArg{
+			Arg: arg,
+		})
+		rl = append(rl, pres.RateLimits...)
+	}
+	if err != nil {
+		return c.errReply(err)
+	}
 
 	res := SendRes{
 		Message: "attachment sent",
