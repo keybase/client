@@ -12,11 +12,11 @@ export const numberToMessageID = (n: number): MessageID => n
 export const messageIDToNumber = (n: MessageID): number => n
 
 export type _Reaction = {
-  emoji: string,
-  usernames: I.Set<string>,
+  messageID: MessageID,
+  username: string,
 }
 export type Reaction = I.RecordOf<_Reaction>
-export type Reactions = I.List<Reaction>
+export type Reactions = I.Map<string, I.Set<Reaction>>
 
 // We use the ordinal as the primary ID throughout the UI. The reason we have this vs a messageID is
 // 1. We don't have messageIDs for messages we're trying to send (pending messages)

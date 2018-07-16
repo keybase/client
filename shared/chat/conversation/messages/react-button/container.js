@@ -21,8 +21,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
       emoji: '',
     }
   }
-  const reactions = message.reactions
-  const reaction = reactions.find(r => r.emoji === ownProps.emoji)
+  const reaction = message.reactions.get(ownProps.emoji)
   if (!reaction) {
     return {
       active: false,
@@ -30,10 +29,10 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
       emoji: '',
     }
   }
-  const active = reaction.usernames.has(me)
+  const active = reaction.some(r => r.username === me)
   return {
     active,
-    count: reaction.usernames.size,
+    count: reaction.size,
     emoji: ownProps.emoji,
   }
 }

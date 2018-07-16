@@ -22,7 +22,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...ownProps,
-  emojis: stateProps._reactions ? stateProps._reactions.map(r => r.emoji).toArray() : [],
+  emojis: stateProps._reactions ? stateProps._reactions.keySeq().toArray() : [],
 })
 
 export default compose(connect(mapStateToProps, null, mergeProps), setDisplayName('ReactionsRow'))(
