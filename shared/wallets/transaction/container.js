@@ -13,19 +13,22 @@ export type OwnProps = {
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   console.warn('in mstp', ownProps, ownProps.paymentID)
   return {
-
-  _transaction: Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
-  _you: state.config.username,
+    _transaction: Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
+    _you: state.config.username,
   }
 }
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onSelectTransaction: (paymentID: string, accountID: Types.AccountID) => {
-    console.warn('in sel', paymentID)
-    dispatch(navigateAppend([{
-      props: {accountID, paymentID},
-      selected: 'transactionDetails',
-    }]))
-}
+    console.warn('in sel', accountID, paymentID)
+    dispatch(
+      navigateAppend([
+        {
+          props: {accountID, paymentID},
+          selected: 'transactionDetails',
+        },
+      ])
+    )
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {

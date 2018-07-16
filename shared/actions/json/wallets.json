@@ -28,6 +28,19 @@
       "_description": "Refresh our list of payments for a given account",
       "accountID": "Types.AccountID",
     },
+    "loadPaymentDetail": {
+      "_description": "Load extra detail for one given payment",
+      "accountID": "Types.AccountID",
+      "paymentID": "Types.PaymentID",
+    },
+    "paymentDetailReceived": {
+      "_description": "Update a payment with additional detail",
+      "accountID": "Types.AccountID",
+      "paymentID": "Types.PaymentID",
+      "publicNote": "string",
+      "publicNoteType": "string",
+      "txID": "string",
+    },
     "paymentsReceived": {
       "_description": "Update our store of payments data",
       "accountID": "Types.AccountID",

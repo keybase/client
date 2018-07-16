@@ -228,12 +228,10 @@ export type Props = {|
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
   memo: string,
-
   onSelectTransaction?: () => void,
 |}
 
 export const Transaction = (props: Props) => {
-  console.warn('onSelectTransaction', props.onSelectTransaction)
   const pending = !props.timestamp
   const showMemo =
     props.large && !(props.yourRole === 'receiver' && props.counterpartyType === 'stellarPublicKey')

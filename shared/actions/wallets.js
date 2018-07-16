@@ -51,6 +51,20 @@ const loadPayments = (
     })
   )
 
+const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDetailPayload) =>
+  RPCTypes.localGetPaymentDetailsLocalRpcPromise({
+    accountID: action.payload.accountID,
+    id: action.payload.paymentID,
+  }).then(res =>
+    WalletsGen.createPaymentDetailReceived({
+      accountID: action.payload.accountID,
+      paymentID: action.payload.paymentID,
+      publicNote: res.publicNote,
+      publicNoteType: res.publicNoteType,
+      txID: res.txID,
+    })
+  )
+
 const linkExistingAccount = (state: TypedState, action: WalletsGen.LinkExistingAccountPayload) => {
   const {name, secretKey} = action.payload
   return RPCTypes.localLinkNewWalletAccountLocalRpcPromise(
@@ -134,6 +148,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     [WalletsGen.loadPayments, WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
     loadPayments
   )
+  yield Saga.safeTakeEveryPurePromise(WalletsGen.loadPaymentDetail, loadPaymentDetail)
   yield Saga.safeTakeEveryPurePromise(WalletsGen.linkExistingAccount, linkExistingAccount)
   yield Saga.safeTakeEveryPurePromise(WalletsGen.validateAccountName, validateAccountName)
   yield Saga.safeTakeEveryPurePromise(WalletsGen.validateSecretKey, validateSecretKey)

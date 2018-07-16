@@ -17,7 +17,9 @@ export const linkExistingAccount = 'wallets:linkExistingAccount'
 export const linkedExistingAccount = 'wallets:linkedExistingAccount'
 export const loadAccounts = 'wallets:loadAccounts'
 export const loadAssets = 'wallets:loadAssets'
+export const loadPaymentDetail = 'wallets:loadPaymentDetail'
 export const loadPayments = 'wallets:loadPayments'
+export const paymentDetailReceived = 'wallets:paymentDetailReceived'
 export const paymentsReceived = 'wallets:paymentsReceived'
 export const secretKeyReceived = 'wallets:secretKeyReceived'
 export const secretKeySeen = 'wallets:secretKeySeen'
@@ -47,7 +49,18 @@ type _LinkedExistingAccountPayloadError = $ReadOnly<{|
 |}>
 type _LoadAccountsPayload = void
 type _LoadAssetsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
+type _LoadPaymentDetailPayload = $ReadOnly<{|
+  accountID: Types.AccountID,
+  paymentID: Types.PaymentID,
+|}>
 type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
+type _PaymentDetailReceivedPayload = $ReadOnly<{|
+  accountID: Types.AccountID,
+  paymentID: Types.PaymentID,
+  publicNote: string,
+  publicNoteType: string,
+  txID: string,
+|}>
 type _PaymentsReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   payments: Array<Types.Payment>,
@@ -100,6 +113,10 @@ export const createExportSecretKey = (payload: _ExportSecretKeyPayload) => ({err
  */
 export const createLinkExistingAccount = (payload: _LinkExistingAccountPayload) => ({error: false, payload, type: linkExistingAccount})
 /**
+ * Load extra detail for one given payment
+ */
+export const createLoadPaymentDetail = (payload: _LoadPaymentDetailPayload) => ({error: false, payload, type: loadPaymentDetail})
+/**
  * Refresh our list of accounts
  */
 export const createLoadAccounts = (payload: _LoadAccountsPayload) => ({error: false, payload, type: loadAccounts})
@@ -131,6 +148,10 @@ export const createLinkedExistingAccountError = (payload: _LinkedExistingAccount
 export const createValidatedSecretKey = (payload: _ValidatedSecretKeyPayload) => ({error: false, payload, type: validatedSecretKey})
 export const createValidatedSecretKeyError = (payload: _ValidatedSecretKeyPayloadError) => ({error: true, payload, type: validatedSecretKey})
 /**
+ * Update a payment with additional detail
+ */
+export const createPaymentDetailReceived = (payload: _PaymentDetailReceivedPayload) => ({error: false, payload, type: paymentDetailReceived})
+/**
  * Update our store of account data
  */
 export const createAccountsReceived = (payload: _AccountsReceivedPayload) => ({error: false, payload, type: accountsReceived})
@@ -157,7 +178,9 @@ export type LinkedExistingAccountPayload = $Call<typeof createLinkedExistingAcco
 export type LinkedExistingAccountPayloadError = $Call<typeof createLinkedExistingAccountError, _LinkedExistingAccountPayloadError>
 export type LoadAccountsPayload = $Call<typeof createLoadAccounts, _LoadAccountsPayload>
 export type LoadAssetsPayload = $Call<typeof createLoadAssets, _LoadAssetsPayload>
+export type LoadPaymentDetailPayload = $Call<typeof createLoadPaymentDetail, _LoadPaymentDetailPayload>
 export type LoadPaymentsPayload = $Call<typeof createLoadPayments, _LoadPaymentsPayload>
+export type PaymentDetailReceivedPayload = $Call<typeof createPaymentDetailReceived, _PaymentDetailReceivedPayload>
 export type PaymentsReceivedPayload = $Call<typeof createPaymentsReceived, _PaymentsReceivedPayload>
 export type SecretKeyReceivedPayload = $Call<typeof createSecretKeyReceived, _SecretKeyReceivedPayload>
 export type SecretKeySeenPayload = $Call<typeof createSecretKeySeen, _SecretKeySeenPayload>
@@ -181,7 +204,9 @@ export type Actions =
   | LinkedExistingAccountPayloadError
   | LoadAccountsPayload
   | LoadAssetsPayload
+  | LoadPaymentDetailPayload
   | LoadPaymentsPayload
+  | PaymentDetailReceivedPayload
   | PaymentsReceivedPayload
   | SecretKeyReceivedPayload
   | SecretKeySeenPayload

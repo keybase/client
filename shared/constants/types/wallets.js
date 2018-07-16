@@ -55,6 +55,8 @@ export type _Payment = {
   id: ?StellarRPCTypes.PaymentID,
   note: string,
   noteErr: string,
+  publicNote: string,
+  publicNoteType: string,
   source: string,
   sourceType: string,
   statusSimplified: 'none' | 'pending' | 'claimable' | 'completed' | 'error' | 'unknown',
@@ -63,6 +65,7 @@ export type _Payment = {
   target: string,
   targetType: string,
   time: number,
+  txID: string,
   worth: string,
   worthCurrency: string,
 }

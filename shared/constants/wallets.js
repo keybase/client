@@ -75,6 +75,8 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   id: null,
   note: '',
   noteErr: '',
+  publicNote: '',
+  publicNoteType: '',
   source: '',
   sourceType: '',
   statusDescription: '',
@@ -83,6 +85,7 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   target: '',
   targetType: '',
   time: 0,
+  txID: '',
   worth: '',
   worthCurrency: '',
 })
@@ -147,8 +150,10 @@ const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), I.List())
 
-const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: string) =>
-  state.wallets.paymentsMap.get(accountID, I.List()).find(p => p.id === paymentID) || makePayment()
+const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: string) => {
+  console.warn('in getPayment', accountID, paymentID)
+  return state.wallets.paymentsMap.get(accountID, I.List()).find(p => p.id === paymentID) || makePayment()
+}
 
 const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
