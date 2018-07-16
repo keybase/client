@@ -29,7 +29,7 @@ export function tmpRandFile(suffix: string): Promise<string> {
 }
 
 // TODO make this a user setting
-const downloadFolder = __STORYBOOK__ ? '' : path.join(os.homedir(), 'Downloads')
+export const downloadFolder = __STORYBOOK__ ? '' : path.join(os.homedir(), 'Downloads')
 
 export function downloadFilePathNoSearch(filename: string): string {
   return path.join(downloadFolder, filename)

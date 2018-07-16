@@ -6,7 +6,7 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {Box} from '../../common-adapters'
-import Footer from '../footer/container'
+import Footer from '../footer/footer'
 import Header from './header-container'
 import View from './view-container'
 
