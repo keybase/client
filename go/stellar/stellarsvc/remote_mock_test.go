@@ -72,7 +72,7 @@ func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stella
 		WithNetContext(ctx)
 	user, err := libkb.LoadUser(loadMeArg)
 	require.NoError(t.T, err)
-	myAccountID := user.StellarWalletAddress()
+	myAccountID := user.StellarAccountID()
 	if myAccountID != nil {
 		callerAccountID = *myAccountID
 	}

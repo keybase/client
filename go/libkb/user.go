@@ -450,11 +450,11 @@ func (u *User) IDTable() *IdentityTable {
 
 // Return the active stellar public address for a user.
 // Returns nil if there is none or it has not been loaded.
-func (u *User) StellarWalletAddress() *stellar1.AccountID {
+func (u *User) StellarAccountID() *stellar1.AccountID {
 	if u.idTable == nil {
 		return nil
 	}
-	return u.idTable.StellarWalletAddress()
+	return u.idTable.StellarAccountID()
 }
 
 func (u *User) sigChain() *SigChain {

@@ -299,7 +299,7 @@ func TestSetAccountAsDefault(t *testing.T) {
 	// public Stellar address as another user.
 	u0, err := tcs[1].G.LoadUserByUID(tcs[0].Fu.User.GetUID())
 	require.NoError(t, err)
-	u0addr := u0.StellarWalletAddress()
+	u0addr := u0.StellarAccountID()
 	require.NotNil(t, u0addr)
 	require.Equal(t, additionalAccs[0], *u0addr)
 }
