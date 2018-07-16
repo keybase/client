@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func persistState(m libkb.MetaContext, un libkb.NormalizedUsername, d libkb.DeviceCloneState) error {
-	return m.G().Env.GetConfigWriter().SetDeviceCloneState(un, d)
+func persistState(m *libkb.MetaContext, d libkb.DeviceCloneState) error {
+	return libkb.SetDeviceCloneState(m, d)
 }
 
 func isValidToken(token string) bool {
@@ -20,10 +20,9 @@ func isValidToken(token string) bool {
 	return err == nil && len(token) == 32
 }
 
-func runAndGet(m libkb.MetaContext, un libkb.NormalizedUsername) (d libkb.DeviceCloneState, err error) {
-	eng := NewDeviceCloneStateEngine(m.G())
-	err = RunEngine2(m, eng)
-	d = m.G().Env.GetConfig().GetDeviceCloneState(un)
+func runAndGet(m *libkb.MetaContext) (d libkb.DeviceCloneState, err error) {
+	_, _, err = libkb.UpdateDeviceCloneState(m)
+	d = libkb.GetDeviceCloneState(m)
 	return
 }
 
@@ -34,27 +33,27 @@ func assertSuccessfulRun(tc libkb.TestContext, d libkb.DeviceCloneState, err err
 }
 
 func TestDeviceCloneStateFirstRun(t *testing.T) {
-	tc := SetupEngineTest(t, "DeviceCloneStateEngine")
+	tc := SetupEngineTest(t, "DeviceCloneState")
 	defer tc.Cleanup()
-	un := libkb.NewNormalizedUsername(CreateAndSignupFakeUser(tc, "fu").Username)
+	_ = CreateAndSignupFakeUser(tc, "fu")
 	m := NewMetaContextForTest(tc)
 
-	d, err := runAndGet(m, un)
+	d, err := runAndGet(&m)
 
 	assertSuccessfulRun(tc, d, err)
 	require.Equal(tc.T, d.Clones, 1)
 }
 
 func TestDeviceCloneStateSuccessfulUpdate(t *testing.T) {
-	tc := SetupEngineTest(t, "DeviceCloneStateEngine")
+	tc := SetupEngineTest(t, "DeviceCloneState")
 	defer tc.Cleanup()
-	un := libkb.NewNormalizedUsername(CreateAndSignupFakeUser(tc, "fu").Username)
+	_ = CreateAndSignupFakeUser(tc, "fu")
 	m := NewMetaContextForTest(tc)
 	//setup: perform an initial run
-	d0, err := runAndGet(m, un)
+	d0, err := runAndGet(&m)
 	require.NoError(tc.T, err)
 
-	d, err := runAndGet(m, un)
+	d, err := runAndGet(&m)
 
 	assertSuccessfulRun(tc, d, err)
 	require.NotEqual(tc.T, d.Prior, d0.Prior)
@@ -62,9 +61,9 @@ func TestDeviceCloneStateSuccessfulUpdate(t *testing.T) {
 }
 
 func TestDeviceCloneStateRecoveryFromFailureBeforeServer(t *testing.T) {
-	tc := SetupEngineTest(t, "DeviceCloneStateEngine")
+	tc := SetupEngineTest(t, "DeviceCloneState")
 	defer tc.Cleanup()
-	un := libkb.NewNormalizedUsername(CreateAndSignupFakeUser(tc, "fu").Username)
+	_ = CreateAndSignupFakeUser(tc, "fu")
 	m := NewMetaContextForTest(tc)
 	// setup: persist tokens as if the process failed
 	// before the server received the update
@@ -73,9 +72,9 @@ func TestDeviceCloneStateRecoveryFromFailureBeforeServer(t *testing.T) {
 		Stage:  "22222222222222222222222222222222",
 		Clones: 1,
 	}
-	persistState(m, un, d0)
+	persistState(&m, d0)
 
-	d, err := runAndGet(m, un)
+	d, err := runAndGet(&m)
 
 	assertSuccessfulRun(tc, d, err)
 	require.Equal(tc.T, d.Prior, d0.Stage)
@@ -83,18 +82,18 @@ func TestDeviceCloneStateRecoveryFromFailureBeforeServer(t *testing.T) {
 }
 
 func TestDeviceCloneStateRecoveryFromFailureAfterServer(t *testing.T) {
-	tc := SetupEngineTest(t, "DeviceCloneStateEngine")
+	tc := SetupEngineTest(t, "DeviceCloneState")
 	defer tc.Cleanup()
-	un := libkb.NewNormalizedUsername(CreateAndSignupFakeUser(tc, "fu").Username)
+	_ = CreateAndSignupFakeUser(tc, "fu")
 	m := NewMetaContextForTest(tc)
 	// setup: run twice. then reset the persistence to where it would have been
 	// if the server got the second update but did not ack it successfully to the client.
-	d0, err := runAndGet(m, un)
-	d1, err := runAndGet(m, un)
+	d0, err := runAndGet(&m)
+	d1, err := runAndGet(&m)
 	tmp := libkb.DeviceCloneState{Prior: d0.Prior, Stage: d1.Prior, Clones: 1}
-	persistState(m, un, tmp)
+	persistState(&m, tmp)
 
-	d, err := runAndGet(m, un)
+	d, err := runAndGet(&m)
 
 	assertSuccessfulRun(tc, d, err)
 	require.Equal(tc.T, d.Prior, d1.Prior)
@@ -102,21 +101,24 @@ func TestDeviceCloneStateRecoveryFromFailureAfterServer(t *testing.T) {
 }
 
 func TestDeviceCloneStateCloneDetected(t *testing.T) {
-	tc := SetupEngineTest(t, "DeviceCloneStateEngine")
+	tc := SetupEngineTest(t, "DeviceCloneState")
 	defer tc.Cleanup()
-	un := libkb.NewNormalizedUsername(CreateAndSignupFakeUser(tc, "fu").Username)
+	_ = CreateAndSignupFakeUser(tc, "fu")
 	m := NewMetaContextForTest(tc)
 	// setup: perform two runs, and then manually persist the earlier
 	// prior token to simulate a subsequent run by a cloned device
-	d0, err := runAndGet(m, un)
+	d0, err := runAndGet(&m)
 	require.NoError(tc.T, err)
-	_, err = runAndGet(m, un)
+	_, err = runAndGet(&m)
 	require.NoError(tc.T, err)
-	persistState(m, un, d0)
+	persistState(&m, d0)
 
-	d, err := runAndGet(m, un)
+	before, after, err := libkb.UpdateDeviceCloneState(&m)
+	d := libkb.GetDeviceCloneState(&m)
 
 	assertSuccessfulRun(tc, d, err)
 	require.NotEqual(tc.T, d.Prior, d0.Stage, "despite there being a clone, the prior still needs to change")
 	require.Equal(tc.T, d.Clones, 2)
+	require.Equal(tc.T, before, 1, "there was one clone before the test run")
+	require.Equal(tc.T, after, 2, "there were two clones after the test run")
 }

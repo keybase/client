@@ -651,17 +651,16 @@ func (d *Service) hourlyChecks() {
 }
 
 func (d *Service) deviceCloneSelfCheck() error {
-	eng := engine.NewDeviceCloneStateEngine(d.G())
 	m := libkb.NewMetaContextBackground(d.G())
-
-	beforeClones := eng.ClonesCount(m)
-	if err := engine.RunEngine2(m, eng); err != nil {
+	before, after, err := libkb.UpdateDeviceCloneState(&m)
+	if err != nil {
 		return err
 	}
-	newClones := eng.ClonesCount(m) - beforeClones
-	d.G().Log.Debug("deviceCloneSelfCheck: is there a new clone? %v", (newClones > 0))
+	newClones := after - before
+
+	d.G().Log.Debug("deviceCloneSelfCheck: is there a new clone? %v", newClones > 0)
 	if newClones > 0 {
-		d.G().Log.Debug("deviceCloneSelfCheck: notifying user %v -> %v restarts", beforeClones, newClones+beforeClones)
+		d.G().Log.Debug("deviceCloneSelfCheck: notifying user %v -> %v restarts", before, after)
 		d.G().NotifyRouter.HandleDeviceCloneNotification(newClones)
 	}
 	return nil
