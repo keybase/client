@@ -651,7 +651,7 @@ func (d *Service) hourlyChecks() {
 }
 
 func (d *Service) deviceCloneSelfCheck() error {
-	eng := engine.NewDeviceCloneTokenEngine(d.G())
+	eng := engine.NewDeviceCloneStateEngine(d.G())
 	m := libkb.NewMetaContextBackground(d.G())
 
 	beforeClones := eng.ClonesCount(m)

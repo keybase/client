@@ -9,13 +9,13 @@ const (
 	DefaultCloneTokenValue string = "00000000000000000000000000000000"
 )
 
-type DeviceCloneToken struct {
+type DeviceCloneState struct {
 	Prior  string
 	Stage  string
 	Clones int
 }
 
-func deviceCloneTokenPaths(un NormalizedUsername) (p, s, c string) {
+func configPaths(un NormalizedUsername) (p, s, c string) {
 	basePath := fmt.Sprintf("users.%s.device_clone_token", un)
 	p = fmt.Sprintf("%s.prior", basePath)
 	s = fmt.Sprintf("%s.stage", basePath)
@@ -23,16 +23,16 @@ func deviceCloneTokenPaths(un NormalizedUsername) (p, s, c string) {
 	return
 }
 
-func (f JSONConfigFile) GetDeviceCloneToken(un NormalizedUsername) DeviceCloneToken {
-	pPath, sPath, cPath := deviceCloneTokenPaths(un)
+func (f JSONConfigFile) GetDeviceCloneState(un NormalizedUsername) DeviceCloneState {
+	pPath, sPath, cPath := configPaths(un)
 	p, _ := f.GetStringAtPath(pPath)
 	s, _ := f.GetStringAtPath(sPath)
 	c, _ := f.GetIntAtPath(cPath)
-	return DeviceCloneToken{Prior: p, Stage: s, Clones: c}
+	return DeviceCloneState{Prior: p, Stage: s, Clones: c}
 }
 
-func (f *JSONConfigFile) SetDeviceCloneToken(un NormalizedUsername, d DeviceCloneToken) error {
-	pPath, sPath, cPath := deviceCloneTokenPaths(un)
+func (f *JSONConfigFile) SetDeviceCloneState(un NormalizedUsername, d DeviceCloneState) error {
+	pPath, sPath, cPath := configPaths(un)
 
 	err := f.SetStringAtPath(pPath, d.Prior)
 	if err == nil {

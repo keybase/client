@@ -1,7 +1,7 @@
 // Copyright 2018 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-// DeviceCloneToken creates a new token and sends it (along
+// DeviceCloneState creates a new token and sends it (along
 // with the previously created token) to the server in an effort
 // to identify possible cloning of devices.
 
@@ -14,49 +14,49 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-type DeviceCloneTokenEngine struct {
+type DeviceCloneStateEngine struct {
 	libkb.Contextified
 }
 
-// NewDeviceCloneTokenEngine creates a new DeviceCloneTokenEngine.
-func NewDeviceCloneTokenEngine(g *libkb.GlobalContext) *DeviceCloneTokenEngine {
-	return &DeviceCloneTokenEngine{Contextified: libkb.NewContextified(g)}
+// NewDeviceCloneStateEngine creates a new DeviceCloneStateEngine.
+func NewDeviceCloneStateEngine(g *libkb.GlobalContext) *DeviceCloneStateEngine {
+	return &DeviceCloneStateEngine{Contextified: libkb.NewContextified(g)}
 }
 
 // Name is the unique engine name.
-func (e *DeviceCloneTokenEngine) Name() string {
-	return "DeviceCloneTokenEngine"
+func (e *DeviceCloneStateEngine) Name() string {
+	return "DeviceCloneStateEngine"
 }
 
 // Prereqs returns the engine prereqs.
-func (e *DeviceCloneTokenEngine) Prereqs() Prereqs {
+func (e *DeviceCloneStateEngine) Prereqs() Prereqs {
 	return Prereqs{Device: true}
 }
 
 // RequiredUIs returns the required UIs. There are none.
-func (e *DeviceCloneTokenEngine) RequiredUIs() []libkb.UIKind {
+func (e *DeviceCloneStateEngine) RequiredUIs() []libkb.UIKind {
 	return nil
 }
 
 // SubConsumers returns the other UI consumers for this engine. There are none.
-func (e *DeviceCloneTokenEngine) SubConsumers() []libkb.UIConsumer {
+func (e *DeviceCloneStateEngine) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func (e *DeviceCloneTokenEngine) getToken(m libkb.MetaContext) libkb.DeviceCloneToken {
+func (e *DeviceCloneStateEngine) fetchState(m libkb.MetaContext) libkb.DeviceCloneState {
 	env := m.G().GetEnv()
 	un := env.GetUsername()
-	return env.GetConfig().GetDeviceCloneToken(un)
+	return env.GetConfig().GetDeviceCloneState(un)
 }
 
-func (e *DeviceCloneTokenEngine) persistToken(m libkb.MetaContext, d libkb.DeviceCloneToken) error {
+func (e *DeviceCloneStateEngine) persistState(m libkb.MetaContext, d libkb.DeviceCloneState) error {
 	env := m.G().GetEnv()
 	un := env.GetUsername()
-	return env.GetConfigWriter().SetDeviceCloneToken(un, d)
+	return env.GetConfigWriter().SetDeviceCloneState(un, d)
 }
 
-func (e *DeviceCloneTokenEngine) ClonesCount(m libkb.MetaContext) int {
-	count := e.getToken(m).Clones
+func (e *DeviceCloneStateEngine) ClonesCount(m libkb.MetaContext) int {
+	count := e.fetchState(m).Clones
 	if count < 1 {
 		count = 1
 	}
@@ -64,8 +64,8 @@ func (e *DeviceCloneTokenEngine) ClonesCount(m libkb.MetaContext) int {
 }
 
 // Run starts the engine.
-func (e *DeviceCloneTokenEngine) Run(m libkb.MetaContext) error {
-	d := e.getToken(m)
+func (e *DeviceCloneStateEngine) Run(m libkb.MetaContext) error {
+	d := e.fetchState(m)
 	p, s := d.Prior, d.Stage
 	if p == "" {
 		//first run
@@ -75,8 +75,8 @@ func (e *DeviceCloneTokenEngine) Run(m libkb.MetaContext) error {
 		buf := make([]byte, 16)
 		rand.Read(buf)
 		s = hex.EncodeToString(buf)
-		tmp := libkb.DeviceCloneToken{Prior: p, Stage: s, Clones: d.Clones}
-		err := e.persistToken(m, tmp)
+		tmp := libkb.DeviceCloneState{Prior: p, Stage: s, Clones: d.Clones}
+		err := e.persistState(m, tmp)
 		if err != nil {
 			return err
 		}
@@ -106,6 +106,6 @@ func (e *DeviceCloneTokenEngine) Run(m libkb.MetaContext) error {
 	if err != nil {
 		return err
 	}
-	tmp := libkb.DeviceCloneToken{Prior: persistedToken, Stage: "", Clones: clones}
-	return e.persistToken(m, tmp)
+	tmp := libkb.DeviceCloneState{Prior: persistedToken, Stage: "", Clones: clones}
+	return e.persistState(m, tmp)
 }

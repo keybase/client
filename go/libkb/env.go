@@ -101,8 +101,8 @@ func (n NullConfiguration) GetSlowGregorConn() (bool, bool)                 { re
 func (n NullConfiguration) GetRememberPassphrase() (bool, bool)             { return false, false }
 func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                 { return 0, false }
 func (n NullConfiguration) GetChatInboxSourceLocalizeThreads() (int, bool)  { return 1, false }
-func (n NullConfiguration) GetDeviceCloneToken(NormalizedUsername) DeviceCloneToken {
-	return DeviceCloneToken{Prior: "", Stage: "", Clones: 1}
+func (n NullConfiguration) GetDeviceCloneState(NormalizedUsername) DeviceCloneState {
+	return DeviceCloneState{Prior: "", Stage: "", Clones: 1}
 }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
