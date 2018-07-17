@@ -25,6 +25,8 @@ type baseConversationSource struct {
 
 	boxer *Boxer
 	ri    func() chat1.RemoteInterface
+
+	blackoutPullForTesting bool
 }
 
 func newBaseConversationSource(g *globals.Context, ri func() chat1.RemoteInterface, boxer *Boxer) *baseConversationSource {
@@ -78,6 +80,12 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	// TODO: We'll do this against what's in the cache once that's ready,
 	//       rather than only checking the messages we just fetched against
 	//       each other.
+
+	if s.blackoutPullForTesting {
+		thread.Messages = nil
+		return nil
+	}
+
 	if checkPrev {
 		_, _, err = CheckPrevPointersAndGetUnpreved(thread)
 		if err != nil {
@@ -449,8 +457,6 @@ type HybridConversationSource struct {
 	numExpungeReload int
 	storage          *storage.Storage
 	lockTab          *conversationLockTab
-
-	blackoutPullForTesting bool
 }
 
 var _ types.ConversationSource = (*HybridConversationSource)(nil)
@@ -739,9 +745,6 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, true, true); err != nil {
 				return thread, err
 			}
-			if s.blackoutPullForTesting {
-				thread.Messages = nil
-			}
 			return thread, nil
 		}
 		s.Debug(ctx, "Pull: cache miss: err: %s", err.Error())
@@ -787,9 +790,6 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	// Run post process stuff
 	if err = s.postProcessThread(ctx, uid, unboxConv, &thread, query, nil, true, true); err != nil {
 		return thread, err
-	}
-	if s.blackoutPullForTesting {
-		thread.Messages = nil
 	}
 	return thread, nil
 }
