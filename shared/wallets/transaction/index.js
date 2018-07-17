@@ -211,24 +211,20 @@ export const Timestamp = (props: TimestampProps) => {
 }
 
 export type Props = {|
-  large: boolean,
-
-  // whether account balance has increased or decreased
-  delta: 'increase' | 'decrease',
-
-  // A null timestamp means the transaction is still pending.
-  timestamp: Date | null,
-
-  yourRole: Role,
-  counterparty: string,
-  counterpartyType: Types.CounterpartyType,
   amountUser: string, // empty if sent with no display currency
   amountXLM: string,
-
+  counterparty: string,
+  counterpartyType: Types.CounterpartyType,
+  // whether account balance has increased or decreased
+  delta: 'increase' | 'decrease',
+  large: boolean,
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
   memo: string,
-  onSelectTransaction?: () => void,
+  // A null timestamp means the transaction is still pending.
+  timestamp: Date | null,
+  onSelectTransaction: () => void,
+  yourRole: Role,
 |}
 
 export const Transaction = (props: Props) => {

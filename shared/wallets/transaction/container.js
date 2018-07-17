@@ -10,16 +10,13 @@ export type OwnProps = {
   paymentID: string,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  console.warn('in mstp', ownProps, ownProps.paymentID)
-  return {
-    _transaction: Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
-    _you: state.config.username,
-  }
-}
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+  _transaction: Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
+  _you: state.config.username,
+})
+
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onSelectTransaction: (paymentID: string, accountID: Types.AccountID) => {
-    console.warn('in sel', accountID, paymentID)
+  _onSelectTransaction: (paymentID: string, accountID: Types.AccountID) =>
     dispatch(
       navigateAppend([
         {
@@ -27,26 +24,24 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
           selected: 'transactionDetails',
         },
       ])
-    )
-  },
+    ),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  console.warn('ownProps', ownProps)
   const tx = stateProps._transaction
   const yourRole = Constants.paymentToYourRole(tx, stateProps._you || '')
   const counterpartyType = Constants.paymentToCounterpartyType(tx)
   return {
-    timestamp: tx.time,
-    delta: tx.delta,
-    yourRole,
-    counterparty: yourRole === 'sender' ? tx.target : tx.source,
-    counterpartyType,
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
-    memo: tx.note,
+    counterparty: yourRole === 'sender' ? tx.target : tx.source,
+    counterpartyType,
+    delta: tx.delta,
     large: counterpartyType !== 'wallet',
+    memo: tx.note,
     onSelectTransaction: () => dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID),
+    timestamp: tx.time,
+    yourRole,
   }
 }
 

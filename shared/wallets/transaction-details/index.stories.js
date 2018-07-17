@@ -34,9 +34,9 @@ const load = () => {
         amountXLM="53.1688643 XLM"
         yourRole="sender"
         memo={memo}
-        navigateAppend={action('navigateAppend')}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
+        onLoadPaymentDetail={action('onLoadPaymentDetail')}
         onViewTransaction={action('onViewTransaction')}
         you="cjb"
       />
@@ -50,9 +50,9 @@ const load = () => {
         amountXLM="42.535091 XLM"
         yourRole="sender"
         memo={memo}
-        navigateAppend={action('navigateAppend')}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
+        onLoadPaymentDetail={action('onLoadPaymentDetail')}
         onViewTransaction={action('onViewTransaction')}
         you="cjb"
       />
@@ -67,9 +67,9 @@ const load = () => {
         amountXLM="53.1688643 XLM"
         yourRole="sender"
         memo={memo}
-        navigateAppend={action('navigateAppend')}
         timestamp={null}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
+        onLoadPaymentDetail={action('onLoadPaymentDetail')}
         onViewTransaction={action('onViewTransaction')}
         you="cjb"
       />
@@ -84,10 +84,10 @@ const load = () => {
         amountXLM="53.1688643 XLM"
         yourRole="receiver"
         memo={memo}
-        navigateAppend={action('navigateAppend')}
         publicMemo="Foo bar"
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
+        onLoadPaymentDetail={action('onLoadPaymentDetail')}
         onViewTransaction={action('onViewTransaction')}
         you="cjb"
       />
@@ -98,11 +98,11 @@ const load = () => {
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
         delta="increase"
-        navigateAppend={action('navigateAppend')}
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
         yourRole="receiver"
         memo={memo}
+        onLoadPaymentDetail={action('onLoadPaymentDetail')}
         timestamp={null}
         you="cjb"
       />
@@ -114,11 +114,11 @@ const load = () => {
         delta="increase"
         amountUser="$100"
         amountXLM="545.2562704 XLM"
-        navigateAppend={action('navigateAppend')}
         yourRole="receiver"
         memo={memo}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
+        onLoadPaymentDetail={action('onLoadPaymentDetail')}
         onViewTransaction={action('onViewTransaction')}
         you="cjb"
       />

@@ -17,6 +17,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.assetsReceived:
       return state.setIn(['assetsMap', action.payload.accountID], I.List(action.payload.assets))
     case WalletsGen.paymentDetailReceived:
+      // $FlowIssue state.updateIn not found?
       return state.updateIn(['paymentsMap', action.payload.accountID], payments =>
         payments.update(payments.findIndex(p => p.id === action.payload.paymentID), payment =>
           payment.merge({
@@ -92,6 +93,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.exportSecretKey:
     case WalletsGen.linkExistingAccount:
     case WalletsGen.loadAssets:
+    case WalletsGen.loadPaymentDetail:
     case WalletsGen.loadPayments:
     case WalletsGen.loadAccounts:
       return state

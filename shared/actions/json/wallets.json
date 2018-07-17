@@ -1,6 +1,7 @@
 {
   "prelude": [
     "import * as Types from '../constants/types/wallets'",
+    "import * as StellarRPCTypes from '../constants/types/rpc-stellar-gen'",
     "import HiddenString from '../util/hidden-string'",
   ],
   "actions": {
@@ -31,12 +32,12 @@
     "loadPaymentDetail": {
       "_description": "Load extra detail for one given payment",
       "accountID": "Types.AccountID",
-      "paymentID": "Types.PaymentID",
+      "paymentID": "StellarRPCTypes.PaymentID",
     },
     "paymentDetailReceived": {
       "_description": "Update a payment with additional detail",
       "accountID": "Types.AccountID",
-      "paymentID": "Types.PaymentID",
+      "paymentID": "StellarRPCTypes.PaymentID",
       "publicNote": "string",
       "publicNoteType": "string",
       "txID": "string",
@@ -54,10 +55,6 @@
     "secretKeySeen": {
       "_description": "Clear exported secret keys from our store once they've been seen",
       "accountID": "Types.AccountID",
-    },
-    "accountsReceived": {
-      "_description": "Update our store of account data",
-      "accounts": "Array<Types.Account>",
     },
     "selectAccount": {
       "_description": "Select an account. Optionally navigate to the account page.",

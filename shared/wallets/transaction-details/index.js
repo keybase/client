@@ -17,8 +17,8 @@ export type Props = {|
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
   memo: string,
-  navigateAppend: (...Array<any>) => any,
-  onLoadTransactionDetail?: () => void,
+  onLoadPaymentDetail: () => void,
+  onViewTransaction?: () => void,
   publicMemo?: string,
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
@@ -92,6 +92,7 @@ export default class extends React.Component<Props> {
           delta={this.props.delta}
           large={true}
           memo={this.props.memo}
+          onSelectTransaction={() => {}}
           timestamp={this.props.timestamp}
           yourRole={this.props.yourRole}
         />

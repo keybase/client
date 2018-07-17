@@ -5,6 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/wallets'
+import * as StellarRPCTypes from '../constants/types/rpc-stellar-gen'
 import HiddenString from '../util/hidden-string'
 
 // Constants
@@ -51,12 +52,12 @@ type _LoadAccountsPayload = void
 type _LoadAssetsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadPaymentDetailPayload = $ReadOnly<{|
   accountID: Types.AccountID,
-  paymentID: Types.PaymentID,
+  paymentID: StellarRPCTypes.PaymentID,
 |}>
 type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _PaymentDetailReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
-  paymentID: Types.PaymentID,
+  paymentID: StellarRPCTypes.PaymentID,
   publicNote: string,
   publicNoteType: string,
   txID: string,

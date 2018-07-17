@@ -1,6 +1,5 @@
 // @flow
 import * as I from 'immutable'
-import * as StellarRPCTypes from './rpc-stellar-gen'
 import HiddenString from '../../util/hidden-string'
 
 // Possible 'types' of things you can send or receive transactions with
@@ -52,11 +51,11 @@ export type _Payment = {
   amountDescription: string,
   delta: 'none' | 'increase' | 'decrease',
   error: ?string,
-  id: ?StellarRPCTypes.PaymentID,
+  id: any, // This type is opaque; we just store and forward it, it may change.
   note: string,
   noteErr: string,
-  publicNote: string,
-  publicNoteType: string,
+  publicMemo: string,
+  publicMemoType: string,
   source: string,
   sourceType: string,
   statusSimplified: 'none' | 'pending' | 'claimable' | 'completed' | 'error' | 'unknown',
