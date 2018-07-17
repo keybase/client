@@ -33,18 +33,16 @@ export type RouteState = I.RecordOf<{
 
 export type Props = {
   children?: React$Element<any>,
+  focusFilter: () => void, // withStateHandler function
   filter: string,
   filterFocusCount: number,
   isLoading: boolean,
   nowOverride?: number, // just for dumb rendering
   onNewChat: () => void,
-  onSelectUp: () => void,
-  onSelectDown: () => void,
-  onHotkey: (cmd: string) => void,
-  onSetFilter: (filter: string) => void,
   onUntrustedInboxVisible: (conversationIDKeys: Array<ConversationIDKey>) => void,
   rows: Array<RowItem>,
   showBuildATeam: boolean,
+  showNewChat: boolean,
   showNewConversation: boolean,
   showSmallTeamsExpandDivider: boolean,
   smallTeamsExpanded: boolean,
