@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import {action, createPropProvider, storiesOf, Rnd} from '../../../../stories/storybook'
 import {Common} from '../../../../stories/prop-providers'
@@ -10,7 +11,7 @@ import ReactionTooltip from '.'
 const provider = createPropProvider(Common(), ReactButton)
 
 const common = {
-  conversationIDKey: Types.stringToConversationIDKey(''),
+  conversationIDKey: Constants.noConversationIDKey,
   onAddReaction: action('onAddReaction'),
   onHidden: action('onHidden'),
   onReact: action('onReact'),

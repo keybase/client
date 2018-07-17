@@ -1884,6 +1884,7 @@ type serverChatListener struct {
 	teamType                chan chat1.TeamTypeInfo
 	expunge                 chan chat1.ExpungeInfo
 	ephemeralPurge          chan chat1.EphemeralPurgeNotifInfo
+	reactionDelete          chan chat1.ReactionDeleteNotif
 
 	threadsStale     chan []chat1.ConversationStaleUpdate
 	inboxStale       chan struct{}
@@ -1931,6 +1932,8 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.expunge <- activity.Expunge()
 	case chat1.ChatActivityType_EPHEMERAL_PURGE:
 		n.ephemeralPurge <- activity.EphemeralPurge()
+	case chat1.ChatActivityType_REACTION_DELETE:
+		n.reactionDelete <- activity.ReactionDelete()
 	}
 }
 func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, convID chat1.ConversationID,
@@ -1968,6 +1971,7 @@ func newServerChatListener() *serverChatListener {
 		teamType:                make(chan chat1.TeamTypeInfo, buf),
 		expunge:                 make(chan chat1.ExpungeInfo, buf),
 		ephemeralPurge:          make(chan chat1.EphemeralPurgeNotifInfo, buf),
+		reactionDelete:          make(chan chat1.ReactionDeleteNotif, buf),
 
 		threadsStale:     make(chan []chat1.ConversationStaleUpdate, buf),
 		inboxStale:       make(chan struct{}, buf),
@@ -1994,6 +1998,9 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			listener := newServerChatListener()
 			ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
 			ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+			if ephemeralLifetime != nil {
+				tc.m.G().GetUPAKLoader().ClearMemory()
+			}
 
 			assertEphemeral := func(ephemeralLifetime *gregor1.DurationSec, unboxed chat1.UIMessage) {
 				valid := unboxed.Valid()
@@ -2100,13 +2107,14 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			textUnboxed := unboxed
 
 			t.Logf("react to the message")
-			// An ephemeralLifetime is added if we are editing an ephemeral message
+			// An ephemeralLifetime is added if we are reacting to an ephemeral message
+			reactionKey := ":+1:"
 			rarg := chat1.PostReactionNonblockArg{
 				ConversationID:   created.Id,
 				TlfName:          created.TlfName,
 				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
 				Supersedes:       textUnboxed.GetMessageID(),
-				Body:             ":+1:",
+				Body:             reactionKey,
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			}
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostReactionNonblock(tc.startCtx, rarg)
@@ -2123,6 +2131,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				require.Fail(t, "no event received")
 			}
 			consumeNewMsg(t, listener, chat1.MessageType_REACTION)
+			reactionUnboxed := unboxed
 
 			t.Logf("edit the message")
 			// An ephemeralLifetime is added if we are editing an ephemeral message
@@ -2165,6 +2174,14 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				require.Fail(t, "no event received")
 			}
 			consumeNewMsg(t, listener, chat1.MessageType_DELETE)
+			// Make sure we get the ReactionDelete notify as well.
+			info := consumeReactionDelete(t, listener)
+			require.Equal(t, info.ConvID, created.Id)
+			require.Len(t, info.ReactionDeletes, 1)
+			reactionDelete := info.ReactionDeletes[0]
+			require.Equal(t, reactionUnboxed.GetMessageID(), reactionDelete.ReactionMsgID)
+			require.Equal(t, textUnboxed.GetMessageID(), reactionDelete.TargetMsgID)
+			require.Equal(t, reactionKey, reactionDelete.ReactionKey)
 
 			t.Logf("delete the message")
 			darg := chat1.PostDeleteNonblockArg{
@@ -3266,6 +3283,16 @@ func consumeEphemeralPurge(t *testing.T, listener *serverChatListener) chat1.Eph
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "failed to get ephemeralPurge notification")
 		return chat1.EphemeralPurgeNotifInfo{}
+	}
+}
+
+func consumeReactionDelete(t *testing.T, listener *serverChatListener) chat1.ReactionDeleteNotif {
+	select {
+	case x := <-listener.reactionDelete:
+		return x
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "failed to get reactionDelete notification")
+		return chat1.ReactionDeleteNotif{}
 	}
 }
 
