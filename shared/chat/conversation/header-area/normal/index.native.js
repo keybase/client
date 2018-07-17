@@ -28,7 +28,7 @@ const Wrapper = (props: {
 }) => (
   <Box2 direction="horizontal" style={styles.container}>
     <ClickableBox onClick={props.onBack} style={styles.leftMargin}>
-      <Icon type="iconfont-arrow-left" fontSize={24} color={globalColors.blue} />
+      <Icon type="iconfont-arrow-left" fontSize={24} color={globalColors.black_40} />
       {!!props.badgeNumber && <Badge badgeNumber={props.badgeNumber} badgeStyle={styles.badge} />}
     </ClickableBox>
     <Box2

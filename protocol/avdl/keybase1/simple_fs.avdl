@@ -346,4 +346,21 @@ protocol SimpleFS {
   // notifications such as any differential nature of the data between
   // different notifications.
   void simpleFSSuppressNotifications(int suppressDurationSec);
+
+
+  record SimpleFSQuotaUsage {
+    int64 usageBytes;
+    int64 archiveBytes;
+    int64 limitBytes;
+    int64 gitUsageBytes;
+    int64 gitArchiveBytes;
+    int64 gitLimitBytes;
+  }
+
+  /**
+   simpleFSGetUserQuotaUsage returns the quota usage for the logged-in
+   user.  It results in an RPC to the server, and any usage includes
+   local journal usage as well.
+   */
+  SimpleFSQuotaUsage simpleFSGetUserQuotaUsage();
 }
