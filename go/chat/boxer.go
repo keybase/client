@@ -846,6 +846,8 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 	atMentions, atMentionUsernames, chanMention, channelNameMentions :=
 		b.getAtMentionInfo(ctx, clientHeader.Conv.Tlfid, membersType, body)
 
+	clientHeader.HasPairwiseMacs = len(boxed.ClientHeader.PairwiseMacs) > 0
+
 	// create an unboxed message
 	return &chat1.MessageUnboxedValid{
 		ClientHeader:          clientHeader,
@@ -891,10 +893,6 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, serverHeader *chat1.Mes
 			return chat1.MessageClientHeaderVerified{}, nil,
 				NewPermanentUnboxingError(fmt.Errorf("HeaderSignature non-nil in MBV2"))
 		}
-		hasPairwiseMacs := false
-		if hp.HasPairwiseMacs != nil {
-			hasPairwiseMacs = *hp.HasPairwiseMacs
-		}
 		return chat1.MessageClientHeaderVerified{
 			Conv:              hp.Conv,
 			TlfName:           hp.TlfName,
@@ -909,7 +907,6 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, serverHeader *chat1.Mes
 			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
 			EphemeralMetadata: hp.EphemeralMetadata,
 			Rtime:             rtime,
-			HasPairwiseMacs:   hasPairwiseMacs,
 		}, hp.BodyHash, nil
 	// NOTE: When adding new versions here, you must also update
 	// chat1/extras.go so MessageUnboxedError.ParseableVersion understands the
@@ -1597,7 +1594,6 @@ func (b *Boxer) boxV2orV3orV4(ctx context.Context, messagePlaintext chat1.Messag
 	}
 
 	// create the v1 header, adding hash
-	usePairwiseMacs := len(pairwiseMACRecipients) > 0
 	headerVersioned := chat1.NewHeaderPlaintextWithV1(chat1.HeaderPlaintextV1{
 		Conv:              messagePlaintext.ClientHeader.Conv,
 		TlfName:           messagePlaintext.ClientHeader.TlfName,
@@ -1614,7 +1610,6 @@ func (b *Boxer) boxV2orV3orV4(ctx context.Context, messagePlaintext chat1.Messag
 		EphemeralMetadata: messagePlaintext.ClientHeader.EphemeralMetadata,
 		// In MessageBoxed.V2 HeaderSignature is nil.
 		HeaderSignature: nil,
-		HasPairwiseMacs: &usePairwiseMacs,
 	})
 
 	// signencrypt the header
@@ -1630,7 +1625,7 @@ func (b *Boxer) boxV2orV3orV4(ctx context.Context, messagePlaintext chat1.Messag
 	// signing key or similar. Signing with a real key and also MAC'ing is
 	// redundant, but it will let us test the MAC code in prod in a backwards
 	// compatible way.
-	if usePairwiseMacs {
+	if len(pairwiseMACRecipients) > 0 {
 		pairwiseMACs, err := b.makeAllPairwiseMACs(ctx, headerSealed, pairwiseMACRecipients)
 		if err != nil {
 			return nil, err

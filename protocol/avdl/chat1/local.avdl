@@ -292,11 +292,6 @@ protocol local {
     // This is the only difference between V2 and V3.
     @mpackkey("em") @jsonkey("em")
     union { null, MsgEphemeralMetadata } ephemeralMetadata;
-
-    // Whether or not the message was signed using pairwise MACs. Only valid
-    // for V4 where pairwise MACs are used for exploding messages.
-    @mpackkey("pm") @jsonkey("pm")
-    union { null, boolean } hasPairwiseMacs;
   }
 
   // HeaderPlaintext is a variant container for all the

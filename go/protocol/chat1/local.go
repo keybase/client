@@ -1522,7 +1522,6 @@ type HeaderPlaintextV1 struct {
 	HeaderSignature   *SignatureInfo           `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
 	MerkleRoot        *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
 	EphemeralMetadata *MsgEphemeralMetadata    `codec:"em,omitempty" json:"em,omitempty"`
-	HasPairwiseMacs   *bool                    `codec:"pm,omitempty" json:"pm,omitempty"`
 }
 
 func (o HeaderPlaintextV1) DeepCopy() HeaderPlaintextV1 {
@@ -1587,13 +1586,6 @@ func (o HeaderPlaintextV1) DeepCopy() HeaderPlaintextV1 {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.EphemeralMetadata),
-		HasPairwiseMacs: (func(x *bool) *bool {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x)
-			return &tmp
-		})(o.HasPairwiseMacs),
 	}
 }
 

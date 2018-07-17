@@ -245,6 +245,7 @@ func TestChatMessageUnboxWithPairwiseMacs(t *testing.T) {
 	unboxed, err := boxer.unbox(context.TODO(), *boxed, chat1.ConversationMembersType_TEAM, key, nil)
 	require.NoError(t, err)
 
+	require.True(t, unboxed.ClientHeader.HasPairwiseMacs)
 	body := unboxed.MessageBody
 	typ, err := body.MessageType()
 	require.NoError(t, err)
@@ -389,6 +390,7 @@ func TestChatMessageUnboxWithPairwiseMacsV4DummySigner(t *testing.T) {
 	unboxed, err := boxer.unbox(context.TODO(), *boxed, chat1.ConversationMembersType_TEAM, key, nil)
 	require.NoError(t, err)
 
+	require.True(t, unboxed.ClientHeader.HasPairwiseMacs)
 	body := unboxed.MessageBody
 	typ, err := body.MessageType()
 	require.NoError(t, err)

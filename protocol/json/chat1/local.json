@@ -889,15 +889,6 @@
           "name": "ephemeralMetadata",
           "mpackkey": "em",
           "jsonkey": "em"
-        },
-        {
-          "type": [
-            null,
-            "boolean"
-          ],
-          "name": "hasPairwiseMacs",
-          "mpackkey": "pm",
-          "jsonkey": "pm"
         }
       ]
     },
