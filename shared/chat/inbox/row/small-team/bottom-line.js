@@ -148,8 +148,8 @@ class BottomLine extends PureComponent<Props> {
               {snippetDecoration}
             </Box2>
           )}
-          {!!exploded &&
-            this.props.snippet && (
+          {!exploded &&
+            !!this.props.snippet && (
               <Markdown preview={true} style={style}>
                 {this.props.snippet}
               </Markdown>
