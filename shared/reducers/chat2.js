@@ -618,12 +618,12 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       return state.set('typingMap', action.payload.conversationToTypers)
     }
     case Chat2Gen.messageWasReactedTo: {
-      const {conversationIDKey, emoji, messageID, sender} = action.payload
+      const {conversationIDKey, emoji, reactionMsgID, sender, targetMsgID} = action.payload
       const ordinal = messageIDToOrdinal(
         state.messageMap,
         state.pendingOutboxToOrdinal,
         conversationIDKey,
-        messageID
+        targetMsgID
       )
       if (!ordinal) {
         return state
@@ -638,7 +638,12 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             if (!reactions.get(emoji)) {
               reactions = reactions.set(emoji, I.Set())
             }
-            reactions = reactions.update(emoji, I.Set(), rs => rs.add(Constants.makeReaction()))
+            reactions = reactions.update(emoji, I.Set(), rs =>
+              rs.add(
+                Constants.makeReaction({messageID: Types.numberToMessageID(reactionMsgID), username: sender})
+              )
+            )
+            return message.set('reactions', reactions)
           })
         })
       )

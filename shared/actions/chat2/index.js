@@ -321,13 +321,18 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
           }
           break
         case RPCChatTypes.commonMessageType.reaction: {
+          console.log('DANNYDEBUG', body, valid)
           if (body.reaction) {
+            // body.reaction.messageID is the id of the message this is reacting to
+            // valid.messageID is the id of this reaction message
+            // we keep valid.messageID for easy lookups on receiving a toggle-off notification
             actions.push(
               Chat2Gen.createMessageWasReactedTo({
                 conversationIDKey,
                 emoji: body.reaction.body,
-                messageID: body.reaction.messageID,
+                reactionMsgID: valid.messageID,
                 sender: valid.senderUsername,
+                targetMsgID: body.reaction.messageID,
               })
             )
           } else {

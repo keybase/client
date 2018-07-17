@@ -249,8 +249,9 @@
       "_description": "A reaction was added to a message",
       "conversationIDKey": "Types.ConversationIDKey",
       "emoji": "string",
-      "messageID": "RPCChatTypes.MessageID",
-      "sender": "string"
+      "reactionMsgID": "RPCChatTypes.MessageID",
+      "sender": "string",
+      "targetMsgID": "RPCChatTypes.MessageID"
     },
     // Resend a message
     "messageRetry": {

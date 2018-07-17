@@ -234,7 +234,7 @@ const makeMessageSetChannelname: I.RecordFactory<MessageTypes._MessageSetChannel
   type: 'setChannelname',
 })
 
-const makeReaction: I.RecordFactory<MessageTypes._Reaction> = I.Record({
+export const makeReaction: I.RecordFactory<MessageTypes._Reaction> = I.Record({
   messageID: Types.numberToMessageID(0),
   username: '',
 })

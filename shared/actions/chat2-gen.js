@@ -204,8 +204,9 @@ type _MessageWasEditedPayload = $ReadOnly<{|
 type _MessageWasReactedToPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   emoji: string,
-  messageID: RPCChatTypes.MessageID,
+  reactionMsgID: RPCChatTypes.MessageID,
   sender: string,
+  targetMsgID: RPCChatTypes.MessageID,
 |}>
 type _MessagesAddPayload = $ReadOnly<{|
   context: {type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey},
