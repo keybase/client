@@ -28,8 +28,8 @@ func NewTwitterChecker(p libkb.RemoteProofChainLink) (*TwitterChecker, libkb.Pro
 
 func (rc *TwitterChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *TwitterChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) libkb.ProofError {
-	return CheckProofPvl(ctx, keybase1.ProofType_TWITTER, rc.proof, h, pvlU)
+func (rc *TwitterChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) libkb.ProofError {
+	return CheckProofPvl(m, keybase1.ProofType_TWITTER, rc.proof, h, pvlU)
 }
 
 //
@@ -48,7 +48,7 @@ func (t TwitterServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t TwitterServiceType) NormalizeRemoteName(ctx libkb.ProofContext, s string) (string, error) {
+func (t TwitterServiceType) NormalizeRemoteName(m libkb.MetaContext, s string) (string, error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)
