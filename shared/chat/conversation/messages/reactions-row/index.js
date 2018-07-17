@@ -11,18 +11,19 @@ export type Props = {
   ordinal: Types.Ordinal,
 }
 
-const ReactionsRow = (props: Props) => (
-  <Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.container}>
-    {props.emojis.map(emoji => (
-      <ReactButton
-        key={emoji}
-        conversationIDKey={props.conversationIDKey}
-        emoji={emoji}
-        ordinal={props.ordinal}
-      />
-    ))}
-  </Box2>
-)
+const ReactionsRow = (props: Props) =>
+  props.emojis.length === 0 ? null : (
+    <Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.container}>
+      {props.emojis.map(emoji => (
+        <ReactButton
+          key={emoji}
+          conversationIDKey={props.conversationIDKey}
+          emoji={emoji}
+          ordinal={props.ordinal}
+        />
+      ))}
+    </Box2>
+  )
 
 const styles = styleSheetCreate({
   container: {
