@@ -1,5 +1,4 @@
 // @flow
-import logger from '../../logger'
 import * as React from 'react'
 import {
   Avatar,
@@ -15,25 +14,10 @@ import {
   NativeImage,
 } from '../../common-adapters/mobile.native'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
-import {Linking, StyleSheet, NativeModules} from 'react-native'
 import type {MobileProps, ContactRowProps} from './index'
 import {type TeamRoleType} from '../../constants/types/teams'
-import {isAndroid} from '../../constants/platform'
+import {openAppSettings} from '../../actions/platform-specific.native'
 
-const settingsURL = 'app-settings:'
-const openSettings = () => {
-  if (isAndroid) {
-    NativeModules.NativeSettings.open()
-  } else {
-    Linking.canOpenURL(settingsURL).then(can => {
-      if (can) {
-        Linking.openURL(settingsURL)
-      } else {
-        logger.warn('Invite contacts: Unable to open app settings')
-      }
-    })
-  }
-}
 const AccessDenied = () => (
   <Box
     style={{
@@ -60,7 +44,7 @@ const AccessDenied = () => (
         To fix this, please open Settings > Keybase and check off 'Allow Keybase to access Contacts'.
       </Text>
       <ButtonBar>
-        <Button type="Primary" label="Open settings" onClick={openSettings} />
+        <Button type="Primary" label="Open settings" onClick={openAppSettings} />
       </ButtonBar>
     </Box>
   </Box>

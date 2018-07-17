@@ -260,7 +260,18 @@ function configurePush() {
 }
 
 function openAppSettings() {
-  Linking.openURL('app-settings:')
+  if (isAndroid) {
+    NativeModules.NativeSettings.open()
+  } else {
+    const settingsURL = 'app-settings:'
+    Linking.canOpenURL(settingsURL).then(can => {
+      if (can) {
+        Linking.openURL(settingsURL)
+      } else {
+        logger.warn('Unable to open app settings')
+      }
+    })
+  }
 }
 
 const getContentTypeFromURL = (
