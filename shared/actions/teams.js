@@ -91,9 +91,7 @@ const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
   const state: TypedState = yield Saga.select()
   const ids = SearchConstants.getUserInputItemIds(state, {searchKey: 'addToTeamSearch'})
   logger.info(`Adding ${ids.length} people to ${teamname}`)
-  for (const id of ids) {
-    logger.info(`Adding ${id}`)
-  }
+  logger.info(`Adding ${ids.join(',')}`)
   try {
     yield Saga.call(RPCTypes.teamsTeamAddMembersRpcPromise, {
       name: teamname,
