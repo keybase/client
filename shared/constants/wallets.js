@@ -73,7 +73,7 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   amountDescription: '',
   delta: 'none',
   error: '',
-  id: null,
+  id: {txID: ''},
   note: '',
   noteErr: '',
   publicMemo: '',
