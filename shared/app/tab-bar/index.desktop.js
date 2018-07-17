@@ -79,7 +79,6 @@ const stylesTabBar = {
   paddingBottom: globalMargins.tiny,
   paddingTop: globalMargins.small,
   width: 80,
-  height: '100%',
 }
 
 const stylesTabButton = {
