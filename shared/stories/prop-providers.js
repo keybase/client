@@ -5,7 +5,7 @@ import * as _Usernames from '../common-adapters/usernames'
 import * as _WaitingButton from '../common-adapters/waiting-button'
 import * as _TeamDropdownMenu from '../chat/conversation/info-panel/menu/container'
 
-/**
+/*
  * Some common prop factory creators.
  *
  *  Params: specific pieces of data (not necessarily store data)
