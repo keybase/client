@@ -21,7 +21,7 @@ const uploadedSrc = /https?:\/\/127.0.0.1:.*$/i
 const NO_TRANSFORM = 'notransform'
 const _cacheNoTransforms: {[src: string]: string} = {}
 
-// Define transformation functions to operate on canvas elements
+// Define transformatin functions to operate on canvas elements
 //
 // 1: rotate 0 deg left
 // 2: flip horizontally
@@ -122,7 +122,7 @@ class OrientedImage extends React.Component<Props, State> {
       logger.warn(`Invalid orientation value for desktop image attachment: orientation=${orientation}`)
       return ''
     }
-    // Apply transformation to canvas
+    // Appy transformation to canvas
     transformFn(canvas, ctx, width, height)
 
     ctx.drawImage(img, 0, 0)
@@ -190,6 +190,7 @@ class OrientedImage extends React.Component<Props, State> {
   // Mark this image path as no transform and set the ImageComponent src to the original source
   _handleOrientationFailure = () => {
     _cacheNoTransforms[this.props.src] = NO_TRANSFORM
+    logger.info(`OrientedImage failed to read EXIF data for image src: ${this.props.src}`)
     this.setState({srcTransformed: this.props.src})
   }
 
@@ -198,7 +199,7 @@ class OrientedImage extends React.Component<Props, State> {
 
     // This image either cannot be transofrmed or does not have an EXIF orientation flag
     if (_cacheNoTransforms[this.props.src] === NO_TRANSFORM) {
-      this._handleOrientationFailure()
+      this.setState({srcTransformed: this.props.src})
     }
 
     // Uploaded file served from Keybase service
@@ -232,7 +233,7 @@ class OrientedImage extends React.Component<Props, State> {
 
   componentDidUpdate(prevProps: Props, prevState: State) {
     // New src requires changing EXIF transform
-    if (prevProps && prevProps.src !== this.props.src) {
+    if (prevProps.src !== this.props.src) {
       this._setTranformForExifOrientation()
     }
   }
