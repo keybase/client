@@ -1250,6 +1250,7 @@ func (s *Server) GetRequestDetailsLocal(ctx context.Context, reqID stellar1.Keyb
 		Currency:        details.Currency,
 		Completed:       !details.FundingKbTxID.IsNil(),
 		FundingKbTxID:   details.FundingKbTxID,
+		Status:          details.Status,
 	}
 
 	if details.ToUser != nil {
@@ -1306,6 +1307,19 @@ func (s *Server) GetRequestDetailsLocal(ctx context.Context, reqID stellar1.Keyb
 	}
 
 	return res, nil
+}
+
+func (s *Server) CancelRequestLocal(ctx context.Context, reqID stellar1.KeybaseRequestID) (err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName: "CancelRequestLocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+
+	return s.remoter.CancelRequest(ctx, reqID)
 }
 
 // Subtract a 100 stroop fee from the available balance.

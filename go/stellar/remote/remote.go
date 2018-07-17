@@ -573,3 +573,16 @@ func RequestDetails(ctx context.Context, g *libkb.GlobalContext, requestID stell
 	}
 	return res.Request, nil
 }
+
+func CancelRequest(ctx context.Context, g *libkb.GlobalContext, requestID stellar1.KeybaseRequestID) (err error) {
+	payload := make(libkb.JSONPayload)
+	payload["id"] = requestID
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/cancelrequest",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+		NetContext:  ctx,
+	}
+	var res libkb.AppStatusEmbed
+	return g.API.PostDecode(apiArg, &res)
+}

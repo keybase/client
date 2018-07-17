@@ -19,6 +19,16 @@ func (o PaymentStatusMsg) DeepCopy() PaymentStatusMsg {
 	}
 }
 
+type RequestStatusMsg struct {
+	ReqID KeybaseRequestID `codec:"reqID" json:"reqID"`
+}
+
+func (o RequestStatusMsg) DeepCopy() RequestStatusMsg {
+	return RequestStatusMsg{
+		ReqID: o.ReqID.DeepCopy(),
+	}
+}
+
 type GregorInterface interface {
 }
 

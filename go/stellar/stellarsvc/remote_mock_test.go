@@ -330,17 +330,15 @@ func (r *RemoteClientMock) ExchangeRate(ctx context.Context, currency string) (s
 }
 
 func (r *RemoteClientMock) SubmitRequest(ctx context.Context, post stellar1.RequestPost) (res stellar1.KeybaseRequestID, err error) {
-	// Pretend that this was sent somewhere and we got real RequestID.
-	b, err := libkb.RandBytesWithSuffix(stellar1.KeybaseRequestIDLen, stellar1.KeybaseRequestIDSuffix)
-	if err != nil {
-		return "", err
-	}
-
-	return stellar1.KeybaseRequestIDFromString(hex.EncodeToString(b))
+	return r.Backend.SubmitRequest(ctx, r.Tc, post)
 }
 
 func (r *RemoteClientMock) RequestDetails(ctx context.Context, requestID stellar1.KeybaseRequestID) (res stellar1.RequestDetails, err error) {
-	return res, fmt.Errorf("RemoteClientMock.RequestDetails not implemented")
+	return r.Backend.RequestDetails(ctx, r.Tc, requestID)
+}
+
+func (r *RemoteClientMock) CancelRequest(ctx context.Context, requestID stellar1.KeybaseRequestID) (err error) {
+	return r.Backend.CancelRequest(ctx, r.Tc, requestID)
 }
 
 var _ remote.Remoter = (*RemoteClientMock)(nil)
@@ -353,6 +351,7 @@ type BackendMock struct {
 	T        testing.TB
 	seqnos   map[stellar1.AccountID]uint64
 	accounts map[stellar1.AccountID]*FakeAccount
+	requests map[stellar1.KeybaseRequestID]*stellar1.RequestDetails
 	txLog    *txlogger
 }
 
@@ -361,6 +360,7 @@ func NewBackendMock(t testing.TB) *BackendMock {
 		T:        t,
 		seqnos:   make(map[stellar1.AccountID]uint64),
 		accounts: make(map[stellar1.AccountID]*FakeAccount),
+		requests: make(map[stellar1.KeybaseRequestID]*stellar1.RequestDetails),
 		txLog:    newTxLogger(t),
 	}
 }
@@ -769,6 +769,64 @@ func (r *BackendMock) ExchangeRate(ctx context.Context, tc *TestContext, currenc
 		Currency: stellar1.OutsideCurrencyCode(currency),
 		Rate:     "0.318328",
 	}, nil
+}
+
+func (r *BackendMock) SubmitRequest(ctx context.Context, tc *TestContext, post stellar1.RequestPost) (res stellar1.KeybaseRequestID, err error) {
+	b, err := libkb.RandBytesWithSuffix(stellar1.KeybaseRequestIDLen, stellar1.KeybaseRequestIDSuffix)
+	if err != nil {
+		return "", err
+	}
+
+	reqID, err := stellar1.KeybaseRequestIDFromString(hex.EncodeToString(b))
+	if err != nil {
+		return "", err
+	}
+
+	caller, err := tc.G.GetMeUV(ctx)
+	if err != nil {
+		return "", fmt.Errorf("could not get self UV: %v", err)
+	}
+
+	r.requests[reqID] = &stellar1.RequestDetails{
+		Id:          reqID,
+		FromUser:    caller,
+		ToUser:      post.ToUser,
+		ToAssertion: post.ToAssertion,
+		Amount:      post.Amount,
+		Asset:       post.Asset,
+		Currency:    post.Currency,
+	}
+	return reqID, nil
+}
+
+func (r *BackendMock) RequestDetails(ctx context.Context, tc *TestContext, requestID stellar1.KeybaseRequestID) (res stellar1.RequestDetails, err error) {
+	details, ok := r.requests[requestID]
+	if !ok {
+		return res, fmt.Errorf("request %v not found", requestID)
+	}
+
+	return *details, nil
+}
+
+func (r *BackendMock) CancelRequest(ctx context.Context, tc *TestContext, requestID stellar1.KeybaseRequestID) (err error) {
+	readError := func() error { return fmt.Errorf("could not find request with ID %s", requestID) }
+
+	details, ok := r.requests[requestID]
+	if !ok {
+		return readError()
+	}
+
+	caller, err := tc.G.GetMeUV(ctx)
+	if err != nil {
+		return fmt.Errorf("could not get self UV: %v", err)
+	}
+
+	if !details.FromUser.Eq(caller) {
+		return readError()
+	}
+
+	details.Status = stellar1.RequestStatus_CANCELED
+	return nil
 }
 
 // Friendbot sends someone XLM

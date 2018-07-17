@@ -20,6 +20,16 @@
           "name": "txID"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "RequestStatusMsg",
+      "fields": [
+        {
+          "type": "KeybaseRequestID",
+          "name": "reqID"
+        }
+      ]
     }
   ],
   "messages": {},

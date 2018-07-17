@@ -301,8 +301,10 @@ protocol local {
     // Payment ID if funded, empty if not funded.
     boolean completed;
     KeybaseTransactionID fundingKbTxID;
+    RequestStatus status;
   }
   RequestDetailsLocal getRequestDetailsLocal(KeybaseRequestID reqID);
+  void cancelRequestLocal(KeybaseRequestID reqID);
 
   // -------------------------------------------------------
   // CLI protocol
@@ -384,6 +386,6 @@ protocol local {
   map<OutsideCurrencyCode, OutsideCurrencyDefinition> getAvailableLocalCurrencies();
   string formatLocalCurrencyString(string amount, OutsideCurrencyCode code);
 
-  void makeRequestCLILocal(string recipient, union { null, Asset } asset, 
+  KeybaseRequestID makeRequestCLILocal(string recipient, union { null, Asset } asset, 
     union { null, OutsideCurrencyCode } currency, string amount, string note);
 }
