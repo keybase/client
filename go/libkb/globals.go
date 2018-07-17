@@ -140,10 +140,6 @@ type GlobalContext struct {
 	NetContext context.Context
 }
 
-// There are many interfaces that slice and dice the GlobalContext to expose a
-// smaller API. TODO: Assert more of them here.
-var _ ProofContext = (*GlobalContext)(nil)
-
 type GlobalTestOptions struct {
 	NoBug3964Repair bool
 }
