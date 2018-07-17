@@ -9,10 +9,8 @@ export const clipboard = {writeText: s => {}}
 export const remote = {
   BrowserWindow: {},
   Menu: {},
-  getRemote: () => ({
-    getCurrentWindow: () => ({
-      on: () => {},
-    }),
+  getCurrentWindow: () => ({
+    on: () => {},
   }),
 }
 export const crashReporter = {}
