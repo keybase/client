@@ -552,9 +552,8 @@ func (n *NotifyRouter) HandleFavoritesChanged(uid keybase1.UID) {
 	n.G().Log.Debug("- Sent favorites changed notification")
 }
 
-// HandleDeviceCloneNotification is called whenever
-// ALEX: add better comment here
-// It will broadcast the messages to all curious listeners.
+// HandleDeviceCloneNotification is called when a run of the device clone status update
+// finds a newly-added, possible clone. It will broadcast the messages to all curious listeners.
 func (n *NotifyRouter) HandleDeviceCloneNotification(newClones int) {
 	if n == nil {
 		return

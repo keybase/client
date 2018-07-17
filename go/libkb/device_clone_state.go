@@ -4,8 +4,6 @@
 package libkb
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 
 	jsonw "github.com/keybase/go-jsonw"
@@ -24,22 +22,31 @@ type DeviceCloneState struct {
 type DeviceCloneStateJSONFile struct {
 	*JSONFile
 }
+type cloneDetectionResponse struct {
+	Status AppStatus `json:"status"`
+	Token  string    `json:"token"`
+	Clones int       `json:"clones"`
+}
+
+func (d *cloneDetectionResponse) GetAppStatus() *AppStatus {
+	return &d.Status
+}
 
 func UpdateDeviceCloneState(m *MetaContext) (before int, after int, err error) {
 	d, err := GetDeviceCloneState(m)
 	before = d.Clones
 
-	p, s := d.Prior, d.Stage
-	if p == "" {
+	prior, stage := d.Prior, d.Stage
+	if prior == "" {
 		//first run
-		p = DefaultCloneTokenValue
+		prior = DefaultCloneTokenValue
 	}
-	if s == "" {
-		buf := make([]byte, 16)
-		rand.Read(buf)
-		s = hex.EncodeToString(buf)
-		tmp := DeviceCloneState{Prior: p, Stage: s, Clones: d.Clones}
-		err := SetDeviceCloneState(m, tmp)
+	if stage == "" {
+		stage, err = RandHexString("", 16)
+		if err != nil {
+			return 0, 0, err
+		}
+		err = SetDeviceCloneState(m, DeviceCloneState{Prior: prior, Stage: stage, Clones: d.Clones})
 		if err != nil {
 			return 0, 0, err
 		}
@@ -51,29 +58,20 @@ func UpdateDeviceCloneState(m *MetaContext) (before int, after int, err error) {
 		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"device_id": m.G().ActiveDevice.DeviceID(),
-			"prior":     S{Val: p},
-			"stage":     S{Val: s},
+			"prior":     S{Val: prior},
+			"stage":     S{Val: stage},
 		},
 		MetaContext:    *m,
 		AppStatusCodes: []int{SCOk},
 	}
-	res, err := m.G().API.Post(arg)
+	var res cloneDetectionResponse
+	err = m.G().API.PostDecode(arg, &res)
 	if err != nil {
 		return 0, 0, err
 	}
-	persistedToken, err := res.Body.AtKey("token").GetString()
-	if err != nil {
-		return 0, 0, err
-	}
-	clones, err := res.Body.AtKey("clones").GetInt()
-	if err != nil {
-		return 0, 0, err
-	}
-	tmp := DeviceCloneState{Prior: persistedToken, Stage: "", Clones: clones}
 
-	err = SetDeviceCloneState(m, tmp)
-
-	after = tmp.Clones
+	err = SetDeviceCloneState(m, DeviceCloneState{Prior: res.Token, Stage: "", Clones: res.Clones})
+	after = res.Clones
 	return
 }
 
@@ -99,18 +97,36 @@ func SetDeviceCloneState(m *MetaContext, d DeviceCloneState) error {
 	if err != nil {
 		return err
 	}
+	tx, err := writer.BeginTransaction()
+	if err != nil {
+		return err
+	}
+	// From this point on, if there's an error, we abort the
+	// transaction.
+	defer func() {
+		if tx != nil {
+			tx.Abort()
+		}
+	}()
 
 	pPath, sPath, cPath := configPaths(m)
-
 	err = writer.SetStringAtPath(pPath, d.Prior)
-
 	if err == nil {
 		err = writer.SetStringAtPath(sPath, d.Stage)
 	}
 	if err == nil {
 		err = writer.SetIntAtPath(cPath, d.Clones)
 	}
-	return err
+	if err == nil {
+		err = tx.Commit()
+	}
+	if err != nil {
+		return err
+	}
+
+	// Zero out the TX so that we don't abort it in the defer()
+	tx = nil
+	return nil
 }
 
 func NewDeviceCloneStateJSONFile(g *GlobalContext) *DeviceCloneStateJSONFile {
