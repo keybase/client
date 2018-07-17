@@ -1,36 +1,50 @@
 {
   "prelude": [
     "import * as Types from '../constants/types/wallets'",
-    "import HiddenString from '../util/hidden-string'"
+    "import HiddenString from '../util/hidden-string'",
   ],
   "actions": {
+    "accountsReceived": {
+      "_description": "Update our store of account data",
+      "accounts": "Array<Types.Account>",
+    },
     "assetsReceived": {
       "_description": "Update our store of assets data",
       "accountID": "Types.AccountID",
-      "assets": "Array<Types.Assets>"
+      "assets": "Array<Types.Assets>",
+    },
+    "exportSecretKey": {
+      "_description": "Export a Stellar account's secret key",
+      "accountID": "Types.AccountID",
     },
     "loadAssets": {
       "_description": "Refresh our list of assets for a given account",
       "accountID": "Types.AccountID"
     },
+    "loadAccounts": {
+      "_description": "Refresh our list of accounts",
+    },
     "loadPayments": {
       "_description": "Refresh our list of payments for a given account",
-      "accountID": "Types.AccountID"
-    },
-    "loadAccounts": {
-      "_description": "Refresh our list of accounts"
+      "accountID": "Types.AccountID",
     },
     "paymentsReceived": {
       "_description": "Update our store of payments data",
       "accountID": "Types.AccountID",
-      "payments": "Array<Types.Payment>"
+      "payments": "Array<Types.Payment>",
+    },
+    "secretKeyReceived": {
+      "_description": "Update our store with an exported secret key",
+      "accountID": "Types.AccountID",
+      "secretKey": "HiddenString",
+    },
+    "secretKeySeen": {
+      "_description": "Clear exported secret keys from our store once they've been seen",
+      "accountID": "Types.AccountID",
     },
     "accountsReceived": {
       "_description": "Update our store of account data",
-      "accounts": "Array<Types.Account>"
-    },
-    "loadAccounts": {
-      "_description": "Refresh our list of accounts"
+      "accounts": "Array<Types.Account>",
     },
     "selectAccount": {
       "_description": "Select an account. Optionally navigate to the account page.",

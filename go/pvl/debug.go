@@ -7,59 +7,42 @@ import (
 	"fmt"
 
 	libkb "github.com/keybase/client/go/libkb"
-	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-type proofContextExt interface {
-	libkb.ProofContext
-	GetLogPvl() logger.Logger
-	getStubDNS() *stubDNSEngine
+type metaContext struct {
+	libkb.MetaContext
+	stubDNS *stubDNSEngine
 }
 
-type proofContextExtImpl struct {
-	libkb.ProofContext
-	pvlLogger logger.Logger
-	stubDNS   *stubDNSEngine
+func newMetaContext(m libkb.MetaContext, d *stubDNSEngine) metaContext {
+	return metaContext{m, d}
 }
 
-func newProofContextExt(ctx libkb.ProofContext, stubDNS *stubDNSEngine) proofContextExt {
-	pvlLogger := ctx.GetLog().CloneWithAddedDepth(1)
-	return &proofContextExtImpl{
-		ctx,
-		pvlLogger,
-		stubDNS,
-	}
+func (m metaContext) getStubDNS() *stubDNSEngine {
+	return m.stubDNS
 }
 
-func (ctx *proofContextExtImpl) GetLogPvl() logger.Logger {
-	return ctx.pvlLogger
-}
-
-func (ctx *proofContextExtImpl) getStubDNS() *stubDNSEngine {
-	return ctx.stubDNS
-}
-
-func debugWithState(g proofContextExt, state scriptState, format string, arg ...interface{}) {
+func debugWithState(m metaContext, state scriptState, format string, arg ...interface{}) {
 	s := fmt.Sprintf(format, arg...)
-	g.GetLogPvl().CDebugf(g.GetNetContext(), "PVL @(service:%v script:%v pc:%v) %v",
+	m.CDebugf("PVL @(service:%v script:%v pc:%v) %v",
 		debugServiceToString(state.Service), state.WhichScript, state.PC, s)
 }
 
-func debugWithStateError(g proofContextExt, state scriptState, err libkb.ProofError) {
-	g.GetLogPvl().CDebugf(g.GetNetContext(), "PVL @(service:%v script:%v pc:%v) Error code=%v: %v",
+func debugWithStateError(m metaContext, state scriptState, err libkb.ProofError) {
+	m.CDebugf("PVL @(service:%v script:%v pc:%v) Error code=%v: %v",
 		debugServiceToString(state.Service), state.WhichScript, state.PC, err.GetProofStatus(), err.GetDesc())
 }
 
-func debugWithPosition(g proofContextExt, service keybase1.ProofType, whichscript int, pc int, format string, arg ...interface{}) {
+func debugWithPosition(m metaContext, service keybase1.ProofType, whichscript int, pc int, format string, arg ...interface{}) {
 	s := fmt.Sprintf(format, arg...)
-	g.GetLogPvl().CDebugf(g.GetNetContext(), "PVL @(service:%v script:%v pc:%v) %v",
+	m.CDebugf("PVL @(service:%v script:%v pc:%v) %v",
 		debugServiceToString(service), whichscript, pc, s)
 }
 
-func debug(g proofContextExt, format string, arg ...interface{}) {
+func debug(m metaContext, format string, arg ...interface{}) {
 	s := fmt.Sprintf(format, arg...)
-	g.GetLogPvl().CDebugf(g.GetNetContext(), "PVL %v", s)
+	m.CDebugf("PVL %v", s)
 }
 
 // debugServiceToString returns the name of a service or number string if it is invalid.
