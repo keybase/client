@@ -2394,6 +2394,10 @@ type ProfileTeamLoadArg struct {
 	Arg LoadTeamArg `codec:"arg" json:"arg"`
 }
 
+type GetTeamIDArg struct {
+	TeamName string `codec:"teamName" json:"teamName"`
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
@@ -2453,6 +2457,10 @@ type TeamsInterface interface {
 	// ProfileTeamLoad loads a team and then throws it on the ground, for the purposes of profiling
 	// the team load machinery.
 	ProfileTeamLoad(context.Context, LoadTeamArg) (ProfileTeamLoadRes, error)
+	// * Uses resolver to get teamID from team name string. Uses resolver cache.
+	// * Calls resolver even for root teams. Returns an error if current user
+	// * can't read the team.
+	GetTeamID(context.Context, string) (TeamID, error)
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -3195,6 +3203,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getTeamID": {
+				MakeArg: func() interface{} {
+					ret := make([]GetTeamIDArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetTeamIDArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetTeamIDArg)(nil), args)
+						return
+					}
+					ret, err = i.GetTeamID(ctx, (*typedArgs)[0].TeamName)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -3450,5 +3474,14 @@ func (c TeamsClient) FindNextMerkleRootAfterTeamRemovalBySigningKey(ctx context.
 func (c TeamsClient) ProfileTeamLoad(ctx context.Context, arg LoadTeamArg) (res ProfileTeamLoadRes, err error) {
 	__arg := ProfileTeamLoadArg{Arg: arg}
 	err = c.Cli.Call(ctx, "keybase.1.teams.profileTeamLoad", []interface{}{__arg}, &res)
+	return
+}
+
+// * Uses resolver to get teamID from team name string. Uses resolver cache.
+// * Calls resolver even for root teams. Returns an error if current user
+// * can't read the team.
+func (c TeamsClient) GetTeamID(ctx context.Context, teamName string) (res TeamID, err error) {
+	__arg := GetTeamIDArg{TeamName: teamName}
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamID", []interface{}{__arg}, &res)
 	return
 }
