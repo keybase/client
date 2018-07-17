@@ -756,7 +756,7 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 	e.metaContext = m
 	if them.IDTable() == nil {
 		m.CDebugf("| No IDTable for user")
-	} else if err = them.IDTable().Identify(m.Ctx(), e.state, e.forceRemoteCheck(), iui, e, itm); err != nil {
+	} else if err = them.IDTable().Identify(m, e.state, e.forceRemoteCheck(), iui, e, itm); err != nil {
 		m.CDebugf("| Failure in running IDTable")
 		return err
 	}
