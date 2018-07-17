@@ -5,8 +5,6 @@ package libkb
 
 import (
 	"fmt"
-
-	jsonw "github.com/keybase/go-jsonw"
 )
 
 const (
@@ -140,49 +138,4 @@ func newDeviceCloneStateWriter(m MetaContext) (*DeviceCloneStateJSONFile, error)
 	f := DeviceCloneStateJSONFile{NewJSONFile(m.G(), m.G().Env.GetDeviceCloneStateFilename(), "device clone state")}
 	err := f.Load(false)
 	return &f, err
-}
-
-func (f DeviceCloneStateJSONFile) GetStringAtPath(p string) (ret string, isSet bool) {
-	i, isSet := f.getValueAtPath(p, getString)
-	if isSet {
-		ret = i.(string)
-	}
-	return ret, isSet
-}
-
-func (f DeviceCloneStateJSONFile) GetIntAtPath(p string) (ret int, isSet bool) {
-	i, isSet := f.getValueAtPath(p, getInt)
-	if isSet {
-		ret = i.(int)
-	}
-	return ret, isSet
-}
-
-func (f DeviceCloneStateJSONFile) getValueAtPath(p string, getter valueGetter) (ret interface{}, isSet bool) {
-	var err error
-	ret, err = getter(f.jw.AtPath(p))
-	if err == nil {
-		isSet = true
-	}
-	return ret, isSet
-}
-
-func (f *DeviceCloneStateJSONFile) SetStringAtPath(p string, v string) error {
-	return f.setValueAtPath(p, getString, v)
-}
-
-func (f *DeviceCloneStateJSONFile) SetIntAtPath(p string, v int) error {
-	return f.setValueAtPath(p, getInt, v)
-}
-
-func (f *DeviceCloneStateJSONFile) setValueAtPath(p string, getter valueGetter, v interface{}) error {
-	existing, err := getter(f.jw.AtPath(p))
-
-	if err != nil || existing != v {
-		err = f.jw.SetValueAtPath(p, jsonw.NewWrapper(v))
-		if err == nil {
-			return f.Save()
-		}
-	}
-	return err
 }
