@@ -15,7 +15,6 @@ class BackButton extends Component<Props> {
   }
 
   render() {
-    console.warn('in render, onClick is', this.props.onClick, this.props.title)
     return (
       <div style={collapseStyles([styles.container, this.props.style])} onClick={e => this.onClick(e)}>
         <Icon type="iconfont-arrow-left" style={styles.icon} color={this.props.iconColor} />
@@ -34,6 +33,7 @@ export const styles = {
     ...globalStyles.flexBoxRow,
     ...desktopStyles.clickable,
     alignItems: 'center',
+    zIndex: 1,
   },
   icon: {
     marginRight: 6,
