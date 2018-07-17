@@ -35,3 +35,7 @@ func (rn ReadonlyNode) Readonly(ctx context.Context) bool {
 func (rn ReadonlyNode) WrapChild(child Node) Node {
 	return &ReadonlyNode{rn.Node.WrapChild(child)}
 }
+
+func readonlyWrapper(node Node) Node {
+	return &ReadonlyNode{Node: node}
+}

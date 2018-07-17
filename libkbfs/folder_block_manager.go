@@ -120,7 +120,7 @@ type folderBlockManager struct {
 }
 
 func newFolderBlockManager(
-	g *libkb.GlobalContext, config Config, fb FolderBranch,
+	g *libkb.GlobalContext, config Config, fb FolderBranch, bType branchType,
 	helper fbmHelper) *folderBlockManager {
 	tlfStringFull := fb.Tlf.String()
 	log := config.MakeLogger(fmt.Sprintf("FBM %s", tlfStringFull[:8]))
@@ -142,7 +142,7 @@ func newFolderBlockManager(
 	// doesn't do possibly-racy-in-tests access to
 	// fbm.config.BlockOps().
 
-	if !config.Mode().BlockManagementEnabled() {
+	if bType != standard || !config.Mode().BlockManagementEnabled() {
 		return fbm
 	}
 

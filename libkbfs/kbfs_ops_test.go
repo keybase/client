@@ -3786,3 +3786,39 @@ func TestKBFSOpsMigratePublicV2ToImplicitTeam(t *testing.T) {
 	testKBFSOpsMigrateToImplicitTeam(
 		t, tlf.Public, kbfsmd.InitialExtraMetadataVer)
 }
+
+func TestKBFSOpsArchiveBranchType(t *testing.T) {
+	var u1 libkb.NormalizedUsername = "u1"
+	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
+	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+
+	t.Log("Create a private folder for the master branch.")
+	name := "u1"
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+	require.NoError(t, err)
+	kbfsOps := config.KBFSOps()
+	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
+	require.NoError(t, err)
+	require.False(t, rootNode.Readonly(ctx))
+	fb := rootNode.GetFolderBranch()
+	masterBranchOps := getOps(config, fb.Tlf)
+
+	lState := makeFBOLockState()
+	head, _ := masterBranchOps.getHead(lState)
+
+	t.Log("Create an archived version for the same TLF.")
+	archiveFB := FolderBranch{fb.Tlf, "r=1"}
+	archiveOps := newFolderBranchOps(
+		ctx, libkb.NewGlobalContext().Init(), config, archiveFB, archive)
+	defer func() {
+		err := archiveOps.Shutdown(ctx)
+		require.NoError(t, err)
+	}()
+	err = archiveOps.SetInitialHeadFromServer(ctx, head)
+	require.NoError(t, err)
+	rootNodeArchived, _, _, err := archiveOps.getRootNode(ctx)
+	require.NoError(t, err)
+	require.Equal(t, archiveFB, rootNodeArchived.GetFolderBranch())
+	require.True(t, rootNodeArchived.Readonly(ctx))
+}

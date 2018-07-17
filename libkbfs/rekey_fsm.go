@@ -462,7 +462,9 @@ func NewRekeyFSM(fbo *folderBranchOps) RekeyFSM {
 		listeners: make(map[rekeyEventType][]rekeyFSMListener),
 	}
 	fsm.current = newRekeyStateIdle(fsm)
-	go fsm.loop()
+	if fbo.bType == standard {
+		go fsm.loop()
+	}
 	return fsm
 }
 

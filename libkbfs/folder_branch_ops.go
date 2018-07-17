@@ -378,6 +378,9 @@ func newFolderBranchOps(
 		for _, f := range config.RootNodeWrappers() {
 			nodeCache.AddRootWrapper(f)
 		}
+		if bType == archive {
+			nodeCache.AddRootWrapper(readonlyWrapper)
+		}
 	}
 
 	if bType == standard && fb.Branch != MasterBranch {
@@ -448,7 +451,7 @@ func newFolderBranchOps(
 		log:          log,
 	}
 	fbo.cr = NewConflictResolver(config, fbo)
-	fbo.fbm = newFolderBlockManager(g, config, fb, fbo)
+	fbo.fbm = newFolderBlockManager(g, config, fb, bType, fbo)
 	fbo.rekeyFSM = NewRekeyFSM(fbo)
 	if config.DoBackgroundFlushes() && bType == standard {
 		go fbo.backgroundFlusher()

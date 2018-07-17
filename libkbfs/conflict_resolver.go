@@ -103,7 +103,7 @@ func NewConflictResolver(
 		},
 	}
 
-	if config.Mode().ConflictResolutionEnabled() {
+	if fbo.bType == standard && config.Mode().ConflictResolutionEnabled() {
 		cr.startProcessing(BackgroundContextWithCancellationDelayer())
 	}
 	return cr
