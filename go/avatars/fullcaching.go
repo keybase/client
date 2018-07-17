@@ -99,8 +99,8 @@ func (c *FullCachingSource) StopBackgroundTasks() {
 	c.diskLRU.Flush(context.Background(), c.G())
 }
 
-func (c *FullCachingSource) debug(ctx context.Context, msg string, args ...interface{}) {
-	c.G().Log.CDebugf(ctx, "Avatars.FullCachingSource: %s", fmt.Sprintf(msg, args...))
+func (c *FullCachingSource) debug(m libkb.MetaContext, msg string, args ...interface{}) {
+	m.CDebugf("Avatars.FullCachingSource: %s", fmt.Sprintf(msg, args...))
 }
 
 func (c *FullCachingSource) avatarKey(name string, format keybase1.AvatarFormat) string {
@@ -112,24 +112,24 @@ func (c *FullCachingSource) isStale(item lru.DiskLRUEntry) bool {
 }
 
 func (c *FullCachingSource) monitorAppState() {
-	c.debug(context.Background(), "monitorAppState: starting up")
+	m := libkb.NewMetaContextBackground(c.G())
+	c.debug(m, "monitorAppState: starting up")
 	state := keybase1.AppState_FOREGROUND
 	for {
 		state = <-c.G().AppState.NextUpdate(&state)
-		ctx := context.Background()
 		switch state {
 		case keybase1.AppState_BACKGROUND:
-			c.debug(ctx, "monitorAppState: backgrounded")
-			c.diskLRU.Flush(ctx, c.G())
+			c.debug(m, "monitorAppState: backgrounded")
+			c.diskLRU.Flush(m.Ctx(), m.G())
 		}
 	}
 }
 
-func (c *FullCachingSource) specLoad(ctx context.Context, names []string, formats []keybase1.AvatarFormat) (res avatarLoadSpec, err error) {
+func (c *FullCachingSource) specLoad(m libkb.MetaContext, names []string, formats []keybase1.AvatarFormat) (res avatarLoadSpec, err error) {
 	for _, name := range names {
 		for _, format := range formats {
 			key := c.avatarKey(name, format)
-			found, entry, err := c.diskLRU.Get(ctx, c.G(), key)
+			found, entry, err := c.diskLRU.Get(m.Ctx(), m.G(), key)
 			if err != nil {
 				return res, err
 			}
@@ -143,8 +143,8 @@ func (c *FullCachingSource) specLoad(ctx context.Context, names []string, format
 				lp.path = entry.Value.(string)
 				var file *os.File
 				if file, err = os.Open(lp.path); err != nil {
-					c.debug(ctx, "specLoad: error loading hit: file: %s err: %s", lp.path, err)
-					c.diskLRU.Remove(ctx, c.G(), key)
+					c.debug(m, "specLoad: error loading hit: file: %s err: %s", lp.path, err)
+					c.diskLRU.Remove(m.Ctx(), c.G(), key)
 					// Not a true hit if we don't have it on the disk as well
 					found = false
 				} else {
@@ -176,25 +176,25 @@ func (c *FullCachingSource) getFullFilename(fileName string) string {
 	return fileName + ".avatar"
 }
 
-func (c *FullCachingSource) commitAvatarToDisk(ctx context.Context, data io.ReadCloser, previousPath string) (path string, err error) {
+func (c *FullCachingSource) commitAvatarToDisk(m libkb.MetaContext, data io.ReadCloser, previousPath string) (path string, err error) {
 	c.prepareDirs.Do(func() {
 		// Avatars used to be in main cache directory before we
 		// started saving them to `avatars/` subdir. If user has just
 		// updated to client with new path, it's fine to have them
 		// start clean.
 		if len(c.tempDir) == 0 {
-			c.unlinkAllAvatars(ctx, c.G().GetCacheDir())
+			c.unlinkAllAvatars(m, c.G().GetCacheDir())
 		}
 
 		err := os.MkdirAll(c.getCacheDir(), os.ModePerm)
-		c.debug(ctx, "creating directory for avatars %q: %v", c.getCacheDir(), err)
+		c.debug(m, "creating directory for avatars %q: %v", c.getCacheDir(), err)
 	})
 
 	var file *os.File
 	shouldRename := false
 	if len(previousPath) > 0 {
 		// We already have the image, let's re-use the same file
-		c.debug(ctx, "commitAvatarToDisk: using previous path: %s", previousPath)
+		c.debug(m, "commitAvatarToDisk: using previous path: %s", previousPath)
 		if file, err = os.OpenFile(previousPath, os.O_RDWR, os.ModeAppend); err != nil {
 			// NOTE: Even if we don't have this file anymore (e.g. user
 			// raced us to remove it manually), OpenFile will not error
@@ -223,34 +223,34 @@ func (c *FullCachingSource) commitAvatarToDisk(ctx context.Context, data io.Read
 	return path, nil
 }
 
-func (c *FullCachingSource) removeFile(ctx context.Context, ent *lru.DiskLRUEntry) {
+func (c *FullCachingSource) removeFile(m libkb.MetaContext, ent *lru.DiskLRUEntry) {
 	if ent != nil {
 		file := ent.Value.(string)
 		if err := os.Remove(file); err != nil {
-			c.debug(ctx, "removeFile: failed to remove: file: %s err: %s", file, err)
+			c.debug(m, "removeFile: failed to remove: file: %s err: %s", file, err)
 		} else {
-			c.debug(ctx, "removeFile: successfully removed: %s", file)
+			c.debug(m, "removeFile: successfully removed: %s", file)
 		}
 	}
 }
 
 func (c *FullCachingSource) populateCacheWorker() {
 	for arg := range c.populateCacheCh {
-		ctx := context.Background()
-		c.debug(ctx, "populateCacheWorker: fetching: name: %s format: %s url: %s", arg.name,
+		m := libkb.NewMetaContextBackground(c.G())
+		c.debug(m, "populateCacheWorker: fetching: name: %s format: %s url: %s", arg.name,
 			arg.format, arg.url)
 		// Grab image data first
 		resp, err := http.Get(arg.url.String())
 		if err != nil {
-			c.debug(ctx, "populateCacheWorker: failed to download avatar: %s", err)
+			c.debug(m, "populateCacheWorker: failed to download avatar: %s", err)
 			continue
 		}
 		// Find any previous path we stored this image at on the disk
 		var previousPath string
 		key := c.avatarKey(arg.name, arg.format)
-		found, ent, err := c.diskLRU.Get(ctx, c.G(), key)
+		found, ent, err := c.diskLRU.Get(m.Ctx(), m.G(), key)
 		if err != nil {
-			c.debug(ctx, "populateCacheWorker: failed to read previous entry in LRU: %s", err)
+			c.debug(m, "populateCacheWorker: failed to read previous entry in LRU: %s", err)
 			libkb.DiscardAndCloseBody(resp)
 			continue
 		}
@@ -259,19 +259,19 @@ func (c *FullCachingSource) populateCacheWorker() {
 		}
 
 		// Save to disk
-		path, err := c.commitAvatarToDisk(ctx, resp.Body, previousPath)
+		path, err := c.commitAvatarToDisk(m, resp.Body, previousPath)
 		libkb.DiscardAndCloseBody(resp)
 		if err != nil {
-			c.debug(ctx, "populateCacheWorker: failed to write to disk: %s", err)
+			c.debug(m, "populateCacheWorker: failed to write to disk: %s", err)
 			continue
 		}
-		evicted, err := c.diskLRU.Put(ctx, c.G(), key, path)
+		evicted, err := c.diskLRU.Put(m.Ctx(), m.G(), key, path)
 		if err != nil {
-			c.debug(ctx, "populateCacheWorker: failed to put into LRU: %s", err)
+			c.debug(m, "populateCacheWorker: failed to put into LRU: %s", err)
 			continue
 		}
 		// Remove any evicted file (if there is one)
-		c.removeFile(ctx, evicted)
+		c.removeFile(m, evicted)
 
 		if c.populateSuccessCh != nil {
 			c.populateSuccessCh <- struct{}{}
@@ -279,7 +279,7 @@ func (c *FullCachingSource) populateCacheWorker() {
 	}
 }
 
-func (c *FullCachingSource) dispatchPopulateFromRes(ctx context.Context, res keybase1.LoadAvatarsRes) {
+func (c *FullCachingSource) dispatchPopulateFromRes(m libkb.MetaContext, res keybase1.LoadAvatarsRes) {
 	for name, rec := range res.Picmap {
 		for format, url := range rec {
 			if url != "" {
@@ -293,11 +293,11 @@ func (c *FullCachingSource) dispatchPopulateFromRes(ctx context.Context, res key
 	}
 }
 
-func (c *FullCachingSource) makeURL(ctx context.Context, path string) keybase1.AvatarUrl {
+func (c *FullCachingSource) makeURL(m libkb.MetaContext, path string) keybase1.AvatarUrl {
 	raw := fmt.Sprintf("file://%s", fileUrlize(path))
 	u, err := url.Parse(raw)
 	if err != nil {
-		c.debug(ctx, "makeURL: invalid URL: %s", err)
+		c.debug(m, "makeURL: invalid URL: %s", err)
 		return keybase1.MakeAvatarURL("")
 	}
 	final := fmt.Sprintf("file://%s", u.EscapedPath())
@@ -312,63 +312,64 @@ func (c *FullCachingSource) mergeRes(res *keybase1.LoadAvatarsRes, m keybase1.Lo
 	}
 }
 
-func (c *FullCachingSource) loadNames(ctx context.Context, names []string, formats []keybase1.AvatarFormat,
-	remoteFetch func(context.Context, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)) (res keybase1.LoadAvatarsRes, err error) {
-	loadSpec, err := c.specLoad(ctx, names, formats)
+func (c *FullCachingSource) loadNames(m libkb.MetaContext, names []string, formats []keybase1.AvatarFormat,
+	remoteFetch func(libkb.MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)) (res keybase1.LoadAvatarsRes, err error) {
+	loadSpec, err := c.specLoad(m, names, formats)
 	if err != nil {
 		return res, err
 	}
-	c.debug(ctx, "loadNames: hits: %d stales: %d misses: %d", len(loadSpec.hits), len(loadSpec.stales),
+	c.debug(m, "loadNames: hits: %d stales: %d misses: %d", len(loadSpec.hits), len(loadSpec.stales),
 		len(loadSpec.misses))
 
 	// Fill in the hits
 	allocRes(&res, names)
 	for _, hit := range loadSpec.hits {
-		res.Picmap[hit.name][hit.format] = c.makeURL(ctx, hit.path)
+		res.Picmap[hit.name][hit.format] = c.makeURL(m, hit.path)
 	}
 	// Fill in stales
 	for _, stale := range loadSpec.stales {
-		res.Picmap[stale.name][stale.format] = c.makeURL(ctx, stale.path)
+		res.Picmap[stale.name][stale.format] = c.makeURL(m, stale.path)
 	}
 
 	// Go get the misses
 	missNames, missFormats := loadSpec.missDetails()
 	if len(missNames) > 0 {
-		loadRes, err := remoteFetch(ctx, missNames, missFormats)
+		loadRes, err := remoteFetch(m, missNames, missFormats)
 		if err == nil {
 			c.mergeRes(&res, loadRes)
-			c.dispatchPopulateFromRes(ctx, loadRes)
+			c.dispatchPopulateFromRes(m, loadRes)
 		} else {
-			c.debug(ctx, "loadNames: failed to load server miss reqs: %s", err)
+			c.debug(m, "loadNames: failed to load server miss reqs: %s", err)
 		}
 	}
 	// Spawn off a goroutine to reload stales
 	staleNames, staleFormats := loadSpec.staleDetails()
 	if len(staleNames) > 0 {
 		go func() {
-			c.debug(context.Background(), "loadNames: spawning stale background load: names: %d",
+			m := m.BackgroundWithLogTags()
+			c.debug(m, "loadNames: spawning stale background load: names: %d",
 				len(staleNames))
-			loadRes, err := remoteFetch(context.Background(), staleNames, staleFormats)
+			loadRes, err := remoteFetch(m, staleNames, staleFormats)
 			if err == nil {
-				c.dispatchPopulateFromRes(ctx, loadRes)
+				c.dispatchPopulateFromRes(m, loadRes)
 			} else {
-				c.debug(ctx, "loadNames: failed to load server stale reqs: %s", err)
+				c.debug(m, "loadNames: failed to load server stale reqs: %s", err)
 			}
 		}()
 	}
 	return res, nil
 }
 
-func (c *FullCachingSource) clearName(ctx context.Context, name string, formats []keybase1.AvatarFormat) (err error) {
+func (c *FullCachingSource) clearName(m libkb.MetaContext, name string, formats []keybase1.AvatarFormat) (err error) {
 	for _, format := range formats {
 		key := c.avatarKey(name, format)
-		found, ent, err := c.diskLRU.Get(ctx, c.G(), key)
+		found, ent, err := c.diskLRU.Get(m.Ctx(), m.G(), key)
 		if err != nil {
 			return err
 		}
 		if found {
-			c.removeFile(ctx, &ent)
-			if err := c.diskLRU.Remove(ctx, c.G(), key); err != nil {
+			c.removeFile(m, &ent)
+			if err := c.diskLRU.Remove(m.Ctx(), m.G(), key); err != nil {
 				return err
 			}
 		}
@@ -376,36 +377,36 @@ func (c *FullCachingSource) clearName(ctx context.Context, name string, formats 
 	return nil
 }
 
-func (c *FullCachingSource) LoadUsers(ctx context.Context, usernames []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
-	defer c.G().Trace("FullCachingSource.LoadUsers", func() error { return err })()
-	return c.loadNames(ctx, usernames, formats, c.simpleSource.LoadUsers)
+func (c *FullCachingSource) LoadUsers(m libkb.MetaContext, usernames []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
+	defer m.CTrace("FullCachingSource.LoadUsers", func() error { return err })()
+	return c.loadNames(m, usernames, formats, c.simpleSource.LoadUsers)
 }
 
-func (c *FullCachingSource) LoadTeams(ctx context.Context, teams []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
-	defer c.G().Trace("FullCachingSource.LoadTeams", func() error { return err })()
-	return c.loadNames(ctx, teams, formats, c.simpleSource.LoadTeams)
+func (c *FullCachingSource) LoadTeams(m libkb.MetaContext, teams []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
+	defer m.CTrace("FullCachingSource.LoadTeams", func() error { return err })()
+	return c.loadNames(m, teams, formats, c.simpleSource.LoadTeams)
 }
 
-func (c *FullCachingSource) ClearCacheForName(ctx context.Context, name string, formats []keybase1.AvatarFormat) (err error) {
-	defer c.G().Trace(fmt.Sprintf("FullCachingSource.ClearCacheForUser(%q,%v)", name, formats), func() error { return err })()
-	return c.clearName(ctx, name, formats)
+func (c *FullCachingSource) ClearCacheForName(m libkb.MetaContext, name string, formats []keybase1.AvatarFormat) (err error) {
+	defer m.CTrace(fmt.Sprintf("FullCachingSource.ClearCacheForUser(%q,%v)", name, formats), func() error { return err })()
+	return c.clearName(m, name, formats)
 }
 
-func (c *FullCachingSource) unlinkAllAvatars(ctx context.Context, dirpath string) {
+func (c *FullCachingSource) unlinkAllAvatars(m libkb.MetaContext, dirpath string) {
 	files, err := filepath.Glob(filepath.Join(dirpath, "avatar*.avatar"))
 	if err != nil {
-		c.debug(ctx, "unlinkAllAvatars: failed to clear files from %q: %s", dirpath, err)
+		c.debug(m, "unlinkAllAvatars: failed to clear files from %q: %s", dirpath, err)
 		return
 	}
 
-	c.debug(ctx, "unlinkAllAvatars: found %d avatars files to delete in %s", len(files), dirpath)
+	c.debug(m, "unlinkAllAvatars: found %d avatars files to delete in %s", len(files), dirpath)
 	for _, v := range files {
 		if err := os.Remove(v); err != nil {
-			c.debug(ctx, "unlinkAllAvatars: failed to delete file %q: %s", v, err)
+			c.debug(m, "unlinkAllAvatars: failed to delete file %q: %s", v, err)
 		}
 	}
 }
 
-func (c *FullCachingSource) OnCacheCleared(ctx context.Context) {
-	c.unlinkAllAvatars(ctx, c.getCacheDir())
+func (c *FullCachingSource) OnCacheCleared(m libkb.MetaContext) {
+	c.unlinkAllAvatars(m, c.getCacheDir())
 }

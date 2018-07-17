@@ -1,7 +1,6 @@
 package avatars
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -42,14 +41,14 @@ func TestAvatarsURLCaching(t *testing.T) {
 	clock := clockwork.NewFakeClock()
 	tc.G.SetClock(clock)
 
-	ctx := context.TODO()
 	cb := make(chan struct{}, 5)
 
 	tc.G.API = newAvatarMockAPI(makeHandler("url", cb))
 	source := NewURLCachingSource(tc.G, time.Hour, 10)
 
 	t.Logf("API server fetch")
-	res, err := source.LoadUsers(ctx, []string{"mike"}, []keybase1.AvatarFormat{"square"})
+	m := libkb.NewMetaContextForTest(tc)
+	res, err := source.LoadUsers(m, []string{"mike"}, []keybase1.AvatarFormat{"square"})
 	require.NoError(t, err)
 	require.Equal(t, "url", res.Picmap["mike"]["square"].String())
 	select {
@@ -58,7 +57,7 @@ func TestAvatarsURLCaching(t *testing.T) {
 		require.Fail(t, "no API call")
 	}
 	t.Logf("cache fetch")
-	res, err = source.LoadUsers(ctx, []string{"mike"}, []keybase1.AvatarFormat{"square"})
+	res, err = source.LoadUsers(m, []string{"mike"}, []keybase1.AvatarFormat{"square"})
 	require.NoError(t, err)
 	require.Equal(t, "url", res.Picmap["mike"]["square"].String())
 	select {
@@ -71,7 +70,7 @@ func TestAvatarsURLCaching(t *testing.T) {
 	source.staleFetchCh = make(chan struct{}, 5)
 	clock.Advance(2 * time.Hour)
 	tc.G.API = newAvatarMockAPI(makeHandler("url2", cb))
-	res, err = source.LoadUsers(ctx, []string{"mike"}, []keybase1.AvatarFormat{"square"})
+	res, err = source.LoadUsers(m, []string{"mike"}, []keybase1.AvatarFormat{"square"})
 	require.NoError(t, err)
 	require.Equal(t, "url", res.Picmap["mike"]["square"].String())
 	select {
@@ -84,7 +83,7 @@ func TestAvatarsURLCaching(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no stale fetch")
 	}
-	res, err = source.LoadUsers(ctx, []string{"mike"}, []keybase1.AvatarFormat{"square"})
+	res, err = source.LoadUsers(m, []string{"mike"}, []keybase1.AvatarFormat{"square"})
 	require.NoError(t, err)
 	require.Equal(t, "url2", res.Picmap["mike"]["square"].String())
 	select {

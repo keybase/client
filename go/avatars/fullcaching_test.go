@@ -1,7 +1,6 @@
 package avatars
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -32,7 +31,6 @@ func TestAvatarsFullCaching(t *testing.T) {
 		fmt.Fprintf(w, "hi2")
 	})
 
-	ctx := context.TODO()
 	cb := make(chan struct{}, 5)
 	a, _ := testSrv.Addr()
 	testSrvAddr := fmt.Sprintf("http://%s/p", a)
@@ -43,8 +41,10 @@ func TestAvatarsFullCaching(t *testing.T) {
 	source.StartBackgroundTasks()
 	defer source.StopBackgroundTasks()
 
+	m := libkb.NewMetaContextForTest(tc)
+
 	t.Logf("first blood")
-	res, err := source.LoadUsers(ctx, []string{"mike"}, []keybase1.AvatarFormat{"square"})
+	res, err := source.LoadUsers(m, []string{"mike"}, []keybase1.AvatarFormat{"square"})
 	require.NoError(t, err)
 	require.Equal(t, testSrvAddr, res.Picmap["mike"]["square"].String())
 	select {
@@ -78,7 +78,7 @@ func TestAvatarsFullCaching(t *testing.T) {
 		require.NoError(t, err)
 		return string(dat)
 	}
-	res, err = source.LoadUsers(ctx, []string{"mike"}, []keybase1.AvatarFormat{"square"})
+	res, err = source.LoadUsers(m, []string{"mike"}, []keybase1.AvatarFormat{"square"})
 	require.NoError(t, err)
 	select {
 	case <-cb:
@@ -99,7 +99,7 @@ func TestAvatarsFullCaching(t *testing.T) {
 	testSrvAddr = fmt.Sprintf("http://%s/p2", a)
 	tc.G.API = newAvatarMockAPI(makeHandler(testSrvAddr, cb))
 	clock.Advance(2 * time.Hour)
-	res, err = source.LoadUsers(ctx, []string{"mike"}, []keybase1.AvatarFormat{"square"})
+	res, err = source.LoadUsers(m, []string{"mike"}, []keybase1.AvatarFormat{"square"})
 	require.NoError(t, err)
 	select {
 	case <-cb:
@@ -113,7 +113,7 @@ func TestAvatarsFullCaching(t *testing.T) {
 	}
 	val2 := res.Picmap["mike"]["square"].String()
 	require.Equal(t, val, val2)
-	res, err = source.LoadUsers(ctx, []string{"mike"}, []keybase1.AvatarFormat{"square"})
+	res, err = source.LoadUsers(m, []string{"mike"}, []keybase1.AvatarFormat{"square"})
 	require.NoError(t, err)
 	select {
 	case <-cb:
@@ -129,7 +129,7 @@ func TestAvatarsFullCaching(t *testing.T) {
 	require.Equal(t, val2, val)
 	require.Equal(t, "hi2", getFile(val2))
 
-	err = source.ClearCacheForName(context.Background(), "mike", []keybase1.AvatarFormat{"square"})
+	err = source.ClearCacheForName(m, "mike", []keybase1.AvatarFormat{"square"})
 	require.NoError(t, err)
 
 	_, err = os.Stat(convertPath(val2))

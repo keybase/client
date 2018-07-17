@@ -1,7 +1,6 @@
 package avatars
 
 import (
-	"context"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -9,11 +8,11 @@ import (
 )
 
 type Source interface {
-	LoadUsers(context.Context, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
-	LoadTeams(context.Context, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
+	LoadUsers(libkb.MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
+	LoadTeams(libkb.MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
 
-	ClearCacheForName(context.Context, string, []keybase1.AvatarFormat) error
-	OnCacheCleared(context.Context) // Called after leveldb data goes away after db nuke
+	ClearCacheForName(libkb.MetaContext, string, []keybase1.AvatarFormat) error
+	OnCacheCleared(libkb.MetaContext) // Called after leveldb data goes away after db nuke
 
 	StartBackgroundTasks()
 	StopBackgroundTasks()
