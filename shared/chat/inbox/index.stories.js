@@ -167,10 +167,34 @@ const mapPropProviderProps = {
   },
   smallTeamH: {
     conversationIDKey: '8',
-    participants: ['nathunsmitty'],
+    participants: ['ayoubd'],
     snippet: 'lol',
     timestamp: '1:37 pm',
     snippetDecoration: '💥',
+  },
+  smallTeamI: {
+    ...commonSmallTeam,
+    conversationIDKey: '9',
+    participants: ['cnojima'],
+    snippet: 'rip',
+    timestamp: '12:08 am',
+    snippetDecoration: '',
+  },
+  smallTeamJ: {
+    ...commonSmallTeam,
+    conversationIDKey: '10',
+    participants: ['max'],
+    snippet: 'foo bar',
+    timestamp: '2:56 pm',
+    snippetDecoration: '',
+  },
+  smallTeamK: {
+    ...commonSmallTeam,
+    conversationIDKey: '11',
+    participants: ['nathunsmitty'],
+    snippet: 'scoop die whoop',
+    timestamp: '1:05 pm',
+    snippetDecoration: '',
   },
 
   // Big Team A
@@ -265,6 +289,10 @@ const mapPropProviderProps = {
     ...commonBigFilter,
     teamname: 'this.is.a.very.long.team.name.situation',
     channelname: 'general',
+  },
+
+  bigTeamDivider1: {
+    badgeCount: 4,
   },
 }
 
@@ -386,6 +414,26 @@ const propsInboxDivider = {
   ],
 }
 
+const propsInboxExpanded = {
+  ...propsInboxCommon,
+  smallTeamsExpanded: false,
+  showSmallTeamsExpandDivider: true,
+  rows: [
+    // Small
+    makeRowItemSmall('smallTeamA'),
+    makeRowItemSmall('smallTeamB'),
+    makeRowItemSmall('smallTeamC'),
+    makeRowItemSmall('smallTeamD'),
+    makeRowItemSmall('smallTeamE'),
+    makeRowItemSmall('smallTeamF'),
+    makeRowItemSmall('smallTeamG'),
+    makeRowItemSmall('smallTeamH'),
+    makeRowItemSmall('smallTeamI'),
+    makeRowItemSmall('smallTeamJ'),
+    makeRowItemSmall('smallTeamK'),
+  ],
+}
+
 const propsInboxFilter = {
   ...propsInboxCommon,
   filter: ' ',
@@ -459,7 +507,7 @@ const provider = createPropProvider(
       users: I.OrderedSet(['']),
     }),
     Divider: p => ({
-      badgeCount: 0,
+      badgeCount: 2,
       showButton: p.showButton,
       hiddenCount: p.smallIDsHidden.length,
       style: {marginBottom: globalMargins.tiny},
@@ -471,11 +519,33 @@ const provider = createPropProvider(
     BigTeamHeader: p => {
       return getPropProviderProps(p)
     },
+    BigTeamsDivider: ownProps => ({badgeCount: 5}),
     BigTeamChannel: getPropProviderProps,
     FilterSmallTeam: getPropProviderProps,
     FilterBigTeamChannel: getPropProviderProps,
   }
 )
+
+class Wrapper extends React.Component<any, any> {
+  state = {
+    props: propsInboxExpanded,
+  }
+
+  componentDidMount() {
+    setTimeout(() => {
+      this.setState({
+        props: {
+          ...this.state.props,
+          smallTeamsExpanded: true,
+        },
+      })
+    }, 1)
+  }
+
+  render() {
+    return <Inbox {...this.state.props} />
+  }
+}
 
 const load = () => {
   storiesOf('Chat/Inbox')
@@ -495,6 +565,10 @@ const load = () => {
     .add('Divider', () => {
       teamsEmpty = false
       return <Inbox {...propsInboxDivider} />
+    })
+    .add('Expanded teams', () => {
+      teamsEmpty = false
+      return <Wrapper />
     })
     .add('Filter', () => {
       teamsEmpty = false
