@@ -514,16 +514,6 @@ type DNSContext interface {
 	GetDNSNameServerFetcher() DNSNameServerFetcher
 }
 
-// ProofContext defines features needed by the proof system
-type ProofContext interface {
-	LogContext
-	APIContext
-	NetContext
-	DNSContext
-	GetPvlSource() PvlSource
-	GetAppType() AppType
-}
-
 type AssertionContext interface {
 	NormalizeSocialName(service string, username string) (string, error)
 }
@@ -538,7 +528,7 @@ const (
 )
 
 type ProofChecker interface {
-	CheckStatus(ctx ProofContext, h SigHint, pcm ProofCheckerMode, pvlU PvlUnparsed) ProofError
+	CheckStatus(m MetaContext, h SigHint, pcm ProofCheckerMode, pvlU PvlUnparsed) ProofError
 	GetTorError() ProofError
 }
 
@@ -559,11 +549,11 @@ type ServiceType interface {
 	// leaves the dots in (that NormalizeUsername above would strip out). This
 	// lets us keep the dots in the proof text, and display them on your
 	// profile page, even though we ignore them for proof checking.
-	NormalizeRemoteName(ctx ProofContext, name string) (string, error)
+	NormalizeRemoteName(m MetaContext, name string) (string, error)
 
 	GetPrompt() string
 	LastWriterWins() bool
-	PreProofCheck(ctx ProofContext, remotename string) (*Markup, error)
+	PreProofCheck(m MetaContext, remotename string) (*Markup, error)
 	PreProofWarning(remotename string) *Markup
 	ToServiceJSON(remotename string) *jsonw.Wrapper
 	PostInstructions(remotename string) *Markup
@@ -572,7 +562,7 @@ type ServiceType interface {
 	GetProofType() string
 	GetTypeName() string
 	CheckProofText(text string, id keybase1.SigID, sig string) error
-	FormatProofText(ProofContext, *PostProofRes) (string, error)
+	FormatProofText(MetaContext, *PostProofRes) (string, error)
 	GetAPIArgKey() string
 	IsDevelOnly() bool
 

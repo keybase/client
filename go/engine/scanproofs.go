@@ -406,7 +406,7 @@ func (e *ScanProofsEngine) CheckOne(m libkb.MetaContext, rec map[string]string, 
 		return nil, foundhint, fmt.Errorf("error getting pvl: %s", err)
 	}
 
-	perr := pc.CheckStatus(m.G(), *hint, libkb.ProofCheckerModeActive, pvlU)
+	perr := pc.CheckStatus(m, *hint, libkb.ProofCheckerModeActive, pvlU)
 	if perr != nil {
 		return perr, foundhint, nil
 	}

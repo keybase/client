@@ -1624,7 +1624,8 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 	if (hasPreviousTrack && res.trackedProofState != keybase1.ProofState_NONE && res.trackedProofState != keybase1.ProofState_UNCHECKED) || itm == IdentifyTableModeActive {
 		pcm = ProofCheckerModeActive
 	}
-	res.err = pc.CheckStatus(idt.G().CloneWithNetContext(ctx), *res.hint, pcm, pvlU)
+	m := NewMetaContext(ctx, idt.G())
+	res.err = pc.CheckStatus(m, *res.hint, pcm, pvlU)
 
 	// If no error than all good
 	if res.err == nil {

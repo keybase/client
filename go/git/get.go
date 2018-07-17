@@ -92,7 +92,7 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 		SessionType: libkb.APISessionTypeREQUIRED,
 		NetContext:  ctx,
 		Args:        libkb.HTTPArgs{
-			// a limit parameter exists, default 100, and we don't currently set it
+		// a limit parameter exists, default 100, and we don't currently set it
 		},
 	}
 
