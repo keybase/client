@@ -246,12 +246,18 @@
       "ordinal": "Types.Ordinal"
     },
     "messageWasReactedTo": {
-      "_description": "A reaction was added to a message",
+      "_description": "A reaction was added to a message.",
       "conversationIDKey": "Types.ConversationIDKey",
       "emoji": "string",
       "reactionMsgID": "RPCChatTypes.MessageID",
       "sender": "string",
       "targetMsgID": "RPCChatTypes.MessageID"
+    },
+    "reactionsWereDeleted": {
+      "_description": "Reactions were removed from a message.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "deletions":
+        "Array<{emoji: string, reactionMsgID: RPCChatTypes.MessageID, targetMsgID: RPCChatTypes.MessageID}>"
     },
     // Resend a message
     "messageRetry": {

@@ -321,7 +321,6 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
           }
           break
         case RPCChatTypes.commonMessageType.reaction: {
-          console.log('DANNYDEBUG', body, valid)
           if (body.reaction) {
             // body.reaction.messageID is the id of the message this is reacting to
             // valid.messageID is the id of this reaction message
@@ -570,6 +569,22 @@ const ephemeralPurgeToActions = (info: RPCChatTypes.EphemeralPurgeNotifInfo) => 
   return actions
 }
 
+// Get actions to update the messagemap when reactions are deleted
+const reactionDeleteToActions = (info: RPCChatTypes.ReactionDeleteNotif) => {
+  const conversationIDKey = Types.conversationIDToKey(info.convID)
+  if (!info.reactionDeletes || info.reactionDeletes.length === 0) {
+    logger.warn(`Got ReactionDeleteNotif with no reactionDeletes for convID=${conversationIDKey}`)
+    return null
+  }
+  const deletions = info.reactionDeletes.map(rd => ({
+    emoji: rd.reactionKey,
+    reactionMsgID: Types.numberToMessageID(rd.reactionMsgID),
+    targetMsgID: Types.numberToMessageID(rd.targetMsgID),
+  }))
+  logger.info(`Got ${deletions.length} reaction deletions for convID=${conversationIDKey}`)
+  return [Chat2Gen.createReactionsWereDeleted({conversationIDKey, deletions})]
+}
+
 // Handle calls that come from the service
 const setupChatHandlers = () => {
   engine().setIncomingActionCreators(
@@ -619,6 +634,8 @@ const setupChatHandlers = () => {
           return activity.expunge ? expungeToActions(activity.expunge, getState()) : null
         case RPCChatTypes.notifyChatChatActivityType.ephemeralPurge:
           return activity.ephemeralPurge ? ephemeralPurgeToActions(activity.ephemeralPurge) : null
+        case RPCChatTypes.notifyChatChatActivityType.reactionDelete:
+          return activity.reactionDelete ? reactionDeleteToActions(activity.reactionDelete) : null
         default:
           break
       }

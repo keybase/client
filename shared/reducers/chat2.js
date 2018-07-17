@@ -635,17 +635,64 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
               return message
             }
             let reactions = message.reactions
-            if (!reactions.get(emoji)) {
-              reactions = reactions.set(emoji, I.Set())
-            }
-            reactions = reactions.update(emoji, I.Set(), rs =>
-              rs.add(
-                Constants.makeReaction({messageID: Types.numberToMessageID(reactionMsgID), username: sender})
+            // $FlowIssue thinks `message` is the inner type
+            return message.set(
+              'reactions',
+              reactions.update(emoji, I.Set(), rs =>
+                rs.add(
+                  Constants.makeReaction({
+                    messageID: Types.numberToMessageID(reactionMsgID),
+                    username: sender,
+                  })
+                )
               )
             )
-            return message.set('reactions', reactions)
           })
         })
+      )
+    }
+    case Chat2Gen.reactionsWereDeleted: {
+      const {conversationIDKey, deletions} = action.payload
+      const targetData = deletions.map(d => ({
+        emoji: d.emoji,
+        reactionMsgID: d.reactionMsgID,
+        targetOrdinal: messageIDToOrdinal(
+          state.messageMap,
+          state.pendingOutboxToOrdinal,
+          conversationIDKey,
+          d.targetMsgID
+        ),
+      }))
+      return state.update('messageMap', messageMap =>
+        messageMap.update(conversationIDKey, I.Map(), (map: I.Map<Types.Ordinal, Types.Message>) =>
+          map.withMutations(mm => {
+            targetData.forEach(td => {
+              if (!td.targetOrdinal) {
+                logger.info(
+                  `reactionsWereDeleted: couldn't find target ordinal for reactionMsgID=${
+                    td.reactionMsgID
+                  } in convID=${conversationIDKey}`
+                )
+                return
+              }
+              mm.update(td.targetOrdinal, message => {
+                if (!message || message.type === 'deleted' || message.type === 'placeholder') {
+                  return message
+                }
+                let reactions = message.reactions
+                reactions = reactions.update(td.emoji, I.Set(), reactionSet =>
+                  reactionSet.filter(r => r.messageID !== td.reactionMsgID)
+                )
+                const newSet = reactions.get(td.emoji)
+                if (newSet && newSet.size === 0) {
+                  reactions = reactions.delete(td.emoji)
+                }
+                // $FlowIssue thinks `message` is the inner type
+                return message.set('reactions', reactions)
+              })
+            })
+          })
+        )
       )
     }
     case Chat2Gen.messagesWereDeleted: {

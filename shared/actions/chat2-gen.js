@@ -59,6 +59,7 @@ export const navigateToThread = 'chat2:navigateToThread'
 export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openFolder = 'chat2:openFolder'
 export const previewConversation = 'chat2:previewConversation'
+export const reactionsWereDeleted = 'chat2:reactionsWereDeleted'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const selectConversation = 'chat2:selectConversation'
@@ -270,6 +271,10 @@ type _PreviewConversationPayload = $ReadOnly<{|
   conversationIDKey?: Types.ConversationIDKey,
   reason: 'manageView' | 'messageLink' | 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView' | 'newChannel',
 |}>
+type _ReactionsWereDeletedPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  deletions: Array<{emoji: string, reactionMsgID: RPCChatTypes.MessageID, targetMsgID: RPCChatTypes.MessageID}>,
+|}>
 type _ResetChatWithoutThemPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _ResetLetThemInPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -338,7 +343,7 @@ type _UpdateTypersPayload = $ReadOnly<{|conversationToTypers: I.Map<Types.Conver
 
 // Action Creators
 /**
- * A reaction was added to a message
+ * A reaction was added to a message.
  */
 export const createMessageWasReactedTo = (payload: _MessageWasReactedToPayload) => ({error: false, payload, type: messageWasReactedTo})
 /**
@@ -361,6 +366,10 @@ export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({e
  * Handle an update to our conversation exploding modes.
  */
 export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({error: false, payload, type: updateConvExplodingModes})
+/**
+ * Reactions were removed from a message.
+ */
+export const createReactionsWereDeleted = (payload: _ReactionsWereDeletedPayload) => ({error: false, payload, type: reactionsWereDeleted})
 /**
  * Set a lock on the exploding mode for a conversation.
  */
@@ -500,6 +509,7 @@ export type NavigateToThreadPayload = $Call<typeof createNavigateToThread, _Navi
 export type NotificationSettingsUpdatedPayload = $Call<typeof createNotificationSettingsUpdated, _NotificationSettingsUpdatedPayload>
 export type OpenFolderPayload = $Call<typeof createOpenFolder, _OpenFolderPayload>
 export type PreviewConversationPayload = $Call<typeof createPreviewConversation, _PreviewConversationPayload>
+export type ReactionsWereDeletedPayload = $Call<typeof createReactionsWereDeleted, _ReactionsWereDeletedPayload>
 export type ResetChatWithoutThemPayload = $Call<typeof createResetChatWithoutThem, _ResetChatWithoutThemPayload>
 export type ResetLetThemInPayload = $Call<typeof createResetLetThemIn, _ResetLetThemInPayload>
 export type SelectConversationPayload = $Call<typeof createSelectConversation, _SelectConversationPayload>
@@ -575,6 +585,7 @@ export type Actions =
   | NotificationSettingsUpdatedPayload
   | OpenFolderPayload
   | PreviewConversationPayload
+  | ReactionsWereDeletedPayload
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload
   | SelectConversationPayload
