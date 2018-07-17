@@ -7,6 +7,8 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 const (
@@ -19,8 +21,12 @@ type DeviceCloneState struct {
 	Clones int
 }
 
+type DeviceCloneStateJSONFile struct {
+	*JSONFile
+}
+
 func UpdateDeviceCloneState(m *MetaContext) (before int, after int, err error) {
-	d := GetDeviceCloneState(m)
+	d, err := GetDeviceCloneState(m)
 	before = d.Clones
 
 	p, s := d.Prior, d.Stage
@@ -64,6 +70,7 @@ func UpdateDeviceCloneState(m *MetaContext) (before int, after int, err error) {
 		return 0, 0, err
 	}
 	tmp := DeviceCloneState{Prior: persistedToken, Stage: "", Clones: clones}
+
 	err = SetDeviceCloneState(m, tmp)
 
 	after = tmp.Clones
@@ -71,34 +78,98 @@ func UpdateDeviceCloneState(m *MetaContext) (before int, after int, err error) {
 }
 
 func configPaths(m *MetaContext) (p, s, c string) {
-	un := m.G().Env.GetUsername()
-	basePath := fmt.Sprintf("users.%s.device_clone_token", un)
-	p = fmt.Sprintf("%s.prior", basePath)
-	s = fmt.Sprintf("%s.stage", basePath)
-	c = fmt.Sprintf("%s.clones", basePath)
+	deviceID := m.G().ActiveDevice.deviceID
+	p = fmt.Sprintf("%s.prior", deviceID)
+	s = fmt.Sprintf("%s.stage", deviceID)
+	c = fmt.Sprintf("%s.clones", deviceID)
 	return
 }
 
-func GetDeviceCloneState(m *MetaContext) DeviceCloneState {
-	configReader := m.G().Env.GetConfig()
-
+func GetDeviceCloneState(m *MetaContext) (DeviceCloneState, error) {
+	reader, err := deviceCloneStateReader(m)
 	pPath, sPath, cPath := configPaths(m)
-	p, _ := configReader.GetStringAtPath(pPath)
-	s, _ := configReader.GetStringAtPath(sPath)
-	c, _ := configReader.GetIntAtPath(cPath)
-	return DeviceCloneState{Prior: p, Stage: s, Clones: c}
+	p, _ := reader.GetStringAtPath(pPath)
+	s, _ := reader.GetStringAtPath(sPath)
+	c, _ := reader.GetIntAtPath(cPath)
+	return DeviceCloneState{Prior: p, Stage: s, Clones: c}, err
 }
 
 func SetDeviceCloneState(m *MetaContext, d DeviceCloneState) error {
-	configWriter := m.G().Env.GetConfigWriter()
+	writer, err := deviceCloneStateWriter(m)
+	if err != nil {
+		return err
+	}
+
 	pPath, sPath, cPath := configPaths(m)
 
-	err := configWriter.SetStringAtPath(pPath, d.Prior)
+	err = writer.SetStringAtPath(pPath, d.Prior)
+
 	if err == nil {
-		err = configWriter.SetStringAtPath(sPath, d.Stage)
+		err = writer.SetStringAtPath(sPath, d.Stage)
 	}
 	if err == nil {
-		err = configWriter.SetIntAtPath(cPath, d.Clones)
+		err = writer.SetIntAtPath(cPath, d.Clones)
+	}
+	return err
+}
+
+func NewDeviceCloneStateJSONFile(g *GlobalContext) *DeviceCloneStateJSONFile {
+	return &DeviceCloneStateJSONFile{NewJSONFile(g, g.Env.GetDeviceCloneStateFilename(), "device clone state")}
+}
+
+func deviceCloneStateReader(m *MetaContext) (DeviceCloneStateJSONFile, error) {
+	f := NewDeviceCloneStateJSONFile(m.G())
+	err := f.Load(false)
+	return *f, err
+}
+
+func deviceCloneStateWriter(m *MetaContext) (*DeviceCloneStateJSONFile, error) {
+	f := NewDeviceCloneStateJSONFile(m.G())
+	err := f.Load(false)
+	return f, err
+}
+
+func (f DeviceCloneStateJSONFile) GetStringAtPath(p string) (ret string, isSet bool) {
+	i, isSet := f.getValueAtPath(p, getString)
+	if isSet {
+		ret = i.(string)
+	}
+	return
+}
+
+func (f DeviceCloneStateJSONFile) GetIntAtPath(p string) (ret int, isSet bool) {
+	i, isSet := f.getValueAtPath(p, getInt)
+	if isSet {
+		ret = i.(int)
+	}
+	return
+}
+
+func (f DeviceCloneStateJSONFile) getValueAtPath(p string, getter valueGetter) (ret interface{}, isSet bool) {
+	var err error
+	ret, err = getter(f.jw.AtPath(p))
+	if err == nil {
+		isSet = true
+	}
+	return
+}
+
+func (f *DeviceCloneStateJSONFile) SetStringAtPath(p string, v string) error {
+	return f.setValueAtPath(p, getString, v)
+}
+
+func (f *DeviceCloneStateJSONFile) SetIntAtPath(p string, v int) error {
+	return f.setValueAtPath(p, getInt, v)
+}
+
+func (f *DeviceCloneStateJSONFile) setValueAtPath(p string, getter valueGetter, v interface{}) error {
+	existing, err := getter(f.jw.AtPath(p))
+
+	if err != nil || existing != v {
+		err = f.jw.SetValueAtPath(p, jsonw.NewWrapper(v))
+		if err == nil {
+			return f.Save()
+		}
 	}
 	return err
 }

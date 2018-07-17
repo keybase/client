@@ -353,6 +353,16 @@ func (g *GlobalContext) ConfigureConfig() error {
 func (g *GlobalContext) ConfigReload() error {
 	err := g.ConfigureConfig()
 	g.ConfigureUpdaterConfig()
+	g.ConfigureDeviceCloneState()
+	return err
+}
+
+func (g *GlobalContext) ConfigureDeviceCloneState() error {
+	c := NewDeviceCloneStateJSONFile(g)
+	err := c.Load(false)
+	if err != nil {
+		g.Log.Debug("Failed to open device clone state json file: %s\n", err)
+	}
 	return err
 }
 

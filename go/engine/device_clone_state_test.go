@@ -15,21 +15,22 @@ func persistState(m *libkb.MetaContext, d libkb.DeviceCloneState) error {
 	return libkb.SetDeviceCloneState(m, d)
 }
 
-func isValidToken(token string) bool {
-	_, err := hex.DecodeString(token)
-	return err == nil && len(token) == 32
-}
-
 func runAndGet(m *libkb.MetaContext) (d libkb.DeviceCloneState, err error) {
 	_, _, err = libkb.UpdateDeviceCloneState(m)
-	d = libkb.GetDeviceCloneState(m)
+	d, _ = libkb.GetDeviceCloneState(m)
 	return
+}
+
+func assertIsValidToken(tc libkb.TestContext, token string) {
+	_, err := hex.DecodeString(token)
+	require.NoError(tc.T, err)
+	require.Equal(tc.T, len(token), 32)
 }
 
 func assertSuccessfulRun(tc libkb.TestContext, d libkb.DeviceCloneState, err error) {
 	require.NoError(tc.T, err)
 	require.Equal(tc.T, d.Stage, "")
-	require.True(tc.T, isValidToken(d.Prior))
+	assertIsValidToken(tc, d.Prior)
 }
 
 func TestDeviceCloneStateFirstRun(t *testing.T) {
@@ -114,7 +115,7 @@ func TestDeviceCloneStateCloneDetected(t *testing.T) {
 	persistState(&m, d0)
 
 	before, after, err := libkb.UpdateDeviceCloneState(&m)
-	d := libkb.GetDeviceCloneState(&m)
+	d, _ := libkb.GetDeviceCloneState(&m)
 
 	assertSuccessfulRun(tc, d, err)
 	require.NotEqual(tc.T, d.Prior, d0.Stage, "despite there being a clone, the prior still needs to change")

@@ -510,6 +510,9 @@ func (f JSONConfigFile) GetConfigFilename() string {
 func (f JSONConfigFile) GetUpdaterConfigFilename() string {
 	return f.GetTopLevelString("updater_config_file")
 }
+func (f JSONConfigFile) GetDeviceCloneStateFilename() string {
+	return f.GetTopLevelString("device_clone_state_file")
+}
 func (f JSONConfigFile) GetSecretKeyringTemplate() string {
 	return f.GetTopLevelString("secret_keyring")
 }
