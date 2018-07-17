@@ -789,13 +789,13 @@ type NoNaClEncryptionKeyError struct {
 func (e NoNaClEncryptionKeyError) Error() string {
 	var other string
 	if e.HasPUK {
-		other = "; they do have a per user key, so you can use the flag `--use-entity-keys` to them instead"
+		other = "; they do have a per user key, so you can remove the flag `--no-entity-keys` to encrypt for them instead"
 	} else if e.HasDeviceKey {
-		other = "; they do have a device key, so you can use the flag `--use-device-keys` to them instead"
+		other = "; they do have a device key, so you can use the flag `--use-device-keys` to encrypt for them instead"
 	} else if e.HasPaperKey {
-		other = "; they do have a per user key, so you can use the flag `--use-paper-keys` to them instead"
+		other = "; they do have a per user key, so you can use the flag `--use-paper-keys` to encrypt for them instead"
 	} else if e.HasPGPKey {
-		other = "; they do have a PGP key, so you can `keybase pgp encrypt` to them instead"
+		other = "; they do have a PGP key, so you can `keybase pgp encrypt` to encrypt for them instead"
 	}
 
 	return fmt.Sprintf("User %s doesn't have the key type(s) requested%s", e.Username, other)

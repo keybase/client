@@ -385,12 +385,6 @@ const (
 	DeviceTypePaper   = "backup"
 )
 
-func IsPaperKey(key keybase1.PublicKeyV2NaCl) bool {
-	// Note: for Nacl encryption keys, the DeviceType field is not set, so it might be
-	// necessary to look at the "parent" signing key
-	return key.DeviceType == DeviceTypePaper
-}
-
 const DownloadURL = "https://keybase.io/download"
 
 var PGPVersion = "Keybase Go " + Version + " (" + runtime.GOOS + ")"

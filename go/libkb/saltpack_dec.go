@@ -6,15 +6,13 @@ package libkb
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"fmt"
 	"io"
 
 	"github.com/keybase/saltpack"
 )
 
-func SaltpackDecrypt(
-	ctx context.Context, g *GlobalContext, source io.Reader, sink io.WriteCloser,
+func SaltpackDecrypt(m MetaContext, source io.Reader, sink io.WriteCloser,
 	decryptionKeyring saltpack.SigncryptKeyring,
 	checkSenderMki func(*saltpack.MessageKeyInfo) error,
 	checkSenderSigningKey func(saltpack.SigningPublicKey) error,
@@ -47,7 +45,7 @@ func SaltpackDecrypt(
 	}
 
 	// mki will be set for DH mode, senderSigningKey will be set for signcryption mode
-	plainsource, mki, senderSigningKey, typ, err := peekTypeAndMakeDecoder(ctx, g, dearmored, decryptionKeyring, keyResolver)
+	plainsource, mki, senderSigningKey, typ, err := peekTypeAndMakeDecoder(dearmored, decryptionKeyring, keyResolver)
 
 	if err != nil {
 		return mki, err
@@ -82,7 +80,7 @@ func SaltpackDecrypt(
 		}
 	}
 
-	g.Log.CDebugf(ctx, "Decrypt: read %d bytes", n)
+	m.CDebugf("Decrypt: read %d bytes", n)
 
 	if err := sink.Close(); err != nil {
 		return mki, err
@@ -90,7 +88,7 @@ func SaltpackDecrypt(
 	return mki, nil
 }
 
-func peekTypeAndMakeDecoder(ctx context.Context, g *GlobalContext, dearmored io.Reader, keyring saltpack.SigncryptKeyring, keyResolver saltpack.SymmetricKeyResolver) (io.Reader, *saltpack.MessageKeyInfo, saltpack.SigningPublicKey, saltpack.MessageType, error) {
+func peekTypeAndMakeDecoder(dearmored io.Reader, keyring saltpack.SigncryptKeyring, keyResolver saltpack.SymmetricKeyResolver) (io.Reader, *saltpack.MessageKeyInfo, saltpack.SigningPublicKey, saltpack.MessageType, error) {
 	// How much do we need to peek to get at the mode number?
 	// - bin tag (2, 3, or 5 bytes)
 	// - array tag (1 byte)

@@ -5,6 +5,7 @@ package client
 
 import (
 	"errors"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -46,9 +47,9 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			Name:  "o, outfile",
 			Usage: "Specify an outfile (stdout by default).",
 		},
-		cli.BoolTFlag{ // True by default!
-			Name:  "use-entity-keys",
-			Usage: "Use per user/per team keys for encryption. Default is true.",
+		cli.BoolFlag{
+			Name:  "no-entity-keys",
+			Usage: "Do not use per user/per team keys for encryption.",
 		},
 		cli.BoolFlag{
 			Name:  "use-device-keys",
@@ -64,8 +65,8 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		},
 		cli.StringFlag{
 			Name:  "auth-type",
-			Value: "SIGNED",
-			Usage: "How to guarantee sender authenticity: SIGNED|REPUDIABLE|ANONYMOUS. Uses this device's key for signing, pairwise MACs for repudiability, nothing if anonymous.",
+			Value: "signed",
+			Usage: "How to guarantee sender authenticity: signed|repudiable|anonymous. Uses this device's key for signing, pairwise MACs for repudiability, nothing if anonymous.",
 		},
 		cli.IntFlag{
 			Name:  "saltpack-version",
@@ -75,7 +76,7 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 
 	return cli.Command{
 		Name:         "encrypt",
-		ArgumentHelp: "<usernames...>",
+		ArgumentHelp: "<username|teamname|user@assertion|...>",
 		Usage:        "Encrypt messages or files for keybase users and teams",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdEncrypt{
@@ -139,18 +140,18 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 	msg := ctx.String("message")
 	outfile := ctx.String("outfile")
 	infile := ctx.String("infile")
-	c.useEntityKeys = ctx.Bool("use-entity-keys")
+	c.useEntityKeys = !ctx.Bool("no-entity-keys")
 	c.useDeviceKeys = ctx.Bool("use-device-keys")
 	c.usePaperKeys = ctx.Bool("use-paper-keys")
 	var ok bool
-	if c.authenticityType, ok = keybase1.AuthenticityTypeMap[ctx.String("auth-type")]; !ok {
+	if c.authenticityType, ok = keybase1.AuthenticityTypeMap[strings.ToUpper(ctx.String("auth-type"))]; !ok {
 		return errors.New("invalid auth-type option provided")
 	}
 	if c.useEntityKeys && c.authenticityType == keybase1.AuthenticityType_REPUDIABLE {
-		return errors.New("cannot use --use-entity-keys and --auth-type=repudiable together")
+		return errors.New("cannot use --no-entity-keys and --auth-type=repudiable together")
 	}
 	if !(c.useEntityKeys || c.useDeviceKeys || c.usePaperKeys) {
-		return errors.New("please choose at least one type of keys (between --use-entity-keys, --use-device-keys, --use-paper-keys")
+		return errors.New("please choose at least one type of keys (add --use-device-keys, or add --use-paper-keys, or remove --no-entity-keys")
 	}
 	c.noSelfEncrypt = ctx.Bool("no-self-encrypt")
 	c.binary = ctx.Bool("binary")

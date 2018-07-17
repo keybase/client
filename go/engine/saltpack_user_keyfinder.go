@@ -15,12 +15,11 @@ import (
 // This engine does not find per team keys, which capability is implemented by SaltpackRecipientKeyfinder in the saltpackKeyHelpers package.
 type SaltpackUserKeyfinder struct {
 	Arg                           libkb.SaltpackRecipientKeyfinderArg
-	Self                          *libkb.User
 	RecipientEntityKeyMap         map[keybase1.UserOrTeamID]([]keybase1.KID)
 	RecipientDeviceAndPaperKeyMap map[keybase1.UID]([]keybase1.KID)
 }
 
-// NewSaltpackUserKeyfinder creates a SaltpackUserKeyfinder engine.
+// NewSaltpackUserKeyfinderAsInterface creates a SaltpackUserKeyfinder engine.
 func NewSaltpackUserKeyfinderAsInterface(Arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface {
 	return &SaltpackUserKeyfinder{
 		Arg: Arg,
@@ -90,30 +89,15 @@ func (e *SaltpackUserKeyfinder) Run(m libkb.MetaContext) (err error) {
 
 func (e *SaltpackUserKeyfinder) AddOwnKeysIfNeeded(m libkb.MetaContext) error {
 	if !e.Arg.NoSelfEncrypt {
-		err := e.LoadSelfIfLoggedIn(m)
-		if err != nil {
-			return err
-		}
-		if e.Self == nil {
+		if !m.ActiveDevice().Valid() {
 			return libkb.NewLoginRequiredError("need to be logged in or use --no-self-encrypt")
 		}
-		selfUpk, err := e.Self.ExportToUPKV2AllIncarnations()
+		arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(m.ActiveDevice().UID()).WithForcePoll(true)
+		upak, _, err := m.G().GetUPAKLoader().LoadV2(arg)
 		if err != nil {
 			return err
 		}
-		e.AddUserRecipient(m, &selfUpk.Current)
-	}
-	return nil
-}
-
-func (e *SaltpackUserKeyfinder) LoadSelfIfLoggedIn(m libkb.MetaContext) (err error) {
-	if e.Self == nil { // If Self is not nil, it was already loaded
-		if loggedIn, uid := isLoggedIn(m); loggedIn {
-			e.Self, err = libkb.LoadMeByMetaContextAndUID(m, uid)
-			if err != nil {
-				return err
-			}
-		}
+		e.AddUserRecipient(m, &upak.Current)
 	}
 	return nil
 }
@@ -121,6 +105,7 @@ func (e *SaltpackUserKeyfinder) LoadSelfIfLoggedIn(m libkb.MetaContext) (err err
 // lookupRecipients adds the KID corresponding to each recipient to the recipientMap
 func (e *SaltpackUserKeyfinder) lookupRecipients(m libkb.MetaContext) error {
 	for _, u := range e.Arg.Recipients {
+		// TODO make these lookups in parallel (maybe using sync.WaitGroup)
 		err := e.LookupUser(m, u) // For existing users
 		if err == nil {
 			continue
@@ -151,7 +136,7 @@ func (e *SaltpackUserKeyfinder) LookupUser(m libkb.MetaContext, user string) err
 	if engRes == nil {
 		return fmt.Errorf("Null result from Identify2")
 	}
-	arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(engRes.Upk.GetUID())
+	arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(engRes.Upk.GetUID()).WithForcePoll(true)
 	upak, _, err := m.G().GetUPAKLoader().LoadV2(arg)
 	if err != nil {
 		return err
@@ -177,6 +162,10 @@ func (e *SaltpackUserKeyfinder) AddUserRecipient(m libkb.MetaContext, upk *keyba
 	return e.AddPUK(m, upk)
 }
 
+func (e *SaltpackUserKeyfinder) isPaperEncryptionKey(key *keybase1.PublicKeyV2NaCl, deviceKeys *(map[keybase1.KID]keybase1.PublicKeyV2NaCl)) bool {
+	return libkb.KIDIsDeviceEncrypt(key.Base.Kid) && key.Parent != nil && (*deviceKeys)[key.Base.Kid].DeviceType == libkb.DeviceTypePaper
+}
+
 func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *keybase1.UserPlusKeysV2) error {
 	if !e.Arg.UsePaperKeys && !e.Arg.UseDeviceKeys {
 		// No need to add anything
@@ -196,7 +185,7 @@ func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *
 
 	for KID, key := range upk.DeviceKeys {
 		// Note: for Nacl encryption keys, the DeviceType field is not set, so we need to look at the "parent" signing key
-		if libkb.KIDIsDeviceEncrypt(KID) && key.Parent != nil && libkb.IsPaperKey(upk.DeviceKeys[*key.Parent]) {
+		if e.isPaperEncryptionKey(&key, &upk.DeviceKeys) {
 			hasPaperKey = true
 			if e.Arg.UsePaperKeys {
 				keys = append(keys, KID)
@@ -204,7 +193,7 @@ func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *
 			}
 		}
 
-		if libkb.KIDIsDeviceEncrypt(KID) && key.Parent != nil && !libkb.IsPaperKey(upk.DeviceKeys[*key.Parent]) {
+		if libkb.KIDIsDeviceEncrypt(KID) && !e.isPaperEncryptionKey(&key, &upk.DeviceKeys) {
 			hasDeviceKey = true
 			if e.Arg.UseDeviceKeys {
 				keys = append(keys, KID)
@@ -213,6 +202,11 @@ func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *
 		}
 	}
 
+	// If the recipient has no suitable keys at all (either device or paper keys), we return an error. However, if the user requested both device and paper keys for encryption,
+	// and this recipient only has one kind, we just show a warning. This is because this command might be called with a list of many users, and we do not want to abort
+	// if just one of these users happens to be missing one of the two key types.
+	// However, note that are more conservative and do error out if the recipient doesn't have a per user key (even if it instead has a device key), as per user keys are
+	// of a different `quality` as they allow to decrypt with devices that do not yet exist, while the former keys don't.
 	if len(keys) == 0 {
 		return libkb.NoNaClEncryptionKeyError{
 			Username:     upk.Username,
@@ -222,7 +216,6 @@ func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *
 			HasPaperKey:  hasPaperKey,
 		}
 	}
-
 	if e.Arg.UseDeviceKeys && !hasDeviceKey {
 		m.CWarningf("User %v does not have a device key (they can still decrypt the message with a paper key).", upk.Username)
 	}
@@ -252,10 +245,10 @@ func (e *SaltpackUserKeyfinder) AddPUK(m libkb.MetaContext, upk *keybase1.UserPl
 		hasPaperKey := false
 		hasDeviceKey := false
 		for KID, key := range upk.DeviceKeys {
-			if libkb.KIDIsDeviceEncrypt(KID) && key.Parent != nil && libkb.IsPaperKey(upk.DeviceKeys[*key.Parent]) {
+			if e.isPaperEncryptionKey(&key, &upk.DeviceKeys) {
 				hasPaperKey = true
 			}
-			if libkb.KIDIsDeviceEncrypt(KID) && key.Parent != nil && !libkb.IsPaperKey(upk.DeviceKeys[*key.Parent]) {
+			if libkb.KIDIsDeviceEncrypt(KID) && !e.isPaperEncryptionKey(&key, &upk.DeviceKeys) {
 				hasDeviceKey = true
 			}
 		}

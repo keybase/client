@@ -60,7 +60,7 @@ func (e *SaltpackEncrypt) RequiredUIs() []libkb.UIKind {
 // SubConsumers returns the other UI consumers for this engine.
 func (e *SaltpackEncrypt) SubConsumers() []libkb.UIConsumer {
 	// TODO potentially KeyfinderHook might return a different UIConsumer depending on its arguments,
-	// which might make this call problematica, but it is not doing it right now.
+	// which might make this call problematic, but all the hooks currently in use are not doing that.
 	return []libkb.UIConsumer{
 		e.newKeyfinderHook(libkb.SaltpackRecipientKeyfinderArg{}),
 	}
@@ -166,7 +166,7 @@ func (e *SaltpackEncrypt) Run(m libkb.MetaContext) (err error) {
 	}
 
 	if e.arg.Opts.AuthenticityType != keybase1.AuthenticityType_ANONYMOUS && e.me == nil {
-		m.CWarningf("Switching to auth-type=anonymous, since you are not logged in.")
+		return libkb.NewLoginRequiredError("authenticating a message requires login. Either login or use --auth-type=anonymous")
 	}
 
 	saltpackVersion, err := libkb.SaltpackVersionFromArg(e.arg.Opts.SaltpackVersion)
@@ -187,5 +187,5 @@ func (e *SaltpackEncrypt) Run(m libkb.MetaContext) (err error) {
 
 		VisibleRecipientsForTesting: e.visibleRecipientsForTesting,
 	}
-	return libkb.SaltpackEncrypt(m.G(), &encarg)
+	return libkb.SaltpackEncrypt(m, &encarg)
 }

@@ -193,7 +193,7 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 
 	m.CDebugf("| SaltpackDecrypt")
 	var mki *saltpack.MessageKeyInfo
-	mki, err = libkb.SaltpackDecrypt(m.Ctx(), m.G(), e.arg.Source, e.arg.Sink, keyring, hookMki, hookSenderSigningKey, e.pnymResolver)
+	mki, err = libkb.SaltpackDecrypt(m, e.arg.Source, e.arg.Sink, keyring, hookMki, hookSenderSigningKey, e.pnymResolver)
 	if err == saltpack.ErrNoDecryptionKey {
 		err = libkb.NoDecryptionKeyError{Msg: "no suitable device key found"}
 	}
