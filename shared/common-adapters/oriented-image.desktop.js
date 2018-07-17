@@ -249,6 +249,7 @@ class OrientedImage extends React.Component<Props, State> {
           <ImageComponent
             src={this.state.srcTransformed}
             style={this.props.style}
+            onDragStart={this.props.onDragStart}
             onLoad={this.props.onLoad}
           />
         )}

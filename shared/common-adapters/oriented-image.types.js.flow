@@ -4,5 +4,6 @@ import {type StylesDesktop} from '../styles'
 export type Props = {
   src: string,
   style?: StylesDesktop,
-  onLoad?: () => void,
+  onDragStart?: (e: SyntheticEvent<>) => void,
+  onLoad?: (e: SyntheticEvent<>) => void,
 }
