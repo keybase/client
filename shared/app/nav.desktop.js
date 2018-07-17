@@ -7,19 +7,8 @@ import Offline from '../offline/container'
 import TabBar from './tab-bar/container'
 import {isDarwin} from '../constants/platform'
 import {Box, ErrorBoundary} from '../common-adapters'
-import {
-  chatTab,
-  fsTab,
-  loginTab,
-  peopleTab,
-  teamsTab,
-  devicesTab,
-  gitTab,
-  settingsTab,
-  walletsTab,
-  type Tab,
-} from '../constants/tabs'
-import {navigateTo} from '../actions/route-tree'
+import * as Tabs from '../constants/tabs'
+import {switchTo} from '../actions/route-tree'
 import {connect, type TypedState, type Dispatch} from '../util/container'
 import {globalStyles} from '../styles'
 import flags from '../util/feature-flags'
@@ -29,19 +18,19 @@ type Props = {
   layerScreens: I.Stack<RouteTree.RenderRouteResult>,
   onHotkey: (cmd: string) => void,
   visibleScreen: RouteTree.RenderRouteResult,
-  routeSelected: Tab,
+  routeSelected: Tabs.Tab,
   routePath: I.List<string>,
 }
 
-const hotkeyTabMap: {[string]: Tab} = {
-  '1': peopleTab,
-  '2': chatTab,
-  '3': fsTab,
-  '4': teamsTab,
-  '5': devicesTab,
-  '6': gitTab,
-  '7': settingsTab,
-  ...(flags.walletsEnabled ? {'8': walletsTab} : {}),
+const hotkeyTabMap: {[string]: Tabs.Tab} = {
+  '1': Tabs.peopleTab,
+  '2': Tabs.chatTab,
+  '3': Tabs.fsTab,
+  '4': Tabs.teamsTab,
+  '5': Tabs.devicesTab,
+  '6': Tabs.gitTab,
+  '7': Tabs.settingsTab,
+  ...(flags.walletsEnabled ? {'8': Tabs.walletsTab} : {}),
 }
 
 const hotkeys = Object.keys(hotkeyTabMap).map(key => `${isDarwin ? 'command' : 'ctrl'}+${key}`)
@@ -52,7 +41,7 @@ class Nav extends React.Component<Props> {
     return (
       <ErrorBoundary>
         <Box style={stylesTabsContainer}>
-          {routeSelected !== loginTab && (
+          {routeSelected !== Tabs.loginTab && (
             <TabBar
               hotkeys={hotkeys}
               onHotkey={this.props.onHotkey}
@@ -70,7 +59,7 @@ class Nav extends React.Component<Props> {
           <ErrorBoundary>
             <div id="popupContainer" />
           </ErrorBoundary>
-          {![chatTab, loginTab].includes(routeSelected) && <Offline />}
+          {![Tabs.chatTab, Tabs.loginTab].includes(routeSelected) && <Offline />}
           <GlobalError />
         </Box>
         <RpcStats />
@@ -92,7 +81,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onHotkey: (cmd: string) => {
     const tab = hotkeyTabMap[cmd.replace(/(command|ctrl)\+/, '')]
     if (tab) {
-      dispatch(navigateTo([tab]))
+      dispatch(switchTo([tab]))
     }
   },
 })
