@@ -809,6 +809,18 @@ func (o MessageSendPayment) DeepCopy() MessageSendPayment {
 	}
 }
 
+type MessageRequestPayment struct {
+	RequestID string `codec:"requestID" json:"requestID"`
+	Note      string `codec:"note" json:"note"`
+}
+
+func (o MessageRequestPayment) DeepCopy() MessageRequestPayment {
+	return MessageRequestPayment{
+		RequestID: o.RequestID,
+		Note:      o.Note,
+	}
+}
+
 type MessageBody struct {
 	MessageType__        MessageType                  `codec:"messageType" json:"messageType"`
 	Text__               *MessageText                 `codec:"text,omitempty" json:"text,omitempty"`
@@ -824,6 +836,7 @@ type MessageBody struct {
 	Deletehistory__      *MessageDeleteHistory        `codec:"deletehistory,omitempty" json:"deletehistory,omitempty"`
 	Reaction__           *MessageReaction             `codec:"reaction,omitempty" json:"reaction,omitempty"`
 	Sendpayment__        *MessageSendPayment          `codec:"sendpayment,omitempty" json:"sendpayment,omitempty"`
+	Requestpayment__     *MessageRequestPayment       `codec:"requestpayment,omitempty" json:"requestpayment,omitempty"`
 }
 
 func (o *MessageBody) MessageType() (ret MessageType, err error) {
@@ -891,6 +904,11 @@ func (o *MessageBody) MessageType() (ret MessageType, err error) {
 	case MessageType_SENDPAYMENT:
 		if o.Sendpayment__ == nil {
 			err = errors.New("unexpected nil value for Sendpayment__")
+			return ret, err
+		}
+	case MessageType_REQUESTPAYMENT:
+		if o.Requestpayment__ == nil {
+			err = errors.New("unexpected nil value for Requestpayment__")
 			return ret, err
 		}
 	}
@@ -1027,6 +1045,16 @@ func (o MessageBody) Sendpayment() (res MessageSendPayment) {
 	return *o.Sendpayment__
 }
 
+func (o MessageBody) Requestpayment() (res MessageRequestPayment) {
+	if o.MessageType__ != MessageType_REQUESTPAYMENT {
+		panic("wrong case accessed")
+	}
+	if o.Requestpayment__ == nil {
+		return
+	}
+	return *o.Requestpayment__
+}
+
 func NewMessageBodyWithText(v MessageText) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_TEXT,
@@ -1115,6 +1143,13 @@ func NewMessageBodyWithSendpayment(v MessageSendPayment) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_SENDPAYMENT,
 		Sendpayment__: &v,
+	}
+}
+
+func NewMessageBodyWithRequestpayment(v MessageRequestPayment) MessageBody {
+	return MessageBody{
+		MessageType__:    MessageType_REQUESTPAYMENT,
+		Requestpayment__: &v,
 	}
 }
 
@@ -1212,6 +1247,13 @@ func (o MessageBody) DeepCopy() MessageBody {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Sendpayment__),
+		Requestpayment__: (func(x *MessageRequestPayment) *MessageRequestPayment {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Requestpayment__),
 	}
 }
 
@@ -3761,23 +3803,125 @@ func (o DownloadAttachmentLocalRes) DeepCopy() DownloadAttachmentLocalRes {
 	}
 }
 
-type MakePreviewRes struct {
-	MimeType     string         `codec:"mimeType" json:"mimeType"`
-	Filename     *string        `codec:"filename,omitempty" json:"filename,omitempty"`
-	Metadata     *AssetMetadata `codec:"metadata,omitempty" json:"metadata,omitempty"`
-	BaseMetadata *AssetMetadata `codec:"baseMetadata,omitempty" json:"baseMetadata,omitempty"`
+type PreviewLocationTyp int
+
+const (
+	PreviewLocationTyp_URL  PreviewLocationTyp = 0
+	PreviewLocationTyp_FILE PreviewLocationTyp = 1
+)
+
+func (o PreviewLocationTyp) DeepCopy() PreviewLocationTyp { return o }
+
+var PreviewLocationTypMap = map[string]PreviewLocationTyp{
+	"URL":  0,
+	"FILE": 1,
 }
 
-func (o MakePreviewRes) DeepCopy() MakePreviewRes {
-	return MakePreviewRes{
-		MimeType: o.MimeType,
-		Filename: (func(x *string) *string {
+var PreviewLocationTypRevMap = map[PreviewLocationTyp]string{
+	0: "URL",
+	1: "FILE",
+}
+
+func (e PreviewLocationTyp) String() string {
+	if v, ok := PreviewLocationTypRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type PreviewLocation struct {
+	Ltyp__ PreviewLocationTyp `codec:"ltyp" json:"ltyp"`
+	Url__  *string            `codec:"url,omitempty" json:"url,omitempty"`
+	File__ *string            `codec:"file,omitempty" json:"file,omitempty"`
+}
+
+func (o *PreviewLocation) Ltyp() (ret PreviewLocationTyp, err error) {
+	switch o.Ltyp__ {
+	case PreviewLocationTyp_URL:
+		if o.Url__ == nil {
+			err = errors.New("unexpected nil value for Url__")
+			return ret, err
+		}
+	case PreviewLocationTyp_FILE:
+		if o.File__ == nil {
+			err = errors.New("unexpected nil value for File__")
+			return ret, err
+		}
+	}
+	return o.Ltyp__, nil
+}
+
+func (o PreviewLocation) Url() (res string) {
+	if o.Ltyp__ != PreviewLocationTyp_URL {
+		panic("wrong case accessed")
+	}
+	if o.Url__ == nil {
+		return
+	}
+	return *o.Url__
+}
+
+func (o PreviewLocation) File() (res string) {
+	if o.Ltyp__ != PreviewLocationTyp_FILE {
+		panic("wrong case accessed")
+	}
+	if o.File__ == nil {
+		return
+	}
+	return *o.File__
+}
+
+func NewPreviewLocationWithUrl(v string) PreviewLocation {
+	return PreviewLocation{
+		Ltyp__: PreviewLocationTyp_URL,
+		Url__:  &v,
+	}
+}
+
+func NewPreviewLocationWithFile(v string) PreviewLocation {
+	return PreviewLocation{
+		Ltyp__: PreviewLocationTyp_FILE,
+		File__: &v,
+	}
+}
+
+func (o PreviewLocation) DeepCopy() PreviewLocation {
+	return PreviewLocation{
+		Ltyp__: o.Ltyp__.DeepCopy(),
+		Url__: (func(x *string) *string {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x)
 			return &tmp
-		})(o.Filename),
+		})(o.Url__),
+		File__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.File__),
+	}
+}
+
+type MakePreviewRes struct {
+	MimeType     string           `codec:"mimeType" json:"mimeType"`
+	Location     *PreviewLocation `codec:"location,omitempty" json:"location,omitempty"`
+	Metadata     *AssetMetadata   `codec:"metadata,omitempty" json:"metadata,omitempty"`
+	BaseMetadata *AssetMetadata   `codec:"baseMetadata,omitempty" json:"baseMetadata,omitempty"`
+}
+
+func (o MakePreviewRes) DeepCopy() MakePreviewRes {
+	return MakePreviewRes{
+		MimeType: o.MimeType,
+		Location: (func(x *PreviewLocation) *PreviewLocation {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Location),
 		Metadata: (func(x *AssetMetadata) *AssetMetadata {
 			if x == nil {
 				return nil
@@ -4287,7 +4431,7 @@ type DownloadFileAttachmentLocalArg struct {
 type MakePreviewArg struct {
 	SessionID  int             `codec:"sessionID" json:"sessionID"`
 	Attachment LocalFileSource `codec:"attachment" json:"attachment"`
-	OutputDir  string          `codec:"outputDir" json:"outputDir"`
+	OutboxID   OutboxID        `codec:"outboxID" json:"outboxID"`
 }
 
 type CancelPostArg struct {

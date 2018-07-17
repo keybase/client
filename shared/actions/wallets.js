@@ -116,11 +116,8 @@ const navigateToAccount = (
   return Saga.put(Route.navigateTo([{props: {}, selected: walletsTab}, {props: {}, selected: null}]))
 }
 
-const exportSecretKey = (action: WalletsGen.ExportSecretKeyPayload) =>
-  Saga.call(RPCTypes.localGetWalletAccountSecretKeyLocalRpcPromise, {accountID: action.payload.accountID})
-
-const exportSecretKeySuccess = (res: RPCTypes.SecretKey, action: WalletsGen.ExportSecretKeyPayload) =>
-  Saga.put(
+const exportSecretKey = (state: TypedState, action: WalletsGen.ExportSecretKeyPayload) =>
+  RPCTypes.localGetWalletAccountSecretKeyLocalRpcPromise({accountID: action.payload.accountID}).then(res =>
     WalletsGen.createSecretKeyReceived({
       accountID: action.payload.accountID,
       secretKey: new HiddenString(res),
@@ -152,11 +149,12 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPurePromise(WalletsGen.linkExistingAccount, linkExistingAccount)
   yield Saga.safeTakeEveryPurePromise(WalletsGen.validateAccountName, validateAccountName)
   yield Saga.safeTakeEveryPurePromise(WalletsGen.validateSecretKey, validateSecretKey)
+  yield Saga.safeTakeEveryPurePromise(WalletsGen.exportSecretKey, exportSecretKey)
   yield Saga.safeTakeEveryPure(
     [WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
     navigateToAccount
   )
-  yield Saga.safeTakeEveryPure(WalletsGen.exportSecretKey, exportSecretKey, exportSecretKeySuccess)
+  yield Saga.safeTakeEveryPurePromise(WalletsGen.exportSecretKey, exportSecretKey)
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
 }
 

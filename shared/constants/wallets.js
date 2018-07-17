@@ -21,6 +21,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   accountNameError: '',
   accountNameValidationState: 'none',
   assetsMap: I.Map(),
+  exportedSecretKey: new HiddenString(''),
   linkExistingAccountError: '',
   paymentsMap: I.Map(),
   secretKey: new HiddenString(''),
@@ -167,8 +168,7 @@ const getFederatedAddress = (state: TypedState, accountID?: Types.AccountID) => 
   return username && account.isDefault ? `${username}*keybase.io` : ''
 }
 
-const getSecretKey = (state: TypedState, accountID: Types.AccountID) =>
-  state.wallets.secretKeyMap.get(accountID)
+const getSecretKey = (state: TypedState, accountID: Types.AccountID) => state.wallets.exportedSecretKey
 
 export {
   accountResultToAccount,

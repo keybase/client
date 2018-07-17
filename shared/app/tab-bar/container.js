@@ -1,14 +1,18 @@
 // @flow
 import {connect, type TypedState, type Dispatch, isMobile} from '../../util/container'
-import {usernameSelector} from '../../constants/selectors'
 import TabBarRender from '.'
 import {chatTab, peopleTab, profileTab, type Tab} from '../../constants/tabs'
 import {navigateTo, switchTo} from '../../actions/route-tree'
 import {createShowUserProfile} from '../../actions/profile-gen'
 
+let KeyHandler = c => c
+if (!isMobile) {
+  KeyHandler = require('../../util/key-handler.desktop').default
+}
+
 const mapStateToProps = (state: TypedState) => ({
   _badgeNumbers: state.notifications.get('navBadges'),
-  username: usernameSelector(state),
+  username: state.config.username,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeSelected, routePath}) => ({
@@ -70,4 +74,5 @@ const mergeProps = (stateProps, dispatchProps, {routeSelected}) => ({
   username: stateProps.username || '',
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TabBarRender)
+const ConnectedTabBar = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TabBarRender)
+export default (isMobile ? ConnectedTabBar : KeyHandler(ConnectedTabBar))

@@ -40,6 +40,31 @@ func New(g *libkb.GlobalContext, getDB DbFn, getSecretBoxKey KeyFn) *EncryptedDB
 	}
 }
 
+func decodeBox(ctx context.Context, b []byte, getSecretBoxKey KeyFn, res interface{}) error {
+	// Decode encrypted box
+	var boxed boxedData
+	if err := libkb.MPackDecode(b, &boxed); err != nil {
+		return err
+	}
+	if boxed.V > cryptoVersion {
+		return fmt.Errorf("bad crypto version: %d current: %d", boxed.V,
+			cryptoVersion)
+	}
+	enckey, err := getSecretBoxKey(ctx)
+	if err != nil {
+		return err
+	}
+	pt, ok := secretbox.Open(nil, boxed.E, &boxed.N, &enckey)
+	if !ok {
+		return fmt.Errorf("failed to decrypt item")
+	}
+
+	if err = libkb.MPackDecode(pt, res); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Get a value
 // Decodes into res
 // Returns (found, err). Res is valid only if (found && err == nil)
@@ -53,47 +78,26 @@ func (i *EncryptedDB) Get(ctx context.Context, key libkb.DbKey, res interface{})
 	if !found {
 		return false, nil
 	}
-
-	// Decode encrypted box
-	var boxed boxedData
-	if err := libkb.MPackDecode(b, &boxed); err != nil {
-		return true, err
+	if err = decodeBox(ctx, b, i.getSecretBoxKey, res); err != nil {
+		return false, err
 	}
-	if boxed.V > cryptoVersion {
-		return true, fmt.Errorf("bad crypto version: %d current: %d", boxed.V,
-			cryptoVersion)
-	}
-	enckey, err := i.getSecretBoxKey(ctx)
-	if err != nil {
-		return true, err
-	}
-	pt, ok := secretbox.Open(nil, boxed.E, &boxed.N, &enckey)
-	if !ok {
-		return true, fmt.Errorf("failed to decrypt item")
-	}
-
-	if err = libkb.MPackDecode(pt, res); err != nil {
-		return true, err
-	}
-
 	return true, nil
 }
 
-func (i *EncryptedDB) Put(ctx context.Context, key libkb.DbKey, data interface{}) error {
-	db := i.getDB(i.G())
+func encodeBox(ctx context.Context, data interface{}, getSecretBoxKey KeyFn) ([]byte, error) {
 	dat, err := libkb.MPackEncode(data)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	enckey, err := i.getSecretBoxKey(ctx)
+	enckey, err := getSecretBoxKey(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	var nonce []byte
 	nonce, err = libkb.RandBytes(24)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	var fnonce [24]byte
 	copy(fnonce[:], nonce)
@@ -106,9 +110,17 @@ func (i *EncryptedDB) Put(ctx context.Context, key libkb.DbKey, data interface{}
 
 	// Encode encrypted box
 	if dat, err = libkb.MPackEncode(boxed); err != nil {
+		return nil, err
+	}
+	return dat, nil
+}
+
+func (i *EncryptedDB) Put(ctx context.Context, key libkb.DbKey, data interface{}) error {
+	db := i.getDB(i.G())
+	dat, err := encodeBox(ctx, data, i.getSecretBoxKey)
+	if err != nil {
 		return err
 	}
-
 	// Write out
 	return db.PutRaw(key, dat)
 }

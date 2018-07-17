@@ -27,12 +27,12 @@ func NewDNSChecker(p libkb.RemoteProofChainLink) (*DNSChecker, libkb.ProofError)
 
 func (rc *DNSChecker) GetTorError() libkb.ProofError { return libkb.ProofErrorDNSOverTor }
 
-func (rc *DNSChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, pcm libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) libkb.ProofError {
+func (rc *DNSChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, pcm libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) libkb.ProofError {
 	if pcm != libkb.ProofCheckerModeActive {
-		ctx.GetLog().CDebugf(ctx.GetNetContext(), "DNS check skipped since proof checking was not in active mode (%s)", h.GetAPIURL())
+		m.CDebugf("DNS check skipped since proof checking was not in active mode (%s)", h.GetAPIURL())
 		return libkb.ProofErrorUnchecked
 	}
-	return CheckProofPvl(ctx, keybase1.ProofType_DNS, rc.proof, h, pvlU)
+	return CheckProofPvl(m, keybase1.ProofType_DNS, rc.proof, h, pvlU)
 }
 
 //
@@ -49,7 +49,7 @@ func (t DNSServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t DNSServiceType) NormalizeRemoteName(_ libkb.ProofContext, s string) (string, error) {
+func (t DNSServiceType) NormalizeRemoteName(_ libkb.MetaContext, s string) (string, error) {
 	// Allow a leading 'dns://' and preserve case.
 	s = strings.TrimPrefix(s, "dns://")
 	if !libkb.IsValidHostname(s) {
@@ -69,7 +69,7 @@ func (t DNSServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return ret
 }
 
-func (t DNSServiceType) FormatProofText(ctx libkb.ProofContext, ppr *libkb.PostProofRes) (string, error) {
+func (t DNSServiceType) FormatProofText(ctx libkb.MetaContext, ppr *libkb.PostProofRes) (string, error) {
 	return (ppr.Text + "\n"), nil
 }
 

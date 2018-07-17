@@ -27,7 +27,7 @@ export default class extends React.Component<Props> {
   render() {
     return (
       <MaybePopup onClose={this.props.onClose}>
-        <Box2 direction="vertical" style={containerStyle}>
+        <Box2 direction="vertical" style={styles.container}>
           <Icon
             type={isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
             style={iconCastPlatformStyles(styles.icon)}
@@ -54,6 +54,23 @@ export default class extends React.Component<Props> {
 }
 
 const styles = styleSheetCreate({
+  container: platformStyles({
+    common: {
+      alignItems: 'center',
+      maxWidth: 460,
+      paddingLeft: globalMargins.medium,
+      paddingRight: globalMargins.medium,
+    },
+    isElectron: {
+      paddingBottom: globalMargins.xlarge,
+      paddingTop: globalMargins.xlarge,
+      textAlign: 'center',
+    },
+    isMobile: {
+      paddingBottom: globalMargins.medium,
+      paddingTop: globalMargins.medium,
+    },
+  }),
   headerText: {
     marginBottom: globalMargins.medium,
   },
@@ -71,23 +88,5 @@ const styles = styleSheetCreate({
     marginBottom: globalMargins.medium,
     maxWidth: 272,
     width: '100%',
-  },
-})
-
-const containerStyle = platformStyles({
-  common: {
-    alignItems: 'center',
-    maxWidth: 460,
-    paddingLeft: globalMargins.medium,
-    paddingRight: globalMargins.medium,
-  },
-  isElectron: {
-    paddingBottom: globalMargins.xlarge,
-    paddingTop: globalMargins.xlarge,
-    textAlign: 'center',
-  },
-  isMobile: {
-    paddingBottom: globalMargins.medium,
-    paddingTop: globalMargins.medium,
   },
 })

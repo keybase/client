@@ -7,6 +7,10 @@ import {globalColors, globalMargins, globalStyles} from '../styles'
 
 import type {Props, MenuItem, HeaderTextProps} from './popup-menu'
 
+// TODO refactor to use Overlay and consolidate some of these files
+// popup-menu / relative-popup-hoc / floating-menu
+// probably all can go in floating-menu now that everything uses that
+
 // Menu Item
 type MenuItemProps = {
   ...MenuItem,

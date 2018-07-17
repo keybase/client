@@ -490,6 +490,16 @@ func (s *HybridConversationSource) isContinuousPush(ctx context.Context, convID 
 	return continuousUpdate, nil
 }
 
+// removePendingPreview removes any attachment previews from pending preview storage
+func (s *HybridConversationSource) removePendingPreview(ctx context.Context, msg chat1.MessageUnboxed) {
+	if msg.GetMessageType() == chat1.MessageType_ATTACHMENT {
+		outboxID := msg.OutboxID()
+		if outboxID != nil {
+			storage.NewPendingPreviews(s.G()).Remove(ctx, *outboxID)
+		}
+	}
+}
+
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msg chat1.MessageBoxed) (decmsg chat1.MessageUnboxed, continuousUpdate bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Push")()
@@ -524,9 +534,12 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 		})
 	}
 
+	// Add to the local storage
 	if err = s.mergeMaybeNotify(ctx, convID, uid, []chat1.MessageUnboxed{decmsg}); err != nil {
 		return decmsg, continuousUpdate, err
 	}
+	// Remove any pending previews from storage
+	s.removePendingPreview(ctx, decmsg)
 
 	return decmsg, continuousUpdate, nil
 }
@@ -546,7 +559,6 @@ func (s *HybridConversationSource) PushUnboxed(ctx context.Context, convID chat1
 	if err = s.mergeMaybeNotify(ctx, convID, uid, []chat1.MessageUnboxed{msg}); err != nil {
 		return continuousUpdate, err
 	}
-
 	return continuousUpdate, nil
 }
 
@@ -1033,14 +1045,14 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	return res, nil
 }
 
-func (s *HybridConversationSource) expungeNotify(ctx context.Context, uid gregor1.UID,
+func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, mergeRes storage.MergeResult) {
 	if mergeRes.Expunged != nil {
 		var inboxItem *chat1.InboxUIItem
 		topicType := chat1.TopicType_NONE
-		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true)
+		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true /* useLocalData */)
 		if err != nil {
-			s.Debug(ctx, "expungeNotify: failed to get conversations: %s", err)
+			s.Debug(ctx, "notifyExpunge: failed to get conversations: %s", err)
 		} else {
 			inboxItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, conv)
 			topicType = conv.GetTopicType()
@@ -1054,13 +1066,31 @@ func (s *HybridConversationSource) expungeNotify(ctx context.Context, uid gregor
 	}
 }
 
+// notifyReactionDeletes notifies the GUI after reactions are deleted
+func (s *HybridConversationSource) notifyReactionDeletes(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, reactionDeletes []chat1.ReactionDelete) {
+	s.Debug(ctx, "notifyReactionDeletes: %d deletions", len(reactionDeletes))
+	if len(reactionDeletes) > 0 {
+		topicType := chat1.TopicType_NONE
+		if conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true /* useLocalData */); err != nil {
+			s.Debug(ctx, "notifyExpunge: failed to get conversations: %s", err)
+		} else {
+			topicType = conv.GetTopicType()
+		}
+		activity := chat1.NewChatActivityWithReactionDelete(chat1.ReactionDeleteNotif{
+			ReactionDeletes: reactionDeletes,
+			ConvID:          convID,
+		})
+		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &activity)
+	}
+}
+
 // notifyEphemeralPurge notifies the GUI after messages are exploded.
 func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, explodedMsgs []chat1.MessageUnboxed) {
 	s.Debug(ctx, "notifyEphemeralPurge: exploded: %d", len(explodedMsgs))
 	if len(explodedMsgs) > 0 {
 		var inboxItem *chat1.InboxUIItem
 		topicType := chat1.TopicType_NONE
-		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true)
+		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true /* useLocalData */)
 		if err != nil {
 			s.Debug(ctx, "notifyEphemeralPurge: failed to get conversations: %s", err)
 		} else {
@@ -1097,7 +1127,7 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 		return err
 	}
 
-	s.expungeNotify(ctx, uid, convID, mergeRes)
+	s.notifyExpunge(ctx, uid, convID, mergeRes)
 	return nil
 }
 
@@ -1109,8 +1139,9 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	if err != nil {
 		return err
 	}
-	s.expungeNotify(ctx, uid, convID, mergeRes)
+	s.notifyExpunge(ctx, uid, convID, mergeRes)
 	s.notifyEphemeralPurge(ctx, uid, convID, mergeRes.Exploded)
+	s.notifyReactionDeletes(ctx, uid, convID, mergeRes.ReactionDeletes)
 	return nil
 }
 

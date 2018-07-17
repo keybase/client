@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"sort"
 	"strings"
@@ -1883,6 +1884,7 @@ type serverChatListener struct {
 	teamType                chan chat1.TeamTypeInfo
 	expunge                 chan chat1.ExpungeInfo
 	ephemeralPurge          chan chat1.EphemeralPurgeNotifInfo
+	reactionDelete          chan chat1.ReactionDeleteNotif
 
 	threadsStale     chan []chat1.ConversationStaleUpdate
 	inboxStale       chan struct{}
@@ -1930,6 +1932,8 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.expunge <- activity.Expunge()
 	case chat1.ChatActivityType_EPHEMERAL_PURGE:
 		n.ephemeralPurge <- activity.EphemeralPurge()
+	case chat1.ChatActivityType_REACTION_DELETE:
+		n.reactionDelete <- activity.ReactionDelete()
 	}
 }
 func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, convID chat1.ConversationID,
@@ -1967,6 +1971,7 @@ func newServerChatListener() *serverChatListener {
 		teamType:                make(chan chat1.TeamTypeInfo, buf),
 		expunge:                 make(chan chat1.ExpungeInfo, buf),
 		ephemeralPurge:          make(chan chat1.EphemeralPurgeNotifInfo, buf),
+		reactionDelete:          make(chan chat1.ReactionDeleteNotif, buf),
 
 		threadsStale:     make(chan []chat1.ConversationStaleUpdate, buf),
 		inboxStale:       make(chan struct{}, buf),
@@ -1993,6 +1998,9 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			listener := newServerChatListener()
 			ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
 			ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+			if ephemeralLifetime != nil {
+				tc.m.G().GetUPAKLoader().ClearMemory()
+			}
 
 			assertEphemeral := func(ephemeralLifetime *gregor1.DurationSec, unboxed chat1.UIMessage) {
 				valid := unboxed.Valid()
@@ -2099,13 +2107,14 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			textUnboxed := unboxed
 
 			t.Logf("react to the message")
-			// An ephemeralLifetime is added if we are editing an ephemeral message
+			// An ephemeralLifetime is added if we are reacting to an ephemeral message
+			reactionKey := ":+1:"
 			rarg := chat1.PostReactionNonblockArg{
 				ConversationID:   created.Id,
 				TlfName:          created.TlfName,
 				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
 				Supersedes:       textUnboxed.GetMessageID(),
-				Body:             ":+1:",
+				Body:             reactionKey,
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			}
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostReactionNonblock(tc.startCtx, rarg)
@@ -2122,6 +2131,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				require.Fail(t, "no event received")
 			}
 			consumeNewMsg(t, listener, chat1.MessageType_REACTION)
+			reactionUnboxed := unboxed
 
 			t.Logf("edit the message")
 			// An ephemeralLifetime is added if we are editing an ephemeral message
@@ -2164,6 +2174,14 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				require.Fail(t, "no event received")
 			}
 			consumeNewMsg(t, listener, chat1.MessageType_DELETE)
+			// Make sure we get the ReactionDelete notify as well.
+			info := consumeReactionDelete(t, listener)
+			require.Equal(t, info.ConvID, created.Id)
+			require.Len(t, info.ReactionDeletes, 1)
+			reactionDelete := info.ReactionDeletes[0]
+			require.Equal(t, reactionUnboxed.GetMessageID(), reactionDelete.ReactionMsgID)
+			require.Equal(t, textUnboxed.GetMessageID(), reactionDelete.TargetMsgID)
+			require.Equal(t, reactionKey, reactionDelete.ReactionKey)
 
 			t.Logf("delete the message")
 			darg := chat1.PostDeleteNonblockArg{
@@ -3115,57 +3133,48 @@ func TestChatSrvMakePreview(t *testing.T) {
 	user := ctc.users()[0]
 
 	// make a preview of a jpg
+	outboxID, err := storage.NewOutboxID()
+	require.NoError(t, err)
 	arg := chat1.MakePreviewArg{
 		Attachment: chat1.LocalFileSource{
 			Filename: "testdata/ship.jpg",
 		},
-		OutputDir: os.TempDir(),
+		OutboxID: outboxID,
 	}
+	ri := ctc.as(t, user).ri
+	tc := ctc.world.Tcs[user.Username]
+	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(), DummyAttachmentFetcher{},
+		func() chat1.RemoteInterface { return ri })
 	res, err := ctc.as(t, user).chatLocalHandler().MakePreview(context.TODO(), arg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if res.Filename == nil {
-		t.Fatal("expected filename")
-	}
-	if !strings.HasSuffix(*res.Filename, ".jpeg") {
-		t.Fatalf("expected .jpeg suffix, got %q", *res.Filename)
-	}
-	defer os.Remove(*res.Filename)
-	if res.Metadata == nil {
-		t.Fatal("expected metadata")
-	}
-	if res.MimeType != "image/jpeg" {
-		t.Fatalf("mime type: %q, expected image/jpeg", res.MimeType)
-	}
+	require.NoError(t, err)
+	require.NotNil(t, res.Location)
+	typ, err := res.Location.Ltyp()
+	require.NoError(t, err)
+	require.Equal(t, chat1.PreviewLocationTyp_URL, typ)
+	require.True(t, strings.Contains(res.Location.Url(), outboxID.String()))
+	resp, err := http.Get(res.Location.Url())
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode)
+	require.NotNil(t, res.Metadata)
+	require.Equal(t, "image/jpeg", res.MimeType)
 	img := res.Metadata.Image()
-	if img.Width != 640 {
-		t.Errorf("width: %d, expected 640", img.Width)
-	}
-	if img.Height != 480 {
-		t.Errorf("height: %d, expected 480", img.Width)
-	}
+	require.Equal(t, 640, img.Width)
+	require.Equal(t, 480, img.Height)
 
 	// MakePreview(pdf) shouldn't generate a preview file, but should return mimetype
+	outboxID, err = storage.NewOutboxID()
+	require.NoError(t, err)
 	arg = chat1.MakePreviewArg{
 		Attachment: chat1.LocalFileSource{
 			Filename: "testdata/weather.pdf",
 		},
-		OutputDir: os.TempDir(),
+		OutboxID: outboxID,
 	}
 	res, err = ctc.as(t, user).chatLocalHandler().MakePreview(context.TODO(), arg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if res.Filename != nil {
-		t.Fatalf("expected no preview file, got %q", *res.Filename)
-	}
-	if res.Metadata != nil {
-		t.Fatalf("expected no metadata, got %+v", res.Metadata)
-	}
-	if res.MimeType != "application/pdf" {
-		t.Fatalf("mime type: %q, expected application/pdf", res.MimeType)
-	}
+	require.NoError(t, err)
+	require.Nil(t, res.Location)
+	require.Nil(t, res.Metadata)
+	require.Equal(t, "application/pdf", res.MimeType)
 }
 
 func inMessageTypes(x chat1.MessageType, ys []chat1.MessageType) bool {
@@ -3274,6 +3283,16 @@ func consumeEphemeralPurge(t *testing.T, listener *serverChatListener) chat1.Eph
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "failed to get ephemeralPurge notification")
 		return chat1.EphemeralPurgeNotifInfo{}
+	}
+}
+
+func consumeReactionDelete(t *testing.T, listener *serverChatListener) chat1.ReactionDeleteNotif {
+	select {
+	case x := <-listener.reactionDelete:
+		return x
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "failed to get reactionDelete notification")
+		return chat1.ReactionDeleteNotif{}
 	}
 }
 

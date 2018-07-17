@@ -18,7 +18,6 @@ import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as WaitingGen from './waiting-gen'
 import engine from '../engine'
-import {usernameSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
 import {putActionIfOnPath, navigateTo} from './route-tree'
 import {chatTab, teamsTab} from '../constants/tabs'
@@ -91,9 +90,12 @@ const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
   yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   const state: TypedState = yield Saga.select()
   const ids = SearchConstants.getUserInputItemIds(state, {searchKey: 'addToTeamSearch'})
+  logger.info(`Adding ${ids.length} people to ${teamname}`)
   const collectedErrors = []
+  const errorUsers = []
   for (const id of ids) {
     try {
+      logger.info(`Adding ${id}`)
       yield Saga.call(RPCTypes.teamsTeamAddMemberRpcPromise, {
         name: teamname,
         email: '',
@@ -102,6 +104,8 @@ const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
         sendChatNotification,
       })
     } catch (error) {
+      logger.error(`Error adding ${id} to ${teamname}: ${error.desc}`)
+      errorUsers.push(id)
       if (error.desc === 'You cannot invite an owner to a team.') {
         // This error comes through as error code scgeneric, so if we want
         // to rewrite it we have to match on the string itself.
@@ -117,21 +121,26 @@ const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
     }
   }
   if (collectedErrors.length === 0) {
-    // Success, dismiss the create team dialog.
+    logger.info(`Successfully added ${ids.length} users to ${teamname}`)
+    // Success, dismiss the create team dialog and clear out search results
     yield Saga.put(
       putActionIfOnPath(rootPath.concat(sourceSubPath), navigateTo(destSubPath, rootPath), rootPath)
     )
+    yield Saga.put(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
+    yield Saga.put(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
   } else {
+    // Some errors, leave the search results so user can figure out what happened
+    logger.info(`Displaying addPeopleToTeam errors...`)
     yield Saga.put(TeamsGen.createSetTeamInviteError({error: collectedErrors.join('\n')}))
+    yield Saga.put(
+      SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: errorUsers})
+    )
   }
-  yield Saga.put(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
-  yield Saga.put(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
   yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
 }
 
 const _getTeamRetentionPolicy = function*(action: TeamsGen.GetTeamRetentionPolicyPayload) {
   const {teamname} = action.payload
-  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   const state: TypedState = yield Saga.select()
   const teamID = Constants.getTeamID(state, teamname)
   if (!teamID) {
@@ -141,7 +150,7 @@ const _getTeamRetentionPolicy = function*(action: TeamsGen.GetTeamRetentionPolic
   }
   const policy: RPCChatTypes.RetentionPolicy = yield Saga.call(
     RPCChatTypes.localGetTeamRetentionLocalRpcPromise,
-    {teamID}
+    {teamID, waitingKey: Constants.teamWaitingKey(teamname)}
   )
   let retentionPolicy: Types.RetentionPolicy = Constants.makeRetentionPolicy()
   try {
@@ -153,10 +162,7 @@ const _getTeamRetentionPolicy = function*(action: TeamsGen.GetTeamRetentionPolic
     logger.error(err.message)
     throw err
   } finally {
-    yield Saga.sequentially([
-      Saga.put(TeamsGen.createSetTeamRetentionPolicy({teamname, retentionPolicy})),
-      Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)})),
-    ])
+    yield Saga.put(TeamsGen.createSetTeamRetentionPolicy({teamname, retentionPolicy}))
   }
 }
 
@@ -367,7 +373,7 @@ const _createNewTeamFromConversation = function*(
 ): Saga.SagaGenerator<any, any> {
   const {conversationIDKey, teamname} = action.payload
   const state: TypedState = yield Saga.select()
-  const me = usernameSelector(state)
+  const me = state.config.username
   let participants: Array<string> = []
 
   const meta = ChatConstants.getMeta(state, conversationIDKey)
@@ -693,7 +699,7 @@ function _afterGetChannels(fromGetChannels: any[]) {
 
 const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
-  const username = usernameSelector(state)
+  const username = state.config.username
   if (!username) {
     logger.warn('getTeams while logged out')
     return

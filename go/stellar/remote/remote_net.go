@@ -69,3 +69,11 @@ func (r *RemoteNet) GetAccountDisplayCurrency(ctx context.Context, accountID ste
 func (r *RemoteNet) ExchangeRate(ctx context.Context, currency string) (stellar1.OutsideExchangeRate, error) {
 	return ExchangeRate(ctx, r.G(), currency)
 }
+
+func (r *RemoteNet) SubmitRequest(ctx context.Context, post stellar1.RequestPost) (stellar1.KeybaseRequestID, error) {
+	return SubmitRequest(ctx, r.G(), post)
+}
+
+func (r *RemoteNet) RequestDetails(ctx context.Context, requestID stellar1.KeybaseRequestID) (stellar1.RequestDetails, error) {
+	return RequestDetails(ctx, r.G(), requestID)
+}

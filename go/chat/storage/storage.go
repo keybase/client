@@ -327,8 +327,9 @@ func (s *Storage) GetMaxMsgID(ctx context.Context, convID chat1.ConversationID, 
 }
 
 type MergeResult struct {
-	Expunged *chat1.Expunge
-	Exploded []chat1.MessageUnboxed
+	Expunged        *chat1.Expunge
+	Exploded        []chat1.MessageUnboxed
+	ReactionDeletes []chat1.ReactionDelete
 }
 
 type FetchResult struct {
@@ -380,9 +381,11 @@ func (s *Storage) MergeHelper(ctx context.Context,
 	}
 
 	// Update supersededBy pointers
-	if err = s.updateAllSupersededBy(ctx, convID, uid, msgs); err != nil {
+	reactionDeletes, err := s.updateAllSupersededBy(ctx, convID, uid, msgs)
+	if err != nil {
 		return res, s.MaybeNuke(ctx, false, err, convID, uid)
 	}
+	res.ReactionDeletes = reactionDeletes
 
 	if err = s.updateMinDeletableMessage(ctx, convID, uid, msgs); err != nil {
 		return res, s.MaybeNuke(ctx, false, err, convID, uid)
@@ -395,11 +398,11 @@ func (s *Storage) MergeHelper(ctx context.Context,
 	}
 	res.Expunged = expunged
 
-	explodedMsgs, err := s.explodeExpiredMessages(ctx, convID, uid, msgs)
+	exploded, err := s.explodeExpiredMessages(ctx, convID, uid, msgs)
 	if err != nil {
 		return res, s.MaybeNuke(ctx, false, err, convID, uid)
 	}
-	res.Exploded = explodedMsgs
+	res.Exploded = exploded
 
 	// Update max msg ID if needed
 	if len(msgs) > 0 {
@@ -412,10 +415,11 @@ func (s *Storage) MergeHelper(ctx context.Context,
 }
 
 func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgs []chat1.MessageUnboxed) Error {
+	uid gregor1.UID, msgs []chat1.MessageUnboxed) ([]chat1.ReactionDelete, Error) {
 	s.Debug(ctx, "updateSupersededBy: num msgs: %d", len(msgs))
 	// Do a pass over all the messages and update supersededBy pointers
 	var allAssets []chat1.Asset
+	var reactionDeletes []chat1.ReactionDelete
 	for _, msg := range msgs {
 
 		msgid := msg.GetMessageID()
@@ -479,7 +483,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 			// Read superseded msg
 			superMsgs, err := getMsg(supersededID)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			if len(superMsgs) == 0 {
 				continue
@@ -508,8 +512,15 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 					if superMsg.GetMessageType() == chat1.MessageType_REACTION {
 						newTargetMsg, err := updateReactionTarget(superMsg)
 						if err != nil {
-							return err
+							return nil, err
 						} else if newTargetMsg != nil {
+							// Package this up so we can notify the frontend of
+							// this change.
+							reactionDeletes = append(reactionDeletes, chat1.ReactionDelete{
+								ReactionKey:   superMsg.Valid().MessageBody.Reaction().Body,
+								ReactionMsgID: superMsg.GetMessageID(),
+								TargetMsgID:   newTargetMsg.GetMessageID(),
+							})
 							superMsgs = append(superMsgs, *newTargetMsg)
 						}
 					}
@@ -524,7 +535,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 
 				superMsgs[0] = newMsg
 				if err = s.engine.WriteMessages(ctx, convID, uid, superMsgs); err != nil {
-					return err
+					return nil, err
 				}
 			} else {
 				s.Debug(ctx, "updateSupersededBy: skipping id: %d, it is stored as an error",
@@ -535,7 +546,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 
 	// queue asset deletions in the background
 	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
-	return nil
+	return reactionDeletes, nil
 }
 
 func (s *Storage) updateMinDeletableMessage(ctx context.Context, convID chat1.ConversationID,
