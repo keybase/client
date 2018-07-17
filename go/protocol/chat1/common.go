@@ -507,7 +507,6 @@ const (
 	ConversationMemberStatus_LEFT    ConversationMemberStatus = 2
 	ConversationMemberStatus_PREVIEW ConversationMemberStatus = 3
 	ConversationMemberStatus_RESET   ConversationMemberStatus = 4
-	ConversationMemberStatus_DELETED ConversationMemberStatus = 5
 )
 
 func (o ConversationMemberStatus) DeepCopy() ConversationMemberStatus { return o }
@@ -518,7 +517,6 @@ var ConversationMemberStatusMap = map[string]ConversationMemberStatus{
 	"LEFT":    2,
 	"PREVIEW": 3,
 	"RESET":   4,
-	"DELETED": 5,
 }
 
 var ConversationMemberStatusRevMap = map[ConversationMemberStatus]string{
@@ -527,7 +525,6 @@ var ConversationMemberStatusRevMap = map[ConversationMemberStatus]string{
 	2: "LEFT",
 	3: "PREVIEW",
 	4: "RESET",
-	5: "DELETED",
 }
 
 func (e ConversationMemberStatus) String() string {
@@ -778,7 +775,6 @@ type ConversationMetadata struct {
 	ActiveList     []gregor1.UID             `codec:"activeList" json:"activeList"`
 	AllList        []gregor1.UID             `codec:"allList" json:"allList"`
 	ResetList      []gregor1.UID             `codec:"resetList" json:"resetList"`
-	DeletedList    []gregor1.UID             `codec:"deletedList" json:"deletedList"`
 }
 
 func (o ConversationMetadata) DeepCopy() ConversationMetadata {
@@ -853,17 +849,6 @@ func (o ConversationMetadata) DeepCopy() ConversationMetadata {
 			}
 			return ret
 		})(o.ResetList),
-		DeletedList: (func(x []gregor1.UID) []gregor1.UID {
-			if x == nil {
-				return nil
-			}
-			var ret []gregor1.UID
-			for _, v := range x {
-				vCopy := v.DeepCopy()
-				ret = append(ret, vCopy)
-			}
-			return ret
-		})(o.DeletedList),
 	}
 }
 
