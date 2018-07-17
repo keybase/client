@@ -91,7 +91,7 @@
       "react-list": "<rootDir>/__mocks__/react-list.js",
       "desktop/app/resolve-root": "<rootDir>/__mocks__/resolve-root.js",
       "react-redux": "<rootDir>/__mocks__/react-redux.js",
-      "electron": "<rootDir>/__mocks__/electron.js"
+      "^electron$": "<rootDir>/__mocks__/electron.js"
     },
     "moduleFileExtensions": [
       "js",
