@@ -75,10 +75,9 @@ func (t *Tracker2Syncer) syncFromServer(m MetaContext, uid keybase1.UID, forceRe
 		hargs.Add("version", I{lv})
 	}
 	var res *APIRes
-	res, err = t.G().API.Get(APIArg{
-		Endpoint:    "user/list_followers_for_display",
-		Args:        hargs,
-		MetaContext: m,
+	res, err = m.G().API.Get(m, APIArg{
+		Endpoint: "user/list_followers_for_display",
+		Args:     hargs,
 	})
 	m.CDebugf("| syncFromServer() -> %s", ErrToOk(err))
 	if err != nil {
@@ -86,7 +85,7 @@ func (t *Tracker2Syncer) syncFromServer(m MetaContext, uid keybase1.UID, forceRe
 	}
 	var tmp keybase1.UserSummary2Set
 	if err = res.Body.UnmarshalAgain(&tmp); err != nil {
-		return
+		return err
 	}
 	tmp.Time = keybase1.ToTime(time.Now())
 	if lv < 0 || tmp.Version > lv || forceReload {

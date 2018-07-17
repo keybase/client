@@ -29,8 +29,9 @@ func TestAPIServerGet(t *testing.T) {
 		Args:     harg,
 	}
 
+	m := libkb.NewMetaContextForTest(tc)
 	handler := NewAPIServerHandler(nil, tc.G)
-	res, err := handler.doGet(arg, false)
+	res, err := handler.doGet(m, arg, false)
 	if err != nil {
 		t.Fatal(err)
 	}

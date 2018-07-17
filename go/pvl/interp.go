@@ -870,7 +870,7 @@ func stepFetch(m metaContext, ins fetchT, state scriptState) (scriptState, libkb
 			return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 				"JSON fetch must not specify 'into' register")
 		}
-		res, err1 := m.G().GetExternalAPI().Get(libkb.APIArg{Endpoint: from, MetaContext: m.MetaContext})
+		res, err1 := m.G().GetExternalAPI().Get(m.MetaContext, libkb.APIArg{Endpoint: from})
 		if err1 != nil {
 			return state, libkb.XapiError(err1, from)
 		}

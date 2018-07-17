@@ -77,7 +77,7 @@ func (e *LoginOneshot) checkLogin(m libkb.MetaContext) (err error) {
 	defer m.CTrace("LoginOneshot#checkLogin", func() error { return err })()
 	arg := libkb.NewRetryAPIArg("sesscheck")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
-	_, err = m.G().API.Get(arg)
+	_, err = m.G().API.Get(m, arg)
 	return err
 }
 

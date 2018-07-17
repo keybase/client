@@ -162,7 +162,8 @@ func TestUserEmails(t *testing.T) {
 	defer tc.Cleanup()
 
 	CreateAndSignupFakeUser(tc, "login")
-	emails, err := libkb.LoadUserEmails(tc.G)
+	m := NewMetaContextForTest(tc)
+	emails, err := libkb.LoadUserEmails(m)
 	if err != nil {
 		t.Fatal(err)
 	}

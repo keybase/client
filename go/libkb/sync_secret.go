@@ -127,21 +127,20 @@ func (ss *SecretSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceRel
 		hargs.Add("version", I{ss.keys.Version})
 	}
 	var res *APIRes
-	res, err = ss.G().API.Get(APIArg{
+	res, err = m.G().API.Get(m, APIArg{
 		Endpoint:    "key/fetch_private",
 		Args:        hargs,
 		SessionType: APISessionTypeREQUIRED,
 		RetryCount:  5, // It's pretty bad to fail this, so retry.
-		MetaContext: m,
 	})
 	m.CDebugf("| syncFromServer -> %s", ErrToOk(err))
 	if err != nil {
-		return
+		return err
 	}
 
 	var obj ServerPrivateKeys
 	if err = res.Body.UnmarshalAgain(&obj); err != nil {
-		return
+		return err
 	}
 
 	m.CDebugf("| Returned object: {Status: %v, Version: %d, #pgpkeys: %d, #devices: %d}", obj.Status, obj.Version, len(obj.PrivateKeys), len(obj.Devices))
@@ -153,7 +152,7 @@ func (ss *SecretSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceRel
 		m.CDebugf("| not changing synced keys: synced version %d not newer than existing version %d", obj.Version, ss.keys.Version)
 	}
 
-	return
+	return err
 }
 
 func (ss *SecretSyncer) dbKey(uid keybase1.UID) DbKey {

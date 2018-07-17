@@ -123,19 +123,18 @@ func (t *TrackerSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceRel
 	}
 
 	var res *APIRes
-	res, err = t.G().API.Get(APIArg{
+	res, err = m.G().API.Get(m, APIArg{
 		Endpoint:    "user/trackers",
 		Args:        hargs,
 		SessionType: APISessionTypeNONE,
-		MetaContext: m,
 	})
 	m.CDebugf("| syncFromServer() -> %s", ErrToOk(err))
 	if err != nil {
-		return
+		return err
 	}
 	var tmp Trackers
 	if err = res.Body.UnmarshalAgain(&tmp); err != nil {
-		return
+		return err
 	}
 	if lv < 0 || tmp.Version > lv || forceReload {
 		m.CDebugf("| syncFromServer(): got update %d > %d (%d records)", tmp.Version, lv,
@@ -148,6 +147,5 @@ func (t *TrackerSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceRel
 	} else {
 		m.CDebugf("| syncFromServer(): no change needed @ %d", lv)
 	}
-
-	return
+	return err
 }

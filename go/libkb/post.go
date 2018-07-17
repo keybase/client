@@ -226,9 +226,8 @@ func CheckInvitationCode(m MetaContext, code string) error {
 		Args: HTTPArgs{
 			"invitation_id": S{Val: code},
 		},
-		MetaContext: m,
 	}
-	_, err := m.G().API.Get(arg)
+	_, err := m.G().API.Get(m, arg)
 	return err
 }
 
@@ -236,9 +235,8 @@ func GetInvitationCode(m MetaContext) (string, error) {
 	arg := APIArg{
 		Endpoint:    "invitation_bypass_request",
 		SessionType: APISessionTypeNONE,
-		MetaContext: m,
 	}
-	res, err := m.G().API.Get(arg)
+	res, err := m.G().API.Get(m, arg)
 	var invitationID string
 	if err == nil {
 		invitationID, err = res.Body.AtKey("invitation_id").GetString()

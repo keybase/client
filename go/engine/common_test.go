@@ -441,7 +441,8 @@ func ForcePUK(tc libkb.TestContext) {
 }
 
 func getUserSeqno(tc *libkb.TestContext, uid keybase1.UID) keybase1.Seqno {
-	res, err := tc.G.API.Get(libkb.APIArg{
+	m := NewMetaContextForTest(*tc)
+	res, err := tc.G.API.Get(m, libkb.APIArg{
 		Endpoint: "user/lookup",
 		Args: libkb.HTTPArgs{
 			"uid": libkb.UIDArg(uid),

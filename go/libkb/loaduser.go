@@ -451,9 +451,9 @@ func LoadUserFromLocalStorage(m MetaContext, uid keybase1.UID) (u *User, err err
 }
 
 // LoadUserEmails returns emails for logged in user
-func LoadUserEmails(g *GlobalContext) (emails []keybase1.Email, err error) {
-	uid := g.GetMyUID()
-	res, err := g.API.Get(APIArg{
+func LoadUserEmails(m MetaContext) (emails []keybase1.Email, err error) {
+	uid := m.CurrentUID()
+	res, err := m.G().API.Get(m, APIArg{
 		Endpoint:    "user/lookup",
 		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
@@ -483,7 +483,7 @@ func LoadUserFromServer(m MetaContext, uid keybase1.UID, body *jsonw.Wrapper) (u
 
 	// Res.body might already have been preloaded a a result of a Resolve call earlier.
 	if body == nil {
-		res, err := m.G().API.Get(APIArg{
+		res, err := m.G().API.Get(m, APIArg{
 			Endpoint:    "user/lookup",
 			SessionType: APISessionTypeNONE,
 			Args: HTTPArgs{

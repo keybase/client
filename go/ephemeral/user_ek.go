@@ -200,17 +200,17 @@ type userEKStatementResponse struct {
 // transitional thing, and eventually when all "reasonably up to date" clients
 // in the wild have EK support, we will make that case an error.
 func fetchUserEKStatements(ctx context.Context, g *libkb.GlobalContext, uids []keybase1.UID) (statements map[keybase1.UID]*keybase1.UserEkStatement, err error) {
-	defer g.CTraceTimed(ctx, fmt.Sprintf("fetchUserEKStatements: numUids: %v", len(uids)), func() error { return err })()
+	m := libkb.NewMetaContext(ctx, g)
+	defer m.CTraceTimed(fmt.Sprintf("fetchUserEKStatements: numUids: %v", len(uids)), func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/user_ek",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
 		Args: libkb.HTTPArgs{
 			"uids": libkb.S{Val: libkb.UidsToString(uids)},
 		},
 	}
-	res, err := g.GetAPI().Get(apiArg)
+	res, err := g.GetAPI().Get(m, apiArg)
 	if err != nil {
 		return nil, err
 	}
@@ -246,17 +246,17 @@ func fetchUserEKStatements(ctx context.Context, g *libkb.GlobalContext, uids []k
 // correct generation number but not include the statement when generating a
 // new userEK.
 func fetchUserEKStatement(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID) (statement *keybase1.UserEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error) {
-	defer g.CTraceTimed(ctx, "fetchUserEKStatement", func() error { return err })()
+	m := libkb.NewMetaContext(ctx, g)
+	defer m.CTraceTimed("fetchUserEKStatement", func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/user_ek",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
 		Args: libkb.HTTPArgs{
 			"uids": libkb.S{Val: libkb.UidsToString([]keybase1.UID{uid})},
 		},
 	}
-	res, err := g.GetAPI().Get(apiArg)
+	res, err := g.GetAPI().Get(m, apiArg)
 	if err != nil {
 		return nil, latestGeneration, false, err
 	}
@@ -283,7 +283,7 @@ func fetchUserEKStatement(ctx context.Context, g *libkb.GlobalContext, uid keyba
 	// is still returned in this case. TODO: Turn this warning into an error
 	// after EK support is sufficiently widespread.
 	if wrongKID {
-		g.Log.CDebugf(ctx, "It looks like you revoked a device without generating new ephemeral keys. Are you running an old version?")
+		m.CDebugf("It looks like you revoked a device without generating new ephemeral keys. Are you running an old version?")
 		return nil, latestGeneration, true, nil
 	} else if err != nil {
 		return nil, latestGeneration, false, err

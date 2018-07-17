@@ -62,8 +62,9 @@ func TestProductionCA(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	m := NewMetaContextForTest(tc)
 
-	_, err = tc.G.API.Get(arg)
+	_, err = tc.G.API.Get(m, arg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -106,7 +107,8 @@ func TestProductionBadCA(t *testing.T) {
 		checkX509Err(t, err)
 	}
 
-	_, err = tc.G.API.Get(arg)
+	m := NewMetaContextForTest(tc)
+	_, err = tc.G.API.Get(m, arg)
 	if err == nil {
 		t.Errorf("api ping GET worked with unknown CA")
 	} else {
@@ -202,7 +204,8 @@ func TestInstallIDHeaders(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	res, err := api.Get(APIArg{
+	m := NewMetaContextForTest(tc)
+	res, err := api.Get(m, APIArg{
 		Endpoint:    "pkg/show",
 		SessionType: APISessionTypeNONE,
 		Args:        HTTPArgs{},

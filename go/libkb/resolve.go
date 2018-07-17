@@ -269,7 +269,8 @@ func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string
 }
 
 func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionURL, input string, withBody bool) (res ResolveResult) {
-	defer r.G().CVTrace(ctx, VLog1, fmt.Sprintf("Resolver#resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
+	m := NewMetaContext(ctx, r.G())
+	defer m.CVTrace(VLog1, fmt.Sprintf("Resolver#resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
 
 	if au.IsTeamID() || au.IsTeamName() {
 		return r.resolveTeamViaServerLookup(ctx, au)
@@ -286,7 +287,7 @@ func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionUR
 	}
 
 	if key, val, res.err = au.ToLookup(); res.err != nil {
-		return
+		return res
 	}
 
 	ha := HTTPArgsFromKeyValuePair(key, S{val})
@@ -297,26 +298,25 @@ func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionUR
 		fields += ",public_keys,pictures"
 	}
 	ha.Add("fields", S{fields})
-	ares, res.err = r.G().API.Get(APIArg{
+	ares, res.err = m.G().API.Get(m, APIArg{
 		Endpoint:        "user/lookup",
 		SessionType:     APISessionTypeNONE,
 		Args:            ha,
 		AppStatusCodes:  []int{SCOk, SCNotFound, SCDeleted},
-		NetContext:      ctx,
 		RetryCount:      3,
 		InitialTimeout:  4 * time.Second,
 		RetryMultiplier: 1.5,
 	})
 
 	if res.err != nil {
-		r.G().Log.CDebugf(ctx, "API user/lookup %q error: %s", input, res.err)
-		return
+		m.CDebugf("API user/lookup %q error: %s", input, res.err)
+		return res
 	}
 	switch ares.AppStatus.Code {
 	case SCNotFound:
-		r.G().Log.CDebugf(ctx, "API user/lookup %q not found", input)
+		m.CDebugf("API user/lookup %q not found", input)
 		res.err = NotFoundError{}
-		return
+		return res
 	}
 
 	var them *jsonw.Wrapper
@@ -354,7 +354,7 @@ func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionUR
 		res.deleted = true
 	}
 
-	return
+	return res
 }
 
 type teamLookup struct {

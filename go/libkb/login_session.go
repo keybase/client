@@ -154,14 +154,13 @@ func (s *LoginSession) Load(m MetaContext) error {
 		return fmt.Errorf("LoginSession already loaded for %s", s.sessionFor)
 	}
 
-	res, err := m.G().API.Get(APIArg{
+	res, err := m.G().API.Get(m, APIArg{
 		Endpoint:    "getsalt",
 		SessionType: APISessionTypeNONE,
 		Args: HTTPArgs{
 			"email_or_username": S{Val: s.sessionFor},
 			"pdpka_login":       B{Val: true},
 		},
-		MetaContext: m,
 	})
 	if err != nil {
 		return err
@@ -199,13 +198,12 @@ func (s *LoginSession) Load(m MetaContext) error {
 
 func LookupSaltForUID(m MetaContext, uid keybase1.UID) (salt []byte, err error) {
 	defer m.CTrace(fmt.Sprintf("GetSaltForUID(%s)", uid), func() error { return err })()
-	res, err := m.G().API.Get(APIArg{
+	res, err := m.G().API.Get(m, APIArg{
 		Endpoint:    "getsalt",
 		SessionType: APISessionTypeNONE,
 		Args: HTTPArgs{
 			"uid": S{Val: uid.String()},
 		},
-		MetaContext: m,
 	})
 	if err != nil {
 		return nil, err

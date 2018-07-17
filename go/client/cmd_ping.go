@@ -33,11 +33,12 @@ func (v *CmdPing) Run() error {
 	if err != nil {
 		return err
 	}
-	_, err = v.G().API.Get(libkb.APIArg{Endpoint: "ping"})
+	m := libkb.NewMetaContextBackground(v.G())
+	_, err = v.G().API.Get(m, libkb.APIArg{Endpoint: "ping"})
 	if err != nil {
 		return err
 	}
-	v.G().Log.Info(fmt.Sprintf("API Server at %s is up", v.G().Env.GetServerURI()))
+	m.CInfof(fmt.Sprintf("API Server at %s is up", v.G().Env.GetServerURI()))
 
 	return nil
 }

@@ -140,14 +140,13 @@ func LoadSigHints(m MetaContext, uid keybase1.UID) (sh *SigHints, err error) {
 
 func (sh *SigHints) Refresh(m MetaContext) (err error) {
 	defer m.CTrace(fmt.Sprintf("Refresh SigHints for uid=%s", sh.uid), func() error { return err })()
-	res, err := m.G().API.Get(APIArg{
+	res, err := m.G().API.Get(m, APIArg{
 		Endpoint:    "sig/hints",
 		SessionType: APISessionTypeNONE,
 		Args: HTTPArgs{
 			"uid": UIDArg(sh.uid),
 			"low": I{sh.version},
 		},
-		MetaContext: m,
 	})
 	if err != nil {
 		return err

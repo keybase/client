@@ -25,8 +25,9 @@ func NewSignupHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SignupHandler
 	}
 }
 
-func (h *SignupHandler) CheckUsernameAvailable(_ context.Context, arg keybase1.CheckUsernameAvailableArg) error {
-	_, err := h.G().API.Get(libkb.APIArg{
+func (h *SignupHandler) CheckUsernameAvailable(ctx context.Context, arg keybase1.CheckUsernameAvailableArg) error {
+	m := libkb.NewMetaContext(ctx, h.G())
+	_, err := m.G().API.Get(m, libkb.APIArg{
 		Endpoint:    "user/lookup",
 		SessionType: libkb.APISessionTypeNONE,
 		Args: libkb.HTTPArgs{

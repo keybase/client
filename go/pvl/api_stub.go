@@ -34,7 +34,7 @@ func newStubAPIEngine() *stubAPIEngine {
 	}
 }
 
-func (e *stubAPIEngine) Get(arg libkb.APIArg) (*libkb.ExternalAPIRes, error) {
+func (e *stubAPIEngine) Get(m libkb.MetaContext, arg libkb.APIArg) (*libkb.ExternalAPIRes, error) {
 	res, _, _, err := e.getMock(arg, libkb.XAPIResJSON)
 	if err != nil {
 		return nil, err

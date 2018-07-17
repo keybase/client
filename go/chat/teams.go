@@ -118,7 +118,8 @@ func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
 		}
 		return teams.Load(ctx, t.G(), ltarg(teamID))
 	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		teamID, err := tlfIDToTeamID.Lookup(ctx, tlfID, t.G().API)
+		m := libkb.NewMetaContext(ctx, t.G())
+		teamID, err := tlfIDToTeamID.Lookup(m, tlfID)
 		if err != nil {
 			return team, err
 		}
@@ -559,15 +560,15 @@ func newTlfIDToTeamIDMap() *tlfIDToTeamIDMap {
 }
 
 // Lookup gives the server trust mapping between tlfID and teamID
-func (t *tlfIDToTeamIDMap) Lookup(ctx context.Context, tlfID chat1.TLFID, api libkb.API) (res keybase1.TeamID, err error) {
+func (t *tlfIDToTeamIDMap) Lookup(m libkb.MetaContext, tlfID chat1.TLFID) (res keybase1.TeamID, err error) {
 	if iTeamID, ok := t.storage.Get(tlfID.String()); ok {
 		return iTeamID.(keybase1.TeamID), nil
 	}
-	arg := libkb.NewAPIArgWithNetContext(ctx, "team/id")
+	arg := libkb.APIArg{Endpoint: "team/id"}
 	arg.Args = libkb.NewHTTPArgs()
 	arg.Args.Add("tlf_id", libkb.S{Val: tlfID.String()})
 	arg.SessionType = libkb.APISessionTypeREQUIRED
-	apiRes, err := api.Get(arg)
+	apiRes, err := m.G().API.Get(m, arg)
 	if err != nil {
 		return res, err
 	}

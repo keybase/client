@@ -91,12 +91,12 @@ type UserEKBoxedResponse struct {
 }
 
 func (s *UserEKBoxStorage) fetchAndStore(ctx context.Context, generation keybase1.EkGeneration) (userEK keybase1.UserEk, err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("UserEKBoxStorage#fetchAndStore: generation: %v", generation), func() error { return err })()
+	m := libkb.NewMetaContext(ctx, s.G())
+	defer m.CTraceTimed(fmt.Sprintf("UserEKBoxStorage#fetchAndStore: generation: %v", generation), func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/user_ek_box",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
 		Args: libkb.HTTPArgs{
 			"generation":          libkb.U{Val: uint64(generation)},
 			"recipient_device_id": libkb.S{Val: string(s.G().Env.GetDeviceID())},
@@ -104,7 +104,7 @@ func (s *UserEKBoxStorage) fetchAndStore(ctx context.Context, generation keybase
 	}
 
 	var result UserEKBoxedResponse
-	res, err := s.G().GetAPI().Get(apiArg)
+	res, err := s.G().GetAPI().Get(m, apiArg)
 	if err != nil {
 		return userEK, err
 	}

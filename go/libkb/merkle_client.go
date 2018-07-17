@@ -624,12 +624,11 @@ func (mc *MerkleClient) lookupRootAndSkipSequence(m MetaContext, lastRoot *Merkl
 		q.Add("last", I{int(*lastSeqno)})
 	}
 
-	apiRes, err = m.G().API.Get(APIArg{
+	apiRes, err = m.G().API.Get(m, APIArg{
 		Endpoint:       "merkle/root",
 		SessionType:    APISessionTypeNONE,
 		Args:           q,
 		AppStatusCodes: []int{SCOk},
-		MetaContext:    m,
 	})
 
 	if err != nil {
@@ -716,12 +715,11 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceHelper(m MetaContext, q HTTPArg
 		q.Add("last", I{int(*lastSeqno)})
 	}
 
-	apiRes, err = m.G().API.Get(APIArg{
+	apiRes, err = m.G().API.Get(m, APIArg{
 		Endpoint:       "merkle/path",
 		SessionType:    APISessionTypeNONE,
 		Args:           q,
 		AppStatusCodes: []int{SCOk, SCNotFound, SCDeleted},
-		MetaContext:    m,
 	})
 
 	if err != nil {
@@ -1071,7 +1069,7 @@ func (mc *MerkleClient) verifyAndStoreRootHelper(m MetaContext, root *MerkleRoot
 	}
 	m.VLogf(VLog0, "+ Merkle: using KID=%s for verifying server sig", kid)
 
-	key, err := mc.keyring.Load(kid)
+	key, err := mc.keyring.Load(m, kid)
 	if err != nil {
 		return err
 	}

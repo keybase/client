@@ -29,7 +29,7 @@ const fakeResponse = `{
 
 type FakeAPI struct{}
 
-func (a *FakeAPI) Get(arg APIArg) (*APIRes, error) {
+func (a *FakeAPI) Get(_ MetaContext, arg APIArg) (*APIRes, error) {
 
 	decoder := json.NewDecoder(bytes.NewBufferString(fakeResponse))
 	var obj interface{}

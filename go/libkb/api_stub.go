@@ -15,8 +15,8 @@ func NewStubAPIEngine(g *GlobalContext) *StubAPIEngine {
 	}
 }
 
-func (e *StubAPIEngine) Get(arg APIArg) (res *ExternalAPIRes, err error) {
-	return e.ExternalAPIEngine.Get(arg)
+func (e *StubAPIEngine) Get(m MetaContext, arg APIArg) (res *ExternalAPIRes, err error) {
+	return e.ExternalAPIEngine.Get(m, arg)
 }
 
 func (e *StubAPIEngine) GetHTML(arg APIArg) (res *ExternalHTMLRes, err error) {

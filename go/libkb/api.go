@@ -666,7 +666,8 @@ func (a *InternalAPIEngine) checkAppStatus(arg APIArg, ast *AppStatus) error {
 	return NewAppStatusError(ast)
 }
 
-func (a *InternalAPIEngine) Get(arg APIArg) (*APIRes, error) {
+func (a *InternalAPIEngine) Get(m MetaContext, arg APIArg) (*APIRes, error) {
+	arg.MetaContext = m
 	url1 := a.getURL(arg)
 	req, err := a.PrepareGet(url1, arg)
 	if err != nil {
@@ -948,7 +949,8 @@ func (api *ExternalAPIEngine) getCommon(arg APIArg, restype XAPIResType) (
 	return
 }
 
-func (api *ExternalAPIEngine) Get(arg APIArg) (res *ExternalAPIRes, err error) {
+func (api *ExternalAPIEngine) Get(m MetaContext, arg APIArg) (res *ExternalAPIRes, err error) {
+	arg.MetaContext = m
 	res, _, _, err = api.getCommon(arg, XAPIResJSON)
 	return
 }

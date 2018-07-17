@@ -99,12 +99,12 @@ type TeamEKBoxedResponse struct {
 }
 
 func (s *TeamEKBoxStorage) fetchAndStore(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (teamEK keybase1.TeamEk, err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("TeamEKBoxStorage#fetchAndStore: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
+	m := libkb.NewMetaContext(ctx, s.G())
+	defer m.CTraceTimed(fmt.Sprintf("TeamEKBoxStorage#fetchAndStore: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "team/team_ek_box",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
 		Args: libkb.HTTPArgs{
 			"team_id":    libkb.S{Val: string(teamID)},
 			"generation": libkb.U{Val: uint64(generation)},
@@ -112,7 +112,7 @@ func (s *TeamEKBoxStorage) fetchAndStore(ctx context.Context, teamID keybase1.Te
 	}
 
 	var result TeamEKBoxedResponse
-	res, err := s.G().GetAPI().Get(apiArg)
+	res, err := s.G().GetAPI().Get(m, apiArg)
 	if err != nil {
 		return teamEK, err
 	}

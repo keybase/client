@@ -176,7 +176,8 @@ func (h *UserHandler) Search(ctx context.Context, arg keybase1.SearchArg) (resul
 }
 
 func (h *UserHandler) LoadMySettings(ctx context.Context, sessionID int) (us keybase1.UserSettings, err error) {
-	emails, err := libkb.LoadUserEmails(h.G())
+	m := libkb.NewMetaContext(ctx, h.G())
+	emails, err := libkb.LoadUserEmails(m)
 	if err != nil {
 		return
 	}

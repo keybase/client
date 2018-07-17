@@ -7,7 +7,8 @@ import (
 )
 
 func assertEmail(t *testing.T, g *libkb.GlobalContext, expected string) {
-	res, err := g.API.Get(libkb.APIArg{
+	m := libkb.NewMetaContextBackground(g)
+	res, err := g.API.Get(m, libkb.APIArg{
 		Endpoint:    "me",
 		SessionType: libkb.APISessionTypeREQUIRED,
 	})

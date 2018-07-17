@@ -399,7 +399,8 @@ func (u *userPlusDevice) readInviteEmails(email string) []string {
 	arg := libkb.NewAPIArg("test/team/get_tokens")
 	arg.Args = libkb.NewHTTPArgs()
 	arg.Args.Add("email", libkb.S{Val: email})
-	res, err := u.tc.G.API.Get(arg)
+	m := libkb.NewMetaContextForTest(*u.tc)
+	res, err := u.tc.G.API.Get(m, arg)
 	if err != nil {
 		u.tc.T.Fatal(err)
 	}

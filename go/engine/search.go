@@ -55,10 +55,9 @@ func (e *SearchEngine) Run(m libkb.MetaContext) error {
 	if e.numWanted > 0 {
 		APIArgs["num_wanted"] = libkb.I{Val: e.numWanted}
 	}
-	res, err := m.G().API.Get(libkb.APIArg{
-		Endpoint:   "user/autocomplete",
-		Args:       APIArgs,
-		NetContext: m.Ctx(),
+	res, err := m.G().API.Get(m, libkb.APIArg{
+		Endpoint: "user/autocomplete",
+		Args:     APIArgs,
 	})
 	if err != nil {
 		return err

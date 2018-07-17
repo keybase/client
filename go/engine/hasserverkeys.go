@@ -45,11 +45,10 @@ func (e *HasServerKeys) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *HasServerKeys) Run(m libkb.MetaContext) error {
-	apiRes, err := m.G().API.Get(libkb.APIArg{
+	apiRes, err := m.G().API.Get(m, libkb.APIArg{
 		Endpoint:    "key/fetch_private",
 		Args:        libkb.HTTPArgs{},
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  m.Ctx(),
 	})
 	if err != nil {
 		return err
