@@ -45,7 +45,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  HeaderHoc,
-)(TransactionDetails)
+export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), HeaderHoc)(
+  TransactionDetails
+)

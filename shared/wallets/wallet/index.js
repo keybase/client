@@ -23,8 +23,8 @@ export default (props: Props) => {
         // $FlowIssue thinks these props aren't in `Transaction`
         <Transaction
           accountID={props.accountID}
-          paymentID={item.item.paymentID}
-          key={`${props.accountID}:${item.item.paymentID}`}
+          paymentID={item.paymentID}
+          key={`${props.accountID}:${item.paymentID}`}
         />
       )
     }

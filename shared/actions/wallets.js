@@ -154,7 +154,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     [WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
     navigateToAccount
   )
-  yield Saga.safeTakeEveryPurePromise(WalletsGen.exportSecretKey, exportSecretKey)
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
 }
 
