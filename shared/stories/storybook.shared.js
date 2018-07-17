@@ -87,4 +87,21 @@ class StorybookErrorBoundary extends React.Component<
     return this.props.children
   }
 }
-export {unexpected, createPropProvider, StorybookErrorBoundary}
+
+/**
+ * Utilities for writing stories
+ */
+
+class Rnd {
+  _seed = 0
+  constructor(seed: number) {
+    this._seed = seed
+  }
+
+  next = () => {
+    this._seed = (this._seed * 16807) % 2147483647
+    return this._seed
+  }
+}
+
+export {unexpected, createPropProvider, StorybookErrorBoundary, Rnd}
