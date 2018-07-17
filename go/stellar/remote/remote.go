@@ -422,6 +422,27 @@ func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
 	return apiRes.Result, err
 }
 
+type pendingPaymentsResult struct {
+	libkb.AppStatusEmbed
+	Result []stellar1.PaymentSummary `json:"res"`
+}
+
+func PendingPayments(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID, limit int) ([]stellar1.PaymentSummary, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/pendingpayments",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"account_id": libkb.S{Val: accountID.String()},
+			"limit":      libkb.I{Val: limit},
+		},
+		NetContext: ctx,
+	}
+
+	var apiRes pendingPaymentsResult
+	err := g.API.GetDecode(apiArg, &apiRes)
+	return apiRes.Result, err
+}
+
 type paymentDetailResult struct {
 	libkb.AppStatusEmbed
 	Result stellar1.PaymentDetails `json:"res"`

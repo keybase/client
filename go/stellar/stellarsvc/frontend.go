@@ -307,6 +307,39 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 	return page, nil
 }
 
+func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPendingPaymentsLocalArg) (payments []stellar1.PaymentLocal, err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "GetPendingPaymentsLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+
+	/*
+		srvPayments, err := s.remoter.RecentPayments(ctx, arg.AccountID, arg.Cursor, 0)
+		if err != nil {
+			return page, err
+		}
+		page.Payments = make([]stellar1.PaymentOrErrorLocal, len(srvPayments.Payments))
+		for i, p := range srvPayments.Payments {
+			page.Payments[i].Payment, err = s.transformPaymentSummary(ctx, arg.AccountID, p)
+			if err != nil {
+				s := err.Error()
+				page.Payments[i].Err = &s
+				page.Payments[i].Payment = nil // just to make sure
+			}
+		}
+		page.Cursor = srvPayments.Cursor
+
+		return page, nil
+	*/
+}
+
 func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPaymentDetailsLocalArg) (payment stellar1.PaymentDetailsLocal, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "GetPaymentDetailsLocal", func() error { return err })()

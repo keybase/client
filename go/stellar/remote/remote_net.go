@@ -58,6 +58,10 @@ func (r *RemoteNet) RecentPayments(ctx context.Context, accountID stellar1.Accou
 	return RecentPayments(ctx, r.G(), accountID, cursor, limit)
 }
 
+func (r *RemoteNet) PendingPayments(ctx context.Context, accountID stellar1.AccountID, limit int) ([]stellar1.PaymentSummary, error) {
+	return PendingPayments(ctx, r.G(), accountID, limit)
+}
+
 func (r *RemoteNet) PaymentDetails(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error) {
 	return PaymentDetails(ctx, r.G(), txID)
 }

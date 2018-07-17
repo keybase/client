@@ -627,6 +627,26 @@
       ],
       "response": "PaymentsPage"
     },
+    "pendingPayments": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "limit",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "PaymentSummary"
+      }
+    },
     "paymentDetails": {
       "request": [
         {
