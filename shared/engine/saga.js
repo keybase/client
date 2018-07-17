@@ -24,6 +24,37 @@ type EmittedFinished = {
 type CallbackWithResponse = (any, CommonResponseHandler, TypedState) => ?RS.Effect | ?Generator<any, any, any>
 type CallbackNoResponse = (any, TypedState) => ?RS.Effect | ?Generator<any, any, any>
 
+// Wraps a response to update the waiting state
+const makeWaitingResponse = (r, waitingKey) => {
+  if (!r || !waitingKey) {
+    return r
+  }
+
+  const response = {}
+
+  if (r.result) {
+    response.error = (...args) => {
+      // Waiting on the server again
+      if (waitingKey) {
+        Engine.dispatchWaitingAction(waitingKey, true)
+      }
+      r.error(...args)
+    }
+  }
+
+  if (r.error) {
+    response.result = (...args) => {
+      // Waiting on the server again
+      if (waitingKey) {
+        Engine.dispatchWaitingAction(waitingKey, true)
+      }
+      r.result(...args)
+    }
+  }
+
+  return response
+}
+
 // TODO could have a mechanism to ensure only one is in flight at a time. maybe by some key or something
 function* call(p: {
   method: string,
@@ -34,6 +65,7 @@ function* call(p: {
   const {method, params, incomingCallMap, waitingKey} = p
   const engine = getEngine()
 
+  // Waiting on the server
   if (waitingKey) {
     Engine.dispatchWaitingAction(waitingKey, true)
   }
@@ -44,7 +76,12 @@ function* call(p: {
   const eventChannel: RS.Channel = yield RS.eventChannel(emitter => {
     // convert call map
     const callMap = Object.keys(incomingCallMap).reduce((map, method) => {
-      map[method] = (params: any, response: CommonResponseHandler) => {
+      map[method] = (params: any, _response: CommonResponseHandler) => {
+        // No longer waiting on the server
+        Engine.dispatchWaitingAction(waitingKey, false)
+
+        const response = makeWaitingResponse(_response, waitingKey)
+
         // If we need a custom reply we pass it down to the action handler to deal with, otherwise by default we handle it immediately
         const customResponseNeeded = incomingCallMap[method].length === 3
         if (!customResponseNeeded && response) {
@@ -147,6 +184,7 @@ function* call(p: {
   } finally {
     // eventChannel will jump to finally when RS.END is emitted
     if (waitingKey) {
+      // No longer waiting
       Engine.dispatchWaitingAction(waitingKey, false)
     }
 

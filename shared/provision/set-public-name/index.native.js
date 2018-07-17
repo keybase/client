@@ -1,13 +1,14 @@
 // @flow
 // TODO remove Container
 import Container from '../../login/forms/container'
+import * as Constants from '../../constants/provision'
 import * as React from 'react'
-import {Button, Icon, Input, Text} from '../../common-adapters'
+import {WaitingButton, Icon, Input, Text} from '../../common-adapters'
 import {globalMargins} from '../../styles'
 
 import type {Props} from '.'
 
-const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName, waiting}: Props) => {
+const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName}: Props) => {
   return (
     <Container style={stylesContainer} onBack={onBack}>
       <Text type="Header" style={{textAlign: 'center'}}>
@@ -24,15 +25,15 @@ const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName,
         onChangeText={onChange}
         value={deviceName}
       />
-      <Button
+      <WaitingButton
         style={stylesButton}
         type="Primary"
         fullWidth={true}
         enabled={deviceName}
         disabled={!onSubmit}
-        waiting={waiting}
         label="Continue"
         onClick={onSubmit}
+        waitingKey={Constants.waitingKey}
       />
     </Container>
   )

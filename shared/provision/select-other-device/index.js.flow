@@ -8,6 +8,7 @@ export type Props = {|
   onSelect: (name: string) => void,
   onResetAccount: () => void,
   onBack: () => void,
+  waiting: boolean,
 |}
 
 export default class SelectOtherDevice extends Component<Props> {}

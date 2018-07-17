@@ -299,9 +299,6 @@ const startProvisioning = (state: TypedState) =>
         return
       }
 
-      // We don't want the waiting key to be positive during this whole process so we do a decrement first so its not going 1,2,1,2,1,2
-      yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.waitingKey}))
-
       yield RPCTypes.loginLoginRpcSaga({
         incomingCallMap: theProvisioningManager.getIncomingCallMap(),
         params: {
@@ -316,9 +313,6 @@ const startProvisioning = (state: TypedState) =>
       if (finalError.desc !== cancelDesc) {
         yield Saga.put(ProvisionGen.createShowFinalErrorPage({finalError}))
       }
-    } finally {
-      // Reset us to zero
-      yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.waitingKey}))
     }
   })
 
@@ -327,8 +321,6 @@ const addNewDevice = (state: TypedState) =>
     // Make a new handler each time just in case
     theProvisioningManager = new ProvisioningManager(true)
     try {
-      // We don't want the waiting key to be positive during this whole process so we do a decrement first so its not going 1,2,1,2,1,2
-      yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.waitingKey}))
       yield RPCTypes.deviceDeviceAddRpcSaga({
         incomingCallMap: theProvisioningManager.getIncomingCallMap(),
         params: undefined,
@@ -342,9 +334,6 @@ const addNewDevice = (state: TypedState) =>
       if (e.desc !== cancelDesc) {
         yield Saga.put(ProvisionGen.createProvisionError({error: new HiddenString(niceError(e))}))
       }
-    } finally {
-      // Reset us to zero
-      yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.waitingKey}))
     }
   })
 

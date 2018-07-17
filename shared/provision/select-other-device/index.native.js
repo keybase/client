@@ -2,6 +2,7 @@
 // TODO merge this and desktop
 // TODO remove container
 import Container from '../../login/forms/container'
+import * as Constants from '../../constants/provision'
 import * as React from 'react'
 import {
   Box,
@@ -9,14 +10,14 @@ import {
   Icon,
   ClickableBox,
   NativeScrollView,
-  Button,
+  WaitingButton,
   type IconType,
 } from '../../common-adapters/mobile.native'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 import type {DeviceType} from '../../constants/types/devices'
 import type {Props} from '.'
 
-const Row = ({name, type, onSelect}) => {
+const Row = ({name, type, onSelect, waiting}) => {
   const iconType: IconType = ({
     mobile: 'icon-phone-48',
     desktop: 'icon-computer-48',
@@ -33,7 +34,7 @@ const Row = ({name, type, onSelect}) => {
           <Text type="BodySemiboldItalic">{name}</Text>
           {type === 'backup' && <Text type="BodySmall">Paper key</Text>}
         </Box>
-        <Button label="Use..." type="Secondary" small={true} />
+        <WaitingButton label="Use..." type="Secondary" small={true} waitingKey={Constants.waitingKey} />
       </Box>
     </ClickableBox>
   )

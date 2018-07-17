@@ -11,7 +11,6 @@ type OwnProps = {deviceName: string, onChange: (text: string) => void} & RoutePr
 const mapStateToProps = (state: TypedState) => ({
   _existingDevices: state.provision.existingDevices,
   deviceNameError: state.provision.error.stringValue(),
-  waiting: !!state.waiting.get(Constants.waitingKey),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
@@ -25,12 +24,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onSubmit = submitEnabled ? () => dispatchProps._onSubmit(ownProps.deviceName) : null
   return {
     deviceName: ownProps.deviceName,
-    onChange: ownProps.onChange,
     deviceNameError: stateProps.deviceNameError,
     existingDevices: stateProps._existingDevices,
     onBack: dispatchProps.onBack,
+    onChange: ownProps.onChange,
     onSubmit,
-    waiting: stateProps.waiting,
   }
 }
 

@@ -1,8 +1,9 @@
 // @flow
 // TODO remove Container
 import Container from '../../login/forms/container'
+import * as Constants from '../../constants/provision'
 import React, {Component} from 'react'
-import {Input, Button, UserCard} from '../../common-adapters'
+import {Input, WaitingButton, UserCard} from '../../common-adapters'
 import {globalColors, globalMargins} from '../../styles'
 
 import type {Props} from '.'
@@ -49,13 +50,13 @@ class UsernameOrEmail extends Component<Props, State> {
             value={this.state.usernameOrEmail}
             keyboardType="email-address"
           />
-          <Button
+          <WaitingButton
             fullWidth={true}
             label="Continue"
             type="Primary"
             onClick={() => this.onSubmit()}
             enabled={this.state.usernameOrEmail}
-            waiting={this.props.waitingForResponse}
+            waitingKey={Constants.waitingKey}
           />
         </UserCard>
       </Container>

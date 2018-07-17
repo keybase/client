@@ -2,13 +2,14 @@
 // TODO merge  this and native
 // TODO remove Container
 import Container from '../../login/forms/container'
+import * as Constants from '../../constants/provision'
 import * as React from 'react'
-import {Text, Button, Input, Icon} from '../../common-adapters'
+import {Text, WaitingButton, Input, Icon} from '../../common-adapters'
 import {globalMargins} from '../../styles'
 
 import type {Props} from '.'
 
-const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName, waiting}: Props) => {
+const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName}: Props) => {
   return (
     <Container style={stylesContainer} onBack={onBack}>
       <Text type="Header" style={stylesHeader}>
@@ -24,13 +25,13 @@ const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName,
         onChangeText={onChange}
         value={deviceName}
       />
-      <Button
+      <WaitingButton
         type="Primary"
         style={stylesButton}
         disabled={!onSubmit}
-        waiting={waiting}
         label="Continue"
         onClick={onSubmit}
+        waitingKey={Constants.waitingKey}
       />
     </Container>
   )

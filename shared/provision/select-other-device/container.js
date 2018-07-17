@@ -1,4 +1,5 @@
 // @flow
+import * as Constants from '../../constants/provision'
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as LoginGen from '../../actions/login-gen'
 import SelectOtherDevice from '.'
@@ -9,6 +10,7 @@ type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = (state: TypedState) => ({
   devices: state.provision.devices,
+  waiting: !!state.waiting.get(Constants.waitingKey),
 })
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   onBack: () => dispatch(ownProps.navigateUp()),
@@ -23,7 +25,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   devices: stateProps.devices.map(d => d.toJS()).toArray(),
   onBack: dispatchProps.onBack,
   onResetAccount: dispatchProps.onResetAccount,
-  onSelect: dispatchProps.onSelect,
+  onSelect: ownProps.waiting ? () => {} : dispatchProps.onSelect,
+  waiting: ownProps.waiting,
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SelectOtherDevice)
