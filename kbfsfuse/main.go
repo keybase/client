@@ -10,6 +10,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime"
 
 	"bazil.org/fuse"
 
@@ -83,6 +84,16 @@ func start() *libfs.Error {
 	err := os.MkdirAll(mountDir, os.ModePerm)
 	if err != nil {
 		fmt.Println(err)
+		switch os := runtime.GOOS; os {
+		case "linux":
+			fmt.Println("failed to create mount directory")
+		case "darwin":
+			// If the user did not override the defaults this isn't expected to work.
+			// The default is in a directory only writable by root.
+			fmt.Println("mount directory does not exist and should have been created by system service")
+		case "windows":
+			fmt.Println("I honestly have no idea what to say here, maybe someone can tell me what is supposed to create this on Windows")
+		}
 	}
 
 	if len(flag.Args()) > 1 {
