@@ -380,6 +380,12 @@ func newFolderBranchOps(
 		}
 	}
 
+	if bType == standard && fb.Branch != MasterBranch {
+		panic("standard FBOs must use the master branch")
+	} else if bType != standard && fb.Branch == MasterBranch {
+		panic("non-standard FBOs must not use the master branch")
+	}
+
 	// make logger
 	branchSuffix := ""
 	if fb.Branch != MasterBranch {
@@ -444,7 +450,7 @@ func newFolderBranchOps(
 	fbo.cr = NewConflictResolver(config, fbo)
 	fbo.fbm = newFolderBlockManager(g, config, fb, fbo)
 	fbo.rekeyFSM = NewRekeyFSM(fbo)
-	if config.DoBackgroundFlushes() {
+	if config.DoBackgroundFlushes() && bType == standard {
 		go fbo.backgroundFlusher()
 	}
 
@@ -714,7 +720,7 @@ func (fbo *folderBranchOps) validateHeadLocked(
 }
 
 func (fbo *folderBranchOps) startMonitorChat(tlfName tlf.CanonicalName) {
-	if !fbo.config.Mode().TLFEditHistoryEnabled() {
+	if fbo.bType != standard || !fbo.config.Mode().TLFEditHistoryEnabled() {
 		return
 	}
 
@@ -869,9 +875,8 @@ func (fbo *folderBranchOps) setHeadLocked(
 	fbo.status.setRootMetadata(md)
 	if isFirstHead {
 		// Start registering for updates right away, using this MD
-		// as a starting point. For now only the master branch can
-		// get updates
-		if fbo.branch() == MasterBranch {
+		// as a starting point. Only standard FBOs get updates.
+		if fbo.bType == standard {
 			if fbo.config.Mode().TLFUpdatesEnabled() {
 				fbo.updateDoneChan = make(chan struct{})
 				go fbo.registerAndWaitForUpdates()
@@ -1716,9 +1721,9 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 	}
 
 	return runUnlessCanceled(ctx, func() error {
-		fb := FolderBranch{md.TlfID(), MasterBranch}
-		if fb != fbo.folderBranch {
-			return WrongOpsError{fbo.folderBranch, fb}
+		if md.TlfID() != fbo.id() {
+			return WrongOpsError{
+				fbo.folderBranch, FolderBranch{md.TlfID(), MasterBranch}}
 		}
 
 		// Always identify first when trying to initialize the folder,
@@ -1791,6 +1796,7 @@ func (fbo *folderBranchOps) SetInitialHeadToNew(
 	}
 
 	return runUnlessCanceled(ctx, func() error {
+		// New heads can only be set for the MasterBranch.
 		fb := FolderBranch{rmd.TlfID(), MasterBranch}
 		if fb != fbo.folderBranch {
 			return WrongOpsError{fbo.folderBranch, fb}
@@ -2918,6 +2924,9 @@ func (fbo *folderBranchOps) signalWrite() {
 
 func (fbo *folderBranchOps) syncDirUpdateOrSignal(
 	ctx context.Context, lState *lockState) error {
+	if fbo.bType != standard {
+		panic("Cannot write to a non-standard FBO")
+	}
 	if fbo.config.BGFlushDirOpBatchSize() == 1 {
 		return fbo.syncAllLocked(ctx, lState, NoExcl)
 	}
@@ -5712,6 +5721,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 }
 
 func (fbo *folderBranchOps) RequestRekey(_ context.Context, tlf tlf.ID) {
+	// Only the MasterBranch can be rekeyed.
 	fb := FolderBranch{tlf, MasterBranch}
 	if fb != fbo.folderBranch {
 		// TODO: log instead of panic?
@@ -6706,6 +6716,7 @@ func (fbo *folderBranchOps) TeamAbandoned(
 // MigrateToImplicitTeam implements the KBFSOps interface for folderBranchOps.
 func (fbo *folderBranchOps) MigrateToImplicitTeam(
 	ctx context.Context, id tlf.ID) (err error) {
+	// Only MasterBranch FBOs may be migrated.
 	fb := FolderBranch{id, MasterBranch}
 	if fb != fbo.folderBranch {
 		// TODO: log instead of panic?

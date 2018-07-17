@@ -1632,36 +1632,6 @@ func TestRenameFailAcrossTopLevelFolders(t *testing.T) {
 	}
 }
 
-func TestRenameFailAcrossBranches(t *testing.T) {
-	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
-	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
-
-	id1 := tlf.FakeID(1, tlf.Private)
-	h1 := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private, id1)
-	rmd1, err := makeInitialRootMetadata(config.MetadataVersion(), id1, h1)
-	require.NoError(t, err)
-
-	uid1 := h1.FirstResolvedWriter()
-	rootID1 := kbfsblock.FakeID(41)
-	aID1 := kbfsblock.FakeID(42)
-	node1 := pathNode{makeBP(rootID1, rmd1, config, uid1), "p"}
-	aNode1 := pathNode{makeBP(aID1, rmd1, config, uid1), "a"}
-	p1 := path{FolderBranch{Tlf: id1}, []pathNode{node1, aNode1}}
-	p2 := path{FolderBranch{id1, "test"}, []pathNode{node1, aNode1}}
-	ops1 := getOps(config, id1)
-	n1 := nodeFromPath(t, ops1, p1)
-	ops2 := config.KBFSOps().(*KBFSOpsStandard).getOpsNoAdd(
-		ctx, FolderBranch{id1, "test"})
-	n2 := nodeFromPath(t, ops2, p2)
-
-	expectedErr := RenameAcrossDirsError{}
-	if err := config.KBFSOps().Rename(ctx, n1, "b", n2, "c"); err == nil {
-		t.Errorf("Got no expected error on rename")
-	} else if err.Error() != expectedErr.Error() {
-		t.Errorf("Got unexpected error on rename: %+v", err)
-	}
-}
-
 func TestKBFSOpsCacheReadFullSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
 	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
