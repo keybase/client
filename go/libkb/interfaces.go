@@ -575,7 +575,7 @@ type ExternalServicesCollector interface {
 }
 
 type PvlSource interface {
-	GetPVL(ctx context.Context) (PvlUnparsed, error)
+	GetPVL(m MetaContext) (PvlUnparsed, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.
