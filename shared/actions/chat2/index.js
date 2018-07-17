@@ -2172,6 +2172,8 @@ const loadStaticConfig = (state: TypedState, action: ConfigGen.BootstrapPayload)
   })
 
 const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, state: TypedState) => {
+  // The service translates this to a delete if an identical reaction already exists
+  // so we only need to call this RPC to toggle it on & off
   const {conversationIDKey, emoji, ordinal} = action.payload
   const message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message) {
@@ -2181,6 +2183,7 @@ const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, st
   const messageID = message.id
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
   const meta = Constants.getMeta(state, conversationIDKey)
+  logger.info(`toggleMessageReaction: posting reaction`)
   return Saga.call(RPCChatTypes.localPostReactionNonblockRpcPromise, {
     body: emoji,
     clientPrev,

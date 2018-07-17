@@ -9,7 +9,6 @@ import type {WrapperTimestampProps} from '../index.types'
 class WrapperTimestamp extends React.PureComponent<WrapperTimestampProps> {
   componentDidUpdate(prevProps: WrapperTimestampProps) {
     if (this.props.measure) {
-      // TODO (DA) check if whether we have reactions has changed.
       if (
         this.props.orangeLineAbove !== prevProps.orangeLineAbove ||
         this.props.timestamp !== prevProps.timestamp
