@@ -5,6 +5,11 @@ import {chatTab, peopleTab, profileTab, type Tab} from '../../constants/tabs'
 import {navigateTo, switchTo} from '../../actions/route-tree'
 import {createShowUserProfile} from '../../actions/profile-gen'
 
+let KeyHandler = c => c
+if (!isMobile) {
+  KeyHandler = require('../../util/key-handler.desktop').default
+}
+
 const mapStateToProps = (state: TypedState) => ({
   _badgeNumbers: state.notifications.get('navBadges'),
   username: state.config.username,
@@ -69,4 +74,5 @@ const mergeProps = (stateProps, dispatchProps, {routeSelected}) => ({
   username: stateProps.username || '',
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TabBarRender)
+const ConnectedTabBar = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TabBarRender)
+export default (isMobile ? ConnectedTabBar : KeyHandler(ConnectedTabBar))

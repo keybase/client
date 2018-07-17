@@ -23,6 +23,7 @@ type TextType =
   | 'BodySemiboldLink'
   | 'BodySemiboldItalic'
   | 'BodySmall'
+  | 'BodySmallBold'
   | 'BodySmallExtrabold'
   | 'BodySmallExtraboldSecondaryLink'
   | 'BodySmallError'

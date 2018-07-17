@@ -230,6 +230,7 @@ export const notifyChatChatActivityType = {
   teamtype: 8,
   expunge: 9,
   ephemeralPurge: 10,
+  reactionDelete: 11,
 }
 
 export const notifyChatStaleUpdateType = {
@@ -330,7 +331,7 @@ export type ChannelMention =
   | 2 // HERE_2
 
 export type ChannelNameMention = $ReadOnly<{convID: ConversationID, topicName: String}>
-export type ChatActivity = {activityType: 1, incomingMessage: ?IncomingMessage} | {activityType: 2, readMessage: ?ReadMessageInfo} | {activityType: 3, newConversation: ?NewConversationInfo} | {activityType: 4, setStatus: ?SetStatusInfo} | {activityType: 5, failedMessage: ?FailedMessageInfo} | {activityType: 6, membersUpdate: ?MembersUpdateInfo} | {activityType: 7, setAppNotificationSettings: ?SetAppNotificationSettingsInfo} | {activityType: 8, teamtype: ?TeamTypeInfo} | {activityType: 9, expunge: ?ExpungeInfo} | {activityType: 10, ephemeralPurge: ?EphemeralPurgeNotifInfo}
+export type ChatActivity = {activityType: 1, incomingMessage: ?IncomingMessage} | {activityType: 2, readMessage: ?ReadMessageInfo} | {activityType: 3, newConversation: ?NewConversationInfo} | {activityType: 4, setStatus: ?SetStatusInfo} | {activityType: 5, failedMessage: ?FailedMessageInfo} | {activityType: 6, membersUpdate: ?MembersUpdateInfo} | {activityType: 7, setAppNotificationSettings: ?SetAppNotificationSettingsInfo} | {activityType: 8, teamtype: ?TeamTypeInfo} | {activityType: 9, expunge: ?ExpungeInfo} | {activityType: 10, ephemeralPurge: ?EphemeralPurgeNotifInfo} | {activityType: 11, reactionDelete: ?ReactionDeleteNotif}
 export type ChatActivityType =
   | 0 // RESERVED_0
   | 1 // INCOMING_MESSAGE_1
@@ -343,6 +344,7 @@ export type ChatActivityType =
   | 8 // TEAMTYPE_8
   | 9 // EXPUNGE_9
   | 10 // EPHEMERAL_PURGE_10
+  | 11 // REACTION_DELETE_11
 
 export type ChatSearchHit = $ReadOnly<{beforeMessages?: ?Array<UIMessage>, hitMessage: UIMessage, afterMessages?: ?Array<UIMessage>, matches?: ?Array<String>}>
 export type ChatSyncIncrementalInfo = $ReadOnly<{items?: ?Array<UnverifiedInboxUIItem>}>
@@ -709,6 +711,8 @@ export type PreviewLocationTyp =
 
 export type RateLimit = $ReadOnly<{name: String, callsRemaining: Int, windowReset: Int, maxCalls: Int}>
 export type Reaction = $ReadOnly<{username: String, reactionMsgID: MessageID}>
+export type ReactionDelete = $ReadOnly<{reactionKey: String, reactionMsgID: MessageID, targetMsgID: MessageID}>
+export type ReactionDeleteNotif = $ReadOnly<{convID: ConversationID, reactionDeletes?: ?Array<ReactionDelete>}>
 export type ReactionMap = $ReadOnly<{reactions: {[key: string]: ?Array<Reaction>}}>
 export type ReadMessageInfo = $ReadOnly<{convID: ConversationID, msgID: MessageID, conv?: ?InboxUIItem}>
 export type ReadMessagePayload = $ReadOnly<{Action: String, convID: ConversationID, msgID: MessageID, inboxVers: InboxVers, topicType: TopicType, unreadUpdate?: ?UnreadUpdate}>
