@@ -72,9 +72,6 @@ function start() {
     }
   }
 
-  // Force the app to not get suspended
-  SafeElectron.getPowerSaveBlocker().start('prevent-app-suspension')
-
   // Windows needs this for notifications to show on certain versions
   // https://msdn.microsoft.com/en-us/library/windows/desktop/dd378459(v=vs.85).aspx
   SafeElectron.getApp().setAppUserModelId('Keybase.Keybase.GUI')

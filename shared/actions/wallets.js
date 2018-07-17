@@ -4,6 +4,7 @@ import * as Types from '../constants/types/wallets'
 import * as RPCTypes from '../constants/types/rpc-stellar-gen'
 import * as Saga from '../util/saga'
 import * as WalletsGen from './wallets-gen'
+import HiddenString from '../util/hidden-string'
 import * as Route from './route-tree'
 import logger from '../logger'
 import type {TypedState} from '../constants/reducer'
@@ -101,6 +102,14 @@ const navigateToAccount = (
   return Saga.put(Route.navigateTo([{props: {}, selected: walletsTab}, {props: {}, selected: null}]))
 }
 
+const exportSecretKey = (state: TypedState, action: WalletsGen.ExportSecretKeyPayload) =>
+  RPCTypes.localGetWalletAccountSecretKeyLocalRpcPromise({accountID: action.payload.accountID}).then(res =>
+    WalletsGen.createSecretKeyReceived({
+      accountID: action.payload.accountID,
+      secretKey: new HiddenString(res),
+    })
+  )
+
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPurePromise(
     [WalletsGen.loadAccounts, WalletsGen.linkedExistingAccount],
@@ -117,6 +126,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPurePromise(WalletsGen.linkExistingAccount, linkExistingAccount)
   yield Saga.safeTakeEveryPurePromise(WalletsGen.validateAccountName, validateAccountName)
   yield Saga.safeTakeEveryPurePromise(WalletsGen.validateSecretKey, validateSecretKey)
+  yield Saga.safeTakeEveryPurePromise(WalletsGen.exportSecretKey, exportSecretKey)
   yield Saga.safeTakeEveryPure(
     [WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
     navigateToAccount
