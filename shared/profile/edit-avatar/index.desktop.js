@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as ReactDOM from 'react-dom'
 import fs from 'fs'
 import {clamp} from 'lodash-es'
 import HOCTimers, {type PropsWithTimer} from '../../common-adapters/hoc-timers'
@@ -9,6 +10,7 @@ import {
   ButtonBar,
   Icon,
   MaybePopup,
+  OrientedImage,
   ProgressIndicator,
   Text,
   WaitingButton,
@@ -58,7 +60,7 @@ const VIEWPORT_CENTER = AVATAR_SIZE / 2
 
 class EditAvatar extends React.Component<_Props, State> {
   _file: ?HTMLInputElement
-  _image: ?HTMLImageElement
+  _image: ?OrientedImage
 
   constructor(props: _Props) {
     super(props)
@@ -87,7 +89,7 @@ class EditAvatar extends React.Component<_Props, State> {
     }
   }
 
-  _imageSetRef = (ref: ?HTMLImageElement) => {
+  _imageSetRef = (ref: ?OrientedImage) => {
     this._image = ref
   }
 
@@ -174,7 +176,12 @@ class EditAvatar extends React.Component<_Props, State> {
     this.setState({imageSource: path})
   }
 
-  _onImageLoad = (e: SyntheticEvent<HTMLImageElement>) => {
+  _getImage = (): HTMLImageElement => {
+    const img: HTMLImageElement = (ReactDOM.findDOMNode(this._image): any)
+    return img
+  }
+
+  _onImageLoad = (e: SyntheticEvent<any>) => {
     // TODO: Make RPC to check file size and warn them before they try submitting.
 
     let height = AVATAR_SIZE
@@ -232,28 +239,24 @@ class EditAvatar extends React.Component<_Props, State> {
   }
 
   _onMouseDown = (e: SyntheticMouseEvent<any>) => {
+    const img = this._getImage()
+
     this.setState({
       dragStartX: e.pageX,
       dragStartY: e.pageY,
-      dragStopX:
-        this._image && this._image.style.left ? parseInt(this._image.style.left, 10) : this.state.dragStopX,
-      dragStopY:
-        this._image && this._image.style.top ? parseInt(this._image.style.top, 10) : this.state.dragStopY,
+      dragStopX: img && img.style.left ? parseInt(img.style.left, 10) : this.state.dragStopX,
+      dragStopY: img && img.style.top ? parseInt(img.style.top, 10) : this.state.dragStopY,
       dragging: true,
-      offsetLeft: this._image ? this._image.offsetLeft : this.state.offsetLeft,
-      offsetTop: this._image ? this._image.offsetTop : this.state.offsetTop,
     })
   }
 
   _onMouseUp = () => {
+    const img = this._getImage()
+
     this.setState({
-      dragStopX:
-        this._image && this._image.style.left ? parseInt(this._image.style.left, 10) : this.state.dragStopX,
-      dragStopY:
-        this._image && this._image.style.top ? parseInt(this._image.style.top, 10) : this.state.dragStopY,
+      dragStopX: img && img.style.left ? parseInt(img.style.left, 10) : this.state.dragStopX,
+      dragStopY: img && img.style.top ? parseInt(img.style.top, 10) : this.state.dragStopY,
       dragging: false,
-      offsetLeft: this._image ? this._image.offsetLeft : this.state.offsetLeft,
-      offsetTop: this._image ? this._image.offsetTop : this.state.offsetTop,
     })
   }
 
@@ -348,13 +351,13 @@ class EditAvatar extends React.Component<_Props, State> {
                 <ProgressIndicator style={iconCastPlatformStyles(styles.spinner)} />
               </Box>
             )}
-            <img
+            <OrientedImage
               ref={this._imageSetRef}
               src={this.state.imageSource}
               style={{
                 height: this.state.scaledImageHeight,
                 left: `${this.state.offsetLeft}px`,
-                opacity: this.state.loading ? 0 : 1,
+                opacity: this.state.loading ? '0' : '1',
                 position: 'absolute',
                 top: `${this.state.offsetTop}px`,
                 transition: 'opacity 0.25s ease-in',
