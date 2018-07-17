@@ -249,7 +249,7 @@ type editChannelActivity struct {
 type folderBranchOps struct {
 	config       Config
 	folderBranch FolderBranch
-	bid          kbfsmd.BranchID // protected by mdWriterLock
+	unmergedBID  kbfsmd.BranchID // protected by mdWriterLock
 	bType        branchType
 	observers    *observerList
 
@@ -404,7 +404,7 @@ func newFolderBranchOps(
 	fbo := &folderBranchOps{
 		config:       config,
 		folderBranch: fb,
-		bid:          kbfsmd.BranchID{},
+		unmergedBID:  kbfsmd.BranchID{},
 		bType:        bType,
 		observers:    observers,
 		status:       newFolderBranchStatusKeeper(config, nodeCache),
@@ -470,7 +470,7 @@ func (fbo *folderBranchOps) Shutdown(ctx context.Context) error {
 
 		if fbo.blocks.GetState(lState) == dirtyState {
 			fbo.log.CDebugf(ctx, "Skipping state-checking due to dirty state")
-		} else if !fbo.isMasterBranch(lState) {
+		} else if fbo.isUnmerged(lState) {
 			fbo.log.CDebugf(ctx, "Skipping state-checking due to being staged")
 		} else {
 			// Make sure we're up to date first
@@ -629,28 +629,28 @@ func (fbo *folderBranchOps) getHead(lState *lockState) (
 	return fbo.head, fbo.headStatus
 }
 
-// isMasterBranch should not be called if mdWriterLock is already taken.
-func (fbo *folderBranchOps) isMasterBranch(lState *lockState) bool {
+// isUnmerged should not be called if mdWriterLock is already taken.
+func (fbo *folderBranchOps) isUnmerged(lState *lockState) bool {
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
-	return fbo.bid == kbfsmd.NullBranchID
+	return fbo.unmergedBID != kbfsmd.NullBranchID
 }
 
-func (fbo *folderBranchOps) isMasterBranchLocked(lState *lockState) bool {
+func (fbo *folderBranchOps) isUnmergedLocked(lState *lockState) bool {
 	fbo.mdWriterLock.AssertLocked(lState)
 
-	return fbo.bid == kbfsmd.NullBranchID
+	return fbo.unmergedBID != kbfsmd.NullBranchID
 }
 
-func (fbo *folderBranchOps) setBranchIDLocked(lState *lockState, bid kbfsmd.BranchID) {
+func (fbo *folderBranchOps) setBranchIDLocked(lState *lockState, unmergedBID kbfsmd.BranchID) {
 	fbo.mdWriterLock.AssertLocked(lState)
 
-	if fbo.bid != bid {
+	if fbo.unmergedBID != unmergedBID {
 		fbo.cr.BeginNewBranch()
 	}
 
-	fbo.bid = bid
-	if bid == kbfsmd.NullBranchID {
+	fbo.unmergedBID = unmergedBID
+	if unmergedBID == kbfsmd.NullBranchID {
 		fbo.status.setCRSummary(nil, nil)
 	}
 }
@@ -2496,7 +2496,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		return err
 	}
 
-	if fbo.isMasterBranchLocked(lState) {
+	if !fbo.isUnmergedLocked(lState) {
 		// only do a normal Put if we're not already staged.
 		irmd, err = mdops.Put(
 			ctx, md, session.VerifyingKey, nil, keybase1.MDPriorityNormal)
@@ -2567,8 +2567,8 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 				return err
 			}
 		}
-		bid := md.BID()
-		fbo.setBranchIDLocked(lState, bid)
+		unmergedBID := md.BID()
+		fbo.setBranchIDLocked(lState, unmergedBID)
 		doResolve = true
 	} else {
 		fbo.setBranchIDLocked(lState, kbfsmd.NullBranchID)
@@ -2590,8 +2590,8 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 
 	rebased := (oldPrevRoot != md.PrevRoot())
 	if rebased {
-		bid := md.BID()
-		fbo.setBranchIDLocked(lState, bid)
+		unmergedBID := md.BID()
+		fbo.setBranchIDLocked(lState, unmergedBID)
 		doResolve = true
 		resolveMergedRev = kbfsmd.RevisionUninitialized
 	}
@@ -2730,8 +2730,8 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 
 	rebased := (oldPrevRoot != md.PrevRoot())
 	if rebased {
-		bid := md.BID()
-		fbo.setBranchIDLocked(lState, bid)
+		unmergedBID := md.BID()
+		fbo.setBranchIDLocked(lState, unmergedBID)
 		fbo.cr.Resolve(ctx, md.Revision(), kbfsmd.RevisionUninitialized)
 	}
 
@@ -2804,8 +2804,8 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *GCOp) (
 
 	rebased := (oldPrevRoot != md.PrevRoot())
 	if rebased {
-		bid := md.BID()
-		fbo.setBranchIDLocked(lState, bid)
+		unmergedBID := md.BID()
+		fbo.setBranchIDLocked(lState, unmergedBID)
 		fbo.cr.Resolve(ctx, md.Revision(), kbfsmd.RevisionUninitialized)
 	}
 
@@ -3152,8 +3152,8 @@ func (fbo *folderBranchOps) createEntryLocked(
 }
 
 func (fbo *folderBranchOps) maybeWaitForSquash(
-	ctx context.Context, bid kbfsmd.BranchID) {
-	if bid != kbfsmd.PendingLocalSquashBranchID {
+	ctx context.Context, unmergedBID kbfsmd.BranchID) {
+	if unmergedBID != kbfsmd.PendingLocalSquashBranchID {
 		return
 	}
 
@@ -3184,10 +3184,10 @@ func (fbo *folderBranchOps) doMDWriteWithRetry(ctx context.Context,
 	doUnlock := false
 	defer func() {
 		if doUnlock {
-			bid := fbo.bid
+			unmergedBID := fbo.unmergedBID
 			fbo.mdWriterLock.Unlock(lState)
 			// Don't let a pending squash get too big.
-			fbo.maybeWaitForSquash(ctx, bid)
+			fbo.maybeWaitForSquash(ctx, unmergedBID)
 		}
 	}()
 
@@ -5103,7 +5103,7 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 
 	// If there's anything in the journal, don't apply these MDs.
 	// Wait for CR to happen.
-	if fbo.isMasterBranchLocked(lState) {
+	if !fbo.isUnmergedLocked(lState) {
 		mergedRev, err := fbo.getJournalPredecessorRevision(ctx)
 		if err == errNoFlushedRevisions {
 			// If the journal is still on the initial revision, ignore
@@ -5135,7 +5135,7 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 
 	// if we have staged changes, ignore all updates until conflict
 	// resolution kicks in.  TODO: cache these for future use.
-	if !fbo.isMasterBranchLocked(lState) {
+	if fbo.isUnmergedLocked(lState) {
 		if len(rmds) > 0 {
 			latestMerged := rmds[len(rmds)-1]
 			// Don't trust un-put updates here because they might have
@@ -5323,15 +5323,15 @@ func (fbo *folderBranchOps) getAndApplyMDUpdates(ctx context.Context,
 func (fbo *folderBranchOps) getAndApplyNewestUnmergedHead(ctx context.Context,
 	lState *lockState) error {
 	fbo.log.CDebugf(ctx, "Fetching the newest unmerged head")
-	bid := func() kbfsmd.BranchID {
+	unmergedBID := func() kbfsmd.BranchID {
 		fbo.mdWriterLock.Lock(lState)
 		defer fbo.mdWriterLock.Unlock(lState)
-		return fbo.bid
+		return fbo.unmergedBID
 	}()
 
 	// We can only ever be at most one revision behind, so fetch the
 	// latest unmerged revision and apply it as a successor.
-	md, err := fbo.config.MDOps().GetUnmergedForTLF(ctx, fbo.id(), bid)
+	md, err := fbo.config.MDOps().GetUnmergedForTLF(ctx, fbo.id(), unmergedBID)
 	if err != nil {
 		return err
 	}
@@ -5343,7 +5343,7 @@ func (fbo *folderBranchOps) getAndApplyNewestUnmergedHead(ctx context.Context,
 
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
-	if fbo.bid != bid {
+	if fbo.unmergedBID != unmergedBID {
 		// The branches switched (apparently CR completed), so just
 		// try again.
 		fbo.log.CDebugf(ctx, "Branches switched while fetching unmerged head")
@@ -5370,13 +5370,13 @@ func (fbo *folderBranchOps) getUnmergedMDUpdates(
 	ctx context.Context, lState *lockState) (
 	kbfsmd.Revision, []ImmutableRootMetadata, error) {
 	// acquire mdWriterLock to read the current branch ID.
-	bid := func() kbfsmd.BranchID {
+	unmergedBID := func() kbfsmd.BranchID {
 		fbo.mdWriterLock.Lock(lState)
 		defer fbo.mdWriterLock.Unlock(lState)
-		return fbo.bid
+		return fbo.unmergedBID
 	}()
 	return getUnmergedMDUpdates(ctx, fbo.config, fbo.id(),
-		bid, fbo.getCurrMDRevision(lState))
+		unmergedBID, fbo.getCurrMDRevision(lState))
 }
 
 func (fbo *folderBranchOps) getUnmergedMDUpdatesLocked(
@@ -5385,7 +5385,7 @@ func (fbo *folderBranchOps) getUnmergedMDUpdatesLocked(
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	return getUnmergedMDUpdates(ctx, fbo.config, fbo.id(),
-		fbo.bid, fbo.getCurrMDRevision(lState))
+		fbo.unmergedBID, fbo.getCurrMDRevision(lState))
 }
 
 // Returns a list of block pointers that were created during the
@@ -5456,15 +5456,16 @@ func (fbo *folderBranchOps) unstageLocked(ctx context.Context,
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	// fetch all of my unstaged updates, and undo them one at a time
-	bid, wasMasterBranch := fbo.bid, fbo.isMasterBranchLocked(lState)
+	unmergedBID, wasUnmergedBranch :=
+		fbo.unmergedBID, fbo.isUnmergedLocked(lState)
 	unmergedPtrs, err := fbo.undoUnmergedMDUpdatesLocked(ctx, lState)
 	if err != nil {
 		return err
 	}
 
 	// let the server know we no longer have need
-	if !wasMasterBranch {
-		err = fbo.config.MDOps().PruneBranch(ctx, fbo.id(), bid)
+	if wasUnmergedBranch {
+		err = fbo.config.MDOps().PruneBranch(ctx, fbo.id(), unmergedBID)
 		if err != nil {
 			return err
 		}
@@ -5515,7 +5516,7 @@ func (fbo *folderBranchOps) UnstageForTesting(
 	return runUnlessCanceled(ctx, func() error {
 		lState := makeFBOLockState()
 
-		if fbo.isMasterBranch(lState) {
+		if !fbo.isUnmerged(lState) {
 			// no-op
 			return nil
 		}
@@ -5559,7 +5560,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 
 	fbo.mdWriterLock.AssertLocked(lState)
 
-	if !fbo.isMasterBranchLocked(lState) {
+	if fbo.isUnmergedLocked(lState) {
 		return RekeyResult{}, errors.New("can't rekey while staged")
 	}
 
@@ -5753,12 +5754,12 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 
 	// Loop until we're fully updated on the master branch.
 	for {
-		if !fbo.isMasterBranch(lState) {
+		if fbo.isUnmerged(lState) {
 			if err := fbo.cr.Wait(ctx); err != nil {
 				return err
 			}
 			// If we are still staged after the wait, then we have a problem.
-			if !fbo.isMasterBranch(lState) {
+			if fbo.isUnmerged(lState) {
 				return errors.Errorf("Conflict resolution didn't take us out " +
 					"of staging.")
 			}
@@ -5901,7 +5902,7 @@ func (fbo *folderBranchOps) maybeFastForward(ctx context.Context,
 	fastForwardDone bool, err error) {
 	// Has it been long enough to try fast-forwarding?
 	if currUpdate.Before(lastUpdate.Add(fastForwardTimeThresh)) ||
-		!fbo.isMasterBranch(lState) {
+		fbo.isUnmerged(lState) {
 		return false, nil
 	}
 
@@ -5931,7 +5932,7 @@ func (fbo *folderBranchOps) maybeFastForward(ctx context.Context,
 		return false, nil
 	}
 
-	if !fbo.isMasterBranchLocked(lState) {
+	if fbo.isUnmergedLocked(lState) {
 		// Don't update if we're staged.
 		return false, nil
 	}
@@ -6357,7 +6358,7 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	if err != nil {
 		return err
 	}
-	irmd, err := fbo.config.MDOps().ResolveBranch(ctx, fbo.id(), fbo.bid,
+	irmd, err := fbo.config.MDOps().ResolveBranch(ctx, fbo.id(), fbo.unmergedBID,
 		blocksToDelete, md, session.VerifyingKey)
 	doUnmergedPut := isRevisionConflict(err)
 	if doUnmergedPut {
@@ -6469,7 +6470,7 @@ func (fbo *folderBranchOps) unstageAfterFailedResolution(ctx context.Context,
 
 	ctx = newLinkedContext(ctx)
 	fbo.log.CWarningf(ctx, "Unstaging branch %s after a resolution failure",
-		fbo.bid)
+		fbo.unmergedBID)
 	return fbo.unstageLocked(ctx, lState)
 }
 
@@ -6481,13 +6482,13 @@ func (fbo *folderBranchOps) handleTLFBranchChange(ctx context.Context,
 
 	fbo.log.CDebugf(ctx, "Journal branch change: %s", newBID)
 
-	if !fbo.isMasterBranchLocked(lState) {
-		if fbo.bid == newBID {
+	if fbo.isUnmergedLocked(lState) {
+		if fbo.unmergedBID == newBID {
 			fbo.log.CDebugf(ctx, "Already on branch %s", newBID)
 			return
 		}
 		panic(fmt.Sprintf("Cannot switch to branch %s while on branch %s",
-			newBID, fbo.bid))
+			newBID, fbo.unmergedBID))
 	}
 
 	md, err := fbo.config.MDOps().GetUnmergedForTLF(ctx, fbo.id(), newBID)
@@ -6552,9 +6553,10 @@ func (fbo *folderBranchOps) onTLFBranchChange(newBID kbfsmd.BranchID) {
 	}()
 }
 
-func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid kbfsmd.BranchID,
-	rev kbfsmd.Revision) {
-	fbo.log.CDebugf(ctx, "Considering archiving references for flushed MD revision %d", rev)
+func (fbo *folderBranchOps) handleMDFlush(
+	ctx context.Context, rev kbfsmd.Revision) {
+	fbo.log.CDebugf(ctx,
+		"Considering archiving references for flushed MD revision %d", rev)
 
 	lState := makeFBOLockState()
 	func() {
@@ -6596,7 +6598,8 @@ func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid kbfsmd.Branch
 	fbo.fbm.archiveUnrefBlocks(rmd.ReadOnly())
 }
 
-func (fbo *folderBranchOps) onMDFlush(bid kbfsmd.BranchID, rev kbfsmd.Revision) {
+func (fbo *folderBranchOps) onMDFlush(
+	unmergedBID kbfsmd.BranchID, rev kbfsmd.Revision) {
 	fbo.mdFlushes.Add(1)
 
 	go func() {
@@ -6604,13 +6607,13 @@ func (fbo *folderBranchOps) onMDFlush(bid kbfsmd.BranchID, rev kbfsmd.Revision) 
 		ctx, cancelFunc := fbo.newCtxWithFBOID()
 		defer cancelFunc()
 
-		if bid != kbfsmd.NullBranchID {
+		if unmergedBID != kbfsmd.NullBranchID {
 			fbo.log.CDebugf(ctx, "Ignoring MD flush on branch %v for "+
-				"revision %d", bid, rev)
+				"revision %d", unmergedBID, rev)
 			return
 		}
 
-		fbo.handleMDFlush(ctx, bid, rev)
+		fbo.handleMDFlush(ctx, rev)
 	}()
 }
 

@@ -123,7 +123,7 @@ func TestCRInput(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Branch id err: %+v", bid)
 	}
-	cr.fbo.bid = bid
+	cr.fbo.unmergedBID = bid
 	cr.fbo.head = crMakeFakeRMD(unmergedHead, bid)
 	cr.fbo.headStatus = headTrusted
 	// serve all the MDs from the cache
@@ -185,7 +185,7 @@ func TestCRInputFracturedRange(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Branch id err: %+v", bid)
 	}
-	cr.fbo.bid = bid
+	cr.fbo.unmergedBID = bid
 	cr.fbo.head = crMakeFakeRMD(unmergedHead, bid)
 	cr.fbo.headStatus = headTrusted
 	// serve all the MDs from the cache

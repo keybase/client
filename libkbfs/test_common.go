@@ -750,7 +750,7 @@ func RestartCRForTesting(baseCtx context.Context, config Config,
 
 	// Start a resolution for anything we've missed.
 	lState := makeFBOLockState()
-	if !ops.isMasterBranch(lState) {
+	if ops.isUnmerged(lState) {
 		ops.cr.Resolve(baseCtx, ops.getCurrMDRevision(lState),
 			kbfsmd.RevisionUninitialized)
 	}

@@ -3124,7 +3124,7 @@ outer:
 	}
 
 	cr.log.CDebugf(ctx, "Unstaging due to a failed resolution: %v", err)
-	reportedError := CRAbandonStagedBranchError{err, cr.fbo.bid}
+	reportedError := CRAbandonStagedBranchError{err, cr.fbo.unmergedBID}
 	unstageErr := cr.fbo.unstageAfterFailedResolution(ctx, lState)
 	if unstageErr != nil {
 		cr.log.CDebugf(ctx, "Couldn't unstage: %v", unstageErr)
