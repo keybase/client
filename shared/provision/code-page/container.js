@@ -14,6 +14,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     // we either have a name for real or we asked on a previous screen
     currentDeviceName: currentDeviceAlreadyProvisioned ? state.config.deviceName : state.provision.deviceName,
     currentDeviceType: isMobile ? 'mobile' : 'desktop',
+    error: state.provision.error.stringValue(),
     otherDeviceName: state.provision.codePageOtherDeviceName,
     otherDeviceType: state.provision.codePageOtherDeviceType,
     textCode: state.provision.codePageTextCode.stringValue(),
@@ -38,6 +39,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   currentDeviceAlreadyProvisioned: stateProps.currentDeviceAlreadyProvisioned,
   currentDeviceName: stateProps.currentDeviceName,
   currentDeviceType: stateProps.currentDeviceType,
+  error: stateProps.error,
   onBack: dispatchProps.onBack,
   onSubmitTextCode: dispatchProps.onSubmitTextCode,
   otherDeviceName: stateProps.otherDeviceName,

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import * as Constants from '../../constants/login'
+import * as Constants from '../../constants/provision'
 import {RequireImage, Icon, Box2, Text, PlainInput, WaitingButton, BackButton} from '../../common-adapters'
 import {
   platformStyles,
@@ -22,6 +22,7 @@ export type DeviceType = 'mobile' | 'desktop'
 export type Tab = 'QR' | 'enterText' | 'viewText'
 
 type Props = {|
+  error: string,
   currentDeviceAlreadyProvisioned: boolean,
   currentDeviceType: DeviceType,
   currentDeviceName: string,
@@ -216,6 +217,7 @@ class EnterText extends React.Component<Props, {code: string}> {
           style={styles.enterTextInput}
           value={this.state.code}
         />
+        {!!this.props.error && <Text type="BodyError">{this.props.error}</Text>}
         <WaitingButton
           fullWidth={true}
           type="PrimaryColoredBackground"
