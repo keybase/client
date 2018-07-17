@@ -2,4 +2,6 @@
 import * as React from 'react'
 import type {Props} from './oriented-image.types'
 
-export default class OrientedImage extends React.Component<Props> {}
+export default class OrientedImage extends React.Component<Props> {
+  _context: ?CanvasRenderingContext2D
+}
