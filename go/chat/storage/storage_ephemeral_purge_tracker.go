@@ -203,3 +203,7 @@ func (t *ephemeralTracker) inactivatePurgeInfo(ctx context.Context,
 	}
 	return err
 }
+
+func (t *ephemeralTracker) clear(uid gregor1.UID) error {
+	return t.G().LocalChatDb.Delete(t.makeDbKey(uid))
+}

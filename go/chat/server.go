@@ -1387,7 +1387,7 @@ func (h *Server) getMessage(ctx context.Context, uid gregor1.UID, convID chat1.C
 
 	}
 	if len(messages) != 1 || !messages[0].IsValid() {
-		return mvalid, fmt.Errorf("GetMessages returned multiple messages or an invalid result for msgID: %v", msgID)
+		return mvalid, fmt.Errorf("getMessage returned multiple messages or an invalid result for msgID: %v, numMsgs: %v", msgID, len(messages))
 	}
 	return messages[0].Valid(), nil
 }
