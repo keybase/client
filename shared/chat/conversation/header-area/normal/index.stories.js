@@ -13,7 +13,7 @@ const defaultProps = {
   infoPanelOpen: false,
   muted: false,
   onBack: action('onBack'),
-  onCancelPending: null, // action('onCancelPending'),
+  onCancelPending: null,
   onOpenFolder: action('onOpenFolder'),
   onShowProfile: action('onShowProfile'),
   onToggleInfoPanel: action('onToggleInfoPanel'),
@@ -30,6 +30,9 @@ const load = () => {
       <UsernameHeader {...defaultProps} infoPanelOpen={true} />
     ))
     .add('Username Header muted', () => <UsernameHeader {...defaultProps} muted={true} />)
+    .add('Username Header with onCancelPending', () => (
+      <UsernameHeader {...defaultProps} onCancelPending={action('onCancelPending')} />
+    ))
     .add('Channel Header for small team', () => <ChannelHeader {...defaultProps} />)
     .add('Channel Header for big team', () => <ChannelHeader {...defaultProps} smallTeam={false} />)
 }
