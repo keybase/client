@@ -158,6 +158,7 @@
   "stellar.1.local.getPaymentsLocal": {"promise": true},
   "stellar.1.local.getAccountAssetsLocal": {"promise": true},
   "stellar.1.local.getWalletAccountsLocal": {"promise": true},
+  "stellar.1.local.getWalletAccountSecretKeyLocal": {"promise": true},
   "stellar.1.local.linkNewWalletAccountLocal": {"promise": true},
   "stellar.1.local.validateAccountNameLocal": {"promise": true},
   "stellar.1.local.validateSecretKeyLocal": {"promise": true}
