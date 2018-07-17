@@ -10,6 +10,7 @@ import type {Props} from '.'
 const QRScan = (props: Props) => (
   <Box2 direction="vertical" style={styles.container}>
     <RNCamera
+      key={props.mountKey}
       type={RNCamera.Constants.Type.back}
       autoFocus={RNCamera.Constants.AutoFocus.on}
       captureAudio={false}

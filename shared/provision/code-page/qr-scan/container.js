@@ -1,14 +1,18 @@
 // @flow
 import * as ProvisionGen from '../../../actions/provision-gen'
 import CodePage2 from '.'
-import {connect, type TypedState, type Dispatch} from '../../../util/container'
+import {
+  withProps,
+  compose,
+  withStateHandlers,
+  connect,
+  type TypedState,
+  type Dispatch,
+} from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
 import {openAppSettings} from '../../../actions/platform-specific'
 
-const mapStateToProps = (state: TypedState) => {
-  // TODO key on remount
-  return {}
-}
+const mapStateToProps = (state: TypedState) => ({})
 
 let lastSubmitTextCode = ''
 
@@ -28,4 +32,14 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onSubmitTextCode: dispatchProps.onSubmitTextCode,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(CodePage2)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  withStateHandlers({mountKey: 0}, {incrementMountKey: ({mountKey}) => () => ({mountKey: mountKey + 1})}),
+  withProps(p => ({
+    onOpenSettings: () => {
+      // When they click open settings we force a remount
+      p.onOpenSettings()
+      setTimeout(() => p.incrementMountKey(), 1000)
+    },
+  }))
+)(CodePage2)

@@ -25,15 +25,10 @@ const Header = ({name, icon}) => (
 
 const Body = ({endangeredTLFs, name, currentDevice}) => (
   <Box>
-    <Box style={styleHeader}>
-      <Text type="BodySemibold">Are you sure you want to revoke </Text>
-      {currentDevice ? (
-        <Text type="BodySemibold">your current device</Text>
-      ) : (
-        <Text type="BodySemiboldItalic">{name}</Text>
-      )}
-      <Text type="BodySemibold">?</Text>
-    </Box>
+    <Text type="BodySemibold">
+      Are you sure you want to revoke
+      {currentDevice ? 'your current device' : <Text type="BodySemiboldItalic">{name}</Text>}?
+    </Text>
 
     {endangeredTLFs.length > 0 && (
       <Box>
@@ -70,10 +65,6 @@ const DeviceRevoke = (props: Props) => (
     theme="public"
   />
 )
-
-const styleHeader = {
-  marginBottom: globalMargins.tiny,
-}
 
 const styleTLF = {
   marginBottom: globalMargins.xtiny,

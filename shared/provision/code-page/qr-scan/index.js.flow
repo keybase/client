@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 export type Props = {
+  mountKey: string,
   onSubmitTextCode: string => void,
   onOpenSettings: () => void,
 }

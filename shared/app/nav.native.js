@@ -317,7 +317,7 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
     const nextRS = this.props.routeStack
     const nextLastPath = nextRS ? nextRS.last() : null
     const nextPath = nextLastPath ? nextLastPath.path : I.List()
-    const RS = this.props.routeStack
+    const RS = prevProps.routeStack
     const curLastPath = RS ? RS.last() : null
     const curPath = curLastPath ? curLastPath.path : I.List()
     const curTags = curLastPath ? curLastPath.tags : {}
