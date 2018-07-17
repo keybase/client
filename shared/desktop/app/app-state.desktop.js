@@ -19,6 +19,7 @@ export type State = {
   displayBounds: ?any,
   tab: ?string,
   dockHidden: boolean,
+  notifySound: boolean,
   openAtLogin: boolean,
   isUserActive: ?boolean,
 }
@@ -55,6 +56,7 @@ export default class AppState {
       height: windowStyle.height,
       isFullScreen: null,
       isMaximized: null,
+      notifySound: false,
       openAtLogin: true,
       isUserActive: true,
       tab: null,

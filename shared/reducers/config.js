@@ -86,6 +86,8 @@ export default function(
         ...nameToUrlMap,
       })
     }
+    case ConfigGen.setNotifySound:
+      return state.set('notifySound', action.payload.sound)
     case ConfigGen.setOpenAtLogin:
       return state.set('openAtLogin', action.payload.open)
     case 'remote:updateMenubarWindowID':
