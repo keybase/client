@@ -13,7 +13,7 @@ import {
   Text,
   NativeImage,
 } from '../../common-adapters/mobile.native'
-import {globalStyles, globalMargins, globalColors} from '../../styles'
+import {globalStyles, globalMargins, globalColors, hairlineWidth} from '../../styles'
 import type {MobileProps, ContactRowProps} from './index'
 import {type TeamRoleType} from '../../constants/types/teams'
 import {openAppSettings} from '../../actions/platform-specific.native'
@@ -151,7 +151,7 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
           <Box
             style={{
               ...globalStyles.flexBoxRow,
-              borderBottomWidth: StyleSheet.hairlineWidth,
+              borderBottomWidth: hairlineWidth,
               borderBottomColor: globalColors.black_05,
             }}
           >
@@ -182,7 +182,7 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
               alignItems: 'center',
               justifyContent: 'center',
               padding: globalMargins.small,
-              borderBottomWidth: StyleSheet.hairlineWidth,
+              borderBottomWidth: hairlineWidth,
               borderBottomColor: globalColors.black_05,
               marginBottom: globalMargins.xtiny,
             }}

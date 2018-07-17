@@ -12,7 +12,7 @@ import {
   styleSheetCreate,
 } from '../../styles'
 import QRImage from './qr-image'
-import QRScan from './qr-scan'
+import QRScan from './qr-scan/container'
 import {iconMeta} from '../../common-adapters/icon.constants'
 
 const blueBackground = require('../../images/illustrations/bg-provisioning-blue.png')
@@ -31,7 +31,6 @@ type Props = {|
   tabOverride?: ?Tab,
   textCode: string,
   onBack: () => void,
-  onOpenSettings: () => void,
   onSubmitTextCode: string => void,
 |}
 
@@ -193,7 +192,7 @@ const Qr = (props: Props) =>
       <Box2 direction="vertical" style={styles.qrImageContainer}>
         <QRImage code={props.textCode} />
       </Box2>
-      <QRScan onScan={props.onSubmitTextCode} onOpenSettings={props.onOpenSettings} />
+      <QRScan />
     </Box2>
   )
 
