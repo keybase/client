@@ -292,6 +292,7 @@ func TestReactions(t *testing.T) {
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
 	tc := world.Tcs[u.Username]
 	trip := newConvTriple(ctx, t, tc, u.Username)
 	firstMessagePlaintext := chat1.MessagePlaintext{
@@ -312,10 +313,17 @@ func TestReactions(t *testing.T) {
 		TLFMessage: *firstMessageBoxed,
 	})
 	require.NoError(t, err)
+	ires, err := ri.GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
+		Query: &chat1.GetInboxQuery{
+			ConvID: &res.ConvID,
+		},
+	})
+	require.NoError(t, err)
+	conv := ires.Inbox.Full().Conversations[0]
 
 	verifyThread := func(msgID, supersededBy chat1.MessageID, body string,
 		reactionIDs []chat1.MessageID, reactionMap chat1.ReactionMap) {
-		thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+		thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, uid,
 			chat1.GetThreadReason_GENERAL,
 			&chat1.GetThreadQuery{
 				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
@@ -332,36 +340,35 @@ func TestReactions(t *testing.T) {
 		require.Equal(t, reactionMap, msg.Valid().Reactions, "wrong reactions")
 	}
 
-	t.Logf("send text")
-	body := "hi"
-	_, msgBoxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
-		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
-			Sender:      u.User.GetUID().ToBytes(),
-			TlfName:     u.Username,
-			TlfPublic:   false,
-			MessageType: chat1.MessageType_TEXT,
-		},
-		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body: body,
-		}),
-	}, 0, nil)
-	require.NoError(t, err)
-	msgID := msgBoxed.GetMessageID()
-	verifyThread(msgID, 0 /* supersededBy */, body, nil, chat1.ReactionMap{})
+	sendText := func(body string) chat1.MessageID {
+		_, msgBoxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        trip,
+				Sender:      uid,
+				TlfName:     u.Username,
+				TlfPublic:   false,
+				MessageType: chat1.MessageType_TEXT,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: body,
+			}),
+		}, 0, nil)
+		require.NoError(t, err)
+		return msgBoxed.GetMessageID()
+	}
 
-	sendEdit := func(editText string) chat1.MessageID {
+	sendEdit := func(editText string, supersedes chat1.MessageID) chat1.MessageID {
 		_, editMsgBoxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        trip,
-				Sender:      u.User.GetUID().ToBytes(),
+				Sender:      uid,
 				TlfName:     u.Username,
 				TlfPublic:   false,
 				MessageType: chat1.MessageType_EDIT,
-				Supersedes:  msgID,
+				Supersedes:  supersedes,
 			},
 			MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
-				MessageID: msgID,
+				MessageID: supersedes,
 				Body:      editText,
 			}),
 		}, 0, nil)
@@ -369,18 +376,18 @@ func TestReactions(t *testing.T) {
 		return editMsgBoxed.GetMessageID()
 	}
 
-	sendReaction := func(reactionText string) chat1.MessageID {
+	sendReaction := func(reactionText string, supersedes chat1.MessageID) chat1.MessageID {
 		_, reactionMsgboxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        trip,
-				Sender:      u.User.GetUID().ToBytes(),
+				Sender:      uid,
 				TlfName:     u.Username,
 				TlfPublic:   false,
 				MessageType: chat1.MessageType_REACTION,
-				Supersedes:  msgID,
+				Supersedes:  supersedes,
 			},
 			MessageBody: chat1.NewMessageBodyWithReaction(chat1.MessageReaction{
-				MessageID: msgID,
+				MessageID: supersedes,
 				Body:      reactionText,
 			}),
 		}, 0, nil)
@@ -388,14 +395,39 @@ func TestReactions(t *testing.T) {
 		return reactionMsgboxed.GetMessageID()
 	}
 
+	sendDelete := func(supsersedes chat1.MessageID, deletes []chat1.MessageID) chat1.MessageID {
+		delBody := chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
+			MessageIDs: deletes,
+		})
+		_, deleteMsgBoxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        trip,
+				Sender:      uid,
+				TlfName:     u.Username,
+				TlfPublic:   false,
+				MessageType: chat1.MessageType_DELETE,
+				Supersedes:  supsersedes,
+			},
+			MessageBody: delBody,
+		}, 0, nil)
+		require.NoError(t, err)
+		return deleteMsgBoxed.GetMessageID()
+
+	}
+
+	t.Logf("send text")
+	body := "hi"
+	msgID := sendText(body)
+	verifyThread(msgID, 0 /* supersededBy */, body, nil, chat1.ReactionMap{})
+
 	// Verify edits can happen around reactions and don't get clobbered
 	t.Logf("testing an edit")
 	body = "edited"
-	editMsgID := sendEdit(body)
+	editMsgID := sendEdit(body, msgID)
 	verifyThread(msgID, editMsgID, body, nil, chat1.ReactionMap{})
 
 	t.Logf("test +1 reaction")
-	reactionMsgID := sendReaction(":+1:")
+	reactionMsgID := sendReaction(":+1:", msgID)
 	expectedReactionMap := chat1.ReactionMap{
 		Reactions: map[string][]chat1.Reaction{
 			":+1:": []chat1.Reaction{
@@ -409,7 +441,7 @@ func TestReactions(t *testing.T) {
 	verifyThread(msgID, editMsgID, body, []chat1.MessageID{reactionMsgID}, expectedReactionMap)
 
 	t.Logf("test -1 reaction")
-	reactionMsgID2 := sendReaction(":-1:")
+	reactionMsgID2 := sendReaction(":-1:", msgID)
 	expectedReactionMap.Reactions[":-1:"] = []chat1.Reaction{
 		chat1.Reaction{
 			Username:      u.Username,
@@ -420,7 +452,7 @@ func TestReactions(t *testing.T) {
 
 	t.Logf("testing an edit2")
 	body = "edited2"
-	editMsgID2 := sendEdit(body)
+	editMsgID2 := sendEdit(body, msgID)
 	verifyThread(msgID, editMsgID2, body, []chat1.MessageID{reactionMsgID, reactionMsgID2}, expectedReactionMap)
 
 	t.Logf("test multiple pulls")
@@ -428,31 +460,17 @@ func TestReactions(t *testing.T) {
 	verifyThread(msgID, editMsgID2, body, []chat1.MessageID{reactionMsgID, reactionMsgID2}, expectedReactionMap)
 
 	t.Logf("test reaction deletion")
-	delBody := chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
-		MessageIDs: []chat1.MessageID{reactionMsgID2},
-	})
-	_, _, err = sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
-		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
-			Sender:      u.User.GetUID().ToBytes(),
-			TlfName:     u.Username,
-			TlfPublic:   false,
-			MessageType: chat1.MessageType_DELETE,
-			Supersedes:  reactionMsgID2,
-		},
-		MessageBody: delBody,
-	}, 0, nil)
-	require.NoError(t, err)
+	sendDelete(reactionMsgID2, []chat1.MessageID{reactionMsgID2})
 	delete(expectedReactionMap.Reactions, ":-1:")
 	verifyThread(msgID, editMsgID2, body, []chat1.MessageID{reactionMsgID}, expectedReactionMap)
 
 	t.Logf("testing an edit3")
 	body = "edited3"
-	editMsgID3 := sendEdit(body)
+	editMsgID3 := sendEdit(body, msgID)
 	verifyThread(msgID, editMsgID3, body, []chat1.MessageID{reactionMsgID}, expectedReactionMap)
 
 	t.Logf("test reaction after delete")
-	reactionMsgID3 := sendReaction(":-1:")
+	reactionMsgID3 := sendReaction(":-1:", msgID)
 
 	expectedReactionMap.Reactions[":-1:"] = []chat1.Reaction{
 		chat1.Reaction{
@@ -463,29 +481,22 @@ func TestReactions(t *testing.T) {
 	verifyThread(msgID, editMsgID3, body, []chat1.MessageID{reactionMsgID, reactionMsgID3}, expectedReactionMap)
 
 	t.Logf("testing a delete")
-	delBody = chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
-		MessageIDs: []chat1.MessageID{msgID, reactionMsgID, reactionMsgID3},
-	})
-	_, _, err = sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
-		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
-			Sender:      u.User.GetUID().ToBytes(),
-			TlfName:     u.Username,
-			TlfPublic:   false,
-			MessageType: chat1.MessageType_DELETE,
-			Supersedes:  msgID,
-		},
-		MessageBody: delBody,
-	}, 0, nil)
-	require.NoError(t, err)
+	sendDelete(msgID, []chat1.MessageID{msgID, reactionMsgID, reactionMsgID3})
 
-	thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+	thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, uid,
 		chat1.GetThreadReason_GENERAL,
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(thread.Messages), "wrong length")
+
+	// Post illegal supersedes=0
+	reactionMsgID = sendReaction(":wave:", 0)
+	hcs := tc.Context().ConvSource.(*HybridConversationSource)
+	require.NotNil(t, hcs)
+	_, err = hcs.GetMessages(ctx, conv, uid, []chat1.MessageID{reactionMsgID}, nil)
+	require.NoError(t, err)
 }
 
 type failingRemote struct {
