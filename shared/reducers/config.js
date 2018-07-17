@@ -107,6 +107,7 @@ export default function(
     case ConfigGen.dumpLogs:
     case ConfigGen.link:
     case ConfigGen.mobileAppState:
+    case ConfigGen.openAppSettings:
     case ConfigGen.showMain:
       return state
     default:

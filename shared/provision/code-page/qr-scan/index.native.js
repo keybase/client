@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
 import {RNCamera} from 'react-native-camera'
-import {Box2} from '../../../common-adapters'
-import {globalColors, styleSheetCreate} from '../../../styles'
+import {Box2, ProgressIndicator} from '../../../common-adapters'
+import {globalColors, styleSheetCreate, globalStyles} from '../../../styles'
 import QRScanLines from './lines'
 import QRScanNotAuthorized from './not-authorized'
 import type {Props} from '.'
@@ -23,6 +23,7 @@ const QRScan = (props: Props) => (
       style={styles.camera}
     />
     <QRScanLines canScan={true} />
+    {props.waiting && <ProgressIndicator style={styles.waiting} type="Large" white={true} />}
   </Box2>
 )
 
@@ -35,6 +36,9 @@ const styles = styleSheetCreate({
     backgroundColor: globalColors.black,
     height: 200,
     position: 'relative',
+  },
+  waiting: {
+    ...globalStyles.fillAbsolute,
   },
 })
 

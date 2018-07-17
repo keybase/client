@@ -9,7 +9,6 @@ const props = {
   onBack: action('onBack'),
   onChange: action('onChange'),
   onSubmit: action('onSubmit'),
-  waiting: false,
 }
 
 const load = () => {

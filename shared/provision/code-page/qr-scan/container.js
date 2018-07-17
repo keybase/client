@@ -1,5 +1,7 @@
 // @flow
+import * as ConfigGen from '../../../actions/config-gen'
 import * as ProvisionGen from '../../../actions/provision-gen'
+import * as Constants from '../../../constants/provision'
 import CodePage2 from '.'
 import {
   withProps,
@@ -10,14 +12,15 @@ import {
   type Dispatch,
 } from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
-import {openAppSettings} from '../../../actions/platform-specific'
 
-const mapStateToProps = (state: TypedState) => ({})
+const mapStateToProps = (state: TypedState) => ({
+  waiting: !!state.waiting.get(Constants.waitingKey),
+})
 
 let lastSubmitTextCode = ''
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onOpenSettings: () => openAppSettings(),
+  onOpenSettings: () => dispatch(ConfigGen.createOpenAppSettings()),
   onSubmitTextCode: (code: string) => {
     // Don't keep on submitting the same code. The barcode scanner calls this a bunch of times
     if (lastSubmitTextCode !== code) {
@@ -30,6 +33,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 const mergeProps = (stateProps, dispatchProps) => ({
   onOpenSettings: dispatchProps.onOpenSettings,
   onSubmitTextCode: dispatchProps.onSubmitTextCode,
+  waiting: stateProps.waiting,
 })
 
 export default compose(

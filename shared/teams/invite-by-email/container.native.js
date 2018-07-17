@@ -1,5 +1,6 @@
 // @flow
 import logger from '../../logger'
+import * as ConfigGen from '../../actions/config-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Constants from '../../constants/teams'
 import {Set, Map} from 'immutable'
@@ -41,6 +42,7 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
+  openAppSettings: dispatch(ConfigGen.createOpenAppSettings()),
   onClearError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})),
   onClose: () => {
     dispatch(navigateUp())

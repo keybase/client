@@ -78,7 +78,9 @@ function* call(p: {
     const callMap = Object.keys(incomingCallMap).reduce((map, method) => {
       map[method] = (params: any, _response: CommonResponseHandler) => {
         // No longer waiting on the server
-        Engine.dispatchWaitingAction(waitingKey, false)
+        if (waitingKey) {
+          Engine.dispatchWaitingAction(waitingKey, false)
+        }
 
         const response = makeWaitingResponse(_response, waitingKey)
 

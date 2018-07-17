@@ -50,6 +50,7 @@ export type MobileProps = {
   invited: Array<{contactID: string, address?: string}>,
   loadingInvites: any, // TODO typing
   name: string,
+  openAppSettings: () => void,
   onClearError: () => void,
   onClose: () => void,
   onInviteEmail: (invitee: string) => void,

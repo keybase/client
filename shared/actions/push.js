@@ -21,7 +21,6 @@ import {
   displayNewMessageNotification,
   clearAllNotifications,
   getShownPushPrompt,
-  openAppSettings,
 } from './platform-specific'
 
 import type {TypedState} from '../constants/reducer'
@@ -42,8 +41,8 @@ function* permissionsRequestSaga(): Saga.SagaGenerator<any, any> {
     const shownPushPrompt = yield Saga.call(getShownPushPrompt)
     if (shownPushPrompt) {
       // we've already shown the prompt, take them to settings
-      openAppSettings()
       yield Saga.all([
+        Saga.put(ConfigGen.createOpenAppSettings()),
         Saga.put(PushGen.createPermissionsRequesting({requesting: false})),
         Saga.put(PushGen.createPermissionsPrompt({prompt: false})),
       ])

@@ -21,12 +21,12 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   onSelect: (name: string) => dispatch(ProvisionGen.createSubmitDeviceSelect({name})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+const mergeProps = (stateProps, dispatchProps) => ({
   devices: stateProps.devices.map(d => d.toJS()).toArray(),
   onBack: dispatchProps.onBack,
   onResetAccount: dispatchProps.onResetAccount,
-  onSelect: ownProps.waiting ? () => {} : dispatchProps.onSelect,
-  waiting: ownProps.waiting,
+  onSelect: stateProps.waiting ? () => {} : dispatchProps.onSelect,
+  waiting: stateProps.waiting,
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SelectOtherDevice)

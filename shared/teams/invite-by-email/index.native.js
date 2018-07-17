@@ -16,9 +16,8 @@ import {
 import {globalStyles, globalMargins, globalColors, hairlineWidth} from '../../styles'
 import type {MobileProps, ContactRowProps} from './index'
 import {type TeamRoleType} from '../../constants/types/teams'
-import {openAppSettings} from '../../actions/platform-specific.native'
 
-const AccessDenied = () => (
+const AccessDenied = ({openAppSettings}) => (
   <Box
     style={{
       ...globalStyles.flexBoxColumn,
@@ -204,7 +203,7 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
     } else {
       contents = (
         <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-          <AccessDenied />
+          <AccessDenied openAppSettings={this.props.openAppSettings} />
         </Box>
       )
     }

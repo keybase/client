@@ -38,6 +38,7 @@ const props = {
   onBack: action('onBack'),
   onResetAccount: action('onResetAccount'),
   onSelect: action('onSelect'),
+  waiting: false,
 }
 
 const load = () => {

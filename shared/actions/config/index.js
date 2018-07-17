@@ -116,7 +116,6 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
     logger.info('[bootstrap] registered bootstrap')
     engine().listenOnConnect('bootstrap', () => {
       dispatch(ConfigGen.createDaemonError({daemonError: null}))
-      dispatch(GregorCreators.checkReachabilityOnConnect())
       logger.info('[bootstrap] bootstrapping on connect')
       dispatch(ConfigGen.createBootstrap({}))
       // This calls rpc and so must wait for bootstrap
@@ -143,6 +142,7 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
         if (!didInitialNav) {
           dispatch(async () => {
             if (getState().config.loggedIn) {
+              dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
               // TODO move these to a bootstrapSuccess handler
               didInitialNav = true
               // If we're logged in, restore any saved route state and

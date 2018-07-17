@@ -259,7 +259,7 @@ function configurePush() {
   })
 }
 
-function openAppSettings() {
+const openAppSettings = () => {
   if (isAndroid) {
     NativeModules.NativeSettings.open()
   } else {
@@ -369,10 +369,10 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.clearRouteState, clearRouteState)
   yield Saga.safeTakeEveryPure(ConfigGen.persistRouteState, persistRouteState)
   yield Saga.safeTakeEveryPureSimple(ConfigGen.bootstrapSuccess, onBootstrapped)
+  yield Saga.safeTakeEveryPureSimple(ConfigGen.openAppSettings, openAppSettings)
 }
 
 export {
-  openAppSettings,
   checkPermissions,
   displayNewMessageNotification,
   downloadAndShowShareActionSheet,

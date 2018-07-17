@@ -26,7 +26,7 @@ const Header = ({name, icon}) => (
 const Body = ({endangeredTLFs, name, currentDevice}) => (
   <Box>
     <Text type="BodySemibold">
-      Are you sure you want to revoke
+      Are you sure you want to revoke{' '}
       {currentDevice ? 'your current device' : <Text type="BodySemiboldItalic">{name}</Text>}?
     </Text>
 
