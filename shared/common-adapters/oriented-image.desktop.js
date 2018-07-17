@@ -21,7 +21,7 @@ const uploadedSrc = /https?:\/\/127.0.0.1:.*$/i
 const NO_TRANSFORM = 'notransform'
 const _cacheNoTransforms: {[src: string]: string} = {}
 
-// Define transformatin functions to operate on canvas elements
+// Define transformation functions to operate on canvas elements
 //
 // 1: rotate 0 deg left
 // 2: flip horizontally
@@ -122,7 +122,7 @@ class OrientedImage extends React.Component<Props, State> {
       logger.warn(`Invalid orientation value for desktop image attachment: orientation=${orientation}`)
       return ''
     }
-    // Appy transformation to canvas
+    // Apply transformation to canvas
     transformFn(canvas, ctx, width, height)
 
     ctx.drawImage(img, 0, 0)
