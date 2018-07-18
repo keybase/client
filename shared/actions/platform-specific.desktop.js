@@ -87,12 +87,16 @@ const getContentTypeFromURL = (
   req.end()
 }
 
-const writeElectronSettings = (action: ConfigGen.SetOpenAtLoginPayload) =>
+const writeElectronSettingsOpenAtLogin = (action: ConfigGen.SetOpenAtLoginPayload) =>
   action.payload.writeFile &&
   SafeElectron.getIpcRenderer().send('setAppState', {openAtLogin: action.payload.open})
 
+  const writeElectronSettingsNotifySound = (action: ConfigGen.SetNotifySoundPayload) =>
+  action.payload.writeFile &&
+  SafeElectron.getIpcRenderer().send('setAppState', {notifySound: action.payload.sound})
+
 // get this value from electron and update our store version
-function* initializeOpenAtLoginState(): Generator<any, void, any> {
+function* initializeAppSettingsState(): Generator<any, void, any> {
   const getAppState = () =>
     new Promise((resolve, reject) => {
       SafeElectron.getIpcRenderer().once('getAppStateReply', (event, data) => resolve(data))
@@ -102,6 +106,7 @@ function* initializeOpenAtLoginState(): Generator<any, void, any> {
   const state = yield Saga.call(getAppState)
   if (state) {
     yield Saga.put(ConfigGen.createSetOpenAtLogin({open: state.openAtLogin, writeFile: false}))
+    yield Saga.put(ConfigGen.createSetNotifySound({sound: state.notifySound, writeFile: false}))
   }
 }
 
@@ -123,10 +128,11 @@ export const dumpLogs = (action: ?ConfigGen.DumpLogsPayload) =>
 const onBootstrapped = (state: TypedState) => Saga.put(LoginGen.createNavBasedOnLoginAndInitialState())
 
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPure(ConfigGen.setOpenAtLogin, writeElectronSettings)
+  yield Saga.safeTakeEveryPure(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
+  yield Saga.safeTakeEveryPure(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
   yield Saga.safeTakeLatestPure(ConfigGen.showMain, showMainWindow)
   yield Saga.safeTakeEveryPure(ConfigGen.dumpLogs, dumpLogs)
-  yield Saga.fork(initializeOpenAtLoginState)
+  yield Saga.fork(initializeAppSettingsState)
   yield Saga.safeTakeEveryPureSimple(ConfigGen.bootstrapSuccess, onBootstrapped)
 }
 
