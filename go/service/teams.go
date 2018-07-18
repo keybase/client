@@ -254,8 +254,8 @@ func (h *TeamsHandler) TeamAddMembers(ctx context.Context, arg keybase1.TeamAddM
 		return err
 	}
 	res, err := teams.AddMembers(ctx, h.G().ExternalG(), arg.Name, arg.Assertions, arg.Role)
+	// Check the error after spawning a goroutine to send chat notifications.
 	savedErr := err
-	// Check the error after spawning goroutine to send chat notifications.
 	if arg.SendChatNotification {
 		go func() {
 			h.G().Log.CDebugf(ctx, "sending team welcome messages")

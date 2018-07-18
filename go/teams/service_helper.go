@@ -228,6 +228,9 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 			return err
 		}
 
+		// Try to mark completed any invites for the user's social assertions.
+		// This can be a time-intensive process since it involves checking proofs.
+		// It is limited to a few seconds and failure is non-fatal.
 		timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
 		if err := tx.CompleteSocialInvitesFor(timeoutCtx, uv, username); err != nil {
 			g.Log.CWarningf(ctx, "Failed in CompleteSocialInvitesFor, no invites will be cleared. Err was: %v", err)
@@ -263,7 +266,7 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 type AddMembersRes struct {
 	Succeeded  bool
 	Invitation bool                     // Whether the addition at one point required an invitation. A race could have caused a different outcome.
-	Username   libkb.NormalizedUsername // Resolved username. Maybe be nil for social assertions.
+	Username   libkb.NormalizedUsername // Resolved username. May be nil for social assertions.
 }
 
 // AddMembers adds a bunch of people to a team. Assertions can contain usernames or social assertions.
@@ -289,18 +292,37 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, as
 		}
 
 		tx := CreateAddMemberTx(team)
-		for _, as := range assertions {
-			err = tx.AddMemberByAssertion(ctx, as, role)
-			if err != nil {
-				return fmt.Errorf("Error adding user '%v': %v", as, err)
-			}
-
-			// timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
-			// if err := tx.CompleteSocialInvitesFor(timeoutCtx, uwop.UV, uwop.Assertion); err != nil {
-			// 	g.Log.CWarningf(ctx, "Failed in CompleteSocialInvitesFor, no invites will be cleared. Err was: %v", err)
-			// }
-			// timeoutCancel()
+		type sweepEntry struct {
+			Assertion string
+			UV        keybase1.UserVersion
 		}
+		var sweep []sweepEntry
+		for _, assertion := range assertions {
+			uv, err := tx.AddMemberByAssertion(ctx, assertion, role)
+			if err != nil {
+				if strings.Contains(err.Error(), "doesn't have a Keybase account yet") {
+					return err
+				}
+				return fmt.Errorf("Error adding user '%v': %v", assertion, err)
+			}
+			if !uv.IsNil() {
+				sweep = append(sweep, sweepEntry{
+					Assertion: assertion,
+					UV:        uv,
+				})
+			}
+		}
+
+		// Try to mark completed any invites for the users' social assertions.
+		// This can be a time-intensive process since it involves checking proofs.
+		// It is limited to a few seconds and failure is non-fatal.
+		timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
+		for _, x := range sweep {
+			if err := tx.CompleteSocialInvitesFor(timeoutCtx, x.UV, x.Assertion); err != nil {
+				g.Log.CWarningf(ctx, "Failed in CompleteSocialInvitesFor(%v, %v) -> %v", x.UV, x.Assertion, err)
+			}
+		}
+		timeoutCancel()
 
 		return tx.Post(libkb.NewMetaContext(ctx, g))
 	})

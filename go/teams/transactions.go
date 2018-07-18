@@ -13,6 +13,12 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+// AddMemberTx helps build a transaction that may contain multiple
+// team sigchain links. The caller can use the transaction to add users
+// to a team whether they be pukful, pukless, or social assertions.
+// Behind the scenes cryptomembers and invites may be removed if
+// they are for stale versions of the addees.
+// Not threadsafe.
 type AddMemberTx struct {
 	team     *Team
 	payloads []interface{} // *SCTeamInvites or *keybase1.TeamChangeReq
@@ -23,7 +29,7 @@ type AddMemberTx struct {
 
 	completedInvites map[keybase1.TeamInviteID]bool
 
-	// Do not rotate team key, even on member removals.
+	// Override whether the team key is rotated.
 	SkipKeyRotation *bool
 }
 
@@ -134,7 +140,7 @@ func (tx *AddMemberTx) createKeybaseInvite(uv keybase1.UserVersion, role keybase
 	tx.createInvite("keybase", uv.TeamInviteName(), role)
 }
 
-// createInvite queues invite with invite name for role.
+// createInvite queues an invite for invite name with role.
 func (tx *AddMemberTx) createInvite(typ string, name keybase1.TeamInviteName, role keybase1.TeamRole) {
 	var payload *SCTeamInvites
 	if typ == "keybase" {
@@ -370,7 +376,9 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 	return tx.addMemberByUPKV2(ctx, upak.Current, role)
 }
 
-func (tx *AddMemberTx) AddMemberByAssertion(ctx context.Context, assertion string, role keybase1.TeamRole) (err error) {
+// AddMemberByAssertion adds an assertion to the team.
+// Returns uv which can be zero-valued if the assertion did not resolve to a user. An invite will have been added.
+func (tx *AddMemberTx) AddMemberByAssertion(ctx context.Context, assertion string, role keybase1.TeamRole) (uv keybase1.UserVersion, err error) {
 	team := tx.team
 	g := team.G()
 
@@ -379,22 +387,25 @@ func (tx *AddMemberTx) AddMemberByAssertion(ctx context.Context, assertion strin
 	if rErr == nil {
 		upak, err := loadUPAK2(ctx, g, res.GetUID(), true /* forcePoll */)
 		if err != nil {
-			return err
+			return uv, err
 		}
 
-		return tx.addMemberByUPKV2(ctx, upak.Current, role)
+		return upak.Current.ToUserVersion(), tx.addMemberByUPKV2(ctx, upak.Current, role)
 	} else if e, ok := rErr.(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
 		typ, name, err := team.parseSocial(assertion)
 		if err != nil {
-			return err
+			return uv, err
 		}
 		g.Log.Debug("team %s invite sbs member %s/%s", team.Name(), typ, name)
 
+		if role.IsOrAbove(keybase1.TeamRole_OWNER) {
+			return uv, fmt.Errorf("'%v' doesn't have a Keybase account yet, so you can't add them as an owner; you can add them as reader or writer.", assertion)
+		}
 		tx.createInvite(typ, keybase1.TeamInviteName(name), role)
-		return nil
+		return uv, nil
 	}
 
-	return rErr
+	return uv, rErr
 }
 
 func (tx *AddMemberTx) CompleteInviteByID(ctx context.Context, inviteID keybase1.TeamInviteID, uv keybase1.UserVersion) error {
