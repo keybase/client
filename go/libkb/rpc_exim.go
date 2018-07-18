@@ -1405,6 +1405,10 @@ func (u *User) ExportToUPKV2AllIncarnations() (*keybase1.UserPlusKeysV2AllIncarn
 			current.RemoteTracks[track.whomUID] = track.Export()
 		}
 	}
+	if accountID := u.StellarAccountID(); accountID != nil {
+		tmp := accountID.String()
+		current.StellarAccountID = &tmp
+	}
 
 	// Collect the link IDs (that is, the hashes of the signature inputs) from all subchains.
 	linkIDs := map[keybase1.Seqno]keybase1.LinkID{}

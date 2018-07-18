@@ -299,15 +299,16 @@ func (o PublicKeyV2) DeepCopy() PublicKeyV2 {
 }
 
 type UserPlusKeysV2 struct {
-	Uid          UID                           `codec:"uid" json:"uid"`
-	Username     string                        `codec:"username" json:"username"`
-	EldestSeqno  Seqno                         `codec:"eldestSeqno" json:"eldestSeqno"`
-	Status       StatusCode                    `codec:"status" json:"status"`
-	PerUserKeys  []PerUserKey                  `codec:"perUserKeys" json:"perUserKeys"`
-	DeviceKeys   map[KID]PublicKeyV2NaCl       `codec:"deviceKeys" json:"deviceKeys"`
-	PGPKeys      map[KID]PublicKeyV2PGPSummary `codec:"pgpKeys" json:"pgpKeys"`
-	RemoteTracks map[UID]RemoteTrack           `codec:"remoteTracks" json:"remoteTracks"`
-	Reset        *ResetSummary                 `codec:"reset,omitempty" json:"reset,omitempty"`
+	Uid              UID                           `codec:"uid" json:"uid"`
+	Username         string                        `codec:"username" json:"username"`
+	EldestSeqno      Seqno                         `codec:"eldestSeqno" json:"eldestSeqno"`
+	Status           StatusCode                    `codec:"status" json:"status"`
+	PerUserKeys      []PerUserKey                  `codec:"perUserKeys" json:"perUserKeys"`
+	DeviceKeys       map[KID]PublicKeyV2NaCl       `codec:"deviceKeys" json:"deviceKeys"`
+	PGPKeys          map[KID]PublicKeyV2PGPSummary `codec:"pgpKeys" json:"pgpKeys"`
+	StellarAccountID *string                       `codec:"stellarAccountID,omitempty" json:"stellarAccountID,omitempty"`
+	RemoteTracks     map[UID]RemoteTrack           `codec:"remoteTracks" json:"remoteTracks"`
+	Reset            *ResetSummary                 `codec:"reset,omitempty" json:"reset,omitempty"`
 }
 
 func (o UserPlusKeysV2) DeepCopy() UserPlusKeysV2 {
@@ -351,6 +352,13 @@ func (o UserPlusKeysV2) DeepCopy() UserPlusKeysV2 {
 			}
 			return ret
 		})(o.PGPKeys),
+		StellarAccountID: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.StellarAccountID),
 		RemoteTracks: (func(x map[UID]RemoteTrack) map[UID]RemoteTrack {
 			if x == nil {
 				return nil
