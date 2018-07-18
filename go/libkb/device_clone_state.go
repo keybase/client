@@ -23,13 +23,9 @@ type DeviceCloneStateJSONFile struct {
 	*JSONFile
 }
 type cloneDetectionResponse struct {
-	Status AppStatus `json:"status"`
-	Token  string    `json:"token"`
-	Clones int       `json:"clones"`
-}
-
-func (d *cloneDetectionResponse) GetAppStatus() *AppStatus {
-	return &d.Status
+	AppStatusEmbed
+	Token  string `json:"token"`
+	Clones int    `json:"clones"`
 }
 
 func UpdateDeviceCloneState(m MetaContext) (before int, after int, err error) {
@@ -61,8 +57,7 @@ func UpdateDeviceCloneState(m MetaContext) (before int, after int, err error) {
 			"prior":     S{Val: prior},
 			"stage":     S{Val: stage},
 		},
-		MetaContext:    m,
-		AppStatusCodes: []int{SCOk},
+		MetaContext: m,
 	}
 	var res cloneDetectionResponse
 	err = m.G().API.PostDecode(arg, &res)
@@ -75,7 +70,7 @@ func UpdateDeviceCloneState(m MetaContext) (before int, after int, err error) {
 	return before, after, err
 }
 
-func configPaths(m MetaContext) (string, string, string) {
+func deviceCloneJSONPaths(m MetaContext) (string, string, string) {
 	deviceID := m.G().ActiveDevice.DeviceID()
 	p := fmt.Sprintf("%s.prior", deviceID)
 	s := fmt.Sprintf("%s.stage", deviceID)
@@ -85,7 +80,7 @@ func configPaths(m MetaContext) (string, string, string) {
 
 func GetDeviceCloneState(m MetaContext) (DeviceCloneState, error) {
 	reader, err := newDeviceCloneStateReader(m)
-	pPath, sPath, cPath := configPaths(m)
+	pPath, sPath, cPath := deviceCloneJSONPaths(m)
 	p, _ := reader.GetStringAtPath(pPath)
 	s, _ := reader.GetStringAtPath(sPath)
 	c, _ := reader.GetIntAtPath(cPath)
@@ -112,17 +107,20 @@ func SetDeviceCloneState(m MetaContext, d DeviceCloneState) error {
 		}
 	}()
 
-	pPath, sPath, cPath := configPaths(m)
+	pPath, sPath, cPath := deviceCloneJSONPaths(m)
 	err = writer.SetStringAtPath(pPath, d.Prior)
-	if err == nil {
-		err = writer.SetStringAtPath(sPath, d.Stage)
+	if err != nil {
+		return err
 	}
-	if err == nil {
-		err = writer.SetIntAtPath(cPath, d.Clones)
+	err = writer.SetStringAtPath(sPath, d.Stage)
+	if err != nil {
+		return err
 	}
-	if err == nil {
-		err = tx.Commit()
+	err = writer.SetIntAtPath(cPath, d.Clones)
+	if err != nil {
+		return err
 	}
+	err = tx.Commit()
 	if err != nil {
 		return err
 	}
