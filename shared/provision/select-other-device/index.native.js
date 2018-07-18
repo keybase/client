@@ -35,11 +35,11 @@ const Row = ({name, type, onSelect}) => {
           {type === 'backup' && <Text type="BodySmall">Paper key</Text>}
         </Box>
         <WaitingButton
-          nojima={true}
           label="Use..."
           type="Secondary"
           small={true}
           waitingKey={Constants.waitingKey}
+          onClick={() => onSelect(name)}
         />
       </Box>
     </ClickableBox>

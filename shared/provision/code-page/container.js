@@ -21,18 +21,10 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-// let lastSubmitTextCode = ''
-
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   onBack: () => dispatch(ownProps.navigateUp()),
-  onSubmitTextCode: (code: string) => {
-    // Don't keep on submitting the same code. The barcode scanner calls this a bunch of times
-    // if (lastSubmitTextCode !== code) {
-    console.log('aaa submitting text code', code)
-    dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)}))
-    // lastSubmitTextCode = code
-    // }
-  },
+  onSubmitTextCode: (code: string) =>
+    dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
