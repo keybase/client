@@ -110,6 +110,7 @@ class ChooseAsset extends React.Component<Props, State> {
       .map(dc => ({...dc, key: dc.currencyCode}))
     if (!this.state.expanded) {
       displayChoicesData.push({
+        key: 'expander',
         onClick: () => this.setState({expanded: true}),
         text: `+${this.props.displayChoices.length - unexpandedNumDisplayOptions} display currencies`,
         type: 'expander',
