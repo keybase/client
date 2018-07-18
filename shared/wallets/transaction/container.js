@@ -28,11 +28,11 @@ const mergeProps = stateProps => {
     amountXLM: tx.amountDescription,
     memo: tx.note,
     large: counterpartyType !== 'wallet',
+    status: tx.statusSimplified,
+    statusDetail: tx.statusDetail,
     // TODO -- waiting on CORE integration for these two
     onCancelPayment: undefined,
     onRetryPayment: undefined,
-    status: tx.statusSimplified,
-    statusDetail: tx.statusDetail,
   }
 }
 

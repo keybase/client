@@ -250,7 +250,14 @@ export const Transaction = (props: Props) => {
     props.large && !(props.yourRole === 'receiver' && props.counterpartyType === 'stellarPublicKey')
   return (
     <Box2 direction="vertical" fullWidth={true}>
-      <Box2 direction="horizontal" fullWidth={true} style={collapseStyles([styles.container, {backgroundColor: pending ? globalColors.blue4 : globalColors.white}])}>
+      <Box2
+        direction="horizontal"
+        fullWidth={true}
+        style={collapseStyles([
+          styles.container,
+          {backgroundColor: pending ? globalColors.blue4 : globalColors.white},
+        ])}
+      >
         <CounterpartyIcon
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
@@ -281,11 +288,21 @@ export const Transaction = (props: Props) => {
               <Markdown allowFontScaling={true}>{props.memo}</Markdown>
             </Box2>
           )}
-          {(!!props.onCancelPayment || 
-            !!props.onRetryPayment) && <Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={{marginTop: globalMargins.xtiny}}>
-            {!!props.onRetryPayment && <Button small={true} label='Retry' onClick={() => props.onRetryPayment()} type='Wallet' />}
-            {!!props.onCancelPayment && <Button small={true} label='Cancel' onClick={() => props.onCancelPayment()} type='Danger' />}
-          </Box2>}
+          {(props.onCancelPayment || props.onRetryPayment) && (
+            <Box2
+              direction="horizontal"
+              gap="xtiny"
+              fullWidth={true}
+              style={{marginTop: globalMargins.xtiny}}
+            >
+              {props.onRetryPayment && (
+                <Button small={true} label="Retry" onClick={() => props.onRetryPayment && props.onRetryPayment()} type="Wallet" />
+              )}
+              {props.onCancelPayment && (
+                <Button small={true} label="Cancel" onClick={() => props.onCancelPayment && props.onCancelPayment()} type="Danger" />
+              )}
+            </Box2>
+          )}
           <AmountXLM
             delta={props.delta}
             pending={pending}

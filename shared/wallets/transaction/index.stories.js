@@ -113,18 +113,18 @@ const load = () => {
     />
   ))
   addConfigs(stories, 'Keybase User - error with retry and cancel', config => (
-  <Transaction
-    counterparty="paul"
-    counterpartyType="keybaseUser"
-    amountUser="$12.50"
-    amountXLM="53.1688643 XLM"
-    status="error"
-    statusDetail="Horizon error"
-    onCancelPayment={action('onCancelPayment')}
-    onRetryPayment={action('onRetryPayment')}
-    {...config}
-  />
-))
+    <Transaction
+      counterparty="paul"
+      counterpartyType="keybaseUser"
+      amountUser="$12.50"
+      amountXLM="53.1688643 XLM"
+      status="error"
+      statusDetail="Horizon error"
+      onCancelPayment={action('onCancelPayment')}
+      onRetryPayment={action('onRetryPayment')}
+      {...config}
+    />
+  ))
 }
 
 export default load
