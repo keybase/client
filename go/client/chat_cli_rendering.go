@@ -571,6 +571,9 @@ func formatRequestPaymentMessage(g *libkb.GlobalContext, body chat1.MessageReque
 	if len(body.Note) > 0 {
 		view += "\n> " + body.Note
 	}
+
+	view += fmt.Sprintf("\n[Request ID: %s]", body.RequestID)
+
 	return view
 }
 
