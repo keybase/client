@@ -1180,6 +1180,7 @@ func (t *teamSigchainPlayer) addInnerLink(
 		if err != nil {
 			return res, err
 		}
+		// Key rotation should never be allowed since FullVerify sometimes does not run on leave links.
 
 		// Check that the signer is at least a reader.
 		// Implicit admins cannot leave a subteam.
