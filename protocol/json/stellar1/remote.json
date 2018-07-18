@@ -565,6 +565,10 @@
         {
           "type": "KeybaseTransactionID",
           "name": "fundingKbTxID"
+        },
+        {
+          "type": "RequestStatus",
+          "name": "status"
         }
       ]
     }
@@ -760,6 +764,19 @@
         }
       ],
       "response": "RequestDetails"
+    },
+    "cancelRequest": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "reqID",
+          "type": "KeybaseRequestID"
+        }
+      ],
+      "response": null
     },
     "ping": {
       "request": [],

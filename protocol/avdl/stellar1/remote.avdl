@@ -197,8 +197,10 @@ protocol remote {
 
     // Payment ID if funded, empty if not funded.
     KeybaseTransactionID fundingKbTxID;
+    RequestStatus status;
   }
   RequestDetails requestDetails(keybase1.UserVersion caller, KeybaseRequestID reqID);
+  void cancelRequest(keybase1.UserVersion caller, KeybaseRequestID reqID);
 
   string ping();
 }

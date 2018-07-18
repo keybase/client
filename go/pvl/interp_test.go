@@ -2087,7 +2087,8 @@ func runPvlTest(t *testing.T, unit *interpUnitTest) {
 		}
 	}
 
-	perr := CheckProof(g, pvl, unit.service, unit.proofinfo)
+	m := libkb.NewMetaContextForTest(tc)
+	perr := CheckProof(m, pvl, unit.service, unit.proofinfo)
 	if perr == nil {
 		if !unit.shouldwork {
 			fail("proof should have failed")

@@ -80,6 +80,7 @@ export type _State = {
   accountName: string,
   accountNameError: string,
   accountNameValidationState: ValidationState,
+  exportedSecretKey: HiddenString,
   linkExistingAccountError: string,
   secretKey: HiddenString,
   secretKeyError: string,

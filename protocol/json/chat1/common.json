@@ -1083,6 +1083,12 @@
           "name": "rtime",
           "mpackkey": "rt",
           "jsonkey": "rt"
+        },
+        {
+          "type": "boolean",
+          "name": "hasPairwiseMacs",
+          "mpackkey": "pm",
+          "jsonkey": "pm"
         }
       ]
     },

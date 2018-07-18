@@ -22,7 +22,8 @@
         "SET_APP_NOTIFICATION_SETTINGS_7",
         "TEAMTYPE_8",
         "EXPUNGE_9",
-        "EPHEMERAL_PURGE_10"
+        "EPHEMERAL_PURGE_10",
+        "REACTION_DELETE_11"
       ]
     },
     {
@@ -249,6 +250,41 @@
       ]
     },
     {
+      "type": "record",
+      "name": "ReactionDelete",
+      "fields": [
+        {
+          "type": "string",
+          "name": "reactionKey"
+        },
+        {
+          "type": "MessageID",
+          "name": "reactionMsgID"
+        },
+        {
+          "type": "MessageID",
+          "name": "targetMsgID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ReactionDeleteNotif",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ReactionDelete"
+          },
+          "name": "reactionDeletes"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "ChatActivity",
       "switch": {
@@ -325,6 +361,13 @@
             "def": false
           },
           "body": "EphemeralPurgeNotifInfo"
+        },
+        {
+          "label": {
+            "name": "REACTION_DELETE",
+            "def": false
+          },
+          "body": "ReactionDeleteNotif"
         }
       ]
     },

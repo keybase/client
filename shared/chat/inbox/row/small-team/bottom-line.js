@@ -45,6 +45,12 @@ class BottomLine extends PureComponent<Props> {
             style={platformStyles({
               common: {
                 color: globalColors.white,
+              },
+              isElectron: {
+                fontSize: 11,
+                lineHeight: '13px',
+              },
+              isMobile: {
                 fontSize: 12,
                 lineHeight: 14,
               },
@@ -62,8 +68,14 @@ class BottomLine extends PureComponent<Props> {
           style={platformStyles({
             common: {
               color: this.props.isSelected ? globalColors.white : globalColors.red,
-              fontSize: isMobile ? 13 : 12,
-              lineHeight: 14,
+            },
+            isElectron: {
+              fontSize: 12,
+              lineHeight: '16px',
+            },
+            isMobile: {
+              fontSize: 14,
+              lineHeight: 19,
             },
           })}
         >
@@ -100,34 +112,53 @@ class BottomLine extends PureComponent<Props> {
       // We want to use these emojis to render the correct custom icon.
       switch (this.props.snippetDecoration) {
         case '\u{1F4A5}': // Explosion (Collision) emoji (💥)
-          snippetDecoration = <Icon type="iconfont-boom" fontSize={26} />
+          snippetDecoration = (
+            <Icon
+              type="iconfont-boom"
+              fontSize={isMobile ? 40 : 28}
+              style={platformStyles({
+                common: {
+                  color: this.props.isSelected ? globalColors.white : globalColors.black_20,
+                },
+                isMobile: {
+                  marginTop: -10,
+                },
+              })}
+            />
+          )
           exploded = true
           break
         case '\u{1F4A3}': // Bomb emoji (💣)
-          snippetDecoration = <Icon type="iconfont-bomb" fontSize={isMobile ? 16 : 12} />
+          snippetDecoration = (
+            <Icon
+              color={globalColors.black_75}
+              type="iconfont-bomb"
+              fontSize={isMobile ? 16 : 12}
+              style={{alignSelf: 'flex-start'}}
+            />
+          )
           break
         default:
           snippetDecoration = this.props.snippetDecoration
       }
-
       content = (
-        <Box2 direction="horizontal" style={styles.bottomLineBox}>
-          {!exploded && (
-            <Markdown preview={true} style={style}>
-              {this.props.snippet}
-            </Markdown>
-          )}
+        <Box2 direction="horizontal" gap="xtiny" style={styles.bottomLineBox}>
           {!!snippetDecoration && (
             <Box2 direction="vertical" centerChildren={true}>
               {snippetDecoration}
             </Box2>
           )}
+          {!exploded &&
+            !!this.props.snippet && (
+              <Markdown preview={true} style={style}>
+                {this.props.snippet}
+              </Markdown>
+            )}
         </Box2>
       )
     } else {
       return null
     }
-
     return (
       <Box
         style={{
@@ -164,7 +195,6 @@ class BottomLine extends PureComponent<Props> {
     )
   }
 }
-
 const resetStyle = platformStyles({
   common: {
     alignSelf: 'center',
@@ -175,7 +205,6 @@ const resetStyle = platformStyles({
     marginTop: 2,
   },
 })
-
 const styles = styleSheetCreate({
   bottomLine: platformStyles({
     isAndroid: {
@@ -205,5 +234,4 @@ const styles = styleSheetCreate({
     width: '100%',
   },
 })
-
 export {BottomLine}

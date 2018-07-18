@@ -11,7 +11,6 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	jsonw "github.com/keybase/go-jsonw"
-	"golang.org/x/net/context"
 )
 
 type TypedChainLink interface {
@@ -1459,11 +1458,11 @@ const (
 	IdentifyTableModeActive  IdentifyTableMode = iota
 )
 
-func (idt *IdentityTable) Identify(ctx context.Context, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener, itm IdentifyTableMode) error {
+func (idt *IdentityTable) Identify(m MetaContext, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener, itm IdentifyTableMode) error {
 	errs := make(chan error, len(is.res.ProofChecks))
 	for _, lcr := range is.res.ProofChecks {
 		go func(l *LinkCheckResult) {
-			errs <- idt.identifyActiveProof(ctx, l, is, forceRemoteCheck, ui, ccl, itm)
+			errs <- idt.identifyActiveProof(m, l, is, forceRemoteCheck, ui, ccl, itm)
 		}(lcr)
 	}
 
@@ -1486,8 +1485,8 @@ func (idt *IdentityTable) Identify(ctx context.Context, is IdentifyState, forceR
 
 //=========================================================================
 
-func (idt *IdentityTable) identifyActiveProof(ctx context.Context, lcr *LinkCheckResult, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener, itm IdentifyTableMode) error {
-	idt.proofRemoteCheck(ctx, is.HasPreviousTrack(), forceRemoteCheck, lcr, itm)
+func (idt *IdentityTable) identifyActiveProof(m MetaContext, lcr *LinkCheckResult, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener, itm IdentifyTableMode) error {
+	idt.proofRemoteCheck(m, is.HasPreviousTrack(), forceRemoteCheck, lcr, itm)
 	if ccl != nil {
 		ccl.CCLCheckCompleted(lcr)
 	}
@@ -1537,10 +1536,10 @@ func (idt *IdentityTable) ComputeRemoteDiff(tracked, trackedTmp, observed keybas
 	return ret
 }
 
-func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack, forceRemoteCheck bool, res *LinkCheckResult, itm IdentifyTableMode) {
+func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forceRemoteCheck bool, res *LinkCheckResult, itm IdentifyTableMode) {
 	p := res.link
 
-	idt.G().Log.CDebugf(ctx, "+ RemoteCheckProof %s", p.ToDebugString())
+	m.CDebugf("+ RemoteCheckProof %s", p.ToDebugString())
 	doCache := false
 	pvlHashUsed := PvlKitHash("")
 	sid := p.GetSigID()
@@ -1560,13 +1559,13 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 		}
 
 		if doCache {
-			idt.G().Log.CDebugf(ctx, "| Caching results under key=%s pvlHash=%s", sid, pvlHashUsed)
+			m.CDebugf("| Caching results under key=%s pvlHash=%s", sid, pvlHashUsed)
 			if cacheErr := idt.G().ProofCache.Put(sid, res.err, pvlHashUsed); cacheErr != nil {
-				idt.G().Log.CWarningf(ctx, "proof cache put error: %s", cacheErr)
+				m.CWarningf("proof cache put error: %s", cacheErr)
 			}
 		}
 
-		idt.G().Log.CDebugf(ctx, "- RemoteCheckProof %s", p.ToDebugString())
+		m.CDebugf("- RemoteCheckProof %s", p.ToDebugString())
 	}()
 
 	pvlSource := idt.G().GetPvlSource()
@@ -1574,7 +1573,7 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 		res.err = NewProofError(keybase1.ProofStatus_MISSING_PVL, "no pvl source for proof verification")
 		return
 	}
-	pvlU, err := pvlSource.GetPVL(ctx)
+	pvlU, err := pvlSource.GetPVL(m)
 	if err != nil {
 		res.err = NewProofError(keybase1.ProofStatus_MISSING_PVL, "error getting pvl: %s", err)
 		return
@@ -1591,24 +1590,24 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 
 	// Call the Global context's version of what a proof checker is. We might want to stub it out
 	// for the purposes of testing.
-	pc, res.err = MakeProofChecker(idt.G().Services, p)
+	pc, res.err = MakeProofChecker(m.G().Services, p)
 
 	if res.err != nil {
 		return
 	}
 
-	if idt.G().Env.GetTorMode().Enabled() {
+	if m.G().Env.GetTorMode().Enabled() {
 		if e := pc.GetTorError(); e != nil {
 			res.torWarning = true
 		}
 	}
 
 	if !forceRemoteCheck {
-		res.cached = idt.G().ProofCache.Get(sid, pvlU.Hash)
-		idt.G().Log.CDebugf(ctx, "| Proof cache lookup for %s: %+v", sid, res.cached)
+		res.cached = m.G().ProofCache.Get(sid, pvlU.Hash)
+		m.CDebugf("| Proof cache lookup for %s: %+v", sid, res.cached)
 		if res.cached != nil && res.cached.Freshness() == keybase1.CheckResultFreshness_FRESH {
 			res.err = res.cached.Status
-			idt.G().Log.CDebugf(ctx, "| Early exit after proofCache hit for %s", sid)
+			m.CDebugf("| Early exit after proofCache hit for %s", sid)
 			return
 		}
 	}
@@ -1624,7 +1623,7 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 	if (hasPreviousTrack && res.trackedProofState != keybase1.ProofState_NONE && res.trackedProofState != keybase1.ProofState_UNCHECKED) || itm == IdentifyTableModeActive {
 		pcm = ProofCheckerModeActive
 	}
-	res.err = pc.CheckStatus(idt.G().CloneWithNetContext(ctx), *res.hint, pcm, pvlU)
+	res.err = pc.CheckStatus(m, *res.hint, pcm, pvlU)
 
 	// If no error than all good
 	if res.err == nil {
@@ -1636,7 +1635,7 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 	// not to cache it.
 	if ProofErrorIsSoft(res.err) && res.cached != nil && res.cached.Status == nil &&
 		res.cached.Freshness() != keybase1.CheckResultFreshness_RANCID {
-		idt.G().Log.CDebugf(ctx, "| Got soft error (%s) but returning success (last seen at %s)",
+		m.CDebugf("| Got soft error (%s) but returning success (last seen at %s)",
 			res.err.Error(), res.cached.Time)
 		res.snoozedErr = res.err
 		res.err = nil
@@ -1644,7 +1643,7 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 		return
 	}
 
-	idt.G().Log.CDebugf(ctx, "| Check status (%s) failed with error: %s", p.ToDebugString(), res.err.Error())
+	m.CDebugf("| Check status (%s) failed with error: %s", p.ToDebugString(), res.err.Error())
 
 	return
 }

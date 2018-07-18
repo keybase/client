@@ -18,7 +18,7 @@ import type {Props} from './index.types'
 // remember to check that nothing overflows on android!
 const marginWidth = 60
 const shhIconColor = globalColors.black_20
-const shhIconFontSize = 20
+const shhIconFontSize = 24
 
 const Wrapper = (props: {
   badgeNumber: number,
@@ -28,7 +28,7 @@ const Wrapper = (props: {
 }) => (
   <Box2 direction="horizontal" style={styles.container}>
     <ClickableBox onClick={props.onBack} style={styles.leftMargin}>
-      <Icon type="iconfont-arrow-left" fontSize={24} color={globalColors.blue} />
+      <Icon type="iconfont-arrow-left" fontSize={24} color={globalColors.black_40} />
       {!!props.badgeNumber && <Badge badgeNumber={props.badgeNumber} badgeStyle={styles.badge} />}
     </ClickableBox>
     <Box2

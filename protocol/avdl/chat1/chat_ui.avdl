@@ -127,6 +127,7 @@ protocol chatUi {
     gregor1.Time etime;
     // reactionText -> [Reaction(username, reactionMsgID)...]
     ReactionMap reactions;
+    boolean hasPairwiseMacs;
   }
 
   record UIMessageOutbox {

@@ -62,7 +62,8 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 		}
 
 		var signer *signerX
-		signer, err = l.verifyLink(ctx, teamID, state, me, link, readSubteamID, proofSet)
+		var fullVerifyCutoff keybase1.Seqno // Always fullVerify when inflating. No reasoning has been done on whether it could be skipped.
+		signer, err = l.verifyLink(ctx, teamID, state, me, link, fullVerifyCutoff, readSubteamID, proofSet)
 		if err != nil {
 			return state, proofSet, parentChildOperations, err
 		}
@@ -129,6 +130,22 @@ func (l *TeamLoader) loadUserAndKeyFromLinkInner(ctx context.Context,
 	return signerUV, key, linkMap, nil
 }
 
+// Get the UV from a link but using server-trust and without verifying anything.
+func (l *TeamLoader) loadUserAndKeyFromLinkInnerNoVerify(ctx context.Context,
+	link *chainLinkUnpacked) (signerUV keybase1.UserVersion, err error) {
+	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#loadUserAndKeyFromLinkInnerNoVerify(%d)", int(link.inner.Seqno)), func() error { return err })()
+	keySection := link.inner.Body.Key
+	if keySection == nil {
+		return signerUV, libkb.NoUIDError{}
+	}
+	// Use the UID from the link body and EldestSeqno from the server-trust API response.
+	if link.source.EldestSeqno == 0 {
+		// We should never hit this case
+		return signerUV, fmt.Errorf("missing server hint for team sigchain link signer")
+	}
+	return NewUserVersion(keySection.UID, link.source.EldestSeqno), nil
+}
+
 func (l *TeamLoader) verifySignatureAndExtractKID(ctx context.Context, outer libkb.OuterLinkV2WithMetadata) (keybase1.KID, error) {
 	return outer.Verify(l.G().Log)
 }
@@ -173,7 +190,7 @@ func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID k
 // Returns the signer, or nil if the link was stubbed
 func (l *TeamLoader) verifyLink(ctx context.Context,
 	teamID keybase1.TeamID, state *keybase1.TeamData, me keybase1.UserVersion, link *chainLinkUnpacked,
-	readSubteamID keybase1.TeamID, proofSet *proofSetT) (*signerX, error) {
+	fullVerifyCutoff keybase1.Seqno, readSubteamID keybase1.TeamID, proofSet *proofSetT) (*signerX, error) {
 	ctx, tbs := l.G().CTimeBuckets(ctx)
 	defer tbs.Record("TeamLoader.verifyLink")()
 
@@ -190,31 +207,31 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		return nil, fmt.Errorf("team ID mismatch: %s != %s", teamID, link.innerTeamID)
 	}
 
-	kid, err := l.verifySignatureAndExtractKID(ctx, *link.outerLink)
+	signedByKID, err := l.verifySignatureAndExtractKID(ctx, *link.outerLink)
 	if err != nil {
 		return nil, err
 	}
 
-	signerUV, key, linkMap, err := l.loadUserAndKeyFromLinkInner(ctx, *link.inner)
-	if err != nil {
-		return nil, err
-	}
+	// FullVerify all links except for `team.leave` links for which there is
+	// an admin link later in the chain.
+	// Such a link has effectively been verified for us by the admin who signed on top.
+	// This trick can be used on `team.leave` links because they do not add admins.
+	fullVerify := (link.LinkType() != libkb.SigchainV2TypeTeamLeave) ||
+		(link.Seqno() >= fullVerifyCutoff) ||
+		(link.source.EldestSeqno == 0)
 
-	if !kid.Equal(key.Base.Kid) {
-		return nil, libkb.NewWrongKidError(kid, key.Base.Kid)
-	}
-
-	teamLinkMap := make(linkMapT)
-	if state != nil {
-		// copy over the stored links
-		for k, v := range state.Chain.LinkIDs {
-			teamLinkMap[k] = v
+	var signerUV keybase1.UserVersion
+	if fullVerify {
+		signerUV, err = l.loadUserAndKeyFromLinkInnerAndVerify(ctx, teamID, state, link, signedByKID, proofSet)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		signerUV, err = l.loadUserAndKeyFromLinkInnerNoVerify(ctx, link)
+		if err != nil {
+			return nil, err
 		}
 	}
-	// add on the link that is being checked
-	teamLinkMap[link.Seqno()] = link.LinkID().Export()
-
-	l.addProofsForKeyInUserSigchain(ctx, teamID, teamLinkMap, link, signerUV.Uid, key, linkMap, proofSet)
 
 	signer := signerX{signer: signerUV}
 
@@ -258,6 +275,28 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 	default:
 		return nil, fmt.Errorf("unrecognized role %v required for link", minRole)
 	}
+}
+
+func (l *TeamLoader) loadUserAndKeyFromLinkInnerAndVerify(ctx context.Context, teamID keybase1.TeamID, state *keybase1.TeamData,
+	link *chainLinkUnpacked, signedByKID keybase1.KID, proofSet *proofSetT) (signer keybase1.UserVersion, err error) {
+	signer, key, linkMap, err := l.loadUserAndKeyFromLinkInner(ctx, *link.inner)
+	if err != nil {
+		return keybase1.UserVersion{}, err
+	}
+	if !signedByKID.Equal(key.Base.Kid) {
+		return keybase1.UserVersion{}, libkb.NewWrongKidError(signedByKID, key.Base.Kid)
+	}
+	teamLinkMap := make(linkMapT)
+	if state != nil {
+		// copy over the stored links
+		for k, v := range state.Chain.LinkIDs {
+			teamLinkMap[k] = v
+		}
+	}
+	// add on the link that is being checked
+	teamLinkMap[link.Seqno()] = link.LinkID().Export()
+	l.addProofsForKeyInUserSigchain(ctx, teamID, teamLinkMap, link, signer.Uid, key, linkMap, proofSet)
+	return signer, nil
 }
 
 // Verify that the user had the explicit on-chain role just before this `link`.

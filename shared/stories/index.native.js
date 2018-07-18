@@ -2,25 +2,22 @@
 // @flow
 import * as React from 'react'
 import ScrollView from '../common-adapters/scroll-view'
-import {StatusBar, View} from 'react-native'
+import {StatusBar} from 'react-native'
 import {configure, addDecorator} from '@storybook/react-native'
 import commonStories from './stories'
 import nativeStories from './platform-stories'
-import {GatewayProvider, GatewayDest} from 'react-gateway'
 
 const stories = {...commonStories, ...nativeStories}
 
 const scrollViewDecorator = story => [
   <StatusBar key="statusbar" hidden={true} />,
-  <GatewayProvider key="gatewayprovider">
-    <ScrollView
-      style={{height: '100%', width: '100%'}}
-      contentContainerStyle={{minHeight: '100%', minWidth: '100%'}}
-    >
-      {story()}
-      <GatewayDest component={View} name="popup-root" />
-    </ScrollView>
-  </GatewayProvider>,
+  <ScrollView
+    key="scrollview"
+    style={{height: '100%', width: '100%'}}
+    contentContainerStyle={{minHeight: '100%', minWidth: '100%'}}
+  >
+    {story()}
+  </ScrollView>,
 ]
 
 // Stories w/ their own scrolling views

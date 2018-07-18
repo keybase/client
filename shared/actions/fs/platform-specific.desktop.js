@@ -2,6 +2,7 @@
 import * as FsGen from '../fs-gen'
 import * as ConfigGen from '../config-gen'
 import * as Saga from '../../util/saga'
+import {downloadFolder} from '../../util/file.desktop'
 import * as Config from '../../constants/config'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
@@ -145,7 +146,7 @@ function* openWithCurrentMountDir(openPath: string): Saga.SagaGenerator<any, any
 }
 
 function openInFileUISaga({payload: {path}}: FsGen.OpenInFileUIPayload, state: TypedState) {
-  const openPath = path || Config.defaultKBFSPath
+  const openPath = path || downloadFolder
   const enabled = state.fs.fuseStatus && state.fs.fuseStatus.kextStarted
   if (isLinux || enabled) {
     return Saga.call(openWithCurrentMountDir, openPath)

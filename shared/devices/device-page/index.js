@@ -84,7 +84,7 @@ const Render = (props: Props) => {
   }[props.type]
 
   return (
-    <Box2 direction="vertical" gap="small" fullWidth={true}>
+    <Box2 direction="vertical" gap="medium" gapStart={true} gapEnd={true} fullWidth={true}>
       <NameWithIcon icon={icon} title={props.name} metaOne={metaOne} />
       <Timeline timeline={props.timeline} />
       {!props.revokedAt && (
