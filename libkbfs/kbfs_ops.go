@@ -1148,11 +1148,13 @@ func (fs *KBFSOpsStandard) NewNotificationChannel(
 		fs.editActivity.Add(1)
 		go func() {
 			defer fs.editActivity.Done()
-			fs.log.CDebugf(ctx, "Initializing TLF %s for the edit history",
-				handle.GetCanonicalPath())
+			fs.log.CDebugf(ctx, "%p: Initializing TLF %s for the edit history",
+				fs, handle.GetCanonicalPath())
 			ctx := CtxWithRandomIDReplayable(
 				context.Background(), CtxFBOIDKey, CtxFBOOpID, fs.log)
-			ops := fs.getOpsNoAdd(ctx, FolderBranch{handle.tlfID, MasterBranch})
+			ops := fs.getOpsByHandle(
+				ctx, handle, FolderBranch{handle.tlfID, MasterBranch},
+				FavoritesOpNoChange)
 			// Don't initialize the entire TLF, because we don't want
 			// to run identifies on it.  Instead, just start the
 			// chat-monitoring part.
@@ -1249,7 +1251,9 @@ func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
 		if h.tlfID != tlf.NullID {
 			fs.log.CDebugf(ctx, "Initializing TLF %s (%s) for the edit history",
 				h.GetCanonicalPath(), h.tlfID)
-			ops := fs.getOpsNoAdd(ctx, FolderBranch{h.tlfID, MasterBranch})
+			ops := fs.getOpsByHandle(
+				ctx, h, FolderBranch{h.tlfID, MasterBranch},
+				FavoritesOpNoChange)
 			// Don't initialize the entire TLF, because we don't want
 			// to run identifies on it.  Instead, just start the
 			// chat-monitoring part.
