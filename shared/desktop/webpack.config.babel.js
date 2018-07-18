@@ -54,6 +54,11 @@ const config = (_, {mode}) => {
         use: [fileLoaderRule],
       },
       {
+        include: path.resolve(__dirname, '../images/illustrations'),
+        test: [/.*\.(gif|png)$/],
+        use: [fileLoaderRule],
+      },
+      {
         include: path.resolve(__dirname, '../images/install'),
         test: [/.*\.(gif|png)$/],
         use: [fileLoaderRule],

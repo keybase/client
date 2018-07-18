@@ -4,6 +4,9 @@ import './app/globals.native'
 
 // Load storybook or the app
 if (__STORYBOOK__) {
+  // MUST happen first
+  const {inject} = require('./stories/mock-react-redux')
+  inject()
   const {load} = require('./stories/setup-app.native.js')
   load()
 } else {

@@ -1,9 +1,0 @@
-{
-  "prelude": [],
-  "actions": {
-    "waitingForRpc": {
-      "waiting": "boolean",
-      "name": "string"
-    }
-  }
-}

@@ -4,12 +4,12 @@ import chat2 from './chat2'
 import config from './config'
 import dev from './dev'
 import devices from './devices'
-import engine from './engine'
 import entities from './entities'
 import favorite from './favorite'
 import fs from './fs'
 import gregor from './gregor'
 import login from './login'
+import provision from './provision'
 import notifications from './notifications'
 import people from './people'
 import pinentry from './pinentry'
@@ -36,7 +36,6 @@ const reducers = {
   config,
   dev,
   devices,
-  engine,
   entities,
   favorite,
   fs,
@@ -47,6 +46,7 @@ const reducers = {
   pinentry,
   planBilling,
   profile,
+  provision,
   push,
   routeTree,
   settings,
