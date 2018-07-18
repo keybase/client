@@ -62,7 +62,8 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 		}
 
 		var signer *signerX
-		signer, err = l.verifyLink(ctx, teamID, state, me, link, readSubteamID, proofSet)
+		var fullVerifyCutoff keybase1.Seqno // Always fullVerify when inflating. No reasoning has been done on whether it could be skipped.
+		signer, err = l.verifyLink(ctx, teamID, state, me, link, fullVerifyCutoff, readSubteamID, proofSet)
 		if err != nil {
 			return state, proofSet, parentChildOperations, err
 		}
@@ -188,7 +189,7 @@ func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID k
 // Returns the signer, or nil if the link was stubbed
 func (l *TeamLoader) verifyLink(ctx context.Context,
 	teamID keybase1.TeamID, state *keybase1.TeamData, me keybase1.UserVersion, link *chainLinkUnpacked,
-	readSubteamID keybase1.TeamID, proofSet *proofSetT) (*signerX, error) {
+	fullVerifyCutoff keybase1.Seqno, readSubteamID keybase1.TeamID, proofSet *proofSetT) (*signerX, error) {
 	ctx, tbs := l.G().CTimeBuckets(ctx)
 	defer tbs.Record("TeamLoader.verifyLink")()
 
@@ -210,7 +211,13 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		return nil, err
 	}
 
-	fullVerify := link.LinkType() != libkb.SigchainV2TypeTeamLeave
+	// FullVerify all links except for `team.leave` links for which there is
+	// a admin link later in the chain.
+	// Such a link has effectively been verified for us by the admin who signed on top.
+	// This trick can be used on `team.leave` links because they do not add admins.
+	fullVerify := (link.LinkType() != libkb.SigchainV2TypeTeamLeave) ||
+		(link.Seqno() >= fullVerifyCutoff) ||
+		(link.source.EldestSeqno == 0)
 
 	var signerUV keybase1.UserVersion
 	if fullVerify {
