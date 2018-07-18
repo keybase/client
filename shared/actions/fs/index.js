@@ -120,9 +120,15 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   yield Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
 
   const result = yield Saga.call(RPCTypes.SimpleFSSimpleFSReadListRpcPromise, {opID})
-  const entries = result.entries || []
+  const entries = pathElems.length === 3
+    ? result.entries || []
+    : (result.entries || []: Array<RPCTypes.Dirent>).map((d: RPCTypes.Dirent): RPCTypes.Dirent => ({
+      ...d,
+      name: d.name.substring(d.name.indexOf('/') + 1),
+    }))
   const childMap = entries.reduce((m: Map<Types.Path, Set<string>>, d: RPCTypes.Dirent) => {
     const [parent, child] = d.name.split('/')
+
     if (child) {
       // Only add to the children set if the parent definitely has children.
       const fullParent = Types.pathConcat(rootPath, parent)
