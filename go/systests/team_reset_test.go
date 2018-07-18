@@ -769,3 +769,30 @@ func TestTeamResetBadgesOnAdd(t *testing.T) {
 func TestTeamResetBadgesOnRemove(t *testing.T) {
 	testTeamResetBadgesAndDismiss(t, false)
 }
+
+// Test users leaving the team when their eldest seqno is not 1.
+func TestTeamResetAfterReset(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUser("alice")
+	bob := tt.addUser("bob")
+
+	bob.reset()
+	bob.loginAfterReset()
+	_, teamName := alice.createTeam2()
+	tn := teamName.String()
+	alice.addTeamMember(tn, bob.username, keybase1.TeamRole_OWNER)
+	bob.leave(tn)
+	bob.reset()
+	bob.loginAfterReset()
+	alice.addTeamMember(tn, bob.username, keybase1.TeamRole_WRITER)
+	bob.leave(tn)
+	bob.reset()
+	bob.loginAfterReset()
+	alice.addTeamMember(tn, bob.username, keybase1.TeamRole_OWNER)
+	bob.changeTeamMember(tn, alice.username, keybase1.TeamRole_READER)
+	alice.loadTeam(tn, false)
+	bob.leave(tn)
+	alice.loadTeam(tn, false)
+}

@@ -488,6 +488,10 @@
         {
           "type": "KeybaseTransactionID",
           "name": "fundingKbTxID"
+        },
+        {
+          "type": "RequestStatus",
+          "name": "status"
         }
       ]
     },
@@ -1046,6 +1050,15 @@
       ],
       "response": "RequestDetailsLocal"
     },
+    "cancelRequestLocal": {
+      "request": [
+        {
+          "name": "reqID",
+          "type": "KeybaseRequestID"
+        }
+      ],
+      "response": null
+    },
     "balancesLocal": {
       "request": [
         {
@@ -1257,7 +1270,7 @@
           "type": "string"
         }
       ],
-      "response": null
+      "response": "KeybaseRequestID"
     }
   },
   "namespace": "stellar.1"

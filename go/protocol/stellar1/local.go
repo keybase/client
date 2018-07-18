@@ -411,6 +411,7 @@ type RequestDetailsLocal struct {
 	AmountStellarDescription string               `codec:"amountStellarDescription" json:"amountStellarDescription"`
 	Completed                bool                 `codec:"completed" json:"completed"`
 	FundingKbTxID            KeybaseTransactionID `codec:"fundingKbTxID" json:"fundingKbTxID"`
+	Status                   RequestStatus        `codec:"status" json:"status"`
 }
 
 func (o RequestDetailsLocal) DeepCopy() RequestDetailsLocal {
@@ -440,6 +441,7 @@ func (o RequestDetailsLocal) DeepCopy() RequestDetailsLocal {
 		AmountStellarDescription: o.AmountStellarDescription,
 		Completed:                o.Completed,
 		FundingKbTxID:            o.FundingKbTxID.DeepCopy(),
+		Status:                   o.Status.DeepCopy(),
 	}
 }
 
@@ -722,6 +724,10 @@ type GetRequestDetailsLocalArg struct {
 	ReqID KeybaseRequestID `codec:"reqID" json:"reqID"`
 }
 
+type CancelRequestLocalArg struct {
+	ReqID KeybaseRequestID `codec:"reqID" json:"reqID"`
+}
+
 type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
@@ -822,6 +828,7 @@ type LocalInterface interface {
 	BuildPaymentLocal(context.Context, BuildPaymentLocalArg) (BuildPaymentResLocal, error)
 	SendPaymentLocal(context.Context, SendPaymentLocalArg) (SendPaymentResLocal, error)
 	GetRequestDetailsLocal(context.Context, KeybaseRequestID) (RequestDetailsLocal, error)
+	CancelRequestLocal(context.Context, KeybaseRequestID) error
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
@@ -837,7 +844,7 @@ type LocalInterface interface {
 	ExchangeRateLocal(context.Context, OutsideCurrencyCode) (OutsideExchangeRate, error)
 	GetAvailableLocalCurrencies(context.Context) (map[OutsideCurrencyCode]OutsideCurrencyDefinition, error)
 	FormatLocalCurrencyString(context.Context, FormatLocalCurrencyStringArg) (string, error)
-	MakeRequestCLILocal(context.Context, MakeRequestCLILocalArg) error
+	MakeRequestCLILocal(context.Context, MakeRequestCLILocalArg) (KeybaseRequestID, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -1212,6 +1219,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"cancelRequestLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]CancelRequestLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CancelRequestLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CancelRequestLocalArg)(nil), args)
+						return
+					}
+					err = i.CancelRequestLocal(ctx, (*typedArgs)[0].ReqID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"balancesLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]BalancesLocalArg, 1)
@@ -1443,7 +1466,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]MakeRequestCLILocalArg)(nil), args)
 						return
 					}
-					err = i.MakeRequestCLILocal(ctx, (*typedArgs)[0])
+					ret, err = i.MakeRequestCLILocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1576,6 +1599,12 @@ func (c LocalClient) GetRequestDetailsLocal(ctx context.Context, reqID KeybaseRe
 	return
 }
 
+func (c LocalClient) CancelRequestLocal(ctx context.Context, reqID KeybaseRequestID) (err error) {
+	__arg := CancelRequestLocalArg{ReqID: reqID}
+	err = c.Cli.Call(ctx, "stellar.1.local.cancelRequestLocal", []interface{}{__arg}, nil)
+	return
+}
+
 func (c LocalClient) BalancesLocal(ctx context.Context, accountID AccountID) (res []Balance, err error) {
 	__arg := BalancesLocalArg{AccountID: accountID}
 	err = c.Cli.Call(ctx, "stellar.1.local.balancesLocal", []interface{}{__arg}, &res)
@@ -1657,7 +1686,7 @@ func (c LocalClient) FormatLocalCurrencyString(ctx context.Context, __arg Format
 	return
 }
 
-func (c LocalClient) MakeRequestCLILocal(ctx context.Context, __arg MakeRequestCLILocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.makeRequestCLILocal", []interface{}{__arg}, nil)
+func (c LocalClient) MakeRequestCLILocal(ctx context.Context, __arg MakeRequestCLILocalArg) (res KeybaseRequestID, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.makeRequestCLILocal", []interface{}{__arg}, &res)
 	return
 }
