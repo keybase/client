@@ -6,6 +6,7 @@ import asset from './asset/index.stories'
 import linkExisting from './link-existing/index.stories'
 import sendForm from './send-form/index.stories'
 import receiveModal from './receive-modal/index.stories'
+import exportSecretKey from './export-secret-key/index.stories'
 import transaction from './transaction/index.stories'
 import transactionDetails from './transaction-details/index.stories'
 
@@ -14,6 +15,7 @@ import wallet from './wallet/index.stories'
 
 const load = () => {
   asset()
+  exportSecretKey()
   linkExisting()
   receiveModal()
   sendForm()

@@ -25,6 +25,8 @@ type baseConversationSource struct {
 
 	boxer *Boxer
 	ri    func() chat1.RemoteInterface
+
+	blackoutPullForTesting bool
 }
 
 func newBaseConversationSource(g *globals.Context, ri func() chat1.RemoteInterface, boxer *Boxer) *baseConversationSource {
@@ -78,6 +80,12 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	// TODO: We'll do this against what's in the cache once that's ready,
 	//       rather than only checking the messages we just fetched against
 	//       each other.
+
+	if s.blackoutPullForTesting {
+		thread.Messages = nil
+		return nil
+	}
+
 	if checkPrev {
 		_, _, err = CheckPrevPointersAndGetUnpreved(thread)
 		if err != nil {
@@ -1045,14 +1053,14 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	return res, nil
 }
 
-func (s *HybridConversationSource) expungeNotify(ctx context.Context, uid gregor1.UID,
+func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, mergeRes storage.MergeResult) {
 	if mergeRes.Expunged != nil {
 		var inboxItem *chat1.InboxUIItem
 		topicType := chat1.TopicType_NONE
-		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true)
+		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true /* useLocalData */)
 		if err != nil {
-			s.Debug(ctx, "expungeNotify: failed to get conversations: %s", err)
+			s.Debug(ctx, "notifyExpunge: failed to get conversations: %s", err)
 		} else {
 			inboxItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, conv)
 			topicType = conv.GetTopicType()
@@ -1066,13 +1074,31 @@ func (s *HybridConversationSource) expungeNotify(ctx context.Context, uid gregor
 	}
 }
 
+// notifyReactionDeletes notifies the GUI after reactions are deleted
+func (s *HybridConversationSource) notifyReactionDeletes(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, reactionDeletes []chat1.ReactionDelete) {
+	s.Debug(ctx, "notifyReactionDeletes: %d deletions", len(reactionDeletes))
+	if len(reactionDeletes) > 0 {
+		topicType := chat1.TopicType_NONE
+		if conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true /* useLocalData */); err != nil {
+			s.Debug(ctx, "notifyExpunge: failed to get conversations: %s", err)
+		} else {
+			topicType = conv.GetTopicType()
+		}
+		activity := chat1.NewChatActivityWithReactionDelete(chat1.ReactionDeleteNotif{
+			ReactionDeletes: reactionDeletes,
+			ConvID:          convID,
+		})
+		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &activity)
+	}
+}
+
 // notifyEphemeralPurge notifies the GUI after messages are exploded.
 func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, explodedMsgs []chat1.MessageUnboxed) {
 	s.Debug(ctx, "notifyEphemeralPurge: exploded: %d", len(explodedMsgs))
 	if len(explodedMsgs) > 0 {
 		var inboxItem *chat1.InboxUIItem
 		topicType := chat1.TopicType_NONE
-		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true)
+		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true /* useLocalData */)
 		if err != nil {
 			s.Debug(ctx, "notifyEphemeralPurge: failed to get conversations: %s", err)
 		} else {
@@ -1109,7 +1135,7 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 		return err
 	}
 
-	s.expungeNotify(ctx, uid, convID, mergeRes)
+	s.notifyExpunge(ctx, uid, convID, mergeRes)
 	return nil
 }
 
@@ -1121,8 +1147,9 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	if err != nil {
 		return err
 	}
-	s.expungeNotify(ctx, uid, convID, mergeRes)
+	s.notifyExpunge(ctx, uid, convID, mergeRes)
 	s.notifyEphemeralPurge(ctx, uid, convID, mergeRes.Exploded)
+	s.notifyReactionDeletes(ctx, uid, convID, mergeRes.ReactionDeletes)
 	return nil
 }
 

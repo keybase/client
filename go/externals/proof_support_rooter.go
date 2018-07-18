@@ -30,8 +30,8 @@ func NewRooterChecker(p libkb.RemoteProofChainLink) (*RooterChecker, libkb.Proof
 
 func (rc *RooterChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *RooterChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) (perr libkb.ProofError) {
-	return CheckProofPvl(ctx, keybase1.ProofType_ROOTER, rc.proof, h, pvlU)
+func (rc *RooterChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) (perr libkb.ProofError) {
+	return CheckProofPvl(m, keybase1.ProofType_ROOTER, rc.proof, h, pvlU)
 }
 
 //
@@ -50,7 +50,7 @@ func (t RooterServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t RooterServiceType) NormalizeRemoteName(_ libkb.ProofContext, s string) (string, error) {
+func (t RooterServiceType) NormalizeRemoteName(_ libkb.MetaContext, s string) (string, error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)

@@ -193,6 +193,12 @@ func (s SimpleFSMock) SimpleFSSuppressNotifications(_ context.Context, _ int) er
 	return nil
 }
 
+// SimpleFSGetUserQuotaUsage implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSGetUserQuotaUsage(ctx context.Context) (
+	keybase1.SimpleFSQuotaUsage, error) {
+	return keybase1.SimpleFSQuotaUsage{}, nil
+}
+
 /*
  file source cases:
  1. file
