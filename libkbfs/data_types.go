@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -365,7 +366,34 @@ const (
 	// folder.  Set to the empty string so that the default will be
 	// the master branch.
 	MasterBranch BranchName = ""
+
+	branchRevPrefix = "rev="
 )
+
+// MakeRevBranchName returns a branch name specifying an archive
+// branch pinned to the given revision number.
+func MakeRevBranchName(rev kbfsmd.Revision) BranchName {
+	return BranchName(fmt.Sprintf("%s%d", branchRevPrefix, rev))
+}
+
+// HasRevision returns a valid revision number and true if `bn` is a
+// revision branch.
+func (bn BranchName) HasRevision() (kbfsmd.Revision, bool) {
+	if len(bn) <= len(branchRevPrefix) {
+		return kbfsmd.RevisionUninitialized, false
+	}
+
+	if bn[:len(branchRevPrefix)] != branchRevPrefix {
+		return kbfsmd.RevisionUninitialized, false
+	}
+
+	i, err := strconv.ParseInt(string(bn[len(branchRevPrefix):]), 10, 64)
+	if err != nil {
+		return kbfsmd.RevisionUninitialized, false
+	}
+
+	return kbfsmd.Revision(i), true
+}
 
 // FolderBranch represents a unique pair of top-level folder and a
 // branch of that folder.
