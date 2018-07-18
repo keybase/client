@@ -3,7 +3,6 @@ package systests
 import (
 	"bytes"
 	"net/http"
-	"os"
 	"testing"
 	"time"
 
@@ -94,9 +93,6 @@ func TestStellarRelayAutoClaimsWithPUK(t *testing.T) {
 //
 // To debug this test use log filter "stellar_test|poll-|AutoClaim|stellar.claim|pollfor"
 func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
-	if os.Getenv("UNSKIP_CORE_8044") != "1" {
-		t.Skip("CORE-8044")
-	}
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 	useStellarTestNet(t)
@@ -150,7 +146,13 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 		alice.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: team.ID}, nextSeqno)
 	}
 
-	pollFor(t, "claims to complete", 10*time.Second, bob.tc.G, func(i int) bool {
+	pollTime := 10 * time.Second
+	if libkb.UseCITime(bob.tc.G) {
+		// This test is especially slow.
+		pollTime = 15 * time.Second
+	}
+
+	pollFor(t, "claims to complete", pollTime, bob.tc.G, func(i int) bool {
 		res, err = bob.stellarClient.GetWalletAccountsLocal(context.Background(), 0)
 		require.NoError(t, err)
 		t.Logf("poll-1-%v: %v", i, res[0].BalanceDescription)
@@ -185,7 +187,7 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 	}
 	require.NoError(t, cmd.Run())
 
-	pollFor(t, "final claim to complete", 10*time.Second, bob.tc.G, func(i int) bool {
+	pollFor(t, "final claim to complete", pollTime, bob.tc.G, func(i int) bool {
 		res, err = bob.stellarClient.GetWalletAccountsLocal(context.Background(), 0)
 		require.NoError(t, err)
 		t.Logf("poll-2-%v: %v", i, res[0].BalanceDescription)
