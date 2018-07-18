@@ -264,9 +264,8 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 }
 
 type AddMembersRes struct {
-	Succeeded  bool
-	Invitation bool                     // Whether the addition at one point required an invitation. A race could have caused a different outcome.
-	Username   libkb.NormalizedUsername // Resolved username. May be nil for social assertions.
+	Invite   bool                     // Whether the membership addition was an invite.
+	Username libkb.NormalizedUsername // Resolved username. May be nil for social assertions.
 }
 
 // AddMembers adds a bunch of people to a team. Assertions can contain usernames or social assertions.
@@ -276,16 +275,18 @@ type AddMembersRes struct {
 func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, assertions []string, role keybase1.TeamRole) (res []AddMembersRes, err error) {
 	tracer := g.CTimeTracer(ctx, "team.AddMembers", true)
 	defer tracer.Finish()
+	failedRes := make([]AddMembersRes, len(assertions))
 	teamName, err := keybase1.TeamNameFromString(teamname)
 	if err != nil {
-		return res, err
+		return failedRes, err
 	}
 	teamID, err := ResolveNameToID(ctx, g, teamName)
 	if err != nil {
-		return res, err
+		return failedRes, err
 	}
 
 	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		res = make([]AddMembersRes, len(assertions))
 		team, err := GetForTeamManagementByTeamID(ctx, g, teamID, true /*needAdmin*/)
 		if err != nil {
 			return err
@@ -297,13 +298,21 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, as
 			UV        keybase1.UserVersion
 		}
 		var sweep []sweepEntry
-		for _, assertion := range assertions {
-			uv, err := tx.AddMemberByAssertion(ctx, assertion, role)
+		for i, assertion := range assertions {
+			username, uv, invite, err := tx.AddMemberByAssertion(ctx, assertion, role)
 			if err != nil {
 				if strings.Contains(err.Error(), "doesn't have a Keybase account yet") {
 					return err
 				}
 				return fmt.Errorf("Error adding user '%v': %v", assertion, err)
+			}
+			var normalizedUsername libkb.NormalizedUsername
+			if username != "" {
+				normalizedUsername = libkb.NewNormalizedUsername(username)
+			}
+			res[i] = AddMembersRes{
+				Invite:   invite,
+				Username: normalizedUsername,
 			}
 			if !uv.IsNil() {
 				sweep = append(sweep, sweepEntry{
@@ -326,7 +335,10 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, as
 
 		return tx.Post(libkb.NewMetaContext(ctx, g))
 	})
-	return res, err
+	if err != nil {
+		return failedRes, err
+	}
+	return res, nil
 }
 
 func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,

@@ -223,7 +223,7 @@ func (tx *AddMemberTx) findChangeReqForUV(uv keybase1.UserVersion) *keybase1.Tea
 // current incarnation of UPAK. Public APIs are AddMemberByUV and
 // AddMemberByUsername that load UPAK and pass it to this function
 // to continue membership changes.
-func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserPlusKeysV2, role keybase1.TeamRole) (err error) {
+func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserPlusKeysV2, role keybase1.TeamRole) (invite bool, err error) {
 	team := tx.team
 	g := team.G()
 
@@ -232,15 +232,15 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 		user.Username, uv, role, team.Name()), func() error { return err })()
 
 	if user.Status == keybase1.StatusCode_SCDeleted {
-		return fmt.Errorf("User %q (%s) is deleted", user.Username, uv.Uid)
+		return false, fmt.Errorf("User %q (%s) is deleted", user.Username, uv.Uid)
 	}
 
 	if role == keybase1.TeamRole_OWNER && team.IsSubteam() {
-		return NewSubteamOwnersError()
+		return false, NewSubteamOwnersError()
 	}
 
 	if err := assertValidNewTeamMemberRole(role); err != nil {
-		return err
+		return false, err
 	}
 
 	hasPUK := len(user.PerUserKeys) > 0
@@ -252,10 +252,10 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 
 	if team.IsMember(ctx, uv) {
 		if !hasPUK {
-			return fmt.Errorf("user %s is already a member of %q, yet they don't have a PUK",
+			return false, fmt.Errorf("user %s is already a member of %q, yet they don't have a PUK",
 				normalizedUsername, team.Name())
 		}
-		return libkb.ExistsError{Msg: fmt.Sprintf("user %s is already a member of team %q",
+		return false, libkb.ExistsError{Msg: fmt.Sprintf("user %s is already a member of team %q",
 			normalizedUsername, team.Name())}
 	}
 
@@ -268,7 +268,7 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 		// resetting (after reset, before provisioning) and has
 		// EldestSeqno=0.
 		if hasPUK && existingUV.EldestSeqno > uv.EldestSeqno {
-			return fmt.Errorf("newer version of user %s (uid:%s) already exists in the team %q (%v > %v)",
+			return false, fmt.Errorf("newer version of user %s (uid:%s) already exists in the team %q (%v > %v)",
 				normalizedUsername, uv.Uid, team.Name(), existingUV.EldestSeqno, uv.EldestSeqno)
 		}
 	}
@@ -276,13 +276,13 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 	curInvite, err := team.chain().FindActiveInvite(uv.TeamInviteName(), keybase1.NewTeamInviteTypeDefault(keybase1.TeamInviteCategory_KEYBASE))
 	if err != nil {
 		if _, ok := err.(libkb.NotFoundError); !ok {
-			return err
+			return false, err
 		}
 		curInvite = nil
 		err = nil
 	}
 	if curInvite != nil && !hasPUK {
-		return libkb.ExistsError{Msg: fmt.Sprintf("user %s is already invited to team %q",
+		return false, libkb.ExistsError{Msg: fmt.Sprintf("user %s is already invited to team %q",
 			normalizedUsername, team.Name())}
 	}
 
@@ -293,10 +293,11 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 
 	if !hasPUK {
 		tx.createKeybaseInvite(uv, role)
+		return true, nil
 	} else {
 		tx.addMember(uv, role)
+		return false, nil
 	}
-	return nil
 }
 
 func (tx *AddMemberTx) completeAllKeybaseInvitesForUID(uv keybase1.UserVersion) error {
@@ -350,7 +351,8 @@ func (tx *AddMemberTx) AddMemberByUV(ctx context.Context, uv keybase1.UserVersio
 		return fmt.Errorf("Bad eldestseqno for %s: expected %d, got %d", uv.Uid, current.EldestSeqno, uv.EldestSeqno)
 	}
 
-	return tx.addMemberByUPKV2(ctx, current, role)
+	_, err = tx.addMemberByUPKV2(ctx, current, role)
+	return err
 }
 
 // AddMemberByUsername will add member by username and role. It
@@ -373,39 +375,40 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 		return err
 	}
 
-	return tx.addMemberByUPKV2(ctx, upak.Current, role)
+	_, err = tx.addMemberByUPKV2(ctx, upak.Current, role)
+	return err
 }
 
 // AddMemberByAssertion adds an assertion to the team.
-// Returns uv which can be zero-valued if the assertion did not resolve to a user. An invite will have been added.
-func (tx *AddMemberTx) AddMemberByAssertion(ctx context.Context, assertion string, role keybase1.TeamRole) (uv keybase1.UserVersion, err error) {
+// Returns (uv, username) which can both be zero-valued if the assertion is not a keybase user.
+func (tx *AddMemberTx) AddMemberByAssertion(ctx context.Context, assertion string, role keybase1.TeamRole) (username string,
+	uv keybase1.UserVersion, invite bool, err error) {
 	team := tx.team
 	g := team.G()
 
+	// xxx DO NOT MERGE this is not safe. Client needs to check resolution result.
 	res := g.Resolver.ResolveWithBody(assertion)
 	rErr := res.GetError()
 	if rErr == nil {
 		upak, err := loadUPAK2(ctx, g, res.GetUID(), true /* forcePoll */)
 		if err != nil {
-			return uv, err
+			return "", uv, false, err
 		}
-
-		return upak.Current.ToUserVersion(), tx.addMemberByUPKV2(ctx, upak.Current, role)
+		invite, err := tx.addMemberByUPKV2(ctx, upak.Current, role)
+		return upak.Current.Username, upak.Current.ToUserVersion(), invite, err
 	} else if e, ok := rErr.(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
 		typ, name, err := team.parseSocial(assertion)
 		if err != nil {
-			return uv, err
+			return "", uv, false, err
 		}
 		g.Log.Debug("team %s invite sbs member %s/%s", team.Name(), typ, name)
-
 		if role.IsOrAbove(keybase1.TeamRole_OWNER) {
-			return uv, fmt.Errorf("'%v' doesn't have a Keybase account yet, so you can't add them as an owner; you can add them as reader or writer.", assertion)
+			return "", uv, false, fmt.Errorf("'%v' doesn't have a Keybase account yet, so you can't add them as an owner; you can add them as reader or writer.", assertion)
 		}
 		tx.createInvite(typ, keybase1.TeamInviteName(name), role)
-		return uv, nil
+		return "", uv, true, nil
 	}
-
-	return uv, rErr
+	return "", uv, false, rErr
 }
 
 func (tx *AddMemberTx) CompleteInviteByID(ctx context.Context, inviteID keybase1.TeamInviteID, uv keybase1.UserVersion) error {

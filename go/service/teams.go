@@ -261,7 +261,7 @@ func (h *TeamsHandler) TeamAddMembers(ctx context.Context, arg keybase1.TeamAddM
 			h.G().Log.CDebugf(ctx, "sending team welcome messages")
 			ctx := libkb.WithLogTag(context.Background(), "BG")
 			for _, res := range res {
-				if res.Succeeded && !res.Invitation && !res.Username.IsNil() {
+				if !res.Invite && !res.Username.IsNil() {
 					err := teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), arg.Name, res.Username.String())
 					if err != nil {
 						h.G().Log.CDebugf(ctx, "send team welcome message () err: %v", res.Username, err)
