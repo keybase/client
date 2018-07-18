@@ -43,9 +43,9 @@ const SmallTeamBox = isMobile
   ? Box
   : glamorous(Box)({
       '& .small-team-gear': {display: 'none'},
-      ':hover': {backgroundColor: globalColors.blue4},
       ':hover .small-team-gear': {display: 'unset'},
       ':hover .small-team-timestamp': {display: 'none'},
+      ':not(.selected):hover': {backgroundColor: globalColors.blue4},
     })
 
 class SmallTeam extends React.PureComponent<Props> {
@@ -56,7 +56,13 @@ class SmallTeam extends React.PureComponent<Props> {
         onClick={props.onSelectConversation}
         style={collapseStyles([{backgroundColor: props.backgroundColor}, styles.container])}
       >
-        <SmallTeamBox style={props.isSelected ? styles.rowContainerSelected : styles.rowContainer}>
+        <SmallTeamBox
+          className={props.isSelected ? 'selected' : ''}
+          style={collapseStyles([
+            styles.rowContainer,
+            ...(props.isSelected ? [styles.rowContainerSelected] : []),
+          ])}
+        >
           {props.teamname ? (
             <TeamAvatar
               teamname={props.teamname}
@@ -72,7 +78,7 @@ class SmallTeam extends React.PureComponent<Props> {
               participants={props.participants}
             />
           )}
-          <Box style={props.isSelected ? styles.conversationRowSelected : styles.conversationRow}>
+          <Box style={styles.conversationRow}>
             <SimpleTopLine
               backgroundColor={props.backgroundColor}
               hasUnread={props.hasUnread}
@@ -109,15 +115,6 @@ const styles = styleSheetCreate({
   container: {flexShrink: 0, height: RowSizes.smallRowHeight},
   conversationRow: {
     ...globalStyles.flexBoxColumn,
-    flexGrow: 1,
-    height: '100%',
-    justifyContent: 'center',
-    paddingLeft: 8,
-    paddingRight: 8,
-  },
-  conversationRowSelected: {
-    ...globalStyles.flexBoxColumn,
-    backgroundColor: globalColors.blue,
     flexGrow: 1,
     height: '100%',
     justifyContent: 'center',
