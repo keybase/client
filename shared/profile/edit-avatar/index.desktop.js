@@ -356,10 +356,10 @@ class EditAvatar extends React.Component<_Props, State> {
               src={this.state.imageSource}
               style={{
                 height: this.state.scaledImageHeight,
-                left: `${this.state.offsetLeft}px`,
+                left: this.state.offsetLeft,
                 opacity: this.state.loading ? '0' : '1',
                 position: 'absolute',
-                top: `${this.state.offsetTop}px`,
+                top: this.state.offsetTop,
                 transition: 'opacity 0.25s ease-in',
                 width: this.state.scaledImageWidth,
               }}
