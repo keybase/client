@@ -3,7 +3,7 @@ import * as React from 'react'
 import {Box2, Text} from '../../common-adapters'
 import {styleSheetCreate} from '../../styles'
 import Body from './body/container'
-import Header from './header/container'
+import Header from './header'
 
 type Props = {
   bannerInfo?: string,

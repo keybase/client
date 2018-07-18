@@ -2,6 +2,7 @@
 import React from 'react'
 import {action, createPropProvider, storiesOf} from '../../stories/storybook'
 import assetInput, {props3 as assetInputProps} from './asset-input/index.stories'
+import chooseAsset from './choose-asset/index.stories'
 import banner from './banner/index.stories'
 import SendForm from '.'
 
@@ -26,6 +27,7 @@ const load = () => {
   // dumb component stories
   assetInput()
   banner()
+  chooseAsset()
 
   // full component
   storiesOf('Wallets/SendForm', module)

@@ -1,6 +1,0 @@
-// @flow
-import * as React from 'react'
-
-export type Props = {}
-
-export default class Header extends React.Component<Props> {}
