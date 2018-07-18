@@ -103,7 +103,7 @@ class _SimpleTopLine extends React.Component<Props> {
             className="small-team-gear"
             onClick={this.props.toggleShowingMenu}
             ref={this.props.setAttachmentRef}
-            color={globalColors.black_20}
+            color={this.props.subColor}
             hoverColor={this.props.iconHoverColor}
             style={{position: 'relative', right: globalMargins.xtiny}}
           />

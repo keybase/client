@@ -925,7 +925,7 @@ const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: Typed
       if (meta.teamType === 'big') {
         title += `#${meta.channelname}`
       }
-      NotifyPopup(title, {body}, -1, author, () => {
+      NotifyPopup(title, {body, sound: state.config.notifySound}, -1, author, () => {
         dispatch(
           Chat2Gen.createSelectConversation({
             conversationIDKey,

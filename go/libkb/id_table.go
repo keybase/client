@@ -1429,7 +1429,7 @@ func (idt *IdentityTable) GetRevokedCryptocurrencyForTesting() []CryptocurrencyC
 
 // Return the active stellar public address for a user.
 // Returns nil if there is none or it has not been loaded.
-func (idt *IdentityTable) StellarWalletAddress() *stellar1.AccountID {
+func (idt *IdentityTable) StellarAccountID() *stellar1.AccountID {
 	// Return the account ID of the latest link with the network set to stellar.
 	if idt.stellar == nil {
 		return nil

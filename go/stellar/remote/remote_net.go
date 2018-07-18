@@ -58,6 +58,10 @@ func (r *RemoteNet) RecentPayments(ctx context.Context, accountID stellar1.Accou
 	return RecentPayments(ctx, r.G(), accountID, cursor, limit)
 }
 
+func (r *RemoteNet) PendingPayments(ctx context.Context, accountID stellar1.AccountID, limit int) ([]stellar1.PaymentSummary, error) {
+	return PendingPayments(ctx, r.G(), accountID, limit)
+}
+
 func (r *RemoteNet) PaymentDetails(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error) {
 	return PaymentDetails(ctx, r.G(), txID)
 }
@@ -76,4 +80,8 @@ func (r *RemoteNet) SubmitRequest(ctx context.Context, post stellar1.RequestPost
 
 func (r *RemoteNet) RequestDetails(ctx context.Context, requestID stellar1.KeybaseRequestID) (stellar1.RequestDetails, error) {
 	return RequestDetails(ctx, r.G(), requestID)
+}
+
+func (r *RemoteNet) CancelRequest(ctx context.Context, requestID stellar1.KeybaseRequestID) error {
+	return CancelRequest(ctx, r.G(), requestID)
 }

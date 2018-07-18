@@ -170,7 +170,7 @@ protocol local {
     @mpackkey("b") @jsonkey("b")
     string body; // emoji reaction :+1:
   }
-  
+
   record MessageSendPayment {
     string kbTxID;
   }

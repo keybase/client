@@ -1208,5 +1208,5 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 
 // Called by CtlHandler after DbNuke finishes and succeeds.
 func (d *Service) onDbNuke(ctx context.Context) {
-	d.avatarLoader.OnCacheCleared(ctx)
+	d.avatarLoader.OnCacheCleared(libkb.NewMetaContext(ctx, d.G()))
 }
