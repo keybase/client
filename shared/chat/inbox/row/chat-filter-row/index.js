@@ -1,11 +1,11 @@
 // @flow
 import * as React from 'react'
-import {Icon, Box, ClickableBox, LoadingLine, Input, Text} from '../../../common-adapters'
-import {globalStyles, globalColors, globalMargins, isMobile} from '../../../styles'
+import {Icon, Box, ClickableBox, LoadingLine, Input, Text} from '../../../../common-adapters'
+import {globalStyles, globalColors, globalMargins, isMobile} from '../../../../styles'
 
 let KeyHandler = c => c
 if (!isMobile) {
-  KeyHandler = require('../../../util/key-handler.desktop').default
+  KeyHandler = require('../../../../util/key-handler.desktop').default
 }
 
 type Props = {

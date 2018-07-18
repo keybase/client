@@ -7,7 +7,7 @@ import {Box, Divider, Icon, List, ScrollView, Text} from '../common-adapters'
 import FolderHeader from './header/container'
 import SortBar from './sortbar/container'
 import {Still, Editing, Placeholder, Uploading} from './row'
-import Footer from './footer/container'
+import Footer from './footer/footer'
 import {isMobile} from '../constants/platform'
 import ConnectedBanner from './banner/container'
 

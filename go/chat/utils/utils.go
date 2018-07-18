@@ -1081,6 +1081,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			ExplodedBy:            valid.ExplodedBy(),
 			Etime:                 valid.Etime(),
 			Reactions:             valid.Reactions,
+			HasPairwiseMacs:       valid.HasPairwiseMacs(),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body string
@@ -1348,4 +1349,15 @@ func AddUserToTLFName(g *globals.Context, tlfName string, vis keybase1.TLFVisibi
 		}
 	}
 	return tlfName
+}
+
+func ForceReloadUPAKsForUIDs(ctx context.Context, g *globals.Context, uids []keybase1.UID) error {
+	getArg := func(i int) *libkb.LoadUserArg {
+		if i >= len(uids) {
+			return nil
+		}
+		tmp := libkb.NewLoadUserByUIDForceArg(g.GlobalContext, uids[i])
+		return &tmp
+	}
+	return g.GetUPAKLoader().Batcher(ctx, getArg, nil, 0)
 }

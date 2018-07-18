@@ -1285,6 +1285,7 @@ type MessageClientHeaderVerified struct {
 	OutboxInfo        *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 	EphemeralMetadata *MsgEphemeralMetadata    `codec:"em,omitempty" json:"em,omitempty"`
 	Rtime             gregor1.Time             `codec:"rt" json:"rt"`
+	HasPairwiseMacs   bool                     `codec:"pm" json:"pm"`
 }
 
 func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
@@ -1341,7 +1342,8 @@ func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.EphemeralMetadata),
-		Rtime: o.Rtime.DeepCopy(),
+		Rtime:           o.Rtime.DeepCopy(),
+		HasPairwiseMacs: o.HasPairwiseMacs,
 	}
 }
 

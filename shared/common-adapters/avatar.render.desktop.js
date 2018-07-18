@@ -80,21 +80,31 @@ class UserImage extends React.PureComponent<ImageProps> {
   }
 }
 
-const borderOffset = 1
-const borderSize = 2
 // Layer on top to extend outside of the image
-const Border = ({borderColor, size, borderRadius}) => (
+const Border = ({
+  borderColor,
+  isTeam,
+  size,
+  borderRadius,
+}: {
+  borderColor: string,
+  isTeam?: boolean,
+  size: number,
+  borderRadius: string,
+}) => (
   <div
     style={{
       background: globalColors.transparent,
       borderRadius,
-      bottom: borderOffset,
-      boxShadow: `0px 0px 0px ${borderSize}px ${borderColor}`,
+      bottom: isTeam ? 0 : 1,
+      boxShadow: `0px 0px 0px ${isTeam ? 1 : 2}px ${
+        !borderColor ? (isTeam ? globalColors.black_05 : '') : borderColor
+      } ${isTeam ? 'inset' : ''}`,
       flexShrink: 0,
-      left: borderOffset,
+      left: isTeam ? 0 : 1,
       position: 'absolute',
-      right: borderOffset,
-      top: borderOffset,
+      right: isTeam ? 0 : 1,
+      top: isTeam ? 0 : 1,
       width: size,
     }}
   />
@@ -127,8 +137,13 @@ class AvatarRender extends React.PureComponent<Props, State> {
             borderRadius={borderRadius}
           />
         )}
-        {!!this.props.borderColor && (
-          <Border borderColor={this.props.borderColor} size={this.props.size} borderRadius={borderRadius} />
+        {(!!this.props.borderColor || this.props.isTeam) && (
+          <Border
+            isTeam={this.props.isTeam}
+            borderColor={this.props.borderColor || globalColors.black_05}
+            size={this.props.size}
+            borderRadius={borderRadius}
+          />
         )}
         {this.props.followIconType && (
           <Icon type={this.props.followIconType} style={this.props.followIconStyle} />

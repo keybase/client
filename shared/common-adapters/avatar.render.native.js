@@ -133,8 +133,11 @@ class AvatarRender extends React.PureComponent<Props, State> {
               borderRadius={borderRadius}
             />
           )}
-          {!!this.props.borderColor && (
-            <Border borderColor={this.props.borderColor} borderRadius={borderRadius} />
+          {(!!this.props.borderColor || this.props.isTeam) && (
+            <Border
+              borderColor={this.props.borderColor || globalColors.black_05}
+              borderRadius={borderRadius}
+            />
           )}
           {this.props.followIconType && (
             <Icon
