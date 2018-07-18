@@ -271,6 +271,7 @@ const styles = styleSheetCreate({
     color: globalColors.black_40,
   },
   listContainer: {
+    paddingTop: globalMargins.tiny,
     maxHeight: 525 - 48,
   },
   sectionHeaderContainer: {
