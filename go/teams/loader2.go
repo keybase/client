@@ -207,7 +207,7 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		return nil, fmt.Errorf("team ID mismatch: %s != %s", teamID, link.innerTeamID)
 	}
 
-	kid, err := l.verifySignatureAndExtractKID(ctx, *link.outerLink)
+	signedByKID, err := l.verifySignatureAndExtractKID(ctx, *link.outerLink)
 	if err != nil {
 		return nil, err
 	}
@@ -222,28 +222,10 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 
 	var signerUV keybase1.UserVersion
 	if fullVerify {
-		var key *keybase1.PublicKeyV2NaCl
-		var linkMap linkMapT
-		signerUV, key, linkMap, err = l.loadUserAndKeyFromLinkInner(ctx, *link.inner)
+		signerUV, err = l.loadUserAndKeyFromLinkInnerAndVerify(ctx, teamID, state, link, signedByKID, proofSet)
 		if err != nil {
 			return nil, err
 		}
-
-		if !kid.Equal(key.Base.Kid) {
-			return nil, libkb.NewWrongKidError(kid, key.Base.Kid)
-		}
-
-		teamLinkMap := make(linkMapT)
-		if state != nil {
-			// copy over the stored links
-			for k, v := range state.Chain.LinkIDs {
-				teamLinkMap[k] = v
-			}
-		}
-		// add on the link that is being checked
-		teamLinkMap[link.Seqno()] = link.LinkID().Export()
-
-		l.addProofsForKeyInUserSigchain(ctx, teamID, teamLinkMap, link, signerUV.Uid, key, linkMap, proofSet)
 	} else {
 		signerUV, err = l.loadUserAndKeyFromLinkInnerNoVerify(ctx, link)
 		if err != nil {
@@ -293,6 +275,28 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 	default:
 		return nil, fmt.Errorf("unrecognized role %v required for link", minRole)
 	}
+}
+
+func (l *TeamLoader) loadUserAndKeyFromLinkInnerAndVerify(ctx context.Context, teamID keybase1.TeamID, state *keybase1.TeamData,
+	link *chainLinkUnpacked, signedByKID keybase1.KID, proofSet *proofSetT) (signer keybase1.UserVersion, err error) {
+	signer, key, linkMap, err := l.loadUserAndKeyFromLinkInner(ctx, *link.inner)
+	if err != nil {
+		return keybase1.UserVersion{}, err
+	}
+	if !signedByKID.Equal(key.Base.Kid) {
+		return keybase1.UserVersion{}, libkb.NewWrongKidError(signedByKID, key.Base.Kid)
+	}
+	teamLinkMap := make(linkMapT)
+	if state != nil {
+		// copy over the stored links
+		for k, v := range state.Chain.LinkIDs {
+			teamLinkMap[k] = v
+		}
+	}
+	// add on the link that is being checked
+	teamLinkMap[link.Seqno()] = link.LinkID().Export()
+	l.addProofsForKeyInUserSigchain(ctx, teamID, teamLinkMap, link, signer.Uid, key, linkMap, proofSet)
+	return signer, nil
 }
 
 // Verify that the user had the explicit on-chain role just before this `link`.
