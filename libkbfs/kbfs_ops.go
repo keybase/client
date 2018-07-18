@@ -340,6 +340,17 @@ func (fs *KBFSOpsStandard) getOpsNoAdd(
 	return ops
 }
 
+func (fs *KBFSOpsStandard) getOpsIfExists(
+	ctx context.Context, fb FolderBranch) *folderBranchOps {
+	if fb == (FolderBranch{}) {
+		panic("zero FolderBranch in getOps")
+	}
+
+	fs.opsLock.RLock()
+	defer fs.opsLock.RUnlock()
+	return fs.ops[fb]
+}
+
 func (fs *KBFSOpsStandard) getOps(ctx context.Context,
 	fb FolderBranch, fop FavoritesOp) *folderBranchOps {
 	ops := fs.getOpsNoAdd(ctx, fb)
@@ -424,7 +435,7 @@ func (fs *KBFSOpsStandard) createAndStoreTlfIDIfNeeded(
 }
 
 func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
-	mdops MDOps, h *TlfHandle, create bool, fop FavoritesOp) (
+	mdops MDOps, h *TlfHandle, fb FolderBranch, create bool, fop FavoritesOp) (
 	initialized bool, md ImmutableRootMetadata, id tlf.ID, err error) {
 	defer func() {
 		if getExtendedIdentify(ctx).behavior.AlwaysRunIdentify() &&
@@ -442,6 +453,7 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
 		return false, ImmutableRootMetadata{}, tlf.NullID, err
 	}
 
+	// XXX: use branch name to get specific revision if available.
 	md, err = mdops.GetForTLF(ctx, h.tlfID, nil)
 	if err != nil {
 		return false, ImmutableRootMetadata{}, tlf.NullID, err
@@ -455,10 +467,7 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
 	}
 
 	// Init new MD.
-
-	fb := FolderBranch{Tlf: h.tlfID, Branch: MasterBranch}
 	fops := fs.getOpsByHandle(ctx, h, fb, fop)
-
 	err = fops.SetInitialHeadToNew(ctx, h.tlfID, h)
 	// Someone else initialized the TLF out from under us, so we
 	// didn't initialize it.
@@ -504,13 +513,15 @@ func (fs *KBFSOpsStandard) getMDByHandle(ctx context.Context,
 		}
 	}
 
+	fb := FolderBranch{Tlf: tlfHandle.tlfID, Branch: MasterBranch}
 	if rmd == (ImmutableRootMetadata{}) {
 		if fop == FavoritesOpAdd {
 			_, rmd, _, err = fs.getOrInitializeNewMDMaster(
-				ctx, fs.config.MDOps(), tlfHandle, true, FavoritesOpAddNewlyCreated)
+				ctx, fs.config.MDOps(), tlfHandle, fb, true,
+				FavoritesOpAddNewlyCreated)
 		} else {
 			_, rmd, _, err = fs.getOrInitializeNewMDMaster(
-				ctx, fs.config.MDOps(), tlfHandle, true, fop)
+				ctx, fs.config.MDOps(), tlfHandle, fb, true, fop)
 		}
 		if err != nil {
 			return ImmutableRootMetadata{}, err
@@ -520,7 +531,6 @@ func (fs *KBFSOpsStandard) getMDByHandle(ctx context.Context,
 	// Make sure fbo exists and head is set so that next time we use this we
 	// don't need to hit server even when there isn't any FS activity.
 	if fbo == nil {
-		fb := FolderBranch{Tlf: rmd.TlfID(), Branch: MasterBranch}
 		fbo = fs.getOpsByHandle(ctx, tlfHandle, fb, fop)
 	}
 	if err = fbo.SetInitialHeadFromServer(ctx, rmd); err != nil {
@@ -583,19 +593,36 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 		h.GetCanonicalPath(), branch, create)
 	defer func() { fs.deferLog.CDebugf(ctx, "Done: %#v", err) }()
 
+	if branch != MasterBranch && create {
+		return nil, EntryInfo{}, errors.Errorf(
+			"Can't create a root node for branch %s", branch)
+	}
+
+	err = fs.createAndStoreTlfIDIfNeeded(ctx, h)
+	if err != nil {
+		return nil, EntryInfo{}, err
+	}
+
 	// Check if we already have the MD cached, before contacting any
 	// servers.
-	fops := fs.getOpsByFav(h.ToFavorite())
+	if h.tlfID == tlf.NullID {
+		return nil, EntryInfo{},
+			errors.Errorf("Handle for %s doesn't have a TLF ID set",
+				h.GetCanonicalPath())
+	}
+	fb := FolderBranch{Tlf: h.tlfID, Branch: branch}
+	fops := fs.getOpsIfExists(ctx, fb)
 	if fops != nil {
-		// If a folderBranchOps already exists for this TLF, use it to
-		// get the root node.  But if we haven't done an identify yet,
-		// we better do so, because `getRootNode()` doesn't do one.
+		// If a folderBranchOps has already been initialized for this TLF,
+		// use it to get the root node.  But if we haven't done an
+		// identify yet, we better do so, because `getRootNode()` doesn't
+		// do one.
 		lState := makeFBOLockState()
 		md, err := fops.getMDForReadNeedIdentifyOnMaybeFirstAccess(ctx, lState)
 		if err != nil {
 			return nil, EntryInfo{}, err
 		}
-		if md != (ImmutableRootMetadata{}) {
+		if md != (ImmutableRootMetadata{}) && md.IsReadable() {
 			node, ei, _, err := fops.getRootNode(ctx)
 			if err != nil {
 				return nil, EntryInfo{}, err
@@ -604,11 +631,6 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 				return node, ei, nil
 			}
 		}
-	}
-
-	err = fs.createAndStoreTlfIDIfNeeded(ctx, h)
-	if err != nil {
-		return nil, EntryInfo{}, err
 	}
 
 	mdops := fs.config.MDOps()
@@ -625,7 +647,7 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 		var id tlf.ID
 		var initialized bool
 		initialized, md, id, err = fs.getOrInitializeNewMDMaster(
-			ctx, mdops, h, create, FavoritesOpAdd)
+			ctx, mdops, h, fb, create, FavoritesOpAdd)
 		if err != nil {
 			return nil, EntryInfo{}, err
 		}
@@ -651,8 +673,6 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 			return nil, EntryInfo{}, nil
 		}
 	}
-
-	fb := FolderBranch{Tlf: md.TlfID(), Branch: branch}
 
 	// we might not be able to read the metadata if we aren't in the
 	// key group yet.

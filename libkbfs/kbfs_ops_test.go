@@ -610,12 +610,6 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 		},
 	}
 
-	config.mockMdops.EXPECT().GetUnmergedForTLF(
-		gomock.Any(), id, kbfsmd.NullBranchID).Return(
-		ImmutableRootMetadata{}, nil)
-	config.mockMdops.EXPECT().GetForTLF(
-		gomock.Any(), id, nil).Return(
-		makeImmutableRMDForTest(t, config, rmd, kbfsmd.FakeID(1)), nil)
 	ops := getOps(config, id)
 	assert.False(t, fboIdentityDone(ops))
 
