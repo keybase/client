@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import {type DeviceType} from '../../constants/types/devices'
-import type {Props} from '.'
 import {
   Box,
   Box2,
@@ -22,6 +21,17 @@ import {
   platformStyles,
   type StylesCrossPlatform,
 } from '../../styles'
+
+export type Props = {
+  currentDevice: boolean,
+  deviceID: string,
+  endangeredTLFs: Array<string>,
+  type: DeviceType,
+  name: string,
+  onCancel: () => void,
+  onSubmit: () => void,
+  waiting: boolean,
+}
 
 const Header = (props: {name: string, type: DeviceType}) => {
   const headerIcon: IconType = {
@@ -89,18 +99,18 @@ class EndangeredTLFList extends React.Component<
 const ActionButtons = (props: {onCancel: () => void, onSubmit: () => void, waiting: boolean}) => (
   <Box style={styles.actionButtonsContainer}>
     <Button
-      fullWidth={true}
+      fullWidth={!!isMobile}
       type="Danger"
       onClick={props.waiting ? null : props.onSubmit}
       label="Yes, delete it"
-      style={{marginBottom: globalMargins.small}}
+      disabled={!!props.waiting}
     />
     <Button
-      fullWidth={true}
+      fullWidth={!!isMobile}
       type="Secondary"
       onClick={props.onCancel}
       label="Cancel"
-      disabled={!!props.waiting}
+      style={isMobile ? null : {marginRight: globalMargins.tiny}}
     />
   </Box>
 )
@@ -119,6 +129,7 @@ const DeviceRevoke = (props: Props) => (
 const styles = styleSheetCreate({
   deviceRevokeContainer: {
     ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
     flex: 1,
     marginBottom: globalMargins.small,
     marginLeft: globalMargins.small,
@@ -175,13 +186,20 @@ const styles = styleSheetCreate({
       textAlign: 'left',
     },
   }),
-  actionButtonsContainer: {
-    ...globalStyles.flexBoxColumn,
-    alignSelf: 'stretch',
-    justifyContent: 'flex-end',
-    alignContent: 'stretch',
-    marginTop: globalMargins.small,
-  },
+  actionButtonsContainer: platformStyles({
+    isElectron: {
+      display: 'flex',
+      flexDirection: 'row-reverse',
+      marginTop: globalMargins.medium,
+    },
+    isMobile: {
+      ...globalStyles.flexBoxColumn,
+      alignSelf: 'stretch',
+      justifyContent: 'flex-end',
+      alignContent: 'stretch',
+      marginTop: globalMargins.small,
+    },
+  }),
 })
 
 export default HeaderHoc(DeviceRevoke)
