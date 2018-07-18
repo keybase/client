@@ -359,13 +359,10 @@ func (t *NameIdentifier) identifyUser(ctx context.Context, assertion string, pri
 	}
 	eng := engine.NewResolveThenIdentify2(t.G().ExternalG(), &arg)
 	m := libkb.NewMetaContext(ctx, t.G().ExternalG()).WithUIs(uis)
-	err := engine.RunEngine2(m, eng)
-	if err != nil {
+	if err := engine.RunEngine2(m, eng); err != nil {
+		switch err.(type) {
 		// Ignore these errors
-		if _, ok := err.(libkb.NotFoundError); ok {
-			return keybase1.TLFIdentifyFailure{}, nil
-		}
-		if _, ok := err.(libkb.ResolutionError); ok {
+		case libkb.NotFoundError, libkb.ResolutionError, libkb.DeletedError:
 			return keybase1.TLFIdentifyFailure{}, nil
 		}
 

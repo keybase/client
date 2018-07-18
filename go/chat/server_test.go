@@ -4440,9 +4440,9 @@ func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
 	}
 }
 
-func TestChatSrvUserReset(t *testing.T) {
+func TestChatSrvUserResetAndDeleted(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		ctc := makeChatTestContext(t, "TestChatSrvUserReset", 3)
+		ctc := makeChatTestContext(t, "TestChatSrvUserReset", 4)
 		defer ctc.cleanup()
 		users := ctc.users()
 
@@ -4457,16 +4457,19 @@ func TestChatSrvUserReset(t *testing.T) {
 		ctx := ctc.as(t, users[0]).startCtx
 		ctx1 := ctc.as(t, users[1]).startCtx
 		ctx2 := ctc.as(t, users[2]).startCtx
+		ctx3 := ctc.as(t, users[3]).startCtx
 		listener0 := newServerChatListener()
 		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
 		listener1 := newServerChatListener()
 		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
 		listener2 := newServerChatListener()
 		ctc.as(t, users[2]).h.G().NotifyRouter.SetListener(listener2)
-		t.Logf("u0: %s u1: %s u2: %s", users[0].GetUID(), users[1].GetUID(), users[2].GetUID())
+		listener3 := newServerChatListener()
+		ctc.as(t, users[3]).h.G().NotifyRouter.SetListener(listener3)
+		t.Logf("u0: %s, u1: %s, u2: %s, u3: %s", users[0].GetUID(), users[1].GetUID(), users[2].GetUID(), users[3].GetUID())
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
-			ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
+			ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user(), ctc.as(t, users[3]).user())
 
 		t.Logf("reset user 1")
 		ctcForUser := ctc.as(t, users[1])
@@ -4490,6 +4493,15 @@ func TestChatSrvUserReset(t *testing.T) {
 			require.Fail(t, "failed to get members update")
 		}
 		select {
+		case act := <-listener3.membersUpdate:
+			require.Equal(t, act.ConvID, conv.Id)
+			require.Equal(t, 1, len(act.Members))
+			require.Equal(t, chat1.ConversationMemberStatus_RESET, act.Members[0].Status)
+			require.Equal(t, users[1].Username, act.Members[0].Member)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get members update")
+		}
+		select {
 		case convID := <-listener1.resetConv:
 			require.Equal(t, convID, conv.Id)
 		case <-time.After(20 * time.Second):
@@ -4502,7 +4514,7 @@ func TestChatSrvUserReset(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
-		require.Equal(t, 3, len(iboxRes.Conversations[0].Names()))
+		require.Equal(t, 4, len(iboxRes.Conversations[0].Names()))
 		require.Equal(t, 1, len(iboxRes.Conversations[0].Info.ResetNames))
 		require.Equal(t, users[1].Username, iboxRes.Conversations[0].Info.ResetNames[0])
 		iboxRes, err = ctc.as(t, users[1]).chatLocalHandler().GetInboxAndUnboxLocal(ctx1,
@@ -4517,6 +4529,42 @@ func TestChatSrvUserReset(t *testing.T) {
 			require.Equal(t, chat1.ConversationMemberStatus_RESET, iboxRes.Conversations[0].Info.MemberStatus)
 		}
 		_, err = ctc.as(t, users[1]).chatLocalHandler().PostLocal(ctx1, chat1.PostLocalArg{
+			ConversationID: conv.Id,
+			Msg: chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:        conv.Triple,
+					MessageType: chat1.MessageType_TEXT,
+					TlfName:     conv.TlfName,
+				},
+				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+					Body: "Hello",
+				}),
+			},
+		})
+		require.Error(t, err)
+
+		t.Logf("delete user 3")
+		ctcForUser3 := ctc.as(t, users[3])
+		require.NoError(t, libkb.DeleteAccount(ctcForUser3.m, users[3].NormalizedUsername(), users[3].Passphrase))
+		select {
+		case <-listener0.membersUpdate:
+			require.Fail(t, "got members update after delete")
+		case <-listener2.membersUpdate:
+			require.Fail(t, "got members update after delete")
+		default:
+		}
+
+		select {
+		case <-listener2.resetConv:
+			require.Fail(t, "got reset conv after delete")
+		default:
+		}
+
+		// Once deleted we can't log back in or send
+		g3 := ctc.as(t, users[3]).h.G().ExternalG()
+		require.NoError(t, g3.Logout())
+		require.Error(t, users[3].Login(g3))
+		_, err = ctc.as(t, users[3]).chatLocalHandler().PostLocal(ctx3, chat1.PostLocalArg{
 			ConversationID: conv.Id,
 			Msg: chat1.MessagePlaintext{
 				ClientHeader: chat1.MessageClientHeader{
@@ -4577,7 +4625,7 @@ func TestChatSrvUserReset(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
-		require.Equal(t, 3, len(iboxRes.Conversations[0].Names()))
+		require.Equal(t, 4, len(iboxRes.Conversations[0].Names()))
 		require.Zero(t, len(iboxRes.Conversations[0].Info.ResetNames))
 
 		iboxRes, err = ctc.as(t, users[1]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
@@ -4586,7 +4634,7 @@ func TestChatSrvUserReset(t *testing.T) {
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
 		require.Nil(t, iboxRes.Conversations[0].Error)
-		require.Equal(t, 3, len(iboxRes.Conversations[0].Names()))
+		require.Equal(t, 4, len(iboxRes.Conversations[0].Names()))
 		require.Zero(t, len(iboxRes.Conversations[0].Info.ResetNames))
 		require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, iboxRes.Conversations[0].Info.MemberStatus)
 
@@ -4628,6 +4676,21 @@ func TestChatSrvUserReset(t *testing.T) {
 			time.Sleep(50 * time.Millisecond)
 		}
 		require.NoError(t, err)
+
+		// Ensure everyone but user3 can access the conversation
+		for i := range users {
+			g := ctc.as(t, users[i]).h.G()
+			ctx = ctc.as(t, users[i]).startCtx
+			uid := gregor1.UID(users[i].GetUID().ToBytes())
+			tv, err := g.ConvSource.Pull(ctx, conv.Id, uid,
+				chat1.GetThreadReason_GENERAL, nil, nil)
+			if i == 3 {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.NotZero(t, len(tv.Messages))
+			}
+		}
 	})
 }
 
