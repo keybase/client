@@ -4,7 +4,7 @@ import * as React from 'react'
 import CodePage2 from '.'
 import QRScanNotAuthorized from './qr-scan/not-authorized'
 import {Box2} from '../../common-adapters'
-import {action, storiesOf} from '../../stories/storybook'
+import {action, createPropProvider, storiesOf} from '../../stories/storybook'
 
 const textCode = 'scrub disagree sheriff holiday cabin habit mushroom member four'
 // Not using the container on purpose since i want every variant
@@ -31,6 +31,13 @@ const derivedProps = (
   }
 }
 
+const QRScanProps = {
+  mountKey: 'key',
+  onOpenSettings: action('onOpenSettings'),
+  onSubmitTextCode: action('onSubmitTextCode'),
+  waiting: false,
+}
+
 const load = () => {
   storiesOf(`Provision/CodePage2`, module).add(
     "<Type1> adding Type2 means from that Type1 is provisioning Type2 and we're seeing it from Type1's perspective",
@@ -48,6 +55,8 @@ const load = () => {
     {current: 'mobile', otherType: 'desktop', provisioned: false},
     {current: 'desktop', otherType: 'mobile', provisioned: true},
   ]
+
+  let s
   variants.forEach(({current, provisioned, otherType}) => {
     let otherName
     switch (otherType) {
@@ -67,7 +76,12 @@ const load = () => {
     const n2 = provisioned ? otherType : currentTypeName
     const storyName = `${n1} adding ${n2}`
 
-    let s = storiesOf(`Provision/CodePage2`, module).addDecorator(PropProviders.CommonProvider())
+    s = storiesOf(`Provision/CodePage2`, module).addDecorator(
+      createPropProvider({
+        QRScan: QRScanProps,
+        ...PropProviders.Common(),
+      })
+    )
     const tabs = [null, ...CodePage2._validTabs(current, otherType)]
     tabs.forEach(
       tab =>
@@ -77,11 +91,29 @@ const load = () => {
     )
   })
 
-  storiesOf(`Provision/CodePage2`, module).add('QR Scan Not Authorized', () => (
+  s = s.add('EnterText with error', () => (
+    <CodePage2
+      {...derivedProps(true, 'desktop', 'computer', 'desktop')}
+      error="Invalid secret code. Please try again."
+      tabOverride={'enterText'}
+    />
+  ))
+  s = s.add('QR Scan Not Authorized', () => (
     <Box2 direction="vertical" style={{height: 200, width: 200}}>
       <QRScanNotAuthorized onOpenSettings={action('onOpenSettings')} />
     </Box2>
   ))
+
+  s = storiesOf(`Provision/CodePage2`, module)
+    .addDecorator(
+      createPropProvider({
+        QRScan: {...QRScanProps, waiting: true},
+        ...PropProviders.Common(),
+      })
+    )
+    .add('QR Scan waiting', () => (
+      <CodePage2 {...derivedProps(true, 'mobile', 'mobile', 'mobile')} tabOverride={'QR'} />
+    ))
 }
 
 export default load

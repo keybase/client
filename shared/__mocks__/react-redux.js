@@ -17,12 +17,23 @@ const selectorDelegatorFactory = (dispatch, options) => {
   return (state, ownProps) => {
     try {
       // call the factory under the display name to get the view props
-      const viewProps = state[name](ownProps)
-      // replaces what is usually the output of mergeProps
-      return viewProps
+      const mapper = state[name]
+      if (!mapper) {
+        throw new Error('No mock for react state')
+      }
+      if (typeof mapper === 'function') {
+        // replaces what is usually the output of mergeProps
+        return mapper(ownProps)
+      }
+      // allow just a static value
+      if (typeof mapper === 'object') {
+        return mapper
+      }
+      throw new Error('Unknown mapper type. Want a function or a plain object')
     } catch (err) {
       throw new Error(
-        `In calling propSelector for ${options.wrappedComponentName}:
+        `Missing mock react state for '${options.wrappedComponentName}':
+          Known keys: [${Object.keys(state).join(', ')}]
           Your propProvider is probably missing a key for this connected component. See shared/storybook/README.md for more details.
 
           ${err.toString()}`

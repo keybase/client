@@ -132,6 +132,7 @@ class CodePage2 extends React.Component<Props, State> {
           style={styles.backButton}
           textStyle={styles.backButtonText}
         />
+        {!!this.props.error && <ErrorBanner error={this.props.error} />}
         <Box2 direction="vertical" style={styles.container} fullWidth={true}>
           <Instructions {...this.props} />
           {content}
@@ -141,6 +142,14 @@ class CodePage2 extends React.Component<Props, State> {
     )
   }
 }
+
+const ErrorBanner = (props: {error: string}) => (
+  <Box2 direction="vertical" style={styles.errorContainer}>
+    <Text type="Body" style={styles.errorText}>
+      {props.error}
+    </Text>
+  </Box2>
+)
 
 const SwitchTab = (props: {|...Props, selected: Tab, onSelect: Tab => void|}) => {
   if (props.currentDeviceType === 'desktop' && props.otherDeviceType === 'desktop') {
@@ -217,7 +226,6 @@ class EnterText extends React.Component<Props, {code: string}> {
           style={styles.enterTextInput}
           value={this.state.code}
         />
-        {!!this.props.error && <Text type="BodyError">{this.props.error}</Text>}
         <WaitingButton
           fullWidth={true}
           type="PrimaryColoredBackground"
@@ -347,6 +355,17 @@ const styles = styleSheetCreate({
       maxWidth: 360,
     },
   }),
+  errorContainer: {
+    alignItems: 'center',
+    backgroundColor: globalColors.red,
+    marginTop: globalMargins.small,
+    padding: isMobile ? globalMargins.tiny : globalMargins.medium,
+    width: '100%',
+  },
+  errorText: {
+    color: globalColors.white,
+    textAlign: 'center',
+  },
   imageContainerOnLeft: {
     ...globalStyles.fillAbsolute,
     ...globalStyles.flexBoxColumn,

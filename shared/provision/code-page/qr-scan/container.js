@@ -4,6 +4,7 @@ import * as ProvisionGen from '../../../actions/provision-gen'
 import * as Constants from '../../../constants/provision'
 import CodePage2 from '.'
 import {
+  setDisplayName,
   withProps,
   compose,
   withStateHandlers,
@@ -38,6 +39,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('QRScan'),
   withStateHandlers({mountKey: 0}, {incrementMountKey: ({mountKey}) => () => ({mountKey: mountKey + 1})}),
   withProps(p => ({
     onOpenSettings: () => {
