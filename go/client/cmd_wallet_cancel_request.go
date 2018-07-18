@@ -24,7 +24,7 @@ func newCmdWalletCancelRequest(cl *libcmdline.CommandLine, g *libkb.GlobalContex
 		Usage:        "Cancel payment request",
 		ArgumentHelp: "<request id>",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(cmd, "request", c)
+			cl.ChooseCommand(cmd, "cancel-request", c)
 		},
 	}
 }
@@ -44,7 +44,7 @@ func (c *CmdWalletCancelRequest) Run() error {
 		return err
 	}
 
-	requestId, err := stellar1.KeybaseRequestIDFromString(c.ID)
+	requestID, err := stellar1.KeybaseRequestIDFromString(c.ID)
 	if err != nil {
 		return err
 	}

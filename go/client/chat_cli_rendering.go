@@ -564,15 +564,17 @@ func formatRequestPaymentMessage(g *libkb.GlobalContext, body chat1.MessageReque
 		view = fmt.Sprintf("requested %s", details.AmountDescription)
 	}
 
-	if details.Status == stellar1.RequestStatus_CANCELED {
-		view = "[canceled] " + view
-	}
-
 	if len(body.Note) > 0 {
 		view += "\n> " + body.Note
 	}
 
-	view += fmt.Sprintf("\n[Request ID: %s]", body.RequestID)
+	if details.Status == stellar1.RequestStatus_CANCELED {
+		// If canceled, add "[canceled]" prefix.
+		view = "[canceled] " + view
+	} else {
+		// If not, append request ID for cancel-request command.
+		view += fmt.Sprintf("\n[Request ID: %s]", body.RequestID)
+	}
 
 	return view
 }
