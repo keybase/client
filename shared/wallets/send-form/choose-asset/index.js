@@ -1,6 +1,14 @@
 // @flow
 import * as React from 'react'
-import {Box2, Divider, Icon, iconCastPlatformStyles, SectionList, Text} from '../../../common-adapters'
+import {
+  Box2,
+  ClickableBox,
+  Divider,
+  Icon,
+  iconCastPlatformStyles,
+  SectionList,
+  Text,
+} from '../../../common-adapters'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../../styles'
 import Header from '../header'
 
@@ -20,12 +28,13 @@ type Props = {
 }
 
 class ChooseAsset extends React.Component<Props> {
-  _renderItem = ({item}: {item: DisplayItem | OtherItem}) => {
+  _renderItem = ({item}: {item: (DisplayItem & {key: string}) | (OtherItem & {key: string})}) => {
     const onClick = () => this.props.onChoose(item)
     switch (item.type) {
       case 'display choice':
         return (
           <DisplayChoice
+            key={item.key}
             currencyCode={item.currencyCode}
             onClick={onClick}
             selected={item.selected}
@@ -35,6 +44,7 @@ class ChooseAsset extends React.Component<Props> {
       case 'other choice':
         return (
           <OtherChoice
+            key={item.key}
             code={item.code}
             disabledExplanation={item.disabledExplanation}
             issuer={item.issuer}
@@ -51,12 +61,16 @@ class ChooseAsset extends React.Component<Props> {
     switch (section.key) {
       case 'display choices':
         return (
-          <SectionHeader title="Lumens (XLM)" subtitle="Pick your display currency for this transaction:" />
+          <SectionHeader
+            key={section.key}
+            title="Lumens (XLM)"
+            subtitle="Pick your display currency for this transaction:"
+          />
         )
       case 'other choices':
-        return <SectionHeader title="Other assets" subtitle="" />
+        return <SectionHeader key={section.key} title="Other assets" subtitle="" />
       case 'divider':
-        return <Divider />
+        return <Divider key={section.key} />
     }
     return null
   }
@@ -113,29 +127,31 @@ type DisplayChoiceProps = {
   symbol: string,
 }
 const DisplayChoice = (props: DisplayChoiceProps) => (
-  <Box2
-    direction="horizontal"
-    style={styles.choiceContainer}
-    fullWidth={true}
-    gap="small"
-    gapStart={true}
-    gapEnd={true}
-  >
-    <Text type="Body" style={props.selected ? styles.blue : undefined}>
-      {props.symbol === 'XLM' ? 'Purely strictly ' : 'Lumens (XLM) displayed as '}
-      <Text type="BodyExtrabold" style={props.selected ? styles.blue : undefined}>
-        {props.currencyCode} ({props.symbol})
+  <ClickableBox hoverColor={globalColors.blue4} onClick={props.onClick}>
+    <Box2
+      direction="horizontal"
+      style={styles.choiceContainer}
+      fullWidth={true}
+      gap="small"
+      gapStart={true}
+      gapEnd={true}
+    >
+      <Text type="Body" style={props.selected ? styles.blue : undefined}>
+        {props.symbol === 'XLM' ? 'Purely strictly ' : 'Lumens (XLM) displayed as '}
+        <Text type="BodyExtrabold" style={props.selected ? styles.blue : undefined}>
+          {props.currencyCode} ({props.symbol})
+        </Text>
       </Text>
-    </Text>
-    <Box2 direction="horizontal" style={styles.spacer} />
-    {props.selected && (
-      <Icon
-        type="iconfont-check"
-        color={globalColors.blue}
-        style={iconCastPlatformStyles(styles.checkIcon)}
-      />
-    )}
-  </Box2>
+      <Box2 direction="horizontal" style={styles.spacer} />
+      {props.selected && (
+        <Icon
+          type="iconfont-check"
+          color={globalColors.blue}
+          style={iconCastPlatformStyles(styles.checkIcon)}
+        />
+      )}
+    </Box2>
+  </ClickableBox>
 )
 
 type OtherChoiceProps = {
@@ -146,41 +162,49 @@ type OtherChoiceProps = {
   selected: boolean,
 }
 const OtherChoice = (props: OtherChoiceProps) => (
-  <Box2
-    direction="horizontal"
-    style={styles.choiceContainer}
-    fullWidth={true}
-    gap="small"
-    gapStart={true}
-    gapEnd={true}
+  <ClickableBox
+    hoverColor={!props.disabledExplanation ? globalColors.blue4 : null}
+    onClick={!props.disabledExplanation ? props.onClick : null}
   >
-    <Box2 direction="vertical">
-      <Text
-        type="Body"
-        style={collapseStyles([props.selected && styles.blue, !!props.disabledExplanation && styles.grey])}
-      >
+    <Box2
+      direction="horizontal"
+      style={styles.choiceContainer}
+      fullWidth={true}
+      gap="small"
+      gapStart={true}
+      gapEnd={true}
+    >
+      <Box2 direction="vertical">
         <Text
-          type="BodyExtrabold"
+          type="Body"
           style={collapseStyles([props.selected && styles.blue, !!props.disabledExplanation && styles.grey])}
         >
-          {props.code}
-        </Text>/{props.issuer}
-      </Text>
-      {!!props.disabledExplanation && (
-        <Text type="BodySmall" style={styles.grey}>
-          {props.disabledExplanation}
+          <Text
+            type="BodyExtrabold"
+            style={collapseStyles([
+              props.selected && styles.blue,
+              !!props.disabledExplanation && styles.grey,
+            ])}
+          >
+            {props.code}
+          </Text>/{props.issuer}
         </Text>
+        {!!props.disabledExplanation && (
+          <Text type="BodySmall" style={styles.grey}>
+            {props.disabledExplanation}
+          </Text>
+        )}
+      </Box2>
+      <Box2 direction="horizontal" style={styles.spacer} />
+      {props.selected && (
+        <Icon
+          type="iconfont-check"
+          color={globalColors.blue}
+          style={iconCastPlatformStyles(styles.checkIcon)}
+        />
       )}
     </Box2>
-    <Box2 direction="horizontal" style={styles.spacer} />
-    {props.selected && (
-      <Icon
-        type="iconfont-check"
-        color={globalColors.blue}
-        style={iconCastPlatformStyles(styles.checkIcon)}
-      />
-    )}
-  </Box2>
+  </ClickableBox>
 )
 
 const styles = styleSheetCreate({

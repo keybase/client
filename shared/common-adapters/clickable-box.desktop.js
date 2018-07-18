@@ -56,6 +56,7 @@ class ClickableBox extends React.Component<Props & {children: any}, {mouseDown: 
             ...globalStyles.fillAbsolute,
             backgroundColor,
             borderRadius,
+            zIndex: -1,
           }}
         />
       )
