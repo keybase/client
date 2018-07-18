@@ -22,6 +22,12 @@ const defaultProps = {
   teamName: 'keybase',
 }
 
+const isPendingProps = {
+  canOpenInfoPanel: false,
+  onCancelPending: action('onCancelPending'),
+  onOpenFolder: null,
+}
+
 const load = () => {
   storiesOf('Chat/Header', module)
     .addDecorator(provider)
@@ -30,9 +36,7 @@ const load = () => {
       <UsernameHeader {...defaultProps} infoPanelOpen={true} />
     ))
     .add('Username Header muted', () => <UsernameHeader {...defaultProps} muted={true} />)
-    .add('Username Header with onCancelPending', () => (
-      <UsernameHeader {...defaultProps} onCancelPending={action('onCancelPending')} />
-    ))
+    .add('Username Header isPending', () => <UsernameHeader {...defaultProps} {...isPendingProps} />)
     .add('Channel Header for small team', () => <ChannelHeader {...defaultProps} />)
     .add('Channel Header for big team', () => <ChannelHeader {...defaultProps} smallTeam={false} />)
 }
