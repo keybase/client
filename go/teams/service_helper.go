@@ -194,6 +194,7 @@ func getUserProofs(ctx context.Context, g *libkb.GlobalContext, username string)
 	return eng.GetProofSet(), nil
 }
 
+// xxx unused
 func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string, role keybase1.TeamRole) (res keybase1.TeamAddMemberResult, err error) {
 	var inviteRequired bool
 	resolvedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username)
@@ -253,14 +254,14 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 }
 
 func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) (res keybase1.TeamAddMemberResult, err error) {
-	team, err := Load(ctx, g, keybase1.LoadTeamArg{
-		Name:        teamname,
-		ForceRepoll: true,
-	})
+	iRes, err := AddMembers(ctx, g, teamname, []string{username}, role)
 	if err != nil {
 		return res, err
 	}
-	return AddMemberByID(ctx, g, team.ID, username, role)
+	return keybase1.TeamAddMemberResult{
+		Invited: iRes[0].Invite,
+		// User: xxx,
+	}, nil
 }
 
 type AddMembersRes struct {
