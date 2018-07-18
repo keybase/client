@@ -43,6 +43,7 @@ const SmallTeamBox = isMobile
   ? Box
   : glamorous(Box)({
       '& .small-team-gear': {display: 'none'},
+      ':hover': {backgroundColor: globalColors.blue4},
       ':hover .small-team-gear': {display: 'unset'},
       ':hover .small-team-timestamp': {display: 'none'},
     })
@@ -108,7 +109,6 @@ const styles = styleSheetCreate({
   container: {flexShrink: 0, height: RowSizes.smallRowHeight},
   conversationRow: {
     ...globalStyles.flexBoxColumn,
-    backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blue5,
     flexGrow: 1,
     height: '100%',
     justifyContent: 'center',
@@ -127,7 +127,6 @@ const styles = styleSheetCreate({
   rowContainer: platformStyles({
     common: {
       ...globalStyles.flexBoxRow,
-      backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blue5,
       height: '100%',
     },
     isElectron: desktopStyles.clickable,
@@ -135,7 +134,6 @@ const styles = styleSheetCreate({
   rowContainerSelected: platformStyles({
     common: {
       ...globalStyles.flexBoxRow,
-      backgroundColor: globalColors.blue,
       height: '100%',
     },
     isElectron: desktopStyles.clickable,
