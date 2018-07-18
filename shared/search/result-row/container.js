@@ -31,7 +31,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     ownProps.disableIfInTeamName
   )
   return {
-    ...result.toObject(),
+    result,
     leftFollowingState,
     rightFollowingState,
     userIsInTeam: leftIsInTeam || rightIsInTeam,
@@ -39,8 +39,12 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
+  const result = stateProps.result.toObject()
   return {
-    ...stateProps,
+    ...result,
+    leftFollowingState: stateProps.leftFollowingState,
+    rightFollowingState: stateProps.rightFollowingState,
+    userIsInTeam: stateProps.userIsInTeam,
     ...ownProps,
   }
 }
