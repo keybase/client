@@ -1191,3 +1191,16 @@ func (e MDWrittenAfterRevokeError) Error() string {
 		"last valid revision would have been %d",
 		e.revBad, e.tlfID, e.verifyingKey, e.revLimit)
 }
+
+// RevGarbageCollectedError indicates that the user is trying to
+// access a revision that's already been garbage-collected.
+type RevGarbageCollectedError struct {
+	rev       kbfsmd.Revision
+	lastGCRev kbfsmd.Revision
+}
+
+// Error implements the Error interface for RevGarbageCollectedError.
+func (e RevGarbageCollectedError) Error() string {
+	return fmt.Sprintf("Requested revision %d has already been garbage "+
+		"collected (last GC'd rev=%d)", e.rev, e.lastGCRev)
+}

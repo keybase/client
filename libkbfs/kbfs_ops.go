@@ -458,6 +458,19 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
 	if rev, isRevBranch := fb.Branch.RevisionIfSpecified(); isRevBranch {
 		fs.log.CDebugf(ctx, "Getting archived revision %d for branch %s",
 			rev, fb.Branch)
+
+		// Make sure that rev hasn't been garbage-collected yet.
+		rmd, err := fs.getMDByHandle(ctx, h, FavoritesOpNoChange)
+		if err != nil {
+			return false, ImmutableRootMetadata{}, tlf.NullID, err
+		}
+		if rmd != (ImmutableRootMetadata{}) && rmd.IsReadable() {
+			if rev <= rmd.data.LastGCRevision {
+				return false, ImmutableRootMetadata{}, tlf.NullID,
+					RevGarbageCollectedError{rev, rmd.data.LastGCRevision}
+			}
+		}
+
 		md, err = getSingleMD(
 			ctx, fs.config, h.tlfID, kbfsmd.NullBranchID, rev,
 			kbfsmd.Merged, nil)

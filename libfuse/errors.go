@@ -74,6 +74,8 @@ func filterError(err error) error {
 		return errorWithErrno{err, syscall.EXDEV}
 	case *libkbfs.ErrDiskLimitTimeout:
 		return errorWithErrno{err, syscall.ENOSPC}
+	case libkbfs.RevGarbageCollectedError:
+		return errorWithErrno{err, syscall.ENOENT}
 	}
 	return err
 }
