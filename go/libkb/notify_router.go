@@ -562,8 +562,8 @@ func (n *NotifyRouter) HandleDeviceCloneNotification(newClones int) {
 	n.G().Log.Debug("+ Sending device clone notification")
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `DeviceClone` notification type
-		if n.getNotificationChannels(id).DeviceClone {
+		// If the connection wants the `Deviceclone` notification type
+		if n.getNotificationChannels(id).Deviceclone {
 			// In the background do...
 			go func() {
 				// A send of a `DeviceCloneCountChanged` RPC with the number of newly discovered clones
