@@ -96,12 +96,16 @@ class AvatarUpload extends React.Component<Props> {
               onZoom={this._onZoom}
               showsHorizontalScrollIndicator={false}
               showsVerticalScrollIndicator={false}
-              style={collapseStyles([
-                styles.zoomContainer,
-                {
-                  borderRadius: this.props.teamname ? 32 : AVATAR_SIZE,
-                },
-              ])}
+              style={
+                isIOS
+                  ? collapseStyles([
+                      styles.zoomContainer,
+                      {
+                        borderRadius: this.props.teamname ? 32 : AVATAR_SIZE,
+                      },
+                    ])
+                  : null
+              }
             >
               <NativeImage
                 resizeMode="cover"
