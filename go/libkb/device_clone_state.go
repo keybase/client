@@ -89,6 +89,9 @@ func GetDeviceCloneState(m MetaContext) (DeviceCloneState, error) {
 	p, _ := reader.GetStringAtPath(pPath)
 	s, _ := reader.GetStringAtPath(sPath)
 	c, _ := reader.GetIntAtPath(cPath)
+	if c < 1 {
+		c = 1
+	}
 	return DeviceCloneState{Prior: p, Stage: s, Clones: c}, err
 }
 

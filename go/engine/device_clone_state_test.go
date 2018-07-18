@@ -123,3 +123,16 @@ func TestDeviceCloneStateCloneDetected(t *testing.T) {
 	require.Equal(tc.T, before, 1, "there was one clone before the test run")
 	require.Equal(tc.T, after, 2, "there were two clones after the test run")
 }
+
+func TestDeviceCloneStateBeforeAndAfterOnFirstRun(t *testing.T) {
+	tc := SetupEngineTest(t, "DeviceCloneState")
+	defer tc.Cleanup()
+	_ = CreateAndSignupFakeUser(tc, "fu")
+	m := NewMetaContextForTest(tc)
+
+	before, after, err := libkb.UpdateDeviceCloneState(m)
+
+	require.NoError(tc.T, err)
+	require.Equal(tc.T, before, 1, "there was one clone before the test run")
+	require.Equal(tc.T, after, 1, "there was one clone after the test run")
+}
