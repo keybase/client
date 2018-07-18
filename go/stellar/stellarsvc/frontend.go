@@ -307,7 +307,7 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 	return page, nil
 }
 
-func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPendingPaymentsLocalArg) (payments []stellar1.PaymentLocal, err error) {
+func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPendingPaymentsLocalArg) (payments []stellar1.PaymentOrErrorLocal, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
 		RPCName:       "GetPendingPaymentsLocal",
 		Err:           &err,
@@ -318,26 +318,26 @@ func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPe
 		return nil, err
 	}
 
-	return nil, nil
+	pending, err := s.remoter.PendingPayments(ctx, arg.AccountID, 0)
+	if err != nil {
+		return nil, err
+	}
 
-	/*
-		srvPayments, err := s.remoter.RecentPayments(ctx, arg.AccountID, arg.Cursor, 0)
+	payments = make([]stellar1.PaymentOrErrorLocal, len(pending))
+	for i, p := range pending {
+		payment, err := s.transformPaymentSummary(ctx, arg.AccountID, p)
 		if err != nil {
-			return page, err
-		}
-		page.Payments = make([]stellar1.PaymentOrErrorLocal, len(srvPayments.Payments))
-		for i, p := range srvPayments.Payments {
-			page.Payments[i].Payment, err = s.transformPaymentSummary(ctx, arg.AccountID, p)
-			if err != nil {
-				s := err.Error()
-				page.Payments[i].Err = &s
-				page.Payments[i].Payment = nil // just to make sure
-			}
-		}
-		page.Cursor = srvPayments.Cursor
+			s := err.Error()
+			payments[i].Err = &s
+			payments[i].Payment = nil // just to make sure
 
-		return page, nil
-	*/
+		} else {
+			payments[i].Payment = payment
+			payments[i].Err = nil
+		}
+	}
+
+	return payments, nil
 }
 
 func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPaymentDetailsLocalArg) (payment stellar1.PaymentDetailsLocal, err error) {

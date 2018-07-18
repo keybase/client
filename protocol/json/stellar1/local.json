@@ -716,7 +716,7 @@
       ],
       "response": {
         "type": "array",
-        "items": "PaymentLocal"
+        "items": "PaymentOrErrorLocal"
       }
     },
     "getPaymentDetailsLocal": {

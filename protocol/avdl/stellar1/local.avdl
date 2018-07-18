@@ -93,7 +93,7 @@ protocol local {
   }
 
   PaymentsPageLocal getPaymentsLocal(int sessionID, AccountID accountID, union { null, PageCursor } cursor);
-  array<PaymentLocal> getPendingPaymentsLocal(int sessionID, AccountID accountID);
+  array<PaymentOrErrorLocal> getPendingPaymentsLocal(int sessionID, AccountID accountID);
 
   // Details of a payment.
   // Keep in sync with PaymentLocal.
