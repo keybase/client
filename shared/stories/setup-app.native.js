@@ -1,5 +1,4 @@
 // @flow
-import mock from './mock-react-redux'
 import {AppRegistry} from 'react-native'
 import {getStorybookUI} from '@storybook/react-native'
 import loadStories from './index.native'
