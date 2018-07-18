@@ -102,9 +102,17 @@ func rateMeterToStatus(m metrics.Meter) MeterStatus {
 	}
 }
 
+type DiskBlockCacheStartState int
+
+const (
+	DiskBlockCacheStartStateStarting DiskBlockCacheStartState = 0
+	DiskBlockCacheStartStateStarted                           = 1
+	DiskBlockCacheStartStateFailed                            = 2
+)
+
 // DiskBlockCacheStatus represents the status of the disk cache.
 type DiskBlockCacheStatus struct {
-	IsStarting      bool
+	StartState      DiskBlockCacheStartState
 	NumBlocks       uint64
 	BlockBytes      uint64
 	CurrByteLimit   uint64
@@ -346,8 +354,13 @@ func newDiskBlockCacheStandardForTest(config diskBlockCacheConfig,
 }
 
 // WaitUntilStarted waits until this cache has started.
-func (cache *DiskBlockCacheLocal) WaitUntilStarted() {
-	<-cache.startedCh
+func (cache *DiskBlockCacheLocal) WaitUntilStarted() error {
+	select {
+	case <-cache.startedCh:
+		return nil
+	case <-cache.startErrCh:
+		return DiskBlockCacheError{"error starting channel"}
+	}
 }
 
 func (cache *DiskBlockCacheLocal) syncBlockCountsFromDb() error {
@@ -465,9 +478,14 @@ func (cache *DiskBlockCacheLocal) encodeBlockCacheEntry(buf []byte,
 func (cache *DiskBlockCacheLocal) checkCacheLocked(method string) error {
 	select {
 	case <-cache.startedCh:
+	case <-cache.startErrCh:
+		// The cache will never be started. No need for a stack here since this
+		// could happen anywhere.
+		return DiskCacheStartingError{method}
 	default:
-		// If the cache hasn't started yet, return an error.
-		return errors.WithStack(DiskCacheStartingError{method})
+		// If the cache hasn't started yet, return an error.  No need for a
+		// stack here since this could happen anywhere.
+		return DiskCacheStartingError{method}
 	}
 	// shutdownCh has to be checked under lock, otherwise we can race.
 	select {
@@ -934,8 +952,10 @@ func (cache *DiskBlockCacheLocal) Status(
 	}
 	select {
 	case <-cache.startedCh:
+	case <-cache.startErrCh:
+		return map[string]DiskBlockCacheStatus{name: {StartState: DiskBlockCacheStartStateFailed}}
 	default:
-		return map[string]DiskBlockCacheStatus{name: {IsStarting: true}}
+		return map[string]DiskBlockCacheStatus{name: {StartState: DiskBlockCacheStartStateStarting}}
 	}
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
@@ -943,6 +963,7 @@ func (cache *DiskBlockCacheLocal) Status(
 	// we don't have easy access to the UID here, so pass in a dummy.
 	return map[string]DiskBlockCacheStatus{
 		name: {
+			StartState:      DiskBlockCacheStartStateStarted,
 			NumBlocks:       uint64(cache.numBlocks),
 			BlockBytes:      cache.currBytes,
 			CurrByteLimit:   maxLimit,

@@ -60,8 +60,14 @@ func newDiskBlockCacheForTest(config *testDiskBlockCacheConfig,
 	if err != nil {
 		return nil, err
 	}
-	workingSetCache.WaitUntilStarted()
-	syncCache.WaitUntilStarted()
+	err = workingSetCache.WaitUntilStarted()
+	if err != nil {
+		return nil, err
+	}
+	err = syncCache.WaitUntilStarted()
+	if err != nil {
+		return nil, err
+	}
 	params := backpressureDiskLimiterParams{
 		minThreshold:      0.5,
 		maxThreshold:      0.95,
