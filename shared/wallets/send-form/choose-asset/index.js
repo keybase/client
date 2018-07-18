@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box2, SectionList, Text} from '../../../common-adapters'
+import {Box2, Divider, SectionList, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, styleSheetCreate} from '../../../styles'
 import Header from '../header'
 
@@ -49,6 +49,8 @@ class ChooseAsset extends React.Component<Props> {
         )
       case 'other choices':
         return <SectionHeader title="Other assets" subtitle="" />
+      case 'divider':
+        return <Divider />
     }
     return null
   }
@@ -62,6 +64,7 @@ class ChooseAsset extends React.Component<Props> {
       ...(this.props.otherChoices.length === 0
         ? []
         : [
+            {data: [], key: 'divider'},
             {
               data: this.props.otherChoices.map(oc => ({
                 ...oc,
@@ -113,7 +116,7 @@ const DisplayChoice = (props: DisplayChoiceProps) => (
     gapEnd={true}
   >
     <Text type="Body">
-      Lumens (XLM) displayed as{' '}
+      {props.symbol === 'XLM' ? 'Purely strictly ' : 'Lumens (XLM) displayed as '}
       <Text type="BodyExtrabold">
         {props.currencyCode} ({props.symbol})
       </Text>
@@ -159,6 +162,8 @@ const styles = styleSheetCreate({
   sectionHeaderContainer: {
     alignItems: 'flex-start',
     backgroundColor: globalColors.white,
+    height: 40,
+    justifyContent: 'center',
     paddingLeft: globalMargins.small,
     paddingRight: globalMargins.small,
   },

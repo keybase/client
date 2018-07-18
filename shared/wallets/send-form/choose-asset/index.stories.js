@@ -5,6 +5,7 @@ import ChooseAsset from '.'
 
 const props = {
   displayChoices: [
+    {currencyCode: 'Lumens', symbol: 'XLM', type: 'display choice'},
     {currencyCode: 'USD', symbol: '$', type: 'display choice'},
     {currencyCode: 'EUR', symbol: '€', type: 'display choice'},
     {currencyCode: 'GBP', symbol: '£', type: 'display choice'},
