@@ -49,7 +49,7 @@ include a different license, that license applies instead.
 
 We check all git commits with pre-commit hooks generated via
 [pre-commit.com](http://pre-commit.com) pre-commit hooks.
-To enable use of these pre-commit hooks:
+To enable the use of these pre-commit hooks:
 
 * [Install](http://pre-commit.com/#install) the `pre-commit` utility. For some common cases:
   * `pip install pre-commit`
@@ -82,7 +82,7 @@ The U.S. Government Department of Commerce, Bureau of Industry and Security
 (BIS), has classified this software as Export Commodity Control Number (ECCN)
 5D002.C.1, which includes information security software using or performing
 cryptographic functions with asymmetric algorithms. The form and manner of this
-distribution makes it eligible for export under the License Exception ENC
+distribution make it eligible for export under the License Exception ENC
 Technology Software Unrestricted (TSU) exception (see the BIS Export
 Administration Regulations, Section 740.13) for both object code and source
 code.
