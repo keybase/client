@@ -190,13 +190,11 @@ func TestChatSrvSBS(t *testing.T) {
 					// turn depends on the size of the team, in a way that we
 					// might tune in the future. Allow that specific failure.
 
-					// TODO re-enable this check for tests to pass once
-					// pairwise macs are turned on
-					//if ephemeralLifetime != nil && msg.IsError() {
-					//	require.Equal(t, chat1.MessageUnboxedErrorType_PAIRWISE_MISSING, msg.Error().ErrType)
-					//} else {
-					require.True(t, msg.IsValid())
-					//}
+					if ephemeralLifetime != nil && msg.IsError() {
+						require.Equal(t, chat1.MessageUnboxedErrorType_PAIRWISE_MISSING, msg.Error().ErrType)
+					} else {
+						require.True(t, msg.IsValid())
+					}
 				}
 			}
 

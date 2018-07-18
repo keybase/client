@@ -886,9 +886,11 @@ func (u *CachedUPAKLoader) Batcher(ctx context.Context, getArg func(int) *LoadUs
 			for awi := range args {
 				arg := awi.arg
 				_, _, err := u.loadWithInfo(arg, nil, func(u *keybase1.UserPlusKeysV2AllIncarnations) error {
-					mut.Lock()
-					processResult(awi.i, u)
-					mut.Unlock()
+					if processResult != nil {
+						mut.Lock()
+						processResult(awi.i, u)
+						mut.Unlock()
+					}
 					return nil
 				}, false)
 				if err != nil {

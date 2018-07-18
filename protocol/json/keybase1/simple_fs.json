@@ -417,6 +417,36 @@
         }
       ],
       "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSQuotaUsage",
+      "fields": [
+        {
+          "type": "int64",
+          "name": "usageBytes"
+        },
+        {
+          "type": "int64",
+          "name": "archiveBytes"
+        },
+        {
+          "type": "int64",
+          "name": "limitBytes"
+        },
+        {
+          "type": "int64",
+          "name": "gitUsageBytes"
+        },
+        {
+          "type": "int64",
+          "name": "gitArchiveBytes"
+        },
+        {
+          "type": "int64",
+          "name": "gitLimitBytes"
+        }
+      ]
     }
   ],
   "messages": {
@@ -755,6 +785,11 @@
         }
       ],
       "response": null
+    },
+    "simpleFSGetUserQuotaUsage": {
+      "request": [],
+      "response": "SimpleFSQuotaUsage",
+      "doc": "simpleFSGetUserQuotaUsage returns the quota usage for the logged-in\n   user.  It results in an RPC to the server, and any usage includes\n   local journal usage as well."
     }
   },
   "namespace": "keybase.1"

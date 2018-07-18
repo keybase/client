@@ -7,6 +7,7 @@ import * as RouteTreeConstants from '../constants/route-tree'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as GregorGen from '../actions/gregor-gen'
+import * as WaitingGen from '../actions/waiting-gen'
 import {getPath} from '../route-tree'
 import type {TypedState} from '../constants/reducer'
 import * as Entity from '../constants/types/entities'
@@ -94,6 +95,9 @@ const actionTransformMap = {
     payload: {conversationIDKey: a.payload.conversationIDKey},
     type: a.type,
   }),
+
+  [WaitingGen.incrementWaiting]: fullOutput,
+  [WaitingGen.decrementWaiting]: fullOutput,
 }
 
 const transformActionForLog = (action: any, state: TypedState) =>

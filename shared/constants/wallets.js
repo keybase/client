@@ -21,6 +21,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   accountName: '',
   accountNameError: '',
   accountNameValidationState: 'none',
+  exportedSecretKey: new HiddenString(''),
   linkExistingAccountError: '',
   secretKey: new HiddenString(''),
   secretKeyError: '',
@@ -93,10 +94,6 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   if (!w.payment) {
     return makePayment({error: w.err})
   }
-  if (w.payment.statusSimplified === RPCTypes.localPaymentStatus.error) {
-    // TODO make payment w/ error info when view is finished
-    return null
-  }
   const p = w.payment
   return makePayment({
     amountDescription: p.amountDescription,
@@ -163,6 +160,8 @@ const getFederatedAddress = (state: TypedState, accountID?: Types.AccountID) => 
   return username && account.isDefault ? `${username}*keybase.io` : ''
 }
 
+const getSecretKey = (state: TypedState, accountID: Types.AccountID) => state.wallets.exportedSecretKey
+
 export {
   accountResultToAccount,
   assetsResultToAssets,
@@ -172,6 +171,7 @@ export {
   getFederatedAddress,
   getPayment,
   getPayments,
+  getSecretKey,
   getSelectedAccount,
   linkExistingWaitingKey,
   loadEverythingWaitingKey,

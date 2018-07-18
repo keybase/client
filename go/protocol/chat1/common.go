@@ -234,6 +234,7 @@ const (
 	MessageType_DELETEHISTORY      MessageType = 12
 	MessageType_REACTION           MessageType = 13
 	MessageType_SENDPAYMENT        MessageType = 14
+	MessageType_REQUESTPAYMENT     MessageType = 15
 )
 
 func (o MessageType) DeepCopy() MessageType { return o }
@@ -254,6 +255,7 @@ var MessageTypeMap = map[string]MessageType{
 	"DELETEHISTORY":      12,
 	"REACTION":           13,
 	"SENDPAYMENT":        14,
+	"REQUESTPAYMENT":     15,
 }
 
 var MessageTypeRevMap = map[MessageType]string{
@@ -272,6 +274,7 @@ var MessageTypeRevMap = map[MessageType]string{
 	12: "DELETEHISTORY",
 	13: "REACTION",
 	14: "SENDPAYMENT",
+	15: "REQUESTPAYMENT",
 }
 
 type TopicType int
@@ -1282,6 +1285,7 @@ type MessageClientHeaderVerified struct {
 	OutboxInfo        *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 	EphemeralMetadata *MsgEphemeralMetadata    `codec:"em,omitempty" json:"em,omitempty"`
 	Rtime             gregor1.Time             `codec:"rt" json:"rt"`
+	HasPairwiseMacs   bool                     `codec:"pm" json:"pm"`
 }
 
 func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
@@ -1338,7 +1342,8 @@ func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.EphemeralMetadata),
-		Rtime: o.Rtime.DeepCopy(),
+		Rtime:           o.Rtime.DeepCopy(),
+		HasPairwiseMacs: o.HasPairwiseMacs,
 	}
 }
 

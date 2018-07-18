@@ -2,7 +2,10 @@ package attachments
 
 import (
 	"bufio"
+	"bytes"
 	"io"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 
@@ -16,6 +19,25 @@ type AssetSource interface {
 	Basename() string
 	Open(sessionID int, cli *keybase1.StreamUiClient) (ReadResetter, error)
 	Close() error
+}
+
+type HTTPSource struct {
+	*BufferSource
+}
+
+func NewHTTPSource(url string) (*HTTPSource, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	return &HTTPSource{
+		BufferSource: newBufferSource(bytes.NewBuffer(body), "http"),
+	}, nil
 }
 
 type StreamSource struct {

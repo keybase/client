@@ -5,7 +5,7 @@ import I from 'immutable'
 import moment from 'moment'
 import {Box2, Text} from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/chat2'
-import {storiesOf, action, createPropProvider} from '../../../../stories/storybook'
+import {storiesOf, action, createPropProvider, Rnd} from '../../../../stories/storybook'
 import * as PropProviders from '../../../../stories/prop-providers'
 import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
@@ -38,18 +38,6 @@ const props = {
   listScrollDownCounter: 0,
   onFocusInput: action('onFocusInput'),
   onToggleInfoPanel: action('onToggleInfoPanel'),
-}
-
-class Rnd {
-  _seed = 0
-  constructor(seed) {
-    this._seed = seed
-  }
-
-  next = () => {
-    this._seed = (this._seed * 16807) % 2147483647
-    return this._seed
-  }
 }
 
 // prettier-ignore

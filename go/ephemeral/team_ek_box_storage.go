@@ -34,7 +34,7 @@ func NewTeamEKBoxStorage(g *libkb.GlobalContext) *TeamEKBoxStorage {
 }
 
 func (s *TeamEKBoxStorage) dbKey(ctx context.Context, teamID keybase1.TeamID) (dbKey libkb.DbKey, err error) {
-	uv, err := getCurrentUserUV(ctx, s.G())
+	uv, err := s.G().GetMeUV(ctx)
 	if err != nil {
 		return dbKey, err
 	}

@@ -30,6 +30,11 @@ protocol common {
     ERROR_PERMANENT_4
   }
 
+  enum RequestStatus {
+    OK_0,
+    CANCELED_1
+  }
+
   enum PaymentStrategy {
     NONE_0,
     DIRECT_1,

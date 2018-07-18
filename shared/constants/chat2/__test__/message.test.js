@@ -28,6 +28,7 @@ const cases = [
   {in: RPCChatTypes.commonMessageType.deletehistory, out: []},
   {in: RPCChatTypes.commonMessageType.reaction, out: []},
   {in: RPCChatTypes.commonMessageType.sendpayment, out: []},
+  {in: RPCChatTypes.commonMessageType.requestpayment, out: []},
 ]
 
 describe('serviceMessageTypeToMessageTypes', () => {

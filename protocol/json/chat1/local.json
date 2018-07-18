@@ -555,6 +555,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageRequestPayment",
+      "fields": [
+        {
+          "type": "string",
+          "name": "requestID"
+        },
+        {
+          "type": "string",
+          "name": "note"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageBody",
       "switch": {
@@ -652,6 +666,13 @@
             "def": false
           },
           "body": "MessageSendPayment"
+        },
+        {
+          "label": {
+            "name": "REQUESTPAYMENT",
+            "def": false
+          },
+          "body": "MessageRequestPayment"
         }
       ]
     },
@@ -2244,6 +2265,38 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "PreviewLocationTyp",
+      "symbols": [
+        "URL_0",
+        "FILE_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "PreviewLocation",
+      "switch": {
+        "type": "PreviewLocationTyp",
+        "name": "ltyp"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "URL",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "FILE",
+            "def": false
+          },
+          "body": "string"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "MakePreviewRes",
       "fields": [
@@ -2254,9 +2307,9 @@
         {
           "type": [
             null,
-            "string"
+            "PreviewLocation"
           ],
-          "name": "filename"
+          "name": "location"
         },
         {
           "type": [
@@ -3327,8 +3380,8 @@
           "type": "LocalFileSource"
         },
         {
-          "name": "outputDir",
-          "type": "string"
+          "name": "outboxID",
+          "type": "OutboxID"
         }
       ],
       "response": "MakePreviewRes"

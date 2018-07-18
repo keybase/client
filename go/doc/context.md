@@ -106,7 +106,7 @@ Status: **completed**
 - Continue with `stellar/` and `ephemeral/` to replace those functions that take
 both `context.Context` and `*GlobalContext` to take only `libkb.MetaContext`.
 
-Status: **In Progress**
+Status: **half-done**
 
 ## Step 3: Retire LoginState
 
@@ -123,14 +123,9 @@ We don't need to do this all at once, so we proceed engine-by-engine:
 1. `engine.LoginWithPaperKey` [#11676](https://github.com/keybase/client/pull/11676)
 1. `engine.LoginProvisionedDevice` [#11693](https://github.com/keybase/client/pull/11693)
 1. `engine.Login` [#11721](https://github.com/keybase/client/pull/11721) (and others)
-1. `engine.LoginLoad` --- todo
-1. `engine.LoginProvision` --- todo
-1. `engine.LoginOffline` --- todo
-1. `engine.LoginOneshot` --- todo
+1. `engine.LoginLoad` --- done
+1. `engine.LoginProvision` --- done
+1. `engine.LoginOffline` --- done
+1. `engine.LoginOneshot` --- done
 
-
-
-
-
-
-
+Status: **completed**

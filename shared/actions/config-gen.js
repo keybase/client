@@ -38,6 +38,7 @@ export const pushLoaded = 'config:pushLoaded'
 export const readyForBootstrap = 'config:readyForBootstrap'
 export const retryBootstrap = 'config:retryBootstrap'
 export const setInitialState = 'config:setInitialState'
+export const setNotifySound = 'config:setNotifySound'
 export const setOpenAtLogin = 'config:setOpenAtLogin'
 export const setStartedDueToPush = 'config:setStartedDueToPush'
 export const showMain = 'config:showMain'
@@ -82,6 +83,10 @@ type _PushLoadedPayload = $ReadOnly<{|pushLoaded: boolean|}>
 type _ReadyForBootstrapPayload = void
 type _RetryBootstrapPayload = void
 type _SetInitialStatePayload = $ReadOnly<{|initialState: ?Types.InitialState|}>
+type _SetNotifySoundPayload = $ReadOnly<{|
+  sound: boolean,
+  writeFile: boolean,
+|}>
 type _SetOpenAtLoginPayload = $ReadOnly<{|
   open: boolean,
   writeFile: boolean,
@@ -126,6 +131,7 @@ export const createPushLoaded = (payload: _PushLoadedPayload) => ({error: false,
 export const createReadyForBootstrap = (payload: _ReadyForBootstrapPayload) => ({error: false, payload, type: readyForBootstrap})
 export const createRetryBootstrap = (payload: _RetryBootstrapPayload) => ({error: false, payload, type: retryBootstrap})
 export const createSetInitialState = (payload: _SetInitialStatePayload) => ({error: false, payload, type: setInitialState})
+export const createSetNotifySound = (payload: _SetNotifySoundPayload) => ({error: false, payload, type: setNotifySound})
 export const createSetOpenAtLogin = (payload: _SetOpenAtLoginPayload) => ({error: false, payload, type: setOpenAtLogin})
 export const createSetStartedDueToPush = (payload: _SetStartedDueToPushPayload) => ({error: false, payload, type: setStartedDueToPush})
 export const createShowMain = (payload: _ShowMainPayload) => ({error: false, payload, type: showMain})
@@ -161,6 +167,7 @@ export type PushLoadedPayload = $Call<typeof createPushLoaded, _PushLoadedPayloa
 export type ReadyForBootstrapPayload = $Call<typeof createReadyForBootstrap, _ReadyForBootstrapPayload>
 export type RetryBootstrapPayload = $Call<typeof createRetryBootstrap, _RetryBootstrapPayload>
 export type SetInitialStatePayload = $Call<typeof createSetInitialState, _SetInitialStatePayload>
+export type SetNotifySoundPayload = $Call<typeof createSetNotifySound, _SetNotifySoundPayload>
 export type SetOpenAtLoginPayload = $Call<typeof createSetOpenAtLogin, _SetOpenAtLoginPayload>
 export type SetStartedDueToPushPayload = $Call<typeof createSetStartedDueToPush, _SetStartedDueToPushPayload>
 export type ShowMainPayload = $Call<typeof createShowMain, _ShowMainPayload>
@@ -198,6 +205,7 @@ export type Actions =
   | ReadyForBootstrapPayload
   | RetryBootstrapPayload
   | SetInitialStatePayload
+  | SetNotifySoundPayload
   | SetOpenAtLoginPayload
   | SetStartedDueToPushPayload
   | ShowMainPayload

@@ -59,6 +59,9 @@ func checkMessageBoxedLength(msg chat1.MessageBoxed) error {
 	case chat1.MessageType_SENDPAYMENT:
 		return boxedFieldLengthChecker("SENDPAYMENT message", len(msg.BodyCiphertext.E),
 			BoxedSendPaymentMessageBodyMaxLength)
+	case chat1.MessageType_REQUESTPAYMENT:
+		return boxedFieldLengthChecker("REQUESTPAYMENT message", len(msg.BodyCiphertext.E),
+			BoxedRequestPaymentMessageBodyMaxLength)
 	default:
 		return fmt.Errorf("unknown message type: %v", msg.GetMessageType())
 	}

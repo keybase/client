@@ -429,6 +429,74 @@
     },
     {
       "type": "record",
+      "name": "RequestDetailsLocal",
+      "fields": [
+        {
+          "type": "KeybaseRequestID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "fromAssertion"
+        },
+        {
+          "type": "boolean",
+          "name": "fromCurrentUser"
+        },
+        {
+          "type": "ParticipantType",
+          "name": "toUserType"
+        },
+        {
+          "type": "string",
+          "name": "toAssertion"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "asset"
+        },
+        {
+          "type": [
+            null,
+            "OutsideCurrencyCode"
+          ],
+          "name": "currency"
+        },
+        {
+          "type": "string",
+          "name": "amountDescription"
+        },
+        {
+          "type": "string",
+          "name": "amountStellar"
+        },
+        {
+          "type": "string",
+          "name": "amountStellarDescription"
+        },
+        {
+          "type": "boolean",
+          "name": "completed"
+        },
+        {
+          "type": "KeybaseTransactionID",
+          "name": "fundingKbTxID"
+        },
+        {
+          "type": "RequestStatus",
+          "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SendResultCLILocal",
       "fields": [
         {
@@ -973,6 +1041,24 @@
       ],
       "response": "SendPaymentResLocal"
     },
+    "getRequestDetailsLocal": {
+      "request": [
+        {
+          "name": "reqID",
+          "type": "KeybaseRequestID"
+        }
+      ],
+      "response": "RequestDetailsLocal"
+    },
+    "cancelRequestLocal": {
+      "request": [
+        {
+          "name": "reqID",
+          "type": "KeybaseRequestID"
+        }
+      ],
+      "response": null
+    },
     "balancesLocal": {
       "request": [
         {
@@ -1154,6 +1240,37 @@
         }
       ],
       "response": "string"
+    },
+    "makeRequestCLILocal": {
+      "request": [
+        {
+          "name": "recipient",
+          "type": "string"
+        },
+        {
+          "name": "asset",
+          "type": [
+            null,
+            "Asset"
+          ]
+        },
+        {
+          "name": "currency",
+          "type": [
+            null,
+            "OutsideCurrencyCode"
+          ]
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        },
+        {
+          "name": "note",
+          "type": "string"
+        }
+      ],
+      "response": "KeybaseRequestID"
     }
   },
   "namespace": "stellar.1"

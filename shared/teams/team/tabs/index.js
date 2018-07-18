@@ -2,8 +2,16 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
-import {Badge, Box, Icon, ProgressIndicator, Tabs, Text} from '../../../common-adapters'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
+import {
+  iconCastPlatformStyles,
+  Badge,
+  Box,
+  Icon,
+  ProgressIndicator,
+  Tabs,
+  Text,
+} from '../../../common-adapters'
+import {globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../styles'
 
 type TeamTabsProps = {
   admin: boolean,
@@ -21,23 +29,12 @@ type TeamTabsProps = {
 }
 
 const TeamTabs = (props: TeamTabsProps) => {
-  const {loading = false} = props
-  let membersLabel = 'MEMBERS'
-  membersLabel += !loading && props.memberCount !== 0 ? ` (${props.memberCount})` : ''
   const tabs = [
-    <Box key="members" style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-      <Text
-        key="members"
-        type="BodySmallSemibold"
-        style={{
-          color: globalColors.black_75,
-        }}
-      >
-        {membersLabel}
+    <Box key="members" style={styles.tabTextContainer}>
+      <Text key="members" type="BodySmallSemibold" style={styles.tabText}>
+        {`MEMBERS (${props.memberCount})`}
       </Text>
-      {!!props.resetUserCount && (
-        <Badge badgeNumber={props.resetUserCount} badgeStyle={{marginTop: 1, marginLeft: 2}} />
-      )}
+      {!!props.resetUserCount && <Badge badgeNumber={props.resetUserCount} badgeStyle={styles.badge} />}
     </Box>,
   ]
 
@@ -51,60 +48,36 @@ const TeamTabs = (props: TeamTabsProps) => {
   }
 
   if (props.admin) {
-    let invitesLabel = 'INVITES'
-    invitesLabel +=
-      !loading && props.numInvites + props.numRequests !== 0
-        ? ` (${props.numInvites + props.numRequests})`
-        : ''
     tabs.push(
-      <Box key="invites" style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-        <Text
-          type="BodySmallSemibold"
-          style={{
-            color: globalColors.black_75,
-          }}
-        >
-          {invitesLabel}
+      <Box key="invites" style={styles.tabTextContainer}>
+        <Text type="BodySmallSemibold" style={styles.tabText}>
+          {`INVITES (${props.numInvites + props.numRequests})`}
         </Text>
-        {!!requestsBadge && <Badge badgeNumber={requestsBadge} badgeStyle={{marginTop: 1, marginLeft: 2}} />}
+        {!!requestsBadge && <Badge badgeNumber={requestsBadge} badgeStyle={styles.badge} />}
       </Box>
     )
   }
 
-  let subteamsLabel = 'SUBTEAMS'
-  subteamsLabel += !loading && props.numSubteams !== 0 ? ` (${props.numSubteams})` : ''
   if (props.numSubteams > 0 || props.yourOperations.manageSubteams) {
     tabs.push(
-      <Text
-        key="subteams"
-        type="BodySmallSemibold"
-        style={{
-          color: globalColors.black_75,
-        }}
-      >
-        {subteamsLabel}
+      <Text key="subteams" type="BodySmallSemibold" style={styles.tabText}>
+        {`SUBTEAMS (${props.numSubteams})`}
       </Text>
     )
   }
 
   tabs.push(
     isMobile ? (
-      <Icon key="settings" type="iconfont-nav-settings" />
+      <Icon key="settings" type="iconfont-nav-settings" style={iconCastPlatformStyles(styles.icon)} />
     ) : (
-      <Text
-        key="settings"
-        type="BodySmallSemibold"
-        style={{
-          color: globalColors.black_75,
-        }}
-      >
+      <Text key="settings" type="BodySmallSemibold" style={styles.tabText}>
         SETTINGS
       </Text>
     )
   )
 
-  if (loading) {
-    tabs.push(<ProgressIndicator style={{alignSelf: 'center', width: 17, height: 17}} />)
+  if (!isMobile && props.loading) {
+    tabs.push(<ProgressIndicator style={styles.progressIndicator} />)
   }
 
   const onSelect = (tab: any) => {
@@ -121,20 +94,51 @@ const TeamTabs = (props: TeamTabsProps) => {
   const selected = tabs.find(tab => tab.key === props.selectedTab)
   return (
     <Tabs
+      clickableBoxStyle={styles.clickableBox}
       tabs={tabs}
       selected={selected}
       onSelect={onSelect}
-      style={{flexBasis: '100%', backgroundColor: globalColors.white}}
-      tabStyle={
-        isMobile
-          ? {
-              paddingLeft: globalMargins.tiny,
-              paddingRight: globalMargins.tiny,
-            }
-          : {}
-      }
+      style={styles.tabContainer}
+      tabStyle={styles.tab}
     />
   )
 }
+
+const styles = styleSheetCreate({
+  badge: {
+    marginLeft: 2,
+    marginTop: 1,
+  },
+  clickableBox: platformStyles({
+    isMobile: {
+      flexGrow: 1,
+    },
+  }),
+  icon: {
+    alignSelf: 'center',
+  },
+  progressIndicator: {
+    height: 17,
+    width: 17,
+  },
+  tab: platformStyles({
+    isMobile: {
+      paddingLeft: globalMargins.tiny,
+      paddingRight: globalMargins.tiny,
+    },
+  }),
+  tabContainer: {
+    backgroundColor: globalColors.white,
+    flexBasis: '100%',
+    marginTop: globalMargins.small,
+  },
+  tabText: {
+    color: globalColors.black_75,
+  },
+  tabTextContainer: {
+    alignItems: 'center',
+    flex: 1,
+  },
+})
 
 export default TeamTabs

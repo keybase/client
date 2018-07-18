@@ -101,6 +101,9 @@ func checkMessagePlaintextLength(msg chat1.MessagePlaintext) error {
 			return errors.New(topicNameRes.String())
 		}
 		return nil
+	case chat1.MessageType_REQUESTPAYMENT:
+		return plaintextFieldLengthChecker("request payment note",
+			len(msg.MessageBody.Requestpayment().Note), PaymentTextMaxLength)
 	default:
 		typ, err := msg.MessageBody.MessageType()
 		if err != nil {

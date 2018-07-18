@@ -237,6 +237,7 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 			IsEphemeralExpired: mv.IsEphemeralExpired(time.Now()),
 			ETime:              mv.Etime(),
 			Reactions:          mv.Reactions,
+			HasPairwiseMacs:    mv.HasPairwiseMacs(),
 		}
 
 		msg.Content = c.convertMsgBody(mv.MessageBody)
@@ -392,8 +393,9 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 
 	// check for preview
 	if len(opts.Preview) > 0 {
+		loc := chat1.NewPreviewLocationWithFile(opts.Preview)
 		arg.Preview = &chat1.MakePreviewRes{
-			Filename: &opts.Preview,
+			Location: &loc,
 		}
 	}
 
@@ -475,8 +477,9 @@ func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOp
 
 	// check for preview
 	if len(opts.Preview) > 0 {
+		loc := chat1.NewPreviewLocationWithFile(opts.Preview)
 		arg.Preview = &chat1.MakePreviewRes{
-			Filename: &opts.Preview,
+			Location: &loc,
 		}
 	}
 
@@ -938,6 +941,7 @@ func (c *chatServiceHandler) convertMsgBody(mb chat1.MessageBody) MsgContent {
 		Metadata:           mb.Metadata__,
 		AttachmentUploaded: mb.Attachmentuploaded__,
 		SendPayment:        mb.Sendpayment__,
+		RequestPayment:     mb.Requestpayment__,
 	}
 }
 
@@ -1060,6 +1064,7 @@ type MsgContent struct {
 	Metadata           *chat1.MessageConversationMetadata `json:"metadata,omitempty"`
 	AttachmentUploaded *chat1.MessageAttachmentUploaded   `json:"attachment_uploaded,omitempty"`
 	SendPayment        *chat1.MessageSendPayment          `json:"send_payment,omitempty"`
+	RequestPayment     *chat1.MessageRequestPayment       `json:"request_payment,omitempty"`
 }
 
 // MsgSummary is used to display JSON details for a message.
@@ -1079,6 +1084,7 @@ type MsgSummary struct {
 	IsEphemeralExpired bool                           `json:"is_ephemeral_expired,omitempty"`
 	ETime              gregor1.Time                   `json:"etime,omitempty"`
 	Reactions          chat1.ReactionMap              `json:"reactions,omitempty"`
+	HasPairwiseMacs    bool                           `json:"has_pairwise_macs,omitempty"`
 }
 
 // Message contains either a MsgSummary or an Error.  Used for JSON output.

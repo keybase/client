@@ -89,12 +89,12 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
   }
 
   componentDidUpdate(prevProps: UploadProps) {
-    if (!prevProps.files && this.props.files) {
+    if (!prevProps.showing && this.props.showing) {
       this._enter()
       return
     }
 
-    if (prevProps.files && !this.props.files) {
+    if (prevProps.showing && !this.props.showing) {
       this._exit()
     }
   }
@@ -118,11 +118,9 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
               />
             </Box>
             <Box style={stylesBox}>
-              <Text
-                key="files"
-                type="BodySmallSemibold"
-                style={stylesText}
-              >{`Encrypting and uploading ${files} files...`}</Text>
+              <Text key="files" type="BodySmallSemibold" style={stylesText}>
+                {files ? `Encrypting and uploading ${files} files...` : 'Done!'}
+              </Text>
               {!!(timeLeft && timeLeft.length) && (
                 <Text key="left" type="BodyTiny" style={stylesText}>{`${timeLeft} left`}</Text>
               )}

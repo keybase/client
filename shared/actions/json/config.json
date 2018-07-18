@@ -86,6 +86,10 @@
       "open": "boolean",
       "writeFile": "boolean"
     },
+    "setNotifySound": {
+      "sound": "boolean",
+      "writeFile": "boolean"
+    },
     "debugDump": {
       "items": "Array<string>"
     },

@@ -24,6 +24,7 @@ const (
 	ChatActivityType_TEAMTYPE                      ChatActivityType = 8
 	ChatActivityType_EXPUNGE                       ChatActivityType = 9
 	ChatActivityType_EPHEMERAL_PURGE               ChatActivityType = 10
+	ChatActivityType_REACTION_DELETE               ChatActivityType = 11
 )
 
 func (o ChatActivityType) DeepCopy() ChatActivityType { return o }
@@ -40,6 +41,7 @@ var ChatActivityTypeMap = map[string]ChatActivityType{
 	"TEAMTYPE":                      8,
 	"EXPUNGE":                       9,
 	"EPHEMERAL_PURGE":               10,
+	"REACTION_DELETE":               11,
 }
 
 var ChatActivityTypeRevMap = map[ChatActivityType]string{
@@ -54,6 +56,7 @@ var ChatActivityTypeRevMap = map[ChatActivityType]string{
 	8:  "TEAMTYPE",
 	9:  "EXPUNGE",
 	10: "EPHEMERAL_PURGE",
+	11: "REACTION_DELETE",
 }
 
 func (e ChatActivityType) String() string {
@@ -291,6 +294,42 @@ func (o EphemeralPurgeNotifInfo) DeepCopy() EphemeralPurgeNotifInfo {
 	}
 }
 
+type ReactionDelete struct {
+	ReactionKey   string    `codec:"reactionKey" json:"reactionKey"`
+	ReactionMsgID MessageID `codec:"reactionMsgID" json:"reactionMsgID"`
+	TargetMsgID   MessageID `codec:"targetMsgID" json:"targetMsgID"`
+}
+
+func (o ReactionDelete) DeepCopy() ReactionDelete {
+	return ReactionDelete{
+		ReactionKey:   o.ReactionKey,
+		ReactionMsgID: o.ReactionMsgID.DeepCopy(),
+		TargetMsgID:   o.TargetMsgID.DeepCopy(),
+	}
+}
+
+type ReactionDeleteNotif struct {
+	ConvID          ConversationID   `codec:"convID" json:"convID"`
+	ReactionDeletes []ReactionDelete `codec:"reactionDeletes" json:"reactionDeletes"`
+}
+
+func (o ReactionDeleteNotif) DeepCopy() ReactionDeleteNotif {
+	return ReactionDeleteNotif{
+		ConvID: o.ConvID.DeepCopy(),
+		ReactionDeletes: (func(x []ReactionDelete) []ReactionDelete {
+			if x == nil {
+				return nil
+			}
+			var ret []ReactionDelete
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.ReactionDeletes),
+	}
+}
+
 type ChatActivity struct {
 	ActivityType__               ChatActivityType                `codec:"activityType" json:"activityType"`
 	IncomingMessage__            *IncomingMessage                `codec:"incomingMessage,omitempty" json:"incomingMessage,omitempty"`
@@ -303,6 +342,7 @@ type ChatActivity struct {
 	Teamtype__                   *TeamTypeInfo                   `codec:"teamtype,omitempty" json:"teamtype,omitempty"`
 	Expunge__                    *ExpungeInfo                    `codec:"expunge,omitempty" json:"expunge,omitempty"`
 	EphemeralPurge__             *EphemeralPurgeNotifInfo        `codec:"ephemeralPurge,omitempty" json:"ephemeralPurge,omitempty"`
+	ReactionDelete__             *ReactionDeleteNotif            `codec:"reactionDelete,omitempty" json:"reactionDelete,omitempty"`
 }
 
 func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
@@ -355,6 +395,11 @@ func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
 	case ChatActivityType_EPHEMERAL_PURGE:
 		if o.EphemeralPurge__ == nil {
 			err = errors.New("unexpected nil value for EphemeralPurge__")
+			return ret, err
+		}
+	case ChatActivityType_REACTION_DELETE:
+		if o.ReactionDelete__ == nil {
+			err = errors.New("unexpected nil value for ReactionDelete__")
 			return ret, err
 		}
 	}
@@ -461,6 +506,16 @@ func (o ChatActivity) EphemeralPurge() (res EphemeralPurgeNotifInfo) {
 	return *o.EphemeralPurge__
 }
 
+func (o ChatActivity) ReactionDelete() (res ReactionDeleteNotif) {
+	if o.ActivityType__ != ChatActivityType_REACTION_DELETE {
+		panic("wrong case accessed")
+	}
+	if o.ReactionDelete__ == nil {
+		return
+	}
+	return *o.ReactionDelete__
+}
+
 func NewChatActivityWithIncomingMessage(v IncomingMessage) ChatActivity {
 	return ChatActivity{
 		ActivityType__:    ChatActivityType_INCOMING_MESSAGE,
@@ -528,6 +583,13 @@ func NewChatActivityWithEphemeralPurge(v EphemeralPurgeNotifInfo) ChatActivity {
 	return ChatActivity{
 		ActivityType__:   ChatActivityType_EPHEMERAL_PURGE,
 		EphemeralPurge__: &v,
+	}
+}
+
+func NewChatActivityWithReactionDelete(v ReactionDeleteNotif) ChatActivity {
+	return ChatActivity{
+		ActivityType__:   ChatActivityType_REACTION_DELETE,
+		ReactionDelete__: &v,
 	}
 }
 
@@ -604,6 +666,13 @@ func (o ChatActivity) DeepCopy() ChatActivity {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.EphemeralPurge__),
+		ReactionDelete__: (func(x *ReactionDeleteNotif) *ReactionDeleteNotif {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ReactionDelete__),
 	}
 }
 

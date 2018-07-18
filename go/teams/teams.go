@@ -1191,16 +1191,8 @@ func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, linkTy
 	return t.postMulti(libkb.NewMetaContext(ctx, t.G()), payload)
 }
 
-func getCurrentUserUV(ctx context.Context, g *libkb.GlobalContext) (ret keybase1.UserVersion, err error) {
-	err = g.GetFullSelfer().WithSelf(ctx, func(u *libkb.User) error {
-		ret = u.ToUserVersion()
-		return nil
-	})
-	return ret, err
-}
-
 func (t *Team) currentUserUV(ctx context.Context) (keybase1.UserVersion, error) {
-	return getCurrentUserUV(ctx, t.G())
+	return t.G().GetMeUV(ctx)
 }
 
 func loadMeForSignatures(ctx context.Context, g *libkb.GlobalContext) (libkb.UserForSignatures, error) {

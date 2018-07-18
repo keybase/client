@@ -48,6 +48,18 @@ You can set environment variables for debugging:
 | KEYBASE_RPC_DELAY_RESULT | Number of ms to delay all RPC call callbacks (requires debug mode) |
 | NO_DASHBOARD | Don't show dashboard |
 
+You can also edit `~/Library/Logs/Keybase.app.debug` on macOS,
+`$HOME/.cache/keybase.app.debug` on Linux, or
+`%localappdata%\Keybase\keybase.app.debug` on Windows (see
+`platform.desktop.js`) to add debug flags. In particular, you probably want
+```json
+{
+  "showDevTools": true
+}
+```
+instead of toggling the dev tools after launch because of a bug where
+not all source files are available if the dev tools aren't opened at launch.
+
 ### iOS
 
 ```sh
@@ -398,6 +410,8 @@ for the above one-liner; however, its command is slower due to using
 See [this
 link](https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers)
 for how to increase the watch limit; I set mine to 65536.
+
+#### Could not connect to development server error
 
 On Android 28 and above HTTP traffic is disabled by default which can block
 Metro Bundler from running properly. We have manually allowed `127.0.0.1` to

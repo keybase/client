@@ -63,6 +63,7 @@ func (c *CtlHandler) DbNuke(ctx context.Context, sessionID int) error {
 	}
 	// Now drop caches, since we had the DB's state in-memory too.
 	c.G().FlushCaches()
+	c.service.onDbNuke(ctx)
 	return nil
 }
 

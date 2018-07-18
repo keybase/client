@@ -976,17 +976,29 @@ func TestTeamSignedByRevokedDevice(t *testing.T) {
 		require.NotNil(t, target)
 		revokedKID = target.Kid
 
-		revokeEngine := engine.NewRevokeDeviceEngine(alice.tc.G, engine.RevokeDeviceEngineArgs{
-			ID:        target.ID,
-			ForceSelf: true,
-			ForceLast: false,
-		})
-		uis := libkb.UIs{
-			LogUI:    alice.tc.G.Log,
-			SecretUI: alice.newSecretUI(),
+		revokeAttemptsMax := 3
+		var err error
+		for i := 0; i < revokeAttemptsMax; i++ {
+			t.Logf("revoke attempt %v / %v", i+1, revokeAttemptsMax)
+			revokeEngine := engine.NewRevokeDeviceEngine(alice.tc.G, engine.RevokeDeviceEngineArgs{
+				ID:        target.ID,
+				ForceSelf: true,
+				ForceLast: false,
+			})
+			uis := libkb.UIs{
+				LogUI:    alice.tc.G.Log,
+				SecretUI: alice.newSecretUI(),
+			}
+			m := libkb.NewMetaContextForTest(*alice.tc).WithUIs(uis)
+			err = engine.RunEngine2(m, revokeEngine)
+			if err == nil {
+				break
+			}
+			t.Logf("revoke attempt %v failed: %v", i, err)
+			if strings.Contains(err.Error(), "lazy merkle transaction in progress for key") {
+				continue
+			}
 		}
-		m := libkb.NewMetaContextForTest(*alice.tc).WithUIs(uis)
-		err := engine.RunEngine2(m, revokeEngine)
 		require.NoError(t, err)
 	}
 

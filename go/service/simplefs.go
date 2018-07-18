@@ -282,3 +282,13 @@ func (s *SimpleFSHandler) SimpleFSSuppressNotifications(ctx context.Context, sup
 	}
 	return cli.SimpleFSSuppressNotifications(ctx, suppressDurationSec)
 }
+
+// SimpleFSGetUserQuotaUsage implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSGetUserQuotaUsage(ctx context.Context) (
+	keybase1.SimpleFSQuotaUsage, error) {
+	cli, err := s.client()
+	if err != nil {
+		return keybase1.SimpleFSQuotaUsage{}, err
+	}
+	return cli.SimpleFSGetUserQuotaUsage(ctx)
+}

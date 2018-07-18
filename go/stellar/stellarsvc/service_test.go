@@ -659,6 +659,31 @@ func TestDefaultCurrency(t *testing.T) {
 	require.Equal(t, stellar1.OutsideCurrencyCode("EUR"), currencyObj.Code)
 }
 
+func TestRequestPayment(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	xlm := stellar1.AssetNative()
+	reqID, err := tcs[0].Srv.MakeRequestCLILocal(context.Background(), stellar1.MakeRequestCLILocalArg{
+		Recipient: tcs[1].Fu.Username,
+		Asset:     &xlm,
+		Amount:    "10",
+		Note:      "hello world",
+	})
+	require.NoError(t, err)
+
+	senderMsgs := kbtest.MockSentMessages(tcs[0].G, tcs[0].T)
+	require.Len(t, senderMsgs, 1)
+	require.Equal(t, senderMsgs[0].MsgType, chat1.MessageType_REQUESTPAYMENT)
+
+	err = tcs[0].Srv.CancelRequestLocal(context.Background(), reqID)
+	require.NoError(t, err)
+
+	details, err := tcs[0].Srv.GetRequestDetailsLocal(context.Background(), reqID)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.RequestStatus_CANCELED, details.Status)
+}
+
 type TestContext struct {
 	libkb.TestContext
 	Fu      *kbtest.FakeUser

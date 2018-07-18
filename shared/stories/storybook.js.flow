@@ -9,4 +9,9 @@ declare function action(name: string): any
 declare function createPropProvider(...maps: SelectorMap[]): (() => React.Node) => React.Node
 declare function unexpected(name: string): () => void
 
-export {action, storiesOf, createPropProvider, unexpected}
+declare class Rnd {
+  constructor(seed: number): Rnd;
+  next(): number;
+}
+
+export {action, storiesOf, createPropProvider, unexpected, Rnd}

@@ -43,3 +43,6 @@ export function msToDHMS(ms: number): string {
 export function formatDurationShort(ms: number): string {
   return '[mocked]'
 }
+
+export const formatDuration = (duration: number): string => '[mocked]'
+export const formatDurationFromNowTo = (timeInFuture?: number): string => '[mocked]'
