@@ -45,6 +45,9 @@ class WaitingButton extends React.Component<Props, {localWaiting: boolean}> {
 
 const mapStateToProps = (state: TypedState, ownProps) => {
   const waitingKey = ownProps.waitingKey || ''
+  if (ownProps.nojima) {
+    console.log('aaa waitingbuttonconnector', state.waiting.get(waitingKey, 0) !== 0)
+  }
   return {
     storeWaiting: state.waiting.get(waitingKey, 0) !== 0,
   }

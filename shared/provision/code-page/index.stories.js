@@ -23,6 +23,7 @@ const derivedProps = (
     currentDeviceAlreadyProvisioned,
     currentDeviceName,
     currentDeviceType,
+    error: '',
     onBack: action('onBack'),
     onSubmitTextCode: action('onSubmitTextCode'),
     otherDeviceName,
@@ -56,7 +57,12 @@ const load = () => {
     {current: 'desktop', otherType: 'mobile', provisioned: true},
   ]
 
-  let s
+  let s = storiesOf(`Provision/CodePage2`, module).addDecorator(
+    createPropProvider({
+      QRScan: QRScanProps,
+      ...PropProviders.Common(),
+    })
+  )
   variants.forEach(({current, provisioned, otherType}) => {
     let otherName
     switch (otherType) {
@@ -76,12 +82,6 @@ const load = () => {
     const n2 = provisioned ? otherType : currentTypeName
     const storyName = `${n1} adding ${n2}`
 
-    s = storiesOf(`Provision/CodePage2`, module).addDecorator(
-      createPropProvider({
-        QRScan: QRScanProps,
-        ...PropProviders.Common(),
-      })
-    )
     const tabs = [null, ...CodePage2._validTabs(current, otherType)]
     tabs.forEach(
       tab =>

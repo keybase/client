@@ -17,7 +17,7 @@ import {globalColors, globalMargins, globalStyles} from '../../styles'
 import type {DeviceType} from '../../constants/types/devices'
 import type {Props} from '.'
 
-const Row = ({name, type, onSelect, waiting}) => {
+const Row = ({name, type, onSelect}) => {
   const iconType: IconType = ({
     mobile: 'icon-phone-48',
     desktop: 'icon-computer-48',
@@ -34,7 +34,13 @@ const Row = ({name, type, onSelect, waiting}) => {
           <Text type="BodySemiboldItalic">{name}</Text>
           {type === 'backup' && <Text type="BodySmall">Paper key</Text>}
         </Box>
-        <WaitingButton label="Use..." type="Secondary" small={true} waitingKey={Constants.waitingKey} />
+        <WaitingButton
+          nojima={true}
+          label="Use..."
+          type="Secondary"
+          small={true}
+          waitingKey={Constants.waitingKey}
+        />
       </Box>
     </ClickableBox>
   )

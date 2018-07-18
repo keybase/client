@@ -198,6 +198,8 @@ class MainNavStack extends Component<any, any> {
     const stacks = this._stackCache
       .set(props.routeSelected, props.routeStack)
       .toArray()
+      // The inner views are replaced with placeholders so lets not even both to render the siblings
+      .filter(([key, stack]) => key === props.routeSelected)
       .map(([key, stack]) => (
         <CardStackShim
           key={key}

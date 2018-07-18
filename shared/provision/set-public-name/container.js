@@ -19,6 +19,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  console.log('aaaa set pbulic name mergeprops')
   const nameTaken = stateProps._existingDevices.indexOf(ownProps.deviceName) !== -1
   const submitEnabled = !!(ownProps.deviceName.length >= 3 && ownProps.deviceName.length <= 64 && !nameTaken)
   const onSubmit = submitEnabled ? () => dispatchProps._onSubmit(ownProps.deviceName) : null

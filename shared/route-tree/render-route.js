@@ -15,10 +15,12 @@ type _RenderRouteResult = {
   leafComponent: ({shouldRender: boolean, key?: string}) => React.Node,
 }
 
+const defaultTags = makeLeafTags()
+
 export type RenderRouteResult = I.RecordOf<_RenderRouteResult>
 const makeRenderRouteResult: I.RecordFactory<_RenderRouteResult> = I.Record({
   path: I.List(),
-  tags: makeLeafTags(),
+  tags: defaultTags,
   component: () => null,
   leafComponent: () => null,
 })
@@ -91,7 +93,7 @@ class RenderRouteNode extends React.PureComponent<RenderRouteNodeProps<any>, any
         navigateUp={this._navigateUp}
         navigateAppend={this._navigateAppend}
         routePath={path}
-        routeLeafTags={leafTags || makeLeafTags()}
+        routeLeafTags={leafTags || defaultTags}
         routeStack={stack || I.Stack()}
         setRouteState={this._setRouteState}
       >

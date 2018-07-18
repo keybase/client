@@ -74,6 +74,7 @@ class ProvisioningManager {
   }
 
   submitDeviceSelect = (state: TypedState) => {
+    console.log('aaa saga submitDeviceSelect ')
     const response = this._getAndClearResponse('keybase.1.provisionUi.chooseDevice')
     if (!response || !response.result) {
       throw new Error('Tried to submit a device choice but missing callback')
@@ -84,6 +85,7 @@ class ProvisioningManager {
       throw new Error('Tried to submit a device choice but missing device in store')
     }
 
+    console.log('aaa responding')
     response.result(state.provision.codePageOtherDeviceId)
   }
 
