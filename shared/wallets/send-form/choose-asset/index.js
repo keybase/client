@@ -30,6 +30,7 @@ type ExpanderItem = {
 
 type Props = {
   displayChoices: Array<DisplayItem>,
+  onBack: () => void,
   onChoose: (item: DisplayItem | OtherItem) => void,
   otherChoices: Array<OtherItem>,
 }
@@ -134,7 +135,7 @@ class ChooseAsset extends React.Component<Props, State> {
     ]
     return (
       <Box2 direction="vertical" style={styles.container}>
-        <Header whiteBackground={true} />
+        <Header onBack={this.props.onBack} whiteBackground={true} />
         <Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
           <SectionList
             sections={sections}
@@ -271,8 +272,8 @@ const styles = styleSheetCreate({
     color: globalColors.black_40,
   },
   listContainer: {
-    paddingTop: globalMargins.tiny,
     maxHeight: 525 - 48,
+    paddingTop: globalMargins.tiny,
   },
   sectionHeaderContainer: {
     alignItems: 'flex-start',

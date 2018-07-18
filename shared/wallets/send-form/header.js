@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box2, Icon, iconCastPlatformStyles} from '../../common-adapters'
+import {BackButton, Box2, Icon, iconCastPlatformStyles} from '../../common-adapters'
 import {collapseStyles, globalColors, platformStyles, styleSheetCreate} from '../../styles'
 
 type Props = {onBack?: () => void, whiteBackground?: boolean}
@@ -12,12 +12,18 @@ const Header = (props: Props) => (
       style={collapseStyles([styles.header, props.whiteBackground && styles.whiteBackground])}
       fullWidth={true}
     >
+      {props.onBack && <BackButton style={styles.backButton} onClick={props.onBack} />}
       <Icon type="icon-stellar-coins-flying-48" style={iconCastPlatformStyles(styles.icon)} />
     </Box2>
   </Box2>
 )
 
 const styles = styleSheetCreate({
+  backButton: {
+    bottom: 14,
+    left: 16,
+    position: 'absolute',
+  },
   header: {
     alignSelf: 'flex-end',
     backgroundColor: globalColors.purple,
@@ -25,6 +31,7 @@ const styles = styleSheetCreate({
     borderTopRightRadius: 4,
     height: 48,
     justifyContent: 'center',
+    position: 'relative',
   },
   headerContainer: {
     height: 60,

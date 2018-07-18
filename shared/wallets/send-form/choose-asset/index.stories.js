@@ -16,6 +16,7 @@ const props = {
     {currencyCode: 'HNL', selected: false, symbol: 'L', type: 'display choice'},
     {currencyCode: 'KRW', selected: false, symbol: '₩', type: 'display choice'},
   ],
+  onBack: action('onBack'),
   onChoose: action('onChoose'),
   otherChoices: [
     {code: 'BTC', disabledExplanation: '', issuer: 'Stronghold.co', selected: false, type: 'other choice'},
