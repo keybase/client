@@ -483,11 +483,13 @@ func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.Acco
 	} else {
 		loc.StatusSimplified = stellar1.PaymentStatus_CLAIMABLE
 		loc.StatusDetail = "Waiting for the recipient to open the app to claim, or the sender to cancel."
+		loc.ShowCancel = true
 	}
 	if p.Claim != nil {
 		loc.StatusSimplified = p.Claim.TxStatus.ToPaymentStatus()
 		if p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
 			// If the claim succeeded, the relay payment is done.
+			loc.ShowCancel = false
 			name, err := s.lookupUsername(ctx, p.Claim.To.Uid)
 			if err == nil {
 				loc.Target = name
