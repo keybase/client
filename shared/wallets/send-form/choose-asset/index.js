@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box2, SectionList, Text} from '../../../common-adapters'
-import {styleSheetCreate} from '../../../styles'
+import {globalColors, globalMargins, styleSheetCreate} from '../../../styles'
 import Header from '../header'
 
 type DisplayItem = {currencyCode: string, symbol: string, type: 'display choice'}
@@ -41,6 +41,18 @@ class ChooseAsset extends React.Component<Props> {
     }
   }
 
+  _renderSectionHeader = ({section}) => {
+    switch (section.key) {
+      case 'display choices':
+        return (
+          <SectionHeader title="Lumens (XLM)" subtitle="Pick your display currency for this transaction:" />
+        )
+      case 'other choices':
+        return <SectionHeader title="Other assets" subtitle="" />
+    }
+    return null
+  }
+
   render() {
     const sections = [
       {
@@ -63,12 +75,27 @@ class ChooseAsset extends React.Component<Props> {
       <Box2 direction="vertical" style={styles.container}>
         <Header whiteBackground={true} />
         <Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
-          <SectionList sections={sections} renderItem={this._renderItem} renderSectionHeader={() => null} />
+          <SectionList
+            sections={sections}
+            renderItem={this._renderItem}
+            renderSectionHeader={this._renderSectionHeader}
+          />
         </Box2>
       </Box2>
     )
   }
 }
+
+type SectionHeaderProps = {
+  subtitle: string,
+  title: string,
+}
+const SectionHeader = (props: SectionHeaderProps) => (
+  <Box2 direction="vertical" gap="xtiny" gapStart={true} gapEnd={true} style={styles.sectionHeaderContainer}>
+    <Text type="BodySmallSemibold">{props.title}</Text>
+    {!!props.subtitle && <Text type="BodySmall">{props.subtitle}</Text>}
+  </Box2>
+)
 
 type DisplayChoiceProps = {
   currencyCode: string,
@@ -128,6 +155,12 @@ const styles = styleSheetCreate({
   },
   listContainer: {
     maxHeight: 525 - 48,
+  },
+  sectionHeaderContainer: {
+    alignItems: 'flex-start',
+    backgroundColor: globalColors.white,
+    paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small,
   },
 })
 

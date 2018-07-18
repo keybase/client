@@ -12,6 +12,8 @@ const props = {
     {currencyCode: 'CRC', symbol: '₡', type: 'display choice'},
     {currencyCode: 'JPY', symbol: '¥', type: 'display choice'},
     {currencyCode: 'FJD', symbol: '$', type: 'display choice'},
+    {currencyCode: 'HNL', symbol: 'L', type: 'display choice'},
+    {currencyCode: 'KRW', symbol: '₩', type: 'display choice'},
   ],
   onChoose: action('onChoose'),
   otherChoices: [
