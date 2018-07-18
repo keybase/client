@@ -532,14 +532,11 @@ class Wrapper extends React.Component<any, any> {
   }
 
   componentDidMount() {
-    setTimeout(() => {
-      this.setState({
-        props: {
-          ...this.state.props,
-          smallTeamsExpanded: true,
-        },
-      })
-    }, 1)
+    if (!__STORYSHOT__) {
+      setTimeout(() => {
+        this.setState({props: {...this.state.props, smallTeamsExpanded: true}})
+      }, 1)
+    }
   }
 
   render() {
