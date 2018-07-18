@@ -313,6 +313,10 @@ func (r *RemoteClientMock) RecentPayments(ctx context.Context, accountID stellar
 	return r.Backend.RecentPayments(ctx, r.Tc, accountID, cursor, limit)
 }
 
+func (r *RemoteClientMock) PendingPayments(ctx context.Context, accountID stellar1.AccountID, limit int) ([]stellar1.PaymentSummary, error) {
+	return nil, errors.New("RemoteClientMock does not implement PendingPayments")
+}
+
 func (r *RemoteClientMock) PaymentDetails(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error) {
 	return r.Backend.PaymentDetails(ctx, r.Tc, txID)
 }
