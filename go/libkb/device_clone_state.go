@@ -32,7 +32,7 @@ func (d *cloneDetectionResponse) GetAppStatus() *AppStatus {
 	return &d.Status
 }
 
-func UpdateDeviceCloneState(m *MetaContext) (before int, after int, err error) {
+func UpdateDeviceCloneState(m MetaContext) (before int, after int, err error) {
 	d, err := GetDeviceCloneState(m)
 	before = d.Clones
 
@@ -61,7 +61,7 @@ func UpdateDeviceCloneState(m *MetaContext) (before int, after int, err error) {
 			"prior":     S{Val: prior},
 			"stage":     S{Val: stage},
 		},
-		MetaContext:    *m,
+		MetaContext:    m,
 		AppStatusCodes: []int{SCOk},
 	}
 	var res cloneDetectionResponse
@@ -75,7 +75,7 @@ func UpdateDeviceCloneState(m *MetaContext) (before int, after int, err error) {
 	return
 }
 
-func configPaths(m *MetaContext) (p, s, c string) {
+func configPaths(m MetaContext) (p, s, c string) {
 	deviceID := m.G().ActiveDevice.deviceID
 	p = fmt.Sprintf("%s.prior", deviceID)
 	s = fmt.Sprintf("%s.stage", deviceID)
@@ -83,7 +83,7 @@ func configPaths(m *MetaContext) (p, s, c string) {
 	return
 }
 
-func GetDeviceCloneState(m *MetaContext) (DeviceCloneState, error) {
+func GetDeviceCloneState(m MetaContext) (DeviceCloneState, error) {
 	reader, err := deviceCloneStateReader(m)
 	pPath, sPath, cPath := configPaths(m)
 	p, _ := reader.GetStringAtPath(pPath)
@@ -92,7 +92,7 @@ func GetDeviceCloneState(m *MetaContext) (DeviceCloneState, error) {
 	return DeviceCloneState{Prior: p, Stage: s, Clones: c}, err
 }
 
-func SetDeviceCloneState(m *MetaContext, d DeviceCloneState) error {
+func SetDeviceCloneState(m MetaContext, d DeviceCloneState) error {
 	writer, err := deviceCloneStateWriter(m)
 	if err != nil {
 		return err
@@ -133,13 +133,13 @@ func NewDeviceCloneStateJSONFile(g *GlobalContext) *DeviceCloneStateJSONFile {
 	return &DeviceCloneStateJSONFile{NewJSONFile(g, g.Env.GetDeviceCloneStateFilename(), "device clone state")}
 }
 
-func deviceCloneStateReader(m *MetaContext) (DeviceCloneStateJSONFile, error) {
+func deviceCloneStateReader(m MetaContext) (DeviceCloneStateJSONFile, error) {
 	f := NewDeviceCloneStateJSONFile(m.G())
 	err := f.Load(false)
 	return *f, err
 }
 
-func deviceCloneStateWriter(m *MetaContext) (*DeviceCloneStateJSONFile, error) {
+func deviceCloneStateWriter(m MetaContext) (*DeviceCloneStateJSONFile, error) {
 	f := NewDeviceCloneStateJSONFile(m.G())
 	err := f.Load(false)
 	return f, err

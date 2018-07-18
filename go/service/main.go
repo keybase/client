@@ -652,7 +652,7 @@ func (d *Service) hourlyChecks() {
 
 func (d *Service) deviceCloneSelfCheck() error {
 	m := libkb.NewMetaContextBackground(d.G())
-	before, after, err := libkb.UpdateDeviceCloneState(&m)
+	before, after, err := libkb.UpdateDeviceCloneState(m)
 	if err != nil {
 		return err
 	}

@@ -11,11 +11,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func persistState(m *libkb.MetaContext, d libkb.DeviceCloneState) error {
+func persistState(m libkb.MetaContext, d libkb.DeviceCloneState) error {
 	return libkb.SetDeviceCloneState(m, d)
 }
 
-func runAndGet(m *libkb.MetaContext) (d libkb.DeviceCloneState, err error) {
+func runAndGet(m libkb.MetaContext) (d libkb.DeviceCloneState, err error) {
 	_, _, err = libkb.UpdateDeviceCloneState(m)
 	d, _ = libkb.GetDeviceCloneState(m)
 	return
@@ -39,7 +39,7 @@ func TestDeviceCloneStateFirstRun(t *testing.T) {
 	_ = CreateAndSignupFakeUser(tc, "fu")
 	m := NewMetaContextForTest(tc)
 
-	d, err := runAndGet(&m)
+	d, err := runAndGet(m)
 
 	assertSuccessfulRun(tc, d, err)
 	require.Equal(tc.T, d.Clones, 1)
@@ -51,10 +51,10 @@ func TestDeviceCloneStateSuccessfulUpdate(t *testing.T) {
 	_ = CreateAndSignupFakeUser(tc, "fu")
 	m := NewMetaContextForTest(tc)
 	//setup: perform an initial run
-	d0, err := runAndGet(&m)
+	d0, err := runAndGet(m)
 	require.NoError(tc.T, err)
 
-	d, err := runAndGet(&m)
+	d, err := runAndGet(m)
 
 	assertSuccessfulRun(tc, d, err)
 	require.NotEqual(tc.T, d.Prior, d0.Prior)
@@ -73,9 +73,9 @@ func TestDeviceCloneStateRecoveryFromFailureBeforeServer(t *testing.T) {
 		Stage:  "22222222222222222222222222222222",
 		Clones: 1,
 	}
-	persistState(&m, d0)
+	persistState(m, d0)
 
-	d, err := runAndGet(&m)
+	d, err := runAndGet(m)
 
 	assertSuccessfulRun(tc, d, err)
 	require.Equal(tc.T, d.Prior, d0.Stage)
@@ -89,12 +89,12 @@ func TestDeviceCloneStateRecoveryFromFailureAfterServer(t *testing.T) {
 	m := NewMetaContextForTest(tc)
 	// setup: run twice. then reset the persistence to where it would have been
 	// if the server got the second update but did not ack it successfully to the client.
-	d0, err := runAndGet(&m)
-	d1, err := runAndGet(&m)
+	d0, err := runAndGet(m)
+	d1, err := runAndGet(m)
 	tmp := libkb.DeviceCloneState{Prior: d0.Prior, Stage: d1.Prior, Clones: 1}
-	persistState(&m, tmp)
+	persistState(m, tmp)
 
-	d, err := runAndGet(&m)
+	d, err := runAndGet(m)
 
 	assertSuccessfulRun(tc, d, err)
 	require.Equal(tc.T, d.Prior, d1.Prior)
@@ -108,14 +108,14 @@ func TestDeviceCloneStateCloneDetected(t *testing.T) {
 	m := NewMetaContextForTest(tc)
 	// setup: perform two runs, and then manually persist the earlier
 	// prior token to simulate a subsequent run by a cloned device
-	d0, err := runAndGet(&m)
+	d0, err := runAndGet(m)
 	require.NoError(tc.T, err)
-	_, err = runAndGet(&m)
+	_, err = runAndGet(m)
 	require.NoError(tc.T, err)
-	persistState(&m, d0)
+	persistState(m, d0)
 
-	before, after, err := libkb.UpdateDeviceCloneState(&m)
-	d, _ := libkb.GetDeviceCloneState(&m)
+	before, after, err := libkb.UpdateDeviceCloneState(m)
+	d, _ := libkb.GetDeviceCloneState(m)
 
 	assertSuccessfulRun(tc, d, err)
 	require.NotEqual(tc.T, d.Prior, d0.Stage, "despite there being a clone, the prior still needs to change")
