@@ -131,6 +131,7 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
   mentionsChannelName: I.Map(),
+  reactions: I.Map(),
   submitState: null,
   text: new HiddenString(''),
   type: 'text',
@@ -149,6 +150,7 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   previewTransferState: null,
   previewURL: '',
   previewWidth: 0,
+  reactions: I.Map(),
   showPlayButton: false,
   submitState: null,
   title: '',
@@ -159,11 +161,13 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
 
 const makeMessageSystemJoined: I.RecordFactory<MessageTypes._MessageSystemJoined> = I.Record({
   ...makeMessageMinimum,
+  reactions: I.Map(),
   type: 'systemJoined',
 })
 
 const makeMessageSystemLeft: I.RecordFactory<MessageTypes._MessageSystemLeft> = I.Record({
   ...makeMessageMinimum,
+  reactions: I.Map(),
   type: 'systemLeft',
 })
 
@@ -172,6 +176,7 @@ const makeMessageSystemAddedToTeam: I.RecordFactory<MessageTypes._MessageSystemA
   addee: '',
   adder: '',
   isAdmin: false,
+  reactions: I.Map(),
   team: '',
   type: 'systemAddedToTeam',
 })
@@ -183,6 +188,7 @@ const makeMessageSystemInviteAccepted: I.RecordFactory<MessageTypes._MessageSyst
   inviteType: 'none',
   invitee: '',
   inviter: '',
+  reactions: I.Map(),
   team: '',
   type: 'systemInviteAccepted',
 })
@@ -191,12 +197,14 @@ const makeMessageSystemSimpleToComplex: I.RecordFactory<
   MessageTypes._MessageSystemSimpleToComplex
 > = I.Record({
   ...makeMessageMinimum,
+  reactions: I.Map(),
   team: '',
   type: 'systemSimpleToComplex',
 })
 
 const makeMessageSystemText: I.RecordFactory<MessageTypes._MessageSystemText> = I.Record({
   ...makeMessageMinimum,
+  reactions: I.Map(),
   text: new HiddenString(''),
   type: 'systemText',
 })
@@ -204,6 +212,7 @@ const makeMessageSystemText: I.RecordFactory<MessageTypes._MessageSystemText> = 
 const makeMessageSystemGitPush: I.RecordFactory<MessageTypes._MessageSystemGitPush> = I.Record({
   ...makeMessageMinimum,
   pusher: '',
+  reactions: I.Map(),
   refs: [],
   repo: '',
   repoID: '',
@@ -214,14 +223,42 @@ const makeMessageSystemGitPush: I.RecordFactory<MessageTypes._MessageSystemGitPu
 const makeMessageSetDescription: I.RecordFactory<MessageTypes._MessageSetDescription> = I.Record({
   ...makeMessageMinimum,
   newDescription: new HiddenString(''),
+  reactions: I.Map(),
   type: 'setDescription',
 })
 
 const makeMessageSetChannelname: I.RecordFactory<MessageTypes._MessageSetChannelname> = I.Record({
   ...makeMessageMinimum,
   newChannelname: '',
+  reactions: I.Map(),
   type: 'setChannelname',
 })
+
+export const makeReaction: I.RecordFactory<MessageTypes._Reaction> = I.Record({
+  messageID: Types.numberToMessageID(0),
+  username: '',
+})
+
+const reactionMapToReactions = (r: RPCChatTypes.ReactionMap): MessageTypes.Reactions => {
+  if (!r.reactions) {
+    return I.Map()
+  }
+  return I.Map(
+    Object.keys(r.reactions).reduce((res, emoji) => {
+      if (r.reactions[emoji]) {
+        res[emoji] = I.Set(
+          r.reactions[emoji].map(reaction =>
+            makeReaction({
+              messageID: Types.numberToMessageID(reaction.reactionMsgID),
+              username: reaction.username,
+            })
+          )
+        )
+      }
+      return res
+    }, {})
+  )
+}
 
 const channelMentionToMentionsChannel = (channelMention: RPCChatTypes.ChannelMention) => {
   switch (channelMention) {
@@ -390,6 +427,7 @@ const validUIMessagetoMessage = (
     exploding: m.isEphemeral,
     explodingTime: m.etime,
     outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
+    reactions: reactionMapToReactions(m.reactions),
   }
 
   if (m.isEphemeralExpired) {

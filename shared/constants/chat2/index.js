@@ -193,6 +193,7 @@ export {
   makeMessageText,
   makePendingAttachmentMessages,
   makePendingTextMessage,
+  makeReaction,
   messageExplodeDescriptions,
   pathToAttachmentType,
   rpcErrorToString,
