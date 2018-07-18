@@ -1,11 +1,17 @@
 // @flow
 import * as React from 'react'
-import {Box2, Divider, SectionList, Text} from '../../../common-adapters'
-import {globalColors, globalMargins, styleSheetCreate} from '../../../styles'
+import {Box2, Divider, Icon, iconCastPlatformStyles, SectionList, Text} from '../../../common-adapters'
+import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../../styles'
 import Header from '../header'
 
-type DisplayItem = {currencyCode: string, symbol: string, type: 'display choice'}
-type OtherItem = {code: string, disabledExplanation: string, issuer: string, type: 'other choice'}
+type DisplayItem = {currencyCode: string, selected: boolean, symbol: string, type: 'display choice'}
+type OtherItem = {
+  code: string,
+  selected: boolean,
+  disabledExplanation: string,
+  issuer: string,
+  type: 'other choice',
+}
 
 type Props = {
   displayChoices: Array<DisplayItem>,
@@ -22,7 +28,7 @@ class ChooseAsset extends React.Component<Props> {
           <DisplayChoice
             currencyCode={item.currencyCode}
             onClick={onClick}
-            selected={false}
+            selected={item.selected}
             symbol={item.symbol}
           />
         )
@@ -33,7 +39,7 @@ class ChooseAsset extends React.Component<Props> {
             disabledExplanation={item.disabledExplanation}
             issuer={item.issuer}
             onClick={onClick}
-            selected={false}
+            selected={item.selected}
           />
         )
       default:
@@ -115,12 +121,20 @@ const DisplayChoice = (props: DisplayChoiceProps) => (
     gapStart={true}
     gapEnd={true}
   >
-    <Text type="Body">
+    <Text type="Body" style={props.selected ? styles.blue : undefined}>
       {props.symbol === 'XLM' ? 'Purely strictly ' : 'Lumens (XLM) displayed as '}
-      <Text type="BodyExtrabold">
+      <Text type="BodyExtrabold" style={props.selected ? styles.blue : undefined}>
         {props.currencyCode} ({props.symbol})
       </Text>
     </Text>
+    <Box2 direction="horizontal" style={styles.spacer} />
+    {props.selected && (
+      <Icon
+        type="iconfont-check"
+        color={globalColors.blue}
+        style={iconCastPlatformStyles(styles.checkIcon)}
+      />
+    )}
   </Box2>
 )
 
@@ -129,6 +143,7 @@ type OtherChoiceProps = {
   disabledExplanation: string,
   issuer: string,
   onClick: () => void,
+  selected: boolean,
 }
 const OtherChoice = (props: OtherChoiceProps) => (
   <Box2
@@ -140,21 +155,50 @@ const OtherChoice = (props: OtherChoiceProps) => (
     gapEnd={true}
   >
     <Box2 direction="vertical">
-      <Text type="Body">
-        <Text type="BodyExtrabold">{props.code}</Text>/{props.issuer}
+      <Text
+        type="Body"
+        style={collapseStyles([props.selected && styles.blue, !!props.disabledExplanation && styles.grey])}
+      >
+        <Text
+          type="BodyExtrabold"
+          style={collapseStyles([props.selected && styles.blue, !!props.disabledExplanation && styles.grey])}
+        >
+          {props.code}
+        </Text>/{props.issuer}
       </Text>
-      {!!props.disabledExplanation && <Text type="BodySmall">{props.disabledExplanation}</Text>}
+      {!!props.disabledExplanation && (
+        <Text type="BodySmall" style={styles.grey}>
+          {props.disabledExplanation}
+        </Text>
+      )}
     </Box2>
+    <Box2 direction="horizontal" style={styles.spacer} />
+    {props.selected && (
+      <Icon
+        type="iconfont-check"
+        color={globalColors.blue}
+        style={iconCastPlatformStyles(styles.checkIcon)}
+      />
+    )}
   </Box2>
 )
 
 const styles = styleSheetCreate({
+  blue: {
+    color: globalColors.blue,
+  },
+  checkIcon: {
+    alignSelf: 'flex-end',
+  },
   choiceContainer: {
     alignItems: 'center',
     height: 40,
   },
   container: {
     width: 360,
+  },
+  grey: {
+    color: globalColors.black_40,
   },
   listContainer: {
     maxHeight: 525 - 48,
@@ -166,6 +210,9 @@ const styles = styleSheetCreate({
     justifyContent: 'center',
     paddingLeft: globalMargins.small,
     paddingRight: globalMargins.small,
+  },
+  spacer: {
+    flex: 1,
   },
 })
 

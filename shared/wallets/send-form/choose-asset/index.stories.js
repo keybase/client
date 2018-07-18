@@ -5,22 +5,28 @@ import ChooseAsset from '.'
 
 const props = {
   displayChoices: [
-    {currencyCode: 'Lumens', symbol: 'XLM', type: 'display choice'},
-    {currencyCode: 'USD', symbol: '$', type: 'display choice'},
-    {currencyCode: 'EUR', symbol: '€', type: 'display choice'},
-    {currencyCode: 'GBP', symbol: '£', type: 'display choice'},
-    {currencyCode: 'CAD', symbol: '$', type: 'display choice'},
-    {currencyCode: 'CRC', symbol: '₡', type: 'display choice'},
-    {currencyCode: 'JPY', symbol: '¥', type: 'display choice'},
-    {currencyCode: 'FJD', symbol: '$', type: 'display choice'},
-    {currencyCode: 'HNL', symbol: 'L', type: 'display choice'},
-    {currencyCode: 'KRW', symbol: '₩', type: 'display choice'},
+    {currencyCode: 'Lumens', selected: false, symbol: 'XLM', type: 'display choice'},
+    {currencyCode: 'USD', selected: false, symbol: '$', type: 'display choice'},
+    {currencyCode: 'EUR', selected: true, symbol: '€', type: 'display choice'},
+    {currencyCode: 'GBP', selected: false, symbol: '£', type: 'display choice'},
+    {currencyCode: 'CAD', selected: false, symbol: '$', type: 'display choice'},
+    {currencyCode: 'CRC', selected: false, symbol: '₡', type: 'display choice'},
+    {currencyCode: 'JPY', selected: false, symbol: '¥', type: 'display choice'},
+    {currencyCode: 'FJD', selected: false, symbol: '$', type: 'display choice'},
+    {currencyCode: 'HNL', selected: false, symbol: 'L', type: 'display choice'},
+    {currencyCode: 'KRW', selected: false, symbol: '₩', type: 'display choice'},
   ],
   onChoose: action('onChoose'),
   otherChoices: [
-    {code: 'BTC', disabledExplanation: '', issuer: 'Stronghold.co', type: 'other choice'},
-    {code: 'KEYZ', disabledExplanation: '', issuer: 'Unknown', type: 'other choice'},
-    {code: 'HUGZ', disabledExplanation: `max doesn't accept HUGZ.`, issuer: 'Jed', type: 'other choice'},
+    {code: 'BTC', disabledExplanation: '', issuer: 'Stronghold.co', selected: false, type: 'other choice'},
+    {code: 'KEYZ', disabledExplanation: '', issuer: 'Unknown', selected: true, type: 'other choice'},
+    {
+      code: 'HUGZ',
+      disabledExplanation: `max doesn't accept HUGZ.`,
+      issuer: 'Jed',
+      selected: false,
+      type: 'other choice',
+    },
   ],
 }
 
