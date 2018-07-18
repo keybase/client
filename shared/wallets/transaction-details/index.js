@@ -20,7 +20,7 @@ export type Props = {|
   onViewTransaction?: () => void,
   publicMemo?: string,
   status: Types.StatusSimplified,
-  statusDetail: ?string,
+  statusDetail: string,
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
   transactionID?: string,

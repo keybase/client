@@ -184,7 +184,7 @@ const AmountXLM = (props: AmountXLMProps) => {
 }
 
 type TimestampLineProps = {|
-  error: ?string,
+  error: string,
   timestamp: Date | null,
   relative: boolean,
 |}
@@ -192,7 +192,7 @@ type TimestampLineProps = {|
 export const TimestampLine = (props: TimestampLineProps) => {
   if (props.error) {
     return (
-      <Text type="BodySmall" style={styles.errorText}>
+      <Text type="BodySmallError">
         Failed • The Stellar network did not approve this transaction - {props.error}
       </Text>
     )
@@ -240,7 +240,7 @@ export type Props = {|
   onCancelPayment?: () => void,
   onRetryPayment?: () => void,
   status: Types.StatusSimplified,
-  statusDetail: ?string,
+  statusDetail: string,
 |}
 
 export const Transaction = (props: Props) => {
@@ -318,9 +318,6 @@ const styles = styleSheetCreate({
   container: {
     padding: globalMargins.tiny,
     paddingRight: globalMargins.small,
-  },
-  errorText: {
-    color: globalColors.red,
   },
   quoteMarker: {maxWidth: 3, minWidth: 3},
   rightContainer: {
