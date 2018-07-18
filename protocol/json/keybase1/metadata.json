@@ -258,14 +258,14 @@
       ],
       "response": "MetadataResponse"
     },
-    "getLatestMetadataByTimestamp": {
+    "getMetadataByTimestamp": {
       "request": [
         {
           "name": "folderID",
           "type": "string"
         },
         {
-          "name": "when",
+          "name": "serverTime",
           "type": "Time"
         }
       ],

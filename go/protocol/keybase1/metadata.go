@@ -206,9 +206,9 @@ type GetMetadataArg struct {
 	LockBeforeGet *LockID           `codec:"lockBeforeGet,omitempty" json:"lockBeforeGet,omitempty"`
 }
 
-type GetLatestMetadataByTimestampArg struct {
-	FolderID string `codec:"folderID" json:"folderID"`
-	When     Time   `codec:"when" json:"when"`
+type GetMetadataByTimestampArg struct {
+	FolderID   string `codec:"folderID" json:"folderID"`
+	ServerTime Time   `codec:"serverTime" json:"serverTime"`
 }
 
 type RegisterForUpdatesArg struct {
@@ -324,7 +324,7 @@ type MetadataInterface interface {
 	Authenticate(context.Context, string) (int, error)
 	PutMetadata(context.Context, PutMetadataArg) error
 	GetMetadata(context.Context, GetMetadataArg) (MetadataResponse, error)
-	GetLatestMetadataByTimestamp(context.Context, GetLatestMetadataByTimestampArg) (MDBlock, error)
+	GetMetadataByTimestamp(context.Context, GetMetadataByTimestampArg) (MDBlock, error)
 	RegisterForUpdates(context.Context, RegisterForUpdatesArg) error
 	PruneBranch(context.Context, PruneBranchArg) error
 	PutKeys(context.Context, PutKeysArg) error
@@ -413,18 +413,18 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"getLatestMetadataByTimestamp": {
+			"getMetadataByTimestamp": {
 				MakeArg: func() interface{} {
-					ret := make([]GetLatestMetadataByTimestampArg, 1)
+					ret := make([]GetMetadataByTimestampArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetLatestMetadataByTimestampArg)
+					typedArgs, ok := args.(*[]GetMetadataByTimestampArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]GetLatestMetadataByTimestampArg)(nil), args)
+						err = rpc.NewTypeError((*[]GetMetadataByTimestampArg)(nil), args)
 						return
 					}
-					ret, err = i.GetLatestMetadataByTimestamp(ctx, (*typedArgs)[0])
+					ret, err = i.GetMetadataByTimestamp(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -811,8 +811,8 @@ func (c MetadataClient) GetMetadata(ctx context.Context, __arg GetMetadataArg) (
 	return
 }
 
-func (c MetadataClient) GetLatestMetadataByTimestamp(ctx context.Context, __arg GetLatestMetadataByTimestampArg) (res MDBlock, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.metadata.getLatestMetadataByTimestamp", []interface{}{__arg}, &res)
+func (c MetadataClient) GetMetadataByTimestamp(ctx context.Context, __arg GetMetadataByTimestampArg) (res MDBlock, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.getMetadataByTimestamp", []interface{}{__arg}, &res)
 	return
 }
 
