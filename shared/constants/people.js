@@ -6,7 +6,7 @@ import {invert} from 'lodash-es'
 import type {IconType} from '../common-adapters'
 import {isMobile} from '../constants/platform'
 
-export const defaultNumFollowSuggestions = 10
+export const defaultNumFollowSuggestions = 50
 export const getPeopleDataWaitingKey = 'getPeopleData'
 
 export const todoTypeEnumToType: {[key: Types.TodoTypeEnum]: Types.TodoType} = invert(
