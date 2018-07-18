@@ -15,7 +15,7 @@ export type OwnProps = {|
 |}
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  const result = state.entities.search.searchResults.get(ownProps.id, makeSearchResult()).toObject()
+  const result = state.entities.search.searchResults.get(ownProps.id, makeSearchResult())
   const leftFollowingState = followStateHelper(state, result.leftUsername, result.leftService)
   const rightFollowingState = followStateHelper(state, result.rightUsername, result.rightService)
   const leftIsInTeam = userIsActiveInTeamHelper(
@@ -31,7 +31,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     ownProps.disableIfInTeamName
   )
   return {
-    ...result,
+    ...result.toObject(),
     leftFollowingState,
     rightFollowingState,
     userIsInTeam: leftIsInTeam || rightIsInTeam,
