@@ -217,6 +217,7 @@ class EnterText extends React.Component<Props, {code: string}> {
     return (
       <Box2 direction="vertical" style={styles.enterTextContainer} gap="small">
         <PlainInput
+          autoFocus={true}
           multiline={true}
           onChangeText={code => this.setState({code})}
           onEnterKeyDown={this._submit}
@@ -294,6 +295,8 @@ const styles = styleSheetCreate({
     isElectron: {
       marginLeft: globalMargins.medium,
       marginTop: globalMargins.medium,
+      // else the background can go above things, annoyingly
+      zIndex: 1,
     },
     isMobile: {
       marginLeft: 0,
