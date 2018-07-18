@@ -1,18 +1,18 @@
 // @flow
-import SearchResultRow from '.'
+import SearchResultRow, {type Props} from '.'
 import {userIsActiveInTeamHelper} from '../../constants/teams'
 import {followStateHelper, makeSearchResult} from '../../constants/search'
 import {type SearchResultId} from '../../constants/types/search'
 import {connect, type TypedState, setDisplayName, compose} from '../../util/container'
 
-export type OwnProps = {
+export type OwnProps = {|
   disableIfInTeamName: ?string,
   id: SearchResultId,
   selected: boolean,
   onClick: () => void,
   onMouseOver?: () => void,
   onShowTracker?: () => void,
-}
+|}
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const result = state.entities.search.searchResults.get(ownProps.id, makeSearchResult()).toObject()
@@ -38,4 +38,13 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-export default compose(connect(mapStateToProps), setDisplayName('SearchResultRow'))(SearchResultRow)
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
+  return {
+    ...stateProps,
+    ...ownProps,
+  }
+}
+
+export default compose(connect(mapStateToProps, null, mergeProps), setDisplayName('SearchResultRow'))(
+  SearchResultRow
+)

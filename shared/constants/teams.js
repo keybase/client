@@ -165,7 +165,7 @@ const userIsActiveInTeamHelper = (
   _username: ?string,
   _service: ?Service,
   _teamname: ?string
-) => {
+): boolean => {
   const username = _username || ''
   const service = _service || ''
   const teamname = _teamname || ''
@@ -179,7 +179,11 @@ const userIsActiveInTeamHelper = (
   }
 
   const member = members.get(username)
-  return member && member.status === 'active'
+  if (!member) {
+    return false
+  }
+
+  return member.status === 'active'
 }
 
 const getEmailInviteError = (state: TypedState) => state.teams.emailInviteError
