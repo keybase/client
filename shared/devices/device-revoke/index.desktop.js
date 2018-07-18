@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import {type DeviceType} from '../../constants/types/devices'
+import type {Props} from '.'
 import {Confirm, Box, List, Text, Icon, ProgressIndicator, type IconType} from '../../common-adapters'
 import {
   globalColors,
@@ -10,17 +11,6 @@ import {
   isMobile,
   platformStyles,
 } from '../../styles'
-
-export type Props = {
-  currentDevice: boolean,
-  deviceID: string,
-  endangeredTLFs: Array<string>,
-  type: DeviceType,
-  name: string,
-  onCancel: () => void,
-  onSubmit: () => void,
-  waiting: boolean,
-}
 
 const Header = (props: {name: string, type: DeviceType}) => {
   const icon: IconType = {

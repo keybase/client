@@ -2,7 +2,7 @@
 import * as Constants from '../../constants/devices'
 import * as DevicesGen from '../../actions/devices-gen'
 import * as I from 'immutable'
-import DeviceRevoke from './'
+import DeviceRevoke from '.'
 import {connect, type TypedState} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
 
