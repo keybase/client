@@ -240,9 +240,9 @@ func (k *LibKBFS) GetFavorites(u User, t tlf.Type) (map[string]bool, error) {
 	return favoritesMap, nil
 }
 
-// GetRootDir implements the Engine interface.
-func (k *LibKBFS) GetRootDir(u User, tlfName string, t tlf.Type, expectedCanonicalTlfName string) (
-	dir Node, err error) {
+func (k *LibKBFS) getRootDir(
+	u User, tlfName string, t tlf.Type, branch libkbfs.BranchName,
+	expectedCanonicalTlfName string) (dir Node, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 
 	ctx, cancel := k.newContext(u)
@@ -257,13 +257,33 @@ func (k *LibKBFS) GetRootDir(u User, tlfName string, t tlf.Type, expectedCanonic
 			expectedCanonicalTlfName, h.GetCanonicalName())
 	}
 
-	dir, _, err = config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+	if branch == libkbfs.MasterBranch {
+		dir, _, err = config.KBFSOps().GetOrCreateRootNode(ctx, h, branch)
+	} else {
+		dir, _, err = config.KBFSOps().GetRootNode(ctx, h, branch)
+	}
 	if err != nil {
 		return nil, err
 	}
+
 	k.refs[config][dir.(libkbfs.Node)] = true
 	return dir, nil
+}
+
+// GetRootDir implements the Engine interface.
+func (k *LibKBFS) GetRootDir(
+	u User, tlfName string, t tlf.Type, expectedCanonicalTlfName string) (
+	dir Node, err error) {
+	return k.getRootDir(
+		u, tlfName, t, libkbfs.MasterBranch, expectedCanonicalTlfName)
+}
+
+// GetRootDirAtRevision implements the Engine interface.
+func (k *LibKBFS) GetRootDirAtRevision(
+	u User, tlfName string, t tlf.Type, rev kbfsmd.Revision,
+	expectedCanonicalTlfName string) (dir Node, err error) {
+	return k.getRootDir(
+		u, tlfName, t, libkbfs.MakeRevBranchName(rev), expectedCanonicalTlfName)
 }
 
 // CreateDir implements the Engine interface.

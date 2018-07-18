@@ -41,6 +41,7 @@ type opt struct {
 	tlfName                  string
 	expectedCanonicalTlfName string
 	tlfType                  tlf.Type
+	tlfRevision              kbfsmd.Revision
 	users                    map[libkb.NormalizedUsername]User
 	stallers                 map[libkb.NormalizedUsername]*libkbfs.NaïveStaller
 	tb                       testing.TB
@@ -320,6 +321,15 @@ func inPrivateTlf(name string) optionOp {
 	}
 }
 
+func inPrivateTlfAtRevision(name string, rev kbfsmd.Revision) optionOp {
+	return func(o *opt) {
+		o.tlfName = name
+		o.expectedCanonicalTlfName = name
+		o.tlfType = tlf.Private
+		o.tlfRevision = rev
+	}
+}
+
 func inPrivateTlfNonCanonical(name, expectedCanonicalName string) optionOp {
 	return func(o *opt) {
 		o.tlfName = name
@@ -507,7 +517,16 @@ func initRoot() fileOp {
 				return err
 			}
 		}
-		root, err := c.engine.GetRootDir(c.user, c.tlfName, c.tlfType, c.expectedCanonicalTlfName)
+		var root Node
+		var err error
+		if c.tlfRevision == kbfsmd.RevisionUninitialized {
+			root, err = c.engine.GetRootDir(
+				c.user, c.tlfName, c.tlfType, c.expectedCanonicalTlfName)
+		} else {
+			root, err = c.engine.GetRootDirAtRevision(
+				c.user, c.tlfName, c.tlfType, c.tlfRevision,
+				c.expectedCanonicalTlfName)
+		}
 		if err != nil {
 			return err
 		}

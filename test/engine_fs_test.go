@@ -149,6 +149,19 @@ func (e *fsEngine) GetRootDir(user User, tlfName string, t tlf.Type, expectedCan
 	return fsNode{realPath}, nil
 }
 
+// GetRootDirAtRevision implements the Engine interface.
+func (e *fsEngine) GetRootDirAtRevision(
+	u User, tlfName string, t tlf.Type, rev kbfsmd.Revision,
+	expectedCanonicalTlfName string) (dir Node, err error) {
+	d, err := e.GetRootDir(u, tlfName, t, expectedCanonicalTlfName)
+	if err != nil {
+		return nil, err
+	}
+	p := d.(fsNode)
+	revDir := libfs.ArchivedRevDirPrefix + rev.String()
+	return fsNode{filepath.Join(p.path, revDir)}, nil
+}
+
 // CreateDir is called by the test harness to create a directory relative to the passed
 // parent directory for the given user.
 func (*fsEngine) CreateDir(u User, parentDir Node, name string) (dir Node, err error) {

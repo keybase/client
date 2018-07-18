@@ -58,6 +58,12 @@ type Engine interface {
 	// GetRootDir is called by the test harness to get a handle to a TLF from the given user's
 	// perspective
 	GetRootDir(u User, tlfName string, t tlf.Type, expectedCanonicalTlfName string) (dir Node, err error)
+	// GetRootDirAtRevision is called by the test harness to get a
+	// handle to an archived TLF from the given user's perspective, at
+	// a given revision.
+	GetRootDirAtRevision(
+		u User, tlfName string, t tlf.Type, rev kbfsmd.Revision,
+		expectedCanonicalTlfName string) (dir Node, err error)
 	// CreateDir is called by the test harness to create a directory relative to the passed
 	// parent directory for the given user.
 	CreateDir(u User, parentDir Node, name string) (dir Node, err error)
