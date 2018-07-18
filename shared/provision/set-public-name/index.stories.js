@@ -5,7 +5,7 @@ import {action, storiesOf} from '../../stories/storybook'
 
 const props = {
   deviceName: 'MobilePhone',
-  deviceNameError: '',
+  error: '',
   onBack: action('onBack'),
   onChange: action('onChange'),
   onSubmit: action('onSubmit'),
@@ -14,7 +14,7 @@ const props = {
 const load = () => {
   storiesOf('Provision/SetPublicName', module)
     .add('Normal', () => <SetPublicName {...props} />)
-    .add('Error', () => <SetPublicName {...props} deviceNameError={'Name taken'} />)
+    .add('Error', () => <SetPublicName {...props} error={'Name taken'} />)
 }
 
 export default load

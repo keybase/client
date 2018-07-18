@@ -1,7 +1,7 @@
 // @flow
 import * as ProvisionGen from '../../actions/provision-gen'
 import UsernameOrEmail from '.'
-import {connect, type TypedState} from '../../util/container'
+import {compose, connect, type TypedState, safeSubmit} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
 
 type OwnProps = RouteProps<{}, {}>
@@ -18,4 +18,7 @@ const dispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
     dispatch(ProvisionGen.createSubmitUsernameOrEmail({usernameOrEmail})),
 })
 
-export default connect(mapStateToProps, dispatchToProps)(UsernameOrEmail)
+export default compose(
+  connect(mapStateToProps, dispatchToProps),
+  safeSubmit(['onBack', 'onSubmit'], ['error'])
+)(UsernameOrEmail)

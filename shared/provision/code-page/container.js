@@ -1,7 +1,7 @@
 // @flow
 import * as ProvisionGen from '../../actions/provision-gen'
 import CodePage2 from '.'
-import {connect, type TypedState, type Dispatch, isMobile} from '../../util/container'
+import {compose, connect, type TypedState, type Dispatch, isMobile, safeSubmit} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
 import {type RouteProps} from '../../route-tree/render-route'
 
@@ -21,17 +21,17 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-let lastSubmitTextCode = ''
+// let lastSubmitTextCode = ''
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   onBack: () => dispatch(ownProps.navigateUp()),
   onSubmitTextCode: (code: string) => {
     // Don't keep on submitting the same code. The barcode scanner calls this a bunch of times
-    if (lastSubmitTextCode !== code) {
-      console.log('aaa submitting text code', code)
-      dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)}))
-      lastSubmitTextCode = code
-    }
+    // if (lastSubmitTextCode !== code) {
+    console.log('aaa submitting text code', code)
+    dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)}))
+    // lastSubmitTextCode = code
+    // }
   },
 })
 
@@ -47,4 +47,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   textCode: stateProps.textCode,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(CodePage2)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  safeSubmit(['onBack', 'onSubmitTextCode'], ['error'])
+)(CodePage2)

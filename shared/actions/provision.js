@@ -109,6 +109,7 @@ class ProvisioningManager {
 
   // Choosing a name for this new device
   promptNewDeviceNameHandler = (params: RPCTypes.ProvisionUiPromptNewDeviceNameRpcParam, response, state) => {
+    console.log('aaaa promptNewDeviceNameHandler')
     this._stashResponse('keybase.1.provisionUi.PromptNewDeviceName', response)
     return Saga.put(
       ProvisionGen.createShowNewDeviceNamePage({

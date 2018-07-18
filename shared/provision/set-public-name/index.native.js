@@ -8,7 +8,7 @@ import {globalMargins} from '../../styles'
 
 import type {Props} from '.'
 
-const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName}: Props) => {
+const SetPublicName = ({onBack, onSubmit, onChange, error, deviceName}: Props) => {
   return (
     <Container style={stylesContainer} onBack={onBack}>
       <Text type="Header" style={{textAlign: 'center'}}>
@@ -18,7 +18,7 @@ const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName}
       <Input
         autoFocus={true}
         style={stylesInput}
-        errorText={deviceNameError}
+        errorText={error}
         floatingHintTextOverride="Device name"
         hintText="Device name"
         onEnterKeyDown={onSubmit}
