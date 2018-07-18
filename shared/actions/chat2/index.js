@@ -320,6 +320,29 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
             )
           }
           break
+        case RPCChatTypes.commonMessageType.reaction: {
+          if (body.reaction) {
+            // body.reaction.messageID is the id of the message this is reacting to
+            // valid.messageID is the id of this reaction message
+            // we keep valid.messageID for easy lookups on receiving a toggle-off notification
+            actions.push(
+              Chat2Gen.createMessageWasReactedTo({
+                conversationIDKey,
+                emoji: body.reaction.body,
+                reactionMsgID: valid.messageID,
+                sender: valid.senderUsername,
+                targetMsgID: body.reaction.messageID,
+              })
+            )
+          } else {
+            logger.warn(
+              `Got reaction message with no reaction body. ConvID: ${conversationIDKey} MessageID: ${
+                valid.messageID
+              }`
+            )
+          }
+          break
+        }
       }
     }
   }
@@ -546,6 +569,22 @@ const ephemeralPurgeToActions = (info: RPCChatTypes.EphemeralPurgeNotifInfo) => 
   return actions
 }
 
+// Get actions to update the messagemap when reactions are deleted
+const reactionDeleteToActions = (info: RPCChatTypes.ReactionDeleteNotif) => {
+  const conversationIDKey = Types.conversationIDToKey(info.convID)
+  if (!info.reactionDeletes || info.reactionDeletes.length === 0) {
+    logger.warn(`Got ReactionDeleteNotif with no reactionDeletes for convID=${conversationIDKey}`)
+    return null
+  }
+  const deletions = info.reactionDeletes.map(rd => ({
+    emoji: rd.reactionKey,
+    reactionMsgID: Types.numberToMessageID(rd.reactionMsgID),
+    targetMsgID: Types.numberToMessageID(rd.targetMsgID),
+  }))
+  logger.info(`Got ${deletions.length} reaction deletions for convID=${conversationIDKey}`)
+  return [Chat2Gen.createReactionsWereDeleted({conversationIDKey, deletions})]
+}
+
 // Handle calls that come from the service
 const setupChatHandlers = () => {
   engine().setIncomingActionCreators(
@@ -595,6 +634,8 @@ const setupChatHandlers = () => {
           return activity.expunge ? expungeToActions(activity.expunge, getState()) : null
         case RPCChatTypes.notifyChatChatActivityType.ephemeralPurge:
           return activity.ephemeralPurge ? ephemeralPurgeToActions(activity.ephemeralPurge) : null
+        case RPCChatTypes.notifyChatChatActivityType.reactionDelete:
+          return activity.reactionDelete ? reactionDeleteToActions(activity.reactionDelete) : null
         default:
           break
       }
@@ -2126,6 +2167,30 @@ const loadStaticConfig = (state: TypedState, action: ConfigGen.BootstrapPayload)
     })
   })
 
+const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, state: TypedState) => {
+  // The service translates this to a delete if an identical reaction already exists
+  // so we only need to call this RPC to toggle it on & off
+  const {conversationIDKey, emoji, ordinal} = action.payload
+  const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  if (!message) {
+    logger.warn(`toggleMessageReaction: no message found`)
+    return
+  }
+  const messageID = message.id
+  const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+  const meta = Constants.getMeta(state, conversationIDKey)
+  logger.info(`toggleMessageReaction: posting reaction`)
+  return Saga.call(RPCChatTypes.localPostReactionNonblockRpcPromise, {
+    body: emoji,
+    clientPrev,
+    conversationID: Types.keyToConversationID(conversationIDKey),
+    identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
+    supersedes: messageID,
+    tlfName: meta.tlfname,
+    tlfPublic: false,
+  })
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -2259,6 +2324,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     setConvExplodingModeFailure
   )
   yield Saga.safeTakeEvery(Chat2Gen.handleSeeingExplodingMessages, handleSeeingExplodingMessages)
+  yield Saga.safeTakeEveryPure(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
   yield Saga.safeTakeEveryPurePromise(ConfigGen.bootstrapSuccess, loadStaticConfig)
 }
 

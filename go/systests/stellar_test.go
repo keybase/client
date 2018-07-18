@@ -3,6 +3,7 @@ package systests
 import (
 	"bytes"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -93,6 +94,9 @@ func TestStellarRelayAutoClaimsWithPUK(t *testing.T) {
 //
 // To debug this test use log filter "stellar_test|poll-|AutoClaim|stellar.claim|pollfor"
 func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
+	if os.Getenv("UNSKIP_CORE_8044") != "1" {
+		t.Skip("CORE-8044")
+	}
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 	useStellarTestNet(t)

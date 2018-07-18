@@ -165,9 +165,7 @@ protocol local {
   record MessageLeave {}
 
   record MessageReaction {
-    @mpackkey("m") @jsonkey("m")
     MessageID messageID;
-    @mpackkey("b") @jsonkey("b")
     string body; // emoji reaction :+1:
   }
 

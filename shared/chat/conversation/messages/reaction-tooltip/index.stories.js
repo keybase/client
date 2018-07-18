@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import {action, createPropProvider, storiesOf, Rnd} from '../../../../stories/storybook'
 import {Common} from '../../../../stories/prop-providers'
@@ -9,16 +10,17 @@ import ReactionTooltip from '.'
 
 const provider = createPropProvider(Common(), ReactButton)
 
-const actions = {
+const common = {
+  conversationIDKey: Constants.noConversationIDKey,
   onAddReaction: action('onAddReaction'),
   onHidden: action('onHidden'),
   onReact: action('onReact'),
+  ordinal: Types.numberToOrdinal(0),
 }
 
 const examples = [
   {
-    ...actions,
-    messageID: Types.numberToMessageID(0),
+    ...common,
     reactions: [
       {
         emoji: ':+1:',
@@ -37,8 +39,7 @@ const examples = [
     ],
   },
   {
-    ...actions,
-    messageID: Types.numberToMessageID(0),
+    ...common,
     reactions: [
       {
         emoji: ':face_with_cowboy_hat:',
@@ -47,8 +48,7 @@ const examples = [
     ],
   },
   {
-    ...actions,
-    messageID: Types.numberToMessageID(0),
+    ...common,
     reactions: [
       {
         emoji: ':face_with_cowboy_hat:',
@@ -114,8 +114,7 @@ const makeUsers = (num: number) => {
   return users
 }
 examples.push({
-  ...actions,
-  messageID: Types.numberToMessageID(0),
+  ...common,
   reactions: emoji.map(e => ({
     emoji: e,
     users: makeUsers(rng.next() % maxUsersInReaction + 1),
