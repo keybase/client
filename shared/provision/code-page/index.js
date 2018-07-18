@@ -332,7 +332,7 @@ const styles = styleSheetCreate({
     },
   }),
   enterTextButton: {
-    maxWidth: isMobile ? 300 : 460,
+    maxWidth: isMobile ? undefined : 460,
     width: '100%',
   },
   enterTextContainer: {

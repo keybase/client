@@ -6,4 +6,4 @@ const inject = () => {
   redux.connect = connect
 }
 
-export default inject
+export {inject}
