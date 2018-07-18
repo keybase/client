@@ -18,7 +18,7 @@ func persistState(m libkb.MetaContext, d libkb.DeviceCloneState) error {
 func runAndGet(m libkb.MetaContext) (d libkb.DeviceCloneState, err error) {
 	_, _, err = libkb.UpdateDeviceCloneState(m)
 	d, _ = libkb.GetDeviceCloneState(m)
-	return
+	return d, err
 }
 
 func assertIsValidToken(tc libkb.TestContext, token string) {

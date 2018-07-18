@@ -72,15 +72,15 @@ func UpdateDeviceCloneState(m MetaContext) (before int, after int, err error) {
 
 	err = SetDeviceCloneState(m, DeviceCloneState{Prior: res.Token, Stage: "", Clones: res.Clones})
 	after = res.Clones
-	return
+	return before, after, err
 }
 
-func configPaths(m MetaContext) (p, s, c string) {
+func configPaths(m MetaContext) (string, string, string) {
 	deviceID := m.G().ActiveDevice.DeviceID()
-	p = fmt.Sprintf("%s.prior", deviceID)
-	s = fmt.Sprintf("%s.stage", deviceID)
-	c = fmt.Sprintf("%s.clones", deviceID)
-	return
+	p := fmt.Sprintf("%s.prior", deviceID)
+	s := fmt.Sprintf("%s.stage", deviceID)
+	c := fmt.Sprintf("%s.clones", deviceID)
+	return p, s, c
 }
 
 func GetDeviceCloneState(m MetaContext) (DeviceCloneState, error) {
@@ -150,7 +150,7 @@ func (f DeviceCloneStateJSONFile) GetStringAtPath(p string) (ret string, isSet b
 	if isSet {
 		ret = i.(string)
 	}
-	return
+	return ret, isSet
 }
 
 func (f DeviceCloneStateJSONFile) GetIntAtPath(p string) (ret int, isSet bool) {
@@ -158,7 +158,7 @@ func (f DeviceCloneStateJSONFile) GetIntAtPath(p string) (ret int, isSet bool) {
 	if isSet {
 		ret = i.(int)
 	}
-	return
+	return ret, isSet
 }
 
 func (f DeviceCloneStateJSONFile) getValueAtPath(p string, getter valueGetter) (ret interface{}, isSet bool) {
@@ -167,7 +167,7 @@ func (f DeviceCloneStateJSONFile) getValueAtPath(p string, getter valueGetter) (
 	if err == nil {
 		isSet = true
 	}
-	return
+	return ret, isSet
 }
 
 func (f *DeviceCloneStateJSONFile) SetStringAtPath(p string, v string) error {
