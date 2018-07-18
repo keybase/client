@@ -27,6 +27,7 @@ type FolderBranchStatus struct {
 	LatestKeyGeneration kbfsmd.KeyGen
 	FolderID            string
 	Revision            kbfsmd.Revision
+	LastGCRevision      kbfsmd.Revision
 	MDVersion           kbfsmd.MetadataVer
 	RootBlockID         string
 	SyncEnabled         bool
@@ -211,6 +212,7 @@ func (fbsk *folderBranchStatusKeeper) getStatusWithoutJournaling(
 		fbs.LatestKeyGeneration = fbsk.md.LatestKeyGeneration()
 		fbs.FolderID = fbsk.md.TlfID().String()
 		fbs.Revision = fbsk.md.Revision()
+		fbs.LastGCRevision = fbsk.md.data.LastGCRevision
 		fbs.MDVersion = fbsk.md.Version()
 		fbs.SyncEnabled = fbsk.config.IsSyncedTlf(fbsk.md.TlfID())
 		prefetchStatus := fbsk.config.PrefetchStatus(ctx, fbsk.md.TlfID(),
