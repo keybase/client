@@ -585,7 +585,13 @@ func asDir(ctx context.Context, f dokan.File) *Dir {
 	case *Dir:
 		return x
 	case *TLF:
-		d, _, _ := x.loadDirHelper(ctx, "asDir", libkbfs.WriteMode, false)
+		branch := x.folder.getFolderBranch().Branch
+		filterErr := false
+		if branch != libkbfs.MasterBranch {
+			filterErr = true
+		}
+		d, _, _ := x.loadDirHelper(
+			ctx, "asDir", libkbfs.WriteMode, branch, filterErr)
 		return d
 	}
 	return nil

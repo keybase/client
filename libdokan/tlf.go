@@ -45,7 +45,7 @@ func (tlf *TLF) getStoredDir() *Dir {
 }
 
 func (tlf *TLF) loadDirHelper(ctx context.Context, info string,
-	mode libkbfs.ErrorModeType, filterErr bool) (
+	mode libkbfs.ErrorModeType, branch libkbfs.BranchName, filterErr bool) (
 	dir *Dir, exitEarly bool, err error) {
 	dir = tlf.getStoredDir()
 	if dir != nil {
@@ -81,7 +81,7 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, info string,
 	var rootNode libkbfs.Node
 	if filterErr {
 		rootNode, _, err = tlf.folder.fs.config.KBFSOps().GetRootNode(
-			ctx, handle, libkbfs.MasterBranch)
+			ctx, handle, branch)
 		if err != nil {
 			return nil, false, err
 		}
@@ -91,7 +91,7 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, info string,
 		}
 	} else {
 		rootNode, _, err = tlf.folder.fs.config.KBFSOps().GetOrCreateRootNode(
-			ctx, handle, libkbfs.MasterBranch)
+			ctx, handle, branch)
 		if err != nil {
 			return nil, false, err
 		}
@@ -112,7 +112,8 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, info string,
 }
 
 func (tlf *TLF) loadDir(ctx context.Context, info string) (*Dir, error) {
-	dir, _, err := tlf.loadDirHelper(ctx, info, libkbfs.WriteMode, false)
+	dir, _, err := tlf.loadDirHelper(
+		ctx, info, libkbfs.WriteMode, libkbfs.MasterBranch, false)
 	return dir, err
 }
 
@@ -122,7 +123,16 @@ func (tlf *TLF) loadDir(ctx context.Context, info string) (*Dir, error) {
 // folder.
 func (tlf *TLF) loadDirAllowNonexistent(ctx context.Context, info string) (
 	*Dir, bool, error) {
-	return tlf.loadDirHelper(ctx, info, libkbfs.ReadMode, true)
+	return tlf.loadDirHelper(
+		ctx, info, libkbfs.ReadMode, libkbfs.MasterBranch, true)
+}
+
+func (tlf *TLF) loadArchivedDir(
+	ctx context.Context, info string, branch libkbfs.BranchName) (
+	*Dir, bool, error) {
+	// Always filter errors for archive TLF directories, so that we
+	// don't try to initialize them.
+	return tlf.loadDirHelper(ctx, info, libkbfs.ReadMode, branch, true)
 }
 
 // SetFileTime sets mtime for FSOs (File and Dir).
@@ -173,7 +183,8 @@ func (tlf *TLF) open(ctx context.Context, oc *openContext, path []string) (
 	}
 	// If it is a creation then we need the dir for real.
 	dir, exitEarly, err :=
-		tlf.loadDirHelper(ctx, "open", mode, !oc.isCreation())
+		tlf.loadDirHelper(
+			ctx, "open", mode, libkbfs.MasterBranch, !oc.isCreation())
 	if err != nil {
 		return nil, 0, err
 	}
@@ -185,6 +196,18 @@ func (tlf *TLF) open(ctx context.Context, oc *openContext, path []string) (
 
 		return nil, 0, dokan.ErrObjectNameNotFound
 	}
+
+	branch, isArchivedBranch := libfs.BranchNameFromArchiveRefDir(path[0])
+	if isArchivedBranch {
+		archivedTLF := newTLF(
+			tlf.folder.list, tlf.folder.h, tlf.folder.hPreferredName)
+		_, _, err := archivedTLF.loadArchivedDir(ctx, "open", branch)
+		if err != nil {
+			return nil, 0, err
+		}
+		return archivedTLF.open(ctx, oc, path[1:])
+	}
+
 	return dir.open(ctx, oc, path)
 }
 
