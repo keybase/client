@@ -7,4 +7,8 @@ protocol gregor {
     KeybaseTransactionID kbTxID;
     TransactionID txID;
   }
+
+  record RequestStatusMsg {
+    KeybaseRequestID reqID;
+  }
 }
