@@ -264,6 +264,9 @@ prompt if it appears. After that, `adb devices` should list your
 device. If it says 'unauthorized' next to your device, then you likely
 haven't tapped 'OK' on the prompt yet.
 
+*Do not turn on instant run*
+If this is on go to Android Studio | Settings | Build, Execution, Deployment | Instant Run | Uncheck the box
+
 Finally, you'll have to forward port 8081 on your device to port 8081
 on your computer. To do so, run
 

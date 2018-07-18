@@ -66,10 +66,6 @@ function getShownPushPrompt(): Promise<string> {
   throw new Error('Push permissions unsupported on this platform')
 }
 
-function openAppSettings(): void {
-  throw new Error('Cannot open app settings on desktop')
-}
-
 const getContentTypeFromURL = (
   url: string,
   cb: ({error?: any, statusCode?: number, contentType?: string}) => void
@@ -133,7 +129,6 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
 export {
   checkPermissions,
   getShownPushPrompt,
-  openAppSettings,
   requestPushPermissions,
   configurePush,
   saveAttachmentDialog,

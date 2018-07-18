@@ -5,6 +5,7 @@ import devices from '../devices/index.stories'
 import fs from '../fs/index.stories'
 import git from '../git/index.stories'
 import login from '../login/index.stories'
+import provision from '../provision/index.stories'
 import people from '../people/index.stories'
 import profile from '../profile/index.stories'
 import search from '../search/index.stories'
@@ -24,6 +25,7 @@ const stories = {
   login,
   people,
   profile,
+  provision,
   search,
   settings,
   signup,

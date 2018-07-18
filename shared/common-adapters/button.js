@@ -17,7 +17,7 @@ import {
 
 export type Props = {
   children?: React.Node,
-  onClick: ?(event: SyntheticEvent<>) => void,
+  onClick?: ?(event: SyntheticEvent<>) => void,
   onPress?: void,
   onMouseEnter?: Function,
   onMouseLeave?: Function,
@@ -86,7 +86,11 @@ class Button extends React.Component<Props> {
     containerStyle = collapseStyles([containerStyle, this.props.style])
 
     const onClick = (!this.props.disabled && !this.props.waiting && this.props.onClick) || null
-    const whiteSpinner = !(this.props.type === 'PrimaryGreenActive' || this.props.type === 'Secondary')
+    const whiteSpinner = !(
+      this.props.type === 'PrimaryGreenActive' ||
+      this.props.type === 'Secondary' ||
+      this.props.type === 'PrimaryColoredBackground'
+    )
 
     return (
       <ClickableBox style={containerStyle} onClick={onClick}>
@@ -100,7 +104,7 @@ class Button extends React.Component<Props> {
           >
             {this.props.label}
           </Text>
-          {this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
+          {!!this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
         </Box>
       </ClickableBox>
     )

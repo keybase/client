@@ -32,6 +32,7 @@ export const loadConfig = 'config:loadConfig'
 export const loadTeamAvatars = 'config:loadTeamAvatars'
 export const loadedAvatars = 'config:loadedAvatars'
 export const mobileAppState = 'config:mobileAppState'
+export const openAppSettings = 'config:openAppSettings'
 export const persistRouteState = 'config:persistRouteState'
 export const pushLoaded = 'config:pushLoaded'
 export const readyForBootstrap = 'config:readyForBootstrap'
@@ -75,6 +76,7 @@ type _LoadConfigPayload = $ReadOnly<{|logVersion?: boolean|}>
 type _LoadTeamAvatarsPayload = $ReadOnly<{|teamnames: Array<string>|}>
 type _LoadedAvatarsPayload = $ReadOnly<{|nameToUrlMap: {[name: string]: ?Object}|}>
 type _MobileAppStatePayload = $ReadOnly<{|nextAppState: 'active' | 'background' | 'inactive'|}>
+type _OpenAppSettingsPayload = void
 type _PersistRouteStatePayload = void
 type _PushLoadedPayload = $ReadOnly<{|pushLoaded: boolean|}>
 type _ReadyForBootstrapPayload = void
@@ -92,6 +94,10 @@ type _UpdateFollowingPayload = $ReadOnly<{|
 |}>
 
 // Action Creators
+/**
+ * mobile only: open the settings page
+ */
+export const createOpenAppSettings = (payload: _OpenAppSettingsPayload) => ({error: false, payload, type: openAppSettings})
 export const createBootstrap = (payload: _BootstrapPayload) => ({error: false, payload, type: bootstrap})
 export const createBootstrapAttemptFailed = (payload: _BootstrapAttemptFailedPayload) => ({error: false, payload, type: bootstrapAttemptFailed})
 export const createBootstrapFailed = (payload: _BootstrapFailedPayload) => ({error: false, payload, type: bootstrapFailed})
@@ -149,6 +155,7 @@ export type LoadConfigPayload = $Call<typeof createLoadConfig, _LoadConfigPayloa
 export type LoadTeamAvatarsPayload = $Call<typeof createLoadTeamAvatars, _LoadTeamAvatarsPayload>
 export type LoadedAvatarsPayload = $Call<typeof createLoadedAvatars, _LoadedAvatarsPayload>
 export type MobileAppStatePayload = $Call<typeof createMobileAppState, _MobileAppStatePayload>
+export type OpenAppSettingsPayload = $Call<typeof createOpenAppSettings, _OpenAppSettingsPayload>
 export type PersistRouteStatePayload = $Call<typeof createPersistRouteState, _PersistRouteStatePayload>
 export type PushLoadedPayload = $Call<typeof createPushLoaded, _PushLoadedPayload>
 export type ReadyForBootstrapPayload = $Call<typeof createReadyForBootstrap, _ReadyForBootstrapPayload>
@@ -185,6 +192,7 @@ export type Actions =
   | LoadTeamAvatarsPayload
   | LoadedAvatarsPayload
   | MobileAppStatePayload
+  | OpenAppSettingsPayload
   | PersistRouteStatePayload
   | PushLoadedPayload
   | ReadyForBootstrapPayload
