@@ -1,5 +1,6 @@
 // @flow
 import * as Chat2Gen from '../chat2-gen'
+import * as WaitingGen from '../waiting-gen'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/chat2'
 import * as RPCGregorTypes from '../../constants/types/rpc-gregor-gen'
@@ -59,7 +60,7 @@ const inboxRefresh = (
       query: Constants.makeInboxQuery([]),
       skipUnverified: false,
     },
-    waitingKey: 'inboxRefresh',
+    waitingKey: Constants.waitingKeyInboxRefresh,
   })
 }
 
@@ -225,7 +226,7 @@ const unboxRows = (
       query: Constants.makeInboxQuery(conversationIDKeys),
       skipUnverified: true,
     },
-    waitingKey: `unboxing:${conversationIDKeys[0]}`,
+    waitingKey: Constants.waitingKeyUnboxing(conversationIDKeys[0]),
   })
 
   return Saga.sequentially([Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys})), getRows])
@@ -393,7 +394,7 @@ const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
 
 // Service tells us it's done syncing
 const onChatInboxSynced = (syncRes, getState) => {
-  const actions = [Chat2Gen.createClearLoading({key: 'inboxSyncStarted'})]
+  const actions = [WaitingGen.createClearWaiting({key: Constants.waitingKeyInboxSyncStarted})]
 
   switch (syncRes.syncType) {
     // Just clear it all
@@ -615,7 +616,7 @@ const setupChatHandlers = () => {
   )
 
   engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxSyncStarted', () => [
-    Chat2Gen.createSetLoading({key: 'inboxSyncStarted', loading: true}),
+    WaitingGen.createIncrementWaiting({key: Constants.waitingKeyInboxSyncStarted}),
   ])
 
   engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxStale', () => [
@@ -805,7 +806,7 @@ const loadMoreMessages = (
     `Load thread: calling rpc convo: ${conversationIDKey} num: ${numberOfMessagesToLoad} reason: ${reason}`
   )
 
-  const loadingKey = `loadingThread:${conversationIDKey}`
+  const loadingKey = Constants.waitingKeyThreadLoad(conversationIDKey)
 
   let calledClear = false
   const onGotThread = ({thread}: {+thread: ?string}, context: 'full' | 'cached') => {
@@ -887,7 +888,7 @@ const loadMoreMessages = (
         Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results && results.offline})
       )
     } finally {
-      yield Saga.put(Chat2Gen.createClearLoading({key: `pushLoad:${conversationIDKey}`}))
+      yield Saga.put(WaitingGen.createClearWaiting({key: Constants.waitingKeyPushLoad(conversationIDKey)}))
     }
   })
 }
@@ -960,24 +961,30 @@ const messageDelete = (action: Chat2Gen.MessageDeletePayload, state: TypedState)
   if (!message.id) {
     if (message.outboxID) {
       return Saga.sequentially([
-        Saga.call(RPCChatTypes.localCancelPostRpcPromise, {
-          outboxID: Types.outboxIDToRpcOutboxID(message.outboxID),
-        }),
+        Saga.call(
+          RPCChatTypes.localCancelPostRpcPromise,
+          {outboxID: Types.outboxIDToRpcOutboxID(message.outboxID)},
+          Constants.waitingKeyCancelPost
+        ),
         Saga.put(Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals: [message.ordinal]})),
       ])
     } else {
       logger.warn('Delete of no message id and no outboxid')
     }
   } else {
-    return Saga.call(RPCChatTypes.localPostDeleteNonblockRpcPromise, {
-      clientPrev: 0,
-      conversationID: Types.keyToConversationID(conversationIDKey),
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      outboxID: null,
-      supersedes: message.id,
-      tlfName: meta.tlfname,
-      tlfPublic: false,
-    })
+    return Saga.call(
+      RPCChatTypes.localPostDeleteNonblockRpcPromise,
+      {
+        clientPrev: 0,
+        conversationID: Types.keyToConversationID(conversationIDKey),
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        outboxID: null,
+        supersedes: message.id,
+        tlfName: meta.tlfname,
+        tlfPublic: false,
+      },
+      Constants.waitingKeyDeletePost
+    )
   }
 }
 
@@ -1049,23 +1056,31 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
       const supersedes = message.id
       const outboxID = Constants.generateOutboxID()
 
-      return Saga.call(RPCChatTypes.localPostEditNonblockRpcPromise, {
-        body: text.stringValue(),
-        clientPrev,
-        conversationID: Types.keyToConversationID(conversationIDKey),
-        identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-        outboxID,
-        supersedes,
-        tlfName,
-        tlfPublic: false,
-      })
+      return Saga.call(
+        RPCChatTypes.localPostEditNonblockRpcPromise,
+        {
+          body: text.stringValue(),
+          clientPrev,
+          conversationID: Types.keyToConversationID(conversationIDKey),
+          identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
+          outboxID,
+          supersedes,
+          tlfName,
+          tlfPublic: false,
+        },
+        Constants.waitingKeyEditPost
+      )
     } else {
       // Pending messages need to be cancelled and resent
       if (message.outboxID) {
         return Saga.sequentially([
-          Saga.call(RPCChatTypes.localCancelPostRpcPromise, {
-            outboxID: Types.outboxIDToRpcOutboxID(message.outboxID),
-          }),
+          Saga.call(
+            RPCChatTypes.localCancelPostRpcPromise,
+            {
+              outboxID: Types.outboxIDToRpcOutboxID(message.outboxID),
+            },
+            Constants.waitingKeyCancelPost
+          ),
           Saga.put(Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals: [message.ordinal]})),
           Saga.put(Chat2Gen.createMessageSend({conversationIDKey, text})),
         ])
@@ -1080,9 +1095,13 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
 
 const messageRetry = (action: Chat2Gen.MessageRetryPayload, state: TypedState) => {
   const {outboxID} = action.payload
-  return Saga.call(RPCChatTypes.localRetryPostRpcPromise, {
-    outboxID: Types.outboxIDToRpcOutboxID(outboxID),
-  })
+  return Saga.call(
+    RPCChatTypes.localRetryPostRpcPromise,
+    {
+      outboxID: Types.outboxIDToRpcOutboxID(outboxID),
+    },
+    Constants.waitingKeyRetryPost
+  )
 }
 
 const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => {
@@ -1114,16 +1133,20 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
         ],
       })
     ),
-    Saga.call(RPCChatTypes.localPostTextNonblockRpcPromise, {
-      ...ephemeralData,
-      body: text.stringValue(),
-      clientPrev,
-      conversationID: Types.keyToConversationID(conversationIDKey),
-      identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-      outboxID,
-      tlfName,
-      tlfPublic: false,
-    }),
+    Saga.call(
+      RPCChatTypes.localPostTextNonblockRpcPromise,
+      {
+        ...ephemeralData,
+        body: text.stringValue(),
+        clientPrev,
+        conversationID: Types.keyToConversationID(conversationIDKey),
+        identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
+        outboxID,
+        tlfName,
+        tlfPublic: false,
+      },
+      Constants.waitingKeyPost
+    ),
   ])
 }
 
@@ -1765,7 +1788,11 @@ const deleteMessageHistory = (action: Chat2Gen.MessageDeletePayload, state: Type
     tlfName: meta.tlfname,
     tlfPublic: false,
   }
-  return Saga.call(RPCChatTypes.localPostDeleteHistoryThroughRpcPromise, param)
+  return Saga.call(
+    RPCChatTypes.localPostDeleteHistoryThroughRpcPromise,
+    param,
+    Constants.waitingKeyDeleteHistory
+  )
 }
 
 // Get the rights a user has on certain actions in a team
@@ -1863,9 +1890,13 @@ function* mobileMessageAttachmentSave(action: Chat2Gen.MessageAttachmentNativeSa
 }
 
 const joinConversation = (action: Chat2Gen.JoinConversationPayload) =>
-  Saga.call(RPCChatTypes.localJoinConversationByIDLocalRpcPromise, {
-    convID: Types.keyToConversationID(action.payload.conversationIDKey),
-  })
+  Saga.call(
+    RPCChatTypes.localJoinConversationByIDLocalRpcPromise,
+    {
+      convID: Types.keyToConversationID(action.payload.conversationIDKey),
+    },
+    Constants.waitingKeyJoinConversation
+  )
 
 const leaveConversation = (action: Chat2Gen.LeaveConversationPayload) =>
   Saga.call(RPCChatTypes.localLeaveConversationLocalRpcPromise, {
@@ -1995,17 +2026,19 @@ const createConversation = (action: Chat2Gen.CreateConversationPayload, state: T
     throw new Error('Making a convo while logged out?')
   }
   return Saga.sequentially([
-    Saga.put(Chat2Gen.createSetLoading({key: Constants.creatingLoadingKey, loading: true})),
-    Saga.call(RPCChatTypes.localNewConversationLocalRpcPromise, {
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
-      tlfName: I.Set([username])
-        .concat(action.payload.participants)
-        .join(','),
-      tlfVisibility: RPCTypes.commonTLFVisibility.private,
-      topicType: RPCChatTypes.commonTopicType.chat,
-    }),
-    Saga.put(Chat2Gen.createSetLoading({key: Constants.creatingLoadingKey, loading: false})),
+    Saga.call(
+      RPCChatTypes.localNewConversationLocalRpcPromise,
+      {
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
+        tlfName: I.Set([username])
+          .concat(action.payload.participants)
+          .join(','),
+        tlfVisibility: RPCTypes.commonTLFVisibility.private,
+        topicType: RPCChatTypes.commonTopicType.chat,
+      },
+      Constants.waitingKeyCreating
+    ),
   ])
 }
 

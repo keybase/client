@@ -6,15 +6,6 @@
     "import type {RetentionPolicy} from '../constants/types/teams'"
   ],
   "actions": {
-    // Set the loading state. Loading true increments the value
-    "setLoading": {
-      "key": "string",
-      "loading": "boolean"
-    },
-    // Sometimes we just want to clear the loading state and not do a true increment/decrement
-    "clearLoading": {
-      "key": "string"
-    },
     // Select a conversation (or leave nothing selected)
     "selectConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
