@@ -132,7 +132,7 @@ class ExplodingMeta extends React.Component<Props, State> {
                 </Text>
               </Box2>
             )}
-            <Icon type="iconfont-bomb" fontSize={16} color={globalColors.black_75} />
+            <Icon type="iconfont-bomb" fontSize={isMobile ? 22 : 16} color={globalColors.black_75} />
           </Box2>
         )
         break
@@ -236,7 +236,9 @@ const styles = styleSheetCreate({
     },
   }),
   countdown: platformStyles({
-    common: {color: globalColors.white, fontSize: 10, lineHeight: 14, fontWeight: 'bold'},
+    common: {color: globalColors.white, fontWeight: 'bold'},
+    isElectron: {fontSize: 10, lineHeight: '14px'},
+    isMobile: {fontSize: 12, lineHeight: 17},
   }),
   countdownContainer: platformStyles({
     common: {
@@ -251,7 +253,7 @@ const styles = styleSheetCreate({
       width: 28,
     },
     isMobile: {
-      height: 15,
+      height: 17,
       width: 32,
     },
   }),

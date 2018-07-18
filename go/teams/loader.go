@@ -524,6 +524,18 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		ret = &tmp
 	}
 
+	// A link which was signed by an admin. Sloppily the latest such link.
+	// Sloppy because this calculation misses out on e.g. a rotate_key signed by an admin.
+	// This value is used for skipping fullVerify on team.leave links, see `verifyLink`.
+	var fullVerifyCutoff keybase1.Seqno
+	for i := len(links) - 1; i >= 0; i-- {
+		if links[i].LinkType().RequiresAtLeastRole().IsAdminOrAbove() {
+			fullVerifyCutoff = links[i].Seqno()
+			break
+		}
+	}
+	l.G().Log.CDebugf(ctx, "fullVerifyCutoff: %v", fullVerifyCutoff)
+
 	tracer.Stage("linkloop (%v)", len(links))
 	for i, link := range links {
 		l.G().Log.CDebugf(ctx, "TeamLoader processing link seqno:%v", link.Seqno())
@@ -547,7 +559,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		}
 
 		var signer *signerX
-		signer, err = l.verifyLink(ctx, arg.teamID, ret, arg.me, link, readSubteamID, proofSet)
+		signer, err = l.verifyLink(ctx, arg.teamID, ret, arg.me, link, fullVerifyCutoff, readSubteamID, proofSet)
 		if err != nil {
 			return nil, err
 		}

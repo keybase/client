@@ -99,6 +99,14 @@
     },
     {
       "type": "enum",
+      "name": "RequestStatus",
+      "symbols": [
+        "OK_0",
+        "CANCELED_1"
+      ]
+    },
+    {
+      "type": "enum",
       "name": "PaymentStrategy",
       "symbols": [
         "NONE_0",

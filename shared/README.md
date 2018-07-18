@@ -408,6 +408,8 @@ See [this
 link](https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers)
 for how to increase the watch limit; I set mine to 65536.
 
+#### Could not connect to development server error
+
 On Android 28 and above HTTP traffic is disabled by default which can block
 Metro Bundler from running properly. We have manually allowed `127.0.0.1` to
 have HTTP traffic, so if you see an error about connecting to the bundler

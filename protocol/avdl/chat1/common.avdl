@@ -420,6 +420,9 @@
     // ephemeral lifetime calculations
     @mpackkey("rt") @jsonkey("rt")
     gregor1.Time rtime;
+
+    @mpackkey("pm") @jsonkey("pm")
+    boolean hasPairwiseMacs;
   }
 
   // The same format as in KBFS (see libkbfs/data_types.go)
