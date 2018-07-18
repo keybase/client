@@ -168,7 +168,7 @@ protocol local {
     MessageID messageID;
     string body; // emoji reaction :+1:
   }
-  
+
   record MessageSendPayment {
     string kbTxID;
   }
