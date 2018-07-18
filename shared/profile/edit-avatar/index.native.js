@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Box, ButtonBar, StandardScreen, WaitingButton} from '../../common-adapters'
 import {NativeDimensions, NativeImage, ZoomableBox} from '../../common-adapters/mobile.native'
-import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
+import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {isIOS} from '../../constants/platform'
 import type {Props} from '.'
 
@@ -77,7 +77,18 @@ class AvatarUpload extends React.Component<Props> {
         title={isIOS ? 'Zoom and pan' : 'Upload avatar'}
       >
         <Box style={styles.container}>
-          <Box style={isIOS ? null : styles.zoomContainer}>
+          <Box
+            style={
+              isIOS
+                ? null
+                : collapseStyles([
+                    styles.zoomContainer,
+                    {
+                      borderRadius: this.props.teamname ? 32 : AVATAR_SIZE,
+                    },
+                  ])
+            }
+          >
             <ZoomableBox
               bounces={false}
               contentContainerStyle={this._imageDimensions()}
@@ -85,7 +96,12 @@ class AvatarUpload extends React.Component<Props> {
               onZoom={this._onZoom}
               showsHorizontalScrollIndicator={false}
               showsVerticalScrollIndicator={false}
-              style={styles.zoomContainer}
+              style={collapseStyles([
+                styles.zoomContainer,
+                {
+                  borderRadius: this.props.teamname ? 32 : AVATAR_SIZE,
+                },
+              ])}
             >
               <NativeImage
                 resizeMode="cover"
@@ -121,7 +137,6 @@ const styles = styleSheetCreate({
   },
   zoomContainer: {
     backgroundColor: globalColors.lightGrey2,
-    borderRadius: AVATAR_SIZE,
     height: AVATAR_SIZE,
     marginBottom: globalMargins.tiny,
     overflow: 'hidden',
