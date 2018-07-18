@@ -846,6 +846,8 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 	atMentions, atMentionUsernames, chanMention, channelNameMentions :=
 		b.getAtMentionInfo(ctx, clientHeader.Conv.Tlfid, membersType, body)
 
+	clientHeader.HasPairwiseMacs = len(boxed.ClientHeader.PairwiseMacs) > 0
+
 	// create an unboxed message
 	return &chat1.MessageUnboxedValid{
 		ClientHeader:          clientHeader,

@@ -237,6 +237,7 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 			IsEphemeralExpired: mv.IsEphemeralExpired(time.Now()),
 			ETime:              mv.Etime(),
 			Reactions:          mv.Reactions,
+			HasPairwiseMacs:    mv.HasPairwiseMacs(),
 		}
 
 		msg.Content = c.convertMsgBody(mv.MessageBody)
@@ -1083,6 +1084,7 @@ type MsgSummary struct {
 	IsEphemeralExpired bool                           `json:"is_ephemeral_expired,omitempty"`
 	ETime              gregor1.Time                   `json:"etime,omitempty"`
 	Reactions          chat1.ReactionMap              `json:"reactions,omitempty"`
+	HasPairwiseMacs    bool                           `json:"has_pairwise_macs,omitempty"`
 }
 
 // Message contains either a MsgSummary or an Error.  Used for JSON output.

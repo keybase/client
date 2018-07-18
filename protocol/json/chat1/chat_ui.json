@@ -511,6 +511,10 @@
         {
           "type": "ReactionMap",
           "name": "reactions"
+        },
+        {
+          "type": "boolean",
+          "name": "hasPairwiseMacs"
         }
       ]
     },

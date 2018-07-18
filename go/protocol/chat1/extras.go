@@ -465,6 +465,10 @@ func (o *MsgEphemeralMetadata) Eq(r *MsgEphemeralMetadata) bool {
 	return (o == nil) && (r == nil)
 }
 
+func (m MessageUnboxedValid) HasPairwiseMacs() bool {
+	return m.ClientHeader.HasPairwiseMacs
+}
+
 func (m MessageUnboxedValid) IsEphemeral() bool {
 	return m.EphemeralMetadata() != nil
 }
