@@ -24,14 +24,11 @@ const mergeProps = (stateProps, dispatchProps) => {
   sections.push({data: stateProps.assets.map((a, index) => index).toArray(), title: 'Your assets'})
   const payments = stateProps.payments.map(p => ({paymentID: p.id, status: p.statusSimplified})).toArray()
 
-  console.warn('payments', payments)
   const [completed, pending] = partition(payments, {status: 'completed'})
-
-  console.warn('completed, pending', completed, pending)
 
   sections.push({data: pending, title: 'Pending'})
   sections.push({data: completed, title: 'History'})
-  console.warn('section', sections, completed, pending)
+
   return {
     accountID: stateProps.accountID,
     navigateAppend: dispatchProps.navigateAppend,

@@ -245,7 +245,6 @@ export type Props = {|
 
 export const Transaction = (props: Props) => {
   const pending = !props.timestamp || props.status !== 'completed'
-  console.warn('statusSimplified', props.status)
   const showMemo =
     props.large && !(props.yourRole === 'receiver' && props.counterpartyType === 'stellarPublicKey')
   return (
