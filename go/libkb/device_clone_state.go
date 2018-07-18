@@ -84,7 +84,7 @@ func configPaths(m MetaContext) (p, s, c string) {
 }
 
 func GetDeviceCloneState(m MetaContext) (DeviceCloneState, error) {
-	reader, err := deviceCloneStateReader(m)
+	reader, err := newDeviceCloneStateReader(m)
 	pPath, sPath, cPath := configPaths(m)
 	p, _ := reader.GetStringAtPath(pPath)
 	s, _ := reader.GetStringAtPath(sPath)
@@ -93,7 +93,7 @@ func GetDeviceCloneState(m MetaContext) (DeviceCloneState, error) {
 }
 
 func SetDeviceCloneState(m MetaContext, d DeviceCloneState) error {
-	writer, err := deviceCloneStateWriter(m)
+	writer, err := newDeviceCloneStateWriter(m)
 	if err != nil {
 		return err
 	}
@@ -133,13 +133,13 @@ func NewDeviceCloneStateJSONFile(g *GlobalContext) *DeviceCloneStateJSONFile {
 	return &DeviceCloneStateJSONFile{NewJSONFile(g, g.Env.GetDeviceCloneStateFilename(), "device clone state")}
 }
 
-func deviceCloneStateReader(m MetaContext) (DeviceCloneStateJSONFile, error) {
+func newDeviceCloneStateReader(m MetaContext) (DeviceCloneStateJSONFile, error) {
 	f := NewDeviceCloneStateJSONFile(m.G())
 	err := f.Load(false)
 	return *f, err
 }
 
-func deviceCloneStateWriter(m MetaContext) (*DeviceCloneStateJSONFile, error) {
+func newDeviceCloneStateWriter(m MetaContext) (*DeviceCloneStateJSONFile, error) {
 	f := NewDeviceCloneStateJSONFile(m.G())
 	err := f.Load(false)
 	return f, err
