@@ -11,6 +11,7 @@ export function NotifyPopup(
   rateLimitKey?: string,
   onClick: ?() => void
 ): void {
+  const sound = opts && opts.sound
   if (rateLimitSeconds > 0) {
     const key = rateLimitKey || title
 
@@ -25,13 +26,13 @@ export function NotifyPopup(
         if (rateLimitPayloads[key]) {
           const {title, opts, onClick} = rateLimitPayloads[key]
           delete rateLimitPayloads[key]
-          const notification: any = new window.Notification(title, {...opts, silent: true})
+          const notification: any = new window.Notification(title, {...opts, silent: !sound})
           notification.onclick = onClick
         }
       }, rateLimitSeconds * 1000)
     }
   }
 
-  const notification: any = new window.Notification(title, {...opts, silent: true})
+  const notification: any = new window.Notification(title, {...opts, silent: !sound})
   notification.onclick = onClick
 }
