@@ -76,7 +76,7 @@ func UpdateDeviceCloneState(m MetaContext) (before int, after int, err error) {
 }
 
 func configPaths(m MetaContext) (p, s, c string) {
-	deviceID := m.G().ActiveDevice.deviceID
+	deviceID := m.G().ActiveDevice.DeviceID()
 	p = fmt.Sprintf("%s.prior", deviceID)
 	s = fmt.Sprintf("%s.stage", deviceID)
 	c = fmt.Sprintf("%s.clones", deviceID)
