@@ -2,14 +2,16 @@
 // TODO Deprecated. Instead use engine/saga helper
 // Handles sending requests to the daemon
 import logger from '../logger'
-import * as EngineGen from '../actions/engine-gen'
-import * as I from 'immutable'
 import * as Saga from '../util/saga'
-import * as Types from './types/engine'
 import * as SagaTypes from './types/saga'
 import type {Channel} from 'redux-saga'
 import {getEngine, EngineChannel} from '../engine'
 import {mapValues} from 'lodash-es'
+import * as FluxTypes from './types/flux'
+
+type RpcRunResult =
+  | FluxTypes.NoErrorTypedAction<'@@engineRPCCall:finished', {error: ?any, params: ?any}>
+  | FluxTypes.NoErrorTypedAction<'@@engineRPCCall:bailedEarly', void>
 
 // If a sub saga returns bail early, then the rpc will bail early
 const BailedEarly = {type: '@@engineRPCCall:bailedEarly', payload: undefined}
@@ -32,13 +34,11 @@ function _sagaWaitingDecorator(rpcNameKey, saga, waitingAction) {
     if (waitingAction) {
       yield Saga.put(waitingAction(false))
     }
-    yield Saga.put(EngineGen.createWaitingForRpc({name: rpcNameKey, waiting: false}))
     // $FlowIssue has no way to type this
     yield Saga.call(saga, ...args)
     if (waitingAction) {
       yield Saga.put(waitingAction(true))
     }
-    yield Saga.put(EngineGen.createWaitingForRpc({name: rpcNameKey, waiting: true}))
   }
 }
 
@@ -129,7 +129,6 @@ class EngineRpcCall {
       }
       this._engineChannel.close()
       this._subSagaChannel.close()
-      yield Saga.put(EngineGen.createWaitingForRpc({name: this._rpcNameKey, waiting: false}))
       if (this._waitingActionCreator) {
         const action = this._waitingActionCreator(false)
         if (action) {
@@ -141,7 +140,7 @@ class EngineRpcCall {
     }
   }
 
-  *run(timeout: ?number): Generator<any, Types.RpcRunResult, any> {
+  *run(timeout: ?number): Generator<any, RpcRunResult, any> {
     this._engineChannel = yield Saga.call(
       this._rpc,
       [...Object.keys(this._subSagas), 'finished'],
@@ -231,9 +230,5 @@ class EngineRpcCall {
     return BailedEarly
   }
 }
-
-export const makeState: I.RecordFactory<Types._State> = I.Record({
-  rpcWaitingStates: I.Map(),
-})
 
 export {EngineRpcCall, isFinished, BailedEarly, rpcResult, rpcCancel, rpcError, passthroughResponseSaga}

@@ -1,5 +1,6 @@
 // @flow
 import * as LoginGen from '../../actions/login-gen'
+import * as Constants from '../../constants/login'
 import * as SignupGen from '../../actions/signup-gen'
 import HiddenString from '../../util/hidden-string'
 import Login, {type Props} from '.'
@@ -10,7 +11,12 @@ import {
   withHandlers,
   connect,
   type TypedState,
+  type Dispatch,
 } from '../../util/container'
+
+import {type RouteProps} from '../../route-tree/render-route'
+
+type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = (state: TypedState) => {
   const _accounts = state.login.configuredAccounts
@@ -19,29 +25,28 @@ const mapStateToProps = (state: TypedState) => {
   return {
     _accounts,
     _defaultUsername,
-    error: state.login.loginError,
-    waitingForResponse: state.login.waitingForResponse,
+    error: state.login.error.stringValue(),
+    waitingForResponse: !!state.waiting.get(Constants.waitingKey),
   }
 }
 
-const mapDispatchToProps = (dispatch: any, {navigateAppend}) => ({
-  _resetError: () => dispatch(LoginGen.createLoginError({error: ''})),
+const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}: OwnProps) => ({
+  _resetError: () => dispatch(LoginGen.createLoginError({error: new HiddenString('')})),
   onFeedback: () => dispatch(navigateAppend(['feedback'])),
-  onForgotPassphrase: () => dispatch(LoginGen.createOpenAccountResetPage()),
+  onForgotPassphrase: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
   onLogin: (user: string, passphrase: string) =>
-    dispatch(LoginGen.createRelogin({passphrase: new HiddenString(passphrase), usernameOrEmail: user})),
+    dispatch(LoginGen.createLogin({passphrase: new HiddenString(passphrase), usernameOrEmail: user})),
   onSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
   onSomeoneElse: () => dispatch(LoginGen.createStartLogin()),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const users = stateProps._accounts.map(a => a.username).sort()
   const lastUser = users.contains(stateProps._defaultUsername) ? stateProps._defaultUsername : users.first()
 
   return {
     ...stateProps,
     ...dispatchProps,
-    ...ownProps,
     lastUser,
     serverURI: 'https://keybase.io',
     users: users.toArray(),
@@ -55,6 +60,7 @@ export default compose(
     showTypingChange: () => showTyping => ({showTyping}),
     passphraseChange: () => passphrase => ({passphrase}),
   }),
+  // TODO remove withHandlers
   withHandlers({
     onSubmit: props => () => {
       if (props.selectedUser) {
@@ -63,6 +69,7 @@ export default compose(
     },
     selectedUserChange: props => user => props.setSelectedUser(user),
   }),
+  // TODO remove lifecycle
   lifecycle({
     componentDidUpdate(prevProps: Props) {
       // Clear the passphrase when there's an error.
