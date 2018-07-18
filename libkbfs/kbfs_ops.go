@@ -332,9 +332,11 @@ func (fs *KBFSOpsStandard) getOpsNoAdd(
 	// look it up again in case someone else got the lock
 	ops, ok := fs.ops[fb]
 	if !ok {
-		// TODO: add some interface for specifying the type of the
-		// branch; for now assume online and read-write.
-		ops = newFolderBranchOps(ctx, fs.g, fs.config, fb, standard)
+		bType := standard
+		if _, isRevBranch := fb.Branch.HasRevision(); isRevBranch {
+			bType = archive
+		}
+		ops = newFolderBranchOps(ctx, fs.g, fs.config, fb, bType)
 		fs.ops[fb] = ops
 	}
 	return ops
@@ -453,10 +455,21 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
 		return false, ImmutableRootMetadata{}, tlf.NullID, err
 	}
 
-	// XXX: use branch name to get specific revision if available.
-	md, err = mdops.GetForTLF(ctx, h.tlfID, nil)
-	if err != nil {
-		return false, ImmutableRootMetadata{}, tlf.NullID, err
+	if rev, isRevBranch := fb.Branch.HasRevision(); isRevBranch {
+		fs.log.CDebugf(ctx, "Getting archived revision %d for branch %s",
+			rev, fb.Branch)
+		md, err = getSingleMD(
+			ctx, fs.config, h.tlfID, kbfsmd.NullBranchID, rev,
+			kbfsmd.Merged, nil)
+		// This will error if there's no corresponding MD.
+		if err != nil {
+			return false, ImmutableRootMetadata{}, tlf.NullID, err
+		}
+	} else {
+		md, err = mdops.GetForTLF(ctx, h.tlfID, nil)
+		if err != nil {
+			return false, ImmutableRootMetadata{}, tlf.NullID, err
+		}
 	}
 	if md != (ImmutableRootMetadata{}) {
 		return false, md, h.tlfID, nil

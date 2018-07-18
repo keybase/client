@@ -3796,23 +3796,27 @@ func TestKBFSOpsArchiveBranchType(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, rootNode.Readonly(ctx))
 	fb := rootNode.GetFolderBranch()
-	masterBranchOps := getOps(config, fb.Tlf)
 
-	lState := makeFBOLockState()
-	head, _ := masterBranchOps.getHead(lState)
+	t.Log("Make a new revision")
+	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
 
 	t.Log("Create an archived version for the same TLF.")
-	archiveFB := FolderBranch{fb.Tlf, "r=1"}
-	archiveOps := newFolderBranchOps(
-		ctx, libkb.NewGlobalContext().Init(), config, archiveFB, archive)
-	defer func() {
-		err := archiveOps.Shutdown(ctx)
-		require.NoError(t, err)
-	}()
-	err = archiveOps.SetInitialHeadFromServer(ctx, head)
+	rootNodeArchived, _, err := kbfsOps.GetRootNode(
+		ctx, h, MakeRevBranchName(1))
 	require.NoError(t, err)
-	rootNodeArchived, _, _, err := archiveOps.getRootNode(ctx)
+
+	eis, err := kbfsOps.GetDirChildren(ctx, rootNodeArchived)
 	require.NoError(t, err)
+	require.Len(t, eis, 0)
+
+	eis, err = kbfsOps.GetDirChildren(ctx, rootNode)
+	require.NoError(t, err)
+	require.Len(t, eis, 1)
+
+	archiveFB := FolderBranch{fb.Tlf, MakeRevBranchName(1)}
 	require.Equal(t, archiveFB, rootNodeArchived.GetFolderBranch())
 	require.True(t, rootNodeArchived.Readonly(ctx))
 }
