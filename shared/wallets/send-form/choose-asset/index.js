@@ -9,7 +9,7 @@ import {
   SectionList,
   Text,
 } from '../../../common-adapters'
-import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../../styles'
+import {collapseStyles, globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../../styles'
 import Header from '../header'
 
 const unexpandedNumDisplayOptions = 4
@@ -153,7 +153,14 @@ type SectionHeaderProps = {
   title: string,
 }
 const SectionHeader = (props: SectionHeaderProps) => (
-  <Box2 direction="vertical" gap="xtiny" gapStart={true} gapEnd={true} style={styles.sectionHeaderContainer}>
+  <Box2
+    direction="vertical"
+    fullWidth={true}
+    gap="xtiny"
+    gapStart={true}
+    gapEnd={true}
+    style={styles.sectionHeaderContainer}
+  >
     <Text type="BodySmallSemibold">{props.title}</Text>
     {!!props.subtitle && <Text type="BodySmall">{props.subtitle}</Text>}
   </Box2>
@@ -250,18 +257,27 @@ const styles = styleSheetCreate({
   blue: {
     color: globalColors.blue,
   },
-  checkIcon: {
-    alignSelf: 'flex-end',
-  },
+  checkIcon: platformStyles({
+    isMobile: {
+      position: 'absolute',
+      right: 16,
+      top: 12,
+    },
+  }),
   choiceContainer: {
     alignItems: 'center',
     height: 40,
     // needed to get on top of absolutely positioned background color
     position: 'relative',
   },
-  container: {
-    width: 360,
-  },
+  container: platformStyles({
+    isElectron: {
+      width: 360,
+    },
+    isMobile: {
+      width: '100%',
+    },
+  }),
   expanderContainer: {
     backgroundColor: globalColors.black_05,
     borderRadius: 11,
@@ -273,18 +289,28 @@ const styles = styleSheetCreate({
   grey: {
     color: globalColors.black_40,
   },
-  listContainer: {
-    maxHeight: 525 - 48,
-    paddingTop: globalMargins.tiny,
-  },
-  sectionHeaderContainer: {
-    alignItems: 'flex-start',
-    backgroundColor: globalColors.white,
-    height: 40,
-    justifyContent: 'center',
-    paddingLeft: globalMargins.small,
-    paddingRight: globalMargins.small,
-  },
+  listContainer: platformStyles({
+    common: {
+      paddingTop: globalMargins.tiny,
+    },
+    isElectron: {
+      maxHeight: 525 - 48,
+    },
+  }),
+  sectionHeaderContainer: platformStyles({
+    common: {
+      alignItems: 'flex-start',
+      backgroundColor: globalColors.white,
+      justifyContent: 'center',
+      paddingLeft: globalMargins.small,
+      paddingRight: globalMargins.small,
+    },
+    isElectron: {
+      // must be uniform height with current SectionList implementation
+      // so first doesn't peek out from under the second
+      height: 40,
+    },
+  }),
   spacer: {
     flex: 1,
   },
