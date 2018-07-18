@@ -27,9 +27,27 @@ const injectGaps = (Component, _children, gap, gapStart, gapEnd) => {
 
 class Box2 extends React.Component<Box2Props> {
   render() {
-    const horizontal = this.props.direction === 'horizontal'
+    let directionStyle
+    let horizontal = this.props.direction === 'horizontal' || this.props.direction === 'horizontalReverse'
+    switch (this.props.direction) {
+      case 'horizontal':
+        directionStyle = globalStyles.flexBoxRow
+        break
+      case 'horizontalReverse':
+        directionStyle = {display: 'flex', flexDirection: 'row-reverse'}
+        break
+      case 'verticalReverse':
+        directionStyle = {display: 'flex', flexDirection: 'column-reverse'}
+        break
+      case 'vertical':
+      default:
+        directionStyle = globalStyles.flexBoxColumn
+        break
+    }
+
     const style = collapseStyles([
-      horizontal ? styles.hbox : styles.vbox,
+      directionStyle,
+      styles.commonDirectionStyles,
       this.props.fullHeight && styles.fullHeight,
       this.props.fullWidth && styles.fullWidth,
       !this.props.fullHeight && !this.props.fullWidth && styles.centered,
@@ -62,13 +80,7 @@ const styles = {
   },
   fullHeight: {height: '100%'},
   fullWidth: {width: '100%'},
-  hbox: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'stretch',
-    justifyContent: 'flex-start',
-  },
-  vbox: {
-    ...globalStyles.flexBoxColumn,
+  commonDirectionStyles: {
     alignItems: 'stretch',
     justifyContent: 'flex-start',
   },

@@ -97,7 +97,7 @@ class EndangeredTLFList extends React.Component<
 }
 
 const ActionButtons = (props: {onCancel: () => void, onSubmit: () => void, waiting: boolean}) => (
-  <Box style={styles.actionButtonsContainer}>
+  <Box2 direction={isMobile ? 'vertical' : 'horizontalReverse'} style={styles.actionButtonsContainer}>
     <Button
       fullWidth={!!isMobile}
       type="Danger"
@@ -107,7 +107,7 @@ const ActionButtons = (props: {onCancel: () => void, onSubmit: () => void, waiti
       style={isMobile ? {marginBottom: globalMargins.tiny} : {marginLeft: globalMargins.tiny}}
     />
     <Button fullWidth={!!isMobile} type="Secondary" onClick={props.onCancel} label="Cancel" />
-  </Box>
+  </Box2>
 )
 
 const DeviceRevoke = (props: Props) => (
@@ -183,16 +183,11 @@ const styles = styleSheetCreate({
   }),
   actionButtonsContainer: platformStyles({
     isElectron: {
-      display: 'flex',
-      flexDirection: 'row-reverse',
       marginTop: globalMargins.medium,
     },
     isMobile: {
-      ...globalStyles.flexBoxColumn,
-      alignSelf: 'stretch',
-      justifyContent: 'flex-end',
-      alignContent: 'stretch',
       marginTop: globalMargins.small,
+      width: '100%',
     },
   }),
 })

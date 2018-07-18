@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {action, storiesOf} from '../../stories/storybook'
-import {default as DeviceRevoke, type Props} from '.'
+import DeviceRevoke, {type Props} from '.'
 
 const devicesProps: Props = {
   currentDevice: false,
