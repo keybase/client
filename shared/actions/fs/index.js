@@ -93,16 +93,29 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
 
   refreshTag && folderListRefreshTags.set(refreshTag, rootPath)
 
-  yield Saga.call(RPCTypes.SimpleFSSimpleFSListRecursiveToDepthRpcPromise, {
-    opID,
-    path: {
-      PathType: RPCTypes.simpleFSPathType.kbfs,
-      kbfs: Constants.fsPathToRpcPathString(rootPath),
-    },
-    filter: RPCTypes.simpleFSListFilter.filterAllHidden,
-    refreshSubscription: false,
-    depth: 1,
-  })
+  const pathElems = Types.getPathElements(rootPath)
+  if (pathElems.length < 3) {
+    yield Saga.call(RPCTypes.SimpleFSSimpleFSListRpcPromise, {
+      opID,
+      path: {
+        PathType: RPCTypes.simpleFSPathType.kbfs,
+        kbfs: Constants.fsPathToRpcPathString(rootPath),
+      },
+      filter: RPCTypes.simpleFSListFilter.filterAllHidden,
+      refreshSubscription: false,
+    })
+  } else {
+    yield Saga.call(RPCTypes.SimpleFSSimpleFSListRecursiveToDepthRpcPromise, {
+      opID,
+      path: {
+        PathType: RPCTypes.simpleFSPathType.kbfs,
+        kbfs: Constants.fsPathToRpcPathString(rootPath),
+      },
+      filter: RPCTypes.simpleFSListFilter.filterAllHidden,
+      refreshSubscription: false,
+      depth: 1,
+    })
+  }
 
   yield Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
 
@@ -110,15 +123,22 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   const entries = result.entries || []
   const childMap = entries.reduce((m: Map<Types.Path, Set<string>>, d: RPCTypes.Dirent) => {
     const [parent, child] = d.name.split('/')
-    const fullParent = Types.pathConcat(rootPath, parent)
     if (child) {
       // Only add to the children set if the parent definitely has children.
+      const fullParent = Types.pathConcat(rootPath, parent)
       let children = m.get(fullParent)
       if (!children) {
         children = new Set()
         m.set(fullParent, children)
       }
       children.add(child)
+    } else {
+      let children = m.get(rootPath)
+      if (!children) {
+        children = new Set()
+        m.set(rootPath, children)
+      }
+      children.add(d.name)
     }
     return m
   }, new Map())
@@ -131,11 +151,11 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   // Get metadata fields of the directory that we just loaded from state to
   // avoid overriding them.
   const state = yield Saga.select()
-  const {lastModifiedTimestamp, lastWriter, size, writable}: Types.PathItemMetadata = state.fs.pathItems.get(
+  const {lastModifiedTimestamp, lastWriter, size, writable, favoriteChildren, tlfMeta}: Types.FolderPathItem = state.fs.pathItems.get(
     rootPath
   )
 
-  const pathItems: I.Map<Types.Path, Types.PathItem> = I.Map([
+  const pathItems = [
     [
       rootPath,
       Constants.makeFolder({
@@ -144,13 +164,15 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
         size,
         name: Types.getPathName(rootPath),
         writable,
-        children: I.Set(entries.map(d => d.name)),
+        children: I.Set(childMap.get(rootPath)),
         progress: 'loaded',
+        tlfMeta,
+        favoriteChildren,
       }),
     ],
     ...entries.map(direntToPathAndPathItem),
-  ])
-  yield Saga.put(FsGen.createFolderListLoaded({pathItems, path: rootPath}))
+  ]
+  yield Saga.put(FsGen.createFolderListLoaded({pathItems: I.Map(pathItems), path: rootPath}))
 }
 
 function* monitorDownloadProgress(key: string, opID: RPCTypes.OpID) {
