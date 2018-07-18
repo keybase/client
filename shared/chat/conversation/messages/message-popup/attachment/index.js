@@ -13,7 +13,6 @@ type Props = {
   deviceType: DeviceType,
   deviceRevokedAt: ?number,
   onDelete: null | (() => void),
-  onDeleteMessageHistory: null | (() => void),
   onDownload: null | (() => void),
   onHidden: () => void,
   onSaveAttachment: null | (() => void),
@@ -41,16 +40,7 @@ const AttachmentPopupMenu = (props: Props) => {
           },
         ]
       : []),
-    ...(props.onDeleteMessageHistory
-      ? [
-          {
-            danger: true,
-            disabled: !props.onDeleteMessageHistory,
-            onClick: props.onDeleteMessageHistory,
-            title: 'Delete this + everything above',
-          },
-        ]
-      : []),
+
     'Divider',
     ...(props.onShowInFinder ? [{onClick: props.onShowInFinder, title: `Show in ${fileUIName}`}] : []),
     ...(props.onSaveAttachment
