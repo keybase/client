@@ -49,7 +49,7 @@ func (c *CmdWalletCancelRequest) Run() error {
 		return err
 	}
 
-	return cli.CancelRequestLocal(context.Background(), requestId)
+	return cli.CancelRequestLocal(context.Background(), requestID)
 }
 
 func (c *CmdWalletCancelRequest) GetUsage() libkb.Usage {
