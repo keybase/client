@@ -48,6 +48,8 @@ export type _Assets = {
   worthCurrency: string,
 }
 
+export type StatusSimplified = 'none' | 'pending' | 'claimable' | 'completed' | 'error' | 'unknown'
+
 export type _Payment = {
   amountDescription: string,
   delta: 'none' | 'increase' | 'decrease',
@@ -57,7 +59,7 @@ export type _Payment = {
   noteErr: string,
   source: string,
   sourceType: string,
-  statusSimplified: 'none' | 'pending' | 'claimable' | 'completed' | 'error' | 'unknown',
+  statusSimplified: StatusSimplified,
   statusDescription: string,
   statusDetail: string,
   target: string,
