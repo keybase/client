@@ -231,7 +231,6 @@ func (c *FullCachingSource) removeFile(m libkb.MetaContext, ent *lru.DiskLRUEntr
 
 func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 	for arg := range c.populateCacheCh {
-		m := libkb.NewMetaContextBackground(m.G())
 		c.debug(m, "populateCacheWorker: fetching: name: %s format: %s url: %s", arg.name,
 			arg.format, arg.url)
 		// Grab image data first
