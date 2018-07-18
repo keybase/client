@@ -56,7 +56,8 @@ func (tlf *TLF) log() logger.Logger {
 	return tlf.folder.fs.log
 }
 
-func (tlf *TLF) loadDirHelper(ctx context.Context, mode libkbfs.ErrorModeType,
+func (tlf *TLF) loadDirHelper(
+	ctx context.Context, mode libkbfs.ErrorModeType, branch libkbfs.BranchName,
 	filterErr bool) (dir *Dir, exitEarly bool, err error) {
 	dir = tlf.getStoredDir()
 	if dir != nil {
@@ -89,7 +90,7 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, mode libkbfs.ErrorModeType,
 	var rootNode libkbfs.Node
 	if filterErr {
 		rootNode, _, err = tlf.folder.fs.config.KBFSOps().GetRootNode(
-			ctx, handle, libkbfs.MasterBranch)
+			ctx, handle, branch)
 		if err != nil {
 			return nil, false, err
 		}
@@ -99,7 +100,7 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, mode libkbfs.ErrorModeType,
 		}
 	} else {
 		rootNode, _, err = tlf.folder.fs.config.KBFSOps().GetOrCreateRootNode(
-			ctx, handle, libkbfs.MasterBranch)
+			ctx, handle, branch)
 		if err != nil {
 			return nil, false, err
 		}
@@ -117,7 +118,8 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, mode libkbfs.ErrorModeType,
 }
 
 func (tlf *TLF) loadDir(ctx context.Context) (*Dir, error) {
-	dir, _, err := tlf.loadDirHelper(ctx, libkbfs.WriteMode, false)
+	dir, _, err := tlf.loadDirHelper(
+		ctx, libkbfs.WriteMode, libkbfs.MasterBranch, false)
 	return dir, err
 }
 
@@ -127,7 +129,14 @@ func (tlf *TLF) loadDir(ctx context.Context) (*Dir, error) {
 // folder.
 func (tlf *TLF) loadDirAllowNonexistent(ctx context.Context) (
 	*Dir, bool, error) {
-	return tlf.loadDirHelper(ctx, libkbfs.ReadMode, true)
+	return tlf.loadDirHelper(ctx, libkbfs.ReadMode, libkbfs.MasterBranch, true)
+}
+
+func (tlf *TLF) loadArchivedDir(
+	ctx context.Context, branch libkbfs.BranchName) (*Dir, bool, error) {
+	// Always filter errors for archive TLF directories, so that we
+	// don't try to initialize them.
+	return tlf.loadDirHelper(ctx, libkbfs.ReadMode, branch, true)
 }
 
 // Access implements the fs.NodeAccesser interface for *TLF.
@@ -191,6 +200,18 @@ func (tlf *TLF) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.
 		}
 		return nil, fuse.ENOENT
 	}
+
+	branch, isArchivedBranch := libfs.BranchNameFromArchiveRefDir(req.Name)
+	if isArchivedBranch {
+		archivedTLF := newTLF(
+			tlf.folder.list, tlf.folder.h, tlf.folder.hPreferredName)
+		_, _, err := archivedTLF.loadArchivedDir(ctx, branch)
+		if err != nil {
+			return nil, err
+		}
+		return archivedTLF, nil
+	}
+
 	return dir.Lookup(ctx, req, resp)
 }
 

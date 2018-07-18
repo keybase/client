@@ -104,3 +104,7 @@ const EnableSyncFileName = ".kbfs_enable_sync"
 // DisableSyncFileName is the name of the file to disable the sync cache for a
 // TLF. It can be reached anywhere within a TLF.
 const DisableSyncFileName = ".kbfs_disable_sync"
+
+// ArchivedRevDirPrefix is the prefix to the directory at the root of a
+// TLF that exposes a version of that TLF at the specified revision.
+const ArchivedRevDirPrefix = ".kbfs_archived_rev="
