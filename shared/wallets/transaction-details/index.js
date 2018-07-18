@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
 import {Box2, Divider, Icon, NameWithIcon, Text} from '../../common-adapters'
 import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
-import Transaction, {CounterpartyIcon, CounterpartyText, Timestamp} from '../transaction'
+import Transaction, {CounterpartyIcon, CounterpartyText, TimestampLine} from '../transaction'
 
 type Role = 'sender' | 'receiver'
 
@@ -19,6 +19,8 @@ export type Props = {|
   memo: string,
   onViewTransaction?: () => void,
   publicMemo?: string,
+  status: Types.StatusSimplified,
+  statusDetail: ?string,
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
   transactionID?: string,
@@ -85,6 +87,8 @@ const TransactionDetails = (props: Props) => (
       delta={props.delta}
       large={true}
       memo={props.memo}
+      status={props.status}
+      statusDetail={props.statusDetail}
       timestamp={props.timestamp}
       yourRole={props.yourRole}
     />
@@ -132,7 +136,7 @@ const TransactionDetails = (props: Props) => (
           {props.timestamp ? 'Sent' : 'Pending'}
         </Text>
       </Box2>
-      <Timestamp relative={false} timestamp={props.timestamp} />
+      <TimestampLine error={props.statusDetail} relative={false} timestamp={props.timestamp} />
     </Box2>
 
     <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>

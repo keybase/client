@@ -94,10 +94,6 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   if (!w.payment) {
     return makePayment({error: w.err})
   }
-  if (w.payment.statusSimplified === RPCTypes.localPaymentStatus.error) {
-    // TODO make payment w/ error info when view is finished
-    return null
-  }
   const p = w.payment
   return makePayment({
     amountDescription: p.amountDescription,

@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
-import {Avatar, Box2, Divider, Icon, ConnectedUsernames, Markdown} from '../../common-adapters'
+import {Avatar, Box2, Button, Divider, Icon, ConnectedUsernames, Markdown} from '../../common-adapters'
 import Text, {type TextType} from '../../common-adapters/text'
-import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
+import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {formatTimeForStellarTransaction, formatTimeForStellarTransactionDetails} from '../../util/timestamp'
 
 type Role = 'sender' | 'receiver'
@@ -183,12 +183,20 @@ const AmountXLM = (props: AmountXLMProps) => {
   )
 }
 
-type TimestampProps = {|
+type TimestampLineProps = {|
+  error: ?string,
   timestamp: Date | null,
   relative: boolean,
 |}
 
-export const Timestamp = (props: TimestampProps) => {
+export const TimestampLine = (props: TimestampLineProps) => {
+  if (props.error) {
+    return (
+      <Text type="BodySmall" style={styles.errorText}>
+        Failed • The Stellar network did not approve this transaction - {props.error}
+      </Text>
+    )
+  }
   if (!props.timestamp) {
     return (
       <Text type="BodySmall">
@@ -228,31 +236,29 @@ export type Props = {|
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
   memo: string,
+
+  onCancelPayment?: () => void,
+  onRetryPayment?: () => void,
+  status: Types.StatusSimplified,
+  statusDetail: ?string,
 |}
 
 export const Transaction = (props: Props) => {
-  const pending = !props.timestamp
+  const pending = !props.timestamp || props.status !== 'completed'
+  console.warn('statusSimplified', props.status)
   const showMemo =
     props.large && !(props.yourRole === 'receiver' && props.counterpartyType === 'stellarPublicKey')
   return (
     <Box2 direction="vertical" fullWidth={true}>
-      {pending && (
-        <Box2
-          direction="vertical"
-          fullWidth={true}
-          style={{backgroundColor: globalColors.blue5, padding: globalMargins.xtiny}}
-        >
-          <Text type="BodySmallSemibold">Pending</Text>
-        </Box2>
-      )}
-      <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+      <Box2 direction="horizontal" fullWidth={true} style={collapseStyles([styles.container, {backgroundColor: pending ? globalColors.blue4 : globalColors.white}])}>
         <CounterpartyIcon
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
           large={props.large}
         />
         <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
-          <Timestamp relative={true} timestamp={props.timestamp} />
+          <TimestampLine relative={true} timestamp={props.timestamp} error={props.statusDetail} />
+
           <Detail
             large={props.large}
             pending={pending}
@@ -275,6 +281,11 @@ export const Transaction = (props: Props) => {
               <Markdown allowFontScaling={true}>{props.memo}</Markdown>
             </Box2>
           )}
+          {(!!props.onCancelPayment || 
+            !!props.onRetryPayment) && <Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={{marginTop: globalMargins.xtiny}}>
+            {!!props.onRetryPayment && <Button small={true} label='Retry' onClick={() => props.onRetryPayment()} type='Wallet' />}
+            {!!props.onCancelPayment && <Button small={true} label='Cancel' onClick={() => props.onCancelPayment()} type='Danger' />}
+          </Box2>}
           <AmountXLM
             delta={props.delta}
             pending={pending}
@@ -291,6 +302,9 @@ const styles = styleSheetCreate({
   container: {
     padding: globalMargins.tiny,
     paddingRight: globalMargins.small,
+  },
+  errorText: {
+    color: globalColors.red,
   },
   quoteMarker: {maxWidth: 3, minWidth: 3},
   rightContainer: {
