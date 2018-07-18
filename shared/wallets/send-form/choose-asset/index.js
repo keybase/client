@@ -256,6 +256,8 @@ const styles = styleSheetCreate({
   choiceContainer: {
     alignItems: 'center',
     height: 40,
+    // needed to get on top of absolutely positioned background color
+    position: 'relative',
   },
   container: {
     width: 360,
