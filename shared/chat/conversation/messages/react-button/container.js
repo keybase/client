@@ -11,23 +11,21 @@ export type OwnProps = {
   ordinal: Types.Ordinal,
 }
 
+const noEmoji = {
+  active: false,
+  count: 0,
+  emoji: '',
+}
+
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const me = state.config.username || ''
   const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
   if (!message || message.type === 'placeholder' || message.type === 'deleted') {
-    return {
-      active: false,
-      count: 0,
-      emoji: '',
-    }
+    return noEmoji
   }
   const reaction = message.reactions.get(ownProps.emoji)
   if (!reaction) {
-    return {
-      active: false,
-      count: 0,
-      emoji: '',
-    }
+    return noEmoji
   }
   const active = reaction.some(r => r.username === me)
   return {
