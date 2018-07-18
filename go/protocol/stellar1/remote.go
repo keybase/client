@@ -583,6 +583,12 @@ type RecentPaymentsArg struct {
 	Limit     int                  `codec:"limit" json:"limit"`
 }
 
+type PendingPaymentsArg struct {
+	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID AccountID            `codec:"accountID" json:"accountID"`
+	Limit     int                  `codec:"limit" json:"limit"`
+}
+
 type PaymentDetailsArg struct {
 	Caller keybase1.UserVersion `codec:"caller" json:"caller"`
 	TxID   string               `codec:"txID" json:"txID"`
@@ -648,6 +654,7 @@ type RemoteInterface interface {
 	Balances(context.Context, BalancesArg) ([]Balance, error)
 	Details(context.Context, DetailsArg) (AccountDetails, error)
 	RecentPayments(context.Context, RecentPaymentsArg) (PaymentsPage, error)
+	PendingPayments(context.Context, PendingPaymentsArg) ([]PaymentSummary, error)
 	PaymentDetails(context.Context, PaymentDetailsArg) (PaymentDetails, error)
 	AccountSeqno(context.Context, AccountSeqnoArg) (string, error)
 	SubmitPayment(context.Context, SubmitPaymentArg) (PaymentResult, error)
@@ -711,6 +718,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.RecentPayments(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"pendingPayments": {
+				MakeArg: func() interface{} {
+					ret := make([]PendingPaymentsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PendingPaymentsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PendingPaymentsArg)(nil), args)
+						return
+					}
+					ret, err = i.PendingPayments(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -938,6 +961,11 @@ func (c RemoteClient) Details(ctx context.Context, __arg DetailsArg) (res Accoun
 
 func (c RemoteClient) RecentPayments(ctx context.Context, __arg RecentPaymentsArg) (res PaymentsPage, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.recentPayments", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) PendingPayments(ctx context.Context, __arg PendingPaymentsArg) (res []PaymentSummary, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.pendingPayments", []interface{}{__arg}, &res)
 	return
 }
 
