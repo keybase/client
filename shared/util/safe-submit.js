@@ -20,7 +20,6 @@ export function safeSubmit(submitProps: Array<string>, resetSafeProps: Array<str
     class SafeSubmit extends React.Component<any> {
       componentDidUpdate(prevProps: any) {
         if (resetSafeProps.some(k => this.props[k] !== prevProps[k])) {
-          console.log('aaaa safesubumit didupdate', this.props, prevProps)
           // reset safe settings
           Object.keys(safeToCallWrappedMap).forEach(n => (safeToCallWrappedMap[n] = true))
         }

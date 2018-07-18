@@ -17,20 +17,16 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
     dispatch(ownProps.navigateUp())
   },
   onSelect: (name: string) => {
-    console.log('aaaa onselect called')
     dispatch(ProvisionGen.createSubmitDeviceSelect({name}))
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  console.log('aaaa select other mergeprops call', stateProps, dispatchProps, ownProps)
-  return {
-    devices: stateProps.devices.map(d => d.toJS()).toArray(),
-    onBack: dispatchProps.onBack,
-    onResetAccount: dispatchProps.onResetAccount,
-    onSelect: dispatchProps.onSelect,
-  }
-}
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  devices: stateProps.devices.map(d => d.toJS()).toArray(),
+  onBack: dispatchProps.onBack,
+  onResetAccount: dispatchProps.onResetAccount,
+  onSelect: dispatchProps.onSelect,
+})
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),

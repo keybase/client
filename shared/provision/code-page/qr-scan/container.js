@@ -18,17 +18,10 @@ const mapStateToProps = (state: TypedState) => ({
   waiting: !!state.waiting.get(Constants.waitingKey),
 })
 
-let lastSubmitTextCode = ''
-
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onOpenSettings: () => dispatch(ConfigGen.createOpenAppSettings()),
-  onSubmitTextCode: (code: string) => {
-    // Don't keep on submitting the same code. The barcode scanner calls this a bunch of times
-    if (lastSubmitTextCode !== code) {
-      dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)}))
-      lastSubmitTextCode = code
-    }
-  },
+  onSubmitTextCode: (code: string) =>
+    dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
