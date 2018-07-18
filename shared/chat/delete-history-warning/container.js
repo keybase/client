@@ -27,11 +27,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}: OwnPro
   onDeleteHistory: () => {
     const conversationIDKey = routeProps.get('conversationIDKey')
     dispatch(navigateUp())
-    dispatch(
-      Chat2Gen.createMessageDeleteHistory({
-        conversationIDKey: conversationIDKey,
-      })
-    )
+    dispatch(Chat2Gen.createMessageDeleteHistory({conversationIDKey}))
   },
 })
 
