@@ -104,14 +104,9 @@ const ActionButtons = (props: {onCancel: () => void, onSubmit: () => void, waiti
       onClick={props.waiting ? null : props.onSubmit}
       label="Yes, delete it"
       disabled={!!props.waiting}
+      style={isMobile ? {marginBottom: globalMargins.tiny} : {marginRight: globalMargins.tiny}}
     />
-    <Button
-      fullWidth={!!isMobile}
-      type="Secondary"
-      onClick={props.onCancel}
-      label="Cancel"
-      style={isMobile ? null : {marginRight: globalMargins.tiny}}
-    />
+    <Button fullWidth={!!isMobile} type="Secondary" onClick={props.onCancel} label="Cancel" />
   </Box>
 )
 
