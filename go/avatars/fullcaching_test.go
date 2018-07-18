@@ -35,13 +35,12 @@ func TestAvatarsFullCaching(t *testing.T) {
 	a, _ := testSrv.Addr()
 	testSrvAddr := fmt.Sprintf("http://%s/p", a)
 	tc.G.API = newAvatarMockAPI(makeHandler(testSrvAddr, cb))
-	source := NewFullCachingSource(tc.G, time.Hour, 10)
+	m := libkb.NewMetaContextForTest(tc)
+	source := NewFullCachingSource(time.Hour, 10)
 	source.populateSuccessCh = make(chan struct{}, 5)
 	source.tempDir = os.TempDir()
-	source.StartBackgroundTasks()
-	defer source.StopBackgroundTasks()
-
-	m := libkb.NewMetaContextForTest(tc)
+	source.StartBackgroundTasks(m)
+	defer source.StopBackgroundTasks(m)
 
 	t.Logf("first blood")
 	res, err := source.LoadUsers(m, []string{"mike"}, []keybase1.AvatarFormat{"square"})

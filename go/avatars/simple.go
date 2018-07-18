@@ -17,20 +17,16 @@ func (a apiAvatarRes) GetAppStatus() *libkb.AppStatus {
 	return &a.Status
 }
 
-type SimpleSource struct {
-	libkb.Contextified
-}
+type SimpleSource struct{}
 
-func NewSimpleSource(g *libkb.GlobalContext) *SimpleSource {
-	return &SimpleSource{
-		Contextified: libkb.NewContextified(g),
-	}
+func NewSimpleSource() *SimpleSource {
+	return &SimpleSource{}
 }
 
 var _ Source = (*SimpleSource)(nil)
 
-func (s *SimpleSource) StartBackgroundTasks() {}
-func (s *SimpleSource) StopBackgroundTasks()  {}
+func (s *SimpleSource) StartBackgroundTasks(_ libkb.MetaContext) {}
+func (s *SimpleSource) StopBackgroundTasks(_ libkb.MetaContext)  {}
 
 func (s *SimpleSource) formatArg(formats []keybase1.AvatarFormat) string {
 	var strs []string
@@ -38,10 +34,6 @@ func (s *SimpleSource) formatArg(formats []keybase1.AvatarFormat) string {
 		strs = append(strs, f.String())
 	}
 	return strings.Join(strs, ",")
-}
-
-func (s *SimpleSource) api() libkb.API {
-	return s.G().API
 }
 
 func (s *SimpleSource) apiReq(m libkb.MetaContext, endpoint, param string, names []string,
@@ -55,7 +47,7 @@ func (s *SimpleSource) apiReq(m libkb.MetaContext, endpoint, param string, names
 	arg.Args.Add("formats", libkb.S{Val: farg})
 	s.debug(m, "issuing %s avatar req: uarg: %s farg: %s", param, uarg, farg)
 	var apiRes apiAvatarRes
-	if err := s.api().GetDecode(arg, &apiRes); err != nil {
+	if err := m.G().API.GetDecode(arg, &apiRes); err != nil {
 		s.debug(m, "apiReq: API fail: %s", err)
 		return apiRes, err
 	}

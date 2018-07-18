@@ -44,7 +44,7 @@ func TestAvatarsURLCaching(t *testing.T) {
 	cb := make(chan struct{}, 5)
 
 	tc.G.API = newAvatarMockAPI(makeHandler("url", cb))
-	source := NewURLCachingSource(tc.G, time.Hour, 10)
+	source := NewURLCachingSource(time.Hour, 10)
 
 	t.Logf("API server fetch")
 	m := libkb.NewMetaContextForTest(tc)

@@ -1,7 +1,6 @@
 package avatars
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -60,8 +59,6 @@ type populateArg struct {
 }
 
 type FullCachingSource struct {
-	libkb.Contextified
-
 	diskLRU        *lru.DiskLRU
 	staleThreshold time.Duration
 	simpleSource   Source
@@ -77,26 +74,25 @@ type FullCachingSource struct {
 
 var _ Source = (*FullCachingSource)(nil)
 
-func NewFullCachingSource(g *libkb.GlobalContext, staleThreshold time.Duration, size int) *FullCachingSource {
+func NewFullCachingSource(staleThreshold time.Duration, size int) *FullCachingSource {
 	return &FullCachingSource{
-		Contextified:   libkb.NewContextified(g),
 		diskLRU:        lru.NewDiskLRU("avatars", 1, size),
 		staleThreshold: staleThreshold,
-		simpleSource:   NewSimpleSource(g),
+		simpleSource:   NewSimpleSource(),
 	}
 }
 
-func (c *FullCachingSource) StartBackgroundTasks() {
-	go c.monitorAppState()
+func (c *FullCachingSource) StartBackgroundTasks(m libkb.MetaContext) {
+	go c.monitorAppState(m)
 	c.populateCacheCh = make(chan populateArg, 100)
 	for i := 0; i < 10; i++ {
-		go c.populateCacheWorker()
+		go c.populateCacheWorker(m)
 	}
 }
 
-func (c *FullCachingSource) StopBackgroundTasks() {
+func (c *FullCachingSource) StopBackgroundTasks(m libkb.MetaContext) {
 	close(c.populateCacheCh)
-	c.diskLRU.Flush(context.Background(), c.G())
+	c.diskLRU.Flush(m.Ctx(), m.G())
 }
 
 func (c *FullCachingSource) debug(m libkb.MetaContext, msg string, args ...interface{}) {
@@ -107,16 +103,15 @@ func (c *FullCachingSource) avatarKey(name string, format keybase1.AvatarFormat)
 	return fmt.Sprintf("%s:%s", name, format.String())
 }
 
-func (c *FullCachingSource) isStale(item lru.DiskLRUEntry) bool {
-	return c.G().GetClock().Now().Sub(item.Ctime) > c.staleThreshold
+func (c *FullCachingSource) isStale(m libkb.MetaContext, item lru.DiskLRUEntry) bool {
+	return m.G().GetClock().Now().Sub(item.Ctime) > c.staleThreshold
 }
 
-func (c *FullCachingSource) monitorAppState() {
-	m := libkb.NewMetaContextBackground(c.G())
+func (c *FullCachingSource) monitorAppState(m libkb.MetaContext) {
 	c.debug(m, "monitorAppState: starting up")
 	state := keybase1.AppState_FOREGROUND
 	for {
-		state = <-c.G().AppState.NextUpdate(&state)
+		state = <-m.G().AppState.NextUpdate(&state)
 		switch state {
 		case keybase1.AppState_BACKGROUND:
 			c.debug(m, "monitorAppState: backgrounded")
@@ -144,7 +139,7 @@ func (c *FullCachingSource) specLoad(m libkb.MetaContext, names []string, format
 				var file *os.File
 				if file, err = os.Open(lp.path); err != nil {
 					c.debug(m, "specLoad: error loading hit: file: %s err: %s", lp.path, err)
-					c.diskLRU.Remove(m.Ctx(), c.G(), key)
+					c.diskLRU.Remove(m.Ctx(), m.G(), key)
 					// Not a true hit if we don't have it on the disk as well
 					found = false
 				} else {
@@ -152,7 +147,7 @@ func (c *FullCachingSource) specLoad(m libkb.MetaContext, names []string, format
 				}
 			}
 			if found {
-				if c.isStale(entry) {
+				if c.isStale(m, entry) {
 					res.stales = append(res.stales, lp)
 				} else {
 					res.hits = append(res.hits, lp)
@@ -165,11 +160,11 @@ func (c *FullCachingSource) specLoad(m libkb.MetaContext, names []string, format
 	return res, nil
 }
 
-func (c *FullCachingSource) getCacheDir() string {
+func (c *FullCachingSource) getCacheDir(m libkb.MetaContext) string {
 	if len(c.tempDir) > 0 {
 		return c.tempDir
 	}
-	return filepath.Join(c.G().GetCacheDir(), "avatars")
+	return filepath.Join(m.G().GetCacheDir(), "avatars")
 }
 
 func (c *FullCachingSource) getFullFilename(fileName string) string {
@@ -183,11 +178,11 @@ func (c *FullCachingSource) commitAvatarToDisk(m libkb.MetaContext, data io.Read
 		// updated to client with new path, it's fine to have them
 		// start clean.
 		if len(c.tempDir) == 0 {
-			c.unlinkAllAvatars(m, c.G().GetCacheDir())
+			c.unlinkAllAvatars(m, m.G().GetCacheDir())
 		}
 
-		err := os.MkdirAll(c.getCacheDir(), os.ModePerm)
-		c.debug(m, "creating directory for avatars %q: %v", c.getCacheDir(), err)
+		err := os.MkdirAll(c.getCacheDir(m), os.ModePerm)
+		c.debug(m, "creating directory for avatars %q: %v", c.getCacheDir(m), err)
 	})
 
 	var file *os.File
@@ -203,7 +198,7 @@ func (c *FullCachingSource) commitAvatarToDisk(m libkb.MetaContext, data io.Read
 		}
 		path = file.Name()
 	} else {
-		if file, err = ioutil.TempFile(c.getCacheDir(), "avatar"); err != nil {
+		if file, err = ioutil.TempFile(c.getCacheDir(m), "avatar"); err != nil {
 			return path, err
 		}
 		shouldRename = true
@@ -234,9 +229,9 @@ func (c *FullCachingSource) removeFile(m libkb.MetaContext, ent *lru.DiskLRUEntr
 	}
 }
 
-func (c *FullCachingSource) populateCacheWorker() {
+func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 	for arg := range c.populateCacheCh {
-		m := libkb.NewMetaContextBackground(c.G())
+		m := libkb.NewMetaContextBackground(m.G())
 		c.debug(m, "populateCacheWorker: fetching: name: %s format: %s url: %s", arg.name,
 			arg.format, arg.url)
 		// Grab image data first
@@ -408,5 +403,5 @@ func (c *FullCachingSource) unlinkAllAvatars(m libkb.MetaContext, dirpath string
 }
 
 func (c *FullCachingSource) OnCacheCleared(m libkb.MetaContext) {
-	c.unlinkAllAvatars(m, c.getCacheDir())
+	c.unlinkAllAvatars(m, c.getCacheDir(m))
 }

@@ -1,7 +1,6 @@
 package avatars
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -11,8 +10,6 @@ import (
 )
 
 type URLCachingSource struct {
-	libkb.Contextified
-
 	diskLRU        *lru.DiskLRU
 	staleThreshold time.Duration
 	simpleSource   *SimpleSource
@@ -23,21 +20,20 @@ type URLCachingSource struct {
 
 var _ Source = (*URLCachingSource)(nil)
 
-func NewURLCachingSource(g *libkb.GlobalContext, staleThreshold time.Duration, size int) *URLCachingSource {
+func NewURLCachingSource(staleThreshold time.Duration, size int) *URLCachingSource {
 	return &URLCachingSource{
-		Contextified:   libkb.NewContextified(g),
 		diskLRU:        lru.NewDiskLRU("avatarurls", 1, size),
 		staleThreshold: staleThreshold,
-		simpleSource:   NewSimpleSource(g),
+		simpleSource:   NewSimpleSource(),
 	}
 }
 
-func (c *URLCachingSource) StartBackgroundTasks() {
-	go c.monitorAppState()
+func (c *URLCachingSource) StartBackgroundTasks(m libkb.MetaContext) {
+	go c.monitorAppState(m)
 }
 
-func (c *URLCachingSource) StopBackgroundTasks() {
-	c.diskLRU.Flush(context.Background(), c.G())
+func (c *URLCachingSource) StopBackgroundTasks(m libkb.MetaContext) {
+	c.diskLRU.Flush(m.Ctx(), m.G())
 }
 
 func (c *URLCachingSource) debug(m libkb.MetaContext, msg string, args ...interface{}) {
@@ -48,16 +44,15 @@ func (c *URLCachingSource) avatarKey(name string, format keybase1.AvatarFormat) 
 	return fmt.Sprintf("%s:%s", name, format.String())
 }
 
-func (c *URLCachingSource) isStale(item lru.DiskLRUEntry) bool {
-	return c.G().GetClock().Now().Sub(item.Ctime) > c.staleThreshold
+func (c *URLCachingSource) isStale(m libkb.MetaContext, item lru.DiskLRUEntry) bool {
+	return m.G().GetClock().Now().Sub(item.Ctime) > c.staleThreshold
 }
 
-func (c *URLCachingSource) monitorAppState() {
-	m := libkb.NewMetaContextBackground(c.G())
+func (c *URLCachingSource) monitorAppState(m libkb.MetaContext) {
 	c.debug(m, "monitorAppState: starting up")
 	state := keybase1.AppState_FOREGROUND
 	for {
-		state = <-c.G().AppState.NextUpdate(&state)
+		state = <-m.G().AppState.NextUpdate(&state)
 		switch state {
 		case keybase1.AppState_BACKGROUND:
 			c.debug(m, "monitorAppState: backgrounded")
@@ -70,7 +65,7 @@ func (c *URLCachingSource) specLoad(m libkb.MetaContext, names []string, formats
 	for _, name := range names {
 		for _, format := range formats {
 			key := c.avatarKey(name, format)
-			found, entry, err := c.diskLRU.Get(m.Ctx(), c.G(), key)
+			found, entry, err := c.diskLRU.Get(m.Ctx(), m.G(), key)
 			if err != nil {
 				return res, err
 			}
@@ -80,7 +75,7 @@ func (c *URLCachingSource) specLoad(m libkb.MetaContext, names []string, formats
 			}
 			if found {
 				lp.path = entry.Value.(string)
-				if c.isStale(entry) {
+				if c.isStale(m, entry) {
 					res.stales = append(res.stales, lp)
 				} else {
 					res.hits = append(res.hits, lp)
@@ -104,7 +99,7 @@ func (c *URLCachingSource) mergeRes(res *keybase1.LoadAvatarsRes, m keybase1.Loa
 func (c *URLCachingSource) commitURLs(m libkb.MetaContext, res keybase1.LoadAvatarsRes) {
 	for name, rec := range res.Picmap {
 		for format, url := range rec {
-			if _, err := c.diskLRU.Put(m.Ctx(), c.G(), c.avatarKey(name, format), url); err != nil {
+			if _, err := c.diskLRU.Put(m.Ctx(), m.G(), c.avatarKey(name, format), url); err != nil {
 				c.debug(m, "commitURLs: failed to save URL: url: %s err: %s", url, err)
 			}
 		}
@@ -165,7 +160,7 @@ func (c *URLCachingSource) loadNames(m libkb.MetaContext, names []string, format
 func (c *URLCachingSource) clearName(m libkb.MetaContext, name string, formats []keybase1.AvatarFormat) (err error) {
 	for _, format := range formats {
 		key := c.avatarKey(name, format)
-		if err := c.diskLRU.Remove(m.Ctx(), c.G(), key); err != nil {
+		if err := c.diskLRU.Remove(m.Ctx(), m.G(), key); err != nil {
 			return err
 		}
 	}

@@ -14,17 +14,17 @@ type Source interface {
 	ClearCacheForName(libkb.MetaContext, string, []keybase1.AvatarFormat) error
 	OnCacheCleared(libkb.MetaContext) // Called after leveldb data goes away after db nuke
 
-	StartBackgroundTasks()
-	StopBackgroundTasks()
+	StartBackgroundTasks(libkb.MetaContext)
+	StopBackgroundTasks(libkb.MetaContext)
 }
 
 func CreateSourceFromEnv(g *libkb.GlobalContext) (s Source) {
 	typ := g.Env.GetAvatarSource()
 	switch typ {
 	case "simple":
-		s = NewSimpleSource(g)
+		s = NewSimpleSource()
 	case "url":
-		s = NewURLCachingSource(g, time.Hour /* staleThreshold */, 20000)
+		s = NewURLCachingSource(time.Hour /* staleThreshold */, 20000)
 	case "full":
 		maxSize := 10000
 		if g.GetAppType() == libkb.MobileAppType {
@@ -32,11 +32,12 @@ func CreateSourceFromEnv(g *libkb.GlobalContext) (s Source) {
 		}
 		// When changing staleThreshold here, serverside avatar change
 		// notification dismiss time should be adjusted as well.
-		s = NewFullCachingSource(g, time.Hour /* staleThreshold */, maxSize)
+		s = NewFullCachingSource(time.Hour /* staleThreshold */, maxSize)
 	}
-	s.StartBackgroundTasks()
+	m := libkb.NewMetaContextBackground(g)
+	s.StartBackgroundTasks(m)
 	g.PushShutdownHook(func() error {
-		s.StopBackgroundTasks()
+		s.StopBackgroundTasks(m)
 		return nil
 	})
 	return s
