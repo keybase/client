@@ -25,6 +25,8 @@ type baseConversationSource struct {
 
 	boxer *Boxer
 	ri    func() chat1.RemoteInterface
+
+	blackoutPullForTesting bool
 }
 
 func newBaseConversationSource(g *globals.Context, ri func() chat1.RemoteInterface, boxer *Boxer) *baseConversationSource {
@@ -78,6 +80,12 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	// TODO: We'll do this against what's in the cache once that's ready,
 	//       rather than only checking the messages we just fetched against
 	//       each other.
+
+	if s.blackoutPullForTesting {
+		thread.Messages = nil
+		return nil
+	}
+
 	if checkPrev {
 		_, _, err = CheckPrevPointersAndGetUnpreved(thread)
 		if err != nil {
