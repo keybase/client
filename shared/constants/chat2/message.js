@@ -812,7 +812,6 @@ export const enoughTimeBetweenMessages = (
   )
 
 export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
-  {text: 'Never (turn off)', seconds: 0},
   {text: '30 seconds', seconds: 30},
   {text: '5 minutes', seconds: 300},
   {text: '60 minutes', seconds: 3600},
@@ -820,4 +819,5 @@ export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
   {text: '24 hours', seconds: 86400},
   {text: '3 days', seconds: 86400 * 3},
   {text: '7 days', seconds: 86400 * 7},
+  {text: 'Never explode (turn off)', seconds: 0},
 ].reverse()

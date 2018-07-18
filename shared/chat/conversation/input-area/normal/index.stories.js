@@ -17,6 +17,25 @@ const provider = createPropProvider(PropProviders.Common(), {
       channels,
     }
   },
+  SetExplodePopup: ownProps => ({
+    attachTo: ownProps.attachTo,
+    isNew: ownProps.isNew,
+    items: [
+      {text: '7 days', seconds: 0},
+      {text: '3 days', seconds: 0},
+      {text: '24 hours', seconds: 0},
+      {text: '6 hours', seconds: 0},
+      {text: '60 minutes', seconds: 0},
+      {text: '5 minutes', seconds: 0},
+      {text: '30 seconds days', seconds: 0},
+      {text: 'Never (turn off)', seconds: 0},
+    ],
+    onAfterSelect: action('onAfterSelect'),
+    onHidden: ownProps.onHidden,
+    onSelect: action('onSelect'),
+    selected: 0,
+    visible: ownProps.visible,
+  }),
   UserMentionHud: ownProps => {
     const users = [
       {username: 'marcopolo', fullName: 'Marco Munizaga'},
