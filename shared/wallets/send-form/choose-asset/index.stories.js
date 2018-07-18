@@ -31,7 +31,7 @@ const props = {
 }
 
 const load = () => {
-  storiesOf('Wallets/SendForm/Choose asset', module).add('Basic', () => <ChooseAsset {...props} />)
+  storiesOf('Wallets/SendForm', module).add('Choose asset', () => <ChooseAsset {...props} />)
 }
 
 export default load
