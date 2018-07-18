@@ -19,7 +19,7 @@ const props = {
   onChoose: action('onChoose'),
   otherChoices: [
     {code: 'BTC', disabledExplanation: '', issuer: 'Stronghold.co', selected: false, type: 'other choice'},
-    {code: 'KEYZ', disabledExplanation: '', issuer: 'Unknown', selected: true, type: 'other choice'},
+    {code: 'KEYZ', disabledExplanation: '', issuer: 'Unknown', selected: false, type: 'other choice'},
     {
       code: 'HUGZ',
       disabledExplanation: `max doesn't accept HUGZ.`,
