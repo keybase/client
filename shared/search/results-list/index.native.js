@@ -16,6 +16,7 @@ class SearchResultsList extends Component<Props> {
       <Row
         disableIfInTeamName={disableIfInTeamName}
         id={id}
+        selected={false}
         onClick={() => onClick(id)}
         onShowTracker={onShowTracker ? () => onShowTracker(id) : undefined}
       />
