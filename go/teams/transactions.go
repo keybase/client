@@ -380,35 +380,34 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 }
 
 // AddMemberByAssertion adds an assertion to the team.
+// Does not attempt to resolve the assertion.
 // Returns (uv, username) which can both be zero-valued if the assertion is not a keybase user.
-func (tx *AddMemberTx) AddMemberByAssertion(ctx context.Context, assertion string, role keybase1.TeamRole) (username string,
-	uv keybase1.UserVersion, invite bool, err error) {
+func (tx *AddMemberTx) AddMemberByAssertion(ctx context.Context, assertion string,
+	role keybase1.TeamRole) (username libkb.NormalizedUsername, uv keybase1.UserVersion, invite bool, err error) {
 	team := tx.team
 	g := team.G()
 
-	// xxx DO NOT MERGE this is not safe. Client needs to check resolution result.
-	res := g.Resolver.ResolveWithBody(assertion)
-	rErr := res.GetError()
-	if rErr == nil {
-		upak, err := loadUPAK2(ctx, g, res.GetUID(), true /* forcePoll */)
+	if libkb.NewNormalizedUsername(assertion).CheckValid() == nil {
+		upak, _, err := g.GetUPAKLoader().LoadV2(libkb.NewLoadUserArg(g).WithNetContext(ctx).
+			WithName(assertion).
+			WithPublicKeyOptional().
+			WithForcePoll(true))
 		if err != nil {
 			return "", uv, false, err
 		}
 		invite, err := tx.addMemberByUPKV2(ctx, upak.Current, role)
-		return upak.Current.Username, upak.Current.ToUserVersion(), invite, err
-	} else if e, ok := rErr.(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
-		typ, name, err := team.parseSocial(assertion)
-		if err != nil {
-			return "", uv, false, err
-		}
-		g.Log.Debug("team %s invite sbs member %s/%s", team.Name(), typ, name)
-		if role.IsOrAbove(keybase1.TeamRole_OWNER) {
-			return "", uv, false, fmt.Errorf("'%v' doesn't have a Keybase account yet, so you can't add them as an owner; you can add them as reader or writer.", assertion)
-		}
-		tx.createInvite(typ, keybase1.TeamInviteName(name), role)
-		return "", uv, true, nil
+		return libkb.NewNormalizedUsername(upak.Current.Username), upak.Current.ToUserVersion(), invite, err
 	}
-	return "", uv, false, rErr
+	typ, name, err := team.parseSocial(assertion)
+	if err != nil {
+		return "", uv, false, err
+	}
+	g.Log.Debug("team %s invite sbs member %s/%s", team.Name(), typ, name)
+	if role.IsOrAbove(keybase1.TeamRole_OWNER) {
+		return "", uv, false, fmt.Errorf("'%v' doesn't have a Keybase account yet, so you can't add them as an owner; you can add them as reader or writer.", assertion)
+	}
+	tx.createInvite(typ, keybase1.TeamInviteName(name), role)
+	return "", uv, true, nil
 }
 
 func (tx *AddMemberTx) CompleteInviteByID(ctx context.Context, inviteID keybase1.TeamInviteID, uv keybase1.UserVersion) error {

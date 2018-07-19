@@ -307,8 +307,8 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, as
 				return fmt.Errorf("Error adding user '%v': %v", assertion, err)
 			}
 			var normalizedUsername libkb.NormalizedUsername
-			if username != "" {
-				normalizedUsername = libkb.NewNormalizedUsername(username)
+			if !username.IsNil() {
+				normalizedUsername = username
 			}
 			res[i] = AddMembersRes{
 				Invite:   invite,
