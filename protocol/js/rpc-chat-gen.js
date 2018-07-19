@@ -428,7 +428,7 @@ export type DeleteConversationLocalRes = $ReadOnly<{offline: Boolean, rateLimits
 export type DeleteConversationRemoteRes = $ReadOnly<{rateLimit?: ?RateLimit}>
 export type DownloadAttachmentLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type EncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
-export type EphemeralPurgeInfo = $ReadOnly<{convID: ConversationID, isActive: Boolean, nextPurgeTime: Gregor1.Time, minUnexplodedID: MessageID}>
+export type EphemeralPurgeInfo = $ReadOnly<{c /* convID */: ConversationID, a /* isActive */: Boolean, n /* nextPurgeTime */: Gregor1.Time, e /* minUnexplodedID */: MessageID}>
 export type EphemeralPurgeNotifInfo = $ReadOnly<{convID: ConversationID, msgs?: ?Array<UIMessage>, conv?: ?InboxUIItem}>
 export type Expunge = $ReadOnly<{upto: MessageID, basis: MessageID}>
 export type ExpungeInfo = $ReadOnly<{convID: ConversationID, expunge: Expunge, conv?: ?InboxUIItem}>
@@ -486,7 +486,7 @@ export type Hash = Bytes
 export type HeaderPlaintext = {version: 1, v1: ?HeaderPlaintextV1} | {version: 2, v2: ?HeaderPlaintextUnsupported} | {version: 3, v3: ?HeaderPlaintextUnsupported} | {version: 4, v4: ?HeaderPlaintextUnsupported} | {version: 5, v5: ?HeaderPlaintextUnsupported} | {version: 6, v6: ?HeaderPlaintextUnsupported} | {version: 7, v7: ?HeaderPlaintextUnsupported} | {version: 8, v8: ?HeaderPlaintextUnsupported} | {version: 9, v9: ?HeaderPlaintextUnsupported} | {version: 10, v10: ?HeaderPlaintextUnsupported}
 export type HeaderPlaintextMetaInfo = $ReadOnly<{crit: Boolean}>
 export type HeaderPlaintextUnsupported = $ReadOnly<{mi: HeaderPlaintextMetaInfo}>
-export type HeaderPlaintextV1 = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, bodyHash: Hash, outboxInfo?: ?OutboxInfo, outboxID?: ?OutboxID, headerSignature?: ?SignatureInfo, merkleRoot?: ?MerkleRoot, ephemeralMetadata?: ?MsgEphemeralMetadata}>
+export type HeaderPlaintextV1 = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, bodyHash: Hash, outboxInfo?: ?OutboxInfo, outboxID?: ?OutboxID, headerSignature?: ?SignatureInfo, merkleRoot?: ?MerkleRoot, em /* ephemeralMetadata */?: ?MsgEphemeralMetadata}>
 export type HeaderPlaintextVersion =
   | 1 // V1_1
   | 2 // V2_2
@@ -585,8 +585,8 @@ export type MessageBoxedVersion =
   | 3 // V3_3
   | 4 // V4_4
 
-export type MessageClientHeader = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, supersedes: MessageID, kbfsCryptKeysUsed?: ?Boolean, deletes?: ?Array<MessageID>, prev?: ?Array<MessagePreviousPointer>, deleteHistory?: ?MessageDeleteHistory, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, ephemeralMetadata?: ?MsgEphemeralMetadata, pairwiseMacs: {[key: string]: Bytes}}>
-export type MessageClientHeaderVerified = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, ephemeralMetadata?: ?MsgEphemeralMetadata, rtime: Gregor1.Time, hasPairwiseMacs: Boolean}>
+export type MessageClientHeader = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, supersedes: MessageID, kbfsCryptKeysUsed?: ?Boolean, deletes?: ?Array<MessageID>, prev?: ?Array<MessagePreviousPointer>, deleteHistory?: ?MessageDeleteHistory, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, em /* ephemeralMetadata */?: ?MsgEphemeralMetadata, pm /* pairwiseMacs */: {[key: string]: Bytes}}>
+export type MessageClientHeaderVerified = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, em /* ephemeralMetadata */?: ?MsgEphemeralMetadata, rt /* rtime */: Gregor1.Time, pm /* hasPairwiseMacs */: Boolean}>
 export type MessageConversationMetadata = $ReadOnly<{conversationTitle: String}>
 export type MessageDelete = $ReadOnly<{messageIDs?: ?Array<MessageID>}>
 export type MessageDeleteHistory = $ReadOnly<{upto: MessageID}>
@@ -598,10 +598,10 @@ export type MessageJoin = $ReadOnly<{}>
 export type MessageLeave = $ReadOnly<{}>
 export type MessagePlaintext = $ReadOnly<{clientHeader: MessageClientHeader, messageBody: MessageBody}>
 export type MessagePreviousPointer = $ReadOnly<{id: MessageID, hash: Hash}>
-export type MessageReaction = $ReadOnly<{messageID: MessageID, body: String}>
+export type MessageReaction = $ReadOnly<{m /* messageID */: MessageID, b /* body */: String}>
 export type MessageRequestPayment = $ReadOnly<{requestID: String, note: String}>
 export type MessageSendPayment = $ReadOnly<{kbTxID: String}>
-export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy: MessageID, reactionIDs?: ?Array<MessageID>, ctime: Gregor1.Time, now: Gregor1.Time, rtime?: ?Gregor1.Time}>
+export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy: MessageID, r /* reactionIDs */?: ?Array<MessageID>, ctime: Gregor1.Time, n /* now */: Gregor1.Time, rt /* rtime */?: ?Gregor1.Time}>
 export type MessageSummary = $ReadOnly<{msgID: MessageID, messageType: MessageType, tlfName: String, tlfPublic: Boolean, ctime: Gregor1.Time}>
 export type MessageSystem = {systemType: 0, addedtoteam: ?MessageSystemAddedToTeam} | {systemType: 1, inviteaddedtoteam: ?MessageSystemInviteAddedToTeam} | {systemType: 2, complexteam: ?MessageSystemComplexTeam} | {systemType: 3, createteam: ?MessageSystemCreateTeam} | {systemType: 4, gitpush: ?MessageSystemGitPush} | {systemType: 5, changeavatar: ?MessageSystemChangeAvatar}
 export type MessageSystemAddedToTeam = $ReadOnly<{team: String, adder: String, addee: String, owners?: ?Array<String>, admins?: ?Array<String>, writers?: ?Array<String>, readers?: ?Array<String>}>
@@ -655,7 +655,7 @@ export type MessageUnboxedState =
   | 4 // PLACEHOLDER_4
 
 export type MessageUnboxedValid = $ReadOnly<{clientHeader: MessageClientHeaderVerified, serverHeader: MessageServerHeader, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, bodyHash: Hash, headerHash: Hash, headerSignature?: ?SignatureInfo, verificationKey?: ?Bytes, senderDeviceRevokedAt?: ?Gregor1.Time, atMentionUsernames?: ?Array<String>, atMentions?: ?Array<Gregor1.UID>, channelMention: ChannelMention, channelNameMentions?: ?Array<ChannelNameMention>, reactions: ReactionMap}>
-export type MsgEphemeralMetadata = $ReadOnly<{lifetime: Gregor1.DurationSec, generation: Keybase1.EkGeneration, explodedBy?: ?String}>
+export type MsgEphemeralMetadata = $ReadOnly<{l /* lifetime */: Gregor1.DurationSec, g /* generation */: Keybase1.EkGeneration, u /* explodedBy */?: ?String}>
 export type NameQuery = $ReadOnly<{name: String, membersType: ConversationMembersType}>
 export type NewConversationInfo = $ReadOnly<{convID: ConversationID, conv?: ?InboxUIItem}>
 export type NewConversationLocalRes = $ReadOnly<{conv: ConversationLocal, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
@@ -838,7 +838,7 @@ export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Tim
 export type UIMessages = $ReadOnly<{messages?: ?Array<UIMessage>, pagination?: ?UIPagination}>
 export type UIPagination = $ReadOnly<{next: String, previous: String, num: Int, last: Boolean}>
 export type UnreadFirstNumLimit = $ReadOnly<{NumRead: Int, AtLeast: Int, AtMost: Int}>
-export type UnreadUpdate = $ReadOnly<{convID: ConversationID, unreadMessages: Int, unreadNotifyingMessages: {[key: string]: Int}, compatUnreadMessages: Int, diff: Boolean}>
+export type UnreadUpdate = $ReadOnly<{convID: ConversationID, unreadMessages: Int, unreadNotifyingMessages: {[key: string]: Int}, UnreadMessages /* compatUnreadMessages */: Int, diff: Boolean}>
 export type UnreadUpdateFull = $ReadOnly<{ignore: Boolean, inboxVers: InboxVers, inboxSyncStatus: SyncInboxResType, updates?: ?Array<UnreadUpdate>}>
 export type UnverifiedInboxUIItem = $ReadOnly<{convID: String, topicType: TopicType, name: String, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, memberStatus: ConversationMemberStatus, teamType: TeamType, notifications?: ?ConversationNotificationInfo, time: Gregor1.Time, version: ConversationVers, maxMsgID: MessageID, readMsgID: MessageID, localMetadata?: ?UnverifiedInboxUIItemMetadata, finalizeInfo?: ?ConversationFinalizeInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>}>
 export type UnverifiedInboxUIItemMetadata = $ReadOnly<{channelName: String, headline: String, snippet: String, snippetDecoration: String, writerNames?: ?Array<String>, resetParticipants?: ?Array<String>}>

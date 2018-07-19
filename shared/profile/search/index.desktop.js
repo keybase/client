@@ -5,6 +5,7 @@ import UserInput from '../../search/user-input/container'
 import {Box} from '../../common-adapters'
 import {globalStyles, globalColors, desktopStyles} from '../../styles'
 import type {Props} from '.'
+import {searchKey, placeholder} from './index.shared'
 
 const Search = (props: Props) => (
   <Box style={styleCatcher} onClick={props.onClose}>
@@ -12,15 +13,15 @@ const Search = (props: Props) => (
       <Box style={styleSearchRow}>
         <UserInput
           disableListBuilding={true}
-          searchKey="profileSearch"
+          searchKey={searchKey}
           onSelectUser={props.onClick}
           onExitSearch={props.onClose}
           autoFocus={true}
-          placeholder={props.placeholder}
+          placeholder={placeholder}
         />
       </Box>
       <Box style={{...styleSearchRow, ...desktopStyles.scrollable, justifyContent: 'center'}}>
-        <SearchResultsList searchKey="profileSearch" onClick={props.onClick} disableListBuilding={true} />
+        <SearchResultsList searchKey={searchKey} onClick={props.onClick} disableListBuilding={true} />
       </Box>
     </Box>
   </Box>

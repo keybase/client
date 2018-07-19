@@ -82,6 +82,10 @@
         {
           "type": "boolean",
           "name": "chatdev"
+        },
+        {
+          "type": "boolean",
+          "name": "deviceclone"
         }
       ]
     }
