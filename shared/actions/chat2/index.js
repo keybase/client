@@ -239,13 +239,7 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
 
   if (convID && cMsg) {
     const conversationIDKey = Types.conversationIDToKey(convID)
-    const message = Constants.uiMessageToMessage(
-      state,
-      conversationIDKey,
-      cMsg,
-      state.config.username || '',
-      state.config.deviceName || ''
-    )
+    const message = Constants.uiMessageToMessage(state, conversationIDKey, cMsg)
     if (message) {
       // The attachmentuploaded call is like an 'edit' of an attachment. We get the placeholder, then its replaced by the actual image
       if (
@@ -682,7 +676,12 @@ const setupChatHandlers = () => {
 
   engine().setIncomingActionCreators(
     'chat.1.NotifyChat.ChatAttachmentUploadProgress',
-    ({convID, outboxID, bytesComplete, bytesTotal}) => {
+    ({
+      convID,
+      outboxID,
+      bytesComplete,
+      bytesTotal,
+    }: RPCChatTypes.NotifyChatChatAttachmentUploadProgressRpcParam) => {
       const conversationIDKey = Types.conversationIDToKey(convID)
       const ratio = bytesComplete / bytesTotal
       return [
@@ -695,16 +694,19 @@ const setupChatHandlers = () => {
     }
   )
 
-  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatAttachmentUploadStart', ({convID, outboxID}) => {
-    const conversationIDKey = Types.conversationIDToKey(convID)
-    return [
-      Chat2Gen.createAttachmentUploading({
-        conversationIDKey,
-        outboxID: Types.rpcOutboxIDToOutboxID(outboxID),
-        ratio: 0.01,
-      }),
-    ]
-  })
+  engine().setIncomingActionCreators(
+    'chat.1.NotifyChat.ChatAttachmentUploadStart',
+    ({convID, outboxID}: RPCChatTypes.NotifyChatChatAttachmentUploadStartRpcParam) => {
+      const conversationIDKey = Types.conversationIDToKey(convID)
+      return [
+        Chat2Gen.createAttachmentUploading({
+          conversationIDKey,
+          outboxID: Types.rpcOutboxIDToOutboxID(outboxID),
+          ratio: 0.01,
+        }),
+      ]
+    }
+  )
 
   engine().setIncomingActionCreators('chat.1.NotifyChat.ChatJoinedConversation', () => [
     Chat2Gen.createInboxRefresh({reason: 'joinedAConversation'}),
@@ -893,15 +895,7 @@ const loadMoreMessages = (
     }
 
     const messages = (uiMessages.messages || []).reduce((arr, m) => {
-      const message = conversationIDKey
-        ? Constants.uiMessageToMessage(
-            state,
-            conversationIDKey,
-            m,
-            state.config.username || '',
-            state.config.deviceName || ''
-          )
-        : null
+      const message = conversationIDKey ? Constants.uiMessageToMessage(state, conversationIDKey, m) : null
       if (message) {
         arr.push(message)
       }

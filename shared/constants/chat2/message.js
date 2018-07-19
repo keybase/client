@@ -412,22 +412,23 @@ export const previewSpecs = (preview: ?RPCChatTypes.AssetMetadata, full: ?RPCCha
     attachmentType: 'file',
     showPlayButton: false,
   }
-  if (preview) {
-    if (preview.assetType === RPCChatTypes.localAssetMetadataType.image && preview.image) {
-      const wh = clampAttachmentPreviewSize(preview.image)
-      res.height = wh.height
-      res.width = wh.width
-      res.attachmentType = 'image'
-      // full is a video but preview is an image?
-      if (full && full.assetType === RPCChatTypes.localAssetMetadataType.video) {
-        res.showPlayButton = true
-      }
-    } else if (preview.assetType === RPCChatTypes.localAssetMetadataType.video && preview.video) {
-      const wh = clampAttachmentPreviewSize(preview.video)
-      res.height = wh.height
-      res.width = wh.width
-      res.attachmentType = 'image'
+  if (!preview) {
+    return res
+  }
+  if (preview.assetType === RPCChatTypes.localAssetMetadataType.image && preview.image) {
+    const wh = clampAttachmentPreviewSize(preview.image)
+    res.height = wh.height
+    res.width = wh.width
+    res.attachmentType = 'image'
+    // full is a video but preview is an image?
+    if (full && full.assetType === RPCChatTypes.localAssetMetadataType.video) {
+      res.showPlayButton = true
     }
+  } else if (preview.assetType === RPCChatTypes.localAssetMetadataType.video && preview.video) {
+    const wh = clampAttachmentPreviewSize(preview.video)
+    res.height = wh.height
+    res.width = wh.width
+    res.attachmentType = 'image'
   }
   return res
 }
@@ -589,9 +590,7 @@ const outboxUIMessagetoMessage = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
   uiMessage: RPCChatTypes.UIMessage,
-  o: RPCChatTypes.UIMessageOutbox,
-  you: string,
-  yourDevice: string
+  o: RPCChatTypes.UIMessageOutbox
 ) => {
   const errorReason =
     o.state && o.state.state === RPCChatTypes.localOutboxStateType.error && o.state.error
@@ -626,9 +625,9 @@ const outboxUIMessagetoMessage = (
       )[0]
     case RPCChatTypes.commonMessageType.text:
       return makeMessageText({
-        author: you,
+        author: state.config.username || '',
         conversationIDKey,
-        deviceName: yourDevice,
+        deviceName: state.config.deviceName || '',
         deviceType: isMobile ? 'mobile' : 'desktop',
         errorReason,
         ordinal: Types.numberToOrdinal(o.ordinal),
@@ -681,9 +680,7 @@ const errorUIMessagetoMessage = (
 export const uiMessageToMessage = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
-  uiMessage: RPCChatTypes.UIMessage,
-  you: string,
-  yourDevice: string
+  uiMessage: RPCChatTypes.UIMessage
 ): ?Types.Message => {
   switch (uiMessage.state) {
     case RPCChatTypes.chatUiMessageUnboxedState.valid:
@@ -698,14 +695,7 @@ export const uiMessageToMessage = (
       return null
     case RPCChatTypes.chatUiMessageUnboxedState.outbox:
       if (uiMessage.outbox) {
-        return outboxUIMessagetoMessage(
-          state,
-          conversationIDKey,
-          uiMessage,
-          uiMessage.outbox,
-          you,
-          yourDevice
-        )
+        return outboxUIMessagetoMessage(state, conversationIDKey, uiMessage, uiMessage.outbox)
       }
       return null
     case RPCChatTypes.chatUiMessageUnboxedState.placeholder:
