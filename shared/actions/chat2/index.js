@@ -2076,7 +2076,7 @@ const createConversation = (action: Chat2Gen.CreateConversationPayload, state: T
 }
 
 const createConversationSelectIt = (results: Array<any>) => {
-  const result: RPCChatTypes.NewConversationLocalRes = results[1]
+  const result: RPCChatTypes.NewConversationLocalRes = results[0]
   const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
   if (!conversationIDKey) {
     logger.warn("Couldn't make a new conversation?")
