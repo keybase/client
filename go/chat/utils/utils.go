@@ -500,7 +500,8 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 		return nil, err
 	}
 
-	// We use the message ID in the body over the field in the client header to avoid server trust.
+	// We use the message ID in the body over the field in the client header to
+	// avoid server trust.
 	switch typ {
 	case chat1.MessageType_EDIT:
 		return []chat1.MessageID{msg.Valid().MessageBody.Edit().MessageID}, nil

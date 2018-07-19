@@ -19,7 +19,6 @@ export const attachmentUploading = 'chat2:attachmentUploading'
 export const attachmentsUpload = 'chat2:attachmentsUpload'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
-export const clearLoading = 'chat2:clearLoading'
 export const createConversation = 'chat2:createConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const handleSeeingExplodingMessages = 'chat2:handleSeeingExplodingMessages'
@@ -42,6 +41,7 @@ export const messageSend = 'chat2:messageSend'
 export const messageSetEditing = 'chat2:messageSetEditing'
 export const messageSetQuoting = 'chat2:messageSetQuoting'
 export const messageWasEdited = 'chat2:messageWasEdited'
+export const messageWasReactedTo = 'chat2:messageWasReactedTo'
 export const messagesAdd = 'chat2:messagesAdd'
 export const messagesExploded = 'chat2:messagesExploded'
 export const messagesWereDeleted = 'chat2:messagesWereDeleted'
@@ -58,6 +58,7 @@ export const navigateToThread = 'chat2:navigateToThread'
 export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openFolder = 'chat2:openFolder'
 export const previewConversation = 'chat2:previewConversation'
+export const reactionsWereDeleted = 'chat2:reactionsWereDeleted'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const selectConversation = 'chat2:selectConversation'
@@ -68,12 +69,12 @@ export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingMessagesNew = 'chat2:setExplodingMessagesNew'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
 export const setInboxFilter = 'chat2:setInboxFilter'
-export const setLoading = 'chat2:setLoading'
 export const setPendingConversationExistingConversationIDKey = 'chat2:setPendingConversationExistingConversationIDKey'
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setPendingMode = 'chat2:setPendingMode'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
+export const toggleMessageReaction = 'chat2:toggleMessageReaction'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMoreToLoad = 'chat2:updateMoreToLoad'
@@ -118,7 +119,6 @@ type _BlockConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   reportUser: boolean,
 |}>
-type _ClearLoadingPayload = $ReadOnly<{|key: string|}>
 type _CreateConversationPayload = $ReadOnly<{|participants: Array<string>|}>
 type _DesktopNotificationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -151,10 +151,7 @@ type _MessageAttachmentUploadedPayload = $ReadOnly<{|
   placeholderID: RPCChatTypes.MessageID,
   message: Types.MessageAttachment,
 |}>
-type _MessageDeleteHistoryPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
-|}>
+type _MessageDeleteHistoryPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _MessageDeletePayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,
@@ -198,6 +195,13 @@ type _MessageWasEditedPayload = $ReadOnly<{|
   mentionsAt: I.Set<string>,
   mentionsChannel: 'none' | 'all' | 'here',
   mentionsChannelName: I.Map<string, Types.ConversationIDKey>,
+|}>
+type _MessageWasReactedToPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  emoji: string,
+  reactionMsgID: RPCChatTypes.MessageID,
+  sender: string,
+  targetMsgID: RPCChatTypes.MessageID,
 |}>
 type _MessagesAddPayload = $ReadOnly<{|
   context: {type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey},
@@ -261,6 +265,10 @@ type _PreviewConversationPayload = $ReadOnly<{|
   conversationIDKey?: Types.ConversationIDKey,
   reason: 'manageView' | 'messageLink' | 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView' | 'newChannel',
 |}>
+type _ReactionsWereDeletedPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  deletions: Array<{emoji: string, reactionMsgID: RPCChatTypes.MessageID, targetMsgID: RPCChatTypes.MessageID}>,
+|}>
 type _ResetChatWithoutThemPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _ResetLetThemInPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -292,10 +300,6 @@ type _SetExplodingModeLockPayload = $ReadOnly<{|
   unset?: boolean,
 |}>
 type _SetInboxFilterPayload = $ReadOnly<{|filter: string|}>
-type _SetLoadingPayload = $ReadOnly<{|
-  key: string,
-  loading: boolean,
-|}>
 type _SetPendingConversationExistingConversationIDKeyPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _SetPendingConversationUsersPayload = $ReadOnly<{|
   users: Array<string>,
@@ -307,6 +311,11 @@ type _SetPendingModePayload = $ReadOnly<{|
 |}>
 type _SetupChatHandlersPayload = void
 type _StaticConfigLoadedPayload = $ReadOnly<{|staticConfig: Types.StaticConfig|}>
+type _ToggleMessageReactionPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  emoji: string,
+  ordinal: Types.Ordinal,
+|}>
 type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>
 type _UpdateMoreToLoadPayload = $ReadOnly<{|
@@ -323,6 +332,10 @@ type _UpdateTeamRetentionPolicyPayload = $ReadOnly<{|convs: Array<RPCChatTypes.I
 type _UpdateTypersPayload = $ReadOnly<{|conversationToTypers: I.Map<Types.ConversationIDKey, I.Set<string>>|}>
 
 // Action Creators
+/**
+ * A reaction was added to a message.
+ */
+export const createMessageWasReactedTo = (payload: _MessageWasReactedToPayload) => ({error: false, payload, type: messageWasReactedTo})
 /**
  * Actually start a conversation
  */
@@ -343,6 +356,10 @@ export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({e
  * Handle an update to our conversation exploding modes.
  */
 export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({error: false, payload, type: updateConvExplodingModes})
+/**
+ * Reactions were removed from a message.
+ */
+export const createReactionsWereDeleted = (payload: _ReactionsWereDeletedPayload) => ({error: false, payload, type: reactionsWereDeleted})
 /**
  * Set a lock on the exploding mode for a conversation.
  */
@@ -368,6 +385,10 @@ export const createHandleSeeingExplodingMessages = (payload: _HandleSeeingExplod
  */
 export const createStaticConfigLoaded = (payload: _StaticConfigLoadedPayload) => ({error: false, payload, type: staticConfigLoaded})
 /**
+ * Toggle a reaction on a message.
+ */
+export const createToggleMessageReaction = (payload: _ToggleMessageReactionPayload) => ({error: false, payload, type: toggleMessageReaction})
+/**
  * When the search changes we need to find any existing conversations to stash into the metaMap
  */
 export const createSetPendingConversationExistingConversationIDKey = (payload: _SetPendingConversationExistingConversationIDKeyPayload) => ({error: false, payload, type: setPendingConversationExistingConversationIDKey})
@@ -379,7 +400,6 @@ export const createAttachmentUploading = (payload: _AttachmentUploadingPayload) 
 export const createAttachmentsUpload = (payload: _AttachmentsUploadPayload) => ({error: false, payload, type: attachmentsUpload})
 export const createBadgesUpdated = (payload: _BadgesUpdatedPayload) => ({error: false, payload, type: badgesUpdated})
 export const createBlockConversation = (payload: _BlockConversationPayload) => ({error: false, payload, type: blockConversation})
-export const createClearLoading = (payload: _ClearLoadingPayload) => ({error: false, payload, type: clearLoading})
 export const createDesktopNotification = (payload: _DesktopNotificationPayload) => ({error: false, payload, type: desktopNotification})
 export const createInboxRefresh = (payload: _InboxRefreshPayload) => ({error: false, payload, type: inboxRefresh})
 export const createJoinConversation = (payload: _JoinConversationPayload) => ({error: false, payload, type: joinConversation})
@@ -421,7 +441,6 @@ export const createSelectConversation = (payload: _SelectConversationPayload) =>
 export const createSendTyping = (payload: _SendTypingPayload) => ({error: false, payload, type: sendTyping})
 export const createSetConversationOffline = (payload: _SetConversationOfflinePayload) => ({error: false, payload, type: setConversationOffline})
 export const createSetInboxFilter = (payload: _SetInboxFilterPayload) => ({error: false, payload, type: setInboxFilter})
-export const createSetLoading = (payload: _SetLoadingPayload) => ({error: false, payload, type: setLoading})
 export const createSetPendingConversationUsers = (payload: _SetPendingConversationUsersPayload) => ({error: false, payload, type: setPendingConversationUsers})
 export const createSetPendingMode = (payload: _SetPendingModePayload) => ({error: false, payload, type: setPendingMode})
 export const createSetupChatHandlers = (payload: _SetupChatHandlersPayload) => ({error: false, payload, type: setupChatHandlers})
@@ -438,7 +457,6 @@ export type AttachmentUploadingPayload = $Call<typeof createAttachmentUploading,
 export type AttachmentsUploadPayload = $Call<typeof createAttachmentsUpload, _AttachmentsUploadPayload>
 export type BadgesUpdatedPayload = $Call<typeof createBadgesUpdated, _BadgesUpdatedPayload>
 export type BlockConversationPayload = $Call<typeof createBlockConversation, _BlockConversationPayload>
-export type ClearLoadingPayload = $Call<typeof createClearLoading, _ClearLoadingPayload>
 export type CreateConversationPayload = $Call<typeof createCreateConversation, _CreateConversationPayload>
 export type DesktopNotificationPayload = $Call<typeof createDesktopNotification, _DesktopNotificationPayload>
 export type HandleSeeingExplodingMessagesPayload = $Call<typeof createHandleSeeingExplodingMessages, _HandleSeeingExplodingMessagesPayload>
@@ -461,6 +479,7 @@ export type MessageSendPayload = $Call<typeof createMessageSend, _MessageSendPay
 export type MessageSetEditingPayload = $Call<typeof createMessageSetEditing, _MessageSetEditingPayload>
 export type MessageSetQuotingPayload = $Call<typeof createMessageSetQuoting, _MessageSetQuotingPayload>
 export type MessageWasEditedPayload = $Call<typeof createMessageWasEdited, _MessageWasEditedPayload>
+export type MessageWasReactedToPayload = $Call<typeof createMessageWasReactedTo, _MessageWasReactedToPayload>
 export type MessagesAddPayload = $Call<typeof createMessagesAdd, _MessagesAddPayload>
 export type MessagesExplodedPayload = $Call<typeof createMessagesExploded, _MessagesExplodedPayload>
 export type MessagesWereDeletedPayload = $Call<typeof createMessagesWereDeleted, _MessagesWereDeletedPayload>
@@ -477,6 +496,7 @@ export type NavigateToThreadPayload = $Call<typeof createNavigateToThread, _Navi
 export type NotificationSettingsUpdatedPayload = $Call<typeof createNotificationSettingsUpdated, _NotificationSettingsUpdatedPayload>
 export type OpenFolderPayload = $Call<typeof createOpenFolder, _OpenFolderPayload>
 export type PreviewConversationPayload = $Call<typeof createPreviewConversation, _PreviewConversationPayload>
+export type ReactionsWereDeletedPayload = $Call<typeof createReactionsWereDeleted, _ReactionsWereDeletedPayload>
 export type ResetChatWithoutThemPayload = $Call<typeof createResetChatWithoutThem, _ResetChatWithoutThemPayload>
 export type ResetLetThemInPayload = $Call<typeof createResetLetThemIn, _ResetLetThemInPayload>
 export type SelectConversationPayload = $Call<typeof createSelectConversation, _SelectConversationPayload>
@@ -487,12 +507,12 @@ export type SetConversationOfflinePayload = $Call<typeof createSetConversationOf
 export type SetExplodingMessagesNewPayload = $Call<typeof createSetExplodingMessagesNew, _SetExplodingMessagesNewPayload>
 export type SetExplodingModeLockPayload = $Call<typeof createSetExplodingModeLock, _SetExplodingModeLockPayload>
 export type SetInboxFilterPayload = $Call<typeof createSetInboxFilter, _SetInboxFilterPayload>
-export type SetLoadingPayload = $Call<typeof createSetLoading, _SetLoadingPayload>
 export type SetPendingConversationExistingConversationIDKeyPayload = $Call<typeof createSetPendingConversationExistingConversationIDKey, _SetPendingConversationExistingConversationIDKeyPayload>
 export type SetPendingConversationUsersPayload = $Call<typeof createSetPendingConversationUsers, _SetPendingConversationUsersPayload>
 export type SetPendingModePayload = $Call<typeof createSetPendingMode, _SetPendingModePayload>
 export type SetupChatHandlersPayload = $Call<typeof createSetupChatHandlers, _SetupChatHandlersPayload>
 export type StaticConfigLoadedPayload = $Call<typeof createStaticConfigLoaded, _StaticConfigLoadedPayload>
+export type ToggleMessageReactionPayload = $Call<typeof createToggleMessageReaction, _ToggleMessageReactionPayload>
 export type UpdateConvExplodingModesPayload = $Call<typeof createUpdateConvExplodingModes, _UpdateConvExplodingModesPayload>
 export type UpdateConvRetentionPolicyPayload = $Call<typeof createUpdateConvRetentionPolicy, _UpdateConvRetentionPolicyPayload>
 export type UpdateMoreToLoadPayload = $Call<typeof createUpdateMoreToLoad, _UpdateMoreToLoadPayload>
@@ -511,7 +531,6 @@ export type Actions =
   | AttachmentsUploadPayload
   | BadgesUpdatedPayload
   | BlockConversationPayload
-  | ClearLoadingPayload
   | CreateConversationPayload
   | DesktopNotificationPayload
   | HandleSeeingExplodingMessagesPayload
@@ -534,6 +553,7 @@ export type Actions =
   | MessageSetEditingPayload
   | MessageSetQuotingPayload
   | MessageWasEditedPayload
+  | MessageWasReactedToPayload
   | MessagesAddPayload
   | MessagesExplodedPayload
   | MessagesWereDeletedPayload
@@ -550,6 +570,7 @@ export type Actions =
   | NotificationSettingsUpdatedPayload
   | OpenFolderPayload
   | PreviewConversationPayload
+  | ReactionsWereDeletedPayload
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload
   | SelectConversationPayload
@@ -560,12 +581,12 @@ export type Actions =
   | SetExplodingMessagesNewPayload
   | SetExplodingModeLockPayload
   | SetInboxFilterPayload
-  | SetLoadingPayload
   | SetPendingConversationExistingConversationIDKeyPayload
   | SetPendingConversationUsersPayload
   | SetPendingModePayload
   | SetupChatHandlersPayload
   | StaticConfigLoadedPayload
+  | ToggleMessageReactionPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
   | UpdateMoreToLoadPayload

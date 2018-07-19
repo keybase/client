@@ -307,6 +307,39 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 	return page, nil
 }
 
+func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPendingPaymentsLocalArg) (payments []stellar1.PaymentOrErrorLocal, err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "GetPendingPaymentsLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return nil, err
+	}
+
+	pending, err := s.remoter.PendingPayments(ctx, arg.AccountID, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	payments = make([]stellar1.PaymentOrErrorLocal, len(pending))
+	for i, p := range pending {
+		payment, err := s.transformPaymentSummary(ctx, arg.AccountID, p)
+		if err != nil {
+			s := err.Error()
+			payments[i].Err = &s
+			payments[i].Payment = nil // just to make sure
+
+		} else {
+			payments[i].Payment = payment
+			payments[i].Err = nil
+		}
+	}
+
+	return payments, nil
+}
+
 func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPaymentDetailsLocalArg) (payment stellar1.PaymentDetailsLocal, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "GetPaymentDetailsLocal", func() error { return err })()
@@ -450,11 +483,13 @@ func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.Acco
 	} else {
 		loc.StatusSimplified = stellar1.PaymentStatus_CLAIMABLE
 		loc.StatusDetail = "Waiting for the recipient to open the app to claim, or the sender to cancel."
+		loc.ShowCancel = true
 	}
 	if p.Claim != nil {
 		loc.StatusSimplified = p.Claim.TxStatus.ToPaymentStatus()
 		if p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
 			// If the claim succeeded, the relay payment is done.
+			loc.ShowCancel = false
 			name, err := s.lookupUsername(ctx, p.Claim.To.Uid)
 			if err == nil {
 				loc.Target = name

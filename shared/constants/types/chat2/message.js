@@ -9,6 +9,14 @@ import type {DeviceType} from '../devices'
 // The actual ID the server uses for operations (edit, delete etc)
 export opaque type MessageID: number = number
 export const numberToMessageID = (n: number): MessageID => n
+export const messageIDToNumber = (n: MessageID): number => n
+
+export type _Reaction = {
+  messageID: MessageID,
+  username: string,
+}
+export type Reaction = I.RecordOf<_Reaction>
+export type Reactions = I.Map<string, I.Set<Reaction>>
 
 // We use the ordinal as the primary ID throughout the UI. The reason we have this vs a messageID is
 // 1. We don't have messageIDs for messages we're trying to send (pending messages)
@@ -81,6 +89,7 @@ export type _MessageText = {
   explodingUnreadable: boolean, // if we can't read this message bc we have no keys
   hasBeenEdited: boolean,
   id: MessageID,
+  reactions: Reactions,
   submitState: null | 'deleting' | 'editing' | 'pending' | 'failed',
   mentionsAt: MentionsAt,
   mentionsChannel: MentionsChannel,
@@ -121,6 +130,7 @@ export type _MessageAttachment = {
   outboxID: ?OutboxID,
   previewHeight: number,
   previewWidth: number,
+  reactions: Reactions,
   submitState: null | 'deleting' | 'pending' | 'failed',
   timestamp: number,
   title: string,
@@ -145,6 +155,7 @@ export type _MessageSystemInviteAccepted = {
   invitee: string,
   inviter: string,
   ordinal: Ordinal,
+  reactions: Reactions,
   team: string,
   timestamp: number,
   type: 'systemInviteAccepted',
@@ -156,6 +167,7 @@ export type _MessageSystemSimpleToComplex = {
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
+  reactions: Reactions,
   timestamp: number,
   team: string,
   type: 'systemSimpleToComplex',
@@ -168,6 +180,7 @@ export type _MessageSystemGitPush = {
   id: MessageID,
   ordinal: Ordinal,
   pusher: string,
+  reactions: Reactions,
   refs: Array<RPCTypes.GitRefMetadata>,
   repo: string,
   repoID: string,
@@ -185,6 +198,7 @@ export type _MessageSystemAddedToTeam = {
   id: MessageID,
   isAdmin: boolean,
   ordinal: Ordinal,
+  reactions: Reactions,
   team: string,
   timestamp: number,
   type: 'systemAddedToTeam',
@@ -196,6 +210,7 @@ export type _MessageSystemJoined = {
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
+  reactions: Reactions,
   timestamp: number,
   type: 'systemJoined',
 }
@@ -206,6 +221,7 @@ export type _MessageSystemLeft = {
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
+  reactions: Reactions,
   timestamp: number,
   type: 'systemLeft',
 }
@@ -216,6 +232,7 @@ export type _MessageSystemText = {
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
+  reactions: Reactions,
   timestamp: number,
   text: HiddenString,
   type: 'systemText',
@@ -227,6 +244,7 @@ export type _MessageSetDescription = {
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
+  reactions: Reactions,
   timestamp: number,
   newDescription: HiddenString,
   type: 'setDescription',
@@ -238,6 +256,7 @@ export type _MessageSetChannelname = {
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
+  reactions: Reactions,
   timestamp: number,
   newChannelname: string,
   type: 'setChannelname',

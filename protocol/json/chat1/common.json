@@ -713,6 +713,13 @@
             "RetentionPolicy"
           ],
           "name": "teamRetention"
+        },
+        {
+          "type": [
+            null,
+            "keybase1.TeamRole"
+          ],
+          "name": "minWriterRole"
         }
       ]
     },

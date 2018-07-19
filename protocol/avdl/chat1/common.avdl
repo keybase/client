@@ -283,6 +283,7 @@
     Expunge expunge;
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
+    union { null, keybase1.TeamRole } minWriterRole;
   }
 
   record MessageSummary {

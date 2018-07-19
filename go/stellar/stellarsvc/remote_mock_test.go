@@ -72,7 +72,7 @@ func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stella
 		WithNetContext(ctx)
 	user, err := libkb.LoadUser(loadMeArg)
 	require.NoError(t.T, err)
-	myAccountID := user.StellarWalletAddress()
+	myAccountID := user.StellarAccountID()
 	if myAccountID != nil {
 		callerAccountID = *myAccountID
 	}
@@ -311,6 +311,10 @@ func (r *RemoteClientMock) NextAutoClaim(ctx context.Context) (*stellar1.AutoCla
 
 func (r *RemoteClientMock) RecentPayments(ctx context.Context, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int) (stellar1.PaymentsPage, error) {
 	return r.Backend.RecentPayments(ctx, r.Tc, accountID, cursor, limit)
+}
+
+func (r *RemoteClientMock) PendingPayments(ctx context.Context, accountID stellar1.AccountID, limit int) ([]stellar1.PaymentSummary, error) {
+	return nil, errors.New("RemoteClientMock does not implement PendingPayments")
 }
 
 func (r *RemoteClientMock) PaymentDetails(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error) {
