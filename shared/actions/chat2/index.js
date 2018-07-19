@@ -328,10 +328,12 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
             actions.push(
               Chat2Gen.createMessageWasReactedTo({
                 conversationIDKey,
-                emoji: body.reaction.body,
+                // $FlowIssue TODO DESKTOP-7310
+                emoji: body.reaction.b,
                 reactionMsgID: valid.messageID,
                 sender: valid.senderUsername,
-                targetMsgID: body.reaction.messageID,
+                // $FlowIssue TODO DESKTOP-7310
+                targetMsgID: body.reaction.m,
               })
             )
           } else {
