@@ -761,6 +761,7 @@ protocol local {
     bytes metadata;
     keybase1.TLFIdentifyBehavior identifyBehavior;
     
+    union {null, MakePreviewRes } callerPreview;
     union {null, OutboxID } outboxID;
     union {null, gregor1.DurationSec} ephemeralLifetime;
   }

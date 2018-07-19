@@ -3764,6 +3764,7 @@ type PostFileAttachmentArg struct {
 	Title             string                       `codec:"title" json:"title"`
 	Metadata          []byte                       `codec:"metadata" json:"metadata"`
 	IdentifyBehavior  keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	CallerPreview     *MakePreviewRes              `codec:"callerPreview,omitempty" json:"callerPreview,omitempty"`
 	OutboxID          *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	EphemeralLifetime *gregor1.DurationSec         `codec:"ephemeralLifetime,omitempty" json:"ephemeralLifetime,omitempty"`
 }
@@ -3782,6 +3783,13 @@ func (o PostFileAttachmentArg) DeepCopy() PostFileAttachmentArg {
 			return append([]byte{}, x...)
 		})(o.Metadata),
 		IdentifyBehavior: o.IdentifyBehavior.DeepCopy(),
+		CallerPreview: (func(x *MakePreviewRes) *MakePreviewRes {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.CallerPreview),
 		OutboxID: (func(x *OutboxID) *OutboxID {
 			if x == nil {
 				return nil

@@ -22,6 +22,7 @@ type uploaderTask struct {
 	ConvID          chat1.ConversationID
 	Title, Filename string
 	Metadata        []byte
+	CallerPreview   *chat1.MakePreviewRes
 }
 
 type uploaderStatus struct {
@@ -99,7 +100,8 @@ func (u *Uploader) Retry(ctx context.Context, outboxID chat1.OutboxID) (res chan
 		if err != nil {
 			return nil, err
 		}
-		return u.upload(ctx, task.UID, task.ConvID, task.OutboxID, task.Title, task.Filename, task.Metadata)
+		return u.upload(ctx, task.UID, task.ConvID, task.OutboxID, task.Title, task.Filename, task.Metadata,
+			task.CallerPreview)
 	case types.AttachmentUploaderTaskStatusSuccess:
 		ch := make(chan types.AttachmentUploadResult, 1)
 		ch <- ustatus.Result
@@ -147,14 +149,15 @@ func (u *Uploader) getTask(ctx context.Context, outboxID chat1.OutboxID) (res up
 }
 
 func (u *Uploader) saveTask(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	outboxID chat1.OutboxID, title, filename string, metadata []byte) error {
+	outboxID chat1.OutboxID, title, filename string, metadata []byte, callerPreview *chat1.MakePreviewRes) error {
 	task := uploaderTask{
-		UID:      uid,
-		OutboxID: outboxID,
-		ConvID:   convID,
-		Title:    title,
-		Filename: filename,
-		Metadata: metadata,
+		UID:           uid,
+		OutboxID:      outboxID,
+		ConvID:        convID,
+		Title:         title,
+		Filename:      filename,
+		Metadata:      metadata,
+		CallerPreview: callerPreview,
 	}
 	tkey := u.dbTaskKey(outboxID)
 	if err := u.G().GetKVStore().PutObj(tkey, nil, task); err != nil {
@@ -164,10 +167,10 @@ func (u *Uploader) saveTask(ctx context.Context, uid gregor1.UID, convID chat1.C
 }
 
 func (u *Uploader) Register(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	outboxID chat1.OutboxID, title, filename string, metadata []byte) (res chan types.AttachmentUploadResult, err error) {
+	outboxID chat1.OutboxID, title, filename string, metadata []byte, callerPreview *chat1.MakePreviewRes) (res chan types.AttachmentUploadResult, err error) {
 	defer u.Trace(ctx, func() error { return err }, "Register(%s)", outboxID)()
 	// Write down the task information
-	if err := u.saveTask(ctx, uid, convID, outboxID, title, filename, metadata); err != nil {
+	if err := u.saveTask(ctx, uid, convID, outboxID, title, filename, metadata, callerPreview); err != nil {
 		return nil, err
 	}
 	var ustatus uploaderStatus
@@ -175,9 +178,8 @@ func (u *Uploader) Register(ctx context.Context, uid gregor1.UID, convID chat1.C
 	if err := u.setStatus(ctx, outboxID, ustatus); err != nil {
 		return nil, err
 	}
-
 	// Start upload
-	return u.upload(ctx, uid, convID, outboxID, title, filename, metadata)
+	return u.upload(ctx, uid, convID, outboxID, title, filename, metadata, callerPreview)
 }
 
 func (u *Uploader) checkAndSetUploading(outboxID chat1.OutboxID, res chan types.AttachmentUploadResult) (existing chan types.AttachmentUploadResult) {
@@ -197,7 +199,7 @@ func (u *Uploader) doneUploading(outboxID chat1.OutboxID) {
 }
 
 func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	outboxID chat1.OutboxID, title, filename string, metadata []byte) (res chan types.AttachmentUploadResult, err error) {
+	outboxID chat1.OutboxID, title, filename string, metadata []byte, callerPreview *chat1.MakePreviewRes) (res chan types.AttachmentUploadResult, err error) {
 	// Check to see if we are already uploading this message and set upload status if not
 	res = make(chan types.AttachmentUploadResult, 1)
 	if existing := u.checkAndSetUploading(outboxID, res); existing != nil {
@@ -228,7 +230,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	// preprocess asset (get content type, create preview if possible)
 	var ures types.AttachmentUploadResult
 	ures.Metadata = metadata
-	pre, err := PreprocessAsset(ctx, u.DebugLabeler, filename)
+	pre, err := PreprocessAsset(ctx, u.DebugLabeler, filename, callerPreview)
 	if err != nil {
 		return res, err
 	}

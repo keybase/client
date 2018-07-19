@@ -107,7 +107,7 @@ func TestAttachmentUploader(t *testing.T) {
 	}
 	md, err := libkb.RandBytes(10)
 	require.NoError(t, err)
-	resChan, err := uploader.Register(context.TODO(), uid, convID, outboxID, "ship", filename, md)
+	resChan, err := uploader.Register(context.TODO(), uid, convID, outboxID, "ship", filename, md, nil)
 	require.NoError(t, err)
 	uploadStartCheck := func(shouldHappen bool, outboxID chat1.OutboxID) {
 		if shouldHappen {
@@ -162,7 +162,7 @@ func TestAttachmentUploader(t *testing.T) {
 	store.uploadFn = func(context.Context, *UploadTask) (chat1.Asset, error) {
 		return chat1.Asset{}, errors.New("i dont work")
 	}
-	resChan, err = uploader.Register(context.TODO(), uid, convID, outboxID, "ship", filename, md)
+	resChan, err = uploader.Register(context.TODO(), uid, convID, outboxID, "ship", filename, md, nil)
 	require.NoError(t, err)
 	uploadStartCheck(true, outboxID)
 	select {
@@ -191,7 +191,7 @@ func TestAttachmentUploader(t *testing.T) {
 		<-slowCh
 		return chat1.Asset{}, nil
 	}
-	resChan, err = uploader.Register(context.TODO(), uid, convID, outboxID, "ship", filename, md)
+	resChan, err = uploader.Register(context.TODO(), uid, convID, outboxID, "ship", filename, md, nil)
 	require.NoError(t, err)
 	uploadStartCheck(true, outboxID)
 	deliverCheck(false)

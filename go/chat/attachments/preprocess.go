@@ -2,7 +2,9 @@ package attachments
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -93,7 +95,85 @@ func (p *Preprocess) Export(getLocation func() *chat1.PreviewLocation) (res chat
 	return res, nil
 }
 
-func PreprocessAsset(ctx context.Context, log utils.DebugLabeler, filename string) (p Preprocess, err error) {
+func processCallerPreview(ctx context.Context, callerPreview chat1.MakePreviewRes) (p Preprocess, err error) {
+	ltyp, err := callerPreview.Location.Ltyp()
+	if err != nil {
+		return p, err
+	}
+	switch ltyp {
+	case chat1.PreviewLocationTyp_FILE:
+		f, err := os.Open(callerPreview.Location.File())
+		if err != nil {
+			return p, err
+		}
+		defer f.Close()
+		if p.Preview, err = ioutil.ReadAll(f); err != nil {
+			return p, err
+		}
+	case chat1.PreviewLocationTyp_URL:
+		resp, err := http.Get(callerPreview.Location.Url())
+		if err != nil {
+			return p, err
+		}
+		defer resp.Body.Close()
+		if p.Preview, err = ioutil.ReadAll(resp.Body); err != nil {
+			return p, err
+		}
+	default:
+		return p, fmt.Errorf("unknown preview location: %v", ltyp)
+	}
+	p.ContentType = callerPreview.MimeType
+	if callerPreview.Metadata != nil {
+		typ, err := callerPreview.Metadata.AssetType()
+		if err != nil {
+			return p, err
+		}
+		switch typ {
+		case chat1.AssetMetadataType_IMAGE:
+			p.PreviewDim = &Dimension{
+				Width:  callerPreview.Metadata.Image().Width,
+				Height: callerPreview.Metadata.Image().Height,
+			}
+		case chat1.AssetMetadataType_VIDEO:
+			p.PreviewDurationMs = callerPreview.Metadata.Video().DurationMs
+			p.PreviewDim = &Dimension{
+				Width:  callerPreview.Metadata.Video().Width,
+				Height: callerPreview.Metadata.Video().Height,
+			}
+		case chat1.AssetMetadataType_AUDIO:
+			p.PreviewDurationMs = callerPreview.Metadata.Audio().DurationMs
+		}
+	}
+	if callerPreview.BaseMetadata != nil {
+		typ, err := callerPreview.BaseMetadata.AssetType()
+		if err != nil {
+			return p, err
+		}
+		switch typ {
+		case chat1.AssetMetadataType_IMAGE:
+			p.BaseDim = &Dimension{
+				Width:  callerPreview.BaseMetadata.Image().Width,
+				Height: callerPreview.BaseMetadata.Image().Height,
+			}
+		case chat1.AssetMetadataType_VIDEO:
+			p.BaseDurationMs = callerPreview.BaseMetadata.Video().DurationMs
+			p.BaseDim = &Dimension{
+				Width:  callerPreview.BaseMetadata.Video().Width,
+				Height: callerPreview.BaseMetadata.Video().Height,
+			}
+		case chat1.AssetMetadataType_AUDIO:
+			p.BaseDurationMs = callerPreview.BaseMetadata.Audio().DurationMs
+		}
+	}
+	return p, nil
+}
+
+func PreprocessAsset(ctx context.Context, log utils.DebugLabeler, filename string,
+	callerPreview *chat1.MakePreviewRes) (p Preprocess, err error) {
+	if callerPreview != nil {
+		log.Debug(ctx, "preprocessAsset: caller provided preview, using that")
+		return processCallerPreview(ctx, *callerPreview)
+	}
 	src, err := os.Open(filename)
 	if err != nil {
 		return p, err

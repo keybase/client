@@ -1428,7 +1428,7 @@ func (h *Server) processReactionMessage(ctx context.Context, uid gregor1.UID, co
 // MakePreview implements chat1.LocalInterface.MakePreview.
 func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res chat1.MakePreviewRes, err error) {
 	defer h.Trace(ctx, func() error { return err }, "MakePreview")()
-	pre, err := attachments.PreprocessAsset(ctx, h.DebugLabeler, arg.Filename)
+	pre, err := attachments.PreprocessAsset(ctx, h.DebugLabeler, arg.Filename, nil)
 	if err != nil {
 		return chat1.MakePreviewRes{}, err
 	}
@@ -1454,7 +1454,7 @@ func (h *Server) initiateAttachmentUpload(ctx context.Context, arg chat1.PostFil
 	}
 	uid := h.getUID()
 	uresChan, err = h.G().AttachmentUploader.Register(ctx, uid, arg.ConversationID, *arg.OutboxID, arg.Title,
-		arg.Filename, arg.Metadata)
+		arg.Filename, arg.Metadata, arg.CallerPreview)
 	if err != nil {
 		return uresChan, msg, err
 	}

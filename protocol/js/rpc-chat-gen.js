@@ -698,7 +698,7 @@ export type OutboxStateType =
   | 1 // ERROR_1
 
 export type Pagination = $ReadOnly<{next: Bytes, previous: Bytes, num: Int, last: Boolean}>
-export type PostFileAttachmentArg = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, filename: String, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, outboxID?: ?OutboxID, ephemeralLifetime?: ?Gregor1.DurationSec}>
+export type PostFileAttachmentArg = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, filename: String, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, callerPreview?: ?MakePreviewRes, outboxID?: ?OutboxID, ephemeralLifetime?: ?Gregor1.DurationSec}>
 export type PostLocalNonblockRes = $ReadOnly<{rateLimits?: ?Array<RateLimit>, outboxID: OutboxID, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type PostLocalRes = $ReadOnly<{rateLimits?: ?Array<RateLimit>, messageID: MessageID, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type PostRemoteRes = $ReadOnly<{msgHeader: MessageServerHeader, rateLimit?: ?RateLimit}>

@@ -295,7 +295,8 @@ type EphemeralPurger interface {
 
 type AttachmentUploader interface {
 	Register(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-		outboxID chat1.OutboxID, title, filename string, metadata []byte) (chan AttachmentUploadResult, error)
+		outboxID chat1.OutboxID, title, filename string, metadata []byte,
+		callerPreview *chat1.MakePreviewRes) (chan AttachmentUploadResult, error)
 	Status(ctx context.Context, outboxID chat1.OutboxID) (AttachmentUploaderTaskStatus, AttachmentUploadResult, error)
 	Retry(ctx context.Context, outboxID chat1.OutboxID) (chan AttachmentUploadResult, error)
 	Complete(ctx context.Context, outboxID chat1.OutboxID)

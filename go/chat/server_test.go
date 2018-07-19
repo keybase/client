@@ -2501,7 +2501,6 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "GetThread never finished")
 		}
-
 	})
 }
 
