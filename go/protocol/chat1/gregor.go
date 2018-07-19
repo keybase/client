@@ -435,16 +435,16 @@ func (o SetTeamRetentionUpdate) DeepCopy() SetTeamRetentionUpdate {
 }
 
 type SetConvMinWriterRoleUpdate struct {
-	InboxVers InboxVers         `codec:"inboxVers" json:"inboxVers"`
-	ConvID    ConversationID    `codec:"convID" json:"convID"`
-	Role      keybase1.TeamRole `codec:"role" json:"role"`
+	InboxVers InboxVers                     `codec:"inboxVers" json:"inboxVers"`
+	ConvID    ConversationID                `codec:"convID" json:"convID"`
+	Info      ConversationMinWriterRoleInfo `codec:"info" json:"info"`
 }
 
 func (o SetConvMinWriterRoleUpdate) DeepCopy() SetConvMinWriterRoleUpdate {
 	return SetConvMinWriterRoleUpdate{
 		InboxVers: o.InboxVers.DeepCopy(),
 		ConvID:    o.ConvID.DeepCopy(),
-		Role:      o.Role.DeepCopy(),
+		Info:      o.Info.DeepCopy(),
 	}
 }
 

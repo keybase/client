@@ -363,7 +363,7 @@ export type ChatUiChatSearchHitRpcParam = $ReadOnly<{searchHit: ChatSearchHit}>
 export type ChatUiChatThreadCachedRpcParam = $ReadOnly<{thread?: ?String}>
 export type ChatUiChatThreadFullRpcParam = $ReadOnly<{thread: String}>
 export type ConvTypingUpdate = $ReadOnly<{convID: ConversationID, typers?: ?Array<TyperInfo>}>
-export type Conversation = $ReadOnly<{metadata: ConversationMetadata, readerInfo?: ?ConversationReaderInfo, notifications?: ?ConversationNotificationInfo, maxMsgs?: ?Array<MessageBoxed>, maxMsgSummaries?: ?Array<MessageSummary>, creatorInfo?: ?ConversationCreatorInfo, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, minWriterRole?: ?Keybase1.TeamRole}>
+export type Conversation = $ReadOnly<{metadata: ConversationMetadata, readerInfo?: ?ConversationReaderInfo, notifications?: ?ConversationNotificationInfo, maxMsgs?: ?Array<MessageBoxed>, maxMsgSummaries?: ?Array<MessageSummary>, creatorInfo?: ?ConversationCreatorInfo, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, minWriterRoleInfo?: ?ConversationMinWriterRoleInfo}>
 export type ConversationCreatorInfo = $ReadOnly<{ctime: Gregor1.Time, uid: Gregor1.UID}>
 export type ConversationCreatorInfoLocal = $ReadOnly<{ctime: Gregor1.Time, username: String}>
 export type ConversationErrorLocal = $ReadOnly<{typ: ConversationErrorType, message: String, remoteConv: Conversation, unverifiedTLFName: String, rekeyInfo?: ?ConversationErrorRekey}>
@@ -406,6 +406,7 @@ export type ConversationMembersType =
   | 3 // IMPTEAMUPGRADE_3
 
 export type ConversationMetadata = $ReadOnly<{idTriple: ConversationIDTriple, conversationID: ConversationID, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, teamType: TeamType, existence: ConversationExistence, version: ConversationVers, finalizeInfo?: ?ConversationFinalizeInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>, activeList?: ?Array<Gregor1.UID>, allList?: ?Array<Gregor1.UID>, resetList?: ?Array<Gregor1.UID>}>
+export type ConversationMinWriterRoleInfo = $ReadOnly<{uid: Gregor1.UID, role: Keybase1.TeamRole}>
 export type ConversationNotificationInfo = $ReadOnly<{channelWide: Boolean, settings: {[key: string]: {[key: string]: Boolean}}}>
 export type ConversationReaderInfo = $ReadOnly<{mtime: Gregor1.Time, readMsgid: MessageID, maxMsgid: MessageID, status: ConversationMemberStatus}>
 export type ConversationResolveInfo = $ReadOnly<{newTLFName: String}>
@@ -769,7 +770,7 @@ export type SetAppNotificationSettingsLocalRes = $ReadOnly<{offline: Boolean, ra
 export type SetAppNotificationSettingsPayload = $ReadOnly<{Action: String, convID: ConversationID, inboxVers: InboxVers, settings: ConversationNotificationInfo, topicType: TopicType, unreadUpdate?: ?UnreadUpdate}>
 export type SetAppNotificationSettingsRes = $ReadOnly<{rateLimit?: ?RateLimit}>
 export type SetConvMinWriterRoleRes = $ReadOnly<{rateLimit?: ?RateLimit}>
-export type SetConvMinWriterRoleUpdate = $ReadOnly<{inboxVers: InboxVers, convID: ConversationID, role: Keybase1.TeamRole}>
+export type SetConvMinWriterRoleUpdate = $ReadOnly<{inboxVers: InboxVers, convID: ConversationID, info: ConversationMinWriterRoleInfo}>
 export type SetConvRetentionUpdate = $ReadOnly<{inboxVers: InboxVers, convID: ConversationID, policy: RetentionPolicy}>
 export type SetConversationStatusLocalRes = $ReadOnly<{rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type SetConversationStatusRes = $ReadOnly<{rateLimit?: ?RateLimit}>
