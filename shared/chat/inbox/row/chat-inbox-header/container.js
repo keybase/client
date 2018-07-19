@@ -24,8 +24,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   filterFocusCount: ownProps.filterFocusCount,
   focusFilter: ownProps.focusFilter,
   isLoading: stateProps.isLoading,
-  onNewChat: ownProps.onNewChat,
   neverLoaded: stateProps.neverLoaded,
+  onNewChat: ownProps.onNewChat,
   rows: ownProps.rows,
   showNewChat: !(ownProps.rows.length || stateProps.filter),
 })
