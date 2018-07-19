@@ -375,6 +375,13 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 		Title:             opts.Title,
 		EphemeralLifetime: ephemeralLifetime,
 	}
+	// check for preview
+	if len(opts.Preview) > 0 {
+		loc := chat1.NewPreviewLocationWithFile(opts.Preview)
+		arg.CallerPreview = &chat1.MakePreviewRes{
+			Location: &loc,
+		}
+	}
 
 	ui := &ChatUI{
 		Contextified: libkb.NewContextified(c.G()),
