@@ -14,8 +14,10 @@ export type OwnProps = {|
   onShowTracker?: () => void,
 |}
 
+const emptySearch = makeSearchResult()
+
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  const result = state.entities.search.searchResults.get(ownProps.id, makeSearchResult())
+  const result = state.entities.search.searchResults.get(ownProps.id, emptySearch)
   const leftFollowingState = followStateHelper(state, result.leftUsername, result.leftService)
   const rightFollowingState = followStateHelper(state, result.rightUsername, result.rightService)
   const leftIsInTeam = userIsActiveInTeamHelper(
