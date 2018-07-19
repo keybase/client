@@ -122,12 +122,12 @@ func (s DiskBlockCacheStartState) String() string {
 
 const (
 	// DiskBlockCacheStartStateStarting represents when the cache is starting.
-	DiskBlockCacheStartStateStarting DiskBlockCacheStartState = 0
+	DiskBlockCacheStartStateStarting DiskBlockCacheStartState = iota
 	// DiskBlockCacheStartStateStarted represents when the cache has started.
-	DiskBlockCacheStartStateStarted = 1
+	DiskBlockCacheStartStateStarted
 	// DiskBlockCacheStartStateFailed represents when the cache has failed to
 	// start.
-	DiskBlockCacheStartStateFailed = 2
+	DiskBlockCacheStartStateFailed
 )
 
 // DiskBlockCacheStatus represents the status of the disk cache.
