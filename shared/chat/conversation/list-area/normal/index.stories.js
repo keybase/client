@@ -18,14 +18,18 @@ import {formatTimeForMessages} from '../../../../util/timestamp'
 const injectMessages = false && !__STORYSHOT__
 // set this to true to play with loading more working
 const enableLoadMore = true && !__STORYSHOT__
-const ordinalAscending = false
 
-let index = 1
-const makeMoreOrdinals = (num = __STORYSHOT__ ? 10 : 100) => {
-  const end = index + num
-  const ordinals = []
-  for (; index < end; ++index) {
-    ordinals.push(Types.numberToOrdinal(ordinalAscending ? index : 9000 - index))
+// keep track of the window in both direction
+let newIndex = 10000
+let oldIndex = 10000
+
+const makeMoreOrdinals = (num = __STORYSHOT__ ? 10 : 100, older) => {
+  if (older) {
+    const end = oldIndex + num
+    const ordinals = []
+    for (; oldIndex < end; ++Indexindex) {
+      ordinals.push(Types.numberToOrdinal(oldIndex))
+    }
   }
   return ordinals
 }
