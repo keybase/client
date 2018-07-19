@@ -185,6 +185,7 @@ func TestAttachmentUploader(t *testing.T) {
 
 	// Slow store to test concurrent retry
 	outboxID, err = storage.NewOutboxID()
+	require.NoError(t, err)
 	slowCh := make(chan struct{})
 	store.uploadFn = func(context.Context, *UploadTask) (chat1.Asset, error) {
 		<-slowCh

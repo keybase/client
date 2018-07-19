@@ -96,6 +96,10 @@ func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread 
 				obr.OutboxID))
 			return &loc
 		})
+		if err != nil {
+			s.Debug(ctx, "addPendingPreviews: failed to export: %s", err)
+			continue
+		}
 		obr.Preview = &mpr
 		thread.Messages[index] = chat1.NewMessageUnboxedWithOutbox(obr)
 	}

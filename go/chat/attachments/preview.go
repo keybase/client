@@ -16,7 +16,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/nfnt/resize"
 
 	"camlistore.org/pkg/images"
@@ -26,63 +25,6 @@ const (
 	previewImageWidth  = 640
 	previewImageHeight = 640
 )
-
-type BufferSource struct {
-	buf      *bytes.Buffer
-	basename string
-}
-
-func newBufferSource(buf *bytes.Buffer, basename string) *BufferSource {
-	return &BufferSource{
-		buf:      buf,
-		basename: basename,
-	}
-}
-
-func (b *BufferSource) Basename() string {
-	return b.basename
-}
-
-func (b *BufferSource) FileSize() int {
-	return b.buf.Len()
-}
-
-func (b *BufferSource) Open(sessionID int, cli *keybase1.StreamUiClient) (ReadResetter, error) {
-	if b.buf == nil {
-		return nil, errors.New("nil buf in BufferSource")
-	}
-	return newBufReadResetter(b.buf.Bytes()), nil
-}
-
-func (b *BufferSource) Bytes() []byte {
-	return b.buf.Bytes()
-}
-
-func (b *BufferSource) Close() error {
-	b.buf.Reset()
-	return nil
-}
-
-type bufReadResetter struct {
-	buf []byte
-	r   *bytes.Reader
-}
-
-func newBufReadResetter(buf []byte) *bufReadResetter {
-	return &bufReadResetter{
-		buf: buf,
-		r:   bytes.NewReader(buf),
-	}
-}
-
-func (b *bufReadResetter) Read(p []byte) (int, error) {
-	return b.r.Read(p)
-}
-
-func (b *bufReadResetter) Reset() error {
-	b.r.Reset(b.buf)
-	return nil
-}
 
 type PreviewRes struct {
 	Source            []byte

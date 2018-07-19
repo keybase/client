@@ -2,6 +2,7 @@ package attachments
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"io"
 	"os"
@@ -109,5 +110,26 @@ func (f *fileReadResetter) Close() error {
 	if f.file != nil {
 		return f.file.Close()
 	}
+	return nil
+}
+
+type bufReadResetter struct {
+	buf []byte
+	r   *bytes.Reader
+}
+
+func newBufReadResetter(buf []byte) *bufReadResetter {
+	return &bufReadResetter{
+		buf: buf,
+		r:   bytes.NewReader(buf),
+	}
+}
+
+func (b *bufReadResetter) Read(p []byte) (int, error) {
+	return b.r.Read(p)
+}
+
+func (b *bufReadResetter) Reset() error {
+	b.r.Reset(b.buf)
 	return nil
 }
