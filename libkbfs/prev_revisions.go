@@ -44,8 +44,29 @@ func (pr PrevRevisions) addRevision(
 	earliestGoodSlot := 0
 	numDropped := 0
 
+	// First we eliminate any revisions in the current list that don't
+	// make sense anymore, either because they're greater or equal to
+	// `r`, or they're smaller or equal to `minRev` (and thus have
+	// been GC'd).  For example:
+	//
+	// pr = [27, 25, 15, 10, 5] (revision numbers only)
+	// r  = 27
+	// minRev = 11
+	//
+	// After this next block, we should have:
+	//
+	// ret = [0, 25, 15, 0, 0]
+	// earliestGoodSlot = 1
+	// numDropped = 2
+	//
+	// Then the next block of code will trim it appropriately.
 	for i, prc := range ret {
 		if prc.Count == 255 {
+			// This should never happen, as the largest max count is
+			// approximated by the sum of all the min slots.  Test of
+			// this hypothesis is at
+			// https://play.golang.org/p/ltVzr1PH-MG, which shows a
+			// max count of 178 seen over 100,000 revisions.
 			panic("Previous revision count is about to overflow")
 		} else if prc.Revision >= r {
 			if numDropped > 0 {
@@ -70,16 +91,28 @@ func (pr PrevRevisions) addRevision(
 		} else if numDropped > 0 {
 			panic("Once we've dropped one, we should drop all the rest")
 		}
+		// `minRev` < `prc.Revision` < `r`, so we keep it in the new
+		// slice and increment its count.
 		ret[i].Count++
 	}
 
 	// Cut out the revisions that are newer than `r` (e.g., because
 	// they are from an unmerged branch).
+	//
+	// Continuing the example above, this code will leave us with:
+	//
+	// ret = [25, 15, 0, 0]
 	if earliestGoodSlot > 0 {
 		ret = ret[earliestGoodSlot:]
 	}
 
-	// Drop revisions off the end that are too old.
+	// Drop revisions off the end that are too old, but leave an empty
+	// slot available at the end for shifting everything over and
+	// putting `r` in slot 0.
+	//
+	// Continuing the example above, this code will leave us with:
+	//
+	// ret = [25, 15, 0]
 	if numDropped == len(ret) {
 		// Leave the first slot available for overwriting.
 		ret = ret[:1]
@@ -87,6 +120,13 @@ func (pr PrevRevisions) addRevision(
 		ret = ret[:len(ret)-(numDropped-1)]
 	}
 
+	// Starting at the end, shift revisions to the right if either a)
+	// they satisfy the count of the slot to the right, or b) that
+	// slot is already empty.
+	//
+	// Continuing the example above, this code will leave us with:
+	//
+	// ret = [0, 25, 15]
 	for i := len(ret) - 1; i >= 1; i-- {
 		// Check if we can shift over the entry in slot i-1.
 		if ret[i].Count == 0 || ret[i-1].Count >= minPrevRevisionSlotCounts[i] {
@@ -96,6 +136,13 @@ func (pr PrevRevisions) addRevision(
 			}
 		}
 	}
+
+	// Finally, overwrite whatever's left in the first slot with `r`
+	// and a count of 1.
+	//
+	// Continuing the example above, this code will leave us with:
+	//
+	// ret = [27, 25, 15]
 	ret[0] = PrevRevisionAndCount{
 		Revision: r,
 		Count:    1,
