@@ -41,10 +41,10 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         throw new Error('Selected a non existant device?')
       }
       return state.merge({
+        codePageOtherDeviceId: selectedDevice.id,
         codePageOtherDeviceName: selectedDevice.name,
         // only desktop or mobile, paperkey we treat as mobile but its never used in the flow
         codePageOtherDeviceType: selectedDevice.type === 'desktop' ? 'desktop' : 'mobile',
-        codePageOtherDeviceId: selectedDevice.id,
         error: initialState.error,
       })
     case ProvisionGen.submitTextCode:

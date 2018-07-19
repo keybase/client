@@ -13,6 +13,7 @@ import HiddenString from '../util/hidden-string'
 import {type TypedState} from '../constants/reducer'
 import {niceError} from '../util/errors'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
+import type {CommonResponseHandler} from '../engine/types'
 
 const devicesRoot = isMobile ? [Tabs.settingsTab, settingsDevicesTab] : [Tabs.devicesTab]
 
@@ -31,10 +32,10 @@ type ValidCallbacks =
 
 const cancelDesc = 'Canceling RPC'
 
-const cancelOnCallback = (_, response, __) => {
+const cancelOnCallback = (_: any, response: CommonResponseHandler, __: any) => {
   response.error({code: RPCTypes.constantsStatusCode.scgeneric, desc: cancelDesc})
 }
-const ignoreCallback = (_, __) => {}
+const ignoreCallback = (_: any, __: any) => {}
 
 // The provisioning flow is very stateful so we use a class to handle bookkeeping
 // We only allow one manager to be alive at a time
@@ -63,7 +64,11 @@ class ProvisioningManager {
   }
 
   // Choosing a device to use to provision
-  chooseDeviceHandler = (params: RPCTypes.ProvisionUiChooseDeviceRpcParam, response, state) => {
+  chooseDeviceHandler = (
+    params: RPCTypes.ProvisionUiChooseDeviceRpcParam,
+    response: CommonResponseHandler,
+    state: TypedState
+  ) => {
     this._stashResponse('keybase.1.provisionUi.chooseDevice', response)
     return Saga.put(
       ProvisionGen.createShowDeviceListPage({
@@ -87,7 +92,11 @@ class ProvisioningManager {
   }
 
   // Telling the daemon the other device type when adding a new device
-  chooseDeviceTypeHandler = (params: RPCTypes.ProvisionUiChooseDeviceTypeRpcParam, response, state) => {
+  chooseDeviceTypeHandler = (
+    params: RPCTypes.ProvisionUiChooseDeviceTypeRpcParam,
+    response: CommonResponseHandler,
+    state: TypedState
+  ) => {
     let type
     switch (state.provision.codePageOtherDeviceType) {
       case 'mobile':
@@ -105,7 +114,11 @@ class ProvisioningManager {
   }
 
   // Choosing a name for this new device
-  promptNewDeviceNameHandler = (params: RPCTypes.ProvisionUiPromptNewDeviceNameRpcParam, response, state) => {
+  promptNewDeviceNameHandler = (
+    params: RPCTypes.ProvisionUiPromptNewDeviceNameRpcParam,
+    response: CommonResponseHandler,
+    state: TypedState
+  ) => {
     this._stashResponse('keybase.1.provisionUi.PromptNewDeviceName', response)
     return Saga.put(
       ProvisionGen.createShowNewDeviceNamePage({
@@ -137,8 +150,8 @@ class ProvisioningManager {
   // We now need to exchange a secret sentence. Either side can move the process forward
   displayAndPromptSecretHandler = (
     params: RPCTypes.ProvisionUiDisplayAndPromptSecretRpcParam,
-    response,
-    state
+    response: CommonResponseHandler,
+    state: TypedState
   ) => {
     this._stashResponse('keybase.1.provisionUi.DisplayAndPromptSecret', response)
     return Saga.put(
@@ -169,7 +182,11 @@ class ProvisioningManager {
   }
 
   // Trying to use gpg flow
-  chooseGPGMethodHandler = (params: RPCTypes.ProvisionUiChooseGPGMethodRpcParam, response, state) => {
+  chooseGPGMethodHandler = (
+    params: RPCTypes.ProvisionUiChooseGPGMethodRpcParam,
+    response: CommonResponseHandler,
+    state: TypedState
+  ) => {
     this._stashResponse('keybase.1.provisionUi.chooseGPGMethod', response)
     return Saga.put(ProvisionGen.createShowGPGPage())
   }
@@ -192,7 +209,11 @@ class ProvisioningManager {
   }
 
   // User has an uploaded key so we can use a passphrase OR they selected a paperkey
-  getPassphraseHandler = (params: RPCTypes.SecretUiGetPassphraseRpcParam, response, state) => {
+  getPassphraseHandler = (
+    params: RPCTypes.SecretUiGetPassphraseRpcParam,
+    response: CommonResponseHandler,
+    state: TypedState
+  ) => {
     this._stashResponse('keybase.1.secretUi.getPassphrase', response)
 
     let error = ''
@@ -403,7 +424,18 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
 }
 
 export const _testing = {
-  ProvisioningManager,
+  makeProvisioningManager: (addingANewDevice: boolean) => {
+    theProvisioningManager = new ProvisioningManager(addingANewDevice)
+    return theProvisioningManager
+  },
+  maybeCancelProvision,
+  showCodePage,
+  showDeviceListPage,
+  showFinalErrorPage,
+  showGPGPage,
+  showNewDeviceNamePage,
+  showPaperkeyPage,
+  showPassphrasePage,
 }
 
 export default provisionSaga
