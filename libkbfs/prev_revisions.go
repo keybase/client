@@ -88,10 +88,9 @@ func (pr PrevRevisions) addRevision(
 	}
 
 	for i := len(ret) - 1; i >= 1; i-- {
-		toMove := ret[i-1]
-		if ret[i].Count == 0 || toMove.Count >= minPrevRevisionSlotCounts[i] {
-			ret[i] = toMove
-			ret[i-1] = PrevRevisionAndCount{
+		// Check if we can shift over the entry in slot i-1.
+		if ret[i].Count == 0 || ret[i-1].Count >= minPrevRevisionSlotCounts[i] {
+			ret[i], ret[i-1] = ret[i-1], PrevRevisionAndCount{
 				Revision: kbfsmd.RevisionUninitialized,
 				Count:    0,
 			}
