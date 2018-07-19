@@ -1183,7 +1183,6 @@ function _badgeAppForTeams(action: TeamsGen.BadgeAppForTeamsPayload, state: Type
     // Call getTeams if new teams come in.
     // Covers the case when we're staring at the teams page so
     // we don't miss a notification we clear when we tab away
-    const existingNewTeams = state.teams.getIn(['newTeams'], I.Set())
     const existingNewTeamRequests = state.teams.getIn(['newTeamRequests'], I.List())
 
     // getDetails for teams that have new access requests
