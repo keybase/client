@@ -34,10 +34,10 @@ class Box2 extends React.Component<Box2Props> {
         directionStyle = globalStyles.flexBoxRow
         break
       case 'horizontalReverse':
-        directionStyle = {display: 'flex', flexDirection: 'row-reverse'}
+        directionStyle = globalStyles.flexBoxRowReverse
         break
       case 'verticalReverse':
-        directionStyle = {display: 'flex', flexDirection: 'column-reverse'}
+        directionStyle = globalStyles.flexBoxColumnReverse
         break
       case 'vertical':
       default:
@@ -47,7 +47,6 @@ class Box2 extends React.Component<Box2Props> {
 
     const style = collapseStyles([
       directionStyle,
-      styles.commonDirectionStyles,
       this.props.fullHeight && styles.fullHeight,
       this.props.fullWidth && styles.fullWidth,
       !this.props.fullHeight && !this.props.fullWidth && styles.centered,
@@ -80,7 +79,23 @@ const styles = {
   },
   fullHeight: {height: '100%'},
   fullWidth: {width: '100%'},
-  commonDirectionStyles: {
+  vbox: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'stretch',
+    justifyContent: 'flex-start',
+  },
+  vrbox: {
+    ...globalStyles.flexBoxColumnReverse,
+    alignItems: 'stretch',
+    justifyContent: 'flex-start',
+  },
+  hbox: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'stretch',
+    justifyContent: 'flex-start',
+  },
+  hrbox: {
+    ...globalStyles.flexBoxRowReverse,
     alignItems: 'stretch',
     justifyContent: 'flex-start',
   },
