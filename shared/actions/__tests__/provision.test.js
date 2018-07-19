@@ -49,8 +49,12 @@ describe('provisioningManagerProvisioning', () => {
       expect(r.error).not.toHaveBeenCalled()
     })
   })
+})
 
-  it('text code works', () => {
+describe('text code', () => {
+  it('happy path', () => {
+    const m = _testing.makeProvisioningManager(false)
+    const callMap = m.getIncomingCallMap()
     const state = Constants.makeState()
     const call = callMap['keybase.1.provisionUi.DisplayAndPromptSecret']
     if (!call) {
@@ -82,7 +86,9 @@ describe('provisioningManagerProvisioning', () => {
     // only submit once
     expect(() => _testing.submitTextCode(nextState)).toThrow()
   })
-  it('text code error works', () => {
+  it('error path', () => {
+    const m = _testing.makeProvisioningManager(false)
+    const callMap = m.getIncomingCallMap()
     const state = Constants.makeState()
     const call = callMap['keybase.1.provisionUi.DisplayAndPromptSecret']
     if (!call) {
@@ -111,8 +117,55 @@ describe('provisioningManagerProvisioning', () => {
     expect(r.result).not.toHaveBeenCalled()
     expect(r.error).not.toHaveBeenCalled()
   })
+})
 
-  // 'keybase.1.provisionUi.PromptNewDeviceName': this.promptNewDeviceNameHandler,
+describe('device name', () => {
+  it('happy path', () => {
+    const m = _testing.makeProvisioningManager(false)
+    const callMap = m.getIncomingCallMap()
+    const state = Constants.makeState()
+    const call = callMap['keybase.1.provisionUi.PromptNewDeviceName']
+    if (!call) {
+      throw new Error('No call')
+    }
+
+    const r = {error: jest.fn(), result: jest.fn()}
+    const existingDevices = ['deva', 'devb']
+    const put: any = call(({existingDevices}: any), r, makeTypedState(state))
+    if (!put || !put.PUT) {
+      throw new Error('no put')
+    }
+    const action = put.PUT.action
+    expect(m._stashedResponse).toEqual(r)
+    expect(m._stashedResponseKey).toEqual('keybase.1.provisionUi.PromptNewDeviceName')
+    expect(action.payload.existingDevices).toEqual(existingDevices)
+
+    const nextState = makeTypedState(reducer(state, action))
+    expect(nextState.provision.devices.toArray()).toEqual(existingDevices)
+    expect(nextState.provision.error.stringValue()).toEqual('')
+
+    const dupeAction = ProvisionGen.createSubmitDeviceName({name: 'deva'})
+    const dupeState = reducer(state, dupeAction)
+    expect(dupeState.error.stringValue()).toBeTruthy()
+    expect(dupeState.deviceName).toEqual(dupeAction.payload.name)
+
+    const submitAction = ProvisionGen.createSubmitDeviceName({name: 'new name'})
+    const submitState = reducer(state, submitAction)
+    expect(dupeState.error.stringValue()).toEqual('')
+    expect(dupeState.deviceName).toEqual(dupeAction.payload.name)
+
+    expect(_testing.showCodePage(submitState)).toEqual(
+      Saga.put(RouteTree.navigateAppend(['setPublicName'], [Tabs.loginTab, 'login']))
+    )
+
+    _testing.submitDeviceName(submitState)
+    expect(r.result).toHaveBeenCalledWith(submitAction.payload.name)
+    expect(r.error).not.toHaveBeenCalled()
+
+    // only submit once
+    expect(() => _testing.submitDeviceName(submitState)).toThrow()
+  })
+
   // 'keybase.1.provisionUi.chooseDevice': this.chooseDeviceHandler,
   // 'keybase.1.provisionUi.chooseGPGMethod': this.chooseGPGMethodHandler,
   // 'keybase.1.secretUi.getPassphrase': this.getPassphraseHandler,
@@ -136,7 +189,7 @@ describe('provisioningManagerAddNewDevice', () => {})
 // showPassphrasePage,
 //
 // submitDeviceSelect,
-// submitDeviceName,
+// ,
 // submitTextCode,
 // submitGPGMethod,
 // submitPassphraseOrPaperkey
