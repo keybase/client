@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button, Icon} from '../../../common-adapters'
+import {Box2, Button, Icon, iconCastPlatformStyles} from '../../../common-adapters'
 import Available from '../available/container'
 import {globalColors, globalMargins, styleSheetCreate} from '../../../styles'
 
@@ -24,7 +24,7 @@ const Footer = ({onClickSend, onClickRequest, disabled}: Props) => (
           children={
             <Icon
               type="iconfont-stellar-request"
-              style={{marginRight: globalMargins.tiny}}
+              style={iconCastPlatformStyles(styles.icon)}
               color={globalColors.white}
             />
           }
@@ -40,7 +40,7 @@ const Footer = ({onClickSend, onClickRequest, disabled}: Props) => (
         children={
           <Icon
             type="iconfont-stellar-send"
-            style={{marginRight: globalMargins.tiny}}
+            style={iconCastPlatformStyles(styles.icon)}
             color={globalColors.white}
           />
         }
@@ -60,6 +60,7 @@ const styles = styleSheetCreate({
     marginLeft: globalMargins.tiny,
     marginRight: globalMargins.tiny,
   },
+  icon: {marginRight: globalMargins.tiny},
 })
 
 export default Footer
