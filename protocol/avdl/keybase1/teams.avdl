@@ -74,7 +74,6 @@ protocol teams {
     UID uid;
     TeamRole role;
     Seqno eldestSeqno;     // eldest seqno of the team member record
-    Seqno userEldestSeqno; // actual eldest seqno of the user
     TeamMemberStatus status;
   }
 

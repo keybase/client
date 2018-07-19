@@ -1872,10 +1872,6 @@ func (t TeamMembers) AllUserVersions() []UserVersion {
 	return all
 }
 
-func (t TeamMember) IsReset() bool {
-	return t.EldestSeqno != t.UserEldestSeqno
-}
-
 func (s TeamMemberStatus) IsActive() bool {
 	return s == TeamMemberStatus_ACTIVE
 }
