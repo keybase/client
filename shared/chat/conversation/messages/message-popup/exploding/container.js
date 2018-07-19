@@ -5,7 +5,6 @@ import * as TeamConstants from '../../../../../constants/teams'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as KBFSGen from '../../../../../actions/kbfs-gen'
-import {navigateAppend} from '../../../../../actions/route-tree'
 import {compose, connect, isMobile, setDisplayName, type TypedState} from '../../../../../util/container'
 import {isIOS} from '../../../../../constants/platform'
 import {copyToClipboard} from '../../../../../util/clipboard'
@@ -47,10 +46,6 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
     if (ownProps.message.type === 'text') {
       copyToClipboard(ownProps.message.text.stringValue())
     }
-  },
-  _onDeleteHistory: () => {
-    dispatch(Chat2Gen.createNavigateToThread())
-    dispatch(navigateAppend([{props: {message: ownProps.message}, selected: 'deleteHistoryWarning'}]))
   },
   _onDownload: () =>
     dispatch(
@@ -100,13 +95,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       danger: true,
       onClick: dispatchProps._onExplodeNow,
       title: 'Explode now',
-    })
-  }
-  if (stateProps._canDeleteHistory) {
-    items.push({
-      danger: true,
-      onClick: dispatchProps._onDeleteHistory,
-      title: 'Delete this + everything above',
     })
   }
   const message = ownProps.message

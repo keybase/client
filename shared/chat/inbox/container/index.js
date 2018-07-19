@@ -26,7 +26,7 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
     ...rowMetadata,
     _selectedConversationIDKey,
     filter,
-    isLoading: !state.chat2.loadingMap.isEmpty(),
+    isLoading: Constants.anyChatWaitingKeys(state),
     neverLoaded: state.chat2.metaMap.isEmpty(),
   }
 }

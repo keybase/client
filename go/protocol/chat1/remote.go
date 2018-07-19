@@ -754,6 +754,22 @@ func (o SetRetentionRes) DeepCopy() SetRetentionRes {
 	}
 }
 
+type SetConvMinWriterRoleRes struct {
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o SetConvMinWriterRoleRes) DeepCopy() SetConvMinWriterRoleRes {
+	return SetConvMinWriterRoleRes{
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
 type SweepRes struct {
 	FoundTask       bool    `codec:"foundTask" json:"foundTask"`
 	DeletedMessages bool    `codec:"deletedMessages" json:"deletedMessages"`
@@ -948,6 +964,11 @@ type SetTeamRetentionArg struct {
 	SweepChannel uint64          `codec:"sweepChannel" json:"sweepChannel"`
 }
 
+type SetConvMinWriterRoleArg struct {
+	ConvID ConversationID    `codec:"convID" json:"convID"`
+	Role   keybase1.TeamRole `codec:"role" json:"role"`
+}
+
 type RetentionSweepConvArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
@@ -990,6 +1011,7 @@ type RemoteInterface interface {
 	RemoteNotificationSuccessful(context.Context, RemoteNotificationSuccessfulArg) error
 	SetConvRetention(context.Context, SetConvRetentionArg) (SetRetentionRes, error)
 	SetTeamRetention(context.Context, SetTeamRetentionArg) (SetRetentionRes, error)
+	SetConvMinWriterRole(context.Context, SetConvMinWriterRoleArg) (SetConvMinWriterRoleRes, error)
 	RetentionSweepConv(context.Context, ConversationID) (SweepRes, error)
 	UpgradeKBFSToImpteam(context.Context, TLFID) error
 }
@@ -1521,6 +1543,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"setConvMinWriterRole": {
+				MakeArg: func() interface{} {
+					ret := make([]SetConvMinWriterRoleArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetConvMinWriterRoleArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetConvMinWriterRoleArg)(nil), args)
+						return
+					}
+					ret, err = i.SetConvMinWriterRole(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"retentionSweepConv": {
 				MakeArg: func() interface{} {
 					ret := make([]RetentionSweepConvArg, 1)
@@ -1734,6 +1772,11 @@ func (c RemoteClient) SetConvRetention(ctx context.Context, __arg SetConvRetenti
 
 func (c RemoteClient) SetTeamRetention(ctx context.Context, __arg SetTeamRetentionArg) (res SetRetentionRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.setTeamRetention", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) SetConvMinWriterRole(ctx context.Context, __arg SetConvMinWriterRoleArg) (res SetConvMinWriterRoleRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.setConvMinWriterRole", []interface{}{__arg}, &res)
 	return
 }
 
