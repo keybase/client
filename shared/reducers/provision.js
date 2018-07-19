@@ -53,12 +53,12 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         error: initialState.error,
       })
     case ProvisionGen.submitDeviceName:
-      if (state.existingDevices.indexOf(state.deviceName) !== -1) {
+      if (state.existingDevices.indexOf(action.payload.name) !== -1) {
         return state.merge({
           deviceName: action.payload.name,
           error: new HiddenString(
             `The device name: '${
-              state.deviceName
+              action.payload.name
             }' is already taken. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.`
           ),
         })

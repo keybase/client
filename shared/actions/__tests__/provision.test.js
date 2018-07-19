@@ -8,7 +8,6 @@ import * as ProvisionGen from '../provision-gen'
 import * as RouteTree from '../route-tree'
 import * as Saga from '../../util/saga'
 import type {TypedState} from '../../constants/reducer'
-import HiddenString from '../../util/hidden-string'
 import {_testing} from '../provision'
 import reducer from '../../reducers/provision'
 
@@ -141,21 +140,21 @@ describe('device name', () => {
     expect(action.payload.existingDevices).toEqual(existingDevices)
 
     const nextState = makeTypedState(reducer(state, action))
-    expect(nextState.provision.devices.toArray()).toEqual(existingDevices)
+    expect(nextState.provision.existingDevices.toArray()).toEqual(existingDevices)
     expect(nextState.provision.error.stringValue()).toEqual('')
 
     const dupeAction = ProvisionGen.createSubmitDeviceName({name: 'deva'})
-    const dupeState = reducer(state, dupeAction)
-    expect(dupeState.error.stringValue()).toBeTruthy()
-    expect(dupeState.deviceName).toEqual(dupeAction.payload.name)
+    const dupeState = makeTypedState(reducer(nextState.provision, dupeAction))
+    expect(dupeState.provision.error.stringValue()).toBeTruthy()
+    expect(dupeState.provision.deviceName).toEqual(dupeAction.payload.name)
 
     const submitAction = ProvisionGen.createSubmitDeviceName({name: 'new name'})
-    const submitState = reducer(state, submitAction)
-    expect(dupeState.error.stringValue()).toEqual('')
-    expect(dupeState.deviceName).toEqual(dupeAction.payload.name)
+    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+    expect(submitState.provision.error.stringValue()).toEqual('')
+    expect(submitState.provision.deviceName).toEqual(submitAction.payload.name)
 
     expect(_testing.showCodePage(submitState)).toEqual(
-      Saga.put(RouteTree.navigateAppend(['setPublicName'], [Tabs.loginTab, 'login']))
+      Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.loginTab, 'login']))
     )
 
     _testing.submitDeviceName(submitState)
