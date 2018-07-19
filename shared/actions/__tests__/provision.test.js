@@ -74,6 +74,13 @@ describe('provisioningManagerProvisioning', () => {
     expect(_testing.showCodePage(nextState)).toEqual(
       Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.loginTab, 'login']))
     )
+
+    _testing.submitTextCode(nextState)
+    expect(r.result).toHaveBeenCalledWith({code: null, phrase})
+    expect(r.error).not.toHaveBeenCalled()
+
+    // only submit once
+    expect(() => _testing.submitTextCode(nextState)).toThrow()
   })
   it('text code error works', () => {
     const state = Constants.makeState()
@@ -99,6 +106,10 @@ describe('provisioningManagerProvisioning', () => {
     expect(nextState.provision.error.stringValue()).toEqual(error)
 
     expect(_testing.showCodePage(nextState)).toBeFalsy()
+
+    expect(_testing.submitTextCode(nextState)).toBeFalsy()
+    expect(r.result).not.toHaveBeenCalled()
+    expect(r.error).not.toHaveBeenCalled()
   })
 
   // 'keybase.1.provisionUi.PromptNewDeviceName': this.promptNewDeviceNameHandler,
@@ -123,3 +134,9 @@ describe('provisioningManagerAddNewDevice', () => {})
 // showNewDeviceNamePage,
 // showPaperkeyPage,
 // showPassphrasePage,
+//
+// submitDeviceSelect,
+// submitDeviceName,
+// submitTextCode,
+// submitGPGMethod,
+// submitPassphraseOrPaperkey

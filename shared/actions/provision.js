@@ -436,6 +436,11 @@ export const _testing = {
   showNewDeviceNamePage,
   showPaperkeyPage,
   showPassphrasePage,
+  submitDeviceName,
+  submitDeviceSelect,
+  submitGPGMethod,
+  submitPassphraseOrPaperkey,
+  submitTextCode,
 }
 
 export default provisionSaga
