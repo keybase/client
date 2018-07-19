@@ -13,6 +13,7 @@ type OwnProps = {
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   filter: state.chat2.inboxFilter,
+  isLoading: !state.chat2.loadingMap.isEmpty(),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({})
@@ -20,6 +21,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({})
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   filterFocusCount: ownProps.filterFocusCount,
   focusFilter: ownProps.focusFilter,
+  isLoading: stateProps.isLoading,
   onNewChat: ownProps.onNewChat,
   rows: ownProps.rows,
   showNewChat: !(ownProps.rows.length || stateProps.filter),
