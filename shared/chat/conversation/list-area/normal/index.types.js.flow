@@ -13,4 +13,7 @@ export type Props = {|
   lastMessageIsOurs: boolean,
   lastLoadMoreOrdinal: ?Types.Ordinal,
   listScrollDownCounter: number,
+
+  // mock
+  scrollToOrdinal?: ?Types.Ordinal,
 |}

@@ -134,6 +134,22 @@ class Thread extends React.PureComponent<Props, State> {
         }
       }
     }
+
+    if (list && this.props.scrollToOrdinal && this.props.scrollToOrdinal !== prevProps.scrollToOrdinal) {
+      const ordinal = this.props.scrollToOrdinal
+      const idx = this.props.messageOrdinals.indexOf(ordinal)
+      if (idx !== -1) {
+        const waypoints = list.querySelectorAll('[data-key]')
+        // find an id that should be our parent
+        const toFind = Types.ordinalToNumber(ordinal)
+        const found = Array.from(waypoints)
+          .reverse()
+          .find(w => parseInt(w.dataset.key, 10) < toFind)
+        if (found) {
+          found.scrollIntoView({behavior: 'smooth', block: 'center'})
+        }
+      }
+    }
   }
 
   componentWillUnmount() {

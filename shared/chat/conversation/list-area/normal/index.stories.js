@@ -1,9 +1,9 @@
 // @flow
 /* eslint-disable sort-keys */
-import React from 'react'
+import * as React from 'react'
 import I from 'immutable'
 import moment from 'moment'
-import {Box2, Text} from '../../../../common-adapters'
+import {Box2, Text, Button} from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/chat2'
 import {storiesOf, action, createPropProvider, Rnd} from '../../../../stories/storybook'
 import * as PropProviders from '../../../../stories/prop-providers'
@@ -17,8 +17,8 @@ import {formatTimeForMessages} from '../../../../util/timestamp'
 // set this to true to play with messages coming in on a timer
 const injectMessages = false && !__STORYSHOT__
 // set this to true to play with loading more working
-const enableLoadMore = false && !__STORYSHOT__
-const ordinalAscending = true
+const enableLoadMore = true && !__STORYSHOT__
+const ordinalAscending = false
 
 let index = 1
 const makeMoreOrdinals = (num = __STORYSHOT__ ? 10 : 100) => {
@@ -212,17 +212,22 @@ const provider = createPropProvider(PropProviders.Common(), {
   }),
 })
 
-type Props = {}
+type Props = {
+  searchMock?: true,
+}
 type State = {|
   messageOrdinals: I.List<Types.Ordinal>,
+  scrollToOrdinal: ?Types.Ordinal,
 |}
 class ThreadWrapper extends React.Component<Props, State> {
   intervalID: IntervalID
   timeoutID: TimeoutID
+
   constructor(props) {
     super(props)
     this.state = {
       messageOrdinals: messageOrdinals,
+      scrollToOrdinal: null,
     }
 
     if (injectMessages) {
@@ -250,8 +255,46 @@ class ThreadWrapper extends React.Component<Props, State> {
       }
     : action('onLoadMoreMessages')
 
+  _onJump = () => {
+    this.setState(p => {
+      const old = makeMoreOrdinals(10)
+
+      // inject our search term inside the results
+      const [searchOrdinal] = makeMoreOrdinals(1)
+      const message = Message.makeMessageText({
+        ordinal: searchOrdinal,
+        text: new HiddenString(
+          '********SEARCH_TERM******** 🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺🕺'
+        ),
+        timestamp: generateTimestamp(),
+      })
+      ordinalToMessageCache[Types.ordinalToNumber(searchOrdinal)] = message
+
+      const oldest = makeMoreOrdinals(10)
+      const messageOrdinals = p.messageOrdinals.unshift(...[...old, searchOrdinal, ...oldest])
+      console.log(p.messageOrdinals.toJS(), messageOrdinals.toJS())
+
+      return {
+        messageOrdinals,
+        scrollToOrdinal: searchOrdinal,
+      }
+    })
+  }
+
   render() {
-    return <Thread {...props} {...this.state} loadMoreMessages={this.onLoadMoreMessages} />
+    return (
+      <React.Fragment>
+        <Thread {...props} {...this.state} loadMoreMessages={this.onLoadMoreMessages} />
+        {this.props.searchMock && (
+          <Button
+            label="Jump"
+            onClick={this._onJump}
+            type="Primary"
+            style={{position: 'absolute', left: 0, bottom: 0}}
+          />
+        )}
+      </React.Fragment>
+    )
   }
 }
 
@@ -264,6 +307,7 @@ const load = () => {
       </Box2>
     ))
     .add('Normal', () => <ThreadWrapper />)
+    .add('SearchMock', () => <ThreadWrapper searchMock={true} />)
     .add('Readme', () => (
       <Text type="Body">
         If you load Normal directly on start the fonts wont be loaded so it'll measure wrong
