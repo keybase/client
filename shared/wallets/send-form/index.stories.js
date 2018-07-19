@@ -4,6 +4,7 @@ import {action, createPropProvider, storiesOf} from '../../stories/storybook'
 import assetInput, {props3 as assetInputProps} from './asset-input/index.stories'
 import chooseAsset from './choose-asset/index.stories'
 import banner from './banner/index.stories'
+import footers from './footer/index.stories'
 import SendForm from '.'
 
 // TODO some of the state of these child components
@@ -16,6 +17,7 @@ const provider = createPropProvider({
   Available: props => ({}),
   Banner: props => ({}),
   Body: props => ({}),
+  Footer: props => ({}),
   Header: props => ({}),
   Memo: props => ({}),
   Note: props => ({}),
@@ -27,7 +29,7 @@ const load = () => {
   assetInput()
   banner()
   chooseAsset()
-
+  footers()
   // full component
   storiesOf('Wallets/SendForm', module)
     .addDecorator(provider)

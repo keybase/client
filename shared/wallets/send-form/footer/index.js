@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Box2, Button, Icon} from '../../../common-adapters'
 import Available from '../available/container'
-import {globalColors, globalMargins} from '../../../styles'
+import {globalColors, globalMargins, styleSheetCreate} from '../../../styles'
 
 type Props = {
   onClickSend: Function,
@@ -12,11 +12,7 @@ type Props = {
 
 const Footer = ({onClickSend, onClickRequest, disabled}: Props) => (
   <Box2 direction="vertical" fullWidth={true}>
-    <Box2
-      direction="horizontal"
-      style={{flex: 1, alignItems: 'stretch', justifyContent: 'center'}}
-      fullWidth={true}
-    >
+    <Box2 direction="horizontal" style={styles.buttonBox} fullWidth={true}>
       {!!onClickRequest && (
         <Button
           type="Wallet"
@@ -24,7 +20,7 @@ const Footer = ({onClickSend, onClickRequest, disabled}: Props) => (
           onClick={onClickRequest}
           disabled={disabled}
           fullWidth={true}
-          style={{marginLeft: globalMargins.tiny, marginRight: globalMargins.tiny}}
+          style={styles.button}
           children={
             <Icon
               type="iconfont-stellar-request"
@@ -40,7 +36,7 @@ const Footer = ({onClickSend, onClickRequest, disabled}: Props) => (
         onClick={onClickSend}
         disabled={disabled}
         fullWidth={true}
-        style={{marginLeft: globalMargins.tiny, marginRight: globalMargins.tiny}}
+        style={styles.button}
         children={
           <Icon
             type="iconfont-stellar-send"
@@ -53,5 +49,17 @@ const Footer = ({onClickSend, onClickRequest, disabled}: Props) => (
     <Available />
   </Box2>
 )
+
+const styles = styleSheetCreate({
+  buttonBox: {
+    flex: 1,
+    alignItems: 'stretch',
+    justifyContent: 'center',
+  },
+  button: {
+    marginLeft: globalMargins.tiny,
+    marginRight: globalMargins.tiny,
+  },
+})
 
 export default Footer
