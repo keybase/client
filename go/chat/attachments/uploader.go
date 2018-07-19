@@ -246,7 +246,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	g.Go(func() (err error) {
 		u.Debug(bgctx, "upload: fetching s3 params")
 		u.G().ActivityNotifier.AttachmentUploadStart(bgctx, uid, convID, outboxID)
-		if s3params, err = u.ri().GetS3Params(ctx, convID); err != nil {
+		if s3params, err = u.ri().GetS3Params(bgctx, convID); err != nil {
 			return err
 		}
 		close(paramsCh)
@@ -319,11 +319,13 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		})
 	}
 	go func() {
+		var errStr string
 		status := types.AttachmentUploaderTaskStatusSuccess
 		if err := g.Wait(); err != nil {
 			status = types.AttachmentUploaderTaskStatusFailed
 			ures.Error = new(string)
 			*ures.Error = err.Error()
+			errStr = err.Error()
 		}
 		if err := u.setStatus(bgctx, outboxID, uploaderStatus{
 			Status: status,
@@ -331,7 +333,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		}); err != nil {
 			u.Debug(bgctx, "failed to set status on upload success: %s", err)
 		}
-		u.Debug(bgctx, "upload: upload complete: status: %v err: %s", status, ures.Error)
+		u.Debug(bgctx, "upload: upload complete: status: %v err: %s", status, errStr)
 		// Ping Deliverer to notify that some of the message in the outbox might be read to send
 		u.G().MessageDeliverer.ForceDeliverLoop(bgctx)
 		res <- ures
