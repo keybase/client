@@ -912,9 +912,6 @@ const _setMemberPublicity = function*(action: TeamsGen.SetMemberPublicityPayload
     // TODO handle error, but for now make sure loading is unset
     yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
     yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname})))
-
-    // The profile showcasing page gets this data from teamList rather than teamGet, so trigger one of those too.
-    yield Saga.put(TeamsGen.createGetTeams())
   }
 }
 
@@ -1045,13 +1042,7 @@ function _setupTeamHandlers() {
 }
 
 function getLoadCalls(teamname?: string) {
-  const actions = []
-  if (_wasOnTeamsTab) {
-    actions.push(TeamsGen.createGetTeams())
-    if (teamname) {
-      actions.push(TeamsGen.createGetDetails({teamname}))
-    }
-  }
+  const actions = [TeamsGen.createGetTeams(), teamname && TeamsGen.createGetDetails({teamname})]
   return actions
 }
 
