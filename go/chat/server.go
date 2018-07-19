@@ -1510,6 +1510,10 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 	uresChan, msg, err := h.initiateAttachmentUpload(ctx, arg.Arg)
 	// Wait for upload
 	ures := <-uresChan
+	if ures.Error != nil {
+		h.Debug(ctx, "postAttachmentLocal: upload failed, bailing out: %s", *ures.Error)
+		return res, errors.New(*ures.Error)
+	}
 	attachment := chat1.MessageAttachment{
 		Object:   ures.Object,
 		Metadata: arg.Arg.Metadata,
