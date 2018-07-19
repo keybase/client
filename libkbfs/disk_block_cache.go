@@ -102,12 +102,32 @@ func rateMeterToStatus(m metrics.Meter) MeterStatus {
 	}
 }
 
+// DiskBlockCacheStartState represents whether this disk block cache has
+// started or failed.
 type DiskBlockCacheStartState int
 
+// String allows DiskBlockCacheStartState to be output as a string.
+func (s DiskBlockCacheStartState) String() string {
+	switch s {
+	case DiskBlockCacheStartStateStarting:
+		return "starting"
+	case DiskBlockCacheStartStateStarted:
+		return "started"
+	case DiskBlockCacheStartStateFailed:
+		return "failed"
+	default:
+		return "unknown"
+	}
+}
+
 const (
+	// DiskBlockCacheStartStateStarting represents when the cache is starting.
 	DiskBlockCacheStartStateStarting DiskBlockCacheStartState = 0
-	DiskBlockCacheStartStateStarted                           = 1
-	DiskBlockCacheStartStateFailed                            = 2
+	// DiskBlockCacheStartStateStarted represents when the cache has started.
+	DiskBlockCacheStartStateStarted = 1
+	// DiskBlockCacheStartStateFailed represents when the cache has failed to
+	// start.
+	DiskBlockCacheStartStateFailed = 2
 )
 
 // DiskBlockCacheStatus represents the status of the disk cache.
