@@ -638,11 +638,9 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 			// Take last element and shorten.
 			pathElem := paths[len(paths)-1]
 			paths = paths[:len(paths)-1]
-			pathName := pathElem.path
-			if pathName == finalElem {
-				pathName = ""
-			} else {
-				pathName = strings.TrimPrefix(pathName, finalElem+"/")
+			pathName := ""
+			if pathElem.path != finalElem {
+				pathName = strings.TrimPrefix(pathElem.path, finalElem+"/")
 			}
 
 			fis, err := fs.ReadDir(pathElem.path)
@@ -663,7 +661,6 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 					return err
 				}
 				de.Name = stdpath.Join(pathName, fi.Name())
-				k.log.CDebugf(ctx, "de name: %s", de.Name)
 				des = append(des, de)
 				// Only recurse if the caller requested infinite depth (-1), or
 				// if the current path has a depth less than the desired final
