@@ -205,6 +205,18 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 
 }
 
+func TestCIEnv(t *testing.T) {
+	require.Equal(t, "1", os.Getenv("KEYBASE_RUN_CI"), "CI env var")
+}
+
+func TestCISwitch(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+	useStellarTestNet(t)
+	alice := tt.addUser("alice")
+	require.True(t, libkb.UseCITime(alice.tc.G), "should be in UseCITime land")
+}
+
 func sampleNote() stellar1.NoteContents {
 	return stellar1.NoteContents{
 		Note:      "wizbang",
