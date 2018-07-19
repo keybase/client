@@ -898,6 +898,10 @@ func (m *ChatRemoteMock) SetTeamRetention(ctx context.Context, _ chat1.SetTeamRe
 	return res, errors.New("SetTeamRetention not mocked")
 }
 
+func (m *ChatRemoteMock) SetConvMinWriterRole(ctx context.Context, _ chat1.SetConvMinWriterRoleArg) (res chat1.SetConvMinWriterRoleRes, err error) {
+	return res, errors.New("SetConvMinWriterRole not mocked")
+}
+
 type NonblockInboxResult struct {
 	ConvID   chat1.ConversationID
 	Err      error

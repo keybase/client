@@ -6,7 +6,7 @@ import {connect, type TypedState} from '../../../../util/container'
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => ({
   _meta: Constants.getMeta(state, conversationIDKey),
-  isLoading: !!state.chat2.loadingMap.get(Constants.creatingLoadingKey),
+  isLoading: !!state.waiting.get(Constants.waitingKeyCreating),
   showAddParticipants: state.chat2.pendingMode === 'searchingForUsers',
 })
 

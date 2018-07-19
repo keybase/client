@@ -68,7 +68,6 @@ const provider = createPropProvider(PropProviders.Common(), {
     explodesAt: props.message.explodingTime,
     items: [
       {danger: true, onClick: action('onExplodeNow'), title: 'Explode now'},
-      {danger: true, onClick: action('onDeleteHistory'), title: 'Delete this + everything above'},
       ...(props.message.type === 'attachment'
         ? [{onClick: action('onDownload'), title: 'Download'}]
         : [{onClick: action('onEdit'), title: 'Edit'}, {onClick: action('onCopy'), title: 'Copy text'}]),

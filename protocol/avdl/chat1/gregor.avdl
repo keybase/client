@@ -143,6 +143,12 @@ protocol gregor {
         RetentionPolicy policy;
     }
 
+    record SetConvMinWriterRoleUpdate {
+        InboxVers inboxVers;
+        ConversationID convID;
+        keybase1.TeamRole role;
+    }
+
     record KBFSImpteamUpgradeUpdate {
         ConversationID convID;
         InboxVers inboxVers;
