@@ -1,0 +1,10 @@
+// @flow
+import * as React from 'react'
+
+export type Props = {
+  attachTo: ?React.Component<any, any>,
+  onAddReaction: (emoji: string) => void,
+  visible: boolean,
+}
+
+export default class extends React.Component<Props> {}

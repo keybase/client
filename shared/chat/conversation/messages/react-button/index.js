@@ -11,6 +11,7 @@ import {
   styleSheetCreate,
   transition,
 } from '../../../../styles'
+import Rollout from './rollout'
 
 export type Props = {
   active: boolean,
@@ -47,18 +48,35 @@ type NewReactionButtonProps = {
   onAddReaction: (emoji: string) => void,
   showBorder: boolean,
 }
-export const NewReactionButton = (props: NewReactionButtonProps) => {
-  const ContainerComp = props.showBorder ? ButtonBox : ClickableBox
-  return (
-    <ContainerComp
-      onClick={() => props.onAddReaction(':grinning_face_with_star_eyes:')}
-      style={collapseStyles([styles.newReactionButtonBox, props.showBorder && styles.buttonBox])}
-    >
-      <Box2 centerChildren={true} direction="horizontal" style={styles.container}>
-        <Icon type="iconfont-reacji" fontSize={isMobile ? 22 : 16} />
-      </Box2>
-    </ContainerComp>
-  )
+type NewReactionButtonState = {
+  attachmentRef: ?React.Component<any, any>,
+  rolledOut: boolean,
+}
+export class NewReactionButton extends React.Component<NewReactionButtonProps, NewReactionButtonState> {
+  state = {attachmentRef: null, rolledOut: true}
+  render() {
+    const ContainerComp = this.props.showBorder ? ButtonBox : ClickableBox
+    return (
+      <ContainerComp
+        onClick={() => this.props.onAddReaction(':grinning_face_with_star_eyes:')}
+        style={collapseStyles([styles.newReactionButtonBox, this.props.showBorder && styles.buttonBox])}
+      >
+        <Box2
+          ref={r => this.setState(s => (s.attachmentRef ? null : {attachmentRef: r}))}
+          centerChildren={true}
+          direction="horizontal"
+          style={styles.container}
+        >
+          <Icon type="iconfont-reacji" fontSize={isMobile ? 22 : 16} />
+        </Box2>
+        <Rollout
+          attachTo={this.state.attachmentRef}
+          onAddReaction={this.props.onAddReaction}
+          visible={this.state.rolledOut}
+        />
+      </ContainerComp>
+    )
+  }
 }
 
 const styles = styleSheetCreate({
