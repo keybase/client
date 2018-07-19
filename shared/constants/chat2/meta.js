@@ -233,6 +233,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     notificationsGlobalIgnoreMentions,
     notificationsMobile,
     participants: I.List(i.participants || []),
+    readMsgID: i.readMsgID,
     resetParticipants,
     retentionPolicy,
     snippet: i.snippet,
