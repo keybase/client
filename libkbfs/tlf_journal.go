@@ -2068,15 +2068,6 @@ func (j *tlfJournal) putBlockData(
 		return err
 	}
 
-	if j.needInfoFile {
-		err := writeTLFJournalInfoFile(
-			j.dir, j.uid, j.key, j.tlfID, j.chargedTo)
-		if err != nil {
-			return err
-		}
-		j.needInfoFile = false
-	}
-
 	storedBytesBefore := j.blockJournal.getStoredBytes()
 
 	putData, err = j.blockJournal.putData(
