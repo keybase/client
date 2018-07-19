@@ -35,17 +35,14 @@ export const props3 = {
 
 const warning1 = {
   warningAsset: '$13',
-  warningType: 'overmax',
 }
 
 const warning2 = {
   warningAsset: '128.4567890 XLM',
-  warningType: 'overmax',
 }
 
 const warning3 = {
   warningAsset: 'BTC/Stronghold.com',
-  warningType: 'badAsset',
   warningPayee: 'russel',
 }
 
