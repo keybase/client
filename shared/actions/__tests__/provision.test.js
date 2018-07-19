@@ -7,6 +7,7 @@ import * as Tabs from '../../constants/tabs'
 import * as ProvisionGen from '../provision-gen'
 import * as RouteTree from '../route-tree'
 import * as Saga from '../../util/saga'
+import HiddenString from '../../util/hidden-string'
 import type {TypedState} from '../../constants/reducer'
 import {_testing} from '../provision'
 import reducer from '../../reducers/provision'
@@ -78,8 +79,12 @@ describe('text code', () => {
       Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.loginTab, 'login']))
     )
 
-    _testing.submitTextCode(nextState)
-    expect(r.result).toHaveBeenCalledWith({code: null, phrase})
+    const reply = 'reply'
+    const submitAction = ProvisionGen.createSubmitTextCode({phrase: new HiddenString(reply)})
+    const submitState = makeTypedState(reducer(state, submitAction))
+
+    _testing.submitTextCode(submitState)
+    expect(r.result).toHaveBeenCalledWith({code: null, phrase: reply})
     expect(r.error).not.toHaveBeenCalled()
 
     // only submit once
@@ -129,40 +134,19 @@ describe('device name', () => {
     }
 
     const r = {error: jest.fn(), result: jest.fn()}
-    const existingDevices = ['deva', 'devb']
-    const put: any = call(({existingDevices}: any), r, makeTypedState(state))
+    const existingDevices = []
+    const error = 'invalid name'
+    const put: any = call(({existingDevices, errorMessage: error}: any), r, makeTypedState(state))
     if (!put || !put.PUT) {
       throw new Error('no put')
     }
     const action = put.PUT.action
-    expect(m._stashedResponse).toEqual(r)
-    expect(m._stashedResponseKey).toEqual('keybase.1.provisionUi.PromptNewDeviceName')
     expect(action.payload.existingDevices).toEqual(existingDevices)
+    expect(action.payload.error.stringValue()).toEqual(error)
 
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState.provision.existingDevices.toArray()).toEqual(existingDevices)
-    expect(nextState.provision.error.stringValue()).toEqual('')
-
-    const dupeAction = ProvisionGen.createSubmitDeviceName({name: 'deva'})
-    const dupeState = makeTypedState(reducer(nextState.provision, dupeAction))
-    expect(dupeState.provision.error.stringValue()).toBeTruthy()
-    expect(dupeState.provision.deviceName).toEqual(dupeAction.payload.name)
-
-    const submitAction = ProvisionGen.createSubmitDeviceName({name: 'new name'})
-    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
-    expect(submitState.provision.error.stringValue()).toEqual('')
-    expect(submitState.provision.deviceName).toEqual(submitAction.payload.name)
-
-    expect(_testing.showCodePage(submitState)).toEqual(
-      Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.loginTab, 'login']))
-    )
-
-    _testing.submitDeviceName(submitState)
-    expect(r.result).toHaveBeenCalledWith(submitAction.payload.name)
-    expect(r.error).not.toHaveBeenCalled()
-
-    // only submit once
-    expect(() => _testing.submitDeviceName(submitState)).toThrow()
+    expect(nextState.provision.error.stringValue()).toEqual(error)
   })
 
   // 'keybase.1.provisionUi.chooseDevice': this.chooseDeviceHandler,
