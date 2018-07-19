@@ -136,7 +136,7 @@ describe('device name', () => {
     const r = {error: jest.fn(), result: jest.fn()}
     const existingDevices = []
     const error = 'invalid name'
-    const put: any = call(({existingDevices, errorMessage: error}: any), r, makeTypedState(state))
+    const put: any = call(({errorMessage: error, existingDevices}: any), r, makeTypedState(state))
     if (!put || !put.PUT) {
       throw new Error('no put')
     }
@@ -147,6 +147,17 @@ describe('device name', () => {
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState.provision.existingDevices.toArray()).toEqual(existingDevices)
     expect(nextState.provision.error.stringValue()).toEqual(error)
+
+    const name = 'new name'
+    const submitAction = ProvisionGen.createSubmitDeviceName({name})
+    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+
+    _testing.submitDeviceName(submitState)
+    expect(r.result).toHaveBeenCalledWith(name)
+    expect(r.error).not.toHaveBeenCalled()
+
+    // only submit once
+    expect(() => _testing.submitDeviceName(submitState)).toThrow()
   })
 
   // 'keybase.1.provisionUi.chooseDevice': this.chooseDeviceHandler,
