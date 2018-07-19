@@ -240,10 +240,11 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		}
 	}
 
+	var g *errgroup.Group
 	var s3params chat1.S3Params
 	paramsCh := make(chan struct{})
-	g, bgctx := errgroup.WithContext(context.Background())
-	bgctx = libkb.CopyTagsToBackground(bgctx)
+	bgctx := libkb.CopyTagsToBackground(ctx)
+	g, bgctx = errgroup.WithContext(bgctx)
 	if os.Getenv("CHAT_S3_FAKE") == "1" {
 		bgctx = s3.NewFakeS3Context(bgctx)
 	}
