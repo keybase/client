@@ -362,6 +362,9 @@ func (t *NameIdentifier) identifyUser(ctx context.Context, assertion string, pri
 	if err := engine.RunEngine2(m, eng); err != nil {
 		switch err.(type) {
 		// Ignore these errors
+		// NOTE: Even though we ignore a `libkb.DeletedError` here, if we have
+		// previously chatted with the user we will still validate the sigchain
+		// when identifying the user and then return this error.
 		case libkb.NotFoundError, libkb.ResolutionError, libkb.DeletedError:
 			return keybase1.TLFIdentifyFailure{}, nil
 		}
