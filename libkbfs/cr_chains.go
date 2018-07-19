@@ -1223,6 +1223,13 @@ func (ccs *crChains) revertRenames(oldOps []op) {
 				}
 			}
 
+			if !rop.oldFinalPath.isValid() {
+				// We don't need to revert any renames without an
+				// rmOp, because it was probably just created and
+				// renamed within a single journal update.
+				continue
+			}
+
 			newChain := oldChain
 			if rop.NewDir != (blockUpdate{}) {
 				newChain = ccs.byMostRecent[rop.NewDir.Ref]
