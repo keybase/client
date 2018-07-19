@@ -271,12 +271,16 @@ func TestListRecursive(t *testing.T) {
 	// make a temp remote directory + files we will clean up later
 	pathJDoe := keybase1.NewPathWithKbfs(`/private/jdoe`)
 	writeRemoteDir(ctx, t, sfs, pathAppend(pathJDoe, `a`))
-	path1 := keybase1.NewPathWithKbfs(`/private/jdoe/a`)
-	writeRemoteDir(ctx, t, sfs, pathAppend(path1, `aa`))
-	writeRemoteDir(ctx, t, sfs, pathAppend(path1, `ab`))
-	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `aa/test1.txt`), []byte(`foo`))
-	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `ab/test2.txt`), []byte(`foo`))
-	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `.testfile`), []byte(`foo`))
+	patha := keybase1.NewPathWithKbfs(`/private/jdoe/a`)
+	writeRemoteDir(ctx, t, sfs, pathAppend(patha, `aa`))
+	pathaa := keybase1.NewPathWithKbfs(`/private/jdoe/a/aa`)
+	writeRemoteDir(ctx, t, sfs, pathAppend(patha, `ab`))
+	pathab := keybase1.NewPathWithKbfs(`/private/jdoe/a/ab`)
+	writeRemoteDir(ctx, t, sfs, pathAppend(pathaa, `aaa`))
+	pathaaa := keybase1.NewPathWithKbfs(`/private/jdoe/a/aa/aaa`)
+	writeRemoteFile(ctx, t, sfs, pathAppend(pathaaa, `test1.txt`), []byte(`foo`))
+	writeRemoteFile(ctx, t, sfs, pathAppend(pathab, `test2.txt`), []byte(`foo`))
+	writeRemoteFile(ctx, t, sfs, pathAppend(patha, `.testfile`), []byte(`foo`))
 
 	opid, err := sfs.SimpleFSMakeOpid(ctx)
 	require.NoError(t, err)
@@ -290,19 +294,21 @@ func TestListRecursive(t *testing.T) {
 	require.NoError(t, err)
 	listResult, err := sfs.SimpleFSReadList(ctx, opid)
 	require.NoError(t, err)
-	require.Len(t, listResult.Entries, 6)
+	expected := []string{
+		"a",
+		"a/.testfile",
+		"a/aa",
+		"a/aa/aaa",
+		"a/aa/aaa/test1.txt",
+		"a/ab",
+		"a/ab/test2.txt",
+	}
+	require.Len(t, listResult.Entries, len(expected))
 	sort.Slice(listResult.Entries, func(i, j int) bool {
 		return strings.Compare(listResult.Entries[i].Name,
 			listResult.Entries[j].Name) < 0
 	})
-	for i, e := range []string{
-		"a",
-		"a/.testfile",
-		"a/aa",
-		"a/aa/test1.txt",
-		"a/ab",
-		"a/ab/test2.txt",
-	} {
+	for i, e := range expected {
 		require.Equal(t, e, listResult.Entries[i].Name)
 	}
 
@@ -310,26 +316,28 @@ func TestListRecursive(t *testing.T) {
 	require.NoError(t, err)
 	err = sfs.SimpleFSListRecursiveToDepth(ctx, keybase1.SimpleFSListRecursiveToDepthArg{
 		OpID:  opid,
-		Path:  pathJDoe,
+		Path:  patha,
 		Depth: 1,
 	})
 	require.NoError(t, err)
-	checkPendingOp(ctx, t, sfs, opid, keybase1.AsyncOps_LIST_RECURSIVE_TO_DEPTH, pathJDoe, keybase1.Path{}, true)
+	checkPendingOp(ctx, t, sfs, opid, keybase1.AsyncOps_LIST_RECURSIVE_TO_DEPTH, patha, keybase1.Path{}, true)
 	err = sfs.SimpleFSWait(ctx, opid)
 	require.NoError(t, err)
 	listResult, err = sfs.SimpleFSReadList(ctx, opid)
 	require.NoError(t, err)
-	require.Len(t, listResult.Entries, 4)
+	expected = []string{
+		".testfile",
+		"aa",
+		"aa/test1.txt",
+		"ab",
+		"ab/test2.txt",
+	}
+	require.Len(t, listResult.Entries, len(expected))
 	sort.Slice(listResult.Entries, func(i, j int) bool {
 		return strings.Compare(listResult.Entries[i].Name,
 			listResult.Entries[j].Name) < 0
 	})
-	for i, e := range []string{
-		"a",
-		"a/.testfile",
-		"a/aa",
-		"a/ab",
-	} {
+	for i, e := range expected {
 		require.Equal(t, e, listResult.Entries[i].Name)
 	}
 }
