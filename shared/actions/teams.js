@@ -1185,10 +1185,6 @@ function _badgeAppForTeams(action: TeamsGen.BadgeAppForTeamsPayload, state: Type
     // we don't miss a notification we clear when we tab away
     const existingNewTeams = state.teams.getIn(['newTeams'], I.Set())
     const existingNewTeamRequests = state.teams.getIn(['newTeamRequests'], I.List())
-    if (!newTeams.equals(existingNewTeams) && newTeams.size > 0) {
-      // We have been added to a new team & we need to refresh the list
-      actions.push(Saga.put(TeamsGen.createGetTeams()))
-    }
 
     // getDetails for teams that have new access requests
     // Covers case where we have a badge appear on the requests
