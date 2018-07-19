@@ -9,12 +9,14 @@ import {
   compose,
   withStateHandlers,
   connect,
+  safeSubmit,
   type TypedState,
   type Dispatch,
 } from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
 
 const mapStateToProps = (state: TypedState) => ({
+  error: state.provision.error.stringValue(),
   waiting: !!state.waiting.get(Constants.waitingKey),
 })
 
@@ -33,6 +35,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   setDisplayName('QRScan'),
+  safeSubmit(['onSubmitTextCode'], ['error']),
   withStateHandlers({mountKey: 0}, {incrementMountKey: ({mountKey}) => () => ({mountKey: mountKey + 1})}),
   withProps(p => ({
     onOpenSettings: () => {
