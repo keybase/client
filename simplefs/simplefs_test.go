@@ -328,7 +328,7 @@ func TestListRecursive(t *testing.T) {
 	expected = []string{
 		".testfile",
 		"aa",
-		"aa/test1.txt",
+		"aa/aaa",
 		"ab",
 		"ab/test2.txt",
 	}
