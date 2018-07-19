@@ -128,10 +128,10 @@ func SetDeviceCloneState(m MetaContext, d DeviceCloneState) error {
 	return nil
 }
 
-func newDeviceCloneStateReader(m MetaContext) (DeviceCloneStateJSONFile, error) {
+func newDeviceCloneStateReader(m MetaContext) (*DeviceCloneStateJSONFile, error) {
 	f := DeviceCloneStateJSONFile{NewJSONFile(m.G(), m.G().Env.GetDeviceCloneStateFilename(), "device clone state")}
 	err := f.Load(false)
-	return f, err
+	return &f, err
 }
 
 func newDeviceCloneStateWriter(m MetaContext) (*DeviceCloneStateJSONFile, error) {

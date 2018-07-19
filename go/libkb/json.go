@@ -337,7 +337,7 @@ func (f *jsonFileTransaction) Commit() (err error) {
 
 type valueGetter func(*jsonw.Wrapper) (interface{}, error)
 
-func (f JSONFile) getValueAtPath(p string, getter valueGetter) (ret interface{}, isSet bool) {
+func (f *JSONFile) getValueAtPath(p string, getter valueGetter) (ret interface{}, isSet bool) {
 	var err error
 	ret, err = getter(f.jw.AtPath(p))
 	if err == nil {
@@ -358,15 +358,15 @@ func getInt(w *jsonw.Wrapper) (interface{}, error) {
 	return w.GetInt()
 }
 
-func (f JSONFile) GetFilename() string {
+func (f *JSONFile) GetFilename() string {
 	return f.filename
 }
 
-func (f JSONFile) GetInterfaceAtPath(p string) (i interface{}, err error) {
+func (f *JSONFile) GetInterfaceAtPath(p string) (i interface{}, err error) {
 	return f.jw.AtPath(p).GetInterface()
 }
 
-func (f JSONFile) GetStringAtPath(p string) (ret string, isSet bool) {
+func (f *JSONFile) GetStringAtPath(p string) (ret string, isSet bool) {
 	i, isSet := f.getValueAtPath(p, getString)
 	if isSet {
 		ret = i.(string)
@@ -374,7 +374,7 @@ func (f JSONFile) GetStringAtPath(p string) (ret string, isSet bool) {
 	return ret, isSet
 }
 
-func (f JSONFile) GetBoolAtPath(p string) (ret bool, isSet bool) {
+func (f *JSONFile) GetBoolAtPath(p string) (ret bool, isSet bool) {
 	i, isSet := f.getValueAtPath(p, getBool)
 	if isSet {
 		ret = i.(bool)
@@ -382,7 +382,7 @@ func (f JSONFile) GetBoolAtPath(p string) (ret bool, isSet bool) {
 	return ret, isSet
 }
 
-func (f JSONFile) GetIntAtPath(p string) (ret int, isSet bool) {
+func (f *JSONFile) GetIntAtPath(p string) (ret int, isSet bool) {
 	i, isSet := f.getValueAtPath(p, getInt)
 	if isSet {
 		ret = i.(int)
@@ -390,7 +390,7 @@ func (f JSONFile) GetIntAtPath(p string) (ret int, isSet bool) {
 	return ret, isSet
 }
 
-func (f JSONFile) GetNullAtPath(p string) (isSet bool) {
+func (f *JSONFile) GetNullAtPath(p string) (isSet bool) {
 	w := f.jw.AtPath(p)
 	isSet = w.IsNil() && w.Error() == nil
 	return isSet
