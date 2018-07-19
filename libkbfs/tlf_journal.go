@@ -301,6 +301,7 @@ type tlfJournal struct {
 	bytesPerSecEstimate ewma.MovingAverage
 	currBytesFlushing   int64
 	currFlushStarted    time.Time
+	needInfoFile        bool
 
 	bwDelegate tlfJournalBWDelegate
 }
@@ -1442,6 +1443,9 @@ func (j *tlfJournal) doOnMDFlushAndRemoveFlushedMDEntry(ctx context.Context,
 		if err != nil {
 			return err
 		}
+		// Remember to make the info file again if more data comes
+		// into this journal.
+		j.needInfoFile = true
 	}
 
 	return nil
@@ -2001,6 +2005,20 @@ func (e *ErrDiskLimitTimeout) Error() string {
 		e.availableBytes, e.availableFiles, e.err)
 }
 
+func (j *tlfJournal) checkInfoFileLocked() error {
+	if !j.needInfoFile {
+		return nil
+	}
+
+	err := writeTLFJournalInfoFile(
+		j.dir, j.uid, j.key, j.tlfID, j.chargedTo)
+	if err != nil {
+		return err
+	}
+	j.needInfoFile = false
+	return nil
+}
+
 func (j *tlfJournal) putBlockData(
 	ctx context.Context, id kbfsblock.ID, blockCtx kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
@@ -2044,6 +2062,19 @@ func (j *tlfJournal) putBlockData(
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
 		return err
+	}
+
+	if err := j.checkInfoFileLocked(); err != nil {
+		return err
+	}
+
+	if j.needInfoFile {
+		err := writeTLFJournalInfoFile(
+			j.dir, j.uid, j.key, j.tlfID, j.chargedTo)
+		if err != nil {
+			return err
+		}
+		j.needInfoFile = false
 	}
 
 	storedBytesBefore := j.blockJournal.getStoredBytes()
@@ -2096,6 +2127,10 @@ func (j *tlfJournal) addBlockReference(
 		return err
 	}
 
+	if err := j.checkInfoFileLocked(); err != nil {
+		return err
+	}
+
 	err := j.blockJournal.addReference(ctx, id, context)
 	if err != nil {
 		return err
@@ -2127,6 +2162,10 @@ func (j *tlfJournal) archiveBlockReferences(
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
+		return err
+	}
+
+	if err := j.checkInfoFileLocked(); err != nil {
 		return err
 	}
 
@@ -2221,6 +2260,10 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
+		return ImmutableRootMetadata{}, false, err
+	}
+
+	if err := j.checkInfoFileLocked(); err != nil {
 		return ImmutableRootMetadata{}, false, err
 	}
 
@@ -2346,6 +2389,10 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid kbfsmd.BranchID) error {
 		return err
 	}
 
+	if err := j.checkInfoFileLocked(); err != nil {
+		return err
+	}
+
 	err := j.mdJournal.clear(ctx, bid)
 	if err != nil {
 		return err
@@ -2363,6 +2410,10 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
+		return ImmutableRootMetadata{}, false, err
+	}
+
+	if err := j.checkInfoFileLocked(); err != nil {
 		return ImmutableRootMetadata{}, false, err
 	}
 
