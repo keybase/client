@@ -1,6 +1,7 @@
 // @flow
 /* eslint-env jest */
 import * as Types from '../../constants/types/provision'
+import * as DeviceTypes from '../../constants/types/devices'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/provision'
 import * as Tabs from '../../constants/tabs'
@@ -90,6 +91,7 @@ describe('text code', () => {
     // only submit once
     expect(() => _testing.submitTextCode(nextState)).toThrow()
   })
+
   it('error path', () => {
     const m = _testing.makeProvisioningManager(false)
     const callMap = m.getIncomingCallMap()
@@ -159,17 +161,59 @@ describe('device name', () => {
     // only submit once
     expect(() => _testing.submitDeviceName(submitState)).toThrow()
   })
-
-  // 'keybase.1.provisionUi.chooseDevice': this.chooseDeviceHandler,
-  // 'keybase.1.provisionUi.chooseGPGMethod': this.chooseGPGMethodHandler,
-  // 'keybase.1.secretUi.getPassphrase': this.getPassphraseHandler,
-  // it('fills inviteCode, shows invite screen', () => {
-  // const action = SignupGen.createRequestedAutoInvite({inviteCode: 'hello world'})
-  // const nextState = makeTypedState(reducer(state, action))
-  // expect(nextState.signup.inviteCode).toEqual(action.payload.inviteCode)
-  // expect(_testing.showInviteScreen()).toEqual(navigateTo([loginTab, 'signup', 'inviteCode']))
-  // })
 })
+
+describe('other device', () => {
+  // let m
+  // beforeEach(() => {
+  // return initializeCityDatabase();
+  // });
+
+  it('happy path', () => {
+    const m = _testing.makeProvisioningManager(false)
+    const callMap = m.getIncomingCallMap()
+    const state = Constants.makeState()
+    const call = callMap['keybase.1.provisionUi.chooseDevice']
+    if (!call) {
+      throw new Error('No call')
+    }
+    const r = {error: jest.fn(), result: jest.fn()}
+    const rpcDevices = [
+      ({deviceID: '0', name: 'mobile', type: 'mobile'}: any),
+      ({deviceID: '1', name: 'desktop', type: 'desktop'}: any),
+      ({deviceID: '2', name: 'backup', type: 'backup'}: any),
+    ]
+    const devices = rpcDevices.map(Constants.rpcDeviceToDevice)
+
+    const put: any = call(({devices: rpcDevices}: any), r, makeTypedState(state))
+    if (!put || !put.PUT) {
+      throw new Error('no put')
+    }
+    const action = put.PUT.action
+    expect(action.payload.devices).toEqual(devices)
+    const nextState = makeTypedState(reducer(state, action))
+    expect(nextState.provision.devices.toArray()).toEqual(devices)
+    expect(nextState.provision.error.stringValue()).toEqual('')
+
+    const submitAction = ProvisionGen.createSubmitDeviceSelect({name: 'mobile'})
+    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+    _testing.submitDeviceSelect(submitState)
+    expect(r.result).toHaveBeenCalledWith('0')
+    expect(r.error).not.toHaveBeenCalled()
+    // only submit once
+    expect(() => _testing.submitDeviceSelect(submitState)).toThrow()
+  })
+})
+
+// 'keybase.1.provisionUi.': this.chooseDeviceHandler,
+// 'keybase.1.provisionUi.chooseGPGMethod': this.chooseGPGMethodHandler,
+// 'keybase.1.secretUi.getPassphrase': this.getPassphraseHandler,
+// it('fills inviteCode, shows invite screen', () => {
+// const action = SignupGen.createRequestedAutoInvite({inviteCode: 'hello world'})
+// const nextState = makeTypedState(reducer(state, action))
+// expect(nextState.signup.inviteCode).toEqual(action.payload.inviteCode)
+// expect(_testing.showInviteScreen()).toEqual(navigateTo([loginTab, 'signup', 'inviteCode']))
+// })
 
 describe('provisioningManagerAddNewDevice', () => {})
 
