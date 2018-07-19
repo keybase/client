@@ -243,6 +243,10 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	var s3params chat1.S3Params
 	paramsCh := make(chan struct{})
 	g, bgctx := errgroup.WithContext(context.Background())
+	bgctx = libkb.CopyTagsToBackground(bgctx)
+	if os.Getenv("CHAT_S3_FAKE") == "1" {
+		bgctx = s3.NewFakeS3Context(bgctx)
+	}
 	g.Go(func() (err error) {
 		u.Debug(bgctx, "upload: fetching s3 params")
 		u.G().ActivityNotifier.AttachmentUploadStart(bgctx, uid, convID, outboxID)

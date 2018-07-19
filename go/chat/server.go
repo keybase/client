@@ -20,7 +20,6 @@ import (
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -1481,9 +1480,7 @@ func (h *Server) PostFileAttachmentLocalNonblock(ctx context.Context,
 	ctx = Context(ctx, h.G(), arg.Arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentLocalNonblock")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	if os.Getenv("CHAT_S3_FAKE") == "1" {
-		ctx = s3.NewFakeS3Context(ctx)
-	}
+
 	_, msg, err := h.initiateAttachmentUpload(ctx, arg.Arg)
 	if err != nil {
 		return res, err
@@ -1503,9 +1500,6 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 	ctx = Context(ctx, h.G(), arg.Arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentLocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	if os.Getenv("CHAT_S3_FAKE") == "1" {
-		ctx = s3.NewFakeS3Context(ctx)
-	}
 
 	uresChan, msg, err := h.initiateAttachmentUpload(ctx, arg.Arg)
 	// Wait for upload
