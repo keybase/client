@@ -1348,18 +1348,80 @@ func TestBatchAddMembers(t *testing.T) {
 	rob := tt.addPuklessUser("rob")
 	tt.logUserNames()
 
-	teamName := alice.createTeam()
+	teamID, teamName := alice.createTeam2()
 
 	assertions := []string{
 		bob.username,
 		john.username,
 		rob.username,
 		bob.username + "@rooter",
-		rob.username + "@rooter",
+		"foodle@twitter",
 	}
-	role := keybase1.TeamRole_WRITER
-	res, err := teams.AddMembers(context.Background(), alice.tc.G, teamName, assertions, role)
-	_ = res
+	expectInvite := []bool{false, true, true, true, true}
+	expectUsername := []bool{true, true, true, false, false}
+	role := keybase1.TeamRole_OWNER
+	res, err := teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), assertions, role)
+	require.Error(t, err, "can't invite assertions as owners")
+	require.IsType(t, teams.AttemptedInviteSocialOwnerError{}, err)
+	require.Nil(t, res)
 
+	team := alice.loadTeamByID(teamID, true /* admin */)
+	members, err := team.Members()
 	require.NoError(t, err)
+	require.Len(t, members.Owners, 1)
+	require.Len(t, members.Admins, 0)
+	require.Len(t, members.Writers, 0)
+	require.Len(t, members.Readers, 0)
+
+	role = keybase1.TeamRole_ADMIN
+	res, err = teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), assertions, role)
+	require.NoError(t, err)
+	require.Len(t, res, len(assertions))
+	for i, r := range res {
+		require.Equal(t, expectInvite[i], r.Invite, "invite %v", i)
+		if expectUsername[i] {
+			require.Equal(t, assertions[i], r.Username.String(), "expected username %v", i)
+		} else {
+			require.Equal(t, "", r.Username.String(), "expected no username %v", i)
+		}
+	}
+
+	team = alice.loadTeamByID(teamID, true /* admin */)
+	members, err = team.Members()
+	require.NoError(t, err)
+	require.Len(t, members.Owners, 1)
+	require.Equal(t, alice.userVersion(), members.Owners[0])
+	require.Len(t, members.Admins, 1)
+	require.Equal(t, bob.userVersion(), members.Admins[0])
+	require.Len(t, members.Writers, 0)
+	require.Len(t, members.Readers, 0)
+
+	invites := team.GetActiveAndObsoleteInvites()
+	t.Logf("invites: %s", spew.Sdump(invites))
+	sbsCount := 0
+	expectInvites := make(map[string]struct{})
+	expectInvites[john.userVersion().String()] = struct{}{}
+	expectInvites[rob.userVersion().String()] = struct{}{}
+	for x, invite := range invites {
+		t.Logf("invites[%v]", x)
+		require.Equal(t, invite.Role, role)
+		switch invite.Type.C__ {
+		case keybase1.TeamInviteCategory_SBS:
+			switch invite.Type.Sbs() {
+			case "twitter":
+				require.Equal(t, "foodle", string(invite.Name))
+			case "rooter":
+				require.Equal(t, bob.username, string(invite.Name))
+			default:
+				require.FailNowf(t, "unexpected invite service", "%v", spew.Sdump(invite))
+			}
+			sbsCount++
+		case keybase1.TeamInviteCategory_KEYBASE:
+			require.Contains(t, expectInvites, string(invite.Name))
+			delete(expectInvites, string(invite.Name))
+		default:
+			require.FailNowf(t, "unexpected invite type", "%v", spew.Sdump(invite))
+		}
+	}
+	require.Equal(t, 2, sbsCount, "sbs count")
 }

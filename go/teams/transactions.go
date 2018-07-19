@@ -294,10 +294,9 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 	if !hasPUK {
 		tx.createKeybaseInvite(uv, role)
 		return true, nil
-	} else {
-		tx.addMember(uv, role)
-		return false, nil
 	}
+	tx.addMember(uv, role)
+	return false, nil
 }
 
 func (tx *AddMemberTx) completeAllKeybaseInvitesForUID(uv keybase1.UserVersion) error {
@@ -381,7 +380,7 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 
 // AddMemberByAssertion adds an assertion to the team.
 // Does not attempt to resolve the assertion.
-// Returns (uv, username) which can both be zero-valued if the assertion is not a keybase user.
+// The return values (uv, username) can both be zero-valued if the assertion is not a keybase user.
 func (tx *AddMemberTx) AddMemberByAssertion(ctx context.Context, assertion string,
 	role keybase1.TeamRole) (username libkb.NormalizedUsername, uv keybase1.UserVersion, invite bool, err error) {
 	team := tx.team
@@ -398,13 +397,13 @@ func (tx *AddMemberTx) AddMemberByAssertion(ctx context.Context, assertion strin
 		invite, err := tx.addMemberByUPKV2(ctx, upak.Current, role)
 		return libkb.NewNormalizedUsername(upak.Current.Username), upak.Current.ToUserVersion(), invite, err
 	}
-	typ, name, err := team.parseSocial(assertion)
+	typ, name, err := parseSocialAssertion(libkb.NewMetaContext(ctx, team.G()), assertion)
 	if err != nil {
 		return "", uv, false, err
 	}
 	g.Log.Debug("team %s invite sbs member %s/%s", team.Name(), typ, name)
 	if role.IsOrAbove(keybase1.TeamRole_OWNER) {
-		return "", uv, false, fmt.Errorf("'%v' doesn't have a Keybase account yet, so you can't add them as an owner; you can add them as reader or writer.", assertion)
+		return "", uv, false, NewAttemptedInviteSocialOwnerError(assertion)
 	}
 	tx.createInvite(typ, keybase1.TeamInviteName(name), role)
 	return "", uv, true, nil

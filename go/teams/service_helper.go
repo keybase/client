@@ -269,20 +269,18 @@ type AddMembersRes struct {
 }
 
 // AddMembers adds a bunch of people to a team. Assertions can contain usernames or social assertions.
-// Always returns a list where len(res) = len(assertions) and in corresponding order.
-// If err->nil, then all additions succeeded.
-// Adds the happy path members in a transaction and then does the stragglers one by one.
+// Adds them all in a transaction so it's all or nothing.
+// On success, returns a list where len(res)=len(assertions) and in corresponding order.
 func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, assertions []string, role keybase1.TeamRole) (res []AddMembersRes, err error) {
 	tracer := g.CTimeTracer(ctx, "team.AddMembers", true)
 	defer tracer.Finish()
-	failedRes := make([]AddMembersRes, len(assertions))
 	teamName, err := keybase1.TeamNameFromString(teamname)
 	if err != nil {
-		return failedRes, err
+		return nil, err
 	}
 	teamID, err := ResolveNameToID(ctx, g, teamName)
 	if err != nil {
-		return failedRes, err
+		return nil, err
 	}
 
 	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
@@ -301,7 +299,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, as
 		for i, assertion := range assertions {
 			username, uv, invite, err := tx.AddMemberByAssertion(ctx, assertion, role)
 			if err != nil {
-				if strings.Contains(err.Error(), "doesn't have a Keybase account yet") {
+				if _, ok := err.(AttemptedInviteSocialOwnerError); ok {
 					return err
 				}
 				return fmt.Errorf("Error adding user '%v': %v", assertion, err)
@@ -336,7 +334,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, as
 		return tx.Post(libkb.NewMetaContext(ctx, g))
 	})
 	if err != nil {
-		return failedRes, err
+		return nil, err
 	}
 	return res, nil
 }
@@ -1218,7 +1216,7 @@ func removeMemberInvite(ctx context.Context, g *libkb.GlobalContext, team *Team,
 		lookingFor = uv.TeamInviteName()
 		typ = "keybase"
 	} else {
-		ptyp, name, err := team.parseSocial(username)
+		ptyp, name, err := parseSocialAssertion(libkb.NewMetaContext(ctx, g), username)
 		if err != nil {
 			return err
 		}

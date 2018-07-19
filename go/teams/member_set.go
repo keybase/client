@@ -134,6 +134,19 @@ func loadUPAK2(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, fo
 	return upak, err
 }
 
+func parseSocialAssertion(m libkb.MetaContext, username string) (typ string, name string, err error) {
+	assertion, err := libkb.ParseAssertionURL(m.G().MakeAssertionContext(), username, false)
+	if err != nil {
+		return "", "", err
+	}
+	if assertion.IsKeybase() {
+		return "", "", fmt.Errorf("invalid user assertion %q, keybase assertion should be handled earlier", username)
+	}
+	typ, name = assertion.ToKeyValuePair()
+
+	return typ, name, nil
+}
+
 func loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, forcePoll bool) (mem member, nun libkb.NormalizedUsername, err error) {
 	defer g.CTrace(ctx, fmt.Sprintf("loadMember(%s)", uv), func() error { return err })()
 

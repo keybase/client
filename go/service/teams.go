@@ -254,26 +254,31 @@ func (h *TeamsHandler) TeamAddMembers(ctx context.Context, arg keybase1.TeamAddM
 		return err
 	}
 	res, err := teams.AddMembers(ctx, h.G().ExternalG(), arg.Name, arg.Assertions, arg.Role)
-	// Check the error after spawning a goroutine to send chat notifications.
-	savedErr := err
+	if err != nil {
+		return err
+	}
 	if arg.SendChatNotification {
 		go func() {
 			h.G().Log.CDebugf(ctx, "sending team welcome messages")
 			ctx := libkb.WithLogTag(context.Background(), "BG")
-			for _, res := range res {
+			for i, res := range res {
+				h.G().Log.CDebugf(ctx, "team welcome message for i:%v assertion:%v username:%v invite:%v",
+					i, arg.Assertions[i], res.Username, res.Invite)
 				if !res.Invite && !res.Username.IsNil() {
 					err := teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), arg.Name, res.Username.String())
 					if err != nil {
-						h.G().Log.CDebugf(ctx, "send team welcome message () err: %v", res.Username, err)
+						h.G().Log.CDebugf(ctx, "send team welcome message [%v] err: %v", i, err)
 					} else {
-						h.G().Log.CDebugf(ctx, "send team welcome message () success", res.Username, err)
+						h.G().Log.CDebugf(ctx, "send team welcome message [%v] success", i)
 					}
+				} else {
+					h.G().Log.CDebugf(ctx, "send team welcome message [%v] skipped", i)
 				}
 			}
 			h.G().Log.CDebugf(ctx, "done sending team welcome messages")
 		}()
 	}
-	return savedErr
+	return nil
 }
 
 func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRemoveMemberArg) (err error) {
