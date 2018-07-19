@@ -17,12 +17,11 @@ type OwnProps = {
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const filter = state.chat2.inboxFilter
-  const isLoading = !state.chat2.loadingMap.isEmpty()
   const _selectedConversationIDKey = Constants.getSelectedConversation(state)
   return {
     _selectedConversationIDKey,
     filter,
-    isLoading,
+    isLoading: Constants.anyChatWaitingKeys(state),
   }
 }
 

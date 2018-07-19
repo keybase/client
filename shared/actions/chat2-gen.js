@@ -19,7 +19,6 @@ export const attachmentUploading = 'chat2:attachmentUploading'
 export const attachmentsUpload = 'chat2:attachmentsUpload'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
-export const clearLoading = 'chat2:clearLoading'
 export const createConversation = 'chat2:createConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const handleSeeingExplodingMessages = 'chat2:handleSeeingExplodingMessages'
@@ -70,7 +69,6 @@ export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingMessagesNew = 'chat2:setExplodingMessagesNew'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
 export const setInboxFilter = 'chat2:setInboxFilter'
-export const setLoading = 'chat2:setLoading'
 export const setPendingConversationExistingConversationIDKey = 'chat2:setPendingConversationExistingConversationIDKey'
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setPendingMode = 'chat2:setPendingMode'
@@ -121,7 +119,6 @@ type _BlockConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   reportUser: boolean,
 |}>
-type _ClearLoadingPayload = $ReadOnly<{|key: string|}>
 type _CreateConversationPayload = $ReadOnly<{|participants: Array<string>|}>
 type _DesktopNotificationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -303,10 +300,6 @@ type _SetExplodingModeLockPayload = $ReadOnly<{|
   unset?: boolean,
 |}>
 type _SetInboxFilterPayload = $ReadOnly<{|filter: string|}>
-type _SetLoadingPayload = $ReadOnly<{|
-  key: string,
-  loading: boolean,
-|}>
 type _SetPendingConversationExistingConversationIDKeyPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _SetPendingConversationUsersPayload = $ReadOnly<{|
   users: Array<string>,
@@ -407,7 +400,6 @@ export const createAttachmentUploading = (payload: _AttachmentUploadingPayload) 
 export const createAttachmentsUpload = (payload: _AttachmentsUploadPayload) => ({error: false, payload, type: attachmentsUpload})
 export const createBadgesUpdated = (payload: _BadgesUpdatedPayload) => ({error: false, payload, type: badgesUpdated})
 export const createBlockConversation = (payload: _BlockConversationPayload) => ({error: false, payload, type: blockConversation})
-export const createClearLoading = (payload: _ClearLoadingPayload) => ({error: false, payload, type: clearLoading})
 export const createDesktopNotification = (payload: _DesktopNotificationPayload) => ({error: false, payload, type: desktopNotification})
 export const createInboxRefresh = (payload: _InboxRefreshPayload) => ({error: false, payload, type: inboxRefresh})
 export const createJoinConversation = (payload: _JoinConversationPayload) => ({error: false, payload, type: joinConversation})
@@ -449,7 +441,6 @@ export const createSelectConversation = (payload: _SelectConversationPayload) =>
 export const createSendTyping = (payload: _SendTypingPayload) => ({error: false, payload, type: sendTyping})
 export const createSetConversationOffline = (payload: _SetConversationOfflinePayload) => ({error: false, payload, type: setConversationOffline})
 export const createSetInboxFilter = (payload: _SetInboxFilterPayload) => ({error: false, payload, type: setInboxFilter})
-export const createSetLoading = (payload: _SetLoadingPayload) => ({error: false, payload, type: setLoading})
 export const createSetPendingConversationUsers = (payload: _SetPendingConversationUsersPayload) => ({error: false, payload, type: setPendingConversationUsers})
 export const createSetPendingMode = (payload: _SetPendingModePayload) => ({error: false, payload, type: setPendingMode})
 export const createSetupChatHandlers = (payload: _SetupChatHandlersPayload) => ({error: false, payload, type: setupChatHandlers})
@@ -466,7 +457,6 @@ export type AttachmentUploadingPayload = $Call<typeof createAttachmentUploading,
 export type AttachmentsUploadPayload = $Call<typeof createAttachmentsUpload, _AttachmentsUploadPayload>
 export type BadgesUpdatedPayload = $Call<typeof createBadgesUpdated, _BadgesUpdatedPayload>
 export type BlockConversationPayload = $Call<typeof createBlockConversation, _BlockConversationPayload>
-export type ClearLoadingPayload = $Call<typeof createClearLoading, _ClearLoadingPayload>
 export type CreateConversationPayload = $Call<typeof createCreateConversation, _CreateConversationPayload>
 export type DesktopNotificationPayload = $Call<typeof createDesktopNotification, _DesktopNotificationPayload>
 export type HandleSeeingExplodingMessagesPayload = $Call<typeof createHandleSeeingExplodingMessages, _HandleSeeingExplodingMessagesPayload>
@@ -517,7 +507,6 @@ export type SetConversationOfflinePayload = $Call<typeof createSetConversationOf
 export type SetExplodingMessagesNewPayload = $Call<typeof createSetExplodingMessagesNew, _SetExplodingMessagesNewPayload>
 export type SetExplodingModeLockPayload = $Call<typeof createSetExplodingModeLock, _SetExplodingModeLockPayload>
 export type SetInboxFilterPayload = $Call<typeof createSetInboxFilter, _SetInboxFilterPayload>
-export type SetLoadingPayload = $Call<typeof createSetLoading, _SetLoadingPayload>
 export type SetPendingConversationExistingConversationIDKeyPayload = $Call<typeof createSetPendingConversationExistingConversationIDKey, _SetPendingConversationExistingConversationIDKeyPayload>
 export type SetPendingConversationUsersPayload = $Call<typeof createSetPendingConversationUsers, _SetPendingConversationUsersPayload>
 export type SetPendingModePayload = $Call<typeof createSetPendingMode, _SetPendingModePayload>
@@ -542,7 +531,6 @@ export type Actions =
   | AttachmentsUploadPayload
   | BadgesUpdatedPayload
   | BlockConversationPayload
-  | ClearLoadingPayload
   | CreateConversationPayload
   | DesktopNotificationPayload
   | HandleSeeingExplodingMessagesPayload
@@ -593,7 +581,6 @@ export type Actions =
   | SetExplodingMessagesNewPayload
   | SetExplodingModeLockPayload
   | SetInboxFilterPayload
-  | SetLoadingPayload
   | SetPendingConversationExistingConversationIDKeyPayload
   | SetPendingConversationUsersPayload
   | SetPendingModePayload

@@ -310,21 +310,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
   switch (action.type) {
     case Chat2Gen.resetStore:
       return initialState
-    case Chat2Gen.clearLoading:
-      return state.update('loadingMap', loading => loading.delete(action.payload.key))
-    case Chat2Gen.setLoading:
-      return state.update('loadingMap', loading => {
-        const count = loading.get(action.payload.key, 0) + (action.payload.loading ? 1 : -1)
-        if (count > 0) {
-          return loading.set(action.payload.key, count)
-        } else if (count === 0) {
-          return loading.delete(action.payload.key)
-        } else {
-          console.log('Setting negative chat loading key', action.payload.key, count)
-          // This should hopefully never happen but some flows are flakey so let's log it but not throw an error
-          return loading.set(action.payload.key, count)
-        }
-      })
     // fallthrough actually select it
     case Chat2Gen.selectConversation:
       // ignore non-changing

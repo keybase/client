@@ -62,8 +62,6 @@ const actionTransformMap = {
   [ConfigGen.changedFocus]: nullTransform,
   [Chat2Gen.updateTypers]: nullTransform,
 
-  [Chat2Gen.setLoading]: fullOutput,
-  [Chat2Gen.clearLoading]: fullOutput,
   [Chat2Gen.selectConversation]: fullOutput,
   [Chat2Gen.metaNeedsUpdating]: fullOutput,
   [Chat2Gen.updateMoreToLoad]: fullOutput,
@@ -100,6 +98,8 @@ const actionTransformMap = {
 
   [WaitingGen.incrementWaiting]: fullOutput,
   [WaitingGen.decrementWaiting]: fullOutput,
+  [WaitingGen.changeWaiting]: fullOutput,
+  [WaitingGen.clearWaiting]: fullOutput,
 }
 
 const transformActionForLog = (action: any, state: TypedState) =>
