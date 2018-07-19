@@ -422,6 +422,27 @@ func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
 	return apiRes.Result, err
 }
 
+type pendingPaymentsResult struct {
+	libkb.AppStatusEmbed
+	Result []stellar1.PaymentSummary `json:"res"`
+}
+
+func PendingPayments(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID, limit int) ([]stellar1.PaymentSummary, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/pendingpayments",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"account_id": libkb.S{Val: accountID.String()},
+			"limit":      libkb.I{Val: limit},
+		},
+		NetContext: ctx,
+	}
+
+	var apiRes pendingPaymentsResult
+	err := g.API.GetDecode(apiArg, &apiRes)
+	return apiRes.Result, err
+}
+
 type paymentDetailResult struct {
 	libkb.AppStatusEmbed
 	Result stellar1.PaymentDetails `json:"res"`
@@ -572,4 +593,44 @@ func RequestDetails(ctx context.Context, g *libkb.GlobalContext, requestID stell
 		return ret, err
 	}
 	return res.Request, nil
+}
+
+func CancelRequest(ctx context.Context, g *libkb.GlobalContext, requestID stellar1.KeybaseRequestID) (err error) {
+	payload := make(libkb.JSONPayload)
+	payload["id"] = requestID
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/cancelrequest",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+		NetContext:  ctx,
+	}
+	var res libkb.AppStatusEmbed
+	return g.API.PostDecode(apiArg, &res)
+}
+
+type lookupUnverifiedResult struct {
+	libkb.AppStatusEmbed
+	Users []struct {
+		UID         keybase1.UID   `json:"uid"`
+		EldestSeqno keybase1.Seqno `json:"eldest_seqno"`
+	} `json:"users"`
+}
+
+func LookupUnverified(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (ret []keybase1.UserVersion, err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/lookup",
+		SessionType: libkb.APISessionTypeOPTIONAL,
+		Args: libkb.HTTPArgs{
+			"account_id": libkb.S{Val: accountID.String()},
+		},
+		MetaContext: libkb.NewMetaContext(ctx, g),
+	}
+	var res lookupUnverifiedResult
+	if err := g.API.GetDecode(apiArg, &res); err != nil {
+		return ret, err
+	}
+	for _, user := range res.Users {
+		ret = append(ret, keybase1.NewUserVersion(user.UID, user.EldestSeqno))
+	}
+	return ret, nil
 }

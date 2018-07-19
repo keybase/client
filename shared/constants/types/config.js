@@ -37,6 +37,7 @@ export type _State = {
   initialState: ?InitialState,
   kbfsPath: string,
   loggedIn: boolean,
+  notifySound: boolean,
   openAtLogin: boolean,
   menubarWindowID: number,
   pushLoaded: boolean,

@@ -139,6 +139,8 @@ protocol remote {
   }
   PaymentsPage recentPayments(keybase1.UserVersion caller, AccountID accountID, union { null, PageCursor } cursor, int limit);
 
+  array<PaymentSummary> pendingPayments(keybase1.UserVersion caller, AccountID accountID, int limit);
+
   // txID can be either a keybase or stellar transaction ID.
   PaymentDetails paymentDetails(keybase1.UserVersion caller, string txID);
 
@@ -197,8 +199,10 @@ protocol remote {
 
     // Payment ID if funded, empty if not funded.
     KeybaseTransactionID fundingKbTxID;
+    RequestStatus status;
   }
   RequestDetails requestDetails(keybase1.UserVersion caller, KeybaseRequestID reqID);
+  void cancelRequest(keybase1.UserVersion caller, KeybaseRequestID reqID);
 
   string ping();
 }

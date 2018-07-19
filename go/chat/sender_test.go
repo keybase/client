@@ -1007,6 +1007,11 @@ func TestKBFSCryptKeysBit(t *testing.T) {
 func TestPrevPointerAddition(t *testing.T) {
 	mt := chat1.ConversationMembersType_TEAM
 	runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
+		if ephemeralLifetime == nil {
+			t.Logf("ephemeral stage: %v", ephemeralLifetime)
+		} else {
+			t.Logf("ephemeral stage: %v", *ephemeralLifetime)
+		}
 		ctx, world, ri2, _, blockingSender, _ := setupTest(t, 1)
 		defer world.Cleanup()
 
@@ -1043,14 +1048,8 @@ func TestPrevPointerAddition(t *testing.T) {
 		if ephemeralLifetime != nil {
 			t.Logf("expiry all ephemeral messages")
 			world.Fc.Advance(time.Second*time.Duration(*ephemeralLifetime) + chat1.ShowExplosionLifetime)
-			// Mock out server call for new messages
-			ri.GetThreadRemoteFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, arg chat1.GetThreadRemoteArg) (chat1.GetThreadRemoteRes, error) {
-				return chat1.GetThreadRemoteRes{
-					Thread: chat1.ThreadViewBoxed{
-						Pagination: &chat1.Pagination{},
-					},
-				}, nil
-			}
+			// Mock out pulling messages to return no messages
+			blockingSender.(*BlockingSender).G().ConvSource.(*HybridConversationSource).blackoutPullForTesting = true
 			// Prepare a regular message and make sure it gets prev pointers
 			boxed, pendingAssetDeletes, _, _, _, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
 				ClientHeader: chat1.MessageClientHeader{
@@ -1068,7 +1067,7 @@ func TestPrevPointerAddition(t *testing.T) {
 			// server not returning results, we give up and don't attach any
 			// prevs.
 			require.Empty(t, boxed.ClientHeader.Prev, "empty prev pointers")
-			ri.GetThreadRemoteFunc = nil
+			blockingSender.(*BlockingSender).G().ConvSource.(*HybridConversationSource).blackoutPullForTesting = false
 		}
 
 		// Nuke the body cache

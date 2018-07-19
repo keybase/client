@@ -263,6 +263,13 @@
           "name": "pgpKeys"
         },
         {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "stellarAccountID"
+        },
+        {
           "type": {
             "type": "map",
             "values": "RemoteTrack",

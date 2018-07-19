@@ -115,21 +115,24 @@ func decode(data []byte, res interface{}) error {
 
 // SimpleResultCollector aggregates all results in a basic way. It is not thread safe.
 type SimpleResultCollector struct {
-	res    []chat1.MessageUnboxed
-	target int
+	res         []chat1.MessageUnboxed
+	target, cur int
 }
 
 var _ ResultCollector = (*SimpleResultCollector)(nil)
 
 func (s *SimpleResultCollector) Push(msg chat1.MessageUnboxed) {
 	s.res = append(s.res, msg)
+	if !msg.IsValidDeleted() {
+		s.cur++
+	}
 }
 
 func (s *SimpleResultCollector) Done() bool {
 	if s.target < 0 {
 		return false
 	}
-	return len(s.res) >= s.target
+	return s.cur >= s.target
 }
 
 func (s *SimpleResultCollector) Result() []chat1.MessageUnboxed {
@@ -227,7 +230,7 @@ func NewTypedResultCollector(num int, typs []chat1.MessageType) *TypedResultColl
 
 func (t *TypedResultCollector) Push(msg chat1.MessageUnboxed) {
 	t.res = append(t.res, msg)
-	if t.typmap[msg.GetMessageType()] {
+	if !msg.IsValidDeleted() && t.typmap[msg.GetMessageType()] {
 		t.cur++
 	}
 }

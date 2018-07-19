@@ -67,6 +67,7 @@ protocol local {
     PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
     string statusDescription;       // "pending", "completed", "error"
     string statusDetail;
+    boolean showCancel;             // true if cancel is an option for this payment
     string amountDescription;       // "1,323.1234567 XLM"
     BalanceDelta delta;             // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
     string worth;                   // "$123.23"
@@ -92,6 +93,7 @@ protocol local {
   }
 
   PaymentsPageLocal getPaymentsLocal(int sessionID, AccountID accountID, union { null, PageCursor } cursor);
+  array<PaymentOrErrorLocal> getPendingPaymentsLocal(int sessionID, AccountID accountID);
 
   // Details of a payment.
   // Keep in sync with PaymentLocal.
@@ -102,6 +104,7 @@ protocol local {
     PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
     string statusDescription;       // "pending", "completed", "error"
     string statusDetail;
+    boolean showCancel;             // true if cancel is an option for this payment
     string amountDescription;       // "1,323.1234567 XLM"
     BalanceDelta delta;             // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
     string worth;                   // "$123.23"
@@ -301,8 +304,10 @@ protocol local {
     // Payment ID if funded, empty if not funded.
     boolean completed;
     KeybaseTransactionID fundingKbTxID;
+    RequestStatus status;
   }
   RequestDetailsLocal getRequestDetailsLocal(KeybaseRequestID reqID);
+  void cancelRequestLocal(KeybaseRequestID reqID);
 
   // -------------------------------------------------------
   // CLI protocol
@@ -384,6 +389,6 @@ protocol local {
   map<OutsideCurrencyCode, OutsideCurrencyDefinition> getAvailableLocalCurrencies();
   string formatLocalCurrencyString(string amount, OutsideCurrencyCode code);
 
-  void makeRequestCLILocal(string recipient, union { null, Asset } asset, 
+  KeybaseRequestID makeRequestCLILocal(string recipient, union { null, Asset } asset, 
     union { null, OutsideCurrencyCode } currency, string amount, string note);
 }
