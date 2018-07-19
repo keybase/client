@@ -43,6 +43,7 @@ li.keybase-reply form, form.keybase-reply {
 }
 
 .keybase-body {
+  font-weight:normal;
   margin: 24px;
   color: rgba(0, 0, 0, 0.75);
 }
@@ -111,6 +112,7 @@ img.keybase-icon {
 .keybase-reply textarea, .keybase-reply textarea:focus {
   width: 97%;
   font-size: 13px;
+  font-weight:normal;
   color: rgba(0, 0, 0, 0.75);
   padding: 0.5em;
   border-radius: 4px;
