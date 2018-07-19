@@ -27,8 +27,8 @@ const injectGaps = (Component, _children, gap, gapStart, gapEnd) => {
 
 class Box2 extends React.Component<Box2Props> {
   render() {
-    let directionStyle
     let horizontal = this.props.direction === 'horizontal' || this.props.direction === 'horizontalReverse'
+    let directionStyle
     switch (this.props.direction) {
       case 'horizontal':
         directionStyle = globalStyles.flexBoxRow
