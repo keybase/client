@@ -630,7 +630,7 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 		} else {
 			// Start with a depth of 0
 			// A TLF root will have a `finalElem` of "".
-			// A Subdirectory will have a `finalElem` of just the name.
+			// A subdirectory will have a `finalElem` of just the name.
 			paths = append(paths, pathStackElem{finalElem, 0})
 		}
 
