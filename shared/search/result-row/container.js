@@ -1,42 +1,56 @@
 // @flow
-import SearchResultRow from '.'
-import {Map} from 'immutable'
+import SearchResultRow, {type Props} from '.'
 import {userIsActiveInTeamHelper} from '../../constants/teams'
-import {followStateHelper} from '../../constants/search'
+import {followStateHelper, makeSearchResult} from '../../constants/search'
 import {type SearchResultId} from '../../constants/types/search'
 import {connect, type TypedState, setDisplayName, compose} from '../../util/container'
 
-type OwnProps = {
+export type OwnProps = {|
   disableIfInTeamName: ?string,
   id: SearchResultId,
+  selected: boolean,
   onClick: () => void,
   onMouseOver?: () => void,
   onShowTracker?: () => void,
-}
+|}
 
-const mapStateToProps = (
-  state: TypedState,
-  {disableIfInTeamName, id, onClick, onMouseOver, onShowTracker}: OwnProps
-) => {
-  const result: any = state.entities.getIn(['search', 'searchResults', id], Map()).toObject()
+const emptySearch = makeSearchResult()
+
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+  const result = state.entities.search.searchResults.get(ownProps.id, emptySearch)
   const leftFollowingState = followStateHelper(state, result.leftUsername, result.leftService)
   const rightFollowingState = followStateHelper(state, result.rightUsername, result.rightService)
-  const leftIsInTeam = disableIfInTeamName
-    ? userIsActiveInTeamHelper(state, result.leftUsername, result.leftService, disableIfInTeamName)
-    : false
-  const rightIsInTeam = disableIfInTeamName
-    ? userIsActiveInTeamHelper(state, result.rightUsername, result.rightService, disableIfInTeamName)
-    : false
+  const leftIsInTeam = userIsActiveInTeamHelper(
+    state,
+    result.leftUsername,
+    result.leftService,
+    ownProps.disableIfInTeamName
+  )
+  const rightIsInTeam = userIsActiveInTeamHelper(
+    state,
+    result.rightUsername,
+    result.rightService,
+    ownProps.disableIfInTeamName
+  )
   return {
-    ...result,
-    onClick,
-    onMouseOver,
-    onShowTracker,
-    showTrackerButton: !!onShowTracker,
+    result,
     leftFollowingState,
     rightFollowingState,
     userIsInTeam: leftIsInTeam || rightIsInTeam,
   }
 }
 
-export default compose(connect(mapStateToProps), setDisplayName('SearchResultRow'))(SearchResultRow)
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
+  const result = stateProps.result.toObject()
+  return {
+    ...result,
+    leftFollowingState: stateProps.leftFollowingState,
+    rightFollowingState: stateProps.rightFollowingState,
+    userIsInTeam: stateProps.userIsInTeam,
+    ...ownProps,
+  }
+}
+
+export default compose(connect(mapStateToProps, null, mergeProps), setDisplayName('SearchResultRow'))(
+  SearchResultRow
+)

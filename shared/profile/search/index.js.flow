@@ -1,13 +1,9 @@
 // @flow
 import {Component} from 'react'
-import type {UserDetails} from '../../search/user-input'
 
 export type Props = {
-  onClick: (id: string) => void,
-  showAddButton: boolean,
+  onClick: (username: string) => void,
   onClose: () => void,
-  placeholder: string,
-  navigateUp: () => void,
 }
 
-export default class Render extends Component<Props> {}
+export default class Search extends Component<Props> {}
