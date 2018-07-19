@@ -29,17 +29,17 @@ class Box2 extends React.Component<Box2Props> {
     let directionStyle
     switch (this.props.direction) {
       case 'horizontal':
-        directionStyle = globalStyles.flexBoxRow
+        directionStyle = styles.hbox
         break
       case 'horizontalReverse':
-        directionStyle = {display: 'flex', flexDirection: 'row-reverse'}
+        directionStyle = styles.hrbox
         break
       case 'verticalReverse':
-        directionStyle = {display: 'flex', flexDirection: 'column-reverse'}
+        directionStyle = styles.vrbox
         break
       case 'vertical':
       default:
-        directionStyle = globalStyles.flexBoxColumn
+        directionStyle = styles.vbox
         break
     }
 
