@@ -75,6 +75,7 @@ export type {
   Message,
   MessageAttachment,
   MessageExplodeDescription,
+  MessageID,
   MessageSystemAddedToTeam,
   MessageSystemGitPush,
   MessageSystemInviteAccepted,
@@ -90,6 +91,7 @@ export type {
 export type {ConversationIDKey} from './common'
 
 export {
+  messageIDToNumber,
   numberToMessageID,
   numberToOrdinal,
   ordinalToNumber,
