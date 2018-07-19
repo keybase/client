@@ -402,4 +402,8 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPureSimple(RouteConstants.navigateUp, maybeCancelProvision)
 }
 
+export const _testing = {
+  ProvisioningManager,
+}
+
 export default provisionSaga
