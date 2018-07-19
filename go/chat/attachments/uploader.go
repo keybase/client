@@ -220,11 +220,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	if err != nil {
 		return res, err
 	}
-	// get s3 upload params from server
-	params, err := u.ri().GetS3Params(ctx, convID)
-	if err != nil {
-		return res, err
-	}
+
 	progress := func(bytesComplete, bytesTotal int64) {
 		u.G().ActivityNotifier.AttachmentUploadProgress(ctx, uid, convID, outboxID, bytesComplete, bytesTotal)
 	}
@@ -244,15 +240,29 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		}
 	}
 
-	// upload attachment and (optional) preview concurrently
-	var g errgroup.Group
-	u.Debug(ctx, "upload: uploading assets")
-	bgctx := context.Background()
-	g.Go(func() error {
+	var s3params chat1.S3Params
+	paramsCh := make(chan struct{})
+	g, bgctx := errgroup.WithContext(context.Background())
+	g.Go(func() (err error) {
+		u.Debug(bgctx, "upload: fetching s3 params")
 		u.G().ActivityNotifier.AttachmentUploadStart(bgctx, uid, convID, outboxID)
-		var err error
+		if s3params, err = u.ri().GetS3Params(ctx, convID); err != nil {
+			return err
+		}
+		close(paramsCh)
+		return nil
+	})
+
+	// upload attachment and (optional) preview concurrently
+	g.Go(func() (err error) {
+		select {
+		case <-paramsCh:
+		case <-bgctx.Done():
+			return bgctx.Err()
+		}
+		u.Debug(bgctx, "upload: uploading assets")
 		task := UploadTask{
-			S3Params:       params,
+			S3Params:       s3params,
 			Filename:       filename,
 			FileSize:       int(finfo.Size()),
 			Plaintext:      src,
@@ -275,8 +285,13 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 
 	if pre.Preview != nil {
 		g.Go(func() error {
+			select {
+			case <-paramsCh:
+			case <-bgctx.Done():
+				return bgctx.Err()
+			}
 			// copy the params so as not to mess with the main params above
-			previewParams := params
+			previewParams := s3params
 
 			// add preview suffix to object key (P in hex)
 			// the s3path in gregor is expecting hex here
