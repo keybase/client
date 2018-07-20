@@ -649,3 +649,22 @@ describe('final errors show', () => {
     )
   })
 })
+
+describe('manager', () => {
+  it('complains about invalid response key', () => {
+    const manager = _testing.makeProvisioningManager(false)
+    const stashed = () => {
+      console.log('whu')
+    }
+    manager._stashResponse('keybase.1.gpgUi.selectKey', stashed)
+    expect(() => manager._getAndClearResponse('keybase.1.loginUi.getEmailOrUsername')).toThrow()
+  })
+  it('stashing works', () => {
+    const manager = _testing.makeProvisioningManager(false)
+    const stashed = () => {
+      console.log('whu')
+    }
+    manager._stashResponse('keybase.1.gpgUi.selectKey', stashed)
+    expect(manager._getAndClearResponse('keybase.1.gpgUi.selectKey')).toEqual(stashed)
+  })
+})
