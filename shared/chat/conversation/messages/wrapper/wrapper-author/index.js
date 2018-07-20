@@ -257,6 +257,7 @@ const styles = styleSheetCreate({
   }),
   menuButtons: {
     ...globalStyles.flexBoxRow,
+    alignSelf: 'flex-start',
     alignItems: 'center',
     position: 'relative',
     top: 1,
