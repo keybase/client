@@ -30,10 +30,12 @@ jobs:
     ##
 
     - run:
-        name: Update PATH and Define Environment Variable at Runtime
+        name: Update PATH and Define Environment Variables at Runtime
         command: |
+          echo 'export GOROOT=$HOME/go' >> $BASH_ENV
           echo 'export GOPATH=$HOME/go-path' >> $BASH_ENV
-          echo 'export PATH=$GOROOT/bin:$PATH' >> $BASH_ENV
+          # Clear out a bunch of cruft from PATH.
+          echo 'export PATH=/bin:/usr/bin:$GOROOT/bin' >> $BASH_ENV
 
           source $BASH_ENV
 
@@ -57,7 +59,6 @@ jobs:
 
     - run: if [[ ! -e "$HOME/downloads/go.$GOVERSION.tar.gz" ]]; then wget -nv https://storage.googleapis.com/golang/go$GOVERSION.linux-amd64.tar.gz -O $HOME/downloads/go.$GOVERSION.tar.gz ; fi
     - run: cd $HOME && tar -xzvf downloads/go.$GOVERSION.tar.gz
-    - run: sudo mv $HOME/go /usr/local
 
     - run: if ! $(grep -q "Revision=24.4.1" $ANDROID_HOME/tools/source.properties); then echo y | android update sdk -u -a -t "tools"; fi
     - run: if [ ! -e $ANDROID_HOME/build-tools/23.0.2 ]; then echo y | android update sdk -u -a -t "build-tools-23.0.2"; fi
