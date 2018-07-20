@@ -931,6 +931,12 @@ type ChatSetTeamRetentionArg struct {
 	Convs  []InboxUIItem   `codec:"convs" json:"convs"`
 }
 
+type ChatSetConvMinWriterRoleArg struct {
+	Uid    keybase1.UID   `codec:"uid" json:"uid"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	Conv   *InboxUIItem   `codec:"conv,omitempty" json:"conv,omitempty"`
+}
+
 type ChatKBFSToImpteamUpgradeArg struct {
 	Uid    keybase1.UID   `codec:"uid" json:"uid"`
 	ConvID ConversationID `codec:"convID" json:"convID"`
@@ -965,6 +971,7 @@ type NotifyChatInterface interface {
 	ChatInboxSynced(context.Context, ChatInboxSyncedArg) error
 	ChatSetConvRetention(context.Context, ChatSetConvRetentionArg) error
 	ChatSetTeamRetention(context.Context, ChatSetTeamRetentionArg) error
+	ChatSetConvMinWriterRole(context.Context, ChatSetConvMinWriterRoleArg) error
 	ChatKBFSToImpteamUpgrade(context.Context, ChatKBFSToImpteamUpgradeArg) error
 	ChatAttachmentUploadStart(context.Context, ChatAttachmentUploadStartArg) error
 	ChatAttachmentUploadProgress(context.Context, ChatAttachmentUploadProgressArg) error
@@ -1198,6 +1205,22 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"ChatSetConvMinWriterRole": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatSetConvMinWriterRoleArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatSetConvMinWriterRoleArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatSetConvMinWriterRoleArg)(nil), args)
+						return
+					}
+					err = i.ChatSetConvMinWriterRole(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 			"ChatKBFSToImpteamUpgrade": {
 				MakeArg: func() interface{} {
 					ret := make([]ChatKBFSToImpteamUpgradeArg, 1)
@@ -1325,6 +1348,11 @@ func (c NotifyChatClient) ChatSetConvRetention(ctx context.Context, __arg ChatSe
 
 func (c NotifyChatClient) ChatSetTeamRetention(ctx context.Context, __arg ChatSetTeamRetentionArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSetTeamRetention", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) ChatSetConvMinWriterRole(ctx context.Context, __arg ChatSetConvMinWriterRoleArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSetConvMinWriterRole", []interface{}{__arg})
 	return
 }
 
