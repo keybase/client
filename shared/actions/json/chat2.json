@@ -311,7 +311,7 @@
     // Update progress on an upload
     "attachmentUploading": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal",
+      "outboxID": "Types.OutboxID",
       "ratio": "number" // 0-1
     },
     // We're done uploading

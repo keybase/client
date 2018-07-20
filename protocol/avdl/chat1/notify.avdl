@@ -202,4 +202,12 @@ protocol NotifyChat {
   @lint("ignore")
   void ChatKBFSToImpteamUpgrade(keybase1.UID uid, ConversationID convID);
 
+  @notify("")
+  @lint("ignore")
+  void ChatAttachmentUploadStart(keybase1.UID uid, ConversationID convID, OutboxID outboxID);
+
+  @notify("")
+  @lint("ignore")
+  void ChatAttachmentUploadProgress(keybase1.UID uid, ConversationID convID, OutboxID outboxID, long bytesComplete, long bytesTotal); 
+
 }

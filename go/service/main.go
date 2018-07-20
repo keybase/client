@@ -57,7 +57,6 @@ type Service struct {
 	logForwarder         *logFwd
 	gregor               *gregorHandler
 	rekeyMaster          *rekeyMaster
-	attachmentstore      *attachments.Store
 	badger               *badges.Badger
 	reachability         *reachability
 	backgroundIdentifier *BackgroundIdentifier
@@ -81,7 +80,6 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		stopCh:           make(chan keybase1.ExitCode),
 		logForwarder:     newLogFwd(),
 		rekeyMaster:      newRekeyMaster(g),
-		attachmentstore:  attachments.NewStore(g.GetLog(), g.Env.GetRuntimeDir()),
 		badger:           badges.NewBadger(g),
 		gregor:           newGregorHandler(allG),
 		home:             home.NewHome(g),
@@ -135,7 +133,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.RekeyProtocol(NewRekeyHandler2(xp, g, d.rekeyMaster)),
 		keybase1.NotifyFSRequestProtocol(newNotifyFSRequestHandler(xp, g)),
 		keybase1.GregorProtocol(newGregorRPCHandler(xp, g, d.gregor)),
-		CancellingProtocol(g, chat1.LocalProtocol(newChatLocalHandler(xp, cg, d.attachmentstore, d.gregor))),
+		CancellingProtocol(g, chat1.LocalProtocol(newChatLocalHandler(xp, cg, d.gregor))),
 		keybase1.SimpleFSProtocol(NewSimpleFSHandler(xp, g)),
 		keybase1.LogsendProtocol(NewLogsendHandler(xp, g)),
 		keybase1.AppStateProtocol(newAppStateHandler(xp, g)),
@@ -414,14 +412,15 @@ func (d *Service) createChatModules() {
 	g.PushHandler = pushHandler
 
 	// Message sending apparatus
-	sender := chat.NewBlockingSender(g, chat.NewBoxer(g), d.attachmentstore, ri)
+	store := attachments.NewS3Store(g.GetLog(), g.GetRuntimeDir())
+	g.AttachmentUploader = attachments.NewUploader(g, store, attachments.NewS3Signer(ri), ri)
+	sender := chat.NewBlockingSender(g, chat.NewBoxer(g), ri)
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)
 
 	// team channel source
 	g.TeamChannelSource = chat.NewCachingTeamChannelSource(g, ri)
 
-	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g,
-		chat.NewCachingAttachmentFetcher(g, d.attachmentstore, 1000), ri)
+	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, chat.NewCachingAttachmentFetcher(g, store, 1000), ri)
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)

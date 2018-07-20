@@ -87,6 +87,7 @@ export type {
   MessageType,
   Ordinal,
   OutboxID,
+  PreviewSpec,
 } from './message'
 export type {ConversationIDKey} from './common'
 

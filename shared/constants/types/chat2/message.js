@@ -104,6 +104,13 @@ export type MessageText = I.RecordOf<_MessageText>
 
 export type AttachmentType = 'image' | 'file'
 
+export type PreviewSpec = {
+  attachmentType: AttachmentType,
+  height: number,
+  width: number,
+  showPlayButton: boolean,
+}
+
 export type _MessageAttachment = {
   attachmentType: AttachmentType,
   showPlayButton: boolean,

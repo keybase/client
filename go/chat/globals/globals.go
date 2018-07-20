@@ -20,6 +20,7 @@ type ChatContext struct {
 	AttachmentURLSrv    types.AttachmentURLSrv    // source of URLs for loading attachments
 	EphemeralPurger     types.EphemeralPurger     // triggers background purges of ephemeral chats
 	ActivityNotifier    types.ActivityNotifier    // notify clients of chat of new activity
+	AttachmentUploader  types.AttachmentUploader  // upload attachments
 }
 
 type Context struct {

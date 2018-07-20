@@ -934,30 +934,6 @@ func NewChatUI(inboxCb chan NonblockInboxResult, threadCb chan NonblockThreadRes
 	}
 }
 
-func (c *ChatUI) ChatAttachmentUploadOutboxID(ctx context.Context, arg chat1.ChatAttachmentUploadOutboxIDArg) error {
-	return nil
-}
-
-func (c *ChatUI) ChatAttachmentUploadStart(context.Context, chat1.AssetMetadata, chat1.MessageID) error {
-	return nil
-}
-
-func (c *ChatUI) ChatAttachmentUploadProgress(ctx context.Context, arg chat1.ChatAttachmentUploadProgressArg) error {
-	return nil
-}
-
-func (c *ChatUI) ChatAttachmentUploadDone(context.Context) error {
-	return nil
-}
-
-func (c *ChatUI) ChatAttachmentPreviewUploadStart(context.Context, chat1.AssetMetadata) error {
-	return nil
-}
-
-func (c *ChatUI) ChatAttachmentPreviewUploadDone(context.Context) error {
-	return nil
-}
-
 func (c *ChatUI) ChatAttachmentDownloadStart(context.Context) error {
 	return nil
 }

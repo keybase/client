@@ -210,7 +210,8 @@ protocol local {
     DUPLICATE_4,
     EXPIRED_5,
     TOOMANYATTEMPTS_6,
-    ALREADY_DELETED_7
+    ALREADY_DELETED_7,
+    UPLOADFAILED_8
   }
 
   record OutboxStateError {
@@ -232,6 +233,7 @@ protocol local {
     MessagePlaintext Msg;
     keybase1.TLFIdentifyBehavior identifyBehavior;
     int ordinal; // the position of this outbox record behind the clientPrev in Msg
+    union { null, MakePreviewRes } preview;
   }
 
   enum HeaderPlaintextVersion {
@@ -750,44 +752,23 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  // LocalSource is a stream attachment source.
-  record LocalSource {
-    keybase1.Stream source;
+  record PostFileAttachmentArg {
+    ConversationID conversationID;
+    string tlfName;
+    keybase1.TLFVisibility visibility;
     string filename;
-    int size;
-  }
-
-  // Post an attachment from stream source to conversationID.
-  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID,
-    string tlfName,
-    keybase1.TLFVisibility visibility,
-    LocalSource attachment,
-    union { null, MakePreviewRes} preview,
-    string title,
-    bytes metadata,
-    keybase1.TLFIdentifyBehavior identifyBehavior,
-    union { null, OutboxID } outboxID,
-    union {null, gregor1.DurationSec} ephemeralLifetime
-    );
-
-  // LocalFileSource is a file attachment source.  Filename must be readable
-  // by the service for the duration of the attachment upload.
-  record LocalFileSource {
-    string filename;
+    string title;
+    bytes metadata;
+    keybase1.TLFIdentifyBehavior identifyBehavior;
+    
+    union {null, MakePreviewRes } callerPreview;
+    union {null, OutboxID } outboxID;
+    union {null, gregor1.DurationSec} ephemeralLifetime;
   }
 
   // Post an attachment from file source to conversationID.
-  PostLocalRes postFileAttachmentLocal(int sessionID, ConversationID conversationID,
-    string tlfName,
-    keybase1.TLFVisibility visibility,
-    LocalFileSource attachment,
-    union { null, MakePreviewRes } preview,
-    string title,
-    bytes metadata,
-    keybase1.TLFIdentifyBehavior identifyBehavior,
-    union { null, OutboxID } outboxID,
-    union {null, gregor1.DurationSec} ephemeralLifetime
-    );
+  PostLocalRes postFileAttachmentLocal(int sessionID, PostFileAttachmentArg arg);
+  PostLocalNonblockRes postFileAttachmentLocalNonblock(int sessionID, PostFileAttachmentArg arg, MessageID clientPrev);
 
   record DownloadAttachmentLocalRes {
     boolean offline;
@@ -820,7 +801,7 @@ protocol local {
     union {null, AssetMetadata} metadata; // will exist if service is able to make a preview
     union {null, AssetMetadata} baseMetadata; // will exist if service is able to get base metadata
   }
-  MakePreviewRes makePreview(int sessionID, LocalFileSource attachment, OutboxID outboxID);
+  MakePreviewRes makePreview(int sessionID, string filename, OutboxID outboxID);
 
   @lint("ignore")
   void CancelPost(OutboxID outboxID);

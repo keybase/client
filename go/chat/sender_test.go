@@ -191,7 +191,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	boxer := NewBoxer(g)
 	boxer.SetClock(world.Fc)
 	getRI := func() chat1.RemoteInterface { return ri }
-	baseSender := NewBlockingSender(g, boxer, nil, getRI)
+	baseSender := NewBlockingSender(g, boxer, getRI)
 	// Force a small page size here to test prev pointer calculations for
 	// exploding and non exploding messages
 	baseSender.setPrevPagination(&chat1.Pagination{Num: 2})
@@ -569,7 +569,7 @@ func TestOutboxItemExpiration(t *testing.T) {
 		}),
 	}, 0, nil)
 	require.NoError(t, err)
-	cl.Advance(20 * time.Minute)
+	cl.Advance(2 * time.Hour)
 	tc.ChatG.MessageDeliverer.Connected(ctx)
 	select {
 	case f := <-listener.failing:
@@ -590,7 +590,8 @@ func TestOutboxItemExpiration(t *testing.T) {
 
 	outbox := storage.NewOutbox(tc.Context(), uid)
 	outbox.SetClock(cl)
-	require.NoError(t, outbox.RetryMessage(ctx, obid, nil))
+	_, err = outbox.RetryMessage(ctx, obid, nil)
+	require.NoError(t, err)
 	tc.ChatG.MessageDeliverer.ForceDeliverLoop(ctx)
 	select {
 	case i := <-listener.incoming:
@@ -706,7 +707,8 @@ func TestDisconnectedFailure(t *testing.T) {
 	outbox := storage.NewOutbox(tc.Context(), u.User.GetUID().ToBytes())
 	outbox.SetClock(cl)
 	for _, obid := range obids {
-		require.NoError(t, outbox.RetryMessage(ctx, obid, nil))
+		_, err = outbox.RetryMessage(ctx, obid, nil)
+		require.NoError(t, err)
 	}
 	tc.ChatG.MessageDeliverer.Start(ctx, u.User.GetUID().ToBytes())
 	tc.ChatG.MessageDeliverer.Connected(ctx)
@@ -1300,7 +1302,7 @@ func TestPairwiseMACChecker(t *testing.T) {
 		boxer := NewBoxer(tc.Context())
 		getRI := func() chat1.RemoteInterface { return ri }
 		g := globals.NewContext(tc.G, tc.ChatG)
-		blockingSender := NewBlockingSender(g, boxer, nil, getRI)
+		blockingSender := NewBlockingSender(g, boxer, getRI)
 
 		text := "hi"
 		msg := textMsgWithSender(t, text, uid1.ToBytes(), chat1.MessageBoxedVersion_V3)
