@@ -146,7 +146,7 @@ protocol gregor {
     record SetConvMinWriterRoleUpdate {
         InboxVers inboxVers;
         ConversationID convID;
-        keybase1.TeamRole role;
+        union { null, ConversationMinWriterRoleInfo } info;
     }
 
     record KBFSImpteamUpgradeUpdate {
