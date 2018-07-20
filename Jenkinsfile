@@ -143,7 +143,7 @@ helpers.rootLinuxNode(env, {
                                     }},
                                 )
                             },
-                            /*test_kbfs: {
+                            test_kbfs: {
                                 // Only build KBFS on master builds. This means
                                 // that we can have master breaks, but it
                                 // strikes a good balance between velocity and
@@ -163,7 +163,7 @@ helpers.rootLinuxNode(env, {
                                         ]
                                     ])
                                 }
-                            },*/
+                            },
                         )
                     },
                     test_windows: {
