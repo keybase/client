@@ -661,7 +661,8 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			DisplayDesktopNotification: false,
 			Conv: s.presentUIItem(convLocal),
 		})
-		s.G().ActivityNotifier.Activity(ctx, boxed.ClientHeader.Sender, conv.GetTopicType(), &activity)
+		s.G().ActivityNotifier.Activity(ctx, boxed.ClientHeader.Sender, conv.GetTopicType(), &activity,
+			chat1.ChatActivitySource_LOCAL)
 	}
 	return []byte{}, boxed, nil
 }
@@ -879,7 +880,8 @@ func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 		act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
 			OutboxRecords: marked,
 		})
-		s.G().ActivityNotifier.Activity(context.Background(), s.outbox.GetUID(), chat1.TopicType_NONE, &act)
+		s.G().ActivityNotifier.Activity(context.Background(), s.outbox.GetUID(), chat1.TopicType_NONE, &act,
+			chat1.ChatActivitySource_LOCAL)
 	}
 	return nil
 }

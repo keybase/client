@@ -10,6 +10,32 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type ChatActivitySource int
+
+const (
+	ChatActivitySource_LOCAL  ChatActivitySource = 0
+	ChatActivitySource_REMOTE ChatActivitySource = 1
+)
+
+func (o ChatActivitySource) DeepCopy() ChatActivitySource { return o }
+
+var ChatActivitySourceMap = map[string]ChatActivitySource{
+	"LOCAL":  0,
+	"REMOTE": 1,
+}
+
+var ChatActivitySourceRevMap = map[ChatActivitySource]string{
+	0: "LOCAL",
+	1: "REMOTE",
+}
+
+func (e ChatActivitySource) String() string {
+	if v, ok := ChatActivitySourceRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type ChatActivityType int
 
 const (
@@ -833,8 +859,9 @@ func (o ChatSyncResult) DeepCopy() ChatSyncResult {
 }
 
 type NewChatActivityArg struct {
-	Uid      keybase1.UID `codec:"uid" json:"uid"`
-	Activity ChatActivity `codec:"activity" json:"activity"`
+	Uid      keybase1.UID       `codec:"uid" json:"uid"`
+	Activity ChatActivity       `codec:"activity" json:"activity"`
+	Source   ChatActivitySource `codec:"source" json:"source"`
 }
 
 type ChatIdentifyUpdateArg struct {

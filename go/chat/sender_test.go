@@ -81,14 +81,16 @@ func (n *chatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
 	}
 }
 
-func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
+func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity,
+	source chat1.ChatActivitySource) {
 	n.Lock()
 	defer n.Unlock()
 	typ, err := activity.ActivityType()
 	if err == nil {
 		switch typ {
 		case chat1.ChatActivityType_INCOMING_MESSAGE:
-			if activity.IncomingMessage().Message.IsValid() {
+			if activity.IncomingMessage().Message.IsValid() &&
+				source == chat1.ChatActivitySource_REMOTE {
 				strOutboxID := activity.IncomingMessage().Message.Valid().OutboxID
 				if strOutboxID != nil {
 					outboxID, _ := hex.DecodeString(*strOutboxID)

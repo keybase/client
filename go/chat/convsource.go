@@ -1105,7 +1105,7 @@ func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor
 			Expunge: *mergeRes.Expunged,
 			Conv:    inboxItem,
 		})
-		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &act)
+		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &act, chat1.ChatActivitySource_LOCAL)
 	}
 }
 
@@ -1123,7 +1123,7 @@ func (s *HybridConversationSource) notifyReactionDeletes(ctx context.Context, ui
 			ReactionDeletes: reactionDeletes,
 			ConvID:          convID,
 		})
-		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &activity)
+		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &activity, chat1.ChatActivitySource_LOCAL)
 	}
 }
 
@@ -1149,7 +1149,7 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 			Msgs:   purgedMsgs,
 			Conv:   inboxItem,
 		})
-		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &act)
+		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &act, chat1.ChatActivitySource_LOCAL)
 	}
 }
 
