@@ -22,6 +22,7 @@ const ReactionsRow = (props: Props) =>
           ordinal={props.ordinal}
         />
       ))}
+      <ReactButton conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} showBorder={true} />
     </Box2>
   )
 

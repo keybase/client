@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box2, ClickableBox, Emoji, Text} from '../../../../common-adapters'
+import {Box2, ClickableBox, Emoji, Icon, Text} from '../../../../common-adapters'
 import {
   collapseStyles,
   glamorous,
@@ -43,6 +43,24 @@ const ReactButton = (props: Props) => (
   </ButtonBox>
 )
 
+type NewReactionButtonProps = {
+  onAddReaction: (emoji: string) => void,
+  showBorder: boolean,
+}
+export const NewReactionButton = (props: NewReactionButtonProps) => {
+  const ContainerComp = props.showBorder ? ButtonBox : ClickableBox
+  return (
+    <ContainerComp
+      onClick={() => props.onAddReaction(':grinning_face_with_star_eyes:')}
+      style={collapseStyles([styles.newReactionButtonBox, props.showBorder && styles.buttonBox])}
+    >
+      <Box2 centerChildren={true} direction="horizontal" style={styles.container}>
+        <Icon type="iconfont-reacji" fontSize={isMobile ? 22 : 16} />
+      </Box2>
+    </ContainerComp>
+  )
+}
+
 const styles = styleSheetCreate({
   active: {
     backgroundColor: globalColors.blue4,
@@ -65,6 +83,9 @@ const styles = styleSheetCreate({
       paddingTop: globalMargins.tiny,
     },
   }),
+  newReactionButtonBox: {
+    width: 37,
+  },
 })
 
 export default ReactButton

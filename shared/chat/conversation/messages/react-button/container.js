@@ -1,14 +1,27 @@
 // @flow
+import * as React from 'react'
 import {compose, connect, setDisplayName, type TypedState} from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import ReactButton from '.'
+import ReactButton, {NewReactionButton} from '.'
+
+type WrapperProps = {
+  active: boolean,
+  count: number,
+  emoji?: string,
+  onAddReaction: (emoji: string) => void,
+  onClick: () => void,
+  showBorder?: boolean,
+}
+const Wrapper = (props: WrapperProps) =>
+  props.emoji ? <ReactButton {...props} /> : <NewReactionButton {...props} showBorder={!!props.showBorder} />
 
 export type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
-  emoji: string,
+  emoji?: string,
   ordinal: Types.Ordinal,
+  showBorder?: boolean,
 }
 
 const noEmoji = {
@@ -23,7 +36,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   if (!message || message.type === 'placeholder' || message.type === 'deleted') {
     return noEmoji
   }
-  const reaction = message.reactions.get(ownProps.emoji)
+  const reaction = message.reactions.get(ownProps.emoji || '')
   if (!reaction) {
     return noEmoji
   }
@@ -36,9 +49,10 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, emoji, ordinal}: OwnProps) => ({
-  onClick: () => dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal})),
+  onAddReaction: (emoji: string) =>
+    dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal})),
+  onClick: () =>
+    dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji: emoji || '', ordinal})),
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('ReactButton'))(
-  ReactButton
-)
+export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('ReactButton'))(Wrapper)
