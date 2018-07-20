@@ -263,6 +263,11 @@
     string username;
   }
 
+  record ConversationMinWriterRoleInfo {
+    gregor1.UID uid;
+    keybase1.TeamRole role;
+  }
+
   record Conversation {
     ConversationMetadata metadata;
     union { null, ConversationReaderInfo } readerInfo; // information about the convo from a user perspective
@@ -283,7 +288,7 @@
     Expunge expunge;
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
-    union { null, keybase1.TeamRole } minWriterRole;
+    union { null, ConversationMinWriterRoleInfo } minWriterRoleInfo;
   }
 
   record MessageSummary {
