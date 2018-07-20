@@ -3924,7 +3924,7 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 			})
 			require.NoError(t, err)
 			require.Len(t, gilres.Conversations, 1)
-			require.Equal(t, expectedInfoLocal, gilres.Conversations[0].MinWriterRoleInfoLocal)
+			require.Equal(t, expectedInfoLocal, gilres.Conversations[0].MinWriterRoleInfo)
 		}
 
 		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))

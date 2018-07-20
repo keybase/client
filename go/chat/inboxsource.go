@@ -1087,21 +1087,16 @@ func (s *localizerPipeline) getMessagesOffline(ctx context.Context, convID chat1
 	return foundMsgs, chat1.ConversationErrorType_NONE, nil
 }
 
-func (s *localizerPipeline) getMinWriterRoleInfoLocal(ctx context.Context, uidMapper libkb.UIDMapper, conv chat1.Conversation) *chat1.ConversationMinWriterRoleInfoLocal {
+func (s *localizerPipeline) getMinWriterRoleInfoLocal(ctx context.Context, conv chat1.Conversation) *chat1.ConversationMinWriterRoleInfoLocal {
 	info := conv.MinWriterRoleInfo
 	if info == nil {
 		return nil
 	}
 
-	kuids := []keybase1.UID{keybase1.UID(info.Uid.String())}
-	rows, err := uidMapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, 0, 0, false)
-	if err != nil {
-		s.Debug(ctx, "getMinWriterRoleInfoLocal: failed to run uid mapper: %s", err)
-		return nil
-	}
 	username := ""
-	if len(rows) > 0 {
-		username = rows[0].NormalizedUsername.String()
+	name, err := s.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(info.Uid.String()))
+	if err == nil {
+		username = name.String()
 	}
 	return &chat1.ConversationMinWriterRoleInfoLocal{
 		Role:     info.Role,
@@ -1186,7 +1181,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	conversationLocal.Expunge = conversationRemote.Expunge
 	conversationLocal.ConvRetention = conversationRemote.ConvRetention
 	conversationLocal.TeamRetention = conversationRemote.TeamRetention
-	conversationLocal.MinWriterRoleInfo = s.getMinWriterRoleInfoLocal(ctx, umapper, conversationRemote)
+	conversationLocal.MinWriterRoleInfo = s.getMinWriterRoleInfoLocal(ctx, conversationRemote)
 
 	if len(conversationRemote.MaxMsgSummaries) == 0 {
 		errMsg := "conversation has an empty MaxMsgSummaries field"
