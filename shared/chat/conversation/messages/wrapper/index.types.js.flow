@@ -15,6 +15,7 @@ export type WrapperTimestampProps = {
 
 export type WrapperAuthorProps = {
   author: string,
+  conversationIDKey: Types.ConversationIDKey,
   exploded: boolean,
   explodedBy: string,
   explodesAt: number,
@@ -40,6 +41,7 @@ export type WrapperAuthorProps = {
   onCancel: null | (() => void),
   onAuthorClick: () => void,
   orangeLineAbove: boolean,
+  ordinal: Types.Ordinal,
   styles: StylesCrossPlatform,
   timestamp: number,
 }

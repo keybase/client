@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Icon, Text, Box, iconCastPlatformStyles} from '../../../../../common-adapters'
+import {Avatar, Icon, Text, Box, Box2, iconCastPlatformStyles} from '../../../../../common-adapters'
 import {type FloatingMenuParentProps} from '../../../../../common-adapters/floating-menu'
 import {
   globalStyles,
@@ -15,6 +15,7 @@ import SendIndicator from '../chat-send'
 import MessagePopup from '../../message-popup'
 import ExplodingHeightRetainer from '../exploding-height-retainer'
 import ExplodingMeta from '../exploding-meta'
+import ReactButton from '../../react-button/container'
 
 import type {WrapperAuthorProps} from '../index.types'
 
@@ -48,15 +49,18 @@ const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
   )
 }
 
-const MenuButton = ({onClick, setRef}) => (
-  <Box ref={setRef} className="menu-button">
-    <Icon
-      type="iconfont-ellipsis"
-      style={iconCastPlatformStyles(styles.ellipsis)}
-      onClick={onClick}
-      fontSize={16}
-    />
-  </Box>
+const MenuButtons = ({conversationIDKey, onClick, ordinal, setRef}) => (
+  <Box2 direction="horizontal" gap="tiny">
+    <ReactButton conversationIDKey={conversationIDKey} ordinal={ordinal} showBorder={false} />
+    <Box ref={setRef} className="menu-button">
+      <Icon
+        type="iconfont-ellipsis"
+        style={iconCastPlatformStyles(styles.ellipsis)}
+        onClick={onClick}
+        fontSize={16}
+      />
+    </Box>
+  </Box2>
 )
 
 const EditedMark = () => (
@@ -141,7 +145,14 @@ const RightSide = props => (
           {props.isEdited && <EditedMark />}
         </ExplodingHeightRetainer>
         {!isMobile &&
-          !props.exploded && <MenuButton setRef={props.setAttachmentRef} onClick={props.toggleShowingMenu} />}
+          !props.exploded && (
+            <MenuButtons
+              conversationIDKey={props.conversationIDKey}
+              ordinal={props.ordinal}
+              setRef={props.setAttachmentRef}
+              onClick={props.toggleShowingMenu}
+            />
+          )}
         <MessagePopup
           attachTo={props.attachmentRef}
           message={props.message}
@@ -219,7 +230,7 @@ class WrapperAuthor extends React.PureComponent<WrapperAuthorProps & FloatingMen
 
 const styles = styleSheetCreate({
   edited: {backgroundColor: globalColors.white, color: globalColors.black_20_on_white},
-  ellipsis: {marginLeft: globalMargins.tiny, marginRight: globalMargins.xtiny},
+  ellipsis: {marginRight: globalMargins.xtiny},
   exclamation: {
     paddingBottom: globalMargins.xtiny,
     paddingTop: globalMargins.xtiny,
