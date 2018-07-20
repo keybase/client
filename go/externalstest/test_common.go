@@ -13,10 +13,10 @@ import (
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 )
 
-// SetupTest ignores the third argument is ignored.
+// SetupTest ignores the third argument.
 func SetupTest(tb libkb.TestingTB, name string, depthIgnored int) (tc libkb.TestContext) {
-	// libkb.SetupTest ignores the third argument (depth), so we can safely pass 0.
-	ret := libkb.SetupTest(tb, name, 0)
+	// libkb.SetupTest ignores the third argument (depth).
+	ret := libkb.SetupTest(tb, name, depthIgnored)
 
 	ret.G.SetServices(externals.GetServices())
 	ret.G.SetUIDMapper(uidmap.NewUIDMap(10000))

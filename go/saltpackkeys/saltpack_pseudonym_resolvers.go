@@ -43,7 +43,7 @@ func (r *KeyPseudonymResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Sy
 
 	symmetricKeys := []*saltpack.SymmetricKey{}
 	for _, result := range results {
-		if result.Err != nil {
+		if result.Err != nil || result.Info.Application != keybase1.TeamApplication_SALTPACK {
 			r.m.CDebugf("skipping unresolved pseudonym: %s", result.Err)
 			symmetricKeys = append(symmetricKeys, nil)
 			continue

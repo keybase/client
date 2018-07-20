@@ -59,7 +59,7 @@ func (e *SaltpackEncrypt) RequiredUIs() []libkb.UIKind {
 
 // SubConsumers returns the other UI consumers for this engine.
 func (e *SaltpackEncrypt) SubConsumers() []libkb.UIConsumer {
-	// Note that  potentially KeyfinderHook might return a different UIConsumer depending on its arguments,
+	// Note that potentially KeyfinderHook might return a different UIConsumer depending on its arguments,
 	// which might make this call problematic, but all the hooks currently in use are not doing that.
 	return []libkb.UIConsumer{
 		e.newKeyfinderHook(libkb.SaltpackRecipientKeyfinderArg{}),

@@ -100,6 +100,3 @@ func TestMakeKeyPseudonym(t *testing.T) {
 func TestRandomPseudonymNonce(t *testing.T) {
 	require.NotEqual(t, [32]byte(RandomPseudonymNonce()), [32]byte(RandomPseudonymNonce()))
 }
-
-// TODO Consider adding unit tests for GetKeyPseudonym and MakeAndPostKeyPseudonym
-// For now, we test this functionality at an higher level.

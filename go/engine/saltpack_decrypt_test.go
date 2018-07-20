@@ -295,7 +295,7 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 // encryption-only mode). Modern repudiable messages always have all-anonymous-recipients,
 // and signcryption messages have opaque receivers.
 func TestSaltpackNoEncryptionForDevice(t *testing.T) {
-	// userX has one device (device X) and a paper key. userZ will encrypt for X a message,
+	// userX has one device (device X) and a paper key. userZ will encrypt a message for userX,
 	// then userX will add a new device (Y) which should not be able to decrypt the message
 	// (as we are not using PUKs) but will receive an helpful error message which tells them
 	// which other devices to use to decrypt.

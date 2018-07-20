@@ -90,7 +90,7 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 
 	return cli.Command{
 		Name:         "encrypt",
-		ArgumentHelp: "<username...>",
+		ArgumentHelp: "<usernames...>",
 		Usage:        "Encrypt messages or files for keybase users and teams",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdEncrypt{

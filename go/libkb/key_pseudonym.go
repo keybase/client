@@ -16,7 +16,7 @@ import (
 )
 
 // KeyPseudonym is a "random looking" identifier which refers to a specific application key belonging to a user or team
-// (which is identified by the application id, the generation number and the user or team id it refers to).
+// (the key is referred to by the application id, the generation number and the user or team id).
 // Pseudonyms are only used for saltpack encryption at the moment, but more applications are possible. They are used
 // to avoid that, when decrypting a message encrypted with a team key, a user has to loop through all the keys of all the
 // teams he is part of to find the right one. To avoid this, when encrypting for a team, the sender generates such a pseudonym
@@ -24,7 +24,7 @@ import (
 // appropriare recipient payload box in the header of the saltpack message. When decrypting a saltpack message, a recipient
 // can ask the server if any of the recipient identifiers in the message correspond to known pseudonyms (for teams the user is part of),
 // and use the response from the server to identify which key to use for decryption. This mechanism substitutes an older kbfs based one
-// (which is still supported to allow decryptions of old saltpack messages.
+// (which is still supported to allow decryptions of old saltpack messages).
 //
 // A pseudonym is computed as an HMAC (with a random nonce as a key) of the information it refers to in order to
 // prevent the server from tampering with the mapping (we rely on collision resistance and not unforgeability,
@@ -52,7 +52,7 @@ func (t KeyPseudonym) Eq(r KeyPseudonym) bool {
 	return hmac.Equal(t[:], r[:])
 }
 
-// tlfPseudonymReq is what the server needs to store a pseudonym
+// keyPseudonymReq is what the server needs to store a pseudonym
 type keyPseudonymReq struct {
 	Pseudonym   string `json:"key_pseudonym"`   // hex
 	ID          string `json:"user_or_team_id"` // hex
@@ -168,7 +168,7 @@ func MakeAndPostKeyPseudonyms(m MetaContext, pnymInfos *[]KeyPseudonymInfo) (err
 // GetKeyPseudonyms fetches info for a list of pseudonyms.
 // The output structs are returned in the order corresponding to the inputs.
 // The top-level error is filled if the entire request fails.
-// The each-struct errors may be filled for per-pseudonym errors.
+// The error in each of the returned structs may be filled for per-pseudonym errors.
 func GetKeyPseudonyms(m MetaContext, pnyms []KeyPseudonym) ([]KeyPseudonymOrError, error) {
 	var pnymStrings []string
 	for _, x := range pnyms {
