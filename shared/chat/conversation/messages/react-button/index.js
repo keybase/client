@@ -64,8 +64,9 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
   _setShowingPicker = (showingPicker: boolean) =>
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
 
-  _onAddReaction = (emoji: string) => {
-    this.props.onAddReaction(emoji)
+  _onAddReaction = ({colons}: {colons: string}, evt: Event) => {
+    evt.stopPropagation()
+    this.props.onAddReaction(colons)
     this._setShowingPicker(false)
   }
 
@@ -95,7 +96,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
             <Picker
               emoji="star-struck"
               title="reacjibase"
-              onClick={emoji => this._onAddReaction(emoji.colons)}
+              onClick={this._onAddReaction}
               backgroundImageFn={backgroundImageFn}
             />
           </FloatingBox>

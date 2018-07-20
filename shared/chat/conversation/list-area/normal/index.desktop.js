@@ -1,4 +1,5 @@
 // @flow
+/* eslint-env browser */
 //
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the wayoint exits the screen we replace it with a single div instead
@@ -215,7 +216,12 @@ class Thread extends React.PureComponent<Props, State> {
     copyToClipboard(window.getSelection().toString())
   }
 
-  _handleListClick = () => {
+  _handleListClick = (ev: MouseEvent) => {
+    const target = ev.target
+    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+      return
+    }
+
     if (window.getSelection().isCollapsed) {
       this.props.onFocusInput()
     }
