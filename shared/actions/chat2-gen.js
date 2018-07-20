@@ -106,7 +106,7 @@ type _AttachmentUploadedPayload = $ReadOnly<{|
 |}>
 type _AttachmentUploadingPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
+  outboxID: Types.OutboxID,
   ratio: number,
 |}>
 type _AttachmentsUploadPayload = $ReadOnly<{|

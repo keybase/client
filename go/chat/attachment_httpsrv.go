@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -13,7 +14,6 @@ import (
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/s3"
-	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -172,12 +172,12 @@ func (r *AttachmentHTTPSrv) servePendingPreview(w http.ResponseWriter, req *http
 		r.makeError(ctx, w, 400, "invalid outbox ID: %s", err)
 		return
 	}
-	preview, err := storage.NewPendingPreviews(r.G()).Get(ctx, outboxID)
+	pre, err := attachments.NewPendingPreviews(r.G()).Get(ctx, outboxID)
 	if err != nil {
 		r.makeError(ctx, w, 500, "error reading preview: %s", err)
 		return
 	}
-	if _, err := io.Copy(w, preview); err != nil {
+	if _, err := io.Copy(w, bytes.NewReader(pre.Preview)); err != nil {
 		r.makeError(ctx, w, 500, "failed to write resposne: %s", err)
 		return
 	}
@@ -235,12 +235,12 @@ func (r *AttachmentHTTPSrv) Sign(payload []byte) ([]byte, error) {
 type RemoteAttachmentFetcher struct {
 	globals.Contextified
 	utils.DebugLabeler
-	store *attachments.Store
+	store attachments.Store
 }
 
 var _ types.AttachmentFetcher = (*RemoteAttachmentFetcher)(nil)
 
-func NewRemoteAttachmentFetcher(g *globals.Context, store *attachments.Store) *RemoteAttachmentFetcher {
+func NewRemoteAttachmentFetcher(g *globals.Context, store attachments.Store) *RemoteAttachmentFetcher {
 	return &RemoteAttachmentFetcher{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "RemoteAttachmentFetcher", false),

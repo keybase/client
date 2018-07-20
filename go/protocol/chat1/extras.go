@@ -741,6 +741,10 @@ func (o *OutboxInfo) Eq(r *OutboxInfo) bool {
 	return (o == nil) && (r == nil)
 }
 
+func (o OutboxRecord) IsAttachment() bool {
+	return o.Msg.ClientHeader.MessageType == MessageType_ATTACHMENT
+}
+
 func (p MessagePreviousPointer) Eq(other MessagePreviousPointer) bool {
 	return (p.Id == other.Id) && (p.Hash.Eq(other.Hash))
 }

@@ -1,15 +1,13 @@
-package storage
+package attachments
 
 import (
-	"bytes"
-	"io"
 	"os"
 	"path/filepath"
 
-	"github.com/keybase/client/go/encrypteddb"
-
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/net/context"
 )
@@ -36,28 +34,27 @@ func (p *PendingPreviews) getPath(outboxID chat1.OutboxID) string {
 
 func (p *PendingPreviews) keyFn() encrypteddb.KeyFn {
 	return func(ctx context.Context) ([32]byte, error) {
-		return getSecretBoxKey(ctx, p.G().ExternalG(), DefaultSecretUI)
+		return storage.GetSecretBoxKey(ctx, p.G().ExternalG(), storage.DefaultSecretUI)
 	}
 }
 
-func (p *PendingPreviews) Get(ctx context.Context, outboxID chat1.OutboxID) (res io.Reader, err error) {
+func (p *PendingPreviews) Get(ctx context.Context, outboxID chat1.OutboxID) (res Preprocess, err error) {
 	defer p.Trace(ctx, func() error { return err }, "Get(%s)", outboxID)()
 
-	var dat []byte
 	file := encrypteddb.NewFile(p.G().ExternalG(), p.getPath(outboxID), p.keyFn())
-	if err := file.Get(ctx, &dat); err != nil {
+	if err := file.Get(ctx, &res); err != nil {
 		return res, err
 	}
-	return bytes.NewReader(dat), nil
+	return res, nil
 }
 
-func (p *PendingPreviews) Put(ctx context.Context, outboxID chat1.OutboxID, preview []byte) (err error) {
+func (p *PendingPreviews) Put(ctx context.Context, outboxID chat1.OutboxID, pre Preprocess) (err error) {
 	defer p.Trace(ctx, func() error { return err }, "Put(%s)", outboxID)()
 	if err := os.MkdirAll(p.getDir(), os.ModePerm); err != nil {
 		return err
 	}
 	file := encrypteddb.NewFile(p.G().ExternalG(), p.getPath(outboxID), p.keyFn())
-	return file.Put(ctx, preview)
+	return file.Put(ctx, pre)
 }
 
 func (p *PendingPreviews) Remove(ctx context.Context, outboxID chat1.OutboxID) {
