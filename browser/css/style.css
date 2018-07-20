@@ -1,5 +1,10 @@
+
 .keybase-reply {
   text-align: left;
+}
+
+.keybase-reply * {
+  font-family: Open Sans, sans-serif !important;
 }
 
 .fixed-form form, form.fixed-form {
@@ -34,11 +39,13 @@ li.keybase-reply form, form.keybase-reply {
   display: inline-block;
 }
 
-.keybase-reply a {
+.keybase-reply a, 
+.keybase-reply a:visited, 
+.keybase-reply a:link {
   text-decoration: none;
   font-weight: 600;
   font-size: inherit !important;
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(0, 0, 0, 0.6) !important;
   cursor: pointer;
 }
 
@@ -52,8 +59,8 @@ li.keybase-reply form, form.keybase-reply {
   text-align: center;
 }
 
-.keybase-reply .keybase-success h3 {
-  background: #3DCCA6;
+.keybase-reply.keybase-success h3 {
+  background: #3dcca6;
 }
 
 .keybase-error {

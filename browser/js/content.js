@@ -286,20 +286,16 @@ function renderSuccess(el, closeCallback, extraHTML) {
   morphdom(el, bel`
     <div>
       <h3>
-        <img src="${asset("images/icon-keybase-logo-16.png")}"
-             srcset="${asset("images/icon-keybase-logo-16@2x.png")} 2x, ${asset("images/icon-keybase-logo-16@3x.png")} 3x"
-             />
-        Keybase Chat <span class="keybase-close"> </span>
+        Success! <span class="keybase-close"> </span>
       </h3>
       <div class="keybase-body">
         <p>
-          <img src="${asset("images/icon-fancy-chat-72-x-52.png")}" style="width: 72px; height: 52px;"
-               srcset="${asset("images/icon-fancy-chat-72-x-52@2x.png")} 2x, ${asset("images/icon-fancy-chat-72-x-52@3x.png")} 3x"
+          <img src="${asset("images/icon-fancy-chat-sent-desktop.png")}" style="width: 96px; height: 64px;"
+               srcset="${asset("images/icon-fancy-chat-sent-desktop@2x.png")} 2x, ${asset("images/icon-fancy-chat-sent-desktop@3x.png")} 3x"
                />
         </p>
-        <p>
-          Chat sent! You can continue the conversation in your Keybase app.
-        </p>
+        <p>Your message was sent! <br>
+        You can continue the conversation in your Keybase app.</p>
         ${extraHTML}
         <p>
           <input type="button" class="keybase-close" value="Close" />
