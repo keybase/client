@@ -55,6 +55,8 @@ const makeAssets: I.RecordFactory<Types._Assets> = I.Record({
   name: '',
   worth: '',
   worthCurrency: '',
+  availableToSendWorth: '',
+  reserves: I.List(),
 })
 
 const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
@@ -67,6 +69,8 @@ const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     name: w.name,
     worth: w.worth,
     worthCurrency: w.worthCurrency,
+    availableToSendWorth: w.availableToSendWorth,
+    reserves: I.List((w.reserves || []).map(makeReserve)),
   })
 
 const makePayment: I.RecordFactory<Types._Payment> = I.Record({

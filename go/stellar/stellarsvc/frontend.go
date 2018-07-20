@@ -171,6 +171,8 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				asset.Worth = "Currency conversion error"
 				asset.AvailableToSendWorth = "Currency conversion error"
 			}
+			// Add account reserves info to main asset.
+			asset.Reserves = details.Reserves
 			assets = append(assets, asset)
 		} else {
 			assets = append(assets, stellar1.AccountAssetLocal{
