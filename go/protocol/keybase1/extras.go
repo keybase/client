@@ -1206,7 +1206,8 @@ func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_GUI,
 		TLFIdentifyBehavior_CHAT_GUI_STRICT,
-		TLFIdentifyBehavior_SALTPACK:
+		TLFIdentifyBehavior_SALTPACK,
+		TLFIdentifyBehavior_RESOLVE_AND_CHECK:
 		return true
 	default:
 		// TLFIdentifyBehavior_DEFAULT_KBFS, for filesystem activity that
@@ -1238,7 +1239,26 @@ func (b TLFIdentifyBehavior) SkipUserCard() bool {
 	default:
 		return false
 	}
+}
 
+func (b TLFIdentifyBehavior) AllowCaching() bool {
+	switch b {
+	case TLFIdentifyBehavior_RESOLVE_AND_CHECK:
+		// We Don't want to use any internal ID2 caching for ResolveAndCheck.
+		return false
+	default:
+		return true
+	}
+}
+
+func (b TLFIdentifyBehavior) AllowDeletedUsers() bool {
+	switch b {
+	case TLFIdentifyBehavior_RESOLVE_AND_CHECK:
+		// ResolveAndCheck is OK with deleted users
+		return true
+	default:
+		return false
+	}
 }
 
 // All of the chat modes want to prevent tracker popups.

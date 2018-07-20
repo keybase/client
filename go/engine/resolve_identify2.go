@@ -15,6 +15,7 @@ type ResolveThenIdentify2 struct {
 	i2eng                 *Identify2WithUID
 	testArgs              *Identify2WithUIDTestArgs
 	responsibleGregorItem gregor.Item
+	queriedName           libkb.NormalizedUsername
 
 	// When tracking is being performed, the identify engine is used with a tracking ui.
 	// These options are sent to the ui based on command line options.
@@ -87,6 +88,8 @@ func (e *ResolveThenIdentify2) resolveUID(m libkb.MetaContext) (err error) {
 		// the resolve assertion was a keybase username or UID, so remove it
 		// from identify2 arg to allow cache hits on UID.
 		e.arg.UserAssertion = ""
+		// But still check on that way out that the username matches the UID
+		e.queriedName = rres.GetNormalizedQueriedUsername()
 	}
 
 	// An optimization --- plumb through the resolve body for when we load the
@@ -113,7 +116,18 @@ func (e *ResolveThenIdentify2) Run(m libkb.MetaContext) (err error) {
 
 	// For testing
 	e.i2eng.testArgs = e.testArgs
-	return RunEngine2(m, e.i2eng)
+	err = RunEngine2(m, e.i2eng)
+	if err != nil {
+		return err
+	}
+
+	// Check the server for cheating on a Name->UID resolution. After we do a userload (by UID),
+	// we should have a merkle-verified idea of what the corresponding name is, so we check it
+	// as a post-assertion here.
+	if !e.queriedName.IsNil() && !libkb.NewNormalizedUsername(e.Result().Upk.GetName()).Eq(e.queriedName) {
+		return libkb.NewUIDMismatchError("bad user returned for " + e.queriedName.String())
+	}
+	return nil
 }
 
 func (e *ResolveThenIdentify2) Result() *keybase1.Identify2Res {
@@ -149,9 +163,11 @@ func (e *ResolveThenIdentify2) GetProofSet() *libkb.ProofSet {
 // assertions are met. Pass into it a MetaContext without any UIs set, since it
 // is meant to run without any UI interaction. Also note that tracker statements
 // are *not* taken into account. The identify is run as if the user is logged out.
-func ResolveAndCheck(m libkb.MetaContext, s string) (uid keybase1.UID, un libkb.NormalizedUsername, err error) {
+// The output, on success, is a populated UserPlusKeysV2.
+func ResolveAndCheck(m libkb.MetaContext, s string) (ret keybase1.UserPlusKeysV2, err error) {
 	m = m.WithLogTag("RAC")
 	defer m.CTraceTimed("ResolveAndCheck", func() error { return err })()
+
 	arg := keybase1.Identify2Arg{
 		UserAssertion:         s,
 		CanSuppressUI:         true,
@@ -161,9 +177,27 @@ func ResolveAndCheck(m libkb.MetaContext, s string) (uid keybase1.UID, un libkb.
 	}
 	eng := NewResolveThenIdentify2(m.G(), &arg)
 	err = RunEngine2(m, eng)
-	res := eng.Result()
 	if err != nil {
-		return uid, un, err
+		return ret, err
 	}
-	return res.Upk.GetUID(), libkb.NewNormalizedUsername(res.Upk.GetName()), nil
+	res := eng.Result()
+
+	// Note: this is slightly wasteful since we already loaded a UPAK V1 in Identify2WithUID,
+	// (downconverted from a V2), and now we're just reloading the V2. But the alternative was a big
+	// refactor, and we're punting on that for now. The good news is this load will almost always hit the
+	// cache (see identifyUser#load, which loads both the UPAK and the full user at the same time).
+	upk, _, err := m.G().GetUPAKLoader().LoadV2(libkb.NewLoadUserArgWithMetaContext(m).WithUID(res.Upk.GetUID()))
+	if err != nil {
+		return ret, err
+	}
+	curr := upk.Current
+
+	// There's a slight chance of a race, that the user reset, so just check we didn't race,
+	// and if so, error out.
+	if curr.EldestSeqno != res.Upk.EldestSeqno {
+		return ret, libkb.NewAccountResetError(curr.ToUserVersion(), res.Upk.EldestSeqno)
+	}
+
+	// Success path.
+	return curr, nil
 }

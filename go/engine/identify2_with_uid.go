@@ -41,9 +41,10 @@ const (
 )
 
 type identifyUser struct {
-	arg  libkb.LoadUserArg
-	full *libkb.User
-	thin *keybase1.UserPlusAllKeys
+	arg       libkb.LoadUserArg
+	full      *libkb.User
+	thin      *keybase1.UserPlusAllKeys
+	isDeleted bool
 }
 
 func (i *identifyUser) GetUID() keybase1.UID {
@@ -354,6 +355,11 @@ func (e *Identify2WithUID) run(m libkb.MetaContext) {
 }
 
 func (e *Identify2WithUID) hitFastCache(m libkb.MetaContext) bool {
+
+	if !e.allowCaching() {
+		m.CDebugf("| missed fast cache: no caching allowed")
+		return false
+	}
 	if e.useAnyAssertions() {
 		m.CDebugf("| missed fast cache: has assertions")
 		return false
@@ -378,13 +384,25 @@ func (e *Identify2WithUID) untrackedFastPath(m libkb.MetaContext) (ret bool) {
 		return false
 	}
 
-	if e.me == nil || e.them == nil {
-		m.CDebugf("| Can't use untracked fast path since failed to load users")
-		return false
+	statInc := func() {
+		if e.testArgs != nil {
+			e.testArgs.stats.untrackedFastPaths++
+		}
 	}
 
 	if e.testArgs != nil && !e.testArgs.allowUntrackedFastPath {
 		m.CDebugf("| Can't use untracked fast path since disallowed in test")
+		return false
+	}
+
+	if e.me == nil {
+		m.CDebugf("| Can use untracked fastpath since there is no logged in user")
+		statInc()
+		return true
+	}
+
+	if e.them == nil {
+		m.CDebugf("| Can't use untracked fast path since failed to load them users")
 		return false
 	}
 
@@ -401,10 +419,7 @@ func (e *Identify2WithUID) untrackedFastPath(m libkb.MetaContext) (ret bool) {
 		return false
 	}
 
-	if e.testArgs != nil {
-		e.testArgs.stats.untrackedFastPaths++
-	}
-
+	statInc()
 	return true
 }
 
@@ -458,7 +473,7 @@ func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
 			return nil
 		}
 
-		if e.checkSlowCacheHit() {
+		if e.checkSlowCacheHit(m) {
 			m.CDebugf("| hit slow cache, first check")
 			return nil
 		}
@@ -482,7 +497,7 @@ func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	if e.useRemoteAssertions() && e.allowEarlyOuts() && e.checkSlowCacheHit() {
+	if e.useRemoteAssertions() && e.allowEarlyOuts() && e.checkSlowCacheHit(m) {
 		m.CDebugf("| hit slow cache, second check")
 		return nil
 	}
@@ -646,6 +661,9 @@ func (e *Identify2WithUID) checkLocalAssertions() error {
 }
 
 func (e *Identify2WithUID) checkRemoteAssertions(okStates []keybase1.ProofState) error {
+	if e.them.isDeleted {
+		return libkb.UnmetAssertionError{User: e.them.GetName(), Remote: true}
+	}
 	ps := libkb.NewProofSet(nil)
 	e.state.Result().AddProofsToSet(ps, okStates)
 	if !e.remoteAssertion.MatchSet(*ps) {
@@ -667,6 +685,10 @@ func (e *Identify2WithUID) loadAssertion() (err error) {
 
 func (e *Identify2WithUID) useAnyAssertions() bool {
 	return e.useLocalAssertions() || e.useRemoteAssertions()
+}
+
+func (e *Identify2WithUID) allowCaching() bool {
+	return e.arg.IdentifyBehavior.AllowCaching()
 }
 
 func (e *Identify2WithUID) useLocalAssertions() bool {
@@ -859,18 +881,25 @@ func (e *Identify2WithUID) isSelfLoad() bool {
 	return e.me != nil && e.them != nil && e.me.Equal(e.them)
 }
 
+func (e *Identify2WithUID) loadUserOpts(arg libkb.LoadUserArg) libkb.LoadUserArg {
+	if !e.allowCaching() {
+		arg = arg.WithForcePoll(true)
+	}
+	return arg
+}
+
 func (e *Identify2WithUID) loadMe(m libkb.MetaContext, uid keybase1.UID) (err error) {
 
 	// Short circuit loadMe for testing
 	if e.testArgs != nil && e.testArgs.noMe {
 		return nil
 	}
-	e.me, err = loadIdentifyUser(m, libkb.NewLoadUserArgWithMetaContext(m).WithUID(uid), e.getCache())
+	e.me, err = loadIdentifyUser(m, e.loadUserOpts(libkb.NewLoadUserArgWithMetaContext(m).WithUID(uid)), e.getCache())
 	return err
 }
 
 func (e *Identify2WithUID) loadThem(m libkb.MetaContext) (err error) {
-	arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(e.arg.Uid).WithResolveBody(e.ResolveBody).WithPublicKeyOptional()
+	arg := e.loadUserOpts(libkb.NewLoadUserArgWithMetaContext(m).WithUID(e.arg.Uid).WithResolveBody(e.ResolveBody).WithPublicKeyOptional())
 	e.them, err = loadIdentifyUser(m, arg, e.getCache())
 	if err != nil {
 		switch err.(type) {
@@ -886,10 +915,15 @@ func (e *Identify2WithUID) loadThem(m libkb.MetaContext) (err error) {
 	if e.them == nil {
 		return libkb.UserNotFoundError{UID: e.arg.Uid, Msg: "in Identify2WithUID"}
 	}
-	return libkb.UserErrorFromStatus(e.them.GetStatus())
+	err = libkb.UserErrorFromStatus(e.them.GetStatus())
+	if _, ok := err.(libkb.UserDeletedError); ok && e.arg.IdentifyBehavior.AllowDeletedUsers() {
+		e.them.isDeleted = true
+		return nil
+	}
+	return err
 }
 
-func (e *Identify2WithUID) loadUsers(m libkb.MetaContext) error {
+func (e *Identify2WithUID) loadUsers(m libkb.MetaContext) (err error) {
 	var loadMeErr, loadThemErr error
 
 	var selfLoad bool
@@ -1022,11 +1056,16 @@ func (e *Identify2WithUID) removeSlowCacheFromDB() (err error) {
 	return err
 }
 
-func (e *Identify2WithUID) checkSlowCacheHit() (ret bool) {
+func (e *Identify2WithUID) checkSlowCacheHit(m libkb.MetaContext) (ret bool) {
 	prfx := fmt.Sprintf("Identify2WithUID#checkSlowCacheHit(%s)", e.them.GetUID())
 	defer e.G().ExitTraceOK(prfx, func() bool { return ret })()
 
 	if e.getCache() == nil {
+		return false
+	}
+
+	if !e.allowCaching() {
+		m.CDebugf("| missed fast cache: no caching allowed")
 		return false
 	}
 
@@ -1041,7 +1080,7 @@ func (e *Identify2WithUID) checkSlowCacheHit() (ret bool) {
 
 	trackBrokenError := false
 	if err != nil {
-		e.G().Log.Debug("| slow cache error for %s: %s", e.them.GetUID(), err)
+		m.CDebugf("| slow cache error for %s: %s", e.them.GetUID(), err)
 		if _, ok := err.(libkb.TrackBrokenError); ok {
 			trackBrokenError = true
 		}
@@ -1052,12 +1091,12 @@ func (e *Identify2WithUID) checkSlowCacheHit() (ret bool) {
 	}
 
 	if u == nil {
-		e.G().Log.Debug("| %s: identify missed cache", prfx)
+		m.CDebugf("| %s: identify missed cache", prfx)
 		return false
 	}
 
 	if !e.them.IsCachedIdentifyFresh(&u.Upk) {
-		e.G().Log.Debug("| %s: cached identify was stale", prfx)
+		m.CDebugf("| %s: cached identify was stale", prfx)
 		return false
 	}
 

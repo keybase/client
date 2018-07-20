@@ -113,3 +113,7 @@ func TrackChainLinkFromUserPlusAllKeys(u *keybase1.UserPlusAllKeys, username Nor
 	tcl, err = TrackChainLinkFor(u.Base.Uid, uid, tcl, err, g)
 	return tcl, err
 }
+
+func NormalizedUsernameFromUPK2(u keybase1.UserPlusKeysV2) NormalizedUsername {
+	return NewNormalizedUsername(u.Username)
+}

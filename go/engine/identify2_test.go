@@ -459,7 +459,12 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 			noMe:  true,
 			cache: tester,
 			tcl:   importTrackingLink(t, tc.G),
-			allowUntrackedFastPath: true,
+			// MK 2018-07-20 BUG BUG BUG! This test originally wanted to
+			// set allowUntrackedFastPath:true, but because noMe was
+			// set, that flag had no effect. So I think there's a bug of
+			// some sort here, that the intention of the test isn't captured
+			// in the test itself. To fix. See: CORE-8352
+			// allowUntrackedFastPath: true,  // THIS IS BuggY!
 		}
 
 		waiter := launchWaiter(t, tester.finishCh)
@@ -1088,11 +1093,11 @@ func TestResolveAndCheck(t *testing.T) {
 		{"foobunny+foobunny@github", libkb.NotFoundError{}},
 	}
 	for _, test := range tests {
-		uid, un, err := ResolveAndCheck(m, test.s)
+		upk, err := ResolveAndCheck(m, test.s)
 		require.IsType(t, test.e, err)
 		if err == nil {
-			require.True(t, uid.Equal(tracyUID))
-			require.True(t, un.Eq(libkb.NewNormalizedUsername("t_tracy")))
+			require.True(t, upk.GetUID().Equal(tracyUID))
+			require.Equal(t, upk.GetName(), "t_tracy")
 		}
 	}
 }
