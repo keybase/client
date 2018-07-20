@@ -54,7 +54,9 @@ type NewReactionButtonState = {
 }
 export class NewReactionButton extends React.Component<NewReactionButtonProps, NewReactionButtonState> {
   state = {attachmentRef: null, rolledOut: false}
-  /* If this or the rollout is being hovered, we are rolled out */
+  // If this _or_ the rollout is being hovered, we are rolled out
+  // I've seen mixed behavior with this not working if we don't also
+  // track the hover state of the rollout, so keeping this here to be safe
   _hoveringButton = false
   _hoveringRollout = false
 
@@ -73,11 +75,17 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
     this.setState(s => (s.rolledOut === nextRolledOut ? null : {rolledOut: nextRolledOut}))
   }
 
+  _onAddReaction = (emojiName: string) => {
+    this._setHoveringButton(false)
+    this._setHoveringRollout(false)
+    this.props.onAddReaction(emojiName)
+  }
+
   render() {
     const ContainerComp = this.props.showBorder ? ButtonBox : ClickableBox
     return (
       <ContainerComp
-        onMouseEnter={() => this._setHoveringButton(true)}
+        onMouseOver={() => this._setHoveringButton(true)}
         onMouseLeave={() => this._setHoveringButton(false)}
         onClick={() => this.props.onAddReaction(':grinning_face_with_star_eyes:')}
         style={collapseStyles([styles.newReactionButtonBox, this.props.showBorder && styles.buttonBox])}
@@ -92,7 +100,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
         </Box2>
         <Rollout
           attachTo={this.state.attachmentRef}
-          onAddReaction={this.props.onAddReaction}
+          onAddReaction={this._onAddReaction}
           onMouseEnter={() => this._setHoveringRollout(true)}
           onMouseLeave={() => this._setHoveringRollout(false)}
           visible={this.state.rolledOut}
