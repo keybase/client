@@ -688,7 +688,7 @@ func (e *Identify2WithUID) runIdentifyPrecomputation() (err error) {
 }
 
 func (e *Identify2WithUID) displayUserCardAsync(m libkb.MetaContext) <-chan error {
-	if e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks() {
+	if e.arg.IdentifyBehavior.SkipUserCard() {
 		return nil
 	}
 	return displayUserCardAsync(m, e.them.GetUID(), (e.me != nil))
@@ -893,17 +893,20 @@ func (e *Identify2WithUID) loadUsers(m libkb.MetaContext) error {
 	var loadMeErr, loadThemErr error
 
 	var selfLoad bool
-	loggedIn, myUID := isLoggedIn(m)
-
 	var wg sync.WaitGroup
-	if loggedIn {
-		selfLoad = myUID.Equal(e.arg.Uid)
-		wg.Add(1)
-		go func() {
-			loadMeErr = e.loadMe(m, myUID)
-			wg.Done()
-		}()
+
+	if !e.arg.ActLoggedOut {
+		loggedIn, myUID := isLoggedIn(m)
+		if loggedIn {
+			selfLoad = myUID.Equal(e.arg.Uid)
+			wg.Add(1)
+			go func() {
+				loadMeErr = e.loadMe(m, myUID)
+				wg.Done()
+			}()
+		}
 	}
+
 	if !selfLoad {
 		wg.Add(1)
 		go func() {

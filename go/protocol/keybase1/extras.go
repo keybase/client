@@ -1222,9 +1222,23 @@ func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 		// track errors, because people need to be able to use it to ask each other
 		// about the fact that proofs are broken.
 		return true
+	case TLFIdentifyBehavior_RESOLVE_AND_CHECK:
+		// Tracks don't matter for ResolveAndCheck, since we act logged out.
+		return true
 	default:
 		return false
 	}
+}
+
+func (b TLFIdentifyBehavior) SkipUserCard() bool {
+	switch b {
+	case TLFIdentifyBehavior_CHAT_GUI, TLFIdentifyBehavior_RESOLVE_AND_CHECK:
+		// We don't need to bother loading a user card in these cases.
+		return true
+	default:
+		return false
+	}
+
 }
 
 // All of the chat modes want to prevent tracker popups.
@@ -1236,6 +1250,7 @@ func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
 		TLFIdentifyBehavior_KBFS_REKEY,
 		TLFIdentifyBehavior_KBFS_QR,
 		TLFIdentifyBehavior_SALTPACK,
+		TLFIdentifyBehavior_RESOLVE_AND_CHECK,
 		TLFIdentifyBehavior_KBFS_CHAT:
 		// These are identifies that either happen without user interaction at
 		// all, or happen while you're staring at some Keybase UI that can

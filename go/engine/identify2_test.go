@@ -1070,6 +1070,33 @@ func TestSkipExternalChecks(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestResolveAndCheck(t *testing.T) {
+	tc := SetupEngineTest(t, "id")
+	defer tc.Cleanup()
+	m := NewMetaContextForTest(tc)
+
+	var tests = []struct {
+		s string
+		e interface{}
+	}{
+		{"tacovontaco@twitter+t_tracy@rooter", nil},
+		{"tacovontaco@twitter+t_tracy@rooter+t_tracy", nil},
+		{"t_tracy", nil},
+		{"tacovontaco@twitter+t_tracy@rooter+foobunny@github", libkb.UnmetAssertionError{}},
+		{"foobunny@github", libkb.ResolutionError{}},
+		{"foobunny", libkb.NotFoundError{}},
+		{"foobunny+foobunny@github", libkb.NotFoundError{}},
+	}
+	for _, test := range tests {
+		uid, un, err := ResolveAndCheck(m, test.s)
+		require.IsType(t, test.e, err)
+		if err == nil {
+			require.True(t, uid.Equal(tracyUID))
+			require.True(t, un.Eq(libkb.NewNormalizedUsername("t_tracy")))
+		}
+	}
+}
+
 var aliceUID = keybase1.UID("295a7eea607af32040647123732bc819")
 var tracyUID = keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
 var trackingUID = keybase1.UID("92b3b3dbe457059f28c9f74e8e6b9419")

@@ -834,20 +834,21 @@ var errUserDeleted = errors.New("user is deleted")
 func loadUserVersionPlusByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (libkb.NormalizedUsername, keybase1.UserVersion, error) {
 	// need username here as `username` parameter might be social assertion, also username
 	// is used for chat notification recipient
-	res := g.Resolver.ResolveFullExpressionNeedUsername(ctx, username)
-	if res.GetError() != nil {
-		if e, ok := res.GetError().(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
+	m := libkb.NewMetaContext(ctx, g)
+	uid, nun, err := engine.ResolveAndCheck(m, username)
+	if err != nil {
+		if e, ok := err.(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
 			// couldn't find a keybase user for username assertion
 			return "", keybase1.UserVersion{}, errInviteRequired
 		}
-		return "", keybase1.UserVersion{}, res.GetError()
+		return "", keybase1.UserVersion{}, err
 	}
 
-	uv, err := loadUserVersionByUIDCheckUsername(ctx, g, res.GetUID(), res.GetUsername())
+	uv, err := loadUserVersionByUIDCheckUsername(ctx, g, uid, nun.String())
 	if err != nil {
-		return res.GetNormalizedUsername(), uv, err
+		return nun, uv, err
 	}
-	return res.GetNormalizedUsername(), uv, nil
+	return nun, uv, nil
 }
 
 func loadUserVersionAndPUKedByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (uname libkb.NormalizedUsername, uv keybase1.UserVersion, hasPUK bool, err error) {
@@ -866,16 +867,17 @@ func loadUserVersionAndPUKedByUsername(ctx context.Context, g *libkb.GlobalConte
 }
 
 func loadUserVersionByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (keybase1.UserVersion, error) {
-	res := g.Resolver.ResolveWithBody(username)
-	if res.GetError() != nil {
-		if e, ok := res.GetError().(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
+	m := libkb.NewMetaContext(ctx, g)
+	uid, nun, err := engine.ResolveAndCheck(m, username)
+	if err != nil {
+		if e, ok := err.(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
 			// couldn't find a keybase user for username assertion
 			return keybase1.UserVersion{}, errInviteRequired
 		}
-		return keybase1.UserVersion{}, res.GetError()
+		return keybase1.UserVersion{}, err
 	}
 
-	return loadUserVersionByUIDCheckUsername(ctx, g, res.GetUID(), res.GetUsername())
+	return loadUserVersionByUIDCheckUsername(ctx, g, uid, nun.String())
 }
 
 func loadUserVersionByUID(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID) (keybase1.UserVersion, error) {

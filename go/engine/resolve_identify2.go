@@ -141,3 +141,29 @@ func (e *ResolveThenIdentify2) GetProofSet() *libkb.ProofSet {
 	}
 	return e.i2eng.GetProofSet()
 }
+
+// ResolveAndCheck takes as input a name (joe), social assertion (joe@twitter)
+// or compound assertion (joe+joe@twitter+3883883773222@pgp) and invokes
+// the whole resolve/identify machinery. That is, it performs a server-trusted
+// resolution of the name to a UID, then does an ID on the UID to make sure all
+// assertions are met. Pass into it a MetaContext without any UIs set, since it
+// is meant to run without any UI interaction. Also note that tracker statements
+// are *not* taken into account. The identify is run as if the user is logged out.
+func ResolveAndCheck(m libkb.MetaContext, s string) (uid keybase1.UID, un libkb.NormalizedUsername, err error) {
+	m = m.WithLogTag("RAC")
+	defer m.CTraceTimed("ResolveAndCheck", func() error { return err })()
+	arg := keybase1.Identify2Arg{
+		UserAssertion:         s,
+		CanSuppressUI:         true,
+		ActLoggedOut:          true,
+		NoErrorOnTrackFailure: true,
+		IdentifyBehavior:      keybase1.TLFIdentifyBehavior_RESOLVE_AND_CHECK,
+	}
+	eng := NewResolveThenIdentify2(m.G(), &arg)
+	err = RunEngine2(m, eng)
+	res := eng.Result()
+	if err != nil {
+		return uid, un, err
+	}
+	return res.Upk.GetUID(), libkb.NewNormalizedUsername(res.Upk.GetName()), nil
+}

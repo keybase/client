@@ -18,7 +18,8 @@ protocol tlfKeys {
     CLI_8,
     GUI_9,
     DEFAULT_KBFS_10,
-    KBFS_CHAT_11
+    KBFS_CHAT_11,
+    RESOLVE_AND_CHECK_12
   }
 
   @typedef("string")
