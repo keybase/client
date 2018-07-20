@@ -35,7 +35,6 @@ func TestEphemeralNewTeamEKNotif(t *testing.T) {
 
 	checkNewTeamEKNotifications(user1.tc, user1.notifications, expectedArg)
 	checkNewTeamEKNotifications(user2.tc, user2.notifications, expectedArg)
-
 }
 
 func checkNewTeamEKNotifications(tc *libkb.TestContext, notifications *teamNotifyHandler, expectedArg keybase1.NewTeamEkArg) {
@@ -346,4 +345,37 @@ func TestEphemeralNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
 	// And do the same for the teamEK, just to be sure.
 	_, err = ephemeral.ForcePublishNewTeamEKForTesting(context.Background(), annG, teamID, *merkleRoot)
 	require.NoError(t, err)
+}
+
+func readdToTeamWithEKs(t *testing.T, leave bool) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	user1 := tt.addUser("one")
+	user2 := tt.addUser("wtr")
+
+	teamID, teamName := user1.createTeam2()
+	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
+
+	ephemeral.ServiceInit(user1.tc.G)
+	ekLib := user1.tc.G.GetEKLib()
+
+	_, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
+	require.NoError(t, err)
+
+	if leave {
+		user2.leave(teamName.String())
+	} else {
+		user1.removeTeamMember(teamName.String(), user2.username)
+	}
+
+	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
+}
+
+func TestTeamEKMemberLeaveAndReadd(t *testing.T) {
+	readdToTeamWithEKs(t, true /* leave */)
+}
+
+func TestTeamEKMemberRemoveAndReadd(t *testing.T) {
+	readdToTeamWithEKs(t, false /* leave */)
 }
