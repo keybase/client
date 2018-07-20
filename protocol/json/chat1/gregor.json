@@ -491,8 +491,11 @@
           "name": "convID"
         },
         {
-          "type": "keybase1.TeamRole",
-          "name": "role"
+          "type": [
+            null,
+            "ConversationMinWriterRoleInfo"
+          ],
+          "name": "info"
         }
       ]
     },

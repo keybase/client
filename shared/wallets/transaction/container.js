@@ -3,6 +3,7 @@ import {connect, type TypedState} from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 import Transaction from '.'
+import {navigateAppend} from '../../actions/route-tree'
 
 export type OwnProps = {
   accountID: Types.AccountID,
@@ -14,26 +15,40 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   _you: state.config.username,
 })
 
-const mergeProps = stateProps => {
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _onSelectTransaction: (paymentID: string, accountID: Types.AccountID) =>
+    dispatch(
+      navigateAppend([
+        {
+          props: {accountID, paymentID},
+          selected: 'transactionDetails',
+        },
+      ])
+    ),
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const tx = stateProps._transaction
   const yourRole = Constants.paymentToYourRole(tx, stateProps._you || '')
   const counterpartyType = Constants.paymentToCounterpartyType(tx)
   return {
-    timestamp: tx.time,
-    delta: tx.delta,
-    yourRole,
-    counterparty: yourRole === 'sender' ? tx.target : tx.source,
-    counterpartyType,
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
-    memo: tx.note,
+    counterparty: yourRole === 'sender' ? tx.target : tx.source,
+    counterpartyType,
+    delta: tx.delta,
     large: counterpartyType !== 'wallet',
-    status: tx.statusSimplified,
-    statusDetail: tx.statusDetail,
+    memo: tx.note,
     // TODO -- waiting on CORE integration for these two
     onCancelPayment: undefined,
     onRetryPayment: undefined,
+    // $FlowIssue undefined is incompatible with function
+    onSelectTransaction: () => dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID),
+    status: tx.statusSimplified,
+    statusDetail: tx.statusDetail,
+    timestamp: tx.time,
+    yourRole,
   }
 }
 
-export default connect(mapStateToProps, () => ({}), mergeProps)(Transaction)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Transaction)

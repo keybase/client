@@ -17,16 +17,17 @@ const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
 
 const makeState: I.RecordFactory<Types._State> = I.Record({
   accountMap: I.Map(),
-  assetsMap: I.Map(),
   accountName: '',
   accountNameError: '',
   accountNameValidationState: 'none',
+  assetsMap: I.Map(),
   exportedSecretKey: new HiddenString(''),
   linkExistingAccountError: '',
+  paymentsMap: I.Map(),
   secretKey: new HiddenString(''),
   secretKeyError: '',
+  secretKeyMap: I.Map(),
   secretKeyValidationState: 'none',
-  paymentsMap: I.Map(),
   selectedAccount: Types.noAccountID,
 })
 
@@ -72,9 +73,11 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   amountDescription: '',
   delta: 'none',
   error: '',
-  id: null,
+  id: {txID: ''},
   note: '',
   noteErr: '',
+  publicMemo: '',
+  publicMemoType: '',
   source: '',
   sourceType: '',
   statusDescription: '',
@@ -83,6 +86,7 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   target: '',
   targetType: '',
   time: 0,
+  txID: '',
   worth: '',
   worthCurrency: '',
 })
