@@ -15,16 +15,19 @@ const placeholder = 'Search Keybase'
 
 const Search = (props: Props) => (
   <Box2 direction="vertical">
-    <Box2 direction="horizontal">
+    <Box2 direction="horizontal" fullWidth={true} style={{alignItems: 'center'}}>
       <Text type="Body">To:</Text>
-      <UserInput
-        searchKey={searchKey}
-        autoFocus={true}
-        placeholder={placeholder}
-        onExitSearch={props.onClose}
-        disableListBuilding={true}
-        showServiceFilter={false}
-      />
+      {/* TODO: Get rid of singleton box below */}
+      <Box2 direction="vertical" fullWidth={true}>
+        <UserInput
+          searchKey={searchKey}
+          autoFocus={true}
+          placeholder={placeholder}
+          onExitSearch={props.onClose}
+          disableListBuilding={true}
+          showServiceFilter={false}
+        />
+      </Box2>
     </Box2>
     <ResultsList
       searchKey={searchKey}
