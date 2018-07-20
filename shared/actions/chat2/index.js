@@ -1219,7 +1219,6 @@ const previewConversationAfterFindExisting = (
   action: Chat2Gen.PreviewConversationPayload | Chat2Gen.SetPendingConversationUsersPayload,
   state: TypedState
 ) => {
-  // TODO make a sequentially that uses an object map and not all this array nonsense
   if (!_fromPreviewConversation || _fromPreviewConversation.length !== 4) {
     return
   }
@@ -1293,7 +1292,6 @@ const previewConversationAfterFindExisting = (
 }
 
 // Start a conversation, or select an existing one
-// TODO: Jacob investigate
 const previewConversationFindExisting = (
   action: Chat2Gen.PreviewConversationPayload | Chat2Gen.SetPendingConversationUsersPayload,
   state: TypedState
@@ -1372,7 +1370,6 @@ const previewConversationFindExisting = (
 const bootstrapSuccess = (_, state: TypedState) =>
   state.config.username && Saga.put(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
 
-// TODO: Jacob - Investigate
 const changeSelectedConversation = (
   action:
     | Chat2Gen.MetasReceivedPayload
@@ -1883,7 +1880,6 @@ const mobileChangeSelection = (_: any, state: TypedState) => {
   const routePath = getPath(state.routeTree.routeState)
   const inboxSelected = routePath.size === 1 && routePath.get(0) === chatTab
   if (inboxSelected) {
-    // TODO: Jacob - Investigate
     return Saga.put(
       Chat2Gen.createSelectConversation({
         conversationIDKey: Constants.noConversationIDKey,

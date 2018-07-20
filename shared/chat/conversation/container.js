@@ -33,7 +33,7 @@ class Conversation extends React.PureComponent<SwitchProps> {
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
       ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(this.props.type);
       */
-        return isMobile ? null : <NoConversation />
+        return <NoConversation />
     }
   }
 }
