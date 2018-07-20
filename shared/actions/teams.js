@@ -892,6 +892,9 @@ const _setMemberPublicity = function*(action: TeamsGen.SetMemberPublicityPayload
     // TODO handle error, but for now make sure loading is unset
     yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
     yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname})))
+
+    // The profile showcasing page gets this data from teamList rather than teamGet, so trigger one of those too.
+    yield Saga.put(TeamsGen.createGetTeams())
   }
 }
 
@@ -1022,7 +1025,13 @@ function _setupTeamHandlers() {
 }
 
 function getLoadCalls(teamname?: string) {
-  const actions = [TeamsGen.createGetTeams(), teamname && TeamsGen.createGetDetails({teamname})]
+  const actions = []
+  if (_wasOnTeamsTab) {
+    actions.push(TeamsGen.createGetTeams())
+    if (teamname) {
+      actions.push(TeamsGen.createGetDetails({teamname}))
+    }
+  }
   return actions
 }
 
@@ -1163,7 +1172,12 @@ function _badgeAppForTeams(action: TeamsGen.BadgeAppForTeamsPayload, state: Type
     // Call getTeams if new teams come in.
     // Covers the case when we're staring at the teams page so
     // we don't miss a notification we clear when we tab away
+    const existingNewTeams = state.teams.getIn(['newTeams'], I.Set())
     const existingNewTeamRequests = state.teams.getIn(['newTeamRequests'], I.List())
+    if (!newTeams.equals(existingNewTeams) && newTeams.size > 0) {
+      // We have been added to a new team & we need to refresh the list
+      actions.push(Saga.put(TeamsGen.createGetTeams()))
+    }
 
     // getDetails for teams that have new access requests
     // Covers case where we have a badge appear on the requests
