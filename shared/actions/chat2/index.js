@@ -1880,6 +1880,7 @@ const mobileChangeSelection = (_: any, state: TypedState) => {
   const routePath = getPath(state.routeTree.routeState)
   const inboxSelected = routePath.size === 1 && routePath.get(0) === chatTab
   if (inboxSelected) {
+    // TODO: Jacob - Investigate
     return Saga.put(
       Chat2Gen.createSelectConversation({
         conversationIDKey: Constants.noConversationIDKey,

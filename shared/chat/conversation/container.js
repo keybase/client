@@ -15,13 +15,29 @@ type SwitchProps = {
   type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey',
 }
 
-class Conversation extends React.PureComponent<SwitchProps> {
+type State = {
+  deselectingConversation: boolean,
+}
+
+class Conversation extends React.Component<SwitchProps, State> {
+  state = {
+    deselectingConversation: false,
+  }
+
+  componentDidUpdate(prevProps: SwitchProps) {
+    if (prevProps.type !== 'noConvo' && this.props.type === 'noConvo') {
+      this.setState({
+        deselectingConversation: true,
+      })
+    }
+  }
+
   render() {
     switch (this.props.type) {
       case 'error':
         return this.props.conversationIDKey && <Error conversationIDKey={this.props.conversationIDKey} />
       case 'noConvo':
-        return isMobile ? null : <NoConversation />
+        return isMobile && this.state.deselectingConversation ? null : <NoConversation />
       case 'normal':
         return <Normal conversationIDKey={this.props.conversationIDKey} />
       case 'youAreReset':
@@ -33,6 +49,7 @@ class Conversation extends React.PureComponent<SwitchProps> {
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
       ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(this.props.type);
       */
+        console.log('JRY DEFAULT')
         return <NoConversation />
     }
   }
