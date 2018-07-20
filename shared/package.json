@@ -69,6 +69,7 @@
     "flowCommandPath": "./node_modules/.bin/flow"
   },
   "jest": {
+    "coverageDirectory": "./coverage",
     "modulePaths": [
       "<rootDir>/desktop/node_modules"
     ],
