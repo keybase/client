@@ -17,7 +17,7 @@ export opaque type AccountID: string = string
 export const stringToAccountID = __DEV__
   ? (s: string): AccountID => {
       if (!s) {
-        throw new Error('Invalid empty converationidkey. Did you mean Constants.noConversationIDKey?')
+        throw new Error('Invalid empty AccountID. Did you mean Constants.noAccountID?')
       }
       return s
     }
@@ -46,6 +46,8 @@ export type _Assets = {
   name: string,
   worth: string,
   worthCurrency: string,
+  availableToSendWorth: string,
+  reserves: I.List<Reserve>,
 }
 
 export type StatusSimplified = 'none' | 'pending' | 'claimable' | 'completed' | 'error' | 'unknown'

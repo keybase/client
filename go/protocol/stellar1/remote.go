@@ -421,11 +421,12 @@ func (o PaymentDetails) DeepCopy() PaymentDetails {
 }
 
 type AccountDetails struct {
-	AccountID     AccountID `codec:"accountID" json:"accountID"`
-	Seqno         string    `codec:"seqno" json:"seqno"`
-	Balances      []Balance `codec:"balances" json:"balances"`
-	SubentryCount int       `codec:"subentryCount" json:"subentryCount"`
-	Available     string    `codec:"available" json:"available"`
+	AccountID     AccountID        `codec:"accountID" json:"accountID"`
+	Seqno         string           `codec:"seqno" json:"seqno"`
+	Balances      []Balance        `codec:"balances" json:"balances"`
+	SubentryCount int              `codec:"subentryCount" json:"subentryCount"`
+	Available     string           `codec:"available" json:"available"`
+	Reserves      []AccountReserve `codec:"reserves" json:"reserves"`
 }
 
 func (o AccountDetails) DeepCopy() AccountDetails {
@@ -445,6 +446,17 @@ func (o AccountDetails) DeepCopy() AccountDetails {
 		})(o.Balances),
 		SubentryCount: o.SubentryCount,
 		Available:     o.Available,
+		Reserves: (func(x []AccountReserve) []AccountReserve {
+			if x == nil {
+				return nil
+			}
+			var ret []AccountReserve
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Reserves),
 	}
 }
 
