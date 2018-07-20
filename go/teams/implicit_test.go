@@ -491,14 +491,14 @@ func TestReAddMemberWithSameUV(t *testing.T) {
 
 	t.Logf("created team id: %s", teamObj.ID)
 
-	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
-	require.IsType(t, libkb.ExistsError{}, err)
+	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
+	require.IsType(t, UserHasNotResetError{}, err)
 
 	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, jun.Username)
-	require.IsType(t, libkb.ExistsError{}, err)
+	require.NoError(t, err)
 
-	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, hal.Username)
-	require.IsType(t, libkb.ExistsError{}, err)
+	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, hal.Username)
+	require.IsType(t, UserHasNotResetError{}, err)
 
 	// Now, the fun part (bug CORE-8099):
 
@@ -512,8 +512,7 @@ func TestReAddMemberWithSameUV(t *testing.T) {
 	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
 	require.NoError(t, err)
 
-	// Subsequent calls should start failing with ExistsError again
-	// and cancel old invite and add new one for same UV.
-	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
-	require.IsType(t, libkb.ExistsError{}, err)
+	// Subsequent calls should start UserHasNotResetErrorin again
+	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
+	require.IsType(t, UserHasNotResetError{}, err)
 }

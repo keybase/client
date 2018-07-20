@@ -340,6 +340,20 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, as
 }
 
 func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
+	username string) (err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("ReAddMemberAfterReset(%v,%v)", teamID, username), func() error { return err })()
+	err = reAddMemberAfterResetInner(ctx, g, teamID, username)
+	switch err.(type) {
+	case UserHasNotResetError:
+		// No-op is ok
+		g.Log.CDebugf(ctx, "suppressing error: %v", err)
+		return nil
+	default:
+		return err
+	}
+}
+
+func reAddMemberAfterResetInner(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
 	username string) error {
 	arg := libkb.NewLoadUserArg(g).
 		WithNetContext(ctx).
@@ -389,9 +403,8 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 		}
 
 		if existingUV.EldestSeqno == uv.EldestSeqno {
-			g.Log.CDebugf(ctx, "user %s has not reset, no need to re-add, existing: %v new: %v",
+			return NewUserHasNotResetError("user %s has not reset, no need to re-add, existing: %v new: %v",
 				username, existingUV.EldestSeqno, uv.EldestSeqno)
-			return nil
 		}
 
 		hasPUK := len(upak.Current.PerUserKeys) > 0
