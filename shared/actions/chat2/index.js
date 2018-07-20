@@ -1641,7 +1641,6 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
     logger.warn('Missing meta for attachment upload', conversationIDKey)
     return
   }
-  const errorReasons = outboxIDs.map(o => '')
 
   // disable sending exploding messages if flag is false
   const ephemeralLifetime = flags.explodingMessagesEnabled
@@ -1649,20 +1648,24 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
     : 0
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
 
-  const messages = Constants.makePendingAttachmentMessages(
-    state,
-    conversationIDKey,
-    titles,
-    previewURLs,
-    previewSpecs,
-    outboxIDs.map(o => Types.rpcOutboxIDToOutboxID(o)),
-    [],
-    errorReasons,
-    ephemeralLifetime
-  )
+  let lastOrdinal = null
+  const messages = outboxIDs.map((o, i) => {
+    const m = Constants.makePendingAttachmentMessage(
+      state,
+      conversationIDKey,
+      titles[i],
+      previewURLs[i],
+      previewSpecs[i],
+      Types.rpcOutboxIDToOutboxID(outboxIDs[i]),
+      lastOrdinal,
+      null,
+      ephemeralLifetime
+    )
+    lastOrdinal = Constants.nextFractionalOrdinal(m.ordinal)
+    return m
+  })
   const ordinals = messages.map(m => m.ordinal)
   yield Saga.put(
-    // $FlowIssue getting confused about props on the message union
     Chat2Gen.createMessagesAdd({
       context: {type: 'sent'},
       messages,

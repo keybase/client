@@ -599,30 +599,29 @@ const outboxUIMessagetoMessage = (
 
   switch (o.messageType) {
     case RPCChatTypes.commonMessageType.attachment:
-      const titles = ['']
-      const previewURLs = ['']
-      const pre = [previewSpecs(null, null)]
+      let title = ''
+      let previewURL = ''
+      let pre = previewSpecs(null, null)
       if (o.preview) {
-        previewURLs[0] =
+        previewURL =
           o.preview.location &&
           o.preview.location.ltyp === RPCChatTypes.localPreviewLocationTyp.url &&
           o.preview.location.url
             ? o.preview.location.url
             : ''
         const md = o.preview && o.preview.metadata
-        pre[0] = previewSpecs(md, null)
+        pre = previewSpecs(md, null)
       }
-      return makePendingAttachmentMessages(
+      return makePendingAttachmentMessage(
         state,
         conversationIDKey,
-        titles,
-        previewURLs,
+        title,
+        previewURL,
         pre,
-        [Types.stringToOutboxID(o.outboxID)],
-        [Types.numberToOrdinal(o.ordinal)],
-        [!errorReason ? '' : errorReason],
-        0
-      )[0]
+        Types.stringToOutboxID(o.outboxID),
+        Types.numberToOrdinal(o.ordinal),
+        errorReason
+      )
     case RPCChatTypes.commonMessageType.text:
       return makeMessageText({
         author: state.config.username || '',
@@ -712,7 +711,7 @@ export const uiMessageToMessage = (
   }
 }
 
-function nextFractionalOrdinal(ord: Types.Ordinal): Types.Ordinal {
+export function nextFractionalOrdinal(ord: Types.Ordinal): Types.Ordinal {
   // Mimic what the service does with outbox items
   return Types.numberToOrdinal(Types.ordinalToNumber(ord) + 0.001)
 }
@@ -749,71 +748,41 @@ export const makePendingTextMessage = (
   })
 }
 
-export const makePendingAttachmentMessages = (
+export const makePendingAttachmentMessage = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
-  titles: string[],
-  previewURLs: string[],
-  previewSpecs: Types.PreviewSpec[],
-  outboxIDs: Types.OutboxID[],
-  inOrdinals: Types.Ordinal[],
-  errorReasons: string[],
+  title: string,
+  previewURL: string,
+  previewSpec: Types.PreviewSpec,
+  outboxID: Types.OutboxID,
+  inOrdinal: ?Types.Ordinal,
+  errorReason: ?string,
   explodeTime?: number
 ) => {
-  if (
-    previewSpecs.length !== previewURLs.length ||
-    previewSpecs.length !== outboxIDs.length ||
-    previewSpecs.length !== errorReasons.length
-  ) {
-    // some are not the same size. no good.
-    throw new Error(
-      `makePendingAttachments: got arrays of differing lengths: (${previewSpecs.length}, ${titles.length}, ${
-        previewURLs.length
-      }, ${outboxIDs.length}, ${errorReasons.length})`
-    )
-  }
   const lastOrdinal =
     state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
-  // arbitrarily reduce on attachmentTypes to get the same length
-  const ordinals =
-    inOrdinals.length > 0
-      ? inOrdinals
-      : previewSpecs.reduce((ords, _) => {
-          if (ords.length === 0) {
-            ords.push(nextFractionalOrdinal(lastOrdinal))
-            return ords
-          }
-          ords.push(nextFractionalOrdinal(ords[ords.length - 1]))
-          return ords
-        }, [])
-
+  const ordinal = !inOrdinal ? nextFractionalOrdinal(lastOrdinal) : inOrdinal
   const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
 
-  const res = []
-  for (let i = 0; i < previewSpecs.length; i++) {
-    res.push(
-      makeMessageAttachment({
-        ...explodeInfo,
-        attachmentType: previewSpecs[i].attachmentType,
-        author: state.config.username || '',
-        conversationIDKey,
-        deviceName: '',
-        previewURL: previewURLs[i],
-        previewWidth: previewSpecs[i].width,
-        previewHeight: previewSpecs[i].height,
-        showPlayButton: previewSpecs[i].showPlayButton,
-        deviceType: isMobile ? 'mobile' : 'desktop',
-        id: Types.numberToMessageID(0),
-        ordinal: ordinals[i],
-        outboxID: outboxIDs[i],
-        errorReason: errorReasons[i].length === 0 ? null : errorReasons[i],
-        submitState: 'pending',
-        timestamp: Date.now(),
-        title: titles[i],
-      })
-    )
-  }
-  return res
+  return makeMessageAttachment({
+    ...explodeInfo,
+    attachmentType: previewSpec.attachmentType,
+    author: state.config.username || '',
+    conversationIDKey,
+    deviceName: '',
+    previewURL: previewURL,
+    previewWidth: previewSpec.width,
+    previewHeight: previewSpec.height,
+    showPlayButton: previewSpec.showPlayButton,
+    deviceType: isMobile ? 'mobile' : 'desktop',
+    id: Types.numberToMessageID(0),
+    ordinal: ordinal,
+    outboxID: outboxID,
+    errorReason: errorReason,
+    submitState: 'pending',
+    timestamp: Date.now(),
+    title: title,
+  })
 }
 
 export const getClientPrev = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
