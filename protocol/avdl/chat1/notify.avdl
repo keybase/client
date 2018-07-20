@@ -4,6 +4,11 @@ protocol NotifyChat {
 
   import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
 
+  enum ChatActivitySource {
+    LOCAL_0,
+    REMOTE_1
+  }
+
   enum ChatActivityType {
     RESERVED_0,
     INCOMING_MESSAGE_1,
@@ -143,7 +148,7 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
-  void NewChatActivity(keybase1.UID uid, ChatActivity activity);
+  void NewChatActivity(keybase1.UID uid, ChatActivity activity, ChatActivitySource source);
 
   @notify("")
   @lint("ignore")

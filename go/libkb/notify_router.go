@@ -41,7 +41,7 @@ type NotifyListener interface {
 	FavoritesChanged(uid keybase1.UID)
 	PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID)
 	KeyfamilyChanged(uid keybase1.UID)
-	NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity)
+	NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity, source chat1.ChatActivitySource)
 	NewChatKBFSFileEditActivity(uid keybase1.UID, activity chat1.ChatActivity)
 	ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks)
 	ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID,
@@ -92,8 +92,10 @@ func (n *NoopNotifyListener) FSEditListRequest(arg keybase1.FSEditListRequest)  
 func (n *NoopNotifyListener) FavoritesChanged(uid keybase1.UID)                             {}
 func (n *NoopNotifyListener) PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID) {
 }
-func (n *NoopNotifyListener) KeyfamilyChanged(uid keybase1.UID)                             {}
-func (n *NoopNotifyListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {}
+func (n *NoopNotifyListener) KeyfamilyChanged(uid keybase1.UID) {}
+func (n *NoopNotifyListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity,
+	source chat1.ChatActivitySource) {
+}
 func (n *NoopNotifyListener) NewChatKBFSFileEditActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 }
 func (n *NoopNotifyListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {}
@@ -606,7 +608,7 @@ func (n *NotifyRouter) shouldSendChatNotification(id ConnectionID, topicType cha
 }
 
 func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.UID,
-	topicType chat1.TopicType, activity *chat1.ChatActivity) {
+	topicType chat1.TopicType, activity *chat1.ChatActivity, source chat1.ChatActivitySource) {
 	if n == nil {
 		return
 	}
@@ -625,6 +627,7 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 				}).NewChatActivity(context.Background(), chat1.NewChatActivityArg{
 					Uid:      uid,
 					Activity: *activity,
+					Source:   source,
 				})
 				wg.Done()
 			}()
@@ -633,7 +636,7 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 	})
 	wg.Wait()
 	if n.listener != nil {
-		n.listener.NewChatActivity(uid, *activity)
+		n.listener.NewChatActivity(uid, *activity, source)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent NewChatActivity notification")
 }

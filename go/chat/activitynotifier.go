@@ -50,11 +50,12 @@ func (n *NotifyRouterActivityRouter) kuid(uid gregor1.UID) keybase1.UID {
 	return keybase1.UID(uid.String())
 }
 
-func (n *NotifyRouterActivityRouter) Activity(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType, activity *chat1.ChatActivity) {
-	defer n.Trace(ctx, func() error { return nil }, "Activity(%v)", topicType)()
+func (n *NotifyRouterActivityRouter) Activity(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType,
+	activity *chat1.ChatActivity, source chat1.ChatActivitySource) {
+	defer n.Trace(ctx, func() error { return nil }, "Activity(%v,%v)", topicType, source)()
 	ctx = BackgroundContext(ctx, n.G())
 	n.notifyCh <- func() {
-		n.G().NotifyRouter.HandleNewChatActivity(ctx, n.kuid(uid), topicType, activity)
+		n.G().NotifyRouter.HandleNewChatActivity(ctx, n.kuid(uid), topicType, activity, source)
 	}
 }
 

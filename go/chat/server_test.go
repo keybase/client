@@ -1917,7 +1917,8 @@ func (n *serverChatListener) ChatInboxSynced(uid keybase1.UID, topicType chat1.T
 		n.inboxSynced <- syncRes
 	}
 }
-func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
+func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity,
+	source chat1.ChatActivitySource) {
 	typ, _ := activity.ActivityType()
 	switch typ {
 	case chat1.ChatActivityType_INCOMING_MESSAGE:

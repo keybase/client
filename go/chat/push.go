@@ -629,7 +629,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 
 func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor1.UID,
 	topicType chat1.TopicType, activity *chat1.ChatActivity) {
-	g.G().ActivityNotifier.Activity(ctx, uid, topicType, activity)
+	g.G().ActivityNotifier.Activity(ctx, uid, topicType, activity, chat1.ChatActivitySource_REMOTE)
 }
 
 func (g *PushHandler) notifyJoinChannel(ctx context.Context, uid gregor1.UID,
