@@ -63,6 +63,11 @@ li.keybase-reply form, form.keybase-reply {
   background: #3dcca6;
 }
 
+.keybase-reply.keybase-success p {
+  margin: 30px 0 30px 0;
+  font-weight: 600;
+}
+
 .keybase-error {
   text-align: center;
 }
