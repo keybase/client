@@ -757,6 +757,13 @@ func (c *ChatRPC) ChatSetTeamRetention(
 	return nil
 }
 
+// ChatSetConvMinWriterRole implements the chat1.NotifyChatInterface for
+// ChatRPC.
+func (c *ChatRPC) ChatSetConvMinWriterRole(
+	_ context.Context, _ chat1.ChatSetConvMinWriterRoleArg) error {
+	return nil
+}
+
 // ChatKBFSToImpteamUpgrade implements the chat1.NotifyChatInterface
 // for ChatRPC.
 func (c *ChatRPC) ChatKBFSToImpteamUpgrade(

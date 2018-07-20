@@ -238,10 +238,10 @@
 			"revisionTime": "2018-05-19T05:29:12Z"
 		},
 		{
-			"checksumSHA1": "5XUpzeADqOLyxFNNTdhl3QZK5/0=",
+			"checksumSHA1": "BmrjhGZJ8qS0DRw81RW66VUoHQk=",
 			"path": "github.com/keybase/client/go/protocol/chat1",
-			"revision": "1ff71e786dfc6527cd3df697f2f8a6cce6cb6f79",
-			"revisionTime": "2018-07-20T00:46:05Z"
+			"revision": "6fbce3f98eeb230cbb373436fb55134d6121db26",
+			"revisionTime": "2018-07-19T22:10:48Z"
 		},
 		{
 			"checksumSHA1": "BreJRQUSA+Wma2Xr/mFDrsggICA=",
