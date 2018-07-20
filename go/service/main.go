@@ -57,7 +57,6 @@ type Service struct {
 	logForwarder         *logFwd
 	gregor               *gregorHandler
 	rekeyMaster          *rekeyMaster
-	attachmentstore      *attachments.Store
 	badger               *badges.Badger
 	reachability         *reachability
 	backgroundIdentifier *BackgroundIdentifier
@@ -81,7 +80,6 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		stopCh:           make(chan keybase1.ExitCode),
 		logForwarder:     newLogFwd(),
 		rekeyMaster:      newRekeyMaster(g),
-		attachmentstore:  attachments.NewStore(g.GetLog(), g.Env.GetRuntimeDir()),
 		badger:           badges.NewBadger(g),
 		gregor:           newGregorHandler(allG),
 		home:             home.NewHome(g),
@@ -135,7 +133,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.RekeyProtocol(NewRekeyHandler2(xp, g, d.rekeyMaster)),
 		keybase1.NotifyFSRequestProtocol(newNotifyFSRequestHandler(xp, g)),
 		keybase1.GregorProtocol(newGregorRPCHandler(xp, g, d.gregor)),
-		CancellingProtocol(g, chat1.LocalProtocol(newChatLocalHandler(xp, cg, d.attachmentstore, d.gregor))),
+		CancellingProtocol(g, chat1.LocalProtocol(newChatLocalHandler(xp, cg, d.gregor))),
 		keybase1.SimpleFSProtocol(NewSimpleFSHandler(xp, g)),
 		keybase1.LogsendProtocol(NewLogsendHandler(xp, g)),
 		keybase1.AppStateProtocol(newAppStateHandler(xp, g)),
@@ -414,14 +412,15 @@ func (d *Service) createChatModules() {
 	g.PushHandler = pushHandler
 
 	// Message sending apparatus
-	sender := chat.NewBlockingSender(g, chat.NewBoxer(g), d.attachmentstore, ri)
+	store := attachments.NewS3Store(g.GetLog(), g.GetRuntimeDir())
+	g.AttachmentUploader = attachments.NewUploader(g, store, attachments.NewS3Signer(ri), ri)
+	sender := chat.NewBlockingSender(g, chat.NewBoxer(g), ri)
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)
 
 	// team channel source
 	g.TeamChannelSource = chat.NewCachingTeamChannelSource(g, ri)
 
-	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g,
-		chat.NewCachingAttachmentFetcher(g, d.attachmentstore, 1000), ri)
+	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, chat.NewCachingAttachmentFetcher(g, store, 1000), ri)
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)
@@ -650,6 +649,23 @@ func (d *Service) hourlyChecks() {
 	}()
 }
 
+func (d *Service) deviceCloneSelfCheck() error {
+	m := libkb.NewMetaContextBackground(d.G())
+	m = m.WithLogTag("CLONE")
+	before, after, err := libkb.UpdateDeviceCloneState(m)
+	if err != nil {
+		return err
+	}
+	newClones := after - before
+
+	m.CDebugf("deviceCloneSelfCheck: is there a new clone? %v", newClones > 0)
+	if newClones > 0 {
+		m.CDebugf("deviceCloneSelfCheck: notifying user %v -> %v restarts", before, after)
+		d.G().NotifyRouter.HandleDeviceCloneNotification(newClones)
+	}
+	return nil
+}
+
 func (d *Service) slowChecks() {
 	ticker := libkb.NewBgTicker(6 * time.Hour)
 	d.G().PushShutdownHook(func() error {
@@ -664,6 +680,10 @@ func (d *Service) slowChecks() {
 			d.G().Log.Debug("| checking if current device should log out")
 			if err := d.G().LogoutSelfCheck(); err != nil {
 				d.G().Log.Debug("LogoutSelfCheck error: %s", err)
+			}
+			d.G().Log.Debug("| checking if current device is a clone")
+			if err := d.deviceCloneSelfCheck(); err != nil {
+				d.G().Log.Debug("deviceCloneSelfCheck error: %s", err)
 			}
 			d.G().Log.Debug("- slow checks loop")
 		}
@@ -1208,5 +1228,5 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 
 // Called by CtlHandler after DbNuke finishes and succeeds.
 func (d *Service) onDbNuke(ctx context.Context) {
-	d.avatarLoader.OnCacheCleared(ctx)
+	d.avatarLoader.OnCacheCleared(libkb.NewMetaContext(ctx, d.G()))
 }

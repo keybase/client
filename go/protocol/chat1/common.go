@@ -936,6 +936,7 @@ type Conversation struct {
 	Expunge         Expunge                       `codec:"expunge" json:"expunge"`
 	ConvRetention   *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
 	TeamRetention   *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
+	MinWriterRole   *keybase1.TeamRole            `codec:"minWriterRole,omitempty" json:"minWriterRole,omitempty"`
 }
 
 func (o Conversation) DeepCopy() Conversation {
@@ -999,6 +1000,13 @@ func (o Conversation) DeepCopy() Conversation {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.TeamRetention),
+		MinWriterRole: (func(x *keybase1.TeamRole) *keybase1.TeamRole {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.MinWriterRole),
 	}
 }
 
@@ -1285,6 +1293,7 @@ type MessageClientHeaderVerified struct {
 	OutboxInfo        *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 	EphemeralMetadata *MsgEphemeralMetadata    `codec:"em,omitempty" json:"em,omitempty"`
 	Rtime             gregor1.Time             `codec:"rt" json:"rt"`
+	HasPairwiseMacs   bool                     `codec:"pm" json:"pm"`
 }
 
 func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
@@ -1341,7 +1350,8 @@ func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.EphemeralMetadata),
-		Rtime: o.Rtime.DeepCopy(),
+		Rtime:           o.Rtime.DeepCopy(),
+		HasPairwiseMacs: o.HasPairwiseMacs,
 	}
 }
 

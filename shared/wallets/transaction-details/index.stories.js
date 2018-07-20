@@ -39,6 +39,8 @@ const load = () => {
         onLoadPaymentDetail={action('onLoadPaymentDetail')}
         onViewTransaction={action('onViewTransaction')}
         you="cjb"
+        status="completed"
+        statusDetail=""
       />
     ))
     .add('Sending to Stellar public key', () => (
@@ -55,6 +57,8 @@ const load = () => {
         onLoadPaymentDetail={action('onLoadPaymentDetail')}
         onViewTransaction={action('onViewTransaction')}
         you="cjb"
+        status="completed"
+        statusDetail=""
       />
     ))
     .add('Sending to Keybase user (pending)', () => (
@@ -72,6 +76,8 @@ const load = () => {
         onLoadPaymentDetail={action('onLoadPaymentDetail')}
         onViewTransaction={action('onViewTransaction')}
         you="cjb"
+        status="completed"
+        statusDetail=""
       />
     ))
     .add('Received from Keybase user', () => (
@@ -90,6 +96,8 @@ const load = () => {
         onLoadPaymentDetail={action('onLoadPaymentDetail')}
         onViewTransaction={action('onViewTransaction')}
         you="cjb"
+        status="completed"
+        statusDetail=""
       />
     ))
     .add('Received from Keybase user (pending)', () => (
@@ -105,6 +113,8 @@ const load = () => {
         onLoadPaymentDetail={action('onLoadPaymentDetail')}
         timestamp={null}
         you="cjb"
+        status="pending"
+        statusDetail=""
       />
     ))
     .add('Received from another account', () => (
@@ -121,6 +131,8 @@ const load = () => {
         onLoadPaymentDetail={action('onLoadPaymentDetail')}
         onViewTransaction={action('onViewTransaction')}
         you="cjb"
+        status="completed"
+        statusDetail=""
       />
     ))
 }

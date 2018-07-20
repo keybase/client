@@ -39,7 +39,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     delta: tx.delta,
     large: counterpartyType !== 'wallet',
     memo: tx.note,
+    // TODO -- waiting on CORE integration for these two
+    onCancelPayment: undefined,
+    onRetryPayment: undefined,
+    // $FlowIssue undefined is incompatible with function
     onSelectTransaction: () => dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID),
+    status: tx.statusSimplified,
+    statusDetail: tx.statusDetail,
     timestamp: tx.time,
     yourRole,
   }

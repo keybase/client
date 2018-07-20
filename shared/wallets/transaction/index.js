@@ -183,12 +183,20 @@ const AmountXLM = (props: AmountXLMProps) => {
   )
 }
 
-type TimestampProps = {|
+type TimestampLineProps = {|
+  error: string,
   timestamp: Date | null,
   relative: boolean,
 |}
 
-export const Timestamp = (props: TimestampProps) => {
+export const TimestampLine = (props: TimestampLineProps) => {
+  if (props.error) {
+    return (
+      <Text type="BodySmallError">
+        Failed • The Stellar network did not approve this transaction - {props.error}
+      </Text>
+    )
+  }
   if (!props.timestamp) {
     return (
       <Text type="BodySmall">
@@ -221,14 +229,18 @@ export type Props = {|
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
   memo: string,
+  onCancelPayment?: () => void,
+  onRetryPayment?: () => void,
+  onSelectTransaction?: () => void,
+  status: Types.StatusSimplified,
+  statusDetail: string,
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
-  onSelectTransaction: () => void,
   yourRole: Role,
 |}
 
 export const Transaction = (props: Props) => {
-  const pending = !props.timestamp
+  const pending = !props.timestamp || props.status !== 'completed'
   const showMemo =
     props.large && !(props.yourRole === 'receiver' && props.counterpartyType === 'stellarPublicKey')
   return (
@@ -238,7 +250,7 @@ export const Transaction = (props: Props) => {
           <Box2
             direction="vertical"
             fullWidth={true}
-            style={{backgroundColor: globalColors.blue5, padding: globalMargins.xtiny}}
+            style={styles.pendingBox}
           >
             <Text type="BodySmallSemibold">Pending</Text>
           </Box2>
@@ -250,7 +262,7 @@ export const Transaction = (props: Props) => {
             large={props.large}
           />
           <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
-            <Timestamp relative={true} timestamp={props.timestamp} />
+            <TimestampLine error={props.statusDetail} relative={true} timestamp={props.timestamp} />
             <Detail
               large={props.large}
               pending={pending}
@@ -291,6 +303,7 @@ const styles = styleSheetCreate({
     padding: globalMargins.tiny,
     paddingRight: globalMargins.small,
   },
+  pendingBox: {backgroundColor: globalColors.blue5, padding: globalMargins.xtiny},
   quoteMarker: {maxWidth: 3, minWidth: 3},
   rightContainer: {
     flex: 1,

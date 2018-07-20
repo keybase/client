@@ -412,6 +412,35 @@ func (e UnknownTLFNameError) Error() string {
 
 //=============================================================================
 
+type AttachmentUploadError struct {
+	Msg string
+}
+
+func NewAttachmentUploadError(msg string) AttachmentUploadError {
+	return AttachmentUploadError{
+		Msg: msg,
+	}
+}
+
+func (e AttachmentUploadError) Error() string {
+	return fmt.Sprintf("attachment failed to upload; %s", e.Msg)
+}
+
+//=============================================================================
+
+type SenderTestImmediateFailError struct {
+}
+
+func (e SenderTestImmediateFailError) Error() string {
+	return "sender test immediate fail error"
+}
+
+func (e SenderTestImmediateFailError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
+}
+
+//=============================================================================
+
 type OfflineErrorKind int
 
 const (

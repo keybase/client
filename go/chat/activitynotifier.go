@@ -161,3 +161,22 @@ func (n *NotifyRouterActivityRouter) TLFResolve(ctx context.Context, uid gregor1
 		n.G().NotifyRouter.HandleChatTLFResolve(ctx, n.kuid(uid), convID, topicType, resolveInfo)
 	}
 }
+
+func (n *NotifyRouterActivityRouter) AttachmentUploadStart(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, outboxID chat1.OutboxID) {
+	defer n.Trace(ctx, func() error { return nil }, "AttachmentUploadStart(%s,%s)", convID, outboxID)()
+	ctx = BackgroundContext(ctx, n.G())
+	n.notifyCh <- func() {
+		n.G().NotifyRouter.HandleChatAttachmentUploadStart(ctx, n.kuid(uid), convID, outboxID)
+	}
+}
+
+func (n *NotifyRouterActivityRouter) AttachmentUploadProgress(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, outboxID chat1.OutboxID, bytesComplete, bytesTotal int64) {
+	defer n.Trace(ctx, func() error { return nil }, "AttachmentUploadProgress(%s,%s)", convID, outboxID)()
+	ctx = BackgroundContext(ctx, n.G())
+	n.notifyCh <- func() {
+		n.G().NotifyRouter.HandleChatAttachmentUploadProgress(ctx, n.kuid(uid), convID, outboxID,
+			bytesComplete, bytesTotal)
+	}
+}

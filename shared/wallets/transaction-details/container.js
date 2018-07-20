@@ -33,7 +33,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     counterpartyType,
     delta: tx.delta,
     memo: tx.note,
-    onBack: () => dispatchProps.navigateUp(),
+    onBack: dispatchProps.navigateUp,
     onLoadPaymentDetail: () =>
       dispatchProps._onLoadPaymentDetail(ownProps.routeProps.get('accountID'), tx.id),
     publicMemo: tx.publicMemo,

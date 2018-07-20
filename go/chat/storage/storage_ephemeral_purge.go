@@ -27,7 +27,7 @@ func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationI
 	}
 
 	// Fetch secret key
-	key, ierr := getSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
+	key, ierr := GetSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
 	if ierr != nil {
 		return nil, nil, MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}

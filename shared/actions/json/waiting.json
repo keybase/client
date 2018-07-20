@@ -11,5 +11,8 @@
       "key": ["string", "Array<string>"],
       "increment": "boolean"
     },
+    "clearWaiting": {
+      "key": ["string", "Array<string>"]
+    }
   }
 }

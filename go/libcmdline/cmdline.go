@@ -75,6 +75,9 @@ func (p CommandLine) GetConfigFilename() string {
 func (p CommandLine) GetUpdaterConfigFilename() string {
 	return p.GetGString("updater-config-file")
 }
+func (p CommandLine) GetDeviceCloneStateFilename() string {
+	return p.GetGString("device-clone-state-file")
+}
 func (p CommandLine) GetSessionFilename() string {
 	return p.GetGString("session-file")
 }
