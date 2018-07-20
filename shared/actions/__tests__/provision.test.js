@@ -229,11 +229,10 @@ describe('device name error path', () => {
 })
 
 describe('other device happy path', () => {
-  const rpcDevices = [
-    ({deviceID: '0', name: 'mobile', type: 'mobile'}: any),
-    ({deviceID: '1', name: 'desktop', type: 'desktop'}: any),
-    ({deviceID: '2', name: 'backup', type: 'backup'}: any),
-  ]
+  const mobile = ({deviceID: '0', name: 'mobile', type: 'mobile'}: any)
+  const desktop = ({deviceID: '1', name: 'desktop', type: 'desktop'}: any)
+  const backup = ({deviceID: '2', name: 'backup', type: 'backup'}: any)
+  const rpcDevices = [mobile, desktop, backup]
   const devices = rpcDevices.map(Constants.rpcDeviceToDevice)
   let init
   beforeEach(() => {
@@ -252,10 +251,10 @@ describe('other device happy path', () => {
 
   it('mobile', () => {
     const {response, nextState} = init
-    const submitAction = ProvisionGen.createSubmitDeviceSelect({name: 'mobile'})
+    const submitAction = ProvisionGen.createSubmitDeviceSelect({name: mobile.name})
     const submitState = makeTypedState(reducer(nextState.provision, submitAction))
     _testing.submitDeviceSelect(submitState)
-    expect(response.result).toHaveBeenCalledWith('0')
+    expect(response.result).toHaveBeenCalledWith(mobile.deviceID)
     expect(response.error).not.toHaveBeenCalled()
     // only submit once
     expect(() => _testing.submitDeviceSelect(submitState)).toThrow()
@@ -263,10 +262,10 @@ describe('other device happy path', () => {
 
   it('desktop', () => {
     const {response, nextState} = init
-    const submitAction = ProvisionGen.createSubmitDeviceSelect({name: 'desktop'})
+    const submitAction = ProvisionGen.createSubmitDeviceSelect({name: desktop.name})
     const submitState = makeTypedState(reducer(nextState.provision, submitAction))
     _testing.submitDeviceSelect(submitState)
-    expect(response.result).toHaveBeenCalledWith('1')
+    expect(response.result).toHaveBeenCalledWith(desktop.deviceID)
     expect(response.error).not.toHaveBeenCalled()
     // only submit once
     expect(() => _testing.submitDeviceSelect(submitState)).toThrow()
@@ -274,10 +273,10 @@ describe('other device happy path', () => {
 
   it('paperkey/backup', () => {
     const {response, nextState} = init
-    const submitAction = ProvisionGen.createSubmitDeviceSelect({name: 'backup'})
+    const submitAction = ProvisionGen.createSubmitDeviceSelect({name: backup.name})
     const submitState = makeTypedState(reducer(nextState.provision, submitAction))
     _testing.submitDeviceSelect(submitState)
-    expect(response.result).toHaveBeenCalledWith('2')
+    expect(response.result).toHaveBeenCalledWith(backup.deviceID)
     expect(response.error).not.toHaveBeenCalled()
     // only submit once
     expect(() => _testing.submitDeviceSelect(submitState)).toThrow()
