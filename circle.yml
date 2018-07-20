@@ -33,7 +33,7 @@ jobs:
     ##
 
     - run:
-        name: Update PATH and Define Environment Variable at Runtime
+        name: Update PATH and Define Environment Variables at Runtime
         command: |
           echo 'export NODE_VERSION=10.7.0' >> $BASH_ENV
           echo 'export GOROOT=$HOME/go' >> $BASH_ENV
