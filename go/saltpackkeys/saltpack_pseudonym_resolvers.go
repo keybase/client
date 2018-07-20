@@ -11,22 +11,82 @@ import (
 	"github.com/keybase/saltpack"
 )
 
-// This file contains two implementations of saltpack.SymmetricKeyResolver, which can be used to resolve
-// respectively the old Kbfs Pseudonyms and the newer Key Pseudonyms by querying the server. A mock implementation
-// (which does not communicate with the sever and avoids circular dependencies) is available in the saltpackHelperMocks package.
-
-// Resolves old kbfs pseudonyms.
-type TlfKeyResolver struct {
+// KeyPseudonymResolver resolves new (team based) Key Pseudonyms, but falls back to old Kbfs Pseudonyms when it cannot find any match.
+// A mock implementation (which does not communicate with the sever and avoids circular dependencies) is available in the saltpackkeysmocks package.
+type KeyPseudonymResolver struct {
 	m libkb.MetaContext
 }
 
-var _ saltpack.SymmetricKeyResolver = (*TlfKeyResolver)(nil)
+var _ saltpack.SymmetricKeyResolver = (*KeyPseudonymResolver)(nil)
 
-func NewLegacyKBFSResolver(m libkb.MetaContext) saltpack.SymmetricKeyResolver {
-	return &TlfKeyResolver{m: m}
+func NewKeyPseudonymResolver(m libkb.MetaContext) saltpack.SymmetricKeyResolver {
+	return &KeyPseudonymResolver{m: m}
 }
 
-func (r *TlfKeyResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.SymmetricKey, error) {
+func (r *KeyPseudonymResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.SymmetricKey, error) {
+	keyPseudonyms := []libkb.KeyPseudonym{}
+	for _, identifier := range identifiers {
+		pseudonym := libkb.KeyPseudonym{}
+		if len(pseudonym) != len(identifier) {
+			return nil, fmt.Errorf("identifier is the wrong length for a key pseudonym (%d != %d)", len(pseudonym), len(identifier))
+		}
+		copy(pseudonym[:], identifier)
+		keyPseudonyms = append(keyPseudonyms, pseudonym)
+	}
+
+	results, err := libkb.GetKeyPseudonyms(r.m, keyPseudonyms)
+	if err != nil {
+		return nil, err
+	}
+
+	success := false
+
+	symmetricKeys := []*saltpack.SymmetricKey{}
+	for _, result := range results {
+		if result.Err != nil {
+			r.m.CDebugf("skipping unresolved pseudonym: %s", result.Err)
+			symmetricKeys = append(symmetricKeys, nil)
+			continue
+		}
+		r.m.CDebugf("resolved pseudonym for %s, fetching key", result.Info.ID)
+		symmetricKey, err := r.getSymmetricKey(result.Info.ID, result.Info.KeyGen)
+		if err != nil {
+			return nil, err
+		}
+		success = true
+		symmetricKeys = append(symmetricKeys, symmetricKey)
+	}
+
+	if success {
+		return symmetricKeys, nil
+	}
+	r.m.CDebugf("No pseudonyms resolved, fallback to old kbfs pseudonyms")
+	// Fallback to old kbfs pseudonyms
+	return r.kbfsResolveKeys(identifiers)
+}
+
+func (r *KeyPseudonymResolver) getSymmetricKey(id keybase1.UserOrTeamID, gen libkb.KeyGen) (*saltpack.SymmetricKey, error) {
+	// For now resolving key pseudonyms for users is not necessary, as keybase encrypt does not
+	// use symmetric per user encryption keys.
+
+	team, err := teams.Load(r.m.Ctx(), r.m.G(), keybase1.LoadTeamArg{
+		ID: keybase1.TeamID(id),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var key keybase1.TeamApplicationKey
+	key, err = team.SaltpackEncryptionKeyAtGeneration(r.m.Ctx(), keybase1.PerTeamKeyGeneration(gen))
+	if err != nil {
+		return nil, err
+	}
+
+	ssk := saltpack.SymmetricKey(key.Key)
+	return &ssk, nil
+}
+
+func (r *KeyPseudonymResolver) kbfsResolveKeys(identifiers [][]byte) ([]*saltpack.SymmetricKey, error) {
 	tlfPseudonyms := []libkb.TlfPseudonym{}
 	for _, identifier := range identifiers {
 		pseudonym := libkb.TlfPseudonym{}
@@ -50,7 +110,7 @@ func (r *TlfKeyResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Symmetri
 			continue
 		}
 		r.m.CDebugf("resolved pseudonym for %s, fetching key", result.Info.Name)
-		symmetricKey, err := r.getSymmetricKey(r.m, *result.Info)
+		symmetricKey, err := r.kbfsGetSymmetricKey(r.m, *result.Info)
 		if err != nil {
 			return nil, err
 		}
@@ -59,7 +119,7 @@ func (r *TlfKeyResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Symmetri
 	return symmetricKeys, nil
 }
 
-func (r *TlfKeyResolver) getCryptKeys(m libkb.MetaContext, name string) (keybase1.GetTLFCryptKeysRes, error) {
+func (r *KeyPseudonymResolver) getCryptKeys(m libkb.MetaContext, name string) (keybase1.GetTLFCryptKeysRes, error) {
 	xp := m.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
 	if xp == nil {
 		return keybase1.GetTLFCryptKeysRes{}, libkb.KBFSNotRunningError{}
@@ -73,7 +133,7 @@ func (r *TlfKeyResolver) getCryptKeys(m libkb.MetaContext, name string) (keybase
 	})
 }
 
-func (r *TlfKeyResolver) getSymmetricKey(m libkb.MetaContext, info libkb.TlfPseudonymServerInfo) (*saltpack.SymmetricKey, error) {
+func (r *KeyPseudonymResolver) kbfsGetSymmetricKey(m libkb.MetaContext, info libkb.TlfPseudonymServerInfo) (*saltpack.SymmetricKey, error) {
 	// NOTE: In order to handle finalized TLFs (which is one of the main
 	// benefits of using TLF keys to begin with, for forward readability), we
 	// need the server to tell us what the current, potentially-finalized name
@@ -104,70 +164,4 @@ func (r *TlfKeyResolver) getSymmetricKey(m libkb.MetaContext, info libkb.TlfPseu
 		}
 	}
 	return nil, fmt.Errorf("no keys in TLF %q matched generation %d", basename, info.KeyGen)
-}
-
-// Resolves new Key Pseudonyms (depends on teams).
-type KeyPseudonymResolver struct {
-	m libkb.MetaContext
-}
-
-var _ saltpack.SymmetricKeyResolver = (*KeyPseudonymResolver)(nil)
-
-func NewKeyPseudonymResolver(m libkb.MetaContext) *KeyPseudonymResolver {
-	return &KeyPseudonymResolver{m: m}
-}
-
-func (r *KeyPseudonymResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.SymmetricKey, error) {
-	keyPseudonyms := []libkb.KeyPseudonym{}
-	for _, identifier := range identifiers {
-		pseudonym := libkb.KeyPseudonym{}
-		if len(pseudonym) != len(identifier) {
-			return nil, fmt.Errorf("identifier is the wrong length for a key pseudonym (%d != %d)", len(pseudonym), len(identifier))
-		}
-		copy(pseudonym[:], identifier)
-		keyPseudonyms = append(keyPseudonyms, pseudonym)
-	}
-
-	results, err := libkb.GetKeyPseudonyms(r.m, keyPseudonyms)
-	if err != nil {
-		return nil, err
-	}
-
-	symmetricKeys := []*saltpack.SymmetricKey{}
-	for _, result := range results {
-		if result.Err != nil {
-			r.m.CDebugf("skipping unresolved pseudonym: %s", result.Err)
-			symmetricKeys = append(symmetricKeys, nil)
-			continue
-		}
-		r.m.CDebugf("resolved pseudonym for %s, fetching key", result.Info.ID)
-		symmetricKey, err := r.getSymmetricKey(result.Info.ID, result.Info.KeyGen)
-		if err != nil {
-			return nil, err
-		}
-		symmetricKeys = append(symmetricKeys, symmetricKey)
-	}
-
-	return symmetricKeys, nil
-}
-
-func (r *KeyPseudonymResolver) getSymmetricKey(id keybase1.UserOrTeamID, gen libkb.KeyGen) (*saltpack.SymmetricKey, error) {
-	// For now resolving key pseudonyms for users is not necessary, as keybase encrypt does not
-	// use symmetric per user encryption keys.
-
-	team, err := teams.Load(r.m.Ctx(), r.m.G(), keybase1.LoadTeamArg{
-		ID: keybase1.TeamID(id),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	var key keybase1.TeamApplicationKey
-	key, err = team.SaltpackEncryptionKeyAtGeneration(r.m.Ctx(), keybase1.PerTeamKeyGeneration(gen))
-	if err != nil {
-		return nil, err
-	}
-
-	ssk := saltpack.SymmetricKey(key.Key)
-	return &ssk, nil
 }

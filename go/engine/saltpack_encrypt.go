@@ -59,7 +59,7 @@ func (e *SaltpackEncrypt) RequiredUIs() []libkb.UIKind {
 
 // SubConsumers returns the other UI consumers for this engine.
 func (e *SaltpackEncrypt) SubConsumers() []libkb.UIConsumer {
-	// TODO potentially KeyfinderHook might return a different UIConsumer depending on its arguments,
+	// Note that  potentially KeyfinderHook might return a different UIConsumer depending on its arguments,
 	// which might make this call problematic, but all the hooks currently in use are not doing that.
 	return []libkb.UIConsumer{
 		e.newKeyfinderHook(libkb.SaltpackRecipientKeyfinderArg{}),
@@ -86,16 +86,17 @@ func (e *SaltpackEncrypt) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	if !(e.arg.Opts.UseEntityKeys || e.arg.Opts.UseDeviceKeys || e.arg.Opts.UsePaperKeys) {
+	if !(e.arg.Opts.UseEntityKeys || e.arg.Opts.UseDeviceKeys || e.arg.Opts.UsePaperKeys || e.arg.Opts.UseKBFSKeysOnlyForTesting) {
 		return fmt.Errorf("no key type for encryption was specified")
 	}
 
 	kfarg := libkb.SaltpackRecipientKeyfinderArg{
-		Recipients:    e.arg.Opts.Recipients,
-		NoSelfEncrypt: e.arg.Opts.NoSelfEncrypt,
-		UseEntityKeys: e.arg.Opts.UseEntityKeys,
-		UsePaperKeys:  e.arg.Opts.UsePaperKeys,
-		UseDeviceKeys: e.arg.Opts.UseDeviceKeys,
+		Recipients:     e.arg.Opts.Recipients,
+		TeamRecipients: e.arg.Opts.TeamRecipients,
+		NoSelfEncrypt:  e.arg.Opts.NoSelfEncrypt,
+		UseEntityKeys:  e.arg.Opts.UseEntityKeys,
+		UsePaperKeys:   e.arg.Opts.UsePaperKeys,
+		UseDeviceKeys:  e.arg.Opts.UseDeviceKeys,
 	}
 
 	kf := e.newKeyfinderHook(kfarg)

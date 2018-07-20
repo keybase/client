@@ -79,9 +79,9 @@ func TestSaltpackEncryptDecryptForTeams(t *testing.T) {
 	sink := libkb.NewBufferCloser()
 	arg := &engine.SaltpackEncryptArg{
 		Opts: keybase1.SaltpackEncryptOptions{
-			Recipients:    []string{teamName},
-			UseEntityKeys: true,
-			NoSelfEncrypt: true,
+			TeamRecipients: []string{teamName},
+			UseEntityKeys:  true,
+			NoSelfEncrypt:  true,
 		},
 		Source: strings.NewReader(msg),
 		Sink:   sink,

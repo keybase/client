@@ -20,6 +20,7 @@ type CmdEncrypt struct {
 	libkb.Contextified
 	filter           UnixFilter
 	recipients       []string
+	teamRecipients   []string
 	binary           bool
 	useEntityKeys    bool
 	useDeviceKeys    bool
@@ -27,10 +28,17 @@ type CmdEncrypt struct {
 	noSelfEncrypt    bool
 	authenticityType keybase1.AuthenticityType
 	saltpackVersion  int
+
+	useKbfsKeysOnlyForTesting bool
 }
 
 func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	flags := []cli.Flag{
+		cli.StringSliceFlag{
+			Name:  "team",
+			Usage: "Encrypt for a team. Can be specified multiple times.",
+			Value: &cli.StringSlice{},
+		},
 		cli.BoolFlag{
 			Name:  "b, binary",
 			Usage: "Output in binary (rather than ASCII/armored).",
@@ -73,10 +81,16 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			Usage: "Force a specific saltpack version",
 		},
 	}
+	if develUsage {
+		flags = append(flags, cli.BoolFlag{
+			Name:  "use-kbfs-keys-only",
+			Usage: "[devel only] Encrypt using only kbfs keys (and post kbfs pseudonyms) to simulate messages encrypted with older versions of keybase. Used for tests. It ignores other use-*-keys options and team recipients.",
+		})
+	}
 
 	return cli.Command{
 		Name:         "encrypt",
-		ArgumentHelp: "<username|teamname|user@assertion|...>",
+		ArgumentHelp: "<username...>",
 		Usage:        "Encrypt messages or files for keybase users and teams",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdEncrypt{
@@ -109,6 +123,7 @@ func (c *CmdEncrypt) Run() error {
 
 	opts := keybase1.SaltpackEncryptOptions{
 		Recipients:       c.recipients,
+		TeamRecipients:   c.teamRecipients,
 		AuthenticityType: c.authenticityType,
 		UseEntityKeys:    c.useEntityKeys,
 		UseDeviceKeys:    c.useDeviceKeys,
@@ -116,6 +131,8 @@ func (c *CmdEncrypt) Run() error {
 		NoSelfEncrypt:    c.noSelfEncrypt,
 		Binary:           c.binary,
 		SaltpackVersion:  c.saltpackVersion,
+
+		UseKBFSKeysOnlyForTesting: c.useKbfsKeysOnlyForTesting,
 	}
 	arg := keybase1.SaltpackEncryptArg{Source: src, Sink: snk, Opts: opts}
 	err = cli.SaltpackEncrypt(context.TODO(), arg)
@@ -132,29 +149,40 @@ func (c *CmdEncrypt) GetUsage() libkb.Usage {
 }
 
 func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
-	if len(ctx.Args()) == 0 {
+	c.teamRecipients = ctx.StringSlice("team")
+	c.recipients = ctx.Args()
+	if len(c.recipients) == 0 && len(c.teamRecipients) == 0 {
 		return errors.New("Encrypt needs at least one recipient")
 	}
-	c.recipients = ctx.Args()
 
-	msg := ctx.String("message")
-	outfile := ctx.String("outfile")
-	infile := ctx.String("infile")
 	c.useEntityKeys = !ctx.Bool("no-entity-keys")
 	c.useDeviceKeys = ctx.Bool("use-device-keys")
 	c.usePaperKeys = ctx.Bool("use-paper-keys")
+	c.useKbfsKeysOnlyForTesting = ctx.Bool("use-kbfs-keys-only")
+
 	var ok bool
 	if c.authenticityType, ok = keybase1.AuthenticityTypeMap[strings.ToUpper(ctx.String("auth-type"))]; !ok {
 		return errors.New("invalid auth-type option provided")
 	}
+
+	// Repudiable authenticity corresponds to the saltpack encryption mode (which uses pairwise macs instead of signatures). Because of the spec
+	// and the interface exposed by saltpack v2, we cannot use the pseudonym mechanism in encryption mode.
+	// If need be, we could be more granular and allow repudiable authentication as long as no team keys (implicit or not) are being used to encrypt the message
+	// (right now we silently switch from PUKs to implicit team keys for non existing users or users without PUKs).
 	if c.useEntityKeys && c.authenticityType == keybase1.AuthenticityType_REPUDIABLE {
-		return errors.New("cannot use --no-entity-keys and --auth-type=repudiable together")
+		return errors.New("--auth-type=repudiable requires --no-entity-keys")
 	}
+
 	if !(c.useEntityKeys || c.useDeviceKeys || c.usePaperKeys) {
 		return errors.New("please choose at least one type of keys (add --use-device-keys, or add --use-paper-keys, or remove --no-entity-keys")
 	}
+
 	c.noSelfEncrypt = ctx.Bool("no-self-encrypt")
 	c.binary = ctx.Bool("binary")
 	c.saltpackVersion = ctx.Int("saltpack-version")
+
+	msg := ctx.String("message")
+	outfile := ctx.String("outfile")
+	infile := ctx.String("infile")
 	return c.filter.FilterInit(c.G(), msg, infile, outfile)
 }

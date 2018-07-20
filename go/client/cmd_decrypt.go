@@ -51,10 +51,6 @@ func NewCmdDecrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			Name:  "paperkey",
 			Usage: "Use a paper key for decryption",
 		},
-		cli.BoolFlag{
-			Name:  "use-legacy-kbfs-keys",
-			Usage: "Try decrypting using legacy kbfs keys. Try this to decrypt messages produced by older versions of keybase if they do not decrypt normally.",
-		},
 		cli.StringFlag{
 			Name:  "encryptor-outfile",
 			Usage: "Write the Keybase name of the encryptor to this file",
@@ -167,7 +163,6 @@ func (c *CmdDecrypt) ParseArgv(ctx *cli.Context) error {
 	}
 	c.opts.Interactive = interactive
 	c.opts.UsePaperKey = ctx.Bool("paperkey")
-	c.opts.UseLegacyKBFSPseudonymResolver = ctx.Bool("use-legacy-kbfs-keys")
 
 	msg := ctx.String("message")
 	outfile := ctx.String("outfile")

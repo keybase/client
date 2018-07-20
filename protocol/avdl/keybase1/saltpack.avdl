@@ -11,7 +11,8 @@ protocol saltpack {
   }
 
   record SaltpackEncryptOptions {
-    array<string> recipients; // user assertions or team names
+    array<string> recipients; // usernames or assertions
+    array<string> teamRecipients; // team names
     AuthenticityType authenticityType;
     boolean useEntityKeys;
     boolean useDeviceKeys;
@@ -19,13 +20,14 @@ protocol saltpack {
     boolean noSelfEncrypt;
     boolean binary;
     int saltpackVersion;
+
+    boolean useKBFSKeysOnlyForTesting; // to test messages which use old kbfs saltpack keys/pseudonyms
   }
 
   record SaltpackDecryptOptions {
     boolean interactive;
     boolean forceRemoteCheck;
     boolean usePaperKey;
-    boolean useLegacyKBFSPseudonymResolver;
   }
 
   record SaltpackSignOptions {

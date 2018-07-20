@@ -32,6 +32,13 @@
           "name": "recipients"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "teamRecipients"
+        },
+        {
           "type": "AuthenticityType",
           "name": "authenticityType"
         },
@@ -58,6 +65,10 @@
         {
           "type": "int",
           "name": "saltpackVersion"
+        },
+        {
+          "type": "boolean",
+          "name": "useKBFSKeysOnlyForTesting"
         }
       ]
     },
@@ -76,10 +87,6 @@
         {
           "type": "boolean",
           "name": "usePaperKey"
-        },
-        {
-          "type": "boolean",
-          "name": "useLegacyKBFSPseudonymResolver"
         }
       ]
     },

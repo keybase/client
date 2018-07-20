@@ -75,12 +75,17 @@ func (e *SaltpackUserKeyfinder) GetSymmetricKeys() []libkb.SaltpackReceiverSymme
 func (e *SaltpackUserKeyfinder) Run(m libkb.MetaContext) (err error) {
 	defer m.CTrace("SaltpackUserKeyfinder#Run", func() error { return err })()
 
+	if len(e.Arg.TeamRecipients) != 0 {
+		m.CDebugf("tried to use SaltpackUserKeyfinder for a team. This should never happen")
+		return fmt.Errorf("cannot find keys for teams")
+	}
+
 	err = e.AddOwnKeysIfNeeded(m)
 	if err != nil {
 		return err
 	}
 
-	err = e.lookupRecipients(m)
+	err = e.lookupAndAddRecipients(m)
 	if err != nil {
 		return err
 	}
@@ -102,22 +107,23 @@ func (e *SaltpackUserKeyfinder) AddOwnKeysIfNeeded(m libkb.MetaContext) error {
 	return nil
 }
 
-// lookupRecipients adds the KID corresponding to each recipient to the recipientMap
-func (e *SaltpackUserKeyfinder) lookupRecipients(m libkb.MetaContext) error {
+// lookupAndAddRecipients adds the KID corresponding to each recipient to the recipientMap
+func (e *SaltpackUserKeyfinder) lookupAndAddRecipients(m libkb.MetaContext) error {
 	for _, u := range e.Arg.Recipients {
 		// TODO make these lookups in parallel (maybe using sync.WaitGroup)
-		err := e.LookupUser(m, u) // For existing users
-		if err == nil {
-			continue
-		} else if _, isIdentifyFailedError := err.(libkb.IdentifyFailedError); !isIdentifyFailedError {
+		upk, err := e.LookupUser(m, u) // For existing users
+		if err != nil {
+			return fmt.Errorf("Cannot find keys for %v: it is not an assertion for a registered user (err = %v)", u, err)
+		}
+		err = e.AddUserRecipient(m, upk)
+		if err != nil {
 			return err
 		}
-		return fmt.Errorf("Cannot find keys for %v: it is not an assertion for a registered user (err = %v)", u, err)
 	}
 	return nil
 }
 
-func (e *SaltpackUserKeyfinder) LookupUser(m libkb.MetaContext, user string) error {
+func (e *SaltpackUserKeyfinder) LookupUser(m libkb.MetaContext, user string) (upk *keybase1.UserPlusKeysV2, err error) {
 
 	Arg := keybase1.Identify2Arg{
 		UserAssertion: user,
@@ -129,20 +135,20 @@ func (e *SaltpackUserKeyfinder) LookupUser(m libkb.MetaContext, user string) err
 	}
 	eng := NewResolveThenIdentify2(m.G(), &Arg)
 	if err := RunEngine2(m, eng); err != nil {
-		return libkb.IdentifyFailedError{Assertion: user, Reason: err.Error()}
+		return nil, libkb.IdentifyFailedError{Assertion: user, Reason: err.Error()}
 	}
 
 	engRes := eng.Result()
 	if engRes == nil {
-		return fmt.Errorf("Null result from Identify2")
+		return nil, fmt.Errorf("Null result from Identify2")
 	}
 	arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(engRes.Upk.GetUID()).WithForcePoll(true)
 	upak, _, err := m.G().GetUPAKLoader().LoadV2(arg)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return e.AddUserRecipient(m, &upak.Current)
+	return &upak.Current, err
 }
 
 func (e *SaltpackUserKeyfinder) hasRecipientDeviceOrPaperKeys(id keybase1.UID) bool {
@@ -163,7 +169,7 @@ func (e *SaltpackUserKeyfinder) AddUserRecipient(m libkb.MetaContext, upk *keyba
 }
 
 func (e *SaltpackUserKeyfinder) isPaperEncryptionKey(key *keybase1.PublicKeyV2NaCl, deviceKeys *(map[keybase1.KID]keybase1.PublicKeyV2NaCl)) bool {
-	return libkb.KIDIsDeviceEncrypt(key.Base.Kid) && key.Parent != nil && (*deviceKeys)[key.Base.Kid].DeviceType == libkb.DeviceTypePaper
+	return libkb.KIDIsDeviceEncrypt(key.Base.Kid) && key.Parent != nil && (*deviceKeys)[*key.Parent].DeviceType == libkb.DeviceTypePaper
 }
 
 func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *keybase1.UserPlusKeysV2) error {
@@ -178,9 +184,9 @@ func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *
 	}
 
 	var keys []keybase1.KID
+
 	hasPaperKey := false
 	hasDeviceKey := false
-
 	hasPUK := len(upk.PerUserKeys) > 0
 
 	for KID, key := range upk.DeviceKeys {
@@ -202,12 +208,7 @@ func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *
 		}
 	}
 
-	// If the recipient has no suitable keys at all (either device or paper keys), we return an error. However, if the user requested both device and paper keys for encryption,
-	// and this recipient only has one kind, we just show a warning. This is because this command might be called with a list of many users, and we do not want to abort
-	// if just one of these users happens to be missing one of the two key types.
-	// However, note that are more conservative and do error out if the recipient doesn't have a per user key (even if it instead has a device key), as per user keys are
-	// of a different `quality` as they allow to decrypt with devices that do not yet exist, while the former keys don't.
-	if len(keys) == 0 {
+	if (e.Arg.UsePaperKeys && !hasPaperKey) || (e.Arg.UseDeviceKeys && !hasDeviceKey) {
 		return libkb.NoNaClEncryptionKeyError{
 			Username:     upk.Username,
 			HasPGPKey:    len(upk.PGPKeys) > 0,
@@ -216,11 +217,9 @@ func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *
 			HasPaperKey:  hasPaperKey,
 		}
 	}
-	if e.Arg.UseDeviceKeys && !hasDeviceKey {
-		m.CWarningf("User %v does not have a device key (they can still decrypt the message with a paper key).", upk.Username)
-	}
-	if e.Arg.UsePaperKeys && !hasPaperKey {
-		m.CWarningf("User %v does not have a paper key (they can still decrypt the message with a non paper device key).", upk.Username)
+
+	if len(keys) == 0 {
+		panic("logic error in AddDeviceAndPaperKeys: len(keys) == 0 unexpectedly")
 	}
 
 	e.RecipientDeviceAndPaperKeyMap[upk.Uid] = keys
@@ -228,6 +227,7 @@ func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *
 	return nil
 }
 
+// AddPUK returns no error unless the user has no PUK, in which case it returns a libkb.NoNaClEncryptionKeyError
 func (e *SaltpackUserKeyfinder) AddPUK(m libkb.MetaContext, upk *keybase1.UserPlusKeysV2) error {
 	if !e.Arg.UseEntityKeys {
 		// No need to add anything

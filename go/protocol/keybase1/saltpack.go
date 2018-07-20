@@ -38,14 +38,16 @@ func (e AuthenticityType) String() string {
 }
 
 type SaltpackEncryptOptions struct {
-	Recipients       []string         `codec:"recipients" json:"recipients"`
-	AuthenticityType AuthenticityType `codec:"authenticityType" json:"authenticityType"`
-	UseEntityKeys    bool             `codec:"useEntityKeys" json:"useEntityKeys"`
-	UseDeviceKeys    bool             `codec:"useDeviceKeys" json:"useDeviceKeys"`
-	UsePaperKeys     bool             `codec:"usePaperKeys" json:"usePaperKeys"`
-	NoSelfEncrypt    bool             `codec:"noSelfEncrypt" json:"noSelfEncrypt"`
-	Binary           bool             `codec:"binary" json:"binary"`
-	SaltpackVersion  int              `codec:"saltpackVersion" json:"saltpackVersion"`
+	Recipients                []string         `codec:"recipients" json:"recipients"`
+	TeamRecipients            []string         `codec:"teamRecipients" json:"teamRecipients"`
+	AuthenticityType          AuthenticityType `codec:"authenticityType" json:"authenticityType"`
+	UseEntityKeys             bool             `codec:"useEntityKeys" json:"useEntityKeys"`
+	UseDeviceKeys             bool             `codec:"useDeviceKeys" json:"useDeviceKeys"`
+	UsePaperKeys              bool             `codec:"usePaperKeys" json:"usePaperKeys"`
+	NoSelfEncrypt             bool             `codec:"noSelfEncrypt" json:"noSelfEncrypt"`
+	Binary                    bool             `codec:"binary" json:"binary"`
+	SaltpackVersion           int              `codec:"saltpackVersion" json:"saltpackVersion"`
+	UseKBFSKeysOnlyForTesting bool             `codec:"useKBFSKeysOnlyForTesting" json:"useKBFSKeysOnlyForTesting"`
 }
 
 func (o SaltpackEncryptOptions) DeepCopy() SaltpackEncryptOptions {
@@ -61,29 +63,39 @@ func (o SaltpackEncryptOptions) DeepCopy() SaltpackEncryptOptions {
 			}
 			return ret
 		})(o.Recipients),
-		AuthenticityType: o.AuthenticityType.DeepCopy(),
-		UseEntityKeys:    o.UseEntityKeys,
-		UseDeviceKeys:    o.UseDeviceKeys,
-		UsePaperKeys:     o.UsePaperKeys,
-		NoSelfEncrypt:    o.NoSelfEncrypt,
-		Binary:           o.Binary,
-		SaltpackVersion:  o.SaltpackVersion,
+		TeamRecipients: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.TeamRecipients),
+		AuthenticityType:          o.AuthenticityType.DeepCopy(),
+		UseEntityKeys:             o.UseEntityKeys,
+		UseDeviceKeys:             o.UseDeviceKeys,
+		UsePaperKeys:              o.UsePaperKeys,
+		NoSelfEncrypt:             o.NoSelfEncrypt,
+		Binary:                    o.Binary,
+		SaltpackVersion:           o.SaltpackVersion,
+		UseKBFSKeysOnlyForTesting: o.UseKBFSKeysOnlyForTesting,
 	}
 }
 
 type SaltpackDecryptOptions struct {
-	Interactive                    bool `codec:"interactive" json:"interactive"`
-	ForceRemoteCheck               bool `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
-	UsePaperKey                    bool `codec:"usePaperKey" json:"usePaperKey"`
-	UseLegacyKBFSPseudonymResolver bool `codec:"useLegacyKBFSPseudonymResolver" json:"useLegacyKBFSPseudonymResolver"`
+	Interactive      bool `codec:"interactive" json:"interactive"`
+	ForceRemoteCheck bool `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
+	UsePaperKey      bool `codec:"usePaperKey" json:"usePaperKey"`
 }
 
 func (o SaltpackDecryptOptions) DeepCopy() SaltpackDecryptOptions {
 	return SaltpackDecryptOptions{
-		Interactive:                    o.Interactive,
-		ForceRemoteCheck:               o.ForceRemoteCheck,
-		UsePaperKey:                    o.UsePaperKey,
-		UseLegacyKBFSPseudonymResolver: o.UseLegacyKBFSPseudonymResolver,
+		Interactive:      o.Interactive,
+		ForceRemoteCheck: o.ForceRemoteCheck,
+		UsePaperKey:      o.UsePaperKey,
 	}
 }
 
