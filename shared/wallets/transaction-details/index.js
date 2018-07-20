@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
 import {Box2, Divider, Icon, NameWithIcon, Text} from '../../common-adapters'
+import {capitalize} from 'lodash-es'
 import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import Transaction, {CounterpartyIcon, CounterpartyText, TimestampLine} from '../transaction'
 
@@ -78,6 +79,22 @@ const Counterparty = (props: CounterpartyProps) => {
   )
 }
 
+const colorForStatus = (status: Types.StatusSimplified) => {
+  switch (status) {
+    case 'completed':
+      return globalColors.green2
+    case 'pending':
+      return globalColors.blue5
+    case 'error':
+      return globalColors.red
+    default:
+      return globalColors.black
+  }
+}
+
+const descriptionForStatus = (status: Types.StatusSimplified) =>
+  status === 'completed' ? 'Sent' : capitalize(status)
+
 export default class extends React.Component<Props> {
   componentWillMount() {
     this.props.onLoadPaymentDetail()
@@ -129,21 +146,39 @@ export default class extends React.Component<Props> {
           <Text type="BodySmallSemibold">Status:</Text>
           <Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={{alignItems: 'center'}}>
             <Icon
-              color={this.props.timestamp ? globalColors.green2 : globalColors.black}
+              color={
+                this.props.status === 'error'
+                  ? globalColors.red
+                  : this.props.status === 'completed'
+                    ? globalColors.green2
+                    : globalColors.black
+              }
               fontSize={16}
-              type={this.props.timestamp ? 'iconfont-success' : 'icon-transaction-pending-16'}
+              type={
+                this.props.status === 'error'
+                  ? 'iconfont-close'
+                  : this.props.status === 'completed'
+                    ? 'iconfont-success'
+                    : 'icon-transaction-pending-16'
+              }
             />
             <Text
               style={{
-                color: this.props.timestamp ? globalColors.green2 : globalColors.black,
+                color: colorForStatus(this.props.status),
                 marginLeft: globalMargins.xtiny,
               }}
               type="Body"
             >
-              {this.props.timestamp ? 'Sent' : 'Pending'}
+              {descriptionForStatus(this.props.status)}
             </Text>
           </Box2>
-          <TimestampLine error={this.props.statusDetail} relative={false} timestamp={this.props.timestamp} />
+          {this.props.status !== 'error' && (
+            <TimestampLine
+              error={this.props.statusDetail}
+              relative={false}
+              timestamp={this.props.timestamp}
+            />
+          )}
         </Box2>
 
         <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>

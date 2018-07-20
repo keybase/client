@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
 import {Avatar, Box2, ClickableBox, Divider, Icon, ConnectedUsernames, Markdown} from '../../common-adapters'
 import Text, {type TextType} from '../../common-adapters/text'
-import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
+import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {formatTimeForStellarTransaction, formatTimeForStellarTransactionDetails} from '../../util/timestamp'
 
 type Role = 'sender' | 'receiver'
@@ -246,12 +246,14 @@ export const Transaction = (props: Props) => {
   return (
     <Box2 direction="vertical" fullWidth={true}>
       <ClickableBox onClick={props.onSelectTransaction}>
-        {pending && (
-          <Box2 direction="vertical" fullWidth={true} style={styles.pendingBox}>
-            <Text type="BodySmallSemibold">Pending</Text>
-          </Box2>
-        )}
-        <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+        <Box2
+          direction="horizontal"
+          fullWidth={true}
+          style={collapseStyles([
+            styles.container,
+            {backgroundColor: pending ? globalColors.blue4 : globalColors.white},
+          ])}
+        >
           <CounterpartyIcon
             counterparty={props.counterparty}
             counterpartyType={props.counterpartyType}
