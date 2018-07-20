@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as PropProviders from '../../stories/prop-providers'
 import UserInput, {type UserDetails} from '.'
 import ConnectedUserInput, {type OwnProps, type Props} from './container'
-import {Box} from '../../common-adapters'
+import {Box, Box2} from '../../common-adapters'
 import {compose, withStateHandlers} from 'recompose'
 import {isMobile} from '../../constants/platform'
 import {action, storiesOf, createPropProvider, unexpected} from '../../stories/storybook'
@@ -159,6 +159,16 @@ const load = () => {
       <Box style={defaultBoxStyle}>
         <UserInput {...inputCommon} userItems={[]} usernameText="" />
       </Box>
+    ))
+    .add('Empty list (vertical Box2)', () => (
+      <Box2 direction="vertical" style={defaultBoxStyle}>
+        <UserInput {...inputCommon} userItems={[]} usernameText="" />
+      </Box2>
+    ))
+    .add('Empty list (horizontal Box2)', () => (
+      <Box2 direction="horizontal" style={defaultBoxStyle}>
+        <UserInput {...inputCommon} userItems={[]} usernameText="" />
+      </Box2>
     ))
     .add('List with items', () => (
       <Box style={defaultBoxStyle}>
