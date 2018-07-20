@@ -244,14 +244,15 @@ class OrientedImage extends React.Component<Props, State> {
   render() {
     return (
       <React.Fragment>
-        <canvas ref={el => (this._canvasRef = el)} style={styleCanvas} />
         {this.state.srcTransformed && (
           <ImageComponent
             src={this.state.srcTransformed}
             style={this.props.style}
+            onDragStart={this.props.onDragStart}
             onLoad={this.props.onLoad}
           />
         )}
+        <canvas ref={el => (this._canvasRef = el)} style={styleCanvas} />
       </React.Fragment>
     )
   }

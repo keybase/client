@@ -1,4 +1,5 @@
 // @flow
+import {showImagePicker, type Response} from 'react-native-image-picker'
 import * as shared from './shared'
 import * as Types from '../constants/types/profile'
 import * as Constants from '../constants/tracker'
@@ -28,6 +29,7 @@ import {globalStyles, globalColors, globalMargins, statusBarHeight, isIPhoneX} f
 import {stateColors} from '../util/tracker'
 import {usernameText} from '../common-adapters/usernames'
 import {ADD_TO_TEAM_ZINDEX, AVATAR_SIZE} from '../constants/profile'
+import flags from '../util/feature-flags'
 
 import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 import type {Proof} from '../constants/types/tracker'
@@ -104,6 +106,20 @@ class Profile extends Component<Props, State> {
     })
   }
 
+  _onClickAvatar = () =>
+    this.props.isYou && flags.avatarUploadsEnabled
+      ? showImagePicker({mediaType: 'photo'}, (response: Response) => {
+          if (response.didCancel) {
+            return
+          }
+          if (response.error) {
+            console.error(response.error)
+            throw new Error(response.error)
+          }
+          this.props.onEditAvatar(response)
+        })
+      : undefined
+
   _makeUserBio(loading: boolean) {
     return (
       <UserBio
@@ -115,7 +131,7 @@ class Profile extends Component<Props, State> {
         userInfo={this.props.userInfo}
         currentlyFollowing={this.props.currentlyFollowing}
         trackerState={this.props.trackerState}
-        onClickAvatar={this.props.onClickAvatar}
+        onClickAvatar={this._onClickAvatar}
         onClickFollowers={this.props.onClickFollowers}
         onClickFollowing={this.props.onClickFollowing}
       />
