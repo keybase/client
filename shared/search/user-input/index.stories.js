@@ -144,82 +144,63 @@ const UserInputEditable = compose(
   })
 )(UserInput)
 
+const defaultBoxStyle = {
+  borderColor: 'gray',
+  borderStyle: 'solid',
+  borderWidth: 2,
+  padding: 4,
+  width: isMobile ? 300 : 480,
+}
+
 const load = () => {
   storiesOf('Search/UserInput', module)
     .addDecorator(provider)
-    /*
-    .addDecorator(story => (
-          <Box
-            style={{
-              borderColor: 'gray',
-              borderStyle: 'solid',
-              borderWidth: 2,
-              padding: 4,
-              width: isMobile ? 300 : 480,
-            }}
-          >
-        {story}
-        </Box>
-        )) */
     .add('Empty list', () => (
-      <Box>
+      <Box style={defaultBoxStyle}>
         <UserInput {...inputCommon} userItems={[]} usernameText="" />
       </Box>
     ))
     .add('List with items', () => (
-      <Box>
+      <Box style={defaultBoxStyle}>
         <UserInput {...inputCommon} userItems={maxUsers} usernameText="" />
       </Box>
     ))
     .add('List with items and partial input', () => (
-      <Box>
+      <Box style={defaultBoxStyle}>
         <UserInput {...inputCommon} userItems={maxUsers} usernameText="ma" />
       </Box>
     ))
-    .add('Narrow list', () => (
-      <Box
-        style={{
-          borderColor: 'gray',
-          borderStyle: 'solid',
-          borderWidth: 2,
-          padding: 4,
-          width: isMobile ? 300 : 480,
-        }}
-      >
+    .add('List with many items', () => (
+      <Box style={defaultBoxStyle}>
         <UserInput {...inputCommon} userItems={chrisUsers} usernameText="" />
       </Box>
     ))
-    .add('Narrowest list', () => (
-      <Box>
-        <Box
-          style={{
-            borderColor: 'gray',
-            borderStyle: 'solid',
-            borderWidth: 2,
-            padding: 4,
-            width: isMobile ? 300 : 370,
-          }}
-        >
-          <UserInput {...inputCommon} userItems={maxUsers} usernameText="" />
-        </Box>
+    .add('Narrower list', () => (
+      <Box
+        style={{
+          ...defaultBoxStyle,
+          width: isMobile ? 300 : 370,
+        }}
+      >
+        <UserInput {...inputCommon} userItems={maxUsers} usernameText="" />
       </Box>
     ))
     .add('Editable', () => {
       return (
-        <Box>
+        <Box style={defaultBoxStyle}>
           <UserInputEditable {...inputCommon} userItems={[]} />
         </Box>
       )
     })
     .add('Editable with items', () => {
       return (
-        <Box>
+        <Box style={defaultBoxStyle}>
           <UserInputEditable {...inputCommon} userItems={chrisUsers} />
         </Box>
       )
     })
     .add('Connected', () => (
-      <Box>
+      <Box style={defaultBoxStyle}>
         <ConnectedUserInput {...defaultOwnProps} />
       </Box>
     ))
