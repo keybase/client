@@ -138,18 +138,8 @@ const provider = createPropProvider(makeSelectorMap())
 const load = () => {
   storiesOf('Search/UserInput', module)
     .addDecorator(provider)
-    .add('List', () => {
-      return (
-        <Box>
-          <UserInput {...inputCommon} userItems={[]} usernameText="" />
-          <UserInput {...inputCommon} userItems={maxUsers} usernameText="" />
-          <UserInput {...inputCommon} userItems={maxUsers} usernameText="ma" />
-          <UserInput
-            {...inputCommon}
-            userItems={maxUsers}
-            usernameText=""
-            onClearSearch={action('On clear search')}
-          />
+    /*
+    .addDecorator(story => (
           <Box
             style={{
               borderColor: 'gray',
@@ -159,22 +149,52 @@ const load = () => {
               width: isMobile ? 300 : 480,
             }}
           >
-            <UserInput {...inputCommon} userItems={chrisUsers} usernameText="" />
-          </Box>
-          <Box
-            style={{
-              borderColor: 'gray',
-              borderStyle: 'solid',
-              borderWidth: 2,
-              padding: 4,
-              width: isMobile ? 300 : 370,
-            }}
-          >
-            <UserInput {...inputCommon} userItems={maxUsers} usernameText="" />
-          </Box>
+        {story}
         </Box>
-      )
-    })
+        )) */
+    .add('Empty list', () => (
+      <Box>
+        <UserInput {...inputCommon} userItems={[]} usernameText="" />
+      </Box>
+    ))
+    .add('List with items', () => (
+      <Box>
+        <UserInput {...inputCommon} userItems={maxUsers} usernameText="" />
+      </Box>
+    ))
+    .add('List with items and partial input', () => (
+      <Box>
+        <UserInput {...inputCommon} userItems={maxUsers} usernameText="ma" />
+      </Box>
+    ))
+    .add('Narrow list', () => (
+      <Box
+        style={{
+          borderColor: 'gray',
+          borderStyle: 'solid',
+          borderWidth: 2,
+          padding: 4,
+          width: isMobile ? 300 : 480,
+        }}
+      >
+        <UserInput {...inputCommon} userItems={chrisUsers} usernameText="" />
+      </Box>
+    ))
+    .add('Narrowest list', () => (
+      <Box>
+        <Box
+          style={{
+            borderColor: 'gray',
+            borderStyle: 'solid',
+            borderWidth: 2,
+            padding: 4,
+            width: isMobile ? 300 : 370,
+          }}
+        >
+          <UserInput {...inputCommon} userItems={maxUsers} usernameText="" />
+        </Box>
+      </Box>
+    ))
     .add('Editable', () => {
       const UserInputEditable = compose(
         withStateHandlers(props => ({userItems: props.userItems, usernameText: ''}), {
