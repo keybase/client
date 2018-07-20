@@ -22,7 +22,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onInvite: (invitees: string, role: Types.TeamRoleType) => {
     dispatch(TeamsGen.createInviteToTeamByEmail({teamname: routeProps.get('teamname'), role, invitees}))
     dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
-    dispatch(TeamsGen.createGetTeams())
   },
   onOpenRolePicker: (role: Types.TeamRoleType, onComplete: Types.TeamRoleType => void) => {
     dispatch(
