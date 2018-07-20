@@ -473,9 +473,97 @@ describe('passphrase error path', () => {
   })
 })
 
-// TODO
-describe('paperkey happy path', () => {})
-describe('paperkey error path', () => {})
+describe('paperkey happy path', () => {
+  let init
+  beforeEach(() => {
+    init = makeInit({
+      method: 'keybase.1.secretUi.getPassphrase',
+      payload: {
+        pinentry: {
+          retryLabel: null,
+          type: RPCTypes.passphraseCommonPassphraseType.paperKey,
+        },
+      },
+    })
+  })
+
+  it('init', () => {
+    const {nextState} = init
+    expect(nextState.provision.error).toEqual(noError)
+  })
+
+  it('shows paperkey page', () => {
+    const {action} = init
+    expect(action).toEqual(ProvisionGen.createShowPaperkeyPage({error: null}))
+  })
+
+  it('navs to paperkey page', () => {
+    const {nextState} = init
+    expect(_testing.showPaperkeyPage(nextState)).toEqual(
+      Saga.put(RouteTree.navigateAppend(['paperkey'], [Tabs.loginTab, 'login']))
+    )
+  })
+
+  it('submit', () => {
+    const {response, nextState} = init
+    const paperkey = new HiddenString('one two three four five six seven eight')
+    const submitAction = ProvisionGen.createSubmitPaperkey({paperkey})
+    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+
+    _testing.submitPassphraseOrPaperkey(submitState, submitAction)
+    expect(response.result).toHaveBeenCalledWith({passphrase: paperkey.stringValue(), storeSecret: false})
+    expect(response.error).not.toHaveBeenCalled()
+
+    // only submit once
+    expect(() => _testing.submitPassphraseOrPaperkey(submitState, submitAction)).toThrow()
+  })
+})
+
+describe('paperkey error path', () => {
+  const error = new HiddenString('invalid paperkey')
+  let init
+  beforeEach(() => {
+    init = makeInit({
+      method: 'keybase.1.secretUi.getPassphrase',
+      payload: {
+        pinentry: {
+          retryLabel: error.stringValue(),
+          type: RPCTypes.passphraseCommonPassphraseType.paperKey,
+        },
+      },
+    })
+  })
+
+  it('init', () => {
+    const {nextState} = init
+    expect(nextState.provision.error).toEqual(error)
+  })
+
+  it('shows paperkey page', () => {
+    const {action} = init
+    expect(action).toEqual(ProvisionGen.createShowPaperkeyPage({error}))
+  })
+
+  it("doesn't nav away", () => {
+    const {nextState} = init
+    expect(_testing.showPaperkeyPage(nextState)).toBeFalsy()
+  })
+
+  it('submit clears error and submits', () => {
+    const {response, nextState} = init
+    const paperkey = new HiddenString('eight seven six five four three two one')
+    const submitAction = ProvisionGen.createSubmitPaperkey({paperkey})
+    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+    expect(submitState.provision.error).toEqual(noError)
+
+    _testing.submitPassphraseOrPaperkey(submitState, submitAction)
+    expect(response.result).toHaveBeenCalledWith({passphrase: paperkey.stringValue(), storeSecret: false})
+    expect(response.error).not.toHaveBeenCalled()
+
+    // only submit once
+    expect(() => _testing.submitPassphraseOrPaperkey(submitState, submitAction)).toThrow()
+  })
+})
 
 //
 // 'dler,
