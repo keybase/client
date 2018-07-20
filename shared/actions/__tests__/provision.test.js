@@ -29,7 +29,7 @@ const makeInit = ({method, payload}) => {
   }
   const action = put.PUT.action
   const nextState = makeTypedState(reducer(state, action))
-  return {action, callMap, manager, response, state, nextState}
+  return {action, callMap, manager, nextState, response, state}
 }
 
 const makeTypedState = (provisionState: Types.State): TypedState => ({provision: provisionState}: any)
@@ -116,7 +116,7 @@ describe('text code error path', () => {
   })
 
   it('init', () => {
-    const {manager, response, action, state, nextState} = init
+    const {manager, response, action, nextState} = init
     expect(manager._stashedResponse).toEqual(response)
     expect(manager._stashedResponseKey).toEqual('keybase.1.provisionUi.DisplayAndPromptSecret')
     expect(action.payload.code.stringValue()).toEqual(phrase)
@@ -144,7 +144,7 @@ describe('device name happy path', () => {
   })
 
   it('init', () => {
-    const {action, state, nextState} = init
+    const {action, nextState} = init
     expect(action.payload.existingDevices).toEqual(existingDevices)
     expect(action.payload.error).toEqual(null)
 
