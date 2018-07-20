@@ -356,23 +356,24 @@ func (mul MerkleUserLeaf) Public() *MerkleTriple {
 }
 
 func NodeHashFromHex(s string) (NodeHash, error) {
-	buf := make([]byte, NodeHashLenLong)
-	n, err := hex.Decode(buf, []byte(s))
-	var ret NodeHash
-	if err != nil {
-		// Noop
-	} else if n == NodeHashLenLong {
-		var tmp NodeHashLong
-		copy([]byte(tmp[:]), buf)
-		ret = tmp
-	} else if n == NodeHashLenShort {
-		var tmp NodeHashShort
-		copy([]byte(tmp[:]), buf)
-		ret = tmp
-	} else {
-		err = fmt.Errorf("Bad NodeHash; wrong length: %d", n)
+	switch hex.DecodedLen(len(s)) {
+	case NodeHashLenLong:
+		var buf NodeHashLong
+		err := DecodeHexFixed(buf[:], []byte(s))
+		if err != nil {
+			return nil, err
+		}
+		return buf, err
+	case NodeHashLenShort:
+		var buf NodeHashShort
+		err := DecodeHexFixed(buf[:], []byte(s))
+		if err != nil {
+			return nil, err
+		}
+		return buf, err
+	default:
+		return nil, fmt.Errorf("Bad NodeHash; wrong length: %d", len(s))
 	}
-	return ret, err
 }
 
 func GetNodeHash(w *jsonw.Wrapper) (NodeHash, error) {

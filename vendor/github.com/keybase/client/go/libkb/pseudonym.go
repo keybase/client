@@ -213,22 +213,16 @@ func checkAndConvertTlfPseudonymFromServer(ctx context.Context, g *GlobalContext
 		info.Name = received.Info.Name
 		info.UntrustedCurrentName = received.Info.UntrustedCurrentName
 
-		n, err := hex.Decode(info.ID[:], []byte(received.Info.ID))
+		err := DecodeHexFixed(info.ID[:], []byte(received.Info.ID))
 		if err != nil {
 			return mkErr(err)
-		}
-		if n != len(info.ID) {
-			return mkErr(fmt.Errorf("tlf id wrong length"))
 		}
 
 		info.KeyGen = KeyGen(received.Info.KeyGen)
 
-		n, err = hex.Decode(info.HmacKey[:], []byte(received.Info.HmacKey))
+		err = DecodeHexFixed(info.HmacKey[:], []byte(received.Info.HmacKey))
 		if err != nil {
 			return mkErr(err)
-		}
-		if n != len(info.HmacKey) {
-			return mkErr(fmt.Errorf("hmac key wrong length"))
 		}
 
 		x.Info = &info

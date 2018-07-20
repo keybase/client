@@ -63,6 +63,7 @@ type GlobalContext struct {
 	DNSNSFetcher     DNSNameServerFetcher // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
 	AppState         *AppState            // The state of focus for the currently running instance of the app
 	ChatHelper       ChatHelper           // conveniently send chat messages
+	RPCCanceller     *RPCCanceller        // register live RPCs so they can be cancelleed en masse
 
 	cacheMu          *sync.RWMutex    // protects all caches
 	ProofCache       *ProofCache      // where to cache proof results
@@ -138,10 +139,6 @@ type GlobalContext struct {
 
 	NetContext context.Context
 }
-
-// There are many interfaces that slice and dice the GlobalContext to expose a
-// smaller API. TODO: Assert more of them here.
-var _ ProofContext = (*GlobalContext)(nil)
 
 type GlobalTestOptions struct {
 	NoBug3964Repair bool
@@ -225,6 +222,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
 	g.localSigchainGuard = NewLocalSigchainGuard(g)
 	g.AppState = NewAppState(g)
+	g.RPCCanceller = NewRPCCanceller()
 
 	g.Log.Debug("GlobalContext#Init(%p)\n", g)
 
@@ -292,7 +290,7 @@ func (g *GlobalContext) Logout() error {
 	// remove stored secret
 	g.secretStoreMu.Lock()
 	if g.secretStore != nil {
-		if err := g.secretStore.ClearSecret(username); err != nil {
+		if err := g.secretStore.ClearSecret(NewMetaContextBackground(g), username); err != nil {
 			g.Log.Debug("clear stored secret error: %s", err)
 		}
 	}
@@ -348,7 +346,7 @@ func (g *GlobalContext) ConfigureConfig() error {
 	if err = c.Check(); err != nil {
 		return err
 	}
-	g.Env.SetConfig(*c, c)
+	g.Env.SetConfig(c, c)
 	return nil
 }
 
@@ -362,7 +360,7 @@ func (g *GlobalContext) ConfigureUpdaterConfig() error {
 	c := NewJSONUpdaterConfigFile(g)
 	err := c.Load(false)
 	if err == nil {
-		g.Env.SetUpdaterConfig(*c)
+		g.Env.SetUpdaterConfig(c)
 	} else {
 		g.Log.Debug("Failed to open update config: %s\n", err)
 	}
@@ -668,7 +666,7 @@ func (g *GlobalContext) Configure(line CommandLine, usage Usage) error {
 	// order to correctly use -H,-home flag and config vars for
 	// remember_passphrase.
 	g.secretStoreMu.Lock()
-	g.secretStore = NewSecretStoreLocked(g)
+	g.secretStore = NewSecretStoreLocked(NewMetaContextBackground(g))
 	g.secretStoreMu.Unlock()
 
 	return nil
@@ -779,10 +777,11 @@ type Contextifier interface {
 	G() *GlobalContext
 }
 
-func (g *GlobalContext) GetConfiguredAccounts() ([]keybase1.ConfiguredAccount, error) {
+func (g *GlobalContext) GetConfiguredAccounts(ctx context.Context) ([]keybase1.ConfiguredAccount, error) {
+	m := NewMetaContext(ctx, g)
 	g.secretStoreMu.Lock()
 	defer g.secretStoreMu.Unlock()
-	return GetConfiguredAccounts(g, g.secretStore)
+	return GetConfiguredAccounts(m, g.secretStore)
 }
 
 func (g *GlobalContext) GetAllUserNames() (NormalizedUsername, []NormalizedUsername, error) {
@@ -797,11 +796,11 @@ func (g *GlobalContext) GetStoredSecretAccessGroup() string {
 	return g.Env.GetStoredSecretAccessGroup()
 }
 
-func (g *GlobalContext) GetUsersWithStoredSecrets() ([]string, error) {
+func (g *GlobalContext) GetUsersWithStoredSecrets(ctx context.Context) ([]string, error) {
 	g.secretStoreMu.Lock()
 	defer g.secretStoreMu.Unlock()
 	if g.secretStore != nil {
-		return g.secretStore.GetUsersWithStoredSecrets()
+		return g.secretStore.GetUsersWithStoredSecrets(NewMetaContext(ctx, g))
 	}
 	return []string{}, nil
 }
@@ -1172,35 +1171,36 @@ func (g *GlobalContext) SecretStore() *SecretStoreLocked {
 // secret store, creates a new secret store (could be a new type
 // of SecretStore based on a config change), and inserts the secret
 // into the new secret store.
-func (g *GlobalContext) ReplaceSecretStore() error {
+func (g *GlobalContext) ReplaceSecretStore(ctx context.Context) error {
 	g.secretStoreMu.Lock()
 	defer g.secretStoreMu.Unlock()
 
 	username := g.Env.GetUsername()
+	m := NewMetaContext(ctx, g)
 
 	// get the current secret
-	secret, err := g.secretStore.RetrieveSecret(username)
+	secret, err := g.secretStore.RetrieveSecret(m, username)
 	if err != nil {
-		g.Log.Debug("error retrieving existing secret for ReplaceSecretStore: %s", err)
+		m.CDebugf("error retrieving existing secret for ReplaceSecretStore: %s", err)
 		return err
 	}
 
 	// clear the existing secret from the existing secret store
-	if err := g.secretStore.ClearSecret(username); err != nil {
-		g.Log.Debug("error clearing existing secret for ReplaceSecretStore: %s", err)
+	if err := g.secretStore.ClearSecret(m, username); err != nil {
+		m.CDebugf("error clearing existing secret for ReplaceSecretStore: %s", err)
 		return err
 	}
 
 	// make a new secret store
-	g.secretStore = NewSecretStoreLocked(g)
+	g.secretStore = NewSecretStoreLocked(m)
 
 	// store the secret in the secret store
-	if err := g.secretStore.StoreSecret(username, secret); err != nil {
-		g.Log.Debug("error storing existing secret for ReplaceSecretStore: %s", err)
+	if err := g.secretStore.StoreSecret(m, username, secret); err != nil {
+		m.CDebugf("error storing existing secret for ReplaceSecretStore: %s", err)
 		return err
 	}
 
-	g.Log.Debug("ReplaceSecretStore success")
+	m.CDebugf("ReplaceSecretStore success")
 
 	return nil
 }

@@ -2368,3 +2368,21 @@ type NoTriplesecError struct{}
 
 func (e NoTriplesecError) Error() string { return "No Triplesec was available after prompt" }
 func NewNoTriplesecError() error         { return NoTriplesecError{} }
+
+//=============================================================================
+
+type HexWrongLengthError struct{ msg string }
+
+func NewHexWrongLengthError(msg string) HexWrongLengthError { return HexWrongLengthError{msg} }
+
+func (e HexWrongLengthError) Error() string { return e.msg }
+
+//=============================================================================
+
+type EphemeralPairwiseMACsMissingUIDsError struct{ UIDs []keybase1.UID }
+
+func (e EphemeralPairwiseMACsMissingUIDsError) Error() string {
+	return fmt.Sprintf("Missing %d uids from pairwise macs", len(e.UIDs))
+}
+
+//=============================================================================

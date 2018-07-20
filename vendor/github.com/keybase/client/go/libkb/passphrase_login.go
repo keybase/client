@@ -268,7 +268,7 @@ func StoreSecretAfterLoginWithLKS(m MetaContext, n NormalizedUsername, lks *LKSe
 		return err
 	}
 
-	err = secretStore.StoreSecret(secret)
+	err = secretStore.StoreSecret(m, secret)
 	if err != nil {
 		return err
 	}
@@ -277,7 +277,7 @@ func StoreSecretAfterLoginWithLKS(m MetaContext, n NormalizedUsername, lks *LKSe
 }
 
 func getStoredPassphraseStream(m MetaContext) (*PassphraseStream, error) {
-	fullSecret, err := m.G().SecretStore().RetrieveSecret(m.CurrentUsername())
+	fullSecret, err := m.G().SecretStore().RetrieveSecret(m, m.CurrentUsername())
 	if err != nil {
 		return nil, err
 	}

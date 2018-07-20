@@ -532,11 +532,6 @@ func (s *PerUserKeyring) fetchBoxesLocked(m MetaContext,
 
 	defer m.CTrace("PerUserKeyring#fetchBoxesLocked", func() error { return err })()
 
-	var sessionR SessionReader
-	if lctx := m.LoginContext(); lctx != nil {
-		sessionR = lctx.LocalSession()
-	}
-
 	var resp perUserKeySyncResp
 	err = m.G().API.GetDecode(APIArg{
 		Endpoint: "key/fetch_per_user_key_secrets",
@@ -545,7 +540,6 @@ func (s *PerUserKeyring) fetchBoxesLocked(m MetaContext,
 			"device_id":  S{deviceID.String()},
 		},
 		SessionType: APISessionTypeREQUIRED,
-		SessionR:    sessionR,
 		RetryCount:  5, // It's pretty bad to fail this, so retry.
 		MetaContext: m,
 	}, &resp)

@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -16,7 +17,7 @@ import (
 )
 
 // we will show some representation of an exploded message in the UI for a week
-const showExplosionLifetime = time.Hour * 24 * 7
+const ShowExplosionLifetime = time.Hour * 24 * 7
 
 type ByUID []gregor1.UID
 type ConvIDShort = []byte
@@ -154,6 +155,9 @@ func DeletableMessageTypesByDeleteHistory() (res []MessageType) {
 			res = append(res, mt)
 		}
 	}
+	sort.Slice(res, func(i, j int) bool {
+		return res[i] < res[j]
+	})
 	return res
 }
 
@@ -199,6 +203,24 @@ func (hash Hash) String() string {
 
 func (hash Hash) Eq(other Hash) bool {
 	return bytes.Equal(hash, other)
+}
+
+func (m MessageUnboxed) OutboxID() *OutboxID {
+	if state, err := m.State(); err == nil {
+		switch state {
+		case MessageUnboxedState_VALID:
+			return m.Valid().ClientHeader.OutboxID
+		case MessageUnboxedState_ERROR:
+			return nil
+		case MessageUnboxedState_PLACEHOLDER:
+			return nil
+		case MessageUnboxedState_OUTBOX:
+			return m.Outbox().Msg.ClientHeader.OutboxID
+		default:
+			return nil
+		}
+	}
+	return nil
 }
 
 func (m MessageUnboxed) GetMessageID() MessageID {
@@ -275,6 +297,28 @@ func (m MessageUnboxed) IsValidFull() bool {
 		return false
 	}
 	return bodyType == headerType
+}
+
+// IsValidDeleted returns whether a message is valid and has been deleted.
+// This statement does not hold: IsValidFull != IsValidDeleted
+func (m MessageUnboxed) IsValidDeleted() bool {
+	if !m.IsValid() {
+		return false
+	}
+	valid := m.Valid()
+	headerType := valid.ClientHeader.MessageType
+	switch headerType {
+	case MessageType_NONE:
+		return false
+	case MessageType_TLFNAME:
+		// Undeletable and may have no body
+		return false
+	}
+	bodyType, err := valid.MessageBody.MessageType()
+	if err != nil {
+		return false
+	}
+	return bodyType == MessageType_NONE
 }
 
 func (m *MessageUnboxed) DebugString() string {
@@ -443,6 +487,10 @@ func (o *MsgEphemeralMetadata) Eq(r *MsgEphemeralMetadata) bool {
 	return (o == nil) && (r == nil)
 }
 
+func (m MessageUnboxedValid) HasPairwiseMacs() bool {
+	return m.ClientHeader.HasPairwiseMacs
+}
+
 func (m MessageUnboxedValid) IsEphemeral() bool {
 	return m.EphemeralMetadata() != nil
 }
@@ -510,7 +558,7 @@ func (m MessageUnboxedValid) HideExplosion(expunge *Expunge, now time.Time) bool
 	}
 	etime := m.Etime()
 	// Don't show ash lines for messages that have been expunged.
-	return etime.Time().Add(showExplosionLifetime).Before(now) || m.ServerHeader.MessageID < upTo
+	return etime.Time().Add(ShowExplosionLifetime).Before(now) || m.ServerHeader.MessageID < upTo
 }
 
 func (b MessageBody) IsNil() bool {
@@ -583,6 +631,10 @@ func (m MessageBoxed) Summary() MessageSummary {
 		s.Ctime = m.ServerHeader.Ctime
 	}
 	return s
+}
+
+func (m MessageBoxed) OutboxInfo() *OutboxInfo {
+	return m.ClientHeader.OutboxInfo
 }
 
 func (m MessageBoxed) KBFSEncrypted() bool {
@@ -662,6 +714,11 @@ func (t ConversationIDTriple) Derivable(cid ConversationID) bool {
 	return bytes.Equal(h[2:], []byte(cid[2:]))
 }
 
+func MakeOutboxID(s string) (OutboxID, error) {
+	b, err := hex.DecodeString(s)
+	return OutboxID(b), err
+}
+
 func (o *OutboxID) Eq(r *OutboxID) bool {
 	if o != nil && r != nil {
 		return bytes.Equal(*o, *r)
@@ -682,6 +739,10 @@ func (o *OutboxInfo) Eq(r *OutboxInfo) bool {
 		return *o == *r
 	}
 	return (o == nil) && (r == nil)
+}
+
+func (o OutboxRecord) IsAttachment() bool {
+	return o.Msg.ClientHeader.MessageType == MessageType_ATTACHMENT
 }
 
 func (p MessagePreviousPointer) Eq(other MessagePreviousPointer) bool {
@@ -1077,6 +1138,12 @@ func MakeEmptyUnreadUpdate(convID ConversationID) UnreadUpdate {
 		UnreadMessages:          0,
 		UnreadNotifyingMessages: counts,
 	}
+}
+
+func (u UnreadUpdate) String() string {
+	return fmt.Sprintf("[d:%v c:%s u:%d nd:%d nm:%d]", u.Diff, u.ConvID, u.UnreadMessages,
+		u.UnreadNotifyingMessages[keybase1.DeviceType_DESKTOP],
+		u.UnreadNotifyingMessages[keybase1.DeviceType_MOBILE])
 }
 
 func (s TopicNameState) Bytes() []byte {

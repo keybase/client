@@ -2,8 +2,9 @@ package libkb
 
 import (
 	"fmt"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"time"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 // leafSlot is a simple accessor that takes the given leaf, and the private/public type,
@@ -49,7 +50,7 @@ func lookupMaxMerkleSeqno(m MetaContext) (ret keybase1.Seqno, err error) {
 // looking for the point of transition. Start this search from the given prevRootSeqno, not from merkle seqno 1.
 // The algorithm is to jump forward, in exponentially larger jumps, until we find a root that has a leaf
 // that makes comparer true. Then, to binary search to find the exact [a,b] pair in which a makes the
-// comparer false, and b makes it true. The leaf and root that correspond to be are returned.
+// comparer false, and b makes it true. The leaf and root that correspond to b are returned.
 func findFirstLeafWithComparer(m MetaContext, id keybase1.UserOrTeamID, comparator merkleSearchComparator, prevRootSeqno keybase1.Seqno) (leaf *MerkleGenericLeaf, root *MerkleRoot, err error) {
 	defer m.CTrace(fmt.Sprintf("findFirstLeafWithComparer(%s,%d)", id, prevRootSeqno), func() error { return err })()
 

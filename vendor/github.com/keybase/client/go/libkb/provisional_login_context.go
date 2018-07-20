@@ -175,7 +175,8 @@ func (p *ProvisionalLoginContext) RunSecretSyncer(m MetaContext, uid keybase1.UI
 	if uid.IsNil() {
 		uid = p.GetUID()
 	}
-	return RunSyncer(m, p.secretSyncer, uid, (p.localSession != nil), p.localSession, false /* forceReload */)
+	m = m.WithLoginContext(p)
+	return RunSyncer(m, p.secretSyncer, uid, (p.localSession != nil), false /* forceReload */)
 }
 func (p *ProvisionalLoginContext) GetUnlockedPaperEncKey() GenericKey {
 	return nil

@@ -517,13 +517,22 @@ func (g *GlobalContext) CTrace(ctx context.Context, msg string, f func() error) 
 	return CTrace(ctx, g.Log.CloneWithAddedDepth(1), msg, f)
 }
 
+func (g *GlobalContext) CTraceTimed(ctx context.Context, msg string, f func() error) func() {
+	return CTraceTimed(ctx, g.Log.CloneWithAddedDepth(1), msg, f, g.Clock())
+}
+
 func (g *GlobalContext) CVTrace(ctx context.Context, lev VDebugLevel, msg string, f func() error) func() {
 	g.VDL.CLogf(ctx, lev, "+ %s", msg)
 	return func() { g.VDL.CLogf(ctx, lev, "- %s -> %v", msg, ErrToOk(f())) }
 }
 
-func (g *GlobalContext) CTraceTimed(ctx context.Context, msg string, f func() error) func() {
-	return CTraceTimed(ctx, g.Log.CloneWithAddedDepth(1), msg, f, g.Clock())
+func (g *GlobalContext) CVTraceTimed(ctx context.Context, lev VDebugLevel, msg string, f func() error) func() {
+	cl := g.Clock()
+	g.VDL.CLogf(ctx, lev, "+ %s", msg)
+	start := cl.Now()
+	return func() {
+		g.VDL.CLogf(ctx, lev, "- %s -> %v [time=%s]", msg, f(), cl.Since(start))
+	}
 }
 
 func (g *GlobalContext) CTimeTracer(ctx context.Context, label string, enabled bool) profiling.TimeTracer {
@@ -700,8 +709,12 @@ func SleepUntilWithContext(ctx context.Context, clock clockwork.Clock, deadline 
 	}
 }
 
+func UseCITime(g *GlobalContext) bool {
+	return g.GetEnv().RunningInCI() || g.GetEnv().GetSlowGregorConn()
+}
+
 func CITimeMultiplier(g *GlobalContext) time.Duration {
-	if g.GetEnv().RunningInCI() || g.GetEnv().GetSlowGregorConn() {
+	if UseCITime(g) {
 		return time.Duration(3)
 	}
 	return time.Duration(1)
@@ -770,7 +783,7 @@ func MobilePermissionDeniedCheck(g *GlobalContext, err error, msg string) {
 		return
 	}
 	g.Log.Warning("file open permission denied on mobile (%s): %s", msg, err)
-	panic(fmt.Sprintf("panic due to file open permission denied on mobile (%s)", msg))
+	os.Exit(4)
 }
 
 // IsNoSpaceOnDeviceError will return true if err is an `os` error
@@ -864,4 +877,28 @@ func NoiseXOR(secret [32]byte, noise NoiseBytes) ([]byte, error) {
 // a regular old WallClock time.
 func ForceWallClock(t time.Time) time.Time {
 	return t.Round(0)
+}
+
+// Decode decodes src into dst.
+// Errors unless all of:
+// - src is valid hex
+// - src decodes into exactly len(dst) bytes
+func DecodeHexFixed(dst, src []byte) error {
+	// hex.Decode is wrapped because it does not error on short reads and panics on long reads.
+	if len(src)%2 == 1 {
+		return hex.ErrLength
+	}
+	if len(dst) != hex.DecodedLen(len(src)) {
+		return NewHexWrongLengthError(fmt.Sprintf(
+			"error decoding fixed-length hex: expected %v bytes but got %v", len(dst), hex.DecodedLen(len(src))))
+	}
+	n, err := hex.Decode(dst, src)
+	if err != nil {
+		return err
+	}
+	if n != len(dst) {
+		return NewHexWrongLengthError(fmt.Sprintf(
+			"error decoding fixed-length hex: expected %v bytes but got %v", len(dst), n))
+	}
+	return nil
 }

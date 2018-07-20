@@ -763,3 +763,17 @@ func (c *ChatRPC) ChatKBFSToImpteamUpgrade(
 	_ context.Context, _ chat1.ChatKBFSToImpteamUpgradeArg) error {
 	return nil
 }
+
+// ChatAttachmentUploadStart implements the chat1.NotifyChatInterface
+// for ChatRPC.
+func (c *ChatRPC) ChatAttachmentUploadStart(
+	_ context.Context, _ chat1.ChatAttachmentUploadStartArg) error {
+	return nil
+}
+
+// ChatAttachmentUploadProgress implements the chat1.NotifyChatInterface
+// for ChatRPC.
+func (c *ChatRPC) ChatAttachmentUploadProgress(
+	_ context.Context, _ chat1.ChatAttachmentUploadProgressArg) error {
+	return nil
+}

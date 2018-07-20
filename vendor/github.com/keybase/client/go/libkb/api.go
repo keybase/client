@@ -476,9 +476,9 @@ func (a *InternalAPIEngine) getURL(arg APIArg) url.URL {
 }
 
 func (a *InternalAPIEngine) sessionArgs(m MetaContext, arg APIArg) (tok, csrf string, err error) {
-	if arg.SessionR != nil {
-		m.CDebugf("using args from SessionR")
-		tok, csrf = arg.SessionR.APIArgs()
+	if m.apiTokener != nil {
+		m.CDebugf("Using apiTokener session and CSRF token")
+		tok, csrf = m.apiTokener.Tokens()
 		return tok, csrf, nil
 	}
 
@@ -679,6 +679,7 @@ func (a *InternalAPIEngine) Get(arg APIArg) (*APIRes, error) {
 // second arg should be called whenever we're done with the response (if it's non-nil).
 func (a *InternalAPIEngine) GetResp(arg APIArg) (*http.Response, func(), error) {
 	m := arg.GetMetaContext(a.G())
+	m = m.EnsureCtx().WithLogTag("API")
 
 	url1 := a.getURL(arg)
 	req, err := a.PrepareGet(url1, arg)
@@ -752,6 +753,7 @@ func (a *InternalAPIEngine) PostJSON(arg APIArg) (*APIRes, error) {
 // postResp performs a POST request and returns the http response.
 // The finisher() should be called after the response is no longer needed.
 func (a *InternalAPIEngine) postResp(m MetaContext, arg APIArg) (*http.Response, func(), error) {
+	m = m.EnsureCtx().WithLogTag("API")
 	url1 := a.getURL(arg)
 	req, err := a.PrepareMethodWithBody("POST", url1, arg)
 	if err != nil {
@@ -807,11 +809,13 @@ func (a *InternalAPIEngine) Delete(arg APIArg) (*APIRes, error) {
 
 func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, error) {
 	m := arg.GetMetaContext(a.G())
+	m = m.EnsureCtx().WithLogTag("API")
 	res, err := a.doRequest(m, arg, req)
 	return res, err
 }
 
 func (a *InternalAPIEngine) doRequest(m MetaContext, arg APIArg, req *http.Request) (res *APIRes, err error) {
+	m = m.EnsureCtx().WithLogTag("API")
 	defer a.G().CTraceTimed(m.Ctx(), "InternalAPIEngine#doRequest", func() error { return err })()
 	resp, finisher, jw, err := doRequestShared(m, a, arg, req, true)
 	if err != nil {
@@ -892,6 +896,7 @@ func (api *ExternalAPIEngine) DoRequest(
 	ar *ExternalAPIRes, hr *ExternalHTMLRes, tr *ExternalTextRes, err error) {
 
 	m := arg.GetMetaContext(api.G())
+	m = m.EnsureCtx().WithLogTag("API")
 
 	var resp *http.Response
 	var jw *jsonw.Wrapper

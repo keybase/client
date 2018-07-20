@@ -14,12 +14,12 @@ type Syncer interface {
 	Contextifier
 	sync.Locker
 	loadFromStorage(m MetaContext, u keybase1.UID) error
-	syncFromServer(m MetaContext, u keybase1.UID, sr SessionReader, forceReload bool) error
+	syncFromServer(m MetaContext, u keybase1.UID, forceReload bool) error
 	store(m MetaContext, u keybase1.UID) error
 	needsLogin(m MetaContext) bool
 }
 
-func RunSyncer(m MetaContext, s Syncer, uid keybase1.UID, loggedIn bool, sr SessionReader, forceReload bool) (err error) {
+func RunSyncer(m MetaContext, s Syncer, uid keybase1.UID, loggedIn bool, forceReload bool) (err error) {
 	if uid.IsNil() {
 		return NotFoundError{"No UID given to syncer"}
 	}
@@ -43,7 +43,7 @@ func RunSyncer(m MetaContext, s Syncer, uid keybase1.UID, loggedIn bool, sr Sess
 		m.CDebugf("| Won't sync with server since we're not logged in")
 		return
 	}
-	if err = s.syncFromServer(m, uid, sr, forceReload); err != nil {
+	if err = s.syncFromServer(m, uid, forceReload); err != nil {
 		return
 	}
 	if err = s.store(m, uid); err != nil {

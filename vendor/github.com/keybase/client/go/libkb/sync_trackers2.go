@@ -60,7 +60,7 @@ func (t *Tracker2Syncer) getLoadedVersion() int {
 	return ret
 }
 
-func (t *Tracker2Syncer) syncFromServer(m MetaContext, uid keybase1.UID, sr SessionReader, forceReload bool) (err error) {
+func (t *Tracker2Syncer) syncFromServer(m MetaContext, uid keybase1.UID, forceReload bool) (err error) {
 
 	defer m.CTrace(fmt.Sprintf("syncFromServer(%s)", uid), func() error { return err })()
 
@@ -78,7 +78,6 @@ func (t *Tracker2Syncer) syncFromServer(m MetaContext, uid keybase1.UID, sr Sess
 	res, err = t.G().API.Get(APIArg{
 		Endpoint:    "user/list_followers_for_display",
 		Args:        hargs,
-		SessionR:    sr,
 		MetaContext: m,
 	})
 	m.CDebugf("| syncFromServer() -> %s", ErrToOk(err))
