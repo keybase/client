@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Icon, Text, Box, Box2, iconCastPlatformStyles} from '../../../../../common-adapters'
+import {Avatar, Icon, Text, Box, iconCastPlatformStyles} from '../../../../../common-adapters'
 import {type FloatingMenuParentProps} from '../../../../../common-adapters/floating-menu'
 import {
   globalStyles,
@@ -50,9 +50,9 @@ const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
 }
 
 const MenuButtons = ({conversationIDKey, onClick, ordinal, setRef}) => (
-  <Box2 direction="horizontal" gap="tiny">
+  <Box className="menu-button" style={styles.menuButtons}>
     <ReactButton conversationIDKey={conversationIDKey} ordinal={ordinal} showBorder={false} />
-    <Box ref={setRef} className="menu-button">
+    <Box ref={setRef}>
       <Icon
         type="iconfont-ellipsis"
         style={iconCastPlatformStyles(styles.ellipsis)}
@@ -60,7 +60,7 @@ const MenuButtons = ({conversationIDKey, onClick, ordinal, setRef}) => (
         fontSize={16}
       />
     </Box>
-  </Box2>
+  </Box>
 )
 
 const EditedMark = () => (
@@ -255,6 +255,12 @@ const styles = styleSheetCreate({
       marginLeft: globalMargins.tiny,
     },
   }),
+  menuButtons: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    position: 'relative',
+    top: 1,
+  },
   rightSide: {
     ...globalStyles.flexBoxColumn,
     flex: 1,

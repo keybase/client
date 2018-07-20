@@ -94,7 +94,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
           ref={r => this.setState(s => (s.attachmentRef ? null : {attachmentRef: r}))}
           centerChildren={true}
           direction="horizontal"
-          style={styles.container}
+          style={this.props.showBorder ? styles.container : null}
         >
           <Icon type="iconfont-reacji" fontSize={isMobile ? 22 : 16} />
         </Box2>
