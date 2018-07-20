@@ -14,6 +14,23 @@ import reducer from '../../reducers/provision'
 
 jest.unmock('immutable')
 
+const makeInit = ({method, payload}) => {
+  const manager = _testing.makeProvisioningManager(false)
+  const callMap = manager.getIncomingCallMap()
+  const state = Constants.makeState()
+  const call = callMap[method]
+  if (!call) {
+    throw new Error('No call')
+  }
+  const response = {error: jest.fn(), result: jest.fn()}
+  const put: any = call((payload: any), response, makeTypedState(state))
+  if (!put || !put.PUT) {
+    throw new Error('no put')
+  }
+  const action = put.PUT.action
+  return {action, callMap, manager, response, state}
+}
+
 const makeTypedState = (provisionState: Types.State): TypedState => ({provision: provisionState}: any)
 
 describe('provisioningManagerProvisioning', () => {
@@ -52,29 +69,14 @@ describe('provisioningManagerProvisioning', () => {
 })
 
 describe('text code happy path', () => {
-  let manager
-  let callMap
-  let response
-  let action
-  let state
   const phrase = 'incomingSecret'
+  let init
   beforeEach(() => {
-    manager = _testing.makeProvisioningManager(false)
-    callMap = manager.getIncomingCallMap()
-    state = Constants.makeState()
-    const call = callMap['keybase.1.provisionUi.DisplayAndPromptSecret']
-    if (!call) {
-      throw new Error('No call')
-    }
-    response = {error: jest.fn(), result: jest.fn()}
-    const put: any = call(({phrase}: any), response, makeTypedState(state))
-    if (!put || !put.PUT) {
-      throw new Error('no put')
-    }
-    action = put.PUT.action
+    init = makeInit({method: 'keybase.1.provisionUi.DisplayAndPromptSecret', payload: {phrase}})
   })
 
   it('init', () => {
+    const {action, manager, response, state} = init
     expect(manager._stashedResponse).toEqual(response)
     expect(manager._stashedResponseKey).toEqual('keybase.1.provisionUi.DisplayAndPromptSecret')
     expect(action.payload.code.stringValue()).toEqual(phrase)
@@ -88,6 +90,7 @@ describe('text code happy path', () => {
   })
 
   it('submit text code', () => {
+    const {response, state} = init
     const reply = 'reply'
     const submitAction = ProvisionGen.createSubmitTextCode({phrase: new HiddenString(reply)})
     const submitState = makeTypedState(reducer(state, submitAction))
@@ -102,30 +105,18 @@ describe('text code happy path', () => {
 })
 
 describe('text code error path', () => {
-  let manager
-  let callMap
-  let response
-  let action
-  let state
   const phrase = 'incomingSecret'
   const error = 'anerror'
+  let init
   beforeEach(() => {
-    manager = _testing.makeProvisioningManager(false)
-    callMap = manager.getIncomingCallMap()
-    state = Constants.makeState()
-    const call = callMap['keybase.1.provisionUi.DisplayAndPromptSecret']
-    if (!call) {
-      throw new Error('No call')
-    }
-    response = {error: jest.fn(), result: jest.fn()}
-    const put: any = call(({phrase, previousErr: error}: any), response, makeTypedState(state))
-    if (!put || !put.PUT) {
-      throw new Error('no put')
-    }
-    action = put.PUT.action
+    init = makeInit({
+      method: 'keybase.1.provisionUi.DisplayAndPromptSecret',
+      payload: {phrase, previousErr: error},
+    })
   })
 
   it('init', () => {
+    const {manager, response, action, state} = init
     expect(manager._stashedResponse).toEqual(response)
     expect(manager._stashedResponseKey).toEqual('keybase.1.provisionUi.DisplayAndPromptSecret')
     expect(action.payload.code.stringValue()).toEqual(phrase)
