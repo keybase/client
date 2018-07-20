@@ -24,7 +24,7 @@ protocol common {
 
   record AccountReserve {
     string amount; // "-1"
-    string description; // e.g. "HUGZ trust line" or "account"
+    string description; // e.g. "HUGZ/Unknown trustline" or "account"
   }
 
   enum TransactionStatus {
