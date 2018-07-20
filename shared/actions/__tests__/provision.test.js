@@ -565,28 +565,9 @@ describe('paperkey error path', () => {
   })
 })
 
-//
-// 'dler,
-// it('fills inviteCode, shows invite screen', () => {
-// const action = SignupGen.createRequestedAutoInvite({inviteCode: 'hello world'})
-// const nextState = makeTypedState(reducer(state, action))
-// expect(nextState.signup.inviteCode).toEqual(action.payload.inviteCode)
-// expect(_testing.showInviteScreen()).toEqual(navigateTo([loginTab, 'signup', 'inviteCode']))
-// })
-
 describe('provisioningManagerAddNewDevice', () => {})
 
 // TODO
 // maybeCancelProvision,
-// showDeviceListPage,
 // showFinalErrorPage,
-// showGPGPage,
-// showNewDeviceNamePage,
-// showPaperkeyPage,
-// showPassphrasePage,
-//
-// submitDeviceSelect,
-// ,
-// submitTextCode,
 // submitGPGMethod,
-// submitPassphraseOrPaperkey
