@@ -12,6 +12,7 @@ import HiddenString from '../../util/hidden-string'
 import type {TypedState} from '../../constants/reducer'
 import {_testing} from '../provision'
 import reducer from '../../reducers/provision'
+import {RPCError} from '../../util/errors'
 
 jest.unmock('immutable')
 
@@ -308,7 +309,7 @@ describe('other device happy path', () => {
     )
   })
 
-  it('mobile', () => {
+  it('submit mobile', () => {
     const {response, nextState} = init
     const submitAction = ProvisionGen.createSubmitDeviceSelect({name: mobile.name})
     const submitState = makeTypedState(reducer(nextState.provision, submitAction))
@@ -319,7 +320,7 @@ describe('other device happy path', () => {
     expect(() => _testing.submitDeviceSelect(submitState)).toThrow()
   })
 
-  it('desktop', () => {
+  it('submit desktop', () => {
     const {response, nextState} = init
     const submitAction = ProvisionGen.createSubmitDeviceSelect({name: desktop.name})
     const submitState = makeTypedState(reducer(nextState.provision, submitAction))
@@ -330,7 +331,7 @@ describe('other device happy path', () => {
     expect(() => _testing.submitDeviceSelect(submitState)).toThrow()
   })
 
-  it('paperkey/backup', () => {
+  it('submit paperkey/backup', () => {
     const {response, nextState} = init
     const submitAction = ProvisionGen.createSubmitDeviceSelect({name: backup.name})
     const submitState = makeTypedState(reducer(nextState.provision, submitAction))
@@ -378,6 +379,28 @@ describe('choose gpg happy path', () => {
     expect(_testing.showGPGPage(nextState)).toEqual(
       Saga.put(RouteTree.navigateAppend(['gpgSign'], [Tabs.loginTab, 'login']))
     )
+  })
+
+  it('submit export key', () => {
+    const {response, nextState} = init
+    const submitAction = ProvisionGen.createSubmitGPGMethod({exportKey: true})
+    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+    _testing.submitGPGMethod(submitState, submitAction)
+    expect(response.result).toHaveBeenCalledWith(RPCTypes.provisionUiGPGMethod.gpgImport)
+    expect(response.error).not.toHaveBeenCalled()
+    // only submit once
+    expect(() => _testing.submitGPGMethod(submitState, submitAction)).toThrow()
+  })
+
+  it('submit sign key', () => {
+    const {response, nextState} = init
+    const submitAction = ProvisionGen.createSubmitGPGMethod({exportKey: false})
+    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+    _testing.submitGPGMethod(submitState, submitAction)
+    expect(response.result).toHaveBeenCalledWith(RPCTypes.provisionUiGPGMethod.gpgSign)
+    expect(response.error).not.toHaveBeenCalled()
+    // only submit once
+    expect(() => _testing.submitGPGMethod(submitState, submitAction)).toThrow()
   })
 })
 
@@ -612,6 +635,17 @@ describe('canceling provision', () => {
   })
 })
 
-// TODO
-// showFinalErrorPage,
-// submitGPGMethod,
+describe('final errors show', () => {
+  it('shows the final error page', () => {
+    const error = new RPCError('something bad happened', 1, [])
+    const state = Constants.makeState()
+    const action = ProvisionGen.createShowFinalErrorPage({finalError: error})
+    const nextState = makeTypedState(reducer(state, action))
+
+    expect(nextState.provision.finalError).toBeTruthy()
+
+    expect(_testing.showFinalErrorPage(nextState)).toEqual(
+      Saga.put(RouteTree.navigateAppend(['error'], [Tabs.loginTab, 'login']))
+    )
+  })
+})
