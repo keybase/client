@@ -17,7 +17,6 @@ export const appStateAppState = {
   background: 1,
   inactive: 2,
   backgroundactive: 3,
-  backgroundfinal: 4,
 }
 
 export const backendCommonBlockType = {
@@ -870,7 +869,6 @@ export type AppState =
   | 1 // BACKGROUND_1
   | 2 // INACTIVE_2
   | 3 // BACKGROUNDACTIVE_3
-  | 4 // BACKGROUNDFINAL_4
 
 export type AppStateUpdateAppStateRpcParam = $ReadOnly<{state: AppState}>
 export type AsyncOps =

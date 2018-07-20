@@ -257,7 +257,7 @@ const BOOL isDebug = NO;
 
 - (void)applicationWillTerminate:(UIApplication *)application {
   self.window.rootViewController.view.hidden = YES;
-  KeybaseAppWillExit();
+  KeybaseAppWillExit([[PushNotifier alloc] init]);
 }
 
 - (void) hideCover {
@@ -299,10 +299,18 @@ const BOOL isDebug = NO;
   if (requestTime && (!self.shutdownTask || self.shutdownTask == UIBackgroundTaskInvalid)) {
     UIApplication *app = [UIApplication sharedApplication];
     self.shutdownTask = [app beginBackgroundTaskWithExpirationHandler:^{
-      KeybaseAppWillExit();
+      KeybaseAppWillExit([[PushNotifier alloc] init]);
       [app endBackgroundTask:self.shutdownTask];
       self.shutdownTask = UIBackgroundTaskInvalid;
     }];
+    // The service can tell us to end this task early, so if it does, then shutdown
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+      const bool endTask = KeybaseAppBeginBackgroundTask();
+      if (endTask && self.shutdownTask && self.shutdownTask != UIBackgroundTaskInvalid) {
+        [app endBackgroundTask:self.shutdownTask];
+        self.shutdownTask = UIBackgroundTaskInvalid;
+      }
+    });
   }
 }
 

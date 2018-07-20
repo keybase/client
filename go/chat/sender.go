@@ -822,6 +822,30 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 	return obr, nil
 }
 
+func (s *Deliverer) ActiveDeliveries(ctx context.Context) (res []chat1.ConversationID, err error) {
+	defer s.Trace(ctx, func() error { return err }, "ActiveDeliveries")()
+	recs, err := s.outbox.PullAllConversations(ctx, false, false)
+	cmap := make(map[string]chat1.ConversationID)
+	if err != nil {
+		s.Debug(ctx, "ActiveDeliveries: failed to pull convs: %s", err)
+		return res, err
+	}
+	for _, r := range recs {
+		styp, err := r.State.State()
+		if err != nil {
+			s.Debug(ctx, "ActiveDeliveries: bogus state: outboxID: %s err: %s", r.OutboxID, err)
+			continue
+		}
+		if styp == chat1.OutboxStateType_SENDING {
+			cmap[r.ConvID.String()] = r.ConvID
+		}
+	}
+	for _, convID := range cmap {
+		res = append(res, convID)
+	}
+	return res, nil
+}
+
 func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecord, err error) (chat1.OutboxErrorType, error, bool) {
 	// Check attempts
 	if obr.State.Sending() >= deliverMaxAttempts {

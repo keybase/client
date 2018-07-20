@@ -94,6 +94,7 @@ type MessageDeliverer interface {
 	Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
 		outboxID *chat1.OutboxID, identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxRecord, error)
 	ForceDeliverLoop(ctx context.Context)
+	ActiveDeliveries(ctx context.Context) ([]chat1.ConversationID, error)
 }
 
 type Searcher interface {
