@@ -36,7 +36,10 @@ jobs:
         name: Update PATH and Define Environment Variable at Runtime
         command: |
           echo 'export GOPATH=$HOME/go-path' >> $BASH_ENV
-          echo 'export PATH=$GOROOT/bin:$PATH' >> $BASH_ENV
+          # Clear out a bunch of cruft from PATH, including ~/.yarn/bin,
+          # which has a really old version of yarn that overrides the one
+          # we install below.
+          echo 'export PATH=/bin:/usr/bin' >> $BASH_ENV
 
           # Some node dependencies break without this.
           echo 'export ANDROID_NDK=$ANDROID_HOME/ndk-bundle' >> $BASH_ENV
