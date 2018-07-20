@@ -1860,6 +1860,10 @@
         },
         {
           "type": "boolean",
+          "name": "setMinWriterRole"
+        },
+        {
+          "type": "boolean",
           "name": "changeOpenTeam"
         },
         {

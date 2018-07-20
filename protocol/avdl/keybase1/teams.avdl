@@ -829,6 +829,7 @@ protocol teams {
     boolean setTeamShowcase;
     boolean setMemberShowcase;
     boolean setRetentionPolicy;
+    boolean setMinWriterRole;
     boolean changeOpenTeam;
     boolean leaveTeam;
     boolean joinTeam;
