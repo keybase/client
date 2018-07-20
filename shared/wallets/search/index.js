@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {globalColors, styleSheetCreate} from '../../styles'
+import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import ResultsList from '../../search/results-list/container'
 import UserInput from '../../search/user-input/container'
 import {Box2, Text} from '../../common-adapters'
@@ -40,7 +40,7 @@ const Search = (props: Props) => (
 
 const styles = styleSheetCreate({
   toText: {color: globalColors.blue},
-  inputLine: {alignItems: 'center'},
+  inputLine: {alignItems: 'center', paddingLeft: globalMargins.small, paddingRight: globalMargins.small},
 })
 
 export default Search
