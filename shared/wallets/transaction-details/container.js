@@ -13,7 +13,7 @@ const mapStateToProps = (state: TypedState, ownProps) => ({
     ownProps.routeProps.get('accountID'),
     ownProps.routeProps.get('paymentID')
   ),
-  _you: state.config.username,
+  _you: state.config.username || '',
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
@@ -24,7 +24,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const tx = stateProps._transaction
-  const yourRole = Constants.paymentToYourRole(tx, stateProps._you || '')
+  const yourRole = Constants.paymentToYourRole(tx, stateProps._you)
   const counterpartyType = Constants.paymentToCounterpartyType(tx)
   return {
     amountUser: tx.worth,

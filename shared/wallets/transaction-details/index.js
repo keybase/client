@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
 import {Box2, Divider, Icon, NameWithIcon, Text} from '../../common-adapters'
 import {capitalize} from 'lodash-es'
-import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
+import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import Transaction, {CounterpartyIcon, CounterpartyText, TimestampLine} from '../transaction'
 
 type Role = 'sender' | 'receiver'
@@ -62,11 +62,7 @@ const Counterparty = (props: CounterpartyProps) => {
         counterpartyType={props.counterpartyType}
         large={false}
       />
-      <Box2
-        direction="vertical"
-        fullWidth={true}
-        style={{justifyContent: 'center', marginLeft: globalMargins.small}}
-      >
+      <Box2 direction="vertical" fullWidth={true} style={styles.counterPartyText}>
         <CounterpartyText
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
@@ -144,15 +140,9 @@ export default class extends React.Component<Props> {
 
         <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
           <Text type="BodySmallSemibold">Status:</Text>
-          <Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={{alignItems: 'center'}}>
+          <Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.statusBox}>
             <Icon
-              color={
-                this.props.status === 'error'
-                  ? globalColors.red
-                  : this.props.status === 'completed'
-                    ? globalColors.green2
-                    : globalColors.black
-              }
+              color={colorForStatus(this.props.status)}
               fontSize={16}
               type={
                 this.props.status === 'error'
@@ -163,10 +153,10 @@ export default class extends React.Component<Props> {
               }
             />
             <Text
-              style={{
-                color: colorForStatus(this.props.status),
-                marginLeft: globalMargins.xtiny,
-              }}
+              style={collapseStyles([
+                styles.statusText,
+                {color: colorForStatus(this.props.status), marginLeft: globalMargins.xtiny},
+              ])}
               type="Body"
             >
               {descriptionForStatus(this.props.status)}
@@ -204,8 +194,18 @@ const styles = styleSheetCreate({
   container: {
     padding: globalMargins.small,
   },
+  counterPartyText: {
+    justifyContent: 'center',
+    marginLeft: globalMargins.small,
+  },
   rightContainer: {
     flex: 1,
     marginLeft: globalMargins.tiny,
+  },
+  statusBox: {
+    alignItems: 'center',
+  },
+  statusText: {
+    marginLeft: globalMargins.xtiny,
   },
 })
