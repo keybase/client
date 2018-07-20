@@ -104,8 +104,13 @@ const _styleCloseThemed = {
 const _titleStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
+  bottom: 0,
   flex: 1,
   justifyContent: 'center',
+  left: 0,
+  position: 'absolute', // This is always centered so we never worry about items to the left/right. If you have overlap or other issues you likely have to fix the content
+  right: 0,
+  top: 0,
 }
 
 export default HeaderHoc
