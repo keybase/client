@@ -1,9 +1,9 @@
 // @noflow
+import * as React from 'react'
+
 if (!__STORYBOOK__) {
   throw new Error('Invalid load of mock')
 }
-
-import * as React from 'react'
 
 function getDisplayName(WrappedComponent): string {
   return WrappedComponent.displayName || WrappedComponent.name || 'Component'
@@ -15,7 +15,7 @@ function HOCTimers<Props: TimerProps>(
   class TimersComponent extends React.Component<$Diff<Props, TimerProps>> {
     static displayName = `HOCTimers(${getDisplayName(WrappedComponent)})`
     setTimeout = (f, n) => 0
-    clearTimeout = id => { }
+    clearTimeout = id => {}
     setInterval = (f, n) => 0
     clearInterval = id => {}
     render() {
