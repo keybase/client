@@ -247,11 +247,7 @@ export const Transaction = (props: Props) => {
     <Box2 direction="vertical" fullWidth={true}>
       <ClickableBox onClick={props.onSelectTransaction}>
         {pending && (
-          <Box2
-            direction="vertical"
-            fullWidth={true}
-            style={styles.pendingBox}
-          >
+          <Box2 direction="vertical" fullWidth={true} style={styles.pendingBox}>
             <Text type="BodySmallSemibold">Pending</Text>
           </Box2>
         )}
