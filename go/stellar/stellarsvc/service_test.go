@@ -566,9 +566,10 @@ func testRelay(t *testing.T, yank bool) {
 	require.Equal(t, "Claimable", history[0].Payment.Status)
 	txID := history[0].Payment.TxID
 
-	fhistoryPage, err := tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
+	// fhistoryPage, err := tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
+	fhistory, err := tcs[claimant].Srv.GetPendingPaymentsLocal(context.Background(), stellar1.GetPendingPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
 	require.NoError(t, err)
-	fhistory := fhistoryPage.Payments
+	// fhistory := fhistoryPage.Payments
 	require.Len(t, fhistory, 1)
 	require.Nil(t, fhistory[0].Err)
 	require.NotNil(t, fhistory[0].Payment)
@@ -607,7 +608,7 @@ func testRelay(t *testing.T, yank bool) {
 	require.NotNil(t, history[0].Payment)
 	require.Equal(t, "Completed", history[0].Payment.Status)
 
-	fhistoryPage, err = tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
+	fhistoryPage, err := tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
 	require.NoError(t, err)
 	fhistory = fhistoryPage.Payments
 	require.Len(t, fhistory, 1)
