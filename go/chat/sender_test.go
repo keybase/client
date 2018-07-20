@@ -29,9 +29,9 @@ type chatListener struct {
 	sync.Mutex
 	libkb.NoopNotifyListener
 
-	// ChatActivity channels
-	ephemeralPurge chan chat1.EphemeralPurgeNotifInfo
+	remoteActivityOnly bool
 
+	// ChatActivity channels
 	obids          []chat1.OutboxID
 	incoming       chan int
 	failing        chan []chat1.OutboxRecord
@@ -41,6 +41,7 @@ type chatListener struct {
 	bgConvLoads    chan chat1.ConversationID
 	typingUpdate   chan []chat1.ConvTypingUpdate
 	inboxSynced    chan chat1.ChatSyncResult
+	ephemeralPurge chan chat1.EphemeralPurgeNotifInfo
 }
 
 var _ libkb.NotifyListener = (*chatListener)(nil)
@@ -90,7 +91,7 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 		switch typ {
 		case chat1.ChatActivityType_INCOMING_MESSAGE:
 			if activity.IncomingMessage().Message.IsValid() &&
-				source == chat1.ChatActivitySource_REMOTE {
+				(!n.remoteActivityOnly || source == chat1.ChatActivitySource_REMOTE) {
 				strOutboxID := activity.IncomingMessage().Message.Valid().OutboxID
 				if strOutboxID != nil {
 					outboxID, _ := hex.DecodeString(*strOutboxID)
