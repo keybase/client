@@ -143,31 +143,109 @@ describe('text code error path', () => {
   })
 })
 
-describe('device name', () => {
-  it('happy path', () => {
-    const manager = _testing.makeProvisioningManager(false)
-    const callMap = manager.getIncomingCallMap()
-    const state = Constants.makeState()
+describe('device name happy path', () => {
+  let manager
+  let callMap
+  let state
+  let response
+  let action
+  const existingDevices = ['dev1', 'dev2', 'dev3']
+  beforeEach(() => {
+    manager = _testing.makeProvisioningManager(false)
+    callMap = manager.getIncomingCallMap()
+    state = Constants.makeState()
     const call = callMap['keybase.1.provisionUi.PromptNewDeviceName']
     if (!call) {
       throw new Error('No call')
     }
 
-    const response = {error: jest.fn(), result: jest.fn()}
-    const existingDevices = []
-    const error = 'invalid name'
+    response = {error: jest.fn(), result: jest.fn()}
+    const put: any = call(({errorMessage: '', existingDevices}: any), response, makeTypedState(state))
+    if (!put || !put.PUT) {
+      throw new Error('no put')
+    }
+    action = put.PUT.action
+  })
+
+  it('init', () => {
+    expect(action.payload.existingDevices).toEqual(existingDevices)
+    expect(action.payload.error).toEqual(null)
+
+    const nextState = makeTypedState(reducer(state, action))
+    expect(nextState.provision.existingDevices.toArray()).toEqual(existingDevices)
+    expect(nextState.provision.error.stringValue()).toEqual('')
+  })
+
+  it('submit dupe', () => {
+    const nextState = makeTypedState(reducer(state, action))
+    const name = 'dev1'
+    const submitAction = ProvisionGen.createSubmitDeviceName({name})
+    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+    expect(submitState.provision.error.stringValue()).toBeTruthy()
+
+    _testing.submitDeviceName(submitState)
+    expect(response.result).not.toHaveBeenCalled()
+    expect(response.error).not.toHaveBeenCalled()
+  })
+
+  it('submit', () => {
+    const nextState = makeTypedState(reducer(state, action))
+    const name = 'new name'
+    const submitAction = ProvisionGen.createSubmitDeviceName({name})
+    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+
+    _testing.submitDeviceName(submitState)
+    expect(response.result).toHaveBeenCalledWith(name)
+    expect(response.error).not.toHaveBeenCalled()
+
+    // only submit once
+    expect(() => _testing.submitDeviceName(submitState)).toThrow()
+  })
+})
+
+describe('device name error path', () => {
+  let manager
+  let callMap
+  let state
+  let response
+  let action
+  const existingDevices = []
+  const error = 'invalid name'
+  beforeEach(() => {
+    manager = _testing.makeProvisioningManager(false)
+    callMap = manager.getIncomingCallMap()
+    state = Constants.makeState()
+    const call = callMap['keybase.1.provisionUi.PromptNewDeviceName']
+    if (!call) {
+      throw new Error('No call')
+    }
+
+    response = {error: jest.fn(), result: jest.fn()}
     const put: any = call(({errorMessage: error, existingDevices}: any), response, makeTypedState(state))
     if (!put || !put.PUT) {
       throw new Error('no put')
     }
-    const action = put.PUT.action
+    action = put.PUT.action
+  })
+
+  it('init', () => {
     expect(action.payload.existingDevices).toEqual(existingDevices)
     expect(action.payload.error.stringValue()).toEqual(error)
 
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState.provision.existingDevices.toArray()).toEqual(existingDevices)
     expect(nextState.provision.error.stringValue()).toEqual(error)
+  })
 
+  it('no submit on error', () => {
+    const nextState = makeTypedState(reducer(state, action))
+    _testing.submitDeviceName(nextState)
+    expect(response.result).not.toHaveBeenCalled()
+    expect(response.error).not.toHaveBeenCalled()
+  })
+
+  it('submit clears error', () => {
+    const nextState = makeTypedState(reducer(state, action))
     const name = 'new name'
     const submitAction = ProvisionGen.createSubmitDeviceName({name})
     const submitState = makeTypedState(reducer(nextState.provision, submitAction))
