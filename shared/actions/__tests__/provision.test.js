@@ -565,8 +565,6 @@ describe('paperkey error path', () => {
   })
 })
 
-describe('provisioningManagerAddNewDevice', () => {})
-
 // TODO
 // maybeCancelProvision,
 // showFinalErrorPage,
