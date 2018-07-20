@@ -17,17 +17,14 @@ const Search = (props: Props) => (
   <Box2 direction="vertical">
     <Box2 direction="horizontal" fullWidth={true} style={{alignItems: 'center'}}>
       <Text type="Body">To:</Text>
-      {/* TODO: Get rid of singleton box below */}
-      <Box2 direction="vertical" fullWidth={true}>
-        <UserInput
-          searchKey={searchKey}
-          autoFocus={true}
-          placeholder={placeholder}
-          onExitSearch={props.onClose}
-          disableListBuilding={true}
-          showServiceFilter={false}
-        />
-      </Box2>
+      <UserInput
+        searchKey={searchKey}
+        autoFocus={true}
+        placeholder={placeholder}
+        onExitSearch={props.onClose}
+        disableListBuilding={true}
+        showServiceFilter={false}
+      />
     </Box2>
     <ResultsList
       searchKey={searchKey}
