@@ -41,7 +41,7 @@ jobs:
           # Clear out a bunch of cruft from PATH, including ~/.yarn/bin,
           # which has a really old version of yarn that overrides the one
           # we install below.
-          echo 'export PATH=/bin:/usr/bin:/opt/circleci/nodejs/v$NODE_VERSION/bin:$GOROOT/bin' >> $BASH_ENV
+          echo 'export PATH=/bin:/usr/bin:/opt/circleci/nodejs/v$NODE_VERSION/bin:$GOROOT/bin:$HOME/.yarn/bin' >> $BASH_ENV
 
           # Some node dependencies break without this.
           echo 'export ANDROID_NDK=$ANDROID_HOME/ndk-bundle' >> $BASH_ENV
