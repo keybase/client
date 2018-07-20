@@ -94,7 +94,7 @@ const onChangeSelectedSearchResultHoc = compose(
 )
 
 // Adapted from Recompose.js.
-const pick = (obj, keys) => {
+const pick = (obj: Object, keys: Array<string>) => {
   const result = {}
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i]
