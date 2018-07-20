@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box2, ClickableBox, Emoji, Icon, Text} from '../../../../common-adapters'
+import {Box2, ClickableBox, Emoji, FloatingBox, Icon, Text} from '../../../../common-adapters'
 import {
   collapseStyles,
   glamorous,
@@ -11,7 +11,8 @@ import {
   styleSheetCreate,
   transition,
 } from '../../../../styles'
-import Rollout from './rollout'
+import {Picker} from 'emoji-mart'
+import {backgroundImageFn} from '../../../../common-adapters/emoji'
 
 export type Props = {
   active: boolean,
@@ -50,35 +51,22 @@ type NewReactionButtonProps = {
 }
 type NewReactionButtonState = {
   attachmentRef: ?React.Component<any, any>,
-  rolledOut: boolean,
+  showingPicker: boolean,
 }
 export class NewReactionButton extends React.Component<NewReactionButtonProps, NewReactionButtonState> {
-  state = {attachmentRef: null, rolledOut: false}
-  // If this _or_ the rollout is being hovered, we are rolled out
-  // I've seen mixed behavior with this not working if we don't also
-  // track the hover state of the rollout, so keeping this here to be safe
+  state = {attachmentRef: null, showingPicker: false}
   _hoveringButton = false
-  _hoveringRollout = false
 
   _setHoveringButton = (hovering: boolean) => {
     this._hoveringButton = hovering
-    this._handleRolledOut()
   }
 
-  _setHoveringRollout = (hovering: boolean) => {
-    this._hoveringRollout = hovering
-    this._handleRolledOut()
-  }
+  _setShowingPicker = (showingPicker: boolean) =>
+    this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
 
-  _handleRolledOut = () => {
-    const nextRolledOut = this._hoveringButton || this._hoveringRollout
-    this.setState(s => (s.rolledOut === nextRolledOut ? null : {rolledOut: nextRolledOut}))
-  }
-
-  _onAddReaction = (emojiName: string) => {
-    this._setHoveringButton(false)
-    this._setHoveringRollout(false)
-    this.props.onAddReaction(emojiName)
+  _onAddReaction = (emoji: string) => {
+    this.props.onAddReaction(emoji)
+    this._setShowingPicker(false)
   }
 
   render() {
@@ -87,24 +75,31 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
       <ContainerComp
         onMouseOver={() => this._setHoveringButton(true)}
         onMouseLeave={() => this._setHoveringButton(false)}
-        onClick={() => this._onAddReaction(':grinning_face_with_star_eyes:')}
+        onClick={() => this._setShowingPicker(true)}
         style={collapseStyles([styles.newReactionButtonBox, this.props.showBorder && styles.buttonBox])}
       >
         <Box2
-          ref={r => this.setState(s => (s.attachmentRef ? null : {attachmentRef: r}))}
+          ref={attachmentRef => this.setState(s => (s.attachmentRef ? null : {attachmentRef}))}
           centerChildren={true}
           direction="horizontal"
           style={this.props.showBorder ? styles.container : null}
         >
           <Icon type="iconfont-reacji" fontSize={isMobile ? 22 : 16} />
         </Box2>
-        <Rollout
-          attachTo={this.state.attachmentRef}
-          onAddReaction={this._onAddReaction}
-          onMouseEnter={() => this._setHoveringRollout(true)}
-          onMouseLeave={() => this._setHoveringRollout(false)}
-          visible={this.state.rolledOut}
-        />
+        {this.state.showingPicker && (
+          <FloatingBox
+            attachTo={this.state.attachmentRef}
+            position="bottom left"
+            onHidden={() => this._setShowingPicker(false)}
+          >
+            <Picker
+              emoji="star-struck"
+              title="reacjibase"
+              onClick={emoji => this._onAddReaction(emoji.colons)}
+              backgroundImageFn={backgroundImageFn}
+            />
+          </FloatingBox>
+        )}
       </ContainerComp>
     )
   }
