@@ -41,6 +41,9 @@ const mergeProps = (stateProps, dispatchProps) => {
     isDownloading: !!stateProps._downloads.find(t => t.meta.path === stateProps.path && !t.state.isDone),
     tlfMeta: stateProps.pathItem.tlfMeta,
     isUserReset: resetParticipants.includes(stateProps._username),
+    isEmpty: stateProps.pathItem.type === 'folder'
+      ? stateProps.pathItem.children.isEmpty()
+      : false,
     resetParticipants,
     lastModifiedTimestamp: stateProps.pathItem.lastModifiedTimestamp,
     lastWriter: stateProps.pathItem.lastWriter.username,
