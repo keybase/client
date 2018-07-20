@@ -92,7 +92,8 @@
       "desktop/app/resolve-root": "<rootDir>/__mocks__/resolve-root.js",
       "react-redux": "<rootDir>/__mocks__/react-redux.js",
       "^electron$": "<rootDir>/__mocks__/electron.js",
-      "constants/platform": "<rootDir>/__mocks__/platform.js"
+      "constants/platform": "<rootDir>/__mocks__/platform.js",
+      "hoc-timers": "<rootDir>/__mocks__/hoc-timers.js"
     },
     "moduleFileExtensions": [
       "js",
