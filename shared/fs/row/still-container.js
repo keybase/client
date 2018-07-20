@@ -41,7 +41,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     isDownloading: !!stateProps._downloads.find(t => t.meta.path === stateProps.path && !t.state.isDone),
     tlfMeta: stateProps.pathItem.tlfMeta,
     isUserReset: resetParticipants.includes(stateProps._username),
-    isEmpty: stateProps.pathItem.type === 'folder'
+    isEmpty: stateProps.pathItem.type === 'folder' && Types.getPathLevel(stateProps.path) > 3
       ? stateProps.pathItem.children.isEmpty()
       : false,
     resetParticipants,
