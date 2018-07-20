@@ -628,7 +628,9 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 			des = append(des, d)
 			// Leave paths empty so we can skip the loop below.
 		} else {
-			// Start with a depth of 0
+			// Start with a depth of 0.
+			// A TLF root will have a `finalElem` of "".
+			// A subdirectory will have a `finalElem` of just the name.
 			paths = append(paths, pathStackElem{finalElem, 0})
 		}
 
@@ -636,6 +638,10 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 			// Take last element and shorten.
 			pathElem := paths[len(paths)-1]
 			paths = paths[:len(paths)-1]
+			pathName := ""
+			if pathElem.path != finalElem {
+				pathName = strings.TrimPrefix(pathElem.path, finalElem+"/")
+			}
 
 			fis, err := fs.ReadDir(pathElem.path)
 			if err != nil {
@@ -654,13 +660,13 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 				if err != nil {
 					return err
 				}
-				de.Name = stdpath.Join(pathElem.path, fi.Name())
+				de.Name = stdpath.Join(pathName, fi.Name())
 				des = append(des, de)
 				// Only recurse if the caller requested infinite depth (-1), or
 				// if the current path has a depth less than the desired final
 				// depth of recursion.
 				if fi.IsDir() && (finalDepth == -1 || pathElem.depth < finalDepth) {
-					paths = append(paths, pathStackElem{de.Name, pathElem.depth + 1})
+					paths = append(paths, pathStackElem{stdpath.Join(pathElem.path, fi.Name()), pathElem.depth + 1})
 				}
 			}
 			k.updateReadProgress(opID, 0, int64(len(fis)))
