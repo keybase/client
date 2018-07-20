@@ -87,7 +87,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
       <ContainerComp
         onMouseOver={() => this._setHoveringButton(true)}
         onMouseLeave={() => this._setHoveringButton(false)}
-        onClick={() => this.props.onAddReaction(':grinning_face_with_star_eyes:')}
+        onClick={() => this._onAddReaction(':grinning_face_with_star_eyes:')}
         style={collapseStyles([styles.newReactionButtonBox, this.props.showBorder && styles.buttonBox])}
       >
         <Box2

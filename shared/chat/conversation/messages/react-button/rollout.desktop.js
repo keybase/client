@@ -5,7 +5,12 @@ import type {Props} from './rollout'
 
 const Rollout = (props: Props) =>
   !props.visible ? null : (
-    <FloatingBox attachTo={props.attachTo} position="bottom center" propagateOutsideClicks={true}>
+    <FloatingBox
+      attachTo={props.attachTo}
+      position="bottom center"
+      positionFallbacks={['top center']}
+      propagateOutsideClicks={true}
+    >
       <div onMouseOver={props.onMouseOver} onMouseLeave={props.onMouseLeave}>
         <Box2
           centerChildren={true}
