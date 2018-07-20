@@ -1,7 +1,6 @@
 // @flow
 import * as Constants from '../constants/provision'
 import * as RouteConstants from '../constants/route-tree'
-import * as RouteTypes from '../constants/types/route-tree'
 import * as DevicesGen from './devices-gen'
 import * as ProvisionGen from './provision-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
