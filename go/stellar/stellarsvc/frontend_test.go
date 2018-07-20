@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
@@ -960,12 +961,81 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "This is *26.7020180 XLM*", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres, []stellar1.SendBannerLocal{})
+
+	t.Logf("sending to account ID")
+	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:          senderAccountID,
+		To:            "GBJCIIIWEP2ZIKSNY3AP5GJ5OHNSN6Y4W5K4IVIY4VSQF5QLVE27GADK",
+		ToIsAccountID: true,
+		Amount:        "8.50",
+		Currency:      &usd,
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, true, bres.ReadyToSend)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, "", bres.ToUsername) // account does not resolve to keybase user
+	require.Equal(t, "", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.PublicMemoErrMsg)
+	require.Equal(t, "This is *26.7020180 XLM*", bres.WorthDescription)
+	require.Equal(t, worthInfo, bres.WorthInfo)
+	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
+		Level:   "info",
+		Message: "Because it's their first transaction, you must send at least 1 XLM.",
+	}})
+
+	t.Logf("sending to account ID that resolves")
+	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:          senderAccountID,
+		To:            senderAccountID.String(),
+		ToIsAccountID: true,
+		Amount:        "8.50",
+		Currency:      &usd,
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, true, bres.ReadyToSend)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, tcs[0].Fu.Username, bres.ToUsername) // account resolves to self
+	require.Equal(t, "", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.PublicMemoErrMsg)
+	require.Equal(t, "This is *26.7020180 XLM*", bres.WorthDescription)
+	require.Equal(t, worthInfo, bres.WorthInfo)
+	requireBannerSet(t, bres, []stellar1.SendBannerLocal{})
+
+	upak, _, err := tcs[0].G.GetUPAKLoader().LoadV2(
+		libkb.NewLoadUserArgWithMetaContext(tcs[0].MetaContext()).WithPublicKeyOptional().
+			WithUID(tcs[1].Fu.User.GetUID()).WithForcePoll(true))
+	require.NoError(t, err)
+	require.NotNil(t, upak.Current.StellarAccountID)
+
+	t.Logf("sending to account ID that resolves")
+	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:          senderAccountID,
+		To:            *upak.Current.StellarAccountID,
+		ToIsAccountID: true,
+		Amount:        "8.50",
+		Currency:      &usd,
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, true, bres.ReadyToSend)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, tcs[1].Fu.Username, bres.ToUsername) // account resolves to other
+	require.Equal(t, "", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.PublicMemoErrMsg)
+	require.Equal(t, "This is *26.7020180 XLM*", bres.WorthDescription)
+	require.Equal(t, worthInfo, bres.WorthInfo)
+	requireBannerSet(t, bres, []stellar1.SendBannerLocal{})
 }
 
 // modifies `expected`
 func requireBannerSet(t testing.TB, bres stellar1.BuildPaymentResLocal, expected []stellar1.SendBannerLocal) {
 	if len(bres.Banners) != len(expected) {
-		t.Logf(spew.Sdump(bres.Banners))
+		t.Logf("%s", spew.Sdump(bres.Banners))
 		require.Len(t, bres.Banners, len(expected))
 	}
 	got := bres.DeepCopy().Banners

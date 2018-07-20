@@ -891,6 +891,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 			}
 			bannerThem := "their"
 			if recipient.User != nil {
+				res.ToUsername = recipient.User.Username.String()
 				bannerThem = fmt.Sprintf("%s's", recipient.User.Username)
 			}
 			if recipient.AccountID == nil {
