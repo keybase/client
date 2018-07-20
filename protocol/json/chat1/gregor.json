@@ -491,7 +491,10 @@
           "name": "convID"
         },
         {
-          "type": "ConversationMinWriterRoleInfo",
+          "type": [
+            null,
+            "ConversationMinWriterRoleInfo"
+          ],
           "name": "info"
         }
       ]
