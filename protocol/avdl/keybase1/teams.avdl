@@ -720,6 +720,8 @@ protocol teams {
 
   TeamAddMemberResult teamAddMember(int sessionID, string name, string email, string username, TeamRole role, boolean sendChatNotification);
 
+  void teamAddMembers(int sessionID, string name, array<string> assertions, TeamRole role, boolean sendChatNotification);
+
   void teamRemoveMember(int sessionID, string name, string username, string email, TeamInviteID inviteID);
 
   void teamLeave(int sessionID, string name, boolean permanent);

@@ -228,6 +228,9 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 			return err
 		}
 
+		// Try to mark completed any invites for the user's social assertions.
+		// This can be a time-intensive process since it involves checking proofs.
+		// It is limited to a few seconds and failure is non-fatal.
 		timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
 		if err := tx.CompleteSocialInvitesFor(timeoutCtx, uv, username); err != nil {
 			g.Log.CWarningf(ctx, "Failed in CompleteSocialInvitesFor, no invites will be cleared. Err was: %v", err)
@@ -258,6 +261,82 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 		return res, err
 	}
 	return AddMemberByID(ctx, g, team.ID, username, role)
+}
+
+type AddMembersRes struct {
+	Invite   bool                     // Whether the membership addition was an invite.
+	Username libkb.NormalizedUsername // Resolved username. May be nil for social assertions.
+}
+
+// AddMembers adds a bunch of people to a team. Assertions can contain usernames or social assertions.
+// Adds them all in a transaction so it's all or nothing.
+// On success, returns a list where len(res)=len(assertions) and in corresponding order.
+func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, assertions []string, role keybase1.TeamRole) (res []AddMembersRes, err error) {
+	tracer := g.CTimeTracer(ctx, "team.AddMembers", true)
+	defer tracer.Finish()
+	teamName, err := keybase1.TeamNameFromString(teamname)
+	if err != nil {
+		return nil, err
+	}
+	teamID, err := ResolveNameToID(ctx, g, teamName)
+	if err != nil {
+		return nil, err
+	}
+
+	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		res = make([]AddMembersRes, len(assertions))
+		team, err := GetForTeamManagementByTeamID(ctx, g, teamID, true /*needAdmin*/)
+		if err != nil {
+			return err
+		}
+
+		tx := CreateAddMemberTx(team)
+		type sweepEntry struct {
+			Assertion string
+			UV        keybase1.UserVersion
+		}
+		var sweep []sweepEntry
+		for i, assertion := range assertions {
+			username, uv, invite, err := tx.AddMemberByAssertion(ctx, assertion, role)
+			if err != nil {
+				if _, ok := err.(AttemptedInviteSocialOwnerError); ok {
+					return err
+				}
+				return fmt.Errorf("Error adding user '%v': %v", assertion, err)
+			}
+			var normalizedUsername libkb.NormalizedUsername
+			if !username.IsNil() {
+				normalizedUsername = username
+			}
+			res[i] = AddMembersRes{
+				Invite:   invite,
+				Username: normalizedUsername,
+			}
+			if !uv.IsNil() {
+				sweep = append(sweep, sweepEntry{
+					Assertion: assertion,
+					UV:        uv,
+				})
+			}
+		}
+
+		// Try to mark completed any invites for the users' social assertions.
+		// This can be a time-intensive process since it involves checking proofs.
+		// It is limited to a few seconds and failure is non-fatal.
+		timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
+		for _, x := range sweep {
+			if err := tx.CompleteSocialInvitesFor(timeoutCtx, x.UV, x.Assertion); err != nil {
+				g.Log.CWarningf(ctx, "Failed in CompleteSocialInvitesFor(%v, %v) -> %v", x.UV, x.Assertion, err)
+			}
+		}
+		timeoutCancel()
+
+		return tx.Post(libkb.NewMetaContext(ctx, g))
+	})
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
@@ -1137,7 +1216,7 @@ func removeMemberInvite(ctx context.Context, g *libkb.GlobalContext, team *Team,
 		lookingFor = uv.TeamInviteName()
 		typ = "keybase"
 	} else {
-		ptyp, name, err := team.parseSocial(username)
+		ptyp, name, err := parseSocialAssertion(libkb.NewMetaContext(ctx, g), username)
 		if err != nil {
 			return err
 		}

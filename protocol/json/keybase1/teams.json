@@ -2090,6 +2090,34 @@
       ],
       "response": "TeamAddMemberResult"
     },
+    "teamAddMembers": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "assertions",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        },
+        {
+          "name": "role",
+          "type": "TeamRole"
+        },
+        {
+          "name": "sendChatNotification",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
     "teamRemoveMember": {
       "request": [
         {
