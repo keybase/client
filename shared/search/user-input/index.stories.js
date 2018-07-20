@@ -214,6 +214,16 @@ const load = () => {
         <ConnectedUserInput {...defaultOwnProps} />
       </Box>
     ))
+    .add('Connected (vertical Box2)', () => (
+      <Box2 direction="vertical" style={defaultBoxStyle}>
+        <ConnectedUserInput {...defaultOwnProps} />
+      </Box2>
+    ))
+    .add('Connected (horizontal Box2)', () => (
+      <Box2 direction="horizontal" style={defaultBoxStyle}>
+        <ConnectedUserInput {...defaultOwnProps} />
+      </Box2>
+    ))
 }
 
 export default load
