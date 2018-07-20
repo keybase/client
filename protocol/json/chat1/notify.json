@@ -730,6 +730,28 @@
       "notify": "",
       "lint": "ignore"
     },
+    "ChatSetConvMinWriterRole": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "conv",
+          "type": [
+            null,
+            "InboxUIItem"
+          ]
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
     "ChatKBFSToImpteamUpgrade": {
       "request": [
         {

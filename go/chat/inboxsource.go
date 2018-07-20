@@ -464,6 +464,11 @@ func (s *RemoteInboxSource) SetTeamRetention(ctx context.Context, uid gregor1.UI
 	return res, err
 }
 
+func (s *RemoteInboxSource) SetConvMinWriterRole(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convID chat1.ConversationID, info *chat1.ConversationMinWriterRoleInfo) (res *chat1.ConversationLocal, err error) {
+	return res, err
+}
+
 func (s *RemoteInboxSource) TeamTypeChanged(ctx context.Context, uid gregor1.UID,
 	vers chat1.InboxVers, convID chat1.ConversationID, teamType chat1.TeamType) (conv *chat1.ConversationLocal, err error) {
 	return conv, err
@@ -924,6 +929,13 @@ func (s *HybridInboxSource) SetTeamRetention(ctx context.Context, uid gregor1.UI
 	return convs, nil
 }
 
+func (s *HybridInboxSource) SetConvMinWriterRole(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convID chat1.ConversationID, info *chat1.ConversationMinWriterRoleInfo) (res *chat1.ConversationLocal, err error) {
+	return s.modConversation(ctx, "SetConvMinWriterRole", uid, convID, func(ctx context.Context, ib *storage.Inbox) error {
+		return ib.SetConvMinWriterRole(ctx, vers, convID, info)
+	})
+}
+
 func (s *HybridInboxSource) modConversation(ctx context.Context, debugLabel string, uid gregor1.UID, convID chat1.ConversationID,
 	mod func(context.Context, *storage.Inbox) error) (
 	conv *chat1.ConversationLocal, err error) {
@@ -1075,6 +1087,28 @@ func (s *localizerPipeline) getMessagesOffline(ctx context.Context, convID chat1
 	return foundMsgs, chat1.ConversationErrorType_NONE, nil
 }
 
+func (s *localizerPipeline) getMinWriterRoleInfoLocal(ctx context.Context, uidMapper libkb.UIDMapper, conv chat1.Conversation) *chat1.ConversationMinWriterRoleInfoLocal {
+	info := conv.MinWriterRoleInfo
+	if info == nil {
+		return nil
+	}
+
+	kuids := []keybase1.UID{keybase1.UID(info.Uid.String())}
+	rows, err := uidMapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, 0, 0, false)
+	if err != nil {
+		s.Debug(ctx, "getMinWriterRoleInfoLocal: failed to run uid mapper: %s", err)
+		return nil
+	}
+	username := ""
+	if len(rows) > 0 {
+		username = rows[0].NormalizedUsername.String()
+	}
+	return &chat1.ConversationMinWriterRoleInfoLocal{
+		Role:     info.Role,
+		Username: username,
+	}
+}
+
 func (s *localizerPipeline) getResetUserNames(ctx context.Context, uidMapper libkb.UIDMapper,
 	conv chat1.Conversation) (res []string) {
 	if len(conv.Metadata.ResetList) == 0 {
@@ -1152,6 +1186,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	conversationLocal.Expunge = conversationRemote.Expunge
 	conversationLocal.ConvRetention = conversationRemote.ConvRetention
 	conversationLocal.TeamRetention = conversationRemote.TeamRetention
+	conversationLocal.MinWriterRoleInfoLocal = s.getMinWriterRoleInfoLocal(ctx, umapper, conversationRemote)
 
 	if len(conversationRemote.MaxMsgSummaries) == 0 {
 		errMsg := "conversation has an empty MaxMsgSummaries field"

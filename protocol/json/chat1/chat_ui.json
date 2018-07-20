@@ -313,6 +313,13 @@
         {
           "type": [
             null,
+            "ConversationMinWriterRoleInfoLocal"
+          ],
+          "name": "minWriterRoleInfo"
+        },
+        {
+          "type": [
+            null,
             "ConversationFinalizeInfo"
           ],
           "name": "finalizeInfo"

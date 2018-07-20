@@ -205,6 +205,10 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
+  void ChatSetConvMinWriterRole(keybase1.UID uid, ConversationID convID, union { null, InboxUIItem } conv);
+
+  @notify("")
+  @lint("ignore")
   void ChatKBFSToImpteamUpgrade(keybase1.UID uid, ConversationID convID);
 
   @notify("")

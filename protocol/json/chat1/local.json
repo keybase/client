@@ -1526,6 +1526,20 @@
     },
     {
       "type": "record",
+      "name": "ConversationMinWriterRoleInfoLocal",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "keybase1.TeamRole",
+          "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ConversationLocal",
       "fields": [
         {
@@ -1606,6 +1620,13 @@
             "RetentionPolicy"
           ],
           "name": "teamRetention"
+        },
+        {
+          "type": [
+            null,
+            "ConversationMinWriterRoleInfoLocal"
+          ],
+          "name": "minWriterRoleInfoLocal"
         }
       ]
     },
@@ -3629,6 +3650,19 @@
         null,
         "RetentionPolicy"
       ]
+    },
+    "setConvMinWriterRoleLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "role",
+          "type": "keybase1.TeamRole"
+        }
+      ],
+      "response": null
     },
     "upgradeKBFSConversationToImpteam": {
       "request": [
