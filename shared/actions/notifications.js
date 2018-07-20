@@ -35,6 +35,7 @@ function* _listenSaga(): Saga.SagaGenerator<any, any> {
     chatkbfsedits: false,
     chatdev: false,
     deviceclone: false,
+    chatattachments: true,
   }
 
   const engineInst: Engine = yield Saga.call(engine)

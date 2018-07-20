@@ -545,6 +545,13 @@
         {
           "type": "double",
           "name": "ordinal"
+        },
+        {
+          "type": [
+            null,
+            "MakePreviewRes"
+          ],
+          "name": "preview"
         }
       ]
     },
@@ -649,87 +656,6 @@
     }
   ],
   "messages": {
-    "chatAttachmentUploadOutboxID": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "outboxID",
-          "type": "OutboxID"
-        }
-      ],
-      "response": null
-    },
-    "chatAttachmentUploadStart": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "metadata",
-          "type": "AssetMetadata"
-        },
-        {
-          "name": "placeholderMsgID",
-          "type": "MessageID"
-        }
-      ],
-      "response": null,
-      "oneway": true
-    },
-    "chatAttachmentUploadProgress": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "bytesComplete",
-          "type": "long"
-        },
-        {
-          "name": "bytesTotal",
-          "type": "long"
-        }
-      ],
-      "response": null,
-      "oneway": true
-    },
-    "chatAttachmentUploadDone": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": null
-    },
-    "chatAttachmentPreviewUploadStart": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "metadata",
-          "type": "AssetMetadata"
-        }
-      ],
-      "response": null,
-      "oneway": true
-    },
-    "chatAttachmentPreviewUploadDone": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": null
-    },
     "chatAttachmentDownloadStart": {
       "request": [
         {

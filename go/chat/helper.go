@@ -49,7 +49,7 @@ func (h *Helper) SendTextByID(ctx context.Context, convID chat1.ConversationID,
 func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID,
 	trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
 	boxer := NewBoxer(h.G())
-	sender := NewBlockingSender(h.G(), boxer, nil, h.ri)
+	sender := NewBlockingSender(h.G(), boxer, h.ri)
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
@@ -72,7 +72,7 @@ func (h *Helper) SendTextByIDNonblock(ctx context.Context, convID chat1.Conversa
 func (h *Helper) SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
 	trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
 	boxer := NewBoxer(h.G())
-	baseSender := NewBlockingSender(h.G(), boxer, nil, h.ri)
+	baseSender := NewBlockingSender(h.G(), boxer, h.ri)
 	sender := NewNonblockingSender(h.G(), baseSender)
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
@@ -89,7 +89,7 @@ func (h *Helper) SendMsgByIDNonblock(ctx context.Context, convID chat1.Conversat
 func (h *Helper) SendTextByName(ctx context.Context, name string, topicName *string,
 	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error {
 	boxer := NewBoxer(h.G())
-	sender := NewBlockingSender(h.G(), boxer, nil, h.ri)
+	sender := NewBlockingSender(h.G(), boxer, h.ri)
 	helper := newSendHelper(h.G(), name, topicName, membersType, ident, sender, h.ri)
 	return helper.SendText(ctx, text)
 }
@@ -98,7 +98,7 @@ func (h *Helper) SendMsgByName(ctx context.Context, name string, topicName *stri
 	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
 	msgType chat1.MessageType) error {
 	boxer := NewBoxer(h.G())
-	sender := NewBlockingSender(h.G(), boxer, nil, h.ri)
+	sender := NewBlockingSender(h.G(), boxer, h.ri)
 	helper := newSendHelper(h.G(), name, topicName, membersType, ident, sender, h.ri)
 	return helper.SendBody(ctx, body, msgType)
 }
@@ -106,7 +106,7 @@ func (h *Helper) SendMsgByName(ctx context.Context, name string, topicName *stri
 func (h *Helper) SendTextByNameNonblock(ctx context.Context, name string, topicName *string,
 	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error {
 	boxer := NewBoxer(h.G())
-	baseSender := NewBlockingSender(h.G(), boxer, nil, h.ri)
+	baseSender := NewBlockingSender(h.G(), boxer, h.ri)
 	sender := NewNonblockingSender(h.G(), baseSender)
 	helper := newSendHelper(h.G(), name, topicName, membersType, ident, sender, h.ri)
 	return helper.SendText(ctx, text)
@@ -116,7 +116,7 @@ func (h *Helper) SendMsgByNameNonblock(ctx context.Context, name string, topicNa
 	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
 	msgType chat1.MessageType) error {
 	boxer := NewBoxer(h.G())
-	baseSender := NewBlockingSender(h.G(), boxer, nil, h.ri)
+	baseSender := NewBlockingSender(h.G(), boxer, h.ri)
 	sender := NewNonblockingSender(h.G(), baseSender)
 	helper := newSendHelper(h.G(), name, topicName, membersType, ident, sender, h.ri)
 	return helper.SendBody(ctx, body, msgType)
@@ -838,7 +838,7 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 	}
 
 	// Send with a blocking sender
-	sender := NewBlockingSender(g, NewBoxer(g), nil, ri)
+	sender := NewBlockingSender(g, NewBoxer(g), ri)
 	_, _, err = sender.Send(ctx, convID, plaintext, 0, nil)
 	return err
 }
@@ -1214,7 +1214,7 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 		}
 	}
 
-	sender := NewBlockingSender(n.G(), NewBoxer(n.G()), nil, n.ri)
+	sender := NewBlockingSender(n.G(), NewBoxer(n.G()), n.ri)
 	mbox, _, _, _, topicNameState, err := sender.Prepare(ctx, msg, membersType, nil)
 	return mbox, topicNameState, err
 }
