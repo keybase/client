@@ -13,6 +13,7 @@ const isAndroidNewerThanM: boolean = false
 const isAndroidNewerThanN: boolean = false
 
 const isElectron = true
+// For storyshots, we only want to test macOS
 const isDarwin = process.platform === 'darwin' || __STORYSHOT__
 const isWindows = process.platform === 'win32' && !__STORYSHOT__
 const isLinux = process.platform === 'linux' && !__STORYSHOT__
