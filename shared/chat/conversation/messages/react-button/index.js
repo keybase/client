@@ -70,13 +70,18 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
     this._setShowingPicker(false)
   }
 
+  _onShowPicker = (evt: SyntheticEvent<Element>) => {
+    evt.stopPropagation()
+    this._setShowingPicker(true)
+  }
+
   render() {
     const ContainerComp = this.props.showBorder ? ButtonBox : ClickableBox
     return (
       <ContainerComp
         onMouseOver={() => this._setHoveringButton(true)}
         onMouseLeave={() => this._setHoveringButton(false)}
-        onClick={() => this._setShowingPicker(true)}
+        onClick={this._onShowPicker}
         style={collapseStyles([styles.newReactionButtonBox, this.props.showBorder && styles.buttonBox])}
       >
         <Box2
@@ -94,6 +99,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
             onHidden={() => this._setShowingPicker(false)}
           >
             <Picker
+              autoFocus={true}
               emoji="star-struck"
               title="reacjibase"
               onClick={this._onAddReaction}
