@@ -230,7 +230,6 @@ func LookupSender(ctx context.Context, g *libkb.GlobalContext, accountID stellar
 	return entry, nil
 }
 
-// TODO: handle stellar federation address rebecca*keybase.io (or rebecca*anything.wow)
 func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res stellarcommon.Recipient, err error) {
 	defer m.CTraceTimed("Stellar.LookupRecipient", func() error { return err })()
 	res = stellarcommon.Recipient{
@@ -288,7 +287,7 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res 
 
 	username := idRes.User.Username
 
-	// load the user to get its wallet
+	// load the user to get their wallet
 	user, err := libkb.LoadUser(
 		libkb.NewLoadUserByNameArg(m.G(), username).
 			WithNetContext(m.Ctx()).
@@ -296,7 +295,10 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res 
 	if err != nil {
 		return res, err
 	}
-	res.User = user
+	res.User = &stellarcommon.User{
+		UV:       user.ToUserVersion(),
+		Username: user.GetNormalizedName(),
+	}
 	accountID := user.StellarAccountID()
 	if accountID == nil {
 		return res, nil
@@ -375,8 +377,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 		QuickReturn:     sendArg.QuickReturn,
 	}
 	if recipient.User != nil {
-		tmp := recipient.User.ToUserVersion()
-		post.To = &tmp
+		post.To = &recipient.User.UV
 	}
 
 	sp := NewSeqnoProvider(m.Ctx(), remoter)
@@ -417,8 +418,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 		}
 		var recipientUv *keybase1.UserVersion
 		if recipient.User != nil {
-			tmp := recipient.User.ToUserVersion()
-			recipientUv = &tmp
+			recipientUv = &recipient.User.UV
 		}
 		post.NoteB64, err = NoteEncryptB64(m.Ctx(), m.G(), noteClear, recipientUv)
 		if err != nil {
@@ -485,8 +485,7 @@ func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
 		QuickReturn:       quickReturn,
 	}
 	if recipient.User != nil {
-		tmp := recipient.User.ToUserVersion()
-		post.To = &tmp
+		post.To = &recipient.User.UV
 	}
 	rres, err := remoter.SubmitRelayPayment(m.Ctx(), post)
 	if err != nil {
@@ -1050,7 +1049,7 @@ func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipie
 		return errors.New("cannot send SendPayment message:  chat helper is nil")
 	}
 
-	name := strings.Join([]string{m.CurrentUsername().String(), recipient.User.GetNormalizedName().String()}, ",")
+	name := strings.Join([]string{m.CurrentUsername().String(), recipient.User.Username.String()}, ",")
 
 	msg := chat1.MessageSendPayment{
 		KbTxID: kbTxID.String(),
@@ -1114,9 +1113,8 @@ func MakeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 	}
 
 	if recipient.User != nil {
-		post.ToAssertion = recipient.User.GetNormalizedName().String()
-		uv := recipient.User.ToUserVersion()
-		post.ToUser = &uv
+		post.ToAssertion = recipient.User.Username.String()
+		post.ToUser = &recipient.User.UV
 	} else if recipient.Assertion != nil {
 		post.ToAssertion = recipient.Assertion.String()
 	} else {

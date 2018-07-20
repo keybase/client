@@ -891,7 +891,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 			}
 			bannerThem := "their"
 			if recipient.User != nil {
-				bannerThem = fmt.Sprintf("%s's", recipient.User.GetNormalizedName())
+				bannerThem = fmt.Sprintf("%s's", recipient.User.Username)
 			}
 			if recipient.AccountID == nil {
 				// Sending a payment to a target with no account. (relay)

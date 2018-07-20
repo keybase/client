@@ -33,7 +33,7 @@ func GetKey(ctx context.Context, g *libkb.GlobalContext,
 	}
 	switch {
 	case recipient.User != nil:
-		impTeamNameStruct.Writers.KeybaseUsers = append(impTeamNameStruct.Writers.KeybaseUsers, recipient.User.GetNormalizedName().String())
+		impTeamNameStruct.Writers.KeybaseUsers = append(impTeamNameStruct.Writers.KeybaseUsers, recipient.User.Username.String())
 	case recipient.Assertion != nil:
 		impTeamNameStruct.Writers.UnresolvedUsers = append(impTeamNameStruct.Writers.UnresolvedUsers, *recipient.Assertion)
 	default:
