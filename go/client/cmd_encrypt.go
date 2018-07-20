@@ -167,10 +167,8 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 
 	// Repudiable authenticity corresponds to the saltpack encryption mode (which uses pairwise macs instead of signatures). Because of the spec
 	// and the interface exposed by saltpack v2, we cannot use the pseudonym mechanism in encryption mode.
-	// If need be, we could be more granular and allow repudiable authentication as long as no team keys (implicit or not) are being used to encrypt the message
-	// (right now we silently switch from PUKs to implicit team keys for non existing users or users without PUKs).
-	if c.useEntityKeys && c.authenticityType == keybase1.AuthenticityType_REPUDIABLE {
-		return errors.New("--auth-type=repudiable requires --no-entity-keys")
+	if c.useEntityKeys && len(c.teamRecipients) > 0 && c.authenticityType == keybase1.AuthenticityType_REPUDIABLE {
+		return errors.New("--auth-type=repudiable requires --no-entity-keys when encrypting for a team")
 	}
 
 	if !(c.useEntityKeys || c.useDeviceKeys || c.usePaperKeys) {

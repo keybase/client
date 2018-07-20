@@ -91,12 +91,13 @@ func (e *SaltpackEncrypt) Run(m libkb.MetaContext) (err error) {
 	}
 
 	kfarg := libkb.SaltpackRecipientKeyfinderArg{
-		Recipients:     e.arg.Opts.Recipients,
-		TeamRecipients: e.arg.Opts.TeamRecipients,
-		NoSelfEncrypt:  e.arg.Opts.NoSelfEncrypt,
-		UseEntityKeys:  e.arg.Opts.UseEntityKeys,
-		UsePaperKeys:   e.arg.Opts.UsePaperKeys,
-		UseDeviceKeys:  e.arg.Opts.UseDeviceKeys,
+		Recipients:        e.arg.Opts.Recipients,
+		TeamRecipients:    e.arg.Opts.TeamRecipients,
+		NoSelfEncrypt:     e.arg.Opts.NoSelfEncrypt,
+		UseEntityKeys:     e.arg.Opts.UseEntityKeys,
+		UsePaperKeys:      e.arg.Opts.UsePaperKeys,
+		UseDeviceKeys:     e.arg.Opts.UseDeviceKeys,
+		UseRepudiableAuth: e.arg.Opts.AuthenticityType == keybase1.AuthenticityType_REPUDIABLE,
 	}
 
 	kf := e.newKeyfinderHook(kfarg)

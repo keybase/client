@@ -819,12 +819,13 @@ type SaltpackRecipientKeyfinderEngineInterface interface {
 }
 
 type SaltpackRecipientKeyfinderArg struct {
-	Recipients     []string // usernames or user assertions
-	TeamRecipients []string // team names
-	NoSelfEncrypt  bool
-	UseEntityKeys  bool // Both per user and per team keys (and implicit teams for non existing users)
-	UsePaperKeys   bool
-	UseDeviceKeys  bool // Does not include Paper Keys
+	Recipients        []string // usernames or user assertions
+	TeamRecipients    []string // team names
+	NoSelfEncrypt     bool
+	UseEntityKeys     bool // Both per user and per team keys (and implicit teams for non existing users)
+	UsePaperKeys      bool
+	UseDeviceKeys     bool // Does not include Paper Keys
+	UseRepudiableAuth bool // This is needed as team keys (implicit or not) are not compatible with repudiable authentication, so we can error out.
 }
 
 type SaltpackReceiverSymmetricKey struct {

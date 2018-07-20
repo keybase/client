@@ -160,6 +160,12 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddUserRecipient(m libkb.Met
 		m.CDebugf("%v is not an existing user, trying to create an implicit team")
 		err = e.lookupAndAddImplicitTeamKeys(m, u)
 		return err
+	} else if _, isNoKeyError := err.(libkb.NoKeyError); err != nil && isNoKeyError {
+		// User exists but has no keys. Just try adding implicit team keys.
+		if e.Arg.UseDeviceKeys || e.Arg.UsePaperKeys {
+			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it does not have the required keys", u))
+		}
+		return e.lookupAndAddImplicitTeamKeys(m, u)
 	} else if err != nil {
 		return err
 	}
@@ -191,6 +197,9 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddTeam(m libkb.MetaContext,
 	// Note: when we encrypt for a team with UseEntityKeys set, we use just the per team key, and do not add
 	// all the per user keys of the individual members (except for the sender's PUK, which is added unless NoSelfEncrypt is set).
 	if e.Arg.UseEntityKeys {
+		if e.Arg.UseRepudiableAuth {
+			return fmt.Errorf("encrypting for a team with --auth-type=repudiable requires --no-entity-keys")
+		}
 		appKey, err := team.SaltpackEncryptionKeyLatest(m.Ctx())
 		if err != nil {
 			return err
@@ -227,21 +236,16 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddTeam(m libkb.MetaContext,
 	return err
 }
 
-type invalidAssertionError struct {
-	error
-}
-
-func (e invalidAssertionError) Error() string {
-	return fmt.Sprintf("Invalid assertion:  %s", e.error.Error())
-}
-
 func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddImplicitTeamKeys(m libkb.MetaContext, validSocialAssertionOrExistingUser string) (err error) {
 	// Implicit teams require login.
 	if !m.ActiveDevice().Valid() {
-		return libkb.LoginRequiredError{}
+		return libkb.NewLoginRequiredError(fmt.Sprintf("encrypting for %v requires login", validSocialAssertionOrExistingUser))
 	}
 	if !e.Arg.UseEntityKeys {
 		return fmt.Errorf("cannot encrypt for %v unless the --no-entity-keys option is turned off", validSocialAssertionOrExistingUser)
+	}
+	if e.Arg.UseRepudiableAuth {
+		return fmt.Errorf("cannot encrypt for %v with --auth-type=repudiable", validSocialAssertionOrExistingUser)
 	}
 
 	team, _, impTeamName, err := teams.LookupOrCreateImplicitTeam(m.Ctx(), m.G(), m.CurrentUsername().String()+","+validSocialAssertionOrExistingUser, false)
@@ -255,7 +259,7 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddImplicitTeamKeys(m libkb.
 		return err
 	}
 	m.CDebugf("adding team key for implicit team %v", impTeamName)
-	m.CWarningf("encrypting for %v who is not yet a keybase user: one of your devices will need to be online after they join keybase, or they won't be able to decrypt it.", validSocialAssertionOrExistingUser)
+	m.CWarningf("encrypting for %v who is not yet a keybase user (or does not have a provisioned device): one of your devices will need to be online after they join keybase (or provision a new device), or they won't be able to decrypt it.", validSocialAssertionOrExistingUser)
 	e.SymmetricEntityKeyMap[team.ID] = appKey
 
 	return err
