@@ -389,10 +389,9 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 		}
 
 		if existingUV.EldestSeqno == uv.EldestSeqno {
-			return libkb.ExistsError{
-				Msg: fmt.Sprintf("user %s has not reset, no need to re-add, existing: %v new: %v",
-					username, existingUV.EldestSeqno, uv.EldestSeqno),
-			}
+			g.Log.CDebugf(ctx, "user %s has not reset, no need to re-add, existing: %v new: %v",
+				username, existingUV.EldestSeqno, uv.EldestSeqno)
+			return nil
 		}
 
 		hasPUK := len(upak.Current.PerUserKeys) > 0
