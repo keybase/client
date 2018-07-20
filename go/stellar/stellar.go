@@ -255,6 +255,20 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res 
 		if err != nil {
 			return res, err
 		}
+		uv, username, err := LookupUserByAccountID(m, stellar1.AccountID(to))
+		switch err.(type) {
+		case nil:
+			res.User = &stellarcommon.User{
+				UV:       uv,
+				Username: username,
+			}
+			return res, nil
+		case libkb.NotFoundError:
+			// common case
+		default:
+			m.CDebugf("identifyRecipient: lookup accountID->user accountID:%v err:%v", res.AccountID, err)
+			// log and ignore
+		}
 		return res, nil
 	}
 

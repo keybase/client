@@ -574,18 +574,26 @@ func TestGetPaymentsLocal(t *testing.T) {
 	rm := tcs[0].Backend
 	accountIDSender := rm.AddAccount()
 	accountIDRecip := rm.AddAccount()
+	accountIDRecip2 := rm.AddAccount()
 
 	srvRecip := tcs[1].Srv
 
-	argImport := stellar1.ImportSecretKeyLocalArg{
+	err = srvSender.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(accountIDSender),
 		MakePrimary: true,
-	}
-	err = srvSender.ImportSecretKeyLocal(context.Background(), argImport)
+	})
 	require.NoError(t, err)
 
-	argImport.SecretKey = rm.SecretKey(accountIDRecip)
-	err = srvRecip.ImportSecretKeyLocal(context.Background(), argImport)
+	err = srvRecip.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   rm.SecretKey(accountIDRecip),
+		MakePrimary: true,
+	})
+	require.NoError(t, err)
+
+	err = srvRecip.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   rm.SecretKey(accountIDRecip2),
+		MakePrimary: false,
+	})
 	require.NoError(t, err)
 
 	// Try some payments that should fail locally
@@ -733,8 +741,9 @@ func TestGetPaymentsLocal(t *testing.T) {
 
 	// send to stellar account ID to check target in PaymentLocal
 	sendRes, err = srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
-		From:          accountIDSender,
-		To:            accountIDRecip.String(),
+		From: accountIDSender,
+		// Use a secondary account so that LookupRecipient can't resolve it to the user
+		To:            accountIDRecip2.String(),
 		ToIsAccountID: true,
 		Amount:        "101.456",
 		Asset:         stellar1.AssetNative(),
@@ -758,7 +767,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 	require.NotNil(t, p)
 	require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")
 	require.Equal(t, stellar1.ParticipantType_KEYBASE, p.SourceType, "SourceType")
-	require.Equal(t, accountIDRecip.String(), p.Target, "Target")
+	require.Equal(t, accountIDRecip2.String(), p.Target, "Target")
 	require.Equal(t, stellar1.ParticipantType_STELLAR, p.TargetType, "TargetType")
 }
 
