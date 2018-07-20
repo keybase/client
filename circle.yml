@@ -35,11 +35,12 @@ jobs:
     - run:
         name: Update PATH and Define Environment Variable at Runtime
         command: |
+          echo 'export NODE_VERSION=10.7.0' >> $BASH_ENV
           echo 'export GOPATH=$HOME/go-path' >> $BASH_ENV
           # Clear out a bunch of cruft from PATH, including ~/.yarn/bin,
           # which has a really old version of yarn that overrides the one
           # we install below.
-          echo 'export PATH=/bin:/usr/bin' >> $BASH_ENV
+          echo 'export PATH=/bin:/usr/bin:/opt/circleci/nodejs/v$NODE_VERSION/bin' >> $BASH_ENV
 
           # Some node dependencies break without this.
           echo 'export ANDROID_NDK=$ANDROID_HOME/ndk-bundle' >> $BASH_ENV
@@ -48,7 +49,7 @@ jobs:
           source $BASH_ENV
 
     # Install node and java.
-    - run: nvm install 10 && nvm alias default 10
+    - run: nvm install $NODE_VERSION && nvm alias default $NODE_VERSION
     - run: sudo update-alternatives --set java /usr/lib/jvm/jdk1.8.0/bin/java; sudo update-alternatives --set javac /usr/lib/jvm/jdk1.8.0/bin/javac; echo -e "export JAVA_HOME=/usr/lib/jvm/jdk1.8.0" >> $BASH_ENV
 
     # Restore the dependency cache
