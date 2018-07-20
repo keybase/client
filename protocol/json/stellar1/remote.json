@@ -623,6 +623,10 @@
         {
           "name": "limit",
           "type": "int"
+        },
+        {
+          "name": "skipPending",
+          "type": "boolean"
         }
       ],
       "response": "PaymentsPage"
