@@ -13,9 +13,9 @@ const isAndroidNewerThanM: boolean = false
 const isAndroidNewerThanN: boolean = false
 
 const isElectron = true
-const isDarwin = process.platform === 'darwin'
-const isWindows = process.platform === 'win32'
-const isLinux = process.platform === 'linux'
+const isDarwin = process.platform === 'darwin' || __STORYSHOT__
+const isWindows = process.platform === 'win32' && !__STORYSHOT__
+const isLinux = process.platform === 'linux' && !__STORYSHOT__
 const mobileOsVersion = 'Not implemented on desktop'
 
 const fileUIName = isDarwin || __STORYBOOK__ ? 'Finder' : isWindows ? 'Explorer' : 'File Explorer'
