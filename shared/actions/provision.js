@@ -283,7 +283,7 @@ class ProvisioningManager {
       ? Saga.put(RouteTree.navigateAppend(['codePage'], devicesRoot))
       : Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.loginTab, 'login']))
 
-  maybeCancelProvision = (state: TypedState, action: RouteTypes.NavigateUp) => {
+  maybeCancelProvision = (state: TypedState) => {
     // We're not waiting on anything
     if (!this._stashedResponse) {
       return
@@ -367,8 +367,7 @@ const submitPassphraseOrPaperkey = (
   state: TypedState,
   action: ProvisionGen.SubmitPassphrasePayload | ProvisionGen.SubmitPaperkeyPayload
 ) => theProvisioningManager.submitPassphraseOrPaperkey(state, action)
-const maybeCancelProvision = (state: TypedState, action: RouteTypes.NavigateUp) =>
-  theProvisioningManager.maybeCancelProvision(state, action)
+const maybeCancelProvision = (state: TypedState) => theProvisioningManager.maybeCancelProvision(state)
 
 const showDeviceListPage = (state: TypedState) =>
   !state.provision.error.stringValue() &&

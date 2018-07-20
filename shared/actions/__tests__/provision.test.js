@@ -565,7 +565,53 @@ describe('paperkey error path', () => {
   })
 })
 
+describe('canceling provision', () => {
+  it('ignores other paths', () => {
+    const manager = _testing.makeProvisioningManager(false)
+    const state: any = {
+      routeTree: {
+        routeState: {
+          selected: Tabs.chatTab,
+        },
+      },
+    }
+    const response = {error: jest.fn(), result: jest.fn()}
+
+    // start the process so we get something stashed
+    manager._stashResponse('keybase.1.gpgUi.selectKey', response)
+
+    _testing.maybeCancelProvision(state)
+    expect(response.result).not.toHaveBeenCalled()
+    expect(response.error).not.toHaveBeenCalled()
+    expect(manager._stashedResponse).not.toEqual(null)
+    expect(manager._stashedResponseKey).not.toEqual(null)
+  })
+
+  it('cancels', () => {
+    const manager = _testing.makeProvisioningManager(false)
+    const state: any = {
+      routeTree: {
+        routeState: {
+          selected: Tabs.loginTab,
+        },
+      },
+    }
+    const response = {error: jest.fn(), result: jest.fn()}
+
+    // start the process so we get something stashed
+    manager._stashResponse('keybase.1.gpgUi.selectKey', response)
+
+    _testing.maybeCancelProvision(state)
+    expect(response.result).not.toHaveBeenCalled()
+    expect(response.error).toHaveBeenCalledWith({
+      code: RPCTypes.constantsStatusCode.scgeneric,
+      desc: 'Canceling RPC',
+    })
+    expect(manager._stashedResponse).toEqual(null)
+    expect(manager._stashedResponseKey).toEqual(null)
+  })
+})
+
 // TODO
-// maybeCancelProvision,
 // showFinalErrorPage,
 // submitGPGMethod,
