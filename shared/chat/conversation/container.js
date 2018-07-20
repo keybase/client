@@ -49,7 +49,6 @@ class Conversation extends React.Component<SwitchProps, State> {
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
       ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(this.props.type);
       */
-        console.log('JRY DEFAULT')
         return <NoConversation />
     }
   }
