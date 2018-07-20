@@ -4,6 +4,7 @@ import type {FeatureFlags} from '../util/feature-flags.js.flow'
 const ff: FeatureFlags = {
   admin: false,
   explodingMessagesEnabled: true,
+  avatarUploadsEnabled: true,
   fsEnabled: true,
   fsWritesEnabled: true,
   plansEnabled: false,
