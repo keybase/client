@@ -1,5 +1,6 @@
 // @flow
 /* eslint-env jest */
+import * as I from 'immutable'
 import * as Types from '../../constants/types/provision'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/provision'
@@ -70,22 +71,30 @@ describe('provisioningManagerProvisioning', () => {
 })
 
 describe('text code happy path', () => {
-  const phrase = 'incomingSecret'
+  const phrase = new HiddenString('incomingSecret')
+  const error = new HiddenString('')
   let init
   beforeEach(() => {
-    init = makeInit({method: 'keybase.1.provisionUi.DisplayAndPromptSecret', payload: {phrase}})
+    init = makeInit({
+      method: 'keybase.1.provisionUi.DisplayAndPromptSecret',
+      payload: {phrase: phrase.stringValue()},
+    })
   })
 
   it('init', () => {
-    const {action, manager, response, nextState} = init
+    const {manager, response, nextState} = init
     expect(manager._stashedResponse).toEqual(response)
     expect(manager._stashedResponseKey).toEqual('keybase.1.provisionUi.DisplayAndPromptSecret')
-    expect(action.payload.code.stringValue()).toEqual(phrase)
-    expect(nextState.provision.codePageTextCode.stringValue()).toEqual(phrase)
-    expect(nextState.provision.error.stringValue()).toEqual('')
+    expect(nextState.provision.codePageTextCode).toEqual(phrase)
+    expect(nextState.provision.error).toEqual(error)
   })
 
   it('shows the code page', () => {
+    const {action} = init
+    expect(action).toEqual(ProvisionGen.createShowCodePage({code: phrase, error: null}))
+  })
+
+  it('navs to the code page', () => {
     const {nextState} = init
     expect(_testing.showCodePage(nextState)).toEqual(
       Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.loginTab, 'login']))
@@ -108,33 +117,35 @@ describe('text code happy path', () => {
 })
 
 describe('text code error path', () => {
-  const phrase = 'incomingSecret'
-  const error = 'anerror'
+  const phrase = new HiddenString('incomingSecret')
+  const error = new HiddenString('anerror')
   let init
   beforeEach(() => {
     init = makeInit({
       method: 'keybase.1.provisionUi.DisplayAndPromptSecret',
-      payload: {phrase, previousErr: error},
+      payload: {phrase: phrase.stringValue(), previousErr: error.stringValue()},
     })
   })
 
   it('init', () => {
-    const {manager, response, action, nextState} = init
+    const {manager, response, nextState} = init
     expect(manager._stashedResponse).toEqual(response)
     expect(manager._stashedResponseKey).toEqual('keybase.1.provisionUi.DisplayAndPromptSecret')
-    expect(action.payload.code.stringValue()).toEqual(phrase)
-    expect(action.payload.error.stringValue()).toEqual(error)
-
-    expect(nextState.provision.codePageTextCode.stringValue()).toEqual(phrase)
-    expect(nextState.provision.error.stringValue()).toEqual(error)
+    expect(nextState.provision.codePageTextCode).toEqual(phrase)
+    expect(nextState.provision.error).toEqual(error)
   })
 
-  it('wont show screen on error', () => {
+  it('shows the code page', () => {
+    const {action} = init
+    expect(action).toEqual(ProvisionGen.createShowCodePage({code: phrase, error}))
+  })
+
+  it("doesn't nav away", () => {
     const {nextState} = init
     expect(_testing.showCodePage(nextState)).toBeFalsy()
   })
 
-  it('wont let submit on error', () => {
+  it("won't let submit on error", () => {
     const {response, nextState} = init
     expect(_testing.submitTextCode(nextState)).toBeFalsy()
     expect(response.result).not.toHaveBeenCalled()
@@ -143,26 +154,39 @@ describe('text code error path', () => {
 })
 
 describe('device name happy path', () => {
-  const existingDevices = ['dev1', 'dev2', 'dev3']
+  const existingDevices = I.List(['dev1', 'dev2', 'dev3'])
+  const error = new HiddenString('')
   let init
   beforeEach(() => {
     init = makeInit({
       method: 'keybase.1.provisionUi.PromptNewDeviceName',
-      payload: {errorMessage: '', existingDevices},
+      payload: {errorMessage: '', existingDevices: existingDevices.toArray()},
     })
   })
 
   it('init', () => {
-    const {action, nextState} = init
-    expect(action.payload.existingDevices).toEqual(existingDevices)
-    expect(action.payload.error).toEqual(null)
-    expect(nextState.provision.existingDevices.toArray()).toEqual(existingDevices)
-    expect(nextState.provision.error.stringValue()).toEqual('')
+    const {nextState} = init
+    expect(nextState.provision.existingDevices).toEqual(existingDevices)
+    expect(nextState.provision.error).toEqual(error)
   })
 
-  it('dont allow submit dupe', () => {
+  it('shows device name page', () => {
+    const {action} = init
+    expect(action).toEqual(
+      ProvisionGen.createShowNewDeviceNamePage({error: null, existingDevices: existingDevices.toArray()})
+    )
+  })
+
+  it('navs to device name page', () => {
+    const {nextState} = init
+    expect(_testing.showNewDeviceNamePage(nextState)).toEqual(
+      Saga.put(RouteTree.navigateAppend(['setPublicName'], [Tabs.loginTab, 'login']))
+    )
+  })
+
+  it("don't allow submit dupe", () => {
     const {response, nextState} = init
-    const name = existingDevices[0]
+    const name: string = (existingDevices.first(): any)
     const submitAction = ProvisionGen.createSubmitDeviceName({name})
     const submitState = makeTypedState(reducer(nextState.provision, submitAction))
     expect(submitState.provision.error.stringValue().indexOf('is already taken')).not.toEqual(-1)
@@ -187,22 +211,32 @@ describe('device name happy path', () => {
 })
 
 describe('device name error path', () => {
-  const existingDevices = []
-  const error = 'invalid name'
+  const existingDevices = I.List([])
+  const error = new HiddenString('invalid name')
   let init
   beforeEach(() => {
     init = makeInit({
       method: 'keybase.1.provisionUi.PromptNewDeviceName',
-      payload: {errorMessage: error, existingDevices},
+      payload: {errorMessage: error.stringValue(), existingDevices: existingDevices.toArray()},
     })
   })
 
   it('init', () => {
-    const {action, nextState} = init
-    expect(action.payload.existingDevices).toEqual(existingDevices)
-    expect(action.payload.error.stringValue()).toEqual(error)
-    expect(nextState.provision.existingDevices.toArray()).toEqual(existingDevices)
-    expect(nextState.provision.error.stringValue()).toEqual(error)
+    const {nextState} = init
+    expect(nextState.provision.existingDevices).toEqual(existingDevices)
+    expect(nextState.provision.error).toEqual(error)
+  })
+
+  it('shows device page', () => {
+    const {action} = init
+    expect(action).toEqual(
+      ProvisionGen.createShowNewDeviceNamePage({error, existingDevices: existingDevices.toArray()})
+    )
+  })
+
+  it("doesn't nav away", () => {
+    const {nextState} = init
+    expect(_testing.showNewDeviceNamePage(nextState)).toBeFalsy()
   })
 
   it('no submit on error', () => {
@@ -217,7 +251,7 @@ describe('device name error path', () => {
     const name = 'new name'
     const submitAction = ProvisionGen.createSubmitDeviceName({name})
     const submitState = makeTypedState(reducer(nextState.provision, submitAction))
-    expect(submitState.provision.error.stringValue()).toEqual('')
+    expect(submitState.provision.error).toEqual(new HiddenString(''))
 
     _testing.submitDeviceName(submitState)
     expect(response.result).toHaveBeenCalledWith(name)
@@ -233,7 +267,8 @@ describe('other device happy path', () => {
   const desktop = ({deviceID: '1', name: 'desktop', type: 'desktop'}: any)
   const backup = ({deviceID: '2', name: 'backup', type: 'backup'}: any)
   const rpcDevices = [mobile, desktop, backup]
-  const devices = rpcDevices.map(Constants.rpcDeviceToDevice)
+  const devices = I.List(rpcDevices.map(Constants.rpcDeviceToDevice))
+  const error = new HiddenString('')
   let init
   beforeEach(() => {
     init = makeInit({
@@ -243,10 +278,21 @@ describe('other device happy path', () => {
   })
 
   it('init', () => {
-    const {action, nextState} = init
-    expect(action.payload.devices).toEqual(devices)
-    expect(nextState.provision.devices.toArray()).toEqual(devices)
-    expect(nextState.provision.error.stringValue()).toEqual('')
+    const {nextState} = init
+    expect(nextState.provision.devices).toEqual(devices)
+    expect(nextState.provision.error).toEqual(error)
+  })
+
+  it('shows device page', () => {
+    const {action} = init
+    expect(action).toEqual(ProvisionGen.createShowDeviceListPage({devices: devices.toArray()}))
+  })
+
+  it('navs to device page', () => {
+    const {nextState} = init
+    expect(_testing.showDeviceListPage(nextState)).toEqual(
+      Saga.put(RouteTree.navigateAppend(['selectOtherDevice'], [Tabs.loginTab, 'login']))
+    )
   })
 
   it('mobile', () => {
@@ -289,8 +335,41 @@ describe('other device happy path', () => {
   })
 })
 
-// 'keybase.1.provisionUi.': this.chooseDeviceHandler,
-// 'keybase.1.provisionUi.chooseGPGMethod': this.chooseGPGMethodHandler,
+describe('other device error path', () => {
+  it('doesnt have errors', () => {
+    // Actually no error path for chooseDevice
+  })
+})
+
+describe('choose gpg happy path', () => {
+  let init
+  beforeEach(() => {
+    init = makeInit({
+      method: 'keybase.1.provisionUi.chooseGPGMethod',
+      payload: {},
+    })
+  })
+
+  it('init', () => {
+    const {nextState} = init
+    expect(nextState.provision.error.stringValue()).toEqual('')
+  })
+
+  it('shows gpg page', () => {
+    const {action} = init
+    expect(action).toEqual(ProvisionGen.createShowGPGPage())
+  })
+
+  it('navs to the gpg page', () => {
+    const {nextState} = init
+    expect(_testing.showGPGPage(nextState)).toEqual(
+      Saga.put(RouteTree.navigateAppend(['gpgSign'], [Tabs.loginTab, 'login']))
+    )
+  })
+})
+
+// showin pages tests
+//
 // 'keybase.1.secretUi.getPassphrase': this.getPassphraseHandler,
 // it('fills inviteCode, shows invite screen', () => {
 // const action = SignupGen.createRequestedAutoInvite({inviteCode: 'hello world'})
