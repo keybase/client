@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import {globalColors, styleSheetCreate} from '../../styles'
 import ResultsList from '../../search/results-list/container'
 import UserInput from '../../search/user-input/container'
 import {Box2, Text} from '../../common-adapters'
@@ -15,8 +16,10 @@ const placeholder = 'Search Keybase'
 
 const Search = (props: Props) => (
   <Box2 direction="vertical">
-    <Box2 direction="horizontal" fullWidth={true} style={{alignItems: 'center'}}>
-      <Text type="Body">To:</Text>
+    <Box2 direction="horizontal" fullWidth={true} style={styles.inputLine}>
+      <Text style={styles.toText} type="Body">
+        To:
+      </Text>
       <UserInput
         searchKey={searchKey}
         autoFocus={true}
@@ -34,5 +37,10 @@ const Search = (props: Props) => (
     />
   </Box2>
 )
+
+const styles = styleSheetCreate({
+  toText: {color: globalColors.blue},
+  inputLine: {alignItems: 'center'},
+})
 
 export default Search
