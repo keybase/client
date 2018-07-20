@@ -23,7 +23,7 @@ const Search = (props: Props) => (
         placeholder={placeholder}
         onExitSearch={props.onClose}
         disableListBuilding={true}
-        disableServiceFilter={true}
+        showServiceFilter={false}
       />
     </Box2>
     <ResultsList

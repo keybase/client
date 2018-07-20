@@ -21,7 +21,7 @@ export type OwnProps = {|
   onExitSearch: ?() => void,
   onSelectUser?: (id: string) => void,
   disableListBuilding?: boolean,
-  disableServiceFilter?: boolean,
+  showServiceFilter?: boolean,
 |}
 
 const UserInputWithServiceFilter = props => (
@@ -51,22 +51,19 @@ const UserInputWithServiceFilter = props => (
       onCancel={props.onExitSearch}
       selectedSearchId={props.selectedSearchId}
     />
-    {// TODO: Combine these two properties somehow. showServiceFilter
-    // comes from showServiceLogicHoc.
-    !props.disableServiceFilter &&
-      props.showServiceFilter && (
-        <Box
-          style={{
-            ...globalStyles.flexBoxRow,
-            alignItems: 'center',
-          }}
-        >
-          <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
-            Filter:
-          </Text>
-          <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
-        </Box>
-      )}
+    {props.showServiceFilter && (
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          alignItems: 'center',
+        }}
+      >
+        <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
+          Filter:
+        </Text>
+        <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
+      </Box>
+    )}
   </Box>
 )
 
