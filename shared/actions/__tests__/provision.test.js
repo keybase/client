@@ -83,7 +83,10 @@ describe('text code happy path', () => {
     expect(action.payload.code.stringValue()).toEqual(phrase)
     expect(nextState.provision.codePageTextCode.stringValue()).toEqual(phrase)
     expect(nextState.provision.error.stringValue()).toEqual('')
+  })
 
+  it('shows the code page', () => {
+    const {nextState} = init
     expect(_testing.showCodePage(nextState)).toEqual(
       Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.loginTab, 'login']))
     )
@@ -124,9 +127,15 @@ describe('text code error path', () => {
 
     expect(nextState.provision.codePageTextCode.stringValue()).toEqual(phrase)
     expect(nextState.provision.error.stringValue()).toEqual(error)
+  })
 
+  it('wont show screen on error', () => {
+    const {nextState} = init
     expect(_testing.showCodePage(nextState)).toBeFalsy()
+  })
 
+  it('wont let submit on error', () => {
+    const {response, nextState} = init
     expect(_testing.submitTextCode(nextState)).toBeFalsy()
     expect(response.result).not.toHaveBeenCalled()
     expect(response.error).not.toHaveBeenCalled()
@@ -147,18 +156,16 @@ describe('device name happy path', () => {
     const {action, nextState} = init
     expect(action.payload.existingDevices).toEqual(existingDevices)
     expect(action.payload.error).toEqual(null)
-
     expect(nextState.provision.existingDevices.toArray()).toEqual(existingDevices)
     expect(nextState.provision.error.stringValue()).toEqual('')
   })
 
-  it('submit dupe', () => {
+  it('dont allow submit dupe', () => {
     const {response, nextState} = init
-    const name = 'dev1'
+    const name = existingDevices[0]
     const submitAction = ProvisionGen.createSubmitDeviceName({name})
     const submitState = makeTypedState(reducer(nextState.provision, submitAction))
-    expect(submitState.provision.error.stringValue()).toBeTruthy()
-
+    expect(submitState.provision.error.stringValue().indexOf('is already taken')).not.toEqual(-1)
     _testing.submitDeviceName(submitState)
     expect(response.result).not.toHaveBeenCalled()
     expect(response.error).not.toHaveBeenCalled()
@@ -194,7 +201,6 @@ describe('device name error path', () => {
     const {action, nextState} = init
     expect(action.payload.existingDevices).toEqual(existingDevices)
     expect(action.payload.error.stringValue()).toEqual(error)
-
     expect(nextState.provision.existingDevices.toArray()).toEqual(existingDevices)
     expect(nextState.provision.error.stringValue()).toEqual(error)
   })
@@ -206,11 +212,12 @@ describe('device name error path', () => {
     expect(response.error).not.toHaveBeenCalled()
   })
 
-  it('submit clears error', () => {
+  it('update name and submit clears error and submits', () => {
     const {response, nextState} = init
     const name = 'new name'
     const submitAction = ProvisionGen.createSubmitDeviceName({name})
     const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+    expect(submitState.provision.error.stringValue()).toEqual('')
 
     _testing.submitDeviceName(submitState)
     expect(response.result).toHaveBeenCalledWith(name)
@@ -265,8 +272,7 @@ describe('other device happy path', () => {
     expect(() => _testing.submitDeviceSelect(submitState)).toThrow()
   })
 
-  // TODO should fail
-  it('backup', () => {
+  it('paperkey/backup', () => {
     const {response, nextState} = init
     const submitAction = ProvisionGen.createSubmitDeviceSelect({name: 'backup'})
     const submitState = makeTypedState(reducer(nextState.provision, submitAction))
