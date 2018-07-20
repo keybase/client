@@ -368,9 +368,60 @@ describe('choose gpg happy path', () => {
   })
 })
 
-// showin pages tests
+describe('passphrase happy path', () => {
+  const error = new HiddenString('')
+  let init
+  beforeEach(() => {
+    init = makeInit({
+      method: 'keybase.1.secretUi.getPassphrase',
+      payload: {
+        pinentry: {
+          retryLabel: null,
+          type: RPCTypes.passphraseCommonPassphraseType.passPhrase,
+        },
+      },
+    })
+  })
+
+  it('init', () => {
+    const {nextState} = init
+    expect(nextState.provision.error).toEqual(error)
+  })
+
+  it('shows password page', () => {
+    const {action} = init
+    expect(action).toEqual(ProvisionGen.createShowPassphrasePage({error: null}))
+  })
+
+  it('navs to password page', () => {
+    const {nextState} = init
+    expect(_testing.showPassphrasePage(nextState)).toEqual(
+      Saga.put(RouteTree.navigateAppend(['passphrase'], [Tabs.loginTab, 'login']))
+    )
+  })
+
+  it('submit', () => {
+    const {response, nextState} = init
+    const passphrase = new HiddenString('a passphrase')
+    const submitAction = ProvisionGen.createSubmitPassphrase({passphrase})
+    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+
+    _testing.submitPassphraseOrPaperkey(submitState, submitAction)
+    expect(response.result).toHaveBeenCalledWith({passphrase: passphrase.stringValue(), storeSecret: false})
+    expect(response.error).not.toHaveBeenCalled()
+
+    // only submit once
+    expect(() => _testing.submitPassphraseOrPaperkey(submitState, submitAction)).toThrow()
+  })
+})
+
+// TODO
+describe('paperkey happy path', () => {})
+describe('paperkey error path', () => {})
+describe('passphrase error path', () => {})
+
 //
-// 'keybase.1.secretUi.getPassphrase': this.getPassphraseHandler,
+// 'dler,
 // it('fills inviteCode, shows invite screen', () => {
 // const action = SignupGen.createRequestedAutoInvite({inviteCode: 'hello world'})
 // const nextState = makeTypedState(reducer(state, action))
