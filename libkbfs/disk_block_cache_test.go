@@ -175,7 +175,7 @@ func TestDiskBlockCachePutAndGet(t *testing.T) {
 	t.Log("Verify that the Get updated the LRU time for the block.")
 	getMd, err := cache.GetMetadata(ctx, block1Ptr.ID)
 	require.NoError(t, err)
-	require.True(t, getMd.LRUTime.After(putMd.LRUTime), "Get LRU time isn't "+
+	require.True(t, getMd.LRUTime.After(putMd.LRUTime.Time), "Get LRU time isn't "+
 		"after the Put LRU time. Put metadata: %+v, Get metadata: %+v",
 		putMd, getMd)
 

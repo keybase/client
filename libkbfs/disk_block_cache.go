@@ -426,7 +426,7 @@ func (*DiskBlockCacheLocal) tlfKey(tlfID tlf.ID, blockKey []byte) []byte {
 // the current time.
 func (cache *DiskBlockCacheLocal) updateMetadataLocked(ctx context.Context,
 	blockKey []byte, metadata DiskBlockCacheMetadata) error {
-	metadata.LRUTime = cache.config.Clock().Now()
+	metadata.LRUTime.Time = cache.config.Clock().Now()
 	encodedMetadata, err := cache.config.Codec().Encode(&metadata)
 	if err != nil {
 		return err
@@ -467,7 +467,7 @@ func (cache *DiskBlockCacheLocal) getLRULocked(blockID kbfsblock.ID) (
 	if err != nil {
 		return time.Time{}, err
 	}
-	return metadata.LRUTime, nil
+	return metadata.LRUTime.Time, nil
 }
 
 // decodeBlockCacheEntry decodes a disk block cache entry buffer into an
@@ -949,7 +949,7 @@ func (cache *DiskBlockCacheLocal) evictLocked(ctx context.Context,
 				blockID)
 			continue
 		}
-		blockIDs = append(blockIDs, lruEntry{blockID, metadata.LRUTime})
+		blockIDs = append(blockIDs, lruEntry{blockID, metadata.LRUTime.Time})
 	}
 
 	return cache.evictSomeBlocks(ctx, numBlocks, blockIDs)
