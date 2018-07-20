@@ -1626,7 +1626,7 @@
             null,
             "ConversationMinWriterRoleInfoLocal"
           ],
-          "name": "minWriterRoleInfoLocal"
+          "name": "minWriterRoleInfo"
         }
       ]
     },

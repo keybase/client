@@ -545,7 +545,7 @@ protocol local {
     Expunge expunge; // The latest history deletion. Defaults to zeroes.
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
-    union { null, ConversationMinWriterRoleInfoLocal } minWriterRoleInfoLocal;
+    union { null, ConversationMinWriterRoleInfoLocal } minWriterRoleInfo;
   }
 
   record NonblockFetchRes {
@@ -766,7 +766,7 @@ protocol local {
     string title;
     bytes metadata;
     keybase1.TLFIdentifyBehavior identifyBehavior;
-    
+
     union {null, MakePreviewRes } callerPreview;
     union {null, OutboxID } outboxID;
     union {null, gregor1.DurationSec} ephemeralLifetime;

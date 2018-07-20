@@ -149,6 +149,6 @@ func (c *CmdChatSetConvMinWriterRole) postMinWriterRole(ctx context.Context, con
 
 func (c *CmdChatSetConvMinWriterRole) showMinWriterRole(conv *chat1.ConversationLocal) (err error) {
 	dui := c.G().UI.GetDumbOutputUI()
-	dui.Printf("%v\n", conv.MinWriterRoleInfoLocal)
+	dui.Printf("%v\n", conv.MinWriterRoleInfo)
 	return nil
 }
