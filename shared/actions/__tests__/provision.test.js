@@ -281,6 +281,12 @@ describe('other device happy path', () => {
     // only submit once
     expect(() => _testing.submitDeviceSelect(submitState)).toThrow()
   })
+
+  it('doesnt allow unknown', () => {
+    const {nextState} = init
+    const submitAction = ProvisionGen.createSubmitDeviceSelect({name: 'not there'})
+    expect(() => reducer(nextState.provision, submitAction)).toThrow()
+  })
 })
 
 // 'keybase.1.provisionUi.': this.chooseDeviceHandler,
