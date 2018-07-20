@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Constants from '../../constants/chat2'
 import * as Types from '../../constants/types/chat2'
+import {isMobile} from '../../styles'
 import {connect, type TypedState} from '../../util/container'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
@@ -20,7 +21,7 @@ class Conversation extends React.PureComponent<SwitchProps> {
       case 'error':
         return this.props.conversationIDKey && <Error conversationIDKey={this.props.conversationIDKey} />
       case 'noConvo':
-        return <NoConversation />
+        return isMobile ? null : <NoConversation />
       case 'normal':
         return <Normal conversationIDKey={this.props.conversationIDKey} />
       case 'youAreReset':
@@ -32,7 +33,7 @@ class Conversation extends React.PureComponent<SwitchProps> {
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
       ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(this.props.type);
       */
-        return <NoConversation />
+        return isMobile ? null : <NoConversation />
     }
   }
 }
