@@ -1,0 +1,15 @@
+// @flow
+import type {FeatureFlags} from '../util/feature-flags.js.flow'
+
+const ff: FeatureFlags = {
+  admin: false,
+  explodingMessagesEnabled: true,
+  fsEnabled: true,
+  fsWritesEnabled: true,
+  plansEnabled: false,
+  walletsEnabled: true,
+}
+
+console.warn('feature flag mock in effect')
+
+export default ff
