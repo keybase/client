@@ -355,6 +355,23 @@ describe('other device error path', () => {
   })
 })
 
+describe('other device no devices', () => {
+  let init
+  const rpcDevices = null
+  beforeEach(() => {
+    init = makeInit({
+      method: 'keybase.1.provisionUi.chooseDevice',
+      payload: {devices: rpcDevices},
+    })
+  })
+
+  it('init', () => {
+    const {nextState} = init
+    expect(nextState.provision.devices).toEqual(I.List())
+    expect(nextState.provision.error).toEqual(noError)
+  })
+})
+
 describe('choose gpg happy path', () => {
   let init
   beforeEach(() => {
@@ -657,6 +674,10 @@ describe('manager', () => {
       console.log('whu')
     }
     manager._stashResponse('keybase.1.gpgUi.selectKey', stashed)
+    expect(() => manager._getAndClearResponse('keybase.1.loginUi.getEmailOrUsername')).toThrow()
+  })
+  it('complains about no response key', () => {
+    const manager = _testing.makeProvisioningManager(false)
     expect(() => manager._getAndClearResponse('keybase.1.loginUi.getEmailOrUsername')).toThrow()
   })
   it('stashing works', () => {
