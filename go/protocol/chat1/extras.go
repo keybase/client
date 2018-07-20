@@ -1564,3 +1564,14 @@ func (r ReactionMap) HasReactionFromUser(reactionText, username string) (found b
 	}
 	return false, 0
 }
+
+func (i *ConversationMinWriterRoleInfoLocal) String() string {
+	if i == nil {
+		return "Minimum writer role for this conversation is not set."
+	}
+	usernameSuffix := "."
+	if i.Username != "" {
+		usernameSuffix = fmt.Sprintf(", last set by %v.", i.Username)
+	}
+	return fmt.Sprintf("Minimum writer role for this conversation is %v%v", i.Role, usernameSuffix)
+}

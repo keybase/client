@@ -516,6 +516,11 @@ protocol local {
     array<string> readerNames;
   }
 
+  record ConversationMinWriterRoleInfoLocal {
+    string username;
+    keybase1.TeamRole role;
+  }
+
   // ConversationLocal, whenever present, has a valid `identifyFailures` field that
   // faithfully represent identify result. If identify information is not
   // available, we should use a different type.
@@ -540,6 +545,7 @@ protocol local {
     Expunge expunge; // The latest history deletion. Defaults to zeroes.
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
+    union { null, ConversationMinWriterRoleInfoLocal } minWriterRoleInfo;
   }
 
   record NonblockFetchRes {
@@ -760,7 +766,7 @@ protocol local {
     string title;
     bytes metadata;
     keybase1.TLFIdentifyBehavior identifyBehavior;
-    
+
     union {null, MakePreviewRes } callerPreview;
     union {null, OutboxID } outboxID;
     union {null, gregor1.DurationSec} ephemeralLifetime;
@@ -874,6 +880,7 @@ protocol local {
   void setTeamRetentionLocal(keybase1.TeamID teamID, RetentionPolicy policy);
   union { null, RetentionPolicy } getTeamRetentionLocal(keybase1.TeamID teamID);
 
+  void setConvMinWriterRoleLocal(ConversationID convID, keybase1.TeamRole role);
   void upgradeKBFSConversationToImpteam(ConversationID convID);
 
   record GetSearchRegexpRes {

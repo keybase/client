@@ -83,6 +83,18 @@ func (o Balance) DeepCopy() Balance {
 	}
 }
 
+type AccountReserve struct {
+	Amount      string `codec:"amount" json:"amount"`
+	Description string `codec:"description" json:"description"`
+}
+
+func (o AccountReserve) DeepCopy() AccountReserve {
+	return AccountReserve{
+		Amount:      o.Amount,
+		Description: o.Description,
+	}
+}
+
 type TransactionStatus int
 
 const (

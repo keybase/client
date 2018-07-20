@@ -2848,20 +2848,33 @@ func (o ConversationErrorRekey) DeepCopy() ConversationErrorRekey {
 	}
 }
 
+type ConversationMinWriterRoleInfoLocal struct {
+	Username string            `codec:"username" json:"username"`
+	Role     keybase1.TeamRole `codec:"role" json:"role"`
+}
+
+func (o ConversationMinWriterRoleInfoLocal) DeepCopy() ConversationMinWriterRoleInfoLocal {
+	return ConversationMinWriterRoleInfoLocal{
+		Username: o.Username,
+		Role:     o.Role.DeepCopy(),
+	}
+}
+
 type ConversationLocal struct {
-	Error            *ConversationErrorLocal       `codec:"error,omitempty" json:"error,omitempty"`
-	Info             ConversationInfoLocal         `codec:"info" json:"info"`
-	ReaderInfo       ConversationReaderInfo        `codec:"readerInfo" json:"readerInfo"`
-	CreatorInfo      *ConversationCreatorInfoLocal `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
-	Notifications    *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
-	Supersedes       []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
-	SupersededBy     []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
-	MaxMessages      []MessageUnboxed              `codec:"maxMessages" json:"maxMessages"`
-	IsEmpty          bool                          `codec:"isEmpty" json:"isEmpty"`
-	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
-	Expunge          Expunge                       `codec:"expunge" json:"expunge"`
-	ConvRetention    *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
-	TeamRetention    *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
+	Error             *ConversationErrorLocal             `codec:"error,omitempty" json:"error,omitempty"`
+	Info              ConversationInfoLocal               `codec:"info" json:"info"`
+	ReaderInfo        ConversationReaderInfo              `codec:"readerInfo" json:"readerInfo"`
+	CreatorInfo       *ConversationCreatorInfoLocal       `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
+	Notifications     *ConversationNotificationInfo       `codec:"notifications,omitempty" json:"notifications,omitempty"`
+	Supersedes        []ConversationMetadata              `codec:"supersedes" json:"supersedes"`
+	SupersededBy      []ConversationMetadata              `codec:"supersededBy" json:"supersededBy"`
+	MaxMessages       []MessageUnboxed                    `codec:"maxMessages" json:"maxMessages"`
+	IsEmpty           bool                                `codec:"isEmpty" json:"isEmpty"`
+	IdentifyFailures  []keybase1.TLFIdentifyFailure       `codec:"identifyFailures" json:"identifyFailures"`
+	Expunge           Expunge                             `codec:"expunge" json:"expunge"`
+	ConvRetention     *RetentionPolicy                    `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
+	TeamRetention     *RetentionPolicy                    `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
+	MinWriterRoleInfo *ConversationMinWriterRoleInfoLocal `codec:"minWriterRoleInfo,omitempty" json:"minWriterRoleInfo,omitempty"`
 }
 
 func (o ConversationLocal) DeepCopy() ConversationLocal {
@@ -2949,6 +2962,13 @@ func (o ConversationLocal) DeepCopy() ConversationLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.TeamRetention),
+		MinWriterRoleInfo: (func(x *ConversationMinWriterRoleInfoLocal) *ConversationMinWriterRoleInfoLocal {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.MinWriterRoleInfo),
 	}
 }
 
@@ -4557,6 +4577,11 @@ type GetTeamRetentionLocalArg struct {
 	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
 }
 
+type SetConvMinWriterRoleLocalArg struct {
+	ConvID ConversationID    `codec:"convID" json:"convID"`
+	Role   keybase1.TeamRole `codec:"role" json:"role"`
+}
+
 type UpgradeKBFSConversationToImpteamArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
@@ -4626,6 +4651,7 @@ type LocalInterface interface {
 	SetConvRetentionLocal(context.Context, SetConvRetentionLocalArg) error
 	SetTeamRetentionLocal(context.Context, SetTeamRetentionLocalArg) error
 	GetTeamRetentionLocal(context.Context, keybase1.TeamID) (*RetentionPolicy, error)
+	SetConvMinWriterRoleLocal(context.Context, SetConvMinWriterRoleLocalArg) error
 	UpgradeKBFSConversationToImpteam(context.Context, ConversationID) error
 	GetSearchRegexp(context.Context, GetSearchRegexpArg) (GetSearchRegexpRes, error)
 	GetStaticConfig(context.Context) (StaticConfig, error)
@@ -5409,6 +5435,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"setConvMinWriterRoleLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]SetConvMinWriterRoleLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetConvMinWriterRoleLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetConvMinWriterRoleLocalArg)(nil), args)
+						return
+					}
+					err = i.SetConvMinWriterRoleLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"upgradeKBFSConversationToImpteam": {
 				MakeArg: func() interface{} {
 					ret := make([]UpgradeKBFSConversationToImpteamArg, 1)
@@ -5710,6 +5752,11 @@ func (c LocalClient) SetTeamRetentionLocal(ctx context.Context, __arg SetTeamRet
 func (c LocalClient) GetTeamRetentionLocal(ctx context.Context, teamID keybase1.TeamID) (res *RetentionPolicy, err error) {
 	__arg := GetTeamRetentionLocalArg{TeamID: teamID}
 	err = c.Cli.Call(ctx, "chat.1.local.getTeamRetentionLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) SetConvMinWriterRoleLocal(ctx context.Context, __arg SetConvMinWriterRoleLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.setConvMinWriterRoleLocal", []interface{}{__arg}, nil)
 	return
 }
 

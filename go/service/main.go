@@ -614,7 +614,7 @@ func (d *Service) chatOutboxPurgeCheck() {
 					IsEphemeralPurge: true,
 				})
 				d.ChatG().ActivityNotifier.Activity(context.Background(), gregorUID, chat1.TopicType_NONE,
-					&act)
+					&act, chat1.ChatActivitySource_LOCAL)
 			}
 		}
 	}()

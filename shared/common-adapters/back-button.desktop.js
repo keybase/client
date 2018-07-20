@@ -33,6 +33,7 @@ export const styles = {
     ...globalStyles.flexBoxRow,
     ...desktopStyles.clickable,
     alignItems: 'center',
+    zIndex: 1,
   },
   icon: {
     marginRight: 6,

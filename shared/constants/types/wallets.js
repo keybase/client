@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
-import * as StellarRPCTypes from './rpc-stellar-gen'
 import HiddenString from '../../util/hidden-string'
+import * as StellarRPCTypes from './rpc-stellar-gen'
 
 // Possible 'types' of things you can send or receive transactions with
 export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'account'
@@ -17,7 +17,7 @@ export opaque type AccountID: string = string
 export const stringToAccountID = __DEV__
   ? (s: string): AccountID => {
       if (!s) {
-        throw new Error('Invalid empty converationidkey. Did you mean Constants.noConversationIDKey?')
+        throw new Error('Invalid empty AccountID. Did you mean Constants.noAccountID?')
       }
       return s
     }
@@ -46,6 +46,8 @@ export type _Assets = {
   name: string,
   worth: string,
   worthCurrency: string,
+  availableToSendWorth: string,
+  reserves: I.List<Reserve>,
 }
 
 export type StatusSimplified = 'none' | 'pending' | 'claimable' | 'completed' | 'error' | 'unknown'
@@ -54,9 +56,11 @@ export type _Payment = {
   amountDescription: string,
   delta: 'none' | 'increase' | 'decrease',
   error: ?string,
-  id: ?StellarRPCTypes.PaymentID,
+  id: StellarRPCTypes.PaymentID,
   note: string,
   noteErr: string,
+  publicMemo: string,
+  publicMemoType: string,
   source: string,
   sourceType: string,
   statusSimplified: StatusSimplified,
@@ -65,6 +69,7 @@ export type _Payment = {
   target: string,
   targetType: string,
   time: number,
+  txID: string,
   worth: string,
   worthCurrency: string,
 }
@@ -90,5 +95,7 @@ export type _State = {
   selectedAccount: AccountID,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
   paymentsMap: I.Map<AccountID, I.List<Payment>>,
+  secretKeyMap: I.Map<AccountID, HiddenString>,
+  selectedAccount: AccountID,
 }
 export type State = I.RecordOf<_State>

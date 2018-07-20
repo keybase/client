@@ -36,6 +36,7 @@ const load = () => {
         memo={memo}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
+        onLoadPaymentDetail={action('onLoadPaymentDetail')}
         onViewTransaction={action('onViewTransaction')}
         you="cjb"
         status="completed"
@@ -53,6 +54,7 @@ const load = () => {
         memo={memo}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
+        onLoadPaymentDetail={action('onLoadPaymentDetail')}
         onViewTransaction={action('onViewTransaction')}
         you="cjb"
         status="completed"
@@ -71,6 +73,7 @@ const load = () => {
         memo={memo}
         timestamp={null}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
+        onLoadPaymentDetail={action('onLoadPaymentDetail')}
         onViewTransaction={action('onViewTransaction')}
         you="cjb"
         status="completed"
@@ -90,6 +93,7 @@ const load = () => {
         publicMemo="Foo bar"
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
+        onLoadPaymentDetail={action('onLoadPaymentDetail')}
         onViewTransaction={action('onViewTransaction')}
         you="cjb"
         status="completed"
@@ -106,6 +110,7 @@ const load = () => {
         amountXLM="53.1688643 XLM"
         yourRole="receiver"
         memo={memo}
+        onLoadPaymentDetail={action('onLoadPaymentDetail')}
         timestamp={null}
         you="cjb"
         status="pending"
@@ -123,6 +128,7 @@ const load = () => {
         memo={memo}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
+        onLoadPaymentDetail={action('onLoadPaymentDetail')}
         onViewTransaction={action('onViewTransaction')}
         you="cjb"
         status="completed"
