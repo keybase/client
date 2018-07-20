@@ -118,6 +118,32 @@ func (e TransactionStatus) String() string {
 	return ""
 }
 
+type RequestStatus int
+
+const (
+	RequestStatus_OK       RequestStatus = 0
+	RequestStatus_CANCELED RequestStatus = 1
+)
+
+func (o RequestStatus) DeepCopy() RequestStatus { return o }
+
+var RequestStatusMap = map[string]RequestStatus{
+	"OK":       0,
+	"CANCELED": 1,
+}
+
+var RequestStatusRevMap = map[RequestStatus]string{
+	0: "OK",
+	1: "CANCELED",
+}
+
+func (e RequestStatus) String() string {
+	if v, ok := RequestStatusRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type PaymentStrategy int
 
 const (

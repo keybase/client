@@ -150,7 +150,13 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 		alice.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: team.ID}, nextSeqno)
 	}
 
-	pollFor(t, "claims to complete", 10*time.Second, bob.tc.G, func(i int) bool {
+	pollTime := 10 * time.Second
+	if libkb.UseCITime(bob.tc.G) {
+		// This test is especially slow.
+		pollTime = 15 * time.Second
+	}
+
+	pollFor(t, "claims to complete", pollTime, bob.tc.G, func(i int) bool {
 		res, err = bob.stellarClient.GetWalletAccountsLocal(context.Background(), 0)
 		require.NoError(t, err)
 		t.Logf("poll-1-%v: %v", i, res[0].BalanceDescription)
@@ -185,7 +191,7 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 	}
 	require.NoError(t, cmd.Run())
 
-	pollFor(t, "final claim to complete", 10*time.Second, bob.tc.G, func(i int) bool {
+	pollFor(t, "final claim to complete", pollTime, bob.tc.G, func(i int) bool {
 		res, err = bob.stellarClient.GetWalletAccountsLocal(context.Background(), 0)
 		require.NoError(t, err)
 		t.Logf("poll-2-%v: %v", i, res[0].BalanceDescription)

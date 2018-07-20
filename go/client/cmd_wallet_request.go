@@ -89,7 +89,7 @@ func (c *CmdWalletRequest) Run() error {
 		arg.Asset = &xlm
 	}
 
-	err = cli.MakeRequestCLILocal(context.Background(), arg)
+	_, err = cli.MakeRequestCLILocal(context.Background(), arg)
 	if err != nil {
 		return err
 	}

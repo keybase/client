@@ -531,6 +531,7 @@ type RequestDetails struct {
 	Asset         *Asset                `codec:"asset,omitempty" json:"asset,omitempty"`
 	Currency      *OutsideCurrencyCode  `codec:"currency,omitempty" json:"currency,omitempty"`
 	FundingKbTxID KeybaseTransactionID  `codec:"fundingKbTxID" json:"fundingKbTxID"`
+	Status        RequestStatus         `codec:"status" json:"status"`
 }
 
 func (o RequestDetails) DeepCopy() RequestDetails {
@@ -561,6 +562,7 @@ func (o RequestDetails) DeepCopy() RequestDetails {
 			return &tmp
 		})(o.Currency),
 		FundingKbTxID: o.FundingKbTxID.DeepCopy(),
+		Status:        o.Status.DeepCopy(),
 	}
 }
 
@@ -578,6 +580,12 @@ type RecentPaymentsArg struct {
 	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
 	AccountID AccountID            `codec:"accountID" json:"accountID"`
 	Cursor    *PageCursor          `codec:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit     int                  `codec:"limit" json:"limit"`
+}
+
+type PendingPaymentsArg struct {
+	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID AccountID            `codec:"accountID" json:"accountID"`
 	Limit     int                  `codec:"limit" json:"limit"`
 }
 
@@ -634,6 +642,11 @@ type RequestDetailsArg struct {
 	ReqID  KeybaseRequestID     `codec:"reqID" json:"reqID"`
 }
 
+type CancelRequestArg struct {
+	Caller keybase1.UserVersion `codec:"caller" json:"caller"`
+	ReqID  KeybaseRequestID     `codec:"reqID" json:"reqID"`
+}
+
 type PingArg struct {
 }
 
@@ -641,6 +654,7 @@ type RemoteInterface interface {
 	Balances(context.Context, BalancesArg) ([]Balance, error)
 	Details(context.Context, DetailsArg) (AccountDetails, error)
 	RecentPayments(context.Context, RecentPaymentsArg) (PaymentsPage, error)
+	PendingPayments(context.Context, PendingPaymentsArg) ([]PaymentSummary, error)
 	PaymentDetails(context.Context, PaymentDetailsArg) (PaymentDetails, error)
 	AccountSeqno(context.Context, AccountSeqnoArg) (string, error)
 	SubmitPayment(context.Context, SubmitPaymentArg) (PaymentResult, error)
@@ -652,6 +666,7 @@ type RemoteInterface interface {
 	IsMasterKeyActive(context.Context, IsMasterKeyActiveArg) (bool, error)
 	SubmitRequest(context.Context, SubmitRequestArg) (KeybaseRequestID, error)
 	RequestDetails(context.Context, RequestDetailsArg) (RequestDetails, error)
+	CancelRequest(context.Context, CancelRequestArg) error
 	Ping(context.Context) (string, error)
 }
 
@@ -703,6 +718,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.RecentPayments(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"pendingPayments": {
+				MakeArg: func() interface{} {
+					ret := make([]PendingPaymentsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PendingPaymentsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PendingPaymentsArg)(nil), args)
+						return
+					}
+					ret, err = i.PendingPayments(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -883,6 +914,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"cancelRequest": {
+				MakeArg: func() interface{} {
+					ret := make([]CancelRequestArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CancelRequestArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CancelRequestArg)(nil), args)
+						return
+					}
+					err = i.CancelRequest(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"ping": {
 				MakeArg: func() interface{} {
 					ret := make([]PingArg, 1)
@@ -914,6 +961,11 @@ func (c RemoteClient) Details(ctx context.Context, __arg DetailsArg) (res Accoun
 
 func (c RemoteClient) RecentPayments(ctx context.Context, __arg RecentPaymentsArg) (res PaymentsPage, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.recentPayments", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) PendingPayments(ctx context.Context, __arg PendingPaymentsArg) (res []PaymentSummary, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.pendingPayments", []interface{}{__arg}, &res)
 	return
 }
 
@@ -971,6 +1023,11 @@ func (c RemoteClient) SubmitRequest(ctx context.Context, __arg SubmitRequestArg)
 
 func (c RemoteClient) RequestDetails(ctx context.Context, __arg RequestDetailsArg) (res RequestDetails, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.requestDetails", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) CancelRequest(ctx context.Context, __arg CancelRequestArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.cancelRequest", []interface{}{__arg}, nil)
 	return
 }
 

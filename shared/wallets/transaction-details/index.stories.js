@@ -38,6 +38,8 @@ const load = () => {
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         onViewTransaction={action('onViewTransaction')}
         you="cjb"
+        status="completed"
+        statusDetail=""
       />
     ))
     .add('Sending to Stellar public key', () => (
@@ -53,6 +55,8 @@ const load = () => {
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         onViewTransaction={action('onViewTransaction')}
         you="cjb"
+        status="completed"
+        statusDetail=""
       />
     ))
     .add('Sending to Keybase user (pending)', () => (
@@ -69,6 +73,8 @@ const load = () => {
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         onViewTransaction={action('onViewTransaction')}
         you="cjb"
+        status="completed"
+        statusDetail=""
       />
     ))
     .add('Received from Keybase user', () => (
@@ -86,6 +92,8 @@ const load = () => {
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         onViewTransaction={action('onViewTransaction')}
         you="cjb"
+        status="completed"
+        statusDetail=""
       />
     ))
     .add('Received from Keybase user (pending)', () => (
@@ -100,6 +108,8 @@ const load = () => {
         memo={memo}
         timestamp={null}
         you="cjb"
+        status="pending"
+        statusDetail=""
       />
     ))
     .add('Received from another account', () => (
@@ -115,6 +125,8 @@ const load = () => {
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         onViewTransaction={action('onViewTransaction')}
         you="cjb"
+        status="completed"
+        statusDetail=""
       />
     ))
 }

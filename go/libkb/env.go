@@ -24,6 +24,7 @@ func (n NullConfiguration) GetHome() string                                     
 func (n NullConfiguration) GetServerURI() string                                           { return "" }
 func (n NullConfiguration) GetConfigFilename() string                                      { return "" }
 func (n NullConfiguration) GetUpdaterConfigFilename() string                               { return "" }
+func (n NullConfiguration) GetDeviceCloneStateFilename() string                            { return "" }
 func (n NullConfiguration) GetSessionFilename() string                                     { return "" }
 func (n NullConfiguration) GetDbFilename() string                                          { return "" }
 func (n NullConfiguration) GetChatDbFilename() string                                      { return "" }
@@ -484,6 +485,15 @@ func (e *Env) GetUpdaterConfigFilename() string {
 		func() string { return os.Getenv("KEYBASE_UPDATER_CONFIG_FILE") },
 		func() string { return e.GetConfig().GetUpdaterConfigFilename() },
 		func() string { return filepath.Join(e.GetConfigDir(), UpdaterConfigFile) },
+	)
+}
+
+func (e *Env) GetDeviceCloneStateFilename() string {
+	return e.GetString(
+		func() string { return e.cmd.GetDeviceCloneStateFilename() },
+		func() string { return os.Getenv("KEYBASE_DEVICE_CLONE_STATE_FILE") },
+		func() string { return e.GetConfig().GetDeviceCloneStateFilename() },
+		func() string { return filepath.Join(e.GetConfigDir(), DeviceCloneStateFile) },
 	)
 }
 
