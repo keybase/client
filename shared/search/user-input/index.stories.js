@@ -135,6 +135,15 @@ export const makeSelectorMap = (userItems: Array<UserDetails> = maxUsers) => ({
 
 const provider = createPropProvider(makeSelectorMap())
 
+const UserInputEditable = compose(
+  withStateHandlers(props => ({userItems: props.userItems, usernameText: ''}), {
+    onChangeText: () => usernameText => ({usernameText}),
+    onRemoveUser: ({userItems}) => (id: string) => ({
+      userItems: userItems.filter(i => i.id !== id),
+    }),
+  })
+)(UserInput)
+
 const load = () => {
   storiesOf('Search/UserInput', module)
     .addDecorator(provider)
@@ -196,18 +205,15 @@ const load = () => {
       </Box>
     ))
     .add('Editable', () => {
-      const UserInputEditable = compose(
-        withStateHandlers(props => ({userItems: props.userItems, usernameText: ''}), {
-          onChangeText: () => usernameText => ({usernameText}),
-          onRemoveUser: ({userItems}) => (id: string) => ({
-            userItems: userItems.filter(i => i.id !== id),
-          }),
-        })
-      )(UserInput)
-
       return (
         <Box>
           <UserInputEditable {...inputCommon} userItems={[]} />
+        </Box>
+      )
+    })
+    .add('Editable with items', () => {
+      return (
+        <Box>
           <UserInputEditable {...inputCommon} userItems={chrisUsers} />
         </Box>
       )
