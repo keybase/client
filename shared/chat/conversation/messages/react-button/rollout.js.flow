@@ -4,6 +4,8 @@ import * as React from 'react'
 export type Props = {
   attachTo: ?React.Component<any, any>,
   onAddReaction: (emoji: string) => void,
+  onMouseEnter?: (evt: Event) => void,
+  onMouseLeave?: (evt: Event) => void,
   visible: boolean,
 }
 

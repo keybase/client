@@ -53,11 +53,32 @@ type NewReactionButtonState = {
   rolledOut: boolean,
 }
 export class NewReactionButton extends React.Component<NewReactionButtonProps, NewReactionButtonState> {
-  state = {attachmentRef: null, rolledOut: true}
+  state = {attachmentRef: null, rolledOut: false}
+  /* If this or the rollout is being hovered, we are rolled out */
+  _hoveringButton = false
+  _hoveringRollout = false
+
+  _setHoveringButton = (hovering: boolean) => {
+    this._hoveringButton = hovering
+    this._handleRolledOut()
+  }
+
+  _setHoveringRollout = (hovering: boolean) => {
+    this._hoveringRollout = hovering
+    this._handleRolledOut()
+  }
+
+  _handleRolledOut = () => {
+    const nextRolledOut = this._hoveringButton || this._hoveringRollout
+    this.setState(s => (s.rolledOut === nextRolledOut ? null : {rolledOut: nextRolledOut}))
+  }
+
   render() {
     const ContainerComp = this.props.showBorder ? ButtonBox : ClickableBox
     return (
       <ContainerComp
+        onMouseEnter={() => this._setHoveringButton(true)}
+        onMouseLeave={() => this._setHoveringButton(false)}
         onClick={() => this.props.onAddReaction(':grinning_face_with_star_eyes:')}
         style={collapseStyles([styles.newReactionButtonBox, this.props.showBorder && styles.buttonBox])}
       >
@@ -72,6 +93,8 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
         <Rollout
           attachTo={this.state.attachmentRef}
           onAddReaction={this.props.onAddReaction}
+          onMouseEnter={() => this._setHoveringRollout(true)}
+          onMouseLeave={() => this._setHoveringRollout(false)}
           visible={this.state.rolledOut}
         />
       </ContainerComp>
