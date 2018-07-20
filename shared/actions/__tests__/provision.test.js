@@ -34,6 +34,7 @@ const makeInit = ({method, payload}) => {
 }
 
 const makeTypedState = (provisionState: Types.State): TypedState => ({provision: provisionState}: any)
+const noError = new HiddenString('')
 
 describe('provisioningManagerProvisioning', () => {
   const manager = _testing.makeProvisioningManager(false)
@@ -72,7 +73,6 @@ describe('provisioningManagerProvisioning', () => {
 
 describe('text code happy path', () => {
   const phrase = new HiddenString('incomingSecret')
-  const error = new HiddenString('')
   let init
   beforeEach(() => {
     init = makeInit({
@@ -86,7 +86,7 @@ describe('text code happy path', () => {
     expect(manager._stashedResponse).toEqual(response)
     expect(manager._stashedResponseKey).toEqual('keybase.1.provisionUi.DisplayAndPromptSecret')
     expect(nextState.provision.codePageTextCode).toEqual(phrase)
-    expect(nextState.provision.error).toEqual(error)
+    expect(nextState.provision.error).toEqual(noError)
   })
 
   it('shows the code page', () => {
@@ -151,11 +151,25 @@ describe('text code error path', () => {
     expect(response.result).not.toHaveBeenCalled()
     expect(response.error).not.toHaveBeenCalled()
   })
+
+  it('submit clears error and submits', () => {
+    const {response, state} = init
+    const reply = 'reply'
+    const submitAction = ProvisionGen.createSubmitTextCode({phrase: new HiddenString(reply)})
+    const submitState = makeTypedState(reducer(state, submitAction))
+    expect(submitState.provision.error).toEqual(noError)
+
+    _testing.submitTextCode(submitState)
+    expect(response.result).toHaveBeenCalledWith({code: null, phrase: reply})
+    expect(response.error).not.toHaveBeenCalled()
+
+    // only submit once
+    expect(() => _testing.submitTextCode(submitState)).toThrow()
+  })
 })
 
 describe('device name happy path', () => {
   const existingDevices = I.List(['dev1', 'dev2', 'dev3'])
-  const error = new HiddenString('')
   let init
   beforeEach(() => {
     init = makeInit({
@@ -167,7 +181,7 @@ describe('device name happy path', () => {
   it('init', () => {
     const {nextState} = init
     expect(nextState.provision.existingDevices).toEqual(existingDevices)
-    expect(nextState.provision.error).toEqual(error)
+    expect(nextState.provision.error).toEqual(noError)
   })
 
   it('shows device name page', () => {
@@ -251,7 +265,7 @@ describe('device name error path', () => {
     const name = 'new name'
     const submitAction = ProvisionGen.createSubmitDeviceName({name})
     const submitState = makeTypedState(reducer(nextState.provision, submitAction))
-    expect(submitState.provision.error).toEqual(new HiddenString(''))
+    expect(submitState.provision.error).toEqual(noError)
 
     _testing.submitDeviceName(submitState)
     expect(response.result).toHaveBeenCalledWith(name)
@@ -268,7 +282,6 @@ describe('other device happy path', () => {
   const backup = ({deviceID: '2', name: 'backup', type: 'backup'}: any)
   const rpcDevices = [mobile, desktop, backup]
   const devices = I.List(rpcDevices.map(Constants.rpcDeviceToDevice))
-  const error = new HiddenString('')
   let init
   beforeEach(() => {
     init = makeInit({
@@ -280,7 +293,7 @@ describe('other device happy path', () => {
   it('init', () => {
     const {nextState} = init
     expect(nextState.provision.devices).toEqual(devices)
-    expect(nextState.provision.error).toEqual(error)
+    expect(nextState.provision.error).toEqual(noError)
   })
 
   it('shows device page', () => {
@@ -369,7 +382,6 @@ describe('choose gpg happy path', () => {
 })
 
 describe('passphrase happy path', () => {
-  const error = new HiddenString('')
   let init
   beforeEach(() => {
     init = makeInit({
@@ -385,7 +397,7 @@ describe('passphrase happy path', () => {
 
   it('init', () => {
     const {nextState} = init
-    expect(nextState.provision.error).toEqual(error)
+    expect(nextState.provision.error).toEqual(noError)
   })
 
   it('shows password page', () => {
@@ -450,7 +462,7 @@ describe('passphrase error path', () => {
     const passphrase = new HiddenString('a passphrase')
     const submitAction = ProvisionGen.createSubmitPassphrase({passphrase})
     const submitState = makeTypedState(reducer(nextState.provision, submitAction))
-    expect(submitState.provision.error).toEqual(new HiddenString(''))
+    expect(submitState.provision.error).toEqual(noError)
 
     _testing.submitPassphraseOrPaperkey(submitState, submitAction)
     expect(response.result).toHaveBeenCalledWith({passphrase: passphrase.stringValue(), storeSecret: false})
