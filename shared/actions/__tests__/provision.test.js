@@ -14,10 +14,14 @@ import {_testing} from '../provision'
 import reducer from '../../reducers/provision'
 import {RPCError} from '../../util/errors'
 
+const noError = new HiddenString('')
+
+const provStateToTypedState = (provisionState: Types.State): TypedState => ({provision: provisionState}: any)
+const makeNextState = (state: TypedState, action) => provStateToTypedState(reducer(state.provision, action))
 const makeInit = ({method, payload}) => {
   const manager = _testing.makeProvisioningManager(false)
   const callMap = manager.getIncomingCallMap()
-  const state = makeTypedState(Constants.makeState())
+  const state = provStateToTypedState(Constants.makeState())
   const call = callMap[method]
   if (!call) {
     throw new Error('No call')
@@ -28,12 +32,9 @@ const makeInit = ({method, payload}) => {
     throw new Error('no put')
   }
   const action = put.PUT.action
-  const nextState = makeTypedState(reducer(state.provision, action))
+  const nextState = makeNextState(state, action)
   return {action, callMap, manager, nextState, response, state}
 }
-
-const makeTypedState = (provisionState: Types.State): TypedState => ({provision: provisionState}: any)
-const noError = new HiddenString('')
 
 describe('provisioningManagerProvisioning', () => {
   const manager = _testing.makeProvisioningManager(false)
@@ -109,7 +110,7 @@ describe('text code happy path', () => {
   it('submit text code', () => {
     const {response, nextState} = init
     const submitAction = ProvisionGen.createSubmitTextCode({phrase: outgoing})
-    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+    const submitState = makeNextState(nextState, submitAction)
 
     _testing.submitTextCode(submitState)
     expect(response.result).toHaveBeenCalledWith({code: null, phrase: outgoing.stringValue()})
@@ -160,7 +161,7 @@ describe('text code error path', () => {
     const {response, nextState} = init
     const reply = 'reply'
     const submitAction = ProvisionGen.createSubmitTextCode({phrase: new HiddenString(reply)})
-    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+    const submitState = makeNextState(nextState, submitAction)
     expect(submitState.provision.error).toEqual(noError)
 
     _testing.submitTextCode(submitState)
@@ -218,7 +219,7 @@ describe('device name happy path', () => {
     const {response, nextState} = init
     const name: string = (existingDevices.first(): any)
     const submitAction = ProvisionGen.createSubmitDeviceName({name})
-    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+    const submitState = makeNextState(nextState, submitAction)
     expect(submitState.provision.error.stringValue().indexOf('is already taken')).not.toEqual(-1)
     _testing.submitDeviceName(submitState)
     expect(response.result).not.toHaveBeenCalled()
@@ -229,7 +230,7 @@ describe('device name happy path', () => {
     const {response, nextState} = init
     const name = 'new name'
     const submitAction = ProvisionGen.createSubmitDeviceName({name})
-    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+    const submitState = makeNextState(nextState, submitAction)
 
     _testing.submitDeviceName(submitState)
     expect(response.result).toHaveBeenCalledWith(name)
@@ -280,7 +281,7 @@ describe('device name error path', () => {
     const {response, nextState} = init
     const name = 'new name'
     const submitAction = ProvisionGen.createSubmitDeviceName({name})
-    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+    const submitState = makeNextState(nextState, submitAction)
     expect(submitState.provision.error).toEqual(noError)
 
     _testing.submitDeviceName(submitState)
@@ -332,7 +333,7 @@ describe('other device happy path', () => {
   it('submit mobile', () => {
     const {response, nextState} = init
     const submitAction = ProvisionGen.createSubmitDeviceSelect({name: mobile.name})
-    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+    const submitState = makeNextState(nextState, submitAction)
     _testing.submitDeviceSelect(submitState)
     expect(response.result).toHaveBeenCalledWith(mobile.deviceID)
     expect(response.error).not.toHaveBeenCalled()
@@ -343,7 +344,7 @@ describe('other device happy path', () => {
   it('submit desktop', () => {
     const {response, nextState} = init
     const submitAction = ProvisionGen.createSubmitDeviceSelect({name: desktop.name})
-    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+    const submitState = makeNextState(nextState, submitAction)
     _testing.submitDeviceSelect(submitState)
     expect(response.result).toHaveBeenCalledWith(desktop.deviceID)
     expect(response.error).not.toHaveBeenCalled()
@@ -354,7 +355,7 @@ describe('other device happy path', () => {
   it('submit paperkey/backup', () => {
     const {response, nextState} = init
     const submitAction = ProvisionGen.createSubmitDeviceSelect({name: backup.name})
-    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+    const submitState = makeNextState(nextState, submitAction)
     _testing.submitDeviceSelect(submitState)
     expect(response.result).toHaveBeenCalledWith(backup.deviceID)
     expect(response.error).not.toHaveBeenCalled()
@@ -421,7 +422,7 @@ describe('choose gpg happy path', () => {
   it('submit export key', () => {
     const {response, nextState} = init
     const submitAction = ProvisionGen.createSubmitGPGMethod({exportKey: true})
-    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+    const submitState = makeNextState(nextState, submitAction)
     _testing.submitGPGMethod(submitState, submitAction)
     expect(response.result).toHaveBeenCalledWith(RPCTypes.provisionUiGPGMethod.gpgImport)
     expect(response.error).not.toHaveBeenCalled()
@@ -432,7 +433,7 @@ describe('choose gpg happy path', () => {
   it('submit sign key', () => {
     const {response, nextState} = init
     const submitAction = ProvisionGen.createSubmitGPGMethod({exportKey: false})
-    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+    const submitState = makeNextState(nextState, submitAction)
     _testing.submitGPGMethod(submitState, submitAction)
     expect(response.result).toHaveBeenCalledWith(RPCTypes.provisionUiGPGMethod.gpgSign)
     expect(response.error).not.toHaveBeenCalled()
@@ -476,7 +477,7 @@ describe('passphrase happy path', () => {
     const {response, nextState} = init
     const passphrase = new HiddenString('a passphrase')
     const submitAction = ProvisionGen.createSubmitPassphrase({passphrase})
-    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+    const submitState = makeNextState(nextState, submitAction)
 
     _testing.submitPassphraseOrPaperkey(submitState, submitAction)
     expect(response.result).toHaveBeenCalledWith({passphrase: passphrase.stringValue(), storeSecret: false})
@@ -521,7 +522,7 @@ describe('passphrase error path', () => {
     const {response, nextState} = init
     const passphrase = new HiddenString('a passphrase')
     const submitAction = ProvisionGen.createSubmitPassphrase({passphrase})
-    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+    const submitState = makeNextState(nextState, submitAction)
     expect(submitState.provision.error).toEqual(noError)
 
     _testing.submitPassphraseOrPaperkey(submitState, submitAction)
@@ -568,7 +569,7 @@ describe('paperkey happy path', () => {
     const {response, nextState} = init
     const paperkey = new HiddenString('one two three four five six seven eight')
     const submitAction = ProvisionGen.createSubmitPaperkey({paperkey})
-    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+    const submitState = makeNextState(nextState, submitAction)
 
     _testing.submitPassphraseOrPaperkey(submitState, submitAction)
     expect(response.result).toHaveBeenCalledWith({passphrase: paperkey.stringValue(), storeSecret: false})
@@ -613,7 +614,7 @@ describe('paperkey error path', () => {
     const {response, nextState} = init
     const paperkey = new HiddenString('eight seven six five four three two one')
     const submitAction = ProvisionGen.createSubmitPaperkey({paperkey})
-    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
+    const submitState = makeNextState(nextState, submitAction)
     expect(submitState.provision.error).toEqual(noError)
 
     _testing.submitPassphraseOrPaperkey(submitState, submitAction)
@@ -675,9 +676,9 @@ describe('canceling provision', () => {
 describe('final errors show', () => {
   it('shows the final error page', () => {
     const error = new RPCError('something bad happened', 1, [])
-    const state = Constants.makeState()
     const action = ProvisionGen.createShowFinalErrorPage({finalError: error})
-    const nextState = makeTypedState(reducer(state, action))
+    const state = provStateToTypedState(Constants.makeState())
+    const nextState = makeNextState(state, action)
 
     expect(nextState.provision.finalError).toBeTruthy()
 
