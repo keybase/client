@@ -4,6 +4,7 @@ import React from 'react'
 import {Box2} from '../../common-adapters'
 import {storiesOf, action} from '../../stories/storybook'
 import Header from './header'
+import SettingsPopup from './settings-popup'
 
 const defaultWalletMock = {
   isDefaultWallet: true,
@@ -27,6 +28,26 @@ const commonActions = {
   onShowSecretKey: action('onShowSecretKey'),
 }
 
+const defaultSettingsProps = {
+  name: 'awesome wallet',
+  user: 'testuser',
+  type: 'default',
+  currency: 'USD',
+  onDelete: () => {},
+  onSetDefault: () => {},
+  onEditName: () => {},
+}
+
+const secondarySettingsProps = {
+  name: 'some other wallet',
+  user: 'testuser',
+  type: 'secondary',
+  currency: 'XLM',
+  onDelete: () => {},
+  onSetDefault: () => {},
+  onEditName: () => {},
+}
+
 const provider = PropProviders.CommonProvider()
 
 const load = () => {
@@ -42,6 +63,8 @@ const load = () => {
         <Header {...commonActions} {...secondWalletMock} />
       </Box2>
     ))
+    .add('Settings, default', () => <SettingsPopup {...defaultSettingsProps} />)
+    .add('Settings, secondary', () => <SettingsPopup {...secondarySettingsProps} />)
 }
 
 const styleWidth = {width: 520}
