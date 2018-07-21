@@ -305,7 +305,7 @@ const BOOL isDebug = NO;
     }];
     // The service can tell us to end this task early, so if it does, then shutdown
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
-      const bool endTask = KeybaseAppBeginBackgroundTask();
+      const bool endTask = KeybaseAppBeginBackgroundTask([[PushNotifier alloc] init]);
       if (endTask && self.shutdownTask && self.shutdownTask != UIBackgroundTaskInvalid) {
         [app endBackgroundTask:self.shutdownTask];
         self.shutdownTask = UIBackgroundTaskInvalid;
