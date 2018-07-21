@@ -20,6 +20,7 @@ import (
 
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
+	"golang.org/x/sync/errgroup"
 
 	"strings"
 
@@ -391,18 +392,22 @@ func unboxNotification(ctx context.Context, strConvID, body string, intMembersTy
 	return msg, nil
 }
 
+func pushPendingMessageFailure(convID chat1.ConversationID, pusher PushNotifier) {
+	pusher.LocalNotification("failedpending",
+		"Failed to deliver pending messages. Open the Keybase app to retry.",
+		-1, "default", convID.String(), "chat.failedpending")
+}
+
 // AppWillExit is called reliably on iOS when the app is about to terminate
 // not as reliably on android
 func AppWillExit(pusher PushNotifier) {
 	defer kbCtx.Trace("AppWillExit", func() error { return nil })()
 	ctx := context.Background()
-	convs, err := kbCtx.ChatHelper.ActiveDeliveries(ctx)
+	convs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(ctx)
 	if err == nil && len(convs) > 0 {
 		// We are about to get killed with messages still to send, let the user know they will get
 		// stuck
-		pusher.LocalNotification("failedpending",
-			"Failed to deliver pending messages. Open the Keybase app to retry.",
-			-1, "default", convs[0].String(), "chat.failedpending")
+		pushPendingMessageFailure(convs[0], pusher)
 	}
 	kbCtx.AppState.Update(keybase1.AppState_BACKGROUND)
 }
@@ -412,7 +417,7 @@ func AppWillExit(pusher PushNotifier) {
 func AppDidEnterBackground() bool {
 	defer kbCtx.Trace("AppDidEnterBackground", func() error { return nil })()
 	ctx := context.Background()
-	convs, err := kbCtx.ChatHelper.ActiveDeliveries(ctx)
+	convs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(ctx)
 	if err != nil {
 		kbCtx.Log.Debug("AppDidEnterBackground: failed to get active deliveries: %s", err)
 		return false
@@ -427,7 +432,7 @@ func AppDidEnterBackground() bool {
 
 // AppBeginBackgroundTask notifies us that an [iOS] background task has been started on our behalf. This
 // function will return once we no longer need any time in the background.
-func AppBeginBackgroundTask() bool {
+func AppBeginBackgroundTask(pusher PushNotifier) (abort bool) {
 	defer kbCtx.Trace("AppDidEnterBackground", func() error { return nil })()
 	ctx := context.Background()
 	// Poll active deliveries in case we can shutdown early
@@ -438,29 +443,63 @@ func AppBeginBackgroundTask() bool {
 		kbCtx.Log.Debug("AppBeginBackgroundTask: not in background mode, early out")
 		return false
 	}
-	for {
+	var g *errgroup.Group
+	g, ctx = errgroup.WithContext(ctx)
+	g.Go(func() error {
 		select {
 		case appState = <-kbCtx.AppState.NextUpdate(&appState):
 			kbCtx.Log.Debug(
 				"AppBeginBackgroundTask: app state change, aborting with no task shutdown: %v", appState)
-			return false
-		case <-ticker.C:
-			convs, err := kbCtx.ChatHelper.ActiveDeliveries(ctx)
-			if err != nil {
-				kbCtx.Log.Debug("AppBeginBackgroundTask: failed to query active deliveries: %s", err)
-				continue
-			}
-			if len(convs) == 0 {
-				kbCtx.Log.Debug("AppBeginBackgroundTask: delivered everything, aborting early")
-				return true
-			}
-			curTime := libkb.ForceWallClock(time.Now())
-			if curTime.Sub(beginTime) >= 10*time.Minute {
-				kbCtx.Log.Debug("AppBeginBackgroundTask: failed to deliver and time is up, aborting")
-				return true
+			abort = true
+			return errors.New("app state change")
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	})
+	g.Go(func() error {
+		for {
+			ch, cancel := kbChatCtx.MessageDeliverer.NextFailure()
+			defer cancel()
+			select {
+			case obrs := <-ch:
+				kbCtx.Log.Debug(
+					"AppBeginBackgroundTask: failure received, alerting the user: %d marked", len(obrs))
+				pushPendingMessageFailure(obrs[0].ConvID, pusher)
+				cancel()
+			case <-ctx.Done():
+				return ctx.Err()
 			}
 		}
+	})
+	g.Go(func() error {
+		for {
+			select {
+			case <-ticker.C:
+				convs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(ctx)
+				if err != nil {
+					kbCtx.Log.Debug("AppBeginBackgroundTask: failed to query active deliveries: %s", err)
+					continue
+				}
+				if len(convs) == 0 {
+					kbCtx.Log.Debug("AppBeginBackgroundTask: delivered everything, aborting early")
+					abort = true
+					return errors.New("delivered everything")
+				}
+				curTime := libkb.ForceWallClock(time.Now())
+				if curTime.Sub(beginTime) >= 10*time.Minute {
+					kbCtx.Log.Debug("AppBeginBackgroundTask: failed to deliver and time is up, aborting")
+					abort = true
+					return errors.New("time expired")
+				}
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		}
+	})
+	if err := g.Wait(); err != nil {
+		kbCtx.Log.Debug("AppBeginBackgroundTask: dropped out of wait because: %s abort: %v", err, abort)
 	}
+	return abort
 }
 
 func startTrace(logFile string) {

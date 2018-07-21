@@ -785,7 +785,6 @@ type ChatHelper interface {
 	UnboxMobilePushNotification(ctx context.Context, uid gregor1.UID,
 		convID chat1.ConversationID, membersType chat1.ConversationMembersType, payload string) (string, error)
 	AckMobileNotificationSuccess(ctx context.Context, pushIDs []string)
-	ActiveDeliveries(ctx context.Context) ([]chat1.ConversationID, error)
 }
 
 // Resolver resolves human-readable usernames (joe) and user asssertions (joe+joe@github)

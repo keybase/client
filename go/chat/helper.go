@@ -1218,7 +1218,3 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 	mbox, _, _, _, topicNameState, err := sender.Prepare(ctx, msg, membersType, nil)
 	return mbox, topicNameState, err
 }
-
-func (h *Helper) ActiveDeliveries(ctx context.Context) ([]chat1.ConversationID, error) {
-	return h.G().MessageDeliverer.ActiveDeliveries(ctx)
-}
