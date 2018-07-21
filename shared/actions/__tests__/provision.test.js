@@ -10,27 +10,24 @@ import * as RouteTree from '../route-tree'
 import * as Saga from '../../util/saga'
 import HiddenString from '../../util/hidden-string'
 import type {TypedState} from '../../constants/reducer'
-import {_testing} from '../provision'
+import provisionSaga, {_testing} from '../provision'
 import {RPCError} from '../../util/errors'
 import {createStore, applyMiddleware, combineReducers} from 'redux'
-import provisionReducer from '../../reducers/provision'
-import configReducer from '../../reducers/config'
+// import provisionReducer from '../../reducers/provision'
+// import configReducer from '../../reducers/config'
+import rootReducer from '../../reducers'
 import createSagaMiddleware from 'redux-saga'
-import provisionSaga from '../../actions/provision'
-
+import loginRouteTree from '../../app/routes-login'
+import {getPath as getRoutePath} from '../../route-tree'
 // redux method todo
 // do full store . fix route tree
 // undo skips
 
-const reducer = provisionReducer
 const noError = new HiddenString('')
-
-const provStateToTypedState = (provisionState: Types.State): TypedState => ({provision: provisionState}: any)
-const makeNextState = (state: TypedState, action) => provStateToTypedState(reducer(state.provision, action))
 
 // Sets up redux and the provision manager. Starts by making an incoming call into the manager
 const makeInit = ({method, payload}) => {
-  const {dispatch, getState} = startReduxSaga()
+  const {dispatch, getState, getRoutePath} = startReduxSaga()
   const manager = _testing.makeProvisioningManager(false)
   const callMap = manager.getIncomingCallMap()
   const mockIncomingCall = callMap[method]
@@ -46,6 +43,7 @@ const makeInit = ({method, payload}) => {
   dispatch(put.PUT.action)
   return {
     dispatch,
+    getRoutePath,
     getState,
     manager,
     response,
@@ -58,12 +56,18 @@ const startReduxSaga = () => {
       throw e
     },
   })
-  const rootReducer = combineReducers({config: configReducer, provision: provisionReducer})
   const store = createStore(rootReducer, undefined, applyMiddleware(sagaMiddleware))
+  const getState = store.getState
+  const dispatch = store.dispatch
   sagaMiddleware.run(provisionSaga)
+
+  dispatch(RouteTree.switchRouteDef(loginRouteTree))
+  dispatch(RouteTree.navigateTo([Tabs.loginTab, 'login']))
+
   return {
-    dispatch: store.dispatch,
-    getState: (store.getState: any),
+    dispatch,
+    getRoutePath: () => getRoutePath(getState().routeTree.routeState, [Tabs.loginTab]),
+    getState,
   }
 }
 
@@ -121,12 +125,9 @@ describe('text code happy path', () => {
     expect(getState().provision.error).toEqual(noError)
   })
 
-  // TODO route tree stuff w/ new redux saga hooks
-  it.skip('navs to the code page', () => {
-    const {nextState} = init
-    expect(_testing.showCodePage(nextState)).toEqual(
-      Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.loginTab, 'login']))
-    )
+  it('navs to the code page', () => {
+    const {getRoutePath} = init
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login', 'codePage']))
   })
 
   it('submit text code empty throws', () => {
@@ -170,9 +171,9 @@ describe('text code error path', () => {
     expect(getState().provision.error).toEqual(error)
   })
 
-  it.skip("doesn't nav away", () => {
-    const {nextState} = init
-    expect(_testing.showCodePage(nextState)).toBeFalsy()
+  it("doesn't nav away", () => {
+    const {getRoutePath} = init
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login']))
   })
 
   it('submit clears error and submits', () => {
@@ -219,11 +220,9 @@ describe('device name happy path', () => {
     expect(getState().provision.error).toEqual(noError)
   })
 
-  it.skip('navs to device name page', () => {
-    const {nextState} = init
-    expect(_testing.showNewDeviceNamePage(nextState)).toEqual(
-      Saga.put(RouteTree.navigateAppend(['setPublicName'], [Tabs.loginTab, 'login']))
-    )
+  it('navs to device name page', () => {
+    const {getRoutePath} = init
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login', 'setPublicName']))
   })
 
   it("don't allow submit dupe", () => {
@@ -269,9 +268,9 @@ describe('device name error path', () => {
     expect(getState().provision.error).toEqual(error)
   })
 
-  it.skip("doesn't nav away", () => {
-    const {nextState} = init
-    expect(_testing.showNewDeviceNamePage(nextState)).toBeFalsy()
+  it("doesn't nav away", () => {
+    const {getRoutePath} = init
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login']))
   })
 
   it('update name and submit clears error and submits', () => {
@@ -309,11 +308,9 @@ describe('other device happy path', () => {
     expect(getState().provision.error).toEqual(noError)
   })
 
-  it.skip('navs to device page', () => {
-    const {nextState} = init
-    expect(_testing.showDeviceListPage(nextState)).toEqual(
-      Saga.put(RouteTree.navigateAppend(['selectOtherDevice'], [Tabs.loginTab, 'login']))
-    )
+  it('navs to device page', () => {
+    const {getRoutePath} = init
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login', 'selectOtherDevice']))
   })
 
   it('submit mobile', () => {
@@ -404,11 +401,9 @@ describe('choose gpg happy path', () => {
     expect(getState().provision.error.stringValue()).toEqual('')
   })
 
-  it.skip('navs to the gpg page', () => {
-    const {nextState} = init
-    expect(_testing.showGPGPage(nextState)).toEqual(
-      Saga.put(RouteTree.navigateAppend(['gpgSign'], [Tabs.loginTab, 'login']))
-    )
+  it('navs to the gpg page', () => {
+    const {getRoutePath} = init
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login', 'gpgSign']))
   })
 
   it('no submit on error', () => {
@@ -464,11 +459,9 @@ describe('passphrase happy path', () => {
     expect(getState().provision.error).toEqual(noError)
   })
 
-  it.skip('navs to password page', () => {
-    const {nextState} = init
-    expect(_testing.showPassphrasePage(nextState)).toEqual(
-      Saga.put(RouteTree.navigateAppend(['passphrase'], [Tabs.loginTab, 'login']))
-    )
+  it('navs to password page', () => {
+    const {getRoutePath} = init
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login', 'passphrase']))
   })
 
   it('submit', () => {
@@ -505,9 +498,9 @@ describe('passphrase error path', () => {
     expect(getState().provision.error).toEqual(error)
   })
 
-  it.skip("doesn't nav away", () => {
-    const {nextState} = init
-    expect(_testing.showPassphrasePage(nextState)).toBeFalsy()
+  it("doesn't nav away", () => {
+    const {getRoutePath} = init
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login']))
   })
 
   it('submit clears error and submits', () => {
@@ -544,11 +537,9 @@ describe('paperkey happy path', () => {
     expect(getState().provision.error).toEqual(noError)
   })
 
-  it.skip('navs to paperkey page', () => {
-    const {nextState} = init
-    expect(_testing.showPaperkeyPage(nextState)).toEqual(
-      Saga.put(RouteTree.navigateAppend(['paperkey'], [Tabs.loginTab, 'login']))
-    )
+  it('navs to paperkey page', () => {
+    const {getRoutePath} = init
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login', 'paperkey']))
   })
 
   it('submit', () => {
@@ -585,9 +576,9 @@ describe('paperkey error path', () => {
     expect(getState().provision.error).toEqual(error)
   })
 
-  it.skip("doesn't nav away", () => {
-    const {getState} = init
-    expect(_testing.showPaperkeyPage(getState())).toBeFalsy()
+  it("doesn't nav away", () => {
+    const {getRoutePath} = init
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login']))
   })
 
   it('submit clears error and submits', () => {
@@ -654,15 +645,11 @@ describe('canceling provision', () => {
 
 describe('final errors show', () => {
   it('shows the final error page', () => {
-    const {getState, dispatch} = startReduxSaga()
+    const {getState, dispatch, getRoutePath} = startReduxSaga()
     const error = new RPCError('something bad happened', 1, [])
     dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error}))
     expect(getState().provision.finalError).toBeTruthy()
-
-    // TODO
-    // expect(_testing.showFinalErrorPage(nextState)).toEqual(
-    // Saga.put(RouteTree.navigateAppend(['error'], [Tabs.loginTab, 'login']))
-    // )
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login', 'error']))
   })
 })
 
