@@ -1,33 +1,25 @@
 // @flow
 /* eslint-env jest */
 import * as I from 'immutable'
-import * as Types from '../../constants/types/provision'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/provision'
 import * as Tabs from '../../constants/tabs'
 import * as ProvisionGen from '../provision-gen'
 import * as RouteTree from '../route-tree'
-import * as Saga from '../../util/saga'
 import HiddenString from '../../util/hidden-string'
-import type {TypedState} from '../../constants/reducer'
 import provisionSaga, {_testing} from '../provision'
 import {RPCError} from '../../util/errors'
-import {createStore, applyMiddleware, combineReducers} from 'redux'
-// import provisionReducer from '../../reducers/provision'
-// import configReducer from '../../reducers/config'
+import {createStore, applyMiddleware} from 'redux'
 import rootReducer from '../../reducers'
 import createSagaMiddleware from 'redux-saga'
 import loginRouteTree from '../../app/routes-login'
 import {getPath as getRoutePath} from '../../route-tree'
-// redux method todo
-// do full store . fix route tree
-// undo skips
 
 const noError = new HiddenString('')
 
 // Sets up redux and the provision manager. Starts by making an incoming call into the manager
-const makeInit = ({method, payload}) => {
-  const {dispatch, getState, getRoutePath} = startReduxSaga()
+const makeInit = ({method, payload, initialStore}) => {
+  const {dispatch, getState, getRoutePath} = startReduxSaga(initialStore)
   const manager = _testing.makeProvisioningManager(false)
   const callMap = manager.getIncomingCallMap()
   const mockIncomingCall = callMap[method]
@@ -36,11 +28,9 @@ const makeInit = ({method, payload}) => {
   }
   const response = {error: jest.fn(), result: jest.fn()}
   const put: any = mockIncomingCall((payload: any), (response: any), getState())
-  // We also put an action on an incoming call
-  if (!put || !put.PUT) {
-    throw new Error('no put')
+  if (put && put.PUT && put.PUT.action) {
+    dispatch(put.PUT.action)
   }
-  dispatch(put.PUT.action)
   return {
     dispatch,
     getRoutePath,
@@ -50,13 +40,13 @@ const makeInit = ({method, payload}) => {
   }
 }
 
-const startReduxSaga = () => {
+const startReduxSaga = (initialStore = undefined) => {
   const sagaMiddleware = createSagaMiddleware({
     onError: e => {
       throw e
     },
   })
-  const store = createStore(rootReducer, undefined, applyMiddleware(sagaMiddleware))
+  const store = createStore(rootReducer, initialStore, applyMiddleware(sagaMiddleware))
   const getState = store.getState
   const dispatch = store.dispatch
   sagaMiddleware.run(provisionSaga)
@@ -598,41 +588,15 @@ describe('paperkey error path', () => {
 
 describe('canceling provision', () => {
   it('ignores other paths', () => {
-    const manager = _testing.makeProvisioningManager(false)
-    const state: any = {
-      routeTree: {
-        routeState: {
-          selected: Tabs.chatTab,
-        },
-      },
-    }
-    const response = {error: jest.fn(), result: jest.fn()}
-
-    // start the process so we get something stashed
-    manager._stashResponse('keybase.1.gpgUi.selectKey', response)
-
-    _testing.maybeCancelProvision(state)
-    expect(response.result).not.toHaveBeenCalled()
-    expect(response.error).not.toHaveBeenCalled()
-    expect(manager._stashedResponse).not.toEqual(null)
-    expect(manager._stashedResponseKey).not.toEqual(null)
+    // you can't be on other paths in the login tab space
   })
 
   it('cancels', () => {
-    const manager = _testing.makeProvisioningManager(false)
-    const state: any = {
-      routeTree: {
-        routeState: {
-          selected: Tabs.loginTab,
-        },
-      },
-    }
-    const response = {error: jest.fn(), result: jest.fn()}
-
-    // start the process so we get something stashed
-    manager._stashResponse('keybase.1.gpgUi.selectKey', response)
-
-    _testing.maybeCancelProvision(state)
+    const {dispatch, response, manager} = makeInit({
+      method: 'keybase.1.provisionUi.DisplayAndPromptSecret',
+      payload: {phrase: 'aaa'},
+    })
+    dispatch(RouteTree.navigateUp())
     expect(response.result).not.toHaveBeenCalled()
     expect(response.error).toHaveBeenCalledWith({
       code: RPCTypes.constantsStatusCode.scgeneric,

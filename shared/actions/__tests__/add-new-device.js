@@ -1,42 +1,64 @@
 // @flow
 /* eslint-env jest */
-import * as Types from '../../constants/types/provision'
+import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/provision'
 import * as Tabs from '../../constants/tabs'
 import * as ProvisionGen from '../provision-gen'
 import * as RouteTree from '../route-tree'
-import * as Saga from '../../util/saga'
 import HiddenString from '../../util/hidden-string'
-import type {TypedState} from '../../constants/reducer'
-import {_testing} from '../provision'
-import reducer from '../../reducers/provision'
+import provisionSaga, {_testing} from '../provision'
+import {createStore, applyMiddleware} from 'redux'
+import rootReducer from '../../reducers'
+import createSagaMiddleware from 'redux-saga'
+import appRouteTree from '../../app/routes-app'
+import {getPath as getRoutePath} from '../../route-tree'
 
-jest.unmock('immutable')
+const noError = new HiddenString('')
 
-const makeInit = (p: {method: string, payload: any, state?: Types.State}) => {
+// Sets up redux and the provision manager. Starts by making an incoming call into the manager
+const makeInit = ({method, payload, initialStore}) => {
+  const {dispatch, getState, getRoutePath} = startReduxSaga(initialStore)
   const manager = _testing.makeProvisioningManager(true)
   const callMap = manager.getIncomingCallMap()
-  const call = callMap[p.method]
-  if (!call) {
+  const mockIncomingCall = callMap[method]
+  if (!mockIncomingCall) {
     throw new Error('No call')
   }
-  const state = p.state || Constants.makeState()
-  const response: any = {error: jest.fn(), result: jest.fn()}
-  const put: any = call(p.payload, response, makeTypedState(state))
-  if (!put) {
-    return {action: null, callMap, manager, nextState: makeTypedState(state), response, state}
+  const response = {error: jest.fn(), result: jest.fn()}
+  const put: any = mockIncomingCall((payload: any), (response: any), getState())
+  if (put && put.PUT && put.PUT.action) {
+    dispatch(put.PUT.action)
   }
-  if (!put || !put.PUT) {
-    throw new Error('no put')
+  return {
+    dispatch,
+    getRoutePath,
+    getState,
+    manager,
+    response,
   }
-  const action = put.PUT.action
-  const nextState = makeTypedState(reducer(state, action))
-  return {action, callMap, manager, nextState, response, state}
 }
 
-const makeTypedState = (provisionState: Types.State): TypedState => ({provision: provisionState}: any)
-const noError = new HiddenString('')
+const startReduxSaga = (initialStore = undefined) => {
+  const sagaMiddleware = createSagaMiddleware({
+    onError: e => {
+      throw e
+    },
+  })
+  const store = createStore(rootReducer, initialStore, applyMiddleware(sagaMiddleware))
+  const getState = store.getState
+  const dispatch = store.dispatch
+  sagaMiddleware.run(provisionSaga)
+
+  dispatch(RouteTree.switchRouteDef(appRouteTree))
+  dispatch(RouteTree.navigateTo([Tabs.devicesTab], null))
+
+  return {
+    dispatch,
+    getRoutePath: () => getRoutePath(getState().routeTree.routeState, [Tabs.devicesTab]),
+    getState,
+  }
+}
 
 describe('provisioningManagerAddingDevice', () => {
   const manager = _testing.makeProvisioningManager(true)
@@ -59,47 +81,48 @@ describe('provisioningManagerAddingDevice', () => {
 })
 
 describe('text code happy path', () => {
-  const phrase = new HiddenString('incomingSecret')
+  const incoming = new HiddenString('incomingSecret')
+  const outgoing = new HiddenString('outgoingSecret')
   let init
   beforeEach(() => {
     init = makeInit({
       method: 'keybase.1.provisionUi.DisplayAndPromptSecret',
-      payload: {phrase: phrase.stringValue()},
+      payload: {phrase: incoming.stringValue()},
     })
   })
 
   it('init', () => {
-    const {manager, response, nextState} = init
+    const {manager, response, getState} = init
     expect(manager._stashedResponse).toEqual(response)
     expect(manager._stashedResponseKey).toEqual('keybase.1.provisionUi.DisplayAndPromptSecret')
-    expect(nextState.provision.codePageIncomingTextCode).toEqual(phrase)
-    expect(nextState.provision.error).toEqual(noError)
-  })
-
-  it('shows the code page', () => {
-    const {action} = init
-    expect(action).toEqual(ProvisionGen.createShowCodePage({code: phrase, error: null}))
+    expect(getState().provision.codePageIncomingTextCode).toEqual(incoming)
+    expect(getState().provision.error).toEqual(noError)
   })
 
   it('navs to the code page', () => {
-    const {nextState} = init
-    expect(_testing.showCodePage(nextState)).toEqual(
-      Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.devicesTab]))
-    )
+    const {getRoutePath} = init
+    expect(getRoutePath()).toEqual(I.List([Tabs.devicesTab, 'codePage']))
+  })
+
+  it('submit text code empty throws', () => {
+    const {dispatch, response} = init
+    dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString('')}))
+    expect(response.result).not.toHaveBeenCalled()
+    expect(response.error).toHaveBeenCalled()
   })
 
   it('submit text code', () => {
-    const {response, state} = init
-    const reply = 'reply'
-    const submitAction = ProvisionGen.createSubmitTextCode({phrase: new HiddenString(reply)})
-    const submitState = makeTypedState(reducer(state, submitAction))
-
-    _testing.submitTextCode(submitState)
-    expect(response.result).toHaveBeenCalledWith({code: null, phrase: reply})
+    const {response, dispatch, getState} = init
+    dispatch(ProvisionGen.createSubmitTextCode({phrase: outgoing}))
+    expect(response.result).toHaveBeenCalledWith({code: null, phrase: outgoing.stringValue()})
     expect(response.error).not.toHaveBeenCalled()
+    expect(getState().provision.codePageOutgoingTextCode).toEqual(outgoing)
+    expect(getState().provision.error).toEqual(noError)
+    expect(getState().config.globalError).toEqual(null)
 
     // only submit once
-    expect(() => _testing.submitTextCode(submitState)).toThrow()
+    dispatch(ProvisionGen.createSubmitTextCode({phrase: outgoing}))
+    expect(getState().config.globalError).not.toEqual(null)
   })
 })
 
@@ -115,56 +138,45 @@ describe('text code error path', () => {
   })
 
   it('init', () => {
-    const {manager, response, nextState} = init
+    const {manager, response, getState} = init
     expect(manager._stashedResponse).toEqual(response)
     expect(manager._stashedResponseKey).toEqual('keybase.1.provisionUi.DisplayAndPromptSecret')
-    expect(nextState.provision.codePageIncomingTextCode).toEqual(phrase)
-    expect(nextState.provision.error).toEqual(error)
-  })
-
-  it('shows the code page', () => {
-    const {action} = init
-    expect(action).toEqual(ProvisionGen.createShowCodePage({code: phrase, error}))
+    expect(getState().provision.codePageIncomingTextCode).toEqual(phrase)
+    expect(getState().provision.error).toEqual(error)
   })
 
   it("doesn't nav away", () => {
-    const {nextState} = init
-    expect(_testing.showCodePage(nextState)).toBeFalsy()
-  })
-
-  it("won't let submit on error", () => {
-    const {response, nextState} = init
-    expect(_testing.submitTextCode(nextState)).toBeFalsy()
-    expect(response.result).not.toHaveBeenCalled()
-    expect(response.error).not.toHaveBeenCalled()
+    const {getRoutePath} = init
+    expect(getRoutePath()).toEqual(I.List([Tabs.devicesTab]))
   })
 
   it('submit clears error and submits', () => {
-    const {response, state} = init
-    const reply = 'reply'
-    const submitAction = ProvisionGen.createSubmitTextCode({phrase: new HiddenString(reply)})
-    const submitState = makeTypedState(reducer(state, submitAction))
-    expect(submitState.provision.error).toEqual(noError)
+    const {response, getState, dispatch} = init
+    const reply = new HiddenString('reply')
+    dispatch(ProvisionGen.createSubmitTextCode({phrase: reply}))
+    expect(getState().provision.error).toEqual(noError)
 
-    _testing.submitTextCode(submitState)
-    expect(response.result).toHaveBeenCalledWith({code: null, phrase: reply})
+    expect(response.result).toHaveBeenCalledWith({code: null, phrase: reply.stringValue()})
     expect(response.error).not.toHaveBeenCalled()
+    expect(getState().config.globalError).toEqual(null)
 
     // only submit once
-    expect(() => _testing.submitTextCode(submitState)).toThrow()
+    dispatch(ProvisionGen.createSubmitTextCode({phrase: reply}))
+    expect(getState().config.globalError).not.toEqual(null)
   })
 })
 
 describe('reply with device type', () => {
-  // a little different as we automatically respond so no typical makeInit call
+  // a little different as we automatically respond
   it('init with mobile', () => {
-    const state = Constants.makeState()
-    const action = ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'})
-    const nextState = reducer(state, action)
     const {manager, response} = makeInit({
+      initialStore: {
+        provision: Constants.makeState({
+          codePageOtherDeviceType: 'mobile',
+        }),
+      },
       method: 'keybase.1.provisionUi.chooseDeviceType',
       payload: {},
-      state: nextState,
     })
     // we don't stash we reply immediately
     expect(manager._stashedResponse).toEqual(null)
@@ -174,13 +186,14 @@ describe('reply with device type', () => {
   })
 
   it('init with desktop', () => {
-    const state = Constants.makeState()
-    const action = ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'})
-    const nextState = reducer(state, action)
     const {manager, response} = makeInit({
+      initialStore: {
+        provision: Constants.makeState({
+          codePageOtherDeviceType: 'desktop',
+        }),
+      },
       method: 'keybase.1.provisionUi.chooseDeviceType',
       payload: {},
-      state: nextState,
     })
     // we don't stash we reply immediately
     expect(manager._stashedResponse).toEqual(null)
@@ -190,12 +203,16 @@ describe('reply with device type', () => {
   })
 
   it('error with anything else', () => {
-    const state = Constants.makeState()
-    // $FlowIssue flow is correct, we don't allow this
-    const action = ProvisionGen.createAddNewDevice({otherDeviceType: 'backup'})
-    const nextState = reducer(state, action)
     expect(() =>
-      makeInit({method: 'keybase.1.provisionUi.chooseDeviceType', payload: {}, state: nextState})
+      makeInit({
+        initialStore: {
+          provision: Constants.makeState({
+            codePageOtherDeviceType: 'backup',
+          }),
+        },
+        method: 'keybase.1.provisionUi.chooseDeviceType',
+        payload: {},
+      })
     ).toThrow()
   })
 })
