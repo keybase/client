@@ -427,18 +427,6 @@ export const _testing = {
     return theProvisioningManager
   },
   maybeCancelProvision,
-  // showCodePage,
-  // showDeviceListPage,
-  // showFinalErrorPage,
-  // showGPGPage,
-  // showNewDeviceNamePage,
-  // showPaperkeyPage,
-  // showPassphrasePage,
-  // submitDeviceName,
-  // submitDeviceSelect,
-  // submitGPGMethod,
-  // submitPassphraseOrPaperkey,
-  // submitTextCode,
 }
 
 export default provisionSaga
