@@ -419,6 +419,17 @@ describe('choose gpg happy path', () => {
     )
   })
 
+  it('no submit on error', () => {
+    const {response, nextState} = init
+    // shouldn't really be possible, but inject an error
+    const errorAction = ProvisionGen.createShowPaperkeyPage({error: new HiddenString('something')})
+    const submitAction = ProvisionGen.createSubmitGPGMethod({exportKey: true})
+    const errorState = makeNextState(nextState, errorAction)
+    _testing.submitGPGMethod(errorState, submitAction)
+    expect(response.result).not.toHaveBeenCalled()
+    expect(response.error).not.toHaveBeenCalled()
+  })
+
   it('submit export key', () => {
     const {response, nextState} = init
     const submitAction = ProvisionGen.createSubmitGPGMethod({exportKey: true})
