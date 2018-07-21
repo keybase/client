@@ -5,29 +5,18 @@ import (
 	"testing"
 	"time"
 
+	clockwork "github.com/keybase/clockwork"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
-type resolveTestClock struct {
-	now time.Time
-}
-
-func newResolveTestClock() *resolveTestClock {
-	return &resolveTestClock{now: time.Now()}
-}
-
-func newTestResolverCache(g *libkb.GlobalContext) (*libkb.Resolver, *resolveTestClock) {
-	clock := newResolveTestClock()
-	res := libkb.NewResolver(g)
+func newTestResolverCache(g *libkb.GlobalContext) (*libkb.ResolverImpl, clockwork.FakeClock){
+	clock := clockwork.NewFakeClockAt(time.Now())
+	g.SetClock(clock)
+	res := libkb.NewResolverImpl(g)
 	res.EnableCaching()
-	res.NowFunc = func() time.Time { return clock.now }
 	return res, clock
-}
-
-func (r *resolveTestClock) tick(d time.Duration) {
-	r.now = r.now.Add(d)
 }
 
 var tracyUID = keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
@@ -58,7 +47,7 @@ func TestResolveSimple(t *testing.T) {
 	if !r.Stats.Eq(1, 0, 0, 0, 1) {
 		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
 	}
-	clock.tick(libkb.ResolveCacheMaxAge * 10)
+	clock.Advance(libkb.ResolveCacheMaxAge * 10)
 	goodResolve("t_tracy@keybase")
 	if !r.Stats.Eq(1, 1, 0, 0, 1) {
 		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
@@ -67,12 +56,12 @@ func TestResolveSimple(t *testing.T) {
 	if !r.Stats.Eq(2, 1, 0, 0, 1) {
 		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
 	}
-	clock.tick(libkb.ResolveCacheMaxAgeMutable / 2)
+	clock.Advance(libkb.ResolveCacheMaxAgeMutable / 2)
 	goodResolve("t_tracy@rooter")
 	if !r.Stats.Eq(2, 1, 0, 0, 2) {
 		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
 	}
-	clock.tick(libkb.ResolveCacheMaxAgeMutable * 2)
+	clock.Advance(libkb.ResolveCacheMaxAgeMutable * 2)
 	goodResolve("t_tracy@rooter")
 	if !r.Stats.Eq(2, 1, 1, 0, 2) {
 		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
@@ -110,7 +99,7 @@ func TestResolveNeedUsername(t *testing.T) {
 	if !r.Stats.Eq(1, 0, 0, 0, 1) {
 		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
 	}
-	clock.tick(libkb.ResolveCacheMaxAge * 10)
+	clock.Advance(libkb.ResolveCacheMaxAge * 10)
 	goodResolve("t_tracy")
 	if !r.Stats.EqWithDiskHits(1, 1, 0, 0, 1, 1) {
 		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
@@ -125,7 +114,7 @@ func TestResolveNeedUsername(t *testing.T) {
 		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
 	}
 
-	clock.tick(libkb.ResolveCacheMaxAge * 10)
+	clock.Advance(libkb.ResolveCacheMaxAge * 10)
 
 	// At this point, the uid resolution is out of memory cache,
 	// and we don't write it to disk. So we're going to totally miss

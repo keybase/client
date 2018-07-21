@@ -786,3 +786,14 @@ type ChatHelper interface {
 		convID chat1.ConversationID, membersType chat1.ConversationMembersType, payload string) (string, error)
 	AckMobileNotificationSuccess(ctx context.Context, pushIDs []string)
 }
+
+type Resolver interface {
+	EnableCaching()
+	Shutdown()
+	ResolveFullExpression(ctx context.Context, input string) (res ResolveResult)
+	ResolveFullExpressionNeedUsername(ctx context.Context, input string) (res ResolveResult)
+	ResolveFullExpressionWithBody(ctx context.Context, input string) (res ResolveResult)
+	ResolveUser(ctx context.Context, assertion string) (u keybase1.User, res ResolveResult, err error)
+	ResolveWithBody(input string) ResolveResult
+	Resolve(input string) ResolveResult
+}

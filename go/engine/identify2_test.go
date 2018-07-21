@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	context "golang.org/x/net/context"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -1075,24 +1076,52 @@ func TestSkipExternalChecks(t *testing.T) {
 	require.Error(t, err)
 }
 
+type evilResolver struct {
+	*libkb.ResolverImpl
+	badPrefix string
+	badUID keybase1.UID
+}
+
+func (e *evilResolver) ResolveFullExpressionWithBody(ctx context.Context, s string) (libkb.ResolveResult) {
+	ret := e.ResolverImpl.ResolveFullExpressionWithBody(ctx, s)
+	if strings.HasPrefix(s, e.badPrefix) {
+		ret.SetUID(e.badUID)
+	}
+	return ret
+}
+
+var _ libkb.Resolver = (*evilResolver)(nil)
+
+
 func TestResolveAndCheck(t *testing.T) {
 	tc := SetupEngineTest(t, "id")
 	defer tc.Cleanup()
 	m := NewMetaContextForTest(tc)
+	goodResolver := tc.G.Resolver.(*libkb.ResolverImpl)
+	evilResolver := evilResolver{ goodResolver, "t_alice", tracyUID }
 
 	var tests = []struct {
 		s string
-		e interface{}
+		e error
+		r libkb.Resolver
 	}{
-		{"tacovontaco@twitter+t_tracy@rooter", nil},
-		{"tacovontaco@twitter+t_tracy@rooter+t_tracy", nil},
-		{"t_tracy", nil},
-		{"tacovontaco@twitter+t_tracy@rooter+foobunny@github", libkb.UnmetAssertionError{}},
-		{"foobunny@github", libkb.ResolutionError{}},
-		{"foobunny", libkb.NotFoundError{}},
-		{"foobunny+foobunny@github", libkb.NotFoundError{}},
+		{"tacovontaco@twitter+t_tracy@rooter", nil, nil},
+		{"tacovontaco@twitter+t_tracy@rooter+t_tracy", nil, nil},
+		{"t_tracy", nil, nil},
+		{"t_tracy+"+string(tracyUID)+"@uid", nil, nil },
+		{"tacovontaco@twitter+t_tracy@rooter+foobunny@github", libkb.UnmetAssertionError{}, nil},
+		{"foobunny@github", libkb.ResolutionError{}, nil},
+		{"foobunny", libkb.NotFoundError{}, nil},
+		{"foobunny+foobunny@github", libkb.NotFoundError{}, nil},
+		{"t_alice", libkb.UIDMismatchError{}, &evilResolver },
+		{"t_alice+t_tracy@rooter", libkb.UnmetAssertionError{}, &evilResolver },
+		{"t_alice+"+string(aliceUID)+"@uid", libkb.UnmetAssertionError{}, &evilResolver },
 	}
 	for _, test := range tests {
+		tc.G.Resolver = goodResolver
+		if test.r != nil {
+			tc.G.Resolver = test.r
+		}
 		upk, err := ResolveAndCheck(m, test.s)
 		require.IsType(t, test.e, err)
 		if err == nil {

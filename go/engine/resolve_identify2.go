@@ -85,6 +85,7 @@ func (e *ResolveThenIdentify2) resolveUID(m libkb.MetaContext) (err error) {
 	}
 	e.arg.Uid = rres.GetUID()
 	if rres.WasKBAssertion() && !e.arg.NeedProofSet {
+		m.CDebugf("Assertion was 'KB' and we don't need proofset: %s", e.arg.UserAssertion)
 		// the resolve assertion was a keybase username or UID, so remove it
 		// from identify2 arg to allow cache hits on UID.
 		e.arg.UserAssertion = ""
