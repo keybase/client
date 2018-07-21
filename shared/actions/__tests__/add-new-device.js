@@ -72,7 +72,7 @@ describe('text code happy path', () => {
     const {manager, response, nextState} = init
     expect(manager._stashedResponse).toEqual(response)
     expect(manager._stashedResponseKey).toEqual('keybase.1.provisionUi.DisplayAndPromptSecret')
-    expect(nextState.provision.codePageTextCode).toEqual(phrase)
+    expect(nextState.provision.codePageIncomingTextCode).toEqual(phrase)
     expect(nextState.provision.error).toEqual(noError)
   })
 
@@ -118,7 +118,7 @@ describe('text code error path', () => {
     const {manager, response, nextState} = init
     expect(manager._stashedResponse).toEqual(response)
     expect(manager._stashedResponseKey).toEqual('keybase.1.provisionUi.DisplayAndPromptSecret')
-    expect(nextState.provision.codePageTextCode).toEqual(phrase)
+    expect(nextState.provision.codePageIncomingTextCode).toEqual(phrase)
     expect(nextState.provision.error).toEqual(error)
   })
 

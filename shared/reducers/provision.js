@@ -49,7 +49,7 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
       })
     case ProvisionGen.submitTextCode:
       return state.merge({
-        codePageTextCode: action.payload.phrase,
+        codePageOutgoingTextCode: action.payload.phrase,
         error: initialState.error,
       })
     case ProvisionGen.submitDeviceName:
@@ -69,7 +69,7 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
       })
     case ProvisionGen.showCodePage:
       return state.merge({
-        codePageTextCode: action.payload.code,
+        codePageIncomingTextCode: action.payload.code,
         error: action.payload.error || initialState.error,
       })
     case ProvisionGen.submitUsernameOrEmail:

@@ -172,12 +172,12 @@ class ProvisioningManager {
       throw new Error('Tried to submit a code but missing callback')
     }
 
-    if (!state.provision.codePageTextCode.stringValue()) {
+    if (!state.provision.codePageOutgoingTextCode.stringValue()) {
       response.error()
       throw new Error('Tried to submit a code but missing in store')
     }
 
-    response.result({code: null, phrase: state.provision.codePageTextCode.stringValue()})
+    response.result({code: null, phrase: state.provision.codePageOutgoingTextCode.stringValue()})
   }
 
   // Trying to use gpg flow

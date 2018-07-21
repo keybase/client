@@ -14,23 +14,21 @@ import {_testing} from '../provision'
 import reducer from '../../reducers/provision'
 import {RPCError} from '../../util/errors'
 
-jest.unmock('immutable')
-
 const makeInit = ({method, payload}) => {
   const manager = _testing.makeProvisioningManager(false)
   const callMap = manager.getIncomingCallMap()
-  const state = Constants.makeState()
+  const state = makeTypedState(Constants.makeState())
   const call = callMap[method]
   if (!call) {
     throw new Error('No call')
   }
   const response = {error: jest.fn(), result: jest.fn()}
-  const put: any = call((payload: any), (response: any), makeTypedState(state))
+  const put: any = call((payload: any), (response: any), state)
   if (!put || !put.PUT) {
     throw new Error('no put')
   }
   const action = put.PUT.action
-  const nextState = makeTypedState(reducer(state, action))
+  const nextState = makeTypedState(reducer(state.provision, action))
   return {action, callMap, manager, nextState, response, state}
 }
 
@@ -73,12 +71,13 @@ describe('provisioningManagerProvisioning', () => {
 })
 
 describe('text code happy path', () => {
-  const phrase = new HiddenString('incomingSecret')
+  const incoming = new HiddenString('incomingSecret')
+  const outgoing = new HiddenString('incomingSecret')
   let init
   beforeEach(() => {
     init = makeInit({
       method: 'keybase.1.provisionUi.DisplayAndPromptSecret',
-      payload: {phrase: phrase.stringValue()},
+      payload: {phrase: incoming.stringValue()},
     })
   })
 
@@ -86,13 +85,13 @@ describe('text code happy path', () => {
     const {manager, response, nextState} = init
     expect(manager._stashedResponse).toEqual(response)
     expect(manager._stashedResponseKey).toEqual('keybase.1.provisionUi.DisplayAndPromptSecret')
-    expect(nextState.provision.codePageTextCode).toEqual(phrase)
+    expect(nextState.provision.codePageIncomingTextCode).toEqual(incoming)
     expect(nextState.provision.error).toEqual(noError)
   })
 
   it('shows the code page', () => {
     const {action} = init
-    expect(action).toEqual(ProvisionGen.createShowCodePage({code: phrase, error: null}))
+    expect(action).toEqual(ProvisionGen.createShowCodePage({code: incoming, error: null}))
   })
 
   it('navs to the code page', () => {
@@ -102,14 +101,18 @@ describe('text code happy path', () => {
     )
   })
 
+  it('submit text code empty throws', () => {
+    const {nextState} = init
+    expect(() => _testing.submitTextCode(nextState)).toThrow()
+  })
+
   it('submit text code', () => {
-    const {response, state} = init
-    const reply = 'reply'
-    const submitAction = ProvisionGen.createSubmitTextCode({phrase: new HiddenString(reply)})
-    const submitState = makeTypedState(reducer(state, submitAction))
+    const {response, nextState} = init
+    const submitAction = ProvisionGen.createSubmitTextCode({phrase: outgoing})
+    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
 
     _testing.submitTextCode(submitState)
-    expect(response.result).toHaveBeenCalledWith({code: null, phrase: reply})
+    expect(response.result).toHaveBeenCalledWith({code: null, phrase: outgoing.stringValue()})
     expect(response.error).not.toHaveBeenCalled()
 
     // only submit once
@@ -132,7 +135,7 @@ describe('text code error path', () => {
     const {manager, response, nextState} = init
     expect(manager._stashedResponse).toEqual(response)
     expect(manager._stashedResponseKey).toEqual('keybase.1.provisionUi.DisplayAndPromptSecret')
-    expect(nextState.provision.codePageTextCode).toEqual(phrase)
+    expect(nextState.provision.codePageIncomingTextCode).toEqual(phrase)
     expect(nextState.provision.error).toEqual(error)
   })
 
@@ -154,10 +157,10 @@ describe('text code error path', () => {
   })
 
   it('submit clears error and submits', () => {
-    const {response, state} = init
+    const {response, nextState} = init
     const reply = 'reply'
     const submitAction = ProvisionGen.createSubmitTextCode({phrase: new HiddenString(reply)})
-    const submitState = makeTypedState(reducer(state, submitAction))
+    const submitState = makeTypedState(reducer(nextState.provision, submitAction))
     expect(submitState.provision.error).toEqual(noError)
 
     _testing.submitTextCode(submitState)
@@ -167,6 +170,18 @@ describe('text code error path', () => {
     // only submit once
     expect(() => _testing.submitTextCode(submitState)).toThrow()
   })
+})
+
+describe('device name empty', () => {
+  const existingDevices = I.List()
+  const init = makeInit({
+    method: 'keybase.1.provisionUi.PromptNewDeviceName',
+    payload: {errorMessage: '', existingDevices: null},
+  })
+
+  const {nextState} = init
+  expect(nextState.provision.existingDevices).toEqual(existingDevices)
+  expect(nextState.provision.error).toEqual(noError)
 })
 
 describe('device name happy path', () => {
@@ -307,6 +322,11 @@ describe('other device happy path', () => {
     expect(_testing.showDeviceListPage(nextState)).toEqual(
       Saga.put(RouteTree.navigateAppend(['selectOtherDevice'], [Tabs.loginTab, 'login']))
     )
+  })
+
+  it('submit missing', () => {
+    const {nextState} = init
+    expect(() => _testing.submitDeviceSelect(nextState)).toThrow()
   })
 
   it('submit mobile', () => {
