@@ -963,13 +963,7 @@ func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecor
 		if err := s.outbox.UpdateMessage(ctx, obr); err != nil {
 			return obr, err
 		}
-	case types.AttachmentUploaderTaskStatusFailed:
-		errStr := "<unknown>"
-		if res.Error != nil {
-			errStr = *res.Error
-		}
-		return obr, NewAttachmentUploadError(errStr)
-	case types.AttachmentUploaderTaskStatusUploading:
+	case types.AttachmentUploaderTaskStatusFailed, types.AttachmentUploaderTaskStatusUploading:
 		// Make sure we are actually trying to upload this guy
 		if _, err := s.G().AttachmentUploader.Retry(ctx, obr.OutboxID); err != nil {
 			s.Debug(ctx, "processAttachment: failed to retry upload on in progress task: %s", err)

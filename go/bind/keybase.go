@@ -394,7 +394,7 @@ func unboxNotification(ctx context.Context, strConvID, body string, intMembersTy
 
 func pushPendingMessageFailure(convID chat1.ConversationID, pusher PushNotifier) {
 	pusher.LocalNotification("failedpending",
-		"Failed to deliver pending messages. Open the Keybase app to retry.",
+		"Heads up! One or more pending messages failed to send. Tap here to retry them.",
 		-1, "default", convID.String(), "chat.failedpending")
 }
 
