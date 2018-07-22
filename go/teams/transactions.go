@@ -27,10 +27,6 @@ type AddMemberTx struct {
 	// or *keybase1.TeamChangeReq.
 	payloads []interface{}
 
-	// We need two separate payloads for social invites and keybase
-	// invites because they cannot be mixed in one link.
-	isForSocialInvites map[int]bool
-
 	completedInvites map[keybase1.TeamInviteID]bool
 
 	// Override whether the team key is rotated.
@@ -40,11 +36,21 @@ type AddMemberTx struct {
 type txTeamInvitesKeybase struct{ Val SCTeamInvites }
 type txTeamInvitesSocial struct{ Val SCTeamInvites }
 
+func getInviteSection(payload interface{}) (*SCTeamInvites, error) {
+	switch p := payload.(type) {
+	case *txTeamInvitesKeybase:
+		return &p.Val, nil
+	case *txTeamInvitesSocial:
+		return &p.Val, nil
+	default:
+		return nil, fmt.Errorf("getInviteSection: invalid type %T", p)
+	}
+}
+
 func CreateAddMemberTx(t *Team) *AddMemberTx {
 	return &AddMemberTx{
-		team:               t,
-		isForSocialInvites: make(map[int]bool),
-		completedInvites:   make(map[keybase1.TeamInviteID]bool),
+		team:             t,
+		completedInvites: make(map[keybase1.TeamInviteID]bool),
 	}
 }
 
@@ -627,6 +633,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 	memSet := newMemberSet()
 
 	// Transform payloads to SCTeamSections.
+
 	for _, p := range tx.payloads {
 		section := SCTeamSection{
 			ID:       SCTeamID(team.ID),
@@ -653,22 +660,17 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 
 			section.CompletedInvites = payload.CompletedInvites
 			sections = append(sections, section)
-		case *txTeamInvitesSocial:
+		case *txTeamInvitesKeybase, *txTeamInvitesSocial:
 			entropy, err := makeSCTeamEntropy()
 			if err != nil {
 				return err
 			}
 
-			section.Invites = &payload.Val
-			section.Entropy = entropy
-			sections = append(sections, section)
-		case *txTeamInvitesKeybase:
-			entropy, err := makeSCTeamEntropy()
+			scTeamInv, err := getInviteSection(p)
 			if err != nil {
 				return err
 			}
-
-			section.Invites = &payload.Val
+			section.Invites = scTeamInv
 			section.Entropy = entropy
 			sections = append(sections, section)
 		default:
