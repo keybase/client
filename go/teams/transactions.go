@@ -36,6 +36,8 @@ type AddMemberTx struct {
 type txTeamInvitesKeybase struct{ Val SCTeamInvites }
 type txTeamInvitesSocial struct{ Val SCTeamInvites }
 
+// getInviteSection returns SCTeamInvites field from either
+// *txTeamInvitesKeybase or *txTeamInvitesSocial without reflection.
 func getInviteSection(payload interface{}) (*SCTeamInvites, error) {
 	switch p := payload.(type) {
 	case *txTeamInvitesKeybase:
@@ -69,7 +71,7 @@ func (tx *AddMemberTx) IsEmpty() bool {
 func (tx *AddMemberTx) findPayload(typ interface{}) interface{} {
 	refType := reflect.TypeOf(typ)
 	for _, v := range tx.payloads {
-		if reflect.TypeOf(v) == refType {
+		if reflect.TypeOf(v).Elem() == refType {
 			return v
 		}
 	}
@@ -87,11 +89,13 @@ func (tx *AddMemberTx) findPayload(typ interface{}) interface{} {
 // satisfied.
 
 func (tx *AddMemberTx) invitePayload() *SCTeamInvites {
-	return &tx.findPayload(txTeamInvitesKeybase{}).(*txTeamInvitesKeybase).Val
+	p := tx.findPayload(txTeamInvitesKeybase{}).(*txTeamInvitesKeybase)
+	return &p.Val
 }
 
 func (tx *AddMemberTx) inviteSocialPayload() *SCTeamInvites {
-	return &tx.findPayload(txTeamInvitesSocial{}).(*txTeamInvitesSocial).Val
+	p := tx.findPayload(txTeamInvitesSocial{}).(*txTeamInvitesSocial)
+	return &p.Val
 }
 
 func (tx *AddMemberTx) changeMembershipPayload() *keybase1.TeamChangeReq {
