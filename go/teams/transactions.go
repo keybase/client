@@ -6,6 +6,7 @@ package teams
 import (
 	"errors"
 	"fmt"
+	"reflect"
 
 	"golang.org/x/net/context"
 
@@ -20,8 +21,11 @@ import (
 // they are for stale versions of the addees.
 // Not threadsafe.
 type AddMemberTx struct {
-	team     *Team
-	payloads []interface{} // *SCTeamInvites or *keybase1.TeamChangeReq
+	team *Team
+	// payload is of either type:
+	// *txTeamInvitesKeybase, *txTeamInvitesSocial,
+	// or *keybase1.TeamChangeReq.
+	payloads []interface{}
 
 	// We need two separate payloads for social invites and keybase
 	// invites because they cannot be mixed in one link.
@@ -32,6 +36,9 @@ type AddMemberTx struct {
 	// Override whether the team key is rotated.
 	SkipKeyRotation *bool
 }
+
+type txTeamInvitesKeybase struct{ Val SCTeamInvites }
+type txTeamInvitesSocial struct{ Val SCTeamInvites }
 
 func CreateAddMemberTx(t *Team) *AddMemberTx {
 	return &AddMemberTx{
@@ -53,6 +60,19 @@ func (tx *AddMemberTx) IsEmpty() bool {
 // of AddMemberTx API. Users of this API should avoid lowercase
 // methods and fields at all cost, even from same package.
 
+func (tx *AddMemberTx) findPayload(typ interface{}) interface{} {
+	refType := reflect.TypeOf(typ)
+	for _, v := range tx.payloads {
+		if reflect.TypeOf(v) == refType {
+			return v
+		}
+	}
+
+	ret := reflect.New(refType).Interface()
+	tx.payloads = append(tx.payloads, ret)
+	return ret
+}
+
 // Methods modifying payloads are supposed to always succeed given the
 // preconditions are satisfied. If not, the usual result is either a
 // no-op or an invalid transaction that is rejected by team player
@@ -61,45 +81,15 @@ func (tx *AddMemberTx) IsEmpty() bool {
 // satisfied.
 
 func (tx *AddMemberTx) invitePayload() *SCTeamInvites {
-	for i, v := range tx.payloads {
-		if ret, ok := v.(*SCTeamInvites); ok {
-			if !tx.isForSocialInvites[i] {
-				return ret
-			}
-		}
-	}
-
-	ret := &SCTeamInvites{}
-	tx.isForSocialInvites[len(tx.payloads)] = false
-	tx.payloads = append(tx.payloads, ret)
-	return ret
+	return &tx.findPayload(txTeamInvitesKeybase{}).(*txTeamInvitesKeybase).Val
 }
 
-func (tx *AddMemberTx) invitePayloadSocial() *SCTeamInvites {
-	for i, v := range tx.payloads {
-		if ret, ok := v.(*SCTeamInvites); ok {
-			if tx.isForSocialInvites[i] {
-				return ret
-			}
-		}
-	}
-
-	ret := &SCTeamInvites{}
-	tx.isForSocialInvites[len(tx.payloads)] = true
-	tx.payloads = append(tx.payloads, ret)
-	return ret
+func (tx *AddMemberTx) inviteSocialPayload() *SCTeamInvites {
+	return &tx.findPayload(txTeamInvitesSocial{}).(*txTeamInvitesSocial).Val
 }
 
 func (tx *AddMemberTx) changeMembershipPayload() *keybase1.TeamChangeReq {
-	for _, v := range tx.payloads {
-		if ret, ok := v.(*keybase1.TeamChangeReq); ok {
-			return ret
-		}
-	}
-
-	ret := &keybase1.TeamChangeReq{}
-	tx.payloads = append(tx.payloads, ret)
-	return ret
+	return tx.findPayload(keybase1.TeamChangeReq{}).(*keybase1.TeamChangeReq)
 }
 
 func (tx *AddMemberTx) removeMember(uv keybase1.UserVersion) {
@@ -146,7 +136,7 @@ func (tx *AddMemberTx) createInvite(typ string, name keybase1.TeamInviteName, ro
 	if typ == "keybase" {
 		payload = tx.invitePayload()
 	} else {
-		payload = tx.invitePayloadSocial()
+		payload = tx.inviteSocialPayload()
 	}
 
 	invite := SCTeamInvite{
@@ -663,13 +653,22 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 
 			section.CompletedInvites = payload.CompletedInvites
 			sections = append(sections, section)
-		case *SCTeamInvites:
+		case *txTeamInvitesSocial:
 			entropy, err := makeSCTeamEntropy()
 			if err != nil {
 				return err
 			}
 
-			section.Invites = payload
+			section.Invites = &payload.Val
+			section.Entropy = entropy
+			sections = append(sections, section)
+		case *txTeamInvitesKeybase:
+			entropy, err := makeSCTeamEntropy()
+			if err != nil {
+				return err
+			}
+
+			section.Invites = &payload.Val
 			section.Entropy = entropy
 			sections = append(sections, section)
 		default:
@@ -748,7 +747,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 		switch tx.payloads[i].(type) {
 		case *keybase1.TeamChangeReq:
 			linkType = libkb.LinkTypeChangeMembership
-		case *SCTeamInvites:
+		case *txTeamInvitesSocial, *txTeamInvitesKeybase:
 			linkType = libkb.LinkTypeInvite
 		default:
 			return fmt.Errorf("Unhandled case in AddMemberTx.Post, unknown type: %T", tx.payloads[i])
