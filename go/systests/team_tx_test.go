@@ -161,8 +161,8 @@ func TestTeamTxDependency(t *testing.T) {
 	tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER)
 
 	// TODO: this has to pass once this feature is in. See ticket CORE-7147.
-	// payloads := tx.DebugPayloads()
-	// require.Equal(t, 3, len(payloads))
+	payloads := tx.DebugPayloads()
+	require.Equal(t, 3, len(payloads))
 
 	err = tx.Post(libkb.NewMetaContextForTest(*ann.tc))
 	require.NoError(t, err)

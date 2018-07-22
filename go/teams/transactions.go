@@ -28,6 +28,7 @@ type AddMemberTx struct {
 	payloads []interface{}
 
 	completedInvites map[keybase1.TeamInviteID]bool
+	uidSeqno         map[keybase1.UID]int
 
 	// Override whether the team key is rotated.
 	SkipKeyRotation *bool
@@ -36,23 +37,11 @@ type AddMemberTx struct {
 type txTeamInvitesKeybase struct{ Val SCTeamInvites }
 type txTeamInvitesSocial struct{ Val SCTeamInvites }
 
-// getInviteSection returns SCTeamInvites field from either
-// *txTeamInvitesKeybase or *txTeamInvitesSocial without reflection.
-func getInviteSection(payload interface{}) (*SCTeamInvites, error) {
-	switch p := payload.(type) {
-	case *txTeamInvitesKeybase:
-		return &p.Val, nil
-	case *txTeamInvitesSocial:
-		return &p.Val, nil
-	default:
-		return nil, fmt.Errorf("getInviteSection: invalid type %T", p)
-	}
-}
-
 func CreateAddMemberTx(t *Team) *AddMemberTx {
 	return &AddMemberTx{
 		team:             t,
 		completedInvites: make(map[keybase1.TeamInviteID]bool),
+		uidSeqno:         make(map[keybase1.UID]int),
 	}
 }
 
@@ -68,14 +57,38 @@ func (tx *AddMemberTx) IsEmpty() bool {
 // of AddMemberTx API. Users of this API should avoid lowercase
 // methods and fields at all cost, even from same package.
 
-func (tx *AddMemberTx) findPayload(typ interface{}) interface{} {
+// getInviteSection returns SCTeamInvites field from either
+// *txTeamInvitesKeybase or *txTeamInvitesSocial without reflection.
+func getInviteSection(payload interface{}) (*SCTeamInvites, error) {
+	switch p := payload.(type) {
+	case *txTeamInvitesKeybase:
+		return &p.Val, nil
+	case *txTeamInvitesSocial:
+		return &p.Val, nil
+	default:
+		return nil, fmt.Errorf("getInviteSection: invalid type %T", p)
+	}
+}
+
+func (tx *AddMemberTx) findPayload(typ interface{}, forUID keybase1.UID) interface{} {
+	minSeqno := 0
+	if !forUID.IsNil() {
+		minSeqno = tx.uidSeqno[forUID]
+	}
+
 	refType := reflect.TypeOf(typ)
-	for _, v := range tx.payloads {
-		if reflect.TypeOf(v).Elem() == refType {
+	for i, v := range tx.payloads {
+		if reflect.TypeOf(v).Elem() == refType && i >= minSeqno {
+			if !forUID.IsNil() && i > minSeqno {
+				tx.uidSeqno[forUID] = i
+			}
 			return v
 		}
 	}
 
+	if !forUID.IsNil() {
+		tx.uidSeqno[forUID] = len(tx.payloads)
+	}
 	ret := reflect.New(refType).Interface()
 	tx.payloads = append(tx.payloads, ret)
 	return ret
@@ -88,30 +101,30 @@ func (tx *AddMemberTx) findPayload(typ interface{}) interface{} {
 // internal methods are always called with these preconditions
 // satisfied.
 
-func (tx *AddMemberTx) invitePayload() *SCTeamInvites {
-	p := tx.findPayload(txTeamInvitesKeybase{}).(*txTeamInvitesKeybase)
+func (tx *AddMemberTx) invitePayload(forUID keybase1.UID) *SCTeamInvites {
+	p := tx.findPayload(txTeamInvitesKeybase{}, forUID).(*txTeamInvitesKeybase)
 	return &p.Val
 }
 
-func (tx *AddMemberTx) inviteSocialPayload() *SCTeamInvites {
-	p := tx.findPayload(txTeamInvitesSocial{}).(*txTeamInvitesSocial)
+func (tx *AddMemberTx) inviteSocialPayload(forUID keybase1.UID) *SCTeamInvites {
+	p := tx.findPayload(txTeamInvitesSocial{}, forUID).(*txTeamInvitesSocial)
 	return &p.Val
 }
 
-func (tx *AddMemberTx) changeMembershipPayload() *keybase1.TeamChangeReq {
-	return tx.findPayload(keybase1.TeamChangeReq{}).(*keybase1.TeamChangeReq)
+func (tx *AddMemberTx) changeMembershipPayload(forUID keybase1.UID) *keybase1.TeamChangeReq {
+	return tx.findPayload(keybase1.TeamChangeReq{}, forUID).(*keybase1.TeamChangeReq)
 }
 
 func (tx *AddMemberTx) removeMember(uv keybase1.UserVersion) {
 	// Precondition: UV is a cryptomember.
-	payload := tx.changeMembershipPayload()
+	payload := tx.changeMembershipPayload(uv.Uid)
 	payload.None = append(payload.None, uv)
 }
 
 func (tx *AddMemberTx) addMember(uv keybase1.UserVersion, role keybase1.TeamRole) {
 	// Preconditions: UV is a PUKful user, role is valid enum value
 	// and not NONE.
-	payload := tx.changeMembershipPayload()
+	payload := tx.changeMembershipPayload(uv.Uid)
 	payload.AddUVWithRole(uv, role)
 }
 
@@ -119,7 +132,7 @@ func (tx *AddMemberTx) addMemberAndCompleteInvite(uv keybase1.UserVersion,
 	role keybase1.TeamRole, inviteID keybase1.TeamInviteID) {
 	// Preconditions: UV is a PUKful user, role is valid and not NONE,
 	// invite exists.
-	payload := tx.changeMembershipPayload()
+	payload := tx.changeMembershipPayload(uv.Uid)
 	payload.AddUVWithRole(uv, role)
 	payload.CompleteInviteID(inviteID, uv.PercentForm())
 }
@@ -137,16 +150,16 @@ func appendToInviteList(inv SCTeamInvite, list *[]SCTeamInvite) *[]SCTeamInvite 
 func (tx *AddMemberTx) createKeybaseInvite(uv keybase1.UserVersion, role keybase1.TeamRole) {
 	// Preconditions: UV is a PUKless user, and not already in the
 	// team, role is valid enum value and not NONE or OWNER.
-	tx.createInvite("keybase", uv.TeamInviteName(), role)
+	tx.createInvite("keybase", uv.TeamInviteName(), role, uv.Uid)
 }
 
 // createInvite queues an invite for invite name with role.
-func (tx *AddMemberTx) createInvite(typ string, name keybase1.TeamInviteName, role keybase1.TeamRole) {
+func (tx *AddMemberTx) createInvite(typ string, name keybase1.TeamInviteName, role keybase1.TeamRole, uid keybase1.UID) {
 	var payload *SCTeamInvites
 	if typ == "keybase" {
-		payload = tx.invitePayload()
+		payload = tx.invitePayload(uid)
 	} else {
-		payload = tx.inviteSocialPayload()
+		payload = tx.inviteSocialPayload(uid)
 	}
 
 	invite := SCTeamInvite{
@@ -199,7 +212,7 @@ func (tx *AddMemberTx) sweepKeybaseInvites(uid keybase1.UID) {
 	for _, invite := range allInvites {
 		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
 			if inviteUv.Uid.Equal(uid) && !tx.completedInvites[invite.Id] {
-				tx.CancelInvite(invite.Id)
+				tx.CancelInvite(invite.Id, uid)
 			}
 		}
 	}
@@ -405,7 +418,7 @@ func (tx *AddMemberTx) AddMemberByAssertion(ctx context.Context, assertion strin
 	if role.IsOrAbove(keybase1.TeamRole_OWNER) {
 		return "", uv, false, NewAttemptedInviteSocialOwnerError(assertion)
 	}
-	tx.createInvite(typ, keybase1.TeamInviteName(name), role)
+	tx.createInvite(typ, keybase1.TeamInviteName(name), role, "" /* uid */)
 	return "", uv, true, nil
 }
 
@@ -541,8 +554,8 @@ func (tx *AddMemberTx) ReAddMemberToImplicitTeam(uv keybase1.UserVersion, hasPUK
 	return nil
 }
 
-func (tx *AddMemberTx) CancelInvite(id keybase1.TeamInviteID) {
-	payload := tx.invitePayload()
+func (tx *AddMemberTx) CancelInvite(id keybase1.TeamInviteID, forUID keybase1.UID) {
+	payload := tx.invitePayload(forUID)
 	if payload.Cancel == nil {
 		payload.Cancel = &[]SCTeamInviteID{SCTeamInviteID(id)}
 	} else {

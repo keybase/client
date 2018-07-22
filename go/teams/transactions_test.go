@@ -25,11 +25,11 @@ func TestTransactions1(t *testing.T) {
 	tx := CreateAddMemberTx(team)
 	tx.AddMemberByUsername(context.Background(), "t_alice", keybase1.TeamRole_WRITER)
 	require.Equal(t, 1, len(tx.payloads))
-	require.IsType(t, &SCTeamInvites{}, tx.payloads[0])
+	require.IsType(t, &txTeamInvitesKeybase{}, tx.payloads[0])
 
 	tx.AddMemberByUsername(context.Background(), other.Username, keybase1.TeamRole_WRITER)
 	require.Equal(t, 2, len(tx.payloads))
-	require.IsType(t, &SCTeamInvites{}, tx.payloads[0])
+	require.IsType(t, &txTeamInvitesKeybase{}, tx.payloads[0])
 	require.IsType(t, &keybase1.TeamChangeReq{}, tx.payloads[1])
 
 	tx.AddMemberByUsername(context.Background(), "t_tracy", keybase1.TeamRole_ADMIN)
@@ -37,7 +37,7 @@ func TestTransactions1(t *testing.T) {
 	// 3rd add (pukless member) should re-use first signature instead
 	// of creating new one.
 	require.Equal(t, 2, len(tx.payloads))
-	require.IsType(t, &SCTeamInvites{}, tx.payloads[0])
+	require.IsType(t, &txTeamInvitesKeybase{}, tx.payloads[0])
 	require.IsType(t, &keybase1.TeamChangeReq{}, tx.payloads[1])
 
 	err = tx.Post(libkb.NewMetaContextForTest(tc))
