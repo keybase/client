@@ -88,7 +88,7 @@ func (a *S3Store) putSingle(ctx context.Context, r io.Reader, size int64, params
 
 	var lastErr error
 	for i := 0; i < retryAttempts; i++ {
-		a.Debug(ctx, "putSingle: waiting for :%v", libkb.BackoffDefault.Duration(i))
+		a.Debug(ctx, "putSingle: waiting for: %v", libkb.BackoffDefault.Duration(i))
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -191,7 +191,7 @@ func (a *S3Store) putMultiPipeline(ctx context.Context, r io.Reader, size int64,
 	// retry this request up to retryAttempts times
 	var lastErr error
 	for i := 0; i < retryAttempts; i++ {
-		a.Debug(ctx, "putMultiPipeline: waiting for :%v", libkb.BackoffDefault.Duration(i))
+		a.Debug(ctx, "putMultiPipeline: waiting for: %v", libkb.BackoffDefault.Duration(i))
 		select {
 		case <-ctx.Done():
 			a.Debug(ctx, "putMultiPipeline: multi.Complete retry loop, context canceled (attempt %d)", i+1)
@@ -366,7 +366,7 @@ func (a *S3Store) putRetry(ctx context.Context, multi s3.MultiInt, partNumber in
 			a.Debug(ctx, "putRetry: success in attempt %d to upload part %d", i+1, partNumber)
 			return part, nil
 		}
-		a.Debug(ctx, "putRetry: error in attempt %d to upload part %d: %s", i+1, putErr)
+		a.Debug(ctx, "putRetry: error in attempt %d to upload part %d: %s", i+1, partNumber, putErr)
 		lastErr = putErr
 	}
 	return s3.Part{}, NewErrorWrapper(fmt.Sprintf("failed to put part %d", partNumber), lastErr)
