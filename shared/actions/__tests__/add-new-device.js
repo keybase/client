@@ -17,7 +17,7 @@ import {getPath as getRoutePath} from '../../route-tree'
 const noError = new HiddenString('')
 
 // Sets up redux and the provision manager. Starts by making an incoming call into the manager
-const makeInit = ({method, payload, initialStore}) => {
+const makeInit = ({method, payload, initialStore}: {method: string, payload: any, initialStore?: Object}) => {
   const {dispatch, getState, getRoutePath} = startReduxSaga(initialStore)
   const manager = _testing.makeProvisioningManager(true)
   const callMap = manager.getIncomingCallMap()
@@ -207,6 +207,7 @@ describe('reply with device type', () => {
       makeInit({
         initialStore: {
           provision: Constants.makeState({
+            // $FlowIssue flow correctly doesnt allow this
             codePageOtherDeviceType: 'backup',
           }),
         },

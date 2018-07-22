@@ -18,7 +18,7 @@ import {getPath as getRoutePath} from '../../route-tree'
 const noError = new HiddenString('')
 
 // Sets up redux and the provision manager. Starts by making an incoming call into the manager
-const makeInit = ({method, payload, initialStore}) => {
+const makeInit = ({method, payload, initialStore}: {method: string, payload: any, initialStore?: Object}) => {
   const {dispatch, getState, getRoutePath} = startReduxSaga(initialStore)
   const manager = _testing.makeProvisioningManager(false)
   const callMap = manager.getIncomingCallMap()
@@ -355,8 +355,19 @@ describe('other device happy path', () => {
 })
 
 describe('other device error path', () => {
-  it('doesnt have errors', () => {
-    // Actually no error path for chooseDevice
+  let init
+  beforeEach(() => {
+    // daemon should never do this
+    init = makeInit({
+      method: 'keybase.1.provisionUi.chooseDevice',
+      payload: {devices: null},
+    })
+  })
+
+  it('init', () => {
+    const {getState} = init
+    expect(getState().provision.devices).toEqual(I.List([]))
+    expect(getState().provision.error).toEqual(noError)
   })
 })
 
