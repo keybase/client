@@ -59,7 +59,7 @@ const badgeStyles = styleSheetCreate({
       flex: 0,
     },
     isElectron: {
-      lineHeight: 8,
+      lineHeight: '8px',
       fontSize: 9,
     },
     isMobile: {
