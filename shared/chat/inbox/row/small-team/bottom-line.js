@@ -30,32 +30,8 @@ class BottomLine extends PureComponent<Props> {
 
     if (this.props.youNeedToRekey) {
       content = (
-        <Box
-          style={{
-            alignSelf: 'center',
-            backgroundColor: globalColors.red,
-            borderRadius: 2,
-            paddingLeft: globalMargins.xtiny,
-            paddingRight: globalMargins.xtiny,
-          }}
-        >
-          <Text
-            type="BodySmallSemibold"
-            backgroundMode="Terminal"
-            style={platformStyles({
-              common: {
-                color: globalColors.white,
-              },
-              isElectron: {
-                fontSize: 11,
-                lineHeight: '13px',
-              },
-              isMobile: {
-                fontSize: 12,
-                lineHeight: 14,
-              },
-            })}
-          >
+        <Box style={styles.rekeyNeededContainer}>
+          <Text type="BodySmallSemibold" backgroundMode="Terminal" style={styles.rekeyNeededText}>
             REKEY NEEDED
           </Text>
         </Box>
@@ -183,9 +159,7 @@ class BottomLine extends PureComponent<Props> {
         >
           <Box
             style={{
-              ...globalStyles.flexBoxRow,
               ...globalStyles.fillAbsolute,
-              alignItems: 'center',
             }}
           >
             {content}
@@ -195,6 +169,7 @@ class BottomLine extends PureComponent<Props> {
     )
   }
 }
+
 const resetStyle = platformStyles({
   common: {
     alignSelf: 'center',
@@ -205,7 +180,28 @@ const resetStyle = platformStyles({
     marginTop: 2,
   },
 })
+
 const styles = styleSheetCreate({
+  rekeyNeededContainer: {
+    alignSelf: 'center',
+    backgroundColor: globalColors.red,
+    borderRadius: 2,
+    paddingLeft: globalMargins.xtiny,
+    paddingRight: globalMargins.xtiny,
+  },
+  rekeyNeededText: platformStyles({
+    common: {
+      color: globalColors.white,
+    },
+    isElectron: {
+      fontSize: 11,
+      lineHeight: '13px',
+    },
+    isMobile: {
+      fontSize: 12,
+      lineHeight: 14,
+    },
+  }),
   bottomLine: platformStyles({
     isAndroid: {
       lineHeight: undefined,
