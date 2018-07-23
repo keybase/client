@@ -23,6 +23,7 @@ export type Props = {
   emoji: string,
   onClick: () => void,
   ordinal: Types.Ordinal,
+  tooltipEnabled: boolean,
 }
 
 const ButtonBox = glamorous(ClickableBox)({
@@ -34,7 +35,7 @@ const ButtonBox = glamorous(ClickableBox)({
           borderColor: globalColors.blue,
         },
       }),
-  borderColor: globalColors.black_05,
+  borderColor: globalColors.black_10,
 })
 
 type State = {
@@ -75,14 +76,16 @@ class ReactButton extends React.Component<Props, State> {
           <Emoji size={14} emojiName={this.props.emoji} />
           <Text type="BodySmallBold">{this.props.count}</Text>
         </Box2>
-        <ReactionTooltip
-          attachmentRef={this.state.attachmentRef}
-          conversationIDKey={this.props.conversationIDKey}
-          emoji={this.props.emoji}
-          onHidden={() => {}}
-          ordinal={this.props.ordinal}
-          visible={this.state.showingTooltip}
-        />
+        {this.props.tooltipEnabled && (
+          <ReactionTooltip
+            attachmentRef={this.state.attachmentRef}
+            conversationIDKey={this.props.conversationIDKey}
+            emoji={this.props.emoji}
+            onHidden={() => {}}
+            ordinal={this.props.ordinal}
+            visible={this.state.showingTooltip}
+          />
+        )}
       </ButtonBox>
     )
   }

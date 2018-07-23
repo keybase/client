@@ -5,7 +5,7 @@ import {Box2, ClickableBox, Icon, NameWithIcon, Overlay, SectionList, Text} from
 import {globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../../styles'
 import ReactButton from '../react-button/container'
 
-type Props = {
+export type Props = {
   attachmentRef?: ?React.Component<any, any>,
   conversationIDKey: Types.ConversationIDKey,
   onAddReaction: () => void,
@@ -18,7 +18,7 @@ type Props = {
   visible: boolean,
 }
 
-const ReactionTooltip = (props: Props) => {
+export const ReactionTooltip = (props: Props) => {
   if (!props.visible) {
     return null
   }
@@ -98,6 +98,7 @@ const renderSectionHeader = ({
       conversationIDKey={section.conversationIDKey}
       ordinal={section.ordinal}
       emoji={section.title}
+      tooltipEnabled={false}
     />
     <Text type="Terminal" style={styles.emojiText}>
       {section.title}

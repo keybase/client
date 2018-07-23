@@ -51,7 +51,12 @@ const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
 
 const MenuButtons = ({conversationIDKey, onClick, ordinal, setRef}) => (
   <Box className="menu-button" style={styles.menuButtons}>
-    <ReactButton conversationIDKey={conversationIDKey} ordinal={ordinal} showBorder={false} />
+    <ReactButton
+      conversationIDKey={conversationIDKey}
+      ordinal={ordinal}
+      showBorder={false}
+      tooltipEnabled={false}
+    />
     <Box ref={setRef}>
       <Icon
         type="iconfont-ellipsis"

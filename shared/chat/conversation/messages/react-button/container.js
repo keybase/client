@@ -15,6 +15,7 @@ type WrapperProps = {
   onClick: () => void,
   ordinal: Types.Ordinal,
   showBorder?: boolean,
+  tooltipEnabled: boolean,
 }
 const Wrapper = (props: WrapperProps) =>
   props.emoji ? <ReactButton {...props} /> : <NewReactionButton {...props} showBorder={!!props.showBorder} />
@@ -24,6 +25,7 @@ export type OwnProps = {
   emoji?: string,
   ordinal: Types.Ordinal,
   showBorder?: boolean,
+  tooltipEnabled: boolean,
 }
 
 const noEmoji = {

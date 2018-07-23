@@ -1,10 +1,10 @@
 // @flow
-import {connect, isMobile, type TypedState} from '../../../../util/container'
+import {compose, connect, isMobile, setDisplayName, type TypedState} from '../../../../util/container'
 import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
-import ReactionTooltip from '.'
+import {ReactionTooltip} from '.'
 
 /**
  * On desktop this component shows the reactions for one emoji
@@ -12,7 +12,7 @@ import ReactionTooltip from '.'
  * will use the emoji in OwnProps to filter if !isMobile.
  */
 
-type OwnProps = {
+export type OwnProps = {
   attachmentRef?: ?React.Component<any, any>,
   conversationIDKey: Types.ConversationIDKey,
   emoji: string,
@@ -70,4 +70,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ReactionTooltip)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('ReactionTooltip')
+)(ReactionTooltip)
