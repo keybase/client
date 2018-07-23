@@ -333,7 +333,7 @@ func (fs *KBFSOpsStandard) getOpsNoAdd(
 	ops, ok := fs.ops[fb]
 	if !ok {
 		bType := standard
-		if _, isRevBranch := fb.Branch.HasRevision(); isRevBranch {
+		if _, isRevBranch := fb.Branch.RevisionIfSpecified(); isRevBranch {
 			bType = archive
 		}
 		ops = newFolderBranchOps(ctx, fs.g, fs.config, fb, bType)
@@ -455,7 +455,7 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
 		return false, ImmutableRootMetadata{}, tlf.NullID, err
 	}
 
-	if rev, isRevBranch := fb.Branch.HasRevision(); isRevBranch {
+	if rev, isRevBranch := fb.Branch.RevisionIfSpecified(); isRevBranch {
 		fs.log.CDebugf(ctx, "Getting archived revision %d for branch %s",
 			rev, fb.Branch)
 		md, err = getSingleMD(

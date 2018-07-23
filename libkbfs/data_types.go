@@ -376,9 +376,9 @@ func MakeRevBranchName(rev kbfsmd.Revision) BranchName {
 	return BranchName(fmt.Sprintf("%s%d", branchRevPrefix, rev))
 }
 
-// HasRevision returns a valid revision number and true if `bn` is a
-// revision branch.
-func (bn BranchName) HasRevision() (kbfsmd.Revision, bool) {
+// RevisionIfSpecified returns a valid revision number and true if
+// `bn` is a revision branch.
+func (bn BranchName) RevisionIfSpecified() (kbfsmd.Revision, bool) {
 	if !strings.HasPrefix(string(bn), branchRevPrefix) {
 		return kbfsmd.RevisionUninitialized, false
 	}
