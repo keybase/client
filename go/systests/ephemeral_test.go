@@ -357,11 +357,12 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 	teamID, teamName := user1.createTeam2()
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
 
-	ephemeral.ServiceInit(user1.tc.G)
-	ekLib := user1.tc.G.GetEKLib()
-
-	_, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
-	require.NoError(t, err)
+	for _, u := range tt.users {
+		ephemeral.ServiceInit(u.tc.G)
+		ekLib := u.tc.G.GetEKLib()
+		_, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
+		require.NoError(t, err)
+	}
 
 	if leave {
 		user2.leave(teamName.String())
@@ -370,6 +371,14 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 	}
 
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
+
+	maxGen, err := user1.tc.G.GetTeamEKBoxStorage().MaxGeneration(context.Background(), teamID)
+	require.NoError(t, err)
+
+	maxGen2, err := user2.tc.G.GetTeamEKBoxStorage().MaxGeneration(context.Background(), teamID)
+	require.NoError(t, err)
+
+	require.Equal(t, maxGen, maxGen2)
 }
 
 func TestTeamEKMemberLeaveAndReadd(t *testing.T) {
