@@ -35,7 +35,8 @@ func TestNewTeamEK(t *testing.T) {
 
 	teamID := createTeam(tc)
 
-	// Before we've published any teamEK's, fetchTeamEKStatement should return nil.
+	// Before we've published any teamEK's, fetchTeamEKStatement should return
+	// nil.
 	nilStatement, _, _, err := fetchTeamEKStatement(context.Background(), tc.G, teamID)
 	require.NoError(t, err)
 	require.Nil(t, nilStatement)
