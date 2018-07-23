@@ -91,21 +91,22 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
         >
           <Icon type="iconfont-reacji" fontSize={isMobile ? 22 : 16} />
         </Box2>
-        {this.state.showingPicker && (
-          <FloatingBox
-            attachTo={this.state.attachmentRef}
-            position="bottom left"
-            onHidden={() => this._setShowingPicker(false)}
-          >
-            <Picker
-              autoFocus={true}
-              emoji="star-struck"
-              title="reacjibase"
-              onClick={this._onAddReaction}
-              backgroundImageFn={backgroundImageFn}
-            />
-          </FloatingBox>
-        )}
+        {this.state.showingPicker &&
+          !isMobile && (
+            <FloatingBox
+              attachTo={this.state.attachmentRef}
+              position="bottom left"
+              onHidden={() => this._setShowingPicker(false)}
+            >
+              <Picker
+                autoFocus={true}
+                emoji="star-struck"
+                title="reacjibase"
+                onClick={this._onAddReaction}
+                backgroundImageFn={backgroundImageFn}
+              />
+            </FloatingBox>
+          )}
       </ContainerComp>
     )
   }
