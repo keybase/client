@@ -80,6 +80,7 @@ type configGetter interface {
 	GetUPAKCacheSize() (int, bool)
 	GetUIDMapFullNameCacheSize() (int, bool)
 	GetUpdaterConfigFilename() string
+	GetDeviceCloneStateFilename() string
 	GetUserCacheMaxAge() (time.Duration, bool)
 	GetVDebugSetting() string
 	GetChatDelivererInterval() (time.Duration, bool)
@@ -141,17 +142,21 @@ type KVStorer interface {
 	Delete(id DbKey) error
 }
 
-type ConfigReader interface {
-	configGetter
-
-	GetUserConfig() (*UserConfig, error)
-	GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error)
-	GetBundledCA(host string) string
+type JSONReader interface {
 	GetStringAtPath(string) (string, bool)
 	GetInterfaceAtPath(string) (interface{}, error)
 	GetBoolAtPath(string) (bool, bool)
 	GetIntAtPath(string) (int, bool)
 	GetNullAtPath(string) bool
+}
+
+type ConfigReader interface {
+	JSONReader
+	configGetter
+
+	GetUserConfig() (*UserConfig, error)
+	GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error)
+	GetBundledCA(host string) string
 	GetProofCacheLongDur() (time.Duration, bool)
 	GetProofCacheMediumDur() (time.Duration, bool)
 	GetProofCacheShortDur() (time.Duration, bool)
@@ -187,16 +192,20 @@ type ConfigWriterTransacter interface {
 	Abort() error
 }
 
+type JSONWriter interface {
+	SetStringAtPath(string, string) error
+	SetBoolAtPath(string, bool) error
+	SetIntAtPath(string, int) error
+	SetNullAtPath(string) error
+}
+
 type ConfigWriter interface {
+	JSONWriter
 	SetUserConfig(cfg *UserConfig, overwrite bool) error
 	SwitchUser(un NormalizedUsername) error
 	NukeUser(un NormalizedUsername) error
 	SetDeviceID(keybase1.DeviceID) error
-	SetStringAtPath(string, string) error
-	SetBoolAtPath(string, bool) error
-	SetIntAtPath(string, int) error
 	SetWrapperAtPath(string, *jsonw.Wrapper) error
-	SetNullAtPath(string) error
 	DeleteAtPath(string)
 	SetUpdatePreferenceAuto(bool) error
 	SetUpdatePreferenceSkip(string) error
@@ -361,12 +370,6 @@ type ProvisionUI interface {
 }
 
 type ChatUI interface {
-	ChatAttachmentUploadOutboxID(context.Context, chat1.ChatAttachmentUploadOutboxIDArg) error
-	ChatAttachmentUploadStart(context.Context, chat1.AssetMetadata, chat1.MessageID) error
-	ChatAttachmentUploadProgress(context.Context, chat1.ChatAttachmentUploadProgressArg) error
-	ChatAttachmentUploadDone(context.Context) error
-	ChatAttachmentPreviewUploadStart(context.Context, chat1.AssetMetadata) error
-	ChatAttachmentPreviewUploadDone(context.Context) error
 	ChatAttachmentDownloadStart(context.Context) error
 	ChatAttachmentDownloadProgress(context.Context, chat1.ChatAttachmentDownloadProgressArg) error
 	ChatAttachmentDownloadDone(context.Context) error
@@ -514,16 +517,6 @@ type DNSContext interface {
 	GetDNSNameServerFetcher() DNSNameServerFetcher
 }
 
-// ProofContext defines features needed by the proof system
-type ProofContext interface {
-	LogContext
-	APIContext
-	NetContext
-	DNSContext
-	GetPvlSource() PvlSource
-	GetAppType() AppType
-}
-
 type AssertionContext interface {
 	NormalizeSocialName(service string, username string) (string, error)
 }
@@ -538,7 +531,7 @@ const (
 )
 
 type ProofChecker interface {
-	CheckStatus(ctx ProofContext, h SigHint, pcm ProofCheckerMode, pvlU PvlUnparsed) ProofError
+	CheckStatus(m MetaContext, h SigHint, pcm ProofCheckerMode, pvlU PvlUnparsed) ProofError
 	GetTorError() ProofError
 }
 
@@ -559,11 +552,11 @@ type ServiceType interface {
 	// leaves the dots in (that NormalizeUsername above would strip out). This
 	// lets us keep the dots in the proof text, and display them on your
 	// profile page, even though we ignore them for proof checking.
-	NormalizeRemoteName(ctx ProofContext, name string) (string, error)
+	NormalizeRemoteName(m MetaContext, name string) (string, error)
 
 	GetPrompt() string
 	LastWriterWins() bool
-	PreProofCheck(ctx ProofContext, remotename string) (*Markup, error)
+	PreProofCheck(m MetaContext, remotename string) (*Markup, error)
 	PreProofWarning(remotename string) *Markup
 	ToServiceJSON(remotename string) *jsonw.Wrapper
 	PostInstructions(remotename string) *Markup
@@ -572,7 +565,7 @@ type ServiceType interface {
 	GetProofType() string
 	GetTypeName() string
 	CheckProofText(text string, id keybase1.SigID, sig string) error
-	FormatProofText(ProofContext, *PostProofRes) (string, error)
+	FormatProofText(MetaContext, *PostProofRes) (string, error)
 	GetAPIArgKey() string
 	IsDevelOnly() bool
 
@@ -585,7 +578,7 @@ type ExternalServicesCollector interface {
 }
 
 type PvlSource interface {
-	GetPVL(ctx context.Context) (PvlUnparsed, error)
+	GetPVL(m MetaContext) (PvlUnparsed, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.

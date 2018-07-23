@@ -8,6 +8,7 @@ import * as Chat2Gen from '../actions/chat2-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as GregorGen from '../actions/gregor-gen'
 import * as EngineGen from '../actions/engine-gen'
+import * as WaitingGen from '../actions/waiting-gen'
 import {getPath} from '../route-tree'
 import type {TypedState} from '../constants/reducer'
 import * as Entity from '../constants/types/entities'
@@ -61,8 +62,6 @@ const actionTransformMap = {
   [ConfigGen.changedFocus]: nullTransform,
   [Chat2Gen.updateTypers]: nullTransform,
 
-  [Chat2Gen.setLoading]: fullOutput,
-  [Chat2Gen.clearLoading]: fullOutput,
   [Chat2Gen.selectConversation]: fullOutput,
   [Chat2Gen.metaNeedsUpdating]: fullOutput,
   [Chat2Gen.updateMoreToLoad]: fullOutput,
@@ -96,6 +95,11 @@ const actionTransformMap = {
     payload: {conversationIDKey: a.payload.conversationIDKey},
     type: a.type,
   }),
+
+  [WaitingGen.incrementWaiting]: fullOutput,
+  [WaitingGen.decrementWaiting]: fullOutput,
+  [WaitingGen.changeWaiting]: fullOutput,
+  [WaitingGen.clearWaiting]: fullOutput,
 }
 
 const transformActionForLog = (action: any, state: TypedState) =>

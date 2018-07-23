@@ -91,11 +91,11 @@ func TestSignEncrypter(t *testing.T) {
 	}
 }
 
-func makeTestStore(t *testing.T, kt func(enc, sig []byte)) *Store {
+func makeTestStore(t *testing.T, kt func(enc, sig []byte)) *S3Store {
 	return newStoreTesting(logger.NewTestLogger(t), kt)
 }
 
-func testStoreMultis(t *testing.T, s *Store) []*s3.MemMulti {
+func testStoreMultis(t *testing.T, s *S3Store) []*s3.MemMulti {
 	m, ok := s.s3c.(*s3.Mem)
 	if !ok {
 		t.Fatalf("not s3.Mem: %T", s.s3c)
@@ -105,19 +105,19 @@ func testStoreMultis(t *testing.T, s *Store) []*s3.MemMulti {
 	return c.AllMultis()
 }
 
-func assertNumMultis(t *testing.T, s *Store, n int) {
+func assertNumMultis(t *testing.T, s *S3Store, n int) {
 	numMultis := len(testStoreMultis(t, s))
 	if numMultis != n {
 		t.Errorf("number of s3 multis: %d, expected %d", numMultis, n)
 	}
 }
 
-func getMulti(t *testing.T, s *Store, index int) *s3.MemMulti {
+func getMulti(t *testing.T, s *S3Store, index int) *s3.MemMulti {
 	all := testStoreMultis(t, s)
 	return all[index]
 }
 
-func assertNumParts(t *testing.T, s *Store, index, n int) {
+func assertNumParts(t *testing.T, s *S3Store, index, n int) {
 	m := getMulti(t, s, index)
 	p, err := m.ListParts(context.Background())
 	if err != nil {
@@ -128,7 +128,7 @@ func assertNumParts(t *testing.T, s *Store, index, n int) {
 	}
 }
 
-func assertNumPutParts(t *testing.T, s *Store, index, calls int) {
+func assertNumPutParts(t *testing.T, s *S3Store, index, calls int) {
 	m := getMulti(t, s, index)
 	if m.NumPutParts() != calls {
 		t.Errorf("num PutPart calls: %d, expected %d", m.NumPutParts(), calls)
@@ -237,7 +237,7 @@ func TestUploadAssetLarge(t *testing.T) {
 
 type uploader struct {
 	t             *testing.T
-	s             *Store
+	s             *S3Store
 	encKey        []byte
 	sigKey        []byte
 	plaintext     []byte

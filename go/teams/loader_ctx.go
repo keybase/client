@@ -119,7 +119,7 @@ func (l *LoaderContextG) getMe(ctx context.Context) (res keybase1.UserVersion, e
 	if uid.IsNil() {
 		return res, nil
 	}
-	return getCurrentUserUV(ctx, l.G())
+	return l.G().GetMeUV(ctx)
 }
 
 func (l *LoaderContextG) lookupEldestSeqno(ctx context.Context, uid keybase1.UID) (keybase1.Seqno, error) {

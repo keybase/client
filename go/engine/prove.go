@@ -94,7 +94,7 @@ func (p *Prove) checkExists1(m libkb.MetaContext) (err error) {
 func (p *Prove) promptRemoteName(m libkb.MetaContext) error {
 	// If the name is already supplied, there's no need to prompt.
 	if len(p.arg.Username) > 0 {
-		remoteNameNormalized, err := p.st.NormalizeRemoteName(m.G(), p.arg.Username)
+		remoteNameNormalized, err := p.st.NormalizeRemoteName(m, p.arg.Username)
 		if err == nil {
 			p.remoteNameNormalized = remoteNameNormalized
 		}
@@ -113,7 +113,7 @@ func (p *Prove) promptRemoteName(m libkb.MetaContext) error {
 			return err
 		}
 		var remoteNameNormalized string
-		remoteNameNormalized, normalizationError = p.st.NormalizeRemoteName(m.G(), un)
+		remoteNameNormalized, normalizationError = p.st.NormalizeRemoteName(m, un)
 		if normalizationError == nil {
 			p.remoteNameNormalized = remoteNameNormalized
 			return nil
@@ -153,7 +153,7 @@ func (p *Prove) checkExists2(m libkb.MetaContext) (err error) {
 
 func (p *Prove) doPrechecks(m libkb.MetaContext) (err error) {
 	var w *libkb.Markup
-	w, err = p.st.PreProofCheck(m.G(), p.remoteNameNormalized)
+	w, err = p.st.PreProofCheck(m, p.remoteNameNormalized)
 	if w != nil {
 		if uierr := m.UIs().ProveUI.OutputPrechecks(m.Ctx(), keybase1.OutputPrechecksArg{Text: w.Export()}); uierr != nil {
 			m.CWarningf("prove ui OutputPrechecks call error: %s", uierr)
@@ -228,7 +228,7 @@ func (p *Prove) postProofToServer(m libkb.MetaContext) (err error) {
 func (p *Prove) instructAction(m libkb.MetaContext) (err error) {
 	mkp := p.st.PostInstructions(p.remoteNameNormalized)
 	var txt string
-	if txt, err = p.st.FormatProofText(m.G() /* as ProofContext */, p.postRes); err != nil {
+	if txt, err = p.st.FormatProofText(m, p.postRes); err != nil {
 		return
 	}
 	err = m.UIs().ProveUI.OutputInstructions(m.Ctx(), keybase1.OutputInstructionsArg{

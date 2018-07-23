@@ -24,7 +24,6 @@ export type RowProps = {
   rightService: ?Service,
   rightUsername: ?string,
 
-  showTrackerButton: boolean,
   onShowTracker: () => void,
   onClick: () => void,
   onMouseOver?: () => void,
@@ -33,7 +32,7 @@ export type RowProps = {
 }
 // A normalized version of the row props above.
 // The connector should fill in the missing pieces like the following state
-export type SearchResult = {
+export type SearchResult = {|
   id: SearchResultId,
 
   leftFullname: ?string,
@@ -44,4 +43,4 @@ export type SearchResult = {
   rightIcon: ?IconType,
   rightService: ?Service,
   rightUsername: ?string,
-}
+|}

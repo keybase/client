@@ -9,7 +9,7 @@ import {compose, connect, withStateHandlers, type TypedState} from '../../../uti
 import {chatTab} from '../../../constants/tabs'
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
-  const showLoader = !!state.chat2.loadingMap.get(`loadingThread:${conversationIDKey}`)
+  const showLoader = !!state.waiting.get(Constants.waitingKeyThreadLoad(conversationIDKey))
   const meta = Constants.getMeta(state, conversationIDKey)
   const infoPanelOpen = Constants.isInfoPanelOpen(state)
   const isSearching =

@@ -114,7 +114,7 @@ func TestDeviceEKStorage(t *testing.T) {
 
 	// Test delete expired and check that we handle incorrect eldest seqno
 	// deletion correctly.
-	uv, err := getCurrentUserUV(context.Background(), tc.G)
+	uv, err := tc.G.GetMeUV(context.Background())
 	require.NoError(t, err)
 	erasableStorage := erasablekv.NewFileErasableKVStore(tc.G, deviceEKSubDir)
 
@@ -158,7 +158,7 @@ func TestDeviceEKStorageKeyFormat(t *testing.T) {
 
 	s := NewDeviceEKStorage(tc.G)
 	generation := keybase1.EkGeneration(1)
-	uv, err := getCurrentUserUV(context.Background(), tc.G)
+	uv, err := tc.G.GetMeUV(context.Background())
 	require.NoError(t, err)
 
 	key, err := s.key(context.Background(), generation)

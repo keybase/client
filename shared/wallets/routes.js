@@ -5,9 +5,16 @@ import {isMobile} from '../constants/platform'
 import LinkExisting from './link-existing/container'
 import Container from './container'
 import ReceiveModal from './receive-modal/container'
+import ExportSecretKey from './export-secret-key/container'
+import TransactionDetails from './transaction-details/container'
 
 const routeTree = makeRouteDefNode({
   children: {
+    exportSecretKey: {
+      children: {},
+      component: ExportSecretKey,
+      tags: makeLeafTags({layerOnTop: !isMobile}),
+    },
     linkExisting: {
       children: {},
       component: MaybePopupHoc(isMobile)(LinkExisting),
@@ -17,6 +24,9 @@ const routeTree = makeRouteDefNode({
       children: {},
       component: ReceiveModal,
       tags: makeLeafTags({layerOnTop: !isMobile}),
+    },
+    transactionDetails: {
+      component: TransactionDetails,
     },
   },
   component: Container,

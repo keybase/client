@@ -892,7 +892,7 @@ func (t *Team) inviteKeybaseMember(ctx context.Context, uv keybase1.UserVersion,
 
 func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybase1.TeamRole) (keybase1.TeamAddMemberResult, error) {
 	// parse username to get social
-	typ, name, err := t.parseSocial(username)
+	typ, name, err := parseSocialAssertion(libkb.NewMetaContext(ctx, t.G()), username)
 	if err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}
@@ -1191,16 +1191,8 @@ func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, linkTy
 	return t.postMulti(libkb.NewMetaContext(ctx, t.G()), payload)
 }
 
-func getCurrentUserUV(ctx context.Context, g *libkb.GlobalContext) (ret keybase1.UserVersion, err error) {
-	err = g.GetFullSelfer().WithSelf(ctx, func(u *libkb.User) error {
-		ret = u.ToUserVersion()
-		return nil
-	})
-	return ret, err
-}
-
 func (t *Team) currentUserUV(ctx context.Context) (keybase1.UserVersion, error) {
-	return getCurrentUserUV(ctx, t.G())
+	return t.G().GetMeUV(ctx)
 }
 
 func loadMeForSignatures(ctx context.Context, g *libkb.GlobalContext) (libkb.UserForSignatures, error) {
@@ -1636,19 +1628,6 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 
 	t.notify(ctx, keybase1.TeamChangeSet{Misc: true})
 	return nil
-}
-
-func (t *Team) parseSocial(username string) (typ string, name string, err error) {
-	assertion, err := libkb.ParseAssertionURL(t.G().MakeAssertionContext(), username, false)
-	if err != nil {
-		return "", "", err
-	}
-	if assertion.IsKeybase() {
-		return "", "", fmt.Errorf("invalid user assertion %q, keybase assertion should be handled earlier", username)
-	}
-	typ, name = assertion.ToKeyValuePair()
-
-	return typ, name, nil
 }
 
 func (t *Team) precheckLinksToPost(ctx context.Context, sigMultiItems []libkb.SigMultiItem) (err error) {

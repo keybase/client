@@ -1180,6 +1180,7 @@ func (t *teamSigchainPlayer) addInnerLink(
 		if err != nil {
 			return res, err
 		}
+		// Key rotation should never be allowed since FullVerify sometimes does not run on leave links.
 
 		// Check that the signer is at least a reader.
 		// Implicit admins cannot leave a subteam.
@@ -1649,8 +1650,7 @@ func assertIsKeybaseInvite(g *libkb.GlobalContext, i SCTeamInvite) bool {
 //  - that the invite type parses into proper TeamInviteType, or that it's an unknown
 //    invite that we're OK to not act upon.
 // Implicit teams are different:
-// - owners and readers are the only allowed role
-// Returns nicely formatted data structures.
+// - owners and readers are the only allowed roles
 func (t *teamSigchainPlayer) sanityCheckInvites(
 	signer keybase1.UserVersion, invites SCTeamInvites, options sanityCheckInvitesOptions,
 ) (additions map[keybase1.TeamRole][]keybase1.TeamInvite, cancelations []keybase1.TeamInviteID, err error) {

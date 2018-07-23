@@ -155,6 +155,14 @@ const metaData: {[key: TextType]: MetaType} = {
     fontSize: 12,
     styleOverride: globalStyles.fontRegular,
   },
+  BodySmallBold: {
+    colorForBackgroundMode: {
+      Normal: globalColors.black_40,
+      Terminal: globalColors.white,
+    },
+    fontSize: 12,
+    styleOverride: globalStyles.fontBold,
+  },
   BodySmallExtrabold: {
     colorForBackgroundMode: {
       Normal: globalColors.black_40,

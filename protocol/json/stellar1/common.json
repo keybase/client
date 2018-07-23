@@ -87,6 +87,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "AccountReserve",
+      "fields": [
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "TransactionStatus",
       "symbols": [
@@ -95,6 +109,14 @@
         "SUCCESS_2",
         "ERROR_TRANSIENT_3",
         "ERROR_PERMANENT_4"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "RequestStatus",
+      "symbols": [
+        "OK_0",
+        "CANCELED_1"
       ]
     },
     {

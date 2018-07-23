@@ -1124,6 +1124,41 @@ func (i *Inbox) SetTeamRetention(ctx context.Context, vers chat1.InboxVers,
 	return res, err
 }
 
+func (i *Inbox) SetConvMinWriterRole(ctx context.Context, vers chat1.InboxVers,
+	convID chat1.ConversationID, info *chat1.ConversationMinWriterRoleInfo) (err Error) {
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
+	defer i.Trace(ctx, func() error { return err }, "SetConvMinWriterRole")()
+	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
+
+	i.Debug(ctx, "SetConvMinWriterRole: vers: %d convID: %s", vers, convID)
+	ibox, err := i.readDiskInbox(ctx)
+	if err != nil {
+		if _, ok := err.(MissError); !ok {
+			return nil
+		}
+		return err
+	}
+	// Check inbox versions, make sure it makes sense (clear otherwise)
+	var cont bool
+	if vers, cont, err = i.handleVersion(ctx, ibox.InboxVersion, vers); !cont {
+		return err
+	}
+
+	// Find conversation
+	_, conv := i.getConv(convID, ibox.Conversations)
+	if conv == nil {
+		i.Debug(ctx, "SetConvMinWriterRole: no conversation found: convID: %s", convID)
+		return nil
+	}
+	conv.Conv.MinWriterRoleInfo = info
+	conv.Conv.Metadata.Version = vers.ToConvVers()
+
+	// Write out to disk
+	ibox.InboxVersion = vers
+	return i.writeDiskInbox(ctx, ibox)
+}
+
 func (i *Inbox) UpgradeKBFSToImpteam(ctx context.Context, vers chat1.InboxVers,
 	convID chat1.ConversationID) (err Error) {
 	locks.Inbox.Lock()

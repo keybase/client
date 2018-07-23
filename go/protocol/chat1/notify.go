@@ -10,6 +10,32 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type ChatActivitySource int
+
+const (
+	ChatActivitySource_LOCAL  ChatActivitySource = 0
+	ChatActivitySource_REMOTE ChatActivitySource = 1
+)
+
+func (o ChatActivitySource) DeepCopy() ChatActivitySource { return o }
+
+var ChatActivitySourceMap = map[string]ChatActivitySource{
+	"LOCAL":  0,
+	"REMOTE": 1,
+}
+
+var ChatActivitySourceRevMap = map[ChatActivitySource]string{
+	0: "LOCAL",
+	1: "REMOTE",
+}
+
+func (e ChatActivitySource) String() string {
+	if v, ok := ChatActivitySourceRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type ChatActivityType int
 
 const (
@@ -24,6 +50,7 @@ const (
 	ChatActivityType_TEAMTYPE                      ChatActivityType = 8
 	ChatActivityType_EXPUNGE                       ChatActivityType = 9
 	ChatActivityType_EPHEMERAL_PURGE               ChatActivityType = 10
+	ChatActivityType_REACTION_DELETE               ChatActivityType = 11
 )
 
 func (o ChatActivityType) DeepCopy() ChatActivityType { return o }
@@ -40,6 +67,7 @@ var ChatActivityTypeMap = map[string]ChatActivityType{
 	"TEAMTYPE":                      8,
 	"EXPUNGE":                       9,
 	"EPHEMERAL_PURGE":               10,
+	"REACTION_DELETE":               11,
 }
 
 var ChatActivityTypeRevMap = map[ChatActivityType]string{
@@ -54,6 +82,7 @@ var ChatActivityTypeRevMap = map[ChatActivityType]string{
 	8:  "TEAMTYPE",
 	9:  "EXPUNGE",
 	10: "EPHEMERAL_PURGE",
+	11: "REACTION_DELETE",
 }
 
 func (e ChatActivityType) String() string {
@@ -291,6 +320,42 @@ func (o EphemeralPurgeNotifInfo) DeepCopy() EphemeralPurgeNotifInfo {
 	}
 }
 
+type ReactionDelete struct {
+	ReactionKey   string    `codec:"reactionKey" json:"reactionKey"`
+	ReactionMsgID MessageID `codec:"reactionMsgID" json:"reactionMsgID"`
+	TargetMsgID   MessageID `codec:"targetMsgID" json:"targetMsgID"`
+}
+
+func (o ReactionDelete) DeepCopy() ReactionDelete {
+	return ReactionDelete{
+		ReactionKey:   o.ReactionKey,
+		ReactionMsgID: o.ReactionMsgID.DeepCopy(),
+		TargetMsgID:   o.TargetMsgID.DeepCopy(),
+	}
+}
+
+type ReactionDeleteNotif struct {
+	ConvID          ConversationID   `codec:"convID" json:"convID"`
+	ReactionDeletes []ReactionDelete `codec:"reactionDeletes" json:"reactionDeletes"`
+}
+
+func (o ReactionDeleteNotif) DeepCopy() ReactionDeleteNotif {
+	return ReactionDeleteNotif{
+		ConvID: o.ConvID.DeepCopy(),
+		ReactionDeletes: (func(x []ReactionDelete) []ReactionDelete {
+			if x == nil {
+				return nil
+			}
+			var ret []ReactionDelete
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.ReactionDeletes),
+	}
+}
+
 type ChatActivity struct {
 	ActivityType__               ChatActivityType                `codec:"activityType" json:"activityType"`
 	IncomingMessage__            *IncomingMessage                `codec:"incomingMessage,omitempty" json:"incomingMessage,omitempty"`
@@ -303,6 +368,7 @@ type ChatActivity struct {
 	Teamtype__                   *TeamTypeInfo                   `codec:"teamtype,omitempty" json:"teamtype,omitempty"`
 	Expunge__                    *ExpungeInfo                    `codec:"expunge,omitempty" json:"expunge,omitempty"`
 	EphemeralPurge__             *EphemeralPurgeNotifInfo        `codec:"ephemeralPurge,omitempty" json:"ephemeralPurge,omitempty"`
+	ReactionDelete__             *ReactionDeleteNotif            `codec:"reactionDelete,omitempty" json:"reactionDelete,omitempty"`
 }
 
 func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
@@ -355,6 +421,11 @@ func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
 	case ChatActivityType_EPHEMERAL_PURGE:
 		if o.EphemeralPurge__ == nil {
 			err = errors.New("unexpected nil value for EphemeralPurge__")
+			return ret, err
+		}
+	case ChatActivityType_REACTION_DELETE:
+		if o.ReactionDelete__ == nil {
+			err = errors.New("unexpected nil value for ReactionDelete__")
 			return ret, err
 		}
 	}
@@ -461,6 +532,16 @@ func (o ChatActivity) EphemeralPurge() (res EphemeralPurgeNotifInfo) {
 	return *o.EphemeralPurge__
 }
 
+func (o ChatActivity) ReactionDelete() (res ReactionDeleteNotif) {
+	if o.ActivityType__ != ChatActivityType_REACTION_DELETE {
+		panic("wrong case accessed")
+	}
+	if o.ReactionDelete__ == nil {
+		return
+	}
+	return *o.ReactionDelete__
+}
+
 func NewChatActivityWithIncomingMessage(v IncomingMessage) ChatActivity {
 	return ChatActivity{
 		ActivityType__:    ChatActivityType_INCOMING_MESSAGE,
@@ -528,6 +609,13 @@ func NewChatActivityWithEphemeralPurge(v EphemeralPurgeNotifInfo) ChatActivity {
 	return ChatActivity{
 		ActivityType__:   ChatActivityType_EPHEMERAL_PURGE,
 		EphemeralPurge__: &v,
+	}
+}
+
+func NewChatActivityWithReactionDelete(v ReactionDeleteNotif) ChatActivity {
+	return ChatActivity{
+		ActivityType__:   ChatActivityType_REACTION_DELETE,
+		ReactionDelete__: &v,
 	}
 }
 
@@ -604,6 +692,13 @@ func (o ChatActivity) DeepCopy() ChatActivity {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.EphemeralPurge__),
+		ReactionDelete__: (func(x *ReactionDeleteNotif) *ReactionDeleteNotif {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ReactionDelete__),
 	}
 }
 
@@ -764,8 +859,9 @@ func (o ChatSyncResult) DeepCopy() ChatSyncResult {
 }
 
 type NewChatActivityArg struct {
-	Uid      keybase1.UID `codec:"uid" json:"uid"`
-	Activity ChatActivity `codec:"activity" json:"activity"`
+	Uid      keybase1.UID       `codec:"uid" json:"uid"`
+	Activity ChatActivity       `codec:"activity" json:"activity"`
+	Source   ChatActivitySource `codec:"source" json:"source"`
 }
 
 type ChatIdentifyUpdateArg struct {
@@ -835,9 +931,29 @@ type ChatSetTeamRetentionArg struct {
 	Convs  []InboxUIItem   `codec:"convs" json:"convs"`
 }
 
+type ChatSetConvMinWriterRoleArg struct {
+	Uid    keybase1.UID   `codec:"uid" json:"uid"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	Conv   *InboxUIItem   `codec:"conv,omitempty" json:"conv,omitempty"`
+}
+
 type ChatKBFSToImpteamUpgradeArg struct {
 	Uid    keybase1.UID   `codec:"uid" json:"uid"`
 	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+type ChatAttachmentUploadStartArg struct {
+	Uid      keybase1.UID   `codec:"uid" json:"uid"`
+	ConvID   ConversationID `codec:"convID" json:"convID"`
+	OutboxID OutboxID       `codec:"outboxID" json:"outboxID"`
+}
+
+type ChatAttachmentUploadProgressArg struct {
+	Uid           keybase1.UID   `codec:"uid" json:"uid"`
+	ConvID        ConversationID `codec:"convID" json:"convID"`
+	OutboxID      OutboxID       `codec:"outboxID" json:"outboxID"`
+	BytesComplete int64          `codec:"bytesComplete" json:"bytesComplete"`
+	BytesTotal    int64          `codec:"bytesTotal" json:"bytesTotal"`
 }
 
 type NotifyChatInterface interface {
@@ -855,7 +971,10 @@ type NotifyChatInterface interface {
 	ChatInboxSynced(context.Context, ChatInboxSyncedArg) error
 	ChatSetConvRetention(context.Context, ChatSetConvRetentionArg) error
 	ChatSetTeamRetention(context.Context, ChatSetTeamRetentionArg) error
+	ChatSetConvMinWriterRole(context.Context, ChatSetConvMinWriterRoleArg) error
 	ChatKBFSToImpteamUpgrade(context.Context, ChatKBFSToImpteamUpgradeArg) error
+	ChatAttachmentUploadStart(context.Context, ChatAttachmentUploadStartArg) error
+	ChatAttachmentUploadProgress(context.Context, ChatAttachmentUploadProgressArg) error
 }
 
 func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
@@ -1086,6 +1205,22 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"ChatSetConvMinWriterRole": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatSetConvMinWriterRoleArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatSetConvMinWriterRoleArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatSetConvMinWriterRoleArg)(nil), args)
+						return
+					}
+					err = i.ChatSetConvMinWriterRole(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 			"ChatKBFSToImpteamUpgrade": {
 				MakeArg: func() interface{} {
 					ret := make([]ChatKBFSToImpteamUpgradeArg, 1)
@@ -1098,6 +1233,38 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 						return
 					}
 					err = i.ChatKBFSToImpteamUpgrade(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
+			"ChatAttachmentUploadStart": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatAttachmentUploadStartArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatAttachmentUploadStartArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatAttachmentUploadStartArg)(nil), args)
+						return
+					}
+					err = i.ChatAttachmentUploadStart(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
+			"ChatAttachmentUploadProgress": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatAttachmentUploadProgressArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatAttachmentUploadProgressArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatAttachmentUploadProgressArg)(nil), args)
+						return
+					}
+					err = i.ChatAttachmentUploadProgress(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodNotify,
@@ -1184,7 +1351,22 @@ func (c NotifyChatClient) ChatSetTeamRetention(ctx context.Context, __arg ChatSe
 	return
 }
 
+func (c NotifyChatClient) ChatSetConvMinWriterRole(ctx context.Context, __arg ChatSetConvMinWriterRoleArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSetConvMinWriterRole", []interface{}{__arg})
+	return
+}
+
 func (c NotifyChatClient) ChatKBFSToImpteamUpgrade(ctx context.Context, __arg ChatKBFSToImpteamUpgradeArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatKBFSToImpteamUpgrade", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) ChatAttachmentUploadStart(ctx context.Context, __arg ChatAttachmentUploadStartArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatAttachmentUploadStart", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) ChatAttachmentUploadProgress(ctx context.Context, __arg ChatAttachmentUploadProgressArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatAttachmentUploadProgress", []interface{}{__arg})
 	return
 }

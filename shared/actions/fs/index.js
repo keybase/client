@@ -2,6 +2,7 @@
 import logger from '../../logger'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../fs-gen'
+import * as LoginGen from '../login-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
@@ -33,17 +34,20 @@ function* listFavoritesSaga(): Saga.SagaGenerator<any, any> {
 }
 
 const direntToMetadata = (d: RPCTypes.Dirent) => ({
-  name: d.name,
+  name: d.name.split('/').pop(),
   lastModifiedTimestamp: d.time,
   lastWriter: d.lastWriterUnverified,
   size: d.size,
   writable: d.writable,
 })
 
-const makeEntry = (d: RPCTypes.Dirent) => {
+const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
   switch (d.direntType) {
     case RPCTypes.simpleFSDirentType.dir:
-      return Constants.makeFolder(direntToMetadata(d))
+      return Constants.makeFolder({
+        ...direntToMetadata(d),
+        children: I.Set(children),
+      })
     case RPCTypes.simpleFSDirentType.sym:
       return Constants.makeSymlink({
         ...direntToMetadata(d),
@@ -89,47 +93,86 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
 
   refreshTag && folderListRefreshTags.set(refreshTag, rootPath)
 
-  yield Saga.call(RPCTypes.SimpleFSSimpleFSListRpcPromise, {
-    opID,
-    path: {
-      PathType: RPCTypes.simpleFSPathType.kbfs,
-      kbfs: Constants.fsPathToRpcPathString(rootPath),
-    },
-    filter: RPCTypes.simpleFSListFilter.filterAllHidden,
-    refreshSubscription: false,
-  })
+  const pathElems = Types.getPathElements(rootPath)
+  if (pathElems.length < 3) {
+    yield Saga.call(RPCTypes.SimpleFSSimpleFSListRpcPromise, {
+      opID,
+      path: {
+        PathType: RPCTypes.simpleFSPathType.kbfs,
+        kbfs: Constants.fsPathToRpcPathString(rootPath),
+      },
+      filter: RPCTypes.simpleFSListFilter.filterAllHidden,
+      refreshSubscription: false,
+    })
+  } else {
+    yield Saga.call(RPCTypes.SimpleFSSimpleFSListRecursiveToDepthRpcPromise, {
+      opID,
+      path: {
+        PathType: RPCTypes.simpleFSPathType.kbfs,
+        kbfs: Constants.fsPathToRpcPathString(rootPath),
+      },
+      filter: RPCTypes.simpleFSListFilter.filterAllHidden,
+      refreshSubscription: false,
+      depth: 1,
+    })
+  }
 
   yield Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
 
   const result = yield Saga.call(RPCTypes.SimpleFSSimpleFSReadListRpcPromise, {opID})
   const entries = result.entries || []
+  const childMap = entries.reduce((m: Map<Types.Path, Set<string>>, d: RPCTypes.Dirent) => {
+    const [parent, child] = d.name.split('/')
+    if (child) {
+      // Only add to the children set if the parent definitely has children.
+      const fullParent = Types.pathConcat(rootPath, parent)
+      let children = m.get(fullParent)
+      if (!children) {
+        children = new Set()
+        m.set(fullParent, children)
+      }
+      children.add(child)
+    } else {
+      let children = m.get(rootPath)
+      if (!children) {
+        children = new Set()
+        m.set(rootPath, children)
+      }
+      children.add(d.name)
+    }
+    return m
+  }, new Map())
 
-  const direntToPathAndPathItem = (d: RPCTypes.Dirent) => [Types.pathConcat(rootPath, d.name), makeEntry(d)]
+  const direntToPathAndPathItem = (d: RPCTypes.Dirent) => {
+    const path = Types.pathConcat(rootPath, d.name)
+    return [path, makeEntry(d, childMap.get(path))]
+  }
 
   // Get metadata fields of the directory that we just loaded from state to
   // avoid overriding them.
   const state = yield Saga.select()
-  const {lastModifiedTimestamp, lastWriter, size, writable}: Types.PathItemMetadata = state.fs.pathItems.get(
+  const {lastModifiedTimestamp, lastWriter, size, writable, favoriteChildren, tlfMeta}: Types.FolderPathItem = state.fs.pathItems.get(
     rootPath
   )
 
-  const pathItems: I.Map<Types.Path, Types.PathItem> = I.Map(
-    entries.map(direntToPathAndPathItem).concat([
-      [
-        rootPath,
-        Constants.makeFolder({
-          lastModifiedTimestamp,
-          lastWriter,
-          size,
-          name: Types.getPathName(rootPath),
-          writable,
-          children: I.Set(entries.map(d => d.name)),
-          progress: 'loaded',
-        }),
-      ],
-    ])
-  )
-  yield Saga.put(FsGen.createFolderListLoaded({pathItems, path: rootPath}))
+  const pathItems = [
+    [
+      rootPath,
+      Constants.makeFolder({
+        lastModifiedTimestamp,
+        lastWriter,
+        size,
+        name: Types.getPathName(rootPath),
+        writable,
+        children: I.Set(childMap.get(rootPath)),
+        progress: 'loaded',
+        tlfMeta,
+        favoriteChildren,
+      }),
+    ],
+    ...entries.map(direntToPathAndPathItem),
+  ]
+  yield Saga.put(FsGen.createFolderListLoaded({pathItems: I.Map(pathItems), path: rootPath}))
 }
 
 function* monitorDownloadProgress(key: string, opID: RPCTypes.OpID) {
@@ -536,7 +579,10 @@ const letResetUserBackIn = ({payload: {id, username}}: FsGen.LetResetUserBackInP
 
 const letResetUserBackInResult = () => undefined // Saga.put(FsGen.createLoadResets())
 
+const resetStore = () => Saga.put({type: FsGen.resetStore})
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEveryPureSimple(LoginGen.logout, resetStore)
   yield Saga.safeTakeEveryPure(
     FsGen.refreshLocalHTTPServerInfo,
     refreshLocalHTTPServerInfo,

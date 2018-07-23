@@ -16,10 +16,27 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.set('accountMap', accountMap)
     case WalletsGen.assetsReceived:
       return state.setIn(['assetsMap', action.payload.accountID], I.List(action.payload.assets))
+    case WalletsGen.paymentDetailReceived:
+      // $FlowIssue state.updateIn not found?
+      return state.updateIn(['paymentsMap', action.payload.accountID], payments =>
+        payments.update(payments.findIndex(p => p.id === action.payload.paymentID), payment =>
+          payment.merge({
+            publicNote: action.payload.publicNote,
+            publicNoteType: action.payload.publicNoteType,
+            txID: action.payload.txID,
+          })
+        )
+      )
     case WalletsGen.paymentsReceived:
       return state.setIn(['paymentsMap', action.payload.accountID], I.List(action.payload.payments))
+    case WalletsGen.secretKeyReceived:
+      return state.set('exportedSecretKey', action.payload.secretKey)
+    case WalletsGen.secretKeySeen:
+      return state.set('exportedSecretKey', new HiddenString(''))
     case WalletsGen.selectAccount:
-      return state.set('selectedAccount', action.payload.accountID)
+      return state
+        .set('exportedSecretKey', new HiddenString(''))
+        .set('selectedAccount', action.payload.accountID)
     case WalletsGen.validateAccountName:
       return state.merge({
         accountName: action.payload.name,
@@ -74,8 +91,10 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             selectedAccount: action.payload.accountID,
           })
     // Saga only actions
+    case WalletsGen.exportSecretKey:
     case WalletsGen.linkExistingAccount:
     case WalletsGen.loadAssets:
+    case WalletsGen.loadPaymentDetail:
     case WalletsGen.loadPayments:
     case WalletsGen.loadAccounts:
       return state

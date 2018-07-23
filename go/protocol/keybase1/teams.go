@@ -204,10 +204,11 @@ func (o PerTeamKeySeedItem) DeepCopy() PerTeamKeySeedItem {
 }
 
 type TeamMember struct {
-	Uid             UID      `codec:"uid" json:"uid"`
-	Role            TeamRole `codec:"role" json:"role"`
-	EldestSeqno     Seqno    `codec:"eldestSeqno" json:"eldestSeqno"`
-	UserEldestSeqno Seqno    `codec:"userEldestSeqno" json:"userEldestSeqno"`
+	Uid             UID              `codec:"uid" json:"uid"`
+	Role            TeamRole         `codec:"role" json:"role"`
+	EldestSeqno     Seqno            `codec:"eldestSeqno" json:"eldestSeqno"`
+	UserEldestSeqno Seqno            `codec:"userEldestSeqno" json:"userEldestSeqno"`
+	Status          TeamMemberStatus `codec:"status" json:"status"`
 }
 
 func (o TeamMember) DeepCopy() TeamMember {
@@ -216,6 +217,7 @@ func (o TeamMember) DeepCopy() TeamMember {
 		Role:            o.Role.DeepCopy(),
 		EldestSeqno:     o.EldestSeqno.DeepCopy(),
 		UserEldestSeqno: o.UserEldestSeqno.DeepCopy(),
+		Status:          o.Status.DeepCopy(),
 	}
 }
 
@@ -1773,10 +1775,10 @@ func (o AnnotatedTeamList) DeepCopy() AnnotatedTeamList {
 }
 
 type TeamAddMemberResult struct {
-	Invited   bool  `codec:"invited" json:"invited"`
-	User      *User `codec:"user,omitempty" json:"user,omitempty"`
-	EmailSent bool  `codec:"emailSent" json:"emailSent"`
-	ChatSent  bool  `codec:"chatSent" json:"chatSent"`
+	Invited     bool  `codec:"invited" json:"invited"`
+	User        *User `codec:"user,omitempty" json:"user,omitempty"`
+	EmailSent   bool  `codec:"emailSent" json:"emailSent"`
+	ChatSending bool  `codec:"chatSending" json:"chatSending"`
 }
 
 func (o TeamAddMemberResult) DeepCopy() TeamAddMemberResult {
@@ -1789,8 +1791,8 @@ func (o TeamAddMemberResult) DeepCopy() TeamAddMemberResult {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.User),
-		EmailSent: o.EmailSent,
-		ChatSent:  o.ChatSent,
+		EmailSent:   o.EmailSent,
+		ChatSending: o.ChatSending,
 	}
 }
 
@@ -2186,6 +2188,14 @@ type TeamAddMemberArg struct {
 	SendChatNotification bool     `codec:"sendChatNotification" json:"sendChatNotification"`
 }
 
+type TeamAddMembersArg struct {
+	SessionID            int      `codec:"sessionID" json:"sessionID"`
+	Name                 string   `codec:"name" json:"name"`
+	Assertions           []string `codec:"assertions" json:"assertions"`
+	Role                 TeamRole `codec:"role" json:"role"`
+	SendChatNotification bool     `codec:"sendChatNotification" json:"sendChatNotification"`
+}
+
 type TeamRemoveMemberArg struct {
 	SessionID int          `codec:"sessionID" json:"sessionID"`
 	Name      string       `codec:"name" json:"name"`
@@ -2395,6 +2405,7 @@ type TeamsInterface interface {
 	TeamListSubteamsRecursive(context.Context, TeamListSubteamsRecursiveArg) ([]TeamIDAndName, error)
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
 	TeamAddMember(context.Context, TeamAddMemberArg) (TeamAddMemberResult, error)
+	TeamAddMembers(context.Context, TeamAddMembersArg) error
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
 	TeamLeave(context.Context, TeamLeaveArg) error
 	TeamEditMember(context.Context, TeamEditMemberArg) error
@@ -2604,6 +2615,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamAddMember(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"teamAddMembers": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamAddMembersArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamAddMembersArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamAddMembersArg)(nil), args)
+						return
+					}
+					err = i.TeamAddMembers(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3223,6 +3250,11 @@ func (c TeamsClient) TeamChangeMembership(ctx context.Context, __arg TeamChangeM
 
 func (c TeamsClient) TeamAddMember(ctx context.Context, __arg TeamAddMemberArg) (res TeamAddMemberResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMember", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamAddMembers(ctx context.Context, __arg TeamAddMembersArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMembers", []interface{}{__arg}, nil)
 	return
 }
 

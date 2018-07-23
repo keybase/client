@@ -185,7 +185,7 @@ func genv(g *libkb.GlobalContext) {
 	g.Env.GetConfigWriter()
 	g.Env.GetCommandLine()
 	cf := libkb.NewJSONConfigFile(g, "")
-	g.Env.SetConfig(*cf, cf)
+	g.Env.SetConfig(cf, cf)
 }
 
 func gkeyring() {

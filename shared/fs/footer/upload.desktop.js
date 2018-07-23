@@ -37,14 +37,14 @@ const realCSS = `
 }
 `
 
-const Upload = ({files, timeLeft, debugToggleShow}: UploadProps) => (
+const Upload = ({showing, files, timeLeft, debugToggleShow}: UploadProps) => (
   <React.Fragment>
     {!!debugToggleShow && <Button type="Primary" onClick={debugToggleShow} label="Toggle" />}
-    <CSSTransition in={!!files} classNames="upload-animation" timeout={300} unmountOnExit={true}>
+    <CSSTransition in={showing} classNames="upload-animation" timeout={300} unmountOnExit={true}>
       <Box className="upload-animation-loop" style={stylesBox}>
         <style>{realCSS}</style>
         <Text key="files" type="BodySemibold" style={stylesText}>
-          Encrypting and uploading {files} files...
+          {files ? `Encrypting and uploading ${files} files...` : 'Done!'}
         </Text>
         {!!(timeLeft && timeLeft.length) && (
           <Text key="left" type="BodySmall" style={stylesText}>{`${timeLeft} left`}</Text>

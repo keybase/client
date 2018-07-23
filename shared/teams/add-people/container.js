@@ -46,8 +46,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
         teamname,
       })
     )
-    dispatch(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
-    dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
   },
   onClose: () => {
     dispatch(navigateUp())

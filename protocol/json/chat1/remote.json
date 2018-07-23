@@ -561,6 +561,19 @@
     },
     {
       "type": "record",
+      "name": "SetConvMinWriterRoleRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SweepRes",
       "fields": [
         {
@@ -1108,6 +1121,19 @@
         }
       ],
       "response": "SetRetentionRes"
+    },
+    "setConvMinWriterRole": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "role",
+          "type": "keybase1.TeamRole"
+        }
+      ],
+      "response": "SetConvMinWriterRoleRes"
     },
     "retentionSweepConv": {
       "request": [

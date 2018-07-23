@@ -133,8 +133,11 @@ class AvatarRender extends React.PureComponent<Props, State> {
               borderRadius={borderRadius}
             />
           )}
-          {!!this.props.borderColor && (
-            <Border borderColor={this.props.borderColor} borderRadius={borderRadius} />
+          {(!!this.props.borderColor || this.props.isTeam) && (
+            <Border
+              borderColor={this.props.borderColor || globalColors.black_05}
+              borderRadius={borderRadius}
+            />
           )}
           {this.props.followIconType && (
             <Icon
@@ -143,6 +146,17 @@ class AvatarRender extends React.PureComponent<Props, State> {
                 styles[`icon:${this.props.followIconSize}`],
                 this.props.followIconStyle,
               ])}
+            />
+          )}
+          {this.props.editable && (
+            <Icon
+              type="iconfont-edit"
+              onClick={this.props.onEditAvatarClick}
+              style={{
+                bottom: this.props.isTeam ? -2 : 0,
+                position: 'absolute',
+                right: this.props.isTeam ? -18 : 0,
+              }}
             />
           )}
           {this.props.children}
