@@ -39,30 +39,51 @@ type Props = {
   youNeedToRekey: boolean,
 }
 
+type State = {
+  isHovered: boolean,
+}
+
 const SmallTeamBox = isMobile
-  ? Box
+  ? ClickableBox
   : glamorous(Box)({
       '& .small-team-gear': {display: 'none'},
       ':hover .small-team-gear': {display: 'unset'},
       ':hover .small-team-timestamp': {display: 'none'},
-      ':not(.selected):hover': {backgroundColor: globalColors.blue4},
     })
 
-class SmallTeam extends React.PureComponent<Props> {
+class SmallTeam extends React.PureComponent<Props, State> {
+  constructor(props: Props) {
+    super(props)
+    this.state = {
+      isHovered: false,
+    }
+  }
+
+  _backgroundColor = () =>
+    // props.backgroundColor should always override hover styles, otherwise, there's a
+    // moment when the conversation is loading that the selected inbox row is styled
+    // with hover styles instead of props.backgroundColor.
+    this.props.isSelected
+      ? this.props.backgroundColor
+      : this.state.isHovered
+        ? globalColors.blue4
+        : this.props.backgroundColor
+
   render() {
     const props = this.props
     return (
-      <ClickableBox
+      <SmallTeamBox
         onClick={props.onSelectConversation}
-        style={collapseStyles([{backgroundColor: props.backgroundColor}, styles.container])}
+        onMouseLeave={() => this.setState({isHovered: false})}
+        onMouseOver={() => this.setState({isHovered: true})}
+        style={collapseStyles([
+          {
+            backgroundColor: this._backgroundColor(),
+          },
+          styles.container,
+        ])}
       >
-        <SmallTeamBox
-          className={props.isSelected ? 'selected' : ''}
-          style={collapseStyles([
-            styles.rowContainer,
-            ...(props.isSelected ? [styles.rowContainerSelected] : []),
-          ])}
-        >
+        <Box style={styles.rowContainer}>
           {props.teamname ? (
             <TeamAvatar
               teamname={props.teamname}
@@ -71,7 +92,7 @@ class SmallTeam extends React.PureComponent<Props> {
             />
           ) : (
             <Avatars
-              backgroundColor={props.backgroundColor}
+              backgroundColor={this._backgroundColor()}
               isMuted={props.isMuted}
               isLocked={props.youNeedToRekey || props.participantNeedToRekey || props.isFinalized}
               isSelected={props.isSelected}
@@ -105,8 +126,8 @@ class SmallTeam extends React.PureComponent<Props> {
               isSelected={props.isSelected}
             />
           </Box>
-        </SmallTeamBox>
-      </ClickableBox>
+        </Box>
+      </SmallTeamBox>
     )
   }
 }
