@@ -19,7 +19,7 @@ import * as Chat2Gen from './chat2-gen'
 import * as WaitingGen from './waiting-gen'
 import engine from '../engine'
 import {isMobile} from '../constants/platform'
-import {putActionIfOnPath, navigateTo, navigateUp} from './route-tree'
+import {putActionIfOnPath, navigateAppend, navigateTo, navigateUp} from './route-tree'
 import {chatTab, teamsTab} from '../constants/tabs'
 import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
@@ -42,7 +42,13 @@ const _createNewTeam = function*(action: TeamsGen.CreateNewTeamPayload) {
     )
 
     // No error if we get here.
-    yield Saga.put(navigateTo([isMobile ? chatTab : teamsTab]))
+    yield Saga.all([
+      Saga.put(navigateTo(isMobile ? [chatTab] : [{props: {teamname}, selected: 'team'}], [teamsTab])),
+      // Show the avatar editor on desktop.
+      ...(!isMobile
+        ? [Saga.put(navigateAppend([{props: {createdTeam: true, teamname}, selected: 'editTeamAvatar'}]))]
+        : []),
+    ])
   } catch (error) {
     yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
   } finally {

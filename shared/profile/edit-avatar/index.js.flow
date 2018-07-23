@@ -3,6 +3,7 @@ import {Component} from 'react'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 
 export type Props = {
+  createdTeam?: boolean,
   image?: any,
   onClose: () => void,
   onSave: (
