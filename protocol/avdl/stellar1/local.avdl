@@ -219,6 +219,10 @@ protocol local {
     // Example: "This stellar address is incorrect"
     string toErrMsg;
 
+    // Optional. `arg.to` may be an account ID that resolves to a user.
+    // If this is returned, caller should switch to (to=res.toUsername,toIsAccountID=false).
+    string toUsername;
+
     // Optional. Error to show with the amount field.
     // Example: "russel doesn't accept *BTC/Stronghold.com*\nPlease pick another asset."
     // Example: "Your available to send is *128.4567890 XLM*."
