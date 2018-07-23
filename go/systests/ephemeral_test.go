@@ -357,28 +357,35 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 	teamID, teamName := user1.createTeam2()
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
 
-	for _, u := range tt.users {
-		ephemeral.ServiceInit(u.tc.G)
-		ekLib := u.tc.G.GetEKLib()
-		_, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
-		require.NoError(t, err)
-	}
+	ephemeral.ServiceInit(user1.tc.G)
+	ekLib := user1.tc.G.GetEKLib()
+	teamEK, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
+	require.NoError(t, err)
 
+	teamEKGeneration := teamEK.Metadata.Generation
+	var expectedGeneration keybase1.EkGeneration
 	if leave {
 		user2.leave(teamName.String())
+		expectedGeneration = teamEKGeneration
 	} else {
 		user1.removeTeamMember(teamName.String(), user2.username)
+		expectedGeneration = teamEKGeneration + 1
 	}
 
+	// After leaving user2 won't have access to the current teamEK
+	_, err = user2.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, teamEKGeneration)
+	require.Error(t, err)
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
 
-	maxGen, err := user1.tc.G.GetTeamEKBoxStorage().MaxGeneration(context.Background(), teamID)
+	// Test that user1 and user2 both have access to the currentTeamEK (whether
+	// we recreated or reboxed)
+	teamEK2U1, err := user1.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, expectedGeneration)
 	require.NoError(t, err)
 
-	maxGen2, err := user2.tc.G.GetTeamEKBoxStorage().MaxGeneration(context.Background(), teamID)
+	teamEK2U2, err := user2.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, expectedGeneration)
 	require.NoError(t, err)
 
-	require.Equal(t, maxGen, maxGen2)
+	require.Equal(t, teamEK2U1, teamEK2U2)
 }
 
 func TestTeamEKMemberLeaveAndReadd(t *testing.T) {
