@@ -83,6 +83,7 @@ protocol UPK {
       array<PerUserKey> perUserKeys;
       map<KID, PublicKeyV2NaCl> deviceKeys;
       map<KID, PublicKeyV2PGPSummary> pgpKeys;
+      union { null, string } stellarAccountID;
       map<UID, RemoteTrack> remoteTracks;
       union { null, ResetSummary } reset;
   }

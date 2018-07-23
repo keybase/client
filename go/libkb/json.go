@@ -334,3 +334,103 @@ func (f *jsonFileTransaction) Commit() (err error) {
 
 	return err
 }
+
+type valueGetter func(*jsonw.Wrapper) (interface{}, error)
+
+func (f *JSONFile) getValueAtPath(p string, getter valueGetter) (ret interface{}, isSet bool) {
+	var err error
+	ret, err = getter(f.jw.AtPath(p))
+	if err == nil {
+		isSet = true
+	}
+	return ret, isSet
+}
+
+func getString(w *jsonw.Wrapper) (interface{}, error) {
+	return w.GetString()
+}
+
+func getBool(w *jsonw.Wrapper) (interface{}, error) {
+	return w.GetBool()
+}
+
+func getInt(w *jsonw.Wrapper) (interface{}, error) {
+	return w.GetInt()
+}
+
+func (f *JSONFile) GetFilename() string {
+	return f.filename
+}
+
+func (f *JSONFile) GetInterfaceAtPath(p string) (i interface{}, err error) {
+	return f.jw.AtPath(p).GetInterface()
+}
+
+func (f *JSONFile) GetStringAtPath(p string) (ret string, isSet bool) {
+	i, isSet := f.getValueAtPath(p, getString)
+	if isSet {
+		ret = i.(string)
+	}
+	return ret, isSet
+}
+
+func (f *JSONFile) GetBoolAtPath(p string) (ret bool, isSet bool) {
+	i, isSet := f.getValueAtPath(p, getBool)
+	if isSet {
+		ret = i.(bool)
+	}
+	return ret, isSet
+}
+
+func (f *JSONFile) GetIntAtPath(p string) (ret int, isSet bool) {
+	i, isSet := f.getValueAtPath(p, getInt)
+	if isSet {
+		ret = i.(int)
+	}
+	return ret, isSet
+}
+
+func (f *JSONFile) GetNullAtPath(p string) (isSet bool) {
+	w := f.jw.AtPath(p)
+	isSet = w.IsNil() && w.Error() == nil
+	return isSet
+}
+
+func (f *JSONFile) setValueAtPath(p string, getter valueGetter, v interface{}) error {
+	existing, err := getter(f.jw.AtPath(p))
+
+	if err != nil || existing != v {
+		err = f.jw.SetValueAtPath(p, jsonw.NewWrapper(v))
+		if err == nil {
+			return f.Save()
+		}
+	}
+	return err
+}
+
+func (f *JSONFile) SetStringAtPath(p string, v string) error {
+	return f.setValueAtPath(p, getString, v)
+}
+
+func (f *JSONFile) SetBoolAtPath(p string, v bool) error {
+	return f.setValueAtPath(p, getBool, v)
+}
+
+func (f *JSONFile) SetIntAtPath(p string, v int) error {
+	return f.setValueAtPath(p, getInt, v)
+}
+
+func (f *JSONFile) SetInt64AtPath(p string, v int64) error {
+	return f.setValueAtPath(p, getInt, v)
+}
+
+func (f *JSONFile) SetNullAtPath(p string) (err error) {
+	existing := f.jw.AtPath(p)
+	if !existing.IsNil() || existing.Error() != nil {
+		err = f.jw.SetValueAtPath(p, jsonw.NewNil())
+		if err == nil {
+			return f.Save()
+		}
+	}
+	return err
+}

@@ -29,6 +29,7 @@ func NewCmdChat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 		newCmdChatReAddMember(cl, g),
 		newCmdChatReport(cl, g),
 		newCmdChatSetRetention(cl, g),
+		newCmdChatSetConvMinWriterRole(cl, g),
 		newCmdChatSearch(cl, g),
 		newCmdChatSend(cl, g),
 		newCmdChatUpload(cl, g),

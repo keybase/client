@@ -72,7 +72,7 @@ const chatChildren = {
   },
   deleteHistoryWarning: {
     component: DeleteHistoryWarning,
-    tags: makeLeafTags({layerOnTop: false}),
+    tags: makeLeafTags({layerOnTop: !isMobile}),
     children: key => makeRouteDefNode(chatChildren[key]),
   },
   enterPaperkey: {

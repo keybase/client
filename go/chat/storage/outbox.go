@@ -337,14 +337,14 @@ func (o *Outbox) MarkAsError(ctx context.Context, obr chat1.OutboxRecord, errRec
 }
 
 func (o *Outbox) RetryMessage(ctx context.Context, obid chat1.OutboxID,
-	identifyBehavior *keybase1.TLFIdentifyBehavior) error {
+	identifyBehavior *keybase1.TLFIdentifyBehavior) (res *chat1.OutboxRecord, err error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
-	obox, err := o.readDiskOutbox(ctx)
-	if err != nil {
-		return o.maybeNuke(err, o.dbKey())
+	obox, ierr := o.readDiskOutbox(ctx)
+	if ierr != nil {
+		return res, o.maybeNuke(ierr, o.dbKey())
 	}
 
 	// Loop through and find record
@@ -357,6 +357,7 @@ func (o *Outbox) RetryMessage(ctx context.Context, obid chat1.OutboxID,
 			if identifyBehavior != nil {
 				obr.IdentifyBehavior = *identifyBehavior
 			}
+			res = &obr
 		}
 		recs = append(recs, obr)
 	}
@@ -364,10 +365,34 @@ func (o *Outbox) RetryMessage(ctx context.Context, obid chat1.OutboxID,
 	// Write out diskbox
 	obox.Records = recs
 	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
-		return o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
+		return res, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
 	}
 
+	return res, nil
+}
+
+func (o *Outbox) UpdateMessage(ctx context.Context, replaceobr chat1.OutboxRecord) error {
+	locks.Outbox.Lock()
+	defer locks.Outbox.Unlock()
+	obox, err := o.readDiskOutbox(ctx)
+	if err != nil {
+		return o.maybeNuke(err, o.dbKey())
+	}
+	// Scan to find the message and replace it
+	var recs []chat1.OutboxRecord
+	for _, obr := range obox.Records {
+		if !obr.OutboxID.Eq(&replaceobr.OutboxID) {
+			recs = append(recs, obr)
+		} else {
+			recs = append(recs, replaceobr)
+		}
+	}
+	obox.Records = recs
+	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
+		return o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
+			"error writing outbox: err: %s", err.Error()), o.dbKey())
+	}
 	return nil
 }
 

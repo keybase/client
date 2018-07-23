@@ -40,8 +40,7 @@ func postRetentionPolicy(ctx context.Context, lcli chat1.LocalClient, tui libkb.
 		if teamWide {
 			promptText = fmt.Sprintf("Set the team-wide retention policy?\nHit Enter to confirm, or Ctrl-C to cancel.")
 		}
-		_, err = tui.Prompt(PromptDescriptorChatSetRetention, promptText)
-		if err != nil {
+		if _, err = tui.Prompt(PromptDescriptorChatSetRetention, promptText); err != nil {
 			return err
 		}
 	}
@@ -57,5 +56,21 @@ func postRetentionPolicy(ctx context.Context, lcli chat1.LocalClient, tui libkb.
 	}
 	return lcli.SetConvRetentionLocal(ctx, chat1.SetConvRetentionLocalArg{
 		ConvID: conv.Info.Id,
-		Policy: policy})
+		Policy: policy,
+	})
+}
+
+// Post a min writer role for the given conversation
+func postConvMinWriterRole(ctx context.Context, lcli chat1.LocalClient, tui libkb.TerminalUI,
+	conv *chat1.ConversationLocal, role keybase1.TeamRole, doPrompt bool) (err error) {
+	if doPrompt {
+		promptText := fmt.Sprintf("Set the minimium writer role of %v for this conversation?\nHit Enter to confirm, or Ctrl-C to cancel.", role)
+		if _, err = tui.Prompt(PromptDescriptorChatSetConvMinWriterRole, promptText); err != nil {
+			return err
+		}
+	}
+	return lcli.SetConvMinWriterRoleLocal(ctx, chat1.SetConvMinWriterRoleLocalArg{
+		ConvID: conv.Info.Id,
+		Role:   role,
+	})
 }

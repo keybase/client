@@ -253,6 +253,10 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 }
 
 func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqno, t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
+	// NOTE: This status only gets set from the server if the requesting user
+	// has not interacted with the deleted user. The idea being if you have
+	// interacted (chatted, etc) with this user you should still verify their
+	// sigchain. Otherwise you can ignore it.
 	if val, err := jsonparser.GetInt(body, "status", "code"); err == nil {
 		if keybase1.StatusCode(val) == keybase1.StatusCode_SCDeleted {
 			// Do not bother trying to read the sigchain - user is

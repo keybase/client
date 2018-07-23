@@ -926,16 +926,29 @@ func (o ConversationCreatorInfoLocal) DeepCopy() ConversationCreatorInfoLocal {
 	}
 }
 
+type ConversationMinWriterRoleInfo struct {
+	Uid  gregor1.UID       `codec:"uid" json:"uid"`
+	Role keybase1.TeamRole `codec:"role" json:"role"`
+}
+
+func (o ConversationMinWriterRoleInfo) DeepCopy() ConversationMinWriterRoleInfo {
+	return ConversationMinWriterRoleInfo{
+		Uid:  o.Uid.DeepCopy(),
+		Role: o.Role.DeepCopy(),
+	}
+}
+
 type Conversation struct {
-	Metadata        ConversationMetadata          `codec:"metadata" json:"metadata"`
-	ReaderInfo      *ConversationReaderInfo       `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
-	Notifications   *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
-	MaxMsgs         []MessageBoxed                `codec:"maxMsgs" json:"maxMsgs"`
-	MaxMsgSummaries []MessageSummary              `codec:"maxMsgSummaries" json:"maxMsgSummaries"`
-	CreatorInfo     *ConversationCreatorInfo      `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
-	Expunge         Expunge                       `codec:"expunge" json:"expunge"`
-	ConvRetention   *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
-	TeamRetention   *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
+	Metadata          ConversationMetadata           `codec:"metadata" json:"metadata"`
+	ReaderInfo        *ConversationReaderInfo        `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
+	Notifications     *ConversationNotificationInfo  `codec:"notifications,omitempty" json:"notifications,omitempty"`
+	MaxMsgs           []MessageBoxed                 `codec:"maxMsgs" json:"maxMsgs"`
+	MaxMsgSummaries   []MessageSummary               `codec:"maxMsgSummaries" json:"maxMsgSummaries"`
+	CreatorInfo       *ConversationCreatorInfo       `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
+	Expunge           Expunge                        `codec:"expunge" json:"expunge"`
+	ConvRetention     *RetentionPolicy               `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
+	TeamRetention     *RetentionPolicy               `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
+	MinWriterRoleInfo *ConversationMinWriterRoleInfo `codec:"minWriterRoleInfo,omitempty" json:"minWriterRoleInfo,omitempty"`
 }
 
 func (o Conversation) DeepCopy() Conversation {
@@ -999,6 +1012,13 @@ func (o Conversation) DeepCopy() Conversation {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.TeamRetention),
+		MinWriterRoleInfo: (func(x *ConversationMinWriterRoleInfo) *ConversationMinWriterRoleInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.MinWriterRoleInfo),
 	}
 }
 

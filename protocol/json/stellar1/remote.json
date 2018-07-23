@@ -453,6 +453,13 @@
         {
           "type": "string",
           "name": "available"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "AccountReserve"
+          },
+          "name": "reserves"
         }
       ]
     },
@@ -623,9 +630,33 @@
         {
           "name": "limit",
           "type": "int"
+        },
+        {
+          "name": "skipPending",
+          "type": "boolean"
         }
       ],
       "response": "PaymentsPage"
+    },
+    "pendingPayments": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "limit",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "PaymentSummary"
+      }
     },
     "paymentDetails": {
       "request": [

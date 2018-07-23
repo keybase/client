@@ -11,7 +11,7 @@ import (
 
 	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/gregor1"
 )
 
 type AttachmentInfo struct {
@@ -26,14 +26,14 @@ type AttachmentInfo struct {
 type StashKey struct {
 	PlaintextHash  []byte
 	ConversationID chat1.ConversationID
-	UserID         keybase1.UID
+	UserID         gregor1.UID
 }
 
 func (s StashKey) String() string {
 	return fmt.Sprintf("%x:%x:%s", s.PlaintextHash, s.ConversationID, s.UserID)
 }
 
-func NewStashKey(plaintextHash []byte, cid chat1.ConversationID, uid keybase1.UID) StashKey {
+func NewStashKey(plaintextHash []byte, cid chat1.ConversationID, uid gregor1.UID) StashKey {
 	return StashKey{
 		PlaintextHash:  plaintextHash,
 		ConversationID: cid,

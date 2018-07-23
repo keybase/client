@@ -1,7 +1,11 @@
 package attachments
 
 import (
+	"bufio"
+	"bytes"
 	"errors"
+	"io"
+	"os"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
@@ -62,4 +66,70 @@ func AssetFromMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, 
 		}
 	}
 	return res, nil
+}
+
+type fileReadResetter struct {
+	filename string
+	file     *os.File
+	buf      *bufio.Reader
+}
+
+func newFileReadResetter(name string) (*fileReadResetter, error) {
+	f := &fileReadResetter{filename: name}
+	if err := f.open(); err != nil {
+		return nil, err
+	}
+	return f, nil
+}
+
+func (f *fileReadResetter) open() error {
+	ff, err := os.Open(f.filename)
+	if err != nil {
+		return err
+	}
+	f.file = ff
+	f.buf = bufio.NewReader(f.file)
+	return nil
+}
+
+func (f *fileReadResetter) Read(p []byte) (int, error) {
+	return f.buf.Read(p)
+}
+
+func (f *fileReadResetter) Reset() error {
+	_, err := f.file.Seek(0, io.SeekStart)
+	if err != nil {
+		return err
+	}
+	f.buf.Reset(f.file)
+	return nil
+}
+
+func (f *fileReadResetter) Close() error {
+	f.buf = nil
+	if f.file != nil {
+		return f.file.Close()
+	}
+	return nil
+}
+
+type bufReadResetter struct {
+	buf []byte
+	r   *bytes.Reader
+}
+
+func newBufReadResetter(buf []byte) *bufReadResetter {
+	return &bufReadResetter{
+		buf: buf,
+		r:   bytes.NewReader(buf),
+	}
+}
+
+func (b *bufReadResetter) Read(p []byte) (int, error) {
+	return b.r.Read(p)
+}
+
+func (b *bufReadResetter) Reset() error {
+	b.r.Reset(b.buf)
+	return nil
 }

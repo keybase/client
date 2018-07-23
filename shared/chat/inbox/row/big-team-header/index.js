@@ -18,6 +18,7 @@ import * as RowSizes from '../sizes'
 type Props = {
   badgeSubscribe: boolean,
   memberCount: number,
+  onClick: () => void,
   teamname: string,
 } & FloatingMenuParentProps
 
@@ -34,8 +35,8 @@ class _BigTeamHeader extends React.PureComponent<Props> {
           teamname={props.teamname}
           isSmallTeam={false}
         />
-        <Avatar teamname={props.teamname} size={32} />
-        <Text type="BodySmallSemibold" style={styles.team}>
+        <Avatar onClick={props.onClick} teamname={props.teamname} size={32} />
+        <Text onClick={props.onClick} type="BodySmallSemibold" style={styles.team}>
           {props.teamname}
         </Text>
         <ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef} style={styles.showMenu}>

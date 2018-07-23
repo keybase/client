@@ -10,7 +10,7 @@ import {globalColors, globalMargins, globalStyles} from '../styles'
 const StandardScreen = ({theme = 'light', ...props}: Props) => {
   return (
     <Box style={{...styleContainer, ...backgroundColorThemed[theme]}}>
-      <NativeScrollView>
+      <NativeScrollView scrollEnabled={props.scrollEnabled}>
         {!!props.notification && (
           <Box style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
             {typeof props.notification.message === 'string' ? (
