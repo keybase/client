@@ -82,12 +82,8 @@ class EndangeredTLFList extends React.Component<
           <Text type="Body" style={styles.bodyText}>
             You may lose access to these folders forever:
           </Text>
-          <Box style={styles.tlfListContainer}>
-            <List
-              items={this.props.endangeredTLFs}
-              renderItem={this._renderTLFEntry}
-              style={styles.tlfList}
-            />
+          <Box style={styles.listContainer}>
+            <List items={this.props.endangeredTLFs} renderItem={this._renderTLFEntry} style={styles.list} />
           </Box>
         </React.Fragment>
       )
@@ -97,16 +93,19 @@ class EndangeredTLFList extends React.Component<
 }
 
 const ActionButtons = (props: {onCancel: () => void, onSubmit: () => void, waiting: boolean}) => (
-  <Box2 direction={isMobile ? 'vertical' : 'horizontalReverse'} style={styles.actionButtonsContainer}>
+  <Box2
+    direction={isMobile ? 'vertical' : 'horizontalReverse'}
+    style={styles.actionButtonsContainer}
+    gap="tiny"
+  >
     <Button
-      fullWidth={!!isMobile}
+      fullWidth={isMobile}
       type="Danger"
       onClick={props.waiting ? null : props.onSubmit}
       label="Yes, delete it"
-      disabled={!!props.waiting}
-      style={isMobile ? {marginBottom: globalMargins.tiny} : {marginLeft: globalMargins.tiny}}
+      disabled={props.waiting}
     />
-    <Button fullWidth={!!isMobile} type="Secondary" onClick={props.onCancel} label="Cancel" />
+    <Button fullWidth={isMobile} type="Secondary" onClick={props.onCancel} label="Cancel" />
   </Box2>
 )
 
@@ -115,7 +114,11 @@ const DeviceRevoke = (props: Props) => (
     <Box style={styles.deviceRevokeContainer}>
       <Header name={props.name} type={props.type} />
       <BodyText name={props.name} currentDevice={props.currentDevice} />
-      <EndangeredTLFList endangeredTLFs={props.endangeredTLFs} waiting={props.waiting} style={{flex: 1}} />
+      <EndangeredTLFList
+        endangeredTLFs={props.endangeredTLFs}
+        waiting={props.waiting}
+        style={styles.endangeredTLFList}
+      />
       <ActionButtons onCancel={props.onCancel} onSubmit={props.onSubmit} waiting={props.waiting} />
     </Box>
   </Box2>
@@ -149,7 +152,7 @@ const styles = styleSheetCreate({
   bodyText: {
     textAlign: 'center',
   },
-  tlfListContainer: platformStyles({
+  listContainer: platformStyles({
     common: {
       ...globalStyles.flexBoxColumn,
       alignContent: 'center',
@@ -169,7 +172,10 @@ const styles = styleSheetCreate({
       width: '100%',
     },
   }),
-  tlfList: {
+  endangeredTLFList: {
+    flex: 1,
+  },
+  list: {
     margin: globalMargins.small,
   },
   tlfEntry: platformStyles({
