@@ -41,19 +41,12 @@ class BottomLine extends PureComponent<Props> {
         <Text
           type="BodySmallSemibold"
           backgroundMode="Terminal"
-          style={platformStyles({
-            common: {
+          style={collapseStyles([
+            styles.youAreResetText,
+            {
               color: this.props.isSelected ? globalColors.white : globalColors.red,
             },
-            isElectron: {
-              fontSize: 12,
-              lineHeight: '16px',
-            },
-            isMobile: {
-              fontSize: 14,
-              lineHeight: 19,
-            },
-          })}
+          ])}
         >
           Participants should let you back in.
         </Text>
@@ -65,21 +58,13 @@ class BottomLine extends PureComponent<Props> {
         </Text>
       )
     } else if (this.props.snippet) {
-      const baseStyle = styles.bottomLine
-
-      let style
-
-      if (this.props.subColor !== globalColors.black_40 || this.props.showBold) {
-        style = collapseStyles([
-          baseStyle,
-          {
-            color: this.props.subColor,
-            ...(this.props.showBold ? globalStyles.fontBold : {}),
-          },
-        ])
-      } else {
-        style = baseStyle
-      }
+      const style = collapseStyles([
+        styles.bottomLine,
+        {
+          color: this.props.subColor,
+          ...(this.props.showBold ? globalStyles.fontBold : {}),
+        },
+      ])
 
       let snippetDecoration
       let exploded = false
@@ -200,6 +185,16 @@ const styles = styleSheetCreate({
     isMobile: {
       fontSize: 12,
       lineHeight: 14,
+    },
+  }),
+  youAreResetText: platformStyles({
+    isElectron: {
+      fontSize: 12,
+      lineHeight: '16px',
+    },
+    isMobile: {
+      fontSize: 14,
+      lineHeight: 19,
     },
   }),
   bottomLine: platformStyles({
