@@ -277,7 +277,7 @@ type resolvableID struct {
 
 func (ruid resolvableID) resolve(ctx context.Context) (
 	nameIDPair, keybase1.SocialAssertion, tlf.ID, error) {
-	if doResolveImplicit(ctx) && ruid.id.IsTeamOrSubteam() {
+	if doResolveImplicit(ctx, ruid.tlfType) && ruid.id.IsTeamOrSubteam() {
 		// First check if this is an implicit team.
 		iteamInfo, err := ruid.resolver.ResolveImplicitTeamByID(
 			ctx, ruid.id.AsTeamOrBust(), ruid.tlfType)
@@ -722,7 +722,11 @@ func (rit resolvableImplicitTeam) resolve(ctx context.Context) (
 	}, keybase1.SocialAssertion{}, iteamInfo.TlfID, nil
 }
 
-func doResolveImplicit(ctx context.Context) bool {
+func doResolveImplicit(ctx context.Context, t tlf.Type) bool {
+	if t == tlf.SingleTeam {
+		return false
+	}
+
 	// Chat calls will never need us to resolve implicit teams for
 	// them.
 	switch getExtendedIdentify(ctx).behavior {
@@ -758,7 +762,7 @@ func parseTlfHandleLoose(
 	// First try resolving this full name as an implicit team.  If
 	// that doesn't work, fall through to individual name resolution.
 	var iteamHandle *TlfHandle
-	if doResolveImplicit(ctx) {
+	if doResolveImplicit(ctx, t) {
 		rit := resolvableImplicitTeam{kbpki, name, t}
 		iteamHandle, err = makeTlfHandleHelper(
 			ctx, t, []resolvableUser{rit}, nil, nil, idGetter)
