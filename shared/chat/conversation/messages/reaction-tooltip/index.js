@@ -8,10 +8,9 @@ import ReactButton from '../react-button/container'
 type Props = {
   attachmentRef?: ?React.Component<any, any>,
   conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
   onAddReaction: () => void,
   onHidden: () => void,
-  onReact: string => void,
+  ordinal: Types.Ordinal,
   reactions: Array<{
     emoji: string,
     users: Array<{fullName: string, username: string}>,
