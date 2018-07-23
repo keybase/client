@@ -10,9 +10,9 @@ import * as PushConstants from '../constants/push'
 import * as PushGen from './push-gen'
 import * as PushNotifications from 'react-native-push-notification'
 import * as mime from 'react-native-mime-types'
+import RNFetchBlob from 'rn-fetch-blob'
 import * as Saga from '../util/saga'
 import {RouteStateStorage} from './route-state-storage.native'
-import RNFetchBlob from 'react-native-fetch-blob'
 import {
   PushNotificationIOS,
   CameraRoll,

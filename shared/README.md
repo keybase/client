@@ -213,6 +213,12 @@ Sometimes, especially after opening Android Studio after a run of
 for "react-native-fetch-blob", "react-native-contacts", and
 "react-native-image-picker". This seems to be harmless.
 
+Some people find turninng off Configure on demand helps:
+`Android Studio > Preferences > Build, Execution, Deployment > Compiler > [Untick] Configure on demand`
+
+If android studio can't find node, make a ~/.gradle/gradle.properties file with your node path like:
+`NODE_PATH=/usr/local/bin/node`
+
 Sometimes you'll also get an "An IDE Error has occured" message. That
 also seems to be harmless, although you may want to resync/reopen the
 project in that case.

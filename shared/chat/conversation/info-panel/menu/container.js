@@ -26,6 +26,7 @@ export type Props = _Props & {
   _loadOperations: () => void,
 }
 
+// TODO maybe remove this and get rid of re-reselect
 const moreThanOneSubscribedChannel = createCachedSelector(
   (state, _) => state.chat2.metaMap,
   (_, teamname) => teamname,
