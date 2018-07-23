@@ -123,24 +123,24 @@ public class MainActivity extends ReactActivity {
 
     @Override
     protected void onPause() {
+        super.onPause();
         if (Keybase.appDidEnterBackground()) {
             Keybase.appBeginBackgroundTaskNonblock(new KBPushNotifier(this));
         } else {
             Keybase.setAppStateBackground();
         }
-        super.onPause();
     }
 
     @Override
     protected void onResume() {
-        Keybase.setAppStateForeground();
         super.onResume();
+        Keybase.setAppStateForeground();
     }
 
     @Override
     protected void onDestroy() {
-        Keybase.appWillExit(new KBPushNotifier(this));
         super.onDestroy();
+        Keybase.appWillExit(new KBPushNotifier(this));
     }
 
     /**
