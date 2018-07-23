@@ -5,11 +5,11 @@ import {Box2} from '../../../../common-adapters'
 import ReactButton from '../react-button/with-tooltip'
 import {styleSheetCreate} from '../../../../styles'
 
-export type Props = {
+export type Props = {|
   conversationIDKey: Types.ConversationIDKey,
   emojis: Array<string>,
   ordinal: Types.Ordinal,
-}
+|}
 
 const ReactionsRow = (props: Props) =>
   props.emojis.length === 0 ? null : (

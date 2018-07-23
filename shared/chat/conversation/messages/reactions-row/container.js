@@ -4,10 +4,10 @@ import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import ReactionsRow from '.'
 
-export type OwnProps = {
+export type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,
-}
+|}
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
