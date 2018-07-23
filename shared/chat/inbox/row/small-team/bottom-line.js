@@ -42,7 +42,7 @@ class BottomLine extends PureComponent<Props> {
             },
           ])}
         >
-          Participants should let you back in.
+          You are locked out.
         </Text>
       )
     } else if (this.props.participantNeedToRekey) {
