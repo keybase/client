@@ -29,10 +29,8 @@ type ValidCallbacks =
   | 'keybase.1.provisionUi.chooseGPGMethod'
   | 'keybase.1.secretUi.getPassphrase'
 
-const cancelDesc = 'Canceling RPC'
-
 const cancelOnCallback = (_: any, response: CommonResponseHandler, __: any) => {
-  response.error({code: RPCTypes.constantsStatusCode.scgeneric, desc: cancelDesc})
+  response.error({code: RPCTypes.constantsStatusCode.scgeneric, desc: Constants.cancelDesc})
 }
 const ignoreCallback = (_: any, __: any) => {}
 
@@ -298,6 +296,8 @@ class ProvisioningManager {
       cancelOnCallback(null, response, null)
       this._stashedResponse = null
       this._stashedResponseKey = null
+      // clear errors
+      return Saga.put(ProvisionGen.createProvisionError({error: new HiddenString('')}))
     }
   }
 }
@@ -328,10 +328,7 @@ const startProvisioning = (state: TypedState) =>
         waitingKey: Constants.waitingKey,
       })
     } catch (finalError) {
-      // If we're canceling then ignore the error
-      if (finalError.desc !== cancelDesc) {
-        yield Saga.put(ProvisionGen.createShowFinalErrorPage({finalError}))
-      }
+      yield Saga.put(ProvisionGen.createShowFinalErrorPage({finalError}))
     }
   })
 
@@ -350,7 +347,7 @@ const addNewDevice = (state: TypedState) =>
       yield Saga.put(RouteTree.navigateTo([], devicesRoot))
     } catch (e) {
       // If we're canceling then ignore the error
-      if (e.desc !== cancelDesc) {
+      if (e.desc !== Constants.cancelDesc) {
         yield Saga.put(ProvisionGen.createProvisionError({error: new HiddenString(niceError(e))}))
       }
     }
@@ -391,8 +388,16 @@ const showPaperkeyPage = (state: TypedState) =>
   !state.provision.error.stringValue() &&
   Saga.put(RouteTree.navigateAppend(['paperkey'], [Tabs.loginTab, 'login']))
 
-const showFinalErrorPage = (state: TypedState) =>
-  state.provision.finalError && Saga.put(RouteTree.navigateAppend(['error'], [Tabs.loginTab, 'login']))
+const showFinalErrorPage = (state: TypedState) => {
+  if (state.provision.finalError && state.provision.finalError.desc !== Constants.cancelDesc) {
+    return Saga.put(RouteTree.navigateAppend(['error'], [Tabs.loginTab, 'login']))
+  } else {
+    return Saga.put(RouteTree.navigateTo([], [Tabs.loginTab, 'login']))
+  }
+}
+
+const showUsernameEmailPage = () =>
+  Saga.put(RouteTree.navigateTo(['login', 'usernameOrEmail'], [Tabs.loginTab]))
 
 function* provisionSaga(): Saga.SagaGenerator<any, any> {
   // Start provision
@@ -410,6 +415,7 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   )
 
   // Screens
+  yield Saga.safeTakeEveryPureSimple(ProvisionGen.startProvision, showUsernameEmailPage)
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.showDeviceListPage, showDeviceListPage)
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.showNewDeviceNamePage, showNewDeviceNamePage)
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.showCodePage, showCodePage)

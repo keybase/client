@@ -10,6 +10,7 @@ const initialState = Constants.makeState()
 export default function(state: Types.State = initialState, action: ProvisionGen.Actions): Types.State {
   switch (action.type) {
     case ProvisionGen.resetStore:
+    case ProvisionGen.startProvision:
       return initialState
     case ProvisionGen.provisionError:
     case ProvisionGen.showPassphrasePage: // fallthrough
@@ -19,6 +20,10 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
     case ProvisionGen.submitPaperkey:
       return state.merge({error: initialState.error})
     case ProvisionGen.showFinalErrorPage:
+      // Ignore cancels
+      if (action.payload.finalError && action.payload.finalError.desc === Constants.cancelDesc) {
+        return state
+      }
       return state.merge({finalError: action.payload.finalError})
     case ProvisionGen.showNewDeviceNamePage:
       return state.merge({

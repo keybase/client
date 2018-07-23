@@ -20,7 +20,6 @@ export const navBasedOnLoginAndInitialState = 'login:navBasedOnLoginAndInitialSt
 export const onFinish = 'login:onFinish'
 export const setDeletedSelf = 'login:setDeletedSelf'
 export const setRevokedSelf = 'login:setRevokedSelf'
-export const startLogin = 'login:startLogin'
 
 // Payload Types
 type _ConfiguredAccountsPayload = $ReadOnly<{|accounts: ?Array<{|hasStoredSecret: boolean, username: string|}>|}>
@@ -38,7 +37,6 @@ type _NavBasedOnLoginAndInitialStatePayload = void
 type _OnFinishPayload = void
 type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
 type _SetRevokedSelfPayload = $ReadOnly<{|revoked: string|}>
-type _StartLoginPayload = void
 
 // Action Creators
 export const createConfiguredAccounts = (payload: _ConfiguredAccountsPayload) => ({error: false, payload, type: configuredAccounts})
@@ -53,7 +51,6 @@ export const createNavBasedOnLoginAndInitialState = (payload: _NavBasedOnLoginAn
 export const createOnFinish = (payload: _OnFinishPayload) => ({error: false, payload, type: onFinish})
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error: false, payload, type: setDeletedSelf})
 export const createSetRevokedSelf = (payload: _SetRevokedSelfPayload) => ({error: false, payload, type: setRevokedSelf})
-export const createStartLogin = (payload: _StartLoginPayload) => ({error: false, payload, type: startLogin})
 
 // Action Payloads
 export type ConfiguredAccountsPayload = $Call<typeof createConfiguredAccounts, _ConfiguredAccountsPayload>
@@ -68,7 +65,6 @@ export type NavBasedOnLoginAndInitialStatePayload = $Call<typeof createNavBasedO
 export type OnFinishPayload = $Call<typeof createOnFinish, _OnFinishPayload>
 export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDeletedSelfPayload>
 export type SetRevokedSelfPayload = $Call<typeof createSetRevokedSelf, _SetRevokedSelfPayload>
-export type StartLoginPayload = $Call<typeof createStartLogin, _StartLoginPayload>
 
 // All Actions
 // prettier-ignore
@@ -85,5 +81,4 @@ export type Actions =
   | OnFinishPayload
   | SetDeletedSelfPayload
   | SetRevokedSelfPayload
-  | StartLoginPayload
   | {type: 'common:resetStore', payload: void}

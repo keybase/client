@@ -5,6 +5,7 @@
     "import {RPCError} from '../util/errors'"
   ],
   "actions": {
+    "startProvision": {},
     "provisionError": { "error": "?HiddenString" },
     "submitUsernameOrEmail": { "usernameOrEmail": "string" },
     "submitPassphrase": { "passphrase": "HiddenString", },
