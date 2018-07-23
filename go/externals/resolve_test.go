@@ -5,13 +5,13 @@ import (
 	"testing"
 	"time"
 
-	clockwork "github.com/keybase/clockwork"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	clockwork "github.com/keybase/clockwork"
 	"golang.org/x/net/context"
 )
 
-func newTestResolverCache(g *libkb.GlobalContext) (*libkb.ResolverImpl, clockwork.FakeClock){
+func newTestResolverCache(g *libkb.GlobalContext) (*libkb.ResolverImpl, clockwork.FakeClock) {
 	clock := clockwork.NewFakeClockAt(time.Now())
 	g.SetClock(clock)
 	res := libkb.NewResolverImpl(g)
