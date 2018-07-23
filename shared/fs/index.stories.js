@@ -397,6 +397,25 @@ const load = () => {
             routePath={I.List([])}
           />
         </WrapRow>
+        <WrapRow key="16">
+          <StillRow
+            path={Types.stringToPath('/keybase/private/foo/bar/baz')}
+            name="qux"
+            type="file"
+            lastModifiedTimestamp={Date.now()}
+            lastWriter="bob"
+            shouldShowMenu={true}
+            itemStyles={fileItemStyles}
+            badgeCount={3}
+            isDownloading={false}
+            isUserReset={false}
+            resetParticipants={[]}
+            onOpen={action('onOpen')}
+            openInFileUI={action('openInFileUI')}
+            onAction={action('onAction')}
+            isEmpty={false}
+          />
+        </WrapRow>
       </Box>
     ))
     .add('Downloads', () => (
