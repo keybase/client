@@ -1159,7 +1159,7 @@ func MakeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 
 // Lookup a user who has the stellar account ID.
 // Verifies the result against the user's sigchain.
-// If there are multiple users, returns an arbitrary one.
+// If there are no users, or multiple users, returns NotFoundError.
 func LookupUserByAccountID(m libkb.MetaContext, accountID stellar1.AccountID) (uv keybase1.UserVersion, un libkb.NormalizedUsername, err error) {
 	defer m.CTraceTimed(fmt.Sprintf("Stellar.LookupUserByAccount(%v)", accountID), func() error { return err })()
 	usersUnverified, err := remote.LookupUnverified(m.Ctx(), m.G(), accountID)
@@ -1172,6 +1172,9 @@ func LookupUserByAccountID(m libkb.MetaContext, accountID stellar1.AccountID) (u
 	}
 	if len(usersUnverified) == 0 {
 		return uv, un, libkb.NotFoundError{Msg: fmt.Sprintf("No user found with account %v", accountID)}
+	}
+	if len(usersUnverified) > 1 {
+		return uv, un, libkb.NotFoundError{Msg: fmt.Sprintf("Multiple users found with account: %v", accountID)}
 	}
 	uv = usersUnverified[0]
 	// Verify that `uv` (from server) matches `accountID`.
