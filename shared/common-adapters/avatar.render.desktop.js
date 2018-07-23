@@ -148,6 +148,16 @@ class AvatarRender extends React.PureComponent<Props, State> {
         {this.props.followIconType && (
           <Icon type={this.props.followIconType} style={this.props.followIconStyle} />
         )}
+        {this.props.editable && (
+          <Icon
+            type="iconfont-edit"
+            style={{
+              bottom: this.props.isTeam ? -2 : 0,
+              position: 'absolute',
+              right: this.props.isTeam ? -18 : 0,
+            }}
+          />
+        )}
         {this.props.children}
       </div>
     )

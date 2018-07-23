@@ -124,6 +124,7 @@ export default function(state: Types.State = Constants.initialState, action: Pro
     case ProfileGen.submitRevokeProof:
     case ProfileGen.submitUsername:
     case ProfileGen.submitZcashAddress:
+    case ProfileGen.uploadAvatar:
       return state
     default:
       /*::

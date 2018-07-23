@@ -30,6 +30,8 @@ protocol local {
     // Blank for non-native.
     // Error string when worthCurrency is "ERR".
     string availableToSendWorth;
+
+    array<AccountReserve> reserves; // only added to native (XLM) asset.
   }
   array<AccountAssetLocal> getAccountAssetsLocal(int sessionID, AccountID accountID);
 

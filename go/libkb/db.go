@@ -168,6 +168,7 @@ const (
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
 
+	DBAttachmentUploader       = 0xcf
 	DBDiskLRUEntries           = 0xda
 	DBDiskLRUIndex             = 0xdb
 	DBImplicitTeamConflictInfo = 0xdc

@@ -26,7 +26,7 @@ var PushTeamChannels = "chat.teamchannels"
 var PushKBFSUpgrade = "chat.kbfsupgrade"
 var PushConvRetention = "chat.convretention"
 var PushTeamRetention = "chat.teamretention"
-var PushMinWriterRole = "chat.minwriterrole"
+var PushConvMinWriterRole = "chat.convminwriterrole"
 
 func NewAllCryptKeys() AllCryptKeys {
 	return make(AllCryptKeys)
@@ -131,4 +131,19 @@ func NewConvLoaderJob(convID chat1.ConversationID, pagination *chat1.Pagination,
 		Priority:     priority,
 		PostLoadHook: postLoadHook,
 	}
+}
+
+type AttachmentUploaderTaskStatus int
+
+const (
+	AttachmentUploaderTaskStatusUploading AttachmentUploaderTaskStatus = iota
+	AttachmentUploaderTaskStatusSuccess
+	AttachmentUploaderTaskStatusFailed
+)
+
+type AttachmentUploadResult struct {
+	Error    *string
+	Object   chat1.Asset
+	Preview  *chat1.Asset
+	Metadata []byte
 }

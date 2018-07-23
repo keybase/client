@@ -400,13 +400,14 @@ type recentPaymentsResult struct {
 }
 
 func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
-	accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int) (stellar1.PaymentsPage, error) {
+	accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (stellar1.PaymentsPage, error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/recentpayments",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"account_id": libkb.S{Val: accountID.String()},
-			"limit":      libkb.I{Val: limit},
+			"account_id":   libkb.S{Val: accountID.String()},
+			"limit":        libkb.I{Val: limit},
+			"skip_pending": libkb.B{Val: skipPending},
 		},
 		NetContext: ctx,
 	}

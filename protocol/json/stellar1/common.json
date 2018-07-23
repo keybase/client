@@ -87,6 +87,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "AccountReserve",
+      "fields": [
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "TransactionStatus",
       "symbols": [

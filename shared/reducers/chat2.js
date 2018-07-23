@@ -203,7 +203,12 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
       )
     }
     case Chat2Gen.attachmentUploading:
-      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
+      const convMap = pendingOutboxToOrdinal.get(action.payload.conversationIDKey, I.Map())
+      const ordinal = convMap.get(action.payload.outboxID)
+      if (!ordinal) {
+        return messageMap
+      }
+      return messageMap.updateIn([action.payload.conversationIDKey, ordinal], message => {
         if (!message || message.type !== 'attachment') {
           return message
         }
