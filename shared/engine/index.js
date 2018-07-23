@@ -524,8 +524,6 @@ class FakeEngine {
 let engine
 const makeEngine = (dispatch: Dispatch, getState: () => TypedState) => {
   if (__DEV__ && engine) {
-    // eslint-disable-next-line
-    debugger
     logger.warn('makeEngine called multiple times')
   }
 
