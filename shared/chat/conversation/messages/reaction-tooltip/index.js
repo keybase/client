@@ -5,7 +5,7 @@ import {Box2, ClickableBox, Icon, NameWithIcon, Overlay, SectionList, Text} from
 import {globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../../styles'
 import ReactButton from '../react-button/container'
 
-export type Props = {
+export type Props = {|
   attachmentRef?: ?React.Component<any, any>,
   conversationIDKey: Types.ConversationIDKey,
   onAddReaction: () => void,
@@ -18,7 +18,7 @@ export type Props = {
     users: Array<{fullName: string, username: string}>,
   }>,
   visible: boolean,
-}
+|}
 
 export const ReactionTooltip = (props: Props) => {
   if (!props.visible) {

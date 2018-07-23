@@ -131,13 +131,14 @@ const load = () => {
 
 export const propProvider = {
   ReactionTooltip: (ownProps: OwnProps): Props => ({
-    ...ownProps,
     attachmentRef: ownProps.attachmentRef,
     conversationIDKey: ownProps.conversationIDKey,
     onAddReaction: action('onAddReaction'),
     onHidden: ownProps.onHidden,
+    onMouseLeave: ownProps.onMouseLeave,
+    onMouseOver: ownProps.onMouseOver,
     ordinal: ownProps.ordinal,
-    reactions: examples[0].reactions,
+    reactions: examples[0].reactions, // we can mock this out better later if wanted
     visible: ownProps.visible,
   }),
 }

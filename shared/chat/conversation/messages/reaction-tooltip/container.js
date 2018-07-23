@@ -12,16 +12,16 @@ import {ReactionTooltip} from '.'
  * will use the emoji in OwnProps to filter if !isMobile.
  */
 
-export type OwnProps = {
+export type OwnProps = {|
   attachmentRef?: ?React.Component<any, any>,
   conversationIDKey: Types.ConversationIDKey,
-  emoji: string,
+  emoji?: string,
   onHidden: () => void,
   onMouseLeave?: (SyntheticEvent<Element>) => void,
   onMouseOver?: (SyntheticEvent<Element>) => void,
   ordinal: Types.Ordinal,
   visible: boolean,
-}
+|}
 
 const emptyStateProps = {
   _reactions: I.Map(),
@@ -58,7 +58,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
         }))
         .toArray(),
     }))
-  if (!isMobile) {
+  if (!isMobile && ownProps.emoji) {
+    // Filter down to selected emoji
     reactions = reactions.filter(r => r.emoji === ownProps.emoji)
   }
   return {
