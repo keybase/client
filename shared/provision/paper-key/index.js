@@ -1,8 +1,15 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/provision'
-import {BackButton, Box2, Text, Icon, Input, WaitingButton} from '../../common-adapters'
-import {styleSheetCreate, isMobile} from '../../styles'
+import {ButtonBar, BackButton, Box2, Text, Icon, PlainInput, WaitingButton} from '../../common-adapters'
+import {
+  globalColors,
+  globalMargins,
+  styleSheetCreate,
+  isMobile,
+  platformStyles,
+  globalStyles,
+} from '../../styles'
 
 type Props = {
   onBack: () => void,
@@ -16,7 +23,7 @@ type Props = {
 
 const PaperKey = (props: Props) => (
   <Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="medium">
-    <BackButton onClick={props.onBack} />
+    <BackButton onClick={props.onBack} style={styles.backButton} />
     <Box2
       direction="vertical"
       style={styles.contents}
@@ -27,31 +34,59 @@ const PaperKey = (props: Props) => (
         <Icon type="icon-paper-key-48" />
         <Text type="BodySemiboldItalic">{props.hint}</Text>
       </Box2>
-      <Input
-        autoFocus={true}
-        multiline={true}
-        rowsMax={3}
-        style={styles.input}
-        errorText={props.error}
-        hintText="Type in your paper key"
-        onEnterKeyDown={props.onSubmit}
-        onChangeText={props.onChangePaperKey}
-        value={props.paperKey}
-      />
-      <WaitingButton
-        label="Continue"
-        type="Primary"
-        onClick={props.onSubmit}
-        enabled={!!props.paperKey}
-        waitingKey={Constants.waitingKey}
-      />
+      <Box2 direction="vertical" style={styles.inputContainer}>
+        <PlainInput
+          autoFocus={true}
+          multiline={true}
+          rowsMax={3}
+          placeholder="Type in your paper key"
+          textType="Terminal"
+          style={styles.input}
+          onEnterKeyDown={props.onSubmit}
+          onChangeText={props.onChangePaperKey}
+          value={props.paperKey}
+        />
+      </Box2>
+      {!!props.error && <Text type="BodyError">{props.error}</Text>}
+      <ButtonBar fullWidth={true} noPadding={true}>
+        <WaitingButton
+          label="Continue"
+          type="Primary"
+          fullWidth={true}
+          onClick={props.onSubmit}
+          enabled={!!props.paperKey}
+          waitingKey={Constants.waitingKey}
+        />
+      </ButtonBar>
     </Box2>
   </Box2>
 )
 
 const styles = styleSheetCreate({
+  backButton: platformStyles({
+    isElectron: {
+      marginLeft: globalMargins.medium,
+      marginTop: globalMargins.medium,
+    },
+    isMobile: {
+      marginLeft: 0,
+      marginTop: 0,
+    },
+  }),
   contents: {
-    maxWidth: isMobile ? undefined : 460,
+    maxWidth: isMobile ? 300 : 460,
+    width: '100%',
+  },
+  input: {
+    color: globalColors.black,
+  },
+  inputContainer: {
+    borderColor: globalColors.black_10,
+    borderRadius: 4,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    minHeight: 77,
+    padding: globalMargins.small,
     width: '100%',
   },
 })

@@ -2,7 +2,7 @@
 import * as Constants from '../../constants/provision'
 import * as React from 'react'
 import {Input, BackButton, Box2, WaitingButton, Text, Icon} from '../../common-adapters'
-import {styleSheetCreate, isMobile} from '../../styles'
+import {globalMargins, styleSheetCreate, isMobile, platformStyles} from '../../styles'
 
 type Props = {|
   onBack: () => void,
@@ -15,7 +15,7 @@ type Props = {|
 const SetPublicName = (props: Props) => {
   return (
     <Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="medium">
-      <BackButton onClick={props.onBack} />
+      <BackButton onClick={props.onBack} style={styles.backButton}/>
       <Box2 direction="vertical" style={styles.contents} centerChildren={true} gap="medium">
         <Text type={isMobile ? 'Body' : 'Header'}>
           Set a public name for this new {isMobile ? 'phone' : 'computer'}:
@@ -42,6 +42,16 @@ const SetPublicName = (props: Props) => {
 }
 
 const styles = styleSheetCreate({
+  backButton: platformStyles({
+    isElectron: {
+      marginLeft: globalMargins.medium,
+      marginTop: globalMargins.medium,
+    },
+    isMobile: {
+      marginLeft: 0,
+      marginTop: 0,
+    },
+  }),
   contents: {
     maxWidth: isMobile ? undefined : 460,
     width: '100%',
