@@ -351,7 +351,13 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
-	user1 := tt.addUser("one")
+	// Make standalone user that will not run gregor. This is
+	// important in the *leave* case, where we want to observe
+	// effects of team key and EK not being rotated.
+	user1 := makeUserStandalone(t, "user1", standaloneUserArgs{
+		disableGregor:            true,
+		suppressTeamChatAnnounce: true,
+	})
 	user2 := tt.addUser("wtr")
 
 	teamID, teamName := user1.createTeam2()
@@ -362,27 +368,28 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 	teamEK, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
 	require.NoError(t, err)
 
-	teamEKGeneration := teamEK.Metadata.Generation
-	var expectedGeneration keybase1.EkGeneration
+	currentGen := teamEK.Metadata.Generation
+	var expectedGen keybase1.EkGeneration
 	if leave {
 		user2.leave(teamName.String())
-		expectedGeneration = teamEKGeneration
+		expectedGen = currentGen // user left, no one to rotate keys.
 	} else {
 		user1.removeTeamMember(teamName.String(), user2.username)
-		expectedGeneration = teamEKGeneration + 1
+		expectedGen = currentGen + 1 // admin removes user, rotates TK and EK
 	}
 
 	// After leaving user2 won't have access to the current teamEK
-	_, err = user2.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, teamEKGeneration)
+	_, err = user2.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, currentGen)
 	require.Error(t, err)
+
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
 
-	// Test that user1 and user2 both have access to the currentTeamEK (whether
-	// we recreated or reboxed)
-	teamEK2U1, err := user1.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, expectedGeneration)
+	// Test that user1 and user2 both have access to the currentTeamEK
+	// (whether we recreated or reboxed)
+	teamEK2U1, err := user1.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, expectedGen)
 	require.NoError(t, err)
 
-	teamEK2U2, err := user2.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, expectedGeneration)
+	teamEK2U2, err := user2.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, expectedGen)
 	require.NoError(t, err)
 
 	require.Equal(t, teamEK2U1, teamEK2U2)
