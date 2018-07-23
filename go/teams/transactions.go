@@ -72,21 +72,22 @@ func getInviteSection(payload interface{}) (*SCTeamInvites, error) {
 
 func (tx *AddMemberTx) findPayload(typ interface{}, forUID keybase1.UID) interface{} {
 	minSeqno := 0
-	if !forUID.IsNil() {
+	hasUID := !forUID.IsNil()
+	if hasUID {
 		minSeqno = tx.uidSeqno[forUID]
 	}
 
 	refType := reflect.TypeOf(typ)
 	for i, v := range tx.payloads {
-		if reflect.TypeOf(v).Elem() == refType && i >= minSeqno {
-			if !forUID.IsNil() && i > minSeqno {
+		if i >= minSeqno && reflect.TypeOf(v).Elem() == refType {
+			if hasUID && i > minSeqno {
 				tx.uidSeqno[forUID] = i
 			}
 			return v
 		}
 	}
 
-	if !forUID.IsNil() {
+	if hasUID {
 		tx.uidSeqno[forUID] = len(tx.payloads)
 	}
 	ret := reflect.New(refType).Interface()
