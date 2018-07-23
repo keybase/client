@@ -1,16 +1,15 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/provision'
+import {ButtonBar, BackButton, Icon, Box2, Text, PlainInput, WaitingButton} from '../../common-adapters'
 import {
-  NameWithIcon,
-  ButtonBar,
-  BackButton,
-  Box2,
-  Text,
-  PlainInput,
-  WaitingButton,
-} from '../../common-adapters'
-import {globalColors, globalMargins, styleSheetCreate, isMobile, platformStyles} from '../../styles'
+  globalColors,
+  globalMargins,
+  globalStyles,
+  styleSheetCreate,
+  isMobile,
+  platformStyles,
+} from '../../styles'
 
 type Props = {
   onBack: () => void,
@@ -31,7 +30,12 @@ const PaperKey = (props: Props) => (
       centerChildren={true}
       gap={isMobile ? 'tiny' : 'medium'}
     >
-      <NameWithIcon icon="icon-paper-key-48" title={props.hint} />
+      <Box2 direction="vertical" gap="tiny" centerChildren={true}>
+        <Icon type="icon-paper-key-48" />
+        <Text type="Header" style={styles.hint}>
+          {props.hint}
+        </Text>
+      </Box2>
       <Box2 direction="vertical" style={styles.inputContainer}>
         <PlainInput
           autoFocus={true}
@@ -74,6 +78,9 @@ const styles = styleSheetCreate({
   contents: {
     maxWidth: isMobile ? 300 : 460,
     width: '100%',
+  },
+  hint: {
+    ...globalStyles.italic,
   },
   input: {
     color: globalColors.black,
