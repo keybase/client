@@ -2169,6 +2169,15 @@ func (h *Server) GetTeamRetentionLocal(ctx context.Context, teamID keybase1.Team
 	return ib.ConvsUnverified[0].Conv.TeamRetention, nil
 }
 
+func (h *Server) SetConvMinWriterRoleLocal(ctx context.Context, arg chat1.SetConvMinWriterRoleLocalArg) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "SetConvMinWriterRole(%v, %v)", arg.ConvID, arg.Role)()
+	_, err = h.remoteClient().SetConvMinWriterRole(ctx, chat1.SetConvMinWriterRoleArg{
+		ConvID: arg.ConvID,
+		Role:   arg.Role,
+	})
+	return err
+}
+
 func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID chat1.ConversationID) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "UpgradeKBFSConversationToImpteam(%s)", convID)()

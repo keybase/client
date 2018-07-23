@@ -22,6 +22,11 @@ protocol common {
     string limit;
   }
 
+  record AccountReserve {
+    string amount; // "-1"
+    string description; // e.g. "HUGZ/Unknown trustline" or "account"
+  }
+
   enum TransactionStatus {
     NONE_0,
     PENDING_1,
