@@ -1,6 +1,15 @@
 // @flow
 import React from 'react'
-import {Avatar, Box2, ClickableBox, HeaderOnMobile, Icon, MaybePopup, Text} from '../../../common-adapters'
+import {
+  Avatar,
+  Box2,
+  ClickableBox,
+  Dropdown,
+  HeaderOnMobile,
+  Icon,
+  MaybePopup,
+  Text,
+} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, platformStyles, styleSheetCreate} from '../../../styles'
 
 export type Props = {
@@ -8,22 +17,44 @@ export type Props = {
   user: string,
   type: 'default' | 'secondary',
   currency: string,
+  currencies: Array<string>,
   onDelete: () => void,
   onSetDefault: () => void,
   onEditName: () => void,
 }
 
+const makeDropdownItems = (props: Props) => {
+  let items = [
+    <Box2 centerChildren={true} direction="vertical" key="">
+      <Text type="BodySmall" style={{textAlign: 'center', padding: globalMargins.xsmall}}>
+        Past transactions won’t be affected by this change.
+      </Text>
+    </Box2>,
+  ]
+  for (const s of props.currencies) {
+    items.push(makeDropdownItem(s, s === props.currency))
+  }
+  return items
+}
+
+const makeDropdownItem = (item: string, isSelected: boolean) => {
+  const itemStyle = {
+    color: isSelected ? globalColors.blue : null,
+    textAlign: 'center',
+  }
+
+  return (
+    <Box2 centerChildren={true} direction="vertical" fullWidth={true} key={item}>
+      <Text type="Header" style={itemStyle}>
+        {item}
+      </Text>
+    </Box2>
+  )
+}
+
 const SettingsPopup = (props: Props) => (
   <MaybePopup onClose={() => {}}>
-    <Box2
-      direction="vertical"
-      style={{
-        ...stylePadding,
-        backgroundColor: globalColors.white,
-        padding: globalMargins.small,
-        maxWidth: 560,
-      }}
-    >
+    <Box2 direction="vertical" style={styles.padding}>
       <Box2 centerChildren={true} direction="vertical">
         <Text style={{padding: globalMargins.small}} type="Header">
           Settings
@@ -56,14 +87,13 @@ const SettingsPopup = (props: Props) => (
         </Box2>
       </Box2>
       <Text type="BodySmallSemibold">Display currency</Text>
-      <ClickableBox
-        style={{
-          ...globalStyles.flexBoxRow,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-        onClick={props.onDelete}
-      >
+      <Dropdown
+        items={makeDropdownItems(props)}
+        selected={makeDropdownItem(props.currency, false)}
+        onChanged={() => {}}
+        style={styles.dropdown}
+      />
+      <ClickableBox style={styles.remove} onClick={props.onDelete}>
         <Icon type="iconfont-trash" style={{marginRight: globalMargins.tiny}} color={globalColors.red} />
         <Text type="BodySemibold" style={{color: globalColors.red}} className="hover-underline">
           Remove account
@@ -73,18 +103,6 @@ const SettingsPopup = (props: Props) => (
   </MaybePopup>
 )
 
-const stylePadding = platformStyles({
-  isMobile: {
-    paddingTop: globalMargins.xlarge,
-  },
-  isElectron: {
-    marginBottom: 40,
-    marginLeft: 80,
-    marginRight: 80,
-    marginTop: 40,
-  },
-})
-
 const styles = styleSheetCreate({
   avatar: {marginRight: globalMargins.xtiny},
   nameBox: {
@@ -92,6 +110,31 @@ const styles = styleSheetCreate({
     alignItems: 'stretch',
     justifyContent: 'flex-start',
     marginBottom: globalMargins.medium,
+  },
+  padding: platformStyles({
+    common: {
+      backgroundColor: globalColors.white,
+      padding: globalMargins.small,
+      maxWidth: 560,
+    },
+    isMobile: {
+      paddingTop: globalMargins.xlarge,
+    },
+    isElectron: {
+      marginBottom: 40,
+      marginLeft: 80,
+      marginRight: 80,
+      marginTop: 40,
+    },
+  }),
+  dropdown: {
+    marginBottom: globalMargins.small,
+    alignItems: 'center',
+  },
+  remove: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 })
 
