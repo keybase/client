@@ -2457,9 +2457,8 @@ type TeamsInterface interface {
 	// ProfileTeamLoad loads a team and then throws it on the ground, for the purposes of profiling
 	// the team load machinery.
 	ProfileTeamLoad(context.Context, LoadTeamArg) (ProfileTeamLoadRes, error)
-	// * Uses resolver to get teamID from team name string. Uses resolver cache.
-	// * Calls resolver even for root teams. Returns an error if current user
-	// * can't read the team.
+	// Gets a TeamID from a team name string. Returns an error if the
+	// current user can't read the team.
 	GetTeamID(context.Context, string) (TeamID, error)
 }
 
@@ -3477,9 +3476,8 @@ func (c TeamsClient) ProfileTeamLoad(ctx context.Context, arg LoadTeamArg) (res 
 	return
 }
 
-// * Uses resolver to get teamID from team name string. Uses resolver cache.
-// * Calls resolver even for root teams. Returns an error if current user
-// * can't read the team.
+// Gets a TeamID from a team name string. Returns an error if the
+// current user can't read the team.
 func (c TeamsClient) GetTeamID(ctx context.Context, teamName string) (res TeamID, err error) {
 	__arg := GetTeamIDArg{TeamName: teamName}
 	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamID", []interface{}{__arg}, &res)
