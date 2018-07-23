@@ -152,10 +152,6 @@
           "name": "eldestSeqno"
         },
         {
-          "type": "Seqno",
-          "name": "userEldestSeqno"
-        },
-        {
           "type": "TeamMemberStatus",
           "name": "status"
         }
