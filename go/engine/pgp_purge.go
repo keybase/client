@@ -127,6 +127,10 @@ func (e *PGPPurge) exportBlocks(m libkb.MetaContext, blocks []*libkb.SKB) error 
 	return nil
 }
 
+func (e *PGPPurge) isPaperEncryptionKey(key *keybase1.PublicKeyV2NaCl, deviceKeys *(map[keybase1.KID]keybase1.PublicKeyV2NaCl)) bool {
+	return libkb.KIDIsDeviceEncrypt(key.Base.Kid) && key.Parent != nil && (*deviceKeys)[*key.Parent].DeviceType == libkb.DeviceTypePaper
+}
+
 func (e *PGPPurge) encryptToFile(m libkb.MetaContext, bundle *libkb.PGPKeyBundle, filename string) error {
 	out, err := os.Create(filename)
 	if err != nil {
@@ -139,15 +143,37 @@ func (e *PGPPurge) encryptToFile(m libkb.MetaContext, bundle *libkb.PGPKeyBundle
 		return err
 	}
 
+	// Lookup which keys this user has that we can use for encrypiton
+	arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(m.ActiveDevice().UID()).WithForcePoll(true)
+	upak, _, err := m.G().GetUPAKLoader().LoadV2(arg)
+	if err != nil {
+		return err
+	}
+	upk := upak.Current
+
+	hasPUK := len(upk.PerUserKeys) > 0
+
+	hasPaperKey := false
+	hasDeviceKey := false
+	for KID, key := range upk.DeviceKeys {
+		if e.isPaperEncryptionKey(&key, &upk.DeviceKeys) {
+			hasPaperKey = true
+		}
+		if libkb.KIDIsDeviceEncrypt(KID) && !e.isPaperEncryptionKey(&key, &upk.DeviceKeys) {
+			hasDeviceKey = true
+		}
+	}
+
+	// encrypt
 	arg := &SaltpackEncryptArg{
 		Source: &buf,
 		Sink:   out,
 		Opts: keybase1.SaltpackEncryptOptions{
 			Recipients:       []string{m.CurrentUsername().String()},
 			AuthenticityType: keybase1.AuthenticityType_SIGNED,
-			UsePaperKeys:     true,
-			UseDeviceKeys:    true,
-			UseEntityKeys:    true,
+			UsePaperKeys:     hasPaperKey,
+			UseDeviceKeys:    hasDeviceKey,
+			UseEntityKeys:    hasPUK,
 		},
 	}
 	eng := NewSaltpackEncrypt(arg, NewSaltpackUserKeyfinderAsInterface)
