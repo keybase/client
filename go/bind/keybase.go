@@ -224,7 +224,7 @@ func LogSend(status string, feedback string, sendLogs bool, uiLogPath, traceDir 
 // WriteB64 sends a base64 encoded msgpack rpc payload
 func WriteB64(str string) error {
 	if conn == nil {
-		return "", errors.New("connection not initialized")
+		return errors.New("connection not initialized")
 	}
 	data, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {
@@ -430,6 +430,7 @@ func AppDidEnterBackground() bool {
 		return false
 	}
 	if len(convs) > 0 {
+		kbCtx.Log.Debug("AppDidEnterBackground: active deliveries in play, setting background active")
 		kbCtx.AppState.Update(keybase1.AppState_BACKGROUNDACTIVE)
 		return true
 	}
