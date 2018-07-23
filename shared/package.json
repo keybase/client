@@ -75,7 +75,7 @@
     "transformIgnorePatterns": [
       "node_modules/(?!universalify|fs-extra|react-redux|@storybook|lodash-es).+\\.js"
     ],
-    "setupFiles": [ ],
+    "setupFiles": [],
     "setupTestFrameworkScriptFile": "<rootDir>/test/setupTestFrameworkScriptFile.js",
     "testPathIgnorePatterns": [
       "/node_modules/"
@@ -174,14 +174,14 @@
     "uuid": "^3.2.1"
   },
   "devDependencies": {
-    "@babel/cli": "7.0.0-beta.51",
-    "@babel/core": "7.0.0-beta.51",
-    "@babel/node": "7.0.0-beta.51",
-    "@babel/plugin-proposal-class-properties": "7.0.0-beta.51",
-    "@babel/plugin-proposal-object-rest-spread": "7.0.0-beta.51",
-    "@babel/plugin-transform-flow-strip-types": "7.0.0-beta.51",
-    "@babel/preset-env": "7.0.0-beta.51",
-    "@babel/preset-react": "7.0.0-beta.51",
+    "@babel/cli": "7.0.0-beta.54",
+    "@babel/core": "7.0.0-beta.54",
+    "@babel/node": "7.0.0-beta.54",
+    "@babel/plugin-proposal-class-properties": "7.0.0-beta.54",
+    "@babel/plugin-proposal-object-rest-spread": "7.0.0-beta.54",
+    "@babel/plugin-transform-flow-strip-types": "7.0.0-beta.54",
+    "@babel/preset-env": "7.0.0-beta.54",
+    "@babel/preset-react": "7.0.0-beta.54",
     "@storybook/addon-actions": "4.0.0-alpha.10",
     "@storybook/addon-storyshots": "4.0.0-alpha.10",
     "@storybook/addons": "4.0.0-alpha.10",
@@ -190,7 +190,7 @@
     "@storybook/react-native": "4.0.0-alpha.10",
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "8.2.3",
-    "babel-jest": "23.0.1",
+    "babel-jest": "23.4.0",
     "babel-loader": "8.0.0-beta.4",
     "babel-preset-react-native": "5.0.2",
     "css-loader": "0.28.11",
@@ -215,8 +215,8 @@
     "flow-bin": "0.76.0",
     "flow-typed": "^2.4.0",
     "fs-extra": "6.0.1",
-    "jest": "23.1.0",
-    "jest-glamor-react": "4.3.0",
+    "jest": "23.4.1",
+    "jest-glamor-react": "4.3.1",
     "json5": "1.0.1",
     "klaw-sync": "4.0.0",
     "minimist": "1.2.0",
