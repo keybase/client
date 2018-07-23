@@ -216,8 +216,9 @@ class Thread extends React.PureComponent<Props, State> {
     copyToClipboard(window.getSelection().toString())
   }
 
-  _handleListClick = (ev: MouseEvent) => {
+  _handleListClick = (ev: SyntheticMouseEvent<Element>) => {
     const target = ev.target
+    // allow focusing other inner inputs such as the reacji picker filter
     if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
       return
     }

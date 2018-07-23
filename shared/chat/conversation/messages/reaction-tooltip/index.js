@@ -116,7 +116,7 @@ const renderSectionHeader = ({
 
 const styles = styleSheetCreate({
   addReactionButton: {
-    borderColor: globalColors.black_05,
+    borderColor: globalColors.black_10,
     borderRadius: 20,
     borderStyle: 'solid',
     borderWidth: 2,
