@@ -699,6 +699,7 @@ export const tlfKeysTLFIdentifyBehavior = {
   gui: 9,
   defaultKbfs: 10,
   kbfsChat: 11,
+  resolveAndCheck: 12,
 }
 
 export const uPKKeyType = {
@@ -1227,7 +1228,7 @@ export type HomeScreenTodoType =
 export type HomeUIHomeUIRefreshRpcParam = void
 export type HomeUserSummary = $ReadOnly<{uid: UID, username: String, bio: String, fullName: String, pics?: ?Pics}>
 export type Identify2Res = $ReadOnly<{upk: UserPlusKeys, identifiedAt: Time, trackBreaks?: ?IdentifyTrackBreaks}>
-export type IdentifyIdentify2RpcParam = $ReadOnly<{uid: UID, userAssertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean}>
+export type IdentifyIdentify2RpcParam = $ReadOnly<{uid: UID, userAssertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean, actLoggedOut?: Boolean}>
 export type IdentifyIdentifyLiteRpcParam = $ReadOnly<{id: UserOrTeamID, assertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean}>
 export type IdentifyKey = $ReadOnly<{pgpFingerprint: Bytes, KID: KID, trackDiff?: ?TrackDiff, breaksTracking: Boolean}>
 export type IdentifyLiteRes = $ReadOnly<{ul: UserOrTeamLite, trackBreaks?: ?IdentifyTrackBreaks}>
@@ -2033,6 +2034,7 @@ export type TLFIdentifyBehavior =
   | 9 // GUI_9
   | 10 // DEFAULT_KBFS_10
   | 11 // KBFS_CHAT_11
+  | 12 // RESOLVE_AND_CHECK_12
 
 export type TLFIdentifyFailure = $ReadOnly<{user: User, breaks?: ?IdentifyTrackBreaks}>
 export type TLFQuery = $ReadOnly<{tlfName: String, identifyBehavior: TLFIdentifyBehavior}>
