@@ -161,8 +161,8 @@ func (md *MDOpsStandard) decryptMerkleLeaf(
 			pmd, err := decryptMDPrivateData(
 				ctx, md.config.Codec(), md.config.Crypto(),
 				md.config.BlockCache(), md.config.BlockOps(),
-				md.config.KeyManager(), md.config.Mode(), uid,
-				currRmd.GetSerializedPrivateMetadata(), currRmd,
+				md.config.KeyManager(), md.config.KBPKI(), md.config.Mode(),
+				uid, currRmd.GetSerializedPrivateMetadata(), currRmd,
 				head.ReadOnlyRootMetadata, md.log)
 			if err != nil {
 				return nil, err
@@ -709,7 +709,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	pmd, err := decryptMDPrivateData(
 		ctx, md.config.Codec(), md.config.Crypto(),
 		md.config.BlockCache(), md.config.BlockOps(),
-		md.config.KeyManager(), md.config.Mode(), uid,
+		md.config.KeyManager(), md.config.KBPKI(), md.config.Mode(), uid,
 		rmd.GetSerializedPrivateMetadata(), rmd, rmd, md.log)
 	if err != nil {
 		return ImmutableRootMetadata{}, err

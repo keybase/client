@@ -59,8 +59,8 @@ func (j journalMDOps) convertImmutableBareRMDToIRMD(ctx context.Context,
 	config := j.jServer.config
 	pmd, err := decryptMDPrivateData(ctx, config.Codec(), config.Crypto(),
 		config.BlockCache(), config.BlockOps(), config.KeyManager(),
-		config.Mode(), uid, rmd.GetSerializedPrivateMetadata(), rmd, rmd,
-		j.jServer.log)
+		config.KBPKI(), config.Mode(), uid, rmd.GetSerializedPrivateMetadata(),
+		rmd, rmd, j.jServer.log)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
