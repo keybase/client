@@ -202,6 +202,18 @@ const mapPropProviderProps = {
     participants: ['nathunsmitty', 'cnojima'],
     youAreReset: true,
   },
+  smallTeamM: {
+    ...commonSmallTeam,
+    conversationIDKey: '13',
+    participants: ['adamjspooner'],
+    participantNeedToRekey: true,
+  },
+  smallTeamN: {
+    ...commonSmallTeam,
+    conversationIDKey: '14',
+    participants: ['xgess'],
+    youNeedToRekey: true,
+  },
 
   // Big Team A
   bigTeamAHeader: {
@@ -364,6 +376,8 @@ const propsInboxSimple = {
     makeRowItemSmall('smallTeamG'),
     makeRowItemSmall('smallTeamH'),
     makeRowItemSmall('smallTeamL'),
+    makeRowItemSmall('smallTeamM'),
+    makeRowItemSmall('smallTeamN'),
   ],
 }
 
