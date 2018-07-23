@@ -50,8 +50,7 @@ func (res *ResolveResult) GetUID() keybase1.UID {
 	return res.uid
 }
 
-// SetUID should only be used by testing
-func (res *ResolveResult) SetUID(u keybase1.UID) {
+func (res *ResolveResult) SetUIDForTesting(u keybase1.UID) {
 	res.uid = u
 }
 

@@ -787,6 +787,9 @@ type ChatHelper interface {
 	AckMobileNotificationSuccess(ctx context.Context, pushIDs []string)
 }
 
+// Resolver resolves human-readable usernames (joe) and user asssertions (joe+joe@github)
+// into UIDs. It is based on sever-trust. All results are unverified. So you should check
+// its answer if used in a security-sensitive setting. (See engine.ResolveAndCheck)
 type Resolver interface {
 	EnableCaching()
 	Shutdown()

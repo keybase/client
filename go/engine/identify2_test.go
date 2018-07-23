@@ -1085,7 +1085,7 @@ type evilResolver struct {
 func (e *evilResolver) ResolveFullExpressionWithBody(ctx context.Context, s string) libkb.ResolveResult {
 	ret := e.ResolverImpl.ResolveFullExpressionWithBody(ctx, s)
 	if strings.HasPrefix(s, e.badPrefix) {
-		ret.SetUID(e.badUID)
+		ret.SetUIDForTesting(e.badUID)
 	}
 	return ret
 }

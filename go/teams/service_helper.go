@@ -843,7 +843,7 @@ func loadUserVersionPlusByUsername(ctx context.Context, g *libkb.GlobalContext, 
 		}
 		return "", keybase1.UserVersion{}, err
 	}
-	uv, err := loadUserVersionByUPK2(ctx, g, upk)
+	uv, err := filterUserCornerCases(ctx, upk)
 	return libkb.NormalizedUsernameFromUPK2(upk), uv, err
 }
 
@@ -873,7 +873,7 @@ func loadUserVersionByUsername(ctx context.Context, g *libkb.GlobalContext, user
 		return keybase1.UserVersion{}, err
 	}
 
-	return loadUserVersionByUPK2(ctx, g, upk)
+	return filterUserCornerCases(ctx, upk)
 }
 
 func loadUserVersionByUID(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID) (keybase1.UserVersion, error) {
@@ -881,10 +881,10 @@ func loadUserVersionByUID(ctx context.Context, g *libkb.GlobalContext, uid keyba
 	if err != nil {
 		return keybase1.UserVersion{}, err
 	}
-	return loadUserVersionByUPK2(ctx, g, upak.Current)
+	return filterUserCornerCases(ctx, upak.Current)
 }
 
-func loadUserVersionByUPK2(ctx context.Context, g *libkb.GlobalContext, upak keybase1.UserPlusKeysV2) (keybase1.UserVersion, error) {
+func filterUserCornerCases(ctx context.Context, upak keybase1.UserPlusKeysV2) (keybase1.UserVersion, error) {
 	uv := upak.ToUserVersion()
 	if upak.Status == keybase1.StatusCode_SCDeleted {
 		return uv, errUserDeleted
