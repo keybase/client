@@ -618,3 +618,10 @@ func (h *TeamsHandler) ProfileTeamLoad(ctx context.Context, arg keybase1.LoadTea
 	return teams.ProfileTeamLoad(mctx, arg)
 
 }
+
+func (h *TeamsHandler) GetTeamID(ctx context.Context, teamName string) (res keybase1.TeamID, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTeamIDByName(%s)", teamName), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return teams.GetTeamIDByNameRPC(mctx, teamName)
+}

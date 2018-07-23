@@ -230,7 +230,6 @@ func LookupSender(ctx context.Context, g *libkb.GlobalContext, accountID stellar
 	return entry, nil
 }
 
-// TODO: handle stellar federation address rebecca*keybase.io (or rebecca*anything.wow)
 func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res stellarcommon.Recipient, err error) {
 	defer m.CTraceTimed("Stellar.LookupRecipient", func() error { return err })()
 	res = stellarcommon.Recipient{
@@ -238,6 +237,10 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res 
 	}
 
 	storeAddress := func(address string) error {
+		_, err := libkb.ParseStellarAccountID(address)
+		if err != nil {
+			return err
+		}
 		accountID, err := stellarnet.NewAddressStr(address)
 		if err != nil {
 			return err
@@ -251,6 +254,20 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res 
 		err := storeAddress(string(to))
 		if err != nil {
 			return res, err
+		}
+		uv, username, err := LookupUserByAccountID(m, stellar1.AccountID(to))
+		switch err.(type) {
+		case nil:
+			res.User = &stellarcommon.User{
+				UV:       uv,
+				Username: username,
+			}
+			return res, nil
+		case libkb.NotFoundError:
+			// common case
+		default:
+			m.CDebugf("identifyRecipient: lookup accountID->user accountID:%v err:%v", res.AccountID, err)
+			// log and ignore
 		}
 		return res, nil
 	}
@@ -288,7 +305,7 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res 
 
 	username := idRes.User.Username
 
-	// load the user to get its wallet
+	// load the user to get their wallet
 	user, err := libkb.LoadUser(
 		libkb.NewLoadUserByNameArg(m.G(), username).
 			WithNetContext(m.Ctx()).
@@ -296,7 +313,10 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res 
 	if err != nil {
 		return res, err
 	}
-	res.User = user
+	res.User = &stellarcommon.User{
+		UV:       user.ToUserVersion(),
+		Username: user.GetNormalizedName(),
+	}
 	accountID := user.StellarAccountID()
 	if accountID == nil {
 		return res, nil
@@ -375,8 +395,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 		QuickReturn:     sendArg.QuickReturn,
 	}
 	if recipient.User != nil {
-		tmp := recipient.User.ToUserVersion()
-		post.To = &tmp
+		post.To = &recipient.User.UV
 	}
 
 	sp := NewSeqnoProvider(m.Ctx(), remoter)
@@ -417,8 +436,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 		}
 		var recipientUv *keybase1.UserVersion
 		if recipient.User != nil {
-			tmp := recipient.User.ToUserVersion()
-			recipientUv = &tmp
+			recipientUv = &recipient.User.UV
 		}
 		post.NoteB64, err = NoteEncryptB64(m.Ctx(), m.G(), noteClear, recipientUv)
 		if err != nil {
@@ -485,8 +503,7 @@ func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
 		QuickReturn:       quickReturn,
 	}
 	if recipient.User != nil {
-		tmp := recipient.User.ToUserVersion()
-		post.To = &tmp
+		post.To = &recipient.User.UV
 	}
 	rres, err := remoter.SubmitRelayPayment(m.Ctx(), post)
 	if err != nil {
@@ -1050,7 +1067,7 @@ func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipie
 		return errors.New("cannot send SendPayment message:  chat helper is nil")
 	}
 
-	name := strings.Join([]string{m.CurrentUsername().String(), recipient.User.GetNormalizedName().String()}, ",")
+	name := strings.Join([]string{m.CurrentUsername().String(), recipient.User.Username.String()}, ",")
 
 	msg := chat1.MessageSendPayment{
 		KbTxID: kbTxID.String(),
@@ -1114,9 +1131,8 @@ func MakeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 	}
 
 	if recipient.User != nil {
-		post.ToAssertion = recipient.User.GetNormalizedName().String()
-		uv := recipient.User.ToUserVersion()
-		post.ToUser = &uv
+		post.ToAssertion = recipient.User.Username.String()
+		post.ToUser = &recipient.User.UV
 	} else if recipient.Assertion != nil {
 		post.ToAssertion = recipient.Assertion.String()
 	} else {
@@ -1143,59 +1159,63 @@ func MakeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 
 // Lookup a user who has the stellar account ID.
 // Verifies the result against the user's sigchain.
-// If there are multiple users, returns an arbitrary one.
-func LookupUserByAccountID(m libkb.MetaContext, accountID stellar1.AccountID) (uv keybase1.UserVersion, err error) {
+// If there are no users, or multiple users, returns NotFoundError.
+func LookupUserByAccountID(m libkb.MetaContext, accountID stellar1.AccountID) (uv keybase1.UserVersion, un libkb.NormalizedUsername, err error) {
 	defer m.CTraceTimed(fmt.Sprintf("Stellar.LookupUserByAccount(%v)", accountID), func() error { return err })()
 	usersUnverified, err := remote.LookupUnverified(m.Ctx(), m.G(), accountID)
 	if err != nil {
-		return uv, err
+		return uv, un, err
 	}
 	m.CDebugf("got %v unverified results", len(usersUnverified))
 	for i, uv := range usersUnverified {
 		m.CDebugf("usersUnverified[%v] = %v", i, uv)
 	}
 	if len(usersUnverified) == 0 {
-		return uv, libkb.NotFoundError{Msg: fmt.Sprintf("No user found with account %v", accountID)}
+		return uv, un, libkb.NotFoundError{Msg: fmt.Sprintf("No user found with account %v", accountID)}
+	}
+	if len(usersUnverified) > 1 {
+		return uv, un, libkb.NotFoundError{Msg: fmt.Sprintf("Multiple users found with account: %v", accountID)}
 	}
 	uv = usersUnverified[0]
-	verify := func(forcePoll bool) (retry bool, err error) {
+	// Verify that `uv` (from server) matches `accountID`.
+	verify := func(forcePoll bool) (upak *keybase1.UserPlusKeysV2AllIncarnations, retry bool, err error) {
 		defer m.CTraceTimed(fmt.Sprintf("verify(forcePoll:%v, accountID:%v, uv:%v)", forcePoll, accountID, uv), func() error { return err })()
-		upak, _, err := m.G().GetUPAKLoader().LoadV2(
+		upak, _, err = m.G().GetUPAKLoader().LoadV2(
 			libkb.NewLoadUserArgWithMetaContext(m).WithPublicKeyOptional().WithUID(uv.Uid).WithForcePoll(forcePoll))
 		if err != nil {
-			return false, err
+			return nil, false, err
 		}
 		genericErr := errors.New("error verifying account lookup")
 		if !upak.Current.EldestSeqno.Eq(uv.EldestSeqno) {
 			m.CDebugf("user %v's eldest seqno did not match %v != %v", upak.Current.Username, upak.Current.EldestSeqno, uv.EldestSeqno)
-			return true, genericErr
+			return nil, true, genericErr
 		}
 		if upak.Current.StellarAccountID == nil {
 			m.CDebugf("user %v has no stellar account", upak.Current.Username)
-			return true, genericErr
+			return nil, true, genericErr
 		}
 		unverifiedAccountID, err := libkb.ParseStellarAccountID(*upak.Current.StellarAccountID)
 		if err != nil {
 			m.CDebugf("user has invalid account ID '%v': %v", *upak.Current.StellarAccountID, err)
-			return false, genericErr
+			return nil, false, genericErr
 		}
 		if !unverifiedAccountID.Eq(accountID) {
 			m.CDebugf("user %v has different account %v != %v", upak.Current.Username, unverifiedAccountID, accountID)
-			return true, genericErr
+			return nil, true, genericErr
 		}
-		return false, nil
+		return upak, false, nil
 	}
-	retry, err := verify(false)
+	upak, retry, err := verify(false)
 	if err == nil {
-		return uv, err
+		return upak.Current.ToUserVersion(), libkb.NewNormalizedUsername(upak.Current.GetName()), err
 	}
 	if !retry {
-		return keybase1.UserVersion{}, err
+		return keybase1.UserVersion{}, "", err
 	}
 	// Try again with ForcePoll in case the previous attempt lost a race.
-	_, err = verify(true)
+	upak, _, err = verify(true)
 	if err != nil {
-		return keybase1.UserVersion{}, err
+		return keybase1.UserVersion{}, "", err
 	}
-	return uv, err
+	return upak.Current.ToUserVersion(), libkb.NewNormalizedUsername(upak.Current.GetName()), err
 }

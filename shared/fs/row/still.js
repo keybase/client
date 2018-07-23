@@ -79,7 +79,7 @@ const Still = (props: StillProps) => (
         <Box2 direction="horizontal" fullWidth={true}>
           <Text
             type={props.itemStyles.textType}
-            style={{...rowStyles.rowText(props.itemStyles.textColor), display: 'inline'}}
+            style={rowStyles.rowText(props.itemStyles.textColor)}
             lineClamp={isMobile ? 1 : undefined}
           >
             {props.name}

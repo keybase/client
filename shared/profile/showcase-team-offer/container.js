@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import Render from './index'
-import {connect, type TypedState} from '../../util/container'
+import {compose, connect, lifecycle, type TypedState} from '../../util/container'
 import * as TeamsGen from '../../actions/teams-gen'
 import {HeaderOnMobile} from '../../common-adapters'
 import {getSortedTeamnames} from '../../constants/teams'
@@ -21,6 +21,7 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+  loadTeams: teamname => dispatch(TeamsGen.createGetTeams()),
   onBack: () => dispatch(navigateUp()),
   onPromote: (teamname, showcase) => dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),
 })
@@ -39,4 +40,11 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(HeaderOnMobile(Render))
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  lifecycle({
+    componentDidMount() {
+      this.props.loadTeams()
+    },
+  }),
+)(HeaderOnMobile(Render))

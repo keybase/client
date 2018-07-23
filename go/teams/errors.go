@@ -358,3 +358,11 @@ func NewAttemptedInviteSocialOwnerError(assertion string) error {
 }
 
 func (e AttemptedInviteSocialOwnerError) Error() string { return e.Msg }
+
+type UserHasNotResetError struct{ Msg string }
+
+func NewUserHasNotResetError(format string, args ...interface{}) error {
+	return UserHasNotResetError{Msg: fmt.Sprintf(format, args...)}
+}
+
+func (e UserHasNotResetError) Error() string { return e.Msg }
