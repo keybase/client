@@ -413,6 +413,7 @@ const load = () => {
             onOpen={action('onOpen')}
             openInFileUI={action('openInFileUI')}
             onAction={action('onAction')}
+            isEmpty={false}
           />
         </WrapRow>
       </Box>
