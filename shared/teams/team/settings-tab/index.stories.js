@@ -28,6 +28,7 @@ const commonProps = {
     setTeamShowcase: true,
     setMemberShowcase: true,
     setRetentionPolicy: true,
+    setMinWriterRole: true,
     changeOpenTeam: true,
     leaveTeam: true,
     joinTeam: true,
