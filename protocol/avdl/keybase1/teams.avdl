@@ -75,6 +75,7 @@ protocol teams {
     TeamRole role;
     Seqno eldestSeqno;     // eldest seqno of the team member record
     Seqno userEldestSeqno; // actual eldest seqno of the user
+    TeamMemberStatus status;
   }
 
   record TeamMembers {
@@ -718,6 +719,8 @@ protocol teams {
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
 
   TeamAddMemberResult teamAddMember(int sessionID, string name, string email, string username, TeamRole role, boolean sendChatNotification);
+
+  void teamAddMembers(int sessionID, string name, array<string> assertions, TeamRole role, boolean sendChatNotification);
 
   void teamRemoveMember(int sessionID, string name, string username, string email, TeamInviteID inviteID);
 

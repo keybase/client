@@ -111,6 +111,24 @@ const Notifications = (props: Props) =>
             unsubscribedFromAll={false}
           />
         )}
+
+        {!isMobile && (
+          <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>
+          <Text type="BodyBig" style={{marginTop: globalMargins.medium}}>
+            Sound
+          </Text>
+          <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.small}}>
+            <Checkbox
+              style={{marginRight: 0, marginTop: globalMargins.tiny}}
+              onCheck={props.onToggleSound}
+              checked={!!props.sound}
+              label="Desktop Chat Notification Sound"
+            />
+          </Box>
+
+        </Box>
+
+          )}
     </Box>
   )
 

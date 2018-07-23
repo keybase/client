@@ -17,15 +17,17 @@ const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
 
 const makeState: I.RecordFactory<Types._State> = I.Record({
   accountMap: I.Map(),
-  assetsMap: I.Map(),
   accountName: '',
   accountNameError: '',
   accountNameValidationState: 'none',
+  assetsMap: I.Map(),
+  exportedSecretKey: new HiddenString(''),
   linkExistingAccountError: '',
+  paymentsMap: I.Map(),
   secretKey: new HiddenString(''),
   secretKeyError: '',
+  secretKeyMap: I.Map(),
   secretKeyValidationState: 'none',
-  paymentsMap: I.Map(),
   selectedAccount: Types.noAccountID,
 })
 
@@ -53,6 +55,8 @@ const makeAssets: I.RecordFactory<Types._Assets> = I.Record({
   name: '',
   worth: '',
   worthCurrency: '',
+  availableToSendWorth: '',
+  reserves: I.List(),
 })
 
 const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
@@ -65,15 +69,19 @@ const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     name: w.name,
     worth: w.worth,
     worthCurrency: w.worthCurrency,
+    availableToSendWorth: w.availableToSendWorth,
+    reserves: I.List((w.reserves || []).map(makeReserve)),
   })
 
 const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   amountDescription: '',
   delta: 'none',
   error: '',
-  id: null,
+  id: {txID: ''},
   note: '',
   noteErr: '',
+  publicMemo: '',
+  publicMemoType: '',
   source: '',
   sourceType: '',
   statusDescription: '',
@@ -82,6 +90,7 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   target: '',
   targetType: '',
   time: 0,
+  txID: '',
   worth: '',
   worthCurrency: '',
 })
@@ -92,10 +101,6 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   }
   if (!w.payment) {
     return makePayment({error: w.err})
-  }
-  if (w.payment.statusSimplified === RPCTypes.localPaymentStatus.error) {
-    // TODO make payment w/ error info when view is finished
-    return null
   }
   const p = w.payment
   return makePayment({
@@ -163,6 +168,8 @@ const getFederatedAddress = (state: TypedState, accountID?: Types.AccountID) => 
   return username && account.isDefault ? `${username}*keybase.io` : ''
 }
 
+const getSecretKey = (state: TypedState, accountID: Types.AccountID) => state.wallets.exportedSecretKey
+
 export {
   accountResultToAccount,
   assetsResultToAssets,
@@ -172,6 +179,7 @@ export {
   getFederatedAddress,
   getPayment,
   getPayments,
+  getSecretKey,
   getSelectedAccount,
   linkExistingWaitingKey,
   loadEverythingWaitingKey,

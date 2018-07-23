@@ -10,6 +10,14 @@
   "types": [
     {
       "type": "enum",
+      "name": "ChatActivitySource",
+      "symbols": [
+        "LOCAL_0",
+        "REMOTE_1"
+      ]
+    },
+    {
+      "type": "enum",
       "name": "ChatActivityType",
       "symbols": [
         "RESERVED_0",
@@ -22,7 +30,8 @@
         "SET_APP_NOTIFICATION_SETTINGS_7",
         "TEAMTYPE_8",
         "EXPUNGE_9",
-        "EPHEMERAL_PURGE_10"
+        "EPHEMERAL_PURGE_10",
+        "REACTION_DELETE_11"
       ]
     },
     {
@@ -249,6 +258,41 @@
       ]
     },
     {
+      "type": "record",
+      "name": "ReactionDelete",
+      "fields": [
+        {
+          "type": "string",
+          "name": "reactionKey"
+        },
+        {
+          "type": "MessageID",
+          "name": "reactionMsgID"
+        },
+        {
+          "type": "MessageID",
+          "name": "targetMsgID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ReactionDeleteNotif",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ReactionDelete"
+          },
+          "name": "reactionDeletes"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "ChatActivity",
       "switch": {
@@ -325,6 +369,13 @@
             "def": false
           },
           "body": "EphemeralPurgeNotifInfo"
+        },
+        {
+          "label": {
+            "name": "REACTION_DELETE",
+            "def": false
+          },
+          "body": "ReactionDeleteNotif"
         }
       ]
     },
@@ -448,6 +499,10 @@
         {
           "name": "activity",
           "type": "ChatActivity"
+        },
+        {
+          "name": "source",
+          "type": "ChatActivitySource"
         }
       ],
       "response": null,
@@ -675,6 +730,28 @@
       "notify": "",
       "lint": "ignore"
     },
+    "ChatSetConvMinWriterRole": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "conv",
+          "type": [
+            null,
+            "InboxUIItem"
+          ]
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
     "ChatKBFSToImpteamUpgrade": {
       "request": [
         {
@@ -684,6 +761,52 @@
         {
           "name": "convID",
           "type": "ConversationID"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "ChatAttachmentUploadStart": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "outboxID",
+          "type": "OutboxID"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "ChatAttachmentUploadProgress": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "outboxID",
+          "type": "OutboxID"
+        },
+        {
+          "name": "bytesComplete",
+          "type": "long"
+        },
+        {
+          "name": "bytesTotal",
+          "type": "long"
         }
       ],
       "response": null,

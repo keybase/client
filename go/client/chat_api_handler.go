@@ -257,8 +257,8 @@ type attachOptionsV1 struct {
 	Filename          string
 	Preview           string
 	Title             string
-	NoStream          bool
 	EphemeralLifetime ephemeralLifetime `json:"exploding_lifetime"`
+	Nonblock          bool
 }
 
 func (a attachOptionsV1) Check() error {

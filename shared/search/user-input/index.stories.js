@@ -1,11 +1,20 @@
 // @flow
 import * as React from 'react'
 import * as PropProviders from '../../stories/prop-providers'
-import UserInput from '.'
+import UserInput, {type UserDetails} from '.'
+import ConnectedUserInput, {type OwnProps, type Props} from './container'
 import {Box} from '../../common-adapters'
 import {compose, withStateHandlers} from 'recompose'
 import {isMobile} from '../../constants/platform'
-import {storiesOf, action} from '../../stories/storybook'
+import {action, storiesOf, createPropProvider, unexpected} from '../../stories/storybook'
+
+const defaultOwnProps: OwnProps = {
+  searchKey: 'search key',
+  autoFocus: false,
+  placeholder: 'Type someone',
+  onExitSearch: action('onExitSearch'),
+  onSelectUser: action('onSelectUser'),
+}
 
 const inputCommon = {
   autoFocus: false,
@@ -98,7 +107,32 @@ const chrisUsers = [
   },
 ]
 
-const provider = PropProviders.CommonProvider()
+// TODO: Actually do something here.
+const mockOwnPropsToProps = (userItems: Array<UserDetails>, ownProps: OwnProps): Props => {
+  const props = {
+    ...inputCommon,
+    onChangeText: unexpected('search should be used instead'),
+    onClickAddButton: unexpected('search should be used instead'),
+    usernameText: '',
+    search: action('search'),
+
+    userItems,
+  }
+
+  if (ownProps.onExitSearch) {
+    props.onCancel = ownProps.onExitSearch
+    props.onEnterEmptyText = ownProps.onExitSearch
+  }
+
+  return props
+}
+
+export const makeSelectorMap = (userItems: Array<UserDetails> = maxUsers) => ({
+  ...PropProviders.Common(),
+  UserInput: ownProps => mockOwnPropsToProps(userItems, ownProps),
+})
+
+const provider = createPropProvider(makeSelectorMap())
 
 const load = () => {
   storiesOf('Search/UserInput', module)
@@ -157,6 +191,11 @@ const load = () => {
         </Box>
       )
     })
+    .add('Connected', () => (
+      <Box>
+        <ConnectedUserInput {...defaultOwnProps} />
+      </Box>
+    ))
 }
 
 export default load

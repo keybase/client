@@ -41,7 +41,7 @@ type NotifyListener interface {
 	FavoritesChanged(uid keybase1.UID)
 	PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID)
 	KeyfamilyChanged(uid keybase1.UID)
-	NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity)
+	NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity, source chat1.ChatActivitySource)
 	NewChatKBFSFileEditActivity(uid keybase1.UID, activity chat1.ChatActivity)
 	ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks)
 	ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID,
@@ -58,7 +58,11 @@ type NotifyListener interface {
 	ChatResetConversation(uid keybase1.UID, convID chat1.ConversationID)
 	ChatSetConvRetention(uid keybase1.UID, convID chat1.ConversationID)
 	ChatSetTeamRetention(uid keybase1.UID, teamID keybase1.TeamID)
+	ChatSetConvMinWriterRole(uid keybase1.UID, convID chat1.ConversationID)
 	ChatKBFSToImpteamUpgrade(uid keybase1.UID, convID chat1.ConversationID)
+	ChatAttachmentUploadStart(uid keybase1.UID, convID chat1.ConversationID, outboxID chat1.OutboxID)
+	ChatAttachmentUploadProgress(uid keybase1.UID, convID chat1.ConversationID, outboxID chat1.OutboxID,
+		bytesComplete, bytesTotal int64)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
@@ -68,6 +72,7 @@ type NotifyListener interface {
 	TeamExit(teamID keybase1.TeamID)
 	NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	AvatarUpdated(name string, formats []keybase1.AvatarFormat)
+	DeviceCloneCountChanged(newClones int)
 }
 
 type NoopNotifyListener struct{}
@@ -88,8 +93,10 @@ func (n *NoopNotifyListener) FSEditListRequest(arg keybase1.FSEditListRequest)  
 func (n *NoopNotifyListener) FavoritesChanged(uid keybase1.UID)                             {}
 func (n *NoopNotifyListener) PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID) {
 }
-func (n *NoopNotifyListener) KeyfamilyChanged(uid keybase1.UID)                             {}
-func (n *NoopNotifyListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {}
+func (n *NoopNotifyListener) KeyfamilyChanged(uid keybase1.UID) {}
+func (n *NoopNotifyListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity,
+	source chat1.ChatActivitySource) {
+}
 func (n *NoopNotifyListener) NewChatKBFSFileEditActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 }
 func (n *NoopNotifyListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {}
@@ -115,10 +122,17 @@ func (n *NoopNotifyListener) ChatResetConversation(uid keybase1.UID, convID chat
 func (n *NoopNotifyListener) Chat(uid keybase1.UID, convID chat1.ConversationID)                     {}
 func (n *NoopNotifyListener) ChatSetConvRetention(uid keybase1.UID, convID chat1.ConversationID)     {}
 func (n *NoopNotifyListener) ChatSetTeamRetention(uid keybase1.UID, teamID keybase1.TeamID)          {}
+func (n *NoopNotifyListener) ChatSetConvMinWriterRole(uid keybase1.UID, convID chat1.ConversationID) {}
 func (n *NoopNotifyListener) ChatKBFSToImpteamUpgrade(uid keybase1.UID, convID chat1.ConversationID) {}
-func (n *NoopNotifyListener) PGPKeyInSecretStoreFile()                                               {}
-func (n *NoopNotifyListener) BadgeState(badgeState keybase1.BadgeState)                              {}
-func (n *NoopNotifyListener) ReachabilityChanged(r keybase1.Reachability)                            {}
+func (n *NoopNotifyListener) ChatAttachmentUploadStart(uid keybase1.UID, convID chat1.ConversationID,
+	outboxID chat1.OutboxID) {
+}
+func (n *NoopNotifyListener) ChatAttachmentUploadProgress(uid keybase1.UID, convID chat1.ConversationID,
+	outboxID chat1.OutboxID, bytesComplete, bytesTotal int64) {
+}
+func (n *NoopNotifyListener) PGPKeyInSecretStoreFile()                    {}
+func (n *NoopNotifyListener) BadgeState(badgeState keybase1.BadgeState)   {}
+func (n *NoopNotifyListener) ReachabilityChanged(r keybase1.Reachability) {}
 func (n *NoopNotifyListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet) {
 }
 func (n *NoopNotifyListener) TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet) {
@@ -127,6 +141,7 @@ func (n *NoopNotifyListener) TeamDeleted(teamID keybase1.TeamID)                
 func (n *NoopNotifyListener) TeamExit(teamID keybase1.TeamID)                                    {}
 func (n *NoopNotifyListener) NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration) {}
 func (n *NoopNotifyListener) AvatarUpdated(name string, formats []keybase1.AvatarFormat)         {}
+func (n *NoopNotifyListener) DeviceCloneCountChanged(newClones int)                              {}
 
 // NotifyRouter routes notifications to the various active RPC
 // connections. It's careful only to route to those who are interested
@@ -550,6 +565,34 @@ func (n *NotifyRouter) HandleFavoritesChanged(uid keybase1.UID) {
 	n.G().Log.Debug("- Sent favorites changed notification")
 }
 
+// HandleDeviceCloneNotification is called when a run of the device clone status update
+// finds a newly-added, possible clone. It will broadcast the messages to all curious listeners.
+func (n *NotifyRouter) HandleDeviceCloneNotification(newClones int) {
+	if n == nil {
+		return
+	}
+
+	n.G().Log.Debug("+ Sending device clone notification")
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Deviceclone` notification type
+		if n.getNotificationChannels(id).Deviceclone {
+			// In the background do...
+			go func() {
+				// A send of a `DeviceCloneCountChanged` RPC with the number of newly discovered clones
+				(keybase1.NotifyDeviceCloneClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).DeviceCloneCountChanged(context.Background(), newClones)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.DeviceCloneCountChanged(newClones)
+	}
+	n.G().Log.Debug("- Sent device clone notification")
+}
+
 func (n *NotifyRouter) shouldSendChatNotification(id ConnectionID, topicType chat1.TopicType) bool {
 	switch topicType {
 	case chat1.TopicType_CHAT:
@@ -567,7 +610,7 @@ func (n *NotifyRouter) shouldSendChatNotification(id ConnectionID, topicType cha
 }
 
 func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.UID,
-	topicType chat1.TopicType, activity *chat1.ChatActivity) {
+	topicType chat1.TopicType, activity *chat1.ChatActivity, source chat1.ChatActivitySource) {
 	if n == nil {
 		return
 	}
@@ -586,6 +629,7 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 				}).NewChatActivity(context.Background(), chat1.NewChatActivityArg{
 					Uid:      uid,
 					Activity: *activity,
+					Source:   source,
 				})
 				wg.Done()
 			}()
@@ -594,7 +638,7 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 	})
 	wg.Wait()
 	if n.listener != nil {
-		n.listener.NewChatActivity(uid, *activity)
+		n.listener.NewChatActivity(uid, *activity, source)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent NewChatActivity notification")
 }
@@ -937,6 +981,68 @@ func (n *NotifyRouter) HandleChatKBFSToImpteamUpgrade(ctx context.Context, uid k
 	n.G().Log.CDebugf(ctx, "- Sent ChatKBFSToImpteamUpgrade notification")
 }
 
+func (n *NotifyRouter) HandleChatAttachmentUploadStart(ctx context.Context, uid keybase1.UID,
+	convID chat1.ConversationID, outboxID chat1.OutboxID) {
+	if n == nil {
+		return
+	}
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending ChatAttachmentUploadStart notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Chatattachments {
+			wg.Add(1)
+			go func() {
+				(chat1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).ChatAttachmentUploadStart(context.Background(), chat1.ChatAttachmentUploadStartArg{
+					Uid:      uid,
+					ConvID:   convID,
+					OutboxID: outboxID,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.ChatAttachmentUploadStart(uid, convID, outboxID)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent ChatAttachmentUploadStart notification")
+}
+
+func (n *NotifyRouter) HandleChatAttachmentUploadProgress(ctx context.Context, uid keybase1.UID,
+	convID chat1.ConversationID, outboxID chat1.OutboxID, bytesComplete, bytesTotal int64) {
+	if n == nil {
+		return
+	}
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending ChatAttachmentUploadProgress notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Chatattachments {
+			wg.Add(1)
+			go func() {
+				(chat1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).ChatAttachmentUploadProgress(context.Background(), chat1.ChatAttachmentUploadProgressArg{
+					Uid:           uid,
+					ConvID:        convID,
+					OutboxID:      outboxID,
+					BytesComplete: bytesComplete,
+					BytesTotal:    bytesTotal,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.ChatAttachmentUploadProgress(uid, convID, outboxID, bytesComplete, bytesTotal)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent ChatAttachmentUploadProgress notification")
+}
+
 func (n *NotifyRouter) HandleChatSetConvRetention(ctx context.Context, uid keybase1.UID,
 	convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
 	n.notifyChatCommon(ctx, "ChatSetConvRetention", topicType,
@@ -962,6 +1068,20 @@ func (n *NotifyRouter) HandleChatSetTeamRetention(ctx context.Context, uid keyba
 			})
 		}, func(ctx context.Context, listener NotifyListener) {
 			listener.ChatSetTeamRetention(uid, teamID)
+		})
+}
+
+func (n *NotifyRouter) HandleChatSetConvMinWriterRole(ctx context.Context, uid keybase1.UID,
+	convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
+	n.notifyChatCommon(ctx, "ChatSetConvMinWriterRole", topicType,
+		func(ctx context.Context, cli *chat1.NotifyChatClient) {
+			cli.ChatSetConvMinWriterRole(ctx, chat1.ChatSetConvMinWriterRoleArg{
+				Uid:    uid,
+				ConvID: convID,
+				Conv:   conv,
+			})
+		}, func(ctx context.Context, listener NotifyListener) {
+			listener.ChatSetConvMinWriterRole(uid, convID)
 		})
 }
 

@@ -724,6 +724,26 @@ func (o SimpleFSGetHTTPAddressAndTokenResponse) DeepCopy() SimpleFSGetHTTPAddres
 	}
 }
 
+type SimpleFSQuotaUsage struct {
+	UsageBytes      int64 `codec:"usageBytes" json:"usageBytes"`
+	ArchiveBytes    int64 `codec:"archiveBytes" json:"archiveBytes"`
+	LimitBytes      int64 `codec:"limitBytes" json:"limitBytes"`
+	GitUsageBytes   int64 `codec:"gitUsageBytes" json:"gitUsageBytes"`
+	GitArchiveBytes int64 `codec:"gitArchiveBytes" json:"gitArchiveBytes"`
+	GitLimitBytes   int64 `codec:"gitLimitBytes" json:"gitLimitBytes"`
+}
+
+func (o SimpleFSQuotaUsage) DeepCopy() SimpleFSQuotaUsage {
+	return SimpleFSQuotaUsage{
+		UsageBytes:      o.UsageBytes,
+		ArchiveBytes:    o.ArchiveBytes,
+		LimitBytes:      o.LimitBytes,
+		GitUsageBytes:   o.GitUsageBytes,
+		GitArchiveBytes: o.GitArchiveBytes,
+		GitLimitBytes:   o.GitLimitBytes,
+	}
+}
+
 type SimpleFSListArg struct {
 	OpID                OpID       `codec:"opID" json:"opID"`
 	Path                Path       `codec:"path" json:"path"`
@@ -847,6 +867,9 @@ type SimpleFSSuppressNotificationsArg struct {
 	SuppressDurationSec int `codec:"suppressDurationSec" json:"suppressDurationSec"`
 }
 
+type SimpleFSGetUserQuotaUsageArg struct {
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path.
 	// Retrieve results with readList().
@@ -932,6 +955,10 @@ type SimpleFSInterface interface {
 	// recorded by the server) of their most recent edit.
 	SimpleFSFolderEditHistory(context.Context, Path) (FSFolderEditHistory, error)
 	SimpleFSSuppressNotifications(context.Context, int) error
+	// simpleFSGetUserQuotaUsage returns the quota usage for the logged-in
+	// user.  It results in an RPC to the server, and any usage includes
+	// local journal usage as well.
+	SimpleFSGetUserQuotaUsage(context.Context) (SimpleFSQuotaUsage, error)
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -1324,6 +1351,17 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"simpleFSGetUserQuotaUsage": {
+				MakeArg: func() interface{} {
+					ret := make([]SimpleFSGetUserQuotaUsageArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.SimpleFSGetUserQuotaUsage(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1525,5 +1563,13 @@ func (c SimpleFSClient) SimpleFSFolderEditHistory(ctx context.Context, path Path
 func (c SimpleFSClient) SimpleFSSuppressNotifications(ctx context.Context, suppressDurationSec int) (err error) {
 	__arg := SimpleFSSuppressNotificationsArg{SuppressDurationSec: suppressDurationSec}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSuppressNotifications", []interface{}{__arg}, nil)
+	return
+}
+
+// simpleFSGetUserQuotaUsage returns the quota usage for the logged-in
+// user.  It results in an RPC to the server, and any usage includes
+// local journal usage as well.
+func (c SimpleFSClient) SimpleFSGetUserQuotaUsage(ctx context.Context) (res SimpleFSQuotaUsage, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetUserQuotaUsage", []interface{}{SimpleFSGetUserQuotaUsageArg{}}, &res)
 	return
 }

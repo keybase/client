@@ -4,6 +4,7 @@ import * as Types from '../constants/types/wallets'
 import * as RPCTypes from '../constants/types/rpc-stellar-gen'
 import * as Saga from '../util/saga'
 import * as WalletsGen from './wallets-gen'
+import HiddenString from '../util/hidden-string'
 import * as Route from './route-tree'
 import logger from '../logger'
 import type {TypedState} from '../constants/reducer'
@@ -47,6 +48,20 @@ const loadPayments = (
     WalletsGen.createPaymentsReceived({
       accountID: action.payload.accountID,
       payments: (res.payments || []).map(elem => Constants.paymentResultToPayment(elem)).filter(Boolean),
+    })
+  )
+
+const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDetailPayload) =>
+  RPCTypes.localGetPaymentDetailsLocalRpcPromise({
+    accountID: action.payload.accountID,
+    id: action.payload.paymentID,
+  }).then(res =>
+    WalletsGen.createPaymentDetailReceived({
+      accountID: action.payload.accountID,
+      paymentID: action.payload.paymentID,
+      publicNote: res.publicNote,
+      publicNoteType: res.publicNoteType,
+      txID: res.txID,
     })
   )
 
@@ -101,6 +116,22 @@ const navigateToAccount = (
   return Saga.put(Route.navigateTo([{props: {}, selected: walletsTab}, {props: {}, selected: null}]))
 }
 
+const exportSecretKey = (state: TypedState, action: WalletsGen.ExportSecretKeyPayload) =>
+  RPCTypes.localGetWalletAccountSecretKeyLocalRpcPromise({accountID: action.payload.accountID}).then(res =>
+    WalletsGen.createSecretKeyReceived({
+      accountID: action.payload.accountID,
+      secretKey: new HiddenString(res),
+    })
+  )
+
+const maybeSelectDefaultAccount = (action: WalletsGen.AccountsReceivedPayload, state: TypedState) =>
+  state.wallets.get('selectedAccount') === Types.noAccountID &&
+  Saga.put(
+    WalletsGen.createSelectAccount({
+      accountID: state.wallets.accountMap.find(account => account.isDefault).accountID,
+    })
+  )
+
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPurePromise(
     [WalletsGen.loadAccounts, WalletsGen.linkedExistingAccount],
@@ -114,13 +145,16 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     [WalletsGen.loadPayments, WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
     loadPayments
   )
+  yield Saga.safeTakeEveryPurePromise(WalletsGen.loadPaymentDetail, loadPaymentDetail)
   yield Saga.safeTakeEveryPurePromise(WalletsGen.linkExistingAccount, linkExistingAccount)
   yield Saga.safeTakeEveryPurePromise(WalletsGen.validateAccountName, validateAccountName)
   yield Saga.safeTakeEveryPurePromise(WalletsGen.validateSecretKey, validateSecretKey)
+  yield Saga.safeTakeEveryPurePromise(WalletsGen.exportSecretKey, exportSecretKey)
   yield Saga.safeTakeEveryPure(
     [WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
     navigateToAccount
   )
+  yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
 }
 
 export default walletsSaga

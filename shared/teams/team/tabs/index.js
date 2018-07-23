@@ -11,7 +11,14 @@ import {
   Tabs,
   Text,
 } from '../../../common-adapters'
-import {globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../styles'
+import {
+  globalColors,
+  globalMargins,
+  globalStyles,
+  isMobile,
+  platformStyles,
+  styleSheetCreate,
+} from '../../../styles'
 
 type TeamTabsProps = {
   admin: boolean,
@@ -136,8 +143,8 @@ const styles = styleSheetCreate({
     color: globalColors.black_75,
   },
   tabTextContainer: {
-    alignItems: 'center',
-    flex: 1,
+    ...globalStyles.flexBoxRow,
+    justifyContent: 'center',
   },
 })
 

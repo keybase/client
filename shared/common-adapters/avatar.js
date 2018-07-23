@@ -16,6 +16,7 @@ import {
 import {createShowUserProfile} from '../actions/profile-gen'
 import {createGetProfile} from '../actions/tracker-gen'
 import * as ConfigGen from '../actions/config-gen'
+import flags from '../util/feature-flags'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 16
 type URLType = any
@@ -27,9 +28,11 @@ export type OwnProps = {|
   borderColor?: string,
   children?: React.Node,
   clickToProfile?: 'tracker' | 'profile', // If set, go to profile on mobile and tracker/profile on desktop
+  editable?: boolean,
   isTeam?: boolean,
   loadingColor?: string,
-  onClick?: () => void,
+  onClick?: (e?: SyntheticEvent<Element>) => void,
+  onEditAvatarClick?: (e?: SyntheticEvent<Element>) => void,
   opacity?: number,
   size: AvatarSize,
   skipBackground?: boolean,
@@ -44,6 +47,7 @@ type PropsWithoutTimer = {
   askForUserData?: () => void,
   borderColor?: string,
   children?: React.Node,
+  editable?: boolean,
   followIconSize: number,
   followIconType: ?IconType,
   followIconStyle: ?$PropertyType<IconProps, 'style'>,
@@ -52,7 +56,8 @@ type PropsWithoutTimer = {
   isTeam: boolean,
   loadingColor?: string,
   name: string,
-  onClick?: () => void,
+  onClick?: (e?: SyntheticEvent<Element>) => void,
+  onEditAvatarClick?: (e?: SyntheticEvent<Element>) => void,
   opacity?: number,
   size: AvatarSize,
   skipBackground?: boolean,
@@ -141,7 +146,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, ownProps) => ({
   _askForTeamUserData: (teamname: string) =>
     dispatch(ConfigGen.createLoadTeamAvatars({teamnames: [teamname]})),
   _askForUserData: (username: string) => _askForUserDataQueueUp(username, dispatch),
@@ -149,12 +154,14 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     isMobile || desktopDest === 'profile'
       ? dispatch(createShowUserProfile({username}))
       : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+  onClick:
+    flags.avatarUploadsEnabled && ownProps.onEditAvatarClick ? ownProps.onEditAvatarClick : ownProps.onClick,
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): PropsWithoutTimer => {
   const isTeam = ownProps.isTeam || !!ownProps.teamname
 
-  let onClick = ownProps.onClick
+  let onClick = dispatchProps.onClick
   if (!onClick && ownProps.clickToProfile && ownProps.username) {
     const u = ownProps.username
     const desktopDest = ownProps.clickToProfile
@@ -185,6 +192,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): PropsWithout
     askForUserData,
     borderColor: ownProps.borderColor,
     children: ownProps.children,
+    editable: ownProps.editable,
     followIconSize: _followIconSize(ownProps.size, stateProps.followsYou, stateProps.following),
     followIconStyle: followSizeToStyle[ownProps.size] || null,
     followIconType: _followIconType(ownProps.size, stateProps.followsYou, stateProps.following),
@@ -225,19 +233,20 @@ class AvatarConnector extends React.PureComponent<Props> {
       this.props.askForUserData()
     }
   }
-
   render() {
     return (
       <Render
         skipBackground={this.props.skipBackground}
         borderColor={this.props.borderColor}
         children={this.props.children}
+        editable={flags.avatarUploadsEnabled && this.props.editable}
         followIconSize={this.props.followIconSize}
         followIconStyle={this.props.followIconStyle}
         followIconType={this.props.followIconType}
         isTeam={this.props.isTeam}
         loadingColor={this.props.loadingColor}
         onClick={this.props.onClick}
+        onEditAvatarClick={this.props.onEditAvatarClick}
         opacity={this.props.opacity}
         size={this.props.size}
         style={this.props.style}

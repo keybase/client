@@ -32,19 +32,20 @@ const styles = styleSheetCreate({
       borderColor: globalColors.white,
       borderRadius: 3,
       borderStyle: 'solid',
-      borderWidth: 1,
       paddingBottom: 1,
       paddingTop: 1,
     },
     isElectron: {
+      borderWidth: 1,
       cursor: 'pointer',
       marginLeft: -11,
       marginTop: -6,
     },
     isMobile: {
+      borderWidth: 2,
       marginLeft: -5,
       marginTop: -1,
-      height: 15,
+      height: 18,
     },
   }),
 })

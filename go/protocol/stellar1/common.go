@@ -83,6 +83,18 @@ func (o Balance) DeepCopy() Balance {
 	}
 }
 
+type AccountReserve struct {
+	Amount      string `codec:"amount" json:"amount"`
+	Description string `codec:"description" json:"description"`
+}
+
+func (o AccountReserve) DeepCopy() AccountReserve {
+	return AccountReserve{
+		Amount:      o.Amount,
+		Description: o.Description,
+	}
+}
+
 type TransactionStatus int
 
 const (
@@ -113,6 +125,32 @@ var TransactionStatusRevMap = map[TransactionStatus]string{
 
 func (e TransactionStatus) String() string {
 	if v, ok := TransactionStatusRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type RequestStatus int
+
+const (
+	RequestStatus_OK       RequestStatus = 0
+	RequestStatus_CANCELED RequestStatus = 1
+)
+
+func (o RequestStatus) DeepCopy() RequestStatus { return o }
+
+var RequestStatusMap = map[string]RequestStatus{
+	"OK":       0,
+	"CANCELED": 1,
+}
+
+var RequestStatusRevMap = map[RequestStatus]string{
+	0: "OK",
+	1: "CANCELED",
+}
+
+func (e RequestStatus) String() string {
+	if v, ok := RequestStatusRevMap[e]; ok {
 		return v
 	}
 	return ""

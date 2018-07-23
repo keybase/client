@@ -453,6 +453,13 @@
         {
           "type": "string",
           "name": "available"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "AccountReserve"
+          },
+          "name": "reserves"
         }
       ]
     },
@@ -565,6 +572,10 @@
         {
           "type": "KeybaseTransactionID",
           "name": "fundingKbTxID"
+        },
+        {
+          "type": "RequestStatus",
+          "name": "status"
         }
       ]
     }
@@ -619,9 +630,33 @@
         {
           "name": "limit",
           "type": "int"
+        },
+        {
+          "name": "skipPending",
+          "type": "boolean"
         }
       ],
       "response": "PaymentsPage"
+    },
+    "pendingPayments": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "limit",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "PaymentSummary"
+      }
     },
     "paymentDetails": {
       "request": [
@@ -760,6 +795,19 @@
         }
       ],
       "response": "RequestDetails"
+    },
+    "cancelRequest": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "reqID",
+          "type": "KeybaseRequestID"
+        }
+      ],
+      "response": null
     },
     "ping": {
       "request": [],

@@ -53,7 +53,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {team}: OwnProps) => {
   const teamname = team.fqName
   return {
     _checkRequestedAccess: () => dispatch(TeamsGen.createCheckRequestedAccess({teamname})),
-    _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
     _onSetTeamJoinError: (error: string) => dispatch(TeamsGen.createSetTeamJoinError({error})),
     _onSetTeamJoinSuccess: (success: boolean) =>
       dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname: ''})),
@@ -70,7 +69,6 @@ export default compose(
     componentDidMount() {
       this.props._onSetTeamJoinError('')
       this.props._onSetTeamJoinSuccess(false)
-      this.props._loadTeams()
       this.props._checkRequestedAccess()
     },
   })

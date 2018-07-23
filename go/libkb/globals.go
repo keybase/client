@@ -140,10 +140,6 @@ type GlobalContext struct {
 	NetContext context.Context
 }
 
-// There are many interfaces that slice and dice the GlobalContext to expose a
-// smaller API. TODO: Assert more of them here.
-var _ ProofContext = (*GlobalContext)(nil)
-
 type GlobalTestOptions struct {
 	NoBug3964Repair bool
 }
@@ -350,7 +346,7 @@ func (g *GlobalContext) ConfigureConfig() error {
 	if err = c.Check(); err != nil {
 		return err
 	}
-	g.Env.SetConfig(*c, c)
+	g.Env.SetConfig(c, c)
 	return nil
 }
 
@@ -364,7 +360,7 @@ func (g *GlobalContext) ConfigureUpdaterConfig() error {
 	c := NewJSONUpdaterConfigFile(g)
 	err := c.Load(false)
 	if err == nil {
-		g.Env.SetUpdaterConfig(*c)
+		g.Env.SetUpdaterConfig(c)
 	} else {
 		g.Log.Debug("Failed to open update config: %s\n", err)
 	}

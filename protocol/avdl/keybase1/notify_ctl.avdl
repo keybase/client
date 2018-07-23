@@ -23,6 +23,8 @@ protocol notifyCtl {
     boolean ephemeral;
     boolean chatkbfsedits;
     boolean chatdev;
+    boolean deviceclone;
+    boolean chatattachments;
   }
 
   void setNotifications(NotificationChannels channels);

@@ -90,8 +90,8 @@ const Middle = ({rightService, rightIcon, rightUsername, rightFollowingState}) =
   )
 }
 
-const Right = ({showTrackerButton, onShowTracker}) => {
-  return showTrackerButton ? (
+const Right = ({onShowTracker}) => {
+  return onShowTracker ? (
     <Icon
       type="iconfont-usercard"
       onClick={onShowTracker}
@@ -130,7 +130,9 @@ const Line = () => (
   />
 )
 
-const SearchResultRow = (props: Types.RowProps) => (
+export type Props = Types.RowProps
+
+const SearchResultRow = (props: Props) => (
   <ClickableBox
     style={_clickableBoxStyle[(!!props.selected).toString()]}
     underlayColor={globalColors.blue4}
@@ -151,7 +153,7 @@ const SearchResultRow = (props: Types.RowProps) => (
         rightService={props.rightService}
         rightUsername={props.rightUsername}
       />
-      <Right showTrackerButton={props.showTrackerButton} onShowTracker={props.onShowTracker} />
+      <Right onShowTracker={props.onShowTracker} />
       <RightEdge showCheckmark={props.userIsInTeam} />
       <Line />
     </Box>

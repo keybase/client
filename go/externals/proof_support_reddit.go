@@ -34,8 +34,8 @@ func NewRedditChecker(p libkb.RemoteProofChainLink) (*RedditChecker, libkb.Proof
 
 func (rc *RedditChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *RedditChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) libkb.ProofError {
-	return CheckProofPvl(ctx, keybase1.ProofType_REDDIT, rc.proof, h, pvlU)
+func (rc *RedditChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) libkb.ProofError {
+	return CheckProofPvl(m, keybase1.ProofType_REDDIT, rc.proof, h, pvlU)
 }
 
 //
@@ -93,7 +93,7 @@ func (t RedditServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t RedditServiceType) NormalizeRemoteName(ctx libkb.ProofContext, s string) (ret string, err error) {
+func (t RedditServiceType) NormalizeRemoteName(m libkb.MetaContext, s string) (ret string, err error) {
 	return t.NormalizeUsername(s)
 }
 
@@ -109,7 +109,7 @@ func (t RedditServiceType) PostInstructions(un string) *libkb.Markup {
 	return libkb.FmtMarkup(`Please click on the following link to post to Reddit:`)
 }
 
-func (t RedditServiceType) FormatProofText(ctx libkb.ProofContext, ppr *libkb.PostProofRes) (res string, err error) {
+func (t RedditServiceType) FormatProofText(m libkb.MetaContext, ppr *libkb.PostProofRes) (res string, err error) {
 	var title string
 	if title, err = ppr.Metadata.AtKey("title").GetString(); err != nil {
 		return
@@ -138,7 +138,7 @@ func (t RedditServiceType) FormatProofText(ctx libkb.ProofContext, ppr *libkb.Po
 		return trustedDefault
 	}
 	var host string
-	if ctx.GetAppType() == libkb.MobileAppType {
+	if m.G().GetAppType() == libkb.MobileAppType {
 		hostHint, err := ppr.Metadata.AtKey("mobile_host").GetString()
 		if err != nil {
 			hostHint = ""
