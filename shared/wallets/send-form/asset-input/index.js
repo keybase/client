@@ -11,6 +11,8 @@ type Props = {
   onChangeDisplayUnit: () => void,
   onClickInfo: () => void,
   topLabel: string,
+  warningAsset?: string,
+  warningPayee?: string,
 }
 
 const AssetInput = (props: Props) => (
@@ -37,7 +39,26 @@ const AssetInput = (props: Props) => (
       textType="HeaderBigExtrabold"
       placeholder={props.inputPlaceholder}
       placeholderColor={globalColors.purple2_40}
+      error={!!props.warningAsset}
     />
+    {props.warningAsset &&
+      !props.warningPayee && (
+        <Text type="BodySmallError">
+          Your available to send is{' '}
+          <Text type="BodySmallSemibold" style={{color: globalColors.red}}>
+            {props.warningAsset}
+          </Text>
+        </Text>
+      )}
+    {props.warningPayee && (
+      <Text type="BodySmallError">
+        {props.warningPayee} doesn't accept{' '}
+        <Text type="BodySmallSemibold" style={{color: globalColors.red}}>
+          {props.warningAsset}
+        </Text>
+        . Please pick another asset.
+      </Text>
+    )}
     <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
       <Text type="BodySmall" style={styles.labelMargin}>
         {props.bottomLabel}

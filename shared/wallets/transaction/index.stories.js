@@ -40,7 +40,15 @@ const addConfigs = (stories, namePrefix, storyFn) => {
       stories.add(namePrefix + ` (${r.yourRole} - ${s.large ? 'large' : 'small'})`, () => {
         const components = []
         memosAndTimes.forEach(t => {
-          components.push(storyFn({key: components.length, ...r, ...s, ...t}))
+          components.push(
+            storyFn({
+              key: components.length,
+              ...r,
+              ...s,
+              ...t,
+              onSelectTransaction: action('onSelectTransaction'),
+            })
+          )
         })
         return components
       })

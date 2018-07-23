@@ -13,6 +13,9 @@ function stopBubbling(ev) {
 export function PopupDialog({
   children,
   onClose,
+  onMouseUp,
+  onMouseDown,
+  onMouseMove,
   fill,
   styleCover,
   styleContainer,
@@ -22,7 +25,13 @@ export function PopupDialog({
 }: Props) {
   return (
     <EscapeHandler onESC={onClose}>
-      <Box style={collapseStyles([coverStyle, styleCover])} onClick={onClose}>
+      <Box
+        style={collapseStyles([coverStyle, styleCover])}
+        onClick={onClose}
+        onMouseUp={onMouseUp}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+      >
         <Box style={collapseStyles([containerStyle, fill ? containerFillStyle : null, styleContainer])}>
           <Icon
             type="iconfont-close"

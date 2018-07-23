@@ -500,7 +500,8 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 		return nil, err
 	}
 
-	// We use the message ID in the body over the field in the client header to avoid server trust.
+	// We use the message ID in the body over the field in the client header to
+	// avoid server trust.
 	switch typ {
 	case chat1.MessageType_EDIT:
 		return []chat1.MessageID{msg.Valid().MessageBody.Edit().MessageID}, nil
@@ -958,6 +959,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
 	res.ConvRetention = rawConv.ConvRetention
 	res.TeamRetention = rawConv.TeamRetention
+	res.MinWriterRoleInfo = rawConv.MinWriterRoleInfo
 	return res
 }
 
@@ -1085,12 +1087,15 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body string
+		var preview *chat1.MakePreviewRes
 		typ := rawMsg.Outbox().Msg.ClientHeader.MessageType
 		switch typ {
 		case chat1.MessageType_TEXT:
 			body = rawMsg.Outbox().Msg.MessageBody.Text().Body
 		case chat1.MessageType_EDIT:
 			body = rawMsg.Outbox().Msg.MessageBody.Edit().Body
+		case chat1.MessageType_ATTACHMENT:
+			preview = rawMsg.Outbox().Preview
 		}
 		res = chat1.NewUIMessageWithOutbox(chat1.UIMessageOutbox{
 			State:       rawMsg.Outbox().State,
@@ -1099,6 +1104,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Body:        body,
 			Ctime:       rawMsg.Outbox().Ctime,
 			Ordinal:     computeOutboxOrdinal(rawMsg.Outbox()),
+			Preview:     preview,
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())

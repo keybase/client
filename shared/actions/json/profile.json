@@ -15,6 +15,10 @@
     "dropPgp": {
       "kid": "RPCTypes.KID"
     },
+    "uploadAvatar": {
+      "filename": "string",
+      "crop?": "RPCTypes.ImageCropRect"
+    },
     "editProfile": {
       "bio": "string",
       "fullname": "string",

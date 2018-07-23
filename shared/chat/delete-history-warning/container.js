@@ -3,46 +3,37 @@ import * as Types from '../../constants/types/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import DeleteHistoryWarning from '.'
 import {type RouteProps} from '../../route-tree/render-route'
-import moment from 'moment'
 import {compose, connect, type TypedState, type Dispatch} from '../../util/container'
+import {isMobile} from '../../constants/platform'
 
 type OwnProps = RouteProps<
   {
-    message: Types.Message,
+    conversationIDKey: Types.ConversationIDKey,
     teamname: string,
   },
   {}
 >
 
 const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
-  const message = routeProps.get('message')
   const teamname = routeProps.get('teamname')
-  const timestamp = moment(message.timestamp).format('dddd, MMMM Do YYYY, h:mm:ss a')
   return {
     teamname,
-    timestamp,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}: OwnProps) => ({
-  onBack: () => dispatch(navigateUp()),
-  onClose: () => dispatch(navigateUp()),
+  onCancel: () => dispatch(navigateUp()),
+  onBack: isMobile ? null : () => dispatch(navigateUp()),
   onDeleteHistory: () => {
-    const message = routeProps.get('message')
+    const conversationIDKey = routeProps.get('conversationIDKey')
     dispatch(navigateUp())
-    dispatch(
-      Chat2Gen.createMessageDeleteHistory({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
-      })
-    )
+    dispatch(Chat2Gen.createMessageDeleteHistory({conversationIDKey}))
   },
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
   ...stateProps,
   ...dispatchProps,
-  title: 'Delete message history',
 })
 
 export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(DeleteHistoryWarning)

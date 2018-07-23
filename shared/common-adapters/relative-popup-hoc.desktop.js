@@ -207,9 +207,28 @@ function ModalPositionRelative<PP>(
       this.setState({style})
     }
 
-    componentDidUpdate(prevProps: ModalPositionRelativeProps<PP>) {
+    getSnapshotBeforeUpdate(prevProps) {
+      const {width, height} = this.popupNode
+        ? this.popupNode.getBoundingClientRect()
+        : {width: -1, height: -1}
+      return {width, height}
+    }
+
+    componentDidUpdate(prevProps: ModalPositionRelativeProps<PP>, prevState, snapshot) {
       if (this.props.targetRect && this.props.targetRect !== prevProps.targetRect) {
         this._computeStyle(this.props.targetRect)
+      }
+
+      if (includes(this.props.position, 'center')) {
+        // If we need to center, the offset calculation depends on rendered
+        // bounding rect. If rendering changes the bounding rect, we need to
+        // re-calculate offsets.
+        const {width, height} = this.popupNode
+          ? this.popupNode.getBoundingClientRect()
+          : {width: -1, height: -1}
+        if (snapshot.width !== width || snapshot.height !== height) {
+          this._computeStyle(this.props.targetRect)
+        }
       }
     }
 

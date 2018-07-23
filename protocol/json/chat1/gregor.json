@@ -480,6 +480,27 @@
     },
     {
       "type": "record",
+      "name": "SetConvMinWriterRoleUpdate",
+      "fields": [
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": [
+            null,
+            "ConversationMinWriterRoleInfo"
+          ],
+          "name": "info"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "KBFSImpteamUpgradeUpdate",
       "fields": [
         {

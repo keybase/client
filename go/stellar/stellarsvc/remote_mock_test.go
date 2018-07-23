@@ -58,7 +58,7 @@ func (t *txlogger) AddClaim(kbTxID stellar1.KeybaseTransactionID, c stellar1.Cla
 
 // Filter by accountID
 // But: Unclaimed relays not from the caller are effectively associated with the caller's primary account.
-func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, limit int) []stellar1.PaymentSummary {
+func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, limit int, skipPending bool) []stellar1.PaymentSummary {
 	t.Lock()
 	defer t.Unlock()
 
@@ -72,7 +72,7 @@ func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stella
 		WithNetContext(ctx)
 	user, err := libkb.LoadUser(loadMeArg)
 	require.NoError(t.T, err)
-	myAccountID := user.StellarWalletAddress()
+	myAccountID := user.StellarAccountID()
 	if myAccountID != nil {
 		callerAccountID = *myAccountID
 	}
@@ -140,6 +140,107 @@ func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stella
 					p.KbTxID, accountID, callerAccountID)
 				continue
 			}
+
+			if skipPending {
+				pending := true
+				if p.TxStatus != stellar1.TransactionStatus_SUCCESS && p.TxStatus != stellar1.TransactionStatus_PENDING {
+					pending = false
+				}
+				if p.Claim != nil && p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
+					pending = false
+				}
+				if pending {
+					continue
+				}
+			}
+
+			res = append(res, tx.Summary)
+		default:
+			require.Fail(t.T, "unrecognized variant", "%v", typ)
+		}
+	}
+	return res
+}
+
+// Pending by accountID
+func (t *txlogger) Pending(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, limit int) []stellar1.PaymentSummary {
+	t.Lock()
+	defer t.Unlock()
+
+	// load the caller to get their primary account
+	callerAccountID := stellar1.AccountID("")
+	meUID := tc.G.ActiveDevice.UID()
+	require.False(t.T, meUID.IsNil())
+	loadMeArg := libkb.NewLoadUserArgWithContext(ctx, tc.G).
+		WithUID(meUID).
+		WithSelf(true).
+		WithNetContext(ctx)
+	user, err := libkb.LoadUser(loadMeArg)
+	require.NoError(t.T, err)
+	myAccountID := user.StellarAccountID()
+	if myAccountID != nil {
+		callerAccountID = *myAccountID
+	}
+	caller := user.ToUserVersion()
+
+	var res []stellar1.PaymentSummary
+	for _, tx := range t.transactions {
+		if limit > 0 && len(res) == limit {
+			break
+		}
+
+		typ, err := tx.Summary.Typ()
+		require.NoError(t.T, err)
+		switch typ {
+		case stellar1.PaymentSummaryType_STELLAR:
+			continue
+		case stellar1.PaymentSummaryType_DIRECT:
+			continue
+		case stellar1.PaymentSummaryType_RELAY:
+			p := tx.Summary.Relay()
+
+			// Caller must be a member of the impteam.
+			if !t.isCallerInImplicitTeam(tc, p.TeamID) {
+				t.T.Logf("filtered out relay (team membership): %v", p.KbTxID)
+				continue
+			}
+
+			filterByAccount := func(r *stellar1.PaymentSummaryRelay, accountID stellar1.AccountID) bool {
+				if accountID.IsNil() {
+					return true
+				}
+				if r.FromStellar.Eq(accountID) {
+					return true
+				}
+				var successfullyClaimed bool
+				if r.Claim != nil {
+					if r.Claim.ToStellar.Eq(accountID) {
+						return true
+					}
+					if r.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
+						successfullyClaimed = true
+					}
+				}
+				// Unclaimed relays not from the caller are effectively associated with the caller's primary account.
+				if !successfullyClaimed && !r.From.Eq(caller) && !callerAccountID.IsNil() && accountID.Eq(callerAccountID) {
+					return true
+				}
+				return false
+			}
+
+			if !filterByAccount(&p, accountID) {
+				t.T.Logf("filtered out relay (account filter): %v queryAccountID:%v callerAccountID:%v",
+					p.KbTxID, accountID, callerAccountID)
+				continue
+			}
+
+			if p.TxStatus != stellar1.TransactionStatus_SUCCESS && p.TxStatus != stellar1.TransactionStatus_PENDING {
+				continue
+			}
+			if p.Claim != nil && p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
+				continue
+			}
+
 			res = append(res, tx.Summary)
 		default:
 			require.Fail(t.T, "unrecognized variant", "%v", typ)
@@ -309,8 +410,12 @@ func (r *RemoteClientMock) NextAutoClaim(ctx context.Context) (*stellar1.AutoCla
 	return nil, fmt.Errorf("RemoteClientMock does not implement NextAutoClaim")
 }
 
-func (r *RemoteClientMock) RecentPayments(ctx context.Context, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int) (stellar1.PaymentsPage, error) {
-	return r.Backend.RecentPayments(ctx, r.Tc, accountID, cursor, limit)
+func (r *RemoteClientMock) RecentPayments(ctx context.Context, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (stellar1.PaymentsPage, error) {
+	return r.Backend.RecentPayments(ctx, r.Tc, accountID, cursor, limit, skipPending)
+}
+
+func (r *RemoteClientMock) PendingPayments(ctx context.Context, accountID stellar1.AccountID, limit int) ([]stellar1.PaymentSummary, error) {
+	return r.Backend.PendingPayments(ctx, r.Tc, accountID, limit)
 }
 
 func (r *RemoteClientMock) PaymentDetails(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error) {
@@ -617,14 +722,22 @@ func (r *BackendMock) SubmitRelayClaim(ctx context.Context, tc *TestContext, pos
 	}, nil
 }
 
-func (r *BackendMock) RecentPayments(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int) (res stellar1.PaymentsPage, err error) {
+func (r *BackendMock) RecentPayments(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (res stellar1.PaymentsPage, err error) {
 	defer tc.G.CTraceTimed(ctx, "BackendMock.RecentPayments", func() error { return err })()
 	r.Lock()
 	defer r.Unlock()
 	if cursor != nil {
 		return res, errors.New("cursor not mocked")
 	}
-	res.Payments = r.txLog.Filter(ctx, tc, accountID, limit)
+	res.Payments = r.txLog.Filter(ctx, tc, accountID, limit, skipPending)
+	return res, nil
+}
+
+func (r *BackendMock) PendingPayments(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
+	defer tc.G.CTraceTimed(ctx, "BackendMock.PendingPayments", func() error { return err })()
+	r.Lock()
+	defer r.Unlock()
+	res = r.txLog.Pending(ctx, tc, accountID, limit)
 	return res, nil
 }
 

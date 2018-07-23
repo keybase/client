@@ -87,6 +87,7 @@ func TestPushOrdering(t *testing.T) {
 	tc := world.Tcs[u.Username]
 	handler := NewPushHandler(tc.Context())
 	handler.SetClock(world.Fc)
+	list.remoteActivityOnly = true
 
 	conv := newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
 	sendSimple(ctx, t, tc, handler, sender, conv, u,

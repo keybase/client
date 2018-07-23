@@ -117,7 +117,8 @@ func TestChatOutbox(t *testing.T) {
 	require.Equal(t, 1, len(res), "wrong len")
 
 	// Retry the error
-	require.NoError(t, ob.RetryMessage(context.TODO(), obrs[2].OutboxID, nil))
+	_, err = ob.RetryMessage(context.TODO(), obrs[2].OutboxID, nil)
+	require.NoError(t, err)
 	res, err = ob.PullAllConversations(context.TODO(), true, false)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(res), "wrong len")
