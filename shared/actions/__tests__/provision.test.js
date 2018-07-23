@@ -618,6 +618,15 @@ describe('canceling provision', () => {
   })
 })
 
+describe('generic errors show', () => {
+  it('shows error', () => {
+    const {getState, dispatch} = startReduxSaga()
+    const error = new HiddenString('generic error')
+    dispatch(ProvisionGen.createProvisionError({error}))
+    expect(getState().provision.error).toEqual(error)
+  })
+})
+
 describe('final errors show', () => {
   it('shows the final error page', () => {
     const {getState, dispatch, getRoutePath} = startReduxSaga()
