@@ -516,3 +516,25 @@ func TestReAddMemberWithSameUV(t *testing.T) {
 	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
 	require.IsType(t, UserHasNotResetError{}, err)
 }
+
+func TestGetTeamIDRPC(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	for i := 1; i <= 2; i++ {
+		// Test with two impteams: "fus[0]" and "fus[0],fus[1]"
+		var membersStr []string
+		for j := 0; j < i; j++ {
+			membersStr = append(membersStr, fus[j].Username)
+		}
+		impteamName := strings.Join(membersStr, ",")
+		t.Logf("creating an implicit team: %v", impteamName)
+		teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, impteamName, false /*isPublic*/)
+		require.NoError(t, err)
+
+		mctx := libkb.NewMetaContextForTest(*tcs[0])
+		res, err := GetTeamIDByNameRPC(mctx, teamObj.Name().String())
+		require.NoError(t, err)
+		require.Equal(t, teamObj.ID, res)
+	}
+}

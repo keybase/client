@@ -1711,3 +1711,15 @@ func ProfileTeamLoad(mctx libkb.MetaContext, arg keybase1.LoadTeamArg) (res keyb
 	res.LoadTimeNsec = post.Sub(pre).Nanoseconds()
 	return res, err
 }
+
+func GetTeamIDByNameRPC(mctx libkb.MetaContext, teamName string) (res keybase1.TeamID, err error) {
+	nameParsed, err := keybase1.TeamNameFromString(teamName)
+	if err != nil {
+		return "", err
+	}
+	id, err := ResolveNameToID(mctx.Ctx(), mctx.G(), nameParsed)
+	if err != nil {
+		return "", err
+	}
+	return id, nil
+}
