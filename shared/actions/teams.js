@@ -42,7 +42,6 @@ const _createNewTeam = function*(action: TeamsGen.CreateNewTeamPayload) {
     )
 
     // No error if we get here.
-    // yield Saga.put(navigateTo([isMobile ? chatTab : teamsTab]))
     yield Saga.all([
       Saga.put(navigateTo(isMobile ? [chatTab] : [{props: {teamname}, selected: 'team'}], [teamsTab])),
       // Show the avatar editor on desktop.
