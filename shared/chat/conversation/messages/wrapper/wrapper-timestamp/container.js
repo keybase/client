@@ -5,8 +5,9 @@ import {setDisplayName, compose, connect, type TypedState} from '../../../../../
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 
 const mapStateToProps = (state: TypedState, {message, previous}) => {
-  const orangeLineOrdinal = state.chat2.orangeLineMap.get(message.conversationIDKey)
-  const orangeLineAbove = !!previous && orangeLineOrdinal === previous.ordinal
+  const lastReadMessageID = state.chat2.lastReadMessageMap.get(message.conversationIDKey)
+  // Show the orange line on the first message after the last unread message, if there is one
+  const orangeLineAbove = !!previous && lastReadMessageID === previous.id
   return {
     _message: message,
     conversationIDKey: message.conversationIDKey,
