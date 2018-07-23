@@ -161,16 +161,6 @@ func (e ParticipantType) String() string {
 	return ""
 }
 
-type PaymentID struct {
-	TxID TransactionID `codec:"txID" json:"txID"`
-}
-
-func (o PaymentID) DeepCopy() PaymentID {
-	return PaymentID{
-		TxID: o.TxID.DeepCopy(),
-	}
-}
-
 type PaymentLocal struct {
 	Id                PaymentID       `codec:"id" json:"id"`
 	Time              TimeMs          `codec:"time" json:"time"`
