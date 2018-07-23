@@ -9,6 +9,9 @@ const FadeBox = glamorous.div({
   '&.visible': {
     opacity: 1,
   },
+  '&.active': {
+    opacity: 1,
+  },
   opacity: 0,
 })
 
