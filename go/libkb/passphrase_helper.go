@@ -204,7 +204,7 @@ func (p *PaperChecker) Check(m MetaContext, s string) error {
 
 	// check for at least PaperKeyWordCountMin words
 	if phrase.NumWords() < PaperKeyWordCountMin {
-		return PassphraseError{Msg: "Not enough words for a paper key. Please try again."}
+		return PassphraseError{Msg: "Your paper key should have more words than this. Please double check."}
 	}
 
 	// check for invalid words
