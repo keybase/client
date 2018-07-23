@@ -61,11 +61,11 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		},
 		cli.BoolFlag{
 			Name:  "use-device-keys",
-			Usage: "Use the device keys of all the user recipients (and memebers of teams) for encryption. Not supported for large teams (a warning will be issued).",
+			Usage: "Use the device keys of all the user recipients (and memebers of teams) for encryption.",
 		},
 		cli.BoolFlag{
 			Name:  "use-paper-keys",
-			Usage: "Use the paper keys of all the user recipients (and memebers of teams) for encryption. Not supported for large teams (a warning will be issued).",
+			Usage: "Use the paper keys of all the user recipients (and memebers of teams) for encryption.",
 		},
 		cli.BoolFlag{
 			Name:  "no-self-encrypt",
@@ -165,8 +165,9 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 		return errors.New("invalid auth-type option provided")
 	}
 
-	// Repudiable authenticity corresponds to the saltpack encryption mode (which uses pairwise macs instead of signatures). Because of the spec
-	// and the interface exposed by saltpack v2, we cannot use the pseudonym mechanism in encryption mode.
+	// Repudiable authenticity corresponds to the saltpack encryption format (which uses pairwise macs instead of signatures). Because of the spec
+	// and the interface exposed by saltpack v2, we cannot use the pseudonym mechanism with the encryption format. As such, we cannot encrypt for teams
+	// (and implicit teams): we can error here for teams, and later if resolving any user would lead to the creation of an implicit team.
 	if c.useEntityKeys && len(c.teamRecipients) > 0 && c.authenticityType == keybase1.AuthenticityType_REPUDIABLE {
 		return errors.New("--auth-type=repudiable requires --no-entity-keys when encrypting for a team")
 	}

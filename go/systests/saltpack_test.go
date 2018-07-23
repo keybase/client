@@ -33,8 +33,9 @@ func createTeam(tc libkb.TestContext) (keybase1.TeamID, string) {
 	return *teamID, name
 }
 
-// TODO this ui is duplicated from engine/saltpack_decrypt_test. Should I move to kbtests or similar?
 type fakeSaltpackUI struct{}
+
+var _ libkb.SaltpackUI = fakeSaltpackUI{}
 
 func (s fakeSaltpackUI) SaltpackPromptForDecrypt(_ context.Context, arg keybase1.SaltpackPromptForDecryptArg, usedDelegateUI bool) (err error) {
 	return nil

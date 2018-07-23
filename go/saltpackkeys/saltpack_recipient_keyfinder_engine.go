@@ -215,17 +215,27 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddTeam(m libkb.MetaContext,
 		}
 		upakLoader := m.G().GetUPAKLoader()
 
-		for _, uid := range members.AllUIDs() {
+		for _, userVersion := range members.AllUserVersions() {
+			uid := userVersion.Uid
 			if e.Arg.NoSelfEncrypt && m.CurrentUID() == uid {
-				m.CDebugf("skipping device keys for %v as part of team %v because of NoSelfEncrypt", uid, teamName)
+				m.CDebugf("skipping device and paper keys for %v as part of team %v because of NoSelfEncrypt", uid, teamName)
 				continue
 			}
-			// TODO: SHOULD I EXCLUDE ANY MEMBERS HERE? Inactive? Implicit Admins?
-			arg := libkb.NewLoadUserByUIDArg(m.Ctx(), m.G(), uid)
+			arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(uid).WithForcePoll(true)
 			upak, _, err := upakLoader.LoadV2(arg)
 			if err != nil {
 				return err
 			}
+			// Skip deleted and reset users
+			if upak.Current.Status == keybase1.StatusCode_SCDeleted {
+				m.CDebugf("skipping device and paper keys for %v as part of team %v because it is deleted", uid, teamName)
+				continue
+			}
+			if userVersion != upak.Current.ToUserVersion() {
+				m.CDebugf("skipping device and paper keys for %v as part of team %v because the user version doesn't match", uid, teamName)
+				continue
+			}
+
 			err = e.AddDeviceAndPaperKeys(m, &upak.Current)
 			if err != nil {
 				return err

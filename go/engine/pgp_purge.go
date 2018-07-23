@@ -49,7 +49,7 @@ func (e *PGPPurge) RequiredUIs() []libkb.UIKind {
 // SubConsumers returns the other UI consumers for this engine.
 func (e *PGPPurge) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		&SaltpackEncrypt{},
+		&SaltpackEncrypt{newKeyfinderHook: NewSaltpackUserKeyfinderAsInterface},
 	}
 }
 
@@ -143,6 +143,7 @@ func (e *PGPPurge) encryptToFile(m libkb.MetaContext, bundle *libkb.PGPKeyBundle
 		Source: &buf,
 		Sink:   out,
 		Opts: keybase1.SaltpackEncryptOptions{
+			Recipients:       []string{m.CurrentUsername().String()},
 			AuthenticityType: keybase1.AuthenticityType_SIGNED,
 			UsePaperKeys:     true,
 			UseDeviceKeys:    true,

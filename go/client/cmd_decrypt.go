@@ -131,7 +131,6 @@ func (c *CmdDecrypt) Run() error {
 		c.explainDecryptionFailure(&info)
 	} else if c.senderfile != nil {
 		if info.Sender.Username != "" {
-			// TODO Is it intended to not pick up this error later when this function returns?
 			if _, err := c.senderfile.Write([]byte(info.Sender.Username)); err != nil {
 				c.G().Log.Errorf("failure writing sender file: %s", err)
 			}

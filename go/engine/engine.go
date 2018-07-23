@@ -11,20 +11,8 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// TODO remove type alias and update references before merging PR.
 type Prereqs = libkb.EnginePrereqs
 type Engine2 = libkb.Engine2
-
-// type Prereqs struct {
-// 	TemporarySession bool
-// 	Device           bool
-// }
-
-// type Engine2 interface {
-// 	Run(libkb.MetaContext) error
-// 	Prereqs() Prereqs
-// 	libkb.UIConsumer
-// }
 
 type UIDelegateWanter interface {
 	WantDelegate(libkb.UIKind) bool
