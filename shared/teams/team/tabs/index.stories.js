@@ -14,6 +14,7 @@ const yourOperations = {
   setTeamShowcase: false,
   setMemberShowcase: false,
   setRetentionPolicy: false,
+  setMinWriterRole: false,
   changeOpenTeam: false,
   leaveTeam: false,
   joinTeam: false,
