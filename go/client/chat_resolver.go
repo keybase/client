@@ -205,9 +205,6 @@ func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversa
 		}
 		return nil, false, errors.New("no conversation found")
 	case 1:
-		if conversations[0].Error != nil {
-			return nil, false, errors.New(conversations[0].Error.Message)
-		}
 		conversation := conversations[0]
 		info := conversation.Info
 		if req.TlfName != info.TlfName {
@@ -229,7 +226,11 @@ func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversa
 					info.Visibility, info.Triple.TopicType, info.TopicName, info.TLFNameExpandedSummary())
 			}
 		}
-		return &conversation, false, nil
+		var err error
+		if conversation.Error != nil {
+			err = errors.New(conversation.Error.Message)
+		}
+		return &conversation, false, err
 	default:
 		if behavior.Interactive {
 			return r.resolveWithCliUIInteractively(ctx, req, conversations)

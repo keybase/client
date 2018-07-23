@@ -84,7 +84,7 @@ func (c *CmdChatHide) Run() error {
 		Interactive:       false,
 		IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
-	if err != nil {
+	if err != nil && conversation == nil {
 		return err
 	}
 
@@ -94,10 +94,7 @@ func (c *CmdChatHide) Run() error {
 	}
 
 	_, err = resolver.ChatClient.SetConversationStatusLocal(ctx, setStatusArg)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (c *CmdChatHide) GetUsage() libkb.Usage {
