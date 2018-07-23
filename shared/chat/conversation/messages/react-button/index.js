@@ -15,7 +15,7 @@ import {
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 
-export type Props = {
+export type Props = {|
   active: boolean,
   conversationIDKey: Types.ConversationIDKey,
   count: number,
@@ -24,7 +24,7 @@ export type Props = {
   onMouseLeave?: (evt: SyntheticEvent<Element>) => void,
   onMouseOver?: (evt: SyntheticEvent<Element>) => void,
   ordinal: Types.Ordinal,
-}
+|}
 
 const ButtonBox = glamorous(ClickableBox)({
   ...(isMobile
@@ -51,14 +51,14 @@ const ReactButton = (props: Props) => (
   </ButtonBox>
 )
 
-type NewReactionButtonProps = {
+export type NewReactionButtonProps = {|
   onAddReaction: (emoji: string) => void,
   showBorder: boolean,
-}
-type NewReactionButtonState = {
+|}
+type NewReactionButtonState = {|
   attachmentRef: ?React.Component<any, any>,
   showingPicker: boolean,
-}
+|}
 export class NewReactionButton extends React.Component<NewReactionButtonProps, NewReactionButtonState> {
   state = {attachmentRef: null, showingPicker: false}
 

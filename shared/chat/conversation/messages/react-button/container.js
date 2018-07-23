@@ -4,22 +4,24 @@ import {compose, connect, setDisplayName, type TypedState} from '../../../../uti
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import ReactButton, {NewReactionButton} from '.'
+import ReactButton, {NewReactionButton, type Props, type NewReactionButtonProps} from '.'
 
-export type WrapperProps = {
-  active: boolean,
-  conversationIDKey: Types.ConversationIDKey,
-  count: number,
-  emoji?: string,
-  onAddReaction: (emoji: string) => void,
-  onClick: () => void,
-  onMouseLeave?: (evt: SyntheticEvent<Element>) => void,
-  onMouseOver?: (evt: SyntheticEvent<Element>) => void,
-  ordinal: Types.Ordinal,
-  showBorder?: boolean,
-}
+export type WrapperProps = {...Props, ...NewReactionButtonProps}
 const Wrapper = (props: WrapperProps) =>
-  props.emoji ? <ReactButton {...props} /> : <NewReactionButton {...props} showBorder={!!props.showBorder} />
+  props.emoji ? (
+    <ReactButton
+      active={props.active}
+      conversationIDKey={props.conversationIDKey}
+      count={props.count}
+      emoji={props.emoji}
+      onClick={props.onClick}
+      onMouseLeave={props.onMouseLeave}
+      onMouseOver={props.onMouseOver}
+      ordinal={props.ordinal}
+    />
+  ) : (
+    <NewReactionButton onAddReaction={props.onAddReaction} showBorder={props.showBorder} />
+  )
 
 export type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,

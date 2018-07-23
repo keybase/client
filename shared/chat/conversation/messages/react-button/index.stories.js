@@ -8,8 +8,10 @@ import {Common} from '../../../../stories/prop-providers'
 import {type OwnProps, type WrapperProps} from './container'
 import ReactButton, {NewReactionButton} from '.'
 
+// Tooltip includes avatars and usernames
 const provider = createPropProvider(Common())
 
+// Common props for these stories and fallbacks for the prop provider
 const common = {
   conversationIDKey: Constants.noConversationIDKey,
   onMouseLeave: action('onMouseLeave'),
@@ -17,6 +19,8 @@ const common = {
   ordinal: Types.numberToOrdinal(0),
 }
 
+// Mapper is the same for version w/ and w/out tooltip
+// Include both display names in the provider
 const propMapper = (props: OwnProps): WrapperProps => ({
   ...common,
   active: [':face_with_cowboy_hat:', ':honey_pot:'].includes(props.emoji),
@@ -27,6 +31,7 @@ const propMapper = (props: OwnProps): WrapperProps => ({
   onClick: action('onReact'),
   onMouseLeave: props.onMouseLeave || common.onMouseLeave,
   onMouseOver: props.onMouseOver || common.onMouseOver,
+  showBorder: props.showBorder,
 })
 export const propProvider = {
   ReactButton: propMapper,

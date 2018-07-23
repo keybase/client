@@ -11,6 +11,8 @@ import ReactionTooltip from '../reaction-tooltip/container'
  * used in contexts when the tooltip should also appear.
  */
 
+// Passthroughs to `WrapperProps` in ./container
+// This component adds the mouse handlers
 export type Props = {|
   conversationIDKey: Types.ConversationIDKey,
   emoji?: string,
@@ -39,7 +41,7 @@ class ReactButtonWithTooltip extends React.Component<Props, State> {
   _handleShowingTooltip = () => {
     const nextShowingTooltip = this._hoveringButton || this._hoveringTooltip
     if (this.state.showingTooltip && !this._hoveringButton && !nextShowingTooltip) {
-      // give the user some time to hop between the button and the tooltip
+      // Give the user some time to hop between the button and the tooltip
       this._timeoutID = setTimeout(
         () =>
           this.setState(s => {
