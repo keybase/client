@@ -7,12 +7,19 @@ export type Props = {|
   style?: Object,
 
   // mobile only
+  bounces?: boolean,
+  centerContent?: boolean,
   minimumZoomScale?: number,
   maximumZoomScale?: number,
+  onLayout?: Function,
+  onScroll?: ?Function,
+  scrollEventThrottle?: number,
   scrollsToTop?: boolean,
   indicatorStyle?: string,
   alwaysBounceVertical?: boolean,
   alwaysBounceHorizontal?: boolean,
+  showsVerticalScrollIndicator?: boolean,
+  showsHorizontalScrollIndicator?: boolean,
   horizontal?: boolean,
   refreshControl?: React.Element<any>,
 |}

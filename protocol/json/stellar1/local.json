@@ -68,6 +68,13 @@
         {
           "type": "string",
           "name": "availableToSendWorth"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "AccountReserve"
+          },
+          "name": "reserves"
         }
       ]
     },
@@ -373,6 +380,10 @@
         {
           "type": "string",
           "name": "toErrMsg"
+        },
+        {
+          "type": "string",
+          "name": "toUsername"
         },
         {
           "type": "string",

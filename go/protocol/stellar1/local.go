@@ -25,15 +25,16 @@ func (o WalletAccountLocal) DeepCopy() WalletAccountLocal {
 }
 
 type AccountAssetLocal struct {
-	Name                   string `codec:"name" json:"name"`
-	AssetCode              string `codec:"assetCode" json:"assetCode"`
-	IssuerName             string `codec:"issuerName" json:"issuerName"`
-	IssuerAccountID        string `codec:"issuerAccountID" json:"issuerAccountID"`
-	BalanceTotal           string `codec:"balanceTotal" json:"balanceTotal"`
-	BalanceAvailableToSend string `codec:"balanceAvailableToSend" json:"balanceAvailableToSend"`
-	WorthCurrency          string `codec:"worthCurrency" json:"worthCurrency"`
-	Worth                  string `codec:"worth" json:"worth"`
-	AvailableToSendWorth   string `codec:"availableToSendWorth" json:"availableToSendWorth"`
+	Name                   string           `codec:"name" json:"name"`
+	AssetCode              string           `codec:"assetCode" json:"assetCode"`
+	IssuerName             string           `codec:"issuerName" json:"issuerName"`
+	IssuerAccountID        string           `codec:"issuerAccountID" json:"issuerAccountID"`
+	BalanceTotal           string           `codec:"balanceTotal" json:"balanceTotal"`
+	BalanceAvailableToSend string           `codec:"balanceAvailableToSend" json:"balanceAvailableToSend"`
+	WorthCurrency          string           `codec:"worthCurrency" json:"worthCurrency"`
+	Worth                  string           `codec:"worth" json:"worth"`
+	AvailableToSendWorth   string           `codec:"availableToSendWorth" json:"availableToSendWorth"`
+	Reserves               []AccountReserve `codec:"reserves" json:"reserves"`
 }
 
 func (o AccountAssetLocal) DeepCopy() AccountAssetLocal {
@@ -47,6 +48,17 @@ func (o AccountAssetLocal) DeepCopy() AccountAssetLocal {
 		WorthCurrency:          o.WorthCurrency,
 		Worth:                  o.Worth,
 		AvailableToSendWorth:   o.AvailableToSendWorth,
+		Reserves: (func(x []AccountReserve) []AccountReserve {
+			if x == nil {
+				return nil
+			}
+			var ret []AccountReserve
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Reserves),
 	}
 }
 
@@ -344,6 +356,7 @@ func (o SendAssetChoiceLocal) DeepCopy() SendAssetChoiceLocal {
 type BuildPaymentResLocal struct {
 	ReadyToSend      bool              `codec:"readyToSend" json:"readyToSend"`
 	ToErrMsg         string            `codec:"toErrMsg" json:"toErrMsg"`
+	ToUsername       string            `codec:"toUsername" json:"toUsername"`
 	AmountErrMsg     string            `codec:"amountErrMsg" json:"amountErrMsg"`
 	SecretNoteErrMsg string            `codec:"secretNoteErrMsg" json:"secretNoteErrMsg"`
 	PublicMemoErrMsg string            `codec:"publicMemoErrMsg" json:"publicMemoErrMsg"`
@@ -356,6 +369,7 @@ func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
 	return BuildPaymentResLocal{
 		ReadyToSend:      o.ReadyToSend,
 		ToErrMsg:         o.ToErrMsg,
+		ToUsername:       o.ToUsername,
 		AmountErrMsg:     o.AmountErrMsg,
 		SecretNoteErrMsg: o.SecretNoteErrMsg,
 		PublicMemoErrMsg: o.PublicMemoErrMsg,

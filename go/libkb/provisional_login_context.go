@@ -61,44 +61,15 @@ func (p *ProvisionalLoginContext) SetStreamCache(c *PassphraseStreamCache) {
 func (p *ProvisionalLoginContext) PassphraseStreamCache() *PassphraseStreamCache {
 	return p.streamCache
 }
-func (p *ProvisionalLoginContext) ClearStreamCache() {
-	if p.streamCache != nil {
-		p.streamCache.Clear()
-	}
-}
-func (p *ProvisionalLoginContext) SetStreamGeneration(gen PassphraseGeneration, nilPPStreamOK bool) {
-	found := p.PassphraseStreamCache().MutatePassphraseStream(func(ps *PassphraseStream) {
-		ps.SetGeneration(gen)
-	})
-	if !found && !nilPPStreamOK {
-		p.M().CWarningf("Passphrase stream was nil; unexpected")
-	}
-}
 func (p *ProvisionalLoginContext) PassphraseStream() *PassphraseStream {
 	if p.PassphraseStreamCache() == nil {
 		return nil
 	}
 	return p.PassphraseStreamCache().PassphraseStream()
 }
-func (p *ProvisionalLoginContext) GetStreamGeneration() (ret PassphraseGeneration) {
-	if ps := p.PassphraseStream(); ps != nil {
-		ret = ps.Generation()
-	}
-	return ret
-}
 func (p *ProvisionalLoginContext) CreateLoginSessionWithSalt(emailOrUsername string, salt []byte) error {
 	if salt != nil {
 		p.salt = append([]byte{}, salt...)
-	}
-	return nil
-}
-func (p *ProvisionalLoginContext) LoadLoginSession(username string) error {
-	nun := NewNormalizedUsername(username)
-	if !p.username.Eq(nun) {
-		return LoggedInWrongUserError{p.username, nun}
-	}
-	if p.loginSession == nil {
-		return LoginSessionNotFound{}
 	}
 	return nil
 }
@@ -108,8 +79,6 @@ func (p *ProvisionalLoginContext) LoginSession() *LoginSession {
 func (p *ProvisionalLoginContext) SetLoginSession(l *LoginSession) {
 	p.loginSession = l
 }
-func (p *ProvisionalLoginContext) ClearLoginSession() {
-}
 func (p *ProvisionalLoginContext) LocalSession() *Session {
 	return p.localSession.Clone()
 }
@@ -118,8 +87,6 @@ func (p *ProvisionalLoginContext) GetUID() keybase1.UID {
 }
 func (p *ProvisionalLoginContext) GetUsername() NormalizedUsername {
 	return p.username
-}
-func (p *ProvisionalLoginContext) EnsureUsername(username NormalizedUsername) {
 }
 
 func (p *ProvisionalLoginContext) SetUsernameUID(username NormalizedUsername, uid keybase1.UID) error {

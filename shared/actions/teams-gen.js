@@ -70,6 +70,7 @@ export const setUpdatedTopic = 'teams:setUpdatedTopic'
 export const setupTeamHandlers = 'teams:setupTeamHandlers'
 export const updateChannelName = 'teams:updateChannelName'
 export const updateTopic = 'teams:updateTopic'
+export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
 
 // Payload Types
 type _AddParticipantPayload = $ReadOnly<{|
@@ -285,6 +286,12 @@ type _UpdateTopicPayload = $ReadOnly<{|
   conversationIDKey: ChatTypes.ConversationIDKey,
   newTopic: string,
 |}>
+type _UploadTeamAvatarPayload = $ReadOnly<{|
+  crop?: RPCTypes.ImageCropRect,
+  filename: string,
+  sendChatNotification: boolean,
+  teamname: string,
+|}>
 
 // Action Creators
 /**
@@ -360,6 +367,7 @@ export const createSetUpdatedTopic = (payload: _SetUpdatedTopicPayload) => ({err
 export const createSetupTeamHandlers = (payload: _SetupTeamHandlersPayload) => ({error: false, payload, type: setupTeamHandlers})
 export const createUpdateChannelName = (payload: _UpdateChannelNamePayload) => ({error: false, payload, type: updateChannelName})
 export const createUpdateTopic = (payload: _UpdateTopicPayload) => ({error: false, payload, type: updateTopic})
+export const createUploadTeamAvatar = (payload: _UploadTeamAvatarPayload) => ({error: false, payload, type: uploadTeamAvatar})
 
 // Action Payloads
 export type AddParticipantPayload = $Call<typeof createAddParticipant, _AddParticipantPayload>
@@ -423,6 +431,7 @@ export type SetUpdatedTopicPayload = $Call<typeof createSetUpdatedTopic, _SetUpd
 export type SetupTeamHandlersPayload = $Call<typeof createSetupTeamHandlers, _SetupTeamHandlersPayload>
 export type UpdateChannelNamePayload = $Call<typeof createUpdateChannelName, _UpdateChannelNamePayload>
 export type UpdateTopicPayload = $Call<typeof createUpdateTopic, _UpdateTopicPayload>
+export type UploadTeamAvatarPayload = $Call<typeof createUploadTeamAvatar, _UploadTeamAvatarPayload>
 
 // All Actions
 // prettier-ignore
@@ -488,4 +497,5 @@ export type Actions =
   | SetupTeamHandlersPayload
   | UpdateChannelNamePayload
   | UpdateTopicPayload
+  | UploadTeamAvatarPayload
   | {type: 'common:resetStore', payload: void}

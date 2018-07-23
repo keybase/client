@@ -510,7 +510,7 @@ func (g *GlobalContext) Trace(msg string, f func() error) func() {
 }
 
 func (g *GlobalContext) ExitTrace(msg string, f func() error) func() {
-	return func() { g.Log.Debug("| %s -> %s", msg, ErrToOk(f())) }
+	return func() { g.Log.CloneWithAddedDepth(1).Debug("| %s -> %s", msg, ErrToOk(f())) }
 }
 
 func (g *GlobalContext) CTrace(ctx context.Context, msg string, f func() error) func() {

@@ -33,10 +33,15 @@ jobs:
     ##
 
     - run:
-        name: Update PATH and Define Environment Variable at Runtime
+        name: Update PATH and Define Environment Variables at Runtime
         command: |
+          echo 'export NODE_VERSION=10.7.0' >> $BASH_ENV
+          echo 'export GOROOT=$HOME/go' >> $BASH_ENV
           echo 'export GOPATH=$HOME/go-path' >> $BASH_ENV
-          echo 'export PATH=$HOME/.yarn/bin:$GOROOT/bin:$PATH' >> $BASH_ENV
+          # Clear out a bunch of cruft from PATH, including ~/.yarn/bin,
+          # which has a really old version of yarn that overrides the one
+          # we install below.
+          echo 'export PATH=/bin:/usr/bin:/opt/circleci/nodejs/v$NODE_VERSION/bin:$GOROOT/bin' >> $BASH_ENV
 
           # Some node dependencies break without this.
           echo 'export ANDROID_NDK=$ANDROID_HOME/ndk-bundle' >> $BASH_ENV
@@ -45,7 +50,7 @@ jobs:
           source $BASH_ENV
 
     # Install node and java.
-    - run: nvm install 10 && nvm alias default 10
+    - run: nvm install $NODE_VERSION && nvm alias default $NODE_VERSION
     - run: sudo update-alternatives --set java /usr/lib/jvm/jdk1.8.0/bin/java; sudo update-alternatives --set javac /usr/lib/jvm/jdk1.8.0/bin/javac; echo -e "export JAVA_HOME=/usr/lib/jvm/jdk1.8.0" >> $BASH_ENV
 
     # Restore the dependency cache
@@ -71,7 +76,6 @@ jobs:
 
     - run: if [[ ! -e "$HOME/downloads/go.$GOVERSION.tar.gz" ]]; then wget -nv https://storage.googleapis.com/golang/go$GOVERSION.linux-amd64.tar.gz -O $HOME/downloads/go.$GOVERSION.tar.gz ; fi
     - run: cd $HOME && tar -xzvf downloads/go.$GOVERSION.tar.gz
-    - run: sudo mv $HOME/go /usr/local
 
     - run: if ! $(grep -q "Revision=24.4.1" $ANDROID_HOME/tools/source.properties); then echo y | android update sdk -u -a -t "tools"; fi
     - run: if [ ! -e $ANDROID_HOME/build-tools/23.0.2 ]; then echo y | android update sdk -u -a -t "build-tools-23.0.2"; fi
@@ -114,7 +118,7 @@ jobs:
         working_directory: shared
         environment:
           REACT_NATIVE_MAX_WORKERS: 1
-        command: react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned
+        command: yarn run react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned
 
     # Build app
     - run:

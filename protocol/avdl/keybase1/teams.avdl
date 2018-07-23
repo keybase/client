@@ -880,4 +880,9 @@ protocol teams {
    */
   ProfileTeamLoadRes profileTeamLoad(LoadTeamArg arg);
 
+  /**
+   Gets a TeamID from a team name string. Returns an error if the
+   current user can't read the team.
+   */
+  TeamID getTeamID(string teamName);
 }

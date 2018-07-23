@@ -148,6 +148,17 @@ class AvatarRender extends React.PureComponent<Props, State> {
               ])}
             />
           )}
+          {this.props.editable && (
+            <Icon
+              type="iconfont-edit"
+              onClick={this.props.onEditAvatarClick}
+              style={{
+                bottom: this.props.isTeam ? -2 : 0,
+                position: 'absolute',
+                right: this.props.isTeam ? -18 : 0,
+              }}
+            />
+          )}
           {this.props.children}
         </Box>
       </ClickableBox>

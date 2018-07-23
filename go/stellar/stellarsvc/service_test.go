@@ -46,7 +46,7 @@ func TestCreateWallet(t *testing.T) {
 	defer cleanup()
 
 	t.Logf("Lookup for a bogus address")
-	uv, err := stellar.LookupUserByAccountID(tcs[0].MetaContext(), "GCCJJFCRCQAWDWRAZ3R6235KCQ4PQYE5KEWHGE5ICVTZLTMRKVWAWP7N")
+	uv, _, err := stellar.LookupUserByAccountID(tcs[0].MetaContext(), "GCCJJFCRCQAWDWRAZ3R6235KCQ4PQYE5KEWHGE5ICVTZLTMRKVWAWP7N")
 	require.Error(t, err)
 	require.IsType(t, libkb.NotFoundError{}, err)
 
@@ -74,11 +74,12 @@ func TestCreateWallet(t *testing.T) {
 
 	t.Logf("Lookup the user by public address as another user")
 	a1 := bundle.Accounts[0].AccountID
-	uv, err = stellar.LookupUserByAccountID(tcs[1].MetaContext(), a1)
+	uv, username, err := stellar.LookupUserByAccountID(tcs[1].MetaContext(), a1)
 	require.NoError(t, err)
 	require.Equal(t, tcs[0].Fu.GetUserVersion(), uv)
+	require.Equal(t, tcs[0].Fu.Username, username.String())
 	t.Logf("and as self")
-	uv, err = stellar.LookupUserByAccountID(tcs[0].MetaContext(), a1)
+	uv, _, err = stellar.LookupUserByAccountID(tcs[0].MetaContext(), a1)
 	require.NoError(t, err)
 	require.Equal(t, tcs[0].Fu.GetUserVersion(), uv)
 
@@ -101,12 +102,12 @@ func TestCreateWallet(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("Lookup by the new primary")
-	uv, err = stellar.LookupUserByAccountID(tcs[1].MetaContext(), a2)
+	uv, _, err = stellar.LookupUserByAccountID(tcs[1].MetaContext(), a2)
 	require.NoError(t, err)
 	require.Equal(t, tcs[0].Fu.GetUserVersion(), uv)
 
 	t.Logf("Looking up by the old address no longer works")
-	uv, err = stellar.LookupUserByAccountID(tcs[1].MetaContext(), a1)
+	uv, _, err = stellar.LookupUserByAccountID(tcs[1].MetaContext(), a1)
 	require.Error(t, err)
 	require.IsType(t, libkb.NotFoundError{}, err)
 }
@@ -566,9 +567,8 @@ func testRelay(t *testing.T, yank bool) {
 	require.Equal(t, "Claimable", history[0].Payment.Status)
 	txID := history[0].Payment.TxID
 
-	fhistoryPage, err := tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
+	fhistory, err := tcs[claimant].Srv.GetPendingPaymentsLocal(context.Background(), stellar1.GetPendingPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
 	require.NoError(t, err)
-	fhistory := fhistoryPage.Payments
 	require.Len(t, fhistory, 1)
 	require.Nil(t, fhistory[0].Err)
 	require.NotNil(t, fhistory[0].Payment)
@@ -607,7 +607,7 @@ func testRelay(t *testing.T, yank bool) {
 	require.NotNil(t, history[0].Payment)
 	require.Equal(t, "Completed", history[0].Payment.Status)
 
-	fhistoryPage, err = tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
+	fhistoryPage, err := tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
 	require.NoError(t, err)
 	fhistory = fhistoryPage.Payments
 	require.Len(t, fhistory, 1)

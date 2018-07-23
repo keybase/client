@@ -171,6 +171,8 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				asset.Worth = "Currency conversion error"
 				asset.AvailableToSendWorth = "Currency conversion error"
 			}
+			// Add account reserves info to main asset.
+			asset.Reserves = details.Reserves
 			assets = append(assets, asset)
 		} else {
 			assets = append(assets, stellar1.AccountAssetLocal{
@@ -289,7 +291,7 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 		return page, err
 	}
 
-	srvPayments, err := s.remoter.RecentPayments(ctx, arg.AccountID, arg.Cursor, 0)
+	srvPayments, err := s.remoter.RecentPayments(ctx, arg.AccountID, arg.Cursor, 0, true)
 	if err != nil {
 		return page, err
 	}
@@ -889,7 +891,8 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 			}
 			bannerThem := "their"
 			if recipient.User != nil {
-				bannerThem = fmt.Sprintf("%s's", recipient.User.GetNormalizedName())
+				res.ToUsername = recipient.User.Username.String()
+				bannerThem = fmt.Sprintf("%s's", recipient.User.Username)
 			}
 			if recipient.AccountID == nil {
 				// Sending a payment to a target with no account. (relay)

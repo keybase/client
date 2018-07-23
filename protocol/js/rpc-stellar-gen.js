@@ -80,13 +80,14 @@ export const localGetWalletAccountsLocalRpcPromise = (params: LocalGetWalletAcco
 export const localLinkNewWalletAccountLocalRpcPromise = (params: LocalLinkNewWalletAccountLocalRpcParam, waitingKey?: string): Promise<LocalLinkNewWalletAccountLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.linkNewWalletAccountLocal', params, callback: (error: RPCError, result: LocalLinkNewWalletAccountLocalResult) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localValidateAccountNameLocalRpcPromise = (params: LocalValidateAccountNameLocalRpcParam, waitingKey?: string): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.validateAccountNameLocal', params, callback: (error: RPCError, result: void) => (error ? reject(error) : resolve()), waitingKey}))
 export const localValidateSecretKeyLocalRpcPromise = (params: LocalValidateSecretKeyLocalRpcParam, waitingKey?: string): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.validateSecretKeyLocal', params, callback: (error: RPCError, result: void) => (error ? reject(error) : resolve()), waitingKey}))
-export type AccountAssetLocal = $ReadOnly<{name: String, assetCode: String, issuerName: String, issuerAccountID: String, balanceTotal: String, balanceAvailableToSend: String, worthCurrency: String, worth: String, availableToSendWorth: String}>
-export type AccountDetails = $ReadOnly<{accountID: AccountID, seqno: String, balances?: ?Array<Balance>, subentryCount: Int, available: String}>
+export type AccountAssetLocal = $ReadOnly<{name: String, assetCode: String, issuerName: String, issuerAccountID: String, balanceTotal: String, balanceAvailableToSend: String, worthCurrency: String, worth: String, availableToSendWorth: String, reserves?: ?Array<AccountReserve>}>
+export type AccountDetails = $ReadOnly<{accountID: AccountID, seqno: String, balances?: ?Array<Balance>, subentryCount: Int, available: String, reserves?: ?Array<AccountReserve>}>
 export type AccountID = String
 export type AccountMode =
   | 0 // NONE_0
   | 1 // USER_1
 
+export type AccountReserve = $ReadOnly<{amount: String, description: String}>
 export type Asset = $ReadOnly<{type: String, code: String, issuer: String}>
 export type AutoClaim = $ReadOnly<{kbTxID: KeybaseTransactionID}>
 export type Balance = $ReadOnly<{asset: Asset, amount: String, limit: String}>
@@ -95,7 +96,7 @@ export type BalanceDelta =
   | 1 // INCREASE_1
   | 2 // DECREASE_2
 
-export type BuildPaymentResLocal = $ReadOnly<{readyToSend: Boolean, toErrMsg: String, amountErrMsg: String, secretNoteErrMsg: String, publicMemoErrMsg: String, worthDescription: String, worthInfo: String, banners?: ?Array<SendBannerLocal>}>
+export type BuildPaymentResLocal = $ReadOnly<{readyToSend: Boolean, toErrMsg: String, toUsername: String, amountErrMsg: String, secretNoteErrMsg: String, publicMemoErrMsg: String, worthDescription: String, worthInfo: String, banners?: ?Array<SendBannerLocal>}>
 export type Bundle = $ReadOnly<{revision: BundleRevision, prev: Hash, ownHash: Hash, accounts?: ?Array<BundleEntry>}>
 export type BundleEntry = $ReadOnly<{accountID: AccountID, mode: AccountMode, isPrimary: Boolean, signers?: ?Array<SecretKey>, name: String}>
 export type BundleRevision = Uint64
@@ -222,7 +223,7 @@ export type RemoteNextAutoClaimRpcParam = $ReadOnly<{caller: Keybase1.UserVersio
 export type RemotePaymentDetailsRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, txID: String}>
 export type RemotePendingPaymentsRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID, limit: Int}>
 export type RemotePingRpcParam = void
-export type RemoteRecentPaymentsRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID, cursor?: ?PageCursor, limit: Int}>
+export type RemoteRecentPaymentsRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, accountID: AccountID, cursor?: ?PageCursor, limit: Int, skipPending: Boolean}>
 export type RemoteReleaseAutoClaimLockRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, token: String}>
 export type RemoteRequestDetailsRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, reqID: KeybaseRequestID}>
 export type RemoteSubmitPaymentRpcParam = $ReadOnly<{caller: Keybase1.UserVersion, payment: PaymentDirectPost}>

@@ -1,5 +1,6 @@
 // @flow
 import avatar from './avatar.stories'
+import backButton from './back-button.stories'
 import badge from './badge.stories'
 import box from './box.stories'
 import button from './button.stories'
@@ -23,10 +24,12 @@ import radiobutton from './radio-button.stories'
 import saveIndicator from './save-indicator.stories'
 import standardScreen from './standard-screen.stories'
 import text from './text.stories'
+import tooltip from './tooltip.stories'
 
 const load = () => {
   ;[
     avatar,
+    backButton,
     badge,
     box,
     button,
@@ -50,6 +53,7 @@ const load = () => {
     saveIndicator,
     standardScreen,
     text,
+    tooltip,
   ].forEach(load => load())
 }
 

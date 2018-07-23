@@ -453,6 +453,13 @@
         {
           "type": "string",
           "name": "available"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "AccountReserve"
+          },
+          "name": "reserves"
         }
       ]
     },
@@ -623,6 +630,10 @@
         {
           "name": "limit",
           "type": "int"
+        },
+        {
+          "name": "skipPending",
+          "type": "boolean"
         }
       ],
       "response": "PaymentsPage"

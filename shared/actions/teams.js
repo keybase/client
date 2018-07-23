@@ -19,7 +19,7 @@ import * as Chat2Gen from './chat2-gen'
 import * as WaitingGen from './waiting-gen'
 import engine from '../engine'
 import {isMobile} from '../constants/platform'
-import {putActionIfOnPath, navigateTo} from './route-tree'
+import {putActionIfOnPath, navigateAppend, navigateTo, navigateUp} from './route-tree'
 import {chatTab, teamsTab} from '../constants/tabs'
 import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
@@ -42,7 +42,13 @@ const _createNewTeam = function*(action: TeamsGen.CreateNewTeamPayload) {
     )
 
     // No error if we get here.
-    yield Saga.put(navigateTo([isMobile ? chatTab : teamsTab]))
+    yield Saga.all([
+      Saga.put(navigateTo(isMobile ? [chatTab] : [{props: {teamname}, selected: 'team'}], [teamsTab])),
+      // Show the avatar editor on desktop.
+      ...(!isMobile
+        ? [Saga.put(navigateAppend([{props: {createdTeam: true, teamname}, selected: 'editTeamAvatar'}]))]
+        : []),
+    ])
   } catch (error) {
     yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
   } finally {
@@ -261,6 +267,19 @@ const _editDescription = function*(action: TeamsGen.EditTeamDescriptionPayload) 
     // TODO We don't get a team changed notification for this. Delete this call when CORE-7125 is finished.
     yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname})))
   }
+}
+
+function _uploadAvatar(action: TeamsGen.UploadTeamAvatarPayload) {
+  const {crop, filename, sendChatNotification, teamname} = action.payload
+  return Saga.sequentially([
+    Saga.call(RPCTypes.teamsUploadTeamAvatarRpcPromise, {
+      crop,
+      filename,
+      sendChatNotification,
+      teamname,
+    }),
+    Saga.put(navigateUp()),
+  ])
 }
 
 const _editMembership = function*(action: TeamsGen.EditMembershipPayload) {
@@ -1230,6 +1249,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(TeamsGen.inviteToTeamByEmail, _inviteByEmail)
   yield Saga.safeTakeEvery(TeamsGen.ignoreRequest, _ignoreRequest)
   yield Saga.safeTakeEvery(TeamsGen.editTeamDescription, _editDescription)
+  yield Saga.safeTakeEvery(TeamsGen.uploadTeamAvatar, _uploadAvatar)
   yield Saga.safeTakeEvery(TeamsGen.editMembership, _editMembership)
   yield Saga.safeTakeEvery(TeamsGen.removeMemberOrPendingInvite, _removeMemberOrPendingInvite)
   yield Saga.safeTakeEvery(TeamsGen.setMemberPublicity, _setMemberPublicity)
