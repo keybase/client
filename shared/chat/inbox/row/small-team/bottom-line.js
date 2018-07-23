@@ -29,13 +29,7 @@ class BottomLine extends PureComponent<Props> {
     let content
 
     if (this.props.youNeedToRekey) {
-      content = (
-        <Box style={styles.rekeyNeededContainer}>
-          <Text type="BodySmallSemibold" backgroundMode="Terminal" style={styles.rekeyNeededText}>
-            REKEY NEEDED
-          </Text>
-        </Box>
-      )
+      content = null
     } else if (this.props.youAreReset) {
       content = (
         <Text
@@ -120,6 +114,7 @@ class BottomLine extends PureComponent<Props> {
     } else {
       return null
     }
+
     return (
       <Box
         style={collapseStyles([
@@ -130,7 +125,10 @@ class BottomLine extends PureComponent<Props> {
         ])}
       >
         {this.props.hasResetUsers && (
-          <Meta title="reset" style={resetStyle} backgroundColor={globalColors.red} />
+          <Meta title="reset" style={styles.alertMeta} backgroundColor={globalColors.red} />
+        )}
+        {this.props.youNeedToRekey && (
+          <Meta title="rekey needed" style={styles.alertMeta} backgroundColor={globalColors.red} />
         )}
         <Box style={styles.innerBox}>
           <Box style={{...globalStyles.fillAbsolute}}>{content}</Box>
@@ -139,17 +137,6 @@ class BottomLine extends PureComponent<Props> {
     )
   }
 }
-
-const resetStyle = platformStyles({
-  common: {
-    alignSelf: 'center',
-    marginRight: 6,
-  },
-  isElectron: {},
-  isMobile: {
-    marginTop: 2,
-  },
-})
 
 const styles = styleSheetCreate({
   outerBox: {
@@ -222,5 +209,15 @@ const styles = styleSheetCreate({
   contentBox: {
     width: '100%',
   },
+  alertMeta: platformStyles({
+    common: {
+      alignSelf: 'center',
+      marginRight: 6,
+    },
+    isElectron: {},
+    isMobile: {
+      marginTop: 2,
+    },
+  }),
 })
 export {BottomLine}
