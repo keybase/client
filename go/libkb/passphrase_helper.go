@@ -204,7 +204,7 @@ func (p *PaperChecker) Check(m MetaContext, s string) error {
 
 	// check for at least PaperKeyWordCountMin words
 	if phrase.NumWords() < PaperKeyWordCountMin {
-		return PassphraseError{Msg: "Not enough words entered for a paper key. Please try again."}
+		return PassphraseError{Msg: "Not enough words for a paper key. Please try again."}
 	}
 
 	// check for invalid words
@@ -229,7 +229,7 @@ func (p *PaperChecker) Check(m MetaContext, s string) error {
 	}
 	if version != PaperKeyVersion {
 		m.CDebugf("paper key version mismatch: generated version = %d, libkb version = %d", version, PaperKeyVersion)
-		return PassphraseError{Msg: "The paper key you entered had an invalid version. Please try again."}
+		return PassphraseError{Msg: "Wrong paper key. Please try again."}
 	}
 
 	return nil
