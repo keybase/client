@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {
   Avatar,
   Box2,
@@ -21,6 +21,7 @@ export type Props = {
   onDelete: () => void,
   onSetDefault: () => void,
   onEditName: () => void,
+  onCurrencyChange: (currency: string) => void,
 }
 
 const makeDropdownItems = (props: Props) => {
@@ -90,7 +91,11 @@ const SettingsPopup = (props: Props) => (
       <Dropdown
         items={makeDropdownItems(props)}
         selected={makeDropdownItem(props.currency, false)}
-        onChanged={() => {}}
+        onChanged={(node: React.Node) => {
+          // $FlowIssue doesn't understand key will be string
+          const selectedCurrency: string = (node && node.key) || null
+          props.onCurrencyChange(selectedCurrency)
+        }}
         style={styles.dropdown}
       />
       <ClickableBox style={styles.remove} onClick={props.onDelete}>

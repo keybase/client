@@ -34,9 +34,10 @@ const defaultSettingsProps = {
   type: 'default',
   currency: 'USD ($)',
   currencies: ['USD ($)', 'XLM', 'CAD ($)', 'EUR (€)', 'GBP (£)'],
-  onDelete: () => {},
-  onSetDefault: () => {},
-  onEditName: () => {},
+  onDelete: action('onDelete'),
+  onSetDefault: action('setDefault'),
+  onEditName: action('onEditName'),
+  onCurrencyChange: action('onCurrencyChange'),
 }
 
 const secondarySettingsProps = {
@@ -45,9 +46,10 @@ const secondarySettingsProps = {
   type: 'secondary',
   currency: 'XLM',
   currencies: ['USD ($)', 'XLM', 'CAD ($)', 'EUR (€)', 'GBP (£)'],
-  onDelete: () => {},
-  onSetDefault: () => {},
-  onEditName: () => {},
+  onDelete: action('onDelete'),
+  onSetDefault: action('setDefault'),
+  onEditName: action('onEditName'),
+  onCurrencyChange: action('onCurrencyChange'),
 }
 
 const provider = PropProviders.CommonProvider()
