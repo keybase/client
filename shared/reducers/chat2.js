@@ -323,6 +323,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       }
       return state.withMutations(s => {
         if (action.payload.conversationIDKey) {
+          // Load last read message, cache it in lastReadMessageMap
+          // readMsgID will update on read
           const readMessageID = state.metaMap.get(
             action.payload.conversationIDKey,
             Constants.makeConversationMeta()
