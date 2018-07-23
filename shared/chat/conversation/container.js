@@ -15,29 +15,23 @@ type SwitchProps = {
   type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey',
 }
 
-type State = {
-  deselectingConversation: boolean,
-}
-
-class Conversation extends React.Component<SwitchProps, State> {
-  state = {
-    deselectingConversation: false,
-  }
-
-  componentDidUpdate(prevProps: SwitchProps) {
-    if (prevProps.type !== 'noConvo' && this.props.type === 'noConvo') {
-      this.setState({
-        deselectingConversation: true,
-      })
-    }
-  }
-
+class Conversation extends React.PureComponent<SwitchProps> {
   render() {
     switch (this.props.type) {
       case 'error':
         return this.props.conversationIDKey && <Error conversationIDKey={this.props.conversationIDKey} />
       case 'noConvo':
-        return isMobile && this.state.deselectingConversation ? null : <NoConversation />
+        // When navigating back to the inbox on mobile, we delelect
+        // conversationIDKey by called mobileChangeSelection. This results in
+        // the conversation view rendering "NoConversation" as it is
+        // transitioning back the the inbox.
+        // On android this is very noticable because transitions fade between
+        // screens, so "NoConversation" will appear on top of the inbox for
+        // approximately 150ms.
+        // On iOS it is less noticable because screen transitions slide away to
+        // the right, though it is visible for a small amount of time.
+        // To solve this we render a blank screen on mobile conversation views with "noConvo"
+        return isMobile ? null : <NoConversation />
       case 'normal':
         return <Normal conversationIDKey={this.props.conversationIDKey} />
       case 'youAreReset':
