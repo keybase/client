@@ -103,7 +103,7 @@ class BottomLine extends PureComponent<Props> {
           snippetDecoration = this.props.snippetDecoration
       }
       content = (
-        <Box2 direction="horizontal" gap="xtiny" style={styles.bottomLineBox}>
+        <Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
           {!!snippetDecoration && (
             <Box2 direction="vertical" centerChildren={true}>
               {snippetDecoration}
@@ -122,33 +122,18 @@ class BottomLine extends PureComponent<Props> {
     }
     return (
       <Box
-        style={{
-          ...globalStyles.flexBoxRow,
-          backgroundColor: isMobile ? this.props.backgroundColor : undefined,
-          flexGrow: 1,
-          height: isMobile ? 20 : 17,
-          maxHeight: isMobile ? 20 : 17,
-        }}
+        style={collapseStyles([
+          styles.outerBox,
+          {
+            backgroundColor: isMobile ? this.props.backgroundColor : undefined,
+          },
+        ])}
       >
         {this.props.hasResetUsers && (
           <Meta title="reset" style={resetStyle} backgroundColor={globalColors.red} />
         )}
-        <Box
-          style={{
-            ...globalStyles.flexBoxRow,
-            alignItems: 'center',
-            flexGrow: 1,
-            height: '100%',
-            position: 'relative',
-          }}
-        >
-          <Box
-            style={{
-              ...globalStyles.fillAbsolute,
-            }}
-          >
-            {content}
-          </Box>
+        <Box style={styles.innerBox}>
+          <Box style={{...globalStyles.fillAbsolute}}>{content}</Box>
         </Box>
       </Box>
     )
@@ -167,6 +152,19 @@ const resetStyle = platformStyles({
 })
 
 const styles = styleSheetCreate({
+  outerBox: {
+    ...globalStyles.flexBoxRow,
+    flexGrow: 1,
+    height: isMobile ? 20 : 17,
+    maxHeight: isMobile ? 20 : 17,
+  },
+  innerBox: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    flexGrow: 1,
+    height: '100%',
+    position: 'relative',
+  },
   rekeyNeededContainer: {
     alignSelf: 'center',
     backgroundColor: globalColors.red,
@@ -221,7 +219,7 @@ const styles = styleSheetCreate({
       paddingRight: 30,
     },
   }),
-  bottomLineBox: {
+  contentBox: {
     width: '100%',
   },
 })
