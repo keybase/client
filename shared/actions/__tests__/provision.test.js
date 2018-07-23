@@ -621,8 +621,6 @@ describe('canceling provision', () => {
 describe('start the whole process', () => {
   const {getState, dispatch} = startReduxSaga()
   const action = ProvisionGen.createSubmitUsernameOrEmail({usernameOrEmail: 'aaa@example.org'})
-  // eslint-disable-next-line
-  debugger
   dispatch(action)
   expect(getState().provision.usernameOrEmail).toEqual(action.payload.usernameOrEmail)
   expect(getState().provision.error).toEqual(noError)
