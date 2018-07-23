@@ -144,8 +144,8 @@ func (e *PGPPurge) encryptToFile(m libkb.MetaContext, bundle *libkb.PGPKeyBundle
 	}
 
 	// Lookup which keys this user has that we can use for encrypiton
-	arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(m.ActiveDevice().UID()).WithForcePoll(true)
-	upak, _, err := m.G().GetUPAKLoader().LoadV2(arg)
+	loadArg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(m.ActiveDevice().UID()).WithForcePoll(true)
+	upak, _, err := m.G().GetUPAKLoader().LoadV2(loadArg)
 	if err != nil {
 		return err
 	}

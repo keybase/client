@@ -21,11 +21,7 @@ type SaltpackUserKeyfinder struct {
 
 // NewSaltpackUserKeyfinderAsInterface creates a SaltpackUserKeyfinder engine.
 func NewSaltpackUserKeyfinderAsInterface(Arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface {
-	return &SaltpackUserKeyfinder{
-		Arg: Arg,
-		RecipientEntityKeyMap:         make(map[keybase1.UserOrTeamID]([]keybase1.KID)),
-		RecipientDeviceAndPaperKeyMap: make(map[keybase1.UID]([]keybase1.KID)),
-	}
+	return NewSaltpackUserKeyfinder(Arg)
 }
 
 func NewSaltpackUserKeyfinder(Arg libkb.SaltpackRecipientKeyfinderArg) *SaltpackUserKeyfinder {
