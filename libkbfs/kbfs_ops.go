@@ -461,7 +461,9 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
 		md, err = getSingleMD(
 			ctx, fs.config, h.tlfID, kbfsmd.NullBranchID, rev,
 			kbfsmd.Merged, nil)
-		// This will error if there's no corresponding MD.
+		// This will error if there's no corresponding MD, which is
+		// what we want since that means the user input an incorrect
+		// MD revision.
 		if err != nil {
 			return false, ImmutableRootMetadata{}, tlf.NullID, err
 		}

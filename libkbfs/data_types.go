@@ -373,7 +373,7 @@ const (
 // MakeRevBranchName returns a branch name specifying an archive
 // branch pinned to the given revision number.
 func MakeRevBranchName(rev kbfsmd.Revision) BranchName {
-	return BranchName(fmt.Sprintf("%s%d", branchRevPrefix, rev))
+	return BranchName(branchRevPrefix + strconv.FormatInt(int64(rev), 10))
 }
 
 // RevisionIfSpecified returns a valid revision number and true if
