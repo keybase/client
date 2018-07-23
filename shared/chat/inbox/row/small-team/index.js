@@ -52,11 +52,8 @@ const SmallTeamBox = isMobile
     })
 
 class SmallTeam extends React.PureComponent<Props, State> {
-  constructor(props: Props) {
-    super(props)
-    this.state = {
-      isHovered: false,
-    }
+  state = {
+    isHovered: false,
   }
 
   _backgroundColor = () =>

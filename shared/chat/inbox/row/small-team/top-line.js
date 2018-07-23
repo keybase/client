@@ -90,7 +90,6 @@ class _SimpleTopLine extends React.Component<Props> {
           style={platformStyles({
             common: {
               ...boldOverride,
-              // backgroundColor: this.props.backgroundColor,
               color: this.props.subColor,
             },
           })}
