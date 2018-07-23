@@ -12,6 +12,7 @@ import formWithCheckbox from './form-with-checkbox.stories'
 import icon from './icon.stories'
 import input from './input.stories'
 import listItem from './list-item.stories'
+import listItem2 from './list-item2.stories'
 import markdown from './markdown.stories'
 import meta from './meta.stories'
 import nameWithIcon from './name-with-icon.stories'
@@ -40,6 +41,7 @@ const load = () => {
     icon,
     input,
     listItem,
+    listItem2,
     markdown,
     meta,
     nameWithIcon,

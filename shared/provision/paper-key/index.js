@@ -1,15 +1,16 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/provision'
-import {ButtonBar, BackButton, Box2, Text, Icon, PlainInput, WaitingButton} from '../../common-adapters'
 import {
-  globalColors,
-  globalMargins,
-  styleSheetCreate,
-  isMobile,
-  platformStyles,
-  globalStyles,
-} from '../../styles'
+  NameWithIcon,
+  ButtonBar,
+  BackButton,
+  Box2,
+  Text,
+  PlainInput,
+  WaitingButton,
+} from '../../common-adapters'
+import {globalColors, globalMargins, styleSheetCreate, isMobile, platformStyles} from '../../styles'
 
 type Props = {
   onBack: () => void,
@@ -30,17 +31,14 @@ const PaperKey = (props: Props) => (
       centerChildren={true}
       gap={isMobile ? 'tiny' : 'medium'}
     >
-      <Box2 direction="vertical" gap="tiny" centerChildren={true}>
-        <Icon type="icon-paper-key-48" />
-        <Text type="BodySemiboldItalic">{props.hint}</Text>
-      </Box2>
+      <NameWithIcon icon="icon-paper-key-48" title={props.hint} />
       <Box2 direction="vertical" style={styles.inputContainer}>
         <PlainInput
           autoFocus={true}
           multiline={true}
           rowsMax={3}
           placeholder="Type in your paper key"
-          textType="Terminal"
+          textType="Header"
           style={styles.input}
           onEnterKeyDown={props.onSubmit}
           onChangeText={props.onChangePaperKey}
