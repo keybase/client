@@ -3,7 +3,7 @@ import * as React from 'react'
 import Box from './box'
 import PopupDialog from './popup-dialog'
 import {connect, type Dispatch} from '../util/container'
-import {globalColors, isMobile} from '../styles'
+import {collapseStyles, globalColors, isMobile} from '../styles'
 
 const MaybePopup = isMobile
   ? (props: {onClose: () => void, children: React.Node}) => (
@@ -11,6 +11,9 @@ const MaybePopup = isMobile
     )
   : (props: {
       onClose: () => void,
+      onMouseUp?: (e: SyntheticMouseEvent<>) => void,
+      onMouseDown?: (e: SyntheticMouseEvent<>) => void,
+      onMouseMove?: (e: SyntheticMouseEvent<>) => void,
       children: React.Node,
       cover?: boolean,
       styleCover?: any,
@@ -18,7 +21,10 @@ const MaybePopup = isMobile
     }) => (
       <PopupDialog
         onClose={props.onClose}
-        styleCover={props.cover ? {..._styleCover, ...props.styleCover} : {}}
+        onMouseUp={props.onMouseUp}
+        onMouseDown={props.onMouseDown}
+        onMouseMove={props.onMouseMove}
+        styleCover={collapseStyles([props.cover && _styleCover, props.styleCover])}
         styleContainer={props.cover ? {..._styleContainer, ...props.styleContainer} : {}}
         children={props.children}
       />
