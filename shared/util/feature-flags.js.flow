@@ -2,7 +2,6 @@
 export type FeatureFlags = {|
   admin: boolean,
   avatarUploadsEnabled: boolean,
-  chatReactionsEnabled: boolean,
   explodingMessagesEnabled: boolean,
   fsEnabled: boolean,
   fsWritesEnabled: boolean,

@@ -5,7 +5,6 @@ import Timestamp from '../timestamp'
 import {globalStyles, globalColors, styleSheetCreate} from '../../../../../styles'
 import ReactionsRow from '../../reactions-row/container'
 import type {WrapperTimestampProps} from '../index.types'
-import flags from '../../../../../util/feature-flags'
 
 class WrapperTimestamp extends React.PureComponent<WrapperTimestampProps> {
   componentDidUpdate(prevProps: WrapperTimestampProps) {
@@ -25,9 +24,7 @@ class WrapperTimestamp extends React.PureComponent<WrapperTimestampProps> {
         {props.orangeLineAbove && <Box style={styles.orangeLine} />}
         {props.timestamp && <Timestamp timestamp={props.timestamp} />}
         {props.children}
-        {flags.chatReactionsEnabled && (
-          <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
-        )}
+        <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
       </Box>
     )
   }

@@ -16,7 +16,6 @@ import MessagePopup from '../../message-popup'
 import ExplodingHeightRetainer from '../exploding-height-retainer'
 import ExplodingMeta from '../exploding-meta'
 import ReactButton from '../../react-button/container'
-import flags from '../../../../../util/feature-flags'
 
 import type {WrapperAuthorProps} from '../index.types'
 
@@ -52,14 +51,12 @@ const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
 
 const MenuButtons = ({conversationIDKey, onClick, ordinal, setRef}) => (
   <Box className="menu-button" style={styles.menuButtons}>
-    {flags.chatReactionsEnabled && (
-      <ReactButton
-        conversationIDKey={conversationIDKey}
-        ordinal={ordinal}
-        showBorder={false}
-        tooltipEnabled={false}
-      />
-    )}
+    <ReactButton
+      conversationIDKey={conversationIDKey}
+      ordinal={ordinal}
+      showBorder={false}
+      tooltipEnabled={false}
+    />
     <Box ref={setRef}>
       <Icon
         type="iconfont-ellipsis"
