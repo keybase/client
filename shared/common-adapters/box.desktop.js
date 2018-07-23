@@ -39,7 +39,7 @@ class Box2 extends React.Component<Box2Props> {
       this.props.style,
     ])
     return (
-      <div style={style}>
+      <div style={style} className={this.props.className}>
         {injectGaps(
           horizontal ? HBoxGap : VBoxGap,
           this.props.children,
