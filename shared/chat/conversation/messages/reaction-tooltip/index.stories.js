@@ -131,6 +131,7 @@ const load = () => {
 
 export const propProvider = {
   ReactionTooltip: (ownProps: OwnProps): Props => ({
+    ...ownProps,
     attachmentRef: ownProps.attachmentRef,
     conversationIDKey: ownProps.conversationIDKey,
     onAddReaction: action('onAddReaction'),

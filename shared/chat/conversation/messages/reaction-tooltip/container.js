@@ -17,6 +17,8 @@ export type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
   emoji: string,
   onHidden: () => void,
+  onMouseLeave?: (SyntheticEvent<Element>) => void,
+  onMouseOver?: (SyntheticEvent<Element>) => void,
   ordinal: Types.Ordinal,
   visible: boolean,
 }
@@ -64,6 +66,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     conversationIDKey: ownProps.conversationIDKey,
     onAddReaction: dispatchProps.onAddReaction,
     onHidden: ownProps.onHidden,
+    onMouseLeave: ownProps.onMouseLeave,
+    onMouseOver: ownProps.onMouseOver,
     ordinal: ownProps.ordinal,
     reactions,
     visible: ownProps.visible,

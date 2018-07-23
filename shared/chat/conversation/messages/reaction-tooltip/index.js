@@ -10,6 +10,8 @@ export type Props = {
   conversationIDKey: Types.ConversationIDKey,
   onAddReaction: () => void,
   onHidden: () => void,
+  onMouseLeave?: (SyntheticEvent<Element>) => void,
+  onMouseOver?: (SyntheticEvent<Element>) => void,
   ordinal: Types.Ordinal,
   reactions: Array<{
     emoji: string,
@@ -36,7 +38,13 @@ export const ReactionTooltip = (props: Props) => {
       position="top right"
       propagateOutsideClicks={true}
     >
-      <Box2 direction="vertical" gap="tiny" style={styles.listContainer}>
+      <Box2
+        onMouseLeave={props.onMouseLeave}
+        onMouseOver={props.onMouseOver}
+        direction="vertical"
+        gap="tiny"
+        style={styles.listContainer}
+      >
         {isMobile && (
           <Box2 direction="horizontal">
             <Text type="BodySemiboldLink" onClick={props.onHidden} style={styles.closeButton}>

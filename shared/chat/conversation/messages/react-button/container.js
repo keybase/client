@@ -6,16 +6,17 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import ReactButton, {NewReactionButton} from '.'
 
-type WrapperProps = {
+export type WrapperProps = {
   active: boolean,
   conversationIDKey: Types.ConversationIDKey,
   count: number,
   emoji?: string,
   onAddReaction: (emoji: string) => void,
   onClick: () => void,
+  onMouseLeave?: (evt: SyntheticEvent<Element>) => void,
+  onMouseOver?: (evt: SyntheticEvent<Element>) => void,
   ordinal: Types.Ordinal,
   showBorder?: boolean,
-  tooltipEnabled: boolean,
 }
 const Wrapper = (props: WrapperProps) =>
   props.emoji ? <ReactButton {...props} /> : <NewReactionButton {...props} showBorder={!!props.showBorder} />
@@ -23,9 +24,10 @@ const Wrapper = (props: WrapperProps) =>
 export type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
   emoji?: string,
+  onMouseLeave?: (evt: SyntheticEvent<Element>) => void,
+  onMouseOver?: (evt: SyntheticEvent<Element>) => void,
   ordinal: Types.Ordinal,
   showBorder?: boolean,
-  tooltipEnabled: boolean,
 }
 
 const noEmoji = {
