@@ -29,6 +29,18 @@ func (o RequestStatusMsg) DeepCopy() RequestStatusMsg {
 	}
 }
 
+type PaymentNotificationMsg struct {
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+	PaymentID PaymentID `codec:"paymentID" json:"paymentID"`
+}
+
+func (o PaymentNotificationMsg) DeepCopy() PaymentNotificationMsg {
+	return PaymentNotificationMsg{
+		AccountID: o.AccountID.DeepCopy(),
+		PaymentID: o.PaymentID.DeepCopy(),
+	}
+}
+
 type GregorInterface interface {
 }
 

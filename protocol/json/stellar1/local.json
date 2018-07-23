@@ -111,16 +111,6 @@
     },
     {
       "type": "record",
-      "name": "PaymentID",
-      "fields": [
-        {
-          "type": "TransactionID",
-          "name": "txID"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "PaymentLocal",
       "fields": [
         {
