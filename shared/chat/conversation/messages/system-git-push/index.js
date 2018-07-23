@@ -1,10 +1,12 @@
 // @flow
+import {invert} from 'lodash'
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import UserNotice from '../user-notice'
 import {Box, Text, ConnectedUsernames, TimelineMarker, Icon} from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
+import {gitGitPushType} from '../../../../constants/types/rpc-gen'
 
 type Props = {
   message: Types.MessageSystemGitPush,
@@ -12,9 +14,8 @@ type Props = {
   onViewGitRepo: (repoID: string, teamname: string) => void,
 }
 
-const PUSH_DEFAULT = 0
-const PUSH_CREATE = 1
-const PUSH_RENAME = 3
+// Map [int] -> 'push type string'
+const gitPushType = invert(gitGitPushType)
 
 const connectedUsernamesProps = {
   clickable: true,
@@ -121,8 +122,10 @@ class GitPush extends React.PureComponent<Props> {
   render() {
     const {timestamp, repo, repoID, refs, pushType, pusher, team} = this.props.message
 
-    switch (pushType) {
-      case PUSH_DEFAULT:
+    const gitType = gitPushType[pushType]
+
+    switch (gitType) {
+      case 'default':
         return refs.map(ref => {
           const branchName = ref.refName.split('/')[2]
           return (
@@ -145,7 +148,7 @@ class GitPush extends React.PureComponent<Props> {
             </GitPushCommon>
           )
         })
-      case PUSH_CREATE:
+      case 'createrepo':
         return (
           <GitPushCommon
             timestamp={timestamp}
@@ -162,9 +165,7 @@ class GitPush extends React.PureComponent<Props> {
             />
           </GitPushCommon>
         )
-      case PUSH_RENAME:
-        return null
-
+      // FIXME: @Jacob - The service has not implemented 'renamerepo' yet, so we don't render anything
       default:
         return null
     }
