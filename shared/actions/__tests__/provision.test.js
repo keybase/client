@@ -611,14 +611,35 @@ describe('canceling provision', () => {
     expect(response.result).not.toHaveBeenCalled()
     expect(response.error).toHaveBeenCalledWith({
       code: RPCTypes.constantsStatusCode.scgeneric,
-      desc: 'Canceling RPC',
+      desc: Constants.cancelDesc,
     })
     expect(manager._stashedResponse).toEqual(null)
     expect(manager._stashedResponseKey).toEqual(null)
   })
+
+  it('clears errors', () => {
+    const {dispatch, getState} = makeInit({
+      method: 'keybase.1.provisionUi.DisplayAndPromptSecret',
+      payload: {phrase: 'aaa'},
+    })
+    const error = new HiddenString('generic error')
+    dispatch(ProvisionGen.createProvisionError({error}))
+    dispatch(RouteTree.navigateUp())
+    expect(getState().provision.error).toEqual(noError)
+    expect(getState().provision.finalError).toEqual(null)
+  })
 })
 
 describe('start the whole process', () => {
+  const {getState, dispatch, getRoutePath} = startReduxSaga()
+  const error = new HiddenString('generic error')
+  dispatch(ProvisionGen.createProvisionError({error}))
+  dispatch(ProvisionGen.createStartProvision())
+  expect(getState().provision).toEqual(Constants.makeState())
+  expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login', 'usernameOrEmail']))
+})
+
+describe('Submit user email', () => {
   const {getState, dispatch} = startReduxSaga()
   const action = ProvisionGen.createSubmitUsernameOrEmail({usernameOrEmail: 'aaa@example.org'})
   dispatch(action)
@@ -643,6 +664,14 @@ describe('final errors show', () => {
     dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error}))
     expect(getState().provision.finalError).toBeTruthy()
     expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login', 'error']))
+  })
+
+  it('ignore cancel', () => {
+    const {getState, dispatch, getRoutePath} = startReduxSaga()
+    const error = new RPCError(Constants.cancelDesc, RPCTypes.constantsStatusCode.scgeneric)
+    dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error}))
+    expect(getState().provision.finalError).toEqual(null)
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login']))
   })
 })
 

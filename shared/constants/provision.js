@@ -7,6 +7,8 @@ import HiddenString from '../util/hidden-string'
 
 export const waitingKey = 'provision:waiting'
 
+export const cancelDesc = 'Canceling RPC'
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   codePageIncomingTextCode: new HiddenString(''),
   codePageOtherDeviceId: '',

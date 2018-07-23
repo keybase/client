@@ -4,19 +4,20 @@ import * as Constants from '../constants/login'
 import * as Types from '../constants/types/login'
 import * as LoginGen from '../actions/login-gen'
 import * as SignupGen from '../actions/signup-gen'
+import * as ProvisionGen from '../actions/provision-gen'
 
 const initialState = Constants.makeState()
 
 export default function(
   state: Types.State = initialState,
-  action: LoginGen.Actions | SignupGen.RequestAutoInvitePayload
+  action: LoginGen.Actions | SignupGen.RequestAutoInvitePayload | ProvisionGen.StartProvisionPayload
 ): Types.State {
   switch (action.type) {
     case LoginGen.resetStore:
       return initialState
     case SignupGen.requestAutoInvite: // fallthrough
     case LoginGen.login: // fallthrough
-    case LoginGen.startLogin:
+    case ProvisionGen.startProvision:
       return state.merge({error: initialState.error, justDeletedSelf: '', justRevokedSelf: ''})
     case LoginGen.configuredAccounts:
       return state.set(

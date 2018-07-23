@@ -2,7 +2,7 @@
 // TODO remove Container
 import Container from '../../login/forms/container'
 import React, {Component} from 'react'
-import Row, {RowCSS} from './row'
+import Row, {RowCSS} from './row.desktop'
 import {Text} from '../../common-adapters'
 
 import type {Props} from '.'

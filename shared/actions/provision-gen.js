@@ -19,6 +19,7 @@ export const showGPGPage = 'provision:showGPGPage'
 export const showNewDeviceNamePage = 'provision:showNewDeviceNamePage'
 export const showPaperkeyPage = 'provision:showPaperkeyPage'
 export const showPassphrasePage = 'provision:showPassphrasePage'
+export const startProvision = 'provision:startProvision'
 export const submitDeviceName = 'provision:submitDeviceName'
 export const submitDeviceSelect = 'provision:submitDeviceSelect'
 export const submitGPGMethod = 'provision:submitGPGMethod'
@@ -43,6 +44,7 @@ type _ShowNewDeviceNamePagePayload = $ReadOnly<{|
 |}>
 type _ShowPaperkeyPagePayload = $ReadOnly<{|error: ?HiddenString|}>
 type _ShowPassphrasePagePayload = $ReadOnly<{|error: ?HiddenString|}>
+type _StartProvisionPayload = void
 type _SubmitDeviceNamePayload = $ReadOnly<{|name: string|}>
 type _SubmitDeviceSelectPayload = $ReadOnly<{|name: string|}>
 type _SubmitGPGMethodPayload = $ReadOnly<{|exportKey: boolean|}>
@@ -67,6 +69,7 @@ export const createShowFinalErrorPage = (payload: _ShowFinalErrorPagePayload) =>
 export const createShowGPGPage = (payload: _ShowGPGPagePayload) => ({error: false, payload, type: showGPGPage})
 export const createShowPaperkeyPage = (payload: _ShowPaperkeyPagePayload) => ({error: false, payload, type: showPaperkeyPage})
 export const createShowPassphrasePage = (payload: _ShowPassphrasePagePayload) => ({error: false, payload, type: showPassphrasePage})
+export const createStartProvision = (payload: _StartProvisionPayload) => ({error: false, payload, type: startProvision})
 export const createSubmitDeviceName = (payload: _SubmitDeviceNamePayload) => ({error: false, payload, type: submitDeviceName})
 export const createSubmitDeviceSelect = (payload: _SubmitDeviceSelectPayload) => ({error: false, payload, type: submitDeviceSelect})
 export const createSubmitGPGMethod = (payload: _SubmitGPGMethodPayload) => ({error: false, payload, type: submitGPGMethod})
@@ -85,6 +88,7 @@ export type ShowGPGPagePayload = $Call<typeof createShowGPGPage, _ShowGPGPagePay
 export type ShowNewDeviceNamePagePayload = $Call<typeof createShowNewDeviceNamePage, _ShowNewDeviceNamePagePayload>
 export type ShowPaperkeyPagePayload = $Call<typeof createShowPaperkeyPage, _ShowPaperkeyPagePayload>
 export type ShowPassphrasePagePayload = $Call<typeof createShowPassphrasePage, _ShowPassphrasePagePayload>
+export type StartProvisionPayload = $Call<typeof createStartProvision, _StartProvisionPayload>
 export type SubmitDeviceNamePayload = $Call<typeof createSubmitDeviceName, _SubmitDeviceNamePayload>
 export type SubmitDeviceSelectPayload = $Call<typeof createSubmitDeviceSelect, _SubmitDeviceSelectPayload>
 export type SubmitGPGMethodPayload = $Call<typeof createSubmitGPGMethod, _SubmitGPGMethodPayload>
@@ -105,6 +109,7 @@ export type Actions =
   | ShowNewDeviceNamePagePayload
   | ShowPaperkeyPagePayload
   | ShowPassphrasePagePayload
+  | StartProvisionPayload
   | SubmitDeviceNamePayload
   | SubmitDeviceSelectPayload
   | SubmitGPGMethodPayload
