@@ -2,14 +2,14 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import {Box2} from '../../../../common-adapters'
-import ReactButton from '../react-button/container'
+import ReactButton from '../react-button/with-tooltip'
 import {styleSheetCreate} from '../../../../styles'
 
-export type Props = {
+export type Props = {|
   conversationIDKey: Types.ConversationIDKey,
   emojis: Array<string>,
   ordinal: Types.Ordinal,
-}
+|}
 
 const ReactionsRow = (props: Props) =>
   props.emojis.length === 0 ? null : (
@@ -22,6 +22,7 @@ const ReactionsRow = (props: Props) =>
           ordinal={props.ordinal}
         />
       ))}
+      <ReactButton conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} showBorder={true} />
     </Box2>
   )
 

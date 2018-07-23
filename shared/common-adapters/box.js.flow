@@ -9,6 +9,8 @@ export type Box2Props = {
   direction: 'horizontal' | 'vertical',
   fullHeight?: boolean,
   fullWidth?: boolean,
+  onMouseLeave?: (SyntheticEvent<Element>) => void,
+  onMouseOver?: (SyntheticEvent<Element>) => void,
   style?: StylesCrossPlatform,
   gap?: $Keys<typeof globalMargins>,
   gapStart?: boolean,

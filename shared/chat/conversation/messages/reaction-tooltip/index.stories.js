@@ -7,15 +7,18 @@ import {Common} from '../../../../stories/prop-providers'
 import {propProvider as ReactButton} from '../react-button/index.stories'
 import {upperFirst} from 'lodash-es'
 import ReactionTooltip from '.'
+import type {Props} from '.'
+import type {OwnProps} from './container'
 
 const provider = createPropProvider(Common(), ReactButton)
 
 const common = {
+  attachmentRef: null,
   conversationIDKey: Constants.noConversationIDKey,
   onAddReaction: action('onAddReaction'),
   onHidden: action('onHidden'),
-  onReact: action('onReact'),
   ordinal: Types.numberToOrdinal(0),
+  visible: true,
 }
 
 const examples = [
@@ -124,6 +127,20 @@ examples.push({
 const load = () => {
   const story = storiesOf('Chat/Conversation/Reaction tooltip', module).addDecorator(provider)
   examples.forEach((ex, i) => story.add(`Example ${i + 1}`, () => <ReactionTooltip {...ex} />))
+}
+
+export const propProvider = {
+  ReactionTooltip: (ownProps: OwnProps): Props => ({
+    attachmentRef: ownProps.attachmentRef,
+    conversationIDKey: ownProps.conversationIDKey,
+    onAddReaction: action('onAddReaction'),
+    onHidden: ownProps.onHidden,
+    onMouseLeave: ownProps.onMouseLeave,
+    onMouseOver: ownProps.onMouseOver,
+    ordinal: ownProps.ordinal,
+    reactions: examples[0].reactions, // we can mock this out better later if wanted
+    visible: ownProps.visible,
+  }),
 }
 
 export default load
