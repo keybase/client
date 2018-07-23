@@ -2,67 +2,57 @@
 import React from 'react'
 import type {SettingsItemProps} from './index'
 import {Badge2, ClickableBox, Text, Icon} from '../../common-adapters'
-import {
-  platformStyles,
-  globalStyles,
-  globalColors,
-  globalMargins,
-  styleSheetCreate,
-  hairlineWidth,
-  collapseStyles,
-} from '../../styles'
+import * as Style from '../../styles'
 
-export default function SettingsItem({
-  badgeNumber,
-  icon,
-  largerBadgeMinWidthFix,
-  onClick,
-  text,
-  textColor,
-  selected,
-}: SettingsItemProps) {
+export default function SettingsItem(props: SettingsItemProps) {
   return (
     <ClickableBox
-      onClick={onClick}
-      style={collapseStyles([
+      onClick={props.onClick}
+      style={Style.collapseStyles([
         styles.item,
-        selected
+        props.selected
           ? {
-              borderLeftColor: globalColors.blue,
+              borderLeftColor: Style.globalColors.blue,
               borderLeftStyle: 'solid',
               borderLeftWidth: 3,
             }
           : {},
       ])}
     >
-      {icon && <Icon type={icon} color={globalColors.black_20} style={{marginRight: globalMargins.small}} />}
+      {props.icon && (
+        <Icon
+          type={props.icon}
+          color={Style.globalColors.black_20}
+          style={{marginRight: Style.globalMargins.small}}
+        />
+      )}
       <Text
         type={'BodySmallSemibold'}
-        style={collapseStyles([
-          selected ? styles.selectedText : styles.itemText,
-          textColor ? {color: textColor} : {},
+        style={Style.collapseStyles([
+          props.selected ? styles.selectedText : styles.itemText,
+          props.textColor ? {color: props.textColor} : {},
         ])}
       >
-        {text}
+        {props.text}
       </Text>
-      {!!badgeNumber &&
-        badgeNumber > 0 && (
-          <Badge2 badgeNumber={badgeNumber} fontSize={12} height={20} badgeStyle={styles.badge} />
+      {!!props.badgeNumber &&
+        props.badgeNumber > 0 && (
+          <Badge2 badgeNumber={props.badgeNumber} fontSize={12} height={20} badgeStyle={styles.badge} />
         )}
     </ClickableBox>
   )
 }
 
-const styles = styleSheetCreate({
+const styles = Style.styleSheetCreate({
   badge: {
     marginLeft: 6,
   },
-  item: platformStyles({
+  item: Style.platformStyles({
     common: {
-      ...globalStyles.flexBoxRow,
+      ...Style.globalStyles.flexBoxRow,
       alignItems: 'center',
-      paddingLeft: globalMargins.small,
-      paddingRight: globalMargins.small,
+      paddingLeft: Style.globalMargins.small,
+      paddingRight: Style.globalMargins.small,
       position: 'relative',
     },
     isElectron: {
@@ -71,20 +61,20 @@ const styles = styleSheetCreate({
       width: '100%',
     },
     isMobile: {
-      borderBottomColor: globalColors.black_05,
-      borderBottomWidth: hairlineWidth,
+      borderBottomColor: Style.globalColors.black_05,
+      borderBottomWidth: Style.hairlineWidth,
       height: 56,
     },
   }),
-  itemText: platformStyles({
+  itemText: Style.platformStyles({
     isElectron: {
-      color: globalColors.black_60,
+      color: Style.globalColors.black_60,
     },
     isMobile: {
-      color: globalColors.black_75,
+      color: Style.globalColors.black_75,
     },
   }),
   selectedText: {
-    color: globalColors.black_75,
+    color: Style.globalColors.black_75,
   },
 })
