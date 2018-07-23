@@ -16,7 +16,7 @@ type Props = {
 }
 
 const Banner = ({kbfsEnabled, showBanner, onInstall, onDismiss, openInFileUI}: Props) => {
-  if (kbfsEnabled && !showBanner) {
+  if (!showBanner) {
     return null
   }
   const iconType = kbfsEnabled ? 'icon-fancy-finder-enabled-132-96' : 'icon-fancy-finder-132-96'

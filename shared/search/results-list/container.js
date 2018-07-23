@@ -1,12 +1,12 @@
 // @flow
-import {connect, type TypedState} from '../../util/container'
+import {connect, compose, setDisplayName, type TypedState} from '../../util/container'
 import React from 'react'
 import {ProgressIndicator, Box} from '../../common-adapters'
-import SearchResultsList from '.'
+import SearchResultsList, {type Props as _Props} from '.'
 import * as SearchGen from '../../actions/search-gen'
 import {globalMargins} from '../../styles'
 
-type OwnProps = {
+export type OwnProps = {
   searchKey: string,
   onShowTracker?: (id: string) => void,
   onClick?: (id: string) => void,
@@ -15,13 +15,10 @@ type OwnProps = {
 }
 
 const mapStateToProps = ({entities}: TypedState, {disableIfInTeamName, searchKey}: OwnProps) => {
-  const searchResultIds = entities.getIn(['search', 'searchKeyToResults', searchKey])
-  const pending = entities.getIn(['search', 'searchKeyToPending', searchKey], false)
-  const showSearchSuggestions = entities.getIn(
-    ['search', 'searchKeyToShowSearchSuggestion', searchKey],
-    false
-  )
-  const selectedId = entities.getIn(['search', 'searchKeyToSelectedId', searchKey])
+  const searchResultIds = entities.search.searchKeyToResults.get(searchKey)
+  const pending = entities.search.searchKeyToPending.get(searchKey, false)
+  const showSearchSuggestions = entities.search.searchKeyToShowSearchSuggestion.get(searchKey, false)
+  const selectedId = entities.search.searchKeyToSelectedId.get(searchKey)
   return {
     disableIfInTeamName,
     items: searchResultIds && searchResultIds.toArray(),
@@ -52,5 +49,7 @@ const styleSpinner = {
   width: 24,
 }
 
+export type Props = _Props & {pending: boolean}
+
 const Chooser = props => (props.pending ? <Progress style={props.style} /> : <SearchResultsList {...props} />)
-export default connect(mapStateToProps, mapDispatchToProps)(Chooser)
+export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('ResultsList'))(Chooser)

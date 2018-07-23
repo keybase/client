@@ -222,9 +222,63 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 		return result, nil
 	}
 
-	result.ChatSent = teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), arg.Name,
-		result.User.Username)
+	result.ChatSending = true
+	go func() {
+		ctx := libkb.WithLogTag(context.Background(), "BG")
+		err := teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), arg.Name,
+			result.User.Username)
+		if err != nil {
+			h.G().Log.CDebugf(ctx, "send team welcome message: error: %v", err)
+		} else {
+			h.G().Log.CDebugf(ctx, "send team welcome message: success")
+		}
+	}()
 	return result, nil
+}
+
+func (h *TeamsHandler) TeamAddMembers(ctx context.Context, arg keybase1.TeamAddMembersArg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	debugString := "0"
+	if len(arg.Assertions) > 0 {
+		debugString = fmt.Sprintf("'%v'", arg.Assertions[0])
+		if len(arg.Assertions) > 1 {
+			debugString = fmt.Sprintf("'%v' + %v more", arg.Assertions[0], len(arg.Assertions)-1)
+		}
+	}
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddMembers(%s, %s)", arg.Name, debugString),
+		func() error { return err })()
+	if len(arg.Assertions) == 0 {
+		return fmt.Errorf("attempted to add 0 users to a team")
+	}
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+	res, err := teams.AddMembers(ctx, h.G().ExternalG(), arg.Name, arg.Assertions, arg.Role)
+	if err != nil {
+		return err
+	}
+	if arg.SendChatNotification {
+		go func() {
+			h.G().Log.CDebugf(ctx, "sending team welcome messages")
+			ctx := libkb.WithLogTag(context.Background(), "BG")
+			for i, res := range res {
+				h.G().Log.CDebugf(ctx, "team welcome message for i:%v assertion:%v username:%v invite:%v",
+					i, arg.Assertions[i], res.Username, res.Invite)
+				if !res.Invite && !res.Username.IsNil() {
+					err := teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), arg.Name, res.Username.String())
+					if err != nil {
+						h.G().Log.CDebugf(ctx, "send team welcome message [%v] err: %v", i, err)
+					} else {
+						h.G().Log.CDebugf(ctx, "send team welcome message [%v] success", i)
+					}
+				} else {
+					h.G().Log.CDebugf(ctx, "send team welcome message [%v] skipped", i)
+				}
+			}
+			h.G().Log.CDebugf(ctx, "done sending team welcome messages")
+		}()
+	}
+	return nil
 }
 
 func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRemoveMemberArg) (err error) {
@@ -563,4 +617,11 @@ func (h *TeamsHandler) ProfileTeamLoad(ctx context.Context, arg keybase1.LoadTea
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.ProfileTeamLoad(mctx, arg)
 
+}
+
+func (h *TeamsHandler) GetTeamID(ctx context.Context, teamName string) (res keybase1.TeamID, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTeamIDByName(%s)", teamName), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return teams.GetTeamIDByNameRPC(mctx, teamName)
 }

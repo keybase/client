@@ -14,6 +14,7 @@ export const isSimulator: boolean = false
 export const isIPhoneX: boolean = false
 export const isDeviceSecureAndroid: boolean = false
 export const isAndroidNewerThanM: boolean = false
+export const isAndroidNewerThanN: boolean = false
 declare export var fileUIName: string
 declare export var version: string
 declare export var appVersionName: string

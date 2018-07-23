@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {globalColors, globalMargins, isMobile, glamorous} from '../../styles'
 import rowStyles from './styles'
-import {Badge, Box, ClickableBox, Icon, Meta, Text} from '../../common-adapters'
+import {Badge, Box, Box2, ClickableBox, Icon, Meta, Text} from '../../common-adapters'
 import PathItemIcon from '../common/path-item-icon'
 import PathItemInfo from '../common/path-item-info'
 import PathItemAction from '../common/path-item-action-container'
@@ -19,6 +19,7 @@ type StillProps = {
   isDownloading?: boolean,
   tlfMeta?: Types.FavoriteMetadata,
   resetParticipants: Array<string>,
+  isEmpty: boolean,
   isUserReset: boolean,
   onOpen: () => void,
   openInFileUI: () => void,
@@ -70,16 +71,23 @@ const RowMeta = ({badgeCount, isDownloading, isNew, isIgnored, needsRekey}) => {
 const Still = (props: StillProps) => (
   <HoverBox style={rowStyles.rowBox}>
     <ClickableBox onClick={props.onOpen} style={rowStyles.leftBox}>
-      <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon} />
+      <Box2 direction="vertical">
+        <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon} />
+      </Box2>
       <RowMeta badgeCount={props.badgeCount} {...props.tlfMeta} isDownloading={props.isDownloading} />
       <Box style={rowStyles.itemBox}>
-        <Text
-          type={props.itemStyles.textType}
-          style={rowStyles.rowText(props.itemStyles.textColor)}
-          lineClamp={isMobile ? 1 : undefined}
-        >
-          {props.name}
-        </Text>
+        <Box2 direction="horizontal" fullWidth={true}>
+          <Text
+            type={props.itemStyles.textType}
+            style={{...rowStyles.rowText(props.itemStyles.textColor), display: 'inline'}}
+            lineClamp={isMobile ? 1 : undefined}
+          >
+            {props.name}
+          </Text>
+          {props.isEmpty && (
+            <Meta title="empty" backgroundColor={globalColors.grey} style={{marginLeft: globalMargins.tiny, marginTop: globalMargins.xxtiny}} />
+          )}
+        </Box2>
         {props.type === 'folder' &&
         (!props.resetParticipants || props.resetParticipants.length === 0) ? null : (
           <PathItemInfo

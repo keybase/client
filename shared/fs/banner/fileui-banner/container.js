@@ -14,7 +14,7 @@ const mapStateToProps = (state: TypedState) => {
   const kbfsEnabled = StateMappers.mapStateToKBFSEnabled(state)
   return {
     kbfsEnabled,
-    showBanner: state.fs.flags.showBanner,
+    showBanner: !kbfsEnabled && state.fs.flags.showBanner,
     inProgress: state.fs.flags.fuseInstalling || state.fs.flags.kbfsInstalling || state.fs.flags.kbfsOpening,
     showSecurityPrefs: !kbfsEnabled && state.fs.flags.kextPermissionError,
   }
@@ -31,10 +31,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
 }
 
 const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
-  kbfsEnabled: stateProps.kbfsEnabled,
-  showBanner: stateProps.showBanner,
-  inProgress: stateProps.inProgress,
-  showSecurityPrefs: stateProps.showSecurityPrefs,
+  ...stateProps,
   getFuseStatus: dispatchProps.getFuseStatus,
   onDismiss: dispatchProps.onDismiss,
   onInstall: dispatchProps.onInstall,

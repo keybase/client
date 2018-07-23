@@ -14,16 +14,16 @@ const featureOn = (key: $Keys<FeatureFlags>) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: false,
+  avatarUploadsEnabled: true,
   explodingMessagesEnabled: true,
   fsEnabled: true,
-  fsWritesEnabled: false,
+  fsWritesEnabled: true,
   plansEnabled: false,
   walletsEnabled: false,
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   walletsEnabled: true,
-  fsWritesEnabled: true,
 }
 
 // load overrides

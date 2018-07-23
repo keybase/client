@@ -124,6 +124,11 @@ func (d *notificationDisplay) FSActivity(_ context.Context, notification keybase
 	return d.printf("KBFS notification: %+v\n", notification)
 }
 
+func (d *notificationDisplay) FSPathUpdated(
+	_ context.Context, path string) error {
+	return d.printf("KBFS path updated notification: %s\n", path)
+}
+
 func (d *notificationDisplay) FSSyncActivity(_ context.Context, status keybase1.FSPathSyncStatus) error {
 	return d.printf("KBFS path sync status: %+v\n", status)
 }

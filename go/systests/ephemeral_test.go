@@ -12,7 +12,7 @@ import (
 	context "golang.org/x/net/context"
 )
 
-func TestNewTeamEKNotif(t *testing.T) {
+func TestEphemeralNewTeamEKNotif(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -35,7 +35,6 @@ func TestNewTeamEKNotif(t *testing.T) {
 
 	checkNewTeamEKNotifications(user1.tc, user1.notifications, expectedArg)
 	checkNewTeamEKNotifications(user2.tc, user2.notifications, expectedArg)
-
 }
 
 func checkNewTeamEKNotifications(tc *libkb.TestContext, notifications *teamNotifyHandler, expectedArg keybase1.NewTeamEkArg) {
@@ -50,11 +49,11 @@ func checkNewTeamEKNotifications(tc *libkb.TestContext, notifications *teamNotif
 	}
 }
 
-func TestAddMemberWithTeamEK(t *testing.T) {
+func TestEphemeralAddMemberWithTeamEK(t *testing.T) {
 	runAddMember(t, true /* createTeamEK*/)
 }
 
-func TestAddMemberNoTeamEK(t *testing.T) {
+func TestEphemeralAddMemberNoTeamEK(t *testing.T) {
 	runAddMember(t, false /* createTeamEK*/)
 }
 
@@ -110,7 +109,7 @@ func runAddMember(t *testing.T, createTeamEK bool) {
 	require.Equal(t, annTeamEK.Metadata, expectedMetadata)
 }
 
-func TestResetMember(t *testing.T) {
+func TestEphemeralResetMember(t *testing.T) {
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
@@ -181,11 +180,11 @@ func TestResetMember(t *testing.T) {
 	require.Equal(t, joeTeamEk.Metadata, expectedMetadata2)
 }
 
-func TestRotateWithTeamEK(t *testing.T) {
+func TestEphemeralRotateWithTeamEK(t *testing.T) {
 	runRotate(t, true /* createTeamEK*/)
 }
 
-func TestRotateNoTeamEK(t *testing.T) {
+func TestEphemeralRotateNoTeamEK(t *testing.T) {
 	runRotate(t, false /* createTeamEK*/)
 }
 
@@ -235,7 +234,7 @@ func runRotate(t *testing.T, createTeamEK bool) {
 	require.Equal(t, maxGeneration, expectedMaxGeneration)
 }
 
-func TestRotateSkipTeamEKRoll(t *testing.T) {
+func TestEphemeralRotateSkipTeamEKRoll(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -288,7 +287,7 @@ func TestRotateSkipTeamEKRoll(t *testing.T) {
 	require.Equal(t, teamEKPreRoll.Metadata.Generation+1, metadata.Generation)
 }
 
-func TestNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
+func TestEphemeralNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -346,4 +345,60 @@ func TestNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
 	// And do the same for the teamEK, just to be sure.
 	_, err = ephemeral.ForcePublishNewTeamEKForTesting(context.Background(), annG, teamID, *merkleRoot)
 	require.NoError(t, err)
+}
+
+func readdToTeamWithEKs(t *testing.T, leave bool) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	// Make standalone user that will not run gregor. This is
+	// important in the *leave* case, where we want to observe
+	// effects of team key and EK not being rotated.
+	user1 := makeUserStandalone(t, "user1", standaloneUserArgs{
+		disableGregor:            true,
+		suppressTeamChatAnnounce: true,
+	})
+	user2 := tt.addUser("wtr")
+
+	teamID, teamName := user1.createTeam2()
+	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
+
+	ephemeral.ServiceInit(user1.tc.G)
+	ekLib := user1.tc.G.GetEKLib()
+	teamEK, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
+	require.NoError(t, err)
+
+	currentGen := teamEK.Metadata.Generation
+	var expectedGen keybase1.EkGeneration
+	if leave {
+		user2.leave(teamName.String())
+		expectedGen = currentGen // user left, no one to rotate keys.
+	} else {
+		user1.removeTeamMember(teamName.String(), user2.username)
+		expectedGen = currentGen + 1 // admin removes user, rotates TK and EK
+	}
+
+	// After leaving user2 won't have access to the current teamEK
+	_, err = user2.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, currentGen)
+	require.Error(t, err)
+
+	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
+
+	// Test that user1 and user2 both have access to the currentTeamEK
+	// (whether we recreated or reboxed)
+	teamEK2U1, err := user1.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, expectedGen)
+	require.NoError(t, err)
+
+	teamEK2U2, err := user2.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, expectedGen)
+	require.NoError(t, err)
+
+	require.Equal(t, teamEK2U1, teamEK2U2)
+}
+
+func TestTeamEKMemberLeaveAndReadd(t *testing.T) {
+	readdToTeamWithEKs(t, true /* leave */)
+}
+
+func TestTeamEKMemberRemoveAndReadd(t *testing.T) {
+	readdToTeamWithEKs(t, false /* leave */)
 }

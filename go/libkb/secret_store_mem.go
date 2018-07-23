@@ -12,7 +12,7 @@ func NewSecretStoreMem() *SecretStoreMem {
 	}
 }
 
-func (s *SecretStoreMem) RetrieveSecret(username NormalizedUsername) (LKSecFullSecret, error) {
+func (s *SecretStoreMem) RetrieveSecret(m MetaContext, username NormalizedUsername) (LKSecFullSecret, error) {
 	secret, ok := s.secrets[username]
 	if !ok {
 		return LKSecFullSecret{}, ErrSecretForUserNotFound
@@ -20,17 +20,17 @@ func (s *SecretStoreMem) RetrieveSecret(username NormalizedUsername) (LKSecFullS
 	return secret, nil
 }
 
-func (s *SecretStoreMem) StoreSecret(username NormalizedUsername, secret LKSecFullSecret) error {
+func (s *SecretStoreMem) StoreSecret(m MetaContext, username NormalizedUsername, secret LKSecFullSecret) error {
 	s.secrets[username] = secret
 	return nil
 }
 
-func (s *SecretStoreMem) ClearSecret(username NormalizedUsername) error {
+func (s *SecretStoreMem) ClearSecret(m MetaContext, username NormalizedUsername) error {
 	delete(s.secrets, username)
 	return nil
 }
 
-func (s *SecretStoreMem) GetUsersWithStoredSecrets() ([]string, error) {
+func (s *SecretStoreMem) GetUsersWithStoredSecrets(m MetaContext) ([]string, error) {
 	var usernames []string
 	for k := range s.secrets {
 		usernames = append(usernames, k.String())

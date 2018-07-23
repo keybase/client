@@ -70,6 +70,7 @@ export const globalStyles = {
 export const mobileStyles = {}
 export const desktopStyles = {
   clickable: {cursor: 'pointer'},
+  editable: {cursor: 'text'},
   fadeOpacity: {transition: 'opacity .25s ease-in-out'},
   noSelect: {userSelect: 'none'},
   scrollable: {overflowY: 'auto'},

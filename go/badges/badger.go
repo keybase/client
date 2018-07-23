@@ -34,13 +34,35 @@ type Badger struct {
 	libkb.Contextified
 	badgeState     *BadgeState
 	iboxVersSource InboxVersionSource
+	notifyCh       chan keybase1.BadgeState
+	shutdownCh     chan struct{}
+	running        bool
 }
 
 func NewBadger(g *libkb.GlobalContext) *Badger {
-	return &Badger{
+	b := &Badger{
 		Contextified:   libkb.NewContextified(g),
 		badgeState:     NewBadgeState(g.Log),
 		iboxVersSource: nullInboxVersionSource{},
+		notifyCh:       make(chan keybase1.BadgeState, 1000),
+		shutdownCh:     make(chan struct{}),
+	}
+	go b.notifyLoop()
+	g.PushShutdownHook(func() error {
+		close(b.shutdownCh)
+		return nil
+	})
+	return b
+}
+
+func (b *Badger) notifyLoop() {
+	for {
+		select {
+		case state := <-b.notifyCh:
+			b.G().NotifyRouter.HandleBadgeState(state)
+		case <-b.shutdownCh:
+			return
+		}
 	}
 }
 
@@ -122,7 +144,7 @@ func (b *Badger) Send(ctx context.Context) error {
 		return err
 	}
 	b.log(ctx, state)
-	b.G().NotifyRouter.HandleBadgeState(state)
+	b.notifyCh <- state
 	return nil
 }
 

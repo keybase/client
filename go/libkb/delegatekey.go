@@ -263,10 +263,6 @@ func (d *Delegator) post(m MetaContext) (err error) {
 		Args:        hargs,
 		MetaContext: m,
 	}
-	if lctx := m.LoginContext(); lctx != nil {
-		arg.SessionR = lctx.LocalSession()
-	}
-
 	if d.Aggregated {
 		d.postArg = arg
 		return nil

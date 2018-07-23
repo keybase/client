@@ -510,11 +510,15 @@ func (g *GlobalContext) Trace(msg string, f func() error) func() {
 }
 
 func (g *GlobalContext) ExitTrace(msg string, f func() error) func() {
-	return func() { g.Log.Debug("| %s -> %s", msg, ErrToOk(f())) }
+	return func() { g.Log.CloneWithAddedDepth(1).Debug("| %s -> %s", msg, ErrToOk(f())) }
 }
 
 func (g *GlobalContext) CTrace(ctx context.Context, msg string, f func() error) func() {
 	return CTrace(ctx, g.Log.CloneWithAddedDepth(1), msg, f)
+}
+
+func (g *GlobalContext) CTraceTimed(ctx context.Context, msg string, f func() error) func() {
+	return CTraceTimed(ctx, g.Log.CloneWithAddedDepth(1), msg, f, g.Clock())
 }
 
 func (g *GlobalContext) CVTrace(ctx context.Context, lev VDebugLevel, msg string, f func() error) func() {
@@ -522,8 +526,13 @@ func (g *GlobalContext) CVTrace(ctx context.Context, lev VDebugLevel, msg string
 	return func() { g.VDL.CLogf(ctx, lev, "- %s -> %v", msg, ErrToOk(f())) }
 }
 
-func (g *GlobalContext) CTraceTimed(ctx context.Context, msg string, f func() error) func() {
-	return CTraceTimed(ctx, g.Log.CloneWithAddedDepth(1), msg, f, g.Clock())
+func (g *GlobalContext) CVTraceTimed(ctx context.Context, lev VDebugLevel, msg string, f func() error) func() {
+	cl := g.Clock()
+	g.VDL.CLogf(ctx, lev, "+ %s", msg)
+	start := cl.Now()
+	return func() {
+		g.VDL.CLogf(ctx, lev, "- %s -> %v [time=%s]", msg, f(), cl.Since(start))
+	}
 }
 
 func (g *GlobalContext) CTimeTracer(ctx context.Context, label string, enabled bool) profiling.TimeTracer {
@@ -700,8 +709,12 @@ func SleepUntilWithContext(ctx context.Context, clock clockwork.Clock, deadline 
 	}
 }
 
+func UseCITime(g *GlobalContext) bool {
+	return g.GetEnv().RunningInCI() || g.GetEnv().GetSlowGregorConn()
+}
+
 func CITimeMultiplier(g *GlobalContext) time.Duration {
-	if g.GetEnv().RunningInCI() || g.GetEnv().GetSlowGregorConn() {
+	if UseCITime(g) {
 		return time.Duration(3)
 	}
 	return time.Duration(1)
@@ -770,7 +783,7 @@ func MobilePermissionDeniedCheck(g *GlobalContext, err error, msg string) {
 		return
 	}
 	g.Log.Warning("file open permission denied on mobile (%s): %s", msg, err)
-	panic(fmt.Sprintf("panic due to file open permission denied on mobile (%s)", msg))
+	os.Exit(4)
 }
 
 // IsNoSpaceOnDeviceError will return true if err is an `os` error

@@ -93,7 +93,7 @@ func TestLoginWithPaperKeyLoggedInAndLocked(t *testing.T) {
 
 	t.Logf("locking keys")
 	tc.SimulateServiceRestart()
-	err := tc.G.SecretStore().ClearSecret(libkb.NormalizedUsername(u.Username))
+	err := tc.G.SecretStore().ClearSecret(NewMetaContextForTest(tc), libkb.NormalizedUsername(u.Username))
 	require.NoError(t, err)
 
 	t.Logf("checking logged in status [before]")

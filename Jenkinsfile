@@ -286,6 +286,7 @@ def testGo(prefix) {
     dir('go') {
     withEnv([
         "KEYBASE_LOG_SETUPTEST_FUNCS=1",
+        "KEYBASE_RUN_CI=1",
     ]) {
         def dirs = getTestDirsNix()
         def goversion = sh(returnStdout: true, script: "go version").trim()

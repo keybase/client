@@ -4,6 +4,11 @@ protocol NotifyChat {
 
   import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
 
+  enum ChatActivitySource {
+    LOCAL_0,
+    REMOTE_1
+  }
+
   enum ChatActivityType {
     RESERVED_0,
     INCOMING_MESSAGE_1,
@@ -15,7 +20,8 @@ protocol NotifyChat {
     SET_APP_NOTIFICATION_SETTINGS_7,
     TEAMTYPE_8,
     EXPUNGE_9,
-    EPHEMERAL_PURGE_10
+    EPHEMERAL_PURGE_10,
+    REACTION_DELETE_11
   }
 
   record IncomingMessage {
@@ -82,6 +88,17 @@ protocol NotifyChat {
     union { null, InboxUIItem } conv;
   }
 
+  record ReactionDelete {
+    string reactionKey;
+    MessageID reactionMsgID;
+    MessageID targetMsgID;
+  }
+
+  record ReactionDeleteNotif {
+    ConversationID convID;
+    array<ReactionDelete> reactionDeletes;
+  }
+
   variant ChatActivity switch (ChatActivityType activityType) {
     case INCOMING_MESSAGE: IncomingMessage;
     case READ_MESSAGE: ReadMessageInfo;
@@ -93,6 +110,7 @@ protocol NotifyChat {
     case TEAMTYPE: TeamTypeInfo;
     case EXPUNGE: ExpungeInfo;
     case EPHEMERAL_PURGE: EphemeralPurgeNotifInfo;
+    case REACTION_DELETE: ReactionDeleteNotif;
   }
 
   record TyperInfo {
@@ -130,7 +148,7 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
-  void NewChatActivity(keybase1.UID uid, ChatActivity activity);
+  void NewChatActivity(keybase1.UID uid, ChatActivity activity, ChatActivitySource source);
 
   @notify("")
   @lint("ignore")
@@ -187,6 +205,18 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
+  void ChatSetConvMinWriterRole(keybase1.UID uid, ConversationID convID, union { null, InboxUIItem } conv);
+
+  @notify("")
+  @lint("ignore")
   void ChatKBFSToImpteamUpgrade(keybase1.UID uid, ConversationID convID);
+
+  @notify("")
+  @lint("ignore")
+  void ChatAttachmentUploadStart(keybase1.UID uid, ConversationID convID, OutboxID outboxID);
+
+  @notify("")
+  @lint("ignore")
+  void ChatAttachmentUploadProgress(keybase1.UID uid, ConversationID convID, OutboxID outboxID, long bytesComplete, long bytesTotal); 
 
 }

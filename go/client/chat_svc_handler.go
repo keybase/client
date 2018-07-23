@@ -237,6 +237,7 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 			IsEphemeralExpired: mv.IsEphemeralExpired(time.Now()),
 			ETime:              mv.Etime(),
 			Reactions:          mv.Reactions,
+			HasPairwiseMacs:    mv.HasPairwiseMacs(),
 		}
 
 		msg.Content = c.convertMsgBody(mv.MessageBody)
@@ -336,102 +337,6 @@ func (c *chatServiceHandler) ReactionV1(ctx context.Context, opts reactionOption
 // AttachV1 implements ChatServiceHandler.AttachV1.
 func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
 	var rl []chat1.RateLimit
-	if opts.NoStream {
-		return c.attachV1NoStream(ctx, opts)
-	}
-	convID, err := chat1.MakeConvID(opts.ConversationID)
-	if err != nil {
-		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
-	}
-	sarg := sendArgV1{
-		conversationID:    convID,
-		channel:           opts.Channel,
-		mtype:             chat1.MessageType_ATTACHMENT,
-		ephemeralLifetime: opts.EphemeralLifetime,
-	}
-
-	existing, existingRl, err := c.getExistingConvs(ctx, sarg.conversationID, sarg.channel)
-	if err != nil {
-		return c.errReply(err)
-	}
-	rl = append(rl, existingRl...)
-	header, err := c.makePostHeader(ctx, sarg, existing)
-	if err != nil {
-		return c.errReply(err)
-	}
-	rl = append(rl, header.rateLimits...)
-
-	info, fsource, err := c.fileInfo(opts.Filename)
-	if err != nil {
-		return c.errReply(err)
-	}
-	defer fsource.Close()
-	src := c.G().XStreams.ExportReader(fsource)
-
-	vis := keybase1.TLFVisibility_PRIVATE
-	if header.clientHeader.TlfPublic {
-		vis = keybase1.TLFVisibility_PUBLIC
-	}
-
-	var ephemeralLifetime *gregor1.DurationSec
-	if header.clientHeader.EphemeralMetadata != nil {
-		ephemeralLifetime = &header.clientHeader.EphemeralMetadata.Lifetime
-	}
-	arg := chat1.PostAttachmentLocalArg{
-		ConversationID: header.conversationID,
-		TlfName:        header.clientHeader.TlfName,
-		Visibility:     vis,
-		Attachment: chat1.LocalSource{
-			Filename: info.Name(),
-			Size:     int(info.Size()),
-			Source:   src,
-		},
-		Title:             opts.Title,
-		EphemeralLifetime: ephemeralLifetime,
-	}
-
-	// check for preview
-	if len(opts.Preview) > 0 {
-		arg.Preview = &chat1.MakePreviewRes{
-			Filename: &opts.Preview,
-		}
-	}
-
-	ui := &ChatUI{
-		Contextified: libkb.NewContextified(c.G()),
-		terminal:     c.G().UI.GetTerminalUI(),
-	}
-
-	client, err := GetChatLocalClient(c.G())
-	if err != nil {
-		return c.errReply(err)
-	}
-	protocols := []rpc.Protocol{
-		NewStreamUIProtocol(c.G()),
-		chat1.ChatUiProtocol(ui),
-	}
-	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
-		return c.errReply(err)
-	}
-	pres, err := client.PostAttachmentLocal(ctx, arg)
-	if err != nil {
-		return c.errReply(err)
-	}
-	rl = append(rl, pres.RateLimits...)
-
-	res := SendRes{
-		Message: "attachment sent",
-		RateLimits: RateLimits{
-			RateLimits: c.aggRateLimits(rl),
-		},
-	}
-
-	return Reply{Result: res}
-}
-
-// attachV1NoStream uses PostFileAttachmentLocal instead of PostAttachmentLocal.
-func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOptionsV1) Reply {
-	var rl []chat1.RateLimit
 	convID, err := chat1.MakeConvID(opts.ConversationID)
 	if err != nil {
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
@@ -462,25 +367,27 @@ func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOp
 	if header.clientHeader.EphemeralMetadata != nil {
 		ephemeralLifetime = &header.clientHeader.EphemeralMetadata.Lifetime
 	}
-	arg := chat1.PostFileAttachmentLocalArg{
-		ConversationID: header.conversationID,
-		TlfName:        header.clientHeader.TlfName,
-		Visibility:     vis,
-		Attachment: chat1.LocalFileSource{
-			Filename: opts.Filename,
-		},
+	arg := chat1.PostFileAttachmentArg{
+		ConversationID:    header.conversationID,
+		TlfName:           header.clientHeader.TlfName,
+		Visibility:        vis,
+		Filename:          opts.Filename,
 		Title:             opts.Title,
 		EphemeralLifetime: ephemeralLifetime,
 	}
-
 	// check for preview
 	if len(opts.Preview) > 0 {
-		arg.Preview = &chat1.MakePreviewRes{
-			Filename: &opts.Preview,
+		loc := chat1.NewPreviewLocationWithFile(opts.Preview)
+		arg.CallerPreview = &chat1.MakePreviewRes{
+			Location: &loc,
 		}
 	}
 
 	ui := &ChatUI{
+		Contextified: libkb.NewContextified(c.G()),
+		terminal:     c.G().UI.GetTerminalUI(),
+	}
+	notify := &ChatNotifications{
 		Contextified: libkb.NewContextified(c.G()),
 		terminal:     c.G().UI.GetTerminalUI(),
 	}
@@ -492,15 +399,38 @@ func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOp
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(c.G()),
 		chat1.ChatUiProtocol(ui),
+		chat1.NotifyChatProtocol(notify),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return c.errReply(err)
 	}
-	pres, err := client.PostFileAttachmentLocal(ctx, arg)
+	cli, err := GetNotifyCtlClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
-	rl = append(rl, pres.RateLimits...)
+	channels := keybase1.NotificationChannels{
+		Chatattachments: true,
+	}
+	if err := cli.SetNotifications(context.TODO(), channels); err != nil {
+		return c.errReply(err)
+	}
+
+	if opts.Nonblock {
+		var pres chat1.PostLocalNonblockRes
+		pres, err = client.PostFileAttachmentLocalNonblock(ctx, chat1.PostFileAttachmentLocalNonblockArg{
+			Arg: arg,
+		})
+		rl = append(rl, pres.RateLimits...)
+	} else {
+		var pres chat1.PostLocalRes
+		pres, err = client.PostFileAttachmentLocal(ctx, chat1.PostFileAttachmentLocalArg{
+			Arg: arg,
+		})
+		rl = append(rl, pres.RateLimits...)
+	}
+	if err != nil {
+		return c.errReply(err)
+	}
 
 	res := SendRes{
 		Message: "attachment sent",
@@ -938,6 +868,7 @@ func (c *chatServiceHandler) convertMsgBody(mb chat1.MessageBody) MsgContent {
 		Metadata:           mb.Metadata__,
 		AttachmentUploaded: mb.Attachmentuploaded__,
 		SendPayment:        mb.Sendpayment__,
+		RequestPayment:     mb.Requestpayment__,
 	}
 }
 
@@ -1060,6 +991,7 @@ type MsgContent struct {
 	Metadata           *chat1.MessageConversationMetadata `json:"metadata,omitempty"`
 	AttachmentUploaded *chat1.MessageAttachmentUploaded   `json:"attachment_uploaded,omitempty"`
 	SendPayment        *chat1.MessageSendPayment          `json:"send_payment,omitempty"`
+	RequestPayment     *chat1.MessageRequestPayment       `json:"request_payment,omitempty"`
 }
 
 // MsgSummary is used to display JSON details for a message.
@@ -1079,6 +1011,7 @@ type MsgSummary struct {
 	IsEphemeralExpired bool                           `json:"is_ephemeral_expired,omitempty"`
 	ETime              gregor1.Time                   `json:"etime,omitempty"`
 	Reactions          chat1.ReactionMap              `json:"reactions,omitempty"`
+	HasPairwiseMacs    bool                           `json:"has_pairwise_macs,omitempty"`
 }
 
 // Message contains either a MsgSummary or an Error.  Used for JSON output.

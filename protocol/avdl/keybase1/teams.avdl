@@ -75,6 +75,7 @@ protocol teams {
     TeamRole role;
     Seqno eldestSeqno;     // eldest seqno of the team member record
     Seqno userEldestSeqno; // actual eldest seqno of the user
+    TeamMemberStatus status;
   }
 
   record TeamMembers {
@@ -629,7 +630,7 @@ protocol teams {
     boolean invited;
     union{null, User} user;
     boolean emailSent;
-    boolean chatSent;
+    boolean chatSending;
   }
 
   record TeamJoinRequest {
@@ -718,6 +719,8 @@ protocol teams {
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
 
   TeamAddMemberResult teamAddMember(int sessionID, string name, string email, string username, TeamRole role, boolean sendChatNotification);
+
+  void teamAddMembers(int sessionID, string name, array<string> assertions, TeamRole role, boolean sendChatNotification);
 
   void teamRemoveMember(int sessionID, string name, string username, string email, TeamInviteID inviteID);
 
@@ -866,9 +869,10 @@ protocol teams {
   /**
    FindNextMerkleRootAfterTeamRemovalBySigningKey find the first Merkle root that contains the user
    with the given signing key being removed from the given team. If there are several such instances,
-   we will return just the last one.
+   we will return just the last one. When anyRoleAllowed is false, the team removal is any drop in
+   permissions from Writer (or above) to Reader (or below).
    */
-  NextMerkleRootRes findNextMerkleRootAfterTeamRemovalBySigningKey(UID uid, KID signingKey, TeamID team, boolean isPublic);
+  NextMerkleRootRes findNextMerkleRootAfterTeamRemovalBySigningKey(UID uid, KID signingKey, TeamID team, boolean isPublic, boolean anyRoleAllowed);
 
   /**
    ProfileTeamLoad loads a team and then throws it on the ground, for the purposes of profiling
@@ -876,4 +880,9 @@ protocol teams {
    */
   ProfileTeamLoadRes profileTeamLoad(LoadTeamArg arg);
 
+  /**
+   Gets a TeamID from a team name string. Returns an error if the
+   current user can't read the team.
+   */
+  TeamID getTeamID(string teamName);
 }

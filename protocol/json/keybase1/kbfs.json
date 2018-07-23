@@ -30,6 +30,18 @@
       "doc": "Idea is that kbfs would call the function below whenever these actions are\n    performed on a file.\n\n    Note that this list/interface is very temporary and highly likely to change\n    significantly.\n\n    It is just a starting point to get kbfs notifications through the daemon to\n    the clients.",
       "lint": "ignore"
     },
+    "FSPathUpdate": {
+      "request": [
+        {
+          "name": "path",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "oneway": true,
+      "doc": "kbfs calls this whenever the currently subscribed-to folder (via the\n    SimpleFSList[Recursive call) has been updated.",
+      "lint": "ignore"
+    },
     "FSEditList": {
       "request": [
         {

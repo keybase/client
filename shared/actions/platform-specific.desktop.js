@@ -3,8 +3,12 @@ import {showDockIcon} from '../desktop/app/dock-icon.desktop'
 import {getMainWindow} from '../desktop/remote/util.desktop'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import * as ConfigGen from './config-gen'
-import * as AppGen from './app-gen'
+import * as LoginGen from './login-gen'
 import * as Saga from '../util/saga'
+import {writeLogLinesToFile} from '../util/forward-logs'
+import logger from '../logger'
+import {quit} from '../util/quit-helper'
+import {type TypedState} from '../constants/reducer'
 
 function showShareActionSheet(options: {
   url?: ?any,
@@ -83,12 +87,16 @@ const getContentTypeFromURL = (
   req.end()
 }
 
-const writeElectronSettings = (action: ConfigGen.SetOpenAtLoginPayload) =>
+const writeElectronSettingsOpenAtLogin = (action: ConfigGen.SetOpenAtLoginPayload) =>
   action.payload.writeFile &&
   SafeElectron.getIpcRenderer().send('setAppState', {openAtLogin: action.payload.open})
 
+  const writeElectronSettingsNotifySound = (action: ConfigGen.SetNotifySoundPayload) =>
+  action.payload.writeFile &&
+  SafeElectron.getIpcRenderer().send('setAppState', {notifySound: action.payload.sound})
+
 // get this value from electron and update our store version
-function* initializeOpenAtLoginState(): Generator<any, void, any> {
+function* initializeAppSettingsState(): Generator<any, void, any> {
   const getAppState = () =>
     new Promise((resolve, reject) => {
       SafeElectron.getIpcRenderer().once('getAppStateReply', (event, data) => resolve(data))
@@ -98,13 +106,34 @@ function* initializeOpenAtLoginState(): Generator<any, void, any> {
   const state = yield Saga.call(getAppState)
   if (state) {
     yield Saga.put(ConfigGen.createSetOpenAtLogin({open: state.openAtLogin, writeFile: false}))
+    yield Saga.put(ConfigGen.createSetNotifySound({sound: state.notifySound, writeFile: false}))
   }
 }
 
+export const dumpLogs = (action: ?ConfigGen.DumpLogsPayload) =>
+  logger
+    .dump()
+    .then(fromRender => {
+      // $ForceType
+      const globalLogger: typeof logger = SafeElectron.getRemote().getGlobal('globalLogger')
+      return globalLogger.dump().then(fromMain => writeLogLinesToFile([...fromRender, ...fromMain]))
+    })
+    .then(() => {
+      // quit as soon as possible
+      if (action && action.payload.reason === 'quitting through menu') {
+        quit('quitButton')
+      }
+    })
+
+const onBootstrapped = (state: TypedState) => Saga.put(LoginGen.createNavBasedOnLoginAndInitialState())
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPure(ConfigGen.setOpenAtLogin, writeElectronSettings)
-  yield Saga.safeTakeLatestPure(AppGen.showMain, showMainWindow)
-  yield Saga.fork(initializeOpenAtLoginState)
+  yield Saga.safeTakeEveryPure(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
+  yield Saga.safeTakeEveryPure(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
+  yield Saga.safeTakeLatestPure(ConfigGen.showMain, showMainWindow)
+  yield Saga.safeTakeEveryPure(ConfigGen.dumpLogs, dumpLogs)
+  yield Saga.fork(initializeAppSettingsState)
+  yield Saga.safeTakeEveryPureSimple(ConfigGen.bootstrapSuccess, onBootstrapped)
 }
 
 export {

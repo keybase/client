@@ -276,12 +276,18 @@ protocol remote {
   // Endpoint to indicate a high priority push notification has been processed
   void remoteNotificationSuccessful(gregor1.SessionToken authToken, array<string> companionPushIDs);
 
-  // sweepChannel should be 0 except for in certain tests.
   record SetRetentionRes {
     union { null, RateLimit } rateLimit;
   }
+
+  // sweepChannel should be 0 except for in certain tests.
   SetRetentionRes setConvRetention(ConversationID convID, RetentionPolicy policy, uint64 sweepChannel);
   SetRetentionRes setTeamRetention(keybase1.TeamID teamID, RetentionPolicy policy, uint64 sweepChannel);
+
+  record SetConvMinWriterRoleRes {
+    union { null, RateLimit } rateLimit;
+  }
+  SetConvMinWriterRoleRes setConvMinWriterRole(ConversationID convID, keybase1.TeamRole role);
 
   // Used only for testing.
   record SweepRes {

@@ -49,14 +49,14 @@ func (b *bug3964Repairman) loadLKSecServerDetails(m MetaContext, lksec *LKSec) (
 	return ret, err
 }
 
-func (b *bug3964Repairman) updateSecretStore(nun NormalizedUsername, lksec *LKSec) error {
+func (b *bug3964Repairman) updateSecretStore(m MetaContext, nun NormalizedUsername, lksec *LKSec) error {
 	fs := lksec.FullSecret()
 	ss := b.G().SecretStore()
 	if fs.IsNil() {
-		b.G().Log.Warning("Got unexpected nil full secret")
-		return ss.ClearSecret(nun)
+		m.CWarningf("Got unexpected nil full secret")
+		return ss.ClearSecret(m, nun)
 	}
-	return ss.StoreSecret(nun, fs)
+	return ss.StoreSecret(m, nun, fs)
 }
 
 func (b *bug3964Repairman) saveRepairmanVisit(nun NormalizedUsername) (err error) {
@@ -88,8 +88,7 @@ func (b *bug3964Repairman) postToServer(m MetaContext, serverHalfSet *LKSecServe
 			"ppgen":             I{Val: int(ppgen)},
 			"lks_server_halves": S{Val: serverHalfSet.EncodeToHexList()},
 		},
-		SessionR:   m.LoginContext().LocalSession(),
-		NetContext: m.Ctx(),
+		MetaContext: m,
 	})
 	return err
 }
@@ -117,13 +116,13 @@ func (b *bug3964Repairman) computeShortCircuit(nun NormalizedUsername) (ss bool,
 	return ss, nil
 }
 
-func (b *bug3964Repairman) fixLKSClientHalf(lctx LoginContext, lksec *LKSec, ppgen PassphraseGeneration) (err error) {
-	defer b.G().Trace("bug3964Repairman#fixLKSClientHalf", func() error { return err })()
+func (b *bug3964Repairman) fixLKSClientHalf(m MetaContext, lksec *LKSec, ppgen PassphraseGeneration) (err error) {
+	defer m.CTrace("bug3964Repairman#fixLKSClientHalf", func() error { return err })()
 	var me *User
 	var encKey GenericKey
 	var ctext string
 
-	me, err = LoadMe(NewLoadUserArg(b.G()).WithLoginContext(lctx))
+	me, err = LoadMe(NewLoadUserArgWithMetaContext(m))
 	if err != nil {
 		return err
 	}
@@ -146,7 +145,7 @@ func (b *bug3964Repairman) fixLKSClientHalf(lctx LoginContext, lksec *LKSec, ppg
 			"kid":             S{Val: kid.String()},
 			"lks_client_half": S{Val: ctext},
 		},
-		SessionR: lctx.LocalSession(),
+		MetaContext: m,
 	})
 
 	return err
@@ -212,11 +211,11 @@ func (b *bug3964Repairman) Run(m MetaContext) (err error) {
 		return nil
 	}
 
-	if err := b.fixLKSClientHalf(lctx, lksec, pps.Generation()); err != nil {
+	if err := b.fixLKSClientHalf(m, lksec, pps.Generation()); err != nil {
 		return err
 	}
 
-	if ussErr := b.updateSecretStore(nun, lksec); ussErr != nil {
+	if ussErr := b.updateSecretStore(m, nun, lksec); ussErr != nil {
 		m.G().Log.CWarningf(m.Ctx(), "Error in secret store manipulation: %s", ussErr)
 	} else {
 		b.saveRepairmanVisit(nun)

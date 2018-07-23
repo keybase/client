@@ -103,11 +103,11 @@ func NewProofInfo(link libkb.RemoteProofChainLink, h libkb.SigHint) ProofInfo {
 }
 
 // CheckProof verifies one proof by running the pvl on the provided proof information.
-func CheckProof(g1 libkb.ProofContext, pvlS string, service keybase1.ProofType, info ProofInfo) libkb.ProofError {
-	g := newProofContextExt(g1, info.stubDNS)
-	perr := checkProofInner(g, pvlS, service, info)
+func CheckProof(m libkb.MetaContext, pvlS string, service keybase1.ProofType, info ProofInfo) libkb.ProofError {
+	m1 := newMetaContext(m, info.stubDNS)
+	perr := checkProofInner(m1, pvlS, service, info)
 	if perr != nil {
-		debug(g, "CheckProof failed: %v", perr)
+		debug(m1, "CheckProof failed: %v", perr)
 	}
 	if perr != nil && perr.GetProofStatus() == keybase1.ProofStatus_INVALID_PVL {
 		return libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
@@ -116,14 +116,14 @@ func CheckProof(g1 libkb.ProofContext, pvlS string, service keybase1.ProofType, 
 	return perr
 }
 
-func checkProofInner(g proofContextExt, pvlS string, service keybase1.ProofType, info ProofInfo) libkb.ProofError {
+func checkProofInner(m metaContext, pvlS string, service keybase1.ProofType, info ProofInfo) libkb.ProofError {
 	pvl, err := parse(pvlS)
 	if err != nil {
 		return libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Could not parse pvl: %v", err)
 	}
 
-	if perr := validateChunk(g, &pvl, service); perr != nil {
+	if perr := validateChunk(m, &pvl, service); perr != nil {
 		return perr
 	}
 
@@ -167,13 +167,13 @@ func checkProofInner(g proofContextExt, pvlS string, service keybase1.ProofType,
 			FetchResult: nil,
 		}
 
-		err := setupRegs(g, &state.Regs, info, sigBody, sigID, service)
+		err := setupRegs(m, &state.Regs, info, sigBody, sigID, service)
 		return state, err
 	}
 
 	var errs []libkb.ProofError
 	if service == keybase1.ProofType_DNS {
-		perr = runDNS(g, info.Hostname, scripts, mknewstate, sigID.ToMediumID())
+		perr = runDNS(m, info.Hostname, scripts, mknewstate, sigID.ToMediumID())
 		if perr != nil {
 			errs = append(errs, perr)
 		}
@@ -187,7 +187,7 @@ func checkProofInner(g proofContextExt, pvlS string, service keybase1.ProofType,
 			if perr != nil {
 				return perr
 			}
-			perr = runScript(g, &script, state)
+			perr = runScript(m, &script, state)
 			if perr == nil {
 				return nil
 			}
@@ -201,14 +201,14 @@ func checkProofInner(g proofContextExt, pvlS string, service keybase1.ProofType,
 		return errs[0]
 	} else {
 		for _, err := range errs {
-			debug(g, "multiple failures include: %v", err)
+			debug(m, "multiple failures include: %v", err)
 		}
 		// Arbitrarily use the error code of the first error
 		return libkb.NewProofError(errs[0].GetProofStatus(), "Multiple errors while verifying proof")
 	}
 }
 
-func setupRegs(g proofContextExt, regs *namedRegsStore, info ProofInfo, sigBody []byte, sigID keybase1.SigID, service keybase1.ProofType) libkb.ProofError {
+func setupRegs(m metaContext, regs *namedRegsStore, info ProofInfo, sigBody []byte, sigID keybase1.SigID, service keybase1.ProofType) libkb.ProofError {
 	webish := (service == keybase1.ProofType_DNS || service == keybase1.ProofType_GENERIC_WEB_SITE)
 
 	// hint_url
@@ -301,13 +301,13 @@ func chunkGetScripts(pvl *pvlT, service keybase1.ProofType) ([]scriptT, libkb.Pr
 
 // Check that a chunk of PVL is valid code.
 // Will always accept valid code, but may not always notice invalidities.
-func validateChunk(g proofContextExt, pvl *pvlT, service keybase1.ProofType) libkb.ProofError {
+func validateChunk(m metaContext, pvl *pvlT, service keybase1.ProofType) libkb.ProofError {
 	if pvl.PvlVersion != SupportedVersion {
 		return libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"PVL is for the wrong version %v != %v", pvl.PvlVersion, SupportedVersion)
 	}
 
-	debug(g, "valid version:%v revision:%v", pvl.PvlVersion, pvl.Revision)
+	debug(m, "valid version:%v revision:%v", pvl.PvlVersion, pvl.Revision)
 
 	scripts, perr := chunkGetScripts(pvl, service)
 	if perr != nil {
@@ -321,19 +321,19 @@ func validateChunk(g proofContextExt, pvl *pvlT, service keybase1.ProofType) lib
 	// Scan all the scripts (for this service) for errors. Report the first error.
 	var errs []libkb.ProofError
 	for whichscript, script := range scripts {
-		perr = validateScript(g, &script, service, whichscript)
+		perr = validateScript(m, &script, service, whichscript)
 		errs = append(errs, perr)
 	}
 	return errs[0]
 }
 
-func validateScript(g proofContextExt, script *scriptT, service keybase1.ProofType, whichscript int) libkb.ProofError {
+func validateScript(m metaContext, script *scriptT, service keybase1.ProofType, whichscript int) libkb.ProofError {
 	// Scan the script.
 	// Does not validate each instruction's format. (That is done when running it)
 	// Validate each instruction's "error" field.
 
-	logerr := func(g proofContextExt, service keybase1.ProofType, whichscript int, pc int, format string, arg ...interface{}) libkb.ProofError {
-		debugWithPosition(g, service, whichscript, pc, format, arg...)
+	logerr := func(m metaContext, service keybase1.ProofType, whichscript int, pc int, format string, arg ...interface{}) libkb.ProofError {
+		debugWithPosition(m, service, whichscript, pc, format, arg...)
 		return libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL, format, arg...)
 	}
 
@@ -344,12 +344,12 @@ func validateScript(g proofContextExt, script *scriptT, service keybase1.ProofTy
 		mode = fetchModeDNS
 	}
 	if len(script.Instructions) < 1 {
-		return logerr(g, service, whichscript, 0, "Empty script")
+		return logerr(m, service, whichscript, 0, "Empty script")
 	}
 
 	for i, ins := range script.Instructions {
 		if ins.variantsFilled() != 1 {
-			return logerr(g, service, whichscript, i, "exactly 1 variant must appear in instruction")
+			return logerr(m, service, whichscript, i, "exactly 1 variant must appear in instruction")
 		}
 
 		switch {
@@ -371,11 +371,11 @@ func validateScript(g proofContextExt, script *scriptT, service keybase1.ProofTy
 			fetchType := ins.Fetch.Kind
 
 			if service == keybase1.ProofType_DNS {
-				return logerr(g, service, whichscript, i,
+				return logerr(m, service, whichscript, i,
 					"DNS script cannot contain fetch instruction")
 			}
 			if modeknown {
-				return logerr(g, service, whichscript, i,
+				return logerr(m, service, whichscript, i,
 					"Script cannot contain multiple fetch instructions")
 			}
 			switch fetchMode(fetchType) {
@@ -389,7 +389,7 @@ func validateScript(g proofContextExt, script *scriptT, service keybase1.ProofTy
 				modeknown = true
 				mode = fetchModeJSON
 			default:
-				return logerr(g, service, whichscript, i,
+				return logerr(m, service, whichscript, i,
 					"Unsupported fetch type: %v", fetchType)
 			}
 		case ins.ParseHTML != nil:
@@ -397,23 +397,23 @@ func validateScript(g proofContextExt, script *scriptT, service keybase1.ProofTy
 			// Can only select after fetching.
 			switch {
 			case service == keybase1.ProofType_DNS:
-				return logerr(g, service, whichscript, i,
+				return logerr(m, service, whichscript, i,
 					"DNS script cannot use json selector")
 			case !modeknown:
-				return logerr(g, service, whichscript, i,
+				return logerr(m, service, whichscript, i,
 					"Script cannot select before fetch")
 			case mode != fetchModeJSON:
-				return logerr(g, service, whichscript, i,
+				return logerr(m, service, whichscript, i,
 					"Script contains json selector in non-html mode")
 			}
 		case ins.SelectorCSS != nil:
 			// Can only select one of text, attr, or data.
 			if ins.SelectorCSS.Attr != "" && ins.SelectorCSS.Data {
-				return logerr(g, service, whichscript, i,
+				return logerr(m, service, whichscript, i,
 					"Script contains css selector with both 'attr' and 'data' set")
 			}
 		default:
-			return logerr(g, service, whichscript, i,
+			return logerr(m, service, whichscript, i,
 				"Unsupported PVL instruction: %v", ins)
 		}
 	}
@@ -423,13 +423,13 @@ func validateScript(g proofContextExt, script *scriptT, service keybase1.ProofTy
 
 // Run each script on each TXT record of each domain.
 // Succeed if any succeed.
-func runDNS(g proofContextExt, userdomain string, scripts []scriptT, mknewstate stateMaker, sigIDMedium string) libkb.ProofError {
+func runDNS(m metaContext, userdomain string, scripts []scriptT, mknewstate stateMaker, sigIDMedium string) libkb.ProofError {
 	domains := []string{userdomain, "_keybase." + userdomain}
 	var errs []libkb.ProofError
 	for _, d := range domains {
-		debug(g, "Trying DNS for domain: %v", d)
+		debug(m, "Trying DNS for domain: %v", d)
 
-		err := runDNSOne(g, d, scripts, mknewstate, sigIDMedium)
+		err := runDNSOne(m, d, scripts, mknewstate, sigIDMedium)
 		if err != nil {
 			errs = append(errs, err)
 		} else {
@@ -456,7 +456,7 @@ func formatDNSServer(srv string) string {
 	return srv + ":53"
 }
 
-func runDNSTXTQuery(g proofContextExt, domain string) (res []string, err error) {
+func runDNSTXTQuery(m metaContext, domain string) (res []string, err error) {
 
 	// Attempt to use the built-in resolver first, but this might fail on mobile.
 	// The reason for that is currently (as of Go 1.8), LookupTXT does not properly
@@ -464,7 +464,7 @@ func runDNSTXTQuery(g proofContextExt, domain string) (res []string, err error) 
 	// As for now, we can use a different library to specify our own name servers, since the
 	// Go resolver will attempt to use /etc/resolv.conf, which is not a thing on mobile.
 	if res, err = net.LookupTXT(domain); err != nil {
-		debug(g, "DNS LookupTXT failed: %s", err.Error())
+		debug(m, "DNS LookupTXT failed: %s", err.Error())
 	} else {
 		return res, nil
 	}
@@ -475,8 +475,8 @@ func runDNSTXTQuery(g proofContextExt, domain string) (res []string, err error) 
 		formatDNSServer("2001:4860:4860::8888"),
 	}
 	var fetchedSrvs []string
-	if g.GetDNSNameServerFetcher() != nil {
-		fetchedSrvs = g.GetDNSNameServerFetcher().GetServers()
+	if m.G().GetDNSNameServerFetcher() != nil {
+		fetchedSrvs = m.G().GetDNSNameServerFetcher().GetServers()
 		for i := 0; i < len(fetchedSrvs); i++ {
 			fetchedSrvs[i] = formatDNSServer(fetchedSrvs[i])
 		}
@@ -485,14 +485,14 @@ func runDNSTXTQuery(g proofContextExt, domain string) (res []string, err error) 
 
 	var r *dns.Msg
 	c := dns.Client{}
-	m := dns.Msg{}
+	msg := dns.Msg{}
 	found := false
 	for _, srv := range servers {
-		debug(g, "DNS trying backup server: %s", srv)
-		m.SetQuestion(domain+".", dns.TypeTXT)
-		r, _, err = c.Exchange(&m, srv)
+		debug(m, "DNS trying backup server: %s", srv)
+		msg.SetQuestion(domain+".", dns.TypeTXT)
+		r, _, err = c.Exchange(&msg, srv)
 		if err != nil {
-			debug(g, "DNS backup server failed; %s", err.Error())
+			debug(m, "DNS backup server failed; %s", err.Error())
 		} else {
 			found = true
 			break
@@ -513,14 +513,14 @@ func runDNSTXTQuery(g proofContextExt, domain string) (res []string, err error) 
 }
 
 // Run each script on each TXT record of the domain.
-func runDNSOne(g proofContextExt, domain string, scripts []scriptT, mknewstate stateMaker, sigIDMedium string) libkb.ProofError {
+func runDNSOne(m metaContext, domain string, scripts []scriptT, mknewstate stateMaker, sigIDMedium string) libkb.ProofError {
 	// Fetch TXT records
 	var txts []string
 	var err error
-	if g.getStubDNS() == nil {
-		txts, err = runDNSTXTQuery(g, domain)
+	if m.getStubDNS() == nil {
+		txts, err = runDNSTXTQuery(m, domain)
 	} else {
-		txts, err = g.getStubDNS().LookupTXT(domain)
+		txts, err = m.getStubDNS().LookupTXT(domain)
 	}
 
 	if err != nil {
@@ -529,7 +529,7 @@ func runDNSOne(g proofContextExt, domain string, scripts []scriptT, mknewstate s
 	}
 
 	for _, record := range txts {
-		debug(g, "For DNS domain '%s' got TXT record: '%s'", domain, record)
+		debug(m, "For DNS domain '%s' got TXT record: '%s'", domain, record)
 
 		// Try all scripts.
 		for i, script := range scripts {
@@ -543,7 +543,7 @@ func runDNSOne(g proofContextExt, domain string, scripts []scriptT, mknewstate s
 				return err
 			}
 
-			err = runScript(g, &script, state)
+			err = runScript(m, &script, state)
 			if err == nil {
 				return nil
 			}
@@ -557,12 +557,12 @@ func runDNSOne(g proofContextExt, domain string, scripts []scriptT, mknewstate s
 		len(txts), domain, sigIDMedium)
 }
 
-func runScript(g proofContextExt, script *scriptT, startstate scriptState) libkb.ProofError {
+func runScript(m metaContext, script *scriptT, startstate scriptState) libkb.ProofError {
 	var state = startstate
 	if len(script.Instructions) < 1 {
 		perr := libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Empty scripts are not allowed.")
-		debugWithStateError(g, state, perr)
+		debugWithStateError(m, state, perr)
 		return perr
 	}
 	for i, ins := range script.Instructions {
@@ -570,11 +570,11 @@ func runScript(g proofContextExt, script *scriptT, startstate scriptState) libkb
 		if state.PC != i {
 			perr := libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 				"Execution failure, PC mismatch %v %v", state.PC, i)
-			debugWithStateError(g, state, perr)
+			debugWithStateError(m, state, perr)
 			return perr
 		}
 
-		newstate, perr := stepInstruction(g, ins, state)
+		newstate, perr := stepInstruction(m, ins, state)
 		if perr != nil {
 			return perr
 		}
@@ -587,48 +587,48 @@ func runScript(g proofContextExt, script *scriptT, startstate scriptState) libkb
 }
 
 // stepInstruction decides which instruction to run.
-func stepInstruction(g proofContextExt, ins instructionT, state scriptState) (scriptState, libkb.ProofError) {
-	debugWithState(g, state, "Running instruction %v: %v", ins.Name(), ins)
+func stepInstruction(m metaContext, ins instructionT, state scriptState) (scriptState, libkb.ProofError) {
+	debugWithState(m, state, "Running instruction %v: %v", ins.Name(), ins)
 
 	var newState scriptState
 	var stepErr libkb.ProofError
 	var customErrSpec *errorT
 	switch {
 	case ins.AssertRegexMatch != nil:
-		newState, stepErr = stepAssertRegexMatch(g, *ins.AssertRegexMatch, state)
+		newState, stepErr = stepAssertRegexMatch(m, *ins.AssertRegexMatch, state)
 		customErrSpec = ins.AssertRegexMatch.Error
 	case ins.AssertFindBase64 != nil:
-		newState, stepErr = stepAssertFindBase64(g, *ins.AssertFindBase64, state)
+		newState, stepErr = stepAssertFindBase64(m, *ins.AssertFindBase64, state)
 		customErrSpec = ins.AssertFindBase64.Error
 	case ins.AssertCompare != nil:
-		newState, stepErr = stepAssertCompare(g, *ins.AssertCompare, state)
+		newState, stepErr = stepAssertCompare(m, *ins.AssertCompare, state)
 		customErrSpec = ins.AssertCompare.Error
 	case ins.WhitespaceNormalize != nil:
-		newState, stepErr = stepWhitespaceNormalize(g, *ins.WhitespaceNormalize, state)
+		newState, stepErr = stepWhitespaceNormalize(m, *ins.WhitespaceNormalize, state)
 		customErrSpec = ins.WhitespaceNormalize.Error
 	case ins.RegexCapture != nil:
-		newState, stepErr = stepRegexCapture(g, *ins.RegexCapture, state)
+		newState, stepErr = stepRegexCapture(m, *ins.RegexCapture, state)
 		customErrSpec = ins.RegexCapture.Error
 	case ins.ReplaceAll != nil:
-		newState, stepErr = stepReplaceAll(g, *ins.ReplaceAll, state)
+		newState, stepErr = stepReplaceAll(m, *ins.ReplaceAll, state)
 		customErrSpec = ins.ReplaceAll.Error
 	case ins.ParseURL != nil:
-		newState, stepErr = stepParseURL(g, *ins.ParseURL, state)
+		newState, stepErr = stepParseURL(m, *ins.ParseURL, state)
 		customErrSpec = ins.ParseURL.Error
 	case ins.Fetch != nil:
-		newState, stepErr = stepFetch(g, *ins.Fetch, state)
+		newState, stepErr = stepFetch(m, *ins.Fetch, state)
 		customErrSpec = ins.Fetch.Error
 	case ins.ParseHTML != nil:
-		newState, stepErr = stepParseHTML(g, *ins.ParseHTML, state)
+		newState, stepErr = stepParseHTML(m, *ins.ParseHTML, state)
 		customErrSpec = ins.ParseHTML.Error
 	case ins.SelectorJSON != nil:
-		newState, stepErr = stepSelectorJSON(g, *ins.SelectorJSON, state)
+		newState, stepErr = stepSelectorJSON(m, *ins.SelectorJSON, state)
 		customErrSpec = ins.SelectorJSON.Error
 	case ins.SelectorCSS != nil:
-		newState, stepErr = stepSelectorCSS(g, *ins.SelectorCSS, state)
+		newState, stepErr = stepSelectorCSS(m, *ins.SelectorCSS, state)
 		customErrSpec = ins.SelectorCSS.Error
 	case ins.Fill != nil:
-		newState, stepErr = stepFill(g, *ins.Fill, state)
+		newState, stepErr = stepFill(m, *ins.Fill, state)
 		customErrSpec = ins.Fill.Error
 	default:
 		newState = state
@@ -637,14 +637,14 @@ func stepInstruction(g proofContextExt, ins instructionT, state scriptState) (sc
 	}
 
 	if stepErr != nil {
-		debugWithStateError(g, state, stepErr)
-		stepErr = replaceCustomError(g, state, customErrSpec, stepErr)
+		debugWithStateError(m, state, stepErr)
+		stepErr = replaceCustomError(m, state, customErrSpec, stepErr)
 	}
 	return newState, stepErr
 
 }
 
-func stepAssertRegexMatch(g proofContextExt, ins assertRegexMatchT, state scriptState) (scriptState, libkb.ProofError) {
+func stepAssertRegexMatch(m metaContext, ins assertRegexMatchT, state scriptState) (scriptState, libkb.ProofError) {
 	rdesc := regexDescriptor{
 		Template:        ins.Pattern,
 		CaseInsensitive: ins.CaseInsensitive,
@@ -654,7 +654,7 @@ func stepAssertRegexMatch(g proofContextExt, ins assertRegexMatchT, state script
 	if err != nil {
 		return state, err
 	}
-	re, err := interpretRegex(g, state, rdesc)
+	re, err := interpretRegex(m, state, rdesc)
 	if err != nil {
 		return state, err
 	}
@@ -663,7 +663,7 @@ func stepAssertRegexMatch(g proofContextExt, ins assertRegexMatchT, state script
 		if ins.Negate {
 			negate = ""
 		}
-		debugWithState(g, state, "Regex did %smatch:\n  %v\n  %v\n  %q",
+		debugWithState(m, state, "Regex did %smatch:\n  %v\n  %v\n  %q",
 			negate, rdesc.Template, re, from)
 		return state, libkb.NewProofError(keybase1.ProofStatus_CONTENT_FAILURE,
 			"Regex did %smatch (%v)", negate, rdesc.Template)
@@ -672,7 +672,7 @@ func stepAssertRegexMatch(g proofContextExt, ins assertRegexMatchT, state script
 	return state, nil
 }
 
-func stepAssertFindBase64(g proofContextExt, ins assertFindBase64T, state scriptState) (scriptState, libkb.ProofError) {
+func stepAssertFindBase64(m metaContext, ins assertFindBase64T, state scriptState) (scriptState, libkb.ProofError) {
 	if ins.Needle != "sig" {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Can only assert_find_base64 for sig")
@@ -688,7 +688,7 @@ func stepAssertFindBase64(g proofContextExt, ins assertFindBase64T, state script
 		"Signature not found")
 }
 
-func stepAssertCompare(g proofContextExt, ins assertCompareT, state scriptState) (scriptState, libkb.ProofError) {
+func stepAssertCompare(m metaContext, ins assertCompareT, state scriptState) (scriptState, libkb.ProofError) {
 	a, err := state.Regs.Get(ins.A)
 	if err != nil {
 		return state, err
@@ -715,7 +715,7 @@ func stepAssertCompare(g proofContextExt, ins assertCompareT, state scriptState)
 	}
 
 	if !same {
-		debugWithState(g, state, "Comparison (%v) failed\n  %v != %v\n  '%v' != '%v'",
+		debugWithState(m, state, "Comparison (%v) failed\n  %v != %v\n  '%v' != '%v'",
 			ins.Cmp, ins.A, ins.B, a, b)
 		return state, libkb.NewProofError(keybase1.ProofStatus_CONTENT_FAILURE,
 			"Comparison (%v) failed '%v' != '%v'", ins.Cmp, a, b)
@@ -724,7 +724,7 @@ func stepAssertCompare(g proofContextExt, ins assertCompareT, state scriptState)
 	return state, nil
 }
 
-func stepWhitespaceNormalize(g proofContextExt, ins whitespaceNormalizeT, state scriptState) (scriptState, libkb.ProofError) {
+func stepWhitespaceNormalize(m metaContext, ins whitespaceNormalizeT, state scriptState) (scriptState, libkb.ProofError) {
 	from, err := state.Regs.Get(ins.From)
 	if err != nil {
 		return state, err
@@ -734,7 +734,7 @@ func stepWhitespaceNormalize(g proofContextExt, ins whitespaceNormalizeT, state 
 	return state, err
 }
 
-func stepRegexCapture(g proofContextExt, ins regexCaptureT, state scriptState) (scriptState, libkb.ProofError) {
+func stepRegexCapture(m metaContext, ins regexCaptureT, state scriptState) (scriptState, libkb.ProofError) {
 	rdesc := regexDescriptor{
 		Template:        ins.Pattern,
 		CaseInsensitive: ins.CaseInsensitive,
@@ -746,7 +746,7 @@ func stepRegexCapture(g proofContextExt, ins regexCaptureT, state scriptState) (
 		return state, err
 	}
 
-	re, err := interpretRegex(g, state, rdesc)
+	re, err := interpretRegex(m, state, rdesc)
 	if err != nil {
 		return state, err
 	}
@@ -761,7 +761,7 @@ func stepRegexCapture(g proofContextExt, ins regexCaptureT, state scriptState) (
 	// Assert that the match matched and has at least one capture group.
 	// -1 for the ignored first element of match
 	if len(match)-1 < len(ins.Into) {
-		debugWithState(g, state, "Regex capture did not match enough groups:\n  %v\n  %v\n  %q\n  %v",
+		debugWithState(m, state, "Regex capture did not match enough groups:\n  %v\n  %v\n  %q\n  %v",
 			rdesc.Template, re, from, match)
 		return state, libkb.NewProofError(keybase1.ProofStatus_CONTENT_FAILURE,
 			"Regex capture did not match enough groups (%v)", rdesc.Template)
@@ -775,7 +775,7 @@ func stepRegexCapture(g proofContextExt, ins regexCaptureT, state scriptState) (
 	return state, nil
 }
 
-func stepReplaceAll(g proofContextExt, ins replaceAllT, state scriptState) (scriptState, libkb.ProofError) {
+func stepReplaceAll(m metaContext, ins replaceAllT, state scriptState) (scriptState, libkb.ProofError) {
 	from, err := state.Regs.Get(ins.From)
 	if err != nil {
 		return state, err
@@ -790,7 +790,7 @@ func stepReplaceAll(g proofContextExt, ins replaceAllT, state scriptState) (scri
 	return state, nil
 }
 
-func stepParseURL(g proofContextExt, ins parseURLT, state scriptState) (scriptState, libkb.ProofError) {
+func stepParseURL(m metaContext, ins parseURLT, state scriptState) (scriptState, libkb.ProofError) {
 	s, err := state.Regs.Get(ins.From)
 	if err != nil {
 		return state, err
@@ -826,7 +826,7 @@ func stepParseURL(g proofContextExt, ins parseURLT, state scriptState) (scriptSt
 	return state, nil
 }
 
-func stepFetch(g proofContextExt, ins fetchT, state scriptState) (scriptState, libkb.ProofError) {
+func stepFetch(m metaContext, ins fetchT, state scriptState) (scriptState, libkb.ProofError) {
 	if state.FetchResult != nil {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Script cannot contain more than one fetch")
@@ -841,7 +841,7 @@ func stepFetch(g proofContextExt, ins fetchT, state scriptState) (scriptState, l
 		return state, err
 	}
 	if state.Service == keybase1.ProofType_ROOTER {
-		from2, err := rooterRewriteURL(g, from)
+		from2, err := rooterRewriteURL(m, from)
 		if err != nil {
 			return state, libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE,
 				"Could not rewrite rooter URL: %v", err)
@@ -851,8 +851,8 @@ func stepFetch(g proofContextExt, ins fetchT, state scriptState) (scriptState, l
 
 	switch fetchMode(ins.Kind) {
 	case fetchModeString:
-		debugWithState(g, state, "fetchurl: %v", from)
-		res, err1 := g.GetExternalAPI().GetText(libkb.NewAPIArgWithNetContext(g.GetNetContext(), from))
+		debugWithState(m, state, "fetchurl: %v", from)
+		res, err1 := m.G().GetExternalAPI().GetText(libkb.APIArg{Endpoint: from, MetaContext: m.MetaContext})
 		if err1 != nil {
 			return state, libkb.XapiError(err1, from)
 		}
@@ -870,7 +870,7 @@ func stepFetch(g proofContextExt, ins fetchT, state scriptState) (scriptState, l
 			return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 				"JSON fetch must not specify 'into' register")
 		}
-		res, err1 := g.GetExternalAPI().Get(libkb.NewAPIArgWithNetContext(g.GetNetContext(), from))
+		res, err1 := m.G().GetExternalAPI().Get(libkb.APIArg{Endpoint: from, MetaContext: m.MetaContext})
 		if err1 != nil {
 			return state, libkb.XapiError(err1, from)
 		}
@@ -884,7 +884,7 @@ func stepFetch(g proofContextExt, ins fetchT, state scriptState) (scriptState, l
 			return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 				"HTML fetch must not specify 'into' register")
 		}
-		res, err1 := g.GetExternalAPI().GetHTML(libkb.NewAPIArgWithNetContext(g.GetNetContext(), from))
+		res, err1 := m.G().GetExternalAPI().GetHTML(libkb.APIArg{Endpoint: from, MetaContext: m.MetaContext})
 		if err1 != nil {
 			return state, libkb.XapiError(err1, from)
 		}
@@ -899,7 +899,7 @@ func stepFetch(g proofContextExt, ins fetchT, state scriptState) (scriptState, l
 	}
 }
 
-func stepParseHTML(g proofContextExt, ins parseHTMLT, state scriptState) (scriptState, libkb.ProofError) {
+func stepParseHTML(m metaContext, ins parseHTMLT, state scriptState) (scriptState, libkb.ProofError) {
 	from, err := state.Regs.Get(ins.From)
 	if err != nil {
 		return state, err
@@ -917,7 +917,7 @@ func stepParseHTML(g proofContextExt, ins parseHTMLT, state scriptState) (script
 	return state, nil
 }
 
-func stepSelectorJSON(g proofContextExt, ins selectorJSONT, state scriptState) (scriptState, libkb.ProofError) {
+func stepSelectorJSON(m metaContext, ins selectorJSONT, state scriptState) (scriptState, libkb.ProofError) {
 	if state.FetchResult == nil || state.FetchResult.fetchMode != fetchModeJSON {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Cannot use json selector with non-json fetch result")
@@ -928,7 +928,7 @@ func stepSelectorJSON(g proofContextExt, ins selectorJSONT, state scriptState) (
 			"Json selector list must contain at least 1 element")
 	}
 
-	results, perr := runSelectorJSONInner(g, state, state.FetchResult.JSON, ins.Selectors)
+	results, perr := runSelectorJSONInner(m, state, state.FetchResult.JSON, ins.Selectors)
 	if perr != nil {
 		return state, perr
 	}
@@ -942,13 +942,13 @@ func stepSelectorJSON(g proofContextExt, ins selectorJSONT, state scriptState) (
 	return state, err
 }
 
-func stepSelectorCSS(g proofContextExt, ins selectorCSST, state scriptState) (scriptState, libkb.ProofError) {
+func stepSelectorCSS(m metaContext, ins selectorCSST, state scriptState) (scriptState, libkb.ProofError) {
 	if state.FetchResult == nil || state.FetchResult.fetchMode != fetchModeHTML {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Cannot use css selector with non-html fetch result")
 	}
 
-	selection, perr := runCSSSelectorInner(g, state.FetchResult.HTML.Selection, ins.Selectors)
+	selection, perr := runCSSSelectorInner(m, state.FetchResult.HTML.Selection, ins.Selectors)
 	if perr != nil {
 		return state, perr
 	}
@@ -977,10 +977,10 @@ func stepSelectorCSS(g proofContextExt, ins selectorCSST, state scriptState) (sc
 	return state, err
 }
 
-func stepFill(g proofContextExt, ins fillT, state scriptState) (scriptState, libkb.ProofError) {
+func stepFill(m metaContext, ins fillT, state scriptState) (scriptState, libkb.ProofError) {
 	s, err := substituteExact(ins.With, state)
 	if err != nil {
-		debugWithState(g, state, "Fill did not succeed:\n  %v\n  %v\n  %v",
+		debugWithState(m, state, "Fill did not succeed:\n  %v\n  %v\n  %v",
 			ins.With, err, ins.Into)
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Could not fill variable (%v): %v", ins.Into, err)
@@ -993,7 +993,7 @@ func stepFill(g proofContextExt, ins fillT, state scriptState) (scriptState, lib
 // Run a PVL CSS selector.
 // selectors is a list like [ "div .foo", 0, ".bar"] ].
 // Each string runs a selector, each integer runs a Eq.
-func runCSSSelectorInner(g proofContextExt, html *goquery.Selection, selectors []selectorEntryT) (*goquery.Selection, libkb.ProofError) {
+func runCSSSelectorInner(m metaContext, html *goquery.Selection, selectors []selectorEntryT) (*goquery.Selection, libkb.ProofError) {
 	if len(selectors) < 1 {
 		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"CSS selectors array must not be empty")
@@ -1021,12 +1021,12 @@ func runCSSSelectorInner(g proofContextExt, html *goquery.Selection, selectors [
 
 // Most failures here log instead of returning an error. If an error occurs, ([], nil) will be returned.
 // This is because a selector may descend into many subtrees and fail in all but one.
-func runSelectorJSONInner(g proofContextExt, state scriptState, selectedObject *jsonw.Wrapper, selectors []selectorEntryT) ([]string, libkb.ProofError) {
+func runSelectorJSONInner(m metaContext, state scriptState, selectedObject *jsonw.Wrapper, selectors []selectorEntryT) ([]string, libkb.ProofError) {
 	// The terminating condition is when we've consumed all the selectors.
 	if len(selectors) == 0 {
 		s, err := jsonStringSimple(selectedObject)
 		if err != nil {
-			debugWithState(g, state, "JSON could not read object: %v (%v)", err, selectedObject)
+			debugWithState(m, state, "JSON could not read object: %v (%v)", err, selectedObject)
 			return []string{}, nil
 		}
 		return []string{s}, nil
@@ -1039,7 +1039,7 @@ func runSelectorJSONInner(g proofContextExt, state scriptState, selectedObject *
 	case selector.IsIndex:
 		object, err := selectedObject.ToArray()
 		if err != nil {
-			debugWithState(g, state, "JSON select by index from non-array: %v (%v) (%v)", err, selector.Index, object)
+			debugWithState(m, state, "JSON select by index from non-array: %v (%v) (%v)", err, selector.Index, object)
 			return []string{}, nil
 		}
 		length, err := object.Len()
@@ -1052,25 +1052,25 @@ func runSelectorJSONInner(g proofContextExt, state scriptState, selectedObject *
 			return []string{}, nil
 		}
 		nextobject := object.AtIndex(index)
-		return runSelectorJSONInner(g, state, nextobject, nextselectors)
+		return runSelectorJSONInner(m, state, nextobject, nextselectors)
 	case selector.IsKey:
 		object, err := selectedObject.ToDictionary()
 		if err != nil {
-			debugWithState(g, state, "JSON select by key from non-map: %v (%v) (%v)", err, selector.Key, object)
+			debugWithState(m, state, "JSON select by key from non-map: %v (%v) (%v)", err, selector.Key, object)
 			return []string{}, nil
 		}
 
 		nextobject := object.AtKey(selector.Key)
-		return runSelectorJSONInner(g, state, nextobject, nextselectors)
+		return runSelectorJSONInner(m, state, nextobject, nextselectors)
 	case selector.IsAll:
 		children, err := jsonGetChildren(selectedObject)
 		if err != nil {
-			debugWithState(g, state, "JSON select could not get children: %v (%v)", err, selectedObject)
+			debugWithState(m, state, "JSON select could not get children: %v (%v)", err, selectedObject)
 			return []string{}, nil
 		}
 		var results []string
 		for _, child := range children {
-			innerresults, perr := runSelectorJSONInner(g, state, child, nextselectors)
+			innerresults, perr := runSelectorJSONInner(m, state, child, nextselectors)
 			if perr != nil {
 				return nil, perr
 			}
@@ -1084,7 +1084,7 @@ func runSelectorJSONInner(g proofContextExt, state scriptState, selectedObject *
 }
 
 // Take a regex descriptor, do variable substitution, and build a regex.
-func interpretRegex(g proofContextExt, state scriptState, rdesc regexDescriptor) (*regexp.Regexp, libkb.ProofError) {
+func interpretRegex(m metaContext, state scriptState, rdesc regexDescriptor) (*regexp.Regexp, libkb.ProofError) {
 	// Check that regex is bounded by "^" and "$".
 	if !strings.HasPrefix(rdesc.Template, "^") {
 		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
@@ -1118,7 +1118,7 @@ func interpretRegex(g proofContextExt, state scriptState, rdesc regexDescriptor)
 	// Build the regex.
 	re, err := regexp.Compile(pattern)
 	if err != nil {
-		debugWithState(g, state, "Could not compile regex: %v\n  %v\n  %v", err, rdesc.Template, pattern)
+		debugWithState(m, state, "Could not compile regex: %v\n  %v\n  %v", err, rdesc.Template, pattern)
 		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Could not compile regex: %v (%v)", err, rdesc.Template)
 	}
@@ -1128,7 +1128,7 @@ func interpretRegex(g proofContextExt, state scriptState, rdesc regexDescriptor)
 // Use a custom error spec to derive an error.
 // spec can be none
 // Copies over the error code if none is specified.
-func replaceCustomError(g proofContextExt, state scriptState, spec *errorT, err1 libkb.ProofError) libkb.ProofError {
+func replaceCustomError(m metaContext, state scriptState, spec *errorT, err1 libkb.ProofError) libkb.ProofError {
 	if err1 == nil {
 		return err1
 	}
@@ -1149,8 +1149,8 @@ func replaceCustomError(g proofContextExt, state scriptState, spec *errorT, err1
 			newDesc = subbedDesc
 		}
 		err2 := libkb.NewProofError(spec.Status, newDesc)
-		debugWithState(g, state, "Replacing error with custom error")
-		debugWithStateError(g, state, err2)
+		debugWithState(m, state, "Replacing error with custom error")
+		debugWithStateError(m, state, err2)
 
 		return err2
 	}

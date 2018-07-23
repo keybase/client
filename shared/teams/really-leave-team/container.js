@@ -24,7 +24,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onLeave: () => {
     dispatch(TeamsGen.createLeaveTeam({teamname: routeProps.get('teamname')}))
     dispatch(navigateTo([teamsTab]))
-    dispatch(TeamsGen.createGetTeams())
   },
 })
 

@@ -8,6 +8,7 @@ import (
 
 	"sync"
 
+	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -25,6 +26,8 @@ type baseConversationSource struct {
 
 	boxer *Boxer
 	ri    func() chat1.RemoteInterface
+
+	blackoutPullForTesting bool
 }
 
 func newBaseConversationSource(g *globals.Context, ri func() chat1.RemoteInterface, boxer *Boxer) *baseConversationSource {
@@ -70,6 +73,38 @@ func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.U
 		}))
 }
 
+func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread *chat1.ThreadView) {
+	pp := attachments.NewPendingPreviews(s.G())
+	for index, m := range thread.Messages {
+		typ, err := m.State()
+		if err != nil {
+			s.Debug(ctx, "addPendingPreviews: failed to get state: %s", err)
+			continue
+		}
+		if typ != chat1.MessageUnboxedState_OUTBOX {
+			continue
+		}
+		obr := m.Outbox()
+		pre, err := pp.Get(ctx, obr.OutboxID)
+		if err != nil {
+			s.Debug(ctx, "addPendingPreviews: failed to get pending preview: outboxID: %s err: %s",
+				obr.OutboxID, err)
+			continue
+		}
+		mpr, err := pre.Export(func() *chat1.PreviewLocation {
+			loc := chat1.NewPreviewLocationWithUrl(s.G().AttachmentURLSrv.GetPendingPreviewURL(ctx,
+				obr.OutboxID))
+			return &loc
+		})
+		if err != nil {
+			s.Debug(ctx, "addPendingPreviews: failed to export: %s", err)
+			continue
+		}
+		obr.Preview = &mpr
+		thread.Messages[index] = chat1.NewMessageUnboxedWithOutbox(obr)
+	}
+}
+
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
 	conv types.UnboxConversationInfo, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
 	superXform supersedesTransform, checkPrev bool, patchPagination bool) (err error) {
@@ -78,6 +113,12 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	// TODO: We'll do this against what's in the cache once that's ready,
 	//       rather than only checking the messages we just fetched against
 	//       each other.
+
+	if s.blackoutPullForTesting {
+		thread.Messages = nil
+		return nil
+	}
+
 	if checkPrev {
 		_, _, err = CheckPrevPointersAndGetUnpreved(thread)
 		if err != nil {
@@ -116,6 +157,8 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 			return err
 		}
 	}
+	// Add attachment previews to pending messages
+	s.addPendingPreviews(ctx, thread)
 
 	return nil
 }
@@ -490,6 +533,16 @@ func (s *HybridConversationSource) isContinuousPush(ctx context.Context, convID 
 	return continuousUpdate, nil
 }
 
+// completeAttachmentUpload removes any attachment previews from pending preview storage
+func (s *HybridConversationSource) completeAttachmentUpload(ctx context.Context, msg chat1.MessageUnboxed) {
+	if msg.GetMessageType() == chat1.MessageType_ATTACHMENT {
+		outboxID := msg.OutboxID()
+		if outboxID != nil {
+			s.G().AttachmentUploader.Complete(ctx, *outboxID)
+		}
+	}
+}
+
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msg chat1.MessageBoxed) (decmsg chat1.MessageUnboxed, continuousUpdate bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Push")()
@@ -524,9 +577,12 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 		})
 	}
 
+	// Add to the local storage
 	if err = s.mergeMaybeNotify(ctx, convID, uid, []chat1.MessageUnboxed{decmsg}); err != nil {
 		return decmsg, continuousUpdate, err
 	}
+	// Remove any pending previews from storage
+	s.completeAttachmentUpload(ctx, decmsg)
 
 	return decmsg, continuousUpdate, nil
 }
@@ -546,7 +602,6 @@ func (s *HybridConversationSource) PushUnboxed(ctx context.Context, convID chat1
 	if err = s.mergeMaybeNotify(ctx, convID, uid, []chat1.MessageUnboxed{msg}); err != nil {
 		return continuousUpdate, err
 	}
-
 	return continuousUpdate, nil
 }
 
@@ -1033,14 +1088,14 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	return res, nil
 }
 
-func (s *HybridConversationSource) expungeNotify(ctx context.Context, uid gregor1.UID,
+func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, mergeRes storage.MergeResult) {
 	if mergeRes.Expunged != nil {
 		var inboxItem *chat1.InboxUIItem
 		topicType := chat1.TopicType_NONE
-		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true)
+		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true /* useLocalData */)
 		if err != nil {
-			s.Debug(ctx, "expungeNotify: failed to get conversations: %s", err)
+			s.Debug(ctx, "notifyExpunge: failed to get conversations: %s", err)
 		} else {
 			inboxItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, conv)
 			topicType = conv.GetTopicType()
@@ -1050,7 +1105,25 @@ func (s *HybridConversationSource) expungeNotify(ctx context.Context, uid gregor
 			Expunge: *mergeRes.Expunged,
 			Conv:    inboxItem,
 		})
-		s.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(uid.String()), topicType, &act)
+		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &act, chat1.ChatActivitySource_LOCAL)
+	}
+}
+
+// notifyReactionDeletes notifies the GUI after reactions are deleted
+func (s *HybridConversationSource) notifyReactionDeletes(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, reactionDeletes []chat1.ReactionDelete) {
+	s.Debug(ctx, "notifyReactionDeletes: %d deletions", len(reactionDeletes))
+	if len(reactionDeletes) > 0 {
+		topicType := chat1.TopicType_NONE
+		if conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true /* useLocalData */); err != nil {
+			s.Debug(ctx, "notifyExpunge: failed to get conversations: %s", err)
+		} else {
+			topicType = conv.GetTopicType()
+		}
+		activity := chat1.NewChatActivityWithReactionDelete(chat1.ReactionDeleteNotif{
+			ReactionDeletes: reactionDeletes,
+			ConvID:          convID,
+		})
+		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &activity, chat1.ChatActivitySource_LOCAL)
 	}
 }
 
@@ -1060,7 +1133,7 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 	if len(explodedMsgs) > 0 {
 		var inboxItem *chat1.InboxUIItem
 		topicType := chat1.TopicType_NONE
-		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true)
+		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true /* useLocalData */)
 		if err != nil {
 			s.Debug(ctx, "notifyEphemeralPurge: failed to get conversations: %s", err)
 		} else {
@@ -1076,7 +1149,7 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 			Msgs:   purgedMsgs,
 			Conv:   inboxItem,
 		})
-		s.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(uid.String()), topicType, &act)
+		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &act, chat1.ChatActivitySource_LOCAL)
 	}
 }
 
@@ -1097,7 +1170,7 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 		return err
 	}
 
-	s.expungeNotify(ctx, uid, convID, mergeRes)
+	s.notifyExpunge(ctx, uid, convID, mergeRes)
 	return nil
 }
 
@@ -1109,8 +1182,9 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	if err != nil {
 		return err
 	}
-	s.expungeNotify(ctx, uid, convID, mergeRes)
+	s.notifyExpunge(ctx, uid, convID, mergeRes)
 	s.notifyEphemeralPurge(ctx, uid, convID, mergeRes.Exploded)
+	s.notifyReactionDeletes(ctx, uid, convID, mergeRes.ReactionDeletes)
 	return nil
 }
 

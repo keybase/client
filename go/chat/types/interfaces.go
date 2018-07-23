@@ -146,6 +146,8 @@ type InboxSource interface {
 		policy chat1.RetentionPolicy) (*chat1.ConversationLocal, error)
 	SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, teamID keybase1.TeamID,
 		policy chat1.RetentionPolicy) ([]chat1.ConversationLocal, error)
+	SetConvMinWriterRole(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
+		info *chat1.ConversationMinWriterRoleInfo) (*chat1.ConversationLocal, error)
 
 	GetInboxQueryLocalToRemote(ctx context.Context,
 		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, *NameInfo, error)
@@ -224,6 +226,41 @@ type TeamChannelSource interface {
 	ChannelsChanged(context.Context, chat1.TLFID)
 }
 
+type ActivityNotifier interface {
+	Activity(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType, activity *chat1.ChatActivity,
+		source chat1.ChatActivitySource)
+	TypingUpdate(ctx context.Context, updates []chat1.ConvTypingUpdate)
+	JoinedConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		topicType chat1.TopicType, conv *chat1.InboxUIItem)
+	LeftConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		topicType chat1.TopicType)
+	ResetConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		topicType chat1.TopicType)
+	KBFSToImpteamUpgrade(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		topicType chat1.TopicType)
+	SetConvRetention(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		topicType chat1.TopicType, conv *chat1.InboxUIItem)
+	SetTeamRetention(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID, topicType chat1.TopicType,
+		convs []chat1.InboxUIItem)
+	SetConvMinWriterRole(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		topicType chat1.TopicType, conv *chat1.InboxUIItem)
+
+	InboxSyncStarted(ctx context.Context, uid gregor1.UID)
+	InboxSynced(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType, syncRes chat1.ChatSyncResult)
+	InboxStale(ctx context.Context, uid gregor1.UID)
+	ThreadsStale(ctx context.Context, uid gregor1.UID, updates []chat1.ConversationStaleUpdate)
+
+	TLFFinalize(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType,
+		finalizeInfo chat1.ConversationFinalizeInfo, conv *chat1.InboxUIItem)
+	TLFResolve(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType,
+		resolveInfo chat1.ConversationResolveInfo)
+
+	AttachmentUploadStart(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		outboxID chat1.OutboxID)
+	AttachmentUploadProgress(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		outboxID chat1.OutboxID, bytesComplete, bytesTotal int64)
+}
+
 type IdentifyNotifier interface {
 	Reset()
 	ResetOnGUIConnect()
@@ -246,6 +283,7 @@ type AttachmentFetcher interface {
 type AttachmentURLSrv interface {
 	GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
 		preview bool) string
+	GetPendingPreviewURL(ctx context.Context, outboxID chat1.OutboxID) string
 	GetAttachmentFetcher() AttachmentFetcher
 }
 
@@ -258,4 +296,13 @@ type EphemeralPurger interface {
 	Resumable
 
 	Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) error
+}
+
+type AttachmentUploader interface {
+	Register(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		outboxID chat1.OutboxID, title, filename string, metadata []byte,
+		callerPreview *chat1.MakePreviewRes) (chan AttachmentUploadResult, error)
+	Status(ctx context.Context, outboxID chat1.OutboxID) (AttachmentUploaderTaskStatus, AttachmentUploadResult, error)
+	Retry(ctx context.Context, outboxID chat1.OutboxID) (chan AttachmentUploadResult, error)
+	Complete(ctx context.Context, outboxID chat1.OutboxID)
 }

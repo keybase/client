@@ -337,14 +337,14 @@ func (o *Outbox) MarkAsError(ctx context.Context, obr chat1.OutboxRecord, errRec
 }
 
 func (o *Outbox) RetryMessage(ctx context.Context, obid chat1.OutboxID,
-	identifyBehavior *keybase1.TLFIdentifyBehavior) error {
+	identifyBehavior *keybase1.TLFIdentifyBehavior) (res *chat1.OutboxRecord, err error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
-	obox, err := o.readDiskOutbox(ctx)
-	if err != nil {
-		return o.maybeNuke(err, o.dbKey())
+	obox, ierr := o.readDiskOutbox(ctx)
+	if ierr != nil {
+		return res, o.maybeNuke(ierr, o.dbKey())
 	}
 
 	// Loop through and find record
@@ -357,6 +357,7 @@ func (o *Outbox) RetryMessage(ctx context.Context, obid chat1.OutboxID,
 			if identifyBehavior != nil {
 				obr.IdentifyBehavior = *identifyBehavior
 			}
+			res = &obr
 		}
 		recs = append(recs, obr)
 	}
@@ -364,10 +365,34 @@ func (o *Outbox) RetryMessage(ctx context.Context, obid chat1.OutboxID,
 	// Write out diskbox
 	obox.Records = recs
 	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
-		return o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
+		return res, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
 	}
 
+	return res, nil
+}
+
+func (o *Outbox) UpdateMessage(ctx context.Context, replaceobr chat1.OutboxRecord) error {
+	locks.Outbox.Lock()
+	defer locks.Outbox.Unlock()
+	obox, err := o.readDiskOutbox(ctx)
+	if err != nil {
+		return o.maybeNuke(err, o.dbKey())
+	}
+	// Scan to find the message and replace it
+	var recs []chat1.OutboxRecord
+	for _, obr := range obox.Records {
+		if !obr.OutboxID.Eq(&replaceobr.OutboxID) {
+			recs = append(recs, obr)
+		} else {
+			recs = append(recs, replaceobr)
+		}
+	}
+	obox.Records = recs
+	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
+		return o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
+			"error writing outbox: err: %s", err.Error()), o.dbKey())
+	}
 	return nil
 }
 
@@ -493,17 +518,17 @@ func (o *Outbox) SprinkleIntoThread(ctx context.Context, convID chat1.Conversati
 // they leave it). Currently we purge anything that is in the error state and
 // has been in the outbox for > errorPurgeCutoff minutes for regular messages
 // or ephemeralPurgeCutoff minutes for ephemeral messages.
-func (o *Outbox) OutboxPurge(ctx context.Context) (err error) {
+func (o *Outbox) OutboxPurge(ctx context.Context) (ephemeralPurged []chat1.OutboxRecord, err error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
 	obox, rerr := o.readDiskOutbox(ctx)
 	if rerr != nil {
-		return o.maybeNuke(rerr, o.dbKey())
+		return ephemeralPurged, o.maybeNuke(rerr, o.dbKey())
 	}
 
-	var ephemeralPurged, recs []chat1.OutboxRecord
+	var recs []chat1.OutboxRecord
 	for _, obr := range obox.Records {
 		st, err := obr.State.State()
 		if err != nil {
@@ -531,17 +556,9 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (err error) {
 
 	// Write out diskbox
 	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
-		return o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
+		return ephemeralPurged, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
 	}
 
-	if len(ephemeralPurged) > 0 {
-		act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
-			OutboxRecords:    ephemeralPurged,
-			IsEphemeralPurge: true,
-		})
-		o.G().NotifyRouter.HandleNewChatActivity(context.Background(),
-			keybase1.UID(o.GetUID().String()), chat1.TopicType_NONE, &act)
-	}
-	return nil
+	return ephemeralPurged, nil
 }

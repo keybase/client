@@ -32,24 +32,12 @@ func (o DeviceEkMetadata) DeepCopy() DeviceEkMetadata {
 }
 
 type DeviceEkStatement struct {
-	CurrentDeviceEkMetadata  DeviceEkMetadata   `codec:"currentDeviceEkMetadata" json:"current_device_ek_metadata"`
-	ExistingDeviceEkMetadata []DeviceEkMetadata `codec:"existingDeviceEkMetadata" json:"existing_device_ek_metadata"`
+	CurrentDeviceEkMetadata DeviceEkMetadata `codec:"currentDeviceEkMetadata" json:"current_device_ek_metadata"`
 }
 
 func (o DeviceEkStatement) DeepCopy() DeviceEkStatement {
 	return DeviceEkStatement{
 		CurrentDeviceEkMetadata: o.CurrentDeviceEkMetadata.DeepCopy(),
-		ExistingDeviceEkMetadata: (func(x []DeviceEkMetadata) []DeviceEkMetadata {
-			if x == nil {
-				return nil
-			}
-			var ret []DeviceEkMetadata
-			for _, v := range x {
-				vCopy := v.DeepCopy()
-				ret = append(ret, vCopy)
-			}
-			return ret
-		})(o.ExistingDeviceEkMetadata),
 	}
 }
 
@@ -66,24 +54,12 @@ func (o DeviceEk) DeepCopy() DeviceEk {
 }
 
 type UserEkStatement struct {
-	CurrentUserEkMetadata  UserEkMetadata   `codec:"currentUserEkMetadata" json:"current_user_ek_metadata"`
-	ExistingUserEkMetadata []UserEkMetadata `codec:"existingUserEkMetadata" json:"existing_user_ek_metadata"`
+	CurrentUserEkMetadata UserEkMetadata `codec:"currentUserEkMetadata" json:"current_user_ek_metadata"`
 }
 
 func (o UserEkStatement) DeepCopy() UserEkStatement {
 	return UserEkStatement{
 		CurrentUserEkMetadata: o.CurrentUserEkMetadata.DeepCopy(),
-		ExistingUserEkMetadata: (func(x []UserEkMetadata) []UserEkMetadata {
-			if x == nil {
-				return nil
-			}
-			var ret []UserEkMetadata
-			for _, v := range x {
-				vCopy := v.DeepCopy()
-				ret = append(ret, vCopy)
-			}
-			return ret
-		})(o.ExistingUserEkMetadata),
 	}
 }
 
@@ -160,24 +136,12 @@ func (o TeamEkMetadata) DeepCopy() TeamEkMetadata {
 }
 
 type TeamEkStatement struct {
-	CurrentTeamEkMetadata  TeamEkMetadata   `codec:"currentTeamEkMetadata" json:"current_team_ek_metadata"`
-	ExistingTeamEkMetadata []TeamEkMetadata `codec:"existingTeamEkMetadata" json:"existing_team_ek_metadata"`
+	CurrentTeamEkMetadata TeamEkMetadata `codec:"currentTeamEkMetadata" json:"current_team_ek_metadata"`
 }
 
 func (o TeamEkStatement) DeepCopy() TeamEkStatement {
 	return TeamEkStatement{
 		CurrentTeamEkMetadata: o.CurrentTeamEkMetadata.DeepCopy(),
-		ExistingTeamEkMetadata: (func(x []TeamEkMetadata) []TeamEkMetadata {
-			if x == nil {
-				return nil
-			}
-			var ret []TeamEkMetadata
-			for _, v := range x {
-				vCopy := v.DeepCopy()
-				ret = append(ret, vCopy)
-			}
-			return ret
-		})(o.ExistingTeamEkMetadata),
 	}
 }
 

@@ -117,7 +117,8 @@ func TestChatOutbox(t *testing.T) {
 	require.Equal(t, 1, len(res), "wrong len")
 
 	// Retry the error
-	require.NoError(t, ob.RetryMessage(context.TODO(), obrs[2].OutboxID, nil))
+	_, err = ob.RetryMessage(context.TODO(), obrs[2].OutboxID, nil)
+	require.NoError(t, err)
 	res, err = ob.PullAllConversations(context.TODO(), true, false)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(res), "wrong len")
@@ -178,7 +179,7 @@ func TestChatOutboxPurge(t *testing.T) {
 	require.Equal(t, obrs, res, "wrong obids")
 
 	// Nothing is in the error state & expired, so we should not have purged anything
-	err = ob.OutboxPurge(context.TODO())
+	_, err = ob.OutboxPurge(context.TODO())
 	require.NoError(t, err)
 
 	res, err = ob.PullAllConversations(context.TODO(), true, false)
@@ -196,7 +197,7 @@ func TestChatOutboxPurge(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	err = ob.OutboxPurge(context.TODO())
+	_, err = ob.OutboxPurge(context.TODO())
 	require.NoError(t, err)
 	res, err = ob.PullAllConversations(context.TODO(), true, false)
 	require.NoError(t, err)
@@ -205,7 +206,7 @@ func TestChatOutboxPurge(t *testing.T) {
 	// move the clock forward the ephemeralPurgeCutoff duration and we'll
 	// remove the ephemeral records.
 	cl.Advance(ephemeralPurgeCutoff)
-	err = ob.OutboxPurge(context.TODO())
+	_, err = ob.OutboxPurge(context.TODO())
 	require.NoError(t, err)
 	res, err = ob.PullAllConversations(context.TODO(), true, false)
 	require.NoError(t, err)
@@ -214,7 +215,7 @@ func TestChatOutboxPurge(t *testing.T) {
 	// move the clock forward the errorPurgeCutoff duration and we'll remove
 	// the records that are marked as an error.
 	cl.Advance(errorPurgeCutoff)
-	err = ob.OutboxPurge(context.TODO())
+	_, err = ob.OutboxPurge(context.TODO())
 	require.NoError(t, err)
 	res, err = ob.PullAllConversations(context.TODO(), true, false)
 	require.NoError(t, err)

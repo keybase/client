@@ -193,7 +193,7 @@ func (e *PaperKeyGen) getClientHalfFromSecretStore(m libkb.MetaContext) (clientH
 		return clientHalf, ppgen, errors.New("No secret store available")
 	}
 
-	secret, err := secretStore.RetrieveSecret()
+	secret, err := secretStore.RetrieveSecret(m)
 	if err != nil {
 		return clientHalf, ppgen, err
 	}
@@ -269,12 +269,7 @@ func (e *PaperKeyGen) push(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	// post them to the server.
-	var sr libkb.SessionReader
-	if lctx := m.LoginContext(); lctx != nil {
-		sr = lctx.LocalSession()
-	}
-	if err := libkb.PostDeviceLKS(m, sr, backupDev.ID, libkb.DeviceTypePaper, backupLks.GetServerHalf(), backupLks.Generation(), ctext, e.encKey.GetKID()); err != nil {
+	if err := libkb.PostDeviceLKS(m, backupDev.ID, libkb.DeviceTypePaper, backupLks.GetServerHalf(), backupLks.Generation(), ctext, e.encKey.GetKID()); err != nil {
 		return err
 	}
 

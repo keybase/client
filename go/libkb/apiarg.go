@@ -21,7 +21,6 @@ type APIArg struct {
 	Args            HTTPArgs
 	JSONPayload     JSONPayload
 	SessionType     APISessionType
-	SessionR        SessionReader
 	HTTPStatus      []int
 	AppStatusCodes  []int
 	InitialTimeout  time.Duration // optional
@@ -50,6 +49,13 @@ func NewAPIArgWithNetContext(ctx context.Context, endpoint string) APIArg {
 	return APIArg{
 		NetContext: ctx,
 		Endpoint:   endpoint,
+	}
+}
+
+func NewAPIArgWithMetaContext(m MetaContext, endpoint string) APIArg {
+	return APIArg{
+		MetaContext: m,
+		Endpoint:    endpoint,
 	}
 }
 

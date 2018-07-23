@@ -1,6 +1,7 @@
 // @flow
 import {WalletList, type Props} from '.'
 import logger from '../../logger'
+import * as RouteTree from '../../actions/route-tree'
 import {connect, type TypedState, type Dispatch} from '../../util/container'
 import {getAccountIDs} from '../../constants/wallets'
 
@@ -13,7 +14,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     logger.error('TODO: onAddNew')
   },
   onLinkExisting: () => {
-    logger.error('TODO: onLinkExisting')
+    dispatch(RouteTree.navigateAppend(['linkExisting']))
   },
 })
 

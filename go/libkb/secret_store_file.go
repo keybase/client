@@ -26,7 +26,7 @@ func NewSecretStoreFile(dir string) *SecretStoreFile {
 	return &SecretStoreFile{dir: dir}
 }
 
-func (s *SecretStoreFile) RetrieveSecret(username NormalizedUsername) (LKSecFullSecret, error) {
+func (s *SecretStoreFile) RetrieveSecret(m MetaContext, username NormalizedUsername) (LKSecFullSecret, error) {
 	secret, err := s.retrieveSecretV2(username)
 	if err == nil {
 		return secret, nil
@@ -43,7 +43,7 @@ func (s *SecretStoreFile) RetrieveSecret(username NormalizedUsername) (LKSecFull
 	}
 
 	// upgrade to v2
-	if err := s.StoreSecret(username, secret); err != nil {
+	if err := s.StoreSecret(m, username, secret); err != nil {
 		return secret, err
 	}
 	if err := s.clearSecretV1(username); err != nil {
@@ -96,7 +96,7 @@ func (s *SecretStoreFile) retrieveSecretV2(username NormalizedUsername) (LKSecFu
 	return newLKSecFullSecretFromBytes(secret)
 }
 
-func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret LKSecFullSecret) error {
+func (s *SecretStoreFile) StoreSecret(m MetaContext, username NormalizedUsername, secret LKSecFullSecret) error {
 	noise, err := MakeNoise()
 	if err != nil {
 		return err
@@ -194,7 +194,7 @@ func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret LKSecF
 	return nil
 }
 
-func (s *SecretStoreFile) ClearSecret(username NormalizedUsername) error {
+func (s *SecretStoreFile) ClearSecret(m MetaContext, username NormalizedUsername) error {
 	// try both
 	errV1 := s.clearSecretV1(username)
 	errV2 := s.clearSecretV2(username)
@@ -239,7 +239,7 @@ func (s *SecretStoreFile) clearSecretV2(username NormalizedUsername) error {
 	return nil
 }
 
-func (s *SecretStoreFile) GetUsersWithStoredSecrets() ([]string, error) {
+func (s *SecretStoreFile) GetUsersWithStoredSecrets(m MetaContext) ([]string, error) {
 	files, err := filepath.Glob(filepath.Join(s.dir, "*.ss*"))
 	if err != nil {
 		return nil, err

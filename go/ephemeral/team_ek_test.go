@@ -35,7 +35,8 @@ func TestNewTeamEK(t *testing.T) {
 
 	teamID := createTeam(tc)
 
-	// Before we've published any teamEK's, fetchTeamEKStatement should return nil.
+	// Before we've published any teamEK's, fetchTeamEKStatement should return
+	// nil.
 	nilStatement, _, _, err := fetchTeamEKStatement(context.Background(), tc.G, teamID)
 	require.NoError(t, err)
 	require.Nil(t, nilStatement)
@@ -50,7 +51,6 @@ func TestNewTeamEK(t *testing.T) {
 	currentMetadata := statement.CurrentTeamEkMetadata
 	require.Equal(t, currentMetadata, publishedMetadata)
 	require.EqualValues(t, 1, currentMetadata.Generation)
-	require.Equal(t, statement.ExistingTeamEkMetadata, []keybase1.TeamEkMetadata{})
 
 	// We've stored the result in local storage
 	teamEKBoxStorage := tc.G.GetTeamEKBoxStorage()

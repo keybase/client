@@ -165,14 +165,19 @@ protocol local {
   record MessageLeave {}
 
   record MessageReaction {
-    @mpackkey("m") @jsonkey("m")
-    MessageID messageID;
-    @mpackkey("b") @jsonkey("b")
-    string body; // emoji reaction :+1:
+     @mpackkey("m") @jsonkey("m")
+     MessageID messageID;
+     @mpackkey("b") @jsonkey("b")
+     string body; // emoji reaction :+1:
   }
-  
+
   record MessageSendPayment {
     string kbTxID;
+  }
+
+  record MessageRequestPayment {
+    string requestID;
+    string note;
   }
 
   variant MessageBody switch (MessageType messageType) {
@@ -189,6 +194,7 @@ protocol local {
     case DELETEHISTORY: MessageDeleteHistory;
     case REACTION: MessageReaction;
     case SENDPAYMENT: MessageSendPayment;
+    case REQUESTPAYMENT: MessageRequestPayment;
   }
 
   enum OutboxStateType {
@@ -204,7 +210,8 @@ protocol local {
     DUPLICATE_4,
     EXPIRED_5,
     TOOMANYATTEMPTS_6,
-    ALREADY_DELETED_7
+    ALREADY_DELETED_7,
+    UPLOADFAILED_8
   }
 
   record OutboxStateError {
@@ -226,6 +233,7 @@ protocol local {
     MessagePlaintext Msg;
     keybase1.TLFIdentifyBehavior identifyBehavior;
     int ordinal; // the position of this outbox record behind the clientPrev in Msg
+    union { null, MakePreviewRes } preview;
   }
 
   enum HeaderPlaintextVersion {
@@ -508,6 +516,11 @@ protocol local {
     array<string> readerNames;
   }
 
+  record ConversationMinWriterRoleInfoLocal {
+    string username;
+    keybase1.TeamRole role;
+  }
+
   // ConversationLocal, whenever present, has a valid `identifyFailures` field that
   // faithfully represent identify result. If identify information is not
   // available, we should use a different type.
@@ -532,6 +545,7 @@ protocol local {
     Expunge expunge; // The latest history deletion. Defaults to zeroes.
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
+    union { null, ConversationMinWriterRoleInfoLocal } minWriterRoleInfo;
   }
 
   record NonblockFetchRes {
@@ -744,44 +758,23 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  // LocalSource is a stream attachment source.
-  record LocalSource {
-    keybase1.Stream source;
+  record PostFileAttachmentArg {
+    ConversationID conversationID;
+    string tlfName;
+    keybase1.TLFVisibility visibility;
     string filename;
-    int size;
-  }
+    string title;
+    bytes metadata;
+    keybase1.TLFIdentifyBehavior identifyBehavior;
 
-  // Post an attachment from stream source to conversationID.
-  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID,
-    string tlfName,
-    keybase1.TLFVisibility visibility,
-    LocalSource attachment,
-    union { null, MakePreviewRes} preview,
-    string title,
-    bytes metadata,
-    keybase1.TLFIdentifyBehavior identifyBehavior,
-    union { null, OutboxID } outboxID,
-    union {null, gregor1.DurationSec} ephemeralLifetime
-    );
-
-  // LocalFileSource is a file attachment source.  Filename must be readable
-  // by the service for the duration of the attachment upload.
-  record LocalFileSource {
-    string filename;
+    union {null, MakePreviewRes } callerPreview;
+    union {null, OutboxID } outboxID;
+    union {null, gregor1.DurationSec} ephemeralLifetime;
   }
 
   // Post an attachment from file source to conversationID.
-  PostLocalRes postFileAttachmentLocal(int sessionID, ConversationID conversationID,
-    string tlfName,
-    keybase1.TLFVisibility visibility,
-    LocalFileSource attachment,
-    union { null, MakePreviewRes } preview,
-    string title,
-    bytes metadata,
-    keybase1.TLFIdentifyBehavior identifyBehavior,
-    union { null, OutboxID } outboxID,
-    union {null, gregor1.DurationSec} ephemeralLifetime
-    );
+  PostLocalRes postFileAttachmentLocal(int sessionID, PostFileAttachmentArg arg);
+  PostLocalNonblockRes postFileAttachmentLocalNonblock(int sessionID, PostFileAttachmentArg arg, MessageID clientPrev);
 
   record DownloadAttachmentLocalRes {
     boolean offline;
@@ -798,13 +791,23 @@ protocol local {
   @lint("ignore")
   DownloadAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
 
+  enum PreviewLocationTyp {
+    URL_0,
+    FILE_1
+  }
+
+  variant PreviewLocation switch (PreviewLocationTyp ltyp) {
+    case URL: string;
+    case FILE: string;
+  }
+
   record MakePreviewRes {
     string mimeType;        // this will always be populated
-    union {null, string} filename;    // will exist if service is able to make a preview
+    union {null, PreviewLocation} location;    // will exist if service is able to make a preview
     union {null, AssetMetadata} metadata; // will exist if service is able to make a preview
     union {null, AssetMetadata} baseMetadata; // will exist if service is able to get base metadata
   }
-  MakePreviewRes makePreview(int sessionID, LocalFileSource attachment, string outputDir);
+  MakePreviewRes makePreview(int sessionID, string filename, OutboxID outboxID);
 
   @lint("ignore")
   void CancelPost(OutboxID outboxID);
@@ -868,7 +871,7 @@ protocol local {
   GlobalAppNotificationSettings getGlobalAppNotificationSettingsLocal();
 
   // Unpack message from a push notification
-  string unboxMobilePushNotification(string payload, string convID, ConversationMembersType membersType, array<string> pushIDs);
+  string unboxMobilePushNotification(string payload, string convID, ConversationMembersType membersType, array<string> pushIDs, boolean shouldAck);
 
   // Convenience interface for adding someone back to a reset team convo
   void addTeamMemberAfterReset(string username, ConversationID convID);
@@ -877,6 +880,7 @@ protocol local {
   void setTeamRetentionLocal(keybase1.TeamID teamID, RetentionPolicy policy);
   union { null, RetentionPolicy } getTeamRetentionLocal(keybase1.TeamID teamID);
 
+  void setConvMinWriterRoleLocal(ConversationID convID, keybase1.TeamRole role);
   void upgradeKBFSConversationToImpteam(ConversationID convID);
 
   record GetSearchRegexpRes {

@@ -10,8 +10,10 @@ const isSimulator = false
 const isIPhoneX = false
 const isDeviceSecureAndroid: boolean = false
 const isAndroidNewerThanM: boolean = false
+const isAndroidNewerThanN: boolean = false
 
 const isElectron = true
+// For storyshots, we only want to test macOS
 const isDarwin = process.platform === 'darwin'
 const isWindows = process.platform === 'win32'
 const isLinux = process.platform === 'linux'
@@ -187,6 +189,7 @@ export {
   fileUIName,
   isAndroid,
   isAndroidNewerThanM,
+  isAndroidNewerThanN,
   isDarwin,
   isDeviceSecureAndroid,
   isElectron,

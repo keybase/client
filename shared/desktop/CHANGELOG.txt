@@ -1,3 +1,10 @@
-• Exploding messages! Starting today, you can put a short fuse on your Keybase chat messages.
-• Improved chat scrolling
-• Performance improvements
+Files:
+    • Create folders
+    • Upload files / images
+Chat:
+    • Show overlay on gifs that have a static preview image
+    • Copy text of exploding messages
+    • Better feedback of images while uploading
+    • Correctly orient images in full screen view
+Other:
+    • Better handling of signup / log out flows

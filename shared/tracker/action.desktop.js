@@ -30,8 +30,6 @@ export default class ActionRender extends PureComponent<Props> {
     }
 
     switch (this.props.lastAction) {
-      case 'followed':
-      case 'refollowed':
       case 'unfollowed':
       case 'error':
         return this.renderClose()

@@ -41,7 +41,7 @@ const _AddWallet = (props: AddProps & FloatingMenuParentProps) => {
         gapEnd={true}
       >
         <Icon type="iconfont-new" color={globalColors.blue} />
-        <Text type="BodyBigLink">Add a wallet</Text>
+        <Text type="BodyBigLink">Add an account</Text>
       </Box2>
       <FloatingMenu
         attachTo={props.attachmentRef}
@@ -72,7 +72,7 @@ class WalletList extends React.Component<Props> {
       case 'wallet':
         return <WalletRow key={row.accountID} accountID={row.accountID} />
       case 'add wallet':
-        return <AddWallet onAddNew={this.props.onAddNew} onLinkExisting={this.props.onLinkExisting} />
+        return <AddWallet key={row.type} onAddNew={this.props.onAddNew} onLinkExisting={this.props.onLinkExisting} />
       default:
         /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any

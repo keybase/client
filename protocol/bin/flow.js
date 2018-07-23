@@ -269,7 +269,7 @@ function rpcPromiseGen(methodName, name, response, requestType, responseType) {
   const resultType = responseType !== 'null' ? `${capitalize(name)}Result` : 'void'
   return `export const ${name}RpcPromise = (params: ${requestType}, waitingKey?: string): Promise<${resultType}> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: ${methodName}, params, callback: (error: RPCError, result: ${resultType}) => error ? reject(error) : resolve(${
     resultType === 'void' ? '' : 'result'
-  })}))`
+  }), waitingKey}))`
 }
 
 // Type parsing
@@ -323,9 +323,11 @@ function parseRecord(t) {
       const innerType = parseInnerType(f.type)
       const innerOptional = innerType[0] === '?'
       const capsInnerType = innerOptional ? `?${capitalize(innerType.substr(1))}` : capitalize(innerType)
+      const name = f.mpackkey || f.name
+      const comment = f.mpackkey ? ` /* ${f.name} */ ` : ''
 
       // If we have a maybe type, let's also make the key optional
-      return `${f.name}${innerOptional ? '?' : ''}: ${capsInnerType},`
+      return `${name}${comment}${innerOptional ? '?' : ''}: ${capsInnerType},`
     })
     .join('')
 

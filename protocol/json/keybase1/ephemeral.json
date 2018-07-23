@@ -50,14 +50,6 @@
           "type": "DeviceEkMetadata",
           "name": "currentDeviceEkMetadata",
           "jsonkey": "current_device_ek_metadata"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "DeviceEkMetadata"
-          },
-          "name": "existingDeviceEkMetadata",
-          "jsonkey": "existing_device_ek_metadata"
         }
       ]
     },
@@ -83,14 +75,6 @@
           "type": "UserEkMetadata",
           "name": "currentUserEkMetadata",
           "jsonkey": "current_user_ek_metadata"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "UserEkMetadata"
-          },
-          "name": "existingUserEkMetadata",
-          "jsonkey": "existing_user_ek_metadata"
         }
       ]
     },
@@ -203,14 +187,6 @@
           "type": "TeamEkMetadata",
           "name": "currentTeamEkMetadata",
           "jsonkey": "current_team_ek_metadata"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "TeamEkMetadata"
-          },
-          "name": "existingTeamEkMetadata",
-          "jsonkey": "existing_team_ek_metadata"
         }
       ]
     },

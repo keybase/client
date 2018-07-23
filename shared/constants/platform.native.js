@@ -34,6 +34,7 @@ const isWindows = false
 const fileUIName = 'File Explorer'
 const mobileOsVersion = Platform.Version
 const isAndroidNewerThanM = parseInt(mobileOsVersion) > 22
+const isAndroidNewerThanN = isAndroid && parseInt(mobileOsVersion, 10) >= 26
 
 const isIPhoneX =
   Platform.OS === 'ios' && !Platform.isPad && !Platform.isTVOS && Dimensions.get('window').height === 812
@@ -62,6 +63,7 @@ export {
   fileUIName,
   isAndroid,
   isAndroidNewerThanM,
+  isAndroidNewerThanN,
   isDarwin,
   isDeviceSecureAndroid,
   isElectron,

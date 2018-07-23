@@ -22,6 +22,10 @@ type FSEventArg struct {
 	Event FSNotification `codec:"event" json:"event"`
 }
 
+type FSPathUpdateArg struct {
+	Path string `codec:"path" json:"path"`
+}
+
 type FSEditListArg struct {
 	Edits     FSFolderEditHistory `codec:"edits" json:"edits"`
 	RequestID int                 `codec:"requestID" json:"requestID"`
@@ -55,6 +59,9 @@ type KbfsInterface interface {
 	// It is just a starting point to get kbfs notifications through the daemon to
 	// the clients.
 	FSEvent(context.Context, FSNotification) error
+	// kbfs calls this whenever the currently subscribed-to folder (via the
+	// SimpleFSList[Recursive call) has been updated.
+	FSPathUpdate(context.Context, string) error
 	// kbfs calls this as a response to receiving an FSEditListRequest with a
 	// given requestID.
 	FSEditList(context.Context, FSEditListArg) error
@@ -90,6 +97,22 @@ func KbfsProtocol(i KbfsInterface) rpc.Protocol {
 					return
 				},
 				MethodType: rpc.MethodCall,
+			},
+			"FSPathUpdate": {
+				MakeArg: func() interface{} {
+					ret := make([]FSPathUpdateArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FSPathUpdateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FSPathUpdateArg)(nil), args)
+						return
+					}
+					err = i.FSPathUpdate(ctx, (*typedArgs)[0].Path)
+					return
+				},
+				MethodType: rpc.MethodNotify,
 			},
 			"FSEditList": {
 				MakeArg: func() interface{} {
@@ -190,6 +213,14 @@ type KbfsClient struct {
 func (c KbfsClient) FSEvent(ctx context.Context, event FSNotification) (err error) {
 	__arg := FSEventArg{Event: event}
 	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSEvent", []interface{}{__arg}, nil)
+	return
+}
+
+// kbfs calls this whenever the currently subscribed-to folder (via the
+// SimpleFSList[Recursive call) has been updated.
+func (c KbfsClient) FSPathUpdate(ctx context.Context, path string) (err error) {
+	__arg := FSPathUpdateArg{Path: path}
+	err = c.Cli.Notify(ctx, "keybase.1.kbfs.FSPathUpdate", []interface{}{__arg})
 	return
 }
 

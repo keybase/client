@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -113,7 +114,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 		s.G().Log.CDebugf(ctx, "Using default display currency %s for account %s", displayCurrency, arg.AccountID)
 	}
 	rate, rateErr := s.remoter.ExchangeRate(ctx, displayCurrency)
-	if err != nil {
+	if rateErr != nil {
 		s.G().Log.CDebugf(ctx, "exchange rate error: %s", rateErr)
 	}
 
@@ -124,49 +125,66 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 			return nil, err
 		}
 
-		if d.Asset.Type == "native" {
-			fmtAvailable, err := stellar.FormatAmount(subtractFeeSoft(s.mctx(ctx), details.Available), false)
+		if d.Asset.IsNativeXLM() {
+			availableAmount := subtractFeeSoft(s.mctx(ctx), details.Available)
+			fmtAvailable, err := stellar.FormatAmount(availableAmount, false)
 			if err != nil {
 				return nil, err
 			}
 			asset := stellar1.AccountAssetLocal{
 				Name:                   "Lumens",
-				BalanceTotal:           fmtAmount,
-				BalanceAvailableToSend: fmtAvailable,
 				AssetCode:              "XLM",
 				IssuerName:             "Stellar network",
 				IssuerAccountID:        "",
+				BalanceTotal:           fmtAmount,
+				BalanceAvailableToSend: fmtAvailable,
 				WorthCurrency:          displayCurrency,
 			}
-			var displayAmount string
-			if rateErr == nil {
-				displayAmount, rateErr = stellarnet.ConvertXLMToOutside(d.Amount, rate.Rate)
-			}
-			if rateErr != nil {
-				s.G().Log.CDebugf(ctx, "error converting XLM to display currency: %s", rateErr)
-				asset.Worth = "Currency conversion error"
-				asset.WorthCurrency = WorthCurrencyErrorCode
-			} else {
-				displayFormatted, err := stellar.FormatCurrency(ctx, s.G(), displayAmount, stellar1.OutsideCurrencyCode(displayCurrency))
-				if err != nil {
-					s.G().Log.CDebugf(ctx, "error formatting currency: %s", err)
-					asset.Worth = "Currency conversion error"
-					asset.WorthCurrency = WorthCurrencyErrorCode
-				} else {
-					asset.Worth = displayFormatted
+			fillWorths := func() (err error) {
+				if rateErr != nil {
+					return fmt.Errorf("rate error: %v", rateErr)
 				}
+				outsideAmount, err := stellarnet.ConvertXLMToOutside(d.Amount, rate.Rate)
+				if err != nil {
+					return fmt.Errorf("converting amount: %v", err)
+				}
+				fmtWorth, err := stellar.FormatCurrency(ctx, s.G(), outsideAmount, rate.Currency)
+				if err != nil {
+					return fmt.Errorf("formatting converted amount: %v", err)
+				}
+				asset.Worth = fmtWorth
+				outsideAvailableAmount, err := stellarnet.ConvertXLMToOutside(availableAmount, rate.Rate)
+				if err != nil {
+					return fmt.Errorf("converting available amount: %v", err)
+				}
+				fmtAvailableWorth, err := stellar.FormatCurrency(ctx, s.G(), outsideAvailableAmount, rate.Currency)
+				if err != nil {
+					return fmt.Errorf("formatting converted available amount: %v", err)
+				}
+				asset.AvailableToSendWorth = fmtAvailableWorth
+				return nil
 			}
+			err = fillWorths()
+			if err != nil {
+				s.G().Log.CDebugf(ctx, "error populating converted worth fields: %v", err)
+				asset.WorthCurrency = WorthCurrencyErrorCode
+				asset.Worth = "Currency conversion error"
+				asset.AvailableToSendWorth = "Currency conversion error"
+			}
+			// Add account reserves info to main asset.
+			asset.Reserves = details.Reserves
 			assets = append(assets, asset)
 		} else {
 			assets = append(assets, stellar1.AccountAssetLocal{
 				Name:                   d.Asset.Code,
-				BalanceTotal:           fmtAmount,
-				BalanceAvailableToSend: fmtAmount,
 				AssetCode:              d.Asset.Code,
 				IssuerName:             "", // TODO get verified asset names
 				IssuerAccountID:        d.Asset.Issuer,
-				Worth:                  "",
+				BalanceTotal:           fmtAmount,
+				BalanceAvailableToSend: fmtAmount,
 				WorthCurrency:          "",
+				Worth:                  "",
+				AvailableToSendWorth:   "",
 			})
 		}
 	}
@@ -273,7 +291,7 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 		return page, err
 	}
 
-	srvPayments, err := s.remoter.RecentPayments(ctx, arg.AccountID, arg.Cursor, 0)
+	srvPayments, err := s.remoter.RecentPayments(ctx, arg.AccountID, arg.Cursor, 0, true)
 	if err != nil {
 		return page, err
 	}
@@ -291,6 +309,39 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 	return page, nil
 }
 
+func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPendingPaymentsLocalArg) (payments []stellar1.PaymentOrErrorLocal, err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "GetPendingPaymentsLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return nil, err
+	}
+
+	pending, err := s.remoter.PendingPayments(ctx, arg.AccountID, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	payments = make([]stellar1.PaymentOrErrorLocal, len(pending))
+	for i, p := range pending {
+		payment, err := s.transformPaymentSummary(ctx, arg.AccountID, p)
+		if err != nil {
+			s := err.Error()
+			payments[i].Err = &s
+			payments[i].Payment = nil // just to make sure
+
+		} else {
+			payments[i].Payment = payment
+			payments[i].Err = nil
+		}
+	}
+
+	return payments, nil
+}
+
 func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPaymentDetailsLocalArg) (payment stellar1.PaymentDetailsLocal, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "GetPaymentDetailsLocal", func() error { return err })()
@@ -299,7 +350,7 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		return payment, err
 	}
 
-	details, err := s.remoter.PaymentDetails(ctx, arg.Id.String())
+	details, err := s.remoter.PaymentDetails(ctx, arg.Id.TxID.String())
 	if err != nil {
 		return payment, err
 	}
@@ -311,6 +362,7 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 
 	payment = stellar1.PaymentDetailsLocal{
 		Id:                summary.Id,
+		TxID:              summary.Id.TxID,
 		Time:              summary.Time,
 		StatusSimplified:  summary.StatusSimplified,
 		StatusDescription: summary.StatusDescription,
@@ -433,11 +485,13 @@ func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.Acco
 	} else {
 		loc.StatusSimplified = stellar1.PaymentStatus_CLAIMABLE
 		loc.StatusDetail = "Waiting for the recipient to open the app to claim, or the sender to cancel."
+		loc.ShowCancel = true
 	}
 	if p.Claim != nil {
 		loc.StatusSimplified = p.Claim.TxStatus.ToPaymentStatus()
 		if p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
 			// If the claim succeeded, the relay payment is done.
+			loc.ShowCancel = false
 			name, err := s.lookupUsername(ctx, p.Claim.To.Uid)
 			if err == nil {
 				loc.Target = name
@@ -542,6 +596,63 @@ func (a balanceList) balanceDescription() (res string, err error) {
 		res += " + more"
 	}
 	return res, nil
+}
+
+func (s *Server) ValidateAccountIDLocal(ctx context.Context, arg stellar1.ValidateAccountIDLocalArg) (err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName: "ValidateAccountIDLocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+	_, err = libkb.ParseStellarAccountID(arg.AccountID.String())
+	return err
+}
+
+func (s *Server) ValidateSecretKeyLocal(ctx context.Context, arg stellar1.ValidateSecretKeyLocalArg) (err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName: "ValidateSecretKeyLocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+	_, _, _, err = libkb.ParseStellarSecretKey(arg.SecretKey.SecureNoLogString())
+	return err
+}
+
+func (s *Server) ValidateAccountNameLocal(ctx context.Context, arg stellar1.ValidateAccountNameLocalArg) (err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName: "ValidateAccountNameLocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+	if arg.Name == "" {
+		// No name is always acceptable.
+		return nil
+	}
+	if utf8.RuneCountInString(arg.Name) > 60 {
+		return fmt.Errorf("account name is too long")
+	}
+	// If this becomes a bottleneck, cache non-critical wallet info on G.Stellar.
+	currentBundle, _, err := remote.Fetch(ctx, s.G())
+	if err != nil {
+		s.G().Log.CErrorf(ctx, "error fetching bundle: %v", err)
+		// Return nil since the name is probably fine.
+		return nil
+	}
+	for _, account := range currentBundle.Accounts {
+		if arg.Name == account.Name {
+			return fmt.Errorf("that account name is already taken")
+		}
+	}
+	return nil
 }
 
 func (s *Server) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.ChangeWalletAccountNameLocalArg) (err error) {
@@ -780,7 +891,8 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 			}
 			bannerThem := "their"
 			if recipient.User != nil {
-				bannerThem = fmt.Sprintf("%s's", recipient.User.GetNormalizedName())
+				res.ToUsername = recipient.User.Username.String()
+				bannerThem = fmt.Sprintf("%s's", recipient.User.Username)
 			}
 			if recipient.AccountID == nil {
 				// Sending a payment to a target with no account. (relay)
@@ -1144,6 +1256,108 @@ func (s *Server) CreateWalletAccountLocal(ctx context.Context, arg stellar1.Crea
 		return res, err
 	}
 	return stellar.CreateNewAccount(s.mctx(ctx), arg.Name)
+}
+
+func (s *Server) GetRequestDetailsLocal(ctx context.Context, reqID stellar1.KeybaseRequestID) (res stellar1.RequestDetailsLocal, err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName: "GetRequestDetailsLocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	details, err := s.remoter.RequestDetails(ctx, reqID)
+	if err != nil {
+		return res, err
+	}
+
+	fromAssertion, err := s.lookupUsername(ctx, details.FromUser.Uid)
+	if err != nil {
+		return res, fmt.Errorf("Failed to lookup username for %s: %s", details.FromUser.Uid, err)
+	}
+
+	res = stellar1.RequestDetailsLocal{
+		Id:              details.Id,
+		FromAssertion:   fromAssertion,
+		FromCurrentUser: s.G().GetMyUID().Equal(details.FromUser.Uid),
+		ToAssertion:     details.ToAssertion,
+		Amount:          details.Amount,
+		Asset:           details.Asset,
+		Currency:        details.Currency,
+		Completed:       !details.FundingKbTxID.IsNil(),
+		FundingKbTxID:   details.FundingKbTxID,
+		Status:          details.Status,
+	}
+
+	if details.ToUser != nil {
+		res.ToUserType = stellar1.ParticipantType_KEYBASE
+	} else {
+		res.ToUserType = stellar1.ParticipantType_SBS
+	}
+
+	if details.Currency != nil {
+		converToXLM := func() error {
+			rate, err := s.remoter.ExchangeRate(ctx, details.Currency.String())
+			if err != nil {
+				return err
+			}
+			amountDesc, err := stellar.FormatAmountWithSuffix(details.Amount, false, rate.Currency.String())
+			if err != nil {
+				return err
+			}
+			xlms, err := stellarnet.ConvertOutsideToXLM(res.Amount, rate.Rate)
+			if err != nil {
+				return err
+			}
+			xlmDesc, err := stellar.FormatAmountWithSuffix(xlms, false, "XLM")
+			if err != nil {
+				return err
+			}
+			res.AmountDescription = amountDesc
+			res.AmountStellar = xlms
+			res.AmountStellarDescription = xlmDesc
+			return nil
+		}
+
+		if err := converToXLM(); err != nil {
+			s.G().Log.CDebugf(ctx, "error converting outside currency to XLM: %v", err)
+		}
+	} else if details.Asset != nil {
+		// TODO: Pass info about issuer if Asset is not XLM.
+		var code string
+		if details.Asset.IsNativeXLM() {
+			code = "XLM"
+		} else {
+			code = details.Asset.Code
+		}
+		res.AmountStellar = details.Amount
+		xlmDesc, err := stellar.FormatAmountWithSuffix(details.Amount, false, code)
+		if err == nil {
+			res.AmountDescription = xlmDesc
+			res.AmountStellarDescription = xlmDesc
+		} else {
+			s.G().Log.CDebugf(ctx, "error formatting Stellar amount: %v", err)
+		}
+	} else {
+		return stellar1.RequestDetailsLocal{}, fmt.Errorf("malformed request - currency/asset not defined")
+	}
+
+	return res, nil
+}
+
+func (s *Server) CancelRequestLocal(ctx context.Context, reqID stellar1.KeybaseRequestID) (err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName: "CancelRequestLocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+
+	return s.remoter.CancelRequest(ctx, reqID)
 }
 
 // Subtract a 100 stroop fee from the available balance.

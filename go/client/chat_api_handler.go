@@ -149,7 +149,7 @@ func (l ephemeralLifetime) Valid() bool {
 	if d == 0 {
 		return true // nil val
 	}
-	return d <= libkb.MaxEphemeralLifetime && d >= libkb.MinEphemeralLifetime
+	return d <= libkb.MaxEphemeralContentLifetime && d >= libkb.MinEphemeralContentLifetime
 }
 
 type sendOptionsV1 struct {
@@ -257,8 +257,8 @@ type attachOptionsV1 struct {
 	Filename          string
 	Preview           string
 	Title             string
-	NoStream          bool
 	EphemeralLifetime ephemeralLifetime `json:"exploding_lifetime"`
+	Nonblock          bool
 }
 
 func (a attachOptionsV1) Check() error {

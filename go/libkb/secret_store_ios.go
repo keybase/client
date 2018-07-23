@@ -7,9 +7,9 @@ package libkb
 
 import "github.com/keybase/go-keychain"
 
-func (k KeychainSecretStore) accessGroup() string {
+func (k KeychainSecretStore) accessGroup(m MetaContext) string {
 	// GetStoredSecretAccessGroup MUST be "" for the simulator
-	return k.context.GetStoredSecretAccessGroup()
+	return m.G().GetStoredSecretAccessGroup()
 }
 
 func (k KeychainSecretStore) synchronizable() keychain.Synchronizable {

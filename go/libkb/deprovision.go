@@ -18,7 +18,7 @@ func ClearSecretsOnDeprovision(m MetaContext, username NormalizedUsername) error
 		logger = m.UIs().LogUI.Info
 	}
 
-	if clearSecretErr := ClearStoredSecret(m.G(), username); clearSecretErr != nil {
+	if clearSecretErr := ClearStoredSecret(m, username); clearSecretErr != nil {
 		m.CWarningf("ClearStoredSecret error: %s", clearSecretErr)
 	}
 

@@ -4,6 +4,7 @@ import * as Types from './types/wallets'
 import * as RPCTypes from './types/rpc-stellar-gen'
 import {invert} from 'lodash'
 import {type TypedState} from './reducer'
+import HiddenString from '../util/hidden-string'
 
 const balanceDeltaToString = invert(RPCTypes.localBalanceDelta)
 const statusSimplifiedToString = invert(RPCTypes.localPaymentStatus)
@@ -16,8 +17,17 @@ const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
 
 const makeState: I.RecordFactory<Types._State> = I.Record({
   accountMap: I.Map(),
+  accountName: '',
+  accountNameError: '',
+  accountNameValidationState: 'none',
   assetsMap: I.Map(),
+  exportedSecretKey: new HiddenString(''),
+  linkExistingAccountError: '',
   paymentsMap: I.Map(),
+  secretKey: new HiddenString(''),
+  secretKeyError: '',
+  secretKeyMap: I.Map(),
+  secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
 })
 
@@ -45,6 +55,8 @@ const makeAssets: I.RecordFactory<Types._Assets> = I.Record({
   name: '',
   worth: '',
   worthCurrency: '',
+  availableToSendWorth: '',
+  reserves: I.List(),
 })
 
 const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
@@ -57,15 +69,19 @@ const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     name: w.name,
     worth: w.worth,
     worthCurrency: w.worthCurrency,
+    availableToSendWorth: w.availableToSendWorth,
+    reserves: I.List((w.reserves || []).map(makeReserve)),
   })
 
 const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   amountDescription: '',
   delta: 'none',
   error: '',
-  id: '',
+  id: {txID: ''},
   note: '',
   noteErr: '',
+  publicMemo: '',
+  publicMemoType: '',
   source: '',
   sourceType: '',
   statusDescription: '',
@@ -74,6 +90,7 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   target: '',
   targetType: '',
   time: 0,
+  txID: '',
   worth: '',
   worthCurrency: '',
 })
@@ -84,10 +101,6 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   }
   if (!w.payment) {
     return makePayment({error: w.err})
-  }
-  if (w.payment.statusSimplified === RPCTypes.localPaymentStatus.error) {
-    // TODO make payment w/ error info when view is finished
-    return null
   }
   const p = w.payment
   return makePayment({
@@ -147,11 +160,15 @@ const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
 const getAssets = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.assetsMap.get(accountID || getSelectedAccount(state), I.List())
 
+const linkExistingWaitingKey = 'wallets:linkExisting'
+
 const getFederatedAddress = (state: TypedState, accountID?: Types.AccountID) => {
   const account = state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
   const {username} = state.config
   return username && account.isDefault ? `${username}*keybase.io` : ''
 }
+
+const getSecretKey = (state: TypedState, accountID: Types.AccountID) => state.wallets.exportedSecretKey
 
 export {
   accountResultToAccount,
@@ -162,7 +179,9 @@ export {
   getFederatedAddress,
   getPayment,
   getPayments,
+  getSecretKey,
   getSelectedAccount,
+  linkExistingWaitingKey,
   loadEverythingWaitingKey,
   makeAccount,
   makeAssets,

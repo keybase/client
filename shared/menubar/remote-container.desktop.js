@@ -1,5 +1,5 @@
 // @flow
-import * as AppGen from '../actions/app-gen'
+import * as ConfigGen from '../actions/config-gen'
 import * as FavoriteGen from '../actions/favorite-gen'
 import * as KBFSGen from '../actions/kbfs-gen'
 import Menubar from './index.desktop'
@@ -26,7 +26,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     link && openUrl(link)
   },
   logIn: () => {
-    dispatch(AppGen.createShowMain())
+    dispatch(ConfigGen.createShowMain())
     dispatch(navigateTo([loginTab]))
   },
   onFolderClick: (path: ?string) => {
@@ -38,12 +38,12 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     closeWindow()
   },
   openApp: (tab?: Tab) => {
-    dispatch(AppGen.createShowMain())
+    dispatch(ConfigGen.createShowMain())
     tab && dispatch(switchTo([tab]))
   },
   quit: () => {
     closeWindow()
-    dispatch(AppGen.createDumpLogs({reason: 'quitting through menu'}))
+    dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
     // In case dump log doens't exit for us
     setTimeout(() => {
       executeActionsForContext('quitButton')

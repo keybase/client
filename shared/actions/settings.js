@@ -12,7 +12,7 @@ import {mapValues, trim} from 'lodash-es'
 import {delay} from 'redux-saga'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {type TypedState} from '../constants/reducer'
-import {pprofDir} from '../constants/platform'
+import {isAndroidNewerThanN, pprofDir} from '../constants/platform'
 
 function* _onUpdatePGPSettings(): Saga.SagaGenerator<any, any> {
   try {
@@ -82,7 +82,9 @@ function* _toggleNotificationsSaga(): Saga.SagaGenerator<any, any> {
         // Special case this since it will go to chat settings endpoint
         for (const key in group.settings) {
           const setting = group.settings[key]
-          chatGlobalArg[`${ChatTypes.commonGlobalAppNotificationSetting[setting.name]}`] = setting.subscribed
+          chatGlobalArg[
+            `${ChatTypes.commonGlobalAppNotificationSetting[setting.name]}`
+          ] = !!setting.subscribed
         }
       } else {
         for (const key in group.settings) {
@@ -299,15 +301,21 @@ function* _refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
       {
         name: 'plaintextmobile',
         description: 'Display mobile plaintext notifications',
-        subscribed:
-          chatGlobalSettings.settings[`${ChatTypes.commonGlobalAppNotificationSetting.plaintextmobile}`],
+        subscribed: !!chatGlobalSettings.settings[
+          `${ChatTypes.commonGlobalAppNotificationSetting.plaintextmobile}`
+        ],
       },
-      {
-        name: 'defaultsoundmobile',
-        description: 'Use mobile system default notification sound',
-        subscribed:
-          chatGlobalSettings.settings[`${ChatTypes.commonGlobalAppNotificationSetting.defaultsoundmobile}`],
-      },
+      ...(isAndroidNewerThanN
+        ? []
+        : [
+            {
+              name: 'defaultsoundmobile',
+              description: 'Use mobile system default notification sound',
+              subscribed: !!chatGlobalSettings.settings[
+                `${ChatTypes.commonGlobalAppNotificationSetting.defaultsoundmobile}`
+              ],
+            },
+          ]),
     ],
     unsub: false,
   }

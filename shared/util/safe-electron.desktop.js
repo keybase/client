@@ -109,6 +109,14 @@ export const getCrashReporter = () => {
   return crashReporter
 }
 
+export const getPowerSaveBlocker = () => {
+  const powerSaveBlocker = Electron.powerSaveBlocker
+  if (!powerSaveBlocker) {
+    throw new Error('Should be impossible')
+  }
+  return powerSaveBlocker
+}
+
 // Expose classes
 const _BrowserWindow = Electron.BrowserWindow || (Electron.remote && Electron.remote.BrowserWindow)
 if (!_BrowserWindow) {

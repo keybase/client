@@ -344,7 +344,7 @@ func (s *SKB) lksUnlock(m MetaContext, pps *PassphraseStream, secretStorer Secre
 			return
 		}
 		// Ignore any errors storing the secret.
-		storeSecretErr := secretStorer.StoreSecret(secret)
+		storeSecretErr := secretStorer.StoreSecret(m, secret)
 		if storeSecretErr != nil {
 			m.CWarningf("StoreSecret error: %s", storeSecretErr)
 		}
@@ -354,7 +354,7 @@ func (s *SKB) lksUnlock(m MetaContext, pps *PassphraseStream, secretStorer Secre
 }
 
 func (s *SKB) lksUnlockWithSecretRetriever(m MetaContext, secretRetriever SecretRetriever) (unlocked []byte, err error) {
-	secret, err := secretRetriever.RetrieveSecret()
+	secret, err := secretRetriever.RetrieveSecret(m)
 	if err != nil {
 		return
 	}

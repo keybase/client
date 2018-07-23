@@ -16,6 +16,7 @@ const itemBox = {
   flex: 1,
   justifyContent: 'center',
   minWidth: 0,
+  width: 0,
 }
 
 const pathItemIcon = {

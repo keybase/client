@@ -4,17 +4,16 @@ import * as HocHelpers from '../helpers'
 import * as SearchGen from '../../actions/search-gen'
 import React from 'react'
 import ServiceFilter from '../services-filter'
-import UserInput from '.'
+import UserInput, {type Props as _Props} from '.'
 import {Box, Text} from '../../common-adapters'
-import {connect} from 'react-redux'
-import {createShallowEqualSelector} from '../../util/container'
+import {connect, createShallowEqualSelector, setDisplayName} from '../../util/container'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {parseUserId, serviceIdToIcon} from '../../util/platforms'
 import {withStateHandlers, withHandlers, compose, lifecycle} from 'recompose'
 
 import type {TypedState} from '../../constants/reducer'
 
-type OwnProps = {|
+export type OwnProps = {|
   searchKey: string,
   autoFocus?: boolean,
   focusInputCounter?: number,
@@ -136,8 +135,14 @@ const mapDispatchToProps = (dispatch: Dispatch, {searchKey}) => ({
   },
 })
 
+export type Props = _Props & {
+  // From onChangeSelectedSearchResultHoc.
+  search: Function,
+}
+
 const ConnectedUserInput = compose(
   connect(mapStateToProps, mapDispatchToProps),
+  setDisplayName('UserInput'),
   withStateHandlers(
     {searchText: '', selectedService: 'Keybase'},
     {

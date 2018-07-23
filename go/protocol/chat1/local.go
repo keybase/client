@@ -809,6 +809,18 @@ func (o MessageSendPayment) DeepCopy() MessageSendPayment {
 	}
 }
 
+type MessageRequestPayment struct {
+	RequestID string `codec:"requestID" json:"requestID"`
+	Note      string `codec:"note" json:"note"`
+}
+
+func (o MessageRequestPayment) DeepCopy() MessageRequestPayment {
+	return MessageRequestPayment{
+		RequestID: o.RequestID,
+		Note:      o.Note,
+	}
+}
+
 type MessageBody struct {
 	MessageType__        MessageType                  `codec:"messageType" json:"messageType"`
 	Text__               *MessageText                 `codec:"text,omitempty" json:"text,omitempty"`
@@ -824,6 +836,7 @@ type MessageBody struct {
 	Deletehistory__      *MessageDeleteHistory        `codec:"deletehistory,omitempty" json:"deletehistory,omitempty"`
 	Reaction__           *MessageReaction             `codec:"reaction,omitempty" json:"reaction,omitempty"`
 	Sendpayment__        *MessageSendPayment          `codec:"sendpayment,omitempty" json:"sendpayment,omitempty"`
+	Requestpayment__     *MessageRequestPayment       `codec:"requestpayment,omitempty" json:"requestpayment,omitempty"`
 }
 
 func (o *MessageBody) MessageType() (ret MessageType, err error) {
@@ -891,6 +904,11 @@ func (o *MessageBody) MessageType() (ret MessageType, err error) {
 	case MessageType_SENDPAYMENT:
 		if o.Sendpayment__ == nil {
 			err = errors.New("unexpected nil value for Sendpayment__")
+			return ret, err
+		}
+	case MessageType_REQUESTPAYMENT:
+		if o.Requestpayment__ == nil {
+			err = errors.New("unexpected nil value for Requestpayment__")
 			return ret, err
 		}
 	}
@@ -1027,6 +1045,16 @@ func (o MessageBody) Sendpayment() (res MessageSendPayment) {
 	return *o.Sendpayment__
 }
 
+func (o MessageBody) Requestpayment() (res MessageRequestPayment) {
+	if o.MessageType__ != MessageType_REQUESTPAYMENT {
+		panic("wrong case accessed")
+	}
+	if o.Requestpayment__ == nil {
+		return
+	}
+	return *o.Requestpayment__
+}
+
 func NewMessageBodyWithText(v MessageText) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_TEXT,
@@ -1115,6 +1143,13 @@ func NewMessageBodyWithSendpayment(v MessageSendPayment) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_SENDPAYMENT,
 		Sendpayment__: &v,
+	}
+}
+
+func NewMessageBodyWithRequestpayment(v MessageRequestPayment) MessageBody {
+	return MessageBody{
+		MessageType__:    MessageType_REQUESTPAYMENT,
+		Requestpayment__: &v,
 	}
 }
 
@@ -1212,6 +1247,13 @@ func (o MessageBody) DeepCopy() MessageBody {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Sendpayment__),
+		Requestpayment__: (func(x *MessageRequestPayment) *MessageRequestPayment {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Requestpayment__),
 	}
 }
 
@@ -1252,6 +1294,7 @@ const (
 	OutboxErrorType_EXPIRED         OutboxErrorType = 5
 	OutboxErrorType_TOOMANYATTEMPTS OutboxErrorType = 6
 	OutboxErrorType_ALREADY_DELETED OutboxErrorType = 7
+	OutboxErrorType_UPLOADFAILED    OutboxErrorType = 8
 )
 
 func (o OutboxErrorType) DeepCopy() OutboxErrorType { return o }
@@ -1265,6 +1308,7 @@ var OutboxErrorTypeMap = map[string]OutboxErrorType{
 	"EXPIRED":         5,
 	"TOOMANYATTEMPTS": 6,
 	"ALREADY_DELETED": 7,
+	"UPLOADFAILED":    8,
 }
 
 var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
@@ -1276,6 +1320,7 @@ var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
 	5: "EXPIRED",
 	6: "TOOMANYATTEMPTS",
 	7: "ALREADY_DELETED",
+	8: "UPLOADFAILED",
 }
 
 func (e OutboxErrorType) String() string {
@@ -1381,6 +1426,7 @@ type OutboxRecord struct {
 	Msg              MessagePlaintext             `codec:"Msg" json:"Msg"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 	Ordinal          int                          `codec:"ordinal" json:"ordinal"`
+	Preview          *MakePreviewRes              `codec:"preview,omitempty" json:"preview,omitempty"`
 }
 
 func (o OutboxRecord) DeepCopy() OutboxRecord {
@@ -1392,6 +1438,13 @@ func (o OutboxRecord) DeepCopy() OutboxRecord {
 		Msg:              o.Msg.DeepCopy(),
 		IdentifyBehavior: o.IdentifyBehavior.DeepCopy(),
 		Ordinal:          o.Ordinal,
+		Preview: (func(x *MakePreviewRes) *MakePreviewRes {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Preview),
 	}
 }
 
@@ -2795,20 +2848,33 @@ func (o ConversationErrorRekey) DeepCopy() ConversationErrorRekey {
 	}
 }
 
+type ConversationMinWriterRoleInfoLocal struct {
+	Username string            `codec:"username" json:"username"`
+	Role     keybase1.TeamRole `codec:"role" json:"role"`
+}
+
+func (o ConversationMinWriterRoleInfoLocal) DeepCopy() ConversationMinWriterRoleInfoLocal {
+	return ConversationMinWriterRoleInfoLocal{
+		Username: o.Username,
+		Role:     o.Role.DeepCopy(),
+	}
+}
+
 type ConversationLocal struct {
-	Error            *ConversationErrorLocal       `codec:"error,omitempty" json:"error,omitempty"`
-	Info             ConversationInfoLocal         `codec:"info" json:"info"`
-	ReaderInfo       ConversationReaderInfo        `codec:"readerInfo" json:"readerInfo"`
-	CreatorInfo      *ConversationCreatorInfoLocal `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
-	Notifications    *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
-	Supersedes       []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
-	SupersededBy     []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
-	MaxMessages      []MessageUnboxed              `codec:"maxMessages" json:"maxMessages"`
-	IsEmpty          bool                          `codec:"isEmpty" json:"isEmpty"`
-	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
-	Expunge          Expunge                       `codec:"expunge" json:"expunge"`
-	ConvRetention    *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
-	TeamRetention    *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
+	Error             *ConversationErrorLocal             `codec:"error,omitempty" json:"error,omitempty"`
+	Info              ConversationInfoLocal               `codec:"info" json:"info"`
+	ReaderInfo        ConversationReaderInfo              `codec:"readerInfo" json:"readerInfo"`
+	CreatorInfo       *ConversationCreatorInfoLocal       `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
+	Notifications     *ConversationNotificationInfo       `codec:"notifications,omitempty" json:"notifications,omitempty"`
+	Supersedes        []ConversationMetadata              `codec:"supersedes" json:"supersedes"`
+	SupersededBy      []ConversationMetadata              `codec:"supersededBy" json:"supersededBy"`
+	MaxMessages       []MessageUnboxed                    `codec:"maxMessages" json:"maxMessages"`
+	IsEmpty           bool                                `codec:"isEmpty" json:"isEmpty"`
+	IdentifyFailures  []keybase1.TLFIdentifyFailure       `codec:"identifyFailures" json:"identifyFailures"`
+	Expunge           Expunge                             `codec:"expunge" json:"expunge"`
+	ConvRetention     *RetentionPolicy                    `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
+	TeamRetention     *RetentionPolicy                    `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
+	MinWriterRoleInfo *ConversationMinWriterRoleInfoLocal `codec:"minWriterRoleInfo,omitempty" json:"minWriterRoleInfo,omitempty"`
 }
 
 func (o ConversationLocal) DeepCopy() ConversationLocal {
@@ -2896,6 +2962,13 @@ func (o ConversationLocal) DeepCopy() ConversationLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.TeamRetention),
+		MinWriterRoleInfo: (func(x *ConversationMinWriterRoleInfoLocal) *ConversationMinWriterRoleInfoLocal {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.MinWriterRoleInfo),
 	}
 }
 
@@ -3703,27 +3776,54 @@ func (o GetMessagesLocalRes) DeepCopy() GetMessagesLocalRes {
 	}
 }
 
-type LocalSource struct {
-	Source   keybase1.Stream `codec:"source" json:"source"`
-	Filename string          `codec:"filename" json:"filename"`
-	Size     int             `codec:"size" json:"size"`
+type PostFileAttachmentArg struct {
+	ConversationID    ConversationID               `codec:"conversationID" json:"conversationID"`
+	TlfName           string                       `codec:"tlfName" json:"tlfName"`
+	Visibility        keybase1.TLFVisibility       `codec:"visibility" json:"visibility"`
+	Filename          string                       `codec:"filename" json:"filename"`
+	Title             string                       `codec:"title" json:"title"`
+	Metadata          []byte                       `codec:"metadata" json:"metadata"`
+	IdentifyBehavior  keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	CallerPreview     *MakePreviewRes              `codec:"callerPreview,omitempty" json:"callerPreview,omitempty"`
+	OutboxID          *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	EphemeralLifetime *gregor1.DurationSec         `codec:"ephemeralLifetime,omitempty" json:"ephemeralLifetime,omitempty"`
 }
 
-func (o LocalSource) DeepCopy() LocalSource {
-	return LocalSource{
-		Source:   o.Source.DeepCopy(),
-		Filename: o.Filename,
-		Size:     o.Size,
-	}
-}
-
-type LocalFileSource struct {
-	Filename string `codec:"filename" json:"filename"`
-}
-
-func (o LocalFileSource) DeepCopy() LocalFileSource {
-	return LocalFileSource{
-		Filename: o.Filename,
+func (o PostFileAttachmentArg) DeepCopy() PostFileAttachmentArg {
+	return PostFileAttachmentArg{
+		ConversationID: o.ConversationID.DeepCopy(),
+		TlfName:        o.TlfName,
+		Visibility:     o.Visibility.DeepCopy(),
+		Filename:       o.Filename,
+		Title:          o.Title,
+		Metadata: (func(x []byte) []byte {
+			if x == nil {
+				return nil
+			}
+			return append([]byte{}, x...)
+		})(o.Metadata),
+		IdentifyBehavior: o.IdentifyBehavior.DeepCopy(),
+		CallerPreview: (func(x *MakePreviewRes) *MakePreviewRes {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.CallerPreview),
+		OutboxID: (func(x *OutboxID) *OutboxID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.OutboxID),
+		EphemeralLifetime: (func(x *gregor1.DurationSec) *gregor1.DurationSec {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.EphemeralLifetime),
 	}
 }
 
@@ -3761,23 +3861,125 @@ func (o DownloadAttachmentLocalRes) DeepCopy() DownloadAttachmentLocalRes {
 	}
 }
 
-type MakePreviewRes struct {
-	MimeType     string         `codec:"mimeType" json:"mimeType"`
-	Filename     *string        `codec:"filename,omitempty" json:"filename,omitempty"`
-	Metadata     *AssetMetadata `codec:"metadata,omitempty" json:"metadata,omitempty"`
-	BaseMetadata *AssetMetadata `codec:"baseMetadata,omitempty" json:"baseMetadata,omitempty"`
+type PreviewLocationTyp int
+
+const (
+	PreviewLocationTyp_URL  PreviewLocationTyp = 0
+	PreviewLocationTyp_FILE PreviewLocationTyp = 1
+)
+
+func (o PreviewLocationTyp) DeepCopy() PreviewLocationTyp { return o }
+
+var PreviewLocationTypMap = map[string]PreviewLocationTyp{
+	"URL":  0,
+	"FILE": 1,
 }
 
-func (o MakePreviewRes) DeepCopy() MakePreviewRes {
-	return MakePreviewRes{
-		MimeType: o.MimeType,
-		Filename: (func(x *string) *string {
+var PreviewLocationTypRevMap = map[PreviewLocationTyp]string{
+	0: "URL",
+	1: "FILE",
+}
+
+func (e PreviewLocationTyp) String() string {
+	if v, ok := PreviewLocationTypRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type PreviewLocation struct {
+	Ltyp__ PreviewLocationTyp `codec:"ltyp" json:"ltyp"`
+	Url__  *string            `codec:"url,omitempty" json:"url,omitempty"`
+	File__ *string            `codec:"file,omitempty" json:"file,omitempty"`
+}
+
+func (o *PreviewLocation) Ltyp() (ret PreviewLocationTyp, err error) {
+	switch o.Ltyp__ {
+	case PreviewLocationTyp_URL:
+		if o.Url__ == nil {
+			err = errors.New("unexpected nil value for Url__")
+			return ret, err
+		}
+	case PreviewLocationTyp_FILE:
+		if o.File__ == nil {
+			err = errors.New("unexpected nil value for File__")
+			return ret, err
+		}
+	}
+	return o.Ltyp__, nil
+}
+
+func (o PreviewLocation) Url() (res string) {
+	if o.Ltyp__ != PreviewLocationTyp_URL {
+		panic("wrong case accessed")
+	}
+	if o.Url__ == nil {
+		return
+	}
+	return *o.Url__
+}
+
+func (o PreviewLocation) File() (res string) {
+	if o.Ltyp__ != PreviewLocationTyp_FILE {
+		panic("wrong case accessed")
+	}
+	if o.File__ == nil {
+		return
+	}
+	return *o.File__
+}
+
+func NewPreviewLocationWithUrl(v string) PreviewLocation {
+	return PreviewLocation{
+		Ltyp__: PreviewLocationTyp_URL,
+		Url__:  &v,
+	}
+}
+
+func NewPreviewLocationWithFile(v string) PreviewLocation {
+	return PreviewLocation{
+		Ltyp__: PreviewLocationTyp_FILE,
+		File__: &v,
+	}
+}
+
+func (o PreviewLocation) DeepCopy() PreviewLocation {
+	return PreviewLocation{
+		Ltyp__: o.Ltyp__.DeepCopy(),
+		Url__: (func(x *string) *string {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x)
 			return &tmp
-		})(o.Filename),
+		})(o.Url__),
+		File__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.File__),
+	}
+}
+
+type MakePreviewRes struct {
+	MimeType     string           `codec:"mimeType" json:"mimeType"`
+	Location     *PreviewLocation `codec:"location,omitempty" json:"location,omitempty"`
+	Metadata     *AssetMetadata   `codec:"metadata,omitempty" json:"metadata,omitempty"`
+	BaseMetadata *AssetMetadata   `codec:"baseMetadata,omitempty" json:"baseMetadata,omitempty"`
+}
+
+func (o MakePreviewRes) DeepCopy() MakePreviewRes {
+	return MakePreviewRes{
+		MimeType: o.MimeType,
+		Location: (func(x *PreviewLocation) *PreviewLocation {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Location),
 		Metadata: (func(x *AssetMetadata) *AssetMetadata {
 			if x == nil {
 				return nil
@@ -4238,32 +4440,15 @@ type GetMessagesLocalArg struct {
 	IdentifyBehavior         keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
-type PostAttachmentLocalArg struct {
-	SessionID         int                          `codec:"sessionID" json:"sessionID"`
-	ConversationID    ConversationID               `codec:"conversationID" json:"conversationID"`
-	TlfName           string                       `codec:"tlfName" json:"tlfName"`
-	Visibility        keybase1.TLFVisibility       `codec:"visibility" json:"visibility"`
-	Attachment        LocalSource                  `codec:"attachment" json:"attachment"`
-	Preview           *MakePreviewRes              `codec:"preview,omitempty" json:"preview,omitempty"`
-	Title             string                       `codec:"title" json:"title"`
-	Metadata          []byte                       `codec:"metadata" json:"metadata"`
-	IdentifyBehavior  keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
-	OutboxID          *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	EphemeralLifetime *gregor1.DurationSec         `codec:"ephemeralLifetime,omitempty" json:"ephemeralLifetime,omitempty"`
+type PostFileAttachmentLocalArg struct {
+	SessionID int                   `codec:"sessionID" json:"sessionID"`
+	Arg       PostFileAttachmentArg `codec:"arg" json:"arg"`
 }
 
-type PostFileAttachmentLocalArg struct {
-	SessionID         int                          `codec:"sessionID" json:"sessionID"`
-	ConversationID    ConversationID               `codec:"conversationID" json:"conversationID"`
-	TlfName           string                       `codec:"tlfName" json:"tlfName"`
-	Visibility        keybase1.TLFVisibility       `codec:"visibility" json:"visibility"`
-	Attachment        LocalFileSource              `codec:"attachment" json:"attachment"`
-	Preview           *MakePreviewRes              `codec:"preview,omitempty" json:"preview,omitempty"`
-	Title             string                       `codec:"title" json:"title"`
-	Metadata          []byte                       `codec:"metadata" json:"metadata"`
-	IdentifyBehavior  keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
-	OutboxID          *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	EphemeralLifetime *gregor1.DurationSec         `codec:"ephemeralLifetime,omitempty" json:"ephemeralLifetime,omitempty"`
+type PostFileAttachmentLocalNonblockArg struct {
+	SessionID  int                   `codec:"sessionID" json:"sessionID"`
+	Arg        PostFileAttachmentArg `codec:"arg" json:"arg"`
+	ClientPrev MessageID             `codec:"clientPrev" json:"clientPrev"`
 }
 
 type DownloadAttachmentLocalArg struct {
@@ -4285,9 +4470,9 @@ type DownloadFileAttachmentLocalArg struct {
 }
 
 type MakePreviewArg struct {
-	SessionID  int             `codec:"sessionID" json:"sessionID"`
-	Attachment LocalFileSource `codec:"attachment" json:"attachment"`
-	OutputDir  string          `codec:"outputDir" json:"outputDir"`
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Filename  string   `codec:"filename" json:"filename"`
+	OutboxID  OutboxID `codec:"outboxID" json:"outboxID"`
 }
 
 type CancelPostArg struct {
@@ -4370,6 +4555,7 @@ type UnboxMobilePushNotificationArg struct {
 	ConvID      string                  `codec:"convID" json:"convID"`
 	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
 	PushIDs     []string                `codec:"pushIDs" json:"pushIDs"`
+	ShouldAck   bool                    `codec:"shouldAck" json:"shouldAck"`
 }
 
 type AddTeamMemberAfterResetArg struct {
@@ -4389,6 +4575,11 @@ type SetTeamRetentionLocalArg struct {
 
 type GetTeamRetentionLocalArg struct {
 	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
+}
+
+type SetConvMinWriterRoleLocalArg struct {
+	ConvID ConversationID    `codec:"convID" json:"convID"`
+	Role   keybase1.TeamRole `codec:"role" json:"role"`
 }
 
 type UpgradeKBFSConversationToImpteamArg struct {
@@ -4436,8 +4627,8 @@ type LocalInterface interface {
 	GetInboxSummaryForCLILocal(context.Context, GetInboxSummaryForCLILocalQuery) (GetInboxSummaryForCLILocalRes, error)
 	GetConversationForCLILocal(context.Context, GetConversationForCLILocalQuery) (GetConversationForCLILocalRes, error)
 	GetMessagesLocal(context.Context, GetMessagesLocalArg) (GetMessagesLocalRes, error)
-	PostAttachmentLocal(context.Context, PostAttachmentLocalArg) (PostLocalRes, error)
 	PostFileAttachmentLocal(context.Context, PostFileAttachmentLocalArg) (PostLocalRes, error)
+	PostFileAttachmentLocalNonblock(context.Context, PostFileAttachmentLocalNonblockArg) (PostLocalNonblockRes, error)
 	DownloadAttachmentLocal(context.Context, DownloadAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
 	MakePreview(context.Context, MakePreviewArg) (MakePreviewRes, error)
@@ -4460,6 +4651,7 @@ type LocalInterface interface {
 	SetConvRetentionLocal(context.Context, SetConvRetentionLocalArg) error
 	SetTeamRetentionLocal(context.Context, SetTeamRetentionLocalArg) error
 	GetTeamRetentionLocal(context.Context, keybase1.TeamID) (*RetentionPolicy, error)
+	SetConvMinWriterRoleLocal(context.Context, SetConvMinWriterRoleLocalArg) error
 	UpgradeKBFSConversationToImpteam(context.Context, ConversationID) error
 	GetSearchRegexp(context.Context, GetSearchRegexpArg) (GetSearchRegexpRes, error)
 	GetStaticConfig(context.Context) (StaticConfig, error)
@@ -4864,22 +5056,6 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"postAttachmentLocal": {
-				MakeArg: func() interface{} {
-					ret := make([]PostAttachmentLocalArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]PostAttachmentLocalArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]PostAttachmentLocalArg)(nil), args)
-						return
-					}
-					ret, err = i.PostAttachmentLocal(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 			"postFileAttachmentLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]PostFileAttachmentLocalArg, 1)
@@ -4892,6 +5068,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.PostFileAttachmentLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"postFileAttachmentLocalNonblock": {
+				MakeArg: func() interface{} {
+					ret := make([]PostFileAttachmentLocalNonblockArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PostFileAttachmentLocalNonblockArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PostFileAttachmentLocalNonblockArg)(nil), args)
+						return
+					}
+					ret, err = i.PostFileAttachmentLocalNonblock(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -5243,6 +5435,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"setConvMinWriterRoleLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]SetConvMinWriterRoleLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetConvMinWriterRoleLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetConvMinWriterRoleLocalArg)(nil), args)
+						return
+					}
+					err = i.SetConvMinWriterRoleLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"upgradeKBFSConversationToImpteam": {
 				MakeArg: func() interface{} {
 					ret := make([]UpgradeKBFSConversationToImpteamArg, 1)
@@ -5421,13 +5629,13 @@ func (c LocalClient) GetMessagesLocal(ctx context.Context, __arg GetMessagesLoca
 	return
 }
 
-func (c LocalClient) PostAttachmentLocal(ctx context.Context, __arg PostAttachmentLocalArg) (res PostLocalRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.postAttachmentLocal", []interface{}{__arg}, &res)
+func (c LocalClient) PostFileAttachmentLocal(ctx context.Context, __arg PostFileAttachmentLocalArg) (res PostLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postFileAttachmentLocal", []interface{}{__arg}, &res)
 	return
 }
 
-func (c LocalClient) PostFileAttachmentLocal(ctx context.Context, __arg PostFileAttachmentLocalArg) (res PostLocalRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.postFileAttachmentLocal", []interface{}{__arg}, &res)
+func (c LocalClient) PostFileAttachmentLocalNonblock(ctx context.Context, __arg PostFileAttachmentLocalNonblockArg) (res PostLocalNonblockRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postFileAttachmentLocalNonblock", []interface{}{__arg}, &res)
 	return
 }
 
@@ -5544,6 +5752,11 @@ func (c LocalClient) SetTeamRetentionLocal(ctx context.Context, __arg SetTeamRet
 func (c LocalClient) GetTeamRetentionLocal(ctx context.Context, teamID keybase1.TeamID) (res *RetentionPolicy, err error) {
 	__arg := GetTeamRetentionLocalArg{TeamID: teamID}
 	err = c.Cli.Call(ctx, "chat.1.local.getTeamRetentionLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) SetConvMinWriterRoleLocal(ctx context.Context, __arg SetConvMinWriterRoleLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.setConvMinWriterRoleLocal", []interface{}{__arg}, nil)
 	return
 }
 

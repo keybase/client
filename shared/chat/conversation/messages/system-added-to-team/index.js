@@ -87,7 +87,7 @@ class YouAddedToTeam extends React.PureComponent<Props> {
         bgColor={globalColors.blue4}
         onClickAvatar={onViewTeam}
       >
-        <Icon type="icon-team-sparkles-48-40" style={{height: 40, marginTop: -36, width: 48}} />
+        <Icon type="icon-team-sparkles-64-40" style={{height: 40, marginTop: -36, width: 64}} />
         <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
           {formatTimeForMessages(timestamp)}
         </Text>

@@ -667,6 +667,18 @@ func (u *userPlusDevice) lookupImplicitTeam2(create bool, displayName string, pu
 	return res, err
 }
 
+func (u *userPlusDevice) delayMerkleTeam(teamID keybase1.TeamID) {
+	_, err := u.tc.G.API.Post(libkb.APIArg{
+		Endpoint: "test/merkled/delay_team",
+		Args: libkb.HTTPArgs{
+			"tid": libkb.S{Val: teamID.String()},
+		},
+		SessionType: libkb.APISessionTypeREQUIRED,
+		MetaContext: libkb.NewMetaContextForTest(*u.tc),
+	})
+	require.NoError(u.tc.T, err)
+}
+
 func (u *userPlusDevice) newSecretUI() *libkb.TestSecretUI {
 	return &libkb.TestSecretUI{Passphrase: u.passphrase}
 }
@@ -946,8 +958,10 @@ func TestTeamSignedByRevokedDevice(t *testing.T) {
 	// the loader
 	bob := tt.addUser("bob")
 
-	teamName := alice.createTeam()
-	alice.addTeamMember(teamName, bob.username, keybase1.TeamRole_ADMIN)
+	teamID, teamName := alice.createTeam2()
+	// Delay team sigs in the merkle queue to try to elicit a bad race. As a regression test for CORE-8233.
+	alice.delayMerkleTeam(teamID)
+	alice.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_ADMIN)
 
 	t.Logf("alice revokes the device used to sign team links")
 	var revokedKID keybase1.KID
@@ -962,17 +976,29 @@ func TestTeamSignedByRevokedDevice(t *testing.T) {
 		require.NotNil(t, target)
 		revokedKID = target.Kid
 
-		revokeEngine := engine.NewRevokeDeviceEngine(alice.tc.G, engine.RevokeDeviceEngineArgs{
-			ID:        target.ID,
-			ForceSelf: true,
-			ForceLast: false,
-		})
-		uis := libkb.UIs{
-			LogUI:    alice.tc.G.Log,
-			SecretUI: alice.newSecretUI(),
+		revokeAttemptsMax := 3
+		var err error
+		for i := 0; i < revokeAttemptsMax; i++ {
+			t.Logf("revoke attempt %v / %v", i+1, revokeAttemptsMax)
+			revokeEngine := engine.NewRevokeDeviceEngine(alice.tc.G, engine.RevokeDeviceEngineArgs{
+				ID:        target.ID,
+				ForceSelf: true,
+				ForceLast: false,
+			})
+			uis := libkb.UIs{
+				LogUI:    alice.tc.G.Log,
+				SecretUI: alice.newSecretUI(),
+			}
+			m := libkb.NewMetaContextForTest(*alice.tc).WithUIs(uis)
+			err = engine.RunEngine2(m, revokeEngine)
+			if err == nil {
+				break
+			}
+			t.Logf("revoke attempt %v failed: %v", i, err)
+			if strings.Contains(err.Error(), "lazy merkle transaction in progress for key") {
+				continue
+			}
 		}
-		m := libkb.NewMetaContextForTest(*alice.tc).WithUIs(uis)
-		err := engine.RunEngine2(m, revokeEngine)
 		require.NoError(t, err)
 	}
 
@@ -993,7 +1019,7 @@ func TestTeamSignedByRevokedDevice(t *testing.T) {
 
 	t.Logf("bob loads the team")
 	_, err := teams.Load(context.TODO(), bob.tc.G, keybase1.LoadTeamArg{
-		Name:            teamName,
+		Name:            teamName.String(),
 		ForceRepoll:     true,
 		ForceFullReload: true, // don't use the cache
 	})
@@ -1310,4 +1336,92 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, donnyPerms.SetPublicityAny)
 	require.False(t, donnyPerms.DeleteChatHistory)
 	require.False(t, donnyPerms.Chat)
+}
+
+func TestBatchAddMembers(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUser("alice")
+	bob := tt.addUser("bob")
+	john := tt.addPuklessUser("john")
+	rob := tt.addPuklessUser("rob")
+	tt.logUserNames()
+
+	teamID, teamName := alice.createTeam2()
+
+	assertions := []string{
+		bob.username,
+		john.username,
+		rob.username,
+		bob.username + "@rooter",
+		"foodle@twitter",
+	}
+	expectInvite := []bool{false, true, true, true, true}
+	expectUsername := []bool{true, true, true, false, false}
+	role := keybase1.TeamRole_OWNER
+	res, err := teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), assertions, role)
+	require.Error(t, err, "can't invite assertions as owners")
+	require.IsType(t, teams.AttemptedInviteSocialOwnerError{}, err)
+	require.Nil(t, res)
+
+	team := alice.loadTeamByID(teamID, true /* admin */)
+	members, err := team.Members()
+	require.NoError(t, err)
+	require.Len(t, members.Owners, 1)
+	require.Len(t, members.Admins, 0)
+	require.Len(t, members.Writers, 0)
+	require.Len(t, members.Readers, 0)
+
+	role = keybase1.TeamRole_ADMIN
+	res, err = teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), assertions, role)
+	require.NoError(t, err)
+	require.Len(t, res, len(assertions))
+	for i, r := range res {
+		require.Equal(t, expectInvite[i], r.Invite, "invite %v", i)
+		if expectUsername[i] {
+			require.Equal(t, assertions[i], r.Username.String(), "expected username %v", i)
+		} else {
+			require.Equal(t, "", r.Username.String(), "expected no username %v", i)
+		}
+	}
+
+	team = alice.loadTeamByID(teamID, true /* admin */)
+	members, err = team.Members()
+	require.NoError(t, err)
+	require.Len(t, members.Owners, 1)
+	require.Equal(t, alice.userVersion(), members.Owners[0])
+	require.Len(t, members.Admins, 1)
+	require.Equal(t, bob.userVersion(), members.Admins[0])
+	require.Len(t, members.Writers, 0)
+	require.Len(t, members.Readers, 0)
+
+	invites := team.GetActiveAndObsoleteInvites()
+	t.Logf("invites: %s", spew.Sdump(invites))
+	sbsCount := 0
+	expectInvites := make(map[string]struct{})
+	expectInvites[john.userVersion().String()] = struct{}{}
+	expectInvites[rob.userVersion().String()] = struct{}{}
+	for x, invite := range invites {
+		t.Logf("invites[%v]", x)
+		require.Equal(t, invite.Role, role)
+		switch invite.Type.C__ {
+		case keybase1.TeamInviteCategory_SBS:
+			switch invite.Type.Sbs() {
+			case "twitter":
+				require.Equal(t, "foodle", string(invite.Name))
+			case "rooter":
+				require.Equal(t, bob.username, string(invite.Name))
+			default:
+				require.FailNowf(t, "unexpected invite service", "%v", spew.Sdump(invite))
+			}
+			sbsCount++
+		case keybase1.TeamInviteCategory_KEYBASE:
+			require.Contains(t, expectInvites, string(invite.Name))
+			delete(expectInvites, string(invite.Name))
+		default:
+			require.FailNowf(t, "unexpected invite type", "%v", spew.Sdump(invite))
+		}
+	}
+	require.Equal(t, 2, sbsCount, "sbs count")
 }

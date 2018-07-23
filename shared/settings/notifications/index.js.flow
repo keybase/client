@@ -25,6 +25,8 @@ export type Props = {
   onToggleUnsubscribeAll: (group: string) => void,
   mobileHasPermissions: boolean,
   waitingForResponse: boolean,
+  sound?: boolean,
+  onToggleSound?: (sound: boolean) => void,
 }
 
 export default class Notifications extends Component<Props> {}

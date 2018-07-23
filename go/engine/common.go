@@ -150,9 +150,6 @@ func fetchLKS(m libkb.MetaContext, encKey libkb.GenericKey) (libkb.PassphraseGen
 		},
 		MetaContext: m,
 	}
-	if lctx := m.LoginContext(); lctx != nil {
-		arg.SessionR = lctx.LocalSession()
-	}
 	res, err := m.G().API.Get(arg)
 	var dummy libkb.LKSecClientHalf
 	if err != nil {

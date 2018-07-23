@@ -29,17 +29,19 @@ const Breadcrumb = ({dropdownItems, shownItems}: Props) => (
           </Box>
         ) : (
           <Box style={stylesBreadcrumbLastItemBox}>
-            {// We are splitting on ',' here, so it won't work for
-            // long names that don't have comma. If this becomes a
-            // problem, we might have to do smarter splitting that
-            // involve other characters, or just break the long name
-            // apart into 3-character groups.
-            item.name.split(',').map((sub, idx, {length}) => (
-              <Text key={idx} type={'BodyBig'} style={stylesLastNameText}>
-                {sub}
-                {idx !== length - 1 ? ',' : ''}
-              </Text>
-            ))}
+            <Text type="BodyBig" selectable={true}>
+              {// We are splitting on ',' here, so it won't work for
+              // long names that don't have comma. If this becomes a
+              // problem, we might have to do smarter splitting that
+              // involve other characters, or just break the long name
+              // apart into 3-character groups.
+              item.name.split(',').map((sub, idx, {length}) => (
+                <Text key={idx} type={'BodyBig'} style={stylesLastNameText}>
+                  {sub}
+                  {idx !== length - 1 ? ',' : ''}
+                </Text>
+              ))}
+            </Text>
           </Box>
         )}
         {!item.isLastItem && <Icon type="iconfont-arrow-right" style={iconStyle} fontSize={11} />}

@@ -100,6 +100,7 @@ func (h *gregorFirehoseHandler) IsAlive() bool {
 }
 
 func (h *gregorFirehoseHandler) PushState(s gregor1.State, r keybase1.PushReason) {
+	defer h.G().Trace("gregorFirehoseHandler#PushState", func() error { return nil })()
 	err := h.cli.PushState(context.Background(), keybase1.PushStateArg{State: s, Reason: r})
 	if err != nil {
 		h.G().Log.Error(fmt.Sprintf("Error in firehose push state: %s", err))
@@ -122,7 +123,7 @@ func (h *gregorFirehoseHandler) filterOOBMs(v []gregor1.OutOfBandMessage) []greg
 }
 
 func (h *gregorFirehoseHandler) PushOutOfBandMessages(v []gregor1.OutOfBandMessage) {
-
+	defer h.G().Trace("gregorFirehoseHandler#PushOutOfBandMessages", func() error { return nil })()
 	nOrig := len(v)
 
 	// Filter OOBMs down to wanted systems if we have a filter installed

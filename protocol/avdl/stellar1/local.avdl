@@ -16,13 +16,22 @@ protocol local {
 
   record AccountAssetLocal {
     string name;                    // "Lumens" for native. AssetCode like "BTC" for non-native.
-    string balanceTotal;            // "280.9192933"
-    string balanceAvailableToSend;  // "279.9192933". Same as balanceTotal for non-native.
     string assetCode;               // "XLM", "BTC"
     string issuerName;              // "Stellar network" for native. Blank or like "stronghold.com" for non-native.
     string issuerAccountID;         // "" for native. Like "GCKLHXC22222252UOISFKYZQX7YIVDBPSZ7UUYDFK6URTG6VDRANPC5K" for non-native.
+
+    string balanceTotal;            // "280.9192933"
+    string balanceAvailableToSend;  // Available to send. Like "279.9192933". Same as balanceTotal for non-native.
+
+    string worthCurrency;           // "USD", "CAD", etc. If it is "ERR" then an exchange rate error occurred. Blank for non-native.
     string worth;                   // "$98.13" or error string if worthCurrency == "ERR". Blank for non-native.
-    string worthCurrency;           // "USD", "CAD", etc.  if it is "ERR" then an exchange rate error occurred. Blank for non-native.
+    // Available to send in worthCurrency.
+    // Like $97.83"" for native.
+    // Blank for non-native.
+    // Error string when worthCurrency is "ERR".
+    string availableToSendWorth;
+
+    array<AccountReserve> reserves; // only added to native (XLM) asset.
   }
   array<AccountAssetLocal> getAccountAssetsLocal(int sessionID, AccountID accountID);
 
@@ -48,14 +57,19 @@ protocol local {
     SBS_3
   }
 
+  record PaymentID {
+    TransactionID txID;
+  }
+
   // Summary of a payment.
   // Keep in sync with PaymentDetailsLocal.
   record PaymentLocal {
-    TransactionID id;               // For relay payments, the funding tx.
+    PaymentID id;                   // For relay payments, the funding tx.
     TimeMs time;
     PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
     string statusDescription;       // "pending", "completed", "error"
     string statusDetail;
+    boolean showCancel;             // true if cancel is an option for this payment
     string amountDescription;       // "1,323.1234567 XLM"
     BalanceDelta delta;             // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
     string worth;                   // "$123.23"
@@ -81,15 +95,18 @@ protocol local {
   }
 
   PaymentsPageLocal getPaymentsLocal(int sessionID, AccountID accountID, union { null, PageCursor } cursor);
+  array<PaymentOrErrorLocal> getPendingPaymentsLocal(int sessionID, AccountID accountID);
 
   // Details of a payment.
   // Keep in sync with PaymentLocal.
   record PaymentDetailsLocal {
-    TransactionID id;               // For relay payments, the funding tx.
+    PaymentID id;
+    TransactionID txID;             // For relay payments, the funding tx.
     TimeMs time;
     PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
     string statusDescription;       // "pending", "completed", "error"
     string statusDetail;
+    boolean showCancel;             // true if cancel is an option for this payment
     string amountDescription;       // "1,323.1234567 XLM"
     BalanceDelta delta;             // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
     string worth;                   // "$123.23"
@@ -110,7 +127,7 @@ protocol local {
   // accountID should be the accountID that you want the details for.
   // This is used for formatting the amountDescription to know if it is a payment that
   // increases or decreases the balance.
-  PaymentDetailsLocal getPaymentDetailsLocal(int sessionID, AccountID accountID, TransactionID id);
+  PaymentDetailsLocal getPaymentDetailsLocal(int sessionID, AccountID accountID, PaymentID id);
 
   record CurrencyLocal {
     string description;  // "USD ($)", "CAD ($)", etc.
@@ -119,6 +136,12 @@ protocol local {
     string name;         // "US Dollar", "Thai Baht", etc.
   }
   array<CurrencyLocal> getDisplayCurrenciesLocal(int sessionID);
+
+  void validateAccountIDLocal(int sessionID, AccountID accountID);
+  void validateSecretKeyLocal(int sessionID, SecretKey secretKey);
+  // Validates a name for a new account. Checks if any accounts have the same name.
+  // If there is an error getting account names, the error is suppressed.
+  void validateAccountNameLocal(int sessionID, string name);
 
   void changeWalletAccountNameLocal(int sessionID, AccountID accountID, string newName);
   void setWalletAccountAsDefaultLocal(int sessionID, AccountID accountID);
@@ -196,6 +219,10 @@ protocol local {
     // Example: "This stellar address is incorrect"
     string toErrMsg;
 
+    // Optional. `arg.to` may be an account ID that resolves to a user.
+    // If this is returned, caller should switch to (to=res.toUsername,toIsAccountID=false).
+    string toUsername;
+
     // Optional. Error to show with the amount field.
     // Example: "russel doesn't accept *BTC/Stronghold.com*\nPlease pick another asset."
     // Example: "Your available to send is *128.4567890 XLM*."
@@ -255,6 +282,38 @@ protocol local {
     // If arg.quickReturn == false then result.pending should be ignored.
     boolean pending;
   }
+
+  record RequestDetailsLocal {
+    KeybaseRequestID id;
+
+    // User asking for payment - creator of the request.
+    string fromAssertion; // creator username
+    boolean fromCurrentUser; // is this request coming from us?
+
+    // User being asked for payment.
+    ParticipantType toUserType; // keybase or SBS
+    string toAssertion; // keybase username or sbs assertion.
+
+    string amount;
+    union { null, Asset } asset;
+    union { null, OutsideCurrencyCode } currency;
+
+    // Formatted amount of either outside currency or stellar lumens.
+    string amountDescription; // "123.23 CAD"
+
+    // Amount of Stellar lumens and formatted amount of Stellar
+    // lumens. It's either same as amountDescription, or amount of
+    // stellars after converting from outside currency.
+    string amountStellar; // "123.23"
+    string amountStellarDescription; // "123.23 XLM"
+
+    // Payment ID if funded, empty if not funded.
+    boolean completed;
+    KeybaseTransactionID fundingKbTxID;
+    RequestStatus status;
+  }
+  RequestDetailsLocal getRequestDetailsLocal(KeybaseRequestID reqID);
+  void cancelRequestLocal(KeybaseRequestID reqID);
 
   // -------------------------------------------------------
   // CLI protocol
@@ -335,4 +394,7 @@ protocol local {
 
   map<OutsideCurrencyCode, OutsideCurrencyDefinition> getAvailableLocalCurrencies();
   string formatLocalCurrencyString(string amount, OutsideCurrencyCode code);
+
+  KeybaseRequestID makeRequestCLILocal(string recipient, union { null, Asset } asset, 
+    union { null, OutsideCurrencyCode } currency, string amount, string note);
 }

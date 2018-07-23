@@ -40,6 +40,11 @@ func (h *KBFSHandler) FSEvent(_ context.Context, arg keybase1.FSNotification) er
 	return nil
 }
 
+func (h *KBFSHandler) FSPathUpdate(_ context.Context, path string) error {
+	h.G().NotifyRouter.HandleFSPathUpdated(path)
+	return nil
+}
+
 func (h *KBFSHandler) FSEditList(ctx context.Context, arg keybase1.FSEditListArg) error {
 	h.G().NotifyRouter.HandleFSEditListResponse(ctx, arg)
 	return nil

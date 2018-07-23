@@ -5,25 +5,47 @@ import {Box} from '../../common-adapters'
 import {platformStyles} from '../../styles'
 import LinkExisting from '.'
 
-const actions = {
+const common = {
+  keyError: '',
+  linkExistingAccountError: '',
+  name: '',
+  nameError: '',
+  nameValidationState: 'none',
   onCancel: action('onCancel'),
+  onCheckKey: action('onCheckKey'),
+  onCheckName: action('onCheckName'),
+  onClearErrors: action('onClearErrors'),
   onDone: action('onDone'),
-  onNameChange: action('onNameChange'),
   onKeyChange: action('onKeyChange'),
+  onNameChange: action('onNameChange'),
   onViewChange: action('onViewChange'),
+  secretKey: '',
+  secretKeyValidationState: 'none',
+  waiting: false,
 }
 
 const enterKeyProps = {
-  ...actions,
-  name: '',
-  secretKey: '',
+  ...common,
   view: 'key',
 }
 
 const enterNameProps = {
-  ...actions,
-  name: '',
-  secretKey: '',
+  ...common,
+  view: 'name',
+}
+
+const keyErrorProps = {
+  ...common,
+  keyError: 'Error: invalid key',
+  secretKey: 'not a key',
+  secretKeyValidationState: 'error',
+}
+
+const nameErrorProps = {
+  ...common,
+  name: 'this is too long',
+  nameError: 'Error: name too long',
+  nameValidationState: 'error',
   view: 'name',
 }
 
@@ -36,7 +58,9 @@ const load = () => {
     ))
     .add('Enter key', () => <LinkExisting {...enterKeyProps} />)
     .add('Enter name', () => <LinkExisting {...enterNameProps} />)
-    .add('Prefilled name', () => <LinkExisting {...enterNameProps} name="mikem's third wallet" />)
+    .add('Prefilled name', () => <LinkExisting {...enterNameProps} name="mikem's third account" />)
+    .add('Secret key error', () => <LinkExisting {...keyErrorProps} />)
+    .add('Name error', () => <LinkExisting {...nameErrorProps} />)
 }
 
 export default load

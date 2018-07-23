@@ -12,6 +12,10 @@ type FSActivityArg struct {
 	Notification FSNotification `codec:"notification" json:"notification"`
 }
 
+type FSPathUpdatedArg struct {
+	Path string `codec:"path" json:"path"`
+}
+
 type FSSyncActivityArg struct {
 	Status FSPathSyncStatus `codec:"status" json:"status"`
 }
@@ -28,6 +32,7 @@ type FSSyncStatusResponseArg struct {
 
 type NotifyFSInterface interface {
 	FSActivity(context.Context, FSNotification) error
+	FSPathUpdated(context.Context, string) error
 	FSSyncActivity(context.Context, FSPathSyncStatus) error
 	FSEditListResponse(context.Context, FSEditListResponseArg) error
 	FSSyncStatusResponse(context.Context, FSSyncStatusResponseArg) error
@@ -49,6 +54,22 @@ func NotifyFSProtocol(i NotifyFSInterface) rpc.Protocol {
 						return
 					}
 					err = i.FSActivity(ctx, (*typedArgs)[0].Notification)
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
+			"FSPathUpdated": {
+				MakeArg: func() interface{} {
+					ret := make([]FSPathUpdatedArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FSPathUpdatedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FSPathUpdatedArg)(nil), args)
+						return
+					}
+					err = i.FSPathUpdated(ctx, (*typedArgs)[0].Path)
 					return
 				},
 				MethodType: rpc.MethodNotify,
@@ -112,6 +133,12 @@ type NotifyFSClient struct {
 func (c NotifyFSClient) FSActivity(ctx context.Context, notification FSNotification) (err error) {
 	__arg := FSActivityArg{Notification: notification}
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSActivity", []interface{}{__arg})
+	return
+}
+
+func (c NotifyFSClient) FSPathUpdated(ctx context.Context, path string) (err error) {
+	__arg := FSPathUpdatedArg{Path: path}
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSPathUpdated", []interface{}{__arg})
 	return
 }
 

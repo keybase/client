@@ -56,10 +56,12 @@ func NewCmdSimpleFSList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 				Name:  "rec, recursive",
 				Usage: "recurse into subdirectories",
 			},
+			/* TODO: currently this option does nothing.
 			cli.BoolFlag{
 				Name:  "dirs-first",
 				Usage: "list directories first",
 			},
+			*/
 			cli.BoolFlag{
 				Name:  "nocolor",
 				Usage: "remove color formatting",
@@ -265,7 +267,7 @@ func (c *CmdSimpleFSList) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
 
-	c.recurse = ctx.Bool("recurse")
+	c.recurse = ctx.Bool("rec") || ctx.Bool("recursive")
 	c.winStyle = ctx.Bool("windows")
 	c.options.all = ctx.Bool("all")
 	c.options.long = ctx.Bool("long")

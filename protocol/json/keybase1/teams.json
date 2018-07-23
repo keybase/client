@@ -154,6 +154,10 @@
         {
           "type": "Seqno",
           "name": "userEldestSeqno"
+        },
+        {
+          "type": "TeamMemberStatus",
+          "name": "status"
         }
       ]
     },
@@ -1541,7 +1545,7 @@
         },
         {
           "type": "boolean",
-          "name": "chatSent"
+          "name": "chatSending"
         }
       ]
     },
@@ -2085,6 +2089,34 @@
         }
       ],
       "response": "TeamAddMemberResult"
+    },
+    "teamAddMembers": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "assertions",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        },
+        {
+          "name": "role",
+          "type": "TeamRole"
+        },
+        {
+          "name": "sendChatNotification",
+          "type": "boolean"
+        }
+      ],
+      "response": null
     },
     "teamRemoveMember": {
       "request": [
@@ -2642,10 +2674,14 @@
         {
           "name": "isPublic",
           "type": "boolean"
+        },
+        {
+          "name": "anyRoleAllowed",
+          "type": "boolean"
         }
       ],
       "response": "NextMerkleRootRes",
-      "doc": "FindNextMerkleRootAfterTeamRemovalBySigningKey find the first Merkle root that contains the user\n   with the given signing key being removed from the given team. If there are several such instances,\n   we will return just the last one."
+      "doc": "FindNextMerkleRootAfterTeamRemovalBySigningKey find the first Merkle root that contains the user\n   with the given signing key being removed from the given team. If there are several such instances,\n   we will return just the last one. When anyRoleAllowed is false, the team removal is any drop in\n   permissions from Writer (or above) to Reader (or below)."
     },
     "profileTeamLoad": {
       "request": [
@@ -2656,6 +2692,16 @@
       ],
       "response": "ProfileTeamLoadRes",
       "doc": "ProfileTeamLoad loads a team and then throws it on the ground, for the purposes of profiling\n   the team load machinery."
+    },
+    "getTeamID": {
+      "request": [
+        {
+          "name": "teamName",
+          "type": "string"
+        }
+      ],
+      "response": "TeamID",
+      "doc": "Gets a TeamID from a team name string. Returns an error if the\n   current user can't read the team."
     }
   },
   "namespace": "keybase.1"

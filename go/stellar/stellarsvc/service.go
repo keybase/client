@@ -465,6 +465,31 @@ func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendCLILoc
 	return nil
 }
 
+func (s *Server) MakeRequestCLILocal(ctx context.Context, arg stellar1.MakeRequestCLILocalArg) (res stellar1.KeybaseRequestID, err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "MakeRequestCLILocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return "", err
+	}
+
+	uis := libkb.UIs{
+		IdentifyUI: s.uiSource.IdentifyUI(s.G(), 0),
+	}
+	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
+
+	return stellar.MakeRequest(m, s.remoter, stellar.MakeRequestArg{
+		To:       stellarcommon.RecipientInput(arg.Recipient),
+		Amount:   arg.Amount,
+		Asset:    arg.Asset,
+		Currency: arg.Currency,
+		Note:     arg.Note,
+	})
+}
+
 func (s *Server) mctx(ctx context.Context) libkb.MetaContext {
 	return libkb.NewMetaContext(ctx, s.G())
 }

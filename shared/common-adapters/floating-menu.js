@@ -1,4 +1,11 @@
 // @flow
+
+// For stories, all popups using FloatingMenu will need to have a PropProvider
+// decorator added to the story. This is because FloatingMenus are rendered
+// into a GatewayDest component in a storybook context. GatewayDest is only
+// rendered if a PropProvider decorated is used. This is done so that connected
+// components inside of a popup have access to the mocked out Provider component
+
 import * as React from 'react'
 import FloatingBox from './floating-box'
 import type {Position} from './relative-popup-hoc'

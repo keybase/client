@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import React from 'react'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
+import * as PropProviders from '../stories/prop-providers'
 import {type ConnectedProps as ConnectedUsernamesProps} from '../common-adapters/usernames'
 import {action, storiesOf, createPropProvider} from '../stories/storybook'
 import {globalColors, globalMargins} from '../styles'
@@ -13,7 +14,8 @@ import EditingRow from './row/editing'
 import PlaceholderRow from './row/placeholder'
 import UploadingRow from './row/uploading'
 import {NormalPreview} from './filepreview'
-import {Box} from '../common-adapters'
+import {Box, Box2, Text} from '../common-adapters'
+import Downloads from './footer/downloads'
 import Download from './footer/download'
 import Upload from './footer/upload'
 import PathItemAction from './common/path-item-action'
@@ -64,18 +66,29 @@ const rowProviders = {
       onAction: action('onAction'),
       resetParticipants: [...(hasAbc ? ['abc'] : []), ...(hasDef ? ['def'] : []), ...(hasGhi ? ['ghi'] : [])],
       isUserReset: false,
+      isEmpty: pathStr.includes('empty'),
     }
   },
 }
 
-const provider = createPropProvider({
+const provider = createPropProvider(PropProviders.Common(), {
   ...rowProviders,
-  ConnectedFooter: () => ({
-    downloadKeys: [],
+  ConnectedDownloads: () => ({
+    downloadKeys: ['file 1', 'blah 2', 'yo 3'],
+    thereAreMore: true,
+    openDownloadFolder: action('openDownloadFolder'),
   }),
   ConnectedUpload: () => ({
     files: 0,
-    timeLeft: '',
+  }),
+  ConnectedDownload: ({downloadKey}) => ({
+    filename: downloadKey,
+    completePortion: downloadKey.split('').reduce((num, char) => (num + char.charCodeAt(0)) % 100, 0) / 100,
+    progressText: '42 s',
+    isDone: false,
+    open: action('open'),
+    dismiss: action('dismiss'),
+    cancel: action('cancel'),
   }),
   FolderHeader: () => ({
     breadcrumbItems: [
@@ -368,6 +381,7 @@ const load = () => {
             onOpen={action('onOpen')}
             openInFileUI={action('openInFileUI')}
             onAction={action('onAction')}
+            isEmpty={false}
           />
         </WrapRow>
         <WrapRow key="13">
@@ -376,9 +390,63 @@ const load = () => {
         <WrapRow key="14">
           <PlaceholderRow type="file" />
         </WrapRow>
+        <WrapRow key="15">
+          <ConnectedStillRow
+            path={Types.stringToPath('/keybase/private/empty')}
+            routeProps={I.Map({path: '/keybase/private/empty'})}
+            routePath={I.List([])}
+          />
+        </WrapRow>
+        <WrapRow key="16">
+          <StillRow
+            path={Types.stringToPath('/keybase/private/foo/bar/baz')}
+            name="qux"
+            type="file"
+            lastModifiedTimestamp={Date.now()}
+            lastWriter="bob"
+            shouldShowMenu={true}
+            itemStyles={fileItemStyles}
+            badgeCount={3}
+            isDownloading={false}
+            isUserReset={false}
+            resetParticipants={[]}
+            onOpen={action('onOpen')}
+            openInFileUI={action('openInFileUI')}
+            onAction={action('onAction')}
+            isEmpty={false}
+          />
+        </WrapRow>
       </Box>
     ))
-    .add('Footer Cards', () => (
+    .add('Downloads', () => (
+      <Box2 direction="vertical">
+        <Text type="Header">1 item</Text>
+        <Downloads
+          downloadKeys={['file 1']}
+          thereAreMore={false}
+          openDownloadFolder={action('openDownloadFolder')}
+        />
+        <Text type="Header">2 items</Text>
+        <Downloads
+          downloadKeys={['file 1', 'blah 2']}
+          thereAreMore={false}
+          openDownloadFolder={action('openDownloadFolder')}
+        />
+        <Text type="Header">3 items</Text>
+        <Downloads
+          downloadKeys={['file 1', 'blah 2', 'yo 3']}
+          thereAreMore={false}
+          openDownloadFolder={action('openDownloadFolder')}
+        />
+        <Text type="Header">4+ items</Text>
+        <Downloads
+          downloadKeys={['file 1', 'blah 2', 'yo 3']}
+          thereAreMore={true}
+          openDownloadFolder={action('openDownloadFolder')}
+        />
+      </Box2>
+    ))
+    .add('Download Cards', () => (
       <Box>
         <Box style={{height: 8}} />
         <Download
@@ -480,7 +548,7 @@ const load = () => {
         />
       </Box>
     ))
-    .add('UploadBanner', () => <Upload files={42} timeLeft="23 min" />)
+    .add('UploadBanner', () => <Upload files={42} timeLeft="23 min" showing={true} />)
     .add('ResetRows', () => (
       <Files
         path={Types.stringToPath('/keybase')}

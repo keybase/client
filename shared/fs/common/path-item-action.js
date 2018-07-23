@@ -31,7 +31,7 @@ const PathItemActionHeader = (props: Props) => (
     <PathItemIcon spec={props.itemStyles.iconSpec} style={pathItemIconStyle} />
     <StaticBreadcrumb pathElements={props.pathElements} />
     <Box style={stylesNameTextBox}>
-      <Text type="BodySmallSemibold" style={stylesNameText(props.itemStyles.textColor)}>
+      <Text selectable={true} type="BodySmallSemibold" style={stylesNameText(props.itemStyles.textColor)}>
         {props.name}
       </Text>
     </Box>
