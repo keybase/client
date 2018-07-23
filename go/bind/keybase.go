@@ -393,6 +393,7 @@ func unboxNotification(ctx context.Context, strConvID, body string, intMembersTy
 }
 
 func pushPendingMessageFailure(convID chat1.ConversationID, pusher PushNotifier) {
+	kbCtx.Log.Debug("pushPendingMessageFailure: pushing convID: %s", convID)
 	pusher.LocalNotification("failedpending",
 		"Heads up! One or more pending messages failed to send. Tap here to retry them.",
 		-1, "default", convID.String(), "chat.failedpending")
@@ -430,10 +431,15 @@ func AppDidEnterBackground() bool {
 	return false
 }
 
+func AppBeginBackgroundTaskNonblock(pusher PushNotifier) {
+	defer kbCtx.Trace("AppBeginBackgroundTaskNonblock", func() error { return nil })()
+	go AppBeginBackgroundTask(pusher)
+}
+
 // AppBeginBackgroundTask notifies us that an [iOS] background task has been started on our behalf. This
 // function will return once we no longer need any time in the background.
 func AppBeginBackgroundTask(pusher PushNotifier) (abort bool) {
-	defer kbCtx.Trace("AppDidEnterBackground", func() error { return nil })()
+	defer kbCtx.Trace("AppBeginBackgroundTask", func() error { return nil })()
 	ctx := context.Background()
 	// Poll active deliveries in case we can shutdown early
 	beginTime := libkb.ForceWallClock(time.Now())

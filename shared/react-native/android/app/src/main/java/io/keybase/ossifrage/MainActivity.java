@@ -62,7 +62,8 @@ public class MainActivity extends ReactActivity {
         }
 
         createDummyFile();
-        initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false, new DNSNSFetcher());
+        initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
+                new DNSNSFetcher());
 
         super.onCreate(savedInstanceState);
 
@@ -74,7 +75,8 @@ public class MainActivity extends ReactActivity {
                 if (instanceManager != null) {
                     ReactContext currentContext = instanceManager.getCurrentReactContext();
                     if (currentContext != null) {
-                        DeviceEventManagerModule.RCTDeviceEventEmitter emitter = currentContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
+                        DeviceEventManagerModule.RCTDeviceEventEmitter emitter = currentContext
+                                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
                         if (emitter != null) {
                             emitter.emit("androidIntentNotification", "");
                         }
@@ -87,13 +89,11 @@ public class MainActivity extends ReactActivity {
         // This prevents the image from being visible behind the app, such as during a
         // keyboard show animation.
         final Window mainWindow = this.getWindow();
-        new android.os.Handler().postDelayed(
-            new Runnable() {
-                public void run() {
-                    mainWindow.setBackgroundDrawableResource(R.color.white);
-                }
-            },
-        300);
+        new android.os.Handler().postDelayed(new Runnable() {
+            public void run() {
+                mainWindow.setBackgroundDrawableResource(R.color.white);
+            }
+        }, 300);
     }
 
     @Override
@@ -123,7 +123,11 @@ public class MainActivity extends ReactActivity {
 
     @Override
     protected void onPause() {
-        Keybase.setAppStateBackground();
+        if (Keybase.appDidEnterBackground()) {
+            Keybase.appBeginBackgroundTaskNonblock(new KBPushNotifier(this));
+        } else {
+            Keybase.setAppStateBackground();
+        }
         super.onPause();
     }
 
@@ -135,13 +139,13 @@ public class MainActivity extends ReactActivity {
 
     @Override
     protected void onDestroy() {
-        Keybase.appWillExit();
+        Keybase.appWillExit(new KBPushNotifier(this));
         super.onDestroy();
     }
 
     /**
-     * Returns the name of the main component registered from JavaScript.
-     * This is used to schedule rendering of the component.
+     * Returns the name of the main component registered from JavaScript. This is
+     * used to schedule rendering of the component.
      */
     @Override
     protected String getMainComponentName() {
