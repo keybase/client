@@ -47,7 +47,11 @@ const EditControl = ({isYou, onClickShowcaseOffer}: {isYou: boolean, onClickShow
   <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginBottom: globalMargins.tiny}}>
     <Text type="BodySmallSemibold">Teams</Text>
     {!!isYou && (
-      <Icon style={{margin: 2, width: 22, height: 22}} type="iconfont-edit" onClick={onClickShowcaseOffer} />
+      <Icon
+        style={{margin: 2, width: 28, height: 28, padding: 6}}
+        type="iconfont-edit"
+        onClick={onClickShowcaseOffer}
+      />
     )}
   </Box>
 )
