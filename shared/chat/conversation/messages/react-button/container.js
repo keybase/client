@@ -8,10 +8,12 @@ import ReactButton, {NewReactionButton} from '.'
 
 type WrapperProps = {
   active: boolean,
+  conversationIDKey: Types.ConversationIDKey,
   count: number,
   emoji?: string,
   onAddReaction: (emoji: string) => void,
   onClick: () => void,
+  ordinal: Types.Ordinal,
   showBorder?: boolean,
 }
 const Wrapper = (props: WrapperProps) =>

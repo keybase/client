@@ -18,6 +18,7 @@ type OwnProps = {
   emoji: string,
   onHidden: () => void,
   ordinal: Types.Ordinal,
+  visible: boolean,
 }
 
 const emptyStateProps = {
@@ -42,13 +43,19 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  let reactions = Object.keys(stateProps._reactions).map(emoji => ({
-    emoji,
-    users: stateProps._reactions.get(emoji, I.Set()).map(r => ({
-      fullName: stateProps._usersInfo.get(r.username, {fullname: ''}).fullname,
-      username: r.username,
-    })),
-  }))
+  let reactions = stateProps._reactions
+    .keySeq()
+    .toArray()
+    .map(emoji => ({
+      emoji,
+      users: stateProps._reactions
+        .get(emoji, I.Set())
+        .map(r => ({
+          fullName: stateProps._usersInfo.get(r.username, {fullname: ''}).fullname,
+          username: r.username,
+        }))
+        .toArray(),
+    }))
   if (!isMobile) {
     reactions = reactions.filter(r => r.emoji === ownProps.emoji)
   }
@@ -59,6 +66,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onHidden: ownProps.onHidden,
     ordinal: ownProps.ordinal,
     reactions,
+    visible: ownProps.visible,
   }
 }
 

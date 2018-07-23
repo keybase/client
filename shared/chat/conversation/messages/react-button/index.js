@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Types from '../../../../constants/types/chat2'
 import {Box2, ClickableBox, Emoji, FloatingBox, Icon, Text} from '../../../../common-adapters'
 import {
   collapseStyles,
@@ -13,12 +14,15 @@ import {
 } from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
+import ReactionTooltip from '../reaction-tooltip/container'
 
 export type Props = {
   active: boolean,
+  conversationIDKey: Types.ConversationIDKey,
   count: number,
   emoji: string,
   onClick: () => void,
+  ordinal: Types.Ordinal,
 }
 
 const ButtonBox = glamorous(ClickableBox)({
@@ -56,6 +60,7 @@ class ReactButton extends React.Component<Props, State> {
       s => (s.showingTooltip === nextShowingTooltip ? null : {showingTooltip: nextShowingTooltip})
     )
   }
+  _setAttachmentRef = attachmentRef => this.setState(s => (s.attachmentRef ? null : {attachmentRef}))
 
   render() {
     return (
@@ -63,12 +68,21 @@ class ReactButton extends React.Component<Props, State> {
         onMouseOver={() => this._setHoveringButton(true)}
         onMouseLeave={() => this._setHoveringButton(false)}
         onClick={this.props.onClick}
+        ref={this._setAttachmentRef}
         style={collapseStyles([styles.buttonBox, this.props.active && styles.active])}
       >
         <Box2 centerChildren={true} direction="horizontal" gap="xtiny" style={styles.container}>
           <Emoji size={14} emojiName={this.props.emoji} />
           <Text type="BodySmallBold">{this.props.count}</Text>
         </Box2>
+        <ReactionTooltip
+          attachmentRef={this.state.attachmentRef}
+          conversationIDKey={this.props.conversationIDKey}
+          emoji={this.props.emoji}
+          onHidden={() => {}}
+          ordinal={this.props.ordinal}
+          visible={this.state.showingTooltip}
+        />
       </ButtonBox>
     )
   }

@@ -15,9 +15,13 @@ type Props = {
     emoji: string,
     users: Array<{fullName: string, username: string}>,
   }>,
+  visible: boolean,
 }
 
 const ReactionTooltip = (props: Props) => {
+  if (!props.visible) {
+    return null
+  }
   const sections = props.reactions.map(r => ({
     conversationIDKey: props.conversationIDKey,
     data: r.users.map(u => ({...u, key: `${u.username}:${r.emoji}`})),
@@ -26,7 +30,12 @@ const ReactionTooltip = (props: Props) => {
     title: r.emoji,
   }))
   return (
-    <Overlay attachTo={props.attachmentRef} onHidden={props.onHidden} position="top right">
+    <Overlay
+      attachTo={props.attachmentRef}
+      onHidden={props.onHidden}
+      position="top right"
+      propagateOutsideClicks={true}
+    >
       <Box2 direction="vertical" gap="tiny" style={styles.listContainer}>
         {isMobile && (
           <Box2 direction="horizontal">
@@ -138,6 +147,7 @@ const styles = styleSheetCreate({
     },
   }),
   userContainer: {
+    backgroundColor: globalColors.white,
     paddingBottom: globalMargins.xtiny,
     paddingLeft: globalMargins.tiny + globalMargins.medium,
     paddingRight: globalMargins.tiny,
