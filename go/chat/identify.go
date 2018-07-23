@@ -359,13 +359,13 @@ func (t *NameIdentifier) identifyUser(ctx context.Context, assertion string, pri
 	}
 	eng := engine.NewResolveThenIdentify2(t.G().ExternalG(), &arg)
 	m := libkb.NewMetaContext(ctx, t.G().ExternalG()).WithUIs(uis)
-	err := engine.RunEngine2(m, eng)
-	if err != nil {
+	if err := engine.RunEngine2(m, eng); err != nil {
+		switch err.(type) {
 		// Ignore these errors
-		if _, ok := err.(libkb.NotFoundError); ok {
-			return keybase1.TLFIdentifyFailure{}, nil
-		}
-		if _, ok := err.(libkb.ResolutionError); ok {
+		// NOTE: Even though we ignore a `libkb.DeletedError` here, if we have
+		// previously chatted with the user we will still validate the sigchain
+		// when identifying the user and then return this error.
+		case libkb.NotFoundError, libkb.ResolutionError, libkb.DeletedError:
 			return keybase1.TLFIdentifyFailure{}, nil
 		}
 

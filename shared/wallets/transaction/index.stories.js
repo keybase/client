@@ -3,7 +3,7 @@ import * as React from 'react'
 import moment from 'moment'
 import * as PropProviders from '../../stories/prop-providers'
 import {Box2} from '../../common-adapters'
-import {storiesOf} from '../../stories/storybook'
+import {action, storiesOf} from '../../stories/storybook'
 import Transaction from '.'
 
 const provider = PropProviders.CommonProvider()
@@ -40,7 +40,15 @@ const addConfigs = (stories, namePrefix, storyFn) => {
       stories.add(namePrefix + ` (${r.yourRole} - ${s.large ? 'large' : 'small'})`, () => {
         const components = []
         memosAndTimes.forEach(t => {
-          components.push(storyFn({key: components.length, ...r, ...s, ...t}))
+          components.push(
+            storyFn({
+              key: components.length,
+              ...r,
+              ...s,
+              ...t,
+              onSelectTransaction: action('onSelectTransaction'),
+            })
+          )
         })
         return components
       })
@@ -63,6 +71,8 @@ const load = () => {
       counterpartyType="keybaseUser"
       amountUser="$12.50"
       amountXLM="53.1688643 XLM"
+      status="completed"
+      statusDetail=""
       {...config}
     />
   ))
@@ -72,6 +82,8 @@ const load = () => {
       counterpartyType="stellarPublicKey"
       amountUser="$15.65"
       amountXLM="42.535091 XLM"
+      status="completed"
+      statusDetail=""
       {...config}
     />
   ))
@@ -81,6 +93,8 @@ const load = () => {
       counterpartyType="account"
       amountUser="$100"
       amountXLM="545.2562704 XLM"
+      status="completed"
+      statusDetail=""
       {...config}
     />
   ))
@@ -90,6 +104,32 @@ const load = () => {
       counterpartyType="keybaseUser"
       amountUser=""
       amountXLM="19.4567588 XLM"
+      status="completed"
+      statusDetail=""
+      {...config}
+    />
+  ))
+  addConfigs(stories, 'Keybase User - error', config => (
+    <Transaction
+      counterparty="paul"
+      counterpartyType="keybaseUser"
+      amountUser="$12.50"
+      amountXLM="53.1688643 XLM"
+      status="error"
+      statusDetail="Horizon error"
+      {...config}
+    />
+  ))
+  addConfigs(stories, 'Keybase User - error with retry and cancel', config => (
+    <Transaction
+      counterparty="paul"
+      counterpartyType="keybaseUser"
+      amountUser="$12.50"
+      amountXLM="53.1688643 XLM"
+      status="error"
+      statusDetail="Horizon error"
+      onCancelPayment={action('onCancelPayment')}
+      onRetryPayment={action('onRetryPayment')}
       {...config}
     />
   ))

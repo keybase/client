@@ -1208,6 +1208,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, annPerms.SetTeamShowcase)
 	require.True(t, annPerms.SetMemberShowcase)
 	require.True(t, annPerms.SetRetentionPolicy)
+	require.True(t, annPerms.SetMinWriterRole)
 	require.True(t, annPerms.ChangeOpenTeam)
 	require.False(t, annPerms.LeaveTeam) // sole owner can't leave
 	require.False(t, annPerms.ListFirst) // only true for implicit admins
@@ -1226,6 +1227,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, bobPerms.SetTeamShowcase)
 	require.True(t, bobPerms.SetMemberShowcase)
 	require.True(t, bobPerms.SetRetentionPolicy)
+	require.True(t, bobPerms.SetMinWriterRole)
 	require.True(t, bobPerms.ChangeOpenTeam)
 	require.True(t, bobPerms.LeaveTeam)
 	require.False(t, bobPerms.ListFirst)
@@ -1245,6 +1247,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, pamPerms.SetTeamShowcase)
 	require.True(t, pamPerms.SetMemberShowcase)
 	require.False(t, pamPerms.SetRetentionPolicy)
+	require.False(t, pamPerms.SetMinWriterRole)
 	require.False(t, pamPerms.ChangeOpenTeam)
 	require.True(t, pamPerms.LeaveTeam)
 	require.False(t, pamPerms.ListFirst)
@@ -1264,6 +1267,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, eddPerms.SetTeamShowcase)
 	require.True(t, eddPerms.SetMemberShowcase)
 	require.False(t, eddPerms.SetRetentionPolicy)
+	require.False(t, eddPerms.SetMinWriterRole)
 	require.False(t, eddPerms.ChangeOpenTeam)
 	require.True(t, eddPerms.LeaveTeam)
 	require.False(t, eddPerms.ListFirst)
@@ -1286,6 +1290,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, annPerms.SetTeamShowcase)
 	require.False(t, annPerms.SetMemberShowcase)
 	require.False(t, annPerms.SetRetentionPolicy)
+	require.False(t, annPerms.SetMinWriterRole)
 	require.True(t, annPerms.ChangeOpenTeam) // not a member of the subteam
 	require.True(t, annPerms.ListFirst)
 	require.True(t, annPerms.JoinTeam)
@@ -1303,6 +1308,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, bobPerms.SetTeamShowcase)
 	require.False(t, bobPerms.SetMemberShowcase)
 	require.False(t, bobPerms.SetRetentionPolicy)
+	require.False(t, bobPerms.SetMinWriterRole)
 	require.True(t, bobPerms.ChangeOpenTeam)
 	require.False(t, bobPerms.LeaveTeam) // not a member of the subteam
 	require.True(t, bobPerms.ListFirst)
@@ -1330,10 +1336,99 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, donnyPerms.SetTeamShowcase)
 	require.False(t, donnyPerms.SetMemberShowcase)
 	require.False(t, donnyPerms.SetRetentionPolicy)
+	require.False(t, donnyPerms.SetMinWriterRole)
 	require.False(t, donnyPerms.ChangeOpenTeam)
 	require.False(t, donnyPerms.ListFirst)
 	// TBD: require.True(t, donnyPerms.JoinTeam)
 	require.False(t, donnyPerms.SetPublicityAny)
 	require.False(t, donnyPerms.DeleteChatHistory)
 	require.False(t, donnyPerms.Chat)
+}
+
+func TestBatchAddMembers(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUser("alice")
+	bob := tt.addUser("bob")
+	john := tt.addPuklessUser("john")
+	rob := tt.addPuklessUser("rob")
+	tt.logUserNames()
+
+	teamID, teamName := alice.createTeam2()
+
+	assertions := []string{
+		bob.username,
+		john.username,
+		rob.username,
+		bob.username + "@rooter",
+		"foodle@twitter",
+	}
+	expectInvite := []bool{false, true, true, true, true}
+	expectUsername := []bool{true, true, true, false, false}
+	role := keybase1.TeamRole_OWNER
+	res, err := teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), assertions, role)
+	require.Error(t, err, "can't invite assertions as owners")
+	require.IsType(t, teams.AttemptedInviteSocialOwnerError{}, err)
+	require.Nil(t, res)
+
+	team := alice.loadTeamByID(teamID, true /* admin */)
+	members, err := team.Members()
+	require.NoError(t, err)
+	require.Len(t, members.Owners, 1)
+	require.Len(t, members.Admins, 0)
+	require.Len(t, members.Writers, 0)
+	require.Len(t, members.Readers, 0)
+
+	role = keybase1.TeamRole_ADMIN
+	res, err = teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), assertions, role)
+	require.NoError(t, err)
+	require.Len(t, res, len(assertions))
+	for i, r := range res {
+		require.Equal(t, expectInvite[i], r.Invite, "invite %v", i)
+		if expectUsername[i] {
+			require.Equal(t, assertions[i], r.Username.String(), "expected username %v", i)
+		} else {
+			require.Equal(t, "", r.Username.String(), "expected no username %v", i)
+		}
+	}
+
+	team = alice.loadTeamByID(teamID, true /* admin */)
+	members, err = team.Members()
+	require.NoError(t, err)
+	require.Len(t, members.Owners, 1)
+	require.Equal(t, alice.userVersion(), members.Owners[0])
+	require.Len(t, members.Admins, 1)
+	require.Equal(t, bob.userVersion(), members.Admins[0])
+	require.Len(t, members.Writers, 0)
+	require.Len(t, members.Readers, 0)
+
+	invites := team.GetActiveAndObsoleteInvites()
+	t.Logf("invites: %s", spew.Sdump(invites))
+	sbsCount := 0
+	expectInvites := make(map[string]struct{})
+	expectInvites[john.userVersion().String()] = struct{}{}
+	expectInvites[rob.userVersion().String()] = struct{}{}
+	for x, invite := range invites {
+		t.Logf("invites[%v]", x)
+		require.Equal(t, invite.Role, role)
+		switch invite.Type.C__ {
+		case keybase1.TeamInviteCategory_SBS:
+			switch invite.Type.Sbs() {
+			case "twitter":
+				require.Equal(t, "foodle", string(invite.Name))
+			case "rooter":
+				require.Equal(t, bob.username, string(invite.Name))
+			default:
+				require.FailNowf(t, "unexpected invite service", "%v", spew.Sdump(invite))
+			}
+			sbsCount++
+		case keybase1.TeamInviteCategory_KEYBASE:
+			require.Contains(t, expectInvites, string(invite.Name))
+			delete(expectInvites, string(invite.Name))
+		default:
+			require.FailNowf(t, "unexpected invite type", "%v", spew.Sdump(invite))
+		}
+	}
+	require.Equal(t, 2, sbsCount, "sbs count")
 }

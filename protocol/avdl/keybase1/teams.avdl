@@ -74,7 +74,7 @@ protocol teams {
     UID uid;
     TeamRole role;
     Seqno eldestSeqno;     // eldest seqno of the team member record
-    Seqno userEldestSeqno; // actual eldest seqno of the user
+    TeamMemberStatus status;
   }
 
   record TeamMembers {
@@ -719,6 +719,8 @@ protocol teams {
 
   TeamAddMemberResult teamAddMember(int sessionID, string name, string email, string username, TeamRole role, boolean sendChatNotification);
 
+  void teamAddMembers(int sessionID, string name, array<string> assertions, TeamRole role, boolean sendChatNotification);
+
   void teamRemoveMember(int sessionID, string name, string username, string email, TeamInviteID inviteID);
 
   void teamLeave(int sessionID, string name, boolean permanent);
@@ -826,6 +828,7 @@ protocol teams {
     boolean setTeamShowcase;
     boolean setMemberShowcase;
     boolean setRetentionPolicy;
+    boolean setMinWriterRole;
     boolean changeOpenTeam;
     boolean leaveTeam;
     boolean joinTeam;
@@ -877,4 +880,9 @@ protocol teams {
    */
   ProfileTeamLoadRes profileTeamLoad(LoadTeamArg arg);
 
+  /**
+   Gets a TeamID from a team name string. Returns an error if the
+   current user can't read the team.
+   */
+  TeamID getTeamID(string teamName);
 }

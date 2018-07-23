@@ -94,6 +94,11 @@ func (j *jobQueue) PopFront() (res clTask, ok bool) {
 	return res, true
 }
 
+type activeLoad struct {
+	Ctx      context.Context
+	CancelFn context.CancelFunc
+}
+
 type BackgroundConvLoader struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -111,9 +116,8 @@ type BackgroundConvLoader struct {
 	clock      clockwork.Clock
 	resumeWait time.Duration
 
-	activeLoadCtx      context.Context
-	activeLoadCancelFn context.CancelFunc
-	suspendCount       int
+	activeLoads  map[string]activeLoad
+	suspendCount int
 
 	// for testing, make this and can check conv load successes
 	loads                 chan chat1.ConversationID
@@ -133,12 +137,23 @@ func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 		identNotifier: NewCachingIdentifyNotifier(g),
 		clock:         clockwork.NewRealClock(),
 		resumeWait:    time.Second,
+		activeLoads:   make(map[string]activeLoad),
 	}
 	b.identNotifier.ResetOnGUIConnect()
 	b.newQueue()
 	go b.monitorAppState()
 
 	return b
+}
+
+func (b *BackgroundConvLoader) addActiveLoadLocked(al activeLoad) (key string) {
+	key = libkb.RandStringB64(3)
+	b.activeLoads[key] = al
+	return key
+}
+
+func (b *BackgroundConvLoader) removeActiveLoadLocked(key string) {
+	delete(b.activeLoads, key)
 }
 
 func (b *BackgroundConvLoader) monitorAppState() {
@@ -240,13 +255,13 @@ func (b *BackgroundConvLoader) Suspend(ctx context.Context) (canceled bool) {
 		}
 	}
 	b.suspendCount++
-	if b.activeLoadCtx != nil {
+	for _, activeLoad := range b.activeLoads {
 		select {
-		case <-b.activeLoadCtx.Done():
-			b.Debug(b.activeLoadCtx, "Suspend: active load already canceled")
+		case <-activeLoad.Ctx.Done():
+			b.Debug(activeLoad.Ctx, "Suspend: active load already canceled")
 		default:
-			b.Debug(b.activeLoadCtx, "Suspend: canceling active load")
-			b.activeLoadCancelFn()
+			b.Debug(activeLoad.Ctx, "Suspend: canceling active load")
+			activeLoad.CancelFn()
 			canceled = true
 		}
 	}
@@ -401,19 +416,20 @@ func (b *BackgroundConvLoader) retriableError(err error) bool {
 func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid gregor1.UID) *clTask {
 	b.Debug(ictx, "load: loading conversation %s", task.job)
 	b.Lock()
-	b.activeLoadCtx, b.activeLoadCancelFn = context.WithCancel(
+	var al activeLoad
+	al.Ctx, al.CancelFn = context.WithCancel(
 		Context(b.makeConvLoaderContext(ictx), b.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 			b.identNotifier))
-	ctx := b.activeLoadCtx
+	ctx := al.Ctx
+	alKey := b.addActiveLoadLocked(al)
 	b.Unlock()
 	if b.testingNameInfoSource != nil {
 		CtxKeyFinder(ctx, b.G()).SetNameInfoSourceOverride(b.testingNameInfoSource)
 	}
 	defer func() {
 		b.Lock()
-		b.activeLoadCancelFn()
-		b.activeLoadCtx = nil
-		b.activeLoadCancelFn = nil
+		b.removeActiveLoadLocked(alKey)
+		al.CancelFn()
 		b.Unlock()
 	}()
 

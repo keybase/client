@@ -12,6 +12,7 @@ import {
   pendingConversationIDKey,
   noConversationIDKey,
   pendingWaitingConversationIDKey,
+  conversationIDKeyToString,
   isValidConversationIDKey,
 } from '../types/chat2/common'
 import {makeConversationMeta, getMeta} from './meta'
@@ -24,14 +25,13 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   explodingModes: I.Map(),
   inboxFilter: '',
   isExplodingNew: true,
-  loadingMap: I.Map(),
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
   metaMap: I.Map([
     [pendingConversationIDKey, makeConversationMeta({conversationIDKey: noConversationIDKey})],
   ]),
   moreToLoadMap: I.Map(),
-  orangeLineMap: I.Map(),
+  lastReadMessageMap: I.Map(),
   pendingMode: 'none',
   pendingOutboxToOrdinal: I.Map(),
   quote: null,
@@ -124,7 +124,25 @@ export const isInfoPanelOpen = (state: TypedState) => {
   return routePath.size === 3 && routePath.get(2) === 'infoPanel'
 }
 
-export const creatingLoadingKey = 'creatingConvo'
+export const waitingKeyJoinConversation = 'chat:joinConversation'
+export const waitingKeyDeleteHistory = 'chat:deleteHistory'
+export const waitingKeyPost = 'chat:post'
+export const waitingKeyRetryPost = 'chat:retryPost'
+export const waitingKeyEditPost = 'chat:editPost'
+export const waitingKeyDeletePost = 'chat:deletePost'
+export const waitingKeyCancelPost = 'chat:cancelPost'
+export const waitingKeyInboxRefresh = 'chat:inboxRefresh'
+export const waitingKeyCreating = 'chat:creatingConvo'
+export const waitingKeyInboxSyncStarted = 'chat:inboxSyncStarted'
+export const waitingKeyPushLoad = (conversationIDKey: Types.ConversationIDKey) =>
+  `chat:pushLoad:${conversationIDKeyToString(conversationIDKey)}`
+export const waitingKeyThreadLoad = (conversationIDKey: Types.ConversationIDKey) =>
+  `chat:loadingThread:${conversationIDKeyToString(conversationIDKey)}`
+export const waitingKeyUnboxing = (conversationIDKey: Types.ConversationIDKey) =>
+  `chat:unboxing:${conversationIDKeyToString(conversationIDKey)}`
+
+export const anyChatWaitingKeys = (state: TypedState) =>
+  state.waiting.keySeq().some(k => k.startsWith('chat:'))
 
 // When we see that exploding messages are in the app, we set
 // seenExplodingGregorKey. Once newExplodingGregorOffset time
@@ -191,10 +209,13 @@ export {
   makeMessageAttachment,
   makeMessageDeleted,
   makeMessageText,
-  makePendingAttachmentMessages,
+  makePendingAttachmentMessage,
   makePendingTextMessage,
+  makeReaction,
   messageExplodeDescriptions,
+  nextFractionalOrdinal,
   pathToAttachmentType,
+  previewSpecs,
   rpcErrorToString,
   serviceMessageTypeToMessageTypes,
   uiMessageEditToMessage,

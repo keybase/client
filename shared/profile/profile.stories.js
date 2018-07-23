@@ -181,6 +181,7 @@ const props = {
   onClickFollowing: action('onClickFollowing'),
   onClickShowcaseOffer: action('onClickShowcaseOffer'),
   onClickShowcased: action('onClickShowcased'),
+  onEditAvatar: action('onEditAvatar'),
   onFolderClick: action('onFolderClick'),
   onFollow: action('onFollow'),
   onMissingProofClick: action(`Prove`),

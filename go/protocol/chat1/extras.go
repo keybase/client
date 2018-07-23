@@ -299,6 +299,28 @@ func (m MessageUnboxed) IsValidFull() bool {
 	return bodyType == headerType
 }
 
+// IsValidDeleted returns whether a message is valid and has been deleted.
+// This statement does not hold: IsValidFull != IsValidDeleted
+func (m MessageUnboxed) IsValidDeleted() bool {
+	if !m.IsValid() {
+		return false
+	}
+	valid := m.Valid()
+	headerType := valid.ClientHeader.MessageType
+	switch headerType {
+	case MessageType_NONE:
+		return false
+	case MessageType_TLFNAME:
+		// Undeletable and may have no body
+		return false
+	}
+	bodyType, err := valid.MessageBody.MessageType()
+	if err != nil {
+		return false
+	}
+	return bodyType == MessageType_NONE
+}
+
 func (m *MessageUnboxed) DebugString() string {
 	if m == nil {
 		return "[nil]"
@@ -463,6 +485,10 @@ func (o *MsgEphemeralMetadata) Eq(r *MsgEphemeralMetadata) bool {
 		return *o == *r
 	}
 	return (o == nil) && (r == nil)
+}
+
+func (m MessageUnboxedValid) HasPairwiseMacs() bool {
+	return m.ClientHeader.HasPairwiseMacs
 }
 
 func (m MessageUnboxedValid) IsEphemeral() bool {
@@ -713,6 +739,10 @@ func (o *OutboxInfo) Eq(r *OutboxInfo) bool {
 		return *o == *r
 	}
 	return (o == nil) && (r == nil)
+}
+
+func (o OutboxRecord) IsAttachment() bool {
+	return o.Msg.ClientHeader.MessageType == MessageType_ATTACHMENT
 }
 
 func (p MessagePreviousPointer) Eq(other MessagePreviousPointer) bool {
@@ -1533,4 +1563,15 @@ func (r ReactionMap) HasReactionFromUser(reactionText, username string) (found b
 		}
 	}
 	return false, 0
+}
+
+func (i *ConversationMinWriterRoleInfoLocal) String() string {
+	if i == nil {
+		return "Minimum writer role for this conversation is not set."
+	}
+	usernameSuffix := "."
+	if i.Username != "" {
+		usernameSuffix = fmt.Sprintf(", last set by %v.", i.Username)
+	}
+	return fmt.Sprintf("Minimum writer role for this conversation is %v%v", i.Role, usernameSuffix)
 }

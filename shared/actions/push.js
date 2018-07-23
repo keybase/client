@@ -1,6 +1,7 @@
 // @flow
 import logger from '../logger'
 import * as Constants from '../constants/push'
+import * as ChatConstants from '../constants/chat2'
 import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as PushGen from './push-gen'
@@ -150,7 +151,10 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
             reason: 'push',
           })
         )
-        yield Saga.put(Chat2Gen.createSetLoading({key: `pushLoad:${conversationIDKey}`, loading: true}))
+
+        yield Saga.put(
+          WaitingGen.createIncrementWaiting({key: ChatConstants.waitingKeyPushLoad(conversationIDKey)})
+        )
         yield Saga.put(switchTo([chatTab, 'conversation']))
         // If a boxed message is attached to the notification, unbox.
         if (m) {
