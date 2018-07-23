@@ -709,8 +709,12 @@ func SleepUntilWithContext(ctx context.Context, clock clockwork.Clock, deadline 
 	}
 }
 
+func UseCITime(g *GlobalContext) bool {
+	return g.GetEnv().RunningInCI() || g.GetEnv().GetSlowGregorConn()
+}
+
 func CITimeMultiplier(g *GlobalContext) time.Duration {
-	if g.GetEnv().RunningInCI() || g.GetEnv().GetSlowGregorConn() {
+	if UseCITime(g) {
 		return time.Duration(3)
 	}
 	return time.Duration(1)

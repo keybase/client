@@ -614,7 +614,7 @@ func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 				}), uid, arg.ConversationID),
 		})
 		m.world.TcsByID[uid.String()].ChatG.ActivityNotifier.Activity(context.Background(),
-			uid, conv.GetTopicType(), &activity)
+			uid, conv.GetTopicType(), &activity, chat1.ChatActivitySource_REMOTE)
 	}
 
 	return
@@ -898,6 +898,10 @@ func (m *ChatRemoteMock) SetTeamRetention(ctx context.Context, _ chat1.SetTeamRe
 	return res, errors.New("SetTeamRetention not mocked")
 }
 
+func (m *ChatRemoteMock) SetConvMinWriterRole(ctx context.Context, _ chat1.SetConvMinWriterRoleArg) (res chat1.SetConvMinWriterRoleRes, err error) {
+	return res, errors.New("SetConvMinWriterRole not mocked")
+}
+
 type NonblockInboxResult struct {
 	ConvID   chat1.ConversationID
 	Err      error
@@ -928,30 +932,6 @@ func NewChatUI(inboxCb chan NonblockInboxResult, threadCb chan NonblockThreadRes
 		searchHitCb:  searchHitCb,
 		searchDoneCb: searchDoneCb,
 	}
-}
-
-func (c *ChatUI) ChatAttachmentUploadOutboxID(ctx context.Context, arg chat1.ChatAttachmentUploadOutboxIDArg) error {
-	return nil
-}
-
-func (c *ChatUI) ChatAttachmentUploadStart(context.Context, chat1.AssetMetadata, chat1.MessageID) error {
-	return nil
-}
-
-func (c *ChatUI) ChatAttachmentUploadProgress(ctx context.Context, arg chat1.ChatAttachmentUploadProgressArg) error {
-	return nil
-}
-
-func (c *ChatUI) ChatAttachmentUploadDone(context.Context) error {
-	return nil
-}
-
-func (c *ChatUI) ChatAttachmentPreviewUploadStart(context.Context, chat1.AssetMetadata) error {
-	return nil
-}
-
-func (c *ChatUI) ChatAttachmentPreviewUploadDone(context.Context) error {
-	return nil
 }
 
 func (c *ChatUI) ChatAttachmentDownloadStart(context.Context) error {

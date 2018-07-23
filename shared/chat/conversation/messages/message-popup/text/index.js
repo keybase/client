@@ -42,15 +42,6 @@ const TextPopupMenu = (props: Props) => {
           },
         ]
       : []),
-    ...(props.onDeleteMessageHistory
-      ? [
-          {
-            danger: true,
-            onClick: props.onDeleteMessageHistory,
-            title: 'Delete this + everything above',
-          },
-        ]
-      : []),
     ...(props.yourMessage || props.onDeleteMessageHistory ? ['Divider'] : []),
     ...(props.onEdit
       ? [

@@ -478,7 +478,7 @@ const provider = createPropProvider(
 )
 
 const load = () => {
-  storiesOf('Chat/Inbox')
+  storiesOf('Chat/Inbox', module)
     .addDecorator(provider)
     .add('Empty', () => {
       teamsEmpty = true

@@ -40,7 +40,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 	kbfsPlain := textMsgWithHeader(t, "kbfs", header)
 
 	boxer := NewBoxer(tc.Context())
-	sender := NewBlockingSender(tc.Context(), boxer, nil, func() chat1.RemoteInterface { return ri })
+	sender := NewBlockingSender(tc.Context(), boxer, func() chat1.RemoteInterface { return ri })
 	kbfsBoxed, _, _, _, _, err := sender.Prepare(ctx, kbfsPlain, chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)
 	require.NotNil(t, kbfsBoxed)

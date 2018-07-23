@@ -15,64 +15,43 @@ import (
 	"github.com/keybase/client/go/terminalescaper"
 )
 
+type ChatNotifications struct {
+	libkb.Contextified
+	chat1.NotifyChatInterface
+	noOutput            bool
+	terminal            libkb.TerminalUI
+	lastPercentReported int
+}
+
+func (n *ChatNotifications) ChatAttachmentUploadStart(ctx context.Context,
+	arg chat1.ChatAttachmentUploadStartArg) error {
+	if n.noOutput {
+		return nil
+	}
+	w := n.terminal.ErrorWriter()
+	fmt.Fprintf(w, "Attachment upload "+ColorString(n.G(), "green", "starting")+"\n")
+	return nil
+}
+
+func (n *ChatNotifications) ChatAttachmentUploadProgress(ctx context.Context,
+	arg chat1.ChatAttachmentUploadProgressArg) error {
+	if n.noOutput {
+		return nil
+	}
+	percent := int((100 * arg.BytesComplete) / arg.BytesTotal)
+	if n.lastPercentReported == 0 || percent == 100 || percent-n.lastPercentReported >= 10 {
+		w := n.terminal.ErrorWriter()
+		fmt.Fprintf(w, "Attachment upload progress %d%% (%d of %d bytes uploaded)\n", percent, arg.BytesComplete, arg.BytesTotal)
+		n.lastPercentReported = percent
+	}
+	return nil
+}
+
 type ChatUI struct {
 	libkb.Contextified
 	terminal            libkb.TerminalUI
 	noOutput            bool
 	lastPercentReported int
-}
-
-func (c *ChatUI) ChatAttachmentUploadOutboxID(context.Context, chat1.ChatAttachmentUploadOutboxIDArg) error {
-	return nil
-}
-
-func (c *ChatUI) ChatAttachmentUploadStart(context.Context, chat1.ChatAttachmentUploadStartArg) error {
-	if c.noOutput {
-		return nil
-	}
-	w := c.terminal.ErrorWriter()
-	fmt.Fprintf(w, "Attachment upload "+ColorString(c.G(), "green", "starting")+"\n")
-	return nil
-}
-
-func (c *ChatUI) ChatAttachmentUploadProgress(ctx context.Context, arg chat1.ChatAttachmentUploadProgressArg) error {
-	if c.noOutput {
-		return nil
-	}
-	percent := int((100 * arg.BytesComplete) / arg.BytesTotal)
-	if c.lastPercentReported == 0 || percent == 100 || percent-c.lastPercentReported >= 10 {
-		w := c.terminal.ErrorWriter()
-		fmt.Fprintf(w, "Attachment upload progress %d%% (%d of %d bytes uploaded)\n", percent, arg.BytesComplete, arg.BytesTotal)
-		c.lastPercentReported = percent
-	}
-	return nil
-}
-
-func (c *ChatUI) ChatAttachmentUploadDone(context.Context, int) error {
-	if c.noOutput {
-		return nil
-	}
-	w := c.terminal.ErrorWriter()
-	fmt.Fprintf(w, "Attachment upload "+ColorString(c.G(), "magenta", "finished")+"\n")
-	return nil
-}
-
-func (c *ChatUI) ChatAttachmentPreviewUploadStart(context.Context, chat1.ChatAttachmentPreviewUploadStartArg) error {
-	if c.noOutput {
-		return nil
-	}
-	w := c.terminal.ErrorWriter()
-	fmt.Fprintf(w, "Attachment preview upload "+ColorString(c.G(), "green", "starting")+"\n")
-	return nil
-}
-
-func (c *ChatUI) ChatAttachmentPreviewUploadDone(context.Context, int) error {
-	if c.noOutput {
-		return nil
-	}
-	w := c.terminal.ErrorWriter()
-	fmt.Fprintf(w, "Attachment preview upload "+ColorString(c.G(), "magenta", "finished")+"\n")
-	return nil
 }
 
 func (c *ChatUI) ChatAttachmentDownloadStart(context.Context, int) error {

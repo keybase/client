@@ -68,6 +68,13 @@
         {
           "type": "string",
           "name": "availableToSendWorth"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "AccountReserve"
+          },
+          "name": "reserves"
         }
       ]
     },
@@ -135,6 +142,10 @@
         {
           "type": "string",
           "name": "statusDetail"
+        },
+        {
+          "type": "boolean",
+          "name": "showCancel"
         },
         {
           "type": "string",
@@ -245,6 +256,10 @@
         {
           "type": "string",
           "name": "statusDetail"
+        },
+        {
+          "type": "boolean",
+          "name": "showCancel"
         },
         {
           "type": "string",
@@ -694,6 +709,22 @@
         }
       ],
       "response": "PaymentsPageLocal"
+    },
+    "getPendingPaymentsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "PaymentOrErrorLocal"
+      }
     },
     "getPaymentDetailsLocal": {
       "request": [

@@ -66,6 +66,7 @@ const rowProviders = {
       onAction: action('onAction'),
       resetParticipants: [...(hasAbc ? ['abc'] : []), ...(hasDef ? ['def'] : []), ...(hasGhi ? ['ghi'] : [])],
       isUserReset: false,
+      isEmpty: pathStr.includes('empty'),
     }
   },
 }
@@ -380,6 +381,7 @@ const load = () => {
             onOpen={action('onOpen')}
             openInFileUI={action('openInFileUI')}
             onAction={action('onAction')}
+            isEmpty={false}
           />
         </WrapRow>
         <WrapRow key="13">
@@ -387,6 +389,13 @@ const load = () => {
         </WrapRow>
         <WrapRow key="14">
           <PlaceholderRow type="file" />
+        </WrapRow>
+        <WrapRow key="15">
+          <ConnectedStillRow
+            path={Types.stringToPath('/keybase/private/empty')}
+            routeProps={I.Map({path: '/keybase/private/empty'})}
+            routePath={I.List([])}
+          />
         </WrapRow>
       </Box>
     ))
