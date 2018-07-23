@@ -93,7 +93,8 @@
       "desktop/app/resolve-root": "<rootDir>/__mocks__/resolve-root.js",
       "react-redux": "<rootDir>/__mocks__/react-redux.js",
       "electron": "<rootDir>/__mocks__/electron.js",
-      "hidden-string": "<rootDir>/__mocks__/hidden-string.js"
+      "hidden-string": "<rootDir>/__mocks__/hidden-string.js",
+      "engine/saga$": "<rootDir>/__mocks__/engine-saga.js"
     },
     "moduleFileExtensions": [
       "js",

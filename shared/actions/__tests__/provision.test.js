@@ -618,6 +618,17 @@ describe('canceling provision', () => {
   })
 })
 
+describe('start the whole process', () => {
+  const {getState, dispatch} = startReduxSaga()
+  const action = ProvisionGen.createSubmitUsernameOrEmail({usernameOrEmail: 'aaa@example.org'})
+  // eslint-disable-next-line
+  debugger
+  dispatch(action)
+  expect(getState().provision.usernameOrEmail).toEqual(action.payload.usernameOrEmail)
+  expect(getState().provision.error).toEqual(noError)
+  expect(getState().provision.finalError).toEqual(null)
+})
+
 describe('generic errors show', () => {
   it('shows error', () => {
     const {getState, dispatch} = startReduxSaga()
@@ -635,6 +646,13 @@ describe('final errors show', () => {
     expect(getState().provision.finalError).toBeTruthy()
     expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login', 'error']))
   })
+})
+
+describe('reset works', () => {
+  const {getState, dispatch} = startReduxSaga()
+  dispatch(RouteTree.setInitialRouteDef(loginRouteTree))
+  dispatch({type: 'common:resetStore'})
+  expect(getState().provision).toEqual(Constants.makeState())
 })
 
 describe('manager', () => {
