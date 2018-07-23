@@ -24,20 +24,14 @@ type LoginContext interface {
 	CreateStreamCache(tsec Triplesec, pps *PassphraseStream)
 	SetStreamCache(c *PassphraseStreamCache)
 	PassphraseStreamCache() *PassphraseStreamCache
-	ClearStreamCache()
-	SetStreamGeneration(gen PassphraseGeneration, nilPPStreamOK bool)
-	GetStreamGeneration() PassphraseGeneration
 
 	CreateLoginSessionWithSalt(emailOrUsername string, salt []byte) error
-	LoadLoginSession(emailOrUsername string) error
 	LoginSession() *LoginSession
-	ClearLoginSession()
 	SetLoginSession(l *LoginSession)
 
 	LocalSession() *Session
 	GetUID() keybase1.UID
 	GetUsername() NormalizedUsername
-	EnsureUsername(username NormalizedUsername)
 	SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error
 	SetUsernameUID(username NormalizedUsername, uid keybase1.UID) error
 
