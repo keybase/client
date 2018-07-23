@@ -5,7 +5,7 @@ import SetPublicName from '.'
 import {action, storiesOf} from '../../stories/storybook'
 
 const props = {
-  deviceName: 'MobilePhone',
+  deviceName: '',
   error: '',
   onBack: action('onBack'),
   onChange: action('onChange'),
