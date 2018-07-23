@@ -383,10 +383,6 @@ func (bn BranchName) RevisionIfSpecified() (kbfsmd.Revision, bool) {
 		return kbfsmd.RevisionUninitialized, false
 	}
 
-	if bn[:len(branchRevPrefix)] != branchRevPrefix {
-		return kbfsmd.RevisionUninitialized, false
-	}
-
 	i, err := strconv.ParseInt(string(bn[len(branchRevPrefix):]), 10, 64)
 	if err != nil {
 		return kbfsmd.RevisionUninitialized, false
