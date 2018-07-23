@@ -33,17 +33,46 @@ const ButtonBox = glamorous(ClickableBox)({
   borderColor: globalColors.black_05,
 })
 
-const ReactButton = (props: Props) => (
-  <ButtonBox
-    onClick={props.onClick}
-    style={collapseStyles([styles.buttonBox, props.active && styles.active])}
-  >
-    <Box2 centerChildren={true} direction="horizontal" gap="xtiny" style={styles.container}>
-      <Emoji size={14} emojiName={props.emoji} />
-      <Text type="BodySmallBold">{props.count}</Text>
-    </Box2>
-  </ButtonBox>
-)
+type State = {
+  attachmentRef: ?React.Component<any, any>,
+  showingTooltip: boolean,
+}
+class ReactButton extends React.Component<Props, State> {
+  state = {attachmentRef: null, showingTooltip: false}
+  /* If this or the tooltip is being hovered, showingTooltip = true */
+  _hoveringButton = false
+  _hoveringTooltip = false
+  _setHoveringButton = hovering => {
+    this._hoveringButton = hovering
+    this._handleShowingTooltip()
+  }
+  _setHoveringTooltip = hovering => {
+    this._hoveringTooltip = hovering
+    this._handleShowingTooltip()
+  }
+  _handleShowingTooltip = () => {
+    const nextShowingTooltip = this._hoveringButton || this._hoveringTooltip
+    this.setState(
+      s => (s.showingTooltip === nextShowingTooltip ? null : {showingTooltip: nextShowingTooltip})
+    )
+  }
+
+  render() {
+    return (
+      <ButtonBox
+        onMouseOver={() => this._setHoveringButton(true)}
+        onMouseLeave={() => this._setHoveringButton(false)}
+        onClick={this.props.onClick}
+        style={collapseStyles([styles.buttonBox, this.props.active && styles.active])}
+      >
+        <Box2 centerChildren={true} direction="horizontal" gap="xtiny" style={styles.container}>
+          <Emoji size={14} emojiName={this.props.emoji} />
+          <Text type="BodySmallBold">{this.props.count}</Text>
+        </Box2>
+      </ButtonBox>
+    )
+  }
+}
 
 type NewReactionButtonProps = {
   onAddReaction: (emoji: string) => void,
