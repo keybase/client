@@ -39,7 +39,7 @@ class BigTeamChannel extends PureComponent<Props> {
           <HoverBox
             style={collapseStyles([
               styles.channelBackground,
-              ...(this.props.isSelected ? [styles.selectedChannelBackground] : []),
+              this.props.isSelected && styles.selectedChannelBackground,
             ])}
           >
             <Text

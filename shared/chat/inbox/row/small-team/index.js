@@ -80,7 +80,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
           styles.container,
         ])}
       >
-        <Box style={styles.rowContainer}>
+        <Box style={collapseStyles([styles.rowContainer, styles.fastBlank])}>
           {props.teamname ? (
             <TeamAvatar
               teamname={props.teamname}
@@ -96,7 +96,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
               participants={props.participants}
             />
           )}
-          <Box style={styles.conversationRow}>
+          <Box style={collapseStyles([styles.conversationRow, styles.fastBlank])}>
             <SimpleTopLine
               backgroundColor={props.backgroundColor}
               hasUnread={props.hasUnread}
@@ -139,6 +139,11 @@ const styles = styleSheetCreate({
     paddingLeft: 8,
     paddingRight: 8,
   },
+  fastBlank: platformStyles({
+    isMobile: {
+      backgroundColor: globalColors.fastBlank,
+    },
+  }),
   rowContainer: platformStyles({
     common: {
       ...globalStyles.flexBoxRow,
