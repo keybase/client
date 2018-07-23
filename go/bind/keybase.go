@@ -223,6 +223,9 @@ func LogSend(status string, feedback string, sendLogs bool, uiLogPath, traceDir 
 
 // WriteB64 sends a base64 encoded msgpack rpc payload
 func WriteB64(str string) error {
+	if conn == nil {
+		return "", errors.New("connection not initialized")
+	}
 	data, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {
 		return fmt.Errorf("Base64 decode error: %s; %s", err, str)
@@ -250,6 +253,9 @@ var buffer = make([]byte, bufferSize)
 // ReadB64 is a blocking read for base64 encoded msgpack rpc data.
 // It is called serially by the mobile run loops.
 func ReadB64() (string, error) {
+	if conn == nil {
+		return "", errors.New("connection not initialized")
+	}
 	n, err := conn.Read(buffer)
 	if n > 0 && err == nil {
 		str := base64.StdEncoding.EncodeToString(buffer[0:n])
