@@ -7,6 +7,8 @@ import * as ConfigGen from './config-gen'
 
 import type {Dispatch, GetState} from '../constants/types/flux'
 
+// TODO saga-ize this and get rid of promise interface
+
 class RouteStateStorage {
   _getAndClearPromise: Promise<void>
 
@@ -77,89 +79,95 @@ class RouteStateStorage {
   }
 
   load = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
-    let url
     try {
-      url = await Linking.getInitialURL()
+      let url
+      try {
+        url = await Linking.getInitialURL()
+      } catch (e) {
+        logger.warn('[RouteState] Error getting initial URL:', e)
+      }
+
+      if (url) {
+        logger.info('[RouteState] initial URL:', url)
+        await dispatch(ConfigGen.createSetInitialState({initialState: {url}}))
+      }
+
+      // Make sure that concurrent loads return the same result until
+      // the next call to store/clear.
+      if (this._getAndClearPromise) {
+        logger.info('[RouteState] Using existing getAndClear promise')
+      } else {
+        logger.info('[RouteState] Creating new getAndClear promise')
+        this._getAndClearPromise = this._getAndClearItem(dispatch, getState)
+      }
+
+      await this._getAndClearPromise
     } catch (e) {
-      logger.warn('[RouteState] Error getting initial URL:', e)
-      throw e
+      console.log('Error route state loading, ignoring', e)
     }
-
-    if (url) {
-      logger.info('[RouteState] initial URL:', url)
-      await dispatch(ConfigGen.createSetInitialState({initialState: {url}}))
-      return
-    }
-
-    // Make sure that concurrent loads return the same result until
-    // the next call to store/clear.
-    if (this._getAndClearPromise) {
-      logger.info('[RouteState] Using existing getAndClear promise')
-    } else {
-      logger.info('[RouteState] Creating new getAndClear promise')
-      this._getAndClearPromise = this._getAndClearItem(dispatch, getState)
-    }
-
-    await this._getAndClearPromise
   }
 
   store = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
-    const state = getState()
-    const routeTree = state.routeTree
-    if (!routeTree) {
-      logger.info('[RouteState] No routetree')
-      return
-    }
-    if (!routeTree.loggedInUserNavigated) {
-      logger.info('[RouteState] Ignoring store before route changed')
-      return
-    }
-
-    if (this._getAndClearPromise) {
-      logger.info('[RouteState] Removing getAndClear promise')
-      delete this._getAndClearPromise
-    }
-
-    const routeState = routeTree.routeState
-    if (!routeState) {
-      logger.info('RouteState] No route state')
-      return
-    }
-    const item = {}
-
-    const routePath = getPath(state.routeTree.routeState)
-    const selectedTab = routeState.selected
-    if (isValidInitialTab(selectedTab)) {
-      item.tab = selectedTab
-      if (selectedTab === chatTab) {
-        if (routePath.size > 1) {
-          // in a conversation and not on the inbox
-          item.selectedConversationIDKey = state.chat2.selectedConversation
-        }
+    try {
+      const state = getState()
+      const routeTree = state.routeTree
+      if (!routeTree) {
+        logger.info('[RouteState] No routetree')
       }
-      await this._setItem(item)
-    } else {
-      // If we have a selected invalid tab, we're most likely signed
-      // out. In any case, just clobber the store so we load the
-      // default initial tab on the next login.
-      logger.info('[RouteState] Invalid initial tab:', selectedTab)
-      await this._removeItem()
+      if (!routeTree.loggedInUserNavigated) {
+        logger.info('[RouteState] Ignoring store before route changed')
+      }
+
+      if (this._getAndClearPromise) {
+        logger.info('[RouteState] Removing getAndClear promise')
+        delete this._getAndClearPromise
+      }
+
+      const routeState = routeTree.routeState
+      if (!routeState) {
+        logger.info('RouteState] No route state')
+      }
+      const item = {}
+
+      const routePath = getPath(state.routeTree.routeState)
+      const selectedTab = routeState.selected
+      if (isValidInitialTab(selectedTab)) {
+        item.tab = selectedTab
+        if (selectedTab === chatTab) {
+          if (routePath.size > 1) {
+            // in a conversation and not on the inbox
+            item.selectedConversationIDKey = state.chat2.selectedConversation
+          }
+        }
+        await this._setItem(item)
+      } else {
+        // If we have a selected invalid tab, we're most likely signed
+        // out. In any case, just clobber the store so we load the
+        // default initial tab on the next login.
+        logger.info('[RouteState] Invalid initial tab:', selectedTab)
+        await this._removeItem()
+      }
+    } catch (e) {
+      console.log('Error route state store, ignoring', e)
     }
   }
 
   clear = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
-    const state = getState()
-    if (!state.routeTree.loggedInUserNavigated) {
-      logger.info('[RouteState] Ignoring clear before route changed')
-      return
-    }
+    try {
+      const state = getState()
+      if (!state.routeTree.loggedInUserNavigated) {
+        logger.info('[RouteState] Ignoring clear before route changed')
+      }
 
-    if (this._getAndClearPromise) {
-      logger.info('[RouteState] Removing getAndClear promise')
-      delete this._getAndClearPromise
-    }
+      if (this._getAndClearPromise) {
+        logger.info('[RouteState] Removing getAndClear promise')
+        delete this._getAndClearPromise
+      }
 
-    await this._removeItem()
+      await this._removeItem()
+    } catch (e) {
+      console.log('Error route state clear, ignoring', e)
+    }
   }
 }
 
