@@ -327,7 +327,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             action.payload.conversationIDKey,
             Constants.makeConversationMeta()
           ).readMsgID
-          s.setIn(['orangeLineMap', action.payload.conversationIDKey], readMessageID)
+          s.setIn(['lastReadMessageMap', action.payload.conversationIDKey], readMessageID)
         }
 
         s.set('selectedConversation', action.payload.conversationIDKey)
