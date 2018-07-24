@@ -17,11 +17,10 @@ export type OwnProps = {|
   searchKey: string,
   autoFocus?: boolean,
   focusInputCounter?: number,
-  placeholder?: string,
+  placeholder: ?string,
   onExitSearch: ?() => void,
   onSelectUser?: (id: string) => void,
   disableListBuilding?: boolean,
-  showServiceFilter?: boolean,
 |}
 
 const UserInputWithServiceFilter = props => (
@@ -32,7 +31,6 @@ const UserInputWithServiceFilter = props => (
       borderBottomWidth: 1,
       borderStyle: 'solid',
       paddingLeft: globalMargins.tiny,
-      flexGrow: 1,
     }}
   >
     <UserInput

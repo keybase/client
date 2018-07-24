@@ -135,7 +135,6 @@ class UserInput extends Component<Props, State> {
           minHeight: 48,
           alignItems: 'center',
           marginLeft: globalMargins.tiny,
-          flexGrow: 1,
         }}
       >
         <Box
@@ -209,7 +208,6 @@ const _pillStyle = {
 const _inputLineStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  flexGrow: 1,
   height: 24,
   marginTop: 2,
   marginBottom: 2,

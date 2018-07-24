@@ -9,7 +9,7 @@ import {
   makeSelectorMap as makeRowSelectorMap,
 } from '../result-row/index.stories'
 
-const defaultConnectPropsMap: RowConnectPropsMap = {
+const connectPropsMap: RowConnectPropsMap = {
   chris: {
     leftFullname: 'chris on GitHub',
     leftIcon: null,
@@ -54,9 +54,9 @@ const defaultConnectPropsMap: RowConnectPropsMap = {
   },
 }
 
-Object.keys(defaultConnectPropsMap).forEach(id => {
-  defaultConnectPropsMap[id + '-fb'] = {
-    ...defaultConnectPropsMap[id],
+Object.keys(connectPropsMap).forEach(id => {
+  connectPropsMap[id + '-fb'] = {
+    ...connectPropsMap[id],
     leftFollowingState: 'NoState',
     leftIcon: 'icon-facebook-logo-24',
     leftService: 'Facebook',
@@ -66,11 +66,11 @@ Object.keys(defaultConnectPropsMap).forEach(id => {
 const onMouseOver = action('onMouseOver')
 
 // Can extend to vary items based on ownProps.searchKey if needed.
-const mockOwnPropsToProps = (rowConnectPropsMap: RowConnectPropsMap, ownProps: OwnProps): Props => {
+const mockOwnPropsToProps = (ownProps: OwnProps): Props => {
   return {
     ...ownProps,
     pending: false,
-    items: Object.keys(rowConnectPropsMap),
+    items: Object.keys(connectPropsMap),
     onMouseOver,
     selectedId: null,
     showSearchSuggestions: false,
@@ -84,11 +84,11 @@ const defaultOwnProps: OwnProps = {
   disableIfInTeamName: '',
 }
 
-const defaultProps = mockOwnPropsToProps(defaultConnectPropsMap, defaultOwnProps)
+const defaultProps = mockOwnPropsToProps(defaultOwnProps)
 
-export const makeSelectorMap = (rowConnectPropsMap: RowConnectPropsMap = defaultConnectPropsMap) => ({
-  ...makeRowSelectorMap(rowConnectPropsMap),
-  ResultsList: (ownProps: OwnProps) => mockOwnPropsToProps(rowConnectPropsMap, ownProps),
+export const makeSelectorMap = () => ({
+  ...makeRowSelectorMap(connectPropsMap),
+  ResultsList: mockOwnPropsToProps,
 })
 
 const provider = createPropProvider(makeSelectorMap())
