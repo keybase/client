@@ -35,6 +35,9 @@ type CardStackShimProps = {
   hidden: boolean,
 }
 
+const nop = () => {}
+const emptyObj = () => ({})
+
 class CardStackShim extends Component<CardStackShimProps> {
   getScreenOptions = () => ({})
   getStateForAction = emptyObj
@@ -104,9 +107,6 @@ class CardStackShim extends Component<CardStackShimProps> {
     )
   }
 }
-
-const nop = () => {}
-const emptyObj = () => ({})
 
 const barStyle = (showStatusBarDarkContent, underStatusBar) => {
   // android always uses light-content
