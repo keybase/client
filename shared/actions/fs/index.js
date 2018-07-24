@@ -148,7 +148,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
     const path = Types.pathConcat(rootPath, d.name)
     const entry = makeEntry(d, childMap.get(path))
     if (entry.type === 'folder' && Types.getPathLevel(path) > 3 && d.name.indexOf('/') < 0) {
-      // Since we are loading with a depth of 2, first level directoryies are
+      // Since we are loading with a depth of 2, first level directories are
       // considered "loaded".
       return [path, entry.set('progress', 'loaded')]
     }
