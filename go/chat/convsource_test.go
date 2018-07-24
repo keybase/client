@@ -429,12 +429,9 @@ func TestReactions(t *testing.T) {
 	t.Logf("test +1 reaction")
 	reactionMsgID := sendReaction(":+1:", msgID)
 	expectedReactionMap := chat1.ReactionMap{
-		Reactions: map[string][]chat1.Reaction{
-			":+1:": []chat1.Reaction{
-				chat1.Reaction{
-					Username:      u.Username,
-					ReactionMsgID: reactionMsgID,
-				},
+		Reactions: map[string]map[string]chat1.MessageID{
+			":+1:": map[string]chat1.MessageID{
+				u.Username: reactionMsgID,
 			},
 		},
 	}
@@ -442,11 +439,8 @@ func TestReactions(t *testing.T) {
 
 	t.Logf("test -1 reaction")
 	reactionMsgID2 := sendReaction(":-1:", msgID)
-	expectedReactionMap.Reactions[":-1:"] = []chat1.Reaction{
-		chat1.Reaction{
-			Username:      u.Username,
-			ReactionMsgID: reactionMsgID2,
-		},
+	expectedReactionMap.Reactions[":-1:"] = map[string]chat1.MessageID{
+		u.Username: reactionMsgID2,
 	}
 	verifyThread(msgID, editMsgID, body, []chat1.MessageID{reactionMsgID, reactionMsgID2}, expectedReactionMap)
 
@@ -472,11 +466,8 @@ func TestReactions(t *testing.T) {
 	t.Logf("test reaction after delete")
 	reactionMsgID3 := sendReaction(":-1:", msgID)
 
-	expectedReactionMap.Reactions[":-1:"] = []chat1.Reaction{
-		chat1.Reaction{
-			Username:      u.Username,
-			ReactionMsgID: reactionMsgID3,
-		},
+	expectedReactionMap.Reactions[":-1:"] = map[string]chat1.MessageID{
+		u.Username: reactionMsgID3,
 	}
 	verifyThread(msgID, editMsgID3, body, []chat1.MessageID{reactionMsgID, reactionMsgID3}, expectedReactionMap)
 
