@@ -165,7 +165,7 @@ const styles = styleSheetCreate({
     },
     isElectron: {
       fontSize: 11,
-      lineHeight: '13px',
+      lineHeight: '13',
     },
     isMobile: {
       fontSize: 12,
@@ -175,7 +175,7 @@ const styles = styleSheetCreate({
   youAreResetText: platformStyles({
     isElectron: {
       fontSize: 12,
-      lineHeight: '13px',
+      lineHeight: '13',
     },
     isMobile: {
       fontSize: 14,
@@ -190,7 +190,7 @@ const styles = styleSheetCreate({
       color: globalColors.black_40,
       display: 'block',
       fontSize: 12,
-      lineHeight: '15px',
+      lineHeight: '15',
       minHeight: 16,
       overflow: 'hidden',
       paddingRight: 30,
@@ -214,7 +214,6 @@ const styles = styleSheetCreate({
       alignSelf: 'center',
       marginRight: 6,
     },
-    isElectron: {},
     isMobile: {
       marginTop: 2,
     },
