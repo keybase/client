@@ -3981,9 +3981,14 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
 
 		for _, user := range users {
-			tvres, err := ctc.as(t, user).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{ConversationID: created.Id})
+			tvres, err := ctc.as(t, user).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+				ConversationID: created.Id,
+				Query: &chat1.GetThreadQuery{
+					MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+				},
+			})
 			require.NoError(t, err)
-			require.Len(t, tvres.Thread.Messages, 5, "messages are accessible")
+			require.Len(t, tvres.Thread.Messages, 4, "messages are accessible")
 		}
 	})
 }

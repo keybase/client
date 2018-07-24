@@ -4,6 +4,7 @@ import {compose, connect, setDisplayName, type TypedState} from '../../../../uti
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
+import type {StylesCrossPlatform} from '../../../../styles'
 import ReactButton, {NewReactionButton, type Props, type NewReactionButtonProps} from '.'
 
 export type WrapperProps = {...Props, ...NewReactionButtonProps}
@@ -18,9 +19,14 @@ const Wrapper = (props: WrapperProps) =>
       onMouseLeave={props.onMouseLeave}
       onMouseOver={props.onMouseOver}
       ordinal={props.ordinal}
+      style={props.style}
     />
   ) : (
-    <NewReactionButton onAddReaction={props.onAddReaction} showBorder={props.showBorder} />
+    <NewReactionButton
+      onAddReaction={props.onAddReaction}
+      showBorder={props.showBorder}
+      style={props.style}
+    />
   )
 
 export type OwnProps = {
@@ -30,6 +36,7 @@ export type OwnProps = {
   onMouseOver?: (evt: SyntheticEvent<Element>) => void,
   ordinal: Types.Ordinal,
   showBorder?: boolean,
+  style?: StylesCrossPlatform,
 }
 
 const noEmoji = {
