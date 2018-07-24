@@ -103,7 +103,7 @@ class RouteStateStorage {
 
       await this._getAndClearPromise
     } catch (e) {
-      console.log('Error route state loading, ignoring', e)
+      console.warn('Error route state loading, ignoring', e)
     }
   }
 
@@ -148,7 +148,7 @@ class RouteStateStorage {
         await this._removeItem()
       }
     } catch (e) {
-      console.log('Error route state store, ignoring', e)
+      console.warn('Error route state store, ignoring', e)
     }
   }
 
@@ -166,7 +166,7 @@ class RouteStateStorage {
 
       await this._removeItem()
     } catch (e) {
-      console.log('Error route state clear, ignoring', e)
+      console.warn('Error route state clear, ignoring', e)
     }
   }
 }
