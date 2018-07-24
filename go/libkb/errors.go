@@ -433,6 +433,18 @@ type AppStatusError struct {
 	Fields map[string]string
 }
 
+// If the error is an AppStatusError, returns its code.
+// Otherwise returns (SCGeneric, false).
+func GetAppStatusCode(err error) (code keybase1.StatusCode, ok bool) {
+	code = keybase1.StatusCode_SCGeneric
+	switch err := err.(type) {
+	case AppStatusError:
+		return keybase1.StatusCode(err.Code), true
+	default:
+		return code, false
+	}
+}
+
 func (a AppStatusError) IsBadField(s string) bool {
 	_, found := a.Fields[s]
 	return found
