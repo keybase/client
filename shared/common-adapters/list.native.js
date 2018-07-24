@@ -1,7 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {FlatList, View} from 'react-native'
-import {globalStyles, styleSheetCreate, collapseStyles} from '../styles'
+import {globalStyles, collapseStyles, styleSheetCreate} from '../styles'
 
 import type {Props} from './list'
 
@@ -30,7 +30,7 @@ class List extends PureComponent<Props<any>, void> {
 
   render() {
     return (
-      <View style={collapseStyles([styles.container, this.props.style])}>
+      <View style={collapseStyles([styles.outerView, this.props.style])}>
         {/* need windowSize so iphone 6 doesn't have OOM issues */}
         <View style={globalStyles.fillAbsolute}>
           <FlatList
@@ -49,7 +49,7 @@ class List extends PureComponent<Props<any>, void> {
 }
 
 const styles = styleSheetCreate({
-  container: {
+  outerView: {
     flexGrow: 1,
     position: 'relative',
   },

@@ -34,7 +34,7 @@ const selectorDelegatorFactory = (dispatch, options) => {
       throw new Error(
         `Missing mock react state for '${options.wrappedComponentName}':
           Known keys: [${Object.keys(state).join(', ')}]
-          Your propProvider is probably missing a key for this connected component. See shared/storybook/README.md for more details.
+          Your propProvider is probably missing a key for this connected component. See shared/stories/README.md for more details.
 
           ${err.toString()}`
       )

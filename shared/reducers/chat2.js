@@ -281,6 +281,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
                 .set('explodedBy', action.payload.explodedBy || '')
                 .set('text', new HiddenString(''))
                 .set('mentionsAt', I.Set())
+                .set('reactions', I.Map())
             )
           )
         })
@@ -322,28 +323,14 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         return state
       }
       return state.withMutations(s => {
-        // Update the orange line on the previous conversation
-        if (state.selectedConversation) {
-          const lastOrdinal = state.messageOrdinals.get(state.selectedConversation, I.Set()).last()
-          s.setIn(['orangeLineMap', state.selectedConversation], lastOrdinal)
-        }
-        // If the convo you just went into has no orange line (its at the bottom), just clear it so it doens't show up if you type or as stuff comes in
         if (action.payload.conversationIDKey) {
-          const oldOrange = s.getIn(['orangeLineMap', action.payload.conversationIDKey])
-          const lastOrdinal = s.messageOrdinals.get(action.payload.conversationIDKey, I.Set()).last()
-
-          if (oldOrange === lastOrdinal) {
-            s.setIn(['orangeLineMap', action.payload.conversationIDKey], null)
-          }
-        }
-
-        // Clear ordinals from the old selected conversation
-        const oldSelected = s.selectedConversation
-        if (oldSelected && Constants.isValidConversationIDKey(oldSelected)) {
-          s.updateIn(
-            ['messageOrdinals', oldSelected],
-            ordinals => (ordinals ? ordinals.takeLast(Constants.numMessagesOnInitialLoad) : ordinals)
-          )
+          // Load last read message, cache it in lastReadMessageMap
+          // readMsgID will update on read
+          const readMessageID = state.metaMap.get(
+            action.payload.conversationIDKey,
+            Constants.makeConversationMeta()
+          ).readMsgID
+          s.setIn(['lastReadMessageMap', action.payload.conversationIDKey], readMessageID)
         }
 
         s.set('selectedConversation', action.payload.conversationIDKey)

@@ -6,6 +6,7 @@ const bel = bundle.bel;
 const morphdom = bundle.morphdom;
 const asset = chrome.runtime.getURL;
 
+let spaMonitorTrailer = false;
 
 function init() {
   chrome.storage.sync.get(function(options) {
@@ -13,24 +14,30 @@ function init() {
       // Backfill for Firefox
       options = {};
     }
-    if (location.hostname.endsWith('twitter.com')) {
-      // Twitter hack: Monitor location for changes and re-init. Twitter does
-      // weird single-page-app stuff that makes it difficult to hook into.
+    if (location.hostname.endsWith('twitter.com') || location.hostname.endsWith('facebook.com')) {
+      // SPA hack: Monitor location for changes and re-init. Twitter and Facebook
+      // are single-page-apps that don't often don't refresh when navigating
+      // so that makes it difficult to hook into.
+      // The hack is to poll every second and if the location changed
+      // re-scan to place the button.
+      // Facebook is so slow to load after the location change that for each
+      // location we re-init when noticed and 1s later.
       // FIXME: This is sad. An alternative would be very desirable.
-      // Subscribing to `popstate` does not work.
+      //        Subscribing to `popstate` does not work.
       let loc = window.location.pathname;
-      function twitterMonitor() {
-        if (window.location.pathname == loc) {
-          requestAnimationFrame(function() {
-            // We use RAF to avoid spamming checks when the tab is not active.
-            setTimeout(twitterMonitor, 1000);
-          });
-          return;
+      function spaMonitor() {
+        if (spaMonitorTrailer || window.location.pathname != loc) {
+          // Path changed (or trailer), force fresh init
+          spaMonitorTrailer = !spaMonitorTrailer;
+          init();
+          return
         }
-        // Path changed, force fresh init
-        init();
+        // We use RAF to avoid spamming checks when the tab is not active.
+        requestAnimationFrame(function() {
+          setTimeout(spaMonitor, 1000);
+        });
       }
-      setTimeout(twitterMonitor, 1000);
+      setTimeout(spaMonitor, 1000);
     }
 
     const user = matchService(window.location, document);
@@ -286,23 +293,19 @@ function renderSuccess(el, closeCallback, extraHTML) {
   morphdom(el, bel`
     <div>
       <h3>
-        <img src="${asset("images/icon-keybase-logo-16.png")}"
-             srcset="${asset("images/icon-keybase-logo-16@2x.png")} 2x, ${asset("images/icon-keybase-logo-16@3x.png")} 3x"
-             />
-        Keybase Chat <span class="keybase-close"> </span>
+        Success! <span class="keybase-close"> </span>
       </h3>
       <div class="keybase-body">
         <p>
-          <img src="${asset("images/icon-fancy-chat-72-x-52.png")}" style="width: 72px; height: 52px;"
-               srcset="${asset("images/icon-fancy-chat-72-x-52@2x.png")} 2x, ${asset("images/icon-fancy-chat-72-x-52@3x.png")} 3x"
+          <img src="${asset("images/icon-fancy-chat-sent-desktop.png")}" style="width: 96px; height: 64px;"
+               srcset="${asset("images/icon-fancy-chat-sent-desktop@2x.png")} 2x, ${asset("images/icon-fancy-chat-sent-desktop@3x.png")} 3x"
                />
         </p>
-        <p>
-          Chat sent! You can continue the conversation in your Keybase app.
-        </p>
+        <p>Your message was sent! <br>
+        You can continue the conversation in your Keybase app.</p>
         ${extraHTML}
         <p>
-          <input type="button" class="keybase-close" value="Close" />
+          <input type="button" class="keybase-close" value="OK" />
         </p>
       </div>
     </div>

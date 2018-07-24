@@ -1,6 +1,5 @@
 // @flow
 import * as I from 'immutable'
-
 export type DeviceType = 'mobile' | 'desktop' | 'backup'
 export opaque type DeviceID: string = string
 export type _DeviceDetail = {

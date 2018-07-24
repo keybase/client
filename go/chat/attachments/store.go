@@ -103,15 +103,16 @@ func newStoreTesting(logger logger.Logger, kt func(enc, sig []byte)) *S3Store {
 	}
 }
 
-func (a *S3Store) UploadAsset(ctx context.Context, task *UploadTask) (chat1.Asset, error) {
+func (a *S3Store) UploadAsset(ctx context.Context, task *UploadTask) (res chat1.Asset, err error) {
+	defer a.Trace(ctx, func() error { return err }, "UploadAsset")()
 	// compute plaintext hash
 	if task.plaintextHash == nil {
 		if err := task.computePlaintextHash(); err != nil {
-			return chat1.Asset{}, err
+			return res, err
 		}
 	} else {
 		if !a.testing {
-			return chat1.Asset{}, errors.New("task.plaintextHash not nil")
+			return res, errors.New("task.plaintextHash not nil")
 		}
 		a.Debug(ctx, "UploadAsset: skipping plaintextHash calculation due to existing plaintextHash (testing only feature)")
 	}
@@ -127,7 +128,7 @@ func (a *S3Store) UploadAsset(ctx context.Context, task *UploadTask) (chat1.Asse
 		previous = a.previousUpload(ctx, task)
 	}
 
-	asset, err := a.uploadAsset(ctx, task, enc, previous, resumable)
+	res, err = a.uploadAsset(ctx, task, enc, previous, resumable)
 
 	// if the upload is aborted, reset the stream and start over to get new keys
 	if err == ErrAbortOnPartMismatch && previous != nil {
@@ -137,16 +138,16 @@ func (a *S3Store) UploadAsset(ctx context.Context, task *UploadTask) (chat1.Asse
 		task.Plaintext.Reset()
 		// recompute plaintext hash:
 		if err := task.computePlaintextHash(); err != nil {
-			return chat1.Asset{}, err
+			return res, err
 		}
 		return a.uploadAsset(ctx, task, enc, nil, resumable)
 	}
 
-	return asset, err
+	return res, err
 }
 
-func (a *S3Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEncrypter, previous *AttachmentInfo, resumable bool) (chat1.Asset, error) {
-	var err error
+func (a *S3Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEncrypter, previous *AttachmentInfo, resumable bool) (asset chat1.Asset, err error) {
+	defer a.Trace(ctx, func() error { return err }, "uploadAsset")()
 	var encReader io.Reader
 	if previous != nil {
 		a.Debug(ctx, "uploadAsset: found previous upload for %s in conv %s", task.Filename,
@@ -190,7 +191,7 @@ func (a *S3Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEn
 	}
 	a.Debug(ctx, "uploadAsset: chat attachment upload: %+v", upRes)
 
-	asset := chat1.Asset{
+	asset = chat1.Asset{
 		Filename:  filepath.Base(task.Filename),
 		Region:    upRes.Region,
 		Endpoint:  upRes.Endpoint,
