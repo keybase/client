@@ -15,6 +15,7 @@ import SendIndicator from '../chat-send'
 import MessagePopup from '../../message-popup'
 import ExplodingHeightRetainer from '../exploding-height-retainer'
 import ExplodingMeta from '../exploding-meta'
+import ReactButton from '../../react-button/container'
 
 import type {WrapperAuthorProps} from '../index.types'
 
@@ -48,14 +49,22 @@ const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
   )
 }
 
-const MenuButton = ({onClick, setRef}) => (
-  <Box ref={setRef} className="menu-button">
-    <Icon
-      type="iconfont-ellipsis"
-      style={iconCastPlatformStyles(styles.ellipsis)}
-      onClick={onClick}
-      fontSize={16}
+const MenuButtons = ({conversationIDKey, onClick, ordinal, setRef}) => (
+  <Box className="menu-button" style={styles.menuButtons}>
+    <ReactButton
+      conversationIDKey={conversationIDKey}
+      ordinal={ordinal}
+      showBorder={false}
+      tooltipEnabled={false}
     />
+    <Box ref={setRef}>
+      <Icon
+        type="iconfont-ellipsis"
+        style={iconCastPlatformStyles(styles.ellipsis)}
+        onClick={onClick}
+        fontSize={16}
+      />
+    </Box>
   </Box>
 )
 
@@ -141,7 +150,14 @@ const RightSide = props => (
           {props.isEdited && <EditedMark />}
         </ExplodingHeightRetainer>
         {!isMobile &&
-          !props.exploded && <MenuButton setRef={props.setAttachmentRef} onClick={props.toggleShowingMenu} />}
+          !props.exploded && (
+            <MenuButtons
+              conversationIDKey={props.conversationIDKey}
+              ordinal={props.ordinal}
+              setRef={props.setAttachmentRef}
+              onClick={props.toggleShowingMenu}
+            />
+          )}
         <MessagePopup
           attachTo={props.attachmentRef}
           message={props.message}
@@ -219,7 +235,7 @@ class WrapperAuthor extends React.PureComponent<WrapperAuthorProps & FloatingMen
 
 const styles = styleSheetCreate({
   edited: {backgroundColor: globalColors.white, color: globalColors.black_20_on_white},
-  ellipsis: {marginLeft: globalMargins.tiny, marginRight: globalMargins.xtiny},
+  ellipsis: {marginRight: globalMargins.xtiny},
   exclamation: {
     paddingBottom: globalMargins.xtiny,
     paddingTop: globalMargins.xtiny,
@@ -244,6 +260,13 @@ const styles = styleSheetCreate({
       marginLeft: globalMargins.tiny,
     },
   }),
+  menuButtons: {
+    ...globalStyles.flexBoxRow,
+    alignSelf: 'flex-start',
+    alignItems: 'center',
+    position: 'relative',
+    top: 1,
+  },
   rightSide: {
     ...globalStyles.flexBoxColumn,
     flex: 1,

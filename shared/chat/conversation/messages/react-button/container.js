@@ -1,14 +1,35 @@
 // @flow
+import * as React from 'react'
 import {compose, connect, setDisplayName, type TypedState} from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import ReactButton from '.'
+import ReactButton, {NewReactionButton, type Props, type NewReactionButtonProps} from '.'
+
+export type WrapperProps = {...Props, ...NewReactionButtonProps}
+const Wrapper = (props: WrapperProps) =>
+  props.emoji ? (
+    <ReactButton
+      active={props.active}
+      conversationIDKey={props.conversationIDKey}
+      count={props.count}
+      emoji={props.emoji}
+      onClick={props.onClick}
+      onMouseLeave={props.onMouseLeave}
+      onMouseOver={props.onMouseOver}
+      ordinal={props.ordinal}
+    />
+  ) : (
+    <NewReactionButton onAddReaction={props.onAddReaction} showBorder={props.showBorder} />
+  )
 
 export type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
-  emoji: string,
+  emoji?: string,
+  onMouseLeave?: (evt: SyntheticEvent<Element>) => void,
+  onMouseOver?: (evt: SyntheticEvent<Element>) => void,
   ordinal: Types.Ordinal,
+  showBorder?: boolean,
 }
 
 const noEmoji = {
@@ -23,7 +44,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   if (!message || message.type === 'placeholder' || message.type === 'deleted') {
     return noEmoji
   }
-  const reaction = message.reactions.get(ownProps.emoji)
+  const reaction = message.reactions.get(ownProps.emoji || '')
   if (!reaction) {
     return noEmoji
   }
@@ -36,9 +57,10 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, emoji, ordinal}: OwnProps) => ({
-  onClick: () => dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal})),
+  onAddReaction: (emoji: string) =>
+    dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal})),
+  onClick: () =>
+    dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji: emoji || '', ordinal})),
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('ReactButton'))(
-  ReactButton
-)
+export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('ReactButton'))(Wrapper)

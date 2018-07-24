@@ -5,20 +5,25 @@ import {Box2, ClickableBox, Icon, NameWithIcon, Overlay, SectionList, Text} from
 import {globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../../styles'
 import ReactButton from '../react-button/container'
 
-type Props = {
+export type Props = {|
   attachmentRef?: ?React.Component<any, any>,
   conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
   onAddReaction: () => void,
   onHidden: () => void,
-  onReact: string => void,
+  onMouseLeave?: (SyntheticEvent<Element>) => void,
+  onMouseOver?: (SyntheticEvent<Element>) => void,
+  ordinal: Types.Ordinal,
   reactions: Array<{
     emoji: string,
     users: Array<{fullName: string, username: string}>,
   }>,
-}
+  visible: boolean,
+|}
 
-const ReactionTooltip = (props: Props) => {
+export const ReactionTooltip = (props: Props) => {
+  if (!props.visible) {
+    return null
+  }
   const sections = props.reactions.map(r => ({
     conversationIDKey: props.conversationIDKey,
     data: r.users.map(u => ({...u, key: `${u.username}:${r.emoji}`})),
@@ -27,8 +32,19 @@ const ReactionTooltip = (props: Props) => {
     title: r.emoji,
   }))
   return (
-    <Overlay attachTo={props.attachmentRef} onHidden={props.onHidden} position="top right">
-      <Box2 direction="vertical" gap="tiny" style={styles.listContainer}>
+    <Overlay
+      attachTo={props.attachmentRef}
+      onHidden={props.onHidden}
+      position="top right"
+      propagateOutsideClicks={true}
+    >
+      <Box2
+        onMouseLeave={props.onMouseLeave}
+        onMouseOver={props.onMouseOver}
+        direction="vertical"
+        gap="tiny"
+        style={styles.listContainer}
+      >
         {isMobile && (
           <Box2 direction="horizontal">
             <Text type="BodySemiboldLink" onClick={props.onHidden} style={styles.closeButton}>
@@ -90,6 +106,7 @@ const renderSectionHeader = ({
       conversationIDKey={section.conversationIDKey}
       ordinal={section.ordinal}
       emoji={section.title}
+      tooltipEnabled={false}
     />
     <Text type="Terminal" style={styles.emojiText}>
       {section.title}
@@ -99,7 +116,7 @@ const renderSectionHeader = ({
 
 const styles = styleSheetCreate({
   addReactionButton: {
-    borderColor: globalColors.black_05,
+    borderColor: globalColors.black_10,
     borderRadius: 20,
     borderStyle: 'solid',
     borderWidth: 2,
@@ -139,6 +156,7 @@ const styles = styleSheetCreate({
     },
   }),
   userContainer: {
+    backgroundColor: globalColors.white,
     paddingBottom: globalMargins.xtiny,
     paddingLeft: globalMargins.tiny + globalMargins.medium,
     paddingRight: globalMargins.tiny,
