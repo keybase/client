@@ -146,7 +146,13 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
 
   const direntToPathAndPathItem = (d: RPCTypes.Dirent) => {
     const path = Types.pathConcat(rootPath, d.name)
-    return [path, makeEntry(d, childMap.get(path))]
+    const entry = makeEntry(d, childMap.get(path))
+    if (entry.type === 'folder' && Types.getPathLevel(path) > 3 && d.name.indexOf('/') < 0) {
+      // Since we are loading with a depth of 2, first level directoryies are
+      // considered "loaded".
+      return [path, entry.set('progress', 'loaded')]
+    }
+    return [path, entry]
   }
 
   // Get metadata fields of the directory that we just loaded from state to
