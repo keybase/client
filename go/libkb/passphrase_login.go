@@ -148,7 +148,7 @@ func pplPost(m MetaContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, 
 		return nil, err
 	}
 	if res.Status.Code == SCBadLoginPassword {
-		return nil, PassphraseError{"Invalid password. Server rejected login attempt."}
+		return nil, PassphraseError{"Invalid passphrase. Server rejected login attempt."}
 	}
 	if res.Status.Code == SCBadLoginUserNotFound {
 		return nil, NotFoundError{}
