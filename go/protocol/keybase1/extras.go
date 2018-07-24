@@ -1223,9 +1223,6 @@ func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 		// track errors, because people need to be able to use it to ask each other
 		// about the fact that proofs are broken.
 		return true
-	case TLFIdentifyBehavior_RESOLVE_AND_CHECK:
-		// Tracks don't matter for ResolveAndCheck, since we act logged out.
-		return true
 	default:
 		return false
 	}

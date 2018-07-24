@@ -847,7 +847,7 @@ func loadUserVersionPlusByUsername(ctx context.Context, g *libkb.GlobalContext, 
 	// need username here as `username` parameter might be social assertion, also username
 	// is used for chat notification recipient
 	m := libkb.NewMetaContext(ctx, g)
-	upk, err := engine.ResolveAndCheck(m, username)
+	upk, err := engine.ResolveAndCheck(m, username, true /* useTracking */)
 	if err != nil {
 		if e, ok := err.(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
 			// couldn't find a keybase user for username assertion
@@ -876,7 +876,7 @@ func loadUserVersionAndPUKedByUsername(ctx context.Context, g *libkb.GlobalConte
 
 func loadUserVersionByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (keybase1.UserVersion, error) {
 	m := libkb.NewMetaContext(ctx, g)
-	upk, err := engine.ResolveAndCheck(m, username)
+	upk, err := engine.ResolveAndCheck(m, username, true /* resolveAndCheck */)
 	if err != nil {
 		if e, ok := err.(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
 			// couldn't find a keybase user for username assertion

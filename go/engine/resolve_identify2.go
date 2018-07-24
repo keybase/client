@@ -180,7 +180,7 @@ func (e *ResolveThenIdentify2) GetProofSet() *libkb.ProofSet {
 // are *not* taken into account. No ID2-specific caching will be used, but the UPAK
 // cache will be used, and busted with ForceRepoll semantics. The output, on success,
 // is a populated UserPlusKeysV2.
-func ResolveAndCheck(m libkb.MetaContext, s string) (ret keybase1.UserPlusKeysV2, err error) {
+func ResolveAndCheck(m libkb.MetaContext, s string, useTracking bool) (ret keybase1.UserPlusKeysV2, err error) {
 
 	// Invokes the whole resolve/identify machinery. That is, it performs a server-trusted
 	// resolution of the name to a UID, then does an ID on the UID to make sure all
@@ -192,7 +192,7 @@ func ResolveAndCheck(m libkb.MetaContext, s string) (ret keybase1.UserPlusKeysV2
 	arg := keybase1.Identify2Arg{
 		UserAssertion:         s,
 		CanSuppressUI:         true,
-		ActLoggedOut:          true,
+		ActLoggedOut:          !useTracking,
 		NoErrorOnTrackFailure: true,
 		IdentifyBehavior:      keybase1.TLFIdentifyBehavior_RESOLVE_AND_CHECK,
 	}

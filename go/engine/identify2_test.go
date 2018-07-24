@@ -1127,7 +1127,7 @@ func TestResolveAndCheck(t *testing.T) {
 		if test.r != nil {
 			tc.G.Resolver = test.r
 		}
-		upk, err := ResolveAndCheck(m, test.s)
+		upk, err := ResolveAndCheck(m, test.s, true)
 		require.IsType(t, test.e, err)
 		if err == nil {
 			require.True(t, upk.GetUID().Equal(tracyUID))
