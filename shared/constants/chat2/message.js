@@ -211,6 +211,7 @@ const makeMessageSystemText: I.RecordFactory<MessageTypes._MessageSystemText> = 
 
 const makeMessageSystemGitPush: I.RecordFactory<MessageTypes._MessageSystemGitPush> = I.Record({
   ...makeMessageMinimum,
+  pushType: 0,
   pusher: '',
   reactions: I.Map(),
   refs: [],
@@ -367,9 +368,11 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
       })
     }
     case RPCChatTypes.localMessageSystemType.gitpush: {
-      const {team = '???', pusher = '???', repoName: repo = '???', repoID = '???', refs} = body.gitpush || {}
+      const {team = '???', pushType = 0, pusher = '???', repoName: repo = '???', repoID = '???', refs} =
+        body.gitpush || {}
       return makeMessageSystemGitPush({
         ...minimum,
+        pushType,
         pusher,
         refs: refs || [],
         repo,
