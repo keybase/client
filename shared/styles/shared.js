@@ -31,6 +31,8 @@ export const util = ({flexCommon}: {flexCommon?: ?Object}) => ({
   fillAbsolute: {bottom: 0, left: 0, position: 'absolute', right: 0, top: 0},
   flexBoxCenter: {...flexCommon, alignItems: 'center', justifyContent: 'center'},
   flexBoxColumn: {...flexCommon, flexDirection: 'column'},
+  flexBoxColumnReverse: {...flexCommon, flexDirection: 'column-reverse'},
+  flexBoxRowReverse: {...flexCommon, flexDirection: 'row-reverse'},
   flexBoxRow: {...flexCommon, flexDirection: 'row'},
   flexGrow: {flexGrow: 1},
   fullHeight: {height: '100%'},

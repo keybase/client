@@ -4,6 +4,7 @@ import {stringToDeviceID} from '../constants/types/devices'
 import {action, storiesOf, createPropProvider} from '../stories/storybook'
 import Devices, {type Props} from '.'
 import devicePage from './device-page/index.stories'
+import deviceRevoke from './device-revoke/index.stories'
 
 const devicesProps: Props = {
   deviceIDs: ['1', '2', '3'].map(stringToDeviceID),
@@ -39,6 +40,7 @@ const provider = createPropProvider({
 
 const load = () => {
   devicePage()
+  deviceRevoke()
   storiesOf('Devices/List', module)
     .addDecorator(provider)
     .add('Only active', () => <Devices {...devicesProps} />)
