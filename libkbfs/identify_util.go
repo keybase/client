@@ -213,7 +213,10 @@ func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
 			return err
 		}
 	}
-	if resultName != name {
+	// The names of implicit teams can change out from under us,
+	// unlike for regular users, so don't require that they remain the
+	// same.
+	if resultName != name && !isImplicit {
 		return fmt.Errorf("Identify returned name=%s, expected %s",
 			resultName, name)
 	}
