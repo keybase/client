@@ -239,6 +239,8 @@ class EditAvatar extends React.Component<_Props, State> {
   }
 
   _onMouseDown = (e: SyntheticMouseEvent<any>) => {
+    if (!this.state.hasPreview) return
+
     const img = this._getImage()
 
     this.setState({
@@ -251,6 +253,8 @@ class EditAvatar extends React.Component<_Props, State> {
   }
 
   _onMouseUp = () => {
+    if (!this.state.hasPreview) return
+
     const img = this._getImage()
 
     this.setState({
