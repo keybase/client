@@ -29,6 +29,7 @@ type NotificationChannels struct {
 	Chatdev         bool `codec:"chatdev" json:"chatdev"`
 	Deviceclone     bool `codec:"deviceclone" json:"deviceclone"`
 	Chatattachments bool `codec:"chatattachments" json:"chatattachments"`
+	Wallet          bool `codec:"wallet" json:"wallet"`
 }
 
 func (o NotificationChannels) DeepCopy() NotificationChannels {
@@ -53,6 +54,7 @@ func (o NotificationChannels) DeepCopy() NotificationChannels {
 		Chatdev:         o.Chatdev,
 		Deviceclone:     o.Deviceclone,
 		Chatattachments: o.Chatattachments,
+		Wallet:          o.Wallet,
 	}
 }
 

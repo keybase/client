@@ -80,15 +80,14 @@ func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInte
 
 func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
 	defer h.G().GregorDismisser.DismissItem(mctx.Ctx(), cli, item.Metadata().MsgID())
-	mctx.CDebugf("%v: %v received", h.Name(), category)
+	mctx.CDebugf("%s: %s received", h.Name(), category)
 	var msg stellar1.PaymentNotificationMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
 		mctx.CDebugf("error unmarshaling %s item: %s", category, err)
 		return err
 	}
-	mctx.CDebugf("%s unmarshaled: %+v", category, msg)
 
-	// TODO: send notification to frontend
+	h.G().NotifyRouter.HandleWalletPaymentNotification(mctx.Ctx(), msg.AccountID, msg.PaymentID)
 
 	return nil
 }

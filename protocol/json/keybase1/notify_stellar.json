@@ -1,0 +1,31 @@
+{
+  "protocol": "NotifyStellar",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "paymentProcessed": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "isTracking",
+          "type": "boolean"
+        }
+      ],
+      "response": null,
+      "notify": ""
+    }
+  },
+  "namespace": "keybase.1"
+}
