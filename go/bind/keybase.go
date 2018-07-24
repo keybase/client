@@ -443,7 +443,7 @@ func AppBeginBackgroundTaskNonblock(pusher PushNotifier) {
 	go AppBeginBackgroundTask(pusher)
 }
 
-// AppBeginBackgroundTask notifies us that an [iOS] background task has been started on our behalf. This
+// AppBeginBackgroundTask notifies us that an app background task has been started on our behalf. This
 // function will return once we no longer need any time in the background.
 func AppBeginBackgroundTask(pusher PushNotifier) (abort bool) {
 	defer kbCtx.Trace("AppBeginBackgroundTask", func() error { return nil })()
