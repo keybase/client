@@ -152,6 +152,7 @@ func (e *PGPPullEngine) processUserWithIdentify(m libkb.MetaContext, u string) e
 		UserAssertion:    u,
 		ForceRemoteCheck: true,
 		AlwaysBlock:      true,
+		NeedProofSet:     true, // forces prompt even if we declined before
 	}
 	topts := keybase1.TrackOptions{
 		LocalOnly:  true,
