@@ -186,6 +186,44 @@ func TestGetMaybeAdminByStringName(t *testing.T) {
 	require.Equal(t, 1, len(team.chain().inner.SubteamLog), "has loaded previously-stubbed admin links")
 }
 
+func TestGetTeamIDByName(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	teamName, teamID := createTeam2(*tcs[0])
+	subteamName, subteamID := createSubteam(tcs[0], teamName, "hello")
+
+	// Test as owner of team and subteam
+	mctx := libkb.NewMetaContextForTest(*tcs[0])
+	res, err := GetTeamIDByNameRPC(mctx, teamName.String())
+	require.NoError(t, err)
+	require.Equal(t, teamID, res)
+
+	res, err = GetTeamIDByNameRPC(mctx, subteamName.String())
+	require.NoError(t, err)
+	require.Equal(t, subteamID, res)
+
+	// Test as unrelated user
+	mctx = libkb.NewMetaContextForTest(*tcs[1])
+	res, err = GetTeamIDByNameRPC(mctx, teamName.String())
+	require.Error(t, err)
+
+	res, err = GetTeamIDByNameRPC(mctx, subteamName.String())
+	require.Error(t, err)
+
+	// Add user 1 as a reader to root team
+	_, err = AddMember(context.Background(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+	require.NoError(t, err)
+
+	res, err = GetTeamIDByNameRPC(mctx, teamName.String())
+	require.NoError(t, err)
+	require.Equal(t, teamID, res)
+
+	// Try to get subteam id, should still fail.
+	res, err = GetTeamIDByNameRPC(mctx, subteamName.String())
+	require.Error(t, err)
+}
+
 func teamGet(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()

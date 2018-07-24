@@ -18,7 +18,7 @@ import type {Props} from './index.types'
 // remember to check that nothing overflows on android!
 const marginWidth = 60
 const shhIconColor = globalColors.black_20
-const shhIconFontSize = 20
+const shhIconFontSize = 24
 
 const Wrapper = (props: {
   badgeNumber: number,

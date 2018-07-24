@@ -5,27 +5,33 @@ import {setDisplayName, compose, connect, type TypedState} from '../../../../../
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 
 const mapStateToProps = (state: TypedState, {message, previous}) => {
-  const orangeLineOrdinal = state.chat2.orangeLineMap.get(message.conversationIDKey)
-  const orangeLineAbove = !!previous && orangeLineOrdinal === previous.ordinal
+  const lastReadMessageID = state.chat2.lastReadMessageMap.get(message.conversationIDKey)
+  // Show the orange line on the first message after the last unread message, if there is one
+  const orangeLineAbove = !!previous && lastReadMessageID === previous.id
   return {
-    message,
+    _message: message,
+    conversationIDKey: message.conversationIDKey,
     orangeLineAbove,
+    ordinal: message.ordinal,
     previous,
   }
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const {message, previous} = stateProps
+  const {_message, ordinal, previous} = stateProps
 
-  const showTimestamp = Constants.enoughTimeBetweenMessages(message, previous)
+  const showTimestamp = Constants.enoughTimeBetweenMessages(_message, previous)
 
   const timestamp =
-    stateProps.orangeLineAbove || !previous || showTimestamp ? formatTimeForMessages(message.timestamp) : null
+    stateProps.orangeLineAbove || !previous || showTimestamp
+      ? formatTimeForMessages(_message.timestamp)
+      : null
 
   return {
     children: ownProps.children,
-    message,
+    conversationIDKey: stateProps.conversationIDKey,
     orangeLineAbove: stateProps.orangeLineAbove,
+    ordinal,
     timestamp,
   }
 }

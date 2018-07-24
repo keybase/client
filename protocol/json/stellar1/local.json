@@ -68,6 +68,13 @@
         {
           "type": "string",
           "name": "availableToSendWorth"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "AccountReserve"
+          },
+          "name": "reserves"
         }
       ]
     },
@@ -104,16 +111,6 @@
     },
     {
       "type": "record",
-      "name": "PaymentID",
-      "fields": [
-        {
-          "type": "TransactionID",
-          "name": "txID"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "PaymentLocal",
       "fields": [
         {
@@ -135,6 +132,10 @@
         {
           "type": "string",
           "name": "statusDetail"
+        },
+        {
+          "type": "boolean",
+          "name": "showCancel"
         },
         {
           "type": "string",
@@ -245,6 +246,10 @@
         {
           "type": "string",
           "name": "statusDetail"
+        },
+        {
+          "type": "boolean",
+          "name": "showCancel"
         },
         {
           "type": "string",
@@ -368,6 +373,10 @@
         },
         {
           "type": "string",
+          "name": "toUsername"
+        },
+        {
+          "type": "string",
           "name": "amountErrMsg"
         },
         {
@@ -488,6 +497,10 @@
         {
           "type": "KeybaseTransactionID",
           "name": "fundingKbTxID"
+        },
+        {
+          "type": "RequestStatus",
+          "name": "status"
         }
       ]
     },
@@ -690,6 +703,22 @@
         }
       ],
       "response": "PaymentsPageLocal"
+    },
+    "getPendingPaymentsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "PaymentOrErrorLocal"
+      }
     },
     "getPaymentDetailsLocal": {
       "request": [
@@ -1046,6 +1075,15 @@
       ],
       "response": "RequestDetailsLocal"
     },
+    "cancelRequestLocal": {
+      "request": [
+        {
+          "name": "reqID",
+          "type": "KeybaseRequestID"
+        }
+      ],
+      "response": null
+    },
     "balancesLocal": {
       "request": [
         {
@@ -1257,7 +1295,7 @@
           "type": "string"
         }
       ],
-      "response": null
+      "response": "KeybaseRequestID"
     }
   },
   "namespace": "stellar.1"

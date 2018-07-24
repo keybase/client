@@ -323,9 +323,11 @@ function parseRecord(t) {
       const innerType = parseInnerType(f.type)
       const innerOptional = innerType[0] === '?'
       const capsInnerType = innerOptional ? `?${capitalize(innerType.substr(1))}` : capitalize(innerType)
+      const name = f.mpackkey || f.name
+      const comment = f.mpackkey ? ` /* ${f.name} */ ` : ''
 
       // If we have a maybe type, let's also make the key optional
-      return `${f.name}${innerOptional ? '?' : ''}: ${capsInnerType},`
+      return `${name}${comment}${innerOptional ? '?' : ''}: ${capsInnerType},`
     })
     .join('')
 

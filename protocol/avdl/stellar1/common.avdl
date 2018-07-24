@@ -10,6 +10,10 @@ protocol common {
   @typedef("bytes")  record Hash {}
   @typedef("string") record KeybaseRequestID {}
 
+  record PaymentID {
+    TransactionID txID;
+  }
+
   record Asset {
     string type;
     string code;
@@ -22,12 +26,22 @@ protocol common {
     string limit;
   }
 
+  record AccountReserve {
+    string amount; // "-1"
+    string description; // e.g. "HUGZ/Unknown trustline" or "account"
+  }
+
   enum TransactionStatus {
     NONE_0,
     PENDING_1,
     SUCCESS_2,
     ERROR_TRANSIENT_3,
     ERROR_PERMANENT_4
+  }
+
+  enum RequestStatus {
+    OK_0,
+    CANCELED_1
   }
 
   enum PaymentStrategy {

@@ -74,6 +74,7 @@ protocol chatUi {
     MessageID readMsgID;
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
+    union { null, ConversationMinWriterRoleInfoLocal } minWriterRoleInfo;
 
     // Finalized convo stuff (KBFS only)
     union { null, ConversationFinalizeInfo } finalizeInfo;
@@ -127,6 +128,7 @@ protocol chatUi {
     gregor1.Time etime;
     // reactionText -> [Reaction(username, reactionMsgID)...]
     ReactionMap reactions;
+    boolean hasPairwiseMacs;
   }
 
   record UIMessageOutbox {
@@ -136,6 +138,7 @@ protocol chatUi {
     string body;
     gregor1.Time ctime;
     double ordinal;
+    union { null, MakePreviewRes } preview;
   }
 
   enum MessageUnboxedState {
@@ -156,14 +159,6 @@ protocol chatUi {
     array<UIMessage> messages;
     union { null, UIPagination } pagination;
   }
-
-  void chatAttachmentUploadOutboxID(int sessionID, OutboxID outboxID);
-  void chatAttachmentUploadStart(int sessionID, AssetMetadata metadata, MessageID placeholderMsgID) oneway;
-  void chatAttachmentUploadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;
-  void chatAttachmentUploadDone(int sessionID);
-
-  void chatAttachmentPreviewUploadStart(int sessionID, AssetMetadata metadata) oneway;
-  void chatAttachmentPreviewUploadDone(int sessionID);
 
   void chatAttachmentDownloadStart(int sessionID);
   void chatAttachmentDownloadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;

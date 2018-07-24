@@ -20,6 +20,30 @@
           "name": "txID"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "RequestStatusMsg",
+      "fields": [
+        {
+          "type": "KeybaseRequestID",
+          "name": "reqID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentNotificationMsg",
+      "fields": [
+        {
+          "type": "AccountID",
+          "name": "accountID"
+        },
+        {
+          "type": "PaymentID",
+          "name": "paymentID"
+        }
+      ]
     }
   ],
   "messages": {},

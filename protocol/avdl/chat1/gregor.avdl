@@ -143,6 +143,12 @@ protocol gregor {
         RetentionPolicy policy;
     }
 
+    record SetConvMinWriterRoleUpdate {
+        InboxVers inboxVers;
+        ConversationID convID;
+        union { null, ConversationMinWriterRoleInfo } info;
+    }
+
     record KBFSImpteamUpgradeUpdate {
         ConversationID convID;
         InboxVers inboxVers;

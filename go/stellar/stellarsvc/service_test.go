@@ -45,6 +45,12 @@ func TestCreateWallet(t *testing.T) {
 	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingWalletless, usettingFull})
 	defer cleanup()
 
+	t.Logf("Lookup for a bogus address")
+	uv, _, err := stellar.LookupUserByAccountID(tcs[0].MetaContext(), "GCCJJFCRCQAWDWRAZ3R6235KCQ4PQYE5KEWHGE5ICVTZLTMRKVWAWP7N")
+	require.Error(t, err)
+	require.IsType(t, libkb.NotFoundError{}, err)
+
+	t.Logf("Create an initial wallet")
 	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.True(t, created)
@@ -66,15 +72,44 @@ func TestCreateWallet(t *testing.T) {
 	require.Len(t, bundle.Accounts[0].Signers, 1)
 	require.Equal(t, "", bundle.Accounts[0].Name)
 
-	t.Logf("Lookup the public stellar address as another user")
+	t.Logf("Lookup the user by public address as another user")
+	a1 := bundle.Accounts[0].AccountID
+	uv, username, err := stellar.LookupUserByAccountID(tcs[1].MetaContext(), a1)
+	require.NoError(t, err)
+	require.Equal(t, tcs[0].Fu.GetUserVersion(), uv)
+	require.Equal(t, tcs[0].Fu.Username, username.String())
+	t.Logf("and as self")
+	uv, _, err = stellar.LookupUserByAccountID(tcs[0].MetaContext(), a1)
+	require.NoError(t, err)
+	require.Equal(t, tcs[0].Fu.GetUserVersion(), uv)
+
+	t.Logf("Lookup the address by user as another user")
 	u0, err := tcs[1].G.LoadUserByUID(tcs[0].G.ActiveDevice.UID())
 	require.NoError(t, err)
-	addr := u0.StellarWalletAddress()
+	addr := u0.StellarAccountID()
 	t.Logf("Found account: %v", addr)
 	require.NotNil(t, addr)
 	_, err = libkb.MakeNaclSigningKeyPairFromStellarAccountID(*addr)
 	require.NoError(t, err, "stellar key should be nacl pubable")
 	require.Equal(t, bundle.Accounts[0].AccountID.String(), addr.String(), "addr looked up should match secret bundle")
+
+	t.Logf("Change primary accounts")
+	a2, s2 := randomStellarKeypair()
+	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   s2,
+		MakePrimary: true,
+	})
+	require.NoError(t, err)
+
+	t.Logf("Lookup by the new primary")
+	uv, _, err = stellar.LookupUserByAccountID(tcs[1].MetaContext(), a2)
+	require.NoError(t, err)
+	require.Equal(t, tcs[0].Fu.GetUserVersion(), uv)
+
+	t.Logf("Looking up by the old address no longer works")
+	uv, _, err = stellar.LookupUserByAccountID(tcs[1].MetaContext(), a1)
+	require.Error(t, err)
+	require.IsType(t, libkb.NotFoundError{}, err)
 }
 
 func TestUpkeep(t *testing.T) {
@@ -188,7 +223,7 @@ func TestImportExport(t *testing.T) {
 
 	u0, err := tcs[1].G.LoadUserByUID(tcs[0].G.ActiveDevice.UID())
 	require.NoError(t, err)
-	addr := u0.StellarWalletAddress()
+	addr := u0.StellarAccountID()
 	require.False(t, a1.Eq(*addr))
 
 	a2, s2 := randomStellarKeypair()
@@ -205,7 +240,7 @@ func TestImportExport(t *testing.T) {
 
 	u0, err = tcs[1].G.LoadUserByUID(tcs[0].G.ActiveDevice.UID())
 	require.NoError(t, err)
-	addr = u0.StellarWalletAddress()
+	addr = u0.StellarAccountID()
 	require.False(t, a1.Eq(*addr))
 
 	err = srv.ImportSecretKeyLocal(context.Background(), argS2)
@@ -532,9 +567,8 @@ func testRelay(t *testing.T, yank bool) {
 	require.Equal(t, "Claimable", history[0].Payment.Status)
 	txID := history[0].Payment.TxID
 
-	fhistoryPage, err := tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
+	fhistory, err := tcs[claimant].Srv.GetPendingPaymentsLocal(context.Background(), stellar1.GetPendingPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
 	require.NoError(t, err)
-	fhistory := fhistoryPage.Payments
 	require.Len(t, fhistory, 1)
 	require.Nil(t, fhistory[0].Err)
 	require.NotNil(t, fhistory[0].Payment)
@@ -573,7 +607,7 @@ func testRelay(t *testing.T, yank bool) {
 	require.NotNil(t, history[0].Payment)
 	require.Equal(t, "Completed", history[0].Payment.Status)
 
-	fhistoryPage, err = tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
+	fhistoryPage, err := tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
 	require.NoError(t, err)
 	fhistory = fhistoryPage.Payments
 	require.Len(t, fhistory, 1)
@@ -664,7 +698,7 @@ func TestRequestPayment(t *testing.T) {
 	defer cleanup()
 
 	xlm := stellar1.AssetNative()
-	err := tcs[0].Srv.MakeRequestCLILocal(context.Background(), stellar1.MakeRequestCLILocalArg{
+	reqID, err := tcs[0].Srv.MakeRequestCLILocal(context.Background(), stellar1.MakeRequestCLILocalArg{
 		Recipient: tcs[1].Fu.Username,
 		Asset:     &xlm,
 		Amount:    "10",
@@ -675,6 +709,13 @@ func TestRequestPayment(t *testing.T) {
 	senderMsgs := kbtest.MockSentMessages(tcs[0].G, tcs[0].T)
 	require.Len(t, senderMsgs, 1)
 	require.Equal(t, senderMsgs[0].MsgType, chat1.MessageType_REQUESTPAYMENT)
+
+	err = tcs[0].Srv.CancelRequestLocal(context.Background(), reqID)
+	require.NoError(t, err)
+
+	details, err := tcs[0].Srv.GetRequestDetailsLocal(context.Background(), reqID)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.RequestStatus_CANCELED, details.Status)
 }
 
 type TestContext struct {
@@ -682,6 +723,10 @@ type TestContext struct {
 	Fu      *kbtest.FakeUser
 	Srv     *Server
 	Backend *BackendMock
+}
+
+func (tc *TestContext) MetaContext() libkb.MetaContext {
+	return libkb.NewMetaContextForTest(tc.TestContext)
 }
 
 // Create n TestContexts with logged in users

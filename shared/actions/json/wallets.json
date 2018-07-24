@@ -1,6 +1,7 @@
 {
   "prelude": [
     "import * as Types from '../constants/types/wallets'",
+    "import * as StellarRPCTypes from '../constants/types/rpc-stellar-gen'",
     "import HiddenString from '../util/hidden-string'",
   ],
   "actions": {
@@ -28,6 +29,19 @@
       "_description": "Refresh our list of payments for a given account",
       "accountID": "Types.AccountID",
     },
+    "loadPaymentDetail": {
+      "_description": "Load extra detail for one given payment",
+      "accountID": "Types.AccountID",
+      "paymentID": "StellarRPCTypes.PaymentID",
+    },
+    "paymentDetailReceived": {
+      "_description": "Update a payment with additional detail",
+      "accountID": "Types.AccountID",
+      "paymentID": "StellarRPCTypes.PaymentID",
+      "publicNote": "string",
+      "publicNoteType": "string",
+      "txID": "string",
+    },
     "paymentsReceived": {
       "_description": "Update our store of payments data",
       "accountID": "Types.AccountID",
@@ -42,19 +56,15 @@
       "_description": "Clear exported secret keys from our store once they've been seen",
       "accountID": "Types.AccountID",
     },
-    "accountsReceived": {
-      "_description": "Update our store of account data",
-      "accounts": "Array<Types.Account>",
-    },
     "selectAccount": {
       "_description": "Select an account. Optionally navigate to the account page.",
       "accountID": "Types.AccountID",
-      "show?": "boolean"
+      "show?": "boolean",
     },
     "linkExistingAccount": {
       "_description": "Link an existing Stellar account with this Keybase user.",
       "name": "string",
-      "secretKey": "HiddenString"
+      "secretKey": "HiddenString",
     },
     "linkedExistingAccount": {
       "_description":
@@ -63,35 +73,35 @@
       "canError": {
         "name": "string",
         "secretKey": "HiddenString",
-        "error": "string"
+        "error": "string",
       }
     },
     "validateAccountName": {
       "_description": "Ask the service to validate an account name.",
-      "name": "string"
+      "name": "string",
     },
     "validatedAccountName": {
       "_description": "The service responded with an error or that the account name is valid.",
       "name": "string",
       "canError": {
         "name": "string",
-        "error": "string"
+        "error": "string",
       }
     },
     "validateSecretKey": {
       "_description": "Ask the service to validate an account secret key.",
-      "secretKey": "HiddenString"
+      "secretKey": "HiddenString",
     },
     "validatedSecretKey": {
       "_description": "The service responded with an error or that the secret key is valid.",
       "secretKey": "HiddenString",
       "canError": {
         "secretKey": "HiddenString",
-        "error": "string"
+        "error": "string",
       }
     },
     "clearErrors": {
-      "_description": "Clear errors from the store at times like opening or closing a form dialog."
+      "_description": "Clear errors from the store at times like opening or closing a form dialog.",
     }
   }
 }

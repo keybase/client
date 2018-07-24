@@ -7,6 +7,9 @@ import {Box2, Text} from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/chat2'
 import {storiesOf, action, createPropProvider, Rnd} from '../../../../stories/storybook'
 import * as PropProviders from '../../../../stories/prop-providers'
+import {propProvider as ReactionsRowProvider} from '../../messages/reactions-row/index.stories'
+import {propProvider as ReactButtonProvider} from '../../messages/react-button/index.stories'
+import {propProvider as ReactionTooltipProvider} from '../../messages/reaction-tooltip/index.stories'
 import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
@@ -109,6 +112,7 @@ const ordinalToMessage = o => {
   }
 
   const message = Message.makeMessageText({
+    ordinal: o,
     text: new HiddenString(String(o) + extra),
     timestamp: generateTimestamp(),
   })
@@ -117,6 +121,9 @@ const ordinalToMessage = o => {
 }
 
 const provider = createPropProvider(PropProviders.Common(), {
+  ...ReactButtonProvider,
+  ...ReactionsRowProvider,
+  ...ReactionTooltipProvider,
   Channel: p => ({name: p.name}),
   Mention: p => ({username: p.username}),
   BottomMessage: p => ({
@@ -169,7 +176,8 @@ const provider = createPropProvider(PropProviders.Common(), {
     )
     return {
       children,
-      message,
+      conversationIDKey: message.conversationIDKey,
+      ordinal: message.ordinal,
       orangeLineAbove: false,
       previous,
       timestamp: !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null,

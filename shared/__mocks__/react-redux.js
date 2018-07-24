@@ -23,7 +23,7 @@ const selectorDelegatorFactory = (dispatch, options) => {
     } catch (err) {
       throw new Error(
         `In calling propSelector for ${options.wrappedComponentName}:
-          Your propProvider is probably missing a key for this connected component. See shared/storybook/README.md for more details.
+          Your propProvider is probably missing a key for this connected component. See shared/stories/README.md for more details.
 
           ${err.toString()}`
       )
