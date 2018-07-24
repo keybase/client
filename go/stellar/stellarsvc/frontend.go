@@ -844,7 +844,11 @@ func (s *Server) GetSendAssetChoicesLocal(ctx context.Context, arg stellar1.GetS
 			available := theirBalancesHash[assetHashCode(choice.Asset)]
 			if !available {
 				choice.Enabled = false
-				choice.Subtext = fmt.Sprintf("Recipient does not accept %s", choice.Asset.Code)
+				recipientStr := "Recipient"
+				if recipient.User != nil {
+					recipientStr = recipient.User.Username.String()
+				}
+				choice.Subtext = fmt.Sprintf("%s does not accept %s", recipientStr, choice.Asset.Code)
 				res[i] = choice
 			}
 		}

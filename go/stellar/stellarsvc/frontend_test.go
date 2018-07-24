@@ -1111,7 +1111,8 @@ func TestGetSendAssetChoices(t *testing.T) {
 		require.Equal(t, v.Asset.Code, v.Left)
 		require.Equal(t, v.Asset.Issuer, v.Right)
 		require.False(t, v.Enabled)
-		require.Contains(t, v.Subtext, "Recipient does not accept")
+		require.Contains(t, v.Subtext, tcs[1].Fu.Username)
+		require.Contains(t, v.Subtext, "does not accept")
 		require.Contains(t, v.Subtext, v.Asset.Code)
 	}
 
@@ -1124,8 +1125,28 @@ func TestGetSendAssetChoices(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Len(t, choices2, len(choices))
+
 	require.True(t, choices2[0].Asset.Eq(keys))
 	require.False(t, choices2[0].Enabled)
+	// Using AccountID should still resolve to user and we should see
+	// "*username* does not accept ..." subtext.
+	require.Contains(t, choices2[0].Subtext, tcs[1].Fu.Username)
+	require.Contains(t, choices2[0].Subtext, "does not accept")
+	require.Contains(t, choices2[0].Subtext, choices2[0].Asset.Code)
+
 	require.True(t, choices2[1].Asset.Eq(astro))
 	require.True(t, choices2[1].Enabled)
+
+	// Try with arg.To AccountID not in the system.
+	externalAcc := tcs[0].Backend.AddAccount()
+	choices3, err := tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
+		From: fakeAccts[0].accountID,
+		To:   externalAcc.String(),
+	})
+	require.NoError(t, err)
+	require.Len(t, choices3, len(choices))
+	for _, v := range choices3 {
+		require.False(t, v.Enabled)
+		require.Contains(t, v.Subtext, "Recipient does not accept")
+	}
 }
