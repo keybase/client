@@ -247,11 +247,8 @@ const reactionMapToReactions = (r: RPCChatTypes.ReactionMap): MessageTypes.React
     Object.keys(r.reactions).reduce((res, emoji) => {
       if (r.reactions[emoji]) {
         res[emoji] = I.Set(
-          r.reactions[emoji].map(reaction =>
-            makeReaction({
-              messageID: Types.numberToMessageID(reaction.reactionMsgID),
-              username: reaction.username,
-            })
+          Object.keys(r.reactions[emoji]).map(username =>
+            makeReaction({messageID: Types.numberToMessageID(r.reactions[emoji][username]), username})
           )
         )
       }
