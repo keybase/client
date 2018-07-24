@@ -92,7 +92,7 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 		SessionType: libkb.APISessionTypeREQUIRED,
 		NetContext:  ctx,
 		Args:        libkb.HTTPArgs{
-			// a limit parameter exists, default 100, and we don't currently set it
+		// a limit parameter exists, default 100, and we don't currently set it
 		},
 	}
 
@@ -237,10 +237,12 @@ func getMetadataInnerSingle(ctx context.Context, g *libkb.GlobalContext,
 		return nil, false, err
 	}
 	var deviceName string
-	for _, deviceKey := range lastWriterUPAK.Current.DeviceKeys {
-		if deviceKey.DeviceID.Eq(responseRepo.LastModifyingDeviceID) {
-			deviceName = deviceKey.DeviceDescription
-			break
+	for _, upk := range append([]keybase1.UserPlusKeysV2{lastWriterUPAK.Current}, lastWriterUPAK.PastIncarnations...) {
+		for _, deviceKey := range upk.DeviceKeys {
+			if deviceKey.DeviceID.Eq(responseRepo.LastModifyingDeviceID) {
+				deviceName = deviceKey.DeviceDescription
+				break
+			}
 		}
 	}
 	if deviceName == "" {
