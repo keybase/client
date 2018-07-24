@@ -44,6 +44,7 @@ type identifyUser struct {
 	arg       libkb.LoadUserArg
 	full      *libkb.User
 	thin      *keybase1.UserPlusAllKeys
+	v2        *keybase1.UserPlusKeysV2AllIncarnations
 	isDeleted bool
 }
 
@@ -139,14 +140,24 @@ func (i *identifyUser) Equal(i2 *identifyUser) bool {
 	return i.GetUID().Equal(i2.GetUID())
 }
 
-func (i *identifyUser) load(g *libkb.GlobalContext) (err error) {
-	i.thin, i.full, err = g.GetUPAKLoader().Load(i.arg)
+func loadBothUPAKVersions(m libkb.MetaContext, arg libkb.LoadUserArg) (*keybase1.UserPlusAllKeys,
+	*keybase1.UserPlusKeysV2AllIncarnations, *libkb.User, error) {
+	upak2, user, err := m.G().GetUPAKLoader().LoadV2(arg)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	upak1 := keybase1.UPAKFromUPKV2AI(*upak2)
+	return &upak1, upak2, user, nil
+}
+
+func (i *identifyUser) load(m libkb.MetaContext) (err error) {
+	i.thin, i.v2, i.full, err = loadBothUPAKVersions(m, i.arg)
 	return err
 }
 
 func (i *identifyUser) forceFullLoad(m libkb.MetaContext) (err error) {
 	arg := i.arg.WithForceReload()
-	i.thin, i.full, err = m.G().GetUPAKLoader().Load(arg)
+	i.thin, i.v2, i.full, err = loadBothUPAKVersions(m, arg)
 	return err
 }
 
@@ -160,7 +171,7 @@ func (i *identifyUser) Full() *libkb.User {
 
 func loadIdentifyUser(m libkb.MetaContext, arg libkb.LoadUserArg, cache libkb.Identify2Cacher) (*identifyUser, error) {
 	ret := &identifyUser{arg: arg}
-	err := ret.load(m.G())
+	err := ret.load(m)
 	if ret.isNil() {
 		ret = nil
 	} else if ret.full != nil && cache != nil {
@@ -549,6 +560,7 @@ func (e *Identify2WithUID) exportToResult() *keybase1.Identify2Res {
 	}
 	return &keybase1.Identify2Res{
 		Upk:          e.toUserPlusKeys(),
+		Upk2ai:       e.toUserPlusKeysV2AllIncarnations(),
 		TrackBreaks:  e.trackBreaks,
 		IdentifiedAt: keybase1.ToTime(e.getNow()),
 	}
@@ -1121,6 +1133,10 @@ func (e *Identify2WithUID) GetProofSet() *libkb.ProofSet {
 func (e *Identify2WithUID) toUserPlusKeys() keybase1.UserPlusKeys {
 	return e.them.ExportToUserPlusKeys()
 }
+func (e *Identify2WithUID) toUserPlusKeysV2AllIncarnations() keybase1.UserPlusKeys {
+	return e.them.ExportToUserPlusKeysV2AllIncarnations()
+}
+
 
 func (e *Identify2WithUID) getCache() libkb.Identify2Cacher {
 	if e.testArgs != nil && e.testArgs.cache != nil {

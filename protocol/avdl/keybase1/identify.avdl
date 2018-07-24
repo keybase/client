@@ -25,6 +25,7 @@ protocol identify {
     UserPlusKeys upk;
     Time identifiedAt;
     union { null, IdentifyTrackBreaks } trackBreaks;
+    union { null, UserPlusKeysV2AllIncarnations } upk2ai;
   }
 
   /*
@@ -45,7 +46,8 @@ protocol identify {
     boolean canSuppressUI=false,
     TLFIdentifyBehavior identifyBehavior=0,
     boolean forceDisplay=false,
-    boolean actLoggedOut=false
+    boolean actLoggedOut=false,
+    boolean outputUPK2AI=false
   );
   record IdentifyLiteRes {
     UserOrTeamLite ul;
