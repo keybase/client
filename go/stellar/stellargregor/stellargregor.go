@@ -34,6 +34,8 @@ func (h *Handler) Create(ctx context.Context, cli gregor1.IncomingInterface, cat
 		return true, h.autoClaim(mctx, cli, category, item)
 	case "stellar.payment_status":
 		return true, h.paymentStatus(mctx, cli, category, item)
+	case "stellar.payment_notification":
+		return true, h.paymentNotification(mctx, cli, category, item)
 	case "stellar.request_status":
 		return true, h.requestStatus(mctx, cli, category, item)
 	default:
@@ -72,6 +74,21 @@ func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInte
 		return err
 	}
 	mctx.CDebugf("%s unmarshaled: %+v", category, msg)
+
+	return nil
+}
+
+func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
+	defer h.G().GregorDismisser.DismissItem(mctx.Ctx(), cli, item.Metadata().MsgID())
+	mctx.CDebugf("%v: %v received", h.Name(), category)
+	var msg stellar1.PaymentNotificationMsg
+	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
+		mctx.CDebugf("error unmarshaling %s item: %s", category, err)
+		return err
+	}
+	mctx.CDebugf("%s unmarshaled: %+v", category, msg)
+
+	// TODO: send notification to frontend
 
 	return nil
 }
