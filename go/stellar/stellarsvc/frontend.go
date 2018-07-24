@@ -781,7 +781,13 @@ func (s *Server) GetSendAssetChoicesLocal(ctx context.Context, arg stellar1.GetS
 		return res, err
 	}
 
-	// TODO: Check if we own arg.From
+	owns, err := stellar.OwnAccount(ctx, s.G(), arg.From)
+	if err != nil {
+		return res, err
+	}
+	if !owns {
+		return res, fmt.Errorf("account %s is not owned by current user", arg.From)
+	}
 
 	ourBalances, err := s.remoter.Balances(ctx, arg.From)
 	if err != nil {
