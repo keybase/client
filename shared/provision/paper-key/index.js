@@ -78,6 +78,7 @@ const styles = styleSheetCreate({
   contents: {
     maxWidth: isMobile ? 300 : 460,
     width: '100%',
+    flexGrow: 1,
   },
   hint: {
     ...globalStyles.italic,

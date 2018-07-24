@@ -97,7 +97,7 @@ const Troubleshooting = ({onResetAccount}) => (
     </Box2>
     <Text type="BodySemibold">
       If you have lost all of your devices, or if you uninstalled Keybase from all of them, you can{' '}
-      <Text type="BodyPrimaryLink" onClick={onResetAccount}>
+      <Text type="BodySemiboldLink" onClick={onResetAccount}>
         reset your account.
       </Text>
     </Text>
