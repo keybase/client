@@ -98,8 +98,11 @@ func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	upk := res.ExportToUserPlusKeys()
-	checkAliceProofs(tc.T, idUI, &upk)
+	upk, err := res.ExportToUPKV2AllIncarnations()
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	checkAliceProofs(tc.T, idUI, &upk.Current)
 	assertTracking(tc, "t_alice")
 	return
 }
@@ -118,8 +121,11 @@ func trackBobWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.Tr
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	upk := res.ExportToUserPlusKeys()
-	checkBobProofs(tc.T, idUI, &upk)
+	upk, err := res.ExportToUPKV2AllIncarnations()
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	checkBobProofs(tc.T, idUI, &upk.Current)
 	assertTracking(tc, "t_bob")
 	return
 }

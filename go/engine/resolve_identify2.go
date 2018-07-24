@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"errors"
 	gregor "github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -100,6 +101,23 @@ func (e *ResolveThenIdentify2) resolveUID(m libkb.MetaContext) (err error) {
 	return nil
 }
 
+func (e *ResolveThenIdentify2) nameResolutionPostAssertion(m libkb.MetaContext) (err error) {
+	// Check the server for cheating on a Name->UID resolution. After we do a userload (by UID),
+	// we should have a merkle-verified idea of what the corresponding name is, so we check it
+	// as a post-assertion here.
+	if e.queriedName.IsNil() {
+		return nil
+	}
+	res, err := e.Result()
+	if err != nil {
+		return err
+	}
+	if !libkb.NewNormalizedUsername(res.Upk.GetName()).Eq(e.queriedName) {
+		return libkb.NewUIDMismatchError("bad user returned for " + e.queriedName.String())
+	}
+	return nil
+}
+
 func (e *ResolveThenIdentify2) Run(m libkb.MetaContext) (err error) {
 	m = m.WithLogTag("ID2")
 
@@ -122,18 +140,16 @@ func (e *ResolveThenIdentify2) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	// Check the server for cheating on a Name->UID resolution. After we do a userload (by UID),
-	// we should have a merkle-verified idea of what the corresponding name is, so we check it
-	// as a post-assertion here.
-	if !e.queriedName.IsNil() && !libkb.NewNormalizedUsername(e.Result().Upk.GetName()).Eq(e.queriedName) {
-		return libkb.NewUIDMismatchError("bad user returned for " + e.queriedName.String())
+	err = e.nameResolutionPostAssertion(m)
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
-func (e *ResolveThenIdentify2) Result() *keybase1.Identify2Res {
+func (e *ResolveThenIdentify2) Result() (*keybase1.Identify2ResUPK2, error) {
 	if e.i2eng == nil {
-		return nil
+		return nil, errors.New("ResolveThenIdentify2#Result: no result available if the engine did not run")
 	}
 	return e.i2eng.Result()
 }
@@ -185,24 +201,10 @@ func ResolveAndCheck(m libkb.MetaContext, s string) (ret keybase1.UserPlusKeysV2
 	if err != nil {
 		return ret, err
 	}
-	res := eng.Result()
-
-	// Note: this is slightly wasteful since we already loaded a UPAK V1 in Identify2WithUID,
-	// (downconverted from a V2), and now we're just reloading the V2. But the alternative was a big
-	// refactor, and we're punting on that for now. The good news is this load will almost always hit the
-	// cache (see identifyUser#load, which loads both the UPAK and the full user at the same time).
-	upk, _, err := m.G().GetUPAKLoader().LoadV2(libkb.NewLoadUserArgWithMetaContext(m).WithUID(res.Upk.GetUID()))
+	res, err := eng.Result()
 	if err != nil {
 		return ret, err
 	}
-	curr := upk.Current
-
-	// There's a slight chance of a race, that the user reset, so just check we didn't race,
-	// and if so, error out.
-	if curr.EldestSeqno != res.Upk.EldestSeqno {
-		return ret, libkb.NewAccountResetError(curr.ToUserVersion(), res.Upk.EldestSeqno)
-	}
-
 	// Success path.
-	return curr, nil
+	return res.Upk.Current, nil
 }

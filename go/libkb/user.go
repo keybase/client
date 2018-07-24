@@ -770,7 +770,7 @@ func (u *User) SigChainDump(w io.Writer) {
 	u.sigChain().Dump(w)
 }
 
-func (u *User) IsCachedIdentifyFresh(upk *keybase1.UserPlusKeys) bool {
+func (u *User) IsCachedIdentifyFresh(upk *keybase1.UserPlusKeysV2AllIncarnations) bool {
 	idv, _ := u.GetIDVersion()
 	if upk.Uvv.Id == 0 || idv != upk.Uvv.Id {
 		return false

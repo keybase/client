@@ -130,10 +130,10 @@ func (e *SaltpackEncrypt) Run(m libkb.MetaContext) (err error) {
 	if err := RunEngine2(m, kf); err != nil {
 		return err
 	}
-	uplus := kf.UsersPlusKeys()
+	uplus := kf.UsersPlusKeysV2()
 	for _, up := range uplus {
-		for _, k := range up.DeviceKeys {
-			gk, err := libkb.ImportKeypairFromKID(k.KID)
+		for kid, _ := range up.DeviceKeys {
+			gk, err := libkb.ImportKeypairFromKID(kid)
 			if err != nil {
 				return err
 			}

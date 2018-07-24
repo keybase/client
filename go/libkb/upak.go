@@ -10,13 +10,13 @@ import (
 
 // BaseProofSet creates a basic proof set for a user with their
 // keybase and uid proofs and any pgp fingerprint proofs.
-func BaseProofSet(u *keybase1.UserPlusAllKeys) *ProofSet {
+func BaseProofSet(u *keybase1.UserPlusKeysV2AllIncarnations) *ProofSet {
 	proofs := []Proof{
 		{Key: "keybase", Value: u.GetName()},
 		{Key: "uid", Value: u.GetUID().String()},
 	}
-	for _, key := range u.PGPKeys {
-		proofs = append(proofs, Proof{Key: PGPAssertionKey, Value: key.PGPFingerprint})
+	for _, key := range u.Current.PGPKeys {
+		proofs = append(proofs, Proof{Key: PGPAssertionKey, Value: key.Fingerprint.String()})
 	}
 	return NewProofSet(proofs)
 }
@@ -69,15 +69,15 @@ func CheckKID(u *keybase1.UserPlusKeysV2AllIncarnations, kid keybase1.KID) (foun
 	return checkKIDKeybase(u, kid)
 }
 
-func GetRemoteChainLinkFor(u *keybase1.UserPlusAllKeys, username NormalizedUsername, uid keybase1.UID, g *GlobalContext) (ret *TrackChainLink, err error) {
-	defer g.Trace(fmt.Sprintf("UPAK#GetRemoteChainLinkFor(%s,%s,%s)", u.Base.Uid, username, uid), func() error { return err })()
+func GetRemoteChainLinkFor(u *keybase1.UserPlusKeysV2AllIncarnations, username NormalizedUsername, uid keybase1.UID, g *GlobalContext) (ret *TrackChainLink, err error) {
+	defer g.Trace(fmt.Sprintf("UPAK#GetRemoteChainLinkFor(%s,%s,%s)", u.Current.GetUID(), username, uid), func() error { return err })()
 	g.VDL.Log(VLog1, "| Full user: %+v\n", *u)
-	rtl := u.GetRemoteTrack(username.String())
+	rtl := u.GetRemoteTrack(uid)
 	if rtl == nil {
 		g.VDL.Log(VLog0, "| no remote track found")
 		return nil, nil
 	}
-	if !rtl.Uid.Equal(uid) {
+	if !NewNormalizedUsername(rtl.Username).Eq(username) {
 		return nil, UIDMismatchError{Msg: fmt.Sprintf("UIDs didn't match for (%s,%q); got %s", uid, username.String(), rtl.Uid)}
 	}
 	var lid LinkID
@@ -88,7 +88,7 @@ func GetRemoteChainLinkFor(u *keybase1.UserPlusAllKeys, username NormalizedUsern
 		return nil, err
 	}
 	var link *ChainLink
-	link, err = ImportLinkFromStorage(lid, u.Base.Uid, g)
+	link, err = ImportLinkFromStorage(lid, u.GetUID(), g)
 	if err != nil {
 		g.Log.Debug("| failed to import link from storage")
 		return nil, err
@@ -105,12 +105,12 @@ func GetRemoteChainLinkFor(u *keybase1.UserPlusAllKeys, username NormalizedUsern
 	return ret, err
 }
 
-func TrackChainLinkFromUserPlusAllKeys(u *keybase1.UserPlusAllKeys, username NormalizedUsername, uid keybase1.UID, g *GlobalContext) (*TrackChainLink, error) {
+func TrackChainLinkFromUPK2AI(u *keybase1.UserPlusKeysV2AllIncarnations, username NormalizedUsername, uid keybase1.UID, g *GlobalContext) (*TrackChainLink, error) {
 	tcl, err := GetRemoteChainLinkFor(u, username, uid, g)
 	if _, ok := err.(InconsistentCacheStateError); ok {
 		return nil, err
 	}
-	tcl, err = TrackChainLinkFor(u.Base.Uid, uid, tcl, err, g)
+	tcl, err = TrackChainLinkFor(u.Current.Uid, uid, tcl, err, g)
 	return tcl, err
 }
 

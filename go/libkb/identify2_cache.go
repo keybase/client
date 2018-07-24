@@ -18,16 +18,16 @@ type Identify2Cache struct {
 }
 
 type Identify2Cacher interface {
-	Get(keybase1.UID, GetCheckTimeFunc, GetCacheDurationFunc, bool) (*keybase1.Identify2Res, error)
-	Insert(up *keybase1.Identify2Res) error
+	Get(keybase1.UID, GetCheckTimeFunc, GetCacheDurationFunc, bool) (*keybase1.Identify2ResUPK2, error)
+	Insert(up *keybase1.Identify2ResUPK2) error
 	DidFullUserLoad(keybase1.UID)
 	Shutdown()
 	Delete(uid keybase1.UID) error
 	UseDiskCache() bool
 }
 
-type GetCheckTimeFunc func(keybase1.Identify2Res) keybase1.Time
-type GetCacheDurationFunc func(keybase1.Identify2Res) time.Duration
+type GetCheckTimeFunc func(keybase1.Identify2ResUPK2) keybase1.Time
+type GetCacheDurationFunc func(keybase1.Identify2ResUPK2) time.Duration
 
 // NewIdentify2Cache creates a Identify2Cache and sets the object max age to
 // maxAge.  Once a user is inserted, after maxAge duration passes,
@@ -42,7 +42,7 @@ func NewIdentify2Cache(maxAge time.Duration) *Identify2Cache {
 }
 
 // Get returns a user object.  If none exists for uid, it will return nil.
-func (c *Identify2Cache) Get(uid keybase1.UID, gctf GetCheckTimeFunc, gcdf GetCacheDurationFunc, breaksOK bool) (*keybase1.Identify2Res, error) {
+func (c *Identify2Cache) Get(uid keybase1.UID, gctf GetCheckTimeFunc, gcdf GetCacheDurationFunc, breaksOK bool) (*keybase1.Identify2ResUPK2, error) {
 	v, err := c.cache.Get(string(uid))
 	if err != nil {
 		if err == ramcache.ErrNotFound {
@@ -50,7 +50,7 @@ func (c *Identify2Cache) Get(uid keybase1.UID, gctf GetCheckTimeFunc, gcdf GetCa
 		}
 		return nil, err
 	}
-	up, ok := v.(*keybase1.Identify2Res)
+	up, ok := v.(*keybase1.Identify2ResUPK2)
 	if !ok {
 		return nil, fmt.Errorf("invalid type in cache: %T", v)
 	}
@@ -75,11 +75,11 @@ func (c *Identify2Cache) Get(uid keybase1.UID, gctf GetCheckTimeFunc, gcdf GetCa
 }
 
 // Insert adds a user to the cache, keyed on UID.
-func (c *Identify2Cache) Insert(up *keybase1.Identify2Res) error {
+func (c *Identify2Cache) Insert(up *keybase1.Identify2ResUPK2) error {
 	tmp := *up
 	copy := &tmp
 	copy.Upk.Uvv.CachedAt = keybase1.ToTime(time.Now())
-	return c.cache.Set(string(up.Upk.Uid), copy)
+	return c.cache.Set(string(up.Upk.GetUID()), copy)
 }
 
 func (c *Identify2Cache) Delete(uid keybase1.UID) error {

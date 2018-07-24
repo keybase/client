@@ -44,7 +44,7 @@ type cacheStats struct {
 	breaks  int
 }
 
-type identify2testCache map[keybase1.UID](*keybase1.Identify2Res)
+type identify2testCache map[keybase1.UID](*keybase1.Identify2ResUPK2)
 
 func (c cacheStats) eq(h, t, m, n, b int) bool {
 	return h == c.hit && t == c.timeout && m == c.miss && n == c.notime && b == c.breaks
@@ -172,7 +172,7 @@ func (i *Identify2WithUIDTester) Start(string, keybase1.IdentifyReason, bool) er
 	return nil
 }
 
-func (i *Identify2WithUIDTester) Get(uid keybase1.UID, gctf libkb.GetCheckTimeFunc, gcdf libkb.GetCacheDurationFunc, breaksOK bool) (*keybase1.Identify2Res, error) {
+func (i *Identify2WithUIDTester) Get(uid keybase1.UID, gctf libkb.GetCheckTimeFunc, gcdf libkb.GetCacheDurationFunc, breaksOK bool) (*keybase1.Identify2ResUPK2, error) {
 	i.Lock()
 	defer i.Unlock()
 	res := i.cache[uid]
@@ -180,7 +180,7 @@ func (i *Identify2WithUIDTester) Get(uid keybase1.UID, gctf libkb.GetCheckTimeFu
 
 	// Please excuse this horrible hack, but use the `GetCacheDurationFunc` to see if we're dealing
 	// with a fast cache duration
-	if gcdf(keybase1.Identify2Res{}) == libkb.Identify2CacheShortTimeout {
+	if gcdf(keybase1.Identify2ResUPK2{}) == libkb.Identify2CacheShortTimeout {
 		stats = &i.fastStats
 	}
 
@@ -209,13 +209,13 @@ func (i *Identify2WithUIDTester) Get(uid keybase1.UID, gctf libkb.GetCheckTimeFu
 	return res, nil
 }
 
-func (i *Identify2WithUIDTester) Insert(up *keybase1.Identify2Res) error {
+func (i *Identify2WithUIDTester) Insert(up *keybase1.Identify2ResUPK2) error {
 	i.Lock()
 	defer i.Unlock()
 	tmp := *up
 	copy := &tmp
 	copy.Upk.Uvv.CachedAt = keybase1.ToTime(i.now)
-	i.cache[up.Upk.Uid] = copy
+	i.cache[up.Upk.GetUID()] = copy
 	return nil
 }
 func (i *Identify2WithUIDTester) DidFullUserLoad(uid keybase1.UID) {
@@ -430,14 +430,14 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 	var origUI libkb.IdentifyUI
 	origUI = tester
 
-	checkBrokenRes := func(res *keybase1.Identify2Res) {
-		if !res.Upk.Uid.Equal(tracyUID) {
+	checkBrokenRes := func(res *keybase1.Identify2ResUPK2) {
+		if !res.Upk.GetUID().Equal(tracyUID) {
 			t.Fatal("bad UID for t_tracy")
 		}
-		if res.Upk.Username != "t_tracy" {
+		if res.Upk.GetName() != "t_tracy" {
 			t.Fatal("bad username for t_tracy")
 		}
-		if len(res.Upk.DeviceKeys) != 4 {
+		if len(res.Upk.Current.DeviceKeys) != 4 {
 			t.Fatal("wrong # of device keys for tracy")
 		}
 		if len(res.TrackBreaks.Proofs) != 1 {
@@ -474,9 +474,12 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 		// otherwise the waiter() will block indefinitely.
 		origUI.Finish()
 		waiter()
-		res := eng.Result()
 		if err != nil {
-			t.Fatalf("expected no ID2 error; got %v\n", err)
+			t.Fatalf("expected no ID2 error; got %v", err)
+		}
+		res, err := eng.Result()
+		if err != nil {
+			t.Fatalf("unexpected export error: %s", err)
 		}
 		checkBrokenRes(res)
 		if n := eng.testArgs.stats.untrackedFastPaths; n > 0 {
@@ -934,12 +937,15 @@ func TestIdentify2NoSigchain(t *testing.T) {
 	}
 
 	// kbfs would like to have some info about the user
-	result := eng.Result()
+	result, err := eng.Result()
+	if err != nil {
+		t.Fatalf("unexpeted export error: %s", err)
+	}
 	if result == nil {
 		t.Fatal("no result on id2 w/ no sigchain")
 	}
-	if result.Upk.Username != u {
-		t.Errorf("result username: %q, expected %q", result.Upk.Username, u)
+	if result.Upk.GetName() != u {
+		t.Errorf("result username: %q, expected %q", result.Upk.GetName(), u)
 	}
 }
 

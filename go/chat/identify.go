@@ -379,13 +379,15 @@ func (t *NameIdentifier) identifyUser(ctx context.Context, assertion string, pri
 			return keybase1.TLFIdentifyFailure{}, err
 		}
 	}
-	resp := eng.Result()
-
+	resp, err := eng.Result()
+	if err != nil {
+		return keybase1.TLFIdentifyFailure{}, err
+	}
 	var frep keybase1.TLFIdentifyFailure
-	if resp != nil && resp.TrackBreaks != nil {
+	if resp.TrackBreaks != nil {
 		frep.User = keybase1.User{
-			Uid:      resp.Upk.Uid,
-			Username: resp.Upk.Username,
+			Uid:      resp.Upk.GetUID(),
+			Username: resp.Upk.GetName(),
 		}
 		frep.Breaks = resp.TrackBreaks
 	}

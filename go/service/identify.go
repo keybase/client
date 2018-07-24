@@ -54,9 +54,15 @@ func (h *IdentifyHandler) Identify2(netCtx context.Context, arg keybase1.Identif
 	m = m.WithUIs(uis)
 	eng := engine.NewResolveThenIdentify2(h.G(), &arg)
 	err = engine.RunEngine2(m, eng)
-	resp := eng.Result()
+	if err != nil {
+		return res, err
+	}
+	resp, err := eng.Result()
+	if err != nil {
+		return res, err
+	}
 	if resp != nil {
-		res = *resp
+		res = resp.ExportToV1()
 	}
 	return res, err
 }
@@ -126,12 +132,16 @@ func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.
 	m = m.WithUIs(uis)
 	eng := engine.NewResolveThenIdentify2(h.G(), &id2arg)
 	err = engine.RunEngine2(m, eng)
-	resp := eng.Result()
-	if resp != nil {
-		res.Ul.Id = keybase1.UserOrTeamID(resp.Upk.Uid)
-		res.Ul.Name = resp.Upk.Username
-		res.TrackBreaks = resp.TrackBreaks
+	if err != nil {
+		return res, err
 	}
+	resp, err := eng.Result()
+	if err != nil {
+		return res, err
+	}
+	res.Ul.Id = keybase1.UserOrTeamID(resp.Upk.GetUID())
+	res.Ul.Name = resp.Upk.GetName()
+	res.TrackBreaks = resp.TrackBreaks
 	return res, err
 }
 
@@ -291,7 +301,7 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Co
 			eng := engine.NewIdentify2WithUID(h.G(), &id2arg)
 			m := libkb.NewMetaContext(subctx, h.G()).WithUIs(uis)
 			err := engine.RunEngine2(m, eng)
-			idRes := eng.Result()
+			idRes, _ := eng.Result()
 			if err != nil {
 				h.G().Log.CDebugf(subctx, "identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
 				if idRes != nil && idRes.TrackBreaks != nil {

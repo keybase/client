@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -43,7 +44,7 @@ const (
 type identifyUser struct {
 	arg       libkb.LoadUserArg
 	full      *libkb.User
-	thin      *keybase1.UserPlusAllKeys
+	thin      *keybase1.UserPlusKeysV2AllIncarnations
 	isDeleted bool
 }
 
@@ -105,7 +106,8 @@ func (i *identifyUser) User(cache libkb.Identify2Cacher) (*libkb.User, error) {
 
 func (i *identifyUser) Export() *keybase1.User {
 	if i.thin != nil {
-		return i.thin.Export()
+		tmp := i.thin.ExportToSimpleUser()
+		return &tmp
 	}
 	if i.full != nil {
 		return i.full.Export()
@@ -113,20 +115,19 @@ func (i *identifyUser) Export() *keybase1.User {
 	panic("null user")
 }
 
-func (i *identifyUser) ExportToUserPlusKeys() keybase1.UserPlusKeys {
+func (i *identifyUser) ExportToUserPlusKeysV2AllIncarnations() (*keybase1.UserPlusKeysV2AllIncarnations, error) {
 	if i.thin != nil {
-		ret := i.thin.Base
-		return ret
+		return i.thin, nil
 	}
 	if i.full != nil {
-		return i.full.ExportToUserPlusKeys()
+		return i.full.ExportToUPKV2AllIncarnations()
 	}
-	panic("null user")
+	return nil, errors.New("null user in identify2: ExportToUserPlusKeysV2AllIncarnations")
 }
 
-func (i *identifyUser) IsCachedIdentifyFresh(upk *keybase1.UserPlusKeys) bool {
+func (i *identifyUser) IsCachedIdentifyFresh(upk *keybase1.UserPlusKeysV2AllIncarnations) bool {
 	if i.thin != nil {
-		ret := i.thin.Base.Uvv.Equal(upk.Uvv)
+		ret := i.thin.Uvv.Equal(upk.Uvv)
 		return ret
 	}
 	if i.full != nil {
@@ -140,13 +141,13 @@ func (i *identifyUser) Equal(i2 *identifyUser) bool {
 }
 
 func (i *identifyUser) load(g *libkb.GlobalContext) (err error) {
-	i.thin, i.full, err = g.GetUPAKLoader().Load(i.arg)
+	i.thin, i.full, err = g.GetUPAKLoader().LoadV2(i.arg)
 	return err
 }
 
 func (i *identifyUser) forceFullLoad(m libkb.MetaContext) (err error) {
 	arg := i.arg.WithForceReload()
-	i.thin, i.full, err = m.G().GetUPAKLoader().Load(arg)
+	i.thin, i.full, err = m.G().GetUPAKLoader().LoadV2(arg)
 	return err
 }
 
@@ -186,7 +187,7 @@ func (i *identifyUser) trackChainLinkFor(m libkb.MetaContext, name libkb.Normali
 		// go ahead and load that chain link from local level DB, and it's almost
 		// always going to be there, since it was written as a side effect of
 		// fetching the full user. There's a corner case, see just below...
-		ret, err = libkb.TrackChainLinkFromUserPlusAllKeys(i.thin, name, uid, m.G())
+		ret, err = libkb.TrackChainLinkFromUPK2AI(i.thin, name, uid, m.G())
 		if _, inconsistent := err.(libkb.InconsistentCacheStateError); !inconsistent {
 			m.CDebugf("| returning in common case -> (found=%v, err=%v)", (ret != nil), err)
 			return ret, err
@@ -233,7 +234,7 @@ type Identify2WithUID struct {
 	testArgs      *Identify2WithUIDTestArgs
 	trackToken    keybase1.TrackToken
 	confirmResult keybase1.ConfirmResult
-	cachedRes     *keybase1.Identify2Res
+	cachedRes     *keybase1.Identify2ResUPK2
 
 	metaContext libkb.MetaContext
 
@@ -538,51 +539,62 @@ func (e *Identify2WithUID) unblock(m libkb.MetaContext, isFinal bool, err error)
 
 func (e *Identify2WithUID) maybeCacheSelf() {
 	if e.getCache() != nil {
-		v := e.exportToResult()
+		v, _ := e.exportToResult()
 		e.getCache().Insert(v)
 	}
 }
 
-func (e *Identify2WithUID) exportToResult() *keybase1.Identify2Res {
+func (e *Identify2WithUID) exportToResult() (*keybase1.Identify2ResUPK2, error) {
 	if e.them == nil {
-		return nil
+		return nil, nil
 	}
-	return &keybase1.Identify2Res{
-		Upk:          e.toUserPlusKeys(),
+	upk, err := e.toUserPlusKeysv2AllIncarnations()
+	if err != nil {
+		return nil, err
+	}
+	if upk == nil {
+		return nil, nil
+	}
+	return &keybase1.Identify2ResUPK2{
+		Upk:          *upk,
 		TrackBreaks:  e.trackBreaks,
 		IdentifiedAt: keybase1.ToTime(e.getNow()),
-	}
+	}, nil
 }
 
-func (e *Identify2WithUID) maybeCacheResult() {
+func (e *Identify2WithUID) maybeCacheResult(m libkb.MetaContext) {
 
 	isOK := e.state.Result().IsOK()
 	canCacheFailures := e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks()
 
-	e.G().Log.Debug("+ maybeCacheResult (ok=%v; canCacheFailures=%v)", isOK, canCacheFailures)
-	defer e.G().Log.Debug("- maybeCacheResult")
+	m.CDebugf("+ maybeCacheResult (ok=%v; canCacheFailures=%v)", isOK, canCacheFailures)
+	defer m.CDebugf("- maybeCacheResult")
 
 	if e.getCache() == nil {
-		e.G().Log.Debug("| cache is disabled, so nothing to do")
+		m.CDebugf("| cache is disabled, so nothing to do")
 		return
 	}
 
 	// If we hit an identify failure, and we're not allowed to cache failures,
 	// then at least bust out the cache.
 	if !isOK && !canCacheFailures {
-		e.G().Log.Debug("| clearing cache due to failure")
+		m.CDebugf("| clearing cache due to failure")
 		uid := e.them.GetUID()
 		e.getCache().Delete(uid)
 		if err := e.removeSlowCacheFromDB(); err != nil {
-			e.G().Log.Debug("| Error in removing slow cache from db: %s", err)
+			m.CDebugf("| Error in removing slow cache from db: %s", err)
 		}
 		return
 	}
 
 	// Common case --- (isOK || canCacheFailures)
-	v := e.exportToResult()
+	v, err := e.exportToResult()
+	if err != nil {
+		m.CDebugf("| not caching: error exporting: %s", err)
+		return
+	}
 	if v == nil {
-		e.G().Log.Debug("| not caching; nil result")
+		m.CDebugf("| not caching; nil result")
 		return
 	}
 	e.getCache().Insert(v)
@@ -591,7 +603,7 @@ func (e *Identify2WithUID) maybeCacheResult() {
 	// Don't write failures to the disk cache
 	if isOK {
 		if err := e.storeSlowCacheToDB(); err != nil {
-			e.G().Log.Debug("| Error in storing slow cache to db: %s", err)
+			m.CDebugf("| Error in storing slow cache to db: %s", err)
 		}
 	}
 	return
@@ -810,7 +822,7 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 	m.CDebugf("| IdentifyUI.Finished(%s)", e.them.GetName())
 
 	err = e.checkRemoteAssertions([]keybase1.ProofState{keybase1.ProofState_OK})
-	e.maybeCacheResult()
+	e.maybeCacheResult(m)
 
 	if err == nil && !e.arg.NoErrorOnTrackFailure {
 		// We only care about tracking errors in this case; hence GetErrorLax
@@ -971,8 +983,8 @@ func (e *Identify2WithUID) checkFastCacheHit(m libkb.MetaContext) (hit bool) {
 		return false
 	}
 
-	fn := func(u keybase1.Identify2Res) keybase1.Time { return u.Upk.Uvv.CachedAt }
-	dfn := func(u keybase1.Identify2Res) time.Duration {
+	fn := func(u keybase1.Identify2ResUPK2) keybase1.Time { return u.Upk.Uvv.CachedAt }
+	dfn := func(u keybase1.Identify2ResUPK2) time.Duration {
 		return libkb.Identify2CacheShortTimeout
 	}
 	u, err := e.getCache().Get(e.arg.Uid, fn, dfn, e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks())
@@ -994,11 +1006,11 @@ func (e *Identify2WithUID) dbKey(them keybase1.UID) libkb.DbKey {
 	}
 }
 
-func (e *Identify2WithUID) loadSlowCacheFromDB() (ret *keybase1.Identify2Res) {
+func (e *Identify2WithUID) loadSlowCacheFromDB(m libkb.MetaContext) (ret *keybase1.Identify2ResUPK2) {
 	defer e.G().ExitTraceOK("Identify2WithUID#loadSlowCacheFromDB", func() bool { return ret != nil })()
 
 	if e.getCache() != nil && !e.getCache().UseDiskCache() {
-		e.G().Log.Debug("| Disk cached disabled")
+		m.CDebugf("| Disk cached disabled")
 		return nil
 	}
 
@@ -1006,22 +1018,27 @@ func (e *Identify2WithUID) loadSlowCacheFromDB() (ret *keybase1.Identify2Res) {
 	key := e.dbKey(e.them.GetUID())
 	found, err := e.G().LocalDb.GetInto(&ktm, key)
 	if err != nil {
-		e.G().Log.Debug("| Error loading key %+v from cache: %s", key, err)
+		m.CDebugf("| Error loading key %+v from cache: %s", key, err)
 		return nil
 	}
 	if !found {
-		e.G().Log.Debug("| Key wasn't found: %+v", key)
+		m.CDebugf("| Key wasn't found: %+v", key)
 		return nil
 	}
 	tm := ktm.Time()
 	now := e.getNow()
 	diff := now.Sub(tm)
 	if diff > libkb.Identify2CacheLongTimeout {
-		e.G().Log.Debug("| Object timed out %s ago", diff)
+		m.CDebugf("| Object timed out %s ago", diff)
 		return nil
 	}
-	var tmp keybase1.Identify2Res
-	tmp.Upk = e.them.ExportToUserPlusKeys()
+	var tmp keybase1.Identify2ResUPK2
+	upk2ai, err := e.them.ExportToUserPlusKeysV2AllIncarnations()
+	if err != nil {
+		m.CWarningf("| Failed to export: %s", err)
+		return nil
+	}
+	tmp.Upk = *upk2ai
 	tmp.IdentifiedAt = ktm
 	ret = &tmp
 	return ret
@@ -1069,8 +1086,8 @@ func (e *Identify2WithUID) checkSlowCacheHit(m libkb.MetaContext) (ret bool) {
 		return false
 	}
 
-	tfn := func(u keybase1.Identify2Res) keybase1.Time { return u.IdentifiedAt }
-	dfn := func(u keybase1.Identify2Res) time.Duration {
+	tfn := func(u keybase1.Identify2ResUPK2) keybase1.Time { return u.IdentifiedAt }
+	dfn := func(u keybase1.Identify2ResUPK2) time.Duration {
 		if u.TrackBreaks != nil {
 			return libkb.Identify2CacheBrokenTimeout
 		}
@@ -1087,7 +1104,7 @@ func (e *Identify2WithUID) checkSlowCacheHit(m libkb.MetaContext) (ret bool) {
 	}
 
 	if u == nil && e.me != nil && !trackBrokenError {
-		u = e.loadSlowCacheFromDB()
+		u = e.loadSlowCacheFromDB(m)
 	}
 
 	if u == nil {
@@ -1107,19 +1124,26 @@ func (e *Identify2WithUID) checkSlowCacheHit(m libkb.MetaContext) (ret bool) {
 	return true
 }
 
-func (e *Identify2WithUID) Result() *keybase1.Identify2Res {
+func (e *Identify2WithUID) Result() (*keybase1.Identify2ResUPK2, error) {
 	if e.cachedRes != nil {
-		return e.cachedRes
+		return e.cachedRes, nil
 	}
-	return e.exportToResult()
+	res, err := e.exportToResult()
+	if err != nil {
+		return nil, err
+	}
+	if res == nil {
+		return nil, libkb.UserNotFoundError{Msg: "identify2 unexpectly returned an empty user"}
+	}
+	return res, nil
 }
 
 func (e *Identify2WithUID) GetProofSet() *libkb.ProofSet {
 	return e.remotesReceived
 }
 
-func (e *Identify2WithUID) toUserPlusKeys() keybase1.UserPlusKeys {
-	return e.them.ExportToUserPlusKeys()
+func (e *Identify2WithUID) toUserPlusKeysv2AllIncarnations() (*keybase1.UserPlusKeysV2AllIncarnations, error) {
+	return e.them.ExportToUserPlusKeysV2AllIncarnations()
 }
 
 func (e *Identify2WithUID) getCache() libkb.Identify2Cacher {
