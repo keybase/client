@@ -20,6 +20,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libhttpserver"
 	"github.com/keybase/kbfs/libkbfs"
@@ -146,17 +147,29 @@ func (k *SimpleFS) makeContext(ctx context.Context) context.Context {
 	return libkbfs.CtxWithRandomIDReplayable(ctx, ctxIDKey, ctxOpID, k.log)
 }
 
+func rawPathFromKbfsPath(path keybase1.Path) (string, error) {
+	pt, err := path.PathType()
+	if err != nil {
+		return "", err
+	}
+
+	switch pt {
+	case keybase1.PathType_KBFS:
+		return stdpath.Clean(path.Kbfs()), nil
+	case keybase1.PathType_KBFS_ARCHIVED:
+		return stdpath.Clean(path.KbfsArchived().Path), nil
+	default:
+		return "", errOnlyRemotePathSupported
+	}
+}
+
 // remoteTlfAndPath decodes a remote path for us.
 func remoteTlfAndPath(path keybase1.Path) (
 	t tlf.Type, tlfName, middlePath, finalElem string, err error) {
-	pt, err := path.PathType()
+	raw, err := rawPathFromKbfsPath(path)
 	if err != nil {
 		return tlf.Private, "", "", "", err
 	}
-	if pt != keybase1.PathType_KBFS {
-		return tlf.Private, "", "", "", errOnlyRemotePathSupported
-	}
-	raw := stdpath.Clean(path.Kbfs())
 	if stdpath.IsAbs(raw) {
 		raw = raw[1:]
 	}
@@ -180,6 +193,32 @@ func remoteTlfAndPath(path keybase1.Path) (
 	return t, ps[1], middlePath, finalElem, nil
 }
 
+func branchNameFromPath(path keybase1.Path) (libkbfs.BranchName, error) {
+	pt, err := path.PathType()
+	if err != nil {
+		return "", err
+	}
+	switch pt {
+	case keybase1.PathType_KBFS:
+		return libkbfs.MasterBranch, nil
+	case keybase1.PathType_KBFS_ARCHIVED:
+		archivedParam := path.KbfsArchived().ArchivedParam
+		archivedType, err := archivedParam.KBFSArchivedType()
+		if err != nil {
+			return "", err
+		}
+		switch archivedType {
+		case keybase1.KBFSArchivedType_REVISION:
+			return libkbfs.MakeRevBranchName(
+				kbfsmd.Revision(archivedParam.Revision())), nil
+		default:
+			return "", simpleFSError{"Invalid archived type for branch name"}
+		}
+	default:
+		return "", simpleFSError{"Invalid path type for branch name"}
+	}
+}
+
 func (k *SimpleFS) getFS(ctx context.Context, path keybase1.Path) (
 	fs billy.Filesystem, finalElem string, err error) {
 	pt, err := path.PathType()
@@ -187,7 +226,7 @@ func (k *SimpleFS) getFS(ctx context.Context, path keybase1.Path) (
 		return nil, "", err
 	}
 	switch pt {
-	case keybase1.PathType_KBFS:
+	case keybase1.PathType_KBFS, keybase1.PathType_KBFS_ARCHIVED:
 		t, tlfName, restOfPath, finalElem, err := remoteTlfAndPath(path)
 		if err != nil {
 			return nil, "", err
@@ -197,8 +236,11 @@ func (k *SimpleFS) getFS(ctx context.Context, path keybase1.Path) (
 		if err != nil {
 			return nil, "", err
 		}
-		fs, err := k.newFS(
-			ctx, k.config, tlfHandle, libkbfs.MasterBranch, restOfPath)
+		branch, err := branchNameFromPath(path)
+		if err != nil {
+			return nil, "", err
+		}
+		fs, err := k.newFS(ctx, k.config, tlfHandle, branch, restOfPath)
 		if err != nil {
 			if exitEarly, _ := libfs.FilterTLFEarlyExitError(
 				ctx, err, k.log, tlfHandle.GetCanonicalName()); exitEarly {
@@ -507,7 +549,10 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 		func(ctx context.Context) (err error) {
 			var res []keybase1.Dirent
 
-			rawPath := stdpath.Clean(arg.Path.Kbfs())
+			rawPath, err := rawPathFromKbfsPath(arg.Path)
+			if err != nil {
+				return err
+			}
 			switch {
 			case rawPath == "/":
 				res = []keybase1.Dirent{

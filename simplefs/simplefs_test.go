@@ -261,6 +261,29 @@ func TestList(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(
 		t, listResult.Entries, 1, "Expected 1 directory entries in listing")
+
+	// Test that the first archived revision shows no directory entries.
+	pathArchived := keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
+		Path:          `/private/jdoe`,
+		ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(1),
+	})
+	opid, err = sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+		OpID: opid,
+		Path: pathArchived,
+	})
+	require.NoError(t, err)
+
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_LIST, pathArchived,
+		keybase1.Path{}, true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+	listResult, err = sfs.SimpleFSReadList(ctx, opid)
+	require.NoError(t, err)
+	require.Len(
+		t, listResult.Entries, 0, "Expected 0 directory entries in listing")
 }
 
 func TestListRecursive(t *testing.T) {
