@@ -51,13 +51,16 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 		err := engine.RunEngine2(m, eng)
 		log("GetProofSet: %v", spew.Sdump(eng.GetProofSet()))
 		log("ConfirmResult: %v", spew.Sdump(eng.ConfirmResult()))
-		eres, _ := eng.Result()
+		eres, eerr := eng.Result()
 		if eres != nil {
 			log("Result.Upk.Username: %v", spew.Sdump(eres.Upk.GetName()))
 			log("Result.IdentifiedAt: %v", spew.Sdump(eres.IdentifiedAt))
 			log("Result.TrackBreaks: %v", spew.Sdump(eres.TrackBreaks))
 		} else {
 			log("Result: %v", spew.Sdump(eres))
+		}
+		if eerr != nil {
+			log("Result.error: %v", spew.Sdump(eerr))
 		}
 		return "", err
 	case "":

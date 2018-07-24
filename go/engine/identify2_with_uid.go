@@ -187,7 +187,7 @@ func (i *identifyUser) trackChainLinkFor(m libkb.MetaContext, name libkb.Normali
 		// go ahead and load that chain link from local level DB, and it's almost
 		// always going to be there, since it was written as a side effect of
 		// fetching the full user. There's a corner case, see just below...
-		ret, err = libkb.TrackChainLinkFromUPK2AI(i.thin, name, uid, m.G())
+		ret, err = libkb.TrackChainLinkFromUPK2AI(m, i.thin, name, uid)
 		if _, inconsistent := err.(libkb.InconsistentCacheStateError); !inconsistent {
 			m.CDebugf("| returning in common case -> (found=%v, err=%v)", (ret != nil), err)
 			return ret, err
@@ -539,21 +539,26 @@ func (e *Identify2WithUID) unblock(m libkb.MetaContext, isFinal bool, err error)
 
 func (e *Identify2WithUID) maybeCacheSelf() {
 	if e.getCache() != nil {
-		v, _ := e.exportToResult()
-		e.getCache().Insert(v)
+		v, err := e.exportToResult()
+		if v != nil && err == nil {
+			e.getCache().Insert(v)
+		}
 	}
 }
 
+// exportToResult either returns (non-nil, nil) on success, or (nil, non-nil) on error.
 func (e *Identify2WithUID) exportToResult() (*keybase1.Identify2ResUPK2, error) {
 	if e.them == nil {
-		return nil, nil
+		// this should never happen
+		return nil, libkb.UserNotFoundError{Msg: "failed to get a them user in Identify2WithUID#exportToResult"}
 	}
 	upk, err := e.toUserPlusKeysv2AllIncarnations()
 	if err != nil {
 		return nil, err
 	}
 	if upk == nil {
-		return nil, nil
+		// this should never happen
+		return nil, libkb.UserNotFoundError{Msg: "failed export a them user in Identify2WithUID#exportToResult"}
 	}
 	return &keybase1.Identify2ResUPK2{
 		Upk:          *upk,
@@ -1124,6 +1129,7 @@ func (e *Identify2WithUID) checkSlowCacheHit(m libkb.MetaContext) (ret bool) {
 	return true
 }
 
+// Result will return (non-nil,nil) on success, and (nil,non-nil) on failure.
 func (e *Identify2WithUID) Result() (*keybase1.Identify2ResUPK2, error) {
 	if e.cachedRes != nil {
 		return e.cachedRes, nil
