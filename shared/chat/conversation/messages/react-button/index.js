@@ -51,16 +51,24 @@ const ReactButton = (props: Props) => (
   </ButtonBox>
 )
 
+const iconCycle = [
+  'iconfont-reacji',
+  'iconfont-reacji-wave',
+  'iconfont-reacji-heart',
+  'iconfont-reacji-sheep',
+]
 export type NewReactionButtonProps = {|
   onAddReaction: (emoji: string) => void,
   showBorder: boolean,
 |}
 type NewReactionButtonState = {|
   attachmentRef: ?React.Component<any, any>,
+  iconIndex: number,
   showingPicker: boolean,
 |}
 export class NewReactionButton extends React.Component<NewReactionButtonProps, NewReactionButtonState> {
-  state = {attachmentRef: null, showingPicker: false}
+  state = {attachmentRef: null, iconIndex: 0, showingPicker: false}
+  _intervalID: IntervalID
 
   _setShowingPicker = (showingPicker: boolean) =>
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
@@ -76,11 +84,28 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
     this._setShowingPicker(true)
   }
 
+  _startCycle = () => {
+    this._intervalID = setInterval(this._nextIcon, 1000)
+  }
+
+  _stopCycle = () => {
+    clearInterval(this._intervalID)
+    this.setState(s => (s.iconIndex === 0 ? null : {iconIndex: 0}))
+  }
+
+  _nextIcon = () => this.setState(s => ({iconIndex: (s.iconIndex + 1) % iconCycle.length}))
+
+  componentWillUnmount() {
+    this._stopCycle()
+  }
+
   render() {
     const ContainerComp = this.props.showBorder ? ButtonBox : ClickableBox
     return (
       <ContainerComp
         onClick={this._onShowPicker}
+        onMouseLeave={this._stopCycle}
+        onMouseEnter={this._startCycle}
         style={collapseStyles([styles.newReactionButtonBox, this.props.showBorder && styles.buttonBox])}
       >
         <Box2
@@ -89,7 +114,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
           direction="horizontal"
           style={this.props.showBorder ? styles.container : null}
         >
-          <Icon type="iconfont-reacji" fontSize={isMobile ? 22 : 16} />
+          <Icon type={iconCycle[this.state.iconIndex]} fontSize={isMobile ? 22 : 16} />
         </Box2>
         {this.state.showingPicker &&
           !isMobile && (
