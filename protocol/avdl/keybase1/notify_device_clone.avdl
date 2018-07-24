@@ -1,0 +1,7 @@
+@namespace("keybase.1")
+protocol NotifyDeviceClone {
+  import idl "common.avdl";
+
+  @notify("")
+  void deviceCloneCountChanged(int newClones) oneway;
+}

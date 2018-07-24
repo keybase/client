@@ -19,6 +19,7 @@ type StillProps = {
   isDownloading?: boolean,
   tlfMeta?: Types.FavoriteMetadata,
   resetParticipants: Array<string>,
+  isEmpty: boolean,
   isUserReset: boolean,
   onOpen: () => void,
   openInFileUI: () => void,
@@ -75,13 +76,18 @@ const Still = (props: StillProps) => (
       </Box2>
       <RowMeta badgeCount={props.badgeCount} {...props.tlfMeta} isDownloading={props.isDownloading} />
       <Box style={rowStyles.itemBox}>
-        <Text
-          type={props.itemStyles.textType}
-          style={rowStyles.rowText(props.itemStyles.textColor)}
-          lineClamp={isMobile ? 1 : undefined}
-        >
-          {props.name}
-        </Text>
+        <Box2 direction="horizontal" fullWidth={true}>
+          <Text
+            type={props.itemStyles.textType}
+            style={rowStyles.rowText(props.itemStyles.textColor)}
+            lineClamp={isMobile ? 1 : undefined}
+          >
+            {props.name}
+          </Text>
+          {props.isEmpty && (
+            <Meta title="empty" backgroundColor={globalColors.grey} style={{marginLeft: globalMargins.tiny, marginTop: globalMargins.xxtiny}} />
+          )}
+        </Box2>
         {props.type === 'folder' &&
         (!props.resetParticipants || props.resetParticipants.length === 0) ? null : (
           <PathItemInfo

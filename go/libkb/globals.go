@@ -54,7 +54,7 @@ type GlobalContext struct {
 	perUserKeyringMu *sync.Mutex
 	perUserKeyring   *PerUserKeyring      // Keyring holding per user keys
 	API              API                  // How to make a REST call to the server
-	Resolver         *Resolver            // cache of resolve results
+	Resolver         Resolver             // cache of resolve results
 	LocalDb          *JSONLocalDb         // Local DB for cache
 	LocalChatDb      *JSONLocalDb         // Local DB for cache
 	MerkleClient     *MerkleClient        // client for querying server's merkle sig tree
@@ -213,7 +213,7 @@ func (g *GlobalContext) SetEKLib(ekLib EKLib) { g.ekLib = ekLib }
 func (g *GlobalContext) Init() *GlobalContext {
 	g.Env = NewEnv(nil, nil, g.GetLog)
 	g.Service = false
-	g.Resolver = NewResolver(g)
+	g.Resolver = NewResolverImpl(g)
 	g.RateLimits = NewRateLimits(g)
 	g.upakLoader = NewUncachedUPAKLoader(g)
 	g.teamLoader = newNullTeamLoader(g)
@@ -346,7 +346,7 @@ func (g *GlobalContext) ConfigureConfig() error {
 	if err = c.Check(); err != nil {
 		return err
 	}
-	g.Env.SetConfig(*c, c)
+	g.Env.SetConfig(c, c)
 	return nil
 }
 
@@ -360,7 +360,7 @@ func (g *GlobalContext) ConfigureUpdaterConfig() error {
 	c := NewJSONUpdaterConfigFile(g)
 	err := c.Load(false)
 	if err == nil {
-		g.Env.SetUpdaterConfig(*c)
+		g.Env.SetUpdaterConfig(c)
 	} else {
 		g.Log.Debug("Failed to open update config: %s\n", err)
 	}

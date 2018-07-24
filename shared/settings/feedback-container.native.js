@@ -127,7 +127,6 @@ const extraChatLogs = (state: TypedState) => {
     return I.Map({
       badgeMap: chat.badgeMap.get(c),
       editingMap: chat.editingMap.get(c),
-      loadingMap: chat.loadingMap,
       messageMap: chat.messageMap.get(c, I.Map()).map(m => ({
         a: m.author,
         i: m.id,

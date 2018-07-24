@@ -50,11 +50,12 @@ func (n *NotifyRouterActivityRouter) kuid(uid gregor1.UID) keybase1.UID {
 	return keybase1.UID(uid.String())
 }
 
-func (n *NotifyRouterActivityRouter) Activity(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType, activity *chat1.ChatActivity) {
-	defer n.Trace(ctx, func() error { return nil }, "Activity(%v)", topicType)()
+func (n *NotifyRouterActivityRouter) Activity(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType,
+	activity *chat1.ChatActivity, source chat1.ChatActivitySource) {
+	defer n.Trace(ctx, func() error { return nil }, "Activity(%v,%v)", topicType, source)()
 	ctx = BackgroundContext(ctx, n.G())
 	n.notifyCh <- func() {
-		n.G().NotifyRouter.HandleNewChatActivity(ctx, n.kuid(uid), topicType, activity)
+		n.G().NotifyRouter.HandleNewChatActivity(ctx, n.kuid(uid), topicType, activity, source)
 	}
 }
 
@@ -114,6 +115,14 @@ func (n *NotifyRouterActivityRouter) SetTeamRetention(ctx context.Context, uid g
 	}
 }
 
+func (n *NotifyRouterActivityRouter) SetConvMinWriterRole(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
+	defer n.Trace(ctx, func() error { return nil }, "SetConvMinWriterRole(%s,%v)", convID, topicType)()
+	ctx = BackgroundContext(ctx, n.G())
+	n.notifyCh <- func() {
+		n.G().NotifyRouter.HandleChatSetConvMinWriterRole(ctx, n.kuid(uid), convID, topicType, conv)
+	}
+}
+
 func (n *NotifyRouterActivityRouter) InboxSyncStarted(ctx context.Context, uid gregor1.UID) {
 	defer n.Trace(ctx, func() error { return nil }, "InboxSyncStarted")()
 	ctx = BackgroundContext(ctx, n.G())
@@ -159,5 +168,24 @@ func (n *NotifyRouterActivityRouter) TLFResolve(ctx context.Context, uid gregor1
 	ctx = BackgroundContext(ctx, n.G())
 	n.notifyCh <- func() {
 		n.G().NotifyRouter.HandleChatTLFResolve(ctx, n.kuid(uid), convID, topicType, resolveInfo)
+	}
+}
+
+func (n *NotifyRouterActivityRouter) AttachmentUploadStart(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, outboxID chat1.OutboxID) {
+	defer n.Trace(ctx, func() error { return nil }, "AttachmentUploadStart(%s,%s)", convID, outboxID)()
+	ctx = BackgroundContext(ctx, n.G())
+	n.notifyCh <- func() {
+		n.G().NotifyRouter.HandleChatAttachmentUploadStart(ctx, n.kuid(uid), convID, outboxID)
+	}
+}
+
+func (n *NotifyRouterActivityRouter) AttachmentUploadProgress(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, outboxID chat1.OutboxID, bytesComplete, bytesTotal int64) {
+	defer n.Trace(ctx, func() error { return nil }, "AttachmentUploadProgress(%s,%s)", convID, outboxID)()
+	ctx = BackgroundContext(ctx, n.G())
+	n.notifyCh <- func() {
+		n.G().NotifyRouter.HandleChatAttachmentUploadProgress(ctx, n.kuid(uid), convID, outboxID,
+			bytesComplete, bytesTotal)
 	}
 }

@@ -21,11 +21,13 @@ type Size = 'small' | 'default' | 'large'
 type Props = {
   horizontal?: boolean,
   colorFollowing?: boolean,
+  editableIcon?: boolean,
   icon?: IconType,
   title?: string, // for non-users
   metaOne?: string | React.Node,
   metaTwo?: string | React.Node,
   onClick?: any => void,
+  onEditIcon?: any => void,
   size?: Size,
   containerStyle?: StylesCrossPlatform,
   metaStyle?: StylesCrossPlatform,
@@ -46,6 +48,8 @@ const NameWithIconVertical = (props: Props) => {
     >
       {isAvatar && (
         <Avatar
+          editable={props.editableIcon}
+          onEditAvatarClick={props.editableIcon ? props.onEditIcon : undefined}
           showFollowingStatus={true}
           size={adapterProps.iconSize}
           username={props.username}
@@ -75,6 +79,7 @@ const NameWithIconVertical = (props: Props) => {
         {!props.username && <Text type={adapterProps.titleType}>{props.title}</Text>}
         {!!props.username && (
           <ConnectedUsernames
+            clickable={true}
             type={adapterProps.titleType}
             containerStyle={isMobile ? undefined : styles.vUsernameContainerStyle}
             inline={true}
@@ -104,6 +109,8 @@ const NameWithIconHorizontal = (props: Props) => {
     >
       {isAvatar && (
         <Avatar
+          editable={props.editableIcon}
+          onEditAvatarClick={props.editableIcon ? props.onEditIcon : undefined}
           size={commonHeight}
           username={props.username}
           teamname={props.teamname}
@@ -122,6 +129,7 @@ const NameWithIconHorizontal = (props: Props) => {
         {!props.username && <Text type="BodySemibold">{props.title}</Text>}
         {!!props.username && (
           <ConnectedUsernames
+            clickable={true}
             type="BodySemibold"
             usernames={[props.username]}
             colorFollowing={props.colorFollowing}

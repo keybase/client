@@ -68,6 +68,13 @@
         {
           "type": "string",
           "name": "availableToSendWorth"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "AccountReserve"
+          },
+          "name": "reserves"
         }
       ]
     },
@@ -104,16 +111,6 @@
     },
     {
       "type": "record",
-      "name": "PaymentID",
-      "fields": [
-        {
-          "type": "TransactionID",
-          "name": "txID"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "PaymentLocal",
       "fields": [
         {
@@ -135,6 +132,10 @@
         {
           "type": "string",
           "name": "statusDetail"
+        },
+        {
+          "type": "boolean",
+          "name": "showCancel"
         },
         {
           "type": "string",
@@ -245,6 +246,10 @@
         {
           "type": "string",
           "name": "statusDetail"
+        },
+        {
+          "type": "boolean",
+          "name": "showCancel"
         },
         {
           "type": "string",
@@ -365,6 +370,10 @@
         {
           "type": "string",
           "name": "toErrMsg"
+        },
+        {
+          "type": "string",
+          "name": "toUsername"
         },
         {
           "type": "string",
@@ -694,6 +703,22 @@
         }
       ],
       "response": "PaymentsPageLocal"
+    },
+    "getPendingPaymentsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "PaymentOrErrorLocal"
+      }
     },
     "getPaymentDetailsLocal": {
       "request": [

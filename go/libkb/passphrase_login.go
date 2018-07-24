@@ -148,8 +148,7 @@ func pplPost(m MetaContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, 
 		return nil, err
 	}
 	if res.Status.Code == SCBadLoginPassword {
-		err = PassphraseError{"server rejected login attempt"}
-		return nil, err
+		return nil, PassphraseError{"Invalid passphrase. Server rejected login attempt."}
 	}
 	if res.Status.Code == SCBadLoginUserNotFound {
 		return nil, NotFoundError{}
@@ -170,10 +169,7 @@ func PassphraseLoginNoPrompt(m MetaContext, usernameOrEmail string, passphrase s
 	if loginSession, err = pplGetLoginSession(m, usernameOrEmail); err != nil {
 		return err
 	}
-	if err = pplGotPassphrase(m, usernameOrEmail, passphrase, loginSession); err != nil {
-		return err
-	}
-	return nil
+	return pplGotPassphrase(m, usernameOrEmail, passphrase, loginSession)
 }
 
 func PassphraseLoginNoPromptThenSecretStore(m MetaContext, usernameOrEmail string, passphrase string, failOnStoreError bool) (err error) {
@@ -209,10 +205,7 @@ func PassphraseLoginPrompt(m MetaContext, usernameOrEmail string, maxAttempts in
 	if loginSession, err = pplGetLoginSession(m, usernameOrEmail); err != nil {
 		return err
 	}
-	if err = pplPromptLoop(m, usernameOrEmail, maxAttempts, loginSession); err != nil {
-		return err
-	}
-	return nil
+	return pplPromptLoop(m, usernameOrEmail, maxAttempts, loginSession)
 }
 
 func StoreSecretAfterLogin(m MetaContext, n NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) (err error) {

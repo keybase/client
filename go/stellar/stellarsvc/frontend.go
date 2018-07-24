@@ -171,6 +171,8 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				asset.Worth = "Currency conversion error"
 				asset.AvailableToSendWorth = "Currency conversion error"
 			}
+			// Add account reserves info to main asset.
+			asset.Reserves = details.Reserves
 			assets = append(assets, asset)
 		} else {
 			assets = append(assets, stellar1.AccountAssetLocal{
@@ -289,7 +291,7 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 		return page, err
 	}
 
-	srvPayments, err := s.remoter.RecentPayments(ctx, arg.AccountID, arg.Cursor, 0)
+	srvPayments, err := s.remoter.RecentPayments(ctx, arg.AccountID, arg.Cursor, 0, true)
 	if err != nil {
 		return page, err
 	}
@@ -305,6 +307,39 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 	page.Cursor = srvPayments.Cursor
 
 	return page, nil
+}
+
+func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPendingPaymentsLocalArg) (payments []stellar1.PaymentOrErrorLocal, err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "GetPendingPaymentsLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return nil, err
+	}
+
+	pending, err := s.remoter.PendingPayments(ctx, arg.AccountID, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	payments = make([]stellar1.PaymentOrErrorLocal, len(pending))
+	for i, p := range pending {
+		payment, err := s.transformPaymentSummary(ctx, arg.AccountID, p)
+		if err != nil {
+			s := err.Error()
+			payments[i].Err = &s
+			payments[i].Payment = nil // just to make sure
+
+		} else {
+			payments[i].Payment = payment
+			payments[i].Err = nil
+		}
+	}
+
+	return payments, nil
 }
 
 func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPaymentDetailsLocalArg) (payment stellar1.PaymentDetailsLocal, err error) {
@@ -450,11 +485,13 @@ func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.Acco
 	} else {
 		loc.StatusSimplified = stellar1.PaymentStatus_CLAIMABLE
 		loc.StatusDetail = "Waiting for the recipient to open the app to claim, or the sender to cancel."
+		loc.ShowCancel = true
 	}
 	if p.Claim != nil {
 		loc.StatusSimplified = p.Claim.TxStatus.ToPaymentStatus()
 		if p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
 			// If the claim succeeded, the relay payment is done.
+			loc.ShowCancel = false
 			name, err := s.lookupUsername(ctx, p.Claim.To.Uid)
 			if err == nil {
 				loc.Target = name
@@ -744,8 +781,80 @@ func (s *Server) GetSendAssetChoicesLocal(ctx context.Context, arg stellar1.GetS
 		return res, err
 	}
 
-	// Not implemented. CORE-8087
-	return res, fmt.Errorf("GetSendAssetChoicesLocal not implemented")
+	owns, err := stellar.OwnAccount(ctx, s.G(), arg.From)
+	if err != nil {
+		return res, err
+	}
+	if !owns {
+		return res, fmt.Errorf("account %s is not owned by current user", arg.From)
+	}
+
+	ourBalances, err := s.remoter.Balances(ctx, arg.From)
+	if err != nil {
+		return res, err
+	}
+
+	res = []stellar1.SendAssetChoiceLocal{}
+	for _, bal := range ourBalances {
+		asset := bal.Asset
+		if asset.IsNativeXLM() {
+			// We are only doing non-native assets here.
+			continue
+		}
+		choice := stellar1.SendAssetChoiceLocal{
+			Asset:   asset,
+			Enabled: true,
+			Left:    bal.Asset.Code,
+			Right:   bal.Asset.Issuer,
+		}
+		res = append(res, choice)
+	}
+
+	if arg.To != "" {
+		uis := libkb.UIs{
+			IdentifyUI: s.uiSource.IdentifyUI(s.G(), arg.SessionID),
+		}
+		mctx := s.mctx(ctx).WithUIs(uis)
+
+		recipient, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput(arg.To))
+		if err != nil {
+			s.G().Log.CDebugf(ctx, "Skipping asset filtering: stellar.LookupRecipient for %q failed with: %s",
+				arg.To, err)
+			return res, nil
+		}
+
+		theirBalancesHash := make(map[string]bool)
+		assetHashCode := func(a stellar1.Asset) string {
+			return fmt.Sprintf("%s%s%s", a.Type, a.Code, a.Issuer)
+		}
+
+		if recipient.AccountID != nil {
+			theirBalances, err := s.remoter.Balances(ctx, stellar1.AccountID(recipient.AccountID.String()))
+			if err != nil {
+				s.G().Log.CDebugf(ctx, "Skipping asset filtering: remoter.Balances for %q failed with: %s",
+					recipient.AccountID, err)
+				return res, nil
+			}
+			for _, bal := range theirBalances {
+				theirBalancesHash[assetHashCode(bal.Asset)] = true
+			}
+		}
+
+		for i, choice := range res {
+			available := theirBalancesHash[assetHashCode(choice.Asset)]
+			if !available {
+				choice.Enabled = false
+				recipientStr := "Recipient"
+				if recipient.User != nil {
+					recipientStr = recipient.User.Username.String()
+				}
+				choice.Subtext = fmt.Sprintf("%s does not accept %s", recipientStr, choice.Asset.Code)
+				res[i] = choice
+			}
+		}
+	}
+
+	return res, nil
 }
 
 func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymentLocalArg) (res stellar1.BuildPaymentResLocal, err error) {
@@ -854,7 +963,8 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 			}
 			bannerThem := "their"
 			if recipient.User != nil {
-				bannerThem = fmt.Sprintf("%s's", recipient.User.GetNormalizedName())
+				res.ToUsername = recipient.User.Username.String()
+				bannerThem = fmt.Sprintf("%s's", recipient.User.Username)
 			}
 			if recipient.AccountID == nil {
 				// Sending a payment to a target with no account. (relay)

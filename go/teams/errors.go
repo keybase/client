@@ -345,3 +345,24 @@ func (e PrecheckStructuralError) Error() string {
 	}
 	return e.Msg
 }
+
+type AttemptedInviteSocialOwnerError struct{ Msg string }
+
+func NewAttemptedInviteSocialOwnerError(assertion string) error {
+	them := assertion
+	if assertion == "" {
+		them = "That user"
+	}
+	return AttemptedInviteSocialOwnerError{Msg: fmt.Sprintf("%v doesn't have a Keybase account yet, so you can't add them"+
+		" as an owner; you can add them as reader or writer.", them)}
+}
+
+func (e AttemptedInviteSocialOwnerError) Error() string { return e.Msg }
+
+type UserHasNotResetError struct{ Msg string }
+
+func NewUserHasNotResetError(format string, args ...interface{}) error {
+	return UserHasNotResetError{Msg: fmt.Sprintf(format, args...)}
+}
+
+func (e UserHasNotResetError) Error() string { return e.Msg }

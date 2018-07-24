@@ -655,6 +655,20 @@
     },
     {
       "type": "record",
+      "name": "ConversationMinWriterRoleInfo",
+      "fields": [
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        },
+        {
+          "type": "keybase1.TeamRole",
+          "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "Conversation",
       "fields": [
         {
@@ -713,6 +727,13 @@
             "RetentionPolicy"
           ],
           "name": "teamRetention"
+        },
+        {
+          "type": [
+            null,
+            "ConversationMinWriterRoleInfo"
+          ],
+          "name": "minWriterRoleInfo"
         }
       ]
     },
@@ -744,28 +765,15 @@
     },
     {
       "type": "record",
-      "name": "Reaction",
-      "fields": [
-        {
-          "type": "string",
-          "name": "username"
-        },
-        {
-          "type": "MessageID",
-          "name": "reactionMsgID"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "ReactionMap",
       "fields": [
         {
           "type": {
             "type": "map",
             "values": {
-              "type": "array",
-              "items": "Reaction"
+              "type": "map",
+              "values": "MessageID",
+              "keys": "string"
             },
             "keys": "string"
           },

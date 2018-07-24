@@ -55,6 +55,16 @@ func (o KeybaseRequestID) DeepCopy() KeybaseRequestID {
 	return o
 }
 
+type PaymentID struct {
+	TxID TransactionID `codec:"txID" json:"txID"`
+}
+
+func (o PaymentID) DeepCopy() PaymentID {
+	return PaymentID{
+		TxID: o.TxID.DeepCopy(),
+	}
+}
+
 type Asset struct {
 	Type   string `codec:"type" json:"type"`
 	Code   string `codec:"code" json:"code"`
@@ -80,6 +90,18 @@ func (o Balance) DeepCopy() Balance {
 		Asset:  o.Asset.DeepCopy(),
 		Amount: o.Amount,
 		Limit:  o.Limit,
+	}
+}
+
+type AccountReserve struct {
+	Amount      string `codec:"amount" json:"amount"`
+	Description string `codec:"description" json:"description"`
+}
+
+func (o AccountReserve) DeepCopy() AccountReserve {
+	return AccountReserve{
+		Amount:      o.Amount,
+		Description: o.Description,
 	}
 }
 

@@ -1,24 +1,29 @@
 // @flow
 import * as React from 'react'
+import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import {action, createPropProvider, storiesOf, Rnd} from '../../../../stories/storybook'
 import {Common} from '../../../../stories/prop-providers'
 import {propProvider as ReactButton} from '../react-button/index.stories'
 import {upperFirst} from 'lodash-es'
 import ReactionTooltip from '.'
+import type {Props} from '.'
+import type {OwnProps} from './container'
 
 const provider = createPropProvider(Common(), ReactButton)
 
-const actions = {
+const common = {
+  attachmentRef: null,
+  conversationIDKey: Constants.noConversationIDKey,
   onAddReaction: action('onAddReaction'),
   onHidden: action('onHidden'),
-  onReact: action('onReact'),
+  ordinal: Types.numberToOrdinal(0),
+  visible: true,
 }
 
 const examples = [
   {
-    ...actions,
-    messageID: Types.numberToMessageID(0),
+    ...common,
     reactions: [
       {
         emoji: ':+1:',
@@ -37,8 +42,7 @@ const examples = [
     ],
   },
   {
-    ...actions,
-    messageID: Types.numberToMessageID(0),
+    ...common,
     reactions: [
       {
         emoji: ':face_with_cowboy_hat:',
@@ -47,8 +51,7 @@ const examples = [
     ],
   },
   {
-    ...actions,
-    messageID: Types.numberToMessageID(0),
+    ...common,
     reactions: [
       {
         emoji: ':face_with_cowboy_hat:',
@@ -114,8 +117,7 @@ const makeUsers = (num: number) => {
   return users
 }
 examples.push({
-  ...actions,
-  messageID: Types.numberToMessageID(0),
+  ...common,
   reactions: emoji.map(e => ({
     emoji: e,
     users: makeUsers(rng.next() % maxUsersInReaction + 1),
@@ -125,6 +127,20 @@ examples.push({
 const load = () => {
   const story = storiesOf('Chat/Conversation/Reaction tooltip', module).addDecorator(provider)
   examples.forEach((ex, i) => story.add(`Example ${i + 1}`, () => <ReactionTooltip {...ex} />))
+}
+
+export const propProvider = {
+  ReactionTooltip: (ownProps: OwnProps): Props => ({
+    attachmentRef: ownProps.attachmentRef,
+    conversationIDKey: ownProps.conversationIDKey,
+    onAddReaction: action('onAddReaction'),
+    onHidden: ownProps.onHidden,
+    onMouseLeave: ownProps.onMouseLeave,
+    onMouseOver: ownProps.onMouseOver,
+    ordinal: ownProps.ordinal,
+    reactions: examples[0].reactions, // we can mock this out better later if wanted
+    visible: ownProps.visible,
+  }),
 }
 
 export default load

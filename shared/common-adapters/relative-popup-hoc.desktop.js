@@ -162,11 +162,13 @@ function computePopupStyle(
   position: Position,
   coords: ClientRect,
   popupCoords: ClientRect,
-  offset: ?number
+  offset: ?number,
+  // When specified, will only use the fallbacks regardless of visibility
+  positionFallbacks?: Position[]
 ): ComputedStyle {
   let style = _computePopupStyle(position, coords, popupCoords, offset)
 
-  const positionsShuffled = without(positions, position).concat([position])
+  const positionsShuffled = positionFallbacks || without(positions, position).concat([position])
   for (let i = 0; !isStyleInViewport(style, popupCoords) && i < positionsShuffled.length; i += 1) {
     style = _computePopupStyle(positionsShuffled[i], coords, popupCoords, offset)
   }
@@ -176,6 +178,7 @@ function computePopupStyle(
 type ModalPositionRelativeProps<PP> = {
   targetRect: ?ClientRect,
   position: Position,
+  positionFallbacks?: Position[],
   onClosePopup: () => void,
   propagateOutsideClicks?: boolean,
   style?: StylesCrossPlatform,
@@ -201,15 +204,40 @@ function ModalPositionRelative<PP>(
       }
 
       const style = collapseStyles([
-        computePopupStyle(this.props.position, targetRect, popupNode.getBoundingClientRect()),
+        computePopupStyle(
+          this.props.position,
+          targetRect,
+          popupNode.getBoundingClientRect(),
+          null,
+          this.props.positionFallbacks
+        ),
         this.props.style,
       ])
       this.setState({style})
     }
 
-    componentDidUpdate(prevProps: ModalPositionRelativeProps<PP>) {
+    getSnapshotBeforeUpdate(prevProps) {
+      const {width, height} = this.popupNode
+        ? this.popupNode.getBoundingClientRect()
+        : {width: -1, height: -1}
+      return {width, height}
+    }
+
+    componentDidUpdate(prevProps: ModalPositionRelativeProps<PP>, prevState, snapshot) {
       if (this.props.targetRect && this.props.targetRect !== prevProps.targetRect) {
         this._computeStyle(this.props.targetRect)
+      }
+
+      if (includes(this.props.position, 'center')) {
+        // If we need to center, the offset calculation depends on rendered
+        // bounding rect. If rendering changes the bounding rect, we need to
+        // re-calculate offsets.
+        const {width, height} = this.popupNode
+          ? this.popupNode.getBoundingClientRect()
+          : {width: -1, height: -1}
+        if (snapshot.width !== width || snapshot.height !== height) {
+          this._computeStyle(this.props.targetRect)
+        }
       }
     }
 

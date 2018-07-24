@@ -2,13 +2,7 @@
 import React, {Component} from 'react'
 import Text from './text'
 import shallowEqual from 'shallowequal'
-import {
-  collapseStyles,
-  platformStyles,
-  styleSheetCreate,
-  globalStyles,
-  globalColors,
-} from '../styles'
+import {collapseStyles, platformStyles, styleSheetCreate, globalStyles, globalColors} from '../styles'
 import {isMobile} from '../constants/platform'
 import {compose, connect, setDisplayName} from '../util/container'
 import {type TypedState} from '../constants/reducer'

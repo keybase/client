@@ -44,7 +44,8 @@ protocol identify {
     boolean noSkipSelf=true,
     boolean canSuppressUI=false,
     TLFIdentifyBehavior identifyBehavior=0,
-    boolean forceDisplay=false
+    boolean forceDisplay=false,
+    boolean actLoggedOut=false
   );
   record IdentifyLiteRes {
     UserOrTeamLite ul;

@@ -418,7 +418,13 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
     <Box style={{bottom: 0, left: 0, position: 'absolute', right: 0, top: 0}} onClick={emojiPickerToggle} />
     <Box style={{position: 'relative'}}>
       <Box style={{bottom: 0, position: 'absolute', right: 0}}>
-        <Picker onClick={onClick} emoji={'ghost'} title={'emojibase'} backgroundImageFn={backgroundImageFn} />
+        <Picker
+          autoFocus={true}
+          onClick={onClick}
+          emoji={'ghost'}
+          title={'emojibase'}
+          backgroundImageFn={backgroundImageFn}
+        />
       </Box>
     </Box>
   </Box>

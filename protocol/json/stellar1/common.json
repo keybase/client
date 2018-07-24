@@ -52,6 +52,16 @@
     },
     {
       "type": "record",
+      "name": "PaymentID",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "txID"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "Asset",
       "fields": [
         {
@@ -83,6 +93,20 @@
         {
           "type": "string",
           "name": "limit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AccountReserve",
+      "fields": [
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": "string",
+          "name": "description"
         }
       ]
     },

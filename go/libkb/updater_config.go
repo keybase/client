@@ -14,7 +14,7 @@ type JSONUpdaterConfigFile struct {
 	*JSONFile
 }
 
-func (j JSONUpdaterConfigFile) GetInstallID() (ret InstallID) {
+func (j *JSONUpdaterConfigFile) GetInstallID() (ret InstallID) {
 	if !j.Exists() {
 		return ret
 	}
@@ -29,4 +29,4 @@ func NewJSONUpdaterConfigFile(g *GlobalContext) *JSONUpdaterConfigFile {
 	return &JSONUpdaterConfigFile{NewJSONFile(g, g.Env.GetUpdaterConfigFilename(), "updater config")}
 }
 
-var _ UpdaterConfigReader = JSONUpdaterConfigFile{}
+var _ UpdaterConfigReader = &JSONUpdaterConfigFile{}

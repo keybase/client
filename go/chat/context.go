@@ -6,7 +6,6 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -118,12 +117,11 @@ func CtxTrace(ctx context.Context) (string, bool) {
 func CtxAddLogTags(ctx context.Context, env appTypeSource) context.Context {
 
 	// Add trace context value
-	ctx = context.WithValue(ctx, chatTraceKey, libkb.RandStringB64(3))
+	trace := libkb.RandStringB64(3)
+	ctx = context.WithValue(ctx, chatTraceKey, trace)
 
 	// Add log tags
-	tags := make(map[interface{}]string)
-	tags[chatTraceKey] = "chat-trace"
-	ctx = logger.NewContextWithLogTags(ctx, tags)
+	ctx = libkb.WithLogTagWithValue(ctx, "chat-trace", trace)
 
 	rpcTags := make(map[string]interface{})
 	rpcTags["user-agent"] = libkb.UserAgent
@@ -168,7 +166,7 @@ func Context(ctx context.Context, g *globals.Context, mode keybase1.TLFIdentifyB
 
 func BackgroundContext(sourceCtx context.Context, g *globals.Context) context.Context {
 
-	rctx := context.Background()
+	rctx := libkb.CopyTagsToBackground(sourceCtx)
 
 	in := CtxIdentifyNotifier(sourceCtx)
 	if ident, breaks, ok := IdentifyMode(sourceCtx); ok {
