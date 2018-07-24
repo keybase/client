@@ -14,8 +14,8 @@ type Props = {|
 
 class SelectOtherDevice extends React.Component<Props> {
   _renderItem = (index, item) => {
-    if (item === 'troubleshooting') {
-      return <Troubleshooting onResetAccount={this.props.onResetAccount} />
+    if (item.name === 'troubleshooting') {
+      return <Troubleshooting key="trouble" onResetAccount={this.props.onResetAccount} />
     }
 
     const {name, type} = item
@@ -61,7 +61,7 @@ class SelectOtherDevice extends React.Component<Props> {
   }
 
   render() {
-    const items = [...this.props.devices, 'troubleshooting']
+    const items = [...this.props.devices, {name: 'troubleshooting'}]
     return (
       <Box2
         direction="vertical"
