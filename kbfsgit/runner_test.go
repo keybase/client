@@ -112,7 +112,9 @@ func testRunnerInitRepo(t *testing.T, tlfType tlf.Type, typeString string) {
 
 	// Now there should be a valid git repo stored in KBFS.  Check the
 	// existence of the HEAD file to be sure.
-	fs, err := libfs.NewFS(ctx, config, h, ".kbfs_git/test", "", keybase1.MDPriorityGit)
+	fs, err := libfs.NewFS(
+		ctx, config, h, libkbfs.MasterBranch, ".kbfs_git/test", "",
+		keybase1.MDPriorityGit)
 	require.NoError(t, err)
 	head, err := fs.Open("HEAD")
 	require.NoError(t, err)
@@ -989,7 +991,7 @@ func TestRunnerWithKBFSReset(t *testing.T) {
 	// Reset using worktree.
 	repoFS, _, err := libgit.GetRepoAndID(ctx, config, h, "test", "")
 	require.NoError(t, err)
-	rootFS, err := libfs.NewFS(ctx, config, h, "", "", 0)
+	rootFS, err := libfs.NewFS(ctx, config, h, libkbfs.MasterBranch, "", "", 0)
 	require.NoError(t, err)
 	err = rootFS.MkdirAll("test-checkout", 0600)
 	require.NoError(t, err)

@@ -185,7 +185,7 @@ func TestAutogitManager(t *testing.T) {
 		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
 	require.NoError(t, err)
 	rootFS, err := libfs.NewFS(
-		ctx, config, h, "", "", keybase1.MDPriorityNormal)
+		ctx, config, h, libkbfs.MasterBranch, "", "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
 	t.Log("Init a new repo directly into KBFS.")

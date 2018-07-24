@@ -64,13 +64,14 @@ var errNoSuchHandle = simpleFSError{"No such handle"}
 var errNoResult = simpleFSError{"Async result not found"}
 
 type newFSFunc func(
-	context.Context, libkbfs.Config, *libkbfs.TlfHandle, string) (
-	billy.Filesystem, error)
+	context.Context, libkbfs.Config, *libkbfs.TlfHandle, libkbfs.BranchName,
+	string) (billy.Filesystem, error)
 
 func defaultNewFS(ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, subdir string) (billy.Filesystem, error) {
+	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string) (
+	billy.Filesystem, error) {
 	return libfs.NewFS(
-		ctx, config, tlfHandle, subdir, "", keybase1.MDPriorityNormal)
+		ctx, config, tlfHandle, branch, subdir, "", keybase1.MDPriorityNormal)
 }
 
 // SimpleFS is the simple filesystem rpc layer implementation.
@@ -196,7 +197,8 @@ func (k *SimpleFS) getFS(ctx context.Context, path keybase1.Path) (
 		if err != nil {
 			return nil, "", err
 		}
-		fs, err := k.newFS(ctx, k.config, tlfHandle, restOfPath)
+		fs, err := k.newFS(
+			ctx, k.config, tlfHandle, libkbfs.MasterBranch, restOfPath)
 		if err != nil {
 			if exitEarly, _ := libfs.FilterTLFEarlyExitError(
 				ctx, err, k.log, tlfHandle.GetCanonicalName()); exitEarly {
@@ -1033,7 +1035,8 @@ func (k *SimpleFS) SimpleFSRename(ctx context.Context, arg keybase1.SimpleFSRena
 		return err
 	}
 	fs, err := libfs.NewFS(
-		ctx, k.config, tlfHandle, "", "", keybase1.MDPriorityNormal)
+		ctx, k.config, tlfHandle, libkbfs.MasterBranch, "", "",
+		keybase1.MDPriorityNormal)
 	if err != nil {
 		return err
 	}

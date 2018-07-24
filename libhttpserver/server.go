@@ -118,7 +118,8 @@ func (s *Server) getHTTPFileSystem(ctx context.Context, requestPath string) (
 	}
 
 	tlfFS, err := libfs.NewFS(ctx,
-		s.config, tlfHandle, "", "", keybase1.MDPriorityNormal)
+		s.config, tlfHandle, libkbfs.MasterBranch, "", "",
+		keybase1.MDPriorityNormal)
 	if err != nil {
 		return "", nil, err
 	}

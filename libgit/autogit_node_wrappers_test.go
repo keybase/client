@@ -35,7 +35,7 @@ func TestAutogitNodeWrappers(t *testing.T) {
 		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
 	require.NoError(t, err)
 	rootFS, err := libfs.NewFS(
-		ctx, config, h, "", "", keybase1.MDPriorityNormal)
+		ctx, config, h, libkbfs.MasterBranch, "", "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
 	t.Log("Looking at user1's autogit directory should succeed, and " +
@@ -114,7 +114,7 @@ func TestAutogitRepoNode(t *testing.T) {
 		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
 	require.NoError(t, err)
 	rootFS, err := libfs.NewFS(
-		ctx, config, h, "", "", keybase1.MDPriorityNormal)
+		ctx, config, h, libkbfs.MasterBranch, "", "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
 	t.Log("Init a new repo directly into KBFS.")
@@ -191,7 +191,7 @@ func TestAutogitRepoNodeReadonly(t *testing.T) {
 		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Public)
 	require.NoError(t, err)
 	rootFS, err := libfs.NewFS(
-		ctx, config, h, "", "", keybase1.MDPriorityNormal)
+		ctx, config, h, libkbfs.MasterBranch, "", "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
 	t.Log("Init a new repo directly into KBFS.")
@@ -229,7 +229,8 @@ func TestAutogitRepoNodeReadonly(t *testing.T) {
 		ctx2, config2.KBPKI(), config2.MDOps(), "user2", tlf.Private)
 	require.NoError(t, err)
 	rootFS2, err := libfs.NewFS(
-		ctx2, config2, h2, "", "", keybase1.MDPriorityNormal)
+		ctx2, config2, h2, libkbfs.MasterBranch, "", "",
+		keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 	checkAutogitOneFile(t, rootFS2, "public")
 

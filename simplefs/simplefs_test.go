@@ -616,9 +616,10 @@ type fsBlockerMaker struct {
 
 func (maker fsBlockerMaker) makeNewBlocker(
 	ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, subdir string) (billy.Filesystem, error) {
+	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string) (
+	billy.Filesystem, error) {
 	fs, err := libfs.NewFS(
-		ctx, config, tlfHandle, subdir, "", keybase1.MDPriorityNormal)
+		ctx, config, tlfHandle, branch, subdir, "", keybase1.MDPriorityNormal)
 	if err != nil {
 		return nil, err
 	}

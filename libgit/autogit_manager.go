@@ -326,7 +326,7 @@ func (am *AutogitManager) doReset(ctx context.Context, req resetReq) (
 
 	// And a dst parent checkout FS, which better already exist.
 	dstFS, err := libfs.NewFS(
-		ctx, gitConfig, req.dstTLF, req.dstDir, uniqID,
+		ctx, gitConfig, req.dstTLF, libkbfs.MasterBranch, req.dstDir, uniqID,
 		keybase1.MDPriorityNormal)
 	if err != nil {
 		return err
@@ -507,7 +507,7 @@ func (am *AutogitManager) doDelete(req deleteReq) (err error) {
 	}
 
 	dstFS, err := libfs.NewFS(
-		ctx, gitConfig, req.dstTLF, req.dstDir, uniqID,
+		ctx, gitConfig, req.dstTLF, libkbfs.MasterBranch, req.dstDir, uniqID,
 		keybase1.MDPriorityNormal)
 	if err != nil {
 		return err
@@ -604,7 +604,8 @@ func (am *AutogitManager) Clone(
 	}()
 
 	dstFS, err := libfs.NewFS(
-		ctx, am.config, dstTLF, dstDir, "", keybase1.MDPriorityNormal)
+		ctx, am.config, dstTLF, libkbfs.MasterBranch, dstDir, "",
+		keybase1.MDPriorityNormal)
 	if err != nil {
 		return nil, err
 	}

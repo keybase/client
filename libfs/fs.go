@@ -104,10 +104,14 @@ func followSymlink(parentPath, link string) (newPath string, err error) {
 // globally; for example, a device ID combined with a local tempfile
 // name is recommended.
 func NewFS(ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, subdir string, uniqID string,
-	priority keybase1.MDPriority) (*FS, error) {
-	rootNode, ei, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, tlfHandle, libkbfs.MasterBranch)
+	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
+	uniqID string, priority keybase1.MDPriority) (*FS, error) {
+	rootNodeGetter := config.KBFSOps().GetOrCreateRootNode
+	if branch != libkbfs.MasterBranch {
+		rootNodeGetter = config.KBFSOps().GetRootNode
+	}
+
+	rootNode, ei, err := rootNodeGetter(ctx, tlfHandle, branch)
 	if err != nil {
 		return nil, err
 	}
