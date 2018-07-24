@@ -781,8 +781,66 @@ func (s *Server) GetSendAssetChoicesLocal(ctx context.Context, arg stellar1.GetS
 		return res, err
 	}
 
-	// Not implemented. CORE-8087
-	return res, fmt.Errorf("GetSendAssetChoicesLocal not implemented")
+	// TODO: Check if we own arg.From
+
+	ourBalances, err := s.remoter.Balances(ctx, arg.From)
+	if err != nil {
+		return res, err
+	}
+
+	res = []stellar1.SendAssetChoiceLocal{}
+	for _, bal := range ourBalances {
+		asset := bal.Asset
+		if asset.IsNativeXLM() {
+			// We are only doing non-native assets here.
+			continue
+		}
+		choice := stellar1.SendAssetChoiceLocal{
+			Asset:   asset,
+			Enabled: true,
+			Left:    bal.Asset.Code,
+			Right:   bal.Asset.Issuer,
+		}
+		res = append(res, choice)
+	}
+
+	if arg.To != "" {
+		uis := libkb.UIs{
+			IdentifyUI: s.uiSource.IdentifyUI(s.G(), arg.SessionID),
+		}
+		mctx := s.mctx(ctx).WithUIs(uis)
+
+		recipient, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput(arg.To))
+		if err != nil {
+			return res, err
+		}
+
+		theirBalancesHash := make(map[string]bool)
+		assetHashCode := func(a stellar1.Asset) string {
+			return fmt.Sprintf("%s%s%s", a.Type, a.Code, a.Issuer)
+		}
+
+		if recipient.AccountID != nil {
+			theirBalances, err := s.remoter.Balances(ctx, stellar1.AccountID(recipient.AccountID.String()))
+			if err != nil {
+				return res, err
+			}
+			for _, bal := range theirBalances {
+				theirBalancesHash[assetHashCode(bal.Asset)] = true
+			}
+		}
+
+		for i, choice := range res {
+			available := theirBalancesHash[assetHashCode(choice.Asset)]
+			if !available {
+				choice.Enabled = false
+				choice.Subtext = fmt.Sprintf("Recipient does not accept %s", choice.Asset.Code)
+				res[i] = choice
+			}
+		}
+	}
+
+	return res, nil
 }
 
 func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymentLocalArg) (res stellar1.BuildPaymentResLocal, err error) {
