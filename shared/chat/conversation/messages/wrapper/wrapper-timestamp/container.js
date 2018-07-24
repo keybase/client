@@ -12,7 +12,7 @@ type OwnProps = {
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const lastReadMessageID = state.chat2.lastReadMessageMap.get(ownProps.message.conversationIDKey)
-  // Show the orange line on the first message after the last unread message
+  // Show the orange line on the first message after the last read message
   // Messages sent sent by you don't count
   const orangeLineAbove =
     !!ownProps.previous &&
