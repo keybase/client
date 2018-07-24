@@ -17,10 +17,28 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
+	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 )
 
-func SetupKeyfinderEngineTest(tb libkb.TestingTB, name string) libkb.TestContext {
-	return externalstest.SetupTestWithInsecureTriplesec(tb, name)
+func InstallInsecureTriplesec(g *libkb.GlobalContext) {
+	g.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
+		warner := func() { g.Log.Warning("Installing insecure Triplesec with weak stretch parameters") }
+		isProduction := func() bool {
+			return g.Env.GetRunMode() == libkb.ProductionRunMode
+		}
+		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
+	}
+}
+
+func SetupKeyfinderEngineTest(tb libkb.TestingTB, name string) (tc libkb.TestContext) {
+	// SetupTest ignores the depth argument, so we can safely pass 0.
+	tc = externalstest.SetupTest(tb, name, 0)
+
+	// use an insecure triplesec in tests
+	InstallInsecureTriplesec(tc.G)
+
+	return tc
+
 }
 
 func TestSaltpackRecipientKeyfinderPUKs(t *testing.T) {

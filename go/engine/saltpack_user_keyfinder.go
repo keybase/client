@@ -19,6 +19,9 @@ type SaltpackUserKeyfinder struct {
 	RecipientDeviceAndPaperKeyMap map[keybase1.UID]([]keybase1.KID)
 }
 
+var _ libkb.Engine2 = (*SaltpackUserKeyfinder)(nil)
+var _ libkb.SaltpackRecipientKeyfinderEngineInterface = (*SaltpackUserKeyfinder)(nil)
+
 // NewSaltpackUserKeyfinderAsInterface creates a SaltpackUserKeyfinder engine.
 func NewSaltpackUserKeyfinderAsInterface(Arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface {
 	return NewSaltpackUserKeyfinder(Arg)
@@ -127,7 +130,7 @@ func (e *SaltpackUserKeyfinder) LookupUser(m libkb.MetaContext, user string) (up
 			Type: keybase1.IdentifyReasonType_ENCRYPT,
 		},
 		AlwaysBlock:      true,
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_SALTPACK,
 	}
 	eng := NewResolveThenIdentify2(m.G(), &Arg)
 	if err := RunEngine2(m, eng); err != nil {

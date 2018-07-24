@@ -31,7 +31,49 @@ import (
 // as the server knows the nonce, so a simple SHA256 would have worked as well).
 type KeyPseudonym [32]byte
 
+func (p KeyPseudonym) String() string {
+	return hex.EncodeToString(p[:])
+}
+
+func (p *KeyPseudonym) MarshalJSON() ([]byte, error) {
+	return keybase1.Quote((*p).String()), nil
+}
+
+func (p *KeyPseudonym) UnmarshalJSON(b []byte) error {
+	n, err := hex.Decode((*p)[:], keybase1.UnquoteBytes(b))
+	if err != nil {
+		return err
+	}
+	if n != len(*p) {
+		return fmt.Errorf("KeyPseudonym has wrong length")
+	}
+	return nil
+}
+
+func (p KeyPseudonym) Eq(r KeyPseudonym) bool {
+	return hmac.Equal(p[:], r[:])
+}
+
 type KeyPseudonymNonce [32]byte
+
+func (p KeyPseudonymNonce) String() string {
+	return hex.EncodeToString(t[:])
+}
+
+func (p *KeyPseudonymNonce) MarshalJSON() ([]byte, error) {
+	return keybase1.Quote((*p).String()), nil
+}
+
+func (p *KeyPseudonymNonce) UnmarshalJSON(b []byte) error {
+	n, err := hex.Decode((*p)[:], keybase1.UnquoteBytes(b))
+	if err != nil {
+		return err
+	}
+	if n != len(*p) {
+		return fmt.Errorf("KeyPseudonymNonce has wrong length")
+	}
+	return nil
+}
 
 const KeyPseudonymVersion = 1
 
@@ -44,21 +86,13 @@ type KeyPseudonymInfo struct {
 	Nonce        KeyPseudonymNonce
 }
 
-func (t KeyPseudonym) String() string {
-	return hex.EncodeToString(t[:])
-}
-
-func (t KeyPseudonym) Eq(r KeyPseudonym) bool {
-	return hmac.Equal(t[:], r[:])
-}
-
 // keyPseudonymReq is what the server needs to store a pseudonym
 type keyPseudonymReq struct {
-	Pseudonym   string `json:"key_pseudonym"`   // hex
-	ID          string `json:"user_or_team_id"` // hex
-	Application int    `json:"app_id"`
-	KeyGen      int    `json:"key_gen"`
-	Nonce       string `json:"nonce"` // hex
+	Pseudonym   KeyPseudonym          `json:"key_pseudonym"`   // hex
+	ID          keybase1.UserOrTeamID `json:"user_or_team_id"` // hex
+	Application int                   `json:"app_id"`
+	KeyGen      int                   `json:"key_gen"`
+	Nonce       KeyPseudonymNonce     `json:"nonce"` // hex
 }
 
 // keyPseudonymContents is the data packed inside the HMAC
@@ -82,10 +116,10 @@ func (r *getKeyPseudonymsRes) GetAppStatus() *AppStatus {
 type getKeyPseudonymRes struct {
 	Err  *PseudonymGetError `json:"err"`
 	Info *struct {
-		ID          string `json:"user_or_team_id"` // hex
-		Application int    `json:"app_id"`
-		KeyGen      int    `json:"key_gen"`
-		Nonce       string `json:"nonce"` // hex
+		ID          keybase1.UserOrTeamID `json:"user_or_team_id"`
+		Application int                   `json:"app_id"`
+		KeyGen      int                   `json:"key_gen"`
+		Nonce       KeyPseudonymNonce     `json:"nonce"`
 	} `json:"info"`
 }
 
@@ -142,11 +176,11 @@ func MakeAndPostKeyPseudonyms(m MetaContext, pnymInfos *[]KeyPseudonymInfo) (err
 		}
 		(*pnymInfos)[i].KeyPseudonym = pnym
 		pnymReqs = append(pnymReqs, keyPseudonymReq{
-			Pseudonym:   pnym.String(),
-			ID:          info.ID.String(),
+			Pseudonym:   pnym,
+			ID:          info.ID,
 			Application: int(info.Application),
 			KeyGen:      int(info.KeyGen),
-			Nonce:       hex.EncodeToString(info.Nonce[:]),
+			Nonce:       info.Nonce,
 		})
 	}
 
@@ -225,21 +259,10 @@ func checkAndConvertKeyPseudonymFromServer(req KeyPseudonym, received getKeyPseu
 	if received.Info != nil {
 		info := KeyPseudonymInfo{}
 
-		info.ID = keybase1.UserOrTeamID(received.Info.ID)
-		if len(info.ID) != keybase1.TEAMID_LEN*2 { // hex encoded, 2 chars per byte
-			return mkErr(fmt.Errorf("user_or_team_id wrong length"))
-		}
-
+		info.ID = received.Info.ID
 		info.KeyGen = KeyGen(received.Info.KeyGen)
 		info.Application = keybase1.TeamApplication(received.Info.Application)
-
-		n, err := hex.Decode(info.Nonce[:], []byte(received.Info.Nonce))
-		if err != nil {
-			return mkErr(err)
-		}
-		if n != len(info.Nonce) {
-			return mkErr(fmt.Errorf("nonce has wrong length"))
-		}
+		info.Nonce = received.Info.Nonce
 
 		x.Info = &info
 	}

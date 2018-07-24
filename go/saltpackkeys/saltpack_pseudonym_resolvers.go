@@ -144,9 +144,6 @@ func (r *KeyPseudonymResolver) kbfsGetSymmetricKey(m libkb.MetaContext, info lib
 	// machinery.
 
 	// TODO: Check as much as we can, if the original TLF was fully resolved.
-	// This is a little tricky, because the current TLF name parsing code lives
-	// in chat and depends on externals, and it would create a circular
-	// dependency if we pulled it directly into libkb.
 
 	// Strip "/keybase/private/" from the name.
 	basename := strings.TrimPrefix(info.UntrustedCurrentName, "/keybase/private/")

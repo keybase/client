@@ -26,8 +26,11 @@ type SaltpackRecipientKeyfinderEngine struct {
 	SaltpackSymmetricKeys []libkb.SaltpackReceiverSymmetricKey
 }
 
+var _ libkb.Engine2 = (*SaltpackRecipientKeyfinderEngine)(nil)
+var _ libkb.SaltpackRecipientKeyfinderEngineInterface = (*SaltpackRecipientKeyfinderEngine)(nil)
+
 // SaltpackRecipientKeyfinderEngine creates a SaltpackRecipientKeyfinderEngine engine.
-func NewSaltpackRecipientKeyfinderEngine(arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface {
+func NewSaltpackRecipientKeyfinderEngineAsInterface(arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface {
 	return &SaltpackRecipientKeyfinderEngine{
 		SaltpackUserKeyfinder: *engine.NewSaltpackUserKeyfinder(arg),
 		SymmetricEntityKeyMap: make(map[keybase1.TeamID](keybase1.TeamApplicationKey)),
@@ -108,7 +111,7 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddRecipients(m libkb.MetaCo
 	return nil
 }
 
-func (e *SaltpackRecipientKeyfinderEngine) AddPUKOrImplicitTeamKeys(m libkb.MetaContext, upk *keybase1.UserPlusKeysV2) error {
+func (e *SaltpackRecipientKeyfinderEngine) addPUKOrImplicitTeamKeys(m libkb.MetaContext, upk *keybase1.UserPlusKeysV2) error {
 	err := e.AddPUK(m, upk)
 	if err == nil {
 		return nil
@@ -173,7 +176,7 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddUserRecipient(m libkb.Met
 	if err := e.AddDeviceAndPaperKeys(m, upk); err != nil {
 		return err
 	}
-	return e.AddPUKOrImplicitTeamKeys(m, upk)
+	return e.addPUKOrImplicitTeamKeys(m, upk)
 }
 
 func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddTeam(m libkb.MetaContext, teamName string) error {

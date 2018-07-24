@@ -5,14 +5,14 @@ package libkb
 
 import (
 	"bytes"
-	"context"
 	"strings"
 	"testing"
 
-	"github.com/keybase/client/go/saltpackkeys/saltpackkeysmocks"
 	"github.com/keybase/saltpack"
 	saltpackBasic "github.com/keybase/saltpack/basic"
 	"github.com/stretchr/testify/require"
+
+	"github.com/keybase/client/go/saltpackkeystest"
 )
 
 type outputBuffer struct {
@@ -26,7 +26,8 @@ func (ob outputBuffer) Close() error {
 // Encrypt a message, and make sure recipients can decode it, and
 // non-recipients can't decode it.
 func TestSaltpackEncDec(t *testing.T) {
-	tc := SetupTest(t, "GetUPAKLoader()", 1)
+	tc := SetupTest(t, "TestSaltpackEncDec", 1)
+	m := NewMetaContextForTest(tc)
 
 	senderKP, err := GenerateNaclDHKeyPair()
 	if err != nil {
@@ -65,7 +66,7 @@ func TestSaltpackEncDec(t *testing.T) {
 		Sender:        senderKP,
 		SenderSigning: senderSigningKP,
 	}
-	if err := SaltpackEncrypt(tc.G, &arg); err != nil {
+	if err := SaltpackEncrypt(m, &arg); err != nil {
 		t.Fatal(err)
 	}
 
@@ -85,9 +86,9 @@ func TestSaltpackEncDec(t *testing.T) {
 		keyring := saltpackBasic.NewKeyring()
 		keyring.ImportBoxKey((*[NaclDHKeysize]byte)(&key.Public), (*[NaclDHKeysize]byte)(key.Private))
 
-		_, err = SaltpackDecrypt(context.TODO(), tc.G,
+		_, err = SaltpackDecrypt(m,
 			strings.NewReader(ciphertext),
-			&buf, keyring, nil, nil, saltpackkeysmocks.NewMockPseudonymResolver(t))
+			&buf, keyring, nil, nil, saltpackkeystest.NewMockPseudonymResolver(t))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -109,8 +110,8 @@ func TestSaltpackEncDec(t *testing.T) {
 		keyring := saltpackBasic.NewKeyring()
 		keyring.ImportBoxKey((*[NaclDHKeysize]byte)(&key.Public), (*[NaclDHKeysize]byte)(key.Private))
 
-		_, err = SaltpackDecrypt(context.TODO(), tc.G,
-			strings.NewReader(ciphertext), &buf, keyring, nil, nil, saltpackkeysmocks.NewMockPseudonymResolver(t))
+		_, err = SaltpackDecrypt(m,
+			strings.NewReader(ciphertext), &buf, keyring, nil, nil, saltpackkeystest.NewMockPseudonymResolver(t))
 		// An unauthorized receiver trying to decrypt should receive an error
 		require.Equal(t, err, saltpack.ErrNoDecryptionKey)
 	}

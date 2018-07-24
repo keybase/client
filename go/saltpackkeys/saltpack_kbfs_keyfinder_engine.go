@@ -1,5 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
+//
+// +build !production,!staging
 
 package saltpackkeys
 
@@ -24,6 +26,9 @@ type SaltpackKBFSKeyfinderEngineForTesting struct {
 	arg                   libkb.SaltpackRecipientKeyfinderArg
 	SaltpackSymmetricKeys []libkb.SaltpackReceiverSymmetricKey
 }
+
+var _ libkb.Engine2 = (*SaltpackKBFSKeyfinderEngineForTesting)(nil)
+var _ libkb.SaltpackRecipientKeyfinderEngineInterface = (*SaltpackKBFSKeyfinderEngineForTesting)(nil)
 
 // NewSaltpackKBFSKeyfinderEngineForTesting creates a SaltpackKBFSKeyfinderEngineForTesting engine.
 func NewSaltpackKBFSKeyfinderEngineForTesting(arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface {

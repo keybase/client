@@ -11,9 +11,8 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/saltpackkeys/saltpackkeysmocks"
-
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/saltpackkeystest"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/saltpack"
 )
@@ -211,7 +210,7 @@ func TestSaltpackEncryptAnonymousSigncryption(t *testing.T) {
 			Source: strings.NewReader(encsink.String()),
 			Sink:   decsink,
 		}
-		deceng := NewSaltpackDecrypt(decarg, saltpackkeysmocks.NewMockPseudonymResolver(t))
+		deceng := NewSaltpackDecrypt(decarg, saltpackkeystest.NewMockPseudonymResolver(t))
 		if err := RunEngine2(m, deceng); err != nil {
 			t.Fatal(err)
 		}
@@ -382,7 +381,7 @@ func TestSaltpackEncryptNoSelf(t *testing.T) {
 		Source: strings.NewReader(string(out)),
 		Sink:   decoded,
 	}
-	dec := NewSaltpackDecrypt(decarg, saltpackkeysmocks.NewMockPseudonymResolver(t))
+	dec := NewSaltpackDecrypt(decarg, saltpackkeystest.NewMockPseudonymResolver(t))
 	err := RunEngine2(m, dec)
 	if _, ok := err.(libkb.NoDecryptionKeyError); !ok {
 		t.Fatalf("Expected err type %T, but got %T", libkb.NoDecryptionKeyError{}, err)
@@ -393,7 +392,7 @@ func TestSaltpackEncryptNoSelf(t *testing.T) {
 
 	m = m.WithSecretUI(u1.NewSecretUI())
 	decarg.Source = strings.NewReader(string(out))
-	dec = NewSaltpackDecrypt(decarg, saltpackkeysmocks.NewMockPseudonymResolver(t))
+	dec = NewSaltpackDecrypt(decarg, saltpackkeystest.NewMockPseudonymResolver(t))
 	err = RunEngine2(m, dec)
 	if err != nil {
 		t.Fatal(err)
@@ -443,7 +442,7 @@ func TestSaltpackEncryptBinary(t *testing.T) {
 		Source: strings.NewReader(out),
 		Sink:   decoded,
 	}
-	dec := NewSaltpackDecrypt(decarg, saltpackkeysmocks.NewMockPseudonymResolver(t))
+	dec := NewSaltpackDecrypt(decarg, saltpackkeystest.NewMockPseudonymResolver(t))
 	if err := RunEngine2(m, dec); err != nil {
 		t.Fatal(err)
 	}

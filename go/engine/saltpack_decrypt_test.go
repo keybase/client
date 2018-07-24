@@ -11,7 +11,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/saltpackkeys/saltpackkeysmocks"
+	"github.com/keybase/client/go/saltpackkeystest"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -84,7 +84,7 @@ func TestSaltpackDecrypt(t *testing.T) {
 		Source: strings.NewReader(out),
 		Sink:   decoded,
 	}
-	dec := NewSaltpackDecrypt(decarg, saltpackkeysmocks.NewMockPseudonymResolver(t))
+	dec := NewSaltpackDecrypt(decarg, saltpackkeystest.NewMockPseudonymResolver(t))
 	if err := RunEngine2(m, dec); err != nil {
 		t.Fatal(err)
 	}
@@ -111,7 +111,7 @@ HTngZWUk8Tjn6Q8zrnnoB92G1G+rZHAiChgBFQCaYDBsWa0Pia6Vm+10OAIulGGj
 		Source: strings.NewReader(pgpMsg),
 		Sink:   decoded,
 	}
-	dec = NewSaltpackDecrypt(decarg, saltpackkeysmocks.NewMockPseudonymResolver(t))
+	dec = NewSaltpackDecrypt(decarg, saltpackkeystest.NewMockPseudonymResolver(t))
 	err := RunEngine2(m, dec)
 	if wse, ok := err.(libkb.WrongCryptoFormatError); !ok {
 		t.Fatalf("Wanted a WrongCryptoFormat error, but got %T (%v)", err, err)
@@ -217,7 +217,7 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 		Sink:   decoded,
 	}
 	initPerUserKeyringInTestContext(t, tc)
-	dec := NewSaltpackDecrypt(decarg, saltpackkeysmocks.NewMockPseudonymResolver(t))
+	dec := NewSaltpackDecrypt(decarg, saltpackkeystest.NewMockPseudonymResolver(t))
 	spui.f = func(arg keybase1.SaltpackPromptForDecryptArg) error {
 		if arg.Sender.SenderType != keybase1.SaltpackSenderType_TRACKING_OK {
 			t.Fatalf("Bad sender type: %v", arg.Sender.SenderType)
@@ -240,7 +240,7 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 		Sink:   decoded,
 	}
 	initPerUserKeyringInTestContext(t, tc)
-	dec = NewSaltpackDecrypt(decarg, saltpackkeysmocks.NewMockPseudonymResolver(t))
+	dec = NewSaltpackDecrypt(decarg, saltpackkeystest.NewMockPseudonymResolver(t))
 	spui.f = func(arg keybase1.SaltpackPromptForDecryptArg) error {
 		if arg.Sender.SenderType != keybase1.SaltpackSenderType_ANONYMOUS {
 			t.Fatalf("Bad sender type: %v", arg.Sender.SenderType)
@@ -277,7 +277,7 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 		},
 	}
 	initPerUserKeyringInTestContext(t, tc)
-	dec = NewSaltpackDecrypt(decarg, saltpackkeysmocks.NewMockPseudonymResolver(t))
+	dec = NewSaltpackDecrypt(decarg, saltpackkeystest.NewMockPseudonymResolver(t))
 	errTrackingBroke := errors.New("tracking broke")
 	spui.f = func(arg keybase1.SaltpackPromptForDecryptArg) error {
 		if arg.Sender.SenderType != keybase1.SaltpackSenderType_TRACKING_BROKE {
@@ -353,7 +353,7 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 		Source: strings.NewReader(out),
 		Sink:   decoded,
 	}
-	dec := NewSaltpackDecrypt(decarg, saltpackkeysmocks.NewMockPseudonymResolver(t))
+	dec := NewSaltpackDecrypt(decarg, saltpackkeystest.NewMockPseudonymResolver(t))
 	spui.f = func(arg keybase1.SaltpackPromptForDecryptArg) error {
 		if arg.Sender.SenderType != keybase1.SaltpackSenderType_NOT_TRACKED {
 			t.Fatalf("Bad sender type: %v", arg.Sender.SenderType)
@@ -389,7 +389,7 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 		Source: strings.NewReader(out),
 		Sink:   decoded,
 	}
-	dec = NewSaltpackDecrypt(decarg, saltpackkeysmocks.NewMockPseudonymResolver(t))
+	dec = NewSaltpackDecrypt(decarg, saltpackkeystest.NewMockPseudonymResolver(t))
 	spui.f = func(arg keybase1.SaltpackPromptForDecryptArg) error {
 		t.Fatal("should not be prompted for decryption")
 		return nil
@@ -472,7 +472,7 @@ func TestSaltpackDecryptWithPaperKey(t *testing.T) {
 			UsePaperKey: true,
 		},
 	}
-	dec := NewSaltpackDecrypt(decarg, saltpackkeysmocks.NewMockPseudonymResolver(t))
+	dec := NewSaltpackDecrypt(decarg, saltpackkeystest.NewMockPseudonymResolver(t))
 	uis := libkb.UIs{
 		IdentifyUI: &FakeIdentifyUI{},
 		// Here's where the paper key goes in!

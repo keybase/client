@@ -94,12 +94,7 @@ func (h *SaltpackHandler) SaltpackEncrypt(ctx context.Context, arg keybase1.Salt
 		SessionID:  arg.SessionID,
 	}
 
-	var keyfinderHook func(arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface
-	if arg.Opts.UseKBFSKeysOnlyForTesting {
-		keyfinderHook = saltpackkeys.NewSaltpackKBFSKeyfinderEngineForTesting
-	} else {
-		keyfinderHook = saltpackkeys.NewSaltpackRecipientKeyfinderEngine
-	}
+	keyfinderHook := saltpackkeys.NewRecipientKeyfinderEngineHook(arg.Opts.UseKBFSKeysOnlyForTesting)
 
 	eng := engine.NewSaltpackEncrypt(earg, keyfinderHook)
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
