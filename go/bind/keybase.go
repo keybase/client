@@ -445,7 +445,7 @@ func AppBeginBackgroundTaskNonblock(pusher PushNotifier) {
 
 // AppBeginBackgroundTask notifies us that an app background task has been started on our behalf. This
 // function will return once we no longer need any time in the background.
-func AppBeginBackgroundTask(pusher PushNotifier) (abort bool) {
+func AppBeginBackgroundTask(pusher PushNotifier) {
 	defer kbCtx.Trace("AppBeginBackgroundTask", func() error { return nil })()
 	ctx := context.Background()
 	// Poll active deliveries in case we can shutdown early
@@ -454,7 +454,7 @@ func AppBeginBackgroundTask(pusher PushNotifier) (abort bool) {
 	appState := kbCtx.AppState.State()
 	if appState != keybase1.AppState_BACKGROUNDACTIVE {
 		kbCtx.Log.Debug("AppBeginBackgroundTask: not in background mode, early out")
-		return false
+		return
 	}
 	var g *errgroup.Group
 	g, ctx = errgroup.WithContext(ctx)
@@ -463,25 +463,22 @@ func AppBeginBackgroundTask(pusher PushNotifier) (abort bool) {
 		case appState = <-kbCtx.AppState.NextUpdate(&appState):
 			kbCtx.Log.Debug(
 				"AppBeginBackgroundTask: app state change, aborting with no task shutdown: %v", appState)
-			abort = true
 			return errors.New("app state change")
 		case <-ctx.Done():
 			return ctx.Err()
 		}
 	})
 	g.Go(func() error {
-		for {
-			ch, cancel := kbChatCtx.MessageDeliverer.NextFailure()
-			defer cancel()
-			select {
-			case obrs := <-ch:
-				kbCtx.Log.Debug(
-					"AppBeginBackgroundTask: failure received, alerting the user: %d marked", len(obrs))
-				pushPendingMessageFailure(obrs[0].ConvID, pusher)
-				cancel()
-			case <-ctx.Done():
-				return ctx.Err()
-			}
+		ch, cancel := kbChatCtx.MessageDeliverer.NextFailure()
+		defer cancel()
+		select {
+		case obrs := <-ch:
+			kbCtx.Log.Debug(
+				"AppBeginBackgroundTask: failure received, alerting the user: %d marked", len(obrs))
+			pushPendingMessageFailure(obrs[0].ConvID, pusher)
+			return errors.New("failure received")
+		case <-ctx.Done():
+			return ctx.Err()
 		}
 	})
 	g.Go(func() error {
@@ -500,7 +497,6 @@ func AppBeginBackgroundTask(pusher PushNotifier) (abort bool) {
 					// We can race the failure case here, so lets go a couple passes of no pending
 					// convs before we abort due to ths condition.
 					if successCount > 1 {
-						abort = true
 						return errors.New("delivered everything")
 					}
 					successCount++
@@ -509,7 +505,6 @@ func AppBeginBackgroundTask(pusher PushNotifier) (abort bool) {
 				if curTime.Sub(beginTime) >= 10*time.Minute {
 					kbCtx.Log.Debug("AppBeginBackgroundTask: failed to deliver and time is up, aborting")
 					pushPendingMessageFailure(convs[0], pusher)
-					abort = true
 					return errors.New("time expired")
 				}
 			case <-ctx.Done():
@@ -518,9 +513,8 @@ func AppBeginBackgroundTask(pusher PushNotifier) (abort bool) {
 		}
 	})
 	if err := g.Wait(); err != nil {
-		kbCtx.Log.Debug("AppBeginBackgroundTask: dropped out of wait because: %s abort: %v", err, abort)
+		kbCtx.Log.Debug("AppBeginBackgroundTask: dropped out of wait because: %s", err)
 	}
-	return abort
 }
 
 func startTrace(logFile string) {
