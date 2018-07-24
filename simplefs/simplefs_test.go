@@ -476,6 +476,36 @@ func TestCopyRecursive(t *testing.T) {
 		filepath.Join(tempdir2, "testdir", "test2.txt"))
 	require.NoError(t, err)
 	require.Equal(t, "bar", string(dataBar))
+
+	// Get current revision number for the KBFS files.
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	fb, _, err := sfs.getFolderBranchFromPath(ctx, path2)
+	require.NoError(t, err)
+	status, _, err := sfs.config.KBFSOps().FolderStatus(ctx, fb)
+	require.NoError(t, err)
+	rev := status.Revision
+	path2Archived := keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
+		Path: `/private/jdoe/testdir`,
+		ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(
+			keybase1.KBFSRevision(rev)),
+	})
+
+	// Overwrite the files in KBFS.
+	writeRemoteFile(ctx, t, sfs, pathAppend(path2, `test1.txt`), []byte(`foo2`))
+	writeRemoteFile(ctx, t, sfs, pathAppend(path2, `test2.txt`), []byte(`bar2`))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	require.Equal(t, "foo2",
+		string(readRemoteFile(ctx, t, sfs, pathAppend(path2, "test1.txt"))))
+	require.Equal(t, "bar2",
+		string(readRemoteFile(ctx, t, sfs, pathAppend(path2, "test2.txt"))))
+
+	// Read old data from archived path.
+	require.Equal(t, "foo",
+		string(readRemoteFile(
+			ctx, t, sfs, pathAppend(path2Archived, "test1.txt"))))
+	require.Equal(t, "bar",
+		string(readRemoteFile(
+			ctx, t, sfs, pathAppend(path2Archived, "test2.txt"))))
 }
 
 func TestCopyToRemote(t *testing.T) {

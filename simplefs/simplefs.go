@@ -930,6 +930,10 @@ func pathAppend(p keybase1.Path, leaf string) keybase1.Path {
 	} else if p.Kbfs__ != nil {
 		var s = stdpath.Join(*p.Kbfs__, leaf)
 		p.Kbfs__ = &s
+	} else if p.KbfsArchived__ != nil {
+		var s = stdpath.Join(p.KbfsArchived__.Path, leaf)
+		p = p.DeepCopy()
+		p.KbfsArchived__.Path = s
 	}
 	return p
 }
