@@ -69,6 +69,7 @@ const mergeProps = (stateProps, dispatchProps, {measure}) => {
 
   return {
     author: message.author,
+    conversationIDKey: message.conversationIDKey,
     exploded: message.exploded,
     explodedBy: message.explodedBy,
     explodesAt: message.explodingTime,
@@ -99,6 +100,7 @@ const mergeProps = (stateProps, dispatchProps, {measure}) => {
     onRetry: stateProps.isYou
       ? () => message.outboxID && dispatchProps._onRetry(message.conversationIDKey, message.outboxID)
       : null,
+    ordinal: message.ordinal,
     timestamp: message.timestamp,
   }
 }

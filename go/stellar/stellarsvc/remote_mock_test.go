@@ -291,11 +291,12 @@ func (t *txlogger) Find(txID string) *stellar1.PaymentDetails {
 }
 
 type FakeAccount struct {
-	T          testing.TB
-	accountID  stellar1.AccountID
-	secretKey  stellar1.SecretKey // can be missing for relay accounts
-	balance    stellar1.Balance
-	subentries int
+	T             testing.TB
+	accountID     stellar1.AccountID
+	secretKey     stellar1.SecretKey // can be missing for relay accounts
+	balance       stellar1.Balance   // XLM
+	otherBalances []stellar1.Balance // other assets
+	subentries    int
 }
 
 func (a *FakeAccount) AddBalance(amt string) {
@@ -359,6 +360,25 @@ func (a *FakeAccount) availableBalance() string {
 		a.T.Fatalf("AvailableBalance error: %s", err)
 	}
 	return b
+}
+
+func (a *FakeAccount) AdjustAssetBalance(amount int64, asset stellar1.Asset) {
+	for i, v := range a.otherBalances {
+		if v.Asset.Eq(asset) {
+			b, err := stellaramount.ParseInt64(v.Amount)
+			require.NoError(a.T, err)
+			b += amount
+			v.Amount = stellaramount.StringFromInt64(b)
+			a.otherBalances[i] = v
+			return
+		}
+	}
+
+	balance := stellar1.Balance{
+		Amount: stellaramount.StringFromInt64(amount),
+		Asset:  asset,
+	}
+	a.otherBalances = append(a.otherBalances, balance)
 }
 
 // RemoteClientMock is a Remoter that calls into a BackendMock.
@@ -516,7 +536,9 @@ func (r *BackendMock) Balances(ctx context.Context, accountID stellar1.AccountID
 		// If an account does not exist on the network, return empty balance list.
 		return nil, nil
 	}
-	return []stellar1.Balance{a.balance}, nil
+	res = append(res, a.balance)
+	res = append(res, a.otherBalances...)
+	return res, nil
 }
 
 func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post stellar1.PaymentDirectPost) (res stellar1.PaymentResult, err error) {
@@ -824,7 +846,7 @@ func (r *BackendMock) addAccountByID(accountID stellar1.AccountID, funded bool) 
 		T:         r.T,
 		accountID: accountID,
 		balance: stellar1.Balance{
-			Asset:  stellar1.Asset{Type: "native"},
+			Asset:  stellar1.AssetNative(),
 			Amount: amount,
 		},
 	}
@@ -833,7 +855,7 @@ func (r *BackendMock) addAccountByID(accountID stellar1.AccountID, funded bool) 
 	return a
 }
 
-func (r *BackendMock) ImportAccountsForUser(tc *TestContext) {
+func (r *BackendMock) ImportAccountsForUser(tc *TestContext) (res []*FakeAccount) {
 	defer tc.G.CTraceTimed(context.Background(), "BackendMock.ImportAccountsForUser", func() error { return nil })()
 	r.Lock()
 	defer r.Unlock()
@@ -843,17 +865,11 @@ func (r *BackendMock) ImportAccountsForUser(tc *TestContext) {
 		if _, found := r.accounts[account.AccountID]; found {
 			continue
 		}
-		a := &FakeAccount{
-			T:         r.T,
-			accountID: stellar1.AccountID(account.AccountID),
-			secretKey: stellar1.SecretKey(account.Signers[0]),
-			balance: stellar1.Balance{
-				Asset:  stellar1.Asset{Type: "native"},
-				Amount: "0",
-			},
-		}
-		r.accounts[a.accountID] = a
+		acc := r.addAccountByID(account.AccountID, false /* funded */)
+		acc.secretKey = stellar1.SecretKey(account.Signers[0])
+		res = append(res, acc)
 	}
+	return res
 }
 
 func (r *BackendMock) SecretKey(accountID stellar1.AccountID) stellar1.SecretKey {
@@ -948,6 +964,18 @@ func (r *BackendMock) Gift(accountID stellar1.AccountID, amount string) {
 	defer r.Unlock()
 	require.NotNil(r.T, r.accounts[accountID], "account for gift")
 	r.accounts[accountID].AdjustBalance(int64(stellaramount.MustParse(amount)))
+}
+
+func (r *BackendMock) CreateFakeAsset(code string) stellar1.Asset {
+	full, err := keypair.Random()
+	require.NoError(r.T, err)
+	assetType, err := stellar1.CreateNonNativeAssetType(code)
+	require.NoError(r.T, err)
+	return stellar1.Asset{
+		Type:   assetType,
+		Code:   code,
+		Issuer: full.Address(),
+	}
 }
 
 func randomKeybaseTransactionID(t testing.TB) stellar1.KeybaseTransactionID {

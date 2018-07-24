@@ -204,20 +204,18 @@ func (o PerTeamKeySeedItem) DeepCopy() PerTeamKeySeedItem {
 }
 
 type TeamMember struct {
-	Uid             UID              `codec:"uid" json:"uid"`
-	Role            TeamRole         `codec:"role" json:"role"`
-	EldestSeqno     Seqno            `codec:"eldestSeqno" json:"eldestSeqno"`
-	UserEldestSeqno Seqno            `codec:"userEldestSeqno" json:"userEldestSeqno"`
-	Status          TeamMemberStatus `codec:"status" json:"status"`
+	Uid         UID              `codec:"uid" json:"uid"`
+	Role        TeamRole         `codec:"role" json:"role"`
+	EldestSeqno Seqno            `codec:"eldestSeqno" json:"eldestSeqno"`
+	Status      TeamMemberStatus `codec:"status" json:"status"`
 }
 
 func (o TeamMember) DeepCopy() TeamMember {
 	return TeamMember{
-		Uid:             o.Uid.DeepCopy(),
-		Role:            o.Role.DeepCopy(),
-		EldestSeqno:     o.EldestSeqno.DeepCopy(),
-		UserEldestSeqno: o.UserEldestSeqno.DeepCopy(),
-		Status:          o.Status.DeepCopy(),
+		Uid:         o.Uid.DeepCopy(),
+		Role:        o.Role.DeepCopy(),
+		EldestSeqno: o.EldestSeqno.DeepCopy(),
+		Status:      o.Status.DeepCopy(),
 	}
 }
 
@@ -2076,6 +2074,7 @@ type TeamOperation struct {
 	SetTeamShowcase        bool `codec:"setTeamShowcase" json:"setTeamShowcase"`
 	SetMemberShowcase      bool `codec:"setMemberShowcase" json:"setMemberShowcase"`
 	SetRetentionPolicy     bool `codec:"setRetentionPolicy" json:"setRetentionPolicy"`
+	SetMinWriterRole       bool `codec:"setMinWriterRole" json:"setMinWriterRole"`
 	ChangeOpenTeam         bool `codec:"changeOpenTeam" json:"changeOpenTeam"`
 	LeaveTeam              bool `codec:"leaveTeam" json:"leaveTeam"`
 	JoinTeam               bool `codec:"joinTeam" json:"joinTeam"`
@@ -2097,6 +2096,7 @@ func (o TeamOperation) DeepCopy() TeamOperation {
 		SetTeamShowcase:        o.SetTeamShowcase,
 		SetMemberShowcase:      o.SetMemberShowcase,
 		SetRetentionPolicy:     o.SetRetentionPolicy,
+		SetMinWriterRole:       o.SetMinWriterRole,
 		ChangeOpenTeam:         o.ChangeOpenTeam,
 		LeaveTeam:              o.LeaveTeam,
 		JoinTeam:               o.JoinTeam,

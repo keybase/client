@@ -37,7 +37,8 @@ type PutS3Result struct {
 
 // PutS3 uploads the data in Reader r to S3.  It chooses whether to use
 // putSingle or putMultiPipeline based on the size of the object.
-func (a *S3Store) PutS3(ctx context.Context, r io.Reader, size int64, task *UploadTask, previous *AttachmentInfo) (*PutS3Result, error) {
+func (a *S3Store) PutS3(ctx context.Context, r io.Reader, size int64, task *UploadTask, previous *AttachmentInfo) (res *PutS3Result, err error) {
+	defer a.Trace(ctx, func() error { return err }, "PutS3")()
 	region := a.regionFromParams(task.S3Params)
 	b := a.s3Conn(task.S3Signer, region, task.S3Params.AccessKey).Bucket(task.S3Params.Bucket)
 
@@ -53,15 +54,14 @@ func (a *S3Store) PutS3(ctx context.Context, r io.Reader, size int64, task *Uplo
 		task.S3Params.ObjectKey = objectKey
 	}
 
-	res := PutS3Result{
+	s3res := PutS3Result{
 		Region:   task.S3Params.RegionName,
 		Endpoint: task.S3Params.RegionEndpoint,
 		Bucket:   task.S3Params.Bucket,
 		Path:     task.S3Params.ObjectKey,
 		Size:     size,
 	}
-
-	return &res, nil
+	return &s3res, nil
 }
 
 // putSingle uploads data in r to S3 with the Put API.  It has to be
@@ -88,6 +88,7 @@ func (a *S3Store) putSingle(ctx context.Context, r io.Reader, size int64, params
 
 	var lastErr error
 	for i := 0; i < retryAttempts; i++ {
+		a.Debug(ctx, "putSingle: waiting for: %v", libkb.BackoffDefault.Duration(i))
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -147,6 +148,7 @@ func (a *S3Store) putMultiPipeline(ctx context.Context, r io.Reader, size int64,
 
 	// need to use ectx in everything in eg.Go() funcs since eg
 	// will cancel ectx in eg.Wait().
+	a.Debug(ctx, "putMultiPipeline: beginning parts uploader process")
 	eg, ectx := errgroup.WithContext(ctx)
 	blockCh := make(chan job)
 	retCh := make(chan s3.Part)
@@ -189,6 +191,7 @@ func (a *S3Store) putMultiPipeline(ctx context.Context, r io.Reader, size int64,
 	// retry this request up to retryAttempts times
 	var lastErr error
 	for i := 0; i < retryAttempts; i++ {
+		a.Debug(ctx, "putMultiPipeline: waiting for: %v", libkb.BackoffDefault.Duration(i))
 		select {
 		case <-ctx.Done():
 			a.Debug(ctx, "putMultiPipeline: multi.Complete retry loop, context canceled (attempt %d)", i+1)
@@ -363,7 +366,7 @@ func (a *S3Store) putRetry(ctx context.Context, multi s3.MultiInt, partNumber in
 			a.Debug(ctx, "putRetry: success in attempt %d to upload part %d", i+1, partNumber)
 			return part, nil
 		}
-		a.Debug(ctx, "putRetry: error in attempt %d to upload part %d: %s", i+1, putErr)
+		a.Debug(ctx, "putRetry: error in attempt %d to upload part %d: %s", i+1, partNumber, putErr)
 		lastErr = putErr
 	}
 	return s3.Part{}, NewErrorWrapper(fmt.Sprintf("failed to put part %d", partNumber), lastErr)

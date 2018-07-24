@@ -152,10 +152,6 @@
           "name": "eldestSeqno"
         },
         {
-          "type": "Seqno",
-          "name": "userEldestSeqno"
-        },
-        {
           "type": "TeamMemberStatus",
           "name": "status"
         }
@@ -1857,6 +1853,10 @@
         {
           "type": "boolean",
           "name": "setRetentionPolicy"
+        },
+        {
+          "type": "boolean",
+          "name": "setMinWriterRole"
         },
         {
           "type": "boolean",

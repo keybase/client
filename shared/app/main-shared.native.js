@@ -10,6 +10,7 @@ import {debounce} from 'lodash-es'
 import {navigateUp, setRouteState} from '../actions/route-tree'
 import {GatewayDest} from 'react-gateway'
 import {View} from 'react-native'
+import {globalStyles} from '../styles'
 
 type Props = {
   folderBadge: number,
@@ -66,7 +67,12 @@ class Main extends Component<any> {
           routeState={this.props.routeState}
           setRouteState={this.props.setRouteState}
         />
-        <GatewayDest name="popup-root" component={View} pointerEvents="box-none" />
+        <GatewayDest
+          name="popup-root"
+          component={View}
+          pointerEvents="box-none"
+          style={globalStyles.fillAbsolute}
+        />
       </Fragment>
     )
   }

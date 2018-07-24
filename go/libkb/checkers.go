@@ -81,7 +81,7 @@ func MakeCheckKex2SecretPhrase(g *GlobalContext) Checker {
 			}
 			return true
 		},
-		Hint: "It looks like there was a typo in the secret phrase. Please try again.",
+		Hint: "Wrong secret phrase. Please try again.",
 	}
 }
 

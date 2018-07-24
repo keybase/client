@@ -17,7 +17,6 @@ export const appStateAppState = {
   background: 1,
   inactive: 2,
   backgroundactive: 3,
-  backgroundfinal: 4,
 }
 
 export const backendCommonBlockType = {
@@ -870,7 +869,6 @@ export type AppState =
   | 1 // BACKGROUND_1
   | 2 // INACTIVE_2
   | 3 // BACKGROUNDACTIVE_3
-  | 4 // BACKGROUNDFINAL_4
 
 export type AppStateUpdateAppStateRpcParam = $ReadOnly<{state: AppState}>
 export type AsyncOps =
@@ -2095,7 +2093,7 @@ export type TeamJoinRequest = $ReadOnly<{name: String, username: String}>
 export type TeamKBFSKeyRefresher = $ReadOnly<{generation: Int, appType: TeamApplication}>
 export type TeamLegacyTLFUpgradeChainInfo = $ReadOnly<{keysetHash: TeamEncryptedKBFSKeysetHash, teamGeneration: PerTeamKeyGeneration, legacyGeneration: Int, appType: TeamApplication}>
 export type TeamList = $ReadOnly<{teams?: ?Array<MemberInfo>}>
-export type TeamMember = $ReadOnly<{uid: UID, role: TeamRole, eldestSeqno: Seqno, userEldestSeqno: Seqno, status: TeamMemberStatus}>
+export type TeamMember = $ReadOnly<{uid: UID, role: TeamRole, eldestSeqno: Seqno, status: TeamMemberStatus}>
 export type TeamMemberDetails = $ReadOnly<{uv: UserVersion, username: String, fullName: FullName, needsPUK: Boolean, status: TeamMemberStatus}>
 export type TeamMemberOutFromReset = $ReadOnly<{teamName: String, resetUser: TeamResetUser}>
 export type TeamMemberOutReset = $ReadOnly<{teamname: String, username: String, uid: UID, id: Gregor1.MsgID}>
@@ -2110,7 +2108,7 @@ export type TeamName = $ReadOnly<{parts?: ?Array<TeamNamePart>}>
 export type TeamNameLogPoint = $ReadOnly<{lastPart: TeamNamePart, seqno: Seqno}>
 export type TeamNamePart = String
 export type TeamOpenReqMsg = $ReadOnly<{teamID: TeamID, tars?: ?Array<TeamAccessRequest>}>
-export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, chat: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, setRetentionPolicy: Boolean, changeOpenTeam: Boolean, leaveTeam: Boolean, joinTeam: Boolean, setPublicityAny: Boolean, listFirst: Boolean, changeTarsDisabled: Boolean, deleteChatHistory: Boolean}>
+export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, chat: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, setRetentionPolicy: Boolean, setMinWriterRole: Boolean, changeOpenTeam: Boolean, leaveTeam: Boolean, joinTeam: Boolean, setPublicityAny: Boolean, listFirst: Boolean, changeTarsDisabled: Boolean, deleteChatHistory: Boolean}>
 export type TeamPlusApplicationKeys = $ReadOnly<{id: TeamID, name: String, implicit: Boolean, public: Boolean, application: TeamApplication, writers?: ?Array<UserVersion>, onlyReaders?: ?Array<UserVersion>, applicationKeys?: ?Array<TeamApplicationKey>}>
 export type TeamRefreshers = $ReadOnly<{needKeyGeneration: PerTeamKeyGeneration, wantMembers?: ?Array<UserVersion>, wantMembersRole: TeamRole, needKBFSKeyGeneration: TeamKBFSKeyRefresher}>
 export type TeamRequestAccessResult = $ReadOnly<{open: Boolean}>

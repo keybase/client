@@ -57,10 +57,6 @@ protocol local {
     SBS_3
   }
 
-  record PaymentID {
-    TransactionID txID;
-  }
-
   // Summary of a payment.
   // Keep in sync with PaymentDetailsLocal.
   record PaymentLocal {
