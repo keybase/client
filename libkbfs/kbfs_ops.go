@@ -467,11 +467,12 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
 		if err != nil {
 			return false, ImmutableRootMetadata{}, tlf.NullID, err
 		}
-	} else {
-		md, err = mdops.GetForTLF(ctx, h.tlfID, nil)
-		if err != nil {
-			return false, ImmutableRootMetadata{}, tlf.NullID, err
-		}
+		return false, md, h.tlfID, nil
+	}
+
+	md, err = mdops.GetForTLF(ctx, h.tlfID, nil)
+	if err != nil {
+		return false, ImmutableRootMetadata{}, tlf.NullID, err
 	}
 	if md != (ImmutableRootMetadata{}) {
 		return false, md, h.tlfID, nil
@@ -1150,8 +1151,8 @@ func (fs *KBFSOpsStandard) NewNotificationChannel(
 		fs.editActivity.Add(1)
 		go func() {
 			defer fs.editActivity.Done()
-			fs.log.CDebugf(ctx, "%p: Initializing TLF %s for the edit history",
-				fs, handle.GetCanonicalPath())
+			fs.log.CDebugf(ctx, "Initializing TLF %s for the edit history",
+				handle.GetCanonicalPath())
 			ctx := CtxWithRandomIDReplayable(
 				context.Background(), CtxFBOIDKey, CtxFBOOpID, fs.log)
 			ops := fs.getOpsByHandle(
