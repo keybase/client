@@ -15,7 +15,6 @@ const (
 	AppState_BACKGROUND       AppState = 1
 	AppState_INACTIVE         AppState = 2
 	AppState_BACKGROUNDACTIVE AppState = 3
-	AppState_BACKGROUNDFINAL  AppState = 4
 )
 
 func (o AppState) DeepCopy() AppState { return o }
@@ -25,7 +24,6 @@ var AppStateMap = map[string]AppState{
 	"BACKGROUND":       1,
 	"INACTIVE":         2,
 	"BACKGROUNDACTIVE": 3,
-	"BACKGROUNDFINAL":  4,
 }
 
 var AppStateRevMap = map[AppState]string{
@@ -33,7 +31,6 @@ var AppStateRevMap = map[AppState]string{
 	1: "BACKGROUND",
 	2: "INACTIVE",
 	3: "BACKGROUNDACTIVE",
-	4: "BACKGROUNDFINAL",
 }
 
 func (e AppState) String() string {

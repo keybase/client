@@ -161,16 +161,6 @@ func (e ParticipantType) String() string {
 	return ""
 }
 
-type PaymentID struct {
-	TxID TransactionID `codec:"txID" json:"txID"`
-}
-
-func (o PaymentID) DeepCopy() PaymentID {
-	return PaymentID{
-		TxID: o.TxID.DeepCopy(),
-	}
-}
-
 type PaymentLocal struct {
 	Id                PaymentID       `codec:"id" json:"id"`
 	Time              TimeMs          `codec:"time" json:"time"`
@@ -356,6 +346,7 @@ func (o SendAssetChoiceLocal) DeepCopy() SendAssetChoiceLocal {
 type BuildPaymentResLocal struct {
 	ReadyToSend      bool              `codec:"readyToSend" json:"readyToSend"`
 	ToErrMsg         string            `codec:"toErrMsg" json:"toErrMsg"`
+	ToUsername       string            `codec:"toUsername" json:"toUsername"`
 	AmountErrMsg     string            `codec:"amountErrMsg" json:"amountErrMsg"`
 	SecretNoteErrMsg string            `codec:"secretNoteErrMsg" json:"secretNoteErrMsg"`
 	PublicMemoErrMsg string            `codec:"publicMemoErrMsg" json:"publicMemoErrMsg"`
@@ -368,6 +359,7 @@ func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
 	return BuildPaymentResLocal{
 		ReadyToSend:      o.ReadyToSend,
 		ToErrMsg:         o.ToErrMsg,
+		ToUsername:       o.ToUsername,
 		AmountErrMsg:     o.AmountErrMsg,
 		SecretNoteErrMsg: o.SecretNoteErrMsg,
 		PublicMemoErrMsg: o.PublicMemoErrMsg,

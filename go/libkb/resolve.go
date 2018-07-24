@@ -28,6 +28,7 @@ type ResolveResult struct {
 	cachedAt           time.Time
 	mutable            bool
 	deleted            bool
+	isCompound         bool
 }
 
 func (res ResolveResult) HasPrimaryKey() bool {
@@ -47,6 +48,10 @@ const (
 
 func (res *ResolveResult) GetUID() keybase1.UID {
 	return res.uid
+}
+
+func (res *ResolveResult) SetUIDForTesting(u keybase1.UID) {
+	res.uid = u
 }
 
 func (res *ResolveResult) User() keybase1.User {
@@ -88,7 +93,7 @@ func (res *ResolveResult) GetTeamName() keybase1.TeamName {
 }
 
 func (res *ResolveResult) WasKBAssertion() bool {
-	return res.queriedKbUsername != "" || res.queriedByUID
+	return (res.queriedKbUsername != "" && !res.isCompound) || res.queriedByUID
 }
 
 func (res *ResolveResult) GetError() error {
@@ -110,15 +115,15 @@ func (res ResolveResult) FailOnDeleted() ResolveResult {
 	return res
 }
 
-func (r *Resolver) ResolveWithBody(input string) ResolveResult {
+func (r *ResolverImpl) ResolveWithBody(input string) ResolveResult {
 	return r.resolve(input, true)
 }
 
-func (r *Resolver) Resolve(input string) ResolveResult {
+func (r *ResolverImpl) Resolve(input string) ResolveResult {
 	return r.resolve(input, false)
 }
 
-func (r *Resolver) resolve(input string, withBody bool) (res ResolveResult) {
+func (r *ResolverImpl) resolve(input string, withBody bool) (res ResolveResult) {
 	defer r.G().Trace(fmt.Sprintf("Resolving username %q", input), func() error { return res.err })()
 
 	var au AssertionURL
@@ -129,19 +134,19 @@ func (r *Resolver) resolve(input string, withBody bool) (res ResolveResult) {
 	return res
 }
 
-func (r *Resolver) ResolveFullExpression(ctx context.Context, input string) (res ResolveResult) {
+func (r *ResolverImpl) ResolveFullExpression(ctx context.Context, input string) (res ResolveResult) {
 	return r.resolveFullExpression(ctx, input, false, false)
 }
 
-func (r *Resolver) ResolveFullExpressionNeedUsername(ctx context.Context, input string) (res ResolveResult) {
+func (r *ResolverImpl) ResolveFullExpressionNeedUsername(ctx context.Context, input string) (res ResolveResult) {
 	return r.resolveFullExpression(ctx, input, false, true)
 }
 
-func (r *Resolver) ResolveFullExpressionWithBody(ctx context.Context, input string) (res ResolveResult) {
+func (r *ResolverImpl) ResolveFullExpressionWithBody(ctx context.Context, input string) (res ResolveResult) {
 	return r.resolveFullExpression(ctx, input, true, false)
 }
 
-func (r *Resolver) ResolveUser(ctx context.Context, assertion string) (u keybase1.User, res ResolveResult, err error) {
+func (r *ResolverImpl) ResolveUser(ctx context.Context, assertion string) (u keybase1.User, res ResolveResult, err error) {
 	res = r.ResolveFullExpressionNeedUsername(ctx, assertion)
 	err = res.GetError()
 	if err != nil {
@@ -154,7 +159,7 @@ func (r *Resolver) ResolveUser(ctx context.Context, assertion string) (u keybase
 	return u, res, nil
 }
 
-func (r *Resolver) resolveFullExpression(ctx context.Context, input string, withBody bool, needUsername bool) (res ResolveResult) {
+func (r *ResolverImpl) resolveFullExpression(ctx context.Context, input string, withBody bool, needUsername bool) (res ResolveResult) {
 	defer r.G().CVTrace(ctx, VLog1, fmt.Sprintf("Resolver#resolveFullExpression(%q)", input), func() error { return res.err })()
 
 	var expr AssertionExpression
@@ -167,7 +172,9 @@ func (r *Resolver) resolveFullExpression(ctx context.Context, input string, with
 		res.err = ResolutionError{Input: input, Msg: "Cannot find a resolvable factor"}
 		return res
 	}
-	return r.resolveURL(ctx, u, input, withBody, needUsername)
+	ret := r.resolveURL(ctx, u, input, withBody, needUsername)
+	ret.isCompound = len(expr.CollectUrls(nil)) > 1
+	return ret
 }
 
 func (res *ResolveResult) addKeybaseNameIfKnown(au AssertionURL) {
@@ -176,7 +183,7 @@ func (res *ResolveResult) addKeybaseNameIfKnown(au AssertionURL) {
 	}
 }
 
-func (r *Resolver) getFromDiskCache(ctx context.Context, key string, au AssertionURL) (ret *ResolveResult) {
+func (r *ResolverImpl) getFromDiskCache(ctx context.Context, key string, au AssertionURL) (ret *ResolveResult) {
 	defer r.G().CVTraceOK(ctx, VLog1, fmt.Sprintf("Resolver#getFromDiskCache(%q)", key), func() bool { return ret != nil })()
 	var uid keybase1.UID
 	found, err := r.G().LocalDb.GetInto(&uid, resolveDbKey(key))
@@ -201,7 +208,7 @@ func isMutable(au AssertionURL) bool {
 	return !(au.IsUID() || au.IsKeybase())
 }
 
-func (r *Resolver) getFromUPAKLoader(ctx context.Context, uid keybase1.UID) (ret *ResolveResult) {
+func (r *ResolverImpl) getFromUPAKLoader(ctx context.Context, uid keybase1.UID) (ret *ResolveResult) {
 	nun, err := r.G().GetUPAKLoader().LookupUsername(ctx, uid)
 	if err != nil {
 		return nil
@@ -209,7 +216,7 @@ func (r *Resolver) getFromUPAKLoader(ctx context.Context, uid keybase1.UID) (ret
 	return &ResolveResult{uid: uid, queriedByUID: true, resolvedKbUsername: nun.String(), mutable: false}
 }
 
-func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string, withBody bool, needUsername bool) (res ResolveResult) {
+func (r *ResolverImpl) resolveURL(ctx context.Context, au AssertionURL, input string, withBody bool, needUsername bool) (res ResolveResult) {
 	ck := au.CacheKey()
 
 	lock := r.locktab.AcquireOnName(ctx, r.G(), ck)
@@ -268,7 +275,7 @@ func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string
 	return res
 }
 
-func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionURL, input string, withBody bool) (res ResolveResult) {
+func (r *ResolverImpl) resolveURLViaServerLookup(ctx context.Context, au AssertionURL, input string, withBody bool) (res ResolveResult) {
 	defer r.G().CVTrace(ctx, VLog1, fmt.Sprintf("Resolver#resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
 
 	if au.IsTeamID() || au.IsTeamName() {
@@ -367,7 +374,7 @@ func (t *teamLookup) GetAppStatus() *AppStatus {
 	return &t.Status
 }
 
-func (r *Resolver) resolveTeamViaServerLookup(ctx context.Context, au AssertionURL) (res ResolveResult) {
+func (r *ResolverImpl) resolveTeamViaServerLookup(ctx context.Context, au AssertionURL) (res ResolveResult) {
 	r.G().Log.CDebugf(ctx, "resolveTeamViaServerLookup")
 
 	res.queriedByTeamID = au.IsTeamID()
@@ -410,11 +417,10 @@ type ResolveCacheStats struct {
 	diskPuts        int
 }
 
-type Resolver struct {
+type ResolverImpl struct {
 	Contextified
 	cache   *ramcache.Ramcache
 	Stats   ResolveCacheStats
-	NowFunc func() time.Time
 	locktab LockTable
 }
 
@@ -426,29 +432,28 @@ func (s ResolveCacheStats) EqWithDiskHits(m, t, mt, et, h, dh int) bool {
 	return (s.misses == m) && (s.timeouts == t) && (s.mutableTimeouts == mt) && (s.errorTimeouts == et) && (s.hits == h) && (s.diskGetHits == dh)
 }
 
-func NewResolver(g *GlobalContext) *Resolver {
-	return &Resolver{
+func NewResolverImpl(g *GlobalContext) *ResolverImpl {
+	return &ResolverImpl{
 		Contextified: NewContextified(g),
 		cache:        nil,
-		NowFunc:      func() time.Time { return time.Now() },
 	}
 }
 
-func (r *Resolver) EnableCaching() {
+func (r *ResolverImpl) EnableCaching() {
 	cache := ramcache.New()
 	cache.MaxAge = ResolveCacheMaxAge
 	cache.TTL = resolveCacheTTL
 	r.cache = cache
 }
 
-func (r *Resolver) Shutdown() {
+func (r *ResolverImpl) Shutdown() {
 	if r.cache == nil {
 		return
 	}
 	r.cache.Shutdown()
 }
 
-func (r *Resolver) getFromMemCache(ctx context.Context, key string, au AssertionURL) (ret *ResolveResult) {
+func (r *ResolverImpl) getFromMemCache(ctx context.Context, key string, au AssertionURL) (ret *ResolveResult) {
 	defer r.G().CVTraceOK(ctx, VLog1, fmt.Sprintf("Resolver#getFromMemCache(%q)", key), func() bool { return ret != nil })()
 	if r.cache == nil {
 		return nil
@@ -468,7 +473,7 @@ func (r *Resolver) getFromMemCache(ctx context.Context, key string, au Assertion
 		r.G().Log.CInfof(ctx, "Resolver#getFromMemCache: nil UID/teamID in cache")
 		return nil
 	}
-	now := r.NowFunc()
+	now := r.G().Clock().Now()
 	if now.Sub(rres.cachedAt) > ResolveCacheMaxAge {
 		r.Stats.timeouts++
 		return nil
@@ -493,7 +498,7 @@ func resolveDbKey(key string) DbKey {
 	}
 }
 
-func (r *Resolver) putToDiskCache(ctx context.Context, key string, res ResolveResult) {
+func (r *ResolverImpl) putToDiskCache(ctx context.Context, key string, res ResolveResult) {
 	r.G().VDL.CLogf(ctx, VLog1, "| Resolver#putToDiskCache (attempt) %+v", res)
 	// Only cache immutable resolutions to disk
 	if res.mutable {
@@ -521,7 +526,7 @@ func (r *Resolver) putToDiskCache(ctx context.Context, key string, res ResolveRe
 
 // Put receives a copy of a ResolveResult, clears out the body
 // to avoid caching data that can go stale, and stores the result.
-func (r *Resolver) putToMemCache(key string, res ResolveResult) {
+func (r *ResolverImpl) putToMemCache(key string, res ResolveResult) {
 	if r.cache == nil {
 		return
 	}
@@ -536,7 +541,9 @@ func (r *Resolver) putToMemCache(key string, res ResolveResult) {
 		}
 		return
 	}
-	res.cachedAt = r.NowFunc()
+	res.cachedAt = r.G().Clock().Now()
 	res.body = nil // Don't cache body
 	r.cache.Set(key, &res)
 }
+
+var _ Resolver = (*ResolverImpl)(nil)

@@ -96,7 +96,7 @@ export type BalanceDelta =
   | 1 // INCREASE_1
   | 2 // DECREASE_2
 
-export type BuildPaymentResLocal = $ReadOnly<{readyToSend: Boolean, toErrMsg: String, amountErrMsg: String, secretNoteErrMsg: String, publicMemoErrMsg: String, worthDescription: String, worthInfo: String, banners?: ?Array<SendBannerLocal>}>
+export type BuildPaymentResLocal = $ReadOnly<{readyToSend: Boolean, toErrMsg: String, toUsername: String, amountErrMsg: String, secretNoteErrMsg: String, publicMemoErrMsg: String, worthDescription: String, worthInfo: String, banners?: ?Array<SendBannerLocal>}>
 export type Bundle = $ReadOnly<{revision: BundleRevision, prev: Hash, ownHash: Hash, accounts?: ?Array<BundleEntry>}>
 export type BundleEntry = $ReadOnly<{accountID: AccountID, mode: AccountMode, isPrimary: Boolean, signers?: ?Array<SecretKey>, name: String}>
 export type BundleRevision = Uint64
@@ -176,6 +176,7 @@ export type PaymentDetailsLocal = $ReadOnly<{id: PaymentID, txID: TransactionID,
 export type PaymentDirectPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, displayAmount: String, displayCurrency: String, noteB64: String, signedTransaction: String, quickReturn: Boolean}>
 export type PaymentID = $ReadOnly<{txID: TransactionID}>
 export type PaymentLocal = $ReadOnly<{id: PaymentID, time: TimeMs, statusSimplified: PaymentStatus, statusDescription: String, statusDetail: String, showCancel: Boolean, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, source: String, sourceType: ParticipantType, target: String, targetType: ParticipantType, note: String, noteErr: String}>
+export type PaymentNotificationMsg = $ReadOnly<{accountID: AccountID, paymentID: PaymentID}>
 export type PaymentOrErrorCLILocal = $ReadOnly<{payment?: ?PaymentCLILocal, err?: ?String}>
 export type PaymentOrErrorLocal = $ReadOnly<{payment?: ?PaymentLocal, err?: ?String}>
 export type PaymentRelayPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, toAssertion: String, relayAccount: AccountID, teamID: Keybase1.TeamID, displayAmount: String, displayCurrency: String, boxB64: String, signedTransaction: String, quickReturn: Boolean}>

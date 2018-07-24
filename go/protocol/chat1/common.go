@@ -1040,39 +1040,28 @@ func (o MessageSummary) DeepCopy() MessageSummary {
 	}
 }
 
-type Reaction struct {
-	Username      string    `codec:"username" json:"username"`
-	ReactionMsgID MessageID `codec:"reactionMsgID" json:"reactionMsgID"`
-}
-
-func (o Reaction) DeepCopy() Reaction {
-	return Reaction{
-		Username:      o.Username,
-		ReactionMsgID: o.ReactionMsgID.DeepCopy(),
-	}
-}
-
 type ReactionMap struct {
-	Reactions map[string][]Reaction `codec:"reactions" json:"reactions"`
+	Reactions map[string]map[string]MessageID `codec:"reactions" json:"reactions"`
 }
 
 func (o ReactionMap) DeepCopy() ReactionMap {
 	return ReactionMap{
-		Reactions: (func(x map[string][]Reaction) map[string][]Reaction {
+		Reactions: (func(x map[string]map[string]MessageID) map[string]map[string]MessageID {
 			if x == nil {
 				return nil
 			}
-			ret := make(map[string][]Reaction)
+			ret := make(map[string]map[string]MessageID)
 			for k, v := range x {
 				kCopy := k
-				vCopy := (func(x []Reaction) []Reaction {
+				vCopy := (func(x map[string]MessageID) map[string]MessageID {
 					if x == nil {
 						return nil
 					}
-					var ret []Reaction
-					for _, v := range x {
+					ret := make(map[string]MessageID)
+					for k, v := range x {
+						kCopy := k
 						vCopy := v.DeepCopy()
-						ret = append(ret, vCopy)
+						ret[kCopy] = vCopy
 					}
 					return ret
 				})(v)

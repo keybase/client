@@ -12,8 +12,8 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isEd
   const isYou = state.config.username === message.author
   const isFollowing = state.config.following.has(message.author)
   const isBroken = state.users.infoMap.getIn([message.author, 'broken'], false)
-  const lastPositionOrdinal = state.chat2.orangeLineMap.get(message.conversationIDKey)
-  const lastPositionExists = !!previous && lastPositionOrdinal === previous.ordinal
+  const lastReadMessageID = state.chat2.lastReadMessageMap.get(message.conversationIDKey)
+  const lastPositionExists = !!previous && lastReadMessageID === previous.id
   const messageSent = !message.submitState
   const messageFailed = message.submitState === 'failed'
   const messagePending = message.submitState === 'pending'
@@ -69,6 +69,7 @@ const mergeProps = (stateProps, dispatchProps, {measure}) => {
 
   return {
     author: message.author,
+    conversationIDKey: message.conversationIDKey,
     exploded: message.exploded,
     explodedBy: message.explodedBy,
     explodesAt: message.explodingTime,
@@ -99,6 +100,7 @@ const mergeProps = (stateProps, dispatchProps, {measure}) => {
     onRetry: stateProps.isYou
       ? () => message.outboxID && dispatchProps._onRetry(message.conversationIDKey, message.outboxID)
       : null,
+    ordinal: message.ordinal,
     timestamp: message.timestamp,
   }
 }
