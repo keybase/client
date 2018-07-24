@@ -7,25 +7,25 @@ import {formatTimeForMessages} from '../../../../../util/timestamp'
 
 const mapStateToProps = (
   state: TypedState,
-  props: {
+  ownProps: {
     message: Types.Message,
     previous: ?Types.Message,
   }
 ) => {
-  const lastReadMessageID = state.chat2.lastReadMessageMap.get(props.message.conversationIDKey)
+  const lastReadMessageID = state.chat2.lastReadMessageMap.get(ownProps.message.conversationIDKey)
   // Show the orange line on the first message after the last unread message
   // Messages sent sent by you don't count
   const orangeLineAbove =
-    !!props.previous &&
-    lastReadMessageID === props.previous.id &&
-    props.message.author !== state.config.username
+    !!ownProps.previous &&
+    lastReadMessageID === ownProps.previous.id &&
+    ownProps.message.author !== state.config.username
 
   return {
-    _message: props.message,
-    conversationIDKey: props.message.conversationIDKey,
+    _message: ownProps.message,
+    conversationIDKey: ownProps.message.conversationIDKey,
     orangeLineAbove,
-    ordinal: props.message.ordinal,
-    previous: props.previous,
+    ordinal: ownProps.message.ordinal,
+    previous: ownProps.previous,
   }
 }
 
