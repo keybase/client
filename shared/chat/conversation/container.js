@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Constants from '../../constants/chat2'
 import * as Types from '../../constants/types/chat2'
+import {isMobile} from '../../styles'
 import {connect, type TypedState} from '../../util/container'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
@@ -20,7 +21,17 @@ class Conversation extends React.PureComponent<SwitchProps> {
       case 'error':
         return this.props.conversationIDKey && <Error conversationIDKey={this.props.conversationIDKey} />
       case 'noConvo':
-        return <NoConversation />
+        // When navigating back to the inbox on mobile, we delelect
+        // conversationIDKey by called mobileChangeSelection. This results in
+        // the conversation view rendering "NoConversation" as it is
+        // transitioning back the the inbox.
+        // On android this is very noticable because transitions fade between
+        // screens, so "NoConversation" will appear on top of the inbox for
+        // approximately 150ms.
+        // On iOS it is less noticable because screen transitions slide away to
+        // the right, though it is visible for a small amount of time.
+        // To solve this we render a blank screen on mobile conversation views with "noConvo"
+        return isMobile ? null : <NoConversation />
       case 'normal':
         return <Normal conversationIDKey={this.props.conversationIDKey} />
       case 'youAreReset':

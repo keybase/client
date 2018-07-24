@@ -203,14 +203,14 @@ func fetchUserEKStatements(ctx context.Context, g *libkb.GlobalContext, uids []k
 	defer g.CTraceTimed(ctx, fmt.Sprintf("fetchUserEKStatements: numUids: %v", len(uids)), func() error { return err })()
 
 	apiArg := libkb.APIArg{
-		Endpoint:    "user/user_ek",
+		Endpoint:    "user/get_user_ek_batch",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		NetContext:  ctx,
 		Args: libkb.HTTPArgs{
 			"uids": libkb.S{Val: libkb.UidsToString(uids)},
 		},
 	}
-	res, err := g.GetAPI().Get(apiArg)
+	res, err := g.GetAPI().Post(apiArg)
 	if err != nil {
 		return nil, err
 	}

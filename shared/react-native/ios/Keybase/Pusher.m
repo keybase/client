@@ -15,7 +15,11 @@
 - (void)localNotification:(NSString*)ident msg:(NSString*)msg badgeCount:(long)badgeCount soundName:(NSString*)soundName convID:(NSString*)convID typ:(NSString*)typ {
   UNMutableNotificationContent *localNotification = [UNMutableNotificationContent new];
   localNotification.sound = [UNNotificationSound soundNamed:soundName];
-  localNotification.badge = [NSNumber numberWithLong:badgeCount];
+  NSNumber* badge = NULL;
+  if (badgeCount >= 0) {
+    badge = [NSNumber numberWithLong:badgeCount];
+  }
+  localNotification.badge = badge;
   localNotification.body = msg;
   localNotification.userInfo = @{ @"convID" : convID, @"type" : typ};
   UNNotificationRequest *request = [UNNotificationRequest requestWithIdentifier:ident content:localNotification trigger:nil];

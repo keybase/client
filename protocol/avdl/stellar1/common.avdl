@@ -10,6 +10,10 @@ protocol common {
   @typedef("bytes")  record Hash {}
   @typedef("string") record KeybaseRequestID {}
 
+  record PaymentID {
+    TransactionID txID;
+  }
+
   record Asset {
     string type;
     string code;

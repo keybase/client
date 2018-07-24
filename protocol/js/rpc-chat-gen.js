@@ -721,10 +721,9 @@ export type PreviewLocationTyp =
   | 1 // FILE_1
 
 export type RateLimit = $ReadOnly<{name: String, callsRemaining: Int, windowReset: Int, maxCalls: Int}>
-export type Reaction = $ReadOnly<{username: String, reactionMsgID: MessageID}>
 export type ReactionDelete = $ReadOnly<{reactionKey: String, reactionMsgID: MessageID, targetMsgID: MessageID}>
 export type ReactionDeleteNotif = $ReadOnly<{convID: ConversationID, reactionDeletes?: ?Array<ReactionDelete>}>
-export type ReactionMap = $ReadOnly<{reactions: {[key: string]: ?Array<Reaction>}}>
+export type ReactionMap = $ReadOnly<{reactions: {[key: string]: {[key: string]: MessageID}}}>
 export type ReadMessageInfo = $ReadOnly<{convID: ConversationID, msgID: MessageID, conv?: ?InboxUIItem}>
 export type ReadMessagePayload = $ReadOnly<{Action: String, convID: ConversationID, msgID: MessageID, inboxVers: InboxVers, topicType: TopicType, unreadUpdate?: ?UnreadUpdate}>
 export type RemoteDeleteConversationRpcParam = $ReadOnly<{convID: ConversationID}>

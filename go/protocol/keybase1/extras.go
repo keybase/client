@@ -1206,7 +1206,8 @@ func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_GUI,
 		TLFIdentifyBehavior_CHAT_GUI_STRICT,
-		TLFIdentifyBehavior_SALTPACK:
+		TLFIdentifyBehavior_SALTPACK,
+		TLFIdentifyBehavior_RESOLVE_AND_CHECK:
 		return true
 	default:
 		// TLFIdentifyBehavior_DEFAULT_KBFS, for filesystem activity that
@@ -1222,6 +1223,39 @@ func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 		// track errors, because people need to be able to use it to ask each other
 		// about the fact that proofs are broken.
 		return true
+	case TLFIdentifyBehavior_RESOLVE_AND_CHECK:
+		// Tracks don't matter for ResolveAndCheck, since we act logged out.
+		return true
+	default:
+		return false
+	}
+}
+
+func (b TLFIdentifyBehavior) SkipUserCard() bool {
+	switch b {
+	case TLFIdentifyBehavior_CHAT_GUI, TLFIdentifyBehavior_RESOLVE_AND_CHECK:
+		// We don't need to bother loading a user card in these cases.
+		return true
+	default:
+		return false
+	}
+}
+
+func (b TLFIdentifyBehavior) AllowCaching() bool {
+	switch b {
+	case TLFIdentifyBehavior_RESOLVE_AND_CHECK:
+		// We Don't want to use any internal ID2 caching for ResolveAndCheck.
+		return false
+	default:
+		return true
+	}
+}
+
+func (b TLFIdentifyBehavior) AllowDeletedUsers() bool {
+	switch b {
+	case TLFIdentifyBehavior_RESOLVE_AND_CHECK:
+		// ResolveAndCheck is OK with deleted users
+		return true
 	default:
 		return false
 	}
@@ -1236,6 +1270,7 @@ func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
 		TLFIdentifyBehavior_KBFS_REKEY,
 		TLFIdentifyBehavior_KBFS_QR,
 		TLFIdentifyBehavior_SALTPACK,
+		TLFIdentifyBehavior_RESOLVE_AND_CHECK,
 		TLFIdentifyBehavior_KBFS_CHAT:
 		// These are identifies that either happen without user interaction at
 		// all, or happen while you're staring at some Keybase UI that can
@@ -1870,10 +1905,6 @@ func (t TeamMembers) AllUserVersions() []UserVersion {
 		all = append(all, uv)
 	}
 	return all
-}
-
-func (t TeamMember) IsReset() bool {
-	return t.EldestSeqno != t.UserEldestSeqno
 }
 
 func (s TeamMemberStatus) IsActive() bool {
