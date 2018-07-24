@@ -30,7 +30,7 @@ const PaperKey = (props: Props) => (
       centerChildren={true}
       gap={isMobile ? 'tiny' : 'medium'}
     >
-      <Box2 direction="vertical" gap="tiny" centerChildren={true}>
+      <Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
         <Icon type="icon-paper-key-48" />
         <Text type="Header" style={styles.hint}>
           {props.hint}
@@ -84,6 +84,7 @@ const styles = styleSheetCreate({
   },
   input: {
     color: globalColors.black,
+    ...globalStyles.fontTerminal,
   },
   inputContainer: {
     borderColor: globalColors.black_10,

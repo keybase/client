@@ -263,7 +263,7 @@ const Instructions = (p: Props) => (
     ) : (
       <React.Fragment>
         <Text type="Header" style={styles.instructions}>
-          In
+          On
           <Text type="Header" style={styles.instructionsItalic}>
             {' '}
             {p.otherDeviceName}
@@ -282,7 +282,7 @@ const Instructions = (p: Props) => (
             {` ${String.fromCharCode(iconMeta['iconfont-arrow-right'].charCode || 0)} `}
           </Text>
           <Text type="Header" style={styles.instructions}>
-            New {p.currentDeviceType === 'desktop' ? 'computer' : 'mobile'}.
+            New {p.currentDeviceType === 'desktop' ? 'computer' : 'phone'}.
           </Text>
         </Text>
       </React.Fragment>
