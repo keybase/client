@@ -485,6 +485,7 @@ func AppBeginBackgroundTask(pusher PushNotifier) (abort bool) {
 		}
 	})
 	g.Go(func() error {
+		successCount := 0
 		for {
 			select {
 			case <-ticker.C:
@@ -494,13 +495,20 @@ func AppBeginBackgroundTask(pusher PushNotifier) (abort bool) {
 					continue
 				}
 				if len(convs) == 0 {
-					kbCtx.Log.Debug("AppBeginBackgroundTask: delivered everything, aborting early")
-					abort = true
-					return errors.New("delivered everything")
+					kbCtx.Log.Debug("AppBeginBackgroundTask: delivered everything: successCount: %d",
+						successCount)
+					// We can race the failure case here, so lets go a couple passes of no pending
+					// convs before we abort due to ths condition.
+					if successCount > 1 {
+						abort = true
+						return errors.New("delivered everything")
+					}
+					successCount++
 				}
 				curTime := libkb.ForceWallClock(time.Now())
 				if curTime.Sub(beginTime) >= 10*time.Minute {
 					kbCtx.Log.Debug("AppBeginBackgroundTask: failed to deliver and time is up, aborting")
+					pushPendingMessageFailure(convs[0], pusher)
 					abort = true
 					return errors.New("time expired")
 				}
