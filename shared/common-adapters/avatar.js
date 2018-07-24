@@ -25,7 +25,7 @@ type DisallowedStyles = {
 }
 
 export type OwnProps = {|
-  borderColor?: string,
+  borderColor?: ?string,
   children?: React.Node,
   clickToProfile?: 'tracker' | 'profile', // If set, go to profile on mobile and tracker/profile on desktop
   editable?: boolean,
@@ -45,7 +45,7 @@ export type OwnProps = {|
 
 type PropsWithoutTimer = {
   askForUserData?: () => void,
-  borderColor?: string,
+  borderColor?: ?string,
   children?: React.Node,
   editable?: boolean,
   followIconSize: number,
@@ -320,3 +320,7 @@ const mockOwnToViewProps = (
 
 export default Avatar
 export {mockOwnToViewProps}
+
+export function castPlatformStyles(styles: any) {
+  return styles
+}
