@@ -818,7 +818,9 @@ func (s *Server) GetSendAssetChoicesLocal(ctx context.Context, arg stellar1.GetS
 
 		recipient, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput(arg.To))
 		if err != nil {
-			return res, err
+			s.G().Log.CDebugf(ctx, "Skipping asset filtering: stellar.LookupRecipient for %q failed with: %s",
+				arg.To, err)
+			return res, nil
 		}
 
 		theirBalancesHash := make(map[string]bool)
@@ -829,7 +831,9 @@ func (s *Server) GetSendAssetChoicesLocal(ctx context.Context, arg stellar1.GetS
 		if recipient.AccountID != nil {
 			theirBalances, err := s.remoter.Balances(ctx, stellar1.AccountID(recipient.AccountID.String()))
 			if err != nil {
-				return res, err
+				s.G().Log.CDebugf(ctx, "Skipping asset filtering: remoter.Balances for %q failed with: %s",
+					recipient.AccountID, err)
+				return res, nil
 			}
 			for _, bal := range theirBalances {
 				theirBalancesHash[assetHashCode(bal.Asset)] = true
