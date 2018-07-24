@@ -17,23 +17,113 @@ func (o OpID) DeepCopy() OpID {
 	return ret
 }
 
+type KBFSRevision int64
+
+func (o KBFSRevision) DeepCopy() KBFSRevision {
+	return o
+}
+
+type KBFSArchivedType int
+
+const (
+	KBFSArchivedType_REVISION KBFSArchivedType = 0
+)
+
+func (o KBFSArchivedType) DeepCopy() KBFSArchivedType { return o }
+
+var KBFSArchivedTypeMap = map[string]KBFSArchivedType{
+	"REVISION": 0,
+}
+
+var KBFSArchivedTypeRevMap = map[KBFSArchivedType]string{
+	0: "REVISION",
+}
+
+func (e KBFSArchivedType) String() string {
+	if v, ok := KBFSArchivedTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type KBFSArchivedParam struct {
+	KBFSArchivedType__ KBFSArchivedType `codec:"KBFSArchivedType" json:"KBFSArchivedType"`
+	Revision__         *KBFSRevision    `codec:"revision,omitempty" json:"revision,omitempty"`
+}
+
+func (o *KBFSArchivedParam) KBFSArchivedType() (ret KBFSArchivedType, err error) {
+	switch o.KBFSArchivedType__ {
+	case KBFSArchivedType_REVISION:
+		if o.Revision__ == nil {
+			err = errors.New("unexpected nil value for Revision__")
+			return ret, err
+		}
+	}
+	return o.KBFSArchivedType__, nil
+}
+
+func (o KBFSArchivedParam) Revision() (res KBFSRevision) {
+	if o.KBFSArchivedType__ != KBFSArchivedType_REVISION {
+		panic("wrong case accessed")
+	}
+	if o.Revision__ == nil {
+		return
+	}
+	return *o.Revision__
+}
+
+func NewKBFSArchivedParamWithRevision(v KBFSRevision) KBFSArchivedParam {
+	return KBFSArchivedParam{
+		KBFSArchivedType__: KBFSArchivedType_REVISION,
+		Revision__:         &v,
+	}
+}
+
+func (o KBFSArchivedParam) DeepCopy() KBFSArchivedParam {
+	return KBFSArchivedParam{
+		KBFSArchivedType__: o.KBFSArchivedType__.DeepCopy(),
+		Revision__: (func(x *KBFSRevision) *KBFSRevision {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Revision__),
+	}
+}
+
+type KBFSArchivedPath struct {
+	Path          string            `codec:"path" json:"path"`
+	ArchivedParam KBFSArchivedParam `codec:"archivedParam" json:"archivedParam"`
+}
+
+func (o KBFSArchivedPath) DeepCopy() KBFSArchivedPath {
+	return KBFSArchivedPath{
+		Path:          o.Path,
+		ArchivedParam: o.ArchivedParam.DeepCopy(),
+	}
+}
+
 type PathType int
 
 const (
-	PathType_LOCAL PathType = 0
-	PathType_KBFS  PathType = 1
+	PathType_LOCAL         PathType = 0
+	PathType_KBFS          PathType = 1
+	PathType_KBFS_ARCHIVED PathType = 2
 )
 
 func (o PathType) DeepCopy() PathType { return o }
 
 var PathTypeMap = map[string]PathType{
-	"LOCAL": 0,
-	"KBFS":  1,
+	"LOCAL":         0,
+	"KBFS":          1,
+	"KBFS_ARCHIVED": 2,
 }
 
 var PathTypeRevMap = map[PathType]string{
 	0: "LOCAL",
 	1: "KBFS",
+	2: "KBFS_ARCHIVED",
 }
 
 func (e PathType) String() string {
@@ -44,9 +134,10 @@ func (e PathType) String() string {
 }
 
 type Path struct {
-	PathType__ PathType `codec:"PathType" json:"PathType"`
-	Local__    *string  `codec:"local,omitempty" json:"local,omitempty"`
-	Kbfs__     *string  `codec:"kbfs,omitempty" json:"kbfs,omitempty"`
+	PathType__     PathType          `codec:"PathType" json:"PathType"`
+	Local__        *string           `codec:"local,omitempty" json:"local,omitempty"`
+	Kbfs__         *string           `codec:"kbfs,omitempty" json:"kbfs,omitempty"`
+	KbfsArchived__ *KBFSArchivedPath `codec:"kbfsArchived,omitempty" json:"kbfsArchived,omitempty"`
 }
 
 func (o *Path) PathType() (ret PathType, err error) {
@@ -59,6 +150,11 @@ func (o *Path) PathType() (ret PathType, err error) {
 	case PathType_KBFS:
 		if o.Kbfs__ == nil {
 			err = errors.New("unexpected nil value for Kbfs__")
+			return ret, err
+		}
+	case PathType_KBFS_ARCHIVED:
+		if o.KbfsArchived__ == nil {
+			err = errors.New("unexpected nil value for KbfsArchived__")
 			return ret, err
 		}
 	}
@@ -85,6 +181,16 @@ func (o Path) Kbfs() (res string) {
 	return *o.Kbfs__
 }
 
+func (o Path) KbfsArchived() (res KBFSArchivedPath) {
+	if o.PathType__ != PathType_KBFS_ARCHIVED {
+		panic("wrong case accessed")
+	}
+	if o.KbfsArchived__ == nil {
+		return
+	}
+	return *o.KbfsArchived__
+}
+
 func NewPathWithLocal(v string) Path {
 	return Path{
 		PathType__: PathType_LOCAL,
@@ -96,6 +202,13 @@ func NewPathWithKbfs(v string) Path {
 	return Path{
 		PathType__: PathType_KBFS,
 		Kbfs__:     &v,
+	}
+}
+
+func NewPathWithKbfsArchived(v KBFSArchivedPath) Path {
+	return Path{
+		PathType__:     PathType_KBFS_ARCHIVED,
+		KbfsArchived__: &v,
 	}
 }
 
@@ -116,6 +229,13 @@ func (o Path) DeepCopy() Path {
 			tmp := (*x)
 			return &tmp
 		})(o.Kbfs__),
+		KbfsArchived__: (func(x *KBFSArchivedPath) *KBFSArchivedPath {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.KbfsArchived__),
 	}
 }
 

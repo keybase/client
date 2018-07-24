@@ -204,20 +204,18 @@ func (o PerTeamKeySeedItem) DeepCopy() PerTeamKeySeedItem {
 }
 
 type TeamMember struct {
-	Uid             UID              `codec:"uid" json:"uid"`
-	Role            TeamRole         `codec:"role" json:"role"`
-	EldestSeqno     Seqno            `codec:"eldestSeqno" json:"eldestSeqno"`
-	UserEldestSeqno Seqno            `codec:"userEldestSeqno" json:"userEldestSeqno"`
-	Status          TeamMemberStatus `codec:"status" json:"status"`
+	Uid         UID              `codec:"uid" json:"uid"`
+	Role        TeamRole         `codec:"role" json:"role"`
+	EldestSeqno Seqno            `codec:"eldestSeqno" json:"eldestSeqno"`
+	Status      TeamMemberStatus `codec:"status" json:"status"`
 }
 
 func (o TeamMember) DeepCopy() TeamMember {
 	return TeamMember{
-		Uid:             o.Uid.DeepCopy(),
-		Role:            o.Role.DeepCopy(),
-		EldestSeqno:     o.EldestSeqno.DeepCopy(),
-		UserEldestSeqno: o.UserEldestSeqno.DeepCopy(),
-		Status:          o.Status.DeepCopy(),
+		Uid:         o.Uid.DeepCopy(),
+		Role:        o.Role.DeepCopy(),
+		EldestSeqno: o.EldestSeqno.DeepCopy(),
+		Status:      o.Status.DeepCopy(),
 	}
 }
 
@@ -2076,6 +2074,7 @@ type TeamOperation struct {
 	SetTeamShowcase        bool `codec:"setTeamShowcase" json:"setTeamShowcase"`
 	SetMemberShowcase      bool `codec:"setMemberShowcase" json:"setMemberShowcase"`
 	SetRetentionPolicy     bool `codec:"setRetentionPolicy" json:"setRetentionPolicy"`
+	SetMinWriterRole       bool `codec:"setMinWriterRole" json:"setMinWriterRole"`
 	ChangeOpenTeam         bool `codec:"changeOpenTeam" json:"changeOpenTeam"`
 	LeaveTeam              bool `codec:"leaveTeam" json:"leaveTeam"`
 	JoinTeam               bool `codec:"joinTeam" json:"joinTeam"`
@@ -2097,6 +2096,7 @@ func (o TeamOperation) DeepCopy() TeamOperation {
 		SetTeamShowcase:        o.SetTeamShowcase,
 		SetMemberShowcase:      o.SetMemberShowcase,
 		SetRetentionPolicy:     o.SetRetentionPolicy,
+		SetMinWriterRole:       o.SetMinWriterRole,
 		ChangeOpenTeam:         o.ChangeOpenTeam,
 		LeaveTeam:              o.LeaveTeam,
 		JoinTeam:               o.JoinTeam,
@@ -2184,6 +2184,14 @@ type TeamAddMemberArg struct {
 	Name                 string   `codec:"name" json:"name"`
 	Email                string   `codec:"email" json:"email"`
 	Username             string   `codec:"username" json:"username"`
+	Role                 TeamRole `codec:"role" json:"role"`
+	SendChatNotification bool     `codec:"sendChatNotification" json:"sendChatNotification"`
+}
+
+type TeamAddMembersArg struct {
+	SessionID            int      `codec:"sessionID" json:"sessionID"`
+	Name                 string   `codec:"name" json:"name"`
+	Assertions           []string `codec:"assertions" json:"assertions"`
 	Role                 TeamRole `codec:"role" json:"role"`
 	SendChatNotification bool     `codec:"sendChatNotification" json:"sendChatNotification"`
 }
@@ -2386,6 +2394,10 @@ type ProfileTeamLoadArg struct {
 	Arg LoadTeamArg `codec:"arg" json:"arg"`
 }
 
+type GetTeamIDArg struct {
+	TeamName string `codec:"teamName" json:"teamName"`
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
@@ -2397,6 +2409,7 @@ type TeamsInterface interface {
 	TeamListSubteamsRecursive(context.Context, TeamListSubteamsRecursiveArg) ([]TeamIDAndName, error)
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
 	TeamAddMember(context.Context, TeamAddMemberArg) (TeamAddMemberResult, error)
+	TeamAddMembers(context.Context, TeamAddMembersArg) error
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
 	TeamLeave(context.Context, TeamLeaveArg) error
 	TeamEditMember(context.Context, TeamEditMemberArg) error
@@ -2444,6 +2457,9 @@ type TeamsInterface interface {
 	// ProfileTeamLoad loads a team and then throws it on the ground, for the purposes of profiling
 	// the team load machinery.
 	ProfileTeamLoad(context.Context, LoadTeamArg) (ProfileTeamLoadRes, error)
+	// Gets a TeamID from a team name string. Returns an error if the
+	// current user can't read the team.
+	GetTeamID(context.Context, string) (TeamID, error)
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -2606,6 +2622,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamAddMember(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"teamAddMembers": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamAddMembersArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamAddMembersArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamAddMembersArg)(nil), args)
+						return
+					}
+					err = i.TeamAddMembers(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3170,6 +3202,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getTeamID": {
+				MakeArg: func() interface{} {
+					ret := make([]GetTeamIDArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetTeamIDArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetTeamIDArg)(nil), args)
+						return
+					}
+					ret, err = i.GetTeamID(ctx, (*typedArgs)[0].TeamName)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -3225,6 +3273,11 @@ func (c TeamsClient) TeamChangeMembership(ctx context.Context, __arg TeamChangeM
 
 func (c TeamsClient) TeamAddMember(ctx context.Context, __arg TeamAddMemberArg) (res TeamAddMemberResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMember", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamAddMembers(ctx context.Context, __arg TeamAddMembersArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMembers", []interface{}{__arg}, nil)
 	return
 }
 
@@ -3420,5 +3473,13 @@ func (c TeamsClient) FindNextMerkleRootAfterTeamRemovalBySigningKey(ctx context.
 func (c TeamsClient) ProfileTeamLoad(ctx context.Context, arg LoadTeamArg) (res ProfileTeamLoadRes, err error) {
 	__arg := ProfileTeamLoadArg{Arg: arg}
 	err = c.Cli.Call(ctx, "keybase.1.teams.profileTeamLoad", []interface{}{__arg}, &res)
+	return
+}
+
+// Gets a TeamID from a team name string. Returns an error if the
+// current user can't read the team.
+func (c TeamsClient) GetTeamID(ctx context.Context, teamName string) (res TeamID, err error) {
+	__arg := GetTeamIDArg{TeamName: teamName}
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamID", []interface{}{__arg}, &res)
 	return
 }
