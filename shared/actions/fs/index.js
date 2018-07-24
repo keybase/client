@@ -47,6 +47,7 @@ const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
       return Constants.makeFolder({
         ...direntToMetadata(d),
         children: I.Set(children),
+        progress: children ? 'loaded' : undefined,
       })
     case RPCTypes.simpleFSDirentType.sym:
       return Constants.makeSymlink({
@@ -151,9 +152,14 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   // Get metadata fields of the directory that we just loaded from state to
   // avoid overriding them.
   const state = yield Saga.select()
-  const {lastModifiedTimestamp, lastWriter, size, writable, favoriteChildren, tlfMeta}: Types.FolderPathItem = state.fs.pathItems.get(
-    rootPath
-  )
+  const {
+    lastModifiedTimestamp,
+    lastWriter,
+    size,
+    writable,
+    favoriteChildren,
+    tlfMeta,
+  }: Types.FolderPathItem = state.fs.pathItems.get(rootPath)
 
   const pathItems = [
     [
