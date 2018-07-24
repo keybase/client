@@ -669,6 +669,19 @@
     },
     {
       "type": "record",
+      "name": "ConversationSettings",
+      "fields": [
+        {
+          "type": [
+            null,
+            "ConversationMinWriterRoleInfo"
+          ],
+          "name": "minWriterRoleInfo"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "Conversation",
       "fields": [
         {
@@ -731,9 +744,9 @@
         {
           "type": [
             null,
-            "ConversationMinWriterRoleInfo"
+            "ConversationSettings"
           ],
-          "name": "minWriterRoleInfo"
+          "name": "convSettings"
         }
       ]
     },

@@ -74,7 +74,7 @@ protocol chatUi {
     MessageID readMsgID;
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
-    union { null, ConversationMinWriterRoleInfoLocal } minWriterRoleInfo;
+    union { null, ConversationSettingsLocal } convSettings;
 
     // Finalized convo stuff (KBFS only)
     union { null, ConversationFinalizeInfo } finalizeInfo;
