@@ -92,7 +92,7 @@ class SelectOtherDevice extends React.Component<Props> {
 const Troubleshooting = ({onResetAccount}) => (
   <Box2 direction="vertical" gap="small" style={styles.troubleShooting}>
     <Box2 direction="horizontal" fullWidth={true} gap="tiny">
-      <Icon type="iconfont-keybase" />
+      <Icon type="iconfont-wrenches" />
       <Text type="BodySmallSemibold">Troubleshooting</Text>
     </Box2>
     <Text type="BodySemibold">
