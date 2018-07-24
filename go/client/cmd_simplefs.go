@@ -6,6 +6,7 @@ package client
 import (
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -49,7 +50,20 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 
 const mountDir = "/keybase"
 
-func makeSimpleFSPath(g *libkb.GlobalContext, path string) keybase1.Path {
+func makeKbfsPath(path string, rev int64) keybase1.Path {
+	p := path[len(mountDir):]
+	if rev == 0 {
+		return keybase1.NewPathWithKbfs(p)
+	}
+	return keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
+		Path: p,
+		ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(
+			keybase1.KBFSRevision(rev)),
+	})
+}
+
+func makeSimpleFSPath(
+	g *libkb.GlobalContext, path string, rev int64) (keybase1.Path, error) {
 
 	path = filepath.ToSlash(path)
 	if strings.HasSuffix(path, "/") {
@@ -59,7 +73,7 @@ func makeSimpleFSPath(g *libkb.GlobalContext, path string) keybase1.Path {
 	// Test for the special mount dir prefix before the absolute test.
 	// Otherwise the current dir will be prepended, below.
 	if strings.HasPrefix(path, mountDir) {
-		return keybase1.NewPathWithKbfs(path[len(mountDir):])
+		return makeKbfsPath(path, rev), nil
 	}
 
 	// make absolute
@@ -78,10 +92,15 @@ func makeSimpleFSPath(g *libkb.GlobalContext, path string) keybase1.Path {
 	// mounted KBFS. This is for those who want to do so
 	// from "/keybase/..."
 	if strings.HasPrefix(path, mountDir) {
-		return keybase1.NewPathWithKbfs(path[len(mountDir):])
+		return makeKbfsPath(path, rev), nil
 	}
 
-	return keybase1.NewPathWithLocal(path)
+	if rev > 0 {
+		return keybase1.Path{}, fmt.Errorf(
+			"Can't specify a revision for a local path")
+	}
+
+	return keybase1.NewPathWithLocal(path), nil
 }
 
 func stringToOpID(arg string) (keybase1.OpID, error) {
@@ -101,10 +120,16 @@ func pathToString(path keybase1.Path) string {
 	if err != nil {
 		return ""
 	}
-	if pathType == keybase1.PathType_KBFS {
+	switch pathType {
+	case keybase1.PathType_KBFS:
 		return path.Kbfs()
+	case keybase1.PathType_KBFS_ARCHIVED:
+		return path.KbfsArchived().Path
+	case keybase1.PathType_LOCAL:
+		return path.Local()
+	default:
+		return ""
 	}
-	return path.Local()
 }
 
 // Check whether the given path is a directory and return its string
@@ -114,8 +139,13 @@ func checkPathIsDir(ctx context.Context, cli keybase1.SimpleFSInterface, path ke
 	var err error
 
 	pathType, _ := path.PathType()
-	if pathType == keybase1.PathType_KBFS {
-		pathString = path.Kbfs()
+	switch pathType {
+	case keybase1.PathType_KBFS, keybase1.PathType_KBFS_ARCHIVED:
+		if pathType == keybase1.PathType_KBFS {
+			pathString = path.Kbfs()
+		} else {
+			pathString = path.KbfsArchived().Path
+		}
 		// See if the dest is a path or file
 		destEnt, err := cli.SimpleFSStat(ctx, path)
 		if err != nil {
@@ -125,7 +155,7 @@ func checkPathIsDir(ctx context.Context, cli keybase1.SimpleFSInterface, path ke
 		if destEnt.DirentType == keybase1.DirentType_DIR {
 			isDir = true
 		}
-	} else {
+	case keybase1.PathType_LOCAL:
 		pathString = path.Local()
 		// An error is OK, could be a target filename
 		// that does not exist yet
@@ -221,7 +251,15 @@ func parseSrcDestArgs(g *libkb.GlobalContext, ctx *cli.Context, name string) ([]
 		return srcPaths, destPath, errors.New(name + " requires one or more source arguments and a destination argument")
 	}
 	for i, src := range ctx.Args() {
-		argPath := makeSimpleFSPath(g, src)
+		rev := int64(0)
+		if i != nargs-1 {
+			// All source paths use the same revision.
+			rev = int64(ctx.Int("rev"))
+		}
+		argPath, err := makeSimpleFSPath(g, src, rev)
+		if err != nil {
+			return nil, keybase1.Path{}, err
+		}
 		tempPathType, err := argPath.PathType()
 		if err != nil {
 			return srcPaths, destPath, err
@@ -240,7 +278,7 @@ func parseSrcDestArgs(g *libkb.GlobalContext, ctx *cli.Context, name string) ([]
 	}
 
 	if srcType == keybase1.PathType_LOCAL && destType == keybase1.PathType_LOCAL {
-		return srcPaths, destPath, errors.New(name + " reacquires KBFS source and/or destination")
+		return srcPaths, destPath, errors.New(name + " requires KBFS source and/or destination")
 	}
 	return srcPaths, destPath, nil
 }
