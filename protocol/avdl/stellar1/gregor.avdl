@@ -11,4 +11,10 @@ protocol gregor {
   record RequestStatusMsg {
     KeybaseRequestID reqID;
   }
+
+  // stellar.payment_notification gregor message body
+  record PaymentNotificationMsg {
+    AccountID accountID;
+    PaymentID paymentID;
+  }
 }

@@ -28,6 +28,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   loadAllTeams: () => dispatch(TeamsGen.createGetDetailsForAllTeams()),
+  loadTeamList: () => dispatch(TeamsGen.createGetTeams()),
   _onAddToTeams: (role: TeamRoleType, teams: Array<string>, user: string) => {
     dispatch(TeamsGen.createAddUserToTeams({role, teams, user}))
     dispatch(navigateUp())
@@ -90,6 +91,7 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount() {
+      this.props.loadTeamList()
       this.props.loadAllTeams()
     },
   }),

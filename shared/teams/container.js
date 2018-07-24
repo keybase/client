@@ -2,10 +2,11 @@
 import * as I from 'immutable'
 import * as KBFSGen from '../actions/kbfs-gen'
 import * as GregorGen from '../actions/gregor-gen'
+import * as TeamsGen from '../actions/teams-gen'
 import Teams from './main'
 import openURL from '../util/open-url'
 import {navigateAppend} from '../actions/route-tree'
-import {connect, type TypedState} from '../util/container'
+import {compose, lifecycle, type TypedState, connect} from '../util/container'
 import {getSortedTeamnames} from '../constants/teams'
 import {type Teamname} from '../constants/types/teams'
 
@@ -21,6 +22,7 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   onCreateTeam: () => {
     dispatch(
       navigateAppend([
@@ -58,4 +60,11 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Teams)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  lifecycle({
+    componentDidMount() {
+      this.props._loadTeams()
+    },
+  })
+)(Teams)

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
@@ -574,18 +575,26 @@ func TestGetPaymentsLocal(t *testing.T) {
 	rm := tcs[0].Backend
 	accountIDSender := rm.AddAccount()
 	accountIDRecip := rm.AddAccount()
+	accountIDRecip2 := rm.AddAccount()
 
 	srvRecip := tcs[1].Srv
 
-	argImport := stellar1.ImportSecretKeyLocalArg{
+	err = srvSender.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(accountIDSender),
 		MakePrimary: true,
-	}
-	err = srvSender.ImportSecretKeyLocal(context.Background(), argImport)
+	})
 	require.NoError(t, err)
 
-	argImport.SecretKey = rm.SecretKey(accountIDRecip)
-	err = srvRecip.ImportSecretKeyLocal(context.Background(), argImport)
+	err = srvRecip.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   rm.SecretKey(accountIDRecip),
+		MakePrimary: true,
+	})
+	require.NoError(t, err)
+
+	err = srvRecip.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   rm.SecretKey(accountIDRecip2),
+		MakePrimary: false,
+	})
 	require.NoError(t, err)
 
 	// Try some payments that should fail locally
@@ -733,8 +742,9 @@ func TestGetPaymentsLocal(t *testing.T) {
 
 	// send to stellar account ID to check target in PaymentLocal
 	sendRes, err = srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
-		From:          accountIDSender,
-		To:            accountIDRecip.String(),
+		From: accountIDSender,
+		// Use a secondary account so that LookupRecipient can't resolve it to the user
+		To:            accountIDRecip2.String(),
 		ToIsAccountID: true,
 		Amount:        "101.456",
 		Asset:         stellar1.AssetNative(),
@@ -758,7 +768,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 	require.NotNil(t, p)
 	require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")
 	require.Equal(t, stellar1.ParticipantType_KEYBASE, p.SourceType, "SourceType")
-	require.Equal(t, accountIDRecip.String(), p.Target, "Target")
+	require.Equal(t, accountIDRecip2.String(), p.Target, "Target")
 	require.Equal(t, stellar1.ParticipantType_STELLAR, p.TargetType, "TargetType")
 }
 
@@ -951,12 +961,81 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "This is *26.7020180 XLM*", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres, []stellar1.SendBannerLocal{})
+
+	t.Logf("sending to account ID")
+	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:          senderAccountID,
+		To:            "GBJCIIIWEP2ZIKSNY3AP5GJ5OHNSN6Y4W5K4IVIY4VSQF5QLVE27GADK",
+		ToIsAccountID: true,
+		Amount:        "8.50",
+		Currency:      &usd,
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, true, bres.ReadyToSend)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, "", bres.ToUsername) // account does not resolve to keybase user
+	require.Equal(t, "", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.PublicMemoErrMsg)
+	require.Equal(t, "This is *26.7020180 XLM*", bres.WorthDescription)
+	require.Equal(t, worthInfo, bres.WorthInfo)
+	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
+		Level:   "info",
+		Message: "Because it's their first transaction, you must send at least 1 XLM.",
+	}})
+
+	t.Logf("sending to account ID that resolves")
+	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:          senderAccountID,
+		To:            senderAccountID.String(),
+		ToIsAccountID: true,
+		Amount:        "8.50",
+		Currency:      &usd,
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, true, bres.ReadyToSend)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, tcs[0].Fu.Username, bres.ToUsername) // account resolves to self
+	require.Equal(t, "", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.PublicMemoErrMsg)
+	require.Equal(t, "This is *26.7020180 XLM*", bres.WorthDescription)
+	require.Equal(t, worthInfo, bres.WorthInfo)
+	requireBannerSet(t, bres, []stellar1.SendBannerLocal{})
+
+	upak, _, err := tcs[0].G.GetUPAKLoader().LoadV2(
+		libkb.NewLoadUserArgWithMetaContext(tcs[0].MetaContext()).WithPublicKeyOptional().
+			WithUID(tcs[1].Fu.User.GetUID()).WithForcePoll(true))
+	require.NoError(t, err)
+	require.NotNil(t, upak.Current.StellarAccountID)
+
+	t.Logf("sending to account ID that resolves")
+	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:          senderAccountID,
+		To:            *upak.Current.StellarAccountID,
+		ToIsAccountID: true,
+		Amount:        "8.50",
+		Currency:      &usd,
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, true, bres.ReadyToSend)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, tcs[1].Fu.Username, bres.ToUsername) // account resolves to other
+	require.Equal(t, "", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.PublicMemoErrMsg)
+	require.Equal(t, "This is *26.7020180 XLM*", bres.WorthDescription)
+	require.Equal(t, worthInfo, bres.WorthInfo)
+	requireBannerSet(t, bres, []stellar1.SendBannerLocal{})
 }
 
 // modifies `expected`
 func requireBannerSet(t testing.TB, bres stellar1.BuildPaymentResLocal, expected []stellar1.SendBannerLocal) {
 	if len(bres.Banners) != len(expected) {
-		t.Logf(spew.Sdump(bres.Banners))
+		t.Logf("%s", spew.Sdump(bres.Banners))
 		require.Len(t, bres.Banners, len(expected))
 	}
 	got := bres.DeepCopy().Banners
@@ -972,3 +1051,102 @@ func requireBannerSet(t testing.TB, bres stellar1.BuildPaymentResLocal, expected
 }
 
 var usd = stellar1.OutsideCurrencyCode("USD")
+
+func TestGetSendAssetChoices(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	fakeAccts := tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	fakeAccts2 := tcs[1].Backend.ImportAccountsForUser(tcs[1])
+
+	// Empty account (not even on the network), expecting to see 0
+	// other assets here.
+	choices, err := tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
+		From: fakeAccts[0].accountID,
+	})
+	require.NoError(t, err)
+	require.Len(t, choices, 0)
+
+	// Same with `To` argument.
+	choices, err = tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
+		From: fakeAccts[0].accountID,
+		To:   tcs[1].Fu.Username,
+	})
+	require.NoError(t, err)
+	require.Len(t, choices, 0)
+
+	// Test assets
+	keys := tcs[0].Backend.CreateFakeAsset("KEYS")
+	astro := tcs[0].Backend.CreateFakeAsset("AstroDollars")
+
+	// Adjust balance with 0 adds empty balance of given asset (mock
+	// "open a trustline").
+	fakeAccts[0].AdjustAssetBalance(0, keys)
+	fakeAccts[0].AdjustAssetBalance(0, astro)
+
+	// New asset choices should be visible
+	choices, err = tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
+		From: fakeAccts[0].accountID,
+	})
+	require.NoError(t, err)
+	require.Len(t, choices, 2)
+	require.True(t, choices[0].Asset.Eq(keys))
+	require.True(t, choices[1].Asset.Eq(astro))
+	for _, v := range choices {
+		require.Equal(t, v.Asset.Code, v.Left)
+		require.Equal(t, v.Asset.Issuer, v.Right)
+		require.True(t, v.Enabled)
+	}
+
+	// We should see the same choices, but all disabled because the
+	// recipient does not accept them.
+	choices2, err := tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
+		From: fakeAccts[0].accountID,
+		To:   tcs[1].Fu.Username,
+	})
+	require.NoError(t, err)
+	require.Len(t, choices2, len(choices))
+	for i, v := range choices2 {
+		require.True(t, v.Asset.Eq(choices[i].Asset))
+		require.Equal(t, v.Asset.Code, v.Left)
+		require.Equal(t, v.Asset.Issuer, v.Right)
+		require.False(t, v.Enabled)
+		require.Contains(t, v.Subtext, tcs[1].Fu.Username)
+		require.Contains(t, v.Subtext, "does not accept")
+		require.Contains(t, v.Subtext, v.Asset.Code)
+	}
+
+	// Open AstroDollars for tcs[1]
+	fakeAccts2[0].AdjustAssetBalance(0, astro)
+
+	choices2, err = tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
+		From: fakeAccts[0].accountID,
+		To:   fakeAccts2[0].accountID.String(), // this time use account ID as `To` argument
+	})
+	require.NoError(t, err)
+	require.Len(t, choices2, len(choices))
+
+	require.True(t, choices2[0].Asset.Eq(keys))
+	require.False(t, choices2[0].Enabled)
+	// Using AccountID should still resolve to user and we should see
+	// "*username* does not accept ..." subtext.
+	require.Contains(t, choices2[0].Subtext, tcs[1].Fu.Username)
+	require.Contains(t, choices2[0].Subtext, "does not accept")
+	require.Contains(t, choices2[0].Subtext, choices2[0].Asset.Code)
+
+	require.True(t, choices2[1].Asset.Eq(astro))
+	require.True(t, choices2[1].Enabled)
+
+	// Try with arg.To AccountID not in the system.
+	externalAcc := tcs[0].Backend.AddAccount()
+	choices3, err := tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
+		From: fakeAccts[0].accountID,
+		To:   externalAcc.String(),
+	})
+	require.NoError(t, err)
+	require.Len(t, choices3, len(choices))
+	for _, v := range choices3 {
+		require.False(t, v.Enabled)
+		require.Contains(t, v.Subtext, "Recipient does not accept")
+	}
+}

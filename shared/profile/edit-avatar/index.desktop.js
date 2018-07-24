@@ -239,6 +239,8 @@ class EditAvatar extends React.Component<_Props, State> {
   }
 
   _onMouseDown = (e: SyntheticMouseEvent<any>) => {
+    if (!this.state.hasPreview) return
+
     const img = this._getImage()
 
     this.setState({
@@ -251,6 +253,8 @@ class EditAvatar extends React.Component<_Props, State> {
   }
 
   _onMouseUp = () => {
+    if (!this.state.hasPreview) return
+
     const img = this._getImage()
 
     this.setState({
@@ -320,8 +324,20 @@ class EditAvatar extends React.Component<_Props, State> {
           onDragLeave={this._onDragLeave}
           onDragOver={this._onDragOver}
           onDrop={this._onDrop}
-          style={styles.container}
+          style={collapseStyles([
+            styles.container,
+            {
+              paddingTop: this.props.createdTeam ? 0 : globalMargins.xlarge,
+            },
+          ])}
         >
+          {this.props.createdTeam && (
+            <Box style={styles.createdBanner}>
+              <Text type="BodySmallSemibold" backgroundMode="Announcements">
+                Hoorah! Your team {this.props.teamname} was created.
+              </Text>
+            </Box>
+          )}
           <Text type="Body" style={styles.instructions}>
             Drag and drop a {this.props.teamname ? 'team' : 'profile'} avatar or{' '}
             <Text type="BodyPrimaryLink" className="hover-underline" onClick={this._filePickerOpen}>
@@ -393,7 +409,7 @@ class EditAvatar extends React.Component<_Props, State> {
           <ButtonBar>
             <Button
               disabled={this.state.submitting}
-              label="Cancel"
+              label={this.props.createdTeam ? 'Later, thanks' : 'Cancel'}
               onClick={this.props.onClose}
               type="Secondary"
             />
@@ -458,10 +474,19 @@ const styles = styleSheetCreate({
     alignItems: 'center',
     minWidth: 460,
     paddingBottom: globalMargins.xlarge,
-    paddingTop: globalMargins.xlarge,
   },
   cover: {
     zIndex: EDIT_AVATAR_ZINDEX,
+  },
+  createdBanner: {
+    backgroundColor: globalColors.green,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
+    marginBottom: globalMargins.large,
+    paddingBottom: globalMargins.xsmall,
+    paddingTop: globalMargins.xsmall,
+    textAlign: 'center',
+    width: '100%',
   },
   hidden: {
     display: 'none',

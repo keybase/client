@@ -299,13 +299,9 @@
     gregor1.Time ctime;
   }
 
-  record Reaction {
-    string username;
-    MessageID reactionMsgID;
-  }
-
   record ReactionMap {
-    map<string, array<Reaction>> reactions;
+    // { reactionText (:+1:) -> { username -> messageID } }
+    map<string, map<string, MessageID>> reactions;
   }
 
   record MessageServerHeader {

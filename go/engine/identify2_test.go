@@ -11,6 +11,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 	require "github.com/stretchr/testify/require"
+	context "golang.org/x/net/context"
 )
 
 func importTrackingLink(t *testing.T, g *libkb.GlobalContext) *libkb.TrackChainLink {
@@ -459,7 +460,12 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 			noMe:  true,
 			cache: tester,
 			tcl:   importTrackingLink(t, tc.G),
-			allowUntrackedFastPath: true,
+			// MK 2018-07-20 BUG BUG BUG! This test originally wanted to
+			// set allowUntrackedFastPath:true, but because noMe was
+			// set, that flag had no effect. So I think there's a bug of
+			// some sort here, that the intention of the test isn't captured
+			// in the test itself. To fix. See: CORE-8352
+			// allowUntrackedFastPath: true,  // THIS IS BuggY!
 		}
 
 		waiter := launchWaiter(t, tester.finishCh)
@@ -1068,6 +1074,60 @@ func TestSkipExternalChecks(t *testing.T) {
 	arg.IdentifyBehavior = keybase1.TLFIdentifyBehavior_CHAT_CLI
 	_, err = identify2WithUIDWithBrokenTrackMakeEngine(t, arg)
 	require.Error(t, err)
+}
+
+type evilResolver struct {
+	*libkb.ResolverImpl
+	badPrefix string
+	badUID    keybase1.UID
+}
+
+func (e *evilResolver) ResolveFullExpressionWithBody(ctx context.Context, s string) libkb.ResolveResult {
+	ret := e.ResolverImpl.ResolveFullExpressionWithBody(ctx, s)
+	if strings.HasPrefix(s, e.badPrefix) {
+		ret.SetUIDForTesting(e.badUID)
+	}
+	return ret
+}
+
+var _ libkb.Resolver = (*evilResolver)(nil)
+
+func TestResolveAndCheck(t *testing.T) {
+	tc := SetupEngineTest(t, "id")
+	defer tc.Cleanup()
+	m := NewMetaContextForTest(tc)
+	goodResolver := tc.G.Resolver.(*libkb.ResolverImpl)
+	evilResolver := evilResolver{goodResolver, "t_alice", tracyUID}
+
+	var tests = []struct {
+		s string
+		e error
+		r libkb.Resolver
+	}{
+		{"tacovontaco@twitter+t_tracy@rooter", nil, nil},
+		{"tacovontaco@twitter+t_tracy@rooter+t_tracy", nil, nil},
+		{"t_tracy", nil, nil},
+		{"t_tracy+" + string(tracyUID) + "@uid", nil, nil},
+		{"tacovontaco@twitter+t_tracy@rooter+foobunny@github", libkb.UnmetAssertionError{}, nil},
+		{"foobunny@github", libkb.ResolutionError{}, nil},
+		{"foobunny", libkb.NotFoundError{}, nil},
+		{"foobunny+foobunny@github", libkb.NotFoundError{}, nil},
+		{"t_alice", libkb.UIDMismatchError{}, &evilResolver},
+		{"t_alice+t_tracy@rooter", libkb.UnmetAssertionError{}, &evilResolver},
+		{"t_alice+" + string(aliceUID) + "@uid", libkb.UnmetAssertionError{}, &evilResolver},
+	}
+	for _, test := range tests {
+		tc.G.Resolver = goodResolver
+		if test.r != nil {
+			tc.G.Resolver = test.r
+		}
+		upk, err := ResolveAndCheck(m, test.s)
+		require.IsType(t, test.e, err)
+		if err == nil {
+			require.True(t, upk.GetUID().Equal(tracyUID))
+			require.Equal(t, upk.GetName(), "t_tracy")
+		}
+	}
 }
 
 var aliceUID = keybase1.UID("295a7eea607af32040647123732bc819")

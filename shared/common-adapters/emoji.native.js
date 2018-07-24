@@ -7,14 +7,14 @@ import type {Props} from './emoji'
 
 const EmojiWrapper = (props: Props) => {
   const {emojiName, size} = props
-  const emojiVariantSuffx = '\ufe0f' // see http://mts.io/2015/04/21/unicode-symbol-render-text-emoji/
+  const emojiVariantSuffix = '\ufe0f' // see http://mts.io/2015/04/21/unicode-symbol-render-text-emoji/
   return (
     <Text
       type="Body"
       style={{fontSize: size, lineHeight: undefined}}
       allowFontScaling={props.allowFontScaling}
     >
-      {emojiIndexByName[emojiName] + emojiVariantSuffx}
+      {(!!emojiIndexByName[emojiName] && emojiIndexByName[emojiName] + emojiVariantSuffix) || emojiName}
     </Text>
   )
 }
