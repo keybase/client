@@ -104,7 +104,9 @@ export const RoleOptions = ({
 }: RolePickerProps) => (
   <Box style={styles.container}>
     <Box style={styles.headerBox}>
-      <Text style={styles.headerTitle} type="BodySmall">{headerTitle || (username ? `Select a role for ${username}:` : 'Select a role:')}</Text>
+      <Text style={styles.headerTitle} type="BodySmall">
+        {headerTitle || (username ? `Select a role for ${username}:` : 'Select a role:')}
+      </Text>
     </Box>
     {allowOwner && makeRoleOption('owner', selectedRole, setSelectedRole, pluralizeRoleName)}
     {allowAdmin && makeRoleOption('admin', selectedRole, setSelectedRole, pluralizeRoleName)}
@@ -177,17 +179,8 @@ export const RoleConfirm = ({
   return (
     <Box style={styles.confirmBox}>
       <Box style={styles.avatarBox}>
-        <Avatar
-          style={styles.avatar}
-          username={username}
-          size={avatarSize}
-        />
-        <Avatar
-          style={styles.avatar}
-          isTeam={true}
-          teamname={teamname}
-          size={avatarSize}
-        />
+        <Avatar style={styles.avatar} username={username} size={avatarSize} />
+        <Avatar style={styles.avatar} isTeam={true} teamname={teamname} size={avatarSize} />
       </Box>
       <Box style={styles.promptBox}>
         <Text type="BodyBig">{prompt}</Text>

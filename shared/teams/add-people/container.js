@@ -126,6 +126,6 @@ export default compose(
           onAddPeople(role, sendNotification)
         })
       },
-    }),
+    })
   )
 )(AddPeople)

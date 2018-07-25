@@ -1,13 +1,6 @@
 // @flow
 import * as React from 'react'
-import {
-  Box,
-  Button,
-  HeaderHocHeader,
-  ProgressIndicator,
-  Text,
-  PopupDialog,
-} from '../../common-adapters'
+import {Box, Button, HeaderHocHeader, ProgressIndicator, Text, PopupDialog} from '../../common-adapters'
 import {
   collapseStyles,
   globalStyles,
@@ -94,7 +87,12 @@ const AddPeople = (props: Props) => (
       </Box>
       <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium}}>
         <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
-          <Button disabled={!props.numberOfUsersSelected} onClick={props.onOpenRolePicker} label={props.numberOfUsersSelected > 0 ? `Add (${props.numberOfUsersSelected})` : 'Add'} type="Primary" />
+          <Button
+            disabled={!props.numberOfUsersSelected}
+            onClick={props.onOpenRolePicker}
+            label={props.numberOfUsersSelected > 0 ? `Add (${props.numberOfUsersSelected})` : 'Add'}
+            type="Primary"
+          />
         </Box>
       </Box>
     </Box>

@@ -29,7 +29,12 @@ export const HeaderHocHeader = ({
       </Text>
     )}
     {onBack && (
-      <BackButton hideBackLabel={hideBackLabel} iconColor={_backButtonIconColorThemed[theme]} style={_buttonStyle} onClick={onBack} />
+      <BackButton
+        hideBackLabel={hideBackLabel}
+        iconColor={_backButtonIconColorThemed[theme]}
+        style={_buttonStyle}
+        onClick={onBack}
+      />
     )}
   </Box>
 )
