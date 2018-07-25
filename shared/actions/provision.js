@@ -16,7 +16,7 @@ import type {CommonResponseHandler} from '../engine/types'
 
 const devicesRoot = isMobile ? [Tabs.settingsTab, settingsDevicesTab] : [Tabs.devicesTab]
 
-type ValidCallbacks =
+type ValidCallback =
   | 'keybase.1.gpgUi.selectKey'
   | 'keybase.1.loginUi.displayPrimaryPaperKey'
   | 'keybase.1.loginUi.getEmailOrUsername'
@@ -38,20 +38,28 @@ const ignoreCallback = (_: any, __: any) => {}
 // We only allow one manager to be alive at a time
 // Can be made for a regular provision or if we're adding a device
 class ProvisioningManager {
+  static singleton: ?ProvisioningManager = null
+  static getSingleton = (): ProvisioningManager => {
+    if (!ProvisioningManager.singleton) {
+      throw new Error('No ProvisioningManager')
+    }
+    return ProvisioningManager.singleton
+  }
   _stashedResponse = null
-  _stashedResponseKey: ?ValidCallbacks = null
+  _stashedResponseKey: ?ValidCallback = null
   _addingANewDevice: boolean
 
-  constructor(addingANewDevice: boolean) {
+  constructor(addingANewDevice: boolean, onlyCallThisFromTheHelper: 'ONLY_CALL_THIS_FROM_HELPER') {
     this._addingANewDevice = addingANewDevice
+    ProvisioningManager.singleton = this
   }
 
-  _stashResponse = (key: ValidCallbacks, response: any) => {
+  _stashResponse = (key: ValidCallback, response: any) => {
     this._stashedResponse = response
     this._stashedResponseKey = key
   }
 
-  _getAndClearResponse = (key: ValidCallbacks) => {
+  _getAndClearResponse = (key: ValidCallback) => {
     if (this._stashedResponseKey !== key) {
       throw new Error(`Invalid response key used wants: ${key} has: ${this._stashedResponseKey || ''}`)
     }
@@ -302,8 +310,8 @@ class ProvisioningManager {
   }
 }
 
-// Never let this be null to help flow
-let theProvisioningManager = new ProvisioningManager(false)
+const makeProvisioningManager = (addingANewDevice: boolean): ProvisioningManager =>
+  new ProvisioningManager(addingANewDevice, 'ONLY_CALL_THIS_FROM_HELPER')
 
 /**
  * We are starting the provisioning process. This is largely controlled by the daemon. We get a callback to show various
@@ -311,7 +319,7 @@ let theProvisioningManager = new ProvisioningManager(false)
  */
 const startProvisioning = (state: TypedState) =>
   Saga.call(function*() {
-    theProvisioningManager = new ProvisioningManager(false)
+    makeProvisioningManager(false)
     try {
       const usernameOrEmail = state.provision.usernameOrEmail
       if (!usernameOrEmail) {
@@ -319,7 +327,7 @@ const startProvisioning = (state: TypedState) =>
       }
 
       yield RPCTypes.loginLoginRpcSaga({
-        incomingCallMap: theProvisioningManager.getIncomingCallMap(),
+        incomingCallMap: ProvisioningManager.getSingleton().getIncomingCallMap(),
         params: {
           clientType: RPCTypes.commonClientType.guiMain,
           deviceType: isMobile ? 'mobile' : 'desktop',
@@ -335,10 +343,10 @@ const startProvisioning = (state: TypedState) =>
 const addNewDevice = (state: TypedState) =>
   Saga.call(function*() {
     // Make a new handler each time just in case
-    theProvisioningManager = new ProvisioningManager(true)
+    makeProvisioningManager(true)
     try {
       yield RPCTypes.deviceDeviceAddRpcSaga({
-        incomingCallMap: theProvisioningManager.getIncomingCallMap(),
+        incomingCallMap: ProvisioningManager.getSingleton().getIncomingCallMap(),
         params: undefined,
         waitingKey: Constants.waitingKey,
       })
@@ -354,16 +362,17 @@ const addNewDevice = (state: TypedState) =>
   })
 
 // We delegate these actions to the manager
-const submitDeviceSelect = (state: TypedState) => theProvisioningManager.submitDeviceSelect(state)
-const submitDeviceName = (state: TypedState) => theProvisioningManager.submitDeviceName(state)
-const submitTextCode = (state: TypedState) => theProvisioningManager.submitTextCode(state)
+const submitDeviceSelect = (state: TypedState) => ProvisioningManager.getSingleton().submitDeviceSelect(state)
+const submitDeviceName = (state: TypedState) => ProvisioningManager.getSingleton().submitDeviceName(state)
+const submitTextCode = (state: TypedState) => ProvisioningManager.getSingleton().submitTextCode(state)
 const submitGPGMethod = (state: TypedState, action: ProvisionGen.SubmitGPGMethodPayload) =>
-  theProvisioningManager.submitGPGMethod(state, action)
+  ProvisioningManager.getSingleton().submitGPGMethod(state, action)
 const submitPassphraseOrPaperkey = (
   state: TypedState,
   action: ProvisionGen.SubmitPassphrasePayload | ProvisionGen.SubmitPaperkeyPayload
-) => theProvisioningManager.submitPassphraseOrPaperkey(state, action)
-const maybeCancelProvision = (state: TypedState) => theProvisioningManager.maybeCancelProvision(state)
+) => ProvisioningManager.getSingleton().submitPassphraseOrPaperkey(state, action)
+const maybeCancelProvision = (state: TypedState) =>
+  ProvisioningManager.getSingleton().maybeCancelProvision(state)
 
 const showDeviceListPage = (state: TypedState) =>
   !state.provision.error.stringValue() &&
@@ -374,7 +383,7 @@ const showNewDeviceNamePage = (state: TypedState) =>
   Saga.put(RouteTree.navigateAppend(['setPublicName'], [Tabs.loginTab, 'login']))
 
 const showCodePage = (state: TypedState) =>
-  !state.provision.error.stringValue() && theProvisioningManager.showCodePage()
+  !state.provision.error.stringValue() && ProvisioningManager.getSingleton().showCodePage()
 
 const showGPGPage = (state: TypedState) =>
   !state.provision.error.stringValue() &&
@@ -428,10 +437,7 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
 }
 
 export const _testing = {
-  makeProvisioningManager: (addingANewDevice: boolean) => {
-    theProvisioningManager = new ProvisioningManager(addingANewDevice)
-    return theProvisioningManager
-  },
+  makeProvisioningManager,
   maybeCancelProvision,
 }
 
