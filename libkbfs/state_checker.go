@@ -193,6 +193,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlfID tlf.ID) erro
 		}
 
 		var hasGCOp bool
+		updated := make(map[BlockPointer]bool)
 		for _, op := range rmd.data.Changes.Ops {
 			_, isGCOp := op.(*GCOp)
 			hasGCOp = hasGCOp || isGCOp
@@ -206,6 +207,11 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlfID tlf.ID) erro
 			}
 			if !isGCOp {
 				for _, ptr := range op.Unrefs() {
+					if updated[ptr] {
+						return fmt.Errorf(
+							"%s already updated in this revision %d",
+							ptr, rmd.Revision())
+					}
 					delete(expectedLiveBlocks, ptr)
 					if ptr != zeroPtr {
 						// If the revision has been garbage-collected,
@@ -224,6 +230,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlfID tlf.ID) erro
 			}
 			for _, update := range op.allUpdates() {
 				if update.Ref != update.Unref {
+					updated[update.Unref] = true
 					delete(expectedLiveBlocks, update.Unref)
 				}
 				if update.Unref != zeroPtr && update.Ref != update.Unref {

@@ -495,9 +495,17 @@ func (ccs *crChains) makeChainForOp(op op) error {
 	for _, ptr := range op.Unrefs() {
 		// Look up the original pointer corresponding to this most
 		// recent one.
-		original := ptr
-		if ptrChain, ok := ccs.byMostRecent[ptr]; ok {
-			original = ptrChain.original
+		original, ok := ccs.originals[ptr]
+		if !ok {
+			original = ptr
+		}
+
+		// If it has already been updated to something else, we should
+		// just ignore this unref.  See KBFS-3258.
+		if chain, ok := ccs.byOriginal[original]; ok {
+			if ptr != chain.mostRecent {
+				continue
+			}
 		}
 
 		ccs.deletedOriginals[original] = true
