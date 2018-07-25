@@ -4291,7 +4291,6 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			})
 		require.NoError(t, err)
 		require.Equal(t, 1, len(res.Conversations), "no convs found")
-		consumeIdentify(ctx, listener1) //impteam
 	})
 }
 
