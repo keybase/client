@@ -421,7 +421,20 @@ func (t *ImplicitTeamsNameInfoSource) makeNameInfo(ctx context.Context, team *te
 	return res, nil
 }
 
+func (t *ImplicitTeamsNameInfoSource) transformTeamDoesNotExist(ctx context.Context, err error, name string) error {
+	switch err.(type) {
+	case teams.TeamDoesNotExistError:
+		return NewUnknownTLFNameError(name)
+	}
+	return nil
+}
+
 func (t *ImplicitTeamsNameInfoSource) LookupUntrusted(ctx context.Context, name string, public bool) (res *types.NameInfoUntrusted, err error) {
+	defer func() {
+		if terr := t.transformTeamDoesNotExist(ctx, err, name); terr != nil {
+			err = terr
+		}
+	}()
 	impTeamName, err := teams.ResolveImplicitTeamDisplayName(ctx, t.G().ExternalG(), name, public)
 	if err != nil {
 		return res, err
@@ -445,10 +458,8 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, p
 
 	team, _, impTeamName, err := teams.LookupImplicitTeam(ctx, t.G().ExternalG(), name, public)
 	if err != nil {
-		// return the common type for a unknown TLF name
-		switch err.(type) {
-		case teams.TeamDoesNotExistError:
-			return res, NewUnknownTLFNameError(name)
+		if terr := t.transformTeamDoesNotExist(ctx, err, name); terr != nil {
+			return res, terr
 		}
 		t.Debug(ctx, "Lookup: error looking up the team: %s", err)
 		return res, err
