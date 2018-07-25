@@ -20,14 +20,16 @@ const Search = (props: Props) => (
       <Text style={styles.toText} type="Body">
         To:
       </Text>
-      <UserInput
-        searchKey={searchKey}
-        autoFocus={true}
-        placeholder={placeholder}
-        onExitSearch={props.onClose}
-        disableListBuilding={true}
-        showServiceFilter={false}
-      />
+      <Box2 direction="vertical" fullWidth={true}>
+        <UserInput
+          searchKey={searchKey}
+          autoFocus={true}
+          placeholder={placeholder}
+          onExitSearch={props.onClose}
+          disableListBuilding={true}
+          showServiceFilter={false}
+        />
+      </Box2>
     </Box2>
     <ResultsList
       searchKey={searchKey}
