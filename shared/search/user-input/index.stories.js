@@ -3,7 +3,8 @@ import * as React from 'react'
 import * as PropProviders from '../../stories/prop-providers'
 import UserInput, {type UserDetails} from '.'
 import ConnectedUserInput, {type OwnProps, type Props} from './container'
-import {Box, Box2} from '../../common-adapters'
+import {Box, Box2, Text} from '../../common-adapters'
+import {collapseStyles} from '../../styles'
 import {compose, withStateHandlers} from 'recompose'
 import {isMobile} from '../../constants/platform'
 import {action, storiesOf, createPropProvider, unexpected} from '../../stories/storybook'
@@ -155,18 +156,24 @@ const load = () => {
   storiesOf('Search/UserInput', module)
     .addDecorator(provider)
     .add('Empty list', () => (
-      <Box style={defaultBoxStyle}>
+      <Box style={collapseStyles([defaultBoxStyle, {height: 500}])}>
+        <Text type="Body">Some text above</Text>
         <UserInput {...inputCommon} userItems={[]} usernameText="" />
+        <Text type="Body">Some text below</Text>
       </Box>
     ))
     .add('Empty list (vertical Box2)', () => (
-      <Box2 direction="vertical" style={defaultBoxStyle}>
+      <Box2 direction="vertical" style={collapseStyles([defaultBoxStyle, {height: 500}])}>
+        <Text type="Body">Some text above</Text>
         <UserInput {...inputCommon} userItems={[]} usernameText="" />
+        <Text type="Body">Some text below</Text>
       </Box2>
     ))
     .add('Empty list (horizontal Box2)', () => (
-      <Box2 direction="horizontal" style={defaultBoxStyle}>
+      <Box2 direction="horizontal" style={collapseStyles([defaultBoxStyle, {height: 500}])}>
+        <Text type="Body">Some text left</Text>
         <UserInput {...inputCommon} userItems={[]} usernameText="" />
+        <Text type="Body">Some text right</Text>
       </Box2>
     ))
     .add('List with items', () => (
