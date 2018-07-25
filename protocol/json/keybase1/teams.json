@@ -152,10 +152,6 @@
           "name": "eldestSeqno"
         },
         {
-          "type": "Seqno",
-          "name": "userEldestSeqno"
-        },
-        {
           "type": "TeamMemberStatus",
           "name": "status"
         }
@@ -1860,6 +1856,10 @@
         },
         {
           "type": "boolean",
+          "name": "setMinWriterRole"
+        },
+        {
+          "type": "boolean",
           "name": "changeOpenTeam"
         },
         {
@@ -2692,6 +2692,16 @@
       ],
       "response": "ProfileTeamLoadRes",
       "doc": "ProfileTeamLoad loads a team and then throws it on the ground, for the purposes of profiling\n   the team load machinery."
+    },
+    "getTeamID": {
+      "request": [
+        {
+          "name": "teamName",
+          "type": "string"
+        }
+      ],
+      "response": "TeamID",
+      "doc": "Gets a TeamID from a team name string. Returns an error if the\n   current user can't read the team."
     }
   },
   "namespace": "keybase.1"

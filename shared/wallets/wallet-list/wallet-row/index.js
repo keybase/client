@@ -1,7 +1,14 @@
 // @flow
 import * as React from 'react'
-import {Box2, ClickableBox, Text, Avatar} from '../../../common-adapters'
-import Icon, {castPlatformStyles} from '../../../common-adapters/icon'
+import {
+  Box2,
+  ClickableBox,
+  Text,
+  Avatar,
+  Icon,
+  iconCastPlatformStyles,
+  avatarCastPlatformStyles,
+} from '../../../common-adapters'
 import {
   globalStyles,
   globalMargins,
@@ -90,10 +97,20 @@ const WalletRow = (props: Props) => {
         direction="horizontal"
         fullWidth={true}
       >
-        <Icon type="icon-wallet-64" color={globalColors.darkBlue} style={castPlatformStyles(styles.icon)} />
+        <Icon
+          type="icon-wallet-64"
+          color={globalColors.darkBlue}
+          style={iconCastPlatformStyles(styles.icon)}
+        />
         <Box2 direction="vertical" style={styles.rightColumn}>
           <Box2 direction="horizontal" fullWidth={true}>
-            {props.keybaseUser && <Avatar size={16} style={styles.avatar} username={props.keybaseUser} />}
+            {props.keybaseUser && (
+              <Avatar
+                size={16}
+                style={avatarCastPlatformStyles(styles.avatar)}
+                username={props.keybaseUser}
+              />
+            )}
             <Text type="BodySmall" style={props.isSelected ? styles.titleSelected : styles.title}>
               {props.name}
             </Text>

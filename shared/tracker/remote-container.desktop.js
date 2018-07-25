@@ -20,6 +20,7 @@ import {
 // Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = (dispatch: Dispatch, {teamname}) => ({
   _checkRequestedAccess: (teamname: string) => dispatch(TeamsGen.createCheckRequestedAccess({teamname})),
+  _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   _onChat: (username: string) => {
     dispatch(ConfigGen.createShowMain())
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'tracker'}))
@@ -70,6 +71,7 @@ export default compose(
     componentDidMount() {
       this.props._onSetTeamJoinError('')
       this.props._onSetTeamJoinSuccess(false)
+      this.props._loadTeams()
     },
   })
 )(Tracker)

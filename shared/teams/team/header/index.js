@@ -3,17 +3,10 @@ import * as React from 'react'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import AddPeopleHow from './add-people-how/container'
-import {
-  iconCastPlatformStyles,
-  Box,
-  Button,
-  ButtonBar,
-  Icon,
-  Meta,
-  NameWithIcon,
-  Text,
-} from '../../../common-adapters'
+import {iconCastPlatformStyles, Box, Button, ButtonBar, Icon, Meta, Text} from '../../../common-adapters'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
+import type {Response} from 'react-native-image-picker'
+import NameWithIconWrapper from './name-with-icon-wrapper'
 import {
   desktopStyles,
   collapseStyles,
@@ -41,6 +34,7 @@ export type Props = {
   onAddSelf: () => void,
   onChat: () => void,
   onEditDescription: () => void,
+  onEditIcon: (image?: Response) => void,
 } & FloatingMenuParentProps
 
 const _TeamHeader = (props: Props) => (
@@ -63,10 +57,10 @@ const _TeamHeader = (props: Props) => (
     )}
     <Box style={styles.teamHeader}>
       {/* Summary */}
-      <NameWithIcon
-        size="large"
+      <NameWithIconWrapper
+        canEditDescription={props.canEditDescription}
+        onEditIcon={props.onEditIcon}
         teamname={props.teamname}
-        title={props.teamname}
         metaOne={
           <Box style={globalStyles.flexBoxRow}>
             <Text type="BodySmall">TEAM</Text>

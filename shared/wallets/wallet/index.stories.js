@@ -32,7 +32,7 @@ const commonActions = {
 const defaultSettingsProps = {
   name: 'awesome wallet',
   user: 'testuser',
-  type: 'default',
+  isDefault: true,
   currency: 'USD ($)',
   currencies: ['USD ($)', 'XLM', 'CAD ($)', 'EUR (€)', 'GBP (£)'],
   onDelete: action('onDelete'),
@@ -44,7 +44,7 @@ const defaultSettingsProps = {
 const secondarySettingsProps = {
   name: 'some other wallet',
   user: 'testuser',
-  type: 'secondary',
+  isDefault: false,
   currency: 'XLM',
   currencies: ['USD ($)', 'XLM', 'CAD ($)', 'EUR (€)', 'GBP (£)'],
   onDelete: action('onDelete'),

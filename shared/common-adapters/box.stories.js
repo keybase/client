@@ -58,8 +58,38 @@ const load = () => {
           boxProps={{direction: 'vertical', fullHeight: true, gap: 'medium'}}
         />
         <Holder
-          boxProps={{direction: 'vertical', fullHeight: true, fullWidth: true, gap: 'medium'}}
           label="Vertical small gap full height/width"
+          boxProps={{direction: 'vertical', fullHeight: true, fullWidth: true, gap: 'medium'}}
+        />
+        <Holder label="VerticalReverse" boxProps={{direction: 'verticalReverse'}} />
+        <Holder
+          label="VerticalReverse centered children"
+          boxProps={{centerChildren: true, direction: 'verticalReverse', fullHeight: true, fullWidth: true}}
+        />
+        <Holder label="VerticalReverse small gap" boxProps={{direction: 'verticalReverse', gap: 'small'}} />
+        <Holder
+          label="VerticalReverse small gap start"
+          boxProps={{direction: 'verticalReverse', gap: 'small', gapStart: true}}
+        />
+        <Holder
+          label="VerticalReverse small gap end"
+          boxProps={{direction: 'verticalReverse', gap: 'small', gapEnd: true}}
+        />
+        <Holder
+          label="VerticalReverse small gap both"
+          boxProps={{direction: 'verticalReverse', gap: 'small', gapEnd: true, gapStart: true}}
+        />
+        <Holder
+          label="VerticalReverse small gap full width"
+          boxProps={{direction: 'verticalReverse', fullWidth: true, gap: 'medium'}}
+        />
+        <Holder
+          label="VerticalReverse small gap full height"
+          boxProps={{direction: 'verticalReverse', fullHeight: true, gap: 'medium'}}
+        />
+        <Holder
+          label="VerticalReverse small gap full height/width"
+          boxProps={{direction: 'verticalReverse', fullHeight: true, fullWidth: true, gap: 'medium'}}
         />
         <Holder label="Horizontal" boxProps={{direction: 'horizontal'}} />
         <Holder
@@ -88,8 +118,41 @@ const load = () => {
           boxProps={{direction: 'horizontal', fullHeight: true, gap: 'medium'}}
         />
         <Holder
-          boxProps={{direction: 'horizontal', fullHeight: true, fullWidth: true, gap: 'medium'}}
           label="Horizontal small gap full height/width"
+          boxProps={{direction: 'horizontal', fullHeight: true, fullWidth: true, gap: 'medium'}}
+        />
+        <Holder label="HorizontalReverse" boxProps={{direction: 'horizontalReverse'}} />
+        <Holder
+          label="HorizontalReverse centered children"
+          boxProps={{centerChildren: true, direction: 'horizontalReverse', fullHeight: true, fullWidth: true}}
+        />
+        <Holder
+          label="HorizontalReverse small gap"
+          boxProps={{direction: 'horizontalReverse', gap: 'small'}}
+        />
+        <Holder
+          label="HorizontalReverse small gap start"
+          boxProps={{direction: 'horizontalReverse', gap: 'small', gapStart: true}}
+        />
+        <Holder
+          label="HorizontalReverse small gap end"
+          boxProps={{direction: 'horizontalReverse', gap: 'small', gapEnd: true}}
+        />
+        <Holder
+          label="HorizontalReverse small gap both"
+          boxProps={{direction: 'horizontalReverse', gap: 'small', gapEnd: true, gapStart: true}}
+        />
+        <Holder
+          label="HorizontalReverse small gap full width"
+          boxProps={{direction: 'horizontalReverse', fullWidth: true, gap: 'medium'}}
+        />
+        <Holder
+          label="HorizontalReverse small gap full height"
+          boxProps={{direction: 'horizontalReverse', fullHeight: true, gap: 'medium'}}
+        />
+        <Holder
+          label="HorizontalReverse small gap full height/width"
+          boxProps={{direction: 'horizontalReverse', fullHeight: true, fullWidth: true, gap: 'medium'}}
         />
       </React.Fragment>
     ))

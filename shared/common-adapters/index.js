@@ -3,7 +3,7 @@ import * as React from 'react'
 import Box from './box'
 import PopupDialog from './popup-dialog'
 import {connect, type Dispatch} from '../util/container'
-import {globalColors, isMobile} from '../styles'
+import {collapseStyles, globalColors, isMobile} from '../styles'
 
 const MaybePopup = isMobile
   ? (props: {onClose: () => void, children: React.Node}) => (
@@ -11,6 +11,9 @@ const MaybePopup = isMobile
     )
   : (props: {
       onClose: () => void,
+      onMouseUp?: (e: SyntheticMouseEvent<>) => void,
+      onMouseDown?: (e: SyntheticMouseEvent<>) => void,
+      onMouseMove?: (e: SyntheticMouseEvent<>) => void,
       children: React.Node,
       cover?: boolean,
       styleCover?: any,
@@ -18,7 +21,10 @@ const MaybePopup = isMobile
     }) => (
       <PopupDialog
         onClose={props.onClose}
-        styleCover={props.cover ? {..._styleCover, ...props.styleCover} : {}}
+        onMouseUp={props.onMouseUp}
+        onMouseDown={props.onMouseDown}
+        onMouseMove={props.onMouseMove}
+        styleCover={collapseStyles([props.cover && _styleCover, props.styleCover])}
         styleContainer={props.cover ? {..._styleContainer, ...props.styleContainer} : {}}
         children={props.children}
       />
@@ -57,7 +63,7 @@ const _styleContainer = {
   height: '100%',
 }
 
-export {default as Avatar} from './avatar'
+export {default as Avatar, castPlatformStyles as avatarCastPlatformStyles} from './avatar'
 export {default as BackButton} from './back-button'
 export {default as Badge} from './badge'
 export {default as Banner} from './banner'
@@ -121,3 +127,4 @@ export type {PropsWithTimer} from './hoc-timers'
 export type {IconType} from './icon.constants'
 export {default as WebView} from './web-view'
 export type {WebViewProps, WebViewInjections} from './web-view'
+export {default as WithTooltip} from './with-tooltip'

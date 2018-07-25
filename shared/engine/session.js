@@ -23,6 +23,7 @@ class Session {
   // Sequence IDs we've seen. Value is true if we've responded (often we get cancel after we've replied)
   _seqIDResponded: {[key: string]: boolean} = {}
   // If you want to know about being cancelled
+  // eslint-disable-next-line no-use-before-define
   _cancelHandler: ?CancelHandlerType
   // If true this session exists forever
   _dangling: boolean

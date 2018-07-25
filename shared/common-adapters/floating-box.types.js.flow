@@ -15,4 +15,5 @@ export type Props = {
   propagateOutsideClicks?: boolean,
   containerStyle?: StylesCrossPlatform,
   position?: Position,
+  positionFallbacks?: Position[],
 }

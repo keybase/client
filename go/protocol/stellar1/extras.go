@@ -170,6 +170,16 @@ func AssetNative() Asset {
 	}
 }
 
+func CreateNonNativeAssetType(code string) (string, error) {
+	if len(code) >= 1 && len(code) <= 4 {
+		return "credit_alphanum4", nil
+	} else if len(code) >= 5 && len(code) <= 12 {
+		return "credit_alphanum12", nil
+	} else {
+		return "", fmt.Errorf("Invalid asset code: %q", code)
+	}
+}
+
 func (t TransactionStatus) ToPaymentStatus() PaymentStatus {
 	switch t {
 	case TransactionStatus_PENDING:

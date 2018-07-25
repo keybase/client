@@ -111,6 +111,12 @@
       "teamname": "string",
       "description": "string"
     },
+    "uploadTeamAvatar": {
+      "crop?": "RPCTypes.ImageCropRect",
+      "filename": "string",
+      "sendChatNotification": "boolean",
+      "teamname": "string"
+    },
     "editMembership": {
       "teamname": "string",
       "username": "string",

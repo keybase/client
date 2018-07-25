@@ -6,14 +6,16 @@ import {type IconType, type Props as IconProps} from './icon'
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 16
 
 export type Props = {|
-  borderColor?: string,
+  borderColor?: ?string,
   children?: React.Node,
+  editable?: boolean,
   followIconSize: number,
   followIconType: ?IconType,
   followIconStyle: ?$PropertyType<IconProps, 'style'>,
   isTeam: boolean,
   loadingColor?: string,
   onClick?: ?() => void,
+  onEditAvatarClick?: (e: SyntheticEvent<Element>) => void,
   opacity?: number,
   size: AvatarSize,
   skipBackground?: boolean,

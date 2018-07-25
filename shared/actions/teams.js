@@ -19,7 +19,7 @@ import * as Chat2Gen from './chat2-gen'
 import * as WaitingGen from './waiting-gen'
 import engine from '../engine'
 import {isMobile} from '../constants/platform'
-import {putActionIfOnPath, navigateTo} from './route-tree'
+import {putActionIfOnPath, navigateAppend, navigateTo, navigateUp} from './route-tree'
 import {chatTab, teamsTab} from '../constants/tabs'
 import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
@@ -42,7 +42,13 @@ const _createNewTeam = function*(action: TeamsGen.CreateNewTeamPayload) {
     )
 
     // No error if we get here.
-    yield Saga.put(navigateTo([isMobile ? chatTab : teamsTab]))
+    yield Saga.all([
+      Saga.put(navigateTo(isMobile ? [chatTab] : [{props: {teamname}, selected: 'team'}], [teamsTab])),
+      // Show the avatar editor on desktop.
+      ...(!isMobile
+        ? [Saga.put(navigateAppend([{props: {createdTeam: true, teamname}, selected: 'editTeamAvatar'}]))]
+        : []),
+    ])
   } catch (error) {
     yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
   } finally {
@@ -261,6 +267,19 @@ const _editDescription = function*(action: TeamsGen.EditTeamDescriptionPayload) 
     // TODO We don't get a team changed notification for this. Delete this call when CORE-7125 is finished.
     yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname})))
   }
+}
+
+function _uploadAvatar(action: TeamsGen.UploadTeamAvatarPayload) {
+  const {crop, filename, sendChatNotification, teamname} = action.payload
+  return Saga.sequentially([
+    Saga.call(RPCTypes.teamsUploadTeamAvatarRpcPromise, {
+      crop,
+      filename,
+      sendChatNotification,
+      teamname,
+    }),
+    Saga.put(navigateUp()),
+  ])
 }
 
 const _editMembership = function*(action: TeamsGen.EditMembershipPayload) {
@@ -892,6 +911,9 @@ const _setMemberPublicity = function*(action: TeamsGen.SetMemberPublicityPayload
     // TODO handle error, but for now make sure loading is unset
     yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
     yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname})))
+
+    // The profile showcasing page gets this data from teamList rather than teamGet, so trigger one of those too.
+    yield Saga.put(TeamsGen.createGetTeams())
   }
 }
 
@@ -1022,7 +1044,13 @@ function _setupTeamHandlers() {
 }
 
 function getLoadCalls(teamname?: string) {
-  const actions = [TeamsGen.createGetTeams(), teamname && TeamsGen.createGetDetails({teamname})]
+  const actions = []
+  if (_wasOnTeamsTab) {
+    actions.push(TeamsGen.createGetTeams())
+    if (teamname) {
+      actions.push(TeamsGen.createGetDetails({teamname}))
+    }
+  }
   return actions
 }
 
@@ -1163,7 +1191,12 @@ function _badgeAppForTeams(action: TeamsGen.BadgeAppForTeamsPayload, state: Type
     // Call getTeams if new teams come in.
     // Covers the case when we're staring at the teams page so
     // we don't miss a notification we clear when we tab away
+    const existingNewTeams = state.teams.getIn(['newTeams'], I.Set())
     const existingNewTeamRequests = state.teams.getIn(['newTeamRequests'], I.List())
+    if (!newTeams.equals(existingNewTeams) && newTeams.size > 0) {
+      // We have been added to a new team & we need to refresh the list
+      actions.push(Saga.put(TeamsGen.createGetTeams()))
+    }
 
     // getDetails for teams that have new access requests
     // Covers case where we have a badge appear on the requests
@@ -1230,6 +1263,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(TeamsGen.inviteToTeamByEmail, _inviteByEmail)
   yield Saga.safeTakeEvery(TeamsGen.ignoreRequest, _ignoreRequest)
   yield Saga.safeTakeEvery(TeamsGen.editTeamDescription, _editDescription)
+  yield Saga.safeTakeEvery(TeamsGen.uploadTeamAvatar, _uploadAvatar)
   yield Saga.safeTakeEvery(TeamsGen.editMembership, _editMembership)
   yield Saga.safeTakeEvery(TeamsGen.removeMemberOrPendingInvite, _removeMemberOrPendingInvite)
   yield Saga.safeTakeEvery(TeamsGen.setMemberPublicity, _setMemberPublicity)
