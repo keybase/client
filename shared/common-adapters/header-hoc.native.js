@@ -10,6 +10,7 @@ import type {Props} from './header-hoc.types'
 export const HeaderHocHeader = ({
   headerStyle,
   customComponent,
+  hideBackLabel,
   title,
   onCancel,
   onBack,
@@ -28,7 +29,7 @@ export const HeaderHocHeader = ({
       </Text>
     )}
     {onBack && (
-      <BackButton iconColor={_backButtonIconColorThemed[theme]} style={_buttonStyle} onClick={onBack} />
+      <BackButton hideBackLabel={hideBackLabel} iconColor={_backButtonIconColorThemed[theme]} style={_buttonStyle} onClick={onBack} />
     )}
   </Box>
 )
