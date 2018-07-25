@@ -13,7 +13,7 @@ import {
 import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
 
-const Left = ({leftService, leftIcon, leftUsername, leftFollowingState, leftFullname}) => {
+const Left = ({leftService, leftIcon, leftIconOpaque, leftUsername, leftFollowingState, leftFullname}) => {
   return (
     <Box
       style={{
@@ -30,6 +30,7 @@ const Left = ({leftService, leftIcon, leftUsername, leftFollowingState, leftFull
           username={leftUsername}
           icon={leftIcon}
           avatarSize={isMobile ? 48 : 32}
+          opacity={leftIconOpaque ? 0.3 : 1}
         />
       </Box>
       <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
@@ -42,7 +43,7 @@ const Left = ({leftService, leftIcon, leftUsername, leftFollowingState, leftFull
   )
 }
 
-const Middle = ({rightService, rightIcon, rightUsername, rightFollowingState}) => {
+const Middle = ({rightService, rightIcon, rightIconOpaque, rightUsername, rightFollowingState}) => {
   return (
     <Box
       style={{
@@ -57,6 +58,7 @@ const Middle = ({rightService, rightIcon, rightUsername, rightFollowingState}) =
           service={rightService}
           username={rightUsername}
           icon={rightIcon}
+          opacity={rightIconOpaque ? 0.3 : 1}
           fontSize={16}
           avatarSize={16}
           style={{
@@ -143,6 +145,7 @@ const SearchResultRow = (props: Props) => (
       <Left
         leftFollowingState={props.leftFollowingState}
         leftIcon={props.leftIcon}
+        leftIconOpaque={props.leftIconOpaque}
         leftService={props.leftService}
         leftUsername={props.leftUsername}
         leftFullname={props.leftFullname}
@@ -150,6 +153,7 @@ const SearchResultRow = (props: Props) => (
       <Middle
         rightFollowingState={props.rightFollowingState}
         rightIcon={props.rightIcon}
+        rightIconOpaque={props.rightIconOpaque}
         rightService={props.rightService}
         rightUsername={props.rightUsername}
       />

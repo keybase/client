@@ -42,10 +42,14 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
   const result = stateProps.result.toObject()
+  const leftFullname = result.leftFullname + (stateProps.userIsInTeam ? ' • Already in team' : '')
   return {
     ...result,
     leftFollowingState: stateProps.leftFollowingState,
+    leftFullname,
+    leftIconOpaque: stateProps.userIsInTeam,
     rightFollowingState: stateProps.rightFollowingState,
+    rightIconOpaque: stateProps.userIsInTeam,
     userIsInTeam: stateProps.userIsInTeam,
     ...ownProps,
   }

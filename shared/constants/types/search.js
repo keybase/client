@@ -16,11 +16,13 @@ export type RowProps = {
   leftFollowingState: FollowingState,
   leftFullname: ?string,
   leftIcon: ?IconType, // If service is keybase this can be null
+  leftIconOpaque: boolean,
   leftService: Service,
   leftUsername: string,
 
   rightFollowingState: FollowingState,
   rightIcon: ?IconType,
+  rightIconOpaque: boolean,
   rightService: ?Service,
   rightUsername: ?string,
 
@@ -30,6 +32,7 @@ export type RowProps = {
   selected: boolean,
   userIsInTeam: boolean,
 }
+
 // A normalized version of the row props above.
 // The connector should fill in the missing pieces like the following state
 export type SearchResult = {|
