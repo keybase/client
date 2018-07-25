@@ -10777,7 +10777,7 @@ q@~0.9.6:
 
 "qrcode-generator@git://github.com/keybase/qrcode-generator#keybase-changes-off-140":
   version "1.4.0"
-  resolved "git://github.com/keybase/qrcode-generator#3c4fa106586febdc5353bc82e6f6adce0221bf01"
+  resolved "git://github.com/keybase/qrcode-generator#9bd96b7cf7583a1df868982f274db1b80296c52d"
 
 qs@6.5.1, qs@^6.5.1, qs@~6.5.1:
   version "6.5.1"
