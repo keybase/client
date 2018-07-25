@@ -53,6 +53,13 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
     dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
     dispatch(TeamsGen.createSetTeamInviteError({error: ''}))
   },
+  onBack: () => {
+    dispatch(navigateUp())
+    dispatch(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
+    dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
+    dispatch(TeamsGen.createSetTeamInviteError({error: ''}))
+  },
+  title: 'Foo',
   onOpenRolePicker: (
     role: string,
     sendNotification: boolean,
@@ -112,6 +119,5 @@ export default compose(
         })
       },
     }),
-    HeaderHoc
   )
 )(AddPeople)

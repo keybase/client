@@ -5,6 +5,7 @@ import {
   Button,
   ClickableBox,
   Dropdown,
+  HeaderHoc,
   ProgressIndicator,
   Text,
   PopupDialog,
@@ -72,35 +73,7 @@ const _makeDropdownItems = () => teamRoleTypes.map(item => _makeDropdownItem(ite
 const AddPeople = (props: Props) => (
   <MaybePopup onClose={props.onClose}>
     <Box style={{...globalStyles.flexBoxColumn, flexGrow: 1}}>
-      <Box
-        style={{
-          ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
-          alignItems: 'center',
-          margin: isMobile ? 0 : globalMargins.small,
-        }}
-      >
-        <Text type="Body">Add these members to {props.name} as:</Text>
-        <ClickableBox onClick={() => props.onOpenRolePicker()} underlayColor="rgba(0, 0, 0, 0)">
-          <Dropdown
-            items={_makeDropdownItems()}
-            selected={_makeDropdownItem(props.role)}
-            onChanged={(node: React.Node) => {
-              // $FlowIssue doesn't understand key will be string
-              const selectedRole: TeamRoleType = (node && node.key) || null
-              props.onRoleChange(selectedRole)
-            }}
-            style={{width: isMobile ? 120 : 100}}
-          />
-        </ClickableBox>
-        <Button
-          label="Add"
-          onClick={props.isEmpty ? undefined : props.onAddPeople}
-          disabled={props.isEmpty}
-          style={{margin: globalMargins.tiny}}
-          type="Primary"
-          waiting={props.loading}
-        />
-      </Box>
+
 
       {!isMobile && (
         <Box
@@ -142,19 +115,22 @@ const AddPeople = (props: Props) => (
           <SearchResultsList
             searchKey={'addToTeamSearch'}
             disableIfInTeamName={props.name}
-            style={isMobile ? {position: 'absolute', top: 0, bottom: 0, right: 0, left: 0} : {height: 500}}
+            style={isMobile ? {position: 'absolute', top: 0, bottom: 0, right: 0, left: 0} : {height: 400}}
             keyboardDismissMode="on-drag"
           />
         )}
+      </Box>
+      <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium}}>
+        <Box style={globalStyles.flexBoxRow}>
+          <Button label="Add" type="Primary" />
+        </Box>
       </Box>
     </Box>
   </MaybePopup>
 )
 
 const _styleCover = {
-  alignItems: 'stretch',
   backgroundColor: globalColors.black_75,
-  justifyContent: 'stretch',
 }
 
 const _styleContainer = {
@@ -163,9 +139,8 @@ const _styleContainer = {
   backgroundColor: globalColors.white,
   borderRadius: 5,
   boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
+  maxHeight: 520,
   minWidth: 800,
-  position: 'relative',
-  top: 10,
 }
 
-export default AddPeople
+export default HeaderHoc(AddPeople)
