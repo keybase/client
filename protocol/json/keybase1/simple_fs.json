@@ -27,7 +27,9 @@
       "type": "enum",
       "name": "KBFSArchivedType",
       "symbols": [
-        "REVISION_0"
+        "REVISION_0",
+        "TIME_1",
+        "TIME_STRING_2"
       ]
     },
     {
@@ -44,6 +46,20 @@
             "def": false
           },
           "body": "KBFSRevision"
+        },
+        {
+          "label": {
+            "name": "TIME",
+            "def": false
+          },
+          "body": "Time"
+        },
+        {
+          "label": {
+            "name": "TIME_STRING",
+            "def": false
+          },
+          "body": "string"
         }
       ]
     },
