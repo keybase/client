@@ -8,8 +8,16 @@ import {
   Icon,
   iconCastPlatformStyles,
   Text,
+  avatarCastPlatformStyles,
 } from '../../../common-adapters'
-import {collapseStyles, globalColors, globalMargins, globalStyles, platformStyles, styleSheetCreate} from '../../../styles'
+import {
+  collapseStyles,
+  globalColors,
+  globalMargins,
+  globalStyles,
+  platformStyles,
+  styleSheetCreate,
+} from '../../../styles'
 
 export type Props = {
   name: string,
@@ -56,13 +64,15 @@ const SettingsPopup = (props: Props) => {
         <Icon style={iconCastPlatformStyles(styles.icon)} type="iconfont-edit" onClick={props.onEditName} />
       </ClickableBox>
       <Text type="BodySmallSemibold">Identity</Text>
-      <Box2 direction="horizontal" fullWidth={true} style={styles.accountBox} >
-        <Avatar size={32} style={styles.avatar} username={props.isDefault ? props.user : ''} />
+      <Box2 direction="horizontal" fullWidth={true} style={styles.accountBox}>
+        <Avatar
+          size={32}
+          style={avatarCastPlatformStyles(styles.avatar)}
+          username={props.isDefault ? props.user : ''}
+        />
         <Box2 direction="vertical">
           <Text type="Header">
-            {props.isDefault
-              ? 'This is your default Keybase account.'
-              : 'This is a secondary account.'}
+            {props.isDefault ? 'This is your default Keybase account.' : 'This is a secondary account.'}
           </Text>
           <Text type="BodySmall">
             {props.isDefault
@@ -109,8 +119,8 @@ const SettingsPopup = (props: Props) => {
           You can’t remove your default account.
         </Text>
       )}
-  </Box2>
-)
+    </Box2>
+  )
 }
 
 const styles = styleSheetCreate({
@@ -126,7 +136,7 @@ const styles = styleSheetCreate({
     justifyContent: 'center',
   },
   deleteOpacity: {
-   opacity: 0.3,
+    opacity: 0.3,
   },
   dropdownHeader: {
     textAlign: 'center',

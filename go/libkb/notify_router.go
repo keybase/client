@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -73,6 +74,7 @@ type NotifyListener interface {
 	NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	AvatarUpdated(name string, formats []keybase1.AvatarFormat)
 	DeviceCloneCountChanged(newClones int)
+	WalletPaymentNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID)
 }
 
 type NoopNotifyListener struct{}
@@ -142,6 +144,8 @@ func (n *NoopNotifyListener) TeamExit(teamID keybase1.TeamID)                   
 func (n *NoopNotifyListener) NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration) {}
 func (n *NoopNotifyListener) AvatarUpdated(name string, formats []keybase1.AvatarFormat)         {}
 func (n *NoopNotifyListener) DeviceCloneCountChanged(newClones int)                              {}
+func (n *NoopNotifyListener) WalletPaymentNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID) {
+}
 
 // NotifyRouter routes notifications to the various active RPC
 // connections. It's careful only to route to those who are interested
@@ -1113,6 +1117,33 @@ func (n *NotifyRouter) notifyChatCommon(ctx context.Context, debugLabel string, 
 		fn2(ctx, n.listener)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent %v notification", debugLabel)
+}
+
+func (n *NotifyRouter) HandleWalletPaymentNotification(ctx context.Context, accountID stellar1.AccountID, paymentID stellar1.PaymentID) {
+	if n == nil {
+		return
+	}
+	n.G().Log.CDebugf(ctx, "+ Sending wallet PaymentNotification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Wallet` notification type
+		if n.getNotificationChannels(id).Wallet {
+			// In the background do...
+			go func() {
+				arg := stellar1.PaymentNotificationArg{
+					AccountID: accountID,
+					PaymentID: paymentID,
+				}
+				(stellar1.NotifyClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).PaymentNotification(context.Background(), arg)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.WalletPaymentNotification(accountID, paymentID)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent wallet PaymentNotification")
 }
 
 // HandlePaperKeyCached is called whenever a paper key is cached

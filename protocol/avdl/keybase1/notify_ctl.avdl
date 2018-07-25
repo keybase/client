@@ -25,6 +25,7 @@ protocol notifyCtl {
     boolean chatdev;
     boolean deviceclone;
     boolean chatattachments;
+    boolean wallet;
   }
 
   void setNotifications(NotificationChannels channels);
