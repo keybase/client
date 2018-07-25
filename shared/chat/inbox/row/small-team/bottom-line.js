@@ -214,7 +214,6 @@ const styles = styleSheetCreate({
       alignSelf: 'center',
       marginRight: 6,
     },
-    isElectron: {},
     isMobile: {
       marginTop: 2,
     },
