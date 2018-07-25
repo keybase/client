@@ -15,7 +15,7 @@ type Props = {|
 const SetPublicName = (props: Props) => {
   return (
     <Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="medium">
-      <BackButton onClick={props.onBack} style={styles.backButton}/>
+      <BackButton onClick={props.onBack} style={styles.backButton} />
       <Box2 direction="vertical" style={styles.contents} centerChildren={true} gap="medium">
         <Text type={isMobile ? 'Body' : 'Header'}>
           Set a public name for this new {isMobile ? 'phone' : 'computer'}:
