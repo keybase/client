@@ -1364,3 +1364,31 @@ func TestMemberInviteChangeRoleOwner(t *testing.T) {
 	}
 	assertInvite(tc, name, fqUID, "keybase", keybase1.TeamRole_OWNER)
 }
+
+func TestFollowResetAdd(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+
+	alice, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	team := createTeam(tc)
+	t.Logf("Created team %q", team)
+	tc.G.Logout()
+
+	bob, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	tc.G.Logout()
+
+	alice.Login(tc.G)
+	_, err = kbtest.RunTrack(tc, alice, bob.Username)
+	require.NoError(t, err)
+
+	tc.G.Logout()
+	bob.Login(tc.G)
+	kbtest.ResetAccount(tc, bob)
+	tc.G.Logout()
+
+	alice.Login(tc.G)
+	_, err = AddMember(context.TODO(), tc.G, team, bob.Username, keybase1.TeamRole_ADMIN)
+	require.Error(t, err)
+	require.True(t, libkb.IsIdentifyProofError(err))
+}

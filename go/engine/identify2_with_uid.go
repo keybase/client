@@ -736,7 +736,7 @@ func (e *Identify2WithUID) displayUserCardAsync(m libkb.MetaContext) <-chan erro
 func (e *Identify2WithUID) setupIdentifyUI(m libkb.MetaContext) libkb.MetaContext {
 	if e.arg.IdentifyBehavior.ShouldSuppressTrackerPopups() {
 		m.CDebugf("| using the loopback identify UI")
-		iui := newLoopbackIdentifyUI(m.G(), &e.trackBreaks)
+		iui := NewLoopbackIdentifyUI(m.G(), &e.trackBreaks)
 		m = m.WithIdentifyUI(iui)
 	} else if e.useTracking && e.arg.CanSuppressUI && !e.arg.ForceDisplay {
 		iui := newBufferedIdentifyUI(m.G(), m.UIs().IdentifyUI, keybase1.ConfirmResult{

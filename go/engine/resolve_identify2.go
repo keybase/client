@@ -193,7 +193,7 @@ func ResolveAndCheck(m libkb.MetaContext, s string, useTracking bool) (ret keyba
 		UserAssertion:         s,
 		CanSuppressUI:         true,
 		ActLoggedOut:          !useTracking,
-		NoErrorOnTrackFailure: true,
+		NoErrorOnTrackFailure: !useTracking,
 		IdentifyBehavior:      keybase1.TLFIdentifyBehavior_RESOLVE_AND_CHECK,
 	}
 	eng := NewResolveThenIdentify2(m.G(), &arg)
