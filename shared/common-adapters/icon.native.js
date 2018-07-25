@@ -3,6 +3,7 @@ import logger from '../logger'
 import * as Shared from './icon.shared'
 import ClickableBox from './clickable-box'
 import * as React from 'react'
+import NativeImage from './native-image.native'
 import {globalColors, glamorous, collapseStyles} from '../styles'
 import {iconMeta} from './icon.constants'
 import {NativeStyleSheet} from './native-wrappers.native'
@@ -63,7 +64,7 @@ const Text = glamorous.text(
     props.style && props.style.backgroundColor ? {backgroundColor: props.style.backgroundColor} : null
 )
 
-const Image = glamorous.image(
+const Image = glamorous(NativeImage)(
   {
     resizeMode: 'contain',
   },
