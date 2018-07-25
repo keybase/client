@@ -6,8 +6,10 @@ import * as Saga from '../util/saga'
 import * as SagaTypes from './types/saga'
 import type {Channel} from 'redux-saga'
 import {getEngine, EngineChannel} from '../engine'
-import {mapValues} from 'lodash-es'
+import {buffers, channel} from 'redux-saga'
+import {mapValues, forEach} from 'lodash-es'
 import * as FluxTypes from './types/flux'
+import * as Effects from 'redux-saga/effects'
 
 type RpcRunResult =
   | FluxTypes.NoErrorTypedAction<'@@engineRPCCall:finished', {error: ?any, params: ?any}>
@@ -93,7 +95,7 @@ class EngineRpcCall {
     finishedErrorShouldCancel?: ?boolean,
     waitingActionCreator?: (waiting: boolean) => any
   ) {
-    this._chanConfig = Saga.singleFixedChannelConfig(Object.keys(sagaMap))
+    this._chanConfig = singleFixedChannelConfig(Object.keys(sagaMap))
     this._rpcNameKey = rpcNameKey
     this._rpc = rpc
     this._cleanedUp = false
@@ -229,6 +231,49 @@ class EngineRpcCall {
     // eslint-disable-next-line
     return BailedEarly
   }
+}
+
+export function singleFixedChannelConfig<T>(ks: Array<string>): SagaTypes.ChannelConfig<T> {
+  return ks.reduce((acc, k) => {
+    acc[k] = () => buffers.expanding(1)
+    return acc
+  }, {})
+}
+
+export function closeChannelMap<T>(channelMap: SagaTypes.ChannelMap<T>): void {
+  forEach(channelMap, c => c.close())
+}
+
+export function putOnChannelMap<T>(channelMap: SagaTypes.ChannelMap<T>, k: string, v: T): void {
+  const c = channelMap[k]
+  if (c) {
+    c.put(v)
+  } else {
+    logger.error('Trying to put, but no registered channel for', k)
+  }
+}
+
+export function effectOnChannelMap<T>(effectFn: any, channelMap: SagaTypes.ChannelMap<T>, k: string): any {
+  const c = channelMap[k]
+  if (c) {
+    return effectFn(c)
+  } else {
+    logger.error('Trying to do effect, but no registered channel for', k)
+  }
+}
+
+export function takeFromChannelMap<T>(channelMap: SagaTypes.ChannelMap<T>, k: string): any {
+  return effectOnChannelMap(Effects.take, channelMap, k)
+}
+
+export function createChannelMap<T>(channelConfig: SagaTypes.ChannelConfig<T>): SagaTypes.ChannelMap<T> {
+  return mapValues(channelConfig, (v, k) => {
+    const ret = channel(v())
+    // to help debug what's going on in dev/user-timings
+    // $ForceType
+    ret.userTimingName = k
+    return ret
+  })
 }
 
 export {EngineRpcCall, isFinished, BailedEarly, rpcResult, rpcCancel, rpcError, passthroughResponseSaga}
