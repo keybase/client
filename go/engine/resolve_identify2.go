@@ -176,15 +176,11 @@ func (e *ResolveThenIdentify2) GetProofSet() *libkb.ProofSet {
 // ResolveAndCheck takes as input a name (joe), social assertion (joe@twitter)
 // or compound assertion (joe+joe@twitter+3883883773222@pgp) and resolves
 // it to a user, verifying the result. Pass into it a MetaContext without any UIs set,
-// since it is meant to run without any UI interaction. Also note that tracker statements
-// are *not* taken into account. No ID2-specific caching will be used, but the UPAK
-// cache will be used, and busted with ForceRepoll semantics. The output, on success,
+// since it is meant to run without any UI interaction. Tracking statements
+// are optionally taken into account (see flag). No ID2-specific caching will be used,
+// but the UPAK cache will be used, and busted with ForceRepoll semantics. The output, on success,
 // is a populated UserPlusKeysV2.
 func ResolveAndCheck(m libkb.MetaContext, s string, useTracking bool) (ret keybase1.UserPlusKeysV2, err error) {
-
-	// Invokes the whole resolve/identify machinery. That is, it performs a server-trusted
-	// resolution of the name to a UID, then does an ID on the UID to make sure all
-	// assertions are met. The identify is run as if the user is logged out.
 
 	m = m.WithLogTag("RAC")
 	defer m.CTraceTimed("ResolveAndCheck", func() error { return err })()
