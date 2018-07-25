@@ -10,7 +10,7 @@ export type ResponseType = {
   error(...args: Array<any>): void,
 }
 export type RPCErrorHandler = (err: any) => void
-export type CommonResponseHandler = {error: RPCErrorHandler, result: (...rest: Array<void>) => void}
+export type CommonResponseHandler = {error: RPCErrorHandler, result: (...rest: Array<any>) => void}
 export type Bool = boolean
 export type Boolean = boolean
 export type Bytes = Buffer

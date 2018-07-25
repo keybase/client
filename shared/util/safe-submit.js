@@ -11,17 +11,18 @@ import * as React from 'react'
 export function safeSubmit(submitProps: Array<string>, resetSafeProps: Array<string>) {
   return (BaseComponent: any) => {
     const factory = React.createFactory(BaseComponent)
-    // a map of name to boolean if we can call it safely
-    const safeToCallWrappedMap = submitProps.reduce((map, name) => {
-      map[name] = true
-      return map
-    }, {})
 
     class SafeSubmit extends React.Component<any> {
+      // a map of name to boolean if we can call it safely
+      _safeToCallWrappedMap = submitProps.reduce((map, name) => {
+        map[name] = true
+        return map
+      }, {})
+
       componentDidUpdate(prevProps: any) {
         if (resetSafeProps.some(k => this.props[k] !== prevProps[k])) {
           // reset safe settings
-          Object.keys(safeToCallWrappedMap).forEach(n => (safeToCallWrappedMap[n] = true))
+          Object.keys(this._safeToCallWrappedMap).forEach(n => (this._safeToCallWrappedMap[n] = true))
         }
       }
 
@@ -30,8 +31,8 @@ export function safeSubmit(submitProps: Array<string>, resetSafeProps: Array<str
           const old = this.props[name]
           if (old) {
             map[name] = (...args) => {
-              if (safeToCallWrappedMap[name]) {
-                safeToCallWrappedMap[name] = false
+              if (this._safeToCallWrappedMap[name]) {
+                this._safeToCallWrappedMap[name] = false
                 old(...args)
               }
             }

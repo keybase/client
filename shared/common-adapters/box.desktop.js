@@ -56,7 +56,12 @@ class Box2 extends React.Component<Box2Props> {
       this.props.style,
     ])
     return (
-      <div onMouseLeave={this.props.onMouseLeave} onMouseOver={this.props.onMouseOver} style={style}>
+      <div
+        onMouseLeave={this.props.onMouseLeave}
+        onMouseOver={this.props.onMouseOver}
+        style={style}
+        className={this.props.className}
+      >
         {injectGaps(
           horizontal ? HBoxGap : VBoxGap,
           this.props.children,
