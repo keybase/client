@@ -172,7 +172,9 @@ const load = () => {
     .add('Empty list (horizontal Box2)', () => (
       <Box2 direction="horizontal" style={collapseStyles([defaultBoxStyle, {height: 500}])}>
         <Text type="Body">Some text left</Text>
-        <UserInput {...inputCommon} userItems={[]} usernameText="" />
+        <Box2 direction="vertical" fullWidth={true}>
+          <UserInput {...inputCommon} userItems={[]} usernameText="" />
+        </Box2>
         <Text type="Body">Some text right</Text>
       </Box2>
     ))
