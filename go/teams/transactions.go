@@ -6,7 +6,6 @@ package teams
 import (
 	"errors"
 	"fmt"
-	"reflect"
 
 	"golang.org/x/net/context"
 
@@ -21,11 +20,8 @@ import (
 // they are for stale versions of the addees.
 // Not threadsafe.
 type AddMemberTx struct {
-	team *Team
-	// payload is of either type:
-	// *txTeamInvitesKeybase, *txTeamInvitesSocial,
-	// or *keybase1.TeamChangeReq.
-	payloads []interface{}
+	team     *Team
+	payloads []txPayload
 
 	completedInvites map[keybase1.TeamInviteID]bool
 	uidSeqno         map[keybase1.UID]int
@@ -34,8 +30,18 @@ type AddMemberTx struct {
 	SkipKeyRotation *bool
 }
 
-type txTeamInvitesKeybase struct{ Val SCTeamInvites }
-type txTeamInvitesSocial struct{ Val SCTeamInvites }
+type txPayloadTag string
+
+const txPayloadTagCryptomembers txPayloadTag = "cryptomembers" // -> *keybase1.TeamChangeReq
+const txPayloadTagInviteSocial txPayloadTag = "invitesocial"   // -> *SCTeamInvites
+const txPayloadTagInviteKeybase txPayloadTag = "invitekeybase" // -> *SCTeamInvites
+
+type txPayload struct {
+	Tag txPayloadTag
+	// txPayload holds either of: *SCTeamInvites or
+	// *keybase1.TeamChangeReq.
+	Val interface{}
+}
 
 func CreateAddMemberTx(t *Team) *AddMemberTx {
 	return &AddMemberTx{
@@ -45,8 +51,11 @@ func CreateAddMemberTx(t *Team) *AddMemberTx {
 	}
 }
 
-func (tx *AddMemberTx) DebugPayloads() []interface{} {
-	return tx.payloads
+func (tx *AddMemberTx) DebugPayloads() (res []interface{}) {
+	for _, v := range tx.payloads {
+		res = append(res, v.Val)
+	}
+	return res
 }
 
 func (tx *AddMemberTx) IsEmpty() bool {
@@ -57,42 +66,36 @@ func (tx *AddMemberTx) IsEmpty() bool {
 // of AddMemberTx API. Users of this API should avoid lowercase
 // methods and fields at all cost, even from same package.
 
-// getInviteSection returns SCTeamInvites field from either
-// *txTeamInvitesKeybase or *txTeamInvitesSocial without reflection.
-func getInviteSection(payload interface{}) (*SCTeamInvites, error) {
-	switch p := payload.(type) {
-	case *txTeamInvitesKeybase:
-		return &p.Val, nil
-	case *txTeamInvitesSocial:
-		return &p.Val, nil
-	default:
-		return nil, fmt.Errorf("getInviteSection: invalid type %T", p)
-	}
-}
-
-func (tx *AddMemberTx) findPayload(typ interface{}, forUID keybase1.UID) interface{} {
+func (tx *AddMemberTx) findPayload(tag txPayloadTag, forUID keybase1.UID) interface{} {
 	minSeqno := 0
 	hasUID := !forUID.IsNil()
 	if hasUID {
 		minSeqno = tx.uidSeqno[forUID]
 	}
 
-	refType := reflect.TypeOf(typ)
 	for i, v := range tx.payloads {
-		if i >= minSeqno && reflect.TypeOf(v).Elem() == refType {
+		if i >= minSeqno && v.Tag == tag {
 			if hasUID && i > minSeqno {
 				tx.uidSeqno[forUID] = i
 			}
-			return v
+			return v.Val
 		}
 	}
 
 	if hasUID {
 		tx.uidSeqno[forUID] = len(tx.payloads)
 	}
-	ret := reflect.New(refType).Interface()
+	ret := txPayload{
+		Tag: tag,
+	}
+	switch tag {
+	case txPayloadTagCryptomembers:
+		ret.Val = &keybase1.TeamChangeReq{}
+	case txPayloadTagInviteKeybase, txPayloadTagInviteSocial:
+		ret.Val = &SCTeamInvites{}
+	}
 	tx.payloads = append(tx.payloads, ret)
-	return ret
+	return ret.Val
 }
 
 // Methods modifying payloads are supposed to always succeed given the
@@ -103,17 +106,15 @@ func (tx *AddMemberTx) findPayload(typ interface{}, forUID keybase1.UID) interfa
 // satisfied.
 
 func (tx *AddMemberTx) invitePayload(forUID keybase1.UID) *SCTeamInvites {
-	p := tx.findPayload(txTeamInvitesKeybase{}, forUID).(*txTeamInvitesKeybase)
-	return &p.Val
+	return tx.findPayload(txPayloadTagInviteKeybase, forUID).(*SCTeamInvites)
 }
 
 func (tx *AddMemberTx) inviteSocialPayload(forUID keybase1.UID) *SCTeamInvites {
-	p := tx.findPayload(txTeamInvitesSocial{}, forUID).(*txTeamInvitesSocial)
-	return &p.Val
+	return tx.findPayload(txPayloadTagInviteSocial, forUID).(*SCTeamInvites)
 }
 
 func (tx *AddMemberTx) changeMembershipPayload(forUID keybase1.UID) *keybase1.TeamChangeReq {
-	return tx.findPayload(keybase1.TeamChangeReq{}, forUID).(*keybase1.TeamChangeReq)
+	return tx.findPayload(txPayloadTagCryptomembers, forUID).(*keybase1.TeamChangeReq)
 }
 
 func (tx *AddMemberTx) removeMember(uv keybase1.UserVersion) {
@@ -221,7 +222,8 @@ func (tx *AddMemberTx) sweepKeybaseInvites(uid keybase1.UID) {
 
 func (tx *AddMemberTx) findChangeReqForUV(uv keybase1.UserVersion) *keybase1.TeamChangeReq {
 	for _, v := range tx.payloads {
-		if req, ok := v.(*keybase1.TeamChangeReq); ok {
+		if v.Tag == txPayloadTagCryptomembers {
+			req := v.Val.(*keybase1.TeamChangeReq)
 			for _, x := range req.GetAllAdds() {
 				if x.Eq(uv) {
 					return req
@@ -660,8 +662,9 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 			Public:   team.IsPublic(),
 		}
 
-		switch payload := p.(type) {
-		case *keybase1.TeamChangeReq:
+		switch p.Tag {
+		case txPayloadTagCryptomembers:
+			payload := p.Val.(*keybase1.TeamChangeReq)
 			// We need memberSet for this particular payload, but also keep a
 			// memberSet for entire transaction to generate boxes afterwards.
 			payloadMemberSet, err := newMemberSetChange(mctx.Ctx(), g, *payload)
@@ -678,17 +681,13 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 
 			section.CompletedInvites = payload.CompletedInvites
 			sections = append(sections, section)
-		case *txTeamInvitesKeybase, *txTeamInvitesSocial:
+		case txPayloadTagInviteKeybase, txPayloadTagInviteSocial:
 			entropy, err := makeSCTeamEntropy()
 			if err != nil {
 				return err
 			}
 
-			scTeamInv, err := getInviteSection(p)
-			if err != nil {
-				return err
-			}
-			section.Invites = scTeamInv
+			section.Invites = p.Val.(*SCTeamInvites)
 			section.Entropy = entropy
 			sections = append(sections, section)
 		default:
@@ -734,10 +733,13 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 		// section that removes users and add it there.
 		found := false
 		for i, v := range tx.payloads {
-			if req, ok := v.(*keybase1.TeamChangeReq); ok && len(req.None) > 0 {
-				sections[i].PerTeamKey = perTeamKeySection
-				found = true
-				break
+			if v.Tag == txPayloadTagCryptomembers {
+				req := v.Val.(*keybase1.TeamChangeReq)
+				if len(req.None) > 0 {
+					sections[i].PerTeamKey = perTeamKeySection
+					found = true
+					break
+				}
 			}
 		}
 		if !found {
@@ -764,13 +766,13 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 	var readySigs []libkb.SigMultiItem
 	for i, section := range sections {
 		var linkType libkb.LinkType
-		switch tx.payloads[i].(type) {
-		case *keybase1.TeamChangeReq:
+		switch tx.payloads[i].Tag {
+		case txPayloadTagCryptomembers:
 			linkType = libkb.LinkTypeChangeMembership
-		case *txTeamInvitesSocial, *txTeamInvitesKeybase:
+		case txPayloadTagInviteKeybase, txPayloadTagInviteSocial:
 			linkType = libkb.LinkTypeInvite
 		default:
-			return fmt.Errorf("Unhandled case in AddMemberTx.Post, unknown type: %T", tx.payloads[i])
+			return fmt.Errorf("Unhandled case in AddMemberTx.Post, unknown tag: %s", tx.payloads[i].Tag)
 		}
 
 		sigMultiItem, linkID, err := team.sigTeamItemRaw(mctx.Ctx(), section, linkType,
