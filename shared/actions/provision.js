@@ -413,30 +413,30 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   makeProvisioningManager(false)
 
   // Start provision
-  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitUsernameOrEmail, startProvisioning)
-  yield Saga.safeTakeEveryPureSimple(ProvisionGen.addNewDevice, addNewDevice)
+  yield Saga.actionToAction(ProvisionGen.submitUsernameOrEmail, startProvisioning)
+  yield Saga.actionToAction(ProvisionGen.addNewDevice, addNewDevice)
 
   // Submits
-  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitDeviceSelect, submitDeviceSelect)
-  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitDeviceName, submitDeviceName)
-  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitTextCode, submitTextCode)
-  yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitGPGMethod, submitGPGMethod)
-  yield Saga.safeTakeEveryPureSimple(
+  yield Saga.actionToAction(ProvisionGen.submitDeviceSelect, submitDeviceSelect)
+  yield Saga.actionToAction(ProvisionGen.submitDeviceName, submitDeviceName)
+  yield Saga.actionToAction(ProvisionGen.submitTextCode, submitTextCode)
+  yield Saga.actionToAction(ProvisionGen.submitGPGMethod, submitGPGMethod)
+  yield Saga.actionToAction(
     [ProvisionGen.submitPassphrase, ProvisionGen.submitPaperkey],
     submitPassphraseOrPaperkey
   )
 
   // Screens
-  yield Saga.safeTakeEveryPureSimple(ProvisionGen.startProvision, showUsernameEmailPage)
-  yield Saga.safeTakeEveryPureSimple(ProvisionGen.showDeviceListPage, showDeviceListPage)
-  yield Saga.safeTakeEveryPureSimple(ProvisionGen.showNewDeviceNamePage, showNewDeviceNamePage)
-  yield Saga.safeTakeEveryPureSimple(ProvisionGen.showCodePage, showCodePage)
-  yield Saga.safeTakeEveryPureSimple(ProvisionGen.showGPGPage, showGPGPage)
-  yield Saga.safeTakeEveryPureSimple(ProvisionGen.showPassphrasePage, showPassphrasePage)
-  yield Saga.safeTakeEveryPureSimple(ProvisionGen.showPaperkeyPage, showPaperkeyPage)
-  yield Saga.safeTakeEveryPureSimple(ProvisionGen.showFinalErrorPage, showFinalErrorPage)
+  yield Saga.actionToAction(ProvisionGen.startProvision, showUsernameEmailPage)
+  yield Saga.actionToAction(ProvisionGen.showDeviceListPage, showDeviceListPage)
+  yield Saga.actionToAction(ProvisionGen.showNewDeviceNamePage, showNewDeviceNamePage)
+  yield Saga.actionToAction(ProvisionGen.showCodePage, showCodePage)
+  yield Saga.actionToAction(ProvisionGen.showGPGPage, showGPGPage)
+  yield Saga.actionToAction(ProvisionGen.showPassphrasePage, showPassphrasePage)
+  yield Saga.actionToAction(ProvisionGen.showPaperkeyPage, showPaperkeyPage)
+  yield Saga.actionToAction(ProvisionGen.showFinalErrorPage, showFinalErrorPage)
 
-  yield Saga.safeTakeEveryPureSimple(RouteConstants.navigateUp, maybeCancelProvision)
+  yield Saga.actionToAction(RouteConstants.navigateUp, maybeCancelProvision)
 }
 
 export const _testing = {
