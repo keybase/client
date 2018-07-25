@@ -1052,24 +1052,24 @@ func NewChainLink(g *GlobalContext, parent *SigChain, id LinkID) *ChainLink {
 	}
 }
 
-func ImportLinkFromStorage(id LinkID, selfUID keybase1.UID, g *GlobalContext) (*ChainLink, error) {
-	link, ok := g.LinkCache().Get(id)
+func ImportLinkFromStorage(m MetaContext, id LinkID, selfUID keybase1.UID) (*ChainLink, error) {
+	link, ok := m.G().LinkCache().Get(id)
 	if ok {
-		link.Contextified = NewContextified(g)
+		link.Contextified = NewContextified(m.G())
 		return &link, nil
 	}
 
 	var ret *ChainLink
-	data, _, err := g.LocalDb.GetRaw(DbKey{Typ: DBLink, Key: id.String()})
+	data, _, err := m.G().LocalDb.GetRaw(DbKey{Typ: DBLink, Key: id.String()})
 	if err == nil && data != nil {
 		// May as well recheck onload (maybe revisit this)
-		ret = NewChainLink(g, nil, id)
+		ret = NewChainLink(m.G(), nil, id)
 		if err = ret.Unpack(true, selfUID, data); err != nil {
 			return nil, err
 		}
 		ret.storedLocally = true
 
-		g.LinkCache().Put(id, ret.Copy())
+		m.G().LinkCache().Put(id, ret.Copy())
 	}
 	return ret, err
 }

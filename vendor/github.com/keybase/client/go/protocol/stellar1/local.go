@@ -4,7 +4,6 @@
 package stellar1
 
 import (
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -25,43 +24,454 @@ func (o WalletAccountLocal) DeepCopy() WalletAccountLocal {
 	}
 }
 
+type AccountAssetLocal struct {
+	Name                   string           `codec:"name" json:"name"`
+	AssetCode              string           `codec:"assetCode" json:"assetCode"`
+	IssuerName             string           `codec:"issuerName" json:"issuerName"`
+	IssuerAccountID        string           `codec:"issuerAccountID" json:"issuerAccountID"`
+	BalanceTotal           string           `codec:"balanceTotal" json:"balanceTotal"`
+	BalanceAvailableToSend string           `codec:"balanceAvailableToSend" json:"balanceAvailableToSend"`
+	WorthCurrency          string           `codec:"worthCurrency" json:"worthCurrency"`
+	Worth                  string           `codec:"worth" json:"worth"`
+	AvailableToSendWorth   string           `codec:"availableToSendWorth" json:"availableToSendWorth"`
+	Reserves               []AccountReserve `codec:"reserves" json:"reserves"`
+}
+
+func (o AccountAssetLocal) DeepCopy() AccountAssetLocal {
+	return AccountAssetLocal{
+		Name:                   o.Name,
+		AssetCode:              o.AssetCode,
+		IssuerName:             o.IssuerName,
+		IssuerAccountID:        o.IssuerAccountID,
+		BalanceTotal:           o.BalanceTotal,
+		BalanceAvailableToSend: o.BalanceAvailableToSend,
+		WorthCurrency:          o.WorthCurrency,
+		Worth:                  o.Worth,
+		AvailableToSendWorth:   o.AvailableToSendWorth,
+		Reserves: (func(x []AccountReserve) []AccountReserve {
+			if x == nil {
+				return nil
+			}
+			var ret []AccountReserve
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Reserves),
+	}
+}
+
+type BalanceDelta int
+
+const (
+	BalanceDelta_NONE     BalanceDelta = 0
+	BalanceDelta_INCREASE BalanceDelta = 1
+	BalanceDelta_DECREASE BalanceDelta = 2
+)
+
+func (o BalanceDelta) DeepCopy() BalanceDelta { return o }
+
+var BalanceDeltaMap = map[string]BalanceDelta{
+	"NONE":     0,
+	"INCREASE": 1,
+	"DECREASE": 2,
+}
+
+var BalanceDeltaRevMap = map[BalanceDelta]string{
+	0: "NONE",
+	1: "INCREASE",
+	2: "DECREASE",
+}
+
+func (e BalanceDelta) String() string {
+	if v, ok := BalanceDeltaRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type PaymentStatus int
+
+const (
+	PaymentStatus_NONE      PaymentStatus = 0
+	PaymentStatus_PENDING   PaymentStatus = 1
+	PaymentStatus_CLAIMABLE PaymentStatus = 2
+	PaymentStatus_COMPLETED PaymentStatus = 3
+	PaymentStatus_ERROR     PaymentStatus = 4
+	PaymentStatus_UNKNOWN   PaymentStatus = 5
+)
+
+func (o PaymentStatus) DeepCopy() PaymentStatus { return o }
+
+var PaymentStatusMap = map[string]PaymentStatus{
+	"NONE":      0,
+	"PENDING":   1,
+	"CLAIMABLE": 2,
+	"COMPLETED": 3,
+	"ERROR":     4,
+	"UNKNOWN":   5,
+}
+
+var PaymentStatusRevMap = map[PaymentStatus]string{
+	0: "NONE",
+	1: "PENDING",
+	2: "CLAIMABLE",
+	3: "COMPLETED",
+	4: "ERROR",
+	5: "UNKNOWN",
+}
+
+func (e PaymentStatus) String() string {
+	if v, ok := PaymentStatusRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type ParticipantType int
+
+const (
+	ParticipantType_NONE    ParticipantType = 0
+	ParticipantType_KEYBASE ParticipantType = 1
+	ParticipantType_STELLAR ParticipantType = 2
+	ParticipantType_SBS     ParticipantType = 3
+)
+
+func (o ParticipantType) DeepCopy() ParticipantType { return o }
+
+var ParticipantTypeMap = map[string]ParticipantType{
+	"NONE":    0,
+	"KEYBASE": 1,
+	"STELLAR": 2,
+	"SBS":     3,
+}
+
+var ParticipantTypeRevMap = map[ParticipantType]string{
+	0: "NONE",
+	1: "KEYBASE",
+	2: "STELLAR",
+	3: "SBS",
+}
+
+func (e ParticipantType) String() string {
+	if v, ok := ParticipantTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type PaymentLocal struct {
+	Id                PaymentID       `codec:"id" json:"id"`
+	Time              TimeMs          `codec:"time" json:"time"`
+	StatusSimplified  PaymentStatus   `codec:"statusSimplified" json:"statusSimplified"`
+	StatusDescription string          `codec:"statusDescription" json:"statusDescription"`
+	StatusDetail      string          `codec:"statusDetail" json:"statusDetail"`
+	ShowCancel        bool            `codec:"showCancel" json:"showCancel"`
+	AmountDescription string          `codec:"amountDescription" json:"amountDescription"`
+	Delta             BalanceDelta    `codec:"delta" json:"delta"`
+	Worth             string          `codec:"worth" json:"worth"`
+	WorthCurrency     string          `codec:"worthCurrency" json:"worthCurrency"`
+	Source            string          `codec:"source" json:"source"`
+	SourceType        ParticipantType `codec:"sourceType" json:"sourceType"`
+	Target            string          `codec:"target" json:"target"`
+	TargetType        ParticipantType `codec:"targetType" json:"targetType"`
+	Note              string          `codec:"note" json:"note"`
+	NoteErr           string          `codec:"noteErr" json:"noteErr"`
+}
+
+func (o PaymentLocal) DeepCopy() PaymentLocal {
+	return PaymentLocal{
+		Id:                o.Id.DeepCopy(),
+		Time:              o.Time.DeepCopy(),
+		StatusSimplified:  o.StatusSimplified.DeepCopy(),
+		StatusDescription: o.StatusDescription,
+		StatusDetail:      o.StatusDetail,
+		ShowCancel:        o.ShowCancel,
+		AmountDescription: o.AmountDescription,
+		Delta:             o.Delta.DeepCopy(),
+		Worth:             o.Worth,
+		WorthCurrency:     o.WorthCurrency,
+		Source:            o.Source,
+		SourceType:        o.SourceType.DeepCopy(),
+		Target:            o.Target,
+		TargetType:        o.TargetType.DeepCopy(),
+		Note:              o.Note,
+		NoteErr:           o.NoteErr,
+	}
+}
+
+type PaymentOrErrorLocal struct {
+	Payment *PaymentLocal `codec:"payment,omitempty" json:"payment,omitempty"`
+	Err     *string       `codec:"err,omitempty" json:"err,omitempty"`
+}
+
+func (o PaymentOrErrorLocal) DeepCopy() PaymentOrErrorLocal {
+	return PaymentOrErrorLocal{
+		Payment: (func(x *PaymentLocal) *PaymentLocal {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Payment),
+		Err: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Err),
+	}
+}
+
+type PaymentsPageLocal struct {
+	Payments []PaymentOrErrorLocal `codec:"payments" json:"payments"`
+	Cursor   *PageCursor           `codec:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+func (o PaymentsPageLocal) DeepCopy() PaymentsPageLocal {
+	return PaymentsPageLocal{
+		Payments: (func(x []PaymentOrErrorLocal) []PaymentOrErrorLocal {
+			if x == nil {
+				return nil
+			}
+			var ret []PaymentOrErrorLocal
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Payments),
+		Cursor: (func(x *PageCursor) *PageCursor {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Cursor),
+	}
+}
+
+type PaymentDetailsLocal struct {
+	Id                PaymentID       `codec:"id" json:"id"`
+	TxID              TransactionID   `codec:"txID" json:"txID"`
+	Time              TimeMs          `codec:"time" json:"time"`
+	StatusSimplified  PaymentStatus   `codec:"statusSimplified" json:"statusSimplified"`
+	StatusDescription string          `codec:"statusDescription" json:"statusDescription"`
+	StatusDetail      string          `codec:"statusDetail" json:"statusDetail"`
+	ShowCancel        bool            `codec:"showCancel" json:"showCancel"`
+	AmountDescription string          `codec:"amountDescription" json:"amountDescription"`
+	Delta             BalanceDelta    `codec:"delta" json:"delta"`
+	Worth             string          `codec:"worth" json:"worth"`
+	WorthCurrency     string          `codec:"worthCurrency" json:"worthCurrency"`
+	Source            string          `codec:"source" json:"source"`
+	SourceType        ParticipantType `codec:"sourceType" json:"sourceType"`
+	Target            string          `codec:"target" json:"target"`
+	TargetType        ParticipantType `codec:"targetType" json:"targetType"`
+	Note              string          `codec:"note" json:"note"`
+	NoteErr           string          `codec:"noteErr" json:"noteErr"`
+	PublicNote        string          `codec:"publicNote" json:"publicNote"`
+	PublicNoteType    string          `codec:"publicNoteType" json:"publicNoteType"`
+}
+
+func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
+	return PaymentDetailsLocal{
+		Id:                o.Id.DeepCopy(),
+		TxID:              o.TxID.DeepCopy(),
+		Time:              o.Time.DeepCopy(),
+		StatusSimplified:  o.StatusSimplified.DeepCopy(),
+		StatusDescription: o.StatusDescription,
+		StatusDetail:      o.StatusDetail,
+		ShowCancel:        o.ShowCancel,
+		AmountDescription: o.AmountDescription,
+		Delta:             o.Delta.DeepCopy(),
+		Worth:             o.Worth,
+		WorthCurrency:     o.WorthCurrency,
+		Source:            o.Source,
+		SourceType:        o.SourceType.DeepCopy(),
+		Target:            o.Target,
+		TargetType:        o.TargetType.DeepCopy(),
+		Note:              o.Note,
+		NoteErr:           o.NoteErr,
+		PublicNote:        o.PublicNote,
+		PublicNoteType:    o.PublicNoteType,
+	}
+}
+
+type CurrencyLocal struct {
+	Description string              `codec:"description" json:"description"`
+	Code        OutsideCurrencyCode `codec:"code" json:"code"`
+	Symbol      string              `codec:"symbol" json:"symbol"`
+	Name        string              `codec:"name" json:"name"`
+}
+
+func (o CurrencyLocal) DeepCopy() CurrencyLocal {
+	return CurrencyLocal{
+		Description: o.Description,
+		Code:        o.Code.DeepCopy(),
+		Symbol:      o.Symbol,
+		Name:        o.Name,
+	}
+}
+
+type WalletSettings struct {
+	AcceptedDisclaimer bool `codec:"acceptedDisclaimer" json:"acceptedDisclaimer"`
+}
+
+func (o WalletSettings) DeepCopy() WalletSettings {
+	return WalletSettings{
+		AcceptedDisclaimer: o.AcceptedDisclaimer,
+	}
+}
+
+type SendAssetChoiceLocal struct {
+	Asset   Asset  `codec:"asset" json:"asset"`
+	Enabled bool   `codec:"enabled" json:"enabled"`
+	Left    string `codec:"left" json:"left"`
+	Right   string `codec:"right" json:"right"`
+	Subtext string `codec:"subtext" json:"subtext"`
+}
+
+func (o SendAssetChoiceLocal) DeepCopy() SendAssetChoiceLocal {
+	return SendAssetChoiceLocal{
+		Asset:   o.Asset.DeepCopy(),
+		Enabled: o.Enabled,
+		Left:    o.Left,
+		Right:   o.Right,
+		Subtext: o.Subtext,
+	}
+}
+
+type BuildPaymentResLocal struct {
+	ReadyToSend      bool              `codec:"readyToSend" json:"readyToSend"`
+	ToErrMsg         string            `codec:"toErrMsg" json:"toErrMsg"`
+	ToUsername       string            `codec:"toUsername" json:"toUsername"`
+	AmountErrMsg     string            `codec:"amountErrMsg" json:"amountErrMsg"`
+	SecretNoteErrMsg string            `codec:"secretNoteErrMsg" json:"secretNoteErrMsg"`
+	PublicMemoErrMsg string            `codec:"publicMemoErrMsg" json:"publicMemoErrMsg"`
+	WorthDescription string            `codec:"worthDescription" json:"worthDescription"`
+	WorthInfo        string            `codec:"worthInfo" json:"worthInfo"`
+	Banners          []SendBannerLocal `codec:"banners" json:"banners"`
+}
+
+func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
+	return BuildPaymentResLocal{
+		ReadyToSend:      o.ReadyToSend,
+		ToErrMsg:         o.ToErrMsg,
+		ToUsername:       o.ToUsername,
+		AmountErrMsg:     o.AmountErrMsg,
+		SecretNoteErrMsg: o.SecretNoteErrMsg,
+		PublicMemoErrMsg: o.PublicMemoErrMsg,
+		WorthDescription: o.WorthDescription,
+		WorthInfo:        o.WorthInfo,
+		Banners: (func(x []SendBannerLocal) []SendBannerLocal {
+			if x == nil {
+				return nil
+			}
+			var ret []SendBannerLocal
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Banners),
+	}
+}
+
+type SendBannerLocal struct {
+	Level         string `codec:"level" json:"level"`
+	Message       string `codec:"message" json:"message"`
+	ProofsChanged bool   `codec:"proofsChanged" json:"proofsChanged"`
+}
+
+func (o SendBannerLocal) DeepCopy() SendBannerLocal {
+	return SendBannerLocal{
+		Level:         o.Level,
+		Message:       o.Message,
+		ProofsChanged: o.ProofsChanged,
+	}
+}
+
+type SendPaymentResLocal struct {
+	KbTxID  KeybaseTransactionID `codec:"kbTxID" json:"kbTxID"`
+	Pending bool                 `codec:"pending" json:"pending"`
+}
+
+func (o SendPaymentResLocal) DeepCopy() SendPaymentResLocal {
+	return SendPaymentResLocal{
+		KbTxID:  o.KbTxID.DeepCopy(),
+		Pending: o.Pending,
+	}
+}
+
+type RequestDetailsLocal struct {
+	Id                       KeybaseRequestID     `codec:"id" json:"id"`
+	FromAssertion            string               `codec:"fromAssertion" json:"fromAssertion"`
+	FromCurrentUser          bool                 `codec:"fromCurrentUser" json:"fromCurrentUser"`
+	ToUserType               ParticipantType      `codec:"toUserType" json:"toUserType"`
+	ToAssertion              string               `codec:"toAssertion" json:"toAssertion"`
+	Amount                   string               `codec:"amount" json:"amount"`
+	Asset                    *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
+	Currency                 *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
+	AmountDescription        string               `codec:"amountDescription" json:"amountDescription"`
+	AmountStellar            string               `codec:"amountStellar" json:"amountStellar"`
+	AmountStellarDescription string               `codec:"amountStellarDescription" json:"amountStellarDescription"`
+	Completed                bool                 `codec:"completed" json:"completed"`
+	FundingKbTxID            KeybaseTransactionID `codec:"fundingKbTxID" json:"fundingKbTxID"`
+	Status                   RequestStatus        `codec:"status" json:"status"`
+}
+
+func (o RequestDetailsLocal) DeepCopy() RequestDetailsLocal {
+	return RequestDetailsLocal{
+		Id:              o.Id.DeepCopy(),
+		FromAssertion:   o.FromAssertion,
+		FromCurrentUser: o.FromCurrentUser,
+		ToUserType:      o.ToUserType.DeepCopy(),
+		ToAssertion:     o.ToAssertion,
+		Amount:          o.Amount,
+		Asset: (func(x *Asset) *Asset {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Asset),
+		Currency: (func(x *OutsideCurrencyCode) *OutsideCurrencyCode {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Currency),
+		AmountDescription:        o.AmountDescription,
+		AmountStellar:            o.AmountStellar,
+		AmountStellarDescription: o.AmountStellarDescription,
+		Completed:                o.Completed,
+		FundingKbTxID:            o.FundingKbTxID.DeepCopy(),
+		Status:                   o.Status.DeepCopy(),
+	}
+}
+
 type SendResultCLILocal struct {
-	KbTxID KeybaseTransactionID     `codec:"KbTxID" json:"KbTxID"`
-	TxID   TransactionID            `codec:"TxID" json:"TxID"`
-	Relay  *SendRelayResultCLILocal `codec:"relay,omitempty" json:"relay,omitempty"`
+	KbTxID KeybaseTransactionID `codec:"kbTxID" json:"kbTxID"`
+	TxID   TransactionID        `codec:"txID" json:"txID"`
 }
 
 func (o SendResultCLILocal) DeepCopy() SendResultCLILocal {
 	return SendResultCLILocal{
 		KbTxID: o.KbTxID.DeepCopy(),
 		TxID:   o.TxID.DeepCopy(),
-		Relay: (func(x *SendRelayResultCLILocal) *SendRelayResultCLILocal {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Relay),
 	}
 }
 
-type SendRelayResultCLILocal struct {
-	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
-}
-
-func (o SendRelayResultCLILocal) DeepCopy() SendRelayResultCLILocal {
-	return SendRelayResultCLILocal{
-		TeamID: o.TeamID.DeepCopy(),
-	}
-}
-
-type PaymentCLIOptionLocal struct {
+type PaymentOrErrorCLILocal struct {
 	Payment *PaymentCLILocal `codec:"payment,omitempty" json:"payment,omitempty"`
-	Err     string           `codec:"err" json:"err"`
+	Err     *string          `codec:"err,omitempty" json:"err,omitempty"`
 }
 
-func (o PaymentCLIOptionLocal) DeepCopy() PaymentCLIOptionLocal {
-	return PaymentCLIOptionLocal{
+func (o PaymentOrErrorCLILocal) DeepCopy() PaymentOrErrorCLILocal {
+	return PaymentOrErrorCLILocal{
 		Payment: (func(x *PaymentCLILocal) *PaymentCLILocal {
 			if x == nil {
 				return nil
@@ -69,7 +479,13 @@ func (o PaymentCLIOptionLocal) DeepCopy() PaymentCLIOptionLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Payment),
-		Err: o.Err,
+		Err: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Err),
 	}
 }
 
@@ -86,6 +502,7 @@ type PaymentCLILocal struct {
 	ToStellar       *AccountID    `codec:"toStellar,omitempty" json:"toStellar,omitempty"`
 	FromUsername    *string       `codec:"fromUsername,omitempty" json:"fromUsername,omitempty"`
 	ToUsername      *string       `codec:"toUsername,omitempty" json:"toUsername,omitempty"`
+	ToAssertion     *string       `codec:"toAssertion,omitempty" json:"toAssertion,omitempty"`
 	Note            string        `codec:"note" json:"note"`
 	NoteErr         string        `codec:"noteErr" json:"noteErr"`
 }
@@ -134,6 +551,13 @@ func (o PaymentCLILocal) DeepCopy() PaymentCLILocal {
 			tmp := (*x)
 			return &tmp
 		})(o.ToUsername),
+		ToAssertion: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.ToAssertion),
 		Note:    o.Note,
 		NoteErr: o.NoteErr,
 	}
@@ -177,17 +601,160 @@ type GetWalletAccountsLocalArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type GetAccountAssetsLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+}
+
+type GetPaymentsLocalArg struct {
+	SessionID int         `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID   `codec:"accountID" json:"accountID"`
+	Cursor    *PageCursor `codec:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+type GetPendingPaymentsLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+}
+
+type GetPaymentDetailsLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+	Id        PaymentID `codec:"id" json:"id"`
+}
+
+type GetDisplayCurrenciesLocalArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type ValidateAccountIDLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+}
+
+type ValidateSecretKeyLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	SecretKey SecretKey `codec:"secretKey" json:"secretKey"`
+}
+
+type ValidateAccountNameLocalArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+}
+
+type ChangeWalletAccountNameLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+	NewName   string    `codec:"newName" json:"newName"`
+}
+
+type SetWalletAccountAsDefaultLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+}
+
+type DeleteWalletAccountLocalArg struct {
+	SessionID        int       `codec:"sessionID" json:"sessionID"`
+	AccountID        AccountID `codec:"accountID" json:"accountID"`
+	UserAcknowledged string    `codec:"userAcknowledged" json:"userAcknowledged"`
+}
+
+type LinkNewWalletAccountLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	SecretKey SecretKey `codec:"secretKey" json:"secretKey"`
+	Name      string    `codec:"name" json:"name"`
+}
+
+type CreateWalletAccountLocalArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+}
+
+type ChangeDisplayCurrencyLocalArg struct {
+	SessionID int                 `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID           `codec:"accountID" json:"accountID"`
+	Currency  OutsideCurrencyCode `codec:"currency" json:"currency"`
+}
+
+type GetDisplayCurrencyLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+}
+
+type GetWalletSettingsLocalArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type SetAcceptedDisclaimerLocalArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type GetWalletAccountPublicKeyLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+}
+
+type GetWalletAccountSecretKeyLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+}
+
+type GetSendAssetChoicesLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	From      AccountID `codec:"from" json:"from"`
+	To        string    `codec:"to" json:"to"`
+}
+
+type BuildPaymentLocalArg struct {
+	SessionID     int                  `codec:"sessionID" json:"sessionID"`
+	From          AccountID            `codec:"from" json:"from"`
+	FromSeqno     string               `codec:"fromSeqno" json:"fromSeqno"`
+	To            string               `codec:"to" json:"to"`
+	ToIsAccountID bool                 `codec:"toIsAccountID" json:"toIsAccountID"`
+	Amount        string               `codec:"amount" json:"amount"`
+	Currency      *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
+	Asset         *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
+	SecretNote    string               `codec:"secretNote" json:"secretNote"`
+	PublicMemo    string               `codec:"publicMemo" json:"publicMemo"`
+}
+
+type SendPaymentLocalArg struct {
+	SessionID     int                  `codec:"sessionID" json:"sessionID"`
+	From          AccountID            `codec:"from" json:"from"`
+	FromSeqno     string               `codec:"fromSeqno" json:"fromSeqno"`
+	To            string               `codec:"to" json:"to"`
+	ToIsAccountID bool                 `codec:"toIsAccountID" json:"toIsAccountID"`
+	Amount        string               `codec:"amount" json:"amount"`
+	Asset         Asset                `codec:"asset" json:"asset"`
+	WorthAmount   string               `codec:"worthAmount" json:"worthAmount"`
+	WorthCurrency *OutsideCurrencyCode `codec:"worthCurrency,omitempty" json:"worthCurrency,omitempty"`
+	SecretNote    string               `codec:"secretNote" json:"secretNote"`
+	PublicMemo    string               `codec:"publicMemo" json:"publicMemo"`
+	QuickReturn   bool                 `codec:"quickReturn" json:"quickReturn"`
+}
+
+type GetRequestDetailsLocalArg struct {
+	ReqID KeybaseRequestID `codec:"reqID" json:"reqID"`
+}
+
+type CancelRequestLocalArg struct {
+	ReqID KeybaseRequestID `codec:"reqID" json:"reqID"`
+}
+
 type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
 
 type SendCLILocalArg struct {
-	Recipient       string `codec:"recipient" json:"recipient"`
-	Amount          string `codec:"amount" json:"amount"`
-	Asset           Asset  `codec:"asset" json:"asset"`
-	Note            string `codec:"note" json:"note"`
-	DisplayAmount   string `codec:"displayAmount" json:"displayAmount"`
-	DisplayCurrency string `codec:"displayCurrency" json:"displayCurrency"`
+	Recipient       string    `codec:"recipient" json:"recipient"`
+	Amount          string    `codec:"amount" json:"amount"`
+	Asset           Asset     `codec:"asset" json:"asset"`
+	Note            string    `codec:"note" json:"note"`
+	DisplayAmount   string    `codec:"displayAmount" json:"displayAmount"`
+	DisplayCurrency string    `codec:"displayCurrency" json:"displayCurrency"`
+	ForceRelay      bool      `codec:"forceRelay" json:"forceRelay"`
+	PublicNote      string    `codec:"publicNote" json:"publicNote"`
+	FromAccountID   AccountID `codec:"fromAccountID" json:"fromAccountID"`
 }
 
 type ClaimCLILocalArg struct {
@@ -242,12 +809,44 @@ type FormatLocalCurrencyStringArg struct {
 	Code   OutsideCurrencyCode `codec:"code" json:"code"`
 }
 
+type MakeRequestCLILocalArg struct {
+	Recipient string               `codec:"recipient" json:"recipient"`
+	Asset     *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
+	Currency  *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
+	Amount    string               `codec:"amount" json:"amount"`
+	Note      string               `codec:"note" json:"note"`
+}
+
 type LocalInterface interface {
 	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)
+	GetAccountAssetsLocal(context.Context, GetAccountAssetsLocalArg) ([]AccountAssetLocal, error)
+	GetPaymentsLocal(context.Context, GetPaymentsLocalArg) (PaymentsPageLocal, error)
+	GetPendingPaymentsLocal(context.Context, GetPendingPaymentsLocalArg) ([]PaymentOrErrorLocal, error)
+	GetPaymentDetailsLocal(context.Context, GetPaymentDetailsLocalArg) (PaymentDetailsLocal, error)
+	GetDisplayCurrenciesLocal(context.Context, int) ([]CurrencyLocal, error)
+	ValidateAccountIDLocal(context.Context, ValidateAccountIDLocalArg) error
+	ValidateSecretKeyLocal(context.Context, ValidateSecretKeyLocalArg) error
+	ValidateAccountNameLocal(context.Context, ValidateAccountNameLocalArg) error
+	ChangeWalletAccountNameLocal(context.Context, ChangeWalletAccountNameLocalArg) error
+	SetWalletAccountAsDefaultLocal(context.Context, SetWalletAccountAsDefaultLocalArg) error
+	DeleteWalletAccountLocal(context.Context, DeleteWalletAccountLocalArg) error
+	LinkNewWalletAccountLocal(context.Context, LinkNewWalletAccountLocalArg) (AccountID, error)
+	CreateWalletAccountLocal(context.Context, CreateWalletAccountLocalArg) (AccountID, error)
+	ChangeDisplayCurrencyLocal(context.Context, ChangeDisplayCurrencyLocalArg) error
+	GetDisplayCurrencyLocal(context.Context, GetDisplayCurrencyLocalArg) (CurrencyLocal, error)
+	GetWalletSettingsLocal(context.Context, int) (WalletSettings, error)
+	SetAcceptedDisclaimerLocal(context.Context, int) error
+	GetWalletAccountPublicKeyLocal(context.Context, GetWalletAccountPublicKeyLocalArg) (string, error)
+	GetWalletAccountSecretKeyLocal(context.Context, GetWalletAccountSecretKeyLocalArg) (SecretKey, error)
+	GetSendAssetChoicesLocal(context.Context, GetSendAssetChoicesLocalArg) ([]SendAssetChoiceLocal, error)
+	BuildPaymentLocal(context.Context, BuildPaymentLocalArg) (BuildPaymentResLocal, error)
+	SendPaymentLocal(context.Context, SendPaymentLocalArg) (SendPaymentResLocal, error)
+	GetRequestDetailsLocal(context.Context, KeybaseRequestID) (RequestDetailsLocal, error)
+	CancelRequestLocal(context.Context, KeybaseRequestID) error
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
-	RecentPaymentsCLILocal(context.Context, *AccountID) ([]PaymentCLIOptionLocal, error)
+	RecentPaymentsCLILocal(context.Context, *AccountID) ([]PaymentOrErrorCLILocal, error)
 	PaymentDetailCLILocal(context.Context, string) (PaymentCLILocal, error)
 	WalletInitLocal(context.Context) error
 	WalletDumpLocal(context.Context) (Bundle, error)
@@ -259,13 +858,14 @@ type LocalInterface interface {
 	ExchangeRateLocal(context.Context, OutsideCurrencyCode) (OutsideExchangeRate, error)
 	GetAvailableLocalCurrencies(context.Context) (map[OutsideCurrencyCode]OutsideCurrencyDefinition, error)
 	FormatLocalCurrencyString(context.Context, FormatLocalCurrencyStringArg) (string, error)
+	MakeRequestCLILocal(context.Context, MakeRequestCLILocalArg) (KeybaseRequestID, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "stellar.1.local",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"GetWalletAccountsLocal": {
+			"getWalletAccountsLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]GetWalletAccountsLocalArg, 1)
 					return &ret
@@ -277,6 +877,390 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetWalletAccountsLocal(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getAccountAssetsLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetAccountAssetsLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetAccountAssetsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetAccountAssetsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetAccountAssetsLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getPaymentsLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetPaymentsLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetPaymentsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetPaymentsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetPaymentsLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getPendingPaymentsLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetPendingPaymentsLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetPendingPaymentsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetPendingPaymentsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetPendingPaymentsLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getPaymentDetailsLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetPaymentDetailsLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetPaymentDetailsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetPaymentDetailsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetPaymentDetailsLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getDisplayCurrenciesLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetDisplayCurrenciesLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetDisplayCurrenciesLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetDisplayCurrenciesLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetDisplayCurrenciesLocal(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"validateAccountIDLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]ValidateAccountIDLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ValidateAccountIDLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ValidateAccountIDLocalArg)(nil), args)
+						return
+					}
+					err = i.ValidateAccountIDLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"validateSecretKeyLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]ValidateSecretKeyLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ValidateSecretKeyLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ValidateSecretKeyLocalArg)(nil), args)
+						return
+					}
+					err = i.ValidateSecretKeyLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"validateAccountNameLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]ValidateAccountNameLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ValidateAccountNameLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ValidateAccountNameLocalArg)(nil), args)
+						return
+					}
+					err = i.ValidateAccountNameLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"changeWalletAccountNameLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]ChangeWalletAccountNameLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChangeWalletAccountNameLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChangeWalletAccountNameLocalArg)(nil), args)
+						return
+					}
+					err = i.ChangeWalletAccountNameLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"setWalletAccountAsDefaultLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]SetWalletAccountAsDefaultLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetWalletAccountAsDefaultLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetWalletAccountAsDefaultLocalArg)(nil), args)
+						return
+					}
+					err = i.SetWalletAccountAsDefaultLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"deleteWalletAccountLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]DeleteWalletAccountLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DeleteWalletAccountLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DeleteWalletAccountLocalArg)(nil), args)
+						return
+					}
+					err = i.DeleteWalletAccountLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"linkNewWalletAccountLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]LinkNewWalletAccountLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LinkNewWalletAccountLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LinkNewWalletAccountLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.LinkNewWalletAccountLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"createWalletAccountLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]CreateWalletAccountLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CreateWalletAccountLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CreateWalletAccountLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.CreateWalletAccountLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"changeDisplayCurrencyLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]ChangeDisplayCurrencyLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChangeDisplayCurrencyLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChangeDisplayCurrencyLocalArg)(nil), args)
+						return
+					}
+					err = i.ChangeDisplayCurrencyLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getDisplayCurrencyLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetDisplayCurrencyLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetDisplayCurrencyLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetDisplayCurrencyLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetDisplayCurrencyLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getWalletSettingsLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetWalletSettingsLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetWalletSettingsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetWalletSettingsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetWalletSettingsLocal(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"setAcceptedDisclaimerLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]SetAcceptedDisclaimerLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetAcceptedDisclaimerLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetAcceptedDisclaimerLocalArg)(nil), args)
+						return
+					}
+					err = i.SetAcceptedDisclaimerLocal(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getWalletAccountPublicKeyLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetWalletAccountPublicKeyLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetWalletAccountPublicKeyLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetWalletAccountPublicKeyLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetWalletAccountPublicKeyLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getWalletAccountSecretKeyLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetWalletAccountSecretKeyLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetWalletAccountSecretKeyLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetWalletAccountSecretKeyLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetWalletAccountSecretKeyLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getSendAssetChoicesLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetSendAssetChoicesLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetSendAssetChoicesLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetSendAssetChoicesLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetSendAssetChoicesLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"buildPaymentLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]BuildPaymentLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]BuildPaymentLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]BuildPaymentLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.BuildPaymentLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"sendPaymentLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]SendPaymentLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SendPaymentLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SendPaymentLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.SendPaymentLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getRequestDetailsLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetRequestDetailsLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetRequestDetailsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetRequestDetailsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetRequestDetailsLocal(ctx, (*typedArgs)[0].ReqID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"cancelRequestLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]CancelRequestLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CancelRequestLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CancelRequestLocalArg)(nil), args)
+						return
+					}
+					err = i.CancelRequestLocal(ctx, (*typedArgs)[0].ReqID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -501,6 +1485,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"makeRequestCLILocal": {
+				MakeArg: func() interface{} {
+					ret := make([]MakeRequestCLILocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]MakeRequestCLILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]MakeRequestCLILocalArg)(nil), args)
+						return
+					}
+					ret, err = i.MakeRequestCLILocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -511,7 +1511,132 @@ type LocalClient struct {
 
 func (c LocalClient) GetWalletAccountsLocal(ctx context.Context, sessionID int) (res []WalletAccountLocal, err error) {
 	__arg := GetWalletAccountsLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.GetWalletAccountsLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountsLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetAccountAssetsLocal(ctx context.Context, __arg GetAccountAssetsLocalArg) (res []AccountAssetLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.getAccountAssetsLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetPaymentsLocal(ctx context.Context, __arg GetPaymentsLocalArg) (res PaymentsPageLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.getPaymentsLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetPendingPaymentsLocal(ctx context.Context, __arg GetPendingPaymentsLocalArg) (res []PaymentOrErrorLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.getPendingPaymentsLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetPaymentDetailsLocal(ctx context.Context, __arg GetPaymentDetailsLocalArg) (res PaymentDetailsLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.getPaymentDetailsLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) (res []CurrencyLocal, err error) {
+	__arg := GetDisplayCurrenciesLocalArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "stellar.1.local.getDisplayCurrenciesLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) ValidateAccountIDLocal(ctx context.Context, __arg ValidateAccountIDLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.validateAccountIDLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) ValidateSecretKeyLocal(ctx context.Context, __arg ValidateSecretKeyLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.validateSecretKeyLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) ValidateAccountNameLocal(ctx context.Context, __arg ValidateAccountNameLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.validateAccountNameLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) ChangeWalletAccountNameLocal(ctx context.Context, __arg ChangeWalletAccountNameLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.changeWalletAccountNameLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) SetWalletAccountAsDefaultLocal(ctx context.Context, __arg SetWalletAccountAsDefaultLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.setWalletAccountAsDefaultLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) DeleteWalletAccountLocal(ctx context.Context, __arg DeleteWalletAccountLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.deleteWalletAccountLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) LinkNewWalletAccountLocal(ctx context.Context, __arg LinkNewWalletAccountLocalArg) (res AccountID, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.linkNewWalletAccountLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) CreateWalletAccountLocal(ctx context.Context, __arg CreateWalletAccountLocalArg) (res AccountID, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.createWalletAccountLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) ChangeDisplayCurrencyLocal(ctx context.Context, __arg ChangeDisplayCurrencyLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.changeDisplayCurrencyLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) GetDisplayCurrencyLocal(ctx context.Context, __arg GetDisplayCurrencyLocalArg) (res CurrencyLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.getDisplayCurrencyLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetWalletSettingsLocal(ctx context.Context, sessionID int) (res WalletSettings, err error) {
+	__arg := GetWalletSettingsLocalArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "stellar.1.local.getWalletSettingsLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) SetAcceptedDisclaimerLocal(ctx context.Context, sessionID int) (err error) {
+	__arg := SetAcceptedDisclaimerLocalArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "stellar.1.local.setAcceptedDisclaimerLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) GetWalletAccountPublicKeyLocal(ctx context.Context, __arg GetWalletAccountPublicKeyLocalArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountPublicKeyLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetWalletAccountSecretKeyLocal(ctx context.Context, __arg GetWalletAccountSecretKeyLocalArg) (res SecretKey, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountSecretKeyLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetSendAssetChoicesLocal(ctx context.Context, __arg GetSendAssetChoicesLocalArg) (res []SendAssetChoiceLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.getSendAssetChoicesLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) BuildPaymentLocal(ctx context.Context, __arg BuildPaymentLocalArg) (res BuildPaymentResLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.buildPaymentLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) SendPaymentLocal(ctx context.Context, __arg SendPaymentLocalArg) (res SendPaymentResLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.sendPaymentLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetRequestDetailsLocal(ctx context.Context, reqID KeybaseRequestID) (res RequestDetailsLocal, err error) {
+	__arg := GetRequestDetailsLocalArg{ReqID: reqID}
+	err = c.Cli.Call(ctx, "stellar.1.local.getRequestDetailsLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) CancelRequestLocal(ctx context.Context, reqID KeybaseRequestID) (err error) {
+	__arg := CancelRequestLocalArg{ReqID: reqID}
+	err = c.Cli.Call(ctx, "stellar.1.local.cancelRequestLocal", []interface{}{__arg}, nil)
 	return
 }
 
@@ -531,7 +1656,7 @@ func (c LocalClient) ClaimCLILocal(ctx context.Context, __arg ClaimCLILocalArg) 
 	return
 }
 
-func (c LocalClient) RecentPaymentsCLILocal(ctx context.Context, accountID *AccountID) (res []PaymentCLIOptionLocal, err error) {
+func (c LocalClient) RecentPaymentsCLILocal(ctx context.Context, accountID *AccountID) (res []PaymentOrErrorCLILocal, err error) {
 	__arg := RecentPaymentsCLILocalArg{AccountID: accountID}
 	err = c.Cli.Call(ctx, "stellar.1.local.recentPaymentsCLILocal", []interface{}{__arg}, &res)
 	return
@@ -593,5 +1718,10 @@ func (c LocalClient) GetAvailableLocalCurrencies(ctx context.Context) (res map[O
 
 func (c LocalClient) FormatLocalCurrencyString(ctx context.Context, __arg FormatLocalCurrencyStringArg) (res string, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.formatLocalCurrencyString", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) MakeRequestCLILocal(ctx context.Context, __arg MakeRequestCLILocalArg) (res KeybaseRequestID, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.makeRequestCLILocal", []interface{}{__arg}, &res)
 	return
 }

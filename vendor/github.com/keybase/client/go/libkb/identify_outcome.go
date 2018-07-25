@@ -6,6 +6,7 @@ package libkb
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/keybase/client/go/gregor"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -38,6 +39,17 @@ func (i *IdentifyOutcome) remoteProofLinks() *RemoteProofLinks {
 		rpl.Insert(p.link, p.err)
 	}
 	return rpl
+}
+
+func (i *IdentifyOutcome) GetRemoteCheckResultFor(service string, username string) ProofError {
+	cieq := func(a, b string) bool { return strings.ToLower(a) == strings.ToLower(b) }
+	for _, pc := range i.ProofChecks {
+		k, v := pc.GetLink().ToKeyValuePair()
+		if cieq(k, service) && cieq(v, username) {
+			return pc.GetProofError()
+		}
+	}
+	return NewProofError(keybase1.ProofStatus_NO_HINT, "no proof checked for %s@%s", username, service)
 }
 
 func (i *IdentifyOutcome) ActiveProofs() []RemoteProofChainLink {

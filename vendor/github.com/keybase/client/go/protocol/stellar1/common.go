@@ -49,6 +49,22 @@ func (o Hash) DeepCopy() Hash {
 	})(o)
 }
 
+type KeybaseRequestID string
+
+func (o KeybaseRequestID) DeepCopy() KeybaseRequestID {
+	return o
+}
+
+type PaymentID struct {
+	TxID TransactionID `codec:"txID" json:"txID"`
+}
+
+func (o PaymentID) DeepCopy() PaymentID {
+	return PaymentID{
+		TxID: o.TxID.DeepCopy(),
+	}
+}
+
 type Asset struct {
 	Type   string `codec:"type" json:"type"`
 	Code   string `codec:"code" json:"code"`
@@ -74,6 +90,18 @@ func (o Balance) DeepCopy() Balance {
 		Asset:  o.Asset.DeepCopy(),
 		Amount: o.Amount,
 		Limit:  o.Limit,
+	}
+}
+
+type AccountReserve struct {
+	Amount      string `codec:"amount" json:"amount"`
+	Description string `codec:"description" json:"description"`
+}
+
+func (o AccountReserve) DeepCopy() AccountReserve {
+	return AccountReserve{
+		Amount:      o.Amount,
+		Description: o.Description,
 	}
 }
 
@@ -107,6 +135,32 @@ var TransactionStatusRevMap = map[TransactionStatus]string{
 
 func (e TransactionStatus) String() string {
 	if v, ok := TransactionStatusRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type RequestStatus int
+
+const (
+	RequestStatus_OK       RequestStatus = 0
+	RequestStatus_CANCELED RequestStatus = 1
+)
+
+func (o RequestStatus) DeepCopy() RequestStatus { return o }
+
+var RequestStatusMap = map[string]RequestStatus{
+	"OK":       0,
+	"CANCELED": 1,
+}
+
+var RequestStatusRevMap = map[RequestStatus]string{
+	0: "OK",
+	1: "CANCELED",
+}
+
+func (e RequestStatus) String() string {
+	if v, ok := RequestStatusRevMap[e]; ok {
 		return v
 	}
 	return ""
@@ -170,12 +224,14 @@ func (e RelayDirection) String() string {
 type PaymentResult struct {
 	KeybaseID KeybaseTransactionID `codec:"keybaseID" json:"keybaseID"`
 	StellarID TransactionID        `codec:"stellarID" json:"stellarID"`
+	Pending   bool                 `codec:"pending" json:"pending"`
 }
 
 func (o PaymentResult) DeepCopy() PaymentResult {
 	return PaymentResult{
 		KeybaseID: o.KeybaseID.DeepCopy(),
 		StellarID: o.StellarID.DeepCopy(),
+		Pending:   o.Pending,
 	}
 }
 
@@ -341,6 +397,20 @@ func (o StellarServerDefinitions) DeepCopy() StellarServerDefinitions {
 			}
 			return ret
 		})(o.Currencies),
+	}
+}
+
+type PageCursor struct {
+	HorizonCursor string `codec:"horizonCursor" json:"horizonCursor"`
+	DirectCursor  string `codec:"directCursor" json:"directCursor"`
+	RelayCursor   string `codec:"relayCursor" json:"relayCursor"`
+}
+
+func (o PageCursor) DeepCopy() PageCursor {
+	return PageCursor{
+		HorizonCursor: o.HorizonCursor,
+		DirectCursor:  o.DirectCursor,
+		RelayCursor:   o.RelayCursor,
 	}
 }
 

@@ -72,6 +72,26 @@ func (o Identify2Res) DeepCopy() Identify2Res {
 	}
 }
 
+type Identify2ResUPK2 struct {
+	Upk          UserPlusKeysV2AllIncarnations `codec:"upk" json:"upk"`
+	IdentifiedAt Time                          `codec:"identifiedAt" json:"identifiedAt"`
+	TrackBreaks  *IdentifyTrackBreaks          `codec:"trackBreaks,omitempty" json:"trackBreaks,omitempty"`
+}
+
+func (o Identify2ResUPK2) DeepCopy() Identify2ResUPK2 {
+	return Identify2ResUPK2{
+		Upk:          o.Upk.DeepCopy(),
+		IdentifiedAt: o.IdentifiedAt.DeepCopy(),
+		TrackBreaks: (func(x *IdentifyTrackBreaks) *IdentifyTrackBreaks {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TrackBreaks),
+	}
+}
+
 type IdentifyLiteRes struct {
 	Ul          UserOrTeamLite       `codec:"ul" json:"ul"`
 	TrackBreaks *IdentifyTrackBreaks `codec:"trackBreaks,omitempty" json:"trackBreaks,omitempty"`
