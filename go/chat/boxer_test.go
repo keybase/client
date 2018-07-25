@@ -1639,6 +1639,18 @@ func NewKeyFinderMock(cryptKeys []keybase1.CryptKey) KeyFinder {
 
 func (k *KeyFinderMock) Reset() {}
 
+func (k *KeyFinderMock) FindUntrusted(ctx context.Context, tlfName string,
+	membersType chat1.ConversationMembersType, public bool) (*types.NameInfoUntrusted, error) {
+	ni, err := k.Find(ctx, tlfName, membersType, public)
+	if err != nil {
+		return nil, err
+	}
+	return &types.NameInfoUntrusted{
+		ID:            ni.ID,
+		CanonicalName: ni.CanonicalName,
+	}, nil
+}
+
 func (k *KeyFinderMock) Find(ctx context.Context, tlfName string,
 	membersType chat1.ConversationMembersType, tlfPublic bool) (res *types.NameInfo, err error) {
 	res = types.NewNameInfo()

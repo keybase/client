@@ -249,3 +249,43 @@ func CheckTeamMiscNotifications(tc libkb.TestContext, notifications *TeamNotifyL
 		}
 	}
 }
+
+type fakeIdentifyUI struct {
+	*engine.LoopbackIdentifyUI
+}
+
+func (l *fakeIdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
+	return keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true}, nil
+}
+
+func newFakeIdentifyUI(g *libkb.GlobalContext) *fakeIdentifyUI {
+	var tb *keybase1.IdentifyTrackBreaks
+	return &fakeIdentifyUI{
+		engine.NewLoopbackIdentifyUI(g, &tb),
+	}
+}
+
+func RunTrack(tc libkb.TestContext, fu *FakeUser, username string) (them *libkb.User, err error) {
+	sv := keybase1.SigVersion(2)
+	return RunTrackWithOptions(tc, fu, username, keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv}, fu.NewSecretUI(), false)
+}
+
+func RunTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, options keybase1.TrackOptions, secretUI libkb.SecretUI, forceRemoteCheck bool) (them *libkb.User, err error) {
+	idUI := newFakeIdentifyUI(tc.G)
+
+	arg := &engine.TrackEngineArg{
+		UserAssertion:    username,
+		Options:          options,
+		ForceRemoteCheck: forceRemoteCheck,
+	}
+	uis := libkb.UIs{
+		LogUI:      tc.G.UI.GetLogUI(),
+		IdentifyUI: idUI,
+		SecretUI:   secretUI,
+	}
+	eng := engine.NewTrackEngine(tc.G, arg)
+	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	err = engine.RunEngine2(m, eng)
+	them = eng.User()
+	return them, err
+}

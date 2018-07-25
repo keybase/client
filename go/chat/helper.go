@@ -723,7 +723,8 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 							convLocal.GetConvID(), convLocal.Error.Message)
 						continue
 					}
-					if convLocal.Info.TopicName == topicName {
+					if convLocal.Info.TopicName == topicName &&
+						convLocal.Info.TLFNameExpanded() == nameInfo.CanonicalName {
 						debugger.Debug(ctx, "FindConversations: found matching public conv: id: %s topicName: %s",
 							convLocal.GetConvID(), topicName)
 						res = append(res, convLocal)
