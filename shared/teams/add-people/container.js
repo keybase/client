@@ -74,11 +74,13 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       navigateAppend([
         {
           props: {
+            addButtonLabel: 'Add',
             allowOwner,
+            headerTitle: 'Add them as:',
             onComplete,
             selectedRole: role,
-            sendNotificationChecked: sendNotification,
-            showNotificationCheckbox: true,
+            sendNotificationChecked: true,
+            showNotificationCheckbox: false,
           },
           selected: 'controlledRolePicker',
         },
@@ -110,6 +112,7 @@ export default compose(
       onAddPeople: ({onAddPeople, role, sendNotification}) => () =>
         role && onAddPeople(role, sendNotification),
       onOpenRolePicker: ({
+        onAddPeople,
         onOpenRolePicker,
         role,
         onRoleChange,
@@ -120,6 +123,7 @@ export default compose(
         onOpenRolePicker(role, sendNotification, isOwner(_yourRole), (role, sendNotification) => {
           onRoleChange(role)
           setSendNotification(sendNotification)
+          onAddPeople(role, sendNotification)
         })
       },
     }),

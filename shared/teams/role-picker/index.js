@@ -14,7 +14,7 @@ import {
 } from '../../common-adapters/index'
 import {typeToLabel, isAdmin, isOwner} from '../../constants/teams'
 import {type TeamRoleType} from '../../constants/types/teams'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
+import {globalColors, globalMargins, globalStyles, isMobile, styleSheetCreate} from '../../styles'
 import {roleIconMap, roleIconColorMap, roleDescMap, permissionMap} from './index.meta'
 import {pluralize} from '../../util/string'
 
@@ -25,6 +25,7 @@ export type RolePickerProps = {
   selectedRole: TeamRoleType,
   allowAdmin?: boolean,
   allowOwner?: boolean,
+  headerTitle?: string,
   pluralizeRoleName?: boolean,
   sendNotification: boolean,
   teamname: string,
@@ -89,8 +90,10 @@ export const RoleOptions = ({
   username,
   selectedRole,
   setSelectedRole,
+  addButtonLabel,
   allowAdmin = true,
   allowOwner = true,
+  headerTitle,
   pluralizeRoleName = false,
   setSendNotification,
   sendNotification,
@@ -98,17 +101,9 @@ export const RoleOptions = ({
   setConfirm,
   showSendNotification,
 }: RolePickerProps) => (
-  <Box
-    style={{
-      ...globalStyles.flexBoxColumn,
-      alignItems: 'center',
-      maxWidth: 400,
-      paddingTop: globalMargins.small,
-      paddingBottom: globalMargins.tiny,
-    }}
-  >
-    <Box style={{marginTop: globalMargins.small, marginBottom: globalMargins.small}}>
-      <Text type="Header">{username ? `Select a role for ${username}:` : 'Select a role:'}</Text>
+  <Box style={styles.container}>
+    <Box style={styles.headerBox}>
+      <Text style={styles.headerTitle} type="BodySmall">{headerTitle || (username ? `Select a role for ${username}:` : 'Select a role:')}</Text>
     </Box>
     {allowOwner && makeRoleOption('owner', selectedRole, setSelectedRole, pluralizeRoleName)}
     {allowAdmin && makeRoleOption('admin', selectedRole, setSelectedRole, pluralizeRoleName)}
@@ -121,7 +116,7 @@ export const RoleOptions = ({
     )}
     <Box style={{marginBottom: globalMargins.small, marginTop: globalMargins.tiny}}>
       <Button
-        label={controlled ? 'Select' : 'Continue'}
+        label={addButtonLabel || (controlled ? 'Select' : 'Continue')}
         type="Primary"
         onClick={() => setConfirm(true)}
         disabled={!selectedRole}
@@ -179,42 +174,21 @@ export const RoleConfirm = ({
   const avatarSize = isMobile ? 64 : 48
 
   return (
-    <Box
-      style={{
-        ...globalStyles.flexBoxColumn,
-        alignItems: 'center',
-        paddingTop: globalMargins.xtiny,
-        paddingBottom: globalMargins.xtiny,
-        paddingLeft: globalMargins.medium,
-        paddingRight: globalMargins.medium,
-      }}
-    >
-      <Box
-        style={{
-          ...globalStyles.flexBoxRow,
-          alignItems: 'center',
-          margin: globalMargins.small,
-        }}
-      >
+    <Box style={styles.confirmBox}>
+      <Box style={styles.avatarBox}>
         <Avatar
-          style={{marginRight: globalMargins.tiny, alignSelf: 'center'}}
+          style={styles.avatar}
           username={username}
           size={avatarSize}
         />
         <Avatar
-          style={{marginLeft: globalMargins.tiny, alignSelf: 'center'}}
+          style={styles.avatar}
           isTeam={true}
           teamname={teamname}
           size={avatarSize}
         />
       </Box>
-      <Box
-        style={{
-          margin: globalMargins.tiny,
-          marginLeft: globalMargins.small,
-          marginRight: globalMargins.small,
-        }}
-      >
+      <Box style={styles.promptBox}>
         <Text type="BodyBig">{prompt}</Text>
       </Box>
       <Box style={{...globalStyles.flexBoxRow, margin: globalMargins.tiny}}>
@@ -239,6 +213,45 @@ export const RoleConfirm = ({
     </Box>
   )
 }
+
+const styles = styleSheetCreate({
+  avatar: {
+    alignSelf: 'center',
+    marginRight: globalMargins.tiny,
+  },
+  avatarBox: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    margin: globalMargins.small,
+  },
+  confirmBox: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    paddingBottom: globalMargins.xtiny,
+    paddingLeft: globalMargins.medium,
+    paddingRight: globalMargins.medium,
+    paddingTop: globalMargins.xtiny,
+  },
+  container: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    maxWidth: 400,
+    paddingBottom: globalMargins.tiny,
+    paddingTop: globalMargins.small,
+  },
+  headerBox: {
+    marginBottom: globalMargins.small,
+    marginTop: globalMargins.small,
+  },
+  headerTitle: {
+    color: globalStyles.black_40,
+  },
+  promptBox: {
+    margin: globalMargins.tiny,
+    marginLeft: globalMargins.small,
+    marginRight: globalMargins.small,
+  },
+})
 
 // Conglomerate role displays
 export const RolePicker = (props: RolePickerProps) => (

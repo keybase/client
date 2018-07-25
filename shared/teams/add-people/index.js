@@ -98,7 +98,7 @@ const AddPeople = (props: Props) => (
       </Box>
       <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium}}>
         <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
-          <Button onClick={props.onOpenRolePicker} label={props.numberOfUsersSelected > 0 ? `Add (${props.numberOfUsersSelected})` : 'Add'} type="Primary" />
+          <Button disabled={!props.numberOfUsersSelected} onClick={props.onOpenRolePicker} label={props.numberOfUsersSelected > 0 ? `Add (${props.numberOfUsersSelected})` : 'Add'} type="Primary" />
         </Box>
       </Box>
     </Box>
