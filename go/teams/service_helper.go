@@ -1555,6 +1555,10 @@ func MapImplicitTeamIDToDisplayName(ctx context.Context, g *libkb.GlobalContext,
 		return folder, err
 	}
 
+	if !team.IsImplicit() {
+		return folder, NewExplicitTeamOperationError("MapImplicitTeamIDToDisplayName")
+	}
+
 	itdn, err := team.ImplicitTeamDisplayName(ctx)
 	if err != nil {
 		return folder, err
