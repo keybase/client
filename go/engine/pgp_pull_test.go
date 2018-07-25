@@ -203,15 +203,15 @@ func TestPGPPullPrompts(t *testing.T) {
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	require.NoError(t, err)
-	assertKeysMissing(t, gpgClient, []string{aliceFp})
 
 	require.Equal(t, 1, fui.StartCount, "Expected 1 ID UI prompt")
+	assertKeysMissing(t, gpgClient, []string{aliceFp})
 
 	// Run again
 	fui.FakeConfirm = true
 	err = RunEngine2(m, eng)
 	require.NoError(t, err)
-	assertKeysPresent(t, gpgClient, []string{aliceFp})
 
-	require.Equal(t, 2, fui.StartCount, "Expected 1 ID UI prompt")
+	require.Equal(t, 2, fui.StartCount, "Expected 2 ID UI prompts")
+	assertKeysPresent(t, gpgClient, []string{aliceFp})
 }
