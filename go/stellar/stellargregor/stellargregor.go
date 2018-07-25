@@ -93,6 +93,11 @@ func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.Incomi
 	// and they perhaps contribute to badging, we should revisit the
 	// dismissal.
 
+	// We will locally dismiss for now so that each client only plays them once:
+	if err := h.G().GregorDismisser.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
+		h.G().Log.CDebugf(mctx.Ctx(), "failed to local dismiss payment_notification: %s", err)
+	}
+
 	return nil
 }
 
