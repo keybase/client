@@ -2,6 +2,7 @@
 import * as LoginGen from '../../actions/login-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as Constants from '../../constants/login'
+import * as WaitingConstants from '../../constants/waiting'
 import * as SignupGen from '../../actions/signup-gen'
 import HiddenString from '../../util/hidden-string'
 import Login, {type Props} from '.'
@@ -27,7 +28,7 @@ const mapStateToProps = (state: TypedState) => {
     _accounts,
     _defaultUsername,
     error: state.login.error.stringValue(),
-    waitingForResponse: !!state.waiting.get(Constants.waitingKey),
+    waitingForResponse: WaitingConstants.anyWaiting(state, Constants.waitingKey),
   }
 }
 

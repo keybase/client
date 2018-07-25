@@ -7,6 +7,7 @@ import Passphrase from '.'
 import React, {Component} from 'react'
 import {connect, type TypedState} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
+import * as WaitingConstants from '../../constants/waiting'
 
 type OwnProps = RouteProps<{}, {}>
 
@@ -62,7 +63,7 @@ class _Passphrase extends Component<Props, State> {
 
 const mapStateToProps = (state: TypedState) => ({
   error: state.provision.error.stringValue(),
-  waitingForResponse: !!state.waiting.get(Constants.waitingKey),
+  waitingForResponse: WaitingConstants.anyWaiting(state, Constants.waitingKey),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({

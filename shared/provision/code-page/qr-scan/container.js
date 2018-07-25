@@ -2,6 +2,7 @@
 import * as ConfigGen from '../../../actions/config-gen'
 import * as ProvisionGen from '../../../actions/provision-gen'
 import * as Constants from '../../../constants/provision'
+import * as WaitingConstants from '../../../constants/waiting'
 import CodePage2 from '.'
 import {
   setDisplayName,
@@ -17,7 +18,7 @@ import HiddenString from '../../../util/hidden-string'
 
 const mapStateToProps = (state: TypedState) => ({
   error: state.provision.error.stringValue(),
-  waiting: !!state.waiting.get(Constants.waitingKey),
+  waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

@@ -4,7 +4,7 @@ import * as Types from '../constants/types/waiting'
 import * as Waiting from '../actions/waiting-gen'
 
 // set to true to see helpful debug info
-const debugWaiting = true && __DEV__
+const debugWaiting = false && __DEV__
 
 const changeHelper = (state: Types.State, keys: Array<string>, diff: 1 | -1) => {
   const newState = state.withMutations(st => {
