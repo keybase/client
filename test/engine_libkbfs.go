@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfsmd"
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
@@ -282,6 +283,27 @@ func (k *LibKBFS) GetRootDir(
 func (k *LibKBFS) GetRootDirAtRevision(
 	u User, tlfName string, t tlf.Type, rev kbfsmd.Revision,
 	expectedCanonicalTlfName string) (dir Node, err error) {
+	return k.getRootDir(
+		u, tlfName, t, libkbfs.MakeRevBranchName(rev), expectedCanonicalTlfName)
+}
+
+// GetRootDirAtTimeString implements the Engine interface.
+func (k *LibKBFS) GetRootDirAtTimeString(
+	u User, tlfName string, t tlf.Type, timeString string,
+	expectedCanonicalTlfName string) (dir Node, err error) {
+	config := u.(*libkbfs.ConfigLocal)
+	ctx, cancel := k.newContext(u)
+	defer cancel()
+	h, err := parseTlfHandle(ctx, config.KBPKI(), config.MDOps(), tlfName, t)
+	if err != nil {
+		return nil, err
+	}
+
+	rev, err := libfs.RevFromTimeString(ctx, config, h, timeString)
+	if err != nil {
+		return nil, err
+	}
+
 	return k.getRootDir(
 		u, tlfName, t, libkbfs.MakeRevBranchName(rev), expectedCanonicalTlfName)
 }

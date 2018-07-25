@@ -162,6 +162,19 @@ func (e *fsEngine) GetRootDirAtRevision(
 	return fsNode{filepath.Join(p.path, revDir)}, nil
 }
 
+// GetRootDirAtTimeString implements the Engine interface.
+func (e *fsEngine) GetRootDirAtTimeString(
+	u User, tlfName string, t tlf.Type, timeString string,
+	expectedCanonicalTlfName string) (dir Node, err error) {
+	d, err := e.GetRootDir(u, tlfName, t, expectedCanonicalTlfName)
+	if err != nil {
+		return nil, err
+	}
+	p := d.(fsNode)
+	timeLink := libfs.ArchivedTimeLinkPrefix + timeString
+	return fsNode{filepath.Join(p.path, timeLink)}, nil
+}
+
 // CreateDir is called by the test harness to create a directory relative to the passed
 // parent directory for the given user.
 func (*fsEngine) CreateDir(u User, parentDir Node, name string) (dir Node, err error) {
