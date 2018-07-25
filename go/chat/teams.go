@@ -200,6 +200,21 @@ func (t *TeamsNameInfoSource) makeNameInfo(ctx context.Context, team *teams.Team
 	return res, nil
 }
 
+func (t *TeamsNameInfoSource) LookupUntrusted(ctx context.Context, name string, public bool) (res *types.NameInfoUntrusted, err error) {
+	teamName, err := keybase1.TeamNameFromString(name)
+	if err != nil {
+		return res, err
+	}
+	kid, err := t.G().GetTeamLoader().ResolveNameToIDUntrusted(ctx, teamName, public, true)
+	if err != nil {
+		return res, err
+	}
+	return &types.NameInfoUntrusted{
+		ID:            chat1.TLFID(kid.ToBytes()),
+		CanonicalName: name,
+	}, nil
+}
+
 func (t *TeamsNameInfoSource) Lookup(ctx context.Context, name string, public bool) (res *types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Lookup(%s)", name))()
 	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
@@ -404,6 +419,21 @@ func (t *ImplicitTeamsNameInfoSource) makeNameInfo(ctx context.Context, team *te
 		return res, err
 	}
 	return res, nil
+}
+
+func (t *ImplicitTeamsNameInfoSource) LookupUntrusted(ctx context.Context, name string, public bool) (res *types.NameInfoUntrusted, err error) {
+	impTeamName, err := teams.ResolveImplicitTeamDisplayName(ctx, t.G().ExternalG(), name, public)
+	if err != nil {
+		return res, err
+	}
+	kid, err := teams.LookupImplicitTeamIDUntrusted(ctx, t.G().ExternalG(), name, public)
+	if err != nil {
+		return res, err
+	}
+	return &types.NameInfoUntrusted{
+		ID:            chat1.TLFID(kid.ToBytes()),
+		CanonicalName: impTeamName.String(),
+	}, nil
 }
 
 func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, public bool) (res *types.NameInfo, err error) {

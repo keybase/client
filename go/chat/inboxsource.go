@@ -187,7 +187,7 @@ func (b *NonblockingLocalizer) Name() string {
 }
 
 func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInboxQuery,
-	query *chat1.GetInboxLocalQuery, nameInfo *types.NameInfo) (res []chat1.ConversationLocal, err error) {
+	query *chat1.GetInboxLocalQuery, nameInfo *types.NameInfoUntrusted) (res []chat1.ConversationLocal, err error) {
 
 	for _, convLocal := range convLocals {
 
@@ -265,7 +265,7 @@ func (b *baseInboxSource) SetRemoteInterface(ri func() chat1.RemoteInterface) {
 }
 
 func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
-	lquery *chat1.GetInboxLocalQuery) (rquery *chat1.GetInboxQuery, info *types.NameInfo, err error) {
+	lquery *chat1.GetInboxLocalQuery) (rquery *chat1.GetInboxQuery, info *types.NameInfoUntrusted, err error) {
 
 	if lquery == nil {
 		return nil, info, nil
@@ -276,7 +276,7 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 		var err error
 		tlfName := utils.AddUserToTLFName(b.G(), lquery.Name.Name, lquery.Visibility(),
 			lquery.Name.MembersType)
-		info, err = CtxKeyFinder(ctx, b.G()).Find(ctx, tlfName, lquery.Name.MembersType,
+		info, err = CtxKeyFinder(ctx, b.G()).FindUntrusted(ctx, tlfName, lquery.Name.MembersType,
 			lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
 		if err != nil {
 			b.Debug(ctx, "GetInboxQueryLocalToRemote: failed: %s", err)
@@ -322,11 +322,11 @@ func (b *baseInboxSource) IsMember(ctx context.Context, uid gregor1.UID, convID 
 }
 
 func GetInboxQueryNameInfo(ctx context.Context, g *globals.Context,
-	lquery *chat1.GetInboxLocalQuery) (*types.NameInfo, error) {
+	lquery *chat1.GetInboxLocalQuery) (*types.NameInfoUntrusted, error) {
 	if lquery.Name == nil || len(lquery.Name.Name) == 0 {
 		return nil, nil
 	}
-	return CtxKeyFinder(ctx, g).Find(ctx, lquery.Name.Name, lquery.Name.MembersType,
+	return CtxKeyFinder(ctx, g).FindUntrusted(ctx, lquery.Name.Name, lquery.Name.MembersType,
 		lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
 }
 
