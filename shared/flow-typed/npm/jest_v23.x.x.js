@@ -1,5 +1,5 @@
-// flow-typed signature: 82fb70c15e3aa0c1468144425703425e
-// flow-typed version: bf845eee3a/jest_v23.x.x/flow_>=v0.39.x
+// flow-typed signature: ad251f3a3446f6ab4e6691a94e701cad
+// flow-typed version: caa120caaa/jest_v23.x.x/flow_>=v0.39.x
 
 type JestMockFn<TArguments: $ReadOnlyArray<*>, TReturn> = {
   (...args: TArguments): TReturn,
@@ -65,13 +65,29 @@ type JestMockFn<TArguments: $ReadOnlyArray<*>, TReturn> = {
    */
   mockReturnThis(): void,
   /**
-   * Deprecated: use jest.fn(() => value) instead
+   * Accepts a value that will be returned whenever the mock function is called.
    */
   mockReturnValue(value: TReturn): JestMockFn<TArguments, TReturn>,
   /**
    * Sugar for only returning a value once inside your mock
    */
-  mockReturnValueOnce(value: TReturn): JestMockFn<TArguments, TReturn>
+  mockReturnValueOnce(value: TReturn): JestMockFn<TArguments, TReturn>,
+  /**
+   * Sugar for jest.fn().mockImplementation(() => Promise.resolve(value))
+   */
+  mockResolvedValue(value: TReturn): JestMockFn<TArguments, Promise<TReturn>>,
+  /**
+   * Sugar for jest.fn().mockImplementationOnce(() => Promise.resolve(value))
+   */
+  mockResolvedValueOnce(value: TReturn): JestMockFn<TArguments, Promise<TReturn>>,
+  /**
+   * Sugar for jest.fn().mockImplementation(() => Promise.reject(value))
+   */
+  mockRejectedValue(value: TReturn): JestMockFn<TArguments, Promise<any>>,
+  /**
+   * Sugar for jest.fn().mockImplementationOnce(() => Promise.reject(value))
+   */
+  mockRejectedValueOnce(value: TReturn): JestMockFn<TArguments, Promise<any>>
 };
 
 type JestAsymmetricEqualityType = {
@@ -123,6 +139,30 @@ type JestPromiseType = {
  * describe()
  */
 type JestTestName = string | Function;
+
+/**
+ *  Plugin: jest-styled-components
+ */
+
+type JestStyledComponentsMatcherValue =
+  | string
+  | JestAsymmetricEqualityType
+  | RegExp
+  | typeof undefined;
+
+type JestStyledComponentsMatcherOptions = {
+  media?: string;
+  modifier?: string;
+  supports?: string;
+}
+
+type JestStyledComponentsMatchersType = {
+  toHaveStyleRule(
+    property: string,
+    value: JestStyledComponentsMatcherValue,
+    options?: JestStyledComponentsMatcherOptions
+  ): void,
+};
 
 /**
  *  Plugin: jest-enzyme
@@ -483,8 +523,14 @@ type JestExtendedMatchersType = {
     toIncludeMultiple(substring: string[]): void;
 };
 
-type JestExpectType = {
-  not: JestExpectType & EnzymeMatchersType & DomTestingLibraryType & JestJQueryMatchersType & JestExtendedMatchersType,
+interface JestExpectType {
+  not:
+    & JestExpectType
+    & EnzymeMatchersType
+    & DomTestingLibraryType
+    & JestJQueryMatchersType
+    & JestStyledComponentsMatchersType
+    & JestExtendedMatchersType,
   /**
    * If you have a mock function, you can use .lastCalledWith to test what
    * arguments it was last called with.
@@ -637,9 +683,17 @@ type JestExpectType = {
    */
   toMatchObject(object: Object | Array<Object>): void,
   /**
-   * This ensures that a React component matches the most recent snapshot.
+   * Use .toStrictEqual to check that a javascript object matches a subset of the properties of an object.
+   */
+  toStrictEqual(value: any): void,
+  /**
+   * This ensures that an Object matches the most recent snapshot.
    */
   toMatchSnapshot(propertyMatchers?: {[key: string]: JestAsymmetricEqualityType}, name?: string): void,
+  /**
+   * This ensures that an Object matches the most recent snapshot.
+   */
+  toMatchSnapshot(name: string): void,
   /**
    * Use .toThrow to test that a function throws when it is called.
    * If you want to test that a specific error gets thrown, you can provide an
@@ -655,7 +709,7 @@ type JestExpectType = {
    * matching the most recent snapshot when it is called.
    */
   toThrowErrorMatchingSnapshot(): void
-};
+}
 
 type JestObjectType = {
   /**
@@ -874,6 +928,17 @@ declare var it: {
     timeout?: number
   ): void,
   /**
+   * each runs this test against array of argument arrays per each run
+   *
+   * @param {table} table of Test
+   */
+  each(
+    table: Array<Array<mixed>>
+  ): (
+    name: JestTestName,
+    fn?: (...args: Array<any>) => ?Promise<mixed>
+  ) => void,
+  /**
    * Only run this test
    *
    * @param {JestTestName} Name of Test
@@ -884,7 +949,14 @@ declare var it: {
     name: JestTestName,
     fn?: (done: () => void) => ?Promise<mixed>,
     timeout?: number
-  ): void,
+  ): {
+    each(
+      table: Array<Array<mixed>>
+    ): (
+      name: JestTestName,
+      fn?: (...args: Array<any>) => ?Promise<mixed>
+    ) => void,
+  },
   /**
    * Skip running this test
    *
@@ -975,7 +1047,15 @@ type JestPrettyFormatPlugins = Array<JestPrettyFormatPlugin>;
 /** The expect function is used every time you want to test a value */
 declare var expect: {
   /** The object that you want to make assertions against */
-  (value: any): JestExpectType & JestPromiseType & EnzymeMatchersType & DomTestingLibraryType & JestJQueryMatchersType & JestExtendedMatchersType,
+  (value: any):
+    & JestExpectType
+    & JestPromiseType
+    & EnzymeMatchersType
+    & DomTestingLibraryType
+    & JestJQueryMatchersType
+    & JestStyledComponentsMatchersType
+    & JestExtendedMatchersType,
+
   /** Add additional Jasmine matchers to Jest's roster */
   extend(matchers: { [name: string]: JestMatcher }): void,
   /** Add a module that formats application-specific data structures. */
@@ -988,7 +1068,13 @@ declare var expect: {
   objectContaining(value: Object): Object,
   /** Matches any received string that contains the exact expected string. */
   stringContaining(value: string): string,
-  stringMatching(value: string | RegExp): string
+  stringMatching(value: string | RegExp): string,
+  not: {
+    arrayContaining: (value: $ReadOnlyArray<mixed>) => Array<mixed>,
+    objectContaining: (value: {}) => Object,
+    stringContaining: (value: string) => string,
+    stringMatching: (value: string | RegExp) => string,
+  },
 };
 
 // TODO handle return type
