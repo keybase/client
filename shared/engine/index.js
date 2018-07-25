@@ -2,6 +2,7 @@
 // Handles sending requests to the daemon
 import logger from '../logger'
 import * as Saga from '../util/saga'
+import * as Constants from '../constants/engine'
 import Session from './session'
 import {constantsStatusCode} from '../constants/types/rpc-gen'
 import {call, race} from 'redux-saga/effects'
@@ -38,12 +39,12 @@ class EngineChannel {
   }
 
   close() {
-    Saga.closeChannelMap(this._map)
+    Constants.closeChannelMap(this._map)
     getEngine().cancelSession(this._sessionID)
   }
 
   *take(key: string): Generator<any, any, any> {
-    return yield Saga.takeFromChannelMap(this._map, key)
+    return yield Constants.takeFromChannelMap(this._map, key)
   }
 
   *race(options: ?{timeout?: number, racers?: Object}): Generator<any, any, any> {
@@ -59,7 +60,7 @@ class EngineChannel {
     }
 
     const raceMap = this._configKeys.reduce((map, key) => {
-      map[key] = Saga.takeFromChannelMap(this._map, key)
+      map[key] = Constants.takeFromChannelMap(this._map, key)
       return map
     }, initMap)
 
@@ -281,18 +282,18 @@ class Engine {
   // An outgoing call. ONLY called by the flow-type rpc helpers
   _channelMapRpcHelper(configKeys: Array<string>, method: string, paramsIn: any): EngineChannel {
     const params = paramsIn || {}
-    const channelConfig = Saga.singleFixedChannelConfig(configKeys)
-    const channelMap = Saga.createChannelMap(channelConfig)
+    const channelConfig = Constants.singleFixedChannelConfig(configKeys)
+    const channelMap = Constants.createChannelMap(channelConfig)
     const empty = {}
     const incomingCallMap = Object.keys(channelMap).reduce((acc, k) => {
       acc[k] = (params, response) => {
-        Saga.putOnChannelMap(channelMap, k, {params, response})
+        Constants.putOnChannelMap(channelMap, k, {params, response})
       }
       return acc
     }, empty)
     const callback = (error, params) => {
-      channelMap['finished'] && Saga.putOnChannelMap(channelMap, 'finished', {error, params})
-      Saga.closeChannelMap(channelMap)
+      channelMap['finished'] && Constants.putOnChannelMap(channelMap, 'finished', {error, params})
+      Constants.closeChannelMap(channelMap)
     }
 
     const sid = this._rpcOutgoing({method, params, incomingCallMap, callback})
