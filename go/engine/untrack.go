@@ -61,7 +61,7 @@ func (e *UntrackEngine) Run(m libkb.MetaContext) (err error) {
 		return
 	}
 
-	them, remoteLink, localLink, err := e.loadThem()
+	them, remoteLink, localLink, err := e.loadThem(m)
 	if err != nil {
 		return
 	}
@@ -86,7 +86,7 @@ func (e *UntrackEngine) Run(m libkb.MetaContext) (err error) {
 	didUntrack := false
 
 	if localLink != nil {
-		err = e.storeLocalUntrack(them)
+		err = e.storeLocalUntrack(m, them)
 		if err != nil {
 			return
 		}
@@ -119,7 +119,7 @@ func (e *UntrackEngine) loadMe() (me *libkb.User, err error) {
 	return libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 }
 
-func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *libkb.TrackChainLink, err error) {
+func (e *UntrackEngine) loadThem(m libkb.MetaContext) (them *libkb.User, remoteLink, localLink *libkb.TrackChainLink, err error) {
 	var rLink *libkb.TrackChainLink
 	trackMap := e.arg.Me.IDTable().GetTrackMap()
 	if links, ok := trackMap[e.arg.Username]; ok && (len(links) > 0) {
@@ -149,7 +149,7 @@ func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *lib
 		}
 	}
 
-	lLink, err := libkb.LocalTrackChainLinkFor(e.arg.Me.GetUID(), uid, e.G())
+	lLink, err := libkb.LocalTrackChainLinkFor(m, e.arg.Me.GetUID(), uid)
 	if err != nil {
 		return
 	}
@@ -185,9 +185,9 @@ func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *lib
 	return
 }
 
-func (e *UntrackEngine) storeLocalUntrack(them *libkb.User) error {
+func (e *UntrackEngine) storeLocalUntrack(m libkb.MetaContext, them *libkb.User) error {
 	// Also do a removal in case of expiring local tracks
-	return libkb.RemoveLocalTracks(e.arg.Me.GetUID(), them.GetUID(), e.G())
+	return libkb.RemoveLocalTracks(m, e.arg.Me.GetUID(), them.GetUID())
 }
 
 func (e *UntrackEngine) storeRemoteUntrack(m libkb.MetaContext, them *libkb.User) (err error) {

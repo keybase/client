@@ -44,7 +44,8 @@ func assertTracking(tc libkb.TestContext, username string) {
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	s, err := me.TrackChainLinkFor(them.GetNormalizedName(), them.GetUID())
+	m := NewMetaContextForTest(tc)
+	s, err := me.TrackChainLinkFor(m, them.GetNormalizedName(), them.GetUID())
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -62,7 +63,8 @@ func assertNotTracking(tc libkb.TestContext, username string) {
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	s, err := me.TrackChainLinkFor(them.GetNormalizedName(), them.GetUID())
+	m := NewMetaContextForTest(tc)
+	s, err := me.TrackChainLinkFor(m, them.GetNormalizedName(), them.GetUID())
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -286,8 +288,8 @@ func TestTrackLocal(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	s, err := me.TrackChainLinkFor(them.GetNormalizedName(), them.GetUID())
+	m := NewMetaContextForTest(tc)
+	s, err := me.TrackChainLinkFor(m, them.GetNormalizedName(), them.GetUID())
 	if err != nil {
 		t.Fatal(err)
 	}

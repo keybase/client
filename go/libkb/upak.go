@@ -91,7 +91,7 @@ func GetRemoteChainLinkFor(m MetaContext, follower *keybase1.UserPlusKeysV2AllIn
 		return nil, err
 	}
 	var link *ChainLink
-	link, err = ImportLinkFromStorage(lid, follower.GetUID(), m.G())
+	link, err = ImportLinkFromStorage(m, lid, follower.GetUID())
 	if err != nil {
 		m.CDebugf("| failed to import link from storage")
 		return nil, err
@@ -113,7 +113,7 @@ func TrackChainLinkFromUPK2AI(m MetaContext, follower *keybase1.UserPlusKeysV2Al
 	if _, ok := err.(InconsistentCacheStateError); ok {
 		return nil, err
 	}
-	tcl, err = TrackChainLinkFor(follower.Current.Uid, followeeUID, tcl, err, m.G())
+	tcl, err = TrackChainLinkFor(m, follower.Current.Uid, followeeUID, tcl, err)
 	return tcl, err
 }
 

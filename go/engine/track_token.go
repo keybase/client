@@ -119,7 +119,7 @@ func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 
 	if e.arg.Options.LocalOnly || e.arg.Options.ExpiringLocal {
 		m.CDebugf("| Local")
-		err = e.storeLocalTrack()
+		err = e.storeLocalTrack(m)
 	} else {
 		err = e.storeRemoteTrack(m, signingKeyPub.GetKID())
 		if err == nil {
@@ -198,8 +198,8 @@ func (e *TrackToken) loadThem(m libkb.MetaContext, username libkb.NormalizedUser
 	return nil
 }
 
-func (e *TrackToken) storeLocalTrack() error {
-	return libkb.StoreLocalTrack(e.arg.Me.GetUID(), e.them.GetUID(), e.arg.Options.ExpiringLocal, e.trackStatement, e.G())
+func (e *TrackToken) storeLocalTrack(m libkb.MetaContext) error {
+	return libkb.StoreLocalTrack(m, e.arg.Me.GetUID(), e.them.GetUID(), e.arg.Options.ExpiringLocal, e.trackStatement)
 }
 
 func (e *TrackToken) storeRemoteTrack(m libkb.MetaContext, pubKID keybase1.KID) (err error) {
@@ -271,6 +271,6 @@ func (e *TrackToken) storeRemoteTrack(m libkb.MetaContext, pubKID keybase1.KID) 
 
 func (e *TrackToken) removeLocalTracks(m libkb.MetaContext) (err error) {
 	defer m.CTrace("removeLocalTracks", func() error { return err })()
-	err = libkb.RemoveLocalTracks(e.arg.Me.GetUID(), e.them.GetUID(), m.G())
+	err = libkb.RemoveLocalTracks(m, e.arg.Me.GetUID(), e.them.GetUID())
 	return err
 }

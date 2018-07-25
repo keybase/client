@@ -175,7 +175,7 @@ func (i *identifyUser) trackChainLinkFor(m libkb.MetaContext, name libkb.Normali
 
 	if i.full != nil {
 		m.CDebugf("| Using full user object")
-		return i.full.TrackChainLinkFor(name, uid)
+		return i.full.TrackChainLinkFor(m, name, uid)
 	}
 
 	if i.thin != nil {
@@ -209,7 +209,7 @@ func (i *identifyUser) trackChainLinkFor(m libkb.MetaContext, name libkb.Normali
 		if err != nil {
 			return nil, err
 		}
-		return i.full.TrackChainLinkFor(name, uid)
+		return i.full.TrackChainLinkFor(m, name, uid)
 	}
 
 	// No user loaded, so no track chain link.
@@ -868,7 +868,7 @@ func (e *Identify2WithUID) createIdentifyState(m libkb.MetaContext) (err error) 
 		m.CDebugf("| using track token %s", tcl.LinkID())
 		e.useTracking = true
 		e.state.SetTrackLookup(tcl)
-		if ttcl, _ := libkb.TmpTrackChainLinkFor(e.me.GetUID(), them.GetUID(), e.G()); ttcl != nil {
+		if ttcl, _ := libkb.TmpTrackChainLinkFor(m, e.me.GetUID(), them.GetUID()); ttcl != nil {
 			m.CDebugf("| also have temporary track")
 			e.state.SetTmpTrackLookup(ttcl)
 		}
