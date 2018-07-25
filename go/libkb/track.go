@@ -456,7 +456,7 @@ func StoreLocalTrack(m MetaContext, tracker keybase1.UID, trackee keybase1.UID, 
 	return m.G().LocalDb.Put(LocalTrackDBKey(tracker, trackee, expiringLocal), nil, statement)
 }
 
-func 	removeLocalTrack(m MetaContext, tracker keybase1.UID, trackee keybase1.UID, expiringLocal bool) error {
+func removeLocalTrack(m MetaContext, tracker keybase1.UID, trackee keybase1.UID, expiringLocal bool) error {
 	m.CDebugf("| RemoveLocalTrack, expiring = %v", expiringLocal)
 	return m.G().LocalDb.Delete(LocalTrackDBKey(tracker, trackee, expiringLocal))
 }
