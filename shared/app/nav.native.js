@@ -2,8 +2,7 @@
 import CardStackTransitioner from 'react-navigation/src/views/CardStack/CardStackTransitioner'
 import GlobalError from './global-errors/container'
 import Offline from '../offline/container'
-import React, {Component} from 'react'
-import {type EmitterListener} from 'react-native'
+import * as React from 'react'
 import TabBar from './tab-bar/container'
 import {
   Box,
@@ -28,7 +27,7 @@ import {makeLeafTags} from '../route-tree'
 import RpcStats from './rpc-stats'
 
 type CardStackShimProps = {
-  mode: 'modal' | null,
+  mode: 'modal' | 'card',
   renderRoute: (route: RenderRouteResult, shouldRender: boolean) => any,
   onNavigateBack: () => any,
   stack: RouteRenderStack,
@@ -38,7 +37,7 @@ type CardStackShimProps = {
 const nop = () => {}
 const emptyObj = () => ({})
 
-class CardStackShim extends Component<CardStackShimProps> {
+class CardStackShim extends React.Component<CardStackShimProps> {
   getScreenOptions = () => ({})
   getStateForAction = emptyObj
   getActionForPathAndParams = emptyObj
@@ -163,8 +162,8 @@ const tabIsCached = {
   [settingsTab]: true,
 }
 
-class MainNavStack extends Component<any, any> {
-  _listener: EmitterListener
+class MainNavStack extends React.Component<any> {
+  _listener: any
   state = {
     verticalOffset: 0,
   }
@@ -248,7 +247,7 @@ type AnimatedTabBarProps = {
   children: any,
 }
 
-class AnimatedTabBar extends Component<AnimatedTabBarProps, {offset: any}> {
+class AnimatedTabBar extends React.Component<AnimatedTabBarProps, {offset: any}> {
   state: {offset: any}
 
   constructor(props: AnimatedTabBarProps) {
@@ -286,7 +285,7 @@ class AnimatedTabBar extends Component<AnimatedTabBarProps, {offset: any}> {
   }
 }
 
-class Nav extends Component<Props, {keyboardShowing: boolean}> {
+class Nav extends React.Component<Props, {keyboardShowing: boolean}> {
   state = {
     keyboardShowing: false,
   }

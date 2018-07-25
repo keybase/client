@@ -16,16 +16,32 @@
 <PROJECT_ROOT>/desktop/release/.*
 <PROJECT_ROOT>/react-native/react-native-contacts
 <PROJECT_ROOT>/node_modules/immutable/type-definitions/tests
-# all this BS is cause this uses ocaml regexp for some reason and doesnt' include negative lookaheads. we want to ignore node_modules outside of these
+<PROJECT_ROOT>/node_modules/electron-packager
+<PROJECT_ROOT>/node_modules/react-native-wkwebview-reborn
+<PROJECT_ROOT>/node_modules/react-native/Libraries/EventEmitter/__mocks__
+<PROJECT_ROOT>/node_modules/react-navigation
+<PROJECT_ROOT>/node_modules/react-native/Libraries/react-native/react-native-implementation.js
+
 # immutable
 # recompose
-.*/node_modules/[abcdefghjklmnopqstuvwxyzA-Z@-].*
-.*/node_modules/i[abcdefghijklnopqrstuvwxyzA-Z@-].*
-.*/node_modules/im[abcdefghijklnopqrstuvwxyzA-Z@-].*
-.*/node_modules/r[abcdfghijklmnopqrstuvwxyzA-Z@-].*
-.*/node_modules/re[abdefghijklmnopqrstuvwxyzA-Z@-].*
-.*/node_modules/rec[abcdefghijklmnpqrstuvwxyzA-Z@-].*
-.*/node_modules/reco[abcdefghijklnopqrstuvwxyzA-Z@-].*
+<PROJECT_ROOT>/node_modules/[abcdefghjklmnopqstuvwxyzA-Z@-].*
+<PROJECT_ROOT>/node_modules/i[abcdefghijklnopqrstuvwxyzA-Z@-].*
+<PROJECT_ROOT>/node_modules/im[abcdefghijklnopqrstuvwxyzA-Z@-].*
+<PROJECT_ROOT>/node_modules/r[abcdfghijklmnopqrstuvwxyzA-Z@-].*
+<PROJECT_ROOT>/node_modules/re[bdefghijklmnopqrstuvwxyzA-Z@-].*
+<PROJECT_ROOT>/node_modules/rec[abcdefghijklmnpqrstuvwxyzA-Z@-].*
+<PROJECT_ROOT>/node_modules/reco[abcdefghijklnopqrstuvwxyzA-Z@-].*
+
+<PROJECT_ROOT>/node_modules/react[abcdefghijklmnopqrstuvwxyzA-Z@].*
+<PROJECT_ROOT>/node_modules/react-[abcdefghijklmopqrstuvwxyzA-Z@-].*
+<PROJECT_ROOT>/node_modules/react-n[bcdefghijklmnopqrstuvwxyzA-Z@-].*
+<PROJECT_ROOT>/node_modules/react-na[abcdefghijklmnopqrsuvwxyzA-Z@-].*
+<PROJECT_ROOT>/node_modules/react-nat[abcdefghjklmnopqrstuvwxyzA-Z@-].*
+<PROJECT_ROOT>/node_modules/react-nati[abcdefghijklmnopqrstuwxyzA-Z@-].*
+<PROJECT_ROOT>/node_modules/react-nativ[abcdfghijklmnopqrstuvwxyzA-Z@-].*
+<PROJECT_ROOT>/node_modules/react-native[abcdefghijklmnopqrstuvwxyzA-Z@-].*
+
+
 .*[.]gif$
 .*[.]png$
 
@@ -35,6 +51,9 @@
 ./libs/flow-interface.js.flow
 ./libs/electron_vx.x.x.js.flow
 ./flow-typed
+./node_modules/react-native/Libraries/react-native/react-native-interface.js
+./node_modules/react-native/flow/
+./node_modules/react-native/flow-github/
 
 [options]
 include_warnings=true
@@ -48,8 +67,14 @@ module.name_mapper='^[./a-zA-Z0-9$_-]+\.\(bmp\|gif\|jpg\|jpeg\|png\|psd\|svg\|we
 module.system=haste
 
 module.system.haste.use_name_reducers=true
+# get basename
+module.system.haste.name_reducers='^.*/\([a-zA-Z0-9$_.-]+\.js\(\.flow\)?\)$' -> '\1'
 # strip .js or .js.flow suffix
 module.system.haste.name_reducers='^\(.*\)\.js\(\.flow\)?$' -> '\1'
+module.system.haste.paths.blacklist=.*/__tests__/.*
+module.system.haste.paths.blacklist=.*/__mocks__/.*
+module.system.haste.paths.blacklist=<PROJECT_ROOT>/node_modules/react-native/Libraries/Animated/src/polyfills/.*
+module.system.haste.paths.whitelist=<PROJECT_ROOT>/node_modules/react-native/Libraries/.*
 # strip .mobile suffix
 # module.system.haste.name_reducers='^\(.*\)\.ios$' -> '\1'
 # module.system.haste.name_reducers='^\(.*\)\.android$' -> '\1'
