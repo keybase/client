@@ -79,7 +79,6 @@ func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInte
 }
 
 func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
-	defer h.G().GregorDismisser.DismissItem(mctx.Ctx(), cli, item.Metadata().MsgID())
 	mctx.CDebugf("%s: %s received", h.Name(), category)
 	var msg stellar1.PaymentNotificationMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
@@ -88,6 +87,11 @@ func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.Incomi
 	}
 
 	h.G().NotifyRouter.HandleWalletPaymentNotification(mctx.Ctx(), msg.AccountID, msg.PaymentID)
+
+	// Note: these messages are not getting dismissed except by their
+	// expiration time (7 days).  Once frontend starts handling them,
+	// and they perhaps contribute to badging, we should revisit the
+	// dismissal.
 
 	return nil
 }
