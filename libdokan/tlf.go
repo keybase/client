@@ -208,6 +208,20 @@ func (tlf *TLF) open(ctx context.Context, oc *openContext, path []string) (
 		return archivedTLF.open(ctx, oc, path[1:])
 	}
 
+	linkTarget, isArchivedTimeLink, err := libfs.LinkTargetFromTimeString(
+		ctx, tlf.folder.fs.config, tlf.folder.h, path[0])
+	if err != nil {
+		return nil, 0, err
+	}
+	if isArchivedTimeLink {
+		if len(path) == 1 && oc.isOpenReparsePoint() {
+			// TODO handle dir/non-dir here, semantics?
+			return &Alias{canon: linkTarget}, dokan.ExistingDir, nil
+		}
+		path[0] = linkTarget
+		return tlf.open(ctx, oc, path)
+	}
+
 	return dir.open(ctx, oc, path)
 }
 
