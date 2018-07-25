@@ -240,18 +240,18 @@ const logout = () =>
 // TODO more pure functions
 function* loginSaga(): Saga.SagaGenerator<any, any> {
   // Actually log in
-  yield Saga.safeTakeEveryPureSimple(LoginGen.login, login)
+  yield Saga.actionToAction(LoginGen.login, login)
 
   // Screen sagas
   yield Saga.safeTakeLatest(LoginGen.navBasedOnLoginAndInitialState, navBasedOnLoginAndInitialState)
-  yield Saga.safeTakeEveryPureSimple(LoginGen.loggedout, loggedout)
-  yield Saga.safeTakeEveryPureSimple(LoginGen.logout, logout)
-  yield Saga.safeTakeEveryPureSimple([ConfigGen.readyForBootstrap, LoginGen.loggedout], getAccounts)
+  yield Saga.actionToAction(LoginGen.loggedout, loggedout)
+  yield Saga.actionToAction(LoginGen.logout, logout)
+  yield Saga.actionToAction([ConfigGen.readyForBootstrap, LoginGen.loggedout], getAccounts)
 
   yield Saga.safeTakeEveryPure(RouteConstants.navigateUp, maybeNavigateToLoginRoot)
 
-  yield Saga.safeTakeEveryPureSimple(LoginGen.launchForgotPasswordWebPage, launchForgotPasswordWebPage)
-  yield Saga.safeTakeEveryPureSimple(LoginGen.launchAccountResetWebPage, launchAccountResetWebPage)
+  yield Saga.actionToAction(LoginGen.launchForgotPasswordWebPage, launchForgotPasswordWebPage)
+  yield Saga.actionToAction(LoginGen.launchAccountResetWebPage, launchAccountResetWebPage)
 }
 
 export default loginSaga

@@ -43,7 +43,7 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
 }
 
 // Helper that expects a function which returns a promise that resolves to a put
-function safeTakeEveryPurePromise<A, RA>(
+function actionToPromise<A, RA>(
   pattern: RS.Pattern,
   f: (state: TypedState, action: A) => null | false | Promise<RA>
 ) {
@@ -57,7 +57,7 @@ function safeTakeEveryPurePromise<A, RA>(
 }
 
 // like safeTakeEveryPure but simpler, only 2 params and gives you a state first
-function safeTakeEveryPureSimple<A, FinalAction>(
+function actionToAction<A, FinalAction>(
   pattern: RS.Pattern,
   f: (state: TypedState, action: A) => null | false | FinalAction
 ) {
@@ -255,8 +255,8 @@ export {
   identity,
   safeTakeEvery,
   safeTakeEveryPure,
-  safeTakeEveryPurePromise,
-  safeTakeEveryPureSimple,
+  actionToPromise,
+  actionToAction,
   safeTakeLatest,
   safeTakeLatestPure,
   sequentially,

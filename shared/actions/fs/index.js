@@ -594,7 +594,7 @@ const letResetUserBackInResult = () => undefined // Saga.put(FsGen.createLoadRes
 const resetStore = () => Saga.put({type: FsGen.resetStore})
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPureSimple(LoginGen.logout, resetStore)
+  yield Saga.actionToAction(LoginGen.logout, resetStore)
   yield Saga.safeTakeEveryPure(
     FsGen.refreshLocalHTTPServerInfo,
     refreshLocalHTTPServerInfo,

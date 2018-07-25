@@ -5,9 +5,9 @@ import DevicePage from '.'
 import moment from 'moment'
 import {compose, connect, type TypedState, setDisplayName} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
-import {type DeviceDetail} from '../../constants/types/devices'
+import {type Device} from '../../constants/types/devices'
 
-const buildTimeline = (device: DeviceDetail) => {
+const buildTimeline = (device: Device) => {
   const revoked = device.get('revokedAt') && [
     {
       desc: `Revoked ${moment(device.get('revokedAt')).format('MMM D, YYYY')}`,
@@ -33,9 +33,8 @@ const buildTimeline = (device: DeviceDetail) => {
   return [...(revoked || []), ...(lastUsed || []), added]
 }
 
-const blankDetail = Constants.makeDeviceDetail()
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
-  device: state.devices.idToDetail.get(routeProps.get('deviceID'), blankDetail),
+  device: Constants.getDevice(state, routeProps.get('deviceID')),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({

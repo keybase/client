@@ -97,7 +97,10 @@ const styles = styleSheetCreate({
     flexShrink: 0,
     minHeight: smallHeight,
   },
-  contentContainer: {flexGrow: 1},
+  contentContainer: {
+    flexGrow: 1,
+    position: 'relative',
+  },
   divider: {
     backgroundColor: globalColors.black_05,
     height: 1,
