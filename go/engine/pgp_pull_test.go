@@ -181,7 +181,7 @@ func TestPGPPullNotLoggedIn(t *testing.T) {
 	assertKeysPresent(t, gpgClient, []string{aliceFp, bobFp})
 }
 
-func TestPGPPullPrompts(t *testing.T) {
+func TestPGPPullMultiplePrompts(t *testing.T) {
 	tc := SetupEngineTest(t, "pgp_pull")
 	defer tc.Cleanup()
 	sigVersion := libkb.GetDefaultSigVersion(tc.G)
@@ -190,6 +190,8 @@ func TestPGPPullPrompts(t *testing.T) {
 	gpgClient := createGpgClient(tc)
 	assertKeysMissing(t, gpgClient, []string{aliceFp})
 
+	// Try the first time, declining in prompt. We expect keys not to
+	// be imported.
 	fui := &FakeIdentifyUI{FakeConfirm: false}
 	uis := libkb.UIs{
 		LogUI:      tc.G.UI.GetLogUI(),
@@ -207,11 +209,21 @@ func TestPGPPullPrompts(t *testing.T) {
 	require.Equal(t, 1, fui.StartCount, "Expected 1 ID UI prompt")
 	assertKeysMissing(t, gpgClient, []string{aliceFp})
 
-	// Run again
-	fui.FakeConfirm = true
+	// Run again, declining like before, but make sure we got asked
+	// second time and our answer wasn't just cached.
 	err = RunEngine2(m, eng)
 	require.NoError(t, err)
 
 	require.Equal(t, 2, fui.StartCount, "Expected 2 ID UI prompts")
+	assertKeysMissing(t, gpgClient, []string{aliceFp})
+
+	// Run again, attempt to confirm in prompt. PGP Pull should ask us
+	// again even though we declined before, and successfully import
+	// the keys.
+	fui.FakeConfirm = true
+	err = RunEngine2(m, eng)
+	require.NoError(t, err)
+
+	require.Equal(t, 3, fui.StartCount, "Expected 2 ID UI prompts")
 	assertKeysPresent(t, gpgClient, []string{aliceFp})
 }
