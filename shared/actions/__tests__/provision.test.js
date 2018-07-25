@@ -74,7 +74,7 @@ describe('provisioningManagerProvisioning', () => {
       expect(response.result).not.toHaveBeenCalled()
       expect(response.error).toHaveBeenCalledWith({
         code: RPCTypes.constantsStatusCode.scgeneric,
-        desc: 'Canceling RPC',
+        desc: Constants.cancelDesc,
       })
     })
   })
