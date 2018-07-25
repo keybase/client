@@ -55,26 +55,10 @@ type Props = {
   setSendNotification: (sendNotification: boolean) => void,
 }
 
-const _makeDropdownItem = (item: string) => (
-  <Box
-    key={item}
-    style={{
-      ...globalStyles.flexBoxRow,
-      alignItems: 'center',
-      paddingLeft: globalMargins.small,
-      paddingRight: globalMargins.small,
-    }}
-  >
-    <Text type="Body">{capitalize(item)}</Text>
-  </Box>
-)
-
-const _makeDropdownItems = () => teamRoleTypes.map(item => _makeDropdownItem(item))
-
 const AddPeople = (props: Props) => (
   <MaybePopup onClose={props.onClose}>
     <Box style={{...globalStyles.flexBoxColumn, flexGrow: 1}}>
-      <HeaderHocHeader onBack={props.onBack} title={props.title} />
+      <HeaderHocHeader hideBackLabel={true} onBack={props.onBack} title={props.title} />
       {!!props.errorText && (
         <Box style={collapseStyles([globalStyles.flexBoxColumn, {backgroundColor: globalColors.red}])}>
           {props.errorText.split('\n').map(line => (
@@ -94,6 +78,7 @@ const AddPeople = (props: Props) => (
       <Box style={globalStyles.flexBoxColumn}>
         <UserInput
           autoFocus={true}
+          hideAddButton={true}
           onExitSearch={props.onClearSearch}
           placeholder="Add people"
           searchKey={'addToTeamSearch'}
@@ -113,7 +98,7 @@ const AddPeople = (props: Props) => (
       </Box>
       <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium}}>
         <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
-          <Button label={props.numberOfUsersSelected > 0 ? `Add (${props.numberOfUsersSelected})` : 'Add'} type="Primary" />
+          <Button onClick={props.onOpenRolePicker} label={props.numberOfUsersSelected > 0 ? `Add (${props.numberOfUsersSelected})` : 'Add'} type="Primary" />
         </Box>
       </Box>
     </Box>

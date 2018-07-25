@@ -20,7 +20,7 @@ export type OwnProps = {|
   placeholder: ?string,
   onExitSearch: ?() => void,
   onSelectUser?: (id: string) => void,
-  disableAddButton?: boolean,
+  hideAddButton?: boolean,
   disableListBuilding?: boolean,
 |}
 
@@ -50,6 +50,7 @@ const UserInputWithServiceFilter = props => (
       onEnterEmptyText={props.onExitSearch}
       onCancel={props.onExitSearch}
       selectedSearchId={props.selectedSearchId}
+      hideAddButton={props.hideAddButton}
     />
     {props.showServiceFilter && (
       <Box

@@ -99,7 +99,7 @@ export default compose(
     ),
     withPropsOnChange(['onExitSearch'], props => ({
       onCancel: () => props.onClose(),
-      title: 'Add people',
+      title: `Add to ${props.name}`,
     })),
     lifecycle({
       componentDidMount() {

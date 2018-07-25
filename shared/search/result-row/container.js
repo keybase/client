@@ -42,7 +42,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
   const result = stateProps.result.toObject()
-  const leftFullname = result.leftFullname + (stateProps.userIsInTeam ? ' • Already in team' : '')
+  const leftFullname = result.leftFullname ? (stateProps.userIsInTeam ? ' • Already in team' : '') : ''
   const avatarsOpaque = !stateProps.userIsInTeam
   return {
     ...result,
