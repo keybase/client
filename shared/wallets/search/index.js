@@ -14,6 +14,8 @@ export type Props = {|
 const searchKey = 'walletSearch'
 const placeholder = 'Search Keybase'
 
+// TODO: Once UserInput is cleaned up, we may be able to stretch it
+// properly horizontally without wrapping a vertical Box2 around it.
 const Search = (props: Props) => (
   <Box2 direction="vertical">
     <Box2 direction="horizontal" fullWidth={true} style={styles.inputLine}>
