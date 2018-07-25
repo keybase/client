@@ -44,7 +44,7 @@ class Text extends Component<Props> {
     const classNames = [props.className]
     if (props.underline) {
       classNames.push('underline')
-    } else if (meta.isLink && props.backgroundMode === 'Normal') {
+    } else if (meta.isLink && (!props.backgroundMode || props.backgroundMode === 'Normal')) {
       classNames.push('hover-underline')
     }
     return classNames.join(' ') || undefined

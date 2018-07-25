@@ -1,6 +1,5 @@
 // @flow
 import * as ProvisionGen from '../../actions/provision-gen'
-import * as Constants from '../../constants/provision'
 import PaperKey from '.'
 import {compose, withStateHandlers, connect, type TypedState, type Dispatch} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
@@ -10,7 +9,7 @@ type OwnProps = {paperKey: string} & RouteProps<{}, {}>
 
 const mapStateToProps = (state: TypedState) => ({
   error: state.provision.error.stringValue(),
-  waitingForResponse: !!state.waiting.get(Constants.waitingKey),
+  hint: `${state.provision.codePageOtherDeviceName || ''}...`,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({

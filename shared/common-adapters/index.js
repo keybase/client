@@ -95,6 +95,7 @@ export {default as Input} from './input'
 export {default as List} from './list'
 export {default as LoadingLine} from './loading-line'
 export {default as ListItem} from './list-item'
+export {default as ListItem2} from './list-item2'
 export {default as Markdown} from './markdown'
 export {MaybePopup, MaybePopupHoc}
 export {default as MultiAvatar} from './multi-avatar.js'

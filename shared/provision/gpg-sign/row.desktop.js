@@ -1,8 +1,17 @@
 // @flow
 import * as React from 'react'
-import type {Props} from './row'
 import {Icon, Text} from '../../common-adapters'
 import {globalStyles, globalColors, transition, desktopStyles} from '../../styles'
+import type {IconType} from '../../common-adapters'
+
+type Props = {
+  onClick: () => void,
+  icon: IconType,
+  title: string,
+  subTitle?: string,
+  style?: Object,
+  children?: any,
+}
 
 const realCSS = `
   .register-row { background-color: ${globalColors.white}; }
