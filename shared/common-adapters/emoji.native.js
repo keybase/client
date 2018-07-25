@@ -6,8 +6,12 @@ import Text from './text'
 import type {Props} from './emoji'
 
 const EmojiWrapper = (props: Props) => {
-  const {emojiName, size} = props
+  let {emojiName, size} = props
   const emojiVariantSuffix = '\ufe0f' // see http://mts.io/2015/04/21/unicode-symbol-render-text-emoji/
+  if (emojiName[0] !== ':') {
+    // index has colons
+    emojiName = `:${emojiName}:`
+  }
   return (
     <Text
       type="Body"
