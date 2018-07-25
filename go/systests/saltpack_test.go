@@ -20,6 +20,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func SetupTestWithInsecureTriplesec(tb libkb.TestingTB, name string) (tc libkb.TestContext) {
+	// SetupTest ignores the depth argument, so we can safely pass 0.
+	tc = externalstest.SetupTest(tb, name, 0)
+
+	// use an insecure triplesec in tests
+	installInsecureTriplesec(tc.G)
+
+	return tc
+}
+
 func createTeam(tc libkb.TestContext) (keybase1.TeamID, string) {
 	teams.ServiceInit(tc.G)
 
@@ -58,7 +68,7 @@ func (s fakeSaltpackUI) SaltpackVerifyBadSender(_ context.Context, arg keybase1.
 }
 
 func TestSaltpackEncryptDecryptForTeams(t *testing.T) {
-	tc := externalstest.SetupTestWithInsecureTriplesec(t, "SysSpckEncDecTeam")
+	tc := SetupTestWithInsecureTriplesec(t, "SysSpckEncDecTeam")
 	defer tc.Cleanup()
 
 	u1, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
@@ -88,7 +98,7 @@ func TestSaltpackEncryptDecryptForTeams(t *testing.T) {
 		Sink:   sink,
 	}
 
-	eng := engine.NewSaltpackEncrypt(arg, saltpackkeys.NewSaltpackRecipientKeyfinderEngine)
+	eng := engine.NewSaltpackEncrypt(arg, saltpackkeys.NewSaltpackRecipientKeyfinderEngineAsInterface)
 	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
 	if err := engine.RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
@@ -148,7 +158,7 @@ func TestSaltpackEncryptDecryptForImplicitTeams(t *testing.T) {
 		Sink:   sink,
 	}
 
-	eng := engine.NewSaltpackEncrypt(arg, saltpackkeys.NewSaltpackRecipientKeyfinderEngine)
+	eng := engine.NewSaltpackEncrypt(arg, saltpackkeys.NewSaltpackRecipientKeyfinderEngineAsInterface)
 	m := libkb.NewMetaContextForTest(*u1.tc).WithUIs(uis)
 	if err := engine.RunEngine2(m, eng); err != nil {
 		t.Fatal(err)

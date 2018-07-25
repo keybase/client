@@ -57,7 +57,7 @@ func (p KeyPseudonym) Eq(r KeyPseudonym) bool {
 type KeyPseudonymNonce [32]byte
 
 func (p KeyPseudonymNonce) String() string {
-	return hex.EncodeToString(t[:])
+	return hex.EncodeToString(p[:])
 }
 
 func (p *KeyPseudonymNonce) MarshalJSON() ([]byte, error) {

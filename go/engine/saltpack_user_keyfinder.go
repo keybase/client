@@ -137,17 +137,12 @@ func (e *SaltpackUserKeyfinder) LookupUser(m libkb.MetaContext, user string) (up
 		return nil, libkb.IdentifyFailedError{Assertion: user, Reason: err.Error()}
 	}
 
-	engRes := eng.Result()
-	if engRes == nil {
-		return nil, fmt.Errorf("Null result from Identify2")
-	}
-	arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(engRes.Upk.GetUID()).WithForcePoll(true)
-	upak, _, err := m.G().GetUPAKLoader().LoadV2(arg)
+	engRes, err := eng.Result()
 	if err != nil {
 		return nil, err
 	}
 
-	return &upak.Current, err
+	return &engRes.Upk.Current, nil
 }
 
 func (e *SaltpackUserKeyfinder) hasRecipientDeviceOrPaperKeys(id keybase1.UID) bool {
