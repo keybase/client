@@ -13,7 +13,7 @@ import {
   NativeStatusBar,
 } from '../common-adapters/mobile.native'
 import {NavigationActions, type NavigationAction} from 'react-navigation'
-import {chatTab, loginTab, peopleTab, folderTab, settingsTab} from '../constants/tabs'
+import {chatTab, loginTab} from '../constants/tabs'
 import {compose} from 'recompose'
 import {connect, type TypedState} from '../util/container'
 import {globalColors, globalStyles, statusBarHeight, styleSheetCreate} from '../styles'
@@ -156,13 +156,6 @@ function renderStackRoute(route, shouldRender) {
   )
 }
 
-const tabIsCached = {
-  [peopleTab]: true,
-  [folderTab]: true,
-  [chatTab]: true,
-  [settingsTab]: true,
-}
-
 class MainNavStack extends Component<any, any> {
   _listener: EmitterListener
   state = {
@@ -189,32 +182,19 @@ class MainNavStack extends Component<any, any> {
     this.props.switchTab(tab)
   }
 
-  // We keep some stacks around so their navigation isn't blown away
-  _stackCache = I.Map()
-
   render() {
     const props = this.props
 
-    const stacks = this._stackCache
-      .set(props.routeSelected, props.routeStack)
-      .toArray()
-      // The inner views are replaced with placeholders so lets not even both to render the siblings
-      .filter(([key, stack]) => key === props.routeSelected)
-      .map(([key, stack]) => (
-        <CardStackShim
-          key={key}
-          hidden={key !== props.routeSelected}
-          mode={null}
-          stack={(stack: RouteRenderStack)}
-          renderRoute={renderStackRoute}
-          onNavigateBack={props.navigateUp}
-        />
-      ))
-
-    // update the stack if we're keeping track of it
-    if (tabIsCached[props.routeSelected]) {
-      this._stackCache = this._stackCache.set(props.routeSelected, props.routeStack)
-    }
+    const stacks = (
+      <CardStackShim
+        key={props.routeSelected}
+        hidden={false}
+        mode={null}
+        stack={props.routeStack}
+        renderRoute={renderStackRoute}
+        onNavigateBack={props.navigateUp}
+      />
+    )
 
     const content = (
       <Box style={styles.content}>
