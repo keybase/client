@@ -136,7 +136,7 @@ export type Props = Types.RowProps
 
 const SearchResultRow = (props: Props) => (
   <ClickableBox
-    style={_clickableBoxStyle[(!!props.selected).toString()]}
+    style={_clickableBoxStyle[(!!props.selected && props.leftIconOpaque).toString()]}
     underlayColor={globalColors.blue4}
     onClick={!props.userIsInTeam ? props.onClick : null}
     onMouseOver={props.onMouseOver}
