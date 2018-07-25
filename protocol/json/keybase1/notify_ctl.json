@@ -90,6 +90,10 @@
         {
           "type": "boolean",
           "name": "chatattachments"
+        },
+        {
+          "type": "boolean",
+          "name": "wallet"
         }
       ]
     }
