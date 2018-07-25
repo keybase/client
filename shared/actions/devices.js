@@ -51,32 +51,29 @@ const showRevokePage = (action: DevicesGen.ShowRevokePagePayload) =>
     ])
   )
 
-const rpcDeviceList = (action: DevicesGen.DevicesLoadPayload, state: TypedState) =>
-  state.config.loggedIn
-    ? Saga.call(RPCTypes.deviceDeviceHistoryListRpcPromise, undefined, Constants.waitingKey)
-    : Saga.identity([])
+const loadDevices = (state: TypedState) =>
+  state.config.loggedIn &&
+  RPCTypes.deviceDeviceHistoryListRpcPromise(undefined, Constants.waitingKey)
+    .then((results: ?Array<RPCTypes.DeviceDetail>) => {
+      const devices = (results || []).map((d: RPCTypes.DeviceDetail) =>
+        Constants.makeDeviceDetail({
+          created: d.device.cTime,
+          currentDevice: d.currentDevice,
+          deviceID: Types.stringToDeviceID(d.device.deviceID),
+          lastUsed: d.device.lastUsedTime,
+          name: d.device.name,
+          provisionedAt: d.provisionedAt,
+          provisionerName: d.provisioner ? d.provisioner.name : '',
+          revokedAt: d.revokedAt,
+          revokedByName: d.revokedByDevice ? d.revokedByDevice.name : null,
+          type: Types.stringToDeviceType(d.device.type),
+        })
+      )
 
-const dispatchDevicesLoadedError = () => Saga.put(DevicesGen.createDevicesLoadedError())
-
-const dispatchDevicesLoaded = (results: Array<RPCTypes.DeviceDetail>) => {
-  const devices = results.map((d: RPCTypes.DeviceDetail) =>
-    Constants.makeDeviceDetail({
-      created: d.device.cTime,
-      currentDevice: d.currentDevice,
-      deviceID: Types.stringToDeviceID(d.device.deviceID),
-      lastUsed: d.device.lastUsedTime,
-      name: d.device.name,
-      provisionedAt: d.provisionedAt,
-      provisionerName: d.provisioner ? d.provisioner.name : '',
-      revokedAt: d.revokedAt,
-      revokedByName: d.revokedByDevice ? d.revokedByDevice.name : null,
-      type: Types.stringToDeviceType(d.device.type),
+      const idToDetail: I.Map<Types.DeviceID, Types.DeviceDetail> = I.Map(devices.map(d => [d.deviceID, d]))
+      return Saga.put(DevicesGen.createDevicesLoaded({idToDetail}))
     })
-  )
-
-  const idToDetail: I.Map<Types.DeviceID, Types.DeviceDetail> = I.Map(devices.map(d => [d.deviceID, d]))
-  return Saga.put(DevicesGen.createDevicesLoaded({idToDetail}))
-}
+    .catch(() => DevicesGen.createDevicesLoadedError())
 
 function* makePaperKey(): Saga.SagaGenerator<any, any> {
   let channelMap
@@ -171,12 +168,7 @@ const navigateAfterRevoked = (action: DevicesGen.DeviceRevokedPayload, state: Ty
 
 function* deviceSaga(): Saga.SagaGenerator<any, any> {
   // Load devices
-  yield Saga.safeTakeLatestPure(
-    DevicesGen.devicesLoad,
-    rpcDeviceList,
-    dispatchDevicesLoaded,
-    dispatchDevicesLoadedError
-  )
+  yield Saga.actionToPromise(DevicesGen.devicesLoad, loadDevices)
 
   // Revoke page
   yield Saga.safeTakeEveryPure(DevicesGen.showRevokePage, requestEndangeredTLFsLoad)
@@ -189,11 +181,6 @@ function* deviceSaga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.safeTakeEveryPure(DevicesGen.deviceRevoke, rpcRevoke, dispatchRevoked)
   yield Saga.safeTakeEveryPure(DevicesGen.deviceRevoked, navigateAfterRevoked)
-}
-
-export const _testing = {
-  dispatchDevicesLoaded,
-  requestEndangeredTLFsLoad,
 }
 
 export default deviceSaga
