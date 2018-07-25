@@ -8,7 +8,6 @@ import * as RouteActions from './route-tree'
 import * as RouteTree from '../route-tree'
 import * as Saga from '../util/saga'
 import * as Types from '../constants/types/devices'
-import * as WaitingGen from './waiting-gen'
 import HiddenString from '../util/hidden-string'
 import {loginTab} from '../constants/tabs'
 import {type TypedState} from '../constants/reducer'
@@ -22,10 +21,14 @@ const requestEndangeredTLFsLoad = (action: DevicesGen.ShowRevokePagePayload) =>
 
 const rpcEndangeredTlfs = (action: DevicesGen.ShowRevokePagePayload, state: TypedState) =>
   state.config.deviceID
-    ? Saga.call(RPCTypes.rekeyGetRevokeWarningRpcPromise, {
-        actingDevice: state.config.deviceID,
-        targetDevice: action.payload.deviceID,
-      })
+    ? Saga.call(
+        RPCTypes.rekeyGetRevokeWarningRpcPromise,
+        {
+          actingDevice: state.config.deviceID,
+          targetDevice: action.payload.deviceID,
+        },
+        Constants.waitingKey
+      )
     : null
 
 const dispatchEndangeredTLFsLoaded = (
@@ -48,26 +51,10 @@ const showRevokePage = (action: DevicesGen.ShowRevokePagePayload) =>
     ])
   )
 
-const changeWaiting = (action: DevicesGen.Actions) => {
-  let waiting
-  switch (action.type) {
-    case DevicesGen.deviceRevoke:
-    case DevicesGen.devicesLoad:
-    case DevicesGen.endangeredTLFsLoad:
-    case DevicesGen.paperKeyMake:
-      waiting = true
-      break
-    default:
-      waiting = false
-  }
-  const payload = {key: Constants.waitingKey}
-  return Saga.put(
-    waiting ? WaitingGen.createIncrementWaiting(payload) : WaitingGen.createDecrementWaiting(payload)
-  )
-}
-
 const rpcDeviceList = (action: DevicesGen.DevicesLoadPayload, state: TypedState) =>
-  state.config.loggedIn ? Saga.call(RPCTypes.deviceDeviceHistoryListRpcPromise) : Saga.identity([])
+  state.config.loggedIn
+    ? Saga.call(RPCTypes.deviceDeviceHistoryListRpcPromise, undefined, Constants.waitingKey)
+    : Saga.identity([])
 
 const dispatchDevicesLoadedError = () => Saga.put(DevicesGen.createDevicesLoadedError())
 
@@ -140,16 +127,20 @@ function rpcRevoke(action: DevicesGen.DeviceRevokePayload, state: TypedState) {
     }
     return Saga.all([
       Saga.identity({deviceID, deviceName: device.name, wasCurrentDevice: true}),
-      Saga.call(RPCTypes.loginDeprovisionRpcPromise, {doRevoke: true, username}),
+      Saga.call(RPCTypes.loginDeprovisionRpcPromise, {doRevoke: true, username}, Constants.waitingKey),
     ])
   } else {
     return Saga.all([
       Saga.identity({deviceID, wasCurrentDevice: false}),
-      Saga.call(RPCTypes.revokeRevokeDeviceRpcPromise, {
-        deviceID,
-        forceLast: false,
-        forceSelf: false,
-      }),
+      Saga.call(
+        RPCTypes.revokeRevokeDeviceRpcPromise,
+        {
+          deviceID,
+          forceLast: false,
+          forceSelf: false,
+        },
+        Constants.waitingKey
+      ),
     ])
   }
 }
@@ -187,21 +178,6 @@ function* deviceSaga(): Saga.SagaGenerator<any, any> {
     dispatchDevicesLoadedError
   )
 
-  // Waiting states
-  yield Saga.safeTakeEveryPure(
-    [
-      DevicesGen.devicesLoad,
-      DevicesGen.devicesLoaded,
-      DevicesGen.endangeredTLFsLoad,
-      DevicesGen.endangeredTLFsLoaded,
-      DevicesGen.paperKeyMake,
-      DevicesGen.paperKeyCreated,
-      DevicesGen.deviceRevoke,
-      DevicesGen.deviceRevoked,
-    ],
-    changeWaiting
-  )
-
   // Revoke page
   yield Saga.safeTakeEveryPure(DevicesGen.showRevokePage, requestEndangeredTLFsLoad)
   yield Saga.safeTakeEveryPure(DevicesGen.showRevokePage, showRevokePage)
@@ -216,7 +192,6 @@ function* deviceSaga(): Saga.SagaGenerator<any, any> {
 }
 
 export const _testing = {
-  changeWaiting,
   dispatchDevicesLoaded,
   requestEndangeredTLFsLoad,
 }
