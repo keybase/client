@@ -112,7 +112,10 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
     }
   } else if (registered) {
     // relogging in
-    yield Saga.put.resolve(getExtendedStatus())
+    try {
+      yield Saga.put.resolve(getExtendedStatus())
+    } catch (e) {} // keep going
+
     yield Saga.put(RouteTree.switchRouteDef(loginRouteTree))
     // We may have logged successfully in by now, check before trying to navigate
     const state = yield Saga.select()
