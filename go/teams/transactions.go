@@ -98,14 +98,7 @@ func (tx *AddMemberTx) findPayload(tag txPayloadTag, forUID keybase1.UID) interf
 	return ret.Val
 }
 
-// Methods modifying payloads are supposed to always succeed given the
-// preconditions are satisfied. If not, the usual result is either a
-// no-op or an invalid transaction that is rejected by team player
-// pre-check or by the server. Public methods should make sure that
-// internal methods are always called with these preconditions
-// satisfied.
-
-func (tx *AddMemberTx) invitePayload(forUID keybase1.UID) *SCTeamInvites {
+func (tx *AddMemberTx) inviteKeybasePayload(forUID keybase1.UID) *SCTeamInvites {
 	return tx.findPayload(txPayloadTagInviteKeybase, forUID).(*SCTeamInvites)
 }
 
@@ -116,6 +109,13 @@ func (tx *AddMemberTx) inviteSocialPayload(forUID keybase1.UID) *SCTeamInvites {
 func (tx *AddMemberTx) changeMembershipPayload(forUID keybase1.UID) *keybase1.TeamChangeReq {
 	return tx.findPayload(txPayloadTagCryptomembers, forUID).(*keybase1.TeamChangeReq)
 }
+
+// Methods modifying payloads are supposed to always succeed given the
+// preconditions are satisfied. If not, the usual result is either a
+// no-op or an invalid transaction that is rejected by team player
+// pre-check or by the server. Public methods should make sure that
+// internal methods are always called with these preconditions
+// satisfied.
 
 func (tx *AddMemberTx) removeMember(uv keybase1.UserVersion) {
 	// Precondition: UV is a cryptomember.
@@ -159,7 +159,7 @@ func (tx *AddMemberTx) createKeybaseInvite(uv keybase1.UserVersion, role keybase
 func (tx *AddMemberTx) createInvite(typ string, name keybase1.TeamInviteName, role keybase1.TeamRole, uid keybase1.UID) {
 	var payload *SCTeamInvites
 	if typ == "keybase" {
-		payload = tx.invitePayload(uid)
+		payload = tx.inviteKeybasePayload(uid)
 	} else {
 		payload = tx.inviteSocialPayload(uid)
 	}
@@ -558,7 +558,7 @@ func (tx *AddMemberTx) ReAddMemberToImplicitTeam(uv keybase1.UserVersion, hasPUK
 }
 
 func (tx *AddMemberTx) CancelInvite(id keybase1.TeamInviteID, forUID keybase1.UID) {
-	payload := tx.invitePayload(forUID)
+	payload := tx.inviteKeybasePayload(forUID)
 	if payload.Cancel == nil {
 		payload.Cancel = &[]SCTeamInviteID{SCTeamInviteID(id)}
 	} else {
@@ -653,7 +653,6 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 	memSet := newMemberSet()
 
 	// Transform payloads to SCTeamSections.
-
 	for _, p := range tx.payloads {
 		section := SCTeamSection{
 			ID:       SCTeamID(team.ID),
@@ -691,7 +690,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 			section.Entropy = entropy
 			sections = append(sections, section)
 		default:
-			return fmt.Errorf("Unhandled case in AddMemberTx.Post, unknown type: %T", p)
+			return fmt.Errorf("Unhandled case in AddMemberTx.Post, unknown tag: %s", p.Tag)
 		}
 	}
 
