@@ -193,7 +193,9 @@ func remoteTlfAndPath(path keybase1.Path) (
 	return t, ps[1], middlePath, finalElem, nil
 }
 
-func branchNameFromPath(path keybase1.Path) (libkbfs.BranchName, error) {
+func (k *SimpleFS) branchNameFromPath(
+	ctx context.Context, tlfHandle *libkbfs.TlfHandle, path keybase1.Path) (
+	libkbfs.BranchName, error) {
 	pt, err := path.PathType()
 	if err != nil {
 		return "", err
@@ -211,6 +213,20 @@ func branchNameFromPath(path keybase1.Path) (libkbfs.BranchName, error) {
 		case keybase1.KBFSArchivedType_REVISION:
 			return libkbfs.MakeRevBranchName(
 				kbfsmd.Revision(archivedParam.Revision())), nil
+		case keybase1.KBFSArchivedType_TIME:
+			t := keybase1.FromTime(archivedParam.Time())
+			rev, err := libkbfs.GetMDRevisionByTime(ctx, k.config, tlfHandle, t)
+			if err != nil {
+				return "", err
+			}
+			return libkbfs.MakeRevBranchName(rev), nil
+		case keybase1.KBFSArchivedType_TIME_STRING:
+			t := archivedParam.TimeString()
+			rev, err := libfs.RevFromTimeString(ctx, k.config, tlfHandle, t)
+			if err != nil {
+				return "", err
+			}
+			return libkbfs.MakeRevBranchName(rev), nil
 		default:
 			return "", simpleFSError{"Invalid archived type for branch name"}
 		}
@@ -236,7 +252,7 @@ func (k *SimpleFS) getFS(ctx context.Context, path keybase1.Path) (
 		if err != nil {
 			return nil, "", err
 		}
-		branch, err := branchNameFromPath(path)
+		branch, err := k.branchNameFromPath(ctx, tlfHandle, path)
 		if err != nil {
 			return nil, "", err
 		}

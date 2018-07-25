@@ -128,7 +128,11 @@ func checkPendingOp(ctx context.Context,
 
 func TestList(t *testing.T) {
 	ctx := context.Background()
-	sfs := newSimpleFS(libkb.NewGlobalContext().Init(), libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	clock := &libkbfs.TestClock{}
+	clock.Set(time.Now())
+	config.SetClock(clock)
+	sfs := newSimpleFS(libkb.NewGlobalContext().Init(), config)
 	defer closeSimpleFS(ctx, t, sfs)
 
 	pathRoot := keybase1.NewPathWithKbfs(`/`)
@@ -168,6 +172,12 @@ func TestList(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, listResult.Entries, 1, "Expected 1 directory entries in listing")
 	require.Equal(t, listResult.Entries[0].Name, "jdoe")
+
+	clock.Add(1 * time.Minute)
+	syncFS(ctx, t, sfs, "/private/jdoe")
+
+	rev1Time := clock.Now()
+	clock.Add(1 * time.Minute)
 
 	// make a temp remote directory + files we will clean up later
 	path1 := keybase1.NewPathWithKbfs(`/private/jdoe`)
@@ -264,10 +274,11 @@ func TestList(t *testing.T) {
 		t, listResult.Entries, 1, "Expected 1 directory entries in listing")
 
 	// Test that the first archived revision shows no directory entries.
-	pathArchived1 := keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
-		Path:          `/private/jdoe`,
-		ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(1),
-	})
+	pathArchivedRev1 := keybase1.NewPathWithKbfsArchived(
+		keybase1.KBFSArchivedPath{
+			Path:          `/private/jdoe`,
+			ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(1),
+		})
 	checkArchived := func(pathArchived keybase1.Path, expected int) {
 		opid, err = sfs.SimpleFSMakeOpid(ctx)
 		require.NoError(t, err)
@@ -288,13 +299,31 @@ func TestList(t *testing.T) {
 			t, listResult.Entries, expected,
 			"Expected 0 directory entries in listing")
 	}
-	checkArchived(pathArchived1, 0)
+	checkArchived(pathArchivedRev1, 0)
 
-	pathArchived2 := keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
-		Path:          `/private/jdoe`,
-		ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(2),
-	})
-	checkArchived(pathArchived2, 1)
+	pathArchivedRev2 := keybase1.NewPathWithKbfsArchived(
+		keybase1.KBFSArchivedPath{
+			Path:          `/private/jdoe`,
+			ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(2),
+		})
+	checkArchived(pathArchivedRev2, 1)
+
+	// Same test, with by-time archived paths.
+	pathArchivedTime := keybase1.NewPathWithKbfsArchived(
+		keybase1.KBFSArchivedPath{
+			Path: `/private/jdoe`,
+			ArchivedParam: keybase1.NewKBFSArchivedParamWithTime(
+				keybase1.ToTime(rev1Time)),
+		})
+	checkArchived(pathArchivedTime, 0)
+
+	pathArchivedTimeString := keybase1.NewPathWithKbfsArchived(
+		keybase1.KBFSArchivedPath{
+			Path: `/private/jdoe`,
+			ArchivedParam: keybase1.NewKBFSArchivedParamWithTimeString(
+				rev1Time.String()),
+		})
+	checkArchived(pathArchivedTimeString, 0)
 }
 
 func TestListRecursive(t *testing.T) {
