@@ -4,12 +4,10 @@
 package engine
 
 import (
-	"errors"
 	"fmt"
-	"time"
-
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"time"
 )
 
 type PGPPullEngineArg struct {
@@ -160,24 +158,24 @@ func (e *PGPPullEngine) processUserWithIdentify(m libkb.MetaContext, u string) e
 	}
 	ieng := NewResolveThenIdentify2WithTrack(m.G(), &iarg, topts)
 	if err := RunEngine2(m, ieng); err != nil {
-		e.G().Log.Info("identify run err: %s", err)
+		m.CInfof("identify run err: %s", err)
 		return err
 	}
 
 	// prompt if the identify is correct
 	result := ieng.ConfirmResult()
 	if !result.IdentityConfirmed {
-		e.G().Log.Warning("Not confirmed; skipping key import")
+		m.CWarningf("Not confirmed; skipping key import")
 		return nil
 	}
 
-	idRes := ieng.Result()
-	if idRes == nil {
-		return errors.New("nil identify2 result")
+	idRes, err := ieng.Result()
+	if err != nil {
+		return err
 	}
 	// with more plumbing, there is likely a more efficient way to get this identified user out
 	// of the identify2 engine, but `pgp pull` is not likely to be called often.
-	arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(idRes.Upk.Uid)
+	arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(idRes.Upk.GetUID())
 	user, err := libkb.LoadUser(arg)
 	if err != nil {
 		return err

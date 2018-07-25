@@ -111,6 +111,4 @@ protocol UPK {
       case V1: UserPlusAllKeys;
       case V2: UserPlusKeysV2AllIncarnations;
   }
-
-
 }

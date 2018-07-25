@@ -170,7 +170,7 @@ func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAs
 	m := libkb.NewMetaContext(ctx, g).WithUIs(uis)
 	err = engine.RunEngine2(m, eng)
 	if err != nil {
-		idRes := eng.Result()
+		idRes, _ := eng.Result()
 		g.Log.CDebugf(ctx, "identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
 	}
 	return err

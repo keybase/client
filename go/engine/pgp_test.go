@@ -157,7 +157,8 @@ func (p *pgpPair) isTracking(meContext libkb.TestContext, username string) bool 
 	if err != nil {
 		p.t.Fatal(err)
 	}
-	s, err := me.TrackChainLinkFor(them.GetNormalizedName(), them.GetUID())
+	m := NewMetaContextForTest(meContext)
+	s, err := me.TrackChainLinkFor(m, them.GetNormalizedName(), them.GetUID())
 	if err != nil {
 		p.t.Fatal(err)
 	}

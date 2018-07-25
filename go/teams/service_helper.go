@@ -146,7 +146,7 @@ func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []ke
 }
 
 func SetRoleOwner(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	uv, err := loadUserVersionByUsername(ctx, g, username)
+	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
 	if err != nil {
 		return err
 	}
@@ -154,7 +154,7 @@ func SetRoleOwner(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 }
 
 func SetRoleAdmin(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	uv, err := loadUserVersionByUsername(ctx, g, username)
+	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
 	if err != nil {
 		return err
 	}
@@ -162,7 +162,7 @@ func SetRoleAdmin(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 }
 
 func SetRoleWriter(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	uv, err := loadUserVersionByUsername(ctx, g, username)
+	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
 	if err != nil {
 		return err
 	}
@@ -170,7 +170,7 @@ func SetRoleWriter(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 }
 
 func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	uv, err := loadUserVersionByUsername(ctx, g, username)
+	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
 	if err != nil {
 		return err
 	}
@@ -196,7 +196,7 @@ func getUserProofs(ctx context.Context, g *libkb.GlobalContext, username string)
 
 func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string, role keybase1.TeamRole) (res keybase1.TeamAddMemberResult, err error) {
 	var inviteRequired bool
-	resolvedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username)
+	resolvedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username, true /* useTracking */)
 	g.Log.CDebugf(ctx, "team.AddMember: loadUserVersionPlusByUsername(%s) -> (%s, %v, %v)", username, resolvedUsername, uv, err)
 	if err != nil {
 		if err == errInviteRequired {
@@ -511,7 +511,7 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 }
 
 func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) error {
-	uv, err := loadUserVersionByUsername(ctx, g, username)
+	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
 	if err == errInviteRequired {
 		g.Log.CDebugf(ctx, "team %s: edit member %s, member is an invite link", teamname, username)
 		return editMemberInvite(ctx, g, teamname, username, role, uv)
@@ -568,7 +568,7 @@ func editMemberInvite(ctx context.Context, g *libkb.GlobalContext, teamname, use
 }
 
 func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username string) (role keybase1.TeamRole, err error) {
-	uv, err := loadUserVersionByUsername(ctx, g, username)
+	uv, err := loadUserVersionByUsername(ctx, g, username, false /* useTracking */)
 	if err != nil {
 		return keybase1.TeamRole_NONE, err
 	}
@@ -588,7 +588,7 @@ func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
 
 	var inviteRequired bool
-	uv, err := loadUserVersionByUsername(ctx, g, username)
+	uv, err := loadUserVersionByUsername(ctx, g, username, false /* useTracking */)
 	if err != nil {
 		switch err {
 		case errInviteRequired:
@@ -843,11 +843,11 @@ func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, r
 var errInviteRequired = errors.New("invite required for username")
 var errUserDeleted = errors.New("user is deleted")
 
-func loadUserVersionPlusByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (libkb.NormalizedUsername, keybase1.UserVersion, error) {
+func loadUserVersionPlusByUsername(ctx context.Context, g *libkb.GlobalContext, username string, useTracking bool) (libkb.NormalizedUsername, keybase1.UserVersion, error) {
 	// need username here as `username` parameter might be social assertion, also username
 	// is used for chat notification recipient
 	m := libkb.NewMetaContext(ctx, g)
-	upk, err := engine.ResolveAndCheck(m, username)
+	upk, err := engine.ResolveAndCheck(m, username, useTracking)
 	if err != nil {
 		if e, ok := err.(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
 			// couldn't find a keybase user for username assertion
@@ -859,8 +859,8 @@ func loadUserVersionPlusByUsername(ctx context.Context, g *libkb.GlobalContext, 
 	return libkb.NormalizedUsernameFromUPK2(upk), uv, err
 }
 
-func loadUserVersionAndPUKedByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (uname libkb.NormalizedUsername, uv keybase1.UserVersion, hasPUK bool, err error) {
-	uname, uv, err = loadUserVersionPlusByUsername(ctx, g, username)
+func loadUserVersionAndPUKedByUsername(ctx context.Context, g *libkb.GlobalContext, username string, useTracking bool) (uname libkb.NormalizedUsername, uv keybase1.UserVersion, hasPUK bool, err error) {
+	uname, uv, err = loadUserVersionPlusByUsername(ctx, g, username, useTracking)
 	if err == nil {
 		hasPUK = true
 	} else {
@@ -874,9 +874,9 @@ func loadUserVersionAndPUKedByUsername(ctx context.Context, g *libkb.GlobalConte
 	return uname, uv, hasPUK, nil
 }
 
-func loadUserVersionByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (keybase1.UserVersion, error) {
+func loadUserVersionByUsername(ctx context.Context, g *libkb.GlobalContext, username string, useTracking bool) (keybase1.UserVersion, error) {
 	m := libkb.NewMetaContext(ctx, g)
-	upk, err := engine.ResolveAndCheck(m, username)
+	upk, err := engine.ResolveAndCheck(m, username, useTracking)
 	if err != nil {
 		if e, ok := err.(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
 			// couldn't find a keybase user for username assertion
@@ -1148,7 +1148,7 @@ func ListMyAccessRequests(ctx context.Context, g *libkb.GlobalContext, teamName 
 }
 
 func IgnoreRequest(ctx context.Context, g *libkb.GlobalContext, teamName, username string) error {
-	uv, err := loadUserVersionByUsername(ctx, g, username)
+	uv, err := loadUserVersionByUsername(ctx, g, username, false /* useTracking */)
 	if err != nil {
 		if err == errInviteRequired {
 			return libkb.NotFoundError{
