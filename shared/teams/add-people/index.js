@@ -3,8 +3,6 @@ import * as React from 'react'
 import {
   Box,
   Button,
-  ClickableBox,
-  Dropdown,
   HeaderHocHeader,
   ProgressIndicator,
   Text,
@@ -18,11 +16,8 @@ import {
   isMobile,
   desktopStyles,
 } from '../../styles'
-import {capitalize} from 'lodash-es'
 import UserInput from '../../search/user-input/container'
 import SearchResultsList from '../../search/results-list/container'
-
-import {teamRoleTypes} from '../../constants/teams'
 import {type TeamRoleType} from '../../constants/types/teams'
 
 const MaybePopup = isMobile
@@ -53,12 +48,13 @@ type Props = {
   showSearchPending: boolean,
   sendNotification: boolean,
   setSendNotification: (sendNotification: boolean) => void,
+  title: string,
 }
 
 const AddPeople = (props: Props) => (
   <MaybePopup onClose={props.onClose}>
     <Box style={{...globalStyles.flexBoxColumn, flexGrow: 1}}>
-      <HeaderHocHeader hideBackLabel={true} onBack={props.onBack} title={props.title} />
+      <HeaderHocHeader hideBackLabel={true} onBack={props.onClose} title={props.title} />
       {!!props.errorText && (
         <Box style={collapseStyles([globalStyles.flexBoxColumn, {backgroundColor: globalColors.red}])}>
           {props.errorText.split('\n').map(line => (

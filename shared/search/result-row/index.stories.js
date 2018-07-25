@@ -13,10 +13,12 @@ export type ConnectProps = $Exact<$Diff<Props, OwnProps>>
 const defaultConnectProps = {
   leftFullname: null,
   leftIcon: null,
+  leftIconOpaque: true,
   leftService: 'Keybase',
   leftUsername: '',
 
   rightIcon: null,
+  rightIconOpaque: true,
   rightService: null,
   rightUsername: null,
 
@@ -31,10 +33,12 @@ const defaultConnectPropsMap: ConnectPropsMap = {
   jzila: {
     leftFullname: 'John Zila',
     leftIcon: null,
+    leftIconOpaque: true,
     leftService: 'Keybase',
     leftUsername: 'jzila',
 
     rightIcon: null,
+    rightIconOpaque: true,
     rightService: null,
     rightUsername: null,
 

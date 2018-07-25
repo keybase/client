@@ -19,6 +19,7 @@ import {roleIconMap, roleIconColorMap, roleDescMap, permissionMap} from './index
 import {pluralize} from '../../util/string'
 
 export type RolePickerProps = {
+  addButtonLabel?: string,
   confirm: boolean,
   controlled?: boolean,
   username: string,
@@ -244,7 +245,7 @@ const styles = styleSheetCreate({
     marginTop: globalMargins.small,
   },
   headerTitle: {
-    color: globalStyles.black_40,
+    color: globalColors.black_40,
   },
   promptBox: {
     margin: globalMargins.tiny,

@@ -13,10 +13,12 @@ const connectPropsMap: RowConnectPropsMap = {
   chris: {
     leftFullname: 'chris on GitHub',
     leftIcon: null,
+    leftIconOpaque: true,
     leftService: 'Keybase',
     leftUsername: 'chris',
 
     rightIcon: 'iconfont-identity-github',
+    rightIconOpaque: true,
     rightService: 'GitHub',
     rightUsername: 'chrisname',
 
@@ -27,10 +29,12 @@ const connectPropsMap: RowConnectPropsMap = {
   cjb: {
     leftFullname: 'cjb on facebook',
     leftIcon: null,
+    leftIconOpaque: true,
     leftService: 'Keybase',
     leftUsername: 'cjb',
 
     rightIcon: 'iconfont-identity-facebook',
+    rightIconOpaque: true,
     rightService: 'Facebook',
     rightUsername: 'cjbname',
 
@@ -41,10 +45,12 @@ const connectPropsMap: RowConnectPropsMap = {
   jzila: {
     leftFullname: 'jzila on twitter',
     leftIcon: null,
+    leftIconOpaque: true,
     leftService: 'Keybase',
     leftUsername: 'jzila',
 
     rightIcon: 'iconfont-identity-twitter',
+    rightIconOpaque: true,
     rightService: 'Twitter',
     rightUsername: 'jzilatwit',
 

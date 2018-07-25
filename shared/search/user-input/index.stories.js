@@ -18,6 +18,7 @@ const defaultOwnProps: OwnProps = {
 
 const inputCommon = {
   autoFocus: false,
+  hideAddButton: false,
   onAddSelectedUser: action('Add selected user'),
   onCancel: action('Cancel'),
   onChangeText: action('Change text'),
