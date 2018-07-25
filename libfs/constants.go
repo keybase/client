@@ -108,3 +108,7 @@ const DisableSyncFileName = ".kbfs_disable_sync"
 // ArchivedRevDirPrefix is the prefix to the directory at the root of a
 // TLF that exposes a version of that TLF at the specified revision.
 const ArchivedRevDirPrefix = ".kbfs_archived_rev="
+
+// ArchivedTimeLinkPrefix is the prefix to the symlink at the root of a
+// TLF that links to a version of that TLF at the specified time.
+const ArchivedTimeLinkPrefix = ".kbfs_archived_time="
