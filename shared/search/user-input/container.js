@@ -32,7 +32,6 @@ const UserInputWithServiceFilter = props => (
       borderBottomWidth: 1,
       borderStyle: 'solid',
       paddingLeft: globalMargins.tiny,
-      flexGrow: 1,
     }}
   >
     <UserInput
