@@ -212,6 +212,18 @@ func (tlf *TLF) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.
 		return archivedTLF, nil
 	}
 
+	linkTarget, isArchivedTimeLink, err := libfs.LinkTargetFromTimeString(
+		ctx, tlf.folder.fs.config, tlf.folder.h, req.Name)
+	if err != nil {
+		return nil, err
+	}
+	if isArchivedTimeLink {
+		return &Alias{
+			realPath: linkTarget,
+			inode:    0,
+		}, nil
+	}
+
 	return dir.Lookup(ctx, req, resp)
 }
 
