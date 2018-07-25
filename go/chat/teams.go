@@ -426,15 +426,12 @@ func (t *ImplicitTeamsNameInfoSource) transformTeamDoesNotExist(ctx context.Cont
 	case teams.TeamDoesNotExistError:
 		return NewUnknownTLFNameError(name)
 	}
-	return nil
+	t.Debug(ctx, "Lookup: error looking up the team: %s", err)
+	return err
 }
 
 func (t *ImplicitTeamsNameInfoSource) LookupUntrusted(ctx context.Context, name string, public bool) (res *types.NameInfoUntrusted, err error) {
-	defer func() {
-		if terr := t.transformTeamDoesNotExist(ctx, err, name); terr != nil {
-			err = terr
-		}
-	}()
+	defer func() { err = t.transformTeamDoesNotExist(ctx, err, name) }()
 	impTeamName, err := teams.ResolveImplicitTeamDisplayName(ctx, t.G().ExternalG(), name, public)
 	if err != nil {
 		return res, err
@@ -458,11 +455,7 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, p
 
 	team, _, impTeamName, err := teams.LookupImplicitTeam(ctx, t.G().ExternalG(), name, public)
 	if err != nil {
-		if terr := t.transformTeamDoesNotExist(ctx, err, name); terr != nil {
-			return res, terr
-		}
-		t.Debug(ctx, "Lookup: error looking up the team: %s", err)
-		return res, err
+		return res, t.transformTeamDoesNotExist(ctx, err, name)
 	}
 	if !team.ID.IsRootTeam() {
 		panic(fmt.Sprintf("implicit team found via LookupImplicitTeam not root team: %s", team.ID))
