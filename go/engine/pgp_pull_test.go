@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
 )
 
 const aliceFp string = "2373fd089f28f328916b88f99c7927c0bdfdadf9"
@@ -18,48 +19,37 @@ func createUserWhoTracks(tc libkb.TestContext, trackedUsers []string, sigVersion
 
 	for _, trackedUser := range trackedUsers {
 		_, _, err := runTrack(tc, fu, trackedUser, sigVersion)
-		if err != nil {
-			tc.T.Fatal("Error while tracking", trackedUser, err)
-		}
+		require.NoError(tc.T, err, "error while tracking")
 	}
 	return fu
 }
 
 func untrackUserList(tc libkb.TestContext, fu *FakeUser, trackedUsers []string, sigVersion libkb.SigVersion) {
 	for _, trackedUser := range trackedUsers {
-		if err := runUntrack(tc, fu, trackedUser, sigVersion); err != nil {
-			tc.T.Fatal("Error while untracking", trackedUser, err)
-		}
+		err := runUntrack(tc, fu, trackedUser, sigVersion)
+		require.NoError(tc.T, err, "error while untracking %s", trackedUser)
 	}
 }
 
 func createGpgClient(tc libkb.TestContext) *libkb.GpgCLI {
 	gpgClient := libkb.NewGpgCLI(tc.G, tc.G.UI.GetLogUI())
 	err := gpgClient.Configure()
-	if err != nil {
-		tc.T.Fatal("Error while configuring gpg client.")
-	}
+	require.NoError(tc.T, err, "Error while configuring gpg client.")
 	return gpgClient
 }
 
 func assertKeysPresent(t *testing.T, gpgClient *libkb.GpgCLI, fingerprints []string) {
 	for _, fingerprint := range fingerprints {
 		fpObj, err := gpgClient.ImportKey(false /*secret*/, *libkb.PGPFingerprintFromHexNoError(fingerprint), "")
-		if err != nil {
-			t.Fatal("Should have fingerprint in keyring:", fingerprint)
-		}
-		if fingerprint != fpObj.GetFingerprint().String() {
-			t.Fatal("Expected to import a different fingerprint:", fingerprint, fpObj.GetFingerprint())
-		}
+		require.NoError(t, err, "Should have fingerprint in keyring: %s", fingerprint)
+		require.Equal(t, fingerprint, fpObj.GetFingerprint().String())
 	}
 }
 
 func assertKeysMissing(t *testing.T, gpgClient *libkb.GpgCLI, fingerprints []string) {
 	for _, fingerprint := range fingerprints {
 		_, err := gpgClient.ImportKey(false /*secret*/, *libkb.PGPFingerprintFromHexNoError(fingerprint), "")
-		if err == nil {
-			t.Fatal("Should not already have fingerprint in keyring:", fingerprint)
-		}
+		require.Error(t, err, "Should not already have fingerprint in keyring: %s", fingerprint)
 	}
 }
 
@@ -67,18 +57,14 @@ func runPGPPull(tc libkb.TestContext, arg PGPPullEngineArg) {
 	eng := NewPGPPullEngine(tc.G, &arg)
 	m := NewMetaContextForTestWithLogUI(tc)
 	err := RunEngine2(m, eng)
-	if err != nil {
-		tc.T.Fatal("Error in PGPPullEngine:", err)
-	}
+	require.NoError(tc.T, err, "Error in PGPPullEngine")
 }
 
 func runPGPPullExpectingError(tc libkb.TestContext, arg PGPPullEngineArg) {
 	eng := NewPGPPullEngine(tc.G, &arg)
 	m := NewMetaContextForTestWithLogUI(tc)
 	err := RunEngine2(m, eng)
-	if err == nil {
-		tc.T.Fatal("PGPPullEngine should have failed.")
-	}
+	require.Error(tc.T, err, "PGPPullEngine should have failed.")
 }
 
 func TestPGPPullAll(t *testing.T) {
@@ -164,13 +150,8 @@ func TestPGPPullNotTracked(t *testing.T) {
 	})
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
-	if err != nil {
-		tc.T.Fatal("Error in PGPPullEngine:", err)
-	}
-
-	if fui.StartCount != 1 {
-		tc.T.Fatalf("Expected 1 ID UI prompt, got %d", fui.StartCount)
-	}
+	require.NoError(t, err)
+	require.Equal(t, 1, fui.StartCount, "Expected 1 ID UI prompt")
 
 	assertKeysPresent(t, gpgClient, []string{bobFp, aliceFp})
 }
@@ -194,13 +175,43 @@ func TestPGPPullNotLoggedIn(t *testing.T) {
 	})
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
-	if err != nil {
-		tc.T.Fatal("Error in PGPPullEngine:", err)
-	}
-
-	if fui.StartCount != 2 {
-		tc.T.Fatalf("Expected 2 ID UI prompts, got %d", fui.StartCount)
-	}
+	require.NoError(t, err)
+	require.Equal(t, 2, fui.StartCount, "Expected 2 ID UI prompt")
 
 	assertKeysPresent(t, gpgClient, []string{aliceFp, bobFp})
+}
+
+func TestPGPPullPrompts(t *testing.T) {
+	tc := SetupEngineTest(t, "pgp_pull")
+	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
+	createUserWhoTracks(tc, []string{}, sigVersion)
+
+	gpgClient := createGpgClient(tc)
+	assertKeysMissing(t, gpgClient, []string{aliceFp})
+
+	fui := &FakeIdentifyUI{FakeConfirm: false}
+	uis := libkb.UIs{
+		LogUI:      tc.G.UI.GetLogUI(),
+		GPGUI:      &gpgtestui{},
+		IdentifyUI: fui,
+	}
+
+	eng := NewPGPPullEngine(tc.G, &PGPPullEngineArg{
+		UserAsserts: []string{"t_alice"},
+	})
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, eng)
+	require.NoError(t, err)
+
+	require.Equal(t, 1, fui.StartCount, "Expected 1 ID UI prompt")
+	assertKeysMissing(t, gpgClient, []string{aliceFp})
+
+	// Run again
+	fui.FakeConfirm = true
+	err = RunEngine2(m, eng)
+	require.NoError(t, err)
+
+	require.Equal(t, 2, fui.StartCount, "Expected 2 ID UI prompts")
+	assertKeysPresent(t, gpgClient, []string{aliceFp})
 }
