@@ -1,5 +1,6 @@
 // @flow
 import * as LoginGen from '../../actions/login-gen'
+import * as ProvisionGen from '../../actions/provision-gen'
 import * as Constants from '../../constants/login'
 import * as SignupGen from '../../actions/signup-gen'
 import HiddenString from '../../util/hidden-string'
@@ -37,7 +38,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}: OwnProps) => (
   onLogin: (user: string, passphrase: string) =>
     dispatch(LoginGen.createLogin({passphrase: new HiddenString(passphrase), usernameOrEmail: user})),
   onSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
-  onSomeoneElse: () => dispatch(LoginGen.createStartLogin()),
+  onSomeoneElse: () => dispatch(ProvisionGen.createStartProvision()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {

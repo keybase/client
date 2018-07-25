@@ -1,5 +1,4 @@
 // @flow
-// TODO merge desktop and native views
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as Constants from '../../constants/provision'
 import SetPublicName from '.'

@@ -10,6 +10,7 @@ const initialState = Constants.makeState()
 export default function(state: Types.State = initialState, action: ProvisionGen.Actions): Types.State {
   switch (action.type) {
     case ProvisionGen.resetStore:
+    case ProvisionGen.startProvision:
       return initialState
     case ProvisionGen.provisionError:
     case ProvisionGen.showPassphrasePage: // fallthrough
@@ -19,6 +20,10 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
     case ProvisionGen.submitPaperkey:
       return state.merge({error: initialState.error})
     case ProvisionGen.showFinalErrorPage:
+      // Ignore cancels
+      if (action.payload.finalError && action.payload.finalError.desc === Constants.cancelDesc) {
+        return state
+      }
       return state.merge({finalError: action.payload.finalError})
     case ProvisionGen.showNewDeviceNamePage:
       return state.merge({
@@ -41,24 +46,24 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         throw new Error('Selected a non existant device?')
       }
       return state.merge({
+        codePageOtherDeviceId: selectedDevice.id,
         codePageOtherDeviceName: selectedDevice.name,
         // only desktop or mobile, paperkey we treat as mobile but its never used in the flow
         codePageOtherDeviceType: selectedDevice.type === 'desktop' ? 'desktop' : 'mobile',
-        codePageOtherDeviceId: selectedDevice.id,
         error: initialState.error,
       })
     case ProvisionGen.submitTextCode:
       return state.merge({
-        codePageTextCode: action.payload.phrase,
+        codePageOutgoingTextCode: action.payload.phrase,
         error: initialState.error,
       })
     case ProvisionGen.submitDeviceName:
-      if (state.existingDevices.indexOf(state.deviceName) !== -1) {
+      if (state.existingDevices.indexOf(action.payload.name) !== -1) {
         return state.merge({
           deviceName: action.payload.name,
           error: new HiddenString(
             `The device name: '${
-              state.deviceName
+              action.payload.name
             }' is already taken. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.`
           ),
         })
@@ -69,7 +74,7 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
       })
     case ProvisionGen.showCodePage:
       return state.merge({
-        codePageTextCode: action.payload.code,
+        codePageIncomingTextCode: action.payload.code,
         error: action.payload.error || initialState.error,
       })
     case ProvisionGen.submitUsernameOrEmail:

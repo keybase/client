@@ -69,6 +69,7 @@
     "flowCommandPath": "./node_modules/.bin/flow"
   },
   "jest": {
+    "coverageDirectory": "./coverage",
     "modulePaths": [
       "<rootDir>/desktop/node_modules"
     ],
@@ -92,10 +93,12 @@
       "desktop/app/resolve-root": "<rootDir>/__mocks__/resolve-root.js",
       "react-redux": "<rootDir>/__mocks__/react-redux.js",
       "^electron$": "<rootDir>/__mocks__/electron.js",
+      "hidden-string": "<rootDir>/__mocks__/hidden-string.js",
       "constants/platform": "<rootDir>/__mocks__/platform.js",
       "hoc-timers": "<rootDir>/__mocks__/hoc-timers.js",
       "local-debug": "<rootDir>/__mocks__/local-debug.js",
-      "feature-flags": "<rootDir>/__mocks__/feature-flags.js"
+      "feature-flags": "<rootDir>/__mocks__/feature-flags.js",
+      "engine/saga$": "<rootDir>/__mocks__/engine-saga.js"
     },
     "moduleFileExtensions": [
       "js",

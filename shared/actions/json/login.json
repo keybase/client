@@ -8,7 +8,6 @@
       "usernameOrEmail": "string",
       "passphrase": "HiddenString"
     },
-    "startLogin": {},
     "launchAccountResetWebPage": {},
     "launchForgotPasswordWebPage": {},
     "loginError": { "error": "?HiddenString" },

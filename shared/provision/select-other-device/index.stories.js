@@ -41,8 +41,22 @@ const props = {
   waiting: false,
 }
 
+const tonsOfDevices = []
+for (var i = 0; i < 100; ++i) {
+  tonsOfDevices.push(
+    Constants.rpcDeviceToDevice({
+      ...rd,
+      deviceID: String(i + 1),
+      name: 'name: ' + String(i),
+      type: ['desktop', 'mobile', 'backup'][i % 3],
+    })
+  )
+}
+
 const load = () => {
-  storiesOf('Provision/SelectOtherDevice', module).add('Normal', () => <SelectOtherDevice {...props} />)
+  storiesOf('Provision/SelectOtherDevice', module)
+    .add('Normal', () => <SelectOtherDevice {...props} />)
+    .add('Tons', () => <SelectOtherDevice {...props} devices={tonsOfDevices} />)
 }
 
 export default load

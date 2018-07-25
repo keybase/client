@@ -162,7 +162,7 @@ const SwitchTab = (props: {|...Props, selected: Tab, onSelect: Tab => void|}) =>
 
   if (props.selected === 'QR') {
     label = 'Type secret instead'
-    icon = 'iconfont-arrow-right'
+    icon = 'iconfont-text-code'
     if (props.currentDeviceType === 'mobile' && props.otherDeviceType === 'mobile') {
       tab = props.currentDeviceAlreadyProvisioned ? 'enterText' : 'viewText'
     } else if (props.currentDeviceType === 'mobile') {
@@ -172,7 +172,7 @@ const SwitchTab = (props: {|...Props, selected: Tab, onSelect: Tab => void|}) =>
     }
   } else {
     label = 'Scan QR instead'
-    icon = 'iconfont-arrow-left'
+    icon = 'iconfont-qr-code'
     tab = 'QR'
   }
 
@@ -263,7 +263,7 @@ const Instructions = (p: Props) => (
     ) : (
       <React.Fragment>
         <Text type="Header" style={styles.instructions}>
-          In
+          On
           <Text type="Header" style={styles.instructionsItalic}>
             {' '}
             {p.otherDeviceName}
@@ -282,7 +282,7 @@ const Instructions = (p: Props) => (
             {` ${String.fromCharCode(iconMeta['iconfont-arrow-right'].charCode || 0)} `}
           </Text>
           <Text type="Header" style={styles.instructions}>
-            New {p.currentDeviceType === 'desktop' ? 'computer' : 'mobile'}.
+            New {p.currentDeviceType === 'desktop' ? 'computer' : 'phone'}.
           </Text>
         </Text>
       </React.Fragment>
@@ -437,6 +437,7 @@ const styles = styleSheetCreate({
   },
   switchTab: {
     color: globalColors.white,
+    marginBottom: 4,
   },
   switchTabContainer: {
     alignItems: 'center',

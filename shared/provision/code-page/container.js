@@ -17,7 +17,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     error: state.provision.error.stringValue(),
     otherDeviceName: state.provision.codePageOtherDeviceName,
     otherDeviceType: state.provision.codePageOtherDeviceType,
-    textCode: state.provision.codePageTextCode.stringValue(),
+    textCode: state.provision.codePageIncomingTextCode.stringValue(),
   }
 }
 

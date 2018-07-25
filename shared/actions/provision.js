@@ -1,7 +1,6 @@
 // @flow
 import * as Constants from '../constants/provision'
 import * as RouteConstants from '../constants/route-tree'
-import * as RouteTypes from '../constants/types/route-tree'
 import * as DevicesGen from './devices-gen'
 import * as ProvisionGen from './provision-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -13,6 +12,7 @@ import HiddenString from '../util/hidden-string'
 import {type TypedState} from '../constants/reducer'
 import {niceError} from '../util/errors'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
+import type {CommonResponseHandler} from '../engine/types'
 
 const devicesRoot = isMobile ? [Tabs.settingsTab, settingsDevicesTab] : [Tabs.devicesTab]
 
@@ -29,12 +29,10 @@ type ValidCallbacks =
   | 'keybase.1.provisionUi.chooseGPGMethod'
   | 'keybase.1.secretUi.getPassphrase'
 
-const cancelDesc = 'Canceling RPC'
-
-const cancelOnCallback = (_, response, __) => {
-  response.error({code: RPCTypes.constantsStatusCode.scgeneric, desc: cancelDesc})
+const cancelOnCallback = (_: any, response: CommonResponseHandler, __: any) => {
+  response.error({code: RPCTypes.constantsStatusCode.scgeneric, desc: Constants.cancelDesc})
 }
-const ignoreCallback = (_, __) => {}
+const ignoreCallback = (_: any, __: any) => {}
 
 // The provisioning flow is very stateful so we use a class to handle bookkeeping
 // We only allow one manager to be alive at a time
@@ -63,7 +61,11 @@ class ProvisioningManager {
   }
 
   // Choosing a device to use to provision
-  chooseDeviceHandler = (params: RPCTypes.ProvisionUiChooseDeviceRpcParam, response, state) => {
+  chooseDeviceHandler = (
+    params: RPCTypes.ProvisionUiChooseDeviceRpcParam,
+    response: CommonResponseHandler,
+    state: TypedState
+  ) => {
     this._stashResponse('keybase.1.provisionUi.chooseDevice', response)
     return Saga.put(
       ProvisionGen.createShowDeviceListPage({
@@ -87,7 +89,11 @@ class ProvisioningManager {
   }
 
   // Telling the daemon the other device type when adding a new device
-  chooseDeviceTypeHandler = (params: RPCTypes.ProvisionUiChooseDeviceTypeRpcParam, response, state) => {
+  chooseDeviceTypeHandler = (
+    params: RPCTypes.ProvisionUiChooseDeviceTypeRpcParam,
+    response: CommonResponseHandler,
+    state: TypedState
+  ) => {
     let type
     switch (state.provision.codePageOtherDeviceType) {
       case 'mobile':
@@ -105,7 +111,11 @@ class ProvisioningManager {
   }
 
   // Choosing a name for this new device
-  promptNewDeviceNameHandler = (params: RPCTypes.ProvisionUiPromptNewDeviceNameRpcParam, response, state) => {
+  promptNewDeviceNameHandler = (
+    params: RPCTypes.ProvisionUiPromptNewDeviceNameRpcParam,
+    response: CommonResponseHandler,
+    state: TypedState
+  ) => {
     this._stashResponse('keybase.1.provisionUi.PromptNewDeviceName', response)
     return Saga.put(
       ProvisionGen.createShowNewDeviceNamePage({
@@ -137,8 +147,8 @@ class ProvisioningManager {
   // We now need to exchange a secret sentence. Either side can move the process forward
   displayAndPromptSecretHandler = (
     params: RPCTypes.ProvisionUiDisplayAndPromptSecretRpcParam,
-    response,
-    state
+    response: CommonResponseHandler,
+    state: TypedState
   ) => {
     this._stashResponse('keybase.1.provisionUi.DisplayAndPromptSecret', response)
     return Saga.put(
@@ -160,16 +170,20 @@ class ProvisioningManager {
       throw new Error('Tried to submit a code but missing callback')
     }
 
-    if (!state.provision.codePageTextCode.stringValue()) {
+    if (!state.provision.codePageOutgoingTextCode.stringValue()) {
       response.error()
       throw new Error('Tried to submit a code but missing in store')
     }
 
-    response.result({code: null, phrase: state.provision.codePageTextCode.stringValue()})
+    response.result({code: null, phrase: state.provision.codePageOutgoingTextCode.stringValue()})
   }
 
   // Trying to use gpg flow
-  chooseGPGMethodHandler = (params: RPCTypes.ProvisionUiChooseGPGMethodRpcParam, response, state) => {
+  chooseGPGMethodHandler = (
+    params: RPCTypes.ProvisionUiChooseGPGMethodRpcParam,
+    response: CommonResponseHandler,
+    state: TypedState
+  ) => {
     this._stashResponse('keybase.1.provisionUi.chooseGPGMethod', response)
     return Saga.put(ProvisionGen.createShowGPGPage())
   }
@@ -192,7 +206,11 @@ class ProvisioningManager {
   }
 
   // User has an uploaded key so we can use a passphrase OR they selected a paperkey
-  getPassphraseHandler = (params: RPCTypes.SecretUiGetPassphraseRpcParam, response, state) => {
+  getPassphraseHandler = (
+    params: RPCTypes.SecretUiGetPassphraseRpcParam,
+    response: CommonResponseHandler,
+    state: TypedState
+  ) => {
     this._stashResponse('keybase.1.secretUi.getPassphrase', response)
 
     let error = ''
@@ -262,7 +280,7 @@ class ProvisioningManager {
       ? Saga.put(RouteTree.navigateAppend(['codePage'], devicesRoot))
       : Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.loginTab, 'login']))
 
-  maybeCancelProvision = (state: TypedState, action: RouteTypes.NavigateUp) => {
+  maybeCancelProvision = (state: TypedState) => {
     // We're not waiting on anything
     if (!this._stashedResponse) {
       return
@@ -278,6 +296,8 @@ class ProvisioningManager {
       cancelOnCallback(null, response, null)
       this._stashedResponse = null
       this._stashedResponseKey = null
+      // clear errors
+      return Saga.put(ProvisionGen.createProvisionError({error: new HiddenString('')}))
     }
   }
 }
@@ -308,10 +328,7 @@ const startProvisioning = (state: TypedState) =>
         waitingKey: Constants.waitingKey,
       })
     } catch (finalError) {
-      // If we're canceling then ignore the error
-      if (finalError.desc !== cancelDesc) {
-        yield Saga.put(ProvisionGen.createShowFinalErrorPage({finalError}))
-      }
+      yield Saga.put(ProvisionGen.createShowFinalErrorPage({finalError}))
     }
   })
 
@@ -330,7 +347,7 @@ const addNewDevice = (state: TypedState) =>
       yield Saga.put(RouteTree.navigateTo([], devicesRoot))
     } catch (e) {
       // If we're canceling then ignore the error
-      if (e.desc !== cancelDesc) {
+      if (e.desc !== Constants.cancelDesc) {
         yield Saga.put(ProvisionGen.createProvisionError({error: new HiddenString(niceError(e))}))
       }
     }
@@ -346,8 +363,7 @@ const submitPassphraseOrPaperkey = (
   state: TypedState,
   action: ProvisionGen.SubmitPassphrasePayload | ProvisionGen.SubmitPaperkeyPayload
 ) => theProvisioningManager.submitPassphraseOrPaperkey(state, action)
-const maybeCancelProvision = (state: TypedState, action: RouteTypes.NavigateUp) =>
-  theProvisioningManager.maybeCancelProvision(state, action)
+const maybeCancelProvision = (state: TypedState) => theProvisioningManager.maybeCancelProvision(state)
 
 const showDeviceListPage = (state: TypedState) =>
   !state.provision.error.stringValue() &&
@@ -372,8 +388,16 @@ const showPaperkeyPage = (state: TypedState) =>
   !state.provision.error.stringValue() &&
   Saga.put(RouteTree.navigateAppend(['paperkey'], [Tabs.loginTab, 'login']))
 
-const showFinalErrorPage = (state: TypedState) =>
-  state.provision.finalError && Saga.put(RouteTree.navigateAppend(['error'], [Tabs.loginTab, 'login']))
+const showFinalErrorPage = (state: TypedState) => {
+  if (state.provision.finalError && state.provision.finalError.desc !== Constants.cancelDesc) {
+    return Saga.put(RouteTree.navigateAppend(['error'], [Tabs.loginTab, 'login']))
+  } else {
+    return Saga.put(RouteTree.navigateTo([], [Tabs.loginTab, 'login']))
+  }
+}
+
+const showUsernameEmailPage = () =>
+  Saga.put(RouteTree.navigateTo(['login', 'usernameOrEmail'], [Tabs.loginTab]))
 
 function* provisionSaga(): Saga.SagaGenerator<any, any> {
   // Start provision
@@ -391,6 +415,7 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   )
 
   // Screens
+  yield Saga.safeTakeEveryPureSimple(ProvisionGen.startProvision, showUsernameEmailPage)
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.showDeviceListPage, showDeviceListPage)
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.showNewDeviceNamePage, showNewDeviceNamePage)
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.showCodePage, showCodePage)
@@ -400,6 +425,14 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.showFinalErrorPage, showFinalErrorPage)
 
   yield Saga.safeTakeEveryPureSimple(RouteConstants.navigateUp, maybeCancelProvision)
+}
+
+export const _testing = {
+  makeProvisioningManager: (addingANewDevice: boolean) => {
+    theProvisioningManager = new ProvisioningManager(addingANewDevice)
+    return theProvisioningManager
+  },
+  maybeCancelProvision,
 }
 
 export default provisionSaga

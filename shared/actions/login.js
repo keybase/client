@@ -147,9 +147,6 @@ const maybeNavigateToLoginRoot = (action: RouteTypes.NavigateUp, state: TypedSta
   return Saga.call(navigateToLoginRoot)
 }
 
-const showUsernameEmailScreen = () =>
-  Saga.put(RouteTree.navigateTo(['login', 'usernameOrEmail'], [Tabs.loginTab]))
-
 const cancelDesc = 'Canceling RPC'
 const cancelOnCallback = (params, response, state) => {
   response.error({
@@ -243,7 +240,6 @@ function* loginSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPureSimple(LoginGen.login, login)
 
   // Screen sagas
-  yield Saga.safeTakeEveryPureSimple(LoginGen.startLogin, showUsernameEmailScreen)
   yield Saga.safeTakeLatest(LoginGen.navBasedOnLoginAndInitialState, navBasedOnLoginAndInitialState)
   yield Saga.safeTakeEveryPureSimple(LoginGen.loggedout, loggedout)
   yield Saga.safeTakeEveryPureSimple(LoginGen.logout, logout)
