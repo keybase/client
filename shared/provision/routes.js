@@ -8,8 +8,13 @@ import CodePage from './code-page/container'
 import SetPublicName from './set-public-name/container'
 import RegisterError from './error/container'
 import GPGSign from './gpg-sign/container'
+import {isIPhoneX} from '../constants/platform'
 
-const addTags = component => ({component, tags: makeLeafTags({hideStatusBar: true, underStatusBar: true})})
+const addTags = component => ({
+  component,
+  // We don't use the statusbar which removes the padding for iphone X so force that back in
+  tags: makeLeafTags({hideStatusBar: true, underStatusBar: !isIPhoneX}),
+})
 
 const routes = {
   codePage: addTags(CodePage),

@@ -409,6 +409,9 @@ const showUsernameEmailPage = () =>
   Saga.put(RouteTree.navigateTo(['login', 'usernameOrEmail'], [Tabs.loginTab]))
 
 function* provisionSaga(): Saga.SagaGenerator<any, any> {
+  // Always ensure we have one live
+  makeProvisioningManager(false)
+
   // Start provision
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.submitUsernameOrEmail, startProvisioning)
   yield Saga.safeTakeEveryPureSimple(ProvisionGen.addNewDevice, addNewDevice)
