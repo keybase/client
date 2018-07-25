@@ -23,17 +23,24 @@ const enableLoadMore = true && !__STORYSHOT__
 let newIndex = 10000
 let oldIndex = 10000
 
-const makeMoreOrdinals = (num = __STORYSHOT__ ? 10 : 100, older) => {
+const addMoreOrdinals = (old, num = __STORYSHOT__ ? 10 : 100, older) => {
   if (older) {
     const end = oldIndex + num
     const ordinals = []
-    for (; oldIndex < end; ++Indexindex) {
+    for (; oldIndex < end; ++oldIndex) {
       ordinals.push(Types.numberToOrdinal(oldIndex))
     }
+    return old.unshift(...ordinals.reverse())
+  } else {
+    const end = newIndex - num
+    const ordinals = []
+    for (; newIndex > end; --newIndex) {
+      ordinals.push(Types.numberToOrdinal(newIndex))
+    }
+    return old.push(...ordinals.reverse())
   }
-  return ordinals
 }
-const messageOrdinals = I.List(makeMoreOrdinals())
+const messageOrdinals = addMoreOrdinals(I.List(), undefined, true)
 const conversationIDKey = Types.stringToConversationIDKey('a')
 
 const props = {
@@ -238,7 +245,7 @@ class ThreadWrapper extends React.Component<Props, State> {
       this.intervalID = setInterval(() => {
         console.log('Appending more mock items +++++')
         this.setState(p => ({
-          messageOrdinals: p.messageOrdinals.push(...makeMoreOrdinals(Math.ceil(Math.random() * 5))),
+          messageOrdinals: addMoreOrdinals(p.messageOrdinals, Math.ceil(Math.random() * 5), false),
         }))
       }, 5000)
     }
@@ -254,17 +261,15 @@ class ThreadWrapper extends React.Component<Props, State> {
         console.log('got onLoadMore, using mock delay')
         this.timeoutID = setTimeout(() => {
           console.log('++++ Prepending more mock items')
-          this.setState(p => ({messageOrdinals: p.messageOrdinals.unshift(...makeMoreOrdinals())}))
+          this.setState(p => ({messageOrdinals: addMoreOrdinals(p.messageOrdinals, undefined, true)}))
         }, 2000)
       }
     : action('onLoadMoreMessages')
 
   _onJump = () => {
     this.setState(p => {
-      const old = makeMoreOrdinals(10)
-
-      // inject our search term inside the results
-      const [searchOrdinal] = makeMoreOrdinals(1)
+      const messageOrdinals = addMoreOrdinals(p.messageOrdinals, 100, true)
+      const searchOrdinal = messageOrdinals.get(10)
       const message = Message.makeMessageText({
         ordinal: searchOrdinal,
         text: new HiddenString(
@@ -274,8 +279,6 @@ class ThreadWrapper extends React.Component<Props, State> {
       })
       ordinalToMessageCache[Types.ordinalToNumber(searchOrdinal)] = message
 
-      const oldest = makeMoreOrdinals(10)
-      const messageOrdinals = p.messageOrdinals.unshift(...[...old, searchOrdinal, ...oldest])
       console.log(p.messageOrdinals.toJS(), messageOrdinals.toJS())
 
       return {
