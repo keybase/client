@@ -25,9 +25,9 @@ export type Props = {
 
 const makeDropdownItems = (props: Props) => {
   const items = [
-    <Box2 centerChildren={true} direction="vertical" key="">
+    <Box2 centerChildren={true} direction="vertical" key="_header">
       <Text type="BodySmall" style={styles.dropdownHeader}>
-        Past transactions won’t be affected by this change.
+        Past transactions won't be affected by this change.
       </Text>
     </Box2>,
   ]
