@@ -5,6 +5,7 @@ import {Box2} from '../../common-adapters'
 import {storiesOf, action} from '../../stories/storybook'
 import Header from './header'
 import SettingsPopup from './settings-popup'
+import RemoveAccountDialog from './settings-popup/remove-account'
 
 const defaultWalletMock = {
   isDefaultWallet: true,
@@ -52,6 +53,14 @@ const secondarySettingsProps = {
   onCurrencyChange: action('onCurrencyChange'),
 }
 
+const warningProps = {
+  name: 'awesome account',
+  currency: '0.00 XLM',
+  keys: '2 keys',
+  onDelete: action('onDelete'),
+  onClose: action('onClose'),
+}
+
 const provider = PropProviders.CommonProvider()
 
 const load = () => {
@@ -69,6 +78,7 @@ const load = () => {
     ))
     .add('Settings, default', () => <SettingsPopup {...defaultSettingsProps} />)
     .add('Settings, secondary', () => <SettingsPopup {...secondarySettingsProps} />)
+    .add('Remove warning', () => <RemoveAccountDialog {...warningProps} />)
 }
 
 const styleWidth = {width: 520}

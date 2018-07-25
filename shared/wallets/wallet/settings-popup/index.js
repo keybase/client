@@ -100,6 +100,11 @@ const SettingsPopup = (props: Props) => {
           }}
           style={styles.dropdown}
         />
+        <Text type="BodySmall">The display currency appears:</Text>
+        <Text type="BodySmall">- near your Lumens balance</Text>
+        <Text type="BodySmall" style={{marginBottom: globalMargins.small}}>
+          - when sending or receiving Lumens
+        </Text>
         <ClickableBox style={styles.remove} onClick={props.onDelete}>
           <Icon
             type="iconfont-trash"
@@ -149,7 +154,6 @@ const styles = styleSheetCreate({
     },
   }),
   dropdown: {
-    marginBottom: globalMargins.small,
     alignItems: 'center',
   },
   remove: {
