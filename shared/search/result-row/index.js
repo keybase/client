@@ -30,7 +30,7 @@ const Left = ({leftService, leftIcon, leftIconOpaque, leftUsername, leftFollowin
           username={leftUsername}
           icon={leftIcon}
           avatarSize={isMobile ? 48 : 32}
-          opacity={leftIconOpaque ? 0.3 : 1}
+          opacity={leftIconOpaque ? 1 : 0.3}
         />
       </Box>
       <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
@@ -58,7 +58,7 @@ const Middle = ({rightService, rightIcon, rightIconOpaque, rightUsername, rightF
           service={rightService}
           username={rightUsername}
           icon={rightIcon}
-          opacity={rightIconOpaque ? 0.3 : 1}
+          opacity={rightIconOpaque ? 1 : 0.3}
           fontSize={16}
           avatarSize={16}
           style={{
