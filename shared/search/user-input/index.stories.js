@@ -107,7 +107,6 @@ const chrisUsers = [
   },
 ]
 
-// TODO: Actually do something here.
 const mockOwnPropsToProps = (userItems: Array<UserDetails>, ownProps: OwnProps): Props => {
   const props = {
     ...ownProps,
