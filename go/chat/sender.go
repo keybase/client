@@ -701,6 +701,9 @@ type Deliverer struct {
 	disconnTime   time.Time
 	clock         clockwork.Clock
 
+	notifyFailureChsMu sync.Mutex
+	notifyFailureChs   map[string]chan []chat1.OutboxRecord
+
 	// Testing
 	testingNameInfoSource types.NameInfoSource
 }
@@ -709,14 +712,15 @@ var _ types.MessageDeliverer = (*Deliverer)(nil)
 
 func NewDeliverer(g *globals.Context, sender types.Sender) *Deliverer {
 	d := &Deliverer{
-		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "Deliverer", false),
-		shutdownCh:    make(chan chan struct{}, 1),
-		msgSentCh:     make(chan struct{}, 100),
-		reconnectCh:   make(chan struct{}, 100),
-		sender:        sender,
-		identNotifier: NewCachingIdentifyNotifier(g),
-		clock:         clockwork.NewRealClock(),
+		Contextified:     globals.NewContextified(g),
+		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "Deliverer", false),
+		shutdownCh:       make(chan chan struct{}, 1),
+		msgSentCh:        make(chan struct{}, 100),
+		reconnectCh:      make(chan struct{}, 100),
+		sender:           sender,
+		identNotifier:    NewCachingIdentifyNotifier(g),
+		clock:            clockwork.NewRealClock(),
+		notifyFailureChs: make(map[string]chan []chat1.OutboxRecord),
 	}
 
 	g.PushShutdownHook(func() error {
@@ -822,6 +826,52 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 	return obr, nil
 }
 
+func (s *Deliverer) ActiveDeliveries(ctx context.Context) (res []chat1.ConversationID, err error) {
+	defer s.Trace(ctx, func() error { return err }, "ActiveDeliveries")()
+	recs, err := s.outbox.PullAllConversations(ctx, false, false)
+	cmap := make(map[string]chat1.ConversationID)
+	if err != nil {
+		s.Debug(ctx, "ActiveDeliveries: failed to pull convs: %s", err)
+		return res, err
+	}
+	for _, r := range recs {
+		styp, err := r.State.State()
+		if err != nil {
+			s.Debug(ctx, "ActiveDeliveries: bogus state: outboxID: %s err: %s", r.OutboxID, err)
+			continue
+		}
+		if styp == chat1.OutboxStateType_SENDING {
+			cmap[r.ConvID.String()] = r.ConvID
+		}
+	}
+	for _, convID := range cmap {
+		res = append(res, convID)
+	}
+	return res, nil
+}
+
+func (s *Deliverer) NextFailure() (chan []chat1.OutboxRecord, func()) {
+	s.notifyFailureChsMu.Lock()
+	defer s.notifyFailureChsMu.Unlock()
+	ch := make(chan []chat1.OutboxRecord, 1)
+	id := libkb.RandStringB64(3)
+	s.notifyFailureChs[id] = ch
+	return ch, func() {
+		s.notifyFailureChsMu.Lock()
+		defer s.notifyFailureChsMu.Unlock()
+		delete(s.notifyFailureChs, id)
+	}
+}
+
+func (s *Deliverer) alertFailureChannels(obrs []chat1.OutboxRecord) {
+	s.notifyFailureChsMu.Lock()
+	defer s.notifyFailureChsMu.Unlock()
+	for _, ch := range s.notifyFailureChs {
+		ch <- obrs
+	}
+	s.notifyFailureChs = make(map[string]chan []chat1.OutboxRecord)
+}
+
 func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecord, err error) (chat1.OutboxErrorType, error, bool) {
 	// Check attempts
 	if obr.State.Sending() >= deliverMaxAttempts {
@@ -882,6 +932,7 @@ func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 		})
 		s.G().ActivityNotifier.Activity(context.Background(), s.outbox.GetUID(), chat1.TopicType_NONE, &act,
 			chat1.ChatActivitySource_LOCAL)
+		s.alertFailureChannels(marked)
 	}
 	return nil
 }
@@ -916,6 +967,10 @@ func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecor
 		errStr := "<unknown>"
 		if res.Error != nil {
 			errStr = *res.Error
+		}
+		// register this as a failure, but still attempt a retry
+		if _, err := s.G().AttachmentUploader.Retry(ctx, obr.OutboxID); err != nil {
+			s.Debug(ctx, "processAttachment: failed to retry upload on in progress task: %s", err)
 		}
 		return obr, NewAttachmentUploadError(errStr)
 	case types.AttachmentUploaderTaskStatusUploading:

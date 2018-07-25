@@ -1051,3 +1051,102 @@ func requireBannerSet(t testing.TB, bres stellar1.BuildPaymentResLocal, expected
 }
 
 var usd = stellar1.OutsideCurrencyCode("USD")
+
+func TestGetSendAssetChoices(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	fakeAccts := tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	fakeAccts2 := tcs[1].Backend.ImportAccountsForUser(tcs[1])
+
+	// Empty account (not even on the network), expecting to see 0
+	// other assets here.
+	choices, err := tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
+		From: fakeAccts[0].accountID,
+	})
+	require.NoError(t, err)
+	require.Len(t, choices, 0)
+
+	// Same with `To` argument.
+	choices, err = tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
+		From: fakeAccts[0].accountID,
+		To:   tcs[1].Fu.Username,
+	})
+	require.NoError(t, err)
+	require.Len(t, choices, 0)
+
+	// Test assets
+	keys := tcs[0].Backend.CreateFakeAsset("KEYS")
+	astro := tcs[0].Backend.CreateFakeAsset("AstroDollars")
+
+	// Adjust balance with 0 adds empty balance of given asset (mock
+	// "open a trustline").
+	fakeAccts[0].AdjustAssetBalance(0, keys)
+	fakeAccts[0].AdjustAssetBalance(0, astro)
+
+	// New asset choices should be visible
+	choices, err = tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
+		From: fakeAccts[0].accountID,
+	})
+	require.NoError(t, err)
+	require.Len(t, choices, 2)
+	require.True(t, choices[0].Asset.Eq(keys))
+	require.True(t, choices[1].Asset.Eq(astro))
+	for _, v := range choices {
+		require.Equal(t, v.Asset.Code, v.Left)
+		require.Equal(t, v.Asset.Issuer, v.Right)
+		require.True(t, v.Enabled)
+	}
+
+	// We should see the same choices, but all disabled because the
+	// recipient does not accept them.
+	choices2, err := tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
+		From: fakeAccts[0].accountID,
+		To:   tcs[1].Fu.Username,
+	})
+	require.NoError(t, err)
+	require.Len(t, choices2, len(choices))
+	for i, v := range choices2 {
+		require.True(t, v.Asset.Eq(choices[i].Asset))
+		require.Equal(t, v.Asset.Code, v.Left)
+		require.Equal(t, v.Asset.Issuer, v.Right)
+		require.False(t, v.Enabled)
+		require.Contains(t, v.Subtext, tcs[1].Fu.Username)
+		require.Contains(t, v.Subtext, "does not accept")
+		require.Contains(t, v.Subtext, v.Asset.Code)
+	}
+
+	// Open AstroDollars for tcs[1]
+	fakeAccts2[0].AdjustAssetBalance(0, astro)
+
+	choices2, err = tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
+		From: fakeAccts[0].accountID,
+		To:   fakeAccts2[0].accountID.String(), // this time use account ID as `To` argument
+	})
+	require.NoError(t, err)
+	require.Len(t, choices2, len(choices))
+
+	require.True(t, choices2[0].Asset.Eq(keys))
+	require.False(t, choices2[0].Enabled)
+	// Using AccountID should still resolve to user and we should see
+	// "*username* does not accept ..." subtext.
+	require.Contains(t, choices2[0].Subtext, tcs[1].Fu.Username)
+	require.Contains(t, choices2[0].Subtext, "does not accept")
+	require.Contains(t, choices2[0].Subtext, choices2[0].Asset.Code)
+
+	require.True(t, choices2[1].Asset.Eq(astro))
+	require.True(t, choices2[1].Enabled)
+
+	// Try with arg.To AccountID not in the system.
+	externalAcc := tcs[0].Backend.AddAccount()
+	choices3, err := tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
+		From: fakeAccts[0].accountID,
+		To:   externalAcc.String(),
+	})
+	require.NoError(t, err)
+	require.Len(t, choices3, len(choices))
+	for _, v := range choices3 {
+		require.False(t, v.Enabled)
+		require.Contains(t, v.Subtext, "Recipient does not accept")
+	}
+}

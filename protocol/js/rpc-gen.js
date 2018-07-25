@@ -17,7 +17,6 @@ export const appStateAppState = {
   background: 1,
   inactive: 2,
   backgroundactive: 3,
-  backgroundfinal: 4,
 }
 
 export const backendCommonBlockType = {
@@ -619,6 +618,10 @@ export const simpleFSDirentType = {
   exec: 3,
 }
 
+export const simpleFSKBFSArchivedType = {
+  revision: 0,
+}
+
 export const simpleFSListFilter = {
   noFilter: 0,
   filterAllHidden: 1,
@@ -636,6 +639,7 @@ export const simpleFSOpenFlags = {
 export const simpleFSPathType = {
   local: 0,
   kbfs: 1,
+  kbfsArchived: 2,
 }
 
 export const teamsSeitanKeyAndLabelVersion = {
@@ -870,7 +874,6 @@ export type AppState =
   | 1 // BACKGROUND_1
   | 2 // INACTIVE_2
   | 3 // BACKGROUNDACTIVE_3
-  | 4 // BACKGROUNDFINAL_4
 
 export type AppStateUpdateAppStateRpcParam = $ReadOnly<{state: AppState}>
 export type AsyncOps =
@@ -1294,9 +1297,14 @@ export type InstallStatus =
 
 export type InstallUninstallKBFSRpcParam = void
 export type InterestingPerson = $ReadOnly<{uid: UID, username: String}>
+export type KBFSArchivedParam = {KBFSArchivedType: 0, revision: ?KBFSRevision}
+export type KBFSArchivedPath = $ReadOnly<{path: String, archivedParam: KBFSArchivedParam}>
+export type KBFSArchivedType = 0 // REVISION_0
+
 export type KBFSGitCreateRepoRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName}>
 export type KBFSGitDeleteRepoRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName}>
 export type KBFSGitGcRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName, options: GcOptions}>
+export type KBFSRevision = Int64
 export type KBFSRoot = $ReadOnly<{treeID: MerkleTreeID, root: KBFSRootHash}>
 export type KBFSRootHash = Bytes
 export type KBFSTeamSettings = $ReadOnly<{tlfID: TLFID}>
@@ -1490,10 +1498,11 @@ export type PassphraseType =
   | 2 // PASS_PHRASE_2
   | 3 // VERIFY_PASS_PHRASE_3
 
-export type Path = {PathType: 0, local: ?String} | {PathType: 1, kbfs: ?String}
+export type Path = {PathType: 0, local: ?String} | {PathType: 1, kbfs: ?String} | {PathType: 2, kbfsArchived: ?KBFSArchivedPath}
 export type PathType =
   | 0 // LOCAL_0
   | 1 // KBFS_1
+  | 2 // KBFS_ARCHIVED_2
 
 export type PerTeamKey = $ReadOnly<{gen: PerTeamKeyGeneration, seqno: Seqno, sigKID: KID, encKID: KID}>
 export type PerTeamKeyGeneration = Int

@@ -271,17 +271,15 @@ func (g *gregorHandler) monitorAppState() {
 	for {
 		state = <-g.G().AppState.NextUpdate(&state)
 		switch state {
-		case keybase1.AppState_BACKGROUNDACTIVE:
-			fallthrough
-		case keybase1.AppState_FOREGROUND:
+		case keybase1.AppState_FOREGROUND, keybase1.AppState_BACKGROUNDACTIVE:
 			// Make sure the URI is set before attempting this (possible it isn't in a race)
 			if g.uri != nil {
 				g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
 				if err := g.Connect(g.uri); err != nil {
-					g.chatLog.Debug(context.Background(), "error reconnecting")
+					g.chatLog.Debug(context.Background(), "error reconnecting: %s", err)
 				}
 			}
-		case keybase1.AppState_INACTIVE, keybase1.AppState_BACKGROUND:
+		case keybase1.AppState_BACKGROUND:
 			g.chatLog.Debug(context.Background(), "backgrounded, shutting down connection")
 			g.Shutdown()
 		}
@@ -435,7 +433,10 @@ func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
 
 	g.connMutex.Lock()
 	defer g.connMutex.Unlock()
-
+	if g.conn != nil {
+		g.chatLog.Debug(context.Background(), "skipping connect, conn is not nil")
+		return nil
+	}
 	defer func() {
 		close(g.connectHappened)
 		g.connectHappened = make(chan struct{})

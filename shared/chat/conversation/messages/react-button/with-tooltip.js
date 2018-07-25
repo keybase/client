@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import ReactButton from './container'
 import ReactionTooltip from '../reaction-tooltip/container'
+import type {StylesCrossPlatform} from '../../../../styles'
 
 /**
  * This file is split from index.js to avoid a circular dependency
@@ -18,6 +19,7 @@ export type Props = {|
   emoji?: string,
   ordinal: Types.Ordinal,
   showBorder?: boolean,
+  style?: StylesCrossPlatform,
 |}
 type State = {
   attachmentRef: ?React.Component<any, any>,

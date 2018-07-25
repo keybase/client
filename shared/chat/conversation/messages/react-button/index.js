@@ -11,6 +11,7 @@ import {
   platformStyles,
   styleSheetCreate,
   transition,
+  type StylesCrossPlatform,
 } from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
@@ -24,6 +25,7 @@ export type Props = {|
   onMouseLeave?: (evt: SyntheticEvent<Element>) => void,
   onMouseOver?: (evt: SyntheticEvent<Element>) => void,
   ordinal: Types.Ordinal,
+  style?: StylesCrossPlatform,
 |}
 
 const ButtonBox = glamorous(ClickableBox)({
@@ -42,7 +44,7 @@ const ReactButton = (props: Props) => (
     onMouseLeave={props.onMouseLeave}
     onMouseOver={props.onMouseOver}
     onClick={props.onClick}
-    style={collapseStyles([styles.buttonBox, props.active && styles.active])}
+    style={collapseStyles([styles.buttonBox, props.active && styles.active, props.style])}
   >
     <Box2 centerChildren={true} direction="horizontal" gap="xtiny" style={styles.container}>
       <Emoji size={14} emojiName={props.emoji} />
@@ -60,6 +62,7 @@ const iconCycle = [
 export type NewReactionButtonProps = {|
   onAddReaction: (emoji: string) => void,
   showBorder: boolean,
+  style?: StylesCrossPlatform,
 |}
 type NewReactionButtonState = {|
   attachmentRef: ?React.Component<any, any>,
@@ -68,7 +71,7 @@ type NewReactionButtonState = {|
 |}
 export class NewReactionButton extends React.Component<NewReactionButtonProps, NewReactionButtonState> {
   state = {attachmentRef: null, iconIndex: 0, showingPicker: false}
-  _intervalID: IntervalID
+  _intervalID: ?IntervalID
 
   _setShowingPicker = (showingPicker: boolean) =>
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
@@ -77,6 +80,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
     evt.stopPropagation()
     this.props.onAddReaction(colons)
     this._setShowingPicker(false)
+    this._stopCycle()
   }
 
   _onShowPicker = (evt: SyntheticEvent<Element>) => {
@@ -85,11 +89,14 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
   }
 
   _startCycle = () => {
-    this._intervalID = setInterval(this._nextIcon, 1000)
+    if (!this._intervalID) {
+      this._intervalID = setInterval(this._nextIcon, 1000)
+    }
   }
 
   _stopCycle = () => {
-    clearInterval(this._intervalID)
+    this._intervalID && clearInterval(this._intervalID)
+    this._intervalID = null
     this.setState(s => (s.iconIndex === 0 ? null : {iconIndex: 0}))
   }
 
@@ -106,7 +113,11 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
         onClick={this._onShowPicker}
         onMouseLeave={this._stopCycle}
         onMouseEnter={this._startCycle}
-        style={collapseStyles([styles.newReactionButtonBox, this.props.showBorder && styles.buttonBox])}
+        style={collapseStyles([
+          styles.newReactionButtonBox,
+          this.props.showBorder && styles.buttonBox,
+          this.props.style,
+        ])}
       >
         <Box2
           ref={attachmentRef => this.setState(s => (s.attachmentRef ? null : {attachmentRef}))}
