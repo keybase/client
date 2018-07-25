@@ -2,7 +2,7 @@
 import Folders, {type FolderType, type Props as FolderProps} from '../folders/index.desktop'
 import React, {Component} from 'react'
 import UserAdd from './user-add.desktop'
-import {Box, Icon, Text, Button, PopupMenu, Badge, ButtonBar, type IconType} from '../common-adapters'
+import {Box, Icon, Text, Button, FloatingMenu, Badge, ButtonBar, type IconType} from '../common-adapters'
 import {fsTab, peopleTab, chatTab, devicesTab, type Tab} from '../constants/tabs'
 import {globalStyles, globalColors, desktopStyles, collapseStyles, platformStyles} from '../styles'
 import {isDarwin} from '../constants/platform'
@@ -26,15 +26,21 @@ export type Props = {
   badgeInfo: Object,
 }
 
-type State = {
+type State = {|
   selected: FolderType,
-  showingMenu: boolean,
-}
+  showingLoggedOutMenu: boolean,
+  showingLoggedInMenu: boolean,
+  loggedOutAttachmentRef: ?React.Component<any, any>,
+  loggedInAttachmentRef: ?React.Component<any, any>,
+|}
 
 class MenubarRender extends Component<Props, State> {
   state: State = {
     selected: 'private',
-    showingMenu: false,
+    showingLoggedOutMenu: false,
+    showingLoggedInMenu: false,
+    loggedOutAttachmentRef: null,
+    loggedInAttachmentRef: null,
   }
 
   _onShow = throttle(() => {
@@ -55,7 +61,7 @@ class MenubarRender extends Component<Props, State> {
   _renderLoggedOut() {
     const styles = stylesPublic
 
-    const menuColor = this.state.showingMenu ? globalColors.black_60 : globalColors.black_40
+    const menuColor = this.state.showingLoggedOutMenu ? globalColors.black_60 : globalColors.black_40
     const menuStyle = platformStyles({
       isElectron: {
         ...desktopStyles.clickable,
@@ -72,7 +78,12 @@ class MenubarRender extends Component<Props, State> {
             color={menuColor}
             hoverColor={menuColor}
             type="iconfont-hamburger"
-            onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
+            onClick={() =>
+              this.setState(prevState => ({showingLoggedOutMenu: !prevState.showingLoggedOutMenu}))
+            }
+            ref={loggedOutAttachmentRef =>
+              this.setState(s => (s.loggedOutAttachmentRef ? null : {loggedOutAttachmentRef}))
+            }
           />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
@@ -84,13 +95,12 @@ class MenubarRender extends Component<Props, State> {
             <Button type="Primary" label="Log In" onClick={this.props.logIn} />
           </ButtonBar>
         </Box>
-        {this.state.showingMenu && (
-          <PopupMenu
-            style={styleMenu}
-            items={this._menuItems()}
-            onHidden={() => this.setState({showingMenu: false})}
-          />
-        )}
+        <FloatingMenu
+          visible={this.state.showingLoggedOutMenu}
+          attachTo={this.state.loggedOutAttachmentRef}
+          items={this._menuItems()}
+          onHidden={() => this.setState({showingLoggedOutMenu: false})}
+        />
       </Box>
     )
   }
@@ -181,7 +191,12 @@ class MenubarRender extends Component<Props, State> {
             color={globalColors.black_40}
             hoverColor={globalColors.black}
             type="iconfont-hamburger"
-            onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
+            onClick={() =>
+              this.setState(prevState => ({showingLoggedInMenu: !prevState.showingLoggedInMenu}))
+            }
+            ref={loggedInAttachmentRef =>
+              this.setState(s => (s.loggedInAttachmentRef ? null : {loggedInAttachmentRef}))
+            }
           />
         </Box>
         <Folders {...mergedProps} />
@@ -200,13 +215,16 @@ class MenubarRender extends Component<Props, State> {
             <Text type="BodySmall">UPLOADING CHANGES...</Text>
           </Box>
         )}
-        {this.state.showingMenu && (
-          <PopupMenu
-            style={styleMenu}
-            items={this._menuItems()}
-            onHidden={() => this.setState({showingMenu: false})}
-          />
-        )}
+        <FloatingMenu
+          items={this._menuItems()}
+          visible={this.state.showingLoggedInMenu}
+          onHidden={() =>
+            this.setState({
+              showingLoggedInMenu: false,
+            })
+          }
+          attachTo={this.state.loggedInAttachmentRef}
+        />
       </Box>
     )
   }
@@ -316,12 +334,6 @@ const stylesPublic = {
 const stylesLogo = {
   alignSelf: 'center',
   marginBottom: 12,
-}
-
-const styleMenu = {
-  position: 'absolute',
-  top: 29,
-  right: 4,
 }
 
 export default MenubarRender
