@@ -28,7 +28,6 @@ const load = () => {
   storiesOf('Wallets', module).add('Wallet Onboarding', () => (
     <Text type="BodyBig">Wallet Onboarding TBD</Text>
   ))
-  storiesOf('Wallets', module).add('Settings', () => <Text type="BodyBig">Settings TBD</Text>)
 }
 
 export default load

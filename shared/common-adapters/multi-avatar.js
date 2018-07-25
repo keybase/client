@@ -8,7 +8,7 @@ import * as React from 'react'
 import {globalStyles, type StylesCrossPlatform, collapseStyles} from '../styles'
 import {createSelector} from 'reselect'
 
-import type {OwnProps as AvatarProps, AvatarSize} from './avatar'
+import type {Props as AvatarProps, AvatarSize} from './avatar'
 
 export type Props = {
   avatarProps: Array<AvatarProps>,
