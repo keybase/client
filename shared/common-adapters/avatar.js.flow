@@ -1,4 +1,5 @@
 // @flow
+// This facade is needed because flow is getting confused about the connector. TODO clean up the connector typing
 import * as React from 'react'
 import type {StylesCrossPlatform, StylesCrossPlatformWithSomeDisallowed} from '../styles'
 
@@ -34,7 +35,7 @@ declare export function mockOwnToViewProps(
   follows: string[],
   followers: string[],
   action: (string) => (...args: any[]) => void
-): Props
+): any
 
 declare export function castPlatformStyles(
   styles: StylesCrossPlatform
