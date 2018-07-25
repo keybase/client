@@ -939,7 +939,7 @@ func (o ConversationMinWriterRoleInfo) DeepCopy() ConversationMinWriterRoleInfo 
 }
 
 type ConversationSettings struct {
-	MinWriterRoleInfo *ConversationMinWriterRoleInfo `codec:"minWriterRoleInfo,omitempty" json:"minWriterRoleInfo,omitempty"`
+	MinWriterRoleInfo *ConversationMinWriterRoleInfo `codec:"mwr,omitempty" json:"mwr,omitempty"`
 }
 
 func (o ConversationSettings) DeepCopy() ConversationSettings {
@@ -964,7 +964,7 @@ type Conversation struct {
 	Expunge         Expunge                       `codec:"expunge" json:"expunge"`
 	ConvRetention   *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
 	TeamRetention   *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
-	ConvSettings    *ConversationSettings         `codec:"convSettings,omitempty" json:"convSettings,omitempty"`
+	ConvSettings    *ConversationSettings         `codec:"cs,omitempty" json:"cs,omitempty"`
 }
 
 func (o Conversation) DeepCopy() Conversation {
