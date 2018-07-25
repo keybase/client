@@ -20,6 +20,7 @@ export type OwnProps = {|
   placeholder: ?string,
   onExitSearch: ?() => void,
   onSelectUser?: (id: string) => void,
+  disableAddButton?: boolean,
   disableListBuilding?: boolean,
 |}
 

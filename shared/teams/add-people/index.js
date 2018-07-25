@@ -5,7 +5,7 @@ import {
   Button,
   ClickableBox,
   Dropdown,
-  HeaderHoc,
+  HeaderHocHeader,
   ProgressIndicator,
   Text,
   PopupDialog,
@@ -40,9 +40,10 @@ const MaybePopup = isMobile
 
 type Props = {
   errorText: string,
-  isEmpty: boolean,
+  numberOfUsersSelected: number,
   loading: boolean,
   onAddPeople: () => void,
+  onClearSearch: () => void,
   onClose: () => void,
   onLeave: () => void,
   onOpenRolePicker: () => void,
@@ -73,17 +74,7 @@ const _makeDropdownItems = () => teamRoleTypes.map(item => _makeDropdownItem(ite
 const AddPeople = (props: Props) => (
   <MaybePopup onClose={props.onClose}>
     <Box style={{...globalStyles.flexBoxColumn, flexGrow: 1}}>
-
-
-      {!isMobile && (
-        <Box
-          style={{
-            ...globalStyles.flexBoxRow,
-            borderBottom: `1px solid ${globalColors.black_10}`,
-            boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
-          }}
-        />
-      )}
+      <HeaderHocHeader onBack={props.onBack} title={props.title} />
       {!!props.errorText && (
         <Box style={collapseStyles([globalStyles.flexBoxColumn, {backgroundColor: globalColors.red}])}>
           {props.errorText.split('\n').map(line => (
@@ -103,7 +94,7 @@ const AddPeople = (props: Props) => (
       <Box style={globalStyles.flexBoxColumn}>
         <UserInput
           autoFocus={true}
-          onExitSearch={props.onClose}
+          onExitSearch={props.onClearSearch}
           placeholder="Add people"
           searchKey={'addToTeamSearch'}
         />
@@ -121,8 +112,8 @@ const AddPeople = (props: Props) => (
         )}
       </Box>
       <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium}}>
-        <Box style={globalStyles.flexBoxRow}>
-          <Button label="Add" type="Primary" />
+        <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
+          <Button label={props.numberOfUsersSelected > 0 ? `Add (${props.numberOfUsersSelected})` : 'Add'} type="Primary" />
         </Box>
       </Box>
     </Box>
@@ -139,8 +130,8 @@ const _styleContainer = {
   backgroundColor: globalColors.white,
   borderRadius: 5,
   boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
-  maxHeight: 520,
+  maxHeight: 620,
   minWidth: 800,
 }
 
-export default HeaderHoc(AddPeople)
+export default AddPeople
