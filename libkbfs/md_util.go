@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -15,7 +16,6 @@ import (
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
-
 	"golang.org/x/net/context"
 )
 
@@ -380,6 +380,26 @@ func getUnmergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 		}
 	}
 	return currHead, unmergedRmds, nil
+}
+
+// GetMDRevisionByTime returns the revision number of the earliest
+// merged MD of `handle` with a server timestamp greater or equal to
+// `serverTime`.
+func GetMDRevisionByTime(
+	ctx context.Context, config Config, handle *TlfHandle,
+	serverTime time.Time) (kbfsmd.Revision, error) {
+	id := handle.tlfID
+	if id == tlf.NullID {
+		return kbfsmd.RevisionUninitialized, errors.Errorf(
+			"No ID set in handle %s", handle.GetCanonicalPath())
+	}
+
+	md, err := config.MDOps().GetForTLFByTime(ctx, id, serverTime)
+	if err != nil {
+		return kbfsmd.RevisionUninitialized, err
+	}
+
+	return md.Revision(), nil
 }
 
 // encryptMDPrivateData encrypts the private data of the given
