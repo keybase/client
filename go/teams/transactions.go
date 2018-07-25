@@ -23,8 +23,12 @@ type AddMemberTx struct {
 	team     *Team
 	payloads []txPayload
 
+	// completedInvites is used to mark completed invites, so they are
+	// skipped in sweeping methods.
 	completedInvites map[keybase1.TeamInviteID]bool
-	uidSeqno         map[keybase1.UID]int
+	// lastChangeForUID holds index of last tx.payloads payload that
+	// affects given uid.
+	lastChangeForUID map[keybase1.UID]int
 
 	// Override whether the team key is rotated.
 	SkipKeyRotation *bool
@@ -47,7 +51,7 @@ func CreateAddMemberTx(t *Team) *AddMemberTx {
 	return &AddMemberTx{
 		team:             t,
 		completedInvites: make(map[keybase1.TeamInviteID]bool),
-		uidSeqno:         make(map[keybase1.UID]int),
+		lastChangeForUID: make(map[keybase1.UID]int),
 	}
 }
 
@@ -70,20 +74,20 @@ func (tx *AddMemberTx) findPayload(tag txPayloadTag, forUID keybase1.UID) interf
 	minSeqno := 0
 	hasUID := !forUID.IsNil()
 	if hasUID {
-		minSeqno = tx.uidSeqno[forUID]
+		minSeqno = tx.lastChangeForUID[forUID]
 	}
 
 	for i, v := range tx.payloads {
 		if i >= minSeqno && v.Tag == tag {
 			if hasUID && i > minSeqno {
-				tx.uidSeqno[forUID] = i
+				tx.lastChangeForUID[forUID] = i
 			}
 			return v.Val
 		}
 	}
 
 	if hasUID {
-		tx.uidSeqno[forUID] = len(tx.payloads)
+		tx.lastChangeForUID[forUID] = len(tx.payloads)
 	}
 	ret := txPayload{
 		Tag: tag,
@@ -93,6 +97,8 @@ func (tx *AddMemberTx) findPayload(tag txPayloadTag, forUID keybase1.UID) interf
 		ret.Val = &keybase1.TeamChangeReq{}
 	case txPayloadTagInviteKeybase, txPayloadTagInviteSocial:
 		ret.Val = &SCTeamInvites{}
+	default:
+		panic(fmt.Sprintf("Unexpected tag %q", tag))
 	}
 	tx.payloads = append(tx.payloads, ret)
 	return ret.Val
