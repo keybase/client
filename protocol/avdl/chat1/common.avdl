@@ -269,6 +269,7 @@
   }
 
   record ConversationSettings {
+    @mpackkey("mwr") @jsonkey("mwr")
     union { null, ConversationMinWriterRoleInfo } minWriterRoleInfo;
   }
 
@@ -292,6 +293,7 @@
     Expunge expunge;
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
+    @mpackkey("cs") @jsonkey("cs")
     union { null, ConversationSettings } convSettings;
   }
 

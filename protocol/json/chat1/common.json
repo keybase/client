@@ -676,7 +676,9 @@
             null,
             "ConversationMinWriterRoleInfo"
           ],
-          "name": "minWriterRoleInfo"
+          "name": "minWriterRoleInfo",
+          "mpackkey": "mwr",
+          "jsonkey": "mwr"
         }
       ]
     },
@@ -746,7 +748,9 @@
             null,
             "ConversationSettings"
           ],
-          "name": "convSettings"
+          "name": "convSettings",
+          "mpackkey": "cs",
+          "jsonkey": "cs"
         }
       ]
     },
