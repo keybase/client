@@ -1,45 +1,32 @@
 // @flow
 import * as React from 'react'
-import {Box} from '../../common-adapters'
-import {globalColors} from '../../styles'
+import {Image} from '../../common-adapters'
 import QRCodeGen from 'qrcode-generator'
+import {styleSheetCreate} from '../../styles'
 
 type Props = {
   code: string,
   cellSize: number,
 }
 
-// Just rendering a bunch of divs. this is ok (maybe slow) . will have to see about native. if not go back to doing the image thing
 class QrImage extends React.PureComponent<Props> {
-  static defaultProps = {cellSize: 2}
+  static defaultProps = {cellSize: 4} // this creates a 132x132 (so we can use retina) image
   render() {
     const qr = QRCodeGen(4, 'L')
     qr.addData(this.props.code)
     qr.make()
-    const size = qr.getModuleCount()
-    const children = []
 
-    for (let x = 0; x < size; ++x) {
-      for (let y = 0; y < size; ++y) {
-        children.push(
-          <Box
-            key={`${x}:${y}`}
-            style={{
-              backgroundColor: qr.isDark(x, y) ? globalColors.blue : globalColors.transparent,
-              height: this.props.cellSize,
-              left: x * this.props.cellSize,
-              position: 'absolute',
-              top: y * this.props.cellSize,
-              width: this.props.cellSize,
-            }}
-          />
-        )
-      }
-    }
-
-    const dim = size * this.props.cellSize
-    return <Box style={{height: dim, position: 'relative', width: dim}}>{children}</Box>
+    const url = qr.createDataURL(this.props.cellSize, 0)
+    return <Image src={url} style={styles.image} />
   }
 }
+
+const styles = styleSheetCreate({
+  image: {
+    // actual qr size so it doesn't stretch
+    height: 66,
+    width: 66,
+  },
+})
 
 export default QrImage

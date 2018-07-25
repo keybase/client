@@ -14,5 +14,6 @@ export type ReqProps = {|
   style?: ?StylesCrossPlatform,
 |}
 
-export default class FileImage extends React.Component<Props> {}
+export default class Image extends React.Component<Props> {}
+// Can accept require()
 export class RequireImage extends React.Component<ReqProps> {}
