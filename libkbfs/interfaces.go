@@ -1244,6 +1244,11 @@ type MDOps interface {
 	GetForTLF(ctx context.Context, id tlf.ID, lockBeforeGet *keybase1.LockID) (
 		ImmutableRootMetadata, error)
 
+	// GetForTLFByTime returns the earliest merged MD update with a
+	// server timestamp equal or greater to `serverTime`.
+	GetForTLFByTime(ctx context.Context, id tlf.ID, serverTime time.Time) (
+		ImmutableRootMetadata, error)
+
 	// GetUnmergedForTLF is the same as the above but for unmerged
 	// metadata.
 	GetUnmergedForTLF(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) (
@@ -1456,6 +1461,11 @@ type MDServer interface {
 	// Note that taking a lock from the mdserver is idempotent.
 	GetForTLF(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus,
 		lockBeforeGet *keybase1.LockID) (*RootMetadataSigned, error)
+
+	// GetForTLFByTime returns the earliest merged MD update with a
+	// server timestamp equal or greater to `serverTime`.
+	GetForTLFByTime(ctx context.Context, id tlf.ID, serverTime time.Time) (
+		*RootMetadataSigned, error)
 
 	// GetRange returns a range of (signed/encrypted) metadata objects
 	// corresponding to the passed revision numbers (inclusive).

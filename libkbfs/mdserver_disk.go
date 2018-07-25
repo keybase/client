@@ -383,6 +383,50 @@ func (md *MDServerDisk) GetForTLF(ctx context.Context, id tlf.ID,
 	return tlfStorage.getForTLF(ctx, session.UID, bid)
 }
 
+// GetForTLFByTime implements the MDServer interface for MDServerDisk.
+func (md *MDServerDisk) GetForTLFByTime(
+	ctx context.Context, id tlf.ID, serverTime time.Time) (
+	*RootMetadataSigned, error) {
+	if err := checkContext(ctx); err != nil {
+		return nil, err
+	}
+
+	session, err := md.config.currentSessionGetter().GetCurrentSession(ctx)
+	if err != nil {
+		return nil, kbfsmd.ServerError{Err: err}
+	}
+
+	tlfStorage, err := md.getStorage(id)
+	if err != nil {
+		return nil, err
+	}
+
+	rmd, err := tlfStorage.getForTLF(ctx, session.UID, kbfsmd.NullBranchID)
+	if err != nil {
+		return nil, err
+	}
+
+	for rmd.untrustedServerTimestamp.After(serverTime) {
+		nextRev := rmd.MD.RevisionNumber() - 1
+		if nextRev == kbfsmd.RevisionUninitialized {
+			return nil, errors.Errorf(
+				"No MD found for TLF %s and serverTime %s", id, serverTime)
+		}
+		mds, err := tlfStorage.getRange(
+			ctx, session.UID, kbfsmd.NullBranchID, nextRev, nextRev)
+		if err != nil {
+			return nil, err
+		}
+		if len(mds) != 1 {
+			return nil, errors.Errorf(
+				"No MD found for TLF %s and serverTime %s", id, serverTime)
+		}
+		rmd = mds[0]
+	}
+
+	return rmd, nil
+}
+
 // GetRange implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) GetRange(ctx context.Context, id tlf.ID,
 	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, start, stop kbfsmd.Revision,

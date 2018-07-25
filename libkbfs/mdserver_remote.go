@@ -594,6 +594,38 @@ func (md *MDServerRemote) GetForTLF(ctx context.Context, id tlf.ID,
 	return rmdses[0], nil
 }
 
+// GetForTLFByTime implements the MDServer interface for MDServerRemote.
+func (md *MDServerRemote) GetForTLFByTime(
+	ctx context.Context, id tlf.ID, serverTime time.Time) (
+	rmds *RootMetadataSigned, err error) {
+	ctx = rpc.WithFireNow(ctx)
+	md.log.LazyTrace(ctx, "MDServer: GetForTLFByTime %s %s", id, serverTime)
+	defer func() {
+		md.deferLog.LazyTrace(
+			ctx, "MDServer: GetForTLFByTime %s %s done (err=%v)",
+			id, serverTime, err)
+	}()
+
+	arg := keybase1.GetMetadataByTimestampArg{
+		FolderID:   id.String(),
+		ServerTime: keybase1.ToTime(serverTime),
+	}
+
+	block, err := md.getClient().GetMetadataByTimestamp(ctx, arg)
+	if err != nil {
+		return nil, err
+	}
+
+	ver, max := kbfsmd.MetadataVer(block.Version), md.config.MetadataVersion()
+	rmds, err = DecodeRootMetadataSigned(
+		md.config.Codec(), id, ver, max, block.Block,
+		keybase1.FromTime(block.Timestamp))
+	if err != nil {
+		return nil, err
+	}
+	return rmds, nil
+}
+
 // GetRange implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetRange(ctx context.Context, id tlf.ID,
 	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, start, stop kbfsmd.Revision,

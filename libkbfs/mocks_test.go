@@ -4181,6 +4181,19 @@ func (mr *MockMDOpsMockRecorder) GetForTLF(ctx, id, lockBeforeGet interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForTLF", reflect.TypeOf((*MockMDOps)(nil).GetForTLF), ctx, id, lockBeforeGet)
 }
 
+// GetForTLFByTime mocks base method
+func (m *MockMDOps) GetForTLFByTime(ctx context.Context, id tlf.ID, serverTime time.Time) (ImmutableRootMetadata, error) {
+	ret := m.ctrl.Call(m, "GetForTLFByTime", ctx, id, serverTime)
+	ret0, _ := ret[0].(ImmutableRootMetadata)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetForTLFByTime indicates an expected call of GetForTLFByTime
+func (mr *MockMDOpsMockRecorder) GetForTLFByTime(ctx, id, serverTime interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForTLFByTime", reflect.TypeOf((*MockMDOps)(nil).GetForTLFByTime), ctx, id, serverTime)
+}
+
 // GetUnmergedForTLF mocks base method
 func (m *MockMDOps) GetUnmergedForTLF(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) (ImmutableRootMetadata, error) {
 	ret := m.ctrl.Call(m, "GetUnmergedForTLF", ctx, id, bid)
@@ -4626,6 +4639,19 @@ func (mr *MockMDServerMockRecorder) GetForTLF(ctx, id, bid, mStatus, lockBeforeG
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForTLF", reflect.TypeOf((*MockMDServer)(nil).GetForTLF), ctx, id, bid, mStatus, lockBeforeGet)
 }
 
+// GetForTLFByTime mocks base method
+func (m *MockMDServer) GetForTLFByTime(ctx context.Context, id tlf.ID, serverTime time.Time) (*RootMetadataSigned, error) {
+	ret := m.ctrl.Call(m, "GetForTLFByTime", ctx, id, serverTime)
+	ret0, _ := ret[0].(*RootMetadataSigned)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetForTLFByTime indicates an expected call of GetForTLFByTime
+func (mr *MockMDServerMockRecorder) GetForTLFByTime(ctx, id, serverTime interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForTLFByTime", reflect.TypeOf((*MockMDServer)(nil).GetForTLFByTime), ctx, id, serverTime)
+}
+
 // GetRange mocks base method
 func (m *MockMDServer) GetRange(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) ([]*RootMetadataSigned, error) {
 	ret := m.ctrl.Call(m, "GetRange", ctx, id, bid, mStatus, start, stop, lockBeforeGet)
@@ -4938,6 +4964,19 @@ func (m *MockmdServerLocal) GetForTLF(ctx context.Context, id tlf.ID, bid kbfsmd
 // GetForTLF indicates an expected call of GetForTLF
 func (mr *MockmdServerLocalMockRecorder) GetForTLF(ctx, id, bid, mStatus, lockBeforeGet interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForTLF", reflect.TypeOf((*MockmdServerLocal)(nil).GetForTLF), ctx, id, bid, mStatus, lockBeforeGet)
+}
+
+// GetForTLFByTime mocks base method
+func (m *MockmdServerLocal) GetForTLFByTime(ctx context.Context, id tlf.ID, serverTime time.Time) (*RootMetadataSigned, error) {
+	ret := m.ctrl.Call(m, "GetForTLFByTime", ctx, id, serverTime)
+	ret0, _ := ret[0].(*RootMetadataSigned)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetForTLFByTime indicates an expected call of GetForTLFByTime
+func (mr *MockmdServerLocalMockRecorder) GetForTLFByTime(ctx, id, serverTime interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForTLFByTime", reflect.TypeOf((*MockmdServerLocal)(nil).GetForTLFByTime), ctx, id, serverTime)
 }
 
 // GetRange mocks base method

@@ -308,6 +308,54 @@ func (md *MDServerMemory) GetForTLF(ctx context.Context, id tlf.ID,
 	return rmds, nil
 }
 
+// GetForTLFByTime implements the MDServer interface for MDServerMemory.
+func (md *MDServerMemory) GetForTLFByTime(
+	ctx context.Context, id tlf.ID, serverTime time.Time) (
+	*RootMetadataSigned, error) {
+	if err := checkContext(ctx); err != nil {
+		return nil, err
+	}
+
+	md.lock.RLock()
+	defer md.lock.RUnlock()
+
+	key, err := md.getMDKey(id, kbfsmd.NullBranchID, kbfsmd.Merged)
+	if err != nil {
+		return nil, err
+	}
+	err = md.checkShutdownRLocked()
+	if err != nil {
+		return nil, err
+	}
+
+	blockList, ok := md.mdDb[key]
+	if !ok {
+		return nil, nil
+	}
+	blocks := blockList.blocks
+
+	// Iterate backward until we find a timestamp less than `serverTime`.
+	for i := len(blocks) - 1; i >= 0; i-- {
+		t := blocks[i].timestamp
+		if t.After(serverTime) {
+			continue
+		}
+
+		max := md.config.MetadataVersion()
+		ver := blocks[i].version
+		buf := blocks[i].encodedMd
+		rmds, err := DecodeRootMetadataSigned(
+			md.config.Codec(), id, ver, max, buf, t)
+		if err != nil {
+			return nil, err
+		}
+		return rmds, nil
+	}
+
+	return nil, errors.Errorf(
+		"No MD found for TLF %s and serverTime %s", id, serverTime)
+}
+
 func (md *MDServerMemory) getHeadForTLFRLocked(ctx context.Context, id tlf.ID,
 	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus) (*RootMetadataSigned, error) {
 	key, err := md.getMDKey(id, bid, mStatus)
@@ -610,7 +658,10 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 		return kbfsmd.ServerError{Err: err}
 	}
 
-	block := mdBlockMem{encodedMd, md.config.Clock().Now(), rmds.MD.Version()}
+	// Pretend the timestamp went over RPC, so we get the same
+	// resolution level as a real server.
+	t := keybase1.FromTime(keybase1.ToTime(md.config.Clock().Now()))
+	block := mdBlockMem{encodedMd, t, rmds.MD.Version()}
 
 	// Add an entry with the revision key.
 	revKey, err := md.getMDKey(id, bid, mStatus)

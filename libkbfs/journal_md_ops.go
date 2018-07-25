@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
@@ -270,6 +271,15 @@ func (j journalMDOps) GetForTLF(
 
 	return j.getForTLF(
 		ctx, id, kbfsmd.NullBranchID, kbfsmd.Merged, lockBeforeGet, j.MDOps.GetForTLF)
+}
+
+func (j journalMDOps) GetForTLFByTime(
+	ctx context.Context, id tlf.ID, serverTime time.Time) (
+	ImmutableRootMetadata, error) {
+	// For now, we don't bother looking up MDs from the journal by
+	// time -- that could be confusing, since the "server time" could
+	// change once the MD is actually flushed.
+	return j.MDOps.GetForTLFByTime(ctx, id, serverTime)
 }
 
 func (j journalMDOps) GetUnmergedForTLF(

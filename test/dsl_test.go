@@ -172,7 +172,7 @@ func (o *opt) close() {
 func (o *opt) runInitOnce() {
 	o.initOnce.Do(func() {
 		o.clock = &libkbfs.TestClock{}
-		o.clock.Set(time.Unix(0, 0))
+		o.clock.Set(time.Unix(1, 0))
 		o.users = o.engine.InitTest(o.ver, o.blockSize,
 			o.blockChangeSize, o.batchSize, o.bwKBps, o.timeout, o.usernames,
 			o.teams, o.implicitTeams, o.clock, o.journal)
@@ -1226,7 +1226,7 @@ func (c *ctx) getNode(filepath string, create createType, sym symBehavior) (
 // duration past the default time.
 func crnameAtTime(path string, user username, d time.Duration) string {
 	cre := libkbfs.WriterDeviceDateConflictRenamer{}
-	return cre.ConflictRenameHelper(time.Unix(0, 0).Add(d), string(user),
+	return cre.ConflictRenameHelper(time.Unix(1, 0).Add(d), string(user),
 		"dev1", path)
 }
 

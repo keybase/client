@@ -933,18 +933,9 @@ func (c constIDGetter) ValidateLatestHandleNotFinal(
 	return true, nil
 }
 
-func (md *MDOpsStandard) getForTLF(ctx context.Context, id tlf.ID,
-	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (
-	ImmutableRootMetadata, error) {
-	rmds, err := md.config.MDServer().GetForTLF(
-		ctx, id, bid, mStatus, lockBeforeGet)
-	if err != nil {
-		return ImmutableRootMetadata{}, err
-	}
-	if rmds == nil {
-		// Possible if mStatus is kbfsmd.Unmerged
-		return ImmutableRootMetadata{}, nil
-	}
+func (md *MDOpsStandard) processSignedMD(
+	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID,
+	rmds *RootMetadataSigned) (ImmutableRootMetadata, error) {
 	extra, err := md.getExtraMD(ctx, rmds.MD)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
@@ -966,11 +957,38 @@ func (md *MDOpsStandard) getForTLF(ctx context.Context, id tlf.ID,
 	return rmd, nil
 }
 
+func (md *MDOpsStandard) getForTLF(ctx context.Context, id tlf.ID,
+	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (
+	ImmutableRootMetadata, error) {
+	rmds, err := md.config.MDServer().GetForTLF(
+		ctx, id, bid, mStatus, lockBeforeGet)
+	if err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+	if rmds == nil {
+		// Possible if mStatus is kbfsmd.Unmerged
+		return ImmutableRootMetadata{}, nil
+	}
+	return md.processSignedMD(ctx, id, bid, rmds)
+}
+
 // GetForTLF implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetForTLF(
 	ctx context.Context, id tlf.ID, lockBeforeGet *keybase1.LockID) (
 	ImmutableRootMetadata, error) {
 	return md.getForTLF(ctx, id, kbfsmd.NullBranchID, kbfsmd.Merged, lockBeforeGet)
+}
+
+// GetForTLFByTime implements the MDOps interface for MDOpsStandard.
+func (md *MDOpsStandard) GetForTLFByTime(
+	ctx context.Context, id tlf.ID, serverTime time.Time) (
+	ImmutableRootMetadata, error) {
+	rmds, err := md.config.MDServer().GetForTLFByTime(ctx, id, serverTime)
+	if err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+
+	return md.processSignedMD(ctx, id, kbfsmd.NullBranchID, rmds)
 }
 
 // GetUnmergedForTLF implements the MDOps interface for MDOpsStandard.

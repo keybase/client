@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"math/rand"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
@@ -31,6 +32,7 @@ const (
 	StallableBlockPut StallableBlockOp = "Put"
 
 	StallableMDGetForTLF                    StallableMDOp = "GetForTLF"
+	StallableMDGetForTLFByTime              StallableMDOp = "GetForTLFByTime"
 	StallableMDGetLatestHandleForTLF        StallableMDOp = "GetLatestHandleForTLF"
 	StallableMDValidateLatestHandleNotFinal StallableMDOp = "ValidateLatestHandleNotFinal"
 	StallableMDGetUnmergedForTLF            StallableMDOp = "GetUnmergedForTLF"
@@ -419,6 +421,18 @@ func (m *stallingMDOps) GetForTLF(ctx context.Context, id tlf.ID,
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errGetForTLF error
 		md, errGetForTLF = m.delegate.GetForTLF(ctx, id, lockBeforeGet)
+		return errGetForTLF
+	})
+	return md, err
+}
+
+func (m *stallingMDOps) GetForTLFByTime(
+	ctx context.Context, id tlf.ID, serverTime time.Time) (
+	md ImmutableRootMetadata, err error) {
+	m.maybeStall(ctx, StallableMDGetForTLFByTime)
+	err = runWithContextCheck(ctx, func(ctx context.Context) error {
+		var errGetForTLF error
+		md, errGetForTLF = m.delegate.GetForTLFByTime(ctx, id, serverTime)
 		return errGetForTLF
 	})
 	return md, err
