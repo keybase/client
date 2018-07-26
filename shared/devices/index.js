@@ -9,14 +9,6 @@ import FloatingMenu, {
 import DeviceRow from './row/container'
 import * as Styles from '../styles'
 
-// TODO remove
-const {Box2, Text, List, Icon, ClickableBox, ProgressIndicator, HeaderOnMobile} = Common
-
-// TODO remove
-const {globalStyles, globalColors, globalMargins, isMobile, styleSheetCreate} = Styles
-
-// TODO use list-item2
-
 type Item = {key: string, id: Types.DeviceID, type: 'device'} | {key: string, type: 'revokedHeader'}
 
 type State = {
@@ -71,14 +63,14 @@ class Devices extends React.PureComponent<Props & FloatingMenuParentProps, State
     ]
 
     return (
-      <Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+      <Common.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
         <DeviceHeader
           setAttachmentRef={this.props.setAttachmentRef}
           onAddNew={this.props.toggleShowingMenu}
           waiting={this.props.waiting}
         />
-        {this.props.waiting && <ProgressIndicator style={styles2.progress} />}
-        <List items={items} renderItem={this._renderRow} />
+        {this.props.waiting && <Common.ProgressIndicator style={styles2.progress} />}
+        <Common.List items={items} renderItem={this._renderRow} />
         <FloatingMenu
           attachTo={this.props.attachmentRef}
           visible={this.props.showingMenu}
@@ -86,22 +78,22 @@ class Devices extends React.PureComponent<Props & FloatingMenuParentProps, State
           items={menuItems}
           position="bottom center"
         />
-      </Box2>
+      </Common.Box2>
     )
   }
 }
-const styles2 = styleSheetCreate({
+const styles2 = Styles.styleSheetCreate({
   progress: {
     left: 12,
     position: 'absolute',
-    top: isMobile ? 22 : 14,
+    top: Styles.isMobile ? 22 : 14,
     width: 20,
   },
 })
 
 const DeviceHeader = ({onAddNew, setAttachmentRef, waiting}) => (
-  <ClickableBox onClick={onAddNew}>
-    <Box2
+  <Common.ClickableBox onClick={onAddNew}>
+    <Common.Box2
       direction="horizontal"
       ref={setAttachmentRef}
       gap="xtiny"
@@ -109,58 +101,51 @@ const DeviceHeader = ({onAddNew, setAttachmentRef, waiting}) => (
       fullWidth={true}
       centerChildren={true}
     >
-      <Icon type="iconfont-new" color={globalColors.blue} />
-      <Text type="BodyBigLink">Add new...</Text>
-    </Box2>
-  </ClickableBox>
+      <Common.Icon type="iconfont-new" color={Styles.globalColors.blue} />
+      <Common.Text type="BodyBigLink">Add new...</Common.Text>
+    </Common.Box2>
+  </Common.ClickableBox>
 )
-const headerStyles = styleSheetCreate({
-  container: {height: isMobile ? 64 : 48},
+const headerStyles = Styles.styleSheetCreate({
+  container: {height: Styles.isMobile ? 64 : 48},
 })
 
 const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
-  <ClickableBox onClick={onToggleExpanded}>
-    <Box2 direction="vertical" fullWidth={true} gap="xtiny">
-      <Box2
+  <Common.ClickableBox onClick={onToggleExpanded}>
+    <Common.Box2 direction="vertical" fullWidth={true} gap="xtiny">
+      <Common.Box2
         direction="horizontal"
         fullWidth={true}
         gap="xtiny"
         gapStart={true}
         style={revokedHeaderStyles.textContainer}
       >
-        <Text type="BodySmallSemibold" style={revokedHeaderStyles.text}>
+        <Common.Text type="BodySmallSemibold" style={revokedHeaderStyles.text}>
           Revoked devices
-        </Text>
-        <Icon
+        </Common.Text>
+        <Common.Icon
           type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-          color={globalColors.black_60}
+          color={Styles.globalColors.black_60}
           fontSize={10}
         />
-      </Box2>
+      </Common.Box2>
       {expanded && (
-        <Text type="BodySmallSemibold" style={revokedHeaderStyles.desc}>
+        <Common.Text type="BodySmallSemibold" style={revokedHeaderStyles.desc}>
           Revoked devices will no longer be able to access your Keybase account.
-        </Text>
+        </Common.Text>
       )}
-    </Box2>
-  </ClickableBox>
+    </Common.Box2>
+  </Common.ClickableBox>
 )
-const revokedHeaderStyles = styleSheetCreate({
+const revokedHeaderStyles = Styles.styleSheetCreate({
   desc: {
     alignSelf: 'center',
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
     textAlign: 'center',
   },
-  text: {color: globalColors.black_60},
+  text: {color: Styles.globalColors.black_60},
   textContainer: {alignItems: 'center'},
 })
 
-const stylesCommonCore = {
-  alignItems: 'center',
-  borderBottomColor: globalColors.black_05,
-  borderBottomWidth: 1,
-  justifyContent: 'center',
-}
-
-export default HeaderOnMobile(FloatingMenuParentHOC(Devices))
+export default Common.HeaderOnMobile(FloatingMenuParentHOC(Devices))
