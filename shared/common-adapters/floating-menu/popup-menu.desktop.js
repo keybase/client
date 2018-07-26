@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import type {ModalLessPopupMenuProps, Props} from '../popup-menu'
+import type {ModalLessPopupMenuProps, Props} from './popup-menu'
 import {Box, Text} from '..'
 import EscapeHandler from '../../util/escape-handler'
 import {globalColors, globalMargins, globalStyles, desktopStyles} from '../../styles'
