@@ -4,7 +4,10 @@ import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import AddPeopleHow from './add-people-how/container'
 import {iconCastPlatformStyles, Box, Button, ButtonBar, Icon, Meta, Text} from '../../../common-adapters'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
+import {
+  FloatingMenuParentHOC,
+  type FloatingMenuParentProps,
+} from '../../../common-adapters/floating-menu/parent-hoc'
 import type {Response} from 'react-native-image-picker'
 import NameWithIconWrapper from './name-with-icon-wrapper'
 import {

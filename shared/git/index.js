@@ -12,7 +12,10 @@ import {
   HeaderOnMobile,
   FloatingMenu,
 } from '../common-adapters'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../common-adapters/floating-menu'
+import {
+  FloatingMenuParentHOC,
+  type FloatingMenuParentProps,
+} from '../common-adapters/floating-menu/parent-hoc'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
 
 type Props = {

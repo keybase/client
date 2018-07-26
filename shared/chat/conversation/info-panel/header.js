@@ -9,7 +9,10 @@ import {
   Text,
   iconCastPlatformStyles,
 } from '../../../common-adapters'
-import {type FloatingMenuParentProps, FloatingMenuParentHOC} from '../../../common-adapters/floating-menu'
+import {
+  type FloatingMenuParentProps,
+  FloatingMenuParentHOC,
+} from '../../../common-adapters/floating-menu/parent-hoc'
 import InfoPanelMenu from './menu/container'
 import {
   glamorous,

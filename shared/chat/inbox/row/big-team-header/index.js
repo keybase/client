@@ -1,7 +1,10 @@
 // @flow
 import React from 'react'
 import {Avatar, Box, ClickableBox, Icon, Text} from '../../../../common-adapters'
-import {type FloatingMenuParentProps, FloatingMenuParentHOC} from '../../../../common-adapters/floating-menu'
+import {
+  type FloatingMenuParentProps,
+  FloatingMenuParentHOC,
+} from '../../../../common-adapters/floating-menu/parent-hoc'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
 import {
   desktopStyles,

@@ -1,12 +1,12 @@
 // @flow
 import * as React from 'react'
 import {isMobile, globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
-import {Box, ClickableBox, Icon, Text, type IconType} from '../../common-adapters'
+import {Box, ClickableBox, Icon, Text, type IconType, FloatingMenu} from '../../common-adapters'
 import StaticBreadcrumb from '../common/static-breadcrumb'
-import FloatingMenu, {
+import {
   FloatingMenuParentHOC,
   type FloatingMenuParentProps,
-} from '../../common-adapters/floating-menu'
+} from '../../common-adapters/floating-menu/parent-hoc'
 
 type AddNewProps = {
   style?: Object,

@@ -3,7 +3,10 @@ import * as React from 'react'
 import WrapperTimestamp from './wrapper-timestamp'
 import WrapperAuthor from './wrapper-author'
 import {NativeTouchableHighlight, NativeKeyboard} from '../../../../common-adapters/mobile.native'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
+import {
+  FloatingMenuParentHOC,
+  type FloatingMenuParentProps,
+} from '../../../../common-adapters/floating-menu/parent-hoc'
 import {globalColors} from '../../../../styles'
 import type {WrapperAuthorProps} from './index.types'
 

@@ -13,7 +13,10 @@ import {
 } from '../../../../common-adapters/native-wrappers.native'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import {ExplodingMeta} from './shared'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
+import {
+  FloatingMenuParentHOC,
+  type FloatingMenuParentProps,
+} from '../../../../common-adapters/floating-menu/parent-hoc'
 import type {PlatformInputProps} from './types'
 import flags from '../../../../util/feature-flags'
 

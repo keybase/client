@@ -2,7 +2,10 @@
 import * as React from 'react'
 import {Box2, ClickableBox, Icon, List, Text, FloatingMenu} from '../../common-adapters'
 import {styleSheetCreate, globalMargins, globalColors, isMobile, type StylesCrossPlatform} from '../../styles'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../common-adapters/floating-menu'
+import {
+  FloatingMenuParentHOC,
+  type FloatingMenuParentProps,
+} from '../../common-adapters/floating-menu/parent-hoc'
 import {type AccountID} from '../../constants/types/wallets'
 import WalletRow from './wallet-row/container'
 
@@ -72,7 +75,13 @@ class WalletList extends React.Component<Props> {
       case 'wallet':
         return <WalletRow key={row.accountID} accountID={row.accountID} />
       case 'add wallet':
-        return <AddWallet key={row.type} onAddNew={this.props.onAddNew} onLinkExisting={this.props.onLinkExisting} />
+        return (
+          <AddWallet
+            key={row.type}
+            onAddNew={this.props.onAddNew}
+            onLinkExisting={this.props.onLinkExisting}
+          />
+        )
       default:
         /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any

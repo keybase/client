@@ -18,7 +18,10 @@ import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-conta
 import flags from '../../../../util/feature-flags'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import type {PlatformInputProps} from './types'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
+import {
+  FloatingMenuParentHOC,
+  type FloatingMenuParentProps,
+} from '../../../../common-adapters/floating-menu/parent-hoc'
 import {ExplodingMeta} from './shared'
 
 const MentionCatcher = ({onClick}) => (

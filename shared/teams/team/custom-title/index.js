@@ -2,7 +2,10 @@
 import * as React from 'react'
 import {iconCastPlatformStyles, Box, Icon, ProgressIndicator} from '../../../common-adapters'
 import {globalStyles, globalMargins, isMobile, styleSheetCreate} from '../../../styles'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
+import {
+  FloatingMenuParentHOC,
+  type FloatingMenuParentProps,
+} from '../../../common-adapters/floating-menu/parent-hoc'
 import TeamMenu from '../menu-container'
 
 type Props = {

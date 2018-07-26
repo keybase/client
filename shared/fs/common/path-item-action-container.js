@@ -12,7 +12,7 @@ import {
 } from '../../util/container'
 import PathItemAction from './path-item-action'
 import {fileUIName, isMobile, isIOS, isAndroid} from '../../constants/platform'
-import {FloatingMenuParentHOC} from '../../common-adapters/floating-menu'
+import {FloatingMenuParentHOC} from '../../common-adapters/floating-menu/parent-hoc'
 import {copyToClipboard} from '../../util/clipboard'
 
 type OwnProps = {

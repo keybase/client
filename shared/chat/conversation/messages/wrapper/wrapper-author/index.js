@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Icon, Text, Box, iconCastPlatformStyles} from '../../../../../common-adapters'
-import {type FloatingMenuParentProps} from '../../../../../common-adapters/floating-menu'
+import {type FloatingMenuParentProps} from '../../../../../common-adapters/floating-menu/parent-hoc'
 import {
   globalStyles,
   globalMargins,

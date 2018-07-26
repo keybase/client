@@ -2,7 +2,10 @@
 import * as React from 'react'
 import {Box2, Button, ClickableBox, Text, Avatar, FloatingMenu} from '../../common-adapters'
 import {styleSheetCreate} from '../../styles'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../common-adapters/floating-menu'
+import {
+  FloatingMenuParentHOC,
+  type FloatingMenuParentProps,
+} from '../../common-adapters/floating-menu/parent-hoc'
 
 type Props = {
   isDefaultWallet: boolean,

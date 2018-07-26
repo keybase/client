@@ -10,11 +10,12 @@ import {
   ClickableBox,
   ProgressIndicator,
   HeaderOnMobile,
+  FloatingMenu,
 } from '../common-adapters'
-import FloatingMenu, {
+import {
   FloatingMenuParentHOC,
   type FloatingMenuParentProps,
-} from '../common-adapters/floating-menu'
+} from '../common-adapters/floating-menu/parent-hoc'
 import {RowConnector} from './row'
 import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../styles'
 

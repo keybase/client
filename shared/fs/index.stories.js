@@ -19,7 +19,7 @@ import Downloads from './footer/downloads'
 import Download from './footer/download'
 import Upload from './footer/upload'
 import PathItemAction from './common/path-item-action'
-import {FloatingMenuParentHOC} from '../common-adapters/floating-menu'
+import {FloatingMenuParentHOC} from '../common-adapters/floating-menu/parent-hoc'
 import Breadcrumb from './header/breadcrumb.desktop'
 import Banner from './banner'
 

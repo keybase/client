@@ -2,7 +2,7 @@
 import WrapperTimestamp from './wrapper-timestamp'
 import WrapperAuthor from './wrapper-author'
 import {withHandlers} from '../../../../util/container'
-import {FloatingMenuParentHOC} from '../../../../common-adapters/floating-menu'
+import {FloatingMenuParentHOC} from '../../../../common-adapters/floating-menu/parent-hoc'
 
 const WrapperWithFloatingMenu = withHandlers({
   onShowMenu: props => event => {

@@ -1,7 +1,10 @@
 // @flow
 import * as React from 'react'
 import {Box2, Button, ClickableBox, FloatingMenu, FollowButton, ButtonBar, Icon} from '../common-adapters'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../common-adapters/floating-menu'
+import {
+  FloatingMenuParentHOC,
+  type FloatingMenuParentProps,
+} from '../common-adapters/floating-menu/parent-hoc'
 import {normal as proofNormal} from '../constants/tracker'
 import {globalColors, isMobile, platformStyles, styleSheetCreate} from '../styles'
 import type {SimpleProofState} from '../constants/types/tracker'

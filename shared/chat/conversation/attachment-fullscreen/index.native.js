@@ -9,7 +9,10 @@ import {
   ZoomableBox,
   NativeDimensions,
 } from '../../../common-adapters/mobile.native'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
+import {
+  FloatingMenuParentHOC,
+  type FloatingMenuParentProps,
+} from '../../../common-adapters/floating-menu/parent-hoc'
 import MessagePopup from '../messages/message-popup/'
 import {globalColors, globalMargins, globalStyles, isIPhoneX} from '../../../styles'
 import type {Props} from './index.types'

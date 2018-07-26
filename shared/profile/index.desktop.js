@@ -22,7 +22,10 @@ import {
 } from '../common-adapters'
 import UserActions from './user-actions'
 import {PopupHeaderText} from '../common-adapters/popup-menu'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../common-adapters/floating-menu'
+import {
+  FloatingMenuParentHOC,
+  type FloatingMenuParentProps,
+} from '../common-adapters/floating-menu/parent-hoc'
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import {findDOMNode} from 'react-dom'
 import {collapseStyles, desktopStyles, globalColors, globalMargins, globalStyles} from '../styles'
