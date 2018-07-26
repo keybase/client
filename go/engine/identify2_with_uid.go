@@ -1148,6 +1148,10 @@ func (e *Identify2WithUID) GetProofSet() *libkb.ProofSet {
 	return e.remotesReceived
 }
 
+func (e *Identify2WithUID) GetIdentifyOutcome() *libkb.IdentifyOutcome {
+	return e.state.Result()
+}
+
 func (e *Identify2WithUID) toUserPlusKeysv2AllIncarnations() (*keybase1.UserPlusKeysV2AllIncarnations, error) {
 	return e.them.ExportToUserPlusKeysV2AllIncarnations()
 }

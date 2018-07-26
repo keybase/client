@@ -1408,6 +1408,13 @@ func TestFollowResetAdd(t *testing.T) {
 	require.Error(t, err)
 	require.True(t, libkb.IsIdentifyProofError(err))
 
+	// AddMembers also fails
+	_, err = AddMembers(context.TODO(), tc.G, team, []string{bob.Username}, keybase1.TeamRole_ADMIN)
+	require.Error(t, err)
+	amerr, ok := err.(AddMembersError)
+	require.True(t, ok)
+	require.True(t, libkb.IsIdentifyProofError(amerr.Err))
+
 	// alice succeeds in removing charlie from the team, since her broken tracking statement
 	// is ignored for a team removal.
 	err = RemoveMember(context.TODO(), tc.G, team, charlie.Username)
