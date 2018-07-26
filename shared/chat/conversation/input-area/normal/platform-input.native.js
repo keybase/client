@@ -219,22 +219,18 @@ const Action = ({
           openExplodingPicker={openExplodingPicker}
         />
       )}
-      <Box style={styles.actionButtonWrapper}>
-        <Icon
-          onClick={insertMentionMarker}
-          type="iconfont-mention"
-          style={iconCastPlatformStyles(styles.actionButton)}
-          fontSize={22}
-        />
-      </Box>
-      <Box style={styles.actionButtonWrapper}>
-        <Icon
-          onClick={openFilePicker}
-          type="iconfont-camera"
-          style={iconCastPlatformStyles(styles.actionButton)}
-          fontSize={22}
-        />
-      </Box>
+      <Icon
+        onClick={insertMentionMarker}
+        type="iconfont-mention"
+        style={iconCastPlatformStyles(styles.actionButton)}
+        fontSize={22}
+      />
+      <Icon
+        onClick={openFilePicker}
+        type="iconfont-camera"
+        style={iconCastPlatformStyles(styles.actionButton)}
+        fontSize={22}
+      />
     </Box2>
   )
 
@@ -268,13 +264,6 @@ const styles = styleSheetCreate({
   actionButton: {
     alignSelf: isIOS ? 'flex-end' : 'center',
   },
-  actionButtonWrapper: platformStyles({
-    common: {
-      paddingLeft: containerPadding,
-      paddingRight: containerPadding,
-      paddingTop: containerPadding,
-    },
-  }),
   actionIconsContainer: {
     paddingRight: globalMargins.small - containerPadding,
   },
@@ -340,9 +329,6 @@ const explodingIconContainer = platformStyles({
   common: {
     ...globalStyles.flexBoxRow,
     marginRight: -3,
-    paddingLeft: containerPadding,
-    paddingRight: containerPadding,
-    paddingTop: containerPadding,
   },
 })
 
