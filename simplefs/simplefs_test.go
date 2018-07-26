@@ -172,6 +172,7 @@ func TestList(t *testing.T) {
 	// make a temp remote directory + files we will clean up later
 	path1 := keybase1.NewPathWithKbfs(`/private/jdoe`)
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test1.txt`), []byte(`foo`))
+	syncFS(ctx, t, sfs, "/private/jdoe") // Make a revision.
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test2.txt`), []byte(`foo`))
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `.testfile`), []byte(`foo`))
 	opid, err = sfs.SimpleFSMakeOpid(ctx)
@@ -263,27 +264,37 @@ func TestList(t *testing.T) {
 		t, listResult.Entries, 1, "Expected 1 directory entries in listing")
 
 	// Test that the first archived revision shows no directory entries.
-	pathArchived := keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
+	pathArchived1 := keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
 		Path:          `/private/jdoe`,
 		ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(1),
 	})
-	opid, err = sfs.SimpleFSMakeOpid(ctx)
-	require.NoError(t, err)
-	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
-		OpID: opid,
-		Path: pathArchived,
-	})
-	require.NoError(t, err)
+	checkArchived := func(pathArchived keybase1.Path, expected int) {
+		opid, err = sfs.SimpleFSMakeOpid(ctx)
+		require.NoError(t, err)
+		err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+			OpID: opid,
+			Path: pathArchived,
+		})
+		require.NoError(t, err)
 
-	checkPendingOp(
-		ctx, t, sfs, opid, keybase1.AsyncOps_LIST, pathArchived,
-		keybase1.Path{}, true)
-	err = sfs.SimpleFSWait(ctx, opid)
-	require.NoError(t, err)
-	listResult, err = sfs.SimpleFSReadList(ctx, opid)
-	require.NoError(t, err)
-	require.Len(
-		t, listResult.Entries, 0, "Expected 0 directory entries in listing")
+		checkPendingOp(
+			ctx, t, sfs, opid, keybase1.AsyncOps_LIST, pathArchived,
+			keybase1.Path{}, true)
+		err = sfs.SimpleFSWait(ctx, opid)
+		require.NoError(t, err)
+		listResult, err = sfs.SimpleFSReadList(ctx, opid)
+		require.NoError(t, err)
+		require.Len(
+			t, listResult.Entries, expected,
+			"Expected 0 directory entries in listing")
+	}
+	checkArchived(pathArchived1, 0)
+
+	pathArchived2 := keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
+		Path:          `/private/jdoe`,
+		ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(2),
+	})
+	checkArchived(pathArchived2, 1)
 }
 
 func TestListRecursive(t *testing.T) {
