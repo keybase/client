@@ -1,6 +1,5 @@
 // @flow
 import * as Inbox from '../..'
-import * as Constants from '../../../../constants/chat2'
 import {connect, compose, setDisplayName} from '../../../../util/container'
 import type {TypedState, Dispatch} from '../../../../util/container'
 import ChatInboxHeader from '.'
@@ -14,7 +13,6 @@ type OwnProps = {
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   filter: state.chat2.inboxFilter,
-  isLoading: Constants.anyChatWaitingKeys(state),
   neverLoaded: state.chat2.metaMap.isEmpty(),
 })
 
@@ -23,7 +21,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({})
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   filterFocusCount: ownProps.filterFocusCount,
   focusFilter: ownProps.focusFilter,
-  isLoading: stateProps.isLoading,
   neverLoaded: stateProps.neverLoaded,
   onNewChat: ownProps.onNewChat,
   rows: ownProps.rows,

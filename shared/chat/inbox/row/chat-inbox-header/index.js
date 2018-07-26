@@ -9,13 +9,12 @@ type Props = {
   focusFilter: () => void,
   onNewChat: () => void,
   neverLoaded: boolean,
-  isLoading: boolean,
   rows: Array<Inbox.RowItem>,
   showNewChat: boolean,
 }
 
 const ChatInboxHeader = (props: Props) =>
-  props.showNewChat && !props.neverLoaded && !props.isLoading ? (
+  props.showNewChat && !props.neverLoaded ? (
     <StartNewChat onNewChat={props.onNewChat} />
   ) : (
     <ChatFilterRow
