@@ -32,8 +32,6 @@ const categories: Array<{category: string, emojis: Array<EmojiData>}> = category
 }))
 
 // Map from EmojiMart's `id` to EmojiDatasource's object
-// TODO add test to make sure all EmojiMart emojis are
-// accounted for
 const emojiNameMap = Object.values(emojiIndex.emojis).reduce(
   (res: {[key: string]: EmojiData}, emoji: any) => {
     const shortName = emoji.id
@@ -46,4 +44,4 @@ const emojiNameMap = Object.values(emojiIndex.emojis).reduce(
   {}
 )
 
-export {categories, emojiIndex, emojiNameMap}
+export {categories, categoryOrder, emojiIndex, emojiNameMap}
