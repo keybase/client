@@ -1244,8 +1244,8 @@ type MDOps interface {
 	GetForTLF(ctx context.Context, id tlf.ID, lockBeforeGet *keybase1.LockID) (
 		ImmutableRootMetadata, error)
 
-	// GetForTLFByTime returns the earliest merged MD update with a
-	// server timestamp equal or greater to `serverTime`.
+	// GetForTLFByTime returns the newest merged MD update with a
+	// server timestamp less than or equal to `serverTime`.
 	GetForTLFByTime(ctx context.Context, id tlf.ID, serverTime time.Time) (
 		ImmutableRootMetadata, error)
 
