@@ -2,21 +2,22 @@
 import Devices from '.'
 import * as DevicesGen from '../actions/devices-gen'
 import * as ProvisionGen from '../actions/provision-gen'
+import * as RouteTree from '../actions/route-tree'
 import * as Constants from '../constants/devices'
-import {connect, type TypedState, type Dispatch} from '../util/container'
+import * as Container from '../util/container'
 import {partition} from 'lodash-es'
 
-const mapStateToProps = (state: TypedState, {routeState}) => ({
+const mapStateToProps = (state: Container.TypedState) => ({
   _deviceMap: state.devices.deviceMap,
   waiting: Constants.isWaiting(state),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navigateUp}) => ({
-  _addNewComputer: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'})),
-  _addNewPaperKey: () => dispatch(DevicesGen.createPaperKeyMake()),
-  _addNewPhone: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'})),
+const mapDispatchToProps = (dispatch: Container.Dispatch) => ({
+  addNewComputer: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'})),
+  addNewPaperKey: () => dispatch(DevicesGen.createPaperKeyMake()),
+  addNewPhone: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'})),
   loadDevices: () => dispatch(DevicesGen.createLoad()),
-  onBack: () => dispatch(navigateUp()),
+  onBack: () => dispatch(RouteTree.navigateUp()),
 })
 
 const sortDevices = (a, b) => {
@@ -26,23 +27,24 @@ const sortDevices = (a, b) => {
 }
 
 const deviceToItem = d => ({id: d.deviceID, key: d.deviceID, type: 'device'})
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const [normal, revoked] = partition(
-    stateProps._deviceMap
+const splitAndSortDevices = deviceMap =>
+  partition(
+    deviceMap
       .valueSeq()
       .toArray()
       .sort(sortDevices),
     d => d.revokedAt
   )
+
+const mergeProps = (stateProps, dispatchProps) => {
+  const [normal, revoked] = splitAndSortDevices(stateProps._deviceMap)
   return {
+    _stateOverride: null,
+    addNewComputer: dispatchProps.addNewComputer,
+    addNewPaperKey: dispatchProps.addNewPaperKey,
+    addNewPhone: dispatchProps.addNewPhone,
     items: normal.map(deviceToItem),
     loadDevices: dispatchProps.loadDevices,
-    menuItems: [
-      {onClick: dispatchProps._addNewPhone, title: 'New phone'},
-      {onClick: dispatchProps._addNewComputer, title: 'New computer', style: {borderTopWidth: 0}}, // get rid of auto-inserted border
-      {onClick: dispatchProps._addNewPaperKey, title: 'New paper key'},
-    ],
     onBack: dispatchProps.onBack,
     revokedItems: revoked.map(deviceToItem),
     title: 'Devices',
@@ -50,4 +52,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Devices)
+export default Container.compose(
+  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  Container.setDisplayName('Devices'),
+  Container.safeSubmitPerMount(['onBack'])
+)(Devices)

@@ -26,27 +26,79 @@ import {
   styleSheetCreate,
 } from '../styles'
 
-import type {MenuItem} from '../common-adapters/popup-menu'
-
 // TODO use list-item2
 
-type Item =
-  | {
-      key: string,
-      id: Types.DeviceID,
-      type: 'device',
-    }
-  | {
-      key: string,
-      type: 'revokedHeader',
-    }
+type Item = {key: string, id: Types.DeviceID, type: 'device'} | {key: string, type: 'revokedHeader'}
 
-export type Props = {
+type State = {
+  revokedExpanded: boolean,
+}
+
+type Props = {|
+  // Only used by storybook
+  _stateOverride: ?State,
+  addNewComputer: () => void,
+  addNewPaperKey: () => void,
+  addNewPhone: () => void,
   items: Array<Item>,
-  menuItems: Array<MenuItem | 'Divider' | null>,
+  loadDevices: () => void,
+  onBack: () => void,
   revokedItems: Array<Item>,
   waiting: boolean,
-  loadDevices: () => void,
+|}
+
+class Devices extends React.PureComponent<Props & FloatingMenuParentProps, State> {
+  static defaultProps = {_stateOverride: null}
+  state = {revokedExpanded: this.props._stateOverride ? this.props._stateOverride.revokedExpanded : false}
+
+  componentDidMount() {
+    this.props.loadDevices()
+  }
+
+  _toggleExpanded = () => this.setState(p => ({revokedExpanded: !p.revokedExpanded}))
+
+  _renderRow = (index, item) =>
+    item.type === 'revokedHeader' ? (
+      <RevokedHeader
+        key="revokedHeader"
+        expanded={this.state.revokedExpanded}
+        onToggleExpanded={this._toggleExpanded}
+      />
+    ) : (
+      <DeviceRow key={item.id} deviceID={item.id} />
+    )
+
+  render() {
+    const items = [
+      ...this.props.items,
+      {key: 'revokedHeader', type: 'revokedHeader'},
+      ...(this.state.revokedExpanded ? this.props.revokedItems : []),
+    ]
+
+    const menuItems = [
+      {onClick: this.props.addNewPhone, title: 'New phone'},
+      {onClick: this.props.addNewComputer, title: 'New computer'},
+      {onClick: this.props.addNewPaperKey, title: 'New paper key'},
+    ]
+
+    return (
+      <Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+        <DeviceHeader
+          setAttachmentRef={this.props.setAttachmentRef}
+          onAddNew={this.props.toggleShowingMenu}
+          waiting={this.props.waiting}
+        />
+        <List items={items} renderItem={this._renderRow} />
+        <FloatingMenu
+          attachTo={this.props.attachmentRef}
+          visible={this.props.showingMenu}
+          onHidden={this.props.toggleShowingMenu}
+          items={menuItems}
+          position="bottom center"
+        />
+      </Box2>
+    )
+  }
 }
 
 const DeviceHeader = ({onAddNew, setAttachmentRef, waiting}) => (
@@ -99,57 +151,6 @@ const DeviceRow = RowConnector(({isCurrentDevice, name, isRevoked, icon, showExi
     </Box>
   </ClickableBox>
 ))
-
-type State = {
-  revokedExpanded: boolean,
-}
-
-class Devices extends React.PureComponent<Props & FloatingMenuParentProps, State> {
-  state = {revokedExpanded: false}
-
-  componentDidMount() {
-    this.props.loadDevices()
-  }
-
-  _toggleExpanded = () => this.setState(p => ({revokedExpanded: !p.revokedExpanded}))
-
-  _renderRow = (index, item) =>
-    item.type === 'revokedHeader' ? (
-      <RevokedHeader
-        key="revokedHeader"
-        expanded={this.state.revokedExpanded}
-        onToggleExpanded={this._toggleExpanded}
-      />
-    ) : (
-      <DeviceRow key={item.id} deviceID={item.id} />
-    )
-
-  render() {
-    const items = [
-      ...this.props.items,
-      {key: 'revokedHeader', type: 'revokedHeader'},
-      ...(this.state.revokedExpanded ? this.props.revokedItems : []),
-    ]
-
-    return (
-      <Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-        <DeviceHeader
-          setAttachmentRef={this.props.setAttachmentRef}
-          onAddNew={this.props.toggleShowingMenu}
-          waiting={this.props.waiting}
-        />
-        <List items={items} renderItem={this._renderRow} />
-        <FloatingMenu
-          attachTo={this.props.attachmentRef}
-          visible={this.props.showingMenu}
-          onHidden={this.props.toggleShowingMenu}
-          items={this.props.menuItems}
-          position="bottom center"
-        />
-      </Box2>
-    )
-  }
-}
 
 const stylesCommonCore = {
   alignItems: 'center',
