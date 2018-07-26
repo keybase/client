@@ -5,32 +5,22 @@
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
-    "devicesLoad": {},
-    "devicesLoaded": {
-      "idToDetail": "I.Map<Types.DeviceID, Types.DeviceDetail>",
-      "canError": {}
+    "load": {},
+    "loaded": { "devices": "Array<Types.Device>" },
+    "endangeredTLFsLoad": { "deviceID": "Types.DeviceID" },
+    "endangeredTLFsLoaded": {
+      "deviceID": "Types.DeviceID",
+      "tlfs": "Array<string>"
     },
     "paperKeyMake": {},
-    "paperKeyCreated": {
-      "paperKey": "HiddenString"
-    },
-    "deviceRevoke": {
-      "deviceID": "Types.DeviceID"
-    },
+    "paperKeyCreated": { "paperKey": "HiddenString" },
+    "deviceRevoke": { "deviceID": "Types.DeviceID" },
     "deviceRevoked": {
       "deviceID": "Types.DeviceID",
       "wasCurrentDevice": "boolean",
       "deviceName": "string"
     },
-    "showRevokePage": {
-      "deviceID": "Types.DeviceID"
-    },
-    "endangeredTLFsLoad": {
-      "deviceID": "Types.DeviceID"
-    },
-    "endangeredTLFsLoaded": {
-      "deviceID": "Types.DeviceID",
-      "tlfs": "Array<string>"
-    }
+    "showRevokePage": { "deviceID": "Types.DeviceID" },
+    "showDevicePage": { "deviceID": "Types.DeviceID" }
   }
 }

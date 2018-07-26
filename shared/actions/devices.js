@@ -7,7 +7,6 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteActions from './route-tree'
 import * as RouteTree from '../route-tree'
 import * as Saga from '../util/saga'
-import * as Types from '../constants/types/devices'
 import HiddenString from '../util/hidden-string'
 import {loginTab} from '../constants/tabs'
 import {type TypedState} from '../constants/reducer'
@@ -19,64 +18,29 @@ const requestEndangeredTLFsLoad = (action: DevicesGen.ShowRevokePagePayload) =>
     })
   )
 
-const rpcEndangeredTlfs = (action: DevicesGen.ShowRevokePagePayload, state: TypedState) =>
+const endangeredTLFsLoad = (state: TypedState, action: DevicesGen.ShowRevokePagePayload) =>
   state.config.deviceID
-    ? Saga.call(
-        RPCTypes.rekeyGetRevokeWarningRpcPromise,
-        {
-          actingDevice: state.config.deviceID,
-          targetDevice: action.payload.deviceID,
-        },
+    ? RPCTypes.rekeyGetRevokeWarningRpcPromise(
+        {actingDevice: state.config.deviceID, targetDevice: action.payload.deviceID},
         Constants.waitingKey
       )
+        .then((tlfs: RPCTypes.RevokeWarning) =>
+          DevicesGen.createEndangeredTLFsLoaded({
+            deviceID: action.payload.deviceID,
+            tlfs: (tlfs.endangeredTLFs || []).map(t => t.name),
+          })
+        )
+        .catch(() => {})
     : null
 
-const dispatchEndangeredTLFsLoaded = (
-  tlfs: RPCTypes.RevokeWarning,
-  action: DevicesGen.ShowRevokePagePayload
-) =>
-  Saga.put(
-    DevicesGen.createEndangeredTLFsLoaded({
-      deviceID: action.payload.deviceID,
-      tlfs: (tlfs.endangeredTLFs || []).map(t => t.name),
+const load = (state: TypedState) =>
+  state.config.loggedIn &&
+  RPCTypes.deviceDeviceHistoryListRpcPromise(undefined, Constants.waitingKey)
+    .then((results: ?Array<RPCTypes.DeviceDetail>) => {
+      const devices = (results || []).map(d => Constants.rpcDeviceToDevice(d))
+      return DevicesGen.createLoaded({devices})
     })
-  )
-
-const showRevokePage = (action: DevicesGen.ShowRevokePagePayload) =>
-  Saga.put(
-    RouteActions.navigateTo([
-      ...Constants.devicesTabLocation,
-      {props: {deviceID: action.payload.deviceID}, selected: 'devicePage'},
-      {props: {deviceID: action.payload.deviceID}, selected: 'revokeDevice'},
-    ])
-  )
-
-const rpcDeviceList = (action: DevicesGen.DevicesLoadPayload, state: TypedState) =>
-  state.config.loggedIn
-    ? Saga.call(RPCTypes.deviceDeviceHistoryListRpcPromise, undefined, Constants.waitingKey)
-    : Saga.identity([])
-
-const dispatchDevicesLoadedError = () => Saga.put(DevicesGen.createDevicesLoadedError())
-
-const dispatchDevicesLoaded = (results: Array<RPCTypes.DeviceDetail>) => {
-  const devices = results.map((d: RPCTypes.DeviceDetail) =>
-    Constants.makeDeviceDetail({
-      created: d.device.cTime,
-      currentDevice: d.currentDevice,
-      deviceID: Types.stringToDeviceID(d.device.deviceID),
-      lastUsed: d.device.lastUsedTime,
-      name: d.device.name,
-      provisionedAt: d.provisionedAt,
-      provisionerName: d.provisioner ? d.provisioner.name : '',
-      revokedAt: d.revokedAt,
-      revokedByName: d.revokedByDevice ? d.revokedByDevice.name : null,
-      type: Types.stringToDeviceType(d.device.type),
-    })
-  )
-
-  const idToDetail: I.Map<Types.DeviceID, Types.DeviceDetail> = I.Map(devices.map(d => [d.deviceID, d]))
-  return Saga.put(DevicesGen.createDevicesLoaded({idToDetail}))
-}
+    .catch(() => {})
 
 function* makePaperKey(): Saga.SagaGenerator<any, any> {
   let channelMap
@@ -116,7 +80,7 @@ const showPaperKeyCreatedPage = (action: DevicesGen.PaperKeyCreatedPayload, stat
 
 function rpcRevoke(action: DevicesGen.DeviceRevokePayload, state: TypedState) {
   const {deviceID} = action.payload
-  const device = state.devices.idToDetail.get(deviceID)
+  const device = Constants.getDevice(state, deviceID)
   if (!device) {
     throw new Error("Can't find device to remove")
   }
@@ -169,31 +133,32 @@ const navigateAfterRevoked = (action: DevicesGen.DeviceRevokedPayload, state: Ty
   }
 }
 
+const showRevokePage = (state: TypedState) =>
+  Saga.put(RouteActions.navigateTo([...Constants.devicesTabLocation, 'devicePage', 'revokeDevice']))
+
+const showDevicePage = (state: TypedState) =>
+  Saga.put(RouteActions.navigateTo([...Constants.devicesTabLocation, 'devicePage']))
+
 function* deviceSaga(): Saga.SagaGenerator<any, any> {
   // Load devices
-  yield Saga.safeTakeLatestPure(
-    DevicesGen.devicesLoad,
-    rpcDeviceList,
-    dispatchDevicesLoaded,
-    dispatchDevicesLoadedError
-  )
+  yield Saga.actionToPromise(DevicesGen.load, load)
+  // Load endangered tlfs
+  yield Saga.actionToPromise(DevicesGen.endangeredTLFsLoad, endangeredTLFsLoad)
 
-  // Revoke page
+  // Navigation
+  yield Saga.actionToAction(DevicesGen.showRevokePage, showRevokePage)
+  yield Saga.actionToAction(DevicesGen.showDevicePage, showDevicePage)
+
+  yield Saga.safeTakeEveryPure(DevicesGen.paperKeyCreated, showPaperKeyCreatedPage)
+  yield Saga.safeTakeEveryPure(DevicesGen.deviceRevoked, navigateAfterRevoked)
+
+  // Loading data
   yield Saga.safeTakeEveryPure(DevicesGen.showRevokePage, requestEndangeredTLFsLoad)
-  yield Saga.safeTakeEveryPure(DevicesGen.showRevokePage, showRevokePage)
-  yield Saga.safeTakeEveryPure(DevicesGen.endangeredTLFsLoad, rpcEndangeredTlfs, dispatchEndangeredTLFsLoaded)
 
   // Making Paperkey flow
   yield Saga.safeTakeEvery(DevicesGen.paperKeyMake, makePaperKey)
-  yield Saga.safeTakeEveryPure(DevicesGen.paperKeyCreated, showPaperKeyCreatedPage)
 
   yield Saga.safeTakeEveryPure(DevicesGen.deviceRevoke, rpcRevoke, dispatchRevoked)
-  yield Saga.safeTakeEveryPure(DevicesGen.deviceRevoked, navigateAfterRevoked)
-}
-
-export const _testing = {
-  dispatchDevicesLoaded,
-  requestEndangeredTLFsLoad,
 }
 
 export default deviceSaga
