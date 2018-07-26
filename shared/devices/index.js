@@ -6,7 +6,7 @@ import FloatingMenu, {
   FloatingMenuParentHOC,
   type FloatingMenuParentProps,
 } from '../common-adapters/floating-menu'
-import DeviceRow from './row'
+import DeviceRow from './row/container'
 import * as Styles from '../styles'
 
 // TODO remove
