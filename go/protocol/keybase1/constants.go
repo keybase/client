@@ -36,6 +36,7 @@ const (
 	StatusCode_SCAccountReset                     StatusCode = 290
 	StatusCode_SCIdentifiesFailed                 StatusCode = 295
 	StatusCode_SCNoSpaceOnDevice                  StatusCode = 297
+	StatusCode_SCMerkleClientError                StatusCode = 299
 	StatusCode_SCBadEmail                         StatusCode = 472
 	StatusCode_SCBadSignupUsernameTaken           StatusCode = 701
 	StatusCode_SCBadInvitationCode                StatusCode = 707
@@ -225,6 +226,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCAccountReset":                     290,
 	"SCIdentifiesFailed":                 295,
 	"SCNoSpaceOnDevice":                  297,
+	"SCMerkleClientError":                299,
 	"SCBadEmail":                         472,
 	"SCBadSignupUsernameTaken":           701,
 	"SCBadInvitationCode":                707,
@@ -412,6 +414,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	290:  "SCAccountReset",
 	295:  "SCIdentifiesFailed",
 	297:  "SCNoSpaceOnDevice",
+	299:  "SCMerkleClientError",
 	472:  "SCBadEmail",
 	701:  "SCBadSignupUsernameTaken",
 	707:  "SCBadInvitationCode",
