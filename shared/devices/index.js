@@ -1,114 +1,73 @@
 // @flow
 import * as Types from '../constants/types/devices'
-import React, {PureComponent} from 'react'
-import {
-  Box2,
-  Box,
-  Text,
-  List,
-  Icon,
-  ClickableBox,
-  ProgressIndicator,
-  HeaderOnMobile,
-} from '../common-adapters'
+import * as React from 'react'
+import * as Common from '../common-adapters'
 import FloatingMenu, {
   FloatingMenuParentHOC,
   type FloatingMenuParentProps,
 } from '../common-adapters/floating-menu'
-import {RowConnector} from './row'
-import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../styles'
+import DeviceRow from './row/container'
+import * as Styles from '../styles'
 
-import type {MenuItem} from '../common-adapters/popup-menu'
+// TODO remove
+const {Box2, Text, List, Icon, ClickableBox, ProgressIndicator, HeaderOnMobile} = Common
 
-export type Props = {
-  deviceIDs: Array<Types.DeviceID>,
-  menuItems: Array<MenuItem | 'Divider' | null>,
-  onToggleShowRevoked: () => void,
-  revokedDeviceIDs: Array<Types.DeviceID>,
-  showingRevoked: boolean,
-  waiting: boolean,
+// TODO remove
+const {globalStyles, globalColors, globalMargins, isMobile, styleSheetCreate} = Styles
+
+// TODO use list-item2
+
+type Item = {key: string, id: Types.DeviceID, type: 'device'} | {key: string, type: 'revokedHeader'}
+
+type State = {
+  revokedExpanded: boolean,
 }
 
-const DeviceHeader = ({onAddNew, setAttachmentRef, waiting}) => (
-  <ClickableBox onClick={onAddNew}>
-    <Box ref={setAttachmentRef} style={{...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}}>
-      {waiting && (
-        <ProgressIndicator style={{position: 'absolute', width: 20, top: isMobile ? 22 : 14, left: 12}} />
-      )}
-      <Icon type="iconfont-new" color={globalColors.blue} />
-      <Text type="BodyBigLink" style={{padding: globalMargins.xtiny}}>
-        Add new...
-      </Text>
-    </Box>
-  </ClickableBox>
-)
+type Props = {|
+  // Only used by storybook
+  _stateOverride: ?State,
+  addNewComputer: () => void,
+  addNewPaperKey: () => void,
+  addNewPhone: () => void,
+  items: Array<Item>,
+  loadDevices: () => void,
+  onBack: () => void,
+  revokedItems: Array<Item>,
+  waiting: boolean,
+|}
 
-const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
-  <Box>
-    <ClickableBox onClick={onToggleExpanded}>
-      <Box style={stylesRevokedRow}>
-        <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
-          Revoked devices
-        </Text>
-        <Icon
-          type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-          style={{padding: 5}}
-          color={globalColors.black_60}
-          fontSize={10}
-        />
-      </Box>
-    </ClickableBox>
-    {expanded && (
-      <Box style={stylesRevokedDescription}>
-        <Text
-          type="BodySmallSemibold"
-          style={{
-            color: globalColors.black_40,
-            paddingBottom: globalMargins.tiny,
-            paddingTop: globalMargins.tiny,
-            textAlign: 'center',
-          }}
-        >
-          Revoked devices will no longer be able to access your Keybase account.
-        </Text>
-      </Box>
-    )}
-  </Box>
-)
+class Devices extends React.PureComponent<Props & FloatingMenuParentProps, State> {
+  static defaultProps = {_stateOverride: null}
+  state = {revokedExpanded: this.props._stateOverride ? this.props._stateOverride.revokedExpanded : false}
 
-const DeviceRow = RowConnector(({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}) => (
-  <ClickableBox onClick={showExistingDevicePage} style={{...stylesCommonRow, alignItems: 'center'}}>
-    <Box key={name} style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
-      <Icon type={icon} style={isRevoked ? {marginRight: 16, opacity: 0.2} : {marginRight: 16}} />
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'flex-start'}}>
-        <Text style={textStyle(isRevoked)} type="BodySemiboldItalic">
-          {name}
-        </Text>
-        {isCurrentDevice && <Text type="BodySmall">Current device</Text>}
-      </Box>
-    </Box>
-  </ClickableBox>
-))
+  componentDidMount() {
+    this.props.loadDevices()
+  }
 
-class _Devices extends PureComponent<Props & FloatingMenuParentProps> {
+  _toggleExpanded = () => this.setState(p => ({revokedExpanded: !p.revokedExpanded}))
+
   _renderRow = (index, item) =>
     item.type === 'revokedHeader' ? (
       <RevokedHeader
         key="revokedHeader"
-        expanded={this.props.showingRevoked}
-        onToggleExpanded={this.props.onToggleShowRevoked}
+        expanded={this.state.revokedExpanded}
+        onToggleExpanded={this._toggleExpanded}
       />
     ) : (
-      <DeviceRow key={item.id} deviceID={item.id} />
+      <DeviceRow key={item.id} deviceID={item.id} firstItem={index === 0} />
     )
 
   render() {
     const items = [
-      ...this.props.deviceIDs.map(id => ({id, key: id, type: 'device'})),
-      {key: 'revokedHeader', type: 'revokedHeader'},
-      ...(this.props.showingRevoked
-        ? this.props.revokedDeviceIDs.map(id => ({id, key: id, type: 'device'}))
-        : []),
+      ...this.props.items,
+      ...(this.props.items.length ? [{key: 'revokedHeader', type: 'revokedHeader'}] : []),
+      ...(this.state.revokedExpanded ? this.props.revokedItems : []),
+    ]
+
+    const menuItems = [
+      {onClick: this.props.addNewPhone, title: 'New phone'},
+      {onClick: this.props.addNewComputer, title: 'New computer'},
+      {onClick: this.props.addNewPaperKey, title: 'New paper key'},
     ]
 
     return (
@@ -118,19 +77,84 @@ class _Devices extends PureComponent<Props & FloatingMenuParentProps> {
           onAddNew={this.props.toggleShowingMenu}
           waiting={this.props.waiting}
         />
+        {this.props.waiting && <ProgressIndicator style={styles2.progress} />}
         <List items={items} renderItem={this._renderRow} />
         <FloatingMenu
           attachTo={this.props.attachmentRef}
           visible={this.props.showingMenu}
           onHidden={this.props.toggleShowingMenu}
-          items={this.props.menuItems}
+          items={menuItems}
           position="bottom center"
         />
       </Box2>
     )
   }
 }
-const Devices = FloatingMenuParentHOC(_Devices)
+const styles2 = styleSheetCreate({
+  progress: {
+    left: 12,
+    position: 'absolute',
+    top: isMobile ? 22 : 14,
+    width: 20,
+  },
+})
+
+const DeviceHeader = ({onAddNew, setAttachmentRef, waiting}) => (
+  <ClickableBox onClick={onAddNew}>
+    <Box2
+      direction="horizontal"
+      ref={setAttachmentRef}
+      gap="xtiny"
+      style={headerStyles.container}
+      fullWidth={true}
+      centerChildren={true}
+    >
+      <Icon type="iconfont-new" color={globalColors.blue} />
+      <Text type="BodyBigLink">Add new...</Text>
+    </Box2>
+  </ClickableBox>
+)
+const headerStyles = styleSheetCreate({
+  container: {height: isMobile ? 64 : 48},
+})
+
+const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
+  <ClickableBox onClick={onToggleExpanded}>
+    <Box2 direction="vertical" fullWidth={true} gap="xtiny">
+      <Box2
+        direction="horizontal"
+        fullWidth={true}
+        gap="xtiny"
+        gapStart={true}
+        style={revokedHeaderStyles.textContainer}
+      >
+        <Text type="BodySmallSemibold" style={revokedHeaderStyles.text}>
+          Revoked devices
+        </Text>
+        <Icon
+          type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
+          color={globalColors.black_60}
+          fontSize={10}
+        />
+      </Box2>
+      {expanded && (
+        <Text type="BodySmallSemibold" style={revokedHeaderStyles.desc}>
+          Revoked devices will no longer be able to access your Keybase account.
+        </Text>
+      )}
+    </Box2>
+  </ClickableBox>
+)
+const revokedHeaderStyles = styleSheetCreate({
+  desc: {
+    alignSelf: 'center',
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    textAlign: 'center',
+  },
+  text: {color: globalColors.black_60},
+  textContainer: {alignItems: 'center'},
+})
 
 const stylesCommonCore = {
   alignItems: 'center',
@@ -139,44 +163,4 @@ const stylesCommonCore = {
   justifyContent: 'center',
 }
 
-const stylesCommonRow = {
-  ...globalStyles.flexBoxRow,
-  ...stylesCommonCore,
-  minHeight: isMobile ? 64 : 48,
-  padding: 8,
-}
-
-const stylesRevokedRow = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  justifyContent: 'flex-start',
-  minHeight: 38,
-  paddingLeft: 8,
-}
-
-const stylesRevokedDescription = {
-  ...globalStyles.flexBoxColumn,
-  ...stylesCommonCore,
-  alignItems: 'center',
-  paddingLeft: 32,
-  paddingRight: 32,
-}
-
-const textStyle = isRevoked =>
-  isRevoked
-    ? platformStyles({
-        common: {
-          color: globalColors.black_40,
-          flex: 0,
-          textDecorationLine: 'line-through',
-          textDecorationStyle: 'solid',
-        },
-        isElectron: {
-          fontStyle: 'italic',
-        },
-      })
-    : {
-        flex: 0,
-      }
-
-export default HeaderOnMobile(Devices)
+export default HeaderOnMobile(FloatingMenuParentHOC(Devices))

@@ -12,7 +12,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   generatePaperKey: () => dispatch(DevicesGen.createPaperKeyMake()),
   onBack: () => dispatch(navigateUp()),
   onFinish: () => {
-    dispatch(DevicesGen.createDevicesLoad())
+    dispatch(DevicesGen.createLoad())
     dispatch(navigateUp())
   },
 })
