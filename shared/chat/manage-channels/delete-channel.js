@@ -37,11 +37,6 @@ type Props = {
 
 type State = {}
 
-const stylePopup = {
-  overflow: 'visible',
-  width: 196,
-}
-
 class _DeleteChannel extends React.Component<Props, State> {
   render() {
     const {disabled} = this.props
@@ -85,7 +80,6 @@ class _DeleteChannel extends React.Component<Props, State> {
           header={header}
           items={items}
           attachTo={this.props.attachmentRef}
-          style={stylePopup}
           visible={this.props.showingMenu}
           onHidden={this.props.toggleShowingMenu}
         />

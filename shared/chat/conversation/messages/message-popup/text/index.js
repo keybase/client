@@ -2,7 +2,6 @@
 import * as React from 'react'
 import MessagePopupHeader from '../header'
 import {FloatingMenu} from '../../../../../common-adapters/'
-import {isMobile} from '../../../../../util/container'
 import type {DeviceType} from '../../../../../constants/types/devices'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 
@@ -79,15 +78,10 @@ const TextPopupMenu = (props: Props) => {
       items={items}
       onHidden={props.onHidden}
       position={props.position}
-      style={{...stylePopup, ...props.style}}
+      containerStyle={props.style}
       visible={props.visible}
     />
   )
-}
-
-const stylePopup = {
-  overflow: 'visible',
-  width: isMobile ? '100%' : 240,
 }
 
 export default TextPopupMenu

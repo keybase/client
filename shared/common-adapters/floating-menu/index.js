@@ -13,7 +13,7 @@ import PopupMenu, {type MenuItem, ModalLessPopupMenu} from '../popup-menu'
 import {isMobile} from '../../constants/platform'
 import {type StylesCrossPlatform} from '../../styles'
 
-export type Props = {
+export type Props = {|
   closeOnSelect?: boolean,
   containerStyle?: StylesCrossPlatform,
   items: Array<MenuItem | 'Divider' | null>,
@@ -23,7 +23,7 @@ export type Props = {
   attachTo?: ?React.Component<any, any>,
   position?: Position,
   propagateOutsideClicks?: boolean,
-}
+|}
 
 export default (props: Props) => {
   if (!props.visible) {
