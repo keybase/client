@@ -222,6 +222,16 @@ func (tlf *TLF) open(ctx context.Context, oc *openContext, path []string) (
 		return tlf.open(ctx, oc, path)
 	}
 
+	_, isRelTimeLink, err := libfs.FileDataFromRelativeTimeString(
+		ctx, tlf.folder.fs.config, tlf.folder.h, path[0])
+	if err != nil {
+		return nil, 0, err
+	}
+	if isRelTimeLink {
+		return NewArchiveRelTimeFile(tlf.folder.fs, tlf.folder.h, path[0]),
+			dokan.ExistingFile, nil
+	}
+
 	return dir.open(ctx, oc, path)
 }
 
