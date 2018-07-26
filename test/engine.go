@@ -64,11 +64,17 @@ type Engine interface {
 	GetRootDirAtRevision(
 		u User, tlfName string, t tlf.Type, rev kbfsmd.Revision,
 		expectedCanonicalTlfName string) (dir Node, err error)
-	// GetRootDirAtTime is called by the test harness to get a
+	// GetRootDirAtTimeString is called by the test harness to get a
 	// handle to an archived TLF from the given user's perspective, at
 	// a given time.
 	GetRootDirAtTimeString(
 		u User, tlfName string, t tlf.Type, timeString string,
+		expectedCanonicalTlfName string) (dir Node, err error)
+	// GetRootDirAtRelTimeString is called by the test harness to get
+	// a handle to an archived TLF from the given user's perspective,
+	// at a given relative time from now.
+	GetRootDirAtRelTimeString(
+		u User, tlfName string, t tlf.Type, relTimeString string,
 		expectedCanonicalTlfName string) (dir Node, err error)
 	// CreateDir is called by the test harness to create a directory relative to the passed
 	// parent directory for the given user.

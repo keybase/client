@@ -43,6 +43,7 @@ type opt struct {
 	tlfType                  tlf.Type
 	tlfRevision              kbfsmd.Revision
 	tlfTime                  string
+	tlfRelTime               string
 	users                    map[libkb.NormalizedUsername]User
 	stallers                 map[libkb.NormalizedUsername]*libkbfs.NaïveStaller
 	tb                       testing.TB
@@ -340,6 +341,15 @@ func inPrivateTlfAtTime(name string, timeString string) optionOp {
 	}
 }
 
+func inPrivateTlfAtRelativeTime(name string, relTimeString string) optionOp {
+	return func(o *opt) {
+		o.tlfName = name
+		o.expectedCanonicalTlfName = name
+		o.tlfType = tlf.Private
+		o.tlfRelTime = relTimeString
+	}
+}
+
 func inPrivateTlfNonCanonical(name, expectedCanonicalName string) optionOp {
 	return func(o *opt) {
 		o.tlfName = name
@@ -536,6 +546,10 @@ func initRoot() fileOp {
 		} else if c.tlfTime != "" {
 			root, err = c.engine.GetRootDirAtTimeString(
 				c.user, c.tlfName, c.tlfType, c.tlfTime,
+				c.expectedCanonicalTlfName)
+		} else if c.tlfRelTime != "" {
+			root, err = c.engine.GetRootDirAtRelTimeString(
+				c.user, c.tlfName, c.tlfType, c.tlfRelTime,
 				c.expectedCanonicalTlfName)
 		} else {
 			root, err = c.engine.GetRootDir(

@@ -37,7 +37,7 @@ func TestArchiveByRevision(t *testing.T) {
 }
 
 func TestArchiveByTime(t *testing.T) {
-	// The start time of the test is 1970-01-01 00:00:00 +0000 UTC.
+	// The start time of the test is 1970-01-01 00:00:01 +0000 UTC.
 	rev1checks := []optionOp{
 		as(alice,
 			lsdir("", m{}),
@@ -92,7 +92,7 @@ func TestArchiveByTime(t *testing.T) {
 }
 
 func TestArchiveByTimeWithColons(t *testing.T) {
-	// The start time of the test is 1970-01-01 00:00:00 +0000 UTC.
+	// The start time of the test is 1970-01-01 00:00:01 +0000 UTC.
 	rev1checks := []optionOp{
 		as(alice,
 			lsdir("", m{}),
@@ -137,6 +137,69 @@ func TestArchiveByTimeWithColons(t *testing.T) {
 		rev2checks[0], rev2checks[1],
 
 		inPrivateTlfAtTime("alice,bob", "Tue Jan  2 15:04:05 2018"),
+		rev2checks[0], rev2checks[1],
+	)
+}
+
+func TestArchiveByRelativeTime(t *testing.T) {
+	// The start time of the test is 1970-01-01 00:00:01 +0000 UTC.
+	rev1checks := []optionOp{
+		as(alice,
+			lsdir("", m{}),
+		),
+		as(bob,
+			lsdir("", m{}),
+		),
+	}
+
+	rev2checks := []optionOp{
+		as(alice,
+			lsdir("", m{"a$": "DIR"}),
+			lsdir("a", m{}),
+		),
+		as(bob,
+			lsdir("", m{"a$": "DIR"}),
+			lsdir("a", m{}),
+		),
+	}
+
+	test(t,
+		users("alice", "bob"),
+
+		inPrivateTlf("alice,bob"),
+		rev1checks[0], rev1checks[1],
+		as(alice,
+			addTime(365*24*time.Hour),
+			mkdir("a"),
+		),
+		rev2checks[0], rev2checks[1],
+
+		as(alice,
+			addTime(30*time.Second),
+		),
+
+		// Try various formats for the first revision.
+		inPrivateTlfAtRelativeTime("alice,bob", "1h"),
+		rev1checks[0], rev1checks[1],
+
+		inPrivateTlfAtRelativeTime("alice,bob", "3600s"),
+		rev1checks[0], rev1checks[1],
+
+		inPrivateTlfAtRelativeTime("alice,bob", "5h55m"),
+		rev1checks[0], rev1checks[1],
+
+		// Now the second revision.
+		inPrivateTlfAtRelativeTime("alice,bob", "1s"),
+		rev2checks[0], rev2checks[1],
+
+		inPrivateTlfAtRelativeTime("alice,bob", "15s"),
+		rev2checks[0], rev2checks[1],
+
+		// Make sure the relative time adjusts with the clock.
+		as(alice,
+			addTime(1*time.Hour),
+		),
+		inPrivateTlfAtRelativeTime("alice,bob", "1h"),
 		rev2checks[0], rev2checks[1],
 	)
 }

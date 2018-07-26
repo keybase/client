@@ -175,6 +175,24 @@ func (e *fsEngine) GetRootDirAtTimeString(
 	return fsNode{filepath.Join(p.path, timeLink)}, nil
 }
 
+// GetRootDirAtRelTimeString implements the Engine interface.
+func (e *fsEngine) GetRootDirAtRelTimeString(
+	u User, tlfName string, t tlf.Type, relTimeString string,
+	expectedCanonicalTlfName string) (dir Node, err error) {
+	d, err := e.GetRootDir(u, tlfName, t, expectedCanonicalTlfName)
+	if err != nil {
+		return nil, err
+	}
+	p := d.(fsNode)
+	fileName := libfs.ArchivedRelTimeFilePrefix + relTimeString
+	revDir, err := ioutil.ReadFile(filepath.Join(p.path, fileName))
+	if err != nil {
+		return nil, err
+	}
+
+	return fsNode{filepath.Join(p.path, string(revDir))}, nil
+}
+
 // CreateDir is called by the test harness to create a directory relative to the passed
 // parent directory for the given user.
 func (*fsEngine) CreateDir(u User, parentDir Node, name string) (dir Node, err error) {

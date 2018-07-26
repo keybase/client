@@ -308,6 +308,27 @@ func (k *LibKBFS) GetRootDirAtTimeString(
 		u, tlfName, t, libkbfs.MakeRevBranchName(rev), expectedCanonicalTlfName)
 }
 
+// GetRootDirAtRelTimeString implements the Engine interface.
+func (k *LibKBFS) GetRootDirAtRelTimeString(
+	u User, tlfName string, t tlf.Type, relTimeString string,
+	expectedCanonicalTlfName string) (dir Node, err error) {
+	config := u.(*libkbfs.ConfigLocal)
+	ctx, cancel := k.newContext(u)
+	defer cancel()
+	h, err := parseTlfHandle(ctx, config.KBPKI(), config.MDOps(), tlfName, t)
+	if err != nil {
+		return nil, err
+	}
+
+	rev, err := libfs.RevFromRelativeTimeString(ctx, config, h, relTimeString)
+	if err != nil {
+		return nil, err
+	}
+
+	return k.getRootDir(
+		u, tlfName, t, libkbfs.MakeRevBranchName(rev), expectedCanonicalTlfName)
+}
+
 // CreateDir implements the Engine interface.
 func (k *LibKBFS) CreateDir(u User, parentDir Node, name string) (dir Node, err error) {
 	config := u.(*libkbfs.ConfigLocal)
