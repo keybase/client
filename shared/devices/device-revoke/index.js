@@ -54,7 +54,7 @@ const BodyText = (props: {name: string, currentDevice: boolean}) => (
     <Text type="BodySemibold" style={styles.bodyText}>
       Are you sure you want to revoke{' '}
       {props.currentDevice ? 'your current device' : <Text type="BodySemiboldItalic">{props.name}</Text>}
-      ?
+      ? Revoked devices will not be able to access your Keybase account.
     </Text>
   </Box>
 )
@@ -102,7 +102,7 @@ const ActionButtons = (props: {onCancel: () => void, onSubmit: () => void, waiti
       fullWidth={isMobile}
       type="Danger"
       onClick={props.waiting ? null : props.onSubmit}
-      label="Yes, delete it"
+      label="Yes, revoke it"
       disabled={props.waiting}
     />
     <Button fullWidth={isMobile} type="Secondary" onClick={props.onCancel} label="Cancel" />
