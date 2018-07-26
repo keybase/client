@@ -137,10 +137,16 @@ const provider = createPropProvider(makeSelectorMap())
 
 const UserInputEditable = compose(
   withStateHandlers(props => ({userItems: props.userItems, usernameText: ''}), {
-    onChangeText: () => usernameText => ({usernameText}),
-    onRemoveUser: ({userItems}) => (id: string) => ({
-      userItems: userItems.filter(i => i.id !== id),
-    }),
+    onChangeText: (_, {onChangeText}) => usernameText => {
+      onChangeText(usernameText)
+      return {usernameText}
+    },
+    onRemoveUser: ({userItems}, {onRemoveUser}) => (id: string) => {
+      onRemoveUser(id)
+      return {
+        userItems: userItems.filter(i => i.id !== id),
+      }
+    },
   })
 )(UserInput)
 

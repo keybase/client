@@ -64,9 +64,9 @@ const provider = createPropProvider({
 })
 
 const load = () => {
-  storiesOf('Wallets/Search', module)
+  storiesOf('Wallets', module)
     .addDecorator(provider)
-    .add('Normal', () => (
+    .add('Search', () => (
       <Wrapper>
         <Search
           onClick={action('onClick')}
