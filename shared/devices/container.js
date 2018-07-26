@@ -14,7 +14,7 @@ const mapStateToProps = (state: Container.TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Container.Dispatch) => ({
   addNewComputer: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'})),
-  addNewPaperKey: () => dispatch(DevicesGen.createPaperKeyMake()),
+  addNewPaperKey: () => dispatch(DevicesGen.createShowPaperKeyPage()),
   addNewPhone: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'})),
   loadDevices: () => dispatch(DevicesGen.createLoad()),
   onBack: () => dispatch(RouteTree.navigateUp()),

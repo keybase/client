@@ -18,13 +18,14 @@ export default function(state: Types.State = initialState, action: DevicesGen.Ac
       return state.set('selectedDeviceID', action.payload.deviceID)
     case DevicesGen.showDevicePage:
       return state.set('selectedDeviceID', action.payload.deviceID)
+    case DevicesGen.showPaperKeyPage:
+      return state.set('newPaperkey', initialState.newPaperkey)
     // Saga only actions
     case DevicesGen.deviceRevoke:
     case DevicesGen.deviceRevoked:
     case DevicesGen.load:
     case DevicesGen.endangeredTLFsLoad:
     case DevicesGen.paperKeyCreated:
-    case DevicesGen.paperKeyMake:
       return state
     default:
       /*::

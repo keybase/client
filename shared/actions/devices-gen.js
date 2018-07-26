@@ -17,8 +17,8 @@ export const endangeredTLFsLoaded = 'devices:endangeredTLFsLoaded'
 export const load = 'devices:load'
 export const loaded = 'devices:loaded'
 export const paperKeyCreated = 'devices:paperKeyCreated'
-export const paperKeyMake = 'devices:paperKeyMake'
 export const showDevicePage = 'devices:showDevicePage'
+export const showPaperKeyPage = 'devices:showPaperKeyPage'
 export const showRevokePage = 'devices:showRevokePage'
 
 // Payload Types
@@ -36,8 +36,8 @@ type _EndangeredTLFsLoadedPayload = $ReadOnly<{|
 type _LoadPayload = void
 type _LoadedPayload = $ReadOnly<{|devices: Array<Types.Device>|}>
 type _PaperKeyCreatedPayload = $ReadOnly<{|paperKey: HiddenString|}>
-type _PaperKeyMakePayload = void
 type _ShowDevicePagePayload = $ReadOnly<{|deviceID: Types.DeviceID|}>
+type _ShowPaperKeyPagePayload = void
 type _ShowRevokePagePayload = $ReadOnly<{|deviceID: Types.DeviceID|}>
 
 // Action Creators
@@ -48,8 +48,8 @@ export const createEndangeredTLFsLoaded = (payload: _EndangeredTLFsLoadedPayload
 export const createLoad = (payload: _LoadPayload) => ({error: false, payload, type: load})
 export const createLoaded = (payload: _LoadedPayload) => ({error: false, payload, type: loaded})
 export const createPaperKeyCreated = (payload: _PaperKeyCreatedPayload) => ({error: false, payload, type: paperKeyCreated})
-export const createPaperKeyMake = (payload: _PaperKeyMakePayload) => ({error: false, payload, type: paperKeyMake})
 export const createShowDevicePage = (payload: _ShowDevicePagePayload) => ({error: false, payload, type: showDevicePage})
+export const createShowPaperKeyPage = (payload: _ShowPaperKeyPagePayload) => ({error: false, payload, type: showPaperKeyPage})
 export const createShowRevokePage = (payload: _ShowRevokePagePayload) => ({error: false, payload, type: showRevokePage})
 
 // Action Payloads
@@ -60,8 +60,8 @@ export type EndangeredTLFsLoadedPayload = $Call<typeof createEndangeredTLFsLoade
 export type LoadPayload = $Call<typeof createLoad, _LoadPayload>
 export type LoadedPayload = $Call<typeof createLoaded, _LoadedPayload>
 export type PaperKeyCreatedPayload = $Call<typeof createPaperKeyCreated, _PaperKeyCreatedPayload>
-export type PaperKeyMakePayload = $Call<typeof createPaperKeyMake, _PaperKeyMakePayload>
 export type ShowDevicePagePayload = $Call<typeof createShowDevicePage, _ShowDevicePagePayload>
+export type ShowPaperKeyPagePayload = $Call<typeof createShowPaperKeyPage, _ShowPaperKeyPagePayload>
 export type ShowRevokePagePayload = $Call<typeof createShowRevokePage, _ShowRevokePagePayload>
 
 // All Actions
@@ -74,7 +74,7 @@ export type Actions =
   | LoadPayload
   | LoadedPayload
   | PaperKeyCreatedPayload
-  | PaperKeyMakePayload
   | ShowDevicePagePayload
+  | ShowPaperKeyPagePayload
   | ShowRevokePagePayload
   | {type: 'common:resetStore', payload: void}

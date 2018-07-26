@@ -7,6 +7,7 @@ import * as WaitingConstants from './waiting'
 import * as RPCTypes from './types/rpc-gen'
 import {isMobile} from './platform'
 import type {TypedState} from './reducer'
+import HiddenString from '../util/hidden-string'
 
 export const rpcDeviceToDevice = (d: RPCTypes.DeviceDetail): Types.Device =>
   makeDevice({
@@ -38,6 +39,7 @@ const makeDevice: I.RecordFactory<Types._Device> = I.Record({
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   deviceMap: I.Map(),
   endangeredTLFMap: I.Map(),
+  newPaperkey: new HiddenString(''),
   selectedDeviceID: null,
 })
 

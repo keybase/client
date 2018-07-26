@@ -1,5 +1,6 @@
 // @flow
 import * as I from 'immutable'
+import HiddenString from '../../util/hidden-string'
 
 export type DeviceType = 'mobile' | 'desktop' | 'backup'
 export opaque type DeviceID: string = string
@@ -21,6 +22,7 @@ export type Device = I.RecordOf<_Device>
 export type _State = {
   deviceMap: I.Map<DeviceID, Device>,
   endangeredTLFMap: I.Map<DeviceID, I.Set<string>>,
+  newPaperkey: HiddenString,
   selectedDeviceID: ?DeviceID,
 }
 export type State = I.RecordOf<_State>

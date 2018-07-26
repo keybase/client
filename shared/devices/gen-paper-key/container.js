@@ -1,27 +1,19 @@
 // @flow
-import * as DevicesGen from '../../actions/devices-gen'
-import Render from '.'
-import {connect} from '../../util/container'
+import * as Container from '../../util/container'
+import PaperKey from '.'
 import {navigateUp} from '../../actions/route-tree'
 
-const mapStateToProps = (state, {routeProps}) => ({
-  paperkey: routeProps.get('paperKey'),
+const mapStateToProps = (state: Container.TypedState) => ({
+  paperkey: state.devices.newPaperkey.stringValue(),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  generatePaperKey: () => dispatch(DevicesGen.createPaperKeyMake()),
+const mapDispatchToProps = (dispatch: Container.Dispatch) => ({
   onBack: () => dispatch(navigateUp()),
-  onFinish: () => {
-    dispatch(DevicesGen.createLoad())
-    dispatch(navigateUp())
-  },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-  title: 'Paper key generated!',
-  waiting: false,
+const mergeProps = (stateProps, dispatchProps) => ({
+  onBack: dispatchProps.onBack,
+  paperkey: stateProps.paperkey,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Render)
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(PaperKey)

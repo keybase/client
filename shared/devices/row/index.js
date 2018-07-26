@@ -46,7 +46,7 @@ const DeviceRow = (props: Props) => {
 
   return (
     <Common.ListItem2
-      type="Small"
+      type="Large"
       firstItem={props.firstItem}
       onClick={props.showExistingDevicePage}
       icon={

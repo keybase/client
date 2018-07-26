@@ -12,7 +12,6 @@
       "deviceID": "Types.DeviceID",
       "tlfs": "Array<string>"
     },
-    "paperKeyMake": {},
     "paperKeyCreated": { "paperKey": "HiddenString" },
     "deviceRevoke": { "deviceID": "Types.DeviceID" },
     "deviceRevoked": {
@@ -21,6 +20,7 @@
       "deviceName": "string"
     },
     "showRevokePage": { "deviceID": "Types.DeviceID" },
-    "showDevicePage": { "deviceID": "Types.DeviceID" }
+    "showDevicePage": { "deviceID": "Types.DeviceID" },
+    "showPaperKeyPage": {}
   }
 }
