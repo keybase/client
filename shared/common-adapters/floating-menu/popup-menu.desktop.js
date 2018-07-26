@@ -1,14 +1,74 @@
 // @flow
 import React, {Component} from 'react'
-import type {ModalLessPopupMenuProps} from './popup-menu'
+import type {ModalLessPopupMenuProps, MenuItem} from './popup-menu'
 import {Box, Text} from '..'
-import {globalColors, globalMargins, globalStyles, desktopStyles} from '../../styles'
+import {
+  globalColors,
+  globalMargins,
+  globalStyles,
+  desktopStyles,
+  styleSheetCreate,
+  collapseStyles,
+  platformStyles,
+} from '../../styles'
 
 // TODO refactor to use Overlay and consolidate some of these files
 // popup-menu / relative-popup-hoc / floating-menu
 // probably all can go in floating-menu now that everything uses that
 
 class ModalLessPopupMenu extends Component<ModalLessPopupMenuProps> {
+  _renderDivider = () => <Box style={styles.divider} />
+
+  _renderMenuItem = (item: MenuItem) => {
+    let hoverClassName
+    let styleDisabled = {}
+    if (!item.disabled) {
+      hoverClassName = item.danger ? 'menu-hover-danger' : 'menu-hover'
+    } else {
+      styleDisabled = {opacity: 0.4}
+    }
+
+    const styleClickable = item.disabled ? {} : desktopStyles.clickable
+
+    return (
+      <Box
+        key={item.title}
+        className={hoverClassName}
+        style={collapseStyles([styles.itemContainer, styleClickable])}
+        onClick={event => {
+          item.onClick && item.onClick()
+          if (this.props.closeOnClick && this.props.onHidden) {
+            this.props.onHidden()
+            event.stopPropagation()
+          }
+        }}
+      >
+        {item.view ? (
+          item.view
+        ) : (
+          <Text
+            className="title"
+            type="Body"
+            style={collapseStyles([styles.itemBodyText, item.style, styleDisabled])}
+          >
+            {item.title}
+          </Text>
+        )}
+        {!item.view &&
+          item.subTitle && (
+            <Text
+              className="subtitle"
+              key={item.subTitle}
+              type="BodySmall"
+              style={collapseStyles([styles.itemBodyText, item.style])}
+            >
+              {item.subTitle}
+            </Text>
+          )}
+      </Box>
+    )
+  }
+
   render() {
     const realCSS = `
     .menu-hover:hover { background-color: ${
@@ -26,70 +86,17 @@ class ModalLessPopupMenu extends Component<ModalLessPopupMenuProps> {
     return (
       <Box>
         <style>{realCSS}</style>
-        <Box style={{...stylesMenu, ...this.props.style}}>
+        <Box style={collapseStyles([styles.menuContainer, this.props.style])}>
+          {/* Display header if there is one */}
           {this.props.header && this.props.header.view}
+          {/* Display menu items */}
           {this.props.items.length > 0 && (
-            <Box
-              style={{
-                ...globalStyles.flexBoxColumn,
-                flexShrink: 0,
-                paddingTop: globalMargins.tiny,
-                paddingBottom: globalMargins.tiny,
-              }}
-            >
-              {this.props.items.filter(Boolean).map((i, idx) => {
-                if (i === 'Divider') {
-                  return <Divider key={idx} />
-                }
-
-                let hoverClassName
-                let styleDisabled = {}
-                if (!i.disabled) {
-                  hoverClassName = i.danger ? 'menu-hover-danger' : 'menu-hover'
-                } else {
-                  styleDisabled = {opacity: 0.4}
-                }
-
-                const styleClickable = i.disabled ? {} : desktopStyles.clickable
-
-                return (
-                  <Box
-                    key={i.title}
-                    className={hoverClassName}
-                    style={{...stylesRow, ...styleClickable}}
-                    onClick={event => {
-                      i.onClick && i.onClick()
-                      if (this.props.closeOnClick && this.props.onHidden) {
-                        this.props.onHidden()
-                        event.stopPropagation()
-                      }
-                    }}
-                  >
-                    {i.view ? (
-                      i.view
-                    ) : (
-                      <Text
-                        className="title"
-                        type="Body"
-                        style={{...stylesMenuText, ...i.style, ...styleDisabled}}
-                      >
-                        {i.title}
-                      </Text>
-                    )}
-                    {!i.view &&
-                      i.subTitle && (
-                        <Text
-                          className="subtitle"
-                          key={i.subTitle}
-                          type="BodySmall"
-                          style={{...stylesMenuText, ...i.style}}
-                        >
-                          {i.subTitle}
-                        </Text>
-                      )}
-                  </Box>
-                )
-              })}
+            <Box style={styles.menuItemList}>
+              {this.props.items
+                .filter(Boolean)
+                .map(
+                  (item, idx) => (item === 'Divider' ? this._renderDivider() : this._renderMenuItem(item))
+                )}
             </Box>
           )}
         </Box>
@@ -98,32 +105,37 @@ class ModalLessPopupMenu extends Component<ModalLessPopupMenuProps> {
   }
 }
 
-const Divider = () => (
-  <Box style={{height: 1, backgroundColor: globalColors.black_05, marginTop: 8, marginBottom: 8}} />
-)
-
-const stylesRow = {
-  ...globalStyles.flexBoxColumn,
-  paddingTop: globalMargins.xtiny,
-  paddingBottom: globalMargins.xtiny,
-  paddingLeft: globalMargins.small,
-  paddingRight: globalMargins.small,
-}
-
-const stylesMenu = {
-  ...globalStyles.flexBoxColumn,
-  minWidth: 200,
-  justifyContent: 'flex-start',
-  alignItems: 'stretch',
-  backgroundColor: globalColors.white,
-  borderRadius: 3,
-  boxShadow: '0 0 15px 0 rgba(0, 0, 0, 0.2)',
-  overflowX: 'hidden',
-  overflowY: 'auto',
-}
-
-const stylesMenuText = {
-  color: undefined,
-}
+const styles = styleSheetCreate({
+  divider: {height: 1, backgroundColor: globalColors.black_05, marginTop: 8, marginBottom: 8},
+  menuContainer: platformStyles({
+    isElectron: {
+      ...globalStyles.flexBoxColumn,
+      alignItems: 'stretch',
+      backgroundColor: globalColors.white,
+      borderRadius: 3,
+      boxShadow: '0 0 15px 0 rgba(0, 0, 0, 0.2)',
+      justifyContent: 'flex-start',
+      minWidth: 200,
+      overflowX: 'hidden',
+      overflowY: 'auto',
+    },
+  }),
+  menuItemList: {
+    ...globalStyles.flexBoxColumn,
+    flexShrink: 0,
+    paddingBottom: globalMargins.tiny,
+    paddingTop: globalMargins.tiny,
+  },
+  itemContainer: {
+    ...globalStyles.flexBoxColumn,
+    paddingBottom: globalMargins.xtiny,
+    paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small,
+    paddingTop: globalMargins.xtiny,
+  },
+  itemBodyText: {
+    color: undefined,
+  },
+})
 
 export {ModalLessPopupMenu}
