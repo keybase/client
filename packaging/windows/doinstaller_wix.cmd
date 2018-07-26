@@ -33,7 +33,7 @@ popd
 
 :: prompter
 pushd %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter
-msbuild WpfPrompter.sln /t:Clean
+msbuild WpfPrompter.sln /p:Configuration=Release /t:Clean
 msbuild WpfPrompter.sln /p:Configuration=Release /t:Build
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
