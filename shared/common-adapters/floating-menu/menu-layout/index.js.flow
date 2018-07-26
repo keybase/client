@@ -12,7 +12,7 @@ export type MenuItem = {|
   style?: Object,
 |}
 
-export type ModalLessPopupMenuProps = {
+export type MenuLayoutProps = {
   items: Array<MenuItem | 'Divider' | null>,
   header?: ?MenuItem,
   onHidden: () => void,
@@ -21,6 +21,4 @@ export type ModalLessPopupMenuProps = {
   hoverColor?: string,
 }
 
-class ModalLessPopupMenu extends React.Component<ModalLessPopupMenuProps> {}
-
-export {ModalLessPopupMenu}
+export default class MenuLayout extends React.Component<MenuLayoutProps> {}

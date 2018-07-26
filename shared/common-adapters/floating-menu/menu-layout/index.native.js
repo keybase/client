@@ -1,9 +1,9 @@
 // @flow
 import React, {Component} from 'react'
 import {TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
-import {Box, Text} from '..'
-import {globalColors, globalMargins, globalStyles} from '../../styles'
-import type {MenuItem, ModalLessPopupMenuProps} from './popup-menu'
+import {Box, Text} from '../..'
+import {globalColors, globalMargins, globalStyles} from '../../../styles'
+import type {MenuItem, MenuLayoutProps} from '.'
 
 // TODO refactor to use Overlay and consolidate some of these files
 // popup-menu / relative-popup-hoc / floating-menu
@@ -86,7 +86,7 @@ const styleRowText = ({
 }
 
 // Popup Menu
-class PopupMenu extends Component<ModalLessPopupMenuProps> {
+class MenuLayout extends Component<MenuLayoutProps> {
   render() {
     const menuItemsNoDividers = this.props.items.reduce((arr, mi) => {
       if (mi && mi !== 'Divider') {
@@ -174,6 +174,4 @@ const styleButtonAlert = {
   paddingRight: globalMargins.medium,
 }
 
-const ModalLessPopupMenu = PopupMenu
-
-export {ModalLessPopupMenu}
+export default MenuLayout

@@ -9,7 +9,7 @@
 import * as React from 'react'
 import FloatingBox from '../floating-box'
 import type {Position} from '../relative-popup-hoc'
-import {type MenuItem, ModalLessPopupMenu} from './popup-menu'
+import MenuLayout, {type MenuItem} from './menu-layout'
 import {type StylesCrossPlatform} from '../../styles'
 
 export type Props = {|
@@ -37,7 +37,7 @@ export default (props: Props) => {
       containerStyle={props.containerStyle}
       propagateOutsideClicks={props.propagateOutsideClicks}
     >
-      <ModalLessPopupMenu
+      <MenuLayout
         header={props.header}
         onHidden={props.onHidden}
         items={props.items}

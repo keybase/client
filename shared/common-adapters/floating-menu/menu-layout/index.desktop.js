@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
-import type {ModalLessPopupMenuProps, MenuItem} from './popup-menu'
-import {Box, Text} from '..'
+import type {MenuLayoutProps, MenuItem} from '.'
+import {Box, Text} from '../..'
 import {
   globalColors,
   globalMargins,
@@ -10,13 +10,13 @@ import {
   styleSheetCreate,
   collapseStyles,
   platformStyles,
-} from '../../styles'
+} from '../../../styles'
 
 // TODO refactor to use Overlay and consolidate some of these files
 // popup-menu / relative-popup-hoc / floating-menu
 // probably all can go in floating-menu now that everything uses that
 
-class ModalLessPopupMenu extends Component<ModalLessPopupMenuProps> {
+class MenuLayout extends Component<MenuLayoutProps> {
   _renderDivider = () => <Box style={styles.divider} />
 
   _renderMenuItem = (item: MenuItem) => {
@@ -138,4 +138,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export {ModalLessPopupMenu}
+export default MenuLayout
