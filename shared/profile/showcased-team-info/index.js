@@ -162,6 +162,7 @@ const styleWrap = {
   alignSelf: 'center',
   textAlign: 'center',
   flexWrap: 'wrap',
+  marginBottom: globalMargins.small,
   marginLeft: globalMargins.small,
   marginRight: globalMargins.small,
   marginTop: globalMargins.tiny,
