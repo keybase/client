@@ -1124,14 +1124,14 @@ func (i *Inbox) SetTeamRetention(ctx context.Context, vers chat1.InboxVers,
 	return res, err
 }
 
-func (i *Inbox) SetConvMinWriterRole(ctx context.Context, vers chat1.InboxVers,
-	convID chat1.ConversationID, info *chat1.ConversationMinWriterRoleInfo) (err Error) {
+func (i *Inbox) SetConvSettings(ctx context.Context, vers chat1.InboxVers,
+	convID chat1.ConversationID, convSettings *chat1.ConversationSettings) (err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "SetConvMinWriterRole")()
+	defer i.Trace(ctx, func() error { return err }, "SetConvSettings")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
-	i.Debug(ctx, "SetConvMinWriterRole: vers: %d convID: %s", vers, convID)
+	i.Debug(ctx, "SetConvSettings: vers: %d convID: %s", vers, convID)
 	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
 		if _, ok := err.(MissError); !ok {
@@ -1148,10 +1148,10 @@ func (i *Inbox) SetConvMinWriterRole(ctx context.Context, vers chat1.InboxVers,
 	// Find conversation
 	_, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
-		i.Debug(ctx, "SetConvMinWriterRole: no conversation found: convID: %s", convID)
+		i.Debug(ctx, "SetConvSettings: no conversation found: convID: %s", convID)
 		return nil
 	}
-	conv.Conv.MinWriterRoleInfo = info
+	conv.Conv.ConvSettings = convSettings
 	conv.Conv.Metadata.Version = vers.ToConvVers()
 
 	// Write out to disk

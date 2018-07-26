@@ -53,6 +53,10 @@ func NewCmdSimpleFSCopy(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 				Name:  "f, force",
 				Usage: "force overwrite",
 			},
+			cli.IntFlag{
+				Name:  "rev",
+				Usage: "specify a revision number for the KBFS folder of the source paths",
+			},
 		},
 	}
 }

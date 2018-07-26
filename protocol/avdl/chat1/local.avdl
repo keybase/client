@@ -521,6 +521,10 @@ protocol local {
     keybase1.TeamRole role;
   }
 
+  record ConversationSettingsLocal {
+    union { null, ConversationMinWriterRoleInfoLocal} minWriterRoleInfo;
+  }
+
   // ConversationLocal, whenever present, has a valid `identifyFailures` field that
   // faithfully represent identify result. If identify information is not
   // available, we should use a different type.
@@ -545,7 +549,7 @@ protocol local {
     Expunge expunge; // The latest history deletion. Defaults to zeroes.
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
-    union { null, ConversationMinWriterRoleInfoLocal } minWriterRoleInfo;
+    union { null, ConversationSettingsLocal } convSettings;
   }
 
   record NonblockFetchRes {

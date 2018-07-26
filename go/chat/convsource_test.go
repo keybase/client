@@ -705,6 +705,11 @@ func (f failingTlf) CompleteAndCanonicalizePrivateTlfName(context.Context, strin
 	return keybase1.CanonicalTLFNameAndIDWithBreaks{}, nil
 }
 
+func (f failingTlf) LookupUntrusted(context.Context, string, bool) (*types.NameInfoUntrusted, error) {
+	require.Fail(f.t, "LookupUnstrusted call")
+	return nil, nil
+}
+
 func (f failingTlf) Lookup(context.Context, string, bool) (*types.NameInfo, error) {
 	require.Fail(f.t, "Lookup call")
 	return nil, nil

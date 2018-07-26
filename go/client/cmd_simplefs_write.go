@@ -136,12 +136,16 @@ func (c *CmdSimpleFSWrite) ParseArgv(ctx *cli.Context) error {
 		c.flags = keybase1.OpenFlags_WRITE | keybase1.OpenFlags_REPLACE
 	}
 
-	if nargs == 1 {
-		c.path = makeSimpleFSPath(c.G(), ctx.Args()[0])
-	} else {
-		err = fmt.Errorf("write requires a path argument")
+	if nargs != 1 {
+		return fmt.Errorf("write requires a path argument")
 	}
 
+	p, err := makeSimpleFSPath(c.G(), ctx.Args()[0], 0)
+	if err != nil {
+		return err
+	}
+
+	c.path = p
 	return err
 }
 

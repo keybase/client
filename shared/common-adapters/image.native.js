@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {NativeImage} from './mobile.native'
+import NativeImage from './native-image.native'
 import type {Props, ReqProps} from './image'
 
 const Image = ({src, style}: Props) => (

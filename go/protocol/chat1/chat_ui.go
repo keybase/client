@@ -178,34 +178,34 @@ func (o UnverifiedInboxUIItems) DeepCopy() UnverifiedInboxUIItems {
 }
 
 type InboxUIItem struct {
-	ConvID            string                              `codec:"convID" json:"convID"`
-	TopicType         TopicType                           `codec:"topicType" json:"topicType"`
-	IsEmpty           bool                                `codec:"isEmpty" json:"isEmpty"`
-	Name              string                              `codec:"name" json:"name"`
-	Snippet           string                              `codec:"snippet" json:"snippet"`
-	SnippetDecoration string                              `codec:"snippetDecoration" json:"snippetDecoration"`
-	Channel           string                              `codec:"channel" json:"channel"`
-	Headline          string                              `codec:"headline" json:"headline"`
-	Visibility        keybase1.TLFVisibility              `codec:"visibility" json:"visibility"`
-	Participants      []string                            `codec:"participants" json:"participants"`
-	FullNames         map[string]string                   `codec:"fullNames" json:"fullNames"`
-	ResetParticipants []string                            `codec:"resetParticipants" json:"resetParticipants"`
-	Status            ConversationStatus                  `codec:"status" json:"status"`
-	MembersType       ConversationMembersType             `codec:"membersType" json:"membersType"`
-	MemberStatus      ConversationMemberStatus            `codec:"memberStatus" json:"memberStatus"`
-	TeamType          TeamType                            `codec:"teamType" json:"teamType"`
-	Time              gregor1.Time                        `codec:"time" json:"time"`
-	Notifications     *ConversationNotificationInfo       `codec:"notifications,omitempty" json:"notifications,omitempty"`
-	CreatorInfo       *ConversationCreatorInfoLocal       `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
-	Version           ConversationVers                    `codec:"version" json:"version"`
-	MaxMsgID          MessageID                           `codec:"maxMsgID" json:"maxMsgID"`
-	ReadMsgID         MessageID                           `codec:"readMsgID" json:"readMsgID"`
-	ConvRetention     *RetentionPolicy                    `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
-	TeamRetention     *RetentionPolicy                    `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
-	MinWriterRoleInfo *ConversationMinWriterRoleInfoLocal `codec:"minWriterRoleInfo,omitempty" json:"minWriterRoleInfo,omitempty"`
-	FinalizeInfo      *ConversationFinalizeInfo           `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
-	Supersedes        []ConversationMetadata              `codec:"supersedes" json:"supersedes"`
-	SupersededBy      []ConversationMetadata              `codec:"supersededBy" json:"supersededBy"`
+	ConvID            string                        `codec:"convID" json:"convID"`
+	TopicType         TopicType                     `codec:"topicType" json:"topicType"`
+	IsEmpty           bool                          `codec:"isEmpty" json:"isEmpty"`
+	Name              string                        `codec:"name" json:"name"`
+	Snippet           string                        `codec:"snippet" json:"snippet"`
+	SnippetDecoration string                        `codec:"snippetDecoration" json:"snippetDecoration"`
+	Channel           string                        `codec:"channel" json:"channel"`
+	Headline          string                        `codec:"headline" json:"headline"`
+	Visibility        keybase1.TLFVisibility        `codec:"visibility" json:"visibility"`
+	Participants      []string                      `codec:"participants" json:"participants"`
+	FullNames         map[string]string             `codec:"fullNames" json:"fullNames"`
+	ResetParticipants []string                      `codec:"resetParticipants" json:"resetParticipants"`
+	Status            ConversationStatus            `codec:"status" json:"status"`
+	MembersType       ConversationMembersType       `codec:"membersType" json:"membersType"`
+	MemberStatus      ConversationMemberStatus      `codec:"memberStatus" json:"memberStatus"`
+	TeamType          TeamType                      `codec:"teamType" json:"teamType"`
+	Time              gregor1.Time                  `codec:"time" json:"time"`
+	Notifications     *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
+	CreatorInfo       *ConversationCreatorInfoLocal `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
+	Version           ConversationVers              `codec:"version" json:"version"`
+	MaxMsgID          MessageID                     `codec:"maxMsgID" json:"maxMsgID"`
+	ReadMsgID         MessageID                     `codec:"readMsgID" json:"readMsgID"`
+	ConvRetention     *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
+	TeamRetention     *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
+	ConvSettings      *ConversationSettingsLocal    `codec:"convSettings,omitempty" json:"convSettings,omitempty"`
+	FinalizeInfo      *ConversationFinalizeInfo     `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
+	Supersedes        []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
+	SupersededBy      []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
 }
 
 func (o InboxUIItem) DeepCopy() InboxUIItem {
@@ -289,13 +289,13 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.TeamRetention),
-		MinWriterRoleInfo: (func(x *ConversationMinWriterRoleInfoLocal) *ConversationMinWriterRoleInfoLocal {
+		ConvSettings: (func(x *ConversationSettingsLocal) *ConversationSettingsLocal {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.MinWriterRoleInfo),
+		})(o.ConvSettings),
 		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
 			if x == nil {
 				return nil

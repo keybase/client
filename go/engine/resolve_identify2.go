@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"errors"
 	gregor "github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -100,6 +101,23 @@ func (e *ResolveThenIdentify2) resolveUID(m libkb.MetaContext) (err error) {
 	return nil
 }
 
+func (e *ResolveThenIdentify2) nameResolutionPostAssertion(m libkb.MetaContext) (err error) {
+	// Check the server for cheating on a Name->UID resolution. After we do a userload (by UID),
+	// we should have a merkle-verified idea of what the corresponding name is, so we check it
+	// as a post-assertion here.
+	if e.queriedName.IsNil() {
+		return nil
+	}
+	res, err := e.Result()
+	if err != nil {
+		return err
+	}
+	if !libkb.NewNormalizedUsername(res.Upk.GetName()).Eq(e.queriedName) {
+		return libkb.NewUIDMismatchError("bad user returned for " + e.queriedName.String())
+	}
+	return nil
+}
+
 func (e *ResolveThenIdentify2) Run(m libkb.MetaContext) (err error) {
 	m = m.WithLogTag("ID2")
 
@@ -122,18 +140,16 @@ func (e *ResolveThenIdentify2) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	// Check the server for cheating on a Name->UID resolution. After we do a userload (by UID),
-	// we should have a merkle-verified idea of what the corresponding name is, so we check it
-	// as a post-assertion here.
-	if !e.queriedName.IsNil() && !libkb.NewNormalizedUsername(e.Result().Upk.GetName()).Eq(e.queriedName) {
-		return libkb.NewUIDMismatchError("bad user returned for " + e.queriedName.String())
+	err = e.nameResolutionPostAssertion(m)
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
-func (e *ResolveThenIdentify2) Result() *keybase1.Identify2Res {
+func (e *ResolveThenIdentify2) Result() (*keybase1.Identify2ResUPK2, error) {
 	if e.i2eng == nil {
-		return nil
+		return nil, errors.New("ResolveThenIdentify2#Result: no result available if the engine did not run")
 	}
 	return e.i2eng.Result()
 }
@@ -160,15 +176,11 @@ func (e *ResolveThenIdentify2) GetProofSet() *libkb.ProofSet {
 // ResolveAndCheck takes as input a name (joe), social assertion (joe@twitter)
 // or compound assertion (joe+joe@twitter+3883883773222@pgp) and resolves
 // it to a user, verifying the result. Pass into it a MetaContext without any UIs set,
-// since it is meant to run without any UI interaction. Also note that tracker statements
-// are *not* taken into account. No ID2-specific caching will be used, but the UPAK
-// cache will be used, and busted with ForceRepoll semantics. The output, on success,
+// since it is meant to run without any UI interaction. Tracking statements
+// are optionally taken into account (see flag). No ID2-specific caching will be used,
+// but the UPAK cache will be used, and busted with ForceRepoll semantics. The output, on success,
 // is a populated UserPlusKeysV2.
-func ResolveAndCheck(m libkb.MetaContext, s string) (ret keybase1.UserPlusKeysV2, err error) {
-
-	// Invokes the whole resolve/identify machinery. That is, it performs a server-trusted
-	// resolution of the name to a UID, then does an ID on the UID to make sure all
-	// assertions are met. The identify is run as if the user is logged out.
+func ResolveAndCheck(m libkb.MetaContext, s string, useTracking bool) (ret keybase1.UserPlusKeysV2, err error) {
 
 	m = m.WithLogTag("RAC")
 	defer m.CTraceTimed("ResolveAndCheck", func() error { return err })()
@@ -176,8 +188,8 @@ func ResolveAndCheck(m libkb.MetaContext, s string) (ret keybase1.UserPlusKeysV2
 	arg := keybase1.Identify2Arg{
 		UserAssertion:         s,
 		CanSuppressUI:         true,
-		ActLoggedOut:          true,
-		NoErrorOnTrackFailure: true,
+		ActLoggedOut:          !useTracking,
+		NoErrorOnTrackFailure: !useTracking,
 		IdentifyBehavior:      keybase1.TLFIdentifyBehavior_RESOLVE_AND_CHECK,
 	}
 	eng := NewResolveThenIdentify2(m.G(), &arg)
@@ -185,24 +197,10 @@ func ResolveAndCheck(m libkb.MetaContext, s string) (ret keybase1.UserPlusKeysV2
 	if err != nil {
 		return ret, err
 	}
-	res := eng.Result()
-
-	// Note: this is slightly wasteful since we already loaded a UPAK V1 in Identify2WithUID,
-	// (downconverted from a V2), and now we're just reloading the V2. But the alternative was a big
-	// refactor, and we're punting on that for now. The good news is this load will almost always hit the
-	// cache (see identifyUser#load, which loads both the UPAK and the full user at the same time).
-	upk, _, err := m.G().GetUPAKLoader().LoadV2(libkb.NewLoadUserArgWithMetaContext(m).WithUID(res.Upk.GetUID()))
+	res, err := eng.Result()
 	if err != nil {
 		return ret, err
 	}
-	curr := upk.Current
-
-	// There's a slight chance of a race, that the user reset, so just check we didn't race,
-	// and if so, error out.
-	if curr.EldestSeqno != res.Upk.EldestSeqno {
-		return ret, libkb.NewAccountResetError(curr.ToUserVersion(), res.Upk.EldestSeqno)
-	}
-
 	// Success path.
-	return curr, nil
+	return res.Upk.Current, nil
 }
