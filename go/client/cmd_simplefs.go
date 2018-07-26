@@ -50,21 +50,32 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 
 const mountDir = "/keybase"
 
-func makeKbfsPath(path string, rev int64) keybase1.Path {
+func makeKbfsPath(path string, rev int64, timeString string) (
+	keybase1.Path, error) {
 	p := path[len(mountDir):]
-	if rev == 0 {
-		return keybase1.NewPathWithKbfs(p)
+	if rev == 0 && timeString == "" {
+		return keybase1.NewPathWithKbfs(p), nil
+	} else if rev != 0 {
+		if timeString != "" {
+			return keybase1.Path{}, errors.New(
+				"Can't set both a revision and a time")
+		}
+
+		return keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
+			Path: p,
+			ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(
+				keybase1.KBFSRevision(rev)),
+		}), nil
 	}
 	return keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
-		Path: p,
-		ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(
-			keybase1.KBFSRevision(rev)),
-	})
+		Path:          p,
+		ArchivedParam: keybase1.NewKBFSArchivedParamWithTimeString(timeString),
+	}), nil
 }
 
-func makeSimpleFSPath(
-	g *libkb.GlobalContext, path string, rev int64) (keybase1.Path, error) {
-
+func makeSimpleFSPathWithArchiveParams(
+	path string, rev int64, timeString string) (
+	keybase1.Path, error) {
 	path = filepath.ToSlash(path)
 	if strings.HasSuffix(path, "/") {
 		path = path[:len(path)-1]
@@ -73,7 +84,7 @@ func makeSimpleFSPath(
 	// Test for the special mount dir prefix before the absolute test.
 	// Otherwise the current dir will be prepended, below.
 	if strings.HasPrefix(path, mountDir) {
-		return makeKbfsPath(path, rev), nil
+		return makeKbfsPath(path, rev, timeString)
 	}
 
 	// make absolute
@@ -92,15 +103,22 @@ func makeSimpleFSPath(
 	// mounted KBFS. This is for those who want to do so
 	// from "/keybase/..."
 	if strings.HasPrefix(path, mountDir) {
-		return makeKbfsPath(path, rev), nil
+		return makeKbfsPath(path, rev, timeString)
 	}
 
 	if rev > 0 {
 		return keybase1.Path{}, fmt.Errorf(
 			"Can't specify a revision for a local path")
+	} else if timeString != "" {
+		return keybase1.Path{}, fmt.Errorf(
+			"Can't specify a time string for a local path")
 	}
 
 	return keybase1.NewPathWithLocal(path), nil
+}
+
+func makeSimpleFSPath(path string) (keybase1.Path, error) {
+	return makeSimpleFSPathWithArchiveParams(path, 0, "")
 }
 
 func stringToOpID(arg string) (keybase1.OpID, error) {
@@ -252,11 +270,13 @@ func parseSrcDestArgs(g *libkb.GlobalContext, ctx *cli.Context, name string) ([]
 	}
 	for i, src := range ctx.Args() {
 		rev := int64(0)
+		timeString := ""
 		if i != nargs-1 {
 			// All source paths use the same revision.
 			rev = int64(ctx.Int("rev"))
+			timeString = ctx.String("time")
 		}
-		argPath, err := makeSimpleFSPath(g, src, rev)
+		argPath, err := makeSimpleFSPathWithArchiveParams(src, rev, timeString)
 		if err != nil {
 			return nil, keybase1.Path{}, err
 		}

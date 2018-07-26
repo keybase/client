@@ -69,7 +69,7 @@ func (c *CmdSimpleFSMkdir) ParseArgv(ctx *cli.Context) error {
 		return errors.New("mkdir requires a KBFS path argument")
 	}
 
-	p, err := makeSimpleFSPath(c.G(), ctx.Args()[0], 0)
+	p, err := makeSimpleFSPath(ctx.Args()[0])
 	if err != nil {
 		return err
 	}
