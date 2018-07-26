@@ -49,9 +49,5 @@ export const rpcDeviceToDevice = (d: RPCTypes.Device) => {
 }
 
 export const cleanDeviceName = (name: string) =>
-  name
-    // lower case alpha numerics
-    .replace(/[^a-zA-Z0-9]/g, '')
-    // map 'smart apostrophes' to ASCII (typewriter apostrophe)
-    .replace(/[\u2018\u2019\u0060\u00B4]/g, "'")
-    .toLowerCase()
+  // map 'smart apostrophes' to ASCII (typewriter apostrophe)
+  name.replace(/[\u2018\u2019\u0060\u00B4]/g, "'")
