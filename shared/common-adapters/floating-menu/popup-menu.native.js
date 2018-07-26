@@ -10,7 +10,7 @@ import type {MenuItem, ModalLessPopupMenuProps} from './popup-menu'
 // probably all can go in floating-menu now that everything uses that
 
 // Menu Item
-type MenuIRowProps = {
+type MenuRowProps = {
   ...MenuItem,
   isHeader?: boolean,
   index: number,
@@ -18,7 +18,7 @@ type MenuIRowProps = {
   onHidden?: ?() => void,
 }
 
-const MenuRow = (props: MenuIRowProps) => (
+const MenuRow = (props: MenuRowProps) => (
   <TouchableOpacity
     disabled={!props.onClick}
     onPress={() => {
