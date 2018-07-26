@@ -893,10 +893,12 @@ func (k *SimpleFS) doCopy(
 	srcPath, destPath keybase1.Path) (err error) {
 	// Note this is also used by move, so if this changes update SimpleFSMove
 	// code also.
+	k.log.CDebugf(ctx, "Opening file: %s", srcPath)
 	srcFS, finalSrcElem, err := k.getFS(ctx, srcPath)
 	if err != nil {
 		return err
 	}
+	k.log.CDebugf(ctx, "Opened file: %s, root: %s", finalSrcElem, srcFS.Root())
 	srcFI, err := srcFS.Stat(finalSrcElem)
 	if err != nil {
 		return err
