@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {categories, type EmojiData} from './data'
+import {categories, emojiIndex, emojiNameMap, type EmojiData} from './data'
 import {ClickableBox, Box2, Emoji, SectionList, Text} from '../../../../../common-adapters'
 import {globalColors, globalMargins, styleSheetCreate} from '../../../../../styles'
 import {chunk} from 'lodash-es'
@@ -47,9 +47,18 @@ class EmojiPicker extends React.Component<Props, State> {
 
   _chunkData() {
     let sections = []
+    const emojisPerLine = Math.floor(this.props.width / (singleEmojiWidth + 2 * emojiPadding))
     if (this.props.filter) {
+      const filter = this.props.filter
+      const results = emojiIndex.search(filter).map(res => emojiNameMap[res.id])
+      sections = [
+        {
+          category: filter,
+          data: chunk(results, emojisPerLine).map(c => ({emojis: c, key: c[0].short_name})),
+          key: 'filter header',
+        },
+      ]
     } else {
-      const emojisPerLine = Math.floor(this.props.width / (singleEmojiWidth + 2 * emojiPadding))
       sections = emojiSections.map(c => ({
         category: c.category,
         data: chunk(c.data.emojis, emojisPerLine).map(c => ({emojis: c, key: c[0].short_name})),
@@ -61,6 +70,12 @@ class EmojiPicker extends React.Component<Props, State> {
 
   componentDidMount() {
     this._chunkData()
+  }
+
+  componentDidUpdate(prevProps: Props, prevState: State) {
+    if (this.props.filter !== prevProps.filter) {
+      this._chunkData()
+    }
   }
 
   render() {

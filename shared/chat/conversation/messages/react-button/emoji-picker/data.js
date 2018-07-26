@@ -26,10 +26,24 @@ const categoryOrder = [
   'Symbols',
   'Flags',
 ]
-// TODO type emojis
 const categories: Array<{category: string, emojis: Array<EmojiData>}> = categoryOrder.map(category => ({
   category,
   emojis: sorted[category],
 }))
 
-export {categories, emojiIndex}
+// Map from EmojiMart's `id` to EmojiDatasource's object
+// TODO add test to make sure all EmojiMart emojis are
+// accounted for
+const emojiNameMap = Object.values(emojiIndex.emojis).reduce(
+  (res: {[key: string]: EmojiData}, emoji: any) => {
+    const shortName = emoji.id
+    const emojiFromEmojiData = emojidata.find(e => e.short_name === shortName)
+    if (emojiFromEmojiData) {
+      res[shortName] = emojiFromEmojiData
+    }
+    return res
+  },
+  {}
+)
+
+export {categories, emojiIndex, emojiNameMap}
