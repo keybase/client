@@ -35,9 +35,8 @@ class EmojiPicker extends React.Component<Props, State> {
               <Text type="Body" style={{fontSize: singleEmojiWidth}}>
                 {e.unified
                   .split('-')
-                  .filter(a => a !== '200D')
                   .map(codepoint => String.fromCodePoint(parseInt(codepoint, 16)))
-                  .join('\u200d') + emojiVariantSuffix}
+                  .join('') + emojiVariantSuffix}
               </Text>
             ) : (
               <Emoji size={singleEmojiWidth} emojiName={e.short_name} key={e.short_name} />
