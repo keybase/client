@@ -8,10 +8,10 @@ import deviceRevoke from './device-revoke/index.stories'
 
 const idToType = i => {
   switch (i) {
-    case 1:
-    case 5:
+    case '1':
+    case '5':
       return 'desktop'
-    case 2:
+    case '2':
       return 'mobile'
     default:
       return 'backup'
@@ -56,7 +56,7 @@ const load = () => {
   deviceRevoke()
   storiesOf('Devices/List', module)
     .addDecorator(provider)
-    .add('Normal', () => <Devices />)
+    .add('Current computer', () => <Devices />)
     .add('Revoked expanded', () => <Devices _stateOverride={{revokedExpanded: true}} />)
     .add('Loading', () => <Devices waiting={true} />)
 }

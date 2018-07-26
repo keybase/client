@@ -9,11 +9,36 @@ import {isMobile} from '../constants/platform'
 import {navigateAppend} from '../actions/route-tree'
 
 const DeviceRow = ({isCurrentDevice, name, isRevoked, type, showExistingDevicePage, firstItem}) => {
-  const icon = {
-    backup: isMobile ? 'icon-paper-key-48' : 'icon-paper-key-32',
-    desktop: isMobile ? 'icon-computer-48' : 'icon-computer-32',
-    mobile: isMobile ? 'icon-phone-48' : 'icon-phone-32',
-  }[type]
+  let icon
+  switch (type) {
+    case 'backup':
+      icon = isMobile ? 'icon-paper-key-48' : 'icon-paper-key-32'
+      break
+    case 'desktop':
+      icon = isCurrentDevice
+        ? isMobile
+          ? 'icon-computer-success-48'
+          : 'icon-computer-success-32'
+        : isMobile
+          ? 'icon-computer-48'
+          : 'icon-computer-32'
+      break
+    case 'mobile':
+      icon = isCurrentDevice
+        ? isMobile
+          ? 'icon-phone-success-48'
+          : 'icon-phone-success-32'
+        : isMobile
+          ? 'icon-phone-48'
+          : 'icon-phone-32'
+      break
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (type: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(type);
+      */
+      icon = isMobile ? 'icon-paper-key-48' : 'icon-paper-key-32'
+  }
 
   return (
     <Common.ListItem2
