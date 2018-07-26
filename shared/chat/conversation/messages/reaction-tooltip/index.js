@@ -35,8 +35,10 @@ export const ReactionTooltip = (props: Props) => {
     <Overlay
       attachTo={props.attachmentRef}
       onHidden={props.onHidden}
-      position="top right"
+      position="top center"
+      positionFallbacks={['bottom center']}
       propagateOutsideClicks={true}
+      style={styles.overlay}
     >
       <Box2
         onMouseLeave={props.onMouseLeave}
@@ -153,6 +155,11 @@ const styles = styleSheetCreate({
       backgroundColor: globalColors.white,
       maxHeight: '90%',
       width: '100%',
+    },
+  }),
+  overlay: platformStyles({
+    isElectron: {
+      margin: globalMargins.tiny,
     },
   }),
   userContainer: {
