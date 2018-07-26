@@ -6,6 +6,7 @@ import {storiesOf, action} from '../../stories/storybook'
 import Header from './header'
 import SettingsPopup from './settings-popup'
 import RemoveAccountDialog from './settings-popup/remove-account'
+import ReallyRemoveDialog from './settings-popup/remove-account-really'
 
 const defaultWalletMock = {
   isDefaultWallet: true,
@@ -61,6 +62,12 @@ const warningProps = {
   onClose: action('onClose'),
 }
 
+const reallyProps = {
+  name: 'awesome account',
+  onCopyKey: action('onCopyKey'),
+  onClose: action('onClose'),
+}
+
 const provider = PropProviders.CommonProvider()
 
 const load = () => {
@@ -79,6 +86,7 @@ const load = () => {
     .add('Settings, default', () => <SettingsPopup {...defaultSettingsProps} />)
     .add('Settings, secondary', () => <SettingsPopup {...secondarySettingsProps} />)
     .add('Remove warning', () => <RemoveAccountDialog {...warningProps} />)
+    .add('Really remove', () => <ReallyRemoveDialog {...reallyProps} />)
 }
 
 const styleWidth = {width: 520}

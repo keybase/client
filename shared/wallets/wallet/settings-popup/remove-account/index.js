@@ -28,7 +28,7 @@ const RemoveAccountDialog = (props: Props) => (
       />
       <Text style={styles.warning} type="Header">
         Are you sure you want to remove{' '}
-        <Text type="Header" style={{fontStyle: 'italic'}}>
+        <Text type="Header" style={styles.italic}>
           {props.name}
         </Text>{' '}
         from Keybase?
@@ -48,6 +48,9 @@ const styles = styleSheetCreate({
   icon: {
     marginBottom: globalMargins.small,
   },
+  italic: {
+    fontStyle: 'italic',
+  },
   box: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
@@ -56,6 +59,7 @@ const styles = styleSheetCreate({
   warning: {
     paddingBottom: globalMargins.medium,
     paddingTop: globalMargins.xtiny,
+    textAlign: 'center',
   },
   buttonbar: {
     paddingTop: globalMargins.large,
