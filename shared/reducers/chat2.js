@@ -281,6 +281,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
                 .set('explodedBy', action.payload.explodedBy || '')
                 .set('text', new HiddenString(''))
                 .set('mentionsAt', I.Set())
+                .set('reactions', I.Map())
             )
           )
         })

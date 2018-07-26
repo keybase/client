@@ -68,6 +68,28 @@
     },
     {
       "type": "record",
+      "name": "Identify2ResUPK2",
+      "fields": [
+        {
+          "type": "UserPlusKeysV2AllIncarnations",
+          "name": "upk"
+        },
+        {
+          "type": "Time",
+          "name": "identifiedAt"
+        },
+        {
+          "type": [
+            null,
+            "IdentifyTrackBreaks"
+          ],
+          "name": "trackBreaks"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "IdentifyLiteRes",
       "fields": [
         {

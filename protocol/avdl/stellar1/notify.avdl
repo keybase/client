@@ -1,0 +1,8 @@
+@namespace("stellar.1")
+
+protocol notify {
+  import idl "common.avdl";
+
+  @notify("")
+  void paymentNotification(AccountID accountID, PaymentID paymentID);
+}

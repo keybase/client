@@ -1886,18 +1886,18 @@ type serverChatListener struct {
 	ephemeralPurge          chan chat1.EphemeralPurgeNotifInfo
 	reactionDelete          chan chat1.ReactionDeleteNotif
 
-	threadsStale         chan []chat1.ConversationStaleUpdate
-	inboxStale           chan struct{}
-	joinedConv           chan *chat1.InboxUIItem
-	leftConv             chan chat1.ConversationID
-	resetConv            chan chat1.ConversationID
-	identifyUpdate       chan keybase1.CanonicalTLFNameAndIDWithBreaks
-	inboxSynced          chan chat1.ChatSyncResult
-	setConvRetention     chan chat1.ConversationID
-	setTeamRetention     chan keybase1.TeamID
-	setConvMinWriterRole chan chat1.ConversationID
-	kbfsUpgrade          chan chat1.ConversationID
-	resolveConv          chan resolveRes
+	threadsStale     chan []chat1.ConversationStaleUpdate
+	inboxStale       chan struct{}
+	joinedConv       chan *chat1.InboxUIItem
+	leftConv         chan chat1.ConversationID
+	resetConv        chan chat1.ConversationID
+	identifyUpdate   chan keybase1.CanonicalTLFNameAndIDWithBreaks
+	inboxSynced      chan chat1.ChatSyncResult
+	setConvRetention chan chat1.ConversationID
+	setTeamRetention chan keybase1.TeamID
+	setConvSettings  chan chat1.ConversationID
+	kbfsUpgrade      chan chat1.ConversationID
+	resolveConv      chan resolveRes
 }
 
 var _ libkb.NotifyListener = (*serverChatListener)(nil)
@@ -1961,8 +1961,8 @@ func (n *serverChatListener) ChatSetConvRetention(uid keybase1.UID, convID chat1
 func (n *serverChatListener) ChatSetTeamRetention(uid keybase1.UID, teamID keybase1.TeamID) {
 	n.setTeamRetention <- teamID
 }
-func (n *serverChatListener) ChatSetConvMinWriterRole(uid keybase1.UID, convID chat1.ConversationID) {
-	n.setConvMinWriterRole <- convID
+func (n *serverChatListener) ChatSetConvSettings(uid keybase1.UID, convID chat1.ConversationID) {
+	n.setConvSettings <- convID
 }
 func (n *serverChatListener) ChatKBFSToImpteamUpgrade(uid keybase1.UID, convID chat1.ConversationID) {
 	n.kbfsUpgrade <- convID
@@ -1978,18 +1978,18 @@ func newServerChatListener() *serverChatListener {
 		ephemeralPurge:          make(chan chat1.EphemeralPurgeNotifInfo, buf),
 		reactionDelete:          make(chan chat1.ReactionDeleteNotif, buf),
 
-		threadsStale:         make(chan []chat1.ConversationStaleUpdate, buf),
-		inboxStale:           make(chan struct{}, buf),
-		joinedConv:           make(chan *chat1.InboxUIItem, buf),
-		leftConv:             make(chan chat1.ConversationID, buf),
-		resetConv:            make(chan chat1.ConversationID, buf),
-		identifyUpdate:       make(chan keybase1.CanonicalTLFNameAndIDWithBreaks, buf),
-		inboxSynced:          make(chan chat1.ChatSyncResult, buf),
-		setConvRetention:     make(chan chat1.ConversationID, buf),
-		setTeamRetention:     make(chan keybase1.TeamID, buf),
-		setConvMinWriterRole: make(chan chat1.ConversationID, buf),
-		kbfsUpgrade:          make(chan chat1.ConversationID, buf),
-		resolveConv:          make(chan resolveRes, buf),
+		threadsStale:     make(chan []chat1.ConversationStaleUpdate, buf),
+		inboxStale:       make(chan struct{}, buf),
+		joinedConv:       make(chan *chat1.InboxUIItem, buf),
+		leftConv:         make(chan chat1.ConversationID, buf),
+		resetConv:        make(chan chat1.ConversationID, buf),
+		identifyUpdate:   make(chan keybase1.CanonicalTLFNameAndIDWithBreaks, buf),
+		inboxSynced:      make(chan chat1.ChatSyncResult, buf),
+		setConvRetention: make(chan chat1.ConversationID, buf),
+		setTeamRetention: make(chan keybase1.TeamID, buf),
+		setConvSettings:  make(chan chat1.ConversationID, buf),
+		kbfsUpgrade:      make(chan chat1.ConversationID, buf),
+		resolveConv:      make(chan resolveRes, buf),
 	}
 }
 
@@ -3267,12 +3267,12 @@ func consumeSetTeamRetention(t *testing.T, listener *serverChatListener) (res ke
 	}
 }
 
-func consumeSetConvMinWriterRole(t *testing.T, listener *serverChatListener) chat1.ConversationID {
+func consumeSetConvSettings(t *testing.T, listener *serverChatListener) chat1.ConversationID {
 	select {
-	case x := <-listener.setConvMinWriterRole:
+	case x := <-listener.setConvSettings:
 		return x
 	case <-time.After(20 * time.Second):
-		require.Fail(t, "failed to get setConvMinWriterRole notification")
+		require.Fail(t, "failed to get setConvSettings notification")
 		return chat1.ConversationID{}
 	}
 }
@@ -3885,14 +3885,16 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 		users := ctc.users()
 		ctx := ctc.as(t, users[0]).startCtx
 
-		tc0 := ctc.as(t, users[0])
-		tc1 := ctc.as(t, users[1])
+		tc1 := ctc.as(t, users[0])
+		tc2 := ctc.as(t, users[1])
 
-		listener := newServerChatListener()
-		tc1.h.G().NotifyRouter.SetListener(listener)
+		listener1 := newServerChatListener()
+		tc1.h.G().NotifyRouter.SetListener(listener1)
+		listener2 := newServerChatListener()
+		tc2.h.G().NotifyRouter.SetListener(listener2)
 
 		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-			mt, tc1.user())
+			mt, tc2.user())
 		convID := created.Id
 
 		verifyMinWriterRoleInfoOnConv := func(user *kbtest.FakeUser, role *keybase1.TeamRole) {
@@ -3914,7 +3916,12 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 			conv, err := GetUnverifiedConv(ctx, ctc.world.Tcs[user.Username].Context(),
 				gregor1.UID(user.GetUID().ToBytes()), convID, false)
 			require.NoError(t, err)
-			require.Equal(t, expectedInfo, conv.MinWriterRoleInfo)
+			if role == nil {
+				require.Nil(t, conv.ConvSettings)
+			} else {
+				require.NotNil(t, conv.ConvSettings)
+				require.Equal(t, expectedInfo, conv.ConvSettings.MinWriterRoleInfo)
+			}
 
 			gilres, err := tc.chatLocalHandler().GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 				Query: &chat1.GetInboxLocalQuery{
@@ -3924,24 +3931,32 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 			})
 			require.NoError(t, err)
 			require.Len(t, gilres.Conversations, 1)
-			require.Equal(t, expectedInfoLocal, gilres.Conversations[0].MinWriterRoleInfo)
+			convSettings := gilres.Conversations[0].ConvSettings
+			if role == nil {
+				require.Nil(t, convSettings)
+			} else {
+				require.NotNil(t, convSettings)
+				require.Equal(t, expectedInfoLocal, convSettings.MinWriterRoleInfo)
+			}
 		}
 
 		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
 		verifyMinWriterRoleInfoOnConv(users[0], nil)
 		verifyMinWriterRoleInfoOnConv(users[1], nil)
 
 		role := keybase1.TeamRole_ADMIN
-		err := tc0.chatLocalHandler().SetConvMinWriterRoleLocal(tc0.startCtx, chat1.SetConvMinWriterRoleLocalArg{
+		err := tc1.chatLocalHandler().SetConvMinWriterRoleLocal(tc1.startCtx, chat1.SetConvMinWriterRoleLocalArg{
 			ConvID: convID,
 			Role:   role,
 		})
 		require.NoError(t, err)
-		require.True(t, consumeSetConvMinWriterRole(t, listener).Eq(created.Id))
+		require.True(t, consumeSetConvSettings(t, listener1).Eq(created.Id))
+		require.True(t, consumeSetConvSettings(t, listener2).Eq(created.Id))
 
 		// u2 can't set this since they are not an admin
-		err = tc1.chatLocalHandler().SetConvMinWriterRoleLocal(tc1.startCtx, chat1.SetConvMinWriterRoleLocalArg{
+		err = tc2.chatLocalHandler().SetConvMinWriterRoleLocal(tc2.startCtx, chat1.SetConvMinWriterRoleLocalArg{
 			ConvID: convID,
 			Role:   keybase1.TeamRole_NONE,
 		})
@@ -3951,39 +3966,52 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 		verifyMinWriterRoleInfoOnConv(users[1], &role)
 
 		// u2 can't write anymore, only u1 can.
-		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
-
 		_, err = postLocalForTest(t, ctc, users[1], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 		require.Error(t, err)
 
+		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
+
 		// Both users can fully ready without issue
 		for _, user := range users {
-			tvres, err := ctc.as(t, user).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{ConversationID: created.Id})
+			tvres, err := ctc.as(t, user).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{ConversationID: created.Id,
+				Query: &chat1.GetThreadQuery{
+					MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+				},
+			})
 			require.NoError(t, err)
-			require.Len(t, tvres.Thread.Messages, 3, "messages are accessible")
+			require.Len(t, tvres.Thread.Messages, 2, "messages are accessible")
 		}
 
 		role = keybase1.TeamRole_NONE
-		err = tc0.chatLocalHandler().SetConvMinWriterRoleLocal(tc0.startCtx, chat1.SetConvMinWriterRoleLocalArg{
+		err = tc1.chatLocalHandler().SetConvMinWriterRoleLocal(tc1.startCtx, chat1.SetConvMinWriterRoleLocalArg{
 			ConvID: convID,
 			Role:   role,
 		})
 		require.NoError(t, err)
-		require.True(t, consumeSetConvMinWriterRole(t, listener).Eq(created.Id))
+		require.True(t, consumeSetConvSettings(t, listener1).Eq(created.Id))
+		require.True(t, consumeSetConvSettings(t, listener2).Eq(created.Id))
 		verifyMinWriterRoleInfoOnConv(users[0], nil)
 		verifyMinWriterRoleInfoOnConv(users[1], nil)
 
 		// Both users can write again
 		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
 		mustPostLocalForTest(t, ctc, users[1], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
 
 		for _, user := range users {
-			tvres, err := ctc.as(t, user).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{ConversationID: created.Id})
+			tvres, err := ctc.as(t, user).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+				ConversationID: created.Id,
+				Query: &chat1.GetThreadQuery{
+					MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+				},
+			})
 			require.NoError(t, err)
-			require.Len(t, tvres.Thread.Messages, 5, "messages are accessible")
+			require.Len(t, tvres.Thread.Messages, 4, "messages are accessible")
 		}
 	})
 }
@@ -4274,7 +4302,6 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			})
 		require.NoError(t, err)
 		require.Equal(t, 1, len(res.Conversations), "no convs found")
-		consumeIdentify(ctx, listener1) //impteam
 	})
 }
 

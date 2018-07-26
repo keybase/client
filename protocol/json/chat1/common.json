@@ -669,6 +669,21 @@
     },
     {
       "type": "record",
+      "name": "ConversationSettings",
+      "fields": [
+        {
+          "type": [
+            null,
+            "ConversationMinWriterRoleInfo"
+          ],
+          "name": "minWriterRoleInfo",
+          "mpackkey": "mwr",
+          "jsonkey": "mwr"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "Conversation",
       "fields": [
         {
@@ -731,9 +746,11 @@
         {
           "type": [
             null,
-            "ConversationMinWriterRoleInfo"
+            "ConversationSettings"
           ],
-          "name": "minWriterRoleInfo"
+          "name": "convSettings",
+          "mpackkey": "cs",
+          "jsonkey": "cs"
         }
       ]
     },
@@ -765,28 +782,15 @@
     },
     {
       "type": "record",
-      "name": "Reaction",
-      "fields": [
-        {
-          "type": "string",
-          "name": "username"
-        },
-        {
-          "type": "MessageID",
-          "name": "reactionMsgID"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "ReactionMap",
       "fields": [
         {
           "type": {
             "type": "map",
             "values": {
-              "type": "array",
-              "items": "Reaction"
+              "type": "map",
+              "values": "MessageID",
+              "keys": "string"
             },
             "keys": "string"
           },

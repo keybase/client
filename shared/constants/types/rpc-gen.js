@@ -17,7 +17,6 @@ export const appStateAppState = {
   background: 1,
   inactive: 2,
   backgroundactive: 3,
-  backgroundfinal: 4,
 }
 
 export const backendCommonBlockType = {
@@ -619,6 +618,10 @@ export const simpleFSDirentType = {
   exec: 3,
 }
 
+export const simpleFSKBFSArchivedType = {
+  revision: 0,
+}
+
 export const simpleFSListFilter = {
   noFilter: 0,
   filterAllHidden: 1,
@@ -636,6 +639,7 @@ export const simpleFSOpenFlags = {
 export const simpleFSPathType = {
   local: 0,
   kbfs: 1,
+  kbfsArchived: 2,
 }
 
 export const teamsSeitanKeyAndLabelVersion = {
@@ -765,7 +769,7 @@ export const delegateUiCtlRegisterIdentifyUIRpcPromise = (params: DelegateUiCtlR
 export const delegateUiCtlRegisterRekeyUIRpcPromise = (params: DelegateUiCtlRegisterRekeyUIRpcParam, waitingKey?: string): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerRekeyUI', params, callback: (error: RPCError, result: void) => (error ? reject(error) : resolve()), waitingKey}))
 export const delegateUiCtlRegisterSecretUIRpcPromise = (params: DelegateUiCtlRegisterSecretUIRpcParam, waitingKey?: string): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerSecretUI', params, callback: (error: RPCError, result: void) => (error ? reject(error) : resolve()), waitingKey}))
 export const deviceCheckDeviceNameFormatRpcPromise = (params: DeviceCheckDeviceNameFormatRpcParam, waitingKey?: string): Promise<DeviceCheckDeviceNameFormatResult> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.device.checkDeviceNameFormat', params, callback: (error: RPCError, result: DeviceCheckDeviceNameFormatResult) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const deviceDeviceAddRpcChannelMap = (configKeys: Array<string>, request: DeviceDeviceAddRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.deviceAdd', request)
+export const deviceDeviceAddRpcSaga = (p: {params: DeviceDeviceAddRpcParam, incomingCallMap: IncomingCallMapType, waitingKey?: string}) => Saga.call(engineSaga, {method: 'keybase.1.device.deviceAdd', params: p.params, incomingCallMap: p.incomingCallMap, waitingKey: p.waitingKey})
 export const deviceDeviceHistoryListRpcPromise = (params: DeviceDeviceHistoryListRpcParam, waitingKey?: string): Promise<DeviceDeviceHistoryListResult> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.device.deviceHistoryList', params, callback: (error: RPCError, result: DeviceDeviceHistoryListResult) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const favoriteFavoriteAddRpcPromise = (params: FavoriteFavoriteAddRpcParam, waitingKey?: string): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.favorite.favoriteAdd', params, callback: (error: RPCError, result: void) => (error ? reject(error) : resolve()), waitingKey}))
 export const favoriteFavoriteIgnoreRpcPromise = (params: FavoriteFavoriteIgnoreRpcParam, waitingKey?: string): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.favorite.favoriteIgnore', params, callback: (error: RPCError, result: void) => (error ? reject(error) : resolve()), waitingKey}))
@@ -794,8 +798,8 @@ export const kbfsMountGetCurrentMountDirRpcPromise = (params: KbfsMountGetCurren
 export const loginAccountDeleteRpcPromise = (params: LoginAccountDeleteRpcParam, waitingKey?: string): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.accountDelete', params, callback: (error: RPCError, result: void) => (error ? reject(error) : resolve()), waitingKey}))
 export const loginDeprovisionRpcPromise = (params: LoginDeprovisionRpcParam, waitingKey?: string): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.deprovision', params, callback: (error: RPCError, result: void) => (error ? reject(error) : resolve()), waitingKey}))
 export const loginGetConfiguredAccountsRpcPromise = (params: LoginGetConfiguredAccountsRpcParam, waitingKey?: string): Promise<LoginGetConfiguredAccountsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.getConfiguredAccounts', params, callback: (error: RPCError, result: LoginGetConfiguredAccountsResult) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const loginLoginRpcChannelMap = (configKeys: Array<string>, request: LoginLoginRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.login', request)
-export const loginLogoutRpcChannelMap = (configKeys: Array<string>, request: LoginLogoutRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.logout', request)
+export const loginLoginRpcSaga = (p: {params: LoginLoginRpcParam, incomingCallMap: IncomingCallMapType, waitingKey?: string}) => Saga.call(engineSaga, {method: 'keybase.1.login.login', params: p.params, incomingCallMap: p.incomingCallMap, waitingKey: p.waitingKey})
+export const loginLogoutRpcPromise = (params: LoginLogoutRpcParam, waitingKey?: string): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.logout', params, callback: (error: RPCError, result: void) => (error ? reject(error) : resolve()), waitingKey}))
 export const loginPaperKeyRpcChannelMap = (configKeys: Array<string>, request: LoginPaperKeyRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.paperKey', request)
 export const loginPaperKeySubmitRpcPromise = (params: LoginPaperKeySubmitRpcParam, waitingKey?: string): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.paperKeySubmit', params, callback: (error: RPCError, result: void) => (error ? reject(error) : resolve()), waitingKey}))
 export const notifyCtlSetNotificationsRpcPromise = (params: NotifyCtlSetNotificationsRpcParam, waitingKey?: string): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.notifyCtl.setNotifications', params, callback: (error: RPCError, result: void) => (error ? reject(error) : resolve()), waitingKey}))
@@ -870,7 +874,6 @@ export type AppState =
   | 1 // BACKGROUND_1
   | 2 // INACTIVE_2
   | 3 // BACKGROUNDACTIVE_3
-  | 4 // BACKGROUNDFINAL_4
 
 export type AppStateUpdateAppStateRpcParam = $ReadOnly<{state: AppState}>
 export type AsyncOps =
@@ -1228,6 +1231,7 @@ export type HomeScreenTodoType =
 export type HomeUIHomeUIRefreshRpcParam = void
 export type HomeUserSummary = $ReadOnly<{uid: UID, username: String, bio: String, fullName: String, pics?: ?Pics}>
 export type Identify2Res = $ReadOnly<{upk: UserPlusKeys, identifiedAt: Time, trackBreaks?: ?IdentifyTrackBreaks}>
+export type Identify2ResUPK2 = $ReadOnly<{upk: UserPlusKeysV2AllIncarnations, identifiedAt: Time, trackBreaks?: ?IdentifyTrackBreaks}>
 export type IdentifyIdentify2RpcParam = $ReadOnly<{uid: UID, userAssertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean, actLoggedOut?: Boolean}>
 export type IdentifyIdentifyLiteRpcParam = $ReadOnly<{id: UserOrTeamID, assertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean}>
 export type IdentifyKey = $ReadOnly<{pgpFingerprint: Bytes, KID: KID, trackDiff?: ?TrackDiff, breaksTracking: Boolean}>
@@ -1294,9 +1298,14 @@ export type InstallStatus =
 
 export type InstallUninstallKBFSRpcParam = void
 export type InterestingPerson = $ReadOnly<{uid: UID, username: String}>
+export type KBFSArchivedParam = {KBFSArchivedType: 0, revision: ?KBFSRevision}
+export type KBFSArchivedPath = $ReadOnly<{path: String, archivedParam: KBFSArchivedParam}>
+export type KBFSArchivedType = 0 // REVISION_0
+
 export type KBFSGitCreateRepoRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName}>
 export type KBFSGitDeleteRepoRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName}>
 export type KBFSGitGcRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName, options: GcOptions}>
+export type KBFSRevision = Int64
 export type KBFSRoot = $ReadOnly<{treeID: MerkleTreeID, root: KBFSRootHash}>
 export type KBFSRootHash = Bytes
 export type KBFSTeamSettings = $ReadOnly<{tlfID: TLFID}>
@@ -1426,7 +1435,7 @@ export type NaclDHKeyPublic = any
 export type NaclSigningKeyPrivate = any
 export type NaclSigningKeyPublic = any
 export type NextMerkleRootRes = $ReadOnly<{res?: ?MerkleRootV2}>
-export type NotificationChannels = $ReadOnly<{session: Boolean, users: Boolean, kbfs: Boolean, tracking: Boolean, favorites: Boolean, paperkeys: Boolean, keyfamily: Boolean, service: Boolean, app: Boolean, chat: Boolean, pgp: Boolean, kbfsrequest: Boolean, badges: Boolean, reachability: Boolean, team: Boolean, ephemeral: Boolean, chatkbfsedits: Boolean, chatdev: Boolean, deviceclone: Boolean, chatattachments: Boolean}>
+export type NotificationChannels = $ReadOnly<{session: Boolean, users: Boolean, kbfs: Boolean, tracking: Boolean, favorites: Boolean, paperkeys: Boolean, keyfamily: Boolean, service: Boolean, app: Boolean, chat: Boolean, pgp: Boolean, kbfsrequest: Boolean, badges: Boolean, reachability: Boolean, team: Boolean, ephemeral: Boolean, chatkbfsedits: Boolean, chatdev: Boolean, deviceclone: Boolean, chatattachments: Boolean, wallet: Boolean}>
 export type NotifyAppExitRpcParam = void
 export type NotifyBadgesBadgeStateRpcParam = $ReadOnly<{badgeState: BadgeState}>
 export type NotifyCtlSetNotificationsRpcParam = $ReadOnly<{channels: NotificationChannels}>
@@ -1490,10 +1499,11 @@ export type PassphraseType =
   | 2 // PASS_PHRASE_2
   | 3 // VERIFY_PASS_PHRASE_3
 
-export type Path = {PathType: 0, local: ?String} | {PathType: 1, kbfs: ?String}
+export type Path = {PathType: 0, local: ?String} | {PathType: 1, kbfs: ?String} | {PathType: 2, kbfsArchived: ?KBFSArchivedPath}
 export type PathType =
   | 0 // LOCAL_0
   | 1 // KBFS_1
+  | 2 // KBFS_ARCHIVED_2
 
 export type PerTeamKey = $ReadOnly<{gen: PerTeamKeyGeneration, seqno: Seqno, sigKID: KID, encKID: KID}>
 export type PerTeamKeyGeneration = Int

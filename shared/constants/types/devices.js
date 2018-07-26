@@ -1,6 +1,5 @@
 // @flow
 import * as I from 'immutable'
-
 export type DeviceType = 'mobile' | 'desktop' | 'backup'
 export opaque type DeviceID: string = string
 export type _DeviceDetail = {
@@ -35,10 +34,5 @@ export function stringToDeviceType(s: string): DeviceType {
   }
 }
 
-export function stringToDeviceID(s: string): DeviceID {
-  return s
-}
-
-export function deviceIDToString(id: DeviceID): string {
-  return id
-}
+export const stringToDeviceID = (s: string): DeviceID => s
+export const deviceIDToString = (id: DeviceID): string => id

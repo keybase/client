@@ -116,9 +116,13 @@ func (e *PGPDecrypt) Run(m libkb.MetaContext) (err error) {
 		if err := RunEngine2(m, eng); err != nil {
 			return err
 		}
-		signByUser := eng.Result().Upk
+		res, err := eng.Result()
+		if err != nil {
+			return err
+		}
+		signByUser := res.Upk
 
-		if !signByUser.Uid.Equal(e.signer.GetUID()) {
+		if !signByUser.GetUID().Equal(e.signer.GetUID()) {
 			return libkb.BadSigError{
 				E: fmt.Sprintf("Signer %q did not match signed by assertion %q", e.signer.GetName(), e.arg.SignedBy),
 			}

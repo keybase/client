@@ -59,7 +59,7 @@ class ButtonBar extends React.PureComponent<Props> {
     const style = collapseStyles([
       {
         alignItems: this.props.fullWidth ? 'stretch' : 'center',
-        padding: this.props.fullWidth ? globalMargins.small : 0,
+        padding: this.props.fullWidth && !this.props.noPadding ? globalMargins.small : 0,
         width: '100%',
         ...(this.props.direction === 'column'
           ? {...globalStyles.flexBoxColumn}

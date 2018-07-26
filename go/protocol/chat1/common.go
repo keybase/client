@@ -938,17 +938,33 @@ func (o ConversationMinWriterRoleInfo) DeepCopy() ConversationMinWriterRoleInfo 
 	}
 }
 
+type ConversationSettings struct {
+	MinWriterRoleInfo *ConversationMinWriterRoleInfo `codec:"mwr,omitempty" json:"mwr,omitempty"`
+}
+
+func (o ConversationSettings) DeepCopy() ConversationSettings {
+	return ConversationSettings{
+		MinWriterRoleInfo: (func(x *ConversationMinWriterRoleInfo) *ConversationMinWriterRoleInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.MinWriterRoleInfo),
+	}
+}
+
 type Conversation struct {
-	Metadata          ConversationMetadata           `codec:"metadata" json:"metadata"`
-	ReaderInfo        *ConversationReaderInfo        `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
-	Notifications     *ConversationNotificationInfo  `codec:"notifications,omitempty" json:"notifications,omitempty"`
-	MaxMsgs           []MessageBoxed                 `codec:"maxMsgs" json:"maxMsgs"`
-	MaxMsgSummaries   []MessageSummary               `codec:"maxMsgSummaries" json:"maxMsgSummaries"`
-	CreatorInfo       *ConversationCreatorInfo       `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
-	Expunge           Expunge                        `codec:"expunge" json:"expunge"`
-	ConvRetention     *RetentionPolicy               `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
-	TeamRetention     *RetentionPolicy               `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
-	MinWriterRoleInfo *ConversationMinWriterRoleInfo `codec:"minWriterRoleInfo,omitempty" json:"minWriterRoleInfo,omitempty"`
+	Metadata        ConversationMetadata          `codec:"metadata" json:"metadata"`
+	ReaderInfo      *ConversationReaderInfo       `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
+	Notifications   *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
+	MaxMsgs         []MessageBoxed                `codec:"maxMsgs" json:"maxMsgs"`
+	MaxMsgSummaries []MessageSummary              `codec:"maxMsgSummaries" json:"maxMsgSummaries"`
+	CreatorInfo     *ConversationCreatorInfo      `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
+	Expunge         Expunge                       `codec:"expunge" json:"expunge"`
+	ConvRetention   *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
+	TeamRetention   *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
+	ConvSettings    *ConversationSettings         `codec:"cs,omitempty" json:"cs,omitempty"`
 }
 
 func (o Conversation) DeepCopy() Conversation {
@@ -1012,13 +1028,13 @@ func (o Conversation) DeepCopy() Conversation {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.TeamRetention),
-		MinWriterRoleInfo: (func(x *ConversationMinWriterRoleInfo) *ConversationMinWriterRoleInfo {
+		ConvSettings: (func(x *ConversationSettings) *ConversationSettings {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.MinWriterRoleInfo),
+		})(o.ConvSettings),
 	}
 }
 
@@ -1040,39 +1056,28 @@ func (o MessageSummary) DeepCopy() MessageSummary {
 	}
 }
 
-type Reaction struct {
-	Username      string    `codec:"username" json:"username"`
-	ReactionMsgID MessageID `codec:"reactionMsgID" json:"reactionMsgID"`
-}
-
-func (o Reaction) DeepCopy() Reaction {
-	return Reaction{
-		Username:      o.Username,
-		ReactionMsgID: o.ReactionMsgID.DeepCopy(),
-	}
-}
-
 type ReactionMap struct {
-	Reactions map[string][]Reaction `codec:"reactions" json:"reactions"`
+	Reactions map[string]map[string]MessageID `codec:"reactions" json:"reactions"`
 }
 
 func (o ReactionMap) DeepCopy() ReactionMap {
 	return ReactionMap{
-		Reactions: (func(x map[string][]Reaction) map[string][]Reaction {
+		Reactions: (func(x map[string]map[string]MessageID) map[string]map[string]MessageID {
 			if x == nil {
 				return nil
 			}
-			ret := make(map[string][]Reaction)
+			ret := make(map[string]map[string]MessageID)
 			for k, v := range x {
 				kCopy := k
-				vCopy := (func(x []Reaction) []Reaction {
+				vCopy := (func(x map[string]MessageID) map[string]MessageID {
 					if x == nil {
 						return nil
 					}
-					var ret []Reaction
-					for _, v := range x {
+					ret := make(map[string]MessageID)
+					for k, v := range x {
+						kCopy := k
 						vCopy := v.DeepCopy()
-						ret = append(ret, vCopy)
+						ret[kCopy] = vCopy
 					}
 					return ret
 				})(v)

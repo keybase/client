@@ -313,9 +313,9 @@
         {
           "type": [
             null,
-            "ConversationMinWriterRoleInfoLocal"
+            "ConversationSettingsLocal"
           ],
-          "name": "minWriterRoleInfo"
+          "name": "convSettings"
         },
         {
           "type": [
