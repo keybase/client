@@ -1,30 +1,19 @@
 // @flow
 import * as Types from '../constants/types/devices'
 import * as React from 'react'
-import {
-  Box2,
-  Box,
-  Text,
-  List,
-  Icon,
-  ClickableBox,
-  ProgressIndicator,
-  HeaderOnMobile,
-  iconCastPlatformStyles,
-} from '../common-adapters'
+import * as Common from '../common-adapters'
 import FloatingMenu, {
   FloatingMenuParentHOC,
   type FloatingMenuParentProps,
 } from '../common-adapters/floating-menu'
-import {RowConnector} from './row'
-import {
-  globalStyles,
-  globalColors,
-  globalMargins,
-  isMobile,
-  platformStyles,
-  styleSheetCreate,
-} from '../styles'
+import DeviceRow from './row'
+import * as Styles from '../styles'
+
+// TODO remove
+const {Box2, Text, List, Icon, ClickableBox, ProgressIndicator, HeaderOnMobile} = Common
+
+// TODO remove
+const {globalStyles, globalColors, globalMargins, isMobile, styleSheetCreate} = Styles
 
 // TODO use list-item2
 
@@ -88,6 +77,7 @@ class Devices extends React.PureComponent<Props & FloatingMenuParentProps, State
           onAddNew={this.props.toggleShowingMenu}
           waiting={this.props.waiting}
         />
+        {this.props.waiting && <ProgressIndicator style={styles2.progress} />}
         <List items={items} renderItem={this._renderRow} />
         <FloatingMenu
           attachTo={this.props.attachmentRef}
@@ -100,57 +90,71 @@ class Devices extends React.PureComponent<Props & FloatingMenuParentProps, State
     )
   }
 }
+const styles2 = styleSheetCreate({
+  progress: {
+    left: 12,
+    position: 'absolute',
+    top: isMobile ? 22 : 14,
+    width: 20,
+  },
+})
 
 const DeviceHeader = ({onAddNew, setAttachmentRef, waiting}) => (
   <ClickableBox onClick={onAddNew}>
-    <Box ref={setAttachmentRef} style={styles.rowNoBorder}>
-      {waiting && <ProgressIndicator style={styles.progress} />}
+    <Box2
+      direction="horizontal"
+      ref={setAttachmentRef}
+      gap="xtiny"
+      style={headerStyles.container}
+      fullWidth={true}
+      centerChildren={true}
+    >
       <Icon type="iconfont-new" color={globalColors.blue} />
-      <Text type="BodyBigLink" style={styles.addNew}>
-        Add new...
-      </Text>
-    </Box>
+      <Text type="BodyBigLink">Add new...</Text>
+    </Box2>
   </ClickableBox>
 )
+const headerStyles = styleSheetCreate({
+  container: {height: isMobile ? 64 : 48},
+})
 
 const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
-  <Box>
-    <ClickableBox onClick={onToggleExpanded}>
-      <Box style={styles.rowRevoked}>
-        <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
+  <ClickableBox onClick={onToggleExpanded}>
+    <Box2 direction="vertical" fullWidth={true} gap="xtiny">
+      <Box2
+        direction="horizontal"
+        fullWidth={true}
+        gap="xtiny"
+        gapStart={true}
+        style={revokedHeaderStyles.textContainer}
+      >
+        <Text type="BodySmallSemibold" style={revokedHeaderStyles.text}>
           Revoked devices
         </Text>
         <Icon
           type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-          style={iconCastPlatformStyles(styles.caret)}
           color={globalColors.black_60}
           fontSize={10}
         />
-      </Box>
-    </ClickableBox>
-    {expanded && (
-      <Box style={styles.description}>
-        <Text type="BodySmallSemibold" style={styles.descriptionText}>
+      </Box2>
+      {expanded && (
+        <Text type="BodySmallSemibold" style={revokedHeaderStyles.desc}>
           Revoked devices will no longer be able to access your Keybase account.
         </Text>
-      </Box>
-    )}
-  </Box>
-)
-
-const DeviceRow = RowConnector(({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}) => (
-  <ClickableBox onClick={showExistingDevicePage} style={styles.row}>
-    <Box key={name} style={styles.rowBox}>
-      <Icon type={icon} style={iconCastPlatformStyles(isRevoked ? styles.iconRevoked : icon)} />
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'flex-start'}}>
-        <Text style={isRevoked ? styles.textRevoked : styles.text} type="BodySemiboldItalic">
-          {name}
-        </Text>
-        {isCurrentDevice && <Text type="BodySmall">Current device</Text>}
-      </Box>
-    </Box>
+      )}
+    </Box2>
   </ClickableBox>
-))
+)
+const revokedHeaderStyles = styleSheetCreate({
+  desc: {
+    alignSelf: 'center',
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    textAlign: 'center',
+  },
+  text: {color: globalColors.black_60},
+  textContainer: {alignItems: 'center'},
+})
 
 const stylesCommonCore = {
   alignItems: 'center',
@@ -159,11 +163,11 @@ const stylesCommonCore = {
   justifyContent: 'center',
 }
 
+// TODO remove
 const styles = styleSheetCreate({
   addNew: {
     padding: globalMargins.xtiny,
   },
-  caret: {padding: 5},
   description: {
     ...globalStyles.flexBoxColumn,
     ...stylesCommonCore,
@@ -176,14 +180,6 @@ const styles = styleSheetCreate({
     paddingBottom: globalMargins.tiny,
     paddingTop: globalMargins.tiny,
     textAlign: 'center',
-  },
-  icon: {marginRight: 16},
-  iconRevoke: {marginRight: 16, opacity: 0.2},
-  progress: {
-    left: 12,
-    position: 'absolute',
-    top: isMobile ? 22 : 14,
-    width: 20,
   },
   row: {
     ...globalStyles.flexBoxRow,
@@ -206,18 +202,6 @@ const styles = styleSheetCreate({
     minHeight: 38,
     paddingLeft: 8,
   },
-  text: {flex: 0},
-  textRevoked: platformStyles({
-    common: {
-      color: globalColors.black_40,
-      flex: 0,
-      textDecorationLine: 'line-through',
-      textDecorationStyle: 'solid',
-    },
-    isElectron: {
-      fontStyle: 'italic',
-    },
-  }),
 })
 
 export default HeaderOnMobile(FloatingMenuParentHOC(Devices))

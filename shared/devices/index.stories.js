@@ -6,15 +6,21 @@ import Devices from './container'
 import devicePage from './device-page/index.stories'
 import deviceRevoke from './device-revoke/index.stories'
 
+const idToType = i => {
+  switch (i) {
+    case 1:
+    case 5:
+      return 'desktop'
+    case 2:
+      return 'mobile'
+    default:
+      return 'backup'
+  }
+}
+
 const provider = createPropProvider({
   DeviceRow: ({deviceID}) => ({
-    icon: {
-      '1': 'icon-computer-48',
-      '2': 'icon-phone-48',
-      '3': 'icon-paper-key-48',
-      '4': 'icon-paper-key-48',
-      '5': 'icon-computer-48',
-    }[deviceID],
+    type: idToType(deviceID),
     isCurrentDevice: deviceID === '1',
     isRevoked: !['1', '2', '3'].includes(deviceID),
     name: {'1': 'laptop', '2': 'phone', '3': 'hello robot', '4': 'dog party', '5': 'desktop'}[deviceID],
@@ -40,7 +46,7 @@ const provider = createPropProvider({
     ],
     showMenu: action('showMenu'),
     showingMenu: false,
-    waiting: false,
+    waiting: !!p.waiting,
   }),
 })
 
@@ -49,8 +55,9 @@ const load = () => {
   deviceRevoke()
   storiesOf('Devices/List', module)
     .addDecorator(provider)
-    .add('Only active', () => <Devices />)
-    .add('Showing revoked', () => <Devices _stateOverride={{revokedExpanded: true}} />)
+    .add('Normal', () => <Devices />)
+    .add('Revoked expanded', () => <Devices _stateOverride={{revokedExpanded: true}} />)
+    .add('Loading', () => <Devices waiting={true} />)
 }
 
 export default load
