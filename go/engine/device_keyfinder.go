@@ -15,7 +15,7 @@ import (
 type DeviceKeyfinder struct {
 	libkb.Contextified
 	arg     DeviceKeyfinderArg
-	userMap map[keybase1.UID](*keybase1.UserPlusKeys)
+	userMap map[keybase1.UID](*keybase1.UserPlusKeysV2)
 }
 
 type DeviceKeyfinderArg struct {
@@ -30,7 +30,7 @@ func NewDeviceKeyfinder(g *libkb.GlobalContext, arg DeviceKeyfinderArg) *DeviceK
 	return &DeviceKeyfinder{
 		Contextified: libkb.NewContextified(g),
 		arg:          arg,
-		userMap:      make(map[keybase1.UID](*keybase1.UserPlusKeys)),
+		userMap:      make(map[keybase1.UID](*keybase1.UserPlusKeysV2)),
 	}
 }
 
@@ -69,7 +69,7 @@ func (e *DeviceKeyfinder) Run(m libkb.MetaContext) (err error) {
 
 // UsersPlusDeviceKeys returns the users found while running the engine,
 // plus their device keys.
-func (e *DeviceKeyfinder) UsersPlusKeys() map[keybase1.UID](*keybase1.UserPlusKeys) {
+func (e *DeviceKeyfinder) UsersPlusKeysV2() map[keybase1.UID](*keybase1.UserPlusKeysV2) {
 	return e.userMap
 }
 
@@ -95,49 +95,49 @@ func (e *DeviceKeyfinder) identifyUser(m libkb.MetaContext, user string) error {
 	if err := RunEngine2(m, eng); err != nil {
 		return libkb.IdentifyFailedError{Assertion: user, Reason: err.Error()}
 	}
-	return e.addUser(m, eng.Result())
+	res, err := eng.Result()
+	if err != nil {
+		return err
+	}
+	return e.addUser(m, res)
 }
 
-func (e *DeviceKeyfinder) hasUser(m libkb.MetaContext, upk *keybase1.UserPlusKeys) bool {
-	_, ok := e.userMap[upk.Uid]
+func (e *DeviceKeyfinder) hasUser(m libkb.MetaContext, upk *keybase1.UserPlusKeysV2) bool {
+	_, ok := e.userMap[upk.GetUID()]
 	return ok
 }
 
-func (e *DeviceKeyfinder) filterKeys(m libkb.MetaContext, upk *keybase1.UserPlusKeys) error {
-	var keys []keybase1.PublicKey
-	for _, key := range upk.DeviceKeys {
-		if len(key.PGPFingerprint) != 0 {
-			// this shouldn't happen
+func (e *DeviceKeyfinder) filterKeys(m libkb.MetaContext, upk *keybase1.UserPlusKeysV2) error {
+	keys := make(map[keybase1.KID]keybase1.PublicKeyV2NaCl)
+	for kid, key := range upk.DeviceKeys {
+		if e.arg.NeedVerifyKeys && !libkb.KIDIsDeviceVerify(kid) {
 			continue
 		}
-		if e.arg.NeedVerifyKeys && !libkb.KIDIsDeviceVerify(key.KID) {
+		if e.arg.NeedEncryptKeys && !libkb.KIDIsDeviceEncrypt(kid) {
 			continue
 		}
-		if e.arg.NeedEncryptKeys && !libkb.KIDIsDeviceEncrypt(key.KID) {
-			continue
-		}
-		keys = append(keys, key)
+		keys[kid] = key
 	}
 	if len(keys) == 0 {
-		return libkb.NoNaClEncryptionKeyError{User: upk.Username, HasPGPKey: upk.PGPKeyCount > 0}
+		return libkb.NoNaClEncryptionKeyError{User: upk.Username, HasPGPKey: len(upk.PGPKeys) > 0}
 	}
 	upk.DeviceKeys = keys
 	return nil
 }
 
-func (e *DeviceKeyfinder) addUser(m libkb.MetaContext, ir *keybase1.Identify2Res) error {
+func (e *DeviceKeyfinder) addUser(m libkb.MetaContext, ir *keybase1.Identify2ResUPK2) error {
 
 	if ir == nil {
 		return fmt.Errorf("Null result from Identify2")
 	}
-	upk := &ir.Upk
+	upk := &ir.Upk.Current
 
 	if e.hasUser(m, upk) {
 		return nil
 	}
 
-	if e.arg.Self != nil && e.arg.Self.GetUID().Equal(upk.Uid) {
-		m.CDebugf("skipping self in DevicekeyFinder (uid=%s)", upk.Uid)
+	if e.arg.Self != nil && e.arg.Self.GetUID().Equal(upk.GetUID()) {
+		m.CDebugf("skipping self in DevicekeyFinder (uid=%s)", upk.GetUID())
 		return nil
 	}
 
@@ -145,7 +145,7 @@ func (e *DeviceKeyfinder) addUser(m libkb.MetaContext, ir *keybase1.Identify2Res
 		return err
 	}
 
-	e.userMap[upk.Uid] = upk
+	e.userMap[upk.GetUID()] = upk
 
 	return nil
 }

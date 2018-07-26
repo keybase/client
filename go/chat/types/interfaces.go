@@ -32,6 +32,7 @@ type CryptKey interface {
 type AllCryptKeys map[chat1.ConversationMembersType][]CryptKey
 
 type NameInfoSource interface {
+	LookupUntrusted(ctx context.Context, name string, public bool) (*NameInfoUntrusted, error)
 	Lookup(ctx context.Context, name string, public bool) (*NameInfo, error)
 	EncryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (*NameInfo, error)
@@ -152,7 +153,7 @@ type InboxSource interface {
 		info *chat1.ConversationMinWriterRoleInfo) (*chat1.ConversationLocal, error)
 
 	GetInboxQueryLocalToRemote(ctx context.Context,
-		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, *NameInfo, error)
+		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, *NameInfoUntrusted, error)
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
 }
