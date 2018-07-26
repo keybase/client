@@ -4,7 +4,7 @@ import * as React from 'react'
 import {globalColors, styleSheetCreate, collapseStyles} from '../styles'
 import ClickableBox from './clickable-box'
 import Box from './box'
-import {Image} from 'react-native'
+import NativeImage from './native-image.native'
 import type {AvatarSize, Props} from './avatar.render'
 
 type ImageProps = {
@@ -55,7 +55,7 @@ class UserImage extends React.PureComponent<ImageProps> {
   render() {
     const {borderRadius, opacity = 1} = this.props
     return (
-      <Image
+      <NativeImage
         source={this.props.url}
         onLoadEnd={this.props.onLoadEnd}
         style={[styles[`image:${this.props.size}`], {borderRadius, opacity}]}

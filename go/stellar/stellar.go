@@ -813,19 +813,21 @@ func identifyRecipient(m libkb.MetaContext, assertion string) (keybase1.TLFIdent
 			m.CDebugf("identifyRecipient: resolution error %s: %s", assertion, err)
 			return keybase1.TLFIdentifyFailure{}, nil
 		}
+		return keybase1.TLFIdentifyFailure{}, err
 	}
 
-	resp := eng.Result()
-	m.CDebugf("identifyRecipient: resp: %+v", resp)
+	resp, err := eng.Result()
+	if err != nil {
+		return keybase1.TLFIdentifyFailure{}, err
+	}
+	m.CDebugf("identifyRecipient: resp: %+v", *resp)
 
 	var frep keybase1.TLFIdentifyFailure
-	if resp != nil {
-		frep.User = keybase1.User{
-			Uid:      resp.Upk.Uid,
-			Username: resp.Upk.Username,
-		}
-		frep.Breaks = resp.TrackBreaks
+	frep.User = keybase1.User{
+		Uid:      resp.Upk.GetUID(),
+		Username: resp.Upk.GetName(),
 	}
+	frep.Breaks = resp.TrackBreaks
 
 	return frep, nil
 }

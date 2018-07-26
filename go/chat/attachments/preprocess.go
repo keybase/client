@@ -170,7 +170,7 @@ func processCallerPreview(ctx context.Context, callerPreview chat1.MakePreviewRe
 
 func PreprocessAsset(ctx context.Context, log utils.DebugLabeler, filename string,
 	callerPreview *chat1.MakePreviewRes) (p Preprocess, err error) {
-	if callerPreview != nil {
+	if callerPreview != nil && callerPreview.Location != nil {
 		log.Debug(ctx, "preprocessAsset: caller provided preview, using that")
 		return processCallerPreview(ctx, *callerPreview)
 	}

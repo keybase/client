@@ -4,6 +4,7 @@ import React from 'react'
 import {Box2} from '../../common-adapters'
 import {storiesOf, action} from '../../stories/storybook'
 import Header from './header'
+import SettingsPopup from './settings-popup'
 
 const defaultWalletMock = {
   isDefaultWallet: true,
@@ -27,6 +28,30 @@ const commonActions = {
   onShowSecretKey: action('onShowSecretKey'),
 }
 
+const defaultSettingsProps = {
+  name: 'awesome wallet',
+  user: 'testuser',
+  isDefault: true,
+  currency: 'USD ($)',
+  currencies: ['USD ($)', 'XLM', 'CAD ($)', 'EUR (€)', 'GBP (£)'],
+  onDelete: action('onDelete'),
+  onSetDefault: action('setDefault'),
+  onEditName: action('onEditName'),
+  onCurrencyChange: action('onCurrencyChange'),
+}
+
+const secondarySettingsProps = {
+  name: 'some other wallet',
+  user: 'testuser',
+  isDefault: false,
+  currency: 'XLM',
+  currencies: ['USD ($)', 'XLM', 'CAD ($)', 'EUR (€)', 'GBP (£)'],
+  onDelete: action('onDelete'),
+  onSetDefault: action('setDefault'),
+  onEditName: action('onEditName'),
+  onCurrencyChange: action('onCurrencyChange'),
+}
+
 const provider = PropProviders.CommonProvider()
 
 const load = () => {
@@ -42,6 +67,8 @@ const load = () => {
         <Header {...commonActions} {...secondWalletMock} />
       </Box2>
     ))
+    .add('Settings, default', () => <SettingsPopup {...defaultSettingsProps} />)
+    .add('Settings, secondary', () => <SettingsPopup {...secondarySettingsProps} />)
 }
 
 const styleWidth = {width: 520}

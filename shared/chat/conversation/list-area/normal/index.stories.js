@@ -9,6 +9,7 @@ import {storiesOf, action, createPropProvider, Rnd} from '../../../../stories/st
 import * as PropProviders from '../../../../stories/prop-providers'
 import {propProvider as ReactionsRowProvider} from '../../messages/reactions-row/index.stories'
 import {propProvider as ReactButtonProvider} from '../../messages/react-button/index.stories'
+import {propProvider as ReactionTooltipProvider} from '../../messages/reaction-tooltip/index.stories'
 import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
@@ -122,6 +123,7 @@ const ordinalToMessage = o => {
 const provider = createPropProvider(PropProviders.Common(), {
   ...ReactButtonProvider,
   ...ReactionsRowProvider,
+  ...ReactionTooltipProvider,
   Channel: p => ({name: p.name}),
   Mention: p => ({username: p.username}),
   BottomMessage: p => ({

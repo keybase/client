@@ -17,11 +17,57 @@
       "size": "16"
     },
     {
+      "type": "record",
+      "name": "KBFSRevision",
+      "fields": [],
+      "typedef": "int64",
+      "lint": "ignore"
+    },
+    {
+      "type": "enum",
+      "name": "KBFSArchivedType",
+      "symbols": [
+        "REVISION_0"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "KBFSArchivedParam",
+      "switch": {
+        "type": "KBFSArchivedType",
+        "name": "KBFSArchivedType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "REVISION",
+            "def": false
+          },
+          "body": "KBFSRevision"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KBFSArchivedPath",
+      "fields": [
+        {
+          "type": "string",
+          "name": "path"
+        },
+        {
+          "type": "KBFSArchivedParam",
+          "name": "archivedParam"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "PathType",
       "symbols": [
         "LOCAL_0",
-        "KBFS_1"
+        "KBFS_1",
+        "KBFS_ARCHIVED_2"
       ]
     },
     {
@@ -45,6 +91,13 @@
             "def": false
           },
           "body": "string"
+        },
+        {
+          "label": {
+            "name": "KBFS_ARCHIVED",
+            "def": false
+          },
+          "body": "KBFSArchivedPath"
         }
       ]
     },

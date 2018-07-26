@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box2, ClickableBox, Emoji, Text} from '../../../../common-adapters'
+import * as Types from '../../../../constants/types/chat2'
+import {Box2, ClickableBox, Emoji, FloatingBox, Icon, Text} from '../../../../common-adapters'
 import {
   collapseStyles,
   glamorous,
@@ -10,14 +11,22 @@ import {
   platformStyles,
   styleSheetCreate,
   transition,
+  type StylesCrossPlatform,
 } from '../../../../styles'
+import {Picker} from 'emoji-mart'
+import {backgroundImageFn} from '../../../../common-adapters/emoji'
 
-export type Props = {
+export type Props = {|
   active: boolean,
+  conversationIDKey: Types.ConversationIDKey,
   count: number,
   emoji: string,
   onClick: () => void,
-}
+  onMouseLeave?: (evt: SyntheticEvent<Element>) => void,
+  onMouseOver?: (evt: SyntheticEvent<Element>) => void,
+  ordinal: Types.Ordinal,
+  style?: StylesCrossPlatform,
+|}
 
 const ButtonBox = glamorous(ClickableBox)({
   ...(isMobile
@@ -28,20 +37,118 @@ const ButtonBox = glamorous(ClickableBox)({
           borderColor: globalColors.blue,
         },
       }),
-  borderColor: globalColors.black_05,
+  borderColor: globalColors.black_10,
 })
-
 const ReactButton = (props: Props) => (
   <ButtonBox
+    onMouseLeave={props.onMouseLeave}
+    onMouseOver={props.onMouseOver}
     onClick={props.onClick}
-    style={collapseStyles([styles.buttonBox, props.active && styles.active])}
+    style={collapseStyles([styles.buttonBox, props.active && styles.active, props.style])}
   >
     <Box2 centerChildren={true} direction="horizontal" gap="xtiny" style={styles.container}>
-      <Emoji size={14} emojiName={props.emoji} />
-      <Text type="BodySmallBold">{props.count}</Text>
+      <Emoji size={16} emojiName={props.emoji} />
+      <Text type="BodyTinyBold" style={{color: props.active ? globalColors.blue : globalColors.black_40}}>
+        {props.count}
+      </Text>
     </Box2>
   </ButtonBox>
 )
+
+const iconCycle = [
+  'iconfont-reacji',
+  'iconfont-reacji-wave',
+  'iconfont-reacji-heart',
+  'iconfont-reacji-sheep',
+]
+export type NewReactionButtonProps = {|
+  onAddReaction: (emoji: string) => void,
+  showBorder: boolean,
+  style?: StylesCrossPlatform,
+|}
+type NewReactionButtonState = {|
+  attachmentRef: ?React.Component<any, any>,
+  iconIndex: number,
+  showingPicker: boolean,
+|}
+export class NewReactionButton extends React.Component<NewReactionButtonProps, NewReactionButtonState> {
+  state = {attachmentRef: null, iconIndex: 0, showingPicker: false}
+  _intervalID: ?IntervalID
+
+  _setShowingPicker = (showingPicker: boolean) =>
+    this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
+
+  _onAddReaction = ({colons}: {colons: string}, evt: Event) => {
+    evt.stopPropagation()
+    this.props.onAddReaction(colons)
+    this._setShowingPicker(false)
+    this._stopCycle()
+  }
+
+  _onShowPicker = (evt: SyntheticEvent<Element>) => {
+    evt.stopPropagation()
+    this._setShowingPicker(true)
+  }
+
+  _startCycle = () => {
+    if (!this._intervalID) {
+      this._intervalID = setInterval(this._nextIcon, 1000)
+    }
+  }
+
+  _stopCycle = () => {
+    this._intervalID && clearInterval(this._intervalID)
+    this._intervalID = null
+    this.setState(s => (s.iconIndex === 0 ? null : {iconIndex: 0}))
+  }
+
+  _nextIcon = () => this.setState(s => ({iconIndex: (s.iconIndex + 1) % iconCycle.length}))
+
+  componentWillUnmount() {
+    this._stopCycle()
+  }
+
+  render() {
+    const ContainerComp = this.props.showBorder ? ButtonBox : ClickableBox
+    return (
+      <ContainerComp
+        onClick={this._onShowPicker}
+        onMouseLeave={this._stopCycle}
+        onMouseEnter={this._startCycle}
+        style={collapseStyles([
+          styles.newReactionButtonBox,
+          this.props.showBorder && styles.buttonBox,
+          this.props.style,
+        ])}
+      >
+        <Box2
+          ref={attachmentRef => this.setState(s => (s.attachmentRef ? null : {attachmentRef}))}
+          centerChildren={true}
+          direction="horizontal"
+          style={this.props.showBorder ? styles.container : null}
+        >
+          <Icon type={iconCycle[this.state.iconIndex]} fontSize={16} />
+        </Box2>
+        {this.state.showingPicker &&
+          !isMobile && (
+            <FloatingBox
+              attachTo={this.state.attachmentRef}
+              position="bottom left"
+              onHidden={() => this._setShowingPicker(false)}
+            >
+              <Picker
+                autoFocus={true}
+                emoji="star-struck"
+                title="reacjibase"
+                onClick={this._onAddReaction}
+                backgroundImageFn={backgroundImageFn}
+              />
+            </FloatingBox>
+          )}
+      </ContainerComp>
+    )
+  }
+}
 
 const styles = styleSheetCreate({
   active: {
@@ -57,14 +164,17 @@ const styles = styleSheetCreate({
   },
   container: platformStyles({
     common: {
-      paddingLeft: globalMargins.xtiny,
-      paddingRight: globalMargins.xtiny,
+      paddingLeft: 6,
+      paddingRight: 6,
     },
     isElectron: {
       paddingBottom: globalMargins.tiny,
       paddingTop: globalMargins.tiny,
     },
   }),
+  newReactionButtonBox: {
+    width: 37,
+  },
 })
 
 export default ReactButton

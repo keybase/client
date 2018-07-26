@@ -80,9 +80,12 @@ func (e *TrackEngine) Run(m libkb.MetaContext) error {
 		return err
 	}
 
-	upk := ieng.Result().Upk
-	var err error
-	loadarg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(upk.Uid).WithPublicKeyOptional()
+	res, err := ieng.Result()
+	if err != nil {
+		return err
+	}
+	upk := res.Upk
+	loadarg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(upk.GetUID()).WithPublicKeyOptional()
 	e.them, err = libkb.LoadUser(loadarg)
 	if err != nil {
 		return err

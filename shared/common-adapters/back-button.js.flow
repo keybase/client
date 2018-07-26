@@ -7,7 +7,7 @@ export type Props = {
   onClick: () => void,
   onPress?: void,
   iconColor?: Color,
-  textStyle?: Object,
+  textStyle?: ?StylesCrossPlatform,
   style?: ?StylesCrossPlatform,
   title?: ?string,
 }

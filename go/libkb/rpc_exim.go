@@ -685,6 +685,19 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		}
 		e.UIDs = uids
 		return e
+	case SCMerkleClientError:
+		e := MerkleClientError{m: s.Desc}
+		for _, field := range s.Fields {
+			if field.Key == "type" {
+				i, err := strconv.Atoi(field.Value)
+				if err != nil {
+					g.Log.Warning("error parsing merkle error type: %s", err)
+				} else {
+					e.t = merkleClientErrorType(i)
+				}
+			}
+		}
+		return e
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -2273,5 +2286,13 @@ func (e EphemeralPairwiseMACsMissingUIDsError) ToStatus() (ret keybase1.Status) 
 			Value: uid.String(),
 		})
 	}
+	return ret
+}
+
+func (e MerkleClientError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCMerkleClientError
+	ret.Name = "MERKLE_CLIENT_ERROR"
+	ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "type", Value: fmt.Sprintf("%d", int(e.t))})
+	ret.Desc = e.m
 	return ret
 }

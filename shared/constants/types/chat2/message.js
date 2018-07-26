@@ -187,6 +187,7 @@ export type _MessageSystemGitPush = {
   id: MessageID,
   ordinal: Ordinal,
   pusher: string,
+  pushType: RPCTypes.GitPushType,
   reactions: Reactions,
   refs: Array<RPCTypes.GitRefMetadata>,
   repo: string,

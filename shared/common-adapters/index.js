@@ -63,7 +63,7 @@ const _styleContainer = {
   height: '100%',
 }
 
-export {default as Avatar} from './avatar'
+export {default as Avatar, castPlatformStyles as avatarCastPlatformStyles} from './avatar'
 export {default as BackButton} from './back-button'
 export {default as Badge} from './badge'
 export {default as Banner} from './banner'
@@ -89,12 +89,13 @@ export {default as HeaderHoc, HeaderHocHeader} from './header-hoc'
 export {default as HeaderOnMobile} from './header-on-mobile'
 export {default as HeaderOrPopup} from './header-or-popup'
 export {default as Icon, castPlatformStyles as iconCastPlatformStyles} from './icon'
-export {default as Image} from './image'
+export {default as Image, RequireImage} from './image'
 export {default as InfoNote} from './info-note'
 export {default as Input} from './input'
 export {default as List} from './list'
 export {default as LoadingLine} from './loading-line'
 export {default as ListItem} from './list-item'
+export {default as ListItem2} from './list-item2'
 export {default as Markdown} from './markdown'
 export {MaybePopup, MaybePopupHoc}
 export {default as MultiAvatar} from './multi-avatar.js'

@@ -1,28 +1,16 @@
 // @flow
 import * as I from 'immutable'
-import {makeRouteDefNode} from '../../route-tree'
+import {makeRouteDefNode, makeLeafTags} from '../../route-tree'
 import Login from './container'
-import UsernameOrEmail from '../register/username-or-email/container'
-import SelectOtherDevice from '../register/select-other-device/container'
-import Passphrase from '../register/passphrase/container'
-import PaperKey from '../register/paper-key/container'
-import CodePage from '../register/code-page/container'
-import SetPublicName from '../register/set-public-name/container'
-import RegisterError from '../register/error/container'
-import GPGSign from '../register/gpg-sign/container'
 import Feedback from '../../settings/feedback-container'
+import provisonRoutes from '../../provision/routes'
+
+const addTags = component => ({component, tags: makeLeafTags({underStatusBar: true})})
 
 const recursiveLazyRoutes = I.Seq({
-  codePage: {component: CodePage},
-  error: {component: RegisterError},
-  feedback: {component: Feedback},
-  gpgSign: {component: GPGSign},
-  login: {component: Login},
-  paperkey: {component: PaperKey},
-  passphrase: {component: Passphrase},
-  selectOtherDevice: {component: SelectOtherDevice},
-  setPublicName: {component: SetPublicName},
-  usernameOrEmail: {component: UsernameOrEmail},
+  feedback: addTags(Feedback),
+  login: addTags(Login),
+  ...provisonRoutes,
 })
   .map(routeData =>
     makeRouteDefNode({
