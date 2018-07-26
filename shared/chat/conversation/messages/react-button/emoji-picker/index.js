@@ -1,11 +1,10 @@
 // @flow
 import * as React from 'react'
-import {categories, emojiIndex, type EmojiData} from './data'
-import {Box2, Emoji, SectionList, Text} from '../../../../../common-adapters'
+import {categories, type EmojiData} from './data'
+import {ClickableBox, Box2, Emoji, SectionList, Text} from '../../../../../common-adapters'
 import {globalColors, globalMargins, styleSheetCreate} from '../../../../../styles'
 import {chunk} from 'lodash-es'
 
-console.log('DANNYDEBUG', categories, emojiIndex)
 // SectionList data is mostly static, map categories here
 // and chunk data within component
 const emojiSections = categories.map(c => ({
@@ -14,10 +13,13 @@ const emojiSections = categories.map(c => ({
   key: c.category,
 }))
 const singleEmojiWidth = 22
+const emojiPadding = 4
 
 type Section = {category: string, data: Array<{emojis: Array<EmojiData>, key: string}>, key: string}
 
 type Props = {
+  filter?: string,
+  onChoose: (emoji: EmojiData) => void,
   width: number,
 }
 type State = {
@@ -27,8 +29,12 @@ class EmojiPicker extends React.Component<Props, State> {
   state = {sections: null}
   _renderItem = ({item}: {item: {emojis: Array<EmojiData>, key: string}}) => {
     return (
-      <Box2 key={item.key} fullWidth={true} centerChildren={true} direction="horizontal">
-        {item.emojis.map(e => <Emoji size={singleEmojiWidth} emojiName={e.short_name} key={e.short_name} />)}
+      <Box2 key={item.key} fullWidth={true} style={styles.alignItemsCenter} direction="horizontal">
+        {item.emojis.map(e => (
+          <ClickableBox onClick={() => this.props.onChoose(e)} style={styles.emoji} key={e.short_name}>
+            <Emoji size={singleEmojiWidth} emojiName={e.short_name} />
+          </ClickableBox>
+        ))}
       </Box2>
     )
   }
@@ -40,12 +46,16 @@ class EmojiPicker extends React.Component<Props, State> {
   )
 
   _chunkData() {
-    const emojisPerLine = Math.floor(this.props.width / singleEmojiWidth)
-    const sections = emojiSections.map(c => ({
-      category: c.category,
-      data: chunk(c.data.emojis, emojisPerLine).map(c => ({emojis: c, key: c[0].short_name})),
-      key: c.key,
-    }))
+    let sections = []
+    if (this.props.filter) {
+    } else {
+      const emojisPerLine = Math.floor(this.props.width / (singleEmojiWidth + 2 * emojiPadding))
+      sections = emojiSections.map(c => ({
+        category: c.category,
+        data: chunk(c.data.emojis, emojisPerLine).map(c => ({emojis: c, key: c[0].short_name})),
+        key: c.key,
+      }))
+    }
     this.setState({sections})
   }
 
@@ -57,6 +67,7 @@ class EmojiPicker extends React.Component<Props, State> {
     return this.state.sections ? (
       <SectionList
         sections={this.state.sections}
+        stickySectionHeadersEnabled={true}
         renderItem={this._renderItem}
         renderSectionHeader={this._renderSectionHeader}
       />
@@ -65,6 +76,12 @@ class EmojiPicker extends React.Component<Props, State> {
 }
 
 const styles = styleSheetCreate({
+  alignItemsCenter: {
+    alignItems: 'center',
+  },
+  emoji: {
+    padding: emojiPadding,
+  },
   sectionHeader: {
     alignItems: 'center',
     backgroundColor: globalColors.white,
