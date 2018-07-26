@@ -436,12 +436,19 @@ func (t *ImplicitTeamsNameInfoSource) LookupUntrusted(ctx context.Context, name 
 	if err != nil {
 		return res, err
 	}
+	var tlfID chat1.TLFID
 	kid, err := teams.LookupImplicitTeamIDUntrusted(ctx, t.G().ExternalG(), name, public)
 	if err != nil {
 		return res, err
 	}
+	tlfID = chat1.TLFID(kid.ToBytes())
+	if t.lookupUpgraded {
+		if tlfID, err = tlfIDToTeamID.LookupTLFID(ctx, kid, t.G().GetAPI()); err != nil {
+			return res, err
+		}
+	}
 	return &types.NameInfoUntrusted{
-		ID:            chat1.TLFID(kid.ToBytes()),
+		ID:            tlfID,
 		CanonicalName: impTeamName.String(),
 	}, nil
 }
@@ -582,13 +589,16 @@ func (t *ImplicitTeamsNameInfoSource) lookupInternalName(ctx context.Context, na
 }
 
 type tlfIDToTeamIDMap struct {
-	storage *lru.Cache
+	storage      *lru.Cache
+	tlfIDStorage *lru.Cache
 }
 
 func newTlfIDToTeamIDMap() *tlfIDToTeamIDMap {
 	s, _ := lru.New(10000)
+	st, _ := lru.New(10000)
 	return &tlfIDToTeamIDMap{
-		storage: s,
+		storage:      s,
+		tlfIDStorage: st,
 	}
 }
 
@@ -615,6 +625,30 @@ func (t *tlfIDToTeamIDMap) Lookup(ctx context.Context, tlfID chat1.TLFID, api li
 	}
 	t.storage.Add(tlfID.String(), teamID)
 	return teamID, nil
+}
+
+func (t *tlfIDToTeamIDMap) LookupTLFID(ctx context.Context, teamID keybase1.TeamID, api libkb.API) (res chat1.TLFID, err error) {
+	if iTLFID, ok := t.tlfIDStorage.Get(teamID.String()); ok {
+		return iTLFID.(chat1.TLFID), nil
+	}
+	arg := libkb.NewAPIArgWithNetContext(ctx, "team/tlfid")
+	arg.Args = libkb.NewHTTPArgs()
+	arg.Args.Add("team_id", libkb.S{Val: teamID.String()})
+	arg.SessionType = libkb.APISessionTypeREQUIRED
+	apiRes, err := api.Get(arg)
+	if err != nil {
+		return res, err
+	}
+	st, err := apiRes.Body.AtKey("tlf_id").GetString()
+	if err != nil {
+		return res, err
+	}
+	tlfID, err := chat1.MakeTLFID(st)
+	if err != nil {
+		return res, err
+	}
+	t.tlfIDStorage.Add(teamID.String(), tlfID)
+	return tlfID, nil
 }
 
 var tlfIDToTeamID = newTlfIDToTeamIDMap()
