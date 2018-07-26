@@ -6,11 +6,9 @@ import DeviceRevoke from '.'
 import {connect, type TypedState} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
 
-const blankDetail = Constants.makeDeviceDetail()
-
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const deviceID = routeProps.get('deviceID')
-  const device = state.devices.idToDetail.get(deviceID, blankDetail)
+  const device = Constants.getDetails(state, deviceID)
 
   return {
     currentDevice: device.currentDevice,

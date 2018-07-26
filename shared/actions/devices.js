@@ -7,7 +7,6 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteActions from './route-tree'
 import * as RouteTree from '../route-tree'
 import * as Saga from '../util/saga'
-import * as Types from '../constants/types/devices'
 import HiddenString from '../util/hidden-string'
 import {loginTab} from '../constants/tabs'
 import {type TypedState} from '../constants/reducer'
@@ -55,23 +54,8 @@ const loadDevices = (state: TypedState) =>
   state.config.loggedIn &&
   RPCTypes.deviceDeviceHistoryListRpcPromise(undefined, Constants.waitingKey)
     .then((results: ?Array<RPCTypes.DeviceDetail>) => {
-      const devices = (results || []).map((d: RPCTypes.DeviceDetail) =>
-        Constants.makeDeviceDetail({
-          created: d.device.cTime,
-          currentDevice: d.currentDevice,
-          deviceID: Types.stringToDeviceID(d.device.deviceID),
-          lastUsed: d.device.lastUsedTime,
-          name: d.device.name,
-          provisionedAt: d.provisionedAt,
-          provisionerName: d.provisioner ? d.provisioner.name : '',
-          revokedAt: d.revokedAt,
-          revokedByName: d.revokedByDevice ? d.revokedByDevice.name : null,
-          type: Types.stringToDeviceType(d.device.type),
-        })
-      )
-
-      const idToDetail: I.Map<Types.DeviceID, Types.DeviceDetail> = I.Map(devices.map(d => [d.deviceID, d]))
-      return DevicesGen.createDevicesLoaded({idToDetail})
+      const devices = (results || []).map(d => Constants.rpcDeviceToDetail(d))
+      return DevicesGen.createDevicesLoaded({idToDetail: I.Map(devices.map(d => [d.deviceID, d]))})
     })
     .catch(() => DevicesGen.createDevicesLoadedError())
 
