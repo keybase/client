@@ -1557,8 +1557,8 @@ func (r ReactionMap) HasReactionFromUser(reactionText, username string) (found b
 	if !ok {
 		return false, 0
 	}
-	reactionMessageID, ok := reactions[username]
-	return ok, reactionMessageID
+	reaction, ok := reactions[username]
+	return ok, reaction.ReactionMsgID
 }
 
 func (i *ConversationMinWriterRoleInfoLocal) String() string {

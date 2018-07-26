@@ -1056,24 +1056,36 @@ func (o MessageSummary) DeepCopy() MessageSummary {
 	}
 }
 
+type Reaction struct {
+	Ctime         gregor1.Time `codec:"ctime" json:"ctime"`
+	ReactionMsgID MessageID    `codec:"reactionMsgID" json:"reactionMsgID"`
+}
+
+func (o Reaction) DeepCopy() Reaction {
+	return Reaction{
+		Ctime:         o.Ctime.DeepCopy(),
+		ReactionMsgID: o.ReactionMsgID.DeepCopy(),
+	}
+}
+
 type ReactionMap struct {
-	Reactions map[string]map[string]MessageID `codec:"reactions" json:"reactions"`
+	Reactions map[string]map[string]Reaction `codec:"reactions" json:"reactions"`
 }
 
 func (o ReactionMap) DeepCopy() ReactionMap {
 	return ReactionMap{
-		Reactions: (func(x map[string]map[string]MessageID) map[string]map[string]MessageID {
+		Reactions: (func(x map[string]map[string]Reaction) map[string]map[string]Reaction {
 			if x == nil {
 				return nil
 			}
-			ret := make(map[string]map[string]MessageID)
+			ret := make(map[string]map[string]Reaction)
 			for k, v := range x {
 				kCopy := k
-				vCopy := (func(x map[string]MessageID) map[string]MessageID {
+				vCopy := (func(x map[string]Reaction) map[string]Reaction {
 					if x == nil {
 						return nil
 					}
-					ret := make(map[string]MessageID)
+					ret := make(map[string]Reaction)
 					for k, v := range x {
 						kCopy := k
 						vCopy := v.DeepCopy()
