@@ -9,7 +9,7 @@
 import * as React from 'react'
 import FloatingBox from '../floating-box'
 import type {Position} from '../relative-popup-hoc'
-import PopupMenu, {type MenuItem, ModalLessPopupMenu} from '../popup-menu'
+import PopupMenu, {type MenuItem, ModalLessPopupMenu} from './popup-menu'
 import {isMobile} from '../../constants/platform'
 import {type StylesCrossPlatform} from '../../styles'
 
