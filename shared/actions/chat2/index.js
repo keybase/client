@@ -1626,14 +1626,17 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   // These messages will not send until the upload has both been started and completed.
   const messageResults: Array<?RPCChatTypes.PostLocalNonblockRes> = yield Saga.sequentially(
     paths.map(p =>
-      Saga.call(RPCChatTypes.localPostFileAttachmentMessageLocalNonblockRpcPromise, {
-        ...ephemeralData,
-        convID: Types.keyToConversationID(conversationIDKey),
-        tlfName: meta.tlfname,
-        visibility: RPCTypes.commonTLFVisibility.private,
-        clientPrev,
-        identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-      })
+      Saga.call(
+        RPCChatTypes.localPostFileAttachmentMessageLocalNonblockRpcPromise,
+        ({
+          ...ephemeralData,
+          convID: Types.keyToConversationID(conversationIDKey),
+          tlfName: meta.tlfname,
+          visibility: RPCTypes.commonTLFVisibility.private,
+          clientPrev,
+          identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
+        }: RPCChatTypes.LocalPostFileAttachmentMessageLocalNonblockRpcParam)
+      )
     )
   )
   const outboxIDs = messageResults.reduce((obids, r) => {
@@ -1642,6 +1645,10 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
     }
     return obids
   }, [])
+  if (outboxIDs.length === 0) {
+    logger.info('all outbox IDs filtered on null results')
+    return
+  }
 
   // Make the previews
   const previews: Array<?RPCChatTypes.MakePreviewRes> = yield Saga.sequentially(
@@ -1692,14 +1699,18 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   )
   yield Saga.sequentially(
     paths.map((path, i) =>
-      Saga.call(RPCChatTypes.localPostFileAttachmentUploadLocalNonblockRpcPromise, {
-        convID: Types.keyToConversationID(conversationIDKey),
-        outboxID: outboxIDs[i],
-        filename: path,
-        title: titles[i],
-        metadata: Buffer.from([]),
-        identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-      })
+      Saga.call(
+        RPCChatTypes.localPostFileAttachmentUploadLocalNonblockRpcPromise,
+        ({
+          convID: Types.keyToConversationID(conversationIDKey),
+          outboxID: outboxIDs[i],
+          filename: path,
+          title: titles[i],
+          metadata: Buffer.from([]),
+          callerPreview: previews[i],
+          identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
+        }: RPCChatTypes.LocalPostFileAttachmentUploadLocalNonblockRpcParam)
+      )
     )
   )
 }

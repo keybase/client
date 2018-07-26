@@ -1482,6 +1482,7 @@ func (h *Server) PostFileAttachmentMessageLocalNonblock(ctx context.Context,
 	if err != nil {
 		return res, err
 	}
+	h.Debug(ctx, "PostFileAttachmentMessageLocalNonblock: generated message with outbox ID: %s", outboxID)
 	return h.PostLocalNonblock(ctx, chat1.PostLocalNonblockArg{
 		ConversationID:   arg.ConvID,
 		IdentifyBehavior: arg.IdentifyBehavior,
@@ -1495,7 +1496,8 @@ func (h *Server) PostFileAttachmentUploadLocalNonblock(ctx context.Context,
 	arg chat1.PostFileAttachmentUploadLocalNonblockArg) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentUploadLocalNonblock")()
+	defer h.Trace(ctx, func() error { return err },
+		fmt.Sprintf("PostFileAttachmentUploadLocalNonblock(%s)", arg.OutboxID))()
 
 	uid := h.getUID()
 	if _, err = h.G().AttachmentUploader.Register(ctx, uid, arg.ConvID, arg.OutboxID, arg.Title,
