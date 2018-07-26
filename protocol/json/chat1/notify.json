@@ -730,7 +730,7 @@
       "notify": "",
       "lint": "ignore"
     },
-    "ChatSetConvMinWriterRole": {
+    "ChatSetConvSettings": {
       "request": [
         {
           "name": "uid",

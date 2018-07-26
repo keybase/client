@@ -59,7 +59,7 @@ type NotifyListener interface {
 	ChatResetConversation(uid keybase1.UID, convID chat1.ConversationID)
 	ChatSetConvRetention(uid keybase1.UID, convID chat1.ConversationID)
 	ChatSetTeamRetention(uid keybase1.UID, teamID keybase1.TeamID)
-	ChatSetConvMinWriterRole(uid keybase1.UID, convID chat1.ConversationID)
+	ChatSetConvSettings(uid keybase1.UID, convID chat1.ConversationID)
 	ChatKBFSToImpteamUpgrade(uid keybase1.UID, convID chat1.ConversationID)
 	ChatAttachmentUploadStart(uid keybase1.UID, convID chat1.ConversationID, outboxID chat1.OutboxID)
 	ChatAttachmentUploadProgress(uid keybase1.UID, convID chat1.ConversationID, outboxID chat1.OutboxID,
@@ -124,7 +124,7 @@ func (n *NoopNotifyListener) ChatResetConversation(uid keybase1.UID, convID chat
 func (n *NoopNotifyListener) Chat(uid keybase1.UID, convID chat1.ConversationID)                     {}
 func (n *NoopNotifyListener) ChatSetConvRetention(uid keybase1.UID, convID chat1.ConversationID)     {}
 func (n *NoopNotifyListener) ChatSetTeamRetention(uid keybase1.UID, teamID keybase1.TeamID)          {}
-func (n *NoopNotifyListener) ChatSetConvMinWriterRole(uid keybase1.UID, convID chat1.ConversationID) {}
+func (n *NoopNotifyListener) ChatSetConvSettings(uid keybase1.UID, convID chat1.ConversationID)      {}
 func (n *NoopNotifyListener) ChatKBFSToImpteamUpgrade(uid keybase1.UID, convID chat1.ConversationID) {}
 func (n *NoopNotifyListener) ChatAttachmentUploadStart(uid keybase1.UID, convID chat1.ConversationID,
 	outboxID chat1.OutboxID) {
@@ -1075,17 +1075,17 @@ func (n *NotifyRouter) HandleChatSetTeamRetention(ctx context.Context, uid keyba
 		})
 }
 
-func (n *NotifyRouter) HandleChatSetConvMinWriterRole(ctx context.Context, uid keybase1.UID,
+func (n *NotifyRouter) HandleChatSetConvSettings(ctx context.Context, uid keybase1.UID,
 	convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
-	n.notifyChatCommon(ctx, "ChatSetConvMinWriterRole", topicType,
+	n.notifyChatCommon(ctx, "ChatSetConvSettings", topicType,
 		func(ctx context.Context, cli *chat1.NotifyChatClient) {
-			cli.ChatSetConvMinWriterRole(ctx, chat1.ChatSetConvMinWriterRoleArg{
+			cli.ChatSetConvSettings(ctx, chat1.ChatSetConvSettingsArg{
 				Uid:    uid,
 				ConvID: convID,
 				Conv:   conv,
 			})
 		}, func(ctx context.Context, listener NotifyListener) {
-			listener.ChatSetConvMinWriterRole(uid, convID)
+			listener.ChatSetConvSettings(uid, convID)
 		})
 }
 

@@ -1540,6 +1540,19 @@
     },
     {
       "type": "record",
+      "name": "ConversationSettingsLocal",
+      "fields": [
+        {
+          "type": [
+            null,
+            "ConversationMinWriterRoleInfoLocal"
+          ],
+          "name": "minWriterRoleInfo"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ConversationLocal",
       "fields": [
         {
@@ -1624,9 +1637,9 @@
         {
           "type": [
             null,
-            "ConversationMinWriterRoleInfoLocal"
+            "ConversationSettingsLocal"
           ],
-          "name": "minWriterRoleInfo"
+          "name": "convSettings"
         }
       ]
     },

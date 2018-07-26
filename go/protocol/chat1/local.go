@@ -2860,21 +2860,37 @@ func (o ConversationMinWriterRoleInfoLocal) DeepCopy() ConversationMinWriterRole
 	}
 }
 
-type ConversationLocal struct {
-	Error             *ConversationErrorLocal             `codec:"error,omitempty" json:"error,omitempty"`
-	Info              ConversationInfoLocal               `codec:"info" json:"info"`
-	ReaderInfo        ConversationReaderInfo              `codec:"readerInfo" json:"readerInfo"`
-	CreatorInfo       *ConversationCreatorInfoLocal       `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
-	Notifications     *ConversationNotificationInfo       `codec:"notifications,omitempty" json:"notifications,omitempty"`
-	Supersedes        []ConversationMetadata              `codec:"supersedes" json:"supersedes"`
-	SupersededBy      []ConversationMetadata              `codec:"supersededBy" json:"supersededBy"`
-	MaxMessages       []MessageUnboxed                    `codec:"maxMessages" json:"maxMessages"`
-	IsEmpty           bool                                `codec:"isEmpty" json:"isEmpty"`
-	IdentifyFailures  []keybase1.TLFIdentifyFailure       `codec:"identifyFailures" json:"identifyFailures"`
-	Expunge           Expunge                             `codec:"expunge" json:"expunge"`
-	ConvRetention     *RetentionPolicy                    `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
-	TeamRetention     *RetentionPolicy                    `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
+type ConversationSettingsLocal struct {
 	MinWriterRoleInfo *ConversationMinWriterRoleInfoLocal `codec:"minWriterRoleInfo,omitempty" json:"minWriterRoleInfo,omitempty"`
+}
+
+func (o ConversationSettingsLocal) DeepCopy() ConversationSettingsLocal {
+	return ConversationSettingsLocal{
+		MinWriterRoleInfo: (func(x *ConversationMinWriterRoleInfoLocal) *ConversationMinWriterRoleInfoLocal {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.MinWriterRoleInfo),
+	}
+}
+
+type ConversationLocal struct {
+	Error            *ConversationErrorLocal       `codec:"error,omitempty" json:"error,omitempty"`
+	Info             ConversationInfoLocal         `codec:"info" json:"info"`
+	ReaderInfo       ConversationReaderInfo        `codec:"readerInfo" json:"readerInfo"`
+	CreatorInfo      *ConversationCreatorInfoLocal `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
+	Notifications    *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
+	Supersedes       []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
+	SupersededBy     []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
+	MaxMessages      []MessageUnboxed              `codec:"maxMessages" json:"maxMessages"`
+	IsEmpty          bool                          `codec:"isEmpty" json:"isEmpty"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+	Expunge          Expunge                       `codec:"expunge" json:"expunge"`
+	ConvRetention    *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
+	TeamRetention    *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
+	ConvSettings     *ConversationSettingsLocal    `codec:"convSettings,omitempty" json:"convSettings,omitempty"`
 }
 
 func (o ConversationLocal) DeepCopy() ConversationLocal {
@@ -2962,13 +2978,13 @@ func (o ConversationLocal) DeepCopy() ConversationLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.TeamRetention),
-		MinWriterRoleInfo: (func(x *ConversationMinWriterRoleInfoLocal) *ConversationMinWriterRoleInfoLocal {
+		ConvSettings: (func(x *ConversationSettingsLocal) *ConversationSettingsLocal {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.MinWriterRoleInfo),
+		})(o.ConvSettings),
 	}
 }
 
