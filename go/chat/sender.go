@@ -30,6 +30,7 @@ type BlockingSender struct {
 	store             attachments.Store
 	getRi             func() chat1.RemoteInterface
 	prevPtrPagination *chat1.Pagination
+	clock             clockwork.Clock
 }
 
 var _ types.Sender = (*BlockingSender)(nil)
@@ -41,6 +42,7 @@ func NewBlockingSender(g *globals.Context, boxer *Boxer, getRi func() chat1.Remo
 		getRi:             getRi,
 		boxer:             boxer,
 		store:             attachments.NewS3Store(g.GetLog(), g.GetRuntimeDir()),
+		clock:             clockwork.NewRealClock(),
 		prevPtrPagination: &chat1.Pagination{Num: 50},
 	}
 }
@@ -49,24 +51,28 @@ func (s *BlockingSender) setPrevPagination(p *chat1.Pagination) {
 	s.prevPtrPagination = p
 }
 
-func (s *BlockingSender) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.MessagePlaintext, error) {
+func (s *BlockingSender) SetClock(clock clockwork.Clock) {
+	s.clock = clock
+}
+
+func (s *BlockingSender) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.MessagePlaintext, gregor1.UID, error) {
 	uid := s.G().Env.GetUID()
 	if uid.IsNil() {
-		return chat1.MessagePlaintext{}, libkb.LoginRequiredError{}
+		return chat1.MessagePlaintext{}, nil, libkb.LoginRequiredError{}
 	}
 	did := s.G().Env.GetDeviceID()
 	if did.IsNil() {
-		return chat1.MessagePlaintext{}, libkb.DeviceRequiredError{}
+		return chat1.MessagePlaintext{}, nil, libkb.DeviceRequiredError{}
 	}
 
 	huid := uid.ToBytes()
 	if huid == nil {
-		return chat1.MessagePlaintext{}, errors.New("invalid UID")
+		return chat1.MessagePlaintext{}, nil, errors.New("invalid UID")
 	}
 
 	hdid := make([]byte, libkb.DeviceIDLen)
 	if err := did.ToBytes(hdid); err != nil {
-		return chat1.MessagePlaintext{}, err
+		return chat1.MessagePlaintext{}, nil, err
 	}
 
 	header := msg.ClientHeader
@@ -76,7 +82,7 @@ func (s *BlockingSender) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.M
 		ClientHeader: header,
 		MessageBody:  msg.MessageBody,
 	}
-	return updated, nil
+	return updated, gregor1.UID(huid), nil
 }
 
 func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg chat1.MessagePlaintext,
@@ -214,8 +220,8 @@ func (s *BlockingSender) checkConvID(ctx context.Context, conv chat1.Conversatio
 // If the conversation is not cached, this relies on the server to get old messages, so the server
 // could omit messages. Those messages would then not be signed into the `Deletes` list. And their
 // associated attachment assets would be left undeleted.
-func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.MessagePlaintext,
-	conv chat1.Conversation) (chat1.MessagePlaintext, []chat1.Asset, error) {
+func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.MessagePlaintext, []chat1.Asset, error) {
 
 	var pendingAssetDeletes []chat1.Asset
 
@@ -230,38 +236,18 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 	}
 
 	// Get the one message to be deleted by ID.
-	var uid gregor1.UID = s.G().Env.GetUID().ToBytes()
-	deleteTargets, err := s.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{deleteTargetID}, nil)
+	deleteTarget, err := s.getMessage(ctx, uid, convID, deleteTargetID, false /* resolveSupersedes */)
 	if err != nil {
 		return msg, nil, err
-	}
-	if len(deleteTargets) != 1 {
-		return msg, nil, fmt.Errorf("getAllDeletedEdits: wrong number of delete targets found (%v but expected 1)", len(deleteTargets))
-	}
-	deleteTarget := deleteTargets[0]
-	state, err := deleteTarget.State()
-	if err != nil {
-		return msg, nil, err
-	}
-	switch state {
-	case chat1.MessageUnboxedState_VALID:
-		// pass
-	case chat1.MessageUnboxedState_ERROR:
-		return msg, nil, fmt.Errorf("getAllDeletedEdits: delete target: %s", deleteTarget.Error().ErrMsg)
-	case chat1.MessageUnboxedState_OUTBOX:
-		// TODO You should be able to delete messages that haven't been sent yet. But through a different mechanism.
-		return msg, nil, fmt.Errorf("getAllDeletedEdits: delete target still in outbox")
-	default:
-		return msg, nil, fmt.Errorf("getAllDeletedEdits: delete target invalid (state:%v)", state)
 	}
 
 	// Delete all assets on the deleted message.
 	// assetsForMessage logs instead of failing.
-	pads2 := utils.AssetsForMessage(s.G(), deleteTarget.Valid().MessageBody)
+	pads2 := utils.AssetsForMessage(s.G(), deleteTarget.MessageBody)
 	pendingAssetDeletes = append(pendingAssetDeletes, pads2...)
 
 	// Time of the first message to be deleted.
-	timeOfFirst := gregor1.FromTime(deleteTarget.Valid().ServerHeader.Ctime)
+	timeOfFirst := gregor1.FromTime(deleteTarget.ServerHeader.Ctime)
 	// Time a couple seconds before that, because After querying is exclusive.
 	timeBeforeFirst := gregor1.ToTime(timeOfFirst.Add(-2 * time.Second))
 
@@ -269,7 +255,7 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 	// Use ConvSource with an `After` which query. Fetches from a combination of local cache
 	// and the server. This is an opportunity for the server to retain messages that should
 	// have been deleted without getting caught.
-	tv, err := s.G().ConvSource.Pull(ctx, conv.GetConvID(), msg.ClientHeader.Sender,
+	tv, err := s.G().ConvSource.Pull(ctx, convID, msg.ClientHeader.Sender,
 		chat1.GetThreadReason_PREPARE,
 		&chat1.GetThreadQuery{
 			MarkAsRead:   false,
@@ -283,7 +269,7 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 	// Get all affected messages to be deleted
 	deletes := []chat1.MessageID{deleteTargetID}
 	// Add in any reaction messages the deleteTargetID may have
-	deletes = append(deletes, deleteTarget.Valid().ServerHeader.ReactionIDs...)
+	deletes = append(deletes, deleteTarget.ServerHeader.ReactionIDs...)
 	for _, m := range tv.Messages {
 		if !m.IsValid() {
 			continue
@@ -292,7 +278,7 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 		typ, err := body.MessageType()
 		if err != nil {
 			s.Debug(ctx, "getAllDeletedEdits: error getting message type: convID: %s msgID: %d err: %s",
-				conv.GetConvID(), m.GetMessageID(), err.Error())
+				convID, m.GetMessageID(), err.Error())
 			continue
 		}
 		switch typ {
@@ -311,7 +297,7 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 			}
 		default:
 			s.Debug(ctx, "getAllDeletedEdits: unexpected message type: convID: %s msgID: %d typ: %v",
-				conv.GetConvID(), m.GetMessageID(), typ)
+				convID, m.GetMessageID(), typ)
 			continue
 		}
 	}
@@ -323,6 +309,111 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 	msg.MessageBody = chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: deletes})
 
 	return msg, pendingAssetDeletes, nil
+}
+
+func (s *BlockingSender) getMessage(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msgID chat1.MessageID, resolveSupersedes bool) (mvalid chat1.MessageUnboxedValid, err error) {
+	messages, err := GetMessages(ctx, s.G(), uid, convID, []chat1.MessageID{msgID}, resolveSupersedes)
+	if err != nil {
+		return mvalid, err
+	}
+	if len(messages) != 1 || !messages[0].IsValid() {
+		return mvalid, fmt.Errorf("getMessage returned multiple messages or an invalid result for msgID: %v, numMsgs: %v", msgID, len(messages))
+	}
+	return messages[0].Valid(), nil
+}
+
+// If we are superseding an ephemeral message, we have to set the
+// ephemeralMetadata on this superseder message.
+func (s *BlockingSender) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msg chat1.MessagePlaintext) (metadata *chat1.MsgEphemeralMetadata, err error) {
+
+	switch msg.ClientHeader.MessageType {
+	case chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED, chat1.MessageType_REACTION:
+	default:
+		// nothing to do here
+		return msg.ClientHeader.EphemeralMetadata, nil
+	}
+
+	supersededMsg, err := s.getMessage(ctx, uid, convID, msg.ClientHeader.Supersedes, false /* resolveSupersedes */)
+	if err != nil {
+		return nil, err
+	}
+	if supersededMsg.IsEphemeral() {
+		metadata = supersededMsg.EphemeralMetadata()
+		metadata.Lifetime = gregor1.ToDurationSec(supersededMsg.RemainingEphemeralLifetime(s.clock.Now()))
+	}
+	return metadata, nil
+}
+
+// processReactionMessage determines if we are trying to post a duplicate
+// chat1.MessageType_REACTION, which is considered a chat1.MessageType_DELETE
+// and updates the send appropriately. We cancel any pending duplicate pending
+// reactions in the outbox.  If we cancel an odd number of items we cancel
+// ourselves since the current reaction state is correct.
+func (s *BlockingSender) processReactionMessage(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msg chat1.MessagePlaintext) (clientHeader chat1.MessageClientHeader, err error) {
+	if msg.ClientHeader.MessageType != chat1.MessageType_REACTION {
+		// nothing to do here
+		return msg.ClientHeader, nil
+	}
+	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("processReactionMessage(%s)", convID))()
+
+	// While holding the outbox lock, let's remove any duplicate reaction
+	// messages and  make sure we are in the outbox, otherwise someone else
+	// canceled us.
+	inOutbox := false
+	outbox := storage.NewOutbox(s.G(), uid)
+	numCanceled, err := outbox.CancelMessagesWithPredicate(ctx, func(obr chat1.OutboxRecord) bool {
+		if !obr.ConvID.Eq(convID) {
+			return false
+		}
+		if obr.Msg.ClientHeader.MessageType != chat1.MessageType_REACTION {
+			return false
+		}
+
+		idEq := obr.OutboxID.Eq(msg.ClientHeader.OutboxID)
+		bodyEq := obr.Msg.MessageBody.Reaction().Eq(msg.MessageBody.Reaction())
+		// Don't delete ourselves from the outbox, but we want to make sure we
+		// are in here.
+		inOutbox = inOutbox || idEq
+		shouldCancel := bodyEq && !idEq
+		if shouldCancel {
+			s.Debug(ctx, "canceling outbox message convID: %v obid: %v", convID, obr.OutboxID)
+		}
+		return shouldCancel
+	})
+	if err != nil {
+		return clientHeader, err
+	}
+	if !inOutbox && msg.ClientHeader.OutboxID != nil {
+		// we were canceled previously, the jig is up
+		return clientHeader, DuplicateSendAbortedError{}
+	}
+	if numCanceled%2 == 1 {
+		// Since we're just toggling the reaction on/off, we should abort here
+		// and remove ourselves from the outbox since our message wouldn't
+		// change the reaction state.
+		if msg.ClientHeader.OutboxID != nil {
+			if err = outbox.RemoveMessage(ctx, *msg.ClientHeader.OutboxID); err != nil {
+				return clientHeader, err
+			}
+		}
+		return clientHeader, DuplicateSendAbortedError{}
+	}
+
+	// We could either be posting a reaction or removing one that we already posted.
+	supersededMsg, err := s.getMessage(ctx, uid, convID, msg.ClientHeader.Supersedes, true /* resolveSupersedes */)
+	if err != nil {
+		return clientHeader, err
+	}
+	found, reactionMsgID := supersededMsg.Reactions.HasReactionFromUser(msg.MessageBody.Reaction().Body, s.G().Env.GetUsername().String())
+	if found {
+		msg.ClientHeader.Supersedes = reactionMsgID
+		msg.ClientHeader.MessageType = chat1.MessageType_DELETE
+	}
+
+	return msg.ClientHeader, nil
 }
 
 func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat1.MessagePlaintext,
@@ -360,7 +451,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		return nil, nil, nil, chat1.ChannelMention_NONE, nil, fmt.Errorf("cannot send message without type")
 	}
 
-	msg, err := s.addSenderToMessage(plaintext)
+	msg, uid, err := s.addSenderToMessage(plaintext)
 	if err != nil {
 		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 	}
@@ -382,11 +473,25 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	// Make sure our delete message gets everything it should
 	var pendingAssetDeletes []chat1.Asset
 	if conv != nil {
-		// Be careful not to shadow (msg, pendingAssetDeletes) with this assignment.
-		msg, pendingAssetDeletes, err = s.getAllDeletedEdits(ctx, msg, *conv)
+		convID := (*conv).GetConvID()
+		// First process the reactionMessage in case we convert it to a delete
+		header, err := s.processReactionMessage(ctx, uid, convID, msg)
 		if err != nil {
 			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 		}
+		msg.ClientHeader = header
+
+		// Be careful not to shadow (msg, pendingAssetDeletes) with this assignment.
+		msg, pendingAssetDeletes, err = s.getAllDeletedEdits(ctx, uid, convID, msg)
+		if err != nil {
+			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+		}
+
+		metadata, err := s.getSupersederEphemeralMetadata(ctx, uid, convID, msg)
+		if err != nil {
+			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+		}
+		msg.ClientHeader.EphemeralMetadata = metadata
 	}
 
 	// Get topic name state if this is a METADATA message, so that we avoid any races to the
@@ -1041,6 +1146,11 @@ func (s *Deliverer) deliverLoop() {
 				}
 				if err == nil {
 					_, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0, nil)
+					switch err.(type) {
+					case DuplicateSendAbortedError:
+						s.Debug(bctx, "deliverLoop: aborting send, duplicate send convID: %s, obid: %s obr.OutboxID", obr.ConvID, obr.OutboxID)
+						continue
+					}
 				}
 			}
 			if err != nil {

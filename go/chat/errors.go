@@ -441,6 +441,19 @@ func (e SenderTestImmediateFailError) IsImmediateFail() (chat1.OutboxErrorType, 
 
 //=============================================================================
 
+type DuplicateSendAbortedError struct {
+}
+
+func (e DuplicateSendAbortedError) Error() string {
+	return "send aborted, duplicate message"
+}
+
+func (e DuplicateSendAbortedError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, false
+}
+
+//=============================================================================
+
 type OfflineErrorKind int
 
 const (

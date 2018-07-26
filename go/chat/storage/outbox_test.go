@@ -258,3 +258,45 @@ func TestChatOutboxMarkAll(t *testing.T) {
 		require.Equal(t, chat1.OutboxErrorType_MISC, newObr.State.Error().Typ)
 	}
 }
+
+func TestChatOutboxCancelMessagesWithPredicate(t *testing.T) {
+	_, ob, uid, cl := setupOutboxTest(t, "outbox")
+	ctx := context.TODO()
+
+	var obrs []chat1.OutboxRecord
+	conv := makeConvo(gregor1.Time(5), 1, 1)
+	for i := 0; i < 5; i++ {
+		obr, err := ob.PushMessage(ctx, conv.GetConvID(), makeMsgPlaintext("hi"+string(i), uid),
+			nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)
+		require.NoError(t, err)
+		obrs = append(obrs, obr)
+		cl.Advance(time.Millisecond)
+	}
+
+	allFalse := func(obr chat1.OutboxRecord) bool { return false }
+	numCancelled, err := ob.CancelMessagesWithPredicate(ctx, allFalse)
+	require.NoError(t, err)
+	require.Zero(t, numCancelled)
+	res, err := ob.PullAllConversations(ctx, false, false)
+	require.NoError(t, err)
+	require.Len(t, res, 5)
+
+	ith := func(obr chat1.OutboxRecord) bool {
+		txt := obr.Msg.MessageBody.Text().Body
+		return txt == "hi0" || txt == "hi1"
+	}
+	numCancelled, err = ob.CancelMessagesWithPredicate(ctx, ith)
+	require.NoError(t, err)
+	require.Equal(t, 2, numCancelled)
+	res, err = ob.PullAllConversations(ctx, false, false)
+	require.NoError(t, err)
+	require.Len(t, res, 3)
+
+	allTrue := func(obr chat1.OutboxRecord) bool { return true }
+	numCancelled, err = ob.CancelMessagesWithPredicate(ctx, allTrue)
+	require.NoError(t, err)
+	require.Zero(t, numCancelled)
+	res, err = ob.PullAllConversations(ctx, false, false)
+	require.NoError(t, err)
+	require.Len(t, res, 2)
+}

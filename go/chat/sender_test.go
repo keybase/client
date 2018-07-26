@@ -198,6 +198,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	// Force a small page size here to test prev pointer calculations for
 	// exploding and non exploding messages
 	baseSender.setPrevPagination(&chat1.Pagination{Num: 2})
+	baseSender.SetClock(world.Fc)
 	sender := NewNonblockingSender(g, baseSender)
 	listener := chatListener{
 		incoming:       make(chan int, 100),
@@ -1364,4 +1365,177 @@ func TestPairwiseMACChecker(t *testing.T) {
 		require.True(t, msgUnboxed.IsValid())
 		require.Equal(t, msgUnboxed.Valid().MessageBody.Text().Body, text)
 	})
+}
+
+func TestProcessDuplicateReactionMsgs(t *testing.T) {
+	ctx, world, ri, _, baseSender, listener := setupTest(t, 1)
+	defer world.Cleanup()
+
+	u := world.GetUsers()[0]
+	tc := world.Tcs[u.Username]
+	clock := world.Fc
+	trip := newConvTriple(ctx, t, tc, u.Username)
+	firstMessagePlaintext := chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_TLFNAME,
+		},
+		MessageBody: chat1.MessageBody{},
+	}
+	firstMessageBoxed, _, _, _, _, err := baseSender.Prepare(ctx, firstMessagePlaintext,
+		chat1.ConversationMembersType_KBFS, nil)
+	require.NoError(t, err)
+	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
+		IdTriple:   trip,
+		TLFMessage: *firstMessageBoxed,
+	})
+	require.NoError(t, err)
+
+	// send initial text message which we will react to
+	_, msgTextBoxed, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			Sender:      u.User.GetUID().ToBytes(),
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_TEXT,
+		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "hi",
+		}),
+	}, 0, nil)
+	require.NoError(t, err)
+	msgTextID := msgTextBoxed.GetMessageID()
+
+	// Send a bunch of blocking reaction messages
+	var sentRef []sentRecord
+	for i := 0; i < 5; i++ {
+		_, msgBoxed, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        trip,
+				Sender:      u.User.GetUID().ToBytes(),
+				TlfName:     u.Username,
+				TlfPublic:   false,
+				Supersedes:  msgTextID,
+				MessageType: chat1.MessageType_REACTION,
+			},
+			MessageBody: chat1.NewMessageBodyWithReaction(chat1.MessageReaction{
+				Body:      ":+1:",
+				MessageID: msgTextID,
+			}),
+		}, 0, nil)
+		require.NoError(t, err)
+		msgID := msgBoxed.GetMessageID()
+		t.Logf("generated msgID: %d", msgID)
+		sentRef = append(sentRef, sentRecord{msgID: &msgID})
+	}
+
+	tres, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+		chat1.GetThreadReason_GENERAL, nil, nil)
+
+	require.NoError(t, err)
+	// tlf + msg + 2 deletes of reactions and 1 valid reaction (2 deleted
+	// reactions nuked by supersedes)
+	require.Len(t, tres.Messages, 5)
+
+	texts := utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT}}, false)
+	require.Len(t, texts, 1)
+	txtMsg := texts[0]
+	expectedReactionMap := chat1.ReactionMap{
+		Reactions: map[string]map[string]chat1.MessageID{
+			":+1:": map[string]chat1.MessageID{
+				u.Username: *sentRef[len(sentRef)-1].msgID,
+			},
+		},
+	}
+	require.Equal(t, expectedReactionMap, txtMsg.Valid().Reactions)
+
+	deletes := utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: []chat1.MessageType{chat1.MessageType_DELETE}}, false)
+	require.Len(t, deletes, 2)
+	reactions := utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: []chat1.MessageType{chat1.MessageType_REACTION}}, false)
+	require.Len(t, reactions, 1)
+
+	// Add a bunch of things to the outbox. We should cancel all but one
+	// ultimately deleting the reaction.
+	outbox := storage.NewOutbox(tc.Context(), u.User.GetUID().ToBytes())
+	outbox.SetClock(clock)
+	var obids []chat1.OutboxID
+	msgID := *sentRef[len(sentRef)-1].msgID
+	for i := 0; i < 5; i++ {
+		obr, err := outbox.PushMessage(ctx, res.ConvID, chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        trip,
+				Sender:      u.User.GetUID().ToBytes(),
+				TlfName:     u.Username,
+				TlfPublic:   false,
+				Supersedes:  msgTextID,
+				MessageType: chat1.MessageType_REACTION,
+				OutboxInfo: &chat1.OutboxInfo{
+					Prev: msgID,
+				},
+			},
+			MessageBody: chat1.NewMessageBodyWithReaction(chat1.MessageReaction{
+				Body:      ":+1:",
+				MessageID: msgTextID,
+			}),
+		}, nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)
+		obid := obr.OutboxID
+		t.Logf("generated obid: %s prev: %d", hex.EncodeToString(obid), msgID)
+		require.NoError(t, err)
+		sentRef = append(sentRef, sentRecord{outboxID: &obid})
+		obids = append(obids, obid)
+	}
+
+	// Make we get nothing until timer is up
+	select {
+	case <-listener.incoming:
+		require.Fail(t, "action event received too soon")
+	default:
+	}
+	select {
+	case <-listener.failing:
+		require.Fail(t, "failed message")
+	default:
+	}
+	clock.Advance(5 * time.Minute)
+
+	// Since we canceled all of the other outbox records we should should only
+	// get one hit here.
+	var olen int
+	for i := 0; i < 2; i++ {
+		select {
+		case olen = <-listener.incoming:
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "event not received")
+		}
+
+		require.Equal(t, i+1, olen, "wrong length")
+		require.Equal(t, listener.obids[i], obids[i/2], "wrong obid")
+	}
+
+	// Make sure it is really empty
+	clock.Advance(5 * time.Minute)
+	select {
+	case <-listener.incoming:
+		require.Fail(t, "action event received too soon")
+	default:
+	}
+
+	tres, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+		chat1.GetThreadReason_GENERAL, nil, nil)
+	require.NoError(t, err)
+
+	// we have the same number of messages as before since ultimately we just deleted a reaction
+	require.Len(t, tres.Messages, 5)
+	texts = utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT}}, false)
+	require.Len(t, texts, 1)
+	txtMsg = texts[0]
+	require.Nil(t, txtMsg.Valid().Reactions.Reactions)
+
+	deletes = utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: []chat1.MessageType{chat1.MessageType_DELETE}}, false)
+	require.Len(t, deletes, 3)
+	reactions = utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: []chat1.MessageType{chat1.MessageType_REACTION}}, false)
+	require.Len(t, reactions, 0)
 }
