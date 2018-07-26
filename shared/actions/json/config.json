@@ -7,6 +7,9 @@
     "dumpLogs": {
       "reason": ["'quitting through menu'"]
     },
+    "openAppSettings": {
+      "_description": "mobile only: open the settings page"
+    },
     "changedFocus": {
       "appFocused": "boolean"
     },
