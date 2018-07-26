@@ -184,8 +184,10 @@ func (s *mdServerTlfStorage) putMDLocked(
 
 	srmds := serializedRMDS{
 		EncodedRMDS: encodedRMDS,
-		Timestamp:   s.clock.Now(),
-		Version:     rmds.MD.Version(),
+		// Pretend the timestamp went over RPC, so we get the same
+		// resolution level as a real server.
+		Timestamp: keybase1.FromTime(keybase1.ToTime(s.clock.Now())),
+		Version:   rmds.MD.Version(),
 	}
 
 	err = kbfscodec.SerializeToFileIfNotExist(s.codec, srmds, s.mdPath(id))
