@@ -124,6 +124,7 @@ describe('Markdown parser', () => {
   })
   it('parses native zwj emoji correctly', () => {
     check('👩‍❤️‍💋‍👩 👩‍👩‍👧‍👧!')
+    check('👩‍❤️‍💋‍👨 👨‍👧 👨‍👦 👨‍👩‍👧‍👦 👨‍👨‍👧‍👧 👩‍👩‍👧‍👦 👩‍❤️‍👩')
   })
   it('parses phone numbers correctly', () => {
     // Should succeed

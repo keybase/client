@@ -1045,6 +1045,67 @@ Object {
 }
 `;
 
+exports[`Markdown parser parses native zwj emoji correctly 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            ":woman-kiss-man:",
+          ],
+          "type": "native-emoji",
+        },
+        " ",
+        Object {
+          "children": Array [
+            ":man-girl:",
+          ],
+          "type": "native-emoji",
+        },
+        " ",
+        Object {
+          "children": Array [
+            ":man-boy:",
+          ],
+          "type": "native-emoji",
+        },
+        " ",
+        Object {
+          "children": Array [
+            ":man-woman-girl-boy:",
+          ],
+          "type": "native-emoji",
+        },
+        " ",
+        Object {
+          "children": Array [
+            ":man-man-girl-girl:",
+          ],
+          "type": "native-emoji",
+        },
+        " ",
+        Object {
+          "children": Array [
+            ":woman-woman-girl-boy:",
+          ],
+          "type": "native-emoji",
+        },
+        " ",
+        Object {
+          "children": Array [
+            ":woman-heart-woman:",
+          ],
+          "type": "native-emoji",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
 exports[`Markdown parser parses numbers and some symbols emoji 1`] = `
 Object {
   "children": Array [
