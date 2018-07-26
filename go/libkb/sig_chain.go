@@ -966,7 +966,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 		return
 	}
 
-	currentLink, err := ImportLinkFromStorage(mt.LinkID, l.selfUID(), l.G())
+	currentLink, err := ImportLinkFromStorage(l.M(), mt.LinkID, l.selfUID())
 	if err != nil {
 		return err
 	}
@@ -987,7 +987,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 			}
 			break
 		}
-		prevLink, err := ImportLinkFromStorage(currentLink.GetPrev(), l.selfUID(), l.G())
+		prevLink, err := ImportLinkFromStorage(l.M(), currentLink.GetPrev(), l.selfUID())
 		if err != nil {
 			return err
 		}

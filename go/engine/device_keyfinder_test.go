@@ -33,7 +33,7 @@ func TestDeviceKeyfinder(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	up := eng.UsersPlusKeys()
+	up := eng.UsersPlusKeysV2()
 	if len(up) != 3 {
 		t.Errorf("number of users found: %d, expected 3", len(up))
 	}

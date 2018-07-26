@@ -7,6 +7,7 @@ import {
   Avatar,
   WaitingButton,
   Input as CommonInput,
+  avatarCastPlatformStyles,
   ButtonBar,
 } from '../../common-adapters'
 import {styleSheetCreate, isMobile, globalMargins, globalColors} from '../../styles'
@@ -32,7 +33,9 @@ export const Wrapper = (props: Props) => (
   </Box2>
 )
 
-export const BlankAvatar = () => <Avatar username="" size={isMobile ? 96 : 128} style={styles.avatar} />
+export const BlankAvatar = () => (
+  <Avatar username="" size={isMobile ? 96 : 128} style={avatarCastPlatformStyles(styles.avatar)} />
+)
 
 export const ContinueButton = ({disabled, onClick}: {disabled?: boolean, onClick: () => void}) => (
   <ButtonBar fullWidth={true} style={styles.buttonBar}>
