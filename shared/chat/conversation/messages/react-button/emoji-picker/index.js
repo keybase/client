@@ -14,6 +14,7 @@ const emojiSections = categories.map(c => ({
 }))
 const singleEmojiWidth = 22
 const emojiPadding = 4
+const maxEmojiSearchResults = 150
 
 type Section = {category: string, data: Array<{emojis: Array<EmojiData>, key: string}>, key: string}
 
@@ -41,7 +42,7 @@ class EmojiPicker extends React.Component<Props, State> {
 
   _renderSectionHeader = ({section}: {section: Section}) => (
     <Box2 direction="horizontal" fullWidth={true} style={styles.sectionHeader}>
-      <Text type="BodySmall">{section.category}</Text>
+      <Text type="BodySmallSemibold">{section.category}</Text>
     </Box2>
   )
 
@@ -50,7 +51,9 @@ class EmojiPicker extends React.Component<Props, State> {
     const emojisPerLine = Math.floor(this.props.width / (singleEmojiWidth + 2 * emojiPadding))
     if (this.props.filter) {
       const filter = this.props.filter
-      const results = emojiIndex.search(filter).map(res => emojiNameMap[res.id])
+      const results = emojiIndex
+        .search(filter, {maxResults: maxEmojiSearchResults})
+        .map(res => emojiNameMap[res.id])
       sections = [
         {
           category: filter,
