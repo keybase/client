@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"time"
@@ -266,7 +267,7 @@ func TestChatOutboxCancelMessagesWithPredicate(t *testing.T) {
 	var obrs []chat1.OutboxRecord
 	conv := makeConvo(gregor1.Time(5), 1, 1)
 	for i := 0; i < 5; i++ {
-		obr, err := ob.PushMessage(ctx, conv.GetConvID(), makeMsgPlaintext("hi"+string(i), uid),
+		obr, err := ob.PushMessage(ctx, conv.GetConvID(), makeMsgPlaintext(fmt.Sprintf("hi%d", i), uid),
 			nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 		require.NoError(t, err)
 		obrs = append(obrs, obr)
@@ -295,8 +296,8 @@ func TestChatOutboxCancelMessagesWithPredicate(t *testing.T) {
 	allTrue := func(obr chat1.OutboxRecord) bool { return true }
 	numCancelled, err = ob.CancelMessagesWithPredicate(ctx, allTrue)
 	require.NoError(t, err)
-	require.Zero(t, numCancelled)
+	require.Equal(t, 3, numCancelled)
 	res, err = ob.PullAllConversations(ctx, false, false)
 	require.NoError(t, err)
-	require.Len(t, res, 2)
+	require.Zero(t, len(res))
 }
