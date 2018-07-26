@@ -54,6 +54,7 @@ func UpdateDeviceCloneState(m MetaContext) (before int, after int, err error) {
 			"device_id": m.G().ActiveDevice.DeviceID(),
 			"prior":     S{Val: prior},
 			"stage":     S{Val: stage},
+			"clones":    I{Val: before},
 		},
 		MetaContext: m,
 	}
