@@ -869,6 +869,7 @@ func (k *SimpleFS) doCopyFromSource(
 
 	src, err := srcFS.Open(srcFI.Name())
 	if err != nil {
+		k.log.CDebugf(ctx, "Failed to open file: %s, root: %s", srcFI.Name(), srcFS.Root())
 		return err
 	}
 	defer src.Close()
