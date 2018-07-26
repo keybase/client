@@ -108,7 +108,7 @@ const showDevicePage = () =>
   Saga.put(RouteActions.navigateTo([...Constants.devicesTabLocation, 'devicePage']))
 
 const showPaperKeyPage = () =>
-  Saga.put(RouteActions.navigateTo([...Constants.devicesTabLocation, 'genPaperKey']))
+  Saga.put(RouteActions.navigateTo([...Constants.devicesTabLocation, 'paperKey']))
 
 function* deviceSaga(): Saga.SagaGenerator<any, any> {
   // Load devices

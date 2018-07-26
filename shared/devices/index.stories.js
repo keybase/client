@@ -5,7 +5,7 @@ import {action, storiesOf, createPropProvider} from '../stories/storybook'
 import Devices from './container'
 import devicePage from './device-page/index.stories'
 import deviceRevoke from './device-revoke/index.stories'
-import genPaperKey from './gen-paper-key/index.stories'
+import paperKey from './paper-key/index.stories'
 
 const idToType = i => {
   switch (i) {
@@ -55,7 +55,7 @@ const provider = createPropProvider({
 const load = () => {
   devicePage()
   deviceRevoke()
-  genPaperKey()
+  paperKey()
   storiesOf('Devices/List', module)
     .addDecorator(provider)
     .add('Current computer', () => <Devices />)

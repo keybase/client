@@ -2,7 +2,7 @@
 import CodePage from '../provision/code-page/container'
 import DevicePage from './device-page/container'
 import Devices from './container'
-import GenPaperKey from './gen-paper-key/container'
+import PaperKey from './paper-key/container'
 import RevokeDevice from './device-revoke/container'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 
@@ -18,7 +18,7 @@ const routeTree = makeRouteDefNode({
       },
       component: DevicePage,
     },
-    genPaperKey: {component: GenPaperKey},
+    paperKey: {component: PaperKey},
   },
   component: Devices,
   initialState: {showingRevoked: false},
