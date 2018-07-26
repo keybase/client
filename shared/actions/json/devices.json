@@ -7,27 +7,19 @@
   "actions": {
     "load": {},
     "loaded": { "devices": "Array<Types.Device>" },
+    "endangeredTLFsLoad": { "deviceID": "Types.DeviceID" },
+    "endangeredTLFsLoaded": {
+      "deviceID": "Types.DeviceID",
+      "tlfs": "Array<string>"
+    },
     "paperKeyMake": {},
-    "paperKeyCreated": {
-      "paperKey": "HiddenString"
-    },
-    "deviceRevoke": {
-      "deviceID": "Types.DeviceID"
-    },
+    "paperKeyCreated": { "paperKey": "HiddenString" },
+    "deviceRevoke": { "deviceID": "Types.DeviceID" },
     "deviceRevoked": {
       "deviceID": "Types.DeviceID",
       "wasCurrentDevice": "boolean",
       "deviceName": "string"
     },
-    "showRevokePage": {
-      "deviceID": "Types.DeviceID"
-    },
-    "endangeredTLFsLoad": {
-      "deviceID": "Types.DeviceID"
-    },
-    "endangeredTLFsLoaded": {
-      "deviceID": "Types.DeviceID",
-      "tlfs": "Array<string>"
-    }
+    "showRevokePage": { "deviceID": "Types.DeviceID" }
   }
 }

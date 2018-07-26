@@ -37,7 +37,7 @@ const splitAndSortDevices = deviceMap =>
   )
 
 const mergeProps = (stateProps, dispatchProps) => {
-  const [normal, revoked] = splitAndSortDevices(stateProps._deviceMap)
+  const [revoked, normal] = splitAndSortDevices(stateProps._deviceMap)
   return {
     _stateOverride: null,
     addNewComputer: dispatchProps.addNewComputer,

@@ -60,7 +60,7 @@ class Devices extends React.PureComponent<Props & FloatingMenuParentProps, State
   render() {
     const items = [
       ...this.props.items,
-      {key: 'revokedHeader', type: 'revokedHeader'},
+      ...(this.props.items.length ? [{key: 'revokedHeader', type: 'revokedHeader'}] : []),
       ...(this.state.revokedExpanded ? this.props.revokedItems : []),
     ]
 

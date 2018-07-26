@@ -18,28 +18,20 @@ const requestEndangeredTLFsLoad = (action: DevicesGen.ShowRevokePagePayload) =>
     })
   )
 
-const rpcEndangeredTlfs = (action: DevicesGen.ShowRevokePagePayload, state: TypedState) =>
+const endangeredTLFsLoad = (state: TypedState, action: DevicesGen.ShowRevokePagePayload) =>
   state.config.deviceID
-    ? Saga.call(
-        RPCTypes.rekeyGetRevokeWarningRpcPromise,
-        {
-          actingDevice: state.config.deviceID,
-          targetDevice: action.payload.deviceID,
-        },
+    ? RPCTypes.rekeyGetRevokeWarningRpcPromise(
+        {actingDevice: state.config.deviceID, targetDevice: action.payload.deviceID},
         Constants.waitingKey
       )
+        .then((tlfs: RPCTypes.RevokeWarning) =>
+          DevicesGen.createEndangeredTLFsLoaded({
+            deviceID: action.payload.deviceID,
+            tlfs: (tlfs.endangeredTLFs || []).map(t => t.name),
+          })
+        )
+        .catch(() => {})
     : null
-
-const dispatchEndangeredTLFsLoaded = (
-  tlfs: RPCTypes.RevokeWarning,
-  action: DevicesGen.ShowRevokePagePayload
-) =>
-  Saga.put(
-    DevicesGen.createEndangeredTLFsLoaded({
-      deviceID: action.payload.deviceID,
-      tlfs: (tlfs.endangeredTLFs || []).map(t => t.name),
-    })
-  )
 
 const showRevokePage = (action: DevicesGen.ShowRevokePagePayload) =>
   Saga.put(
@@ -153,11 +145,12 @@ const navigateAfterRevoked = (action: DevicesGen.DeviceRevokedPayload, state: Ty
 function* deviceSaga(): Saga.SagaGenerator<any, any> {
   // Load devices
   yield Saga.actionToPromise(DevicesGen.load, load)
+  // Load endangered tlfs
+  yield Saga.actionToPromise(DevicesGen.endangeredTLFsLoad, endangeredTLFsLoad)
 
   // Revoke page
   yield Saga.safeTakeEveryPure(DevicesGen.showRevokePage, requestEndangeredTLFsLoad)
   yield Saga.safeTakeEveryPure(DevicesGen.showRevokePage, showRevokePage)
-  yield Saga.safeTakeEveryPure(DevicesGen.endangeredTLFsLoad, rpcEndangeredTlfs, dispatchEndangeredTLFsLoaded)
 
   // Making Paperkey flow
   yield Saga.safeTakeEvery(DevicesGen.paperKeyMake, makePaperKey)
