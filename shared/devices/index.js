@@ -54,7 +54,7 @@ class Devices extends React.PureComponent<Props & FloatingMenuParentProps, State
         onToggleExpanded={this._toggleExpanded}
       />
     ) : (
-      <DeviceRow key={item.id} deviceID={item.id} />
+      <DeviceRow key={item.id} deviceID={item.id} firstItem={index === 0} />
     )
 
   render() {

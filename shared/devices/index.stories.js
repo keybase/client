@@ -20,11 +20,12 @@ const idToType = i => {
 
 const provider = createPropProvider({
   DeviceRow: ({deviceID}) => ({
-    type: idToType(deviceID),
+    firstItem: deviceID === '1',
     isCurrentDevice: deviceID === '1',
     isRevoked: !['1', '2', '3'].includes(deviceID),
     name: {'1': 'laptop', '2': 'phone', '3': 'hello robot', '4': 'dog party', '5': 'desktop'}[deviceID],
     showExistingDevicePage: action('onShowExistingDevicePage'),
+    type: idToType(deviceID),
   }),
   Devices: p => ({
     _stateOverride: p._stateOverride,

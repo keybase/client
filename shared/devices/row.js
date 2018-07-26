@@ -8,7 +8,7 @@ import {connect, compose, type TypedState, setDisplayName} from '../util/contain
 import {isMobile} from '../constants/platform'
 import {navigateAppend} from '../actions/route-tree'
 
-const DeviceRow = ({isCurrentDevice, name, isRevoked, type, showExistingDevicePage}) => {
+const DeviceRow = ({isCurrentDevice, name, isRevoked, type, showExistingDevicePage, firstItem}) => {
   const icon = {
     backup: isMobile ? 'icon-paper-key-48' : 'icon-paper-key-32',
     desktop: isMobile ? 'icon-computer-48' : 'icon-computer-32',
@@ -18,6 +18,7 @@ const DeviceRow = ({isCurrentDevice, name, isRevoked, type, showExistingDevicePa
   return (
     <Common.ListItem2
       type="Small"
+      firstItem={firstItem}
       onClick={showExistingDevicePage}
       icon={<Common.Icon type={icon} style={Common.iconCastPlatformStyles(isRevoked && styles.icon)} />}
       body={
@@ -46,7 +47,7 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-type OwnProps = {deviceID: Types.DeviceID}
+type OwnProps = {deviceID: Types.DeviceID, firstItem: boolean}
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const device = Constants.getDevice(state, ownProps.deviceID)
@@ -64,6 +65,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  firstItem: ownProps.firstItem,
   isCurrentDevice: stateProps.isCurrentDevice,
   isRevoked: stateProps.isRevoked,
   name: stateProps.name,
