@@ -1,9 +1,15 @@
 // @flow
 import * as React from 'react'
 import NativeImage from './native-image.native'
-import type {Props} from './image'
+import type {Props, ReqProps} from './image'
 
-export default ({src, style}: Props) => {
-  const source = {uri: `file://${src}`}
-  return <NativeImage source={source} style={{resizeMode: 'contain', ...style}} />
-}
+const Image = ({src, style}: Props) => (
+  <NativeImage source={{uri: src}} style={[{resizeMode: 'contain'}, style]} />
+)
+
+const RequireImage = ({src, style}: ReqProps) => (
+  <NativeImage source={src} style={[{resizeMode: 'contain'}, style]} />
+)
+
+export default Image
+export {RequireImage}
