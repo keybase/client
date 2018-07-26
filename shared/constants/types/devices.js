@@ -21,6 +21,7 @@ export type Device = I.RecordOf<_Device>
 export type _State = {
   deviceMap: I.Map<DeviceID, Device>,
   endangeredTLFMap: I.Map<DeviceID, I.Set<string>>,
+  selectedDeviceID: ?DeviceID,
 }
 export type State = I.RecordOf<_State>
 

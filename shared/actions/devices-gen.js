@@ -18,6 +18,7 @@ export const load = 'devices:load'
 export const loaded = 'devices:loaded'
 export const paperKeyCreated = 'devices:paperKeyCreated'
 export const paperKeyMake = 'devices:paperKeyMake'
+export const showDevicePage = 'devices:showDevicePage'
 export const showRevokePage = 'devices:showRevokePage'
 
 // Payload Types
@@ -36,6 +37,7 @@ type _LoadPayload = void
 type _LoadedPayload = $ReadOnly<{|devices: Array<Types.Device>|}>
 type _PaperKeyCreatedPayload = $ReadOnly<{|paperKey: HiddenString|}>
 type _PaperKeyMakePayload = void
+type _ShowDevicePagePayload = $ReadOnly<{|deviceID: Types.DeviceID|}>
 type _ShowRevokePagePayload = $ReadOnly<{|deviceID: Types.DeviceID|}>
 
 // Action Creators
@@ -47,6 +49,7 @@ export const createLoad = (payload: _LoadPayload) => ({error: false, payload, ty
 export const createLoaded = (payload: _LoadedPayload) => ({error: false, payload, type: loaded})
 export const createPaperKeyCreated = (payload: _PaperKeyCreatedPayload) => ({error: false, payload, type: paperKeyCreated})
 export const createPaperKeyMake = (payload: _PaperKeyMakePayload) => ({error: false, payload, type: paperKeyMake})
+export const createShowDevicePage = (payload: _ShowDevicePagePayload) => ({error: false, payload, type: showDevicePage})
 export const createShowRevokePage = (payload: _ShowRevokePagePayload) => ({error: false, payload, type: showRevokePage})
 
 // Action Payloads
@@ -58,6 +61,7 @@ export type LoadPayload = $Call<typeof createLoad, _LoadPayload>
 export type LoadedPayload = $Call<typeof createLoaded, _LoadedPayload>
 export type PaperKeyCreatedPayload = $Call<typeof createPaperKeyCreated, _PaperKeyCreatedPayload>
 export type PaperKeyMakePayload = $Call<typeof createPaperKeyMake, _PaperKeyMakePayload>
+export type ShowDevicePagePayload = $Call<typeof createShowDevicePage, _ShowDevicePagePayload>
 export type ShowRevokePagePayload = $Call<typeof createShowRevokePage, _ShowRevokePagePayload>
 
 // All Actions
@@ -71,5 +75,6 @@ export type Actions =
   | LoadedPayload
   | PaperKeyCreatedPayload
   | PaperKeyMakePayload
+  | ShowDevicePagePayload
   | ShowRevokePagePayload
   | {type: 'common:resetStore', payload: void}

@@ -1,8 +1,8 @@
 // @flow
 import * as Constants from '../../constants/devices'
+import * as DevicesGen from '../../actions/devices-gen'
 import * as Types from '../../constants/types/devices'
 import {connect, compose, type TypedState, setDisplayName} from '../../util/container'
-import {navigateAppend} from '../../actions/route-tree'
 import DeviceRow from '.'
 
 type OwnProps = {deviceID: Types.DeviceID, firstItem: boolean}
@@ -18,8 +18,8 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _showExistingDevicePage: (deviceID: string) =>
-    dispatch(navigateAppend([{props: {deviceID}, selected: 'devicePage'}])),
+  _showExistingDevicePage: (deviceID: Types.DeviceID) =>
+    dispatch(DevicesGen.createShowDevicePage({deviceID})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

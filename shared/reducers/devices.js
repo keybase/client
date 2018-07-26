@@ -14,6 +14,10 @@ export default function(state: Types.State = initialState, action: DevicesGen.Ac
       return state.set('deviceMap', I.Map(action.payload.devices.map(d => [d.deviceID, d])))
     case DevicesGen.endangeredTLFsLoaded:
       return state.setIn(['endangeredTLFMap', action.payload.deviceID], I.Set(action.payload.tlfs))
+    case DevicesGen.showRevokePage:
+      return state.set('selectedDeviceID', action.payload.deviceID)
+    case DevicesGen.showDevicePage:
+      return state.set('selectedDeviceID', action.payload.deviceID)
     // Saga only actions
     case DevicesGen.deviceRevoke:
     case DevicesGen.deviceRevoked:
@@ -21,7 +25,6 @@ export default function(state: Types.State = initialState, action: DevicesGen.Ac
     case DevicesGen.endangeredTLFsLoad:
     case DevicesGen.paperKeyCreated:
     case DevicesGen.paperKeyMake:
-    case DevicesGen.showRevokePage:
       return state
     default:
       /*::

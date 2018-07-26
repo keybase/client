@@ -20,6 +20,7 @@
       "wasCurrentDevice": "boolean",
       "deviceName": "string"
     },
-    "showRevokePage": { "deviceID": "Types.DeviceID" }
+    "showRevokePage": { "deviceID": "Types.DeviceID" },
+    "showDevicePage": { "deviceID": "Types.DeviceID" }
   }
 }
