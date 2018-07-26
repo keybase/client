@@ -224,6 +224,16 @@ func (tlf *TLF) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.
 		}, nil
 	}
 
+	_, isRelTimeLink, err := libfs.FileDataFromRelativeTimeString(
+		ctx, tlf.folder.fs.config, tlf.folder.h, req.Name)
+	if err != nil {
+		return nil, err
+	}
+	if isRelTimeLink {
+		return NewArchiveRelTimeFile(
+			tlf.folder.fs, tlf.folder.h, req.Name, &resp.EntryValid), nil
+	}
+
 	return dir.Lookup(ctx, req, resp)
 }
 
