@@ -1170,12 +1170,10 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 	return h.PostLocalNonblock(ctx, parg)
 }
 
-func (h *Server) PostReactionNonblock(ctx context.Context, arg chat1.PostReactionNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
-	var parg chat1.PostLocalNonblockArg
-	parg.ClientPrev = arg.ClientPrev
+func (h *Server) PostReaction(ctx context.Context, arg chat1.PostReactionArg) (res chat1.PostLocalRes, err error) {
+	var parg chat1.PostLocalArg
 	parg.ConversationID = arg.ConversationID
 	parg.IdentifyBehavior = arg.IdentifyBehavior
-	parg.OutboxID = arg.OutboxID
 	parg.Msg.ClientHeader.MessageType = chat1.MessageType_REACTION
 	parg.Msg.ClientHeader.Supersedes = arg.Supersedes
 	parg.Msg.ClientHeader.TlfName = arg.TlfName
@@ -1185,7 +1183,7 @@ func (h *Server) PostReactionNonblock(ctx context.Context, arg chat1.PostReactio
 		Body:      arg.Body,
 	})
 
-	return h.PostLocalNonblock(ctx, parg)
+	return h.PostLocal(ctx, parg)
 }
 
 func (h *Server) PostHeadlineNonblock(ctx context.Context, arg chat1.PostHeadlineNonblockArg) (chat1.PostLocalNonblockRes, error) {

@@ -4339,17 +4339,6 @@ type PostEditNonblockArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
-type PostReactionNonblockArg struct {
-	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
-	TlfName          string                       `codec:"tlfName" json:"tlfName"`
-	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
-	Supersedes       MessageID                    `codec:"supersedes" json:"supersedes"`
-	Body             string                       `codec:"body" json:"body"`
-	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`
-	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
-}
-
 type PostHeadlineNonblockArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	TlfName          string                       `codec:"tlfName" json:"tlfName"`
@@ -4375,6 +4364,15 @@ type PostMetadataNonblockArg struct {
 	ChannelName      string                       `codec:"channelName" json:"channelName"`
 	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+type PostReactionArg struct {
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	TlfName          string                       `codec:"tlfName" json:"tlfName"`
+	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
+	Supersedes       MessageID                    `codec:"supersedes" json:"supersedes"`
+	Body             string                       `codec:"body" json:"body"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
@@ -4614,10 +4612,10 @@ type LocalInterface interface {
 	PostTextNonblock(context.Context, PostTextNonblockArg) (PostLocalNonblockRes, error)
 	PostDeleteNonblock(context.Context, PostDeleteNonblockArg) (PostLocalNonblockRes, error)
 	PostEditNonblock(context.Context, PostEditNonblockArg) (PostLocalNonblockRes, error)
-	PostReactionNonblock(context.Context, PostReactionNonblockArg) (PostLocalNonblockRes, error)
 	PostHeadlineNonblock(context.Context, PostHeadlineNonblockArg) (PostLocalNonblockRes, error)
 	PostHeadline(context.Context, PostHeadlineArg) (PostLocalRes, error)
 	PostMetadataNonblock(context.Context, PostMetadataNonblockArg) (PostLocalNonblockRes, error)
+	PostReaction(context.Context, PostReactionArg) (PostLocalRes, error)
 	PostMetadata(context.Context, PostMetadataArg) (PostLocalRes, error)
 	PostDeleteHistoryUpto(context.Context, PostDeleteHistoryUptoArg) (PostLocalRes, error)
 	PostDeleteHistoryThrough(context.Context, PostDeleteHistoryThroughArg) (PostLocalRes, error)
@@ -4848,22 +4846,6 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"postReactionNonblock": {
-				MakeArg: func() interface{} {
-					ret := make([]PostReactionNonblockArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]PostReactionNonblockArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]PostReactionNonblockArg)(nil), args)
-						return
-					}
-					ret, err = i.PostReactionNonblock(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 			"postHeadlineNonblock": {
 				MakeArg: func() interface{} {
 					ret := make([]PostHeadlineNonblockArg, 1)
@@ -4908,6 +4890,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.PostMetadataNonblock(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"postReaction": {
+				MakeArg: func() interface{} {
+					ret := make([]PostReactionArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PostReactionArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PostReactionArg)(nil), args)
+						return
+					}
+					ret, err = i.PostReaction(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -5562,11 +5560,6 @@ func (c LocalClient) PostEditNonblock(ctx context.Context, __arg PostEditNonbloc
 	return
 }
 
-func (c LocalClient) PostReactionNonblock(ctx context.Context, __arg PostReactionNonblockArg) (res PostLocalNonblockRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.postReactionNonblock", []interface{}{__arg}, &res)
-	return
-}
-
 func (c LocalClient) PostHeadlineNonblock(ctx context.Context, __arg PostHeadlineNonblockArg) (res PostLocalNonblockRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.postHeadlineNonblock", []interface{}{__arg}, &res)
 	return
@@ -5579,6 +5572,11 @@ func (c LocalClient) PostHeadline(ctx context.Context, __arg PostHeadlineArg) (r
 
 func (c LocalClient) PostMetadataNonblock(ctx context.Context, __arg PostMetadataNonblockArg) (res PostLocalNonblockRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.postMetadataNonblock", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) PostReaction(ctx context.Context, __arg PostReactionArg) (res PostLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postReaction", []interface{}{__arg}, &res)
 	return
 }
 

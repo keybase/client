@@ -2115,7 +2115,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			t.Logf("react to the message")
 			// An ephemeralLifetime is added if we are reacting to an ephemeral message
 			reactionKey := ":+1:"
-			rarg := chat1.PostReactionNonblockArg{
+			rarg := chat1.PostReactionArg{
 				ConversationID:   created.Id,
 				TlfName:          created.TlfName,
 				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
@@ -2123,14 +2123,13 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				Body:             reactionKey,
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			}
-			res, err = ctc.as(t, users[0]).chatLocalHandler().PostReactionNonblock(tc.startCtx, rarg)
+			_, err = ctc.as(t, users[0]).chatLocalHandler().PostReaction(tc.startCtx, rarg)
 			require.NoError(t, err)
 			select {
 			case info := <-listener.newMessage:
 				unboxed = info.Message
 				require.True(t, unboxed.IsValid(), "invalid message")
-				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
-				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
+				require.Nil(t, unboxed.Valid().OutboxID, "no outbox ID")
 				require.Equal(t, chat1.MessageType_REACTION, unboxed.GetMessageType(), "invalid type")
 				assertEphemeral(ephemeralLifetime, unboxed)
 			case <-time.After(20 * time.Second):
@@ -2166,14 +2165,13 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 
 			// Repost a reaction and ensure it is deleted
 			t.Logf("repost reaction = delete reaction")
-			res, err = ctc.as(t, users[0]).chatLocalHandler().PostReactionNonblock(tc.startCtx, rarg)
+			_, err = ctc.as(t, users[0]).chatLocalHandler().PostReaction(tc.startCtx, rarg)
 			require.NoError(t, err)
 			select {
 			case info := <-listener.newMessage:
 				unboxed = info.Message
 				require.True(t, unboxed.IsValid(), "invalid message")
-				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
-				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
+				require.Nil(t, unboxed.Valid().OutboxID, "no outbox ID")
 				require.Equal(t, chat1.MessageType_DELETE, unboxed.GetMessageType(), "invalid type")
 				assertNotEphemeral(ephemeralLifetime, unboxed)
 			case <-time.After(20 * time.Second):
