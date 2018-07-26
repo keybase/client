@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import {TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
 import {Box, Text} from '..'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
-import type {Props, MenuItem} from './popup-menu'
+import type {MenuItem, ModalLessPopupMenuProps} from './popup-menu'
 
 // TODO refactor to use Overlay and consolidate some of these files
 // popup-menu / relative-popup-hoc / floating-menu
@@ -86,7 +86,7 @@ const styleRowText = ({
 }
 
 // Popup Menu
-class PopupMenu extends Component<Props> {
+class PopupMenu extends Component<ModalLessPopupMenuProps> {
   render() {
     const menuItemsNoDividers = this.props.items.reduce((arr, mi) => {
       if (mi && mi !== 'Divider') {
@@ -177,4 +177,3 @@ const styleButtonAlert = {
 const ModalLessPopupMenu = PopupMenu
 
 export {ModalLessPopupMenu}
-export default PopupMenu

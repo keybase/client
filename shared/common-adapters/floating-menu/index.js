@@ -9,8 +9,7 @@
 import * as React from 'react'
 import FloatingBox from '../floating-box'
 import type {Position} from '../relative-popup-hoc'
-import PopupMenu, {type MenuItem, ModalLessPopupMenu} from './popup-menu'
-import {isMobile} from '../../constants/platform'
+import {type MenuItem, ModalLessPopupMenu} from './popup-menu'
 import {type StylesCrossPlatform} from '../../styles'
 
 export type Props = {|
@@ -29,7 +28,6 @@ export default (props: Props) => {
   if (!props.visible) {
     return null
   }
-  const PopupComponent = isMobile ? PopupMenu : ModalLessPopupMenu
   return (
     <FloatingBox
       position={props.position}
@@ -39,7 +37,7 @@ export default (props: Props) => {
       containerStyle={props.containerStyle}
       propagateOutsideClicks={props.propagateOutsideClicks}
     >
-      <PopupComponent
+      <ModalLessPopupMenu
         header={props.header}
         onHidden={props.onHidden}
         items={props.items}

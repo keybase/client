@@ -12,15 +12,6 @@ export type MenuItem = {|
   style?: Object,
 |}
 
-export type Props = {
-  items: Array<MenuItem | 'Divider' | null>, // Divider is not used on native
-  header?: ?MenuItem,
-  onHidden: () => void,
-  style?: Object,
-  styleCatcher?: ?Object,
-  hoverColor?: string,
-}
-
 export type ModalLessPopupMenuProps = {
   items: Array<MenuItem | 'Divider' | null>,
   header?: ?MenuItem,
@@ -33,5 +24,3 @@ export type ModalLessPopupMenuProps = {
 class ModalLessPopupMenu extends React.Component<ModalLessPopupMenuProps> {}
 
 export {ModalLessPopupMenu}
-
-declare export default class PopupMenu extends React.Component<Props> {}

@@ -1,8 +1,7 @@
 // @flow
 import React, {Component} from 'react'
-import type {ModalLessPopupMenuProps, Props} from './popup-menu'
+import type {ModalLessPopupMenuProps} from './popup-menu'
 import {Box, Text} from '..'
-import EscapeHandler from '../../util/escape-handler'
 import {globalColors, globalMargins, globalStyles, desktopStyles} from '../../styles'
 
 // TODO refactor to use Overlay and consolidate some of these files
@@ -99,26 +98,6 @@ class ModalLessPopupMenu extends Component<ModalLessPopupMenuProps> {
   }
 }
 
-// TODO don't use this anymore
-// TODO fix this so it's not broken
-class PopupMenu extends Component<Props> {
-  render() {
-    return (
-      <EscapeHandler onESC={this.props.onHidden}>
-        <Box
-          style={{...stylesMenuCatcher, ...this.props.styleCatcher}}
-          onClick={e => {
-            this.props.onHidden && this.props.onHidden()
-            e.stopPropagation()
-          }}
-        >
-          <ModalLessPopupMenu {...this.props} />
-        </Box>
-      </EscapeHandler>
-    )
-  }
-}
-
 const Divider = () => (
   <Box style={{height: 1, backgroundColor: globalColors.black_05, marginTop: 8, marginBottom: 8}} />
 )
@@ -129,17 +108,6 @@ const stylesRow = {
   paddingBottom: globalMargins.xtiny,
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
-}
-
-const stylesMenuCatcher = {
-  ...globalStyles.flexBoxColumn,
-  justifyContent: 'flex-start',
-  alignItems: 'flex-start',
-  position: 'absolute',
-  top: 0,
-  bottom: 0,
-  left: 0,
-  right: 0,
 }
 
 const stylesMenu = {
@@ -159,5 +127,3 @@ const stylesMenuText = {
 }
 
 export {ModalLessPopupMenu}
-
-export default PopupMenu
