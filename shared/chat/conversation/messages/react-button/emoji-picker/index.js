@@ -33,7 +33,7 @@ class EmojiPicker extends React.Component<Props, State> {
       <Box2 key={item.key} fullWidth={true} style={styles.alignItemsCenter} direction="horizontal">
         {item.emojis.map(e => (
           <ClickableBox onClick={() => this.props.onChoose(e)} style={styles.emoji} key={e.short_name}>
-            <Emoji size={singleEmojiWidth} emojiName={e.short_name} />
+            <Emoji size={singleEmojiWidth} emojiName={`:${e.short_name}:`} />
           </ClickableBox>
         ))}
       </Box2>
