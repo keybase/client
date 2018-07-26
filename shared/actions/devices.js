@@ -71,7 +71,7 @@ const loadDevices = (state: TypedState) =>
       )
 
       const idToDetail: I.Map<Types.DeviceID, Types.DeviceDetail> = I.Map(devices.map(d => [d.deviceID, d]))
-      return Saga.put(DevicesGen.createDevicesLoaded({idToDetail}))
+      return DevicesGen.createDevicesLoaded({idToDetail})
     })
     .catch(() => DevicesGen.createDevicesLoadedError())
 
