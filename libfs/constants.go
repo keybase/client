@@ -112,3 +112,8 @@ const ArchivedRevDirPrefix = ".kbfs_archived_rev="
 // ArchivedTimeLinkPrefix is the prefix to the symlink at the root of a
 // TLF that links to a version of that TLF at the specified time.
 const ArchivedTimeLinkPrefix = ".kbfs_archived_time="
+
+// ArchivedRelTimeFilePrefix is the prefix to the file at the root of
+// a TLF that contains the directory name of an archived revision
+// described by the given relative time.
+const ArchivedRelTimeFilePrefix = ".kbfs_archived_reltime="

@@ -8,6 +8,7 @@ import (
 	"context"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/araddon/dateparse"
 	"github.com/keybase/kbfs/kbfsmd"
@@ -68,4 +69,40 @@ func LinkTargetFromTimeString(
 	}
 
 	return ArchivedRevDirPrefix + strconv.FormatInt(int64(rev), 10), true, nil
+}
+
+// RevFromRelativeTimeString turns a string describing a time in the
+// past relative to now (e.g., "5m", "2h55s"), and turns it into a
+// revision number for the given TLF.
+func RevFromRelativeTimeString(
+	ctx context.Context, config libkbfs.Config, h *libkbfs.TlfHandle,
+	relTime string) (kbfsmd.Revision, error) {
+	d, err := time.ParseDuration(relTime)
+	if err != nil {
+		return 0, err
+	}
+
+	absTime := config.Clock().Now().Add(-d)
+	return libkbfs.GetMDRevisionByTime(ctx, config, h, absTime)
+}
+
+// FileDataFromRelativeTimeString returns a byte string containing the
+// name of a revision-based archive directory, and true, if the given
+// file name specifies a valid by-relative-time file name.  The time
+// is relative to the local clock.
+func FileDataFromRelativeTimeString(
+	ctx context.Context, config libkbfs.Config, h *libkbfs.TlfHandle,
+	filename string) ([]byte, bool, error) {
+	if !strings.HasPrefix(filename, ArchivedRelTimeFilePrefix) {
+		return nil, false, nil
+	}
+
+	rev, err := RevFromRelativeTimeString(
+		ctx, config, h, filename[len(ArchivedRelTimeFilePrefix):])
+	if err != nil {
+		return nil, false, err
+	}
+
+	return []byte(ArchivedRevDirPrefix + strconv.FormatInt(int64(rev), 10)),
+		true, nil
 }
