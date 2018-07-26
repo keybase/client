@@ -136,6 +136,8 @@ const styles = styleSheetCreate({
   buttonContainer: {
     alignItems: 'center',
     backgroundColor: globalColors.white,
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
     flexShrink: 0,
     paddingBottom: globalMargins.tiny,
     paddingTop: globalMargins.tiny,
