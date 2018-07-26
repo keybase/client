@@ -58,7 +58,7 @@ class SectionList extends React.Component<Props, State> {
 
   render() {
     return (
-      <ScrollView>
+      <ScrollView style={styles.fullHeight}>
         <ReactList itemRenderer={this._itemRenderer} length={this.state.items.length} />
       </ScrollView>
     )
@@ -66,6 +66,9 @@ class SectionList extends React.Component<Props, State> {
 }
 
 const styles = styleSheetCreate({
+  fullHeight: {
+    height: '100%',
+  },
   sectionHeader: platformStyles({
     isElectron: {
       position: 'sticky',
