@@ -256,7 +256,7 @@ func (g *GlobalContext) SetDNSNameServerFetcher(d DNSNameServerFetcher) {
 func (g *GlobalContext) simulateServiceRestart() {
 	g.switchUserMu.Lock()
 	defer g.switchUserMu.Unlock()
-	g.ActiveDevice.Clear(nil)
+	g.ActiveDevice.Clear()
 }
 
 func (g *GlobalContext) Logout() error {
@@ -265,7 +265,7 @@ func (g *GlobalContext) Logout() error {
 
 	username := g.Env.GetUsername()
 
-	g.ActiveDevice.Clear(nil)
+	g.ActiveDevice.Clear()
 
 	g.LocalSigchainGuard().Clear(context.TODO(), "Logout")
 

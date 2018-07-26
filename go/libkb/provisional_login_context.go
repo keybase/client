@@ -9,7 +9,7 @@ import (
 type ProvisionalLoginContext struct {
 	MetaContextified
 	username     NormalizedUsername
-	uid          keybase1.UID
+	uv           keybase1.UserVersion
 	salt         []byte
 	streamCache  *PassphraseStreamCache
 	localSession *Session
@@ -28,16 +28,16 @@ func newProvisionalLoginContext(m MetaContext) *ProvisionalLoginContext {
 	}
 }
 
-func newProvisionalLoginContextWithUIDAndUsername(m MetaContext, uid keybase1.UID, un NormalizedUsername) *ProvisionalLoginContext {
+func newProvisionalLoginContextWithUserVersionAndUsername(m MetaContext, uv keybase1.UserVersion, un NormalizedUsername) *ProvisionalLoginContext {
 	ret := newProvisionalLoginContext(m)
-	ret.uid = uid
+	ret.uv = uv
 	ret.username = un
 	return ret
 }
 
 func (p *ProvisionalLoginContext) Dump(m MetaContext, prefix string) {
 	m.CDebugf("%sUsername: %s", prefix, p.username)
-	m.CDebugf("%sUID: %s", prefix, p.uid)
+	m.CDebugf("%sUserVersion: %v", prefix, p.uv)
 	if p.salt != nil {
 		m.CDebugf("%sSalt: %s", prefix, hex.EncodeToString(p.salt))
 	}
@@ -83,36 +83,39 @@ func (p *ProvisionalLoginContext) LocalSession() *Session {
 	return p.localSession.Clone()
 }
 func (p *ProvisionalLoginContext) GetUID() keybase1.UID {
-	return p.uid
+	return p.uv.Uid
+}
+func (p *ProvisionalLoginContext) GetUserVersion() keybase1.UserVersion {
+	return p.uv
 }
 func (p *ProvisionalLoginContext) GetUsername() NormalizedUsername {
 	return p.username
 }
 
-func (p *ProvisionalLoginContext) SetUsernameUID(username NormalizedUsername, uid keybase1.UID) error {
-	if err := p.assertNotReused(username, uid); err != nil {
+func (p *ProvisionalLoginContext) SetUsernameUserVersion(username NormalizedUsername, uv keybase1.UserVersion) error {
+	if err := p.assertNotReused(username, uv); err != nil {
 		return err
 	}
 	p.username = username
-	p.uid = uid
+	p.uv = uv
 	return nil
 }
 
-func (p *ProvisionalLoginContext) assertNotReused(un NormalizedUsername, uid keybase1.UID) error {
-	if !(p.uid.IsNil() || p.uid.Equal(uid)) || !(p.username.IsNil() || p.username.Eq(un)) {
+func (p *ProvisionalLoginContext) assertNotReused(un NormalizedUsername, uv keybase1.UserVersion) error {
+	if !(p.uv.IsNil() || p.uv.Eq(uv)) || !(p.username.IsNil() || p.username.Eq(un)) {
 		return errors.New("can't reuse a ProvisionalLoginContext!")
 	}
 	return nil
 }
 
-func (p *ProvisionalLoginContext) SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) (err error) {
+func (p *ProvisionalLoginContext) SaveState(sessionID, csrf string, username NormalizedUsername, uv keybase1.UserVersion, deviceID keybase1.DeviceID) (err error) {
 	defer p.M().CTrace("ProvisionalLoginContext#SaveState", func() error { return err })()
-	if err := p.assertNotReused(username, uid); err != nil {
+	if err := p.assertNotReused(username, uv); err != nil {
 		return err
 	}
-	p.uid = uid
+	p.uv = uv
 	p.username = username
-	return p.localSession.SetLoggedIn(sessionID, csrf, username, uid, deviceID)
+	return p.localSession.SetLoggedIn(sessionID, csrf, username, uv.Uid, deviceID)
 }
 
 func (p *ProvisionalLoginContext) Keyring(m MetaContext) (ret *SKBKeyringFile, err error) {

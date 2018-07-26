@@ -436,8 +436,8 @@ func (s *PerUserKeyring) SyncWithExtras(m MetaContext, upak *keybase1.UserPlusAl
 
 // `m.LoginContext` and `upak` are optional
 func (s *PerUserKeyring) syncAsConfiguredDevice(m MetaContext, upak *keybase1.UserPlusAllKeys) (err error) {
-	uid, deviceID, _, _, activeDecryptionKey := m.ActiveDevice().AllFields()
-	if !s.uid.Equal(uid) {
+	uv, deviceID, _, _, activeDecryptionKey := m.ActiveDevice().AllFields()
+	if !s.uid.Equal(uv.Uid) {
 		return fmt.Errorf("UID changed on PerUserKeyring")
 	}
 	if deviceID.IsNil() {

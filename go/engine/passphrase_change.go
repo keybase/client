@@ -64,6 +64,7 @@ func (c *PassphraseChange) Run(m libkb.MetaContext) (err error) {
 	m = m.WithLogTag("PPCHNG")
 
 	defer m.CTrace("PassphraseChange#Run", func() error { return err })()
+	m.Dump()
 	defer func() {
 		m.G().SKBKeyringMu.Unlock()
 	}()
@@ -129,7 +130,7 @@ func (c *PassphraseChange) findUpdateDevice(m libkb.MetaContext) (ad *libkb.Acti
 		m.CDebugf("| error fetching paper keys")
 		return nil, err
 	}
-	ad = libkb.NewActiveDeviceWithDeviceWithKeys(m, m.CurrentUID(), kp)
+	ad = libkb.NewActiveDeviceWithDeviceWithKeys(m, m.CurrentUserVersion(), kp)
 	m.CDebugf("| installing paper key as thread-local active device")
 	return ad, nil
 }
