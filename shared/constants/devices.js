@@ -8,8 +8,8 @@ import * as RPCTypes from './types/rpc-gen'
 import {isMobile} from './platform'
 import type {TypedState} from './reducer'
 
-export const rpcDeviceToDetail = (d: RPCTypes.DeviceDetail) =>
-  makeDeviceDetail({
+export const rpcDeviceToDevice = (d: RPCTypes.DeviceDetail): Types.Device =>
+  makeDevice({
     created: d.device.cTime,
     currentDevice: d.currentDevice,
     deviceID: Types.stringToDeviceID(d.device.deviceID),
@@ -22,7 +22,7 @@ export const rpcDeviceToDetail = (d: RPCTypes.DeviceDetail) =>
     type: Types.stringToDeviceType(d.device.type),
   })
 
-const makeDeviceDetail: I.RecordFactory<Types._DeviceDetail> = I.Record({
+const makeDevice: I.RecordFactory<Types._Device> = I.Record({
   created: 0,
   currentDevice: false,
   deviceID: Types.stringToDeviceID(''),
@@ -36,16 +36,16 @@ const makeDeviceDetail: I.RecordFactory<Types._DeviceDetail> = I.Record({
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
-  idToDetail: I.Map(),
-  idToEndangeredTLFs: I.Map(),
+  deviceMap: I.Map(),
+  endangeredTLFMap: I.Map(),
 })
 
-const blankDetail = makeDeviceDetail()
+const emptyDevice = makeDevice()
 export const devicesTabLocation = isMobile
   ? [Tabs.settingsTab, SettingsConstants.devicesTab]
   : [Tabs.devicesTab]
 export const waitingKey = 'devices:devicesPage'
 
 export const isWaiting = (state: TypedState) => WaitingConstants.anyWaiting(state, waitingKey)
-export const getDetails = (state: TypedState, id: Types.DeviceID) =>
-  state.devices.idToDetail.get(id, blankDetail)
+export const getDevice = (state: TypedState, id: Types.DeviceID) =>
+  state.devices.deviceMap.get(id, emptyDevice)

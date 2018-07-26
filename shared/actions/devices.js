@@ -50,14 +50,14 @@ const showRevokePage = (action: DevicesGen.ShowRevokePagePayload) =>
     ])
   )
 
-const loadDevices = (state: TypedState) =>
+const load = (state: TypedState) =>
   state.config.loggedIn &&
   RPCTypes.deviceDeviceHistoryListRpcPromise(undefined, Constants.waitingKey)
     .then((results: ?Array<RPCTypes.DeviceDetail>) => {
-      const devices = (results || []).map(d => Constants.rpcDeviceToDetail(d))
-      return DevicesGen.createDevicesLoaded({idToDetail: I.Map(devices.map(d => [d.deviceID, d]))})
+      const devices = (results || []).map(d => Constants.rpcDeviceToDevice(d))
+      return DevicesGen.createLoaded({devices})
     })
-    .catch(() => DevicesGen.createDevicesLoadedError())
+    .catch(() => {})
 
 function* makePaperKey(): Saga.SagaGenerator<any, any> {
   let channelMap
@@ -97,7 +97,7 @@ const showPaperKeyCreatedPage = (action: DevicesGen.PaperKeyCreatedPayload, stat
 
 function rpcRevoke(action: DevicesGen.DeviceRevokePayload, state: TypedState) {
   const {deviceID} = action.payload
-  const device = state.devices.idToDetail.get(deviceID)
+  const device = Constants.getDevice(state, deviceID)
   if (!device) {
     throw new Error("Can't find device to remove")
   }
@@ -152,7 +152,7 @@ const navigateAfterRevoked = (action: DevicesGen.DeviceRevokedPayload, state: Ty
 
 function* deviceSaga(): Saga.SagaGenerator<any, any> {
   // Load devices
-  yield Saga.actionToPromise(DevicesGen.devicesLoad, loadDevices)
+  yield Saga.actionToPromise(DevicesGen.load, load)
 
   // Revoke page
   yield Saga.safeTakeEveryPure(DevicesGen.showRevokePage, requestEndangeredTLFsLoad)

@@ -5,11 +5,8 @@
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
-    "devicesLoad": {},
-    "devicesLoaded": {
-      "idToDetail": "I.Map<Types.DeviceID, Types.DeviceDetail>",
-      "canError": {}
-    },
+    "load": {},
+    "loaded": { "devices": "Array<Types.Device>" },
     "paperKeyMake": {},
     "paperKeyCreated": {
       "paperKey": "HiddenString"

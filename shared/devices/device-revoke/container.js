@@ -6,14 +6,15 @@ import DeviceRevoke from '.'
 import {connect, type TypedState} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
 
+const empty = I.Set()
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const deviceID = routeProps.get('deviceID')
-  const device = Constants.getDetails(state, deviceID)
+  const device = Constants.getDevice(state, deviceID)
 
   return {
     currentDevice: device.currentDevice,
     deviceID,
-    endangeredTLFs: state.devices.idToEndangeredTLFs.get(deviceID, I.Set()),
+    endangeredTLFs: state.devices.endangeredTLFMap.get(deviceID, empty),
     name: device.name,
     type: device.type,
     waiting: Constants.isWaiting(state),

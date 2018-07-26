@@ -10,14 +10,14 @@ export default function(state: Types.State = initialState, action: DevicesGen.Ac
   switch (action.type) {
     case DevicesGen.resetStore:
       return initialState
-    case DevicesGen.devicesLoaded:
-      return action.error ? state : state.set('idToDetail', I.Map(action.payload.idToDetail))
+    case DevicesGen.loaded:
+      return state.set('deviceMap', I.Map(action.payload.devices.map(d => [d.deviceID, d])))
     case DevicesGen.endangeredTLFsLoaded:
-      return state.setIn(['idToEndangeredTLFs', action.payload.deviceID], I.Set(action.payload.tlfs))
+      return state.setIn(['endangeredTLFMap', action.payload.deviceID], I.Set(action.payload.tlfs))
     // Saga only actions
     case DevicesGen.deviceRevoke:
     case DevicesGen.deviceRevoked:
-    case DevicesGen.devicesLoad:
+    case DevicesGen.load:
     case DevicesGen.endangeredTLFsLoad:
     case DevicesGen.paperKeyCreated:
     case DevicesGen.paperKeyMake:

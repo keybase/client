@@ -7,18 +7,24 @@ import devicePage from './device-page/index.stories'
 import deviceRevoke from './device-revoke/index.stories'
 
 const devicesProps: Props = {
-  deviceIDs: ['1', '2', '3'].map(stringToDeviceID),
   hideMenu: action('hideMenu'),
+  items: [
+    {id: stringToDeviceID('1'), key: '1', type: 'device'},
+    {id: stringToDeviceID('2'), key: '2', type: 'device'},
+    {id: stringToDeviceID('3'), key: '3', type: 'device'},
+  ],
+  loadDevices: action('loaddevices'),
   menuItems: [
     {onClick: action('onAdd phone'), title: 'New phone'},
     {onClick: action('onAdd computer'), title: 'New computer'},
     {onClick: action('onAdd paper key'), title: 'New paper key'},
   ],
-  onToggleShowRevoked: action('onToggleShowRevoked'),
-  revokedDeviceIDs: ['4', '5'].map(stringToDeviceID),
+  revokedItems: [
+    {id: stringToDeviceID('4'), key: '4', type: 'device'},
+    {id: stringToDeviceID('5'), key: '5', type: 'device'},
+  ],
   showMenu: action('showMenu'),
   showingMenu: false,
-  showingRevoked: false,
   waiting: false,
 }
 

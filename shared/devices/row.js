@@ -1,5 +1,6 @@
 // @flow
 import * as Types from '../constants/types/devices'
+import * as Constants from '../constants/devices'
 import {connect, compose, type TypedState, setDisplayName} from '../util/container'
 import {isMobile} from '../constants/platform'
 import {navigateAppend} from '../actions/route-tree'
@@ -10,10 +11,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState, {deviceID}: OwnProps) => {
-  const device = state.devices.idToDetail.get(deviceID)
-  if (!device) {
-    return {}
-  }
+  const device = Constants.getDevice(state, deviceID)
 
   const icon: IconType = {
     backup: isMobile ? 'icon-paper-key-48' : 'icon-paper-key-32',

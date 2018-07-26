@@ -1,6 +1,6 @@
 // @flow
 import * as Types from '../constants/types/devices'
-import React, {PureComponent} from 'react'
+import * as React from 'react'
 import {
   Box2,
   Box,
@@ -10,33 +10,51 @@ import {
   ClickableBox,
   ProgressIndicator,
   HeaderOnMobile,
+  iconCastPlatformStyles,
 } from '../common-adapters'
 import FloatingMenu, {
   FloatingMenuParentHOC,
   type FloatingMenuParentProps,
 } from '../common-adapters/floating-menu'
 import {RowConnector} from './row'
-import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../styles'
+import {
+  globalStyles,
+  globalColors,
+  globalMargins,
+  isMobile,
+  platformStyles,
+  styleSheetCreate,
+} from '../styles'
 
 import type {MenuItem} from '../common-adapters/popup-menu'
 
+// TODO use list-item2
+
+type Item =
+  | {
+      key: string,
+      id: Types.DeviceID,
+      type: 'device',
+    }
+  | {
+      key: string,
+      type: 'revokedHeader',
+    }
+
 export type Props = {
-  deviceIDs: Array<Types.DeviceID>,
+  items: Array<Item>,
   menuItems: Array<MenuItem | 'Divider' | null>,
-  onToggleShowRevoked: () => void,
-  revokedDeviceIDs: Array<Types.DeviceID>,
-  showingRevoked: boolean,
+  revokedItems: Array<Item>,
   waiting: boolean,
+  loadDevices: () => void,
 }
 
 const DeviceHeader = ({onAddNew, setAttachmentRef, waiting}) => (
   <ClickableBox onClick={onAddNew}>
-    <Box ref={setAttachmentRef} style={{...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}}>
-      {waiting && (
-        <ProgressIndicator style={{position: 'absolute', width: 20, top: isMobile ? 22 : 14, left: 12}} />
-      )}
+    <Box ref={setAttachmentRef} style={styles.rowNoBorder}>
+      {waiting && <ProgressIndicator style={styles.progress} />}
       <Icon type="iconfont-new" color={globalColors.blue} />
-      <Text type="BodyBigLink" style={{padding: globalMargins.xtiny}}>
+      <Text type="BodyBigLink" style={styles.addNew}>
         Add new...
       </Text>
     </Box>
@@ -46,29 +64,21 @@ const DeviceHeader = ({onAddNew, setAttachmentRef, waiting}) => (
 const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
   <Box>
     <ClickableBox onClick={onToggleExpanded}>
-      <Box style={stylesRevokedRow}>
+      <Box style={styles.rowRevoked}>
         <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
           Revoked devices
         </Text>
         <Icon
           type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-          style={{padding: 5}}
+          style={iconCastPlatformStyles(styles.caret)}
           color={globalColors.black_60}
           fontSize={10}
         />
       </Box>
     </ClickableBox>
     {expanded && (
-      <Box style={stylesRevokedDescription}>
-        <Text
-          type="BodySmallSemibold"
-          style={{
-            color: globalColors.black_40,
-            paddingBottom: globalMargins.tiny,
-            paddingTop: globalMargins.tiny,
-            textAlign: 'center',
-          }}
-        >
+      <Box style={styles.description}>
+        <Text type="BodySmallSemibold" style={styles.descriptionText}>
           Revoked devices will no longer be able to access your Keybase account.
         </Text>
       </Box>
@@ -77,11 +87,11 @@ const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
 )
 
 const DeviceRow = RowConnector(({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}) => (
-  <ClickableBox onClick={showExistingDevicePage} style={{...stylesCommonRow, alignItems: 'center'}}>
-    <Box key={name} style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
-      <Icon type={icon} style={isRevoked ? {marginRight: 16, opacity: 0.2} : {marginRight: 16}} />
+  <ClickableBox onClick={showExistingDevicePage} style={styles.row}>
+    <Box key={name} style={styles.rowBox}>
+      <Icon type={icon} style={iconCastPlatformStyles(isRevoked ? styles.iconRevoked : icon)} />
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'flex-start'}}>
-        <Text style={textStyle(isRevoked)} type="BodySemiboldItalic">
+        <Text style={isRevoked ? styles.textRevoked : styles.text} type="BodySemiboldItalic">
           {name}
         </Text>
         {isCurrentDevice && <Text type="BodySmall">Current device</Text>}
@@ -90,13 +100,25 @@ const DeviceRow = RowConnector(({isCurrentDevice, name, isRevoked, icon, showExi
   </ClickableBox>
 ))
 
-class _Devices extends PureComponent<Props & FloatingMenuParentProps> {
+type State = {
+  revokedExpanded: boolean,
+}
+
+class Devices extends React.PureComponent<Props & FloatingMenuParentProps, State> {
+  state = {revokedExpanded: false}
+
+  componentDidMount() {
+    this.props.loadDevices()
+  }
+
+  _toggleExpanded = () => this.setState(p => ({revokedExpanded: !p.revokedExpanded}))
+
   _renderRow = (index, item) =>
     item.type === 'revokedHeader' ? (
       <RevokedHeader
         key="revokedHeader"
-        expanded={this.props.showingRevoked}
-        onToggleExpanded={this.props.onToggleShowRevoked}
+        expanded={this.state.revokedExpanded}
+        onToggleExpanded={this._toggleExpanded}
       />
     ) : (
       <DeviceRow key={item.id} deviceID={item.id} />
@@ -104,11 +126,9 @@ class _Devices extends PureComponent<Props & FloatingMenuParentProps> {
 
   render() {
     const items = [
-      ...this.props.deviceIDs.map(id => ({id, key: id, type: 'device'})),
+      ...this.props.items,
       {key: 'revokedHeader', type: 'revokedHeader'},
-      ...(this.props.showingRevoked
-        ? this.props.revokedDeviceIDs.map(id => ({id, key: id, type: 'device'}))
-        : []),
+      ...(this.state.revokedExpanded ? this.props.revokedItems : []),
     ]
 
     return (
@@ -130,7 +150,6 @@ class _Devices extends PureComponent<Props & FloatingMenuParentProps> {
     )
   }
 }
-const Devices = FloatingMenuParentHOC(_Devices)
 
 const stylesCommonCore = {
   alignItems: 'center',
@@ -139,44 +158,65 @@ const stylesCommonCore = {
   justifyContent: 'center',
 }
 
-const stylesCommonRow = {
-  ...globalStyles.flexBoxRow,
-  ...stylesCommonCore,
-  minHeight: isMobile ? 64 : 48,
-  padding: 8,
-}
+const styles = styleSheetCreate({
+  addNew: {
+    padding: globalMargins.xtiny,
+  },
+  caret: {padding: 5},
+  description: {
+    ...globalStyles.flexBoxColumn,
+    ...stylesCommonCore,
+    alignItems: 'center',
+    paddingLeft: 32,
+    paddingRight: 32,
+  },
+  descriptionText: {
+    color: globalColors.black_40,
+    paddingBottom: globalMargins.tiny,
+    paddingTop: globalMargins.tiny,
+    textAlign: 'center',
+  },
+  icon: {marginRight: 16},
+  iconRevoke: {marginRight: 16, opacity: 0.2},
+  progress: {
+    left: 12,
+    position: 'absolute',
+    top: isMobile ? 22 : 14,
+    width: 20,
+  },
+  row: {
+    ...globalStyles.flexBoxRow,
+    ...stylesCommonCore,
+    minHeight: isMobile ? 64 : 48,
+    padding: 8,
+  },
+  rowBox: {...globalStyles.flexBoxRow, alignItems: 'center', flex: 1},
+  rowNoBorder: {
+    ...globalStyles.flexBoxRow,
+    ...stylesCommonCore,
+    borderBottomWidth: 0,
+    minHeight: isMobile ? 64 : 48,
+    padding: 8,
+  },
+  rowRevoked: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    minHeight: 38,
+    paddingLeft: 8,
+  },
+  text: {flex: 0},
+  textRevoked: platformStyles({
+    common: {
+      color: globalColors.black_40,
+      flex: 0,
+      textDecorationLine: 'line-through',
+      textDecorationStyle: 'solid',
+    },
+    isElectron: {
+      fontStyle: 'italic',
+    },
+  }),
+})
 
-const stylesRevokedRow = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  justifyContent: 'flex-start',
-  minHeight: 38,
-  paddingLeft: 8,
-}
-
-const stylesRevokedDescription = {
-  ...globalStyles.flexBoxColumn,
-  ...stylesCommonCore,
-  alignItems: 'center',
-  paddingLeft: 32,
-  paddingRight: 32,
-}
-
-const textStyle = isRevoked =>
-  isRevoked
-    ? platformStyles({
-        common: {
-          color: globalColors.black_40,
-          flex: 0,
-          textDecorationLine: 'line-through',
-          textDecorationStyle: 'solid',
-        },
-        isElectron: {
-          fontStyle: 'italic',
-        },
-      })
-    : {
-        flex: 0,
-      }
-
-export default HeaderOnMobile(Devices)
+export default HeaderOnMobile(FloatingMenuParentHOC(Devices))
