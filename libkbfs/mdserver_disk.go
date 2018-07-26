@@ -406,6 +406,8 @@ func (md *MDServerDisk) GetForTLFByTime(
 		return nil, err
 	}
 
+	// Do a linear backwards search to find the RMD that comes just
+	// before or at `serverTime`.
 	for rmd.untrustedServerTimestamp.After(serverTime) {
 		nextRev := rmd.MD.RevisionNumber() - 1
 		if nextRev == kbfsmd.RevisionUninitialized {
