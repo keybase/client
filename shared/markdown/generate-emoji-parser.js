@@ -3,8 +3,15 @@ import fs from 'fs'
 import path from 'path'
 import peg from 'pegjs'
 import emojiData from 'emoji-datasource'
-import {invert} from 'lodash-es'
+import invert from 'lodash/invert'
 import tlds from 'tlds'
+
+/**
+ * Note on above: importing a non-transpiled module that uses modern JS features
+ * (e.g. `import`) will break this! babel-node does not transpile imports from
+ * node_modules/ by default. See this thread for more:
+ * https://github.com/babel/babel/issues/7566
+ */
 
 // from https://github.com/twitter/twemoji/blob/gh-pages/twemoji-generator.js
 function UTF162JSON(text) {
@@ -35,9 +42,6 @@ function genEmojiData() {
       )
     }
     addEmojiLiteral(emoji.unified, emoji.short_name)
-    if (emoji.non_qualified) {
-      addEmojiLiteral(emoji.non_qualified, emoji.short_name)
-    }
   })
 
   emojiLiterals.sort((a, b) => b.length - a.length)
