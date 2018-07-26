@@ -268,6 +268,11 @@
     keybase1.TeamRole role;
   }
 
+  record ConversationSettings {
+    @mpackkey("mwr") @jsonkey("mwr")
+    union { null, ConversationMinWriterRoleInfo } minWriterRoleInfo;
+  }
+
   record Conversation {
     ConversationMetadata metadata;
     union { null, ConversationReaderInfo } readerInfo; // information about the convo from a user perspective
@@ -288,7 +293,8 @@
     Expunge expunge;
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
-    union { null, ConversationMinWriterRoleInfo } minWriterRoleInfo;
+    @mpackkey("cs") @jsonkey("cs")
+    union { null, ConversationSettings } convSettings;
   }
 
   record MessageSummary {

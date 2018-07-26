@@ -163,45 +163,4 @@ const stylesCommonCore = {
   justifyContent: 'center',
 }
 
-// TODO remove
-const styles = styleSheetCreate({
-  addNew: {
-    padding: globalMargins.xtiny,
-  },
-  description: {
-    ...globalStyles.flexBoxColumn,
-    ...stylesCommonCore,
-    alignItems: 'center',
-    paddingLeft: 32,
-    paddingRight: 32,
-  },
-  descriptionText: {
-    color: globalColors.black_40,
-    paddingBottom: globalMargins.tiny,
-    paddingTop: globalMargins.tiny,
-    textAlign: 'center',
-  },
-  row: {
-    ...globalStyles.flexBoxRow,
-    ...stylesCommonCore,
-    minHeight: isMobile ? 64 : 48,
-    padding: 8,
-  },
-  rowBox: {...globalStyles.flexBoxRow, alignItems: 'center', flex: 1},
-  rowNoBorder: {
-    ...globalStyles.flexBoxRow,
-    ...stylesCommonCore,
-    borderBottomWidth: 0,
-    minHeight: isMobile ? 64 : 48,
-    padding: 8,
-  },
-  rowRevoked: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    minHeight: 38,
-    paddingLeft: 8,
-  },
-})
-
 export default HeaderOnMobile(FloatingMenuParentHOC(Devices))

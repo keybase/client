@@ -115,11 +115,11 @@ func (n *NotifyRouterActivityRouter) SetTeamRetention(ctx context.Context, uid g
 	}
 }
 
-func (n *NotifyRouterActivityRouter) SetConvMinWriterRole(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
-	defer n.Trace(ctx, func() error { return nil }, "SetConvMinWriterRole(%s,%v)", convID, topicType)()
+func (n *NotifyRouterActivityRouter) SetConvSettings(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
+	defer n.Trace(ctx, func() error { return nil }, "SetConvSettings(%s,%v)", convID, topicType)()
 	ctx = BackgroundContext(ctx, n.G())
 	n.notifyCh <- func() {
-		n.G().NotifyRouter.HandleChatSetConvMinWriterRole(ctx, n.kuid(uid), convID, topicType, conv)
+		n.G().NotifyRouter.HandleChatSetConvSettings(ctx, n.kuid(uid), convID, topicType, conv)
 	}
 }
 

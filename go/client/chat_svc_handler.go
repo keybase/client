@@ -415,19 +415,11 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 		return c.errReply(err)
 	}
 
-	if opts.Nonblock {
-		var pres chat1.PostLocalNonblockRes
-		pres, err = client.PostFileAttachmentLocalNonblock(ctx, chat1.PostFileAttachmentLocalNonblockArg{
-			Arg: arg,
-		})
-		rl = append(rl, pres.RateLimits...)
-	} else {
-		var pres chat1.PostLocalRes
-		pres, err = client.PostFileAttachmentLocal(ctx, chat1.PostFileAttachmentLocalArg{
-			Arg: arg,
-		})
-		rl = append(rl, pres.RateLimits...)
-	}
+	var pres chat1.PostLocalRes
+	pres, err = client.PostFileAttachmentLocal(ctx, chat1.PostFileAttachmentLocalArg{
+		Arg: arg,
+	})
+	rl = append(rl, pres.RateLimits...)
 	if err != nil {
 		return c.errReply(err)
 	}

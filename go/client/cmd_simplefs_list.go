@@ -94,6 +94,10 @@ func NewCmdSimpleFSList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 				Name:  "w, windows",
 				Usage: "windows style dir",
 			},
+			cli.IntFlag{
+				Name:  "rev",
+				Usage: "specify a revision number for the KBFS folder",
+			},
 		},
 	}
 
@@ -283,13 +287,21 @@ func (c *CmdSimpleFSList) ParseArgv(ctx *cli.Context) error {
 		return errors.New("ls requires at least one KBFS path argument")
 	}
 
+	// TODO: "rev" should be a real int64, need to update the `cli`
+	// library for that.
+	rev := int64(ctx.Int("rev"))
 	for _, src := range ctx.Args() {
-		argPath := makeSimpleFSPath(c.G(), src)
+		// Use the same revision number for each path.
+		argPath, err := makeSimpleFSPath(c.G(), src, rev)
+		if err != nil {
+			return err
+		}
 		pathType, err := argPath.PathType()
 		if err != nil {
 			return err
 		}
-		if pathType != keybase1.PathType_KBFS {
+		if pathType != keybase1.PathType_KBFS &&
+			pathType != keybase1.PathType_KBFS_ARCHIVED {
 			return errors.New("ls requires KBFS path arguments")
 		}
 		c.paths = append(c.paths, argPath)

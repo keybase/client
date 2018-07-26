@@ -1,40 +1,41 @@
 // @flow
+// // TODO
 /* eslint-env jest */
-import * as I from 'immutable'
-import * as Types from '../../constants/types/devices'
-import * as Constants from '../../constants/devices'
-import * as Tabs from '../../constants/tabs'
-import * as DevicesGen from '../devices-gen'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Saga from '../../util/saga'
-import * as RouteTree from '../route-tree'
-import devicesSaga from '../devices'
-import {createStore, applyMiddleware} from 'redux'
-import rootReducer from '../../reducers'
-import createSagaMiddleware from 'redux-saga'
-import appRouteTree from '../../app/routes-app'
-import {getPath as getRoutePath} from '../../route-tree'
+// import * as I from 'immutable'
+// import * as Types from '../../constants/types/devices'
+// import * as Constants from '../../constants/devices'
+// import * as Tabs from '../../constants/tabs'
+// import * as DevicesGen from '../devices-gen'
+// import * as RPCTypes from '../../constants/types/rpc-gen'
+// import * as Saga from '../../util/saga'
+// import * as RouteTree from '../route-tree'
+// import devicesSaga from '../devices'
+// import {createStore, applyMiddleware} from 'redux'
+// import rootReducer from '../../reducers'
+// import createSagaMiddleware from 'redux-saga'
+// import appRouteTree from '../../app/routes-app'
+// import {getPath as getRoutePath} from '../../route-tree'
 
-const startReduxSaga = (initialStore = undefined) => {
-  const sagaMiddleware = createSagaMiddleware({
-    onError: e => {
-      throw e
-    },
-  })
-  const store = createStore(rootReducer, initialStore, applyMiddleware(sagaMiddleware))
-  const getState = store.getState
-  const dispatch = store.dispatch
-  sagaMiddleware.run(devicesSaga)
+// const startReduxSaga = (initialStore = undefined) => {
+// const sagaMiddleware = createSagaMiddleware({
+// onError: e => {
+// throw e
+// },
+// })
+// const store = createStore(rootReducer, initialStore, applyMiddleware(sagaMiddleware))
+// const getState = store.getState
+// const dispatch = store.dispatch
+// sagaMiddleware.run(devicesSaga)
 
-  dispatch(RouteTree.switchRouteDef(appRouteTree))
-  dispatch(RouteTree.navigateTo([Tabs.devicesTab]))
+// dispatch(RouteTree.switchRouteDef(appRouteTree))
+// dispatch(RouteTree.navigateTo([Tabs.devicesTab]))
 
-  return {
-    dispatch,
-    getRoutePath: () => getRoutePath(getState().routeTree.routeState, [Tabs.loginTab]),
-    getState,
-  }
-}
+// return {
+// dispatch,
+// getRoutePath: () => getRoutePath(getState().routeTree.routeState, [Tabs.loginTab]),
+// getState,
+// }
+// }
 
 // let init
 // beforeEach(() => { init = startReduxSaga() })
