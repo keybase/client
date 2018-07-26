@@ -4461,10 +4461,25 @@ type PostFileAttachmentLocalArg struct {
 	Arg       PostFileAttachmentArg `codec:"arg" json:"arg"`
 }
 
-type PostFileAttachmentLocalNonblockArg struct {
-	SessionID  int                   `codec:"sessionID" json:"sessionID"`
-	Arg        PostFileAttachmentArg `codec:"arg" json:"arg"`
-	ClientPrev MessageID             `codec:"clientPrev" json:"clientPrev"`
+type PostFileAttachmentMessageLocalNonblockArg struct {
+	SessionID         int                          `codec:"sessionID" json:"sessionID"`
+	ConvID            ConversationID               `codec:"convID" json:"convID"`
+	TlfName           string                       `codec:"tlfName" json:"tlfName"`
+	Visibility        keybase1.TLFVisibility       `codec:"visibility" json:"visibility"`
+	ClientPrev        MessageID                    `codec:"clientPrev" json:"clientPrev"`
+	EphemeralLifetime *gregor1.DurationSec         `codec:"ephemeralLifetime,omitempty" json:"ephemeralLifetime,omitempty"`
+	IdentifyBehavior  keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+type PostFileAttachmentUploadLocalNonblockArg struct {
+	SessionID        int                          `codec:"sessionID" json:"sessionID"`
+	ConvID           ConversationID               `codec:"convID" json:"convID"`
+	OutboxID         OutboxID                     `codec:"outboxID" json:"outboxID"`
+	Filename         string                       `codec:"filename" json:"filename"`
+	Title            string                       `codec:"title" json:"title"`
+	Metadata         []byte                       `codec:"metadata" json:"metadata"`
+	CallerPreview    *MakePreviewRes              `codec:"callerPreview,omitempty" json:"callerPreview,omitempty"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 type DownloadAttachmentLocalArg struct {
@@ -4644,7 +4659,8 @@ type LocalInterface interface {
 	GetConversationForCLILocal(context.Context, GetConversationForCLILocalQuery) (GetConversationForCLILocalRes, error)
 	GetMessagesLocal(context.Context, GetMessagesLocalArg) (GetMessagesLocalRes, error)
 	PostFileAttachmentLocal(context.Context, PostFileAttachmentLocalArg) (PostLocalRes, error)
-	PostFileAttachmentLocalNonblock(context.Context, PostFileAttachmentLocalNonblockArg) (PostLocalNonblockRes, error)
+	PostFileAttachmentMessageLocalNonblock(context.Context, PostFileAttachmentMessageLocalNonblockArg) (PostLocalNonblockRes, error)
+	PostFileAttachmentUploadLocalNonblock(context.Context, PostFileAttachmentUploadLocalNonblockArg) error
 	DownloadAttachmentLocal(context.Context, DownloadAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
 	MakePreview(context.Context, MakePreviewArg) (MakePreviewRes, error)
@@ -5088,18 +5104,34 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"postFileAttachmentLocalNonblock": {
+			"postFileAttachmentMessageLocalNonblock": {
 				MakeArg: func() interface{} {
-					ret := make([]PostFileAttachmentLocalNonblockArg, 1)
+					ret := make([]PostFileAttachmentMessageLocalNonblockArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]PostFileAttachmentLocalNonblockArg)
+					typedArgs, ok := args.(*[]PostFileAttachmentMessageLocalNonblockArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]PostFileAttachmentLocalNonblockArg)(nil), args)
+						err = rpc.NewTypeError((*[]PostFileAttachmentMessageLocalNonblockArg)(nil), args)
 						return
 					}
-					ret, err = i.PostFileAttachmentLocalNonblock(ctx, (*typedArgs)[0])
+					ret, err = i.PostFileAttachmentMessageLocalNonblock(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"postFileAttachmentUploadLocalNonblock": {
+				MakeArg: func() interface{} {
+					ret := make([]PostFileAttachmentUploadLocalNonblockArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PostFileAttachmentUploadLocalNonblockArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PostFileAttachmentUploadLocalNonblockArg)(nil), args)
+						return
+					}
+					err = i.PostFileAttachmentUploadLocalNonblock(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -5650,8 +5682,13 @@ func (c LocalClient) PostFileAttachmentLocal(ctx context.Context, __arg PostFile
 	return
 }
 
-func (c LocalClient) PostFileAttachmentLocalNonblock(ctx context.Context, __arg PostFileAttachmentLocalNonblockArg) (res PostLocalNonblockRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.postFileAttachmentLocalNonblock", []interface{}{__arg}, &res)
+func (c LocalClient) PostFileAttachmentMessageLocalNonblock(ctx context.Context, __arg PostFileAttachmentMessageLocalNonblockArg) (res PostLocalNonblockRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postFileAttachmentMessageLocalNonblock", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) PostFileAttachmentUploadLocalNonblock(ctx context.Context, __arg PostFileAttachmentUploadLocalNonblockArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postFileAttachmentUploadLocalNonblock", []interface{}{__arg}, nil)
 	return
 }
 

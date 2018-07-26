@@ -1610,7 +1610,38 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   const {conversationIDKey, paths, titles} = action.payload
   const state: TypedState = yield Saga.select()
 
-  const outboxIDs = paths.map(p => Constants.generateOutboxID())
+  const meta = state.chat2.metaMap.get(conversationIDKey)
+  if (!meta) {
+    logger.warn('Missing meta for attachment upload', conversationIDKey)
+    return
+  }
+  const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+  // disable sending exploding messages if flag is false
+  const ephemeralLifetime = flags.explodingMessagesEnabled
+    ? Constants.getConversationExplodingMode(state, conversationIDKey)
+    : 0
+  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
+
+  // Post initial messages to get the upload in the outbox, and to also get the outbox IDs
+  // These messages will not send until the upload has both been started and completed.
+  const messageResults: Array<?RPCChatTypes.PostLocalNonblockRes> = yield Saga.sequentially(
+    paths.map(p =>
+      Saga.call(RPCChatTypes.localPostFileAttachmentMessageLocalNonblockRpcPromise, {
+        ...ephemeralData,
+        convID: Types.keyToConversationID(conversationIDKey),
+        tlfName: meta.tlfname,
+        visibility: RPCTypes.commonTLFVisibility.private,
+        clientPrev,
+        identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
+      })
+    )
+  )
+  const outboxIDs = messageResults.reduce((obids, r) => {
+    if (r) {
+      obids.push(r.outboxID)
+    }
+    return obids
+  }, [])
 
   // Make the previews
   const previews: Array<?RPCChatTypes.MakePreviewRes> = yield Saga.sequentially(
@@ -1637,18 +1668,6 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   )
   const previewSpecs = previews.map(preview => Constants.previewSpecs(preview && preview.metadata, null))
 
-  const meta = state.chat2.metaMap.get(conversationIDKey)
-  if (!meta) {
-    logger.warn('Missing meta for attachment upload', conversationIDKey)
-    return
-  }
-
-  // disable sending exploding messages if flag is false
-  const ephemeralLifetime = flags.explodingMessagesEnabled
-    ? Constants.getConversationExplodingMode(state, conversationIDKey)
-    : 0
-  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-
   let lastOrdinal = null
   const messages = outboxIDs.map((o, i) => {
     const m = Constants.makePendingAttachmentMessage(
@@ -1665,7 +1684,6 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
     lastOrdinal = Constants.nextFractionalOrdinal(m.ordinal)
     return m
   })
-  const ordinals = messages.map(m => m.ordinal)
   yield Saga.put(
     Chat2Gen.createMessagesAdd({
       context: {type: 'sent'},
@@ -1674,52 +1692,16 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   )
   yield Saga.sequentially(
     paths.map((path, i) =>
-      Saga.call(attachmentUploadCall, {
-        conversationIDKey,
-        ephemeralData,
-        ordinal: ordinals[i],
+      Saga.call(RPCChatTypes.localPostFileAttachmentUploadLocalNonblockRpcPromise, {
+        convID: Types.keyToConversationID(conversationIDKey),
         outboxID: outboxIDs[i],
-        path,
+        filename: path,
         title: titles[i],
-        tlfName: meta.tlfname,
+        metadata: Buffer.from([]),
+        identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
       })
     )
   )
-}
-
-function* attachmentUploadCall({
-  path,
-  conversationIDKey,
-  outboxID,
-  title,
-  tlfName,
-  ordinal,
-  ephemeralData,
-}: {
-  path: string,
-  conversationIDKey: Types.ConversationIDKey,
-  outboxID: Buffer,
-  title: string,
-  tlfName: string,
-  ordinal: Types.Ordinal,
-  ephemeralData: {ephemeralLifetime?: number},
-}) {
-  const state = yield Saga.select()
-  const clientPrev = Constants.getClientPrev(state, conversationIDKey)
-  yield Saga.call(RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise, {
-    arg: {
-      ...ephemeralData,
-      filename: path,
-      conversationID: Types.keyToConversationID(conversationIDKey),
-      identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-      metadata: Buffer.from([]),
-      outboxID,
-      title,
-      tlfName,
-      visibility: RPCTypes.commonTLFVisibility.private,
-    },
-    clientPrev,
-  })
 }
 
 // Tell service we're typing
