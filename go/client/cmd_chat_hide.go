@@ -84,7 +84,7 @@ func (c *CmdChatHide) Run() error {
 		Interactive:       false,
 		IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
-	if err != nil && conversation == nil {
+	if err != nil {
 		return err
 	}
 

@@ -226,11 +226,7 @@ func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversa
 					info.Visibility, info.Triple.TopicType, info.TopicName, info.TLFNameExpandedSummary())
 			}
 		}
-		var err error
-		if conversation.Error != nil {
-			err = errors.New(conversation.Error.Message)
-		}
-		return &conversation, false, err
+		return &conversation, false, nil
 	default:
 		if behavior.Interactive {
 			return r.resolveWithCliUIInteractively(ctx, req, conversations)
