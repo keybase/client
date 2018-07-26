@@ -28,20 +28,16 @@ export type Props = {
 
 type State = {|
   selected: FolderType,
-  showingLoggedOutMenu: boolean,
-  showingLoggedInMenu: boolean,
-  loggedOutAttachmentRef: ?React.Component<any, any>,
-  loggedInAttachmentRef: ?React.Component<any, any>,
+  showingMenu: boolean,
 |}
 
 class MenubarRender extends Component<Props, State> {
   state: State = {
     selected: 'private',
-    showingLoggedOutMenu: false,
-    showingLoggedInMenu: false,
-    loggedOutAttachmentRef: null,
-    loggedInAttachmentRef: null,
+    showingMenu: false,
   }
+
+  attachmentRef = React.createRef()
 
   _onShow = throttle(() => {
     this.props.refresh()
@@ -55,13 +51,14 @@ class MenubarRender extends Component<Props, State> {
   }
 
   render() {
+    // TODO: refactor all this duplicated code!
     return this.props.loggedIn ? this._renderFolders() : this._renderLoggedOut()
   }
 
   _renderLoggedOut() {
     const styles = stylesPublic
 
-    const menuColor = this.state.showingLoggedOutMenu ? globalColors.black_60 : globalColors.black_40
+    const menuColor = this.state.showingMenu ? globalColors.black_60 : globalColors.black_40
     const menuStyle = platformStyles({
       isElectron: {
         ...desktopStyles.clickable,
@@ -78,12 +75,14 @@ class MenubarRender extends Component<Props, State> {
             color={menuColor}
             hoverColor={menuColor}
             type="iconfont-hamburger"
-            onClick={() =>
-              this.setState(prevState => ({showingLoggedOutMenu: !prevState.showingLoggedOutMenu}))
-            }
-            ref={loggedOutAttachmentRef =>
-              this.setState(s => (s.loggedOutAttachmentRef ? null : {loggedOutAttachmentRef}))
-            }
+            onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
+            ref={this.attachmentRef}
+          />
+          <FloatingMenu
+            visible={this.state.showingMenu}
+            attachTo={this.attachmentRef.current}
+            items={this._menuItems()}
+            onHidden={() => this.setState({showingMenu: false})}
           />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
@@ -95,12 +94,6 @@ class MenubarRender extends Component<Props, State> {
             <Button type="Primary" label="Log In" onClick={this.props.logIn} />
           </ButtonBar>
         </Box>
-        <FloatingMenu
-          visible={this.state.showingLoggedOutMenu}
-          attachTo={this.state.loggedOutAttachmentRef}
-          items={this._menuItems()}
-          onHidden={() => this.setState({showingLoggedOutMenu: false})}
-        />
       </Box>
     )
   }
@@ -191,12 +184,18 @@ class MenubarRender extends Component<Props, State> {
             color={globalColors.black_40}
             hoverColor={globalColors.black}
             type="iconfont-hamburger"
-            onClick={() =>
-              this.setState(prevState => ({showingLoggedInMenu: !prevState.showingLoggedInMenu}))
+            onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
+            ref={this.attachmentRef}
+          />
+          <FloatingMenu
+            items={this._menuItems()}
+            visible={this.state.showingMenu}
+            onHidden={() =>
+              this.setState({
+                showingMenu: false,
+              })
             }
-            ref={loggedInAttachmentRef =>
-              this.setState(s => (s.loggedInAttachmentRef ? null : {loggedInAttachmentRef}))
-            }
+            attachTo={this.attachmentRef.current}
           />
         </Box>
         <Folders {...mergedProps} />
@@ -215,16 +214,6 @@ class MenubarRender extends Component<Props, State> {
             <Text type="BodySmall">UPLOADING CHANGES...</Text>
           </Box>
         )}
-        <FloatingMenu
-          items={this._menuItems()}
-          visible={this.state.showingLoggedInMenu}
-          onHidden={() =>
-            this.setState({
-              showingLoggedInMenu: false,
-            })
-          }
-          attachTo={this.state.loggedInAttachmentRef}
-        />
       </Box>
     )
   }
