@@ -31,6 +31,16 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _onAddReaction: (message: Types.Message) => {
+    dispatch(
+      Route.navigateAppend([
+        {
+          props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+          selected: 'chooseEmoji',
+        },
+      ])
+    )
+  },
   _onCopy: (message: Types.Message) => {
     if (message.type === 'text') {
       copyToClipboard(message.text.stringValue())
@@ -92,6 +102,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     deviceName: message.deviceName,
     deviceRevokedAt: message.deviceRevokedAt,
     deviceType: message.deviceType,
+    onAddReaction: () => dispatchProps._onAddReaction(message),
     onCopy: () => dispatchProps._onCopy(message),
     onDelete: yourMessage ? () => dispatchProps._onDelete(message) : null,
     onDeleteMessageHistory: stateProps._canDeleteHistory

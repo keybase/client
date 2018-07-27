@@ -12,6 +12,7 @@ type Props = {
   deviceName: string,
   deviceType: DeviceType,
   deviceRevokedAt: ?number,
+  onAddReaction: () => void,
   onDelete: null | (() => void),
   onDownload: null | (() => void),
   onHidden: () => void,
@@ -50,6 +51,7 @@ const AttachmentPopupMenu = (props: Props) => {
       ? [{disabled: props.pending, onClick: props.onShareAttachment, title: 'Share'}]
       : []),
     ...(props.onDownload ? [{disabled: props.pending, onClick: props.onDownload, title: 'Download'}] : []),
+    ...(isMobile ? [{onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
   ]
 
   const header = {
