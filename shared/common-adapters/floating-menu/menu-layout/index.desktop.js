@@ -12,10 +12,6 @@ import {
   platformStyles,
 } from '../../../styles'
 
-// TODO refactor to use Overlay and consolidate some of these files
-// popup-menu / relative-popup-hoc / floating-menu
-// probably all can go in floating-menu now that everything uses that
-
 class MenuLayout extends Component<MenuLayoutProps> {
   _renderDivider = (index: number) => <Box style={styles.divider} key={index} />
 

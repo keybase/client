@@ -5,11 +5,6 @@ import {Box, Text} from '../..'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import type {MenuItem, MenuLayoutProps} from '.'
 
-// TODO refactor to use Overlay and consolidate some of these files
-// popup-menu / relative-popup-hoc / floating-menu
-// probably all can go in floating-menu now that everything uses that
-
-// Menu Item
 type MenuRowProps = {
   ...MenuItem,
   isHeader?: boolean,
@@ -85,7 +80,6 @@ const styleRowText = ({
   }
 }
 
-// Popup Menu
 class MenuLayout extends Component<MenuLayoutProps> {
   render() {
     const menuItemsNoDividers = this.props.items.reduce((arr, mi) => {
