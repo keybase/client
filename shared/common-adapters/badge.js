@@ -1,33 +1,51 @@
 // @flow
-import Box from './box'
 import * as React from 'react'
-import Text from './text'
-import {globalStyles, globalColors, styleSheetCreate, collapseStyles, platformStyles} from '../styles'
+import {Box, Text} from '.'
+import * as Styles from '../styles'
 
-import type {BadgeProps, Badge2Props} from './badge'
+export type BadgeProps = {
+  badgeNumber: ?number,
+  badgeStyle?: any,
+  badgeNumberStyle?: Object,
+  largerBadgeMinWidthFix?: boolean,
+}
+
+export type Badge2Props = {
+  badgeNumber: number,
+  fontSize: number,
+  height?: number,
+  leftRightPadding: number,
+  badgeStyle?: Styles.StylesCrossPlatform,
+  badgeNumberStyle?: Styles.StylesCrossPlatform,
+}
+
+export type DefaultBadge2Props = {
+  fontSize: number,
+  leftRightPadding: number,
+}
 
 export function Badge({badgeStyle, badgeNumber, badgeNumberStyle, largerBadgeMinWidthFix}: BadgeProps) {
   return (
     <Box
-      style={collapseStyles([
+      style={Styles.collapseStyles([
         badgeStyles.badge,
         largerBadgeMinWidthFix && badgeStyles.largerBadgeMinWidthFix,
         badgeStyle,
       ])}
     >
-      <Text style={collapseStyles([badgeStyles.text, badgeNumberStyle])} type="HeaderBig">
+      <Text style={Styles.collapseStyles([badgeStyles.text, badgeNumberStyle])} type="HeaderBig">
         {badgeNumber}
       </Text>
     </Box>
   )
 }
 
-const badgeStyles = styleSheetCreate({
-  badge: platformStyles({
+const badgeStyles = Styles.styleSheetCreate({
+  badge: Styles.platformStyles({
     common: {
-      ...globalStyles.flexBoxRow,
+      ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
-      backgroundColor: globalColors.orange,
+      backgroundColor: Styles.globalColors.orange,
       justifyContent: 'center',
     },
     isElectron: {
@@ -53,9 +71,9 @@ const badgeStyles = styleSheetCreate({
     paddingLeft: 4,
     paddingRight: 4,
   },
-  text: platformStyles({
+  text: Styles.platformStyles({
     common: {
-      color: globalColors.white,
+      color: Styles.globalColors.white,
       flex: 0,
     },
     isElectron: {
@@ -70,7 +88,7 @@ const badgeStyles = styleSheetCreate({
 })
 
 export class Badge2 extends React.Component<Badge2Props> {
-  static defaultProps = {fontSize: 11, leftRightPadding: 6}
+  static defaultProps = {fontSize: 12, leftRightPadding: 6}
 
   render() {
     // Default to a top and bottom padding of 4px (8px total)
@@ -79,7 +97,7 @@ export class Badge2 extends React.Component<Badge2Props> {
 
     return (
       <Box
-        style={collapseStyles([
+        style={Styles.collapseStyles([
           badge2Styles.badge,
           {
             borderRadius: height,
@@ -93,7 +111,7 @@ export class Badge2 extends React.Component<Badge2Props> {
       >
         <Text
           type="BodyTinySemibold"
-          style={collapseStyles([
+          style={Styles.collapseStyles([
             badge2Styles.text,
             this.props.badgeNumberStyle,
             {fontSize: this.props.fontSize, lineHeight: height},
@@ -106,14 +124,14 @@ export class Badge2 extends React.Component<Badge2Props> {
   }
 }
 
-const badge2Styles = styleSheetCreate({
+const badge2Styles = Styles.styleSheetCreate({
   badge: {
-    ...globalStyles.flexBoxColumn,
-    ...globalStyles.flexBoxCenter,
-    backgroundColor: globalColors.orange,
+    ...Styles.globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxCenter,
+    backgroundColor: Styles.globalColors.orange,
   },
   text: {
-    color: globalColors.white,
+    color: Styles.globalColors.white,
     textAlign: 'center',
   },
 })
