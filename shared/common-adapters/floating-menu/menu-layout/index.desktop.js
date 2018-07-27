@@ -17,9 +17,9 @@ import {
 // probably all can go in floating-menu now that everything uses that
 
 class MenuLayout extends Component<MenuLayoutProps> {
-  _renderDivider = () => <Box style={styles.divider} />
+  _renderDivider = (index: number) => <Box style={styles.divider} key={index} />
 
-  _renderMenuItem = (item: MenuItem) => {
+  _renderMenuItem = (item: MenuItem, index: number) => {
     let hoverClassName
     let styleDisabled = {}
     if (!item.disabled) {
@@ -32,7 +32,7 @@ class MenuLayout extends Component<MenuLayoutProps> {
 
     return (
       <Box
-        key={item.title}
+        key={index}
         className={hoverClassName}
         style={collapseStyles([styles.itemContainer, styleClickable])}
         onClick={event => {
@@ -95,7 +95,8 @@ class MenuLayout extends Component<MenuLayoutProps> {
               {this.props.items
                 .filter(Boolean)
                 .map(
-                  (item, idx) => (item === 'Divider' ? this._renderDivider() : this._renderMenuItem(item))
+                  (item, index) =>
+                    item === 'Divider' ? this._renderDivider(index) : this._renderMenuItem(item, index)
                 )}
             </Box>
           )}
