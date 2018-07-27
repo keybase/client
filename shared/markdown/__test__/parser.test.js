@@ -1,6 +1,7 @@
 // @noflow
 /* eslint-env jest */
-import parser, {isPlainText} from '../parser'
+import parser, {emojiIndexByName, isPlainText} from '../parser'
+import emojiData from 'emoji-datasource'
 
 function check(md, options) {
   const ast = parser.parse(md, options)
@@ -124,6 +125,41 @@ describe('Markdown parser', () => {
   })
   it('parses native zwj emoji correctly', () => {
     check('👩‍❤️‍💋‍👩 👩‍👩‍👧‍👧!')
+    check('👩‍❤️‍💋‍👨 👨‍👧 👨‍👦 👨‍👩‍👧‍👦 👨‍👨‍👧‍👧 👩‍👩‍👧‍👦 👩‍❤️‍👩')
+  })
+  it('parses qualified and non-qualified emoji identically', () => {
+    const codePointsToChar = series => {
+      const codePoints = series.split('-').map(codePoint => parseInt(codePoint, 16))
+      return String.fromCodePoint(...codePoints)
+    }
+
+    emojiData.forEach(emoji => {
+      const emojiName = `:${emoji.short_name}:`
+      // make sure we always map to unified code points
+      expect(emojiIndexByName[emojiName]).toBe(codePointsToChar(emoji.unified))
+      if (emoji.unified && emoji.non_qualified) {
+        const expectedAst = {
+          children: [
+            {
+              children: [
+                {
+                  children: [emojiName],
+                  type: 'native-emoji',
+                },
+              ],
+              type: 'text-block',
+            },
+          ],
+          type: 'markup',
+        }
+        // check that both unified and non_qualified parse to same thing
+        ;[emoji.unified, emoji.non_qualified].map(codePoints => {
+          const emoji = codePointsToChar(codePoints)
+          const ast = parser.parse(emoji)
+          expect(ast).toEqual(expectedAst)
+        })
+      }
+    })
   })
   it('parses phone numbers correctly', () => {
     // Should succeed
