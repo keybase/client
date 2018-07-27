@@ -26,8 +26,6 @@ function genEmojiData() {
   const emojiIndexByName = {}
   const emojiLiterals = []
   const emojiCharacters = new Set()
-  // This only adds the first supplied code point to `emojiIndexByName`,
-  // so make sure that is the fully qualified one
   function addEmojiLiteral(unified, name, skinTone) {
     const chars = unified.split('-').map(c => String.fromCodePoint(parseInt(c, 16)))
     const literals = chars.map(c => UTF162JSON(c)).join('')
@@ -36,6 +34,8 @@ function genEmojiData() {
     const char = chars.join('')
     emojiIndexByChar[char] = fullName
     if (!emojiIndexByName[fullName]) {
+      // For display. Only adds the first supplied code points,
+      // so make sure that is the fully qualified one
       emojiIndexByName[fullName] = char
     }
     emojiLiterals.push(literals)

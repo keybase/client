@@ -1,6 +1,7 @@
 // @noflow
 /* eslint-env jest */
 import parser, {isPlainText} from '../parser'
+import emojiData from 'emoji-datasource'
 
 function check(md, options) {
   const ast = parser.parse(md, options)
@@ -21,6 +22,11 @@ function check(md, options) {
     const text = ast.children.map(child => child.children[0]).join('\n')
     expect(text).toBe(plainText)
   }
+}
+
+function codePointsToChar(series) {
+  const codePoints = series.split('-').map(codePoint => parseInt(codePoint, 16))
+  return String.fromCodePoint(...codePoints)
 }
 
 describe('Markdown parser', () => {
@@ -125,6 +131,30 @@ describe('Markdown parser', () => {
   it('parses native zwj emoji correctly', () => {
     check('👩‍❤️‍💋‍👩 👩‍👩‍👧‍👧!')
     check('👩‍❤️‍💋‍👨 👨‍👧 👨‍👦 👨‍👩‍👧‍👦 👨‍👨‍👧‍👧 👩‍👩‍👧‍👦 👩‍❤️‍👩')
+  })
+  it('parses qualified and non-qualified emoji identically', () => {
+    // Check that the trees are identical
+    // and contain the same emoji
+    const verify = (asts, emojiString) => {
+      asts.forEach(ast => {
+        expect(ast.type).toBe('markup')
+        expect(ast.children.length).toBe(1)
+        expect(ast.children[0].type).toBe('text-block')
+        expect(ast.children[0].children.length).toBe(1)
+        expect(ast.children[0].children[0].type).toBe('native-emoji')
+        expect(ast.children[0].children[0].children.length).toBe(1)
+        expect(ast.children[0].children[0].children[0]).toBe(emojiString)
+      })
+    }
+
+    emojiData.forEach(emoji => {
+      if (emoji.unified && emoji.non_qualified) {
+        // check that both unified and non_qualified parse to same thing
+        const tests = [emoji.unified, emoji.non_qualified].map(codePointsToChar)
+        const asts = tests.map(emoji => parser.parse(emoji))
+        verify(asts, `:${emoji.short_name}:`)
+      }
+    })
   })
   it('parses phone numbers correctly', () => {
     // Should succeed
