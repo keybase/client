@@ -36,9 +36,7 @@ export default function SettingsItem(props: SettingsItemProps) {
         {props.text}
       </Text>
       {!!props.badgeNumber &&
-        props.badgeNumber > 0 && (
-          <Badge2 badgeNumber={props.badgeNumber} fontSize={12} height={20} badgeStyle={styles.badge} />
-        )}
+        props.badgeNumber > 0 && <Badge2 badgeNumber={props.badgeNumber} badgeStyle={styles.badge} />}
     </ClickableBox>
   )
 }
