@@ -23,7 +23,7 @@ export const rpcDeviceToDevice = (d: RPCTypes.DeviceDetail): Types.Device =>
     type: Types.stringToDeviceType(d.device.type),
   })
 
-const makeDevice: I.RecordFactory<Types._Device> = I.Record({
+export const makeDevice: I.RecordFactory<Types._Device> = I.Record({
   created: 0,
   currentDevice: false,
   deviceID: Types.stringToDeviceID(''),

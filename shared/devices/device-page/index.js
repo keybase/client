@@ -5,12 +5,6 @@ import * as Common from '../../common-adapters'
 import * as Styles from '../../styles'
 import moment from 'moment'
 
-export type TimelineItem = {
-  desc: string,
-  subDesc?: string,
-  type: 'LastUsed' | 'Added' | 'Revoked',
-}
-
 type Props = {
   device: Types.Device,
   onBack: () => void,
@@ -18,10 +12,10 @@ type Props = {
 }
 
 const TimelineMarker = ({first, last, closedCircle}) => (
-  <Common.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, {alignItems: 'center'}])}>
-    <Common.Box style={Styles.collapseStyles([styles.timelineLine, {height: 6, opacity: first ? 0 : 1}])} />
+  <Common.Box style={styles.marker}>
+    <Common.Box style={Styles.collapseStyles([styles.timelineLineTop, first && styles.invisible])} />
     <Common.Box style={closedCircle ? styles.circleClosed : styles.circleOpen} />
-    <Common.Box style={Styles.collapseStyles([styles.timelineLine, {flex: 1, opacity: last ? 0 : 1}])} />
+    <Common.Box style={Styles.collapseStyles([styles.timelineLineBottom, last && styles.invisible])} />
   </Common.Box>
 )
 
@@ -32,7 +26,7 @@ const TimelineLabel = ({desc, subDesc, subDescIsName, spacerOnBottom}) => (
       subDescIsName && (
         <Common.Text type="BodySmall">
           by{' '}
-          <Common.Text type="BodySmall" style={styles.subDesc}>
+          <Common.Text type="BodySmallItalic" style={styles.subDesc}>
             {subDesc}
           </Common.Text>
         </Common.Text>
@@ -134,11 +128,6 @@ const circleCommon = {
   width: 8,
 }
 
-const titleCommon = {
-  fontStyle: 'italic',
-  textAlign: 'center',
-}
-
 const styles = Styles.styleSheetCreate({
   circleClosed: {
     ...circleCommon,
@@ -149,24 +138,26 @@ const styles = Styles.styleSheetCreate({
     ...circleCommon,
     borderColor: Styles.globalColors.lightGrey2,
   },
+  invisible: {opacity: 0},
+  marker: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+  },
   meta: {
     alignSelf: 'center',
     marginTop: 4,
   },
-  subDesc: {
-    color: Styles.globalColors.black_75,
-    fontStyle: 'italic',
-  },
+  subDesc: {color: Styles.globalColors.black_75},
   timelineLabel: {alignItems: 'flex-start'},
-  timelineLine: {
+  timelineLineBottom: {
     backgroundColor: Styles.globalColors.lightGrey2,
+    flex: 1,
     width: 2,
   },
-  title: titleCommon,
-  titleRevoked: {
-    ...titleCommon,
-    color: Styles.globalColors.black_40,
-    textDecorationLine: 'line-through',
+  timelineLineTop: {
+    backgroundColor: Styles.globalColors.lightGrey2,
+    height: 6,
+    width: 2,
   },
 })
 

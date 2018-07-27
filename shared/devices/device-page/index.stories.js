@@ -1,53 +1,37 @@
 // @flow
 import * as React from 'react'
+import * as Types from '../../constants/types/devices'
+import * as Constants from '../../constants/devices'
 import {action, storiesOf, createPropProvider} from '../../stories/storybook'
 import DevicePage from './container'
 
 const provider = createPropProvider({
-  DevicePage: (props: {revoked: boolean, type: string, current: boolean, timeLen: ?number}) => ({
-    currentDevice: !!props.current,
-    deviceID: '123',
-    icon: {
-      backup: 'icon-paper-key-64',
-      desktop: 'icon-computer-64',
-      mobile: 'icon-phone-64',
-    }[props.type],
-    name: `My ${props.type}`,
+  DevicePage: ({revoked, type, current, lastUsed = true, revokedAt = true}) => ({
+    device: Constants.makeDevice({
+      created: new Date('2002-10-09T01:23:45'),
+      currentDevice: !!current,
+      deviceID: Types.stringToDeviceID('123'),
+      lastUsed: lastUsed ? new Date('2002-10-10T01:23:45') : 0,
+      name: `My ${type}`,
+      revokedAt: revokedAt && revoked ? new Date('2002-10-11T01:23:45') : null,
+      type,
+    }),
     onBack: action('onback'),
-    revokeName: {
-      backup: 'paper key',
-      desktop: 'device',
-      mobile: 'device',
-    }[props.type],
-    revokedAt: props.revoked ? new Date('2002-10-11T01:23:45') : null,
-    showRevokeDevicePage: props.revoked ? null : action('onrevoke'),
-    timeline: [
-      {desc: 'Revoked whenever', subDesc: 'whomever', type: 'Revoked'},
-      {desc: 'Last used whenever', subDesc: 'whenever', type: 'LastUsed'},
-      {desc: 'Added whenever', subDesc: 'provisioner', type: 'Added'},
-    ].slice(0, props.timeLen || 0),
-    type: props.type,
+    showRevokeDevicePage: revoked ? null : action('onrevoke'),
   }),
 })
-
-const commonPageProps = {
-  routeProps: {get: (_: any): any => 123},
-}
 
 const load = () => {
   storiesOf('Devices/Device', module)
     .addDecorator(provider)
-    .add('Desktop', () => <DevicePage type="desktop" timeLen={1} {...commonPageProps} />)
-    .add('Desktop current', () => (
-      <DevicePage type="desktop" timeLen={2} current={true} {...commonPageProps} />
-    ))
-    .add('Desktop Revoked', () => (
-      <DevicePage type="desktop" timeLen={3} revoked={true} {...commonPageProps} />
-    ))
-    .add('Mobile', () => <DevicePage type="mobile" {...commonPageProps} />)
-    .add('Mobile Revoked', () => <DevicePage type="mobile" revoked={true} {...commonPageProps} />)
-    .add('Paper key', () => <DevicePage type="backup" {...commonPageProps} />)
-    .add('Paper key Revoked', () => <DevicePage type="backup" revoked={true} {...commonPageProps} />)
+    .add('Desktop', () => <DevicePage type="desktop" />)
+    .add('Desktop no last used', () => <DevicePage type="desktop" lastUsed={false} />)
+    .add('Desktop current', () => <DevicePage type="desktop" current={true} />)
+    .add('Desktop Revoked', () => <DevicePage type="desktop" revoked={true} />)
+    .add('Mobile', () => <DevicePage type="mobile" />)
+    .add('Mobile Revoked', () => <DevicePage type="mobile" revoked={true} />)
+    .add('Paper key', () => <DevicePage type="backup" />)
+    .add('Paper key Revoked', () => <DevicePage type="backup" revoked={true} />)
 }
 
 export default load
