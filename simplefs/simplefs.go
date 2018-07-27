@@ -9,7 +9,8 @@ import (
 	"fmt"
 	"io"
 	"os"
-	stdpath "path/filepath"
+	stdpath "path"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -250,10 +251,10 @@ func (k *SimpleFS) getFS(ctx context.Context, path keybase1.Path) (
 		}
 		return fs, finalElem, nil
 	case keybase1.PathType_LOCAL:
-		dir := stdpath.Dir(path.Local())
+		dir := filepath.Dir(path.Local())
 		k.log.CDebugf(ctx, "getting FS for local path in directory: %s", dir)
-		fs = osfs.New(stdpath.Dir(path.Local()))
-		return fs, stdpath.Base(path.Local()), nil
+		fs = osfs.New(filepath.Dir(path.Local()))
+		return fs, filepath.Base(path.Local()), nil
 	default:
 		return nil, "", simpleFSError{"Invalid path type"}
 	}
@@ -895,7 +896,6 @@ func (k *SimpleFS) doCopy(
 	srcPath, destPath keybase1.Path) (err error) {
 	// Note this is also used by move, so if this changes update SimpleFSMove
 	// code also.
-	k.log.CDebugf(ctx, "Opening file: %s", srcPath.Local())
 	srcFS, finalSrcElem, err := k.getFS(ctx, srcPath)
 	if err != nil {
 		return err
@@ -931,7 +931,7 @@ type pathPair struct {
 
 func pathAppend(p keybase1.Path, leaf string) keybase1.Path {
 	if p.Local__ != nil {
-		var s = stdpath.Join(*p.Local__, leaf)
+		var s = filepath.Join(*p.Local__, leaf)
 		p.Local__ = &s
 	} else if p.Kbfs__ != nil {
 		var s = stdpath.Join(*p.Kbfs__, leaf)
