@@ -251,8 +251,6 @@ func (k *SimpleFS) getFS(ctx context.Context, path keybase1.Path) (
 		}
 		return fs, finalElem, nil
 	case keybase1.PathType_LOCAL:
-		dir := filepath.Dir(path.Local())
-		k.log.CDebugf(ctx, "getting FS for local path in directory: %s", dir)
 		fs = osfs.New(filepath.Dir(path.Local()))
 		return fs, filepath.Base(path.Local()), nil
 	default:
@@ -900,12 +898,10 @@ func (k *SimpleFS) doCopy(
 	if err != nil {
 		return err
 	}
-	k.log.CDebugf(ctx, "Opened file: %s, root: %s", finalSrcElem, srcFS.Root())
 	srcFI, err := srcFS.Stat(finalSrcElem)
 	if err != nil {
 		return err
 	}
-	k.log.CDebugf(ctx, "srcFI: %s", srcFI.Name())
 	if srcFI.IsDir() {
 		// The byte count for making a single directory is meaningless.
 		k.setProgressTotals(opID, 0, 1)
