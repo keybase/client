@@ -16,7 +16,6 @@ type CmdChatUpload struct {
 	tlf               string
 	filename          string
 	public            bool
-	nonblock          bool
 	title             string
 	ephemeralLifetime ephemeralLifetime
 	cancel            func()
@@ -32,10 +31,6 @@ func newCmdChatUpload(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 		cli.StringFlag{
 			Name:  "title",
 			Usage: "Title of attachment (defaults to filename)",
-		},
-		cli.BoolFlag{
-			Name:  "nonblock",
-			Usage: "Queue attachment upload and return immediately",
 		},
 	}
 	flags = append(flags, mustGetChatFlags("exploding-lifetime")...)
@@ -62,7 +57,6 @@ func (c *CmdChatUpload) ParseArgv(ctx *cli.Context) error {
 	c.filename = ctx.Args()[1]
 	c.public = ctx.Bool("public")
 	c.title = ctx.String("title")
-	c.nonblock = ctx.Bool("nonblock")
 	c.ephemeralLifetime = ephemeralLifetime{ctx.Duration("exploding-lifetime")}
 
 	return nil
@@ -83,7 +77,6 @@ func (c *CmdChatUpload) Run() error {
 		Filename:          c.filename,
 		Title:             c.title,
 		EphemeralLifetime: c.ephemeralLifetime,
-		Nonblock:          c.nonblock,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())

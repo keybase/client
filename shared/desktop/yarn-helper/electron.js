@@ -1,5 +1,4 @@
 // @flow
-import electron from 'electron'
 import fs from 'fs'
 import http from 'http'
 import path from 'path'
@@ -61,6 +60,8 @@ function startHot() {
 
   const hitServer = () => {
     var req = http.get('http://localhost:4000/dist/index.bundle.js', () => {
+      // require in case we're trying to yarn install electron!
+      const electron = require('electron')
       // $FlowIssue
       spawn(electron, params, {env, stdio: 'inherit'})
     })

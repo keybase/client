@@ -2,7 +2,6 @@
 import * as Saga from '../util/saga'
 declare export function checkPermissions(): Promise<boolean>
 declare export function getShownPushPrompt(): Promise<0 | 1>
-declare export function openAppSettings(): void
 declare export function requestPushPermissions(): Promise<void>
 declare export function configurePush(): void
 declare export function showShareActionSheet(options: {url?: ?any, message?: ?any}): Promise<{

@@ -3,8 +3,11 @@ import * as Constants from '../constants/waiting'
 import * as Types from '../constants/types/waiting'
 import * as Waiting from '../actions/waiting-gen'
 
-const changeHelper = (state: Types.State, keys: Array<string>, diff: 1 | -1) =>
-  state.withMutations(st => {
+// set to true to see helpful debug info
+const debugWaiting = false && __DEV__
+
+const changeHelper = (state: Types.State, keys: Array<string>, diff: 1 | -1) => {
+  const newState = state.withMutations(st => {
     let toDel = []
     // If the count goes to 0 just delete the key
     keys.forEach(k =>
@@ -19,10 +22,17 @@ const changeHelper = (state: Types.State, keys: Array<string>, diff: 1 | -1) =>
     st.deleteAll(toDel)
   })
 
+  debugWaiting && console.log('DebugWaiting:', keys, newState.toJS())
+  return newState
+}
+
 function reducer(state: Types.State = Constants.initialState, action: Waiting.Actions): Types.State {
   switch (action.type) {
     case 'common:resetStore': {
-      return Constants.initialState
+      // Keep the old values else the keys will be all off and confusing
+      const newState = Constants.initialState.merge(state)
+      debugWaiting && console.log('DebugWaiting:', '*resetStore*', newState.toJS())
+      return newState
     }
     case Waiting.decrementWaiting: {
       const {key} = action.payload

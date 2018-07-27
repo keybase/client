@@ -1571,3 +1571,7 @@ func (i *ConversationMinWriterRoleInfoLocal) String() string {
 	}
 	return fmt.Sprintf("Minimum writer role for this conversation is %v%v", i.Role, usernameSuffix)
 }
+
+func (s *ConversationSettings) IsNil() bool {
+	return s == nil || s.MinWriterRoleInfo == nil
+}

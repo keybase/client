@@ -13,7 +13,7 @@ export type Props = {|
 
 const ReactionsRow = (props: Props) =>
   props.emojis.length === 0 ? null : (
-    <Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.container}>
+    <Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.container}>
       {props.emojis.map(emoji => (
         <ReactButton
           key={emoji}

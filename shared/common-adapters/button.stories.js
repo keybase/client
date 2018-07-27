@@ -93,6 +93,13 @@ const load = () => {
         {backgroundModes.map(b => (
           <Box2 direction="horizontal" key={b} style={{backgroundColor: modeToColor[b], padding: 20}}>
             <Button {...commonProps} type="PrimaryColoredBackground" label={b} backgroundMode={b} />
+            <Button
+              {...commonProps}
+              type="PrimaryColoredBackground"
+              label={b}
+              backgroundMode={b}
+              waiting={true}
+            />
           </Box2>
         ))}
       </Box2>

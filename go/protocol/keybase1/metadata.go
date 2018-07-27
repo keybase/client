@@ -206,6 +206,11 @@ type GetMetadataArg struct {
 	LockBeforeGet *LockID           `codec:"lockBeforeGet,omitempty" json:"lockBeforeGet,omitempty"`
 }
 
+type GetMetadataByTimestampArg struct {
+	FolderID   string `codec:"folderID" json:"folderID"`
+	ServerTime Time   `codec:"serverTime" json:"serverTime"`
+}
+
 type RegisterForUpdatesArg struct {
 	FolderID     string            `codec:"folderID" json:"folderID"`
 	CurrRevision int64             `codec:"currRevision" json:"currRevision"`
@@ -319,6 +324,7 @@ type MetadataInterface interface {
 	Authenticate(context.Context, string) (int, error)
 	PutMetadata(context.Context, PutMetadataArg) error
 	GetMetadata(context.Context, GetMetadataArg) (MetadataResponse, error)
+	GetMetadataByTimestamp(context.Context, GetMetadataByTimestampArg) (MDBlock, error)
 	RegisterForUpdates(context.Context, RegisterForUpdatesArg) error
 	PruneBranch(context.Context, PruneBranchArg) error
 	PutKeys(context.Context, PutKeysArg) error
@@ -403,6 +409,22 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetMetadata(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getMetadataByTimestamp": {
+				MakeArg: func() interface{} {
+					ret := make([]GetMetadataByTimestampArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetMetadataByTimestampArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetMetadataByTimestampArg)(nil), args)
+						return
+					}
+					ret, err = i.GetMetadataByTimestamp(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -786,6 +808,11 @@ func (c MetadataClient) PutMetadata(ctx context.Context, __arg PutMetadataArg) (
 
 func (c MetadataClient) GetMetadata(ctx context.Context, __arg GetMetadataArg) (res MetadataResponse, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.metadata.getMetadata", []interface{}{__arg}, &res)
+	return
+}
+
+func (c MetadataClient) GetMetadataByTimestamp(ctx context.Context, __arg GetMetadataByTimestampArg) (res MDBlock, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.getMetadataByTimestamp", []interface{}{__arg}, &res)
 	return
 }
 

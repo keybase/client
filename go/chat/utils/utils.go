@@ -959,7 +959,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
 	res.ConvRetention = rawConv.ConvRetention
 	res.TeamRetention = rawConv.TeamRetention
-	res.MinWriterRoleInfo = rawConv.MinWriterRoleInfo
+	res.ConvSettings = rawConv.ConvSettings
 	return res
 }
 

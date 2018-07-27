@@ -480,7 +480,7 @@
     },
     {
       "type": "record",
-      "name": "SetConvMinWriterRoleUpdate",
+      "name": "SetConvSettingsUpdate",
       "fields": [
         {
           "type": "InboxVers",
@@ -493,9 +493,9 @@
         {
           "type": [
             null,
-            "ConversationMinWriterRoleInfo"
+            "ConversationSettings"
           ],
-          "name": "info"
+          "name": "convSettings"
         }
       ]
     },
