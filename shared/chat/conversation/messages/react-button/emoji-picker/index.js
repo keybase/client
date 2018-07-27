@@ -28,6 +28,7 @@ type State = {
 }
 class EmojiPicker extends React.Component<Props, State> {
   state = {sections: null}
+  _list: ?SectionList
   _renderItem = ({item}: {item: {emojis: Array<EmojiData>, key: string}}) => {
     return (
       <Box2 key={item.key} fullWidth={true} style={styles.alignItemsCenter} direction="horizontal">
@@ -46,7 +47,7 @@ class EmojiPicker extends React.Component<Props, State> {
     </Box2>
   )
 
-  _chunkData() {
+  _chunkData = () => {
     let sections = []
     const emojisPerLine = Math.floor(this.props.width / (singleEmojiWidth + 2 * emojiPadding))
     if (this.props.filter) {
@@ -71,21 +72,29 @@ class EmojiPicker extends React.Component<Props, State> {
     this.setState({sections})
   }
 
+  _scrollToTop = () => {
+    this._list &&
+      this._list.scrollToLocation({animated: false, itemIndex: 0, sectionIndex: 0, viewOffset: 32})
+  }
+
   componentDidMount() {
     this._chunkData()
   }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
-    if (this.props.filter !== prevProps.filter) {
+    if (this.props.filter !== prevProps.filter || this.props.width !== prevProps.width) {
       this._chunkData()
+      this._scrollToTop()
     }
   }
 
   render() {
     return this.state.sections ? (
       <SectionList
+        keyboardShouldPersistTaps="handled"
         sections={this.state.sections}
         stickySectionHeadersEnabled={true}
+        ref={r => (this._list = r)}
         renderItem={this._renderItem}
         renderSectionHeader={this._renderSectionHeader}
       />

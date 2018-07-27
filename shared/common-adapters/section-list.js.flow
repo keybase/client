@@ -4,4 +4,4 @@ import {SectionList} from 'react-native'
 
 export type Props = React.ElementProps<typeof SectionList>
 
-export default class extends React.Component<Props> {}
+export default class extends SectionList {}

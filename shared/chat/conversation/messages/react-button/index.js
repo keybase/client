@@ -63,6 +63,7 @@ const iconCycle = [
 ]
 export type NewReactionButtonProps = {|
   onAddReaction: (emoji: string) => void,
+  onOpenEmojiPicker: () => void,
   showBorder: boolean,
   style?: StylesCrossPlatform,
 |}
@@ -86,6 +87,10 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
   }
 
   _onShowPicker = (evt: SyntheticEvent<Element>) => {
+    if (isMobile) {
+      this.props.onOpenEmojiPicker()
+      return
+    }
     evt.stopPropagation()
     this._setShowingPicker(true)
   }
