@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {SuccessComponent} from './index.shared'
-import {Box, Text, HeaderHoc, ScrollView, InfoNote, Input, Button, ButtonBar} from '../../common-adapters/'
+import {Box2, Text, HeaderHoc, ScrollView, InfoNote, Input, Button, ButtonBar} from '../../common-adapters/'
 import {compose, withProps, branch, renderComponent} from 'recompose'
 import {collapseStyles, globalColors, globalStyles, globalMargins, styleSheetCreate} from '../../styles'
 
@@ -9,8 +9,8 @@ import type {Props} from '.'
 
 const EntryComponent = ({errorText, name, onNameChange, onSubmit}: Props) => (
   <ScrollView>
-    <Box style={globalStyles.flexBoxColumn}>
-      <Box style={styles.container}>
+    <Box2 direction="horizontal" fullWidth={true} gap="small" gapEnd={true} gapStart={true}>
+      <Box2 direction="vertical" style={styles.container}>
         <Input
           autoFocus={true}
           hideUnderline={true}
@@ -28,7 +28,11 @@ const EntryComponent = ({errorText, name, onNameChange, onSubmit}: Props) => (
           ])}
           small={true}
         />
-        {!!errorText && <Text type="BodySmallError">{errorText}</Text>}
+        {!!errorText && (
+          <Text type="BodySmallError" style={styles.errorText}>
+            {errorText}
+          </Text>
+        )}
         <ButtonBar direction="column">
           <Button type="Primary" style={styles.button} onClick={onSubmit} label="Continue" />
         </ButtonBar>
@@ -37,8 +41,8 @@ const EntryComponent = ({errorText, name, onNameChange, onSubmit}: Props) => (
             If you got an invitation by text, you can copy + paste the entire message here.
           </Text>
         </InfoNote>
-      </Box>
-    </Box>
+      </Box2>
+    </Box2>
   </ScrollView>
 )
 
@@ -49,11 +53,10 @@ const styles = styleSheetCreate({
     width: '100%',
   },
   container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: globalMargins.small,
-    marginRight: globalMargins.small,
-    marginTop: globalMargins.small,
+    flexGrow: 1,
+  },
+  errorText: {
+    marginTop: globalMargins.tiny,
   },
   info: {
     maxWidth: 280,
