@@ -39,7 +39,7 @@ type State = {
   searchHovered: boolean,
   foldersExpanded: boolean,
   selectedProofMenuRowIndex: ?number,
-  selectedProofMenuRowRef: ?any,
+  selectedProofMenuRowRef: ?React.Component<any, any>,
 }
 
 const EditControl = ({isYou, onClickShowcaseOffer}: {isYou: boolean, onClickShowcaseOffer: () => void}) => (
@@ -459,12 +459,7 @@ class ProfileRender extends PureComponent<Props, State> {
                     position="bottom right"
                     {...proofMenuContent}
                   />
-                )
-                // containerStyle={
-                //   // $FlowIssue
-                //   {...styleProofMenu, ...this.state.popupMenuPosition}
-                // }
-                }
+                )}
                 {!loading && folders}
               </Box>
             </Box>
@@ -583,13 +578,6 @@ const styleMeta = {
 const styleFriendships = {
   marginTop: globalMargins.large,
 }
-
-// const styleProofMenu = {
-//   marginTop: globalMargins.xtiny,
-//   minWidth: 196,
-//   maxWidth: 240,
-//   zIndex: 5,
-// }
 
 const styleSearchContainer = {
   ...globalStyles.flexBoxRow,
