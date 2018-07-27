@@ -1,10 +1,11 @@
 // @flow
-import {compose, connect, createSelector, setDisplayName, type TypedState} from '../../../../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import ReactionsRow from '.'
 
-const getOrderedReactions = createSelector([a => a], (reactions: ?Types.Reactions) => {
+// Get array of emoji names in the order of their earliest reaction
+const getOrderedReactions = (reactions: ?Types.Reactions) => {
   if (!reactions) {
     return []
   }
@@ -14,7 +15,7 @@ const getOrderedReactions = createSelector([a => a], (reactions: ?Types.Reaction
     })
     .sort()
   return mins.keySeq().toArray()
-})
+}
 
 export type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,

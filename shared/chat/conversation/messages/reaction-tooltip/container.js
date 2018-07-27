@@ -52,6 +52,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       emoji,
       users: stateProps._reactions
         .get(emoji, I.Set())
+        // Earliest users go at the top
+        .sort((a, b) => a.timestamp - b.timestamp)
         .map(r => ({
           fullName: stateProps._usersInfo.get(r.username, {fullname: ''}).fullname,
           username: r.username,
