@@ -3,7 +3,7 @@ import React from 'react'
 import {SuccessComponent} from './index.shared'
 import {Box2, Text, HeaderHoc, ScrollView, InfoNote, Input, Button, ButtonBar} from '../../common-adapters/'
 import {compose, withProps, branch, renderComponent} from 'recompose'
-import {collapseStyles, globalColors, globalStyles, globalMargins, styleSheetCreate} from '../../styles'
+import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 
 import type {Props} from '.'
 
