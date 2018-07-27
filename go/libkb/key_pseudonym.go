@@ -45,7 +45,7 @@ func (p *KeyPseudonym) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	if n != len(*p) {
-		return fmt.Errorf("KeyPseudonym has wrong length")
+		return NewKeyPseudonymError("KeyPseudonym has wrong length")
 	}
 	return nil
 }
@@ -70,7 +70,7 @@ func (p *KeyPseudonymNonce) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	if n != len(*p) {
-		return fmt.Errorf("KeyPseudonymNonce has wrong length")
+		return NewKeyPseudonymError("KeyPseudonymNonce has wrong length")
 	}
 	return nil
 }
@@ -132,10 +132,7 @@ type KeyPseudonymOrError struct {
 // MakePseudonym makes a key pseudonym from the given input.
 func MakeKeyPseudonym(info KeyPseudonymInfo) (KeyPseudonym, error) {
 	var idBytes [16]byte
-	id, err := hex.DecodeString(info.ID.String())
-	if err != nil {
-		return [32]byte{}, err
-	}
+	id := info.ID.ToBytes()
 
 	copy(idBytes[:], id)
 
@@ -148,8 +145,7 @@ func MakeKeyPseudonym(info KeyPseudonymInfo) (KeyPseudonym, error) {
 	mh := codec.MsgpackHandle{WriteExt: true}
 	var buf []byte
 	enc := codec.NewEncoderBytes(&buf, &mh)
-	err = enc.Encode(input)
-	if err != nil {
+	if err := enc.Encode(input); err != nil {
 		return [32]byte{}, err
 	}
 

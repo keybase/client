@@ -18,18 +18,8 @@ import (
 
 type CmdEncrypt struct {
 	libkb.Contextified
-	filter           UnixFilter
-	recipients       []string
-	teamRecipients   []string
-	binary           bool
-	useEntityKeys    bool
-	useDeviceKeys    bool
-	usePaperKeys     bool
-	noSelfEncrypt    bool
-	authenticityType keybase1.AuthenticityType
-	saltpackVersion  int
-
-	useKbfsKeysOnlyForTesting bool
+	filter UnixFilter
+	opts   keybase1.SaltpackEncryptOptions
 }
 
 func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -61,7 +51,7 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		},
 		cli.BoolFlag{
 			Name:  "use-device-keys",
-			Usage: "Use the device keys of all the user recipients (and memebers of teams) for encryption.",
+			Usage: "Use the device keys of all the user recipients (and memebers of teams) for encryption. Does not include paper keys.",
 		},
 		cli.BoolFlag{
 			Name:  "use-paper-keys",
@@ -92,6 +82,11 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		Name:         "encrypt",
 		ArgumentHelp: "<usernames...>",
 		Usage:        "Encrypt messages or files for keybase users and teams",
+		Description: "Encrypt messages or files for keybase users and teams, using the saltpack format (http://saltpack.org).\n" +
+			"Messages are encrypted and integrity protected.\n\n" +
+			"Note: repudiable authenticity corresponds to the saltpack encryption format (which uses pairwise macs instead of signatures). " +
+			"At the moment, we do not support encrypting for teams (and users not yet on keybase or with missing keys) with repudiable authenticity. " +
+			"You can still use signed or anonymous mode in such cases.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdEncrypt{
 				Contextified: libkb.NewContextified(g),
@@ -121,20 +116,7 @@ func (c *CmdEncrypt) Run() error {
 		return err
 	}
 
-	opts := keybase1.SaltpackEncryptOptions{
-		Recipients:       c.recipients,
-		TeamRecipients:   c.teamRecipients,
-		AuthenticityType: c.authenticityType,
-		UseEntityKeys:    c.useEntityKeys,
-		UseDeviceKeys:    c.useDeviceKeys,
-		UsePaperKeys:     c.usePaperKeys,
-		NoSelfEncrypt:    c.noSelfEncrypt,
-		Binary:           c.binary,
-		SaltpackVersion:  c.saltpackVersion,
-
-		UseKBFSKeysOnlyForTesting: c.useKbfsKeysOnlyForTesting,
-	}
-	arg := keybase1.SaltpackEncryptArg{Source: src, Sink: snk, Opts: opts}
+	arg := keybase1.SaltpackEncryptArg{Source: src, Sink: snk, Opts: c.opts}
 	err = cli.SaltpackEncrypt(context.TODO(), arg)
 	cerr := c.filter.Close(err)
 	return libkb.PickFirstError(err, cerr)
@@ -149,36 +131,36 @@ func (c *CmdEncrypt) GetUsage() libkb.Usage {
 }
 
 func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
-	c.teamRecipients = ctx.StringSlice("team")
-	c.recipients = ctx.Args()
-	if len(c.recipients) == 0 && len(c.teamRecipients) == 0 {
+	c.opts.TeamRecipients = ctx.StringSlice("team")
+	c.opts.Recipients = ctx.Args()
+	if len(c.opts.Recipients) == 0 && len(c.opts.TeamRecipients) == 0 {
 		return errors.New("Encrypt needs at least one recipient")
 	}
 
-	c.useEntityKeys = !ctx.Bool("no-entity-keys")
-	c.useDeviceKeys = ctx.Bool("use-device-keys")
-	c.usePaperKeys = ctx.Bool("use-paper-keys")
-	c.useKbfsKeysOnlyForTesting = ctx.Bool("use-kbfs-keys-only")
+	c.opts.UseEntityKeys = !ctx.Bool("no-entity-keys")
+	c.opts.UseDeviceKeys = ctx.Bool("use-device-keys")
+	c.opts.UsePaperKeys = ctx.Bool("use-paper-keys")
+	c.opts.UseKBFSKeysOnlyForTesting = ctx.Bool("use-kbfs-keys-only")
 
 	var ok bool
-	if c.authenticityType, ok = keybase1.AuthenticityTypeMap[strings.ToUpper(ctx.String("auth-type"))]; !ok {
+	if c.opts.AuthenticityType, ok = keybase1.AuthenticityTypeMap[strings.ToUpper(ctx.String("auth-type"))]; !ok {
 		return errors.New("invalid auth-type option provided")
 	}
 
 	// Repudiable authenticity corresponds to the saltpack encryption format (which uses pairwise macs instead of signatures). Because of the spec
 	// and the interface exposed by saltpack v2, we cannot use the pseudonym mechanism with the encryption format. As such, we cannot encrypt for teams
 	// (and implicit teams): we can error here for teams, and later if resolving any user would lead to the creation of an implicit team.
-	if c.useEntityKeys && len(c.teamRecipients) > 0 && c.authenticityType == keybase1.AuthenticityType_REPUDIABLE {
+	if c.opts.UseEntityKeys && len(c.opts.TeamRecipients) > 0 && c.opts.AuthenticityType == keybase1.AuthenticityType_REPUDIABLE {
 		return errors.New("--auth-type=repudiable requires --no-entity-keys when encrypting for a team")
 	}
 
-	if !(c.useEntityKeys || c.useDeviceKeys || c.usePaperKeys) {
+	if !(c.opts.UseEntityKeys || c.opts.UseDeviceKeys || c.opts.UsePaperKeys) {
 		return errors.New("please choose at least one type of keys (add --use-device-keys, or add --use-paper-keys, or remove --no-entity-keys")
 	}
 
-	c.noSelfEncrypt = ctx.Bool("no-self-encrypt")
-	c.binary = ctx.Bool("binary")
-	c.saltpackVersion = ctx.Int("saltpack-version")
+	c.opts.NoSelfEncrypt = ctx.Bool("no-self-encrypt")
+	c.opts.Binary = ctx.Bool("binary")
+	c.opts.SaltpackVersion = ctx.Int("saltpack-version")
 
 	msg := ctx.String("message")
 	outfile := ctx.String("outfile")

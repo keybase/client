@@ -279,6 +279,11 @@ func (e NotFoundError) Error() string {
 	return e.Msg
 }
 
+func IsNotFoundError(err error) bool {
+	_, ok := err.(NotFoundError)
+	return ok
+}
+
 //=============================================================================
 
 type MissingDelegationTypeError struct{}
@@ -298,6 +303,11 @@ func (u NoKeyError) Error() string {
 		return u.Msg
 	}
 	return "No public key found"
+}
+
+func IsNoKeyError(err error) bool {
+	_, ok := err.(NoKeyError)
+	return ok
 }
 
 type NoSyncedPGPKeyError struct{}
@@ -788,23 +798,39 @@ type NoNaClEncryptionKeyError struct {
 
 func (e NoNaClEncryptionKeyError) Error() string {
 	var other string
-	if e.HasPUK && e.HasDeviceKey {
+	switch {
+	case e.HasPUK && e.HasDeviceKey:
 		other = "; they do have a per user and a device key, so you can use the flag `--use-device-keys` to encrypt for them instead"
-	} else if e.HasPUK && e.HasPaperKey {
+	case e.HasPUK && e.HasPaperKey:
 		other = "; they do have a per user and a paper key, so you can use the flag `--use-paper-keys` to encrypt for them instead"
-	} else if e.HasPUK {
+	case e.HasPUK:
 		other = "; they have a per user key, so you can encrypt without any of the `--no-entity-keys`, `--use-device-keys` and `--use-paper-keys` for them instead"
-	} else if e.HasDeviceKey && e.HasPaperKey {
+	case e.HasDeviceKey && e.HasPaperKey:
 		other = "; they have a device and a paper key, so you can use the flags `--no-entity-keys --use-device-keys --use-paper-keys` for them instead"
-	} else if e.HasDeviceKey {
+	case e.HasDeviceKey:
 		other = "; they do have a device key, so you can use the flags `--no-entity-keys --use-device-keys` to encrypt for them instead"
-	} else if e.HasPaperKey {
+	case e.HasPaperKey:
 		other = "; they do have a paper key, so you can use the flags `--no-entity-keys --use-paper-keys` to encrypt for them instead"
-	} else if e.HasPGPKey {
+	case e.HasPGPKey:
 		other = "; they do have a PGP key, so you can `keybase pgp encrypt` to encrypt for them instead"
 	}
 
 	return fmt.Sprintf("User %s doesn't have the necessary key type(s)%s", e.Username, other)
+}
+
+type KeyPseudonymError struct {
+	message string
+}
+
+func (e KeyPseudonymError) Error() string {
+	if e.message != "" {
+		return e.message
+	}
+	return "Bad Key Pseydonym or Nonce"
+}
+
+func NewKeyPseudonymError(message string) KeyPseudonymError {
+	return KeyPseudonymError{message: message}
 }
 
 //=============================================================================

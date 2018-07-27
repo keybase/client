@@ -54,7 +54,7 @@ func SaltpackEncrypt(m MetaContext, arg *SaltpackEncryptArg) error {
 	var err error
 	if !arg.EncryptionOnlyMode {
 		if arg.SaltpackVersion.Major == 1 {
-			return errors.New("specifying the saltpack version 1 requires repudiable authentication")
+			return errors.New("specifying saltpack version 1 requires repudiable authentication")
 		}
 		var signer saltpack.SigningSecretKey
 		if !arg.SenderSigning.IsNil() {

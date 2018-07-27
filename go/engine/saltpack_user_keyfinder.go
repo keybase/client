@@ -84,7 +84,7 @@ func (e *SaltpackUserKeyfinder) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	err = e.lookupAndAddRecipients(m)
+	err = e.identifyAndAddRecipients(m)
 	if err != nil {
 		return err
 	}
@@ -92,27 +92,34 @@ func (e *SaltpackUserKeyfinder) Run(m libkb.MetaContext) (err error) {
 }
 
 func (e *SaltpackUserKeyfinder) AddOwnKeysIfNeeded(m libkb.MetaContext) error {
-	if !e.Arg.NoSelfEncrypt {
-		if !m.ActiveDevice().Valid() {
-			return libkb.NewLoginRequiredError("need to be logged in or use --no-self-encrypt")
-		}
-		arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(m.ActiveDevice().UID()).WithForcePoll(true)
-		upak, _, err := m.G().GetUPAKLoader().LoadV2(arg)
-		if err != nil {
-			return err
-		}
-		e.AddUserRecipient(m, &upak.Current)
+	if e.Arg.NoSelfEncrypt {
+		return nil
 	}
-	return nil
+	if !m.ActiveDevice().Valid() {
+		return libkb.NewLoginRequiredError("need to be logged in or use --no-self-encrypt")
+	}
+	arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(m.ActiveDevice().UID()).WithForcePoll(true)
+	upak, _, err := m.G().GetUPAKLoader().LoadV2(arg)
+	if err != nil {
+		return err
+	}
+	return e.AddUserRecipient(m, &upak.Current)
 }
 
-// lookupAndAddRecipients adds the KID corresponding to each recipient to the recipientMap
-func (e *SaltpackUserKeyfinder) lookupAndAddRecipients(m libkb.MetaContext) error {
+// identifyAndAddRecipients adds the KID corresponding to each recipient to the recipientMap
+func (e *SaltpackUserKeyfinder) identifyAndAddRecipients(m libkb.MetaContext) error {
 	for _, u := range e.Arg.Recipients {
 		// TODO make these lookups in parallel (maybe using sync.WaitGroup)
-		upk, err := e.LookupUser(m, u) // For existing users
-		if err != nil {
+		upk, err := e.IdentifyUser(m, u) // For existing users
+		switch {
+		case err == nil:
+			// nothing to do here
+		case libkb.IsIdentifyProofError(err):
+			return fmt.Errorf("Cannot encrypt for %v as their account has changed since you last followed them (it might have been compromised!): please review their identity (with `keybase follow %v`) and then try again (err = %v)", u, u, err)
+		case libkb.IsNotFoundError(err):
 			return fmt.Errorf("Cannot find keys for %v: it is not an assertion for a registered user (err = %v)", u, err)
+		default:
+			return fmt.Errorf("Error while adding keys for %v: %v", u, err)
 		}
 		err = e.AddUserRecipient(m, upk)
 		if err != nil {
@@ -122,7 +129,7 @@ func (e *SaltpackUserKeyfinder) lookupAndAddRecipients(m libkb.MetaContext) erro
 	return nil
 }
 
-func (e *SaltpackUserKeyfinder) LookupUser(m libkb.MetaContext, user string) (upk *keybase1.UserPlusKeysV2, err error) {
+func (e *SaltpackUserKeyfinder) IdentifyUser(m libkb.MetaContext, user string) (upk *keybase1.UserPlusKeysV2, err error) {
 
 	Arg := keybase1.Identify2Arg{
 		UserAssertion: user,
@@ -134,7 +141,7 @@ func (e *SaltpackUserKeyfinder) LookupUser(m libkb.MetaContext, user string) (up
 	}
 	eng := NewResolveThenIdentify2(m.G(), &Arg)
 	if err := RunEngine2(m, eng); err != nil {
-		return nil, libkb.IdentifyFailedError{Assertion: user, Reason: err.Error()}
+		return nil, err
 	}
 
 	engRes, err := eng.Result()

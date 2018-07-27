@@ -50,7 +50,7 @@ func (e *SaltpackRecipientKeyfinderEngine) Run(m libkb.MetaContext) (err error) 
 		return err
 	}
 
-	err = e.lookupAndAddRecipients(m)
+	err = e.identifyAndAddRecipients(m)
 	if err != nil {
 		return err
 	}
@@ -93,11 +93,11 @@ func (e *SaltpackRecipientKeyfinderEngine) uploadKeyPseudonymsAndGenerateSymmetr
 	return nil
 }
 
-// lookupAndAddRecipients adds the KID corresponding to each recipient to the recipientMap
-func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddRecipients(m libkb.MetaContext) error {
+// identifyAndAddRecipients adds the KID corresponding to each recipient to the recipientMap
+func (e *SaltpackRecipientKeyfinderEngine) identifyAndAddRecipients(m libkb.MetaContext) error {
 	// TODO make these lookups in parallel (maybe using sync.WaitGroup)
 	for _, u := range e.Arg.Recipients {
-		err := e.lookupAndAddUserRecipient(m, u)
+		err := e.identifyAndAddUserRecipient(m, u)
 		if err != nil {
 			return err
 		}
@@ -133,11 +133,15 @@ func (e *SaltpackRecipientKeyfinderEngine) addPUKOrImplicitTeamKeys(m libkb.Meta
 	return libkb.NewLoginRequiredError(fmt.Sprintf("Encrypting for %v requires logging in%s", upk.Username, s))
 }
 
-// lookupAndAddUserRecipient add the KID corresponding to a recipient to the recipientMap
-func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddUserRecipient(m libkb.MetaContext, u string) (err error) {
-	upk, err := e.LookupUser(m, u) // For existing users
-
-	if _, isIdentifyFailedError := err.(libkb.IdentifyFailedError); err != nil && isIdentifyFailedError {
+// identifyAndAddUserRecipient add the KID corresponding to a recipient to the recipientMap
+func (e *SaltpackRecipientKeyfinderEngine) identifyAndAddUserRecipient(m libkb.MetaContext, u string) (err error) {
+	upk, err := e.IdentifyUser(m, u) // For existing users
+	switch {
+	case err == nil:
+		// nothing to do here
+	case libkb.IsIdentifyProofError(err):
+		return fmt.Errorf("Cannot encrypt for %v as their account has changed since you last followed them (it might have been compromised!): please review their identity (with `keybase follow %v`) and then try again (err = %v)", u, u, err)
+	case libkb.IsNotFoundError(err):
 		// recipient is not a keybase user
 
 		expr, err := externals.AssertionParse(u)
@@ -151,10 +155,10 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddUserRecipient(m libkb.Met
 		}
 
 		if !m.ActiveDevice().Valid() {
-			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a registered user (and you cannot encrypt for users not yet on keybase unless you are logged in)", u))
+			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a registered user (cannot encrypt for users not yet on keybase unless you are logged in)", u))
 		}
 		if e.Arg.UseDeviceKeys || e.Arg.UsePaperKeys {
-			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a registered user (and you cannot use device or paper keys for users not yet on keybase)", u))
+			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a registered user (cannot use device or paper keys for users not yet on keybase)", u))
 		}
 		if !e.Arg.UseEntityKeys {
 			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a registered user (cannot use --no-entity-keys for users not yet on keybase)", u))
@@ -163,14 +167,14 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddUserRecipient(m libkb.Met
 		m.CDebugf("%v is not an existing user, trying to create an implicit team")
 		err = e.lookupAndAddImplicitTeamKeys(m, u)
 		return err
-	} else if _, isNoKeyError := err.(libkb.NoKeyError); err != nil && isNoKeyError {
+	case libkb.IsNoKeyError(err):
 		// User exists but has no keys. Just try adding implicit team keys.
 		if e.Arg.UseDeviceKeys || e.Arg.UsePaperKeys {
 			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it does not have the required keys", u))
 		}
 		return e.lookupAndAddImplicitTeamKeys(m, u)
-	} else if err != nil {
-		return err
+	default:
+		return fmt.Errorf("Error while adding keys for %v: %v", u, err)
 	}
 
 	if err := e.AddDeviceAndPaperKeys(m, upk); err != nil {
@@ -234,7 +238,7 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddTeam(m libkb.MetaContext,
 				m.CDebugf("skipping device and paper keys for %v as part of team %v because it is deleted", uid, teamName)
 				continue
 			}
-			if userVersion != upak.Current.ToUserVersion() {
+			if !userVersion.Eq(upak.Current.ToUserVersion()) {
 				m.CDebugf("skipping device and paper keys for %v as part of team %v because the user version doesn't match", uid, teamName)
 				continue
 			}
