@@ -15,7 +15,7 @@ export default function(
     | LoginGen.Actions
     | SignupGen.RequestAutoInvitePayload
     | ProvisionGen.StartProvisionPayload
-    | DevicesGen.DeviceRevokedPayload
+    | DevicesGen.RevokedPayload
 ): Types.State {
   switch (action.type) {
     case LoginGen.resetStore:
@@ -24,7 +24,7 @@ export default function(
     case LoginGen.login: // fallthrough
     case ProvisionGen.startProvision:
       return state.merge({error: initialState.error, justDeletedSelf: '', justRevokedSelf: ''})
-    case DevicesGen.deviceRevoked:
+    case DevicesGen.revoked:
       return action.payload.wasCurrentDevice ? state.set('justRevokedSelf', action.payload.deviceName) : state
     case LoginGen.configuredAccounts:
       return state.set(

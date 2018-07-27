@@ -7,14 +7,13 @@
   "actions": {
     "load": {},
     "loaded": { "devices": "Array<Types.Device>" },
-    "endangeredTLFsLoad": { "deviceID": "Types.DeviceID" },
     "endangeredTLFsLoaded": {
       "deviceID": "Types.DeviceID",
       "tlfs": "Array<string>"
     },
     "paperKeyCreated": { "paperKey": "HiddenString" },
-    "deviceRevoke": { "deviceID": "Types.DeviceID" },
-    "deviceRevoked": {
+    "revoke": { "deviceID": "Types.DeviceID" },
+    "revoked": {
       "deviceID": "Types.DeviceID",
       "wasCurrentDevice": "boolean",
       "deviceName": "string"

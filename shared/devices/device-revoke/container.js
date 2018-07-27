@@ -1,39 +1,31 @@
 // @flow
+import * as WaitingConstants from '../../constants/waiting'
+import * as Types from '../../constants/types/devices'
 import * as Constants from '../../constants/devices'
 import * as DevicesGen from '../../actions/devices-gen'
-import * as I from 'immutable'
 import DeviceRevoke from '.'
 import {connect, type TypedState} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
 
-const empty = I.Set()
-const mapStateToProps = (state: TypedState, {routeProps}) => {
-  const deviceID = routeProps.get('deviceID')
-  const device = Constants.getDevice(state, deviceID)
-
-  return {
-    currentDevice: device.currentDevice,
-    deviceID,
-    endangeredTLFs: state.devices.endangeredTLFMap.get(deviceID, empty),
-    name: device.name,
-    type: device.type,
-    waiting: Constants.isWaiting(state),
-  }
-}
+const mapStateToProps = (state: TypedState) => ({
+  _device: Constants.getDevice(state, state.devices.selectedDeviceID),
+  _endangeredTLFs: Constants.getEndangeredTLFs(state, state.devices.selectedDeviceID),
+  waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
+})
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
+  _onSubmit: (deviceID: Types.DeviceID) => dispatch(DevicesGen.createRevoke({deviceID})),
   onCancel: () => dispatch(navigateUp()),
-  onSubmit: () => dispatch(DevicesGen.createDeviceRevoke({deviceID: routeProps.get('deviceID')})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  currentDevice: stateProps.currentDevice,
-  deviceID: stateProps.deviceID,
-  endangeredTLFs: stateProps.endangeredTLFs.toArray(),
-  name: stateProps.name,
+  currentDevice: stateProps._device.currentDevice,
+  deviceID: stateProps._device.deviceID,
+  endangeredTLFs: stateProps._endangeredTLFs.toArray(),
+  name: stateProps._device.name,
   onCancel: dispatchProps.onCancel,
-  onSubmit: dispatchProps.onSubmit,
-  type: stateProps.type,
+  onSubmit: () => dispatchProps._onSubmit(stateProps._device.deviceID),
+  type: stateProps._device.type,
   waiting: stateProps.waiting,
 })
 

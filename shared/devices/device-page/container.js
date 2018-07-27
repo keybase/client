@@ -1,13 +1,13 @@
 // @flow
+import * as Types from '../../constants/types/devices'
 import * as Constants from '../../constants/devices'
 import * as DevicesGen from '../../actions/devices-gen'
 import DevicePage from '.'
 import moment from 'moment'
 import {compose, connect, type TypedState, setDisplayName} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
-import {type Device} from '../../constants/types/devices'
 
-const buildTimeline = (device: Device) => {
+const buildTimeline = (device: Types.Device) => {
   const revoked = device.get('revokedAt') && [
     {
       desc: `Revoked ${moment(device.get('revokedAt')).format('MMM D, YYYY')}`,
@@ -33,14 +33,13 @@ const buildTimeline = (device: Device) => {
   return [...(revoked || []), ...(lastUsed || []), added]
 }
 
-const mapStateToProps = (state: TypedState, {routeProps}) => ({
-  device: Constants.getDevice(state, routeProps.get('deviceID')),
+const mapStateToProps = (state: TypedState) => ({
+  device: Constants.getDevice(state, state.devices.selectedDeviceID),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _showRevokeDevicePage: (deviceID: Types.DeviceID) => dispatch(DevicesGen.createShowRevokePage({deviceID})),
   onBack: () => dispatch(navigateUp()),
-  showRevokeDevicePage: () =>
-    dispatch(DevicesGen.createShowRevokePage({deviceID: routeProps.get('deviceID')})),
 })
 
 const revokeName = type =>
@@ -57,7 +56,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onBack: dispatchProps.onBack,
   revokeName: revokeName(stateProps.device.type),
   revokedAt: stateProps.device.revokedAt,
-  showRevokeDevicePage: dispatchProps.showRevokeDevicePage,
+  showRevokeDevicePage: () => dispatchProps._showRevokeDevicePage(stateProps.device.deviceID),
   timeline: buildTimeline(stateProps.device),
   type: stateProps.device.type,
 })

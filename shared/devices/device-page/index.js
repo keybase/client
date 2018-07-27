@@ -69,7 +69,7 @@ const Timeline = ({timeline}) =>
     </Box2>
   ) : null
 
-const Render = (props: Props) => {
+const DevicePage = (props: Props) => {
   let metaOne
   if (props.currentDevice) {
     metaOne = 'Current device'
@@ -142,4 +142,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default HeaderHoc(Render)
+export default HeaderHoc(DevicePage)

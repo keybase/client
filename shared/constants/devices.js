@@ -44,11 +44,15 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
 })
 
 const emptyDevice = makeDevice()
+const emptySet = I.Set()
+
 export const devicesTabLocation = isMobile
   ? [Tabs.settingsTab, SettingsConstants.devicesTab]
   : [Tabs.devicesTab]
 export const waitingKey = 'devices:devicesPage'
 
 export const isWaiting = (state: TypedState) => WaitingConstants.anyWaiting(state, waitingKey)
-export const getDevice = (state: TypedState, id: Types.DeviceID) =>
-  state.devices.deviceMap.get(id, emptyDevice)
+export const getDevice = (state: TypedState, id: ?Types.DeviceID) =>
+  id ? state.devices.deviceMap.get(id, emptyDevice) : emptyDevice
+export const getEndangeredTLFs = (state: TypedState, id: ?Types.DeviceID) =>
+  id ? state.devices.endangeredTLFMap.get(id, emptySet) : emptySet
