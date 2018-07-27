@@ -84,7 +84,7 @@ func (e *LoginOneshot) checkLogin(m libkb.MetaContext) (err error) {
 func (e *LoginOneshot) makeLoginChanges(m libkb.MetaContext) (err error) {
 	defer m.CTrace("LoginOneshot#makeLoginChanges", func() error { return err })()
 	nun := libkb.NewNormalizedUsername(e.upak.GetName())
-	return m.SwitchUserToActiveOneshotDevice(e.upak.GetUID(), nun, e.device)
+	return m.SwitchUserToActiveOneshotDevice(e.upak.ToUserVersion(), nun, e.device)
 }
 
 func (e *LoginOneshot) commitLoginChanges(m libkb.MetaContext) (err error) {
