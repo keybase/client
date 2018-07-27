@@ -233,6 +233,7 @@ class EnterText extends React.Component<Props, {code: string}> {
           backgroundMode="Green"
           label="Submit"
           onClick={this._submit}
+          disabled={!this.state.code}
           style={styles.enterTextButton}
           waitingKey={Constants.waitingKey}
         />
