@@ -13,6 +13,7 @@ export const messageIDToNumber = (n: MessageID): number => n
 
 export type _Reaction = {
   messageID: MessageID,
+  timestamp: number,
   username: string,
 }
 export type Reaction = I.RecordOf<_Reaction>

@@ -70,6 +70,7 @@ const styles = styleSheetCreate({
   },
   showMenu: {
     ...globalStyles.flexBoxRow,
+    padding: 6,
     position: 'relative',
     right: globalMargins.xtiny,
   },

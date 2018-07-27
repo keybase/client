@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import * as SettingsConstants from './settings'
 import * as Tabs from './tabs'
 import * as Types from './types/devices'
+import * as WaitingConstants from './waiting'
 import {isMobile} from './platform'
 import type {TypedState} from './reducer'
 
@@ -27,6 +28,6 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
 const devicesTabLocation = isMobile ? [Tabs.settingsTab, SettingsConstants.devicesTab] : [Tabs.devicesTab]
 const waitingKey = 'devices:devicesPage'
 
-const isWaiting = (state: TypedState) => state.waiting.get(waitingKey, 0) !== 0
+const isWaiting = (state: TypedState) => WaitingConstants.anyWaiting(state, waitingKey)
 
 export {devicesTabLocation, makeState, makeDeviceDetail, waitingKey, isWaiting}

@@ -25,6 +25,8 @@ export type Props = {
   color?: Color,
   hoverColor?: string,
   fontSize?: number,
+  // TODO cleanup how this container stuff works, this is to allow you to style the box that sometimes exists
+  boxStyle?: StylesCrossPlatform,
 }
 
 declare export default class Icon extends React.Component<Props> {}

@@ -258,6 +258,19 @@
       ],
       "response": "MetadataResponse"
     },
+    "getMetadataByTimestamp": {
+      "request": [
+        {
+          "name": "folderID",
+          "type": "string"
+        },
+        {
+          "name": "serverTime",
+          "type": "Time"
+        }
+      ],
+      "response": "MDBlock"
+    },
     "registerForUpdates": {
       "request": [
         {

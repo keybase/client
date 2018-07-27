@@ -177,21 +177,22 @@ func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Readers: []keybase1.UserVersion{uv}})
 }
 
-func getUserProofs(ctx context.Context, g *libkb.GlobalContext, username string) (*libkb.ProofSet, error) {
+func getUserProofsNoTracking(ctx context.Context, g *libkb.GlobalContext, username string) (*libkb.ProofSet, *libkb.IdentifyOutcome, error) {
 	arg := keybase1.Identify2Arg{
 		UserAssertion:    username,
 		UseDelegateUI:    false,
 		Reason:           keybase1.IdentifyReason{Reason: "clear invitation when adding team member"},
 		CanSuppressUI:    true,
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_RESOLVE_AND_CHECK,
 		NeedProofSet:     true,
+		ActLoggedOut:     true,
 	}
 	eng := engine.NewResolveThenIdentify2(g, &arg)
 	m := libkb.NewMetaContext(ctx, g)
 	if err := engine.RunEngine2(m, eng); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return eng.GetProofSet(), nil
+	return eng.GetProofSet(), eng.GetIdentifyOutcome(), nil
 }
 
 func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string, role keybase1.TeamRole) (res keybase1.TeamAddMemberResult, err error) {
@@ -302,7 +303,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, as
 				if _, ok := err.(AttemptedInviteSocialOwnerError); ok {
 					return err
 				}
-				return fmt.Errorf("Error adding user '%v': %v", assertion, err)
+				return NewAddMembersError(assertion, err)
 			}
 			var normalizedUsername libkb.NormalizedUsername
 			if !username.IsNil() {

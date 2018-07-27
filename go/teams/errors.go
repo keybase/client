@@ -366,3 +366,16 @@ func NewUserHasNotResetError(format string, args ...interface{}) error {
 }
 
 func (e UserHasNotResetError) Error() string { return e.Msg }
+
+type AddMembersError struct {
+	Assertion string
+	Err       error
+}
+
+func NewAddMembersError(a string, e error) AddMembersError {
+	return AddMembersError{a, e}
+}
+
+func (a AddMembersError) Error() string {
+	return fmt.Sprintf("Error adding user '%v': %v", a.Assertion, a.Err)
+}
