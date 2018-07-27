@@ -114,7 +114,7 @@ export class Badge2 extends React.Component<Badge2Props> {
           style={Styles.collapseStyles([
             badge2Styles.text,
             this.props.badgeNumberStyle,
-            {fontSize: this.props.fontSize, lineHeight: height},
+            {fontSize: this.props.fontSize},
           ])}
         >
           {this.props.badgeNumber}
@@ -133,5 +133,6 @@ const badge2Styles = Styles.styleSheetCreate({
   text: {
     color: Styles.globalColors.white,
     textAlign: 'center',
+    lineHeight: 0,
   },
 })
