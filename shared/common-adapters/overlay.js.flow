@@ -15,7 +15,7 @@ import type {StylesCrossPlatform} from '../styles/css'
  * / show animation.
  */
 
-export type Props = {
+export type Props = {|
   attachTo?: ?React.Component<any, any>,
   children: React.Node,
   color?: string,
@@ -24,6 +24,6 @@ export type Props = {
   propagateOutsideClicks?: boolean,
   style?: StylesCrossPlatform,
   visible?: boolean,
-}
+|}
 
 export default class extends React.Component<Props> {}

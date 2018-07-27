@@ -7,7 +7,7 @@
 // components inside of a popup have access to the mocked out Provider component
 
 import * as React from 'react'
-import FloatingBox from '../floating-box'
+import Overlay from '../overlay'
 import type {Position} from '../relative-popup-hoc'
 import MenuLayout, {type MenuItem} from './menu-layout'
 import {type StylesCrossPlatform} from '../../styles'
@@ -29,12 +29,12 @@ export default (props: Props) => {
     return null
   }
   return (
-    <FloatingBox
+    <Overlay
       position={props.position}
       onHidden={props.onHidden}
       visible={props.visible}
       attachTo={props.attachTo}
-      containerStyle={props.containerStyle}
+      style={props.containerStyle}
       propagateOutsideClicks={props.propagateOutsideClicks}
     >
       <MenuLayout
@@ -43,6 +43,6 @@ export default (props: Props) => {
         items={props.items}
         closeOnClick={!!props.closeOnSelect}
       />
-    </FloatingBox>
+    </Overlay>
   )
 }
