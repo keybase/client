@@ -55,11 +55,11 @@ func NewCmdSimpleFSCopy(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			},
 			cli.IntFlag{
 				Name:  "rev",
-				Usage: "specify a revision number for the KBFS folder of the source paths",
+				Usage: "a revision number for the KBFS folder of the source paths",
 			},
 			cli.StringFlag{
 				Name:  "time",
-				Usage: "specify a time for the KBFS folder of the source paths (eg \"7/27/18 22:05\")",
+				Usage: "a time for the KBFS folder of the source paths (eg \"2018-07-27 22:05\")",
 			},
 		},
 	}
