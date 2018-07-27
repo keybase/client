@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import {TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
 import {Box, Text} from '../..'
-import {globalColors, globalMargins, globalStyles} from '../../../styles'
+import {globalColors, globalMargins, globalStyles, styleSheetCreate, collapseStyles} from '../../../styles'
 import type {MenuItem, MenuLayoutProps} from '.'
 
 type MenuRowProps = {
@@ -20,7 +20,7 @@ const MenuRow = (props: MenuRowProps) => (
       props.onHidden && props.onHidden() // auto hide after a selection
       props.onClick && props.onClick()
     }}
-    style={{...styleRow(props), ...props.style}}
+    style={styleRow(props)}
   >
     {props.view || (
       <Text type={'BodyBig'} style={styleRowText(props)}>
@@ -29,56 +29,6 @@ const MenuRow = (props: MenuRowProps) => (
     )}
   </TouchableOpacity>
 )
-
-const styleRow = ({
-  isHeader,
-  danger,
-  index,
-  numItems,
-}: {
-  isHeader?: boolean,
-  danger?: boolean,
-  index: number,
-  numItems: number,
-}) => {
-  const sharedStyle = {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    justifyContent: 'center',
-  }
-  if (isHeader) {
-    return {
-      ...sharedStyle,
-      paddingBottom: globalMargins.medium,
-      paddingTop: globalMargins.medium,
-      backgroundColor: danger ? globalColors.red : globalColors.white,
-    }
-  }
-  return {
-    ...styleButtonAlert,
-    backgroundColor: globalColors.white,
-    borderColor: globalColors.black_05,
-    ...(index === 1 ? {borderTopWidth: 1} : {}),
-  }
-}
-
-const styleRowText = ({
-  isHeader,
-  danger,
-  disabled,
-}: {
-  isHeader?: boolean,
-  danger?: boolean,
-  disabled?: boolean,
-}) => {
-  const dangerColor = danger ? globalColors.red : globalColors.blue
-  const color = isHeader ? globalColors.white : dangerColor
-  return {
-    color,
-    ...(disabled ? {opacity: 0.6} : {}),
-    ...(isHeader ? {textAlign: 'center'} : {}),
-  }
-}
 
 class MenuLayout extends Component<MenuLayoutProps> {
   render() {
@@ -94,12 +44,13 @@ class MenuLayout extends Component<MenuLayoutProps> {
     ]
 
     return (
-      <Box style={styleOverlay}>
+      <Box style={styles.overlay}>
+        {/* Majority of screen grayed out that isn't the popup menu */}
         <TouchableWithoutFeedback onPress={this.props.onHidden}>
-          <Box style={styleFlexOne} />
+          <Box style={styles.styleFlexOne} />
         </TouchableWithoutFeedback>
-        <Box style={{...styleMenu, ...this.props.style}}>
-          <Box style={styleMenuGroup}>
+        <Box style={collapseStyles([styles.menuBox, this.props.style])}>
+          <Box style={styles.menuGroup}>
             {menuItemsWithHeader.map((mi, idx) => (
               <MenuRow
                 key={mi.title}
@@ -110,13 +61,12 @@ class MenuLayout extends Component<MenuLayoutProps> {
               />
             ))}
           </Box>
-          <Box style={{...styleMenuGroup, borderColor: globalColors.black_05, borderTopWidth: 1}}>
+          <Box style={styles.cancelGroup}>
             <MenuRow
               title="Cancel"
               index={0}
               numItems={1}
-              onClick={this.props.onHidden}
-              // pass in nothing to onHidden so it doesn't trigger it twice
+              onClick={this.props.onHidden} // pass in nothing to onHidden so it doesn't trigger it twice
               onHidden={() => {}}
             />
           </Box>
@@ -126,46 +76,75 @@ class MenuLayout extends Component<MenuLayoutProps> {
   }
 }
 
-const styleOverlayContainer = {
-  position: 'absolute',
-  top: 0,
-  bottom: 0,
-  left: 0,
-  right: 0,
+const styleRow = (props: {isHeader?: boolean, danger?: boolean, index: number, numItems: number}) => {
+  let rowStyle
+  if (props.isHeader) {
+    rowStyle = collapseStyles([
+      styles.rowHeader,
+      {backgroundColor: props.danger ? globalColors.red : globalColors.white},
+    ])
+  } else {
+    rowStyle = collapseStyles([styles.row, {borderTopWidth: props.index === 1 ? 1 : undefined}])
+  }
+  return rowStyle
 }
 
-const styleOverlay = {
-  ...styleOverlayContainer,
-  ...globalStyles.flexBoxColumn,
-  justifyContent: 'flex-end',
-  alignItems: 'stretch',
-  backgroundColor: globalColors.black_40,
+const styleRowText = (props: {isHeader?: boolean, danger?: boolean, disabled?: boolean}) => {
+  const dangerColor = props.danger ? globalColors.red : globalColors.blue
+  const color = props.isHeader ? globalColors.white : dangerColor
+  return {color, ...(props.disabled ? {opacity: 0.6} : {}), ...(props.isHeader ? {textAlign: 'center'} : {})}
 }
 
-const styleFlexOne = {
-  flex: 1,
-}
-
-const styleMenu = {
-  ...globalStyles.flexBoxColumn,
-  justifyContent: 'flex-end',
-  alignItems: 'stretch',
-  backgroundColor: globalColors.white,
-}
-
-const styleMenuGroup = {
-  ...globalStyles.flexBoxColumn,
-  justifyContent: 'flex-end',
-  alignItems: 'stretch',
-}
-
-const styleButtonAlert = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  height: 56,
-  justifyContent: 'center',
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
-}
+const styles = styleSheetCreate({
+  notMenuBox: {
+    flex: 1,
+  },
+  menuBox: {
+    ...globalStyles.flexBoxColumn,
+    justifyContent: 'flex-end',
+    alignItems: 'stretch',
+    backgroundColor: globalColors.white,
+  },
+  menuGroup: {
+    ...globalStyles.flexBoxColumn,
+    justifyContent: 'flex-end',
+    alignItems: 'stretch',
+  },
+  cancelGroup: {
+    ...globalStyles.flexBoxColumn,
+    justifyContent: 'flex-end',
+    alignItems: 'stretch',
+    borderColor: globalColors.black_05,
+    borderTopWidth: 1,
+  },
+  rowHeader: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingBottom: globalMargins.medium,
+    paddingTop: globalMargins.medium,
+  },
+  row: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    height: 56,
+    justifyContent: 'center',
+    paddingLeft: globalMargins.medium,
+    paddingRight: globalMargins.medium,
+    backgroundColor: globalColors.white,
+    borderColor: globalColors.black_05,
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    ...globalStyles.flexBoxColumn,
+    justifyContent: 'flex-end',
+    alignItems: 'stretch',
+    backgroundColor: globalColors.black_40,
+  },
+})
 
 export default MenuLayout
