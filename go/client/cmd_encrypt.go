@@ -50,12 +50,12 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			Usage: "Do not use per user/per team keys for encryption.",
 		},
 		cli.BoolFlag{
-			Name:  "use-device-keys",
-			Usage: "Use the device keys of all the user recipients (and memebers of teams) for encryption. Does not include paper keys.",
+			Name:  "no-device-keys",
+			Usage: "Do not use the device keys of all the user recipients (and memebers of recipient teams) for encryption. This does not affect paper keys.",
 		},
 		cli.BoolFlag{
-			Name:  "use-paper-keys",
-			Usage: "Use the paper keys of all the user recipients (and memebers of teams) for encryption.",
+			Name:  "no-paper-keys",
+			Usage: "Do not use the paper keys of all the user recipients (and memebers of recipient teams) for encryption.",
 		},
 		cli.BoolFlag{
 			Name:  "no-self-encrypt",
@@ -74,7 +74,7 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 	if develUsage {
 		flags = append(flags, cli.BoolFlag{
 			Name:  "use-kbfs-keys-only",
-			Usage: "[devel only] Encrypt using only kbfs keys (and post kbfs pseudonyms) to simulate messages encrypted with older versions of keybase. Used for tests. It ignores other use-*-keys options and team recipients.",
+			Usage: "[devel only] Encrypt using only kbfs keys (and post kbfs pseudonyms) to simulate messages encrypted with older versions of keybase. Used for tests. It ignores other no-*-keys options and team recipients.",
 		})
 	}
 
@@ -84,9 +84,7 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		Usage:        "Encrypt messages or files for keybase users and teams",
 		Description: "Encrypt messages or files for keybase users and teams, using the saltpack format (http://saltpack.org).\n" +
 			"Messages are encrypted and integrity protected.\n\n" +
-			"Note: repudiable authenticity corresponds to the saltpack encryption format (which uses pairwise macs instead of signatures). " +
-			"At the moment, we do not support encrypting for teams (and users not yet on keybase or with missing keys) with repudiable authenticity. " +
-			"You can still use signed or anonymous mode in such cases.",
+			"Note: repudiable authenticity corresponds to the saltpack encryption format (which uses pairwise macs instead of signatures). ",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdEncrypt{
 				Contextified: libkb.NewContextified(g),
@@ -138,8 +136,8 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 	}
 
 	c.opts.UseEntityKeys = !ctx.Bool("no-entity-keys")
-	c.opts.UseDeviceKeys = ctx.Bool("use-device-keys")
-	c.opts.UsePaperKeys = ctx.Bool("use-paper-keys")
+	c.opts.UseDeviceKeys = !ctx.Bool("no-device-keys")
+	c.opts.UsePaperKeys = !ctx.Bool("no-paper-keys")
 	c.opts.UseKBFSKeysOnlyForTesting = ctx.Bool("use-kbfs-keys-only")
 
 	var ok bool
@@ -155,7 +153,7 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 	}
 
 	if !(c.opts.UseEntityKeys || c.opts.UseDeviceKeys || c.opts.UsePaperKeys) {
-		return errors.New("please choose at least one type of keys (add --use-device-keys, or add --use-paper-keys, or remove --no-entity-keys")
+		return errors.New("please remove at least one of --no-device-keys, --no-paper-keys or --no-entity-keys")
 	}
 
 	c.opts.NoSelfEncrypt = ctx.Bool("no-self-encrypt")

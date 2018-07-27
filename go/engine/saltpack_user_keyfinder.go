@@ -116,7 +116,7 @@ func (e *SaltpackUserKeyfinder) identifyAndAddRecipients(m libkb.MetaContext) er
 			// nothing to do here
 		case libkb.IsIdentifyProofError(err):
 			return fmt.Errorf("Cannot encrypt for %v as their account has changed since you last followed them (it might have been compromised!): please review their identity (with `keybase follow %v`) and then try again (err = %v)", u, u, err)
-		case libkb.IsNotFoundError(err):
+		case libkb.IsNotFoundError(err) || libkb.IsResolutionError(err):
 			return fmt.Errorf("Cannot find keys for %v: it is not an assertion for a registered user (err = %v)", u, err)
 		default:
 			return fmt.Errorf("Error while adding keys for %v: %v", u, err)
@@ -163,16 +163,21 @@ func (e *SaltpackUserKeyfinder) hasRecipientEntityKeys(id keybase1.UserOrTeamID)
 }
 
 func (e *SaltpackUserKeyfinder) AddUserRecipient(m libkb.MetaContext, upk *keybase1.UserPlusKeysV2) error {
-	if err := e.AddDeviceAndPaperKeys(m, upk); err != nil {
-		return err
+	err := e.AddDeviceAndPaperKeys(m, upk)
+	err2 := e.AddPUK(m, upk)
+
+	// If we managed to add at least one key for upk, we are happy.
+	if (!(e.Arg.UseDeviceKeys || e.Arg.UsePaperKeys) || err != nil) && (!e.Arg.UseEntityKeys || err2 != nil) {
+		return libkb.PickFirstError(err, err2)
 	}
-	return e.AddPUK(m, upk)
+	return nil
 }
 
 func (e *SaltpackUserKeyfinder) isPaperEncryptionKey(key *keybase1.PublicKeyV2NaCl, deviceKeys *(map[keybase1.KID]keybase1.PublicKeyV2NaCl)) bool {
 	return libkb.KIDIsDeviceEncrypt(key.Base.Kid) && key.Parent != nil && (*deviceKeys)[*key.Parent].DeviceType == libkb.DeviceTypePaper
 }
 
+// AddPUK returns no error if it adds at least one key (or no paper keys and device keys were requested), otherwise it returns a libkb.NoNaClEncryptionKeyError
 func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *keybase1.UserPlusKeysV2) error {
 	if !e.Arg.UsePaperKeys && !e.Arg.UseDeviceKeys {
 		// No need to add anything
@@ -209,7 +214,10 @@ func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *
 		}
 	}
 
-	if (e.Arg.UsePaperKeys && !hasPaperKey) || (e.Arg.UseDeviceKeys && !hasDeviceKey) {
+	e.RecipientDeviceAndPaperKeyMap[upk.Uid] = keys
+
+	if len(keys) == 0 {
+		m.CDebugf("did not add any device or paper keys for %v", upk.Username)
 		return libkb.NoNaClEncryptionKeyError{
 			Username:     upk.Username,
 			HasPGPKey:    len(upk.PGPKeys) > 0,
@@ -218,12 +226,6 @@ func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *
 			HasPaperKey:  hasPaperKey,
 		}
 	}
-
-	if len(keys) == 0 {
-		panic("logic error in AddDeviceAndPaperKeys: len(keys) == 0 unexpectedly")
-	}
-
-	e.RecipientDeviceAndPaperKeyMap[upk.Uid] = keys
 
 	return nil
 }
@@ -254,6 +256,7 @@ func (e *SaltpackUserKeyfinder) AddPUK(m libkb.MetaContext, upk *keybase1.UserPl
 			}
 		}
 
+		m.CDebugf("did not add any per user keys for %v", upk.Username)
 		return libkb.NoNaClEncryptionKeyError{
 			Username:     upk.Username,
 			HasPGPKey:    len(upk.PGPKeys) > 0,

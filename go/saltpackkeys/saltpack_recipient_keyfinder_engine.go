@@ -122,15 +122,7 @@ func (e *SaltpackRecipientKeyfinderEngine) addPUKOrImplicitTeamKeys(m libkb.Meta
 		return err
 	}
 	m.CDebugf("user %v (%v) does not have a PUK, and there is no logged in user, so we cannot resort to implicit teams", upk.Username, upk.Uid)
-	noekErr := err.(libkb.NoNaClEncryptionKeyError)
-	var s string
-	if noekErr.HasDeviceKey {
-		s = ". As an alternative, you can encrypt for them with both --no-entity-keys and --use-device-keys instead"
-	} else if noekErr.HasPaperKey {
-		s = ". As an alternative, you can encrypt for them with both --no-entity-keys and --use-paper-keys instead"
-	}
-
-	return libkb.NewLoginRequiredError(fmt.Sprintf("Encrypting for %v requires logging in%s", upk.Username, s))
+	return libkb.NewLoginRequiredError(fmt.Sprintf("Encrypting for %v requires logging in", upk.Username))
 }
 
 // identifyAndAddUserRecipient add the KID corresponding to a recipient to the recipientMap
@@ -141,7 +133,7 @@ func (e *SaltpackRecipientKeyfinderEngine) identifyAndAddUserRecipient(m libkb.M
 		// nothing to do here
 	case libkb.IsIdentifyProofError(err):
 		return fmt.Errorf("Cannot encrypt for %v as their account has changed since you last followed them (it might have been compromised!): please review their identity (with `keybase follow %v`) and then try again (err = %v)", u, u, err)
-	case libkb.IsNotFoundError(err):
+	case libkb.IsNotFoundError(err) || libkb.IsResolutionError(err):
 		// recipient is not a keybase user
 
 		expr, err := externals.AssertionParse(u)
@@ -157,11 +149,8 @@ func (e *SaltpackRecipientKeyfinderEngine) identifyAndAddUserRecipient(m libkb.M
 		if !m.ActiveDevice().Valid() {
 			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a registered user (cannot encrypt for users not yet on keybase unless you are logged in)", u))
 		}
-		if e.Arg.UseDeviceKeys || e.Arg.UsePaperKeys {
-			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a registered user (cannot use device or paper keys for users not yet on keybase)", u))
-		}
 		if !e.Arg.UseEntityKeys {
-			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a registered user (cannot use --no-entity-keys for users not yet on keybase)", u))
+			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a registered user (you can remove --no-entity-keys for users not yet on keybase)", u))
 		}
 
 		m.CDebugf("%v is not an existing user, trying to create an implicit team")
@@ -169,18 +158,18 @@ func (e *SaltpackRecipientKeyfinderEngine) identifyAndAddUserRecipient(m libkb.M
 		return err
 	case libkb.IsNoKeyError(err):
 		// User exists but has no keys. Just try adding implicit team keys.
-		if e.Arg.UseDeviceKeys || e.Arg.UsePaperKeys {
-			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it does not have the required keys", u))
-		}
 		return e.lookupAndAddImplicitTeamKeys(m, u)
 	default:
 		return fmt.Errorf("Error while adding keys for %v: %v", u, err)
 	}
 
-	if err := e.AddDeviceAndPaperKeys(m, upk); err != nil {
-		return err
+	err = e.AddDeviceAndPaperKeys(m, upk)
+	err2 := e.addPUKOrImplicitTeamKeys(m, upk)
+	// If we managed to add at least one key for upk, we are happy.
+	if (!(e.Arg.UseDeviceKeys || e.Arg.UsePaperKeys) || err != nil) && (!e.Arg.UseEntityKeys || err2 != nil) {
+		return libkb.PickFirstError(err, err2)
 	}
-	return e.addPUKOrImplicitTeamKeys(m, upk)
+	return nil
 }
 
 func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddTeam(m libkb.MetaContext, teamName string) error {
@@ -245,7 +234,7 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddTeam(m libkb.MetaContext,
 
 			err = e.AddDeviceAndPaperKeys(m, &upak.Current)
 			if err != nil {
-				return err
+				m.CDebugf("failed to add device and paper keys for %v as part of team %v, continuing...")
 			}
 		}
 	}

@@ -799,18 +799,12 @@ type NoNaClEncryptionKeyError struct {
 func (e NoNaClEncryptionKeyError) Error() string {
 	var other string
 	switch {
-	case e.HasPUK && e.HasDeviceKey:
-		other = "; they do have a per user and a device key, so you can use the flag `--use-device-keys` to encrypt for them instead"
-	case e.HasPUK && e.HasPaperKey:
-		other = "; they do have a per user and a paper key, so you can use the flag `--use-paper-keys` to encrypt for them instead"
 	case e.HasPUK:
-		other = "; they have a per user key, so you can encrypt without any of the `--no-entity-keys`, `--use-device-keys` and `--use-paper-keys` for them instead"
-	case e.HasDeviceKey && e.HasPaperKey:
-		other = "; they have a device and a paper key, so you can use the flags `--no-entity-keys --use-device-keys --use-paper-keys` for them instead"
+		other = "; they have a per user key, so you can encrypt without the `--no-entity-keys` flag to them instead"
 	case e.HasDeviceKey:
-		other = "; they do have a device key, so you can use the flags `--no-entity-keys --use-device-keys` to encrypt for them instead"
+		other = "; they do have a device key, so you can encrypt without the `--no-device-keys` flag to them instead"
 	case e.HasPaperKey:
-		other = "; they do have a paper key, so you can use the flags `--no-entity-keys --use-paper-keys` to encrypt for them instead"
+		other = "; they do have a paper key, so you can encrypt without the `--no-paper-keys` flag to them instead"
 	case e.HasPGPKey:
 		other = "; they do have a PGP key, so you can `keybase pgp encrypt` to encrypt for them instead"
 	}
@@ -1647,6 +1641,11 @@ type ResolutionError struct {
 
 func (e ResolutionError) Error() string {
 	return fmt.Sprintf("In resolving '%s': %s", e.Input, e.Msg)
+}
+
+func IsResolutionError(err error) bool {
+	_, ok := err.(ResolutionError)
+	return ok
 }
 
 //=============================================================================
