@@ -271,7 +271,7 @@ const localSep = isWindows ? '\\' : '/'
 
 export const localPathConcat = (p: LocalPath, s: string): LocalPath => p + localSep + s
 export const getLocalPathName = (localPath: LocalPath): string => {
-  const elems = localPath.split('/')
+  const elems = localPath.split(localSep)
   for (let elem = elems.pop(); elems.length; elem = elems.pop()) {
     if (elem !== '') {
       return elem
