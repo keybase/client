@@ -1,7 +1,16 @@
 // @flow
 import React from 'react'
 import {SuccessComponent} from './index.shared'
-import {Box2, Text, HeaderHoc, ScrollView, InfoNote, Input, Button, ButtonBar} from '../../common-adapters/'
+import {
+  Box2,
+  Text,
+  HeaderHoc,
+  PlainInput,
+  ScrollView,
+  InfoNote,
+  Button,
+  ButtonBar,
+} from '../../common-adapters/'
 import {compose, withProps, branch, renderComponent} from 'recompose'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 
@@ -11,16 +20,15 @@ const EntryComponent = ({errorText, name, onNameChange, onSubmit}: Props) => (
   <ScrollView>
     <Box2 direction="horizontal" fullWidth={true} gap="small" gapEnd={true} gapStart={true}>
       <Box2 direction="vertical" style={styles.container}>
-        <Input
+        <PlainInput
           autoFocus={true}
-          hideUnderline={true}
-          hintText="Token or team name"
+          placeholder="Token or team name"
           multiline={true}
           rowsMin={5}
           value={name}
           onChangeText={onNameChange}
           onEnterKeyDown={onSubmit}
-          inputStyle={collapseStyles([
+          style={collapseStyles([
             styles.input,
             {
               borderColor: errorText ? globalColors.red : globalColors.grey,
