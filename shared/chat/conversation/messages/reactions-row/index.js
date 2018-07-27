@@ -55,7 +55,6 @@ class ReactionsRow extends React.Component<Props, State> {
               ordinal={this.props.ordinal}
               style={styles.button}
             />
-            {/* $FlowIssue */}
             <ReactionTooltip
               attachmentRef={this._attachmentRefs[emoji]}
               conversationIDKey={this.props.conversationIDKey}
