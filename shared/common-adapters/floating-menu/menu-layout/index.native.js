@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
+import {TouchableOpacity} from 'react-native'
 import {Box, Text} from '../..'
 import {globalColors, globalMargins, globalStyles, styleSheetCreate, collapseStyles} from '../../../styles'
 import type {MenuItem, MenuLayoutProps} from '.'
@@ -15,7 +15,7 @@ type MenuRowProps = {
 
 const MenuRow = (props: MenuRowProps) => (
   <TouchableOpacity
-    disabled={!props.onClick}
+    disabled={props.disabled}
     onPress={() => {
       props.onHidden && props.onHidden() // auto hide after a selection
       props.onClick && props.onClick()
@@ -45,10 +45,6 @@ class MenuLayout extends Component<MenuLayoutProps> {
 
     return (
       <Box style={styles.overlay}>
-        {/* Majority of screen grayed out that isn't the popup menu */}
-        <TouchableWithoutFeedback onPress={this.props.onHidden}>
-          <Box style={styles.styleFlexOne} />
-        </TouchableWithoutFeedback>
         <Box style={collapseStyles([styles.menuBox, this.props.style])}>
           <Box style={styles.menuGroup}>
             {menuItemsWithHeader.map((mi, idx) => (
@@ -84,7 +80,7 @@ const styleRow = (props: {isHeader?: boolean, danger?: boolean, index: number, n
       {backgroundColor: props.danger ? globalColors.red : globalColors.white},
     ])
   } else {
-    rowStyle = collapseStyles([styles.row, {borderTopWidth: props.index === 1 ? 1 : undefined}])
+    rowStyle = styles.row
   }
   return rowStyle
 }
@@ -133,17 +129,6 @@ const styles = styleSheetCreate({
     paddingRight: globalMargins.medium,
     backgroundColor: globalColors.white,
     borderColor: globalColors.black_05,
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    ...globalStyles.flexBoxColumn,
-    justifyContent: 'flex-end',
-    alignItems: 'stretch',
-    backgroundColor: globalColors.black_40,
   },
 })
 
