@@ -1444,11 +1444,22 @@ func TestProcessDuplicateReactionMsgs(t *testing.T) {
 	require.Len(t, texts, 1)
 	txtMsg := texts[0]
 	expectedReactionMap := chat1.ReactionMap{
-		Reactions: map[string]map[string]chat1.MessageID{
-			":+1:": map[string]chat1.MessageID{
-				u.Username: *sentRef[len(sentRef)-1].msgID,
+		Reactions: map[string]map[string]chat1.Reaction{
+			":+1:": map[string]chat1.Reaction{
+				u.Username: chat1.Reaction{
+					ReactionMsgID: *sentRef[len(sentRef)-1].msgID,
+				},
 			},
 		},
+	}
+	// Verify the ctimes are not zero, but we don't care about the actual
+	// value for the test.
+	for _, reactions := range txtMsg.Valid().Reactions.Reactions {
+		for k, r := range reactions {
+			require.NotZero(t, r.Ctime)
+			r.Ctime = 0
+			reactions[k] = r
+		}
 	}
 	require.Equal(t, expectedReactionMap, txtMsg.Valid().Reactions)
 
