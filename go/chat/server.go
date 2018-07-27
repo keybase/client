@@ -1521,7 +1521,6 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 	if err != nil {
 		return res, err
 	}
-
 	// Start upload
 	uresChan, err := h.G().AttachmentUploader.Register(ctx, uid, arg.Arg.ConversationID,
 		outboxID, arg.Arg.Title, arg.Arg.Filename, arg.Arg.Metadata, arg.Arg.CallerPreview)

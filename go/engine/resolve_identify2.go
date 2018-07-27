@@ -173,6 +173,13 @@ func (e *ResolveThenIdentify2) GetProofSet() *libkb.ProofSet {
 	return e.i2eng.GetProofSet()
 }
 
+func (e *ResolveThenIdentify2) GetIdentifyOutcome() *libkb.IdentifyOutcome {
+	if e.i2eng == nil {
+		return nil
+	}
+	return e.i2eng.GetIdentifyOutcome()
+}
+
 // ResolveAndCheck takes as input a name (joe), social assertion (joe@twitter)
 // or compound assertion (joe+joe@twitter+3883883773222@pgp) and resolves
 // it to a user, verifying the result. Pass into it a MetaContext without any UIs set,

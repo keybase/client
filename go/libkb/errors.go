@@ -1178,6 +1178,10 @@ func (m MerkleClientError) IsNotFound() bool {
 	return m.t == merkleErrorNotFound
 }
 
+func (m MerkleClientError) IsOldTree() bool {
+	return m.t == merkleErrorOldTree
+}
+
 type MerklePathNotFoundError struct {
 	k   string
 	msg string

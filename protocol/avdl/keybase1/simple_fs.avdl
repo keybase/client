@@ -32,12 +32,16 @@ protocol SimpleFS {
   @typedef("int64") @lint("ignore") record KBFSRevision {}
 
   enum KBFSArchivedType {
-    REVISION_0
-    // TODO: add by-time and by-reltime types.
+    REVISION_0,
+    TIME_1,
+    TIME_STRING_2
+    // TODO: add by-reltime type.
   }
 
   variant KBFSArchivedParam switch (KBFSArchivedType KBFSArchivedType) {
     case REVISION: KBFSRevision;
+    case TIME: Time;
+    case TIME_STRING: string;
   }
 
   record KBFSArchivedPath {
