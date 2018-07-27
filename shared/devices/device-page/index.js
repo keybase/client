@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
-import type {DeviceType} from '../../constants/types/devices'
-import type {Time} from '../../constants/types/rpc-gen'
-import {Meta, NameWithIcon, Box, Text, Button, Box2, HeaderHoc, type IconType} from '../../common-adapters'
-import {globalStyles, globalColors, styleSheetCreate, collapseStyles} from '../../styles'
+import * as Types from '../../constants/types/devices'
+import * as Common from '../../common-adapters'
+import * as Styles from '../../styles'
+import moment from 'moment'
 
 export type TimelineItem = {
   desc: string,
@@ -12,47 +12,68 @@ export type TimelineItem = {
 }
 
 type Props = {
-  currentDevice: boolean,
-  deviceID: string,
-  type: DeviceType,
-  name: string,
+  device: Types.Device,
   onBack: () => void,
-  revokeName: ?string,
-  revokedAt?: ?Time,
   showRevokeDevicePage: () => void,
-  timeline?: Array<TimelineItem>,
 }
 
 const TimelineMarker = ({first, last, closedCircle}) => (
-  <Box style={collapseStyles([globalStyles.flexBoxColumn, {alignItems: 'center'}])}>
-    <Box style={collapseStyles([styles.timelineLine, {height: 6, opacity: first ? 0 : 1}])} />
-    <Box style={closedCircle ? styles.circleClosed : styles.circleOpen} />
-    <Box style={collapseStyles([styles.timelineLine, {flex: 1, opacity: last ? 0 : 1}])} />
-  </Box>
+  <Common.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, {alignItems: 'center'}])}>
+    <Common.Box style={Styles.collapseStyles([styles.timelineLine, {height: 6, opacity: first ? 0 : 1}])} />
+    <Common.Box style={closedCircle ? styles.circleClosed : styles.circleOpen} />
+    <Common.Box style={Styles.collapseStyles([styles.timelineLine, {flex: 1, opacity: last ? 0 : 1}])} />
+  </Common.Box>
 )
 
 const TimelineLabel = ({desc, subDesc, subDescIsName, spacerOnBottom}) => (
-  <Box2 direction="vertical" style={styles.timelineLabel}>
-    <Text type="Body">{desc}</Text>
+  <Common.Box2 direction="vertical" style={styles.timelineLabel}>
+    <Common.Text type="Body">{desc}</Common.Text>
     {!!subDesc &&
       subDescIsName && (
-        <Text type="BodySmall">
+        <Common.Text type="BodySmall">
           by{' '}
-          <Text type="BodySmall" style={styles.subDesc}>
+          <Common.Text type="BodySmall" style={styles.subDesc}>
             {subDesc}
-          </Text>
-        </Text>
+          </Common.Text>
+        </Common.Text>
       )}
-    {!!subDesc && !subDescIsName && <Text type="BodySmall">{subDesc}</Text>}
-    {spacerOnBottom && <Box style={{height: 15}} />}
-  </Box2>
+    {!!subDesc && !subDescIsName && <Common.Text type="BodySmall">{subDesc}</Common.Text>}
+    {spacerOnBottom && <Common.Box style={{height: 15}} />}
+  </Common.Box2>
 )
 
-const Timeline = ({timeline}) =>
-  timeline ? (
-    <Box2 direction="vertical">
+const formatTime = t => moment(t).format('MMM D, YYYY')
+const Timeline = ({device}) => {
+  const timeline = [
+    ...(device.revokedAt
+      ? [
+          {
+            desc: `Revoked ${formatTime(device.revokedAt)}`,
+            subDesc: device.revokedByName || '',
+            type: 'Revoked',
+          },
+        ]
+      : []),
+    ...(device.lastUsed
+      ? [
+          {
+            desc: `Last used ${formatTime(device.lastUsed)}`,
+            subDesc: moment(device.lastUsed).fromNow(),
+            type: 'LastUsed',
+          },
+        ]
+      : []),
+    {
+      desc: `Added ${formatTime(device.created)}`,
+      subDesc: device.provisionerName || '',
+      type: 'Added',
+    },
+  ]
+
+  return (
+    <Common.Box2 direction="vertical">
       {timeline.map(({type, desc, subDesc}, idx) => (
-        <Box2 direction="horizontal" key={desc} gap="small" fullWidth={true}>
+        <Common.Box2 direction="horizontal" key={desc} gap="small" fullWidth={true}>
           <TimelineMarker
             first={idx === 0}
             last={idx === timeline.length - 1}
@@ -64,37 +85,44 @@ const Timeline = ({timeline}) =>
             subDesc={subDesc}
             subDescIsName={['Added', 'Revoked'].includes(type)}
           />
-        </Box2>
+        </Common.Box2>
       ))}
-    </Box2>
-  ) : null
+    </Common.Box2>
+  )
+}
 
 const DevicePage = (props: Props) => {
   let metaOne
-  if (props.currentDevice) {
+  if (props.device.currentDevice) {
     metaOne = 'Current device'
-  } else if (props.revokedAt) {
-    metaOne = <Meta title="revoked" style={styles.meta} backgroundColor={globalColors.red} />
+  } else if (props.device.revokedAt) {
+    metaOne = <Common.Meta title="revoked" style={styles.meta} backgroundColor={Styles.globalColors.red} />
   }
 
-  const icon: IconType = {
+  const icon: Common.IconType = {
     backup: 'icon-paper-key-64',
     desktop: 'icon-computer-64',
     mobile: 'icon-phone-64',
-  }[props.type]
+  }[props.device.type]
+
+  const revokeName = {
+    backup: 'paper key',
+    desktop: 'device',
+    mobile: 'device',
+  }[props.device.type]
 
   return (
-    <Box2 direction="vertical" gap="medium" gapStart={true} gapEnd={true} fullWidth={true}>
-      <NameWithIcon icon={icon} title={props.name} metaOne={metaOne} />
-      <Timeline timeline={props.timeline} />
-      {!props.revokedAt && (
-        <Button
+    <Common.Box2 direction="vertical" gap="medium" gapStart={true} gapEnd={true} fullWidth={true}>
+      <Common.NameWithIcon icon={icon} title={props.device.name} metaOne={metaOne} />
+      <Timeline device={props.device} />
+      {!props.device.revokedAt && (
+        <Common.Button
           type="Danger"
-          label={`Revoke this ${props.revokeName || ''}`}
+          label={`Revoke this ${revokeName}`}
           onClick={props.showRevokeDevicePage}
         />
       )}
-    </Box2>
+    </Common.Box2>
   )
 }
 
@@ -111,35 +139,35 @@ const titleCommon = {
   textAlign: 'center',
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   circleClosed: {
     ...circleCommon,
-    backgroundColor: globalColors.lightGrey2,
-    borderColor: globalColors.white,
+    backgroundColor: Styles.globalColors.lightGrey2,
+    borderColor: Styles.globalColors.white,
   },
   circleOpen: {
     ...circleCommon,
-    borderColor: globalColors.lightGrey2,
+    borderColor: Styles.globalColors.lightGrey2,
   },
   meta: {
     alignSelf: 'center',
     marginTop: 4,
   },
   subDesc: {
-    color: globalColors.black_75,
+    color: Styles.globalColors.black_75,
     fontStyle: 'italic',
   },
   timelineLabel: {alignItems: 'flex-start'},
   timelineLine: {
-    backgroundColor: globalColors.lightGrey2,
+    backgroundColor: Styles.globalColors.lightGrey2,
     width: 2,
   },
   title: titleCommon,
   titleRevoked: {
     ...titleCommon,
-    color: globalColors.black_40,
+    color: Styles.globalColors.black_40,
     textDecorationLine: 'line-through',
   },
 })
 
-export default HeaderHoc(DevicePage)
+export default Common.HeaderHoc(DevicePage)
