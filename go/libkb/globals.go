@@ -1219,21 +1219,9 @@ func (g *GlobalContext) IsOneshot(ctx context.Context) (bool, error) {
 }
 
 func (g *GlobalContext) GetMeUV(ctx context.Context) (res keybase1.UserVersion, err error) {
-	defer g.CTraceTimed(ctx, "GlobalContext.GetMeUV", func() error { return err })()
-	meUID := g.ActiveDevice.UID()
-	if meUID.IsNil() {
-		return res, LoginRequiredError{}
+	res = g.ActiveDevice.UserVersion()
+	if res.IsNil() {
+		return keybase1.UserVersion{}, LoginRequiredError{}
 	}
-	loadMeArg := NewLoadUserArgWithContext(ctx, g).
-		WithUID(meUID).
-		WithSelf(true).
-		WithPublicKeyOptional()
-	upkv2, _, err := g.GetUPAKLoader().LoadV2(loadMeArg)
-	if err != nil {
-		return res, err
-	}
-	if upkv2 == nil {
-		return res, fmt.Errorf("could not load logged-in user")
-	}
-	return upkv2.Current.ToUserVersion(), nil
+	return res, nil
 }

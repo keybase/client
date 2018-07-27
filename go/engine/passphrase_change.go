@@ -64,7 +64,6 @@ func (c *PassphraseChange) Run(m libkb.MetaContext) (err error) {
 	m = m.WithLogTag("PPCHNG")
 
 	defer m.CTrace("PassphraseChange#Run", func() error { return err })()
-	m.Dump()
 	defer func() {
 		m.G().SKBKeyringMu.Unlock()
 	}()
