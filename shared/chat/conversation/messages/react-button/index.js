@@ -30,6 +30,7 @@ export type Props = {|
   count: number,
   emoji: string,
   onClick: () => void,
+  onLongPress?: () => void,
   onMouseLeave?: (evt: SyntheticEvent<Element>) => void,
   onMouseOver?: (evt: SyntheticEvent<Element>) => void,
   ordinal: Types.Ordinal,
@@ -49,6 +50,7 @@ const ButtonBox = glamorous(ClickableBox)({
 })
 const ReactButton = (props: Props) => (
   <ButtonBox
+    onLongPress={props.onLongPress}
     onMouseLeave={props.onMouseLeave}
     onMouseOver={props.onMouseOver}
     onClick={props.onClick}
@@ -73,6 +75,7 @@ const iconCycle = [
 ]
 export type NewReactionButtonProps = {|
   onAddReaction: (emoji: string) => void,
+  onLongPress?: () => void,
   onOpenEmojiPicker: () => void,
   showBorder: boolean,
   style?: StylesCrossPlatform,
@@ -128,6 +131,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
     return (
       <ContainerComp
         onClick={this._onShowPicker}
+        onLongPress={this.props.onLongPress}
         onMouseLeave={this._stopCycle}
         onMouseEnter={this._startCycle}
         style={collapseStyles([
