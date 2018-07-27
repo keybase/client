@@ -51,12 +51,14 @@ func TestDeviceCloneStateSuccessfulUpdate(t *testing.T) {
 	_ = CreateAndSignupFakeUser(tc, "fu")
 	m := NewMetaContextForTest(tc)
 	//setup: perform an initial run
-	_, err := runAndGet(m)
+	d0, err := runAndGet(m)
 	require.NoError(tc.T, err)
 
 	d, err := runAndGet(m)
 
 	assertSuccessfulRun(tc, d, err)
+	require.NotEqual(tc.T, d.Prior, d0.Prior)
+	require.Equal(tc.T, d.Clones, 1)
 }
 
 func TestDeviceCloneStateRecoveryFromFailureBeforeServer(t *testing.T) {
@@ -76,6 +78,8 @@ func TestDeviceCloneStateRecoveryFromFailureBeforeServer(t *testing.T) {
 	d, err := runAndGet(m)
 
 	assertSuccessfulRun(tc, d, err)
+	require.Equal(tc.T, d.Prior, d0.Stage)
+	require.Equal(tc.T, d.Clones, 1)
 }
 
 func TestDeviceCloneStateRecoveryFromFailureAfterServer(t *testing.T) {
@@ -93,6 +97,8 @@ func TestDeviceCloneStateRecoveryFromFailureAfterServer(t *testing.T) {
 	d, err := runAndGet(m)
 
 	assertSuccessfulRun(tc, d, err)
+	require.Equal(tc.T, d.Prior, d1.Prior)
+	require.Equal(tc.T, d.Clones, 1)
 }
 
 func TestDeviceCloneStateCloneDetected(t *testing.T) {
@@ -108,10 +114,14 @@ func TestDeviceCloneStateCloneDetected(t *testing.T) {
 	require.NoError(tc.T, err)
 	persistState(m, d0)
 
-	_, _, err = libkb.UpdateDeviceCloneState(m)
+	before, after, err := libkb.UpdateDeviceCloneState(m)
 	d, _ := libkb.GetDeviceCloneState(m)
 
 	assertSuccessfulRun(tc, d, err)
+	require.NotEqual(tc.T, d.Prior, d0.Stage, "despite there being a clone, the prior still needs to change")
+	require.Equal(tc.T, d.Clones, 2)
+	require.Equal(tc.T, before, 1, "there was one clone before the test run")
+	require.Equal(tc.T, after, 2, "there were two clones after the test run")
 }
 
 func TestDeviceCloneStateBeforeAndAfterOnFirstRun(t *testing.T) {
