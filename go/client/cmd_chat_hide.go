@@ -79,10 +79,11 @@ func (c *CmdChatHide) Run() error {
 	}
 
 	conversation, _, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
-		CreateIfNotExists: false,
-		MustNotExist:      false,
-		Interactive:       false,
-		IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		CreateIfNotExists:       false,
+		MustNotExist:            false,
+		Interactive:             false,
+		IgnoreConversationError: true, // If we are reset, we still want to be able to hide the conv.
+		IdentifyBehavior:        keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
 		return err

@@ -35,7 +35,8 @@ type chatConversationResolvingBehavior struct {
 	// Specify whether the resolve should error if a conversation was found
 	MustNotExist bool
 
-	IdentifyBehavior keybase1.TLFIdentifyBehavior
+	IdentifyBehavior        keybase1.TLFIdentifyBehavior
+	IgnoreConversationError bool
 }
 
 type chatConversationResolver struct {
@@ -225,6 +226,9 @@ func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversa
 				r.G.UI.GetTerminalUI().Printf("Found %s %s conversation [%s]: %s\n",
 					info.Visibility, info.Triple.TopicType, info.TopicName, info.TLFNameExpandedSummary())
 			}
+		}
+		if conversation.Error != nil && !behavior.IgnoreConversationError {
+			return nil, false, errors.New(conversation.Error.Message)
 		}
 		return &conversation, false, nil
 	default:
