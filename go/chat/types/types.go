@@ -26,7 +26,7 @@ var PushTeamChannels = "chat.teamchannels"
 var PushKBFSUpgrade = "chat.kbfsupgrade"
 var PushConvRetention = "chat.convretention"
 var PushTeamRetention = "chat.teamretention"
-var PushConvMinWriterRole = "chat.convminwriterrole"
+var PushConvSettings = "chat.convsettings"
 
 func NewAllCryptKeys() AllCryptKeys {
 	return make(AllCryptKeys)

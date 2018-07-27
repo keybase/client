@@ -70,7 +70,7 @@ const styles = styleSheetCreate({
     isElectron: {
       position: 'sticky',
       top: 0,
-      zIndex: '1', // needed to be on top of newly created stacking context
+      zIndex: 1, // needed to be on top of newly created stacking context
     },
   }),
 })

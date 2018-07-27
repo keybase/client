@@ -149,8 +149,8 @@ type InboxSource interface {
 		policy chat1.RetentionPolicy) (*chat1.ConversationLocal, error)
 	SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, teamID keybase1.TeamID,
 		policy chat1.RetentionPolicy) ([]chat1.ConversationLocal, error)
-	SetConvMinWriterRole(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
-		info *chat1.ConversationMinWriterRoleInfo) (*chat1.ConversationLocal, error)
+	SetConvSettings(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
+		convSettings *chat1.ConversationSettings) (*chat1.ConversationLocal, error)
 
 	GetInboxQueryLocalToRemote(ctx context.Context,
 		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, *NameInfoUntrusted, error)
@@ -245,7 +245,7 @@ type ActivityNotifier interface {
 		topicType chat1.TopicType, conv *chat1.InboxUIItem)
 	SetTeamRetention(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID, topicType chat1.TopicType,
 		convs []chat1.InboxUIItem)
-	SetConvMinWriterRole(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	SetConvSettings(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		topicType chat1.TopicType, conv *chat1.InboxUIItem)
 
 	InboxSyncStarted(ctx context.Context, uid gregor1.UID)
