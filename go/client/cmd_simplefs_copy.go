@@ -61,6 +61,10 @@ func NewCmdSimpleFSCopy(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 				Name:  "time",
 				Usage: "a time for the KBFS folder of the source paths (eg \"2018-07-27 22:05\")",
 			},
+			cli.StringFlag{
+				Name:  "reltime, relative-time",
+				Usage: "a relative time for the KBFS folder of the source paths (eg \"5m\")",
+			},
 		},
 	}
 }
