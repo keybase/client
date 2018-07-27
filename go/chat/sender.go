@@ -1046,6 +1046,10 @@ func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecor
 // If we cancel an odd number of items we cancel ourselves since the current
 // reaction state is correct.
 func (s *Deliverer) cancelPendingDuplicateReactions(ctx context.Context, obr chat1.OutboxRecord) (bool, error) {
+	if obr.Msg.ClientHeader.MessageType != chat1.MessageType_REACTION {
+		// nothing to do here
+		return false, nil
+	}
 	// While holding the outbox lock, let's remove any duplicate reaction
 	// messages and  make sure we are in the outbox, otherwise someone else
 	// canceled us.
