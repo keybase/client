@@ -3,7 +3,6 @@ import fs from 'fs'
 import path from 'path'
 import peg from 'pegjs'
 import emojiData from 'emoji-datasource'
-import invert from 'lodash/invert'
 import tlds from 'tlds'
 
 /**
@@ -24,13 +23,21 @@ function UTF162JSON(text) {
 
 function genEmojiData() {
   const emojiIndexByChar = {}
+  const emojiIndexByName = {}
   const emojiLiterals = []
   const emojiCharacters = new Set()
+  // This only adds the first supplied code point to `emojiIndexByName`,
+  // so make sure that is the fully qualified one
   function addEmojiLiteral(unified, name, skinTone) {
     const chars = unified.split('-').map(c => String.fromCodePoint(parseInt(c, 16)))
     const literals = chars.map(c => UTF162JSON(c)).join('')
 
-    emojiIndexByChar[chars.join('')] = `:${name}:` + (skinTone ? `:skin-tone-${skinTone}:` : '')
+    const fullName = `:${name}:` + (skinTone ? `:skin-tone-${skinTone}:` : '')
+    const char = chars.join('')
+    emojiIndexByChar[char] = fullName
+    if (!emojiIndexByName[fullName]) {
+      emojiIndexByName[fullName] = char
+    }
     emojiLiterals.push(literals)
     chars.forEach(c => emojiCharacters.add(c))
   }
@@ -42,15 +49,18 @@ function genEmojiData() {
       )
     }
     addEmojiLiteral(emoji.unified, emoji.short_name)
+    if (emoji.non_qualified) {
+      addEmojiLiteral(emoji.non_qualified, emoji.short_name)
+    }
   })
 
   emojiLiterals.sort((a, b) => b.length - a.length)
 
-  return {emojiIndexByChar, emojiLiterals, emojiCharacters}
+  return {emojiIndexByChar, emojiIndexByName, emojiLiterals, emojiCharacters}
 }
 
 function buildParser() {
-  const {emojiIndexByChar, emojiLiterals, emojiCharacters} = genEmojiData()
+  const {emojiIndexByChar, emojiIndexByName, emojiLiterals, emojiCharacters} = genEmojiData()
   const emojiRegex = `/${emojiLiterals.join('|')}/g`
   const emojiCharacterClass = `${Array.from(emojiCharacters).join('')}`
 
@@ -88,7 +98,7 @@ $1
     const tldExp = ${tldExp}
     const emojiExp = ${emojiRegex}
     const emojiIndexByChar = ${JSON.stringify(emojiIndexByChar)}
-    const emojiIndexByName = ${JSON.stringify(invert(emojiIndexByChar))}
+    const emojiIndexByName = ${JSON.stringify(emojiIndexByName)}
   `
 
   // $FlowIssue Unclear why flow isn't accepting String.raw here
