@@ -58,7 +58,7 @@ func makeKbfsPath(path string, rev int64, timeString string) (
 	} else if rev != 0 {
 		if timeString != "" {
 			return keybase1.Path{}, errors.New(
-				"Can't set both a revision and a time")
+				"can't set both a revision and a time")
 		}
 
 		return keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
@@ -108,10 +108,10 @@ func makeSimpleFSPathWithArchiveParams(
 
 	if rev > 0 {
 		return keybase1.Path{}, fmt.Errorf(
-			"Can't specify a revision for a local path")
+			"can't specify a revision for a local path")
 	} else if timeString != "" {
 		return keybase1.Path{}, fmt.Errorf(
-			"Can't specify a time string for a local path")
+			"can't specify a time string for a local path")
 	}
 
 	return keybase1.NewPathWithLocal(path), nil
