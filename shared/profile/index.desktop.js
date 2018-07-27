@@ -13,7 +13,7 @@ import {
   Icon,
   Meta,
   PlatformIcon,
-  PopupMenu,
+  FloatingMenu,
   Text,
   UserBio,
   UserProofs,
@@ -151,16 +151,14 @@ class ProfileRender extends PureComponent<Props, State> {
         pendingMessage = 'Your proof is pending. DNS proofs can take a few hours to recognize.'
       }
       return {
-        header: pendingMessage
-          ? {
-              title: 'header',
-              view: (
-                <PopupHeaderText color={globalColors.white} backgroundColor={globalColors.blue}>
-                  {pendingMessage}
-                </PopupHeaderText>
-              ),
-            }
-          : null,
+        header: {
+          title: 'header',
+          view: pendingMessage ? (
+            <PopupHeaderText color={globalColors.white} backgroundColor={globalColors.blue}>
+              {pendingMessage}
+            </PopupHeaderText>
+          ) : null,
+        },
         items: [
           {
             title: shared.revokeProofLanguage(proof.type),
@@ -484,6 +482,19 @@ class ProfileRender extends PureComponent<Props, State> {
                       missingProofs={missingProofs}
                     />
                   )}
+                {proofMenuContent && (
+                  <FloatingMenu
+                    visible={this.state.proofMenuIndex !== null}
+                    onHidden={() => this.handleHideMenu()}
+                    attachTo={this._proofList}
+                    {...proofMenuContent}
+                  />
+                )
+                // containerStyle={
+                //   // $FlowIssue
+                //   {...styleProofMenu, ...this.state.popupMenuPosition}
+                // }
+                }
                 {!loading && folders}
               </Box>
             </Box>
@@ -505,16 +516,6 @@ class ProfileRender extends PureComponent<Props, State> {
                 following={this.props.following}
               />
             )}
-          {proofMenuContent && (
-            <PopupMenu
-              style={
-                // $FlowIssue
-                {...styleProofMenu, ...this.state.popupMenuPosition}
-              }
-              {...proofMenuContent}
-              onHidden={() => this.handleHideMenu()}
-            />
-          )}
         </Box>
       </Box>
     )
@@ -613,12 +614,12 @@ const styleFriendships = {
   marginTop: globalMargins.large,
 }
 
-const styleProofMenu = {
-  marginTop: globalMargins.xtiny,
-  minWidth: 196,
-  maxWidth: 240,
-  zIndex: 5,
-}
+// const styleProofMenu = {
+//   marginTop: globalMargins.xtiny,
+//   minWidth: 196,
+//   maxWidth: 240,
+//   zIndex: 5,
+// }
 
 const styleSearchContainer = {
   ...globalStyles.flexBoxRow,
