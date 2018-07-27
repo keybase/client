@@ -94,31 +94,29 @@ describe('load', () => {
 
   it('load leads to loaded', () => {
     const {dispatch, getState} = init
-    // const loaded = jest.spyOn(DevicesGen, 'createLoaded')
     const rpc = jest.spyOn(RPCTypes, 'deviceDeviceHistoryListRpcPromise')
-    rpc.mockImplementation(
-      () =>
-        new Promise((resolve, reject) => {
-          console.error('aaaa promise', details)
-          resolve(details)
-        })
-    )
+    rpc.mockImplementation(() => new Promise(resolve => resolve(details)))
+
     dispatch(DevicesGen.createLoad())
-    console.error('after promise')
-    // TDOO promise wait
+    return Testing.flushPromises().then(() => {
+      expect(getState().devices.deviceMap.toJS()).toEqual({
+        '123': {
+          created: 0,
+          currentDevice: true,
+          deviceID: '123',
+          lastUsed: 4567,
+          name: 'a computer',
+          provisionedAt: 0,
+          provisionerName: '',
+          revokedAt: null,
+          revokedByName: null,
+          type: 'desktop',
+        },
+      })
 
-    console.error('after setimmediate')
-    console.error('aaa dump store', getState().devices)
-    expect(getState().devices.deviceMap.toJS()).toEqual({
-      '123': {
-        foo: 'bar',
-      },
+      expect(rpc).toHaveBeenCalled()
+      rpc.mockRestore()
     })
-
-    expect(rpc).toHaveBeenCalled()
-    // expect(loaded).toHaveBeenCalled()
-    rpc.mockRestore()
-    // loaded.mockRestore()
   })
 })
 

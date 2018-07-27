@@ -4,6 +4,7 @@ import {createStore, applyMiddleware} from 'redux'
 import createSagaMiddleware from 'redux-saga'
 import rootReducer from '../reducers'
 
+// See https://github.com/pekala/test-problem-example
 export const flushPromises = () => new Promise(resolve => setImmediate(resolve))
 
 export const makeStartReduxSaga = (rootSaga: any, initialStore: ?Object, init: (dispatch: any) => void) => {
