@@ -13,6 +13,8 @@ const load = (state: TypedState) =>
   RPCTypes.deviceDeviceHistoryListRpcPromise(undefined, Constants.waitingKey)
     .then((results: ?Array<RPCTypes.DeviceDetail>) => {
       const devices = (results || []).map(d => Constants.rpcDeviceToDevice(d))
+      // eslint-disable-next-line
+      debugger
       return DevicesGen.createLoaded({devices})
     })
     .catch(() => {})

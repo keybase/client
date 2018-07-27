@@ -1,0 +1,31 @@
+// @flow
+/* eslint-env jest */
+import {createStore, applyMiddleware} from 'redux'
+import createSagaMiddleware from 'redux-saga'
+import rootReducer from '../reducers'
+
+export const flushPromises = () => new Promise(resolve => setImmediate(resolve))
+
+export const makeStartReduxSaga = (rootSaga: any, initialStore: ?Object, init: (dispatch: any) => void) => {
+  return (is: ?Object) => {
+    const sagaMiddleware = createSagaMiddleware({
+      onError: e => {
+        throw e
+      },
+    })
+    // $FlowIssue
+    const store = createStore(rootReducer, is || initialStore, applyMiddleware(sagaMiddleware))
+    const getState = store.getState
+    const dispatch = store.dispatch
+    sagaMiddleware.run(rootSaga)
+
+    init(dispatch)
+
+    return {
+      dispatch,
+      getState,
+    }
+  }
+}
+
+export const getInitialStore = () => rootReducer(undefined, {type: 'MOCK'})
