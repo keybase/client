@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	stdpath "path"
+	stdpath "path/filepath"
 	"strings"
 	"sync"
 	"time"
