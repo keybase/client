@@ -2,7 +2,6 @@
 import logger from '../../logger'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../fs-gen'
-import * as LoginGen from '../login-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
