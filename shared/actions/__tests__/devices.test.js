@@ -2,44 +2,93 @@
 // // TODO
 /* eslint-env jest */
 // import * as I from 'immutable'
-// import * as Types from '../../constants/types/devices'
+import * as Types from '../../constants/types/devices'
 // import * as Constants from '../../constants/devices'
-// import * as Tabs from '../../constants/tabs'
-// import * as DevicesGen from '../devices-gen'
-// import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as Tabs from '../../constants/tabs'
+import * as DevicesGen from '../devices-gen'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 // import * as Saga from '../../util/saga'
-// import * as RouteTree from '../route-tree'
-// import devicesSaga from '../devices'
-// import {createStore, applyMiddleware} from 'redux'
-// import rootReducer from '../../reducers'
-// import createSagaMiddleware from 'redux-saga'
-// import appRouteTree from '../../app/routes-app'
-// import {getPath as getRoutePath} from '../../route-tree'
+import * as RouteTree from '../route-tree'
+import devicesSaga from '../devices'
+import {createStore, applyMiddleware} from 'redux'
+import rootReducer from '../../reducers'
+import createSagaMiddleware from 'redux-saga'
+import appRouteTree from '../../app/routes-app'
+import {getPath as getRoutePath} from '../../route-tree'
 
-// const startReduxSaga = (initialStore = undefined) => {
-// const sagaMiddleware = createSagaMiddleware({
-// onError: e => {
-// throw e
-// },
-// })
-// const store = createStore(rootReducer, initialStore, applyMiddleware(sagaMiddleware))
-// const getState = store.getState
-// const dispatch = store.dispatch
-// sagaMiddleware.run(devicesSaga)
+// jest.mock('../../constants/types/rpc-gen.js')
+jest.mock('../../engine')
 
-// dispatch(RouteTree.switchRouteDef(appRouteTree))
-// dispatch(RouteTree.navigateTo([Tabs.devicesTab]))
+// We want to be logged in usually
+const _root = rootReducer(undefined, {type: 'MOCK'})
+const _initialStore = {
+  ..._root,
+  config: _root.config.merge({
+    loggedIn: true,
+    username: 'username',
+  }),
+}
 
-// return {
-// dispatch,
-// getRoutePath: () => getRoutePath(getState().routeTree.routeState, [Tabs.loginTab]),
-// getState,
-// }
-// }
+const startReduxSaga = (initialStore = _initialStore) => {
+  const sagaMiddleware = createSagaMiddleware({
+    onError: e => {
+      throw e
+    },
+  })
+  const store = createStore(rootReducer, initialStore, applyMiddleware(sagaMiddleware))
+  const getState = store.getState
+  const dispatch = store.dispatch
+  sagaMiddleware.run(devicesSaga)
 
-// let init
-// beforeEach(() => { init = startReduxSaga() })
+  dispatch(RouteTree.switchRouteDef(appRouteTree))
+  dispatch(RouteTree.navigateTo([Tabs.devicesTab]))
 
+  return {
+    dispatch,
+    getRoutePath: () => getRoutePath(getState().routeTree.routeState, [Tabs.loginTab]),
+    getState,
+  }
+}
+
+describe('reload works', () => {
+  let init
+  let spy
+  beforeEach(() => {
+    init = startReduxSaga()
+    spy = jest.spyOn(RPCTypes, 'deviceDeviceHistoryListRpcPromise')
+  })
+  afterEach(() => {
+    spy.mockRestore()
+  })
+
+  it('loads on load', () => {
+    const {dispatch} = init
+    expect(spy).not.toHaveBeenCalled()
+    dispatch(DevicesGen.createLoad())
+    expect(spy).toHaveBeenCalled()
+  })
+
+  it('loads on revoked', () => {
+    const {dispatch} = init
+    expect(spy).not.toHaveBeenCalled()
+    dispatch(
+      DevicesGen.createRevoked({
+        deviceID: Types.stringToDeviceID('132'),
+        deviceName: 'a device',
+        wasCurrentDevice: false,
+      })
+    )
+    expect(spy).toHaveBeenCalled()
+  })
+
+  // it('loads on revoked', () => {
+  // const {dispatch} = init
+  // expect(RPCTypes.deviceDeviceHistoryListRpcPromise.mock.calls.length).toEqual(0)
+  // dispatch(
+  // )
+  // expect(RPCTypes.deviceDeviceHistoryListRpcPromise.mock.calls.length).toEqual(1)
+  // })
+})
 // describe('showRevokePageSideEffects', () => {
 // it('Asks for endangered tlfs', () => {
 // const deviceID = Types.stringToDeviceID('1234aaa')
