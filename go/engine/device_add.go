@@ -45,6 +45,57 @@ func (e *DeviceAdd) SubConsumers() []libkb.UIConsumer {
 	}
 }
 
+func (e *DeviceAdd) promptLoop(m libkb.MetaContext, provisioner *Kex2Provisioner, secret *libkb.Kex2Secret, provisioneeType keybase1.DeviceType) (err error) {
+	sb := secret.Secret()
+	arg := keybase1.DisplayAndPromptSecretArg{
+		Secret:          sb[:],
+		Phrase:          secret.Phrase(),
+		OtherDeviceType: provisioneeType,
+	}
+	for i := 0; i < 10; i++ {
+		receivedSecret, err := m.UIs().ProvisionUI.DisplayAndPromptSecret(m.Ctx(), arg)
+		if err != nil {
+			m.CWarningf("DisplayAndPromptSecret error: %s", err)
+			return err
+		}
+
+		if receivedSecret.Secret != nil && len(receivedSecret.Secret) > 0 {
+			m.CDebugf("received secret, adding to provisioner")
+			var ks kex2.Secret
+			copy(ks[:], receivedSecret.Secret)
+			provisioner.AddSecret(ks)
+			return nil
+		}
+
+		if len(receivedSecret.Phrase) > 0 {
+			m.CDebugf("received secret phrase, checking validity")
+			checker := libkb.MakeCheckKex2SecretPhrase(e.G())
+			if !checker.F(receivedSecret.Phrase) {
+				m.CDebugf("secret phrase failed validity check (attempt %d)", i+1)
+				arg.PreviousErr = checker.Hint
+				continue
+			}
+			m.CDebugf("received secret phrase, adding to provisioner")
+			ks, err := libkb.NewKex2SecretFromPhrase(receivedSecret.Phrase)
+			if err != nil {
+				m.CWarningf("NewKex2SecretFromPhrase error: %s", err)
+				return err
+			}
+			provisioner.AddSecret(ks.Secret())
+			return nil
+		}
+
+		if provisioneeType == keybase1.DeviceType_MOBILE {
+			// for mobile provisionee, only displaying the secret so it's
+			// ok/expected that nothing came back
+			m.CDebugf("device add DisplayAndPromptSecret returned empty secret, stopping retry loop")
+			return nil
+		}
+	}
+
+	return libkb.RetryExhaustedError{}
+}
+
 // Run starts the engine.
 func (e *DeviceAdd) Run(m libkb.MetaContext) (err error) {
 	defer m.CTrace("DeviceAdd#Run", func() error { return err })()
@@ -84,47 +135,10 @@ func (e *DeviceAdd) Run(m libkb.MetaContext) (err error) {
 
 	// display secret and prompt for secret from X in a goroutine:
 	go func() {
-		sb := secret.Secret()
-		arg := keybase1.DisplayAndPromptSecretArg{
-			Secret:          sb[:],
-			Phrase:          secret.Phrase(),
-			OtherDeviceType: provisioneeType,
-		}
-		for i := 0; i < 10; i++ {
-			receivedSecret, err := m.UIs().ProvisionUI.DisplayAndPromptSecret(m.Ctx(), arg)
-			if err != nil {
-				m.CWarningf("DisplayAndPromptSecret error: %s", err)
-				canceler()
-				break
-			} else if receivedSecret.Secret != nil && len(receivedSecret.Secret) > 0 {
-				m.CDebugf("received secret, adding to provisioner")
-				var ks kex2.Secret
-				copy(ks[:], receivedSecret.Secret)
-				provisioner.AddSecret(ks)
-				break
-			} else if len(receivedSecret.Phrase) > 0 {
-				m.CDebugf("received secret phrase, checking validity")
-				checker := libkb.MakeCheckKex2SecretPhrase(e.G())
-				if !checker.F(receivedSecret.Phrase) {
-					m.CDebugf("secret phrase failed validity check (attempt %d)", i+1)
-					arg.PreviousErr = checker.Hint
-					continue
-				}
-				m.CDebugf("received secret phrase, adding to provisioner")
-				ks, err := libkb.NewKex2SecretFromPhrase(receivedSecret.Phrase)
-				if err != nil {
-					m.CWarningf("NewKex2SecretFromPhrase error: %s", err)
-					canceler()
-				} else {
-					provisioner.AddSecret(ks.Secret())
-				}
-				break
-			} else if provisioneeType == keybase1.DeviceType_MOBILE {
-				// for mobile provisionee, only displaying the secret so it's
-				// ok/expected that nothing came back
-				m.CDebugf("device add DisplayAndPromptSecret returned empty secret, stopping retry loop")
-				break
-			}
+		err := e.promptLoop(m, provisioner, secret, provisioneeType)
+		if err != nil {
+			m.CDebugf("DeviceAdd prompt loop error: %s", err)
+			canceler()
 		}
 	}()
 
