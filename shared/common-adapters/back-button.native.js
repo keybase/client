@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
-import Badge from './badge'
+import {Badge} from './badge'
 import Box from './box'
 import Icon from './icon'
 import {globalMargins, globalStyles, collapseStyles} from '../styles'

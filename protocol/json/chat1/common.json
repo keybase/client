@@ -782,6 +782,20 @@
     },
     {
       "type": "record",
+      "name": "Reaction",
+      "fields": [
+        {
+          "type": "gregor1.Time",
+          "name": "ctime"
+        },
+        {
+          "type": "MessageID",
+          "name": "reactionMsgID"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ReactionMap",
       "fields": [
         {
@@ -789,7 +803,7 @@
             "type": "map",
             "values": {
               "type": "map",
-              "values": "MessageID",
+              "values": "Reaction",
               "keys": "string"
             },
             "keys": "string"

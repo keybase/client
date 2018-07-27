@@ -107,15 +107,18 @@ func (t *basicSupersedesTransform) transformReaction(msg chat1.MessageUnboxed, s
 
 	reactionMap := msg.Valid().Reactions
 	if reactionMap.Reactions == nil {
-		reactionMap.Reactions = map[string]map[string]chat1.MessageID{}
+		reactionMap.Reactions = map[string]map[string]chat1.Reaction{}
 	}
 
 	reactionText := superMsg.Valid().MessageBody.Reaction().Body
 	reactions, ok := reactionMap.Reactions[reactionText]
 	if !ok {
-		reactions = map[string]chat1.MessageID{}
+		reactions = map[string]chat1.Reaction{}
 	}
-	reactions[superMsg.Valid().SenderUsername] = superMsg.GetMessageID()
+	reactions[superMsg.Valid().SenderUsername] = chat1.Reaction{
+		ReactionMsgID: superMsg.GetMessageID(),
+		Ctime:         superMsg.Valid().ServerHeader.Ctime,
+	}
 	reactionMap.Reactions[reactionText] = reactions
 
 	mvalid := msg.Valid()

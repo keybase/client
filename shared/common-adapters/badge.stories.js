@@ -1,5 +1,5 @@
 // @flow
-import Badge from './badge'
+import {Badge} from './badge'
 import * as React from 'react'
 import {Box, Box2} from './box'
 import Text from './text'
