@@ -6,6 +6,7 @@ import type {TypedState, Dispatch} from '../../../../util/container'
 import BuildTeam from '.'
 
 const mapStateToProps = (state: TypedState) => ({
+  loaded: state.teams.loaded,
   showBuildATeam: state.teams.teamnames.size === 0,
 })
 
@@ -15,6 +16,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  loaded: stateProps.loaded,
   onBuildTeam: dispatchProps._onBuildTeam,
   showBuildATeam: stateProps.showBuildATeam,
 })

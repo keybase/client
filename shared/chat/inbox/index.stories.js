@@ -519,6 +519,7 @@ const provider = createPropProvider(
     BuildTeam: p => ({
       onBuildTeam: action('onBuildTeam'),
       showBuildATeam: teamsEmpty,
+      loaded: true,
     }),
     NewChooser: p => ({
       isSelected: false,

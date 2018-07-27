@@ -13,6 +13,7 @@ import {
   type IconType,
 } from '../../common-adapters'
 import {
+  collapseStyles,
   globalColors,
   globalMargins,
   globalStyles,
@@ -51,10 +52,12 @@ const Header = (props: {name: string, type: DeviceType}) => {
 
 const BodyText = (props: {name: string, currentDevice: boolean}) => (
   <Box style={styles.bodyTextContainer}>
-    <Text type="BodySemibold" style={styles.bodyText}>
-      Are you sure you want to revoke{' '}
-      {props.currentDevice ? 'your current device' : <Text type="BodySemiboldItalic">{props.name}</Text>}
+    <Text type="Header" style={collapseStyles([styles.bodyText, styles.bodyTextHeader])}>
+      Are you sure you want to revoke {props.currentDevice ? 'your current device' : props.name}
       ?
+    </Text>
+    <Text type="Body" style={styles.bodyText}>
+      Revoked devices will not be able to access your Keybase account.
     </Text>
   </Box>
 )
@@ -102,7 +105,7 @@ const ActionButtons = (props: {onCancel: () => void, onSubmit: () => void, waiti
       fullWidth={isMobile}
       type="Danger"
       onClick={props.waiting ? null : props.onSubmit}
-      label="Yes, delete it"
+      label="Yes, revoke it"
       disabled={props.waiting}
     />
     <Button fullWidth={isMobile} type="Secondary" onClick={props.onCancel} label="Cancel" />
@@ -147,10 +150,14 @@ const styles = styleSheetCreate({
     textDecorationLine: 'line-through',
   },
   bodyTextContainer: {
+    ...globalStyles.flexBoxColumn,
     marginBottom: globalMargins.tiny,
   },
   bodyText: {
     textAlign: 'center',
+  },
+  bodyTextHeader: {
+    marginBottom: globalMargins.medium,
   },
   listContainer: platformStyles({
     common: {
