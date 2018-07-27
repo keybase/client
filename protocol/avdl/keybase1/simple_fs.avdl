@@ -34,14 +34,15 @@ protocol SimpleFS {
   enum KBFSArchivedType {
     REVISION_0,
     TIME_1,
-    TIME_STRING_2
-    // TODO: add by-reltime type.
+    TIME_STRING_2,
+    REL_TIME_STRING_3
   }
 
   variant KBFSArchivedParam switch (KBFSArchivedType KBFSArchivedType) {
     case REVISION: KBFSRevision;
     case TIME: Time;
     case TIME_STRING: string;
+    case REL_TIME_STRING: string;
   }
 
   record KBFSArchivedPath {
@@ -53,7 +54,7 @@ protocol SimpleFS {
     LOCAL_0,
     KBFS_1,
     KBFS_ARCHIVED_2
-  }  
+  }
 
   variant Path switch (PathType PathType) {
     case LOCAL: string;
