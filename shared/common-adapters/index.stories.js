@@ -10,6 +10,7 @@ import choiceList from './choice-list.stories'
 import copyText from './copy-text.stories'
 import dropdown from './dropdown.stories'
 import formWithCheckbox from './form-with-checkbox.stories'
+import floatingMenu from './floating-menu/index.stories'
 import icon from './icon.stories'
 import input from './input.stories'
 import listItem from './list-item.stories'
@@ -39,6 +40,7 @@ const load = () => {
     copyText,
     dropdown,
     formWithCheckbox,
+    floatingMenu,
     icon,
     input,
     listItem,
