@@ -41,6 +41,9 @@ type Uploader struct {
 	ri       func() chat1.RemoteInterface
 	s3signer s3.Signer
 	uploads  map[string]chan types.AttachmentUploadResult
+
+	// testing
+	tempDir string
 }
 
 var _ types.AttachmentUploader = (*Uploader)(nil)
@@ -54,6 +57,10 @@ func NewUploader(g *globals.Context, store Store, s3signer s3.Signer, ri func() 
 		s3signer:     s3signer,
 		uploads:      make(map[string]chan types.AttachmentUploadResult),
 	}
+}
+
+func (u *Uploader) SetPreviewTempDir(dir string) {
+	u.tempDir = dir
 }
 
 func (u *Uploader) dbStatusKey(outboxID chat1.OutboxID) libkb.DbKey {
@@ -201,7 +208,11 @@ func (u *Uploader) doneUploading(outboxID chat1.OutboxID) {
 }
 
 func (u *Uploader) uploadPreviewFile(ctx context.Context) (f *os.File, err error) {
-	dir := filepath.Join(u.G().GetCacheDir(), "uploadedpreviews")
+	baseDir := u.G().GetCacheDir()
+	if u.tempDir != "" {
+		baseDir = u.tempDir
+	}
+	dir := filepath.Join(baseDir, "uploadedpreviews")
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return nil, err
 	}

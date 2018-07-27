@@ -24,38 +24,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-type DummyAttachmentFetcher struct{}
-
-func (d DummyAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer,
-	convID chat1.ConversationID, asset chat1.Asset, r func() chat1.RemoteInterface, signer s3.Signer,
-	progress types.ProgressReporter) error {
-	return nil
-}
-
-func (d DummyAttachmentFetcher) DeleteAssets(ctx context.Context,
-	convID chat1.ConversationID, assets []chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (err error) {
-	return nil
-}
-
-func (d DummyAttachmentFetcher) PutUploadedAsset(ctx context.Context, filename string, asset chat1.Asset) error {
-	return nil
-}
-
-type DummyAttachmentHTTPSrv struct{}
-
-func (d DummyAttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
-	preview bool) string {
-	return ""
-}
-
-func (d DummyAttachmentHTTPSrv) GetPendingPreviewURL(ctx context.Context, outboxID chat1.OutboxID) string {
-	return ""
-}
-
-func (d DummyAttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {
-	return DummyAttachmentFetcher{}
-}
-
 var blankProgress = func(bytesComplete, bytesTotal int64) {}
 
 type AttachmentHTTPSrv struct {

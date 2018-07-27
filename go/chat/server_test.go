@@ -354,7 +354,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	pushHandler.SetClock(c.world.Fc)
 	g.PushHandler = pushHandler
 	g.TeamChannelSource = NewCachingTeamChannelSource(g, func() chat1.RemoteInterface { return ri })
-	g.AttachmentURLSrv = DummyAttachmentHTTPSrv{}
+	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
@@ -3146,7 +3146,7 @@ func TestChatSrvMakePreview(t *testing.T) {
 	}
 	ri := ctc.as(t, user).ri
 	tc := ctc.world.Tcs[user.Username]
-	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(), DummyAttachmentFetcher{},
+	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(), types.DummyAttachmentFetcher{},
 		func() chat1.RemoteInterface { return ri })
 	res, err := ctc.as(t, user).chatLocalHandler().MakePreview(context.TODO(), arg)
 	require.NoError(t, err)
