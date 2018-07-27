@@ -1,7 +1,15 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import {Box2, ClickableBox, Emoji, FloatingBox, Icon, Text} from '../../../../common-adapters'
+import {
+  Box2,
+  ClickableBox,
+  Emoji,
+  FloatingBox,
+  Icon,
+  iconCastPlatformStyles,
+  Text,
+} from '../../../../common-adapters'
 import {
   collapseStyles,
   glamorous,
@@ -47,7 +55,9 @@ const ReactButton = (props: Props) => (
     style={collapseStyles([styles.buttonBox, props.active && styles.active, props.style])}
   >
     <Box2 centerChildren={true} direction="horizontal" gap="xtiny" style={styles.container}>
-      <Emoji size={16} emojiName={props.emoji} />
+      <Box2 direction="horizontal" style={styles.emojiWrapper}>
+        <Emoji size={isMobile ? 14 : 16} emojiName={props.emoji} />
+      </Box2>
       <Text type="BodyTinyBold" style={{color: props.active ? globalColors.blue : globalColors.black_40}}>
         {props.count}
       </Text>
@@ -132,7 +142,11 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
           direction="horizontal"
           style={this.props.showBorder ? styles.container : null}
         >
-          <Icon type={iconCycle[this.state.iconIndex]} fontSize={16} />
+          <Icon
+            type={iconCycle[this.state.iconIndex]}
+            fontSize={16}
+            style={iconCastPlatformStyles(styles.emojiIconWrapper)}
+          />
         </Box2>
         {this.state.showingPicker &&
           !isMobile && (
@@ -176,6 +190,12 @@ const styles = styleSheetCreate({
       paddingBottom: globalMargins.tiny,
       paddingTop: globalMargins.tiny,
     },
+  }),
+  emojiIconWrapper: platformStyles({
+    isMobile: {marginTop: 2},
+  }),
+  emojiWrapper: platformStyles({
+    isMobile: {marginTop: -2},
   }),
   newReactionButtonBox: {
     width: 37,
