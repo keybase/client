@@ -6,83 +6,45 @@ import * as Common from '../../common-adapters'
 import * as Styles from '../../styles'
 
 export type Props = {
-  currentDevice: boolean,
-  deviceID: string,
+  device: Types.Device,
   endangeredTLFs: Array<string>,
-  type: Types.DeviceType,
-  name: string,
   onCancel: () => void,
   onSubmit: () => void,
   waiting: boolean,
 }
 
-const Header = ({name, type}) => {
-  const headerIcon: Common.IconType = {
-    backup: Styles.isMobile ? 'icon-paper-key-revoke-64' : 'icon-paper-key-revoke-48',
-    desktop: Styles.isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48',
-    mobile: Styles.isMobile ? 'icon-phone-revoke-64' : 'icon-phone-revoke-48',
-  }[type]
-  return (
-    <Common.Box style={styles.headerContainer}>
-      <Common.Icon type={headerIcon} />
-      <Common.Text type="BodySemibold" style={styles.headerDeviceName}>
-        {name}
-      </Common.Text>
-    </Common.Box>
-  )
-}
-
-const BodyText = ({name, currentDevice}) => (
-  <Common.Box style={styles.bodyTextContainer}>
-    <Common.Text type="BodySemibold" style={styles.bodyText}>
-      Are you sure you want to revoke{' '}
-      {currentDevice ? 'your current device' : <Common.Text type="BodySemiboldItalic">{name}</Common.Text>}
-      ?
-    </Common.Text>
-  </Common.Box>
-)
-
-class EndangeredTLFList extends React.Component<
-  {endangeredTLFs: Array<string>, waiting: boolean, style: Styles.StylesCrossPlatform},
-  {}
-> {
+class EndangeredTLFList extends React.Component<{endangeredTLFs: Array<string>}> {
   _renderTLFEntry = (index: number, tlf: string) => (
-    <Common.Box key={index} style={styles.tlfEntry}>
-      <Common.Text type="BodySemibold" style={{marginRight: Styles.globalMargins.tiny}}>
-        •
-      </Common.Text>
-      <Common.Text type="BodySemibold" selectable={true} style={{flex: 1}}>
+    <Common.Box2 direction="horizontal" key={index} gap="tiny" fullWidth={true} style={styles.row}>
+      <Common.Text type="BodySemibold">•</Common.Text>
+      <Common.Text type="BodySemibold" selectable={true} style={styles.tlf}>
         {tlf}
       </Common.Text>
-    </Common.Box>
+    </Common.Box2>
   )
   render() {
-    if (this.props.waiting) {
-      return <Common.ProgressIndicator />
-    } else if (this.props.endangeredTLFs.length > 0) {
-      return (
-        <React.Fragment>
-          <Common.Text type="Body" style={styles.bodyText}>
-            You may lose access to these folders forever:
-          </Common.Text>
-          <Common.Box style={styles.listContainer}>
-            <Common.List
-              items={this.props.endangeredTLFs}
-              renderItem={this._renderTLFEntry}
-              style={styles.list}
-            />
-          </Common.Box>
-        </React.Fragment>
-      )
-    }
-    return null
+    if (!this.props.endangeredTLFs.length) return null
+    return (
+      <React.Fragment>
+        <Common.Text type="Body" style={styles.centerText}>
+          You may lose access to these folders forever:
+        </Common.Text>
+        <Common.Box2 direction="vertical" style={styles.listContainer}>
+          <Common.List
+            items={this.props.endangeredTLFs}
+            renderItem={this._renderTLFEntry}
+            indexAsKey={true}
+          />
+        </Common.Box2>
+      </React.Fragment>
+    )
   }
 }
 
 const ActionButtons = ({onCancel, onSubmit}) => (
   <Common.Box2
     direction={Styles.isMobile ? 'vertical' : 'horizontalReverse'}
-    style={styles.actionButtonsContainer}
+    fullWidth={Styles.isMobile}
     gap="tiny"
   >
     <Common.WaitingButton
@@ -96,45 +58,60 @@ const ActionButtons = ({onCancel, onSubmit}) => (
   </Common.Box2>
 )
 
-const DeviceRevoke = (props: Props) => (
-  <Common.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-    <Common.Box style={styles.deviceRevokeContainer}>
-      <Header name={props.name} type={props.type} />
-      <BodyText name={props.name} currentDevice={props.currentDevice} />
-      <EndangeredTLFList
-        endangeredTLFs={props.endangeredTLFs}
-        waiting={props.waiting}
-        style={styles.endangeredTLFList}
-      />
+const DeviceRevoke = (props: Props) => {
+  const icon: Common.IconType = {
+    backup: Styles.isMobile ? 'icon-paper-key-revoke-64' : 'icon-paper-key-revoke-48',
+    desktop: Styles.isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48',
+    mobile: Styles.isMobile ? 'icon-phone-revoke-64' : 'icon-phone-revoke-48',
+  }[props.device.type]
+
+  return (
+    <Common.Box2
+      direction="vertical"
+      fullHeight={true}
+      fullWidth={true}
+      gap="small"
+      gapEnd={true}
+      style={styles.container}
+    >
+      <Common.NameWithIcon icon={icon} title={props.device.name} titleStyle={styles.headerName} />
+      <Common.Text type="Header" style={styles.centerText}>
+        Are you sure you want to revoke{' '}
+        {props.device.currentDevice ? (
+          'your current device'
+        ) : (
+          <Common.Text type="Header" style={styles.italicName}>
+            {props.device.name}
+          </Common.Text>
+        )}
+        ?
+      </Common.Text>
+      <Common.Box2 direction="vertical" style={styles.endangeredTLFContainer} fullWidth={Styles.isMobile}>
+        {props.waiting ? (
+          <Common.ProgressIndicator />
+        ) : (
+          <EndangeredTLFList endangeredTLFs={props.endangeredTLFs} />
+        )}
+      </Common.Box2>
       <ActionButtons onCancel={props.onCancel} onSubmit={props.onSubmit} />
-    </Common.Box>
-  </Common.Box2>
-)
+    </Common.Box2>
+  )
+}
 
 const styles = Styles.styleSheetCreate({
-  deviceRevokeContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    flex: 1,
-    marginBottom: Styles.globalMargins.small,
-    marginLeft: Styles.globalMargins.small,
-    marginRight: Styles.globalMargins.small,
-  },
-  headerContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    height: 112,
-    justifyContent: 'center',
-    marginBottom: Styles.globalMargins.small,
-  },
-  headerDeviceName: {
+  centerText: {textAlign: 'center'},
+  container: {padding: Styles.globalMargins.small},
+  endangeredTLFContainer: Styles.platformStyles({
+    isElectron: {alignSelf: 'center'},
+    isMobile: {flexGrow: 1},
+  }),
+  headerName: {
     color: Styles.globalColors.red,
     fontStyle: 'italic',
     marginTop: 4,
     textDecorationLine: 'line-through',
   },
-  bodyTextContainer: {marginBottom: Styles.globalMargins.tiny},
-  bodyText: {textAlign: 'center'},
+  italicName: {...Styles.globalStyles.italic},
   listContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
@@ -143,27 +120,20 @@ const styles = Styles.styleSheetCreate({
       borderRadius: 4,
       borderStyle: 'solid',
       borderWidth: 1,
+      flexGrow: 1,
       marginBottom: Styles.globalMargins.small,
-      marginTop: Styles.globalMargins.small,
-    },
-    isElectron: {height: 162, width: 440},
-    isMobile: {flex: 1, width: '100%'},
-  }),
-  endangeredTLFList: {flex: 1},
-  list: {margin: Styles.globalMargins.small},
-  tlfEntry: Styles.platformStyles({
-    common: {
-      flexDirection: 'row',
-      marginBottom: Styles.globalMargins.xtiny,
-    },
-    isElectron: {textAlign: 'left'},
-  }),
-  actionButtonsContainer: Styles.platformStyles({
-    isElectron: {marginTop: Styles.globalMargins.medium},
-    isMobile: {
       marginTop: Styles.globalMargins.small,
       width: '100%',
     },
+    isElectron: {height: 162, width: 440},
+  }),
+  row: {
+    paddingBottom: Styles.globalMargins.xxtiny,
+    paddingLeft: Styles.globalMargins.xtiny,
+    paddingTop: Styles.globalMargins.xxtiny,
+  },
+  tlf: Styles.platformStyles({
+    isElectron: {wordBreak: 'break-word'},
   }),
 })
 

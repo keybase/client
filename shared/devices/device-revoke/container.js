@@ -8,8 +8,8 @@ import {connect, type TypedState} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
 
 const mapStateToProps = (state: TypedState) => ({
-  _device: Constants.getDevice(state, state.devices.selectedDeviceID),
   _endangeredTLFs: Constants.getEndangeredTLFs(state, state.devices.selectedDeviceID),
+  device: Constants.getDevice(state, state.devices.selectedDeviceID),
   waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
 })
 
@@ -19,13 +19,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  currentDevice: stateProps._device.currentDevice,
-  deviceID: stateProps._device.deviceID,
+  device: stateProps.device,
   endangeredTLFs: stateProps._endangeredTLFs.toArray(),
-  name: stateProps._device.name,
   onCancel: dispatchProps.onCancel,
-  onSubmit: () => dispatchProps._onSubmit(stateProps._device.deviceID),
-  type: stateProps._device.type,
+  onSubmit: () => dispatchProps._onSubmit(stateProps.device.deviceID),
   waiting: stateProps.waiting,
 })
 
