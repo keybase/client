@@ -621,6 +621,8 @@ export const simpleFSDirentType = {
 
 export const simpleFSKBFSArchivedType = {
   revision: 0,
+  time: 1,
+  timeString: 2,
 }
 
 export const simpleFSListFilter = {
@@ -1299,9 +1301,12 @@ export type InstallStatus =
 
 export type InstallUninstallKBFSRpcParam = void
 export type InterestingPerson = $ReadOnly<{uid: UID, username: String}>
-export type KBFSArchivedParam = {KBFSArchivedType: 0, revision: ?KBFSRevision}
+export type KBFSArchivedParam = {KBFSArchivedType: 0, revision: ?KBFSRevision} | {KBFSArchivedType: 1, time: ?Time} | {KBFSArchivedType: 2, timeString: ?String}
 export type KBFSArchivedPath = $ReadOnly<{path: String, archivedParam: KBFSArchivedParam}>
-export type KBFSArchivedType = 0 // REVISION_0
+export type KBFSArchivedType =
+  | 0 // REVISION_0
+  | 1 // TIME_1
+  | 2 // TIME_STRING_2
 
 export type KBFSGitCreateRepoRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName}>
 export type KBFSGitDeleteRepoRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName}>
