@@ -324,6 +324,23 @@ func TestList(t *testing.T) {
 				rev1Time.String()),
 		})
 	checkArchived(pathArchivedTimeString, 0)
+
+	pathArchivedRelTimeString := keybase1.NewPathWithKbfsArchived(
+		keybase1.KBFSArchivedPath{
+			Path: `/private/jdoe`,
+			ArchivedParam: keybase1.NewKBFSArchivedParamWithRelTimeString(
+				"45s"),
+		})
+	checkArchived(pathArchivedRelTimeString, 0)
+
+	clock.Add(1 * time.Minute)
+	pathArchivedRelTimeString = keybase1.NewPathWithKbfsArchived(
+		keybase1.KBFSArchivedPath{
+			Path: `/private/jdoe`,
+			ArchivedParam: keybase1.NewKBFSArchivedParamWithRelTimeString(
+				"45s"),
+		})
+	checkArchived(pathArchivedRelTimeString, 1)
 }
 
 func TestListRecursive(t *testing.T) {

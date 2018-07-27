@@ -227,6 +227,14 @@ func (k *SimpleFS) branchNameFromPath(
 				return "", err
 			}
 			return libkbfs.MakeRevBranchName(rev), nil
+		case keybase1.KBFSArchivedType_REL_TIME_STRING:
+			t := archivedParam.RelTimeString()
+			rev, err := libfs.RevFromRelativeTimeString(
+				ctx, k.config, tlfHandle, t)
+			if err != nil {
+				return "", err
+			}
+			return libkbfs.MakeRevBranchName(rev), nil
 		default:
 			return "", simpleFSError{"Invalid archived type for branch name"}
 		}
