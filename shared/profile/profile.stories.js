@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
-import {action, storiesOf} from '../stories/storybook'
-import * as PropProviders from '../stories/prop-providers'
+import {action, storiesOf, PropProviders} from '../stories/storybook'
 import Profile from '.'
 import {
   normal,
@@ -231,11 +230,9 @@ const proofsPending = proofsDefault.map((proof, idx) => ({
   state: checking,
 }))
 
-const provider = PropProviders.CommonProvider()
-
 const load = () => {
   storiesOf('Profile/Profile', module)
-    .addDecorator(provider)
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .add('Your Profile', () => <Profile {...props} bioEditFns={bioEditFns} isYou={true} />)
     .add('Your Profile - Loading', () => (
       <Profile {...props} loading={true} bioEditFns={bioEditFns} isYou={true} />

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {action, storiesOf} from '../../stories/storybook'
+import {action, storiesOf, PropProviders} from '../../stories/storybook'
 import DeviceRevoke, {type Props} from '.'
 
 const devicesProps: Props = {
@@ -16,6 +16,7 @@ const devicesProps: Props = {
 
 const load = () => {
   storiesOf('Devices/Revoke', module)
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .add('Paper key', () => <DeviceRevoke {...devicesProps} type="backup" name="my paper key" />)
     .add('Mobile Device', () => <DeviceRevoke {...devicesProps} type="mobile" name="my iphone" />)
     .add('Desktop Device', () => <DeviceRevoke {...devicesProps} />)

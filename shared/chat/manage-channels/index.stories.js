@@ -1,10 +1,9 @@
 // @flow
 import React from 'react'
 import * as ChatTypes from '../../constants/types/chat2'
-import * as PropProviders from '../../stories/prop-providers'
 import * as Types from '../../constants/types/teams'
 import {Box} from '../../common-adapters'
-import {storiesOf, action} from '../../stories/storybook'
+import {storiesOf, action, PropProviders} from '../../stories/storybook'
 import {isMobile} from '../../constants/platform'
 import ManageChannels from '.'
 import EditChannel from './edit-channel'
@@ -59,11 +58,9 @@ const channelState = channels.reduce((acc: Types.ChannelMembershipState, c) => {
   return acc
 }, {})
 
-const provider = PropProviders.CommonProvider()
-
 const load = () => {
   storiesOf('Chat/Teams', module)
-    .addDecorator(provider)
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .add('ManageChannels', () => (
       <Box style={{minWidth: isMobile ? undefined : 400, width: '100%'}}>
         <ManageChannels

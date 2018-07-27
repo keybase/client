@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import * as PropProviders from '../../stories/prop-providers'
 import Login, {type Props} from '.'
-import {action, storiesOf} from '../../stories/storybook'
+import {action, storiesOf, PropProviders} from '../../stories/storybook'
 
 const commonProps: Props = {
   error: '',
@@ -22,11 +21,9 @@ const commonProps: Props = {
   waitingForResponse: false,
 }
 
-const provider = PropProviders.CommonProvider()
-
 const load = () => {
   storiesOf('Login/Login', module)
-    .addDecorator(provider)
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .add('Single previous user', () => <Login {...commonProps} />)
     .add('Error', () => <Login {...commonProps} error="Oh, no! What a mess!" />)
     .add('Multiple previous users', () => (

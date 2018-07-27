@@ -5,8 +5,7 @@ import I from 'immutable'
 import moment from 'moment'
 import {Box2, Text} from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/chat2'
-import {storiesOf, action, createPropProvider, Rnd} from '../../../../stories/storybook'
-import * as PropProviders from '../../../../stories/prop-providers'
+import {storiesOf, action, Rnd, PropProviders} from '../../../../stories/storybook'
 import {propProvider as ReactionsRowProvider} from '../../messages/reactions-row/index.stories'
 import {propProvider as ReactButtonProvider} from '../../messages/react-button/index.stories'
 import {propProvider as ReactionTooltipProvider} from '../../messages/reaction-tooltip/index.stories'
@@ -120,7 +119,7 @@ const ordinalToMessage = o => {
   return message
 }
 
-const provider = createPropProvider(PropProviders.Common(), {
+const provider = PropProviders.createPropProviderWithCommon({
   ...ReactButtonProvider,
   ...ReactionsRowProvider,
   ...ReactionTooltipProvider,

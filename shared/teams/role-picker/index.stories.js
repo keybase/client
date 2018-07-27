@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
-import * as PropProviders from '../../stories/prop-providers'
-import {storiesOf, action} from '../../stories/storybook'
+import {storiesOf, action, PropProviders} from '../../stories/storybook'
 import {RoleConfirm, RoleOptions} from '.'
 
 const commonProps = {
@@ -28,11 +27,9 @@ const roleConfirmProps = {
   confirm: true,
 }
 
-const provider = PropProviders.CommonProvider()
-
 const load = () => {
   storiesOf('Teams/Roles', module)
-    .addDecorator(provider)
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .add('Picker', () => <RoleOptions {...roleOptionsProps} />)
     .add('ConfirmReader', () => <RoleConfirm {...roleConfirmProps} selectedRole="reader" />)
     .add('ConfirmWriter', () => <RoleConfirm {...roleConfirmProps} selectedRole="writer" />)

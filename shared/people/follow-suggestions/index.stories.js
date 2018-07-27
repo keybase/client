@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
-import {storiesOf, action, createPropProvider} from '../../stories/storybook'
-import * as PropProviders from '../../stories/prop-providers'
+import {storiesOf, action, createPropProvider, PropProviders} from '../../stories/storybook'
 import FollowSuggestions, {type Props} from '.'
 
 const provider = createPropProvider(

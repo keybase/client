@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import PaperKey from '.'
-import {action, storiesOf} from '../../stories/storybook'
-import * as PropProviders from '../../stories/prop-providers'
+import {action, storiesOf, PropProviders} from '../../stories/storybook'
 
 const props = {
   onBack: action('onBack'),
@@ -11,7 +10,7 @@ const props = {
 
 const load = () => {
   storiesOf('Devices/Paperkey', module)
-    .addDecorator(PropProviders.CommonProvider())
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .add('Normal', () => <PaperKey {...props} />)
     .add('Waiting', () => <PaperKey {...props} paperkey={''} />)
 }

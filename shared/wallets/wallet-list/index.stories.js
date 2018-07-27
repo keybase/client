@@ -1,7 +1,6 @@
 // @flow
 import React from 'react'
-import * as PropProviders from '../../stories/prop-providers'
-import {storiesOf, action, createPropProvider} from '../../stories/storybook'
+import {storiesOf, action, PropProviders} from '../../stories/storybook'
 import {WalletList} from '.'
 import walletRow from './wallet-row/index.stories'
 import {stringToAccountID} from '../../constants/types/wallets'
@@ -47,15 +46,13 @@ const WalletRowProvider = mockWallets => ({
   },
 })
 
-const provider = createPropProvider(PropProviders.Common(), WalletRowProvider(mockWallets))
-
 const accountIDs = Object.keys(mockWallets).map(s => stringToAccountID(s))
 
 const load = () => {
   walletRow()
 
   storiesOf('Wallets', module)
-    .addDecorator(provider)
+    .addDecorator(PropProviders.createPropProviderWithCommon(WalletRowProvider(mockWallets)))
     .add('Wallet List', () => (
       <WalletList
         accountIDs={accountIDs}
