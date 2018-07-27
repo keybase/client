@@ -1,6 +1,6 @@
 // @noflow
 /* eslint-env jest */
-import parser, {isPlainText} from '../parser'
+import parser, {emojiIndexByName, isPlainText} from '../parser'
 import emojiData from 'emoji-datasource'
 
 function check(md, options) {
@@ -22,11 +22,6 @@ function check(md, options) {
     const text = ast.children.map(child => child.children[0]).join('\n')
     expect(text).toBe(plainText)
   }
-}
-
-function codePointsToChar(series) {
-  const codePoints = series.split('-').map(codePoint => parseInt(codePoint, 16))
-  return String.fromCodePoint(...codePoints)
 }
 
 describe('Markdown parser', () => {
@@ -133,26 +128,36 @@ describe('Markdown parser', () => {
     check('👩‍❤️‍💋‍👨 👨‍👧 👨‍👦 👨‍👩‍👧‍👦 👨‍👨‍👧‍👧 👩‍👩‍👧‍👦 👩‍❤️‍👩')
   })
   it('parses qualified and non-qualified emoji identically', () => {
-    // Check that the trees are identical
-    // and contain the same emoji
-    const verify = (asts, emojiString) => {
-      asts.forEach(ast => {
-        expect(ast.type).toBe('markup')
-        expect(ast.children.length).toBe(1)
-        expect(ast.children[0].type).toBe('text-block')
-        expect(ast.children[0].children.length).toBe(1)
-        expect(ast.children[0].children[0].type).toBe('native-emoji')
-        expect(ast.children[0].children[0].children.length).toBe(1)
-        expect(ast.children[0].children[0].children[0]).toBe(emojiString)
-      })
+    const codePointsToChar = series => {
+      const codePoints = series.split('-').map(codePoint => parseInt(codePoint, 16))
+      return String.fromCodePoint(...codePoints)
     }
 
     emojiData.forEach(emoji => {
+      const emojiName = `:${emoji.short_name}:`
+      // make sure we always map to unified code points
+      expect(emojiIndexByName[emojiName]).toBe(codePointsToChar(emoji.unified))
       if (emoji.unified && emoji.non_qualified) {
+        const expectedAst = {
+          children: [
+            {
+              children: [
+                {
+                  children: [emojiName],
+                  type: 'native-emoji',
+                },
+              ],
+              type: 'text-block',
+            },
+          ],
+          type: 'markup',
+        }
         // check that both unified and non_qualified parse to same thing
-        const tests = [emoji.unified, emoji.non_qualified].map(codePointsToChar)
-        const asts = tests.map(emoji => parser.parse(emoji))
-        verify(asts, `:${emoji.short_name}:`)
+        ;[emoji.unified, emoji.non_qualified].map(codePoints => {
+          const emoji = codePointsToChar(codePoints)
+          const ast = parser.parse(emoji)
+          expect(ast).toEqual(expectedAst)
+        })
       }
     })
   })
