@@ -1,51 +1,87 @@
 // @flow
 import React from 'react'
 import {SuccessComponent} from './index.shared'
-import {Box, Text, HeaderHoc, ScrollView, Input, Button} from '../../common-adapters/'
+import {
+  Box2,
+  Text,
+  HeaderHoc,
+  PlainInput,
+  ScrollView,
+  InfoNote,
+  Button,
+  ButtonBar,
+} from '../../common-adapters/'
 import {compose, withProps, branch, renderComponent} from 'recompose'
-import {globalStyles, globalMargins} from '../../styles'
+import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 
 import type {Props} from '.'
 
 const EntryComponent = ({errorText, name, onNameChange, onSubmit}: Props) => (
   <ScrollView>
-    <Box style={globalStyles.flexBoxColumn}>
-      <Box
-        style={{
-          ...globalStyles.flexBoxColumn,
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginTop: globalMargins.small,
-        }}
-      >
-        <Input
+    <Box2 direction="horizontal" fullWidth={true} gap="small" gapEnd={true} gapStart={true}>
+      <Box2 direction="vertical" style={styles.container}>
+        <PlainInput
           autoFocus={true}
-          hintText="Token or team name"
+          placeholder="Token or team name"
           multiline={true}
-          rowsMin={3}
-          rowsMax={5}
+          rowsMin={5}
           value={name}
           onChangeText={onNameChange}
           onEnterKeyDown={onSubmit}
-          errorText={errorText}
+          style={collapseStyles([
+            styles.input,
+            {
+              borderColor: errorText ? globalColors.red : globalColors.grey,
+            },
+          ])}
+          small={true}
         />
-        <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium}}>
-          <Button
-            type="Primary"
-            style={{marginLeft: globalMargins.tiny}}
-            onClick={onSubmit}
-            label="Continue"
-          />
-        </Box>
-        <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium}}>
-          <Text type="BodySmall" style={{textAlign: 'center', maxWidth: 280}}>
-            Tip: if you got an invitation by text, you can copy + paste the entire message here
+        {!!errorText && (
+          <Text type="BodySmallError" style={styles.errorText}>
+            {errorText}
           </Text>
-        </Box>
-      </Box>
-    </Box>
+        )}
+        <ButtonBar direction="column">
+          <Button type="Primary" style={styles.button} onClick={onSubmit} label="Continue" />
+        </ButtonBar>
+        <InfoNote>
+          <Text type="BodySmall" style={styles.info}>
+            If you got an invitation by text, you can copy + paste the entire message here.
+          </Text>
+        </InfoNote>
+      </Box2>
+    </Box2>
   </ScrollView>
 )
+
+const styles = styleSheetCreate({
+  button: {
+    marginBottom: globalMargins.small,
+    marginTop: globalMargins.small,
+    width: '100%',
+  },
+  container: {
+    flexGrow: 1,
+  },
+  errorText: {
+    marginTop: globalMargins.tiny,
+  },
+  info: {
+    maxWidth: 280,
+    textAlign: 'center',
+  },
+  input: {
+    borderRadius: 4,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    marginTop: globalMargins.small,
+    paddingBottom: globalMargins.small,
+    paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small,
+    paddingTop: globalMargins.small,
+    width: '100%',
+  },
+})
 
 export default compose(
   withProps((props: Props) => ({

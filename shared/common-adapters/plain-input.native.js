@@ -159,6 +159,7 @@ const styles = styleSheetCreate({
   common: {backgroundColor: globalColors.fastBlank, flexGrow: 1, borderWidth: 0},
   multiline: {
     height: undefined,
+    // TODO: Maybe remove these paddings?
     paddingBottom: 0,
     paddingTop: 0,
   },
