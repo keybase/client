@@ -27,7 +27,7 @@ func TestResolveSimple(t *testing.T) {
 	r, clock := newTestResolverCache(tc.G)
 
 	goodResolve := func(s string) {
-		res := r.Resolve(s)
+		res := r.Resolve(context.Background(), s)
 		if err := res.GetError(); err != nil {
 			t.Fatal(err)
 		}
@@ -66,7 +66,7 @@ func TestResolveSimple(t *testing.T) {
 	if !r.Stats.Eq(2, 1, 1, 0, 2) {
 		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
 	}
-	res := r.Resolve("tacovontaco@twitter")
+	res := r.Resolve(context.Background(), "tacovontaco@twitter")
 	if err := res.GetError(); err == nil {
 		t.Fatal("Expected an ambiguous error on taconvontaco")
 	} else if terr, ok := err.(libkb.ResolutionError); !ok {

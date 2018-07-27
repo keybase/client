@@ -797,6 +797,6 @@ type Resolver interface {
 	ResolveFullExpressionNeedUsername(ctx context.Context, input string) (res ResolveResult)
 	ResolveFullExpressionWithBody(ctx context.Context, input string) (res ResolveResult)
 	ResolveUser(ctx context.Context, assertion string) (u keybase1.User, res ResolveResult, err error)
-	ResolveWithBody(input string) ResolveResult
-	Resolve(input string) ResolveResult
+	ResolveWithBody(ctx context.Context, input string) ResolveResult
+	Resolve(ctx context.Context, input string) ResolveResult
 }
