@@ -1145,11 +1145,13 @@ func (s *Deliverer) deliverLoop() {
 						obr.ConvID, obr.OutboxID)
 					continue
 				}
-				canceled, err := s.cancelPendingDuplicateReactions(bctx, obr)
-				if err == nil && canceled {
-					s.Debug(bctx, "deliverLoop: aborting send, duplicate send convID: %s, obid: %s",
-						obr.ConvID, obr.OutboxID)
-					continue
+				if err == nil {
+					canceled, err := s.cancelPendingDuplicateReactions(bctx, obr)
+					if err == nil && canceled {
+						s.Debug(bctx, "deliverLoop: aborting send, duplicate send convID: %s, obid: %s",
+							obr.ConvID, obr.OutboxID)
+						continue
+					}
 				}
 				if err == nil {
 					_, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0, nil)
