@@ -37,7 +37,13 @@ func BranchNameFromArchiveRefDir(dir string) (libkbfs.BranchName, bool) {
 func RevFromTimeString(
 	ctx context.Context, config libkbfs.Config, h *libkbfs.TlfHandle,
 	timeString string) (kbfsmd.Revision, error) {
-	t, err := dateparse.ParseAny(timeString)
+	// BUG: it looks like `dateparse` has trouble understanding some
+	// time zones, it seems to ignore things like "PDT" and "EST".  I
+	// filed https://github.com/araddon/dateparse/issues/68 about it.
+	// TODO: revert this back to `ParseAny` once the above issue is
+	// fixed, so that links are universally-shareable again when they
+	// contain time zones.
+	t, err := dateparse.ParseLocal(timeString)
 	if err != nil {
 		return kbfsmd.RevisionUninitialized, err
 	}
