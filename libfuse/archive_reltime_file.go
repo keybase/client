@@ -13,7 +13,8 @@ import (
 )
 
 // NewArchiveRelTimeFile returns a special read file that contains a
-// text representation of the global KBFS status.
+// by-revision directory name that corresponds to the given relative
+// time string for the given folder.
 func NewArchiveRelTimeFile(
 	fs *FS, handle *libkbfs.TlfHandle, filename string,
 	entryValid *time.Duration) *SpecialReadFile {
