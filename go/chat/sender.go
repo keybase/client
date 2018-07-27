@@ -348,58 +348,12 @@ func (s *BlockingSender) getSupersederEphemeralMetadata(ctx context.Context, uid
 
 // processReactionMessage determines if we are trying to post a duplicate
 // chat1.MessageType_REACTION, which is considered a chat1.MessageType_DELETE
-// and updates the send appropriately. We cancel any pending duplicate pending
-// reactions in the outbox.  If we cancel an odd number of items we cancel
-// ourselves since the current reaction state is correct.
+// and updates the send appropriately.
 func (s *BlockingSender) processReactionMessage(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msg chat1.MessagePlaintext) (clientHeader chat1.MessageClientHeader, err error) {
 	if msg.ClientHeader.MessageType != chat1.MessageType_REACTION {
 		// nothing to do here
 		return msg.ClientHeader, nil
-	}
-	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("processReactionMessage(%s)", convID))()
-
-	// While holding the outbox lock, let's remove any duplicate reaction
-	// messages and  make sure we are in the outbox, otherwise someone else
-	// canceled us.
-	inOutbox := false
-	outbox := storage.NewOutbox(s.G(), uid)
-	numCanceled, err := outbox.CancelMessagesWithPredicate(ctx, func(obr chat1.OutboxRecord) bool {
-		if !obr.ConvID.Eq(convID) {
-			return false
-		}
-		if obr.Msg.ClientHeader.MessageType != chat1.MessageType_REACTION {
-			return false
-		}
-
-		idEq := obr.OutboxID.Eq(msg.ClientHeader.OutboxID)
-		bodyEq := obr.Msg.MessageBody.Reaction().Eq(msg.MessageBody.Reaction())
-		// Don't delete ourselves from the outbox, but we want to make sure we
-		// are in here.
-		inOutbox = inOutbox || idEq
-		shouldCancel := bodyEq && !idEq
-		if shouldCancel {
-			s.Debug(ctx, "canceling outbox message convID: %v obid: %v", convID, obr.OutboxID)
-		}
-		return shouldCancel
-	})
-	if err != nil {
-		return clientHeader, err
-	}
-	if !inOutbox && msg.ClientHeader.OutboxID != nil {
-		// we were canceled previously, the jig is up
-		return clientHeader, DuplicateSendAbortedError{}
-	}
-	if numCanceled%2 == 1 {
-		// Since we're just toggling the reaction on/off, we should abort here
-		// and remove ourselves from the outbox since our message wouldn't
-		// change the reaction state.
-		if msg.ClientHeader.OutboxID != nil {
-			if err = outbox.RemoveMessage(ctx, *msg.ClientHeader.OutboxID); err != nil {
-				return clientHeader, err
-			}
-		}
-		return clientHeader, DuplicateSendAbortedError{}
 	}
 
 	// We could either be posting a reaction or removing one that we already posted.
@@ -1088,6 +1042,49 @@ func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecor
 	return obr, nil
 }
 
+// cancelPendingDuplicateReactions removes duplicate reactions in the outbox.
+// If we cancel an odd number of items we cancel ourselves since the current
+// reaction state is correct.
+func (s *Deliverer) cancelPendingDuplicateReactions(ctx context.Context, obr chat1.OutboxRecord) (bool, error) {
+	// While holding the outbox lock, let's remove any duplicate reaction
+	// messages and  make sure we are in the outbox, otherwise someone else
+	// canceled us.
+	inOutbox := false
+	numCanceled, err := s.outbox.CancelMessagesWithPredicate(ctx, func(o chat1.OutboxRecord) bool {
+		if !o.ConvID.Eq(obr.ConvID) {
+			return false
+		}
+		if o.Msg.ClientHeader.MessageType != chat1.MessageType_REACTION {
+			return false
+		}
+
+		idEq := o.OutboxID.Eq(&obr.OutboxID)
+		bodyEq := o.Msg.MessageBody.Reaction().Eq(obr.Msg.MessageBody.Reaction())
+		// Don't delete ourselves from the outbox, but we want to make sure we
+		// are in here.
+		inOutbox = inOutbox || idEq
+		shouldCancel := bodyEq && !idEq
+		if shouldCancel {
+			s.Debug(ctx, "canceling outbox message convID: %v obid: %v", o.ConvID, o.OutboxID)
+		}
+		return shouldCancel
+	})
+
+	if err != nil {
+		return false, err
+	} else if !inOutbox {
+		// we were canceled previously, the jig is up
+		return true, nil
+	} else if numCanceled%2 == 1 {
+		// Since we're just toggling the reaction on/off, we should abort here
+		// and remove ourselves from the outbox since our message wouldn't
+		// change the reaction state.
+		err = s.outbox.RemoveMessage(ctx, obr.OutboxID)
+		return true, err
+	}
+	return false, nil
+}
+
 func (s *Deliverer) deliverLoop() {
 	bgctx := context.Background()
 	s.Debug(bgctx, "deliverLoop: starting non blocking sender deliver loop: uid: %s duration: %v",
@@ -1144,13 +1141,14 @@ func (s *Deliverer) deliverLoop() {
 						obr.ConvID, obr.OutboxID)
 					continue
 				}
+				canceled, err := s.cancelPendingDuplicateReactions(bctx, obr)
+				if err == nil && canceled {
+					s.Debug(bctx, "deliverLoop: aborting send, duplicate send convID: %s, obid: %s",
+						obr.ConvID, obr.OutboxID)
+					continue
+				}
 				if err == nil {
 					_, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0, nil)
-					switch err.(type) {
-					case DuplicateSendAbortedError:
-						s.Debug(bctx, "deliverLoop: aborting send, duplicate send convID: %s, obid: %s obr.OutboxID", obr.ConvID, obr.OutboxID)
-						continue
-					}
 				}
 			}
 			if err != nil {
