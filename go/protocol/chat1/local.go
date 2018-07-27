@@ -4622,6 +4622,7 @@ type GetSearchRegexpArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Query            string                       `codec:"query" json:"query"`
 	IsRegex          bool                         `codec:"isRegex" json:"isRegex"`
+	SentBy           string                       `codec:"sentBy" json:"sentBy"`
 	MaxHits          int                          `codec:"maxHits" json:"maxHits"`
 	MaxMessages      int                          `codec:"maxMessages" json:"maxMessages"`
 	BeforeContext    int                          `codec:"beforeContext" json:"beforeContext"`
