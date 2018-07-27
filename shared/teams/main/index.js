@@ -20,7 +20,7 @@ const Teams = (props: Props) => (
     <Header loaded={props.loaded} onCreateTeam={props.onCreateTeam} onJoinTeam={props.onJoinTeam} />
     <Box style={{flex: 1, position: 'relative', width: '100%'}}>
       <ScrollView
-        style={globalStyles.fillAbsolute}
+        style={{...globalStyles.fillAbsolute}}
         contentContainerStyle={{
           ...globalStyles.flexBoxColumn,
           alignItems: 'center',

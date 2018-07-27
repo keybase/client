@@ -53,7 +53,12 @@ export const ReactionTooltip = (props: Props) => {
             <Box2 direction="horizontal" style={{flex: 1}} />
           </Box2>
         )}
-        <SectionList sections={sections} renderItem={renderItem} renderSectionHeader={renderSectionHeader} />
+        <SectionList
+          stickySectionHeadersEnabled={true}
+          sections={sections}
+          renderItem={renderItem}
+          renderSectionHeader={renderSectionHeader}
+        />
         {isMobile && (
           <ClickableBox onClick={props.onAddReaction}>
             <Box2 centerChildren={true} direction="horizontal" gap="xtiny" style={styles.addReactionButton}>
