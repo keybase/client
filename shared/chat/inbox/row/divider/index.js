@@ -3,11 +3,11 @@ import * as React from 'react'
 import {ClickableBox, Box2, Text, Badge} from '../../../../common-adapters'
 import {
   styleSheetCreate,
+  platformStyles,
   collapseStyles,
   globalStyles,
   globalColors,
   globalMargins,
-  isMobile,
 } from '../../../../styles'
 import * as RowSizes from '../sizes'
 
@@ -33,14 +33,16 @@ class Divider extends React.PureComponent<Props> {
         gapEnd={true}
       >
         {this.props.showButton && (
-          <ClickableBox onClick={this.props.toggle} className="toggleButtonClass" style={styles.toggleButton}>
-            <Text type="BodySmallSemibold" style={styles.buttonText}>
-              {this.props.hiddenCount > 0 ? `+${this.props.hiddenCount} more` : 'Show less'}
-            </Text>
-            {this.props.hiddenCount > 0 &&
-              this.props.badgeCount > 0 && (
-                <Badge badgeStyle={styles.badgeToggle} badgeNumber={this.props.badgeCount} />
-              )}
+          <ClickableBox onClick={this.props.toggle} style={styles.containerToggleButton}>
+            <Box2 direction="horizontal" className="toggleButtonClass" style={styles.toggleButton}>
+              <Text type="BodySmallSemibold" style={styles.buttonText}>
+                {this.props.hiddenCount > 0 ? `+${this.props.hiddenCount} more` : 'Show less'}
+              </Text>
+              {this.props.hiddenCount > 0 &&
+                this.props.badgeCount > 0 && (
+                  <Badge badgeStyle={styles.badgeToggle} badgeNumber={this.props.badgeCount} />
+                )}
+            </Box2>
           </ClickableBox>
         )}
         <Box2 direction="vertical" style={styles.divider} />
@@ -70,6 +72,8 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxColumn,
     height: RowSizes.dividerHeight(true),
     justifyContent: 'center',
+    paddingBottom: globalMargins.tiny,
+    paddingTop: globalMargins.tiny,
     width: '100%',
   },
   containerNoButton: {
@@ -77,6 +81,12 @@ const styles = styleSheetCreate({
     height: RowSizes.dividerHeight(false),
     justifyContent: 'center',
     width: '100%',
+  },
+  containerToggleButton: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    alignSelf: 'center',
+    flexShrink: 0,
   },
   divider: {
     backgroundColor: globalColors.black_05,
@@ -88,18 +98,30 @@ const styles = styleSheetCreate({
     marginLeft: globalMargins.tiny,
     marginRight: globalMargins.tiny,
   },
-  toggleButton: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    alignSelf: 'center',
-    backgroundColor: globalColors.black_05,
-    borderRadius: 19,
-    flexShrink: 0,
-    paddingBottom: globalMargins.xtiny,
-    paddingLeft: isMobile ? globalMargins.small : globalMargins.tiny,
-    paddingRight: isMobile ? globalMargins.small : globalMargins.tiny,
-    paddingTop: globalMargins.xtiny,
-  },
+  toggleButton: platformStyles({
+    common: {
+      backgroundColor: globalColors.black_05,
+      borderRadius: 19,
+      marginBottom: globalMargins.xtiny,
+      marginTop: globalMargins.xtiny,
+      paddingBottom: globalMargins.xtiny,
+      paddingTop: globalMargins.xtiny,
+    },
+    isElectron: {
+      marginLeft: globalMargins.tiny,
+      marginRight: globalMargins.tiny,
+
+      paddingLeft: globalMargins.tiny,
+      paddingRight: globalMargins.tiny,
+    },
+    isMobile: {
+      marginLeft: globalMargins.small,
+      marginRight: globalMargins.small,
+
+      paddingLeft: globalMargins.small,
+      paddingRight: globalMargins.small,
+    },
+  }),
 })
 
 export {Divider}

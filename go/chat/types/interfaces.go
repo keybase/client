@@ -32,6 +32,7 @@ type CryptKey interface {
 type AllCryptKeys map[chat1.ConversationMembersType][]CryptKey
 
 type NameInfoSource interface {
+	LookupUntrusted(ctx context.Context, name string, public bool) (*NameInfoUntrusted, error)
 	Lookup(ctx context.Context, name string, public bool) (*NameInfo, error)
 	EncryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (*NameInfo, error)
@@ -148,11 +149,11 @@ type InboxSource interface {
 		policy chat1.RetentionPolicy) (*chat1.ConversationLocal, error)
 	SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, teamID keybase1.TeamID,
 		policy chat1.RetentionPolicy) ([]chat1.ConversationLocal, error)
-	SetConvMinWriterRole(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
-		info *chat1.ConversationMinWriterRoleInfo) (*chat1.ConversationLocal, error)
+	SetConvSettings(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
+		convSettings *chat1.ConversationSettings) (*chat1.ConversationLocal, error)
 
 	GetInboxQueryLocalToRemote(ctx context.Context,
-		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, *NameInfo, error)
+		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, *NameInfoUntrusted, error)
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
 }
@@ -244,7 +245,7 @@ type ActivityNotifier interface {
 		topicType chat1.TopicType, conv *chat1.InboxUIItem)
 	SetTeamRetention(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID, topicType chat1.TopicType,
 		convs []chat1.InboxUIItem)
-	SetConvMinWriterRole(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	SetConvSettings(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		topicType chat1.TopicType, conv *chat1.InboxUIItem)
 
 	InboxSyncStarted(ctx context.Context, uid gregor1.UID)

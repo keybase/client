@@ -379,6 +379,7 @@ func setCachedSecretKey(m MetaContext, ska SecretKeyArg, key GenericKey, device 
 	}
 
 	uid := ska.Me.GetUID()
+	uv := ska.Me.ToUserVersion()
 	deviceID := deviceIDFromDevice(m, uid, device)
 	if deviceID.IsNil() {
 		m.CDebugf("SetCachedSecretKey with nil deviceID (%+v)", ska)
@@ -388,10 +389,10 @@ func setCachedSecretKey(m MetaContext, ska SecretKeyArg, key GenericKey, device 
 	case DeviceSigningKeyType:
 		deviceName := deviceNameLookup(m, device, ska.Me, key)
 		m.CDebugf("caching secret device signing key (%q/%d)", deviceName, deviceID)
-		return m.SetSigningKey(uid, deviceID, key, deviceName)
+		return m.SetSigningKey(uv, deviceID, key, deviceName)
 	case DeviceEncryptionKeyType:
 		m.CDebugf("caching secret device encryption key")
-		return m.SetEncryptionKey(uid, deviceID, key)
+		return m.SetEncryptionKey(uv, deviceID, key)
 	default:
 		return fmt.Errorf("attempt to cache invalid key type: %d", ska.KeyType)
 	}

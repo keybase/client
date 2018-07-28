@@ -1,10 +1,11 @@
 // @flow
 import * as React from 'react'
+import type {StylesCrossPlatform} from '../styles'
 
 export type Props = {|
   children?: React.Node,
   contentContainerStyle?: Object,
-  style?: Object,
+  style?: StylesCrossPlatform,
 
   // mobile only
   bounces?: boolean,

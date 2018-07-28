@@ -68,7 +68,7 @@ export default (cb: ?Function): void => {
 
     // Do we actually think we're logged in?
     if (getState().config.loggedIn) {
-      return [LoginGen.createLogoutDone()]
+      return [LoginGen.createLoggedout()]
     }
   })
 

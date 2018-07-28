@@ -39,6 +39,14 @@ func NewCmdSimpleFSRead(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 				Value: readBufSizeDefault,
 				Usage: "read buffer size",
 			},
+			cli.IntFlag{
+				Name:  "rev",
+				Usage: "a revision number for the KBFS folder",
+			},
+			cli.StringFlag{
+				Name:  "time",
+				Usage: "a time for the KBFS folder (eg \"2018-07-27 22:05\")",
+			},
 		},
 	}
 }
@@ -102,13 +110,20 @@ func (c *CmdSimpleFSRead) ParseArgv(ctx *cli.Context) error {
 
 	c.bufSize = ctx.Int("buffersize")
 
-	if nargs == 1 {
-		c.path = makeSimpleFSPath(c.G(), ctx.Args()[0])
-	} else {
-		err = fmt.Errorf("read requires a path argument")
+	if nargs != 1 {
+		return fmt.Errorf("read requires a path argument")
 	}
 
-	return err
+	// TODO: "rev" should be a real int64, need to update the
+	// `cli` library for that.
+	p, err := makeSimpleFSPathWithArchiveParams(
+		ctx.Args()[0], int64(ctx.Int("rev")), ctx.String("time"))
+	if err != nil {
+		return err
+	}
+
+	c.path = p
+	return nil
 }
 
 // GetUsage says what this command needs to operate.

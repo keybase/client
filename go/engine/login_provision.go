@@ -309,14 +309,14 @@ func (e *loginProvision) paper(m libkb.MetaContext, device *libkb.Device) (err e
 	m.CDebugf("paper encryption key kid: %s", keys.EncryptionKey().GetKID())
 
 	u := e.arg.User
-	uid := u.GetUID()
+	uv := u.ToUserVersion()
 	nn := u.GetNormalizedName()
 
 	// Set the active device to be a special paper key active device, which keeps
 	// a cached copy around for DeviceKeyGen, which requires it to be in memory.
 	// It also will establish a NIST so that API calls can proceed on behalf of the user.
-	m = m.WithPaperKeyActiveDevice(keys, uid)
-	m.LoginContext().SetUsernameUID(nn, uid)
+	m = m.WithPaperKeyActiveDevice(keys, uv)
+	m.LoginContext().SetUsernameUserVersion(nn, uv)
 
 	// need lksec to store device keys locally
 	if err := e.fetchLKS(m, keys.EncryptionKey()); err != nil {

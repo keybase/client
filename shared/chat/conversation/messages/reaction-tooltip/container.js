@@ -44,7 +44,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   let reactions = stateProps._reactions
     .keySeq()
     .toArray()
@@ -52,6 +52,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       emoji,
       users: stateProps._reactions
         .get(emoji, I.Set())
+        // Earliest users go at the top
+        .sort((a, b) => a.timestamp - b.timestamp)
         .map(r => ({
           fullName: stateProps._usersInfo.get(r.username, {fullname: ''}).fullname,
           username: r.username,

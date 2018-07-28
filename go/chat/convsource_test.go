@@ -337,6 +337,16 @@ func TestReactions(t *testing.T) {
 		require.Equal(t, body, msg.Valid().MessageBody.Text().Body, "wrong body")
 		require.Equal(t, supersededBy, msg.Valid().ServerHeader.SupersededBy, "wrong super")
 		require.Equal(t, reactionIDs, msg.Valid().ServerHeader.ReactionIDs, "wrong reactionIDs")
+
+		// Verify the ctimes are not zero, but we don't care about the actual
+		// value for the test.
+		for _, reactions := range msg.Valid().Reactions.Reactions {
+			for k, r := range reactions {
+				require.NotZero(t, r.Ctime)
+				r.Ctime = 0
+				reactions[k] = r
+			}
+		}
 		require.Equal(t, reactionMap, msg.Valid().Reactions, "wrong reactions")
 	}
 
@@ -429,9 +439,11 @@ func TestReactions(t *testing.T) {
 	t.Logf("test +1 reaction")
 	reactionMsgID := sendReaction(":+1:", msgID)
 	expectedReactionMap := chat1.ReactionMap{
-		Reactions: map[string]map[string]chat1.MessageID{
-			":+1:": map[string]chat1.MessageID{
-				u.Username: reactionMsgID,
+		Reactions: map[string]map[string]chat1.Reaction{
+			":+1:": map[string]chat1.Reaction{
+				u.Username: chat1.Reaction{
+					ReactionMsgID: reactionMsgID,
+				},
 			},
 		},
 	}
@@ -439,8 +451,10 @@ func TestReactions(t *testing.T) {
 
 	t.Logf("test -1 reaction")
 	reactionMsgID2 := sendReaction(":-1:", msgID)
-	expectedReactionMap.Reactions[":-1:"] = map[string]chat1.MessageID{
-		u.Username: reactionMsgID2,
+	expectedReactionMap.Reactions[":-1:"] = map[string]chat1.Reaction{
+		u.Username: chat1.Reaction{
+			ReactionMsgID: reactionMsgID2,
+		},
 	}
 	verifyThread(msgID, editMsgID, body, []chat1.MessageID{reactionMsgID, reactionMsgID2}, expectedReactionMap)
 
@@ -466,8 +480,10 @@ func TestReactions(t *testing.T) {
 	t.Logf("test reaction after delete")
 	reactionMsgID3 := sendReaction(":-1:", msgID)
 
-	expectedReactionMap.Reactions[":-1:"] = map[string]chat1.MessageID{
-		u.Username: reactionMsgID3,
+	expectedReactionMap.Reactions[":-1:"] = map[string]chat1.Reaction{
+		u.Username: chat1.Reaction{
+			ReactionMsgID: reactionMsgID3,
+		},
 	}
 	verifyThread(msgID, editMsgID3, body, []chat1.MessageID{reactionMsgID, reactionMsgID3}, expectedReactionMap)
 
@@ -703,6 +719,11 @@ func (f failingTlf) PublicCanonicalTLFNameAndID(context.Context, string) (keybas
 func (f failingTlf) CompleteAndCanonicalizePrivateTlfName(context.Context, string) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
 	require.Fail(f.t, "CompleteAndCanonicalizePrivateTlfName call")
 	return keybase1.CanonicalTLFNameAndIDWithBreaks{}, nil
+}
+
+func (f failingTlf) LookupUntrusted(context.Context, string, bool) (*types.NameInfoUntrusted, error) {
+	require.Fail(f.t, "LookupUnstrusted call")
+	return nil, nil
 }
 
 func (f failingTlf) Lookup(context.Context, string, bool) (*types.NameInfo, error) {

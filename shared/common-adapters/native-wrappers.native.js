@@ -8,7 +8,6 @@ import {
   DrawerLayoutAndroid as NativeDrawerLayoutAndroid,
   Easing as NativeEasing,
   FlatList as NativeFlatList,
-  Image as NativeImage,
   KeyboardAvoidingView as NativeKeyboardAvoidingView,
   Keyboard as NativeKeyboard,
   Linking as NativeLinking,
@@ -32,6 +31,7 @@ import {
   WebView as NativeWebView,
 } from 'react-native'
 import ScrollView from './scroll-view.native'
+import NativeImage from './native-image.native'
 
 // We set some useful default here
 export {

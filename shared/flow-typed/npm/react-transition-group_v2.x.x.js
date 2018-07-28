@@ -1,5 +1,5 @@
-// flow-typed signature: f141dfa8c0b7f5df073148a65aa8cf8d
-// flow-typed version: b55e88afb4/react-transition-group_v2.x.x/flow_>=v0.60.x
+// flow-typed signature: 896bbb51b1a943fefff583786cd4d0c0
+// flow-typed version: b6c24caf38/react-transition-group_v2.x.x/flow_>=v0.60.x
 
 // @flow
 
@@ -63,6 +63,6 @@ declare module 'react-transition-group' {
   declare export class CSSTransition extends React$Component<TransitionProps & {
     in?: boolean,
     classNames: string | CSSTransitionClassNames,
-    children?: React$Node,
+    children?: ((status: TransitionStatus) => React$Node) | React$Node,
   }> {}
 }

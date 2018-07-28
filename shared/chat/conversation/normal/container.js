@@ -1,6 +1,7 @@
 // @flow
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
+import * as WaitingConstants from '../../../constants/waiting'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as TrackerGen from '../../../actions/tracker-gen'
 import * as RouteTree from '../../../actions/route-tree'
@@ -9,7 +10,7 @@ import {compose, connect, withStateHandlers, type TypedState} from '../../../uti
 import {chatTab} from '../../../constants/tabs'
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
-  const showLoader = !!state.waiting.get(Constants.waitingKeyThreadLoad(conversationIDKey))
+  const showLoader = WaitingConstants.anyWaiting(state, Constants.waitingKeyThreadLoad(conversationIDKey))
   const meta = Constants.getMeta(state, conversationIDKey)
   const infoPanelOpen = Constants.isInfoPanelOpen(state)
   const isSearching =

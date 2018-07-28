@@ -122,10 +122,25 @@ func (e *DeviceWrap) genKeys(m libkb.MetaContext) (err error) {
 	return nil
 }
 
+func (e *DeviceWrap) refreshMe(m libkb.MetaContext) (err error) {
+	defer m.CTrace("DeviceWrap#refreshMe", func() error { return err })()
+	if !e.args.IsEldest {
+		return nil
+	}
+	m.CDebugf("reloading Me because we just bumped eldest seqno")
+	e.args.Me, err = libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m))
+	return err
+}
+
 func (e *DeviceWrap) setActiveDevice(m libkb.MetaContext) (err error) {
 	defer m.CTrace("DeviceWrap#setActiveDevice", func() error { return err })()
 
-	if err := m.SetActiveDevice(e.args.Me.GetUID(), e.deviceID, e.signingKey, e.encryptionKey, e.args.DeviceName); err != nil {
+	err = e.refreshMe(m)
+	if err != nil {
+		return err
+	}
+
+	if err := m.SetActiveDevice(e.args.Me.ToUserVersion(), e.deviceID, e.signingKey, e.encryptionKey, e.args.DeviceName); err != nil {
 		return err
 	}
 

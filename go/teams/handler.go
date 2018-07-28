@@ -459,7 +459,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 
 		if currentRole.IsOrAbove(invite.Role) {
 			g.Log.CDebugf(ctx, "User already has same or higher role, canceling invite.")
-			tx.CancelInvite(invite.Id)
+			tx.CancelInvite(invite.Id, uv.Uid)
 			continue
 		}
 

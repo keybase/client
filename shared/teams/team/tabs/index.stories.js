@@ -4,24 +4,24 @@ import {action, storiesOf} from '../../../stories/storybook'
 import TeamTabs from '.'
 
 const yourOperations = {
+  changeOpenTeam: false,
+  changeTarsDisabled: false,
+  chat: false,
+  createChannel: false,
+  deleteChannel: false,
+  deleteChatHistory: false,
+  editChannelDescription: false,
+  joinTeam: false,
+  leaveTeam: false,
+  listFirst: false,
   manageMembers: false,
   manageSubteams: false,
-  createChannel: false,
-  chat: false,
-  deleteChannel: false,
   renameChannel: false,
-  editChannelDescription: false,
-  setTeamShowcase: false,
-  setMemberShowcase: false,
-  setRetentionPolicy: false,
   setMinWriterRole: false,
-  changeOpenTeam: false,
-  leaveTeam: false,
-  joinTeam: false,
+  setMemberShowcase: false,
   setPublicityAny: false,
-  listFirst: false,
-  changeTarsDisabled: false,
-  deleteChatHistory: false,
+  setRetentionPolicy: false,
+  setTeamShowcase: false,
 }
 
 const commonProps = {

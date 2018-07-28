@@ -965,16 +965,16 @@ func (g *PushHandler) SetTeamRetention(ctx context.Context, m gregor.OutOfBandMe
 	return nil
 }
 
-func (g *PushHandler) SetConvMinWriterRole(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
+func (g *PushHandler) SetConvSettings(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		g.identNotifier)
-	defer g.Trace(ctx, func() error { return err }, "SetConvMinWriterRole")()
+	defer g.Trace(ctx, func() error { return err }, "SetConvSettings")()
 	if m.Body() == nil {
-		return errors.New("gregor handler for SetConvMinWriterRole update: nil message body")
+		return errors.New("gregor handler for SetConvSettings update: nil message body")
 	}
 
-	var update chat1.SetConvMinWriterRoleUpdate
+	var update chat1.SetConvSettingsUpdate
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
 	if err = dec.Decode(&update); err != nil {
@@ -986,24 +986,24 @@ func (g *PushHandler) SetConvMinWriterRole(ctx context.Context, m gregor.OutOfBa
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
 	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) {
-		defer g.Trace(ctx, func() error { return err }, "SetConvMinWriterRole(goroutine)")()
+		defer g.Trace(ctx, func() error { return err }, "SetConvSettings(goroutine)")()
 		<-cb
 		g.Lock()
 		defer g.Unlock()
 		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
 
 		// Update inbox
-		conv, err := g.G().InboxSource.SetConvMinWriterRole(ctx, m.UID().Bytes(), update.InboxVers,
-			update.ConvID, update.Info)
+		conv, err := g.G().InboxSource.SetConvSettings(ctx, m.UID().Bytes(), update.InboxVers,
+			update.ConvID, update.ConvSettings)
 		if err != nil {
-			g.Debug(ctx, "SetConvMinWriterRole: unable to update inbox: %s", err.Error())
+			g.Debug(ctx, "SetConvSettings: unable to update inbox: %s", err.Error())
 			return
 		}
 		if conv == nil {
 			return
 		}
 		// Send notify for the conv
-		g.G().ActivityNotifier.SetConvMinWriterRole(ctx, uid,
+		g.G().ActivityNotifier.SetConvSettings(ctx, uid,
 			conv.GetConvID(), conv.GetTopicType(), g.presentUIItem(ctx, conv, uid))
 	}(bctx)
 
@@ -1032,8 +1032,8 @@ func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessag
 		return true, g.SetConvRetention(ctx, obm)
 	case types.PushTeamRetention:
 		return true, g.SetTeamRetention(ctx, obm)
-	case types.PushConvMinWriterRole:
-		return true, g.SetConvMinWriterRole(ctx, obm)
+	case types.PushConvSettings:
+		return true, g.SetConvSettings(ctx, obm)
 	case types.PushKBFSUpgrade:
 		return true, g.UpgradeKBFSToImpteam(ctx, obm)
 	}

@@ -1510,11 +1510,13 @@ type LinkCheckResult struct {
 
 func (l LinkCheckResult) GetDiff() TrackDiff            { return l.diff }
 func (l LinkCheckResult) GetError() error               { return l.err }
+func (l LinkCheckResult) GetProofError() ProofError     { return l.err }
 func (l LinkCheckResult) GetHint() *SigHint             { return l.hint }
 func (l LinkCheckResult) GetCached() *CheckResult       { return l.cached }
 func (l LinkCheckResult) GetPosition() int              { return l.position }
 func (l LinkCheckResult) GetTorWarning() bool           { return l.torWarning }
 func (l LinkCheckResult) GetLink() RemoteProofChainLink { return l.link }
+func (l LinkCheckResult) GetRemoteDiff() TrackDiff      { return l.remoteDiff }
 
 // ComputeRemoteDiff takes as input three tracking results: the permanent track,
 // the local temporary track, and the one it observed remotely. It favors the

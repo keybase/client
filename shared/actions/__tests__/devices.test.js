@@ -6,8 +6,6 @@ import * as Constants from '../../constants/devices'
 import * as DevicesGen from '../devices-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
-import * as WaitingGen from '../waiting-gen'
-import HiddenString from '../../util/hidden-string'
 import {_testing} from '../devices'
 
 jest.unmock('immutable')
@@ -100,39 +98,4 @@ describe('convertDataFromServer', () => {
   expect(_testing.dispatchDevicesLoaded(results)).toEqual(
     Saga.put(DevicesGen.createDevicesLoaded({idToDetail}))
   )
-})
-
-describe('waitingGetsUpdated', () => {
-  const payload = {key: Constants.waitingKey}
-  const deviceID = Types.stringToDeviceID('')
-
-  it('waiting increments', () => {
-    const actionsThatIncrement = [
-      DevicesGen.createDeviceRevoke({deviceID}),
-      DevicesGen.createDevicesLoad(),
-      DevicesGen.createEndangeredTLFsLoad({deviceID}),
-      DevicesGen.createPaperKeyMake(),
-    ]
-
-    actionsThatIncrement.forEach(a =>
-      expect(_testing.changeWaiting(a)).toEqual(Saga.put(WaitingGen.createIncrementWaiting(payload)))
-    )
-  })
-
-  it('waiting decrements', () => {
-    const actionsThatDecrement = [
-      DevicesGen.createDevicesLoaded({idToDetail: I.Map()}),
-      DevicesGen.createEndangeredTLFsLoaded({deviceID, tlfs: []}),
-      DevicesGen.createPaperKeyCreated({paperKey: new HiddenString('')}),
-      DevicesGen.createDeviceRevoked({
-        deviceID,
-        deviceName: '',
-        wasCurrentDevice: false,
-      }),
-    ]
-
-    actionsThatDecrement.forEach(a =>
-      expect(_testing.changeWaiting(a)).toEqual(Saga.put(WaitingGen.createDecrementWaiting(payload)))
-    )
-  })
 })

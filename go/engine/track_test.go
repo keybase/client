@@ -44,7 +44,8 @@ func assertTracking(tc libkb.TestContext, username string) {
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	s, err := me.TrackChainLinkFor(them.GetNormalizedName(), them.GetUID())
+	m := NewMetaContextForTest(tc)
+	s, err := me.TrackChainLinkFor(m, them.GetNormalizedName(), them.GetUID())
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -62,7 +63,8 @@ func assertNotTracking(tc libkb.TestContext, username string) {
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	s, err := me.TrackChainLinkFor(them.GetNormalizedName(), them.GetUID())
+	m := NewMetaContextForTest(tc)
+	s, err := me.TrackChainLinkFor(m, them.GetNormalizedName(), them.GetUID())
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -98,8 +100,11 @@ func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	upk := res.ExportToUserPlusKeys()
-	checkAliceProofs(tc.T, idUI, &upk)
+	upk, err := res.ExportToUPKV2AllIncarnations()
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	checkAliceProofs(tc.T, idUI, &upk.Current)
 	assertTracking(tc, "t_alice")
 	return
 }
@@ -118,8 +123,11 @@ func trackBobWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.Tr
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	upk := res.ExportToUserPlusKeys()
-	checkBobProofs(tc.T, idUI, &upk)
+	upk, err := res.ExportToUPKV2AllIncarnations()
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	checkBobProofs(tc.T, idUI, &upk.Current)
 	assertTracking(tc, "t_bob")
 	return
 }
@@ -280,8 +288,8 @@ func TestTrackLocal(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	s, err := me.TrackChainLinkFor(them.GetNormalizedName(), them.GetUID())
+	m := NewMetaContextForTest(tc)
+	s, err := me.TrackChainLinkFor(m, them.GetNormalizedName(), them.GetUID())
 	if err != nil {
 		t.Fatal(err)
 	}

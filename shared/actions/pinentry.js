@@ -54,7 +54,7 @@ function _onNewPinentry(action: PinentryGen.NewPinentryPayload) {
 
 function _onSubmit(action: PinentryGen.OnSubmitPayload) {
   const {sessionID, passphrase} = action.payload
-  _respond(sessionID, {passphrase, storeSecret: false})
+  _respond(sessionID, {passphrase})
   return Saga.put(
     PinentryGen.createDeleteEntity({
       ids: [action.payload.sessionID],

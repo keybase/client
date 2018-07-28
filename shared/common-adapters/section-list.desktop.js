@@ -46,6 +46,10 @@ class SectionList extends React.Component<Props, State> {
   _itemRenderer = (index, key) => {
     const item = this.state.items[index]
     const section = this.props.sections[item.sectionIndex]
+    if (!section) {
+      // data is switching out from under us. let things settle
+      return null
+    }
     const indexWithinSection = section.data.indexOf(item.item)
     return item.type === 'header' ? (
       <Box key={item.key || key} style={styles.sectionHeader}>
@@ -58,7 +62,7 @@ class SectionList extends React.Component<Props, State> {
 
   render() {
     return (
-      <ScrollView>
+      <ScrollView style={styles.fullHeight}>
         <ReactList itemRenderer={this._itemRenderer} length={this.state.items.length} />
       </ScrollView>
     )
@@ -66,11 +70,14 @@ class SectionList extends React.Component<Props, State> {
 }
 
 const styles = styleSheetCreate({
+  fullHeight: {
+    height: '100%',
+  },
   sectionHeader: platformStyles({
     isElectron: {
       position: 'sticky',
       top: 0,
-      zIndex: '1', // needed to be on top of newly created stacking context
+      zIndex: 1, // needed to be on top of newly created stacking context
     },
   }),
 })
