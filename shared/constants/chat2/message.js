@@ -615,7 +615,8 @@ const outboxUIMessagetoMessage = (
             ? o.preview.location.url
             : ''
         const md = o.preview && o.preview.metadata
-        pre = previewSpecs(md, null)
+        const baseMd = o.preview && o.preview.baseMetadata
+        pre = previewSpecs(md, baseMd)
       }
       return makePendingAttachmentMessage(
         state,

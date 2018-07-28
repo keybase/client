@@ -1674,7 +1674,9 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
         ? preview.location.url
         : ''
   )
-  const previewSpecs = previews.map(preview => Constants.previewSpecs(preview && preview.metadata, null))
+  const previewSpecs = previews.map(preview =>
+    Constants.previewSpecs(preview && preview.metadata, preview && preview.baseMetadata)
+  )
 
   let lastOrdinal = null
   const messages = outboxIDs.map((o, i) => {
