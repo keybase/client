@@ -56,8 +56,8 @@ int ImageLength() {
 */
 import "C"
 import (
+	"bytes"
 	"io"
-	"io/ioutil"
 	"unsafe"
 
 	"github.com/keybase/client/go/chat/utils"
@@ -72,11 +72,8 @@ func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader, ba
 	defer log.Trace(ctx, func() error { return err }, "previewVideo")()
 	C.MakeVideoThumbnail(C.CString(basename))
 	log.Debug(ctx, "previewVideo: length: %d", C.ImageLength())
-	ioutil.WriteFile(
-		"/tmp/s.jpg",
-		(*[1 << 30]byte)(unsafe.Pointer(C.ImageData()))[0:C.ImageLength()],
-		0644,
-	)
+	localDat := make([]byte, C.ImageLength())
+	copy(localDat, (*[1 << 30]byte)(unsafe.Pointer(C.ImageData()))[0:C.ImageLength()])
 	C.ImageFree()
-	return nil, nil
+	return previewImage(ctx, log, bytes.NewReader(localDat), basename, "image/jpeg")
 }
