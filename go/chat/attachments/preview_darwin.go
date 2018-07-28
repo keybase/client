@@ -4,7 +4,7 @@ package attachments
 
 /*
 #cgo CFLAGS: -x objective-c
-#cgo LDFLAGS: -framework AVFoundation -framework CoreFoundation -framework ImageIO -framework CoreMedia -framework CoreServices -framework Foundation -lobjc
+#cgo LDFLAGS: -framework AVFoundation -framework CoreFoundation -framework ImageIO -framework CoreMedia -framework CoreServices -framework Foundation -framework CoreGraphics -lobjc
 
 #include <AVFoundation/AVFoundation.h>
 
@@ -18,13 +18,28 @@ void MakeVideoThumbnail(const char* inFilename) {
 	AVAssetImageGenerator *generateImg = [[AVAssetImageGenerator alloc] initWithAsset:asset];
 	NSError *error = NULL;
 	CMTime time = CMTimeMake(1, 1);
-	CGImageRef refImg = [generateImg copyCGImageAtTime:time actualTime:NULL error:&error];
+	CGImageRef image = [generateImg copyCGImageAtTime:time actualTime:NULL error:&error];
 
-	imageData = NULL;
-	CGImageDestinationRef destination = NULL;
-	imageData = [NSMutableData data];
-	destination = CGImageDestinationCreateWithData((CFMutableDataRef)imageData, kUTTypeJPEG, 1, NULL);
-	CGImageDestinationFinalize(destination);
+	CFMutableDataRef mutableData = CFDataCreateMutable(NULL, 0);
+	CGImageDestinationRef idst = CGImageDestinationCreateWithData(
+		mutableData, kUTTypeJPEG, 1, NULL
+	);
+	NSInteger exif             =    1;
+	CGFloat compressionQuality = 0.70;
+	NSDictionary *props = [
+		[NSDictionary alloc]
+		initWithObjectsAndKeys:[NSNumber numberWithFloat:compressionQuality],
+		kCGImageDestinationLossyCompressionQuality,
+		[NSNumber numberWithInteger:exif],
+		kCGImagePropertyOrientation, nil
+	];
+	CGImageDestinationAddImage(idst, image, (CFDictionaryRef)props);
+	CGImageDestinationFinalize(idst);
+	imageData = [NSData dataWithData:(NSData *)mutableData];
+	[props release];
+	CFRelease(idst);
+	CFRelease(mutableData);
+	CGImageRelease(image);
 }
 
 const void* ImageData() {
@@ -56,6 +71,7 @@ func CFDataToBytes(cfData C.CFDataRef) ([]byte, error) {
 func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader, basename string) (res *PreviewRes, err error) {
 	defer log.Trace(ctx, func() error { return err }, "previewVideo")()
 	C.MakeVideoThumbnail(C.CString(basename))
+	log.Debug(ctx, "previewVideo: length: %d", C.ImageLength())
 	ioutil.WriteFile(
 		"/tmp/s.jpg",
 		(*[1 << 30]byte)(unsafe.Pointer(C.ImageData()))[0:C.ImageLength()],
