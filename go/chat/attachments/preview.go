@@ -11,6 +11,7 @@ import (
 	"image/png"
 	"io"
 	"io/ioutil"
+	"strings"
 
 	"github.com/keybase/client/go/chat/utils"
 
@@ -45,6 +46,9 @@ func Preview(ctx context.Context, log utils.DebugLabeler, src io.Reader, content
 		return previewImage(ctx, log, src, basename, contentType)
 	case "image/gif":
 		return previewGIF(ctx, log, src, basename)
+	}
+	if strings.HasPrefix(contentType, "video") {
+		return previewVideo(ctx, log, src, basename)
 	}
 
 	return nil, nil
