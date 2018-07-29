@@ -1606,6 +1606,27 @@ function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
   yield Saga.call(downloadAttachment, destPath, conversationIDKey, message, ordinal)
 }
 
+function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayload) {
+  const message = action.payload.message
+  if (message.fileType.startsWith('video')) {
+    yield Saga.put(
+      Chat2Gen.createAttachmentDownload({
+        conversationIDKey: message.conversationIDKey,
+        ordinal: message.ordinal,
+      })
+    )
+  } else {
+    yield Saga.put(
+      Route.navigateAppend([
+        {
+          props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+          selected: 'attachmentFullscreen',
+        },
+      ])
+    )
+  }
+}
+
 // Upload an attachment
 function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   const {conversationIDKey, paths, titles} = action.payload
@@ -1674,9 +1695,7 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
         ? preview.location.url
         : ''
   )
-  const previewSpecs = previews.map(preview =>
-    Constants.previewSpecs(preview && preview.metadata, preview && preview.baseMetadata)
-  )
+  const previewSpecs = previews.map(preview => Constants.previewSpecs(preview && preview.metadata, null))
 
   let lastOrdinal = null
   const messages = outboxIDs.map((o, i) => {
@@ -2304,6 +2323,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     getRecommendations
   )
 
+  yield Saga.safeTakeEvery(Chat2Gen.attachmentPreviewSelect, attachmentPreviewSelect)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentDownload, attachmentDownload)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentsUpload, attachmentsUpload)
 

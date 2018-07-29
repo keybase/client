@@ -7,6 +7,11 @@ package attachments
 #cgo LDFLAGS: -framework AVFoundation -framework CoreFoundation -framework ImageIO -framework CoreMedia -framework CoreServices -framework Foundation -framework CoreGraphics -lobjc
 
 #include <AVFoundation/AVFoundation.h>
+#include <CoreFoundation/CoreFoundation.h>
+#include <Foundation/Foundation.h>
+#include <CoreGraphics/CoreGraphics.h>
+#include <CoreServices/CoreServices.h>
+#include <ImageIO/ImageIO.h>
 
 NSData* imageData = NULL;
 

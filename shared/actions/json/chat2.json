@@ -283,6 +283,10 @@
       "users": "Array<string>",
       "fromSearch": "boolean"
     },
+    // The user has selected an attachment with a preview
+    "attachmentPreviewSelect": {
+      "message": "Types.MessageAttachment"
+    },
     // We want to save an attachment to the local disk
     "attachmentDownload": {
       "conversationIDKey": "Types.ConversationIDKey",

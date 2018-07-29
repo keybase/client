@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../../../../../constants/types/chat2'
 import * as KBFSGen from '../../../../../actions/kbfs-gen'
-import * as Route from '../../../../../actions/route-tree'
+import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import {connect, type TypedState, type Dispatch, isMobile} from '../../../../../util/container'
 import {globalColors} from '../../../../../styles'
 import ImageAttachment from '.'
@@ -17,12 +17,9 @@ const mapStateToProps = (state: TypedState) => ({})
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onClick: (message: Types.MessageAttachment) => {
     dispatch(
-      Route.navigateAppend([
-        {
-          props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
-          selected: 'attachmentFullscreen',
-        },
-      ])
+      Chat2Gen.createAttachmentPreviewSelect({
+        message,
+      })
     )
   },
   _onShowInFinder: (message: Types.MessageAttachment) => {

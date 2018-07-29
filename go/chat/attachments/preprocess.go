@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/keybase/client/go/chat/utils"
 
@@ -189,10 +190,14 @@ func PreprocessAsset(ctx context.Context, log utils.DebugLabeler, filename strin
 	p = Preprocess{
 		ContentType: http.DetectContentType(head),
 	}
-	log.Debug(ctx, "preprocessAsset: detected attachment content type %s", p.ContentType)
 	if _, err := src.Seek(0, 0); err != nil {
 		return p, err
 	}
+	if p.ContentType == "application/octet-stream" && strings.HasSuffix(strings.ToLower(filename), ".mov") {
+		p.ContentType = "video/quicktime"
+	}
+	log.Debug(ctx, "preprocessAsset: detected attachment content type %s", p.ContentType)
+
 	previewRes, err := Preview(ctx, log, src, p.ContentType, filename)
 	if err != nil {
 		log.Debug(ctx, "preprocessAsset: error making preview: %s", err)
