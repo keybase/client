@@ -766,7 +766,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.metaReceivedError:
     case Chat2Gen.metaRequestingTrusted:
     case Chat2Gen.metasReceived:
-    case Chat2Gen.attachmentPreviewSelect:
     case Chat2Gen.attachmentLoading:
     case Chat2Gen.attachmentUploading:
     case Chat2Gen.attachmentUploaded:
@@ -785,6 +784,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
       })
     // Saga only actions
+    case Chat2Gen.attachmentPreviewSelect:
     case Chat2Gen.attachmentsUpload:
     case Chat2Gen.desktopNotification:
     case Chat2Gen.inboxRefresh:

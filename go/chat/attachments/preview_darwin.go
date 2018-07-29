@@ -4,14 +4,16 @@ package attachments
 
 /*
 #cgo CFLAGS: -x objective-c
-#cgo LDFLAGS: -framework AVFoundation -framework CoreFoundation -framework ImageIO -framework CoreMedia -framework CoreServices -framework Foundation -framework CoreGraphics -lobjc
+#cgo LDFLAGS: -framework AVFoundation -framework CoreFoundation -framework ImageIO -framework CoreMedia  -framework Foundation -framework CoreGraphics -lobjc
 
+#include <TargetConditionals.h>
 #include <AVFoundation/AVFoundation.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <Foundation/Foundation.h>
-#include <CoreGraphics/CoreGraphics.h>
-#include <CoreServices/CoreServices.h>
 #include <ImageIO/ImageIO.h>
+#if TARGET_OS_IPHONE
+#include <MobileCoreServices/MobileCoreServices.h>
+#endif
 
 NSData* imageData = NULL;
 

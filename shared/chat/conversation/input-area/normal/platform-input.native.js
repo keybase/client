@@ -37,7 +37,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
   }
 
   _openFilePicker = () => {
-    showImagePicker({mediaType: 'photo'}, response => {
+    showImagePicker({mediaType: isIOS ? 'mixed' : 'photo'}, response => {
       if (response.didCancel || !this.props.conversationIDKey) {
         return
       }
