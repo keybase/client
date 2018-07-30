@@ -90,7 +90,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     deviceName: message.deviceName,
     deviceRevokedAt: message.deviceRevokedAt,
     deviceType: message.deviceType,
-    onAddReaction: () => dispatchProps._onAddReaction(message),
+    onAddReaction: isMobile ? () => dispatchProps._onAddReaction(message) : null,
     onDelete: yourMessage ? () => dispatchProps._onDelete(message) : null,
     onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
     onHidden: () => ownProps.onHidden(),
