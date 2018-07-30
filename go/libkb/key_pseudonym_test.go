@@ -18,11 +18,6 @@ func testKeyPseudonymName(id string, app keybase1.TeamApplication, keyGen KeyGen
 }
 
 func testMakeKeyPseudonym(t *testing.T, idStr string, app keybase1.TeamApplication, keyGen KeyGen, nonceStr string, expectedPseudonymStr string) {
-	idBytes, err := hex.DecodeString(idStr)
-	require.NoError(t, err)
-	var id tlfID
-	copy(id[:], idBytes)
-
 	nonceBytes, err := hex.DecodeString(nonceStr)
 	require.NoError(t, err)
 	require.Equal(t, 32, len(nonceBytes))
@@ -30,7 +25,7 @@ func testMakeKeyPseudonym(t *testing.T, idStr string, app keybase1.TeamApplicati
 	copy(nonce[:], nonceBytes)
 
 	pseudonym, err := MakeKeyPseudonym(KeyPseudonymInfo{
-		ID:          keybase1.UserOrTeamID(idBytes),
+		ID:          keybase1.UserOrTeamID(idStr),
 		Application: app,
 		KeyGen:      keyGen,
 		Nonce:       nonce,
