@@ -15,7 +15,7 @@ import SpecialBottomMessage from '../../messages/special-bottom-message'
 import {ErrorBoundary} from '../../../../common-adapters'
 import {copyToClipboard} from '../../../../util/clipboard'
 import {debounce, throttle, chunk} from 'lodash-es'
-import {globalColors, globalStyles} from '../../../../styles'
+import {globalStyles} from '../../../../styles'
 import type {Props} from './index.types'
 import shallowEqual from 'shallowequal'
 
@@ -501,7 +501,6 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
 // Chrome.
 const realCSS = `
 .message {
-  border: 1px solid transparent;
   contain: content;
 }
 .message .menu-button {
@@ -509,9 +508,6 @@ const realCSS = `
   height: 17;
   flex-shrink: 0;
   opacity: 0;
-}
-.message:hover {
-  border: 1px solid ${globalColors.black_10};
 }
 .message:hover .menu-button {
   visibility: visible;

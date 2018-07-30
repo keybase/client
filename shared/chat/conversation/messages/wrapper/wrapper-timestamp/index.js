@@ -2,9 +2,17 @@
 import * as React from 'react'
 import {Box} from '../../../../../common-adapters'
 import Timestamp from '../timestamp'
-import {globalStyles, globalColors, styleSheetCreate} from '../../../../../styles'
+import {glamorous, globalStyles, globalColors, isMobile, styleSheetCreate} from '../../../../../styles'
 import ReactionsRow from '../../reactions-row/container'
 import type {WrapperTimestampProps} from '../index.types'
+
+const HoverBox = isMobile
+  ? Box
+  : glamorous(Box)({
+      ':hover': {
+        backgroundColor: globalColors.blue4,
+      },
+    })
 
 class WrapperTimestamp extends React.PureComponent<WrapperTimestampProps> {
   componentDidUpdate(prevProps: WrapperTimestampProps) {
@@ -23,8 +31,10 @@ class WrapperTimestamp extends React.PureComponent<WrapperTimestampProps> {
       <Box style={styles.container}>
         {props.orangeLineAbove && <Box style={styles.orangeLine} />}
         {props.timestamp && <Timestamp timestamp={props.timestamp} />}
-        {props.children}
-        <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
+        <HoverBox>
+          {props.children}
+          <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
+        </HoverBox>
       </Box>
     )
   }

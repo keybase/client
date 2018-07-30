@@ -314,7 +314,6 @@ const styles = styleSheetCreate({
   },
   username: {
     alignSelf: 'flex-start',
-    backgroundColor: globalColors.fastBlank,
     marginBottom: 0,
   },
   usernameYou: {
