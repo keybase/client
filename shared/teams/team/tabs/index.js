@@ -4,7 +4,7 @@ import * as Types from '../../../constants/types/teams'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import {
   iconCastPlatformStyles,
-  Badge,
+  Badge2,
   Box,
   Icon,
   ProgressIndicator,
@@ -41,7 +41,7 @@ const TeamTabs = (props: TeamTabsProps) => {
       <Text key="members" type="BodySmallSemibold" style={styles.tabText}>
         {`MEMBERS (${props.memberCount})`}
       </Text>
-      {!!props.resetUserCount && <Badge badgeNumber={props.resetUserCount} badgeStyle={styles.badge} />}
+      {!!props.resetUserCount && <Badge2 badgeNumber={props.resetUserCount} badgeStyle={styles.badge} />}
     </Box>,
   ]
 
@@ -60,7 +60,7 @@ const TeamTabs = (props: TeamTabsProps) => {
         <Text type="BodySmallSemibold" style={styles.tabText}>
           {`INVITES (${props.numInvites + props.numRequests})`}
         </Text>
-        {!!requestsBadge && <Badge badgeNumber={requestsBadge} badgeStyle={styles.badge} />}
+        {!!requestsBadge && <Badge2 badgeNumber={requestsBadge} badgeStyle={styles.badge} />}
       </Box>
     )
   }
@@ -112,10 +112,15 @@ const TeamTabs = (props: TeamTabsProps) => {
 }
 
 const styles = styleSheetCreate({
-  badge: {
-    marginLeft: 2,
-    marginTop: 1,
-  },
+  badge: platformStyles({
+    isElectron: {
+      marginLeft: globalMargins.xtiny,
+    },
+    isMobile: {
+      marginLeft: 2,
+      marginTop: 1,
+    },
+  }),
   clickableBox: platformStyles({
     isMobile: {
       flexGrow: 1,
