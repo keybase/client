@@ -88,7 +88,7 @@ export class Badge2 extends React.Component<Badge2Props> {
   static defaultProps = {
     fontSize: Styles.isMobile ? 12 : 10,
     height: Styles.isMobile ? 20 : 16,
-    leftRightPadding: 4,
+    leftRightPadding: Styles.isMobile ? 3 : 4,
   }
 
   render() {

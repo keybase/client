@@ -42,7 +42,6 @@ class Divider extends React.PureComponent<Props> {
               {this.props.hiddenCount > 0 &&
                 this.props.badgeCount > 0 && (
                   <Badge2
-                    height={isMobile ? 20 : undefined}
                     leftRightPadding={isMobile ? 3 : undefined}
                     badgeStyle={styles.badge}
                     badgeNumber={this.props.badgeCount}

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {ClickableBox, Icon, Box, Badge} from '../../../../common-adapters'
+import {ClickableBox, Icon, Box, Badge2} from '../../../../common-adapters'
 import {
   platformStyles,
   globalStyles,
@@ -45,7 +45,7 @@ const BigTeamsDivider = ({toggle, badgeCount}: Props) => (
   <ClickableBox title="Teams with multiple channels." onClick={toggle} style={styles.container}>
     <DividerBox>
       <BigTeamsLabel isFiltered={false} />
-      {badgeCount > 0 && <Badge badgeStyle={styles.badge} badgeNumber={badgeCount} />}
+      {badgeCount > 0 && <Badge2 badgeStyle={styles.badge} badgeNumber={badgeCount} />}
       <Box style={styles.icon}>
         <Icon type="iconfont-arrow-up" inheritColor={true} fontSize={isMobile ? 20 : 16} />
       </Box>
