@@ -1,11 +1,14 @@
 // @flow
 import * as React from 'react'
 import shallowEqual from 'shallowequal'
-import {Text, PlaintextUsernames, Box, Icon} from '../../../../common-adapters'
 import {
+  Text,
+  PlaintextUsernames,
+  Box,
+  Icon,
   FloatingMenuParentHOC,
   type FloatingMenuParentProps,
-} from '../../../../common-adapters/floating-menu/parent-hoc'
+} from '../../../../common-adapters'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
 import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../styles'
 

@@ -1,11 +1,14 @@
 // @flow
 import * as React from 'react'
-import {Text, Box, Icon, FloatingMenu} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {
+  Text,
+  Box,
+  Icon,
+  FloatingMenu,
   type FloatingMenuParentProps,
   FloatingMenuParentHOC,
-} from '../../common-adapters/floating-menu/parent-hoc'
+} from '../../common-adapters'
+import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 
 const PopupHeader = ({channelName}: {channelName: string}) => {
   return (

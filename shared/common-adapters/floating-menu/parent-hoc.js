@@ -23,7 +23,7 @@ type FloatingMenuParentCallbacks = {|
   setAttachmentRef: ?(?React.Component<any, any>) => void,
 |}
 
-export const FloatingMenuParentHOC = <T: FloatingMenuParentProps>(
+const FloatingMenuParentHOC = <T: FloatingMenuParentProps>(
   ComposedComponent: React.ComponentType<T>
 ): React.ComponentType<$Diff<T, FloatingMenuParentProps>> => {
   class FloatingMenuParent extends React.Component<
@@ -52,3 +52,5 @@ export const FloatingMenuParentHOC = <T: FloatingMenuParentProps>(
   }
   return FloatingMenuParent
 }
+
+export default FloatingMenuParentHOC

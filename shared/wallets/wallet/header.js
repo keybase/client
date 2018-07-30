@@ -1,11 +1,16 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button, ClickableBox, Text, Avatar, FloatingMenu} from '../../common-adapters'
-import {styleSheetCreate} from '../../styles'
 import {
+  Box2,
+  Button,
+  ClickableBox,
+  Text,
+  Avatar,
+  FloatingMenu,
   FloatingMenuParentHOC,
   type FloatingMenuParentProps,
-} from '../../common-adapters/floating-menu/parent-hoc'
+} from '../../common-adapters'
+import {styleSheetCreate} from '../../styles'
 
 type Props = {
   isDefaultWallet: boolean,

@@ -14,6 +14,8 @@ import {
   Meta,
   PlatformIcon,
   FloatingMenu,
+  FloatingMenuParentHOC,
+  type FloatingMenuParentProps,
   Text,
   UserBio,
   UserProofs,
@@ -22,10 +24,6 @@ import {
 } from '../common-adapters'
 import UserActions from './user-actions'
 import {PopupHeaderText} from '../common-adapters/popup-menu'
-import {
-  FloatingMenuParentHOC,
-  type FloatingMenuParentProps,
-} from '../common-adapters/floating-menu/parent-hoc'
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import {collapseStyles, desktopStyles, globalColors, globalMargins, globalStyles} from '../styles'
 import {stateColors} from '../util/tracker'

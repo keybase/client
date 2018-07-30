@@ -9,12 +9,17 @@ import {
   globalMargins,
   platformStyles,
 } from '../../styles'
-import {Box, ClickableBox, Icon, Text, type IconType, FloatingMenu} from '../../common-adapters'
-import StaticBreadcrumb from '../common/static-breadcrumb'
 import {
+  Box,
+  ClickableBox,
+  Icon,
+  Text,
+  type IconType,
+  FloatingMenu,
   FloatingMenuParentHOC,
   type FloatingMenuParentProps,
-} from '../../common-adapters/floating-menu/parent-hoc'
+} from '../../common-adapters'
+import StaticBreadcrumb from '../common/static-breadcrumb'
 
 type AddNewProps = {
   style?: Object,

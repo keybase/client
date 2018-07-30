@@ -11,11 +11,9 @@ import {
   ScrollView,
   HeaderOnMobile,
   FloatingMenu,
-} from '../common-adapters'
-import {
   FloatingMenuParentHOC,
   type FloatingMenuParentProps,
-} from '../common-adapters/floating-menu/parent-hoc'
+} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
 
 type Props = {

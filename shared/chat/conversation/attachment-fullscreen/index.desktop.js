@@ -8,11 +8,9 @@ import {
   PopupDialog,
   ProgressBar,
   ProgressIndicator,
-} from '../../../common-adapters'
-import {
   FloatingMenuParentHOC,
   type FloatingMenuParentProps,
-} from '../../../common-adapters/floating-menu/parent-hoc'
+} from '../../../common-adapters'
 import MessagePopup from '../messages/message-popup/'
 import {
   collapseStyles,

@@ -17,16 +17,14 @@ import {
   Meta,
   PlatformIcon,
   FloatingMenu,
+  FloatingMenuParentHOC,
+  type FloatingMenuParentProps,
   NativeSectionList,
   Text,
   UserBio,
   UserProofs,
 } from '../common-adapters/mobile.native'
 import UserActions from './user-actions'
-import {
-  FloatingMenuParentHOC,
-  type FloatingMenuParentProps,
-} from '../common-adapters/floating-menu/parent-hoc'
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import {globalStyles, globalColors, globalMargins, statusBarHeight, isIPhoneX} from '../styles'
 import {stateColors} from '../util/tracker'

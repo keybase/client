@@ -1,11 +1,15 @@
 // @flow
 import * as React from 'react'
-import {iconCastPlatformStyles, Box, Icon, ProgressIndicator} from '../../../common-adapters'
-import {globalStyles, globalMargins, isMobile, styleSheetCreate} from '../../../styles'
 import {
+  iconCastPlatformStyles,
+  Box,
+  Icon,
+  ProgressIndicator,
   FloatingMenuParentHOC,
   type FloatingMenuParentProps,
-} from '../../../common-adapters/floating-menu/parent-hoc'
+} from '../../../common-adapters'
+import {globalStyles, globalMargins, isMobile, styleSheetCreate} from '../../../styles'
+import {} from '../../../common-adapters/floating-menu/parent-hoc'
 import TeamMenu from '../menu-container'
 
 type Props = {

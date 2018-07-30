@@ -1,11 +1,16 @@
 // @flow
 import * as React from 'react'
-import {Box2, ClickableBox, Icon, List, Text, FloatingMenu} from '../../common-adapters'
-import {styleSheetCreate, globalMargins, globalColors, isMobile, type StylesCrossPlatform} from '../../styles'
 import {
+  Box2,
+  ClickableBox,
+  Icon,
+  List,
+  Text,
+  FloatingMenu,
   FloatingMenuParentHOC,
   type FloatingMenuParentProps,
-} from '../../common-adapters/floating-menu/parent-hoc'
+} from '../../common-adapters'
+import {styleSheetCreate, globalMargins, globalColors, isMobile, type StylesCrossPlatform} from '../../styles'
 import {type AccountID} from '../../constants/types/wallets'
 import WalletRow from './wallet-row/container'
 

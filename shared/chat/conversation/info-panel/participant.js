@@ -1,10 +1,15 @@
 // @flow
 import * as React from 'react'
-import {Box, ClickableBox, Avatar, Text, Icon, ConnectedUsernames} from '../../../common-adapters'
 import {
+  Box,
+  ClickableBox,
+  Avatar,
+  Text,
+  Icon,
+  ConnectedUsernames,
   FloatingMenuParentHOC,
   type FloatingMenuParentProps,
-} from '../../../common-adapters/floating-menu/parent-hoc'
+} from '../../../common-adapters'
 import AddPeopleHow from '../../../teams/team/header/add-people-how/container'
 import {
   globalColors,

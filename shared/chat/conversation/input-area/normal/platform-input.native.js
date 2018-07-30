@@ -2,7 +2,16 @@
 /* eslint-env browser */
 import {showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
-import {Box, Box2, Icon, Input, Text, iconCastPlatformStyles} from '../../../../common-adapters'
+import {
+  Box,
+  Box2,
+  Icon,
+  Input,
+  Text,
+  iconCastPlatformStyles,
+  FloatingMenuParentHOC,
+  type FloatingMenuParentProps,
+} from '../../../../common-adapters'
 import {globalMargins, globalStyles, globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
@@ -13,10 +22,6 @@ import {
 } from '../../../../common-adapters/native-wrappers.native'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import {ExplodingMeta} from './shared'
-import {
-  FloatingMenuParentHOC,
-  type FloatingMenuParentProps,
-} from '../../../../common-adapters/floating-menu/parent-hoc'
 import type {PlatformInputProps} from './types'
 import flags from '../../../../util/feature-flags'
 
