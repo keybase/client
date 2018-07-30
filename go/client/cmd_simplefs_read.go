@@ -47,6 +47,10 @@ func NewCmdSimpleFSRead(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 				Name:  "time",
 				Usage: "a time for the KBFS folder (eg \"2018-07-27 22:05\")",
 			},
+			cli.StringFlag{
+				Name:  "reltime, relative-time",
+				Usage: "a relative time for the KBFS folder (eg \"5m\")",
+			},
 		},
 	}
 }
@@ -117,7 +121,8 @@ func (c *CmdSimpleFSRead) ParseArgv(ctx *cli.Context) error {
 	// TODO: "rev" should be a real int64, need to update the
 	// `cli` library for that.
 	p, err := makeSimpleFSPathWithArchiveParams(
-		ctx.Args()[0], int64(ctx.Int("rev")), ctx.String("time"))
+		ctx.Args()[0], int64(ctx.Int("rev")), ctx.String("time"),
+		getRelTime(ctx))
 	if err != nil {
 		return err
 	}
