@@ -35,7 +35,7 @@ const getFilterResults = filter => {
 
 type Section = {
   category: string,
-  data: Array<{emojis: Array<EmojiData>, onChoose: (emoji: EmojiData) => void, key: string}>,
+  data: Array<{emojis: Array<EmojiData>, key: string}>,
   key: string,
 }
 
@@ -67,7 +67,6 @@ class EmojiPicker extends React.Component<Props, State> {
       data: chunk(c.data.emojis, emojisPerLine).map(c => ({
         emojis: c,
         key: c[0].short_name,
-        onChoose: this.props.onChoose,
       })),
       key: c.key,
     }))
@@ -118,16 +117,22 @@ class EmojiPicker extends React.Component<Props, State> {
         initialNumToRender={14}
         sections={this.state.sections}
         stickySectionHeadersEnabled={true}
-        renderItem={EmojiRow}
+        renderItem={item => <EmojiRow {...item} onChoose={this.props.onChoose} />}
         renderSectionHeader={HeaderRow}
       />
     ) : null
   }
 }
 
-const EmojiRow = ({item}: {item: {emojis: Array<EmojiData>, onChoose: EmojiData => void, key: string}}) => (
+const EmojiRow = ({
+  item,
+  onChoose,
+}: {
+  item: {emojis: Array<EmojiData>, key: string},
+  onChoose: EmojiData => void,
+}) => (
   <Box2 key={item.key} fullWidth={true} style={styles.alignItemsCenter} direction="horizontal">
-    {item.emojis.map(e => <EmojiRender key={e.short_name} emoji={e} onChoose={item.onChoose} />)}
+    {item.emojis.map(e => <EmojiRender key={e.short_name} emoji={e} onChoose={onChoose} />)}
   </Box2>
 )
 
