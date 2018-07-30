@@ -10,6 +10,7 @@ import * as RouteTree from '../route-tree'
 import devicesSaga from '../devices'
 import appRouteTree from '../../app/routes-app'
 import * as Testing from '../../util/testing'
+import {getPath as getRoutePath} from '../../route-tree'
 
 jest.mock('../../engine')
 
@@ -76,53 +77,6 @@ const loadedStore = {
   }),
 }
 
-const startOnDevicesTab = dispatch => {
-  dispatch(RouteTree.switchRouteDef(appRouteTree))
-  dispatch(RouteTree.navigateTo([Tabs.devicesTab]))
-}
-
-const startReduxSaga = Testing.makeStartReduxSaga(devicesSaga, initialStore, startOnDevicesTab)
-
-// const getRoutePath: (getState) => getRoutePath(getState().routeTree.routeState, [Tabs.loginTab])
-
-describe('reload side effects', () => {
-  let init
-  let spy
-  beforeEach(() => {
-    init = startReduxSaga()
-    spy = jest.spyOn(RPCTypes, 'deviceDeviceHistoryListRpcPromise')
-  })
-  afterEach(() => {
-    spy.mockRestore()
-  })
-
-  it('loads on load', () => {
-    const {dispatch} = init
-    expect(spy).not.toHaveBeenCalled()
-    dispatch(DevicesGen.createLoad())
-    expect(spy).toHaveBeenCalled()
-  })
-
-  it("doesn't load on logged out", () => {
-    init = startReduxSaga(blankStore) // logged out store
-    const {dispatch} = init
-    dispatch(DevicesGen.createLoad())
-    expect(spy).not.toHaveBeenCalled()
-  })
-
-  it('loads on revoked', () => {
-    const {dispatch} = init
-    dispatch(
-      DevicesGen.createRevoked({
-        deviceID: Types.stringToDeviceID('132'),
-        deviceName: 'a device',
-        wasCurrentDevice: false,
-      })
-    )
-    expect(spy).toHaveBeenCalled()
-  })
-})
-
 const details = [
   {
     currentDevice: true,
@@ -171,37 +125,87 @@ const details = [
   },
 ]
 
+const startOnDevicesTab = dispatch => {
+  dispatch(RouteTree.switchRouteDef(appRouteTree))
+  dispatch(RouteTree.navigateTo([Tabs.devicesTab]))
+}
+
+const startReduxSaga = Testing.makeStartReduxSaga(devicesSaga, initialStore, startOnDevicesTab)
+
+describe('reload side effects', () => {
+  let init
+  let rpc
+  beforeEach(() => {
+    init = startReduxSaga()
+    rpc = jest.spyOn(RPCTypes, 'deviceDeviceHistoryListRpcPromise')
+  })
+  afterEach(() => {
+    rpc.mockRestore()
+  })
+
+  it('loads on load', () => {
+    const {dispatch} = init
+    expect(rpc).not.toHaveBeenCalled()
+    dispatch(DevicesGen.createLoad())
+    expect(rpc).toHaveBeenCalled()
+  })
+
+  it("doesn't load on logged out", () => {
+    init = startReduxSaga(blankStore) // logged out store
+    const {dispatch} = init
+    dispatch(DevicesGen.createLoad())
+    expect(rpc).not.toHaveBeenCalled()
+  })
+
+  it('loads on revoked', () => {
+    const {dispatch} = init
+    dispatch(
+      DevicesGen.createRevoked({
+        deviceID: Types.stringToDeviceID('132'),
+        deviceName: 'a device',
+        wasCurrentDevice: false,
+      })
+    )
+    expect(rpc).toHaveBeenCalled()
+  })
+})
+
 describe('load', () => {
   let init
+  let rpc
   beforeEach(() => {
     init = startReduxSaga()
   })
-  afterEach(() => {})
+  afterEach(() => {
+    rpc.mockRestore()
+  })
 
   it('load leads to loaded', () => {
     const {dispatch, getState} = init
-    const rpc = jest.spyOn(RPCTypes, 'deviceDeviceHistoryListRpcPromise')
+    rpc = jest.spyOn(RPCTypes, 'deviceDeviceHistoryListRpcPromise')
     rpc.mockImplementation(() => new Promise(resolve => resolve(details)))
 
     dispatch(DevicesGen.createLoad())
     return Testing.flushPromises().then(() => {
       expect(getState().devices.deviceMap).toEqual(loadedStore.devices.deviceMap)
       expect(rpc).toHaveBeenCalled()
-      rpc.mockRestore()
     })
   })
 })
 
 describe('revoking other', () => {
   let init
+  let rpc
   beforeEach(() => {
     init = Testing.makeStartReduxSaga(devicesSaga, loadedStore, startOnDevicesTab)()
   })
-  afterEach(() => {})
+  afterEach(() => {
+    rpc.mockRestore()
+  })
 
   it('works', () => {
     const {dispatch, getState} = init
-    const rpc = jest.spyOn(RPCTypes, 'revokeRevokeDeviceRpcPromise')
+    rpc = jest.spyOn(RPCTypes, 'revokeRevokeDeviceRpcPromise')
     rpc.mockImplementation(() => new Promise(resolve => resolve()))
 
     const deviceID = Types.stringToDeviceID('456')
@@ -212,20 +216,52 @@ describe('revoking other', () => {
   })
 })
 
-// describe('revoking self', () => {
-// TODO
-// return RPCTypes.loginDeprovisionRpcPromise({doRevoke: true, username}, Constants.waitingKey).then(() =>
-// DevicesGen.createRevoked({deviceID, deviceName, wasCurrentDevice})
-// )
-// })
+describe('revoking self', () => {
+  let init
+  let rpc
+  beforeEach(() => {
+    init = Testing.makeStartReduxSaga(devicesSaga, loadedStore, startOnDevicesTab)()
+  })
+  afterEach(() => {
+    rpc.mockRestore()
+  })
 
-// it('works', () => {
-// const {dispatch} = init
-// dispatch(DevicesGen.createRevoked({
-// deviceID: Types.stringToDeviceID('132'),
-// deviceName: 'a device',
-// wasCurrentDevice: false,
-// }))
-// expect(spy).not.toHaveBeenCalled()
-// })
-// })
+  it('works', () => {
+    const {dispatch, getState} = init
+    rpc = jest.spyOn(RPCTypes, 'loginDeprovisionRpcPromise')
+    rpc.mockImplementation(() => new Promise(resolve => resolve()))
+
+    const deviceID = Types.stringToDeviceID('123')
+
+    expect(getState().devices.deviceMap.get(deviceID)).toBeTruthy()
+    dispatch(DevicesGen.createRevoke({deviceID}))
+    expect(rpc).toHaveBeenCalledWith(
+      {doRevoke: true, username: loadedStore.config.username},
+      Constants.waitingKey
+    )
+  })
+})
+
+describe('navs after revoking', () => {
+  let init
+  beforeEach(() => {
+    init = Testing.makeStartReduxSaga(devicesSaga, loadedStore, startOnDevicesTab)()
+  })
+  afterEach(() => {})
+
+  it('root of devices on revoke other', () => {
+    const {dispatch, getState} = init
+    const deviceID = Types.stringToDeviceID('456')
+    dispatch(DevicesGen.createRevoked({deviceID, deviceName: 'a phone', wasCurrentDevice: true}))
+    expect(getRoutePath(getState().routeTree.routeState, [Tabs.devicesTab])).toEqual(
+      I.List([Tabs.devicesTab])
+    )
+  })
+
+  it('root of login on revoke self', () => {
+    const {dispatch, getState} = init
+    const deviceID = Types.stringToDeviceID('456')
+    dispatch(DevicesGen.createRevoked({deviceID, deviceName: 'a phone', wasCurrentDevice: true}))
+    expect(getRoutePath(getState().routeTree.routeState, [Tabs.loginTab])).toEqual(I.List([]))
+  })
+})
