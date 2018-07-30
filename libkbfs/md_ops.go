@@ -982,7 +982,17 @@ func (md *MDOpsStandard) GetForTLF(
 // GetForTLFByTime implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetForTLFByTime(
 	ctx context.Context, id tlf.ID, serverTime time.Time) (
-	ImmutableRootMetadata, error) {
+	irmd ImmutableRootMetadata, err error) {
+	md.log.CDebugf(ctx, "GetForTLFByTime %s %s", id, serverTime)
+	defer func() {
+		if err == nil {
+			md.log.CDebugf(ctx, "GetForTLFByTime %s %s done: %d",
+				id, serverTime, irmd.Revision())
+		} else {
+			md.log.CDebugf(ctx, "GetForTLFByTime %s %s done: %+v",
+				id, serverTime, err)
+		}
+	}()
 	rmds, err := md.config.MDServer().GetForTLFByTime(ctx, id, serverTime)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
