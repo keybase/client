@@ -280,6 +280,7 @@ export const getLocalPathName = (localPath: LocalPath): string => {
   return ''
 }
 export const getLocalPathDir = (p: LocalPath): string => p.slice(0, p.lastIndexOf(localSep))
+export const getNormalizedLocalPath = (p: LocalPath): LocalPath => localSep === '\\' ? p.replace(/\\/g, '/') : p
 
 type sortSettingDisplayParams = {
   sortSettingText: string,
