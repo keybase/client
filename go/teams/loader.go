@@ -3,7 +3,9 @@ package teams
 import (
 	"errors"
 	"fmt"
+	"os"
 	"sort"
+	"sync"
 	"time"
 
 	"golang.org/x/net/context"
@@ -11,6 +13,23 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
+
+// Show detailed team profiling
+var teamEnv struct {
+	Profile             bool
+	UserPreloadEnable   bool
+	UserPreloadParallel bool
+	UserPreloadWait     bool
+	ProofSetParallel    bool
+}
+
+func init() {
+	teamEnv.Profile = os.Getenv("KEYBASE_TEAM_PROF") == "1"
+	teamEnv.UserPreloadEnable = os.Getenv("KEYBASE_TEAM_PE") == "1"
+	teamEnv.UserPreloadParallel = os.Getenv("KEYBASE_TEAM_PP") == "1"
+	teamEnv.UserPreloadWait = os.Getenv("KEYBASE_TEAM_PW") == "1"
+	teamEnv.ProofSetParallel = os.Getenv("KEYBASE_TEAM_SP") == "1"
+}
 
 // How long until the tail of a team sigchain is considered non-fresh
 const freshnessLimit = time.Duration(1) * time.Hour
@@ -323,7 +342,10 @@ type load2ResT struct {
 // Load2 does the rest of the work loading a team.
 // It is `playchain` described in the pseudocode in teamplayer.txt
 func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (ret *load2ResT, err error) {
-	ctx = libkb.WithLogTag(ctx, "LT") // Load Team
+	ctx = libkb.WithLogTag(ctx, "LT") // Load team
+	if arg.reason != "" {
+		ctx = libkb.WithLogTag(ctx, "LT2") // Load team recursive
+	}
 	traceLabel := fmt.Sprintf("TeamLoader#load2(%v, public:%v)", arg.teamID, arg.public)
 	if len(arg.reason) > 0 {
 		traceLabel = traceLabel + " '" + arg.reason + "'"
@@ -381,8 +403,10 @@ func (l *TeamLoader) load2InnerLocked(ctx context.Context, arg load2ArgT) (res *
 
 func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (*load2ResT, error) {
 	ctx, tbs := l.G().CTimeBuckets(ctx)
-	tracer := l.G().CTimeTracer(ctx, "TeamLoader.load2ILR", false)
+	tracer := l.G().CTimeTracer(ctx, "TeamLoader.load2ILR", teamEnv.Profile)
 	defer tracer.Finish()
+
+	defer tbs.Log(ctx, "API.request")
 
 	var err error
 	var didRepoll bool
@@ -536,6 +560,50 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 	l.G().Log.CDebugf(ctx, "fullVerifyCutoff: %v", fullVerifyCutoff)
 
+	tracer.Stage("userPreload enable:%v parallel:%v wait:%v",
+		teamEnv.UserPreloadEnable, teamEnv.UserPreloadParallel, teamEnv.UserPreloadWait)
+	preloadCtx, preloadCancel := context.WithCancel(ctx)
+	defer preloadCancel()
+	if teamEnv.UserPreloadEnable {
+		uidSet := make(map[keybase1.UID]struct{})
+		for _, link := range links {
+			// fullVerify definition copied from verifyLink
+			fullVerify := (link.LinkType() != libkb.SigchainV2TypeTeamLeave) ||
+				(link.Seqno() >= fullVerifyCutoff) ||
+				(link.source.EldestSeqno == 0)
+			if !link.isStubbed() && fullVerify {
+				uidSet[link.inner.Body.Key.UID] = struct{}{}
+			}
+		}
+		l.G().Log.CDebugf(ctx, "TeamLoader userPreload uids: %v", len(uidSet))
+		if teamEnv.UserPreloadParallel {
+			// Note this is full-parallel. Probably want pipelining if this is to be turned on by default.
+			var wg sync.WaitGroup
+			for uid := range uidSet {
+				wg.Add(1)
+				go func(uid keybase1.UID) {
+					_, _, err = l.G().GetUPAKLoader().LoadV2(
+						libkb.NewLoadUserArg(l.G()).WithUID(uid).WithPublicKeyOptional().WithNetContext(preloadCtx))
+					if err != nil {
+						l.G().Log.CDebugf(ctx, "error preloading uid %v", uid)
+					}
+					wg.Done()
+				}(uid)
+			}
+			if teamEnv.UserPreloadWait {
+				wg.Wait()
+			}
+		} else {
+			for uid := range uidSet {
+				_, _, err = l.G().GetUPAKLoader().LoadV2(
+					libkb.NewLoadUserArg(l.G()).WithUID(uid).WithPublicKeyOptional().WithNetContext(preloadCtx))
+				if err != nil {
+					l.G().Log.CDebugf(ctx, "error preloading uid %v", uid)
+				}
+			}
+		}
+	}
+
 	tracer.Stage("linkloop (%v)", len(links))
 	for i, link := range links {
 		l.G().Log.CDebugf(ctx, "TeamLoader processing link seqno:%v", link.Seqno())
@@ -578,7 +646,9 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		}
 		prev = link.LinkID()
 	}
-	tbs.Log(ctx, "CachedUPAKLoader.LoadKeyV2")
+	preloadCancel()
+	tbs.Log(ctx, "CachedUPAKLoader.LoadV2")
+	tbs.Log(ctx, "CachedUPAKLoader.LoadKeyV2") // note LoadKeyV2 calls Load2
 	tbs.Log(ctx, "TeamLoader.verifyLink")
 	tbs.Log(ctx, "TeamLoader.applyNewLink")
 
