@@ -382,7 +382,9 @@ func TestSaltpackRecipientKeyfinderDeviceKeys(t *testing.T) {
 		fDHKeyset[fPUK] = struct{}{}
 	}
 
-	key, err := u1.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u1.User.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
+	u1Device, err := selectOneActiveNonPaperDeviceID(u1.User)
+	require.NoError(t, err)
+	key, err := u1.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u1Device)
 	require.NoError(t, err)
 	KID := key.GetKID()
 	if _, ok := fDHKeyset[KID]; !ok {
@@ -485,6 +487,15 @@ func TestSaltpackRecipientKeyfinderSkipsMissingKeys(t *testing.T) {
 func selectOneActivePaperDeviceID(u *libkb.User) (keybase1.DeviceID, error) {
 	for _, d := range u.GetComputedKeyFamily().GetAllActiveDevices() {
 		if d.Type == libkb.DeviceTypePaper {
+			return d.ID, nil
+		}
+	}
+	return "", fmt.Errorf("No paper devices found")
+}
+
+func selectOneActiveNonPaperDeviceID(u *libkb.User) (keybase1.DeviceID, error) {
+	for _, d := range u.GetComputedKeyFamily().GetAllActiveDevices() {
+		if d.Type != libkb.DeviceTypePaper {
 			return d.ID, nil
 		}
 	}

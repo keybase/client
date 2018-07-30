@@ -71,7 +71,7 @@ func (e *SaltpackRecipientKeyfinderEngine) Run(m libkb.MetaContext) (err error) 
 
 	// CORE-8423 remove this after most clients update
 	// Note: we do not add tlf keys for users added as members of a recipient team.
-	if !e.SkipTlfKeysForTesting && len(e.Arg.Recipients) > 0 && false {
+	if !e.SkipTlfKeysForTesting && len(e.Arg.Recipients) > 0 {
 		kf := NewSaltpackKBFSKeyfinderEngineForTesting(e.Arg)
 		if err := engine.RunEngine2(m, kf); err != nil {
 			return err
