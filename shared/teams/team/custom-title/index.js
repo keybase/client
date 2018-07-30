@@ -61,6 +61,7 @@ const styles = styleSheetCreate({
   },
   icon: {
     marginRight: globalMargins.tiny,
+    padding: globalMargins.tiny,
   },
   progressIndicator: {
     height: 17,

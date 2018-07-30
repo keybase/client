@@ -3,8 +3,14 @@ import fs from 'fs'
 import path from 'path'
 import peg from 'pegjs'
 import emojiData from 'emoji-datasource'
-import {invert} from 'lodash-es'
 import tlds from 'tlds'
+
+/**
+ * Note on above: importing a non-transpiled module that uses modern JS features
+ * (e.g. `import`) will break this! babel-node does not transpile imports from
+ * node_modules/ by default. See this thread for more:
+ * https://github.com/babel/babel/issues/7566
+ */
 
 // from https://github.com/twitter/twemoji/blob/gh-pages/twemoji-generator.js
 function UTF162JSON(text) {
@@ -17,13 +23,21 @@ function UTF162JSON(text) {
 
 function genEmojiData() {
   const emojiIndexByChar = {}
+  const emojiIndexByName = {}
   const emojiLiterals = []
   const emojiCharacters = new Set()
   function addEmojiLiteral(unified, name, skinTone) {
     const chars = unified.split('-').map(c => String.fromCodePoint(parseInt(c, 16)))
     const literals = chars.map(c => UTF162JSON(c)).join('')
 
-    emojiIndexByChar[chars.join('')] = `:${name}:` + (skinTone ? `:skin-tone-${skinTone}:` : '')
+    const fullName = `:${name}:` + (skinTone ? `:skin-tone-${skinTone}:` : '')
+    const char = chars.join('')
+    emojiIndexByChar[char] = fullName
+    if (!emojiIndexByName[fullName]) {
+      // For display. Only adds the first supplied code points,
+      // so make sure that is the fully qualified one
+      emojiIndexByName[fullName] = char
+    }
     emojiLiterals.push(literals)
     chars.forEach(c => emojiCharacters.add(c))
   }
@@ -42,11 +56,11 @@ function genEmojiData() {
 
   emojiLiterals.sort((a, b) => b.length - a.length)
 
-  return {emojiIndexByChar, emojiLiterals, emojiCharacters}
+  return {emojiIndexByChar, emojiIndexByName, emojiLiterals, emojiCharacters}
 }
 
 function buildParser() {
-  const {emojiIndexByChar, emojiLiterals, emojiCharacters} = genEmojiData()
+  const {emojiIndexByChar, emojiIndexByName, emojiLiterals, emojiCharacters} = genEmojiData()
   const emojiRegex = `/${emojiLiterals.join('|')}/g`
   const emojiCharacterClass = `${Array.from(emojiCharacters).join('')}`
 
@@ -84,7 +98,7 @@ $1
     const tldExp = ${tldExp}
     const emojiExp = ${emojiRegex}
     const emojiIndexByChar = ${JSON.stringify(emojiIndexByChar)}
-    const emojiIndexByName = ${JSON.stringify(invert(emojiIndexByChar))}
+    const emojiIndexByName = ${JSON.stringify(emojiIndexByName)}
   `
 
   // $FlowIssue Unclear why flow isn't accepting String.raw here

@@ -4,6 +4,19 @@ import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import ReactionsRow from '.'
 
+// Get array of emoji names in the order of their earliest reaction
+const getOrderedReactions = (reactions: ?Types.Reactions) => {
+  if (!reactions) {
+    return []
+  }
+  const mins = reactions
+    .map((value, key) => {
+      return value.reduce((minTimestamp, reaction) => Math.min(minTimestamp, reaction.timestamp), Infinity)
+    })
+    .sort()
+  return mins.keySeq().toArray()
+}
+
 export type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,
@@ -22,7 +35,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...ownProps,
-  emojis: stateProps._reactions ? stateProps._reactions.keySeq().toArray() : [],
+  emojis: getOrderedReactions(stateProps._reactions),
 })
 
 export default compose(connect(mapStateToProps, null, mergeProps), setDisplayName('ReactionsRow'))(

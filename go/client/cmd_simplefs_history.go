@@ -82,7 +82,7 @@ func (c *CmdSimpleFSHistory) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) > 1 {
 		return fmt.Errorf("wrong number of arguments")
 	} else if len(ctx.Args()) == 1 {
-		p, err := makeSimpleFSPath(c.G(), ctx.Args()[0], 0)
+		p, err := makeSimpleFSPath(ctx.Args()[0])
 		if err != nil {
 			return err
 		}

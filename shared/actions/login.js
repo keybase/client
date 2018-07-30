@@ -233,6 +233,8 @@ const loggedout = () =>
 const logout = () =>
   Saga.sequentially([
     Saga.put(ConfigGen.createClearRouteState()),
+    // Let push deregister work, TODO make this a real dependency or something, this is a short term fix
+    Saga.delay(1000),
     Saga.call(RPCTypes.loginLogoutRpcPromise, undefined, Constants.waitingKey),
     Saga.put(LoginGen.createLoggedout()),
   ])

@@ -5,15 +5,16 @@ import ChatFilterRow from '../chat-filter-row/container'
 import StartNewChat from '../start-new-chat'
 
 type Props = {
-  onNewChat: () => void,
   filterFocusCount: number,
   focusFilter: () => void,
+  onNewChat: () => void,
+  neverLoaded: boolean,
   rows: Array<Inbox.RowItem>,
   showNewChat: boolean,
 }
 
 const ChatInboxHeader = (props: Props) =>
-  props.showNewChat ? (
+  props.showNewChat && !props.neverLoaded ? (
     <StartNewChat onNewChat={props.onNewChat} />
   ) : (
     <ChatFilterRow

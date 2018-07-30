@@ -1,11 +1,29 @@
 // @flow
 import {Component} from 'react'
+import type {StylesCrossPlatform} from '../styles'
 
-export type Props = {
+export type BadgeProps = {
   badgeNumber: ?number,
   badgeStyle?: any,
   badgeNumberStyle?: Object,
   largerBadgeMinWidthFix?: boolean,
 }
 
-declare export default class Badge extends Component<Props> {}
+export type Badge2Props = {
+  badgeNumber: number,
+  fontSize: number,
+  height?: number,
+  leftRightPadding: number,
+  badgeStyle?: StylesCrossPlatform,
+  badgeNumberStyle?: StylesCrossPlatform,
+}
+
+export type DefaultBadge2Props = {
+  fontSize: number,
+  leftRightPadding: number,
+}
+
+declare export class Badge extends Component<BadgeProps> {}
+declare export class Badge2 extends Component<Badge2Props> {
+  static defaultProps: DefaultBadge2Props;
+}

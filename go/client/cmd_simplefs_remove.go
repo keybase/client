@@ -79,7 +79,7 @@ func (c *CmdSimpleFSRemove) ParseArgv(ctx *cli.Context) error {
 	}
 
 	for _, src := range ctx.Args() {
-		argPath, err := makeSimpleFSPath(c.G(), src, 0)
+		argPath, err := makeSimpleFSPath(src)
 		if err != nil {
 			return err
 		}

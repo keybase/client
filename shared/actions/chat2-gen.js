@@ -202,6 +202,7 @@ type _MessageWasReactedToPayload = $ReadOnly<{|
   reactionMsgID: RPCChatTypes.MessageID,
   sender: string,
   targetMsgID: RPCChatTypes.MessageID,
+  timestamp: number,
 |}>
 type _MessagesAddPayload = $ReadOnly<{|
   context: {type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey},

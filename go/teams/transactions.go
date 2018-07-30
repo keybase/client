@@ -9,6 +9,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -383,20 +384,15 @@ func (tx *AddMemberTx) AddMemberByUV(ctx context.Context, uv keybase1.UserVersio
 func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string, role keybase1.TeamRole) (err error) {
 	team := tx.team
 	g := team.G()
+	m := libkb.NewMetaContext(ctx, g)
 
-	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.AddMemberByUsername(%s,%v) to team %q", username, role, team.Name()), func() error { return err })()
+	defer m.CTrace(fmt.Sprintf("AddMemberTx.AddMemberByUsername(%s,%v) to team %q", username, role, team.Name()), func() error { return err })()
 
-	res := g.Resolver.ResolveWithBody(username)
-	if err := res.GetError(); err != nil {
-		return err
-	}
-
-	upak, err := loadUPAK2(ctx, g, res.GetUID(), true /* forcePoll */)
+	upak, err := engine.ResolveAndCheck(m, username, true /* useTracking */)
 	if err != nil {
 		return err
 	}
-
-	_, err = tx.addMemberByUPKV2(ctx, upak.Current, role)
+	_, err = tx.addMemberByUPKV2(ctx, upak, role)
 	return err
 }
 
@@ -407,17 +403,15 @@ func (tx *AddMemberTx) AddMemberByAssertion(ctx context.Context, assertion strin
 	role keybase1.TeamRole) (username libkb.NormalizedUsername, uv keybase1.UserVersion, invite bool, err error) {
 	team := tx.team
 	g := team.G()
+	m := libkb.NewMetaContext(ctx, g)
 
 	if libkb.NewNormalizedUsername(assertion).CheckValid() == nil {
-		upak, _, err := g.GetUPAKLoader().LoadV2(libkb.NewLoadUserArg(g).WithNetContext(ctx).
-			WithName(assertion).
-			WithPublicKeyOptional().
-			WithForcePoll(true))
+		upak, err := engine.ResolveAndCheck(m, assertion, true /* useTracking */)
 		if err != nil {
 			return "", uv, false, err
 		}
-		invite, err := tx.addMemberByUPKV2(ctx, upak.Current, role)
-		return libkb.NewNormalizedUsername(upak.Current.Username), upak.Current.ToUserVersion(), invite, err
+		invite, err := tx.addMemberByUPKV2(ctx, upak, role)
+		return libkb.NewNormalizedUsername(upak.Username), upak.ToUserVersion(), invite, err
 	}
 	typ, name, err := parseSocialAssertion(libkb.NewMetaContext(ctx, team.G()), assertion)
 	if err != nil {
@@ -457,12 +451,10 @@ func (tx *AddMemberTx) CompleteSocialInvitesFor(ctx context.Context, uv keybase1
 		return fmt.Errorf("could not find uv %v in transaction", uv)
 	}
 
-	proofs, err := getUserProofs(ctx, g, username)
+	proofs, identifyOutcome, err := getUserProofsNoTracking(ctx, g, username)
 	if err != nil {
 		return err
 	}
-
-	actx := g.MakeAssertionContext()
 
 	var completedInvites = map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm{}
 
@@ -494,27 +486,10 @@ func (tx *AddMemberTx) CompleteSocialInvitesFor(ctx context.Context, uv keybase1
 			continue
 		}
 
-		assertionStr := fmt.Sprintf("%s@%s", string(invite.Name), ityp)
-		g.Log.CDebugf(ctx, "CompleteSocialInvitesFor: Found proof in user's ProofSet: key: %s value: %q; invite proof is %s", proof.Key, proof.Value, assertionStr)
-
-		resolveResult := g.Resolver.ResolveFullExpressionNeedUsername(ctx, assertionStr)
-		g.Log.CDebugf(ctx, "CompleteSocialInvitesFor: Resolve result is: %+v", resolveResult)
-		if resolveResult.GetError() != nil || resolveResult.GetUID() != uv.Uid {
-			// Cannot resolve invitation or it does not match user
-			continue
-		}
-
-		parsedAssertion, err := libkb.AssertionParseAndOnly(actx, assertionStr)
-		if err != nil {
-			return err
-		}
-
-		resolvedAssertion := libkb.ResolvedAssertion{
-			UID:           uv.Uid,
-			Assertion:     parsedAssertion,
-			ResolveResult: resolveResult,
-		}
-		if err := verifyResolveResult(ctx, g, resolvedAssertion); err == nil {
+		g.Log.CDebugf(ctx, "CompleteSocialInvitesFor: Found proof in user's ProofSet: key: %s value: %q", proof.Key, proof.Value)
+		proofErr := identifyOutcome.GetRemoteCheckResultFor(ityp, string(invite.Name))
+		g.Log.CDebugf(ctx, "CompleteSocialInvitesFor: proof result -> %v", proofErr)
+		if proofErr == nil {
 			completedInvites[invite.Id] = uv.PercentForm()
 			g.Log.CDebugf(ctx, "CompleteSocialInvitesFor: Found completed invite: %s -> %v", invite.Id, uv)
 		}

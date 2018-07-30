@@ -12,6 +12,7 @@ import {
 } from '../../../../styles'
 
 type Props = {
+  loaded: boolean,
   onBuildTeam: () => void,
   showBuildATeam: boolean,
 }
@@ -38,8 +39,8 @@ const DividerBox = glamorous(Box)({
   width: '100%',
 })
 
-const BuildTeam = ({showBuildATeam, onBuildTeam}: Props) =>
-  showBuildATeam ? (
+const BuildTeam = ({loaded, showBuildATeam, onBuildTeam}: Props) =>
+  loaded && showBuildATeam ? (
     <ClickableBox title="Make a new team" onClick={onBuildTeam} style={styles.container}>
       <DividerBox>
         <Box style={styles.text}>

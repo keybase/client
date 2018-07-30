@@ -13,7 +13,7 @@ import (
 )
 
 type SignupJoinEngine struct {
-	uid      keybase1.UID
+	uv       keybase1.UserVersion
 	session  string
 	csrf     string
 	username libkb.NormalizedUsername
@@ -69,13 +69,13 @@ func (s *SignupJoinEngine) Post(m libkb.MetaContext, arg SignupJoinEngineRunArg)
 		}})
 	if err == nil {
 		s.username = libkb.NewNormalizedUsername(arg.Username)
-		libkb.GetUIDVoid(res.Body.AtKey("uid"), &s.uid, &err)
+		libkb.GetUIDVoid(res.Body.AtKey("uid"), &s.uv.Uid, &err)
 		res.Body.AtKey("session").GetStringVoid(&s.session, &err)
 		res.Body.AtKey("csrf_token").GetStringVoid(&s.csrf, &err)
 		res.Body.AtPath("me.basics.passphrase_generation").GetIntVoid(&ppGenTmp, &err)
 	}
 	if err == nil {
-		err = libkb.CheckUIDAgainstUsername(s.uid, arg.Username)
+		err = libkb.CheckUIDAgainstUsername(s.uv.Uid, arg.Username)
 		s.ppGen = libkb.PassphraseGeneration(ppGenTmp)
 	}
 	return err
@@ -85,7 +85,7 @@ type SignupJoinEngineRunRes struct {
 	PassphraseOk bool
 	PostOk       bool
 	WriteOk      bool
-	UID          keybase1.UID
+	UV           keybase1.UserVersion
 	User         *libkb.User
 	Err          error
 	PpGen        libkb.PassphraseGeneration
@@ -106,7 +106,7 @@ func (s *SignupJoinEngine) Run(m libkb.MetaContext, arg SignupJoinEngineRunArg) 
 		return
 	}
 	res.WriteOk = true
-	res.UID = s.uid
+	res.UV = s.uv
 	res.PpGen = s.ppGen
 	return
 }
@@ -117,12 +117,12 @@ func (s *SignupJoinEngine) WriteOut(m libkb.MetaContext, salt []byte) error {
 		return err
 	}
 	var nilDeviceID keybase1.DeviceID
-	if err := lctx.SaveState(s.session, s.csrf, s.username, s.uid, nilDeviceID); err != nil {
+	if err := lctx.SaveState(s.session, s.csrf, s.username, s.uv, nilDeviceID); err != nil {
 		return err
 	}
 	// Switching to a new user is an operation on the GlobalContext, and will atomically
 	// update the config file and alter the current ActiveDevice. So farm out to over there.
-	return m.SwitchUserNewConfig(s.uid, s.username, salt, nilDeviceID)
+	return m.SwitchUserNewConfig(s.uv.Uid, s.username, salt, nilDeviceID)
 }
 
 func (s *SignupJoinEngine) PostInviteRequest(m libkb.MetaContext, arg libkb.InviteRequestArg) error {
