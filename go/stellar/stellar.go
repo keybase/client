@@ -777,7 +777,7 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 					return res, err
 				}
 				res.Status, res.StatusDetail = p.Claim.TxStatus.Details(p.Claim.TxErrMsg)
-				res.Status = fmt.Sprintf("Funded. Claim by %v is: %v", claimantUsername, res.Status)
+				res.Status = fmt.Sprintf("Funded. Claim by %v is: %v", *claimantUsername, res.Status)
 			}
 		}
 		relaySecrets, err := relays.DecryptB64(ctx, g, p.TeamID, p.BoxB64)
