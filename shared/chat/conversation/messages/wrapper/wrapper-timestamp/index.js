@@ -13,6 +13,7 @@ import {
   globalStyles,
   globalColors,
   isMobile,
+  platformStyles,
   styleSheetCreate,
 } from '../../../../../styles'
 import ReactionsRow from '../../reactions-row/container'
@@ -82,7 +83,7 @@ type MenuButtonsProps = {
   ordinal: Types.Ordinal,
 } & FloatingMenuParentProps
 const _MenuButtons = (props: MenuButtonsProps) => (
-  <React.Fragment>
+  <Box2 direction="vertical" style={styles.controls}>
     <Box className="menu-button" style={styles.menuButtons}>
       <ReactButton
         conversationIDKey={props.conversationIDKey}
@@ -92,12 +93,7 @@ const _MenuButtons = (props: MenuButtonsProps) => (
       />
       <Box ref={props.setAttachmentRef}>
         {(props.message.type === 'attachment' || props.message.type === 'text') && (
-          <Icon
-            type="iconfont-ellipsis"
-            style={iconCastPlatformStyles(styles.ellipsis)}
-            onClick={props.toggleShowingMenu}
-            fontSize={16}
-          />
+          <Icon type="iconfont-ellipsis" onClick={props.toggleShowingMenu} fontSize={16} />
         )}
       </Box>
       {(props.message.type === 'attachment' || props.message.type === 'text') && (
@@ -115,20 +111,29 @@ const _MenuButtons = (props: MenuButtonsProps) => (
       onClick={props.toggleShowingMenu}
       ordinal={props.ordinal}
     />
-  </React.Fragment>
+  </Box2>
 )
 const MenuButtons = FloatingMenuParentHOC(_MenuButtons)
 
 const styles = styleSheetCreate({
   container: {...globalStyles.flexBoxColumn, width: '100%'},
-  ellipsis: {marginRight: globalMargins.xtiny},
-  menuButtons: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    position: 'relative',
-    top: 1,
-  },
+  controls: platformStyles({
+    isElectron: {
+      flexBasis: 120,
+      flexShrink: 1,
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+    },
+  }),
+  menuButtons: platformStyles({
+    isElectron: {
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      position: 'relative',
+      top: 1,
+    },
+  }),
   orangeLine: {backgroundColor: globalColors.orange, height: 1, width: '100%'},
 })
 

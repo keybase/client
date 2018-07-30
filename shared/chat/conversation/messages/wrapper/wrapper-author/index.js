@@ -179,7 +179,7 @@ class WrapperAuthor extends React.PureComponent<WrapperAuthorProps & OverlayPare
     return (
       <Box
         style={collapseStyles([
-          styles.leftRightContainer,
+          styles.flexOneRow,
           props.showingMenu && styles.selected,
           props.includeHeader && styles.hasHeader,
         ])}
@@ -202,7 +202,6 @@ const styles = styleSheetCreate({
   flexOneColumn: {...globalStyles.flexBoxColumn, flex: 1},
   flexOneRow: {...globalStyles.flexBoxRow, flex: 1},
   hasHeader: {paddingTop: 6},
-  leftRightContainer: {...globalStyles.flexBoxRow, width: '100%'},
   leftSide: platformStyles({
     common: {
       flexShrink: 0,
