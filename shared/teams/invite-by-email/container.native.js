@@ -42,7 +42,7 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
-  openAppSettings: dispatch(ConfigGen.createOpenAppSettings()),
+  openAppSettings: () => dispatch(ConfigGen.createOpenAppSettings()),
   onClearError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})),
   onClose: () => {
     dispatch(navigateUp())

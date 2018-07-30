@@ -33,6 +33,18 @@ class SectionList extends React.Component<Props, State> {
     }
   }
 
+  /* Methods from native SectionList */
+  scrollToLocation(params: any) {
+    console.warn('TODO desktop SectionList')
+  }
+  recordInteraction() {
+    console.warn('TODO desktop SectionList')
+  }
+  flashScrollIndicators() {
+    console.warn('TODO desktop SectionList')
+  }
+  /* =============================== */
+
   _makeItems = () => {
     return this.props.sections.reduce((arr, section, sectionIndex) => {
       arr.push({sectionIndex, key: section.key || sectionIndex, type: 'header'})
