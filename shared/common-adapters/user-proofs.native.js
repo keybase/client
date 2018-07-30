@@ -162,17 +162,26 @@ class ProofsRender extends React.Component<Props> {
               onClickStatus={onClickProofMenu ? () => onClickProofMenu(idx) : p => this._onClickProof(p)}
               onClickProfile={p => this._onClickProfile(p)}
               hasMenu={!!onClickProofMenu}
-              style={{minHeight: 32}}
+              style={{left: -iconServicePadding, minHeight: 32}}
             />
           ))}
         {this.props.type === 'missingProofs' &&
           this.props.missingProofs.map((mp, idx) => (
-            <MissingProofRow key={mp.type} missingProof={mp} style={{minHeight: 32}} />
+            <MissingProofRow
+              key={mp.type}
+              missingProof={mp}
+              style={{left: -iconServicePadding, minHeight: 32}}
+            />
           ))}
       </Box>
     )
   }
 }
+
+// To increase the touch targets for proof icons, we define a common padding to
+// apply to all icons as well as to offset the proof row(s) to compensate for
+// the increased padding.
+const iconServicePadding = 5
 
 const iconContainer = {
   ...globalStyles.flexBoxRow,
@@ -196,7 +205,7 @@ const styleRow = {
 const styleService = {
   marginRight: globalMargins.xtiny,
   marginTop: 2,
-  padding: 5,
+  padding: iconServicePadding,
 }
 const styleServiceContainer = {
   color: globalColors.black_75,
