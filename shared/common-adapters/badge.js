@@ -13,16 +13,13 @@ export type BadgeProps = {
 export type Badge2Props = {
   badgeNumber: number,
   fontSize: number,
-  height?: number,
+  height: number,
   leftRightPadding: number,
   badgeStyle?: Styles.StylesCrossPlatform,
   badgeNumberStyle?: Styles.StylesCrossPlatform,
 }
 
-export type DefaultBadge2Props = {
-  fontSize: number,
-  leftRightPadding: number,
-}
+export type DefaultBadge2Props = {fontSize: number, height: number, leftRightPadding: number}
 
 export function Badge({badgeStyle, badgeNumber, badgeNumberStyle, largerBadgeMinWidthFix}: BadgeProps) {
   return (
@@ -88,21 +85,21 @@ const badgeStyles = Styles.styleSheetCreate({
 })
 
 export class Badge2 extends React.Component<Badge2Props> {
-  static defaultProps = {fontSize: 12, leftRightPadding: 6}
+  static defaultProps = {
+    fontSize: Styles.isMobile ? 12 : 10,
+    height: Styles.isMobile ? 20 : 16,
+    leftRightPadding: 4,
+  }
 
   render() {
-    // Default to a top and bottom padding of 4px (8px total)
-    // Padding less this can result in badges being wider than their height for single digit numbers
-    const height = this.props.height || this.props.fontSize + 8
-
     return (
       <Box
         style={Styles.collapseStyles([
           badge2Styles.badge,
           {
-            borderRadius: height,
-            height,
-            minWidth: height,
+            borderRadius: this.props.height,
+            height: this.props.height,
+            minWidth: this.props.height,
             paddingLeft: this.props.leftRightPadding,
             paddingRight: this.props.leftRightPadding,
           },
@@ -110,11 +107,15 @@ export class Badge2 extends React.Component<Badge2Props> {
         ])}
       >
         <Text
-          type="BodyTinySemibold"
+          type="BodyTinyBold"
           style={Styles.collapseStyles([
             badge2Styles.text,
+            {
+              fontSize: this.props.fontSize,
+              height: this.props.height,
+              lineHeight: Styles.isMobile ? this.props.height : `${this.props.height}px`,
+            },
             this.props.badgeNumberStyle,
-            {fontSize: this.props.fontSize},
           ])}
         >
           {this.props.badgeNumber}
@@ -126,13 +127,12 @@ export class Badge2 extends React.Component<Badge2Props> {
 
 const badge2Styles = Styles.styleSheetCreate({
   badge: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxRow,
     ...Styles.globalStyles.flexBoxCenter,
     backgroundColor: Styles.globalColors.orange,
   },
   text: {
     color: Styles.globalColors.white,
     textAlign: 'center',
-    lineHeight: 0,
   },
 })
