@@ -24,6 +24,8 @@ type SaltpackRecipientKeyfinderEngine struct {
 	engine.SaltpackUserKeyfinder
 	SymmetricEntityKeyMap map[keybase1.TeamID](keybase1.TeamApplicationKey)
 	SaltpackSymmetricKeys []libkb.SaltpackReceiverSymmetricKey
+
+	SkipTlfKeysForTesting bool // CORE-8423 remove this after most clients update
 }
 
 var _ libkb.Engine2 = (*SaltpackRecipientKeyfinderEngine)(nil)
@@ -34,6 +36,16 @@ func NewSaltpackRecipientKeyfinderEngineAsInterface(arg libkb.SaltpackRecipientK
 	return &SaltpackRecipientKeyfinderEngine{
 		SaltpackUserKeyfinder: *engine.NewSaltpackUserKeyfinder(arg),
 		SymmetricEntityKeyMap: make(map[keybase1.TeamID](keybase1.TeamApplicationKey)),
+	}
+}
+
+// SaltpackRecipientKeyfinderEngineForTesting creates a SaltpackRecipientKeyfinderEngine engine.
+// CORE-8423 remove this after most clients update
+func NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface {
+	return &SaltpackRecipientKeyfinderEngine{
+		SaltpackUserKeyfinder: *engine.NewSaltpackUserKeyfinder(arg),
+		SymmetricEntityKeyMap: make(map[keybase1.TeamID](keybase1.TeamApplicationKey)),
+		SkipTlfKeysForTesting: true,
 	}
 }
 
@@ -56,6 +68,15 @@ func (e *SaltpackRecipientKeyfinderEngine) Run(m libkb.MetaContext) (err error) 
 	}
 
 	err = e.uploadKeyPseudonymsAndGenerateSymmetricKeys(m)
+
+	// CORE-8423 remove this after most clients update
+	if !e.SkipTlfKeysForTesting {
+		kf := NewSaltpackKBFSKeyfinderEngineForTesting(e.Arg)
+		if err := engine.RunEngine2(m, kf); err != nil {
+			return err
+		}
+		e.SaltpackSymmetricKeys = append(e.SaltpackSymmetricKeys, kf.GetSymmetricKeys()...)
+	}
 
 	return err
 }
@@ -150,7 +171,7 @@ func (e *SaltpackRecipientKeyfinderEngine) identifyAndAddUserRecipient(m libkb.M
 			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a registered user (cannot encrypt for users not yet on keybase unless you are logged in)", u))
 		}
 		if !e.Arg.UseEntityKeys {
-			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a registered user (you can remove --no-entity-keys for users not yet on keybase)", u))
+			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a registered user (you can remove `--no-entity-keys` for users not yet on keybase)", u))
 		}
 
 		m.CDebugf("%v is not an existing user, trying to create an implicit team")

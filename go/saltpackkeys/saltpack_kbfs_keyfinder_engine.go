@@ -1,7 +1,8 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 //
-// +build !production,!staging
+// CORE-8423 re-enable this build tags after most clients update
+// build !production,!staging
 
 package saltpackkeys
 

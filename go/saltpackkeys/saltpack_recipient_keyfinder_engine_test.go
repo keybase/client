@@ -60,8 +60,10 @@ func TestSaltpackRecipientKeyfinderPUKs(t *testing.T) {
 	arg := libkb.SaltpackRecipientKeyfinderArg{
 		Recipients:    []string{u1.Username, u2.Username, u3.Username},
 		UseEntityKeys: true,
+		// Since no user has a paper key, this option should not lead to the addition of any keys.
+		UsePaperKeys: true,
 	}
-	eng := NewSaltpackRecipientKeyfinderEngineAsInterface(arg)
+	eng := NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
 	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
 	if err := engine.RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
@@ -113,7 +115,7 @@ func TestSaltpackRecipientKeyfinderFailsOnNonExistingUserWithoutLogin(t *testing
 		UseEntityKeys: true,
 		NoSelfEncrypt: true,
 	}
-	eng := NewSaltpackRecipientKeyfinderEngineAsInterface(arg)
+	eng := NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
 	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
 	err = engine.RunEngine2(m, eng)
 	_, ok := engine.RunEngine2(m, eng).(libkb.RecipientNotFoundError)
@@ -136,7 +138,7 @@ func TestSaltpackRecipientKeyfinderFailsOnNonExistingUserWithLogin(t *testing.T)
 		Recipients:    []string{"not_a_user"},
 		UseEntityKeys: true,
 	}
-	eng := NewSaltpackRecipientKeyfinderEngineAsInterface(arg)
+	eng := NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
 	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
 	err = engine.RunEngine2(m, eng)
 	_, ok := engine.RunEngine2(m, eng).(libkb.RecipientNotFoundError)
@@ -163,7 +165,7 @@ func TestSaltpackRecipientKeyfinderPUKSelfEncrypt(t *testing.T) {
 		Recipients:    []string{u1.Username, u2.Username},
 		UseEntityKeys: true,
 	}
-	eng := NewSaltpackRecipientKeyfinderEngineAsInterface(arg)
+	eng := NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
 	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
 	if err := engine.RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
@@ -218,7 +220,7 @@ func TestSaltpackRecipientKeyfinderPUKNoSelfEncrypt(t *testing.T) {
 		UseEntityKeys: true,
 		NoSelfEncrypt: true, // Since this is set, u3's keys should NOT be included.
 	}
-	eng := NewSaltpackRecipientKeyfinderEngineAsInterface(arg)
+	eng := NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
 	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
 	if err := engine.RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
@@ -267,7 +269,7 @@ func TestSaltpackRecipientKeyfinderCreatesImplicitTeamIfUserHasNoPUK(t *testing.
 		Recipients:    []string{u1.Username},
 		UseEntityKeys: true,
 	}
-	eng := NewSaltpackRecipientKeyfinderEngineAsInterface(arg)
+	eng := NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
 	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
 
 	// This should work with no errors, as both users exist and have PUKs
@@ -306,7 +308,7 @@ func TestSaltpackRecipientKeyfinderCreatesImplicitTeamIfUserHasNoPUK(t *testing.
 		Recipients:    []string{u1.Username, u3.Username},
 		UseEntityKeys: true,
 	}
-	eng = NewSaltpackRecipientKeyfinderEngineAsInterface(arg)
+	eng = NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
 	err = engine.RunEngine2(m, eng)
 	require.NoError(t, err)
 	fDHKeys = eng.GetPublicKIDs()
@@ -365,7 +367,7 @@ func TestSaltpackRecipientKeyfinderDeviceKeys(t *testing.T) {
 		Recipients:    []string{u1.Username, u2.Username, u3.Username},
 		UseDeviceKeys: true,
 	}
-	eng := NewSaltpackRecipientKeyfinderEngineAsInterface(arg)
+	eng := NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
 	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
 	if err := engine.RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
@@ -393,6 +395,74 @@ func TestSaltpackRecipientKeyfinderDeviceKeys(t *testing.T) {
 		t.Errorf("expected to find key %v, which was not retrieved", KID)
 	}
 	key, err = u2new.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u2new.GetComputedKeyFamily().GetAllActiveDevices()[1].ID)
+	require.NoError(t, err)
+	KID = key.GetKID()
+	if _, ok := fDHKeyset[KID]; !ok {
+		t.Errorf("expected to find key %v, which was not retrieved", KID)
+	}
+	key, err = u3.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u3.User.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
+	require.NoError(t, err)
+	KID = key.GetKID()
+	if _, ok := fDHKeyset[KID]; !ok {
+		t.Errorf("expected to find key %v, which was not retrieved", KID)
+	}
+
+	symKeys := eng.GetSymmetricKeys()
+	if len(symKeys) != 0 {
+		t.Errorf("number of symmetric keys found: %d, expected 0", len(symKeys))
+	}
+
+}
+
+func TestSaltpackRecipientKeyfinderSkipsMissingKeys(t *testing.T) {
+	tc := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine")
+	defer tc.Cleanup()
+
+	u1, err := kbtest.CreateAndSignupFakeUserPaper("spkfe", tc.G)
+	require.NoError(t, err)
+	u2, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
+	require.NoError(t, err)
+	u3, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
+	require.NoError(t, err)
+
+	trackUI := &kbtest.FakeIdentifyUI{
+		Proofs: make(map[string]string),
+	}
+
+	uis := libkb.UIs{IdentifyUI: trackUI, SecretUI: u3.NewSecretUI()}
+	arg := libkb.SaltpackRecipientKeyfinderArg{
+		Recipients:    []string{u1.Username, u2.Username, u3.Username},
+		UseDeviceKeys: true,
+		UsePaperKeys:  true, // only u1 has a paper key
+	}
+	eng := NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
+	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	if err := engine.RunEngine2(m, eng); err != nil {
+		t.Fatal(err)
+	}
+
+	fDHKeys := eng.GetPublicKIDs()
+	if len(fDHKeys) != 4 {
+		t.Errorf("number of device keys found: %d, expected 4", len(fDHKeys))
+	}
+	fDHKeyset := make(map[keybase1.KID]struct{})
+	for _, fPUK := range fDHKeys {
+		fDHKeyset[fPUK] = struct{}{}
+	}
+
+	key, err := u1.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u1.User.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
+	require.NoError(t, err)
+	KID := key.GetKID()
+	if _, ok := fDHKeyset[KID]; !ok {
+		t.Errorf("expected to find key %v, which was not retrieved", KID)
+	}
+	key, err = u1.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u1.User.GetComputedKeyFamily().GetAllActiveDevices()[1].ID)
+	require.NoError(t, err)
+	KID = key.GetKID()
+	if _, ok := fDHKeyset[KID]; !ok {
+		t.Errorf("expected to find key %v, which was not retrieved", KID)
+	}
+	key, err = u2.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u2.User.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
 	require.NoError(t, err)
 	KID = key.GetKID()
 	if _, ok := fDHKeyset[KID]; !ok {
@@ -441,7 +511,7 @@ func TestSaltpackRecipientKeyfinderPaperKeys(t *testing.T) {
 		Recipients:   []string{u1.Username, u2.Username, u3.Username},
 		UsePaperKeys: true,
 	}
-	eng := NewSaltpackRecipientKeyfinderEngineAsInterface(arg)
+	eng := NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
 	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
 	if err := engine.RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
@@ -519,7 +589,7 @@ func TestSaltpackRecipientKeyfinderDevicePaperAndPerUserKeys(t *testing.T) {
 		UsePaperKeys:  true,
 		UseEntityKeys: true,
 	}
-	eng := NewSaltpackRecipientKeyfinderEngineAsInterface(arg)
+	eng := NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
 	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
 	if err := engine.RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
@@ -578,7 +648,7 @@ func TestSaltpackRecipientKeyfinderExistingUserAssertions(t *testing.T) {
 		UseDeviceKeys: true,
 		NoSelfEncrypt: true,
 	}
-	eng := NewSaltpackRecipientKeyfinderEngineAsInterface(arg)
+	eng := NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
 	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
 	if err := engine.RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
@@ -637,7 +707,7 @@ func TestSaltpackRecipientKeyfinderTeam(t *testing.T) {
 		TeamRecipients: []string{teamName},
 		UseEntityKeys:  true,
 	}
-	eng := NewSaltpackRecipientKeyfinderEngineAsInterface(arg)
+	eng := NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
 	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
 	err = engine.RunEngine2(m, eng)
 	// switch e := err.(type){
@@ -654,7 +724,7 @@ func TestSaltpackRecipientKeyfinderTeam(t *testing.T) {
 	// u2 is part of the team, keyfinding should succeed.
 	u2.Login(tc.G)
 	uis = libkb.UIs{IdentifyUI: trackUI, SecretUI: u3.NewSecretUI()}
-	eng = NewSaltpackRecipientKeyfinderEngineAsInterface(arg)
+	eng = NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
 	m = libkb.NewMetaContextForTest(tc).WithUIs(uis)
 	err = engine.RunEngine2(m, eng)
 	require.NoError(t, err)
@@ -690,7 +760,7 @@ func TestSaltpackRecipientKeyfinderTeam(t *testing.T) {
 		UseEntityKeys:  true,
 		NoSelfEncrypt:  true,
 	}
-	eng = NewSaltpackRecipientKeyfinderEngineAsInterface(arg)
+	eng = NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
 	err = engine.RunEngine2(m, eng)
 	require.NoError(t, err)
 
@@ -712,7 +782,7 @@ func TestSaltpackRecipientKeyfinderTeam(t *testing.T) {
 		UseEntityKeys:  true,
 		UseDeviceKeys:  true,
 	}
-	eng = NewSaltpackRecipientKeyfinderEngineAsInterface(arg)
+	eng = NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
 	err = engine.RunEngine2(m, eng)
 	require.NoError(t, err)
 
@@ -770,7 +840,7 @@ func TestSaltpackRecipientKeyfinderImplicitTeam(t *testing.T) {
 		UseEntityKeys: true,
 		NoSelfEncrypt: true,
 	}
-	eng := NewSaltpackRecipientKeyfinderEngineAsInterface(arg)
+	eng := NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
 	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
 	err = engine.RunEngine2(m, eng) // Should fail
 	if _, ok := err.(libkb.RecipientNotFoundError); !ok {
@@ -787,7 +857,7 @@ func TestSaltpackRecipientKeyfinderImplicitTeam(t *testing.T) {
 		Recipients:    []string{nonExistingUserAssertion},
 		UseEntityKeys: true,
 	}
-	eng = NewSaltpackRecipientKeyfinderEngineAsInterface(arg)
+	eng = NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
 	m = libkb.NewMetaContextForTest(tc).WithUIs(uis)
 	err = engine.RunEngine2(m, eng)
 	require.NoError(t, err)
