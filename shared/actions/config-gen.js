@@ -21,14 +21,17 @@ export const changedFocus = 'config:changedFocus'
 export const clearRouteState = 'config:clearRouteState'
 export const configLoaded = 'config:configLoaded'
 export const daemonError = 'config:daemonError'
+export const daemonHandshake = 'config:daemonHandshake'
+export const daemonHandshakeDone = 'config:daemonHandshakeDone'
+export const daemonHandshakeWait = 'config:daemonHandshakeWait'
 export const debugDump = 'config:debugDump'
 export const dumpLogs = 'config:dumpLogs'
 export const extendedConfigLoaded = 'config:extendedConfigLoaded'
 export const getExtendedStatus = 'config:getExtendedStatus'
 export const globalError = 'config:globalError'
+export const installerRan = 'config:installerRan'
 export const link = 'config:link'
 export const loadAvatars = 'config:loadAvatars'
-export const loadConfig = 'config:loadConfig'
 export const loadTeamAvatars = 'config:loadTeamAvatars'
 export const loadedAvatars = 'config:loadedAvatars'
 export const mobileAppState = 'config:mobileAppState'
@@ -36,12 +39,15 @@ export const openAppSettings = 'config:openAppSettings'
 export const persistRouteState = 'config:persistRouteState'
 export const pushLoaded = 'config:pushLoaded'
 export const readyForBootstrap = 'config:readyForBootstrap'
+export const registerIncomingHandlers = 'config:registerIncomingHandlers'
 export const retryBootstrap = 'config:retryBootstrap'
 export const setInitialState = 'config:setInitialState'
 export const setNotifySound = 'config:setNotifySound'
 export const setOpenAtLogin = 'config:setOpenAtLogin'
 export const setStartedDueToPush = 'config:setStartedDueToPush'
+export const setupEngineListeners = 'config:setupEngineListeners'
 export const showMain = 'config:showMain'
+export const startHandshake = 'config:startHandshake'
 export const updateFollowing = 'config:updateFollowing'
 
 // Payload Types
@@ -52,8 +58,8 @@ type _BootstrapRetryPayload = void
 type _BootstrapStatusLoadedPayload = $ReadOnly<{|
   deviceID: string,
   deviceName: string,
-  followers?: ?Array<string>,
-  following?: ?Array<string>,
+  followers: Array<string>,
+  following: Array<string>,
   loggedIn: boolean,
   registered: boolean,
   uid: string,
@@ -64,16 +70,25 @@ type _ChangeKBFSPathPayload = $ReadOnly<{|kbfsPath: string|}>
 type _ChangedActivePayload = $ReadOnly<{|userActive: boolean|}>
 type _ChangedFocusPayload = $ReadOnly<{|appFocused: boolean|}>
 type _ClearRouteStatePayload = void
-type _ConfigLoadedPayload = $ReadOnly<{|config: RPCTypes.Config|}>
+type _ConfigLoadedPayload = $ReadOnly<{|
+  version: string,
+  versionShort: string,
+|}>
 type _DaemonErrorPayload = $ReadOnly<{|daemonError: ?Error|}>
+type _DaemonHandshakeDonePayload = void
+type _DaemonHandshakePayload = $ReadOnly<{|firstTimeConnecting: boolean|}>
+type _DaemonHandshakeWaitPayload = $ReadOnly<{|
+  name: string,
+  increment: boolean,
+|}>
 type _DebugDumpPayload = $ReadOnly<{|items: Array<string>|}>
 type _DumpLogsPayload = $ReadOnly<{|reason: 'quitting through menu'|}>
 type _ExtendedConfigLoadedPayload = $ReadOnly<{|extendedConfig: RPCTypes.ExtendedStatus|}>
 type _GetExtendedStatusPayload = void
 type _GlobalErrorPayload = $ReadOnly<{|globalError: null | Error | RPCError|}>
+type _InstallerRanPayload = void
 type _LinkPayload = $ReadOnly<{|link: string|}>
 type _LoadAvatarsPayload = $ReadOnly<{|usernames: Array<string>|}>
-type _LoadConfigPayload = $ReadOnly<{|logVersion?: boolean|}>
 type _LoadTeamAvatarsPayload = $ReadOnly<{|teamnames: Array<string>|}>
 type _LoadedAvatarsPayload = $ReadOnly<{|nameToUrlMap: {[name: string]: ?Object}|}>
 type _MobileAppStatePayload = $ReadOnly<{|nextAppState: 'active' | 'background' | 'inactive'|}>
@@ -81,6 +96,7 @@ type _OpenAppSettingsPayload = void
 type _PersistRouteStatePayload = void
 type _PushLoadedPayload = $ReadOnly<{|pushLoaded: boolean|}>
 type _ReadyForBootstrapPayload = void
+type _RegisterIncomingHandlersPayload = void
 type _RetryBootstrapPayload = void
 type _SetInitialStatePayload = $ReadOnly<{|initialState: ?Types.InitialState|}>
 type _SetNotifySoundPayload = $ReadOnly<{|
@@ -92,7 +108,9 @@ type _SetOpenAtLoginPayload = $ReadOnly<{|
   writeFile: boolean,
 |}>
 type _SetStartedDueToPushPayload = void
+type _SetupEngineListenersPayload = void
 type _ShowMainPayload = void
+type _StartHandshakePayload = void
 type _UpdateFollowingPayload = $ReadOnly<{|
   username: string,
   isTracking: boolean,
@@ -100,9 +118,37 @@ type _UpdateFollowingPayload = $ReadOnly<{|
 
 // Action Creators
 /**
+ * All sagas should register their incoming handlers now
+ */
+export const createRegisterIncomingHandlers = (payload: _RegisterIncomingHandlersPayload) => ({error: false, payload, type: registerIncomingHandlers})
+/**
+ * desktop only: the installer ran and we can start up
+ */
+export const createInstallerRan = (payload: _InstallerRanPayload) => ({error: false, payload, type: installerRan})
+/**
+ * internal to config. should start the handshake process
+ */
+export const createStartHandshake = (payload: _StartHandshakePayload) => ({error: false, payload, type: startHandshake})
+/**
  * mobile only: open the settings page
  */
 export const createOpenAppSettings = (payload: _OpenAppSettingsPayload) => ({error: false, payload, type: openAppSettings})
+/**
+ * ready to show the app
+ */
+export const createDaemonHandshakeDone = (payload: _DaemonHandshakeDonePayload) => ({error: false, payload, type: daemonHandshakeDone})
+/**
+ * starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait
+ */
+export const createDaemonHandshake = (payload: _DaemonHandshakePayload) => ({error: false, payload, type: daemonHandshake})
+/**
+ * subsystems that need to do things during boot need to call this to register that we should wait.
+ */
+export const createDaemonHandshakeWait = (payload: _DaemonHandshakeWaitPayload) => ({error: false, payload, type: daemonHandshakeWait})
+/**
+ * when sagas should start creating their incoming handlers / onConnect handlers
+ */
+export const createSetupEngineListeners = (payload: _SetupEngineListenersPayload) => ({error: false, payload, type: setupEngineListeners})
 export const createBootstrap = (payload: _BootstrapPayload) => ({error: false, payload, type: bootstrap})
 export const createBootstrapAttemptFailed = (payload: _BootstrapAttemptFailedPayload) => ({error: false, payload, type: bootstrapAttemptFailed})
 export const createBootstrapFailed = (payload: _BootstrapFailedPayload) => ({error: false, payload, type: bootstrapFailed})
@@ -122,7 +168,6 @@ export const createGetExtendedStatus = (payload: _GetExtendedStatusPayload) => (
 export const createGlobalError = (payload: _GlobalErrorPayload) => ({error: false, payload, type: globalError})
 export const createLink = (payload: _LinkPayload) => ({error: false, payload, type: link})
 export const createLoadAvatars = (payload: _LoadAvatarsPayload) => ({error: false, payload, type: loadAvatars})
-export const createLoadConfig = (payload: _LoadConfigPayload) => ({error: false, payload, type: loadConfig})
 export const createLoadTeamAvatars = (payload: _LoadTeamAvatarsPayload) => ({error: false, payload, type: loadTeamAvatars})
 export const createLoadedAvatars = (payload: _LoadedAvatarsPayload) => ({error: false, payload, type: loadedAvatars})
 export const createMobileAppState = (payload: _MobileAppStatePayload) => ({error: false, payload, type: mobileAppState})
@@ -150,14 +195,17 @@ export type ChangedFocusPayload = $Call<typeof createChangedFocus, _ChangedFocus
 export type ClearRouteStatePayload = $Call<typeof createClearRouteState, _ClearRouteStatePayload>
 export type ConfigLoadedPayload = $Call<typeof createConfigLoaded, _ConfigLoadedPayload>
 export type DaemonErrorPayload = $Call<typeof createDaemonError, _DaemonErrorPayload>
+export type DaemonHandshakeDonePayload = $Call<typeof createDaemonHandshakeDone, _DaemonHandshakeDonePayload>
+export type DaemonHandshakePayload = $Call<typeof createDaemonHandshake, _DaemonHandshakePayload>
+export type DaemonHandshakeWaitPayload = $Call<typeof createDaemonHandshakeWait, _DaemonHandshakeWaitPayload>
 export type DebugDumpPayload = $Call<typeof createDebugDump, _DebugDumpPayload>
 export type DumpLogsPayload = $Call<typeof createDumpLogs, _DumpLogsPayload>
 export type ExtendedConfigLoadedPayload = $Call<typeof createExtendedConfigLoaded, _ExtendedConfigLoadedPayload>
 export type GetExtendedStatusPayload = $Call<typeof createGetExtendedStatus, _GetExtendedStatusPayload>
 export type GlobalErrorPayload = $Call<typeof createGlobalError, _GlobalErrorPayload>
+export type InstallerRanPayload = $Call<typeof createInstallerRan, _InstallerRanPayload>
 export type LinkPayload = $Call<typeof createLink, _LinkPayload>
 export type LoadAvatarsPayload = $Call<typeof createLoadAvatars, _LoadAvatarsPayload>
-export type LoadConfigPayload = $Call<typeof createLoadConfig, _LoadConfigPayload>
 export type LoadTeamAvatarsPayload = $Call<typeof createLoadTeamAvatars, _LoadTeamAvatarsPayload>
 export type LoadedAvatarsPayload = $Call<typeof createLoadedAvatars, _LoadedAvatarsPayload>
 export type MobileAppStatePayload = $Call<typeof createMobileAppState, _MobileAppStatePayload>
@@ -165,12 +213,15 @@ export type OpenAppSettingsPayload = $Call<typeof createOpenAppSettings, _OpenAp
 export type PersistRouteStatePayload = $Call<typeof createPersistRouteState, _PersistRouteStatePayload>
 export type PushLoadedPayload = $Call<typeof createPushLoaded, _PushLoadedPayload>
 export type ReadyForBootstrapPayload = $Call<typeof createReadyForBootstrap, _ReadyForBootstrapPayload>
+export type RegisterIncomingHandlersPayload = $Call<typeof createRegisterIncomingHandlers, _RegisterIncomingHandlersPayload>
 export type RetryBootstrapPayload = $Call<typeof createRetryBootstrap, _RetryBootstrapPayload>
 export type SetInitialStatePayload = $Call<typeof createSetInitialState, _SetInitialStatePayload>
 export type SetNotifySoundPayload = $Call<typeof createSetNotifySound, _SetNotifySoundPayload>
 export type SetOpenAtLoginPayload = $Call<typeof createSetOpenAtLogin, _SetOpenAtLoginPayload>
 export type SetStartedDueToPushPayload = $Call<typeof createSetStartedDueToPush, _SetStartedDueToPushPayload>
+export type SetupEngineListenersPayload = $Call<typeof createSetupEngineListeners, _SetupEngineListenersPayload>
 export type ShowMainPayload = $Call<typeof createShowMain, _ShowMainPayload>
+export type StartHandshakePayload = $Call<typeof createStartHandshake, _StartHandshakePayload>
 export type UpdateFollowingPayload = $Call<typeof createUpdateFollowing, _UpdateFollowingPayload>
 
 // All Actions
@@ -188,14 +239,17 @@ export type Actions =
   | ClearRouteStatePayload
   | ConfigLoadedPayload
   | DaemonErrorPayload
+  | DaemonHandshakeDonePayload
+  | DaemonHandshakePayload
+  | DaemonHandshakeWaitPayload
   | DebugDumpPayload
   | DumpLogsPayload
   | ExtendedConfigLoadedPayload
   | GetExtendedStatusPayload
   | GlobalErrorPayload
+  | InstallerRanPayload
   | LinkPayload
   | LoadAvatarsPayload
-  | LoadConfigPayload
   | LoadTeamAvatarsPayload
   | LoadedAvatarsPayload
   | MobileAppStatePayload
@@ -203,11 +257,14 @@ export type Actions =
   | PersistRouteStatePayload
   | PushLoadedPayload
   | ReadyForBootstrapPayload
+  | RegisterIncomingHandlersPayload
   | RetryBootstrapPayload
   | SetInitialStatePayload
   | SetNotifySoundPayload
   | SetOpenAtLoginPayload
   | SetStartedDueToPushPayload
+  | SetupEngineListenersPayload
   | ShowMainPayload
+  | StartHandshakePayload
   | UpdateFollowingPayload
   | {type: 'common:resetStore', payload: void}

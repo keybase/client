@@ -9,7 +9,7 @@ import * as TeamsGen from './teams-gen'
 import * as TrackerGen from './tracker-gen'
 import * as UnlockFoldersGen from './unlock-folders-gen'
 import setUpNotificationActions from '../native/notification-listeners'
-import engine, {Engine} from '../engine'
+import {getEngine} from '../engine'
 import logger from '../logger'
 import {isMobile} from '../constants/platform'
 import {createSetupPeopleHandlers} from './people-gen'
@@ -39,8 +39,7 @@ function* _listenSaga(): Saga.SagaGenerator<any, any> {
     users: true,
   }
 
-  const engineInst: Engine = yield Saga.call(engine)
-  yield Saga.call([engineInst, engineInst.listenOnConnect], 'setNotifications', () => {
+  getEngine().actionOnConnect('setNotifications', () => {
     RPCTypes.notifyCtlSetNotificationsRpcPromise({channels}).catch(error => {
       if (error != null) {
         logger.warn('error in toggling notifications: ', error)

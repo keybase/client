@@ -16,7 +16,6 @@ import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import openURL from '../util/open-url'
-import {getExtendedStatus} from './config'
 import {isMobile} from '../constants/platform'
 import appRouteTree from '../app/routes-app'
 import loginRouteTree from '../app/routes-login'
@@ -111,11 +110,6 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
       yield Saga.put(RouteTree.navigateTo([Tabs.peopleTab], null, 'initial-default'))
     }
   } else if (registered) {
-    // relogging in
-    try {
-      yield Saga.put.resolve(getExtendedStatus())
-    } catch (e) {} // keep going
-
     yield Saga.put(RouteTree.switchRouteDef(loginRouteTree))
     // We may have logged successfully in by now, check before trying to navigate
     const state = yield Saga.select()

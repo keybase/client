@@ -9,6 +9,10 @@ import {writeLogLinesToFile} from '../util/forward-logs'
 import logger from '../logger'
 import {quit} from '../util/quit-helper'
 import {type TypedState} from '../constants/reducer'
+import {execFile} from 'child_process'
+import path from 'path'
+import {isWindows, socketPath} from '../constants/platform.desktop'
+import {getEngine} from '../engine'
 
 function showShareActionSheet(options: {
   url?: ?any,
@@ -121,7 +125,36 @@ export const dumpLogs = (action: ?ConfigGen.DumpLogsPayload) =>
       }
     })
 
-const onBootstrapped = (state: TypedState) => Saga.put(LoginGen.createNavBasedOnLoginAndInitialState())
+const checkRPCOwnership = () =>
+  new Promise((resolve, reject) => {
+    if (!isWindows) {
+      return resolve()
+    }
+    logger.info('Checking RPC ownership')
+
+    const localAppData = String(process.env.LOCALAPPDATA)
+    var binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
+    const args = ['pipeowner', socketPath]
+    execFile(binPath, args, {windowsHide: true}, (error, stdout, stderr) => {
+      if (error) {
+        logger.info(`pipeowner check result: ${stdout.toString()}`)
+        // error will be logged in bootstrap check
+        getEngine().reset()
+        reject(error)
+        return
+      }
+      const result = JSON.parse(stdout.toString())
+      if (result.isOwner) {
+        resolve()
+        return
+      }
+      logger.info(`pipeowner check result: ${stdout.toString()}`)
+      getEngine().reset()
+      reject(new Error(`pipeowner check failed`))
+    })
+  })
+
+const registerIncomingHandlers = () => {}
 
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
@@ -129,7 +162,8 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatestPure(ConfigGen.showMain, showMainWindow)
   yield Saga.safeTakeEveryPure(ConfigGen.dumpLogs, dumpLogs)
   yield Saga.fork(initializeAppSettingsState)
-  yield Saga.actionToAction(ConfigGen.bootstrapSuccess, onBootstrapped)
+  yield Saga.actionToAction(ConfigGen.registerIncomingHandlers, registerIncomingHandlers)
+  yield Saga.actionToAction(ConfigGen.registerIncomingHandlers, checkRPCOwnership)
 }
 
 export {

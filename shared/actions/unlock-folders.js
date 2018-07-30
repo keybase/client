@@ -28,7 +28,7 @@ const _closePopup = () => {
 }
 
 function _registerRekeyListener() {
-  engine().listenOnConnect('registerRekeyUI', () => {
+  engine().actionOnConnect('registerRekeyUI', () => {
     RPCTypes.delegateUiCtlRegisterRekeyUIRpcPromise()
       .then(response => {
         logger.info('Registered rekey ui')

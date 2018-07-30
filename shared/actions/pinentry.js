@@ -10,7 +10,7 @@ import engine from '../engine'
 const sessionIDToResponse: {[key: string]: any} = {}
 
 function _setupPinentryHandlers() {
-  engine().listenOnConnect('registerSecretUI', () => {
+  engine().actionOnConnect('registerSecretUI', () => {
     RPCTypes.delegateUiCtlRegisterSecretUIRpcPromise()
       .then(response => {
         logger.info('Registered secret ui')

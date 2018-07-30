@@ -166,7 +166,12 @@ class Engine {
     const handlers = this._onDisconnectHandlers
     // Don't allow mutation while we're handling the handlers
     this._onDisconnectHandlers = null
-    Object.keys(handlers).forEach(k => handlers[k]())
+    Object.keys(handlers).forEach(k => {
+      const action = handlers[k]()
+      if (action) {
+        Engine._dispatch(action)
+      }
+    })
     this._onDisconnectHandlers = handlers
   }
 
@@ -180,7 +185,12 @@ class Engine {
     const handlers = this._onConnectHandlers
     // Don't allow mutation while we're handling the handlers
     this._onConnectHandlers = null
-    Object.keys(handlers).forEach(k => handlers[k]())
+    Object.keys(handlers).forEach(k => {
+      const action = handlers[k]()
+      if (action) {
+        Engine._dispatch(action)
+      }
+    })
     this._onConnectHandlers = handlers
   }
 
@@ -427,8 +437,8 @@ class Engine {
     this._failOnError = true
   }
 
-  // Register a named callback when we disconnect from the server. Call if we're already disconnected
-  listenOnDisconnect(key: string, f: () => void) {
+  // Register a named callback when we disconnect from the server. Call if we're already disconnected. Callback should produce an action
+  actionOnDisconnect(key: string, f: () => void) {
     if (!this._onDisconnectHandlers) {
       throw new Error('Calling listenOnDisconnect while in the middle of _onDisconnect')
     }
@@ -439,7 +449,10 @@ class Engine {
 
     // If we've actually connected and are now disconnected let's call this immediately
     if (this._hasConnected && this._rpcClient.transport.needsConnect) {
-      f()
+      const action = f()
+      if (action) {
+        Engine._dispatch(action)
+      }
     }
 
     // Regardless if we were connected or not, we'll add this to the callback fns
@@ -454,7 +467,7 @@ class Engine {
   }
 
   // Register a named callback when we reconnect to the server. Call if we're already connected
-  listenOnConnect(key: string, f: () => void) {
+  actionOnConnect(key: string, f: () => void) {
     if (!this._onConnectHandlers) {
       throw new Error('Calling listenOnConnect while in the middle of _onConnected')
     }
@@ -465,7 +478,10 @@ class Engine {
 
     // The transport is already connected, so let's call this function right away
     if (!this._rpcClient.transport.needsConnect) {
-      f()
+      const action = f()
+      if (action) {
+        Engine._dispatch(action)
+      }
     }
 
     // Regardless if we were connected or not, we'll add this to the callback fns
@@ -487,8 +503,8 @@ class FakeEngine {
   cancelSession(sessionID: SessionID) {}
   rpc() {}
   setFailOnError() {}
-  listenOnConnect(key: string, f: () => void) {}
-  listenOnDisconnect(key: string, f: () => void) {}
+  actionOnConnect(key: string, f: () => void) {}
+  actionOnDisconnect(key: string, f: () => void) {}
   hasEverConnected() {}
   setIncomingActionCreator(
     method: MethodKey,

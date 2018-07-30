@@ -572,7 +572,7 @@ function _setupTrackerHandlers() {
     return [{payload: {uid}, type: 'tracker:_userChanged'}]
   })
 
-  engine().listenOnConnect('registerIdentifyUi', () => {
+  engine().actionOnConnect('registerIdentifyUi', () => {
     RPCTypes.delegateUiCtlRegisterIdentifyUIRpcPromise()
       .then(response => {
         logger.info('Registered identify ui')

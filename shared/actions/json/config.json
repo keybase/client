@@ -4,84 +4,73 @@
     "import {RPCError} from '../util/errors'"
   ],
   "actions": {
-    "dumpLogs": {
-      "reason": ["'quitting through menu'"]
+    "setupEngineListeners": {
+      "_description": "when sagas should start creating their incoming handlers / onConnect handlers"
     },
+    "startHandshake": {
+      "_description": "internal to config. should start the handshake process"
+    },
+    "daemonHandshake": {
+      "_description": "starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait",
+      "firstTimeConnecting": "boolean"
+    },
+    "daemonHandshakeWait": {
+      "_description": "subsystems that need to do things during boot need to call this to register that we should wait.",
+      "name": "string",
+      "increment": "boolean"
+    },
+    "daemonHandshakeDone": {
+      "_description": "ready to show the app"
+    },
+    "installerRan": {
+      "_description": "desktop only: the installer ran and we can start up"
+    },
+    "dumpLogs": { "reason": ["'quitting through menu'"] },
     "openAppSettings": {
       "_description": "mobile only: open the settings page"
     },
-    "changedFocus": {
-      "appFocused": "boolean"
-    },
-    "changedActive": {
-      "userActive": "boolean"
-    },
-    "link": {
-      "link": "string"
-    },
-    "mobileAppState": {
-      "nextAppState": ["'active'", "'background'", "'inactive'"]
-    },
+    "changedFocus": { "appFocused": "boolean" },
+    "changedActive": { "userActive": "boolean" },
+    "link": { "link": "string" },
+    "mobileAppState": { "nextAppState": ["'active'", "'background'", "'inactive'"] },
     "showMain": {},
-    "loadAvatars": {
-      "usernames": "Array<string>"
-    },
-    "loadedAvatars": {
-      "nameToUrlMap": "{[name: string]: ?Object}"
-    },
-    "loadTeamAvatars": {
-      "teamnames": "Array<string>"
-    },
+    "loadAvatars": { "usernames": "Array<string>" },
+    "loadedAvatars": { "nameToUrlMap": "{[name: string]: ?Object}" },
+    "loadTeamAvatars": { "teamnames": "Array<string>" },
     "bootstrapStatusLoaded": {
       "deviceID": "string",
       "deviceName": "string",
-      "followers?": "?Array<string>",
-      "following?": "?Array<string>",
+      "followers": "Array<string>",
+      "following": "Array<string>",
       "loggedIn": "boolean",
       "registered": "boolean",
       "uid": "string",
       "username": "string"
     },
-    "bootstrap": {
-      "isReconnect?": "boolean"
-    },
+    "bootstrap": { "isReconnect?": "boolean" },
     "bootstrapSuccess": {},
     "bootstrapRetry": {},
     "bootstrapAttemptFailed": {},
     "bootstrapFailed": {},
-    "changeKBFSPath": {
-      "kbfsPath": "string"
-    },
+    "changeKBFSPath": { "kbfsPath": "string" },
     "clearRouteState": {},
-    "loadConfig": {
-      "logVersion?": "boolean"
-    },
     "configLoaded": {
-      "config": "RPCTypes.Config"
+      "version": "string",
+      "versionShort": "string"
     },
-    "daemonError": {
-      "daemonError": "?Error"
-    },
-    "extendedConfigLoaded": {
-      "extendedConfig": "RPCTypes.ExtendedStatus"
-    },
+    "daemonError": { "daemonError": "?Error" },
+    "extendedConfigLoaded": { "extendedConfig": "RPCTypes.ExtendedStatus" },
     "getExtendedStatus": {},
-    "globalError": {
-      "globalError": "null | Error | RPCError"
-    },
+    "globalError": { "globalError": "null | Error | RPCError" },
     "updateFollowing": {
       "username": "string",
       "isTracking": "boolean"
     },
     "persistRouteState": {},
-    "pushLoaded": {
-      "pushLoaded": "boolean"
-    },
+    "pushLoaded": { "pushLoaded": "boolean" },
     "readyForBootstrap": {},
     "retryBootstrap": {},
-    "setInitialState": {
-      "initialState": "?Types.InitialState"
-    },
+    "setInitialState": { "initialState": "?Types.InitialState" },
     "setOpenAtLogin": {
       "open": "boolean",
       "writeFile": "boolean"
@@ -90,9 +79,8 @@
       "sound": "boolean",
       "writeFile": "boolean"
     },
-    "debugDump": {
-      "items": "Array<string>"
-    },
-    "setStartedDueToPush": {}
+    "debugDump": { "items": "Array<string>" },
+    "setStartedDueToPush": {},
+    "registerIncomingHandlers": { "_description": "All sagas should register their incoming handlers now" }
   }
 }

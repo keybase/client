@@ -53,6 +53,7 @@ const actionTransformMap = {
 
   _loadAvatarHelper: nullTransform,
   [ConfigGen.loadAvatars]: nullTransform,
+  [ConfigGen.daemonHandshakeWait]: fullOutput,
   [ConfigGen.loadTeamAvatars]: nullTransform,
   [ConfigGen.loadedAvatars]: nullTransform,
   [ConfigGen.persistRouteState]: nullTransform,

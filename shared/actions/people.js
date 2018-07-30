@@ -91,7 +91,7 @@ const _skipTodo = (action: PeopleGen.SkipTodoPayload) => {
 
 let _wasOnPeopleTab = true
 const _setupPeopleHandlers = () => {
-  engine().listenOnConnect('registerHomeUI', () => {
+  engine().actionOnConnect('registerHomeUI', () => {
     RPCTypes.delegateUiCtlRegisterHomeUIRpcPromise()
       .then(() => console.log('Registered home UI'))
       .catch(error => console.warn('Error in registering home UI:', error))
