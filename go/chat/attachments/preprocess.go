@@ -84,6 +84,9 @@ func (p *Preprocess) Export(getLocation func() *chat1.PreviewLocation) (res chat
 		MimeType: p.ContentType,
 		Location: getLocation(),
 	}
+	if p.PreviewContentType != "" {
+		res.PreviewMimeType = &p.PreviewContentType
+	}
 	md := p.PreviewMetadata()
 	var empty chat1.AssetMetadata
 	if md != empty {
@@ -124,6 +127,9 @@ func processCallerPreview(ctx context.Context, callerPreview chat1.MakePreviewRe
 		return p, fmt.Errorf("unknown preview location: %v", ltyp)
 	}
 	p.ContentType = callerPreview.MimeType
+	if callerPreview.PreviewMimeType != nil {
+		p.PreviewContentType = *callerPreview.PreviewMimeType
+	}
 	if callerPreview.Metadata != nil {
 		typ, err := callerPreview.Metadata.AssetType()
 		if err != nil {
@@ -204,7 +210,8 @@ func PreprocessAsset(ctx context.Context, log utils.DebugLabeler, filename strin
 		return p, err
 	}
 	if previewRes != nil {
-		log.Debug(ctx, "preprocessAsset: made preview for attachment asset")
+		log.Debug(ctx, "preprocessAsset: made preview for attachment asset: content type: %s",
+			previewRes.ContentType)
 		p.Preview = previewRes.Source
 		p.PreviewContentType = previewRes.ContentType
 		if previewRes.BaseWidth > 0 || previewRes.BaseHeight > 0 {

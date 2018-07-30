@@ -5,7 +5,9 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"net/http"
 	"os"
+	"strings"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
@@ -132,4 +134,51 @@ func (b *bufReadResetter) Read(p []byte) (int, error) {
 func (b *bufReadResetter) Reset() error {
 	b.r.Reset(b.buf)
 	return nil
+}
+
+type ContentTypeOverridingResponseWriter struct {
+	original http.ResponseWriter
+}
+
+var _ http.ResponseWriter = (*ContentTypeOverridingResponseWriter)(nil)
+
+func NewContentTypeOverridingResponseWriter(
+	original http.ResponseWriter) *ContentTypeOverridingResponseWriter {
+	return &ContentTypeOverridingResponseWriter{
+		original: original,
+	}
+}
+
+func (w *ContentTypeOverridingResponseWriter) overrideMimeType(
+	mimeType string) (newMimeType string) {
+	// Send text/plain for all HTML and JS files to avoid them being executed
+	// by the frontend WebView.
+	lower := strings.ToLower(mimeType)
+	if strings.Contains(lower, "javascript") ||
+		strings.Contains(lower, "html") {
+		return "text/plain"
+	}
+	return mimeType
+}
+
+func (w *ContentTypeOverridingResponseWriter) override() {
+	t := w.original.Header().Get("Content-Type")
+	if len(t) > 0 {
+		w.original.Header().Set("Content-Type", w.overrideMimeType(t))
+	}
+	w.original.Header().Set("X-Content-Type-Options", "nosniff")
+}
+
+func (w *ContentTypeOverridingResponseWriter) Header() http.Header {
+	return w.original.Header()
+}
+
+func (w *ContentTypeOverridingResponseWriter) WriteHeader(statusCode int) {
+	w.override()
+	w.original.WriteHeader(statusCode)
+}
+
+func (w *ContentTypeOverridingResponseWriter) Write(data []byte) (int, error) {
+	w.override()
+	return w.original.Write(data)
 }

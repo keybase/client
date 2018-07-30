@@ -1609,12 +1609,21 @@ function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
 function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayload) {
   const message = action.payload.message
   if (message.fileType.startsWith('video')) {
-    yield Saga.put(
-      Chat2Gen.createAttachmentDownload({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
-      })
-    )
+    yield isMobile
+      ? Saga.put(
+          Route.navigateAppend([
+            {
+              props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+              selected: 'attachmentVideoFullscreen',
+            },
+          ])
+        )
+      : Saga.put(
+          Chat2Gen.createAttachmentDownload({
+            conversationIDKey: message.conversationIDKey,
+            ordinal: message.ordinal,
+          })
+        )
   } else {
     yield Saga.put(
       Route.navigateAppend([
@@ -1695,7 +1704,9 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
         ? preview.location.url
         : ''
   )
-  const previewSpecs = previews.map(preview => Constants.previewSpecs(preview && preview.metadata, null))
+  const previewSpecs = previews.map(preview =>
+    Constants.previewSpecs(preview && preview.metadata, preview && preview.baseMetadata)
+  )
 
   let lastOrdinal = null
   const messages = outboxIDs.map((o, i) => {
