@@ -6,6 +6,7 @@ import * as Styles from '../../styles'
 
 type Props = {
   paperkey: string,
+  waiting: boolean,
   onBack: () => void,
 }
 
@@ -49,6 +50,7 @@ class PaperKey extends React.Component<Props, State> {
           <Common.Checkbox
             label="Yes, I wrote this down."
             checked={this.state.wroteItDown}
+            disabled={this.props.waiting}
             onCheck={wroteItDown => this.setState({wroteItDown})}
           />
           <Common.WaitingButton
