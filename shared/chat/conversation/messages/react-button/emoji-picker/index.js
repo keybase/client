@@ -146,6 +146,7 @@ const styles = styleSheetCreate({
   },
   emoji: {
     padding: emojiPadding,
+    width: singleEmojiWidth + 2 * emojiPadding,
   },
   flexWrap: {
     flexWrap: 'wrap',
