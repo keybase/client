@@ -3,7 +3,7 @@ import Box from './box'
 import Icon from './icon'
 import * as React from 'react'
 import Text from './text'
-import {Badge} from './badge'
+import {Badge2} from './badge'
 import Avatar from './avatar'
 import {get} from 'lodash-es'
 import shallowEqual from 'shallowequal'
@@ -130,7 +130,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
         {badgeNumber > 0 && (
           <Box style={{width: 0, display: 'flex'}}>
             <Box style={styleBadgeAvatar}>
-              <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 0, marginRight: 0}} />
+              <Badge2 badgeNumber={badgeNumber} badgeStyle={{marginLeft: 0, marginRight: 0}} />
             </Box>
           </Box>
         )}
@@ -167,7 +167,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
           <Icon type={this.props.source.icon} style={this.props.styleIcon} className="img" />
           {badgeNumber > 0 && (
             <Box style={styleBadgeNav}>
-              <Badge
+              <Badge2
                 badgeNumber={badgeNumber}
                 badgeStyle={{marginLeft: 0, marginRight: globalMargins.tiny}}
               />
@@ -210,7 +210,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
         )}
         {badgeNumber > 0 && (
           <Box style={{...styleBadgeIcon, ...this.props.styleBadgeContainer}}>
-            <Badge
+            <Badge2
               badgeNumber={badgeNumber}
               badgeStyle={this.props.styleBadge}
               badgeNumberStyle={this.props.styleBadgeNumber}
@@ -348,8 +348,8 @@ const styleBadgeAvatar = {
 
 const styleBadgeNav = {
   position: 'absolute',
-  left: 46,
-  top: 5,
+  right: 12,
+  top: 4,
 }
 
 const styleBadgeIcon = {
