@@ -2,7 +2,7 @@
 import Folders, {type FolderType, type Props as FolderProps} from '../folders/index.desktop'
 import React, {Component} from 'react'
 import UserAdd from './user-add.desktop'
-import {Box, Icon, Text, Button, PopupMenu, Badge, ButtonBar, type IconType} from '../common-adapters'
+import {Box, Icon, Text, Button, FloatingMenu, Badge, ButtonBar, type IconType} from '../common-adapters'
 import {fsTab, peopleTab, chatTab, devicesTab, type Tab} from '../constants/tabs'
 import {globalStyles, globalColors, desktopStyles, collapseStyles, platformStyles} from '../styles'
 import {isDarwin} from '../constants/platform'
@@ -26,16 +26,18 @@ export type Props = {
   badgeInfo: Object,
 }
 
-type State = {
+type State = {|
   selected: FolderType,
   showingMenu: boolean,
-}
+|}
 
 class MenubarRender extends Component<Props, State> {
   state: State = {
     selected: 'private',
     showingMenu: false,
   }
+
+  attachmentRef = React.createRef()
 
   _onShow = throttle(() => {
     this.props.refresh()
@@ -49,6 +51,7 @@ class MenubarRender extends Component<Props, State> {
   }
 
   render() {
+    // TODO: refactor all this duplicated code!
     return this.props.loggedIn ? this._renderFolders() : this._renderLoggedOut()
   }
 
@@ -73,6 +76,13 @@ class MenubarRender extends Component<Props, State> {
             hoverColor={menuColor}
             type="iconfont-hamburger"
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
+            ref={this.attachmentRef}
+          />
+          <FloatingMenu
+            visible={this.state.showingMenu}
+            attachTo={this.attachmentRef.current}
+            items={this._menuItems()}
+            onHidden={() => this.setState({showingMenu: false})}
           />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
@@ -84,13 +94,6 @@ class MenubarRender extends Component<Props, State> {
             <Button type="Primary" label="Log In" onClick={this.props.logIn} />
           </ButtonBar>
         </Box>
-        {this.state.showingMenu && (
-          <PopupMenu
-            style={styleMenu}
-            items={this._menuItems()}
-            onHidden={() => this.setState({showingMenu: false})}
-          />
-        )}
       </Box>
     )
   }
@@ -182,6 +185,17 @@ class MenubarRender extends Component<Props, State> {
             hoverColor={globalColors.black}
             type="iconfont-hamburger"
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
+            ref={this.attachmentRef}
+          />
+          <FloatingMenu
+            items={this._menuItems()}
+            visible={this.state.showingMenu}
+            onHidden={() =>
+              this.setState({
+                showingMenu: false,
+              })
+            }
+            attachTo={this.attachmentRef.current}
           />
         </Box>
         <Folders {...mergedProps} />
@@ -199,13 +213,6 @@ class MenubarRender extends Component<Props, State> {
             <Icon type="icon-loader-uploading-16" />
             <Text type="BodySmall">UPLOADING CHANGES...</Text>
           </Box>
-        )}
-        {this.state.showingMenu && (
-          <PopupMenu
-            style={styleMenu}
-            items={this._menuItems()}
-            onHidden={() => this.setState({showingMenu: false})}
-          />
         )}
       </Box>
     )
@@ -316,12 +323,6 @@ const stylesPublic = {
 const stylesLogo = {
   alignSelf: 'center',
   marginBottom: 12,
-}
-
-const styleMenu = {
-  position: 'absolute',
-  top: 29,
-  right: 4,
 }
 
 export default MenubarRender

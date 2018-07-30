@@ -16,7 +16,7 @@ import {
   Icon,
   Meta,
   PlatformIcon,
-  PopupMenu,
+  FloatingMenu,
   NativeSectionList,
   Text,
   UserBio,
@@ -175,7 +175,7 @@ class Profile extends Component<Props, State> {
         pendingMessage = 'Your proof is pending. DNS proofs can take a few hours to recognize.'
       }
       return {
-        header: pendingMessage ? {title: pendingMessage} : null,
+        header: pendingMessage ? {title: pendingMessage} : undefined,
         items: [{title: 'Revoke', danger: true, onClick: () => this.props.onRevokeProof(proof)}],
       }
     }
@@ -533,22 +533,15 @@ class Profile extends Component<Props, State> {
           forceRenderBio={this.props.userInfo}
           windowSize={3}
           sections={[
-            {
-              renderItem: this._renderProfile,
-              title: 'profile',
-              data: [{key: 'profile'}],
-            },
-            {
-              renderItem: this._renderFriends,
-              title: 'friends',
-              data: friendData,
-            },
+            {renderItem: this._renderProfile, title: 'profile', data: [{key: 'profile'}]},
+            {renderItem: this._renderFriends, title: 'friends', data: friendData},
           ]}
         />
         {!!activeMenuProof && (
-          <PopupMenu
-            {...this._proofMenuContent(activeMenuProof)}
+          <FloatingMenu
             onHidden={() => this._handleToggleMenu(this.props.proofs.indexOf(activeMenuProof))}
+            visible={!!activeMenuProof}
+            {...this._proofMenuContent(activeMenuProof)}
           />
         )}
       </Box>
