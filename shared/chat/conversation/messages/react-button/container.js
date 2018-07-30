@@ -4,6 +4,7 @@ import {compose, connect, setDisplayName, type TypedState} from '../../../../uti
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as RouteTree from '../../../../actions/route-tree'
 import type {StylesCrossPlatform} from '../../../../styles'
 import ReactButton, {NewReactionButton, type Props, type NewReactionButtonProps} from '.'
 
@@ -16,6 +17,7 @@ const Wrapper = (props: WrapperProps) =>
       count={props.count}
       emoji={props.emoji}
       onClick={props.onClick}
+      onLongPress={props.onLongPress}
       onMouseLeave={props.onMouseLeave}
       onMouseOver={props.onMouseOver}
       ordinal={props.ordinal}
@@ -24,6 +26,8 @@ const Wrapper = (props: WrapperProps) =>
   ) : (
     <NewReactionButton
       onAddReaction={props.onAddReaction}
+      onLongPress={props.onLongPress}
+      onOpenEmojiPicker={props.onOpenEmojiPicker}
       showBorder={props.showBorder}
       style={props.style}
     />
@@ -34,6 +38,7 @@ export type OwnProps = {
   emoji?: string,
   onMouseLeave?: (evt: SyntheticEvent<Element>) => void,
   onMouseOver?: (evt: SyntheticEvent<Element>) => void,
+  onLongPress?: () => void,
   ordinal: Types.Ordinal,
   showBorder?: boolean,
   style?: StylesCrossPlatform,
@@ -68,6 +73,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, emoji, ordin
     dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal})),
   onClick: () =>
     dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji: emoji || '', ordinal})),
+  onOpenEmojiPicker: () =>
+    dispatch(RouteTree.navigateAppend([{props: {conversationIDKey, ordinal}, selected: 'chooseEmoji'}])),
 })
 
 export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('ReactButton'))(Wrapper)
