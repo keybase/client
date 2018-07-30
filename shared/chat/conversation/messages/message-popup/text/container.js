@@ -99,9 +99,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       : null,
     onEdit: yourMessage && message.type === 'text' ? () => dispatchProps._onEdit(message) : null,
     onHidden: () => ownProps.onHidden(),
-    onQuote: message.type === 'text' ? () => dispatchProps._onQuote(message) : null,
-    onReplyPrivately: message.type === 'text' ? () => dispatchProps._onReplyPrivately(message) : null,
-    onViewProfile: message.author ? () => dispatchProps._onViewProfile(message.author) : null,
+    onQuote: message.type === 'text' && !yourMessage ? () => dispatchProps._onQuote(message) : null,
+    onReplyPrivately:
+      message.type === 'text' && !yourMessage ? () => dispatchProps._onReplyPrivately(message) : null,
+    onViewProfile: message.author && !yourMessage ? () => dispatchProps._onViewProfile(message.author) : null,
     position: ownProps.position,
     showDivider: !message.deviceRevokedAt,
     timestamp: message.timestamp,
