@@ -10,10 +10,6 @@ import (
 	"sync"
 )
 
-// TODO: Make this implementation use GetStoredSecretServiceName(), as
-// otherwise tests will clobber each other's passwords. See
-// https://keybase.atlassian.net/browse/CORE-1934 .
-
 // UnsafeExternalKeyStore is a simple interface that external clients can implement.
 // It is unsafe because it returns raw bytes instead of the typed LKSecFullSecret
 // Use with TypeSafeExternalKeyStoreProxy
@@ -83,6 +79,7 @@ var noExternalKeyStore = errors.New("no external key store available")
 func getGlobalExternalKeyStore(m MetaContext) (ExternalKeyStore, error) {
 	externalKeyStoreMu.Lock()
 	defer externalKeyStoreMu.Unlock()
+
 	if externalKeyStore == nil {
 		// perhaps SetGlobalExternalKeyStore has not been called by Android internals yet:
 		m.CDebugf("secret_store_external:getGlobalExternalKeyStore called, but externalKeyStore is nil")
@@ -152,7 +149,9 @@ func (s *secretStoreAndroid) ClearSecret(m MetaContext, username NormalizedUsern
 	return ks.ClearSecret(s.serviceName(m), string(username))
 }
 
-func (s *secretStoreAccountName) GetUsersWithStoredSecrets(m MetaContext) ([]string, error) {
+func (s *secretStoreAndroid) GetUsersWithStoredSecrets(m MetaContext) (users []string, err error) {
+	defer m.CTraceTimed("secret_store_external GetUsersWithStoredSecrets", func() error { return err })()
+
 	ks, err := getGlobalExternalKeyStore(m)
 	if err != nil {
 		if err == noExternalKeyStore {
@@ -160,13 +159,12 @@ func (s *secretStoreAccountName) GetUsersWithStoredSecrets(m MetaContext) ([]str
 			// but perhaps it should return the error instead
 			return nil, nil
 		}
-		return err
+		return nil, err
 	}
 	usersMsgPack, err := ks.GetUsersWithStoredSecretsMsgPack(s.serviceName(m))
 	if err != nil {
 		return nil, err
 	}
-	var users []string
 	ch := codecHandle()
 	err = MsgpackDecodeAll(usersMsgPack, ch, &users)
 	return users, err
