@@ -29,16 +29,17 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {message} = ownProps
-  const arrowColor = message.downloadPath
-    ? globalColors.green
-    : message.transferState === 'downloading'
-      ? globalColors.blue
-      : null
+  const arrowColor =
+    message.downloadPath || (isMobile && message.fileURLCached)
+      ? globalColors.green
+      : message.transferState === 'downloading'
+        ? globalColors.blue
+        : null
   const progressLabel =
     message.transferState === 'downloading'
       ? 'Downloading'
       : message.transferState === 'uploading'
-        ? 'Encrypting'
+        ? 'Uploading'
         : message.transferState === 'remoteUploading'
           ? 'waiting...'
           : null

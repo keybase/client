@@ -1016,7 +1016,14 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 				body.Attachmentuploaded().Previews[0].Path != ""
 		}
 		if hasFullURL {
+			var cached bool
 			info.FullUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), false)
+			cached, err = g.AttachmentURLSrv.GetAttachmentFetcher().IsAssetLocal(ctx,
+				body.Attachment().Object)
+			if err != nil {
+				cached = false
+			}
+			info.FullUrlCached = cached
 		}
 		if hasPreviewURL {
 			info.PreviewUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), true)

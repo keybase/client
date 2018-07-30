@@ -28,6 +28,7 @@ export default (isIOS
         source={{uri: props.url}}
         injectedJavaScript={memoize(combineJavaScriptAndCSS)(props.injections)}
         style={props.style}
+        onLoad={props.onLoad}
       />
     )
   : (props: WebViewProps) => (

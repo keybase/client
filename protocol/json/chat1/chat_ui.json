@@ -420,6 +420,10 @@
           "name": "fullUrl"
         },
         {
+          "type": "boolean",
+          "name": "fullUrlCached"
+        },
+        {
           "type": "string",
           "name": "mimeType"
         }

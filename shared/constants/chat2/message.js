@@ -146,6 +146,7 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   fileSize: 0,
   fileType: '',
   fileURL: '',
+  fileURLCached: false,
   previewHeight: 0,
   previewTransferState: null,
   previewURL: '',
@@ -514,10 +515,12 @@ const validUIMessagetoMessage = (
       let previewURL = ''
       let fileURL = ''
       let fileType = ''
+      let fileURLCached = false
       if (m.assetUrlInfo) {
         previewURL = m.assetUrlInfo.previewUrl
         fileURL = m.assetUrlInfo.fullUrl
         fileType = m.assetUrlInfo.mimeType
+        fileURLCached = m.assetUrlInfo.fullUrlCached
       }
 
       return makeMessageAttachment({
@@ -527,6 +530,7 @@ const validUIMessagetoMessage = (
         fileSize: size,
         fileType,
         fileURL,
+        fileURLCached,
         previewHeight: pre.height,
         previewURL,
         previewWidth: pre.width,

@@ -253,6 +253,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           .set('downloadPath', path)
           .set('transferProgress', 0)
           .set('transferState', null)
+          .set('fileURLCached', true) // assume we have this on the service now
       })
     case Chat2Gen.metasReceived:
       const existingPending = messageMap.get(Constants.pendingConversationIDKey)

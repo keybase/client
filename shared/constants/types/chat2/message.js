@@ -118,6 +118,7 @@ export type _MessageAttachment = {
   author: string,
   conversationIDKey: Common.ConversationIDKey,
   fileURL: string,
+  fileURLCached: boolean,
   previewURL: string,
   fileType: string, // MIME type
   deviceName: string,

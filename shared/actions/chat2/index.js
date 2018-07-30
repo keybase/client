@@ -1609,7 +1609,7 @@ function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
 function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayload) {
   const message = action.payload.message
   if (message.fileType.startsWith('video')) {
-    yield isMobile
+    yield isMobile && message.fileURLCached
       ? Saga.put(
           Route.navigateAppend([
             {

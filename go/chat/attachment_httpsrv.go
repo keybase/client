@@ -287,6 +287,10 @@ func (r *RemoteAttachmentFetcher) PutUploadedAsset(ctx context.Context, filename
 	return nil
 }
 
+func (r *RemoteAttachmentFetcher) IsAssetLocal(ctx context.Context, asset chat1.Asset) (bool, error) {
+	return false, nil
+}
+
 type attachmentRemoteStore interface {
 	DecryptAsset(ctx context.Context, w io.Writer, body io.Reader, asset chat1.Asset,
 		progress types.ProgressReporter) error
@@ -435,6 +439,23 @@ func (c *CachingAttachmentFetcher) putFileInLRU(ctx context.Context, filename st
 		os.Remove(path)
 	}
 	return nil
+}
+
+func (c *CachingAttachmentFetcher) IsAssetLocal(ctx context.Context, asset chat1.Asset) (found bool, err error) {
+	defer c.Trace(ctx, func() error { return err }, "IsAssetLocal")()
+	found, path, err := c.localAssetPath(ctx, asset)
+	if err != nil {
+		return false, err
+	}
+	if !found {
+		return false, nil
+	}
+	fileReader, err := os.Open(path)
+	defer c.closeFile(fileReader)
+	if err != nil {
+		return false, nil
+	}
+	return true, nil
 }
 
 func (c *CachingAttachmentFetcher) PutUploadedAsset(ctx context.Context, filename string, asset chat1.Asset) (err error) {
