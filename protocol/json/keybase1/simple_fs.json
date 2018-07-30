@@ -29,7 +29,8 @@
       "symbols": [
         "REVISION_0",
         "TIME_1",
-        "TIME_STRING_2"
+        "TIME_STRING_2",
+        "REL_TIME_STRING_3"
       ]
     },
     {
@@ -57,6 +58,13 @@
         {
           "label": {
             "name": "TIME_STRING",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "REL_TIME_STRING",
             "def": false
           },
           "body": "string"

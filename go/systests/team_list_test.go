@@ -331,7 +331,6 @@ func TestTeamTree(t *testing.T) {
 		for _, v := range expectedTree {
 			set[v] = false
 		}
-		set[teamName] = false
 
 		tree, err := teams.TeamTree(context.Background(), ann.tc.G, keybase1.TeamTreeArg{Name: TeamNameFromString(teamName)})
 		require.NoError(t, err)
@@ -339,20 +338,18 @@ func TestTeamTree(t *testing.T) {
 		for _, entry := range tree.Entries {
 			name := entry.Name.String()
 			alreadyFound, exists := set[name]
-			if !exists {
-				t.Fatalf("Found unexpected team %s in tree of %s", name, teamName)
-			} else if alreadyFound {
-				t.Fatalf("Duplicate team %s in tree of %s", name, teamName)
-			}
+			require.True(t, exists, "Found unexpected team %s in tree of %s", name, teamName)
+			require.False(t, alreadyFound, "Duplicate team %s in tree of %s", name, teamName)
 			set[name] = true
 		}
 	}
 
-	checkTeamTree(team, subTeam1, subTeam2, sub1SubTeam1, sub1SubTeam2, sub2SubTeam1, sub2SubTeam2, sub2SubTeam3)
-	checkTeamTree(subTeam1, sub1SubTeam1, sub1SubTeam2)
-	checkTeamTree(subTeam2, sub2SubTeam1, sub2SubTeam2, sub2SubTeam3)
+	tree := []string{team, subTeam1, subTeam2, sub1SubTeam1, sub1SubTeam2, sub2SubTeam1, sub2SubTeam2, sub2SubTeam3}
+	checkTeamTree(team, tree...)
+	checkTeamTree(subTeam1, tree...)
+	checkTeamTree(subTeam2, tree...)
 
-	checkTeamTree(sub2SubTeam1)
-	checkTeamTree(sub2SubTeam2)
-	checkTeamTree(sub2SubTeam3)
+	checkTeamTree(sub2SubTeam1, tree...)
+	checkTeamTree(sub2SubTeam2, tree...)
+	checkTeamTree(sub2SubTeam3, tree...)
 }

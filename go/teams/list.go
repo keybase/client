@@ -705,6 +705,7 @@ func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTree
 	if err != nil {
 		return res, err
 	}
+	rootName := arg.Name.RootAncestorName()
 
 	// Map from team name (string) to entry
 	entryMap := make(map[string]keybase1.TeamTreeEntry)
@@ -717,7 +718,7 @@ func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTree
 		if err != nil {
 			return res, err
 		}
-		if !arg.Name.IsAncestorOf(serverName) && !arg.Name.Eq(serverName) {
+		if !rootName.IsAncestorOf(serverName) && !rootName.Eq(serverName) {
 			// Skip those not in this tree.
 			continue
 		}
@@ -756,7 +757,7 @@ func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTree
 				}
 			}
 			name, err = name.Parent()
-			if err != nil || (!arg.Name.IsAncestorOf(name) && !arg.Name.Eq(name)) {
+			if err != nil || (!rootName.IsAncestorOf(name) && !rootName.Eq(name)) {
 				break
 			}
 		}
@@ -767,7 +768,13 @@ func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTree
 	}
 
 	if len(res.Entries) == 0 {
-		return res, fmt.Errorf("team not found: %v", arg.Name)
+		g.Log.CDebugf(ctx, "| TeamTree not teams matched")
+		// Try to get a nicer error by loading the team directly.
+		_, err = Load(ctx, g, keybase1.LoadTeamArg{Name: arg.Name.String()})
+		if err != nil {
+			return res, err
+		}
+		return res, fmt.Errorf("team not found: %v", rootName)
 	}
 
 	// Order into a tree order. Which happens to be alphabetical ordering.

@@ -258,7 +258,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	// Force small pages during tests to ensure we fetch context from new pages
 	searcher.pageSize = 2
 	g.Searcher = searcher
-	g.AttachmentURLSrv = DummyAttachmentHTTPSrv{}
+	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 
 	return ctx, world, ri, sender, baseSender, &listener
 }

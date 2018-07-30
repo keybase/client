@@ -78,6 +78,10 @@ func (fu FakeUser) UID() keybase1.UID {
 	return libkb.UsernameToUID(fu.Username)
 }
 
+func (fu FakeUser) UserVersion() keybase1.UserVersion {
+	return keybase1.UserVersion{Uid: fu.UID(), EldestSeqno: 1}
+}
+
 func NewFakeUserOrBust(tb libkb.TestingTB, prefix string) (fu *FakeUser) {
 	var err error
 	if fu, err = NewFakeUser(prefix); err != nil {

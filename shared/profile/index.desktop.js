@@ -13,7 +13,7 @@ import {
   Icon,
   Meta,
   PlatformIcon,
-  PopupMenu,
+  FloatingMenu,
   Text,
   UserBio,
   UserProofs,
@@ -27,7 +27,6 @@ import {
   type FloatingMenuParentProps,
 } from '../common-adapters/floating-menu/parent-hoc'
 import ShowcasedTeamInfo from './showcased-team-info/container'
-import {findDOMNode} from 'react-dom'
 import {collapseStyles, desktopStyles, globalColors, globalMargins, globalStyles} from '../styles'
 import {stateColors} from '../util/tracker'
 import {ADD_TO_TEAM_ZINDEX, AVATAR_SIZE, BACK_ZINDEX, SEARCH_CONTAINER_ZINDEX} from '../constants/profile'
@@ -42,11 +41,8 @@ export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
 type State = {
   searchHovered: boolean,
   foldersExpanded: boolean,
-  proofMenuIndex: ?number,
-  popupMenuPosition: {
-    top?: number,
-    right?: number,
-  },
+  selectedProofMenuRowIndex: ?number,
+  selectedProofMenuRowRef: ?React.Component<any, any>,
 }
 
 const EditControl = ({isYou, onClickShowcaseOffer}: {isYou: boolean, onClickShowcaseOffer: () => void}) => (
@@ -102,23 +98,14 @@ const _ShowcasedTeamRow = (
 const ShowcasedTeamRow = FloatingMenuParentHOC(_ShowcasedTeamRow)
 
 class ProfileRender extends PureComponent<Props, State> {
-  state: State
-  _proofList: ?UserProofs
-  _scrollContainer: ?React.Component<any, any>
-
-  constructor(props: Props) {
-    super(props)
-
-    this._proofList = null
-    this._scrollContainer = null
-
-    this.state = {
-      searchHovered: false,
-      foldersExpanded: false,
-      proofMenuIndex: null,
-      popupMenuPosition: {},
-    }
+  state: State = {
+    searchHovered: false,
+    foldersExpanded: false,
+    selectedProofMenuRowIndex: null,
+    selectedProofMenuRowRef: null,
   }
+  _proofList: ?UserProofs = null
+  _scrollContainer: ?React.Component<any, any> = null
 
   _proofMenuContent(proof: Proof) {
     if (!proof || !this.props.isYou) {
@@ -154,16 +141,14 @@ class ProfileRender extends PureComponent<Props, State> {
         pendingMessage = 'Your proof is pending. DNS proofs can take a few hours to recognize.'
       }
       return {
-        header: pendingMessage
-          ? {
-              title: 'header',
-              view: (
-                <PopupHeaderText color={globalColors.white} backgroundColor={globalColors.blue}>
-                  {pendingMessage}
-                </PopupHeaderText>
-              ),
-            }
-          : null,
+        header: {
+          title: 'header',
+          view: pendingMessage ? (
+            <PopupHeaderText color={globalColors.white} backgroundColor={globalColors.blue}>
+              {pendingMessage}
+            </PopupHeaderText>
+          ) : null,
+        },
         items: [
           {
             title: shared.revokeProofLanguage(proof.type),
@@ -219,39 +204,13 @@ class ProfileRender extends PureComponent<Props, State> {
     if (!this._proofList) {
       return
     }
-    // $ForceType
-    const target: ?Element = findDOMNode(this._proofList.getRow(idx))
-    if (!target) {
-      return
-    }
-    const targetBox = target.getBoundingClientRect()
+    const selectedProofMenuRowRef = this._proofList.getRow(idx)
 
-    if (!this._scrollContainer) {
-      return
-    }
-
-    // $ForceType
-    const base: ?Element = findDOMNode(this._scrollContainer)
-    if (!base) {
-      return
-    }
-    const baseBox = base.getBoundingClientRect()
-
-    this.setState({
-      proofMenuIndex: idx,
-      popupMenuPosition: {
-        position: 'absolute',
-        top: targetBox.bottom - baseBox.top + base.scrollTop,
-        right: base.clientWidth - (targetBox.right - baseBox.left),
-      },
-    })
+    this.setState({selectedProofMenuRowIndex: idx, selectedProofMenuRowRef})
   }
 
   handleHideMenu() {
-    this.setState({
-      proofMenuIndex: null,
-      popupMenuPosition: {},
-    })
+    this.setState({selectedProofMenuRowIndex: null, selectedProofMenuRowRef: null})
   }
 
   componentDidMount() {
@@ -332,8 +291,8 @@ class ProfileRender extends PureComponent<Props, State> {
       ? []
       : shared.missingProofs(this.props.proofs, this.props.onMissingProofClick)
     const proofMenuContent =
-      this.state.proofMenuIndex != null
-        ? this._proofMenuContent(this.props.proofs[this.state.proofMenuIndex])
+      this.state.selectedProofMenuRowIndex != null
+        ? this._proofMenuContent(this.props.proofs[this.state.selectedProofMenuRowIndex])
         : null
 
     const showEdit =
@@ -388,8 +347,16 @@ class ProfileRender extends PureComponent<Props, State> {
           )}
           <Box
             onClick={this.props.onSearch}
-            onMouseEnter={() => this.setState({searchHovered: true})}
-            onMouseLeave={() => this.setState({searchHovered: false})}
+            onMouseEnter={() =>
+              this.setState({
+                searchHovered: true,
+              })
+            }
+            onMouseLeave={() =>
+              this.setState({
+                searchHovered: false,
+              })
+            }
             style={{...styleSearchContainer, opacity: this.state.searchHovered ? 0.8 : 1}}
           >
             <Icon style={styleSearch} type="iconfont-search" color={globalColors.white_75} />
@@ -475,7 +442,7 @@ class ProfileRender extends PureComponent<Props, State> {
                     loading={loading}
                     proofs={this.props.proofs}
                     onClickProofMenu={this.props.isYou ? idx => this.handleShowMenu(idx) : null}
-                    showingMenuIndex={this.state.proofMenuIndex}
+                    showingMenuIndex={this.state.selectedProofMenuRowIndex}
                   />
                 )}
                 {!loading &&
@@ -487,6 +454,15 @@ class ProfileRender extends PureComponent<Props, State> {
                       missingProofs={missingProofs}
                     />
                   )}
+                {proofMenuContent && (
+                  <FloatingMenu
+                    visible={this.state.selectedProofMenuRowIndex !== null}
+                    onHidden={() => this.handleHideMenu()}
+                    attachTo={this.state.selectedProofMenuRowRef}
+                    position="bottom right"
+                    {...proofMenuContent}
+                  />
+                )}
                 {!loading && folders}
               </Box>
             </Box>
@@ -508,16 +484,6 @@ class ProfileRender extends PureComponent<Props, State> {
                 following={this.props.following}
               />
             )}
-          {proofMenuContent && (
-            <PopupMenu
-              style={
-                // $FlowIssue
-                {...styleProofMenu, ...this.state.popupMenuPosition}
-              }
-              {...proofMenuContent}
-              onHidden={() => this.handleHideMenu()}
-            />
-          )}
         </Box>
       </Box>
     )
@@ -614,13 +580,6 @@ const styleMeta = {
 
 const styleFriendships = {
   marginTop: globalMargins.large,
-}
-
-const styleProofMenu = {
-  marginTop: globalMargins.xtiny,
-  minWidth: 196,
-  maxWidth: 240,
-  zIndex: 5,
 }
 
 const styleSearchContainer = {

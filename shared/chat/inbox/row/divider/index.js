@@ -68,14 +68,18 @@ const styles = styleSheetCreate({
     position: 'relative',
   },
   buttonText: {color: globalColors.black_60},
-  containerButton: {
-    ...globalStyles.flexBoxColumn,
-    height: RowSizes.dividerHeight(true),
-    justifyContent: 'center',
-    paddingBottom: globalMargins.tiny,
-    paddingTop: globalMargins.tiny,
-    width: '100%',
-  },
+  containerButton: platformStyles({
+    common: {
+      ...globalStyles.flexBoxColumn,
+      height: RowSizes.dividerHeight(true),
+      justifyContent: 'center',
+      width: '100%',
+    },
+    isMobile: {
+      paddingBottom: globalMargins.tiny,
+      paddingTop: globalMargins.tiny,
+    },
+  }),
   containerNoButton: {
     ...globalStyles.flexBoxColumn,
     height: RowSizes.dividerHeight(false),

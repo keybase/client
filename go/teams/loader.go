@@ -207,6 +207,10 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		teamID, err = l.ResolveNameToIDUntrusted(ctx, *teamName, lArg.Public, lArg.AllowNameLookupBurstCache)
 		if err != nil {
 			l.G().Log.CDebugf(ctx, "TeamLoader looking up team by name failed: %v -> %v", *teamName, err)
+			if code, ok := libkb.GetAppStatusCode(err); ok && code == keybase1.StatusCode_SCTeamNotFound {
+				l.G().Log.CDebugf(ctx, "replacing error: %v", err)
+				return nil, NewTeamDoesNotExistError(lArg.Public, teamName.String())
+			}
 			return nil, err
 		}
 	}
@@ -238,7 +242,19 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 
 		me: me,
 	})
-	if err != nil {
+	switch err := err.(type) {
+	case TeamDoesNotExistError:
+		if teamName == nil {
+			return nil, err
+		}
+		// Replace the not found error so that it has a name instead of team ID.
+		// If subteams are involved the name might not correspond to the ID
+		// but it's better to have this understandable error message that's accurate
+		// most of the time than one with an ID that's always accurate.
+		l.G().Log.CDebugf(ctx, "replacing error: %v", err)
+		return nil, NewTeamDoesNotExistError(lArg.Public, teamName.String())
+	case nil:
+	default:
 		return nil, err
 	}
 	if ret == nil {

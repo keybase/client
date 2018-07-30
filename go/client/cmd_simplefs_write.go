@@ -140,7 +140,7 @@ func (c *CmdSimpleFSWrite) ParseArgv(ctx *cli.Context) error {
 		return fmt.Errorf("write requires a path argument")
 	}
 
-	p, err := makeSimpleFSPath(c.G(), ctx.Args()[0], 0)
+	p, err := makeSimpleFSPath(ctx.Args()[0])
 	if err != nil {
 		return err
 	}

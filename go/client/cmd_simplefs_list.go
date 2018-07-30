@@ -96,7 +96,15 @@ func NewCmdSimpleFSList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			},
 			cli.IntFlag{
 				Name:  "rev",
-				Usage: "specify a revision number for the KBFS folder",
+				Usage: "a revision number for the KBFS folder",
+			},
+			cli.StringFlag{
+				Name:  "time",
+				Usage: "a time for the KBFS folder (eg \"2018-07-27 22:05\")",
+			},
+			cli.StringFlag{
+				Name:  "reltime, relative-time",
+				Usage: "a relative time for the KBFS folder (eg \"5m\")",
 			},
 		},
 	}
@@ -290,9 +298,12 @@ func (c *CmdSimpleFSList) ParseArgv(ctx *cli.Context) error {
 	// TODO: "rev" should be a real int64, need to update the `cli`
 	// library for that.
 	rev := int64(ctx.Int("rev"))
+	time := ctx.String("time")
+	relTime := getRelTime(ctx)
 	for _, src := range ctx.Args() {
 		// Use the same revision number for each path.
-		argPath, err := makeSimpleFSPath(c.G(), src, rev)
+		argPath, err := makeSimpleFSPathWithArchiveParams(
+			src, rev, time, relTime)
 		if err != nil {
 			return err
 		}

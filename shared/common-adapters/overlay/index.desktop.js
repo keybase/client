@@ -13,6 +13,7 @@ const Overlay = (props: Props) => {
       attachTo={props.attachTo}
       onHidden={props.onHidden}
       position={props.position || 'top center'}
+      positionFallbacks={props.positionFallbacks}
       propagateOutsideClicks={props.propagateOutsideClicks}
     >
       <Box2 direction="vertical" style={collapseStyles([styles.container, props.style])}>

@@ -332,7 +332,7 @@ const getPropProviderProps = own => {
     }
   }
 
-  return own.teamnames ? mapPropProviderProps[own.teamname] : {}
+  return own.teamname ? mapPropProviderProps[own.teamname] : {}
 }
 
 /*
@@ -538,9 +538,7 @@ const provider = createPropProvider(
     // BigTeamHeader is wrapped by FloatingMenuParent
     FloatingMenuParent: getPropProviderProps,
     SmallTeam: getPropProviderProps,
-    BigTeamHeader: p => {
-      return getPropProviderProps(p)
-    },
+    BigTeamHeader: getPropProviderProps,
     BigTeamsDivider: ownProps => ({badgeCount: 5}),
     BigTeamChannel: getPropProviderProps,
     FilterSmallTeam: getPropProviderProps,

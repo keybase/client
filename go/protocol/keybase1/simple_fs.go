@@ -26,23 +26,26 @@ func (o KBFSRevision) DeepCopy() KBFSRevision {
 type KBFSArchivedType int
 
 const (
-	KBFSArchivedType_REVISION    KBFSArchivedType = 0
-	KBFSArchivedType_TIME        KBFSArchivedType = 1
-	KBFSArchivedType_TIME_STRING KBFSArchivedType = 2
+	KBFSArchivedType_REVISION        KBFSArchivedType = 0
+	KBFSArchivedType_TIME            KBFSArchivedType = 1
+	KBFSArchivedType_TIME_STRING     KBFSArchivedType = 2
+	KBFSArchivedType_REL_TIME_STRING KBFSArchivedType = 3
 )
 
 func (o KBFSArchivedType) DeepCopy() KBFSArchivedType { return o }
 
 var KBFSArchivedTypeMap = map[string]KBFSArchivedType{
-	"REVISION":    0,
-	"TIME":        1,
-	"TIME_STRING": 2,
+	"REVISION":        0,
+	"TIME":            1,
+	"TIME_STRING":     2,
+	"REL_TIME_STRING": 3,
 }
 
 var KBFSArchivedTypeRevMap = map[KBFSArchivedType]string{
 	0: "REVISION",
 	1: "TIME",
 	2: "TIME_STRING",
+	3: "REL_TIME_STRING",
 }
 
 func (e KBFSArchivedType) String() string {
@@ -57,6 +60,7 @@ type KBFSArchivedParam struct {
 	Revision__         *KBFSRevision    `codec:"revision,omitempty" json:"revision,omitempty"`
 	Time__             *Time            `codec:"time,omitempty" json:"time,omitempty"`
 	TimeString__       *string          `codec:"timeString,omitempty" json:"timeString,omitempty"`
+	RelTimeString__    *string          `codec:"relTimeString,omitempty" json:"relTimeString,omitempty"`
 }
 
 func (o *KBFSArchivedParam) KBFSArchivedType() (ret KBFSArchivedType, err error) {
@@ -74,6 +78,11 @@ func (o *KBFSArchivedParam) KBFSArchivedType() (ret KBFSArchivedType, err error)
 	case KBFSArchivedType_TIME_STRING:
 		if o.TimeString__ == nil {
 			err = errors.New("unexpected nil value for TimeString__")
+			return ret, err
+		}
+	case KBFSArchivedType_REL_TIME_STRING:
+		if o.RelTimeString__ == nil {
+			err = errors.New("unexpected nil value for RelTimeString__")
 			return ret, err
 		}
 	}
@@ -110,6 +119,16 @@ func (o KBFSArchivedParam) TimeString() (res string) {
 	return *o.TimeString__
 }
 
+func (o KBFSArchivedParam) RelTimeString() (res string) {
+	if o.KBFSArchivedType__ != KBFSArchivedType_REL_TIME_STRING {
+		panic("wrong case accessed")
+	}
+	if o.RelTimeString__ == nil {
+		return
+	}
+	return *o.RelTimeString__
+}
+
 func NewKBFSArchivedParamWithRevision(v KBFSRevision) KBFSArchivedParam {
 	return KBFSArchivedParam{
 		KBFSArchivedType__: KBFSArchivedType_REVISION,
@@ -128,6 +147,13 @@ func NewKBFSArchivedParamWithTimeString(v string) KBFSArchivedParam {
 	return KBFSArchivedParam{
 		KBFSArchivedType__: KBFSArchivedType_TIME_STRING,
 		TimeString__:       &v,
+	}
+}
+
+func NewKBFSArchivedParamWithRelTimeString(v string) KBFSArchivedParam {
+	return KBFSArchivedParam{
+		KBFSArchivedType__: KBFSArchivedType_REL_TIME_STRING,
+		RelTimeString__:    &v,
 	}
 }
 
@@ -155,6 +181,13 @@ func (o KBFSArchivedParam) DeepCopy() KBFSArchivedParam {
 			tmp := (*x)
 			return &tmp
 		})(o.TimeString__),
+		RelTimeString__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.RelTimeString__),
 	}
 }
 

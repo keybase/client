@@ -24,34 +24,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-type DummyAttachmentFetcher struct{}
-
-func (d DummyAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer,
-	convID chat1.ConversationID, asset chat1.Asset, r func() chat1.RemoteInterface, signer s3.Signer,
-	progress types.ProgressReporter) error {
-	return nil
-}
-
-func (d DummyAttachmentFetcher) DeleteAssets(ctx context.Context,
-	convID chat1.ConversationID, assets []chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (err error) {
-	return nil
-}
-
-type DummyAttachmentHTTPSrv struct{}
-
-func (d DummyAttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
-	preview bool) string {
-	return ""
-}
-
-func (d DummyAttachmentHTTPSrv) GetPendingPreviewURL(ctx context.Context, outboxID chat1.OutboxID) string {
-	return ""
-}
-
-func (d DummyAttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {
-	return DummyAttachmentFetcher{}
-}
-
 var blankProgress = func(bytesComplete, bytesTotal int64) {}
 
 type AttachmentHTTPSrv struct {
@@ -286,6 +258,10 @@ func (r *RemoteAttachmentFetcher) DeleteAssets(ctx context.Context,
 	return nil
 }
 
+func (r *RemoteAttachmentFetcher) PutUploadedAsset(ctx context.Context, filename string, asset chat1.Asset) error {
+	return nil
+}
+
 type attachmentRemoteStore interface {
 	DecryptAsset(ctx context.Context, w io.Writer, body io.Reader, asset chat1.Asset,
 		progress types.ProgressReporter) error
@@ -418,9 +394,14 @@ func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Wri
 		return err
 	}
 
+	// commit to the on disk LRU
+	return c.putFileInLRU(ctx, fileWriter.Name(), asset)
+}
+
+func (c *CachingAttachmentFetcher) putFileInLRU(ctx context.Context, filename string, asset chat1.Asset) error {
 	// Add an entry to the disk LRU mapping the asset path to the local path, and remove
 	// the remnants of any evicted attachments.
-	evicted, err := c.diskLRU.Put(ctx, c.G(), c.cacheKey(asset), fileWriter.Name())
+	evicted, err := c.diskLRU.Put(ctx, c.G(), c.cacheKey(asset), filename)
 	if err != nil {
 		return err
 	}
@@ -428,8 +409,12 @@ func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Wri
 		path := evicted.Value.(string)
 		os.Remove(path)
 	}
-
 	return nil
+}
+
+func (c *CachingAttachmentFetcher) PutUploadedAsset(ctx context.Context, filename string, asset chat1.Asset) (err error) {
+	defer c.Trace(ctx, func() error { return err }, "PutUploadedAsset")()
+	return c.putFileInLRU(ctx, filename, asset)
 }
 
 func (c *CachingAttachmentFetcher) DeleteAssets(ctx context.Context,

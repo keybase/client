@@ -146,10 +146,10 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 		alice.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: team.ID}, nextSeqno)
 	}
 
-	pollTime := 10 * time.Second
+	pollTime := 20 * time.Second
 	if libkb.UseCITime(bob.tc.G) {
 		// This test is especially slow.
-		pollTime = 15 * time.Second
+		pollTime = 30 * time.Second
 	}
 
 	pollFor(t, "claims to complete", pollTime, bob.tc.G, func(i int) bool {
