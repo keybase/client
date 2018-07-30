@@ -48,9 +48,16 @@ func Preview(ctx context.Context, log utils.DebugLabeler, src io.Reader, content
 		return previewGIF(ctx, log, src, basename)
 	}
 	if strings.HasPrefix(contentType, "video") {
-		return previewVideo(ctx, log, src, basename)
+		pre, err := previewVideo(ctx, log, src, basename)
+		if err == nil {
+			log.Debug(ctx, "Preview: found video preview for filename: %s contentType: %s", basename,
+				contentType)
+			return pre, nil
+		} else {
+			log.Debug(ctx, "Preview: failed to get video preview for filename: %s contentType: %s err: %s",
+				basename, contentType, err)
+		}
 	}
-
 	return nil, nil
 }
 
