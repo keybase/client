@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import * as Common from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 type Props = {|
@@ -45,23 +45,18 @@ const DeviceRow = (props: Props) => {
   }
 
   return (
-    <Common.ListItem2
+    <Kb.ListItem2
       type="Large"
       firstItem={props.firstItem}
       onClick={props.showExistingDevicePage}
-      icon={
-        <Common.Icon
-          type={icon}
-          style={Common.iconCastPlatformStyles(props.isRevoked ? styles.icon : null)}
-        />
-      }
+      icon={<Kb.Icon type={icon} style={Kb.iconCastPlatformStyles(props.isRevoked ? styles.icon : null)} />}
       body={
-        <Common.Box2 direction="vertical">
-          <Common.Text style={props.isRevoked ? styles.text : null} type="BodySemiboldItalic">
+        <Kb.Box2 direction="vertical">
+          <Kb.Text style={props.isRevoked ? styles.text : null} type="BodySemiboldItalic">
             {props.name}
-          </Common.Text>
-          {props.isCurrentDevice && <Common.Text type="BodySmall">Current device</Common.Text>}
-        </Common.Box2>
+          </Kb.Text>
+          {props.isCurrentDevice && <Kb.Text type="BodySmall">Current device</Kb.Text>}
+        </Kb.Box2>
       }
     />
   )

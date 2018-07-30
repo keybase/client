@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/devices'
-import * as Common from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import moment from 'moment'
 
@@ -12,28 +12,28 @@ type Props = {
 }
 
 const TimelineMarker = ({first, last, closedCircle}) => (
-  <Common.Box style={styles.marker}>
-    <Common.Box style={Styles.collapseStyles([styles.timelineLineTop, first && styles.invisible])} />
-    <Common.Box style={closedCircle ? styles.circleClosed : styles.circleOpen} />
-    <Common.Box style={Styles.collapseStyles([styles.timelineLineBottom, last && styles.invisible])} />
-  </Common.Box>
+  <Kb.Box style={styles.marker}>
+    <Kb.Box style={Styles.collapseStyles([styles.timelineLineTop, first && styles.invisible])} />
+    <Kb.Box style={closedCircle ? styles.circleClosed : styles.circleOpen} />
+    <Kb.Box style={Styles.collapseStyles([styles.timelineLineBottom, last && styles.invisible])} />
+  </Kb.Box>
 )
 
 const TimelineLabel = ({desc, subDesc, subDescIsName, spacerOnBottom}) => (
-  <Common.Box2 direction="vertical" style={styles.timelineLabel}>
-    <Common.Text type="Body">{desc}</Common.Text>
+  <Kb.Box2 direction="vertical" style={styles.timelineLabel}>
+    <Kb.Text type="Body">{desc}</Kb.Text>
     {!!subDesc &&
       subDescIsName && (
-        <Common.Text type="BodySmall">
+        <Kb.Text type="BodySmall">
           by{' '}
-          <Common.Text type="BodySmallItalic" style={styles.subDesc}>
+          <Kb.Text type="BodySmallItalic" style={styles.subDesc}>
             {subDesc}
-          </Common.Text>
-        </Common.Text>
+          </Kb.Text>
+        </Kb.Text>
       )}
-    {!!subDesc && !subDescIsName && <Common.Text type="BodySmall">{subDesc}</Common.Text>}
-    {spacerOnBottom && <Common.Box style={{height: 15}} />}
-  </Common.Box2>
+    {!!subDesc && !subDescIsName && <Kb.Text type="BodySmall">{subDesc}</Kb.Text>}
+    {spacerOnBottom && <Kb.Box style={{height: 15}} />}
+  </Kb.Box2>
 )
 
 const formatTime = t => moment(t).format('MMM D, YYYY')
@@ -65,9 +65,9 @@ const Timeline = ({device}) => {
   ]
 
   return (
-    <Common.Box2 direction="vertical">
+    <Kb.Box2 direction="vertical">
       {timeline.map(({type, desc, subDesc}, idx) => (
-        <Common.Box2 direction="horizontal" key={desc} gap="small" fullWidth={true}>
+        <Kb.Box2 direction="horizontal" key={desc} gap="small" fullWidth={true}>
           <TimelineMarker
             first={idx === 0}
             last={idx === timeline.length - 1}
@@ -79,9 +79,9 @@ const Timeline = ({device}) => {
             subDesc={subDesc}
             subDescIsName={['Added', 'Revoked'].includes(type)}
           />
-        </Common.Box2>
+        </Kb.Box2>
       ))}
-    </Common.Box2>
+    </Kb.Box2>
   )
 }
 
@@ -90,10 +90,10 @@ const DevicePage = (props: Props) => {
   if (props.device.currentDevice) {
     metaOne = 'Current device'
   } else if (props.device.revokedAt) {
-    metaOne = <Common.Meta title="revoked" style={styles.meta} backgroundColor={Styles.globalColors.red} />
+    metaOne = <Kb.Meta title="revoked" style={styles.meta} backgroundColor={Styles.globalColors.red} />
   }
 
-  const icon: Common.IconType = {
+  const icon: Kb.IconType = {
     backup: 'icon-paper-key-64',
     desktop: 'icon-computer-64',
     mobile: 'icon-phone-64',
@@ -106,17 +106,17 @@ const DevicePage = (props: Props) => {
   }[props.device.type]
 
   return (
-    <Common.Box2 direction="vertical" gap="medium" gapStart={true} gapEnd={true} fullWidth={true}>
-      <Common.NameWithIcon icon={icon} title={props.device.name} metaOne={metaOne} />
+    <Kb.Box2 direction="vertical" gap="medium" gapStart={true} gapEnd={true} fullWidth={true}>
+      <Kb.NameWithIcon icon={icon} title={props.device.name} metaOne={metaOne} />
       <Timeline device={props.device} />
       {!props.device.revokedAt && (
-        <Common.Button
+        <Kb.Button
           type="Danger"
           label={`Revoke this ${revokeName}`}
           onClick={props.showRevokeDevicePage}
         />
       )}
-    </Common.Box2>
+    </Kb.Box2>
   )
 }
 
@@ -161,4 +161,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default Common.HeaderHoc(DevicePage)
+export default Kb.HeaderHoc(DevicePage)

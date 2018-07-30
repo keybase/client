@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Constants from '../../constants/devices'
 import * as Types from '../../constants/types/devices'
-import * as Common from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 export type Props = {
@@ -15,58 +15,58 @@ export type Props = {
 
 class EndangeredTLFList extends React.Component<{endangeredTLFs: Array<string>}> {
   _renderTLFEntry = (index: number, tlf: string) => (
-    <Common.Box2 direction="horizontal" key={index} gap="tiny" fullWidth={true} style={styles.row}>
-      <Common.Text type="BodySemibold">•</Common.Text>
-      <Common.Text type="BodySemibold" selectable={true} style={styles.tlf}>
+    <Kb.Box2 direction="horizontal" key={index} gap="tiny" fullWidth={true} style={styles.row}>
+      <Kb.Text type="BodySemibold">•</Kb.Text>
+      <Kb.Text type="BodySemibold" selectable={true} style={styles.tlf}>
         {tlf}
-      </Common.Text>
-    </Common.Box2>
+      </Kb.Text>
+    </Kb.Box2>
   )
   render() {
     if (!this.props.endangeredTLFs.length) return null
     return (
       <React.Fragment>
-        <Common.Text type="Body" style={styles.centerText}>
+        <Kb.Text type="Body" style={styles.centerText}>
           You may lose access to these folders forever:
-        </Common.Text>
-        <Common.Box2 direction="vertical" style={styles.listContainer}>
-          <Common.List
+        </Kb.Text>
+        <Kb.Box2 direction="vertical" style={styles.listContainer}>
+          <Kb.List
             items={this.props.endangeredTLFs}
             renderItem={this._renderTLFEntry}
             indexAsKey={true}
           />
-        </Common.Box2>
+        </Kb.Box2>
       </React.Fragment>
     )
   }
 }
 
 const ActionButtons = ({onCancel, onSubmit}) => (
-  <Common.Box2
+  <Kb.Box2
     direction={Styles.isMobile ? 'vertical' : 'horizontalReverse'}
     fullWidth={Styles.isMobile}
     gap="tiny"
   >
-    <Common.WaitingButton
+    <Kb.WaitingButton
       fullWidth={Styles.isMobile}
       type="Danger"
       label="Yes, delete it"
       waitingKey={Constants.waitingKey}
       onClick={onSubmit}
     />
-    <Common.Button fullWidth={Styles.isMobile} type="Secondary" onClick={onCancel} label="Cancel" />
-  </Common.Box2>
+    <Kb.Button fullWidth={Styles.isMobile} type="Secondary" onClick={onCancel} label="Cancel" />
+  </Kb.Box2>
 )
 
 const DeviceRevoke = (props: Props) => {
-  const icon: Common.IconType = {
+  const icon: Kb.IconType = {
     backup: Styles.isMobile ? 'icon-paper-key-revoke-64' : 'icon-paper-key-revoke-48',
     desktop: Styles.isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48',
     mobile: Styles.isMobile ? 'icon-phone-revoke-64' : 'icon-phone-revoke-48',
   }[props.device.type]
 
   return (
-    <Common.Box2
+    <Kb.Box2
       direction="vertical"
       fullHeight={true}
       fullWidth={true}
@@ -74,27 +74,27 @@ const DeviceRevoke = (props: Props) => {
       gapEnd={true}
       style={styles.container}
     >
-      <Common.NameWithIcon icon={icon} title={props.device.name} titleStyle={styles.headerName} />
-      <Common.Text type="Header" style={styles.centerText}>
+      <Kb.NameWithIcon icon={icon} title={props.device.name} titleStyle={styles.headerName} />
+      <Kb.Text type="Header" style={styles.centerText}>
         Are you sure you want to revoke{' '}
         {props.device.currentDevice ? (
           'your current device'
         ) : (
-          <Common.Text type="Header" style={styles.italicName}>
+          <Kb.Text type="Header" style={styles.italicName}>
             {props.device.name}
-          </Common.Text>
+          </Kb.Text>
         )}
         ?
-      </Common.Text>
-      <Common.Box2 direction="vertical" style={styles.endangeredTLFContainer} fullWidth={Styles.isMobile}>
+      </Kb.Text>
+      <Kb.Box2 direction="vertical" style={styles.endangeredTLFContainer} fullWidth={Styles.isMobile}>
         {props.waiting ? (
-          <Common.ProgressIndicator />
+          <Kb.ProgressIndicator />
         ) : (
           <EndangeredTLFList endangeredTLFs={props.endangeredTLFs} />
         )}
-      </Common.Box2>
+      </Kb.Box2>
       <ActionButtons onCancel={props.onCancel} onSubmit={props.onSubmit} />
-    </Common.Box2>
+    </Kb.Box2>
   )
 }
 
@@ -137,4 +137,4 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export default Common.HeaderHoc(DeviceRevoke)
+export default Kb.HeaderHoc(DeviceRevoke)
