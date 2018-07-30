@@ -13,11 +13,12 @@ class ModalLessPopupMenu extends Component<ModalLessPopupMenuProps> {
   render() {
     const realCSS = `
     .menu-hover:hover { background-color: ${
-      this.props.hoverColor ? this.props.hoverColor : globalColors.blue4
+      this.props.hoverColor ? this.props.hoverColor : globalColors.blue
     }; }
     .menu-hover-danger:hover { background-color: ${globalColors.red}; }
 
     .menu-hover .title { color: ${globalColors.black_75}; }
+    .menu-hover:hover .title { color: ${globalColors.white}; }
     .menu-hover-danger .title { color: ${globalColors.red}; }
     .menu-hover-danger:hover .title { color: ${globalColors.white}; }
     .menu-hover-danger .subtitle { color: ${globalColors.black_40}; }
@@ -204,7 +205,7 @@ class OLDPopupMenu extends Component<Props> {
 }
 
 const Divider = () => (
-  <Box style={{height: 1, backgroundColor: globalColors.black_05, marginTop: 8, marginBottom: 8}} />
+  <Box style={{height: 1, backgroundColor: globalColors.grey, marginTop: 8, marginBottom: 8}} />
 )
 
 const PopupHeaderText = ({color, backgroundColor, style, children}: HeaderTextProps) => (
@@ -250,8 +251,11 @@ const stylesMenu = {
   justifyContent: 'flex-start',
   alignItems: 'stretch',
   backgroundColor: globalColors.white,
+  borderColor: globalColors.grey,
   borderRadius: 3,
-  boxShadow: '0 0 15px 0 rgba(0, 0, 0, 0.2)',
+  borderStyle: 'solid',
+  borderWidth: 1,
+  boxShadow: '0 2px 5px 0 rgba(0, 0, 0, 0.1)',
   overflowX: 'hidden',
   overflowY: 'auto',
 }
