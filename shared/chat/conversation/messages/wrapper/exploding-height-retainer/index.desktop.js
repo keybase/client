@@ -106,7 +106,6 @@ const AshBox = glamorous.div(props => ({
     transition: `width ${animationDuration}ms linear`,
     width: '100%',
   },
-  backgroundColor: globalColors.white,
   backgroundImage: explodedIllustrationUrl,
   backgroundRepeat: 'repeat',
   backgroundSize: '400px 68px',
