@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {ClickableBox, Box2, Text, Badge} from '../../../../common-adapters'
+import {ClickableBox, Box2, Text, Badge2} from '../../../../common-adapters'
 import {
   styleSheetCreate,
   platformStyles,
@@ -8,6 +8,7 @@ import {
   globalStyles,
   globalColors,
   globalMargins,
+  isMobile,
 } from '../../../../styles'
 import * as RowSizes from '../sizes'
 
@@ -40,7 +41,12 @@ class Divider extends React.PureComponent<Props> {
               </Text>
               {this.props.hiddenCount > 0 &&
                 this.props.badgeCount > 0 && (
-                  <Badge badgeStyle={styles.badgeToggle} badgeNumber={this.props.badgeCount} />
+                  <Badge2
+                    height={isMobile ? 20 : undefined}
+                    leftRightPadding={isMobile ? 3 : undefined}
+                    badgeStyle={styles.badge}
+                    badgeNumber={this.props.badgeCount}
+                  />
                 )}
             </Box2>
           </ClickableBox>
@@ -60,12 +66,6 @@ const styles = styleSheetCreate({
   badge: {
     marginLeft: globalMargins.xtiny,
     marginRight: 0,
-    position: 'relative',
-  },
-  badgeToggle: {
-    marginLeft: globalMargins.xtiny,
-    marginRight: 0,
-    position: 'relative',
   },
   buttonText: {color: globalColors.black_60},
   containerButton: {
