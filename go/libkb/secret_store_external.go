@@ -91,18 +91,20 @@ func getGlobalExternalKeyStore(m MetaContext) (ExternalKeyStore, error) {
 		m.CDebugf("+ secret_store_external:setup (in getGlobalExternalKeyStore)")
 		defer m.CDebugf("- secret_store_external:setup (in getGlobalExternalKeyStore)")
 
+		serviceName := m.G().GetStoredSecretServiceName()
+
 		// username not required
-		err := externalKeyStore.SetupKeyStore(m.G().GetStoredSecretServiceName(), "")
+		err := externalKeyStore.SetupKeyStore(serviceName, "")
 		if err != nil {
-			m.CDebugf("externalKeyStore.SetupKeyStore(%s) error: %s (%T)", s.serviceName(m), err, err)
+			m.CDebugf("externalKeyStore.SetupKeyStore(%s) error: %s (%T)", serviceName, err, err)
 			return nil, err
 		}
 
-		m.CDebugf("externalKeyStore.SetupKeyStore(%s) success", s.serviceName(m))
+		m.CDebugf("externalKeyStore.SetupKeyStore(%s) success", serviceName)
 		externalKeyStoreInitialized = true
 	}
 
-	return externalKeyStore
+	return externalKeyStore, nil
 }
 
 type secretStoreAndroid struct{}
@@ -132,7 +134,7 @@ func (s *secretStoreAndroid) RetrieveSecret(m MetaContext, username NormalizedUs
 
 	ks, err := getGlobalExternalKeyStore(m)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	return ks.RetrieveSecret(s.serviceName(m), string(username))
