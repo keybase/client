@@ -341,16 +341,39 @@ func doOverwritePrompt(g *libkb.GlobalContext, dest string) error {
 	return nil
 }
 
+func newPathWithSameType(
+	pathString string, oldPath keybase1.Path) (keybase1.Path, error) {
+	pt, err := oldPath.PathType()
+	if err != nil {
+		return keybase1.Path{}, err
+	}
+
+	switch pt {
+	case keybase1.PathType_LOCAL:
+		return keybase1.NewPathWithLocal(pathString), nil
+	case keybase1.PathType_KBFS:
+		return keybase1.NewPathWithKbfs(pathString), nil
+	case keybase1.PathType_KBFS_ARCHIVED:
+		return keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
+			Path:          pathString,
+			ArchivedParam: oldPath.KbfsArchived().ArchivedParam,
+		}), nil
+	default:
+		return keybase1.Path{}, fmt.Errorf("unknown path type: %s", pt)
+	}
+}
+
 func doSimpleFSRemoteGlob(ctx context.Context, g *libkb.GlobalContext, cli keybase1.SimpleFSInterface, path keybase1.Path) ([]keybase1.Path, error) {
 
 	var returnPaths []keybase1.Path
-	directory := filepath.ToSlash(filepath.Dir(path.Kbfs()))
-	base := filepath.Base(path.Kbfs())
+	pathString := pathToString(path)
+	directory := filepath.ToSlash(filepath.Dir(pathString))
+	base := filepath.Base(pathString)
 
 	// We know the filename has wildcards at this point.
 	// kbfs list only works on directories, so build a glob from a list result.
 
-	g.Log.Debug("doSimpleFSRemoteGlob %s", path.Kbfs())
+	g.Log.Debug("doSimpleFSRemoteGlob %s", pathString)
 
 	if strings.ContainsAny(directory, "?*[]") == true {
 		return nil, errors.New("wildcards not supported in parent directories")
@@ -362,9 +385,13 @@ func doSimpleFSRemoteGlob(ctx context.Context, g *libkb.GlobalContext, cli keyba
 	}
 	defer cli.SimpleFSClose(ctx, opid)
 
+	dirPath, err := newPathWithSameType(directory, path)
+	if err != nil {
+		return nil, err
+	}
 	err = cli.SimpleFSList(ctx, keybase1.SimpleFSListArg{
 		OpID: opid,
-		Path: keybase1.NewPathWithKbfs(directory),
+		Path: dirPath,
 	})
 	if err != nil {
 		return nil, err
@@ -387,7 +414,13 @@ func doSimpleFSRemoteGlob(ctx context.Context, g *libkb.GlobalContext, cli keyba
 		for _, entry := range listResult.Entries {
 			match, err := filepath.Match(base, entry.Name)
 			if err == nil && match == true {
-				returnPaths = append(returnPaths, keybase1.NewPathWithKbfs(filepath.ToSlash(filepath.Join(directory, entry.Name))))
+				rp, err := newPathWithSameType(
+					filepath.ToSlash(filepath.Join(directory, entry.Name)),
+					path)
+				if err != nil {
+					return nil, err
+				}
+				returnPaths = append(returnPaths, rp)
 			}
 		}
 	}
@@ -408,7 +441,8 @@ func doSimpleFSGlob(ctx context.Context, g *libkb.GlobalContext, cli keybase1.Si
 			continue
 		}
 
-		if pathType == keybase1.PathType_KBFS {
+		if pathType == keybase1.PathType_KBFS ||
+			pathType == keybase1.PathType_KBFS_ARCHIVED {
 			// remote glob
 			globbed, err := doSimpleFSRemoteGlob(ctx, g, cli, path)
 			if err != nil {
