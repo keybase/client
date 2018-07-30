@@ -133,6 +133,8 @@ func TestSaltpackEncryptDecryptForTeams(t *testing.T) {
 }
 
 func TestSaltpackEncryptDecryptForImplicitTeams(t *testing.T) {
+	t.Skip() // CORE-8423 remove this after most clients update
+
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
