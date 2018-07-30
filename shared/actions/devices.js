@@ -72,7 +72,9 @@ const revoke = (state: TypedState, action: DevicesGen.RevokePayload) => {
     return RPCTypes.revokeRevokeDeviceRpcPromise(
       {deviceID, forceLast: false, forceSelf: false},
       Constants.waitingKey
-    ).then(() => DevicesGen.createRevoked({deviceID, deviceName, wasCurrentDevice}))
+    ).then(() => {
+      return DevicesGen.createRevoked({deviceID, deviceName, wasCurrentDevice})
+    })
   }
 }
 

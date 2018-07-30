@@ -41,8 +41,9 @@ const loadedStore = {
           revokedByName: null,
           type: 'desktop',
         }),
-      ][
-        (Types.stringToDeviceID('456'),
+      ],
+      [
+        Types.stringToDeviceID('456'),
         Constants.makeDevice({
           created: 0,
           currentDevice: false,
@@ -54,7 +55,7 @@ const loadedStore = {
           revokedAt: null,
           revokedByName: null,
           type: 'mobile',
-        }))
+        }),
       ],
       [
         Types.stringToDeviceID('789'),
@@ -194,7 +195,7 @@ describe('load', () => {
 describe('revoking other', () => {
   let init
   beforeEach(() => {
-    init = Testing.makeStartReduxSaga(devicesSaga, loadedStore, startOnDevicesTab)
+    init = Testing.makeStartReduxSaga(devicesSaga, loadedStore, startOnDevicesTab)()
   })
   afterEach(() => {})
 
@@ -203,11 +204,11 @@ describe('revoking other', () => {
     const rpc = jest.spyOn(RPCTypes, 'revokeRevokeDeviceRpcPromise')
     rpc.mockImplementation(() => new Promise(resolve => resolve()))
 
-    expect(getState().devices.deviceMap.get('456')).toBeTruthy()
-    dispatch(DevicesGen.createRevoked({deviceID: '456', deviceName: 'a phone', wasCurrentDevice: false}))
-    return Testing.flushPromises().then(() => {
-      expect(getState().devices.deviceMap.get('456')).toEqual(undefined)
-    })
+    const deviceID = Types.stringToDeviceID('456')
+
+    expect(getState().devices.deviceMap.get(deviceID)).toBeTruthy()
+    dispatch(DevicesGen.createRevoke({deviceID}))
+    expect(rpc).toHaveBeenCalledWith({deviceID, forceLast: false, forceSelf: false}, Constants.waitingKey)
   })
 })
 
