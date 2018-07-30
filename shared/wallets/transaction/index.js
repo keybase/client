@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
+import {capitalize} from 'lodash-es'
 import {Avatar, Box2, ClickableBox, Divider, Icon, ConnectedUsernames, Markdown} from '../../common-adapters'
 import Text, {type TextType} from '../../common-adapters/text'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
@@ -185,6 +186,7 @@ const AmountXLM = (props: AmountXLMProps) => {
 
 type TimestampLineProps = {|
   error: string,
+  status: Types.StatusSimplified,
   timestamp: Date | null,
   relative: boolean,
 |}
@@ -193,7 +195,7 @@ export const TimestampLine = (props: TimestampLineProps) => {
   if (props.error) {
     return (
       <Text type="BodySmallError">
-        Failed • The Stellar network did not approve this transaction - {props.error}
+        {capitalize(props.status)} • The Stellar network did not approve this transaction - {props.error}
       </Text>
     )
   }
@@ -260,7 +262,12 @@ export const Transaction = (props: Props) => {
             large={props.large}
           />
           <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
-            <TimestampLine error={props.statusDetail} relative={true} timestamp={props.timestamp} />
+            <TimestampLine
+              error={props.statusDetail}
+              relative={true}
+              status={props.status}
+              timestamp={props.timestamp}
+            />
             <Detail
               large={props.large}
               pending={pending}
