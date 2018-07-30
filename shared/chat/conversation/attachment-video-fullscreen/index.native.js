@@ -1,14 +1,59 @@
 // @flow
 import React from 'react'
-import {WebView} from '../../../common-adapters'
-import {globalColors} from '../../../styles'
+import {WebView, Box, ClickableBox, Text} from '../../../common-adapters'
+import {globalColors, platformStyles, globalMargins, globalStyles} from '../../../styles'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
 import type {Props} from './index.types'
 
 class _VideoFullscreen extends React.Component<Props & FloatingMenuParentProps> {
   render() {
-    return <WebView style={stylesAVView} url={this.props.path} />
+    return (
+      <Box style={stylesContainer}>
+        <Box style={stylesHeader}>
+          <ClickableBox onClick={this.props.onClose} style={stylesCloseBox}>
+            <Text type="Body" style={stylesText}>
+              Close
+            </Text>
+          </ClickableBox>
+        </Box>
+        <Box style={stylesContentContainer}>
+          <WebView style={stylesAVView} url={this.props.path} />
+        </Box>
+      </Box>
+    )
   }
+}
+
+const stylesContainer = platformStyles({
+  common: {
+    ...globalStyles.flexBoxColumn,
+    ...globalStyles.flexGrow,
+    backgroundColor: globalColors.black,
+  },
+  isIOS: {
+    marginTop: -20, // top status bar
+  },
+})
+
+const stylesContentContainer = {
+  ...globalStyles.flexGrow,
+}
+
+const stylesText = {
+  color: globalColors.white,
+  lineHeight: 48,
+}
+
+const stylesHeader = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  paddingLeft: globalMargins.tiny,
+}
+
+const stylesCloseBox = {
+  paddingLeft: globalMargins.tiny,
+  height: 48,
+  width: 64,
 }
 
 const stylesAVView = {

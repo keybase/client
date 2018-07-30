@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
+	"time"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/attachments"
@@ -161,6 +163,10 @@ func (r *AttachmentHTTPSrv) makeError(ctx context.Context, w http.ResponseWriter
 	w.WriteHeader(code)
 }
 
+func (r *AttachmentHTTPSrv) shouldServeContent(ctx context.Context, asset chat1.Asset) bool {
+	return strings.HasPrefix(asset.MimeType, "video")
+}
+
 func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
@@ -189,14 +195,29 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 		r.makeError(ctx, w, http.StatusNotFound, "attachment not uploaded yet, no path")
 		return
 	}
-	r.Debug(ctx, "serve: setting content-type: %s", asset.MimeType)
+	size := asset.Size
+	r.Debug(ctx, "serve: setting content-type: %s sz: %d", asset.MimeType, size)
 	w.Header().Set("Content-Type", asset.MimeType)
-	cw := attachments.NewContentTypeOverridingResponseWriter(w)
-	if err := r.fetcher.FetchAttachment(ctx, cw, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
-		r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
-		return
+	if r.shouldServeContent(ctx, asset) {
+		r.Debug(ctx, "serve: using content stash file")
+		fw, err := os.OpenFile(filepath.Join(r.G().GetCacheDir(), "content_stash"), os.O_RDWR|os.O_CREATE,
+			0600)
+		if err != nil {
+			r.makeError(ctx, w, http.StatusInternalServerError, "failed to get content stash file: %s", err)
+			return
+		}
+		defer fw.Close()
+		if err := r.fetcher.FetchAttachment(ctx, fw, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
+			r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
+			return
+		}
+		http.ServeContent(w, req, asset.Filename, time.Time{}, fw)
+	} else {
+		if err := r.fetcher.FetchAttachment(ctx, w, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
+			r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
+			return
+		}
 	}
-	w.WriteHeader(http.StatusOK)
 }
 
 // Sign implements github.com/keybase/go/chat/s3.Signer interface.
