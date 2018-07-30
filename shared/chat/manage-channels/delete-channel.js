@@ -82,6 +82,7 @@ class _DeleteChannel extends React.Component<Props, State> {
           attachTo={this.props.attachmentRef}
           visible={this.props.showingMenu}
           onHidden={this.props.toggleShowingMenu}
+          containerStyle={{width: 196}}
         />
         <Text
           type={disabled ? 'Body' : 'BodyPrimaryLink'}
