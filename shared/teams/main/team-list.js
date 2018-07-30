@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {ClickableBox, Icon, Avatar, Badge, Box, Divider, Text, Meta} from '../../common-adapters'
+import {ClickableBox, Icon, Avatar, Badge2, Box, Divider, Text, Meta} from '../../common-adapters'
 import {Set} from 'immutable'
 import {globalMargins, globalStyles, globalColors, isMobile} from '../../styles'
 
@@ -62,16 +62,11 @@ const TeamRow = ({
     >
       <ClickableBox style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}} onClick={onViewTeam}>
         <Box style={{display: 'flex', position: 'relative'}}>
-          <Avatar
-            size={isMobile ? 48 : 32}
-            teamname={name}
-            isTeam={true}
-            style={{marginLeft: globalMargins.tiny}}
-          />
+          <Avatar size={isMobile ? 48 : 32} teamname={name} isTeam={true} />
           {!!(newRequests + resetUserCount) && (
-            <Badge
+            <Badge2
               badgeNumber={newRequests + resetUserCount}
-              badgeStyle={{position: 'absolute', top: -4, right: -12}}
+              badgeStyle={{position: 'absolute', top: -5, right: -5}}
             />
           )}
         </Box>
@@ -105,6 +100,7 @@ const TeamList = (props: Props) => (
     style={{
       ...globalStyles.flexBoxColumn,
       width: '100%',
+      marginLeft: globalMargins.tiny,
     }}
   >
     {props.teamnames.map((name, index, arr) => (
