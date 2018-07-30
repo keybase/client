@@ -50,13 +50,14 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 
 const mountDir = "/keybase"
 
-func makeKbfsPath(path string, rev int64, timeString string) (
+func makeKbfsPath(
+	path string, rev int64, timeString, relTimeString string) (
 	keybase1.Path, error) {
 	p := path[len(mountDir):]
-	if rev == 0 && timeString == "" {
+	if rev == 0 && timeString == "" && relTimeString == "" {
 		return keybase1.NewPathWithKbfs(p), nil
 	} else if rev != 0 {
-		if timeString != "" {
+		if timeString != "" || relTimeString != "" {
 			return keybase1.Path{}, errors.New(
 				"can't set both a revision and a time")
 		}
@@ -66,15 +67,28 @@ func makeKbfsPath(path string, rev int64, timeString string) (
 			ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(
 				keybase1.KBFSRevision(rev)),
 		}), nil
+	} else if timeString != "" {
+		if relTimeString != "" {
+			return keybase1.Path{}, errors.New(
+				"can't set both an absolute time and a relative time")
+		}
+
+		return keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
+			Path: p,
+			ArchivedParam: keybase1.NewKBFSArchivedParamWithTimeString(
+				timeString),
+		}), nil
 	}
 	return keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
-		Path:          p,
-		ArchivedParam: keybase1.NewKBFSArchivedParamWithTimeString(timeString),
+		Path: p,
+		ArchivedParam: keybase1.NewKBFSArchivedParamWithRelTimeString(
+			relTimeString),
 	}), nil
+
 }
 
 func makeSimpleFSPathWithArchiveParams(
-	path string, rev int64, timeString string) (
+	path string, rev int64, timeString, relTimeString string) (
 	keybase1.Path, error) {
 	path = filepath.ToSlash(path)
 	if strings.HasSuffix(path, "/") {
@@ -84,7 +98,7 @@ func makeSimpleFSPathWithArchiveParams(
 	// Test for the special mount dir prefix before the absolute test.
 	// Otherwise the current dir will be prepended, below.
 	if strings.HasPrefix(path, mountDir) {
-		return makeKbfsPath(path, rev, timeString)
+		return makeKbfsPath(path, rev, timeString, relTimeString)
 	}
 
 	// make absolute
@@ -103,7 +117,7 @@ func makeSimpleFSPathWithArchiveParams(
 	// mounted KBFS. This is for those who want to do so
 	// from "/keybase/..."
 	if strings.HasPrefix(path, mountDir) {
-		return makeKbfsPath(path, rev, timeString)
+		return makeKbfsPath(path, rev, timeString, relTimeString)
 	}
 
 	if rev > 0 {
@@ -112,13 +126,16 @@ func makeSimpleFSPathWithArchiveParams(
 	} else if timeString != "" {
 		return keybase1.Path{}, fmt.Errorf(
 			"can't specify a time string for a local path")
+	} else if relTimeString != "" {
+		return keybase1.Path{}, fmt.Errorf(
+			"can't specify a relative time string for a local path")
 	}
 
 	return keybase1.NewPathWithLocal(path), nil
 }
 
 func makeSimpleFSPath(path string) (keybase1.Path, error) {
-	return makeSimpleFSPathWithArchiveParams(path, 0, "")
+	return makeSimpleFSPathWithArchiveParams(path, 0, "", "")
 }
 
 func stringToOpID(arg string) (keybase1.OpID, error) {
@@ -257,6 +274,14 @@ func makeDestPath(
 	return dest, err
 }
 
+func getRelTime(ctx *cli.Context) string {
+	relTimeString := ctx.String("reltime")
+	if relTimeString == "" {
+		relTimeString = ctx.String("relative-time")
+	}
+	return relTimeString
+}
+
 // Make a list of source paths and one destination path from the given command line args
 func parseSrcDestArgs(g *libkb.GlobalContext, ctx *cli.Context, name string) ([]keybase1.Path, keybase1.Path, error) {
 	nargs := len(ctx.Args())
@@ -271,12 +296,15 @@ func parseSrcDestArgs(g *libkb.GlobalContext, ctx *cli.Context, name string) ([]
 	for i, src := range ctx.Args() {
 		rev := int64(0)
 		timeString := ""
+		relTimeString := ""
 		if i != nargs-1 {
 			// All source paths use the same revision.
 			rev = int64(ctx.Int("rev"))
 			timeString = ctx.String("time")
+			relTimeString = getRelTime(ctx)
 		}
-		argPath, err := makeSimpleFSPathWithArchiveParams(src, rev, timeString)
+		argPath, err := makeSimpleFSPathWithArchiveParams(
+			src, rev, timeString, relTimeString)
 		if err != nil {
 			return nil, keybase1.Path{}, err
 		}
