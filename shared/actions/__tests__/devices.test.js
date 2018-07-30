@@ -195,6 +195,17 @@ describe('load', () => {
       expect(rpc).toHaveBeenCalled()
     })
   })
+
+  it('loaded handles null', () => {
+    const {dispatch, getState} = init
+    rpc = jest.spyOn(RPCTypes, 'deviceDeviceHistoryListRpcPromise')
+    rpc.mockImplementation(() => new Promise(resolve => resolve()))
+    dispatch(DevicesGen.createLoad())
+    return Testing.flushPromises().then(() => {
+      expect(getState().devices.deviceMap).toEqual(I.Map())
+      expect(rpc).toHaveBeenCalled()
+    })
+  })
 })
 
 describe('revoking other', () => {
