@@ -134,7 +134,7 @@ func (s *secretStoreAndroid) RetrieveSecret(m MetaContext, username NormalizedUs
 
 	ks, err := getGlobalExternalKeyStore(m)
 	if err != nil {
-		return nil, err
+		return sec, err
 	}
 
 	return ks.RetrieveSecret(s.serviceName(m), string(username))
