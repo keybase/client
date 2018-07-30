@@ -143,27 +143,6 @@ func (e *PGPPurge) encryptToFile(m libkb.MetaContext, bundle *libkb.PGPKeyBundle
 		return err
 	}
 
-	// Lookup which keys this user has that we can use for encrypiton
-	loadArg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(m.ActiveDevice().UID()).WithForcePoll(true)
-	upak, _, err := m.G().GetUPAKLoader().LoadV2(loadArg)
-	if err != nil {
-		return err
-	}
-	upk := upak.Current
-
-	hasPUK := len(upk.PerUserKeys) > 0
-
-	hasPaperKey := false
-	hasDeviceKey := false
-	for KID, key := range upk.DeviceKeys {
-		if e.isPaperEncryptionKey(&key, &upk.DeviceKeys) {
-			hasPaperKey = true
-		}
-		if libkb.KIDIsDeviceEncrypt(KID) && !e.isPaperEncryptionKey(&key, &upk.DeviceKeys) {
-			hasDeviceKey = true
-		}
-	}
-
 	// encrypt
 	arg := &SaltpackEncryptArg{
 		Source: &buf,
@@ -171,9 +150,9 @@ func (e *PGPPurge) encryptToFile(m libkb.MetaContext, bundle *libkb.PGPKeyBundle
 		Opts: keybase1.SaltpackEncryptOptions{
 			Recipients:       []string{m.CurrentUsername().String()},
 			AuthenticityType: keybase1.AuthenticityType_SIGNED,
-			UsePaperKeys:     hasPaperKey,
-			UseDeviceKeys:    hasDeviceKey,
-			UseEntityKeys:    hasPUK,
+			UsePaperKeys:     true,
+			UseDeviceKeys:    true,
+			UseEntityKeys:    true,
 		},
 	}
 	eng := NewSaltpackEncrypt(arg, NewSaltpackUserKeyfinderAsInterface)
