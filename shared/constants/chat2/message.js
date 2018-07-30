@@ -411,6 +411,8 @@ const clampAttachmentPreviewSize = ({width = 0, height = 0}) =>
         width: clamp(width || 0, 0, maxAttachmentPreviewSize),
       }
 
+export const isVideoAttachment = (message: Types.MessageAttachment) => message.fileType.startsWith('video')
+
 export const previewSpecs = (preview: ?RPCChatTypes.AssetMetadata, full: ?RPCChatTypes.AssetMetadata) => {
   const res = {
     height: 0,

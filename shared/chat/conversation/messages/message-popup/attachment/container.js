@@ -95,8 +95,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
     onHidden: () => ownProps.onHidden(),
     onSaveAttachment:
-      isMobile && message.attachmentType === 'image' ? () => dispatchProps._onSaveAttachment(message) : null,
-    onShareAttachment: isIOS ? () => dispatchProps._onShareAttachment(message) : null,
+      isMobile &&
+      message.attachmentType === 'image' &&
+      !(Constants.isVideoAttachment(message) && !message.fileURLCached)
+        ? () => dispatchProps._onSaveAttachment(message)
+        : null,
+    onShareAttachment:
+      isIOS && !(Constants.isVideoAttachment(message) && !message.fileURLCached)
+        ? () => dispatchProps._onShareAttachment(message)
+        : null,
     onShowInFinder: !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : null,
     pending: stateProps.pending,
     position: ownProps.position,
