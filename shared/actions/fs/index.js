@@ -260,7 +260,7 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
     },
     dest: {
       PathType: RPCTypes.simpleFSPathType.local,
-      local: localPath,
+      local: Types.getNormalizedLocalPath(localPath),
     },
   })
 
