@@ -1,7 +1,13 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Icon, Text, Box, iconCastPlatformStyles} from '../../../../../common-adapters'
-import {type FloatingMenuParentProps} from '../../../../../common-adapters/floating-menu/parent-hoc'
+import {
+  Avatar,
+  Icon,
+  Text,
+  Box,
+  iconCastPlatformStyles,
+  type OverlayParentProps,
+} from '../../../../../common-adapters'
 import {
   globalStyles,
   globalMargins,
@@ -207,7 +213,7 @@ const RightSide = props => (
   </Box>
 )
 
-class WrapperAuthor extends React.PureComponent<WrapperAuthorProps & FloatingMenuParentProps> {
+class WrapperAuthor extends React.PureComponent<WrapperAuthorProps & OverlayParentProps> {
   componentDidUpdate(prevProps: WrapperAuthorProps) {
     if (this.props.measure) {
       if (this.props.includeHeader !== prevProps.includeHeader) {

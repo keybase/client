@@ -16,8 +16,8 @@ import {
   Text,
   type IconType,
   FloatingMenu,
-  FloatingMenuParentHOC,
-  type FloatingMenuParentProps,
+  OverlayParentHOC,
+  type OverlayParentProps,
 } from '../../common-adapters'
 import StaticBreadcrumb from '../common/static-breadcrumb'
 
@@ -35,7 +35,7 @@ type AddNewProps = {
   pathElements: Array<string>,
 }
 
-const AddNew = (props: AddNewProps & FloatingMenuParentProps) => {
+const AddNew = (props: AddNewProps & OverlayParentProps) => {
   return (
     !!props.menuItems.length && (
       <Box>
@@ -111,4 +111,4 @@ const styles = styleSheetCreate({
   }),
 })
 
-export default FloatingMenuParentHOC(AddNew)
+export default OverlayParentHOC(AddNew)

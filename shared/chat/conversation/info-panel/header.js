@@ -8,8 +8,8 @@ import {
   NameWithIcon,
   Text,
   iconCastPlatformStyles,
-  type FloatingMenuParentProps,
-  FloatingMenuParentHOC,
+  type OverlayParentProps,
+  OverlayParentHOC,
 } from '../../../common-adapters'
 import InfoPanelMenu from './menu/container'
 import {
@@ -26,7 +26,7 @@ type SmallProps = {
   participantCount: number,
   onClick: () => void,
   isSmallTeam: boolean,
-} & FloatingMenuParentProps
+} & OverlayParentProps
 
 const gearIconSize = isMobile ? 24 : 16
 
@@ -58,7 +58,7 @@ const _SmallTeamHeader = (props: SmallProps) => {
     </Box>
   )
 }
-const SmallTeamHeader = FloatingMenuParentHOC(_SmallTeamHeader)
+const SmallTeamHeader = OverlayParentHOC(_SmallTeamHeader)
 
 // TODO probably factor this out into a connected component
 type BigProps = {

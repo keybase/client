@@ -14,7 +14,7 @@ import EditingRow from './row/editing'
 import PlaceholderRow from './row/placeholder'
 import UploadingRow from './row/uploading'
 import {NormalPreview} from './filepreview'
-import {Box, Box2, Text, FloatingMenuParentHOC} from '../common-adapters'
+import {Box, Box2, Text, OverlayParentHOC} from '../common-adapters'
 import Downloads from './footer/downloads'
 import Download from './footer/download'
 import Upload from './footer/upload'
@@ -22,7 +22,7 @@ import PathItemAction from './common/path-item-action'
 import Breadcrumb from './header/breadcrumb.desktop'
 import Banner from './banner'
 
-const FloatingPathItemAction = FloatingMenuParentHOC(PathItemAction)
+const FloatingPathItemAction = OverlayParentHOC(PathItemAction)
 
 const folderItemStyles = {
   iconSpec: {

@@ -7,8 +7,8 @@ import {
   Text,
   Icon,
   ConnectedUsernames,
-  FloatingMenuParentHOC,
-  type FloatingMenuParentProps,
+  OverlayParentHOC,
+  type OverlayParentProps,
 } from '../../../common-adapters'
 import AddPeopleHow from '../../../teams/team/header/add-people-how/container'
 import {
@@ -54,7 +54,7 @@ const Participant = ({fullname, username, onShowProfile}: Props) => (
   </Box>
 )
 
-const _AddPeople = (props: {teamname: string} & FloatingMenuParentProps) => {
+const _AddPeople = (props: {teamname: string} & OverlayParentProps) => {
   return (
     <ClickableBox
       style={{...globalStyles.flexBoxRow}}
@@ -90,7 +90,7 @@ const _AddPeople = (props: {teamname: string} & FloatingMenuParentProps) => {
     </ClickableBox>
   )
 }
-const AddPeople = FloatingMenuParentHOC(_AddPeople)
+const AddPeople = OverlayParentHOC(_AddPeople)
 
 const rowStyle = platformStyles({
   common: {

@@ -3,7 +3,7 @@ import * as React from 'react'
 import WrapperTimestamp from './wrapper-timestamp'
 import WrapperAuthor from './wrapper-author'
 import {NativeTouchableHighlight, NativeKeyboard} from '../../../../common-adapters/mobile.native'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters'
+import {OverlayParentHOC, type OverlayParentProps} from '../../../../common-adapters'
 import {globalColors} from '../../../../styles'
 import type {WrapperAuthorProps} from './index.types'
 
@@ -11,7 +11,7 @@ const dismissKeyboard = () => {
   NativeKeyboard.dismiss()
 }
 
-const _NativeWrapper = (props: WrapperAuthorProps & FloatingMenuParentProps) => (
+const _NativeWrapper = (props: WrapperAuthorProps & OverlayParentProps) => (
   <NativeTouchableHighlight
     onLongPress={props.exploded ? undefined : props.toggleShowingMenu}
     underlayColor={globalColors.white}
@@ -22,7 +22,7 @@ const _NativeWrapper = (props: WrapperAuthorProps & FloatingMenuParentProps) => 
     </React.Fragment>
   </NativeTouchableHighlight>
 )
-const NativeWrapper = FloatingMenuParentHOC(_NativeWrapper)
+const NativeWrapper = OverlayParentHOC(_NativeWrapper)
 
 export {NativeWrapper as WrapperAuthor, WrapperTimestamp}
 

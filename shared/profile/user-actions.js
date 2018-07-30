@@ -8,8 +8,8 @@ import {
   FollowButton,
   ButtonBar,
   Icon,
-  FloatingMenuParentHOC,
-  type FloatingMenuParentProps,
+  OverlayParentHOC,
+  type OverlayParentProps,
 } from '../common-adapters'
 import {normal as proofNormal} from '../constants/tracker'
 import {globalColors, isMobile, platformStyles, styleSheetCreate} from '../styles'
@@ -109,7 +109,7 @@ type DropdownProps = {
   onUnfollow?: () => void,
 }
 
-class _DropdownButton extends React.PureComponent<DropdownProps & FloatingMenuParentProps> {
+class _DropdownButton extends React.PureComponent<DropdownProps & OverlayParentProps> {
   _menuItems = [
     {
       onClick: () => this.props.onAddToTeam(),
@@ -195,6 +195,6 @@ const styles = styleSheetCreate({
   },
 })
 
-const DropdownButton = FloatingMenuParentHOC(_DropdownButton)
+const DropdownButton = OverlayParentHOC(_DropdownButton)
 
 export default UserActions

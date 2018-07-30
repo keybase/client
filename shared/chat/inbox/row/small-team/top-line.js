@@ -6,8 +6,8 @@ import {
   PlaintextUsernames,
   Box,
   Icon,
-  FloatingMenuParentHOC,
-  type FloatingMenuParentProps,
+  OverlayParentHOC,
+  type OverlayParentProps,
 } from '../../../../common-adapters'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
 import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../styles'
@@ -23,7 +23,7 @@ type Props = {
   timestamp: ?string,
   usernameColor: ?string,
   hasBadge: boolean,
-} & FloatingMenuParentProps
+} & OverlayParentProps
 
 class _SimpleTopLine extends React.Component<Props> {
   shouldComponentUpdate(nextProps: Props) {
@@ -118,7 +118,7 @@ class _SimpleTopLine extends React.Component<Props> {
     )
   }
 }
-const SimpleTopLine = FloatingMenuParentHOC(_SimpleTopLine)
+const SimpleTopLine = OverlayParentHOC(_SimpleTopLine)
 
 const unreadDotStyle = {
   backgroundColor: globalColors.orange,

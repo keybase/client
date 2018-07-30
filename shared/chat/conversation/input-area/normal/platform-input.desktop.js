@@ -1,14 +1,7 @@
 // @flow
 /* eslint-env browser */
 import React, {Component} from 'react'
-import {
-  Box,
-  Icon,
-  Input,
-  Text,
-  FloatingMenuParentHOC,
-  type FloatingMenuParentProps,
-} from '../../../../common-adapters'
+import {Box, Icon, Input, Text, OverlayParentHOC, type OverlayParentProps} from '../../../../common-adapters'
 import {
   collapseStyles,
   glamorous,
@@ -42,11 +35,11 @@ type State = {
   hasText: boolean,
 }
 
-class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentProps, State> {
+class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, State> {
   _input: ?Input
   _fileInput: ?HTMLInputElement
 
-  constructor(props: PlatformInputProps & FloatingMenuParentProps) {
+  constructor(props: PlatformInputProps & OverlayParentProps) {
     super(props)
     this.state = {
       emojiPickerOpen: false,
@@ -502,4 +495,4 @@ const HoverBox = glamorous(Box)({
   },
 })
 
-export default FloatingMenuParentHOC(PlatformInput)
+export default OverlayParentHOC(PlatformInput)

@@ -9,8 +9,8 @@ import {
   Input,
   Text,
   iconCastPlatformStyles,
-  FloatingMenuParentHOC,
-  type FloatingMenuParentProps,
+  OverlayParentHOC,
+  type OverlayParentProps,
 } from '../../../../common-adapters'
 import {globalMargins, globalStyles, globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
@@ -29,10 +29,10 @@ type State = {
   hasText: boolean,
 }
 
-class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentProps, State> {
+class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, State> {
   _input: ?Input
 
-  constructor(props: PlatformInputProps & FloatingMenuParentProps) {
+  constructor(props: PlatformInputProps & OverlayParentProps) {
     super(props)
     this.state = {
       hasText: false,
@@ -340,4 +340,4 @@ const explodingIconContainer = platformStyles({
   },
 })
 
-export default FloatingMenuParentHOC(PlatformInput)
+export default OverlayParentHOC(PlatformInput)

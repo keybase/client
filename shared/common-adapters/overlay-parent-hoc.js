@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
-import {isMobile} from '../../constants/platform'
+import {isMobile} from '../constants/platform'
 
-export type FloatingMenuParentProps = {
+export type OverlayParentProps = {
   attachmentRef: ?React.Component<any, any>,
   showingMenu: boolean,
   setAttachmentRef: ?(?React.Component<any, any>) => void,
@@ -10,12 +10,12 @@ export type FloatingMenuParentProps = {
   toggleShowingMenu: () => void,
 }
 
-type FloatingMenuParentState = {|
+type OverlayParentState = {|
   attachmentRef: ?React.Component<any, any>,
   showingMenu: boolean,
 |}
 
-type FloatingMenuParentCallbacks = {|
+type OverlayParentCallbacks = {|
   setShowingMenu: boolean => void,
   toggleShowingMenu: () => void,
   // WARNING: Only use setAttachmentRef on class components. Otherwise the ref will be
@@ -23,16 +23,13 @@ type FloatingMenuParentCallbacks = {|
   setAttachmentRef: ?(?React.Component<any, any>) => void,
 |}
 
-const FloatingMenuParentHOC = <T: FloatingMenuParentProps>(
+const OverlayParentHOC = <T: OverlayParentProps>(
   ComposedComponent: React.ComponentType<T>
-): React.ComponentType<$Diff<T, FloatingMenuParentProps>> => {
-  class FloatingMenuParent extends React.Component<
-    $Diff<T, FloatingMenuParentProps>,
-    FloatingMenuParentState
-  > {
-    _setters: FloatingMenuParentCallbacks
+): React.ComponentType<$Diff<T, OverlayParentProps>> => {
+  class OverlayParent extends React.Component<$Diff<T, OverlayParentProps>, OverlayParentState> {
+    _setters: OverlayParentCallbacks
     state = {attachmentRef: null, showingMenu: false}
-    constructor(props: $Diff<T, FloatingMenuParentProps>) {
+    constructor(props: $Diff<T, OverlayParentProps>) {
       super(props)
       this._setters = {
         setShowingMenu: showingMenu =>
@@ -50,7 +47,7 @@ const FloatingMenuParentHOC = <T: FloatingMenuParentProps>(
       return <ComposedComponent {...this.props} {...this._setters} {...this.state} />
     }
   }
-  return FloatingMenuParent
+  return OverlayParent
 }
 
-export default FloatingMenuParentHOC
+export default OverlayParentHOC

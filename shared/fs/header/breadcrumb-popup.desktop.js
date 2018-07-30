@@ -7,8 +7,8 @@ import {
   Box,
   Text,
   FloatingMenu,
-  FloatingMenuParentHOC,
-  type FloatingMenuParentProps,
+  OverlayParentHOC,
+  type OverlayParentProps,
 } from '../../common-adapters'
 import {globalMargins, globalStyles} from '../../styles'
 import {isMobile} from '../../constants/platform'
@@ -18,7 +18,7 @@ type Props = {
   items: Array<Types.PathBreadcrumbItem>,
 }
 
-const BreadcrumbPopup = (props: Props & FloatingMenuParentProps) => (
+const BreadcrumbPopup = (props: Props & OverlayParentProps) => (
   <Box>
     <ClickableBox
       style={stylesBreadcrumbDropdownIconBox}
@@ -73,4 +73,4 @@ const styleBreadcrumbDropdownIcon = {
   marginRight: globalMargins.xtiny,
 }
 
-export default FloatingMenuParentHOC(BreadcrumbPopup)
+export default OverlayParentHOC(BreadcrumbPopup)

@@ -5,8 +5,8 @@ import {
   Box,
   Icon,
   ProgressIndicator,
-  FloatingMenuParentHOC,
-  type FloatingMenuParentProps,
+  OverlayParentHOC,
+  type OverlayParentProps,
 } from '../../../common-adapters'
 import {globalStyles, globalMargins, isMobile, styleSheetCreate} from '../../../styles'
 import TeamMenu from '../menu-container'
@@ -22,7 +22,7 @@ type Props = {
 
 const fontSize = isMobile ? 20 : 16
 
-const _CustomComponent = (props: Props & FloatingMenuParentProps) => (
+const _CustomComponent = (props: Props & OverlayParentProps) => (
   <Box style={styles.container}>
     {isMobile && props.loading && <ProgressIndicator style={styles.progressIndicator} />}
     {props.canChat && (
@@ -76,5 +76,5 @@ const styles = styleSheetCreate({
   },
 })
 
-const CustomComponent = FloatingMenuParentHOC(_CustomComponent)
+const CustomComponent = OverlayParentHOC(_CustomComponent)
 export default CustomComponent

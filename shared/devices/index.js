@@ -11,8 +11,8 @@ import {
   ProgressIndicator,
   HeaderOnMobile,
   FloatingMenu,
-  FloatingMenuParentHOC,
-  type FloatingMenuParentProps,
+  OverlayParentHOC,
+  type OverlayParentProps,
 } from '../common-adapters'
 import {RowConnector} from './row'
 import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../styles'
@@ -89,7 +89,7 @@ const DeviceRow = RowConnector(({isCurrentDevice, name, isRevoked, icon, showExi
   </ClickableBox>
 ))
 
-class _Devices extends PureComponent<Props & FloatingMenuParentProps> {
+class _Devices extends PureComponent<Props & OverlayParentProps> {
   _renderRow = (index, item) =>
     item.type === 'revokedHeader' ? (
       <RevokedHeader
@@ -129,7 +129,7 @@ class _Devices extends PureComponent<Props & FloatingMenuParentProps> {
     )
   }
 }
-const Devices = FloatingMenuParentHOC(_Devices)
+const Devices = OverlayParentHOC(_Devices)
 
 const stylesCommonCore = {
   alignItems: 'center',

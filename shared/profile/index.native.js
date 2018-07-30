@@ -17,8 +17,8 @@ import {
   Meta,
   PlatformIcon,
   FloatingMenu,
-  FloatingMenuParentHOC,
-  type FloatingMenuParentProps,
+  OverlayParentHOC,
+  type OverlayParentProps,
   NativeSectionList,
   Text,
   UserBio,
@@ -73,7 +73,7 @@ const ShowcaseTeamsOffer = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () =>
 const _ShowcasedTeamRow = (
   props: {
     team: UserTeamShowcase,
-  } & FloatingMenuParentProps
+  } & OverlayParentProps
 ) => (
   <ClickableBox key={props.team.fqName} onClick={props.toggleShowingMenu} style={styleShowcasedTeamContainer}>
     <ShowcasedTeamInfo
@@ -93,7 +93,7 @@ const _ShowcasedTeamRow = (
     </Box>
   </ClickableBox>
 )
-const ShowcasedTeamRow = FloatingMenuParentHOC(_ShowcasedTeamRow)
+const ShowcasedTeamRow = OverlayParentHOC(_ShowcasedTeamRow)
 
 class Profile extends Component<Props, State> {
   state = {

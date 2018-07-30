@@ -3,9 +3,8 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../styles'
-import {Box, ClickableBox, Icon, Text, FloatingMenu} from '../../common-adapters'
-import {type FloatingMenuParentProps} from '../../common-adapters/floating-menu/parent-hoc'
-import {type MenuItem} from '../../common-adapters/popup-menu'
+import {Box, ClickableBox, Icon, Text, FloatingMenu, type OverlayParentProps} from '../../common-adapters'
+import {type MenuItem} from '../../common-adapters/floating-menu/menu-layout'
 import PathItemIcon from '../common/path-item-icon'
 import PathItemInfo from '../common/path-item-info'
 import StaticBreadcrumb from '../common/static-breadcrumb'
@@ -54,7 +53,7 @@ const PathItemActionHeader = (props: Props) => (
   </Box>
 )
 
-const PathItemAction = (props: Props & FloatingMenuParentProps) => (
+const PathItemAction = (props: Props & OverlayParentProps) => (
   <Box>
     <ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
       <Icon

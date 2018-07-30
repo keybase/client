@@ -7,8 +7,8 @@ import {
   List,
   Text,
   FloatingMenu,
-  FloatingMenuParentHOC,
-  type FloatingMenuParentProps,
+  OverlayParentHOC,
+  type OverlayParentProps,
 } from '../../common-adapters'
 import {styleSheetCreate, globalMargins, globalColors, isMobile, type StylesCrossPlatform} from '../../styles'
 import {type AccountID} from '../../constants/types/wallets'
@@ -25,7 +25,7 @@ const styles = styleSheetCreate({
   addContainerBox: {height: rowHeight, paddingTop: globalMargins.small},
 })
 
-const _AddWallet = (props: AddProps & FloatingMenuParentProps) => {
+const _AddWallet = (props: AddProps & OverlayParentProps) => {
   const menuItems = [
     {
       onClick: () => props.onAddNew(),
@@ -63,7 +63,7 @@ const _AddWallet = (props: AddProps & FloatingMenuParentProps) => {
   )
 }
 
-const AddWallet = FloatingMenuParentHOC(_AddWallet)
+const AddWallet = OverlayParentHOC(_AddWallet)
 
 type Props = {
   accountIDs: Array<AccountID>,
