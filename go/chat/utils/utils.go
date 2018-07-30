@@ -1003,23 +1003,25 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 	switch typ {
 	case chat1.MessageType_ATTACHMENT, chat1.MessageType_ATTACHMENTUPLOADED:
 		var hasFullURL, hasPreviewURL bool
+		var asset chat1.Asset
 		var info chat1.UIAssetUrlInfo
 		if typ == chat1.MessageType_ATTACHMENT {
-			info.MimeType = body.Attachment().Object.MimeType
-			hasFullURL = body.Attachment().Object.Path != ""
+			asset = body.Attachment().Object
+			info.MimeType = asset.MimeType
+			hasFullURL = asset.Path != ""
 			hasPreviewURL = body.Attachment().Preview != nil &&
 				body.Attachment().Preview.Path != ""
 		} else {
-			info.MimeType = body.Attachmentuploaded().Object.MimeType
-			hasFullURL = body.Attachmentuploaded().Object.Path != ""
+			asset = body.Attachmentuploaded().Object
+			info.MimeType = asset.MimeType
+			hasFullURL = asset.Path != ""
 			hasPreviewURL = len(body.Attachmentuploaded().Previews) > 0 &&
 				body.Attachmentuploaded().Previews[0].Path != ""
 		}
 		if hasFullURL {
 			var cached bool
 			info.FullUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), false)
-			cached, err = g.AttachmentURLSrv.GetAttachmentFetcher().IsAssetLocal(ctx,
-				body.Attachment().Object)
+			cached, err = g.AttachmentURLSrv.GetAttachmentFetcher().IsAssetLocal(ctx, asset)
 			if err != nil {
 				cached = false
 			}
