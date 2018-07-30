@@ -1,12 +1,11 @@
 // @flow
 import * as React from 'react'
 import RequestInviteSuccess from '.'
-import {action, storiesOf} from '../../../stories/storybook'
-import * as PropProviders from '../../../stories/prop-providers'
+import {action, storiesOf, PropProviders} from '../../../stories/storybook'
 
 const load = () => {
   storiesOf('Signup', module)
-    .addDecorator(PropProviders.CommonProvider())
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .add('Request Invite Success', () => <RequestInviteSuccess onBack={action('onBack')} />)
 }
 

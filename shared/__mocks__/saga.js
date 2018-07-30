@@ -2,37 +2,42 @@
 if (!__STORYBOOK__) {
   throw new Error('Invalid load of mock')
 }
-const mocks = {
-  all: () => {},
+
+const reduxSaga = {
   buffers: () => {},
-  call: () => {},
-  callAndWrap: () => {},
-  cancel: () => {},
-  cancelWhen: () => {},
-  cancelled: () => {},
   channel: () => {},
-  closeChannelMap: () => {},
-  createChannelMap: () => {},
   delay: () => {},
-  effectOnChannelMap: () => {},
+}
+
+const effects = {
+  all: () => {},
+  call: () => {},
+  cancel: () => {},
+  cancelled: () => {},
   fork: () => {},
-  identity: () => {},
   join: () => {},
-  mapSagasToChanMap: () => {},
   put: () => {},
-  putOnChannelMap: () => {},
   race: () => {},
+  select: () => {},
+  spawn: () => {},
+  take: () => {},
+  takeEvery: () => {},
+  takeLatest: () => {},
+  throttle: () => {},
+}
+
+const mocks = {
+  ...reduxSaga,
+  ...effects,
+  actionToAction: () => {},
+  actionToPromise: () => {},
+  callAndWrap: () => {},
+  identity: () => {},
   safeTakeEvery: () => {},
   safeTakeEveryPure: () => {},
   safeTakeLatest: () => {},
   safeTakeLatestPure: () => {},
-  safeTakeLatestWithCatch: () => {},
-  safeTakeSerially: () => {},
-  select: () => {},
   sequentially: () => {},
-  singleFixedChannelConfig: () => {},
-  spawn: () => {},
-  take: () => {},
-  takeFromChannelMap: () => {},
 }
+
 export default mocks

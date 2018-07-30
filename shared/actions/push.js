@@ -322,7 +322,7 @@ function* pushSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(PushGen.notification, pushNotificationSaga)
   yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, resetHandledPush)
   yield Saga.safeTakeEvery(ConfigGen.mobileAppState, mobileAppStateSaga)
-  yield Saga.safeTakeEveryPureSimple(LoginGen.logout, deletePushToken)
+  yield Saga.actionToAction(LoginGen.logout, deletePushToken)
 }
 
 export default pushSaga

@@ -201,7 +201,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(LoginGen.logout, clearDidInitialNav)
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrap, _bootstrap)
   yield Saga.safeTakeEveryPure(ConfigGen.retryBootstrap, _retryBootstrap)
-  yield Saga.safeTakeEveryPurePromise(ConfigGen.loadConfig, getConfig)
+  yield Saga.actionToPromise(ConfigGen.loadConfig, getConfig)
   yield Saga.fork(PlatformSpecific.platformConfigSaga)
   yield Saga.fork(avatarSaga)
 }

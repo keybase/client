@@ -3,13 +3,9 @@ import * as React from 'react'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import {Box} from '../../../../common-adapters'
-import {action, createPropProvider, storiesOf} from '../../../../stories/storybook'
-import {Common} from '../../../../stories/prop-providers'
+import {action, storiesOf, PropProviders} from '../../../../stories/storybook'
 import {type OwnProps, type WrapperProps} from './container'
 import ReactButton, {NewReactionButton} from '.'
-
-// Tooltip includes avatars and usernames
-const provider = createPropProvider(Common())
 
 // Common props for these stories and fallbacks for the prop provider
 const common = {
@@ -57,7 +53,7 @@ const examples = [
 
 const load = () => {
   const story = storiesOf('Chat/Conversation/React Button', module)
-    .addDecorator(provider)
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .addDecorator(story => (
       <Box style={{display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', padding: 24}}>
         {story()}
