@@ -14,6 +14,7 @@ const emojiSections = categories.map(c => ({
 }))
 const singleEmojiWidth = 32
 const emojiPadding = 4
+const emojiWidthWithPadding = singleEmojiWidth + 2 * emojiPadding
 const maxEmojiSearchResults = 50
 
 // Usually this emoji picker will be full-width on mobile
@@ -60,7 +61,7 @@ class EmojiPicker extends React.Component<Props, State> {
     }
     // width is different from cached. make new sections & cache for next time
     let sections = []
-    const emojisPerLine = Math.floor(this.props.width / (singleEmojiWidth + 2 * emojiPadding))
+    const emojisPerLine = Math.floor(this.props.width / emojiWidthWithPadding)
     sections = emojiSections.map(c => ({
       category: c.category,
       data: chunk(c.data.emojis, emojisPerLine).map(c => ({
@@ -97,11 +98,13 @@ class EmojiPicker extends React.Component<Props, State> {
       // (on iPhone 5S)
       // so I'm not adding a ScrollView here. If we increase that later check
       // if this can sometimes overflow the screen here & add a ScrollView
+      const width = this.props.width
+        ? Math.floor(this.props.width / emojiWidthWithPadding) * emojiWidthWithPadding
+        : null
       return (
         <Box2
           direction="horizontal"
-          fullWidth={true}
-          style={collapseStyles([styles.alignItemsCenter, styles.flexWrap])}
+          style={collapseStyles([styles.alignItemsCenter, styles.flexWrap, !!width && {width}])}
         >
           {results.map(e => <EmojiRender key={e.short_name} emoji={e} onChoose={this.props.onChoose} />)}
         </Box2>
@@ -146,7 +149,7 @@ const styles = styleSheetCreate({
   },
   emoji: {
     padding: emojiPadding,
-    width: singleEmojiWidth + 2 * emojiPadding,
+    width: emojiWidthWithPadding,
   },
   flexWrap: {
     flexWrap: 'wrap',

@@ -54,7 +54,13 @@ class Wrapper extends React.Component<WrapperProps, WrapperState> {
 
   render() {
     return (
-      <Kb.Box2 direction="vertical" onLayout={this._onLayout} fullWidth={true} fullHeight={true}>
+      <Kb.Box2
+        direction="vertical"
+        onLayout={this._onLayout}
+        style={styles.alignItemsCenter}
+        fullWidth={true}
+        fullHeight={true}
+      >
         <Kb.NewInput
           autoFocus={true}
           containerStyle={styles.input}
@@ -79,6 +85,9 @@ class Wrapper extends React.Component<WrapperProps, WrapperState> {
 }
 
 const styles = styleSheetCreate({
+  alignItemsCenter: {
+    alignItems: 'center',
+  },
   input: {
     borderBottomWidth: 1,
     borderColor: globalColors.black_05,
