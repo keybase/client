@@ -2,7 +2,9 @@ package attachments
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -39,6 +41,9 @@ type Uploader struct {
 	ri       func() chat1.RemoteInterface
 	s3signer s3.Signer
 	uploads  map[string]chan types.AttachmentUploadResult
+
+	// testing
+	tempDir string
 }
 
 var _ types.AttachmentUploader = (*Uploader)(nil)
@@ -52,6 +57,10 @@ func NewUploader(g *globals.Context, store Store, s3signer s3.Signer, ri func() 
 		s3signer:     s3signer,
 		uploads:      make(map[string]chan types.AttachmentUploadResult),
 	}
+}
+
+func (u *Uploader) SetPreviewTempDir(dir string) {
+	u.tempDir = dir
 }
 
 func (u *Uploader) dbStatusKey(outboxID chat1.OutboxID) libkb.DbKey {
@@ -198,6 +207,18 @@ func (u *Uploader) doneUploading(outboxID chat1.OutboxID) {
 	delete(u.uploads, outboxID.String())
 }
 
+func (u *Uploader) uploadPreviewFile(ctx context.Context) (f *os.File, err error) {
+	baseDir := u.G().GetCacheDir()
+	if u.tempDir != "" {
+		baseDir = u.tempDir
+	}
+	dir := filepath.Join(baseDir, "uploadedpreviews")
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		return nil, err
+	}
+	return ioutil.TempFile(dir, "up")
+}
+
 func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	outboxID chat1.OutboxID, title, filename string, metadata []byte, callerPreview *chat1.MakePreviewRes) (res chan types.AttachmentUploadResult, err error) {
 	// Check to see if we are already uploading this message and set upload status if not
@@ -278,7 +299,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 			UserID:         uid,
 			Progress:       progress,
 		}
-		ures.Object, err = u.store.UploadAsset(bgctx, &task)
+		ures.Object, err = u.store.UploadAsset(bgctx, &task, nil)
 		if err != nil {
 			u.Debug(bgctx, "upload: error uploading primary asset to s3: %s", err)
 		} else {
@@ -300,6 +321,15 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 			// copy the params so as not to mess with the main params above
 			previewParams := s3params
 
+			// set up file to write out encrypted preview to
+			encryptedOut, err := u.uploadPreviewFile(ctx)
+			if err != nil {
+				u.Debug(bgctx, "upload: failed to create uploaded preview file: %s", err)
+				encryptedOut = nil
+			} else {
+				defer encryptedOut.Close()
+			}
+
 			// add preview suffix to object key (P in hex)
 			// the s3path in gregor is expecting hex here
 			previewParams.ObjectKey += "50"
@@ -312,12 +342,18 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 				ConversationID: convID,
 				UserID:         uid,
 			}
-			preview, err := u.store.UploadAsset(bgctx, &task)
+			preview, err := u.store.UploadAsset(bgctx, &task, encryptedOut)
 			if err == nil {
 				ures.Preview = &preview
 				ures.Preview.MimeType = pre.ContentType
 				ures.Preview.Metadata = pre.PreviewMetadata()
 				ures.Preview.Tag = chat1.AssetTag_PRIMARY
+				if encryptedOut != nil {
+					if err := u.G().AttachmentURLSrv.GetAttachmentFetcher().PutUploadedAsset(ctx,
+						encryptedOut.Name(), preview); err != nil {
+						u.Debug(bgctx, "upload: failed to put uploaded asset into fetcher: %s", err)
+					}
+				}
 			} else {
 				u.Debug(bgctx, "upload: error uploading preview asset to s3: %s", err)
 			}

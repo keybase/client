@@ -21,6 +21,7 @@ export type Props = {
   color?: string,
   onHidden: () => void,
   position?: Position,
+  positionFallbacks?: Position[],
   propagateOutsideClicks?: boolean,
   style?: StylesCrossPlatform,
   visible?: boolean,

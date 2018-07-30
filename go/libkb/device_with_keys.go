@@ -108,6 +108,6 @@ func (d *DeviceWithKeys) Populate(m MetaContext) (uid keybase1.UID, err error) {
 	return res.UID, nil
 }
 
-func (d *DeviceWithKeys) ToPaperKeyActiveDevice(m MetaContext, u keybase1.UID) *ActiveDevice {
-	return NewPaperKeyActiveDevice(m, u, d)
+func (d *DeviceWithKeys) ToPaperKeyActiveDevice(m MetaContext, uv keybase1.UserVersion) *ActiveDevice {
+	return NewPaperKeyActiveDevice(m, uv, d)
 }

@@ -61,8 +61,10 @@ func (e *Bootstrap) Run(m libkb.MetaContext) error {
 	}
 	m.CDebugf("Bootstrap: logged in (valid active device)")
 
-	e.status.Uid, e.status.DeviceID, e.status.DeviceName, _, _ = e.G().ActiveDevice.AllFields()
-	e.status.Username = e.G().Env.GetUsername().String()
+	var uv keybase1.UserVersion
+	uv, e.status.DeviceID, e.status.DeviceName, _, _ = e.G().ActiveDevice.AllFields()
+	e.status.Uid = uv.Uid
+	e.status.Username = e.G().ActiveDevice.Username(m).String()
 	m.CDebugf("Bootstrap status: uid=%s, username=%s, deviceID=%s, deviceName=%s", e.status.Uid, e.status.Username, e.status.DeviceID, e.status.DeviceName)
 
 	// get user summaries
