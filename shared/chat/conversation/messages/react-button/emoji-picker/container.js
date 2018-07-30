@@ -43,7 +43,7 @@ type WrapperState = {
   width: number,
 }
 class Wrapper extends React.Component<WrapperProps, WrapperState> {
-  state = {filter: '', width: 300}
+  state = {filter: '', width: 0}
 
   _onLayout = evt => {
     if (evt.nativeEvent) {
