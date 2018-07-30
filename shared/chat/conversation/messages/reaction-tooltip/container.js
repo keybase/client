@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
+import * as Route from '../../../../actions/route-tree'
 import {ReactionTooltip} from '.'
 
 /**
@@ -40,7 +41,15 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   onAddReaction: () => {
-    // TODO open emoji selection screen on mobile
+    ownProps.onHidden()
+    dispatch(
+      Route.navigateAppend([
+        {
+          props: {conversationIDKey: ownProps.conversationIDKey, ordinal: ownProps.ordinal},
+          selected: 'chooseEmoji',
+        },
+      ])
+    )
   },
 })
 

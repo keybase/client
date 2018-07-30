@@ -31,6 +31,7 @@ const propMapper = (props: OwnProps): WrapperProps => ({
   onClick: action('onReact'),
   onMouseLeave: props.onMouseLeave || common.onMouseLeave,
   onMouseOver: props.onMouseOver || common.onMouseOver,
+  onOpenEmojiPicker: action('onOpenEmojiPicker'),
   showBorder: props.showBorder,
 })
 export const propProvider = {
@@ -65,7 +66,11 @@ const load = () => {
     ))
   examples.forEach(ex => story.add(`${ex.emoji}${ex.active ? ' active' : ''}`, () => <ReactButton {...ex} />))
   story.add('New reaction', () => (
-    <NewReactionButton onAddReaction={action('onAddReaction')} showBorder={true} />
+    <NewReactionButton
+      onAddReaction={action('onAddReaction')}
+      onOpenEmojiPicker={action('onOpenEmojiPicker')}
+      showBorder={true}
+    />
   ))
 }
 

@@ -4,9 +4,9 @@ import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Route from '../../../../../actions/route-tree'
+import * as Container from '../../../../../util/container'
 import {createShowUserProfile} from '../../../../../actions/profile-gen'
 import {getCanPerform} from '../../../../../constants/teams'
-import {compose, setDisplayName, connect, type TypedState, type Dispatch} from '../../../../../util/container'
 import {copyToClipboard} from '../../../../../util/clipboard'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import Text from '.'
@@ -19,7 +19,7 @@ type OwnProps = {
   visible: boolean,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const message = ownProps.message
   const meta = Constants.getMeta(state, message.conversationIDKey)
   const yourOperations = getCanPerform(state, meta.teamname)
@@ -31,6 +31,16 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _onAddReaction: (message: Types.Message) => {
+    dispatch(
+      Route.navigateAppend([
+        {
+          props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+          selected: 'chooseEmoji',
+        },
+      ])
+    )
+  },
   _onCopy: (message: Types.Message) => {
     if (message.type === 'text') {
       copyToClipboard(message.text.stringValue())
@@ -92,6 +102,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     deviceName: message.deviceName,
     deviceRevokedAt: message.deviceRevokedAt,
     deviceType: message.deviceType,
+    onAddReaction: Container.isMobile ? () => dispatchProps._onAddReaction(message) : null,
     onCopy: () => dispatchProps._onCopy(message),
     onDelete: yourMessage ? () => dispatchProps._onDelete(message) : null,
     onDeleteMessageHistory: stateProps._canDeleteHistory
@@ -110,7 +121,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('MessagePopupText')
+export default Container.compose(
+  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  Container.setDisplayName('MessagePopupText')
 )(Text)
