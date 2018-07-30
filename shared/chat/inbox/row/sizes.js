@@ -8,8 +8,8 @@ export const bigRowHeight = isMobile ? 40 : 24
 export const bigHeaderHeight = 32
 export const dividerHeight = (showingButton: boolean) => {
   if (isMobile) {
-    return showingButton ? 60 : 44
+    return showingButton ? 49 : 44
   } else {
-    return showingButton ? 60 : 41
+    return showingButton ? 49 : 41
   }
 }
