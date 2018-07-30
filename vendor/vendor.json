@@ -48,10 +48,10 @@
 			"revisionTime": "2016-03-16T16:25:20-04:00"
 		},
 		{
-			"checksumSHA1": "JjYwz7jPth9BbFVVgSl6s7RPs9o=",
+			"checksumSHA1": "bxtrVQB+698clLEGq7PppnWfXJk=",
 			"path": "github.com/araddon/dateparse",
-			"revision": "42dbd9f872ebcc2d9bb8a5bf541984c9e1e50f8e",
-			"revisionTime": "2018-07-22T19:56:01Z"
+			"revision": "cfd92a431d0efe36a1b81ca25d15b98aae4dbdb6",
+			"revisionTime": "2018-07-29T17:48:19Z"
 		},
 		{
 			"path": "github.com/bitly/go-simplejson",

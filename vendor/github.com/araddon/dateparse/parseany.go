@@ -1072,6 +1072,12 @@ iterRunes:
 					p.offseti = i
 				case ' ':
 					// 17:57:51 MST 2009
+					p.tzlen = i - p.tzi
+					if p.tzlen == 4 {
+						p.set(p.tzi, " MST")
+					} else if p.tzlen == 3 {
+						p.set(p.tzi, "MST")
+					}
 					p.stateTime = timeWsAlphaWs
 					p.yeari = i + 1
 				}
