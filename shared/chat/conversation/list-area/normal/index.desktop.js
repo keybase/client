@@ -503,16 +503,6 @@ const realCSS = `
 .message {
   contain: content;
 }
-.message .menu-button {
-  visibility: hidden;
-  height: 17;
-  flex-shrink: 0;
-  opacity: 0;
-}
-.message:hover .menu-button {
-  visibility: visible;
-  opacity: 1;
-}
 `
 const containerStyle = {
   ...globalStyles.flexBoxColumn,

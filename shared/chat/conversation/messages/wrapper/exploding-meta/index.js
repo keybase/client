@@ -8,8 +8,8 @@ import {
   HOCTimers,
   ProgressIndicator,
   type PropsWithTimer,
-} from '../../../../common-adapters'
-import {castPlatformStyles} from '../../../../common-adapters/icon'
+} from '../../../../../common-adapters'
+import {castPlatformStyles} from '../../../../../common-adapters/icon'
 import {
   collapseStyles,
   globalColors,
@@ -17,23 +17,24 @@ import {
   isMobile,
   platformStyles,
   styleSheetCreate,
-} from '../../../../styles'
-import {type TickerID, addTicker, removeTicker} from '../../../../util/second-timer'
-import {formatDurationShort} from '../../../../util/timestamp'
-import SharedTimer, {type SharedTimerID} from '../../../../util/shared-timers'
-import {animationDuration} from './exploding-height-retainer'
+} from '../../../../../styles'
+import {type TickerID, addTicker, removeTicker} from '../../../../../util/second-timer'
+import {formatDurationShort} from '../../../../../util/timestamp'
+import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
+import {animationDuration} from '../exploding-height-retainer'
 
 const oneMinuteInMs = 60 * 1000
 const oneHourInMs = oneMinuteInMs * 60
 const oneDayInMs = oneHourInMs * 24
 
-type Props = PropsWithTimer<{
+export type _Props = {|
   exploded: boolean,
   explodesAt: number,
   messageKey: string,
   onClick: ?() => void,
   pending: boolean,
-}>
+|}
+type Props = PropsWithTimer<_Props>
 
 // 'none' is functionally 'unset', used to detect a fresh mount
 // and hide self if the message already exploded

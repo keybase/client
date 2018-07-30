@@ -12,16 +12,12 @@ import {
   globalStyles,
   globalMargins,
   globalColors,
-  isMobile,
   platformStyles,
   styleSheetCreate,
   collapseStyles,
 } from '../../../../../styles'
 import SendIndicator from '../chat-send'
-import MessagePopup from '../../message-popup'
 import ExplodingHeightRetainer from '../exploding-height-retainer'
-import ExplodingMeta from '../exploding-meta'
-import ReactButton from '../../react-button/container'
 
 import type {WrapperAuthorProps} from '../index.types'
 
@@ -54,25 +50,6 @@ const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
     </Text>
   )
 }
-
-const MenuButtons = ({conversationIDKey, onClick, ordinal, setRef}) => (
-  <Box className="menu-button" style={styles.menuButtons}>
-    <ReactButton
-      conversationIDKey={conversationIDKey}
-      ordinal={ordinal}
-      showBorder={false}
-      tooltipEnabled={false}
-    />
-    <Box ref={setRef}>
-      <Icon
-        type="iconfont-ellipsis"
-        style={iconCastPlatformStyles(styles.ellipsis)}
-        onClick={onClick}
-        fontSize={16}
-      />
-    </Box>
-  </Box>
-)
 
 const EditedMark = () => (
   <Text type="BodyTiny" style={styles.edited}>
@@ -155,22 +132,6 @@ const RightSide = props => (
           />
           {props.isEdited && <EditedMark />}
         </ExplodingHeightRetainer>
-        {!isMobile &&
-          !props.exploded && (
-            <MenuButtons
-              conversationIDKey={props.conversationIDKey}
-              ordinal={props.ordinal}
-              setRef={props.setAttachmentRef}
-              onClick={props.toggleShowingMenu}
-            />
-          )}
-        <MessagePopup
-          attachTo={props.attachmentRef}
-          message={props.message}
-          onHidden={props.toggleShowingMenu}
-          position="top center"
-          visible={props.showingMenu}
-        />
         {props.isRevoked && (
           <Icon
             type="iconfont-exclamation"
@@ -201,15 +162,6 @@ const RightSide = props => (
         )}
       </Box>
     </Box>
-    {props.exploding && (
-      <ExplodingMeta
-        exploded={props.exploded}
-        explodesAt={props.explodesAt}
-        messageKey={props.messageKey}
-        pending={props.messagePending || props.messageFailed}
-        onClick={props.exploded ? null : props.toggleShowingMenu}
-      />
-    )}
   </Box>
 )
 
@@ -241,7 +193,6 @@ class WrapperAuthor extends React.PureComponent<WrapperAuthorProps & OverlayPare
 
 const styles = styleSheetCreate({
   edited: {backgroundColor: globalColors.white, color: globalColors.black_20_on_white},
-  ellipsis: {marginRight: globalMargins.xtiny},
   exclamation: {
     paddingBottom: globalMargins.xtiny,
     paddingTop: globalMargins.xtiny,
@@ -266,13 +217,6 @@ const styles = styleSheetCreate({
       marginLeft: globalMargins.tiny,
     },
   }),
-  menuButtons: {
-    ...globalStyles.flexBoxRow,
-    alignSelf: 'flex-start',
-    alignItems: 'center',
-    position: 'relative',
-    top: 1,
-  },
   rightSide: {
     ...globalStyles.flexBoxColumn,
     flex: 1,

@@ -41,6 +41,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     children: ownProps.children,
     conversationIDKey: stateProps.conversationIDKey,
+    exploded: stateProps._message.exploded,
+    message: stateProps._message,
     orangeLineAbove: stateProps.orangeLineAbove,
     ordinal,
     timestamp,

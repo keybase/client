@@ -5,8 +5,10 @@ import type {StylesCrossPlatform} from '../../../../styles'
 
 export type WrapperTimestampProps = {
   conversationIDKey: Types.ConversationIDKey,
+  exploded: boolean,
   ordinal: Types.Ordinal,
   measure: null | (() => void),
+  message: Types.Message,
   previous?: ?Types.Message,
   children?: React.Node,
   timestamp: string,

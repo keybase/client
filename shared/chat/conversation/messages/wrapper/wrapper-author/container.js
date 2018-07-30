@@ -3,7 +3,8 @@ import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as ProfileGen from '../../../../../actions/profile-gen'
 import * as TrackerGen from '../../../../../actions/tracker-gen'
 import * as Types from '../../../../../constants/types/chat2'
-import * as Constants from '../../../../../constants/chat2/message'
+import * as Constants from '../../../../../constants/chat2'
+import * as MessageConstants from '../../../../../constants/chat2/message'
 import {WrapperAuthor} from '../'
 import {setDisplayName, compose, connect, type TypedState} from '../../../../../util/container'
 import {isMobile} from '../../../../../constants/platform'
@@ -56,7 +57,7 @@ const mergeProps = (stateProps, dispatchProps, {measure}) => {
     previous.author === message.author &&
     (previous.type === 'text' || previous.type === 'deleted' || previous.type === 'attachment')
 
-  const showAuthor = Constants.enoughTimeBetweenMessages(message, previous)
+  const showAuthor = MessageConstants.enoughTimeBetweenMessages(message, previous)
 
   const timestamp = stateProps.lastPositionExists || !previous || showAuthor ? message.timestamp : null
 
@@ -89,7 +90,7 @@ const mergeProps = (stateProps, dispatchProps, {measure}) => {
     messageFailed: stateProps.messageFailed,
     // `messageKey` should be unique for the message as long
     // as threads aren't switched
-    messageKey: `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`,
+    messageKey: Constants.getMessageKey(message),
     messagePending: stateProps.messagePending,
     messageSent: stateProps.messageSent,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
