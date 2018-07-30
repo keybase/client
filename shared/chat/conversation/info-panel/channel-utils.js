@@ -38,8 +38,6 @@ const CaptionedDangerIcon = ({
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingBottom: globalMargins.tiny,
-      paddingTop: globalMargins.tiny,
     }}
     onClick={onClick}
   >

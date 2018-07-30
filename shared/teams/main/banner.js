@@ -1,14 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, Icon, Text} from '../../common-adapters'
-import {
-  styleSheetCreate,
-  platformStyles,
-  globalColors,
-  globalMargins,
-  globalStyles,
-  isMobile,
-} from '../../styles'
+import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 
 export type Props = {
   onReadMore: () => void,
@@ -16,13 +9,47 @@ export type Props = {
 }
 
 const Banner = ({onReadMore, onHideChatBanner}: Props) => (
-  <Box style={styles.containerBanner}>
+  <Box
+    style={{
+      ...(isMobile
+        ? {
+            ...globalStyles.flexBoxColumn,
+            padding: 24,
+          }
+        : {
+            ...globalStyles.flexBoxRow,
+            height: 212,
+          }),
+      alignItems: 'center',
+      backgroundColor: globalColors.blue,
+      flexShrink: 0,
+      justifyContent: 'center',
+      position: 'relative',
+      width: '100%',
+    }}
+  >
     <Icon type={isMobile ? 'icon-illustration-teams-216' : 'icon-illustration-teams-180'} />
-    <Box style={styles.containerHeader}>
-      <Text backgroundMode="Terminal" type="Header" style={styles.header}>
+    <Box
+      style={{
+        ...globalStyles.flexBoxColumn,
+        ...(isMobile ? {alignItems: 'center'} : {marginLeft: globalMargins.medium, maxWidth: 330}),
+      }}
+    >
+      <Text
+        backgroundMode="Terminal"
+        type="Header"
+        style={{
+          marginBottom: 15,
+          marginTop: 15,
+        }}
+      >
         Now supporting teams!
       </Text>
-      <Text backgroundMode="Terminal" type="BodySmallSemibold" style={styles.text}>
+      <Text
+        backgroundMode="Terminal"
+        type="BodySmallSemibold"
+        style={{marginBottom: globalMargins.small, ...(isMobile ? {textAlign: 'center'} : {})}}
+      >
         Keybase team chats are encrypted - unlike Slack - and work for any size group, from casual friends to
         large communities.
       </Text>
@@ -35,73 +62,25 @@ const Banner = ({onReadMore, onHideChatBanner}: Props) => (
         Read our announcement
       </Text>
     </Box>
-    <Box style={styles.closeIconContainer}>
-      <Icon type="iconfont-close" style={{padding: globalMargins.xtiny}} onClick={onHideChatBanner} />
+    <Box style={closeIconStyle}>
+      <Icon type="iconfont-close" onClick={onHideChatBanner} />
     </Box>
   </Box>
 )
 
-const styles = styleSheetCreate({
-  containerBanner: platformStyles({
-    common: {
-      alignItems: 'center',
-      backgroundColor: globalColors.blue,
-      flexShrink: 0,
-      justifyContent: 'center',
-      position: 'relative',
-      width: '100%',
-    },
-    isElectron: {
-      ...globalStyles.flexBoxRow,
-      height: 212,
-    },
-    isMobile: {
-      ...globalStyles.flexBoxColumn,
-      padding: 24,
-    },
-  }),
-  containerHeader: platformStyles({
-    common: {
-      ...globalStyles.flexBoxColumn,
-    },
-    isElectron: {
-      marginLeft: globalMargins.medium,
-      maxWidth: 330,
-    },
-    isMobile: {
-      alignItems: 'center',
-    },
-  }),
-  header: {
-    marginBottom: 15,
-    marginTop: 15,
-  },
-  text: platformStyles({
-    common: {
-      marginBottom: globalMargins.small,
-    },
-    isMobile: {
-      textAlign: 'center',
-    },
-  }),
-  closeIconContainer: platformStyles({
-    common: {
-      position: 'absolute',
-    },
-    isElectron: {
-      right: globalMargins.tiny,
-      top: globalMargins.tiny,
-    },
-    isMobile: {
-      right: globalMargins.small,
-      top: globalMargins.small,
-      height: 26,
-      width: 26,
-    },
-  }),
-  closeIcon: {
-    padding: globalMargins.xtiny,
-  },
-})
+let closeIconStyle = {
+  position: 'absolute',
+  ...(isMobile
+    ? {
+        right: globalMargins.small,
+        top: globalMargins.small,
+        height: 14,
+        width: 14,
+      }
+    : {
+        right: globalMargins.tiny,
+        top: globalMargins.tiny,
+      }),
+}
 
 export default Banner
