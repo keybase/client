@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {categories, emojiIndex, emojiNameMap, type EmojiData} from './data'
 import {ClickableBox, Box2, Emoji, SectionList, Text} from '../../../../../common-adapters'
-import {globalColors, globalMargins, styleSheetCreate} from '../../../../../styles'
+import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../../../../styles'
 import {chunk} from 'lodash-es'
 
 // SectionList data is mostly static, map categories here
@@ -21,6 +21,16 @@ const maxEmojiSearchResults = 50
 // can render a good initial guess
 let cachedWidth = 0
 let cachedSections = null
+const cacheSections = (width: number, sections: Array<Section>) => {
+  cachedWidth = width
+  cachedSections = sections
+}
+
+// Get emoji results for a query and map
+// to full emoji data
+const getFilterResults = filter => {
+  return emojiIndex.search(filter, {maxResults: maxEmojiSearchResults}).map(res => emojiNameMap[res.id])
+}
 
 type Section = {
   category: string,
@@ -41,64 +51,64 @@ class EmojiPicker extends React.Component<Props, State> {
 
   _chunkData = () => {
     if (!this.props.width) {
+      // Nothing to do if we don't have a width
       return
     }
-    if (this.props.width === cachedWidth && !this.props.filter) {
+    if (this.props.width === cachedWidth) {
       this.setState(s => (s.sections === cachedSections ? null : {sections: cachedSections}))
       return
     }
-    // width is different from cached or we have a filter
+    // width is different from cached. make new sections & cache for next time
     let sections = []
     const emojisPerLine = Math.floor(this.props.width / (singleEmojiWidth + 2 * emojiPadding))
-    if (this.props.filter) {
-      const filter = this.props.filter
-      const results = emojiIndex
-        .search(filter, {maxResults: maxEmojiSearchResults})
-        .map(res => emojiNameMap[res.id])
-      sections = [
-        {
-          category: filter,
-          data: chunk(results, emojisPerLine).map(c => ({
-            emojis: c,
-            key: c[0].short_name,
-            onChoose: this.props.onChoose,
-          })),
-          key: 'filter header',
-        },
-      ]
-    } else {
-      // width is different from cached and we don't have a filter
-      // calculate sections and cache for next time
-      sections = emojiSections.map(c => ({
-        category: c.category,
-        data: chunk(c.data.emojis, emojisPerLine).map(c => ({
-          emojis: c,
-          key: c[0].short_name,
-          onChoose: this.props.onChoose,
-        })),
-        key: c.key,
-      }))
-      this._cacheSections(this.props.width, sections)
-    }
+    sections = emojiSections.map(c => ({
+      category: c.category,
+      data: chunk(c.data.emojis, emojisPerLine).map(c => ({
+        emojis: c,
+        key: c[0].short_name,
+        onChoose: this.props.onChoose,
+      })),
+      key: c.key,
+    }))
+    cacheSections(this.props.width, sections)
     this.setState({sections})
   }
 
-  _cacheSections = (width: number, sections: Array<Section>) => {
-    cachedWidth = width
-    cachedSections = sections
-  }
-
   componentDidMount() {
-    this._chunkData()
+    if (this.props.width) {
+      this._chunkData()
+    }
   }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
-    if (this.props.filter !== prevProps.filter || this.props.width !== prevProps.width) {
+    if (this.props.width !== prevProps.width) {
       this._chunkData()
     }
   }
 
   render() {
+    // For filtered results, we have <= `maxEmojiSearchResults` emojis
+    // to render. Render them directly rather than going through _chunkData
+    // pipeline for fast list of results. Go through _chunkData only
+    // when the width changes to do that processing as infrequently as possible
+    if (this.props.filter) {
+      const results = getFilterResults(this.props.filter)
+      // NOTE: maxEmojiSearchResults = 50 currently. this never fills the screen
+      // (on iPhone 5S)
+      // so I'm not adding a ScrollView here. If we increase that later check
+      // if this can sometimes overflow the screen here & add a ScrollView
+      return (
+        <Box2
+          direction="horizontal"
+          fullWidth={true}
+          style={collapseStyles([styles.alignItemsCenter, styles.flexWrap])}
+        >
+          {results.map(e => <EmojiRender key={e.short_name} emoji={e} onChoose={this.props.onChoose} />)}
+        </Box2>
+      )
+    }
+    // !this.state.sections means we haven't cached any sections yet
+    // i.e. we haven't rendered before. let sections be calculated first
     return this.state.sections ? (
       <SectionList
         keyboardShouldPersistTaps="handled"
@@ -114,12 +124,14 @@ class EmojiPicker extends React.Component<Props, State> {
 
 const EmojiRow = ({item}: {item: {emojis: Array<EmojiData>, onChoose: EmojiData => void, key: string}}) => (
   <Box2 key={item.key} fullWidth={true} style={styles.alignItemsCenter} direction="horizontal">
-    {item.emojis.map(e => (
-      <ClickableBox onClick={() => item.onChoose(e)} style={styles.emoji} key={e.short_name}>
-        <Emoji size={singleEmojiWidth} emojiName={`:${e.short_name}:`} />
-      </ClickableBox>
-    ))}
+    {item.emojis.map(e => <EmojiRender key={e.short_name} emoji={e} onChoose={item.onChoose} />)}
   </Box2>
+)
+
+const EmojiRender = ({emoji, onChoose}: {emoji: EmojiData, onChoose: EmojiData => void}) => (
+  <ClickableBox onClick={() => onChoose(emoji)} style={styles.emoji} key={emoji.short_name}>
+    <Emoji size={singleEmojiWidth} emojiName={`:${emoji.short_name}:`} />
+  </ClickableBox>
 )
 
 const HeaderRow = ({section}: {section: Section}) => (
@@ -134,6 +146,9 @@ const styles = styleSheetCreate({
   },
   emoji: {
     padding: emojiPadding,
+  },
+  flexWrap: {
+    flexWrap: 'wrap',
   },
   sectionHeader: {
     alignItems: 'center',
