@@ -192,7 +192,7 @@ class WrapperAuthor extends React.PureComponent<WrapperAuthorProps & OverlayPare
 }
 
 const styles = styleSheetCreate({
-  edited: {backgroundColor: globalColors.white, color: globalColors.black_20_on_white},
+  edited: {color: globalColors.black_20},
   exclamation: {
     paddingBottom: globalMargins.xtiny,
     paddingTop: globalMargins.xtiny,

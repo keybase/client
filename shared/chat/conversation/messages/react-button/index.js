@@ -46,6 +46,7 @@ const ButtonBox = glamorous(ClickableBox)({
           borderColor: globalColors.blue,
         },
       }),
+  backgroundColor: globalColors.white,
   borderColor: globalColors.black_10,
 })
 const ReactButton = (props: Props) => (
