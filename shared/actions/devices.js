@@ -13,8 +13,6 @@ const load = (state: TypedState) =>
   RPCTypes.deviceDeviceHistoryListRpcPromise(undefined, Constants.waitingKey)
     .then((results: ?Array<RPCTypes.DeviceDetail>) => {
       const devices = (results || []).map(d => Constants.rpcDeviceToDevice(d))
-      // eslint-disable-next-line
-      debugger
       return DevicesGen.createLoaded({devices})
     })
     .catch(() => {})
@@ -47,7 +45,9 @@ const requestEndangeredTLFsLoad = (state: TypedState) => {
             tlfs: (tlfs.endangeredTLFs || []).map(t => t.name),
           })
         )
-        .catch(() => {})
+        .catch(e => {
+          console.error(e)
+        })
     : null
 }
 
@@ -105,7 +105,7 @@ function* deviceSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(DevicesGen.revoked, navigateAfterRevoked)
 
   // Loading data
-  yield Saga.actionToAction(DevicesGen.showRevokePage, requestEndangeredTLFsLoad)
+  yield Saga.actionToPromise(DevicesGen.showRevokePage, requestEndangeredTLFsLoad)
   yield Saga.actionToAction(DevicesGen.showPaperKeyPage, requestPaperKey)
 }
 

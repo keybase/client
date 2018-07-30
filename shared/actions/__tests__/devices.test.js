@@ -11,6 +11,7 @@ import devicesSaga from '../devices'
 import appRouteTree from '../../app/routes-app'
 import * as Testing from '../../util/testing'
 import {getPath as getRoutePath} from '../../route-tree'
+import HiddenString from '../../util/hidden-string'
 
 jest.mock('../../engine')
 
@@ -19,6 +20,7 @@ const blankStore = Testing.getInitialStore()
 const initialStore = {
   ...blankStore,
   config: blankStore.config.merge({
+    deviceID: '999',
     loggedIn: true,
     username: 'username',
   }),
@@ -132,6 +134,8 @@ const startOnDevicesTab = dispatch => {
 
 const startReduxSaga = Testing.makeStartReduxSaga(devicesSaga, initialStore, startOnDevicesTab)
 
+const getRoute = getState => getRoutePath(getState().routeTree.routeState, [Tabs.devicesTab])
+
 describe('reload side effects', () => {
   let init
   let rpc
@@ -140,7 +144,7 @@ describe('reload side effects', () => {
     rpc = jest.spyOn(RPCTypes, 'deviceDeviceHistoryListRpcPromise')
   })
   afterEach(() => {
-    rpc.mockRestore()
+    rpc && rpc.mockRestore()
   })
 
   it('loads on load', () => {
@@ -177,7 +181,7 @@ describe('load', () => {
     init = startReduxSaga()
   })
   afterEach(() => {
-    rpc.mockRestore()
+    rpc && rpc.mockRestore()
   })
 
   it('load leads to loaded', () => {
@@ -200,7 +204,7 @@ describe('revoking other', () => {
     init = Testing.makeStartReduxSaga(devicesSaga, loadedStore, startOnDevicesTab)()
   })
   afterEach(() => {
-    rpc.mockRestore()
+    rpc && rpc.mockRestore()
   })
 
   it('works', () => {
@@ -223,7 +227,7 @@ describe('revoking self', () => {
     init = Testing.makeStartReduxSaga(devicesSaga, loadedStore, startOnDevicesTab)()
   })
   afterEach(() => {
-    rpc.mockRestore()
+    rpc && rpc.mockRestore()
   })
 
   it('works', () => {
@@ -253,9 +257,7 @@ describe('navs after revoking', () => {
     const {dispatch, getState} = init
     const deviceID = Types.stringToDeviceID('456')
     dispatch(DevicesGen.createRevoked({deviceID, deviceName: 'a phone', wasCurrentDevice: true}))
-    expect(getRoutePath(getState().routeTree.routeState, [Tabs.devicesTab])).toEqual(
-      I.List([Tabs.devicesTab])
-    )
+    expect(getRoute(getState)).toEqual(I.List([Tabs.devicesTab]))
   })
 
   it('root of login on revoke self', () => {
@@ -263,5 +265,108 @@ describe('navs after revoking', () => {
     const deviceID = Types.stringToDeviceID('456')
     dispatch(DevicesGen.createRevoked({deviceID, deviceName: 'a phone', wasCurrentDevice: true}))
     expect(getRoutePath(getState().routeTree.routeState, [Tabs.loginTab])).toEqual(I.List([]))
+  })
+})
+
+describe('shows revoke page correctly', () => {
+  let init
+  let rpc
+  beforeEach(() => {
+    init = Testing.makeStartReduxSaga(devicesSaga, loadedStore, startOnDevicesTab)()
+  })
+  afterEach(() => {
+    rpc && rpc.mockRestore()
+  })
+
+  it('shows revoke page', () => {
+    const {dispatch, getState} = init
+    const deviceID = Types.stringToDeviceID('456')
+    dispatch(DevicesGen.createShowRevokePage({deviceID}))
+    expect(getRoute(getState)).toEqual(I.List([Tabs.devicesTab, 'devicePage', 'revokeDevice']))
+    expect(getState().devices.selectedDeviceID).toEqual(deviceID)
+  })
+
+  it('requests endangered', () => {
+    const {dispatch, getState} = init
+    const deviceID = Types.stringToDeviceID('456')
+    rpc = jest.spyOn(RPCTypes, 'rekeyGetRevokeWarningRpcPromise')
+    rpc.mockImplementation(() => new Promise(resolve => resolve()))
+    dispatch(DevicesGen.createShowRevokePage({deviceID}))
+    const targetDevice = deviceID
+    const actingDevice = getState().config.deviceID
+    expect(rpc).toHaveBeenCalledWith({actingDevice, targetDevice}, Constants.waitingKey)
+  })
+
+  it('loads null endangered', () => {
+    const {dispatch, getState} = init
+    const deviceID = Types.stringToDeviceID('456')
+    rpc = jest.spyOn(RPCTypes, 'rekeyGetRevokeWarningRpcPromise')
+    rpc.mockImplementation(() => new Promise(resolve => resolve({})))
+    dispatch(DevicesGen.createShowRevokePage({deviceID}))
+    return Testing.flushPromises().then(() => {
+      expect(getState().devices.endangeredTLFMap.get(deviceID)).toEqual(I.Set())
+    })
+  })
+
+  it('loads good endangered', () => {
+    const {dispatch, getState} = init
+    const deviceID = Types.stringToDeviceID('456')
+    rpc = jest.spyOn(RPCTypes, 'rekeyGetRevokeWarningRpcPromise')
+    rpc.mockImplementation(
+      () => new Promise(resolve => resolve({endangeredTLFs: [{name: 'one'}, {name: 'two'}]}))
+    )
+    dispatch(DevicesGen.createShowRevokePage({deviceID}))
+    return Testing.flushPromises().then(() => {
+      expect(getState().devices.endangeredTLFMap.get(deviceID)).toEqual(I.Set.of('one', 'two'))
+    })
+  })
+})
+
+describe('shows device page correctly', () => {
+  let init
+  beforeEach(() => {
+    init = Testing.makeStartReduxSaga(devicesSaga, loadedStore, startOnDevicesTab)()
+  })
+  afterEach(() => {})
+
+  it('shows device page', () => {
+    const {dispatch, getState} = init
+    const deviceID = Types.stringToDeviceID('789')
+    dispatch(DevicesGen.createShowDevicePage({deviceID}))
+    expect(getRoute(getState)).toEqual(I.List([Tabs.devicesTab, 'devicePage']))
+    expect(getState().devices.selectedDeviceID).toEqual(deviceID)
+  })
+})
+
+describe('shows paperkey page correctly', () => {
+  let init
+  let rpc
+  beforeEach(() => {
+    init = Testing.makeStartReduxSaga(devicesSaga, loadedStore, startOnDevicesTab)()
+  })
+  afterEach(() => {
+    rpc && rpc.mockRestore()
+  })
+
+  it('shows paperkey page', () => {
+    const {dispatch, getState} = init
+    dispatch(DevicesGen.createShowPaperKeyPage())
+    expect(getRoute(getState)).toEqual(I.List([Tabs.devicesTab, 'paperKey']))
+  })
+
+  it('creates a paperkey', () => {
+    const {dispatch} = init
+    rpc = jest.spyOn(RPCTypes, 'loginPaperKeyRpcSaga')
+    rpc.mockImplementation(() => new Promise(resolve => resolve()))
+    dispatch(DevicesGen.createShowPaperKeyPage())
+    expect(rpc).toHaveBeenCalled()
+  })
+
+  it('paperkey gets loaded', () => {
+    const {dispatch, getState} = init
+    const paperKey = new HiddenString('a paper key')
+    expect(getState().devices.newPaperkey).toEqual(new HiddenString(''))
+    dispatch(DevicesGen.createPaperKeyCreated({paperKey}))
+    expect(getState().devices.newPaperkey).toEqual(paperKey)
   })
 })
