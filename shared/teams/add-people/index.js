@@ -40,9 +40,14 @@ type Props = {
 const AddPeople = (props: Props) => (
   <MaybePopup onClose={props.onClose}>
     <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, flexGrow: 1}}>
-      <Kb.HeaderHocHeader title={props.title} />
+      <Kb.HeaderHocHeader onCancel={Styles.isMobile ? props.onClose : null} title={props.title} />
       {!!props.errorText && (
-        <Kb.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, {backgroundColor: Styles.globalColors.red}])}>
+        <Kb.Box
+          style={Styles.collapseStyles([
+            Styles.globalStyles.flexBoxColumn,
+            {backgroundColor: Styles.globalColors.red},
+          ])}
+        >
           {props.errorText.split('\n').map(line => (
             <Kb.Box key={line} style={Styles.globalStyles.flexBoxRow}>
               <Kb.Text
@@ -73,7 +78,9 @@ const AddPeople = (props: Props) => (
           <SearchResultsList
             searchKey={'addToTeamSearch'}
             disableIfInTeamName={props.name}
-            style={Styles.isMobile ? {position: 'absolute', top: 0, bottom: 0, right: 0, left: 0} : {height: 400}}
+            style={
+              Styles.isMobile ? {position: 'absolute', top: 0, bottom: 0, right: 0, left: 0} : {height: 400}
+            }
             keyboardDismissMode="on-drag"
           />
         )}

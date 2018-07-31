@@ -179,8 +179,20 @@ export const RoleConfirm = ({
   return (
     <Box style={styles.confirmBox}>
       <Box style={styles.avatarBox}>
-        <Avatar style={styles.avatarLeft} username={username} size={avatarSize} />
-        <Avatar style={styles.avatarRight} isTeam={true} teamname={teamname} size={avatarSize} />
+        <Avatar
+          style={{
+            alignSelf: 'center',
+            marginRight: globalMargins.tiny,
+          }}
+          username={username}
+          size={avatarSize}
+        />
+        <Avatar
+          style={{alignSelf: 'center', marginLeft: globalMargins.tiny}}
+          isTeam={true}
+          teamname={teamname}
+          size={avatarSize}
+        />
       </Box>
       <Box style={styles.promptBox}>
         <Text type="BodyBig">{prompt}</Text>
@@ -209,14 +221,6 @@ export const RoleConfirm = ({
 }
 
 const styles = styleSheetCreate({
-  avatarLeft: {
-    alignSelf: 'center',
-    marginRight: globalMargins.tiny,
-  },
-  avatarRight: {
-    alignSelf: 'center',
-    marginLeft: globalMargins.tiny,
-  },
   avatarBox: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',

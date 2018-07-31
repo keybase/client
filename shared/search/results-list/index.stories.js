@@ -26,6 +26,7 @@ const defaultConnectPropsMap: RowConnectPropsMap = {
     rightFollowingState: 'NoState',
     userAlreadySelected: false,
     userIsInTeam: false,
+    userIsSelectable: true,
   },
   cjb: {
     leftFullname: 'cjb on facebook',
@@ -43,6 +44,7 @@ const defaultConnectPropsMap: RowConnectPropsMap = {
     rightFollowingState: 'NoState',
     userAlreadySelected: false,
     userIsInTeam: false,
+    userIsSelectable: true,
   },
   jzila: {
     leftFullname: 'jzila on twitter',
@@ -60,6 +62,7 @@ const defaultConnectPropsMap: RowConnectPropsMap = {
     rightFollowingState: 'NoState',
     userAlreadySelected: false,
     userIsInTeam: false,
+    userIsSelectable: true,
   },
 }
 

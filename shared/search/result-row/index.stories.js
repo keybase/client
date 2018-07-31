@@ -26,6 +26,7 @@ const defaultConnectProps = {
   rightFollowingState: 'NoState',
   userAlreadySelected: false,
   userIsInTeam: false,
+  userIsSelectable: true,
 }
 
 export type ConnectPropsMap = {[id: SearchResultId]: ?ConnectProps}
@@ -47,6 +48,7 @@ const defaultConnectPropsMap: ConnectPropsMap = {
     rightFollowingState: 'NotFollowing',
     userAlreadySelected: false,
     userIsInTeam: false,
+    userIsSelectable: true,
   },
 }
 

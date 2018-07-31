@@ -33,6 +33,7 @@ export type RowProps = {
 
   userAlreadySelected: boolean,
   userIsInTeam: boolean,
+  userIsSelectable: boolean,
 }
 
 // A normalized version of the row props above.
