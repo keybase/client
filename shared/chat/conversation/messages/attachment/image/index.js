@@ -31,6 +31,7 @@ type Props = {
   progress: number,
   progressLabel: string,
   showPlayButton: boolean,
+  showFilmButton: boolean,
   title: string,
   toggleShowingMenu: () => void,
   width: number,
@@ -81,6 +82,9 @@ class ImageAttachment extends React.PureComponent<Props, State> {
           {!this.state.loaded && <ProgressIndicator style={styles.progress} />}
           {this.props.showPlayButton && (
             <Icon type="icon-play-64" style={iconCastPlatformStyles(styles.playButton)} />
+          )}
+          {this.props.showFilmButton && (
+            <Icon type="icon-film-64" style={iconCastPlatformStyles(styles.playButton)} />
           )}
           {!!this.props.arrowColor && (
             <Box style={styles.downloadedIconWrapper}>

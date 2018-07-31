@@ -1101,6 +1101,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-play-64.png'),
   },
+  'icon-film-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-film-64.png'),
+  },
   'icon-progress-grey-animated': {
     isFont: false,
     extension: 'gif',

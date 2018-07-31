@@ -31,12 +31,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {message} = ownProps
   // On mobile we use this icon to indicate we have the file stored locally, and it can be viewed. This is a
   // similar meaning to desktop.
-  const arrowColor =
-    message.downloadPath || (isMobile && message.fileURLCached)
-      ? globalColors.green
-      : message.transferState === 'downloading'
-        ? globalColors.blue
-        : null
+  const arrowColor = message.downloadPath
+    ? globalColors.green
+    : message.transferState === 'downloading'
+      ? globalColors.blue
+      : null
   const progressLabel =
     message.transferState === 'downloading'
       ? 'Downloading'
@@ -62,7 +61,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     path: message.previewURL,
     progress: message.transferProgress,
     progressLabel,
-    showPlayButton: message.showPlayButton,
+    showPlayButton: message.showPlayButton && message.fileURLCached && isMobile,
+    showFilmButton: message.showPlayButton && (!message.fileURLCached || !isMobile),
     title: message.title || message.fileName,
     toggleShowingMenu: ownProps.toggleShowingMenu,
     width: Math.min(message.previewWidth, imgMaxWidth()),
