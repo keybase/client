@@ -13,7 +13,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-func runIdentify(tc *libkb.TestContext, username string) (idUI *FakeIdentifyUI, res *keybase1.Identify2Res, err error) {
+func runIdentify(tc *libkb.TestContext, username string) (idUI *FakeIdentifyUI, res *keybase1.Identify2ResUPK2, err error) {
 	idUI = &FakeIdentifyUI{}
 	arg := keybase1.Identify2Arg{
 		UserAssertion:    username,
@@ -32,42 +32,45 @@ func runIdentify(tc *libkb.TestContext, username string) (idUI *FakeIdentifyUI, 
 	if err != nil {
 		return idUI, nil, err
 	}
-	res = eng.Result()
+	res, err = eng.Result()
+	if err != nil {
+		return idUI, nil, err
+	}
 	return idUI, res, nil
 }
 
-func checkAliceProofs(tb libkb.TestingTB, idUI *FakeIdentifyUI, user *keybase1.UserPlusKeys) {
+func checkAliceProofs(tb libkb.TestingTB, idUI *FakeIdentifyUI, user *keybase1.UserPlusKeysV2) {
 	checkKeyedProfile(tb, idUI, user, "alice", true, map[string]string{
 		"github":  "kbtester2",
 		"twitter": "tacovontaco",
 	})
 }
 
-func checkBobProofs(tb libkb.TestingTB, idUI *FakeIdentifyUI, user *keybase1.UserPlusKeys) {
+func checkBobProofs(tb libkb.TestingTB, idUI *FakeIdentifyUI, user *keybase1.UserPlusKeysV2) {
 	checkKeyedProfile(tb, idUI, user, "bob", true, map[string]string{
 		"github":  "kbtester1",
 		"twitter": "kbtester1",
 	})
 }
 
-func checkCharlieProofs(tb libkb.TestingTB, idUI *FakeIdentifyUI, user *keybase1.UserPlusKeys) {
+func checkCharlieProofs(tb libkb.TestingTB, idUI *FakeIdentifyUI, user *keybase1.UserPlusKeysV2) {
 	checkKeyedProfile(tb, idUI, user, "charlie", true, map[string]string{
 		"github":  "tacoplusplus",
 		"twitter": "tacovontaco",
 	})
 }
 
-func checkDougProofs(tb libkb.TestingTB, idUI *FakeIdentifyUI, user *keybase1.UserPlusKeys) {
+func checkDougProofs(tb libkb.TestingTB, idUI *FakeIdentifyUI, user *keybase1.UserPlusKeysV2) {
 	checkKeyedProfile(tb, idUI, user, "doug", false, nil)
 }
 
-func checkKeyedProfile(tb libkb.TestingTB, idUI *FakeIdentifyUI, them *keybase1.UserPlusKeys, name string, hasImg bool, expectedProofs map[string]string) {
+func checkKeyedProfile(tb libkb.TestingTB, idUI *FakeIdentifyUI, them *keybase1.UserPlusKeysV2, name string, hasImg bool, expectedProofs map[string]string) {
 	if them == nil {
 		tb.Fatal("nil 'them' user")
 	}
 	exported := &keybase1.User{
-		Uid:      them.Uid,
-		Username: them.Username,
+		Uid:      them.GetUID(),
+		Username: them.GetName(),
 	}
 	if !reflect.DeepEqual(idUI.User, exported) {
 		tb.Fatal("LaunchNetworkChecks User not equal to result user.", idUI.User, exported)
@@ -98,7 +101,7 @@ func TestIdAlice(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	checkAliceProofs(t, idUI, &result.Upk)
+	checkAliceProofs(t, idUI, &result.Upk.Current)
 	checkDisplayKeys(t, idUI, 1, 1)
 }
 
@@ -109,7 +112,7 @@ func TestIdBob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	checkBobProofs(t, idUI, &result.Upk)
+	checkBobProofs(t, idUI, &result.Upk.Current)
 	checkDisplayKeys(t, idUI, 1, 1)
 }
 
@@ -120,7 +123,7 @@ func TestIdCharlie(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	checkCharlieProofs(t, idUI, &result.Upk)
+	checkCharlieProofs(t, idUI, &result.Upk.Current)
 	checkDisplayKeys(t, idUI, 1, 1)
 }
 
@@ -131,7 +134,7 @@ func TestIdDoug(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	checkDougProofs(t, idUI, &result.Upk)
+	checkDougProofs(t, idUI, &result.Upk.Current)
 	checkDisplayKeys(t, idUI, 1, 1)
 }
 

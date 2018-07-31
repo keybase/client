@@ -210,6 +210,17 @@ func (m *TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, err
 	return keybase1.TLFID(hex.EncodeToString([]byte(tlfID))), nil
 }
 
+func (m *TlfMock) LookupUntrusted(ctx context.Context, tlfName string, public bool) (*types.NameInfoUntrusted, error) {
+	ni, err := m.Lookup(ctx, tlfName, public)
+	if err != nil {
+		return nil, err
+	}
+	return &types.NameInfoUntrusted{
+		ID:            ni.ID,
+		CanonicalName: ni.CanonicalName,
+	}, nil
+}
+
 func (m *TlfMock) Lookup(ctx context.Context, tlfName string, public bool) (res *types.NameInfo, err error) {
 	var tlfID keybase1.TLFID
 	res = types.NewNameInfo()

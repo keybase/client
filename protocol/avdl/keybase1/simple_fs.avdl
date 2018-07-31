@@ -28,15 +28,38 @@ protocol SimpleFS {
 
   // Random GUID provided by caller 
   fixed OpID(16);
-  
+
+  @typedef("int64") @lint("ignore") record KBFSRevision {}
+
+  enum KBFSArchivedType {
+    REVISION_0,
+    TIME_1,
+    TIME_STRING_2,
+    REL_TIME_STRING_3
+  }
+
+  variant KBFSArchivedParam switch (KBFSArchivedType KBFSArchivedType) {
+    case REVISION: KBFSRevision;
+    case TIME: Time;
+    case TIME_STRING: string;
+    case REL_TIME_STRING: string;
+  }
+
+  record KBFSArchivedPath {
+    string path;
+    KBFSArchivedParam archivedParam;
+  }
+
   enum PathType {
     LOCAL_0,
-    KBFS_1
-  }  
+    KBFS_1,
+    KBFS_ARCHIVED_2
+  }
 
   variant Path switch (PathType PathType) {
     case LOCAL: string;
     case KBFS: string;
+    case KBFS_ARCHIVED: KBFSArchivedPath;
   }
 
   enum DirentType {

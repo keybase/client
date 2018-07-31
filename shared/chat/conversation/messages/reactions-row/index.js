@@ -1,36 +1,96 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import {Box2} from '../../../../common-adapters'
-import ReactButton from '../react-button/with-tooltip'
-import {globalMargins, styleSheetCreate} from '../../../../styles'
+import {Box, Box2} from '../../../../common-adapters'
+import ReactButton from '../react-button/container'
+import ReactionTooltip from '../reaction-tooltip/container'
+import {collapseStyles, globalMargins, isMobile, styleSheetCreate} from '../../../../styles'
 
 export type Props = {|
   conversationIDKey: Types.ConversationIDKey,
   emojis: Array<string>,
   ordinal: Types.Ordinal,
 |}
+type State = {
+  activeEmoji: string,
+  showAddReaction: boolean,
+  showMobileTooltip: boolean,
+}
+class ReactionsRow extends React.Component<Props, State> {
+  state = {
+    activeEmoji: '',
+    showAddReaction: false,
+    showMobileTooltip: false,
+  }
+  _attachmentRefs: {[emojiName: string]: ?React.Component<any, any>} = {}
 
-const ReactionsRow = (props: Props) =>
-  props.emojis.length === 0 ? null : (
-    <Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.container}>
-      {props.emojis.map(emoji => (
+  _setHoveringButton = (hovering: boolean, emojiName: string) => {
+    this._setActiveEmoji(hovering ? emojiName : '')
+  }
+
+  _setActiveEmoji = (emojiName: string) =>
+    this.setState(s => (s.activeEmoji === emojiName ? null : {activeEmoji: emojiName}))
+
+  _setHoveringRow = (hovering: boolean) =>
+    this.setState(s => (s.showAddReaction === hovering ? null : {showAddReaction: hovering}))
+
+  _setShowMobileTooltip = (showMobileTooltip: boolean) =>
+    this.setState(s => (s.showMobileTooltip === showMobileTooltip ? null : {showMobileTooltip}))
+
+  render() {
+    return this.props.emojis.length === 0 ? null : (
+      <Box2
+        onMouseOver={() => this._setHoveringRow(true)}
+        onMouseLeave={() => this._setHoveringRow(false)}
+        direction="horizontal"
+        gap="xtiny"
+        fullWidth={true}
+        style={styles.container}
+      >
+        {this.props.emojis.map(emoji => (
+          <Box
+            onMouseOver={() => this._setHoveringButton(true, emoji)}
+            onMouseLeave={() => this._setHoveringButton(false, emoji)}
+            key={emoji}
+          >
+            <ReactButton
+              ref={r => (this._attachmentRefs[emoji] = r)}
+              conversationIDKey={this.props.conversationIDKey}
+              emoji={emoji}
+              onLongPress={() => this._setShowMobileTooltip(true)}
+              ordinal={this.props.ordinal}
+              style={styles.button}
+            />
+            <ReactionTooltip
+              attachmentRef={this._attachmentRefs[emoji]}
+              conversationIDKey={this.props.conversationIDKey}
+              emoji={emoji}
+              onHidden={() => {}}
+              ordinal={this.props.ordinal}
+              visible={this.state.activeEmoji === emoji}
+            />
+          </Box>
+        ))}
         <ReactButton
-          key={emoji}
-          conversationIDKey={props.conversationIDKey}
-          emoji={emoji}
-          ordinal={props.ordinal}
-          style={styles.button}
+          conversationIDKey={this.props.conversationIDKey}
+          onLongPress={() => this._setShowMobileTooltip(true)}
+          ordinal={this.props.ordinal}
+          showBorder={true}
+          style={collapseStyles([
+            styles.button,
+            !this.state.showAddReaction && !isMobile && styles.displayNone,
+          ])}
         />
-      ))}
-      <ReactButton
-        conversationIDKey={props.conversationIDKey}
-        ordinal={props.ordinal}
-        showBorder={true}
-        style={styles.button}
-      />
-    </Box2>
-  )
+        <ReactionTooltip
+          conversationIDKey={this.props.conversationIDKey}
+          onHidden={() => this._setShowMobileTooltip(false)}
+          ordinal={this.props.ordinal}
+          visible={this.state.showMobileTooltip}
+        />
+      </Box2>
+    )
+  }
+}
 
 const styles = styleSheetCreate({
   button: {marginBottom: globalMargins.tiny},
@@ -40,6 +100,7 @@ const styles = styleSheetCreate({
     marginLeft: 56,
     paddingRight: 50,
   },
+  displayNone: {display: 'none'},
 })
 
 export default ReactionsRow

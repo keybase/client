@@ -1223,9 +1223,6 @@ func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 		// track errors, because people need to be able to use it to ask each other
 		// about the fact that proofs are broken.
 		return true
-	case TLFIdentifyBehavior_RESOLVE_AND_CHECK:
-		// Tracks don't matter for ResolveAndCheck, since we act logged out.
-		return true
 	default:
 		return false
 	}
@@ -1335,17 +1332,12 @@ func (u UserPlusKeys) GetStatus() StatusCode {
 	return u.Status
 }
 
-func (u UserPlusAllKeys) GetRemoteTrack(s string) *RemoteTrack {
-	i := sort.Search(len(u.RemoteTracks), func(j int) bool {
-		return u.RemoteTracks[j].Username >= s
-	})
-	if i >= len(u.RemoteTracks) {
+func (u UserPlusKeysV2AllIncarnations) GetRemoteTrack(uid UID) *RemoteTrack {
+	ret, ok := u.Current.RemoteTracks[uid]
+	if !ok {
 		return nil
 	}
-	if u.RemoteTracks[i].Username != s {
-		return nil
-	}
-	return &u.RemoteTracks[i]
+	return &ret
 }
 
 func (u UserPlusAllKeys) GetUID() UID {
@@ -1407,6 +1399,14 @@ func (u UserPlusKeysV2) GetName() string {
 	return u.Username
 }
 
+func (u UserPlusKeysV2) GetStatus() StatusCode {
+	return u.Status
+}
+
+func (u UserPlusKeysV2AllIncarnations) ExportToSimpleUser() User {
+	return User{Uid: u.GetUID(), Username: u.GetName()}
+}
+
 func (u UserPlusKeysV2AllIncarnations) FindDevice(d DeviceID) *PublicKeyV2NaCl {
 	for _, k := range u.Current.DeviceKeys {
 		if k.DeviceID.Eq(d) {
@@ -1414,6 +1414,18 @@ func (u UserPlusKeysV2AllIncarnations) FindDevice(d DeviceID) *PublicKeyV2NaCl {
 		}
 	}
 	return nil
+}
+
+func (u UserPlusKeysV2AllIncarnations) GetUID() UID {
+	return u.Current.GetUID()
+}
+
+func (u UserPlusKeysV2AllIncarnations) GetName() string {
+	return u.Current.GetName()
+}
+
+func (u UserPlusKeysV2AllIncarnations) GetStatus() StatusCode {
+	return u.Current.GetStatus()
 }
 
 func (u UserPlusKeysV2AllIncarnations) AllIncarnations() (ret []UserPlusKeysV2) {
@@ -2117,6 +2129,10 @@ func (u UserPlusKeysV2) ToUserVersion() UserVersion {
 	}
 }
 
+func (u UserPlusKeysV2AllIncarnations) ToUserVersion() UserVersion {
+	return u.Current.ToUserVersion()
+}
+
 // Can return nil.
 func (u UserPlusKeysV2) GetLatestPerUserKey() *PerUserKey {
 	if len(u.PerUserKeys) > 0 {
@@ -2514,4 +2530,12 @@ func MakeAvatarURL(u string) AvatarUrl {
 func (b Bytes32) IsBlank() bool {
 	var blank Bytes32
 	return (subtle.ConstantTimeCompare(b[:], blank[:]) == 1)
+}
+
+func (i Identify2ResUPK2) ExportToV1() Identify2Res {
+	return Identify2Res{
+		Upk:          UPAKFromUPKV2AI(i.Upk).Base,
+		IdentifiedAt: i.IdentifiedAt,
+		TrackBreaks:  i.TrackBreaks,
+	}
 }

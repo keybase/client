@@ -958,7 +958,7 @@ func assertRole2(tc libkb.TestContext, teamID keybase1.TeamID, username string, 
 	})
 	require.NoError(tc.T, err)
 
-	uv, err := loadUserVersionByUsername(context.TODO(), tc.G, username)
+	uv, err := loadUserVersionByUsername(context.TODO(), tc.G, username, true)
 	require.NoError(tc.T, err)
 
 	role, err := team.MemberRole(context.TODO(), uv)
@@ -1363,4 +1363,61 @@ func TestMemberInviteChangeRoleOwner(t *testing.T) {
 		t.Fatal(err)
 	}
 	assertInvite(tc, name, fqUID, "keybase", keybase1.TeamRole_OWNER)
+}
+
+func TestFollowResetAdd(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+
+	alice, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	team := createTeam(tc)
+	t.Logf("Created team %q", team)
+	tc.G.Logout()
+
+	bob, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	tc.G.Logout()
+
+	charlie, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	tc.G.Logout()
+
+	// alice tracks bob and charlie
+	alice.Login(tc.G)
+	_, err = kbtest.RunTrack(tc, alice, bob.Username)
+	require.NoError(t, err)
+	_, err = kbtest.RunTrack(tc, alice, charlie.Username)
+	require.NoError(t, err)
+
+	// alice lets charlie into the team
+	_, err = AddMember(context.TODO(), tc.G, team, charlie.Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	// bob and charlie reset
+	tc.G.Logout()
+	bob.Login(tc.G)
+	kbtest.ResetAccount(tc, bob)
+	tc.G.Logout()
+	charlie.Login(tc.G)
+	kbtest.ResetAccount(tc, charlie)
+	tc.G.Logout()
+
+	// alice fails to invite bob into the team since her tracking statement of him is broken
+	alice.Login(tc.G)
+	_, err = AddMember(context.TODO(), tc.G, team, bob.Username, keybase1.TeamRole_ADMIN)
+	require.Error(t, err)
+	require.True(t, libkb.IsIdentifyProofError(err))
+
+	// AddMembers also fails
+	_, err = AddMembers(context.TODO(), tc.G, team, []string{bob.Username}, keybase1.TeamRole_ADMIN)
+	require.Error(t, err)
+	amerr, ok := err.(AddMembersError)
+	require.True(t, ok)
+	require.True(t, libkb.IsIdentifyProofError(amerr.Err))
+
+	// alice succeeds in removing charlie from the team, since her broken tracking statement
+	// is ignored for a team removal.
+	err = RemoveMember(context.TODO(), tc.G, team, charlie.Username)
+	require.NoError(t, err)
+
 }

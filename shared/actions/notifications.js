@@ -19,6 +19,10 @@ function* _listenSaga(): Saga.SagaGenerator<any, any> {
     app: true,
     badges: true,
     chat: true,
+    chatattachments: true,
+    chatdev: false,
+    chatkbfsedits: false,
+    deviceclone: false,
     ephemeral: false,
     favorites: false,
     kbfs: true,
@@ -31,11 +35,8 @@ function* _listenSaga(): Saga.SagaGenerator<any, any> {
     session: true,
     team: true,
     tracking: true,
+    wallet: true,
     users: true,
-    chatkbfsedits: false,
-    chatdev: false,
-    deviceclone: false,
-    chatattachments: true,
   }
 
   const engineInst: Engine = yield Saga.call(engine)

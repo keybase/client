@@ -2,6 +2,7 @@ package attachments
 
 import (
 	"errors"
+	"io"
 	"testing"
 	"time"
 
@@ -22,7 +23,7 @@ type mockStore struct {
 	uploadFn func(context.Context, *UploadTask) (chat1.Asset, error)
 }
 
-func (m *mockStore) UploadAsset(ctx context.Context, task *UploadTask) (chat1.Asset, error) {
+func (m *mockStore) UploadAsset(ctx context.Context, task *UploadTask, encryptedOut io.Writer) (chat1.Asset, error) {
 	return m.uploadFn(ctx, task)
 }
 
@@ -92,6 +93,7 @@ func TestAttachmentUploader(t *testing.T) {
 	store := &mockStore{}
 	ri := mockRemote{}
 	deliverer := newMockDeliverer()
+	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 	g.ActivityNotifier = notifier
 	g.MessageDeliverer = deliverer
 	getRi := func() chat1.RemoteInterface { return ri }

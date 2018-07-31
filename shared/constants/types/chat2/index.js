@@ -88,6 +88,8 @@ export type {
   Ordinal,
   OutboxID,
   PreviewSpec,
+  Reaction,
+  Reactions,
 } from './message'
 export type {ConversationIDKey} from './common'
 

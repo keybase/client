@@ -13,7 +13,7 @@ import (
 )
 
 func withNewProvisionalLoginForFakeUser(m libkb.MetaContext, u *FakeUser) libkb.MetaContext {
-	m = m.WithNewProvisionalLoginContextForUIDAndUsername(u.UID(), libkb.NewNormalizedUsername(u.Username))
+	m = m.WithNewProvisionalLoginContextForUserVersionAndUsername(u.UserVersion(), libkb.NewNormalizedUsername(u.Username))
 	return m
 }
 

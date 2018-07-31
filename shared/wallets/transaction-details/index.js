@@ -164,6 +164,7 @@ export default class extends React.Component<Props> {
           </Box2>
           {this.props.status !== 'error' && (
             <TimestampLine
+              status={this.props.status}
               error={this.props.statusDetail}
               relative={false}
               timestamp={this.props.timestamp}

@@ -80,7 +80,14 @@ function cleanupUsername(platform: ?string, username: string): string {
   return username
 }
 
-function urlToUsername(url: URL): ?string {
+function urlToUsername(url: {
+  protocol: string,
+  username: string,
+  password: string,
+  hostname: string,
+  port: string,
+  pathname: string,
+}): ?string {
   const protocol = url.protocol
   if (protocol !== 'http:' && protocol !== 'https:') {
     return null

@@ -1,0 +1,27 @@
+{
+  "protocol": "notify",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "paymentNotification": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "paymentID",
+          "type": "PaymentID"
+        }
+      ],
+      "response": null,
+      "notify": ""
+    }
+  },
+  "namespace": "stellar.1"
+}

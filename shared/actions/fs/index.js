@@ -2,7 +2,6 @@
 import logger from '../../logger'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../fs-gen'
-import * as LoginGen from '../login-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
@@ -47,6 +46,7 @@ const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
       return Constants.makeFolder({
         ...direntToMetadata(d),
         children: I.Set(children),
+        progress: children ? 'loaded' : undefined,
       })
     case RPCTypes.simpleFSDirentType.sym:
       return Constants.makeSymlink({
@@ -145,15 +145,26 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
 
   const direntToPathAndPathItem = (d: RPCTypes.Dirent) => {
     const path = Types.pathConcat(rootPath, d.name)
-    return [path, makeEntry(d, childMap.get(path))]
+    const entry = makeEntry(d, childMap.get(path))
+    if (entry.type === 'folder' && Types.getPathLevel(path) > 3 && d.name.indexOf('/') < 0) {
+      // Since we are loading with a depth of 2, first level directories are
+      // considered "loaded".
+      return [path, entry.set('progress', 'loaded')]
+    }
+    return [path, entry]
   }
 
   // Get metadata fields of the directory that we just loaded from state to
   // avoid overriding them.
   const state = yield Saga.select()
-  const {lastModifiedTimestamp, lastWriter, size, writable, favoriteChildren, tlfMeta}: Types.FolderPathItem = state.fs.pathItems.get(
-    rootPath
-  )
+  const {
+    lastModifiedTimestamp,
+    lastWriter,
+    size,
+    writable,
+    favoriteChildren,
+    tlfMeta,
+  }: Types.FolderPathItem = state.fs.pathItems.get(rootPath)
 
   const pathItems = [
     [
@@ -291,7 +302,7 @@ function* upload(action: FsGen.UploadPayload) {
     opID,
     src: {
       PathType: RPCTypes.simpleFSPathType.local,
-      local: localPath,
+      local: Types.getNormalizedLocalPath(localPath),
     },
     dest: {
       PathType: RPCTypes.simpleFSPathType.kbfs,
@@ -579,10 +590,7 @@ const letResetUserBackIn = ({payload: {id, username}}: FsGen.LetResetUserBackInP
 
 const letResetUserBackInResult = () => undefined // Saga.put(FsGen.createLoadResets())
 
-const resetStore = () => Saga.put({type: FsGen.resetStore})
-
 function* fsSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPureSimple(LoginGen.logout, resetStore)
   yield Saga.safeTakeEveryPure(
     FsGen.refreshLocalHTTPServerInfo,
     refreshLocalHTTPServerInfo,

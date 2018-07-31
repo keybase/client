@@ -200,6 +200,21 @@ func (t *TeamsNameInfoSource) makeNameInfo(ctx context.Context, team *teams.Team
 	return res, nil
 }
 
+func (t *TeamsNameInfoSource) LookupUntrusted(ctx context.Context, name string, public bool) (res *types.NameInfoUntrusted, err error) {
+	teamName, err := keybase1.TeamNameFromString(name)
+	if err != nil {
+		return res, err
+	}
+	kid, err := t.G().GetTeamLoader().ResolveNameToIDUntrusted(ctx, teamName, public, true)
+	if err != nil {
+		return res, err
+	}
+	return &types.NameInfoUntrusted{
+		ID:            chat1.TLFID(kid.ToBytes()),
+		CanonicalName: name,
+	}, nil
+}
+
 func (t *TeamsNameInfoSource) Lookup(ctx context.Context, name string, public bool) (res *types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Lookup(%s)", name))()
 	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
@@ -406,6 +421,37 @@ func (t *ImplicitTeamsNameInfoSource) makeNameInfo(ctx context.Context, team *te
 	return res, nil
 }
 
+func (t *ImplicitTeamsNameInfoSource) transformTeamDoesNotExist(ctx context.Context, err error, name string) error {
+	switch err.(type) {
+	case teams.TeamDoesNotExistError:
+		return NewUnknownTLFNameError(name)
+	}
+	t.Debug(ctx, "Lookup: error looking up the team: %s", err)
+	return err
+}
+
+func (t *ImplicitTeamsNameInfoSource) LookupUntrusted(ctx context.Context, name string, public bool) (res *types.NameInfoUntrusted, err error) {
+	defer func() { err = t.transformTeamDoesNotExist(ctx, err, name) }()
+	impTeamName, err := teams.ResolveImplicitTeamDisplayName(ctx, t.G().ExternalG(), name, public)
+	if err != nil {
+		return res, err
+	}
+	kid, err := teams.LookupImplicitTeamIDUntrusted(ctx, t.G().ExternalG(), name, public)
+	if err != nil {
+		return res, err
+	}
+	tlfID := chat1.TLFID(kid.ToBytes())
+	if t.lookupUpgraded {
+		if tlfID, err = tlfIDToTeamID.LookupTLFID(ctx, kid, t.G().GetAPI()); err != nil {
+			return res, err
+		}
+	}
+	return &types.NameInfoUntrusted{
+		ID:            tlfID,
+		CanonicalName: impTeamName.String(),
+	}, nil
+}
+
 func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, public bool) (res *types.NameInfo, err error) {
 	// check if name is prefixed
 	if strings.HasPrefix(name, keybase1.ImplicitTeamPrefix) {
@@ -415,13 +461,7 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, p
 
 	team, _, impTeamName, err := teams.LookupImplicitTeam(ctx, t.G().ExternalG(), name, public)
 	if err != nil {
-		// return the common type for a unknown TLF name
-		switch err.(type) {
-		case teams.TeamDoesNotExistError:
-			return res, NewUnknownTLFNameError(name)
-		}
-		t.Debug(ctx, "Lookup: error looking up the team: %s", err)
-		return res, err
+		return res, t.transformTeamDoesNotExist(ctx, err, name)
 	}
 	if !team.ID.IsRootTeam() {
 		panic(fmt.Sprintf("implicit team found via LookupImplicitTeam not root team: %s", team.ID))
@@ -581,6 +621,30 @@ func (t *tlfIDToTeamIDMap) Lookup(ctx context.Context, tlfID chat1.TLFID, api li
 	}
 	t.storage.Add(tlfID.String(), teamID)
 	return teamID, nil
+}
+
+func (t *tlfIDToTeamIDMap) LookupTLFID(ctx context.Context, teamID keybase1.TeamID, api libkb.API) (res chat1.TLFID, err error) {
+	if iTLFID, ok := t.storage.Get(teamID.String()); ok {
+		return iTLFID.(chat1.TLFID), nil
+	}
+	arg := libkb.NewAPIArgWithNetContext(ctx, "team/tlfid")
+	arg.Args = libkb.NewHTTPArgs()
+	arg.Args.Add("team_id", libkb.S{Val: teamID.String()})
+	arg.SessionType = libkb.APISessionTypeREQUIRED
+	apiRes, err := api.Get(arg)
+	if err != nil {
+		return res, err
+	}
+	st, err := apiRes.Body.AtKey("tlf_id").GetString()
+	if err != nil {
+		return res, err
+	}
+	tlfID, err := chat1.MakeTLFID(st)
+	if err != nil {
+		return res, err
+	}
+	t.storage.Add(teamID.String(), tlfID)
+	return tlfID, nil
 }
 
 var tlfIDToTeamID = newTlfIDToTeamIDMap()

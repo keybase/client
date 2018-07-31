@@ -7,13 +7,14 @@ import {createSearchSuggestions} from '../actions/search-gen'
 import {navigateAppend} from '../actions/route-tree'
 import {createShowUserProfile} from '../actions/profile-gen'
 import {getPeopleDataWaitingKey} from '../constants/people'
+import * as WaitingConstants from '../constants/waiting'
 
 const mapStateToProps = (state: TypedState) => ({
   _newItems: state.people.newItems,
   _oldItems: state.people.oldItems,
   followSuggestions: state.people.followSuggestions,
   myUsername: state.config.username,
-  waiting: !!state.waiting.get(getPeopleDataWaitingKey),
+  waiting: WaitingConstants.anyWaiting(state, getPeopleDataWaitingKey),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

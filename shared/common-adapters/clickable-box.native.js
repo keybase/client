@@ -5,48 +5,46 @@ import Box from './box'
 import {TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
 import {collapseStyles, globalColors} from '../styles'
 
-const ClickableBox = ({
-  onClick,
-  onLongPress,
-  style,
-  children,
-  underlayColor,
-  onPressIn,
-  onPressOut,
-  feedback = true,
-}: Props) => {
-  if (onClick) {
-    const clickStyle = style ? collapseStyles([boxStyle, style]) : boxStyle
+const ClickableBox = (props: Props) => {
+  const {feedback = true} = props
+  if (props.onClick) {
+    const clickStyle = collapseStyles([boxStyle, props.style])
     if (feedback) {
       return (
         <TouchableOpacity
-          disabled={!onClick}
-          onPress={onClick}
-          onPressIn={onPressIn}
-          onPressOut={onPressOut}
-          onLongPress={onLongPress}
+          disabled={!props.onClick}
+          onPress={props.onClick}
+          onPressIn={props.onPressIn}
+          onPressOut={props.onPressOut}
+          onLongPress={props.onLongPress}
+          pointerEvents={props.pointerEvents}
           style={clickStyle}
-          underlayColor={underlayColor || globalColors.white}
+          underlayColor={props.underlayColor || globalColors.white}
           activeOpacity={0.7}
         >
-          {children}
+          {props.children}
         </TouchableOpacity>
       )
     } else {
       return (
         <TouchableWithoutFeedback
-          onPressIn={onPressIn}
-          onPressOut={onPressOut}
+          onPressIn={props.onPressIn}
+          onPressOut={props.onPressOut}
           style={clickStyle}
-          onPress={onClick}
-          onLongPress={onLongPress}
+          onPress={props.onClick}
+          pointerEvents={props.pointerEvents}
+          onLongPress={props.onLongPress}
         >
-          {children}
+          {props.children}
         </TouchableWithoutFeedback>
       )
     }
   } else {
-    return <Box style={style}>{children}</Box>
+    return (
+      <Box style={props.style} pointerEvents={props.pointerEvents}>
+        {props.children}
+      </Box>
+    )
   }
 }
 

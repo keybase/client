@@ -258,14 +258,17 @@ func (e *PGPVerify) checkSignedBy(m libkb.MetaContext) error {
 	if err := RunEngine2(m, eng); err != nil {
 		return err
 	}
-	signByUser := eng.Result().Upk
+	res, err := eng.Result()
+	if err != nil {
+		return err
+	}
+	signByUser := res.Upk
 
 	// check if it is equal to signature owner
-	if !e.signer.GetUID().Equal(signByUser.Uid) {
+	if !e.signer.GetUID().Equal(signByUser.GetUID()) {
 		return libkb.BadSigError{
 			E: fmt.Sprintf("Signer %q did not match signed by assertion %q", e.signer.GetName(), e.arg.SignedBy),
 		}
 	}
-
 	return nil
 }

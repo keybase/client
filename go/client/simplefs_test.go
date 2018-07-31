@@ -217,13 +217,15 @@ func (s SimpleFSMock) SimpleFSGetUserQuotaUsage(ctx context.Context) (
 func TestSimpleFSPathRemote(t *testing.T) {
 	tc := libkb.SetupTest(t, "simplefs_path", 0)
 
-	testPath := makeSimpleFSPath(tc.G, "/keybase/private/foobar")
+	testPath, err := makeSimpleFSPath("/keybase/private/foobar")
+	require.NoError(tc.T, err)
 	pathType, err := testPath.PathType()
 	require.NoError(tc.T, err, "bad path type")
 	assert.Equal(tc.T, keybase1.PathType_KBFS, pathType, "Expected remote path, got local %s", pathToString(testPath))
 	assert.Equal(tc.T, "/private/foobar", testPath.Kbfs())
 
-	testPath = makeSimpleFSPath(tc.G, "/keybase/private/")
+	testPath, err = makeSimpleFSPath("/keybase/private/")
+	require.NoError(tc.T, err)
 	pathType, err = testPath.PathType()
 	require.NoError(tc.T, err, "bad path type")
 	assert.Equal(tc.T, keybase1.PathType_KBFS, pathType, "Expected remote path, got local")
@@ -234,7 +236,8 @@ func TestSimpleFSPathRemote(t *testing.T) {
 func TestSimpleFSPathLocal(t *testing.T) {
 	tc := libkb.SetupTest(t, "simplefs_path", 0)
 
-	testPath := makeSimpleFSPath(tc.G, "./foobar")
+	testPath, err := makeSimpleFSPath("./foobar")
+	require.NoError(tc.T, err)
 	pathType, err := testPath.PathType()
 	require.NoError(tc.T, err, "bad path type")
 	assert.Equal(tc.T, keybase1.PathType_LOCAL, pathType, "Expected local path, got remote")
@@ -257,7 +260,8 @@ func TestSimpleFSLocalSrcFile(t *testing.T) {
 	require.Equal(tc.T, path1.Local(), srcPathString)
 
 	// Destination file not given
-	destPath := makeSimpleFSPath(tc.G, "/keybase/public/foobar")
+	destPath, err := makeSimpleFSPath("/keybase/public/foobar")
+	require.NoError(tc.T, err)
 
 	isDestDir, destPathString, err := checkPathIsDir(context.TODO(), SimpleFSMock{remoteExists: true}, destPath)
 	require.NoError(tc.T, err, "bad path type")
@@ -311,8 +315,10 @@ func TestSimpleFSRemoteSrcFile(t *testing.T) {
 
 	tempdir = filepath.ToSlash(tempdir)
 
-	destPath := makeSimpleFSPath(tc.G, tempdir)
-	srcPath := makeSimpleFSPath(tc.G, "/keybase/public/foobar/test1.txt")
+	destPath, err := makeSimpleFSPath(tempdir)
+	require.NoError(tc.T, err)
+	srcPath, err := makeSimpleFSPath("/keybase/public/foobar/test1.txt")
+	require.NoError(tc.T, err)
 
 	// Destination file not included in path
 	destPath, err = makeDestPath(
@@ -376,7 +382,8 @@ func TestSimpleFSLocalSrcDir(t *testing.T) {
 	require.True(tc.T, isSrcDir)
 	require.Equal(tc.T, path1.Local(), srcPathString)
 
-	destPathInitial := makeSimpleFSPath(tc.G, "/keybase/public/foobar")
+	destPathInitial, err := makeSimpleFSPath("/keybase/public/foobar")
+	require.NoError(tc.T, err)
 
 	// Test when dest. exists.
 	// We append the last element of the source in that case.
@@ -437,7 +444,8 @@ func TestSimpleFSRemoteSrcDir(t *testing.T) {
 	require.NoError(t, err)
 	testStatter := SimpleFSMock{remoteExists: true}
 
-	srcPathInitial := makeSimpleFSPath(tc.G, "/keybase/public/foobar")
+	srcPathInitial, err := makeSimpleFSPath("/keybase/public/foobar")
+	require.NoError(tc.T, err)
 
 	isSrcDir, srcPathString, err := checkPathIsDir(context.TODO(), testStatter, srcPathInitial)
 	require.NoError(tc.T, err, "bad path type")
@@ -504,7 +512,8 @@ func TestSimpleFSLocalExists(t *testing.T) {
 	err = ioutil.WriteFile(tempFile, []byte("foo"), 0644)
 	require.NoError(t, err)
 
-	testPath := makeSimpleFSPath(tc.G, tempdir)
+	testPath, err := makeSimpleFSPath(tempdir)
+	require.NoError(tc.T, err)
 	pathType, err := testPath.PathType()
 	require.NoError(tc.T, err, "bad path type")
 	assert.Equal(tc.T, keybase1.PathType_LOCAL, pathType, "Expected local path, got remote")
@@ -514,7 +523,8 @@ func TestSimpleFSLocalExists(t *testing.T) {
 	require.Error(tc.T, err, "Should get an element exists error")
 
 	// check file
-	testPath = makeSimpleFSPath(tc.G, tempFile)
+	testPath, err = makeSimpleFSPath(tempFile)
+	require.NoError(tc.T, err)
 	err = checkElementExists(context.TODO(), SimpleFSMock{}, testPath)
 	require.Error(tc.T, err, "Should get an element exists error")
 }

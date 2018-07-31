@@ -2,7 +2,9 @@ package types
 
 import (
 	"fmt"
+	"io"
 
+	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -26,10 +28,15 @@ var PushTeamChannels = "chat.teamchannels"
 var PushKBFSUpgrade = "chat.kbfsupgrade"
 var PushConvRetention = "chat.convretention"
 var PushTeamRetention = "chat.teamretention"
-var PushConvMinWriterRole = "chat.convminwriterrole"
+var PushConvSettings = "chat.convsettings"
 
 func NewAllCryptKeys() AllCryptKeys {
 	return make(AllCryptKeys)
+}
+
+type NameInfoUntrusted struct {
+	ID            chat1.TLFID
+	CanonicalName string
 }
 
 type NameInfo struct {
@@ -146,4 +153,36 @@ type AttachmentUploadResult struct {
 	Object   chat1.Asset
 	Preview  *chat1.Asset
 	Metadata []byte
+}
+
+type DummyAttachmentFetcher struct{}
+
+func (d DummyAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer,
+	convID chat1.ConversationID, asset chat1.Asset, r func() chat1.RemoteInterface, signer s3.Signer,
+	progress ProgressReporter) error {
+	return nil
+}
+
+func (d DummyAttachmentFetcher) DeleteAssets(ctx context.Context,
+	convID chat1.ConversationID, assets []chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (err error) {
+	return nil
+}
+
+func (d DummyAttachmentFetcher) PutUploadedAsset(ctx context.Context, filename string, asset chat1.Asset) error {
+	return nil
+}
+
+type DummyAttachmentHTTPSrv struct{}
+
+func (d DummyAttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
+	preview bool) string {
+	return ""
+}
+
+func (d DummyAttachmentHTTPSrv) GetPendingPreviewURL(ctx context.Context, outboxID chat1.OutboxID) string {
+	return ""
+}
+
+func (d DummyAttachmentHTTPSrv) GetAttachmentFetcher() AttachmentFetcher {
+	return DummyAttachmentFetcher{}
 }

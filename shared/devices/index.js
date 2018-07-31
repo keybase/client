@@ -69,7 +69,7 @@ const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
             textAlign: 'center',
           }}
         >
-          Revoked devices will no longer be able to access your Keybase account.
+          Revoked devices cannot access your Keybase account.
         </Text>
       </Box>
     )}

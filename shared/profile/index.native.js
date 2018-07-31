@@ -16,7 +16,7 @@ import {
   Icon,
   Meta,
   PlatformIcon,
-  PopupMenu,
+  FloatingMenu,
   NativeSectionList,
   Text,
   UserBio,
@@ -47,7 +47,11 @@ const EditControl = ({isYou, onClickShowcaseOffer}: {isYou: boolean, onClickShow
   <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginBottom: globalMargins.tiny}}>
     <Text type="BodySmallSemibold">Teams</Text>
     {!!isYou && (
-      <Icon style={{margin: 2, width: 22, height: 22}} type="iconfont-edit" onClick={onClickShowcaseOffer} />
+      <Icon
+        style={{margin: 2, width: 28, height: 28, padding: 6}}
+        type="iconfont-edit"
+        onClick={onClickShowcaseOffer}
+      />
     )}
   </Box>
 )
@@ -175,7 +179,7 @@ class Profile extends Component<Props, State> {
         pendingMessage = 'Your proof is pending. DNS proofs can take a few hours to recognize.'
       }
       return {
-        header: pendingMessage ? {title: pendingMessage} : null,
+        header: pendingMessage ? {title: pendingMessage} : undefined,
         items: [{title: 'Revoke', danger: true, onClick: () => this.props.onRevokeProof(proof)}],
       }
     }
@@ -533,22 +537,15 @@ class Profile extends Component<Props, State> {
           forceRenderBio={this.props.userInfo}
           windowSize={3}
           sections={[
-            {
-              renderItem: this._renderProfile,
-              title: 'profile',
-              data: [{key: 'profile'}],
-            },
-            {
-              renderItem: this._renderFriends,
-              title: 'friends',
-              data: friendData,
-            },
+            {renderItem: this._renderProfile, title: 'profile', data: [{key: 'profile'}]},
+            {renderItem: this._renderFriends, title: 'friends', data: friendData},
           ]}
         />
         {!!activeMenuProof && (
-          <PopupMenu
-            {...this._proofMenuContent(activeMenuProof)}
+          <FloatingMenu
             onHidden={() => this._handleToggleMenu(this.props.proofs.indexOf(activeMenuProof))}
+            visible={!!activeMenuProof}
+            {...this._proofMenuContent(activeMenuProof)}
           />
         )}
       </Box>

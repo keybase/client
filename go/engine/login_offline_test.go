@@ -39,12 +39,12 @@ func TestLoginOffline(t *testing.T) {
 	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
-	uid, deviceID, deviceName, skey, ekey := tc.G.ActiveDevice.AllFields()
-	if uid.IsNil() {
+	uv, deviceID, deviceName, skey, ekey := tc.G.ActiveDevice.AllFields()
+	if uv.IsNil() {
 		t.Errorf("uid is nil, expected it to exist")
 	}
-	if !uid.Equal(u1.UID()) {
-		t.Errorf("uid: %q, expected %q", uid, u1.UID())
+	if !uv.Uid.Equal(u1.UID()) {
+		t.Errorf("uid: %v, expected %v", uv, u1)
 	}
 
 	if deviceID.IsNil() {
@@ -104,12 +104,12 @@ func TestLoginOfflineDelay(t *testing.T) {
 	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
-	uid, deviceID, deviceName, skey, ekey := tc.G.ActiveDevice.AllFields()
-	if uid.IsNil() {
+	uv, deviceID, deviceName, skey, ekey := tc.G.ActiveDevice.AllFields()
+	if uv.IsNil() {
 		t.Errorf("uid is nil, expected it to exist")
 	}
-	if !uid.Equal(u1.UID()) {
-		t.Errorf("uid: %q, expected %q", uid, u1.UID())
+	if !uv.Uid.Equal(u1.UID()) {
+		t.Errorf("uid: %v, expected %v", uv, u1.UID())
 	}
 
 	if deviceID.IsNil() {

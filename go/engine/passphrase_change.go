@@ -129,7 +129,7 @@ func (c *PassphraseChange) findUpdateDevice(m libkb.MetaContext) (ad *libkb.Acti
 		m.CDebugf("| error fetching paper keys")
 		return nil, err
 	}
-	ad = libkb.NewActiveDeviceWithDeviceWithKeys(m, m.CurrentUID(), kp)
+	ad = libkb.NewActiveDeviceWithDeviceWithKeys(m, m.CurrentUserVersion(), kp)
 	m.CDebugf("| installing paper key as thread-local active device")
 	return ad, nil
 }

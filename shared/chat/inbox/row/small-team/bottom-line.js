@@ -29,57 +29,20 @@ class BottomLine extends PureComponent<Props> {
     let content
 
     if (this.props.youNeedToRekey) {
-      content = (
-        <Box
-          style={{
-            alignSelf: 'center',
-            backgroundColor: globalColors.red,
-            borderRadius: 2,
-            paddingLeft: globalMargins.xtiny,
-            paddingRight: globalMargins.xtiny,
-          }}
-        >
-          <Text
-            type="BodySmallSemibold"
-            backgroundMode="Terminal"
-            style={platformStyles({
-              common: {
-                color: globalColors.white,
-              },
-              isElectron: {
-                fontSize: 11,
-                lineHeight: '13px',
-              },
-              isMobile: {
-                fontSize: 12,
-                lineHeight: 14,
-              },
-            })}
-          >
-            REKEY NEEDED
-          </Text>
-        </Box>
-      )
+      content = null
     } else if (this.props.youAreReset) {
       content = (
         <Text
           type="BodySmallSemibold"
           backgroundMode="Terminal"
-          style={platformStyles({
-            common: {
+          style={collapseStyles([
+            styles.youAreResetText,
+            {
               color: this.props.isSelected ? globalColors.white : globalColors.red,
             },
-            isElectron: {
-              fontSize: 12,
-              lineHeight: '16px',
-            },
-            isMobile: {
-              fontSize: 14,
-              lineHeight: 19,
-            },
-          })}
+          ])}
         >
-          Participants should let you back in.
+          You are locked out.
         </Text>
       )
     } else if (this.props.participantNeedToRekey) {
@@ -89,21 +52,13 @@ class BottomLine extends PureComponent<Props> {
         </Text>
       )
     } else if (this.props.snippet) {
-      const baseStyle = styles.bottomLine
-
-      let style
-
-      if (this.props.subColor !== globalColors.black_40 || this.props.showBold) {
-        style = collapseStyles([
-          baseStyle,
-          {
-            color: this.props.subColor,
-            ...(this.props.showBold ? globalStyles.fontBold : {}),
-          },
-        ])
-      } else {
-        style = baseStyle
-      }
+      const style = collapseStyles([
+        styles.bottomLine,
+        {
+          color: this.props.subColor,
+          ...(this.props.showBold ? globalStyles.fontBold : {}),
+        },
+      ])
 
       let snippetDecoration
       let exploded = false
@@ -142,7 +97,7 @@ class BottomLine extends PureComponent<Props> {
           snippetDecoration = this.props.snippetDecoration
       }
       content = (
-        <Box2 direction="horizontal" gap="xtiny" style={styles.bottomLineBox}>
+        <Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
           {!!snippetDecoration && (
             <Box2 direction="vertical" centerChildren={true}>
               {snippetDecoration}
@@ -159,53 +114,74 @@ class BottomLine extends PureComponent<Props> {
     } else {
       return null
     }
+
     return (
       <Box
-        style={{
-          ...globalStyles.flexBoxRow,
-          backgroundColor: isMobile ? this.props.backgroundColor : undefined,
-          flexGrow: 1,
-          height: isMobile ? 20 : 17,
-          maxHeight: isMobile ? 20 : 17,
-        }}
+        style={collapseStyles([
+          styles.outerBox,
+          {
+            backgroundColor: isMobile ? this.props.backgroundColor : undefined,
+          },
+        ])}
       >
         {this.props.hasResetUsers && (
-          <Meta title="reset" style={resetStyle} backgroundColor={globalColors.red} />
+          <Meta title="reset" style={styles.alertMeta} backgroundColor={globalColors.red} />
         )}
-        <Box
-          style={{
-            ...globalStyles.flexBoxRow,
-            alignItems: 'center',
-            flexGrow: 1,
-            height: '100%',
-            position: 'relative',
-          }}
-        >
-          <Box
-            style={{
-              ...globalStyles.flexBoxRow,
-              ...globalStyles.fillAbsolute,
-              alignItems: 'center',
-            }}
-          >
-            {content}
-          </Box>
+        {this.props.youNeedToRekey && (
+          <Meta title="rekey needed" style={styles.alertMeta} backgroundColor={globalColors.red} />
+        )}
+        <Box style={styles.innerBox}>
+          <Box style={{...globalStyles.fillAbsolute}}>{content}</Box>
         </Box>
       </Box>
     )
   }
 }
-const resetStyle = platformStyles({
-  common: {
-    alignSelf: 'center',
-    marginRight: 6,
-  },
-  isElectron: {},
-  isMobile: {
-    marginTop: 2,
-  },
-})
+
 const styles = styleSheetCreate({
+  outerBox: {
+    ...globalStyles.flexBoxRow,
+    flexGrow: 1,
+    height: isMobile ? 20 : 17,
+    maxHeight: isMobile ? 20 : 17,
+  },
+  innerBox: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    flexGrow: 1,
+    height: '100%',
+    position: 'relative',
+  },
+  rekeyNeededContainer: {
+    alignSelf: 'center',
+    backgroundColor: globalColors.red,
+    borderRadius: 2,
+    paddingLeft: globalMargins.xtiny,
+    paddingRight: globalMargins.xtiny,
+  },
+  rekeyNeededText: platformStyles({
+    common: {
+      color: globalColors.white,
+    },
+    isElectron: {
+      fontSize: 11,
+      lineHeight: 13,
+    },
+    isMobile: {
+      fontSize: 12,
+      lineHeight: 14,
+    },
+  }),
+  youAreResetText: platformStyles({
+    isElectron: {
+      fontSize: 12,
+      lineHeight: 13,
+    },
+    isMobile: {
+      fontSize: 14,
+      lineHeight: 19,
+    },
+  }),
   bottomLine: platformStyles({
     isAndroid: {
       lineHeight: undefined,
@@ -214,7 +190,7 @@ const styles = styleSheetCreate({
       color: globalColors.black_40,
       display: 'block',
       fontSize: 12,
-      lineHeight: '15px',
+      lineHeight: 15,
       minHeight: 16,
       overflow: 'hidden',
       paddingRight: 30,
@@ -230,8 +206,17 @@ const styles = styleSheetCreate({
       paddingRight: 30,
     },
   }),
-  bottomLineBox: {
+  contentBox: {
     width: '100%',
   },
+  alertMeta: platformStyles({
+    common: {
+      alignSelf: 'center',
+      marginRight: 6,
+    },
+    isMobile: {
+      marginTop: 2,
+    },
+  }),
 })
 export {BottomLine}

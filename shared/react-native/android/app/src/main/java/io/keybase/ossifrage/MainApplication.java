@@ -11,10 +11,10 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.shell.MainReactPackage;
 import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
 import com.facebook.soloader.SoLoader;
-import com.lwansbrough.RCTCamera.RCTCameraPackage;
 import com.imagepicker.ImagePickerPackage;
 import com.RNFetchBlob.RNFetchBlobPackage;
 import com.rt2zz.reactnativecontacts.ReactNativeContacts;
+import org.reactnative.camera.RNCameraPackage;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -66,7 +66,7 @@ public class MainApplication extends Application implements ReactApplication {
             }
           },
           new ReactNativePushNotificationPackage(),
-          new RCTCameraPackage(),
+          new RNCameraPackage(),
           new ImagePickerPackage(),
           new RNFetchBlobPackage(),
           new ReactNativeContacts()
@@ -77,7 +77,7 @@ public class MainApplication extends Application implements ReactApplication {
               new MainReactPackage(),
               new KBReactPackage(logFile.getAbsolutePath()),
               new ReactNativePushNotificationPackage(),
-              new RCTCameraPackage(),
+              new RNCameraPackage(),
               new ImagePickerPackage(),
               new RNFetchBlobPackage(),
               new ReactNativeContacts()

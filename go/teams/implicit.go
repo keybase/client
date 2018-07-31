@@ -53,6 +53,38 @@ func LookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	return lookupImplicitTeamAndConflicts(ctx, g, displayName, impName)
 }
 
+func LookupImplicitTeamIDUntrusted(ctx context.Context, g *libkb.GlobalContext, displayName string,
+	public bool) (res keybase1.TeamID, err error) {
+	imp, err := loadImpteamFromServer(ctx, g, displayName, public)
+	if err != nil {
+		return res, err
+	}
+	return imp.TeamID, nil
+}
+
+func loadImpteamFromServer(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (imp implicitTeam, err error) {
+	arg := libkb.NewAPIArgWithNetContext(ctx, "team/implicit")
+	arg.SessionType = libkb.APISessionTypeOPTIONAL
+	arg.Args = libkb.HTTPArgs{
+		"display_name": libkb.S{Val: displayName},
+		"public":       libkb.B{Val: public},
+	}
+	if err = g.API.GetDecode(arg, &imp); err != nil {
+		if aerr, ok := err.(libkb.AppStatusError); ok {
+			code := keybase1.StatusCode(aerr.Code)
+			switch code {
+			case keybase1.StatusCode_SCTeamReadError:
+				return imp, NewTeamDoesNotExistError(public, displayName)
+			case keybase1.StatusCode_SCTeamProvisionalCanKey, keybase1.StatusCode_SCTeamProvisionalCannotKey:
+				return imp, libkb.NewTeamProvisionalError(
+					(code == keybase1.StatusCode_SCTeamProvisionalCanKey), public, displayName)
+			}
+		}
+		return imp, err
+	}
+	return imp, nil
+}
+
 // Lookup an implicit team by name like "alice,bob+bob@twitter (conflicted copy 2017-03-04 #1)"
 // Does not resolve social assertions.
 // preResolveDisplayName is used for logging and errors
@@ -72,26 +104,8 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	if err != nil {
 		return team, teamName, impTeamName, conflicts, err
 	}
-
-	arg := libkb.NewAPIArgWithNetContext(ctx, "team/implicit")
-	arg.SessionType = libkb.APISessionTypeOPTIONAL
-	arg.Args = libkb.HTTPArgs{
-		"display_name": libkb.S{Val: lookupNameWithoutConflict},
-		"public":       libkb.B{Val: impTeamName.IsPublic},
-	}
-	var imp implicitTeam
-	if err = g.API.GetDecode(arg, &imp); err != nil {
-		if aerr, ok := err.(libkb.AppStatusError); ok {
-			code := keybase1.StatusCode(aerr.Code)
-			switch code {
-			case keybase1.StatusCode_SCTeamReadError:
-				return team, teamName, impTeamName, conflicts, NewTeamDoesNotExistError(
-					impTeamName.IsPublic, preResolveDisplayName)
-			case keybase1.StatusCode_SCTeamProvisionalCanKey, keybase1.StatusCode_SCTeamProvisionalCannotKey:
-				return team, teamName, impTeamName, conflicts, libkb.NewTeamProvisionalError(
-					(code == keybase1.StatusCode_SCTeamProvisionalCanKey), impTeamName.IsPublic, preResolveDisplayName)
-			}
-		}
+	imp, err := loadImpteamFromServer(ctx, g, lookupNameWithoutConflict, impTeamName.IsPublic)
+	if err != nil {
 		return team, teamName, impTeamName, conflicts, err
 	}
 	if len(imp.Conflicts) > 0 {

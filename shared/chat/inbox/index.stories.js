@@ -196,6 +196,24 @@ const mapPropProviderProps = {
     timestamp: '1:05 pm',
     snippetDecoration: '',
   },
+  smallTeamL: {
+    ...commonSmallTeam,
+    conversationIDKey: '12',
+    participants: ['nathunsmitty', 'cnojima'],
+    youAreReset: true,
+  },
+  smallTeamM: {
+    ...commonSmallTeam,
+    conversationIDKey: '13',
+    participants: ['adamjspooner'],
+    participantNeedToRekey: true,
+  },
+  smallTeamN: {
+    ...commonSmallTeam,
+    conversationIDKey: '14',
+    participants: ['xgess'],
+    youNeedToRekey: true,
+  },
 
   // Big Team A
   bigTeamAHeader: {
@@ -314,7 +332,7 @@ const getPropProviderProps = own => {
     }
   }
 
-  return own.teamnames ? mapPropProviderProps[own.teamname] : {}
+  return own.teamname ? mapPropProviderProps[own.teamname] : {}
 }
 
 /*
@@ -357,6 +375,9 @@ const propsInboxSimple = {
     makeRowItemSmall('smallTeamF'),
     makeRowItemSmall('smallTeamG'),
     makeRowItemSmall('smallTeamH'),
+    makeRowItemSmall('smallTeamL'),
+    makeRowItemSmall('smallTeamM'),
+    makeRowItemSmall('smallTeamN'),
   ],
 }
 
@@ -498,6 +519,7 @@ const provider = createPropProvider(
     BuildTeam: p => ({
       onBuildTeam: action('onBuildTeam'),
       showBuildATeam: teamsEmpty,
+      loaded: true,
     }),
     NewChooser: p => ({
       isSelected: false,
@@ -516,9 +538,7 @@ const provider = createPropProvider(
     // BigTeamHeader is wrapped by FloatingMenuParent
     FloatingMenuParent: getPropProviderProps,
     SmallTeam: getPropProviderProps,
-    BigTeamHeader: p => {
-      return getPropProviderProps(p)
-    },
+    BigTeamHeader: getPropProviderProps,
     BigTeamsDivider: ownProps => ({badgeCount: 5}),
     BigTeamChannel: getPropProviderProps,
     FilterSmallTeam: getPropProviderProps,

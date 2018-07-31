@@ -27,6 +27,15 @@ protocol identify {
     union { null, IdentifyTrackBreaks } trackBreaks;
   }
 
+  // Identify2ResUPK2 is used internally, but we return Identify2Res for
+  // the purposes of KBFS.
+  @lint("ignore")
+  record Identify2ResUPK2 {
+    UserPlusKeysV2AllIncarnations upk;
+    Time identifiedAt;
+    union { null, IdentifyTrackBreaks } trackBreaks;
+  }
+
   /*
    * Note that UID can be empty, in which case a resolution is also forced.
    */

@@ -33,7 +33,7 @@ func (v *CmdTeamShowTree) Run() (err error) {
 
 	// Get the tree from the root.
 	treeRes, err := cli.TeamTree(context.TODO(), keybase1.TeamTreeArg{
-		Name:      v.TeamName.RootAncestorName(),
+		Name:      v.TeamName,
 		SessionID: v.SessionID,
 	})
 	if err != nil {

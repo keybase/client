@@ -196,6 +196,7 @@ const styleRow = {
 const styleService = {
   marginRight: globalMargins.xtiny,
   marginTop: 2,
+  padding: 5,
 }
 const styleServiceContainer = {
   color: globalColors.black_75,
