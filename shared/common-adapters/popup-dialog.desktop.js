@@ -64,6 +64,7 @@ const coverStyle = {
   paddingRight: globalMargins.large,
   paddingTop: globalMargins.small,
   paddingBottom: globalMargins.small,
+  zIndex: 1, // Put the popup on top of any siblings
 }
 
 const containerStyle = {
