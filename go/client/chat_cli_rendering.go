@@ -33,10 +33,13 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 
 	table := &flexibletable.Table{}
 	for i, conv := range v {
+		var tlfName string
 		if conv.Error != nil {
-			continue
+			tlfName = fmt.Sprintf("(unverified) %v",
+				formatUnverifiedConvName(conv.Error.UnverifiedTLFName, conv.Info.Visibility, g.Env.GetUsername().String()))
+		} else {
+			tlfName = conv.Info.TlfName
 		}
-		participants := strings.Split(conv.Info.TlfName, ",")
 		vis := "private"
 		if conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC {
 			vis = "public"
@@ -57,7 +60,7 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Left,
-				Content:   flexibletable.MultiCell{Sep: ",", Items: participants},
+				Content:   flexibletable.SingleCell{Item: tlfName},
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Left,
@@ -101,7 +104,8 @@ func (v conversationListView) convNameKBFS(g *libkb.GlobalContext, conv chat1.Co
 	return name
 }
 
-// Make a name that looks like a tlfname but is sorted by activity and missing myUsername.
+// Make a name that looks like a tlfname but is sorted by activity and missing
+// myUsername.
 func (v conversationListView) convName(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
