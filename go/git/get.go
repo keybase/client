@@ -91,9 +91,7 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 		Endpoint:    "kbfs/git/team/get",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		NetContext:  ctx,
-		Args:        libkb.HTTPArgs{
-		// a limit parameter exists, default 100, and we don't currently set it
-		},
+		Args:        libkb.HTTPArgs{}, // a limit parameter exists, default 100, and we don't currently set it
 	}
 
 	// The team_id parameter is optional. Add it in if the caller supplied it.
