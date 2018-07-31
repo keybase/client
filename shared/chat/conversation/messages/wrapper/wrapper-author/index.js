@@ -16,7 +16,7 @@ import AttachmentMessage from '../../attachment/container'
 import SendIndicator from '../chat-send'
 import ExplodingHeightRetainer from '../exploding-height-retainer'
 
-export type Props = {
+export type Props = {|
   author: string,
   conversationIDKey: Types.ConversationIDKey,
   exploded: boolean,
@@ -47,7 +47,7 @@ export type Props = {
   styles: StylesCrossPlatform,
   timestamp: number,
   type: 'text' | 'attachment',
-}
+|}
 
 const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBroken: boolean) => {
   if (isYou) {

@@ -15,6 +15,7 @@ import {
   platformStyles,
   styleSheetCreate,
 } from '../../../../../styles'
+import WrapperAuthor from '../wrapper-author/container'
 import ReactionsRow from '../../reactions-row/container'
 import ReactButton from '../../react-button/container'
 import MessagePopup from '../../message-popup'
@@ -26,7 +27,7 @@ import LongPressable from './long-pressable'
  * button, and exploding meta tag.
  */
 
-export type Props = {
+export type Props = {|
   conversationIDKey: Types.ConversationIDKey,
   exploded: boolean,
   ordinal: Types.Ordinal,
@@ -34,9 +35,11 @@ export type Props = {
   message: Types.Message,
   previous?: ?Types.Message,
   children?: React.Node,
+  isEditing: boolean,
   timestamp: string,
+  type: 'wrapper-author' | 'children',
   orangeLineAbove: boolean,
-}
+|}
 
 const HoverBox = isMobile
   ? LongPressable
@@ -82,7 +85,17 @@ class _WrapperTimestamp extends React.PureComponent<Props & FloatingMenuParentPr
           {/* Additional Box here because NativeTouchableHighlight only supports one child */}
           <Box>
             <Box2 direction="horizontal" fullWidth={true} style={styles.alignItemsFlexEnd}>
-              {props.children}
+              {props.type === 'children' && props.children}
+              {/* Additional checks on props.message.type to appease flow */}
+              {props.type === 'wrapper-author' &&
+                (props.message.type === 'attachment' || props.message.type === 'text') && (
+                  <WrapperAuthor
+                    message={props.message}
+                    previous={props.previous}
+                    isEditing={props.isEditing}
+                    measure={props.measure}
+                  />
+                )}
               {!props.exploded && (
                 <MenuButtons
                   conversationIDKey={props.conversationIDKey}

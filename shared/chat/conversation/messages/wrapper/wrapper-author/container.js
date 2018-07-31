@@ -9,7 +9,14 @@ import {WrapperAuthor} from '../'
 import {setDisplayName, compose, connect, type TypedState} from '../../../../../util/container'
 import {isMobile} from '../../../../../constants/platform'
 
-const mapStateToProps = (state: TypedState, {message, previous, isEditing}) => {
+type OwnProps = {|
+  isEditing: boolean,
+  measure: null | (() => void),
+  message: Types.MessageText | Types.MessageAttachment,
+  previous: ?Types.Message,
+|}
+
+const mapStateToProps = (state: TypedState, {message, previous, isEditing}: OwnProps) => {
   const isYou = state.config.username === message.author
   const isFollowing = state.config.following.has(message.author)
   const isBroken = state.users.infoMap.getIn([message.author, 'broken'], false)
@@ -48,7 +55,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID})),
 })
 
-const mergeProps = (stateProps, dispatchProps, {measure}) => {
+const mergeProps = (stateProps, dispatchProps, {measure}: OwnProps) => {
   const {message, previous} = stateProps
 
   const sequentialUserMessages =
