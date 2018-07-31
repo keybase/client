@@ -54,8 +54,8 @@ jobs:
     - run: sudo update-alternatives --set java /usr/lib/jvm/jdk1.8.0/bin/java; sudo update-alternatives --set javac /usr/lib/jvm/jdk1.8.0/bin/javac; echo -e "export JAVA_HOME=/usr/lib/jvm/jdk1.8.0" >> $BASH_ENV
 
     # Restore the dependency cache
-    - restore_cache:
-        keys:
+    # - restore_cache:
+        # keys:
         # This branch if available
         # - v1-dep-{{ .Branch }}-
         # Default branch if not
