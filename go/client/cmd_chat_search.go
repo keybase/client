@@ -22,6 +22,7 @@ type CmdChatSearch struct {
 	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
 	query            string
+	sentBy           string
 	maxHits          int
 	maxMessages      int
 	beforeContext    int
@@ -58,6 +59,11 @@ func newCmdChatSearch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 				Name:  "max-hits",
 				Value: 10,
 				Usage: "Specify the maximum number of search hits to get.",
+			},
+			cli.StringFlag{
+				Name:  "sent-by",
+				Value: "",
+				Usage: "Filter search results by the username of the sender.",
 			},
 			cli.IntFlag{
 				Name:  "max-messages",
@@ -137,6 +143,7 @@ func (c *CmdChatSearch) Run() (err error) {
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		Query:            c.query,
 		IsRegex:          c.isRegex,
+		SentBy:           c.sentBy,
 		MaxHits:          c.maxHits,
 		MaxMessages:      c.maxMessages,
 		BeforeContext:    c.beforeContext,
@@ -160,6 +167,7 @@ func (c *CmdChatSearch) ParseArgv(ctx *cli.Context) (err error) {
 		return err
 	}
 	c.query = ctx.Args().Get(1)
+	c.sentBy = ctx.String("sent-by")
 	c.maxHits = ctx.Int("max-hits")
 	c.maxMessages = ctx.Int("max-messages")
 

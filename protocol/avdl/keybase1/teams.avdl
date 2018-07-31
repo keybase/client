@@ -745,9 +745,9 @@ protocol teams {
 
   void teamIgnoreRequest(int sessionID, string name, string username);
 
-  // Get a list of all recursive subteams recursively. Sorted alphabetically like a tree.
-  // Team must be a root team.
-  // Example: a -> [a, a.b, a.b.c, a.b.d, a.e.f, a.e.g]
+  // Get a list of all recursive subteams of this team's root team that are visible to the user.
+  // Sorted alphabetically like a tree.
+  // Example: "a" or "a.b" -> [a, a.b, a.b.c, a.b.d, a.e.f, a.e.g]
   TeamTreeResult teamTree(int sessionID, TeamName name);
 
   void teamDelete(int sessionID, string name);

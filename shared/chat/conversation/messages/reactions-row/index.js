@@ -4,7 +4,7 @@ import * as Types from '../../../../constants/types/chat2'
 import {Box, Box2} from '../../../../common-adapters'
 import ReactButton from '../react-button/container'
 import ReactionTooltip from '../reaction-tooltip/container'
-import {collapseStyles, globalMargins, styleSheetCreate} from '../../../../styles'
+import {collapseStyles, globalMargins, isMobile, styleSheetCreate} from '../../../../styles'
 
 export type Props = {|
   conversationIDKey: Types.ConversationIDKey,
@@ -14,11 +14,13 @@ export type Props = {|
 type State = {
   activeEmoji: string,
   showAddReaction: boolean,
+  showMobileTooltip: boolean,
 }
 class ReactionsRow extends React.Component<Props, State> {
   state = {
     activeEmoji: '',
     showAddReaction: false,
+    showMobileTooltip: false,
   }
   _attachmentRefs: {[emojiName: string]: ?React.Component<any, any>} = {}
 
@@ -31,6 +33,9 @@ class ReactionsRow extends React.Component<Props, State> {
 
   _setHoveringRow = (hovering: boolean) =>
     this.setState(s => (s.showAddReaction === hovering ? null : {showAddReaction: hovering}))
+
+  _setShowMobileTooltip = (showMobileTooltip: boolean) =>
+    this.setState(s => (s.showMobileTooltip === showMobileTooltip ? null : {showMobileTooltip}))
 
   render() {
     return this.props.emojis.length === 0 ? null : (
@@ -52,6 +57,7 @@ class ReactionsRow extends React.Component<Props, State> {
               ref={r => (this._attachmentRefs[emoji] = r)}
               conversationIDKey={this.props.conversationIDKey}
               emoji={emoji}
+              onLongPress={() => this._setShowMobileTooltip(true)}
               ordinal={this.props.ordinal}
               style={styles.button}
             />
@@ -67,9 +73,19 @@ class ReactionsRow extends React.Component<Props, State> {
         ))}
         <ReactButton
           conversationIDKey={this.props.conversationIDKey}
+          onLongPress={() => this._setShowMobileTooltip(true)}
           ordinal={this.props.ordinal}
           showBorder={true}
-          style={collapseStyles([styles.button, !this.state.showAddReaction && styles.displayNone])}
+          style={collapseStyles([
+            styles.button,
+            !this.state.showAddReaction && !isMobile && styles.displayNone,
+          ])}
+        />
+        <ReactionTooltip
+          conversationIDKey={this.props.conversationIDKey}
+          onHidden={() => this._setShowMobileTooltip(false)}
+          ordinal={this.props.ordinal}
+          visible={this.state.showMobileTooltip}
         />
       </Box2>
     )

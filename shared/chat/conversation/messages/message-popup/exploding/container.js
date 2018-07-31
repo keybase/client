@@ -5,6 +5,7 @@ import * as TeamConstants from '../../../../../constants/teams'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as KBFSGen from '../../../../../actions/kbfs-gen'
+import * as Route from '../../../../../actions/route-tree'
 import {compose, connect, isMobile, setDisplayName, type TypedState} from '../../../../../util/container'
 import {isIOS} from '../../../../../constants/platform'
 import {copyToClipboard} from '../../../../../util/clipboard'
@@ -42,6 +43,16 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+  _onAddReaction: () => {
+    dispatch(
+      Route.navigateAppend([
+        {
+          props: {conversationIDKey: ownProps.message.conversationIDKey, ordinal: ownProps.message.ordinal},
+          selected: 'chooseEmoji',
+        },
+      ])
+    )
+  },
   _onCopy: () => {
     if (ownProps.message.type === 'text') {
       copyToClipboard(ownProps.message.text.stringValue())
@@ -95,6 +106,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       danger: true,
       onClick: dispatchProps._onExplodeNow,
       title: 'Explode now',
+    })
+  }
+  if (isMobile) {
+    // 'Add a reaction' is an option on mobile
+    items.push({
+      onClick: dispatchProps._onAddReaction,
+      title: 'Add a reaction',
     })
   }
   const message = ownProps.message

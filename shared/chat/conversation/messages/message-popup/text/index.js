@@ -12,6 +12,7 @@ type Props = {
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
+  onAddReaction: null | (() => void),
   onCopy: () => void,
   onDelete: null | (() => void),
   onDeleteMessageHistory: null | (() => void),
@@ -19,7 +20,7 @@ type Props = {
   onHidden: () => void,
   onQuote: null | (() => void),
   onReplyPrivately: null | (() => void),
-  onViewProfile: () => void,
+  onViewProfile: null | (() => void),
   position: Position,
   showDivider: boolean,
   style?: Object,
@@ -51,10 +52,11 @@ const TextPopupMenu = (props: Props) => {
           },
         ]
       : []),
+    ...(props.onAddReaction ? [{onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
     {onClick: props.onCopy, title: 'Copy text'},
-    {onClick: props.onQuote, title: 'Quote'},
-    {onClick: props.onReplyPrivately, title: 'Reply privately'},
-    {onClick: props.onViewProfile, title: 'View profile'},
+    ...(props.onQuote ? [{onClick: props.onQuote, title: 'Quote'}] : []),
+    ...(props.onReplyPrivately ? [{onClick: props.onReplyPrivately, title: 'Reply privately'}] : []),
+    ...(props.onViewProfile ? [{onClick: props.onViewProfile, title: 'View profile'}] : []),
   ]
 
   const header = {

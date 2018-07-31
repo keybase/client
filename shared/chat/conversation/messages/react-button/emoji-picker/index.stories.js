@@ -20,7 +20,7 @@ class WithFilter extends React.Component<{}, {filter: string}> {
 
 const load = () => {
   const story = storiesOf('Chat/Emoji picker', module)
-    .addDecorator(story => <Box style={{height: 400, overflow: 'hidden'}}>{story()}</Box>)
+    .addDecorator(story => <Box style={{height: 400, overflow: 'hidden', width: 300}}>{story()}</Box>)
     .add('Default', () => <ChooseEmoji onChoose={action('onChoose')} width={300} />)
     .add('Custom filter', () => <WithFilter />)
   filters.forEach(f =>

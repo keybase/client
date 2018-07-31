@@ -17,9 +17,15 @@ import {isMobile} from '../constants/platform'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import DeleteHistoryWarning from './delete-history-warning/container'
 import RetentionWarning from '../teams/team/settings-tab/retention/warning/container'
+import ChooseEmoji from './conversation/messages/react-button/emoji-picker/container'
 
 // Arbitrarily stackable routes from the chat tab
 const chatChildren = {
+  chooseEmoji: {
+    children: key => makeRouteDefNode(chatChildren[key]),
+    component: ChooseEmoji,
+    tags: makeLeafTags({layerOnTop: false}),
+  },
   createChannel: {
     component: CreateChannel,
     tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),

@@ -302,7 +302,7 @@ function* upload(action: FsGen.UploadPayload) {
     opID,
     src: {
       PathType: RPCTypes.simpleFSPathType.local,
-      local: localPath,
+      local: Types.getNormalizedLocalPath(localPath),
     },
     dest: {
       PathType: RPCTypes.simpleFSPathType.kbfs,
