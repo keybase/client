@@ -75,7 +75,7 @@ const load = () => {
             _loadParticipants={() => {}}
             _generalChannelConversationIDKey="adfasdfsad"
             conversationIDKey="adfasdfsad"
-            isTeam={false}
+            teamType="adhoc"
             loading={false}
             selectedIndex={0}
             setSelectedIndex={action('setSelectedIndex')}

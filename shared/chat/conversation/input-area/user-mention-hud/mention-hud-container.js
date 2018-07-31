@@ -8,13 +8,13 @@ import logger from '../../../../logger'
 
 const mapStateToProps = (state: TypedState, {filter, conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
-  const isTeam: boolean = meta.teamType === 'big' || meta.teamType === 'small'
+  const teamType = meta.teamType
   return {
     _filter: filter,
     _infoMap: state.users.infoMap,
     _metaMap: state.chat2.metaMap,
     conversationIDKey,
-    isTeam,
+    teamType,
   }
 }
 
@@ -47,7 +47,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     _loadParticipants: dispatchProps._loadParticipants,
     conversationIDKey: stateProps.conversationIDKey,
     filter: stateProps._filter.toLowerCase(),
-    isTeam: stateProps.isTeam,
+    teamType: stateProps.teamType,
     loading: users.length === 0,
     users,
   }

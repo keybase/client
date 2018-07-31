@@ -76,7 +76,7 @@ const hudStyle = {
   backgroundColor: globalColors.white,
 }
 
-const _withProps = ({users, isTeam, selectedIndex, filter}) => {
+const _withProps = ({users, teamType, selectedIndex, filter}) => {
   let fullList = users
     .map((u, i) => ({
       fullName: u.fullName,
@@ -85,20 +85,20 @@ const _withProps = ({users, isTeam, selectedIndex, filter}) => {
     }))
     .concat()
 
-  if (isTeam) {
+  if (teamType === 'big') {
     fullList = fullList.concat([
-      {
-        fullName: 'Everyone in this channel',
-        key: 'channel',
-        username: 'channel',
-      },
-      {
-        fullName: 'Online users',
-        key: 'here',
-        username: 'here',
-      },
+      {fullName: 'Everyone in this channel', key: 'channel', username: 'channel'},
+      {fullName: 'Everyone in this channel', key: 'here', username: 'here'},
     ])
   }
+
+  if (teamType === 'small') {
+    fullList = fullList.concat([
+      {fullName: 'Everyone in this team', key: 'channel', username: 'channel'},
+      {fullName: 'Everyone in this team', key: 'here', username: 'here'},
+    ])
+  }
+
   return {
     data: fullList
       .filter(u => {

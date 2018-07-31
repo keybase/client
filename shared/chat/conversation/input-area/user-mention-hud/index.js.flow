@@ -6,7 +6,7 @@ export type MentionContainer = {}
 export type MentionHudProps = {
   conversationIDKey: string,
   filter: string,
-  isTeam: boolean,
+  teamType: 'adhoc' | 'small' | 'big',
   loading: boolean,
   onPickUser: (string, options?: {notUser: boolean}) => void,
   onSelectUser: string => void,
