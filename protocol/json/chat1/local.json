@@ -3771,6 +3771,10 @@
           "type": "boolean"
         },
         {
+          "name": "sentBy",
+          "type": "string"
+        },
+        {
           "name": "maxHits",
           "type": "int"
         },

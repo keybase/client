@@ -118,6 +118,8 @@ export const niceError = (e: RPCError) => {
       return 'Looks like the internet is gone...'
     case RPCTypes.constantsStatusCode.scbadsignupusernamedeleted:
       return 'Looks like this user was deleted, or something'
+    case RPCTypes.constantsStatusCode.scstreameof:
+      return 'Looks like we took too long. Try again, but a little bit quicker maybe'
   }
 
   const caps = capitalize(e.desc || e.message || 'Unknown error')
