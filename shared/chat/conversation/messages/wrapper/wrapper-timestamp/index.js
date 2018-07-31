@@ -19,10 +19,16 @@ import ReactionsRow from '../../reactions-row/container'
 import ReactButton from '../../react-button/container'
 import MessagePopup from '../../message-popup'
 import ExplodingMeta from '../exploding-meta/container'
+import LongPressable from './long-pressable'
 import type {WrapperTimestampProps} from '../index.types'
 
+/**
+ * WrapperTimestamp adds the orange line, timestamp, menu button, menu, reacji
+ * button, and exploding meta tag.
+ */
+
 const HoverBox = isMobile
-  ? Box
+  ? LongPressable
   : glamorous(Box)({
       '& .menu-button': {
         flexShrink: 0,
@@ -40,7 +46,7 @@ const HoverBox = isMobile
       flexDirection: 'column',
     })
 
-class WrapperTimestamp extends React.PureComponent<WrapperTimestampProps & FloatingMenuParentProps> {
+class _WrapperTimestamp extends React.PureComponent<WrapperTimestampProps & FloatingMenuParentProps> {
   componentDidUpdate(prevProps: WrapperTimestampProps) {
     if (this.props.measure) {
       if (
@@ -57,20 +63,27 @@ class WrapperTimestamp extends React.PureComponent<WrapperTimestampProps & Float
       <Box style={styles.container}>
         {props.orangeLineAbove && <Box style={styles.orangeLine} />}
         {props.timestamp && <Timestamp timestamp={props.timestamp} />}
-        <HoverBox stye={{...globalStyles.flexBoxRow, width: '100%'}}>
-          <Box2 direction="horizontal" fullWidth={true} style={styles.alignItemsFlexEnd}>
-            {props.children}
-            {!props.exploded && (
-              <MenuButtons
-                conversationIDKey={props.conversationIDKey}
-                message={props.message}
-                ordinal={props.ordinal}
-                setAttachmentRef={props.setAttachmentRef}
-                toggleShowingMenu={props.toggleShowingMenu}
-              />
-            )}
-          </Box2>
-          <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
+        <HoverBox
+          onLongPress={props.toggleShowingMenu}
+          underlayColor={globalColors.blue4}
+          stye={{...globalStyles.flexBoxRow, width: '100%'}}
+        >
+          {/* Additional Box here because NativeTouchableHighlight only supports one child */}
+          <Box>
+            <Box2 direction="horizontal" fullWidth={true} style={styles.alignItemsFlexEnd}>
+              {props.children}
+              {!props.exploded && (
+                <MenuButtons
+                  conversationIDKey={props.conversationIDKey}
+                  message={props.message}
+                  ordinal={props.ordinal}
+                  setAttachmentRef={props.setAttachmentRef}
+                  toggleShowingMenu={props.toggleShowingMenu}
+                />
+              )}
+            </Box2>
+            <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
+          </Box>
         </HoverBox>
         {(props.message.type === 'attachment' || props.message.type === 'text') && (
           <MessagePopup
@@ -85,6 +98,7 @@ class WrapperTimestamp extends React.PureComponent<WrapperTimestampProps & Float
     )
   }
 }
+const WrapperTimestamp = FloatingMenuParentHOC(_WrapperTimestamp)
 
 type MenuButtonsProps = {
   conversationIDKey: Types.ConversationIDKey,

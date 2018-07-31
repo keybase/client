@@ -1,5 +1,0 @@
-// @flow
-import * as React from 'react'
-import type {WrapperTimestampProps} from '../index.types'
-
-export default class extends React.Component<WrapperTimestampProps> {}
