@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import {styleSheetCreate, globalColors} from '../../styles'
+import * as Styles from '../../styles'
 
 type Props = {
   isDefaultWallet: boolean,
@@ -118,8 +118,12 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
     return (
       <Kb.ClickableBox onClick={this.props.toggleShowingMenu} ref={this.props.setAttachmentRef}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-          <Kb.Button onClick={null} type="Secondary">
-            <Kb.Icon type="iconfont-ellipsis" color={globalColors.black_75} />
+          <Kb.Button onClick={null} type="Secondary" style={styles.dropdownButton}>
+            <Kb.Icon
+              fontSize={Styles.isMobile ? 22 : 16}
+              type="iconfont-ellipsis"
+              color={Styles.globalColors.black_75}
+            />
           </Kb.Button>
         </Kb.Box2>
         <Kb.FloatingMenu
@@ -135,8 +139,18 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
   }
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   noShrink: {flexShrink: 0},
+  dropdownButton: Styles.platformStyles({
+    isElectron: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.xsmall,
+      paddingRight: Styles.globalMargins.xsmall,
+    },
+  }),
 })
 
 const SendButton = Kb.OverlayParentHOC(_SendButton)
