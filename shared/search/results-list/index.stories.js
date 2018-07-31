@@ -24,6 +24,7 @@ const connectPropsMap: RowConnectPropsMap = {
 
     leftFollowingState: 'Following',
     rightFollowingState: 'NoState',
+    userAlreadySelected: false,
     userIsInTeam: false,
   },
   cjb: {
@@ -40,6 +41,7 @@ const connectPropsMap: RowConnectPropsMap = {
 
     leftFollowingState: 'NotFollowing',
     rightFollowingState: 'NoState',
+    userAlreadySelected: false,
     userIsInTeam: false,
   },
   jzila: {
@@ -56,6 +58,7 @@ const connectPropsMap: RowConnectPropsMap = {
 
     leftFollowingState: 'NotFollowing',
     rightFollowingState: 'NoState',
+    userAlreadySelected: false,
     userIsInTeam: false,
   },
 }

@@ -158,7 +158,7 @@ const SearchResultRow = (props: Props) => (
         rightUsername={props.rightUsername}
       />
       <Right onShowTracker={props.onShowTracker} />
-      <RightEdge showCheckmark={props.userIsInTeam} />
+      <RightEdge showCheckmark={props.userAlreadySelected} />
       <Line />
     </Box>
   </ClickableBox>

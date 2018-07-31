@@ -24,6 +24,7 @@ const defaultConnectProps = {
 
   leftFollowingState: 'NoState',
   rightFollowingState: 'NoState',
+  userAlreadySelected: false,
   userIsInTeam: false,
 }
 
@@ -44,6 +45,7 @@ const defaultConnectPropsMap: ConnectPropsMap = {
 
     leftFollowingState: 'NotFollowing',
     rightFollowingState: 'NotFollowing',
+    userAlreadySelected: false,
     userIsInTeam: false,
   },
 }
