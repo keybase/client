@@ -82,9 +82,39 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		Name:         "encrypt",
 		ArgumentHelp: "<usernames...>",
 		Usage:        "Encrypt messages or files for keybase users and teams",
-		Description: "Encrypt messages or files for keybase users and teams, using the saltpack format (http://saltpack.org).\n" +
-			"Messages are encrypted and integrity protected.\n\n" +
-			"Note: repudiable authenticity corresponds to the saltpack encryption format (which uses pairwise macs instead of signatures). ",
+		Description: `Encrypt messages and files for keybase users and teams using Saltpack 
+(https://saltpack.org), a modern encryption format.
+Saltpack is built on top of the well-established NaCl crypto library 
+(https://nacl.cr.yp.to/), to which it adds support for multiple recipients, a 
+new copy-paste friendly ASCII output format, and the ability to encrypt very 
+large files that don't fit int RAM. Messages are securely encrypted and cannot 
+be read by anyone but the intended recipient or altered in any way.
+
+"keybase encrypt" makes decryption as simple as possible: 
+  - When you encrypt for a keybase user, they will be able to decrypt your 
+message using any of their current devices, and even new devices which are 
+added after the message is generated (each user has an additional per user key 
+which is synced among all their devices).
+  - You can also encrypt for a team (through the "--team" flag), in which case 
+all devices of the current team members will be able to decrypt the message 
+*even after they leave the team!*, as well as devices of anyone who later joins 
+the team (through a shared team key).
+  - You can even encrypt for users that are not yet on keybase, such as 
+not_yet_on_keybase@twitter: the message will be encrypted with a key known only 
+to your devices, which will automatically rekey it for the recipient once they 
+join keybase and prove they own the recipient account.
+  - For advanced users, the set of keys used to encrypt the message can be 
+customized through flags.
+
+"keybase encrypt" provides strong integrity guarantees: messages are signed by 
+default with the key of the device you use to generate them, but repudiable 
+authentication (the recipient of a message can be convinced that you sent it, 
+but cannot convince a third party of this fact)
+and private but anonymous messages are also supported. At the moment, 
+encrypting for teams (and users not yet on keybase or with missing keys) with 
+repudiable authentication is not possible. You can still use signed or 
+anonymous mode in such cases.
+`,
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdEncrypt{
 				Contextified: libkb.NewContextified(g),
@@ -145,7 +175,7 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 		return errors.New("invalid auth-type option provided")
 	}
 
-	// Repudiable authenticity corresponds to the saltpack encryption format (which uses pairwise macs instead of signatures). Because of the spec
+	// Repudiable authenticity corresponds to the saltpack encryption format (which uses pairwise MACs instead of signatures). Because of the spec
 	// and the interface exposed by saltpack v2, we cannot use the pseudonym mechanism with the encryption format. As such, we cannot encrypt for teams
 	// (and implicit teams): we can error here for teams, and later if resolving any user would lead to the creation of an implicit team.
 	if c.opts.UseEntityKeys && len(c.opts.TeamRecipients) > 0 && c.opts.AuthenticityType == keybase1.AuthenticityType_REPUDIABLE {
