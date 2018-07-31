@@ -380,7 +380,6 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		FromAccountID:     summary.FromAccountID,
 		FromAccountName:   summary.FromAccountName,
 		FromUsername:      summary.FromUsername,
-		FromAssertion:     summary.FromAssertion,
 		ToAccountID:       summary.ToAccountID,
 		ToAccountName:     summary.ToAccountName,
 		ToUsername:        summary.ToUsername,

@@ -887,7 +887,7 @@ func TestSendToSelf(t *testing.T) {
 	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, p.ToType)
 	require.Equal(t, accountID1, *p.ToAccountID)
 	require.Equal(t, "office lunch money", p.ToAccountName)
-	require.Equal(t, tcs[1].Fu.Username, p.ToUsername)
+	require.Equal(t, tcs[0].Fu.Username, p.ToUsername)
 	require.Equal(t, "", p.ToAssertion)
 
 	p = page.Payments[1].Payment
@@ -899,7 +899,7 @@ func TestSendToSelf(t *testing.T) {
 	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, p.ToType)
 	require.Equal(t, accountID2, *p.ToAccountID)
 	require.Equal(t, "savings", p.ToAccountName)
-	require.Equal(t, tcs[1].Fu.Username, p.ToUsername)
+	require.Equal(t, "", p.ToUsername)
 	require.Equal(t, "", p.ToAssertion)
 
 	p = page.Payments[0].Payment
@@ -911,11 +911,11 @@ func TestSendToSelf(t *testing.T) {
 	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, p.ToType)
 	require.Equal(t, accountID1, *p.ToAccountID)
 	require.Equal(t, "office lunch money", p.ToAccountName)
-	require.Equal(t, tcs[1].Fu.Username, p.ToUsername)
+	require.Equal(t, tcs[0].Fu.Username, p.ToUsername) // the sender resolved the username before sending, so it's recorded
 	require.Equal(t, "", p.ToAssertion)
 
 	pd, err := tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
-		Id:        page.Payments[1].Payment.Id,
+		Id:        page.Payments[2].Payment.Id,
 		AccountID: accountID1,
 	})
 	require.NoError(t, err)
@@ -927,7 +927,7 @@ func TestSendToSelf(t *testing.T) {
 	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, pd.ToType)
 	require.Equal(t, accountID1, *pd.ToAccountID)
 	require.Equal(t, "office lunch money", pd.ToAccountName)
-	require.Equal(t, tcs[1].Fu.Username, pd.ToUsername)
+	require.Equal(t, tcs[0].Fu.Username, pd.ToUsername)
 	require.Equal(t, "", pd.ToAssertion)
 
 	pd, err = tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
@@ -943,7 +943,7 @@ func TestSendToSelf(t *testing.T) {
 	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, pd.ToType)
 	require.Equal(t, accountID2, *pd.ToAccountID)
 	require.Equal(t, "savings", pd.ToAccountName)
-	require.Equal(t, tcs[1].Fu.Username, pd.ToUsername)
+	require.Equal(t, "", pd.ToUsername)
 	require.Equal(t, "", pd.ToAssertion)
 
 	pd, err = tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
@@ -959,7 +959,7 @@ func TestSendToSelf(t *testing.T) {
 	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, pd.ToType)
 	require.Equal(t, accountID1, *pd.ToAccountID)
 	require.Equal(t, "office lunch money", pd.ToAccountName)
-	require.Equal(t, tcs[1].Fu.Username, pd.ToUsername)
+	require.Equal(t, tcs[0].Fu.Username, pd.ToUsername)
 	require.Equal(t, "", pd.ToAssertion)
 }
 
