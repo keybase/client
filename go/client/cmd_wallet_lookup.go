@@ -51,12 +51,15 @@ func (c *CmdWalletLookup) Run() error {
 	}
 
 	dui := c.G().UI.GetDumbOutputUI()
-	accID, err := cli.LookupCLILocal(context.Background(), c.Name)
+	res, err := cli.LookupCLILocal(context.Background(), c.Name)
 	if err != nil {
 		return err
 	}
 
-	dui.Printf("%q: %s\n", c.Name, accID)
+	dui.Printf("%q: %s\n", c.Name, res.AccountID)
+	if res.Username != nil {
+		dui.Printf("Belonging to https://keybase.io/%s\n", *res.Username)
+	}
 	return nil
 }
 

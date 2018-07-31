@@ -258,6 +258,33 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res 
 		return nil
 	}
 
+	if strings.Index(string(to), stellarAddress.Separator) >= 0 {
+		name, domain, err := stellarAddress.Split(string(to))
+		if err != nil {
+			return res, err
+		}
+
+		if domain == "keybase.io" {
+			// Keybase.io federation address. Fall through to identify
+			// path.
+			m.CDebugf("Got federation address %q but it's under keybase.io domain!", to)
+			m.CDebugf("Instead going to lookup Keybase assertion: %q", name)
+			to = stellarcommon.RecipientInput(name)
+		} else {
+			// Actual federation address that is not under keybase.io
+			// domain. Use federation client.
+			fedCli := getFederationClient(m)
+			nameResponse, err := fedCli.LookupByAddress(string(to))
+			if err != nil {
+				return res, err
+			}
+			// We got an address! Fall through to the "Stellar
+			// address" path.
+			m.CDebugf("federation.LookupByAddress returned: %+v", nameResponse)
+			to = stellarcommon.RecipientInput(nameResponse.AccountID)
+		}
+	}
+
 	// A Stellar address
 	if to[0] == 'G' && len(to) > 16 {
 		err := storeAddress(string(to))
@@ -279,31 +306,6 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res 
 			// log and ignore
 		}
 		return res, nil
-	}
-
-	if strings.Index(string(to), stellarAddress.Separator) >= 0 {
-		name, domain, err := stellarAddress.Split(string(to))
-		if err != nil {
-			return res, err
-		}
-
-		if domain == "keybase.io" {
-			// Keybase.io federation address. Fallthrough to identify
-			// path.
-			m.CDebugf("Got federation address %q but it's under keybase.io domain!", to)
-			m.CDebugf("Instead going to lookup Keybase assertion: %q", name)
-			to = stellarcommon.RecipientInput(name)
-		} else {
-			// Actual federation address that is not under keybase.io
-			// domain. Use federation client.
-			fedCli := getFederationClient(m)
-			nameResponse, err := fedCli.LookupByAddress(string(to))
-			if err != nil {
-				return res, err
-			}
-			_ = nameResponse
-			return res, fmt.Errorf("fed addr. not implemented yet")
-		}
 	}
 
 	idRes, err := identifyRecipient(m, string(to))

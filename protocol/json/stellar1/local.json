@@ -653,6 +653,23 @@
           "name": "exchangeRate"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "LookupResultCLILocal",
+      "fields": [
+        {
+          "type": "AccountID",
+          "name": "accountID"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "username"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1304,7 +1321,7 @@
           "type": "string"
         }
       ],
-      "response": "string"
+      "response": "LookupResultCLILocal"
     }
   },
   "namespace": "stellar.1"

@@ -490,7 +490,7 @@ func (s *Server) MakeRequestCLILocal(ctx context.Context, arg stellar1.MakeReque
 	})
 }
 
-func (s *Server) LookupCLILocal(ctx context.Context, arg string) (res string, err error) {
+func (s *Server) LookupCLILocal(ctx context.Context, arg string) (res stellar1.LookupResultCLILocal, err error) {
 	uis := libkb.UIs{
 		IdentifyUI: s.uiSource.IdentifyUI(s.G(), 0),
 	}
@@ -503,7 +503,12 @@ func (s *Server) LookupCLILocal(ctx context.Context, arg string) (res string, er
 	if recipient.AccountID == nil {
 		return res, fmt.Errorf("Recipient does not have an account.")
 	}
-	return recipient.AccountID.String(), nil
+	res.AccountID = stellar1.AccountID(*recipient.AccountID)
+	if recipient.User != nil {
+		u := recipient.User.Username.String()
+		res.Username = &u
+	}
+	return res, nil
 }
 
 func (s *Server) mctx(ctx context.Context) libkb.MetaContext {

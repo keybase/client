@@ -597,6 +597,24 @@ func (o OwnAccountCLILocal) DeepCopy() OwnAccountCLILocal {
 	}
 }
 
+type LookupResultCLILocal struct {
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+	Username  *string   `codec:"username,omitempty" json:"username,omitempty"`
+}
+
+func (o LookupResultCLILocal) DeepCopy() LookupResultCLILocal {
+	return LookupResultCLILocal{
+		AccountID: o.AccountID.DeepCopy(),
+		Username: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Username),
+	}
+}
+
 type GetWalletAccountsLocalArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -863,7 +881,7 @@ type LocalInterface interface {
 	GetAvailableLocalCurrencies(context.Context) (map[OutsideCurrencyCode]OutsideCurrencyDefinition, error)
 	FormatLocalCurrencyString(context.Context, FormatLocalCurrencyStringArg) (string, error)
 	MakeRequestCLILocal(context.Context, MakeRequestCLILocalArg) (KeybaseRequestID, error)
-	LookupCLILocal(context.Context, string) (string, error)
+	LookupCLILocal(context.Context, string) (LookupResultCLILocal, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -1747,7 +1765,7 @@ func (c LocalClient) MakeRequestCLILocal(ctx context.Context, __arg MakeRequestC
 	return
 }
 
-func (c LocalClient) LookupCLILocal(ctx context.Context, name string) (res string, err error) {
+func (c LocalClient) LookupCLILocal(ctx context.Context, name string) (res LookupResultCLILocal, err error) {
 	__arg := LookupCLILocalArg{Name: name}
 	err = c.Cli.Call(ctx, "stellar.1.local.lookupCLILocal", []interface{}{__arg}, &res)
 	return
