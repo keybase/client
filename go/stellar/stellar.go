@@ -18,7 +18,9 @@ import (
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
+	stellarAddress "github.com/stellar/go/address"
 	"github.com/stellar/go/amount"
+	"github.com/stellar/go/clients/federation"
 	"github.com/stellar/go/xdr"
 )
 
@@ -270,6 +272,31 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res 
 			// log and ignore
 		}
 		return res, nil
+	}
+
+	if strings.Index(string(to), stellarAddress.Separator) >= 0 {
+		name, domain, err := stellarAddress.Split(string(to))
+		if err != nil {
+			return res, err
+		}
+
+		if domain == "keybase.io" {
+			// Keybase.io federation address. Fallthrough to identify
+			// path.
+			m.CDebugf("Got federation address %q but it's under keybase.io domain!", to)
+			m.CDebugf("Instead going to lookup Keybase assertion: %q", name)
+			to = stellarcommon.RecipientInput(name)
+		} else {
+			// Actual federation address that is not under keybase.io
+			// domain. Use federation client.
+			fedClient := federation.DefaultPublicNetClient
+			nameResponse, err := fedClient.LookupByAddress(string(to))
+			if err != nil {
+				return res, err
+			}
+			_ = nameResponse
+			return res, fmt.Errorf("fed addr. not implemented yet")
+		}
 	}
 
 	idRes, err := identifyRecipient(m, string(to))

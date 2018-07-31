@@ -510,6 +510,13 @@
 			"revisionTime": "2015-05-20T14:06:47Z"
 		},
 		{
+			"checksumSHA1": "Tm7U4dBBSq0z5YscZTqSTs4qjEU=",
+			"origin": "github.com/keybase/stellar-org/address",
+			"path": "github.com/stellar/go/address",
+			"revision": "b7f401957e91d55b9ff9eb2583373b6ccdffaaa9",
+			"revisionTime": "2018-07-26T18:14:35Z"
+		},
+		{
 			"checksumSHA1": "9IAVZIwKPa9vqMs5qbSDgAtSMOg=",
 			"origin": "github.com/keybase/stellar-org/amount",
 			"path": "github.com/stellar/go/amount",
@@ -522,6 +529,13 @@
 			"path": "github.com/stellar/go/build",
 			"revision": "d478595f79f64c46d844523ffa7999b487a9094c",
 			"revisionTime": "2018-03-28T15:49:16Z"
+		},
+		{
+			"checksumSHA1": "lNNS4mTZlbciLrs24+zR03+KyA0=",
+			"origin": "github.com/keybase/stellar-org/clients/federation",
+			"path": "github.com/stellar/go/clients/federation",
+			"revision": "b7f401957e91d55b9ff9eb2583373b6ccdffaaa9",
+			"revisionTime": "2018-07-26T18:14:35Z"
 		},
 		{
 			"checksumSHA1": "w2iePIoeVYrSC+290DbhfsiVnV8=",
