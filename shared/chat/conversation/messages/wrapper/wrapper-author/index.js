@@ -165,7 +165,7 @@ const RightSide = props => (
   </Box>
 )
 
-class WrapperAuthor extends React.PureComponent<WrapperAuthorProps & OverlayParentProps> {
+class WrapperAuthor extends React.PureComponent<WrapperAuthorProps> {
   componentDidUpdate(prevProps: WrapperAuthorProps) {
     if (this.props.measure) {
       if (this.props.includeHeader !== prevProps.includeHeader) {
@@ -177,13 +177,7 @@ class WrapperAuthor extends React.PureComponent<WrapperAuthorProps & OverlayPare
   render() {
     const props = this.props
     return (
-      <Box
-        style={collapseStyles([
-          styles.flexOneRow,
-          props.showingMenu && styles.selected,
-          props.includeHeader && styles.hasHeader,
-        ])}
-      >
+      <Box style={collapseStyles([styles.flexOneRow, props.includeHeader && styles.hasHeader])}>
         <LeftSide {...props} />
         <RightSide {...props} />
       </Box>
@@ -228,7 +222,6 @@ const styles = styleSheetCreate({
     paddingBottom: 2,
     paddingRight: globalMargins.tiny,
   },
-  selected: {backgroundColor: globalColors.black_05},
   sendIndicator: {marginBottom: 2},
   sendIndicatorContainer: platformStyles({
     common: {

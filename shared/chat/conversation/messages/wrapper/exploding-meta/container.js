@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Container from '../../../../../util/container'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Constants from '../../../../../constants/chat2'
+import {type StylesCrossPlatform} from '../../../../../styles'
 import ExplodingMeta, {type _Props as ViewProps} from '.'
 
 const emptyProps = {
@@ -17,6 +18,7 @@ type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   onClick: () => void,
   ordinal: Types.Ordinal,
+  style?: StylesCrossPlatform,
 |}
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
@@ -44,6 +46,7 @@ const Wrapper = (props: WrapperProps) =>
       messageKey={props.messageKey}
       onClick={props.onClick}
       pending={props.pending}
+      style={props.style}
     />
   )
 

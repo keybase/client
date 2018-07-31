@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../../constants/types/chat2'
-import {Box, Box2, Icon, iconCastPlatformStyles} from '../../../../../common-adapters'
+import {Box, Box2, Icon} from '../../../../../common-adapters'
 import {
   FloatingMenuParentHOC,
   type FloatingMenuParentProps,
@@ -9,7 +9,6 @@ import {
 import Timestamp from '../timestamp'
 import {
   glamorous,
-  globalMargins,
   globalStyles,
   globalColors,
   isMobile,
@@ -58,17 +57,16 @@ class WrapperTimestamp extends React.PureComponent<WrapperTimestampProps> {
       <Box style={styles.container}>
         {props.orangeLineAbove && <Box style={styles.orangeLine} />}
         {props.timestamp && <Timestamp timestamp={props.timestamp} />}
-        <HoverBox>
-          <Box2 direction="horizontal">
+        <HoverBox stye={{...globalStyles.flexBoxRow, width: '100%'}}>
+          <Box2 direction="horizontal" fullWidth={true} style={styles.alignItemsFlexEnd}>
             {props.children}
-            {!isMobile &&
-              !props.exploded && (
-                <MenuButtons
-                  conversationIDKey={props.conversationIDKey}
-                  message={props.message}
-                  ordinal={props.ordinal}
-                />
-              )}
+            {!props.exploded && (
+              <MenuButtons
+                conversationIDKey={props.conversationIDKey}
+                message={props.message}
+                ordinal={props.ordinal}
+              />
+            )}
           </Box2>
           <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
         </HoverBox>
@@ -83,55 +81,55 @@ type MenuButtonsProps = {
   ordinal: Types.Ordinal,
 } & FloatingMenuParentProps
 const _MenuButtons = (props: MenuButtonsProps) => (
-  <Box2 direction="vertical" style={styles.controls}>
-    <Box className="menu-button" style={styles.menuButtons}>
-      <ReactButton
-        conversationIDKey={props.conversationIDKey}
-        ordinal={props.ordinal}
-        showBorder={false}
-        tooltipEnabled={false}
-      />
-      <Box ref={props.setAttachmentRef}>
-        {(props.message.type === 'attachment' || props.message.type === 'text') && (
-          <Icon type="iconfont-ellipsis" onClick={props.toggleShowingMenu} fontSize={16} />
-        )}
-      </Box>
-      {(props.message.type === 'attachment' || props.message.type === 'text') && (
-        <MessagePopup
-          attachTo={props.attachmentRef}
-          message={props.message}
-          onHidden={props.toggleShowingMenu}
-          position="top center"
-          visible={props.showingMenu}
+  <Box2 direction="horizontal" gap="tiny" gapEnd={true} style={styles.controls}>
+    {!isMobile && (
+      <Box className="menu-button" style={styles.menuButtons}>
+        <ReactButton
+          conversationIDKey={props.conversationIDKey}
+          ordinal={props.ordinal}
+          showBorder={false}
+          tooltipEnabled={false}
         />
-      )}
-    </Box>
+        <Box ref={props.setAttachmentRef}>
+          {(props.message.type === 'attachment' || props.message.type === 'text') && (
+            <Icon type="iconfont-ellipsis" onClick={props.toggleShowingMenu} fontSize={16} />
+          )}
+        </Box>
+      </Box>
+    )}
     <ExplodingMeta
       conversationIDKey={props.conversationIDKey}
       onClick={props.toggleShowingMenu}
       ordinal={props.ordinal}
     />
+    {(props.message.type === 'attachment' || props.message.type === 'text') && (
+      <MessagePopup
+        attachTo={props.attachmentRef}
+        message={props.message}
+        onHidden={props.toggleShowingMenu}
+        position="top center"
+        visible={props.showingMenu}
+      />
+    )}
   </Box2>
 )
 const MenuButtons = FloatingMenuParentHOC(_MenuButtons)
 
 const styles = styleSheetCreate({
+  alignItemsFlexEnd: {
+    // alignItems: 'flex-end',
+  },
   container: {...globalStyles.flexBoxColumn, width: '100%'},
   controls: platformStyles({
-    isElectron: {
-      flexBasis: 120,
-      flexShrink: 1,
-      flexWrap: 'wrap',
-      justifyContent: 'space-between',
+    common: {
+      alignItems: 'center',
+      alignSelf: 'flex-end',
     },
   }),
   menuButtons: platformStyles({
     isElectron: {
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
-      alignSelf: 'flex-start',
-      position: 'relative',
-      top: 1,
     },
   }),
   orangeLine: {backgroundColor: globalColors.orange, height: 1, width: '100%'},
