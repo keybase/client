@@ -157,9 +157,6 @@ const MenuButtons = (props: MenuButtonsProps) => (
 )
 
 const styles = styleSheetCreate({
-  alignItemsFlexEnd: {
-    // alignItems: 'flex-end',
-  },
   container: {...globalStyles.flexBoxColumn, width: '100%'},
   controls: platformStyles({
     common: {
