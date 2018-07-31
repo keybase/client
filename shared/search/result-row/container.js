@@ -20,13 +20,12 @@ export type OwnProps = {|
 const emptySearch = makeSearchResult()
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  const {searchKey} = ownProps
-  const selectedIds = getUserInputItemIds(state, {searchKey})
-  const parsedIds = selectedIds.map(id => parseUserId(id))
   const result = state.entities.search.searchResults.get(ownProps.id, emptySearch)
-
+  const {searchKey} = ownProps
   const leftFollowingState = followStateHelper(state, result.leftUsername, result.leftService)
   const rightFollowingState = followStateHelper(state, result.rightUsername, result.rightService)
+
+  const selectedIds = getUserInputItemIds(state, {searchKey})
   const leftIsInTeam = userIsActiveInTeamHelper(
     state,
     result.leftUsername,
@@ -39,24 +38,27 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     result.rightService,
     ownProps.disableIfInTeamName
   )
-  // Check whether the user shown in this row has been chosen in the input box.
-  const userAlreadySelected =
-    some(parsedIds, {serviceId: (result.leftService || '').toLowerCase(), username: result.leftUsername}) ||
-    some(parsedIds, {serviceId: (result.rightService || '').toLowerCase(), username: result.rightUsername})
   const userIsInTeam = leftIsInTeam || rightIsInTeam
   return {
     result,
     leftFollowingState,
     rightFollowingState,
-    userAlreadySelected,
+    selectedIds,
     userIsInTeam,
   }
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
   const result = stateProps.result.toObject()
+  const parsedIds = stateProps.selectedIds.map(id => parseUserId(id))
+  // Check whether the user shown in this row has been chosen in the input box.
+  const userAlreadySelected =
+    some(parsedIds, {serviceId: (result.leftService || '').toLowerCase(), username: result.leftUsername}) ||
+    some(parsedIds, {serviceId: (result.rightService || '').toLowerCase(), username: result.rightUsername})
+
   const leftFullname = (result.leftFullname || '') + (stateProps.userIsInTeam ? ' • Already in team' : '')
-  const userIsSelectable = !stateProps.userIsInTeam && !stateProps.userAlreadySelected
+  const userIsSelectable = !stateProps.userIsInTeam && !userAlreadySelected
+
   return {
     ...result,
     leftFollowingState: stateProps.leftFollowingState,
@@ -64,7 +66,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
     leftIconOpaque: userIsSelectable,
     rightFollowingState: stateProps.rightFollowingState,
     rightIconOpaque: userIsSelectable,
-    userAlreadySelected: stateProps.userAlreadySelected,
+    userAlreadySelected,
     userIsInTeam: stateProps.userIsInTeam,
     userIsSelectable,
     ...ownProps,
