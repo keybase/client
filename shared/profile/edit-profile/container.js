@@ -46,5 +46,5 @@ export default compose(
   withHandlers({
     ...(isMobile ? {} : {onCancel: ({onBack}) => () => onBack()}),
     onSubmit: ({bio, fullname, location, onEditProfile}) => () => onEditProfile(bio, fullname, location),
-  }),
+  })
 )(HeaderOnMobile(Render))
