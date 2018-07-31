@@ -5,9 +5,7 @@ import {globalColors, platformStyles, globalMargins, globalStyles} from '../../.
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
 import type {Props} from './index.types'
 
-class _VideoFullscreen extends React.Component<Props & FloatingMenuParentProps, {loaded: boolean}> {
-  state = {loaded: false}
-  _setLoaded = () => this.setState({loaded: true})
+class _VideoFullscreen extends React.Component<Props & FloatingMenuParentProps> {
   render() {
     return (
       <Box style={stylesContainer}>
@@ -19,7 +17,7 @@ class _VideoFullscreen extends React.Component<Props & FloatingMenuParentProps, 
           </ClickableBox>
         </Box>
         <Box style={stylesContentContainer}>
-          <WebView styles={stylesAVView} url={this.props.path} onLoad={this._setLoaded} />
+          <WebView styles={stylesAVView} url={this.props.path} />
         </Box>
       </Box>
     )
