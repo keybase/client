@@ -28,7 +28,7 @@ func init() {
 	teamEnv.UserPreloadEnable = os.Getenv("KEYBASE_TEAM_PE") == "1"
 	teamEnv.UserPreloadParallel = os.Getenv("KEYBASE_TEAM_PP") == "1"
 	teamEnv.UserPreloadWait = os.Getenv("KEYBASE_TEAM_PW") == "1"
-	teamEnv.ProofSetParallel = os.Getenv("KEYBASE_TEAM_SP") == "1"
+	teamEnv.ProofSetParallel = os.Getenv("KEYBASE_TEAM_SP") == "0"
 }
 
 // How long until the tail of a team sigchain is considered non-fresh
