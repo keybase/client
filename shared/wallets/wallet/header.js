@@ -27,14 +27,16 @@ const Header = (props: Props) => (
     gapEnd={true}
     style={styles.noShrink}
   >
-    <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.centerChildren}>
-      {props.keybaseUser && <Kb.Avatar size={16} username={props.keybaseUser} />}
-      <Kb.Text type="BodySemibold">{props.walletName}</Kb.Text>
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
+      <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
+        {props.keybaseUser && <Kb.Avatar size={16} username={props.keybaseUser} />}
+        <Kb.Text type="BodyBig">{props.walletName}</Kb.Text>
+      </Kb.Box2>
+      <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
+        {props.isDefaultWallet && <Kb.Text type="BodySmall">Default Keybase wallet</Kb.Text>}
+      </Kb.Box2>
     </Kb.Box2>
-    <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.centerChildren}>
-      {props.isDefaultWallet && <Kb.Text type="BodySmall">Default Keybase wallet</Kb.Text>}
-    </Kb.Box2>
-    <Kb.Box2 direction="horizontal" gap="tiny" style={styles.centerChildren}>
+    <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
       <SendButton
         onSendToKeybaseUser={props.onSendToKeybaseUser}
         onSendToStellarAddress={props.onSendToStellarAddress}
@@ -135,10 +137,6 @@ class _DropdownButton extends React.PureComponent<DropdownProps & FloatingMenuPa
 }
 
 const styles = styleSheetCreate({
-  centerChildren: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   noShrink: {flexShrink: 0},
 })
 
