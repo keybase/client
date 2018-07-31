@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
-import * as PropProviders from '../../stories/prop-providers'
-import {action, storiesOf} from '../../stories/storybook'
+import {action, storiesOf, PropProviders} from '../../stories/storybook'
 import EditAvatar from '.'
 
 const props = {
@@ -10,11 +9,9 @@ const props = {
   onAck: action('onAck'),
 }
 
-const provider = PropProviders.CommonProvider()
-
 const load = () => {
   storiesOf('Profile/EditAvatar', module)
-    .addDecorator(provider)
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .add('Has', () => <EditAvatar {...props} />)
     .add('Missing', () => <EditAvatar {...props} hasAvatar={false} />)
 }

@@ -44,10 +44,16 @@ const loadPayments = (
     | WalletsGen.LinkedExistingAccountPayload
 ) =>
   !action.error &&
-  RPCTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}).then(res =>
+  Promise.all([
+    RPCTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
+    RPCTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
+  ]).then(([pending, payments]) =>
     WalletsGen.createPaymentsReceived({
       accountID: action.payload.accountID,
-      payments: (res.payments || []).map(elem => Constants.paymentResultToPayment(elem)).filter(Boolean),
+      payments: (payments.payments || [])
+        .concat(pending || [])
+        .map(elem => Constants.paymentResultToPayment(elem))
+        .filter(Boolean),
     })
   )
 
@@ -133,23 +139,20 @@ const maybeSelectDefaultAccount = (action: WalletsGen.AccountsReceivedPayload, s
   )
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPurePromise(
-    [WalletsGen.loadAccounts, WalletsGen.linkedExistingAccount],
-    loadAccounts
-  )
-  yield Saga.safeTakeEveryPurePromise(
+  yield Saga.actionToPromise([WalletsGen.loadAccounts, WalletsGen.linkedExistingAccount], loadAccounts)
+  yield Saga.actionToPromise(
     [WalletsGen.loadAssets, WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
     loadAssets
   )
-  yield Saga.safeTakeEveryPurePromise(
+  yield Saga.actionToPromise(
     [WalletsGen.loadPayments, WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
     loadPayments
   )
-  yield Saga.safeTakeEveryPurePromise(WalletsGen.loadPaymentDetail, loadPaymentDetail)
-  yield Saga.safeTakeEveryPurePromise(WalletsGen.linkExistingAccount, linkExistingAccount)
-  yield Saga.safeTakeEveryPurePromise(WalletsGen.validateAccountName, validateAccountName)
-  yield Saga.safeTakeEveryPurePromise(WalletsGen.validateSecretKey, validateSecretKey)
-  yield Saga.safeTakeEveryPurePromise(WalletsGen.exportSecretKey, exportSecretKey)
+  yield Saga.actionToPromise(WalletsGen.loadPaymentDetail, loadPaymentDetail)
+  yield Saga.actionToPromise(WalletsGen.linkExistingAccount, linkExistingAccount)
+  yield Saga.actionToPromise(WalletsGen.validateAccountName, validateAccountName)
+  yield Saga.actionToPromise(WalletsGen.validateSecretKey, validateSecretKey)
+  yield Saga.actionToPromise(WalletsGen.exportSecretKey, exportSecretKey)
   yield Saga.safeTakeEveryPure(
     [WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
     navigateToAccount

@@ -24,6 +24,7 @@ type Props = {
   editableIcon?: boolean,
   icon?: IconType,
   title?: string, // for non-users
+  titleStyle?: StylesCrossPlatform,
   metaOne?: string | React.Node,
   metaTwo?: string | React.Node,
   onClick?: any => void,
@@ -76,7 +77,11 @@ const NameWithIconVertical = (props: Props) => {
           props.metaStyle,
         ])}
       >
-        {!props.username && <Text type={adapterProps.titleType}>{props.title}</Text>}
+        {!props.username && (
+          <Text type={adapterProps.titleType} style={props.titleStyle}>
+            {props.title}
+          </Text>
+        )}
         {!!props.username && (
           <ConnectedUsernames
             clickable={true}

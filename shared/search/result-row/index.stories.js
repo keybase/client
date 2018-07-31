@@ -1,12 +1,11 @@
 // @flow
 import * as React from 'react'
-import * as PropProviders from '../../stories/prop-providers'
 import ResultRow, {type Props} from '.'
 import ConnectedResultRow, {type OwnProps} from './container'
 import {type SearchResultId} from '../../constants/types/search'
 import {Box} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
-import {storiesOf, action, createPropProvider} from '../../stories/storybook'
+import {storiesOf, action, createPropProvider, PropProviders} from '../../stories/storybook'
 
 export type ConnectProps = $Exact<$Diff<Props, OwnProps>>
 

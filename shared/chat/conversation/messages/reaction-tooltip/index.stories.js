@@ -2,15 +2,14 @@
 import * as React from 'react'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
-import {action, createPropProvider, storiesOf, Rnd} from '../../../../stories/storybook'
-import {Common} from '../../../../stories/prop-providers'
+import {action, storiesOf, Rnd, PropProviders} from '../../../../stories/storybook'
 import {propProvider as ReactButton} from '../react-button/index.stories'
 import {upperFirst} from 'lodash-es'
 import ReactionTooltip from '.'
 import type {Props} from '.'
 import type {OwnProps} from './container'
 
-const provider = createPropProvider(Common(), ReactButton)
+const provider = PropProviders.createPropProviderWithCommon(ReactButton)
 
 const common = {
   attachmentRef: null,

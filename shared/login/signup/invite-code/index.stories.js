@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import InviteCode from '.'
-import {action, storiesOf} from '../../../stories/storybook'
-import * as PropProviders from '../../../stories/prop-providers'
+import {action, storiesOf, PropProviders} from '../../../stories/storybook'
 
 const props = {
   error: undefined,
@@ -13,7 +12,7 @@ const props = {
 
 const load = () => {
   storiesOf('Signup/Invite Code', module)
-    .addDecorator(PropProviders.CommonProvider())
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .add('Start', () => <InviteCode {...props} />)
     .add('Code', () => <InviteCode {...props} />)
     .add('Error', () => <InviteCode {...props} error="This is an error" />)
