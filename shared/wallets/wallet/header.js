@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import {styleSheetCreate, globalColors} from '../../styles'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../common-adapters/floating-menu'
 
 type Props = {
   isDefaultWallet: boolean,
@@ -58,7 +57,7 @@ type SendProps = {
   onSendToAnotherWallet: () => void,
 }
 
-class _SendButton extends React.PureComponent<SendProps & FloatingMenuParentProps> {
+class _SendButton extends React.PureComponent<SendProps & Kb.OverlayParentProps> {
   _menuItems = [
     {
       onClick: () => this.props.onSendToKeybaseUser(),
@@ -99,7 +98,7 @@ type DropdownProps = {
   onSettings: () => void,
 }
 
-class _DropdownButton extends React.PureComponent<DropdownProps & FloatingMenuParentProps> {
+class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayParentProps> {
   _menuItems = [
     {
       onClick: () => this.props.onDeposit(),
@@ -140,8 +139,8 @@ const styles = styleSheetCreate({
   noShrink: {flexShrink: 0},
 })
 
-const SendButton = FloatingMenuParentHOC(_SendButton)
+const SendButton = Kb.OverlayParentHOC(_SendButton)
 
-const DropdownButton = FloatingMenuParentHOC(_DropdownButton)
+const DropdownButton = Kb.OverlayParentHOC(_DropdownButton)
 
 export default Header

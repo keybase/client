@@ -4,7 +4,7 @@
 import initStoryshots from '@storybook/addon-storyshots'
 
 jest.mock('../../util/timestamp')
-jest.mock('../../common-adapters/floating-box.desktop')
+jest.mock('../../common-adapters/floating-box/index.desktop')
 
 initStoryshots({
   configPath: '.storybook',

@@ -8,8 +8,9 @@ import {
   PopupDialog,
   ProgressBar,
   ProgressIndicator,
+  OverlayParentHOC,
+  type OverlayParentProps,
 } from '../../../common-adapters'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
 import MessagePopup from '../messages/message-popup/'
 import {
   collapseStyles,
@@ -22,7 +23,7 @@ import {
 import type {Props} from './index.types'
 
 type State = {loaded: boolean}
-class _Fullscreen extends React.Component<Props & FloatingMenuParentProps, State> {
+class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
   state = {loaded: false}
   _setLoaded = () => this.setState({loaded: true})
   render() {
@@ -91,7 +92,7 @@ class _Fullscreen extends React.Component<Props & FloatingMenuParentProps, State
     )
   }
 }
-const Fullscreen = FloatingMenuParentHOC(_Fullscreen)
+const Fullscreen = OverlayParentHOC(_Fullscreen)
 
 const linkStyle = platformStyles({
   isElectron: {color: globalColors.black_60, cursor: 'pointer'},

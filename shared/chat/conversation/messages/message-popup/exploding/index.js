@@ -163,25 +163,13 @@ const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
       items={props.items}
       onHidden={props.onHidden}
       position={props.position}
-      style={collapseStyles([stylePopup, props.style])}
+      containerStyle={props.style}
       visible={props.visible}
     />
   )
 }
 
 const oneMinuteInS = 60
-
-const stylePopup = platformStyles({
-  common: {
-    overflow: 'visible',
-  },
-  isElectron: {
-    width: 196,
-  },
-  isMobile: {
-    width: '100%',
-  },
-})
 
 const styleRevokedAt = {
   borderBottomLeftRadius: 3,

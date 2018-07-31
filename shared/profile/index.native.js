@@ -17,13 +17,14 @@ import {
   Meta,
   PlatformIcon,
   FloatingMenu,
+  OverlayParentHOC,
+  type OverlayParentProps,
   NativeSectionList,
   Text,
   UserBio,
   UserProofs,
 } from '../common-adapters/mobile.native'
 import UserActions from './user-actions'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../common-adapters/floating-menu'
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import {globalStyles, globalColors, globalMargins, statusBarHeight, isIPhoneX} from '../styles'
 import {stateColors} from '../util/tracker'
@@ -72,7 +73,7 @@ const ShowcaseTeamsOffer = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () =>
 const _ShowcasedTeamRow = (
   props: {
     team: UserTeamShowcase,
-  } & FloatingMenuParentProps
+  } & OverlayParentProps
 ) => (
   <ClickableBox key={props.team.fqName} onClick={props.toggleShowingMenu} style={styleShowcasedTeamContainer}>
     <ShowcasedTeamInfo
@@ -92,7 +93,7 @@ const _ShowcasedTeamRow = (
     </Box>
   </ClickableBox>
 )
-const ShowcasedTeamRow = FloatingMenuParentHOC(_ShowcasedTeamRow)
+const ShowcasedTeamRow = OverlayParentHOC(_ShowcasedTeamRow)
 
 class Profile extends Component<Props, State> {
   state = {
