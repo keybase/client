@@ -2,10 +2,8 @@
 
 import React, {Component} from 'react'
 import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
-import {Badge} from './badge'
-import Box from './box'
-import Icon from './icon'
-import {globalMargins, globalStyles, collapseStyles} from '../styles'
+import {Badge2, Box, Icon, iconCastPlatformStyles} from '.'
+import * as Styles from '../styles'
 import type {Props} from './back-button'
 
 export default class BackButton extends Component<Props> {
@@ -20,24 +18,30 @@ export default class BackButton extends Component<Props> {
   render() {
     return (
       <NativeTouchableWithoutFeedback onPress={e => this.onClick(e)}>
-        <Box style={collapseStyles([styleContainer, this.props.style])}>
-          <Icon type="iconfont-arrow-left" fontSize={iconFontSize} color={this.props.iconColor} />
-          {(this.props.badgeNumber || 0) > 0 && (
-            <Badge badgeNumber={this.props.badgeNumber} badgeStyle={{marginLeft: -3, marginTop: -12}} />
-          )}
+        <Box style={Styles.collapseStyles([styles.container, this.props.style])}>
+          <Icon
+            type="iconfont-arrow-left"
+            fontSize={iconFontSize}
+            color={this.props.iconColor}
+            style={iconCastPlatformStyles(styles.arrow)}
+          />
+          {!!this.props.badgeNumber && <Badge2 badgeNumber={this.props.badgeNumber} />}
         </Box>
       </NativeTouchableWithoutFeedback>
     )
   }
 }
 
-export const styleContainer = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  marginRight: 8,
-  padding: globalMargins.tiny,
-  paddingLeft: globalMargins.small - 4,
-  paddingRight: globalMargins.small,
-}
+const styles = Styles.styleSheetCreate({
+  arrow: {marginTop: 3, marginRight: -3},
+  container: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    marginRight: 8,
+    padding: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.small - 4,
+    paddingRight: Styles.globalMargins.small,
+  },
+})
 
 const iconFontSize = 24
