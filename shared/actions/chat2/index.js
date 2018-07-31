@@ -21,7 +21,7 @@ import engine from '../../engine'
 import logger from '../../logger'
 import type {TypedState, Dispatch} from '../../util/container'
 import {chatTab} from '../../constants/tabs'
-import {isMobile} from '../../constants/platform'
+import {isMobile, isIOS} from '../../constants/platform'
 import {getPath} from '../../route-tree'
 import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, downloadAndShowShareActionSheet} from '../platform-specific'
@@ -1609,21 +1609,23 @@ function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
 function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayload) {
   const message = action.payload.message
   if (Constants.isVideoAttachment(message)) {
-    yield isMobile && message.fileURLCached
-      ? Saga.put(
-          Route.navigateAppend([
-            {
-              props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
-              selected: 'attachmentVideoFullscreen',
-            },
-          ])
-        )
-      : Saga.put(
-          Chat2Gen.createAttachmentDownload({
-            conversationIDKey: message.conversationIDKey,
-            ordinal: message.ordinal,
-          })
-        )
+    if (isMobile && message.fileURLCached && isIOS) {
+      yield Saga.put(
+        Route.navigateAppend([
+          {
+            props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+            selected: 'attachmentVideoFullscreen',
+          },
+        ])
+      )
+    } else if (!isMobile || !message.fileURLCached) {
+      Saga.put(
+        Chat2Gen.createAttachmentDownload({
+          conversationIDKey: message.conversationIDKey,
+          ordinal: message.ordinal,
+        })
+      )
+    }
   } else {
     yield Saga.put(
       Route.navigateAppend([
