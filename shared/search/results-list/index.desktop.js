@@ -11,7 +11,7 @@ import type {Props} from '.'
 class SearchResultsList extends Component<Props> {
   _itemRenderer = index => {
     const id = this.props.items[index]
-    const {onClick, onMouseOver, onShowTracker} = this.props
+    const {onClick, onMouseOver, onShowTracker, searchKey} = this.props
     return (
       <Row
         id={id}
@@ -19,6 +19,7 @@ class SearchResultsList extends Component<Props> {
         onClick={() => onClick(id)}
         onMouseOver={() => onMouseOver && onMouseOver(id)}
         onShowTracker={onShowTracker ? () => onShowTracker(id) : undefined}
+        searchKey={searchKey}
         selected={this.props.selectedId === id}
         disableIfInTeamName={this.props.disableIfInTeamName}
       />

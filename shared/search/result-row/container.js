@@ -14,12 +14,13 @@ export type OwnProps = {|
   onClick: () => void,
   onMouseOver?: () => void,
   onShowTracker?: () => void,
+  searchKey: string,
 |}
 
 const emptySearch = makeSearchResult()
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  const searchKey = 'addToTeamSearch'
+  const {searchKey} = ownProps
   const selectedIds = getUserInputItemIds(state, {searchKey})
   const parsedIds = selectedIds.map(id => parseUserId(id))
   const result = state.entities.search.searchResults.get(ownProps.id, emptySearch)

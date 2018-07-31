@@ -11,19 +11,19 @@ import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 export type ConnectProps = $Exact<$Diff<Props, OwnProps>>
 
 const defaultConnectProps = {
+  leftFollowingState: 'NoState',
   leftFullname: null,
   leftIcon: null,
   leftIconOpaque: true,
   leftService: 'Keybase',
   leftUsername: '',
 
+  rightFollowingState: 'NoState',
   rightIcon: null,
   rightIconOpaque: true,
   rightService: null,
   rightUsername: null,
 
-  leftFollowingState: 'NoState',
-  rightFollowingState: 'NoState',
   userAlreadySelected: false,
   userIsInTeam: false,
   userIsSelectable: true,
@@ -63,6 +63,7 @@ const mockOwnPropsToProps = (connectPropsMap: ConnectPropsMap, ownProps: OwnProp
 const defaultOwnProps: OwnProps = {
   disableIfInTeamName: '',
   id: 'jzila',
+  searchKey: 'search key',
   selected: false,
   onClick: action('On click'),
   onMouseOver: action('On mouse over'),

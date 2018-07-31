@@ -30,6 +30,7 @@ export type RowProps = {
   onClick: () => void,
   onMouseOver?: () => void,
   selected: boolean,
+  searchKey: string,
 
   userAlreadySelected: boolean,
   userIsInTeam: boolean,
