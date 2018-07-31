@@ -43,7 +43,10 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
         return
       }
       if (response.error) {
-        // Most likely a permissions error.
+        // Most likely a first-run permissions error.
+        //
+        // TODO: Spawn a black bar, or handle this error more
+        // gracefully.
         logger.warn(response.error)
         return
       }
