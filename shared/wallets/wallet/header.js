@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button, ClickableBox, Text, Avatar, FloatingMenu} from '../../common-adapters'
-import {styleSheetCreate} from '../../styles'
+import * as Kb from '../../common-adapters'
+import {styleSheetCreate, globalColors} from '../../styles'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../common-adapters/floating-menu'
 
 type Props = {
@@ -19,7 +19,7 @@ type Props = {
 }
 
 const Header = (props: Props) => (
-  <Box2
+  <Kb.Box2
     direction="vertical"
     fullWidth={true}
     gap="tiny"
@@ -27,27 +27,27 @@ const Header = (props: Props) => (
     gapEnd={true}
     style={styles.noShrink}
   >
-    <Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.centerChildren}>
-      {props.keybaseUser && <Avatar size={16} username={props.keybaseUser} />}
-      <Text type="BodySemibold">{props.walletName}</Text>
-    </Box2>
-    <Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.centerChildren}>
-      {props.isDefaultWallet && <Text type="BodySmall">Default Keybase wallet</Text>}
-    </Box2>
-    <Box2 direction="horizontal" gap="tiny" style={styles.centerChildren}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.centerChildren}>
+      {props.keybaseUser && <Kb.Avatar size={16} username={props.keybaseUser} />}
+      <Kb.Text type="BodySemibold">{props.walletName}</Kb.Text>
+    </Kb.Box2>
+    <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.centerChildren}>
+      {props.isDefaultWallet && <Kb.Text type="BodySmall">Default Keybase wallet</Kb.Text>}
+    </Kb.Box2>
+    <Kb.Box2 direction="horizontal" gap="tiny" style={styles.centerChildren}>
       <SendButton
         onSendToKeybaseUser={props.onSendToKeybaseUser}
         onSendToStellarAddress={props.onSendToStellarAddress}
         onSendToAnotherWallet={props.onSendToAnotherWallet}
       />
-      <Button type="Secondary" onClick={props.onReceive} label="Receive" />
+      <Kb.Button type="Secondary" onClick={props.onReceive} label="Receive" />
       <DropdownButton
         onDeposit={props.onDeposit}
         onSettings={props.onSettings}
         onShowSecretKey={props.onShowSecretKey}
       />
-    </Box2>
-  </Box2>
+    </Kb.Box2>
+  </Kb.Box2>
 )
 
 type SendProps = {
@@ -74,11 +74,11 @@ class _SendButton extends React.PureComponent<SendProps & FloatingMenuParentProp
 
   render() {
     return (
-      <ClickableBox onClick={this.props.toggleShowingMenu} ref={this.props.setAttachmentRef}>
-        <Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-          <Button onClick={null} type="Wallet" label="Send" />
-        </Box2>
-        <FloatingMenu
+      <Kb.ClickableBox onClick={this.props.toggleShowingMenu} ref={this.props.setAttachmentRef}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
+          <Kb.Button onClick={null} type="Wallet" label="Send" />
+        </Kb.Box2>
+        <Kb.FloatingMenu
           attachTo={this.props.attachmentRef}
           closeOnSelect={true}
           items={this._menuItems}
@@ -86,7 +86,7 @@ class _SendButton extends React.PureComponent<SendProps & FloatingMenuParentProp
           visible={this.props.showingMenu}
           position="bottom center"
         />
-      </ClickableBox>
+      </Kb.ClickableBox>
     )
   }
 }
@@ -115,11 +115,13 @@ class _DropdownButton extends React.PureComponent<DropdownProps & FloatingMenuPa
 
   render() {
     return (
-      <ClickableBox onClick={this.props.toggleShowingMenu} ref={this.props.setAttachmentRef}>
-        <Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-          <Button onClick={null} type="Secondary" label="..." />
-        </Box2>
-        <FloatingMenu
+      <Kb.ClickableBox onClick={this.props.toggleShowingMenu} ref={this.props.setAttachmentRef}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
+          <Kb.Button onClick={null} type="Secondary">
+            <Kb.Icon type="iconfont-ellipsis" color={globalColors.black_75} />
+          </Kb.Button>
+        </Kb.Box2>
+        <Kb.FloatingMenu
           attachTo={this.props.attachmentRef}
           closeOnSelect={true}
           items={this._menuItems}
@@ -127,7 +129,7 @@ class _DropdownButton extends React.PureComponent<DropdownProps & FloatingMenuPa
           visible={this.props.showingMenu}
           position="bottom center"
         />
-      </ClickableBox>
+      </Kb.ClickableBox>
     )
   }
 }
