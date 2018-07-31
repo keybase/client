@@ -14,6 +14,8 @@ import {
   Meta,
   PlatformIcon,
   FloatingMenu,
+  OverlayParentHOC,
+  type OverlayParentProps,
   Text,
   UserBio,
   UserProofs,
@@ -22,7 +24,6 @@ import {
 } from '../common-adapters'
 import UserActions from './user-actions'
 import {PopupHeaderText} from '../common-adapters/popup-menu'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../common-adapters/floating-menu'
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import {collapseStyles, desktopStyles, globalColors, globalMargins, globalStyles} from '../styles'
 import {stateColors} from '../util/tracker'
@@ -67,7 +68,7 @@ const ShowcaseTeamsOffer = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () =>
 const _ShowcasedTeamRow = (
   props: {
     team: UserTeamShowcase,
-  } & FloatingMenuParentProps
+  } & OverlayParentProps
 ) => (
   <ClickableBox
     key={props.team.fqName}
@@ -92,7 +93,7 @@ const _ShowcasedTeamRow = (
     </Box>
   </ClickableBox>
 )
-const ShowcasedTeamRow = FloatingMenuParentHOC(_ShowcasedTeamRow)
+const ShowcasedTeamRow = OverlayParentHOC(_ShowcasedTeamRow)
 
 class ProfileRender extends PureComponent<Props, State> {
   state: State = {

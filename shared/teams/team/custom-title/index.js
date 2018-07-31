@@ -1,8 +1,14 @@
 // @flow
 import * as React from 'react'
-import {iconCastPlatformStyles, Box, Icon, ProgressIndicator} from '../../../common-adapters'
+import {
+  iconCastPlatformStyles,
+  Box,
+  Icon,
+  ProgressIndicator,
+  OverlayParentHOC,
+  type OverlayParentProps,
+} from '../../../common-adapters'
 import {globalStyles, globalMargins, isMobile, styleSheetCreate} from '../../../styles'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
 import TeamMenu from '../menu-container'
 
 type Props = {
@@ -16,7 +22,7 @@ type Props = {
 
 const fontSize = isMobile ? 20 : 16
 
-const _CustomComponent = (props: Props & FloatingMenuParentProps) => (
+const _CustomComponent = (props: Props & OverlayParentProps) => (
   <Box style={styles.container}>
     {isMobile && props.loading && <ProgressIndicator style={styles.progressIndicator} />}
     {props.canChat && (
@@ -70,5 +76,5 @@ const styles = styleSheetCreate({
   },
 })
 
-const CustomComponent = FloatingMenuParentHOC(_CustomComponent)
+const CustomComponent = OverlayParentHOC(_CustomComponent)
 export default CustomComponent

@@ -1,8 +1,16 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button, ClickableBox, Text, Avatar, FloatingMenu} from '../../common-adapters'
+import {
+  Box2,
+  Button,
+  ClickableBox,
+  Text,
+  Avatar,
+  FloatingMenu,
+  OverlayParentHOC,
+  type OverlayParentProps,
+} from '../../common-adapters'
 import {styleSheetCreate} from '../../styles'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../common-adapters/floating-menu'
 
 type Props = {
   isDefaultWallet: boolean,
@@ -56,7 +64,7 @@ type SendProps = {
   onSendToAnotherWallet: () => void,
 }
 
-class _SendButton extends React.PureComponent<SendProps & FloatingMenuParentProps> {
+class _SendButton extends React.PureComponent<SendProps & OverlayParentProps> {
   _menuItems = [
     {
       onClick: () => this.props.onSendToKeybaseUser(),
@@ -97,7 +105,7 @@ type DropdownProps = {
   onSettings: () => void,
 }
 
-class _DropdownButton extends React.PureComponent<DropdownProps & FloatingMenuParentProps> {
+class _DropdownButton extends React.PureComponent<DropdownProps & OverlayParentProps> {
   _menuItems = [
     {
       onClick: () => this.props.onDeposit(),
@@ -140,8 +148,8 @@ const styles = styleSheetCreate({
   noShrink: {flexShrink: 0},
 })
 
-const SendButton = FloatingMenuParentHOC(_SendButton)
+const SendButton = OverlayParentHOC(_SendButton)
 
-const DropdownButton = FloatingMenuParentHOC(_DropdownButton)
+const DropdownButton = OverlayParentHOC(_DropdownButton)
 
 export default Header

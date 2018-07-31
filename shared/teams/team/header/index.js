@@ -3,8 +3,17 @@ import * as React from 'react'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import AddPeopleHow from './add-people-how/container'
-import {iconCastPlatformStyles, Box, Button, ButtonBar, Icon, Meta, Text} from '../../../common-adapters'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
+import {
+  iconCastPlatformStyles,
+  Box,
+  Button,
+  ButtonBar,
+  Icon,
+  Meta,
+  Text,
+  OverlayParentHOC,
+  type OverlayParentProps,
+} from '../../../common-adapters'
 import type {Response} from 'react-native-image-picker'
 import NameWithIconWrapper from './name-with-icon-wrapper'
 import {
@@ -35,7 +44,7 @@ export type Props = {
   onChat: () => void,
   onEditDescription: () => void,
   onEditIcon: (image?: Response) => void,
-} & FloatingMenuParentProps
+} & OverlayParentProps
 
 const _TeamHeader = (props: Props) => (
   <Box style={styles.container}>
@@ -148,7 +157,7 @@ const _TeamHeader = (props: Props) => (
   </Box>
 )
 
-const TeamHeader = FloatingMenuParentHOC(_TeamHeader)
+const TeamHeader = OverlayParentHOC(_TeamHeader)
 
 const getTeamSubtitle = (memberCount: number, role: Types.MaybeTeamRoleType): string => {
   let res = `${memberCount} member`
