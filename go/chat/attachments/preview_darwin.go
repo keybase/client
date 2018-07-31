@@ -83,6 +83,9 @@ func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader, ba
 	copy(localDat, (*[1 << 30]byte)(unsafe.Pointer(C.ImageData()))[0:C.ImageLength()])
 	C.ImageFree()
 	imagePreview, err := previewImage(ctx, log, bytes.NewReader(localDat), basename, "image/jpeg")
+	if err != nil {
+		return res, err
+	}
 	return &PreviewRes{
 		Source:         imagePreview.Source,
 		ContentType:    "image/jpeg",

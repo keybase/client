@@ -3,7 +3,6 @@
 package attachments
 
 import (
-	"errors"
 	"io"
 
 	"github.com/keybase/client/go/chat/utils"
@@ -11,5 +10,5 @@ import (
 )
 
 func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader, basename string) (*PreviewRes, error) {
-	return nil, errors.New("video preview not supported")
+	return previewVideoBlank(ctx, log, src, basename)
 }

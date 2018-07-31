@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"image"
+	"image/color"
 	"image/color/palette"
 	"image/draw"
 	"image/gif"
@@ -58,6 +59,39 @@ func Preview(ctx context.Context, log utils.DebugLabeler, src io.Reader, content
 			basename, contentType, err)
 	}
 	return nil, nil
+}
+
+// previewVideoBlank previews a video by inserting a black rectangle with a play button on it.
+func previewVideoBlank(ctx context.Context, log utils.DebugLabeler, src io.Reader, basename string) (res *PreviewRes, err error) {
+	const width, height = 300, 150
+	img := image.NewNRGBA(image.Rect(0, 0, width, height))
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			img.Set(x, y, color.NRGBA{
+				R: 0,
+				G: 0,
+				B: 0,
+				A: 255,
+			})
+		}
+	}
+	var out bytes.Buffer
+	if err := png.Encode(&out, img); err != nil {
+		return res, err
+	}
+	imagePreview, err := previewImage(ctx, log, &out, basename, "image/png")
+	if err != nil {
+		return res, err
+	}
+	return &PreviewRes{
+		Source:         imagePreview.Source,
+		ContentType:    "image/png",
+		BaseWidth:      imagePreview.BaseWidth,
+		BaseHeight:     imagePreview.BaseHeight,
+		BaseDurationMs: 1,
+		PreviewHeight:  imagePreview.PreviewHeight,
+		PreviewWidth:   imagePreview.PreviewWidth,
+	}, nil
 }
 
 // previewImage will resize a single-frame image.
