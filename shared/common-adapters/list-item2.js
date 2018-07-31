@@ -59,8 +59,8 @@ const ListItem = (props: Props) => (
   </ClickableBox>
 )
 
-const smallHeight = 48
-const largeHeight = 64
+const smallHeight = isMobile ? 48 : 40
+const largeHeight = isMobile ? 64 : 56
 
 const styles = styleSheetCreate({
   actionLargeContainer: {
@@ -109,8 +109,8 @@ const styles = styleSheetCreate({
     right: 0,
     top: 0,
   },
-  iconLarge: {width: 72},
-  iconSmall: {width: 56},
+  iconLarge: {width: isMobile ? 75 : 72},
+  iconSmall: {width: isMobile ? 60 : 56},
   rowLarge: {
     alignItems: 'center',
     minHeight: largeHeight,

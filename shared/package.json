@@ -86,6 +86,7 @@
     "snapshotSerializers": [
       "jest-glamor-react"
     ],
+    "timers": "fake",
     "testEnvironment": "jsdom",
     "moduleNameMapper": {
       "\\.(jpg|png|gif|ttf|css)$": "<rootDir>/__mocks__/file-mock.js",
@@ -95,7 +96,6 @@
       "^electron$": "<rootDir>/__mocks__/electron.js",
       "hidden-string": "<rootDir>/__mocks__/hidden-string.js",
       "constants/platform": "<rootDir>/__mocks__/platform.js",
-      "hoc-timers": "<rootDir>/__mocks__/hoc-timers.js",
       "local-debug": "<rootDir>/__mocks__/local-debug.js",
       "feature-flags": "<rootDir>/__mocks__/feature-flags.js",
       "engine/saga$": "<rootDir>/__mocks__/engine-saga.js"

@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import * as PropProviders from '../../stories/prop-providers'
 import PaperKey from '.'
-import {action, storiesOf} from '../../stories/storybook'
+import {action, storiesOf, PropProviders} from '../../stories/storybook'
 
 const props = {
   error: '',
@@ -16,7 +15,7 @@ const props = {
 
 const load = () => {
   storiesOf('Provision/Paperkey', module)
-    .addDecorator(PropProviders.CommonProvider())
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .add('Normal', () => <PaperKey {...props} />)
     .add('Error', () => <PaperKey {...props} error="Something went wrong" />)
 }

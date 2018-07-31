@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import * as PropProviders from '../../stories/prop-providers'
 import Passphrase from '.'
-import {action, storiesOf} from '../../stories/storybook'
+import {action, storiesOf, PropProviders} from '../../stories/storybook'
 
 const props = {
   error: null,
@@ -20,11 +19,9 @@ const props = {
   waitingForResponse: false,
 }
 
-const provider = PropProviders.CommonProvider()
-
 const load = () => {
   storiesOf('Provision/Passphrase', module)
-    .addDecorator(provider)
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .add('None', () => <Passphrase {...props} />)
     .add('Error', () => <Passphrase {...props} error={'error here!'} />)
     .add('Show typing', () => <Passphrase {...props} showTyping={true} passphrase={'hunter2'} />)

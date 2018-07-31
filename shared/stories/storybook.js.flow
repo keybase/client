@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as PropProviders from './prop-providers'
 export type SelectorMap = {
   [componentDisplayName: string]: (any => any) | Object,
 }
@@ -14,4 +15,4 @@ declare class Rnd {
   next(): number;
 }
 
-export {action, storiesOf, createPropProvider, unexpected, Rnd}
+export {action, storiesOf, createPropProvider, unexpected, Rnd, PropProviders}

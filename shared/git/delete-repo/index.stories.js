@@ -1,15 +1,12 @@
 // @flow
 import React from 'react'
 import {Box} from '../../common-adapters'
-import * as PropProviders from '../../stories/prop-providers'
-import {storiesOf, action} from '../../stories/storybook'
+import {storiesOf, action, PropProviders} from '../../stories/storybook'
 import DeleteRepo from '.'
-
-const provider = PropProviders.CommonProvider()
 
 const load = () => {
   storiesOf('Git/Delete', module)
-    .addDecorator(provider)
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .add('DeleteRepo', () => (
       <Box style={{height: '100%', width: '100%'}}>
         <DeleteRepo

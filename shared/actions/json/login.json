@@ -17,7 +17,6 @@
     // TODO remove
     "onFinish": {},
     "navBasedOnLoginAndInitialState": {},
-    "setRevokedSelf": { "revoked": "string" },
     "setDeletedSelf": { "deletedUsername": "string" },
     "configuredAccounts": {
       "accounts": "?Array<{|hasStoredSecret: boolean, username: string|}>",

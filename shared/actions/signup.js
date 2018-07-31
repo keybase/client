@@ -169,28 +169,25 @@ const reallySignupOnNoErrors = (state: TypedState) => {
 
 const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   // validation actions
-  yield Saga.safeTakeEveryPurePromise(SignupGen.requestInvite, requestInvite)
-  yield Saga.safeTakeEveryPurePromise(SignupGen.checkUsernameEmail, checkUsernameEmail)
-  yield Saga.safeTakeEveryPurePromise(SignupGen.requestAutoInvite, requestAutoInvite)
-  yield Saga.safeTakeEveryPurePromise(
-    [SignupGen.requestedAutoInvite, SignupGen.checkInviteCode],
-    checkInviteCode
-  )
-  yield Saga.safeTakeEveryPurePromise(SignupGen.checkDevicename, checkDevicename)
+  yield Saga.actionToPromise(SignupGen.requestInvite, requestInvite)
+  yield Saga.actionToPromise(SignupGen.checkUsernameEmail, checkUsernameEmail)
+  yield Saga.actionToPromise(SignupGen.requestAutoInvite, requestAutoInvite)
+  yield Saga.actionToPromise([SignupGen.requestedAutoInvite, SignupGen.checkInviteCode], checkInviteCode)
+  yield Saga.actionToPromise(SignupGen.checkDevicename, checkDevicename)
 
   // move to next screen actions
-  yield Saga.safeTakeEveryPureSimple(SignupGen.restartSignup, resetNav)
-  yield Saga.safeTakeEveryPureSimple(SignupGen.requestedInvite, showInviteSuccessOnNoErrors)
-  yield Saga.safeTakeEveryPureSimple(SignupGen.checkedUsernameEmail, showPassphraseOnNoErrors)
-  yield Saga.safeTakeEveryPureSimple(SignupGen.requestedAutoInvite, showInviteScreen)
-  yield Saga.safeTakeEveryPureSimple(SignupGen.checkedInviteCode, showUserEmailOnNoErrors)
-  yield Saga.safeTakeEveryPureSimple(SignupGen.checkPassphrase, showDeviceScreenOnNoErrors)
-  yield Saga.safeTakeEveryPureSimple(SignupGen.signedup, showErrorOrCleanupAfterSignup)
+  yield Saga.actionToAction(SignupGen.restartSignup, resetNav)
+  yield Saga.actionToAction(SignupGen.requestedInvite, showInviteSuccessOnNoErrors)
+  yield Saga.actionToAction(SignupGen.checkedUsernameEmail, showPassphraseOnNoErrors)
+  yield Saga.actionToAction(SignupGen.requestedAutoInvite, showInviteScreen)
+  yield Saga.actionToAction(SignupGen.checkedInviteCode, showUserEmailOnNoErrors)
+  yield Saga.actionToAction(SignupGen.checkPassphrase, showDeviceScreenOnNoErrors)
+  yield Saga.actionToAction(SignupGen.signedup, showErrorOrCleanupAfterSignup)
 
   // actually make the signup call
-  yield Saga.safeTakeEveryPureSimple(SignupGen.checkedDevicename, reallySignupOnNoErrors)
+  yield Saga.actionToAction(SignupGen.checkedDevicename, reallySignupOnNoErrors)
 
-  yield Saga.safeTakeEveryPureSimple(SignupGen.goBackAndClearErrors, goBackAndClearErrors)
+  yield Saga.actionToAction(SignupGen.goBackAndClearErrors, goBackAndClearErrors)
 }
 
 export default signupSaga

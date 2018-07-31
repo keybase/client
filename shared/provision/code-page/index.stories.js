@@ -1,10 +1,9 @@
 // @flow
-import * as PropProviders from '../../stories/prop-providers'
 import * as React from 'react'
 import CodePage2 from '.'
 import QRScanNotAuthorized from './qr-scan/not-authorized'
 import {Box2} from '../../common-adapters'
-import {action, createPropProvider, storiesOf} from '../../stories/storybook'
+import {action, storiesOf, PropProviders} from '../../stories/storybook'
 
 const textCode = 'scrub disagree sheriff holiday cabin habit mushroom member four'
 // Not using the container on purpose since i want every variant
@@ -58,10 +57,7 @@ const load = () => {
   ]
 
   let s = storiesOf(`Provision/CodePage2`, module).addDecorator(
-    createPropProvider({
-      QRScan: QRScanProps,
-      ...PropProviders.Common(),
-    })
+    PropProviders.createPropProviderWithCommon({QRScan: QRScanProps})
   )
   variants.forEach(({current, provisioned, otherType}) => {
     let otherName
@@ -106,9 +102,8 @@ const load = () => {
 
   s = storiesOf(`Provision/CodePage2`, module)
     .addDecorator(
-      createPropProvider({
+      PropProviders.createPropProviderWithCommon({
         QRScan: {...QRScanProps, waiting: true},
-        ...PropProviders.Common(),
       })
     )
     .add('QR Scan waiting', () => (
