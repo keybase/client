@@ -32,6 +32,7 @@ const container = storyFn => (
   <Box
     style={platformStyles({
       common: {
+        marginTop: 40,
         alignContent: 'stretch',
         height: '100%',
         width: '100%',
