@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import {globalColors, globalMargins, isMobile, glamorous} from '../../styles'
+import * as Styles from '../../styles'
 import rowStyles from './styles'
-import {Badge, Box, Box2, ClickableBox, Icon, Meta, Text} from '../../common-adapters'
+import {Badge2, Box, Box2, ClickableBox, Icon, Meta, Text} from '../../common-adapters'
 import PathItemIcon from '../common/path-item-icon'
 import PathItemInfo from '../common/path-item-info'
 import PathItemAction from '../common/path-item-action-container'
@@ -25,17 +25,17 @@ type StillProps = {
   openInFileUI: () => void,
 }
 
-const HoverBox = isMobile
+const HoverBox = Styles.isMobile
   ? Box
-  : glamorous(Box)({
+  : Styles.glamorous(Box)({
       '& .fs-path-item-hover-icon': {
-        color: globalColors.white,
+        color: Styles.globalColors.white,
       },
       ':hover .fs-path-item-hover-icon': {
-        color: globalColors.black_40,
+        color: Styles.globalColors.black_40,
       },
       '& .fs-path-item-hover-icon:hover': {
-        color: globalColors.black_60,
+        color: Styles.globalColors.black_60,
       },
     })
 
@@ -47,23 +47,25 @@ const RowMeta = ({badgeCount, isDownloading, isNew, isIgnored, needsRekey}) => {
   return (
     <Box style={{width: 0, display: 'flex'}}>
       {needsRekey && (
-        <Box style={styleBadgeContainerRekey}>
-          <Meta title="rekey" backgroundColor={globalColors.red} />
+        <Box style={styles.rekeyContainer}>
+          <Meta title="rekey" backgroundColor={Styles.globalColors.red} />
         </Box>
       )}
       {isNew && (
-        <Box style={styleBadgeContainerNew}>
-          <Meta title="new" backgroundColor={globalColors.orange} />
+        <Box style={styles.newContainer}>
+          <Meta title="new" backgroundColor={Styles.globalColors.orange} />
         </Box>
       )}
       {isDownloading && (
-        <Box style={styleDownloadContainer}>
+        <Box style={styles.downloadContainer}>
           <Icon type="icon-addon-file-downloading" />
         </Box>
       )}
-      <Box style={styleBadgeContainer}>
-        {!!badgeCount && <Badge badgeNumber={badgeCount} badgeStyle={badgeStyleCount} />}
-      </Box>
+      {!!badgeCount && (
+        <Box style={styles.badgeContainer}>
+          <Badge2 height={16} fontSize={10} badgeNumber={badgeCount} />
+        </Box>
+      )}
     </Box>
   )
 }
@@ -80,12 +82,16 @@ const Still = (props: StillProps) => (
           <Text
             type={props.itemStyles.textType}
             style={rowStyles.rowText(props.itemStyles.textColor)}
-            lineClamp={isMobile ? 1 : undefined}
+            lineClamp={Styles.isMobile ? 1 : undefined}
           >
             {props.name}
           </Text>
           {props.isEmpty && (
-            <Meta title="empty" backgroundColor={globalColors.grey} style={{marginLeft: globalMargins.tiny, marginTop: globalMargins.xxtiny}} />
+            <Meta
+              title="empty"
+              backgroundColor={Styles.globalColors.grey}
+              style={{marginLeft: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.xxtiny}}
+            />
           )}
         </Box2>
         {props.type === 'folder' &&
@@ -100,7 +106,7 @@ const Still = (props: StillProps) => (
       </Box>
     </ClickableBox>
     <Box style={rowStyles.rightBox}>
-      {!isMobile && (
+      {!Styles.isMobile && (
         <Icon
           type="iconfont-finder"
           style={pathItemActionIconStyle}
@@ -115,38 +121,47 @@ const Still = (props: StillProps) => (
 )
 
 const pathItemActionIconStyle = {
-  padding: globalMargins.tiny,
+  padding: Styles.globalMargins.tiny,
 }
 
 const pathItemActionIconFontSize = 16
 
-const styleBadgeContainer = {
-  position: 'absolute',
-  left: isMobile ? -24 : 24,
-  top: isMobile ? -20 : -1,
-  zIndex: 200,
-}
-
-const styleBadgeContainerNew = {
-  ...styleBadgeContainer,
-  left: isMobile ? -32 : 16,
-}
-
-const styleBadgeContainerRekey = {
-  ...styleBadgeContainer,
-  top: isMobile ? 5 : 24,
-  left: isMobile ? -40 : 16,
-}
-
-const styleDownloadContainer = {
-  ...styleBadgeContainer,
-  top: isMobile ? 2 : 22,
-  left: isMobile ? -28 : 20,
-}
-
-const badgeStyleCount = {
-  marginLeft: 0,
-  marginRight: 0,
-}
+const styles = Styles.styleSheetCreate({
+  pathItemActionIcon: {
+    padding: Styles.globalMargins.tiny,
+  },
+  badgeContainer: Styles.platformStyles({
+    common: {
+      position: 'absolute',
+      zIndex: 200,
+    },
+    isElectron: {top: -3, left: 21},
+    isMobile: {top: -1, left: -28},
+  }),
+  newContainer: Styles.platformStyles({
+    common: {
+      position: 'absolute',
+      zIndex: 200,
+    },
+    isElectron: {top: 22, left: 16},
+    isMobile: {top: -1, left: -32},
+  }),
+  rekeyContainer: Styles.platformStyles({
+    common: {
+      position: 'absolute',
+      zIndex: 200,
+    },
+    isElectron: {top: 24, left: 16},
+    isMobile: {top: 5, left: -40},
+  }),
+  downloadContainer: Styles.platformStyles({
+    common: {
+      position: 'absolute',
+      zIndex: 200,
+    },
+    isElectron: {top: 22, left: 20},
+    isMobile: {top: -1, left: -28},
+  }),
+})
 
 export default Still
