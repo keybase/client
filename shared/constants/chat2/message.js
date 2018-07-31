@@ -237,6 +237,7 @@ const makeMessageSetChannelname: I.RecordFactory<MessageTypes._MessageSetChannel
 
 export const makeReaction: I.RecordFactory<MessageTypes._Reaction> = I.Record({
   messageID: Types.numberToMessageID(0),
+  outboxID: Types.stringToOutboxID(''),
   timestamp: 0,
   username: '',
 })

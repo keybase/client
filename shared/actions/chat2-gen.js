@@ -11,6 +11,7 @@ import type {RetentionPolicy} from '../constants/types/teams'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer
+export const addPendingReaction = 'chat2:addPendingReaction'
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
 export const attachmentLoading = 'chat2:attachmentLoading'
@@ -84,6 +85,13 @@ export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
 export const updateTypers = 'chat2:updateTypers'
 
 // Payload Types
+type _AddPendingReactionPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  emoji: string,
+  outboxID: Types.OutboxID,
+  targetOrdinal: Types.Ordinal,
+  username: string,
+|}>
 type _AttachmentDownloadPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,
@@ -392,6 +400,10 @@ export const createHandleSeeingExplodingMessages = (payload: _HandleSeeingExplod
  */
 export const createStaticConfigLoaded = (payload: _StaticConfigLoadedPayload) => ({error: false, payload, type: staticConfigLoaded})
 /**
+ * Store a pending reaction with an outboxID.
+ */
+export const createAddPendingReaction = (payload: _AddPendingReactionPayload) => ({error: false, payload, type: addPendingReaction})
+/**
  * Toggle a reaction on a message.
  */
 export const createToggleMessageReaction = (payload: _ToggleMessageReactionPayload) => ({error: false, payload, type: toggleMessageReaction})
@@ -456,6 +468,7 @@ export const createUpdateNotificationSettings = (payload: _UpdateNotificationSet
 export const createUpdateTypers = (payload: _UpdateTypersPayload) => ({error: false, payload, type: updateTypers})
 
 // Action Payloads
+export type AddPendingReactionPayload = $Call<typeof createAddPendingReaction, _AddPendingReactionPayload>
 export type AttachmentDownloadPayload = $Call<typeof createAttachmentDownload, _AttachmentDownloadPayload>
 export type AttachmentDownloadedPayload = $Call<typeof createAttachmentDownloaded, _AttachmentDownloadedPayload>
 export type AttachmentLoadingPayload = $Call<typeof createAttachmentLoading, _AttachmentLoadingPayload>
@@ -531,6 +544,7 @@ export type UpdateTypersPayload = $Call<typeof createUpdateTypers, _UpdateTypers
 // All Actions
 // prettier-ignore
 export type Actions =
+  | AddPendingReactionPayload
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload
   | AttachmentLoadingPayload

@@ -2194,6 +2194,9 @@ const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, st
   // The service translates this to a delete if an identical reaction already exists
   // so we only need to call this RPC to toggle it on & off
   const {conversationIDKey, emoji, ordinal} = action.payload
+  if (!emoji) {
+    return state
+  }
   const message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message) {
     logger.warn(`toggleMessageReaction: no message found`)
@@ -2202,16 +2205,29 @@ const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, st
   const messageID = message.id
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
   const meta = Constants.getMeta(state, conversationIDKey)
+  const outboxID = Constants.generateOutboxID()
   logger.info(`toggleMessageReaction: posting reaction`)
-  return Saga.call(RPCChatTypes.localPostReactionNonblockRpcPromise, {
-    body: emoji,
-    clientPrev,
-    conversationID: Types.keyToConversationID(conversationIDKey),
-    identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-    supersedes: messageID,
-    tlfName: meta.tlfname,
-    tlfPublic: false,
-  })
+  return Saga.sequentially([
+    Saga.call(RPCChatTypes.localPostReactionNonblockRpcPromise, {
+      body: emoji,
+      clientPrev,
+      conversationID: Types.keyToConversationID(conversationIDKey),
+      identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
+      outboxID,
+      supersedes: messageID,
+      tlfName: meta.tlfname,
+      tlfPublic: false,
+    }),
+    Saga.put(
+      Chat2Gen.createAddPendingReaction({
+        conversationIDKey,
+        emoji,
+        outboxID: Types.rpcOutboxIDToOutboxID(outboxID),
+        targetOrdinal: ordinal,
+        username: state.config.username || '',
+      })
+    ),
+  ])
 }
 
 const handleFilePickerError = (action: Chat2Gen.FilePickerErrorPayload) => {

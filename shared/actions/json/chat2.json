@@ -229,6 +229,14 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString"
     },
+    "addPendingReaction": {
+      "_description": "Store a pending reaction with an outboxID.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "emoji": "string",
+      "outboxID": "Types.OutboxID",
+      "targetOrdinal": "Types.Ordinal",
+      "username": "string"
+    },
     "toggleMessageReaction": {
       "_description": "Toggle a reaction on a message.",
       "conversationIDKey": "Types.ConversationIDKey",

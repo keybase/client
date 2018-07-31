@@ -629,6 +629,26 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         })
       )
     }
+    case Chat2Gen.addPendingReaction: {
+      const {conversationIDKey, emoji, outboxID, targetOrdinal, username} = action.payload
+      return state.update('messageMap', messageMap =>
+        messageMap.update(conversationIDKey, I.Map(), (map: I.Map<Types.Ordinal, Types.Message>) => {
+          return map.update(targetOrdinal, message => {
+            if (!message || message.type === 'deleted' || message.type === 'placeholder') {
+              return message
+            }
+            let reactions = message.reactions
+            // $FlowIssue thinks `message` is the inner type
+            return message.set(
+              'reactions',
+              reactions.update(emoji, I.Set(), rs =>
+                rs.add(Constants.makeReaction({outboxID, timestamp: Date.now(), username}))
+              )
+            )
+          })
+        })
+      )
+    }
     case Chat2Gen.reactionsWereDeleted: {
       const {conversationIDKey, deletions} = action.payload
       const targetData = deletions.map(d => ({
