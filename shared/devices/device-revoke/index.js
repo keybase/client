@@ -30,11 +30,7 @@ class EndangeredTLFList extends React.Component<{endangeredTLFs: Array<string>}>
           You may lose access to these folders forever:
         </Kb.Text>
         <Kb.Box2 direction="vertical" style={styles.listContainer}>
-          <Kb.List
-            items={this.props.endangeredTLFs}
-            renderItem={this._renderTLFEntry}
-            indexAsKey={true}
-          />
+          <Kb.List items={this.props.endangeredTLFs} renderItem={this._renderTLFEntry} indexAsKey={true} />
         </Kb.Box2>
       </React.Fragment>
     )
@@ -87,13 +83,14 @@ const DeviceRevoke = (props: Props) => {
         ?
       </Kb.Text>
       <Kb.Box2 direction="vertical" style={styles.endangeredTLFContainer} fullWidth={Styles.isMobile}>
-        {props.waiting ? (
-          <Kb.ProgressIndicator />
-        ) : (
-          <EndangeredTLFList endangeredTLFs={props.endangeredTLFs} />
-        )}
+        {!props.waiting && <EndangeredTLFList endangeredTLFs={props.endangeredTLFs} />}
       </Kb.Box2>
       <ActionButtons onCancel={props.onCancel} onSubmit={props.onSubmit} />
+      {props.waiting && (
+        <Kb.Text type="BodySmallItalic" style={styles.centerText}>
+          Calculating any side effects...
+        </Kb.Text>
+      )}
     </Kb.Box2>
   )
 }

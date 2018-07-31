@@ -17,7 +17,7 @@ const provider = createPropProvider({
       type,
     }),
     onBack: action('onback'),
-    showRevokeDevicePage: revoked ? null : action('onrevoke'),
+    showRevokeDevicePage: revoked ? null : action('showRevokeDevicePage'),
   }),
 })
 
