@@ -16,6 +16,8 @@ release: clean bundle
 
 clean:
 	rm -rf build/
+	rm -f js/bundle.js
+	rm -f keybase-{chrome,firefox}-*.zip
 
 bundle: ./js/bundle.js
 
