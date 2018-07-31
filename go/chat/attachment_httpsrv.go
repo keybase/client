@@ -167,6 +167,14 @@ func (r *AttachmentHTTPSrv) shouldServeContent(ctx context.Context, asset chat1.
 	return strings.HasPrefix(asset.MimeType, "video")
 }
 
+func (r *AttachmentHTTPSrv) getContentStash(ctx context.Context) (*os.File, error) {
+	dir := filepath.Join(r.G().GetCacheDir(), "contentstash")
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		return nil, err
+	}
+	return ioutil.TempFile(dir, "cs")
+}
+
 func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
@@ -200,8 +208,7 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", asset.MimeType)
 	if r.shouldServeContent(ctx, asset) {
 		r.Debug(ctx, "serve: using content stash file")
-		fw, err := os.OpenFile(filepath.Join(r.G().GetCacheDir(), "content_stash"), os.O_RDWR|os.O_CREATE,
-			0600)
+		fw, err := r.getContentStash(ctx)
 		if err != nil {
 			r.makeError(ctx, w, http.StatusInternalServerError, "failed to get content stash file: %s", err)
 			return
@@ -212,6 +219,7 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		http.ServeContent(w, req, asset.Filename, time.Time{}, fw)
+		os.Remove(fw.Name())
 	} else {
 		if err := r.fetcher.FetchAttachment(ctx, w, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
 			r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
