@@ -2216,7 +2216,7 @@ const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, st
 
 const handleFilePickerError = (action: Chat2Gen.FilePickerErrorPayload) => {
   // Just show a black bar for now.
-  throw new Error(action.error)
+  throw action.payload.error
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
