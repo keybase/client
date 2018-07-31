@@ -42,7 +42,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
         return
       }
       if (response.error) {
-        this.props.onFilePickerError(response.error)
+        this.props.onFilePickerError(new Error(response.error))
         return
       }
       const filename = isIOS ? response.uri.replace('file://', '') : response.path
