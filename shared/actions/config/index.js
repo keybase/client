@@ -4,20 +4,13 @@ import logger from '../../logger'
 // import * as FsGen from '../fs-gen'
 import * as LoginGen from '../login-gen'
 import * as ConfigGen from '../config-gen'
-import * as TeamsGen from '../teams-gen'
 import * as Constants from '../../constants/config'
-import * as GregorCreators from '../gregor'
 import * as NotificationsGen from '../notifications-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
-import * as PinentryGen from '../pinentry-gen'
 import * as PlatformSpecific from '../platform-specific'
 import avatarSaga from './avatar'
 import engine from '../../engine'
-import {createGetPeopleData} from '../people-gen'
-import {defaultNumFollowSuggestions} from '../../constants/people'
-import {isMobile} from '../../constants/platform'
-import {type AsyncAction} from '../../constants/types/flux'
 import {type TypedState} from '../../constants/reducer'
 import {throttle} from 'lodash-es'
 
@@ -60,16 +53,6 @@ import {throttle} from 'lodash-es'
 // dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
 // // TODO move these to a bootstrapSuccess handler
 // didInitialNav = true
-// // If we're logged in, restore any saved route state and
-// // then nav again based on it.
-// // load people tab info on startup as well
-// // also load the teamlist for auxiliary information around the app
-// await dispatch(TeamsGen.createGetTeams())
-// await dispatch(
-// createGetPeopleData({
-// markViewed: false,
-// numFollowSuggestionsWanted: defaultNumFollowSuggestions,
-// })
 // )
 // }
 // })

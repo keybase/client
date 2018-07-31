@@ -3,6 +3,7 @@ import logger from '../logger'
 import {map, last} from 'lodash-es'
 import * as I from 'immutable'
 import * as SearchGen from './search-gen'
+import * as LoginGen from './login-gen'
 import * as TeamsGen from './teams-gen'
 import * as Types from '../constants/types/teams'
 import * as Constants from '../constants/teams'
@@ -696,74 +697,77 @@ function _afterGetChannels(fromGetChannels: any[]) {
   ])
 }
 
-const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerator<any, any> {
-  const state: TypedState = yield Saga.select()
-  const username = state.config.username
-  if (!username) {
-    logger.warn('getTeams while logged out')
-    return
-  }
-  yield Saga.put(TeamsGen.createSetLoaded({loaded: false}))
-  try {
-    const results: RPCTypes.AnnotatedTeamList = yield Saga.call(RPCTypes.teamsTeamListUnverifiedRpcPromise, {
-      includeImplicitTeams: false,
-      userAssertion: username,
-    })
-
-    const teams = results.teams || []
-    const teamnames = []
-    const teammembercounts = {}
-    const teamNameToRole: {[Types.Teamname]: Types.MaybeTeamRoleType} = {}
-    const teamNameToIsOpen = {}
-    const teamNameToAllowPromote = {}
-    const teamNameToIsShowcasing = {}
-    const teamNameToID = {}
-    teams.forEach(team => {
-      teamnames.push(team.fqName)
-      teammembercounts[team.fqName] = team.memberCount
-      teamNameToRole[team.fqName] = Constants.teamRoleByEnum[team.role]
-      teamNameToIsOpen[team.fqName] = team.isOpenTeam
-      teamNameToAllowPromote[team.fqName] = team.allowProfilePromote
-      teamNameToIsShowcasing[team.fqName] = team.isMemberShowcased
-      teamNameToID[team.fqName] = team.teamID
-    })
-
-    // Dismiss any stale badges for teams we're no longer in
-    const teamResetUsers = state.teams.getIn(['teamNameToResetUsers'], I.Map())
-    const teamNameSet = I.Set(teamnames)
-    const dismissIDs = teamResetUsers.reduce((ids, value: I.Set<Types.ResetUser>, key: string) => {
-      if (!teamNameSet.has(key)) {
-        ids.push(...value.toArray().map(ru => ru.badgeIDKey))
-      }
-      return ids
-    }, [])
-    yield Saga.all(
-      dismissIDs.map(id =>
-        Saga.call(RPCTypes.gregorDismissItemRpcPromise, {id: Constants.keyToResetUserBadgeID(id)})
-      )
-    )
-
-    yield Saga.put(
-      TeamsGen.createSetTeamInfo({
-        teamnames: teamNameSet,
-        teammembercounts: I.Map(teammembercounts),
-        teamNameToIsOpen: I.Map(teamNameToIsOpen),
-        teamNameToRole: I.Map(teamNameToRole),
-        teamNameToAllowPromote: I.Map(teamNameToAllowPromote),
-        teamNameToIsShowcasing: I.Map(teamNameToIsShowcasing),
-        teamNameToID: I.Map(teamNameToID),
-      })
-    )
-  } catch (err) {
-    if (err.code === RPCTypes.constantsStatusCode.scapinetworkerror) {
-      // Ignore API errors due to offline
-    } else {
-      throw err
+const getTeams = (state: TypedState) =>
+  Saga.call(function*() {
+    const username = state.config.username
+    if (!username) {
+      logger.warn('getTeams while logged out')
+      return
     }
-  } finally {
-    yield Saga.put(TeamsGen.createSetLoaded({loaded: true}))
-  }
-}
+    yield Saga.put(TeamsGen.createSetLoaded({loaded: false}))
+    try {
+      const results: RPCTypes.AnnotatedTeamList = yield Saga.call(
+        RPCTypes.teamsTeamListUnverifiedRpcPromise,
+        {
+          includeImplicitTeams: false,
+          userAssertion: username,
+        }
+      )
+
+      const teams = results.teams || []
+      const teamnames = []
+      const teammembercounts = {}
+      const teamNameToRole: {[Types.Teamname]: Types.MaybeTeamRoleType} = {}
+      const teamNameToIsOpen = {}
+      const teamNameToAllowPromote = {}
+      const teamNameToIsShowcasing = {}
+      const teamNameToID = {}
+      teams.forEach(team => {
+        teamnames.push(team.fqName)
+        teammembercounts[team.fqName] = team.memberCount
+        teamNameToRole[team.fqName] = Constants.teamRoleByEnum[team.role]
+        teamNameToIsOpen[team.fqName] = team.isOpenTeam
+        teamNameToAllowPromote[team.fqName] = team.allowProfilePromote
+        teamNameToIsShowcasing[team.fqName] = team.isMemberShowcased
+        teamNameToID[team.fqName] = team.teamID
+      })
+
+      // Dismiss any stale badges for teams we're no longer in
+      const teamResetUsers = state.teams.getIn(['teamNameToResetUsers'], I.Map())
+      const teamNameSet = I.Set(teamnames)
+      const dismissIDs = teamResetUsers.reduce((ids, value: I.Set<Types.ResetUser>, key: string) => {
+        if (!teamNameSet.has(key)) {
+          ids.push(...value.toArray().map(ru => ru.badgeIDKey))
+        }
+        return ids
+      }, [])
+      yield Saga.all(
+        dismissIDs.map(id =>
+          Saga.call(RPCTypes.gregorDismissItemRpcPromise, {id: Constants.keyToResetUserBadgeID(id)})
+        )
+      )
+
+      yield Saga.put(
+        TeamsGen.createSetTeamInfo({
+          teamnames: teamNameSet,
+          teammembercounts: I.Map(teammembercounts),
+          teamNameToIsOpen: I.Map(teamNameToIsOpen),
+          teamNameToRole: I.Map(teamNameToRole),
+          teamNameToAllowPromote: I.Map(teamNameToAllowPromote),
+          teamNameToIsShowcasing: I.Map(teamNameToIsShowcasing),
+          teamNameToID: I.Map(teamNameToID),
+        })
+      )
+    } catch (err) {
+      if (err.code === RPCTypes.constantsStatusCode.scapinetworkerror) {
+        // Ignore API errors due to offline
+      } else {
+        throw err
+      }
+    } finally {
+      yield Saga.put(TeamsGen.createSetLoaded({loaded: true}))
+    }
+  })
 
 const _checkRequestedAccess = (action: TeamsGen.CheckRequestedAccessPayload) =>
   Saga.call(RPCTypes.teamsTeamListMyAccessRequestsRpcPromise, {})
@@ -1253,7 +1257,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(TeamsGen.createNewTeamFromConversation, _createNewTeamFromConversation)
   yield Saga.safeTakeEveryPure(TeamsGen.getChannelInfo, _getChannelInfo, _afterGetChannelInfo)
   yield Saga.safeTakeEveryPure(TeamsGen.getChannels, _getChannels, _afterGetChannels)
-  yield Saga.safeTakeEvery(TeamsGen.getTeams, _getTeams)
+  yield Saga.actionToAction([LoginGen.loggedin, TeamsGen.getTeams], getTeams)
   yield Saga.safeTakeEveryPure(TeamsGen.saveChannelMembership, _saveChannelMembership)
   yield Saga.safeTakeEvery(TeamsGen.createChannel, _createChannel)
   yield Saga.safeTakeEvery(TeamsGen.addToTeam, _addToTeam)
