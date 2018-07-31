@@ -232,6 +232,13 @@ func LookupSender(ctx context.Context, g *libkb.GlobalContext, accountID stellar
 	return entry, nil
 }
 
+func getFederationClient(m libkb.MetaContext) *federation.Client {
+	if m.G().Env.GetRunMode() != libkb.ProductionRunMode {
+		return federation.DefaultTestNetClient
+	}
+	return federation.DefaultPublicNetClient
+}
+
 func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res stellarcommon.Recipient, err error) {
 	defer m.CTraceTimed("Stellar.LookupRecipient", func() error { return err })()
 	res = stellarcommon.Recipient{
@@ -289,8 +296,8 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res 
 		} else {
 			// Actual federation address that is not under keybase.io
 			// domain. Use federation client.
-			fedClient := federation.DefaultPublicNetClient
-			nameResponse, err := fedClient.LookupByAddress(string(to))
+			fedCli := getFederationClient(m)
+			nameResponse, err := fedCli.LookupByAddress(string(to))
 			if err != nil {
 				return res, err
 			}

@@ -1,5 +1,6 @@
 package stellartoml
 
+/*
 import "github.com/stretchr/testify/mock"
 
 // MockClient is a mockable stellartoml client.
@@ -18,3 +19,4 @@ func (m *MockClient) GetStellarTomlByAddress(address string) (*Response, error) 
 	a := m.Called(address)
 	return a.Get(0).(*Response), a.Error(1)
 }
+*/
