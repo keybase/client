@@ -53,10 +53,9 @@ func Preview(ctx context.Context, log utils.DebugLabeler, src io.Reader, content
 			log.Debug(ctx, "Preview: found video preview for filename: %s contentType: %s", basename,
 				contentType)
 			return pre, nil
-		} else {
-			log.Debug(ctx, "Preview: failed to get video preview for filename: %s contentType: %s err: %s",
-				basename, contentType, err)
 		}
+		log.Debug(ctx, "Preview: failed to get video preview for filename: %s contentType: %s err: %s",
+			basename, contentType, err)
 	}
 	return nil, nil
 }

@@ -1,4 +1,4 @@
-// +build darwin, !ios
+// +build darwin, !ios, !android
 
 package attachments
 
