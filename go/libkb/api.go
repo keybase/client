@@ -254,19 +254,6 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 		return
 	}
 
-	/*
-		{ // Find API calls with no log tags.
-				tags, ok := LogTagsFromContext(m.Ctx())
-				if !ok {
-					panic("no tags")
-				}
-				if len(tags) <= 1 {
-					m.CDebugf("%v", spew.Sdump(tags))
-					panic("api call with no tags")
-				}
-		}
-	*/
-
 	finisher = noopFinisher
 
 	nist := getNIST(m, arg.SessionType)

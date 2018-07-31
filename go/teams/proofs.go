@@ -290,9 +290,7 @@ func (p *proofSetT) check(ctx context.Context, world LoaderContext, parallel boo
 	var i int
 	for _, v := range p.proofs {
 		for _, proof := range v {
-			if i%100 == 0 {
-				p.G().Log.CDebugf(ctx, "TeamLoader proofSet check [%v / %v]", i, total)
-			}
+			p.G().Log.CDebugf(ctx, "TeamLoader proofSet check [%v / %v]", i, total)
 			err = proof.check(ctx, p.G(), world, p)
 			if err != nil {
 				return err
