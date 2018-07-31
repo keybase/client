@@ -562,47 +562,8 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	tracer.Stage("userPreload enable:%v parallel:%v wait:%v",
 		teamEnv.UserPreloadEnable, teamEnv.UserPreloadParallel, teamEnv.UserPreloadWait)
-	preloadCtx, preloadCancel := context.WithCancel(ctx)
+	preloadCancel := l.userPreload(ctx, links, fullVerifyCutoff)
 	defer preloadCancel()
-	if teamEnv.UserPreloadEnable {
-		uidSet := make(map[keybase1.UID]struct{})
-		for _, link := range links {
-			// fullVerify definition copied from verifyLink
-			fullVerify := (link.LinkType() != libkb.SigchainV2TypeTeamLeave) ||
-				(link.Seqno() >= fullVerifyCutoff) ||
-				(link.source.EldestSeqno == 0)
-			if !link.isStubbed() && fullVerify {
-				uidSet[link.inner.Body.Key.UID] = struct{}{}
-			}
-		}
-		l.G().Log.CDebugf(ctx, "TeamLoader userPreload uids: %v", len(uidSet))
-		if teamEnv.UserPreloadParallel {
-			// Note this is full-parallel. Probably want pipelining if this is to be turned on by default.
-			var wg sync.WaitGroup
-			for uid := range uidSet {
-				wg.Add(1)
-				go func(uid keybase1.UID) {
-					_, _, err = l.G().GetUPAKLoader().LoadV2(
-						libkb.NewLoadUserArg(l.G()).WithUID(uid).WithPublicKeyOptional().WithNetContext(preloadCtx))
-					if err != nil {
-						l.G().Log.CDebugf(ctx, "error preloading uid %v", uid)
-					}
-					wg.Done()
-				}(uid)
-			}
-			if teamEnv.UserPreloadWait {
-				wg.Wait()
-			}
-		} else {
-			for uid := range uidSet {
-				_, _, err = l.G().GetUPAKLoader().LoadV2(
-					libkb.NewLoadUserArg(l.G()).WithUID(uid).WithPublicKeyOptional().WithNetContext(preloadCtx))
-				if err != nil {
-					l.G().Log.CDebugf(ctx, "error preloading uid %v", uid)
-				}
-			}
-		}
-	}
 
 	tracer.Stage("linkloop (%v)", len(links))
 	for i, link := range links {
@@ -767,6 +728,52 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		team:      *ret,
 		didRepoll: didRepoll,
 	}, nil
+}
+
+// userPreload warms the upak cache with users who will probably need to be loaded to verify the chain.
+// Uses teamEnv and may be disabled.
+func (l *TeamLoader) userPreload(ctx context.Context, links []*chainLinkUnpacked, fullVerifyCutoff keybase1.Seqno) (cancel func()) {
+	ctx, cancel = context.WithCancel(ctx)
+	if teamEnv.UserPreloadEnable {
+		uidSet := make(map[keybase1.UID]struct{})
+		for _, link := range links {
+			// fullVerify definition copied from verifyLink
+			fullVerify := (link.LinkType() != libkb.SigchainV2TypeTeamLeave) ||
+				(link.Seqno() >= fullVerifyCutoff) ||
+				(link.source.EldestSeqno == 0)
+			if !link.isStubbed() && fullVerify {
+				uidSet[link.inner.Body.Key.UID] = struct{}{}
+			}
+		}
+		l.G().Log.CDebugf(ctx, "TeamLoader userPreload uids: %v", len(uidSet))
+		if teamEnv.UserPreloadParallel {
+			// Note this is full-parallel. Probably want pipelining if this is to be turned on by default.
+			var wg sync.WaitGroup
+			for uid := range uidSet {
+				wg.Add(1)
+				go func(uid keybase1.UID) {
+					_, _, err := l.G().GetUPAKLoader().LoadV2(
+						libkb.NewLoadUserArg(l.G()).WithUID(uid).WithPublicKeyOptional().WithNetContext(ctx))
+					if err != nil {
+						l.G().Log.CDebugf(ctx, "error preloading uid %v", uid)
+					}
+					wg.Done()
+				}(uid)
+			}
+			if teamEnv.UserPreloadWait {
+				wg.Wait()
+			}
+		} else {
+			for uid := range uidSet {
+				_, _, err := l.G().GetUPAKLoader().LoadV2(
+					libkb.NewLoadUserArg(l.G()).WithUID(uid).WithPublicKeyOptional().WithNetContext(ctx))
+				if err != nil {
+					l.G().Log.CDebugf(ctx, "error preloading uid %v", uid)
+				}
+			}
+		}
+	}
+	return cancel
 }
 
 // Decide whether to repoll merkle based on load arg.
