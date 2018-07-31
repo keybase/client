@@ -1619,7 +1619,7 @@ function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayloa
         ])
       )
     } else if (!isMobile || !message.fileURLCached) {
-      Saga.put(
+      yield Saga.put(
         Chat2Gen.createAttachmentDownload({
           conversationIDKey: message.conversationIDKey,
           ordinal: message.ordinal,
