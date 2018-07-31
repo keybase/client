@@ -8,7 +8,6 @@ import {
   globalStyles,
   globalColors,
   globalMargins,
-  isMobile,
 } from '../../../../styles'
 import * as RowSizes from '../sizes'
 
@@ -41,11 +40,7 @@ class Divider extends React.PureComponent<Props> {
               </Text>
               {this.props.hiddenCount > 0 &&
                 this.props.badgeCount > 0 && (
-                  <Badge
-                    leftRightPadding={isMobile ? 3 : undefined}
-                    badgeStyle={styles.badge}
-                    badgeNumber={this.props.badgeCount}
-                  />
+                  <Badge badgeStyle={styles.badge} badgeNumber={this.props.badgeCount} />
                 )}
             </Box2>
           </ClickableBox>
