@@ -1,11 +1,10 @@
 // @flow
 import * as React from 'react'
-import * as PropProviders from '../../stories/prop-providers'
 import BetaNote from './beta-note'
 import Header from './header'
 import TeamList from './team-list'
 import {Box} from '../../common-adapters'
-import {storiesOf, action} from '../../stories/storybook'
+import {storiesOf, action, PropProviders} from '../../stories/storybook'
 
 const teamnames = ['stripe', 'stripe.usa', 'techtonica']
 const teammembercounts = {
@@ -19,11 +18,9 @@ const teamNameToIsOpen = {
   techtonica: true,
 }
 
-const provider = PropProviders.CommonProvider()
-
 const load = () => {
   storiesOf('Teams/Main', module)
-    .addDecorator(provider)
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .add('Header', () => (
       <Header onCreateTeam={action('onCreateTeam')} onJoinTeam={action('onJoinTeam')} loaded={true} />
     ))

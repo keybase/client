@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import * as PropProviders from '../../stories/prop-providers'
 import Invites from '.'
-import {action, storiesOf} from '../../stories/storybook'
+import {action, storiesOf, PropProviders} from '../../stories/storybook'
 
 const props = {
   acceptedInvites: [
@@ -51,11 +50,9 @@ const props = {
   waitingForResponse: false,
 }
 
-const provider = PropProviders.CommonProvider()
-
 const load = () => {
   storiesOf('Settings/Invites', module)
-    .addDecorator(provider)
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .add('Empty', () => (
       <Invites
         {...props}

@@ -492,6 +492,7 @@ func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.Acco
 		if p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
 			// If the claim succeeded, the relay payment is done.
 			loc.ShowCancel = false
+			loc.StatusDetail = ""
 			name, err := s.lookupUsername(ctx, p.Claim.To.Uid)
 			if err == nil {
 				loc.Target = name

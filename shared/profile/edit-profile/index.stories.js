@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import * as PropProviders from '../../stories/prop-providers'
 import {Box} from '../../common-adapters'
-import {action, storiesOf} from '../../stories/storybook'
+import {action, storiesOf, PropProviders} from '../../stories/storybook'
 import EditProfile from '.'
 
 const props = {
@@ -23,11 +22,9 @@ const props = {
 
 const Wrapper = ({children}) => <Box style={{display: 'flex', height: 580, minWidth: 640}}>{children}</Box>
 
-const provider = PropProviders.CommonProvider()
-
 const load = () => {
   storiesOf('Profile/EditProfile', module)
-    .addDecorator(provider)
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .add('Normal', () => (
       <Wrapper>
         <EditProfile {...props} />

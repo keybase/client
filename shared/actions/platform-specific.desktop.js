@@ -87,7 +87,7 @@ const writeElectronSettingsOpenAtLogin = (action: ConfigGen.SetOpenAtLoginPayloa
   action.payload.writeFile &&
   SafeElectron.getIpcRenderer().send('setAppState', {openAtLogin: action.payload.open})
 
-  const writeElectronSettingsNotifySound = (action: ConfigGen.SetNotifySoundPayload) =>
+const writeElectronSettingsNotifySound = (action: ConfigGen.SetNotifySoundPayload) =>
   action.payload.writeFile &&
   SafeElectron.getIpcRenderer().send('setAppState', {notifySound: action.payload.sound})
 
@@ -129,7 +129,7 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatestPure(ConfigGen.showMain, showMainWindow)
   yield Saga.safeTakeEveryPure(ConfigGen.dumpLogs, dumpLogs)
   yield Saga.fork(initializeAppSettingsState)
-  yield Saga.safeTakeEveryPureSimple(ConfigGen.bootstrapSuccess, onBootstrapped)
+  yield Saga.actionToAction(ConfigGen.bootstrapSuccess, onBootstrapped)
 }
 
 export {

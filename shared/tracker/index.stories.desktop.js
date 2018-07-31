@@ -1,9 +1,8 @@
 // @noflow // The typing of these components isn't good so lets no try and fix that here
 import * as React from 'react'
 import * as Constants from '../constants/tracker'
-import * as PropProviders from '../stories/prop-providers'
 import Tracker from '.'
-import {action, storiesOf} from '../stories/storybook'
+import {action, storiesOf, PropProviders} from '../stories/storybook'
 
 const proofMaker = (type, id = 'id-') => ({
   humanUrl: '',
@@ -287,11 +286,9 @@ const propsFiveProof = {
   },
 }
 
-const provider = PropProviders.CommonProvider()
-
 const load = () => {
   storiesOf('Tracker', module)
-    .addDecorator(provider)
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .add('NonuserNoLinkPrivate', () => <Tracker {...propsNonUser} inviteLink={null} isPrivate={true} />)
     .add('NonuserLink', () => <Tracker {...propsNonUser} />)
     .add('NonuserNoLinkPublic', () => <Tracker {...propsNonUser} inviteLink={null} />)

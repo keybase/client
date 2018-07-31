@@ -71,6 +71,10 @@ const Common = () => ({
   ...WaitingButton(),
 })
 
-const CommonProvider = () => createPropProvider(Common())
+const createPropProviderWithCommon = (custom: ?Object) =>
+  createPropProvider({
+    ...Common(),
+    ...(custom || {}),
+  })
 
-export {Avatar, Common, CommonProvider, TeamDropdownMenu, Usernames}
+export {Avatar, Common, createPropProviderWithCommon, TeamDropdownMenu, Usernames}

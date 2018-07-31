@@ -19,7 +19,6 @@ export const logout = 'login:logout'
 export const navBasedOnLoginAndInitialState = 'login:navBasedOnLoginAndInitialState'
 export const onFinish = 'login:onFinish'
 export const setDeletedSelf = 'login:setDeletedSelf'
-export const setRevokedSelf = 'login:setRevokedSelf'
 
 // Payload Types
 type _ConfiguredAccountsPayload = $ReadOnly<{|accounts: ?Array<{|hasStoredSecret: boolean, username: string|}>|}>
@@ -36,7 +35,6 @@ type _LogoutPayload = void
 type _NavBasedOnLoginAndInitialStatePayload = void
 type _OnFinishPayload = void
 type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
-type _SetRevokedSelfPayload = $ReadOnly<{|revoked: string|}>
 
 // Action Creators
 export const createConfiguredAccounts = (payload: _ConfiguredAccountsPayload) => ({error: false, payload, type: configuredAccounts})
@@ -50,7 +48,6 @@ export const createLogout = (payload: _LogoutPayload) => ({error: false, payload
 export const createNavBasedOnLoginAndInitialState = (payload: _NavBasedOnLoginAndInitialStatePayload) => ({error: false, payload, type: navBasedOnLoginAndInitialState})
 export const createOnFinish = (payload: _OnFinishPayload) => ({error: false, payload, type: onFinish})
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error: false, payload, type: setDeletedSelf})
-export const createSetRevokedSelf = (payload: _SetRevokedSelfPayload) => ({error: false, payload, type: setRevokedSelf})
 
 // Action Payloads
 export type ConfiguredAccountsPayload = $Call<typeof createConfiguredAccounts, _ConfiguredAccountsPayload>
@@ -64,7 +61,6 @@ export type LogoutPayload = $Call<typeof createLogout, _LogoutPayload>
 export type NavBasedOnLoginAndInitialStatePayload = $Call<typeof createNavBasedOnLoginAndInitialState, _NavBasedOnLoginAndInitialStatePayload>
 export type OnFinishPayload = $Call<typeof createOnFinish, _OnFinishPayload>
 export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDeletedSelfPayload>
-export type SetRevokedSelfPayload = $Call<typeof createSetRevokedSelf, _SetRevokedSelfPayload>
 
 // All Actions
 // prettier-ignore
@@ -80,5 +76,4 @@ export type Actions =
   | NavBasedOnLoginAndInitialStatePayload
   | OnFinishPayload
   | SetDeletedSelfPayload
-  | SetRevokedSelfPayload
   | {type: 'common:resetStore', payload: void}

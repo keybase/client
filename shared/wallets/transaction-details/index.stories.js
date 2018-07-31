@@ -1,12 +1,9 @@
 // @flow
 import * as React from 'react'
 import moment from 'moment'
-import * as PropProviders from '../../stories/prop-providers'
 import {Box2} from '../../common-adapters'
-import {action, storiesOf} from '../../stories/storybook'
+import {action, storiesOf, PropProviders} from '../../stories/storybook'
 import TransactionDetails from '.'
-
-const provider = PropProviders.CommonProvider()
 
 const now = new Date()
 const yesterday = moment(now)
@@ -18,7 +15,7 @@ const memo =
 
 const load = () => {
   storiesOf('Wallets/Transaction Details', module)
-    .addDecorator(provider)
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .addDecorator(story => (
       <Box2 direction="vertical" style={{maxWidth: 520}}>
         {story()}

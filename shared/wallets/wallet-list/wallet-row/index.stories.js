@@ -1,17 +1,14 @@
 // @flow
 import React from 'react'
-import * as PropProviders from '../../../stories/prop-providers'
 import {Box2} from '../../../common-adapters'
-import {storiesOf, action} from '../../../stories/storybook'
+import {storiesOf, action, PropProviders} from '../../../stories/storybook'
 import {WalletRow} from '.'
-
-const provider = PropProviders.CommonProvider()
 
 const onSelect = action('onSelect')
 
 const load = () => {
   storiesOf('Wallets/Wallet Row', module)
-    .addDecorator(provider)
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .addDecorator(story => (
       <Box2 direction="vertical" style={{width: 240}}>
         {story()}

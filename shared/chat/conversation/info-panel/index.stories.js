@@ -1,8 +1,7 @@
 // @flow
 import React from 'react'
-import {action, storiesOf, createPropProvider, unexpected} from '../../../stories/storybook'
+import {action, storiesOf, unexpected, PropProviders} from '../../../stories/storybook'
 import * as Constants from '../../../constants/chat2'
-import * as PropProviders from '../../../stories/prop-providers'
 import {retentionPolicies} from '../../../constants/teams'
 import {Box} from '../../../common-adapters'
 import {globalStyles} from '../../../styles'
@@ -42,7 +41,8 @@ const retentionPickerPropSelector = props => ({
   onSelect: action('onSelectRetentionPolicy'),
 })
 
-const provider = createPropProvider(PropProviders.Common(), PropProviders.TeamDropdownMenu(), {
+const provider = PropProviders.createPropProviderWithCommon({
+  ...PropProviders.TeamDropdownMenu(),
   InfoPanel: (props: InfoPanelProps) => props,
   OnlyValidConversations: () => onlyValidConversationsProps,
   LifecycleNotifications: () => notificationProps,

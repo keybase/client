@@ -139,23 +139,20 @@ const maybeSelectDefaultAccount = (action: WalletsGen.AccountsReceivedPayload, s
   )
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPurePromise(
-    [WalletsGen.loadAccounts, WalletsGen.linkedExistingAccount],
-    loadAccounts
-  )
-  yield Saga.safeTakeEveryPurePromise(
+  yield Saga.actionToPromise([WalletsGen.loadAccounts, WalletsGen.linkedExistingAccount], loadAccounts)
+  yield Saga.actionToPromise(
     [WalletsGen.loadAssets, WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
     loadAssets
   )
-  yield Saga.safeTakeEveryPurePromise(
+  yield Saga.actionToPromise(
     [WalletsGen.loadPayments, WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
     loadPayments
   )
-  yield Saga.safeTakeEveryPurePromise(WalletsGen.loadPaymentDetail, loadPaymentDetail)
-  yield Saga.safeTakeEveryPurePromise(WalletsGen.linkExistingAccount, linkExistingAccount)
-  yield Saga.safeTakeEveryPurePromise(WalletsGen.validateAccountName, validateAccountName)
-  yield Saga.safeTakeEveryPurePromise(WalletsGen.validateSecretKey, validateSecretKey)
-  yield Saga.safeTakeEveryPurePromise(WalletsGen.exportSecretKey, exportSecretKey)
+  yield Saga.actionToPromise(WalletsGen.loadPaymentDetail, loadPaymentDetail)
+  yield Saga.actionToPromise(WalletsGen.linkExistingAccount, linkExistingAccount)
+  yield Saga.actionToPromise(WalletsGen.validateAccountName, validateAccountName)
+  yield Saga.actionToPromise(WalletsGen.validateSecretKey, validateSecretKey)
+  yield Saga.actionToPromise(WalletsGen.exportSecretKey, exportSecretKey)
   yield Saga.safeTakeEveryPure(
     [WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
     navigateToAccount

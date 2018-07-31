@@ -1,14 +1,11 @@
 // @flow
 import * as React from 'react'
 import DeleteConfirm from '.'
-import * as PropProviders from '../../stories/prop-providers'
-import {action, storiesOf} from '../../stories/storybook'
-
-const provider = PropProviders.CommonProvider()
+import {action, storiesOf, PropProviders} from '../../stories/storybook'
 
 const load = () => {
   storiesOf('Settings', module)
-    .addDecorator(provider)
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .add('DeleteConfirm', () => (
       <DeleteConfirm
         onDeleteForever={action('onDeleteForever')}

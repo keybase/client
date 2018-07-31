@@ -59,7 +59,12 @@ export function typeExtension(type: IconType): string {
 }
 
 export function fontSize(type: IconType): ?Object {
-  const fontSize: ?number = iconMeta[type].gridSize
+  const meta = iconMeta[type]
+  if (!meta) {
+    throw new Error('Invalid icon type: ' + type)
+  }
+
+  const fontSize: ?number = meta.gridSize
 
   if (fontSize) {
     return {fontSize}

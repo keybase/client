@@ -1,13 +1,12 @@
 // @flow
 import * as React from 'react'
-import * as PropProviders from '../../stories/prop-providers'
 import UserInput, {type UserDetails} from '.'
 import ConnectedUserInput, {type OwnProps, type Props} from './container'
 import {Box, Box2, Text} from '../../common-adapters'
 import {collapseStyles} from '../../styles'
 import {compose, withStateHandlers} from 'recompose'
 import {isMobile} from '../../constants/platform'
-import {action, storiesOf, createPropProvider, unexpected} from '../../stories/storybook'
+import {action, storiesOf, createPropProvider, unexpected, PropProviders} from '../../stories/storybook'
 
 const defaultOwnProps: OwnProps = {
   searchKey: 'search key',

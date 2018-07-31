@@ -1,8 +1,7 @@
 // @flow
 import React from 'react'
-import * as PropProviders from '../../../../stories/prop-providers'
 import {makeMessageAttachment, makeMessageText} from '../../../../constants/chat2'
-import {storiesOf, action, createPropProvider} from '../../../../stories/storybook'
+import {storiesOf, action, PropProviders} from '../../../../stories/storybook'
 import TextPopupMenu from './text/index'
 import AttachmentPopupMenu from './attachment/index'
 import ExplodingPopupMenu, {type OwnProps as ExplodingOwnProps} from './exploding/container'
@@ -58,7 +57,7 @@ const commonExplodingProps = {
   visible: true,
 }
 
-const provider = createPropProvider(PropProviders.Common(), {
+const provider = PropProviders.createPropProviderWithCommon({
   ExplodingPopup: (props: ExplodingOwnProps) => ({
     attachTo: null,
     author: props.message.author,
