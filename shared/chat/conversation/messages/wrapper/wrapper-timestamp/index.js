@@ -33,7 +33,7 @@ export type Props = {|
   ordinal: Types.Ordinal,
   measure: null | (() => void),
   message: Types.Message,
-  previous?: ?Types.Message,
+  previous: ?Types.Message,
   children?: React.Node,
   isEditing: boolean,
   timestamp: string,

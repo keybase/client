@@ -57,6 +57,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     message: message,
     orangeLineAbove: stateProps.orangeLineAbove,
     ordinal,
+    previous: ownProps.previous,
     timestamp,
     type,
   }
