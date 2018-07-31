@@ -63,13 +63,13 @@ class Devices extends React.PureComponent<Props & FloatingMenuParentProps, State
     ]
 
     return (
-      <Common.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+      <Common.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
         <DeviceHeader
           setAttachmentRef={this.props.setAttachmentRef}
           onAddNew={this.props.toggleShowingMenu}
           waiting={this.props.waiting}
         />
-        {this.props.waiting && <Common.ProgressIndicator style={styles2.progress} />}
+        {this.props.waiting && <Common.ProgressIndicator style={styles.progress} />}
         <Common.List items={items} renderItem={this._renderRow} />
         <FloatingMenu
           attachTo={this.props.attachmentRef}
@@ -82,7 +82,10 @@ class Devices extends React.PureComponent<Props & FloatingMenuParentProps, State
     )
   }
 }
-const styles2 = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate({
+  container: {
+    position: 'relative',
+  },
   progress: {
     left: 12,
     position: 'absolute',

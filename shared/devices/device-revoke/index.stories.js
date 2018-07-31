@@ -31,7 +31,6 @@ const load = () => {
     .add('Current Device', () => (
       <DeviceRevoke {...props} device={props.device.merge({currentDevice: true})} />
     ))
-    .add('Device Loading', () => <DeviceRevoke {...props} waiting={true} />)
     .add('Device with Endangered TLFs', () => (
       <DeviceRevoke
         {...props}
@@ -46,6 +45,13 @@ const load = () => {
         ]}
       />
     ))
+  storiesOf('Devices/Revoke', module)
+    .addDecorator(
+      PropProviders.createPropProviderWithCommon({
+        WaitingButton: p => ({...p, storeWaiting: true}),
+      })
+    )
+    .add('Device Loading', () => <DeviceRevoke {...props} waiting={true} />)
 }
 
 export default load
