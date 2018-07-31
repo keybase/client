@@ -2,7 +2,6 @@
 import * as shared from './shared'
 import * as React from 'react'
 import {Box, Button, CopyableText, Icon, PlatformIcon, Text} from '../../common-adapters'
-import LinkWithIcon from '../link-with-icon'
 import {copyToClipboard} from '../../util/clipboard'
 import {globalStyles, globalColors, globalMargins, desktopStyles, collapseStyles} from '../../styles'
 import type {Props} from '.'
@@ -27,7 +26,6 @@ const PostProof = (props: Props) => {
     onCompleteText,
     proofText,
     platformSubtitle,
-    proofActionIcon,
     proofActionText,
   } = shared.propsForPlatform(props)
 
@@ -81,19 +79,6 @@ const PostProof = (props: Props) => {
               {noteText}
             </Text>
           )}
-          {!!proofAction &&
-            !!proofActionIcon && (
-              <LinkWithIcon
-                style={styleProofAction}
-                label={proofActionText || ''}
-                icon={proofActionIcon}
-                color={globalColors.blue}
-                onClick={() => {
-                  onAllowProofCheck(true)
-                  proofAction()
-                }}
-              />
-            )}
           <Box style={styleButtonsContainer}>
             {!!onCancelText && (
               <Button
@@ -103,13 +88,25 @@ const PostProof = (props: Props) => {
                 style={{marginRight: globalMargins.tiny}}
               />
             )}
-            <Button
-              disabled={!allowProofCheck}
-              type="Primary"
-              onClick={() => onComplete()}
-              label={onCompleteText}
-              waiting={isOnCompleteWaiting}
-            />
+            {!!proofAction &&
+              !allowProofCheck && (
+                <Button
+                  type="Primary"
+                  onClick={() => {
+                    onAllowProofCheck(true)
+                    proofAction()
+                  }}
+                  label={proofActionText}
+                />
+              )}
+            {allowProofCheck && (
+              <Button
+                type="Primary"
+                onClick={() => onComplete()}
+                label={onCompleteText}
+                waiting={isOnCompleteWaiting}
+              />
+            )}
           </Box>
         </Box>
       </Box>
@@ -180,11 +177,6 @@ const styleProofText = {
 
 const styleNoteText = {
   marginTop: globalMargins.tiny,
-}
-
-const styleProofAction = {
-  marginTop: globalMargins.small,
-  flexShrink: 0,
 }
 
 const styleButtonsContainer = {
