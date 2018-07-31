@@ -5,6 +5,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
 import * as LoginGen from './login-gen'
+import * as GregorGen from '../actions/gregor-gen'
 import * as PushTypes from '../constants/types/push'
 import * as PushConstants from '../constants/push'
 import * as PushGen from './push-gen'
@@ -20,6 +21,7 @@ import {
   Linking,
   NativeModules,
   NativeEventEmitter,
+  NetInfo,
   PermissionsAndroid,
 } from 'react-native'
 import {eventChannel} from 'redux-saga'
@@ -364,6 +366,18 @@ const persistRouteState = () => Saga.put.resolve(routeStateStorage.store)
 // : []),
 // ])
 // }
+//
+const setupNetInfoWatcher = () =>
+  Saga.call(function*() {
+    const channel = Saga.eventChannel(emitter => {
+      NetInfo.addEventListener('connectionChange', () => emitter('changed'))
+      return () => {}
+    }, Saga.buffers.dropping(1))
+    while (true) {
+      yield Saga.take(channel)
+      yield Saga.put(GregorGen.createCheckReachability())
+    }
+  })
 
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
@@ -372,6 +386,7 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.persistRouteState, persistRouteState)
   // yield Saga.actionToAction(ConfigGen.bootstrapSuccess, onBootstrapped)
   yield Saga.actionToAction(ConfigGen.openAppSettings, openAppSettings)
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupNetInfoWatcher)
 }
 
 export {

@@ -20,13 +20,6 @@ import {defaultNumFollowSuggestions} from '../../constants/people'
 // import {isMobile} from '../../constants/platform'
 import {type AsyncAction} from '../../constants/types/flux'
 import {type TypedState} from '../../constants/reducer'
-// TODO convert to sagas
-
-// isMobile &&
-// module.hot &&
-// module.hot.accept(() => {
-// logger.info('accepted update in actions/config')
-// })
 
 // Must be an action which returns a promise so put.resolve continues to wait and work
 // TODO could change this to use Take and make it 2 steps instead of using put.resolve()
@@ -43,17 +36,6 @@ import {type TypedState} from '../../constants/reducer'
 // })
 // }
 
-const registerListeners = (): AsyncAction => dispatch => {
-  dispatch(GregorCreators.listenForNativeReachabilityEvents)
-  // TODO: DESKTOP-6661 - Refactor `registerReachability` out of `actions/config.js`
-  dispatch(GregorCreators.registerReachability())
-  dispatch(PinentryGen.createRegisterPinentryListener())
-}
-
-// const _retryBootstrap = () =>
-// Saga.sequentially([Saga.put(ConfigGen.createBootstrapRetry()), Saga.put(ConfigGen.createBootstrap({}))])
-
-// TODO: It's unfortunate that we have these globals. Ideally,
 // bootstrap would be a method on an object.
 // let bootstrapSetup = false
 // let didInitialNav = false
@@ -70,27 +52,7 @@ const registerListeners = (): AsyncAction => dispatch => {
 // }
 
 // const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): AsyncAction => (
-// dispatch,
-// getState
-// ) => {
-// const readyForBootstrap = getState().config.readyForBootstrap
-// if (!readyForBootstrap) {
-// logger.warn('Not ready for bootstrap/connect')
-// return
-// }
 
-// if (!bootstrapSetup) {
-// // bootstrapSetup = true
-// // logger.info('[bootstrap] registered bootstrap')
-// // engine().listenOnConnect('bootstrap', () => {
-// // dispatch(ConfigGen.createDaemonError({daemonError: null}))
-// // logger.info('[bootstrap] bootstrapping on connect')
-// // dispatch(ConfigGen.createBootstrap({}))
-// // // This calls rpc and so must wait for bootstrap
-// // GregorCreators.registerGregorListeners()
-// // })
-// // dispatch(registerListeners())
-// } else {
 // logger.info('[bootstrap] performing bootstrap...', opts, didInitialNav)
 // Promise.all([
 // // dispatch(getBootstrapStatus()),

@@ -34,7 +34,6 @@ export const mobileAppState = 'config:mobileAppState'
 export const openAppSettings = 'config:openAppSettings'
 export const persistRouteState = 'config:persistRouteState'
 export const pushLoaded = 'config:pushLoaded'
-export const registerIncomingHandlers = 'config:registerIncomingHandlers'
 export const restartHandshake = 'config:restartHandshake'
 export const setInitialState = 'config:setInitialState'
 export const setNotifySound = 'config:setNotifySound'
@@ -87,7 +86,6 @@ type _MobileAppStatePayload = $ReadOnly<{|nextAppState: 'active' | 'background' 
 type _OpenAppSettingsPayload = void
 type _PersistRouteStatePayload = void
 type _PushLoadedPayload = $ReadOnly<{|pushLoaded: boolean|}>
-type _RegisterIncomingHandlersPayload = void
 type _RestartHandshakePayload = void
 type _SetInitialStatePayload = $ReadOnly<{|initialState: ?Types.InitialState|}>
 type _SetNotifySoundPayload = $ReadOnly<{|
@@ -108,10 +106,6 @@ type _UpdateFollowingPayload = $ReadOnly<{|
 |}>
 
 // Action Creators
-/**
- * All sagas should register their incoming handlers now
- */
-export const createRegisterIncomingHandlers = (payload: _RegisterIncomingHandlersPayload) => ({error: false, payload, type: registerIncomingHandlers})
 /**
  * desktop only: the installer ran and we can start up
  */
@@ -197,7 +191,6 @@ export type MobileAppStatePayload = $Call<typeof createMobileAppState, _MobileAp
 export type OpenAppSettingsPayload = $Call<typeof createOpenAppSettings, _OpenAppSettingsPayload>
 export type PersistRouteStatePayload = $Call<typeof createPersistRouteState, _PersistRouteStatePayload>
 export type PushLoadedPayload = $Call<typeof createPushLoaded, _PushLoadedPayload>
-export type RegisterIncomingHandlersPayload = $Call<typeof createRegisterIncomingHandlers, _RegisterIncomingHandlersPayload>
 export type RestartHandshakePayload = $Call<typeof createRestartHandshake, _RestartHandshakePayload>
 export type SetInitialStatePayload = $Call<typeof createSetInitialState, _SetInitialStatePayload>
 export type SetNotifySoundPayload = $Call<typeof createSetNotifySound, _SetNotifySoundPayload>
@@ -236,7 +229,6 @@ export type Actions =
   | OpenAppSettingsPayload
   | PersistRouteStatePayload
   | PushLoadedPayload
-  | RegisterIncomingHandlersPayload
   | RestartHandshakePayload
   | SetInitialStatePayload
   | SetNotifySoundPayload

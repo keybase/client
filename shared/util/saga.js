@@ -232,7 +232,7 @@ function callAndWrap<R, A1, A2, A3, A4, A5, Fn: (a1: A1, a2: A2, a3: A3, a4: A4,
 }
 
 export type {Effect, PutEffect, Channel} from 'redux-saga'
-export {buffers, channel, delay} from 'redux-saga'
+export {buffers, channel, delay, eventChannel} from 'redux-saga'
 export {
   all,
   call,

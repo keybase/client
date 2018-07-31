@@ -79,6 +79,5 @@
     },
     "debugDump": { "items": "Array<string>" },
     "setStartedDueToPush": {},
-    "registerIncomingHandlers": { "_description": "All sagas should register their incoming handlers now" }
   }
 }

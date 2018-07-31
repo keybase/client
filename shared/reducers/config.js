@@ -143,7 +143,6 @@ export default function(
     case ConfigGen.daemonHandshake:
     case ConfigGen.installerRan:
     case ConfigGen.daemonHandshakeDone:
-    case ConfigGen.registerIncomingHandlers:
       return state
     default:
       /*::

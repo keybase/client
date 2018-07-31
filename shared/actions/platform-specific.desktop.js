@@ -2,13 +2,12 @@
 import {showDockIcon} from '../desktop/app/dock-icon.desktop'
 import {getMainWindow} from '../desktop/remote/util.desktop'
 import * as SafeElectron from '../util/safe-electron.desktop'
+import * as GregorGen from './gregor-gen'
 import * as ConfigGen from './config-gen'
-import * as LoginGen from './login-gen'
 import * as Saga from '../util/saga'
 import {writeLogLinesToFile} from '../util/forward-logs'
 import logger from '../logger'
 import {quit} from '../util/quit-helper'
-import {type TypedState} from '../constants/reducer'
 import {execFile} from 'child_process'
 import path from 'path'
 import {isWindows, socketPath} from '../constants/platform.desktop'
@@ -87,11 +86,11 @@ const getContentTypeFromURL = (
   req.end()
 }
 
-const writeElectronSettingsOpenAtLogin = (action: ConfigGen.SetOpenAtLoginPayload) =>
+const writeElectronSettingsOpenAtLogin = (_: any, action: ConfigGen.SetOpenAtLoginPayload) =>
   action.payload.writeFile &&
   SafeElectron.getIpcRenderer().send('setAppState', {openAtLogin: action.payload.open})
 
-const writeElectronSettingsNotifySound = (action: ConfigGen.SetNotifySoundPayload) =>
+const writeElectronSettingsNotifySound = (_: any, action: ConfigGen.SetNotifySoundPayload) =>
   action.payload.writeFile &&
   SafeElectron.getIpcRenderer().send('setAppState', {notifySound: action.payload.sound})
 
@@ -110,7 +109,7 @@ function* initializeAppSettingsState(): Generator<any, void, any> {
   }
 }
 
-export const dumpLogs = (action: ?ConfigGen.DumpLogsPayload) =>
+export const dumpLogs = (_: any, action: ?ConfigGen.DumpLogsPayload) =>
   logger
     .dump()
     .then(fromRender => {
@@ -154,16 +153,28 @@ const checkRPCOwnership = () =>
     })
   })
 
-const registerIncomingHandlers = () => {}
+const setupReachabilityWatcher = () =>
+  Saga.call(function*() {
+    const channel = Saga.eventChannel(emitter => {
+      window.addEventListener('online', () => emitter('online'))
+      window.addEventListener('offline', () => emitter('offline'))
+      return () => {}
+    }, Saga.buffers.dropping(1))
+    while (true) {
+      yield Saga.take(channel)
+      yield Saga.put(GregorGen.createCheckReachability())
+    }
+  })
 
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPure(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
-  yield Saga.safeTakeEveryPure(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
-  yield Saga.safeTakeLatestPure(ConfigGen.showMain, showMainWindow)
-  yield Saga.safeTakeEveryPure(ConfigGen.dumpLogs, dumpLogs)
+  yield Saga.actionToAction(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
+  yield Saga.actionToAction(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
+  yield Saga.actionToAction(ConfigGen.showMain, showMainWindow)
+  yield Saga.actionToAction(ConfigGen.dumpLogs, dumpLogs)
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, checkRPCOwnership)
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupReachabilityWatcher)
+
   yield Saga.fork(initializeAppSettingsState)
-  yield Saga.actionToAction(ConfigGen.registerIncomingHandlers, registerIncomingHandlers)
-  yield Saga.actionToAction(ConfigGen.registerIncomingHandlers, checkRPCOwnership)
 }
 
 export {
