@@ -32,7 +32,6 @@ const container = storyFn => (
   <Box
     style={platformStyles({
       common: {
-        marginTop: 40,
         alignContent: 'stretch',
         height: '100%',
         width: '100%',
@@ -41,6 +40,7 @@ const container = storyFn => (
         ...globalStyles.flexBoxRow,
       },
       isMobile: {
+        marginTop: 40,
         ...globalStyles.flexBoxColumn,
       },
     })}
