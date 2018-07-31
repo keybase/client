@@ -78,8 +78,7 @@ class _WrapperTimestamp extends React.PureComponent<Props & FloatingMenuParentPr
         {props.orangeLineAbove && <Box style={styles.orangeLine} />}
         {props.timestamp && <Timestamp timestamp={props.timestamp} />}
         <HoverBox
-          onLongPress={props.toggleShowingMenu}
-          underlayColor={globalColors.blue4}
+          {...(isMobile ? {onLongPress: props.toggleShowingMenu, underlayColor: globalColors.blue4} : {})}
           stye={{...globalStyles.flexBoxRow, width: '100%'}}
         >
           {/* Additional Box here because NativeTouchableHighlight only supports one child */}

@@ -1,12 +1,12 @@
 // @flow
 import * as React from 'react'
 import WrapperTimestamp from '.'
-import * as Constants from '../../../../../constants/chat2/message'
+import * as MessageConstants from '../../../../../constants/chat2/message'
 import * as Types from '../../../../../constants/types/chat2'
 import {setDisplayName, compose, connect, type TypedState} from '../../../../../util/container'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 
-type OwnProps = {|
+export type OwnProps = {|
   children?: React.Node,
   isEditing: boolean,
   measure: null | (() => void),
@@ -35,18 +35,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {ordinal, previous} = stateProps
   const {message} = ownProps
 
-  const showTimestamp = Constants.enoughTimeBetweenMessages(message, previous)
+  const showTimestamp = MessageConstants.enoughTimeBetweenMessages(message, previous)
 
   const timestamp =
     stateProps.orangeLineAbove || !previous || showTimestamp ? formatTimeForMessages(message.timestamp) : null
 
   let type = 'children'
-  if (['text', 'attachment'].includes(ownProps.message.type))
-    if (message.type === 'text') {
-      type = 'wrapper-author'
-    } else if (message.type === 'attachment') {
-      type = 'wrapper-author'
-    }
+  if (['text', 'attachment'].includes(ownProps.message.type)) {
+    type = 'wrapper-author'
+  }
 
   return {
     children: ownProps.children,

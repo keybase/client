@@ -14,7 +14,7 @@ const emptyProps = {
   pending: false,
 }
 
-type OwnProps = {|
+export type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   onClick: () => void,
   ordinal: Types.Ordinal,
@@ -50,4 +50,7 @@ const Wrapper = (props: WrapperProps) =>
     />
   )
 
-export default Container.connect(mapStateToProps)(Wrapper)
+export default Container.compose(
+  Container.connect(mapStateToProps),
+  Container.setDisplayName('ExplodingMeta')
+)(Wrapper)
