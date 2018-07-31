@@ -44,10 +44,16 @@ const loadPayments = (
     | WalletsGen.LinkedExistingAccountPayload
 ) =>
   !action.error &&
-  RPCTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}).then(res =>
+  Promise.all([
+    RPCTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
+    RPCTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
+  ]).then(([pending, payments]) =>
     WalletsGen.createPaymentsReceived({
       accountID: action.payload.accountID,
-      payments: (res.payments || []).map(elem => Constants.paymentResultToPayment(elem)).filter(Boolean),
+      payments: (payments.payments || [])
+        .concat(pending || [])
+        .map(elem => Constants.paymentResultToPayment(elem))
+        .filter(Boolean),
     })
   )
 
