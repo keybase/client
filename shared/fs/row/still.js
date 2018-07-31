@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
 import rowStyles from './styles'
-import {Badge2, Box, Box2, ClickableBox, Icon, Meta, Text} from '../../common-adapters'
+import {Badge, Box, Box2, ClickableBox, Icon, Meta, Text} from '../../common-adapters'
 import PathItemIcon from '../common/path-item-icon'
 import PathItemInfo from '../common/path-item-info'
 import PathItemAction from '../common/path-item-action-container'
@@ -63,7 +63,7 @@ const RowMeta = ({badgeCount, isDownloading, isNew, isIgnored, needsRekey}) => {
       )}
       {!!badgeCount && (
         <Box style={styles.badgeContainer}>
-          <Badge2 height={16} fontSize={10} badgeNumber={badgeCount} />
+          <Badge height={16} fontSize={10} badgeNumber={badgeCount} />
         </Box>
       )}
     </Box>

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {ClickableBox, Box2, Text, Badge2} from '../../../../common-adapters'
+import {ClickableBox, Box2, Text, Badge} from '../../../../common-adapters'
 import {
   styleSheetCreate,
   platformStyles,
@@ -41,7 +41,7 @@ class Divider extends React.PureComponent<Props> {
               </Text>
               {this.props.hiddenCount > 0 &&
                 this.props.badgeCount > 0 && (
-                  <Badge2
+                  <Badge
                     leftRightPadding={isMobile ? 3 : undefined}
                     badgeStyle={styles.badge}
                     badgeNumber={this.props.badgeCount}

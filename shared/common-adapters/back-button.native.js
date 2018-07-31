@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
-import {Badge2, Box, Icon, iconCastPlatformStyles} from '.'
+import {Badge, Box, Icon, iconCastPlatformStyles} from '.'
 import * as Styles from '../styles'
 import type {Props} from './back-button'
 
@@ -25,7 +25,7 @@ export default class BackButton extends Component<Props> {
             color={this.props.iconColor}
             style={iconCastPlatformStyles(styles.arrow)}
           />
-          {!!this.props.badgeNumber && <Badge2 badgeNumber={this.props.badgeNumber} />}
+          {!!this.props.badgeNumber && <Badge badgeNumber={this.props.badgeNumber} />}
         </Box>
       </NativeTouchableWithoutFeedback>
     )

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {ClickableBox, Icon, Avatar, Badge2, Box, Divider, Text, Meta} from '../../common-adapters'
+import {ClickableBox, Icon, Avatar, Badge, Box, Divider, Text, Meta} from '../../common-adapters'
 import {Set} from 'immutable'
 import * as Styles from '../../styles'
 
@@ -49,7 +49,7 @@ const TeamRow = ({
         <ClickableBox style={styles.rowLeftSide} onClick={onViewTeam}>
           <Box style={styles.avatarContainer}>
             <Avatar size={Styles.isMobile ? 48 : 32} teamname={name} isTeam={true} />
-            {!!badgeCount && <Badge2 badgeNumber={badgeCount} badgeStyle={styles.badge} />}
+            {!!badgeCount && <Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
           </Box>
           <Box style={styles.textContainer}>
             <Box style={styles.topLine}>

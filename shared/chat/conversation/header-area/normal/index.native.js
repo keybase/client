@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {
   Avatar,
-  Badge2,
+  Badge,
   Box2,
   ClickableBox,
   Icon,
@@ -34,7 +34,7 @@ const Wrapper = (props: {
         color={globalColors.black_40}
         style={iconCastPlatformStyles(styles.arrow)}
       />
-      {!!props.badgeNumber && <Badge2 badgeNumber={props.badgeNumber} />}
+      {!!props.badgeNumber && <Badge badgeNumber={props.badgeNumber} />}
     </ClickableBox>
     <Box2
       direction="vertical"

@@ -3,7 +3,7 @@ import * as React from 'react'
 import {get} from 'lodash-es'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
 import {NativeTouchableWithoutFeedback, NativeStyleSheet} from './native-wrappers.native'
-import {Badge2, Box, Icon, Text} from '.'
+import {Badge, Box, Icon, Text} from '.'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 class TabBarItem extends React.Component<ItemProps> {
@@ -51,10 +51,10 @@ const TabBarButton = (props: TabBarButtonProps) => {
   if (props.badgeNumber) {
     if (props.badgePosition === 'top-right') {
       badgeComponent = (
-        <Badge2 badgeNumber={props.badgeNumber} badgeStyle={{position: 'absolute', top: 2, left: '52%'}} />
+        <Badge badgeNumber={props.badgeNumber} badgeStyle={{position: 'absolute', top: 2, left: '52%'}} />
       )
     } else {
-      badgeComponent = <Badge2 badgeNumber={badgeNumber} badgeStyle={{marginLeft: 5}} />
+      badgeComponent = <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 5}} />
     }
   }
 

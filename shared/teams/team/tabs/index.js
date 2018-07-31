@@ -4,7 +4,7 @@ import * as Types from '../../../constants/types/teams'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import {
   iconCastPlatformStyles,
-  Badge2,
+  Badge,
   Box,
   Icon,
   ProgressIndicator,
@@ -41,7 +41,7 @@ const TeamTabs = (props: TeamTabsProps) => {
       <Text key="members" type="BodySmallSemibold" style={styles.tabText}>
         {`MEMBERS (${props.memberCount})`}
       </Text>
-      {!!props.resetUserCount && <Badge2 badgeNumber={props.resetUserCount} badgeStyle={styles.badge} />}
+      {!!props.resetUserCount && <Badge badgeNumber={props.resetUserCount} badgeStyle={styles.badge} />}
     </Box>,
   ]
 
@@ -60,7 +60,7 @@ const TeamTabs = (props: TeamTabsProps) => {
         <Text type="BodySmallSemibold" style={styles.tabText}>
           {`INVITES (${props.numInvites + props.numRequests})`}
         </Text>
-        {!!requestsBadge && <Badge2 badgeNumber={requestsBadge} badgeStyle={styles.badge} />}
+        {!!requestsBadge && <Badge badgeNumber={requestsBadge} badgeStyle={styles.badge} />}
       </Box>
     )
   }

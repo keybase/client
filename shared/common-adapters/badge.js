@@ -13,7 +13,7 @@ export type Badge2Props = {|
 
 export type DefaultBadge2Props = {fontSize: number, height: number, leftRightPadding: number}
 
-export class Badge2 extends React.Component<Badge2Props> {
+export default class Badge extends React.Component<Badge2Props> {
   static defaultProps = {
     fontSize: Styles.isMobile ? 12 : 10,
     height: Styles.isMobile ? 20 : 16,

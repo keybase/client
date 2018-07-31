@@ -2,7 +2,7 @@
 import Folders, {type FolderType, type Props as FolderProps} from '../folders/index.desktop'
 import React, {Component} from 'react'
 import UserAdd from './user-add.desktop'
-import {Box, Icon, Text, Button, FloatingMenu, Badge2, ButtonBar, type IconType} from '../common-adapters'
+import {Box, Icon, Text, Button, FloatingMenu, Badge, ButtonBar, type IconType} from '../common-adapters'
 import {fsTab, peopleTab, chatTab, devicesTab, type Tab} from '../constants/tabs'
 import {globalStyles, globalColors, desktopStyles, collapseStyles, platformStyles} from '../styles'
 import {isDarwin} from '../constants/platform'
@@ -277,7 +277,7 @@ const BadgeIcon = ({
       onClick={() => openApp(tab)}
     >
       <Icon color={count ? globalColors.blue : globalColors.lightGrey2} fontSize={20} type={iconType} />
-      {!!count && <Badge2 badgeNumber={count} badgeStyle={{position: 'absolute', top: -6, right: -8}} />}
+      {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', top: -6, right: -8}} />}
     </Box>
   )
 }
