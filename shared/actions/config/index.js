@@ -14,12 +14,12 @@ import * as PinentryGen from '../pinentry-gen'
 import * as PlatformSpecific from '../platform-specific'
 import avatarSaga from './avatar'
 import engine from '../../engine'
-// import {checkRPCOwnership} from '../../engine/index.platform'
 import {createGetPeopleData} from '../people-gen'
 import {defaultNumFollowSuggestions} from '../../constants/people'
-// import {isMobile} from '../../constants/platform'
+import {isMobile} from '../../constants/platform'
 import {type AsyncAction} from '../../constants/types/flux'
 import {type TypedState} from '../../constants/reducer'
+import {throttle} from 'lodash-es'
 
 // Must be an action which returns a promise so put.resolve continues to wait and work
 // TODO could change this to use Take and make it 2 steps instead of using put.resolve()
@@ -41,7 +41,6 @@ import {type TypedState} from '../../constants/reducer'
 // let didInitialNav = false
 
 // we need to reset this if you log out, else we won't get configured accounts.
-// This is a MESS, so i'm going to clean it up soon
 // const clearDidInitialNav = () => {
 // didInitialNav = false
 // }
@@ -53,22 +52,8 @@ import {type TypedState} from '../../constants/reducer'
 
 // const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): AsyncAction => (
 
-// logger.info('[bootstrap] performing bootstrap...', opts, didInitialNav)
-// Promise.all([
-// // dispatch(getBootstrapStatus()),
-// // checkRPCOwnership(),
-// // dispatch(waitForKBFS()),
-// // dispatch(KBFSGen.createFuseStatus()),
-// // dispatch(FsGen.createFuseStatus()),
-// // dispatch(ConfigGen.createLoadConfig({logVersion: true})),
-// ])
-// .then(() => {
-// dispatch(ConfigGen.createBootstrapSuccess())
-// // engine().listenOnDisconnect('daemonError', () => {
-// // dispatch(ConfigGen.createDaemonError({daemonError: new Error('Disconnected')}))
-// // logger.flush()
-// // })
 // dispatch(NotificationsGen.createListenForKBFSNotifications())
+//
 // if (!didInitialNav) {
 // dispatch(async () => {
 // if (getState().config.loggedIn) {
@@ -109,12 +94,48 @@ import {type TypedState} from '../../constants/reducer'
 
 // const getConfigOnce = (state: TypedState) =>
 
+// We get a counter for badge state, if we get one that's less than what we've seen we toss it
+let lastBadgeStateVersion = -1
+const throttledDispatch = throttle((dispatch, action) => dispatch(action), 1000, {
+  leading: false,
+  trailing: true,
+})
 const setupEngineListeners = () => {
+  engine().setIncomingActionCreators('keybase.1.NotifyTracking.trackingChanged', ({isTracking, username}) => [
+    ConfigGen.createUpdateFollowing({isTracking, username}),
+  ])
+
   engine().actionOnDisconnect('daemonError', () => {
     logger.flush()
     return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
   })
   engine().actionOnConnect('handshake', () => ConfigGen.createStartHandshake())
+
+  engine().setIncomingActionCreators(
+    'keybase.1.NotifyBadges.badgeState',
+    ({badgeState}, _, dispatch, getState) => {
+      // TODO move this to the reducer
+      if (badgeState.inboxVers < lastBadgeStateVersion) {
+        logger.info(
+          `Ignoring older badgeState, got ${badgeState.inboxVers} but have seen ${lastBadgeStateVersion}`
+        )
+        return
+      }
+
+      lastBadgeStateVersion = badgeState.inboxVers
+      const conversations = badgeState.conversations
+      const totalChats = (conversations || []).reduce((total, c) => total + c.unreadMessages, 0)
+      const action = NotificationsGen.createReceivedBadgeState({badgeState})
+      if (totalChats > 0) {
+        // Defer this slightly so we don't get flashing if we're quickly receiving and reading
+        throttledDispatch(dispatch, action)
+      } else {
+        // If clearing go immediately
+        throttledDispatch.cancel()
+        dispatch(action)
+      }
+    }
+  )
 }
 
 // Only do this once

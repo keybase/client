@@ -6,6 +6,7 @@ import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
 import * as LoginGen from './login-gen'
 import * as GregorGen from '../actions/gregor-gen'
+import * as NotificationsGen from '../actions/notifications-gen'
 import * as PushTypes from '../constants/types/push'
 import * as PushConstants from '../constants/push'
 import * as PushGen from './push-gen'
@@ -379,6 +380,18 @@ const setupNetInfoWatcher = () =>
     }
   })
 
+const updateAppBadge = (_: any, action: NotificationsGen.ReceivedBadgeStatePayload) => {
+  const count = (action.payload.badgeState.conversations || []).reduce(
+    (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${RPCTypes.commonDeviceType.mobile}`] : total),
+    0
+  )
+
+  PushNotifications.setApplicationIconBadgeNumber(count)
+  if (count === 0) {
+    PushNotifications.cancelAllLocalNotifications()
+  }
+}
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, setStartedDueToPush)
@@ -387,6 +400,8 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   // yield Saga.actionToAction(ConfigGen.bootstrapSuccess, onBootstrapped)
   yield Saga.actionToAction(ConfigGen.openAppSettings, openAppSettings)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupNetInfoWatcher)
+
+  yield Saga.actionToAction(NotificationsGen.receivedBadgeState, updateAppBadge)
 }
 
 export {

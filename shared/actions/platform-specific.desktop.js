@@ -1,17 +1,20 @@
 // @flow
-import {showDockIcon} from '../desktop/app/dock-icon.desktop'
-import {getMainWindow} from '../desktop/remote/util.desktop'
-import * as SafeElectron from '../util/safe-electron.desktop'
-import * as GregorGen from './gregor-gen'
 import * as ConfigGen from './config-gen'
+import * as GregorGen from './gregor-gen'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import * as SafeElectron from '../util/safe-electron.desktop'
 import * as Saga from '../util/saga'
-import {writeLogLinesToFile} from '../util/forward-logs'
 import logger from '../logger'
-import {quit} from '../util/quit-helper'
-import {execFile} from 'child_process'
 import path from 'path'
-import {isWindows, socketPath} from '../constants/platform.desktop'
+import {NotifyPopup} from '../native/notifications'
+import {execFile} from 'child_process'
 import {getEngine} from '../engine'
+import {getMainWindow} from '../desktop/remote/util.desktop'
+import {isWindows, socketPath} from '../constants/platform.desktop'
+import {kbfsNotification} from '../util/kbfs-notifications'
+import {quit} from '../util/quit-helper'
+import {showDockIcon} from '../desktop/app/dock-icon.desktop'
+import {writeLogLinesToFile} from '../util/forward-logs'
 
 function showShareActionSheet(options: {
   url?: ?any,
@@ -166,6 +169,45 @@ const setupReachabilityWatcher = () =>
     }
   })
 
+const setupEngineListeners = () => {
+  getEngine().setIncomingActionCreators('keybase.1.NotifyApp.exit', () => {
+    console.log('App exit requested')
+    SafeElectron.getApp().exit(0)
+  })
+
+  getEngine().setIncomingActionCreators(
+    'keybase.1.NotifyFS.FSActivity',
+    ({notification}, _, __, getState) => [kbfsNotification(notification, NotifyPopup, getState)]
+  )
+
+  getEngine().setIncomingActionCreators('keybase.1.NotifyPGP.pgpKeyInSecretStoreFile', () => [
+    RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
+      console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
+    }),
+  ])
+
+  getEngine().setIncomingActionCreators('keybase.1.NotifyService.shutdown', ({code}, response) => {
+    response && response.result()
+    if (isWindows && code !== RPCTypes.ctlExitCode.restart) {
+      console.log('Quitting due to service shutdown')
+      // Quit just the app, not the service
+      SafeElectron.getApp().quit()
+    }
+  })
+
+  getEngine().setIncomingActionCreators(
+    'keybase.1.NotifySession.clientOutOfDate',
+    ({upgradeTo, upgradeURI, upgradeMsg}) => {
+      const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
+      return [NotifyPopup('Client out of date!', {body}, 60 * 60)]
+    }
+  )
+
+  getEngine().setIncomingActionCreators('keybase.1.logsend.prepareLogsend', (_, response) => {
+    dumpLogs().then(() => response && response.result())
+  })
+}
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
   yield Saga.actionToAction(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
@@ -173,6 +215,7 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.dumpLogs, dumpLogs)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, checkRPCOwnership)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupReachabilityWatcher)
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 
   yield Saga.fork(initializeAppSettingsState)
 }

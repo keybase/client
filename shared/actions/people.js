@@ -1,4 +1,5 @@
 // @flow
+import * as ConfigGen from './config-gen'
 import * as PeopleGen from './people-gen'
 import * as Saga from '../util/saga'
 import * as I from 'immutable'
@@ -90,7 +91,7 @@ const _skipTodo = (action: PeopleGen.SkipTodoPayload) => {
 }
 
 let _wasOnPeopleTab = true
-const _setupPeopleHandlers = () => {
+const setupEngineListeners = () => {
   engine().actionOnConnect('registerHomeUI', () => {
     RPCTypes.delegateUiCtlRegisterHomeUIRpcPromise()
       .then(() => console.log('Registered home UI'))
@@ -160,9 +161,9 @@ const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
     }
   })
   yield Saga.safeTakeEveryPure(PeopleGen.skipTodo, _skipTodo)
-  yield Saga.safeTakeEveryPure(PeopleGen.setupPeopleHandlers, _setupPeopleHandlers)
   yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange)
   yield Saga.safeTakeEveryPure(RouteConstants.navigateTo, _onNavigateTo)
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 }
 
 export default peopleSaga

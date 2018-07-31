@@ -230,7 +230,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.fuseStatus:
     case FsGen.uninstallKBFSConfirm:
     case FsGen.fsActivity:
-    case FsGen.setupFSHandlers:
     case FsGen.openSecurityPreferences:
     case FsGen.refreshLocalHTTPServerInfo:
     case FsGen.shareNative:

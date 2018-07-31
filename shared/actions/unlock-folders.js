@@ -1,6 +1,7 @@
 // @flow
 import logger from '../logger'
 import * as UnlockFoldersGen from './unlock-folders-gen'
+import * as ConfigGen from './config-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import engine from '../engine'
@@ -27,7 +28,7 @@ const _closePopup = () => {
   return Saga.put(UnlockFoldersGen.createCloseDone())
 }
 
-function _registerRekeyListener() {
+const setupEngineListeners = () => {
   engine().actionOnConnect('registerRekeyUI', () => {
     RPCTypes.delegateUiCtlRegisterRekeyUIRpcPromise()
       .then(response => {
@@ -81,7 +82,7 @@ function* unlockFoldersSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(UnlockFoldersGen.checkPaperKey, _checkPaperKey)
   yield Saga.safeTakeEveryPure(UnlockFoldersGen.closePopup, _closePopup)
   yield Saga.safeTakeEveryPure(UnlockFoldersGen.openPopup, _openPopup)
-  yield Saga.safeTakeEveryPure(UnlockFoldersGen.registerRekeyListener, _registerRekeyListener)
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 }
 
 export default unlockFoldersSaga

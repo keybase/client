@@ -2,6 +2,7 @@
 import logger from '../logger'
 import * as Constants from '../constants/tracker'
 import * as TrackerGen from '../actions/tracker-gen'
+import * as ConfigGen from '../actions/config-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import Session, {type CancelHandlerType} from '../engine/session'
@@ -567,7 +568,7 @@ function _userChanged(action: {payload: {uid: string}}, state: TypedState) {
   return Saga.all(actions)
 }
 
-function _setupTrackerHandlers() {
+const setupEngineListeners = () => {
   engine().setIncomingActionCreators('keybase.1.NotifyUsers.userChanged', ({uid}) => {
     return [{payload: {uid}, type: 'tracker:_userChanged'}]
   })
@@ -638,13 +639,14 @@ function* trackerSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TrackerGen.getProfile, _getProfile)
   yield Saga.safeTakeEveryPure(TrackerGen.getMyProfile, _getMyProfile)
   yield Saga.safeTakeEveryPure(TrackerGen.openProofUrl, _openProofUrl)
-  yield Saga.safeTakeEveryPure(TrackerGen.setupTrackerHandlers, _setupTrackerHandlers)
   yield Saga.safeTakeEveryPure('tracker:_userChanged', _userChanged)
 
   // We don't have open trackers in mobile
   if (!isMobile) {
     yield Saga.fork(_trackerTimer)
   }
+
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 }
 
 export default trackerSaga

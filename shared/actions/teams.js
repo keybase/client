@@ -995,7 +995,7 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
   ])
 }
 
-function _setupTeamHandlers() {
+const setupEngineListeners = () => {
   engine().setIncomingActionCreators(
     'keybase.1.NotifyTeam.teamChangedByName',
     (args: RPCTypes.NotifyTeamTeamChangedByNameRpcParam, _, __, getState) => {
@@ -1256,7 +1256,6 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(TeamsGen.getTeams, _getTeams)
   yield Saga.safeTakeEveryPure(TeamsGen.saveChannelMembership, _saveChannelMembership)
   yield Saga.safeTakeEvery(TeamsGen.createChannel, _createChannel)
-  yield Saga.safeTakeEveryPure(TeamsGen.setupTeamHandlers, _setupTeamHandlers)
   yield Saga.safeTakeEvery(TeamsGen.addToTeam, _addToTeam)
   yield Saga.safeTakeEvery(TeamsGen.addPeopleToTeam, _addPeopleToTeam)
   yield Saga.safeTakeEvery(TeamsGen.addUserToTeams, _addUserToTeams)
@@ -1283,6 +1282,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.saveTeamRetentionPolicy, _saveTeamRetentionPolicy)
   yield Saga.safeTakeEveryPure(Chat2Gen.updateTeamRetentionPolicy, _updateTeamRetentionPolicy)
   yield Saga.safeTakeEvery(TeamsGen.addTeamWithChosenChannels, _addTeamWithChosenChannels)
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 }
 
 export default teamsSaga
