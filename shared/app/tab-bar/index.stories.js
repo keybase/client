@@ -3,7 +3,7 @@ import * as React from 'react'
 import {action, storiesOf, createPropProvider} from '../../stories/storybook'
 import * as PropProviders from '../../stories/prop-providers'
 import {Box} from '../../common-adapters'
-import {globalStyles} from '../../styles'
+import {globalStyles, platformStyles} from '../../styles'
 import TabBarRender from '.'
 
 const provider = createPropProvider(PropProviders.Common())
@@ -30,11 +30,19 @@ const defaultProps = {
 
 const container = storyFn => (
   <Box
-    style={{
-      ...globalStyles.flexBoxRow,
-      alignContent: 'stretch',
-      height: '100%',
-    }}
+    style={platformStyles({
+      common: {
+        alignContent: 'stretch',
+        height: '100%',
+        width: '100%',
+      },
+      isElectron: {
+        ...globalStyles.flexBoxRow,
+      },
+      isMobile: {
+        ...globalStyles.flexBoxColumn,
+      },
+    })}
   >
     {storyFn()}
   </Box>
