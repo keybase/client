@@ -175,10 +175,6 @@
           "name": "fromUsername"
         },
         {
-          "type": "string",
-          "name": "fromAssertion"
-        },
-        {
           "type": [
             null,
             "AccountID"
@@ -314,10 +310,6 @@
         {
           "type": "string",
           "name": "fromUsername"
-        },
-        {
-          "type": "string",
-          "name": "fromAssertion"
         },
         {
           "type": [

@@ -180,7 +180,6 @@ type PaymentLocal struct {
 	FromAccountID     AccountID       `codec:"fromAccountID" json:"fromAccountID"`
 	FromAccountName   string          `codec:"fromAccountName" json:"fromAccountName"`
 	FromUsername      string          `codec:"fromUsername" json:"fromUsername"`
-	FromAssertion     string          `codec:"fromAssertion" json:"fromAssertion"`
 	ToAccountID       *AccountID      `codec:"toAccountID,omitempty" json:"toAccountID,omitempty"`
 	ToAccountName     string          `codec:"toAccountName" json:"toAccountName"`
 	ToUsername        string          `codec:"toUsername" json:"toUsername"`
@@ -206,7 +205,6 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 		FromAccountID:     o.FromAccountID.DeepCopy(),
 		FromAccountName:   o.FromAccountName,
 		FromUsername:      o.FromUsername,
-		FromAssertion:     o.FromAssertion,
 		ToAccountID: (func(x *AccountID) *AccountID {
 			if x == nil {
 				return nil
@@ -291,7 +289,6 @@ type PaymentDetailsLocal struct {
 	FromAccountID     AccountID       `codec:"fromAccountID" json:"fromAccountID"`
 	FromAccountName   string          `codec:"fromAccountName" json:"fromAccountName"`
 	FromUsername      string          `codec:"fromUsername" json:"fromUsername"`
-	FromAssertion     string          `codec:"fromAssertion" json:"fromAssertion"`
 	ToAccountID       *AccountID      `codec:"toAccountID,omitempty" json:"toAccountID,omitempty"`
 	ToAccountName     string          `codec:"toAccountName" json:"toAccountName"`
 	ToUsername        string          `codec:"toUsername" json:"toUsername"`
@@ -320,7 +317,6 @@ func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 		FromAccountID:     o.FromAccountID.DeepCopy(),
 		FromAccountName:   o.FromAccountName,
 		FromUsername:      o.FromUsername,
-		FromAssertion:     o.FromAssertion,
 		ToAccountID: (func(x *AccountID) *AccountID {
 			if x == nil {
 				return nil
