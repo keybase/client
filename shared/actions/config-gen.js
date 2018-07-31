@@ -9,17 +9,13 @@ import {RPCError} from '../util/errors'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer
-export const bootstrap = 'config:bootstrap'
-export const bootstrapAttemptFailed = 'config:bootstrapAttemptFailed'
-export const bootstrapFailed = 'config:bootstrapFailed'
-export const bootstrapRetry = 'config:bootstrapRetry'
 export const bootstrapStatusLoaded = 'config:bootstrapStatusLoaded'
-export const bootstrapSuccess = 'config:bootstrapSuccess'
 export const changeKBFSPath = 'config:changeKBFSPath'
 export const changedActive = 'config:changedActive'
 export const changedFocus = 'config:changedFocus'
 export const clearRouteState = 'config:clearRouteState'
 export const configLoaded = 'config:configLoaded'
+export const configuredAccounts = 'config:configuredAccounts'
 export const daemonError = 'config:daemonError'
 export const daemonHandshake = 'config:daemonHandshake'
 export const daemonHandshakeDone = 'config:daemonHandshakeDone'
@@ -38,9 +34,7 @@ export const mobileAppState = 'config:mobileAppState'
 export const openAppSettings = 'config:openAppSettings'
 export const persistRouteState = 'config:persistRouteState'
 export const pushLoaded = 'config:pushLoaded'
-export const readyForBootstrap = 'config:readyForBootstrap'
 export const registerIncomingHandlers = 'config:registerIncomingHandlers'
-export const retryBootstrap = 'config:retryBootstrap'
 export const setInitialState = 'config:setInitialState'
 export const setNotifySound = 'config:setNotifySound'
 export const setOpenAtLogin = 'config:setOpenAtLogin'
@@ -51,10 +45,6 @@ export const startHandshake = 'config:startHandshake'
 export const updateFollowing = 'config:updateFollowing'
 
 // Payload Types
-type _BootstrapAttemptFailedPayload = void
-type _BootstrapFailedPayload = void
-type _BootstrapPayload = $ReadOnly<{|isReconnect?: boolean|}>
-type _BootstrapRetryPayload = void
 type _BootstrapStatusLoadedPayload = $ReadOnly<{|
   deviceID: string,
   deviceName: string,
@@ -65,7 +55,6 @@ type _BootstrapStatusLoadedPayload = $ReadOnly<{|
   uid: string,
   username: string,
 |}>
-type _BootstrapSuccessPayload = void
 type _ChangeKBFSPathPayload = $ReadOnly<{|kbfsPath: string|}>
 type _ChangedActivePayload = $ReadOnly<{|userActive: boolean|}>
 type _ChangedFocusPayload = $ReadOnly<{|appFocused: boolean|}>
@@ -74,12 +63,14 @@ type _ConfigLoadedPayload = $ReadOnly<{|
   version: string,
   versionShort: string,
 |}>
+type _ConfiguredAccountsPayload = $ReadOnly<{|accounts: Array<string>|}>
 type _DaemonErrorPayload = $ReadOnly<{|daemonError: ?Error|}>
 type _DaemonHandshakeDonePayload = void
 type _DaemonHandshakePayload = $ReadOnly<{|firstTimeConnecting: boolean|}>
 type _DaemonHandshakeWaitPayload = $ReadOnly<{|
   name: string,
   increment: boolean,
+  failedReason?: ?string,
 |}>
 type _DebugDumpPayload = $ReadOnly<{|items: Array<string>|}>
 type _DumpLogsPayload = $ReadOnly<{|reason: 'quitting through menu'|}>
@@ -95,9 +86,7 @@ type _MobileAppStatePayload = $ReadOnly<{|nextAppState: 'active' | 'background' 
 type _OpenAppSettingsPayload = void
 type _PersistRouteStatePayload = void
 type _PushLoadedPayload = $ReadOnly<{|pushLoaded: boolean|}>
-type _ReadyForBootstrapPayload = void
 type _RegisterIncomingHandlersPayload = void
-type _RetryBootstrapPayload = void
 type _SetInitialStatePayload = $ReadOnly<{|initialState: ?Types.InitialState|}>
 type _SetNotifySoundPayload = $ReadOnly<{|
   sound: boolean,
@@ -149,17 +138,13 @@ export const createDaemonHandshakeWait = (payload: _DaemonHandshakeWaitPayload) 
  * when sagas should start creating their incoming handlers / onConnect handlers
  */
 export const createSetupEngineListeners = (payload: _SetupEngineListenersPayload) => ({error: false, payload, type: setupEngineListeners})
-export const createBootstrap = (payload: _BootstrapPayload) => ({error: false, payload, type: bootstrap})
-export const createBootstrapAttemptFailed = (payload: _BootstrapAttemptFailedPayload) => ({error: false, payload, type: bootstrapAttemptFailed})
-export const createBootstrapFailed = (payload: _BootstrapFailedPayload) => ({error: false, payload, type: bootstrapFailed})
-export const createBootstrapRetry = (payload: _BootstrapRetryPayload) => ({error: false, payload, type: bootstrapRetry})
 export const createBootstrapStatusLoaded = (payload: _BootstrapStatusLoadedPayload) => ({error: false, payload, type: bootstrapStatusLoaded})
-export const createBootstrapSuccess = (payload: _BootstrapSuccessPayload) => ({error: false, payload, type: bootstrapSuccess})
 export const createChangeKBFSPath = (payload: _ChangeKBFSPathPayload) => ({error: false, payload, type: changeKBFSPath})
 export const createChangedActive = (payload: _ChangedActivePayload) => ({error: false, payload, type: changedActive})
 export const createChangedFocus = (payload: _ChangedFocusPayload) => ({error: false, payload, type: changedFocus})
 export const createClearRouteState = (payload: _ClearRouteStatePayload) => ({error: false, payload, type: clearRouteState})
 export const createConfigLoaded = (payload: _ConfigLoadedPayload) => ({error: false, payload, type: configLoaded})
+export const createConfiguredAccounts = (payload: _ConfiguredAccountsPayload) => ({error: false, payload, type: configuredAccounts})
 export const createDaemonError = (payload: _DaemonErrorPayload) => ({error: false, payload, type: daemonError})
 export const createDebugDump = (payload: _DebugDumpPayload) => ({error: false, payload, type: debugDump})
 export const createDumpLogs = (payload: _DumpLogsPayload) => ({error: false, payload, type: dumpLogs})
@@ -173,8 +158,6 @@ export const createLoadedAvatars = (payload: _LoadedAvatarsPayload) => ({error: 
 export const createMobileAppState = (payload: _MobileAppStatePayload) => ({error: false, payload, type: mobileAppState})
 export const createPersistRouteState = (payload: _PersistRouteStatePayload) => ({error: false, payload, type: persistRouteState})
 export const createPushLoaded = (payload: _PushLoadedPayload) => ({error: false, payload, type: pushLoaded})
-export const createReadyForBootstrap = (payload: _ReadyForBootstrapPayload) => ({error: false, payload, type: readyForBootstrap})
-export const createRetryBootstrap = (payload: _RetryBootstrapPayload) => ({error: false, payload, type: retryBootstrap})
 export const createSetInitialState = (payload: _SetInitialStatePayload) => ({error: false, payload, type: setInitialState})
 export const createSetNotifySound = (payload: _SetNotifySoundPayload) => ({error: false, payload, type: setNotifySound})
 export const createSetOpenAtLogin = (payload: _SetOpenAtLoginPayload) => ({error: false, payload, type: setOpenAtLogin})
@@ -183,17 +166,13 @@ export const createShowMain = (payload: _ShowMainPayload) => ({error: false, pay
 export const createUpdateFollowing = (payload: _UpdateFollowingPayload) => ({error: false, payload, type: updateFollowing})
 
 // Action Payloads
-export type BootstrapAttemptFailedPayload = $Call<typeof createBootstrapAttemptFailed, _BootstrapAttemptFailedPayload>
-export type BootstrapFailedPayload = $Call<typeof createBootstrapFailed, _BootstrapFailedPayload>
-export type BootstrapPayload = $Call<typeof createBootstrap, _BootstrapPayload>
-export type BootstrapRetryPayload = $Call<typeof createBootstrapRetry, _BootstrapRetryPayload>
 export type BootstrapStatusLoadedPayload = $Call<typeof createBootstrapStatusLoaded, _BootstrapStatusLoadedPayload>
-export type BootstrapSuccessPayload = $Call<typeof createBootstrapSuccess, _BootstrapSuccessPayload>
 export type ChangeKBFSPathPayload = $Call<typeof createChangeKBFSPath, _ChangeKBFSPathPayload>
 export type ChangedActivePayload = $Call<typeof createChangedActive, _ChangedActivePayload>
 export type ChangedFocusPayload = $Call<typeof createChangedFocus, _ChangedFocusPayload>
 export type ClearRouteStatePayload = $Call<typeof createClearRouteState, _ClearRouteStatePayload>
 export type ConfigLoadedPayload = $Call<typeof createConfigLoaded, _ConfigLoadedPayload>
+export type ConfiguredAccountsPayload = $Call<typeof createConfiguredAccounts, _ConfiguredAccountsPayload>
 export type DaemonErrorPayload = $Call<typeof createDaemonError, _DaemonErrorPayload>
 export type DaemonHandshakeDonePayload = $Call<typeof createDaemonHandshakeDone, _DaemonHandshakeDonePayload>
 export type DaemonHandshakePayload = $Call<typeof createDaemonHandshake, _DaemonHandshakePayload>
@@ -212,9 +191,7 @@ export type MobileAppStatePayload = $Call<typeof createMobileAppState, _MobileAp
 export type OpenAppSettingsPayload = $Call<typeof createOpenAppSettings, _OpenAppSettingsPayload>
 export type PersistRouteStatePayload = $Call<typeof createPersistRouteState, _PersistRouteStatePayload>
 export type PushLoadedPayload = $Call<typeof createPushLoaded, _PushLoadedPayload>
-export type ReadyForBootstrapPayload = $Call<typeof createReadyForBootstrap, _ReadyForBootstrapPayload>
 export type RegisterIncomingHandlersPayload = $Call<typeof createRegisterIncomingHandlers, _RegisterIncomingHandlersPayload>
-export type RetryBootstrapPayload = $Call<typeof createRetryBootstrap, _RetryBootstrapPayload>
 export type SetInitialStatePayload = $Call<typeof createSetInitialState, _SetInitialStatePayload>
 export type SetNotifySoundPayload = $Call<typeof createSetNotifySound, _SetNotifySoundPayload>
 export type SetOpenAtLoginPayload = $Call<typeof createSetOpenAtLogin, _SetOpenAtLoginPayload>
@@ -227,17 +204,13 @@ export type UpdateFollowingPayload = $Call<typeof createUpdateFollowing, _Update
 // All Actions
 // prettier-ignore
 export type Actions =
-  | BootstrapAttemptFailedPayload
-  | BootstrapFailedPayload
-  | BootstrapPayload
-  | BootstrapRetryPayload
   | BootstrapStatusLoadedPayload
-  | BootstrapSuccessPayload
   | ChangeKBFSPathPayload
   | ChangedActivePayload
   | ChangedFocusPayload
   | ClearRouteStatePayload
   | ConfigLoadedPayload
+  | ConfiguredAccountsPayload
   | DaemonErrorPayload
   | DaemonHandshakeDonePayload
   | DaemonHandshakePayload
@@ -256,9 +229,7 @@ export type Actions =
   | OpenAppSettingsPayload
   | PersistRouteStatePayload
   | PushLoadedPayload
-  | ReadyForBootstrapPayload
   | RegisterIncomingHandlersPayload
-  | RetryBootstrapPayload
   | SetInitialStatePayload
   | SetNotifySoundPayload
   | SetOpenAtLoginPayload

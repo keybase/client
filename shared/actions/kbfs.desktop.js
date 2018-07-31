@@ -293,14 +293,13 @@ function* waitForKBFS() {
 
   yield Saga.put(KBFSGen.createFuseStatus())
   yield Saga.put(FsGen.createFuseStatus())
-  yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name: 'kbfs.waitingForDaemon'}))
-  if (timeout) {
-    yield Saga.put(
-      ConfigGen.createDaemonError({
-        daemonError: new Error('Keybase is currently unreachable (KBFS). Trying to reconnect you…'),
-      })
-    )
-  }
+  yield Saga.put(
+    ConfigGen.createDaemonHandshakeWait({
+      failedReason: timeout ? "Can't connect to KBFS" : null,
+      increment: false,
+      name: 'kbfs.waitingForDaemon',
+    })
+  )
 }
 
 function* kbfsSaga(): Saga.SagaGenerator<any, any> {

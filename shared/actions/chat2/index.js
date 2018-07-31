@@ -1369,7 +1369,7 @@ const previewConversationFindExisting = (
   return Saga.sequentially([markPendingWaiting, setUsers, makeCall, passUsersDown])
 }
 
-const bootstrapSuccess = (_, state: TypedState) =>
+const startupInboxLoad = (_, state: TypedState) =>
   state.config.username && Saga.put(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
 
 const changeSelectedConversation = (
@@ -2169,26 +2169,38 @@ function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMe
   })
 }
 
-const loadStaticConfig = (state: TypedState, action: ConfigGen.BootstrapPayload) =>
+const loadStaticConfig = (state: TypedState) =>
   !state.chat2.staticConfig &&
-  RPCChatTypes.localGetStaticConfigRpcPromise().then((res: RPCChatTypes.StaticConfig) => {
-    if (!res.deletableByDeleteHistory) {
-      logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
-      return
-    }
-    const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce((res, type) => {
-      const ourTypes = Constants.serviceMessageTypeToMessageTypes(type)
-      if (ourTypes) {
-        res.push(...ourTypes)
+  Saga.sequentially([
+    Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: 'chat.loadStatic'})),
+    Saga.call(function*() {
+      const loadAction = yield RPCChatTypes.localGetStaticConfigRpcPromise().then(
+        (res: RPCChatTypes.StaticConfig) => {
+          if (!res.deletableByDeleteHistory) {
+            logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
+            return
+          }
+          const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce((res, type) => {
+            const ourTypes = Constants.serviceMessageTypeToMessageTypes(type)
+            if (ourTypes) {
+              res.push(...ourTypes)
+            }
+            return res
+          }, [])
+          return Chat2Gen.createStaticConfigLoaded({
+            staticConfig: Constants.makeStaticConfig({
+              deletableByDeleteHistory: I.Set(deletableByDeleteHistory),
+            }),
+          })
+        }
+      )
+
+      if (loadAction) {
+        yield Saga.put(loadAction)
       }
-      return res
-    }, [])
-    return Chat2Gen.createStaticConfigLoaded({
-      staticConfig: Constants.makeStaticConfig({
-        deletableByDeleteHistory: I.Set(deletableByDeleteHistory),
-      }),
-    })
-  })
+    }),
+    Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name: 'chat.loadStatic'})),
+  ])
 
 const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, state: TypedState) => {
   // The service translates this to a delete if an identical reaction already exists
@@ -2289,7 +2301,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.openFolder, openFolder)
 
   // On bootstrap lets load the untrusted inbox. This helps make some flows easier
-  yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, bootstrapSuccess)
+  yield Saga.safeTakeEveryPure(ConfigGen.daemonHandshakeDone, startupInboxLoad)
 
   // Search handling
   yield Saga.safeTakeEveryPure(
@@ -2348,7 +2360,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
   yield Saga.safeTakeEvery(Chat2Gen.handleSeeingExplodingMessages, handleSeeingExplodingMessages)
   yield Saga.safeTakeEveryPure(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
-  yield Saga.actionToPromise(ConfigGen.bootstrapSuccess, loadStaticConfig)
+  yield Saga.actionToAction(ConfigGen.daemonHandshake, loadStaticConfig)
 }
 
 export default chat2Saga

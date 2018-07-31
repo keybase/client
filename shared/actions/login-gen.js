@@ -9,7 +9,6 @@ import HiddenString from '../util/hidden-string'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of login but is handled by every reducer
-export const configuredAccounts = 'login:configuredAccounts'
 export const launchAccountResetWebPage = 'login:launchAccountResetWebPage'
 export const launchForgotPasswordWebPage = 'login:launchForgotPasswordWebPage'
 export const loggedout = 'login:loggedout'
@@ -21,8 +20,6 @@ export const onFinish = 'login:onFinish'
 export const setDeletedSelf = 'login:setDeletedSelf'
 
 // Payload Types
-type _ConfiguredAccountsPayload = $ReadOnly<{|accounts: ?Array<{|hasStoredSecret: boolean, username: string|}>|}>
-type _ConfiguredAccountsPayloadError = $ReadOnly<{|error: Error|}>
 type _LaunchAccountResetWebPagePayload = void
 type _LaunchForgotPasswordWebPagePayload = void
 type _LoggedoutPayload = void
@@ -37,8 +34,6 @@ type _OnFinishPayload = void
 type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
 
 // Action Creators
-export const createConfiguredAccounts = (payload: _ConfiguredAccountsPayload) => ({error: false, payload, type: configuredAccounts})
-export const createConfiguredAccountsError = (payload: _ConfiguredAccountsPayloadError) => ({error: true, payload, type: configuredAccounts})
 export const createLaunchAccountResetWebPage = (payload: _LaunchAccountResetWebPagePayload) => ({error: false, payload, type: launchAccountResetWebPage})
 export const createLaunchForgotPasswordWebPage = (payload: _LaunchForgotPasswordWebPagePayload) => ({error: false, payload, type: launchForgotPasswordWebPage})
 export const createLoggedout = (payload: _LoggedoutPayload) => ({error: false, payload, type: loggedout})
@@ -50,8 +45,6 @@ export const createOnFinish = (payload: _OnFinishPayload) => ({error: false, pay
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error: false, payload, type: setDeletedSelf})
 
 // Action Payloads
-export type ConfiguredAccountsPayload = $Call<typeof createConfiguredAccounts, _ConfiguredAccountsPayload>
-export type ConfiguredAccountsPayloadError = $Call<typeof createConfiguredAccountsError, _ConfiguredAccountsPayloadError>
 export type LaunchAccountResetWebPagePayload = $Call<typeof createLaunchAccountResetWebPage, _LaunchAccountResetWebPagePayload>
 export type LaunchForgotPasswordWebPagePayload = $Call<typeof createLaunchForgotPasswordWebPage, _LaunchForgotPasswordWebPagePayload>
 export type LoggedoutPayload = $Call<typeof createLoggedout, _LoggedoutPayload>
@@ -65,8 +58,6 @@ export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDelet
 // All Actions
 // prettier-ignore
 export type Actions =
-  | ConfiguredAccountsPayload
-  | ConfiguredAccountsPayloadError
   | LaunchAccountResetWebPagePayload
   | LaunchForgotPasswordWebPagePayload
   | LoggedoutPayload

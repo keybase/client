@@ -3,7 +3,6 @@
 import logger from '../logger'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
-import * as DevicesConstants from '../constants/devices'
 import * as WaitingGen from './waiting-gen'
 import * as LoginGen from './login-gen'
 import * as ChatTypes from '../constants/types/chat2'
@@ -28,19 +27,6 @@ import HiddenString from '../util/hidden-string'
 // webpack that we can still handle updates that propagate to here.
 export function setupLoginHMR(cb: () => void) {
   module.hot && module.hot.accept(['../app/routes-app', '../app/routes-login'], cb)
-}
-
-function* getAccounts(): Generator<any, void, any> {
-  try {
-    const accounts = yield Saga.call(
-      RPCTypes.loginGetConfiguredAccountsRpcPromise,
-      undefined,
-      DevicesConstants.waitingKey
-    )
-    yield Saga.put(LoginGen.createConfiguredAccounts({accounts}))
-  } catch (error) {
-    yield Saga.put(LoginGen.createConfiguredAccountsError({error}))
-  }
 }
 
 // TODO entirely change how this works
@@ -130,7 +116,7 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
 
 function* navigateToLoginRoot(): Generator<any, void, any> {
   const state: TypedState = yield Saga.select()
-  const numAccounts = state.login.configuredAccounts ? state.login.configuredAccounts.size : 0
+  const numAccounts = state.config.configuredAccounts.size
   const route = numAccounts ? ['login'] : []
   yield Saga.put(RouteTree.navigateTo(route, [Tabs.loginTab]))
 }
@@ -221,7 +207,6 @@ const loggedout = () =>
   Saga.sequentially([
     Saga.put({payload: undefined, type: LoginGen.resetStore}),
     Saga.call(navBasedOnLoginAndInitialState),
-    Saga.put(ConfigGen.createBootstrap({})),
   ])
 
 const logout = () =>
@@ -242,7 +227,6 @@ function* loginSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(LoginGen.navBasedOnLoginAndInitialState, navBasedOnLoginAndInitialState)
   yield Saga.actionToAction(LoginGen.loggedout, loggedout)
   yield Saga.actionToAction(LoginGen.logout, logout)
-  yield Saga.actionToAction([ConfigGen.readyForBootstrap, LoginGen.loggedout], getAccounts)
 
   yield Saga.safeTakeEveryPure(RouteConstants.navigateUp, maybeNavigateToLoginRoot)
 

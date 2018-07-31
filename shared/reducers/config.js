@@ -20,17 +20,24 @@ export default function(
       return initialState.merge({
         daemonHandshakeWaiters: state.daemonHandshakeWaiters,
         menubarWindowID: state.menubarWindowID,
-        readyForBootstrap: state.readyForBootstrap,
+        // readyForBootstrap: state.readyForBootstrap,
       })
     case ConfigGen.startHandshake:
       return state.set('daemonError', null)
     case ConfigGen.daemonHandshakeWait: {
       const oldCount = state.daemonHandshakeWaiters.get(action.payload.name, 0)
       const newCount = oldCount + (action.payload.increment ? 1 : -1)
+      let newState = state
       if (newCount === 0) {
-        return state.deleteIn(['daemonHandshakeWaiters', action.payload.name])
+        newState.deleteIn(['daemonHandshakeWaiters', action.payload.name])
+      } else {
+        newState.setIn(['daemonHandshakeWaiters', action.payload.name], newCount)
       }
-      return state.setIn(['daemonHandshakeWaiters', action.payload.name], newCount)
+      // Keep the first error
+      if (!state.daemonHandshakeFailedReason) {
+        return newState
+      }
+      return newState.set('daemonHandshakeFailedReason', action.payload.failedReason || '')
     }
     case ConfigGen.pushLoaded:
       return state.set('pushLoaded', action.payload.pushLoaded)
@@ -38,10 +45,10 @@ export default function(
       return state.set('extendedConfig', action.payload.extendedConfig)
     case ConfigGen.changeKBFSPath:
       return state.set('kbfsPath', action.payload.kbfsPath)
-    case ConfigGen.readyForBootstrap:
-      return state.set('readyForBootstrap', true)
-    case ConfigGen.bootstrapSuccess:
-      return state.set('bootStatus', 'bootStatusBootstrapped')
+    // case ConfigGen.readyForBootstrap:
+    // return state.set('readyForBootstrap', true)
+    // case ConfigGen.bootstrapSuccess:
+    // return state.set('bootStatus', 'bootStatusBootstrapped')
     case ConfigGen.bootstrapStatusLoaded:
       return state.merge({
         deviceID: action.payload.deviceID,
@@ -55,12 +62,12 @@ export default function(
       })
     case ConfigGen.bootstrapAttemptFailed:
       return state.set('bootstrapTriesRemaining', state.bootstrapTriesRemaining - 1)
-    case ConfigGen.bootstrapFailed:
-      return state.set('bootStatus', 'bootStatusFailure')
-    case ConfigGen.bootstrapRetry:
-      return state
-        .set('bootStatus', 'bootStatusLoading')
-        .set('bootstrapTriesRemaining', Constants.maxBootstrapTries)
+    // case ConfigGen.bootstrapFailed:
+    // return state.set('bootStatus', 'bootStatusFailure')
+    // case ConfigGen.bootstrapRetry:
+    // return state
+    // .set('bootStatus', 'bootStatusLoading')
+    // .set('bootstrapTriesRemaining', Constants.maxBootstrapTries)
     case ConfigGen.updateFollowing: {
       const {isTracking, username} = action.payload
       return state.updateIn(
@@ -112,15 +119,14 @@ export default function(
         version: action.payload.version,
         versionShort: action.payload.versionShort,
       })
-
+    case ConfigGen.configuredAccounts:
+      return state.set('configuredAccounts', I.List(action.payload.accounts))
     // Saga only actions
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:
-    case ConfigGen.bootstrap:
     case ConfigGen.clearRouteState:
     case ConfigGen.getExtendedStatus:
     case ConfigGen.persistRouteState:
-    case ConfigGen.retryBootstrap:
     case ConfigGen.dumpLogs:
     case ConfigGen.link:
     case ConfigGen.mobileAppState:

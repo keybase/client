@@ -351,24 +351,26 @@ const routeStateStorage = new RouteStateStorage()
 const clearRouteState = () => Saga.put.resolve(routeStateStorage.clear)
 const persistRouteState = () => Saga.put.resolve(routeStateStorage.store)
 
-const onBootstrapped = (state: TypedState) =>
-  Saga.sequentially([
-    Saga.put.resolve(routeStateStorage.load),
-    Saga.put(LoginGen.createNavBasedOnLoginAndInitialState()),
-    ...(!state.config.pushLoaded && state.config.loggedIn && !isSimulator
-      ? [Saga.put(PushGen.createConfigurePush())]
-      : []),
-    ...(!state.config.pushLoaded && state.config.loggedIn
-      ? [Saga.put(ConfigGen.createPushLoaded({pushLoaded: true}))]
-      : []),
-  ])
+// const onBootstrapped = (state: TypedState) => {
+// TODO coordinate loading of push state and routestate
+// Saga.sequentially([
+// Saga.put.resolve(routeStateStorage.load),
+// Saga.put(LoginGen.createNavBasedOnLoginAndInitialState()),
+// ...(!state.config.pushLoaded && state.config.loggedIn && !isSimulator
+// ? [Saga.put(PushGen.createConfigurePush())]
+// : []),
+// ...(!state.config.pushLoaded && state.config.loggedIn
+// ? [Saga.put(ConfigGen.createPushLoaded({pushLoaded: true}))]
+// : []),
+// ])
+// }
 
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, setStartedDueToPush)
   yield Saga.safeTakeEveryPure(ConfigGen.clearRouteState, clearRouteState)
   yield Saga.safeTakeEveryPure(ConfigGen.persistRouteState, persistRouteState)
-  yield Saga.actionToAction(ConfigGen.bootstrapSuccess, onBootstrapped)
+  // yield Saga.actionToAction(ConfigGen.bootstrapSuccess, onBootstrapped)
   yield Saga.actionToAction(ConfigGen.openAppSettings, openAppSettings)
 }
 

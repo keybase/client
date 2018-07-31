@@ -1,10 +1,8 @@
 // @flow
 import * as ConfigGen from '../actions/config-gen'
-import * as NotificationsGen from '../actions/notifications-gen'
 import Push from './push/push.native'
 import React, {Component, Fragment} from 'react'
 import RenderRoute from '../route-tree/render-route'
-import hello from '../util/hello'
 import {connect, type TypedState} from '../util/container'
 import {debounce} from 'lodash-es'
 import {navigateUp, setRouteState} from '../actions/route-tree'
@@ -18,32 +16,12 @@ type Props = {
   routeDef: any,
   routeState: any,
   showPushPrompt: any,
-  bootstrap: () => void,
-  hello: () => void,
-  listenForNotifications: () => void,
   persistRouteState: () => void,
   setRouteState: (path: any, partialState: any) => void,
   navigateUp: () => void,
 }
 
-type OwnProps = {
-  platform: string,
-  version: string,
-}
-
-class Main extends Component<any> {
-  constructor(props: Props) {
-    super(props)
-
-    if (!global.mainLoaded) {
-      global.mainLoaded = true
-
-      this.props.bootstrap()
-      this.props.listenForNotifications()
-      this.props.hello()
-    }
-  }
-
+class Main extends Component<Props> {
   _persistRoute = debounce(() => {
     this.props.persistRouteState()
   }, 200)
@@ -85,13 +63,8 @@ const mapStateToProps = (state: TypedState) => ({
   showPushPrompt: state.push.permissionsPrompt,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  bootstrap: () => dispatch(ConfigGen.createBootstrap({})),
-  hello: () => hello(0, ownProps.platform, [], ownProps.version, true), // TODO real version
-  listenForNotifications: () => dispatch(NotificationsGen.createListenForNotifications()),
-  navigateUp: () => {
-    dispatch(navigateUp())
-  },
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  navigateUp: () => dispatch(navigateUp()),
   persistRouteState: () => dispatch(ConfigGen.createPersistRouteState()),
   setRouteState: (path, partialState) => {
     dispatch(setRouteState(path, partialState))
@@ -99,5 +72,4 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
 })
 
 const connector = connect(mapStateToProps, mapDispatchToProps)
-
 export {connector, Main}

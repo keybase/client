@@ -47,13 +47,6 @@ function registerReachability() {
         // TODO remove this when core stops sending us these when we're logged out
         if (getState().config.loggedIn) {
           actions.push(GregorGen.createUpdateReachability({reachability}))
-
-          if (reachability.reachable === RPCTypes.reachabilityReachable.yes) {
-            // TODO: We should be able to recover from connection problems
-            // without re-bootstrapping. Originally we used to do this on HTML5
-            // 'online' event, but reachability is more precise.
-            actions.push(ConfigGen.createBootstrap({isReconnect: true}))
-          }
         }
 
         return actions

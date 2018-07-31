@@ -1,5 +1,4 @@
 // @flow
-import * as I from 'immutable'
 import * as Constants from '../constants/login'
 import * as Types from '../constants/types/login'
 import * as LoginGen from '../actions/login-gen'
@@ -26,11 +25,6 @@ export default function(
       return state.merge({error: initialState.error, justDeletedSelf: '', justRevokedSelf: ''})
     case DevicesGen.revoked:
       return action.payload.wasCurrentDevice ? state.set('justRevokedSelf', action.payload.deviceName) : state
-    case LoginGen.configuredAccounts:
-      return state.set(
-        'configuredAccounts',
-        I.List(((!action.payload.error && action.payload.accounts) || []).map(a => Constants.makeAccount(a)))
-      )
     case LoginGen.loginError:
       return state.set('error', action.payload.error || initialState.error)
     case LoginGen.setDeletedSelf:

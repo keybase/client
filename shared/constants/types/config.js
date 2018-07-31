@@ -22,11 +22,14 @@ export type AvatarSizes = {
 export type _State = {
   appFocused: boolean,
   appFocusedCount: number,
+  // MUST be a plain object for remotes to work correctly
   avatars: {[username: string]: AvatarSizes},
-  bootStatus: BootStatus,
-  bootstrapTriesRemaining: number,
   daemonError: ?Error,
   daemonHandshakeWaiters: I.Map<string, number>,
+  daemonHandshakeFailedReason: string,
+  daemonHandshakeRetriesLeft: number,
+  configuredAccounts: I.List<string>,
+
   deviceID: DeviceID,
   deviceName: ?string,
   debugDump: Array<string>,
@@ -42,7 +45,6 @@ export type _State = {
   openAtLogin: boolean,
   menubarWindowID: number,
   pushLoaded: boolean,
-  readyForBootstrap: boolean,
   registered: boolean,
   uid: string,
   userActive: boolean,

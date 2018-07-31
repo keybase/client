@@ -2,17 +2,12 @@
 import * as I from 'immutable'
 import * as Types from './types/config'
 import {uniq} from 'lodash-es'
-import {isMobile, runMode} from './platform'
+import {runMode} from './platform'
 
-export const maxBootstrapTries = 3
-export const bootstrapRetryDelay = 10 * 1000
 export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
 export const defaultPrivatePrefix = '/private/'
 export const defaultPublicPrefix = '/public/'
 const defaultTeamPrefix = '/team/'
-// Mobile is ready for bootstrap automatically, desktop needs to wait for
-// the installer.
-const readyForBootstrap = isMobile
 
 export const privateFolderWithUsers = (users: Array<string>) =>
   `${defaultKBFSPath}${defaultPrivatePrefix}${uniq(users).join(',')}`
@@ -24,10 +19,13 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   appFocused: true,
   appFocusedCount: 0,
   avatars: {}, // Can't be an I.Map since it's used by remotes
-  bootStatus: 'bootStatusLoading',
-  bootstrapTriesRemaining: maxBootstrapTries,
+  configuredAccounts: I.List(),
+  // bootStatus: 'bootStatusLoading',
+  // bootstrapTriesRemaining: maxBootstrapTries,
   daemonError: null,
   daemonHandshakeWaiters: I.Map(),
+  daemonHandshakeFailedReason: null,
+  daemonHandshakeRetriesLeft: 3,
   debugDump: [],
   deviceID: '',
   deviceName: '',
@@ -44,7 +42,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   openAtLogin: true,
   pgpPopupOpen: false,
   pushLoaded: false,
-  readyForBootstrap,
+  // readyForBootstrap,
   registered: false,
   startedDueToPush: false,
   uid: '',

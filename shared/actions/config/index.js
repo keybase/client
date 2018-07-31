@@ -156,7 +156,7 @@ const setupEngineListeners = () => {
 }
 
 // Only do this once
-const rpcGetConfig = (state: TypedState, action: ConfigGen.DaemonHandshakePayload) =>
+const loadDaemonConfig = (state: TypedState, action: ConfigGen.DaemonHandshakePayload) =>
   !state.config.version &&
   Saga.sequentially([
     Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: 'config.version'})),
@@ -173,7 +173,7 @@ const rpcGetConfig = (state: TypedState, action: ConfigGen.DaemonHandshakePayloa
     Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name: 'config.version'})),
   ])
 
-const rpcGetBootstrapStatus = (state: TypedState, action: ConfigGen.DaemonHandshakePayload) =>
+const loadDaemonBootstrapStatus = (state: TypedState, action: ConfigGen.DaemonHandshakePayload) =>
   Saga.sequentially([
     Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: 'config.getBootstrapStatus'})),
     Saga.call(function*() {
@@ -211,15 +211,43 @@ const startHandshake = () => {
   return Saga.put(ConfigGen.createDaemonHandshake({firstTimeConnecting}))
 }
 
-const maybeDoneWithDaemonHandshake = (state: TypedState) =>
-  state.config.daemonHandshakeWaiters.size === 0 && Saga.put(ConfigGen.createDaemonHandshakeDone())
+const maybeDoneWithDaemonHandshake = (state: TypedState) => {
+  if (state.config.daemonHandshakeWaiters.size > 0) {
+    // still waiting for things to finish
+  } else {
+    // TODO error
+    return Saga.put(ConfigGen.createDaemonHandshakeDone())
+  }
+}
+
+const loadDaemonAccounts = () =>
+  Saga.sequentially([
+    Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: 'config.getAccounts'})),
+    Saga.call(function*() {
+      try {
+        const accounts = yield Saga.call(RPCTypes.loginGetConfiguredAccountsRpcPromise)
+        yield Saga.put(ConfigGen.createConfiguredAccounts({accounts: (accounts || []).map(a => a.username)}))
+        yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name: 'config.getAccounts'}))
+      } catch (error) {
+        yield Saga.put(
+          ConfigGen.createDaemonHandshakeWait({
+            increment: false,
+            name: 'config.getAccounts',
+            failedReason: "Can't get accounts",
+          })
+        )
+      }
+    }),
+  ])
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
+  // TODO handle logout stuff also
   yield Saga.actionToAction(ConfigGen.installerRan, dispatchSetupEngineListeners)
   yield Saga.actionToAction(ConfigGen.startHandshake, startHandshake)
   yield Saga.actionToAction(ConfigGen.daemonHandshakeWait, maybeDoneWithDaemonHandshake)
-  yield Saga.actionToAction(ConfigGen.daemonHandshake, rpcGetConfig)
-  yield Saga.actionToAction(ConfigGen.daemonHandshake, rpcGetBootstrapStatus)
+  yield Saga.actionToAction(ConfigGen.daemonHandshake, loadDaemonConfig)
+  yield Saga.actionToAction(ConfigGen.daemonHandshake, loadDaemonBootstrapStatus)
+  yield Saga.actionToAction(ConfigGen.daemonHandshake, loadDaemonAccounts)
 
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 

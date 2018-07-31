@@ -17,11 +17,13 @@
     "daemonHandshakeWait": {
       "_description": "subsystems that need to do things during boot need to call this to register that we should wait.",
       "name": "string",
-      "increment": "boolean"
+      "increment": "boolean",
+      "failedReason?": "?string",
     },
     "daemonHandshakeDone": {
       "_description": "ready to show the app"
     },
+    "configuredAccounts": { "accounts": "Array<string>", },
     "installerRan": {
       "_description": "desktop only: the installer ran and we can start up"
     },
@@ -47,11 +49,6 @@
       "uid": "string",
       "username": "string"
     },
-    "bootstrap": { "isReconnect?": "boolean" },
-    "bootstrapSuccess": {},
-    "bootstrapRetry": {},
-    "bootstrapAttemptFailed": {},
-    "bootstrapFailed": {},
     "changeKBFSPath": { "kbfsPath": "string" },
     "clearRouteState": {},
     "configLoaded": {
@@ -68,8 +65,6 @@
     },
     "persistRouteState": {},
     "pushLoaded": { "pushLoaded": "boolean" },
-    "readyForBootstrap": {},
-    "retryBootstrap": {},
     "setInitialState": { "initialState": "?Types.InitialState" },
     "setOpenAtLogin": {
       "open": "boolean",
