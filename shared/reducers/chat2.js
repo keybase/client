@@ -815,6 +815,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.setConvExplodingMode:
     case Chat2Gen.handleSeeingExplodingMessages:
     case Chat2Gen.toggleMessageReaction:
+    case Chat2Gen.filePickerError:
       return state
     default:
       /*::
