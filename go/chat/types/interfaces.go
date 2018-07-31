@@ -100,7 +100,8 @@ type MessageDeliverer interface {
 }
 
 type Searcher interface {
-	SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, conversationID chat1.ConversationID, re *regexp.Regexp, maxHits, maxMessages, beforeContext, afterContext int) (hits []chat1.ChatSearchHit, err error)
+	SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, conversationID chat1.ConversationID, re *regexp.Regexp, sentBy string,
+		maxHits, maxMessages, beforeContext, afterContext int) (hits []chat1.ChatSearchHit, err error)
 }
 
 type Sender interface {

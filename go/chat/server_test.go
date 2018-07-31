@@ -5010,11 +5010,12 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 			}
 		}
 
-		search := func(query string, isRegex bool, maxHits, maxMessages, beforeContext, afterContext int) chat1.GetSearchRegexpRes {
+		search := func(query string, isRegex bool, sentBy string, maxHits, maxMessages, beforeContext, afterContext int) chat1.GetSearchRegexpRes {
 			res, err := tc.chatLocalHandler().GetSearchRegexp(tc.startCtx, chat1.GetSearchRegexpArg{
 				ConversationID: conv.Id,
 				Query:          query,
 				IsRegex:        isRegex,
+				SentBy:         sentBy,
 				MaxHits:        maxHits,
 				MaxMessages:    maxMessages,
 				BeforeContext:  beforeContext,
@@ -5025,6 +5026,7 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 		}
 
 		isRegex := false
+		sentBy := ""
 		maxHits := 5
 		beforeContext := 2
 		afterContext := 2
@@ -5034,14 +5036,14 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 		query := "hi"
 		msgBody := "hi"
 		messageID1 := sendMessage(msgBody)
-		res := search(query, isRegex, maxHits, maxMessages, beforeContext, afterContext)
+		res := search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
 		require.Equal(t, 1, len(res.Hits))
 		verifyHit(nil, messageID1, nil, []string{msgBody}, res.Hits[0])
 		verifySearchDone(1)
 
 		// Test basic no results
 		query = "hey"
-		res = search(query, isRegex, maxHits, maxMessages, beforeContext, afterContext)
+		res = search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
 		require.Equal(t, 0, len(res.Hits))
 		verifySearchDone(0)
 
@@ -5049,25 +5051,45 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 		maxHits = 1
 		query = "hi"
 		messageID2 := sendMessage(msgBody)
-		res = search(query, isRegex, maxHits, maxMessages, beforeContext, afterContext)
+		res = search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
 		require.Equal(t, 1, len(res.Hits))
 		verifyHit([]chat1.MessageID{messageID1}, messageID2, nil, []string{msgBody}, res.Hits[0])
 		verifySearchDone(1)
 
 		maxHits = 5
-		res = search(query, isRegex, maxHits, maxMessages, beforeContext, afterContext)
+		res = search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
 		require.Equal(t, 2, len(res.Hits))
 		verifyHit([]chat1.MessageID{messageID1}, messageID2, nil, []string{msgBody}, res.Hits[0])
 		verifyHit(nil, messageID1, []chat1.MessageID{messageID2}, []string{msgBody}, res.Hits[1])
 		verifySearchDone(2)
 
 		messageID3 := sendMessage(msgBody)
-		res = search(query, isRegex, maxHits, maxMessages, beforeContext, afterContext)
+		res = search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
 		require.Equal(t, 3, len(res.Hits))
 		verifyHit([]chat1.MessageID{messageID1, messageID2}, messageID3, nil, []string{msgBody}, res.Hits[0])
 		verifyHit([]chat1.MessageID{messageID1}, messageID2, []chat1.MessageID{messageID3}, []string{msgBody}, res.Hits[1])
 		verifyHit(nil, messageID1, []chat1.MessageID{messageID2, messageID3}, []string{msgBody}, res.Hits[2])
 		verifySearchDone(3)
+
+		// test sentBy
+		// invalid username
+		sentBy = users[0].Username + "foo"
+		res = search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
+		require.Zero(t, len(res.Hits))
+		verifySearchDone(0)
+
+		// send from user2 and make sure we can filter
+		sentBy = users[1].Username
+		msgBody = "hi"
+		query = "hi"
+		pres, err := postLocalForTest(t, ctc, users[1], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: msgBody}))
+		require.NoError(t, err)
+		messageID4 := pres.MessageID
+		res = search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
+		require.Equal(t, 1, len(res.Hits))
+		verifyHit([]chat1.MessageID{messageID2, messageID3}, messageID4, nil, []string{msgBody}, res.Hits[0])
+		verifySearchDone(1)
+		sentBy = ""
 
 		// Test regex functionality
 		isRegex = true
@@ -5075,10 +5097,10 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 		// Test utf8
 		msgBody = `约书亚和约翰屌爆了`
 		query = `约.*`
-		messageID4 := sendMessage(msgBody)
-		res = search(query, isRegex, maxHits, maxMessages, beforeContext, afterContext)
+		messageID5 := sendMessage(msgBody)
+		res = search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
 		require.Equal(t, 1, len(res.Hits))
-		verifyHit([]chat1.MessageID{messageID2, messageID3}, messageID4, nil, []string{msgBody}, res.Hits[0])
+		verifyHit([]chat1.MessageID{messageID3, messageID4}, messageID5, nil, []string{msgBody}, res.Hits[0])
 		verifySearchDone(1)
 
 		query = "h.*"
@@ -5087,26 +5109,27 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 			sendMessage("h." + string(char))
 		}
 		maxHits = len(lowercase)
-		res = search(query, isRegex, maxHits, maxMessages, beforeContext, afterContext)
+		res = search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
 		require.Equal(t, maxHits, len(res.Hits))
 		verifySearchDone(maxHits)
 
 		query = `h\..*`
-		res = search(query, isRegex, maxHits, maxMessages, beforeContext, afterContext)
+		res = search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
 		require.Equal(t, maxHits, len(res.Hits))
 		verifySearchDone(maxHits)
 
 		// Test maxMessages
 		maxMessages = 2
-		res = search(query, isRegex, maxHits, maxMessages, beforeContext, afterContext)
+		res = search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
 		require.Equal(t, maxMessages, len(res.Hits))
 		verifySearchDone(maxMessages)
 
 		// Test invalid regex
-		_, err := tc.chatLocalHandler().GetSearchRegexp(tc.startCtx, chat1.GetSearchRegexpArg{
+		_, err = tc.chatLocalHandler().GetSearchRegexp(tc.startCtx, chat1.GetSearchRegexpArg{
 			ConversationID: conv.Id,
 			Query:          "(",
 			IsRegex:        true,
+			SentBy:         "",
 			MaxHits:        0,
 			MaxMessages:    0,
 		})

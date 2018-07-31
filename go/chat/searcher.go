@@ -29,7 +29,7 @@ func NewSearcher(g *globals.Context) *Searcher {
 }
 
 func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, conversationID chat1.ConversationID, re *regexp.Regexp,
-	maxHits, maxMessages, beforeContext, afterContext int) (hits []chat1.ChatSearchHit, err error) {
+	sentBy string, maxHits, maxMessages, beforeContext, afterContext int) (hits []chat1.ChatSearchHit, err error) {
 	uid := gregor1.UID(s.G().Env.GetUID().ToBytes())
 	pagination := &chat1.Pagination{Num: s.pageSize}
 
@@ -139,6 +139,9 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchH
 		}
 
 		for i, msg := range curPage.Messages {
+			if sentBy != "" && msg.Valid().SenderUsername != sentBy {
+				continue
+			}
 			numMessages++
 			msgText := msg.Valid().MessageBody.Text().Body
 			matches := re.FindAllString(msgText, -1)
