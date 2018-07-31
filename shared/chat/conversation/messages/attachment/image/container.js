@@ -29,6 +29,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {message} = ownProps
+  // On mobile we use this icon to indicate we have the file stored locally, and it can be viewed. This is a
+  // similar meaning to desktop.
   const arrowColor =
     message.downloadPath || (isMobile && message.fileURLCached)
       ? globalColors.green

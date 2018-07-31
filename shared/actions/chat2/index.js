@@ -1609,6 +1609,7 @@ function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
 function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayload) {
   const message = action.payload.message
   if (Constants.isVideoAttachment(message)) {
+    // Start up the fullscreen video view only on iOS, and only if we have the file downloaded
     if (isMobile && message.fileURLCached && isIOS) {
       yield Saga.put(
         Route.navigateAppend([
@@ -1618,6 +1619,8 @@ function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayloa
           },
         ])
       )
+      // If we are on desktop, or if we are on mobile and we haven't downloaded the video, let's do that
+      // here
     } else if (!isMobile || !message.fileURLCached) {
       yield Saga.put(
         Chat2Gen.createAttachmentDownload({

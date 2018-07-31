@@ -78,6 +78,8 @@ async function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Pr
   const logPrefix = '[saveAttachmentToCameraRoll] '
   const saveType = mimeType.startsWith('video') ? 'video' : 'image'
   if (isIOS && saveType !== 'video') {
+    // iOS cannot save a video from a URL, so we can only do images here. Fallback to temp file
+    // method for videos.
     logger.info(logPrefix + 'Saving iOS picture to camera roll')
     await CameraRoll.saveToCameraRoll(fileURL)
     return

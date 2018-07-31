@@ -94,6 +94,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onDelete: yourMessage ? () => dispatchProps._onDelete(message) : null,
     onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
     onHidden: () => ownProps.onHidden(),
+    // We only show the share/save options for video if we have the file stored locally from a download
     onSaveAttachment:
       isMobile &&
       message.attachmentType === 'image' &&
