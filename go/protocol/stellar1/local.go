@@ -132,19 +132,21 @@ func (e PaymentStatus) String() string {
 type ParticipantType int
 
 const (
-	ParticipantType_NONE    ParticipantType = 0
-	ParticipantType_KEYBASE ParticipantType = 1
-	ParticipantType_STELLAR ParticipantType = 2
-	ParticipantType_SBS     ParticipantType = 3
+	ParticipantType_NONE       ParticipantType = 0
+	ParticipantType_KEYBASE    ParticipantType = 1
+	ParticipantType_STELLAR    ParticipantType = 2
+	ParticipantType_SBS        ParticipantType = 3
+	ParticipantType_OWNACCOUNT ParticipantType = 4
 )
 
 func (o ParticipantType) DeepCopy() ParticipantType { return o }
 
 var ParticipantTypeMap = map[string]ParticipantType{
-	"NONE":    0,
-	"KEYBASE": 1,
-	"STELLAR": 2,
-	"SBS":     3,
+	"NONE":       0,
+	"KEYBASE":    1,
+	"STELLAR":    2,
+	"SBS":        3,
+	"OWNACCOUNT": 4,
 }
 
 var ParticipantTypeRevMap = map[ParticipantType]string{
@@ -152,6 +154,7 @@ var ParticipantTypeRevMap = map[ParticipantType]string{
 	1: "KEYBASE",
 	2: "STELLAR",
 	3: "SBS",
+	4: "OWNACCOUNT",
 }
 
 func (e ParticipantType) String() string {
@@ -172,10 +175,16 @@ type PaymentLocal struct {
 	Delta             BalanceDelta    `codec:"delta" json:"delta"`
 	Worth             string          `codec:"worth" json:"worth"`
 	WorthCurrency     string          `codec:"worthCurrency" json:"worthCurrency"`
-	Source            string          `codec:"source" json:"source"`
-	SourceType        ParticipantType `codec:"sourceType" json:"sourceType"`
-	Target            string          `codec:"target" json:"target"`
-	TargetType        ParticipantType `codec:"targetType" json:"targetType"`
+	FromType          ParticipantType `codec:"fromType" json:"fromType"`
+	ToType            ParticipantType `codec:"toType" json:"toType"`
+	FromAccountID     AccountID       `codec:"fromAccountID" json:"fromAccountID"`
+	FromAccountName   string          `codec:"fromAccountName" json:"fromAccountName"`
+	FromUsername      string          `codec:"fromUsername" json:"fromUsername"`
+	FromAssertion     string          `codec:"fromAssertion" json:"fromAssertion"`
+	ToAccountID       *AccountID      `codec:"toAccountID,omitempty" json:"toAccountID,omitempty"`
+	ToAccountName     string          `codec:"toAccountName" json:"toAccountName"`
+	ToUsername        string          `codec:"toUsername" json:"toUsername"`
+	ToAssertion       string          `codec:"toAssertion" json:"toAssertion"`
 	Note              string          `codec:"note" json:"note"`
 	NoteErr           string          `codec:"noteErr" json:"noteErr"`
 }
@@ -192,12 +201,24 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 		Delta:             o.Delta.DeepCopy(),
 		Worth:             o.Worth,
 		WorthCurrency:     o.WorthCurrency,
-		Source:            o.Source,
-		SourceType:        o.SourceType.DeepCopy(),
-		Target:            o.Target,
-		TargetType:        o.TargetType.DeepCopy(),
-		Note:              o.Note,
-		NoteErr:           o.NoteErr,
+		FromType:          o.FromType.DeepCopy(),
+		ToType:            o.ToType.DeepCopy(),
+		FromAccountID:     o.FromAccountID.DeepCopy(),
+		FromAccountName:   o.FromAccountName,
+		FromUsername:      o.FromUsername,
+		FromAssertion:     o.FromAssertion,
+		ToAccountID: (func(x *AccountID) *AccountID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ToAccountID),
+		ToAccountName: o.ToAccountName,
+		ToUsername:    o.ToUsername,
+		ToAssertion:   o.ToAssertion,
+		Note:          o.Note,
+		NoteErr:       o.NoteErr,
 	}
 }
 
@@ -265,10 +286,16 @@ type PaymentDetailsLocal struct {
 	Delta             BalanceDelta    `codec:"delta" json:"delta"`
 	Worth             string          `codec:"worth" json:"worth"`
 	WorthCurrency     string          `codec:"worthCurrency" json:"worthCurrency"`
-	Source            string          `codec:"source" json:"source"`
-	SourceType        ParticipantType `codec:"sourceType" json:"sourceType"`
-	Target            string          `codec:"target" json:"target"`
-	TargetType        ParticipantType `codec:"targetType" json:"targetType"`
+	FromType          ParticipantType `codec:"fromType" json:"fromType"`
+	ToType            ParticipantType `codec:"toType" json:"toType"`
+	FromAccountID     AccountID       `codec:"fromAccountID" json:"fromAccountID"`
+	FromAccountName   string          `codec:"fromAccountName" json:"fromAccountName"`
+	FromUsername      string          `codec:"fromUsername" json:"fromUsername"`
+	FromAssertion     string          `codec:"fromAssertion" json:"fromAssertion"`
+	ToAccountID       *AccountID      `codec:"toAccountID,omitempty" json:"toAccountID,omitempty"`
+	ToAccountName     string          `codec:"toAccountName" json:"toAccountName"`
+	ToUsername        string          `codec:"toUsername" json:"toUsername"`
+	ToAssertion       string          `codec:"toAssertion" json:"toAssertion"`
 	Note              string          `codec:"note" json:"note"`
 	NoteErr           string          `codec:"noteErr" json:"noteErr"`
 	PublicNote        string          `codec:"publicNote" json:"publicNote"`
@@ -288,14 +315,26 @@ func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 		Delta:             o.Delta.DeepCopy(),
 		Worth:             o.Worth,
 		WorthCurrency:     o.WorthCurrency,
-		Source:            o.Source,
-		SourceType:        o.SourceType.DeepCopy(),
-		Target:            o.Target,
-		TargetType:        o.TargetType.DeepCopy(),
-		Note:              o.Note,
-		NoteErr:           o.NoteErr,
-		PublicNote:        o.PublicNote,
-		PublicNoteType:    o.PublicNoteType,
+		FromType:          o.FromType.DeepCopy(),
+		ToType:            o.ToType.DeepCopy(),
+		FromAccountID:     o.FromAccountID.DeepCopy(),
+		FromAccountName:   o.FromAccountName,
+		FromUsername:      o.FromUsername,
+		FromAssertion:     o.FromAssertion,
+		ToAccountID: (func(x *AccountID) *AccountID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ToAccountID),
+		ToAccountName:  o.ToAccountName,
+		ToUsername:     o.ToUsername,
+		ToAssertion:    o.ToAssertion,
+		Note:           o.Note,
+		NoteErr:        o.NoteErr,
+		PublicNote:     o.PublicNote,
+		PublicNoteType: o.PublicNoteType,
 	}
 }
 
