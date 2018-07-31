@@ -65,7 +65,7 @@ const _styleContainer = {
 
 export {default as Avatar, castPlatformStyles as avatarCastPlatformStyles} from './avatar'
 export {default as BackButton} from './back-button'
-export {Badge, Badge2} from './badge'
+export {Badge2} from './badge'
 export {default as Banner} from './banner'
 export {Box, Box2} from './box'
 export {default as ButtonBar} from './button-bar'
