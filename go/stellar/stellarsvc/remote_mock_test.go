@@ -79,6 +79,7 @@ func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stella
 	caller := user.ToUserVersion()
 
 	var res []stellar1.PaymentSummary
+collection:
 	for _, tx := range t.transactions {
 		if limit > 0 && len(res) == limit {
 			break
@@ -92,7 +93,7 @@ func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stella
 			for _, acc := range []stellar1.AccountID{p.From, p.To} {
 				if acc.Eq(accountID) {
 					res = append(res, tx.Summary)
-					continue
+					continue collection
 				}
 			}
 		case stellar1.PaymentSummaryType_DIRECT:
@@ -100,7 +101,7 @@ func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stella
 			for _, acc := range []stellar1.AccountID{p.FromStellar, p.ToStellar} {
 				if acc.Eq(accountID) {
 					res = append(res, tx.Summary)
-					continue
+					continue collection
 				}
 			}
 		case stellar1.PaymentSummaryType_RELAY:
@@ -109,7 +110,7 @@ func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stella
 			// Caller must be a member of the impteam.
 			if !t.isCallerInImplicitTeam(tc, p.TeamID) {
 				t.T.Logf("filtered out relay (team membership): %v", p.KbTxID)
-				continue
+				continue collection
 			}
 
 			filterByAccount := func(r *stellar1.PaymentSummaryRelay, accountID stellar1.AccountID) bool {
@@ -138,7 +139,7 @@ func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stella
 			if !filterByAccount(&p, accountID) {
 				t.T.Logf("filtered out relay (account filter): %v queryAccountID:%v callerAccountID:%v",
 					p.KbTxID, accountID, callerAccountID)
-				continue
+				continue collection
 			}
 
 			if skipPending {
@@ -150,7 +151,7 @@ func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stella
 					pending = false
 				}
 				if pending {
-					continue
+					continue collection
 				}
 			}
 
