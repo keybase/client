@@ -201,7 +201,12 @@ func PreprocessAsset(ctx context.Context, log utils.DebugLabeler, filename strin
 	}
 	// MIME type detection failed us, try using an extension map
 	if p.ContentType == "application/octet-stream" {
-		if typ, ok := mimeTypes[strings.ToLower(filename)]; ok {
+		var ext string
+		parts := strings.Split(filename, ".")
+		if len(parts) > 0 {
+			ext = strings.ToLower(parts[len(parts)-1])
+		}
+		if typ, ok := mimeTypes["."+ext]; ok {
 			p.ContentType = typ
 		}
 	}
