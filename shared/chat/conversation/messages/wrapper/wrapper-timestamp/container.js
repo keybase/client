@@ -1,5 +1,5 @@
 // @flow
-import {WrapperTimestamp} from '../'
+import WrapperTimestamp from './menu-wrapper'
 import * as Constants from '../../../../../constants/chat2/message'
 import * as Types from '../../../../../constants/types/chat2'
 import {setDisplayName, compose, connect, type TypedState} from '../../../../../util/container'

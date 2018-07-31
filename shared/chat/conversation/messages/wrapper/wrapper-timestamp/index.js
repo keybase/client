@@ -40,7 +40,7 @@ const HoverBox = isMobile
       flexDirection: 'column',
     })
 
-class WrapperTimestamp extends React.PureComponent<WrapperTimestampProps> {
+class WrapperTimestamp extends React.PureComponent<WrapperTimestampProps & FloatingMenuParentProps> {
   componentDidUpdate(prevProps: WrapperTimestampProps) {
     if (this.props.measure) {
       if (
@@ -65,11 +65,22 @@ class WrapperTimestamp extends React.PureComponent<WrapperTimestampProps> {
                 conversationIDKey={props.conversationIDKey}
                 message={props.message}
                 ordinal={props.ordinal}
+                setAttachmentRef={props.setAttachmentRef}
+                toggleShowingMenu={props.toggleShowingMenu}
               />
             )}
           </Box2>
           <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
         </HoverBox>
+        {(props.message.type === 'attachment' || props.message.type === 'text') && (
+          <MessagePopup
+            attachTo={props.attachmentRef}
+            message={props.message}
+            onHidden={props.toggleShowingMenu}
+            position="top center"
+            visible={props.showingMenu}
+          />
+        )}
       </Box>
     )
   }
@@ -79,8 +90,10 @@ type MenuButtonsProps = {
   conversationIDKey: Types.ConversationIDKey,
   message: Types.Message,
   ordinal: Types.Ordinal,
-} & FloatingMenuParentProps
-const _MenuButtons = (props: MenuButtonsProps) => (
+  setAttachmentRef: ?(ref: ?React.Component<any, any>) => void,
+  toggleShowingMenu: () => void,
+}
+const MenuButtons = (props: MenuButtonsProps) => (
   <Box2 direction="horizontal" gap="tiny" gapEnd={true} style={styles.controls}>
     {!isMobile && (
       <Box className="menu-button" style={styles.menuButtons}>
@@ -102,18 +115,8 @@ const _MenuButtons = (props: MenuButtonsProps) => (
       onClick={props.toggleShowingMenu}
       ordinal={props.ordinal}
     />
-    {(props.message.type === 'attachment' || props.message.type === 'text') && (
-      <MessagePopup
-        attachTo={props.attachmentRef}
-        message={props.message}
-        onHidden={props.toggleShowingMenu}
-        position="top center"
-        visible={props.showingMenu}
-      />
-    )}
   </Box2>
 )
-const MenuButtons = FloatingMenuParentHOC(_MenuButtons)
 
 const styles = styleSheetCreate({
   alignItemsFlexEnd: {
