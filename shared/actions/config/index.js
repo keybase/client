@@ -215,8 +215,13 @@ const maybeDoneWithDaemonHandshake = (state: TypedState) => {
   if (state.config.daemonHandshakeWaiters.size > 0) {
     // still waiting for things to finish
   } else {
-    // TODO error
-    return Saga.put(ConfigGen.createDaemonHandshakeDone())
+    if (state.config.daemonHandshakeFailedReason) {
+      if (state.config.daemonHandshakeRetriesLeft) {
+        return Saga.put(ConfigGen.createRestartHandshake())
+      }
+    } else {
+      return Saga.put(ConfigGen.createDaemonHandshakeDone())
+    }
   }
 }
 
@@ -231,9 +236,9 @@ const loadDaemonAccounts = () =>
       } catch (error) {
         yield Saga.put(
           ConfigGen.createDaemonHandshakeWait({
+            failedReason: "Can't get accounts",
             increment: false,
             name: 'config.getAccounts',
-            failedReason: "Can't get accounts",
           })
         )
       }
@@ -243,7 +248,7 @@ const loadDaemonAccounts = () =>
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // TODO handle logout stuff also
   yield Saga.actionToAction(ConfigGen.installerRan, dispatchSetupEngineListeners)
-  yield Saga.actionToAction(ConfigGen.startHandshake, startHandshake)
+  yield Saga.actionToAction([ConfigGen.restartHandshake, ConfigGen.startHandshake], startHandshake)
   yield Saga.actionToAction(ConfigGen.daemonHandshakeWait, maybeDoneWithDaemonHandshake)
   yield Saga.actionToAction(ConfigGen.daemonHandshake, loadDaemonConfig)
   yield Saga.actionToAction(ConfigGen.daemonHandshake, loadDaemonBootstrapStatus)

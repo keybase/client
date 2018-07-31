@@ -14,6 +14,7 @@ import * as RouteTree from './route-tree'
 import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import {getEngine} from '../engine'
 import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
 import appRouteTree from '../app/routes-app'
@@ -218,6 +219,17 @@ const logout = () =>
     Saga.put(LoginGen.createLoggedout()),
   ])
 
+const setupEngineListeners = () => {
+  getEngine().setIncomingActionCreators('keybase.1.NotifySession.loggedIn', ({username}, response) => {
+    response && response.result()
+    return [LoginGen.createLoggedin()]
+  })
+
+  getEngine().setIncomingActionCreators('keybase.1.NotifySession.loggedOut', (_, __, ___, getState) => {
+    return [LoginGen.createLoggedout()]
+  })
+}
+
 // TODO more pure functions
 function* loginSaga(): Saga.SagaGenerator<any, any> {
   // Actually log in
@@ -232,6 +244,7 @@ function* loginSaga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.actionToAction(LoginGen.launchForgotPasswordWebPage, launchForgotPasswordWebPage)
   yield Saga.actionToAction(LoginGen.launchAccountResetWebPage, launchAccountResetWebPage)
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 }
 
 export default loginSaga

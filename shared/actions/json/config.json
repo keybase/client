@@ -10,6 +10,9 @@
     "startHandshake": {
       "_description": "internal to config. should start the handshake process"
     },
+    "restartHandshake": {
+      "_description": "internal to config. should restart the handshake process"
+    },
     "daemonHandshake": {
       "_description": "starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait",
       "firstTimeConnecting": "boolean"

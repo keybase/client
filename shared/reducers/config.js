@@ -20,21 +20,28 @@ export default function(
       return initialState.merge({
         daemonHandshakeWaiters: state.daemonHandshakeWaiters,
         menubarWindowID: state.menubarWindowID,
-        // readyForBootstrap: state.readyForBootstrap,
+      })
+    case ConfigGen.restartHandshake:
+      return state.merge({
+        daemonError: null,
+        daemonHandshakeFailedReason: '',
+        daemonHandshakeRetriesLeft: Math.max(state.daemonHandshakeRetriesLeft - 1, 0),
       })
     case ConfigGen.startHandshake:
-      return state.set('daemonError', null)
+      return state.merge({
+        daemonError: null,
+        daemonHandshakeFailedReason: '',
+        daemonHandshakeRetriesLeft: Constants.maxHandshakeTries,
+      })
     case ConfigGen.daemonHandshakeWait: {
       const oldCount = state.daemonHandshakeWaiters.get(action.payload.name, 0)
       const newCount = oldCount + (action.payload.increment ? 1 : -1)
-      let newState = state
-      if (newCount === 0) {
-        newState.deleteIn(['daemonHandshakeWaiters', action.payload.name])
-      } else {
-        newState.setIn(['daemonHandshakeWaiters', action.payload.name], newCount)
-      }
+      const newState =
+        newCount === 0
+          ? state.deleteIn(['daemonHandshakeWaiters', action.payload.name])
+          : state.setIn(['daemonHandshakeWaiters', action.payload.name], newCount)
       // Keep the first error
-      if (!state.daemonHandshakeFailedReason) {
+      if (state.daemonHandshakeFailedReason) {
         return newState
       }
       return newState.set('daemonHandshakeFailedReason', action.payload.failedReason || '')
@@ -60,8 +67,8 @@ export default function(
         uid: action.payload.uid,
         username: action.payload.username,
       })
-    case ConfigGen.bootstrapAttemptFailed:
-      return state.set('bootstrapTriesRemaining', state.bootstrapTriesRemaining - 1)
+    // case ConfigGen.bootstrapAttemptFailed:
+    // return state.set('bootstrapTriesRemaining', state.bootstrapTriesRemaining - 1)
     // case ConfigGen.bootstrapFailed:
     // return state.set('bootStatus', 'bootStatusFailure')
     // case ConfigGen.bootstrapRetry:

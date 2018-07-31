@@ -86,7 +86,6 @@ function setupApp(store) {
   // Run installer
   SafeElectron.getIpcRenderer().on('installed', (event, message) => {
     store.dispatch(ConfigGen.createInstallerRan())
-    store.dispatch(ConfigGen.createBootstrap({}))
   })
   SafeElectron.getIpcRenderer().send('install-check')
 

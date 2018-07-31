@@ -21,8 +21,8 @@ import {type RouteProps} from '../../route-tree/render-route'
 type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = (state: TypedState) => {
-  const _accounts = state.login.configuredAccounts
-  const _defaultUsername = state.config.extendedConfig && state.config.extendedConfig.defaultUsername
+  const _accounts = state.config.configuredAccounts
+  const _defaultUsername = (state.config.extendedConfig && state.config.extendedConfig.defaultUsername) || ''
 
   return {
     _accounts,
@@ -43,7 +43,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}: OwnProps) => (
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const users = stateProps._accounts.map(a => a.username).sort()
+  const users = stateProps._accounts.sort()
   const lastUser = users.contains(stateProps._defaultUsername) ? stateProps._defaultUsername : users.first()
 
   return {

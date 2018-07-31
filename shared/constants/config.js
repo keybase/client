@@ -4,6 +4,7 @@ import * as Types from './types/config'
 import {uniq} from 'lodash-es'
 import {runMode} from './platform'
 
+export const maxHandshakeTries = 3
 export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
 export const defaultPrivatePrefix = '/private/'
 export const defaultPublicPrefix = '/public/'
@@ -24,8 +25,8 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   // bootstrapTriesRemaining: maxBootstrapTries,
   daemonError: null,
   daemonHandshakeWaiters: I.Map(),
-  daemonHandshakeFailedReason: null,
-  daemonHandshakeRetriesLeft: 3,
+  daemonHandshakeFailedReason: '',
+  daemonHandshakeRetriesLeft: maxHandshakeTries,
   debugDump: [],
   deviceID: '',
   deviceName: '',

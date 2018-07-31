@@ -4,8 +4,8 @@ import {Text, Icon, Box2, ButtonBar, Button, type PropsWithTimer, HOCTimers} fro
 import {globalColors, styleSheetCreate} from '../../../styles'
 
 type Props = PropsWithTimer<{|
+  failed: string,
   status: string,
-  failed: boolean,
   onRetry: ?() => void,
   onFeedback: ?() => void,
 |}>
@@ -45,11 +45,18 @@ class Splash extends React.Component<Props, State> {
   render() {
     return (
       <Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container} gap="small">
-        <Icon type={this.props.failed ? 'icon-keybase-logo-logged-out-80' : 'icon-keybase-logo-80'} />
+        <Icon type={this.props.onRetry ? 'icon-keybase-logo-logged-out-80' : 'icon-keybase-logo-80'} />
         <Text style={styles.header} type="HeaderBig">
           Keybase
         </Text>
-        <Text type="BodySmall">{this.props.status}</Text>
+        {!!this.props.status && <Text type="BodySmall">{this.props.status}</Text>}
+        {!!this.props.failed && (
+          <Text type="BodySmall">
+            Oops, we had a problem communicating with our services. This might be because you lost
+            connectivity.
+          </Text>
+        )}
+        {!!this.props.failed && <Text type="BodySmall">({this.props.failed})</Text>}
         {this.props.onRetry && (
           <ButtonBar>
             <Button type="Primary" label="Reload" onClick={this.props.onRetry} />

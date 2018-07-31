@@ -13,6 +13,7 @@
     "loginError": { "error": "?HiddenString" },
     "logout": {},
     "loggedout": {},
+    "loggedin": {},
 
     // TODO remove
     "onFinish": {},

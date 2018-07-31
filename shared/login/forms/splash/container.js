@@ -5,28 +5,34 @@ import Splash from '.'
 import {connect, type TypedState, type Dispatch, isMobile} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
-  _stillTrying: state.config.bootstrapTriesRemaining !== Constants.maxBootstrapTries,
-  failed: state.config.bootStatus === 'bootStatusFailure',
+  _failedReason: state.config.daemonHandshakeFailedReason,
+  _retriesLeft: state.config.daemonHandshakeRetriesLeft,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}) => ({
   _onFeedback: () => dispatch(navigateAppend(['feedback'])),
-  _onRetry: () => dispatch(ConfigGen.createRetryBootstrap()),
+  _onRetry: () => dispatch(ConfigGen.createStartHandshake()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  let status
-  if (stateProps.failed) {
-    status =
-      'Oops, we had a problem communicating with our services. This might be because you lost connectivity.'
+  let status = ''
+  let failed = ''
+
+  // Totally failed
+  if (stateProps._retriesLeft === 0) {
+    failed = stateProps._failedReason
+  } else if (stateProps._retriesLeft === Constants.maxHandshakeTries) {
+    // First try
+    status = 'Loading...'
   } else {
-    status = stateProps._stillTrying ? 'Loading...  (still trying)' : 'Loading...'
+    const failed = stateProps._failedReason ? `: ${stateProps._failedReason}` : ''
+    status = `Loading...  (still trying${failed})`
   }
 
   return {
-    failed: stateProps.failed,
+    failed,
     onFeedback: isMobile ? dispatchProps._onFeedback : null,
-    onRetry: stateProps.failed ? dispatchProps._onRetry : null,
+    onRetry: stateProps._retriesLeft === 0 ? dispatchProps._onRetry : null,
     status,
   }
 }

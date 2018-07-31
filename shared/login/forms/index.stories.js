@@ -17,7 +17,7 @@ const introWithFeedbackProps = {
 }
 
 const splashProps = {
-  failed: false,
+  failed: '',
   onFeedback: null,
   onRetry: null,
   status: 'Loading...',
@@ -32,12 +32,17 @@ const load = () => {
   storiesOf('Login', module)
     .add('Splash', () => <Splash {...splashProps} />)
     .add('Failure', () => (
-      <Splash {...splashProps} failed={true} status="Something went wrong" onRetry={action('onRetry')} />
+      <Splash
+        {...splashProps}
+        failed="Can't load kbfs"
+        status="Something went wrong"
+        onRetry={action('onRetry')}
+      />
     ))
     .add('Failure feedback', () => (
       <Splash
         {...splashProps}
-        failed={true}
+        failed="Can't talk to daemon"
         status="Something went wrong"
         onRetry={action('onRetry')}
         onFeedback={action('onFeedback')}

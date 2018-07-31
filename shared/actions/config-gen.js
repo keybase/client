@@ -35,6 +35,7 @@ export const openAppSettings = 'config:openAppSettings'
 export const persistRouteState = 'config:persistRouteState'
 export const pushLoaded = 'config:pushLoaded'
 export const registerIncomingHandlers = 'config:registerIncomingHandlers'
+export const restartHandshake = 'config:restartHandshake'
 export const setInitialState = 'config:setInitialState'
 export const setNotifySound = 'config:setNotifySound'
 export const setOpenAtLogin = 'config:setOpenAtLogin'
@@ -87,6 +88,7 @@ type _OpenAppSettingsPayload = void
 type _PersistRouteStatePayload = void
 type _PushLoadedPayload = $ReadOnly<{|pushLoaded: boolean|}>
 type _RegisterIncomingHandlersPayload = void
+type _RestartHandshakePayload = void
 type _SetInitialStatePayload = $ReadOnly<{|initialState: ?Types.InitialState|}>
 type _SetNotifySoundPayload = $ReadOnly<{|
   sound: boolean,
@@ -114,6 +116,10 @@ export const createRegisterIncomingHandlers = (payload: _RegisterIncomingHandler
  * desktop only: the installer ran and we can start up
  */
 export const createInstallerRan = (payload: _InstallerRanPayload) => ({error: false, payload, type: installerRan})
+/**
+ * internal to config. should restart the handshake process
+ */
+export const createRestartHandshake = (payload: _RestartHandshakePayload) => ({error: false, payload, type: restartHandshake})
 /**
  * internal to config. should start the handshake process
  */
@@ -192,6 +198,7 @@ export type OpenAppSettingsPayload = $Call<typeof createOpenAppSettings, _OpenAp
 export type PersistRouteStatePayload = $Call<typeof createPersistRouteState, _PersistRouteStatePayload>
 export type PushLoadedPayload = $Call<typeof createPushLoaded, _PushLoadedPayload>
 export type RegisterIncomingHandlersPayload = $Call<typeof createRegisterIncomingHandlers, _RegisterIncomingHandlersPayload>
+export type RestartHandshakePayload = $Call<typeof createRestartHandshake, _RestartHandshakePayload>
 export type SetInitialStatePayload = $Call<typeof createSetInitialState, _SetInitialStatePayload>
 export type SetNotifySoundPayload = $Call<typeof createSetNotifySound, _SetNotifySoundPayload>
 export type SetOpenAtLoginPayload = $Call<typeof createSetOpenAtLogin, _SetOpenAtLoginPayload>
@@ -230,6 +237,7 @@ export type Actions =
   | PersistRouteStatePayload
   | PushLoadedPayload
   | RegisterIncomingHandlersPayload
+  | RestartHandshakePayload
   | SetInitialStatePayload
   | SetNotifySoundPayload
   | SetOpenAtLoginPayload

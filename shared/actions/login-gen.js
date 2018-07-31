@@ -11,6 +11,7 @@ import HiddenString from '../util/hidden-string'
 export const resetStore = 'common:resetStore' // not a part of login but is handled by every reducer
 export const launchAccountResetWebPage = 'login:launchAccountResetWebPage'
 export const launchForgotPasswordWebPage = 'login:launchForgotPasswordWebPage'
+export const loggedin = 'login:loggedin'
 export const loggedout = 'login:loggedout'
 export const login = 'login:login'
 export const loginError = 'login:loginError'
@@ -22,6 +23,7 @@ export const setDeletedSelf = 'login:setDeletedSelf'
 // Payload Types
 type _LaunchAccountResetWebPagePayload = void
 type _LaunchForgotPasswordWebPagePayload = void
+type _LoggedinPayload = void
 type _LoggedoutPayload = void
 type _LoginErrorPayload = $ReadOnly<{|error: ?HiddenString|}>
 type _LoginPayload = $ReadOnly<{|
@@ -36,6 +38,7 @@ type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
 // Action Creators
 export const createLaunchAccountResetWebPage = (payload: _LaunchAccountResetWebPagePayload) => ({error: false, payload, type: launchAccountResetWebPage})
 export const createLaunchForgotPasswordWebPage = (payload: _LaunchForgotPasswordWebPagePayload) => ({error: false, payload, type: launchForgotPasswordWebPage})
+export const createLoggedin = (payload: _LoggedinPayload) => ({error: false, payload, type: loggedin})
 export const createLoggedout = (payload: _LoggedoutPayload) => ({error: false, payload, type: loggedout})
 export const createLogin = (payload: _LoginPayload) => ({error: false, payload, type: login})
 export const createLoginError = (payload: _LoginErrorPayload) => ({error: false, payload, type: loginError})
@@ -47,6 +50,7 @@ export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error
 // Action Payloads
 export type LaunchAccountResetWebPagePayload = $Call<typeof createLaunchAccountResetWebPage, _LaunchAccountResetWebPagePayload>
 export type LaunchForgotPasswordWebPagePayload = $Call<typeof createLaunchForgotPasswordWebPage, _LaunchForgotPasswordWebPagePayload>
+export type LoggedinPayload = $Call<typeof createLoggedin, _LoggedinPayload>
 export type LoggedoutPayload = $Call<typeof createLoggedout, _LoggedoutPayload>
 export type LoginErrorPayload = $Call<typeof createLoginError, _LoginErrorPayload>
 export type LoginPayload = $Call<typeof createLogin, _LoginPayload>
@@ -60,6 +64,7 @@ export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDelet
 export type Actions =
   | LaunchAccountResetWebPagePayload
   | LaunchForgotPasswordWebPagePayload
+  | LoggedinPayload
   | LoggedoutPayload
   | LoginErrorPayload
   | LoginPayload

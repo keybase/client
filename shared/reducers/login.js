@@ -31,6 +31,7 @@ export default function(
       return state.set('justDeletedSelf', action.payload.deletedUsername)
     // Saga only actions
     case LoginGen.logout:
+    case LoginGen.loggedin:
     case LoginGen.loggedout:
     case LoginGen.navBasedOnLoginAndInitialState:
     case LoginGen.onFinish:

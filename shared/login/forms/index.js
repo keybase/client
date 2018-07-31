@@ -4,17 +4,13 @@ import {connect, type TypedState} from '../../util/container'
 import Splash from './splash/container'
 import Intro from './intro/container'
 
-const mapStateToProps = (state: TypedState, {navigateAppend}) => ({bootStatus: state.config.bootStatus})
-const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}) => ({})
+const mapStateToProps = (state: TypedState) => ({
+  showSplash:
+    state.config.daemonHandshakeWaiters.size > 0 ||
+    (state.config.daemonHandshakeWaiters.size === 0 && state.config.daemonHandshakeFailedReason),
+})
 
-const Switcher = ({bootStatus, navigateAppend}) => {
-  switch (bootStatus) {
-    case 'bootStatusLoading':
-    case 'bootStatusFailure':
-      return <Splash navigateAppend={navigateAppend} />
-    default:
-      return <Intro navigateAppend={navigateAppend} />
-  }
-}
+const Switcher = ({showSplash, navigateAppend}) =>
+  showSplash ? <Splash navigateAppend={navigateAppend} /> : <Intro navigateAppend={navigateAppend} />
 
-export default connect(mapStateToProps, mapDispatchToProps)(Switcher)
+export default connect(mapStateToProps)(Switcher)
