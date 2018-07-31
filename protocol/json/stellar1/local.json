@@ -1296,6 +1296,15 @@
         }
       ],
       "response": "KeybaseRequestID"
+    },
+    "lookupCLILocal": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "string"
     }
   },
   "namespace": "stellar.1"

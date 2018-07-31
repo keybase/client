@@ -817,6 +817,10 @@ type MakeRequestCLILocalArg struct {
 	Note      string               `codec:"note" json:"note"`
 }
 
+type LookupCLILocalArg struct {
+	Name string `codec:"name" json:"name"`
+}
+
 type LocalInterface interface {
 	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)
 	GetAccountAssetsLocal(context.Context, GetAccountAssetsLocalArg) ([]AccountAssetLocal, error)
@@ -859,6 +863,7 @@ type LocalInterface interface {
 	GetAvailableLocalCurrencies(context.Context) (map[OutsideCurrencyCode]OutsideCurrencyDefinition, error)
 	FormatLocalCurrencyString(context.Context, FormatLocalCurrencyStringArg) (string, error)
 	MakeRequestCLILocal(context.Context, MakeRequestCLILocalArg) (KeybaseRequestID, error)
+	LookupCLILocal(context.Context, string) (string, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -1501,6 +1506,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"lookupCLILocal": {
+				MakeArg: func() interface{} {
+					ret := make([]LookupCLILocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LookupCLILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LookupCLILocalArg)(nil), args)
+						return
+					}
+					ret, err = i.LookupCLILocal(ctx, (*typedArgs)[0].Name)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1723,5 +1744,11 @@ func (c LocalClient) FormatLocalCurrencyString(ctx context.Context, __arg Format
 
 func (c LocalClient) MakeRequestCLILocal(ctx context.Context, __arg MakeRequestCLILocalArg) (res KeybaseRequestID, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.makeRequestCLILocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) LookupCLILocal(ctx context.Context, name string) (res string, err error) {
+	__arg := LookupCLILocalArg{Name: name}
+	err = c.Cli.Call(ctx, "stellar.1.local.lookupCLILocal", []interface{}{__arg}, &res)
 	return
 }
