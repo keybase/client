@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"unicode/utf8"
 
 	"github.com/keybase/client/go/libkb"
@@ -291,13 +292,14 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 		return page, err
 	}
 
+	oc := newOwnAccountLookupCache(ctx, s.G())
 	srvPayments, err := s.remoter.RecentPayments(ctx, arg.AccountID, arg.Cursor, 0, true)
 	if err != nil {
 		return page, err
 	}
 	page.Payments = make([]stellar1.PaymentOrErrorLocal, len(srvPayments.Payments))
 	for i, p := range srvPayments.Payments {
-		page.Payments[i].Payment, err = s.transformPaymentSummary(ctx, arg.AccountID, p)
+		page.Payments[i].Payment, err = s.transformPaymentSummary(ctx, arg.AccountID, p, oc)
 		if err != nil {
 			s := err.Error()
 			page.Payments[i].Err = &s
@@ -320,6 +322,7 @@ func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPe
 		return nil, err
 	}
 
+	oc := newOwnAccountLookupCache(ctx, s.G())
 	pending, err := s.remoter.PendingPayments(ctx, arg.AccountID, 0)
 	if err != nil {
 		return nil, err
@@ -327,7 +330,7 @@ func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPe
 
 	payments = make([]stellar1.PaymentOrErrorLocal, len(pending))
 	for i, p := range pending {
-		payment, err := s.transformPaymentSummary(ctx, arg.AccountID, p)
+		payment, err := s.transformPaymentSummary(ctx, arg.AccountID, p, oc)
 		if err != nil {
 			s := err.Error()
 			payments[i].Err = &s
@@ -350,12 +353,13 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		return payment, err
 	}
 
+	oc := newOwnAccountLookupCache(ctx, s.G())
 	details, err := s.remoter.PaymentDetails(ctx, arg.Id.TxID.String())
 	if err != nil {
 		return payment, err
 	}
 
-	summary, err := s.transformPaymentSummary(ctx, arg.AccountID, details.Summary)
+	summary, err := s.transformPaymentSummary(ctx, arg.AccountID, details.Summary, oc)
 	if err != nil {
 		return payment, err
 	}
@@ -371,10 +375,16 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		Delta:             summary.Delta,
 		Worth:             summary.Worth,
 		WorthCurrency:     summary.WorthCurrency,
-		Source:            summary.Source,
-		SourceType:        summary.SourceType,
-		Target:            summary.Target,
-		TargetType:        summary.TargetType,
+		FromType:          summary.FromType,
+		ToType:            summary.ToType,
+		FromAccountID:     summary.FromAccountID,
+		FromAccountName:   summary.FromAccountName,
+		FromUsername:      summary.FromUsername,
+		FromAssertion:     summary.FromAssertion,
+		ToAccountID:       summary.ToAccountID,
+		ToAccountName:     summary.ToAccountName,
+		ToUsername:        summary.ToUsername,
+		ToAssertion:       summary.ToAssertion,
 		Note:              summary.Note,
 		NoteErr:           summary.NoteErr,
 		PublicNote:        details.Memo,
@@ -384,7 +394,7 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 	return payment, nil
 }
 
-func (s *Server) transformPaymentSummary(ctx context.Context, acctID stellar1.AccountID, p stellar1.PaymentSummary) (*stellar1.PaymentLocal, error) {
+func (s *Server) transformPaymentSummary(ctx context.Context, acctID stellar1.AccountID, p stellar1.PaymentSummary, oc ownAccountLookupCache) (*stellar1.PaymentLocal, error) {
 	typ, err := p.Typ()
 	if err != nil {
 		return nil, err
@@ -392,26 +402,27 @@ func (s *Server) transformPaymentSummary(ctx context.Context, acctID stellar1.Ac
 
 	switch typ {
 	case stellar1.PaymentSummaryType_STELLAR:
-		return s.transformPaymentStellar(ctx, acctID, p.Stellar())
+		return s.transformPaymentStellar(ctx, acctID, p.Stellar(), oc)
 	case stellar1.PaymentSummaryType_DIRECT:
-		return s.transformPaymentDirect(ctx, acctID, p.Direct())
+		return s.transformPaymentDirect(ctx, acctID, p.Direct(), oc)
 	case stellar1.PaymentSummaryType_RELAY:
-		return s.transformPaymentRelay(ctx, acctID, p.Relay())
+		return s.transformPaymentRelay(ctx, acctID, p.Relay(), oc)
 	default:
 		return nil, fmt.Errorf("unrecognized payment type: %s", typ)
 	}
 }
 
-func (s *Server) transformPaymentStellar(ctx context.Context, acctID stellar1.AccountID, p stellar1.PaymentSummaryStellar) (*stellar1.PaymentLocal, error) {
+func (s *Server) transformPaymentStellar(ctx context.Context, acctID stellar1.AccountID, p stellar1.PaymentSummaryStellar, oc ownAccountLookupCache) (*stellar1.PaymentLocal, error) {
 	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount, p.From, p.To, acctID)
 	if err != nil {
 		return nil, err
 	}
 
-	loc.Source = p.From.String()
-	loc.SourceType = stellar1.ParticipantType_STELLAR
-	loc.Target = p.To.String()
-	loc.TargetType = stellar1.ParticipantType_STELLAR
+	loc.FromAccountID = p.From
+	loc.FromType = stellar1.ParticipantType_STELLAR
+	loc.ToAccountID = &p.To
+	loc.ToType = stellar1.ParticipantType_STELLAR
+	s.fillOwnAccounts(ctx, loc, oc)
 
 	loc.StatusSimplified = stellar1.PaymentStatus_COMPLETED
 	loc.StatusDescription = strings.ToLower(loc.StatusSimplified.String())
@@ -419,7 +430,7 @@ func (s *Server) transformPaymentStellar(ctx context.Context, acctID stellar1.Ac
 	return loc, nil
 }
 
-func (s *Server) transformPaymentDirect(ctx context.Context, acctID stellar1.AccountID, p stellar1.PaymentSummaryDirect) (*stellar1.PaymentLocal, error) {
+func (s *Server) transformPaymentDirect(ctx context.Context, acctID stellar1.AccountID, p stellar1.PaymentSummaryDirect, oc ownAccountLookupCache) (*stellar1.PaymentLocal, error) {
 	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount, p.FromStellar, p.ToStellar, acctID)
 	if err != nil {
 		return nil, err
@@ -430,14 +441,23 @@ func (s *Server) transformPaymentDirect(ctx context.Context, acctID stellar1.Acc
 		return nil, err
 	}
 
-	loc.Source, loc.SourceType = s.lookupUsernameFallback(ctx, p.From.Uid, p.FromStellar)
-
-	if p.To != nil {
-		loc.Target, loc.TargetType = s.lookupUsernameFallback(ctx, p.To.Uid, p.ToStellar)
-	} else {
-		loc.Target = p.ToStellar.String()
-		loc.TargetType = stellar1.ParticipantType_STELLAR
+	loc.FromAccountID = p.FromStellar
+	loc.FromType = stellar1.ParticipantType_STELLAR
+	if username, err := s.lookupUsername(ctx, p.From.Uid); err == nil {
+		loc.FromUsername = username
+		loc.FromType = stellar1.ParticipantType_KEYBASE
 	}
+
+	loc.ToAccountID = &p.ToStellar
+	loc.ToType = stellar1.ParticipantType_STELLAR
+	if p.To != nil {
+		if username, err := s.lookupUsername(ctx, p.To.Uid); err == nil {
+			loc.ToUsername = username
+			loc.ToType = stellar1.ParticipantType_KEYBASE
+		}
+	}
+
+	s.fillOwnAccounts(ctx, loc, oc)
 
 	loc.StatusSimplified = p.TxStatus.ToPaymentStatus()
 	loc.StatusDescription = strings.ToLower(loc.StatusSimplified.String())
@@ -448,7 +468,8 @@ func (s *Server) transformPaymentDirect(ctx context.Context, acctID stellar1.Acc
 	return loc, nil
 }
 
-func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.AccountID, p stellar1.PaymentSummaryRelay) (*stellar1.PaymentLocal, error) {
+func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.AccountID, p stellar1.PaymentSummaryRelay, oc ownAccountLookupCache) (*stellar1.PaymentLocal, error) {
+
 	var toStellar stellar1.AccountID
 	if p.Claim != nil {
 		toStellar = p.Claim.ToStellar
@@ -463,19 +484,23 @@ func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.Acco
 		return nil, err
 	}
 
-	loc.Source, loc.SourceType = s.lookupUsernameFallback(ctx, p.From.Uid, p.FromStellar)
+	loc.FromAccountID = p.FromStellar
+	loc.FromType = stellar1.ParticipantType_STELLAR
+	if username, err := s.lookupUsername(ctx, p.From.Uid); err == nil {
+		loc.FromUsername = username
+		loc.FromType = stellar1.ParticipantType_KEYBASE
+	}
 
+	loc.ToAssertion = p.ToAssertion
+	loc.ToType = stellar1.ParticipantType_SBS
 	if p.To != nil {
-		name, err := s.lookupUsername(ctx, p.To.Uid)
+		username, err := s.lookupUsername(ctx, p.To.Uid)
 		if err != nil {
 			s.G().Log.CDebugf(ctx, "recipient lookup failed: %s", err)
 			return nil, errors.New("recipient lookup failed")
 		}
-		loc.Target = name
-		loc.TargetType = stellar1.ParticipantType_KEYBASE
-	} else {
-		loc.Target = p.ToAssertion
-		loc.TargetType = stellar1.ParticipantType_SBS
+		loc.ToUsername = username
+		loc.ToType = stellar1.ParticipantType_KEYBASE
 	}
 
 	if p.TxStatus != stellar1.TransactionStatus_SUCCESS {
@@ -489,18 +514,18 @@ func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.Acco
 	}
 	if p.Claim != nil {
 		loc.StatusSimplified = p.Claim.TxStatus.ToPaymentStatus()
+		loc.ToAccountID = &p.Claim.ToStellar
+		loc.ToType = stellar1.ParticipantType_STELLAR
+		loc.ToUsername = ""
+		loc.ToAccountName = ""
+		if username, err := s.lookupUsername(ctx, p.Claim.To.Uid); err == nil {
+			loc.ToUsername = username
+			loc.ToType = stellar1.ParticipantType_KEYBASE
+		}
 		if p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
 			// If the claim succeeded, the relay payment is done.
 			loc.ShowCancel = false
 			loc.StatusDetail = ""
-			name, err := s.lookupUsername(ctx, p.Claim.To.Uid)
-			if err == nil {
-				loc.Target = name
-				loc.TargetType = stellar1.ParticipantType_KEYBASE
-			} else {
-				loc.Target = p.Claim.ToStellar.String()
-				loc.TargetType = stellar1.ParticipantType_STELLAR
-			}
 		} else {
 			claimantUsername, err := s.lookupUsername(ctx, p.Claim.To.Uid)
 			if err != nil {
@@ -514,6 +539,7 @@ func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.Acco
 		}
 	}
 	loc.StatusDescription = strings.ToLower(loc.StatusSimplified.String())
+	s.fillOwnAccounts(ctx, loc, oc)
 
 	relaySecrets, err := relays.DecryptB64(ctx, s.G(), p.TeamID, p.BoxB64)
 	if err == nil {
@@ -525,12 +551,26 @@ func (s *Server) transformPaymentRelay(ctx context.Context, acctID stellar1.Acco
 	return loc, nil
 }
 
-func (s *Server) lookupUsernameFallback(ctx context.Context, uid keybase1.UID, acctID stellar1.AccountID) (name string, kind stellar1.ParticipantType) {
-	name, err := s.lookupUsername(ctx, uid)
-	if err == nil {
-		return name, stellar1.ParticipantType_KEYBASE
+func (s *Server) fillOwnAccounts(ctx context.Context, loc *stellar1.PaymentLocal, oc ownAccountLookupCache) {
+	lookupOwnAccountQuick := func(accountID *stellar1.AccountID) (accountName string) {
+		if accountID == nil {
+			return ""
+		}
+		own, name, err := oc.OwnAccount(ctx, *accountID)
+		if err != nil || !own {
+			return ""
+		}
+		if name != "" {
+			return name
+		}
+		return accountID.String()
 	}
-	return acctID.String(), stellar1.ParticipantType_STELLAR
+	loc.FromAccountName = lookupOwnAccountQuick(&loc.FromAccountID)
+	loc.ToAccountName = lookupOwnAccountQuick(loc.ToAccountID)
+	if loc.FromAccountName != "" && loc.ToAccountName != "" {
+		loc.FromType = stellar1.ParticipantType_OWNACCOUNT
+		loc.ToType = stellar1.ParticipantType_OWNACCOUNT
+	}
 }
 
 func (s *Server) lookupUsername(ctx context.Context, uid keybase1.UID) (string, error) {
@@ -1447,4 +1487,55 @@ func subtractFeeSoft(mctx libkb.MetaContext, availableStr string) string {
 		available = 0
 	}
 	return stellaramount.StringFromInt64(available)
+}
+
+type ownAccountLookupCache interface {
+	OwnAccount(ctx context.Context, accountID stellar1.AccountID) (own bool, accountName string, err error)
+}
+
+type ownAccountLookupCacheImpl struct {
+	sync.RWMutex
+	loadErr  error
+	accounts map[stellar1.AccountID]*string
+}
+
+// newOwnAccountLookupCache fetches the list of accounts in the background and stores them.
+func newOwnAccountLookupCache(ctx context.Context, g *libkb.GlobalContext) ownAccountLookupCache {
+	c := &ownAccountLookupCacheImpl{
+		accounts: make(map[stellar1.AccountID]*string),
+	}
+	c.Lock()
+	go c.fetch(ctx, g)
+	return c
+}
+
+// Fetch populates the cache in the background.
+func (c *ownAccountLookupCacheImpl) fetch(ctx context.Context, g *libkb.GlobalContext) {
+	go func() {
+		ctx := libkb.CopyTagsToBackground(ctx)
+		defer c.Unlock()
+		bundle, _, err := remote.Fetch(ctx, g)
+		c.loadErr = err
+		if err != nil {
+			return
+		}
+		for _, account := range bundle.Accounts {
+			name := account.Name
+			c.accounts[account.AccountID] = &name
+		}
+	}()
+}
+
+// OwnAccount queries the cache. Blocks until the populating RPC returns.
+func (c *ownAccountLookupCacheImpl) OwnAccount(ctx context.Context, accountID stellar1.AccountID) (own bool, accountName string, err error) {
+	c.RLock()
+	defer c.RLock()
+	if c.loadErr != nil {
+		return false, "", c.loadErr
+	}
+	name := c.accounts[accountID]
+	if name == nil {
+		return false, "", nil
+	}
+	return true, *name, nil
 }
