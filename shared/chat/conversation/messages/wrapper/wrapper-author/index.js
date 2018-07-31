@@ -1,13 +1,7 @@
 // @flow
 import * as React from 'react'
-import {
-  Avatar,
-  Icon,
-  Text,
-  Box,
-  iconCastPlatformStyles,
-  type OverlayParentProps,
-} from '../../../../../common-adapters'
+import * as Types from '../../../../../constants/types/chat2'
+import {Avatar, Icon, Text, Box, iconCastPlatformStyles} from '../../../../../common-adapters'
 import {
   globalStyles,
   globalMargins,
@@ -15,11 +9,45 @@ import {
   platformStyles,
   styleSheetCreate,
   collapseStyles,
+  type StylesCrossPlatform,
 } from '../../../../../styles'
+import TextMessage from '../../text/container'
+import AttachmentMessage from '../../attachment/container'
 import SendIndicator from '../chat-send'
 import ExplodingHeightRetainer from '../exploding-height-retainer'
 
-import type {WrapperAuthorProps} from '../index.types'
+export type Props = {
+  author: string,
+  conversationIDKey: Types.ConversationIDKey,
+  exploded: boolean,
+  explodedBy: string,
+  explodesAt: number,
+  exploding: boolean,
+  failureDescription: string,
+  includeHeader: boolean,
+  isBroken: boolean,
+  isEdited: boolean,
+  isEditing: boolean,
+  isExplodingUnreadable: boolean,
+  isFollowing: boolean,
+  isRevoked: boolean,
+  isYou: boolean,
+  measure: null | (() => void),
+  message: Types.MessageText | Types.MessageAttachment,
+  messageFailed: boolean,
+  messageKey: string,
+  messagePending: boolean,
+  messageSent: boolean,
+  onRetry: null | (() => void),
+  onEdit: null | (() => void),
+  onCancel: null | (() => void),
+  onAuthorClick: () => void,
+  orangeLineAbove: boolean,
+  ordinal: Types.Ordinal,
+  styles: StylesCrossPlatform,
+  timestamp: number,
+  type: 'text' | 'attachment',
+}
 
 const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBroken: boolean) => {
   if (isYou) {
@@ -125,11 +153,15 @@ const RightSide = props => (
           style={styles.flexOneColumn}
           retainHeight={props.exploded || props.isExplodingUnreadable}
         >
-          <props.innerClass
-            message={props.message}
-            isEditing={props.isEditing}
-            toggleShowingMenu={props.toggleShowingMenu}
-          />
+          {/* Additional checks on `props.message.type` here to satisfy flow */}
+          {props.type === 'text' &&
+            props.message.type === 'text' && (
+              <TextMessage message={props.message} isEditing={props.isEditing} />
+            )}
+          {props.type === 'attachment' &&
+            props.message.type === 'attachment' && (
+              <AttachmentMessage message={props.message} toggleShowingMenu={() => {}} />
+            )}
           {props.isEdited && <EditedMark />}
         </ExplodingHeightRetainer>
         {props.isRevoked && (
@@ -165,8 +197,8 @@ const RightSide = props => (
   </Box>
 )
 
-class WrapperAuthor extends React.PureComponent<WrapperAuthorProps> {
-  componentDidUpdate(prevProps: WrapperAuthorProps) {
+class WrapperAuthor extends React.PureComponent<Props> {
+  componentDidUpdate(prevProps: Props) {
     if (this.props.measure) {
       if (this.props.includeHeader !== prevProps.includeHeader) {
         this.props.measure()

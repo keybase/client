@@ -20,12 +20,23 @@ import ReactButton from '../../react-button/container'
 import MessagePopup from '../../message-popup'
 import ExplodingMeta from '../exploding-meta/container'
 import LongPressable from './long-pressable'
-import type {WrapperTimestampProps} from '../index.types'
 
 /**
  * WrapperTimestamp adds the orange line, timestamp, menu button, menu, reacji
  * button, and exploding meta tag.
  */
+
+export type Props = {
+  conversationIDKey: Types.ConversationIDKey,
+  exploded: boolean,
+  ordinal: Types.Ordinal,
+  measure: null | (() => void),
+  message: Types.Message,
+  previous?: ?Types.Message,
+  children?: React.Node,
+  timestamp: string,
+  orangeLineAbove: boolean,
+}
 
 const HoverBox = isMobile
   ? LongPressable
@@ -46,8 +57,8 @@ const HoverBox = isMobile
       flexDirection: 'column',
     })
 
-class _WrapperTimestamp extends React.PureComponent<WrapperTimestampProps & FloatingMenuParentProps> {
-  componentDidUpdate(prevProps: WrapperTimestampProps) {
+class _WrapperTimestamp extends React.PureComponent<Props & FloatingMenuParentProps> {
+  componentDidUpdate(prevProps: Props) {
     if (this.props.measure) {
       if (
         this.props.orangeLineAbove !== prevProps.orangeLineAbove ||

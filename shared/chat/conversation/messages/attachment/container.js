@@ -4,10 +4,10 @@ import * as Types from '../../../../constants/types/chat2'
 import FileAttachment from './file/container'
 import ImageAttachment from './image/container'
 
-type Props = {
+type Props = {|
   message: Types.MessageAttachment,
   toggleShowingMenu: () => void,
-}
+|}
 
 class Attachment extends React.PureComponent<Props> {
   render() {

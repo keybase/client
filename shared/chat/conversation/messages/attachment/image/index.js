@@ -204,9 +204,6 @@ const styles = styleSheetCreate({
     isElectron: {
       wordBreak: 'break-word',
     },
-    isMobile: {
-      backgroundColor: globalColors.fastBlank,
-    },
   }),
   progress: platformStyles({
     isElectron: {
