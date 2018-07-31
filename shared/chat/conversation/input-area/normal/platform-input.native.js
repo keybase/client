@@ -2,7 +2,6 @@
 /* eslint-env browser */
 import {showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
-import logger from '../../../../logger'
 import {Box, Box2, Icon, Input, Text, iconCastPlatformStyles} from '../../../../common-adapters'
 import {globalMargins, globalStyles, globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
@@ -43,11 +42,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
         return
       }
       if (response.error) {
-        // Most likely a first-run permissions error.
-        //
-        // TODO: Spawn a black bar, or handle this error more
-        // gracefully.
-        logger.warn(response.error)
+        this.props.onFilePickerError(response.error)
         return
       }
       const filename = isIOS ? response.uri.replace('file://', '') : response.path
