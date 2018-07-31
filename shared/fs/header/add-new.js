@@ -98,9 +98,15 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
   },
-  stylesText: {
-    marginLeft: globalMargins.tiny,
-  },
+  stylesText: platformStyles({
+    common: {
+      marginLeft: globalMargins.tiny,
+    },
+    isElectron: {
+      // Disable text-decoration: underline on hover for BodyBigLink
+      pointerEvents: 'none',
+    },
+  }),
   stylesIconNew: platformStyles({
     isMobile: {fontSize: 22},
   }),
