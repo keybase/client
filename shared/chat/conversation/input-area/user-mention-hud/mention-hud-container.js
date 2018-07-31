@@ -1,17 +1,20 @@
 // @flow
-import * as React from 'react'
+import * as Constants from '../../../../constants/chat2'
 import {MentionHud} from '.'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import {compose, connect, type TypedState, setDisplayName} from '../../../../util/container'
+import {compose, connect, lifecycle, type TypedState, setDisplayName} from '../../../../util/container'
 import * as I from 'immutable'
 import logger from '../../../../logger'
 
 const mapStateToProps = (state: TypedState, {filter, conversationIDKey}) => {
+  const meta = Constants.getMeta(state, conversationIDKey)
+  const isTeam: boolean = meta.teamType === 'big' || meta.teamType === 'small'
   return {
     _filter: filter,
     _infoMap: state.users.infoMap,
     _metaMap: state.chat2.metaMap,
     conversationIDKey,
+    isTeam,
   }
 }
 
@@ -44,34 +47,30 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     _loadParticipants: dispatchProps._loadParticipants,
     conversationIDKey: stateProps.conversationIDKey,
     filter: stateProps._filter.toLowerCase(),
+    isTeam: stateProps.isTeam,
     loading: users.length === 0,
     users,
   }
 }
 
 // TODO fix up the typing of this component
-class AutoLoadMentionHud extends React.Component<any> {
-  componentDidMount() {
-    if (this.props.users.length === 0) {
-      // it can never be 0, we don't have a list of participants cached for the general channel or this channel
-      if (!this.props._generalChannelConversationIDKey) {
-        logger.warn(
-          'Mention HUD: no meta found for general channel, loading participants of current channel.'
-        )
-        this.props._loadParticipants(this.props.conversationIDKey)
-        return
-      }
-      logger.info('Mention HUD: no participants in general channel meta, requesting trusted inbox item.')
-      this.props._loadParticipants(this.props._generalChannelConversationIDKey)
-    }
-  }
-
-  render() {
-    return <MentionHud {...this.props} />
-  }
-}
-
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('UserMentionHud')
-)(AutoLoadMentionHud)
+  setDisplayName('UserMentionHud'),
+  lifecycle({
+    componentDidMount() {
+      if (this.props.users.length === 0) {
+        // it can never be 0, we don't have a list of participants cached for the general channel or this channel
+        if (!this.props._generalChannelConversationIDKey) {
+          logger.warn(
+            'Mention HUD: no meta found for general channel, loading participants of current channel.'
+          )
+          this.props._loadParticipants(this.props.conversationIDKey)
+          return
+        }
+        logger.info('Mention HUD: no participants in general channel meta, requesting trusted inbox item.')
+        this.props._loadParticipants(this.props._generalChannelConversationIDKey)
+      }
+    },
+  })
+)(MentionHud)

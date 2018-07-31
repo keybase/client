@@ -72,6 +72,13 @@ const load = () => {
       const Hud = UpDownFilterHoc(({upCounter, downCounter, filter}) => (
         <Box style={{...globalStyles.flexBoxColumn, height: 100, width: 240}}>
           <MentionHud
+            _loadParticipants={() => {}}
+            _generalChannelConversationIDKey="adfasdfsad"
+            conversationIDKey="adfasdfsad"
+            isTeam={false}
+            loading={false}
+            selectedIndex={0}
+            setSelectedIndex={action('setSelectedIndex')}
             users={[{username: 'marcopolo', fullName: 'Marco Munizaga'}, {username: 'trex', fullName: ''}]}
             onPickUser={Sb.action('onPickUser')}
             onSelectUser={Sb.action('onSelectUser')}
