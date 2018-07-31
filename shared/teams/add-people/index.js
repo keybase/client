@@ -1,27 +1,20 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, HeaderHocHeader, ProgressIndicator, Text, PopupDialog} from '../../common-adapters'
-import {
-  collapseStyles,
-  globalStyles,
-  globalMargins,
-  globalColors,
-  isMobile,
-  desktopStyles,
-} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import UserInput from '../../search/user-input/container'
 import SearchResultsList from '../../search/results-list/container'
 import {type TeamRoleType} from '../../constants/types/teams'
 
-const MaybePopup = isMobile
+const MaybePopup = Styles.isMobile
   ? (props: {onClose: () => void, children: React.Node}) => (
-      <Box style={{flexGrow: 1, width: '100%'}} children={props.children} />
+      <Kb.Box style={{flexGrow: 1, width: '100%'}} children={props.children} />
     )
   : (props: {onClose: () => void, children: React.Node}) => (
-      <PopupDialog
+      <Kb.PopupDialog
         onClose={props.onClose}
-        styleCover={_styleCover}
-        styleContainer={_styleContainer}
+        styleCover={styles.popupCover}
+        styleContainer={styles.popupContainer}
         children={props.children}
       />
     )
@@ -46,25 +39,25 @@ type Props = {
 
 const AddPeople = (props: Props) => (
   <MaybePopup onClose={props.onClose}>
-    <Box style={{...globalStyles.flexBoxColumn, flexGrow: 1}}>
-      <HeaderHocHeader hideBackLabel={true} onBack={props.onClose} title={props.title} />
+    <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, flexGrow: 1}}>
+      <Kb.HeaderHocHeader title={props.title} />
       {!!props.errorText && (
-        <Box style={collapseStyles([globalStyles.flexBoxColumn, {backgroundColor: globalColors.red}])}>
+        <Kb.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, {backgroundColor: Styles.globalColors.red}])}>
           {props.errorText.split('\n').map(line => (
-            <Box key={line} style={globalStyles.flexBoxRow}>
-              <Text
-                style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
+            <Kb.Box key={line} style={Styles.globalStyles.flexBoxRow}>
+              <Kb.Text
+                style={{margin: Styles.globalMargins.tiny, textAlign: 'center', width: '100%'}}
                 type="BodySemibold"
                 backgroundMode="HighRisk"
               >
                 {line}
-              </Text>
-            </Box>
+              </Kb.Text>
+            </Kb.Box>
           ))}
-        </Box>
+        </Kb.Box>
       )}
 
-      <Box style={globalStyles.flexBoxColumn}>
+      <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
         <UserInput
           autoFocus={true}
           hideAddButton={true}
@@ -72,45 +65,51 @@ const AddPeople = (props: Props) => (
           placeholder="Add people"
           searchKey={'addToTeamSearch'}
         />
-      </Box>
-      <Box style={{...desktopStyles.scrollable, flex: 1}}>
+      </Kb.Box>
+      <Kb.Box style={{...Styles.desktopStyles.scrollable, flex: 1}}>
         {props.showSearchPending ? (
-          <ProgressIndicator style={{width: 24}} />
+          <Kb.ProgressIndicator style={{width: 24}} />
         ) : (
           <SearchResultsList
             searchKey={'addToTeamSearch'}
             disableIfInTeamName={props.name}
-            style={isMobile ? {position: 'absolute', top: 0, bottom: 0, right: 0, left: 0} : {height: 400}}
+            style={Styles.isMobile ? {position: 'absolute', top: 0, bottom: 0, right: 0, left: 0} : {height: 400}}
             keyboardDismissMode="on-drag"
           />
         )}
-      </Box>
-      <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium}}>
-        <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
-          <Button
+      </Kb.Box>
+      <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, padding: Styles.globalMargins.medium}}>
+        <Kb.Box style={{...Styles.globalStyles.flexBoxRow, justifyContent: 'center'}}>
+          <Kb.Button
             disabled={!props.numberOfUsersSelected}
             onClick={props.onOpenRolePicker}
             label={props.numberOfUsersSelected > 0 ? `Add (${props.numberOfUsersSelected})` : 'Add'}
             type="Primary"
           />
-        </Box>
-      </Box>
-    </Box>
+        </Kb.Box>
+      </Kb.Box>
+    </Kb.Box>
   </MaybePopup>
 )
 
-const _styleCover = {
-  backgroundColor: globalColors.black_75,
-}
-
-const _styleContainer = {
-  ...globalStyles.flexBoxColumn,
-  alignSelf: 'center',
-  backgroundColor: globalColors.white,
-  borderRadius: 5,
-  boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
-  maxHeight: 620,
-  minWidth: 800,
-}
+const styles = Styles.styleSheetCreate({
+  popupContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignSelf: 'center',
+      backgroundColor: Styles.globalColors.white,
+      borderRadius: 5,
+    },
+    isElectron: {
+      boxShadow: `0 2px 5px 0 ${Styles.globalColors.black_20}`,
+      height: 520,
+      margin: 40,
+      width: 620,
+    },
+  }),
+  popupCover: {
+    backgroundColor: Styles.globalColors.black_75,
+  },
+})
 
 export default AddPeople
