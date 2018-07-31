@@ -27,7 +27,7 @@ const Header = (props: Props) => (
     style={styles.noShrink}
   >
     <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
-      <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" centerChildren={true}>
         {props.keybaseUser && <Kb.Avatar size={16} username={props.keybaseUser} />}
         <Kb.Text type="BodyBig">{props.walletName}</Kb.Text>
       </Kb.Box2>
