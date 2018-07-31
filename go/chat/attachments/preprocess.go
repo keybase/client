@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/keybase/client/go/chat/utils"
 
@@ -200,7 +201,7 @@ func PreprocessAsset(ctx context.Context, log utils.DebugLabeler, filename strin
 	}
 	// MIME type detection failed us, try using an extension map
 	if p.ContentType == "application/octet-stream" {
-		if typ, ok := mimeTypes[filename]; ok {
+		if typ, ok := mimeTypes[strings.ToLower(filename)]; ok {
 			p.ContentType = typ
 		}
 	}
