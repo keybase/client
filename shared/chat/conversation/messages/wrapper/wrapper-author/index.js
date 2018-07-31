@@ -46,6 +46,7 @@ export type Props = {|
   ordinal: Types.Ordinal,
   styles: StylesCrossPlatform,
   timestamp: number,
+  toggleMessageMenu: () => void,
   type: 'text' | 'attachment',
 |}
 
@@ -160,7 +161,7 @@ const RightSide = props => (
             )}
           {props.type === 'attachment' &&
             props.message.type === 'attachment' && (
-              <AttachmentMessage message={props.message} toggleShowingMenu={() => {}} />
+              <AttachmentMessage message={props.message} toggleMessageMenu={props.toggleMessageMenu} />
             )}
           {props.isEdited && <EditedMark />}
         </ExplodingHeightRetainer>

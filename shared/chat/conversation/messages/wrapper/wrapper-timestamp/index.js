@@ -94,6 +94,7 @@ class _WrapperTimestamp extends React.PureComponent<Props & FloatingMenuParentPr
                     previous={props.previous}
                     isEditing={props.isEditing}
                     measure={props.measure}
+                    toggleMessageMenu={props.toggleShowingMenu}
                   />
                 )}
               {!props.exploded && (

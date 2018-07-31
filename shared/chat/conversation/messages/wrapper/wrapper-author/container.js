@@ -14,6 +14,7 @@ type OwnProps = {|
   measure: null | (() => void),
   message: Types.MessageText | Types.MessageAttachment,
   previous: ?Types.Message,
+  toggleMessageMenu: () => void,
 |}
 
 const mapStateToProps = (state: TypedState, {message, previous, isEditing}: OwnProps) => {
@@ -55,7 +56,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID})),
 })
 
-const mergeProps = (stateProps, dispatchProps, {measure}: OwnProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {message, previous} = stateProps
 
   const sequentialUserMessages =
@@ -90,7 +91,7 @@ const mergeProps = (stateProps, dispatchProps, {measure}: OwnProps) => {
     isFollowing: stateProps.isFollowing,
     isRevoked: !!message.deviceRevokedAt,
     isYou: stateProps.isYou,
-    measure,
+    measure: ownProps.measure,
     message,
     messageFailed: stateProps.messageFailed,
     // `messageKey` should be unique for the message as long
@@ -108,6 +109,7 @@ const mergeProps = (stateProps, dispatchProps, {measure}: OwnProps) => {
       : null,
     ordinal: message.ordinal,
     timestamp: message.timestamp,
+    toggleMessageMenu: ownProps.toggleMessageMenu,
     type: message.type,
   }
 }
