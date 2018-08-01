@@ -156,6 +156,14 @@ func (t *Team) SeitanInviteTokenKeyLatest(ctx context.Context) (keybase1.TeamApp
 	return t.ApplicationKey(ctx, keybase1.TeamApplication_SEITAN_INVITE_TOKEN)
 }
 
+func (t *Team) SaltpackEncryptionKeyLatest(ctx context.Context) (keybase1.TeamApplicationKey, error) {
+	return t.ApplicationKey(ctx, keybase1.TeamApplication_SALTPACK)
+}
+
+func (t *Team) SaltpackEncryptionKeyAtGeneration(ctx context.Context, generation keybase1.PerTeamKeyGeneration) (keybase1.TeamApplicationKey, error) {
+	return t.ApplicationKeyAtGeneration(keybase1.TeamApplication_SALTPACK, generation)
+}
+
 func (t *Team) SeitanInviteTokenKeyAtGeneration(ctx context.Context, generation keybase1.PerTeamKeyGeneration) (keybase1.TeamApplicationKey, error) {
 	return t.ApplicationKeyAtGeneration(keybase1.TeamApplication_SEITAN_INVITE_TOKEN, generation)
 }

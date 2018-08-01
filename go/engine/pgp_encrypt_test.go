@@ -66,8 +66,8 @@ func TestPGPEncryptNoPGPNaClOnly(t *testing.T) {
 	err := RunEngine2(m, eng)
 	if perr, ok := err.(libkb.NoPGPEncryptionKeyError); !ok {
 		t.Fatalf("Got wrong error type: %T %v", err, err)
-	} else if !perr.HasDeviceKey {
-		t.Fatalf("Should have a PGP key")
+	} else if !perr.HasKeybaseEncryptionKey {
+		t.Fatalf("Should have a keybase encryption key")
 	} else if perr.User != u1.Username {
 		t.Fatalf("Wrong username")
 	}

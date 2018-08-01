@@ -516,6 +516,16 @@ func KIDToNaclSigningKeyPublic(bk []byte) *NaclSigningKeyPublic {
 	return &ret
 }
 
+func EncryptionKIDToPublicKeyBytes(bk []byte) ([]byte, error) {
+	if len(bk) != 3+NaclDHKeysize {
+		return []byte{}, fmt.Errorf("invalid DH encryption key KID (wrong length)")
+	}
+	if bk[0] != byte(KeybaseKIDV1) || bk[1] != byte(KIDNaclDH) || bk[len(bk)-1] != byte(IDSuffixKID) {
+		return []byte{}, fmt.Errorf("invalid DH encryption key KID (wrong type)")
+	}
+	return bk[2 : len(bk)-1], nil
+}
+
 func (s NaclSigInfo) Verify() (*NaclSigningKeyPublic, error) {
 	key := KIDToNaclSigningKeyPublic(s.Kid)
 	if key == nil {
