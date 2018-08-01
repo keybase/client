@@ -119,7 +119,7 @@ const ordinalToMessage = o => {
   return message
 }
 
-const provider = Sb.createPropProvider({
+const provider = Sb.createPropProviderWithCommon({
   ...ReactButtonProvider,
   ...ReactionsRowProvider,
   ...ReactionTooltipProvider,

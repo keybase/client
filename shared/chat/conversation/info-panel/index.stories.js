@@ -41,7 +41,7 @@ const retentionPickerPropSelector = props => ({
   onSelect: Sb.action('onSelectRetentionPolicy'),
 })
 
-const provider = Sb.createPropProvider({
+const provider = Sb.createPropProviderWithCommon({
   ...Sb.PropProviders.TeamDropdownMenu(),
   InfoPanel: (props: InfoPanelProps) => props,
   OnlyValidConversations: () => onlyValidConversationsProps,

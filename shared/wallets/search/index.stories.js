@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
+import * as Sb from '../../stories/storybook'
 import {Box2} from '../../common-adapters'
-import {action, storiesOf, createPropProvider} from '../../stories/storybook'
 import Search from '.'
 import {makeSelectorMap as makeResultsListSelectorMap} from '../../search/results-list/index.stories'
 import {type ConnectPropsMap as RowConnectPropsMap} from '../../search/result-row/index.stories'
@@ -58,20 +58,20 @@ const connectPropsMap: RowConnectPropsMap = {
   },
 }
 
-const provider = createPropProvider({
+const provider = Sb.createPropProviderWithCommon({
   ...makeResultsListSelectorMap(connectPropsMap),
   ...makeUserInputSelectorMap([]),
 })
 
 const load = () => {
-  storiesOf('Wallets', module)
+  Sb.storiesOf('Wallets', module)
     .addDecorator(provider)
     .add('Search', () => (
       <Wrapper>
         <Search
-          onClick={action('onClick')}
-          onClose={action('onClose')}
-          onShowTracker={action('onShowTracker')}
+          onClick={Sb.action('onClick')}
+          onClose={Sb.action('onClose')}
+          onShowTracker={Sb.action('onShowTracker')}
         />
       </Wrapper>
     ))

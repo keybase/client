@@ -52,7 +52,7 @@ const load = () => {
   walletRow()
 
   Sb.storiesOf('Wallets', module)
-    .addDecorator(Sb.createPropProvider(WalletRowProvider(mockWallets)))
+    .addDecorator(Sb.createPropProviderWithCommon(WalletRowProvider(mockWallets)))
     .add('Wallet List', () => (
       <WalletList
         accountIDs={accountIDs}

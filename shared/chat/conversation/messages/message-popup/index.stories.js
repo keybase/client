@@ -57,7 +57,7 @@ const commonExplodingProps = {
   visible: true,
 }
 
-const provider = Sb.createPropProvider({
+const provider = Sb.createPropProviderWithCommon({
   ExplodingPopup: (props: ExplodingOwnProps) => ({
     attachTo: null,
     author: props.message.author,

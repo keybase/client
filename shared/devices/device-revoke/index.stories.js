@@ -46,7 +46,7 @@ const load = () => {
     ))
   Sb.storiesOf('Devices/Revoke', module)
     .addDecorator(
-      Sb.createPropProvider({
+      Sb.createPropProviderWithCommon({
         WaitingButton: p => ({...p, storeWaiting: true}),
       })
     )

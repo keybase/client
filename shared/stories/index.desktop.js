@@ -2,7 +2,6 @@
 // @flow
 import * as React from 'react'
 import * as Sb from './storybook'
-import {Common} from './prop-providers'
 import {configure, addDecorator} from '@storybook/react'
 import sharedStories from './shared-stories'
 import desktopStories from './platform-stories.desktop'
@@ -21,7 +20,7 @@ const rootDecorator = story => (
 
 const load = () => {
   addDecorator(rootDecorator)
-  addDecorator(Sb.createPropProvider(Common()))
+  addDecorator(Sb.createPropProviderWithCommon())
   configure(() => {
     Object.keys(stories).forEach(s => stories[s]())
   }, module)

@@ -9,7 +9,7 @@ import ReactionTooltip from '.'
 import type {Props} from '.'
 import type {OwnProps} from './container'
 
-const provider = Sb.createPropProvider(ReactButton)
+const provider = Sb.createPropProviderWithCommon(ReactButton)
 
 const common = {
   attachmentRef: null,

@@ -8,7 +8,7 @@ import Input, {type Props as InputProps} from '.'
 import {isMobile} from '../../../../constants/platform'
 import {stringToConversationIDKey} from '../../../../constants/types/chat2'
 
-const provider = Sb.createPropProvider({
+const provider = Sb.createPropProviderWithCommon({
   ChannelMentionHud: ownProps => {
     const channels = ['foo', 'bar']
     return {

@@ -57,7 +57,7 @@ const load = () => {
   ]
 
   let s = Sb.storiesOf(`Provision/CodePage2`, module).addDecorator(
-    Sb.createPropProvider({QRScan: QRScanProps})
+    Sb.createPropProviderWithCommon({QRScan: QRScanProps})
   )
   variants.forEach(({current, provisioned, otherType}) => {
     let otherName
@@ -102,7 +102,7 @@ const load = () => {
 
   s = Sb.storiesOf(`Provision/CodePage2`, module)
     .addDecorator(
-      Sb.createPropProvider({
+      Sb.createPropProviderWithCommon({
         QRScan: {...QRScanProps, waiting: true},
       })
     )

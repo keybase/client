@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
+import * as Sb from '../../stories/storybook'
 import ResultsList from '.'
 import ConnectedResultsList, {type OwnProps, type Props} from './container'
 import {Box} from '../../common-adapters'
-import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 import {
   type ConnectPropsMap as RowConnectPropsMap,
   makeSelectorMap as makeRowSelectorMap,
@@ -63,7 +63,7 @@ Object.keys(defaultConnectPropsMap).forEach(id => {
   }
 })
 
-const onMouseOver = action('onMouseOver')
+const onMouseOver = Sb.action('onMouseOver')
 
 // Can extend to vary items based on ownProps.searchKey if needed.
 const mockOwnPropsToProps = (rowConnectPropsMap: RowConnectPropsMap, ownProps: OwnProps): Props => {
@@ -79,8 +79,8 @@ const mockOwnPropsToProps = (rowConnectPropsMap: RowConnectPropsMap, ownProps: O
 
 const defaultOwnProps: OwnProps = {
   searchKey: 'search-key',
-  onShowTracker: action('onShowTracker'),
-  onClick: action('onClick'),
+  onShowTracker: Sb.action('onShowTracker'),
+  onClick: Sb.action('onClick'),
   disableIfInTeamName: '',
 }
 
@@ -91,10 +91,10 @@ export const makeSelectorMap = (rowConnectPropsMap: RowConnectPropsMap = default
   ResultsList: (ownProps: OwnProps) => mockOwnPropsToProps(rowConnectPropsMap, ownProps),
 })
 
-const provider = createPropProvider(makeSelectorMap())
+const provider = Sb.createPropProviderWithCommon(makeSelectorMap())
 
 const load = () => {
-  storiesOf('Search/ResultsList', module)
+  Sb.storiesOf('Search/ResultsList', module)
     .addDecorator(provider)
     .addDecorator(story => <Box style={{width: 420}}>{story()}</Box>)
     .add('keybaseResults', () => <ResultsList {...defaultProps} items={['chris', 'cjb', 'jzila']} />)
