@@ -264,8 +264,9 @@ const load = () => {
       <Box>
         <WrapRow key="1">
           <ConnectedStillRow
+            name="a"
             path={Types.stringToPath('/keybase/private/a')}
-            routeProps={I.Map({path: '/keybase/private/foo'})}
+            routeProps={I.Map({path: '/keybase/private/a'})}
             routePath={I.List([])}
           />
         </WrapRow>
@@ -390,6 +391,7 @@ const load = () => {
         </WrapRow>
         <WrapRow key="15">
           <ConnectedStillRow
+            name="empty"
             path={Types.stringToPath('/keybase/private/empty')}
             routeProps={I.Map({path: '/keybase/private/empty'})}
             routePath={I.List([])}
