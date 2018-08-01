@@ -3,7 +3,7 @@ import * as React from 'react'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Icon, Text} from '../../common-adapters'
 import AddNew from './add-new-container'
-import ConnectedBanner from '../banner/container'
+import ConnectedFilesBanner from '../banner/fileui-banner/container'
 import Breadcrumb from './breadcrumb-container.desktop'
 import {type FolderHeaderProps} from './header'
 
@@ -35,7 +35,7 @@ const FolderHeader = ({path, openInFileUI, onChat}: FolderHeaderProps) => (
         </Box>
       )}
     </Box>
-    <ConnectedBanner path={path} />
+    <ConnectedFilesBanner path={path} />
   </Box>
 )
 
