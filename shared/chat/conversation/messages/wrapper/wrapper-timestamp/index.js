@@ -29,6 +29,7 @@ import LongPressable from './long-pressable'
 
 export type Props = {|
   conversationIDKey: Types.ConversationIDKey,
+  decorate: boolean,
   exploded: boolean,
   ordinal: Types.Ordinal,
   measure: null | (() => void),
@@ -43,22 +44,24 @@ export type Props = {|
 
 const HoverBox = isMobile
   ? LongPressable
-  : glamorous(Box)({
+  : glamorous(Box)(props => ({
       '& .menu-button': {
         flexShrink: 0,
         height: 17,
         opacity: 0,
         visibility: 'hidden',
       },
-      '&:hover': {
-        backgroundColor: globalColors.blue4,
-      },
+      '&:hover': props.decorate
+        ? {
+            backgroundColor: globalColors.blue4,
+          }
+        : {},
       '&:hover .menu-button': {
         opacity: 1,
         visibility: 'visible',
       },
       flexDirection: 'column',
-    })
+    }))
 
 class _WrapperTimestamp extends React.PureComponent<Props & FloatingMenuParentProps> {
   componentDidUpdate(prevProps: Props) {
@@ -79,7 +82,7 @@ class _WrapperTimestamp extends React.PureComponent<Props & FloatingMenuParentPr
         {props.timestamp && <Timestamp timestamp={props.timestamp} />}
         <HoverBox
           {...(isMobile ? {onLongPress: props.toggleShowingMenu, underlayColor: globalColors.blue4} : {})}
-          stye={{...globalStyles.flexBoxRow, width: '100%'}}
+          decorate={props.decorate}
         >
           {/* Additional Box here because NativeTouchableHighlight only supports one child */}
           <Box>
@@ -96,15 +99,16 @@ class _WrapperTimestamp extends React.PureComponent<Props & FloatingMenuParentPr
                     toggleMessageMenu={props.toggleShowingMenu}
                   />
                 )}
-              {!props.exploded && (
-                <MenuButtons
-                  conversationIDKey={props.conversationIDKey}
-                  message={props.message}
-                  ordinal={props.ordinal}
-                  setAttachmentRef={props.setAttachmentRef}
-                  toggleShowingMenu={props.toggleShowingMenu}
-                />
-              )}
+              {!props.exploded &&
+                props.decorate && (
+                  <MenuButtons
+                    conversationIDKey={props.conversationIDKey}
+                    message={props.message}
+                    ordinal={props.ordinal}
+                    setAttachmentRef={props.setAttachmentRef}
+                    toggleShowingMenu={props.toggleShowingMenu}
+                  />
+                )}
             </Box2>
             <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
           </Box>

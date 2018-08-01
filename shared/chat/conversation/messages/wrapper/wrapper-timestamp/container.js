@@ -14,6 +14,20 @@ export type OwnProps = {|
   previous: ?Types.Message,
 |}
 
+const decoratedMessageTypes: Array<Types.MessageType> = ['attachment', 'text', 'systemLeft']
+const shouldDecorateMessage = (message: Types.Message, you: string) => {
+  if ((message.type === 'text' || message.type === 'attachment') && message.exploded) {
+    return false
+  }
+  if (decoratedMessageTypes.includes(message.type)) {
+    return true
+  } else if (message.type === 'systemJoined') {
+    // special case. "You joined #<channel>" messages render with a blue user notice so don't decorate those
+    return message.author !== you
+  }
+  return false
+}
+
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const lastReadMessageID = state.chat2.lastReadMessageMap.get(ownProps.message.conversationIDKey)
   // Show the orange line on the first message after the last read message
@@ -24,6 +38,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     ownProps.message.author !== state.config.username
 
   return {
+    _you: state.config.username || '',
     conversationIDKey: ownProps.message.conversationIDKey,
     orangeLineAbove,
     ordinal: ownProps.message.ordinal,
@@ -45,9 +60,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     type = 'wrapper-author'
   }
 
+  const decorate = shouldDecorateMessage(message, stateProps._you)
+
   return {
     children: ownProps.children,
     conversationIDKey: stateProps.conversationIDKey,
+    decorate,
     exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
     isEditing: ownProps.isEditing,
     measure: ownProps.measure,
