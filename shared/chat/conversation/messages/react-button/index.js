@@ -82,11 +82,12 @@ export type NewReactionButtonProps = {|
 |}
 type NewReactionButtonState = {|
   attachmentRef: ?React.Component<any, any>,
+  hovering: boolean,
   iconIndex: number,
   showingPicker: boolean,
 |}
 export class NewReactionButton extends React.Component<NewReactionButtonProps, NewReactionButtonState> {
-  state = {attachmentRef: null, iconIndex: 0, showingPicker: false}
+  state = {attachmentRef: null, hovering: false, iconIndex: 0, showingPicker: false}
   _intervalID: ?IntervalID
 
   _setShowingPicker = (showingPicker: boolean) =>
@@ -111,13 +112,14 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
   _startCycle = () => {
     if (!this._intervalID) {
       this._intervalID = setInterval(this._nextIcon, 1000)
+      this.setState(s => (s.hovering ? null : {hovering: true}))
     }
   }
 
   _stopCycle = () => {
     this._intervalID && clearInterval(this._intervalID)
     this._intervalID = null
-    this.setState(s => (s.iconIndex === 0 ? null : {iconIndex: 0}))
+    this.setState(s => (s.iconIndex === 0 && !s.hovering ? null : {hovering: false, iconIndex: 0}))
   }
 
   _nextIcon = () => this.setState(s => ({iconIndex: (s.iconIndex + 1) % iconCycle.length}))
@@ -149,6 +151,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
         >
           <Icon
             type={iconCycle[this.state.iconIndex]}
+            color={this.state.hovering ? globalColors.black_60 : globalColors.black_40}
             fontSize={16}
             style={iconCastPlatformStyles(styles.emojiIconWrapper)}
           />
