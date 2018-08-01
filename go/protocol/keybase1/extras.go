@@ -496,6 +496,18 @@ func TeamIDFromString(s string) (TeamID, error) {
 		s, TEAMID_PRIVATE_SUFFIX_HEX, TEAMID_PUBLIC_SUFFIX_HEX, SUB_TEAMID_PRIVATE_SUFFIX, SUB_TEAMID_PUBLIC_SUFFIX)
 }
 
+func UserOrTeamIDFromString(s string) (UserOrTeamID, error) {
+	UID, errUser := UIDFromString(s)
+	if errUser == nil {
+		return UID.AsUserOrTeam(), nil
+	}
+	teamID, errTeam := TeamIDFromString(s)
+	if errTeam == nil {
+		return teamID.AsUserOrTeam(), nil
+	}
+	return "", fmt.Errorf("Bad UserOrTeamID: could not parse %s as a UID (err = %v) or team id (err = %v)", s, errUser, errTeam)
+}
+
 // Used by unit tests.
 func MakeTestTeamID(n uint32, public bool) TeamID {
 	b := make([]byte, 8)
@@ -857,6 +869,15 @@ func (u *UID) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func (u *UserOrTeamID) UnmarshalJSON(b []byte) error {
+	utid, err := UserOrTeamIDFromString(Unquote(b))
+	if err != nil {
+		return err
+	}
+	*u = utid
+	return nil
+}
+
 // Size implements the cache.Measurable interface.
 func (u UID) Size() int {
 	return len(u) + ptrSize
@@ -867,6 +888,10 @@ func (k *KID) MarshalJSON() ([]byte, error) {
 }
 
 func (u *UID) MarshalJSON() ([]byte, error) {
+	return Quote(u.String()), nil
+}
+
+func (u *UserOrTeamID) MarshalJSON() ([]byte, error) {
 	return Quote(u.String()), nil
 }
 

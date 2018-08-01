@@ -446,6 +446,9 @@ func (u *CachedUPAKLoader) Load(arg LoadUserArg) (*keybase1.UserPlusAllKeys, *Us
 // non-nil, nor never both nil. If we had to do a full LoadUser as part of the
 // request, it's returned too.
 func (u *CachedUPAKLoader) LoadV2(arg LoadUserArg) (*keybase1.UserPlusKeysV2AllIncarnations, *User, error) {
+	m, tbs := arg.m.WithTimeBuckets()
+	arg.m = m
+	defer tbs.Record("CachedUPAKLoader.LoadV2")()
 	return u.loadWithInfo(arg, nil, nil, true)
 }
 
@@ -524,9 +527,11 @@ func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid 
 		argBase.WithForceReload(),
 	}
 
-	for _, arg := range attempts {
+	for i, arg := range attempts {
 
-		u.G().VDL.CLogf(ctx, VLog0, "| reloading with arg: %s", arg.String())
+		if i > 0 {
+			u.G().VDL.CLogf(ctx, VLog0, "| reloading with arg: %s", arg.String())
+		}
 
 		upak, _, err := u.LoadV2(arg)
 		if err != nil {
@@ -659,7 +664,7 @@ func (u *CachedUPAKLoader) LookupUsernameUPAK(ctx context.Context, uid keybase1.
 // LookupUID is a verified map of username -> UID. IT calls into the resolver, which gives un untrusted
 // UID, but verifies with the UPAK loader that the mapping UID -> username is correct.
 func (u *CachedUPAKLoader) LookupUID(ctx context.Context, un NormalizedUsername) (keybase1.UID, error) {
-	rres := u.G().Resolver.Resolve(un.String())
+	rres := u.G().Resolver.Resolve(ctx, un.String())
 	if err := rres.GetError(); err != nil {
 		return keybase1.UID(""), err
 	}

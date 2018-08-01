@@ -4,13 +4,24 @@ protocol saltpack {
   import idl "common.avdl";
   import idl "identify_common.avdl";
 
+  enum AuthenticityType {
+    SIGNED_0, 
+    REPUDIABLE_1, 
+    ANONYMOUS_2
+  }
+
   record SaltpackEncryptOptions {
-    array<string> recipients; // user assertions
-    boolean anonymousSender;
-    boolean encryptionOnlyMode;
+    array<string> recipients; // usernames or assertions
+    array<string> teamRecipients; // team names
+    AuthenticityType authenticityType;
+    boolean useEntityKeys;
+    boolean useDeviceKeys;
+    boolean usePaperKeys;    
     boolean noSelfEncrypt;
     boolean binary;
     int saltpackVersion;
+
+    boolean useKBFSKeysOnlyForTesting; // to test messages which use old kbfs saltpack keys/pseudonyms
   }
 
   record SaltpackDecryptOptions {
