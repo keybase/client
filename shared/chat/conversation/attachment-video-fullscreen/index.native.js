@@ -2,10 +2,10 @@
 import React from 'react'
 import {WebView, Box, ClickableBox, Text} from '../../../common-adapters'
 import {globalColors, platformStyles, globalMargins, globalStyles} from '../../../styles'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
+import {OverlayParentHOC, type OverlayParentProps} from '../../../common-adapters/mobile.native'
 import type {Props} from './index.types'
 
-class _VideoFullscreen extends React.Component<Props & FloatingMenuParentProps> {
+class _VideoFullscreen extends React.Component<Props & OverlayParentProps> {
   render() {
     return (
       <Box style={stylesContainer}>
@@ -63,6 +63,6 @@ const stylesAVView = {
   backgroundColor: globalColors.blue5,
 }
 
-const VideoFullscreen = FloatingMenuParentHOC(_VideoFullscreen)
+const VideoFullscreen = OverlayParentHOC(_VideoFullscreen)
 
 export default VideoFullscreen
