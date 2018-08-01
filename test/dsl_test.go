@@ -706,6 +706,11 @@ func setmtime(filepath string, mtime time.Time) fileOp {
 
 func mtime(filepath string, expectedMtime time.Time) fileOp {
 	return fileOp{func(c *ctx) error {
+		// If the expected time is zero, use the clock's current time.
+		if expectedMtime.IsZero() {
+			expectedMtime = c.clock.Now()
+		}
+
 		file, _, err := c.getNode(filepath, noCreate, dontResolveFinalSym)
 		if err != nil {
 			return err

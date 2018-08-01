@@ -33,6 +33,7 @@ func TestCreateDirInRoot(t *testing.T) {
 	test(t,
 		users("alice", "bob"),
 		as(alice,
+			addTime(1*time.Minute),
 			mkdir("a"),
 			// Initial check before SyncAll is called.
 			lsdir("", m{"a$": "DIR"}),
@@ -41,10 +42,41 @@ func TestCreateDirInRoot(t *testing.T) {
 		as(alice,
 			lsdir("", m{"a$": "DIR"}),
 			lsdir("a", m{}),
+			mtime("a", time.Time{}),
+			// Make sure root directory's mtime was updated.
+			mtime("", time.Time{}),
 		),
 		as(bob,
 			lsdir("", m{"a$": "DIR"}),
 			lsdir("a", m{}),
+			mtime("a", time.Time{}),
+			mtime("", time.Time{}),
+		),
+	)
+}
+
+func TestCreateDirInSubdir(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(alice,
+			addTime(1*time.Minute),
+			mkdir("a/b"),
+			// Initial check before SyncAll is called.
+			lsdir("a", m{"b$": "DIR"}),
+		),
+		as(alice,
+			lsdir("a", m{"b$": "DIR"}),
+			mtime("a/b", time.Time{}),
+			// Make sure parent directory's mtime was updated.
+			mtime("a", time.Time{}),
+		),
+		as(bob,
+			lsdir("a", m{"b$": "DIR"}),
+			mtime("a/b", time.Time{}),
+			mtime("a", time.Time{}),
 		),
 	)
 }
@@ -121,15 +153,43 @@ func TestRemoveFileFromRoot(t *testing.T) {
 			mkfile("a", "hello"),
 		),
 		as(alice,
+			addTime(1*time.Minute),
 			rm("a"),
 			// Initial check before SyncAll is called.
 			lsdir("", m{}),
 		),
 		as(alice,
 			lsdir("", m{}),
+			// Make sure root directory's mtime was updated.
+			mtime("", time.Time{}),
 		),
 		as(bob,
 			lsdir("", m{}),
+			mtime("", time.Time{}),
+		),
+	)
+}
+
+func TestRemoveFileFromSubdir(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(alice,
+			addTime(1*time.Minute),
+			rm("a/b"),
+			// Initial check before SyncAll is called.
+			lsdir("a", m{}),
+		),
+		as(alice,
+			lsdir("a", m{}),
+			// Make sure root directory's mtime was updated.
+			mtime("a", time.Time{}),
+		),
+		as(bob,
+			lsdir("a", m{}),
+			mtime("a", time.Time{}),
 		),
 	)
 }

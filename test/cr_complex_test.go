@@ -863,6 +863,8 @@ func TestCrUnmergedSetMtimeAndRemoveModifiedDir(t *testing.T) {
 		as(alice,
 			mkfile("a/b/c/e", "hello2"),
 			mkfile("a/b/f", "hello3"),
+			setmtime("a/b/c", origMtime),
+			setmtime("a/b", origMtime),
 		),
 		as(bob, noSync(),
 			setmtime("a/b/c", targetMtime),

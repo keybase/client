@@ -4296,6 +4296,10 @@ func (fbo *folderBranchOps) syncAllLocked(
 
 	fbo.log.LazyTrace(ctx, "Syncing %d dir(s)", len(dirtyDirs))
 
+	// Save the updated root entry, to get the most up-to-date mtime
+	// and ctime.
+	rootDe := fbo.blocks.UpdateDirtyEntry(ctx, lState, md.data.Dir)
+
 	// First prep all the directories.
 	fbo.log.CDebugf(ctx, "Syncing %d dir(s)", len(dirtyDirs))
 	for _, ref := range dirtyDirs {
@@ -4313,6 +4317,21 @@ func (fbo *folderBranchOps) syncAllLocked(
 		lbc[dir.tailPointer()] = dblock
 		if !fbo.nodeCache.IsUnlinked(node) {
 			resolvedPaths[dir.tailPointer()] = dir
+		}
+
+		// Add the parent directory of this dirty directory to the
+		// `lbc`, to reflect the updated mtime/ctimes of the dirty
+		// directory.
+		if dir.hasValidParent() {
+			parentPath := dir.parentPath()
+			if _, ok := lbc[parentPath.tailPointer()]; !ok {
+				parentBlock, err := fbo.blocks.GetDirtyDir(
+					ctx, lState, md, *parentPath, blockWrite)
+				if err != nil {
+					return err
+				}
+				lbc[parentPath.tailPointer()] = parentBlock
+			}
 		}
 
 		// On a successful sync, clean up the cached entries and the
@@ -4619,6 +4638,12 @@ func (fbo *folderBranchOps) syncAllLocked(
 		}
 		return nil
 	}
+
+	// Set the root directory entry times to their updated values,
+	// since the prepper doesn't do it for blocks that aren't in the
+	// `lbc`.
+	md.data.Dir.Mtime = rootDe.Mtime
+	md.data.Dir.Ctime = rootDe.Ctime
 
 	return fbo.finalizeMDWriteLocked(ctx, lState, md, bps, excl,
 		func(md ImmutableRootMetadata) error {
