@@ -181,6 +181,7 @@ const provider = PropProviders.createPropProviderWithCommon({
     return {
       children,
       conversationIDKey: message.conversationIDKey,
+      decorate: true,
       exploded: false,
       isEditing,
       measure,
