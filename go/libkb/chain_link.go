@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -401,6 +402,10 @@ func (c *ChainLink) GetRevocations() []keybase1.SigID {
 		return nil
 	}
 	var ret []keybase1.SigID
+	if !bytes.Contains(payload, []byte("revoke")) {
+		c.revocationsCache = &ret
+		return nil
+	}
 	if s, err := jsonparser.GetString(payload, "body", "revoke", "sig_id"); err == nil {
 		if sigID, err := keybase1.SigIDFromString(s, true); err == nil {
 			ret = append(ret, sigID)
