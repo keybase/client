@@ -30,6 +30,7 @@ const styles = styleSheetCreate({
       boxShadow: '0 0 15px 0 rgba(0, 0, 0, 0.2)',
       overflowX: 'hidden',
       overflowY: 'auto',
+      zIndex: 1, // Put the popup on top of any sticky section headers.
     },
   }),
 })
