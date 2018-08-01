@@ -77,27 +77,29 @@ const hudStyle = {
 }
 
 const _withProps = ({users, teamType, selectedIndex, filter}) => {
-  let fullList = users
-    .map((u, i) => ({
-      fullName: u.fullName,
-      key: u.username,
-      username: u.username,
-    }))
-    .concat()
+  const usersList = users.map((u, i) => ({
+    fullName: u.fullName,
+    key: u.username,
+    username: u.username,
+  }))
 
-  if (teamType === 'big') {
-    fullList = fullList.concat([
-      {fullName: 'Everyone in this channel', key: 'channel', username: 'channel'},
-      {fullName: 'Everyone in this channel', key: 'here', username: 'here'},
-    ])
-  }
+  const bigList =
+    teamType === 'big'
+      ? [
+          {fullName: 'Everyone in this channel', key: 'channel', username: 'channel'},
+          {fullName: 'Everyone in this channel', key: 'here', username: 'here'},
+        ]
+      : []
 
-  if (teamType === 'small') {
-    fullList = fullList.concat([
-      {fullName: 'Everyone in this team', key: 'channel', username: 'channel'},
-      {fullName: 'Everyone in this team', key: 'here', username: 'here'},
-    ])
-  }
+  const smallList =
+    teamType === 'small'
+      ? [
+          {fullName: 'Everyone in this team', key: 'channel', username: 'channel'},
+          {fullName: 'Everyone in this team', key: 'here', username: 'here'},
+        ]
+      : []
+
+  const fullList = [...usersList, ...bigList, ...smallList]
 
   return {
     data: fullList
