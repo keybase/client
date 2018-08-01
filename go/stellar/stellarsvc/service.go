@@ -491,6 +491,17 @@ func (s *Server) MakeRequestCLILocal(ctx context.Context, arg stellar1.MakeReque
 }
 
 func (s *Server) LookupCLILocal(ctx context.Context, arg string) (res stellar1.LookupResultCLILocal, err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:        "LookupCLILocal",
+		Err:            &err,
+		RequireWallet:  false,
+		AllowLoggedOut: true,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
 	uis := libkb.UIs{
 		IdentifyUI: s.uiSource.IdentifyUI(s.G(), 0),
 	}
