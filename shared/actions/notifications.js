@@ -53,6 +53,7 @@ const setupEngineListeners = () => {
   )
 }
 
+// TODO fix this
 const receivedBadgeState = (_: any, action: NotificationsGen.ReceivedBadgeStatePayload) => {
   const {
     conversations,
