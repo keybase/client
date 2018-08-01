@@ -7,6 +7,10 @@ describe('toStringForLog', () => {
     expect(toStringForLog(undefined)).toBe('undefined')
   })
 
+  it('null', () => {
+    expect(toStringForLog(null)).toBe('null')
+  })
+
   it('boolean', () => {
     expect(toStringForLog(true)).toBe('true')
     expect(toStringForLog(false)).toBe('false')
@@ -17,5 +21,15 @@ describe('toStringForLog', () => {
     expect(toStringForLog(1 / 0)).toBe('Infinity')
     expect(toStringForLog(-1 / 0)).toBe('-Infinity')
     expect(toStringForLog(0 / 0)).toBe('NaN')
+  })
+
+  it('string', () => {
+    expect(toStringForLog('')).toBe('')
+    expect(toStringForLog('some string')).toBe('some string')
+  })
+
+  it('symbol', () => {
+    expect(toStringForLog(Symbol('foo'))).toBe('Symbol(foo)')
+    expect(toStringForLog(Symbol(3))).toBe('Symbol(3)')
   })
 })
