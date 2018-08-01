@@ -4,12 +4,12 @@ import * as Types from '../../../../constants/types/chat2'
 import {
   Box2,
   ClickableBox,
-  Emoji,
   FloatingBox,
   Icon,
   iconCastPlatformStyles,
   Text,
 } from '../../../../common-adapters'
+import {EmojiIfExists} from '../../../../common-adapters/markdown.shared'
 import {
   collapseStyles,
   glamorous,
@@ -58,7 +58,7 @@ const ReactButton = (props: Props) => (
   >
     <Box2 centerChildren={true} fullHeight={true} direction="horizontal" gap="xtiny" style={styles.container}>
       <Box2 direction="horizontal" style={styles.emojiWrapper}>
-        <Emoji size={16} emojiName={props.emoji} />
+        <EmojiIfExists size={16} lineClamp={1} emojiName={props.emoji} />
       </Box2>
       <Text type="BodyTinyBold" style={{color: props.active ? globalColors.blue : globalColors.black_40}}>
         {props.count}
