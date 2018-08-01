@@ -29,7 +29,7 @@ const stories = {...sharedStories, ...nativeStories}
 const loadStories = () => {
   configure(() => {
     addDecorator(rootDecorator)
-    addDecorator(Sb.createPropProvider(Common))
+    addDecorator(Sb.createPropProvider(Common()))
     Object.keys(stories).forEach(s => stories[s]())
   }, module)
 }

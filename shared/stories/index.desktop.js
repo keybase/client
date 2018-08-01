@@ -21,7 +21,7 @@ const rootDecorator = story => (
 
 const load = () => {
   addDecorator(rootDecorator)
-  addDecorator(Sb.createPropProvider(Common))
+  addDecorator(Sb.createPropProvider(Common()))
   configure(() => {
     Object.keys(stories).forEach(s => stories[s]())
   }, module)

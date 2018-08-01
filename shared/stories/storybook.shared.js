@@ -48,7 +48,11 @@ const createPropProvider = (...maps: SelectorMap[]) => {
    * children to GatewayProvider which only takes one child
    */
   return (story: () => React.Node) => (
-    <Provider key={`provider:${uniqueProviderKey++}`} store={createStore(state => state, merged)}>
+    <Provider
+      key={`provider:${uniqueProviderKey++}`}
+      store={createStore(state => state, merged)}
+      merged={merged}
+    >
       <GatewayProvider>
         <React.Fragment>
           <StorybookErrorBoundary children={story()} />
