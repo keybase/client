@@ -15,8 +15,9 @@ const Overlay = (props: Props) => {
       position={props.position || 'top center'}
       positionFallbacks={props.positionFallbacks}
       propagateOutsideClicks={props.propagateOutsideClicks}
+      containerStyle={styles.outerContainer}
     >
-      <Box2 direction="vertical" style={collapseStyles([styles.container, props.style])}>
+      <Box2 direction="vertical" style={collapseStyles([styles.innerContainer, props.style])}>
         {props.children}
       </Box2>
     </FloatingBox>
@@ -24,13 +25,17 @@ const Overlay = (props: Props) => {
 }
 
 const styles = styleSheetCreate({
-  container: platformStyles({
+  outerContainer: platformStyles({
+    isElectron: {
+      zIndex: 1, // Put the floating box on top of any sticky section headers.
+    },
+  }),
+  innerContainer: platformStyles({
     isElectron: {
       borderRadius: 3,
       boxShadow: '0 0 15px 0 rgba(0, 0, 0, 0.2)',
       overflowX: 'hidden',
       overflowY: 'auto',
-      zIndex: 1, // Put the popup on top of any sticky section headers.
     },
   }),
 })
