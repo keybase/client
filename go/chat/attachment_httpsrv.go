@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
+	"time"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/attachments"
@@ -141,16 +143,16 @@ func (r *AttachmentHTTPSrv) servePendingPreview(w http.ResponseWriter, req *http
 	strOutboxID := req.URL.Query().Get("key")
 	outboxID, err := chat1.MakeOutboxID(strOutboxID)
 	if err != nil {
-		r.makeError(ctx, w, 400, "invalid outbox ID: %s", err)
+		r.makeError(ctx, w, http.StatusBadRequest, "invalid outbox ID: %s", err)
 		return
 	}
 	pre, err := attachments.NewPendingPreviews(r.G()).Get(ctx, outboxID)
 	if err != nil {
-		r.makeError(ctx, w, 500, "error reading preview: %s", err)
+		r.makeError(ctx, w, http.StatusInternalServerError, "error reading preview: %s", err)
 		return
 	}
 	if _, err := io.Copy(w, bytes.NewReader(pre.Preview)); err != nil {
-		r.makeError(ctx, w, 500, "failed to write resposne: %s", err)
+		r.makeError(ctx, w, http.StatusInternalServerError, "failed to write resposne: %s", err)
 		return
 	}
 }
@@ -159,6 +161,18 @@ func (r *AttachmentHTTPSrv) makeError(ctx context.Context, w http.ResponseWriter
 	args ...interface{}) {
 	r.Debug(ctx, "serve: error code: %d msg %s", code, fmt.Sprintf(msg, args...))
 	w.WriteHeader(code)
+}
+
+func (r *AttachmentHTTPSrv) shouldServeContent(ctx context.Context, asset chat1.Asset) bool {
+	return strings.HasPrefix(asset.MimeType, "video")
+}
+
+func (r *AttachmentHTTPSrv) getContentStash(ctx context.Context) (*os.File, error) {
+	dir := filepath.Join(r.G().GetCacheDir(), "contentstash")
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		return nil, err
+	}
+	return ioutil.TempFile(dir, "cs")
 }
 
 func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
@@ -174,7 +188,7 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	pairInt, ok := r.urlMap.Get(key)
 	r.Unlock()
 	if !ok {
-		r.makeError(ctx, w, 404, "key not found in URL map")
+		r.makeError(ctx, w, http.StatusNotFound, "key not found in URL map")
 		return
 	}
 
@@ -182,16 +196,35 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	uid := gregor1.UID(r.G().Env.GetUID().ToBytes())
 	asset, err := attachments.AssetFromMessage(ctx, r.G(), uid, pair.ConvID, pair.MsgID, preview)
 	if err != nil {
-		r.makeError(ctx, w, 500, "failed to get asset: %s", err)
+		r.makeError(ctx, w, http.StatusInternalServerError, "failed to get asset: %s", err)
 		return
 	}
 	if len(asset.Path) == 0 {
-		r.makeError(ctx, w, 404, "attachment not uploaded yet, no path")
+		r.makeError(ctx, w, http.StatusNotFound, "attachment not uploaded yet, no path")
 		return
 	}
-	if err := r.fetcher.FetchAttachment(ctx, w, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
-		r.makeError(ctx, w, 500, "failed to fetch attachment: %s", err)
-		return
+	size := asset.Size
+	r.Debug(ctx, "serve: setting content-type: %s sz: %d", asset.MimeType, size)
+	w.Header().Set("Content-Type", asset.MimeType)
+	if r.shouldServeContent(ctx, asset) {
+		r.Debug(ctx, "serve: using content stash file")
+		fw, err := r.getContentStash(ctx)
+		if err != nil {
+			r.makeError(ctx, w, http.StatusInternalServerError, "failed to get content stash file: %s", err)
+			return
+		}
+		defer fw.Close()
+		if err := r.fetcher.FetchAttachment(ctx, fw, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
+			r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
+			return
+		}
+		http.ServeContent(w, req, asset.Filename, time.Time{}, fw)
+		os.Remove(fw.Name())
+	} else {
+		if err := r.fetcher.FetchAttachment(ctx, w, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
+			r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
+			return
+		}
 	}
 }
 
@@ -260,6 +293,10 @@ func (r *RemoteAttachmentFetcher) DeleteAssets(ctx context.Context,
 
 func (r *RemoteAttachmentFetcher) PutUploadedAsset(ctx context.Context, filename string, asset chat1.Asset) error {
 	return nil
+}
+
+func (r *RemoteAttachmentFetcher) IsAssetLocal(ctx context.Context, asset chat1.Asset) (bool, error) {
+	return false, nil
 }
 
 type attachmentRemoteStore interface {
@@ -410,6 +447,23 @@ func (c *CachingAttachmentFetcher) putFileInLRU(ctx context.Context, filename st
 		os.Remove(path)
 	}
 	return nil
+}
+
+func (c *CachingAttachmentFetcher) IsAssetLocal(ctx context.Context, asset chat1.Asset) (found bool, err error) {
+	defer c.Trace(ctx, func() error { return err }, "IsAssetLocal")()
+	found, path, err := c.localAssetPath(ctx, asset)
+	if err != nil {
+		return false, err
+	}
+	if !found {
+		return false, nil
+	}
+	fileReader, err := os.Open(path)
+	defer c.closeFile(fileReader)
+	if err != nil {
+		return false, nil
+	}
+	return true, nil
 }
 
 func (c *CachingAttachmentFetcher) PutUploadedAsset(ctx context.Context, filename string, asset chat1.Asset) (err error) {

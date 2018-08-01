@@ -45,7 +45,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
   }
 
   _openFilePicker = () => {
-    showImagePicker({mediaType: 'photo'}, response => {
+    showImagePicker({mediaType: isIOS ? 'mixed' : 'photo'}, response => {
       if (response.didCancel || !this.props.conversationIDKey) {
         return
       }

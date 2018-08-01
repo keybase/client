@@ -2376,6 +2376,13 @@
         {
           "type": [
             null,
+            "string"
+          ],
+          "name": "previewMimeType"
+        },
+        {
+          "type": [
+            null,
             "PreviewLocation"
           ],
           "name": "location"

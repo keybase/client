@@ -1,6 +1,7 @@
 // @flow
 import AttachmentGetTitles from './conversation/attachment-get-titles/container'
 import AttachmentFullscreen from './conversation/attachment-fullscreen/container'
+import AttachmentVideoFullscreen from './conversation/attachment-video-fullscreen/container'
 import BlockConversationWarning from './conversation/block-conversation-warning/container'
 import Conversation from './conversation/container'
 import CreateChannel from './create-channel/container'
@@ -63,6 +64,11 @@ const chatChildren = {
   },
   attachmentFullscreen: {
     component: AttachmentFullscreen,
+    tags: makeLeafTags(isMobile ? {hideStatusBar: true, fullscreen: true} : {layerOnTop: true}),
+    children: key => makeRouteDefNode(chatChildren[key]),
+  },
+  attachmentVideoFullscreen: {
+    component: AttachmentVideoFullscreen,
     tags: makeLeafTags(isMobile ? {hideStatusBar: true, fullscreen: true} : {layerOnTop: true}),
     children: key => makeRouteDefNode(chatChildren[key]),
   },

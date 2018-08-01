@@ -808,6 +808,7 @@ protocol local {
 
   record MakePreviewRes {
     string mimeType;        // this will always be populated
+    union {null, string} previewMimeType ; // this will be populated if we made a preview
     union {null, PreviewLocation} location;    // will exist if service is able to make a preview
     union {null, AssetMetadata} metadata; // will exist if service is able to make a preview
     union {null, AssetMetadata} baseMetadata; // will exist if service is able to get base metadata
