@@ -329,6 +329,7 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
                 sender: valid.senderUsername,
                 targetMsgID: body.reaction.m,
                 timestamp: valid.ctime,
+                you: state.config.username || '',
               })
             )
           } else {

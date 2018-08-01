@@ -206,6 +206,7 @@ type _MessageWasReactedToPayload = $ReadOnly<{|
   sender: string,
   targetMsgID: RPCChatTypes.MessageID,
   timestamp: number,
+  you: string,
 |}>
 type _MessagesAddPayload = $ReadOnly<{|
   context: {type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey},
@@ -344,10 +345,6 @@ type _UpdateTypersPayload = $ReadOnly<{|conversationToTypers: I.Map<Types.Conver
 
 // Action Creators
 /**
- * A reaction was added to a message.
- */
-export const createMessageWasReactedTo = (payload: _MessageWasReactedToPayload) => ({error: false, payload, type: messageWasReactedTo})
-/**
  * Actually start a conversation
  */
 export const createCreateConversation = (payload: _CreateConversationPayload) => ({error: false, payload, type: createConversation})
@@ -407,6 +404,10 @@ export const createStaticConfigLoaded = (payload: _StaticConfigLoadedPayload) =>
  * Tell the service to toggle a reaction on a message.
  */
 export const createToggleMessageReaction = (payload: _ToggleMessageReactionPayload) => ({error: false, payload, type: toggleMessageReaction})
+/**
+ * The service says a reaction was added to a message.
+ */
+export const createMessageWasReactedTo = (payload: _MessageWasReactedToPayload) => ({error: false, payload, type: messageWasReactedTo})
 /**
  * When the search changes we need to find any existing conversations to stash into the metaMap
  */

@@ -595,7 +595,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       return state.set('typingMap', action.payload.conversationToTypers)
     }
     case Chat2Gen.messageWasReactedTo: {
-      const {conversationIDKey, emoji, reactionMsgID, sender, targetMsgID, timestamp} = action.payload
+      const {conversationIDKey, emoji, reactionMsgID, sender, targetMsgID, timestamp, you} = action.payload
       const ordinal = messageIDToOrdinal(
         state.messageMap,
         state.pendingOutboxToOrdinal,
@@ -615,15 +615,23 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             // $FlowIssue thinks `message` is the inner type
             return message.set(
               'reactions',
-              reactions.update(emoji, I.Set(), rs =>
-                rs.add(
+              reactions.update(emoji, I.Set(), rs => {
+                const existing = rs.find(r => r.username === you)
+                let newSet = rs
+                if (existing) {
+                  // we probably just sent this reaction. delete our record of
+                  // it and store the new one which includes the message ID so
+                  // we can look it up for deletes later.
+                  newSet = rs.delete(existing)
+                }
+                return newSet.add(
                   Constants.makeReaction({
                     messageID: Types.numberToMessageID(reactionMsgID),
                     timestamp,
                     username: sender,
                   })
                 )
-              )
+              })
             )
           })
         })

@@ -245,13 +245,14 @@
       "ordinal": "Types.Ordinal"
     },
     "messageWasReactedTo": {
-      "_description": "A reaction was added to a message.",
+      "_description": "The service says a reaction was added to a message.",
       "conversationIDKey": "Types.ConversationIDKey",
       "emoji": "string",
       "reactionMsgID": "RPCChatTypes.MessageID",
       "sender": "string",
       "targetMsgID": "RPCChatTypes.MessageID",
-      "timestamp": "number"
+      "timestamp": "number",
+      "you": "string"
     },
     "reactionsWereDeleted": {
       "_description": "Reactions were removed from a message.",
