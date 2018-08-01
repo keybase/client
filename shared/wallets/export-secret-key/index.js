@@ -57,11 +57,12 @@ const styles = styleSheetCreate({
   container: platformStyles({
     common: {
       alignItems: 'center',
-      maxWidth: 460,
       paddingLeft: globalMargins.medium,
       paddingRight: globalMargins.medium,
     },
     isElectron: {
+      width: 360,
+      height: 525,
       paddingBottom: globalMargins.xlarge,
       paddingTop: globalMargins.xlarge,
       textAlign: 'center',
