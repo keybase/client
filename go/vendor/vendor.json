@@ -557,11 +557,11 @@
 			"revisionTime": "2018-03-28T20:45:36Z"
 		},
 		{
-			"checksumSHA1": "16VEVIxi+ltlBEkjiBdeR71AH6E=",
+			"checksumSHA1": "yryl7ivqND9aWxeMTwMXrabbrCI=",
 			"origin": "github.com/keybase/stellar-org/clients/stellartoml",
 			"path": "github.com/stellar/go/clients/stellartoml",
-			"revision": "1267654c6b8f80773bc3bec5ff5d466ddcfb240d",
-			"revisionTime": "2018-04-03T15:07:09Z"
+			"revision": "2d2b8e1b94f7a55cbe2c0e11686beeeca48a9684",
+			"revisionTime": "2018-08-01T14:55:35Z"
 		},
 		{
 			"checksumSHA1": "lDonyBUSRbzmrEfdrk+2xUnSlLQ=",
