@@ -3980,15 +3980,23 @@ func (o PreviewLocation) DeepCopy() PreviewLocation {
 }
 
 type MakePreviewRes struct {
-	MimeType     string           `codec:"mimeType" json:"mimeType"`
-	Location     *PreviewLocation `codec:"location,omitempty" json:"location,omitempty"`
-	Metadata     *AssetMetadata   `codec:"metadata,omitempty" json:"metadata,omitempty"`
-	BaseMetadata *AssetMetadata   `codec:"baseMetadata,omitempty" json:"baseMetadata,omitempty"`
+	MimeType        string           `codec:"mimeType" json:"mimeType"`
+	PreviewMimeType *string          `codec:"previewMimeType,omitempty" json:"previewMimeType,omitempty"`
+	Location        *PreviewLocation `codec:"location,omitempty" json:"location,omitempty"`
+	Metadata        *AssetMetadata   `codec:"metadata,omitempty" json:"metadata,omitempty"`
+	BaseMetadata    *AssetMetadata   `codec:"baseMetadata,omitempty" json:"baseMetadata,omitempty"`
 }
 
 func (o MakePreviewRes) DeepCopy() MakePreviewRes {
 	return MakePreviewRes{
 		MimeType: o.MimeType,
+		PreviewMimeType: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.PreviewMimeType),
 		Location: (func(x *PreviewLocation) *PreviewLocation {
 			if x == nil {
 				return nil

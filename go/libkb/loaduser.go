@@ -216,7 +216,7 @@ func (arg *LoadUserArg) checkUIDName() error {
 	return nil
 }
 
-func (arg *LoadUserArg) resolveUID() (ResolveResult, error) {
+func (arg *LoadUserArg) resolveUID(ctx context.Context) (ResolveResult, error) {
 	var rres ResolveResult
 	if arg.uid.Exists() {
 		return rres, nil
@@ -227,7 +227,7 @@ func (arg *LoadUserArg) resolveUID() (ResolveResult, error) {
 		return rres, fmt.Errorf("resolveUID: no uid or name")
 	}
 
-	if rres = arg.m.G().Resolver.ResolveWithBody(arg.name).FailOnDeleted(); rres.err != nil {
+	if rres = arg.m.G().Resolver.ResolveWithBody(ctx, arg.name).FailOnDeleted(); rres.err != nil {
 		return rres, rres.err
 	}
 
@@ -294,7 +294,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	m.CDebugf("LoadUser(uid=%v, name=%v)", arg.uid, arg.name)
 
 	// resolve the uid from the name, if necessary
-	rres, err := arg.resolveUID()
+	rres, err := arg.resolveUID(m.Ctx())
 	if err != nil {
 		return nil, err
 	}

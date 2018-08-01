@@ -1211,6 +1211,7 @@ const (
 	merkleErrorKBFSMismatch
 	merkleErrorBadRoot
 	merkleErrorOldTree
+	merkleErrorOutOfOrderCtime
 )
 
 type MerkleClientError struct {
