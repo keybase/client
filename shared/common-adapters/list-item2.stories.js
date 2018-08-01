@@ -24,7 +24,7 @@ const body3 = (
 )
 const actionButton = <Button label={'Action'} type={'Primary'} small={true} onClick={Sb.action('button')} />
 const icon1 = <Icon type="icon-computer-32" />
-const icon2 = <Icon type="icon-computer-64" />
+const icon2 = <Icon type="icon-bitcoin-logo-48" />
 
 const load = () => {
   Sb.storiesOf('Common', module)
