@@ -1,9 +1,8 @@
 // @flow
 import * as React from 'react'
-import {Box2} from './box'
-import type {Props} from './overlay'
-import FloatingBox from './floating-box'
-import {collapseStyles, platformStyles, styleSheetCreate} from '../styles'
+import {Box2, FloatingBox} from '..'
+import type {Props} from '.'
+import {collapseStyles, platformStyles, styleSheetCreate} from '../../styles'
 
 const Overlay = (props: Props) => {
   if (props.hasOwnProperty('visible') && !props.visible) {

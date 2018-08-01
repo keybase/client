@@ -4,8 +4,7 @@ import * as React from 'react'
 import Text from './text'
 import Box from './box'
 import {globalStyles} from '../styles'
-import {storiesOf, action, createPropProvider} from '../stories/storybook'
-import * as PropProviders from '../stories/prop-providers'
+import {storiesOf, action, createPropProvider, PropProviders} from '../stories/storybook'
 
 const sizes = [128, 96, 64, 48, 32, 16]
 const provider = createPropProvider(PropProviders.Avatar(['following', 'both'], ['followers', 'both']))

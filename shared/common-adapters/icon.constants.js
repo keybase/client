@@ -91,6 +91,16 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-computer-revoke-64.png'),
   },
+  'icon-computer-success-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-computer-success-32.png'),
+  },
+  'icon-computer-success-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-computer-success-48.png'),
+  },
   'icon-computer-text-code-48': {
     isFont: false,
     extension: 'png',
@@ -1060,6 +1070,16 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-phone-revoke-64.png'),
+  },
+  'icon-phone-success-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-phone-success-32.png'),
+  },
+  'icon-phone-success-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-phone-success-48.png'),
   },
   'icon-phone-text-code-32': {
     isFont: false,

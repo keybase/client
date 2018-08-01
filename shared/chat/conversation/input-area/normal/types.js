@@ -21,6 +21,7 @@ type CommonProps = {
   onAttach: (paths: Array<string>) => void,
   onEditLastMessage: () => void,
   onCancelEditing: () => void,
+  onFilePickerError: (error: Error) => void,
   onSeenExplodingMessages: () => void,
   onSubmit: (text: string) => void,
   typing: I.Set<string>,

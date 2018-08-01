@@ -12,7 +12,7 @@ import {
 } from '../../util/container'
 import PathItemAction from './path-item-action'
 import {fileUIName, isMobile, isIOS, isAndroid} from '../../constants/platform'
-import {FloatingMenuParentHOC} from '../../common-adapters/floating-menu'
+import {OverlayParentHOC} from '../../common-adapters'
 import {copyToClipboard} from '../../util/clipboard'
 
 type OwnProps = {
@@ -147,7 +147,7 @@ const mergeProps = (stateProps, dispatchProps, {path, actionIconClassName, actio
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   setDisplayName('ConnectedPathItemAction'),
-  FloatingMenuParentHOC,
+  OverlayParentHOC,
   lifecycle({
     componentDidUpdate(prevProps) {
       if (!this.props.showingMenu || (prevProps.showingMenu && this.props.path === prevProps.path)) {

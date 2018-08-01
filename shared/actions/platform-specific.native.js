@@ -374,8 +374,8 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, setStartedDueToPush)
   yield Saga.safeTakeEveryPure(ConfigGen.clearRouteState, clearRouteState)
   yield Saga.safeTakeEveryPure(ConfigGen.persistRouteState, persistRouteState)
-  yield Saga.safeTakeEveryPureSimple(ConfigGen.bootstrapSuccess, onBootstrapped)
-  yield Saga.safeTakeEveryPureSimple(ConfigGen.openAppSettings, openAppSettings)
+  yield Saga.actionToAction(ConfigGen.bootstrapSuccess, onBootstrapped)
+  yield Saga.actionToAction(ConfigGen.openAppSettings, openAppSettings)
 }
 
 export {

@@ -1,12 +1,9 @@
 // @flow
 import React from 'react'
 import * as C from '../../constants/people'
-import {action, storiesOf} from '../../stories/storybook'
-import * as PropProviders from '../../stories/prop-providers'
+import {action, storiesOf, PropProviders} from '../../stories/storybook'
 import FollowNotification, {type Props} from '.'
 import moment from 'moment'
-
-const provider = PropProviders.CommonProvider()
 
 const singleFollowProps1: Props = {
   type: 'notification',
@@ -67,7 +64,7 @@ const multiFollowProps2: Props = {
 
 const load = () => {
   storiesOf('People/Follow notification', module)
-    .addDecorator(provider)
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .add('Someone followed you', () => <FollowNotification {...singleFollowProps1} />)
     .add('Someone you follow followed you', () => <FollowNotification {...singleFollowProps2} />)
     .add('A few people followed you', () => <FollowNotification {...multiFollowProps1} />)

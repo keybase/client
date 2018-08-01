@@ -77,8 +77,11 @@ const styleFolderHeaderContainer = {
 }
 
 const styleAddNew = {
-  marginRight: globalMargins.small,
-  flexShrink: 0,
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  padding: globalMargins.tiny,
+  paddingRight: globalMargins.small - 4,
+  paddingLeft: globalMargins.small,
 }
 
 export default FolderHeader

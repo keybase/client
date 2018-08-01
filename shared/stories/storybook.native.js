@@ -3,5 +3,6 @@
 import {storiesOf} from '@storybook/react-native'
 import {action} from '@storybook/addon-actions'
 import {createPropProvider, unexpected, Rnd} from './storybook.shared'
+import * as PropProviders from './prop-providers'
 
-export {action, storiesOf, createPropProvider, unexpected, Rnd}
+export {action, storiesOf, createPropProvider, unexpected, Rnd, PropProviders}

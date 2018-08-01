@@ -3,9 +3,8 @@ import * as I from 'immutable'
 import React from 'react'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
-import * as PropProviders from '../stories/prop-providers'
 import {type ConnectedProps as ConnectedUsernamesProps} from '../common-adapters/usernames'
-import {action, storiesOf, createPropProvider} from '../stories/storybook'
+import {action, storiesOf, PropProviders} from '../stories/storybook'
 import {globalColors, globalMargins} from '../styles'
 import Files, {WrapRow} from '.'
 import ConnectedStillRow from './row/still-container'
@@ -14,16 +13,15 @@ import EditingRow from './row/editing'
 import PlaceholderRow from './row/placeholder'
 import UploadingRow from './row/uploading'
 import {NormalPreview} from './filepreview'
-import {Box, Box2, Text} from '../common-adapters'
+import {Box, Box2, Text, OverlayParentHOC} from '../common-adapters'
 import Downloads from './footer/downloads'
 import Download from './footer/download'
 import Upload from './footer/upload'
 import PathItemAction from './common/path-item-action'
-import {FloatingMenuParentHOC} from '../common-adapters/floating-menu'
 import Breadcrumb from './header/breadcrumb.desktop'
 import Banner from './banner'
 
-const FloatingPathItemAction = FloatingMenuParentHOC(PathItemAction)
+const FloatingPathItemAction = OverlayParentHOC(PathItemAction)
 
 const folderItemStyles = {
   iconSpec: {
@@ -71,7 +69,7 @@ const rowProviders = {
   },
 }
 
-const provider = createPropProvider(PropProviders.Common(), {
+const provider = PropProviders.createPropProviderWithCommon({
   ...rowProviders,
   ConnectedDownloads: () => ({
     downloadKeys: ['file 1', 'blah 2', 'yo 3'],

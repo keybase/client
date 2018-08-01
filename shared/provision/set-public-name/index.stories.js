@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import * as PropProviders from '../../stories/prop-providers'
 import SetPublicName from '.'
-import {action, storiesOf} from '../../stories/storybook'
+import {action, storiesOf, PropProviders} from '../../stories/storybook'
 
 const props = {
   deviceName: '',
@@ -14,7 +13,7 @@ const props = {
 
 const load = () => {
   storiesOf('Provision/SetPublicName', module)
-    .addDecorator(PropProviders.CommonProvider())
+    .addDecorator(PropProviders.createPropProviderWithCommon())
     .add('Normal', () => <SetPublicName {...props} />)
     .add('Error', () => <SetPublicName {...props} error={'Name taken'} />)
 }

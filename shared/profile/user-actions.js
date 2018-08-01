@@ -1,7 +1,16 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button, ClickableBox, FloatingMenu, FollowButton, ButtonBar, Icon} from '../common-adapters'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../common-adapters/floating-menu'
+import {
+  Box2,
+  Button,
+  ClickableBox,
+  FloatingMenu,
+  FollowButton,
+  ButtonBar,
+  Icon,
+  OverlayParentHOC,
+  type OverlayParentProps,
+} from '../common-adapters'
 import {normal as proofNormal} from '../constants/tracker'
 import {globalColors, isMobile, platformStyles, styleSheetCreate} from '../styles'
 import type {SimpleProofState} from '../constants/types/tracker'
@@ -100,7 +109,7 @@ type DropdownProps = {
   onUnfollow?: () => void,
 }
 
-class _DropdownButton extends React.PureComponent<DropdownProps & FloatingMenuParentProps> {
+class _DropdownButton extends React.PureComponent<DropdownProps & OverlayParentProps> {
   _menuItems = [
     {
       onClick: () => this.props.onAddToTeam(),
@@ -186,6 +195,6 @@ const styles = styleSheetCreate({
   },
 })
 
-const DropdownButton = FloatingMenuParentHOC(_DropdownButton)
+const DropdownButton = OverlayParentHOC(_DropdownButton)
 
 export default UserActions

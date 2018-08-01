@@ -3,13 +3,12 @@ import * as React from 'react'
 import {Set} from 'immutable'
 import {Box2} from '../../../../common-adapters/box'
 import {platformStyles} from '../../../../styles'
-import * as PropProviders from '../../../../stories/prop-providers'
-import {action, storiesOf, createPropProvider} from '../../../../stories/storybook'
+import {action, storiesOf, PropProviders} from '../../../../stories/storybook'
 import Input, {type Props as InputProps} from '.'
 import {isMobile} from '../../../../constants/platform'
 import {stringToConversationIDKey} from '../../../../constants/types/chat2'
 
-const provider = createPropProvider(PropProviders.Common(), {
+const provider = PropProviders.createPropProviderWithCommon({
   ChannelMentionHud: ownProps => {
     const channels = ['foo', 'bar']
     return {
@@ -89,6 +88,7 @@ const InputContainer = (props: Props) => {
     },
     onEditLastMessage: action('onEditLastMessage'),
     onCancelEditing: action('onCancelEditing'),
+    onFilePickerError: action('onFilePickerError'),
     onCancelQuoting: action('onCancelQuoting'),
     onSeenExplodingMessages: action('onSeenExplodingMessages'),
     onSubmit: (text: string) => {

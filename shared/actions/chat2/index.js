@@ -2253,6 +2253,11 @@ const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, st
   })
 }
 
+const handleFilePickerError = (action: Chat2Gen.FilePickerErrorPayload) => {
+  // Just show a black bar for now.
+  throw action.payload.error
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -2296,7 +2301,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure([Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation], unboxRows)
 
   // Load the selected thread
-  yield Saga.safeTakeEveryPureSimple(
+  yield Saga.actionToAction(
     [
       Chat2Gen.selectConversation,
       Chat2Gen.setPendingConversationExistingConversationIDKey,
@@ -2388,7 +2393,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
   yield Saga.safeTakeEvery(Chat2Gen.handleSeeingExplodingMessages, handleSeeingExplodingMessages)
   yield Saga.safeTakeEveryPure(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
-  yield Saga.safeTakeEveryPurePromise(ConfigGen.bootstrapSuccess, loadStaticConfig)
+  yield Saga.actionToPromise(ConfigGen.bootstrapSuccess, loadStaticConfig)
+  yield Saga.safeTakeEveryPure(Chat2Gen.filePickerError, handleFilePickerError)
 }
 
 export default chat2Saga

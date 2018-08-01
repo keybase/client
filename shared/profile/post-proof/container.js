@@ -43,8 +43,8 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
     componentDidMount() {
-      // Facebook proof checking gets enabled after they click continue.
-      if (this.props.platform === 'facebook') {
+      // Activate the proof check after they've completed the first step for these services.
+      if (['facebook', 'twitter', 'reddit', 'github', 'hackernews'].includes(this.props.platform)) {
         this.props.onAllowProofCheck(false)
       }
     },

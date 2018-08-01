@@ -1561,6 +1561,10 @@ func (r ReactionMap) HasReactionFromUser(reactionText, username string) (found b
 	return ok, reaction.ReactionMsgID
 }
 
+func (r MessageReaction) Eq(o MessageReaction) bool {
+	return r.Body == o.Body && r.MessageID == o.MessageID
+}
+
 func (i *ConversationMinWriterRoleInfoLocal) String() string {
 	if i == nil {
 		return "Minimum writer role for this conversation is not set."
