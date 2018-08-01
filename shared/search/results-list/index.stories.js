@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
+import * as Styles from '../../styles'
 import ResultsList from '.'
 import ConnectedResultsList, {type OwnProps, type Props} from './container'
 import {Box} from '../../common-adapters'
@@ -96,7 +97,7 @@ const provider = Sb.createPropProviderWithCommon(makeSelectorMap())
 const load = () => {
   Sb.storiesOf('Search/ResultsList', module)
     .addDecorator(provider)
-    .addDecorator(story => <Box style={{width: 420}}>{story()}</Box>)
+    .addDecorator(story => <Box style={{width: Styles.isMobile ? undefined : 420}}>{story()}</Box>)
     .add('keybaseResults', () => <ResultsList {...defaultProps} items={['chris', 'cjb', 'jzila']} />)
     .add('keybaseResultsOne', () => <ResultsList {...defaultProps} items={['chris']} />)
     .add('facebookResults', () => (

@@ -72,6 +72,7 @@ const onShowTracker = Sb.action('Show tracker')
 const load = () => {
   Sb.storiesOf('Search', module)
     .addDecorator(provider)
+    .addDecorator(Sb.scrollViewDecorator)
     .addDecorator(story => <Box style={isMobile ? {} : {width: 480}}>{story()}</Box>)
 
     .add('Result row', () => (

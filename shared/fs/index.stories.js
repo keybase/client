@@ -237,6 +237,7 @@ const commonRowProps = {
 const load = () => {
   Sb.storiesOf('Files', module)
     .addDecorator(provider)
+    .addDecorator(Sb.scrollViewDecorator)
     .add('Root', () => (
       <Files
         path={Types.stringToPath('/keybase')}

@@ -1,7 +1,8 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import {Box} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import EditProfile from '.'
 
 const props = {
@@ -20,7 +21,11 @@ const props = {
   title: 'Edit profile',
 }
 
-const Wrapper = ({children}) => <Box style={{display: 'flex', height: 580, minWidth: 640}}>{children}</Box>
+const Wrapper = ({children}) => (
+  <Kb.Box style={{display: 'flex', height: 580, minWidth: Styles.isMobile ? undefined : 640}}>
+    {children}
+  </Kb.Box>
+)
 
 const load = () => {
   Sb.storiesOf('Profile/EditProfile', module)

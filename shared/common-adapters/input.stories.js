@@ -1,21 +1,21 @@
 // @flow
 import * as React from 'react'
+import * as Sb from '../stories/storybook'
 import Button from './button'
 import Input, {type Props} from './input'
 import Box from './box'
-import {action, storiesOf} from '../stories/storybook'
 import {globalStyles} from '../styles'
 
-const onKeyDown = action('onKeyDown')
-const onKeyUp = action('onKeyUp')
-const onEnterKeyDown = action('onEnterKeyDown')
+const onKeyDown = Sb.action('onKeyDown')
+const onKeyUp = Sb.action('onKeyUp')
+const onEnterKeyDown = Sb.action('onEnterKeyDown')
 
 const commonProps: Props = {
-  onBlur: action('onBlur'),
-  onChangeText: action('onChangeText'),
-  onClick: action('onClick'),
+  onBlur: Sb.action('onBlur'),
+  onChangeText: Sb.action('onChangeText'),
+  onClick: Sb.action('onClick'),
   onEnterKeyDown: e => onEnterKeyDown(e.key),
-  onFocus: action('onFocus'),
+  onFocus: Sb.action('onFocus'),
   onKeyDown: e => onKeyDown(e.key),
   onKeyUp: e => onKeyUp(e.key),
 }
@@ -75,7 +75,8 @@ class TestInput extends React.Component<TestInputProps> {
 }
 
 const load = () => {
-  storiesOf('Common/Input', module)
+  Sb.storiesOf('Common/Input', module)
+    .addDecorator(Sb.scrollViewDecorator)
     .add('Empty (uncontrolled)', () => <TestInput multiline={false} />)
     .add('Empty (multiline) (uncontrolled)', () => <TestInput multiline={true} />)
     .add('Filled', () => <Input {...commonProps} value="Hello, World!" />)

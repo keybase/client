@@ -64,6 +64,7 @@ const provider = Sb.createPropProviderWithCommon({
 const load = () => {
   Sb.storiesOf('Teams/Settings', module)
     .addDecorator(provider)
+    .addDecorator(Sb.scrollViewDecorator)
     .addDecorator(story => (
       <Box style={{...globalStyles.flexBoxCenter, ...globalStyles.fillAbsolute}}>{story()}</Box>
     ))

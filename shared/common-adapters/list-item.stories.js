@@ -1,15 +1,16 @@
 // @flow
 import * as React from 'react'
+import * as Sb from '../stories/storybook'
 import ListItem from './list-item'
 import Box from './box'
 import Text from './text'
 import Button from './button'
-import {action, storiesOf} from '../stories/storybook'
 import {globalColors} from '../styles'
 
-const actionButton = <Button label={'Action'} type={'Primary'} small={true} onClick={action('button')} />
+const actionButton = <Button label={'Action'} type={'Primary'} small={true} onClick={Sb.action('button')} />
 const load = () => {
-  storiesOf('Common/ListItem', module)
+  Sb.storiesOf('Common/ListItem', module)
+    .addDecorator(Sb.scrollViewDecorator)
     .add('Small with icon (desktop only)', () => (
       <ListItem
         type={'Small'}
@@ -33,7 +34,7 @@ const load = () => {
         icon={<Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />}
         body={<Box style={{backgroundColor: globalColors.black_20, flex: 1}} />}
         action={
-          <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={action('text action')}>
+          <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={Sb.action('text action')}>
             Action Jack
           </Text>
         }
@@ -56,7 +57,7 @@ const load = () => {
         icon={<Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />}
         body={<Box style={{backgroundColor: globalColors.black_20, flex: 1}} />}
         action={
-          <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={action('text action')}>
+          <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={Sb.action('text action')}>
             Action Jack
           </Text>
         }

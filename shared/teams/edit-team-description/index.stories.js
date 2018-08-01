@@ -2,6 +2,7 @@
 import React from 'react'
 import {Box} from '../../common-adapters'
 import * as Sb from '../../stories/storybook'
+import * as Styles from '../../styles'
 
 import EditTeamDescription from '.'
 
@@ -30,7 +31,7 @@ const load = () => {
 }
 
 const storyWrapStyle = {
-  width: 500,
+  width: Styles.isMobile ? undefined : 500,
   height: 400,
   borderColor: 'black',
   borderWidth: 1,

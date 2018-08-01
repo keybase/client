@@ -65,12 +65,16 @@ const largeHeight = isMobile ? 64 : 56
 const styles = styleSheetCreate({
   actionLargeContainer: {
     alignItems: 'center',
+    flexGrow: 0,
+    flexShrink: 0,
     justifyContent: 'flex-start',
     minHeight: largeHeight,
     position: 'relative',
   },
   actionSmallContainer: {
     alignItems: 'center',
+    flexGrow: 0,
+    flexShrink: 0,
     justifyContent: 'flex-start',
     minHeight: smallHeight,
     position: 'relative',
@@ -109,8 +113,8 @@ const styles = styleSheetCreate({
     right: 0,
     top: 0,
   },
-  iconLarge: {width: isMobile ? 75 : 72},
-  iconSmall: {width: isMobile ? 60 : 56},
+  iconLarge: {flexGrow: 0, flexShrink: 0, width: isMobile ? 75 : 72},
+  iconSmall: {flexGrow: 0, flexShrink: 0, width: isMobile ? 60 : 56},
   rowLarge: {
     alignItems: 'center',
     minHeight: largeHeight,

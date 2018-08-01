@@ -28,8 +28,9 @@ const defaultProps = {
 const container = storyFn => (
   <Box
     style={{
-      ...globalStyles.flexBoxRow,
-      alignContent: 'stretch',
+      ...globalStyles.flexBoxColumn,
+      alignItems: 'stretch',
+      width: '100%',
       height: '100%',
     }}
   >
