@@ -458,6 +458,7 @@ class ProfileRender extends PureComponent<Props, State> {
                     onHidden={() => this.handleHideMenu()}
                     attachTo={this.state.selectedProofMenuRowRef}
                     position="bottom right"
+                    containerStyle={styleFloatingMenu}
                     {...proofMenuContent}
                   />
                 )}
@@ -630,6 +631,10 @@ const styleShowcasedTeamName = {
   justifyContent: 'center',
   alignSelf: 'center',
   paddingLeft: globalMargins.tiny,
+}
+
+const styleFloatingMenu = {
+  width: 200,
 }
 
 export default ProfileRender
