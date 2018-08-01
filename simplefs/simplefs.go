@@ -1473,7 +1473,11 @@ func (k *SimpleFS) doGetRevisions(
 							keybase1.KBFSRevision(lastRevision - 1)),
 					})
 				_, prevPRs, err := k.getRevisionsFromPath(ctx, pathToPrev)
-				if err != nil {
+				if _, isGC := err.(libkbfs.RevGarbageCollectedError); isGC {
+					k.log.CDebugf(ctx, "Hit a GC'd revision: %d",
+						lastRevision-1)
+					break
+				} else if err != nil {
 					return nil, err
 				}
 				if len(prevPRs) == 0 {
@@ -1517,7 +1521,11 @@ func (k *SimpleFS) doGetRevisions(
 	doStat := func(slot int) error {
 		p := revPaths[slot]
 		fs, finalElem, err := k.getFS(groupCtx, p)
-		if err != nil {
+		if _, isGC := err.(libkbfs.RevGarbageCollectedError); isGC {
+			k.log.CDebugf(ctx, "Hit a GC'd revision: %d",
+				p.KbfsArchived().ArchivedParam.Revision())
+			return nil
+		} else if err != nil {
 			return err
 		}
 		// Use LStat so we don't follow symlinks.
@@ -1543,6 +1551,15 @@ func (k *SimpleFS) doGetRevisions(
 	if err != nil {
 		return nil, err
 	}
+
+	// Remove any GC'd revisions.
+	for i, r := range revs {
+		if kbfsmd.Revision(r.Revision) == kbfsmd.RevisionUninitialized {
+			revs = revs[:i]
+			break
+		}
+	}
+
 	return revs, nil
 }
 

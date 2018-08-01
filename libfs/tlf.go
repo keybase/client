@@ -57,6 +57,6 @@ func FilterTLFEarlyExitError(ctx context.Context, err error, log logger.Logger, 
 
 	default:
 		// Some other error.
-		return true, err
+		return false, err
 	}
 }
