@@ -30,11 +30,10 @@ type Props = {
   path: string,
   progress: number,
   progressLabel: string,
-  showPlayButton: boolean,
-  showFilmButton: boolean,
+  showButton: null | 'play' | 'film',
   title: string,
   toggleShowingMenu: () => void,
-  videoDuration: ?string,
+  videoDuration: string,
   width: number,
 }
 
@@ -81,13 +80,13 @@ class ImageAttachment extends React.PureComponent<Props, State> {
             />
           )}
           {!this.state.loaded && <ProgressIndicator style={styles.progress} />}
-          {this.props.showPlayButton && (
-            <Icon type="icon-play-64" style={iconCastPlatformStyles(styles.playButton)} />
+          {!!this.props.showButton && (
+            <Icon
+              type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
+              style={iconCastPlatformStyles(styles.playButton)}
+            />
           )}
-          {this.props.showFilmButton && (
-            <Icon type="icon-film-64" style={iconCastPlatformStyles(styles.playButton)} />
-          )}
-          {this.props.videoDuration &&
+          {this.props.videoDuration.length > 0 &&
             this.state.loaded && (
               <Box style={styles.durationContainer}>
                 <Text type={'BodySmall'} style={styles.durationText}>
