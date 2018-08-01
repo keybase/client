@@ -1,6 +1,16 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button, ButtonBar, HeaderHocHeader, Icon, InfoNote, Text, Input} from '../../common-adapters'
+import {
+  Box2,
+  Button,
+  ButtonBar,
+  HeaderHocHeader,
+  Icon,
+  InfoNote,
+  Text,
+  Input,
+  MaybePopup,
+} from '../../common-adapters'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate, platformStyles} from '../../styles'
 import type {ValidationState} from '../../constants/types/wallets'
 
@@ -59,9 +69,11 @@ class LinkWallet extends React.Component<Props, State> {
   }
 
   render() {
+    let view
+
     switch (this.state.view) {
       case 'key':
-        return (
+        view = (
           <EnterKey
             error={this.props.keyError || this.props.linkExistingAccountError}
             secretKey={this.props.secretKey}
@@ -71,8 +83,9 @@ class LinkWallet extends React.Component<Props, State> {
             waiting={this.props.secretKeyValidationState === 'waiting' || this.props.waiting}
           />
         )
+        break
       case 'name':
-        return (
+        view = (
           <EnterName
             error={this.props.nameError || this.props.linkExistingAccountError}
             name={this.props.name}
@@ -83,6 +96,7 @@ class LinkWallet extends React.Component<Props, State> {
             waiting={this.props.nameValidationState === 'waiting' || this.props.waiting}
           />
         )
+        break
       default:
         /*::
         declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (view: empty) => any
@@ -90,6 +104,7 @@ class LinkWallet extends React.Component<Props, State> {
         */
         throw new Error('LinkExistingWallet: Unexpected value for `view` encountered: ' + this.state.view)
     }
+    return <MaybePopup onClose={this.props.onCancel}>{view}</MaybePopup>
   }
 }
 
