@@ -45,7 +45,7 @@ const AssetInput = (props: Props) => (
       !props.warningPayee && (
         <Text type="BodySmallError">
           Your available to send is{' '}
-          <Text type="BodySmallSemibold" style={{color: globalColors.red}}>
+          <Text type="BodySmallExtrabold" style={{color: globalColors.red}}>
             {props.warningAsset}
           </Text>
         </Text>
