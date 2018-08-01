@@ -69,7 +69,7 @@ const load = () => {
       <ButtonBar {...commonButtonBarProps} direction="column" fullWidth={true}>
         <Button {...commonButtonProps} type="Primary" />
       </ButtonBar>
-      <ButtonBar {...commonButtonBarProps} direction="row" fullWidth={true}>
+      <ButtonBar {...commonButtonBarProps} direction="row">
         <Button {...commonButtonProps} type="Secondary" fullWidth={true} />
         <Button {...commonButtonProps} type="Primary" fullWidth={true} />
       </ButtonBar>
