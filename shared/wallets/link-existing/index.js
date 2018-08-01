@@ -327,8 +327,8 @@ const styles = styleSheetCreate({
     isMobile: {minWidth: '100%', paddingBottom: globalMargins.xtiny, paddingTop: globalMargins.xtiny},
   }),
   popupContainer: {
-    height: 450,
-    maxWidth: 360,
+    height: 525,
+    width: 360,
   },
   tallSingleLineInput: platformStyles({
     isMobile: {
