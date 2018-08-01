@@ -582,8 +582,11 @@ func (u *userPlusDevice) waitForTeamChangedAndRotated(teamID keybase1.TeamID, to
 }
 
 func (u *userPlusDevice) waitForTeamChangeRenamed(teamID keybase1.TeamID) {
-	// process 10 team rotations or 10s worth of time
-	for i := 0; i < 10; i++ {
+	// Process any number of badge state updates, but bail out after 10
+	// seconds.
+	timeout := time.After(10 * time.Second * libkb.CITimeMultiplier(u.tc.G))
+	i := 0
+	for {
 		select {
 		case arg := <-u.notifications.changeCh:
 			u.tc.T.Logf("membership change received: %+v", arg)
@@ -591,11 +594,12 @@ func (u *userPlusDevice) waitForTeamChangeRenamed(teamID keybase1.TeamID) {
 				u.tc.T.Logf("change matched!")
 				return
 			}
-			u.tc.T.Logf("ignoring change message (expected team = %v, renamed = true)", teamID)
-		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
+			u.tc.T.Logf("ignoring change message attempt %d (expected team = %v, renamed = true)", i, teamID)
+		case <-timeout:
+			u.tc.T.Fatalf("timed out waiting for team changes %s", teamID)
 		}
+		i++
 	}
-	u.tc.T.Fatalf("timed out waiting for team changes %s", teamID)
 }
 
 func (u *userPlusDevice) pollForTeamSeqnoLink(team string, toSeqno keybase1.Seqno) {
