@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -175,6 +176,31 @@ func (r *AttachmentHTTPSrv) getContentStash(ctx context.Context) (*os.File, erro
 	return ioutil.TempFile(dir, "cs")
 }
 
+func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.ResponseWriter, req *http.Request) bool {
+	contentForce := "true" == req.URL.Query().Get("contentforce")
+	// Hack for Android video to work
+	if runtime.GOOS == "android" && !contentForce {
+		r.Debug(ctx, "serve: android client detected, showing the HTML video viewer")
+		w.Header().Set("Content-Type", "text/html")
+		if _, err := w.Write([]byte(fmt.Sprintf(`
+		<html>
+			<head>
+				<title>Keybase Video Viewer</title>
+			</head>
+			<body>
+				<video width="320" height="240" src="%s" controls autoplay>
+					Your browser does not support the video tag.
+				  </video>
+			</body>
+		</html>
+	`, req.URL.String()+"&contentforce=true"))); err != nil {
+			r.Debug(ctx, "serve: failed to write HTML video player: %s", err)
+		}
+		return true
+	}
+	return false
+}
+
 func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
@@ -208,6 +234,10 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", asset.MimeType)
 	if r.shouldServeContent(ctx, asset) {
 		r.Debug(ctx, "serve: using content stash file")
+		if r.serveVideoHostPage(ctx, w, req) {
+			// if we served the host page, just bail out
+			return
+		}
 		fw, err := r.getContentStash(ctx)
 		if err != nil {
 			r.makeError(ctx, w, http.StatusInternalServerError, "failed to get content stash file: %s", err)
