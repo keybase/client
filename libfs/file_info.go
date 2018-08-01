@@ -72,6 +72,12 @@ type LastWriterGetter interface {
 	LastWriter() (keybase1.User, error)
 }
 
+// PrevRevisionsGetter is an interface for something that can return
+// the previous revisions of an entry.
+type PrevRevisionsGetter interface {
+	PrevRevisions() libkbfs.PrevRevisions
+}
+
 type fileInfoSys struct {
 	fi *FileInfo
 }
@@ -110,6 +116,12 @@ func (fis fileInfoSys) LastWriter() (keybase1.User, error) {
 		Uid:      uid,
 		Username: lastWriterName.String(),
 	}, nil
+}
+
+var _ PrevRevisionsGetter = fileInfoSys{}
+
+func (fis fileInfoSys) PrevRevisions() (revs libkbfs.PrevRevisions) {
+	return fis.fi.ei.PrevRevisions
 }
 
 func (fis fileInfoSys) EntryInfo() libkbfs.EntryInfo {
