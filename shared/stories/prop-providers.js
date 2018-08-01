@@ -1,5 +1,5 @@
 // @flow
-import {action, createPropProvider} from './storybook'
+import {action} from './storybook'
 import * as _Avatar from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
 import * as _WaitingButton from '../common-adapters/waiting-button'
@@ -71,10 +71,4 @@ const Common = () => ({
   ...WaitingButton(),
 })
 
-const createPropProviderWithCommon = (custom: ?Object) =>
-  createPropProvider({
-    ...Common(),
-    ...(custom || {}),
-  })
-
-export {Avatar, Common, createPropProviderWithCommon, TeamDropdownMenu, Usernames}
+export {Avatar, Common, TeamDropdownMenu, Usernames}

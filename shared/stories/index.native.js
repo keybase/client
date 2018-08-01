@@ -3,6 +3,8 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import * as Sb from './storybook'
+import {Common} from './prop-providers'
 import {AppRegistry, StatusBar, KeyboardAvoidingView} from 'react-native'
 import {getStorybookUI, configure, addDecorator} from '@storybook/react-native'
 import sharedStories from './shared-stories'
@@ -27,6 +29,7 @@ const stories = {...sharedStories, ...nativeStories}
 const loadStories = () => {
   configure(() => {
     addDecorator(rootDecorator)
+    addDecorator(Sb.createPropProvider(Common))
     Object.keys(stories).forEach(s => stories[s]())
   }, module)
 }
