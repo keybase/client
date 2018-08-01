@@ -42,4 +42,8 @@ describe('toStringForLog', () => {
     const err = new Error('my error')
     expect(toStringForLog(err)).toBe(err.stack)
   })
+
+  it('object', () => {
+    expect(toStringForLog({x: 3, y: true, z: null})).toBe('{"x":3,"y":true,"z":null}')
+  })
 })
