@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {globalColors, isMobile} from '../../styles'
-import {rowStyles, StillCommon, type StillCommonProps} from './styles'
+import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import {Box, Box2, Meta, Text} from '../../common-adapters'
 import PathItemInfo from '../common/path-item-info'
 

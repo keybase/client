@@ -14,8 +14,6 @@ import {Box, Box2, ClickableBox, Icon} from '../../common-adapters'
 import PathItemIcon from '../common/path-item-icon'
 import PathItemAction from '../common/path-item-action-container'
 
-// TODO: rename this into common.js and use stylesheetcreate
-
 const rowBox = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',

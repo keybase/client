@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {isMobile} from '../../styles'
-import {rowStyles, StillCommon, type StillCommonProps} from './styles'
+import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import {Badge, Box, Box2, Text} from '../../common-adapters'
 
 type TlfTypeProps = StillCommonProps & {

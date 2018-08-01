@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {globalColors, isMobile} from '../../styles'
-import {rowStyles} from './styles'
+import {rowStyles} from './common'
 import {Box, Icon, Meta, Text} from '../../common-adapters'
 import PathItemIcon from '../common/path-item-icon'
 
