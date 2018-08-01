@@ -1,10 +1,11 @@
 // @flow
 import React from 'react'
-import {action, storiesOf} from '../../stories/storybook'
+import {action, storiesOf, createPropProvider} from '../../stories/storybook'
 import ReceiveModal from '.'
 
 const load = () => {
   storiesOf('Wallets', module)
+    .addDecorator(createPropProvider())
     .add('Receive to primary', () => (
       <ReceiveModal
         federatedAddress="cecile*keybase.io"
