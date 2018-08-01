@@ -276,6 +276,13 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res 
 			fedCli := getFederationClient(m)
 			nameResponse, err := fedCli.LookupByAddress(string(to))
 			if err != nil {
+				errStr := err.Error()
+				m.CDebugf("federation.LookupByAddress returned error: %s", errStr)
+				if strings.Contains(errStr, "lookup federation server failed") {
+					return res, fmt.Errorf("Server at url %q does not respond to federation requests.", domain)
+				} else if strings.Contains(errStr, "get federation failed") {
+					return res, fmt.Errorf("Federation server %q did not find record %q", domain, name)
+				}
 				return res, err
 			}
 			// We got an address! Fall through to the "Stellar
