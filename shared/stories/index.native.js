@@ -2,23 +2,25 @@
 // @flow
 import * as React from 'react'
 import ScrollView from '../common-adapters/scroll-view'
-import {StatusBar} from 'react-native'
+import {StatusBar, KeyboardAvoidingView} from 'react-native'
 import {configure, addDecorator} from '@storybook/react-native'
 import commonStories from './stories'
 import nativeStories from './platform-stories'
 
 const stories = {...commonStories, ...nativeStories}
 
-const scrollViewDecorator = story => [
-  <StatusBar key="statusbar" hidden={true} />,
-  <ScrollView
-    key="scrollview"
-    style={{height: '100%', width: '100%'}}
-    contentContainerStyle={{minHeight: '100%', minWidth: '100%'}}
-  >
-    {story()}
-  </ScrollView>,
-]
+const scrollViewDecorator = story => (
+  <KeyboardAvoidingView behavior="padding" enabled={true}>
+    <StatusBar key="statusbar" hidden={true} />,
+    <ScrollView
+      key="scrollview"
+      style={{height: '100%', width: '100%'}}
+      contentContainerStyle={{minHeight: '100%', minWidth: '100%'}}
+    >
+      {story()}
+    </ScrollView>
+  </KeyboardAvoidingView>
+)
 
 // Stories w/ their own scrolling views
 // const noScrollBars = [[> 'chatList', <] 'chatManageChannels']
