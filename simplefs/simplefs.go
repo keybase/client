@@ -25,6 +25,7 @@ import (
 	"github.com/keybase/kbfs/libhttpserver"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
+	"golang.org/x/sync/errgroup"
 	billy "gopkg.in/src-d/go-billy.v4"
 	"gopkg.in/src-d/go-billy.v4/osfs"
 )
@@ -1386,6 +1387,209 @@ func (k *SimpleFS) SimpleFSStat(ctx context.Context, path keybase1.Path) (de key
 
 	err = setStat(&de, fi)
 	return de, err
+}
+
+func (k *SimpleFS) getRevisionsFromPath(
+	ctx context.Context, path keybase1.Path) (
+	os.FileInfo, libkbfs.PrevRevisions, error) {
+	fs, finalElem, err := k.getFS(ctx, path)
+	if err != nil {
+		return nil, nil, err
+	}
+	// Use LStat so we don't follow symlinks.
+	fi, err := fs.Lstat(finalElem)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	fipr, ok := fi.Sys().(libfs.PrevRevisionsGetter)
+	if !ok {
+		return nil, nil, simpleFSError{"Cannot get revisions for non-KBFS path"}
+	}
+	return fi, fipr.PrevRevisions(), nil
+}
+
+func (k *SimpleFS) doGetRevisions(
+	ctx context.Context, opID keybase1.OpID, path keybase1.Path,
+	spanType keybase1.RevisionSpanType) (
+	revs []keybase1.DirentWithRevision, err error) {
+	k.log.CDebugf(ctx, "Getting revisions for path %s, spanType=%s",
+		path, spanType)
+
+	// Both span types return 5 revisions.
+	k.setProgressTotals(opID, 0, 5)
+
+	fi, prs, err := k.getRevisionsFromPath(ctx, path)
+	if err != nil {
+		return nil, err
+	}
+
+	var currRev keybase1.DirentWithRevision
+	err = setStat(&currRev.Entry, fi)
+	if err != nil {
+		return nil, err
+	}
+	currRev.Revision = keybase1.KBFSRevision(prs[0].Revision)
+	k.log.CDebugf(ctx, "Found current revision: %d", prs[0].Revision)
+	k.updateReadProgress(opID, 0, 1)
+
+	var revPaths []keybase1.Path
+
+	// The next four depend on the span type.
+	pathStr := path.String()
+	switch spanType {
+	case keybase1.RevisionSpanType_DEFAULT:
+		// Use `prs` for the rest of the paths.
+		for i := 1; i < len(prs); i++ {
+			p := keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
+				Path: pathStr,
+				ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(
+					keybase1.KBFSRevision(prs[i].Revision)),
+			})
+			revPaths = append(revPaths, p)
+		}
+	case keybase1.RevisionSpanType_LAST_FIVE:
+		expectedCount := uint8(2)
+		nextSlot := 1
+		lastRevision := prs[0].Revision
+
+		// Step back through the previous revisions.  If the next one
+		// in the list happens to be the next in line (because the
+		// count is one more than the current count), use it.
+		// Otherwise, we have to fetch the stats from the MD revision
+		// before the last one we processed, and use the
+		// PreviousRevisions list from that version of the file.
+		for len(revPaths) < 4 && nextSlot < len(prs) {
+			var rev kbfsmd.Revision
+			if prs[nextSlot].Count == expectedCount {
+				rev = prs[nextSlot].Revision
+			} else if lastRevision > kbfsmd.RevisionInitial {
+				k.log.CDebugf(ctx, "Inspecting revision %d to find previous",
+					lastRevision-1)
+				pathToPrev := keybase1.NewPathWithKbfsArchived(
+					keybase1.KBFSArchivedPath{
+						Path: pathStr,
+						ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(
+							keybase1.KBFSRevision(lastRevision - 1)),
+					})
+				_, prevPRs, err := k.getRevisionsFromPath(ctx, pathToPrev)
+				if err != nil {
+					return nil, err
+				}
+				if len(prevPRs) == 0 {
+					return nil, simpleFSError{"No previous revisions"}
+				}
+				rev = prevPRs[0].Revision
+				prs = prevPRs
+				nextSlot = 0      // will be incremented below
+				expectedCount = 1 // will be incremented below
+			} else {
+				break
+			}
+
+			p := keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
+				Path: pathStr,
+				ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(
+					keybase1.KBFSRevision(rev)),
+			})
+			revPaths = append(revPaths, p)
+			lastRevision = rev
+			nextSlot++
+			expectedCount++
+		}
+	default:
+		return nil, simpleFSError{
+			fmt.Sprintf("Unknown span type: %s", spanType)}
+	}
+
+	// Now that we have all the paths we need, stat them one-by-one.
+	revs = make([]keybase1.DirentWithRevision, len(revPaths)+1)
+	revs[0] = currRev
+
+	if len(revs) < 5 {
+		// Discount the revisions that don't exist from the progress.
+		k.updateReadProgress(opID, 0, int64(5-len(revs)))
+	}
+
+	// Fetch all the past revisions in parallel to populate the
+	// directory entry.
+	eg, groupCtx := errgroup.WithContext(ctx)
+	doStat := func(slot int) error {
+		p := revPaths[slot]
+		fs, finalElem, err := k.getFS(groupCtx, p)
+		if err != nil {
+			return err
+		}
+		// Use LStat so we don't follow symlinks.
+		fi, err := fs.Lstat(finalElem)
+		if err != nil {
+			return err
+		}
+		var rev keybase1.DirentWithRevision
+		err = setStat(&rev.Entry, fi)
+		if err != nil {
+			return err
+		}
+		rev.Revision = p.KbfsArchived().ArchivedParam.Revision()
+		revs[slot+1] = rev
+		k.updateReadProgress(opID, 0, 1)
+		return nil
+	}
+	for i := range revPaths {
+		i := i
+		eg.Go(func() error { return doStat(i) })
+	}
+	err = eg.Wait()
+	if err != nil {
+		return nil, err
+	}
+	return revs, nil
+}
+
+// SimpleFSGetRevisions - Get revisions for a file
+func (k *SimpleFS) SimpleFSGetRevisions(
+	ctx context.Context, arg keybase1.SimpleFSGetRevisionsArg) (err error) {
+	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_GET_REVISIONS,
+		keybase1.NewOpDescriptionWithGetRevisions(
+			keybase1.GetRevisionsArgs{
+				OpID:     arg.OpID,
+				Path:     arg.Path,
+				SpanType: arg.SpanType,
+			}),
+		func(ctx context.Context) (err error) {
+			revs, err := k.doGetRevisions(ctx, arg.OpID, arg.Path, arg.SpanType)
+			if err != nil {
+				return err
+			}
+			k.setResult(arg.OpID, keybase1.GetRevisionsResult{
+				Revisions: revs,
+				// For don't set any progress indicators.  If we decide we want
+				// to display partial results, we can fix this later.
+			})
+			return nil
+		})
+}
+
+// SimpleFSReadRevisions - Get list of revisions in progress. Can
+// indicate status of pending to get more revisions.
+func (k *SimpleFS) SimpleFSReadRevisions(
+	_ context.Context, opid keybase1.OpID) (
+	keybase1.GetRevisionsResult, error) {
+	k.lock.Lock()
+	res, _ := k.handles[opid]
+	var x interface{}
+	if res != nil {
+		x = res.async
+		res.async = nil
+	}
+	k.lock.Unlock()
+
+	lr, ok := x.(keybase1.GetRevisionsResult)
+	if !ok {
+		return keybase1.GetRevisionsResult{}, errNoResult
+	}
+
+	return lr, nil
 }
 
 // SimpleFSMakeOpid - Convenience helper for generating new random value

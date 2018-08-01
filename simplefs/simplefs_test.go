@@ -942,3 +942,68 @@ func TestRefreshSubscription(t *testing.T) {
 	syncFS(ctx, t, sfs, "/private/jdoe")
 	require.Equal(t, "/keybase"+path2.Kbfs(), sr.lastPath)
 }
+
+func TestGetRevisions(t *testing.T) {
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	clock := &libkbfs.TestClock{}
+	start := time.Now()
+	clock.Set(start)
+	config.SetClock(clock)
+
+	sfs := newSimpleFS(libkb.NewGlobalContext().Init(), config)
+	defer closeSimpleFS(ctx, t, sfs)
+
+	path := keybase1.NewPathWithKbfs(`/private/jdoe`)
+	filePath := pathAppend(path, `test1.txt`)
+
+	checkRevisions := func(numDone int, spanType keybase1.RevisionSpanType) {
+		opid, err := sfs.SimpleFSMakeOpid(ctx)
+		require.NoError(t, err)
+		err = sfs.SimpleFSGetRevisions(ctx, keybase1.SimpleFSGetRevisionsArg{
+			OpID:     opid,
+			Path:     filePath,
+			SpanType: spanType,
+		})
+		require.NoError(t, err)
+		err = sfs.SimpleFSWait(ctx, opid)
+		require.NoError(t, err)
+		res, err := sfs.SimpleFSReadRevisions(ctx, opid)
+		require.NoError(t, err)
+		err = sfs.SimpleFSClose(ctx, opid)
+		require.NoError(t, err)
+
+		if numDone < 5 {
+			require.Len(t, res.Revisions, numDone)
+		} else {
+			require.Len(t, res.Revisions, 5)
+		}
+		// Default should get the most recent one, and then the 4
+		// earliest ones, while LAST_FIVE should get the last five.
+		expectedTime := clock.Now()
+		expectedRev := keybase1.KBFSRevision(1 + numDone)
+		for i, r := range res.Revisions {
+			require.Equal(t, keybase1.ToTime(expectedTime), r.Entry.Time)
+			require.Equal(t, expectedRev, r.Revision)
+			expectedTime = expectedTime.Add(-1 * time.Minute)
+			expectedRev--
+			if numDone > 5 && i == 0 &&
+				spanType == keybase1.RevisionSpanType_DEFAULT {
+				expectedTime = expectedTime.Add(-1 * time.Minute)
+				expectedRev--
+			}
+		}
+	}
+
+	t.Log("Write 6 revisions of a single file, spaced out a minute each")
+	for i := 0; i < 6; i++ {
+		clock.Add(1 * time.Minute)
+		writeRemoteFile(ctx, t, sfs, filePath, []byte{byte(i)})
+		syncFS(ctx, t, sfs, "/private/jdoe")
+		checkRevisions(i+1, keybase1.RevisionSpanType_DEFAULT)
+		checkRevisions(i+1, keybase1.RevisionSpanType_LAST_FIVE)
+	}
+}
