@@ -53,7 +53,7 @@ type CounterpartyTextProps = {|
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
   showFullKey: boolean,
-  textType?: 'Body' | 'BodySmall' | 'BodySemibold',
+  textType?: 'Body' | 'BodySmall' | 'BodyExtrabold',
   textTypeSemibold?: 'BodySemibold' | 'BodySmallSemibold',
 |}
 
@@ -109,6 +109,7 @@ type DetailProps = {|
 const Detail = (props: DetailProps) => {
   const textType = props.large ? 'Body' : 'BodySmall'
   const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
+  const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
 
   const counterparty = (
     <CounterpartyText
@@ -121,10 +122,10 @@ const Detail = (props: DetailProps) => {
     />
   )
   const amount = props.isXLM ? (
-    <Text type={textTypeSemibold}>{props.amountUser}</Text>
+    <Text type={textTypeExtrabold}>{props.amountUser}</Text>
   ) : (
     <React.Fragment>
-      Lumens worth <Text type={textTypeSemibold}>{props.amountUser}</Text>
+      Lumens worth <Text type={textTypeExtrabold}>{props.amountUser}</Text>
     </React.Fragment>
   )
 
