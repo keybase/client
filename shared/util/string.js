@@ -23,6 +23,9 @@ function toStringForLog(a: any): string {
     case 'function':
       return a.toString()
 
+    case 'symbol':
+      return a.toString()
+
     case 'object':
       // Includes null.
       if (a instanceof Error) {
@@ -31,7 +34,8 @@ function toStringForLog(a: any): string {
       return JSON.stringify(a)
 
     default:
-      // Symbol or some implementation-defined thing.
+      // Symbol (which flow doesn't recognize) or some
+      // implementation-defined thing.
       if (a.toString) {
         return a.toString()
       }
