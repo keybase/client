@@ -198,16 +198,17 @@ var badWhitespaceChainLinks = map[keybase1.SigID]string{
 
 type ChainLink struct {
 	Contextified
-	parent          *SigChain
-	id              LinkID
-	hashVerified    bool
-	sigVerified     bool
-	payloadVerified bool
-	chainVerified   bool
-	storedLocally   bool
-	revoked         bool
-	unsigned        bool
-	dirty           bool
+	parent           *SigChain
+	id               LinkID
+	hashVerified     bool
+	sigVerified      bool
+	payloadVerified  bool
+	chainVerified    bool
+	storedLocally    bool
+	revoked          bool
+	unsigned         bool
+	dirty            bool
+	revocationsCache *[]keybase1.SigID
 
 	unpacked *ChainLinkUnpacked
 	cki      *ComputedKeyInfos
@@ -392,6 +393,9 @@ func (c *ChainLink) GetRevocations() []keybase1.SigID {
 	if c.IsStubbed() {
 		return nil
 	}
+	if c.revocationsCache != nil {
+		return *c.revocationsCache
+	}
 	payload, err := c.unpacked.Payload()
 	if err != nil {
 		return nil
@@ -409,6 +413,7 @@ func (c *ChainLink) GetRevocations() []keybase1.SigID {
 		}
 	}, "body", "revoke", "sig_ids")
 
+	c.revocationsCache = &ret
 	return ret
 }
 
