@@ -288,8 +288,11 @@ func (l *TeamLoader) loadUserAndKeyFromLinkInnerAndVerify(ctx context.Context, t
 	}
 	var teamLinkMap linkMapT
 	if state != nil {
-		// xxx is it safe to take over the old state's link map?
-		teamLinkMap = state.Chain.LinkIDs
+		teamLinkMap = make(linkMapT, len(state.Chain.LinkIDs))
+		// copy over the stored links
+		for k, v := range state.Chain.LinkIDs {
+			teamLinkMap[k] = v
+		}
 	} else {
 		teamLinkMap = make(linkMapT)
 	}
