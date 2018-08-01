@@ -32,4 +32,11 @@ describe('toStringForLog', () => {
     expect(toStringForLog(Symbol('foo'))).toBe('Symbol(foo)')
     expect(toStringForLog(Symbol(3))).toBe('Symbol(3)')
   })
+
+  it('function', () => {
+    const fn = x => x + x
+    expect(toStringForLog(fn)).toBe(`function fn(x) {
+      return x + x;
+    }`)
+  })
 })
