@@ -109,6 +109,7 @@ const renderSectionHeader = ({
     direction="horizontal"
     gap="tiny"
     gapStart={true}
+    gapEnd={true}
     fullWidth={true}
     style={styles.buttonContainer}
   >
@@ -118,7 +119,7 @@ const renderSectionHeader = ({
       emoji={section.title}
       tooltipEnabled={false}
     />
-    <Text type="Terminal" style={styles.emojiText}>
+    <Text type="Terminal" lineClamp={1} style={styles.emojiText}>
       {section.title}
     </Text>
   </Box2>
@@ -155,6 +156,7 @@ const styles = styleSheetCreate({
   },
   emojiText: {
     color: globalColors.black_40,
+    flex: -1,
   },
   list: platformStyles({
     isElectron: {
