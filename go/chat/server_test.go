@@ -1884,7 +1884,7 @@ type serverChatListener struct {
 	teamType                chan chat1.TeamTypeInfo
 	expunge                 chan chat1.ExpungeInfo
 	ephemeralPurge          chan chat1.EphemeralPurgeNotifInfo
-	reactionDelete          chan chat1.ReactionDeleteNotif
+	reactionUpdate          chan chat1.ReactionUpdateNotif
 
 	threadsStale     chan []chat1.ConversationStaleUpdate
 	inboxStale       chan struct{}
@@ -1934,8 +1934,8 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.expunge <- activity.Expunge()
 	case chat1.ChatActivityType_EPHEMERAL_PURGE:
 		n.ephemeralPurge <- activity.EphemeralPurge()
-	case chat1.ChatActivityType_REACTION_DELETE:
-		n.reactionDelete <- activity.ReactionDelete()
+	case chat1.ChatActivityType_REACTION_UPDATE:
+		n.reactionUpdate <- activity.ReactionUpdate()
 	}
 }
 func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, convID chat1.ConversationID,
@@ -1976,7 +1976,7 @@ func newServerChatListener() *serverChatListener {
 		teamType:                make(chan chat1.TeamTypeInfo, buf),
 		expunge:                 make(chan chat1.ExpungeInfo, buf),
 		ephemeralPurge:          make(chan chat1.EphemeralPurgeNotifInfo, buf),
-		reactionDelete:          make(chan chat1.ReactionDeleteNotif, buf),
+		reactionUpdate:          make(chan chat1.ReactionUpdateNotif, buf),
 
 		threadsStale:     make(chan []chat1.ConversationStaleUpdate, buf),
 		inboxStale:       make(chan struct{}, buf),
@@ -2030,6 +2030,22 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				require.EqualValues(t, valid.Etime, 0)
 				require.Nil(t, valid.ExplodedBy)
 				require.False(t, valid.MessageBody.IsNil())
+			}
+
+			assertReactionUpdate := func(convID chat1.ConversationID, targetMsgID chat1.MessageID, reactionMap chat1.ReactionMap) {
+				info := consumeReactionUpdate(t, listener)
+				require.Equal(t, convID, info.ConvID)
+				require.Len(t, info.ReactionUpdates, 1)
+				reactionUpdate := info.ReactionUpdates[0]
+				require.Equal(t, targetMsgID, reactionUpdate.TargetMsgID)
+				for _, reactions := range reactionUpdate.Reactions.Reactions {
+					for k, r := range reactions {
+						require.NotZero(t, r.Ctime)
+						r.Ctime = 0
+						reactions[k] = r
+					}
+				}
+				require.Equal(t, reactionMap, reactionUpdate.Reactions)
 			}
 
 			var err error
@@ -2138,6 +2154,16 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 			consumeNewMsg(t, listener, chat1.MessageType_REACTION)
 			reactionUnboxed := unboxed
+			expectedReactionMap := chat1.ReactionMap{
+				Reactions: map[string]map[string]chat1.Reaction{
+					":+1:": map[string]chat1.Reaction{
+						users[0].Username: chat1.Reaction{
+							ReactionMsgID: reactionUnboxed.GetMessageID(),
+						},
+					},
+				},
+			}
+			assertReactionUpdate(created.Id, textUnboxed.GetMessageID(), expectedReactionMap)
 
 			t.Logf("edit the message")
 			// An ephemeralLifetime is added if we are editing an ephemeral message
@@ -2180,14 +2206,12 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				require.Fail(t, "no event received")
 			}
 			consumeNewMsg(t, listener, chat1.MessageType_DELETE)
-			// Make sure we get the ReactionDelete notify as well.
-			info := consumeReactionDelete(t, listener)
-			require.Equal(t, info.ConvID, created.Id)
-			require.Len(t, info.ReactionDeletes, 1)
-			reactionDelete := info.ReactionDeletes[0]
-			require.Equal(t, reactionUnboxed.GetMessageID(), reactionDelete.ReactionMsgID)
-			require.Equal(t, textUnboxed.GetMessageID(), reactionDelete.TargetMsgID)
-			require.Equal(t, reactionKey, reactionDelete.ReactionKey)
+			switch mt {
+			case chat1.ConversationMembersType_KBFS:
+			default:
+				assertReactionUpdate(created.Id, textUnboxed.GetMessageID(), expectedReactionMap)
+			}
+			assertReactionUpdate(created.Id, textUnboxed.GetMessageID(), chat1.ReactionMap{})
 
 			t.Logf("delete the message")
 			darg := chat1.PostDeleteNonblockArg{
@@ -3297,13 +3321,13 @@ func consumeEphemeralPurge(t *testing.T, listener *serverChatListener) chat1.Eph
 	}
 }
 
-func consumeReactionDelete(t *testing.T, listener *serverChatListener) chat1.ReactionDeleteNotif {
+func consumeReactionUpdate(t *testing.T, listener *serverChatListener) chat1.ReactionUpdateNotif {
 	select {
-	case x := <-listener.reactionDelete:
+	case x := <-listener.reactionUpdate:
 		return x
 	case <-time.After(20 * time.Second):
-		require.Fail(t, "failed to get reactionDelete notification")
-		return chat1.ReactionDeleteNotif{}
+		require.Fail(t, "failed to get reactionUpdate notification")
+		return chat1.ReactionUpdateNotif{}
 	}
 }
 
