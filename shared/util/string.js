@@ -20,7 +20,7 @@ function toStringForLog(a: any): string {
       return a
 
     case 'function':
-      break
+      return a.toString()
 
     case 'object':
       // Includes null.
