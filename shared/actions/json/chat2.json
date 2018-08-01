@@ -260,6 +260,14 @@
       "deletions":
         "Array<{emoji: string, reactionMsgID: RPCChatTypes.MessageID, targetMsgID: RPCChatTypes.MessageID}>"
     },
+    "reactionFailed": {
+      "_description": "A reaction message failed.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "emoji": "string",
+      "outboxID": "Types.OutboxID",
+      "targetMsgID": "RPCChatTypes.MessageID",
+      "username": "string"
+    },
     // Resend a message
     "messageRetry": {
       "conversationIDKey": "Types.ConversationIDKey",

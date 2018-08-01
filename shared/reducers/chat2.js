@@ -645,7 +645,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             if (!message || message.type === 'deleted' || message.type === 'placeholder') {
               return message
             }
-            let reactions = message.reactions
+            const reactions = message.reactions
             // $FlowIssue thinks `message` is the inner type
             return message.set(
               'reactions',
@@ -668,6 +668,52 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           })
         })
       )
+    }
+    case Chat2Gen.reactionFailed: {
+      const {conversationIDKey, emoji, outboxID, targetMsgID, username} = action.payload
+      const targetOrdinal = messageIDToOrdinal(
+        state.messageMap,
+        state.pendingOutboxToOrdinal,
+        conversationIDKey,
+        targetMsgID
+      )
+      if (targetOrdinal) {
+        return state.update('messageMap', messageMap =>
+          messageMap.update(conversationIDKey, I.Map(), (map: I.Map<Types.Ordinal, Types.Message>) => {
+            return map.update(targetOrdinal, message => {
+              if (!message || message.type === 'deleted' || message.type === 'placeholder') {
+                return message
+              }
+              // Reaction failed. If we have an existing reaction in the map with
+              // the same outboxID remove it. Otherwise we failed toggling _off_ a
+              // reaction, so add it back to the map. Key individual reactions on
+              // the username when looking up to guarantee we never end up with
+              // duplicates in the map
+              const reactions = message.reactions
+              // $FlowIssue thinks `message` is the inner type
+              return message.set(
+                'reactions',
+                reactions.withMutations(reactionMap => {
+                  reactionMap.update(emoji, I.Set(), rs => {
+                    const existing = rs.find(r => r.username === username)
+                    if (existing && existing.outboxID === outboxID) {
+                      // we failed to post this. remove it.
+                      return rs.delete(existing)
+                    }
+                    // no existing reaction, add a new one to the map
+                    return rs.add(Constants.makeReaction({timestamp: Date.now(), username}))
+                  })
+                })
+              )
+            })
+          })
+        )
+      } else {
+        logger.warn(
+          `reactionFailed: Unable to find target ordinal. convID: ${conversationIDKey} targetMsgID: ${targetMsgID}`
+        )
+        return state
+      }
     }
     case Chat2Gen.reactionsWereDeleted: {
       const {conversationIDKey, deletions} = action.payload

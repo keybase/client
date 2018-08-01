@@ -59,6 +59,7 @@ export const navigateToThread = 'chat2:navigateToThread'
 export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openFolder = 'chat2:openFolder'
 export const previewConversation = 'chat2:previewConversation'
+export const reactionFailed = 'chat2:reactionFailed'
 export const reactionsWereDeleted = 'chat2:reactionsWereDeleted'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
@@ -270,6 +271,13 @@ type _PreviewConversationPayload = $ReadOnly<{|
   conversationIDKey?: Types.ConversationIDKey,
   reason: 'manageView' | 'messageLink' | 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView' | 'newChannel',
 |}>
+type _ReactionFailedPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  emoji: string,
+  outboxID: Types.OutboxID,
+  targetMsgID: RPCChatTypes.MessageID,
+  username: string,
+|}>
 type _ReactionsWereDeletedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   deletions: Array<{emoji: string, reactionMsgID: RPCChatTypes.MessageID, targetMsgID: RPCChatTypes.MessageID}>,
@@ -344,6 +352,10 @@ type _UpdateTeamRetentionPolicyPayload = $ReadOnly<{|convs: Array<RPCChatTypes.I
 type _UpdateTypersPayload = $ReadOnly<{|conversationToTypers: I.Map<Types.ConversationIDKey, I.Set<string>>|}>
 
 // Action Creators
+/**
+ * A reaction message failed.
+ */
+export const createReactionFailed = (payload: _ReactionFailedPayload) => ({error: false, payload, type: reactionFailed})
 /**
  * Actually start a conversation
  */
@@ -517,6 +529,7 @@ export type NavigateToThreadPayload = $Call<typeof createNavigateToThread, _Navi
 export type NotificationSettingsUpdatedPayload = $Call<typeof createNotificationSettingsUpdated, _NotificationSettingsUpdatedPayload>
 export type OpenFolderPayload = $Call<typeof createOpenFolder, _OpenFolderPayload>
 export type PreviewConversationPayload = $Call<typeof createPreviewConversation, _PreviewConversationPayload>
+export type ReactionFailedPayload = $Call<typeof createReactionFailed, _ReactionFailedPayload>
 export type ReactionsWereDeletedPayload = $Call<typeof createReactionsWereDeleted, _ReactionsWereDeletedPayload>
 export type ResetChatWithoutThemPayload = $Call<typeof createResetChatWithoutThem, _ResetChatWithoutThemPayload>
 export type ResetLetThemInPayload = $Call<typeof createResetLetThemIn, _ResetLetThemInPayload>
@@ -593,6 +606,7 @@ export type Actions =
   | NotificationSettingsUpdatedPayload
   | OpenFolderPayload
   | PreviewConversationPayload
+  | ReactionFailedPayload
   | ReactionsWereDeletedPayload
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload

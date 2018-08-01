@@ -383,12 +383,35 @@ const chatActivityToMetasAction = (payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}
 }
 
 // We got errors from the service
-const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
+const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>, you: string) => {
   const actions = outboxRecords.reduce((arr, outboxRecord) => {
     const s = outboxRecord.state
     if (s.state === RPCChatTypes.localOutboxStateType.error) {
       const error = s.error
-      if (error) {
+
+      const conversationIDKey = Types.conversationIDToKey(outboxRecord.convID)
+      const outboxID = Types.rpcOutboxIDToOutboxID(outboxRecord.outboxID)
+
+      // check the type of message this was. if it was a reaction dig in to find
+      // targetMsgID so we can toggle-off locally. other types of messages don't
+      // need this info so mark them as failed directly.
+      const msg = outboxRecord.Msg
+      if (msg.messageBody.messageType === RPCChatTypes.commonMessageType.reaction) {
+        // convert into toggle local reaction action
+        const reaction = msg.messageBody.reaction
+        if (reaction) {
+          const {b: emoji, m: targetMsgID} = reaction
+          arr.push(
+            Chat2Gen.createReactionFailed({
+              conversationIDKey,
+              emoji,
+              outboxID,
+              targetMsgID,
+              username: you,
+            })
+          )
+        }
+      } else if (error) {
         // This is temp until fixed by CORE-7112. We get this error but not the call to let us show the red banner
         const reason = Constants.rpcErrorToString(error)
         let tempForceRedBox
@@ -397,9 +420,6 @@ const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
           const match = error.message && error.message.match(/"(.*)"/)
           tempForceRedBox = match && match[1]
         }
-
-        const conversationIDKey = Types.conversationIDToKey(outboxRecord.convID)
-        const outboxID = Types.rpcOutboxIDToOutboxID(outboxRecord.outboxID)
         arr.push(Chat2Gen.createMessageErrored({conversationIDKey, outboxID, reason}))
         if (tempForceRedBox) {
           arr.push(UsersGen.createUpdateBrokenState({newlyBroken: [tempForceRedBox], newlyFixed: []}))
@@ -602,7 +622,7 @@ const setupChatHandlers = () => {
         case RPCChatTypes.notifyChatChatActivityType.failedMessage: {
           const failedMessage: ?RPCChatTypes.FailedMessageInfo = activity.failedMessage
           return failedMessage && failedMessage.outboxRecords
-            ? onErrorMessage(failedMessage.outboxRecords)
+            ? onErrorMessage(failedMessage.outboxRecords, getState().config.username || '')
             : null
         }
         case RPCChatTypes.notifyChatChatActivityType.membersUpdate:
