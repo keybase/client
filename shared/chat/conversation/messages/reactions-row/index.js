@@ -97,7 +97,8 @@ const styles = styleSheetCreate({
   container: {
     alignItems: 'flex-start',
     flexWrap: 'wrap',
-    marginLeft: 56,
+    // refer to `WrapperAuthor` styles
+    marginLeft: 32 + globalMargins.tiny + (isMobile ? globalMargins.tiny : globalMargins.small),
     paddingRight: 50,
   },
   displayNone: {display: 'none'},
