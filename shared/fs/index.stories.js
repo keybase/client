@@ -376,9 +376,9 @@ const load = () => {
             isDownloading={true}
             isUserReset={false}
             resetParticipants={[]}
-            onOpen={action('onOpen')}
-            openInFileUI={action('openInFileUI')}
-            onAction={action('onAction')}
+            onOpen={Sb.action('onOpen')}
+            openInFileUI={Sb.action('openInFileUI')}
+            onAction={Sb.action('onAction')}
             isEmpty={false}
           />
         </WrapRow>
@@ -408,9 +408,9 @@ const load = () => {
             isDownloading={false}
             isUserReset={false}
             resetParticipants={[]}
-            onOpen={action('onOpen')}
-            openInFileUI={action('openInFileUI')}
-            onAction={action('onAction')}
+            onOpen={Sb.action('onOpen')}
+            openInFileUI={Sb.action('openInFileUI')}
+            onAction={Sb.action('onAction')}
             isEmpty={false}
           />
         </WrapRow>
@@ -422,25 +422,25 @@ const load = () => {
         <Downloads
           downloadKeys={['file 1']}
           thereAreMore={false}
-          openDownloadFolder={action('openDownloadFolder')}
+          openDownloadFolder={Sb.action('openDownloadFolder')}
         />
         <Text type="Header">2 items</Text>
         <Downloads
           downloadKeys={['file 1', 'blah 2']}
           thereAreMore={false}
-          openDownloadFolder={action('openDownloadFolder')}
+          openDownloadFolder={Sb.action('openDownloadFolder')}
         />
         <Text type="Header">3 items</Text>
         <Downloads
           downloadKeys={['file 1', 'blah 2', 'yo 3']}
           thereAreMore={false}
-          openDownloadFolder={action('openDownloadFolder')}
+          openDownloadFolder={Sb.action('openDownloadFolder')}
         />
         <Text type="Header">4+ items</Text>
         <Downloads
           downloadKeys={['file 1', 'blah 2', 'yo 3']}
           thereAreMore={true}
-          openDownloadFolder={action('openDownloadFolder')}
+          openDownloadFolder={Sb.action('openDownloadFolder')}
         />
       </Box2>
     ))
