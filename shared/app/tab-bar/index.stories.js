@@ -25,26 +25,22 @@ const defaultProps = {
   },
 }
 
-const container = storyFn => (
-  <Box
-    style={platformStyles({
-      common: {
-        alignContent: 'stretch',
-        height: '100%',
-        width: '100%',
-      },
-      isElectron: {
-        ...globalStyles.flexBoxRow,
-      },
-      isMobile: {
-        marginTop: 40,
-        ...globalStyles.flexBoxColumn,
-      },
-    })}
-  >
-    {storyFn()}
-  </Box>
-)
+const containerStyle = platformStyles({
+  common: {
+    alignContent: 'stretch',
+    height: '100%',
+    width: '100%',
+  },
+  isElectron: {
+    ...globalStyles.flexBoxRow,
+  },
+  isMobile: {
+    marginTop: 40, // Avoid the notch on iPhoneX
+    ...globalStyles.flexBoxColumn,
+  },
+})
+
+const container = storyFn => <Box style={containerStyle}>{storyFn()}</Box>
 
 const load = () => {
   storiesOf('Tab Bar', module)
