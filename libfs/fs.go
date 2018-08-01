@@ -623,6 +623,19 @@ func (fs *FS) Lstat(filename string) (fi os.FileInfo, err error) {
 		return nil, err
 	}
 
+	if base == "" {
+		ei, err := fs.config.KBFSOps().Stat(fs.ctx, n)
+		if err != nil {
+			return nil, err
+		}
+		return &FileInfo{
+			fs:   fs,
+			ei:   ei,
+			node: n,
+			name: "",
+		}, nil
+	}
+
 	n, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, n, base)
 	if err != nil {
 		return nil, err

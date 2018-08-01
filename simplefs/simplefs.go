@@ -1394,9 +1394,11 @@ func (k *SimpleFS) getRevisionsFromPath(
 	os.FileInfo, libkbfs.PrevRevisions, error) {
 	fs, finalElem, err := k.getFS(ctx, path)
 	if err != nil {
+		k.log.CDebugf(ctx, "Trouble getting fs for path %s: %+v", path, err)
 		return nil, nil, err
 	}
 	// Use LStat so we don't follow symlinks.
+	k.log.CDebugf(ctx, "About to lstat %s", finalElem)
 	fi, err := fs.Lstat(finalElem)
 	if err != nil {
 		return nil, nil, err
@@ -1422,6 +1424,9 @@ func (k *SimpleFS) doGetRevisions(
 	fi, prs, err := k.getRevisionsFromPath(ctx, path)
 	if err != nil {
 		return nil, err
+	}
+	if len(prs) == 0 {
+		return nil, simpleFSError{"No previous revisions"}
 	}
 
 	var currRev keybase1.DirentWithRevision
