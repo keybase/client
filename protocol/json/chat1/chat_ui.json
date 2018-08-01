@@ -426,6 +426,13 @@
         {
           "type": "string",
           "name": "mimeType"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "videoDuration"
         }
       ]
     },

@@ -21,7 +21,7 @@ import engine from '../../engine'
 import logger from '../../logger'
 import type {TypedState, Dispatch} from '../../util/container'
 import {chatTab} from '../../constants/tabs'
-import {isMobile, isIOS} from '../../constants/platform'
+import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
 import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, downloadAndShowShareActionSheet} from '../platform-specific'
@@ -1610,7 +1610,7 @@ function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayloa
   const message = action.payload.message
   if (Constants.isVideoAttachment(message)) {
     // Start up the fullscreen video view only on iOS, and only if we have the file downloaded
-    if (isMobile && message.fileURLCached && isIOS) {
+    if (isMobile && message.fileURLCached) {
       yield Saga.put(
         Route.navigateAppend([
           {
@@ -1629,6 +1629,8 @@ function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayloa
         })
       )
     }
+    // Otherwise we just do nothing. On Android this is relevant, since the fullscreen viewer just
+    // doesn't seem to work there.
   } else {
     yield Saga.put(
       Route.navigateAppend([

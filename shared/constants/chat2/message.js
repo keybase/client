@@ -158,6 +158,7 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   transferProgress: 0,
   transferState: null,
   type: 'attachment',
+  videoDuration: null,
 })
 
 const makeMessageSystemJoined: I.RecordFactory<MessageTypes._MessageSystemJoined> = I.Record({
@@ -518,11 +519,13 @@ const validUIMessagetoMessage = (
       let fileURL = ''
       let fileType = ''
       let fileURLCached = false
+      let videoDuration = null
       if (m.assetUrlInfo) {
         previewURL = m.assetUrlInfo.previewUrl
         fileURL = m.assetUrlInfo.fullUrl
         fileType = m.assetUrlInfo.mimeType
         fileURLCached = m.assetUrlInfo.fullUrlCached
+        videoDuration = m.assetUrlInfo.videoDuration
       }
 
       return makeMessageAttachment({
@@ -539,6 +542,7 @@ const validUIMessagetoMessage = (
         showPlayButton: pre.showPlayButton,
         title,
         transferState,
+        videoDuration,
       })
     }
     case RPCChatTypes.commonMessageType.join:

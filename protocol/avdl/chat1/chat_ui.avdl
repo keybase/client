@@ -107,6 +107,7 @@ protocol chatUi {
     string fullUrl;
     boolean fullUrlCached;
     string mimeType;
+    union { null, string } videoDuration;
   }
 
   record UIMessageValid {

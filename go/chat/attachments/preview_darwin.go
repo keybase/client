@@ -16,6 +16,7 @@ package attachments
 #endif
 
 NSData* imageData = NULL;
+int duration = 0;
 
 void MakeVideoThumbnail(const char* inFilename) {
 	NSString* filename = [NSString stringWithUTF8String:inFilename];
@@ -26,6 +27,7 @@ void MakeVideoThumbnail(const char* inFilename) {
 	NSError *error = NULL;
 	CMTime time = CMTimeMake(1, 1);
 	CGImageRef image = [generateImg copyCGImageAtTime:time actualTime:NULL error:&error];
+	duration = CMTimeGetSeconds([asset duration]);
 
 	CFMutableDataRef mutableData = CFDataCreateMutable(NULL, 0);
 	CGImageDestinationRef idst = CGImageDestinationCreateWithData(
@@ -60,6 +62,10 @@ void ImageFree() {
 int ImageLength() {
 	return [imageData length];
 }
+
+int VideoDuration() {
+	return duration;
+}
 */
 import "C"
 import (
@@ -71,14 +77,17 @@ import (
 	"golang.org/x/net/context"
 )
 
-func CFDataToBytes(cfData C.CFDataRef) ([]byte, error) {
-	return C.GoBytes(unsafe.Pointer(C.CFDataGetBytePtr(cfData)), C.int(C.CFDataGetLength(cfData))), nil
-}
-
 func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader, basename string) (res *PreviewRes, err error) {
 	defer log.Trace(ctx, func() error { return err }, "previewVideo")()
 	C.MakeVideoThumbnail(C.CString(basename))
-	log.Debug(ctx, "previewVideo: length: %d", C.ImageLength())
+	duration := int(C.VideoDuration())
+	if duration < 1 {
+		// clamp to 1 so we know it is a video, but also not to compute a duration for it
+		duration = 1
+	} else {
+		duration *= 1000
+	}
+	log.Debug(ctx, "previewVideo: length: %d duration: %ds", C.ImageLength(), duration)
 	localDat := make([]byte, C.ImageLength())
 	copy(localDat, (*[1 << 30]byte)(unsafe.Pointer(C.ImageData()))[0:C.ImageLength()])
 	C.ImageFree()
@@ -91,7 +100,7 @@ func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader, ba
 		ContentType:    "image/jpeg",
 		BaseWidth:      imagePreview.BaseWidth,
 		BaseHeight:     imagePreview.BaseHeight,
-		BaseDurationMs: 1,
+		BaseDurationMs: duration,
 		PreviewHeight:  imagePreview.PreviewHeight,
 		PreviewWidth:   imagePreview.PreviewWidth,
 	}, nil

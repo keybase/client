@@ -34,6 +34,7 @@ type Props = {
   showFilmButton: boolean,
   title: string,
   toggleShowingMenu: () => void,
+  videoDuration: ?string,
   width: number,
 }
 
@@ -86,6 +87,14 @@ class ImageAttachment extends React.PureComponent<Props, State> {
           {this.props.showFilmButton && (
             <Icon type="icon-film-64" style={iconCastPlatformStyles(styles.playButton)} />
           )}
+          {this.props.videoDuration &&
+            this.state.loaded && (
+              <Box style={styles.durationContainer}>
+                <Text type={'BodySmall'} style={styles.durationText}>
+                  {this.props.videoDuration}
+                </Text>
+              </Box>
+            )}
           {!!this.props.arrowColor && (
             <Box style={styles.downloadedIconWrapper}>
               <Icon
@@ -171,6 +180,18 @@ const styles = styleSheetCreate({
     position: 'absolute',
     right: '50%',
     top: '50%',
+  },
+  durationContainer: {
+    bottom: '5%',
+    position: 'absolute',
+    right: '3%',
+    backgroundColor: globalColors.black_75,
+    alignSelf: 'flex-start',
+  },
+  durationText: {
+    color: globalColors.white,
+    paddingLeft: 5,
+    paddingRight: 5,
   },
   progressContainer: {
     ...globalStyles.flexBoxRow,
