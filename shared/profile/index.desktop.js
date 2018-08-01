@@ -634,7 +634,7 @@ const styleShowcasedTeamName = {
 }
 
 const styleFloatingMenu = {
-  width: 200,
+  width: 196,
 }
 
 export default ProfileRender
