@@ -634,7 +634,6 @@ const styleShowcasedTeamName = {
 }
 
 const styleFloatingMenu = {
-  marginTop: globalMargins.xtiny,
   minWidth: 196,
   maxWidth: 240,
 }
