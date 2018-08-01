@@ -1,11 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../../constants/types/chat2'
-import {Box, Box2, Icon} from '../../../../../common-adapters'
-import {
-  FloatingMenuParentHOC,
-  type FloatingMenuParentProps,
-} from '../../../../../common-adapters/floating-menu'
+import {Box, Box2, Icon, OverlayParentHOC, type OverlayParentProps} from '../../../../../common-adapters'
 import Timestamp from '../timestamp'
 import {
   glamorous,
@@ -64,7 +60,7 @@ const HoverBox = isMobile
       },
     }))
 
-class _WrapperTimestamp extends React.PureComponent<Props & FloatingMenuParentProps> {
+class _WrapperTimestamp extends React.PureComponent<Props & OverlayParentProps> {
   componentDidUpdate(prevProps: Props) {
     if (this.props.measure) {
       if (
@@ -131,7 +127,7 @@ class _WrapperTimestamp extends React.PureComponent<Props & FloatingMenuParentPr
     )
   }
 }
-const WrapperTimestamp = FloatingMenuParentHOC(_WrapperTimestamp)
+const WrapperTimestamp = OverlayParentHOC(_WrapperTimestamp)
 
 type MenuButtonsProps = {
   conversationIDKey: Types.ConversationIDKey,
