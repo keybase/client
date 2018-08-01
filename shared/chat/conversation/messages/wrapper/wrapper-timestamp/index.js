@@ -38,13 +38,15 @@ export type Props = {|
   children?: React.Node,
   isEditing: boolean,
   timestamp: string,
+  // 'children': render children directly
+  // 'wrapper-author': additionally render WrapperAuthor and tell it the message type
   type: 'wrapper-author' | 'children',
   orangeLineAbove: boolean,
 |}
 
 const HoverBox = isMobile
   ? LongPressable
-  : glamorous(Box)(props => ({
+  : glamorous(Box2)(props => ({
       '& .menu-button': {
         flexShrink: 0,
         height: 17,
@@ -60,7 +62,6 @@ const HoverBox = isMobile
         opacity: 1,
         visibility: 'visible',
       },
-      flexDirection: 'column',
     }))
 
 class _WrapperTimestamp extends React.PureComponent<Props & FloatingMenuParentProps> {
@@ -84,7 +85,9 @@ class _WrapperTimestamp extends React.PureComponent<Props & FloatingMenuParentPr
           {...(isMobile && props.decorate
             ? {onLongPress: props.toggleShowingMenu, underlayColor: globalColors.blue4}
             : {})}
+          direction="column"
           decorate={props.decorate}
+          fullWidth={true}
         >
           {/* Additional Box here because NativeTouchableHighlight only supports one child */}
           <Box>

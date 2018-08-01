@@ -21,7 +21,8 @@ const shouldDecorateMessage = (message: Types.Message, you: string) => {
   }
   if (decoratedMessageTypes.includes(message.type)) {
     return true
-  } else if (message.type === 'systemJoined') {
+  }
+  if (message.type === 'systemJoined') {
     // special case. "You joined #<channel>" messages render with a blue user notice so don't decorate those
     return message.author !== you
   }
