@@ -35,8 +35,11 @@ describe('toStringForLog', () => {
 
   it('function', () => {
     const fn = x => x + x
-    expect(toStringForLog(fn)).toBe(`function fn(x) {
-      return x + x;
-    }`)
+    expect(toStringForLog(fn)).toBe(fn.toString())
+  })
+
+  it('error', () => {
+    const err = new Error('my error')
+    expect(toStringForLog(err)).toBe(err.stack)
   })
 })
