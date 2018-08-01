@@ -286,12 +286,15 @@ func (l *TeamLoader) loadUserAndKeyFromLinkInnerAndVerify(ctx context.Context, t
 	if !signedByKID.Equal(key.Base.Kid) {
 		return keybase1.UserVersion{}, libkb.NewWrongKidError(signedByKID, key.Base.Kid)
 	}
-	teamLinkMap := make(linkMapT)
+	var teamLinkMap linkMapT
 	if state != nil {
+		teamLinkMap = make(linkMapT, len(state.Chain.LinkIDs))
 		// copy over the stored links
 		for k, v := range state.Chain.LinkIDs {
 			teamLinkMap[k] = v
 		}
+	} else {
+		teamLinkMap = make(linkMapT)
 	}
 	// add on the link that is being checked
 	teamLinkMap[link.Seqno()] = link.LinkID().Export()
