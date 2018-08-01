@@ -20,6 +20,7 @@ const MaybePopup = Styles.isMobile
     )
 
 type Props = {
+  addButtonLabel: string,
   errorText: string,
   numberOfUsersSelected: number,
   loading: boolean,
@@ -39,8 +40,13 @@ type Props = {
 
 const AddPeople = (props: Props) => (
   <MaybePopup onClose={props.onClose}>
-    <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, flexGrow: 1}}>
-      <Kb.HeaderHocHeader onCancel={Styles.isMobile ? props.onClose : null} title={props.title} />
+    <Kb.Box style={styles.outerBox}>
+      <Kb.HeaderHocHeader
+        onCancel={Styles.isMobile ? props.onClose : null}
+        onRightAction={props.onOpenRolePicker}
+        rightActionLabel={props.addButtonLabel}
+        title={props.title}
+      />
       {!!props.errorText && (
         <Kb.Box
           style={Styles.collapseStyles([
@@ -79,35 +85,44 @@ const AddPeople = (props: Props) => (
             searchKey={'addToTeamSearch'}
             disableIfInTeamName={props.name}
             style={
-              Styles.isMobile ? {position: 'absolute', top: 0, bottom: 0, right: 0, left: 0} : {height: 400}
+              Styles.isMobile ? {position: 'absolute', top: 0, bottom: 0, right: 0, left: 0} : {height: 300}
             }
             keyboardDismissMode="on-drag"
           />
         )}
       </Kb.Box>
-      <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, padding: Styles.globalMargins.medium}}>
-        <Kb.Box style={{...Styles.globalStyles.flexBoxRow, justifyContent: 'center'}}>
-          <Kb.Button
-            disabled={!props.numberOfUsersSelected}
-            onClick={props.onOpenRolePicker}
-            label={props.numberOfUsersSelected > 0 ? `Add (${props.numberOfUsersSelected})` : 'Add'}
-            type="Primary"
-          />
+      {!Styles.isMobile && (
+        <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, padding: Styles.globalMargins.medium}}>
+          <Kb.Box style={{...Styles.globalStyles.flexBoxRow, justifyContent: 'center'}}>
+            <Kb.Button
+              disabled={!props.numberOfUsersSelected}
+              onClick={props.onOpenRolePicker}
+              label={props.addButtonLabel}
+              type="Primary"
+            />
+          </Kb.Box>
         </Kb.Box>
-      </Kb.Box>
+      )}
     </Kb.Box>
   </MaybePopup>
 )
 
 const styles = Styles.styleSheetCreate({
+  outerBox: Styles.platformStyles({
+    isElectron: {
+      ...Styles.globalStyles.flexBoxColumn,
+      marginTop: Styles.globalMargins.xxtiny,
+    },
+    isMobile: {
+      flexGrow: 1,
+    },
+  }),
   popupContainer: Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxColumn,
       alignSelf: 'center',
-      backgroundColor: Styles.globalColors.white,
-      borderRadius: 5,
     },
     isElectron: {
+      borderRadius: 4,
       boxShadow: `0 2px 5px 0 ${Styles.globalColors.black_20}`,
       height: 520,
       margin: 40,

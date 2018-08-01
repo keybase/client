@@ -14,6 +14,8 @@ export const HeaderHocHeader = ({
   title,
   onCancel,
   onBack,
+  onRightAction,
+  rightActionLabel,
   theme = 'light',
 }: Props) => (
   <Box style={collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
@@ -36,6 +38,14 @@ export const HeaderHocHeader = ({
         onClick={onBack}
       />
     )}
+    {!!rightActionLabel &&
+      !!onRightAction && (
+        <Box style={_rightActionStyle}>
+          <Text type="BodyBigLink" style={_buttonStyle} onClick={onRightAction}>
+            {rightActionLabel}
+          </Text>
+        </Box>
+      )}
   </Box>
 )
 
@@ -99,6 +109,18 @@ const _headerStyleThemed = {
   light: {
     backgroundColor: globalColors.white,
   },
+}
+
+const _rightActionStyle = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'flex-end',
+  bottom: 0,
+  flex: 1,
+  justifyContent: 'flex-end',
+  left: 0,
+  position: 'absolute', // This is always right-aligned
+  right: 0,
+  top: 0,
 }
 
 const _titleStyle = {

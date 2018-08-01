@@ -9,4 +9,6 @@ export type Props = {
   headerStyle?: StylesCrossPlatform,
   customComponent?: ?React.Node,
   theme?: 'light' | 'dark', // defaults to light
+  rightActionLabel?: string,
+  onRightAction?: ?() => void,
 }

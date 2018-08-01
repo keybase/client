@@ -99,7 +99,8 @@ export default compose(
         onRoleChange: () => role => ({role}),
       }
     ),
-    withPropsOnChange(['onExitSearch'], props => ({
+    withPropsOnChange(['onExitSearch', 'numberOfUsersSelected'], props => ({
+      addButtonLabel: props.numberOfUsersSelected > 0 ? `Add (${props.numberOfUsersSelected})` : 'Add',
       onCancel: () => props.onClose(),
       title: `Add to ${props.name}`,
     })),

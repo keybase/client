@@ -44,12 +44,12 @@ class SearchResultsList extends Component<Props> {
   render() {
     const {showSearchSuggestions, style, items} = this.props
     if (items == null) {
-      return <Box style={{height: 256, ...style}} />
+      return <Box style={{height: 240, ...style}} />
     } else if (!items.length) {
       return <EmptyResults style={style} />
     }
     return (
-      <Box style={{width: '100%', height: 256, ...style}}>
+      <Box style={{width: '100%', height: 240, ...style}}>
         {showSearchSuggestions && (
           <Box style={{padding: globalMargins.tiny}}>
             <Text type="BodySmallSemibold" style={{color: globalColors.black_40}}>
