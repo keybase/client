@@ -581,6 +581,23 @@ func (u *userPlusDevice) waitForTeamChangedAndRotated(teamID keybase1.TeamID, to
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
 }
 
+func (u *userPlusDevice) waitForTeamChangeRenamed(teamID keybase1.TeamID) {
+	// process 10 team rotations or 10s worth of time
+	for i := 0; i < 10; i++ {
+		select {
+		case arg := <-u.notifications.changeCh:
+			u.tc.T.Logf("membership change received: %+v", arg)
+			if arg.TeamID.Eq(teamID) && !arg.Changes.MembershipChanged && !arg.Changes.KeyRotated && arg.Changes.Renamed {
+				u.tc.T.Logf("change matched!")
+				return
+			}
+			u.tc.T.Logf("ignoring change message (expected team = %v, renamed = true)", teamID)
+		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
+		}
+	}
+	u.tc.T.Fatalf("timed out waiting for team changes %s", teamID)
+}
+
 func (u *userPlusDevice) pollForTeamSeqnoLink(team string, toSeqno keybase1.Seqno) {
 	for i := 0; i < 20; i++ {
 		after, err := teams.Load(context.TODO(), u.tc.G, keybase1.LoadTeamArg{
@@ -1431,4 +1448,38 @@ func TestBatchAddMembers(t *testing.T) {
 		}
 	}
 	require.Equal(t, 2, sbsCount, "sbs count")
+}
+
+func TestTeamBustResolverCacheOnSubteamRename(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUser("onr")
+	user := tt.users[0]
+	tc := user.tc
+	_, teamName := user.createTeam2()
+
+	// Verify subteams that have been renamed resolve correctly
+	subteamBasename := "bb1"
+	subteamID, err := teams.CreateSubteam(context.TODO(), tc.G, subteamBasename, teamName, keybase1.TeamRole_NONE /* addSelfAs */)
+	require.NoError(t, err)
+	subteamName, err := teamName.Append(subteamBasename)
+	require.NoError(t, err)
+	subteamRename, err := teamName.Append("bb2")
+	require.NoError(t, err)
+
+	subteamNameActual, err := teams.ResolveIDToName(context.TODO(), tc.G, *subteamID)
+	require.NoError(t, err)
+	require.True(t, subteamName.Eq(subteamNameActual))
+
+	err = teams.RenameSubteam(context.TODO(), tc.G, subteamName, subteamRename)
+	require.NoError(t, err)
+	user.waitForTeamChangeRenamed(*subteamID)
+
+	subteamRenameActual, err := teams.ResolveIDToName(context.TODO(), tc.G, *subteamID)
+	require.NoError(t, err)
+	require.True(t, subteamRename.Eq(subteamRenameActual))
+
+	_, err = teams.ResolveNameToID(context.TODO(), tc.G, subteamName)
+	require.Error(t, err)
 }

@@ -799,6 +799,7 @@ type Resolver interface {
 	ResolveUser(ctx context.Context, assertion string) (u keybase1.User, res ResolveResult, err error)
 	ResolveWithBody(ctx context.Context, input string) ResolveResult
 	Resolve(ctx context.Context, input string) ResolveResult
+	PurgeResolveCache(ctx context.Context, input string) error
 }
 
 type EnginePrereqs struct {

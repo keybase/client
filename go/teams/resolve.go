@@ -21,8 +21,7 @@ func ResolveIDToName(ctx context.Context, g *libkb.GlobalContext, id keybase1.Te
 		return keybase1.TeamName{}, err
 	}
 	name = rres.GetTeamName()
-	err = g.GetTeamLoader().VerifyTeamName(ctx, id, name)
-	if err != nil {
+	if err = g.GetTeamLoader().VerifyTeamName(ctx, id, name); err != nil {
 		return keybase1.TeamName{}, err
 	}
 
@@ -37,13 +36,15 @@ func ResolveNameToID(ctx context.Context, g *libkb.GlobalContext, name keybase1.
 		return keybase1.TeamID(""), err
 	}
 	id = rres.GetTeamID()
-
-	err = g.GetTeamLoader().VerifyTeamName(ctx, id, name)
-	if err != nil {
+	if err = g.GetTeamLoader().VerifyTeamName(ctx, id, name); err != nil {
 		return keybase1.TeamID(""), err
 	}
 
 	return id, nil
+}
+
+func PurgeResolverTeamID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) error {
+	return g.Resolver.PurgeResolveCache(ctx, fmt.Sprintf("tid:%s", teamID))
 }
 
 // Resolve assertions in an implicit team display name and verify the result.
