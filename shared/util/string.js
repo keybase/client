@@ -6,7 +6,8 @@ function pluralize(str: string): string {
 }
 
 function toStringForLog(a: any): string {
-  switch (typeof a) {
+  const t = typeof a
+  switch (t) {
     case 'undefined':
       return 'undefined'
 
@@ -28,9 +29,14 @@ function toStringForLog(a: any): string {
         return a.stack
       }
       return JSON.stringify(a)
-  }
 
-  return (a && a.toString && a.toString()) || 'Failed to turn item to string in toStringForLog'
+    default:
+      // Symbol or some implementation-defined thing.
+      if (a.toString) {
+        return a.toString()
+      }
+      return `Failed to turn item of type ${t} to string in toStringForLog`
+  }
 }
 
 export {pluralize, toStringForLog}
