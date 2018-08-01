@@ -168,6 +168,7 @@ const styles = styleSheetCreate({
     common: {
       alignItems: 'center',
       alignSelf: 'flex-end',
+      marginBottom: 1,
     },
   }),
   menuButtons: platformStyles({
