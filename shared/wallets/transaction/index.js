@@ -53,7 +53,7 @@ type CounterpartyTextProps = {|
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
   showFullKey: boolean,
-  textType?: 'Body' | 'BodySmall' | 'BodyExtrabold',
+  textType?: 'Body' | 'BodySmall' | 'BodySemibold',
   textTypeSemibold?: 'BodySemibold' | 'BodySmallSemibold',
 |}
 
