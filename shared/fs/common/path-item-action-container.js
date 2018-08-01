@@ -14,6 +14,7 @@ import PathItemAction from './path-item-action'
 import {fileUIName, isMobile, isIOS, isAndroid} from '../../constants/platform'
 import {OverlayParentHOC} from '../../common-adapters'
 import {copyToClipboard} from '../../util/clipboard'
+import {type MenuItem} from '../../common-adapters/popup-menu'
 
 type OwnProps = {
   path: Types.Path,
@@ -21,21 +22,17 @@ type OwnProps = {
   actionIconFontSize?: number,
 }
 
-const mapStateToProps = (state: TypedState) => {
-  const _pathItems = state.fs.pathItems
-  const _username = state.config.username || undefined
-
-  return {
-    _pathItems,
-    _username,
-    fileUIEnabled: state.favorite.fuseStatus ? state.favorite.fuseStatus.kextStarted : false,
-  }
-}
+const mapStateToProps = (state: TypedState) => ({
+  _pathItems: state.fs.pathItems,
+  _tlfs: state.fs.tlfs,
+  _username: state.config.username || undefined,
+  _fileUIEnabled: state.favorite.fuseStatus ? state.favorite.fuseStatus.kextStarted : false,
+})
 
 const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => ({
   loadFolderList: () => dispatch(FsGen.createFolderListLoad({path, refreshTag: 'path-item-action-popup'})),
   loadMimeType: () => dispatch(FsGen.createMimeTypeLoad({path, refreshTag: 'path-item-action-popup'})),
-  _ignoreFolder: () => dispatch(FsGen.createFavoriteIgnore({path})),
+  ignoreFolder: () => dispatch(FsGen.createFavoriteIgnore({path})),
   copyPath: () => copyToClipboard(Types.pathToString(path)),
   ...(isMobile
     ? {
@@ -53,62 +50,127 @@ const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => ({
     : {}),
 })
 
-const getRootMenuItems = (stateProps, dispatchProps, path: Types.Path) => {
-  const {_pathItems, fileUIEnabled, _username} = stateProps
-  const {_showInFileUI, _saveMedia, _shareNative, _download, _ignoreFolder, copyPath} = dispatchProps
-  const pathItem = _pathItems.get(path, Constants.unknownPathItem)
-  let menuItems = []
+type MenuItemAppender = (
+  menuItems: Array<MenuItem>,
+  stateProps: $Call<typeof mapStateToProps, TypedState>,
+  dispatchProps: $Call<typeof mapDispatchToProps, Dispatch, OwnProps>,
+  path: Types.Path
+) => any
 
-  !isMobile &&
-    fileUIEnabled &&
-    menuItems.push({
-      title: 'Show in ' + fileUIName,
-      onClick: () => _showInFileUI(),
-    })
+const aShowIn: MenuItemAppender = (menuItems, stateProps, dispatchProps, path) =>
+  !isMobile && stateProps._fileUIEnabled
+    ? [
+        ...menuItems,
+        {
+          title: 'Show in ' + fileUIName,
+          onClick: dispatchProps._showInFileUI,
+        },
+      ]
+    : menuItems
 
-  isMobile &&
-    pathItem.type !== 'folder' &&
-    Constants.isMedia(pathItem) &&
-    menuItems.push({
-      title: 'Save',
-      onClick: () => _saveMedia(),
-    })
-
-  const shouldShowShareNative = isMobile && pathItem.type === 'file'
-  shouldShowShareNative &&
-    menuItems.push({
-      title: 'Send to other app',
-      onClick: () => _shareNative(),
-    })
-
-  const shouldDownload = (isAndroid && pathItem.type !== 'folder') || !isMobile
-  shouldDownload &&
-    menuItems.push({
-      title: 'Download a copy',
-      onClick: () => _download(),
-    })
-
-  Constants.showIgnoreFolder(path, pathItem, _username) &&
-    menuItems.push({
-      title: 'Ignore this folder',
-      onClick: () => _ignoreFolder(),
-      subTitle: 'The folder will no longer appear in your folders list.',
-      danger: true,
-    })
-
-  menuItems.push({
+const aCopyPath: MenuItemAppender = (menuItems, stateProps, dispatchProps, path) => [
+  ...menuItems,
+  {
     title: 'Copy path',
-    onClick: copyPath,
-  })
-  return menuItems
+    onClick: dispatchProps.copyPath,
+  },
+]
+
+const aIgnore: MenuItemAppender = (menuItems, stateProps, dispatchProps, path) =>
+  Constants.showIgnoreFolder(path, stateProps._username)
+    ? [
+        ...menuItems,
+        {
+          title: 'Ignore this folder',
+          onClick: dispatchProps.ignoreFolder,
+          subTitle: 'The folder will no longer appear in your folders list.',
+          danger: true,
+        },
+      ]
+    : menuItems
+
+const aSave: MenuItemAppender = (menuItems, stateProps, dispatchProps, path) => {
+  const pathItem = stateProps._pathItems.get(path, Constants.unknownPathItem)
+  return isMobile && pathItem.type !== 'folder' && Constants.isMedia(pathItem)
+    ? [
+        ...menuItems,
+        {
+          title: 'Save',
+          onClick: dispatchProps._saveMedia,
+        },
+      ]
+    : menuItems
+}
+
+const aShareNative: MenuItemAppender = (menuItems, stateProps, dispatchProps, path) =>
+  isMobile && stateProps._pathItems.get(path, Constants.unknownPathItem).type === 'file'
+    ? [
+        ...menuItems,
+        {
+          title: 'Send to other app',
+          onClick: dispatchProps._shareNative,
+        },
+      ]
+    : menuItems
+
+const aDownload: MenuItemAppender = (menuItems, stateProps, dispatchProps, path) =>
+  !isMobile || (isAndroid && stateProps._pathItems.get(path, Constants.unknownPathItem).type !== 'folder')
+    ? [
+        ...menuItems,
+        {
+          title: 'Download a copy',
+          onClick: dispatchProps._download,
+        },
+      ]
+    : menuItems
+
+const tlfListAppenders: Array<MenuItemAppender> = [aShowIn, aCopyPath]
+const tlfAppenders: Array<MenuItemAppender> = [aShowIn, aIgnore, aCopyPath]
+const inTlfAppenders: Array<MenuItemAppender> = [aShowIn, aSave, aShareNative, aDownload, aCopyPath]
+
+const getRootMenuItemsByAppenders = (
+  appenders: Array<MenuItemAppender>,
+  stateProps,
+  dispatchProps,
+  path: Types.Path
+) =>
+  appenders.reduce(
+    (menuItems: Array<MenuItem>, appender: MenuItemAppender) =>
+      appender(menuItems, stateProps, dispatchProps, path),
+    ([]: Array<MenuItem>)
+  )
+
+const getRootMenuItemsByPathLevel = (pathLevel: number, stateProps, dispatchProps, path: Types.Path) => {
+  switch (pathLevel) {
+    case 0:
+      // The action is for `/`. This shouldn't be possible.
+      return []
+    case 1:
+      // The action is for `/keybase`. This shouldn't be possible as we never
+      // have a /keybase row, and we don't show ... menu for root view.
+      return []
+    case 2:
+      // The action is for a tlf list, i.e. /keybase/private, /keybase/public,
+      // or /keybase/team.
+      return getRootMenuItemsByAppenders(tlfListAppenders, stateProps, dispatchProps, path)
+    case 3:
+      // The action is for a tlf.
+      return getRootMenuItemsByAppenders(tlfAppenders, stateProps, dispatchProps, path)
+    default:
+      // The action is for something inside a tlf
+      return getRootMenuItemsByAppenders(inTlfAppenders, stateProps, dispatchProps, path)
+  }
 }
 
 const mergeProps = (stateProps, dispatchProps, {path, actionIconClassName, actionIconFontSize}) => {
+  const pathElements = Types.getPathElements(path)
+  const menuItems = getRootMenuItemsByPathLevel(pathElements.length, stateProps, dispatchProps, path)
   const {_pathItems, _username} = stateProps
   const {loadFolderList, loadMimeType} = dispatchProps
   const pathItem = _pathItems.get(path, Constants.unknownPathItem)
+  const type = pathElements.length <= 3 ? 'folder' : pathItem.type
   const {childrenFolders, childrenFiles} =
-    !pathItem || pathItem.type !== 'folder'
+    !pathItem || type !== 'folder' || !pathItem.children
       ? {childrenFolders: 0, childrenFiles: 0}
       : pathItem.children.reduce(
           ({childrenFolders, childrenFiles}, p) => {
@@ -121,17 +183,15 @@ const mergeProps = (stateProps, dispatchProps, {path, actionIconClassName, actio
           },
           {childrenFolders: 0, childrenFiles: 0}
         )
-  const pathElements = Types.getPathElements(path)
-  const itemStyles = Constants.getItemStyles(pathElements, pathItem.type, _username)
-  const menuItems = getRootMenuItems(stateProps, dispatchProps, path)
+  const itemStyles = Constants.getItemStyles(pathElements, type, _username)
   return {
-    type: pathItem.type,
+    type,
     lastModifiedTimestamp: pathItem.lastModifiedTimestamp,
     lastWriter: pathItem.lastWriter.username,
-    name: pathItem.name,
+    name: pathElements[pathElements.length - 1],
     size: pathItem.size,
-    needLoadMimeType: pathItem.type === 'file' && pathItem.mimeType === '',
-    needFolderList: pathItem.type === 'folder',
+    needLoadMimeType: type === 'file' && pathItem.mimeType === '',
+    needFolderList: type === 'folder' && pathElements.length >= 3,
     childrenFolders,
     childrenFiles,
     pathElements,
