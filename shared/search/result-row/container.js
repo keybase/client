@@ -56,7 +56,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
     some(parsedIds, {serviceId: (result.leftService || '').toLowerCase(), username: result.leftUsername}) ||
     some(parsedIds, {serviceId: (result.rightService || '').toLowerCase(), username: result.rightUsername})
 
-  const leftFullname = (result.leftFullname || '') + (stateProps.userIsInTeam ? ' • Already in team' : '')
+  let leftFullname = result.leftFullname
+  if (leftFullname) {
+    if (stateProps.userIsInTeam) {
+      leftFullname = leftFullname + ' • '
+    }
+  }
+  if (stateProps.userIsInTeam) {
+    leftFullname = (leftFullname || '') + 'Already in team'
+  }
   const userIsSelectable = !stateProps.userIsInTeam && !userAlreadySelected
 
   return {

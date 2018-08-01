@@ -43,7 +43,7 @@ const AddPeople = (props: Props) => (
     <Kb.Box style={styles.outerBox}>
       <Kb.HeaderHocHeader
         onCancel={Styles.isMobile ? props.onClose : null}
-        onRightAction={props.onOpenRolePicker}
+        onRightAction={props.numberOfUsersSelected > 0 ? props.onOpenRolePicker : null}
         rightActionLabel={props.addButtonLabel}
         title={props.title}
       />

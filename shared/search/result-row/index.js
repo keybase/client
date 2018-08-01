@@ -112,7 +112,7 @@ const RightEdge = ({showCheckmark}) => {
       type="iconfont-check"
       style={{
         marginLeft: globalMargins.small,
-        marginRight: isMobile ? globalMargins.xtiny : globalMargins.small,
+        marginRight: globalMargins.small,
       }}
       color={globalColors.blue}
     />
