@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Text, Box, Icon, FloatingMenu} from '../../common-adapters'
+import {Text, Box, Icon, FloatingMenu, type OverlayParentProps, OverlayParentHOC} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
-import {type FloatingMenuParentProps, FloatingMenuParentHOC} from '../../common-adapters/floating-menu'
 
 const PopupHeader = ({channelName}: {channelName: string}) => {
   return (
@@ -30,14 +29,9 @@ type Props = {
   channelName: string,
   disabled: boolean,
   onConfirmedDelete: () => void,
-} & FloatingMenuParentProps
+} & OverlayParentProps
 
 type State = {}
-
-const stylePopup = {
-  overflow: 'visible',
-  width: 196,
-}
 
 class _DeleteChannel extends React.Component<Props, State> {
   render() {
@@ -82,9 +76,9 @@ class _DeleteChannel extends React.Component<Props, State> {
           header={header}
           items={items}
           attachTo={this.props.attachmentRef}
-          style={stylePopup}
           visible={this.props.showingMenu}
           onHidden={this.props.toggleShowingMenu}
+          containerStyle={{width: 196}}
         />
         <Text
           type={disabled ? 'Body' : 'BodyPrimaryLink'}
@@ -99,5 +93,5 @@ class _DeleteChannel extends React.Component<Props, State> {
   }
 }
 
-const DeleteChannel = FloatingMenuParentHOC(_DeleteChannel)
+const DeleteChannel = OverlayParentHOC(_DeleteChannel)
 export default DeleteChannel

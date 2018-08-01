@@ -130,6 +130,7 @@ func (c *ConnectionManager) WaitForClientType(clientType keybase1.ClientType, ti
 		return true
 	}
 	ticker := time.NewTicker(time.Second)
+	deadline := time.After(timeout)
 	defer ticker.Stop()
 	for {
 		select {
@@ -137,7 +138,7 @@ func (c *ConnectionManager) WaitForClientType(clientType keybase1.ClientType, ti
 			if c.hasClientType(clientType) {
 				return true
 			}
-		case <-time.After(timeout):
+		case <-deadline:
 			return false
 		}
 	}

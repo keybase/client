@@ -88,6 +88,7 @@ const InputContainer = (props: Props) => {
     },
     onEditLastMessage: action('onEditLastMessage'),
     onCancelEditing: action('onCancelEditing'),
+    onFilePickerError: action('onFilePickerError'),
     onCancelQuoting: action('onCancelQuoting'),
     onSeenExplodingMessages: action('onSeenExplodingMessages'),
     onSubmit: (text: string) => {

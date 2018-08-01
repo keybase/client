@@ -1,7 +1,7 @@
 // @flow
 /* eslint-env browser */
 import React, {Component} from 'react'
-import {Box, Icon, Input, Text} from '../../../../common-adapters'
+import {Box, Icon, Input, Text, OverlayParentHOC, type OverlayParentProps} from '../../../../common-adapters'
 import {
   collapseStyles,
   glamorous,
@@ -18,7 +18,6 @@ import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-conta
 import flags from '../../../../util/feature-flags'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import type {PlatformInputProps} from './types'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
 import {ExplodingMeta} from './shared'
 
 const MentionCatcher = ({onClick}) => (
@@ -36,11 +35,11 @@ type State = {
   hasText: boolean,
 }
 
-class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentProps, State> {
+class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, State> {
   _input: ?Input
   _fileInput: ?HTMLInputElement
 
-  constructor(props: PlatformInputProps & FloatingMenuParentProps) {
+  constructor(props: PlatformInputProps & OverlayParentProps) {
     super(props)
     this.state = {
       emojiPickerOpen: false,
@@ -496,4 +495,4 @@ const HoverBox = glamorous(Box)({
   },
 })
 
-export default FloatingMenuParentHOC(PlatformInput)
+export default OverlayParentHOC(PlatformInput)

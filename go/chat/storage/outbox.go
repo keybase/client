@@ -396,6 +396,39 @@ func (o *Outbox) UpdateMessage(ctx context.Context, replaceobr chat1.OutboxRecor
 	return nil
 }
 
+func (o *Outbox) CancelMessagesWithPredicate(ctx context.Context, shouldCancel func(chat1.OutboxRecord) bool) (int, error) {
+	locks.Outbox.Lock()
+	defer locks.Outbox.Unlock()
+
+	// Read outbox for the user
+	obox, err := o.readDiskOutbox(ctx)
+	if err != nil {
+		if _, ok := err.(MissError); !ok {
+			return 0, o.maybeNuke(err, o.dbKey())
+		}
+	}
+
+	// Remove any records that match the predicate
+	var recs []chat1.OutboxRecord
+	numCancelled := 0
+	for _, obr := range obox.Records {
+		if shouldCancel(obr) {
+			numCancelled++
+		} else {
+			recs = append(recs, obr)
+		}
+	}
+	obox.Records = recs
+
+	// Write out box
+	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
+		return 0, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
+			"error writing outbox: err: %s", err.Error()), o.dbKey())
+	}
+
+	return numCancelled, nil
+}
+
 func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) error {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()

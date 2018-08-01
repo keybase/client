@@ -11,8 +11,9 @@ import {
   ScrollView,
   HeaderOnMobile,
   FloatingMenu,
+  OverlayParentHOC,
+  type OverlayParentProps,
 } from '../common-adapters'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../common-adapters/floating-menu'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
 
 type Props = {
@@ -26,7 +27,7 @@ type Props = {
   teams: Array<string>,
 }
 
-class _Git extends React.Component<Props & FloatingMenuParentProps, {}> {
+class _Git extends React.Component<Props & OverlayParentProps, {}> {
   _menuItems = [
     {
       onClick: () => this.props.onNewPersonalRepo(),
@@ -95,7 +96,7 @@ class _Git extends React.Component<Props & FloatingMenuParentProps, {}> {
     )
   }
 }
-const Git = FloatingMenuParentHOC(_Git)
+const Git = OverlayParentHOC(_Git)
 
 const _sectionHeaderStyle = {
   ...globalStyles.flexBoxRow,

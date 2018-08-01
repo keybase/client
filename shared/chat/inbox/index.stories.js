@@ -535,8 +535,8 @@ const provider = createPropProvider(
       style: {marginBottom: globalMargins.tiny},
       toggle: action('onToggle'),
     }),
-    // BigTeamHeader is wrapped by FloatingMenuParent
-    FloatingMenuParent: getPropProviderProps,
+    // BigTeamHeader is wrapped by OverlayParent
+    OverlayParent: getPropProviderProps,
     SmallTeam: getPropProviderProps,
     BigTeamHeader: getPropProviderProps,
     BigTeamsDivider: ownProps => ({badgeCount: 5}),

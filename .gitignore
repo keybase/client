@@ -52,3 +52,6 @@ shared/react-native/ios/fastlane
 shared/react-native/android/keybaselib/keybaselib-sources.jar
 shared/react-native/android/app/.idea/
 shared/react-native/android/app/local.properties
+
+browser/node_modules
+browser/js/bundle.js
