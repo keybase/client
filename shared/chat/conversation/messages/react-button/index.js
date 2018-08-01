@@ -56,9 +56,9 @@ const ReactButton = (props: Props) => (
     onClick={props.onClick}
     style={collapseStyles([styles.buttonBox, props.active && styles.active, props.style])}
   >
-    <Box2 centerChildren={true} direction="horizontal" gap="xtiny" style={styles.container}>
+    <Box2 centerChildren={true} fullHeight={true} direction="horizontal" gap="xtiny" style={styles.container}>
       <Box2 direction="horizontal" style={styles.emojiWrapper}>
-        <Emoji size={isMobile ? 14 : 16} emojiName={props.emoji} />
+        <Emoji size={16} emojiName={props.emoji} />
       </Box2>
       <Text type="BodyTinyBold" style={{color: props.active ? globalColors.blue : globalColors.black_40}}>
         {props.count}
@@ -143,6 +143,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
         <Box2
           ref={attachmentRef => this.setState(s => (s.attachmentRef ? null : {attachmentRef}))}
           centerChildren={true}
+          fullHeight={true}
           direction="horizontal"
           style={this.props.showBorder ? styles.container : null}
         >
@@ -179,10 +180,10 @@ const styles = styleSheetCreate({
     borderColor: globalColors.blue,
   },
   buttonBox: {
-    borderRadius: 12,
+    borderRadius: isMobile ? 15 : 12,
     borderStyle: 'solid',
     borderWidth: 2,
-    height: 24,
+    height: isMobile ? 30 : 24,
     ...transition('border-color', 'background-color'),
   },
   container: platformStyles({
