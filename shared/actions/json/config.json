@@ -60,7 +60,6 @@
     },
     "daemonError": { "daemonError": "?Error" },
     "extendedConfigLoaded": { "extendedConfig": "RPCTypes.ExtendedStatus" },
-    "getExtendedStatus": {},
     "globalError": { "globalError": "null | Error | RPCError" },
     "updateFollowing": {
       "username": "string",

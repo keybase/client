@@ -1,4 +1,5 @@
 // @flow
+import * as Constants from '../constants/notifications'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
 import * as GitGen from './git-gen'
@@ -42,6 +43,14 @@ const setupEngineListeners = () => {
       }
     })
   })
+
+  getEngine().setIncomingActionCreators(
+    'keybase.1.NotifyBadges.badgeState',
+    ({badgeState}, _: any, getState) => {
+      const payload = Constants.badgeStateToBadges(badgeState, getState())
+      return payload ? [NotificationsGen.createReceivedBadgeState(payload)] : null
+    }
+  )
 }
 
 const receivedBadgeState = (_: any, action: NotificationsGen.ReceivedBadgeStatePayload) => {

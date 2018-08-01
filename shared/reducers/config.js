@@ -132,7 +132,6 @@ export default function(
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:
     case ConfigGen.clearRouteState:
-    case ConfigGen.getExtendedStatus:
     case ConfigGen.persistRouteState:
     case ConfigGen.dumpLogs:
     case ConfigGen.link:

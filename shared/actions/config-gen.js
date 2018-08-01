@@ -23,7 +23,6 @@ export const daemonHandshakeWait = 'config:daemonHandshakeWait'
 export const debugDump = 'config:debugDump'
 export const dumpLogs = 'config:dumpLogs'
 export const extendedConfigLoaded = 'config:extendedConfigLoaded'
-export const getExtendedStatus = 'config:getExtendedStatus'
 export const globalError = 'config:globalError'
 export const installerRan = 'config:installerRan'
 export const link = 'config:link'
@@ -75,7 +74,6 @@ type _DaemonHandshakeWaitPayload = $ReadOnly<{|
 type _DebugDumpPayload = $ReadOnly<{|items: Array<string>|}>
 type _DumpLogsPayload = $ReadOnly<{|reason: 'quitting through menu'|}>
 type _ExtendedConfigLoadedPayload = $ReadOnly<{|extendedConfig: RPCTypes.ExtendedStatus|}>
-type _GetExtendedStatusPayload = void
 type _GlobalErrorPayload = $ReadOnly<{|globalError: null | Error | RPCError|}>
 type _InstallerRanPayload = void
 type _LinkPayload = $ReadOnly<{|link: string|}>
@@ -149,7 +147,6 @@ export const createDaemonError = (payload: _DaemonErrorPayload) => ({error: fals
 export const createDebugDump = (payload: _DebugDumpPayload) => ({error: false, payload, type: debugDump})
 export const createDumpLogs = (payload: _DumpLogsPayload) => ({error: false, payload, type: dumpLogs})
 export const createExtendedConfigLoaded = (payload: _ExtendedConfigLoadedPayload) => ({error: false, payload, type: extendedConfigLoaded})
-export const createGetExtendedStatus = (payload: _GetExtendedStatusPayload) => ({error: false, payload, type: getExtendedStatus})
 export const createGlobalError = (payload: _GlobalErrorPayload) => ({error: false, payload, type: globalError})
 export const createLink = (payload: _LinkPayload) => ({error: false, payload, type: link})
 export const createLoadAvatars = (payload: _LoadAvatarsPayload) => ({error: false, payload, type: loadAvatars})
@@ -180,7 +177,6 @@ export type DaemonHandshakeWaitPayload = $Call<typeof createDaemonHandshakeWait,
 export type DebugDumpPayload = $Call<typeof createDebugDump, _DebugDumpPayload>
 export type DumpLogsPayload = $Call<typeof createDumpLogs, _DumpLogsPayload>
 export type ExtendedConfigLoadedPayload = $Call<typeof createExtendedConfigLoaded, _ExtendedConfigLoadedPayload>
-export type GetExtendedStatusPayload = $Call<typeof createGetExtendedStatus, _GetExtendedStatusPayload>
 export type GlobalErrorPayload = $Call<typeof createGlobalError, _GlobalErrorPayload>
 export type InstallerRanPayload = $Call<typeof createInstallerRan, _InstallerRanPayload>
 export type LinkPayload = $Call<typeof createLink, _LinkPayload>
@@ -218,7 +214,6 @@ export type Actions =
   | DebugDumpPayload
   | DumpLogsPayload
   | ExtendedConfigLoadedPayload
-  | GetExtendedStatusPayload
   | GlobalErrorPayload
   | InstallerRanPayload
   | LinkPayload

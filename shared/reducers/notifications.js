@@ -2,9 +2,6 @@
 import * as Types from '../constants/types/notifications'
 import * as Constants from '../constants/notifications'
 import * as NotificationsGen from '../actions/notifications-gen'
-import * as Tabs from '../constants/tabs'
-import * as RPCTypes from '../constants/types/rpc-gen'
-import {isMobile} from '../constants/platform'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -25,50 +22,13 @@ export default function(state: Types.State = initialState, action: Notifications
       return initialState
     }
     case NotificationsGen.receivedBadgeState: {
-      const {
-        homeTodoItems,
-        conversations,
-        newTlfs,
-        rekeysNeeded,
-        newGitRepoGlobalUniqueIDs,
-        newTeamNames,
-        newTeamAccessRequests,
-        teamsWithResetUsers,
-      } = action.payload.badgeState
-
-      const deviceType = isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop
-      const totalMessages = (conversations || []).reduce(
-        (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${deviceType}`] : total),
-        0
-      )
-      const newGit = (newGitRepoGlobalUniqueIDs || []).length
-      const newTeams =
-        (newTeamNames || []).length +
-        (newTeamAccessRequests || []).length +
-        (teamsWithResetUsers || []).length
-
-      const navBadges = state.get('navBadges').withMutations(n => {
-        n.set(Tabs.chatTab, totalMessages)
-        n.set(Tabs.folderTab, newTlfs + rekeysNeeded)
-        n.set(Tabs.fsTab, newTlfs + rekeysNeeded)
-        n.set(Tabs.gitTab, newGit)
-        n.set(Tabs.teamsTab, newTeams)
-        n.set(Tabs.peopleTab, homeTodoItems)
-      })
-      let newState = state.withMutations(s => {
-        s.set('navBadges', navBadges)
-        s.set('desktopAppBadgeCount', navBadges.reduce((total, val) => total + val, 0))
-        s.set('mobileAppBadgeCount', totalMessages)
-      })
-
-      newState = _updateWidgetBadge(newState)
-      return newState
+      const newState = state.merge(action.payload)
+      return _updateWidgetBadge(newState)
     }
     case NotificationsGen.badgeApp: {
       const {key, on} = action.payload
-      let newState = state.update('keyState', ks => ks.set(key, on))
-      newState = _updateWidgetBadge(newState)
-      return newState
+      const newState = state.update('keyState', ks => ks.set(key, on))
+      return _updateWidgetBadge(newState)
     }
     // Saga only actions
     case NotificationsGen.listenForKBFSNotifications:

@@ -1,88 +1,19 @@
 // @flow
 import logger from '../../logger'
-// import * as KBFSGen from '../kbfs-gen'
-// import * as FsGen from '../fs-gen'
 import * as LoginGen from '../login-gen'
 import * as ConfigGen from '../config-gen'
-import * as Constants from '../../constants/config'
-import * as NotificationsGen from '../notifications-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as PlatformSpecific from '../platform-specific'
 import avatarSaga from './avatar'
 import engine from '../../engine'
 import {type TypedState} from '../../constants/reducer'
-import {throttle} from 'lodash-es'
 
-// Must be an action which returns a promise so put.resolve continues to wait and work
-// TODO could change this to use Take and make it 2 steps instead of using put.resolve()
-// const getExtendedStatus = (): AsyncAction => dispatch => {
-// return new Promise((resolve, reject) => {
-// RPCTypes.configGetExtendedStatusRpcPromise()
-// .then(extendedConfig => {
-// dispatch(ConfigGen.createExtendedConfigLoaded({extendedConfig}))
-// resolve(extendedConfig)
-// })
-// .catch(error => {
-// reject(error)
-// })
-// })
-// }
+const getExtendedStatus = () =>
+  RPCTypes.configGetExtendedStatusRpcPromise().then(extendedConfig =>
+    ConfigGen.createExtendedConfigLoaded({extendedConfig})
+  )
 
-// bootstrap would be a method on an object.
-// let bootstrapSetup = false
-// let didInitialNav = false
-
-// we need to reset this if you log out, else we won't get configured accounts.
-// const clearDidInitialNav = () => {
-// didInitialNav = false
-// }
-
-// Until bootstrap is sagaized
-// function _bootstrap({payload}: ConfigGen.BootstrapPayload) {
-// return Saga.put(bootstrap(payload))
-// }
-
-// const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): AsyncAction => (
-
-// dispatch(NotificationsGen.createListenForKBFSNotifications())
-//
-// if (!didInitialNav) {
-// dispatch(async () => {
-// if (getState().config.loggedIn) {
-// dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
-// // TODO move these to a bootstrapSuccess handler
-// didInitialNav = true
-// )
-// }
-// })
-// }
-// })
-// .catch(error => {
-// logger.warn('[bootstrap] error bootstrapping: ', error)
-// const triesRemaining = getState().config.bootstrapTriesRemaining
-// dispatch(ConfigGen.createBootstrapAttemptFailed())
-// if (triesRemaining > 0) {
-// const retryDelay = Constants.bootstrapRetryDelay / triesRemaining
-// logger.info(`[bootstrap] resetting engine in ${retryDelay / 1000}s (${triesRemaining} tries left)`)
-// setTimeout(() => engine().reset(), retryDelay)
-// } else {
-// logger.error('[bootstrap] exhausted bootstrap retries')
-// dispatch(ConfigGen.createBootstrapFailed())
-// }
-// logger.flush()
-// })
-// }
-// }
-
-// const getConfigOnce = (state: TypedState) =>
-
-// We get a counter for badge state, if we get one that's less than what we've seen we toss it
-let lastBadgeStateVersion = -1
-const throttledDispatch = throttle((dispatch, action) => dispatch(action), 1000, {
-  leading: false,
-  trailing: true,
-})
 const setupEngineListeners = () => {
   engine().setIncomingActionCreators('keybase.1.NotifyTracking.trackingChanged', ({isTracking, username}) => [
     ConfigGen.createUpdateFollowing({isTracking, username}),
@@ -93,32 +24,6 @@ const setupEngineListeners = () => {
     return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
   })
   engine().actionOnConnect('handshake', () => ConfigGen.createStartHandshake())
-
-  engine().setIncomingActionCreators(
-    'keybase.1.NotifyBadges.badgeState',
-    ({badgeState}, _, dispatch, getState) => {
-      // TODO move this to the reducer
-      if (badgeState.inboxVers < lastBadgeStateVersion) {
-        logger.info(
-          `Ignoring older badgeState, got ${badgeState.inboxVers} but have seen ${lastBadgeStateVersion}`
-        )
-        return
-      }
-
-      lastBadgeStateVersion = badgeState.inboxVers
-      const conversations = badgeState.conversations
-      const totalChats = (conversations || []).reduce((total, c) => total + c.unreadMessages, 0)
-      const action = NotificationsGen.createReceivedBadgeState({badgeState})
-      if (totalChats > 0) {
-        // Defer this slightly so we don't get flashing if we're quickly receiving and reading
-        throttledDispatch(dispatch, action)
-      } else {
-        // If clearing go immediately
-        throttledDispatch.cancel()
-        dispatch(action)
-      }
-    }
-  )
 }
 
 // Only do this once
@@ -219,17 +124,12 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.daemonHandshake, loadDaemonConfig)
   yield Saga.actionToAction(ConfigGen.daemonHandshake, loadDaemonBootstrapStatus)
   yield Saga.actionToAction(ConfigGen.daemonHandshake, loadDaemonAccounts)
+  yield Saga.actionToPromise(LoginGen.loggedin, getExtendedStatus)
 
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
-
-  // yield Saga.safeTakeEveryPure(LoginGen.logout, clearDidInitialNav)
-  // yield Saga.safeTakeEveryPure(ConfigGen.bootstrap, _bootstrap)
-  // yield Saga.safeTakeEveryPure(ConfigGen.retryBootstrap, _retryBootstrap)
-  // yield Saga.actionToPromise(ConfigGen.loadConfig, getConfig)
 
   yield Saga.fork(PlatformSpecific.platformConfigSaga)
   yield Saga.fork(avatarSaga)
 }
 
-// export {getExtendedStatus}
 export default configSaga
