@@ -99,7 +99,7 @@ const styles = styleSheetCreate({
     flexWrap: 'wrap',
     // refer to `WrapperAuthor` styles
     marginLeft: 32 + globalMargins.tiny + (isMobile ? globalMargins.tiny : globalMargins.small),
-    paddingRight: 50,
+    paddingRight: 66,
   },
   displayNone: {display: 'none'},
 })
