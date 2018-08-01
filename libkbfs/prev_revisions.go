@@ -23,7 +23,7 @@ type PrevRevisionAndCount struct {
 // corresponding entry in a `PrevRevisions` slice.  The length of
 // `minPrevRevisionSlotCounts` is the max length of a `PrevRevisions`
 // slice.
-var minPrevRevisionSlotCounts = [...]uint8{1, 5, 20, 50, 100}
+var minPrevRevisionSlotCounts = [...]uint8{1, 5, 10, 25, 100}
 
 // PrevRevisions tracks several previous versions of a file in order
 // of descending revision number, starting with the most recent.
@@ -121,16 +121,29 @@ func (pr PrevRevisions) addRevision(
 	}
 
 	// Starting at the end, shift revisions to the right if either a)
-	// they satisfy the count of the slot to the right, or b) that
-	// slot is already empty.
+	// that slot is already empty or b) they satisfy the count of the
+	// slot to the right.  If a revision is not going to shifted, but
+	// it is too close (in terms of count) to the revision on its
+	// right, just drop it and let the other revisions slide over --
+	// this makes sure we have a nicely-spaced set of revision numbers
+	// even when the total number of revisions for the entry is small.
 	//
 	// Continuing the example above, this code will leave us with:
 	//
 	// ret = [0, 25, 15]
 	for i := len(ret) - 1; i >= 1; i-- {
 		// Check if we can shift over the entry in slot i-1.
-		if ret[i].Count == 0 || ret[i-1].Count >= minPrevRevisionSlotCounts[i] {
+		minCount := minPrevRevisionSlotCounts[i]
+		if ret[i].Count == 0 || ret[i-1].Count >= minCount {
 			ret[i], ret[i-1] = ret[i-1], PrevRevisionAndCount{
+				Revision: kbfsmd.RevisionUninitialized,
+				Count:    0,
+			}
+		} else if ret[i].Count-ret[i-1].Count < minCount/5 {
+			// This revision is not being shifted, but it's
+			// uncomfortablely close to its neighbor on the right, so
+			// just drop it.
+			ret[i-1] = PrevRevisionAndCount{
 				Revision: kbfsmd.RevisionUninitialized,
 				Count:    0,
 			}
