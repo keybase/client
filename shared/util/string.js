@@ -6,25 +6,12 @@ function pluralize(str: string): string {
 }
 
 function toStringForLog(a: any): string {
-  const t = typeof a
-  switch (t) {
+  switch (typeof a) {
     case 'undefined':
       return 'undefined'
 
-    case 'boolean':
-      return a.toString()
-
-    case 'number':
-      return a.toString()
-
     case 'string':
       return a
-
-    case 'function':
-      return a.toString()
-
-    case 'symbol':
-      return a.toString()
 
     case 'object':
       // Includes null.
@@ -33,13 +20,19 @@ function toStringForLog(a: any): string {
       }
       return JSON.stringify(a)
 
+    case 'boolean':
+    // Fall through.
+    case 'number':
+    // Fall through.
+    case 'function':
+    // Fall through.
     default:
       // Symbol (which flow doesn't recognize) or some
       // implementation-defined thing.
       if (a.toString) {
         return a.toString()
       }
-      return `Failed to turn item of type ${t} to string in toStringForLog`
+      return `Failed to turn item of type ${typeof a} to string in toStringForLog`
   }
 }
 
