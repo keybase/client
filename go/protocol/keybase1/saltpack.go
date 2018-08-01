@@ -8,13 +8,46 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type AuthenticityType int
+
+const (
+	AuthenticityType_SIGNED     AuthenticityType = 0
+	AuthenticityType_REPUDIABLE AuthenticityType = 1
+	AuthenticityType_ANONYMOUS  AuthenticityType = 2
+)
+
+func (o AuthenticityType) DeepCopy() AuthenticityType { return o }
+
+var AuthenticityTypeMap = map[string]AuthenticityType{
+	"SIGNED":     0,
+	"REPUDIABLE": 1,
+	"ANONYMOUS":  2,
+}
+
+var AuthenticityTypeRevMap = map[AuthenticityType]string{
+	0: "SIGNED",
+	1: "REPUDIABLE",
+	2: "ANONYMOUS",
+}
+
+func (e AuthenticityType) String() string {
+	if v, ok := AuthenticityTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type SaltpackEncryptOptions struct {
-	Recipients         []string `codec:"recipients" json:"recipients"`
-	AnonymousSender    bool     `codec:"anonymousSender" json:"anonymousSender"`
-	EncryptionOnlyMode bool     `codec:"encryptionOnlyMode" json:"encryptionOnlyMode"`
-	NoSelfEncrypt      bool     `codec:"noSelfEncrypt" json:"noSelfEncrypt"`
-	Binary             bool     `codec:"binary" json:"binary"`
-	SaltpackVersion    int      `codec:"saltpackVersion" json:"saltpackVersion"`
+	Recipients                []string         `codec:"recipients" json:"recipients"`
+	TeamRecipients            []string         `codec:"teamRecipients" json:"teamRecipients"`
+	AuthenticityType          AuthenticityType `codec:"authenticityType" json:"authenticityType"`
+	UseEntityKeys             bool             `codec:"useEntityKeys" json:"useEntityKeys"`
+	UseDeviceKeys             bool             `codec:"useDeviceKeys" json:"useDeviceKeys"`
+	UsePaperKeys              bool             `codec:"usePaperKeys" json:"usePaperKeys"`
+	NoSelfEncrypt             bool             `codec:"noSelfEncrypt" json:"noSelfEncrypt"`
+	Binary                    bool             `codec:"binary" json:"binary"`
+	SaltpackVersion           int              `codec:"saltpackVersion" json:"saltpackVersion"`
+	UseKBFSKeysOnlyForTesting bool             `codec:"useKBFSKeysOnlyForTesting" json:"useKBFSKeysOnlyForTesting"`
 }
 
 func (o SaltpackEncryptOptions) DeepCopy() SaltpackEncryptOptions {
@@ -30,11 +63,25 @@ func (o SaltpackEncryptOptions) DeepCopy() SaltpackEncryptOptions {
 			}
 			return ret
 		})(o.Recipients),
-		AnonymousSender:    o.AnonymousSender,
-		EncryptionOnlyMode: o.EncryptionOnlyMode,
-		NoSelfEncrypt:      o.NoSelfEncrypt,
-		Binary:             o.Binary,
-		SaltpackVersion:    o.SaltpackVersion,
+		TeamRecipients: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.TeamRecipients),
+		AuthenticityType:          o.AuthenticityType.DeepCopy(),
+		UseEntityKeys:             o.UseEntityKeys,
+		UseDeviceKeys:             o.UseDeviceKeys,
+		UsePaperKeys:              o.UsePaperKeys,
+		NoSelfEncrypt:             o.NoSelfEncrypt,
+		Binary:                    o.Binary,
+		SaltpackVersion:           o.SaltpackVersion,
+		UseKBFSKeysOnlyForTesting: o.UseKBFSKeysOnlyForTesting,
 	}
 }
 

@@ -354,17 +354,25 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		ret := NoPGPEncryptionKeyError{User: s.Desc}
 		for _, field := range s.Fields {
 			switch field.Key {
-			case "device":
-				ret.HasDeviceKey = true
+			case "HasKeybaseEncryptionKey":
+				ret.HasKeybaseEncryptionKey = true
 			}
 		}
 		return ret
 	case SCKeyNoNaClEncryption:
-		ret := NoNaClEncryptionKeyError{User: s.Desc}
+		ret := NoNaClEncryptionKeyError{}
 		for _, field := range s.Fields {
 			switch field.Key {
-			case "pgp":
+			case "Username":
+				ret.Username = field.Value
+			case "HasPGPKey":
 				ret.HasPGPKey = true
+			case "HasPUK":
+				ret.HasPUK = true
+			case "HasPaperKey":
+				ret.HasPaperKey = true
+			case "HasDeviceKey":
+				ret.HasDeviceKey = true
 			}
 		}
 		return ret
@@ -1757,9 +1765,9 @@ func (e NoPGPEncryptionKeyError) ToStatus() keybase1.Status {
 		Name: "SC_KEY_NO_PGP_ENCRYPTION",
 		Desc: e.User,
 	}
-	if e.HasDeviceKey {
+	if e.HasKeybaseEncryptionKey {
 		ret.Fields = []keybase1.StringKVPair{
-			{Key: "device", Value: "1"},
+			{Key: "HasKeybaseEncryptionKey", Value: "1"},
 		}
 	}
 	return ret
@@ -1769,12 +1777,22 @@ func (e NoNaClEncryptionKeyError) ToStatus() keybase1.Status {
 	ret := keybase1.Status{
 		Code: SCKeyNoNaClEncryption,
 		Name: "SC_KEY_NO_NACL_ENCRYPTION",
-		Desc: e.User,
+		Desc: e.Error(),
 	}
+
+	ret.Fields = []keybase1.StringKVPair{{Key: "Username", Value: e.Username}}
+
 	if e.HasPGPKey {
-		ret.Fields = []keybase1.StringKVPair{
-			{Key: "pgp", Value: "1"},
-		}
+		ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "HasPGPKey", Value: "1"})
+	}
+	if e.HasPUK {
+		ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "HasPUK", Value: "1"})
+	}
+	if e.HasDeviceKey {
+		ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "HasDeviceKey", Value: "1"})
+	}
+	if e.HasPaperKey {
+		ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "HasPaperKey", Value: "1"})
 	}
 	return ret
 }
