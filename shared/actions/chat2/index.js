@@ -2219,7 +2219,7 @@ const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, st
       tlfPublic: false,
     }),
     Saga.put(
-      Chat2Gen.createAddPendingReaction({
+      Chat2Gen.createToggleLocalReaction({
         conversationIDKey,
         emoji,
         outboxID: Types.rpcOutboxIDToOutboxID(outboxID),

@@ -229,8 +229,9 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString"
     },
-    "addPendingReaction": {
-      "_description": "Store a pending reaction with an outboxID.",
+    "toggleLocalReaction": {
+      "_description":
+        "Either store a pending reaction with an outboxID or remove an existing pending reaction from our map.",
       "conversationIDKey": "Types.ConversationIDKey",
       "emoji": "string",
       "outboxID": "Types.OutboxID",
@@ -238,7 +239,7 @@
       "username": "string"
     },
     "toggleMessageReaction": {
-      "_description": "Toggle a reaction on a message.",
+      "_description": "Tell the service to toggle a reaction on a message.",
       "conversationIDKey": "Types.ConversationIDKey",
       "emoji": "string",
       "ordinal": "Types.Ordinal"

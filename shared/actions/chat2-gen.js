@@ -11,7 +11,6 @@ import type {RetentionPolicy} from '../constants/types/teams'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer
-export const addPendingReaction = 'chat2:addPendingReaction'
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
 export const attachmentLoading = 'chat2:attachmentLoading'
@@ -76,6 +75,7 @@ export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setPendingMode = 'chat2:setPendingMode'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
+export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
@@ -85,13 +85,6 @@ export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
 export const updateTypers = 'chat2:updateTypers'
 
 // Payload Types
-type _AddPendingReactionPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  emoji: string,
-  outboxID: Types.OutboxID,
-  targetOrdinal: Types.Ordinal,
-  username: string,
-|}>
 type _AttachmentDownloadPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,
@@ -322,6 +315,13 @@ type _SetPendingModePayload = $ReadOnly<{|
 |}>
 type _SetupChatHandlersPayload = void
 type _StaticConfigLoadedPayload = $ReadOnly<{|staticConfig: Types.StaticConfig|}>
+type _ToggleLocalReactionPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  emoji: string,
+  outboxID: Types.OutboxID,
+  targetOrdinal: Types.Ordinal,
+  username: string,
+|}>
 type _ToggleMessageReactionPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   emoji: string,
@@ -359,6 +359,10 @@ export const createUpdateConvRetentionPolicy = (payload: _UpdateConvRetentionPol
  * Consume a service notification that a team retention policy was updated
  */
 export const createUpdateTeamRetentionPolicy = (payload: _UpdateTeamRetentionPolicyPayload) => ({error: false, payload, type: updateTeamRetentionPolicy})
+/**
+ * Either store a pending reaction with an outboxID or remove an existing pending reaction from our map.
+ */
+export const createToggleLocalReaction = (payload: _ToggleLocalReactionPayload) => ({error: false, payload, type: toggleLocalReaction})
 /**
  * Exploding messages expired or were manually detonated.
  */
@@ -400,11 +404,7 @@ export const createHandleSeeingExplodingMessages = (payload: _HandleSeeingExplod
  */
 export const createStaticConfigLoaded = (payload: _StaticConfigLoadedPayload) => ({error: false, payload, type: staticConfigLoaded})
 /**
- * Store a pending reaction with an outboxID.
- */
-export const createAddPendingReaction = (payload: _AddPendingReactionPayload) => ({error: false, payload, type: addPendingReaction})
-/**
- * Toggle a reaction on a message.
+ * Tell the service to toggle a reaction on a message.
  */
 export const createToggleMessageReaction = (payload: _ToggleMessageReactionPayload) => ({error: false, payload, type: toggleMessageReaction})
 /**
@@ -468,7 +468,6 @@ export const createUpdateNotificationSettings = (payload: _UpdateNotificationSet
 export const createUpdateTypers = (payload: _UpdateTypersPayload) => ({error: false, payload, type: updateTypers})
 
 // Action Payloads
-export type AddPendingReactionPayload = $Call<typeof createAddPendingReaction, _AddPendingReactionPayload>
 export type AttachmentDownloadPayload = $Call<typeof createAttachmentDownload, _AttachmentDownloadPayload>
 export type AttachmentDownloadedPayload = $Call<typeof createAttachmentDownloaded, _AttachmentDownloadedPayload>
 export type AttachmentLoadingPayload = $Call<typeof createAttachmentLoading, _AttachmentLoadingPayload>
@@ -533,6 +532,7 @@ export type SetPendingConversationUsersPayload = $Call<typeof createSetPendingCo
 export type SetPendingModePayload = $Call<typeof createSetPendingMode, _SetPendingModePayload>
 export type SetupChatHandlersPayload = $Call<typeof createSetupChatHandlers, _SetupChatHandlersPayload>
 export type StaticConfigLoadedPayload = $Call<typeof createStaticConfigLoaded, _StaticConfigLoadedPayload>
+export type ToggleLocalReactionPayload = $Call<typeof createToggleLocalReaction, _ToggleLocalReactionPayload>
 export type ToggleMessageReactionPayload = $Call<typeof createToggleMessageReaction, _ToggleMessageReactionPayload>
 export type UpdateConvExplodingModesPayload = $Call<typeof createUpdateConvExplodingModes, _UpdateConvExplodingModesPayload>
 export type UpdateConvRetentionPolicyPayload = $Call<typeof createUpdateConvRetentionPolicy, _UpdateConvRetentionPolicyPayload>
@@ -544,7 +544,6 @@ export type UpdateTypersPayload = $Call<typeof createUpdateTypers, _UpdateTypers
 // All Actions
 // prettier-ignore
 export type Actions =
-  | AddPendingReactionPayload
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload
   | AttachmentLoadingPayload
@@ -609,6 +608,7 @@ export type Actions =
   | SetPendingModePayload
   | SetupChatHandlersPayload
   | StaticConfigLoadedPayload
+  | ToggleLocalReactionPayload
   | ToggleMessageReactionPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload

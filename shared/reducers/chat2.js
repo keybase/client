@@ -629,7 +629,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         })
       )
     }
-    case Chat2Gen.addPendingReaction: {
+    case Chat2Gen.toggleLocalReaction: {
       const {conversationIDKey, emoji, outboxID, targetOrdinal, username} = action.payload
       return state.update('messageMap', messageMap =>
         messageMap.update(conversationIDKey, I.Map(), (map: I.Map<Types.Ordinal, Types.Message>) => {
@@ -641,9 +641,21 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             // $FlowIssue thinks `message` is the inner type
             return message.set(
               'reactions',
-              reactions.update(emoji, I.Set(), rs =>
-                rs.add(Constants.makeReaction({outboxID, timestamp: Date.now(), username}))
-              )
+              reactions.withMutations(reactionMap => {
+                reactionMap.update(emoji, I.Set(), rs => {
+                  const existing = rs.find(r => r.username === username)
+                  if (existing) {
+                    // found an existing reaction. remove it from our list
+                    return rs.delete(existing)
+                  }
+                  // no existing reaction. add this one to the map
+                  return rs.add(Constants.makeReaction({outboxID, timestamp: Date.now(), username}))
+                })
+                const newSet = reactionMap.get(emoji)
+                if (newSet && newSet.size === 0) {
+                  reactionMap.delete(emoji)
+                }
+              })
             )
           })
         })
