@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {globalStyles, globalColors, globalMargins, platformStyles, isMobile, glamorous} from '../../styles'
-import rowStyles from './styles'
+import {rowStyles} from './styles'
 import {Icon, ClickableBox, Input, Box, Button, Text} from '../../common-adapters'
 import PathItemIcon from '../common/path-item-icon'
 

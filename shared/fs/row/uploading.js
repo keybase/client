@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {globalColors, isMobile} from '../../styles'
-import rowStyles from './styles'
+import {rowStyles} from './styles'
 import {Box, Icon, Meta, Text} from '../../common-adapters'
 import PathItemIcon from '../common/path-item-icon'
 
@@ -39,7 +39,7 @@ const Uploading = (props: UploadingProps) => (
     <Box key="main" style={rowStyles.itemBox}>
       <Text
         type={props.itemStyles.textType}
-        style={rowStyles.rowText_30(props.itemStyles.textColor)}
+        style={{...rowStyles.rowText_30, color: props.itemStyles.textColor}}
         lineClamp={isMobile ? 1 : undefined}
       >
         {props.name}
