@@ -10,6 +10,9 @@
       "count?": "number"
     },
     "receivedBadgeState": {
+      "badgeState": "RPCTypes.BadgeState"
+    },
+    "setAppBadgeState": {
       "desktopAppBadgeCount": "number",
       "mobileAppBadgeCount": "number",
       "navBadges": "I.Map<Tabs.Tab, number>",

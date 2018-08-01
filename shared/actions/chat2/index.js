@@ -8,6 +8,7 @@ import * as I from 'immutable'
 import * as KBFSGen from '../kbfs-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as NotificationsGen from '../notifications-gen'
 import * as Route from '../route-tree'
 import * as Saga from '../../util/saga'
 import * as SearchConstants from '../../constants/search'
@@ -2231,6 +2232,9 @@ const handleFilePickerError = (action: Chat2Gen.FilePickerErrorPayload) => {
   throw action.payload.error
 }
 
+const receivedBadgeState = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) =>
+  Saga.put(Chat2Gen.createBadgesUpdated({conversations: action.payload.badgeState.conversations || []}))
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -2367,6 +2371,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.daemonHandshake, loadStaticConfig)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
   yield Saga.safeTakeEveryPure(Chat2Gen.filePickerError, handleFilePickerError)
+  yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
 }
 
 export default chat2Saga

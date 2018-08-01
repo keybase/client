@@ -18,21 +18,19 @@ const _updateWidgetBadge = (s: Types.State): Types.State => {
 
 export default function(state: Types.State = initialState, action: NotificationsGen.Actions): Types.State {
   switch (action.type) {
-    case NotificationsGen.resetStore: {
+    case NotificationsGen.resetStore:
       return initialState
-    }
-    case NotificationsGen.receivedBadgeState: {
+    case NotificationsGen.setAppBadgeState:
       const newState = state.merge(action.payload)
       return _updateWidgetBadge(newState)
-    }
     case NotificationsGen.badgeApp: {
-      const {key, on} = action.payload
-      const newState = state.update('keyState', ks => ks.set(key, on))
+      const newState = state.update('keyState', ks => ks.set(action.payload.key, action.payload.on))
       return _updateWidgetBadge(newState)
     }
     // Saga only actions
     case NotificationsGen.listenForKBFSNotifications:
     case NotificationsGen.listenForNotifications:
+    case NotificationsGen.receivedBadgeState:
       return state
     default:
       /*::

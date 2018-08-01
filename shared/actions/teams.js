@@ -15,6 +15,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as RouteTypes from '../constants/types/route-tree'
 import * as RouteConstants from '../constants/route-tree'
+import * as NotificationsGen from './notifications-gen'
 import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as WaitingGen from './waiting-gen'
@@ -1246,6 +1247,15 @@ const _onTabChange = (action: RouteTypes.SwitchTo) => {
   }
 }
 
+const receivedBadgeState = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) =>
+  Saga.put(
+    TeamsGen.createBadgeAppForTeams({
+      newTeamAccessRequests: action.payload.badgeState.newTeamAccessRequests || [],
+      newTeamNames: action.payload.badgeState.newTeamNames || [],
+      teamsWithResetUsers: action.payload.badgeState.teamsWithResetUsers || [],
+    })
+  )
+
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.leaveTeam, _leaveTeam)
   yield Saga.safeTakeEveryPure(TeamsGen.createNewTeam, _createNewTeam)
@@ -1287,6 +1297,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.updateTeamRetentionPolicy, _updateTeamRetentionPolicy)
   yield Saga.safeTakeEvery(TeamsGen.addTeamWithChosenChannels, _addTeamWithChosenChannels)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+  yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
 }
 
 export default teamsSaga

@@ -1,15 +1,13 @@
 // @flow
 import * as Constants from '../constants/notifications'
-import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
-import * as GitGen from './git-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
-import * as TeamsGen from './teams-gen'
 import {getEngine} from '../engine'
 import logger from '../logger'
 import {isMobile} from '../constants/platform'
+import type {TypedState} from '../constants/reducer'
 
 const setupEngineListeners = () => {
   const channels = {
@@ -46,33 +44,13 @@ const setupEngineListeners = () => {
 
   getEngine().setIncomingActionCreators(
     'keybase.1.NotifyBadges.badgeState',
-    ({badgeState}, _: any, getState) => {
-      const payload = Constants.badgeStateToBadges(badgeState, getState())
-      return payload ? [NotificationsGen.createReceivedBadgeState(payload)] : null
-    }
+    ({badgeState}, _: any, getState) => [NotificationsGen.createReceivedBadgeState({badgeState})]
   )
 }
 
-// TODO fix this
-const receivedBadgeState = (_: any, action: NotificationsGen.ReceivedBadgeStatePayload) => {
-  const {
-    conversations,
-    newGitRepoGlobalUniqueIDs,
-    newTeamNames,
-    newTeamAccessRequests,
-    teamsWithResetUsers,
-  } = action.payload.badgeState
-  return Saga.sequentially([
-    Saga.put(Chat2Gen.createBadgesUpdated({conversations: conversations || []})),
-    Saga.put(GitGen.createBadgeAppForGit({ids: newGitRepoGlobalUniqueIDs || []})),
-    Saga.put(
-      TeamsGen.createBadgeAppForTeams({
-        newTeamAccessRequests: newTeamAccessRequests || [],
-        newTeamNames: newTeamNames || [],
-        teamsWithResetUsers: teamsWithResetUsers || [],
-      })
-    ),
-  ])
+const receivedBadgeState = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) => {
+  const payload = Constants.badgeStateToBadges(action.payload.badgeState, state)
+  return payload ? Saga.put(NotificationsGen.createSetAppBadgeState(payload)) : null
 }
 
 function* notificationsSaga(): Saga.SagaGenerator<any, any> {
