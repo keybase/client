@@ -183,17 +183,17 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 		r.Debug(ctx, "serve: android client detected, showing the HTML video viewer")
 		w.Header().Set("Content-Type", "text/html")
 		if _, err := w.Write([]byte(fmt.Sprintf(`
-		<html>
-			<head>
-				<title>Keybase Video Viewer</title>
-			</head>
-			<body>
-				<video width="320" height="240" src="%s" controls autoplay>
-					Your browser does not support the video tag.
-				  </video>
-			</body>
-		</html>
-	`, req.URL.String()+"&contentforce=true"))); err != nil {
+			<html>
+				<head>
+					<title>Keybase Video Viewer</title>
+				</head>
+				<body>
+					<video width="320" height="240" src="%s" controls autoplay>
+						Your browser does not support the video tag.
+					</video>
+				</body>
+			</html>
+		`, req.URL.String()+"&contentforce=true"))); err != nil {
 			r.Debug(ctx, "serve: failed to write HTML video player: %s", err)
 		}
 		return true
