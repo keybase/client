@@ -1,3 +1,0 @@
-// @flow
-declare var stories: {[key: string]: () => void}
-export default stories

@@ -14,7 +14,6 @@ import {
 } from '../common-adapters/mobile.native'
 import {NavigationActions, type NavigationAction} from 'react-navigation'
 import {chatTab, loginTab} from '../constants/tabs'
-import {compose} from 'recompose'
 import {connect, type TypedState} from '../util/container'
 import {globalColors, globalStyles, statusBarHeight, styleSheetCreate} from '../styles'
 import {addSizeListener} from '../styles/status-bar'
@@ -390,4 +389,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps))(Nav)
+export default connect(mapStateToProps, mapDispatchToProps)(Nav)
