@@ -27,7 +27,7 @@ export default class extends React.Component<Props> {
   render() {
     return (
       <MaybePopup onClose={this.props.onClose}>
-        <Box2 direction="vertical" style={styles.container}>
+        <Box2 direction="vertical" style={styles.container} centerChildren={true}>
           <Icon
             type={isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
             style={iconCastPlatformStyles(styles.icon)}
@@ -57,11 +57,12 @@ const styles = styleSheetCreate({
   container: platformStyles({
     common: {
       alignItems: 'center',
-      maxWidth: 460,
       paddingLeft: globalMargins.medium,
       paddingRight: globalMargins.medium,
     },
     isElectron: {
+      height: 525,
+      width: 360,
       paddingBottom: globalMargins.xlarge,
       paddingTop: globalMargins.xlarge,
       textAlign: 'center',
