@@ -960,7 +960,8 @@ func TestGetRevisions(t *testing.T) {
 	path := keybase1.NewPathWithKbfs(`/private/jdoe`)
 	filePath := pathAppend(path, `test1.txt`)
 
-	checkRevisions := func(numDone int, spanType keybase1.RevisionSpanType) {
+	getRevisions := func(
+		spanType keybase1.RevisionSpanType) keybase1.GetRevisionsResult {
 		opid, err := sfs.SimpleFSMakeOpid(ctx)
 		require.NoError(t, err)
 		err = sfs.SimpleFSGetRevisions(ctx, keybase1.SimpleFSGetRevisionsArg{
@@ -975,25 +976,32 @@ func TestGetRevisions(t *testing.T) {
 		require.NoError(t, err)
 		err = sfs.SimpleFSClose(ctx, opid)
 		require.NoError(t, err)
+		return res
+	}
 
-		if numDone < 5 {
-			require.Len(t, res.Revisions, numDone)
-		} else {
-			require.Len(t, res.Revisions, 5)
-		}
+	gcJump := config.Mode().QuotaReclamationMinUnrefAge() + 1*time.Second
+	checkRevisions := func(
+		numExpected, newestRev int, spanType keybase1.RevisionSpanType) {
+		res := getRevisions(spanType)
+		require.Len(t, res.Revisions, numExpected)
+		t.Log(res.Revisions)
+
 		// Default should get the most recent one, and then the 4
 		// earliest ones, while LAST_FIVE should get the last five.
 		expectedTime := clock.Now()
-		expectedRev := keybase1.KBFSRevision(1 + numDone)
+		expectedRev := keybase1.KBFSRevision(newestRev)
 		for i, r := range res.Revisions {
-			require.Equal(t, keybase1.ToTime(expectedTime), r.Entry.Time)
+			require.Equal(t, keybase1.ToTime(expectedTime), r.Entry.Time, fmt.Sprintf("%d %d", i, r.Revision))
 			require.Equal(t, expectedRev, r.Revision)
 			expectedTime = expectedTime.Add(-1 * time.Minute)
 			expectedRev--
-			if numDone > 5 && i == 3 &&
+			// Adjust for the skip-list when the list is full.
+			if newestRev == 7 && i == 3 &&
 				spanType == keybase1.RevisionSpanType_DEFAULT {
 				expectedTime = expectedTime.Add(-1 * time.Minute)
 				expectedRev--
+			} else if newestRev == 9 && i == 0 {
+				expectedTime = expectedTime.Add(-gcJump)
 			}
 		}
 	}
@@ -1003,7 +1011,31 @@ func TestGetRevisions(t *testing.T) {
 		clock.Add(1 * time.Minute)
 		writeRemoteFile(ctx, t, sfs, filePath, []byte{byte(i)})
 		syncFS(ctx, t, sfs, "/private/jdoe")
-		checkRevisions(i+1, keybase1.RevisionSpanType_DEFAULT)
-		checkRevisions(i+1, keybase1.RevisionSpanType_LAST_FIVE)
+		numExpected := i + 1
+		if numExpected > 5 {
+			numExpected = 5
+		}
+		checkRevisions(numExpected, i+2, keybase1.RevisionSpanType_DEFAULT)
+		checkRevisions(numExpected, i+2, keybase1.RevisionSpanType_LAST_FIVE)
 	}
+
+	t.Log("Jump the clock forward and force quota reclamation")
+	clock.Add(gcJump)
+	fb, _, err := sfs.getFolderBranchFromPath(ctx, path)
+	require.NoError(t, err)
+	libkbfs.ForceQuotaReclamationForTesting(config, fb)
+	err = config.KBFSOps().SyncFromServer(ctx, fb, nil)
+	require.NoError(t, err)
+	syncFS(ctx, t, sfs, "/private/jdoe")
+
+	t.Log("Make a new revision after QR")
+	clock.Add(1 * time.Minute)
+	writeRemoteFile(ctx, t, sfs, filePath, []byte{6})
+	syncFS(ctx, t, sfs, "/private/jdoe")
+
+	// Now we should be able to see two revisions, since the previous
+	// version was live at the time of QR.
+	newestRev := 9 /* Last file revision was at 7, plus one for GC */
+	checkRevisions(2, newestRev, keybase1.RevisionSpanType_DEFAULT)
+	checkRevisions(2, newestRev, keybase1.RevisionSpanType_LAST_FIVE)
 }

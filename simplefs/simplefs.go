@@ -1418,7 +1418,7 @@ func (k *SimpleFS) doGetRevisions(
 	k.log.CDebugf(ctx, "Getting revisions for path %s, spanType=%s",
 		path, spanType)
 
-	// Both span types return 5 revisions.
+	// Both span types return up to 5 revisions.
 	k.setProgressTotals(opID, 0, 5)
 
 	fi, prs, err := k.getRevisionsFromPath(ctx, path)
@@ -1494,7 +1494,7 @@ func (k *SimpleFS) doGetRevisions(
 					// should uncover by looking up `lastRevision-1`.
 					return nil, simpleFSError{fmt.Sprintf(
 						"Revision %s unexpectedly lists no previous revisions",
-						lastRevision)}
+						lastRevision-1)}
 				}
 				rev = prevPRs[0].Revision
 				prs = prevPRs
@@ -1517,6 +1517,22 @@ func (k *SimpleFS) doGetRevisions(
 	default:
 		return nil, simpleFSError{
 			fmt.Sprintf("Unknown span type: %s", spanType)}
+	}
+
+	if len(revPaths) < 4 {
+		// See if the final revision has a predecessor that's
+		// still live, to fill out the list of 5.  An older
+		// revision could have slid off the previous revisions
+		// list because that revision was garbage-collected, but
+		// that doesn't guarantee that the older revision of the
+		// file was garabge-collected too (since it was created,
+		// not deleted, as of that garbage-collected revision).
+		p := keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
+			Path: pathStr,
+			ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(
+				keybase1.KBFSRevision(prs[len(prs)-1].Revision - 1)),
+		})
+		revPaths = append(revPaths, p)
 	}
 
 	// Now that we have all the paths we need, stat them one-by-one.
@@ -1543,6 +1559,11 @@ func (k *SimpleFS) doGetRevisions(
 		}
 		// Use LStat so we don't follow symlinks.
 		fi, err := fs.Lstat(finalElem)
+		if os.IsNotExist(err) {
+			k.log.CDebugf(ctx, "Ran out of revisions as of %d",
+				p.KbfsArchived().ArchivedParam.Revision())
+			return nil
+		}
 		if err != nil {
 			return err
 		}
