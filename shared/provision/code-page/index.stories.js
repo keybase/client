@@ -5,7 +5,8 @@ import CodePage2 from '.'
 import QRScanNotAuthorized from './qr-scan/not-authorized'
 import {Box2} from '../../common-adapters'
 
-const textCode = 'scrub disagree sheriff holiday cabin habit mushroom member four'
+const textCodeShort = 'scrub disagree sheriff holiday cabin habit mushroom member'
+const textCodeLong = textCodeShort + ' four'
 // Not using the container on purpose since i want every variant
 const derivedProps = (
   currentDeviceAlreadyProvisioned,
@@ -27,7 +28,7 @@ const derivedProps = (
     onSubmitTextCode: Sb.action('onSubmitTextCode'),
     otherDeviceName,
     otherDeviceType,
-    textCode,
+    textCode: otherDeviceType === 'mobile' || currentDeviceType === 'mobile' ? textCodeLong : textCodeShort,
   }
 }
 
