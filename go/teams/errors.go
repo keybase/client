@@ -235,6 +235,10 @@ func IsTeamReadError(err error) bool {
 	return false
 }
 
+func FixupTeamGetError(ctx context.Context, g *libkb.GlobalContext, e error, teamDescriptor string, publicTeam bool) error {
+	return fixupTeamGetError(ctx, g, e, teamDescriptor, publicTeam)
+}
+
 func fixupTeamGetError(ctx context.Context, g *libkb.GlobalContext, e error, teamDescriptor string, publicTeam bool) error {
 	if e == nil {
 		return nil
@@ -245,9 +249,10 @@ func fixupTeamGetError(ctx context.Context, g *libkb.GlobalContext, e error, tea
 		case keybase1.StatusCode_SCTeamReadError:
 			g.Log.CDebugf(ctx, "replacing error: %v", e)
 			e.Desc = fmt.Sprintf("You are not a member of team %q; try `keybase team request-access %s` for access", teamDescriptor, teamDescriptor)
+			return e
 		case keybase1.StatusCode_SCTeamNotFound:
+			g.Log.CDebugf(ctx, "replacing error: %v", e)
 			return NewTeamDoesNotExistError(publicTeam, teamDescriptor)
-		default:
 		}
 	case TeamDoesNotExistError:
 		// Replace the not found error so that it has a name instead of team ID.

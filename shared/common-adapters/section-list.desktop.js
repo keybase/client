@@ -64,7 +64,7 @@ class SectionList extends React.Component<Props, State> {
     }
     const indexWithinSection = section.data.indexOf(item.item)
     return item.type === 'header' ? (
-      <Box key={item.key || key} style={styles.sectionHeader}>
+      <Box key={item.key || key} style={this.props.stickySectionHeadersEnabled && styles.stickySectionHeader}>
         {this.props.renderSectionHeader({section})}
       </Box>
     ) : (
@@ -85,7 +85,7 @@ const styles = styleSheetCreate({
   fullHeight: {
     height: '100%',
   },
-  sectionHeader: platformStyles({
+  stickySectionHeader: platformStyles({
     isElectron: {
       position: 'sticky',
       top: 0,
