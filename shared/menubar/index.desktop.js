@@ -277,8 +277,8 @@ const BadgeIcon = ({
       style={{...desktopStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}
       onClick={() => openApp(tab)}
     >
-      <Icon color={globalColors.darkBlue4} fontSize={20} type={iconType} />
-      {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', left: 18, top: 0}} />}
+      <Icon color={globalColors.darkBlue4} fontSize={22} type={iconType} />
+      {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', left: 14, top: -2}} />}
     </Box>
   )
 }
