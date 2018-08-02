@@ -1,13 +1,10 @@
 // @flow
 import * as React from 'react'
+import * as Sb from '../../stories/storybook'
 import FloatingMenu from '.'
-import {storiesOf, createPropProvider, action} from '../../stories/storybook'
-import * as PropProviders from '../../stories/prop-providers'
-
-const provider = createPropProvider(PropProviders.Common())
 
 const commonItemProps = {
-  onClick: action('onItemClick'),
+  onClick: Sb.action('onItemClick'),
 }
 
 const commonItems = [
@@ -18,14 +15,13 @@ const commonItems = [
 ]
 
 const commonProps = {
-  onHidden: action('onHidden'),
+  onHidden: Sb.action('onHidden'),
   visible: true,
   items: commonItems,
 }
 
 const load = () => {
-  storiesOf('Common/FloatingMenu', module)
-    .addDecorator(provider)
+  Sb.storiesOf('Common/FloatingMenu', module)
     .add('Simple', () => <FloatingMenu {...commonProps} />)
     .add('Complex', () => (
       <FloatingMenu

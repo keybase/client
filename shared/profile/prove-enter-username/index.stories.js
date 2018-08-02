@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Styles from '../../styles'
 import {Box} from '../../common-adapters'
 import {action, storiesOf} from '../../stories/storybook'
 import Render from '.'
@@ -15,7 +16,7 @@ const props = {
 }
 
 const ProveEnterUsername = props => (
-  <Box style={{display: 'flex', height: 580, minWidth: 640}}>
+  <Box style={{display: 'flex', height: 580, minWidth: Styles.isMobile ? undefined : 640}}>
     <Render {...props} />
   </Box>
 )
