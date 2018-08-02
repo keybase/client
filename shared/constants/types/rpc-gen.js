@@ -342,6 +342,8 @@ export const homeHomeScreenTodoType = {
   folder: 8,
   gitRepo: 9,
   teamShowcase: 10,
+  avatarUser: 11,
+  avatarTeam: 12,
 }
 
 export const identifyCommonIdentifyReasonType = {
@@ -1252,6 +1254,8 @@ export type HomeScreenTodoType =
   | 8 // FOLDER_8
   | 9 // GIT_REPO_9
   | 10 // TEAM_SHOWCASE_10
+  | 11 // AVATAR_USER_11
+  | 12 // AVATAR_TEAM_12
 
 export type HomeUIHomeUIRefreshRpcParam = void
 export type HomeUserSummary = $ReadOnly<{uid: UID, username: String, bio: String, fullName: String, pics?: ?Pics}>

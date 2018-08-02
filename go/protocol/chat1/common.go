@@ -1608,19 +1608,21 @@ func (o InboxView) DeepCopy() InboxView {
 type RetentionPolicyType int
 
 const (
-	RetentionPolicyType_NONE    RetentionPolicyType = 0
-	RetentionPolicyType_RETAIN  RetentionPolicyType = 1
-	RetentionPolicyType_EXPIRE  RetentionPolicyType = 2
-	RetentionPolicyType_INHERIT RetentionPolicyType = 3
+	RetentionPolicyType_NONE      RetentionPolicyType = 0
+	RetentionPolicyType_RETAIN    RetentionPolicyType = 1
+	RetentionPolicyType_EXPIRE    RetentionPolicyType = 2
+	RetentionPolicyType_INHERIT   RetentionPolicyType = 3
+	RetentionPolicyType_EPHEMERAL RetentionPolicyType = 4
 )
 
 func (o RetentionPolicyType) DeepCopy() RetentionPolicyType { return o }
 
 var RetentionPolicyTypeMap = map[string]RetentionPolicyType{
-	"NONE":    0,
-	"RETAIN":  1,
-	"EXPIRE":  2,
-	"INHERIT": 3,
+	"NONE":      0,
+	"RETAIN":    1,
+	"EXPIRE":    2,
+	"INHERIT":   3,
+	"EPHEMERAL": 4,
 }
 
 var RetentionPolicyTypeRevMap = map[RetentionPolicyType]string{
@@ -1628,6 +1630,7 @@ var RetentionPolicyTypeRevMap = map[RetentionPolicyType]string{
 	1: "RETAIN",
 	2: "EXPIRE",
 	3: "INHERIT",
+	4: "EPHEMERAL",
 }
 
 func (e RetentionPolicyType) String() string {
@@ -1638,10 +1641,11 @@ func (e RetentionPolicyType) String() string {
 }
 
 type RetentionPolicy struct {
-	Typ__     RetentionPolicyType `codec:"typ" json:"typ"`
-	Retain__  *RpRetain           `codec:"retain,omitempty" json:"retain,omitempty"`
-	Expire__  *RpExpire           `codec:"expire,omitempty" json:"expire,omitempty"`
-	Inherit__ *RpInherit          `codec:"inherit,omitempty" json:"inherit,omitempty"`
+	Typ__       RetentionPolicyType `codec:"typ" json:"typ"`
+	Retain__    *RpRetain           `codec:"retain,omitempty" json:"retain,omitempty"`
+	Expire__    *RpExpire           `codec:"expire,omitempty" json:"expire,omitempty"`
+	Inherit__   *RpInherit          `codec:"inherit,omitempty" json:"inherit,omitempty"`
+	Ephemeral__ *RpEphemeral        `codec:"ephemeral,omitempty" json:"ephemeral,omitempty"`
 }
 
 func (o *RetentionPolicy) Typ() (ret RetentionPolicyType, err error) {
@@ -1659,6 +1663,11 @@ func (o *RetentionPolicy) Typ() (ret RetentionPolicyType, err error) {
 	case RetentionPolicyType_INHERIT:
 		if o.Inherit__ == nil {
 			err = errors.New("unexpected nil value for Inherit__")
+			return ret, err
+		}
+	case RetentionPolicyType_EPHEMERAL:
+		if o.Ephemeral__ == nil {
+			err = errors.New("unexpected nil value for Ephemeral__")
 			return ret, err
 		}
 	}
@@ -1695,6 +1704,16 @@ func (o RetentionPolicy) Inherit() (res RpInherit) {
 	return *o.Inherit__
 }
 
+func (o RetentionPolicy) Ephemeral() (res RpEphemeral) {
+	if o.Typ__ != RetentionPolicyType_EPHEMERAL {
+		panic("wrong case accessed")
+	}
+	if o.Ephemeral__ == nil {
+		return
+	}
+	return *o.Ephemeral__
+}
+
 func NewRetentionPolicyWithRetain(v RpRetain) RetentionPolicy {
 	return RetentionPolicy{
 		Typ__:    RetentionPolicyType_RETAIN,
@@ -1713,6 +1732,13 @@ func NewRetentionPolicyWithInherit(v RpInherit) RetentionPolicy {
 	return RetentionPolicy{
 		Typ__:     RetentionPolicyType_INHERIT,
 		Inherit__: &v,
+	}
+}
+
+func NewRetentionPolicyWithEphemeral(v RpEphemeral) RetentionPolicy {
+	return RetentionPolicy{
+		Typ__:       RetentionPolicyType_EPHEMERAL,
+		Ephemeral__: &v,
 	}
 }
 
@@ -1740,6 +1766,13 @@ func (o RetentionPolicy) DeepCopy() RetentionPolicy {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Inherit__),
+		Ephemeral__: (func(x *RpEphemeral) *RpEphemeral {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Ephemeral__),
 	}
 }
 
@@ -1765,6 +1798,16 @@ type RpInherit struct {
 
 func (o RpInherit) DeepCopy() RpInherit {
 	return RpInherit{}
+}
+
+type RpEphemeral struct {
+	Age gregor1.DurationSec `codec:"age" json:"age"`
+}
+
+func (o RpEphemeral) DeepCopy() RpEphemeral {
+	return RpEphemeral{
+		Age: o.Age.DeepCopy(),
+	}
 }
 
 type GetThreadReason int

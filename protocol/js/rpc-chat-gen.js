@@ -101,6 +101,7 @@ export const commonRetentionPolicyType = {
   retain: 1,
   expire: 2,
   inherit: 3,
+  ephemeral: 4,
 }
 
 export const commonSyncInboxResType = {
@@ -768,13 +769,15 @@ export type RemoteTlfResolveRpcParam = $ReadOnly<{tlfID: TLFID, resolvedWriters?
 export type RemoteUpdateTypingRemoteRpcParam = $ReadOnly<{uid: Gregor1.UID, deviceID: Gregor1.DeviceID, convID: ConversationID, typing: Boolean}>
 export type RemoteUpgradeKBFSToImpteamRpcParam = $ReadOnly<{tlfID: TLFID}>
 export type RemoteUserTypingUpdate = $ReadOnly<{uid: Gregor1.UID, deviceID: Gregor1.DeviceID, convID: ConversationID, typing: Boolean}>
-export type RetentionPolicy = {typ: 1, retain: ?RpRetain} | {typ: 2, expire: ?RpExpire} | {typ: 3, inherit: ?RpInherit}
+export type RetentionPolicy = {typ: 1, retain: ?RpRetain} | {typ: 2, expire: ?RpExpire} | {typ: 3, inherit: ?RpInherit} | {typ: 4, ephemeral: ?RpEphemeral}
 export type RetentionPolicyType =
   | 0 // NONE_0
   | 1 // RETAIN_1
   | 2 // EXPIRE_2
   | 3 // INHERIT_3
+  | 4 // EPHEMERAL_4
 
+export type RpEphemeral = $ReadOnly<{age: Gregor1.DurationSec}>
 export type RpExpire = $ReadOnly<{age: Gregor1.DurationSec}>
 export type RpInherit = $ReadOnly<{}>
 export type RpRetain = $ReadOnly<{}>

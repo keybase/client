@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -198,16 +199,17 @@ var badWhitespaceChainLinks = map[keybase1.SigID]string{
 
 type ChainLink struct {
 	Contextified
-	parent          *SigChain
-	id              LinkID
-	hashVerified    bool
-	sigVerified     bool
-	payloadVerified bool
-	chainVerified   bool
-	storedLocally   bool
-	revoked         bool
-	unsigned        bool
-	dirty           bool
+	parent           *SigChain
+	id               LinkID
+	hashVerified     bool
+	sigVerified      bool
+	payloadVerified  bool
+	chainVerified    bool
+	storedLocally    bool
+	revoked          bool
+	unsigned         bool
+	dirty            bool
+	revocationsCache *[]keybase1.SigID
 
 	unpacked *ChainLinkUnpacked
 	cki      *ComputedKeyInfos
@@ -392,11 +394,18 @@ func (c *ChainLink) GetRevocations() []keybase1.SigID {
 	if c.IsStubbed() {
 		return nil
 	}
+	if c.revocationsCache != nil {
+		return *c.revocationsCache
+	}
 	payload, err := c.unpacked.Payload()
 	if err != nil {
 		return nil
 	}
 	var ret []keybase1.SigID
+	if !bytes.Contains(payload, []byte("revoke")) {
+		c.revocationsCache = &ret
+		return nil
+	}
 	if s, err := jsonparser.GetString(payload, "body", "revoke", "sig_id"); err == nil {
 		if sigID, err := keybase1.SigIDFromString(s, true); err == nil {
 			ret = append(ret, sigID)
@@ -409,6 +418,7 @@ func (c *ChainLink) GetRevocations() []keybase1.SigID {
 		}
 	}, "body", "revoke", "sig_ids")
 
+	c.revocationsCache = &ret
 	return ret
 }
 
