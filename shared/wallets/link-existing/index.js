@@ -122,7 +122,7 @@ const EnterKey = (props: EnterKeyProps) => (
       style={styles.contentContainer}
     >
       <Kb.Icon type="icon-wallet-add-48" style={{width: 48, height: 48}} />
-      <Kb.Text type="Header">Link an existing account</Kb.Text>
+      <Kb.Text type="BodySmallSemibold">Link an existing account</Kb.Text>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
         <Kb.Text type="BodySmall" style={{color: Styles.globalColors.blue}}>
           Paste your secret key
@@ -190,7 +190,7 @@ const EnterName = (props: EnterNameProps) => (
         style={styles.contentContainer}
       >
         <Kb.Icon type="icon-wallet-add-48" style={{width: 48, height: 48}} />
-        <Kb.Text type="Header">Name your account</Kb.Text>
+        <Kb.Text type="BodySmallSemibold">Name your account</Kb.Text>
         <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
           <Kb.Text type="BodySmall" style={{color: Styles.globalColors.blue}}>
             Account name
