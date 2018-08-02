@@ -6,13 +6,15 @@ import {collapseStyles, globalColors, platformStyles, styleSheetCreate} from '..
 type Props = {onBack?: () => void, whiteBackground?: boolean}
 
 const Header = (props: Props) => (
-  <Box2
-    direction="horizontal"
-    style={collapseStyles([styles.header, props.whiteBackground && styles.whiteBackground])}
-    fullWidth={true}
-  >
-    {props.onBack && <BackButton style={styles.backButton} onClick={props.onBack} />}
-    <Icon type="icon-stellar-coins-flying-48" style={iconCastPlatformStyles(styles.icon)} />
+  <Box2 direction="horizontal" style={styles.headerContainer} fullWidth={true}>
+    <Box2
+      direction="horizontal"
+      style={collapseStyles([styles.header, props.whiteBackground && styles.whiteBackground])}
+      fullWidth={true}
+    >
+      {props.onBack && <BackButton style={styles.backButton} onClick={props.onBack} />}
+      <Icon type="icon-stellar-coins-flying-48" style={iconCastPlatformStyles(styles.icon)} />
+    </Box2>
   </Box2>
 )
 
@@ -22,19 +24,35 @@ const styles = styleSheetCreate({
     left: 16,
     position: 'absolute',
   },
-  header: {
-    alignSelf: 'flex-end',
-    backgroundColor: globalColors.purple,
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
-    height: 48,
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  icon: {
-    position: 'relative',
-    top: -9,
-  },
+  header: platformStyles({
+    common: {
+      alignSelf: 'flex-end',
+      backgroundColor: globalColors.purple,
+      justifyContent: 'center',
+      position: 'relative',
+    },
+    isElectron: {
+      borderTopLeftRadius: '4px',
+      borderTopRightRadius: '4px',
+    },
+    isMobile: {
+      height: 60,
+    },
+  }),
+  headerContainer: platformStyles({
+    isElectron: {
+      height: 48,
+    },
+    isMobile: {
+      height: 60,
+    },
+  }),
+  icon: platformStyles({
+    isElectron: {
+      position: 'relative',
+      top: -9,
+    },
+  }),
   whiteBackground: platformStyles({
     common: {
       backgroundColor: globalColors.white,
