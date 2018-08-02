@@ -791,15 +791,15 @@ type ChatHelper interface {
 // into UIDs. It is based on sever-trust. All results are unverified. So you should check
 // its answer if used in a security-sensitive setting. (See engine.ResolveAndCheck)
 type Resolver interface {
-	EnableCaching()
-	Shutdown()
-	ResolveFullExpression(ctx context.Context, input string) (res ResolveResult)
-	ResolveFullExpressionNeedUsername(ctx context.Context, input string) (res ResolveResult)
-	ResolveFullExpressionWithBody(ctx context.Context, input string) (res ResolveResult)
-	ResolveUser(ctx context.Context, assertion string) (u keybase1.User, res ResolveResult, err error)
-	ResolveWithBody(ctx context.Context, input string) ResolveResult
-	Resolve(ctx context.Context, input string) ResolveResult
-	PurgeResolveCache(ctx context.Context, input string) error
+	EnableCaching(m MetaContext)
+	Shutdown(m MetaContext)
+	ResolveFullExpression(m MetaContext, input string) (res ResolveResult)
+	ResolveFullExpressionNeedUsername(m MetaContext, input string) (res ResolveResult)
+	ResolveFullExpressionWithBody(m MetaContext, input string) (res ResolveResult)
+	ResolveUser(m MetaContext, assertion string) (u keybase1.User, res ResolveResult, err error)
+	ResolveWithBody(m MetaContext, input string) ResolveResult
+	Resolve(m MetaContext, input string) ResolveResult
+	PurgeResolveCache(m MetaContext, input string) error
 }
 
 type EnginePrereqs struct {

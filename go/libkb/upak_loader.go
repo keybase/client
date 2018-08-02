@@ -664,7 +664,8 @@ func (u *CachedUPAKLoader) LookupUsernameUPAK(ctx context.Context, uid keybase1.
 // LookupUID is a verified map of username -> UID. IT calls into the resolver, which gives un untrusted
 // UID, but verifies with the UPAK loader that the mapping UID -> username is correct.
 func (u *CachedUPAKLoader) LookupUID(ctx context.Context, un NormalizedUsername) (keybase1.UID, error) {
-	rres := u.G().Resolver.Resolve(ctx, un.String())
+	m := NewMetaContext(ctx, u.G())
+	rres := u.G().Resolver.Resolve(m, un.String())
 	if err := rres.GetError(); err != nil {
 		return keybase1.UID(""), err
 	}
@@ -673,7 +674,7 @@ func (u *CachedUPAKLoader) LookupUID(ctx context.Context, un NormalizedUsername)
 		return keybase1.UID(""), err
 	}
 	if !un.Eq(un2) {
-		u.G().Log.CWarningf(ctx, "Unexpected mismatched usernames (uid=%s): %s != %s", rres.GetUID(), un.String(), un2.String())
+		m.CWarningf("Unexpected mismatched usernames (uid=%s): %s != %s", rres.GetUID(), un.String(), un2.String())
 		return keybase1.UID(""), NewBadUsernameError(un.String())
 	}
 	return rres.GetUID(), nil
