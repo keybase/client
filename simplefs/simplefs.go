@@ -1486,7 +1486,9 @@ func (k *SimpleFS) doGetRevisions(
 					return nil, err
 				}
 				if len(prevPRs) == 0 {
-					return nil, simpleFSError{"No previous revisions"}
+					return nil, simpleFSError{fmt.Sprintf(
+						"Revision %s unexpectedly lists no previous revisions",
+						lastRevision)}
 				}
 				rev = prevPRs[0].Revision
 				prs = prevPRs
