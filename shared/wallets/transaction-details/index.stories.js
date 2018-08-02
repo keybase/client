@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
+import * as Sb from '../../stories/storybook'
 import moment from 'moment'
 import {Box2} from '../../common-adapters'
-import {action, storiesOf, PropProviders} from '../../stories/storybook'
 import TransactionDetails from '.'
 
 const now = new Date()
@@ -14,8 +14,7 @@ const memo =
   'Stellar deal!! You guys rock. This is to show a very long private note. Blah blah blah blah. Plus, emojis. 🍺'
 
 const load = () => {
-  storiesOf('Wallets/Transaction Details', module)
-    .addDecorator(PropProviders.createPropProviderWithCommon())
+  Sb.storiesOf('Wallets/Transaction Details', module)
     .addDecorator(story => (
       <Box2 direction="vertical" style={{maxWidth: 520}}>
         {story()}
@@ -33,8 +32,8 @@ const load = () => {
         memo={memo}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
-        onLoadPaymentDetail={action('onLoadPaymentDetail')}
-        onViewTransaction={action('onViewTransaction')}
+        onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
+        onViewTransaction={Sb.action('onViewTransaction')}
         you="cjb"
         status="completed"
         statusDetail=""
@@ -51,8 +50,8 @@ const load = () => {
         memo={memo}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
-        onLoadPaymentDetail={action('onLoadPaymentDetail')}
-        onViewTransaction={action('onViewTransaction')}
+        onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
+        onViewTransaction={Sb.action('onViewTransaction')}
         you="cjb"
         status="completed"
         statusDetail=""
@@ -70,8 +69,8 @@ const load = () => {
         memo={memo}
         timestamp={null}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
-        onLoadPaymentDetail={action('onLoadPaymentDetail')}
-        onViewTransaction={action('onViewTransaction')}
+        onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
+        onViewTransaction={Sb.action('onViewTransaction')}
         you="cjb"
         status="completed"
         statusDetail=""
@@ -90,8 +89,8 @@ const load = () => {
         publicMemo="Foo bar"
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
-        onLoadPaymentDetail={action('onLoadPaymentDetail')}
-        onViewTransaction={action('onViewTransaction')}
+        onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
+        onViewTransaction={Sb.action('onViewTransaction')}
         you="cjb"
         status="completed"
         statusDetail=""
@@ -107,7 +106,7 @@ const load = () => {
         amountXLM="53.1688643 XLM"
         yourRole="receiver"
         memo={memo}
-        onLoadPaymentDetail={action('onLoadPaymentDetail')}
+        onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
         timestamp={null}
         you="cjb"
         status="pending"
@@ -125,8 +124,8 @@ const load = () => {
         memo={memo}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
-        onLoadPaymentDetail={action('onLoadPaymentDetail')}
-        onViewTransaction={action('onViewTransaction')}
+        onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
+        onViewTransaction={Sb.action('onViewTransaction')}
         you="cjb"
         status="completed"
         statusDetail=""

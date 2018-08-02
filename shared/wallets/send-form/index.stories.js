@@ -1,6 +1,6 @@
 // @flow
-import React from 'react'
-import {action, createPropProvider, storiesOf} from '../../stories/storybook'
+import * as React from 'react'
+import * as Sb from '../../stories/storybook'
 import assetInput, {props3 as assetInputProps} from './asset-input/index.stories'
 import chooseAsset from './choose-asset/index.stories'
 import banner from './banner/index.stories'
@@ -11,7 +11,7 @@ import SendForm from '.'
 // may be held completely by the parent form. Figure out a
 // good level of connected granularity while implementing
 // TODO fill these out
-const provider = createPropProvider({
+const provider = Sb.createPropProviderWithCommon({
   // TODO mock out meaningful values once type `OwnProps` is defined
   AssetInput: props => assetInputProps,
   Available: props => ({}),
@@ -31,9 +31,9 @@ const load = () => {
   chooseAsset()
   footers()
   // full component
-  storiesOf('Wallets/SendForm', module)
+  Sb.storiesOf('Wallets/SendForm', module)
     .addDecorator(provider)
-    .add('Send', () => <SendForm onClick={action('onClick')} onClose={action('onClose')} />)
+    .add('Send', () => <SendForm onClick={Sb.action('onClick')} onClose={Sb.action('onClose')} />)
 }
 
 export default load

@@ -40,7 +40,7 @@ const Intro = (props: Props) => (
         <Text type="HeaderBig" style={styles.join}>
           Join Keybase
         </Text>
-        <ButtonBar noPadding={true}>
+        <ButtonBar>
           <Button type="Primary" onClick={props.onSignup} label="Create an account" />
         </ButtonBar>
       </Box2>
@@ -48,7 +48,7 @@ const Intro = (props: Props) => (
         <Text type="Body" onClick={props.onLogin}>
           Already on Keybase?
         </Text>
-        <ButtonBar noPadding={true}>
+        <ButtonBar>
           <Button type="Secondary" onClick={props.onLogin} label="Log in" />
         </ButtonBar>
       </Box2>

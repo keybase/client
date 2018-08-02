@@ -1,11 +1,12 @@
 // @flow
 import * as React from 'react'
+import * as Sb from '../../stories/storybook'
 import CodePage2 from '.'
 import QRScanNotAuthorized from './qr-scan/not-authorized'
 import {Box2} from '../../common-adapters'
-import {action, storiesOf, PropProviders} from '../../stories/storybook'
 
-const textCode = 'scrub disagree sheriff holiday cabin habit mushroom member four'
+const textCodeShort = 'scrub disagree sheriff holiday cabin habit mushroom member'
+const textCodeLong = textCodeShort + ' four'
 // Not using the container on purpose since i want every variant
 const derivedProps = (
   currentDeviceAlreadyProvisioned,
@@ -23,23 +24,23 @@ const derivedProps = (
     currentDeviceName,
     currentDeviceType,
     error: '',
-    onBack: action('onBack'),
-    onSubmitTextCode: action('onSubmitTextCode'),
+    onBack: Sb.action('onBack'),
+    onSubmitTextCode: Sb.action('onSubmitTextCode'),
     otherDeviceName,
     otherDeviceType,
-    textCode,
+    textCode: otherDeviceType === 'mobile' || currentDeviceType === 'mobile' ? textCodeLong : textCodeShort,
   }
 }
 
 const QRScanProps = {
   mountKey: 'key',
-  onOpenSettings: action('onOpenSettings'),
-  onSubmitTextCode: action('onSubmitTextCode'),
+  onOpenSettings: Sb.action('onOpenSettings'),
+  onSubmitTextCode: Sb.action('onSubmitTextCode'),
   waiting: false,
 }
 
 const load = () => {
-  storiesOf(`Provision/CodePage2`, module).add(
+  Sb.storiesOf(`Provision/CodePage2`, module).add(
     "<Type1> adding Type2 means from that Type1 is provisioning Type2 and we're seeing it from Type1's perspective",
     () => null
   )
@@ -56,8 +57,8 @@ const load = () => {
     {current: 'desktop', otherType: 'mobile', provisioned: true},
   ]
 
-  let s = storiesOf(`Provision/CodePage2`, module).addDecorator(
-    PropProviders.createPropProviderWithCommon({QRScan: QRScanProps})
+  let s = Sb.storiesOf(`Provision/CodePage2`, module).addDecorator(
+    Sb.createPropProviderWithCommon({QRScan: QRScanProps})
   )
   variants.forEach(({current, provisioned, otherType}) => {
     let otherName
@@ -96,13 +97,13 @@ const load = () => {
   ))
   s = s.add('QR Scan Not Authorized', () => (
     <Box2 direction="vertical" style={{height: 200, width: 200}}>
-      <QRScanNotAuthorized onOpenSettings={action('onOpenSettings')} />
+      <QRScanNotAuthorized onOpenSettings={Sb.action('onOpenSettings')} />
     </Box2>
   ))
 
-  s = storiesOf(`Provision/CodePage2`, module)
+  s = Sb.storiesOf(`Provision/CodePage2`, module)
     .addDecorator(
-      PropProviders.createPropProviderWithCommon({
+      Sb.createPropProviderWithCommon({
         QRScan: {...QRScanProps, waiting: true},
       })
     )

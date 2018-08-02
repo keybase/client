@@ -1,9 +1,9 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
+import * as Sb from '../../stories/storybook'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as Types from '../../constants/types/teams'
 import {Box} from '../../common-adapters'
-import {storiesOf, action, PropProviders} from '../../stories/storybook'
 import {isMobile} from '../../constants/platform'
 import ManageChannels from '.'
 import EditChannel from './edit-channel'
@@ -59,8 +59,7 @@ const channelState = channels.reduce((acc: Types.ChannelMembershipState, c) => {
 }, {})
 
 const load = () => {
-  storiesOf('Chat/Teams', module)
-    .addDecorator(PropProviders.createPropProviderWithCommon())
+  Sb.storiesOf('Chat/Teams', module)
     .add('ManageChannels', () => (
       <Box style={{minWidth: isMobile ? undefined : 400, width: '100%'}}>
         <ManageChannels
@@ -69,13 +68,13 @@ const load = () => {
           canEditChannels={true}
           canCreateChannels={true}
           channels={channels}
-          onClose={action('onClose')}
-          onToggle={action('onToggle')}
-          onEdit={action('onEdit')}
-          onCreate={action('onCreate')}
+          onClose={Sb.action('onClose')}
+          onToggle={Sb.action('onToggle')}
+          onEdit={Sb.action('onEdit')}
+          onCreate={Sb.action('onCreate')}
           unsavedSubscriptions={false}
-          onSaveSubscriptions={action('onSaveSubscriptions')}
-          onClickChannel={action('onClickChannel')}
+          onSaveSubscriptions={Sb.action('onSaveSubscriptions')}
+          onClickChannel={Sb.action('onClickChannel')}
           nextChannelState={channelState}
           waitingForGet={false}
           waitingKey="test"
@@ -90,13 +89,13 @@ const load = () => {
           canEditChannels={true}
           canCreateChannels={true}
           channels={[]}
-          onClose={action('onClose')}
-          onToggle={action('onToggle')}
-          onEdit={action('onEdit')}
-          onCreate={action('onCreate')}
+          onClose={Sb.action('onClose')}
+          onToggle={Sb.action('onToggle')}
+          onEdit={Sb.action('onEdit')}
+          onCreate={Sb.action('onCreate')}
           unsavedSubscriptions={false}
-          onSaveSubscriptions={action('onSaveSubscriptions')}
-          onClickChannel={action('onClickChannel')}
+          onSaveSubscriptions={Sb.action('onSaveSubscriptions')}
+          onClickChannel={Sb.action('onClickChannel')}
           nextChannelState={channelState}
           waitingForGet={false}
           waitingKey="test"
@@ -111,13 +110,13 @@ const load = () => {
           canEditChannels={false}
           canCreateChannels={false}
           channels={channels}
-          onClose={action('onClose')}
-          onToggle={action('onToggle')}
-          onEdit={action('onEdit')}
-          onCreate={action('onCreate')}
+          onClose={Sb.action('onClose')}
+          onToggle={Sb.action('onToggle')}
+          onEdit={Sb.action('onEdit')}
+          onCreate={Sb.action('onCreate')}
           unsavedSubscriptions={true}
-          onSaveSubscriptions={action('onSaveSubscriptions')}
-          onClickChannel={action('onClickChannel')}
+          onSaveSubscriptions={Sb.action('onSaveSubscriptions')}
+          onClickChannel={Sb.action('onClickChannel')}
           nextChannelState={channelState}
           waitingForGet={false}
           waitingKey="test"
@@ -127,13 +126,13 @@ const load = () => {
     .add('EditChannel', () => (
       <Box style={toPlatformStyle(editChannelStyle)}>
         <EditChannel
-          onBack={action('onBack')}
+          onBack={Sb.action('onBack')}
           teamname={'stripe.usa'}
           channelName={'takeover'}
           topic={''}
-          onCancel={action('onCancel')}
-          onSave={action('onSave')}
-          onConfirmedDelete={action('onConfirmedDelete')}
+          onCancel={Sb.action('onCancel')}
+          onSave={Sb.action('onSave')}
+          onConfirmedDelete={Sb.action('onConfirmedDelete')}
           showDelete={true}
           deleteRenameDisabled={false}
           waitingForGetInfo={false}
@@ -144,13 +143,13 @@ const load = () => {
     .add('EditChannel - general', () => (
       <Box style={toPlatformStyle(editChannelStyle)}>
         <EditChannel
-          onBack={action('onBack')}
+          onBack={Sb.action('onBack')}
           teamname={'stripe.usa'}
           channelName={'general'}
           topic={''}
-          onCancel={action('onCancel')}
-          onSave={action('onSave')}
-          onConfirmedDelete={action('onConfirmedDelete')}
+          onCancel={Sb.action('onCancel')}
+          onSave={Sb.action('onSave')}
+          onConfirmedDelete={Sb.action('onConfirmedDelete')}
           showDelete={true}
           deleteRenameDisabled={true}
           waitingForGetInfo={false}
@@ -161,13 +160,13 @@ const load = () => {
     .add('EditChannel - loading', () => (
       <Box style={toPlatformStyle(editChannelStyle)}>
         <EditChannel
-          onBack={action('onBack')}
+          onBack={Sb.action('onBack')}
           teamname={'stripe.usa'}
           channelName={''}
           topic={''}
-          onCancel={action('onCancel')}
-          onSave={action('onSave')}
-          onConfirmedDelete={action('onConfirmedDelete')}
+          onCancel={Sb.action('onCancel')}
+          onSave={Sb.action('onSave')}
+          onConfirmedDelete={Sb.action('onConfirmedDelete')}
           showDelete={true}
           deleteRenameDisabled={false}
           waitingForGetInfo={true}

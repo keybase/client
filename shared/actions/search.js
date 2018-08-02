@@ -340,6 +340,19 @@ const finishedSearch = ({payload: {searchKey, searchResultTerm, service}}) =>
     )
   )
 
+function maybeNewSearch({payload: {searchKey}}: SearchGen.UserInputItemsUpdatedPayload, state: TypedState) {
+  // When you select a search result, we want to clear the shown results and
+  // start back with new recommendations, *unless* you're building a convo,
+  // in which case we're showing any convo you selected by choosing a result.
+  if (state.chat2.get('pendingMode') === 'searchingForUsers') {
+    return
+  }
+  return Saga.all([
+    Saga.put(SearchGen.createClearSearchResults({searchKey})),
+    Saga.put(SearchGen.createSearchSuggestions({searchKey})),
+  ])
+}
+
 function clearSearchTextInput(
   {payload: {searchKey}}: SearchGen.UserInputItemsUpdatedPayload,
   state: TypedState
@@ -365,6 +378,7 @@ function* searchSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatestPure(SearchGen.clearSearchResults, clearSearchResults)
   yield Saga.safeTakeLatestPure(SearchGen.finishedSearch, finishedSearch)
   yield Saga.safeTakeLatestPure(SearchGen.userInputItemsUpdated, clearSearchTextInput)
+  yield Saga.safeTakeLatestPure(SearchGen.userInputItemsUpdated, maybeNewSearch)
 }
 
 export default searchSaga

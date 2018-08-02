@@ -155,7 +155,15 @@ class UserInput extends Component<Props, State> {
   }
 
   render() {
-    const {autoFocus, placeholder, userItems, usernameText, onClickAddButton, onAddSelectedUser} = this.props
+    const {
+      autoFocus,
+      hideAddButton,
+      placeholder,
+      userItems,
+      usernameText,
+      onClickAddButton,
+      onAddSelectedUser,
+    } = this.props
 
     const {isFocused, selectionStart, selectionEnd} = this.state
 
@@ -169,7 +177,7 @@ class UserInput extends Component<Props, State> {
         ? null
         : {start: Math.max(1, selectionStart || 1), end: Math.max(1, selectionEnd || 1)}
 
-    const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton
+    const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton && !hideAddButton
     return (
       <ClickableBox feedback={false} onClick={this.focus}>
         <Box
