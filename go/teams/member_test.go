@@ -923,7 +923,7 @@ func TestMemberAddResolveCache(t *testing.T) {
 	}
 
 	// clear the memory cache so it will come from disk
-	tc.G.Resolver.EnableCaching()
+	tc.G.Resolver.EnableCaching(libkb.NewMetaContextForTest(tc))
 
 	// add the member
 	res, err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_READER)
