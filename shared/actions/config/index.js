@@ -131,6 +131,8 @@ const resetGlobalStore = () => Saga.put({payload: undefined, type: ConfigGen.res
 
 const startLogoutHandshake = () => Saga.put(ConfigGen.createLogoutHandshake())
 
+// This assumes there's at least a single waiter to trigger this, so if that ever changes you'll have to add
+// stuff to trigger this due to a timeout if there's no listeners or something
 const maybeDoneWithLogoutHandshake = (state: TypedState) =>
   state.config.logoutHandshakeWaiters.size <= 0 && Saga.call(RPCTypes.loginLogoutRpcPromise)
 

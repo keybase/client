@@ -269,24 +269,23 @@ function* checkIOSPushSaga(): Saga.SagaGenerator<any, any> {
 
 const deletePushToken = (state: TypedState) =>
   Saga.call(function*() {
-    const tokenType = state.push.tokenType
-    if (!tokenType) {
-      // No push token to remove.
-      logger.info('Not deleting push token -- none to remove')
-      return
-    }
-
-    const deviceID = state.config.deviceID
-    if (!deviceID) {
-      logger.info('No device id available for saving push token')
-      return
-    }
-
     const waitKey = 'push:deleteToken'
-
     yield Saga.put(ConfigGen.createLogoutHandshakeWait({increment: true, name: waitKey}))
 
     try {
+      const tokenType = state.push.tokenType
+      if (!tokenType) {
+        // No push token to remove.
+        logger.info('Not deleting push token -- none to remove')
+        return
+      }
+
+      const deviceID = state.config.deviceID
+      if (!deviceID) {
+        logger.info('No device id available for saving push token')
+        return
+      }
+
       yield Saga.call(RPCTypes.apiserverDeleteRpcPromise, {
         args: [{key: 'device_id', value: deviceID}, {key: 'token_type', value: tokenType}],
         endpoint: 'device/push_token',
