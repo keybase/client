@@ -222,7 +222,7 @@ func (r *ResolverImpl) resolveURL(ctx context.Context, au AssertionURL, input st
 	lock := r.locktab.AcquireOnName(ctx, r.G(), ck)
 	defer lock.Release(ctx)
 
-	// Debug succintly what happened in the resolution
+	// Debug succinctly what happened in the resolution
 	var trace string
 	defer func() {
 		r.G().Log.CDebugf(ctx, "| Resolver#resolveURL(%s) -> %s [trace:%s]", ck, res, trace)
@@ -265,8 +265,8 @@ func (r *ResolverImpl) resolveURL(ctx context.Context, au AssertionURL, input st
 	res.mutable = isMutable(au)
 	r.putToMemCache(ck, res)
 
-	// We only put to disk cache if it's a Keybase-type assertion. In particular, UIDs
-	// are **not** stored to disk.
+	// We only put to disk cache if it's a Keybase-type assertion. In
+	// particular, UIDs are **not** stored to disk.
 	if au.IsKeybase() {
 		trace += "p"
 		r.putToDiskCache(ctx, ck, res)
@@ -516,8 +516,7 @@ func (r *ResolverImpl) putToDiskCache(ctx context.Context, key string, res Resol
 		return
 	}
 	r.Stats.diskPuts++
-	err := r.G().LocalDb.PutObj(resolveDbKey(key), nil, res.uid)
-	if err != nil {
+	if err := r.G().LocalDb.PutObj(resolveDbKey(key), nil, res.uid); err != nil {
 		r.G().Log.CWarningf(ctx, "Cannot put resolve result to disk: %s", err)
 		return
 	}
@@ -544,6 +543,30 @@ func (r *ResolverImpl) putToMemCache(key string, res ResolveResult) {
 	res.cachedAt = r.G().Clock().Now()
 	res.body = nil // Don't cache body
 	r.cache.Set(key, &res)
+}
+
+func (r *ResolverImpl) PurgeResolveCache(ctx context.Context, input string) error {
+	var expr AssertionExpression
+	expr, err := AssertionParseAndOnly(r.G().MakeAssertionContext(), input)
+	if err != nil {
+		return err
+	}
+	u := FindBestIdentifyComponentURL(expr)
+	if u == nil {
+		return ResolutionError{Input: input, Msg: "Cannot find a resolvable factor"}
+	}
+
+	key := u.CacheKey()
+	r.cache.Delete(key)
+	// Since we only put to disk cache if it's a Keybase-type assertion, we
+	// only remove it in this case as well.
+	if u.IsKeybase() {
+		if err := r.G().LocalDb.Delete(resolveDbKey(key)); err != nil {
+			r.G().Log.CWarningf(ctx, "Cannot remove resolve result from disk: %s", err)
+			return err
+		}
+	}
+	return nil
 }
 
 var _ Resolver = (*ResolverImpl)(nil)
