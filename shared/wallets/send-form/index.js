@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box2, Text, MaybePopup} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import Body from './body/container'
 import Header from './header'
@@ -13,23 +13,23 @@ type Props = {|
 |}
 
 const SendForm = (props: Props) => (
-  <MaybePopup onClose={props.onClose}>
-    <Box2 direction="vertical" style={styles.container}>
+  <Kb.MaybePopup onClose={props.onClose}>
+    <Kb.Box2 direction="vertical" style={styles.container}>
       <Header />
       <Body bannerInfo={props.bannerInfo} isProcessing={props.isProcessing} onClick={props.onClick} />
-    </Box2>
-    <Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.text, styles.textColor])}>
+    </Kb.Box2>
+    <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.text, styles.textColor])}>
       Powered by{' '}
-      <Text
+      <Kb.Text
         type="BodySmallSemiboldInlineLink"
         isLink={true}
         onClickURL="https://stellar.org"
         style={styles.textColor}
       >
         stellar
-      </Text>
-    </Text>
-  </MaybePopup>
+      </Kb.Text>
+    </Kb.Text>
+  </Kb.MaybePopup>
 )
 
 const styles = Styles.styleSheetCreate({
