@@ -5,7 +5,6 @@ package keybase1
 
 import (
 	"errors"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
