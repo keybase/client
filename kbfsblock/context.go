@@ -50,7 +50,7 @@ type Context struct {
 	Creator keybase1.UserOrTeamID `codec:"c"`
 	// Writer is the UID that should be charged for this reference to
 	// the block.  If empty, it defaults to Creator.
-	Writer keybase1.UserOrTeamID `codec:"w,omitempty"`
+	Writer keybase1.UserOrTeamID `codec:"w,omitempty" json:",omitempty"`
 	// When RefNonce is all 0s, this is the initial reference to a
 	// particular block.  Using a constant refnonce for the initial
 	// reference allows the server to identify and optimize for the
