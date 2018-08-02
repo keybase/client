@@ -588,7 +588,10 @@ func (*fsEngine) SetMtime(u User, file Node, mtime time.Time) (err error) {
 // GetMtime implements the Engine interface.
 func (*fsEngine) GetMtime(u User, file Node) (mtime time.Time, err error) {
 	n := file.(fsNode)
-	fi, err := ioutil.Lstat(n.path)
+	// Use `Stat`, not `Lstat`, so that we can lookup the actual
+	// mtimes on the preferred TLF name in the folder list, rather
+	// than just the symlink.
+	fi, err := ioutil.Stat(n.path)
 	if err != nil {
 		return time.Time{}, err
 	}
