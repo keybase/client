@@ -128,7 +128,7 @@ export const collapseStyles = (styles: $ReadOnlyArray<CollapsibleStyle>): Object
   const flattenedStyles = styles.reduce((a, e) => a.concat(e), [])
   return flattenedStyles.reduce((o, e) => (e ? {...o, ...e} : o), {})
 }
-export {isMobile, fileUIName, isIPhoneX} from '../constants/platform'
+export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
 export {globalMargins, backgroundModeToColor, platformStyles} from './shared'
 export {default as glamorous} from 'glamorous'
 export {default as globalColors} from './colors'

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {action, storiesOf, createPropProvider, PropProviders} from '../stories/storybook'
+import * as Sb from '../stories/storybook'
 import ScrollView from './scroll-view'
 import Text from './text'
 import NameWithIcon from './name-with-icon'
@@ -12,22 +12,22 @@ const commonProps = {
 
 const outerClick = evt => {
   if (!evt.defaultPrevented) {
-    action('Outer click')(evt)
+    Sb.action('Outer click')(evt)
   }
 }
 
 const innerClick = evt => {
   evt.preventDefault()
-  action('Inner click')(evt)
+  Sb.action('Inner click')(evt)
 }
 
-const provider = createPropProvider(
-  PropProviders.Avatar(['chrisnojima'], ['chrisnojima']),
-  PropProviders.Usernames(['cecileb', 'chrisnojima'], 'akalin')
+const provider = Sb.createPropProviderWithCommon(
+  Sb.PropProviders.Avatar(['chrisnojima'], ['chrisnojima']),
+  Sb.PropProviders.Usernames(['cecileb', 'chrisnojima'], 'akalin')
 )
 
 const load = () => {
-  storiesOf('Common/NameWithIcon', module)
+  Sb.storiesOf('Common/NameWithIcon', module)
     .addDecorator(provider)
     .addDecorator(story => <ScrollView>{story()}</ScrollView>)
     .add('Vertical', () => (
@@ -51,7 +51,7 @@ const load = () => {
         <NameWithIcon {...commonProps} username="chrisnojima" metaOne="Chris Nojima" size="large" />
         <NameWithIcon
           {...commonProps}
-          onClick={action('Clicked!')}
+          onClick={Sb.action('Clicked!')}
           username="mlsteele"
           metaOne="Miles Steele"
           size="small"
