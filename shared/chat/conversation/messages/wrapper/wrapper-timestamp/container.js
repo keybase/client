@@ -31,12 +31,11 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const {_message, ordinal, previous} = stateProps
 
-  const showTimestamp = Constants.enoughTimeBetweenMessages(_message, previous)
+  const showTimestamp =
+    Constants.enoughTimeBetweenMessages(_message, previous) ||
+    (_message.timestamp && (stateProps.orangeLineAbove || !previous))
 
-  const timestamp =
-    (stateProps.orangeLineAbove && _message.timestamp) || !previous || showTimestamp
-      ? formatTimeForMessages(_message.timestamp)
-      : null
+  const timestamp = showTimestamp ? formatTimeForMessages(_message.timestamp) : null
 
   return {
     children: ownProps.children,
