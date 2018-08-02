@@ -16,12 +16,6 @@ jest.unmock('immutable')
 
 const makeTypedState = (signupState: Types.State): TypedState => ({signup: signupState}: any)
 
-describe('resetNav works', () => {
-  it('nav based on login', () => {
-    expect(_testing.resetNav()).toEqual(Saga.put(LoginGen.createNavBasedOnLoginAndInitialState()))
-  })
-})
-
 describe('goBackAndClearErrors', () => {
   it('errors get cleaned and we go back a level', () => {
     const state = Constants.makeState({

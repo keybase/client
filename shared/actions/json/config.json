@@ -26,6 +26,17 @@
     "daemonHandshakeDone": {
       "_description": "ready to show the app"
     },
+    "logout": {
+      "_description": "someone wants to log out"
+    },
+    "logoutHandshake": {
+      "_description": "starting the logout process. Things that need to happen before we see the app should call logoutHandshakeWait",
+    },
+    "logoutHandshakeWait": {
+      "_description": "subsystems that need to do things during logout need to call this to register that we should wait.",
+      "name": "string",
+      "increment": "boolean",
+    },
     "configuredAccounts": { "accounts": "Array<string>", },
     "installerRan": {
       "_description": "desktop only: the installer ran and we can start up"
@@ -78,5 +89,8 @@
     },
     "debugDump": { "items": "Array<string>" },
     "setStartedDueToPush": {},
+    "setDeletedSelf": { "deletedUsername": "string" },
+    "loggedOut": {},
+    "loggedIn": {},
   }
 }

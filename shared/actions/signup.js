@@ -1,7 +1,6 @@
 // @flow
 import logger from '../logger'
 import * as Constants from '../constants/signup'
-import * as LoginGen from './login-gen'
 import * as SignupGen from './signup-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -24,7 +23,6 @@ const noErrors = (state: TypedState) =>
   !state.signup.signupError.stringValue()
 
 // Navigation side effects ///////////////////////////////////////////////////////////
-const resetNav = () => Saga.put(LoginGen.createNavBasedOnLoginAndInitialState())
 // When going back we clear all errors so we can fix things and move forward
 const goBackAndClearErrors = () => Saga.put(navigateUp())
 
@@ -176,7 +174,6 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(SignupGen.checkDevicename, checkDevicename)
 
   // move to next screen actions
-  yield Saga.actionToAction(SignupGen.restartSignup, resetNav)
   yield Saga.actionToAction(SignupGen.requestedInvite, showInviteSuccessOnNoErrors)
   yield Saga.actionToAction(SignupGen.checkedUsernameEmail, showPassphraseOnNoErrors)
   yield Saga.actionToAction(SignupGen.requestedAutoInvite, showInviteScreen)
@@ -200,7 +197,6 @@ export const _testing = {
   reallySignupOnNoErrors,
   requestAutoInvite,
   requestInvite,
-  resetNav,
   showDeviceScreenOnNoErrors,
   showErrorOrCleanupAfterSignup,
   showInviteScreen,

@@ -3,7 +3,7 @@ import logger from '../logger'
 import * as ChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
-import * as LoginGen from '../actions/login-gen'
+import * as ConfigGen from '../actions/config-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
@@ -356,7 +356,7 @@ function _deleteAccountForeverSaga(action: SettingsGen.DeleteAccountForeverPaylo
 
   return Saga.sequentially([
     Saga.call(RPCTypes.loginAccountDeleteRpcPromise),
-    Saga.put(LoginGen.createSetDeletedSelf({deletedUsername: username})),
+    Saga.put(ConfigGen.createSetDeletedSelf({deletedUsername: username})),
   ])
 }
 

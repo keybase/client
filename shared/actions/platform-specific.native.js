@@ -401,7 +401,7 @@ const updateAppBadge = (_: any, action: NotificationsGen.ReceivedBadgeStatePaylo
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, setStartedDueToPush)
-  yield Saga.safeTakeEveryPure(ConfigGen.clearRouteState, clearRouteState)
+  yield Saga.safeTakeEveryPure([ConfigGen.loggedOut, ConfigGen.clearRouteState], clearRouteState)
   yield Saga.safeTakeEveryPure(ConfigGen.persistRouteState, persistRouteState)
   // yield Saga.actionToAction(ConfigGen.bootstrapSuccess, onBootstrapped)
   yield Saga.actionToAction(ConfigGen.openAppSettings, openAppSettings)

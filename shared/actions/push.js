@@ -3,7 +3,6 @@ import logger from '../logger'
 import * as Constants from '../constants/push'
 import * as ChatConstants from '../constants/chat2'
 import * as ConfigGen from './config-gen'
-import * as LoginGen from './login-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as PushGen from './push-gen'
 import * as WaitingGen from './waiting-gen'
@@ -25,9 +24,6 @@ import {
 } from './platform-specific'
 
 import type {TypedState} from '../constants/reducer'
-
-const pushSelector = ({push: {token, tokenType}}: TypedState) => ({token, tokenType})
-const deviceIDSelector = ({config: {deviceID}}: TypedState) => deviceID
 
 function permissionsNoSaga() {
   return Saga.sequentially([
@@ -204,8 +200,9 @@ function pushTokenSaga(action: PushGen.PushTokenPayload) {
 function* savePushTokenSaga(): Saga.SagaGenerator<any, any> {
   try {
     const state: TypedState = yield Saga.select()
-    const {token, tokenType} = pushSelector(state)
-    const deviceID = deviceIDSelector(state)
+    const token = state.push.token
+    const tokenType = state.push.tokenType
+    const deviceID = state.config.deviceID
     if (!deviceID) {
       throw new Error('No device available for saving push token')
     }
@@ -270,26 +267,35 @@ function* checkIOSPushSaga(): Saga.SagaGenerator<any, any> {
   }
 }
 
-const deletePushToken = (state: TypedState) => {
-  const {tokenType} = pushSelector(state)
-  if (!tokenType) {
-    // No push token to remove.
-    logger.info('Not deleting push token -- none to remove')
-    return
-  }
+const deletePushToken = (state: TypedState) =>
+  Saga.call(function*() {
+    const tokenType = state.push.tokenType
+    if (!tokenType) {
+      // No push token to remove.
+      logger.info('Not deleting push token -- none to remove')
+      return
+    }
 
-  const deviceID = deviceIDSelector(state)
-  if (!deviceID) {
-    logger.info('No device id available for saving push token')
-    return
-  }
+    const deviceID = state.config.deviceID
+    if (!deviceID) {
+      logger.info('No device id available for saving push token')
+      return
+    }
 
-  const args = [{key: 'device_id', value: deviceID}, {key: 'token_type', value: tokenType}]
-  return Saga.call(RPCTypes.apiserverDeleteRpcPromise, {
-    args: args,
-    endpoint: 'device/push_token',
+    const waitKey = 'push:deleteToken'
+
+    yield Saga.put(ConfigGen.createLogoutHandshakeWait({increment: true, name: waitKey}))
+
+    try {
+      yield Saga.call(RPCTypes.apiserverDeleteRpcPromise, {
+        args: [{key: 'device_id', value: deviceID}, {key: 'token_type', value: tokenType}],
+        endpoint: 'device/push_token',
+      })
+    } catch (e) {
+    } finally {
+      yield Saga.put(ConfigGen.createLogoutHandshakeWait({increment: false, name: waitKey}))
+    }
   })
-}
 
 function* mobileAppStateSaga(action: ConfigGen.MobileAppStatePayload) {
   const nextAppState = action.payload.nextAppState
@@ -322,7 +328,7 @@ function* pushSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(PushGen.notification, pushNotificationSaga)
   yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, resetHandledPush)
   yield Saga.safeTakeEvery(ConfigGen.mobileAppState, mobileAppStateSaga)
-  yield Saga.actionToAction(LoginGen.logout, deletePushToken)
+  yield Saga.actionToAction(ConfigGen.logoutHandshake, deletePushToken)
 }
 
 export default pushSaga

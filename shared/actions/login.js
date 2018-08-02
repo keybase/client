@@ -8,7 +8,6 @@ import * as LoginGen from './login-gen'
 import * as ChatTypes from '../constants/types/chat2'
 import * as ChatConstants from '../constants/chat2'
 import * as Constants from '../constants/login'
-import * as RouteTypes from '../constants/types/route-tree'
 import * as RouteConstants from '../constants/route-tree'
 import * as RouteTree from './route-tree'
 import * as Saga from '../util/saga'
@@ -17,9 +16,6 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import {getEngine} from '../engine'
 import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
-import appRouteTree from '../app/routes-app'
-import loginRouteTree from '../app/routes-login'
-import {type InitialState} from '../constants/types/config'
 import {type TypedState} from '../constants/reducer'
 import {niceError} from '../util/errors'
 import HiddenString from '../util/hidden-string'
@@ -31,6 +27,7 @@ export function setupLoginHMR(cb: () => void) {
 }
 
 // TODO entirely change how this works
+/*
 function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
   const state = yield Saga.select()
   const {loggedIn, registered, startedDueToPush} = state.config
@@ -55,16 +52,12 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
   // state.routeTree.loggedInUserNavigated to true; see
   // loggedInUserNavigatedReducer.
   if (justDeletedSelf) {
-    yield Saga.put(RouteTree.switchRouteDef(loginRouteTree))
-    yield Saga.put(RouteTree.navigateTo([Tabs.loginTab]))
   } else if (loggedIn) {
     // If the user has already performed a navigation action, or if
     // we've already applied the initialState, do nothing.
     if (loggedInUserNavigated) {
       return
     }
-
-    yield Saga.put(RouteTree.switchRouteDef(appRouteTree))
 
     if (initialState) {
       const {url, tab, conversation} = (initialState: InitialState)
@@ -97,7 +90,6 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
       yield Saga.put(RouteTree.navigateTo([Tabs.peopleTab], null, 'initial-default'))
     }
   } else if (registered) {
-    yield Saga.put(RouteTree.switchRouteDef(loginRouteTree))
     // We may have logged successfully in by now, check before trying to navigate
     const state = yield Saga.select()
     if (state.config.loggedIn) {
@@ -114,6 +106,7 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
     yield Saga.put(RouteTree.navigateTo([Tabs.loginTab]))
   }
 }
+*/
 
 function* navigateToLoginRoot(): Generator<any, void, any> {
   const state: TypedState = yield Saga.select()
@@ -122,14 +115,11 @@ function* navigateToLoginRoot(): Generator<any, void, any> {
   yield Saga.put(RouteTree.navigateTo(route, [Tabs.loginTab]))
 }
 
-const maybeNavigateToLoginRoot = (action: RouteTypes.NavigateUp, state: TypedState) => {
-  if (state.routeTree.routeState && state.routeTree.routeState.selected !== Tabs.loginTab) {
-    // naving but not on login
-    return
-  }
-
-  return Saga.call(navigateToLoginRoot)
-}
+const maybeNavigateToLoginRoot = (state: TypedState) =>
+  // naving but not on login
+  state.routeTree.routeState && state.routeTree.routeState.selected !== Tabs.loginTab
+    ? null
+    : Saga.call(navigateToLoginRoot)
 
 const cancelDesc = 'Canceling RPC'
 const cancelOnCallback = (params, response, state) => {
@@ -204,47 +194,14 @@ const login = (_: any, action: LoginGen.LoginPayload) =>
 const launchForgotPasswordWebPage = () => Saga.call(openURL, 'https://keybase.io/#password-reset')
 const launchAccountResetWebPage = () => Saga.call(openURL, 'https://keybase.io/#account-reset')
 
-const loggedout = () =>
-  Saga.sequentially([
-    Saga.put({payload: undefined, type: LoginGen.resetStore}),
-    Saga.call(navBasedOnLoginAndInitialState),
-  ])
-
-const logout = () =>
-  Saga.sequentially([
-    Saga.put(ConfigGen.createClearRouteState()),
-    // Let push deregister work, TODO make this a real dependency or something, this is a short term fix
-    Saga.delay(1000),
-    Saga.call(RPCTypes.loginLogoutRpcPromise, undefined, Constants.waitingKey),
-    Saga.put(LoginGen.createLoggedout()),
-  ])
-
-const setupEngineListeners = () => {
-  getEngine().setIncomingActionCreators('keybase.1.NotifySession.loggedIn', ({username}, response) => {
-    response && response.result()
-    return [LoginGen.createLoggedin()]
-  })
-
-  getEngine().setIncomingActionCreators('keybase.1.NotifySession.loggedOut', (_, __, ___, getState) => {
-    return [LoginGen.createLoggedout()]
-  })
-}
-
-// TODO more pure functions
 function* loginSaga(): Saga.SagaGenerator<any, any> {
   // Actually log in
   yield Saga.actionToAction(LoginGen.login, login)
 
-  // Screen sagas
-  yield Saga.safeTakeLatest(LoginGen.navBasedOnLoginAndInitialState, navBasedOnLoginAndInitialState)
-  yield Saga.actionToAction(LoginGen.loggedout, loggedout)
-  yield Saga.actionToAction(LoginGen.logout, logout)
-
-  yield Saga.safeTakeEveryPure(RouteConstants.navigateUp, maybeNavigateToLoginRoot)
+  yield Saga.actionToAction(RouteConstants.navigateUp, maybeNavigateToLoginRoot)
 
   yield Saga.actionToAction(LoginGen.launchForgotPasswordWebPage, launchForgotPasswordWebPage)
   yield Saga.actionToAction(LoginGen.launchAccountResetWebPage, launchAccountResetWebPage)
-  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 }
 
 export default loginSaga

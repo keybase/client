@@ -5,8 +5,12 @@ import * as ConfigGen from '../config-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as PlatformSpecific from '../platform-specific'
+import * as RouteTree from '../route-tree'
+import * as Tabs from '../../constants/tabs'
+import appRouteTree from '../../app/routes-app'
+import loginRouteTree from '../../app/routes-login'
 import avatarSaga from './avatar'
-import engine from '../../engine'
+import {getEngine} from '../../engine'
 import {type TypedState} from '../../constants/reducer'
 
 const getExtendedStatus = () =>
@@ -15,15 +19,25 @@ const getExtendedStatus = () =>
   )
 
 const setupEngineListeners = () => {
-  engine().setIncomingActionCreators('keybase.1.NotifyTracking.trackingChanged', ({isTracking, username}) => [
-    ConfigGen.createUpdateFollowing({isTracking, username}),
-  ])
+  getEngine().setIncomingActionCreators(
+    'keybase.1.NotifyTracking.trackingChanged',
+    ({isTracking, username}) => [ConfigGen.createUpdateFollowing({isTracking, username})]
+  )
 
-  engine().actionOnDisconnect('daemonError', () => {
+  getEngine().actionOnDisconnect('daemonError', () => {
     logger.flush()
     return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
   })
-  engine().actionOnConnect('handshake', () => ConfigGen.createStartHandshake())
+  getEngine().actionOnConnect('handshake', () => ConfigGen.createStartHandshake())
+
+  getEngine().setIncomingActionCreators('keybase.1.NotifySession.loggedIn', ({username}, response) => {
+    response && response.result()
+    return [ConfigGen.createLoggedIn()]
+  })
+
+  getEngine().setIncomingActionCreators('keybase.1.NotifySession.loggedOut', (_, __, ___, getState) => {
+    return [ConfigGen.createLoggedOut()]
+  })
 }
 
 // Only do this once
@@ -116,6 +130,24 @@ const loadDaemonAccounts = () =>
     }),
   ])
 
+const showDeletedSelfRootPage = () =>
+  Saga.sequentially([
+    Saga.put(RouteTree.switchRouteDef(loginRouteTree)),
+    Saga.put(RouteTree.navigateTo([Tabs.loginTab])),
+  ])
+
+const switchRouteDef = (state: TypedState) =>
+  state.config.loggedIn
+    ? Saga.put(RouteTree.switchRouteDef(appRouteTree))
+    : Saga.put(RouteTree.switchRouteDef(loginRouteTree))
+
+const resetGlobalStore = () => Saga.put({payload: undefined, type: ConfigGen.resetStore})
+
+const startLogoutHandshake = () => Saga.put(ConfigGen.createLogoutHandshake())
+
+const maybeDoneWithLogoutHandshake = (state: TypedState) =>
+  state.config.logoutHandshakeWaiters.size <= 0 && Saga.call(RPCTypes.loginLogoutRpcPromise)
+
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // TODO handle logout stuff also
   yield Saga.actionToAction(ConfigGen.installerRan, dispatchSetupEngineListeners)
@@ -124,7 +156,14 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.daemonHandshake, loadDaemonConfig)
   yield Saga.actionToAction(ConfigGen.daemonHandshake, loadDaemonBootstrapStatus)
   yield Saga.actionToAction(ConfigGen.daemonHandshake, loadDaemonAccounts)
-  yield Saga.actionToPromise(LoginGen.loggedin, getExtendedStatus)
+  yield Saga.actionToPromise(ConfigGen.loggedIn, getExtendedStatus)
+  yield Saga.actionToAction([ConfigGen.loggedIn, ConfigGen.loggedOut], switchRouteDef)
+
+  yield Saga.actionToAction(ConfigGen.logout, startLogoutHandshake)
+  yield Saga.actionToAction(ConfigGen.logoutHandshakeWait, maybeDoneWithLogoutHandshake)
+  yield Saga.actionToAction(ConfigGen.loggedOut, resetGlobalStore)
+
+  yield Saga.actionToAction(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
 
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 

@@ -19,6 +19,7 @@ export default function(
     case ConfigGen.resetStore:
       return initialState.merge({
         daemonHandshakeWaiters: state.daemonHandshakeWaiters,
+        logoutHandshakeWaiters: state.logoutHandshakeWaiters,
         menubarWindowID: state.menubarWindowID,
       })
     case ConfigGen.restartHandshake:
@@ -33,6 +34,8 @@ export default function(
         daemonHandshakeFailedReason: '',
         daemonHandshakeRetriesLeft: Constants.maxHandshakeTries,
       })
+    case ConfigGen.logoutHandshake:
+      return state.merge({logoutHandshakeWaiters: I.Map()})
     case ConfigGen.daemonHandshakeWait: {
       const oldCount = state.daemonHandshakeWaiters.get(action.payload.name, 0)
       const newCount = oldCount + (action.payload.increment ? 1 : -1)
@@ -46,16 +49,19 @@ export default function(
       }
       return newState.set('daemonHandshakeFailedReason', action.payload.failedReason || '')
     }
+    case ConfigGen.logoutHandshakeWait: {
+      const oldCount = state.logoutHandshakeWaiters.get(action.payload.name, 0)
+      const newCount = oldCount + (action.payload.increment ? 1 : -1)
+      return newCount === 0
+        ? state.deleteIn(['logoutHandshakeWaiters', action.payload.name])
+        : state.setIn(['logoutHandshakeWaiters', action.payload.name], newCount)
+    }
     case ConfigGen.pushLoaded:
-      return state.set('pushLoaded', action.payload.pushLoaded)
+      return state.merge({pushLoaded: action.payload.pushLoaded})
     case ConfigGen.extendedConfigLoaded:
-      return state.set('extendedConfig', action.payload.extendedConfig)
+      return state.merge({extendedConfig: action.payload.extendedConfig})
     case ConfigGen.changeKBFSPath:
-      return state.set('kbfsPath', action.payload.kbfsPath)
-    // case ConfigGen.readyForBootstrap:
-    // return state.set('readyForBootstrap', true)
-    // case ConfigGen.bootstrapSuccess:
-    // return state.set('bootStatus', 'bootStatusBootstrapped')
+      return state.merge({kbfsPath: action.payload.kbfsPath})
     case ConfigGen.bootstrapStatusLoaded:
       return state.merge({
         deviceID: action.payload.deviceID,
@@ -67,14 +73,10 @@ export default function(
         uid: action.payload.uid,
         username: action.payload.username,
       })
-    // case ConfigGen.bootstrapAttemptFailed:
-    // return state.set('bootstrapTriesRemaining', state.bootstrapTriesRemaining - 1)
-    // case ConfigGen.bootstrapFailed:
-    // return state.set('bootStatus', 'bootStatusFailure')
-    // case ConfigGen.bootstrapRetry:
-    // return state
-    // .set('bootStatus', 'bootStatusLoading')
-    // .set('bootstrapTriesRemaining', Constants.maxBootstrapTries)
+    case ConfigGen.loggedIn:
+      return state.merge({loggedIn: true})
+    case ConfigGen.loggedOut:
+      return state.merge({loggedIn: false})
     case ConfigGen.updateFollowing: {
       const {isTracking, username} = action.payload
       return state.updateIn(
@@ -87,47 +89,53 @@ export default function(
       if (globalError) {
         logger.error('Error (global):', globalError)
       }
-      return state.set('globalError', globalError)
+      return state.merge({globalError})
     }
     case ConfigGen.debugDump:
-      return state.set('debugDump', action.payload.items)
+      return state.merge({debugDump: action.payload.items})
     case ConfigGen.daemonError: {
       const {daemonError} = action.payload
       if (daemonError) {
         logger.error('Error (daemon):', daemonError)
       }
-      return state.set('daemonError', daemonError)
+      return state.merge({daemonError})
     }
     case ConfigGen.setInitialState:
-      return state.set('initialState', action.payload.initialState)
+      return state.merge({initialState: action.payload.initialState})
     case ConfigGen.changedFocus:
-      return state
-        .set('appFocused', action.payload.appFocused)
-        .set('appFocusedCount', state.appFocusedCount + 1)
+      return state.merge({
+        appFocused: action.payload.appFocused,
+        appFocusedCount: state.appFocusedCount + 1,
+      })
     case ConfigGen.changedActive:
-      return state.set('userActive', action.payload.userActive)
+      return state.merge({userActive: action.payload.userActive})
     case ConfigGen.loadedAvatars: {
       const {nameToUrlMap} = action.payload
-      return state.set('avatars', {
-        ...state.avatars,
-        ...nameToUrlMap,
+      return state.merge({
+        avatars: {
+          ...state.avatars,
+          ...nameToUrlMap,
+        },
       })
     }
     case ConfigGen.setNotifySound:
-      return state.set('notifySound', action.payload.sound)
+      return state.merge({notifySound: action.payload.sound})
     case ConfigGen.setOpenAtLogin:
-      return state.set('openAtLogin', action.payload.open)
+      return state.merge({openAtLogin: action.payload.open})
     case 'remote:updateMenubarWindowID':
-      return state.set('menubarWindowID', action.payload.id)
+      return state.merge({menubarWindowID: action.payload.id})
     case ConfigGen.setStartedDueToPush:
-      return state.set('startedDueToPush', true)
+      return state.merge({startedDueToPush: true})
     case ConfigGen.configLoaded:
       return state.merge({
         version: action.payload.version,
         versionShort: action.payload.versionShort,
       })
     case ConfigGen.configuredAccounts:
-      return state.set('configuredAccounts', I.List(action.payload.accounts))
+      return state.merge({configuredAccounts: I.List(action.payload.accounts)})
+    case ConfigGen.setDeletedSelf:
+      return state.merge({justDeletedSelf: action.payload.deletedUsername})
+
     // Saga only actions
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:
@@ -142,6 +150,7 @@ export default function(
     case ConfigGen.daemonHandshake:
     case ConfigGen.installerRan:
     case ConfigGen.daemonHandshakeDone:
+    case ConfigGen.logout:
       return state
     default:
       /*::

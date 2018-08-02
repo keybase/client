@@ -3,7 +3,6 @@ import logger from '../logger'
 import {map, last} from 'lodash-es'
 import * as I from 'immutable'
 import * as SearchGen from './search-gen'
-import * as LoginGen from './login-gen'
 import * as TeamsGen from './teams-gen'
 import * as Types from '../constants/types/teams'
 import * as Constants from '../constants/teams'
@@ -1267,7 +1266,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(TeamsGen.createNewTeamFromConversation, _createNewTeamFromConversation)
   yield Saga.safeTakeEveryPure(TeamsGen.getChannelInfo, _getChannelInfo, _afterGetChannelInfo)
   yield Saga.safeTakeEveryPure(TeamsGen.getChannels, _getChannels, _afterGetChannels)
-  yield Saga.actionToAction([LoginGen.loggedin, TeamsGen.getTeams], getTeams)
+  yield Saga.actionToAction([ConfigGen.loggedIn, TeamsGen.getTeams], getTeams)
   yield Saga.safeTakeEveryPure(TeamsGen.saveChannelMembership, _saveChannelMembership)
   yield Saga.safeTakeEvery(TeamsGen.createChannel, _createChannel)
   yield Saga.safeTakeEvery(TeamsGen.addToTeam, _addToTeam)

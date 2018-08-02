@@ -7,8 +7,6 @@ export type _State = {
   forgotPasswordError: ?Error,
   forgotPasswordSubmitting: boolean,
   forgotPasswordSuccess: boolean,
-  justDeletedSelf: ?string,
-  justRevokedSelf: ?string,
   // shared by all errors, we only ever want one error
   error: HiddenString,
   registerUserPassLoading: boolean,

@@ -17,7 +17,7 @@ import {getPath} from '../route-tree'
 
 const getPeopleData = (
   state: TypedState,
-  action: PeopleGen.GetPeopleDataPayload | LoginGen.LoggedinPayload
+  action: PeopleGen.GetPeopleDataPayload | ConfigGen.LoggedInPayload
 ) => {
   let markViewed = false
   let numFollowSuggestionsWanted = Constants.defaultNumFollowSuggestions
@@ -146,7 +146,7 @@ const networkErrors = [
 ]
 
 const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
-  yield Saga.actionToPromise([LoginGen.loggedin, PeopleGen.getPeopleData], getPeopleData)
+  yield Saga.actionToPromise([ConfigGen.loggedIn, PeopleGen.getPeopleData], getPeopleData)
   yield Saga.safeTakeEveryPure(PeopleGen.markViewed, _markViewed, null, err => {
     if (networkErrors.includes(err.code)) {
       logger.warn('Network error calling homeMarkViewed')

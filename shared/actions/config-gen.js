@@ -29,11 +29,17 @@ export const link = 'config:link'
 export const loadAvatars = 'config:loadAvatars'
 export const loadTeamAvatars = 'config:loadTeamAvatars'
 export const loadedAvatars = 'config:loadedAvatars'
+export const loggedIn = 'config:loggedIn'
+export const loggedOut = 'config:loggedOut'
+export const logout = 'config:logout'
+export const logoutHandshake = 'config:logoutHandshake'
+export const logoutHandshakeWait = 'config:logoutHandshakeWait'
 export const mobileAppState = 'config:mobileAppState'
 export const openAppSettings = 'config:openAppSettings'
 export const persistRouteState = 'config:persistRouteState'
 export const pushLoaded = 'config:pushLoaded'
 export const restartHandshake = 'config:restartHandshake'
+export const setDeletedSelf = 'config:setDeletedSelf'
 export const setInitialState = 'config:setInitialState'
 export const setNotifySound = 'config:setNotifySound'
 export const setOpenAtLogin = 'config:setOpenAtLogin'
@@ -80,11 +86,20 @@ type _LinkPayload = $ReadOnly<{|link: string|}>
 type _LoadAvatarsPayload = $ReadOnly<{|usernames: Array<string>|}>
 type _LoadTeamAvatarsPayload = $ReadOnly<{|teamnames: Array<string>|}>
 type _LoadedAvatarsPayload = $ReadOnly<{|nameToUrlMap: {[name: string]: ?Object}|}>
+type _LoggedInPayload = void
+type _LoggedOutPayload = void
+type _LogoutHandshakePayload = void
+type _LogoutHandshakeWaitPayload = $ReadOnly<{|
+  name: string,
+  increment: boolean,
+|}>
+type _LogoutPayload = void
 type _MobileAppStatePayload = $ReadOnly<{|nextAppState: 'active' | 'background' | 'inactive'|}>
 type _OpenAppSettingsPayload = void
 type _PersistRouteStatePayload = void
 type _PushLoadedPayload = $ReadOnly<{|pushLoaded: boolean|}>
 type _RestartHandshakePayload = void
+type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
 type _SetInitialStatePayload = $ReadOnly<{|initialState: ?Types.InitialState|}>
 type _SetNotifySoundPayload = $ReadOnly<{|
   sound: boolean,
@@ -125,13 +140,25 @@ export const createOpenAppSettings = (payload: _OpenAppSettingsPayload) => ({err
  */
 export const createDaemonHandshakeDone = (payload: _DaemonHandshakeDonePayload) => ({error: false, payload, type: daemonHandshakeDone})
 /**
+ * someone wants to log out
+ */
+export const createLogout = (payload: _LogoutPayload) => ({error: false, payload, type: logout})
+/**
  * starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait
  */
 export const createDaemonHandshake = (payload: _DaemonHandshakePayload) => ({error: false, payload, type: daemonHandshake})
 /**
+ * starting the logout process. Things that need to happen before we see the app should call logoutHandshakeWait
+ */
+export const createLogoutHandshake = (payload: _LogoutHandshakePayload) => ({error: false, payload, type: logoutHandshake})
+/**
  * subsystems that need to do things during boot need to call this to register that we should wait.
  */
 export const createDaemonHandshakeWait = (payload: _DaemonHandshakeWaitPayload) => ({error: false, payload, type: daemonHandshakeWait})
+/**
+ * subsystems that need to do things during logout need to call this to register that we should wait.
+ */
+export const createLogoutHandshakeWait = (payload: _LogoutHandshakeWaitPayload) => ({error: false, payload, type: logoutHandshakeWait})
 /**
  * when sagas should start creating their incoming handlers / onConnect handlers
  */
@@ -152,9 +179,12 @@ export const createLink = (payload: _LinkPayload) => ({error: false, payload, ty
 export const createLoadAvatars = (payload: _LoadAvatarsPayload) => ({error: false, payload, type: loadAvatars})
 export const createLoadTeamAvatars = (payload: _LoadTeamAvatarsPayload) => ({error: false, payload, type: loadTeamAvatars})
 export const createLoadedAvatars = (payload: _LoadedAvatarsPayload) => ({error: false, payload, type: loadedAvatars})
+export const createLoggedIn = (payload: _LoggedInPayload) => ({error: false, payload, type: loggedIn})
+export const createLoggedOut = (payload: _LoggedOutPayload) => ({error: false, payload, type: loggedOut})
 export const createMobileAppState = (payload: _MobileAppStatePayload) => ({error: false, payload, type: mobileAppState})
 export const createPersistRouteState = (payload: _PersistRouteStatePayload) => ({error: false, payload, type: persistRouteState})
 export const createPushLoaded = (payload: _PushLoadedPayload) => ({error: false, payload, type: pushLoaded})
+export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error: false, payload, type: setDeletedSelf})
 export const createSetInitialState = (payload: _SetInitialStatePayload) => ({error: false, payload, type: setInitialState})
 export const createSetNotifySound = (payload: _SetNotifySoundPayload) => ({error: false, payload, type: setNotifySound})
 export const createSetOpenAtLogin = (payload: _SetOpenAtLoginPayload) => ({error: false, payload, type: setOpenAtLogin})
@@ -183,11 +213,17 @@ export type LinkPayload = $Call<typeof createLink, _LinkPayload>
 export type LoadAvatarsPayload = $Call<typeof createLoadAvatars, _LoadAvatarsPayload>
 export type LoadTeamAvatarsPayload = $Call<typeof createLoadTeamAvatars, _LoadTeamAvatarsPayload>
 export type LoadedAvatarsPayload = $Call<typeof createLoadedAvatars, _LoadedAvatarsPayload>
+export type LoggedInPayload = $Call<typeof createLoggedIn, _LoggedInPayload>
+export type LoggedOutPayload = $Call<typeof createLoggedOut, _LoggedOutPayload>
+export type LogoutHandshakePayload = $Call<typeof createLogoutHandshake, _LogoutHandshakePayload>
+export type LogoutHandshakeWaitPayload = $Call<typeof createLogoutHandshakeWait, _LogoutHandshakeWaitPayload>
+export type LogoutPayload = $Call<typeof createLogout, _LogoutPayload>
 export type MobileAppStatePayload = $Call<typeof createMobileAppState, _MobileAppStatePayload>
 export type OpenAppSettingsPayload = $Call<typeof createOpenAppSettings, _OpenAppSettingsPayload>
 export type PersistRouteStatePayload = $Call<typeof createPersistRouteState, _PersistRouteStatePayload>
 export type PushLoadedPayload = $Call<typeof createPushLoaded, _PushLoadedPayload>
 export type RestartHandshakePayload = $Call<typeof createRestartHandshake, _RestartHandshakePayload>
+export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDeletedSelfPayload>
 export type SetInitialStatePayload = $Call<typeof createSetInitialState, _SetInitialStatePayload>
 export type SetNotifySoundPayload = $Call<typeof createSetNotifySound, _SetNotifySoundPayload>
 export type SetOpenAtLoginPayload = $Call<typeof createSetOpenAtLogin, _SetOpenAtLoginPayload>
@@ -220,11 +256,17 @@ export type Actions =
   | LoadAvatarsPayload
   | LoadTeamAvatarsPayload
   | LoadedAvatarsPayload
+  | LoggedInPayload
+  | LoggedOutPayload
+  | LogoutHandshakePayload
+  | LogoutHandshakeWaitPayload
+  | LogoutPayload
   | MobileAppStatePayload
   | OpenAppSettingsPayload
   | PersistRouteStatePayload
   | PushLoadedPayload
   | RestartHandshakePayload
+  | SetDeletedSelfPayload
   | SetInitialStatePayload
   | SetNotifySoundPayload
   | SetOpenAtLoginPayload
