@@ -13,7 +13,7 @@ type OwnProps = {
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const lastReadMessageID = state.chat2.lastReadMessageMap.get(ownProps.message.conversationIDKey)
   // Show the orange line on the first message after the last read message
-  // Messages sent sent by you don't count
+  // Messages sent by you don't count
   const orangeLineAbove =
     !!ownProps.previous &&
     lastReadMessageID === ownProps.previous.id &&
@@ -34,7 +34,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const showTimestamp = Constants.enoughTimeBetweenMessages(_message, previous)
 
   const timestamp =
-    stateProps.orangeLineAbove || !previous || showTimestamp
+    (stateProps.orangeLineAbove && _message.timestamp) || !previous || showTimestamp
       ? formatTimeForMessages(_message.timestamp)
       : null
 
