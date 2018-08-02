@@ -990,7 +990,7 @@ func TestGetRevisions(t *testing.T) {
 			require.Equal(t, expectedRev, r.Revision)
 			expectedTime = expectedTime.Add(-1 * time.Minute)
 			expectedRev--
-			if numDone > 5 && i == 0 &&
+			if numDone > 5 && i == 3 &&
 				spanType == keybase1.RevisionSpanType_DEFAULT {
 				expectedTime = expectedTime.Add(-1 * time.Minute)
 				expectedRev--
