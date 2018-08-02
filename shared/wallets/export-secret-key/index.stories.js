@@ -1,15 +1,15 @@
 // @flow
 import React from 'react'
-import {action, storiesOf, createPropProvider} from '../../stories/storybook'
+import * as Sb from '../../stories/storybook'
 import ExportSecretKey from '.'
 
 const load = () => {
-  storiesOf('Wallets', module)
-    .addDecorator(createPropProvider())
+  Sb.storiesOf('Wallets', module)
+    .addDecorator(Sb.createPropProvider())
     .add('Export secret key', () => (
       <ExportSecretKey
-        onClose={action('onClose')}
-        onLoadSecretKey={action('onLoadSecretKey')}
+        onClose={Sb.action('onClose')}
+        onLoadSecretKey={Sb.action('onLoadSecretKey')}
         secretKey="SETECASTRONOMY"
         username="cecileb"
       />
