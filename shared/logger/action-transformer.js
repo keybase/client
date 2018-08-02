@@ -56,7 +56,6 @@ const actionTransformMap = {
   [ConfigGen.daemonHandshakeWait]: fullOutput,
   [ConfigGen.loadTeamAvatars]: nullTransform,
   [ConfigGen.loadedAvatars]: nullTransform,
-  [ConfigGen.persistRouteState]: nullTransform,
   [GregorGen.pushOOBM]: nullTransform,
   [ConfigGen.changedFocus]: nullTransform,
   [Chat2Gen.updateTypers]: nullTransform,

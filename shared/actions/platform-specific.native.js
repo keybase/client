@@ -2,32 +2,22 @@
 import logger from '../logger'
 import {type TypedState} from '../constants/reducer'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
-import * as LoginGen from './login-gen'
 import * as GregorGen from '../actions/gregor-gen'
 import * as NotificationsGen from '../actions/notifications-gen'
 import * as PushTypes from '../constants/types/push'
 import * as PushConstants from '../constants/push'
 import * as PushGen from './push-gen'
 import * as PushNotifications from 'react-native-push-notification'
+import * as Tabs from '../constants/tabs'
+import * as RouteTree from '../route-tree'
 import * as mime from 'react-native-mime-types'
 import * as Saga from '../util/saga'
-import {RouteStateStorage} from './route-state-storage.native'
+import * as RN from 'react-native'
 import RNFetchBlob from 'react-native-fetch-blob'
-import {
-  PushNotificationIOS,
-  CameraRoll,
-  ActionSheetIOS,
-  Linking,
-  NativeModules,
-  NativeEventEmitter,
-  NetInfo,
-  PermissionsAndroid,
-} from 'react-native'
 import {eventChannel} from 'redux-saga'
 import {isDevApplePushToken} from '../local-debug'
-import {isIOS, isAndroid, isSimulator} from '../constants/platform'
+import {isIOS, isAndroid} from '../constants/platform'
 
 // Used to listen to the java intent for notifications
 let RNEmitter
@@ -37,7 +27,7 @@ let RNEmitter
 // 1. Plumb through the intent from the java side if we relaunch due to push
 // 2. We store the last push and re-use it when this event is emitted to just 'rerun' the push
 if (!isIOS) {
-  RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
+  RNEmitter = new RN.NativeEventEmitter(RN.NativeModules.KeybaseEngine)
 }
 
 function requestPushPermissions() {
@@ -45,7 +35,7 @@ function requestPushPermissions() {
 }
 
 function getShownPushPrompt(): Promise<boolean> {
-  const PushPrompt = NativeModules.PushPrompt
+  const PushPrompt = RN.NativeModules.PushPrompt
   return PushPrompt.getHasShownPushPrompt()
 }
 
@@ -60,10 +50,10 @@ function showShareActionSheet(options: {
 }): Promise<{completed: boolean, method: string}> {
   if (isIOS) {
     return new Promise((resolve, reject) =>
-      ActionSheetIOS.showShareActionSheetWithOptions(options, reject, resolve)
+      RN.ActionSheetIOS.showShareActionSheetWithOptions(options, reject, resolve)
     )
   } else {
-    return NativeModules.ShareFiles.share(options.url, options.mimeType).then(
+    return RN.NativeModules.ShareFiles.share(options.url, options.mimeType).then(
       () => ({completed: true, method: ''}),
       () => ({completed: false, method: ''})
     )
@@ -74,7 +64,7 @@ type NextURI = string
 function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   let goodPath = filePath
   logger.debug('saveAttachment: ', goodPath)
-  return CameraRoll.saveToCameraRoll(goodPath)
+  return RN.CameraRoll.saveToCameraRoll(goodPath)
 }
 
 async function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<void> {
@@ -84,12 +74,12 @@ async function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Pr
     // iOS cannot save a video from a URL, so we can only do images here. Fallback to temp file
     // method for videos.
     logger.info(logPrefix + 'Saving iOS picture to camera roll')
-    await CameraRoll.saveToCameraRoll(fileURL)
+    await RN.CameraRoll.saveToCameraRoll(fileURL)
     return
   }
   if (!isIOS) {
-    const permissionStatus = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+    const permissionStatus = await RN.PermissionsAndroid.request(
+      RN.PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
       {
         title: 'Keybase Storage Permission',
         message: 'Keybase needs access to your storage so we can download an attachment.',
@@ -109,7 +99,7 @@ async function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Pr
   logger.info(logPrefix + `Saving to ${path}`)
   try {
     logger.info(logPrefix + 'Attempting to save')
-    await CameraRoll.saveToCameraRoll(`file://${path}`, saveType)
+    await RN.CameraRoll.saveToCameraRoll(`file://${path}`, saveType)
     logger.info(logPrefix + 'Success')
   } catch (err) {
     logger.error(logPrefix + 'Failed:', err)
@@ -146,8 +136,8 @@ function displayNewMessageNotification(
 ) {
   // Dismiss any non-plaintext notifications for the same message ID
   if (isIOS) {
-    PushNotificationIOS.getDeliveredNotifications(param => {
-      PushNotificationIOS.removeDeliveredNotifications(
+    RN.PushNotificationIOS.getDeliveredNotifications(param => {
+      RN.PushNotificationIOS.removeDeliveredNotifications(
         param.filter(p => p.userInfo && p.userInfo.msgID === myMsgID).map(p => p.identifier)
       )
     })
@@ -255,7 +245,7 @@ function configurePush() {
 
     // It doesn't look like there is a registrationError being set for iOS.
     // https://github.com/zo0r/react-native-push-notification/issues/261
-    PushNotificationIOS.addEventListener('registrationError', error => {
+    RN.PushNotificationIOS.addEventListener('registrationError', error => {
       dispatch(
         PushGen.createRegistrationError({
           error,
@@ -270,12 +260,12 @@ function configurePush() {
 
 const openAppSettings = () => {
   if (isAndroid) {
-    NativeModules.NativeSettings.open()
+    RN.NativeModules.NativeSettings.open()
   } else {
     const settingsURL = 'app-settings:'
-    Linking.canOpenURL(settingsURL).then(can => {
+    RN.Linking.canOpenURL(settingsURL).then(can => {
       if (can) {
-        Linking.openURL(settingsURL)
+        RN.Linking.openURL(settingsURL)
       } else {
         logger.warn('Unable to open app settings')
       }
@@ -351,14 +341,30 @@ const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
   return Saga.put(ConfigGen.createChangedFocus({appFocused}))
 }
 
-const setStartedDueToPush = (action: Chat2Gen.SelectConversationPayload) =>
-  action.payload.reason === 'push' ? Saga.put(ConfigGen.createSetStartedDueToPush()) : undefined
+// TODO
+// const setStartedDueToPush = (action: Chat2Gen.SelectConversationPayload) =>
+// action.payload.reason === 'push' ? Saga.put(ConfigGen.createSetStartedDueToPush()) : undefined
 
-const routeStateStorage = new RouteStateStorage()
+const clearRouteState = () => Saga.call(RN.AsyncStorage.removeItem, 'routeState')
 
-// Until routeStateStorage is sagaized.
-const clearRouteState = () => Saga.put.resolve(routeStateStorage.clear)
-const persistRouteState = () => Saga.put.resolve(routeStateStorage.store)
+const persistRouteState = (state: TypedState) => {
+  const routePath = RouteTree.getPath(state.routeTree.routeState)
+  const selectedTab = routePath.first()
+  if (Tabs.isValidInitialTabString(selectedTab)) {
+    const item = {
+      // in a conversation and not on the inbox
+      selectedConversationIDKey:
+        selectedTab === Tabs.chatTab && routePath.size > 1 ? state.chat2.selectedConversation : null,
+      tab: selectedTab,
+    }
+
+    return Saga.call(RN.AsyncStorage.setItem, 'routeState', item)
+  } else {
+    return Saga.call(RN.AsyncStorage.removeItem, 'routeState')
+  }
+}
+
+// TODO nojima watch route stuff and persist route state here
 
 // const onBootstrapped = (state: TypedState) => {
 // TODO coordinate loading of push state and routestate
@@ -377,7 +383,7 @@ const persistRouteState = () => Saga.put.resolve(routeStateStorage.store)
 const setupNetInfoWatcher = () =>
   Saga.call(function*() {
     const channel = Saga.eventChannel(emitter => {
-      NetInfo.addEventListener('connectionChange', () => emitter('changed'))
+      RN.NetInfo.addEventListener('connectionChange', () => emitter('changed'))
       return () => {}
     }, Saga.buffers.dropping(1))
     while (true) {
@@ -398,16 +404,54 @@ const updateAppBadge = (_: any, action: NotificationsGen.ReceivedBadgeStatePaylo
   }
 }
 
+function* loadStartupDetails() {
+  let startupWasFromPush = false
+  let startupConversation = null
+  let startupLink = ''
+  let startupTab = null
+
+  const routeStateTask = yield Saga.fork(RN.AsyncStorage.getItem, 'routeState')
+  const linkTask = yield Saga.fork(RN.Linking.getInitialURL)
+
+  const [routeState, link] = yield Saga.join(routeStateTask, linkTask)
+
+  if (!link.error()) {
+    startupLink = link.result()
+  }
+
+  // TODO push
+
+  // ignore if we're coming from a link
+  // // also ignore if from push
+  if (!startupWasFromPush && !startupLink && !routeState.error()) {
+    const item = routeState.result()
+    if (item) {
+      startupConversation = item.selectedConversationIDKey
+      startupTab = item.tab
+    }
+  }
+
+  yield Saga.put(
+    ConfigGen.createSetStartupDetails({
+      startupConversation,
+      startupLink,
+      startupTab,
+      startupWasFromPush,
+    })
+  )
+}
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
-  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, setStartedDueToPush)
-  yield Saga.safeTakeEveryPure([ConfigGen.loggedOut, ConfigGen.clearRouteState], clearRouteState)
-  yield Saga.safeTakeEveryPure(ConfigGen.persistRouteState, persistRouteState)
-  // yield Saga.actionToAction(ConfigGen.bootstrapSuccess, onBootstrapped)
+  // yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, setStartedDueToPush)
+  yield Saga.actionToAction(ConfigGen.loggedOut, clearRouteState)
+  // TODO watch routing and do this
+  // yield Saga.safeTakeEveryPure(ConfigGen.persistRouteState, persistRouteState)
   yield Saga.actionToAction(ConfigGen.openAppSettings, openAppSettings)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupNetInfoWatcher)
-
   yield Saga.actionToAction(NotificationsGen.receivedBadgeState, updateAppBadge)
+  // Start this immediately
+  yield Saga.fork(loadStartupDetails)
 }
 
 export {

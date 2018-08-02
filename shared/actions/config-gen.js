@@ -5,16 +5,15 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/config'
+import * as Tabs from '../constants/tabs'
+import * as ChatTypes from '../constants/types/chat2'
 import {RPCError} from '../util/errors'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer
 export const bootstrapStatusLoaded = 'config:bootstrapStatusLoaded'
-export const changeKBFSPath = 'config:changeKBFSPath'
 export const changedActive = 'config:changedActive'
 export const changedFocus = 'config:changedFocus'
-export const clearRouteState = 'config:clearRouteState'
-export const configLoaded = 'config:configLoaded'
 export const configuredAccounts = 'config:configuredAccounts'
 export const daemonError = 'config:daemonError'
 export const daemonHandshake = 'config:daemonHandshake'
@@ -36,14 +35,12 @@ export const logoutHandshake = 'config:logoutHandshake'
 export const logoutHandshakeWait = 'config:logoutHandshakeWait'
 export const mobileAppState = 'config:mobileAppState'
 export const openAppSettings = 'config:openAppSettings'
-export const persistRouteState = 'config:persistRouteState'
 export const pushLoaded = 'config:pushLoaded'
 export const restartHandshake = 'config:restartHandshake'
 export const setDeletedSelf = 'config:setDeletedSelf'
-export const setInitialState = 'config:setInitialState'
 export const setNotifySound = 'config:setNotifySound'
 export const setOpenAtLogin = 'config:setOpenAtLogin'
-export const setStartedDueToPush = 'config:setStartedDueToPush'
+export const setStartupDetails = 'config:setStartupDetails'
 export const setupEngineListeners = 'config:setupEngineListeners'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
@@ -60,14 +57,8 @@ type _BootstrapStatusLoadedPayload = $ReadOnly<{|
   uid: string,
   username: string,
 |}>
-type _ChangeKBFSPathPayload = $ReadOnly<{|kbfsPath: string|}>
 type _ChangedActivePayload = $ReadOnly<{|userActive: boolean|}>
 type _ChangedFocusPayload = $ReadOnly<{|appFocused: boolean|}>
-type _ClearRouteStatePayload = void
-type _ConfigLoadedPayload = $ReadOnly<{|
-  version: string,
-  versionShort: string,
-|}>
 type _ConfiguredAccountsPayload = $ReadOnly<{|accounts: Array<string>|}>
 type _DaemonErrorPayload = $ReadOnly<{|daemonError: ?Error|}>
 type _DaemonHandshakeDonePayload = void
@@ -96,11 +87,9 @@ type _LogoutHandshakeWaitPayload = $ReadOnly<{|
 type _LogoutPayload = void
 type _MobileAppStatePayload = $ReadOnly<{|nextAppState: 'active' | 'background' | 'inactive'|}>
 type _OpenAppSettingsPayload = void
-type _PersistRouteStatePayload = void
 type _PushLoadedPayload = $ReadOnly<{|pushLoaded: boolean|}>
 type _RestartHandshakePayload = void
 type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
-type _SetInitialStatePayload = $ReadOnly<{|initialState: ?Types.InitialState|}>
 type _SetNotifySoundPayload = $ReadOnly<{|
   sound: boolean,
   writeFile: boolean,
@@ -109,7 +98,12 @@ type _SetOpenAtLoginPayload = $ReadOnly<{|
   open: boolean,
   writeFile: boolean,
 |}>
-type _SetStartedDueToPushPayload = void
+type _SetStartupDetailsPayload = $ReadOnly<{|
+  startupWasFromPush: boolean,
+  startupConversation: ?ChatTypes.ConversationIDKey,
+  startupLink: string,
+  startupTab: ?Tabs.Tab,
+|}>
 type _SetupEngineListenersPayload = void
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
@@ -164,11 +158,8 @@ export const createLogoutHandshakeWait = (payload: _LogoutHandshakeWaitPayload) 
  */
 export const createSetupEngineListeners = (payload: _SetupEngineListenersPayload) => ({error: false, payload, type: setupEngineListeners})
 export const createBootstrapStatusLoaded = (payload: _BootstrapStatusLoadedPayload) => ({error: false, payload, type: bootstrapStatusLoaded})
-export const createChangeKBFSPath = (payload: _ChangeKBFSPathPayload) => ({error: false, payload, type: changeKBFSPath})
 export const createChangedActive = (payload: _ChangedActivePayload) => ({error: false, payload, type: changedActive})
 export const createChangedFocus = (payload: _ChangedFocusPayload) => ({error: false, payload, type: changedFocus})
-export const createClearRouteState = (payload: _ClearRouteStatePayload) => ({error: false, payload, type: clearRouteState})
-export const createConfigLoaded = (payload: _ConfigLoadedPayload) => ({error: false, payload, type: configLoaded})
 export const createConfiguredAccounts = (payload: _ConfiguredAccountsPayload) => ({error: false, payload, type: configuredAccounts})
 export const createDaemonError = (payload: _DaemonErrorPayload) => ({error: false, payload, type: daemonError})
 export const createDebugDump = (payload: _DebugDumpPayload) => ({error: false, payload, type: debugDump})
@@ -182,23 +173,18 @@ export const createLoadedAvatars = (payload: _LoadedAvatarsPayload) => ({error: 
 export const createLoggedIn = (payload: _LoggedInPayload) => ({error: false, payload, type: loggedIn})
 export const createLoggedOut = (payload: _LoggedOutPayload) => ({error: false, payload, type: loggedOut})
 export const createMobileAppState = (payload: _MobileAppStatePayload) => ({error: false, payload, type: mobileAppState})
-export const createPersistRouteState = (payload: _PersistRouteStatePayload) => ({error: false, payload, type: persistRouteState})
 export const createPushLoaded = (payload: _PushLoadedPayload) => ({error: false, payload, type: pushLoaded})
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error: false, payload, type: setDeletedSelf})
-export const createSetInitialState = (payload: _SetInitialStatePayload) => ({error: false, payload, type: setInitialState})
 export const createSetNotifySound = (payload: _SetNotifySoundPayload) => ({error: false, payload, type: setNotifySound})
 export const createSetOpenAtLogin = (payload: _SetOpenAtLoginPayload) => ({error: false, payload, type: setOpenAtLogin})
-export const createSetStartedDueToPush = (payload: _SetStartedDueToPushPayload) => ({error: false, payload, type: setStartedDueToPush})
+export const createSetStartupDetails = (payload: _SetStartupDetailsPayload) => ({error: false, payload, type: setStartupDetails})
 export const createShowMain = (payload: _ShowMainPayload) => ({error: false, payload, type: showMain})
 export const createUpdateFollowing = (payload: _UpdateFollowingPayload) => ({error: false, payload, type: updateFollowing})
 
 // Action Payloads
 export type BootstrapStatusLoadedPayload = $Call<typeof createBootstrapStatusLoaded, _BootstrapStatusLoadedPayload>
-export type ChangeKBFSPathPayload = $Call<typeof createChangeKBFSPath, _ChangeKBFSPathPayload>
 export type ChangedActivePayload = $Call<typeof createChangedActive, _ChangedActivePayload>
 export type ChangedFocusPayload = $Call<typeof createChangedFocus, _ChangedFocusPayload>
-export type ClearRouteStatePayload = $Call<typeof createClearRouteState, _ClearRouteStatePayload>
-export type ConfigLoadedPayload = $Call<typeof createConfigLoaded, _ConfigLoadedPayload>
 export type ConfiguredAccountsPayload = $Call<typeof createConfiguredAccounts, _ConfiguredAccountsPayload>
 export type DaemonErrorPayload = $Call<typeof createDaemonError, _DaemonErrorPayload>
 export type DaemonHandshakeDonePayload = $Call<typeof createDaemonHandshakeDone, _DaemonHandshakeDonePayload>
@@ -220,14 +206,12 @@ export type LogoutHandshakeWaitPayload = $Call<typeof createLogoutHandshakeWait,
 export type LogoutPayload = $Call<typeof createLogout, _LogoutPayload>
 export type MobileAppStatePayload = $Call<typeof createMobileAppState, _MobileAppStatePayload>
 export type OpenAppSettingsPayload = $Call<typeof createOpenAppSettings, _OpenAppSettingsPayload>
-export type PersistRouteStatePayload = $Call<typeof createPersistRouteState, _PersistRouteStatePayload>
 export type PushLoadedPayload = $Call<typeof createPushLoaded, _PushLoadedPayload>
 export type RestartHandshakePayload = $Call<typeof createRestartHandshake, _RestartHandshakePayload>
 export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDeletedSelfPayload>
-export type SetInitialStatePayload = $Call<typeof createSetInitialState, _SetInitialStatePayload>
 export type SetNotifySoundPayload = $Call<typeof createSetNotifySound, _SetNotifySoundPayload>
 export type SetOpenAtLoginPayload = $Call<typeof createSetOpenAtLogin, _SetOpenAtLoginPayload>
-export type SetStartedDueToPushPayload = $Call<typeof createSetStartedDueToPush, _SetStartedDueToPushPayload>
+export type SetStartupDetailsPayload = $Call<typeof createSetStartupDetails, _SetStartupDetailsPayload>
 export type SetupEngineListenersPayload = $Call<typeof createSetupEngineListeners, _SetupEngineListenersPayload>
 export type ShowMainPayload = $Call<typeof createShowMain, _ShowMainPayload>
 export type StartHandshakePayload = $Call<typeof createStartHandshake, _StartHandshakePayload>
@@ -237,11 +221,8 @@ export type UpdateFollowingPayload = $Call<typeof createUpdateFollowing, _Update
 // prettier-ignore
 export type Actions =
   | BootstrapStatusLoadedPayload
-  | ChangeKBFSPathPayload
   | ChangedActivePayload
   | ChangedFocusPayload
-  | ClearRouteStatePayload
-  | ConfigLoadedPayload
   | ConfiguredAccountsPayload
   | DaemonErrorPayload
   | DaemonHandshakeDonePayload
@@ -263,14 +244,12 @@ export type Actions =
   | LogoutPayload
   | MobileAppStatePayload
   | OpenAppSettingsPayload
-  | PersistRouteStatePayload
   | PushLoadedPayload
   | RestartHandshakePayload
   | SetDeletedSelfPayload
-  | SetInitialStatePayload
   | SetNotifySoundPayload
   | SetOpenAtLoginPayload
-  | SetStartedDueToPushPayload
+  | SetStartupDetailsPayload
   | SetupEngineListenersPayload
   | ShowMainPayload
   | StartHandshakePayload

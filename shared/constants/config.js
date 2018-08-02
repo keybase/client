@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from './types/config'
+import * as ChatConstants from './chat2'
 import {uniq} from 'lodash-es'
 import {runMode} from './platform'
 
@@ -33,9 +34,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   followers: I.Set(),
   following: I.Set(),
   globalError: null,
-  initialState: null,
   justDeletedSelf: '',
-  kbfsPath: '',
   loggedIn: false,
   logoutHandshakeWaiters: I.Map(),
   menubarWindowID: 0,
@@ -44,10 +43,12 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pgpPopupOpen: false,
   pushLoaded: false,
   registered: false,
-  startedDueToPush: false,
+  startupConversation: ChatConstants.noConversationIDKey,
+  startupDetailsLoaded: false,
+  startupLink: '',
+  startupTab: null,
+  startupWasFromPush: false,
   uid: '',
   userActive: true,
   username: '',
-  version: '',
-  versionShort: '',
 })

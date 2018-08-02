@@ -3,17 +3,14 @@ import logger from '../logger'
 import * as I from 'immutable'
 import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
+import * as ChatConstants from '../constants/chat2'
 import * as ConfigGen from '../actions/config-gen'
 
 const initialState = Constants.makeState()
 
 export default function(
   state: Types.State = initialState,
-  action:
-    | ConfigGen.Actions
-    | ConfigGen.ChangedFocusPayload
-    | ConfigGen.ChangedActivePayload
-    | {type: 'remote:updateMenubarWindowID', payload: {id: number}}
+  action: ConfigGen.Actions | {type: 'remote:updateMenubarWindowID', payload: {id: number}}
 ): Types.State {
   switch (action.type) {
     case ConfigGen.resetStore:
@@ -21,6 +18,7 @@ export default function(
         daemonHandshakeWaiters: state.daemonHandshakeWaiters,
         logoutHandshakeWaiters: state.logoutHandshakeWaiters,
         menubarWindowID: state.menubarWindowID,
+        startupDetailsLoaded: state.startupDetailsLoaded,
       })
     case ConfigGen.restartHandshake:
       return state.merge({
@@ -56,12 +54,20 @@ export default function(
         ? state.deleteIn(['logoutHandshakeWaiters', action.payload.name])
         : state.setIn(['logoutHandshakeWaiters', action.payload.name], newCount)
     }
+    case ConfigGen.setStartupDetails:
+      return state.startupDetailsLoaded
+        ? state
+        : state.merge({
+            startupConversation: action.payload.startupConversation || ChatConstants.noConversationIDKey,
+            startupDetailsLoaded: true,
+            startupLink: action.payload.startupLink,
+            startupTab: action.payload.startupTab,
+            startupWasFromPush: action.payload.startupWasFromPush,
+          })
     case ConfigGen.pushLoaded:
       return state.merge({pushLoaded: action.payload.pushLoaded})
     case ConfigGen.extendedConfigLoaded:
       return state.merge({extendedConfig: action.payload.extendedConfig})
-    case ConfigGen.changeKBFSPath:
-      return state.merge({kbfsPath: action.payload.kbfsPath})
     case ConfigGen.bootstrapStatusLoaded:
       return state.merge({
         deviceID: action.payload.deviceID,
@@ -100,8 +106,6 @@ export default function(
       }
       return state.merge({daemonError})
     }
-    case ConfigGen.setInitialState:
-      return state.merge({initialState: action.payload.initialState})
     case ConfigGen.changedFocus:
       return state.merge({
         appFocused: action.payload.appFocused,
@@ -124,13 +128,6 @@ export default function(
       return state.merge({openAtLogin: action.payload.open})
     case 'remote:updateMenubarWindowID':
       return state.merge({menubarWindowID: action.payload.id})
-    case ConfigGen.setStartedDueToPush:
-      return state.merge({startedDueToPush: true})
-    case ConfigGen.configLoaded:
-      return state.merge({
-        version: action.payload.version,
-        versionShort: action.payload.versionShort,
-      })
     case ConfigGen.configuredAccounts:
       return state.merge({configuredAccounts: I.List(action.payload.accounts)})
     case ConfigGen.setDeletedSelf:
@@ -139,8 +136,6 @@ export default function(
     // Saga only actions
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:
-    case ConfigGen.clearRouteState:
-    case ConfigGen.persistRouteState:
     case ConfigGen.dumpLogs:
     case ConfigGen.link:
     case ConfigGen.mobileAppState:

@@ -1,7 +1,6 @@
 // @flow
 import * as ConfigGen from './config-gen'
 import * as PeopleGen from './people-gen'
-import * as LoginGen from './login-gen'
 import * as Saga from '../util/saga'
 import * as I from 'immutable'
 import * as Constants from '../constants/people'
@@ -87,7 +86,7 @@ const _skipTodo = (action: PeopleGen.SkipTodoPayload) => {
   ])
 }
 
-let _wasOnPeopleTab = true
+let _wasOnPeopleTab = false
 const setupEngineListeners = () => {
   engine().actionOnConnect('registerHomeUI', () => {
     RPCTypes.delegateUiCtlRegisterHomeUIRpcPromise()

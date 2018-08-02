@@ -5,14 +5,6 @@ import {type Tab} from '../tabs'
 import {type DeviceID, type ExtendedStatus} from './rpc-gen'
 import {RPCError} from '../../util/errors'
 
-export type InitialState = {|
-  conversation?: ConversationIDKey,
-  tab?: Tab,
-  url?: string,
-|}
-
-export type BootStatus = 'bootStatusLoading' | 'bootStatusBootstrapped' | 'bootStatusFailure'
-
 export type AvatarSizes = {
   '200': string,
   '360': string,
@@ -22,14 +14,12 @@ export type AvatarSizes = {
 export type _State = {
   appFocused: boolean,
   appFocusedCount: number,
-  // MUST be a plain object for remotes to work correctly
-  avatars: {[username: string]: AvatarSizes},
+  avatars: {[username: string]: AvatarSizes}, // MUST be a plain object for remotes to work correctly
   configuredAccounts: I.List<string>,
   daemonError: ?Error,
   daemonHandshakeFailedReason: string,
   daemonHandshakeRetriesLeft: number,
   daemonHandshakeWaiters: I.Map<string, number>,
-  logoutHandshakeWaiters: I.Map<string, number>,
   debugDump: Array<string>,
   deviceID: DeviceID,
   deviceName: ?string,
@@ -38,20 +28,21 @@ export type _State = {
   followers: I.Set<string>,
   following: I.Set<string>,
   globalError: null | Error | RPCError,
-  initialState: ?InitialState,
   justDeletedSelf: string,
-  kbfsPath: string,
   loggedIn: boolean,
+  logoutHandshakeWaiters: I.Map<string, number>,
   menubarWindowID: number,
   notifySound: boolean,
   openAtLogin: boolean,
   pushLoaded: boolean,
   registered: boolean,
-  startedDueToPush: boolean,
+  startupDetailsLoaded: boolean,
+  startupWasFromPush: boolean,
+  startupConversation: ConversationIDKey,
+  startupLink: string,
+  startupTab: ?Tab,
   uid: string,
   userActive: boolean,
   username: string,
-  version: string,
-  versionShort: string,
 }
 export type State = I.RecordOf<_State>
