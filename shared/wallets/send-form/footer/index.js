@@ -11,7 +11,7 @@ type Props = {
 }
 
 const Footer = ({onClickSend, onClickRequest, disabled}: Props) => (
-  <Box2 direction="vertical" fullWidth={true}>
+  <Box2 direction="vertical" fullWidth={true} style={styles.background}>
     <Box2 direction="horizontal" style={styles.buttonBox} fullWidth={true}>
       {!!onClickRequest && (
         <Button
@@ -61,6 +61,9 @@ const styles = styleSheetCreate({
     marginRight: globalMargins.tiny,
   },
   icon: {marginRight: globalMargins.tiny},
+  background: {
+    backgroundColor: globalColors.blue5,
+  },
 })
 
 export default Footer
