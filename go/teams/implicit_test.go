@@ -81,7 +81,7 @@ func TestLookupImplicitTeams(t *testing.T) {
 		require.Equal(t, team.IsPublic(), public)
 
 		expr := fmt.Sprintf("tid:%s", createdTeam.ID)
-		rres := tc.G.Resolver.ResolveFullExpressionNeedUsername(context.Background(), expr)
+		rres := tc.G.Resolver.ResolveFullExpressionNeedUsername(libkb.NewMetaContextForTest(tc), expr)
 		require.NoError(t, rres.GetError())
 		require.True(t, rres.GetTeamID().Exists())
 	}

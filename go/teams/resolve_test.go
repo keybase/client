@@ -27,7 +27,7 @@ func TestOurResolve(t *testing.T) {
 	require.True(t, id.Eq(id2))
 
 	r2input := fmt.Sprintf("team:%s", nm.String())
-	rres := g.Resolver.ResolveFullExpressionNeedUsername(ctx, r2input)
+	rres := g.Resolver.ResolveFullExpressionNeedUsername(libkb.NewMetaContext(ctx, g), r2input)
 	require.NoError(t, rres.GetError())
 	require.True(t, rres.GetTeamID().Exists())
 	require.Equal(t, rres.UserOrTeam().Name, nm.String())
