@@ -115,22 +115,22 @@ func (res ResolveResult) FailOnDeleted() ResolveResult {
 	return res
 }
 
-func (r *ResolverImpl) ResolveWithBody(input string) ResolveResult {
-	return r.resolve(input, true)
+func (r *ResolverImpl) ResolveWithBody(ctx context.Context, input string) ResolveResult {
+	return r.resolve(ctx, input, true)
 }
 
-func (r *ResolverImpl) Resolve(input string) ResolveResult {
-	return r.resolve(input, false)
+func (r *ResolverImpl) Resolve(ctx context.Context, input string) ResolveResult {
+	return r.resolve(ctx, input, false)
 }
 
-func (r *ResolverImpl) resolve(input string, withBody bool) (res ResolveResult) {
-	defer r.G().Trace(fmt.Sprintf("Resolving username %q", input), func() error { return res.err })()
+func (r *ResolverImpl) resolve(ctx context.Context, input string, withBody bool) (res ResolveResult) {
+	defer r.G().CTraceTimed(ctx, fmt.Sprintf("Resolving username %q", input), func() error { return res.err })()
 
 	var au AssertionURL
 	if au, res.err = ParseAssertionURL(r.G().MakeAssertionContext(), input, false); res.err != nil {
 		return res
 	}
-	res = r.resolveURL(context.TODO(), au, input, withBody, false)
+	res = r.resolveURL(ctx, au, input, withBody, false)
 	return res
 }
 

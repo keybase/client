@@ -1606,6 +1606,43 @@ function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
   yield Saga.call(downloadAttachment, destPath, conversationIDKey, message, ordinal)
 }
 
+function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayload) {
+  const message = action.payload.message
+  if (Constants.isVideoAttachment(message)) {
+    // Start up the fullscreen video view only on iOS, and only if we have the file downloaded
+    if (isMobile && message.fileURLCached) {
+      yield Saga.put(
+        Route.navigateAppend([
+          {
+            props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+            selected: 'attachmentVideoFullscreen',
+          },
+        ])
+      )
+      // If we are on desktop, or if we are on mobile and we haven't downloaded the video, let's do that
+      // here
+    } else if (!isMobile || !message.fileURLCached) {
+      yield Saga.put(
+        Chat2Gen.createAttachmentDownload({
+          conversationIDKey: message.conversationIDKey,
+          ordinal: message.ordinal,
+        })
+      )
+    }
+    // Otherwise we just do nothing. On Android this is relevant, since the fullscreen viewer just
+    // doesn't seem to work there.
+  } else {
+    yield Saga.put(
+      Route.navigateAppend([
+        {
+          props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+          selected: 'attachmentFullscreen',
+        },
+      ])
+    )
+  }
+}
+
 // Upload an attachment
 function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   const {conversationIDKey, paths, titles} = action.payload
@@ -1674,7 +1711,9 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
         ? preview.location.url
         : ''
   )
-  const previewSpecs = previews.map(preview => Constants.previewSpecs(preview && preview.metadata, null))
+  const previewSpecs = previews.map(preview =>
+    Constants.previewSpecs(preview && preview.metadata, preview && preview.baseMetadata)
+  )
 
   let lastOrdinal = null
   const messages = outboxIDs.map((o, i) => {
@@ -2214,6 +2253,11 @@ const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, st
   })
 }
 
+const handleFilePickerError = (action: Chat2Gen.FilePickerErrorPayload) => {
+  // Just show a black bar for now.
+  throw action.payload.error
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -2302,6 +2346,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     getRecommendations
   )
 
+  yield Saga.safeTakeEvery(Chat2Gen.attachmentPreviewSelect, attachmentPreviewSelect)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentDownload, attachmentDownload)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentsUpload, attachmentsUpload)
 
@@ -2349,6 +2394,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(Chat2Gen.handleSeeingExplodingMessages, handleSeeingExplodingMessages)
   yield Saga.safeTakeEveryPure(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
   yield Saga.actionToPromise(ConfigGen.bootstrapSuccess, loadStaticConfig)
+  yield Saga.safeTakeEveryPure(Chat2Gen.filePickerError, handleFilePickerError)
 }
 
 export default chat2Saga

@@ -10,6 +10,7 @@ import type {Props} from './header-hoc.types'
 export const HeaderHocHeader = ({
   headerStyle,
   customComponent,
+  hideBackLabel,
   title,
   onCancel,
   onBack,
@@ -20,6 +21,7 @@ export const HeaderHocHeader = ({
     {onBack && (
       <BackButton
         key="back"
+        hideBackLabel={hideBackLabel}
         onClick={onBack}
         style={{..._backButtonIconStyle, ..._backButtonIconStyleThemed[theme]}}
       />

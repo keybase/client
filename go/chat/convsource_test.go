@@ -313,13 +313,6 @@ func TestReactions(t *testing.T) {
 		TLFMessage: *firstMessageBoxed,
 	})
 	require.NoError(t, err)
-	ires, err := ri.GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query: &chat1.GetInboxQuery{
-			ConvID: &res.ConvID,
-		},
-	})
-	require.NoError(t, err)
-	conv := ires.Inbox.Full().Conversations[0]
 
 	verifyThread := func(msgID, supersededBy chat1.MessageID, body string,
 		reactionIDs []chat1.MessageID, reactionMap chat1.ReactionMap) {
@@ -498,12 +491,22 @@ func TestReactions(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 0, len(thread.Messages), "wrong length")
 
-	// Post illegal supersedes=0
-	reactionMsgID = sendReaction(":wave:", 0)
-	hcs := tc.Context().ConvSource.(*HybridConversationSource)
-	require.NotNil(t, hcs)
-	_, err = hcs.GetMessages(ctx, conv, uid, []chat1.MessageID{reactionMsgID}, nil)
-	require.NoError(t, err)
+	// Post illegal supersedes=0, fails on send
+	_, _, err = sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			Sender:      uid,
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_REACTION,
+			Supersedes:  0,
+		},
+		MessageBody: chat1.NewMessageBodyWithReaction(chat1.MessageReaction{
+			MessageID: 0,
+			Body:      ":wave:",
+		}),
+	}, 0, nil)
+	require.Error(t, err)
 }
 
 type failingRemote struct {

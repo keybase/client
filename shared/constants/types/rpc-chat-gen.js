@@ -101,6 +101,7 @@ export const commonRetentionPolicyType = {
   retain: 1,
   expire: 2,
   inherit: 3,
+  ephemeral: 4,
 }
 
 export const commonSyncInboxResType = {
@@ -577,7 +578,7 @@ export type LocalSetTeamRetentionLocalRpcParam = $ReadOnly<{teamID: Keybase1.Tea
 export type LocalUnboxMobilePushNotificationRpcParam = $ReadOnly<{payload: String, convID: String, membersType: ConversationMembersType, pushIDs?: ?Array<String>, shouldAck: Boolean}>
 export type LocalUpdateTypingRpcParam = $ReadOnly<{conversationID: ConversationID, typing: Boolean}>
 export type LocalUpgradeKBFSConversationToImpteamRpcParam = $ReadOnly<{convID: ConversationID}>
-export type MakePreviewRes = $ReadOnly<{mimeType: String, location?: ?PreviewLocation, metadata?: ?AssetMetadata, baseMetadata?: ?AssetMetadata}>
+export type MakePreviewRes = $ReadOnly<{mimeType: String, previewMimeType?: ?String, location?: ?PreviewLocation, metadata?: ?AssetMetadata, baseMetadata?: ?AssetMetadata}>
 export type MarkAsReadLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
 export type MarkAsReadRes = $ReadOnly<{rateLimit?: ?RateLimit}>
 export type MemberInfo = $ReadOnly<{member: String, status: ConversationMemberStatus}>
@@ -768,13 +769,15 @@ export type RemoteTlfResolveRpcParam = $ReadOnly<{tlfID: TLFID, resolvedWriters?
 export type RemoteUpdateTypingRemoteRpcParam = $ReadOnly<{uid: Gregor1.UID, deviceID: Gregor1.DeviceID, convID: ConversationID, typing: Boolean}>
 export type RemoteUpgradeKBFSToImpteamRpcParam = $ReadOnly<{tlfID: TLFID}>
 export type RemoteUserTypingUpdate = $ReadOnly<{uid: Gregor1.UID, deviceID: Gregor1.DeviceID, convID: ConversationID, typing: Boolean}>
-export type RetentionPolicy = {typ: 1, retain: ?RpRetain} | {typ: 2, expire: ?RpExpire} | {typ: 3, inherit: ?RpInherit}
+export type RetentionPolicy = {typ: 1, retain: ?RpRetain} | {typ: 2, expire: ?RpExpire} | {typ: 3, inherit: ?RpInherit} | {typ: 4, ephemeral: ?RpEphemeral}
 export type RetentionPolicyType =
   | 0 // NONE_0
   | 1 // RETAIN_1
   | 2 // EXPIRE_2
   | 3 // INHERIT_3
+  | 4 // EPHEMERAL_4
 
+export type RpEphemeral = $ReadOnly<{age: Gregor1.DurationSec}>
 export type RpExpire = $ReadOnly<{age: Gregor1.DurationSec}>
 export type RpInherit = $ReadOnly<{}>
 export type RpRetain = $ReadOnly<{}>
@@ -844,7 +847,7 @@ export type TopicType =
   | 3 // KBFSFILEEDIT_3
 
 export type TyperInfo = $ReadOnly<{uid: Keybase1.UID, username: String, deviceID: Keybase1.DeviceID, deviceName: String, deviceType: String}>
-export type UIAssetUrlInfo = $ReadOnly<{previewUrl: String, fullUrl: String, mimeType: String}>
+export type UIAssetUrlInfo = $ReadOnly<{previewUrl: String, fullUrl: String, fullUrlCached: Boolean, mimeType: String, videoDuration?: ?String}>
 export type UIChannelNameMention = $ReadOnly<{name: String, convID: String}>
 export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?UIMessageOutbox} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
 export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, ctime: Gregor1.Time, ordinal: Double, preview?: ?MakePreviewRes}>

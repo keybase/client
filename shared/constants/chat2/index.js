@@ -206,6 +206,7 @@ export {
   getDeletableByDeleteHistory,
   getMessageID,
   isSpecialMention,
+  isVideoAttachment,
   makeMessageAttachment,
   makeMessageDeleted,
   makeMessageText,

@@ -14,6 +14,7 @@ export const resetStore = 'common:resetStore' // not a part of chat2 but is hand
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
 export const attachmentLoading = 'chat2:attachmentLoading'
+export const attachmentPreviewSelect = 'chat2:attachmentPreviewSelect'
 export const attachmentUploaded = 'chat2:attachmentUploaded'
 export const attachmentUploading = 'chat2:attachmentUploading'
 export const attachmentsUpload = 'chat2:attachmentsUpload'
@@ -21,6 +22,7 @@ export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
 export const createConversation = 'chat2:createConversation'
 export const desktopNotification = 'chat2:desktopNotification'
+export const filePickerError = 'chat2:filePickerError'
 export const handleSeeingExplodingMessages = 'chat2:handleSeeingExplodingMessages'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
@@ -100,6 +102,7 @@ type _AttachmentLoadingPayload = $ReadOnly<{|
   ratio: number,
   isPreview: boolean,
 |}>
+type _AttachmentPreviewSelectPayload = $ReadOnly<{|message: Types.MessageAttachment|}>
 type _AttachmentUploadedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,
@@ -125,6 +128,7 @@ type _DesktopNotificationPayload = $ReadOnly<{|
   author: string,
   body: string,
 |}>
+type _FilePickerErrorPayload = $ReadOnly<{|error: Error|}>
 type _HandleSeeingExplodingMessagesPayload = void
 type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>
 type _JoinConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
@@ -362,6 +366,10 @@ export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingMode
  */
 export const createReactionsWereDeleted = (payload: _ReactionsWereDeletedPayload) => ({error: false, payload, type: reactionsWereDeleted})
 /**
+ * Sent whenever the mobile file picker encounters an error.
+ */
+export const createFilePickerError = (payload: _FilePickerErrorPayload) => ({error: false, payload, type: filePickerError})
+/**
  * Set a lock on the exploding mode for a conversation.
  */
 export const createSetExplodingModeLock = (payload: _SetExplodingModeLockPayload) => ({error: false, payload, type: setExplodingModeLock})
@@ -396,6 +404,7 @@ export const createSetPendingConversationExistingConversationIDKey = (payload: _
 export const createAttachmentDownload = (payload: _AttachmentDownloadPayload) => ({error: false, payload, type: attachmentDownload})
 export const createAttachmentDownloaded = (payload: _AttachmentDownloadedPayload) => ({error: false, payload, type: attachmentDownloaded})
 export const createAttachmentLoading = (payload: _AttachmentLoadingPayload) => ({error: false, payload, type: attachmentLoading})
+export const createAttachmentPreviewSelect = (payload: _AttachmentPreviewSelectPayload) => ({error: false, payload, type: attachmentPreviewSelect})
 export const createAttachmentUploaded = (payload: _AttachmentUploadedPayload) => ({error: false, payload, type: attachmentUploaded})
 export const createAttachmentUploading = (payload: _AttachmentUploadingPayload) => ({error: false, payload, type: attachmentUploading})
 export const createAttachmentsUpload = (payload: _AttachmentsUploadPayload) => ({error: false, payload, type: attachmentsUpload})
@@ -453,6 +462,7 @@ export const createUpdateTypers = (payload: _UpdateTypersPayload) => ({error: fa
 export type AttachmentDownloadPayload = $Call<typeof createAttachmentDownload, _AttachmentDownloadPayload>
 export type AttachmentDownloadedPayload = $Call<typeof createAttachmentDownloaded, _AttachmentDownloadedPayload>
 export type AttachmentLoadingPayload = $Call<typeof createAttachmentLoading, _AttachmentLoadingPayload>
+export type AttachmentPreviewSelectPayload = $Call<typeof createAttachmentPreviewSelect, _AttachmentPreviewSelectPayload>
 export type AttachmentUploadedPayload = $Call<typeof createAttachmentUploaded, _AttachmentUploadedPayload>
 export type AttachmentUploadingPayload = $Call<typeof createAttachmentUploading, _AttachmentUploadingPayload>
 export type AttachmentsUploadPayload = $Call<typeof createAttachmentsUpload, _AttachmentsUploadPayload>
@@ -460,6 +470,7 @@ export type BadgesUpdatedPayload = $Call<typeof createBadgesUpdated, _BadgesUpda
 export type BlockConversationPayload = $Call<typeof createBlockConversation, _BlockConversationPayload>
 export type CreateConversationPayload = $Call<typeof createCreateConversation, _CreateConversationPayload>
 export type DesktopNotificationPayload = $Call<typeof createDesktopNotification, _DesktopNotificationPayload>
+export type FilePickerErrorPayload = $Call<typeof createFilePickerError, _FilePickerErrorPayload>
 export type HandleSeeingExplodingMessagesPayload = $Call<typeof createHandleSeeingExplodingMessages, _HandleSeeingExplodingMessagesPayload>
 export type InboxRefreshPayload = $Call<typeof createInboxRefresh, _InboxRefreshPayload>
 export type JoinConversationPayload = $Call<typeof createJoinConversation, _JoinConversationPayload>
@@ -527,6 +538,7 @@ export type Actions =
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload
   | AttachmentLoadingPayload
+  | AttachmentPreviewSelectPayload
   | AttachmentUploadedPayload
   | AttachmentUploadingPayload
   | AttachmentsUploadPayload
@@ -534,6 +546,7 @@ export type Actions =
   | BlockConversationPayload
   | CreateConversationPayload
   | DesktopNotificationPayload
+  | FilePickerErrorPayload
   | HandleSeeingExplodingMessagesPayload
   | InboxRefreshPayload
   | JoinConversationPayload

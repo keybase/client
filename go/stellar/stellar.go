@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
+	stellarAddress "github.com/stellar/go/address"
 	"github.com/stellar/go/amount"
 	"github.com/stellar/go/xdr"
 )
@@ -247,6 +248,40 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res 
 		}
 		res.AccountID = &accountID
 		return nil
+	}
+
+	if strings.Index(string(to), stellarAddress.Separator) >= 0 {
+		name, domain, err := stellarAddress.Split(string(to))
+		if err != nil {
+			return res, err
+		}
+
+		if domain == "keybase.io" {
+			// Keybase.io federation address. Fall through to identify
+			// path.
+			m.CDebugf("Got federation address %q but it's under keybase.io domain!", to)
+			m.CDebugf("Instead going to lookup Keybase assertion: %q", name)
+			to = stellarcommon.RecipientInput(name)
+		} else {
+			// Actual federation address that is not under keybase.io
+			// domain. Use federation client.
+			fedCli := getGlobal(m.G()).federationClient
+			nameResponse, err := fedCli.LookupByAddress(string(to))
+			if err != nil {
+				errStr := err.Error()
+				m.CDebugf("federation.LookupByAddress returned error: %s", errStr)
+				if strings.Contains(errStr, "lookup federation server failed") {
+					return res, fmt.Errorf("Server at url %q does not respond to federation requests", domain)
+				} else if strings.Contains(errStr, "get federation failed") {
+					return res, fmt.Errorf("Federation server %q did not find record %q", domain, name)
+				}
+				return res, err
+			}
+			// We got an address! Fall through to the "Stellar
+			// address" path.
+			m.CDebugf("federation.LookupByAddress returned: %+v", nameResponse)
+			to = stellarcommon.RecipientInput(nameResponse.AccountID)
+		}
 	}
 
 	// A Stellar address

@@ -13,6 +13,7 @@ const Banner = (props: Props) => (
   <Box2
     direction="vertical"
     fullWidth={true}
+    centerChildren={true}
     style={collapseStyles([styles.container, {backgroundColor: backgroundModeToColor[props.background]}])}
   >
     <Text type="BodySmallSemibold" style={styles.text} backgroundMode={props.background}>
@@ -26,6 +27,7 @@ const styles = styleSheetCreate({
     padding: globalMargins.small,
     paddingBottom: globalMargins.tiny,
     paddingTop: globalMargins.tiny,
+    minHeight: 40,
   },
   text: {
     textAlign: 'center',

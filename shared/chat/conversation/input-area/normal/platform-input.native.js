@@ -2,7 +2,16 @@
 /* eslint-env browser */
 import {showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
-import {Box, Box2, Icon, Input, Text, iconCastPlatformStyles} from '../../../../common-adapters'
+import {
+  Box,
+  Box2,
+  Icon,
+  Input,
+  Text,
+  iconCastPlatformStyles,
+  OverlayParentHOC,
+  type OverlayParentProps,
+} from '../../../../common-adapters'
 import {globalMargins, globalStyles, globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
@@ -13,7 +22,6 @@ import {
 } from '../../../../common-adapters/native-wrappers.native'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import {ExplodingMeta} from './shared'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
 import type {PlatformInputProps} from './types'
 import flags from '../../../../util/feature-flags'
 
@@ -21,10 +29,10 @@ type State = {
   hasText: boolean,
 }
 
-class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentProps, State> {
+class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, State> {
   _input: ?Input
 
-  constructor(props: PlatformInputProps & FloatingMenuParentProps) {
+  constructor(props: PlatformInputProps & OverlayParentProps) {
     super(props)
     this.state = {
       hasText: false,
@@ -37,13 +45,13 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
   }
 
   _openFilePicker = () => {
-    showImagePicker({mediaType: 'photo'}, response => {
+    showImagePicker({mediaType: isIOS ? 'mixed' : 'photo'}, response => {
       if (response.didCancel || !this.props.conversationIDKey) {
         return
       }
       if (response.error) {
-        console.error(response.error)
-        throw new Error(response.error)
+        this.props.onFilePickerError(new Error(response.error))
+        return
       }
       const filename = isIOS ? response.uri.replace('file://', '') : response.path
       this.props.onAttach([filename])
@@ -332,4 +340,4 @@ const explodingIconContainer = platformStyles({
   },
 })
 
-export default FloatingMenuParentHOC(PlatformInput)
+export default OverlayParentHOC(PlatformInput)

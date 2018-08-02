@@ -253,6 +253,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           .set('downloadPath', path)
           .set('transferProgress', 0)
           .set('transferState', null)
+          .set('fileURLCached', true) // assume we have this on the service now
       })
     case Chat2Gen.metasReceived:
       const existingPending = messageMap.get(Constants.pendingConversationIDKey)
@@ -784,6 +785,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
       })
     // Saga only actions
+    case Chat2Gen.attachmentPreviewSelect:
     case Chat2Gen.attachmentsUpload:
     case Chat2Gen.desktopNotification:
     case Chat2Gen.inboxRefresh:
@@ -815,6 +817,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.setConvExplodingMode:
     case Chat2Gen.handleSeeingExplodingMessages:
     case Chat2Gen.toggleMessageReaction:
+    case Chat2Gen.filePickerError:
       return state
     default:
       /*::

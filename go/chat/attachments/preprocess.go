@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/keybase/client/go/chat/utils"
 
@@ -83,6 +85,9 @@ func (p *Preprocess) Export(getLocation func() *chat1.PreviewLocation) (res chat
 		MimeType: p.ContentType,
 		Location: getLocation(),
 	}
+	if p.PreviewContentType != "" {
+		res.PreviewMimeType = &p.PreviewContentType
+	}
 	md := p.PreviewMetadata()
 	var empty chat1.AssetMetadata
 	if md != empty {
@@ -123,6 +128,9 @@ func processCallerPreview(ctx context.Context, callerPreview chat1.MakePreviewRe
 		return p, fmt.Errorf("unknown preview location: %v", ltyp)
 	}
 	p.ContentType = callerPreview.MimeType
+	if callerPreview.PreviewMimeType != nil {
+		p.PreviewContentType = *callerPreview.PreviewMimeType
+	}
 	if callerPreview.Metadata != nil {
 		typ, err := callerPreview.Metadata.AssetType()
 		if err != nil {
@@ -189,17 +197,26 @@ func PreprocessAsset(ctx context.Context, log utils.DebugLabeler, filename strin
 	p = Preprocess{
 		ContentType: http.DetectContentType(head),
 	}
-	log.Debug(ctx, "preprocessAsset: detected attachment content type %s", p.ContentType)
 	if _, err := src.Seek(0, 0); err != nil {
 		return p, err
 	}
+	// MIME type detection failed us, try using an extension map
+	if p.ContentType == "application/octet-stream" {
+		ext := strings.ToLower(filepath.Ext(filename))
+		if typ, ok := mimeTypes[ext]; ok {
+			p.ContentType = typ
+		}
+	}
+	log.Debug(ctx, "preprocessAsset: detected attachment content type %s", p.ContentType)
+
 	previewRes, err := Preview(ctx, log, src, p.ContentType, filename)
 	if err != nil {
 		log.Debug(ctx, "preprocessAsset: error making preview: %s", err)
 		return p, err
 	}
 	if previewRes != nil {
-		log.Debug(ctx, "preprocessAsset: made preview for attachment asset")
+		log.Debug(ctx, "preprocessAsset: made preview for attachment asset: content type: %s",
+			previewRes.ContentType)
 		p.Preview = previewRes.Source
 		p.PreviewContentType = previewRes.ContentType
 		if previewRes.BaseWidth > 0 || previewRes.BaseHeight > 0 {

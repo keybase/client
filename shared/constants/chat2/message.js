@@ -146,6 +146,7 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   fileSize: 0,
   fileType: '',
   fileURL: '',
+  fileURLCached: false,
   previewHeight: 0,
   previewTransferState: null,
   previewURL: '',
@@ -157,6 +158,7 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   transferProgress: 0,
   transferState: null,
   type: 'attachment',
+  videoDuration: null,
 })
 
 const makeMessageSystemJoined: I.RecordFactory<MessageTypes._MessageSystemJoined> = I.Record({
@@ -410,6 +412,8 @@ const clampAttachmentPreviewSize = ({width = 0, height = 0}) =>
         width: clamp(width || 0, 0, maxAttachmentPreviewSize),
       }
 
+export const isVideoAttachment = (message: Types.MessageAttachment) => message.fileType.startsWith('video')
+
 export const previewSpecs = (preview: ?RPCChatTypes.AssetMetadata, full: ?RPCChatTypes.AssetMetadata) => {
   const res = {
     height: 0,
@@ -514,10 +518,14 @@ const validUIMessagetoMessage = (
       let previewURL = ''
       let fileURL = ''
       let fileType = ''
+      let fileURLCached = false
+      let videoDuration = null
       if (m.assetUrlInfo) {
         previewURL = m.assetUrlInfo.previewUrl
         fileURL = m.assetUrlInfo.fullUrl
         fileType = m.assetUrlInfo.mimeType
+        fileURLCached = m.assetUrlInfo.fullUrlCached
+        videoDuration = m.assetUrlInfo.videoDuration
       }
 
       return makeMessageAttachment({
@@ -527,12 +535,14 @@ const validUIMessagetoMessage = (
         fileSize: size,
         fileType,
         fileURL,
+        fileURLCached,
         previewHeight: pre.height,
         previewURL,
         previewWidth: pre.width,
         showPlayButton: pre.showPlayButton,
         title,
         transferState,
+        videoDuration,
       })
     }
     case RPCChatTypes.commonMessageType.join:
@@ -615,7 +625,8 @@ const outboxUIMessagetoMessage = (
             ? o.preview.location.url
             : ''
         const md = o.preview && o.preview.metadata
-        pre = previewSpecs(md, null)
+        const baseMd = o.preview && o.preview.baseMetadata
+        pre = previewSpecs(md, baseMd)
       }
       return makePendingAttachmentMessage(
         state,

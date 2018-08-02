@@ -80,6 +80,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onSeenExplodingMessages: () => dispatch(Chat2Gen.createHandleSeeingExplodingMessages()),
   onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
     dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
+  onFilePickerError: (error: Error) => dispatch(Chat2Gen.createFilePickerError({error})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
@@ -95,6 +96,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   isExplodingNew: stateProps.isExplodingNew,
   onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
   onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
+  onFilePickerError: dispatchProps.onFilePickerError,
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
   onSeenExplodingMessages: dispatchProps.onSeenExplodingMessages,
   onSubmit: (text: string) => {
