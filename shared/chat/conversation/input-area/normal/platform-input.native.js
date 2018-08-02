@@ -24,18 +24,24 @@ import SetExplodingMessagePicker from '../../messages/set-explode-popup/containe
 import {ExplodingMeta} from './shared'
 import type {PlatformInputProps} from './types'
 import flags from '../../../../util/feature-flags'
+import FilePickerPopup from '../filepicker-popup'
+
+type menuType = 'exploding' | 'filepickerpopup'
 
 type State = {
   hasText: boolean,
+  showFilePickerPopup: boolean,
 }
 
 class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, State> {
   _input: ?Input
+  _whichMenu: menuType
 
   constructor(props: PlatformInputProps & OverlayParentProps) {
     super(props)
     this.state = {
       hasText: false,
+      showFilePickerPopup: false,
     }
   }
 
@@ -45,7 +51,17 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
   }
 
   _openFilePicker = () => {
-    showImagePicker({mediaType: isIOS ? 'mixed' : 'photo'}, response => {
+    if (isIOS) {
+      this._showNativeImagePicker('mixed')
+    } else {
+      // On Android "mixed" mode doesn't work with our library, so we have to ask the user
+      // if they want photo or video
+      this._toggleShowingMenu('filepickerpopup')
+    }
+  }
+
+  _showNativeImagePicker = (mediaType: string) => {
+    showImagePicker({mediaType}, response => {
       if (response.didCancel || !this.props.conversationIDKey) {
         return
       }
@@ -74,9 +90,10 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
     }
   }
 
-  _toggleShowingMenu = () => {
+  _toggleShowingMenu = (menu: menuType) => {
     // Hide the keyboard on mobile when showing the menu.
     NativeKeyboard.dismiss()
+    this._whichMenu = menu
     this.props.onSeenExplodingMessages()
     this.props.toggleShowingMenu()
   }
@@ -113,7 +130,15 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             filter={this.props.channelMentionFilter}
           />
         )}
-        {this.props.showingMenu && (
+        {this.props.showingMenu && this._whichMenu === 'filepickerpopup' ? (
+          <FilePickerPopup
+            attachTo={this.props.attachmentRef}
+            visible={this.props.showingMenu}
+            onHidden={this.props.toggleShowingMenu}
+            onSelect={this._showNativeImagePicker}
+            selected="photo"
+          />
+        ) : (
           <SetExplodingMessagePicker
             attachTo={this.props.attachmentRef}
             conversationIDKey={this.props.conversationIDKey}
@@ -155,7 +180,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             hasText={this.state.hasText}
             onSubmit={this._onSubmit}
             isEditing={this.props.isEditing}
-            openExplodingPicker={this._toggleShowingMenu}
+            openExplodingPicker={() => this._toggleShowingMenu('exploding')}
             openFilePicker={this._openFilePicker}
             insertMentionMarker={this.props.insertMentionMarker}
             isExploding={this.props.isExploding}
