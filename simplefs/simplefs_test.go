@@ -984,7 +984,6 @@ func TestGetRevisions(t *testing.T) {
 		numExpected, newestRev int, spanType keybase1.RevisionSpanType) {
 		res := getRevisions(spanType)
 		require.Len(t, res.Revisions, numExpected)
-		t.Log(res.Revisions)
 
 		// Default should get the most recent one, and then the 4
 		// earliest ones, while LAST_FIVE should get the last five.
