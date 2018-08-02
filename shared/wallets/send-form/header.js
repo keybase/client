@@ -6,15 +6,13 @@ import {collapseStyles, globalColors, platformStyles, styleSheetCreate} from '..
 type Props = {onBack?: () => void, whiteBackground?: boolean}
 
 const Header = (props: Props) => (
-  <Box2 direction="horizontal" style={styles.headerContainer} fullWidth={true}>
-    <Box2
-      direction="horizontal"
-      style={collapseStyles([styles.header, props.whiteBackground && styles.whiteBackground])}
-      fullWidth={true}
-    >
-      {props.onBack && <BackButton style={styles.backButton} onClick={props.onBack} />}
-      <Icon type="icon-stellar-coins-flying-48" style={iconCastPlatformStyles(styles.icon)} />
-    </Box2>
+  <Box2
+    direction="horizontal"
+    style={collapseStyles([styles.header, props.whiteBackground && styles.whiteBackground])}
+    fullWidth={true}
+  >
+    {props.onBack && <BackButton style={styles.backButton} onClick={props.onBack} />}
+    <Icon type="icon-stellar-coins-flying-48" style={iconCastPlatformStyles(styles.icon)} />
   </Box2>
 )
 
@@ -32,9 +30,6 @@ const styles = styleSheetCreate({
     height: 48,
     justifyContent: 'center',
     position: 'relative',
-  },
-  headerContainer: {
-    height: 60,
   },
   icon: {
     position: 'relative',

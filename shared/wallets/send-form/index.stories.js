@@ -33,7 +33,7 @@ const load = () => {
   // full component
   storiesOf('Wallets/SendForm', module)
     .addDecorator(provider)
-    .add('Send', () => <SendForm onClick={action('onClick')} />)
+    .add('Send', () => <SendForm onClick={action('onClick')} onClose={action('onClose')} />)
 }
 
 export default load
