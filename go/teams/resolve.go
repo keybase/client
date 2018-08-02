@@ -46,7 +46,8 @@ func ResolveNameToID(ctx context.Context, g *libkb.GlobalContext, name keybase1.
 }
 
 func PurgeResolverTeamID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) error {
-	return g.Resolver.PurgeResolveCache(ctx, fmt.Sprintf("tid:%s", teamID))
+	m := libkb.NewMetaContext(ctx, g)
+	return g.Resolver.PurgeResolveCache(m, fmt.Sprintf("tid:%s", teamID))
 }
 
 // Resolve assertions in an implicit team display name and verify the result.

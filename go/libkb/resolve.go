@@ -542,9 +542,9 @@ func (r *ResolverImpl) putToMemCache(m MetaContext, key string, res ResolveResul
 	r.cache.Set(key, &res)
 }
 
-func (r *ResolverImpl) PurgeResolveCache(ctx context.Context, input string) error {
+func (r *ResolverImpl) PurgeResolveCache(m MetaContext, input string) error {
 	var expr AssertionExpression
-	expr, err := AssertionParseAndOnly(r.G().MakeAssertionContext(), input)
+	expr, err := AssertionParseAndOnly(m.G().MakeAssertionContext(), input)
 	if err != nil {
 		return err
 	}
@@ -558,8 +558,8 @@ func (r *ResolverImpl) PurgeResolveCache(ctx context.Context, input string) erro
 	// Since we only put to disk cache if it's a Keybase-type assertion, we
 	// only remove it in this case as well.
 	if u.IsKeybase() {
-		if err := r.G().LocalDb.Delete(resolveDbKey(key)); err != nil {
-			r.G().Log.CWarningf(ctx, "Cannot remove resolve result from disk: %s", err)
+		if err := m.G().LocalDb.Delete(resolveDbKey(key)); err != nil {
+			m.CWarningf("Cannot remove resolve result from disk: %s", err)
 			return err
 		}
 	}
