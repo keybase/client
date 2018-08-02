@@ -31,7 +31,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
     [pendingConversationIDKey, makeConversationMeta({conversationIDKey: noConversationIDKey})],
   ]),
   moreToLoadMap: I.Map(),
-  lastReadMessageMap: I.Map(),
+  orangeLineMap: I.Map(),
   pendingMode: 'none',
   pendingOutboxToOrdinal: I.Map(),
   quote: null,

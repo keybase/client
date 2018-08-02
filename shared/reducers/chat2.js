@@ -325,13 +325,17 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       }
       return state.withMutations(s => {
         if (action.payload.conversationIDKey) {
-          // Load last read message, cache it in lastReadMessageMap
-          // readMsgID will update on read
-          const readMessageID = state.metaMap.get(
+          const {readMsgID, maxMsgID} = state.metaMap.get(
             action.payload.conversationIDKey,
             Constants.makeConversationMeta()
-          ).readMsgID
-          s.setIn(['lastReadMessageMap', action.payload.conversationIDKey], readMessageID)
+          )
+
+          if (maxMsgID > readMsgID) {
+            s.setIn(['orangeLineMap', action.payload.conversationIDKey], readMsgID)
+          } else {
+            // If there aren't any new messages, we don't want to display an orange line so remove its entry from orangeLineMap
+            s.deleteIn(['orangeLineMap', action.payload.conversationIDKey])
+          }
         }
 
         s.set('selectedConversation', action.payload.conversationIDKey)
