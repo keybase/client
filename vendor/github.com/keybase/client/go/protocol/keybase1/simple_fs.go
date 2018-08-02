@@ -1001,10 +1001,10 @@ func (o GetRevisionsResult) DeepCopy() GetRevisionsResult {
 			if x == nil {
 				return nil
 			}
-			var ret []DirentWithRevision
-			for _, v := range x {
+			ret := make([]DirentWithRevision, len(x))
+			for i, v := range x {
 				vCopy := v.DeepCopy()
-				ret = append(ret, vCopy)
+				ret[i] = vCopy
 			}
 			return ret
 		})(o.Revisions),
