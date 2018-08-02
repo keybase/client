@@ -224,8 +224,8 @@ func TestChangeWalletName(t *testing.T) {
 	require.Error(t, err)
 	chk("savings", "")
 
-	chk("an account used for saving up for the elephant's new pajamas", "")
-	chk("an account used for saving up for the elephant's prev pajamas", "account name is too long")
+	chk("an account used for savi", "")
+	chk("an account used for savin", "account name can be 24 characters at the longest but was 25")
 }
 
 func TestSetAccountAsDefault(t *testing.T) {
