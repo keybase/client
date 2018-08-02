@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 )
@@ -146,6 +147,12 @@ func (m MetaContext) WithTimeout(timeout time.Duration) (MetaContext, func()) {
 func (m MetaContext) WithLogTag(k string) MetaContext {
 	m.ctx = WithLogTag(m.ctx, k)
 	return m
+}
+
+func (m MetaContext) WithTimeBuckets() (MetaContext, *profiling.TimeBuckets) {
+	ctx, tbs := m.G().CTimeBuckets(m.ctx)
+	m.ctx = ctx
+	return m, tbs
 }
 
 func (m MetaContext) EnsureCtx() MetaContext {

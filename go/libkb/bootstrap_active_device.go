@@ -23,10 +23,10 @@ func loadAndUnlockKey(m MetaContext, kr *SKBKeyringFile, secretStore SecretStore
 	return unlocked, err
 }
 
-// BootstrapActiveDevice takes the user's config.json, keys.mpack file and
+// BootstrapActiveDeviceFromConfig takes the user's config.json, keys.mpack file and
 // secret store to populate ActiveDevice, and to have all credentials necessary
 // to sign NIST tokens, allowing the user to act as if "logged in". Will return
-// nil if everything work, LoginRequiredError if a real "login" in required to
+// nil if everything work, LoginRequiredError if a real "login" is required to
 // make the app work, and various errors on unexpected failures.
 func BootstrapActiveDeviceFromConfig(m MetaContext, online bool) (uid keybase1.UID, err error) {
 	uid, err = bootstrapActiveDeviceFromConfigReturnRawError(m, online)

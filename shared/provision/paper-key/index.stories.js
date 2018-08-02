@@ -1,21 +1,20 @@
 // @flow
 import * as React from 'react'
+import * as Sb from '../../stories/storybook'
 import PaperKey from '.'
-import {action, storiesOf, PropProviders} from '../../stories/storybook'
 
 const props = {
   error: '',
   hint: 'chill dog...',
-  onBack: action('onBack'),
-  onChangePaperKey: action('onChangePaperKey'),
-  onSubmit: action('onSubmit'),
+  onBack: Sb.action('onBack'),
+  onChangePaperKey: Sb.action('onChangePaperKey'),
+  onSubmit: Sb.action('onSubmit'),
   paperKey: '',
   waitingForResponse: false,
 }
 
 const load = () => {
-  storiesOf('Provision/Paperkey', module)
-    .addDecorator(PropProviders.createPropProviderWithCommon())
+  Sb.storiesOf('Provision/Paperkey', module)
     .add('Normal', () => <PaperKey {...props} />)
     .add('Error', () => <PaperKey {...props} error="Something went wrong" />)
 }

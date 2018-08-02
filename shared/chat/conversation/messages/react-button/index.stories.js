@@ -2,16 +2,16 @@
 import * as React from 'react'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
+import * as Sb from '../../../../stories/storybook'
 import {Box} from '../../../../common-adapters'
-import {action, storiesOf, PropProviders} from '../../../../stories/storybook'
 import {type OwnProps, type WrapperProps} from './container'
 import ReactButton, {NewReactionButton} from '.'
 
 // Common props for these stories and fallbacks for the prop provider
 const common = {
   conversationIDKey: Constants.noConversationIDKey,
-  onMouseLeave: action('onMouseLeave'),
-  onMouseOver: action('onMouseOver'),
+  onMouseLeave: Sb.action('onMouseLeave'),
+  onMouseOver: Sb.action('onMouseOver'),
   ordinal: Types.numberToOrdinal(0),
 }
 
@@ -23,11 +23,11 @@ const propMapper = (props: OwnProps): WrapperProps => ({
   count:
     {':+1:': 2, ':face_with_cowboy_hat:': 1, ':honey_pot:': 12, default: 1}[props.emoji || 'default'] || 1,
   emoji: props.emoji || '',
-  onAddReaction: action('onAddReaction'),
-  onClick: action('onReact'),
+  onAddReaction: Sb.action('onAddReaction'),
+  onClick: Sb.action('onReact'),
   onMouseLeave: props.onMouseLeave || common.onMouseLeave,
   onMouseOver: props.onMouseOver || common.onMouseOver,
-  onOpenEmojiPicker: action('onOpenEmojiPicker'),
+  onOpenEmojiPicker: Sb.action('onOpenEmojiPicker'),
   showBorder: props.showBorder,
 })
 export const propProvider = {
@@ -41,30 +41,28 @@ const examples = [
     active: false,
     count: 1,
     emoji: ':+1:',
-    onClick: action('onClick'),
+    onClick: Sb.action('onClick'),
   },
   {
     ...common,
     active: true,
     count: 4,
     emoji: ':face_with_cowboy_hat:',
-    onClick: action('onClick'),
+    onClick: Sb.action('onClick'),
   },
 ]
 
 const load = () => {
-  const story = storiesOf('Chat/Conversation/React Button', module)
-    .addDecorator(PropProviders.createPropProviderWithCommon())
-    .addDecorator(story => (
-      <Box style={{display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', padding: 24}}>
-        {story()}
-      </Box>
-    ))
+  const story = Sb.storiesOf('Chat/Conversation/React Button', module).addDecorator(story => (
+    <Box style={{display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', padding: 24}}>
+      {story()}
+    </Box>
+  ))
   examples.forEach(ex => story.add(`${ex.emoji}${ex.active ? ' active' : ''}`, () => <ReactButton {...ex} />))
   story.add('New reaction', () => (
     <NewReactionButton
-      onAddReaction={action('onAddReaction')}
-      onOpenEmojiPicker={action('onOpenEmojiPicker')}
+      onAddReaction={Sb.action('onAddReaction')}
+      onOpenEmojiPicker={Sb.action('onOpenEmojiPicker')}
       showBorder={true}
     />
   ))

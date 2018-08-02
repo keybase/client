@@ -577,7 +577,7 @@ export type LocalSetTeamRetentionLocalRpcParam = $ReadOnly<{teamID: Keybase1.Tea
 export type LocalUnboxMobilePushNotificationRpcParam = $ReadOnly<{payload: String, convID: String, membersType: ConversationMembersType, pushIDs?: ?Array<String>, shouldAck: Boolean}>
 export type LocalUpdateTypingRpcParam = $ReadOnly<{conversationID: ConversationID, typing: Boolean}>
 export type LocalUpgradeKBFSConversationToImpteamRpcParam = $ReadOnly<{convID: ConversationID}>
-export type MakePreviewRes = $ReadOnly<{mimeType: String, location?: ?PreviewLocation, metadata?: ?AssetMetadata, baseMetadata?: ?AssetMetadata}>
+export type MakePreviewRes = $ReadOnly<{mimeType: String, previewMimeType?: ?String, location?: ?PreviewLocation, metadata?: ?AssetMetadata, baseMetadata?: ?AssetMetadata}>
 export type MarkAsReadLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
 export type MarkAsReadRes = $ReadOnly<{rateLimit?: ?RateLimit}>
 export type MemberInfo = $ReadOnly<{member: String, status: ConversationMemberStatus}>
@@ -844,7 +844,7 @@ export type TopicType =
   | 3 // KBFSFILEEDIT_3
 
 export type TyperInfo = $ReadOnly<{uid: Keybase1.UID, username: String, deviceID: Keybase1.DeviceID, deviceName: String, deviceType: String}>
-export type UIAssetUrlInfo = $ReadOnly<{previewUrl: String, fullUrl: String, mimeType: String}>
+export type UIAssetUrlInfo = $ReadOnly<{previewUrl: String, fullUrl: String, fullUrlCached: Boolean, mimeType: String, videoDuration?: ?String}>
 export type UIChannelNameMention = $ReadOnly<{name: String, convID: String}>
 export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?UIMessageOutbox} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
 export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, ctime: Gregor1.Time, ordinal: Double, preview?: ?MakePreviewRes}>

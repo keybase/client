@@ -244,12 +244,15 @@ func getNIST(m MetaContext, sessType APISessionType) *NIST {
 // needed. This finisher is always non-nil (and just a noop in some cases),
 // so therefore it's fine to call it without checking for nil-ness.
 func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (_ *http.Response, finisher func(), jw *jsonw.Wrapper, err error) {
+	m = m.EnsureCtx().WithLogTag("API")
+	defer m.CTraceTimed("api.doRequestShared", func() error { return err })()
+	m, tbs := m.WithTimeBuckets()
+	defer tbs.Record("API.request")() // note this doesn't include time reading body from GetResp
+
 	if !m.G().Env.GetTorMode().UseSession() && arg.SessionType == APISessionTypeREQUIRED {
 		err = TorSessionRequiredError{}
 		return
 	}
-
-	m = m.EnsureCtx().WithLogTag("API")
 
 	finisher = noopFinisher
 
@@ -699,6 +702,7 @@ func (a *InternalAPIEngine) GetResp(arg APIArg) (*http.Response, func(), error) 
 // JSON into the value pointed to by v.
 func (a *InternalAPIEngine) GetDecode(arg APIArg, v APIResponseWrapper) error {
 	m := arg.GetMetaContext(a.G())
+	m = m.EnsureCtx().WithLogTag("API")
 	return a.getDecode(m, arg, v)
 }
 
@@ -770,6 +774,7 @@ func (a *InternalAPIEngine) postResp(m MetaContext, arg APIArg) (*http.Response,
 
 func (a *InternalAPIEngine) PostDecode(arg APIArg, v APIResponseWrapper) error {
 	m := arg.GetMetaContext(a.G())
+	m = m.EnsureCtx().WithLogTag("API")
 	return a.postDecode(m, arg, v)
 }
 
@@ -816,7 +821,6 @@ func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, e
 
 func (a *InternalAPIEngine) doRequest(m MetaContext, arg APIArg, req *http.Request) (res *APIRes, err error) {
 	m = m.EnsureCtx().WithLogTag("API")
-	defer a.G().CTraceTimed(m.Ctx(), "InternalAPIEngine#doRequest", func() error { return err })()
 	resp, finisher, jw, err := doRequestShared(m, a, arg, req, true)
 	if err != nil {
 		return nil, err

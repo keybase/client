@@ -115,6 +115,7 @@ class UserInput extends Component<Props, State> {
   render() {
     const {
       autoFocus,
+      hideAddButton,
       onChangeText,
       onClearSearch,
       onClickAddButton,
@@ -125,7 +126,7 @@ class UserInput extends Component<Props, State> {
     } = this.props
     const {isFocused} = this.state
 
-    const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton
+    const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton && !hideAddButton
     const inputLeftPadding =
       !!userItems.length && (!!usernameText.length || isFocused) ? globalMargins.xtiny : 0
     return (

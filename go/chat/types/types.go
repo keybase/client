@@ -172,6 +172,10 @@ func (d DummyAttachmentFetcher) PutUploadedAsset(ctx context.Context, filename s
 	return nil
 }
 
+func (d DummyAttachmentFetcher) IsAssetLocal(ctx context.Context, asset chat1.Asset) (bool, error) {
+	return false, nil
+}
+
 type DummyAttachmentHTTPSrv struct{}
 
 func (d DummyAttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,

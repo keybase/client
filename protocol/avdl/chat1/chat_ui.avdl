@@ -105,7 +105,9 @@ protocol chatUi {
   record UIAssetUrlInfo {
     string previewUrl;
     string fullUrl;
+    boolean fullUrlCached;
     string mimeType;
+    union { null, string } videoDuration;
   }
 
   record UIMessageValid {
