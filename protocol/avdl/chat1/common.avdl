@@ -491,13 +491,15 @@
     NONE_0,
     RETAIN_1, // Keep messages forever
     EXPIRE_2, // Delete after a while
-    INHERIT_3 // Use the team's policy
+    INHERIT_3, // Use the team's policy
+    EPHEMERAL_4 // Force all messages to be exploding.
   }
 
   variant RetentionPolicy switch (RetentionPolicyType typ){
     case RETAIN: RpRetain;
     case EXPIRE: RpExpire;
     case INHERIT: RpInherit;
+    case EPHEMERAL: RpEphemeral;
   }
 
   record RpRetain {}
@@ -508,6 +510,11 @@
   }
 
   record RpInherit {}
+
+  record RpEphemeral {
+    // Messages must be exploding at have at most this lifetime.
+    gregor1.DurationSec age;
+  }
 
   enum GetThreadReason {
     GENERAL_0,
