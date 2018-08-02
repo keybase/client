@@ -23,6 +23,7 @@ export type _ConversationMeta = {
   notificationsGlobalIgnoreMentions: boolean,
   offline: boolean,
   participants: I.List<string>, // was OrderedSet but is quite slow
+  maxMsgID: number,
   readMsgID: number,
   rekeyers: I.Set<string>,
   resetParticipants: I.Set<string>,
