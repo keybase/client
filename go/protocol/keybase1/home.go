@@ -131,6 +131,8 @@ const (
 	HomeScreenTodoType_FOLDER        HomeScreenTodoType = 8
 	HomeScreenTodoType_GIT_REPO      HomeScreenTodoType = 9
 	HomeScreenTodoType_TEAM_SHOWCASE HomeScreenTodoType = 10
+	HomeScreenTodoType_AVATAR_USER   HomeScreenTodoType = 11
+	HomeScreenTodoType_AVATAR_TEAM   HomeScreenTodoType = 12
 )
 
 func (o HomeScreenTodoType) DeepCopy() HomeScreenTodoType { return o }
@@ -147,6 +149,8 @@ var HomeScreenTodoTypeMap = map[string]HomeScreenTodoType{
 	"FOLDER":        8,
 	"GIT_REPO":      9,
 	"TEAM_SHOWCASE": 10,
+	"AVATAR_USER":   11,
+	"AVATAR_TEAM":   12,
 }
 
 var HomeScreenTodoTypeRevMap = map[HomeScreenTodoType]string{
@@ -161,6 +165,8 @@ var HomeScreenTodoTypeRevMap = map[HomeScreenTodoType]string{
 	8:  "FOLDER",
 	9:  "GIT_REPO",
 	10: "TEAM_SHOWCASE",
+	11: "AVATAR_USER",
+	12: "AVATAR_TEAM",
 }
 
 func (e HomeScreenTodoType) String() string {
