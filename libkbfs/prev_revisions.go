@@ -103,6 +103,10 @@ func (pr PrevRevisions) addRevision(
 	//
 	// ret = [25, 15, 0, 0]
 	if earliestGoodSlot > 0 {
+		if earliestGoodSlot == len(ret) {
+			// Always leave at least one empty slot.
+			earliestGoodSlot--
+		}
 		ret = ret[earliestGoodSlot:]
 	}
 

@@ -86,4 +86,14 @@ func TestPrevRevisions(t *testing.T) {
 	pr = pr.addRevision(rev, gcRev)
 	require.Len(t, pr, 1)
 	checkRevRevisions(t, pr, gcRev, rev, i+1)
+
+	t.Log("Fill it up again")
+	for j := kbfsmd.Revision(1); j < 5; j++ {
+		pr = pr.addRevision(rev+j, gcRev)
+	}
+
+	t.Log("A lower revision number wipes everything out")
+	rev = kbfsmd.Revision(rev - 1)
+	pr = pr.addRevision(rev, gcRev)
+	require.Len(t, pr, 1)
 }
