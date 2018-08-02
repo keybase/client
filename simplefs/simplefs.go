@@ -1486,6 +1486,12 @@ func (k *SimpleFS) doGetRevisions(
 					return nil, err
 				}
 				if len(prevPRs) == 0 {
+					// This should never happen, because there is some
+					// next slot in the `prs` list, but it doesn't
+					// match the expected count, which means there
+					// must be _some_ revision in between the last
+					// revision and the one in the next slot, that we
+					// should uncover by looking up `lastRevision-1`.
 					return nil, simpleFSError{fmt.Sprintf(
 						"Revision %s unexpectedly lists no previous revisions",
 						lastRevision)}
