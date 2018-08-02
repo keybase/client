@@ -54,14 +54,14 @@ jobs:
     - run: sudo update-alternatives --set java /usr/lib/jvm/jdk1.8.0/bin/java; sudo update-alternatives --set javac /usr/lib/jvm/jdk1.8.0/bin/javac; echo -e "export JAVA_HOME=/usr/lib/jvm/jdk1.8.0" >> $BASH_ENV
 
     # Restore the dependency cache
-    - restore_cache:
-        keys:
+    # - restore_cache:
+        # keys:
         # This branch if available
-        - v1-dep-{{ .Branch }}-
+        # - v1-dep-{{ .Branch }}-
         # Default branch if not
-        - v1-dep-master-
+        # - v1-dep-master-
         # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
-        - v1-dep-
+        # - v1-dep-
 
     # - run: nvm ls-remote
     - run: sudo apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg
@@ -131,18 +131,18 @@ jobs:
         command: ./gradlew assembleReleaseUnsigned -x bundleReleaseUnsignedJsAndAssets
 
     # Save dependency cache
-    - save_cache:
-        key: v1-dep-{{ .Branch }}-{{ epoch }}
-        paths:
-        - ~/.gradle
-        - ~/downloads
-        - ~/.cache/yarn
-        - /tmp/go-android/bin
-        - /tmp/go-android/pkg
-        - /usr/local/android-sdk-linux/tools
-        - /usr/local/android-sdk-linux/ndk-bundle
-        - /usr/local/android-sdk-linux/build-tools/23.0.2
-        - /usr/local/android-sdk-linux/extras/android/m2repository
+    # - save_cache:
+        # key: v1-dep-{{ .Branch }}-{{ epoch }}
+        # paths:
+        # - ~/.gradle
+        # - ~/downloads
+        # - ~/.cache/yarn
+        # - /tmp/go-android/bin
+        # - /tmp/go-android/pkg
+        # - /usr/local/android-sdk-linux/tools
+        # - /usr/local/android-sdk-linux/ndk-bundle
+        # - /usr/local/android-sdk-linux/build-tools/23.0.2
+        # - /usr/local/android-sdk-linux/extras/android/m2repository
 
     # TODO: Run device tests (see old versions of this file).
 
