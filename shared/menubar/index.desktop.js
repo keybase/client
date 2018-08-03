@@ -3,7 +3,7 @@ import Folders, {type FolderType, type Props as FolderProps} from '../folders/in
 import React, {Component} from 'react'
 import UserAdd from './user-add.desktop'
 import flags from '../util/feature-flags'
-import {Box, Icon, Text, Button, FloatingMenu, Badge, ButtonBar, type IconType} from '../common-adapters'
+import {Box, Box2, Icon, Text, Button, FloatingMenu, Badge, ButtonBar, type IconType} from '../common-adapters'
 import {
   fsTab,
   peopleTab,
@@ -15,7 +15,7 @@ import {
   settingsTab,
   type Tab,
 } from '../constants/tabs'
-import {globalStyles, globalColors, desktopStyles, collapseStyles, platformStyles} from '../styles'
+import {globalStyles, globalColors, globalMargins, desktopStyles, collapseStyles, platformStyles} from '../styles'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash-es'
@@ -109,18 +109,27 @@ class MenubarRender extends Component<Props, State> {
     )
   }
 
-  _menuView(icon): React$Element<any> {
+  _menuView(title: string, iconType: IconType) {
     return (
-      <Box />
+      <Box2 direction="horizontal" style={{width: '100%'}}>
+        <Icon type={iconType} color={globalColors.black_20} fontSize={20} style={{marginRight: globalMargins.xsmall}} />
+        <Text
+          className="title"
+          type="Body"
+          style={collapseStyles([{color: undefined}])}
+        >
+          {title}
+        </Text>
+      </Box2>
     )
   }
 
   _menuItems() {
     return [
-      ...(flags.walletsEnabled ? [{title: 'Wallet', onClick: () => this.props.openApp(walletsTab)}] : []),
-      {title: 'Git', onClick: () => this.props.openApp(gitTab)},
-      {title: 'Devices', onClick: () => this.props.openApp(devicesTab)},
-      {title: 'Settings', onClick: () => this.props.openApp(settingsTab)},
+      ...(flags.walletsEnabled ? [{title: 'Wallet', view: this._menuView('Wallet', 'iconfont-nav-wallets'), onClick: () => this.props.openApp(walletsTab)}] : []),
+      {title: 'Git', view: this._menuView('Git', 'iconfont-nav-git'), onClick: () => this.props.openApp(gitTab)},
+      {title: 'Devices', view: this._menuView('Devices', 'iconfont-nav-devices'), onClick: () => this.props.openApp(devicesTab)},
+      {title: 'Settings', view: this._menuView('Settings', 'iconfont-nav-settings'), onClick: () => this.props.openApp(settingsTab)},
       'Divider',
       ...(this.props.loggedIn ? [{title: 'Open main app', onClick: () => this.props.openApp()}] : []),
       {title: 'Open folders', onClick: () => this.props.openApp(fsTab)},
@@ -219,6 +228,7 @@ class MenubarRender extends Component<Props, State> {
               })
             }
             attachTo={this.attachmentRef.current}
+            position="bottom right"
           />
         </Box>
         <Folders {...mergedProps} />
@@ -315,6 +325,7 @@ const stylesContainer = {
   marginTop: 13,
   borderTopLeftRadius: borderRadius,
   borderTopRightRadius: borderRadius,
+  minHeight: 730,
 }
 
 const stylesTopRow = {
