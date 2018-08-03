@@ -67,11 +67,7 @@ func newVideoHelper(nvh NativeVideoHelper) videoHelper {
 }
 
 func (v videoHelper) ThumbnailAndDuration(ctx context.Context, filename string) ([]byte, int, error) {
-	thumb := v.nvh.Thumbnail(filename)
-	if thumb == nil || len(thumb) == 0 {
-		return nil, 0, errors.New("failed generate thumbail from native video helper")
-	}
-	return thumb, v.nvh.Duration(filename), nil
+	return v.nvh.Thumbnail(filename), v.nvh.Duration(filename), nil
 }
 
 type ExternalDNSNSFetcher interface {
