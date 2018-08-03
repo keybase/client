@@ -78,7 +78,7 @@ const load = () => {
             teamType="adhoc"
             loading={false}
             selectedIndex={0}
-            setSelectedIndex={action('setSelectedIndex')}
+            setSelectedIndex={Sb.action('setSelectedIndex')}
             users={[{username: 'marcopolo', fullName: 'Marco Munizaga'}, {username: 'trex', fullName: ''}]}
             onPickUser={Sb.action('onPickUser')}
             onSelectUser={Sb.action('onSelectUser')}
