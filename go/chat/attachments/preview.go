@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 
 	"golang.org/x/net/context"
@@ -41,7 +42,8 @@ type PreviewRes struct {
 
 // Preview creates preview assets from src.  It returns an in-memory BufferSource
 // and the content type of the preview asset.
-func Preview(ctx context.Context, log utils.DebugLabeler, src io.Reader, contentType, basename string) (*PreviewRes, error) {
+func Preview(ctx context.Context, g *globals.Context, log utils.DebugLabeler, src io.Reader, contentType,
+	basename string) (*PreviewRes, error) {
 	switch contentType {
 	case "image/jpeg", "image/png":
 		return previewImage(ctx, log, src, basename, contentType)
@@ -49,7 +51,7 @@ func Preview(ctx context.Context, log utils.DebugLabeler, src io.Reader, content
 		return previewGIF(ctx, log, src, basename)
 	}
 	if strings.HasPrefix(contentType, "video") {
-		pre, err := previewVideo(ctx, log, src, basename)
+		pre, err := previewVideo(ctx, g, log, src, basename)
 		if err == nil {
 			log.Debug(ctx, "Preview: found video preview for filename: %s contentType: %s", basename,
 				contentType)
@@ -62,7 +64,8 @@ func Preview(ctx context.Context, log utils.DebugLabeler, src io.Reader, content
 }
 
 // previewVideoBlank previews a video by inserting a black rectangle with a play button on it.
-func previewVideoBlank(ctx context.Context, log utils.DebugLabeler, src io.Reader, basename string) (res *PreviewRes, err error) {
+func previewVideoBlank(ctx context.Context, g *globals.Context, log utils.DebugLabeler, src io.Reader,
+	basename string) (res *PreviewRes, err error) {
 	const width, height = 300, 150
 	img := image.NewNRGBA(image.Rect(0, 0, width, height))
 	for y := 0; y < height; y++ {

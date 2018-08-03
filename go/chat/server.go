@@ -1353,7 +1353,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 // MakePreview implements chat1.LocalInterface.MakePreview.
 func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res chat1.MakePreviewRes, err error) {
 	defer h.Trace(ctx, func() error { return err }, "MakePreview")()
-	pre, err := attachments.PreprocessAsset(ctx, h.DebugLabeler, arg.Filename, nil)
+	pre, err := attachments.PreprocessAsset(ctx, h.G(), h.DebugLabeler, arg.Filename, nil)
 	if err != nil {
 		return chat1.MakePreviewRes{}, err
 	}

@@ -4,7 +4,6 @@
 package keybase
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
@@ -38,6 +37,7 @@ import (
 	"github.com/keybase/kbfs/libgit"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/simplefs"
+	context "golang.org/x/net/context"
 )
 
 var kbCtx *libkb.GlobalContext
@@ -49,6 +49,29 @@ var kbfsConfig libkbfs.Config
 
 type PushNotifier interface {
 	LocalNotification(ident string, msg string, badgeCount int, soundName string, convID string, typ string)
+}
+
+type NativeVideoHelper interface {
+	Thumbnail(filename string) []byte
+	Duration(filename string) int
+}
+
+type videoHelper struct {
+	nvh NativeVideoHelper
+}
+
+func newVideoHelper(nvh NativeVideoHelper) videoHelper {
+	return videoHelper{
+		nvh: nvh,
+	}
+}
+
+func (v videoHelper) ThumbnailAndDuration(ctx context.Context, filename string) ([]byte, int, error) {
+	thumb := v.nvh.Thumbnail(filename)
+	if thumb == nil || len(thumb) == 0 {
+		return nil, 0, errors.New("failed generate thumbail from native video helper")
+	}
+	return thumb, v.nvh.Duration(filename), nil
 }
 
 type ExternalDNSNSFetcher interface {
@@ -87,9 +110,9 @@ func flattenError(err error) error {
 
 // InitOnce runs the Keybase services (only runs one time)
 func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
-	dnsNSFetcher ExternalDNSNSFetcher) {
+	dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) {
 	startOnce.Do(func() {
-		if err := Init(homeDir, logFile, runModeStr, accessGroupOverride, dnsNSFetcher); err != nil {
+		if err := Init(homeDir, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh); err != nil {
 			kbCtx.Log.Errorf("Init error: %s", err)
 		}
 	})
@@ -97,7 +120,7 @@ func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOver
 
 // Init runs the Keybase services
 func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
-	externalDNSNSFetcher ExternalDNSNSFetcher) (err error) {
+	externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) (err error) {
 	defer func() { err = flattenError(err) }()
 
 	fmt.Println("Go: Initializing")
@@ -161,6 +184,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	svc.SetupCriticalSubServices()
 	svc.RunBackgroundOperations(uir)
 	kbChatCtx = svc.ChatContextified.ChatG()
+	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
 
 	serviceLog := config.GetLogFile()
 	logs := libkb.Logs{
