@@ -1159,36 +1159,52 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
 
   // Inject pending message and make the call
-  return Saga.sequentially([
-    Saga.put(
-      Chat2Gen.createMessagesAdd({
-        context: {type: 'sent'},
-        messages: [
-          Constants.makePendingTextMessage(
-            state,
-            conversationIDKey,
-            text,
-            Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
-            ephemeralLifetime
-          ),
-        ],
-      })
-    ),
-    Saga.call(
-      RPCChatTypes.localPostTextNonblockRpcPromise,
-      {
-        ...ephemeralData,
-        body: text.stringValue(),
-        clientPrev,
-        conversationID: Types.keyToConversationID(conversationIDKey),
-        identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-        outboxID,
-        tlfName,
-        tlfPublic: false,
-      },
-      Constants.waitingKeyPost
-    ),
-  ])
+
+  const addMessage = Saga.put(
+    Chat2Gen.createMessagesAdd({
+      context: {type: 'sent'},
+      messages: [
+        Constants.makePendingTextMessage(
+          state,
+          conversationIDKey,
+          text,
+          Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
+          ephemeralLifetime
+        ),
+      ],
+    })
+  )
+
+  const postText = Saga.call(
+    RPCChatTypes.localPostTextNonblockRpcPromise,
+    {
+      ...ephemeralData,
+      body: text.stringValue(),
+      clientPrev,
+      conversationID: Types.keyToConversationID(conversationIDKey),
+      identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
+      outboxID,
+      tlfName,
+      tlfPublic: false,
+    },
+    Constants.waitingKeyPost
+  )
+
+  // Do some logging to track down the root cause of a bug causing
+  // messages to not send. Do this after creating the objects above to
+  // narrow down the places where the action can possibly stop.
+
+  logger.info('[MessageSend]', 'non-empty text?', text.stringValue().length > 0)
+
+  return Saga.sequentially([addMessage, postText])
+}
+
+const messageSendWithResult = (result, action) => {
+  logger.info('[MessageSend] success')
+}
+
+const messageSendWithError = (result, action) => {
+  logger.info('[MessageSend] error')
 }
 
 const previewConversationAfterFindExisting = (
@@ -2306,7 +2322,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
 
   yield Saga.safeTakeEveryPure(Chat2Gen.messageRetry, messageRetry)
-  yield Saga.safeTakeEveryPure(Chat2Gen.messageSend, messageSend)
+  yield Saga.safeTakeEveryPure(Chat2Gen.messageSend, messageSend, messageSendWithResult, messageSendWithError)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageEdit, messageEdit)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageEdit, clearMessageSetEditing)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageDelete, messageDelete)
