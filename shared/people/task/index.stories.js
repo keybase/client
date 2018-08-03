@@ -13,7 +13,7 @@ const avatarTeamTaskProps: Props = {
   confirmLabel: 'Edit team avatar',
   instructions: 'NEW! Change your team’s avatar from within the Keybase app.',
   dismissable: false,
-  icon: 'icon-onboarding-team-32',
+  icon: 'icon-onboarding-team-avatar-32',
   ...actionProps,
 }
 
