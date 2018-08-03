@@ -1,11 +1,12 @@
 // @flow
 import * as React from 'react'
-import {Box2, Text, FloatingPicker} from '../../../../common-adapters/mobile.native'
+import {FloatingMenu} from '../../../../common-adapters'
+import {Box2, Text} from '../../../../common-adapters/mobile.native'
 import type {Props} from './index.types'
 
 const Prompt = () => (
   <Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={promptContainerStyle}>
-    <Text type="BodySmallSemibold">Select type of attachment:</Text>
+    <Text type="BodySmallSemibold">Select Attachment Type</Text>
   </Box2>
 )
 
@@ -14,37 +15,29 @@ const promptContainerStyle = {
   justifyContent: 'center',
 }
 
-type State = {selected: string}
-class FilePickerPopup extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super(props)
-    this.state = {selected: 'photo'}
+class FilePickerPopup extends React.Component<Props> {
+  onImage = () => {
+    this.props.onSelect('photo')
   }
 
-  setSelected = (value: number | string) => {
-    if (typeof value === 'number') {
-      return
-    }
-    this.setState({selected: value})
-  }
-
-  onDone = () => {
-    this.props.onSelect(this.state.selected)
-    this.props.onHidden()
+  onVideo = () => {
+    this.props.onSelect('video')
   }
 
   render() {
-    const items = [{label: 'Send an image', value: 'photo'}, {label: 'Send a video', value: 'video'}]
+    const items = [...[{onClick: this.onImage, title: 'Photo'}], ...[{onClick: this.onVideo, title: 'Video'}]]
+    const header = {
+      title: 'header',
+      view: <Prompt />,
+    }
     return (
-      <FloatingPicker
+      <FloatingMenu
+        header={header}
+        attachTo={this.props.attachTo}
         items={items}
-        onSelect={this.setSelected}
         onHidden={this.props.onHidden}
-        onCancel={this.props.onHidden}
-        onDone={this.onDone}
-        prompt={<Prompt />}
         visible={this.props.visible}
-        selectedValue={this.state.selected}
+        closeOnSelect={true}
       />
     )
   }
