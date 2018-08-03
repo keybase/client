@@ -8,12 +8,12 @@ import SettingsPopup from './settings-popup'
 const defaultWalletMock = {
   isDefaultWallet: true,
   keybaseUser: 'cecileb',
-  walletName: "cecileb's wallet",
+  walletName: "cecileb's account",
 }
 
 const secondWalletMock = {
   isDefaultWallet: false,
-  walletName: 'Second wallet',
+  walletName: 'Second account',
 }
 
 const commonActions = {
@@ -28,7 +28,7 @@ const commonActions = {
 }
 
 const defaultSettingsProps = {
-  name: 'awesome wallet',
+  name: 'awesome account',
   user: 'testuser',
   isDefault: true,
   currency: 'USD ($)',
@@ -40,7 +40,7 @@ const defaultSettingsProps = {
 }
 
 const secondarySettingsProps = {
-  name: 'some other wallet',
+  name: 'some other account',
   user: 'testuser',
   isDefault: false,
   currency: 'XLM',

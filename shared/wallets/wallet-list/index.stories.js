@@ -10,14 +10,14 @@ const onSelect = Sb.action('onSelect')
 const mockWallets = {
   G43289XXXXX34OPL: {
     keybaseUser: 'cecileb',
-    name: "cecileb's wallet",
+    name: "cecileb's account",
     contents: '280.0871234 XLM + more',
     isSelected: true,
     onSelect,
   },
   G43289XXXXX34OPM: {
     keybaseUser: '',
-    name: 'Second wallet',
+    name: 'Second account',
     contents: '56.9618203 XLM',
     isSelected: false,
     onSelect,
