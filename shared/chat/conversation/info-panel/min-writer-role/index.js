@@ -18,7 +18,12 @@ const MinWriterRole = (props: Props) => {
     title: upperFirst(role),
   }))
   return (
-    <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.container}>
+    <Kb.Box2
+      direction="vertical"
+      gap={props.canSetMinWriterRole ? 'tiny' : 'xxtiny'}
+      fullWidth={true}
+      style={styles.container}
+    >
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
         <Kb.Text type="BodySmallSemibold">Minimum writer role</Kb.Text>
         <Kb.Icon
@@ -27,7 +32,11 @@ const MinWriterRole = (props: Props) => {
           fontSize={Style.isMobile ? 22 : 16}
         />
       </Kb.Box2>
-      {props.canSetMinWriterRole && <Dropdown minWriterRole={props.minWriterRole} items={items} />}
+      {props.canSetMinWriterRole ? (
+        <Dropdown minWriterRole={props.minWriterRole} items={items} />
+      ) : (
+        <Display minWriterRole={props.minWriterRole} />
+      )}
     </Kb.Box2>
   )
 }
@@ -64,6 +73,13 @@ const _Dropdown = ({
   </React.Fragment>
 )
 const Dropdown = Kb.OverlayParentHOC(_Dropdown)
+
+const Display = ({minWriterRole}) => (
+  <Kb.Text type="BodySmall">
+    You must be at least {'aeiou'.includes(minWriterRole[0]) ? 'an' : 'a'} {minWriterRole} to write in this
+    channel.
+  </Kb.Text>
+)
 
 const styles = Style.styleSheetCreate({
   container: {
