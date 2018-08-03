@@ -129,11 +129,10 @@ func (e *fsEngine) GetRootDir(user User, tlfName string, t tlf.Type, expectedCan
 	}
 	path := buildTlfPath(u, tlfName, t)
 	var realPath string
-	// TODO currently we pretend that Dokan has no symbolic links
-	// here and end up deferencing them. This works but is not
-	// ideal. (See Lookup.)
 	if e.name == "dokan" {
-		realPath = path
+		// TODO avoid trying to dereference symlinks for dokan. This
+		// works but is not ideal. (See Lookup.)
+		realPath = buildTlfPath(u, string(preferredName), t)
 	} else {
 		realPath, err = filepath.EvalSymlinks(path)
 		if err != nil {
