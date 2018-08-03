@@ -1129,7 +1129,6 @@ func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, ui
 				reactionUpdates = append(reactionUpdates, chat1.ReactionUpdate{
 					Reactions:   msg.Valid().Reactions,
 					TargetMsgID: msg.GetMessageID(),
-					Ctime:       gregor1.ToTime(s.boxer.clock.Now()),
 				})
 			}
 		}

@@ -5,11 +5,6 @@
       "path": "github.com/keybase/client/go/protocol/keybase1",
       "type": "idl",
       "import_as": "keybase1"
-    },
-    {
-      "path": "github.com/keybase/client/go/protocol/gregor1",
-      "type": "idl",
-      "import_as": "gregor1"
     }
   ],
   "types": [
@@ -273,10 +268,6 @@
         {
           "type": "MessageID",
           "name": "targetMsgID"
-        },
-        {
-          "type": "gregor1.Time",
-          "name": "ctime"
         }
       ]
     },

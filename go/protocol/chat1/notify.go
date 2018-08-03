@@ -5,7 +5,6 @@ package chat1
 
 import (
 	"errors"
-	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
@@ -322,16 +321,14 @@ func (o EphemeralPurgeNotifInfo) DeepCopy() EphemeralPurgeNotifInfo {
 }
 
 type ReactionUpdate struct {
-	Reactions   ReactionMap  `codec:"reactions" json:"reactions"`
-	TargetMsgID MessageID    `codec:"targetMsgID" json:"targetMsgID"`
-	Ctime       gregor1.Time `codec:"ctime" json:"ctime"`
+	Reactions   ReactionMap `codec:"reactions" json:"reactions"`
+	TargetMsgID MessageID   `codec:"targetMsgID" json:"targetMsgID"`
 }
 
 func (o ReactionUpdate) DeepCopy() ReactionUpdate {
 	return ReactionUpdate{
 		Reactions:   o.Reactions.DeepCopy(),
 		TargetMsgID: o.TargetMsgID.DeepCopy(),
-		Ctime:       o.Ctime.DeepCopy(),
 	}
 }
 

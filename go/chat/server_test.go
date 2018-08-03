@@ -2038,7 +2038,6 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				require.Len(t, info.ReactionUpdates, 1)
 				reactionUpdate := info.ReactionUpdates[0]
 				require.Equal(t, targetMsgID, reactionUpdate.TargetMsgID)
-				require.NotZero(t, reactionUpdate.Ctime)
 				for _, reactions := range reactionUpdate.Reactions.Reactions {
 					for k, r := range reactions {
 						require.NotZero(t, r.Ctime)
