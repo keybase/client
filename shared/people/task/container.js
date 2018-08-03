@@ -20,6 +20,24 @@ const onSkipTodo = (type: Types.TodoType, dispatch: Dispatch) => () =>
 
 const mapStateToProps = (state: TypedState) => ({myUsername: state.config.username || ''})
 
+// ----- AVATAR USER ----- //
+const avatarUserConnector = connect(
+  mapStateToProps,
+  (dispatch: Dispatch) => ({
+    _onConfirm: () => {
+      // make sure we have tracker state & profile is up to date
+      dispatch(createGetMyProfile({}))
+      dispatch(navigateAppend(['editAvatar'], [Tabs.peopleTab]))
+    },
+    onDismiss: () => {},
+  }),
+  (stateProps, dispatchProps, ownProps) => ({
+    ...ownProps,
+    onConfirm: () => dispatchProps._onConfirm(),
+    onDismiss: dispatchProps.onDismiss,
+  })
+)
+
 // ----- BIO ----- //
 const bioConnector = connect(
   mapStateToProps,
@@ -151,6 +169,7 @@ const teamShowcaseConnector = connect(
 
 export default compose(
   // TODO maybe have an object
+  branch(props => props.todoType === todoTypes.avatarUser, avatarUserConnector),
   branch(props => props.todoType === todoTypes.bio, bioConnector),
   branch(props => props.todoType === todoTypes.proof, proofConnector),
   branch(props => props.todoType === todoTypes.device, deviceConnector),

@@ -14,6 +14,7 @@ export const todoTypeEnumToType: {[key: Types.TodoTypeEnum]: Types.TodoType} = i
 )
 
 export const todoTypes: {[key: Types.TodoType]: Types.TodoType} = {
+  avatarUser: 'avatarUser',
   bio: 'bio',
   proof: 'proof',
   device: 'device',
@@ -27,6 +28,7 @@ export const todoTypes: {[key: Types.TodoType]: Types.TodoType} = {
 }
 
 export const todoTypeToInstructions: {[key: Types.TodoType]: string} = {
+  avatarUser: 'Edit your avatar, and show the world your beautiful face.',
   bio: 'Add your name, bio, and location to complete your profile.',
   proof: 'Add some proofs to your profile. The more you have, the stronger your cryptographic identity.',
   device: `Install Keybase on your ${
@@ -46,6 +48,7 @@ export const todoTypeToInstructions: {[key: Types.TodoType]: string} = {
   teamShowcase: `Tip: Keybase team chats are private, but you can choose to publish that you're an admin. Check out the team settings on any team you manage.`,
 }
 export const todoTypeToConfirmLabel: {[key: Types.TodoType]: string} = {
+  avatarUser: 'Edit avatar',
   bio: 'Edit Profile',
   proof: 'Prove your identities',
   device: isMobile ? 'Get the download link' : 'Get the app',
@@ -58,6 +61,7 @@ export const todoTypeToConfirmLabel: {[key: Types.TodoType]: string} = {
   teamShowcase: 'Set publicity settings',
 }
 export const todoTypeToDismissable: {[key: Types.TodoType]: boolean} = {
+  avatarUser: false,
   bio: false,
   proof: true,
   device: true,
@@ -70,6 +74,7 @@ export const todoTypeToDismissable: {[key: Types.TodoType]: boolean} = {
   teamShowcase: true,
 }
 export const todoTypeToIcon: {[key: Types.TodoType]: IconType} = {
+  avatarUser: isMobile ? 'icon-onboarding-user-info-48' : 'icon-onboarding-user-info-32',
   bio: isMobile ? 'icon-onboarding-user-info-48' : 'icon-onboarding-user-info-32',
   proof: isMobile ? 'icon-onboarding-proofs-48' : 'icon-onboarding-proofs-32',
   device: isMobile ? 'icon-onboarding-computer-48' : 'icon-onboarding-phone-32',

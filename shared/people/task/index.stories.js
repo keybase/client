@@ -8,6 +8,15 @@ const actionProps = {
   onDismiss: action('onDismiss'),
 }
 
+const avatarUserTaskProps: Props = {
+  badged: true,
+  confirmLabel: 'Edit avatar',
+  instructions: 'Edit your avatar, and show the world your beautiful face.',
+  dismissable: false,
+  icon: 'icon-onboarding-user-info-32',
+  ...actionProps,
+}
+
 const bioTaskProps: Props = {
   badged: true,
   confirmLabel: 'Edit profile',
@@ -106,6 +115,7 @@ const publicityTaskProps: Props = {
 
 const load = () => {
   storiesOf('People/Todos', module)
+    .add('Edit avatar', () => <Task {...avatarUserTaskProps} />)
     .add('Fill out bio', () => <Task {...bioTaskProps} />)
     .add('Prove something', () => <Task {...proofTaskProps} />)
     .add('Install on phone', () => <Task {...installTaskProps} />)
