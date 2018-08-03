@@ -5,6 +5,7 @@ import assetInput, {props3 as assetInputProps} from './asset-input/index.stories
 import chooseAsset from './choose-asset/index.stories'
 import banner from './banner/index.stories'
 import footers from './footer/index.stories'
+import confirm from './confirm/index.stories'
 import SendForm from '.'
 
 // TODO some of the state of these child components
@@ -30,6 +31,8 @@ const load = () => {
   banner()
   chooseAsset()
   footers()
+  // confirm story
+  confirm()
   // full component
   Sb.storiesOf('Wallets/SendForm', module)
     .addDecorator(provider)
