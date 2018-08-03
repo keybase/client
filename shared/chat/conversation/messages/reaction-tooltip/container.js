@@ -65,10 +65,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
         .sort((a, b) => a.timestamp - b.timestamp)
         .map(r => ({
           fullName: stateProps._usersInfo.get(r.username, {fullname: ''}).fullname,
+          timestamp: r.timestamp,
           username: r.username,
         }))
         .toArray(),
     }))
+    // earliest reactions go at the top
+    .sort((a, b) => ((a.users[0] && a.users[0].timestamp) || 0) - ((b.users[0] && b.users[0].timestamp) || 0))
   if (!isMobile && ownProps.emoji) {
     // Filter down to selected emoji
     reactions = reactions.filter(r => r.emoji === ownProps.emoji)

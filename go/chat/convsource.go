@@ -1109,21 +1109,36 @@ func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor
 	}
 }
 
-// notifyReactionDeletes notifies the GUI after reactions are deleted
-func (s *HybridConversationSource) notifyReactionDeletes(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, reactionDeletes []chat1.ReactionDelete) {
-	s.Debug(ctx, "notifyReactionDeletes: %d deletions", len(reactionDeletes))
-	if len(reactionDeletes) > 0 {
-		topicType := chat1.TopicType_NONE
-		if conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true /* useLocalData */); err != nil {
-			s.Debug(ctx, "notifyExpunge: failed to get conversations: %s", err)
-		} else {
-			topicType = conv.GetTopicType()
+// notifyReactionUpdates notifies the GUI after reactions are received
+func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
+	s.Debug(ctx, "notifyReactionUpdates: %d msgs to update", len(msgs))
+	if len(msgs) > 0 {
+		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true /* useLocalData */)
+		if err != nil {
+			s.Debug(ctx, "notifyReactionUpdates: failed to get conversations: %s", err)
+			return
 		}
-		activity := chat1.NewChatActivityWithReactionDelete(chat1.ReactionDeleteNotif{
-			ReactionDeletes: reactionDeletes,
-			ConvID:          convID,
-		})
-		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &activity, chat1.ChatActivitySource_LOCAL)
+		msgs, err = s.TransformSupersedes(ctx, conv, uid, msgs)
+		if err != nil {
+			s.Debug(ctx, "notifyReactionUpdates: failed to transform supersedes: %s", err)
+			return
+		}
+		reactionUpdates := []chat1.ReactionUpdate{}
+		for _, msg := range msgs {
+			if msg.IsValid() {
+				reactionUpdates = append(reactionUpdates, chat1.ReactionUpdate{
+					Reactions:   msg.Valid().Reactions,
+					TargetMsgID: msg.GetMessageID(),
+				})
+			}
+		}
+		if len(reactionUpdates) > 0 {
+			activity := chat1.NewChatActivityWithReactionUpdate(chat1.ReactionUpdateNotif{
+				ReactionUpdates: reactionUpdates,
+				ConvID:          convID,
+			})
+			s.G().ActivityNotifier.Activity(ctx, uid, conv.GetTopicType(), &activity, chat1.ChatActivitySource_LOCAL)
+		}
 	}
 }
 
@@ -1184,7 +1199,7 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	}
 	s.notifyExpunge(ctx, uid, convID, mergeRes)
 	s.notifyEphemeralPurge(ctx, uid, convID, mergeRes.Exploded)
-	s.notifyReactionDeletes(ctx, uid, convID, mergeRes.ReactionDeletes)
+	s.notifyReactionUpdates(ctx, uid, convID, mergeRes.ReactionTargets)
 	return nil
 }
 

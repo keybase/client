@@ -69,7 +69,7 @@ class _SendButton extends React.PureComponent<SendProps & Kb.OverlayParentProps>
     },
     {
       onClick: () => this.props.onSendToAnotherWallet(),
-      title: 'To another wallet',
+      title: 'To another account',
     },
   ]
 

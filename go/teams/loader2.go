@@ -161,8 +161,7 @@ var whitelistedTeamLinkSigs = []keybase1.SigID{
 	"e8279d7c73b8defab299094b73800262239e5a03812040ed381cc613a3db515622",
 }
 
-func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID keybase1.TeamID, teamLinkMap linkMapT, link *chainLinkUnpacked, uid keybase1.UID, key *keybase1.PublicKeyV2NaCl, userLinkMap linkMapT, proofSet *proofSetT) {
-
+func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID keybase1.TeamID, link *chainLinkUnpacked, uid keybase1.UID, key *keybase1.PublicKeyV2NaCl, userLinkMap linkMapT, proofSet *proofSetT) {
 	for _, okSigID := range whitelistedTeamLinkSigs {
 		if link.SigID().Equal(okSigID) {
 			// This proof is whitelisted, so don't check it.
@@ -170,7 +169,7 @@ func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID k
 		}
 	}
 
-	event1Link := newProofTerm(teamID.AsUserOrTeam(), link.SignatureMetadata(), teamLinkMap)
+	event1Link := newProofTerm(teamID.AsUserOrTeam(), link.SignatureMetadata(), nil)
 	event2Revoke := key.Base.Revocation
 	if event2Revoke != nil {
 		proofSet.AddNeededHappensBeforeProof(ctx, event1Link, newProofTerm(uid.AsUserOrTeam(), *event2Revoke, userLinkMap), "team link before user key revocation")
@@ -286,16 +285,7 @@ func (l *TeamLoader) loadUserAndKeyFromLinkInnerAndVerify(ctx context.Context, t
 	if !signedByKID.Equal(key.Base.Kid) {
 		return keybase1.UserVersion{}, libkb.NewWrongKidError(signedByKID, key.Base.Kid)
 	}
-	teamLinkMap := make(linkMapT)
-	if state != nil {
-		// copy over the stored links
-		for k, v := range state.Chain.LinkIDs {
-			teamLinkMap[k] = v
-		}
-	}
-	// add on the link that is being checked
-	teamLinkMap[link.Seqno()] = link.LinkID().Export()
-	l.addProofsForKeyInUserSigchain(ctx, teamID, teamLinkMap, link, signer.Uid, key, linkMap, proofSet)
+	l.addProofsForKeyInUserSigchain(ctx, teamID, link, signer.Uid, key, linkMap, proofSet)
 	return signer, nil
 }
 
@@ -343,9 +333,9 @@ func (l *TeamLoader) walkUpToAdmin(
 	return &TeamSigChainState{inner: team.Chain}, nil
 }
 
-func (l *TeamLoader) addProofsForAdminPermission(ctx context.Context, t keybase1.TeamSigChainState, link *chainLinkUnpacked, bookends proofTermBookends, proofSet *proofSetT) {
+func (l *TeamLoader) addProofsForAdminPermission(ctx context.Context, teamID keybase1.TeamID, link *chainLinkUnpacked, bookends proofTermBookends, proofSet *proofSetT) {
 	event1Promote := bookends.left
-	event2Link := newProofTerm(t.Id.AsUserOrTeam(), link.SignatureMetadata(), t.LinkIDs)
+	event2Link := newProofTerm(teamID.AsUserOrTeam(), link.SignatureMetadata(), nil)
 	event3Demote := bookends.right
 	proofSet.AddNeededHappensBeforeProof(ctx, event1Promote, event2Link, "became admin before team link")
 	if event3Demote != nil {
@@ -387,7 +377,7 @@ func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 		signer.implicitAdmin = true
 	}
 
-	l.addProofsForAdminPermission(ctx, state.Chain, link, adminBookends, proofSet)
+	l.addProofsForAdminPermission(ctx, state.Chain.Id, link, adminBookends, proofSet)
 	return signer, nil
 }
 
