@@ -78,7 +78,7 @@ func (c *CmdSimpleFSCopy) Run() error {
 
 	ctx := context.TODO()
 
-	c.G().Log.Debug("SimpleFSCopy (recursive: %v) to: %s", c.recurse, pathToString(c.dest))
+	c.G().Log.Debug("SimpleFSCopy (recursive: %v) to: %s", c.recurse, c.dest)
 
 	destPaths, err := doSimpleFSGlob(ctx, c.G(), cli, c.src)
 	if err != nil {
@@ -91,11 +91,11 @@ func (c *CmdSimpleFSCopy) Run() error {
 	for _, src := range destPaths {
 		var dest keybase1.Path
 		dest, err = makeDestPath(ctx, c.G(), cli, src, c.dest, isDestDir, destPathString)
-		c.G().Log.Debug("SimpleFSCopy %s -> %s, %v", pathToString(src), pathToString(dest), isDestDir)
+		c.G().Log.Debug("SimpleFSCopy %s -> %s, %v", src, dest, isDestDir)
 
 		if err == ErrTargetFileExists {
 			if c.interactive == true {
-				err = doOverwritePrompt(c.G(), pathToString(dest))
+				err = doOverwritePrompt(c.G(), dest.String())
 			} else if c.force == true {
 				err = nil
 			}

@@ -4,6 +4,7 @@ import {type Color, type StylesCrossPlatform} from '../styles'
 
 export type Props = {
   badgeNumber?: number,
+  hideBackLabel?: boolean,
   onClick: () => void,
   onPress?: void,
   iconColor?: Color,

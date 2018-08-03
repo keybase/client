@@ -213,7 +213,7 @@ func (g *GlobalContext) SetEKLib(ekLib EKLib) { g.ekLib = ekLib }
 func (g *GlobalContext) Init() *GlobalContext {
 	g.Env = NewEnv(nil, nil, g.GetLog)
 	g.Service = false
-	g.Resolver = NewResolverImpl(g)
+	g.Resolver = NewResolverImpl()
 	g.RateLimits = NewRateLimits(g)
 	g.upakLoader = NewUncachedUPAKLoader(g)
 	g.teamLoader = newNullTeamLoader(g)
@@ -445,7 +445,7 @@ func (g *GlobalContext) configureMemCachesLocked(isFlush bool) {
 
 	g.shutdownCachesLocked()
 
-	g.Resolver.EnableCaching()
+	g.Resolver.EnableCaching(NewMetaContextBackground(g))
 	g.trackCache = NewTrackCache()
 	g.identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
 	g.Log.Debug("Created Identify2Cache, max age: %s", g.Env.GetUserCacheMaxAge())
@@ -621,7 +621,7 @@ func (g *GlobalContext) Shutdown() error {
 		g.cacheMu.Unlock()
 
 		if g.Resolver != nil {
-			g.Resolver.Shutdown()
+			g.Resolver.Shutdown(NewMetaContextBackground(g))
 		}
 
 		for _, hook := range g.ShutdownHooks {

@@ -634,12 +634,13 @@ func (s *Server) ValidateAccountNameLocal(ctx context.Context, arg stellar1.Vali
 	if err != nil {
 		return err
 	}
+	// Make sure to keep this validation in sync with ChangeAccountName.
 	if arg.Name == "" {
-		// No name is always acceptable.
 		return nil
 	}
-	if utf8.RuneCountInString(arg.Name) > 60 {
-		return fmt.Errorf("account name is too long")
+	runes := utf8.RuneCountInString(arg.Name)
+	if runes > stellar.AccountNameMaxRunes {
+		return fmt.Errorf("account name can be %v characters at the longest but was %v", stellar.AccountNameMaxRunes, runes)
 	}
 	// If this becomes a bottleneck, cache non-critical wallet info on G.Stellar.
 	currentBundle, _, err := remote.Fetch(ctx, s.G())
@@ -650,7 +651,7 @@ func (s *Server) ValidateAccountNameLocal(ctx context.Context, arg stellar1.Vali
 	}
 	for _, account := range currentBundle.Accounts {
 		if arg.Name == account.Name {
-			return fmt.Errorf("that account name is already taken")
+			return fmt.Errorf("you already have an account with that name")
 		}
 	}
 	return nil
@@ -666,7 +667,6 @@ func (s *Server) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.
 	if err != nil {
 		return err
 	}
-
 	return stellar.ChangeAccountName(s.mctx(ctx), arg.AccountID, arg.NewName)
 }
 

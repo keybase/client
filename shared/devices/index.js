@@ -145,7 +145,10 @@ const revokedHeaderStyles = Styles.styleSheetCreate({
     textAlign: 'center',
   },
   text: {color: Styles.globalColors.black_60},
-  textContainer: {alignItems: 'center'},
+  textContainer: {
+    alignItems: 'center',
+    minHeight: Styles.isMobile ? 32 : 24,
+  },
 })
 
 export default Kb.HeaderOnMobile(Kb.OverlayParentHOC(Devices))

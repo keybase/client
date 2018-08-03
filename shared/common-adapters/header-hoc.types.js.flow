@@ -5,7 +5,10 @@ export type Props = {
   title?: string,
   onBack?: ?() => void,
   onCancel?: ?() => void,
+  hideBackLabel?: boolean,
   headerStyle?: StylesCrossPlatform,
   customComponent?: ?React.Node,
   theme?: 'light' | 'dark', // defaults to light
+  rightActionLabel?: string,
+  onRightAction?: ?() => void,
 }

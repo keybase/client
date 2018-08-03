@@ -11,7 +11,7 @@ class SearchResultsList extends Component<Props> {
   _keyExtractor = id => id
 
   _renderItem = ({item: id}) => {
-    const {disableIfInTeamName, onClick, onShowTracker} = this.props
+    const {disableIfInTeamName, onClick, onShowTracker, searchKey} = this.props
     return (
       <Row
         disableIfInTeamName={disableIfInTeamName}
@@ -19,6 +19,7 @@ class SearchResultsList extends Component<Props> {
         selected={false}
         onClick={() => onClick(id)}
         onShowTracker={onShowTracker ? () => onShowTracker(id) : undefined}
+        searchKey={searchKey}
       />
     )
   }
