@@ -28,7 +28,7 @@ export const todoTypes: {[key: Types.TodoType]: Types.TodoType} = {
 }
 
 export const todoTypeToInstructions: {[key: Types.TodoType]: string} = {
-  avatarUser: 'Edit your avatar, and show the world your beautiful face.',
+  avatarUser: 'NEW! Change your photo from within the Keybase app.',
   bio: 'Add your name, bio, and location to complete your profile.',
   proof: 'Add some proofs to your profile. The more you have, the stronger your cryptographic identity.',
   device: `Install Keybase on your ${
