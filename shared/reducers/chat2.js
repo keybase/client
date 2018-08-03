@@ -595,51 +595,48 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.updateTypers: {
       return state.set('typingMap', action.payload.conversationToTypers)
     }
-    case Chat2Gen.messageWasReactedTo: {
-      const {conversationIDKey, emoji, reactionMsgID, sender, targetMsgID, timestamp} = action.payload
-      const ordinal = messageIDToOrdinal(
-        state.messageMap,
-        state.pendingOutboxToOrdinal,
-        conversationIDKey,
-        targetMsgID
-      )
-      if (!ordinal) {
-        return state
-      }
+    case Chat2Gen.toggleLocalReaction: {
+      const {conversationIDKey, emoji, targetOrdinal, username} = action.payload
       return state.update('messageMap', messageMap =>
         messageMap.update(conversationIDKey, I.Map(), (map: I.Map<Types.Ordinal, Types.Message>) => {
-          return map.update(ordinal, message => {
+          return map.update(targetOrdinal, message => {
             if (!message || message.type === 'deleted' || message.type === 'placeholder') {
               return message
             }
-            let reactions = message.reactions
+            const reactions = message.reactions
             // $FlowIssue thinks `message` is the inner type
             return message.set(
               'reactions',
-              reactions.update(emoji, I.Set(), rs =>
-                rs.add(
-                  Constants.makeReaction({
-                    messageID: Types.numberToMessageID(reactionMsgID),
-                    timestamp,
-                    username: sender,
-                  })
-                )
-              )
+              reactions.withMutations(reactionMap => {
+                reactionMap.update(emoji, I.Set(), rs => {
+                  const existing = rs.find(r => r.username === username)
+                  if (existing) {
+                    // found an existing reaction. remove it from our list
+                    return rs.delete(existing)
+                  }
+                  // no existing reaction. add this one to the map
+                  return rs.add(Constants.makeReaction({timestamp: Date.now(), username}))
+                })
+                const newSet = reactionMap.get(emoji)
+                if (newSet && newSet.size === 0) {
+                  reactionMap.delete(emoji)
+                }
+              })
             )
           })
         })
       )
     }
-    case Chat2Gen.reactionsWereDeleted: {
-      const {conversationIDKey, deletions} = action.payload
-      const targetData = deletions.map(d => ({
-        emoji: d.emoji,
-        reactionMsgID: d.reactionMsgID,
+    case Chat2Gen.updateReactions: {
+      const {conversationIDKey, updates} = action.payload
+      const targetData = updates.map(u => ({
+        reactions: u.reactions,
+        targetMsgID: u.targetMsgID,
         targetOrdinal: messageIDToOrdinal(
           state.messageMap,
           state.pendingOutboxToOrdinal,
           conversationIDKey,
-          d.targetMsgID
+          u.targetMsgID
         ),
       }))
       return state.update('messageMap', messageMap =>
@@ -648,8 +645,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             targetData.forEach(td => {
               if (!td.targetOrdinal) {
                 logger.info(
-                  `reactionsWereDeleted: couldn't find target ordinal for reactionMsgID=${
-                    td.reactionMsgID
+                  `updateReactions: couldn't find target ordinal for targetMsgID=${
+                    td.targetMsgID
                   } in convID=${conversationIDKey}`
                 )
                 return
@@ -658,16 +655,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
                 if (!message || message.type === 'deleted' || message.type === 'placeholder') {
                   return message
                 }
-                let reactions = message.reactions
-                reactions = reactions.update(td.emoji, I.Set(), reactionSet =>
-                  reactionSet.filter(r => r.messageID !== td.reactionMsgID)
-                )
-                const newSet = reactions.get(td.emoji)
-                if (newSet && newSet.size === 0) {
-                  reactions = reactions.delete(td.emoji)
-                }
                 // $FlowIssue thinks `message` is the inner type
-                return message.set('reactions', reactions)
+                return message.set('reactions', td.reactions)
               })
             })
           })
