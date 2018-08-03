@@ -33,17 +33,24 @@ export default function ConfirmSend(props: ConfirmSendProps) {
         >
           <Kb.Button
             type="PrimaryGreen"
-            label={`Send ${props.amount}`}
             onClick={() => {}}
             disabled={false}
             fullWidth={true}
             style={styles.button}
             children={
-              <Kb.Icon
-                type="iconfont-stellar-send"
-                style={Kb.iconCastPlatformStyles(styles.icon)}
-                color={Styles.globalColors.white}
-              />
+              <React.Fragment>
+                <Kb.Icon
+                  type="iconfont-stellar-send"
+                  style={Kb.iconCastPlatformStyles(styles.icon)}
+                  color={Styles.globalColors.white}
+                />
+                <Kb.Text type="BodySemibold" style={styles.buttonText}>
+                  Send{' '}
+                  <Kb.Text type="BodyExtrabold" style={styles.buttonText}>
+                    {props.amount}
+                  </Kb.Text>
+                </Kb.Text>
+              </React.Fragment>
             }
           />
         </Kb.Box2>
@@ -53,6 +60,10 @@ export default function ConfirmSend(props: ConfirmSendProps) {
 }
 
 const styles = Styles.styleSheetCreate({
+  icon: {
+    marginRight: Styles.globalMargins.tiny,
+  },
+  buttonText: {color: Styles.globalColors.white},
   container: Styles.platformStyles({
     isElectron: {
       height: 525,
