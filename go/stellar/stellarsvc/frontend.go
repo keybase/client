@@ -651,7 +651,7 @@ func (s *Server) ValidateAccountNameLocal(ctx context.Context, arg stellar1.Vali
 	}
 	for _, account := range currentBundle.Accounts {
 		if arg.Name == account.Name {
-			return fmt.Errorf("that account name is already taken")
+			return fmt.Errorf("you already have an account with that name")
 		}
 	}
 	return nil

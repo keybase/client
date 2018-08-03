@@ -207,7 +207,7 @@ func TestChangeWalletName(t *testing.T) {
 		NewName:   "office lunch money",
 	})
 	require.NoError(t, err)
-	chk("office lunch money", "that account name is already taken")
+	chk("office lunch money", "you already have an account with that name")
 	chk("career debter", "")
 
 	accs, err = tcs[0].Srv.WalletGetAccountsCLILocal(context.Background())

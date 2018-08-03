@@ -1003,7 +1003,7 @@ func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newNam
 			nextBundle.Accounts[i].Name = newName
 			found = true
 		} else if acc.Name == newName {
-			return fmt.Errorf("that account name is already taken")
+			return fmt.Errorf("you already have an account with that name")
 		}
 	}
 	if !found {
