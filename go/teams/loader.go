@@ -529,7 +529,9 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			l.G().Log.CDebugf(ctx, "TeamLoader fetching: primary load")
 			fetchLinksAndOrSecrets = true
 		}
-	} else if err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, ret); err != nil { // hasSyncedSecrets does not account for RKMs so we verify it separately.
+	}
+	// hasSyncedSecrets does not account for RKMs so we verify it separately.
+	if err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, ret); err != nil {
 		l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedKeyGeneration: %v", err)
 		fetchLinksAndOrSecrets = true
 	}
