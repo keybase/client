@@ -136,7 +136,6 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             visible={this.props.showingMenu}
             onHidden={this.props.toggleShowingMenu}
             onSelect={this._showNativeImagePicker}
-            selected="photo"
           />
         ) : (
           <SetExplodingMessagePicker

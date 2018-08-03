@@ -18,13 +18,7 @@ type State = {selected: string}
 class FilePickerPopup extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
-    this.state = {selected: props.selected || 'photo'}
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.selected !== prevProps.selected) {
-      this.setState({selected: this.props.selected || 'photo'})
-    }
+    this.state = {selected: 'photo'}
   }
 
   setSelected = (value: number | string) => {
@@ -49,7 +43,6 @@ class FilePickerPopup extends React.Component<Props, State> {
         onCancel={this.props.onHidden}
         onDone={this.onDone}
         prompt={<Prompt />}
-        promptString="Pick a timeout"
         visible={this.props.visible}
         selectedValue={this.state.selected}
       />
