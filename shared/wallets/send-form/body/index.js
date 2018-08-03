@@ -6,7 +6,7 @@ import AssetInput from '../asset-input/container'
 import Banner from '../banner/container'
 import Footer from '../footer/container'
 import Memo from '../memo/container'
-import Note from '../note/container'
+// import Note from '../note/container'
 import Participants from '../participants/container'
 
 type Props = {
@@ -29,7 +29,7 @@ const Body = ({bannerInfo, isProcessing, onClick}: Props) => (
     <Divider />
     <AssetInput />
     <Memo />
-    <Note />
+    {/* <Note /> */}
     <Footer onClick={onClick} />
   </Box2>
 )

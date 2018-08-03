@@ -7,12 +7,15 @@ import * as Styles from '../../../styles'
 import Banner from '../banner'
 import Memo from '../memo/container'
 // import Note from '../note/container'
-import Participants from '../participants/container'
+import Participants from '../participants'
+import type {Background} from '../../../common-adapters/text'
 
 type ConfirmSendProps = {|
   onClose: () => void,
   onBack: () => void,
   amount: string,
+  bannerText?: string,
+  bannerBackground?: Background,
   // onClick: () => void,
 |}
 
@@ -29,11 +32,11 @@ export default function ConfirmSend(props: ConfirmSendProps) {
           </Kb.Text>
         </Kb.Box2>
         <Kb.ScrollView>
-          <Banner
-            background="Announcements"
-            text="The conversion rate has changed since you got to this screen."
-          />
-          <Participants />
+          {!!props.bannerText &&
+            !!props.bannerBackground && (
+              <Banner background={props.bannerBackground} text={props.bannerText} />
+            )}
+          <Participants receivingUsername="nathunsmitty" receivingFullName="Nathan Smith" />
           <Memo />
         </Kb.ScrollView>
         <Kb.Box2

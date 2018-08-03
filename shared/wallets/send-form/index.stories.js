@@ -5,8 +5,8 @@ import assetInput, {props3 as assetInputProps} from './asset-input/index.stories
 import chooseAsset from './choose-asset/index.stories'
 import banner from './banner/index.stories'
 import footers from './footer/index.stories'
+import confirm from './confirm/index.stories'
 import SendForm from '.'
-import ConfirmSend from './confirm'
 
 // TODO some of the state of these child components
 // may be held completely by the parent form. Figure out a
@@ -31,13 +31,11 @@ const load = () => {
   banner()
   chooseAsset()
   footers()
+  confirm()
   // full component
   Sb.storiesOf('Wallets/SendForm', module)
     .addDecorator(provider)
     .add('Send', () => <SendForm onClick={Sb.action('onClick')} onClose={Sb.action('onClose')} />)
-    .add('Confirm', () => (
-      <ConfirmSend onClose={Sb.action('onClose')} onBack={Sb.action('onClose')} amount={'1.234 XLM'} />
-    ))
 }
 
 export default load

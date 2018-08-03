@@ -7,6 +7,7 @@ type Props = {}
 
 const Memo = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+    <Kb.Divider />
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.memoContainer}>
       <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
         Encrypted note
@@ -35,6 +36,7 @@ const Memo = (props: Props) => (
         orci vitae turpis posuere fermentum.
       </Kb.Text>
     </Kb.Box2>
+    <Kb.Divider />
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.memoContainer}>
       <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
         Public memo
@@ -56,14 +58,10 @@ const styles = Styles.styleSheetCreate({
   // }),
   memoContainer: Styles.platformStyles({
     isElectron: {
-      paddingTop: 7.5,
-      paddingBottom: 7.5,
+      paddingTop: Styles.globalMargins.tiny,
+      paddingBottom: Styles.globalMargins.tiny,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
-
-      borderTopStyle: 'solid',
-      borderTopWidth: 1,
-      borderTopColor: Styles.globalColors.black_05,
     },
   }),
   headingText: {
