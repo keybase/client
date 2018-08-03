@@ -60,17 +60,20 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
 
   _showNativeImagePicker = (mediaType: string) => {
     let title = 'Select a Photo'
+    let takePhotoButtonTitle = 'Take Photo...'
     switch (mediaType) {
       case 'photo':
         break
       case 'mixed':
         title = 'Select a Photo or Video'
+        takePhotoButtonTitle = 'Take Photo or Video...'
         break
       case 'video':
         title = 'Select a Video'
+        takePhotoButtonTitle = 'Take Video...'
         break
     }
-    showImagePicker({mediaType, title}, response => {
+    showImagePicker({mediaType, title, takePhotoButtonTitle}, response => {
       if (response.didCancel || !this.props.conversationIDKey) {
         return
       }
