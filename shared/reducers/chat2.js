@@ -331,7 +331,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           )
 
           if (maxMsgID > readMsgID) {
-            s.setIn(['orangeLineMap', action.payload.conversationIDKey], readMsgID)
+            // Store the message ID that will display the orange line above it, which is the message after the last read message (hence the +1)
+            s.setIn(['orangeLineMap', action.payload.conversationIDKey], readMsgID + 1)
           } else {
             // If there aren't any new messages, we don't want to display an orange line so remove its entry from orangeLineMap
             s.deleteIn(['orangeLineMap', action.payload.conversationIDKey])

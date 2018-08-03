@@ -1,6 +1,6 @@
 // @flow
 import {WrapperTimestamp} from '../'
-import * as Constants from '../../../../../constants/chat2/message'
+import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
 import {setDisplayName, compose, connect, type TypedState} from '../../../../../util/container'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
@@ -11,14 +11,11 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  const lastReadMessageID = state.chat2.orangeLineMap.get(ownProps.message.conversationIDKey)
-  // Show the orange line on the first message after the last read message
-  const orangeLineAbove = !!ownProps.previous && lastReadMessageID === ownProps.previous.id
-
+  const messageIDWithOrangeLine = state.chat2.orangeLineMap.get(ownProps.message.conversationIDKey)
   return {
     _message: ownProps.message,
     conversationIDKey: ownProps.message.conversationIDKey,
-    orangeLineAbove,
+    orangeLineAbove: messageIDWithOrangeLine === ownProps.message.id,
     ordinal: ownProps.message.ordinal,
     previous: ownProps.previous,
   }
