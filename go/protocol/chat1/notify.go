@@ -5,7 +5,6 @@ package chat1
 
 import (
 	"errors"
-
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
@@ -345,8 +344,8 @@ func (o ReactionUpdateNotif) DeepCopy() ReactionUpdateNotif {
 			if x == nil {
 				return nil
 			}
-			var ret []ReactionUpdate
-			for _, v := range x {
+			ret := make([]ReactionUpdate, len(x))
+			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
 			}
