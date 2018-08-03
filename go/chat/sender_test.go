@@ -110,7 +110,6 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 							panic("timeout on the incomingLocal channel")
 						}
 					}
-
 				}
 			}
 		case chat1.ChatActivityType_FAILED_MESSAGE:
