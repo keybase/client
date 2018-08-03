@@ -132,18 +132,20 @@ func (e *fsEngine) GetRootDir(user User, tlfName string, t tlf.Type, expectedCan
 	// TODO currently we pretend that Dokan has no symbolic links
 	// here and end up deferencing them. This works but is not
 	// ideal. (See Lookup.)
-	if preferredName == expectedPreferredName || e.name == "dokan" {
+	if e.name == "dokan" {
 		realPath = path
 	} else {
 		realPath, err = filepath.EvalSymlinks(path)
 		if err != nil {
 			return nil, err
 		}
-		realName := filepath.Base(realPath)
-		if realName != string(expectedPreferredName) {
-			return nil, fmt.Errorf(
-				"Expected preferred TLF name %s, got %s",
-				expectedPreferredName, realName)
+		if preferredName != expectedPreferredName {
+			realName := filepath.Base(realPath)
+			if realName != string(expectedPreferredName) {
+				return nil, fmt.Errorf(
+					"Expected preferred TLF name %s, got %s",
+					expectedPreferredName, realName)
+			}
 		}
 	}
 	return fsNode{realPath}, nil
@@ -588,10 +590,7 @@ func (*fsEngine) SetMtime(u User, file Node, mtime time.Time) (err error) {
 // GetMtime implements the Engine interface.
 func (*fsEngine) GetMtime(u User, file Node) (mtime time.Time, err error) {
 	n := file.(fsNode)
-	// Use `Stat`, not `Lstat`, so that we can lookup the actual
-	// mtimes on the preferred TLF name in the folder list, rather
-	// than just the symlink.
-	fi, err := ioutil.Stat(n.path)
+	fi, err := ioutil.Lstat(n.path)
 	if err != nil {
 		return time.Time{}, err
 	}
