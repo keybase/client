@@ -30,7 +30,6 @@ type menuType = 'exploding' | 'filepickerpopup'
 
 type State = {
   hasText: boolean,
-  showFilePickerPopup: boolean,
 }
 
 class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, State> {
@@ -41,7 +40,6 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
     super(props)
     this.state = {
       hasText: false,
-      showFilePickerPopup: false,
     }
   }
 
