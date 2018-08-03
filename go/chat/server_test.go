@@ -5014,6 +5014,12 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 			msgID := mustPostLocalForTest(t, ctc, user, conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: msgBody}))
 			consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
 			consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
+			switch user.Username {
+			case u1.Username:
+				consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
+			case u2.Username:
+				consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
+			}
 			return msgID
 		}
 
@@ -5187,7 +5193,7 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 }
 
 func TestChatSrvGetStaticConfig(t *testing.T) {
-	ctc := makeChatTestContext(t, "GetSearchRegexp", 2)
+	ctc := makeChatTestContext(t, "GetStaticConfig", 2)
 	defer ctc.cleanup()
 	tc := ctc.as(t, ctc.users()[0])
 	res, err := tc.chatLocalHandler().GetStaticConfig(tc.startCtx)

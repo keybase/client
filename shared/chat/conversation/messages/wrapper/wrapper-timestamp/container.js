@@ -27,12 +27,13 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const {_message, ordinal, previous} = stateProps
 
-  const showTimestamp = Constants.enoughTimeBetweenMessages(_message, previous)
+  // Placeholder messages can pass this test ("orangeLineAbove || !previous")
+  // but have a zero-timestamp, so we can't try to show a timestamp for them.
+  const showTimestamp =
+    Constants.enoughTimeBetweenMessages(_message, previous) ||
+    (_message.timestamp && (stateProps.orangeLineAbove || !previous))
 
-  const timestamp =
-    stateProps.orangeLineAbove || !previous || showTimestamp
-      ? formatTimeForMessages(_message.timestamp)
-      : null
+  const timestamp = showTimestamp ? formatTimeForMessages(_message.timestamp) : null
 
   return {
     children: ownProps.children,
