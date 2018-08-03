@@ -1183,36 +1183,38 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
 
   // Inject pending message and make the call
-  return Saga.sequentially([
-    Saga.put(
-      Chat2Gen.createMessagesAdd({
-        context: {type: 'sent'},
-        messages: [
-          Constants.makePendingTextMessage(
-            state,
-            conversationIDKey,
-            text,
-            Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
-            ephemeralLifetime
-          ),
-        ],
-      })
-    ),
-    Saga.call(
-      RPCChatTypes.localPostTextNonblockRpcPromise,
-      {
-        ...ephemeralData,
-        body: text.stringValue(),
-        clientPrev,
-        conversationID: Types.keyToConversationID(conversationIDKey),
-        identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-        outboxID,
-        tlfName,
-        tlfPublic: false,
-      },
-      Constants.waitingKeyPost
-    ),
-  ])
+
+  const addMessage = Saga.put(
+    Chat2Gen.createMessagesAdd({
+      context: {type: 'sent'},
+      messages: [
+        Constants.makePendingTextMessage(
+          state,
+          conversationIDKey,
+          text,
+          Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
+          ephemeralLifetime
+        ),
+      ],
+    })
+  )
+
+  const postText = Saga.call(
+    RPCChatTypes.localPostTextNonblockRpcPromise,
+    {
+      ...ephemeralData,
+      body: text.stringValue(),
+      clientPrev,
+      conversationID: Types.keyToConversationID(conversationIDKey),
+      identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
+      outboxID,
+      tlfName,
+      tlfPublic: false,
+    },
+    Constants.waitingKeyPost
+  )
+
+  return Saga.sequentially([addMessage, postText])
 }
 
 const previewConversationAfterFindExisting = (
