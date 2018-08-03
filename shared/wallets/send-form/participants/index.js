@@ -4,7 +4,10 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {WalletRow} from '../../wallet-list/wallet-row'
 
-type Props = {}
+type Props = {|
+  receivingUsername: string,
+  receivingFullName: string,
+|}
 
 const Participants = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
@@ -28,8 +31,8 @@ const Participants = (props: Props) => (
       </Kb.Text>
       <Kb.Avatar size={32} />
       <Kb.Box2 direction="vertical">
-        <Kb.ConnectedUsernames type="BodySmall" usernames={['russel']} />
-        <Kb.Text type="BodyTiny">Russel Smith</Kb.Text>
+        <Kb.ConnectedUsernames type="BodySmall" usernames={[props.receivingUsername]} />
+        <Kb.Text type="BodyTiny">{props.receivingFullName}</Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
   </Kb.Box2>
