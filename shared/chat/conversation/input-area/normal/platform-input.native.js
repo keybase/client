@@ -61,21 +61,24 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
   _showNativeImagePicker = (mediaType: string) => {
     let title = 'Select a Photo'
     let takePhotoButtonTitle = 'Take Photo...'
+    let permDeniedText = 'Allow Keybase to take photos?'
     switch (mediaType) {
       case 'photo':
         break
       case 'mixed':
         title = 'Select a Photo or Video'
         takePhotoButtonTitle = 'Take Photo or Video...'
+        permDeniedText = 'Allow Keybase to take photos or video?'
         break
       case 'video':
         title = 'Select a Video'
         takePhotoButtonTitle = 'Take Video...'
+        permDeniedText = 'Allow Keybase to take video?'
         break
     }
     const permissionDenied = {
       title: 'Permissions needed',
-      text: 'Allow Keybase to take pictures and choose images from your library?',
+      text: permDeniedText,
       reTryTitle: 'allow in settings',
       okTitle: 'deny',
     }
