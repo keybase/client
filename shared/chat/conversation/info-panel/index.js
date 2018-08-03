@@ -198,6 +198,7 @@ type LeaveChannelRow = {
 type MinWriterRoleRow = {
   type: 'min writer role',
   key: 'min writer role',
+  isSmallTeam: boolean,
 }
 
 // All the row types that can appear in a small or big team header.
@@ -405,7 +406,11 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
 
       case 'min writer role':
         return (
-          <MinWriterRole key="min writer role" conversationIDKey={this.props.selectedConversationIDKey} />
+          <MinWriterRole
+            key="min writer role"
+            conversationIDKey={this.props.selectedConversationIDKey}
+            isSmallTeam={row.isSmallTeam}
+          />
         )
 
       default:
@@ -484,7 +489,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             marginTop: 8,
             marginBottom: 8,
           },
-          {type: 'min writer role', key: 'min writer role'},
+          {isSmallTeam: true, type: 'min writer role', key: 'min writer role'},
           ...(props.canDeleteHistory
             ? [
                 {
@@ -611,7 +616,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               marginTop: 8,
               marginBottom: 8,
             },
-            {type: 'min writer role', key: 'min writer role'},
+            {isSmallTeam: false, type: 'min writer role', key: 'min writer role'},
             ...(props.canDeleteHistory
               ? [
                   {

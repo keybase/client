@@ -8,6 +8,7 @@ import {upperFirst} from 'lodash-es'
 
 type Props = {
   canSetMinWriterRole: boolean,
+  isSmallTeam: boolean,
   minWriterRole: TeamTypes.TeamRoleType,
   onSetNewRole: (newRole: TeamTypes.TeamRoleType) => void,
 }
@@ -35,7 +36,7 @@ const MinWriterRole = (props: Props) => {
       {props.canSetMinWriterRole ? (
         <Dropdown minWriterRole={props.minWriterRole} items={items} />
       ) : (
-        <Display minWriterRole={props.minWriterRole} />
+        <Display isSmallTeam={props.isSmallTeam} minWriterRole={props.minWriterRole} />
       )}
     </Kb.Box2>
   )
@@ -70,14 +71,21 @@ const _Dropdown = ({
       position="top center"
       positionFallbacks={['bottom center']}
     />
+    <Kb.SaveIndicator
+      saving={false}
+      style={styles.saveIndicator}
+      minSavingTimeMs={300}
+      savedTimeoutMs={2500}
+    />
   </React.Fragment>
 )
 const Dropdown = Kb.OverlayParentHOC(_Dropdown)
 
-const Display = ({minWriterRole}) => (
+const Display = ({isSmallTeam, minWriterRole}) => (
   <Kb.Text type="BodySmall">
-    You must be at least {'aeiou'.includes(minWriterRole[0]) ? 'an' : 'a'} {minWriterRole} to write in this
-    channel.
+    You must be at least {'aeiou'.includes(minWriterRole[0]) ? 'an' : 'a'}{' '}
+    <Kb.Text type="BodySmallSemibold">{minWriterRole}</Kb.Text> to write in this{' '}
+    {isSmallTeam ? 'chat' : 'channel'}.
   </Kb.Text>
 )
 
@@ -107,6 +115,18 @@ const styles = Style.styleSheetCreate({
     minHeight: Style.isMobile ? 40 : 32,
     width: '100%',
   },
+  saveIndicator: Style.platformStyles({
+    common: {
+      ...Style.globalStyles.flexBoxRow,
+      height: 17,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: Style.globalMargins.tiny,
+    },
+    isMobile: {
+      height: Style.globalMargins.medium,
+    },
+  }),
 })
 
 export default MinWriterRole

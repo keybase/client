@@ -9,6 +9,7 @@ import MinWriterRole from '.'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
+  isSmallTeam: boolean,
 }
 
 const emptyProps = {
