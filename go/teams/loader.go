@@ -515,10 +515,6 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			// Admins should always have up-to-date secrets
 			fetchLinksAndOrSecrets = true
 		}
-		if err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, ret); err != nil {
-			l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedKeyGeneration: %v", err)
-			fetchLinksAndOrSecrets = true
-		}
 		if err := l.satisfiesNeedApplicationsAtGenerations(ctx, arg.needApplicationsAtGenerations, ret); err != nil {
 			l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedApplicationsAtGenerations: %v", err)
 			fetchLinksAndOrSecrets = true
@@ -533,6 +529,9 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			l.G().Log.CDebugf(ctx, "TeamLoader fetching: primary load")
 			fetchLinksAndOrSecrets = true
 		}
+	} else if err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, ret); err != nil { // hasSyncedSecrets does not account for RKMs so we verify it separately.
+		l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedKeyGeneration: %v", err)
+		fetchLinksAndOrSecrets = true
 	}
 
 	// Pull new links from the server
@@ -838,7 +837,7 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 			repoll = true
 		}
 	}
-	// Repoll to get a new applications at generations
+	// Repoll to get new applications at generations
 	if len(arg.needApplicationsAtGenerations) > 0 {
 		if l.satisfiesNeedApplicationsAtGenerations(ctx, arg.needApplicationsAtGenerations, fromCache) != nil {
 			repoll = true
