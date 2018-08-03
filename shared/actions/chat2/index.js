@@ -15,7 +15,7 @@ import * as SearchGen from '../search-gen'
 import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as UsersGen from '../users-gen'
-import {hasCanPerform, retentionPolicyToServiceRetentionPolicy} from '../../constants/teams'
+import {hasCanPerform, retentionPolicyToServiceRetentionPolicy, teamRoleByEnum} from '../../constants/teams'
 import type {NavigateActions} from '../../constants/types/route-tree'
 import engine from '../../engine'
 import logger from '../../logger'
@@ -713,6 +713,21 @@ const setupChatHandlers = () => {
     // this is a more serious problem, but we don't need to bug the user about it
     logger.error(
       'ChatHandler: got NotifyChat.ChatSetTeamRetention with no attached InboxUIItems. The local version may be out of date'
+    )
+  })
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatSetConvSettings', update => {
+    const conversationIDKey = Types.conversationIDToKey(update.convID)
+    const newRole =
+      update.conv &&
+      update.conv.convSettings &&
+      update.conv.convSettings.minWriterRoleInfo &&
+      update.conv.convSettings.minWriterRoleInfo.role
+    const role = newRole && teamRoleByEnum[newRole]
+    if (role && role !== 'none') {
+      return [Chat2Gen.createSaveMinWriterRole({conversationIDKey, role})]
+    }
+    logger.warn(
+      `ChatHandler: got NotifyChat.ChatSetConvSettings with no valid minWriterRole for convID ${conversationIDKey}. The local version may be out of date.`
     )
   })
 }
@@ -2249,6 +2264,14 @@ const handleFilePickerError = (action: Chat2Gen.FilePickerErrorPayload) => {
   throw action.payload.error
 }
 
+const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
+  const {conversationIDKey, role} = action.payload
+  return Saga.call(RPCChatTypes.localSetConvMinWriterRoleLocalRpcPromise, {
+    convID: Types.keyToConversationID(conversationIDKey),
+    role: RPCTypes.teamsTeamRole[role],
+  })
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -2386,6 +2409,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
   yield Saga.actionToPromise(ConfigGen.bootstrapSuccess, loadStaticConfig)
   yield Saga.safeTakeEveryPure(Chat2Gen.filePickerError, handleFilePickerError)
+  yield Saga.safeTakeEveryPure(Chat2Gen.setMinWriterRole, setMinWriterRole)
 }
 
 export default chat2Saga
