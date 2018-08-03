@@ -27,7 +27,7 @@ const avatarUserConnector = connect(
     _onConfirm: () => {
       // make sure we have tracker state & profile is up to date
       dispatch(createGetMyProfile({}))
-      dispatch(navigateAppend(['editAvatar'], [Tabs.peopleTab]))
+      dispatch(switchTo([Tabs.profileTab, 'editAvatar']))
     },
     onDismiss: () => {},
   }),
