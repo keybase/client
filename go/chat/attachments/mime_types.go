@@ -79,6 +79,7 @@ var mimeTypes = map[string]string{
 	".pptx":    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
 	".prc":     "application/x-pilot",
 	".ps":      "application/postscript",
+	".qt":      "video/quicktime",
 	".ra":      "audio/x-realaudio",
 	".rar":     "application/x-rar-compressed",
 	".rpm":     "application/x-redhat-package-manager",
