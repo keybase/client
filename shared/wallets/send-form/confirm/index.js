@@ -6,6 +6,7 @@ import * as Styles from '../../../styles'
 // import Header from '../header'
 import Memo from '../memo/container'
 // import Note from '../note/container'
+import Participants from '../participants/container'
 
 type ConfirmSendProps = {|
   onClose: () => void,
@@ -19,9 +20,7 @@ export default function ConfirmSend(props: ConfirmSendProps) {
     <Kb.MaybePopup onClose={props.onClose}>
       <Kb.Box2 direction="vertical" style={styles.container}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header} />
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
-          to/from
-        </Kb.Box2>
+        <Participants />
         <Memo />
         <Kb.Box2
           direction="horizontal"
