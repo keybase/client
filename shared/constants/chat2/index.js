@@ -202,6 +202,7 @@ export {
 
 export {
   allMessageTypes,
+  enoughTimeBetweenMessages,
   getClientPrev,
   getDeletableByDeleteHistory,
   getMessageID,
