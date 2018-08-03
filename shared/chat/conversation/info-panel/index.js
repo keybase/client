@@ -10,6 +10,7 @@ import Participant, {AddPeople} from './participant'
 import {ParticipantCount} from './participant-count'
 import {CaptionedButton, CaptionedDangerIcon} from './channel-utils'
 import RetentionPicker from '../../../teams/team/settings-tab/retention/container'
+import MinWriterRole from './min-writer-role/container'
 
 const border = `1px solid ${globalColors.black_05}`
 const listStyle = {
@@ -194,6 +195,11 @@ type LeaveChannelRow = {
   onLeaveConversation: () => void,
 }
 
+type MinWriterRoleRow = {
+  type: 'min writer role',
+  key: 'min writer role',
+}
+
 // All the row types that can appear in a small or big team header.
 type TeamHeaderRow =
   | DividerRow
@@ -206,6 +212,7 @@ type TeamHeaderRow =
   | BigTeamHeaderRow
   | JoinChannelRow
   | LeaveChannelRow
+  | MinWriterRoleRow
 
 type Row =
   | AddPeopleRow
@@ -266,6 +273,10 @@ const typeSizeEstimator = (row: Row): number => {
 
     case 'retention':
       return row.canSetRetention ? 84 : 49
+
+    case 'min writer role':
+      // TODO (DA)
+      return 84
 
     default:
       /*::
@@ -392,6 +403,11 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           />
         )
 
+      case 'min writer role':
+        return (
+          <MinWriterRole key="min writer role" conversationIDKey={this.props.selectedConversationIDKey} />
+        )
+
       default:
         /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
@@ -462,20 +478,27 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             teamname: props.teamname || '',
             entityType: 'small team',
           },
+          {
+            type: 'divider',
+            key: nextKey(),
+            marginTop: 8,
+            marginBottom: 8,
+          },
+          {type: 'min writer role', key: 'min writer role'},
           ...(props.canDeleteHistory
             ? [
-              {
-                type: 'divider',
-                marginTop: 8,
-                key: nextKey(),
-                marginBottom: globalMargins.small,
-              },
-              {
-                type: 'clear entire conversation',
-                key: 'clear entire conversation',
-                onShowClearConversationDialog: props.onShowClearConversationDialog,
-              },
-            ]
+                {
+                  type: 'divider',
+                  marginTop: 8,
+                  key: nextKey(),
+                  marginBottom: globalMargins.small,
+                },
+                {
+                  type: 'clear entire conversation',
+                  key: 'clear entire conversation',
+                  onShowClearConversationDialog: props.onShowClearConversationDialog,
+                },
+              ]
             : []),
           {
             type: 'divider',
@@ -582,20 +605,27 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               entityType: 'channel',
               teamname: props.teamname || '',
             },
+            {
+              type: 'divider',
+              key: nextKey(),
+              marginTop: 8,
+              marginBottom: 8,
+            },
+            {type: 'min writer role', key: 'min writer role'},
             ...(props.canDeleteHistory
               ? [
-                {
-                  type: 'divider',
-                  marginTop: 8,
-                  key: nextKey(),
-                  marginBottom: globalMargins.small,
-                },
-                {
-                  type: 'clear entire conversation',
-                  key: 'clear entire conversation',
-                  onShowClearConversationDialog: props.onShowClearConversationDialog,
-                },
-              ]
+                  {
+                    type: 'divider',
+                    marginTop: 8,
+                    key: nextKey(),
+                    marginBottom: globalMargins.small,
+                  },
+                  {
+                    type: 'clear entire conversation',
+                    key: 'clear entire conversation',
+                    onShowClearConversationDialog: props.onShowClearConversationDialog,
+                  },
+                ]
               : []),
             {
               type: 'divider',
