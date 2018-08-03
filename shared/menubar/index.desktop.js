@@ -3,7 +3,17 @@ import Folders, {type FolderType, type Props as FolderProps} from '../folders/in
 import React, {Component} from 'react'
 import UserAdd from './user-add.desktop'
 import {Box, Icon, Text, Button, FloatingMenu, Badge, ButtonBar, type IconType} from '../common-adapters'
-import {fsTab, peopleTab, chatTab, devicesTab, teamsTab, type Tab} from '../constants/tabs'
+import {
+  fsTab,
+  peopleTab,
+  chatTab,
+  devicesTab,
+  teamsTab,
+  walletsTab,
+  gitTab,
+  settingsTab,
+  type Tab,
+} from '../constants/tabs'
 import {globalStyles, globalColors, desktopStyles, collapseStyles, platformStyles} from '../styles'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
@@ -16,7 +26,7 @@ export type Props = {
   loggedIn: boolean,
   onFolderClick: (path: ?string) => void,
   onRekey: (path: string) => void,
-  openApp: () => void,
+  openApp: (tab: ?string) => void,
   quit: () => void,
   refresh: () => void,
   showBug: () => void,
@@ -100,12 +110,18 @@ class MenubarRender extends Component<Props, State> {
 
   _menuItems() {
     return [
-      ...(this.props.loggedIn ? [{title: 'Open Keybase', onClick: () => this.props.openApp()}] : []),
-      {title: 'Open folders', onClick: () => this.props.onFolderClick()},
-      {title: 'Keybase.io', onClick: () => this.props.showUser()},
+      {title: 'Wallet', onClick: () => this.props.openApp(walletsTab)},
+      {title: 'Git', onClick: () => this.props.openApp(gitTab)},
+      {title: 'Devices', onClick: () => this.props.openApp(devicesTab)},
+      {title: 'Settings', onClick: () => this.props.openApp(settingsTab)},
+      'Divider',
+      ...(this.props.loggedIn ? [{title: 'Open main app', onClick: () => this.props.openApp()}] : []),
+      {title: 'Open folders', onClick: () => this.props.openApp(fsTab)},
+      'Divider',
+      {title: 'Keybase.io', onClick: this.props.showUser},
       {title: 'Report a bug', onClick: this.props.showBug},
-      {title: 'Help/Doc', onClick: this.props.showHelp},
-      {title: 'Quit', onClick: this.props.quit},
+      {title: 'Help', onClick: this.props.showHelp},
+      {title: 'Quit app', onClick: this.props.quit},
     ]
   }
 
