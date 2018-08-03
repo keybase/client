@@ -216,6 +216,7 @@ export {
   nextFractionalOrdinal,
   pathToAttachmentType,
   previewSpecs,
+  reactionMapToReactions,
   rpcErrorToString,
   serviceMessageTypeToMessageTypes,
   uiMessageEditToMessage,

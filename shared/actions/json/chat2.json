@@ -230,11 +230,9 @@
       "text": "HiddenString"
     },
     "toggleLocalReaction": {
-      "_description":
-        "Either store a pending reaction with an outboxID or remove an existing pending reaction from our map.",
+      "_description": "Toggle a reaction in the store.",
       "conversationIDKey": "Types.ConversationIDKey",
       "emoji": "string",
-      "outboxID": "Types.OutboxID",
       "targetOrdinal": "Types.Ordinal",
       "username": "string"
     },
@@ -244,29 +242,10 @@
       "emoji": "string",
       "ordinal": "Types.Ordinal"
     },
-    "messageWasReactedTo": {
-      "_description": "The service says a reaction was added to a message.",
+    "updateReactions": {
+      "_description": "The service sent us an update for the reaction map of a message.",
       "conversationIDKey": "Types.ConversationIDKey",
-      "emoji": "string",
-      "reactionMsgID": "RPCChatTypes.MessageID",
-      "sender": "string",
-      "targetMsgID": "RPCChatTypes.MessageID",
-      "timestamp": "number",
-      "you": "string"
-    },
-    "reactionsWereDeleted": {
-      "_description": "Reactions were removed from a message.",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "deletions":
-        "Array<{emoji: string, reactionMsgID: RPCChatTypes.MessageID, targetMsgID: RPCChatTypes.MessageID}>"
-    },
-    "reactionFailed": {
-      "_description": "A reaction message failed.",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "emoji": "string",
-      "outboxID": "Types.OutboxID",
-      "targetMsgID": "RPCChatTypes.MessageID",
-      "username": "string"
+      "updates": "Array<{targetMsgID: RPCChatTypes.MessageID, reactions: Types.Reactions}>"
     },
     // Resend a message
     "messageRetry": {

@@ -316,31 +316,6 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
             )
           }
           break
-        case RPCChatTypes.commonMessageType.reaction: {
-          if (body.reaction) {
-            // body.reaction.messageID is the id of the message this is reacting to
-            // valid.messageID is the id of this reaction message
-            // we keep valid.messageID for easy lookups on receiving a toggle-off notification
-            actions.push(
-              Chat2Gen.createMessageWasReactedTo({
-                conversationIDKey,
-                emoji: body.reaction.b,
-                reactionMsgID: valid.messageID,
-                sender: valid.senderUsername,
-                targetMsgID: body.reaction.m,
-                timestamp: valid.ctime,
-                you: state.config.username || '',
-              })
-            )
-          } else {
-            logger.warn(
-              `Got reaction message with no reaction body. ConvID: ${conversationIDKey} MessageID: ${
-                valid.messageID
-              }`
-            )
-          }
-          break
-        }
       }
     }
   }
@@ -392,26 +367,7 @@ const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>, you: st
       const conversationIDKey = Types.conversationIDToKey(outboxRecord.convID)
       const outboxID = Types.rpcOutboxIDToOutboxID(outboxRecord.outboxID)
 
-      // check the type of message this was. if it was a reaction dig in to find
-      // targetMsgID so we can toggle-off locally. other types of messages don't
-      // need this info so mark them as failed directly.
-      const msg = outboxRecord.Msg
-      if (msg.messageBody.messageType === RPCChatTypes.commonMessageType.reaction) {
-        // convert into toggle local reaction action
-        const reaction = msg.messageBody.reaction
-        if (reaction) {
-          const {b: emoji, m: targetMsgID} = reaction
-          arr.push(
-            Chat2Gen.createReactionFailed({
-              conversationIDKey,
-              emoji,
-              outboxID,
-              targetMsgID,
-              username: you,
-            })
-          )
-        }
-      } else if (error) {
+      if (error) {
         // This is temp until fixed by CORE-7112. We get this error but not the call to let us show the red banner
         const reason = Constants.rpcErrorToString(error)
         let tempForceRedBox
@@ -587,20 +543,19 @@ const ephemeralPurgeToActions = (info: RPCChatTypes.EphemeralPurgeNotifInfo) => 
   return actions
 }
 
-// Get actions to update the messagemap when reactions are deleted
-const reactionDeleteToActions = (info: RPCChatTypes.ReactionDeleteNotif) => {
+// Get actions to update the messagemap when reactions are updated
+const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif) => {
   const conversationIDKey = Types.conversationIDToKey(info.convID)
-  if (!info.reactionDeletes || info.reactionDeletes.length === 0) {
-    logger.warn(`Got ReactionDeleteNotif with no reactionDeletes for convID=${conversationIDKey}`)
+  if (!info.reactionUpdates || info.reactionUpdates.length === 0) {
+    logger.warn(`Got ReactionUpdateNotif with no reactionUpdates for convID=${conversationIDKey}`)
     return null
   }
-  const deletions = info.reactionDeletes.map(rd => ({
-    emoji: rd.reactionKey,
-    reactionMsgID: Types.numberToMessageID(rd.reactionMsgID),
-    targetMsgID: Types.numberToMessageID(rd.targetMsgID),
+  const updates = info.reactionUpdates.map(ru => ({
+    reactions: Constants.reactionMapToReactions(ru.reactions),
+    targetMsgID: ru.targetMsgID,
   }))
-  logger.info(`Got ${deletions.length} reaction deletions for convID=${conversationIDKey}`)
-  return [Chat2Gen.createReactionsWereDeleted({conversationIDKey, deletions})]
+  logger.info(`Got ${updates.length} reaction updates for convID=${conversationIDKey}`)
+  return [Chat2Gen.createUpdateReactions({conversationIDKey, updates})]
 }
 
 // Handle calls that come from the service
@@ -652,8 +607,8 @@ const setupChatHandlers = () => {
           return activity.expunge ? expungeToActions(activity.expunge, getState()) : null
         case RPCChatTypes.notifyChatChatActivityType.ephemeralPurge:
           return activity.ephemeralPurge ? ephemeralPurgeToActions(activity.ephemeralPurge) : null
-        case RPCChatTypes.notifyChatChatActivityType.reactionDelete:
-          return activity.reactionDelete ? reactionDeleteToActions(activity.reactionDelete) : null
+        case RPCChatTypes.notifyChatChatActivityType.reactionUpdate:
+          return activity.reactionUpdate ? reactionUpdateToActions(activity.reactionUpdate) : null
         default:
           break
       }
@@ -2243,7 +2198,6 @@ const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, st
       Chat2Gen.createToggleLocalReaction({
         conversationIDKey,
         emoji,
-        outboxID: Types.rpcOutboxIDToOutboxID(outboxID),
         targetOrdinal: ordinal,
         username: state.config.username || '',
       })

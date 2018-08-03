@@ -42,7 +42,6 @@ export const messageSend = 'chat2:messageSend'
 export const messageSetEditing = 'chat2:messageSetEditing'
 export const messageSetQuoting = 'chat2:messageSetQuoting'
 export const messageWasEdited = 'chat2:messageWasEdited'
-export const messageWasReactedTo = 'chat2:messageWasReactedTo'
 export const messagesAdd = 'chat2:messagesAdd'
 export const messagesExploded = 'chat2:messagesExploded'
 export const messagesWereDeleted = 'chat2:messagesWereDeleted'
@@ -59,8 +58,6 @@ export const navigateToThread = 'chat2:navigateToThread'
 export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openFolder = 'chat2:openFolder'
 export const previewConversation = 'chat2:previewConversation'
-export const reactionFailed = 'chat2:reactionFailed'
-export const reactionsWereDeleted = 'chat2:reactionsWereDeleted'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const selectConversation = 'chat2:selectConversation'
@@ -82,6 +79,7 @@ export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMoreToLoad = 'chat2:updateMoreToLoad'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
+export const updateReactions = 'chat2:updateReactions'
 export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
 export const updateTypers = 'chat2:updateTypers'
 
@@ -200,15 +198,6 @@ type _MessageWasEditedPayload = $ReadOnly<{|
   mentionsChannel: 'none' | 'all' | 'here',
   mentionsChannelName: I.Map<string, Types.ConversationIDKey>,
 |}>
-type _MessageWasReactedToPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  emoji: string,
-  reactionMsgID: RPCChatTypes.MessageID,
-  sender: string,
-  targetMsgID: RPCChatTypes.MessageID,
-  timestamp: number,
-  you: string,
-|}>
 type _MessagesAddPayload = $ReadOnly<{|
   context: {type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey},
   messages: Array<Types.Message>,
@@ -271,17 +260,6 @@ type _PreviewConversationPayload = $ReadOnly<{|
   conversationIDKey?: Types.ConversationIDKey,
   reason: 'manageView' | 'messageLink' | 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView' | 'newChannel',
 |}>
-type _ReactionFailedPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  emoji: string,
-  outboxID: Types.OutboxID,
-  targetMsgID: RPCChatTypes.MessageID,
-  username: string,
-|}>
-type _ReactionsWereDeletedPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  deletions: Array<{emoji: string, reactionMsgID: RPCChatTypes.MessageID, targetMsgID: RPCChatTypes.MessageID}>,
-|}>
 type _ResetChatWithoutThemPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _ResetLetThemInPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -327,7 +305,6 @@ type _StaticConfigLoadedPayload = $ReadOnly<{|staticConfig: Types.StaticConfig|}
 type _ToggleLocalReactionPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   emoji: string,
-  outboxID: Types.OutboxID,
   targetOrdinal: Types.Ordinal,
   username: string,
 |}>
@@ -348,14 +325,14 @@ type _UpdateNotificationSettingsPayload = $ReadOnly<{|
   notificationsMobile: Types.NotificationsType,
   notificationsGlobalIgnoreMentions: boolean,
 |}>
+type _UpdateReactionsPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  updates: Array<{targetMsgID: RPCChatTypes.MessageID, reactions: Types.Reactions}>,
+|}>
 type _UpdateTeamRetentionPolicyPayload = $ReadOnly<{|convs: Array<RPCChatTypes.InboxUIItem>|}>
 type _UpdateTypersPayload = $ReadOnly<{|conversationToTypers: I.Map<Types.ConversationIDKey, I.Set<string>>|}>
 
 // Action Creators
-/**
- * A reaction message failed.
- */
-export const createReactionFailed = (payload: _ReactionFailedPayload) => ({error: false, payload, type: reactionFailed})
 /**
  * Actually start a conversation
  */
@@ -369,10 +346,6 @@ export const createUpdateConvRetentionPolicy = (payload: _UpdateConvRetentionPol
  */
 export const createUpdateTeamRetentionPolicy = (payload: _UpdateTeamRetentionPolicyPayload) => ({error: false, payload, type: updateTeamRetentionPolicy})
 /**
- * Either store a pending reaction with an outboxID or remove an existing pending reaction from our map.
- */
-export const createToggleLocalReaction = (payload: _ToggleLocalReactionPayload) => ({error: false, payload, type: toggleLocalReaction})
-/**
  * Exploding messages expired or were manually detonated.
  */
 export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({error: false, payload, type: messagesExploded})
@@ -380,10 +353,6 @@ export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({e
  * Handle an update to our conversation exploding modes.
  */
 export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({error: false, payload, type: updateConvExplodingModes})
-/**
- * Reactions were removed from a message.
- */
-export const createReactionsWereDeleted = (payload: _ReactionsWereDeletedPayload) => ({error: false, payload, type: reactionsWereDeleted})
 /**
  * Sent whenever the mobile file picker encounters an error.
  */
@@ -417,9 +386,13 @@ export const createStaticConfigLoaded = (payload: _StaticConfigLoadedPayload) =>
  */
 export const createToggleMessageReaction = (payload: _ToggleMessageReactionPayload) => ({error: false, payload, type: toggleMessageReaction})
 /**
- * The service says a reaction was added to a message.
+ * The service sent us an update for the reaction map of a message.
  */
-export const createMessageWasReactedTo = (payload: _MessageWasReactedToPayload) => ({error: false, payload, type: messageWasReactedTo})
+export const createUpdateReactions = (payload: _UpdateReactionsPayload) => ({error: false, payload, type: updateReactions})
+/**
+ * Toggle a reaction in the store.
+ */
+export const createToggleLocalReaction = (payload: _ToggleLocalReactionPayload) => ({error: false, payload, type: toggleLocalReaction})
 /**
  * When the search changes we need to find any existing conversations to stash into the metaMap
  */
@@ -512,7 +485,6 @@ export type MessageSendPayload = $Call<typeof createMessageSend, _MessageSendPay
 export type MessageSetEditingPayload = $Call<typeof createMessageSetEditing, _MessageSetEditingPayload>
 export type MessageSetQuotingPayload = $Call<typeof createMessageSetQuoting, _MessageSetQuotingPayload>
 export type MessageWasEditedPayload = $Call<typeof createMessageWasEdited, _MessageWasEditedPayload>
-export type MessageWasReactedToPayload = $Call<typeof createMessageWasReactedTo, _MessageWasReactedToPayload>
 export type MessagesAddPayload = $Call<typeof createMessagesAdd, _MessagesAddPayload>
 export type MessagesExplodedPayload = $Call<typeof createMessagesExploded, _MessagesExplodedPayload>
 export type MessagesWereDeletedPayload = $Call<typeof createMessagesWereDeleted, _MessagesWereDeletedPayload>
@@ -529,8 +501,6 @@ export type NavigateToThreadPayload = $Call<typeof createNavigateToThread, _Navi
 export type NotificationSettingsUpdatedPayload = $Call<typeof createNotificationSettingsUpdated, _NotificationSettingsUpdatedPayload>
 export type OpenFolderPayload = $Call<typeof createOpenFolder, _OpenFolderPayload>
 export type PreviewConversationPayload = $Call<typeof createPreviewConversation, _PreviewConversationPayload>
-export type ReactionFailedPayload = $Call<typeof createReactionFailed, _ReactionFailedPayload>
-export type ReactionsWereDeletedPayload = $Call<typeof createReactionsWereDeleted, _ReactionsWereDeletedPayload>
 export type ResetChatWithoutThemPayload = $Call<typeof createResetChatWithoutThem, _ResetChatWithoutThemPayload>
 export type ResetLetThemInPayload = $Call<typeof createResetLetThemIn, _ResetLetThemInPayload>
 export type SelectConversationPayload = $Call<typeof createSelectConversation, _SelectConversationPayload>
@@ -552,6 +522,7 @@ export type UpdateConvExplodingModesPayload = $Call<typeof createUpdateConvExplo
 export type UpdateConvRetentionPolicyPayload = $Call<typeof createUpdateConvRetentionPolicy, _UpdateConvRetentionPolicyPayload>
 export type UpdateMoreToLoadPayload = $Call<typeof createUpdateMoreToLoad, _UpdateMoreToLoadPayload>
 export type UpdateNotificationSettingsPayload = $Call<typeof createUpdateNotificationSettings, _UpdateNotificationSettingsPayload>
+export type UpdateReactionsPayload = $Call<typeof createUpdateReactions, _UpdateReactionsPayload>
 export type UpdateTeamRetentionPolicyPayload = $Call<typeof createUpdateTeamRetentionPolicy, _UpdateTeamRetentionPolicyPayload>
 export type UpdateTypersPayload = $Call<typeof createUpdateTypers, _UpdateTypersPayload>
 
@@ -589,7 +560,6 @@ export type Actions =
   | MessageSetEditingPayload
   | MessageSetQuotingPayload
   | MessageWasEditedPayload
-  | MessageWasReactedToPayload
   | MessagesAddPayload
   | MessagesExplodedPayload
   | MessagesWereDeletedPayload
@@ -606,8 +576,6 @@ export type Actions =
   | NotificationSettingsUpdatedPayload
   | OpenFolderPayload
   | PreviewConversationPayload
-  | ReactionFailedPayload
-  | ReactionsWereDeletedPayload
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload
   | SelectConversationPayload
@@ -629,6 +597,7 @@ export type Actions =
   | UpdateConvRetentionPolicyPayload
   | UpdateMoreToLoadPayload
   | UpdateNotificationSettingsPayload
+  | UpdateReactionsPayload
   | UpdateTeamRetentionPolicyPayload
   | UpdateTypersPayload
   | {type: 'common:resetStore', payload: void}

@@ -242,7 +242,7 @@ export const makeReaction: I.RecordFactory<MessageTypes._Reaction> = I.Record({
   username: '',
 })
 
-const reactionMapToReactions = (r: RPCChatTypes.ReactionMap): MessageTypes.Reactions => {
+export const reactionMapToReactions = (r: RPCChatTypes.ReactionMap): MessageTypes.Reactions => {
   if (!r.reactions) {
     return I.Map()
   }
