@@ -246,15 +246,16 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	ret, err := l.load2(ctx, load2ArgT{
 		teamID: teamID,
 
-		needAdmin:             lArg.NeedAdmin,
-		needKeyGeneration:     lArg.Refreshers.NeedKeyGeneration,
-		needKBFSKeyGeneration: lArg.Refreshers.NeedKBFSKeyGeneration,
-		wantMembers:           mungedWantMembers,
-		wantMembersRole:       lArg.Refreshers.WantMembersRole,
-		forceFullReload:       lArg.ForceFullReload,
-		forceRepoll:           mungedForceRepoll,
-		staleOK:               lArg.StaleOK,
-		public:                lArg.Public,
+		needAdmin:                     lArg.NeedAdmin,
+		needKeyGeneration:             lArg.Refreshers.NeedKeyGeneration,
+		needApplicationsAtGenerations: lArg.Refreshers.NeedApplicationsAtGenerations,
+		needKBFSKeyGeneration:         lArg.Refreshers.NeedKBFSKeyGeneration,
+		wantMembers:                   mungedWantMembers,
+		wantMembersRole:               lArg.Refreshers.WantMembersRole,
+		forceFullReload:               lArg.ForceFullReload,
+		forceRepoll:                   mungedForceRepoll,
+		staleOK:                       lArg.StaleOK,
+		public:                        lArg.Public,
 
 		needSeqnos:    nil,
 		readSubteamID: nil,
@@ -325,9 +326,10 @@ type load2ArgT struct {
 
 	reason string // optional tag for debugging why this load is happening
 
-	needAdmin             bool
-	needKeyGeneration     keybase1.PerTeamKeyGeneration
-	needKBFSKeyGeneration keybase1.TeamKBFSKeyRefresher
+	needAdmin                     bool
+	needKeyGeneration             keybase1.PerTeamKeyGeneration
+	needApplicationsAtGenerations map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication
+	needKBFSKeyGeneration         keybase1.TeamKBFSKeyRefresher
 	// wantMembers here is different from wantMembers on LoadTeamArg:
 	// The EldestSeqno's should not be 0.
 	wantMembers     []keybase1.UserVersion
@@ -515,6 +517,10 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		}
 		if err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, ret); err != nil {
 			l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedKeyGeneration: %v", err)
+			fetchLinksAndOrSecrets = true
+		}
+		if err := l.satisfiesNeedApplicationsAtGenerations(ctx, arg.needApplicationsAtGenerations, ret); err != nil {
+			l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedApplicationsAtGenerations: %v", err)
 			fetchLinksAndOrSecrets = true
 		}
 		if err := l.satisfiesNeedsKBFSKeyGeneration(ctx, arg.needKBFSKeyGeneration, ret); err != nil {
@@ -798,6 +804,7 @@ func (l *TeamLoader) userPreload(ctx context.Context, links []*chainLinkUnpacked
 // Considers:
 // - NeedAdmin
 // - NeedKeyGeneration
+// - NeedApplicationsAtGenerations
 // - WantMembers
 // - ForceRepoll
 // - Cache freshness / StaleOK
@@ -828,6 +835,12 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 	// Repoll to get a new key generation
 	if arg.needKeyGeneration > 0 {
 		if l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, fromCache) != nil {
+			repoll = true
+		}
+	}
+	// Repoll to get a new applications at generations
+	if len(arg.needApplicationsAtGenerations) > 0 {
+		if l.satisfiesNeedApplicationsAtGenerations(ctx, arg.needApplicationsAtGenerations, fromCache) != nil {
 			repoll = true
 		}
 	}
@@ -888,21 +901,23 @@ func (l *TeamLoader) load2CheckReturn(ctx context.Context, arg load2ArgT, res *k
 
 	// Repoll to get a new key generation
 	if arg.needKeyGeneration > 0 {
-		err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, res)
-		if err != nil {
+		if err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, res); err != nil {
+			return err
+		}
+	}
+	if len(arg.needApplicationsAtGenerations) > 0 {
+		if err := l.satisfiesNeedApplicationsAtGenerations(ctx, arg.needApplicationsAtGenerations, res); err != nil {
 			return err
 		}
 	}
 	if arg.needKBFSKeyGeneration.Generation > 0 {
-		err := l.satisfiesNeedsKBFSKeyGeneration(ctx, arg.needKBFSKeyGeneration, res)
-		if err != nil {
+		if err := l.satisfiesNeedsKBFSKeyGeneration(ctx, arg.needKBFSKeyGeneration, res); err != nil {
 			return err
 		}
 	}
 
 	if len(arg.needSeqnos) > 0 {
-		err := l.checkNeededSeqnos(ctx, res, arg.needSeqnos)
-		if err != nil {
+		if err := l.checkNeededSeqnos(ctx, res, arg.needSeqnos); err != nil {
 			return err
 		}
 	}
@@ -1057,6 +1072,26 @@ func (l *TeamLoader) satisfiesNeedKeyGeneration(ctx context.Context, needKeyGene
 	_, ok := state.PerTeamKeySeeds[needKeyGeneration]
 	if !ok {
 		return fmt.Errorf("team key secret missing for generation: %v", needKeyGeneration)
+	}
+	return nil
+}
+
+// Whether the snapshot has loaded the reader key masks and key generations we
+// need.
+func (l *TeamLoader) satisfiesNeedApplicationsAtGenerations(ctx context.Context,
+	needApplicationsAtGenerations map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication, state *keybase1.TeamData) error {
+	if len(needApplicationsAtGenerations) == 0 {
+		return nil
+	}
+	if state == nil {
+		return fmt.Errorf("nil team does not contain applications: %v", needApplicationsAtGenerations)
+	}
+	for ptkGen, apps := range needApplicationsAtGenerations {
+		for _, app := range apps {
+			if _, err := ApplicationKeyAtGeneration(state, app, ptkGen); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
