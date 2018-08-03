@@ -11,7 +11,7 @@ const actionProps = {
 const avatarUserTaskProps: Props = {
   badged: true,
   confirmLabel: 'Edit avatar',
-  instructions: 'Edit your avatar, and show the world your beautiful face.',
+  instructions: 'NEW! Change your photo from within the Keybase app.',
   dismissable: false,
   icon: 'icon-onboarding-user-info-32',
   ...actionProps,
