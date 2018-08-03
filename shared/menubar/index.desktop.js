@@ -325,7 +325,6 @@ const stylesContainer = {
   marginTop: 13,
   borderTopLeftRadius: borderRadius,
   borderTopRightRadius: borderRadius,
-  minHeight: 730,
 }
 
 const stylesTopRow = {
