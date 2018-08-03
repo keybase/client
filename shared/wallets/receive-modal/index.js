@@ -1,15 +1,6 @@
 // @flow
 import * as React from 'react'
-import {
-  Box2,
-  Button,
-  CopyText,
-  Icon,
-  InfoNote,
-  MaybePopup,
-  Text,
-  iconCastPlatformStyles,
-} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import {globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../styles'
 
 type Props = {
@@ -20,40 +11,40 @@ type Props = {
 }
 
 const ReceiveModal = (props: Props) => (
-  <MaybePopup onClose={props.onClose}>
-    <Box2 direction="vertical" style={containerStyle} centerChildren={true}>
-      <Icon
+  <Kb.MaybePopup onClose={props.onClose}>
+    <Kb.Box2 direction="vertical" style={containerStyle} centerChildren={true}>
+      <Kb.Icon
         type={isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
-        style={iconCastPlatformStyles(styles.icon)}
+        style={Kb.iconCastPlatformStyles(styles.icon)}
       />
-      <Text type="BodySmallSemibold">{props.username}’s wallet</Text>
-      <Text type="Header" style={styles.headerText}>
+      <Kb.Text type="BodySmallSemibold">{props.username}’s wallet</Kb.Text>
+      <Kb.Text type="Header" style={styles.headerText}>
         Receive
-      </Text>
-      <Text type="Body" style={styles.instructionText}>
+      </Kb.Text>
+      <Kb.Text type="Body" style={styles.instructionText}>
         To receive Lumens or assets from non-Keybase users, pass your Stellar addresses around:
-      </Text>
-      <Box2 direction="vertical" style={styles.stellarAddressContainer}>
-        <CopyText text={props.stellarAddress} />
-      </Box2>
+      </Kb.Text>
+      <Kb.Box2 direction="vertical" style={styles.stellarAddressContainer}>
+        <Kb.CopyText text={props.stellarAddress} />
+      </Kb.Box2>
       {!!props.federatedAddress && (
         <React.Fragment>
-          <Text type="Body" style={styles.orText}>
+          <Kb.Text type="Body" style={styles.orText}>
             or
-          </Text>
-          <Box2 direction="vertical" style={styles.federatedAddressContainer}>
-            <CopyText text={props.federatedAddress} />
-          </Box2>
+          </Kb.Text>
+          <Kb.Box2 direction="vertical" style={styles.federatedAddressContainer}>
+            <Kb.CopyText text={props.federatedAddress} />
+          </Kb.Box2>
         </React.Fragment>
       )}
-      <InfoNote>
-        <Text type="BodySmall" style={styles.infoNoteText}>
+      <Kb.InfoNote>
+        <Kb.Text type="BodySmall" style={styles.infoNoteText}>
           Use the chat interface to request Lumens from a Keybase user.
-        </Text>
-      </InfoNote>
-      <Button label="Close" onClick={props.onClose} type="Secondary" />
-    </Box2>
-  </MaybePopup>
+        </Kb.Text>
+      </Kb.InfoNote>
+      <Kb.Button label="Close" onClick={props.onClose} type="Secondary" />
+    </Kb.Box2>
+  </Kb.MaybePopup>
 )
 
 const styles = styleSheetCreate({
