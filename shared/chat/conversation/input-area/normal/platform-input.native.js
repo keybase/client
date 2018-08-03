@@ -73,7 +73,13 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
         takePhotoButtonTitle = 'Take Video...'
         break
     }
-    showImagePicker({mediaType, title, takePhotoButtonTitle}, response => {
+    const permissionDenied = {
+      title: 'Permissions needed',
+      text: 'Allow Keybase to take pictures and choose images from your library?',
+      reTryTitle: 'allow in settings',
+      okTitle: 'deny',
+    }
+    showImagePicker({mediaType, title, takePhotoButtonTitle, permissionDenied}, response => {
       if (response.didCancel || !this.props.conversationIDKey) {
         return
       }
