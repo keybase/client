@@ -2,6 +2,7 @@
 import Folders, {type FolderType, type Props as FolderProps} from '../folders/index.desktop'
 import React, {Component} from 'react'
 import UserAdd from './user-add.desktop'
+import flags from '../../util/feature-flags'
 import {Box, Icon, Text, Button, FloatingMenu, Badge, ButtonBar, type IconType} from '../common-adapters'
 import {
   fsTab,
@@ -110,7 +111,7 @@ class MenubarRender extends Component<Props, State> {
 
   _menuItems() {
     return [
-      {title: 'Wallet', onClick: () => this.props.openApp(walletsTab)},
+      ...(flags.walletsEnabled ? [{title: 'Wallet', onClick: () => this.props.openApp(walletsTab)}] : []),
       {title: 'Git', onClick: () => this.props.openApp(gitTab)},
       {title: 'Devices', onClick: () => this.props.openApp(devicesTab)},
       {title: 'Settings', onClick: () => this.props.openApp(settingsTab)},
