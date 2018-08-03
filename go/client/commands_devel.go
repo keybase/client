@@ -40,8 +40,6 @@ func getBuildSpecificChatCommands(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 		newCmdChatDeleteHistoryDev(cl, g),
 		newCmdChatSetRetentionDev(cl, g),
 		newCmdChatKBFSUpgrade(cl, g),
-		// TODO move this out of devel once the GUI changes are in place
-		newCmdChatSetConvMinWriterRole(cl, g),
 	}
 }
 
