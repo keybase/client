@@ -1,9 +1,7 @@
 // @flow
-import Placeholder from './placeholder'
-import TlfType from './tlf-type-container'
-import Tlf from './tlf-container'
-import Still from './still-container'
-import Editing from './editing-container'
-import Uploading from './uploading-container'
-
-export {TlfType, Tlf, Still, Editing, Placeholder, Uploading}
+export {default as Placeholder} from './placeholder'
+export {default as TlfType} from './tlf-type-container'
+export {default as Tlf} from './tlf-container'
+export {default as Still} from './still-container'
+export {default as Editing} from './editing-container'
+export {default as Uploading} from './uploading-container'

@@ -1,13 +1,5 @@
 // @flow
-import {
-  globalStyles,
-  globalMargins,
-  globalColors,
-  platformStyles,
-  glamorous,
-  styleSheetCreate,
-  isMobile,
-} from '../../styles'
+import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import * as React from 'react'
 import {Box, Box2, ClickableBox, Icon} from '../../common-adapters'
@@ -15,16 +7,16 @@ import PathItemIcon from '../common/path-item-icon'
 import PathItemAction from '../common/path-item-action-container'
 
 const rowBox = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
   flex: 1,
   minWidth: 0,
-  paddingRight: globalMargins.small,
-  paddingLeft: globalMargins.small,
+  paddingRight: Styles.globalMargins.small,
+  paddingLeft: Styles.globalMargins.small,
 }
 
 const itemBox = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   flex: 1,
   justifyContent: 'center',
   minWidth: 0,
@@ -32,15 +24,15 @@ const itemBox = {
 }
 
 const pathItemIcon = {
-  marginRight: globalMargins.small,
+  marginRight: Styles.globalMargins.small,
 }
 
 const pathItemIcon_30 = {
-  marginRight: globalMargins.small,
+  marginRight: Styles.globalMargins.small,
   opacity: 0.3,
 }
 
-const rowText = platformStyles({
+const rowText = Styles.platformStyles({
   isElectron: {
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -48,7 +40,7 @@ const rowText = platformStyles({
   },
 })
 
-const rowText_30 = platformStyles({
+const rowText_30 = Styles.platformStyles({
   common: {
     opacity: 0.3,
   },
@@ -60,43 +52,43 @@ const rowText_30 = platformStyles({
 })
 
 const leftBox = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   flex: 1,
 }
 
 const rightBox = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   flexShrink: 1,
   justifyContent: 'flex-end',
   alignItems: 'center',
 }
 
 const pathItemActionIcon = {
-  padding: globalMargins.tiny,
+  padding: Styles.globalMargins.tiny,
 }
 
 const badgeContainer = {
   position: 'absolute',
-  left: isMobile ? -24 : 24,
-  top: isMobile ? -20 : -1,
+  left: Styles.isMobile ? -24 : 24,
+  top: Styles.isMobile ? -20 : -1,
   zIndex: 200,
 }
 
 const badgeContainerNew = {
   ...badgeContainer,
-  left: isMobile ? -32 : 16,
+  left: Styles.isMobile ? -32 : 16,
 }
 
 const badgeContainerRekey = {
   ...badgeContainer,
-  top: isMobile ? 5 : 24,
-  left: isMobile ? -40 : 16,
+  top: Styles.isMobile ? 5 : 24,
+  left: Styles.isMobile ? -40 : 16,
 }
 
 const downloadContainer = {
   ...badgeContainer,
-  top: isMobile ? 2 : 22,
-  left: isMobile ? -28 : 20,
+  top: Styles.isMobile ? 2 : 22,
+  left: Styles.isMobile ? -28 : 20,
 }
 
 const badgeCount = {
@@ -105,7 +97,7 @@ const badgeCount = {
 }
 
 export const rowStyles = {
-  ...styleSheetCreate({
+  ...Styles.styleSheetCreate({
     rowBox,
     itemBox,
     pathItemIcon,
@@ -120,22 +112,22 @@ export const rowStyles = {
     badgeCount,
   }),
   // We need to annotate color but I can't figure out how to annotate on stuff
-  // from styleSheetCreate.
+  // from Styles.styleSheetCreate.
   rowText,
   rowText_30,
 }
 
-const HoverBox = isMobile
+const HoverBox = Styles.isMobile
   ? Box
-  : glamorous(Box)({
+  : Styles.glamorous(Box)({
       '& .fs-path-item-hover-icon': {
-        color: globalColors.white,
+        color: Styles.globalColors.white,
       },
       ':hover .fs-path-item-hover-icon': {
-        color: globalColors.black_40,
+        color: Styles.globalColors.black_40,
       },
       '& .fs-path-item-hover-icon:hover': {
-        color: globalColors.black_60,
+        color: Styles.globalColors.black_60,
       },
     })
 
@@ -160,7 +152,7 @@ export const StillCommon = (
       {props.children}
     </ClickableBox>
     <Box style={rowStyles.rightBox}>
-      {!isMobile && (
+      {!Styles.isMobile && (
         <Icon
           type="iconfont-finder"
           style={rowStyles.pathItemActionIcon}

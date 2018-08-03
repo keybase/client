@@ -8,6 +8,8 @@ import {action, storiesOf, PropProviders} from '../stories/storybook'
 import {globalColors, globalMargins} from '../styles'
 import Files, {WrapRow} from '.'
 import ConnectedStillRow from './row/still-container'
+import TlfTypeRow from './row/tlf-type'
+import TlfRow from './row/tlf'
 import StillRow from './row/still'
 import EditingRow from './row/editing'
 import PlaceholderRow from './row/placeholder'
@@ -51,22 +53,19 @@ const rowProviders = {
   }),
   ConnectedStillRow: ({path}: {path: Types.Path}) => {
     const pathStr = Types.pathToString(path)
-    const hasAbc = pathStr.includes('abc')
-    const hasDef = pathStr.includes('def')
-    const hasGhi = pathStr.includes('ghi')
     return {
       name: Types.getPathName(path),
-      onOpen: () => {},
-      openInFileUI: () => {},
       type: 'folder',
-      shouldShowMenu: true,
       itemStyles: folderItemStyles,
       onAction: action('onAction'),
-      resetParticipants: [...(hasAbc ? ['abc'] : []), ...(hasDef ? ['def'] : []), ...(hasGhi ? ['ghi'] : [])],
-      isUserReset: false,
       isEmpty: pathStr.includes('empty'),
     }
   },
+  ConnectedOpenHOC: ownProps => ({
+    ...ownProps,
+    onOpen: () => {},
+    openInFileUI: () => {},
+  }),
 }
 
 const provider = PropProviders.createPropProviderWithCommon({
@@ -371,12 +370,8 @@ const load = () => {
             type="file"
             lastModifiedTimestamp={Date.now()}
             lastWriter="alice"
-            shouldShowMenu={true}
             itemStyles={fileItemStyles}
-            badgeCount={0}
             isDownloading={true}
-            isUserReset={false}
-            resetParticipants={[]}
             onOpen={action('onOpen')}
             openInFileUI={action('openInFileUI')}
             onAction={action('onAction')}
@@ -404,16 +399,94 @@ const load = () => {
             type="file"
             lastModifiedTimestamp={Date.now()}
             lastWriter="bob"
-            shouldShowMenu={true}
             itemStyles={fileItemStyles}
-            badgeCount={3}
             isDownloading={false}
+            onOpen={action('onOpen')}
+            openInFileUI={action('openInFileUI')}
+            onAction={action('onAction')}
+            isEmpty={false}
+          />
+        </WrapRow>
+        <WrapRow key="17">
+          <TlfTypeRow
+            name="private"
+            path={Types.stringToPath('/keybase/private')}
+            itemStyles={folderItemStyles}
+            badgeCount={0}
+            onOpen={action('onOpen')}
+            openInFileUI={action('openInFileUI')}
+            onAction={action('onAction')}
+          />
+        </WrapRow>
+        <WrapRow key="18">
+          <TlfTypeRow
+            name="private"
+            path={Types.stringToPath('/keybase/private')}
+            itemStyles={folderItemStyles}
+            badgeCount={3}
+            onOpen={action('onOpen')}
+            openInFileUI={action('openInFileUI')}
+            onAction={action('onAction')}
+          />
+        </WrapRow>
+        <WrapRow key="19">
+          <TlfRow
+            name="alice,bob,charlie"
+            path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
+            itemStyles={folderItemStyles}
+            needsRekey={false}
+            isIgnored={false}
+            isNew={true}
             isUserReset={false}
             resetParticipants={[]}
             onOpen={action('onOpen')}
             openInFileUI={action('openInFileUI')}
             onAction={action('onAction')}
-            isEmpty={false}
+          />
+        </WrapRow>
+        <WrapRow key="20">
+          <TlfRow
+            name="alice,bob,charlie"
+            path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
+            itemStyles={folderItemStyles}
+            needsRekey={false}
+            isIgnored={false}
+            isNew={true}
+            isUserReset={true}
+            resetParticipants={['charlie']}
+            onOpen={action('onOpen')}
+            openInFileUI={action('openInFileUI')}
+            onAction={action('onAction')}
+          />
+        </WrapRow>
+        <WrapRow key="21">
+          <TlfRow
+            name="alice,bob,charlie"
+            path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
+            itemStyles={folderItemStyles}
+            needsRekey={false}
+            isIgnored={false}
+            isNew={true}
+            isUserReset={false}
+            resetParticipants={['alice', 'bob']}
+            onOpen={action('onOpen')}
+            openInFileUI={action('openInFileUI')}
+            onAction={action('onAction')}
+          />
+        </WrapRow>
+        <WrapRow key="22">
+          <TlfRow
+            name="alice,bob,charlie"
+            path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
+            itemStyles={folderItemStyles}
+            needsRekey={false}
+            isIgnored={false}
+            isNew={true}
+            isUserReset={false}
+            resetParticipants={[]}
+            onOpen={action('onOpen')}
+            openInFileUI={action('openInFileUI')}
+            onAction={action('onAction')}
           />
         </WrapRow>
       </Box>

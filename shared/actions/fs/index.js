@@ -19,13 +19,15 @@ const loadFavorites = (state: TypedState) =>
   RPCTypes.apiserverGetWithSessionRpcPromise({
     args: [{key: 'problems', value: '1'}],
     endpoint: 'kbfs/favorite/list',
-  }).then(results =>
-    Constants.createFavoritesLoadedFromJSONResults(
-      results && results.body,
-      state.config.username || '',
-      state.config.loggedIn
+  })
+    .then(results =>
+      Constants.createFavoritesLoadedFromJSONResults(
+        results && results.body,
+        state.config.username || '',
+        state.config.loggedIn
+      )
     )
-  )
+    .catch(e => logger.warn('Error listing favorites:', e))
 
 const direntToMetadata = (d: RPCTypes.Dirent) => ({
   name: d.name.split('/').pop(),

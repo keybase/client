@@ -3,7 +3,8 @@ import * as I from 'immutable'
 import * as Types from './types/fs'
 import * as RPCTypes from './types/rpc-gen'
 import * as FsGen from '../actions/fs-gen'
-import {isMobile} from './platform'
+import {type TypedState} from '../util/container'
+import {isLinux, isWindows, isMobile} from './platform'
 import uuidv1 from 'uuid/v1'
 import logger from '../logger'
 import {globalColors} from '../styles'
@@ -34,7 +35,6 @@ const pathItemMetadataDefault = {
   lastModifiedTimestamp: 0,
   size: 0,
   lastWriter: {uid: '', username: ''},
-  progress: 'pending',
   badgeCount: 0,
   writable: false,
   tlfMeta: undefined,
@@ -43,9 +43,7 @@ const pathItemMetadataDefault = {
 export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
   ...pathItemMetadataDefault,
   children: I.Set(),
-  favoriteChildren: I.Set(),
-  resetParticipants: [],
-  teamID: undefined,
+  progress: 'pending',
   type: 'folder',
 })
 
@@ -75,10 +73,10 @@ export const makeTlf: I.RecordFactory<Types._Tlf> = I.Record({
   isIgnored: false,
   isNew: false,
   needsRekey: false,
-  resetParticipants: [],
+  resetParticipants: I.List(),
   teamId: '',
-  waitingForParticipantUnlock: [],
-  youCanUnlock: [],
+  waitingForParticipantUnlock: I.List(),
+  youCanUnlock: I.List(),
 })
 
 export const makeSortSetting: I.RecordFactory<Types._SortSetting> = I.Record({
@@ -410,7 +408,7 @@ export const createFavoritesLoadedFromJSONResults = (
   txt: string = '',
   username: string,
   loggedIn: boolean
-) => {
+): ?FsGen.FavoritesLoadedPayload => {
   const favoritesResult = ((txt: string): ?FavoritesListResult => {
     try {
       return JSON.parse(txt)
@@ -451,20 +449,19 @@ export const createFavoritesLoadedFromJSONResults = (
         isIgnored,
         isNew,
         needsRekey,
-        resetParticipants: reset_members || [],
+        resetParticipants: I.List(reset_members || []),
         teamId: team_id || '',
-        waitingForParticipantUnlock,
-        youCanUnlock,
+        waitingForParticipantUnlock: I.List(waitingForParticipantUnlock || []),
+        youCanUnlock: I.List(youCanUnlock || []),
       })
-      return {
-        private:
-          folderType === RPCTypes.favoriteFolderType.private
-            ? {...tlfs.private, [tlf.name]: tlf}
-            : tlfs.private,
-        public:
-          folderType === RPCTypes.favoriteFolderType.public ? {...tlfs.public, [tlf.name]: tlf} : tlfs.public,
-        team: folderType === RPCTypes.favoriteFolderType.team ? {...tlfs.team, [tlf.name]: tlf} : tlfs.team,
+      if (folderType === RPCTypes.favoriteFolderType.private) {
+        tlfs.private[tlf.name] = tlf
+      } else if (folderType === RPCTypes.favoriteFolderType.public) {
+        tlfs.public[tlf.name] = tlf
+      } else if (folderType === RPCTypes.favoriteFolderType.team) {
+        tlfs.team[tlf.name] = tlf
       }
+      return tlfs
     },
     {private: {}, public: {}, team: {}}
   )
@@ -629,3 +626,11 @@ export const getTlfFromTlfs = (tlfs: Types.Tlfs, tlfType: Types.TlfType, name: s
 
 export const tlfTypeAndNameToPath = (tlfType: Types.TlfType, name: string): Types.Path =>
   Types.stringToPath(`/keybase/${tlfType}/${name}`)
+
+export const kbfsEnabled = (state: TypedState) =>
+  !isMobile &&
+  (isLinux ||
+    (state.fs.fuseStatus &&
+      state.fs.fuseStatus.kextStarted &&
+      // on Windows, check that the driver is up to date too
+      !(isWindows && state.fs.fuseStatus.installAction === 2)))

@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState, {path}) => ({
   _sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
   _tlfs: state.fs.tlfs,
   _uploads: state.fs.uploads,
-  _username: state.config.username || undefined,
+  _username: state.config.username,
 })
 
 const getEditingRows = (
@@ -105,7 +105,7 @@ const getInTlfItemsFromStateProps = (stateProps, path: Types.Path) => {
   return sortRowItems(
     editingRows.concat(amendStillRows(stillRows, stateProps._uploads)),
     stateProps._sortSetting,
-    Types.pathIsNonTeamTLFList(path) ? stateProps._username : undefined
+    undefined
   )
 }
 
@@ -149,7 +149,7 @@ const getTlfItemsFromStateProps = (stateProps, path: Types.Path) => {
   return sortRowItems(
     getTlfRowsFromTlfs(tlfList, tlfType),
     stateProps._sortSetting,
-    Types.pathIsNonTeamTLFList(path) ? stateProps._username : undefined
+    (Types.pathIsNonTeamTLFList(path) && stateProps._username) || undefined
   )
 }
 
@@ -170,8 +170,8 @@ const getItemsFromStateProps = (stateProps, path: Types.Path) => {
 const mergeProps = (stateProps, dispatchProps, {path, routePath}) => {
   const {tlfList} = Constants.getTlfListAndTypeFromPath(stateProps._tlfs, path)
   const elems = Types.getPathElements(path)
-  const {resetParticipants} = tlfList.get(elems[2], Constants.makeTlf())
-  const isUserReset = resetParticipants.includes(stateProps._username)
+  const resetParticipants = tlfList.get(elems[2], Constants.makeTlf()).resetParticipants.map(i => i.username)
+  const isUserReset = !!stateProps._username && resetParticipants.includes(stateProps._username)
   const items = getItemsFromStateProps(stateProps, path)
   return {isUserReset, items, path, resetParticipants, routePath}
 }

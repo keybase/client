@@ -28,6 +28,8 @@ export type ResetMember = {
   uid: string,
 }
 
+// TODO: make structs above immutable
+
 export type TlfType = 'private' | 'public' | 'team'
 
 export type _Tlf = {
@@ -36,10 +38,10 @@ export type _Tlf = {
   isIgnored: boolean,
   isNew: boolean,
   needsRekey: boolean,
-  resetParticipants: Array<ResetMember>,
+  resetParticipants: I.List<ResetMember>,
   teamId: RPCTypes.TeamID,
-  waitingForParticipantUnlock?: Array<ParticipantUnlock>,
-  youCanUnlock?: Array<Device>,
+  waitingForParticipantUnlock?: I.List<ParticipantUnlock>,
+  youCanUnlock?: I.List<Device>,
 }
 export type Tlf = I.RecordOf<_Tlf>
 
@@ -283,7 +285,8 @@ export const getLocalPathName = (localPath: LocalPath): string => {
   return ''
 }
 export const getLocalPathDir = (p: LocalPath): string => p.slice(0, p.lastIndexOf(localSep))
-export const getNormalizedLocalPath = (p: LocalPath): LocalPath => localSep === '\\' ? p.replace(/\\/g, '/') : p
+export const getNormalizedLocalPath = (p: LocalPath): LocalPath =>
+  localSep === '\\' ? p.replace(/\\/g, '/') : p
 
 type sortSettingDisplayParams = {
   sortSettingText: string,

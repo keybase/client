@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {isMobile} from '../../styles'
+import * as Styles from '../../styles'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import {Badge, Box, Box2, Text} from '../../common-adapters'
 
@@ -35,8 +35,8 @@ const TlfType = (props: TlfTypeProps) => (
       <Box2 direction="horizontal" fullWidth={true}>
         <Text
           type={props.itemStyles.textType}
-          style={{...rowStyles.rowText, color: props.itemStyles.textColor}}
-          lineClamp={isMobile ? 1 : undefined}
+          style={Styles.collapseStyles([rowStyles.rowText, {color: props.itemStyles.textColor}])}
+          lineClamp={Styles.isMobile ? 1 : undefined}
         >
           {props.name}
         </Text>
