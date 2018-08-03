@@ -1215,7 +1215,8 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   )
 
   // Do some logging to track down the root cause of a bug causing
-  // messages to not send.
+  // messages to not send. Do this after creating the objects above to
+  // narrow down the places where the action can possibly stop.
 
   logger.info('[MessageSend]', 'non-empty text?', text.stringValue().length > 0)
 
