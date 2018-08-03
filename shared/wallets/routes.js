@@ -1,6 +1,5 @@
 // @flow
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
-import {MaybePopupHoc} from '../common-adapters'
 import {isMobile} from '../constants/platform'
 import LinkExisting from './link-existing/container'
 import Container from './container'
@@ -17,7 +16,7 @@ const routeTree = makeRouteDefNode({
     },
     linkExisting: {
       children: {},
-      component: MaybePopupHoc(isMobile)(LinkExisting),
+      component: LinkExisting,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
     receive: {
