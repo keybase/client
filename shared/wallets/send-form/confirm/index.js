@@ -28,12 +28,14 @@ export default function ConfirmSend(props: ConfirmSendProps) {
             $1
           </Kb.Text>
         </Kb.Box2>
-        <Banner
-          background="Announcements"
-          text="The conversion rate has changed since you got to this screen."
-        />
-        <Participants />
-        <Memo />
+        <Kb.ScrollView>
+          <Banner
+            background="Announcements"
+            text="The conversion rate has changed since you got to this screen."
+          />
+          <Participants />
+          <Memo />
+        </Kb.ScrollView>
         <Kb.Box2
           direction="horizontal"
           fullWidth={true}
@@ -84,7 +86,7 @@ const styles = Styles.styleSheetCreate({
   }),
   header: Styles.platformStyles({
     isElectron: {
-      height: 144,
+      minHeight: 144,
       flex: 1,
       backgroundColor: Styles.globalColors.purple,
     },
@@ -101,6 +103,8 @@ const styles = Styles.styleSheetCreate({
       borderTopWidth: 1,
       borderTopColor: Styles.globalColors.black_05,
       height: 72.5,
+      flexShrink: 0,
+      alignSelf: 'flex-end',
     },
   }),
 })
