@@ -238,8 +238,6 @@ const makeMessageSetChannelname: I.RecordFactory<MessageTypes._MessageSetChannel
 })
 
 export const makeReaction: I.RecordFactory<MessageTypes._Reaction> = I.Record({
-  messageID: Types.numberToMessageID(0),
-  outboxID: Types.stringToOutboxID(''),
   timestamp: 0,
   username: '',
 })
@@ -254,7 +252,6 @@ export const reactionMapToReactions = (r: RPCChatTypes.ReactionMap): MessageType
         res[emoji] = I.Set(
           Object.keys(r.reactions[emoji]).map(username =>
             makeReaction({
-              messageID: Types.numberToMessageID(r.reactions[emoji][username].reactionMsgID),
               timestamp: r.reactions[emoji][username].ctime,
               username,
             })

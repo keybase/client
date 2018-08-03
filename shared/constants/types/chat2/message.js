@@ -12,8 +12,6 @@ export const numberToMessageID = (n: number): MessageID => n
 export const messageIDToNumber = (n: MessageID): number => n
 
 export type _Reaction = {
-  messageID: MessageID,
-  outboxID: OutboxID,
   timestamp: number,
   username: string,
 }
