@@ -20,12 +20,12 @@ type State = {
 
 class MinWriterRole extends React.Component<Props, State> {
   state = {saving: false, selected: this.props.minWriterRole}
-  _setSaving = (saving: boolean) => {
-    this.setState(s => (s.saving === saving ? null : {saving}))
-  }
-  _selectRole = (role: TeamTypes.TeamRoleType) => {
+  _setSaving = (saving: boolean) => this.setState(s => (s.saving === saving ? null : {saving}))
+  _setSelected = selected => this.setState(s => (s.selected === selected ? null : {selected}))
+  _selectRole = role => {
     if (role !== this.props.minWriterRole) {
       this._setSaving(true)
+      this._setSelected(role)
       this.props.onSetNewRole(role)
     }
   }
@@ -36,9 +36,7 @@ class MinWriterRole extends React.Component<Props, State> {
         // just got value that matches ours. We aren't saving anymore
         this._setSaving(false)
       }
-      this.setState(
-        s => (s.selected === this.props.minWriterRole ? null : {selected: this.props.minWriterRole})
-      )
+      this._setSelected(this.props.minWriterRole)
     }
   }
 

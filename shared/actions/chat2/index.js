@@ -723,6 +723,7 @@ const setupChatHandlers = () => {
       update.conv.convSettings.minWriterRoleInfo &&
       update.conv.convSettings.minWriterRoleInfo.role
     const role = newRole && teamRoleByEnum[newRole]
+    logger.info(`ChatHandler: got new minWriterRole ${role} for convID ${conversationIDKey}`)
     if (role && role !== 'none') {
       return [Chat2Gen.createSaveMinWriterRole({conversationIDKey, role})]
     }
@@ -2266,6 +2267,7 @@ const handleFilePickerError = (action: Chat2Gen.FilePickerErrorPayload) => {
 
 const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
   const {conversationIDKey, role} = action.payload
+  logger.info(`Setting minWriterRole to ${role} for convID ${conversationIDKey}`)
   return Saga.call(RPCChatTypes.localSetConvMinWriterRoleLocalRpcPromise, {
     convID: Types.keyToConversationID(conversationIDKey),
     role: RPCTypes.teamsTeamRole[role],
