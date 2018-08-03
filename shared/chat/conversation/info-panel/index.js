@@ -54,6 +54,7 @@ type InfoPanelProps = {
 
   // Used for small and big teams.
   onViewTeam: () => void,
+  canSetMinWriterRole: boolean,
   canSetRetention: boolean,
 
   // Used for big teams.
@@ -198,6 +199,7 @@ type LeaveChannelRow = {
 type MinWriterRoleRow = {
   type: 'min writer role',
   key: 'min writer role',
+  canSetMinWriterRole: boolean,
   isSmallTeam: boolean,
 }
 
@@ -277,7 +279,7 @@ const typeSizeEstimator = (row: Row): number => {
 
     case 'min writer role':
       // TODO (DA)
-      return 84
+      return row.canSetMinWriterRole ? 84 : 35
 
     default:
       /*::
@@ -489,7 +491,12 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             marginTop: 8,
             marginBottom: 8,
           },
-          {isSmallTeam: true, type: 'min writer role', key: 'min writer role'},
+          {
+            canSetMinWriterRole: props.canSetMinWriterRole,
+            isSmallTeam: true,
+            type: 'min writer role',
+            key: 'min writer role',
+          },
           ...(props.canDeleteHistory
             ? [
                 {
@@ -616,7 +623,12 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               marginTop: 8,
               marginBottom: 8,
             },
-            {isSmallTeam: false, type: 'min writer role', key: 'min writer role'},
+            {
+              canSetMinWriterRole: props.canSetMinWriterRole,
+              isSmallTeam: false,
+              type: 'min writer role',
+              key: 'min writer role',
+            },
             ...(props.canDeleteHistory
               ? [
                   {

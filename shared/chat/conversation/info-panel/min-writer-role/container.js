@@ -34,4 +34,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
     dispatch(Chat2Gen.createSetMinWriterRole({conversationIDKey: ownProps.conversationIDKey, role})),
 })
 
-export default Container.connect(mapStateToProps, mapDispatchToProps)(MinWriterRole)
+export default Container.compose(
+  Container.connect(mapStateToProps, mapDispatchToProps),
+  Container.setDisplayName('MinWriterRole')
+)(MinWriterRole)
