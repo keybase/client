@@ -12,13 +12,13 @@ type Props = {
   onSetNewRole: (newRole: TeamTypes.TeamRoleType) => void,
 }
 
-const _MinWriterRole = (props: Props & Kb.OverlayParentProps) => {
+const MinWriterRole = (props: Props) => {
   const items = TeamConstants.teamRoleTypes.map(role => ({
     onClick: () => props.onSetNewRole(role),
     title: upperFirst(role),
   }))
   return (
-    <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.container}>
+    <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.container}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
         <Kb.Text type="BodySmallSemibold">Minimum writer role</Kb.Text>
         <Kb.Icon
@@ -27,30 +27,43 @@ const _MinWriterRole = (props: Props & Kb.OverlayParentProps) => {
           fontSize={Style.isMobile ? 22 : 16}
         />
       </Kb.Box2>
-      <Kb.ClickableBox
-        style={styles.dropdown}
-        ref={Style.isMobile ? null : props.setAttachmentRef}
-        onClick={props.toggleShowingMenu}
-        underlayColor={Style.globalColors.white_40}
-      >
-        <Kb.Box2 direction="horizontal" style={styles.label}>
-          <Kb.Text type="BodySemibold">{upperFirst(props.minWriterRole)}</Kb.Text>
-        </Kb.Box2>
-        <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} />
-      </Kb.ClickableBox>
-      <Kb.FloatingMenu
-        attachTo={props.attachmentRef}
-        closeOnSelect={true}
-        visible={props.showingMenu}
-        items={items}
-        onHidden={props.toggleShowingMenu}
-        position="top center"
-        positionFallbacks={['bottom center']}
-      />
+      {props.canSetMinWriterRole && <Dropdown minWriterRole={props.minWriterRole} items={items} />}
     </Kb.Box2>
   )
 }
-const MinWriterRole = Kb.OverlayParentHOC(_MinWriterRole)
+
+const _Dropdown = ({
+  attachmentRef,
+  items,
+  minWriterRole,
+  setAttachmentRef,
+  showingMenu,
+  toggleShowingMenu,
+}) => (
+  <React.Fragment>
+    <Kb.ClickableBox
+      style={styles.dropdown}
+      ref={Style.isMobile ? null : setAttachmentRef}
+      onClick={toggleShowingMenu}
+      underlayColor={Style.globalColors.white_40}
+    >
+      <Kb.Box2 direction="horizontal" style={styles.label}>
+        <Kb.Text type="BodySemibold">{upperFirst(minWriterRole)}</Kb.Text>
+      </Kb.Box2>
+      <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} />
+    </Kb.ClickableBox>
+    <Kb.FloatingMenu
+      attachTo={attachmentRef}
+      closeOnSelect={true}
+      visible={showingMenu}
+      items={items}
+      onHidden={toggleShowingMenu}
+      position="top center"
+      positionFallbacks={['bottom center']}
+    />
+  </React.Fragment>
+)
+const Dropdown = Kb.OverlayParentHOC(_Dropdown)
 
 const styles = Style.styleSheetCreate({
   container: {
