@@ -13,39 +13,70 @@ type Props = {
   onSetNewRole: (newRole: TeamTypes.TeamRoleType) => void,
 }
 
-const MinWriterRole = (props: Props) => {
-  const items = TeamConstants.teamRoleTypes.map(role => ({
-    onClick: () => props.onSetNewRole(role),
-    title: upperFirst(role),
-  }))
-  return (
-    <Kb.Box2
-      direction="vertical"
-      gap={props.canSetMinWriterRole ? 'tiny' : 'xxtiny'}
-      fullWidth={true}
-      style={styles.container}
-    >
-      <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-        <Kb.Text type="BodySmallSemibold">Minimum writer role</Kb.Text>
-        <Kb.Icon
-          type="iconfont-compose"
-          color={Style.globalColors.black_20}
-          fontSize={Style.isMobile ? 22 : 16}
-        />
+type State = {
+  saving: boolean,
+  selected: TeamTypes.TeamRoleType,
+}
+
+class MinWriterRole extends React.Component<Props, State> {
+  state = {saving: false, selected: this.props.minWriterRole}
+  _setSaving = (saving: boolean) => {
+    this.setState(s => (s.saving === saving ? null : {saving}))
+  }
+  _selectRole = (role: TeamTypes.TeamRoleType) => {
+    if (role !== this.props.minWriterRole) {
+      this._setSaving(true)
+      this.props.onSetNewRole(role)
+    }
+  }
+
+  componentDidUpdate(prevProps: Props, prevState: State) {
+    if (prevProps.minWriterRole !== this.props.minWriterRole) {
+      if (this.props.minWriterRole === prevState.selected) {
+        // just got value that matches ours. We aren't saving anymore
+        this._setSaving(false)
+      }
+      this.setState(
+        s => (s.selected === this.props.minWriterRole ? null : {selected: this.props.minWriterRole})
+      )
+    }
+  }
+
+  render() {
+    const items = TeamConstants.teamRoleTypes.map(role => ({
+      onClick: () => this._selectRole(role),
+      title: upperFirst(role),
+    }))
+    return (
+      <Kb.Box2
+        direction="vertical"
+        gap={this.props.canSetMinWriterRole ? 'tiny' : 'xxtiny'}
+        fullWidth={true}
+        style={styles.container}
+      >
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+          <Kb.Text type="BodySmallSemibold">Minimum writer role</Kb.Text>
+          <Kb.Icon
+            type="iconfont-compose"
+            color={Style.globalColors.black_20}
+            fontSize={Style.isMobile ? 22 : 16}
+          />
+        </Kb.Box2>
+        {this.props.canSetMinWriterRole ? (
+          <Dropdown minWriterRole={this.state.selected} items={items} saving={this.state.saving} />
+        ) : (
+          <Display isSmallTeam={this.props.isSmallTeam} minWriterRole={this.props.minWriterRole} />
+        )}
       </Kb.Box2>
-      {props.canSetMinWriterRole ? (
-        <Dropdown minWriterRole={props.minWriterRole} items={items} />
-      ) : (
-        <Display isSmallTeam={props.isSmallTeam} minWriterRole={props.minWriterRole} />
-      )}
-    </Kb.Box2>
-  )
+    )
+  }
 }
 
 const _Dropdown = ({
   attachmentRef,
   items,
   minWriterRole,
+  saving,
   setAttachmentRef,
   showingMenu,
   toggleShowingMenu,
@@ -72,7 +103,7 @@ const _Dropdown = ({
       positionFallbacks={['bottom center']}
     />
     <Kb.SaveIndicator
-      saving={false}
+      saving={saving}
       style={styles.saveIndicator}
       minSavingTimeMs={300}
       savedTimeoutMs={2500}
