@@ -22,7 +22,7 @@ const avatarUserTaskProps: Props = {
   confirmLabel: 'Edit avatar',
   instructions: 'NEW! Change your photo from within the Keybase app.',
   dismissable: false,
-  icon: 'icon-onboarding-user-info-32',
+  icon: 'icon-onboarding-user-avatar-32',
   ...actionProps,
 }
 
