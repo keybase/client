@@ -36,7 +36,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     message.transferState === 'downloading'
       ? 'Downloading'
       : message.transferState === 'uploading'
-        ? 'Encrypting'
+        ? 'Uploading'
         : message.transferState === 'remoteUploading'
           ? 'waiting...'
           : ''

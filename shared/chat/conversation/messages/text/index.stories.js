@@ -1,10 +1,10 @@
 // @flow
 import * as Types from '../../../../constants/types/chat2'
+import * as Sb from '../../../../stories/storybook'
 import I from 'immutable'
-import React from 'react'
+import * as React from 'react'
 import Text from '.'
 import {Box2} from '../../../../common-adapters'
-import {storiesOf, createPropProvider} from '../../../../stories/storybook'
 
 const props = {
   isEditing: false,
@@ -15,7 +15,7 @@ const props = {
   type: 'sent',
 }
 
-const provider = createPropProvider({
+const provider = Sb.createPropProviderWithCommon({
   Channel: p => ({name: p.name}),
   Mention: p => ({username: p.username}),
 })
@@ -27,7 +27,7 @@ const Wrapped = props => (
 )
 
 const load = () => {
-  storiesOf('Chat/Conversation/Rows', module)
+  Sb.storiesOf('Chat/Conversation/Rows', module)
     .addDecorator(provider)
     .add('Text', () => (
       <React.Fragment>

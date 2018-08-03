@@ -21,10 +21,12 @@ func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybas
 	tracer := g.CTimeTracer(ctx, "TeamList.ListTeamsUnverified", true)
 	defer tracer.Finish()
 
+	m := libkb.NewMetaContext(ctx, g)
+
 	tracer.Stage("Resolve QueryUID")
 	var queryUID keybase1.UID
 	if arg.UserAssertion != "" {
-		res := g.Resolver.ResolveFullExpression(ctx, arg.UserAssertion)
+		res := g.Resolver.ResolveFullExpression(m, arg.UserAssertion)
 		if res.GetError() != nil {
 			return nil, res.GetError()
 		}
@@ -64,7 +66,7 @@ func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybas
 
 	for _, memberInfo := range teams {
 		if memberInfo.IsImplicitTeam && !arg.IncludeImplicitTeams {
-			g.Log.CDebugf(ctx, "| ListTeamsUnverified skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
+			m.CDebugf("| ListTeamsUnverified skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
 			continue
 		}
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 )
@@ -72,6 +73,9 @@ func (m MetaContext) CTrace(msg string, f func() error) func() {
 
 func (m MetaContext) CVTrace(lev VDebugLevel, msg string, f func() error) func() {
 	return m.g.CVTrace(m.ctx, lev, msg, f)
+}
+func (m MetaContext) CVTraceOK(lev VDebugLevel, msg string, f func() bool) func() {
+	return m.g.CVTraceOK(m.ctx, lev, msg, f)
 }
 
 func (m MetaContext) VLogf(lev VDebugLevel, msg string, args ...interface{}) {
@@ -146,6 +150,12 @@ func (m MetaContext) WithTimeout(timeout time.Duration) (MetaContext, func()) {
 func (m MetaContext) WithLogTag(k string) MetaContext {
 	m.ctx = WithLogTag(m.ctx, k)
 	return m
+}
+
+func (m MetaContext) WithTimeBuckets() (MetaContext, *profiling.TimeBuckets) {
+	ctx, tbs := m.G().CTimeBuckets(m.ctx)
+	m.ctx = ctx
+	return m, tbs
 }
 
 func (m MetaContext) EnsureCtx() MetaContext {

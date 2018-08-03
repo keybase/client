@@ -9,12 +9,17 @@ import {
   globalMargins,
   platformStyles,
 } from '../../styles'
-import {Box, ClickableBox, Icon, Text, type IconType} from '../../common-adapters'
+import {
+  Box,
+  ClickableBox,
+  Icon,
+  Text,
+  type IconType,
+  FloatingMenu,
+  OverlayParentHOC,
+  type OverlayParentProps,
+} from '../../common-adapters'
 import StaticBreadcrumb from '../common/static-breadcrumb'
-import FloatingMenu, {
-  FloatingMenuParentHOC,
-  type FloatingMenuParentProps,
-} from '../../common-adapters/floating-menu'
 
 type AddNewProps = {
   style?: Object,
@@ -30,7 +35,7 @@ type AddNewProps = {
   pathElements: Array<string>,
 }
 
-const AddNew = (props: AddNewProps & FloatingMenuParentProps) => {
+const AddNew = (props: AddNewProps & OverlayParentProps) => {
   return (
     !!props.menuItems.length && (
       <Box>
@@ -112,4 +117,4 @@ const styles = styleSheetCreate({
   }),
 })
 
-export default FloatingMenuParentHOC(AddNew)
+export default OverlayParentHOC(AddNew)

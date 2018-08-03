@@ -136,15 +136,7 @@ class Feedback extends Component<Props> {
             </Box>
           </Box>
           <ButtonBar>
-            <Button
-              fullWidth={true}
-              label="Send"
-              onClick={this._onSubmit}
-              // TODO: Remove this style when fullWidth does it.
-              style={{width: '100%'}}
-              type="Primary"
-              waiting={sending}
-            />
+            <Button fullWidth={true} label="Send" onClick={this._onSubmit} type="Primary" waiting={sending} />
           </ButtonBar>
           {sendError && (
             <Box style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.small}}>

@@ -81,16 +81,6 @@ func (f *JSONFile) Load(warnOnNotFound bool) error {
 	}
 	f.jw = jsonw.NewWrapper(obj)
 
-	if runtime.GOOS == "android" {
-		// marshal it into json without indents to make it one line
-		out, err := json.Marshal(obj)
-		if err != nil {
-			f.G().Log.Debug("JSONFile.Load: error marshaling decoded config obj: %s", err)
-		} else {
-			f.G().Log.Debug("JSONFile.Load: %s contents (marshaled): %s", f.filename, string(out))
-		}
-	}
-
 	f.G().Log.Debug("- successfully loaded %s file", f.which)
 	return nil
 }

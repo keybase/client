@@ -179,13 +179,13 @@ func (c *CmdSimpleFSList) Run() error {
 				return err
 			}
 			// TODO: should stat include the path in the result?
-			e.Name = pathToString(path)
+			e.Name = path.String()
 			listResult.Entries = append(listResult.Entries, e)
 		}
 		c.output(listResult)
 	} else if len(paths) == 1 {
 		path := paths[0]
-		c.G().Log.Debug("SimpleFSList %s", pathToString(path))
+		c.G().Log.Debug("SimpleFSList %s", path)
 
 		opid, err2 := cli.SimpleFSMakeOpid(ctx)
 		if err2 != nil {

@@ -17,8 +17,10 @@ import {type TeamRoleType} from '../../constants/types/teams'
 export type ControlledRolePickerProps = {
   onComplete: (role: TeamRoleType, sendNotification: boolean) => void,
   selectedRole?: TeamRoleType,
+  addButtonLabel?: string,
   allowOwner?: boolean,
   allowAdmin?: boolean,
+  headerTitle?: string,
   pluralizeRoleName?: boolean,
   showNotificationCheckbox?: boolean,
   sendNotificationChecked?: boolean,
@@ -28,19 +30,23 @@ export type ControlledRolePickerProps = {
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const currentType = routeProps.get('selectedRole')
   const _onComplete = routeProps.get('onComplete')
+  const addButtonLabel = routeProps.get('addButtonLabel')
   const allowAdmin = routeProps.get('allowAdmin')
   const allowOwner = routeProps.get('allowOwner')
+  const headerTitle = routeProps.get('headerTitle')
   const pluralizeRoleName = routeProps.get('pluralizeRoleName')
   const sendNotificationChecked = routeProps.get('sendNotificationChecked')
   const showSendNotification = routeProps.get('showNotificationCheckbox')
   const styleCover = routeProps.get('styleCover')
   return {
     _onComplete,
+    addButtonLabel,
     allowAdmin,
     allowOwner,
     confirm: false,
     controlled: true,
     currentType,
+    headerTitle,
     pluralizeRoleName,
     sendNotificationChecked,
     showSendNotification,

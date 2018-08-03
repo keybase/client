@@ -119,6 +119,7 @@ export type _MessageAttachment = {
   author: string,
   conversationIDKey: Common.ConversationIDKey,
   fileURL: string,
+  fileURLCached: boolean,
   previewURL: string,
   fileType: string, // MIME type
   deviceName: string,
@@ -139,14 +140,15 @@ export type _MessageAttachment = {
   outboxID: ?OutboxID,
   previewHeight: number,
   previewWidth: number,
+  previewTransferState: 'downloading' | null, // only for preview
   reactions: Reactions,
   submitState: null | 'deleting' | 'pending' | 'failed',
   timestamp: number,
   title: string,
   transferProgress: number, // 0-1 // only for the file
   transferState: 'uploading' | 'downloading' | 'remoteUploading' | null,
-  previewTransferState: 'downloading' | null, // only for preview
   type: 'attachment',
+  videoDuration: ?string,
 }
 export type MessageAttachment = I.RecordOf<_MessageAttachment>
 

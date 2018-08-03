@@ -66,14 +66,12 @@ const styles = styleSheetCreate({
     ...globalStyles.fontSemibold,
     ...rightColumnStyle,
     color: globalColors.darkBlue,
-    fontSize: 13,
   },
   titleSelected: {
     ...globalStyles.fontSemibold,
     ...rightColumnStyle,
     color: globalColors.white,
     backgroundColor: backgroundColorSelected,
-    fontSize: 13,
   },
 
   amount: {
