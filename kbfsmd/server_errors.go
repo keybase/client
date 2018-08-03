@@ -64,6 +64,14 @@ const (
 	// should ask service to create an implicit team for the give handle, and
 	// use the i-team backed TLF.
 	StatusCodeServerErrorClassicTLFDoesNotExist = 2814
+	// StatusCodeServerErrorMissingFolderHandle is the error code
+	// returned by the MD GetFolderHandle operation to indicate that a
+	// handle isn't found for a particular folder ID.  It's only
+	// returned if implicit teams is enabled, and likely indicates
+	// that the folder ID has been created by a client for an
+	// implicit-team-backed TLF, but no MDs have yet been written to
+	// the TLF.
+	StatusCodeServerErrorMissingFolderHandle = 2815
 )
 
 // ServerError is a generic server-side error.
@@ -387,6 +395,23 @@ func (e ServerErrorClassicTLFDoesNotExist) ToStatus() (s keybase1.Status) {
 	return
 }
 
+// ServerErrorMissingFolderHandle is the error type for
+// StatusCodeServerErrorMissingFolderHandle.
+type ServerErrorMissingFolderHandle struct{}
+
+// Error implements the Error interface.
+func (e ServerErrorMissingFolderHandle) Error() string {
+	return "ServerErrorMissingFolderHandle{}"
+}
+
+// ToStatus implements the ExportableError interface.
+func (e ServerErrorMissingFolderHandle) ToStatus() (s keybase1.Status) {
+	s.Code = StatusCodeServerErrorMissingFolderHandle
+	s.Name = "MISSING_FOLDER_HANDLE"
+	s.Desc = e.Error()
+	return
+}
+
 // ServerErrorUnwrapper is an implementation of rpc.ErrorUnwrapper
 // for errors coming from the MDServer.
 type ServerErrorUnwrapper struct{}
@@ -486,6 +511,9 @@ func (eu ServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dis
 		break
 	case StatusCodeServerErrorClassicTLFDoesNotExist:
 		appError = ServerErrorClassicTLFDoesNotExist{}
+		break
+	case StatusCodeServerErrorMissingFolderHandle:
+		appError = ServerErrorMissingFolderHandle{}
 		break
 	default:
 		ase := libkb.AppStatusError{
