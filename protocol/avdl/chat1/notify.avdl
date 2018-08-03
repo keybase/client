@@ -3,6 +3,7 @@
 protocol NotifyChat {
 
   import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
 
   enum ChatActivitySource {
     LOCAL_0,
@@ -91,6 +92,7 @@ protocol NotifyChat {
   record ReactionUpdate {
     ReactionMap reactions;
     MessageID targetMsgID;
+    gregor1.Time ctime;
   }
 
   record ReactionUpdateNotif {
