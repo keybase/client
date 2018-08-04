@@ -1510,6 +1510,16 @@ func (h *Server) DownloadAttachmentLocal(ctx context.Context, arg chat1.Download
 	return h.downloadAttachmentLocal(ctx, uid, darg)
 }
 
+type discardWriterCloser struct{}
+
+func (discardWriterCloser) Write(b []byte) (int, error) {
+	return len(b), nil
+}
+
+func (discardWriterCloser) Close() error {
+	return nil
+}
+
 // DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
 func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (res chat1.DownloadAttachmentLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -1528,9 +1538,15 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 		Preview:          arg.Preview,
 		IdentifyBehavior: arg.IdentifyBehavior,
 	}
-	sink, err := os.OpenFile(arg.Filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		return chat1.DownloadAttachmentLocalRes{}, err
+	var sink io.WriteCloser
+	if h.G().GetAppType() == libkb.MobileAppType {
+		// We never want to actually download anything on mobile, just get it in our cache
+		sink = discardWriterCloser{}
+	} else {
+		sink, err = os.OpenFile(arg.Filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+		if err != nil {
+			return chat1.DownloadAttachmentLocalRes{}, err
+		}
 	}
 	darg.Sink = sink
 
