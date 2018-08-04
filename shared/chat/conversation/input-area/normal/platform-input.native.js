@@ -61,19 +61,22 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
   _showNativeImagePicker = (mediaType: string) => {
     let title = 'Select a Photo'
     let takePhotoButtonTitle = 'Take Photo...'
-    let permDeniedText = 'Allow Keybase to take photos?'
+    let permDeniedText = 'Allow Keybase to take photos and choose images from your library?'
     switch (mediaType) {
       case 'photo':
         break
       case 'mixed':
         title = 'Select a Photo or Video'
         takePhotoButtonTitle = 'Take Photo or Video...'
-        permDeniedText = 'Allow Keybase to take photos or video?'
+        // 'mixed' never happens on Android, which is when the
+        // permissions denied dialog box is shown, but fill it out
+        // anyway.
+        permDeniedText = 'Allow Keybase to take photos/video and choose images/videos from your library?'
         break
       case 'video':
         title = 'Select a Video'
         takePhotoButtonTitle = 'Take Video...'
-        permDeniedText = 'Allow Keybase to take video?'
+        permDeniedText = 'Allow Keybase to take video and choose videos from your library?'
         break
     }
     const permissionDenied = {
