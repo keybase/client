@@ -141,6 +141,16 @@ const metaMapReducer = (metaMap, action) => {
         return updated
       }, {})
       return metaMap.merge(newMetas)
+    case Chat2Gen.saveMinWriterRole:
+      const {conversationIDKey, role} = action.payload
+      return metaMap.update(conversationIDKey, old => {
+        if (old) {
+          return old.set('minWriterRole', role)
+        }
+        // if we haven't loaded it yet we'll load it on navigation into the
+        // convo
+        return old
+      })
     default:
       return metaMap
   }
@@ -768,6 +778,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.updateConvRetentionPolicy:
     case Chat2Gen.updateTeamRetentionPolicy:
     case Chat2Gen.messagesExploded:
+    case Chat2Gen.saveMinWriterRole:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
@@ -807,6 +818,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.handleSeeingExplodingMessages:
     case Chat2Gen.toggleMessageReaction:
     case Chat2Gen.filePickerError:
+    case Chat2Gen.setMinWriterRole:
       return state
     default:
       /*::

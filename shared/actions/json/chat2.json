@@ -2,6 +2,7 @@
   "prelude": [
     "import * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
     "import * as Types from '../constants/types/chat2'",
+    "import * as TeamsTypes from '../constants/types/teams'",
     "import HiddenString from '../util/hidden-string'",
     "import type {RetentionPolicy} from '../constants/types/teams'"
   ],
@@ -426,6 +427,17 @@
     "filePickerError": {
       "_description": "Sent whenever the mobile file picker encounters an error.",
       "error": "Error"
+    },
+    "setMinWriterRole": {
+      "_description":
+        "Set the minimum role required to write into a conversation. Valid only for team conversations.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "role": "TeamsTypes.TeamRoleType"
+    },
+    "saveMinWriterRole": {
+      "_description": "Update the minWriterRole stored with the conversation metadata.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "role": "TeamsTypes.TeamRoleType"
     }
   }
 }
