@@ -1576,15 +1576,38 @@ func (o TeamKBFSKeyRefresher) DeepCopy() TeamKBFSKeyRefresher {
 // * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
 // * a refresh of the cache.
 type TeamRefreshers struct {
-	NeedKeyGeneration     PerTeamKeyGeneration `codec:"needKeyGeneration" json:"needKeyGeneration"`
-	WantMembers           []UserVersion        `codec:"wantMembers" json:"wantMembers"`
-	WantMembersRole       TeamRole             `codec:"wantMembersRole" json:"wantMembersRole"`
-	NeedKBFSKeyGeneration TeamKBFSKeyRefresher `codec:"needKBFSKeyGeneration" json:"needKBFSKeyGeneration"`
+	NeedKeyGeneration             PerTeamKeyGeneration                       `codec:"needKeyGeneration" json:"needKeyGeneration"`
+	NeedApplicationsAtGenerations map[PerTeamKeyGeneration][]TeamApplication `codec:"needApplicationsAtGenerations" json:"needApplicationsAtGenerations"`
+	WantMembers                   []UserVersion                              `codec:"wantMembers" json:"wantMembers"`
+	WantMembersRole               TeamRole                                   `codec:"wantMembersRole" json:"wantMembersRole"`
+	NeedKBFSKeyGeneration         TeamKBFSKeyRefresher                       `codec:"needKBFSKeyGeneration" json:"needKBFSKeyGeneration"`
 }
 
 func (o TeamRefreshers) DeepCopy() TeamRefreshers {
 	return TeamRefreshers{
 		NeedKeyGeneration: o.NeedKeyGeneration.DeepCopy(),
+		NeedApplicationsAtGenerations: (func(x map[PerTeamKeyGeneration][]TeamApplication) map[PerTeamKeyGeneration][]TeamApplication {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[PerTeamKeyGeneration][]TeamApplication, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := (func(x []TeamApplication) []TeamApplication {
+					if x == nil {
+						return nil
+					}
+					ret := make([]TeamApplication, len(x))
+					for i, v := range x {
+						vCopy := v.DeepCopy()
+						ret[i] = vCopy
+					}
+					return ret
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.NeedApplicationsAtGenerations),
 		WantMembers: (func(x []UserVersion) []UserVersion {
 			if x == nil {
 				return nil
