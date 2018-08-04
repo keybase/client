@@ -41,6 +41,7 @@ class MinWriterRole extends React.Component<Props, State> {
   }
 
   render() {
+    // TODO: create these items somewhere else
     const items = TeamConstants.teamRoleTypes.map(role => ({
       onClick: () => this._selectRole(role),
       title: upperFirst(role),
