@@ -207,9 +207,40 @@ func TestAttachmentUploader(t *testing.T) {
 	uploadStartCheck(false, outboxID)
 	close(slowCh)
 	deliverCheck(true)
+	// Should get results on both of these
 	successCheck(retryChan)
+	successCheck(resChan)
 
 	uploader.Complete(context.TODO(), outboxID)
 	_, _, err = uploader.Status(context.TODO(), outboxID)
 	require.Error(t, err)
+
+	// Test cancel
+	outboxID, err = storage.NewOutboxID()
+	require.NoError(t, err)
+	slowCh = make(chan struct{})
+	store.uploadFn = func(ctx context.Context, task *UploadTask) (chat1.Asset, error) {
+		select {
+		case <-slowCh:
+		case <-ctx.Done():
+			return chat1.Asset{}, ctx.Err()
+		}
+		return chat1.Asset{}, nil
+	}
+	resChan, err = uploader.Register(context.TODO(), uid, convID, outboxID, "ship", filename, md, nil)
+	require.NoError(t, err)
+	uploadStartCheck(true, outboxID)
+	deliverCheck(false)
+	select {
+	case <-resChan:
+		require.Fail(t, "no res")
+	default:
+	}
+	require.NoError(t, uploader.Cancel(context.TODO(), outboxID))
+	_, _, err = uploader.Status(context.TODO(), outboxID)
+	require.Error(t, err)
+	select {
+	case res := <-resChan:
+		require.NotNil(t, res.Error)
+	}
 }
