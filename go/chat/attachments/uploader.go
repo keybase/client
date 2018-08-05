@@ -32,10 +32,42 @@ type uploaderStatus struct {
 	Result types.AttachmentUploadResult
 }
 
+type uploaderResult struct {
+	sync.Mutex
+	subs []chan types.AttachmentUploadResult
+	res  *types.AttachmentUploadResult
+}
+
+func newUploaderResult() *uploaderResult {
+	return &uploaderResult{}
+}
+
+func (r *uploaderResult) waitCh() (ch chan types.AttachmentUploadResult) {
+	r.Lock()
+	defer r.Unlock()
+	ch = make(chan types.AttachmentUploadResult, 1)
+	if r.res != nil {
+		// If we already have received a result and something waits, just return it right away
+		ch <- *r.res
+		return ch
+	}
+	r.subs = append(r.subs, ch)
+	return ch
+}
+
+func (r *uploaderResult) trigger(res types.AttachmentUploadResult) {
+	r.Lock()
+	defer r.Unlock()
+	r.res = &res
+	for _, sub := range r.subs {
+		sub <- res
+	}
+}
+
 type activeUpload struct {
 	uploadCtx      context.Context
 	uploadCancelFn context.CancelFunc
-	resChan        chan types.AttachmentUploadResult
+	uploadResult   *uploaderResult
 }
 
 type Uploader struct {
@@ -129,20 +161,19 @@ func (u *Uploader) Cancel(ctx context.Context, outboxID chat1.OutboxID) (err err
 	defer u.Trace(ctx, func() error { return err }, "Cancel(%s)", outboxID)()
 	// check if we are actively uploading the outbox ID and cancel it
 	u.Lock()
-	if existing := u.uploads[outboxID.String()]; existing != nil {
+	var ch chan types.AttachmentUploadResult
+	existing := u.uploads[outboxID.String()]
+	if existing != nil {
 		existing.uploadCancelFn()
+		ch = existing.uploadResult.waitCh()
 	}
 	u.Unlock()
-	errMsg := "upload canceled"
-	if err := u.setStatus(ctx, outboxID, uploaderStatus{
-		Status: types.AttachmentUploaderTaskStatusFailed,
-		Result: types.AttachmentUploadResult{
-			Error: &errMsg,
-		},
-	}); err != nil {
-		u.Debug(ctx, "Cancel: failed to set status: %s", err)
-		return err
+
+	// Wait for the uploader to cancel
+	if ch != nil {
+		<-ch
 	}
+
 	// Take the whole record out of commission
 	u.Complete(ctx, outboxID)
 	return nil
@@ -220,19 +251,20 @@ func (u *Uploader) Register(ctx context.Context, uid gregor1.UID, convID chat1.C
 	return u.upload(ctx, uid, convID, outboxID, title, filename, metadata, callerPreview)
 }
 
-func (u *Uploader) checkAndSetUploading(outboxID chat1.OutboxID, uploadCtx context.Context,
-	uploadCancelFn context.CancelFunc, res chan types.AttachmentUploadResult) (existing *activeUpload) {
+func (u *Uploader) checkAndSetUploading(uploadCtx context.Context, outboxID chat1.OutboxID,
+	uploadCancelFn context.CancelFunc) (upload *activeUpload, inprogress bool) {
 	u.Lock()
 	defer u.Unlock()
-	if existing = u.uploads[outboxID.String()]; existing != nil {
-		return existing
+	if upload = u.uploads[outboxID.String()]; upload != nil {
+		return upload, true
 	}
-	u.uploads[outboxID.String()] = &activeUpload{
+	upload = &activeUpload{
 		uploadCtx:      uploadCtx,
 		uploadCancelFn: uploadCancelFn,
-		resChan:        res,
+		uploadResult:   newUploaderResult(),
 	}
-	return nil
+	u.uploads[outboxID.String()] = upload
+	return upload, false
 }
 
 func (u *Uploader) doneUploading(outboxID chat1.OutboxID) {
@@ -257,7 +289,7 @@ func (u *Uploader) uploadPreviewFile(ctx context.Context) (f *os.File, err error
 }
 
 func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	outboxID chat1.OutboxID, title, filename string, metadata []byte, callerPreview *chat1.MakePreviewRes) (res chan types.AttachmentUploadResult, err error) {
+	outboxID chat1.OutboxID, title, filename string, metadata []byte, callerPreview *chat1.MakePreviewRes) (resCh chan types.AttachmentUploadResult, err error) {
 
 	// Create the errgroup first so we can register the context in the upload map
 	var g *errgroup.Group
@@ -270,10 +302,10 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	bgctx, cancelFn = context.WithCancel(bgctx)
 
 	// Check to see if we are already uploading this message and set upload status if not
-	res = make(chan types.AttachmentUploadResult, 1)
-	if existing := u.checkAndSetUploading(outboxID, bgctx, cancelFn, res); existing != nil {
+	upload, inprogress := u.checkAndSetUploading(bgctx, outboxID, cancelFn)
+	if inprogress {
 		u.Debug(ctx, "upload: already uploading: %s, returning early", outboxID)
-		return existing.resChan, nil
+		return upload.uploadResult.waitCh(), nil
 	}
 	defer func() {
 		if err != nil {
@@ -285,11 +317,11 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	// Stat the file to get size
 	finfo, err := os.Stat(filename)
 	if err != nil {
-		return res, err
+		return resCh, err
 	}
 	src, err := newFileReadResetter(filename)
 	if err != nil {
-		return res, err
+		return resCh, err
 	}
 
 	progress := func(bytesComplete, bytesTotal int64) {
@@ -301,13 +333,13 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	ures.Metadata = metadata
 	pre, err := PreprocessAsset(ctx, u.G(), u.DebugLabeler, filename, callerPreview)
 	if err != nil {
-		return res, err
+		return resCh, err
 	}
 	if pre.Preview != nil {
 		u.Debug(ctx, "upload: created preview in preprocess")
 		// Store the preview in pending storage
 		if err := NewPendingPreviews(u.G()).Put(ctx, outboxID, pre); err != nil {
-			return res, err
+			return resCh, err
 		}
 	}
 
@@ -419,8 +451,8 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		u.Debug(bgctx, "upload: upload complete: status: %v err: %s", status, errStr)
 		// Ping Deliverer to notify that some of the message in the outbox might be read to send
 		u.G().MessageDeliverer.ForceDeliverLoop(bgctx)
-		res <- ures
+		upload.uploadResult.trigger(ures)
 		u.doneUploading(outboxID)
 	}()
-	return res, nil
+	return upload.uploadResult.waitCh(), nil
 }
