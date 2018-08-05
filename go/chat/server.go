@@ -1447,13 +1447,13 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 		return res, err
 	}
 	// Start upload
-	uresChan, err := h.G().AttachmentUploader.Register(ctx, uid, arg.Arg.ConversationID,
+	uresCb, err := h.G().AttachmentUploader.Register(ctx, uid, arg.Arg.ConversationID,
 		outboxID, arg.Arg.Title, arg.Arg.Filename, arg.Arg.Metadata, arg.Arg.CallerPreview)
 	if err != nil {
 		return res, err
 	}
 	// Wait for upload
-	ures := <-uresChan
+	ures := <-uresCb.Wait()
 	if ures.Error != nil {
 		h.Debug(ctx, "postAttachmentLocal: upload failed, bailing out: %s", *ures.Error)
 		return res, errors.New(*ures.Error)

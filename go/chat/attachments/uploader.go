@@ -38,11 +38,13 @@ type uploaderResult struct {
 	res  *types.AttachmentUploadResult
 }
 
+var _ types.AttachmentUploaderResultCb = (*uploaderResult)(nil)
+
 func newUploaderResult() *uploaderResult {
 	return &uploaderResult{}
 }
 
-func (r *uploaderResult) waitCh() (ch chan types.AttachmentUploadResult) {
+func (r *uploaderResult) Wait() (ch chan types.AttachmentUploadResult) {
 	r.Lock()
 	defer r.Unlock()
 	ch = make(chan types.AttachmentUploadResult, 1)
@@ -135,7 +137,7 @@ func (u *Uploader) Complete(ctx context.Context, outboxID chat1.OutboxID) {
 	NewPendingPreviews(u.G()).Remove(ctx, outboxID)
 }
 
-func (u *Uploader) Retry(ctx context.Context, outboxID chat1.OutboxID) (res chan types.AttachmentUploadResult, err error) {
+func (u *Uploader) Retry(ctx context.Context, outboxID chat1.OutboxID) (res types.AttachmentUploaderResultCb, err error) {
 	defer u.Trace(ctx, func() error { return err }, "Retry(%s)", outboxID)()
 	ustatus, err := u.getStatus(ctx, outboxID)
 	if err != nil {
@@ -150,9 +152,9 @@ func (u *Uploader) Retry(ctx context.Context, outboxID chat1.OutboxID) (res chan
 		return u.upload(ctx, task.UID, task.ConvID, task.OutboxID, task.Title, task.Filename, task.Metadata,
 			task.CallerPreview)
 	case types.AttachmentUploaderTaskStatusSuccess:
-		ch := make(chan types.AttachmentUploadResult, 1)
-		ch <- ustatus.Result
-		return ch, nil
+		ur := newUploaderResult()
+		ur.trigger(ustatus.Result)
+		return ur, nil
 	}
 	return nil, fmt.Errorf("unknown retry status: %v", ustatus.Status)
 }
@@ -165,7 +167,7 @@ func (u *Uploader) Cancel(ctx context.Context, outboxID chat1.OutboxID) (err err
 	existing := u.uploads[outboxID.String()]
 	if existing != nil {
 		existing.uploadCancelFn()
-		ch = existing.uploadResult.waitCh()
+		ch = existing.uploadResult.Wait()
 	}
 	u.Unlock()
 
@@ -236,7 +238,7 @@ func (u *Uploader) saveTask(ctx context.Context, uid gregor1.UID, convID chat1.C
 }
 
 func (u *Uploader) Register(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	outboxID chat1.OutboxID, title, filename string, metadata []byte, callerPreview *chat1.MakePreviewRes) (res chan types.AttachmentUploadResult, err error) {
+	outboxID chat1.OutboxID, title, filename string, metadata []byte, callerPreview *chat1.MakePreviewRes) (res types.AttachmentUploaderResultCb, err error) {
 	defer u.Trace(ctx, func() error { return err }, "Register(%s)", outboxID)()
 	// Write down the task information
 	if err := u.saveTask(ctx, uid, convID, outboxID, title, filename, metadata, callerPreview); err != nil {
@@ -289,7 +291,7 @@ func (u *Uploader) uploadPreviewFile(ctx context.Context) (f *os.File, err error
 }
 
 func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	outboxID chat1.OutboxID, title, filename string, metadata []byte, callerPreview *chat1.MakePreviewRes) (resCh chan types.AttachmentUploadResult, err error) {
+	outboxID chat1.OutboxID, title, filename string, metadata []byte, callerPreview *chat1.MakePreviewRes) (res types.AttachmentUploaderResultCb, err error) {
 
 	// Create the errgroup first so we can register the context in the upload map
 	var g *errgroup.Group
@@ -305,7 +307,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	upload, inprogress := u.checkAndSetUploading(bgctx, outboxID, cancelFn)
 	if inprogress {
 		u.Debug(ctx, "upload: already uploading: %s, returning early", outboxID)
-		return upload.uploadResult.waitCh(), nil
+		return upload.uploadResult, nil
 	}
 	defer func() {
 		if err != nil {
@@ -317,11 +319,11 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	// Stat the file to get size
 	finfo, err := os.Stat(filename)
 	if err != nil {
-		return resCh, err
+		return res, err
 	}
 	src, err := newFileReadResetter(filename)
 	if err != nil {
-		return resCh, err
+		return res, err
 	}
 
 	progress := func(bytesComplete, bytesTotal int64) {
@@ -333,13 +335,13 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	ures.Metadata = metadata
 	pre, err := PreprocessAsset(ctx, u.G(), u.DebugLabeler, filename, callerPreview)
 	if err != nil {
-		return resCh, err
+		return res, err
 	}
 	if pre.Preview != nil {
 		u.Debug(ctx, "upload: created preview in preprocess")
 		// Store the preview in pending storage
 		if err := NewPendingPreviews(u.G()).Put(ctx, outboxID, pre); err != nil {
-			return resCh, err
+			return res, err
 		}
 	}
 
@@ -454,5 +456,5 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		upload.uploadResult.trigger(ures)
 		u.doneUploading(outboxID)
 	}()
-	return upload.uploadResult.waitCh(), nil
+	return upload.uploadResult, nil
 }
