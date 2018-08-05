@@ -297,6 +297,8 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 			S3Signer:       u.s3signer,
 			ConversationID: convID,
 			UserID:         uid,
+			OutboxID:       outboxID,
+			Preview:        false,
 			Progress:       progress,
 		}
 		ures.Object, err = u.store.UploadAsset(bgctx, &task, nil)
@@ -341,6 +343,8 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 				S3Signer:       u.s3signer,
 				ConversationID: convID,
 				UserID:         uid,
+				OutboxID:       outboxID,
+				Preview:        true,
 			}
 			preview, err := u.store.UploadAsset(bgctx, &task, encryptedOut)
 			if err == nil {
