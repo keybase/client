@@ -310,6 +310,7 @@ type AttachmentUploader interface {
 		callerPreview *chat1.MakePreviewRes) (chan AttachmentUploadResult, error)
 	Status(ctx context.Context, outboxID chat1.OutboxID) (AttachmentUploaderTaskStatus, AttachmentUploadResult, error)
 	Retry(ctx context.Context, outboxID chat1.OutboxID) (chan AttachmentUploadResult, error)
+	Cancel(ctx context.Context, outboxID chat1.OutboxID) error
 	Complete(ctx context.Context, outboxID chat1.OutboxID)
 }
 
