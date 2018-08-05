@@ -1606,7 +1606,6 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return err
 	}
-
 	uid := h.G().Env.GetUID()
 	outbox := storage.NewOutbox(h.G(), uid.ToBytes())
 	if err := outbox.RemoveMessage(ctx, outboxID); err != nil {
