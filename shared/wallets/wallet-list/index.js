@@ -12,7 +12,7 @@ import {
 } from '../../common-adapters'
 import {styleSheetCreate, globalMargins, globalColors, isMobile, type StylesCrossPlatform} from '../../styles'
 import {type AccountID} from '../../constants/types/wallets'
-import WalletRow from './wallet-row/container'
+import WalletRow from '../wallet-row/container'
 
 type AddProps = {
   onAddNew: () => void,

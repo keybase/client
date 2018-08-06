@@ -13,6 +13,7 @@ import exportSecretKey from './export-secret-key/index.stories'
 import transaction from './transaction/index.stories'
 import transactionDetails from './transaction-details/index.stories'
 
+import walletRow from './wallet-row/index.stories'
 import walletList from './wallet-list/index.stories'
 import wallet from './wallet/index.stories'
 
@@ -27,6 +28,7 @@ const load = () => {
   confirmForm()
   walletList()
   wallet()
+  walletRow()
   transaction()
   transactionDetails()
 

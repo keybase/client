@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import Banner from '../banner/container'
-import Participants from '../send-form/participants'
+import Participants from './participants'
 import NoteAndMemo from './note-and-memo'
 
 type ConfirmSendProps = {|

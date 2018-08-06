@@ -1,9 +1,9 @@
 // @flow
 import {WalletRow, type Props} from '.'
-import {connect, type TypedState, type Dispatch} from '../../../util/container'
-import {getAccount, getSelectedAccount} from '../../../constants/wallets'
-import {createSelectAccount} from '../../../actions/wallets-gen'
-import {type AccountID} from '../../../constants/types/wallets'
+import {connect, type TypedState, type Dispatch} from '../../util/container'
+import {getAccount, getSelectedAccount} from '../../constants/wallets'
+import {createSelectAccount} from '../../actions/wallets-gen'
+import {type AccountID} from '../../constants/types/wallets'
 
 const mapStateToProps = (state: TypedState, ownProps: {accountID: AccountID}) => {
   const account = getAccount(state, ownProps.accountID)
