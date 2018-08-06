@@ -26,8 +26,7 @@ func ApplicationKeyAtGeneration(mctx libkb.MetaContext, teamData *keybase1.TeamD
 
 	item, err := GetAndVerifyPerTeamKey(mctx, teamData, generation)
 	if err != nil {
-		return res, libkb.NotFoundError{
-			Msg: fmt.Sprintf("no team secret found at generation %v", generation)}
+		return res, err
 	}
 
 	var rkm *keybase1.ReaderKeyMask
