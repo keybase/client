@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {storiesOf} from '../../../stories/storybook'
-import {Box} from '../../../common-adapters/box'
+import {storiesOf} from '../../stories/storybook'
+import {Box} from '../../common-adapters'
 import Banner from '.'
 
 const examples = [

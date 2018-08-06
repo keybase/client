@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import Banner from '../send-form/banner/container'
+import Banner from '../banner/container'
 import Participants from '../send-form/participants'
 import NoteAndMemo from './note-and-memo'
 
@@ -14,10 +14,8 @@ type ConfirmSendProps = {|
   assetType: string,
   assetConversion?: string,
   waiting?: boolean,
-
   encryptedNote?: string,
   publicMemo?: string,
-
   bannerBackground?: string,
   bannerText?: string,
 |}
