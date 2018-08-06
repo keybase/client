@@ -19,8 +19,8 @@ const promptContainerStyle = {
 class FilePickerPopup extends React.Component<Props> {
   render() {
     // TODO: Have separate menu items for Take Photo, Take Video,
-    // Photo from Library, and Video from Library when launchCamera
-    // and launchImageLibrary Android bugs are fixed.
+    // Photo from Library, and Video from Library on Android when
+    // launchCamera and launchImageLibrary Android bugs are fixed.
     const items = isIOS
       ? [
           {
