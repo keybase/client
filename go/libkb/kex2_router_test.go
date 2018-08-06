@@ -46,7 +46,8 @@ func (k *ktester) get(mr kex2.MessageRouter, low kex2.Seqno, poll time.Duration)
 
 func TestKex2Router(t *testing.T) {
 	tc := SetupTest(t, "kex2 router", 1)
-	mr := NewKexRouter(tc.G)
+	mctx := NewMetaContextTODO(tc.G)
+	mr := NewKexRouter(&mctx)
 	kt := newKtester()
 
 	m1 := "hello everybody"

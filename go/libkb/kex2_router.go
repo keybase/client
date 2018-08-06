@@ -12,22 +12,24 @@ import (
 
 // KexRouter implements the kex2.MessageRouter interface.
 type KexRouter struct {
-	Contextified
+	m MetaContext
 }
 
 // NewKexRouter creates a contextified KexRouter.
-func NewKexRouter(g *GlobalContext) *KexRouter {
-	return &KexRouter{Contextified: NewContextified(g)}
+func NewKexRouter(m MetaContext) *KexRouter {
+	return &KexRouter{
+		m: m.WithLogTag("KEXR"),
+	}
 }
 
 // Post implements Post in the kex2.MessageRouter interface.
 func (k *KexRouter) Post(sessID kex2.SessionID, sender kex2.DeviceID, seqno kex2.Seqno, msg []byte) (err error) {
-	k.G().Log.Debug("+ KexRouter.Post(%x, %x, %d, ...)", sessID, sender, seqno)
+	k.m.CDebugf("+ KexRouter.Post(%x, %x, %d, ...)", sessID, sender, seqno)
 	defer func() {
-		k.G().Log.Debug("- KexRouter.Post(%x, %x, %d) -> %s", sessID, sender, seqno, ErrToOk(err))
+		k.m.CDebugf("- KexRouter.Post(%x, %x, %d) -> %s", sessID, sender, seqno, ErrToOk(err))
 	}()
 
-	_, err = k.G().API.Post(APIArg{
+	_, err = k.m.G().API.Post(APIArg{
 		Endpoint: "kex2/send",
 		Args: HTTPArgs{
 			"I":      HexArg(sessID[:]),
@@ -53,9 +55,9 @@ func (k *kexResp) GetAppStatus() *AppStatus {
 
 // Get implements Get in the kex2.MessageRouter interface.
 func (k *KexRouter) Get(sessID kex2.SessionID, receiver kex2.DeviceID, low kex2.Seqno, poll time.Duration) (msgs [][]byte, err error) {
-	k.G().Log.Debug("+ KexRouter.Get(%x, %x, %d, %s)", sessID, receiver, low, poll)
+	k.m.CDebugf("+ KexRouter.Get(%x, %x, %d, %s)", sessID, receiver, low, poll)
 	defer func() {
-		k.G().Log.Debug("- KexRouter.Get(%x, %x, %d, %s) -> %s (messages: %d)", sessID, receiver, low, poll, ErrToOk(err), len(msgs))
+		k.m.CDebugf("- KexRouter.Get(%x, %x, %d, %s) -> %s (messages: %d)", sessID, receiver, low, poll, ErrToOk(err), len(msgs))
 	}()
 
 	if poll > HTTPPollMaximum {
@@ -73,7 +75,7 @@ func (k *KexRouter) Get(sessID kex2.SessionID, receiver kex2.DeviceID, low kex2.
 	}
 	var j kexResp
 
-	if err = k.G().API.GetDecode(arg, &j); err != nil {
+	if err = k.m.G().API.GetDecode(arg, &j); err != nil {
 		return nil, err
 	}
 	if j.Status.Code != SCOk {
