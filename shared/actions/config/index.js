@@ -128,7 +128,7 @@ const loadDaemonAccounts = () =>
           let usernames = extendedConfig.provisionedUsernames || []
           let defaultUsername = extendedConfig.defaultUsername || ''
           // TODO likely goes away with CORE-8507, currently get extended will remove the user from the list
-          if (!usernames.includes(defaultUsername)) {
+          if (defaultUsername && !usernames.includes(defaultUsername)) {
             usernames.push(defaultUsername)
           }
           usernames = usernames.sort()
