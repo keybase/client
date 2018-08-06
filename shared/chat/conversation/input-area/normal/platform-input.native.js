@@ -75,6 +75,12 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
         takePhotoButtonTitle = 'Take Video...'
         permDeniedText = 'Allow Keybase to take video and choose videos from your library?'
         break
+      default:
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (view: empty) => any
+        ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(mediaType);
+        */
+        throw new Error(`Impossible mediaType encountered: ${mediaType}`)
     }
     const permissionDenied = {
       title: 'Permissions needed',
@@ -105,6 +111,12 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
       case 'library':
         launchImageLibrary(options, handleSelection)
         break
+      default:
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (view: empty) => any
+        ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(location);
+        */
+        throw new Error(`Impossible location encountered: ${location}`)
     }
   }
 
