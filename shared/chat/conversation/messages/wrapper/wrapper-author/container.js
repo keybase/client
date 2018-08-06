@@ -12,8 +12,8 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isEd
   const isYou = state.config.username === message.author
   const isFollowing = state.config.following.has(message.author)
   const isBroken = state.users.infoMap.getIn([message.author, 'broken'], false)
-  const {readMsgID, maxMsgID} = Constants.getMeta(state, message.conversationIDKey)
-  const lastPositionExists = maxMsgID > readMsgID
+  const orangeLineMessageID = state.chat2.orangeLineMap.get(message.conversationIDKey)
+  const lastPositionExists = orangeLineMessageID === message.id
   const messageSent = !message.submitState
   const messageFailed = message.submitState === 'failed'
   const messagePending = message.submitState === 'pending'
