@@ -342,6 +342,8 @@ export const homeHomeScreenTodoType = {
   folder: 8,
   gitRepo: 9,
   teamShowcase: 10,
+  avatarUser: 11,
+  avatarTeam: 12,
 }
 
 export const identifyCommonIdentifyReasonType = {
@@ -1252,6 +1254,8 @@ export type HomeScreenTodoType =
   | 8 // FOLDER_8
   | 9 // GIT_REPO_9
   | 10 // TEAM_SHOWCASE_10
+  | 11 // AVATAR_USER_11
+  | 12 // AVATAR_TEAM_12
 
 export type HomeUIHomeUIRefreshRpcParam = void
 export type HomeUserSummary = $ReadOnly<{uid: UID, username: String, bio: String, fullName: String, pics?: ?Pics}>
@@ -2159,7 +2163,7 @@ export type TeamNamePart = String
 export type TeamOpenReqMsg = $ReadOnly<{teamID: TeamID, tars?: ?Array<TeamAccessRequest>}>
 export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, chat: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, setRetentionPolicy: Boolean, setMinWriterRole: Boolean, changeOpenTeam: Boolean, leaveTeam: Boolean, joinTeam: Boolean, setPublicityAny: Boolean, listFirst: Boolean, changeTarsDisabled: Boolean, deleteChatHistory: Boolean}>
 export type TeamPlusApplicationKeys = $ReadOnly<{id: TeamID, name: String, implicit: Boolean, public: Boolean, application: TeamApplication, writers?: ?Array<UserVersion>, onlyReaders?: ?Array<UserVersion>, applicationKeys?: ?Array<TeamApplicationKey>}>
-export type TeamRefreshers = $ReadOnly<{needKeyGeneration: PerTeamKeyGeneration, wantMembers?: ?Array<UserVersion>, wantMembersRole: TeamRole, needKBFSKeyGeneration: TeamKBFSKeyRefresher}>
+export type TeamRefreshers = $ReadOnly<{needKeyGeneration: PerTeamKeyGeneration, needApplicationsAtGenerations: {[key: string]: ?Array<TeamApplication>}, wantMembers?: ?Array<UserVersion>, wantMembersRole: TeamRole, needKBFSKeyGeneration: TeamKBFSKeyRefresher}>
 export type TeamRequestAccessResult = $ReadOnly<{open: Boolean}>
 export type TeamResetUser = $ReadOnly<{username: String, uid: UID, eldestSeqno: Seqno}>
 export type TeamRole =

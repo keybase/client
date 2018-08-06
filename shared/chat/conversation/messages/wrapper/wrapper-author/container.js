@@ -3,7 +3,7 @@ import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as ProfileGen from '../../../../../actions/profile-gen'
 import * as TrackerGen from '../../../../../actions/tracker-gen'
 import * as Types from '../../../../../constants/types/chat2'
-import * as Constants from '../../../../../constants/chat2/message'
+import * as Constants from '../../../../../constants/chat2'
 import {WrapperAuthor} from '../'
 import {setDisplayName, compose, connect, type TypedState} from '../../../../../util/container'
 import {isMobile} from '../../../../../constants/platform'
@@ -12,8 +12,8 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isEd
   const isYou = state.config.username === message.author
   const isFollowing = state.config.following.has(message.author)
   const isBroken = state.users.infoMap.getIn([message.author, 'broken'], false)
-  const lastReadMessageID = state.chat2.lastReadMessageMap.get(message.conversationIDKey)
-  const lastPositionExists = !!previous && lastReadMessageID === previous.id
+  const {readMsgID, maxMsgID} = Constants.getMeta(state, message.conversationIDKey)
+  const lastPositionExists = maxMsgID > readMsgID
   const messageSent = !message.submitState
   const messageFailed = message.submitState === 'failed'
   const messagePending = message.submitState === 'pending'

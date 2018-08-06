@@ -139,7 +139,7 @@ function openInFileUISaga({payload: {path}}: FsGen.OpenInFileUIPayload, state: T
   const openPath = path || downloadFolder
   const enabled = state.fs.fuseStatus && state.fs.fuseStatus.kextStarted
   if (isLinux || enabled) {
-    return Saga.call(openWithCurrentMountDir, openPath)
+    return Saga.call(openPath.startsWith(Config.defaultKBFSPath) ? openWithCurrentMountDir : _open, openPath)
   } else {
     return Saga.put(navigateTo([fsTab, {props: {path: Types.stringToPath(openPath)}, selected: 'folder'}]))
   }

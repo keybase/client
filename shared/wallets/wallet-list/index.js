@@ -29,12 +29,12 @@ const _AddWallet = (props: AddProps & OverlayParentProps) => {
   const menuItems = [
     {
       onClick: () => props.onAddNew(),
-      title: 'Create a new wallet',
+      title: 'Create a new account',
     },
     {
       disabled: isMobile,
       onClick: () => props.onLinkExisting(),
-      title: 'Link an existing Stellar wallet',
+      title: 'Link an existing Stellar account',
     },
   ]
 

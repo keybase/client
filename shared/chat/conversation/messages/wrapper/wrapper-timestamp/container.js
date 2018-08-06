@@ -1,6 +1,6 @@
 // @flow
 import {WrapperTimestamp} from '../'
-import * as Constants from '../../../../../constants/chat2/message'
+import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
 import {setDisplayName, compose, connect, type TypedState} from '../../../../../util/container'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
@@ -11,18 +11,11 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  const lastReadMessageID = state.chat2.lastReadMessageMap.get(ownProps.message.conversationIDKey)
-  // Show the orange line on the first message after the last read message
-  // Messages sent sent by you don't count
-  const orangeLineAbove =
-    !!ownProps.previous &&
-    lastReadMessageID === ownProps.previous.id &&
-    ownProps.message.author !== state.config.username
-
+  const messageIDWithOrangeLine = state.chat2.orangeLineMap.get(ownProps.message.conversationIDKey)
   return {
     _message: ownProps.message,
     conversationIDKey: ownProps.message.conversationIDKey,
-    orangeLineAbove,
+    orangeLineAbove: messageIDWithOrangeLine === ownProps.message.id,
     ordinal: ownProps.message.ordinal,
     previous: ownProps.previous,
   }
@@ -31,12 +24,13 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const {_message, ordinal, previous} = stateProps
 
-  const showTimestamp = Constants.enoughTimeBetweenMessages(_message, previous)
+  // Placeholder messages can pass this test ("orangeLineAbove || !previous")
+  // but have a zero-timestamp, so we can't try to show a timestamp for them.
+  const showTimestamp =
+    Constants.enoughTimeBetweenMessages(_message, previous) ||
+    (_message.timestamp && (stateProps.orangeLineAbove || !previous))
 
-  const timestamp =
-    stateProps.orangeLineAbove || !previous || showTimestamp
-      ? formatTimeForMessages(_message.timestamp)
-      : null
+  const timestamp = showTimestamp ? formatTimeForMessages(_message.timestamp) : null
 
   return {
     children: ownProps.children,

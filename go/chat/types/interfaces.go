@@ -312,3 +312,7 @@ type AttachmentUploader interface {
 	Retry(ctx context.Context, outboxID chat1.OutboxID) (chan AttachmentUploadResult, error)
 	Complete(ctx context.Context, outboxID chat1.OutboxID)
 }
+
+type NativeVideoHelper interface {
+	ThumbnailAndDuration(ctx context.Context, filename string) ([]byte, int, error)
+}

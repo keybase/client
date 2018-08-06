@@ -6,6 +6,7 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
+import * as TeamsTypes from '../constants/types/teams'
 import HiddenString from '../util/hidden-string'
 import type {RetentionPolicy} from '../constants/types/teams'
 
@@ -43,7 +44,6 @@ export const messageSend = 'chat2:messageSend'
 export const messageSetEditing = 'chat2:messageSetEditing'
 export const messageSetQuoting = 'chat2:messageSetQuoting'
 export const messageWasEdited = 'chat2:messageWasEdited'
-export const messageWasReactedTo = 'chat2:messageWasReactedTo'
 export const messagesAdd = 'chat2:messagesAdd'
 export const messagesExploded = 'chat2:messagesExploded'
 export const messagesWereDeleted = 'chat2:messagesWereDeleted'
@@ -60,9 +60,9 @@ export const navigateToThread = 'chat2:navigateToThread'
 export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openFolder = 'chat2:openFolder'
 export const previewConversation = 'chat2:previewConversation'
-export const reactionsWereDeleted = 'chat2:reactionsWereDeleted'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
+export const saveMinWriterRole = 'chat2:saveMinWriterRole'
 export const selectConversation = 'chat2:selectConversation'
 export const sendTyping = 'chat2:sendTyping'
 export const setConvExplodingMode = 'chat2:setConvExplodingMode'
@@ -71,15 +71,18 @@ export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingMessagesNew = 'chat2:setExplodingMessagesNew'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
 export const setInboxFilter = 'chat2:setInboxFilter'
+export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setPendingConversationExistingConversationIDKey = 'chat2:setPendingConversationExistingConversationIDKey'
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setPendingMode = 'chat2:setPendingMode'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
+export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMoreToLoad = 'chat2:updateMoreToLoad'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
+export const updateReactions = 'chat2:updateReactions'
 export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
 export const updateTypers = 'chat2:updateTypers'
 
@@ -199,14 +202,6 @@ type _MessageWasEditedPayload = $ReadOnly<{|
   mentionsChannel: 'none' | 'all' | 'here',
   mentionsChannelName: I.Map<string, Types.ConversationIDKey>,
 |}>
-type _MessageWasReactedToPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  emoji: string,
-  reactionMsgID: RPCChatTypes.MessageID,
-  sender: string,
-  targetMsgID: RPCChatTypes.MessageID,
-  timestamp: number,
-|}>
 type _MessagesAddPayload = $ReadOnly<{|
   context: {type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey},
   messages: Array<Types.Message>,
@@ -269,14 +264,14 @@ type _PreviewConversationPayload = $ReadOnly<{|
   conversationIDKey?: Types.ConversationIDKey,
   reason: 'manageView' | 'messageLink' | 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView' | 'newChannel',
 |}>
-type _ReactionsWereDeletedPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  deletions: Array<{emoji: string, reactionMsgID: RPCChatTypes.MessageID, targetMsgID: RPCChatTypes.MessageID}>,
-|}>
 type _ResetChatWithoutThemPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _ResetLetThemInPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   username: string,
+|}>
+type _SaveMinWriterRolePayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  role: TeamsTypes.TeamRoleType,
 |}>
 type _SelectConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -304,6 +299,10 @@ type _SetExplodingModeLockPayload = $ReadOnly<{|
   unset?: boolean,
 |}>
 type _SetInboxFilterPayload = $ReadOnly<{|filter: string|}>
+type _SetMinWriterRolePayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  role: TeamsTypes.TeamRoleType,
+|}>
 type _SetPendingConversationExistingConversationIDKeyPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _SetPendingConversationUsersPayload = $ReadOnly<{|
   users: Array<string>,
@@ -314,6 +313,12 @@ type _SetPendingModePayload = $ReadOnly<{|
   noneDestination?: 'inbox' | 'thread',
 |}>
 type _StaticConfigLoadedPayload = $ReadOnly<{|staticConfig: Types.StaticConfig|}>
+type _ToggleLocalReactionPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  emoji: string,
+  targetOrdinal: Types.Ordinal,
+  username: string,
+|}>
 type _ToggleMessageReactionPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   emoji: string,
@@ -331,14 +336,14 @@ type _UpdateNotificationSettingsPayload = $ReadOnly<{|
   notificationsMobile: Types.NotificationsType,
   notificationsGlobalIgnoreMentions: boolean,
 |}>
+type _UpdateReactionsPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  updates: Array<{targetMsgID: RPCChatTypes.MessageID, reactions: Types.Reactions}>,
+|}>
 type _UpdateTeamRetentionPolicyPayload = $ReadOnly<{|convs: Array<RPCChatTypes.InboxUIItem>|}>
 type _UpdateTypersPayload = $ReadOnly<{|conversationToTypers: I.Map<Types.ConversationIDKey, I.Set<string>>|}>
 
 // Action Creators
-/**
- * A reaction was added to a message.
- */
-export const createMessageWasReactedTo = (payload: _MessageWasReactedToPayload) => ({error: false, payload, type: messageWasReactedTo})
 /**
  * Actually start a conversation
  */
@@ -360,10 +365,6 @@ export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({e
  */
 export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({error: false, payload, type: updateConvExplodingModes})
 /**
- * Reactions were removed from a message.
- */
-export const createReactionsWereDeleted = (payload: _ReactionsWereDeletedPayload) => ({error: false, payload, type: reactionsWereDeleted})
-/**
  * Sent whenever the mobile file picker encounters an error.
  */
 export const createFilePickerError = (payload: _FilePickerErrorPayload) => ({error: false, payload, type: filePickerError})
@@ -371,6 +372,10 @@ export const createFilePickerError = (payload: _FilePickerErrorPayload) => ({err
  * Set a lock on the exploding mode for a conversation.
  */
 export const createSetExplodingModeLock = (payload: _SetExplodingModeLockPayload) => ({error: false, payload, type: setExplodingModeLock})
+/**
+ * Set the minimum role required to write into a conversation. Valid only for team conversations.
+ */
+export const createSetMinWriterRole = (payload: _SetMinWriterRolePayload) => ({error: false, payload, type: setMinWriterRole})
 /**
  * Set the remote exploding mode for a conversation.
  */
@@ -392,9 +397,21 @@ export const createHandleSeeingExplodingMessages = (payload: _HandleSeeingExplod
  */
 export const createStaticConfigLoaded = (payload: _StaticConfigLoadedPayload) => ({error: false, payload, type: staticConfigLoaded})
 /**
- * Toggle a reaction on a message.
+ * Tell the service to toggle a reaction on a message.
  */
 export const createToggleMessageReaction = (payload: _ToggleMessageReactionPayload) => ({error: false, payload, type: toggleMessageReaction})
+/**
+ * The service sent us an update for the reaction map of a message.
+ */
+export const createUpdateReactions = (payload: _UpdateReactionsPayload) => ({error: false, payload, type: updateReactions})
+/**
+ * Toggle a reaction in the store.
+ */
+export const createToggleLocalReaction = (payload: _ToggleLocalReactionPayload) => ({error: false, payload, type: toggleLocalReaction})
+/**
+ * Update the minWriterRole stored with the conversation metadata.
+ */
+export const createSaveMinWriterRole = (payload: _SaveMinWriterRolePayload) => ({error: false, payload, type: saveMinWriterRole})
 /**
  * When the search changes we need to find any existing conversations to stash into the metaMap
  */
@@ -488,7 +505,6 @@ export type MessageSendPayload = $Call<typeof createMessageSend, _MessageSendPay
 export type MessageSetEditingPayload = $Call<typeof createMessageSetEditing, _MessageSetEditingPayload>
 export type MessageSetQuotingPayload = $Call<typeof createMessageSetQuoting, _MessageSetQuotingPayload>
 export type MessageWasEditedPayload = $Call<typeof createMessageWasEdited, _MessageWasEditedPayload>
-export type MessageWasReactedToPayload = $Call<typeof createMessageWasReactedTo, _MessageWasReactedToPayload>
 export type MessagesAddPayload = $Call<typeof createMessagesAdd, _MessagesAddPayload>
 export type MessagesExplodedPayload = $Call<typeof createMessagesExploded, _MessagesExplodedPayload>
 export type MessagesWereDeletedPayload = $Call<typeof createMessagesWereDeleted, _MessagesWereDeletedPayload>
@@ -505,9 +521,9 @@ export type NavigateToThreadPayload = $Call<typeof createNavigateToThread, _Navi
 export type NotificationSettingsUpdatedPayload = $Call<typeof createNotificationSettingsUpdated, _NotificationSettingsUpdatedPayload>
 export type OpenFolderPayload = $Call<typeof createOpenFolder, _OpenFolderPayload>
 export type PreviewConversationPayload = $Call<typeof createPreviewConversation, _PreviewConversationPayload>
-export type ReactionsWereDeletedPayload = $Call<typeof createReactionsWereDeleted, _ReactionsWereDeletedPayload>
 export type ResetChatWithoutThemPayload = $Call<typeof createResetChatWithoutThem, _ResetChatWithoutThemPayload>
 export type ResetLetThemInPayload = $Call<typeof createResetLetThemIn, _ResetLetThemInPayload>
+export type SaveMinWriterRolePayload = $Call<typeof createSaveMinWriterRole, _SaveMinWriterRolePayload>
 export type SelectConversationPayload = $Call<typeof createSelectConversation, _SelectConversationPayload>
 export type SendTypingPayload = $Call<typeof createSendTyping, _SendTypingPayload>
 export type SetConvExplodingModePayload = $Call<typeof createSetConvExplodingMode, _SetConvExplodingModePayload>
@@ -516,15 +532,18 @@ export type SetConversationOfflinePayload = $Call<typeof createSetConversationOf
 export type SetExplodingMessagesNewPayload = $Call<typeof createSetExplodingMessagesNew, _SetExplodingMessagesNewPayload>
 export type SetExplodingModeLockPayload = $Call<typeof createSetExplodingModeLock, _SetExplodingModeLockPayload>
 export type SetInboxFilterPayload = $Call<typeof createSetInboxFilter, _SetInboxFilterPayload>
+export type SetMinWriterRolePayload = $Call<typeof createSetMinWriterRole, _SetMinWriterRolePayload>
 export type SetPendingConversationExistingConversationIDKeyPayload = $Call<typeof createSetPendingConversationExistingConversationIDKey, _SetPendingConversationExistingConversationIDKeyPayload>
 export type SetPendingConversationUsersPayload = $Call<typeof createSetPendingConversationUsers, _SetPendingConversationUsersPayload>
 export type SetPendingModePayload = $Call<typeof createSetPendingMode, _SetPendingModePayload>
 export type StaticConfigLoadedPayload = $Call<typeof createStaticConfigLoaded, _StaticConfigLoadedPayload>
+export type ToggleLocalReactionPayload = $Call<typeof createToggleLocalReaction, _ToggleLocalReactionPayload>
 export type ToggleMessageReactionPayload = $Call<typeof createToggleMessageReaction, _ToggleMessageReactionPayload>
 export type UpdateConvExplodingModesPayload = $Call<typeof createUpdateConvExplodingModes, _UpdateConvExplodingModesPayload>
 export type UpdateConvRetentionPolicyPayload = $Call<typeof createUpdateConvRetentionPolicy, _UpdateConvRetentionPolicyPayload>
 export type UpdateMoreToLoadPayload = $Call<typeof createUpdateMoreToLoad, _UpdateMoreToLoadPayload>
 export type UpdateNotificationSettingsPayload = $Call<typeof createUpdateNotificationSettings, _UpdateNotificationSettingsPayload>
+export type UpdateReactionsPayload = $Call<typeof createUpdateReactions, _UpdateReactionsPayload>
 export type UpdateTeamRetentionPolicyPayload = $Call<typeof createUpdateTeamRetentionPolicy, _UpdateTeamRetentionPolicyPayload>
 export type UpdateTypersPayload = $Call<typeof createUpdateTypers, _UpdateTypersPayload>
 
@@ -563,7 +582,6 @@ export type Actions =
   | MessageSetEditingPayload
   | MessageSetQuotingPayload
   | MessageWasEditedPayload
-  | MessageWasReactedToPayload
   | MessagesAddPayload
   | MessagesExplodedPayload
   | MessagesWereDeletedPayload
@@ -580,9 +598,9 @@ export type Actions =
   | NotificationSettingsUpdatedPayload
   | OpenFolderPayload
   | PreviewConversationPayload
-  | ReactionsWereDeletedPayload
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload
+  | SaveMinWriterRolePayload
   | SelectConversationPayload
   | SendTypingPayload
   | SetConvExplodingModePayload
@@ -591,15 +609,18 @@ export type Actions =
   | SetExplodingMessagesNewPayload
   | SetExplodingModeLockPayload
   | SetInboxFilterPayload
+  | SetMinWriterRolePayload
   | SetPendingConversationExistingConversationIDKeyPayload
   | SetPendingConversationUsersPayload
   | SetPendingModePayload
   | StaticConfigLoadedPayload
+  | ToggleLocalReactionPayload
   | ToggleMessageReactionPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
   | UpdateMoreToLoadPayload
   | UpdateNotificationSettingsPayload
+  | UpdateReactionsPayload
   | UpdateTeamRetentionPolicyPayload
   | UpdateTypersPayload
   | {type: 'common:resetStore', payload: void}

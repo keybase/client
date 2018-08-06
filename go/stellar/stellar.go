@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
@@ -22,6 +23,8 @@ import (
 	"github.com/stellar/go/amount"
 	"github.com/stellar/go/xdr"
 )
+
+const AccountNameMaxRunes = 24
 
 // CreateWallet creates and posts an initial stellar bundle for a user.
 // Only succeeds if they do not already have one.
@@ -978,7 +981,16 @@ func reverse(s string) string {
 	return string(r)
 }
 
+// ChangeAccountName changes the name of an account.
+// Make sure to keep this in sync with ValidateAccountNameLocal.
+// An empty name is always acceptable.
+// Renaming an account to an already used name is blocked.
+// Maximum length of AccountNameMaxRunes runes.
 func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newName string) (err error) {
+	runes := utf8.RuneCountInString(newName)
+	if runes > AccountNameMaxRunes {
+		return fmt.Errorf("account name can be %v characters at the longest but was %v", AccountNameMaxRunes, runes)
+	}
 	prevBundle, _, err := remote.Fetch(m.Ctx(), m.G())
 	if err != nil {
 		return err
@@ -990,7 +1002,8 @@ func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newNam
 			// Change Name in place to modify Account struct.
 			nextBundle.Accounts[i].Name = newName
 			found = true
-			break
+		} else if acc.Name == newName {
+			return fmt.Errorf("you already have an account with that name")
 		}
 	}
 	if !found {
