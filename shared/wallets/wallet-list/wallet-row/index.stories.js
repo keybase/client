@@ -1,17 +1,13 @@
 // @flow
-import React from 'react'
-import * as PropProviders from '../../../stories/prop-providers'
+import * as React from 'react'
+import * as Sb from '../../../stories/storybook'
 import {Box2} from '../../../common-adapters'
-import {storiesOf, action} from '../../../stories/storybook'
 import {WalletRow} from '.'
 
-const provider = PropProviders.CommonProvider()
-
-const onSelect = action('onSelect')
+const onSelect = Sb.action('onSelect')
 
 const load = () => {
-  storiesOf('Wallets/Wallet Row', module)
-    .addDecorator(provider)
+  Sb.storiesOf('Wallets/Wallet Row', module)
     .addDecorator(story => (
       <Box2 direction="vertical" style={{width: 240}}>
         {story()}
@@ -21,7 +17,7 @@ const load = () => {
       <WalletRow
         accountID="G43289XXXXX34OPL"
         keybaseUser="cecileb"
-        name="cecileb's wallet"
+        name="cecileb's account"
         contents="280.0871234 XLM + more"
         isSelected={true}
         onSelect={onSelect}
@@ -31,7 +27,7 @@ const load = () => {
       <WalletRow
         accountID="G43289XXXXX34OPM"
         keybaseUser=""
-        name="Second wallet"
+        name="Second account"
         contents="56.9618203 XLM"
         isSelected={false}
         onSelect={onSelect}

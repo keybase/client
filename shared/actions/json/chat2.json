@@ -2,6 +2,7 @@
   "prelude": [
     "import * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
     "import * as Types from '../constants/types/chat2'",
+    "import * as TeamsTypes from '../constants/types/teams'",
     "import HiddenString from '../util/hidden-string'",
     "import type {RetentionPolicy} from '../constants/types/teams'"
   ],
@@ -206,7 +207,7 @@
     },
     // Deletes all messages
     "messageDeleteHistory": {
-      "conversationIDKey": "Types.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     // Update why we have a pending conversation, either we're searching or we have a fixed set of users (you clicked a folder for example)
     // Use `noneDestination` to specify where the user should end up after setting it to 'none'
@@ -229,25 +230,23 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString"
     },
+    "toggleLocalReaction": {
+      "_description": "Toggle a reaction in the store.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "emoji": "string",
+      "targetOrdinal": "Types.Ordinal",
+      "username": "string"
+    },
     "toggleMessageReaction": {
-      "_description": "Toggle a reaction on a message.",
+      "_description": "Tell the service to toggle a reaction on a message.",
       "conversationIDKey": "Types.ConversationIDKey",
       "emoji": "string",
       "ordinal": "Types.Ordinal"
     },
-    "messageWasReactedTo": {
-      "_description": "A reaction was added to a message.",
+    "updateReactions": {
+      "_description": "The service sent us an update for the reaction map of a message.",
       "conversationIDKey": "Types.ConversationIDKey",
-      "emoji": "string",
-      "reactionMsgID": "RPCChatTypes.MessageID",
-      "sender": "string",
-      "targetMsgID": "RPCChatTypes.MessageID"
-    },
-    "reactionsWereDeleted": {
-      "_description": "Reactions were removed from a message.",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "deletions":
-        "Array<{emoji: string, reactionMsgID: RPCChatTypes.MessageID, targetMsgID: RPCChatTypes.MessageID}>"
+      "updates": "Array<{targetMsgID: RPCChatTypes.MessageID, reactions: Types.Reactions}>"
     },
     // Resend a message
     "messageRetry": {
@@ -281,6 +280,10 @@
     "setPendingConversationUsers": {
       "users": "Array<string>",
       "fromSearch": "boolean"
+    },
+    // The user has selected an attachment with a preview
+    "attachmentPreviewSelect": {
+      "message": "Types.MessageAttachment"
     },
     // We want to save an attachment to the local disk
     "attachmentDownload": {
@@ -420,6 +423,21 @@
     "staticConfigLoaded": {
       "_description": "Static configuration info was loaded from the service.",
       "staticConfig": "Types.StaticConfig"
+    },
+    "filePickerError": {
+      "_description": "Sent whenever the mobile file picker encounters an error.",
+      "error": "Error"
+    },
+    "setMinWriterRole": {
+      "_description":
+        "Set the minimum role required to write into a conversation. Valid only for team conversations.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "role": "TeamsTypes.TeamRoleType"
+    },
+    "saveMinWriterRole": {
+      "_description": "Update the minWriterRole stored with the conversation metadata.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "role": "TeamsTypes.TeamRoleType"
     }
   }
 }

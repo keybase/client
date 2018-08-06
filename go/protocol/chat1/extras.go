@@ -1557,8 +1557,12 @@ func (r ReactionMap) HasReactionFromUser(reactionText, username string) (found b
 	if !ok {
 		return false, 0
 	}
-	reactionMessageID, ok := reactions[username]
-	return ok, reactionMessageID
+	reaction, ok := reactions[username]
+	return ok, reaction.ReactionMsgID
+}
+
+func (r MessageReaction) Eq(o MessageReaction) bool {
+	return r.Body == o.Body && r.MessageID == o.MessageID
 }
 
 func (i *ConversationMinWriterRoleInfoLocal) String() string {
@@ -1570,4 +1574,8 @@ func (i *ConversationMinWriterRoleInfoLocal) String() string {
 		usernameSuffix = fmt.Sprintf(", last set by %v.", i.Username)
 	}
 	return fmt.Sprintf("Minimum writer role for this conversation is %v%v", i.Role, usernameSuffix)
+}
+
+func (s *ConversationSettings) IsNil() bool {
+	return s == nil || s.MinWriterRoleInfo == nil
 }

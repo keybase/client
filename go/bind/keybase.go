@@ -4,7 +4,6 @@
 package keybase
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
@@ -38,6 +37,7 @@ import (
 	"github.com/keybase/kbfs/libgit"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/simplefs"
+	context "golang.org/x/net/context"
 )
 
 var kbCtx *libkb.GlobalContext
@@ -49,6 +49,25 @@ var kbfsConfig libkbfs.Config
 
 type PushNotifier interface {
 	LocalNotification(ident string, msg string, badgeCount int, soundName string, convID string, typ string)
+}
+
+type NativeVideoHelper interface {
+	Thumbnail(filename string) []byte
+	Duration(filename string) int
+}
+
+type videoHelper struct {
+	nvh NativeVideoHelper
+}
+
+func newVideoHelper(nvh NativeVideoHelper) videoHelper {
+	return videoHelper{
+		nvh: nvh,
+	}
+}
+
+func (v videoHelper) ThumbnailAndDuration(ctx context.Context, filename string) ([]byte, int, error) {
+	return v.nvh.Thumbnail(filename), v.nvh.Duration(filename), nil
 }
 
 type ExternalDNSNSFetcher interface {
@@ -78,11 +97,18 @@ func (d dnsNSFetcher) GetServers() []string {
 
 var _ libkb.DNSNameServerFetcher = dnsNSFetcher{}
 
+func flattenError(err error) error {
+	if err != nil {
+		return errors.New(err.Error())
+	}
+	return err
+}
+
 // InitOnce runs the Keybase services (only runs one time)
 func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
-	dnsNSFetcher ExternalDNSNSFetcher) {
+	dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) {
 	startOnce.Do(func() {
-		if err := Init(homeDir, logFile, runModeStr, accessGroupOverride, dnsNSFetcher); err != nil {
+		if err := Init(homeDir, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh); err != nil {
 			kbCtx.Log.Errorf("Init error: %s", err)
 		}
 	})
@@ -90,7 +116,9 @@ func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOver
 
 // Init runs the Keybase services
 func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
-	externalDNSNSFetcher ExternalDNSNSFetcher) error {
+	externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) (err error) {
+	defer func() { err = flattenError(err) }()
+
 	fmt.Println("Go: Initializing")
 	if logFile != "" {
 		fmt.Printf("Go: Using log: %s\n", logFile)
@@ -152,6 +180,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	svc.SetupCriticalSubServices()
 	svc.RunBackgroundOperations(uir)
 	kbChatCtx = svc.ChatContextified.ChatG()
+	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
 
 	serviceLog := config.GetLogFile()
 	logs := libkb.Logs{
@@ -214,7 +243,8 @@ func (s serviceCn) NewChat(config libkbfs.Config, params libkbfs.InitParams, ctx
 }
 
 // LogSend sends a log to Keybase
-func LogSend(status string, feedback string, sendLogs bool, uiLogPath, traceDir string) (string, error) {
+func LogSend(status string, feedback string, sendLogs bool, uiLogPath, traceDir string) (res string, err error) {
+	defer func() { err = flattenError(err) }()
 	logSendContext.Logs.Desktop = uiLogPath
 	logSendContext.Logs.Trace = traceDir
 	env := kbCtx.Env
@@ -222,7 +252,8 @@ func LogSend(status string, feedback string, sendLogs bool, uiLogPath, traceDir 
 }
 
 // WriteB64 sends a base64 encoded msgpack rpc payload
-func WriteB64(str string) error {
+func WriteB64(str string) (err error) {
+	defer func() { err = flattenError(err) }()
 	if conn == nil {
 		return errors.New("connection not initialized")
 	}
@@ -252,7 +283,8 @@ var buffer = make([]byte, bufferSize)
 
 // ReadB64 is a blocking read for base64 encoded msgpack rpc data.
 // It is called serially by the mobile run loops.
-func ReadB64() (string, error) {
+func ReadB64() (res string, err error) {
+	defer func() { err = flattenError(err) }()
 	if conn == nil {
 		return "", errors.New("connection not initialized")
 	}
@@ -354,6 +386,7 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%v,%d,%d,%s,%d,%d)",
 		strConvID, displayPlaintext, intMembersType, intMessageID, pushID, badgeCount, unixTime),
 		func() error { return err })()
+	defer func() { err = flattenError(err) }()
 
 	msg, err := unboxNotification(ctx, strConvID, body, intMembersType)
 	if err != nil {

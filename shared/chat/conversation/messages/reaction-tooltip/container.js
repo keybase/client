@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
+import * as Route from '../../../../actions/route-tree'
 import {ReactionTooltip} from '.'
 
 /**
@@ -40,11 +41,19 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   onAddReaction: () => {
-    // TODO open emoji selection screen on mobile
+    ownProps.onHidden()
+    dispatch(
+      Route.navigateAppend([
+        {
+          props: {conversationIDKey: ownProps.conversationIDKey, ordinal: ownProps.ordinal},
+          selected: 'chooseEmoji',
+        },
+      ])
+    )
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   let reactions = stateProps._reactions
     .keySeq()
     .toArray()
@@ -52,12 +61,17 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       emoji,
       users: stateProps._reactions
         .get(emoji, I.Set())
+        // Earliest users go at the top
+        .sort((a, b) => a.timestamp - b.timestamp)
         .map(r => ({
           fullName: stateProps._usersInfo.get(r.username, {fullname: ''}).fullname,
+          timestamp: r.timestamp,
           username: r.username,
         }))
         .toArray(),
     }))
+    // earliest reactions go at the top
+    .sort((a, b) => ((a.users[0] && a.users[0].timestamp) || 0) - ((b.users[0] && b.users[0].timestamp) || 0))
   if (!isMobile && ownProps.emoji) {
     // Filter down to selected emoji
     reactions = reactions.filter(r => r.emoji === ownProps.emoji)

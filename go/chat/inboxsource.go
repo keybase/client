@@ -464,8 +464,8 @@ func (s *RemoteInboxSource) SetTeamRetention(ctx context.Context, uid gregor1.UI
 	return res, err
 }
 
-func (s *RemoteInboxSource) SetConvMinWriterRole(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, info *chat1.ConversationMinWriterRoleInfo) (res *chat1.ConversationLocal, err error) {
+func (s *RemoteInboxSource) SetConvSettings(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convID chat1.ConversationID, convSettings *chat1.ConversationSettings) (res *chat1.ConversationLocal, err error) {
 	return res, err
 }
 
@@ -929,10 +929,10 @@ func (s *HybridInboxSource) SetTeamRetention(ctx context.Context, uid gregor1.UI
 	return convs, nil
 }
 
-func (s *HybridInboxSource) SetConvMinWriterRole(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, info *chat1.ConversationMinWriterRoleInfo) (res *chat1.ConversationLocal, err error) {
-	return s.modConversation(ctx, "SetConvMinWriterRole", uid, convID, func(ctx context.Context, ib *storage.Inbox) error {
-		return ib.SetConvMinWriterRole(ctx, vers, convID, info)
+func (s *HybridInboxSource) SetConvSettings(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convID chat1.ConversationID, convSettings *chat1.ConversationSettings) (res *chat1.ConversationLocal, err error) {
+	return s.modConversation(ctx, "SetConvSettings", uid, convID, func(ctx context.Context, ib *storage.Inbox) error {
+		return ib.SetConvSettings(ctx, vers, convID, convSettings)
 	})
 }
 
@@ -1087,12 +1087,10 @@ func (s *localizerPipeline) getMessagesOffline(ctx context.Context, convID chat1
 	return foundMsgs, chat1.ConversationErrorType_NONE, nil
 }
 
-func (s *localizerPipeline) getMinWriterRoleInfoLocal(ctx context.Context, conv chat1.Conversation) *chat1.ConversationMinWriterRoleInfoLocal {
-	info := conv.MinWriterRoleInfo
+func (s *localizerPipeline) getMinWriterRoleInfoLocal(ctx context.Context, info *chat1.ConversationMinWriterRoleInfo) *chat1.ConversationMinWriterRoleInfoLocal {
 	if info == nil {
 		return nil
 	}
-
 	username := ""
 	name, err := s.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(info.Uid.String()))
 	if err == nil {
@@ -1102,6 +1100,17 @@ func (s *localizerPipeline) getMinWriterRoleInfoLocal(ctx context.Context, conv 
 		Role:     info.Role,
 		Username: username,
 	}
+}
+
+func (s *localizerPipeline) getConvSettingsLocal(ctx context.Context, conv chat1.Conversation) (res *chat1.ConversationSettingsLocal) {
+	settings := conv.ConvSettings
+	if settings == nil {
+		return nil
+	}
+	res = &chat1.ConversationSettingsLocal{}
+	res.MinWriterRoleInfo = s.getMinWriterRoleInfoLocal(ctx, settings.MinWriterRoleInfo)
+	return res
+
 }
 
 func (s *localizerPipeline) getResetUserNames(ctx context.Context, uidMapper libkb.UIDMapper,
@@ -1181,7 +1190,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	conversationLocal.Expunge = conversationRemote.Expunge
 	conversationLocal.ConvRetention = conversationRemote.ConvRetention
 	conversationLocal.TeamRetention = conversationRemote.TeamRetention
-	conversationLocal.MinWriterRoleInfo = s.getMinWriterRoleInfoLocal(ctx, conversationRemote)
+	conversationLocal.ConvSettings = s.getConvSettingsLocal(ctx, conversationRemote)
 
 	if len(conversationRemote.MaxMsgSummaries) == 0 {
 		errMsg := "conversation has an empty MaxMsgSummaries field"

@@ -140,14 +140,14 @@ func (e *PaperProvisionEngine) paper(m libkb.MetaContext, keys *libkb.DeviceWith
 	// After obtaining login session, this will be called before the login state is released.
 	// It signs this new device with the paper key.
 	u := e.User
-	uid := u.GetUID()
 	nn := u.GetNormalizedName()
+	uv := u.ToUserVersion()
 
 	// Set the active device to be a special paper key active device, which keeps
 	// a cached copy around for DeviceKeyGen, which requires it to be in memory.
 	// It also will establish a NIST so that API calls can proceed on behalf of the user.
-	m = m.WithPaperKeyActiveDevice(keys, uid)
-	m.LoginContext().SetUsernameUID(nn, uid)
+	m = m.WithPaperKeyActiveDevice(keys, uv)
+	m.LoginContext().SetUsernameUserVersion(nn, uv)
 
 	// need lksec to store device keys locally
 	if err := e.fetchLKS(m, keys.EncryptionKey()); err != nil {

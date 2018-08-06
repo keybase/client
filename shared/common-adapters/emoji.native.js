@@ -14,7 +14,7 @@ const EmojiWrapper = (props: Props) => {
       style={{fontSize: size, lineHeight: undefined}}
       allowFontScaling={props.allowFontScaling}
     >
-      {(!!emojiIndexByName[emojiName] && emojiIndexByName[emojiName] + emojiVariantSuffix) || emojiName}
+      {!!emojiIndexByName[emojiName] && emojiIndexByName[emojiName] + emojiVariantSuffix}
     </Text>
   )
 }

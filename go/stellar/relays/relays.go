@@ -57,7 +57,9 @@ func getKeyForDecryption(ctx context.Context, g *libkb.GlobalContext,
 		ID:      teamID,
 		StaleOK: true,
 		Refreshers: keybase1.TeamRefreshers{
-			NeedKeyGeneration: generation,
+			NeedApplicationsAtGenerations: map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
+				generation: []keybase1.TeamApplication{keybase1.TeamApplication_STELLAR_RELAY},
+			},
 		},
 	})
 	if err != nil {

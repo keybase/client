@@ -13,9 +13,7 @@ import (
 
 type cmdChatList struct {
 	libkb.Contextified
-
-	fetcher chatCLIInboxFetcher
-
+	fetcher        chatCLIInboxFetcher
 	showDeviceName bool
 }
 
@@ -38,7 +36,6 @@ func (c *cmdChatList) Run() error {
 	if err != nil {
 		return err
 	}
-
 	if err = conversationListView(conversations).show(c.G(), string(c.G().Env.GetUsername()), c.showDeviceName); err != nil {
 		return err
 	}

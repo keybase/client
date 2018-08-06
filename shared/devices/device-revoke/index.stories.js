@@ -1,33 +1,42 @@
 // @flow
 import * as React from 'react'
-import {action, storiesOf} from '../../stories/storybook'
+import * as Constants from '../../constants/devices'
+import * as Types from '../../constants/types/devices'
+import * as Sb from '../../stories/storybook'
 import DeviceRevoke, {type Props} from '.'
 
-const devicesProps: Props = {
-  currentDevice: false,
-  deviceID: 'id',
-  type: 'desktop',
+const props: Props = {
+  device: Constants.makeDevice({
+    currentDevice: false,
+    deviceID: Types.stringToDeviceID('id'),
+    name: 'my computer',
+    type: 'desktop',
+  }),
   endangeredTLFs: [],
-  name: 'my computer',
-  onCancel: action('oncancel'),
-  onSubmit: action('onsubmit'),
+  onCancel: Sb.action('oncancel'),
+  onSubmit: Sb.action('onsubmit'),
   waiting: false,
 }
 
 const load = () => {
-  storiesOf('Devices/Revoke', module)
-    .add('Paper key', () => <DeviceRevoke {...devicesProps} type="backup" name="my paper key" />)
-    .add('Mobile Device', () => <DeviceRevoke {...devicesProps} type="mobile" name="my iphone" />)
-    .add('Desktop Device', () => <DeviceRevoke {...devicesProps} />)
-    .add('Current Device', () => <DeviceRevoke {...devicesProps} currentDevice={true} />)
-    .add('Device Loading', () => <DeviceRevoke {...devicesProps} waiting={true} />)
+  Sb.storiesOf('Devices/Revoke', module)
+    .add('Paper key', () => (
+      <DeviceRevoke {...props} device={props.device.merge({name: 'my paper key', type: 'backup'})} />
+    ))
+    .add('Mobile Device', () => (
+      <DeviceRevoke {...props} device={props.device.merge({name: 'my iphone', type: 'mobile'})} />
+    ))
+    .add('Desktop Device', () => <DeviceRevoke {...props} />)
+    .add('Current Device', () => (
+      <DeviceRevoke {...props} device={props.device.merge({currentDevice: true})} />
+    ))
     .add('Device with Endangered TLFs', () => (
       <DeviceRevoke
-        {...devicesProps}
+        {...props}
         endangeredTLFs={[
           'nathunsmitty',
           'nathunsmitty,chrisnojima',
-          'nathunsmitty,chrisnojima,jacobyoung,verylongtlfname',
+          'nathunsmitty,chrisnojima,jacobyoung,verylongtlfnam,verylongtlfnam,verylongtlfnam,verylongtlfnam,verylongtlfnam,verylongtlfnam,verylongtlfnam,verylongtlfnam,verylongtlfnam,verylongtlfnam,verylongtlfnameeeeeeeeeee,verylongtlfname',
           'nathunsmitty,ayoubd',
           'nathunsmitty,jzila',
           'nathunsmitty,xgess',
@@ -35,6 +44,13 @@ const load = () => {
         ]}
       />
     ))
+  Sb.storiesOf('Devices/Revoke', module)
+    .addDecorator(
+      Sb.createPropProviderWithCommon({
+        WaitingButton: p => ({...p, storeWaiting: true}),
+      })
+    )
+    .add('Device Loading', () => <DeviceRevoke {...props} waiting={true} />)
 }
 
 export default load

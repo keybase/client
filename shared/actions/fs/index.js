@@ -2,7 +2,6 @@
 import logger from '../../logger'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../fs-gen'
-import * as LoginGen from '../login-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
@@ -303,7 +302,7 @@ function* upload(action: FsGen.UploadPayload) {
     opID,
     src: {
       PathType: RPCTypes.simpleFSPathType.local,
-      local: localPath,
+      local: Types.getNormalizedLocalPath(localPath),
     },
     dest: {
       PathType: RPCTypes.simpleFSPathType.kbfs,
@@ -591,10 +590,7 @@ const letResetUserBackIn = ({payload: {id, username}}: FsGen.LetResetUserBackInP
 
 const letResetUserBackInResult = () => undefined // Saga.put(FsGen.createLoadResets())
 
-const resetStore = () => Saga.put({type: FsGen.resetStore})
-
 function* fsSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPureSimple(LoginGen.logout, resetStore)
   yield Saga.safeTakeEveryPure(
     FsGen.refreshLocalHTTPServerInfo,
     refreshLocalHTTPServerInfo,

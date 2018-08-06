@@ -27,7 +27,10 @@
       "type": "enum",
       "name": "KBFSArchivedType",
       "symbols": [
-        "REVISION_0"
+        "REVISION_0",
+        "TIME_1",
+        "TIME_STRING_2",
+        "REL_TIME_STRING_3"
       ]
     },
     {
@@ -44,6 +47,27 @@
             "def": false
           },
           "body": "KBFSRevision"
+        },
+        {
+          "label": {
+            "name": "TIME",
+            "def": false
+          },
+          "body": "Time"
+        },
+        {
+          "label": {
+            "name": "TIME_STRING",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "REL_TIME_STRING",
+            "def": false
+          },
+          "body": "string"
         }
       ]
     },
@@ -143,6 +167,28 @@
     },
     {
       "type": "record",
+      "name": "DirentWithRevision",
+      "fields": [
+        {
+          "type": "Dirent",
+          "name": "entry"
+        },
+        {
+          "type": "KBFSRevision",
+          "name": "revision"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "RevisionSpanType",
+      "symbols": [
+        "DEFAULT_0",
+        "LAST_FIVE_1"
+      ]
+    },
+    {
+      "type": "record",
       "name": "ErrorNum",
       "fields": [],
       "typedef": "int"
@@ -207,7 +253,8 @@
         "COPY_4",
         "MOVE_5",
         "REMOVE_6",
-        "LIST_RECURSIVE_TO_DEPTH_7"
+        "LIST_RECURSIVE_TO_DEPTH_7",
+        "GET_REVISIONS_8"
       ]
     },
     {
@@ -349,6 +396,24 @@
       ]
     },
     {
+      "type": "record",
+      "name": "GetRevisionsArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "path"
+        },
+        {
+          "type": "RevisionSpanType",
+          "name": "spanType"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "OpDescription",
       "switch": {
@@ -411,6 +476,30 @@
             "def": false
           },
           "body": "RemoveArgs"
+        },
+        {
+          "label": {
+            "name": "GET_REVISIONS",
+            "def": false
+          },
+          "body": "GetRevisionsArgs"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetRevisionsResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "DirentWithRevision"
+          },
+          "name": "revisions"
+        },
+        {
+          "type": "Progress",
+          "name": "progress"
         }
       ]
     },
@@ -742,6 +831,34 @@
       ],
       "response": "Dirent",
       "doc": "Get info about file"
+    },
+    "simpleFSGetRevisions": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "path",
+          "type": "Path"
+        },
+        {
+          "name": "spanType",
+          "type": "RevisionSpanType"
+        }
+      ],
+      "response": null,
+      "doc": "Get revision info for a directory entry"
+    },
+    "simpleFSReadRevisions": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        }
+      ],
+      "response": "GetRevisionsResult",
+      "doc": "Get list of revisions in progress. Can indicate status of pending\n   to get more revisions."
     },
     "simpleFSMakeOpid": {
       "request": [],

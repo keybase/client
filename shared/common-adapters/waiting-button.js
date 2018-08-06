@@ -1,7 +1,8 @@
 // @flow
 import * as React from 'react'
 import Button, {type Props as ButtonProps} from './button'
-import {connect, type TypedState} from '../util/container'
+import {connect, type TypedState, setDisplayName} from '../util/container'
+import * as WaitingConstants from '../constants/waiting'
 
 export type OwnProps = ButtonProps & {
   waitingKey: ?string,
@@ -46,9 +47,9 @@ class WaitingButton extends React.Component<Props, {localWaiting: boolean}> {
 const mapStateToProps = (state: TypedState, ownProps) => {
   const waitingKey = ownProps.waitingKey || ''
   return {
-    storeWaiting: state.waiting.get(waitingKey, 0) !== 0,
+    storeWaiting: WaitingConstants.anyWaiting(state, waitingKey),
   }
 }
 
-const ConnectedWaitingButton = connect(mapStateToProps)(WaitingButton)
+const ConnectedWaitingButton = connect(mapStateToProps)(setDisplayName('WaitingButton')(WaitingButton))
 export default ConnectedWaitingButton

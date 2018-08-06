@@ -1,15 +1,12 @@
 // @flow
 import * as React from 'react'
-import {action, storiesOf, createPropProvider} from '../../stories/storybook'
-import * as PropProviders from '../../stories/prop-providers'
+import * as Sb from '../../stories/storybook'
 import {Box} from '../../common-adapters'
 import {globalStyles} from '../../styles'
 import TabBarRender from '.'
 
-const provider = createPropProvider(PropProviders.Common())
-
 const defaultProps = {
-  onTabClick: action('onTabClick'),
+  onTabClick: Sb.action('onTabClick'),
   selectedTab: 'tabs:chatTab',
   username: 'nathunsmitty',
   badgeNumbers: {
@@ -31,8 +28,9 @@ const defaultProps = {
 const container = storyFn => (
   <Box
     style={{
-      ...globalStyles.flexBoxRow,
-      alignContent: 'stretch',
+      ...globalStyles.flexBoxColumn,
+      alignItems: 'stretch',
+      width: '100%',
       height: '100%',
     }}
   >
@@ -41,8 +39,7 @@ const container = storyFn => (
 )
 
 const load = () => {
-  storiesOf('Tab Bar', module)
-    .addDecorator(provider)
+  Sb.storiesOf('Tab Bar', module)
     .addDecorator(container)
     .add('Normal', () => <TabBarRender {...defaultProps} />)
     .add('With a badge', () => (

@@ -6,6 +6,7 @@ package client
 import (
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -43,14 +44,53 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			NewCmdSimpleFSDebug(cl, g),
 			NewCmdSimpleFSHistory(cl, g),
 			NewCmdSimpleFSQuota(cl, g),
+			NewCmdSimpleFSRecover(cl, g),
 		},
 	}
 }
 
 const mountDir = "/keybase"
 
-func makeSimpleFSPath(g *libkb.GlobalContext, path string) keybase1.Path {
+func makeKbfsPath(
+	path string, rev int64, timeString, relTimeString string) (
+	keybase1.Path, error) {
+	p := path[len(mountDir):]
+	if rev == 0 && timeString == "" && relTimeString == "" {
+		return keybase1.NewPathWithKbfs(p), nil
+	} else if rev != 0 {
+		if timeString != "" || relTimeString != "" {
+			return keybase1.Path{}, errors.New(
+				"can't set both a revision and a time")
+		}
 
+		return keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
+			Path: p,
+			ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(
+				keybase1.KBFSRevision(rev)),
+		}), nil
+	} else if timeString != "" {
+		if relTimeString != "" {
+			return keybase1.Path{}, errors.New(
+				"can't set both an absolute time and a relative time")
+		}
+
+		return keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
+			Path: p,
+			ArchivedParam: keybase1.NewKBFSArchivedParamWithTimeString(
+				timeString),
+		}), nil
+	}
+	return keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
+		Path: p,
+		ArchivedParam: keybase1.NewKBFSArchivedParamWithRelTimeString(
+			relTimeString),
+	}), nil
+
+}
+
+func makeSimpleFSPathWithArchiveParams(
+	path string, rev int64, timeString, relTimeString string) (
+	keybase1.Path, error) {
 	path = filepath.ToSlash(path)
 	if strings.HasSuffix(path, "/") {
 		path = path[:len(path)-1]
@@ -59,7 +99,7 @@ func makeSimpleFSPath(g *libkb.GlobalContext, path string) keybase1.Path {
 	// Test for the special mount dir prefix before the absolute test.
 	// Otherwise the current dir will be prepended, below.
 	if strings.HasPrefix(path, mountDir) {
-		return keybase1.NewPathWithKbfs(path[len(mountDir):])
+		return makeKbfsPath(path, rev, timeString, relTimeString)
 	}
 
 	// make absolute
@@ -78,10 +118,25 @@ func makeSimpleFSPath(g *libkb.GlobalContext, path string) keybase1.Path {
 	// mounted KBFS. This is for those who want to do so
 	// from "/keybase/..."
 	if strings.HasPrefix(path, mountDir) {
-		return keybase1.NewPathWithKbfs(path[len(mountDir):])
+		return makeKbfsPath(path, rev, timeString, relTimeString)
 	}
 
-	return keybase1.NewPathWithLocal(path)
+	if rev > 0 {
+		return keybase1.Path{}, fmt.Errorf(
+			"can't specify a revision for a local path")
+	} else if timeString != "" {
+		return keybase1.Path{}, fmt.Errorf(
+			"can't specify a time string for a local path")
+	} else if relTimeString != "" {
+		return keybase1.Path{}, fmt.Errorf(
+			"can't specify a relative time string for a local path")
+	}
+
+	return keybase1.NewPathWithLocal(path), nil
+}
+
+func makeSimpleFSPath(path string) (keybase1.Path, error) {
+	return makeSimpleFSPathWithArchiveParams(path, 0, "", "")
 }
 
 func stringToOpID(arg string) (keybase1.OpID, error) {
@@ -96,17 +151,6 @@ func stringToOpID(arg string) (keybase1.OpID, error) {
 	return opid, nil
 }
 
-func pathToString(path keybase1.Path) string {
-	pathType, err := path.PathType()
-	if err != nil {
-		return ""
-	}
-	if pathType == keybase1.PathType_KBFS {
-		return path.Kbfs()
-	}
-	return path.Local()
-}
-
 // Check whether the given path is a directory and return its string
 func checkPathIsDir(ctx context.Context, cli keybase1.SimpleFSInterface, path keybase1.Path) (bool, string, error) {
 	var isDir bool
@@ -114,8 +158,13 @@ func checkPathIsDir(ctx context.Context, cli keybase1.SimpleFSInterface, path ke
 	var err error
 
 	pathType, _ := path.PathType()
-	if pathType == keybase1.PathType_KBFS {
-		pathString = path.Kbfs()
+	switch pathType {
+	case keybase1.PathType_KBFS, keybase1.PathType_KBFS_ARCHIVED:
+		if pathType == keybase1.PathType_KBFS {
+			pathString = path.Kbfs()
+		} else {
+			pathString = path.KbfsArchived().Path
+		}
 		// See if the dest is a path or file
 		destEnt, err := cli.SimpleFSStat(ctx, path)
 		if err != nil {
@@ -125,7 +174,7 @@ func checkPathIsDir(ctx context.Context, cli keybase1.SimpleFSInterface, path ke
 		if destEnt.DirentType == keybase1.DirentType_DIR {
 			isDir = true
 		}
-	} else {
+	case keybase1.PathType_LOCAL:
 		pathString = path.Local()
 		// An error is OK, could be a target filename
 		// that does not exist yet
@@ -182,7 +231,7 @@ func makeDestPath(
 	// TODO: this error should really be checked, but when I added
 	// code to check it, tests broke and it wasn't clear how to fix.
 
-	g.Log.Debug("makeDestPath: srcPathString: %s isSrcDir: %v", pathToString(src), isSrcDir)
+	g.Log.Debug("makeDestPath: srcPathString: %s isSrcDir: %v", src, isSrcDir)
 
 	if isDestPath {
 		// Source file and dest dir is an append case
@@ -200,13 +249,21 @@ func makeDestPath(
 			destType, _ := dest.PathType()
 			// In this case, we must append the destination filename
 			dest = joinSimpleFSPaths(destType, destPathString, srcPathString)
-			g.Log.Debug("makeDestPath: new path with file: %s", pathToString(dest))
+			g.Log.Debug("makeDestPath: new path with file: %s", dest)
 		}
 	}
 
 	err = checkElementExists(ctx, cli, dest)
 
 	return dest, err
+}
+
+func getRelTime(ctx *cli.Context) string {
+	relTimeString := ctx.String("reltime")
+	if relTimeString == "" {
+		relTimeString = ctx.String("relative-time")
+	}
+	return relTimeString
 }
 
 // Make a list of source paths and one destination path from the given command line args
@@ -221,7 +278,20 @@ func parseSrcDestArgs(g *libkb.GlobalContext, ctx *cli.Context, name string) ([]
 		return srcPaths, destPath, errors.New(name + " requires one or more source arguments and a destination argument")
 	}
 	for i, src := range ctx.Args() {
-		argPath := makeSimpleFSPath(g, src)
+		rev := int64(0)
+		timeString := ""
+		relTimeString := ""
+		if i != nargs-1 {
+			// All source paths use the same revision.
+			rev = int64(ctx.Int("rev"))
+			timeString = ctx.String("time")
+			relTimeString = getRelTime(ctx)
+		}
+		argPath, err := makeSimpleFSPathWithArchiveParams(
+			src, rev, timeString, relTimeString)
+		if err != nil {
+			return nil, keybase1.Path{}, err
+		}
 		tempPathType, err := argPath.PathType()
 		if err != nil {
 			return srcPaths, destPath, err
@@ -240,7 +310,7 @@ func parseSrcDestArgs(g *libkb.GlobalContext, ctx *cli.Context, name string) ([]
 	}
 
 	if srcType == keybase1.PathType_LOCAL && destType == keybase1.PathType_LOCAL {
-		return srcPaths, destPath, errors.New(name + " reacquires KBFS source and/or destination")
+		return srcPaths, destPath, errors.New(name + " requires KBFS source and/or destination")
 	}
 	return srcPaths, destPath, nil
 }
@@ -255,16 +325,39 @@ func doOverwritePrompt(g *libkb.GlobalContext, dest string) error {
 	return nil
 }
 
+func newPathWithSameType(
+	pathString string, oldPath keybase1.Path) (keybase1.Path, error) {
+	pt, err := oldPath.PathType()
+	if err != nil {
+		return keybase1.Path{}, err
+	}
+
+	switch pt {
+	case keybase1.PathType_LOCAL:
+		return keybase1.NewPathWithLocal(pathString), nil
+	case keybase1.PathType_KBFS:
+		return keybase1.NewPathWithKbfs(pathString), nil
+	case keybase1.PathType_KBFS_ARCHIVED:
+		return keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
+			Path:          pathString,
+			ArchivedParam: oldPath.KbfsArchived().ArchivedParam,
+		}), nil
+	default:
+		return keybase1.Path{}, fmt.Errorf("unknown path type: %s", pt)
+	}
+}
+
 func doSimpleFSRemoteGlob(ctx context.Context, g *libkb.GlobalContext, cli keybase1.SimpleFSInterface, path keybase1.Path) ([]keybase1.Path, error) {
 
 	var returnPaths []keybase1.Path
-	directory := filepath.ToSlash(filepath.Dir(path.Kbfs()))
-	base := filepath.Base(path.Kbfs())
+	pathString := path.String()
+	directory := filepath.ToSlash(filepath.Dir(pathString))
+	base := filepath.Base(pathString)
 
 	// We know the filename has wildcards at this point.
 	// kbfs list only works on directories, so build a glob from a list result.
 
-	g.Log.Debug("doSimpleFSRemoteGlob %s", path.Kbfs())
+	g.Log.Debug("doSimpleFSRemoteGlob %s", pathString)
 
 	if strings.ContainsAny(directory, "?*[]") == true {
 		return nil, errors.New("wildcards not supported in parent directories")
@@ -276,9 +369,13 @@ func doSimpleFSRemoteGlob(ctx context.Context, g *libkb.GlobalContext, cli keyba
 	}
 	defer cli.SimpleFSClose(ctx, opid)
 
+	dirPath, err := newPathWithSameType(directory, path)
+	if err != nil {
+		return nil, err
+	}
 	err = cli.SimpleFSList(ctx, keybase1.SimpleFSListArg{
 		OpID: opid,
-		Path: keybase1.NewPathWithKbfs(directory),
+		Path: dirPath,
 	})
 	if err != nil {
 		return nil, err
@@ -301,7 +398,13 @@ func doSimpleFSRemoteGlob(ctx context.Context, g *libkb.GlobalContext, cli keyba
 		for _, entry := range listResult.Entries {
 			match, err := filepath.Match(base, entry.Name)
 			if err == nil && match == true {
-				returnPaths = append(returnPaths, keybase1.NewPathWithKbfs(filepath.ToSlash(filepath.Join(directory, entry.Name))))
+				rp, err := newPathWithSameType(
+					filepath.ToSlash(filepath.Join(directory, entry.Name)),
+					path)
+				if err != nil {
+					return nil, err
+				}
+				returnPaths = append(returnPaths, rp)
 			}
 		}
 	}
@@ -316,13 +419,14 @@ func doSimpleFSGlob(ctx context.Context, g *libkb.GlobalContext, cli keybase1.Si
 			return returnPaths, err
 		}
 
-		pathString := pathToString(path)
+		pathString := path.String()
 		if strings.ContainsAny(filepath.Base(pathString), "?*[]") == false {
 			returnPaths = append(returnPaths, path)
 			continue
 		}
 
-		if pathType == keybase1.PathType_KBFS {
+		if pathType == keybase1.PathType_KBFS ||
+			pathType == keybase1.PathType_KBFS_ARCHIVED {
 			// remote glob
 			globbed, err := doSimpleFSRemoteGlob(ctx, g, cli, path)
 			if err != nil {

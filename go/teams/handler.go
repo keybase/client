@@ -187,12 +187,16 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 
 	defer g.CTrace(ctx, fmt.Sprintf("team.handleChangeSingle(%+v, %+v)", row, change), func() error { return err })()
 
-	err = g.GetTeamLoader().HintLatestSeqno(ctx, row.Id, row.LatestSeqno)
-	if err != nil {
+	if err = g.GetTeamLoader().HintLatestSeqno(ctx, row.Id, row.LatestSeqno); err != nil {
 		g.Log.CWarningf(ctx, "error in HintLatestSeqno: %v", err)
 		return nil
 	}
-	// Send teamID and teamName in two separate notifications. It is server-trust that they are the same team.
+	// If we're handling a rename we should also purge the resolver cache
+	if change.Renamed {
+		PurgeResolverTeamID(ctx, g, row.Id)
+	}
+	// Send teamID and teamName in two separate notifications. It is
+	// server-trust that they are the same team.
 	g.NotifyRouter.HandleTeamChangedByBothKeys(ctx, row.Id, row.Name, row.LatestSeqno, row.ImplicitTeam, change)
 
 	return nil
@@ -459,7 +463,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 
 		if currentRole.IsOrAbove(invite.Role) {
 			g.Log.CDebugf(ctx, "User already has same or higher role, canceling invite.")
-			tx.CancelInvite(invite.Id)
+			tx.CancelInvite(invite.Id, uv.Uid)
 			continue
 		}
 

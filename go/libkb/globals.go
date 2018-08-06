@@ -213,7 +213,7 @@ func (g *GlobalContext) SetEKLib(ekLib EKLib) { g.ekLib = ekLib }
 func (g *GlobalContext) Init() *GlobalContext {
 	g.Env = NewEnv(nil, nil, g.GetLog)
 	g.Service = false
-	g.Resolver = NewResolverImpl(g)
+	g.Resolver = NewResolverImpl()
 	g.RateLimits = NewRateLimits(g)
 	g.upakLoader = NewUncachedUPAKLoader(g)
 	g.teamLoader = newNullTeamLoader(g)
@@ -256,7 +256,7 @@ func (g *GlobalContext) SetDNSNameServerFetcher(d DNSNameServerFetcher) {
 func (g *GlobalContext) simulateServiceRestart() {
 	g.switchUserMu.Lock()
 	defer g.switchUserMu.Unlock()
-	g.ActiveDevice.Clear(nil)
+	g.ActiveDevice.Clear()
 }
 
 func (g *GlobalContext) Logout() error {
@@ -265,7 +265,7 @@ func (g *GlobalContext) Logout() error {
 
 	username := g.Env.GetUsername()
 
-	g.ActiveDevice.Clear(nil)
+	g.ActiveDevice.Clear()
 
 	g.LocalSigchainGuard().Clear(context.TODO(), "Logout")
 
@@ -445,7 +445,7 @@ func (g *GlobalContext) configureMemCachesLocked(isFlush bool) {
 
 	g.shutdownCachesLocked()
 
-	g.Resolver.EnableCaching()
+	g.Resolver.EnableCaching(NewMetaContextBackground(g))
 	g.trackCache = NewTrackCache()
 	g.identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
 	g.Log.Debug("Created Identify2Cache, max age: %s", g.Env.GetUserCacheMaxAge())
@@ -621,7 +621,7 @@ func (g *GlobalContext) Shutdown() error {
 		g.cacheMu.Unlock()
 
 		if g.Resolver != nil {
-			g.Resolver.Shutdown()
+			g.Resolver.Shutdown(NewMetaContextBackground(g))
 		}
 
 		for _, hook := range g.ShutdownHooks {
@@ -1219,21 +1219,9 @@ func (g *GlobalContext) IsOneshot(ctx context.Context) (bool, error) {
 }
 
 func (g *GlobalContext) GetMeUV(ctx context.Context) (res keybase1.UserVersion, err error) {
-	defer g.CTraceTimed(ctx, "GlobalContext.GetMeUV", func() error { return err })()
-	meUID := g.ActiveDevice.UID()
-	if meUID.IsNil() {
-		return res, LoginRequiredError{}
+	res = g.ActiveDevice.UserVersion()
+	if res.IsNil() {
+		return keybase1.UserVersion{}, LoginRequiredError{}
 	}
-	loadMeArg := NewLoadUserArgWithContext(ctx, g).
-		WithUID(meUID).
-		WithSelf(true).
-		WithPublicKeyOptional()
-	upkv2, _, err := g.GetUPAKLoader().LoadV2(loadMeArg)
-	if err != nil {
-		return res, err
-	}
-	if upkv2 == nil {
-		return res, fmt.Errorf("could not load logged-in user")
-	}
-	return upkv2.Current.ToUserVersion(), nil
+	return res, nil
 }

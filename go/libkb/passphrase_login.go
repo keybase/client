@@ -86,7 +86,7 @@ func pplGotPassphrase(m MetaContext, usernameOrEmail string, passphrase string, 
 		res.sessionID,
 		res.csrfToken,
 		NewNormalizedUsername(res.username),
-		res.uid,
+		res.uv,
 		nilDeviceID,
 	)
 	if err != nil {
@@ -122,6 +122,7 @@ type loginReply struct {
 		Basics struct {
 			Username             string               `json:"username"`
 			PassphraseGeneration PassphraseGeneration `json:"passphrase_generation"`
+			EldestSeqno          keybase1.Seqno       `json:"eldest_seqno"`
 		} `json:"basics"`
 	} `json:"me"`
 }
@@ -156,7 +157,7 @@ func pplPost(m MetaContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, 
 	return &loginAPIResult{
 		sessionID: res.Session,
 		csrfToken: res.CsrfToken,
-		uid:       res.UID,
+		uv:        keybase1.UserVersion{Uid: res.UID, EldestSeqno: res.Me.Basics.EldestSeqno},
 		username:  res.Me.Basics.Username,
 		ppGen:     res.Me.Basics.PassphraseGeneration,
 	}, nil
@@ -421,11 +422,11 @@ func VerifyPassphraseGetStreamInLoginContext(m MetaContext, passphrase string) (
 // it's fine to use in production code if it seems appropriate.
 func VerifyPassphraseForLoggedInUser(m MetaContext, pp string) (pps *PassphraseStream, err error) {
 	defer m.CTrace("VerifyPassphraseForLoggedInUser", func() error { return err })()
-	uid, un := m.ActiveDevice().GetUsernameAndUIDIfValid(m)
-	if uid.IsNil() {
+	uv, un := m.ActiveDevice().GetUsernameAndUserVersionIfValid(m)
+	if uv.IsNil() {
 		return nil, NewLoginRequiredError("for VerifyPassphraseForLoggedInUser")
 	}
-	m = m.WithNewProvisionalLoginContextForUIDAndUsername(uid, un)
+	m = m.WithNewProvisionalLoginContextForUserVersionAndUsername(uv, un)
 	pps, err = VerifyPassphraseGetStreamInLoginContext(m, pp)
 	return pps, err
 }

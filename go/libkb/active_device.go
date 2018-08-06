@@ -11,7 +11,7 @@ import (
 )
 
 type ActiveDevice struct {
-	uid                     keybase1.UID
+	uv                      keybase1.UserVersion
 	deviceID                keybase1.DeviceID
 	deviceName              string
 	signingKey              GenericKey   // cached secret signing key
@@ -26,7 +26,7 @@ type ActiveDevice struct {
 
 func (a *ActiveDevice) Dump(m MetaContext, prefix string) {
 	m.CDebugf("%sActiveDevice: %p", prefix, a)
-	m.CDebugf("%sUID: %s", prefix, a.uid)
+	m.CDebugf("%sUserVerstion: %+v", prefix, a.uv)
 	m.CDebugf("%sUsername (via env): %s", prefix, a.Username(m))
 	m.CDebugf("%sDeviceID: %s", prefix, a.deviceID)
 	m.CDebugf("%sDeviceName: %s", prefix, a.deviceName)
@@ -44,14 +44,14 @@ func (a *ActiveDevice) Dump(m MetaContext, prefix string) {
 // should not be considered the global ActiveDevice. Instead, it should reside in thread-local
 // context, and can be weaved through the login machinery without trampling the actual global
 // ActiveDevice.
-func NewProvisionalActiveDevice(m MetaContext, u keybase1.UID, d keybase1.DeviceID, sigKey GenericKey, encKey GenericKey, deviceName string) *ActiveDevice {
+func NewProvisionalActiveDevice(m MetaContext, uv keybase1.UserVersion, d keybase1.DeviceID, sigKey GenericKey, encKey GenericKey, deviceName string) *ActiveDevice {
 	return &ActiveDevice{
-		uid:           u,
+		uv:            uv,
 		deviceID:      d,
 		deviceName:    deviceName,
 		signingKey:    sigKey,
 		encryptionKey: encKey,
-		nistFactory:   NewNISTFactory(m.G(), u, d, sigKey),
+		nistFactory:   NewNISTFactory(m.G(), uv.Uid, d, sigKey),
 		secretSyncer:  NewSecretSyncer(m.G()),
 	}
 }
@@ -60,20 +60,20 @@ func NewActiveDevice() *ActiveDevice {
 	return &ActiveDevice{}
 }
 
-func NewPaperKeyActiveDevice(m MetaContext, u keybase1.UID, d *DeviceWithKeys) *ActiveDevice {
-	ret := NewActiveDeviceWithDeviceWithKeys(m, u, d)
+func NewPaperKeyActiveDevice(m MetaContext, uv keybase1.UserVersion, d *DeviceWithKeys) *ActiveDevice {
+	ret := NewActiveDeviceWithDeviceWithKeys(m, uv, d)
 	ret.paperKey = NewSelfDestructingDeviceWithKeys(m, d, PaperKeyMemoryTimeout)
 	return ret
 }
 
-func NewActiveDeviceWithDeviceWithKeys(m MetaContext, u keybase1.UID, d *DeviceWithKeys) *ActiveDevice {
+func NewActiveDeviceWithDeviceWithKeys(m MetaContext, uv keybase1.UserVersion, d *DeviceWithKeys) *ActiveDevice {
 	return &ActiveDevice{
-		uid:           u,
+		uv:            uv,
 		deviceID:      d.deviceID,
 		deviceName:    d.deviceName,
 		signingKey:    d.signingKey,
 		encryptionKey: d.encryptionKey,
-		nistFactory:   NewNISTFactory(m.G(), u, d.deviceID, d.signingKey),
+		nistFactory:   NewNISTFactory(m.G(), uv.Uid, d.deviceID, d.signingKey),
 		secretSyncer:  NewSecretSyncer(m.G()),
 	}
 }
@@ -92,19 +92,19 @@ func (a *ActiveDevice) Copy(m MetaContext, src *ActiveDevice) error {
 	// Take a consistent snapshot of the src device. Be careful not to hold
 	// locks on both devices at once.
 	src.Lock()
-	uid := src.uid
+	uv := src.uv
 	deviceID := src.deviceID
 	sigKey := src.signingKey
 	encKey := src.encryptionKey
 	name := src.deviceName
 	src.Unlock()
 
-	return a.Set(m, uid, deviceID, sigKey, encKey, name)
+	return a.Set(m, uv, deviceID, sigKey, encKey, name)
 }
 
 func (a *ActiveDevice) SetOrClear(m MetaContext, a2 *ActiveDevice) error {
 	if a2 == nil {
-		a.Clear(nil)
+		a.Clear()
 		return nil
 	}
 	return a.Copy(m, a2)
@@ -113,18 +113,18 @@ func (a *ActiveDevice) SetOrClear(m MetaContext, a2 *ActiveDevice) error {
 // Set acquires the write lock and sets all the fields in ActiveDevice.
 // The acct parameter is not used for anything except to help ensure
 // that this is called from inside a LogingState account request.
-func (a *ActiveDevice) Set(m MetaContext, uid keybase1.UID, deviceID keybase1.DeviceID, sigKey, encKey GenericKey, deviceName string) error {
+func (a *ActiveDevice) Set(m MetaContext, uv keybase1.UserVersion, deviceID keybase1.DeviceID, sigKey, encKey GenericKey, deviceName string) error {
 	a.Lock()
 	defer a.Unlock()
 
-	if err := a.internalUpdateUIDDeviceID(m.LoginContext(), uid, deviceID); err != nil {
+	if err := a.internalUpdateUserVersionDeviceID(uv, deviceID); err != nil {
 		return err
 	}
 
 	a.signingKey = sigKey
 	a.encryptionKey = encKey
 	a.deviceName = deviceName
-	a.nistFactory = NewNISTFactory(m.G(), uid, deviceID, sigKey)
+	a.nistFactory = NewNISTFactory(m.G(), uv.Uid, deviceID, sigKey)
 	a.secretSyncer = NewSecretSyncer(m.G())
 
 	return nil
@@ -133,11 +133,11 @@ func (a *ActiveDevice) Set(m MetaContext, uid keybase1.UID, deviceID keybase1.De
 // setSigningKey acquires the write lock and sets the signing key.
 // The acct parameter is not used for anything except to help ensure
 // that this is called from inside a LogingState account request.
-func (a *ActiveDevice) setSigningKey(g *GlobalContext, lctx LoginContext, uid keybase1.UID, deviceID keybase1.DeviceID, sigKey GenericKey, deviceName string) error {
+func (a *ActiveDevice) setSigningKey(g *GlobalContext, uv keybase1.UserVersion, deviceID keybase1.DeviceID, sigKey GenericKey, deviceName string) error {
 	a.Lock()
 	defer a.Unlock()
 
-	if err := a.internalUpdateUIDDeviceID(lctx, uid, deviceID); err != nil {
+	if err := a.internalUpdateUserVersionDeviceID(uv, deviceID); err != nil {
 		return err
 	}
 
@@ -145,18 +145,18 @@ func (a *ActiveDevice) setSigningKey(g *GlobalContext, lctx LoginContext, uid ke
 	if len(deviceName) > 0 {
 		a.deviceName = deviceName
 	}
-	a.nistFactory = NewNISTFactory(g, uid, deviceID, sigKey)
+	a.nistFactory = NewNISTFactory(g, uv.Uid, deviceID, sigKey)
 	return nil
 }
 
 // setEncryptionKey acquires the write lock and sets the encryption key.
 // The acct parameter is not used for anything except to help ensure
 // that this is called from inside a LogingState account request.
-func (a *ActiveDevice) setEncryptionKey(lctx LoginContext, uid keybase1.UID, deviceID keybase1.DeviceID, encKey GenericKey) error {
+func (a *ActiveDevice) setEncryptionKey(uv keybase1.UserVersion, deviceID keybase1.DeviceID, encKey GenericKey) error {
 	a.Lock()
 	defer a.Unlock()
 
-	if err := a.internalUpdateUIDDeviceID(lctx, uid, deviceID); err != nil {
+	if err := a.internalUpdateUserVersionDeviceID(uv, deviceID); err != nil {
 		return err
 	}
 
@@ -167,7 +167,7 @@ func (a *ActiveDevice) setEncryptionKey(lctx LoginContext, uid keybase1.UID, dev
 // setDeviceName acquires the write lock and sets the device name.
 // The acct parameter is not used for anything except to help ensure
 // that this is called from inside a LogingState account request.
-func (a *ActiveDevice) setDeviceName(lctx LoginContext, uid keybase1.UID, deviceID keybase1.DeviceID, deviceName string) error {
+func (a *ActiveDevice) setDeviceName(uv keybase1.UserVersion, deviceID keybase1.DeviceID, deviceName string) error {
 	a.Lock()
 	defer a.Unlock()
 
@@ -175,7 +175,7 @@ func (a *ActiveDevice) setDeviceName(lctx LoginContext, uid keybase1.UID, device
 		return errors.New("no device name specified")
 	}
 
-	if err := a.internalUpdateUIDDeviceID(lctx, uid, deviceID); err != nil {
+	if err := a.internalUpdateUserVersionDeviceID(uv, deviceID); err != nil {
 		return err
 	}
 
@@ -184,21 +184,19 @@ func (a *ActiveDevice) setDeviceName(lctx LoginContext, uid keybase1.UID, device
 }
 
 // should only called by the functions in this type, with the write lock.
-func (a *ActiveDevice) internalUpdateUIDDeviceID(lctx LoginContext, uid keybase1.UID, deviceID keybase1.DeviceID) error {
+func (a *ActiveDevice) internalUpdateUserVersionDeviceID(uv keybase1.UserVersion, deviceID keybase1.DeviceID) error {
 
-	// Ignore lctx
-
-	if uid.IsNil() {
+	if uv.IsNil() {
 		return errors.New("ActiveDevice.set with nil uid")
 	}
 	if deviceID.IsNil() {
 		return errors.New("ActiveDevice.set with nil deviceID")
 	}
 
-	if a.uid.IsNil() && a.deviceID.IsNil() {
-		a.uid = uid
+	if a.uv.IsNil() && a.deviceID.IsNil() {
+		a.uv = uv
 		a.deviceID = deviceID
-	} else if a.uid.NotEqual(uid) {
+	} else if !a.uv.Eq(uv) {
 		return errors.New("ActiveDevice.set uid mismatch")
 	} else if !a.deviceID.Eq(deviceID) {
 		return errors.New("ActiveDevice.set deviceID mismatch")
@@ -207,16 +205,16 @@ func (a *ActiveDevice) internalUpdateUIDDeviceID(lctx LoginContext, uid keybase1
 	return nil
 }
 
-func (a *ActiveDevice) Clear(lctx LoginContext) error {
-	return a.clear(lctx)
+func (a *ActiveDevice) Clear() error {
+	return a.clear()
 }
 
 // Clear acquires the write lock and resets all the fields to zero values.
-func (a *ActiveDevice) clear(lctx LoginContext) error {
+func (a *ActiveDevice) clear() error {
 	a.Lock()
 	defer a.Unlock()
 
-	a.uid = ""
+	a.uv = keybase1.UserVersion{}
 	a.deviceID = ""
 	a.signingKey = nil
 	a.encryptionKey = nil
@@ -239,7 +237,13 @@ func (a *ActiveDevice) SecretPromptCancelTimer() *CancelTimer {
 func (a *ActiveDevice) UID() keybase1.UID {
 	a.RLock()
 	defer a.RUnlock()
-	return a.uid
+	return a.uv.Uid
+}
+
+func (a *ActiveDevice) UserVersion() keybase1.UserVersion {
+	a.RLock()
+	defer a.RUnlock()
+	return a.uv
 }
 
 // Username tries to get the active user's username by looking into the current
@@ -313,11 +317,11 @@ func (a *ActiveDevice) KeyByType(t SecretKeyType) (GenericKey, error) {
 
 // AllFields returns all the ActiveDevice fields via one lock for consistency.
 // Safe for use by concurrent goroutines.
-func (a *ActiveDevice) AllFields() (uid keybase1.UID, deviceID keybase1.DeviceID, deviceName string, sigKey GenericKey, encKey GenericKey) {
+func (a *ActiveDevice) AllFields() (uv keybase1.UserVersion, deviceID keybase1.DeviceID, deviceName string, sigKey GenericKey, encKey GenericKey) {
 	a.RLock()
 	defer a.RUnlock()
 
-	return a.uid, a.deviceID, a.deviceName, a.signingKey, a.encryptionKey
+	return a.uv, a.deviceID, a.deviceName, a.signingKey, a.encryptionKey
 }
 
 func (a *ActiveDevice) Name() string {
@@ -342,7 +346,7 @@ func (a *ActiveDevice) Valid() bool {
 }
 
 func (a *ActiveDevice) valid() bool {
-	return a.signingKey != nil && a.encryptionKey != nil && !a.uid.IsNil() && !a.deviceID.IsNil() && a.deviceName != ""
+	return a.signingKey != nil && a.encryptionKey != nil && !a.uv.IsNil() && !a.deviceID.IsNil() && a.deviceName != ""
 }
 
 func (a *ActiveDevice) IsValidFor(uid keybase1.UID, deviceID keybase1.DeviceID) bool {
@@ -351,7 +355,7 @@ func (a *ActiveDevice) IsValidFor(uid keybase1.UID, deviceID keybase1.DeviceID) 
 	if a.signingKey == nil || a.encryptionKey == nil {
 		return false
 	}
-	if !uid.Equal(a.uid) {
+	if !uid.Equal(a.uv.Uid) {
 		return false
 	}
 	if !deviceID.Eq(a.deviceID) {
@@ -370,7 +374,7 @@ func (a *ActiveDevice) NISTAndUID(ctx context.Context) (*NIST, keybase1.UID, err
 	a.RLock()
 	defer a.RUnlock()
 	nist, err := a.nistFactory.NIST(ctx)
-	return nist, a.uid, err
+	return nist, a.uv.Uid, err
 }
 
 func (a *ActiveDevice) SyncSecretsForUID(m MetaContext, u keybase1.UID, force bool) (ret *SecretSyncer, err error) {
@@ -378,7 +382,7 @@ func (a *ActiveDevice) SyncSecretsForUID(m MetaContext, u keybase1.UID, force bo
 
 	a.RLock()
 	s := a.secretSyncer
-	uid := a.uid
+	uid := a.uv.Uid
 	a.RUnlock()
 
 	if !u.IsNil() && !uid.Equal(u) {
@@ -411,8 +415,8 @@ func (a *ActiveDevice) SyncSecretsForce(m MetaContext) (ret *SecretSyncer, err e
 
 func (a *ActiveDevice) CheckForUsername(m MetaContext, n NormalizedUsername) (err error) {
 	a.RLock()
-	uid := a.UID()
-	deviceID := a.DeviceID()
+	uid := a.uv.Uid
+	deviceID := a.deviceID
 	valid := a.valid()
 	a.RUnlock()
 	if !valid {
@@ -510,12 +514,12 @@ func (a *ActiveDevice) Keyring(m MetaContext) (ret *SKBKeyringFile, err error) {
 	return ret, nil
 }
 
-func (a *ActiveDevice) CopyCacheToLoginContextIfForUID(m MetaContext, lc LoginContext, u keybase1.UID) (err error) {
+func (a *ActiveDevice) CopyCacheToLoginContextIfForUserVersion(m MetaContext, lc LoginContext, uv keybase1.UserVersion) (err error) {
 	defer m.CTrace("ActiveDevice#CopyCacheToLoginContextIfForUID", func() error { return err })()
 	a.RLock()
 	defer a.RUnlock()
-	if !a.UID().Equal(u) {
-		return NewUIDMismatchError(fmt.Sprintf("%s v %s", a.UID(), u))
+	if !a.uv.Eq(uv) {
+		return NewUIDMismatchError(fmt.Sprintf("%s v %s", a.uv, uv))
 	}
 	if a.passphrase != nil {
 		m.CDebugf("| copying non-nil passphrase cache")
@@ -524,16 +528,15 @@ func (a *ActiveDevice) CopyCacheToLoginContextIfForUID(m MetaContext, lc LoginCo
 	return nil
 }
 
-func (a *ActiveDevice) GetUsernameAndUIDIfValid(m MetaContext) (u keybase1.UID, un NormalizedUsername) {
+func (a *ActiveDevice) GetUsernameAndUserVersionIfValid(m MetaContext) (uv keybase1.UserVersion, un NormalizedUsername) {
 	a.RLock()
 	defer a.RUnlock()
-	uid := a.uid
-	if uid.IsNil() {
-		return uid, un
+	if a.uv.IsNil() {
+		return uv, un
 	}
-	un = m.G().Env.GetUsernameForUID(uid)
+	un = m.G().Env.GetUsernameForUID(a.uv.Uid)
 	if un.IsNil() {
-		return keybase1.UID(""), NormalizedUsername("")
+		return keybase1.UserVersion{}, NormalizedUsername("")
 	}
-	return uid, un
+	return a.uv, un
 }

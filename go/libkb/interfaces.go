@@ -791,12 +791,45 @@ type ChatHelper interface {
 // into UIDs. It is based on sever-trust. All results are unverified. So you should check
 // its answer if used in a security-sensitive setting. (See engine.ResolveAndCheck)
 type Resolver interface {
-	EnableCaching()
-	Shutdown()
-	ResolveFullExpression(ctx context.Context, input string) (res ResolveResult)
-	ResolveFullExpressionNeedUsername(ctx context.Context, input string) (res ResolveResult)
-	ResolveFullExpressionWithBody(ctx context.Context, input string) (res ResolveResult)
-	ResolveUser(ctx context.Context, assertion string) (u keybase1.User, res ResolveResult, err error)
-	ResolveWithBody(input string) ResolveResult
-	Resolve(input string) ResolveResult
+	EnableCaching(m MetaContext)
+	Shutdown(m MetaContext)
+	ResolveFullExpression(m MetaContext, input string) (res ResolveResult)
+	ResolveFullExpressionNeedUsername(m MetaContext, input string) (res ResolveResult)
+	ResolveFullExpressionWithBody(m MetaContext, input string) (res ResolveResult)
+	ResolveUser(m MetaContext, assertion string) (u keybase1.User, res ResolveResult, err error)
+	ResolveWithBody(m MetaContext, input string) ResolveResult
+	Resolve(m MetaContext, input string) ResolveResult
+	PurgeResolveCache(m MetaContext, input string) error
+}
+
+type EnginePrereqs struct {
+	TemporarySession bool
+	Device           bool
+}
+
+type Engine2 interface {
+	Run(MetaContext) error
+	Prereqs() EnginePrereqs
+	UIConsumer
+}
+
+type SaltpackRecipientKeyfinderEngineInterface interface {
+	Engine2
+	GetPublicKIDs() []keybase1.KID
+	GetSymmetricKeys() []SaltpackReceiverSymmetricKey
+}
+
+type SaltpackRecipientKeyfinderArg struct {
+	Recipients        []string // usernames or user assertions
+	TeamRecipients    []string // team names
+	NoSelfEncrypt     bool
+	UseEntityKeys     bool // Both per user and per team keys (and implicit teams for non existing users)
+	UsePaperKeys      bool
+	UseDeviceKeys     bool // Does not include Paper Keys
+	UseRepudiableAuth bool // This is needed as team keys (implicit or not) are not compatible with repudiable authentication, so we can error out.
+}
+
+type SaltpackReceiverSymmetricKey struct {
+	Key        [32]byte
+	Identifier []byte
 }

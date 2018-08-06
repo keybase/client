@@ -1,15 +1,12 @@
 // @flow
 import * as React from 'react'
+import * as Sb from '../../../stories/storybook'
 import Error from '.'
-import {action, storiesOf} from '../../../stories/storybook'
-import * as PropProviders from '../../../stories/prop-providers'
 
 const load = () => {
-  storiesOf('Signup', module)
-    .addDecorator(PropProviders.CommonProvider())
-    .add('Error', () => (
-      <Error error="This is an error" onBack={action('onBack')} onRestart={action('onRestart')} />
-    ))
+  Sb.storiesOf('Signup', module).add('Error', () => (
+    <Error error="This is an error" onBack={Sb.action('onBack')} onRestart={Sb.action('onRestart')} />
+  ))
 }
 
 export default load

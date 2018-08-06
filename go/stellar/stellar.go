@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
@@ -18,9 +19,12 @@ import (
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
+	stellarAddress "github.com/stellar/go/address"
 	"github.com/stellar/go/amount"
 	"github.com/stellar/go/xdr"
 )
+
+const AccountNameMaxRunes = 24
 
 // CreateWallet creates and posts an initial stellar bundle for a user.
 // Only succeeds if they do not already have one.
@@ -247,6 +251,40 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res 
 		}
 		res.AccountID = &accountID
 		return nil
+	}
+
+	if strings.Index(string(to), stellarAddress.Separator) >= 0 {
+		name, domain, err := stellarAddress.Split(string(to))
+		if err != nil {
+			return res, err
+		}
+
+		if domain == "keybase.io" {
+			// Keybase.io federation address. Fall through to identify
+			// path.
+			m.CDebugf("Got federation address %q but it's under keybase.io domain!", to)
+			m.CDebugf("Instead going to lookup Keybase assertion: %q", name)
+			to = stellarcommon.RecipientInput(name)
+		} else {
+			// Actual federation address that is not under keybase.io
+			// domain. Use federation client.
+			fedCli := getGlobal(m.G()).federationClient
+			nameResponse, err := fedCli.LookupByAddress(string(to))
+			if err != nil {
+				errStr := err.Error()
+				m.CDebugf("federation.LookupByAddress returned error: %s", errStr)
+				if strings.Contains(errStr, "lookup federation server failed") {
+					return res, fmt.Errorf("Server at url %q does not respond to federation requests", domain)
+				} else if strings.Contains(errStr, "get federation failed") {
+					return res, fmt.Errorf("Federation server %q did not find record %q", domain, name)
+				}
+				return res, err
+			}
+			// We got an address! Fall through to the "Stellar
+			// address" path.
+			m.CDebugf("federation.LookupByAddress returned: %+v", nameResponse)
+			to = stellarcommon.RecipientInput(nameResponse.AccountID)
+		}
 	}
 
 	// A Stellar address
@@ -777,7 +815,7 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 					return res, err
 				}
 				res.Status, res.StatusDetail = p.Claim.TxStatus.Details(p.Claim.TxErrMsg)
-				res.Status = fmt.Sprintf("Funded. Claim by %v is: %v", claimantUsername, res.Status)
+				res.Status = fmt.Sprintf("Funded. Claim by %v is: %v", *claimantUsername, res.Status)
 			}
 		}
 		relaySecrets, err := relays.DecryptB64(ctx, g, p.TeamID, p.BoxB64)
@@ -943,7 +981,16 @@ func reverse(s string) string {
 	return string(r)
 }
 
+// ChangeAccountName changes the name of an account.
+// Make sure to keep this in sync with ValidateAccountNameLocal.
+// An empty name is always acceptable.
+// Renaming an account to an already used name is blocked.
+// Maximum length of AccountNameMaxRunes runes.
 func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newName string) (err error) {
+	runes := utf8.RuneCountInString(newName)
+	if runes > AccountNameMaxRunes {
+		return fmt.Errorf("account name can be %v characters at the longest but was %v", AccountNameMaxRunes, runes)
+	}
 	prevBundle, _, err := remote.Fetch(m.Ctx(), m.G())
 	if err != nil {
 		return err
@@ -955,7 +1002,8 @@ func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newNam
 			// Change Name in place to modify Account struct.
 			nextBundle.Accounts[i].Name = newName
 			found = true
-			break
+		} else if acc.Name == newName {
+			return fmt.Errorf("you already have an account with that name")
 		}
 	}
 	if !found {

@@ -1540,6 +1540,19 @@
     },
     {
       "type": "record",
+      "name": "ConversationSettingsLocal",
+      "fields": [
+        {
+          "type": [
+            null,
+            "ConversationMinWriterRoleInfoLocal"
+          ],
+          "name": "minWriterRoleInfo"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ConversationLocal",
       "fields": [
         {
@@ -1624,9 +1637,9 @@
         {
           "type": [
             null,
-            "ConversationMinWriterRoleInfoLocal"
+            "ConversationSettingsLocal"
           ],
-          "name": "minWriterRoleInfo"
+          "name": "convSettings"
         }
       ]
     },
@@ -2359,6 +2372,13 @@
         {
           "type": "string",
           "name": "mimeType"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "previewMimeType"
         },
         {
           "type": [
@@ -3262,22 +3282,81 @@
       ],
       "response": "PostLocalRes"
     },
-    "postFileAttachmentLocalNonblock": {
+    "postFileAttachmentMessageLocalNonblock": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
         },
         {
-          "name": "arg",
-          "type": "PostFileAttachmentArg"
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "visibility",
+          "type": "keybase1.TLFVisibility"
         },
         {
           "name": "clientPrev",
           "type": "MessageID"
+        },
+        {
+          "name": "ephemeralLifetime",
+          "type": [
+            null,
+            "gregor1.DurationSec"
+          ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
       "response": "PostLocalNonblockRes"
+    },
+    "postFileAttachmentUploadLocalNonblock": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "outboxID",
+          "type": "OutboxID"
+        },
+        {
+          "name": "filename",
+          "type": "string"
+        },
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "metadata",
+          "type": "bytes"
+        },
+        {
+          "name": "callerPreview",
+          "type": [
+            null,
+            "MakePreviewRes"
+          ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": null
     },
     "DownloadAttachmentLocal": {
       "request": [
@@ -3690,6 +3769,10 @@
         {
           "name": "isRegex",
           "type": "boolean"
+        },
+        {
+          "name": "sentBy",
+          "type": "string"
         },
         {
           "name": "maxHits",

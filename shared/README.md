@@ -12,11 +12,6 @@ If you really want to install Keybase, please return to the [top level Readme.md
 
 ## Keybase
 
-### Project Status
-
-Hi everyone! This folder's code is *not* ready for prime time. Use at your own risk (and never against production!)
-We are iterating quickly and a lot of the code is changing every day.
-
 ### Install
 
 ```sh
@@ -275,6 +270,12 @@ plug in your device via USB and tap 'OK' on the 'Allow USB debugging?'
 prompt if it appears. After that, `adb devices` should list your
 device. If it says 'unauthorized' next to your device, then you likely
 haven't tapped 'OK' on the prompt yet.
+
+**Turn off Instant Run**
+
+To turn off Instant Run go to [Android Studio | Settings | Build, Execution, Deployment | Instant Run | Uncheck the box](https://i.imgur.com/0ofeBMn.png).
+
+If you see the errors including `Failed to execute aapt` or `transformDexWithInstantRunDependenciesApkForDebug` the problem might be that Instant Run is enabled.
 
 Finally, you'll have to forward port 8081 on your device to port 8081
 on your computer. To do so, run

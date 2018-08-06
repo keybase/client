@@ -1,8 +1,8 @@
 // @flow
 import React from 'react'
-import * as PropProviders from '../../stories/prop-providers'
 import {Box} from '../../common-adapters'
-import {storiesOf, action} from '../../stories/storybook'
+import * as Sb from '../../stories/storybook'
+import * as Styles from '../../styles'
 
 import EditTeamDescription from '.'
 
@@ -10,17 +10,14 @@ const sharedProps = {
   description: 'First description',
   origDescription: 'First description',
   teamname: 'testteam',
-  onChangeDescription: action('onChangeDescription'),
-  onClose: action('onClose'),
-  onSetDescription: action('onSetDescription'),
+  onChangeDescription: Sb.action('onChangeDescription'),
+  onClose: Sb.action('onClose'),
+  onSetDescription: Sb.action('onSetDescription'),
   waitingKey: 'test',
 }
 
-const provider = PropProviders.CommonProvider()
-
 const load = () => {
-  storiesOf('Teams/Edit team description', module)
-    .addDecorator(provider)
+  Sb.storiesOf('Teams/Edit team description', module)
     .add('Description unchanged', () => (
       <Box style={storyWrapStyle}>
         <EditTeamDescription {...sharedProps} />
@@ -34,7 +31,7 @@ const load = () => {
 }
 
 const storyWrapStyle = {
-  width: 500,
+  width: Styles.isMobile ? undefined : 500,
   height: 400,
   borderColor: 'black',
   borderWidth: 1,

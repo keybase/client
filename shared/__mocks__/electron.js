@@ -14,7 +14,7 @@ export const remote = {
   }),
 }
 export const crashReporter = {}
-export const shell = {}
+export const shell = {openExternal: () => {}}
 export const ipcRenderer = {}
 export const globalShortcut = {}
 export const session = {}

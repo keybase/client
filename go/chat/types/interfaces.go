@@ -100,7 +100,8 @@ type MessageDeliverer interface {
 }
 
 type Searcher interface {
-	SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, conversationID chat1.ConversationID, re *regexp.Regexp, maxHits, maxMessages, beforeContext, afterContext int) (hits []chat1.ChatSearchHit, err error)
+	SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, conversationID chat1.ConversationID, re *regexp.Regexp, sentBy string,
+		maxHits, maxMessages, beforeContext, afterContext int) (hits []chat1.ChatSearchHit, err error)
 }
 
 type Sender interface {
@@ -149,8 +150,8 @@ type InboxSource interface {
 		policy chat1.RetentionPolicy) (*chat1.ConversationLocal, error)
 	SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, teamID keybase1.TeamID,
 		policy chat1.RetentionPolicy) ([]chat1.ConversationLocal, error)
-	SetConvMinWriterRole(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
-		info *chat1.ConversationMinWriterRoleInfo) (*chat1.ConversationLocal, error)
+	SetConvSettings(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
+		convSettings *chat1.ConversationSettings) (*chat1.ConversationLocal, error)
 
 	GetInboxQueryLocalToRemote(ctx context.Context,
 		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, *NameInfoUntrusted, error)
@@ -245,7 +246,7 @@ type ActivityNotifier interface {
 		topicType chat1.TopicType, conv *chat1.InboxUIItem)
 	SetTeamRetention(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID, topicType chat1.TopicType,
 		convs []chat1.InboxUIItem)
-	SetConvMinWriterRole(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	SetConvSettings(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		topicType chat1.TopicType, conv *chat1.InboxUIItem)
 
 	InboxSyncStarted(ctx context.Context, uid gregor1.UID)
@@ -281,6 +282,8 @@ type AttachmentFetcher interface {
 		ri func() chat1.RemoteInterface, signer s3.Signer) error
 	FetchAttachment(ctx context.Context, w io.Writer, convID chat1.ConversationID, asset chat1.Asset,
 		ri func() chat1.RemoteInterface, signer s3.Signer, progress ProgressReporter) error
+	PutUploadedAsset(ctx context.Context, filename string, asset chat1.Asset) error
+	IsAssetLocal(ctx context.Context, asset chat1.Asset) (bool, error)
 }
 
 type AttachmentURLSrv interface {
@@ -301,11 +304,20 @@ type EphemeralPurger interface {
 	Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) error
 }
 
+type AttachmentUploaderResultCb interface {
+	Wait() chan AttachmentUploadResult
+}
+
 type AttachmentUploader interface {
 	Register(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		outboxID chat1.OutboxID, title, filename string, metadata []byte,
-		callerPreview *chat1.MakePreviewRes) (chan AttachmentUploadResult, error)
+		callerPreview *chat1.MakePreviewRes) (AttachmentUploaderResultCb, error)
 	Status(ctx context.Context, outboxID chat1.OutboxID) (AttachmentUploaderTaskStatus, AttachmentUploadResult, error)
-	Retry(ctx context.Context, outboxID chat1.OutboxID) (chan AttachmentUploadResult, error)
+	Retry(ctx context.Context, outboxID chat1.OutboxID) (AttachmentUploaderResultCb, error)
+	Cancel(ctx context.Context, outboxID chat1.OutboxID) error
 	Complete(ctx context.Context, outboxID chat1.OutboxID)
+}
+
+type NativeVideoHelper interface {
+	ThumbnailAndDuration(ctx context.Context, filename string) ([]byte, int, error)
 }

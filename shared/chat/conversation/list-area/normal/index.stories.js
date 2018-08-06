@@ -1,12 +1,11 @@
 // @flow
 /* eslint-disable sort-keys */
-import React from 'react'
+import * as React from 'react'
+import * as Sb from '../../../../stories/storybook'
 import I from 'immutable'
 import moment from 'moment'
 import {Box2, Text} from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/chat2'
-import {storiesOf, action, createPropProvider, Rnd} from '../../../../stories/storybook'
-import * as PropProviders from '../../../../stories/prop-providers'
 import {propProvider as ReactionsRowProvider} from '../../messages/reactions-row/index.stories'
 import {propProvider as ReactButtonProvider} from '../../messages/react-button/index.stories'
 import {propProvider as ReactionTooltipProvider} from '../../messages/reaction-tooltip/index.stories'
@@ -39,8 +38,8 @@ const props = {
   lastLoadMoreOrdinal: null,
   lastMessageIsOurs: false,
   listScrollDownCounter: 0,
-  onFocusInput: action('onFocusInput'),
-  onToggleInfoPanel: action('onToggleInfoPanel'),
+  onFocusInput: Sb.action('onFocusInput'),
+  onToggleInfoPanel: Sb.action('onToggleInfoPanel'),
 }
 
 // prettier-ignore
@@ -49,7 +48,7 @@ const words = ['At', 'Et', 'Itaque', 'Nam', 'Nemo', 'Quis', 'Sed', 'Temporibus',
 // Generate timestamp in a range between start and end with some
 // messagesThreshold number of consecutive messages with the same timestamp
 const makeTimestampGen = (days: number = 7, threshold: number = 10) => {
-  const r = new Rnd(1337)
+  const r = new Sb.Rnd(1337)
   const origin = {year: 2018, month: 0, day: 0}
 
   let messagesThreshold: number = 0
@@ -97,7 +96,7 @@ const ordinalToMessage = o => {
   if (ordinalToMessageCache[o]) {
     return ordinalToMessageCache[o]
   }
-  const r = new Rnd(1234)
+  const r = new Sb.Rnd(1234)
   for (var i = 0; i < o; ++i) {
     r.next()
   }
@@ -120,7 +119,7 @@ const ordinalToMessage = o => {
   return message
 }
 
-const provider = createPropProvider(PropProviders.Common(), {
+const provider = Sb.createPropProviderWithCommon({
   ...ReactButtonProvider,
   ...ReactionsRowProvider,
   ...ReactionTooltipProvider,
@@ -151,14 +150,14 @@ const provider = createPropProvider(PropProviders.Common(), {
     deviceName: 'a',
     deviceRevokedAt: 0,
     deviceType: 'mobile',
-    onCopy: action('oncopy'),
+    onCopy: Sb.action('oncopy'),
     onDelete: null,
     onDeleteMessageHistory: null,
     onEdit: null,
-    onHidden: action('onhidden'),
+    onHidden: Sb.action('onhidden'),
     onQuote: null,
     onReplyPrivately: null,
-    onViewProfile: action('onviewprofile'),
+    onViewProfile: Sb.action('onviewprofile'),
     position: 'top left',
     showDivider: false,
     timestamp: 0,
@@ -208,7 +207,7 @@ const provider = createPropProvider(PropProviders.Common(), {
     onRetry: null,
     onEdit: null,
     onCancel: null,
-    onAuthorClick: action('onAuthorclick'),
+    onAuthorClick: Sb.action('onAuthorclick'),
     orangeLineAbove: false,
     timestamp: '',
   }),
@@ -250,7 +249,7 @@ class ThreadWrapper extends React.Component<Props, State> {
           this.setState(p => ({messageOrdinals: p.messageOrdinals.unshift(...makeMoreOrdinals())}))
         }, 2000)
       }
-    : action('onLoadMoreMessages')
+    : Sb.action('onLoadMoreMessages')
 
   render() {
     return <Thread {...props} {...this.state} loadMoreMessages={this.onLoadMoreMessages} />
@@ -258,7 +257,7 @@ class ThreadWrapper extends React.Component<Props, State> {
 }
 
 const load = () => {
-  storiesOf('Chat/Conversation/Thread', module)
+  Sb.storiesOf('Chat/Conversation/Thread', module)
     .addDecorator(provider)
     .addDecorator(story => (
       <Box2 direction="vertical" fullWidth={true} fullHeight={true}>

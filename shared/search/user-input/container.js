@@ -9,7 +9,7 @@ import {Box, Text} from '../../common-adapters'
 import {connect, createShallowEqualSelector, setDisplayName} from '../../util/container'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {parseUserId, serviceIdToIcon} from '../../util/platforms'
-import {withStateHandlers, withHandlers, compose, lifecycle} from 'recompose'
+import {withStateHandlers, withHandlers, withProps, compose, lifecycle} from 'recompose'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -17,10 +17,12 @@ export type OwnProps = {|
   searchKey: string,
   autoFocus?: boolean,
   focusInputCounter?: number,
-  placeholder: ?string,
+  placeholder?: string,
   onExitSearch: ?() => void,
   onSelectUser?: (id: string) => void,
+  hideAddButton?: boolean,
   disableListBuilding?: boolean,
+  showServiceFilter?: boolean,
 |}
 
 const UserInputWithServiceFilter = props => (
@@ -49,12 +51,14 @@ const UserInputWithServiceFilter = props => (
       onEnterEmptyText={props.onExitSearch}
       onCancel={props.onExitSearch}
       selectedSearchId={props.selectedSearchId}
+      hideAddButton={props.hideAddButton}
     />
     {props.showServiceFilter && (
       <Box
         style={{
           ...globalStyles.flexBoxRow,
           alignItems: 'center',
+          minHeight: 48,
         }}
       >
         <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
@@ -109,12 +113,15 @@ const mapStateToProps = (state: TypedState, {searchKey}: OwnProps) => {
   )
   const userItems = getUserItems(state, {searchKey})
   const clearSearchTextInput = Constants.getClearSearchTextInput(state, {searchKey})
+  const showServiceFilterIfInputEmpty = state.chat2.get('pendingMode') !== 'searchingForUsers'
+
   return {
     clearSearchTextInput,
     searchResultIds,
     selectedSearchId,
     userItems,
     searchResultTerm,
+    showServiceFilterIfInputEmpty,
     showingSearchSuggestions,
   }
 }
@@ -152,8 +159,10 @@ const ConnectedUserInput = compose(
   ),
   HocHelpers.onChangeSelectedSearchResultHoc,
   HocHelpers.clearSearchHoc,
-  HocHelpers.showServiceLogicHoc,
   HocHelpers.placeholderServiceHoc,
+  withProps(props => ({
+    showServiceFilter: props.showServiceFilterIfInputEmpty || !!props.searchText,
+  })),
   withHandlers(() => {
     let input
     return {
@@ -184,6 +193,7 @@ const ConnectedUserInput = compose(
         this.props.onUpdateSelectedSearchResult(
           (this.props.searchResultIds && this.props.searchResultIds[0]) || null
         )
+        this.props.onFocusInput()
       }
 
       if (this.props.clearSearchTextInput !== prevProps.clearSearchTextInput) {

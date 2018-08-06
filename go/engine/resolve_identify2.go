@@ -80,7 +80,7 @@ func (e *ResolveThenIdentify2) resolveUID(m libkb.MetaContext) (err error) {
 		return libkb.LoginRequiredError{Context: "to identify without specifying a user assertion"}
 	}
 
-	rres := m.G().Resolver.ResolveFullExpressionWithBody(m.Ctx(), e.arg.UserAssertion)
+	rres := m.G().Resolver.ResolveFullExpressionWithBody(m, e.arg.UserAssertion)
 	if err = rres.GetError(); err != nil {
 		return err
 	}
@@ -171,6 +171,13 @@ func (e *ResolveThenIdentify2) GetProofSet() *libkb.ProofSet {
 		return nil
 	}
 	return e.i2eng.GetProofSet()
+}
+
+func (e *ResolveThenIdentify2) GetIdentifyOutcome() *libkb.IdentifyOutcome {
+	if e.i2eng == nil {
+		return nil
+	}
+	return e.i2eng.GetIdentifyOutcome()
 }
 
 // ResolveAndCheck takes as input a name (joe), social assertion (joe@twitter)

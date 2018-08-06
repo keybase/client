@@ -1272,6 +1272,17 @@
         },
         {
           "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "TeamApplication"
+            },
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "needApplicationsAtGenerations"
+        },
+        {
+          "type": {
             "type": "array",
             "items": "UserVersion"
           },

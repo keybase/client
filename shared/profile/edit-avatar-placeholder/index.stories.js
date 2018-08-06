@@ -1,20 +1,16 @@
 // @flow
 import * as React from 'react'
-import * as PropProviders from '../../stories/prop-providers'
-import {action, storiesOf} from '../../stories/storybook'
+import * as Sb from '../../stories/storybook'
 import EditAvatar from '.'
 
 const props = {
   hasAvatar: true,
   keybaseUsername: 'thedude',
-  onAck: action('onAck'),
+  onAck: Sb.action('onAck'),
 }
 
-const provider = PropProviders.CommonProvider()
-
 const load = () => {
-  storiesOf('Profile/EditAvatar', module)
-    .addDecorator(provider)
+  Sb.storiesOf('Profile/EditAvatar', module)
     .add('Has', () => <EditAvatar {...props} />)
     .add('Missing', () => <EditAvatar {...props} hasAvatar={false} />)
 }

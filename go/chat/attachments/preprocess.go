@@ -7,7 +7,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 
 	"github.com/keybase/client/go/protocol/chat1"
@@ -83,6 +86,9 @@ func (p *Preprocess) Export(getLocation func() *chat1.PreviewLocation) (res chat
 		MimeType: p.ContentType,
 		Location: getLocation(),
 	}
+	if p.PreviewContentType != "" {
+		res.PreviewMimeType = &p.PreviewContentType
+	}
 	md := p.PreviewMetadata()
 	var empty chat1.AssetMetadata
 	if md != empty {
@@ -123,6 +129,9 @@ func processCallerPreview(ctx context.Context, callerPreview chat1.MakePreviewRe
 		return p, fmt.Errorf("unknown preview location: %v", ltyp)
 	}
 	p.ContentType = callerPreview.MimeType
+	if callerPreview.PreviewMimeType != nil {
+		p.PreviewContentType = *callerPreview.PreviewMimeType
+	}
 	if callerPreview.Metadata != nil {
 		typ, err := callerPreview.Metadata.AssetType()
 		if err != nil {
@@ -168,9 +177,9 @@ func processCallerPreview(ctx context.Context, callerPreview chat1.MakePreviewRe
 	return p, nil
 }
 
-func PreprocessAsset(ctx context.Context, log utils.DebugLabeler, filename string,
+func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLabeler, filename string,
 	callerPreview *chat1.MakePreviewRes) (p Preprocess, err error) {
-	if callerPreview != nil {
+	if callerPreview != nil && callerPreview.Location != nil {
 		log.Debug(ctx, "preprocessAsset: caller provided preview, using that")
 		return processCallerPreview(ctx, *callerPreview)
 	}
@@ -189,17 +198,26 @@ func PreprocessAsset(ctx context.Context, log utils.DebugLabeler, filename strin
 	p = Preprocess{
 		ContentType: http.DetectContentType(head),
 	}
-	log.Debug(ctx, "preprocessAsset: detected attachment content type %s", p.ContentType)
 	if _, err := src.Seek(0, 0); err != nil {
 		return p, err
 	}
-	previewRes, err := Preview(ctx, log, src, p.ContentType, filename)
+	// MIME type detection failed us, try using an extension map
+	if p.ContentType == "application/octet-stream" {
+		ext := strings.ToLower(filepath.Ext(filename))
+		if typ, ok := mimeTypes[ext]; ok {
+			p.ContentType = typ
+		}
+	}
+	log.Debug(ctx, "preprocessAsset: detected attachment content type %s", p.ContentType)
+
+	previewRes, err := Preview(ctx, g, log, src, p.ContentType, filename)
 	if err != nil {
 		log.Debug(ctx, "preprocessAsset: error making preview: %s", err)
 		return p, err
 	}
 	if previewRes != nil {
-		log.Debug(ctx, "preprocessAsset: made preview for attachment asset")
+		log.Debug(ctx, "preprocessAsset: made preview for attachment asset: content type: %s",
+			previewRes.ContentType)
 		p.Preview = previewRes.Source
 		p.PreviewContentType = previewRes.ContentType
 		if previewRes.BaseWidth > 0 || previewRes.BaseHeight > 0 {

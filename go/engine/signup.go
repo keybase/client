@@ -191,8 +191,8 @@ func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode str
 	s.ppStream.SetGeneration(res.PpGen)
 	m.LoginContext().CreateStreamCache(s.tsec, s.ppStream)
 
-	s.uid = res.UID
-	luArg := libkb.NewLoadUserArgWithMetaContext(m).WithSelf(true).WithUID(res.UID).WithPublicKeyOptional()
+	s.uid = res.UV.Uid
+	luArg := libkb.NewLoadUserArgWithMetaContext(m).WithSelf(true).WithUID(res.UV.Uid).WithPublicKeyOptional()
 	user, err := libkb.LoadUser(luArg)
 	if err != nil {
 		return err

@@ -268,6 +268,11 @@
     keybase1.TeamRole role;
   }
 
+  record ConversationSettings {
+    @mpackkey("mwr") @jsonkey("mwr")
+    union { null, ConversationMinWriterRoleInfo } minWriterRoleInfo;
+  }
+
   record Conversation {
     ConversationMetadata metadata;
     union { null, ConversationReaderInfo } readerInfo; // information about the convo from a user perspective
@@ -288,7 +293,8 @@
     Expunge expunge;
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
-    union { null, ConversationMinWriterRoleInfo } minWriterRoleInfo;
+    @mpackkey("cs") @jsonkey("cs")
+    union { null, ConversationSettings } convSettings;
   }
 
   record MessageSummary {
@@ -299,9 +305,14 @@
     gregor1.Time ctime;
   }
 
+  record Reaction {
+    gregor1.Time ctime;
+    MessageID reactionMsgID;
+  }
+
   record ReactionMap {
-    // { reactionText (:+1:) -> { username -> messageID } }
-    map<string, map<string, MessageID>> reactions;
+    // { reactionText (:+1:) -> { username -> Reaction } }
+    map<string, map<string, Reaction>> reactions;
   }
 
   record MessageServerHeader {
@@ -480,13 +491,15 @@
     NONE_0,
     RETAIN_1, // Keep messages forever
     EXPIRE_2, // Delete after a while
-    INHERIT_3 // Use the team's policy
+    INHERIT_3, // Use the team's policy
+    EPHEMERAL_4 // Force all messages to be exploding.
   }
 
   variant RetentionPolicy switch (RetentionPolicyType typ){
     case RETAIN: RpRetain;
     case EXPIRE: RpExpire;
     case INHERIT: RpInherit;
+    case EPHEMERAL: RpEphemeral;
   }
 
   record RpRetain {}
@@ -497,6 +510,11 @@
   }
 
   record RpInherit {}
+
+  record RpEphemeral {
+    // Messages must be exploding and have at most this lifetime.
+    gregor1.DurationSec age;
+  }
 
   enum GetThreadReason {
     GENERAL_0,

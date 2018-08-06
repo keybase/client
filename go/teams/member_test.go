@@ -923,7 +923,7 @@ func TestMemberAddResolveCache(t *testing.T) {
 	}
 
 	// clear the memory cache so it will come from disk
-	tc.G.Resolver.EnableCaching()
+	tc.G.Resolver.EnableCaching(libkb.NewMetaContextForTest(tc))
 
 	// add the member
 	res, err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_READER)
@@ -1407,6 +1407,13 @@ func TestFollowResetAdd(t *testing.T) {
 	_, err = AddMember(context.TODO(), tc.G, team, bob.Username, keybase1.TeamRole_ADMIN)
 	require.Error(t, err)
 	require.True(t, libkb.IsIdentifyProofError(err))
+
+	// AddMembers also fails
+	_, err = AddMembers(context.TODO(), tc.G, team, []string{bob.Username}, keybase1.TeamRole_ADMIN)
+	require.Error(t, err)
+	amerr, ok := err.(AddMembersError)
+	require.True(t, ok)
+	require.True(t, libkb.IsIdentifyProofError(amerr.Err))
 
 	// alice succeeds in removing charlie from the team, since her broken tracking statement
 	// is ignored for a team removal.

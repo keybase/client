@@ -271,7 +271,7 @@ const localSep = isWindows ? '\\' : '/'
 
 export const localPathConcat = (p: LocalPath, s: string): LocalPath => p + localSep + s
 export const getLocalPathName = (localPath: LocalPath): string => {
-  const elems = localPath.split('/')
+  const elems = localPath.split(localSep)
   for (let elem = elems.pop(); elems.length; elem = elems.pop()) {
     if (elem !== '') {
       return elem
@@ -280,6 +280,7 @@ export const getLocalPathName = (localPath: LocalPath): string => {
   return ''
 }
 export const getLocalPathDir = (p: LocalPath): string => p.slice(0, p.lastIndexOf(localSep))
+export const getNormalizedLocalPath = (p: LocalPath): LocalPath => localSep === '\\' ? p.replace(/\\/g, '/') : p
 
 type sortSettingDisplayParams = {
   sortSettingText: string,

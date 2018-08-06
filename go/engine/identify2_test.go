@@ -11,7 +11,6 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 	require "github.com/stretchr/testify/require"
-	context "golang.org/x/net/context"
 )
 
 func importTrackingLink(t *testing.T, g *libkb.GlobalContext) *libkb.TrackChainLink {
@@ -1088,8 +1087,8 @@ type evilResolver struct {
 	badUID    keybase1.UID
 }
 
-func (e *evilResolver) ResolveFullExpressionWithBody(ctx context.Context, s string) libkb.ResolveResult {
-	ret := e.ResolverImpl.ResolveFullExpressionWithBody(ctx, s)
+func (e *evilResolver) ResolveFullExpressionWithBody(m libkb.MetaContext, s string) libkb.ResolveResult {
+	ret := e.ResolverImpl.ResolveFullExpressionWithBody(m, s)
 	if strings.HasPrefix(s, e.badPrefix) {
 		ret.SetUIDForTesting(e.badUID)
 	}

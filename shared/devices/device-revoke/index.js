@@ -1,201 +1,137 @@
 // @flow
 import * as React from 'react'
-import {type DeviceType} from '../../constants/types/devices'
-import {
-  Box,
-  Box2,
-  Button,
-  HeaderHoc,
-  List,
-  Text,
-  Icon,
-  ProgressIndicator,
-  type IconType,
-} from '../../common-adapters'
-import {
-  globalColors,
-  globalMargins,
-  globalStyles,
-  styleSheetCreate,
-  isMobile,
-  platformStyles,
-  type StylesCrossPlatform,
-} from '../../styles'
+import * as Constants from '../../constants/devices'
+import * as Types from '../../constants/types/devices'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 
 export type Props = {
-  currentDevice: boolean,
-  deviceID: string,
+  device: Types.Device,
   endangeredTLFs: Array<string>,
-  type: DeviceType,
-  name: string,
   onCancel: () => void,
   onSubmit: () => void,
   waiting: boolean,
 }
 
-const Header = (props: {name: string, type: DeviceType}) => {
-  const headerIcon: IconType = {
-    backup: isMobile ? 'icon-paper-key-revoke-64' : 'icon-paper-key-revoke-48',
-    desktop: isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48',
-    mobile: isMobile ? 'icon-phone-revoke-64' : 'icon-phone-revoke-48',
-  }[props.type]
-  return (
-    <Box style={styles.headerContainer}>
-      <Icon type={headerIcon} />
-      <Text type="BodySemibold" style={styles.headerDeviceName}>
-        {props.name}
-      </Text>
-    </Box>
-  )
-}
-
-const BodyText = (props: {name: string, currentDevice: boolean}) => (
-  <Box style={styles.bodyTextContainer}>
-    <Text type="BodySemibold" style={styles.bodyText}>
-      Are you sure you want to revoke{' '}
-      {props.currentDevice ? 'your current device' : <Text type="BodySemiboldItalic">{props.name}</Text>}
-      ?
-    </Text>
-  </Box>
-)
-
-class EndangeredTLFList extends React.Component<
-  {endangeredTLFs: Array<string>, waiting: boolean, style: StylesCrossPlatform},
-  {}
-> {
+class EndangeredTLFList extends React.Component<{endangeredTLFs: Array<string>}> {
   _renderTLFEntry = (index: number, tlf: string) => (
-    <Box key={index} style={styles.tlfEntry}>
-      <Text type="BodySemibold" style={{marginRight: globalMargins.tiny}}>
-        •
-      </Text>
-      <Text type="BodySemibold" selectable={true} style={{flex: 1}}>
+    <Kb.Box2 direction="horizontal" key={index} gap="tiny" fullWidth={true} style={styles.row}>
+      <Kb.Text type="BodySemibold">•</Kb.Text>
+      <Kb.Text type="BodySemibold" selectable={true} style={styles.tlf}>
         {tlf}
-      </Text>
-    </Box>
+      </Kb.Text>
+    </Kb.Box2>
   )
   render() {
-    if (this.props.waiting) {
-      return <ProgressIndicator />
-    } else if (this.props.endangeredTLFs.length > 0) {
-      return (
-        <React.Fragment>
-          <Text type="Body" style={styles.bodyText}>
-            You may lose access to these folders forever:
-          </Text>
-          <Box style={styles.listContainer}>
-            <List items={this.props.endangeredTLFs} renderItem={this._renderTLFEntry} style={styles.list} />
-          </Box>
-        </React.Fragment>
-      )
-    }
-    return null
+    if (!this.props.endangeredTLFs.length) return null
+    return (
+      <React.Fragment>
+        <Kb.Text type="Body" style={styles.centerText}>
+          You may lose access to these folders forever:
+        </Kb.Text>
+        <Kb.Box2 direction="vertical" style={styles.listContainer}>
+          <Kb.List items={this.props.endangeredTLFs} renderItem={this._renderTLFEntry} indexAsKey={true} />
+        </Kb.Box2>
+      </React.Fragment>
+    )
   }
 }
 
-const ActionButtons = (props: {onCancel: () => void, onSubmit: () => void, waiting: boolean}) => (
-  <Box2
-    direction={isMobile ? 'vertical' : 'horizontalReverse'}
-    style={styles.actionButtonsContainer}
+const ActionButtons = ({onCancel, onSubmit}) => (
+  <Kb.Box2
+    direction={Styles.isMobile ? 'vertical' : 'horizontalReverse'}
+    fullWidth={Styles.isMobile}
     gap="tiny"
   >
-    <Button
-      fullWidth={isMobile}
+    <Kb.WaitingButton
+      fullWidth={Styles.isMobile}
       type="Danger"
-      onClick={props.waiting ? null : props.onSubmit}
       label="Yes, delete it"
-      disabled={props.waiting}
+      waitingKey={Constants.waitingKey}
+      onClick={onSubmit}
     />
-    <Button fullWidth={isMobile} type="Secondary" onClick={props.onCancel} label="Cancel" />
-  </Box2>
+    <Kb.Button fullWidth={Styles.isMobile} type="Secondary" onClick={onCancel} label="Cancel" />
+  </Kb.Box2>
 )
 
-const DeviceRevoke = (props: Props) => (
-  <Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-    <Box style={styles.deviceRevokeContainer}>
-      <Header name={props.name} type={props.type} />
-      <BodyText name={props.name} currentDevice={props.currentDevice} />
-      <EndangeredTLFList
-        endangeredTLFs={props.endangeredTLFs}
-        waiting={props.waiting}
-        style={styles.endangeredTLFList}
-      />
-      <ActionButtons onCancel={props.onCancel} onSubmit={props.onSubmit} waiting={props.waiting} />
-    </Box>
-  </Box2>
-)
+const DeviceRevoke = (props: Props) => {
+  const icon: Kb.IconType = {
+    backup: Styles.isMobile ? 'icon-paper-key-revoke-64' : 'icon-paper-key-revoke-48',
+    desktop: Styles.isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48',
+    mobile: Styles.isMobile ? 'icon-phone-revoke-64' : 'icon-phone-revoke-48',
+  }[props.device.type]
 
-const styles = styleSheetCreate({
-  deviceRevokeContainer: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    flex: 1,
-    marginBottom: globalMargins.small,
-    marginLeft: globalMargins.small,
-    marginRight: globalMargins.small,
-  },
-  headerContainer: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    height: 112,
-    justifyContent: 'center',
-    marginBottom: globalMargins.small,
-  },
-  headerDeviceName: {
-    color: globalColors.red,
+  return (
+    <Kb.Box2
+      direction="vertical"
+      fullHeight={true}
+      fullWidth={true}
+      gap="small"
+      gapEnd={true}
+      style={styles.container}
+    >
+      <Kb.NameWithIcon icon={icon} title={props.device.name} titleStyle={styles.headerName} size="small" />
+      <Kb.Text type="Header" style={styles.centerText}>
+        Are you sure you want to revoke{' '}
+        {props.device.currentDevice ? (
+          'your current device'
+        ) : (
+          <Kb.Text type="Header" style={styles.italicName}>
+            {props.device.name}
+          </Kb.Text>
+        )}
+        ?
+      </Kb.Text>
+      <Kb.Box2 direction="vertical" style={styles.endangeredTLFContainer} fullWidth={Styles.isMobile}>
+        {!props.waiting && <EndangeredTLFList endangeredTLFs={props.endangeredTLFs} />}
+      </Kb.Box2>
+      <ActionButtons onCancel={props.onCancel} onSubmit={props.onSubmit} />
+      {props.waiting && (
+        <Kb.Text type="BodySmallItalic" style={styles.centerText}>
+          Calculating any side effects...
+        </Kb.Text>
+      )}
+    </Kb.Box2>
+  )
+}
+
+const styles = Styles.styleSheetCreate({
+  centerText: {textAlign: 'center'},
+  container: {padding: Styles.globalMargins.small},
+  endangeredTLFContainer: Styles.platformStyles({
+    isElectron: {alignSelf: 'center'},
+    isMobile: {flexGrow: 1},
+  }),
+  headerName: {
+    color: Styles.globalColors.red,
     fontStyle: 'italic',
     marginTop: 4,
     textDecorationLine: 'line-through',
   },
-  bodyTextContainer: {
-    marginBottom: globalMargins.tiny,
-  },
-  bodyText: {
-    textAlign: 'center',
-  },
-  listContainer: platformStyles({
+  italicName: {...Styles.globalStyles.italic},
+  listContainer: Styles.platformStyles({
     common: {
-      ...globalStyles.flexBoxColumn,
+      ...Styles.globalStyles.flexBoxColumn,
       alignContent: 'center',
-      borderColor: globalColors.black_05,
+      borderColor: Styles.globalColors.black_05,
       borderRadius: 4,
       borderStyle: 'solid',
       borderWidth: 1,
-      marginBottom: globalMargins.small,
-      marginTop: globalMargins.small,
-    },
-    isElectron: {
-      height: 162,
-      width: 440,
-    },
-    isMobile: {
-      flex: 1,
+      flexGrow: 1,
+      marginBottom: Styles.globalMargins.small,
+      marginTop: Styles.globalMargins.small,
       width: '100%',
     },
+    isElectron: {height: 162, width: 440},
   }),
-  endangeredTLFList: {
-    flex: 1,
+  row: {
+    paddingBottom: Styles.globalMargins.xxtiny,
+    paddingLeft: Styles.globalMargins.xtiny,
+    paddingTop: Styles.globalMargins.xxtiny,
   },
-  list: {
-    margin: globalMargins.small,
-  },
-  tlfEntry: platformStyles({
-    common: {
-      flexDirection: 'row',
-      marginBottom: globalMargins.xtiny,
-    },
-    isElectron: {
-      textAlign: 'left',
-    },
-  }),
-  actionButtonsContainer: platformStyles({
-    isElectron: {
-      marginTop: globalMargins.medium,
-    },
-    isMobile: {
-      marginTop: globalMargins.small,
-      width: '100%',
-    },
+  tlf: Styles.platformStyles({
+    isElectron: {wordBreak: 'break-word'},
   }),
 })
 
-export default HeaderHoc(DeviceRevoke)
+export default Kb.HeaderHoc(DeviceRevoke)

@@ -1,30 +1,27 @@
 // @flow
 import * as React from 'react'
-import {globalColors, globalStyles, globalMargins} from '../../styles'
+import {styleSheetCreate, collapseStyles, globalColors, globalStyles, globalMargins} from '../../styles'
 import {BackButton, Box, Icon, Text} from '../../common-adapters'
 import AddNew from './add-new-container'
 import {type FolderHeaderProps} from './header'
 
 const Header = ({title, path, onBack, onChat}: FolderHeaderProps) => (
-  <Box style={stylesFolderHeaderContainer}>
-    <Box style={stylesFolderHeaderRow}>
+  <Box style={styles.stylesFolderHeaderContainer}>
+    <Box style={styles.stylesFolderHeaderRow}>
       <BackButton onClick={onBack} />
-      <Box style={stylesFolderHeaderRoot}>
-        <Text type="BodyBig" style={stylesTitle}>
+      <Box style={styles.stylesFolderHeaderRoot}>
+        <Text type="BodyBig" style={styles.stylesTitle}>
           {title}
         </Text>
       </Box>
-      <Box style={stylesAddNewBox}>
-        <AddNew path={path} style={stylesAddNew} />
+      <Box style={styles.stylesAddNewBox}>
+        <AddNew path={path} style={styles.stylesIcons} />
       </Box>
       {onChat && (
-        <Box style={stylesAddNewBox}>
+        <Box style={styles.stylesAddNewBox}>
           <Icon
             type="iconfont-chat"
-            style={{
-              marginLeft: globalMargins.tiny,
-              marginTop: globalMargins.tiny,
-            }}
+            style={collapseStyles([styles.stylesIcons])}
             color={globalColors.black_40}
             fontSize={22}
             onClick={onChat}
@@ -35,38 +32,36 @@ const Header = ({title, path, onBack, onChat}: FolderHeaderProps) => (
   </Box>
 )
 
-const stylesFolderHeaderRow = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'flex-start',
-  paddingTop: 12,
-  minHeight: 64,
-}
-
-const stylesFolderHeaderContainer = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'flex-start',
-  minHeight: 64,
-}
-
-const stylesFolderHeaderRoot = {
-  paddingTop: 9,
-  paddingBottom: 21,
-  flexShrink: 1,
-  flexGrow: 1,
-}
-
-const stylesAddNew = {
-  padding: globalMargins.tiny,
-  paddingRight: globalMargins.small - 4,
-  paddingLeft: globalMargins.small,
-}
-
-const stylesTitle = {
-  textAlign: 'center',
-}
-
-const stylesAddNewBox = {
-  minWidth: 50,
-}
-
+const styles = styleSheetCreate({
+  stylesFolderHeaderRow: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'flex-start',
+    paddingTop: 12,
+    minHeight: 64,
+  },
+  stylesFolderHeaderContainer: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'flex-start',
+    minHeight: 64,
+  },
+  stylesFolderHeaderRoot: {
+    paddingTop: 9,
+    paddingBottom: 21,
+    flexShrink: 1,
+    flexGrow: 1,
+  },
+  stylesIcons: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    padding: globalMargins.tiny,
+    paddingRight: globalMargins.small - 4,
+    paddingLeft: globalMargins.small,
+  },
+  stylesTitle: {
+    textAlign: 'center',
+  },
+  stylesAddNewBox: {
+    minWidth: 50,
+  },
+})
 export default Header

@@ -153,12 +153,13 @@ export const TeamMemberRow = (props: Props) => {
               </ButtonBar>
             </Box>
           )}
-        <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
+        <Box style={{...globalStyles.flexBoxRow, flexShrink: 1, height: '100%'}}>
           <Icon
             onClick={props.onChat}
             style={{
               marginLeft: globalMargins.small,
               marginRight: globalMargins.tiny,
+              padding: globalMargins.tiny,
             }}
             fontSize={isMobile ? 20 : 16}
             type="iconfont-chat"

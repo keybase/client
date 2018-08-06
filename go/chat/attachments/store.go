@@ -1,6 +1,7 @@
 package attachments
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"errors"
@@ -31,34 +32,38 @@ type UploadTask struct {
 	Filename       string
 	FileSize       int
 	Plaintext      ReadResetter
-	plaintextHash  []byte
+	taskHash       []byte
 	S3Signer       s3.Signer
 	ConversationID chat1.ConversationID
 	UserID         gregor1.UID
+	OutboxID       chat1.OutboxID
+	Preview        bool
 	Progress       types.ProgressReporter
 }
 
-func (u *UploadTask) computePlaintextHash() error {
-	plaintextHasher := sha256.New()
-	io.Copy(plaintextHasher, u.Plaintext)
-	u.plaintextHash = plaintextHasher.Sum(nil)
+func (u *UploadTask) computeHash() {
+	hasher := sha256.New()
+	seed := fmt.Sprintf("%s:%v", u.OutboxID, u.Preview)
+	io.Copy(hasher, bytes.NewReader([]byte(seed)))
+	u.taskHash = hasher.Sum(nil)
+}
 
-	// reset the stream to the beginning of the file
-	return u.Plaintext.Reset()
+func (u *UploadTask) hash() []byte {
+	return u.taskHash
 }
 
 func (u *UploadTask) stashKey() StashKey {
-	return NewStashKey(u.plaintextHash, u.ConversationID, u.UserID)
+	return NewStashKey(u.OutboxID, u.Preview)
 }
 
 func (u *UploadTask) Nonce() signencrypt.Nonce {
 	var n [signencrypt.NonceSize]byte
-	copy(n[:], u.plaintextHash)
+	copy(n[:], u.taskHash)
 	return &n
 }
 
 type Store interface {
-	UploadAsset(ctx context.Context, task *UploadTask) (chat1.Asset, error)
+	UploadAsset(ctx context.Context, task *UploadTask, encryptedOut io.Writer) (chat1.Asset, error)
 	DownloadAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset, w io.Writer,
 		signer s3.Signer, progress types.ProgressReporter) error
 	DeleteAsset(ctx context.Context, params chat1.S3Params, signer s3.Signer, asset chat1.Asset) error
@@ -79,7 +84,7 @@ type S3Store struct {
 	blockLimit int                         // max number of blocks to upload
 }
 
-// NewStore creates a standard Store that uses a real
+// NewS3Store creates a standard Store that uses a real
 // S3 connection.
 func NewS3Store(logger logger.Logger, runtimeDir string) *S3Store {
 	return &S3Store{
@@ -89,11 +94,11 @@ func NewS3Store(logger logger.Logger, runtimeDir string) *S3Store {
 	}
 }
 
-// newStoreTesting creates an Store suitable for testing
+// NewStoreTesting creates an Store suitable for testing
 // purposes.  It is not exposed outside this package.
 // It uses an in-memory s3 interface, reports enc/sig keys, and allows limiting
 // the number of blocks uploaded.
-func newStoreTesting(logger logger.Logger, kt func(enc, sig []byte)) *S3Store {
+func NewStoreTesting(logger logger.Logger, kt func(enc, sig []byte)) *S3Store {
 	return &S3Store{
 		DebugLabeler: utils.NewDebugLabeler(logger, "Attachments.Store", false),
 		s3c:          &s3.Mem{},
@@ -103,13 +108,11 @@ func newStoreTesting(logger logger.Logger, kt func(enc, sig []byte)) *S3Store {
 	}
 }
 
-func (a *S3Store) UploadAsset(ctx context.Context, task *UploadTask) (res chat1.Asset, err error) {
+func (a *S3Store) UploadAsset(ctx context.Context, task *UploadTask, encryptedOut io.Writer) (res chat1.Asset, err error) {
 	defer a.Trace(ctx, func() error { return err }, "UploadAsset")()
 	// compute plaintext hash
-	if task.plaintextHash == nil {
-		if err := task.computePlaintextHash(); err != nil {
-			return res, err
-		}
+	if task.hash() == nil {
+		task.computeHash()
 	} else {
 		if !a.testing {
 			return res, errors.New("task.plaintextHash not nil")
@@ -128,7 +131,7 @@ func (a *S3Store) UploadAsset(ctx context.Context, task *UploadTask) (res chat1.
 		previous = a.previousUpload(ctx, task)
 	}
 
-	res, err = a.uploadAsset(ctx, task, enc, previous, resumable)
+	res, err = a.uploadAsset(ctx, task, enc, previous, resumable, encryptedOut)
 
 	// if the upload is aborted, reset the stream and start over to get new keys
 	if err == ErrAbortOnPartMismatch && previous != nil {
@@ -136,17 +139,15 @@ func (a *S3Store) UploadAsset(ctx context.Context, task *UploadTask) (res chat1.
 		a.aborts++
 		previous = nil
 		task.Plaintext.Reset()
-		// recompute plaintext hash:
-		if err := task.computePlaintextHash(); err != nil {
-			return res, err
-		}
-		return a.uploadAsset(ctx, task, enc, nil, resumable)
+		task.computeHash()
+		return a.uploadAsset(ctx, task, enc, nil, resumable, encryptedOut)
 	}
 
 	return res, err
 }
 
-func (a *S3Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEncrypter, previous *AttachmentInfo, resumable bool) (asset chat1.Asset, err error) {
+func (a *S3Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEncrypter,
+	previous *AttachmentInfo, resumable bool, encryptedOut io.Writer) (asset chat1.Asset, err error) {
 	defer a.Trace(ctx, func() error { return err }, "uploadAsset")()
 	var encReader io.Reader
 	if previous != nil {
@@ -174,6 +175,9 @@ func (a *S3Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEn
 	// compute ciphertext hash
 	hash := sha256.New()
 	tee := io.TeeReader(encReader, hash)
+	if encryptedOut != nil {
+		tee = io.TeeReader(tee, encryptedOut)
+	}
 
 	// post to s3
 	length := int64(enc.EncryptedLen(task.FileSize))

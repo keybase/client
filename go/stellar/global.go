@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/build"
+	"github.com/stellar/go/clients/federation"
 	"github.com/stellar/go/clients/horizon"
 )
 
@@ -33,15 +34,18 @@ type Stellar struct {
 
 	hasWalletCacheLock sync.Mutex
 	hasWalletCache     map[keybase1.UserVersion]bool
+
+	federationClient federation.ClientInterface
 }
 
 var _ libkb.Stellar = (*Stellar)(nil)
 
 func NewStellar(g *libkb.GlobalContext, remoter remote.Remoter) *Stellar {
 	return &Stellar{
-		Contextified:   libkb.NewContextified(g),
-		remoter:        remoter,
-		hasWalletCache: make(map[keybase1.UserVersion]bool),
+		Contextified:     libkb.NewContextified(g),
+		remoter:          remoter,
+		hasWalletCache:   make(map[keybase1.UserVersion]bool),
+		federationClient: getFederationClient(g),
 	}
 }
 
@@ -120,6 +124,19 @@ func (s *Stellar) CachedHasWallet(ctx context.Context, uv keybase1.UserVersion) 
 	has := s.hasWalletCache[uv]
 	s.G().Log.CDebugf(ctx, "Stellar.CachedHasWallet(%v) -> %v", uv, has)
 	return has
+}
+
+func (s *Stellar) SetFederationClientForTest(cli federation.ClientInterface) {
+	s.federationClient = cli
+}
+
+// getFederationClient is a helper function used during
+// initialization.
+func getFederationClient(g *libkb.GlobalContext) federation.ClientInterface {
+	if g.Env.GetRunMode() != libkb.ProductionRunMode {
+		return federation.DefaultTestNetClient
+	}
+	return federation.DefaultPublicNetClient
 }
 
 // getGlobal gets the libkb.Stellar off of G and asserts it into a stellar.Stellar

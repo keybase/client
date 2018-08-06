@@ -1,18 +1,17 @@
 // @flow
 import * as React from 'react'
-import * as PropProviders from '../../stories/prop-providers'
-import {storiesOf, action} from '../../stories/storybook'
+import * as Sb from '../../stories/storybook'
 import {RoleConfirm, RoleOptions} from '.'
 
 const commonProps = {
-  onCancel: action('onCancel'),
-  onComplete: action('onComplete'),
+  onCancel: Sb.action('onCancel'),
+  onComplete: Sb.action('onComplete'),
   teamname: 'keybase',
   username: 'ayoubd',
   allowOwner: true,
-  setConfirm: action('setConfirm'),
-  setSelectedRole: action('setSelectedRole'),
-  setSendNotification: action('setSendNotification'),
+  setConfirm: Sb.action('setConfirm'),
+  setSelectedRole: Sb.action('setSelectedRole'),
+  setSendNotification: Sb.action('setSendNotification'),
   sendNotification: false,
   selectedRole: 'writer',
   showSendNotification: true,
@@ -28,11 +27,8 @@ const roleConfirmProps = {
   confirm: true,
 }
 
-const provider = PropProviders.CommonProvider()
-
 const load = () => {
-  storiesOf('Teams/Roles', module)
-    .addDecorator(provider)
+  Sb.storiesOf('Teams/Roles', module)
     .add('Picker', () => <RoleOptions {...roleOptionsProps} />)
     .add('ConfirmReader', () => <RoleConfirm {...roleConfirmProps} selectedRole="reader" />)
     .add('ConfirmWriter', () => <RoleConfirm {...roleConfirmProps} selectedRole="writer" />)

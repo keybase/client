@@ -2,21 +2,20 @@
 import * as React from 'react'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
-import {action, createPropProvider, storiesOf, Rnd} from '../../../../stories/storybook'
-import {Common} from '../../../../stories/prop-providers'
+import * as Sb from '../../../../stories/storybook'
 import {propProvider as ReactButton} from '../react-button/index.stories'
 import {upperFirst} from 'lodash-es'
 import ReactionTooltip from '.'
 import type {Props} from '.'
 import type {OwnProps} from './container'
 
-const provider = createPropProvider(Common(), ReactButton)
+const provider = Sb.createPropProviderWithCommon(ReactButton)
 
 const common = {
   attachmentRef: null,
   conversationIDKey: Constants.noConversationIDKey,
-  onAddReaction: action('onAddReaction'),
-  onHidden: action('onHidden'),
+  onAddReaction: Sb.action('onAddReaction'),
+  onHidden: Sb.action('onHidden'),
   ordinal: Types.numberToOrdinal(0),
   visible: true,
 }
@@ -90,7 +89,7 @@ const maxUsersInReaction = 15
 const consonants = 'BCDFGHJKLMNPQRSTVWXYZ'.split('')
 const vowels = 'AEIOU'.split('')
 const emoji = [':+1:', ':-1:', ':heavy_check_mark:', ':boom:', ':globe_with_meridians:', ':bathtub:']
-const rng = new Rnd(7324)
+const rng = new Sb.Rnd(7324)
 const makeName = () => {
   const length = rng.next() % 5 + 3
   let res = ''
@@ -125,7 +124,7 @@ examples.push({
 })
 
 const load = () => {
-  const story = storiesOf('Chat/Conversation/Reaction tooltip', module).addDecorator(provider)
+  const story = Sb.storiesOf('Chat/Conversation/Reaction tooltip', module).addDecorator(provider)
   examples.forEach((ex, i) => story.add(`Example ${i + 1}`, () => <ReactionTooltip {...ex} />))
 }
 
@@ -133,7 +132,7 @@ export const propProvider = {
   ReactionTooltip: (ownProps: OwnProps): Props => ({
     attachmentRef: ownProps.attachmentRef,
     conversationIDKey: ownProps.conversationIDKey,
-    onAddReaction: action('onAddReaction'),
+    onAddReaction: Sb.action('onAddReaction'),
     onHidden: ownProps.onHidden,
     onMouseLeave: ownProps.onMouseLeave,
     onMouseOver: ownProps.onMouseOver,

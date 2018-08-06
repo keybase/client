@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../../../../../constants/types/chat2'
 import * as KBFSGen from '../../../../../actions/kbfs-gen'
-import * as Route from '../../../../../actions/route-tree'
+import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import {connect, type TypedState, type Dispatch, isMobile} from '../../../../../util/container'
 import {globalColors} from '../../../../../styles'
 import ImageAttachment from '.'
@@ -17,12 +17,9 @@ const mapStateToProps = (state: TypedState) => ({})
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onClick: (message: Types.MessageAttachment) => {
     dispatch(
-      Route.navigateAppend([
-        {
-          props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
-          selected: 'attachmentFullscreen',
-        },
-      ])
+      Chat2Gen.createAttachmentPreviewSelect({
+        message,
+      })
     )
   },
   _onShowInFinder: (message: Types.MessageAttachment) => {
@@ -32,19 +29,24 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {message} = ownProps
-  const arrowColor = message.downloadPath
-    ? globalColors.green
-    : message.transferState === 'downloading'
-      ? globalColors.blue
-      : null
+  // On mobile we use this icon to indicate we have the file stored locally, and it can be viewed. This is a
+  // similar meaning to desktop.
+  const arrowColor = !isMobile
+    ? message.downloadPath
+      ? globalColors.green
+      : message.transferState === 'downloading'
+        ? globalColors.blue
+        : null
+    : null
   const progressLabel =
     message.transferState === 'downloading'
       ? 'Downloading'
       : message.transferState === 'uploading'
-        ? 'Encrypting'
+        ? 'Uploading'
         : message.transferState === 'remoteUploading'
           ? 'waiting...'
           : null
+  const buttonType = message.showPlayButton ? (message.fileURLCached && isMobile ? 'play' : 'film') : null
   const hasProgress = message.transferState && message.transferState !== 'remoteUploading'
   return {
     arrowColor,
@@ -62,7 +64,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     path: message.previewURL,
     progress: message.transferProgress,
     progressLabel,
-    showPlayButton: message.showPlayButton,
+    showButton: buttonType,
+    videoDuration: message.videoDuration || '',
     title: message.title || message.fileName,
     toggleShowingMenu: ownProps.toggleShowingMenu,
     width: Math.min(message.previewWidth, imgMaxWidth()),

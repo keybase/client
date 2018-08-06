@@ -4,6 +4,7 @@ import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as KBFSGen from '../../../../../actions/kbfs-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
+import * as Route from '../../../../../actions/route-tree'
 import {getCanPerform} from '../../../../../constants/teams'
 import {connect, type TypedState, type Dispatch} from '../../../../../util/container'
 import {isMobile, isIOS} from '../../../../../constants/platform'
@@ -31,6 +32,16 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _onAddReaction: (message: Types.Message) => {
+    dispatch(
+      Route.navigateAppend([
+        {
+          props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+          selected: 'chooseEmoji',
+        },
+      ])
+    )
+  },
   _onDelete: (message: Types.Message) => {
     dispatch(
       Chat2Gen.createMessageDelete({
@@ -79,12 +90,21 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     deviceName: message.deviceName,
     deviceRevokedAt: message.deviceRevokedAt,
     deviceType: message.deviceType,
+    onAddReaction: isMobile ? () => dispatchProps._onAddReaction(message) : null,
     onDelete: yourMessage ? () => dispatchProps._onDelete(message) : null,
     onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
     onHidden: () => ownProps.onHidden(),
+    // We only show the share/save options for video if we have the file stored locally from a download
     onSaveAttachment:
-      isMobile && message.attachmentType === 'image' ? () => dispatchProps._onSaveAttachment(message) : null,
-    onShareAttachment: isIOS ? () => dispatchProps._onShareAttachment(message) : null,
+      isMobile &&
+      message.attachmentType === 'image' &&
+      !(Constants.isVideoAttachment(message) && !message.fileURLCached)
+        ? () => dispatchProps._onSaveAttachment(message)
+        : null,
+    onShareAttachment:
+      isIOS && !(Constants.isVideoAttachment(message) && !message.fileURLCached)
+        ? () => dispatchProps._onShareAttachment(message)
+        : null,
     onShowInFinder: !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : null,
     pending: stateProps.pending,
     position: ownProps.position,

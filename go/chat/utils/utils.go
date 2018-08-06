@@ -959,7 +959,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
 	res.ConvRetention = rawConv.ConvRetention
 	res.TeamRetention = rawConv.TeamRetention
-	res.MinWriterRoleInfo = rawConv.MinWriterRoleInfo
+	res.ConvSettings = rawConv.ConvSettings
 	return res
 }
 
@@ -993,6 +993,20 @@ func presentChannelNameMentions(ctx context.Context, crs []chat1.ChannelNameMent
 	return res
 }
 
+func formatVideoDuration(ms int) string {
+	s := ms / 1000
+	// see if we have hours
+	if s >= 3600 {
+		hours := s / 3600
+		minutes := (s % 3600) / 60
+		seconds := s - (hours*3600 + minutes*60)
+		return fmt.Sprintf("%d:%02d:%02d", hours, minutes, seconds)
+	}
+	minutes := s / 60
+	seconds := s % 60
+	return fmt.Sprintf("%d:%02d", minutes, seconds)
+}
+
 func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg chat1.MessageUnboxed,
 	convID chat1.ConversationID) *chat1.UIAssetUrlInfo {
 	body := msg.Valid().MessageBody
@@ -1003,23 +1017,37 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 	switch typ {
 	case chat1.MessageType_ATTACHMENT, chat1.MessageType_ATTACHMENTUPLOADED:
 		var hasFullURL, hasPreviewURL bool
+		var asset chat1.Asset
 		var info chat1.UIAssetUrlInfo
 		if typ == chat1.MessageType_ATTACHMENT {
-			info.MimeType = body.Attachment().Object.MimeType
-			hasFullURL = body.Attachment().Object.Path != ""
+			asset = body.Attachment().Object
+			info.MimeType = asset.MimeType
+			hasFullURL = asset.Path != ""
 			hasPreviewURL = body.Attachment().Preview != nil &&
 				body.Attachment().Preview.Path != ""
 		} else {
-			info.MimeType = body.Attachmentuploaded().Object.MimeType
-			hasFullURL = body.Attachmentuploaded().Object.Path != ""
+			asset = body.Attachmentuploaded().Object
+			info.MimeType = asset.MimeType
+			hasFullURL = asset.Path != ""
 			hasPreviewURL = len(body.Attachmentuploaded().Previews) > 0 &&
 				body.Attachmentuploaded().Previews[0].Path != ""
 		}
 		if hasFullURL {
+			var cached bool
 			info.FullUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), false)
+			cached, err = g.AttachmentURLSrv.GetAttachmentFetcher().IsAssetLocal(ctx, asset)
+			if err != nil {
+				cached = false
+			}
+			info.FullUrlCached = cached
 		}
 		if hasPreviewURL {
 			info.PreviewUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), true)
+		}
+		atyp, err := asset.Metadata.AssetType()
+		if err == nil && atyp == chat1.AssetMetadataType_VIDEO && asset.Metadata.Video().DurationMs > 1 {
+			info.VideoDuration = new(string)
+			*info.VideoDuration = formatVideoDuration(asset.Metadata.Video().DurationMs)
 		}
 		if info.FullUrl == "" && info.PreviewUrl == "" && info.MimeType == "" {
 			return nil

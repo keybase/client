@@ -1,12 +1,25 @@
 // @flow
 import * as React from 'react'
-import {isMobile, globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
-import {Box, ClickableBox, Icon, Text, type IconType} from '../../common-adapters'
+import {
+  isMobile,
+  styleSheetCreate,
+  collapseStyles,
+  globalStyles,
+  globalColors,
+  globalMargins,
+  platformStyles,
+} from '../../styles'
+import {
+  Box,
+  ClickableBox,
+  Icon,
+  Text,
+  type IconType,
+  FloatingMenu,
+  OverlayParentHOC,
+  type OverlayParentProps,
+} from '../../common-adapters'
 import StaticBreadcrumb from '../common/static-breadcrumb'
-import FloatingMenu, {
-  FloatingMenuParentHOC,
-  type FloatingMenuParentProps,
-} from '../../common-adapters/floating-menu'
 
 type AddNewProps = {
   style?: Object,
@@ -22,14 +35,18 @@ type AddNewProps = {
   pathElements: Array<string>,
 }
 
-const AddNew = (props: AddNewProps & FloatingMenuParentProps) => {
+const AddNew = (props: AddNewProps & OverlayParentProps) => {
   return (
     !!props.menuItems.length && (
-      <Box style={props.style}>
-        <ClickableBox style={stylesBox} onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
-          <Icon type="iconfont-new" color={globalColors.blue} style={stylesIconNew} />
+      <Box>
+        <ClickableBox style={props.style} onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
+          <Icon
+            type="iconfont-new"
+            color={globalColors.blue}
+            style={collapseStyles([styles.stylesIconNew])}
+          />
           {!isMobile && (
-            <Text type="BodyBigLink" style={stylesText}>
+            <Text type="BodyBigLink" style={styles.stylesText}>
               New ...
             </Text>
           )}
@@ -63,9 +80,9 @@ const AddNew = (props: AddNewProps & FloatingMenuParentProps) => {
                       : {
                           title: item.title,
                           view: (
-                            <Box style={stylesBox}>
+                            <Box style={styles.stylesBox}>
                               <Icon type={item.icon} color={globalColors.blue} />
-                              <Text type="Body" style={stylesText}>
+                              <Text type="Body" style={styles.stylesText}>
                                 {item.title}
                               </Text>
                             </Box>
@@ -81,17 +98,23 @@ const AddNew = (props: AddNewProps & FloatingMenuParentProps) => {
   )
 }
 
-const stylesBox = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-}
-
-const stylesText = {
-  marginLeft: globalMargins.tiny,
-}
-
-const stylesIconNew = platformStyles({
-  isMobile: {fontSize: 22},
+const styles = styleSheetCreate({
+  stylesBox: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+  },
+  stylesText: platformStyles({
+    common: {
+      marginLeft: globalMargins.tiny,
+    },
+    isElectron: {
+      // Disable text-decoration: underline on hover for BodyBigLink
+      pointerEvents: 'none',
+    },
+  }),
+  stylesIconNew: platformStyles({
+    isMobile: {fontSize: 22},
+  }),
 })
 
-export default FloatingMenuParentHOC(AddNew)
+export default OverlayParentHOC(AddNew)

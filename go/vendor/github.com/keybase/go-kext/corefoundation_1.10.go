@@ -45,7 +45,7 @@ func BytesToCFData(b []byte) (C.CFDataRef, error) {
 	if len(b) > 0 {
 		p = (*C.UInt8)(&b[0])
 	}
-	cfData := C.CFDataCreate(nil, p, C.CFIndex(len(b)))
+	cfData := C.CFDataCreate(C.kCFAllocatorDefault, p, C.CFIndex(len(b)))
 	if cfData == 0 {
 		return 0, fmt.Errorf("CFDataCreate failed")
 	}
@@ -71,7 +71,7 @@ func MapToCFDictionary(m map[C.CFTypeRef]C.CFTypeRef) (C.CFDictionaryRef, error)
 		keysPointer = &keys[0]
 		valuesPointer = &values[0]
 	}
-	cfDict := C.CFDictionaryCreateSafe(nil, keysPointer, valuesPointer, C.CFIndex(numValues), &C.kCFTypeDictionaryKeyCallBacks, &C.kCFTypeDictionaryValueCallBacks)
+	cfDict := C.CFDictionaryCreateSafe(C.kCFAllocatorDefault, keysPointer, valuesPointer, C.CFIndex(numValues), &C.kCFTypeDictionaryKeyCallBacks, &C.kCFTypeDictionaryValueCallBacks)
 	if cfDict == 0 {
 		return 0, fmt.Errorf("CFDictionaryCreate failed")
 	}
@@ -108,7 +108,7 @@ func StringToCFString(s string) (C.CFStringRef, error) {
 	if len(bytes) > 0 {
 		p = (*C.UInt8)(&bytes[0])
 	}
-	return C.CFStringCreateWithBytes(nil, p, C.CFIndex(len(s)), C.kCFStringEncodingUTF8, C.false), nil
+	return C.CFStringCreateWithBytes(C.kCFAllocatorDefault, p, C.CFIndex(len(s)), C.kCFStringEncodingUTF8, C.false), nil
 }
 
 // CFStringToString converts a CFStringRef to a string.
@@ -143,7 +143,7 @@ func ArrayToCFArray(a []C.CFTypeRef) C.CFArrayRef {
 	if numValues > 0 {
 		valuesPointer = &values[0]
 	}
-	return C.CFArrayCreateSafe(nil, valuesPointer, C.CFIndex(numValues), &C.kCFTypeArrayCallBacks)
+	return C.CFArrayCreateSafe(C.kCFAllocatorDefault, valuesPointer, C.CFIndex(numValues), &C.kCFTypeArrayCallBacks)
 }
 
 // CFArrayToArray converts a CFArrayRef to an array of CFTypes.

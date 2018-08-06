@@ -18,7 +18,7 @@ const defaultYou = 'ayoubd'
 const defaultFollowing = ['max', 'cnojima', 'cdixon']
 const defaultFollowers = ['max', 'akalin']
 
-const Usernames = (following: string[] = defaultFollowing, you: string = defaultYou) => ({
+export const Usernames = (following: string[] = defaultFollowing, you: string = defaultYou) => ({
   Usernames: (ownProps: _Usernames.ConnectedProps): _Usernames.Props => {
     const {usernames} = ownProps
     const users = (usernames || [])
@@ -33,18 +33,18 @@ const Usernames = (following: string[] = defaultFollowing, you: string = default
   },
 })
 
-const WaitingButton = () => ({
+export const WaitingButton = () => ({
   WaitingButton: (ownProps: _WaitingButton.OwnProps): _WaitingButton.Props => ({
     ...ownProps,
     storeWaiting: false,
   }),
 })
 
-const Avatar = (following: string[] = defaultFollowing, followers: string[] = defaultFollowers) => ({
+export const Avatar = (following: string[] = defaultFollowing, followers: string[] = defaultFollowers) => ({
   Avatar: (ownProps: _Avatar.Props) => _Avatar.mockOwnToViewProps(ownProps, following, followers, action),
 })
 
-const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: string]: number}) => ({
+export const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: string]: number}) => ({
   TeamDropdownMenu: (ownProps: _TeamDropdownMenu.OwnProps): _TeamDropdownMenu.Props => ({
     _loadOperations: action('_loadOperations'),
     attachTo: ownProps.attachTo,
@@ -65,12 +65,14 @@ const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: strin
   }),
 })
 
-const Common = () => ({
+export const Common = () => ({
   ...Usernames(),
   ...Avatar(),
   ...WaitingButton(),
 })
 
-const CommonProvider = () => createPropProvider(Common())
-
-export {Avatar, Common, CommonProvider, TeamDropdownMenu, Usernames}
+export const createPropProviderWithCommon = (custom: ?Object) =>
+  createPropProvider({
+    ...Common(),
+    ...(custom || {}),
+  })

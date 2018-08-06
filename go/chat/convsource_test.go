@@ -313,13 +313,6 @@ func TestReactions(t *testing.T) {
 		TLFMessage: *firstMessageBoxed,
 	})
 	require.NoError(t, err)
-	ires, err := ri.GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query: &chat1.GetInboxQuery{
-			ConvID: &res.ConvID,
-		},
-	})
-	require.NoError(t, err)
-	conv := ires.Inbox.Full().Conversations[0]
 
 	verifyThread := func(msgID, supersededBy chat1.MessageID, body string,
 		reactionIDs []chat1.MessageID, reactionMap chat1.ReactionMap) {
@@ -337,6 +330,16 @@ func TestReactions(t *testing.T) {
 		require.Equal(t, body, msg.Valid().MessageBody.Text().Body, "wrong body")
 		require.Equal(t, supersededBy, msg.Valid().ServerHeader.SupersededBy, "wrong super")
 		require.Equal(t, reactionIDs, msg.Valid().ServerHeader.ReactionIDs, "wrong reactionIDs")
+
+		// Verify the ctimes are not zero, but we don't care about the actual
+		// value for the test.
+		for _, reactions := range msg.Valid().Reactions.Reactions {
+			for k, r := range reactions {
+				require.NotZero(t, r.Ctime)
+				r.Ctime = 0
+				reactions[k] = r
+			}
+		}
 		require.Equal(t, reactionMap, msg.Valid().Reactions, "wrong reactions")
 	}
 
@@ -429,9 +432,11 @@ func TestReactions(t *testing.T) {
 	t.Logf("test +1 reaction")
 	reactionMsgID := sendReaction(":+1:", msgID)
 	expectedReactionMap := chat1.ReactionMap{
-		Reactions: map[string]map[string]chat1.MessageID{
-			":+1:": map[string]chat1.MessageID{
-				u.Username: reactionMsgID,
+		Reactions: map[string]map[string]chat1.Reaction{
+			":+1:": map[string]chat1.Reaction{
+				u.Username: chat1.Reaction{
+					ReactionMsgID: reactionMsgID,
+				},
 			},
 		},
 	}
@@ -439,8 +444,10 @@ func TestReactions(t *testing.T) {
 
 	t.Logf("test -1 reaction")
 	reactionMsgID2 := sendReaction(":-1:", msgID)
-	expectedReactionMap.Reactions[":-1:"] = map[string]chat1.MessageID{
-		u.Username: reactionMsgID2,
+	expectedReactionMap.Reactions[":-1:"] = map[string]chat1.Reaction{
+		u.Username: chat1.Reaction{
+			ReactionMsgID: reactionMsgID2,
+		},
 	}
 	verifyThread(msgID, editMsgID, body, []chat1.MessageID{reactionMsgID, reactionMsgID2}, expectedReactionMap)
 
@@ -466,8 +473,10 @@ func TestReactions(t *testing.T) {
 	t.Logf("test reaction after delete")
 	reactionMsgID3 := sendReaction(":-1:", msgID)
 
-	expectedReactionMap.Reactions[":-1:"] = map[string]chat1.MessageID{
-		u.Username: reactionMsgID3,
+	expectedReactionMap.Reactions[":-1:"] = map[string]chat1.Reaction{
+		u.Username: chat1.Reaction{
+			ReactionMsgID: reactionMsgID3,
+		},
 	}
 	verifyThread(msgID, editMsgID3, body, []chat1.MessageID{reactionMsgID, reactionMsgID3}, expectedReactionMap)
 
@@ -482,12 +491,22 @@ func TestReactions(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 0, len(thread.Messages), "wrong length")
 
-	// Post illegal supersedes=0
-	reactionMsgID = sendReaction(":wave:", 0)
-	hcs := tc.Context().ConvSource.(*HybridConversationSource)
-	require.NotNil(t, hcs)
-	_, err = hcs.GetMessages(ctx, conv, uid, []chat1.MessageID{reactionMsgID}, nil)
-	require.NoError(t, err)
+	// Post illegal supersedes=0, fails on send
+	_, _, err = sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			Sender:      uid,
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_REACTION,
+			Supersedes:  0,
+		},
+		MessageBody: chat1.NewMessageBodyWithReaction(chat1.MessageReaction{
+			MessageID: 0,
+			Body:      ":wave:",
+		}),
+	}, 0, nil)
+	require.Error(t, err)
 }
 
 type failingRemote struct {

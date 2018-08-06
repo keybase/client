@@ -1,32 +1,33 @@
 // @flow
 import * as React from 'react'
-import * as PropProviders from '../../stories/prop-providers'
+import * as Sb from '../../stories/storybook'
 import UserInput, {type UserDetails} from '.'
 import ConnectedUserInput, {type OwnProps, type Props} from './container'
-import {Box} from '../../common-adapters'
+import {Box, Box2, Text} from '../../common-adapters'
+import {collapseStyles} from '../../styles'
 import {compose, withStateHandlers} from 'recompose'
 import {isMobile} from '../../constants/platform'
-import {action, storiesOf, createPropProvider, unexpected} from '../../stories/storybook'
 
 const defaultOwnProps: OwnProps = {
   searchKey: 'search key',
   autoFocus: false,
   placeholder: 'Type someone',
-  onExitSearch: action('onExitSearch'),
-  onSelectUser: action('onSelectUser'),
+  onExitSearch: Sb.action('onExitSearch'),
+  onSelectUser: Sb.action('onSelectUser'),
 }
 
 const inputCommon = {
   autoFocus: false,
-  onAddSelectedUser: action('Add selected user'),
-  onCancel: action('Cancel'),
-  onChangeText: action('Change text'),
-  onClearSearch: action('Clear search'),
-  onClickAddButton: action('Add button click'),
-  onEnterEmptyText: action('onEnterEmptyText'),
-  onMoveSelectDown: action('Move select down'),
-  onMoveSelectUp: action('Move select up'),
-  onRemoveUser: action('Remove user'),
+  hideAddButton: false,
+  onAddSelectedUser: Sb.action('Add selected user'),
+  onCancel: Sb.action('Cancel'),
+  onChangeText: Sb.action('Change text'),
+  onClearSearch: Sb.action('Clear search'),
+  onClickAddButton: Sb.action('Add button click'),
+  onEnterEmptyText: Sb.action('onEnterEmptyText'),
+  onMoveSelectDown: Sb.action('Move select down'),
+  onMoveSelectUp: Sb.action('Move select up'),
+  onRemoveUser: Sb.action('Remove user'),
   placeholder: 'Type someone',
   selectedSearchId: null,
 }
@@ -107,14 +108,14 @@ const chrisUsers = [
   },
 ]
 
-// TODO: Actually do something here.
 const mockOwnPropsToProps = (userItems: Array<UserDetails>, ownProps: OwnProps): Props => {
   const props = {
+    ...ownProps,
     ...inputCommon,
-    onChangeText: unexpected('search should be used instead'),
-    onClickAddButton: unexpected('search should be used instead'),
+    onChangeText: Sb.unexpected('search should be used instead'),
+    onClickAddButton: Sb.unexpected('search should be used instead'),
     usernameText: '',
-    search: action('search'),
+    search: Sb.action('search'),
 
     userItems,
   }
@@ -128,73 +129,113 @@ const mockOwnPropsToProps = (userItems: Array<UserDetails>, ownProps: OwnProps):
 }
 
 export const makeSelectorMap = (userItems: Array<UserDetails> = maxUsers) => ({
-  ...PropProviders.Common(),
-  UserInput: ownProps => mockOwnPropsToProps(userItems, ownProps),
+  UserInput: (ownProps: OwnProps) => mockOwnPropsToProps(userItems, ownProps),
 })
 
-const provider = createPropProvider(makeSelectorMap())
+const provider = Sb.createPropProviderWithCommon(makeSelectorMap())
+
+const UserInputEditable = compose(
+  withStateHandlers(props => ({userItems: props.userItems, usernameText: ''}), {
+    onChangeText: (_, {onChangeText}) => usernameText => {
+      onChangeText(usernameText)
+      return {usernameText}
+    },
+    onRemoveUser: ({userItems}, {onRemoveUser}) => (id: string) => {
+      onRemoveUser(id)
+      return {
+        userItems: userItems.filter(i => i.id !== id),
+      }
+    },
+  })
+)(UserInput)
+
+const defaultBoxStyle = {
+  borderColor: 'gray',
+  borderStyle: 'solid',
+  borderWidth: 2,
+  padding: 4,
+  width: isMobile ? 300 : 480,
+}
 
 const load = () => {
-  storiesOf('Search/UserInput', module)
+  Sb.storiesOf('Search/UserInput', module)
     .addDecorator(provider)
-    .add('List', () => {
-      return (
-        <Box>
+    .add('Empty list', () => (
+      <Box style={collapseStyles([defaultBoxStyle, {height: 500}])}>
+        <Text type="Body">Some text above</Text>
+        <UserInput {...inputCommon} userItems={[]} usernameText="" />
+        <Text type="Body">Some text below</Text>
+      </Box>
+    ))
+    .add('Empty list (vertical Box2)', () => (
+      <Box2 direction="vertical" style={collapseStyles([defaultBoxStyle, {height: 500}])}>
+        <Text type="Body">Some text above</Text>
+        <UserInput {...inputCommon} userItems={[]} usernameText="" />
+        <Text type="Body">Some text below</Text>
+      </Box2>
+    ))
+    .add('Empty list (horizontal Box2)', () => (
+      <Box2 direction="horizontal" style={collapseStyles([defaultBoxStyle, {height: 500}])}>
+        <Text type="Body">Some text left</Text>
+        <Box2 direction="vertical" fullWidth={true}>
           <UserInput {...inputCommon} userItems={[]} usernameText="" />
-          <UserInput {...inputCommon} userItems={maxUsers} usernameText="" />
-          <UserInput {...inputCommon} userItems={maxUsers} usernameText="ma" />
-          <UserInput
-            {...inputCommon}
-            userItems={maxUsers}
-            usernameText=""
-            onClearSearch={action('On clear search')}
-          />
-          <Box
-            style={{
-              borderColor: 'gray',
-              borderStyle: 'solid',
-              borderWidth: 2,
-              padding: 4,
-              width: isMobile ? 300 : 480,
-            }}
-          >
-            <UserInput {...inputCommon} userItems={chrisUsers} usernameText="" />
-          </Box>
-          <Box
-            style={{
-              borderColor: 'gray',
-              borderStyle: 'solid',
-              borderWidth: 2,
-              padding: 4,
-              width: isMobile ? 300 : 370,
-            }}
-          >
-            <UserInput {...inputCommon} userItems={maxUsers} usernameText="" />
-          </Box>
+        </Box2>
+        <Text type="Body">Some text right</Text>
+      </Box2>
+    ))
+    .add('List with items', () => (
+      <Box style={defaultBoxStyle}>
+        <UserInput {...inputCommon} userItems={maxUsers} usernameText="" />
+      </Box>
+    ))
+    .add('List with items and partial input', () => (
+      <Box style={defaultBoxStyle}>
+        <UserInput {...inputCommon} userItems={maxUsers} usernameText="ma" />
+      </Box>
+    ))
+    .add('List with many items', () => (
+      <Box style={defaultBoxStyle}>
+        <UserInput {...inputCommon} userItems={chrisUsers} usernameText="" />
+      </Box>
+    ))
+    .add('Narrower list', () => (
+      <Box
+        style={{
+          ...defaultBoxStyle,
+          width: isMobile ? 300 : 370,
+        }}
+      >
+        <UserInput {...inputCommon} userItems={maxUsers} usernameText="" />
+      </Box>
+    ))
+    .add('Editable', () => {
+      return (
+        <Box style={defaultBoxStyle}>
+          <UserInputEditable {...inputCommon} userItems={[]} />
         </Box>
       )
     })
-    .add('Editable', () => {
-      const UserInputEditable = compose(
-        withStateHandlers(props => ({userItems: props.userItems, usernameText: ''}), {
-          onChangeText: () => usernameText => ({usernameText}),
-          onRemoveUser: ({userItems}) => (id: string) => ({
-            userItems: userItems.filter(i => i.id !== id),
-          }),
-        })
-      )(UserInput)
-
+    .add('Editable with items', () => {
       return (
-        <Box>
-          <UserInputEditable {...inputCommon} userItems={[]} />
+        <Box style={defaultBoxStyle}>
           <UserInputEditable {...inputCommon} userItems={chrisUsers} />
         </Box>
       )
     })
     .add('Connected', () => (
-      <Box>
+      <Box style={defaultBoxStyle}>
         <ConnectedUserInput {...defaultOwnProps} />
       </Box>
+    ))
+    .add('Connected (vertical Box2)', () => (
+      <Box2 direction="vertical" style={defaultBoxStyle}>
+        <ConnectedUserInput {...defaultOwnProps} />
+      </Box2>
+    ))
+    .add('Connected (horizontal Box2)', () => (
+      <Box2 direction="horizontal" style={defaultBoxStyle}>
+        <ConnectedUserInput {...defaultOwnProps} />
+      </Box2>
     ))
 }
 

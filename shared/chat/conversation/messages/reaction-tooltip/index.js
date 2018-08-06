@@ -35,8 +35,10 @@ export const ReactionTooltip = (props: Props) => {
     <Overlay
       attachTo={props.attachmentRef}
       onHidden={props.onHidden}
-      position="top right"
+      position="top center"
+      positionFallbacks={['bottom center', 'left center']}
       propagateOutsideClicks={true}
+      style={styles.overlay}
     >
       <Box2
         onMouseLeave={props.onMouseLeave}
@@ -53,7 +55,15 @@ export const ReactionTooltip = (props: Props) => {
             <Box2 direction="horizontal" style={{flex: 1}} />
           </Box2>
         )}
-        <SectionList sections={sections} renderItem={renderItem} renderSectionHeader={renderSectionHeader} />
+        <SectionList
+          alwaysBounceVertical={false}
+          initialNumToRender={19} // Keeps height from trashing on mobile
+          sections={sections}
+          stickySectionHeadersEnabled={true}
+          style={styles.list}
+          renderItem={renderItem}
+          renderSectionHeader={renderSectionHeader}
+        />
         {isMobile && (
           <ClickableBox onClick={props.onAddReaction}>
             <Box2 centerChildren={true} direction="horizontal" gap="xtiny" style={styles.addReactionButton}>
@@ -99,6 +109,7 @@ const renderSectionHeader = ({
     direction="horizontal"
     gap="tiny"
     gapStart={true}
+    gapEnd={true}
     fullWidth={true}
     style={styles.buttonContainer}
   >
@@ -108,7 +119,7 @@ const renderSectionHeader = ({
       emoji={section.title}
       tooltipEnabled={false}
     />
-    <Text type="Terminal" style={styles.emojiText}>
+    <Text type="Terminal" lineClamp={1} style={styles.emojiText}>
       {section.title}
     </Text>
   </Box2>
@@ -134,6 +145,8 @@ const styles = styleSheetCreate({
   buttonContainer: {
     alignItems: 'center',
     backgroundColor: globalColors.white,
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
     flexShrink: 0,
     paddingBottom: globalMargins.tiny,
     paddingTop: globalMargins.tiny,
@@ -143,16 +156,29 @@ const styles = styleSheetCreate({
   },
   emojiText: {
     color: globalColors.black_40,
+    flex: -1,
   },
+  list: platformStyles({
+    isElectron: {
+      paddingBottom: globalMargins.small,
+    },
+  }),
   listContainer: platformStyles({
+    common: {
+      backgroundColor: globalColors.white,
+    },
     isElectron: {
       maxHeight: 320,
       width: 240,
     },
     isMobile: {
-      backgroundColor: globalColors.white,
       maxHeight: '90%',
       width: '100%',
+    },
+  }),
+  overlay: platformStyles({
+    isElectron: {
+      margin: globalMargins.tiny,
     },
   }),
   userContainer: {

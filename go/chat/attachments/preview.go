@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"image"
+	"image/color"
 	"image/color/palette"
 	"image/draw"
 	"image/gif"
@@ -11,7 +12,9 @@ import (
 	"image/png"
 	"io"
 	"io/ioutil"
+	"strings"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 
 	"golang.org/x/net/context"
@@ -39,15 +42,59 @@ type PreviewRes struct {
 
 // Preview creates preview assets from src.  It returns an in-memory BufferSource
 // and the content type of the preview asset.
-func Preview(ctx context.Context, log utils.DebugLabeler, src io.Reader, contentType, basename string) (*PreviewRes, error) {
+func Preview(ctx context.Context, g *globals.Context, log utils.DebugLabeler, src io.Reader, contentType,
+	basename string) (*PreviewRes, error) {
 	switch contentType {
 	case "image/jpeg", "image/png":
 		return previewImage(ctx, log, src, basename, contentType)
 	case "image/gif":
 		return previewGIF(ctx, log, src, basename)
 	}
-
+	if strings.HasPrefix(contentType, "video") {
+		pre, err := previewVideo(ctx, g, log, src, basename)
+		if err == nil {
+			log.Debug(ctx, "Preview: found video preview for filename: %s contentType: %s", basename,
+				contentType)
+			return pre, nil
+		}
+		log.Debug(ctx, "Preview: failed to get video preview for filename: %s contentType: %s err: %s",
+			basename, contentType, err)
+	}
 	return nil, nil
+}
+
+// previewVideoBlank previews a video by inserting a black rectangle with a play button on it.
+func previewVideoBlank(ctx context.Context, g *globals.Context, log utils.DebugLabeler, src io.Reader,
+	basename string) (res *PreviewRes, err error) {
+	const width, height = 300, 150
+	img := image.NewNRGBA(image.Rect(0, 0, width, height))
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			img.Set(x, y, color.NRGBA{
+				R: 0,
+				G: 0,
+				B: 0,
+				A: 255,
+			})
+		}
+	}
+	var out bytes.Buffer
+	if err := png.Encode(&out, img); err != nil {
+		return res, err
+	}
+	imagePreview, err := previewImage(ctx, log, &out, basename, "image/png")
+	if err != nil {
+		return res, err
+	}
+	return &PreviewRes{
+		Source:         imagePreview.Source,
+		ContentType:    "image/png",
+		BaseWidth:      imagePreview.BaseWidth,
+		BaseHeight:     imagePreview.BaseHeight,
+		BaseDurationMs: 1,
+		PreviewHeight:  imagePreview.PreviewHeight,
+		PreviewWidth:   imagePreview.PreviewWidth,
+	}, nil
 }
 
 // previewImage will resize a single-frame image.

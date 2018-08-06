@@ -1,35 +1,28 @@
 // @flow
 import * as React from 'react'
-import * as PropProviders from '../../stories/prop-providers'
+import * as Sb from '../../stories/storybook'
 import Login, {type Props} from '.'
-import {action, storiesOf} from '../../stories/storybook'
 
 const commonProps: Props = {
   error: '',
-  onBack: action('onBack'),
-  onFeedback: action('onFeedback'),
-  onForgotPassphrase: action('onForgotPassphrase'),
-  onLogin: action('onLogin'),
-  onSignup: action('onSignup'),
-  onSomeoneElse: action('onSomeoneElse'),
-  onSubmit: action('onSubmit'),
+  onFeedback: Sb.action('onFeedback'),
+  onForgotPassphrase: Sb.action('onForgotPassphrase'),
+  onLogin: Sb.action('onLogin'),
+  onSignup: Sb.action('onSignup'),
+  onSomeoneElse: Sb.action('onSomeoneElse'),
+  onSubmit: Sb.action('onSubmit'),
   passphrase: '',
-  passphraseChange: action('passphraseChange'),
-  saveInKeychain: false,
-  saveInKeychainChange: action('saveInKeychainChange'),
+  passphraseChange: Sb.action('passphraseChange'),
   selectedUser: null,
-  selectedUserChange: action('selectedUserChange'),
+  selectedUserChange: Sb.action('selectedUserChange'),
   showTyping: false,
-  showTypingChange: action('showTypingChange'),
+  showTypingChange: Sb.action('showTypingChange'),
   users: ['awendland'],
   waitingForResponse: false,
 }
 
-const provider = PropProviders.CommonProvider()
-
 const load = () => {
-  storiesOf('Login/Login', module)
-    .addDecorator(provider)
+  Sb.storiesOf('Login/Login', module)
     .add('Single previous user', () => <Login {...commonProps} />)
     .add('Error', () => <Login {...commonProps} error="Oh, no! What a mess!" />)
     .add('Multiple previous users', () => (

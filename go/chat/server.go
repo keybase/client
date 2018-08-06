@@ -1091,18 +1091,6 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	arg.Msg.ClientHeader.Sender = uid
 	arg.Msg.ClientHeader.SenderDevice = gregor1.DeviceID(db)
 
-	header, err := h.processReactionMessage(ctx, uid, arg.ConversationID, arg.Msg)
-	if err != nil {
-		return res, err
-	}
-	arg.Msg.ClientHeader = header
-
-	metadata, err := h.getSupersederEphemeralMetadata(ctx, uid, arg.ConversationID, arg.Msg)
-	if err != nil {
-		return res, err
-	}
-	arg.Msg.ClientHeader.EphemeralMetadata = metadata
-
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 
 	_, msgBoxed, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil)
@@ -1346,18 +1334,6 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 		Prev: prevMsgID,
 	}
 
-	header, err := h.processReactionMessage(ctx, uid, arg.ConversationID, arg.Msg)
-	if err != nil {
-		return res, err
-	}
-	arg.Msg.ClientHeader = header
-
-	metadata, err := h.getSupersederEphemeralMetadata(ctx, uid, arg.ConversationID, arg.Msg)
-	if err != nil {
-		return res, err
-	}
-	arg.Msg.ClientHeader.EphemeralMetadata = metadata
-
 	// Create non block sender
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 	nonblockSender := NewNonblockingSender(h.G(), sender)
@@ -1374,61 +1350,10 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	}, nil
 }
 
-func (h *Server) getMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msgID chat1.MessageID, resolveSupersedes bool) (mvalid chat1.MessageUnboxedValid, err error) {
-	messages, err := GetMessages(ctx, h.G(), uid, convID, []chat1.MessageID{msgID}, resolveSupersedes)
-	if err != nil {
-		return mvalid, err
-
-	}
-	if len(messages) != 1 || !messages[0].IsValid() {
-		return mvalid, fmt.Errorf("getMessage returned multiple messages or an invalid result for msgID: %v, numMsgs: %v", msgID, len(messages))
-	}
-	return messages[0].Valid(), nil
-}
-
-// If we are superseding an ephemeral message, we have to set the
-// ephemeralMetadata on this superseder message.
-func (h *Server) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msg chat1.MessagePlaintext) (metadata *chat1.MsgEphemeralMetadata, err error) {
-	switch msg.ClientHeader.MessageType {
-	case chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED, chat1.MessageType_REACTION:
-	default:
-		return msg.ClientHeader.EphemeralMetadata, nil
-	}
-
-	supersededMsg, err := h.getMessage(ctx, uid, convID, msg.ClientHeader.Supersedes, false /* resolveSupersedes */)
-	if err != nil {
-		return nil, err
-	}
-	if supersededMsg.IsEphemeral() {
-		metadata = supersededMsg.EphemeralMetadata()
-		metadata.Lifetime = gregor1.ToDurationSec(supersededMsg.RemainingEphemeralLifetime(h.clock.Now()))
-	}
-	return metadata, nil
-}
-
-// processReactionMessage determines if we are trying to post a duplicate
-// chat1.MessageType_REACTION, which is considered a chat1.MessageType_DELETE
-// and updated appropiately.
-func (h *Server) processReactionMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msg chat1.MessagePlaintext) (clientHeader chat1.MessageClientHeader, err error) {
-	if msg.ClientHeader.MessageType == chat1.MessageType_REACTION {
-		// We could either be posting a reaction or removing one that we already posted.
-		supersededMsg, err := h.getMessage(ctx, uid, convID, msg.ClientHeader.Supersedes, true /* resolveSupersedes */)
-		if err != nil {
-			return msg.ClientHeader, err
-		}
-		found, reactionMsgID := supersededMsg.Reactions.HasReactionFromUser(msg.MessageBody.Reaction().Body, h.G().Env.GetUsername().String())
-		if found {
-			msg.ClientHeader.Supersedes = reactionMsgID
-			msg.ClientHeader.MessageType = chat1.MessageType_DELETE
-		}
-	}
-	return msg.ClientHeader, nil
-}
-
 // MakePreview implements chat1.LocalInterface.MakePreview.
 func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res chat1.MakePreviewRes, err error) {
 	defer h.Trace(ctx, func() error { return err }, "MakePreview")()
-	pre, err := attachments.PreprocessAsset(ctx, h.DebugLabeler, arg.Filename, nil)
+	pre, err := attachments.PreprocessAsset(ctx, h.G(), h.DebugLabeler, arg.Filename, nil)
 	if err != nil {
 		return chat1.MakePreviewRes{}, err
 	}
@@ -1445,53 +1370,66 @@ func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res
 	return pre.Export(func() *chat1.PreviewLocation { return nil })
 }
 
-func (h *Server) initiateAttachmentUpload(ctx context.Context, arg chat1.PostFileAttachmentArg) (uresChan chan types.AttachmentUploadResult, msg chat1.MessagePlaintext, err error) {
-	if arg.OutboxID == nil {
-		arg.OutboxID = new(chat1.OutboxID)
-		if *arg.OutboxID, err = storage.NewOutboxID(); err != nil {
-			return uresChan, msg, err
+func (h *Server) makeBaseAttachmentMessage(ctx context.Context, tlfName string, vis keybase1.TLFVisibility,
+	inOutboxID *chat1.OutboxID, ephemeralLifetime *gregor1.DurationSec) (msg chat1.MessagePlaintext, outboxID chat1.OutboxID, err error) {
+	if inOutboxID == nil {
+		if outboxID, err = storage.NewOutboxID(); err != nil {
+			return msg, outboxID, err
 		}
-	}
-	uid := h.getUID()
-	uresChan, err = h.G().AttachmentUploader.Register(ctx, uid, arg.ConversationID, *arg.OutboxID, arg.Title,
-		arg.Filename, arg.Metadata, arg.CallerPreview)
-	if err != nil {
-		return uresChan, msg, err
+	} else {
+		outboxID = *inOutboxID
 	}
 	msg = chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			MessageType: chat1.MessageType_ATTACHMENT,
-			TlfName:     arg.TlfName,
-			TlfPublic:   arg.Visibility == keybase1.TLFVisibility_PUBLIC,
-			OutboxID:    arg.OutboxID,
+			TlfName:     tlfName,
+			TlfPublic:   vis == keybase1.TLFVisibility_PUBLIC,
+			OutboxID:    &outboxID,
 		},
 	}
-	if arg.EphemeralLifetime != nil {
+	if ephemeralLifetime != nil {
 		msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
-			Lifetime: *arg.EphemeralLifetime,
+			Lifetime: *ephemeralLifetime,
 		}
 	}
-	return uresChan, msg, nil
+	return msg, outboxID, nil
 }
 
-func (h *Server) PostFileAttachmentLocalNonblock(ctx context.Context,
-	arg chat1.PostFileAttachmentLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
+func (h *Server) PostFileAttachmentMessageLocalNonblock(ctx context.Context,
+	arg chat1.PostFileAttachmentMessageLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = Context(ctx, h.G(), arg.Arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentLocalNonblock")()
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentMessageLocalNonblock")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 
-	_, msg, err := h.initiateAttachmentUpload(ctx, arg.Arg)
+	msg, outboxID, err := h.makeBaseAttachmentMessage(ctx, arg.TlfName, arg.Visibility, nil,
+		arg.EphemeralLifetime)
 	if err != nil {
 		return res, err
 	}
+	h.Debug(ctx, "PostFileAttachmentMessageLocalNonblock: generated message with outbox ID: %s", outboxID)
 	return h.PostLocalNonblock(ctx, chat1.PostLocalNonblockArg{
-		ConversationID:   arg.Arg.ConversationID,
-		IdentifyBehavior: arg.Arg.IdentifyBehavior,
+		ConversationID:   arg.ConvID,
+		IdentifyBehavior: arg.IdentifyBehavior,
 		Msg:              msg,
-		OutboxID:         msg.ClientHeader.OutboxID,
+		OutboxID:         &outboxID,
 		ClientPrev:       arg.ClientPrev,
 	})
+}
+
+func (h *Server) PostFileAttachmentUploadLocalNonblock(ctx context.Context,
+	arg chat1.PostFileAttachmentUploadLocalNonblockArg) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err },
+		fmt.Sprintf("PostFileAttachmentUploadLocalNonblock(%s)", arg.OutboxID))()
+
+	uid := h.getUID()
+	if _, err = h.G().AttachmentUploader.Register(ctx, uid, arg.ConvID, arg.OutboxID, arg.Title,
+		arg.Filename, arg.Metadata, arg.CallerPreview); err != nil {
+		return err
+	}
+	return nil
 }
 
 // PostFileAttachmentLocal implements chat1.LocalInterface.PostFileAttachmentLocal.
@@ -1501,13 +1439,26 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentLocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 
-	uresChan, msg, err := h.initiateAttachmentUpload(ctx, arg.Arg)
+	// Get base of message we are going to send
+	uid := h.getUID()
+	msg, outboxID, err := h.makeBaseAttachmentMessage(ctx, arg.Arg.TlfName, arg.Arg.Visibility,
+		arg.Arg.OutboxID, arg.Arg.EphemeralLifetime)
+	if err != nil {
+		return res, err
+	}
+	// Start upload
+	uresCb, err := h.G().AttachmentUploader.Register(ctx, uid, arg.Arg.ConversationID,
+		outboxID, arg.Arg.Title, arg.Arg.Filename, arg.Arg.Metadata, arg.Arg.CallerPreview)
+	if err != nil {
+		return res, err
+	}
 	// Wait for upload
-	ures := <-uresChan
+	ures := <-uresCb.Wait()
 	if ures.Error != nil {
 		h.Debug(ctx, "postAttachmentLocal: upload failed, bailing out: %s", *ures.Error)
 		return res, errors.New(*ures.Error)
 	}
+	// Fill in the rest of the message
 	attachment := chat1.MessageAttachment{
 		Object:   ures.Object,
 		Metadata: arg.Arg.Metadata,
@@ -1559,6 +1510,16 @@ func (h *Server) DownloadAttachmentLocal(ctx context.Context, arg chat1.Download
 	return h.downloadAttachmentLocal(ctx, uid, darg)
 }
 
+type discardWriterCloser struct{}
+
+func (discardWriterCloser) Write(b []byte) (int, error) {
+	return len(b), nil
+}
+
+func (discardWriterCloser) Close() error {
+	return nil
+}
+
 // DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
 func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (res chat1.DownloadAttachmentLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -1577,9 +1538,15 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 		Preview:          arg.Preview,
 		IdentifyBehavior: arg.IdentifyBehavior,
 	}
-	sink, err := os.OpenFile(arg.Filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		return chat1.DownloadAttachmentLocalRes{}, err
+	var sink io.WriteCloser
+	if h.G().GetAppType() == libkb.MobileAppType {
+		// We never want to actually download anything on mobile, just get it in our cache
+		sink = discardWriterCloser{}
+	} else {
+		sink, err = os.OpenFile(arg.Filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+		if err != nil {
+			return chat1.DownloadAttachmentLocalRes{}, err
+		}
 	}
 	darg.Sink = sink
 
@@ -1639,10 +1606,13 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return err
 	}
-
 	uid := h.G().Env.GetUID()
 	outbox := storage.NewOutbox(h.G(), uid.ToBytes())
-	return outbox.RemoveMessage(ctx, outboxID)
+	if err := outbox.RemoveMessage(ctx, outboxID); err != nil {
+		return err
+	}
+	// Alert the attachment uploader as well, in case this outboxID corresponds to an attachment upload
+	return h.G().AttachmentUploader.Cancel(ctx, outboxID)
 }
 
 func (h *Server) RetryPost(ctx context.Context, arg chat1.RetryPostArg) (err error) {
@@ -1708,12 +1678,12 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 	defer h.Trace(ctx, func() error { return err }, "FindConversationsLocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
 		return res, err
 	}
-	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 
-	res.Conversations, err = FindConversations(ctx, h.G(), h.DebugLabeler, true, h.remoteClient,
+	res.Conversations, err = FindConversations(ctx, h.G(), h.DebugLabeler, true /* useLocalData */, h.remoteClient,
 		uid, arg.TlfName, arg.TopicType, arg.MembersType, arg.Visibility, arg.TopicName, arg.OneChatPerTLF)
 	if err != nil {
 		return res, err
@@ -2238,7 +2208,7 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 		}
 		close(ch)
 	}()
-	hits, err := h.G().Searcher.SearchRegexp(ctx, uiCh, arg.ConversationID, re, arg.MaxHits,
+	hits, err := h.G().Searcher.SearchRegexp(ctx, uiCh, arg.ConversationID, re, arg.SentBy, arg.MaxHits,
 		arg.MaxMessages, arg.BeforeContext, arg.AfterContext)
 	if err != nil {
 		return res, err

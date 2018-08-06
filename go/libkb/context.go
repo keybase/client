@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 )
@@ -72,6 +73,9 @@ func (m MetaContext) CTrace(msg string, f func() error) func() {
 
 func (m MetaContext) CVTrace(lev VDebugLevel, msg string, f func() error) func() {
 	return m.g.CVTrace(m.ctx, lev, msg, f)
+}
+func (m MetaContext) CVTraceOK(lev VDebugLevel, msg string, f func() bool) func() {
+	return m.g.CVTraceOK(m.ctx, lev, msg, f)
 }
 
 func (m MetaContext) VLogf(lev VDebugLevel, msg string, args ...interface{}) {
@@ -148,6 +152,12 @@ func (m MetaContext) WithLogTag(k string) MetaContext {
 	return m
 }
 
+func (m MetaContext) WithTimeBuckets() (MetaContext, *profiling.TimeBuckets) {
+	ctx, tbs := m.G().CTimeBuckets(m.ctx)
+	m.ctx = ctx
+	return m, tbs
+}
+
 func (m MetaContext) EnsureCtx() MetaContext {
 	if m.ctx == nil {
 		m.ctx = context.Background()
@@ -200,8 +210,8 @@ func (m MetaContext) WithActiveDevice(a *ActiveDevice) MetaContext {
 	return m
 }
 
-func (m MetaContext) WithPaperKeyActiveDevice(d *DeviceWithKeys, u keybase1.UID) MetaContext {
-	return m.WithActiveDevice(d.ToPaperKeyActiveDevice(m, u))
+func (m MetaContext) WithPaperKeyActiveDevice(d *DeviceWithKeys, uv keybase1.UserVersion) MetaContext {
+	return m.WithActiveDevice(d.ToPaperKeyActiveDevice(m, uv))
 }
 
 func (m MetaContext) WithGlobalActiveDevice() MetaContext {
@@ -222,12 +232,12 @@ func (m MetaContext) WithNewProvisionalLoginContext() MetaContext {
 }
 
 func (m MetaContext) WithNewProvisionalLoginContextForUser(u *User) MetaContext {
-	return m.WithNewProvisionalLoginContextForUIDAndUsername(u.GetUID(), u.GetNormalizedName())
+	return m.WithNewProvisionalLoginContextForUserVersionAndUsername(u.ToUserVersion(), u.GetNormalizedName())
 }
 
-func (m MetaContext) WithNewProvisionalLoginContextForUIDAndUsername(uid keybase1.UID, un NormalizedUsername) MetaContext {
-	plc := newProvisionalLoginContextWithUIDAndUsername(m, uid, un)
-	m.ActiveDevice().CopyCacheToLoginContextIfForUID(m, plc, uid)
+func (m MetaContext) WithNewProvisionalLoginContextForUserVersionAndUsername(uv keybase1.UserVersion, un NormalizedUsername) MetaContext {
+	plc := newProvisionalLoginContextWithUserVersionAndUsername(m, uv, un)
+	m.ActiveDevice().CopyCacheToLoginContextIfForUserVersion(m, plc, uv)
 	return m.WithLoginContext(plc)
 }
 
@@ -336,9 +346,9 @@ func (m MetaContext) switchUserNewConfig(u keybase1.UID, n NormalizedUsername, s
 
 // SwitchUserNewConfigActiveDevice creates a new config file stanza and an active device
 // for the given user, all while holding the switchUserMu lock.
-func (m MetaContext) SwitchUserNewConfigActiveDevice(u keybase1.UID, n NormalizedUsername, salt []byte, d keybase1.DeviceID, sigKey GenericKey, encKey GenericKey, deviceName string) error {
-	ad := NewProvisionalActiveDevice(m, u, d, sigKey, encKey, deviceName)
-	return m.switchUserNewConfig(u, n, salt, d, ad)
+func (m MetaContext) SwitchUserNewConfigActiveDevice(uv keybase1.UserVersion, n NormalizedUsername, salt []byte, d keybase1.DeviceID, sigKey GenericKey, encKey GenericKey, deviceName string) error {
+	ad := NewProvisionalActiveDevice(m, uv, d, sigKey, encKey, deviceName)
+	return m.switchUserNewConfig(uv.Uid, n, salt, d, ad)
 }
 
 // SwitchUserNukeConfig removes the given username from the config file, and then switches
@@ -362,7 +372,7 @@ func (m MetaContext) SwitchUserNukeConfig(n NormalizedUsername) error {
 		return err
 	}
 	if g.ActiveDevice.UID().Equal(uid) {
-		g.ActiveDevice.Clear(nil)
+		g.ActiveDevice.Clear()
 	}
 	return nil
 }
@@ -426,7 +436,7 @@ func (m MetaContext) SwitchUserDeprovisionNukeConfig(username NormalizedUsername
 // to one that corresponds to the given UID and DeviceWithKeys, and also sets the config
 // file to a temporary in-memory config (not writing to disk) to satisfy local requests for
 // g.Env.*
-func (m MetaContext) SwitchUserToActiveOneshotDevice(uid keybase1.UID, nun NormalizedUsername, d *DeviceWithKeys) (err error) {
+func (m MetaContext) SwitchUserToActiveOneshotDevice(uv keybase1.UserVersion, nun NormalizedUsername, d *DeviceWithKeys) (err error) {
 	defer m.CTrace("MetaContext#SwitchUserToActiveOneshotDevice", func() error { return err })()
 
 	g := m.G()
@@ -436,12 +446,12 @@ func (m MetaContext) SwitchUserToActiveOneshotDevice(uid keybase1.UID, nun Norma
 	if cw == nil {
 		return NoConfigWriterError{}
 	}
-	ad := d.ToPaperKeyActiveDevice(m, uid)
+	ad := d.ToPaperKeyActiveDevice(m, uv)
 	err = g.ActiveDevice.Copy(m, ad)
 	if err != nil {
 		return err
 	}
-	uc := NewOneshotUserConfig(uid, nun, nil, d.DeviceID())
+	uc := NewOneshotUserConfig(uv.Uid, nun, nil, d.DeviceID())
 	err = cw.SetUserConfig(uc, false)
 	if err != nil {
 		return err
@@ -460,7 +470,7 @@ func (m MetaContext) SwitchUserLoggedOut() (err error) {
 	if cw == nil {
 		return NoConfigWriterError{}
 	}
-	g.ActiveDevice.Clear(nil)
+	g.ActiveDevice.Clear()
 	err = cw.SetUserConfig(nil, false)
 	if err != nil {
 		return err
@@ -468,36 +478,36 @@ func (m MetaContext) SwitchUserLoggedOut() (err error) {
 	return nil
 }
 
-// SetActiveDevice sets the active device to have the UID, deviceID, sigKey, encKey and deviceName
+// SetActiveDevice sets the active device to have the UserVersion, deviceID, sigKey, encKey and deviceName
 // as specified, and does so while grabbing the global switchUser lock, since it should be sycnhronized
 // with attempts to switch the global logged in user. It does not, however, change the `current_user`
 // in the config file, or edit the global config file in any way.
-func (m MetaContext) SetActiveDevice(uid keybase1.UID, deviceID keybase1.DeviceID, sigKey, encKey GenericKey, deviceName string) error {
+func (m MetaContext) SetActiveDevice(uv keybase1.UserVersion, deviceID keybase1.DeviceID, sigKey, encKey GenericKey, deviceName string) error {
 	g := m.G()
 	g.switchUserMu.Lock()
 	defer g.switchUserMu.Unlock()
-	if !g.Env.GetUID().Equal(uid) {
+	if !g.Env.GetUID().Equal(uv.Uid) {
 		return NewUIDMismatchError("UID switched out from underneath provisioning process")
 	}
-	err := g.ActiveDevice.Set(m, uid, deviceID, sigKey, encKey, deviceName)
+	err := g.ActiveDevice.Set(m, uv, deviceID, sigKey, encKey, deviceName)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (m MetaContext) SetSigningKey(uid keybase1.UID, deviceID keybase1.DeviceID, sigKey GenericKey, deviceName string) error {
+func (m MetaContext) SetSigningKey(uv keybase1.UserVersion, deviceID keybase1.DeviceID, sigKey GenericKey, deviceName string) error {
 	g := m.G()
 	g.switchUserMu.Lock()
 	defer g.switchUserMu.Unlock()
-	return g.ActiveDevice.setSigningKey(g, nil, uid, deviceID, sigKey, deviceName)
+	return g.ActiveDevice.setSigningKey(g, uv, deviceID, sigKey, deviceName)
 }
 
-func (m MetaContext) SetEncryptionKey(uid keybase1.UID, deviceID keybase1.DeviceID, encKey GenericKey) error {
+func (m MetaContext) SetEncryptionKey(uv keybase1.UserVersion, deviceID keybase1.DeviceID, encKey GenericKey) error {
 	g := m.G()
 	g.switchUserMu.Lock()
 	defer g.switchUserMu.Unlock()
-	return g.ActiveDevice.setEncryptionKey(nil, uid, deviceID, encKey)
+	return g.ActiveDevice.setEncryptionKey(uv, deviceID, encKey)
 }
 
 // LogoutAndDeprovisionIfRevoked loads the user and checks if the current
@@ -592,6 +602,13 @@ func (m MetaContext) CurrentUID() keybase1.UID {
 		return m.LoginContext().GetUID()
 	}
 	return m.ActiveDevice().UID()
+}
+
+func (m MetaContext) CurrentUserVersion() keybase1.UserVersion {
+	if m.LoginContext() != nil {
+		return m.LoginContext().GetUserVersion()
+	}
+	return m.ActiveDevice().UserVersion()
 }
 
 func (m MetaContext) HasAnySession() (ret bool) {
