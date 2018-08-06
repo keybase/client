@@ -460,9 +460,9 @@ func (l *TeamLoader) applyNewLink(ctx context.Context,
 		newState = &keybase1.TeamData{
 			// Name is left blank until calculateName updates it.
 			// It shall not be blank by the time it is returned from load2.
-			Name:            keybase1.TeamName{},
-			PerTeamKeySeeds: make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem),
-			ReaderKeyMasks:  make(map[keybase1.TeamApplication]map[keybase1.PerTeamKeyGeneration]keybase1.MaskB64),
+			Name: keybase1.TeamName{},
+			PerTeamKeySeedsUnverified: make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem),
+			ReaderKeyMasks:            make(map[keybase1.TeamApplication]map[keybase1.PerTeamKeyGeneration]keybase1.MaskB64),
 		}
 	} else {
 		chainState = &TeamSigChainState{inner: state.Chain}
@@ -634,7 +634,7 @@ func (l *TeamLoader) addKBFSCryptKeys(ctx context.Context, state *keybase1.TeamD
 	upgrades []keybase1.TeamGetLegacyTLFUpgrade) error {
 	m := make(map[keybase1.TeamApplication][]keybase1.CryptKey)
 	for _, upgrade := range upgrades {
-		key, err := ApplicationKeyAtGeneration(state, upgrade.AppType,
+		key, err := ApplicationKeyAtGeneration(libkb.NewMetaContext(ctx, l.G()), state, upgrade.AppType,
 			keybase1.PerTeamKeyGeneration(upgrade.TeamGeneration))
 		if err != nil {
 			return err
@@ -667,8 +667,8 @@ func (l *TeamLoader) addKBFSCryptKeys(ctx context.Context, state *keybase1.TeamD
 // Add data to the state that is not included in the sigchain:
 // - per team keys
 // - reader key masks
-// Checks that the team keys match the published values on the chain.
 // Checks that the off-chain data ends up exactly in sync with the chain, generation-wise.
+// Does _not_ check that keys match the sigchain.
 // Mutates `state`
 func (l *TeamLoader) addSecrets(ctx context.Context,
 	state *keybase1.TeamData, me keybase1.UserVersion, box *TeamBox, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded,
@@ -709,13 +709,17 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 			gotOldKeys = true
 		}
 
-		item, err := l.checkPerTeamKeyAgainstChain(ctx, state, keybase1.PerTeamKeyGeneration(gen), seed)
+		chainKey, err := TeamSigChainState{inner: state.Chain}.GetPerTeamKeyAtGeneration(keybase1.PerTeamKeyGeneration(gen))
 		if err != nil {
 			return err
 		}
 
 		// Add it to the snapshot
-		state.PerTeamKeySeeds[item.Generation] = *item
+		state.PerTeamKeySeedsUnverified[chainKey.Gen] = keybase1.PerTeamKeySeedItem{
+			Seed:       seed,
+			Generation: chainKey.Gen,
+			Seqno:      chainKey.Seqno,
+		}
 	}
 
 	if gotOldKeys {
@@ -727,7 +731,7 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 	if earliestReceivedGen > keybase1.PerTeamKeyGeneration(1) {
 		// We should have the seed for the generation preceeding the earliest received.
 		checkGen := earliestReceivedGen - 1
-		if _, ok := state.PerTeamKeySeeds[earliestReceivedGen-1]; !ok {
+		if _, ok := state.PerTeamKeySeedsUnverified[earliestReceivedGen-1]; !ok {
 			return fmt.Errorf("gap in per-team-keys: latestRecvd:%v earliestRecvd:%v missing:%v",
 				latestReceivedGen, earliestReceivedGen, checkGen)
 		}
@@ -801,44 +805,6 @@ func (l *TeamLoader) checkReaderKeyMaskCoverage(ctx context.Context,
 	}
 
 	return nil
-}
-
-func (l *TeamLoader) checkPerTeamKeyAgainstChain(ctx context.Context,
-	state *keybase1.TeamData, gen keybase1.PerTeamKeyGeneration, seed keybase1.PerTeamKeySeed) (*keybase1.PerTeamKeySeedItem, error) {
-
-	km, err := NewTeamKeyManagerWithSecret(l.G(), seed, gen)
-	if err != nil {
-		return nil, err
-	}
-
-	chainKey, err := TeamSigChainState{inner: state.Chain}.GetPerTeamKeyAtGeneration(gen)
-	if err != nil {
-		return nil, err
-	}
-
-	newSigKey, err := km.SigningKey()
-	if err != nil {
-		return nil, err
-	}
-
-	newEncKey, err := km.EncryptionKey()
-	if err != nil {
-		return nil, err
-	}
-
-	if !chainKey.SigKID.SecureEqual(newSigKey.GetKID()) {
-		return nil, fmt.Errorf("import per-team-key: wrong sigKID expected: %v", chainKey.SigKID.String())
-	}
-
-	if !chainKey.EncKID.SecureEqual(newEncKey.GetKID()) {
-		return nil, fmt.Errorf("import per-team-key: wrong encKID expected: %v", chainKey.EncKID.String())
-	}
-
-	return &keybase1.PerTeamKeySeedItem{
-		Seed:       seed,
-		Generation: gen,
-		Seqno:      chainKey.Seqno,
-	}, nil
 }
 
 // Unbox per team keys

@@ -193,7 +193,7 @@ func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
 					}
 					if loadSpec.ThenGetKey != 0 {
 						gen := keybase1.PerTeamKeyGeneration(loadSpec.ThenGetKey)
-						_, err := team.ApplicationKeyAtGeneration(keybase1.TeamApplication_KBFS, gen)
+						_, err := team.ApplicationKeyAtGeneration(context.Background(), keybase1.TeamApplication_KBFS, gen)
 						require.NoError(t, err, "getting application key at gen: %v", gen)
 					}
 				}

@@ -6,13 +6,12 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
-func AllApplicationKeys(ctx context.Context, teamData *keybase1.TeamData,
+func AllApplicationKeys(mctx libkb.MetaContext, teamData *keybase1.TeamData,
 	application keybase1.TeamApplication, latestGen keybase1.PerTeamKeyGeneration) (res []keybase1.TeamApplicationKey, err error) {
 	for gen := keybase1.PerTeamKeyGeneration(1); gen <= latestGen; gen++ {
-		appKey, err := ApplicationKeyAtGeneration(teamData, application, gen)
+		appKey, err := ApplicationKeyAtGeneration(mctx, teamData, application, gen)
 		if err != nil {
 			return res, err
 		}
@@ -22,11 +21,11 @@ func AllApplicationKeys(ctx context.Context, teamData *keybase1.TeamData,
 
 }
 
-func ApplicationKeyAtGeneration(teamData *keybase1.TeamData,
+func ApplicationKeyAtGeneration(mctx libkb.MetaContext, teamData *keybase1.TeamData,
 	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
 
-	item, ok := teamData.PerTeamKeySeeds[generation]
-	if !ok {
+	item, err := GetAndVerifyPerTeamKey(mctx, teamData, generation)
+	if err != nil {
 		return res, libkb.NotFoundError{
 			Msg: fmt.Sprintf("no team secret found at generation %v", generation)}
 	}

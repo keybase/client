@@ -631,6 +631,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	preloadCancel()
 	tbs.Log(ctx, "CachedUPAKLoader.LoadV2")
 	tbs.Log(ctx, "CachedUPAKLoader.LoadKeyV2") // note LoadKeyV2 calls Load2
+	tbs.Log(ctx, "SigChain.LoadFromServer.ReadAll")
 	tbs.Log(ctx, "TeamLoader.verifyLink")
 	tbs.Log(ctx, "TeamLoader.applyNewLink")
 
@@ -1068,7 +1069,7 @@ func (l *TeamLoader) satisfiesNeedKeyGeneration(ctx context.Context, needKeyGene
 	if needKeyGeneration > key.Gen {
 		return fmt.Errorf("team key generation too low: %v < %v", key.Gen, needKeyGeneration)
 	}
-	_, ok := state.PerTeamKeySeeds[needKeyGeneration]
+	_, ok := state.PerTeamKeySeedsUnverified[needKeyGeneration]
 	if !ok {
 		return fmt.Errorf("team key secret missing for generation: %v", needKeyGeneration)
 	}
@@ -1087,7 +1088,7 @@ func (l *TeamLoader) satisfiesNeedApplicationsAtGenerations(ctx context.Context,
 	}
 	for ptkGen, apps := range needApplicationsAtGenerations {
 		for _, app := range apps {
-			if _, err := ApplicationKeyAtGeneration(state, app, ptkGen); err != nil {
+			if _, err := ApplicationKeyAtGeneration(libkb.NewMetaContext(ctx, l.G()), state, app, ptkGen); err != nil {
 				return err
 			}
 		}
@@ -1176,13 +1177,13 @@ func (l *TeamLoader) isFresh(ctx context.Context, cachedAt keybase1.Time) bool {
 // Whether the teams secrets are synced to the same point as its sigchain
 func (l *TeamLoader) hasSyncedSecrets(state *keybase1.TeamData) bool {
 	onChainGen := keybase1.PerTeamKeyGeneration(len(state.Chain.PerTeamKeys))
-	offChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeeds))
+	offChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
 	return onChainGen == offChainGen
 }
 
 func (l *TeamLoader) logIfUnsyncedSecrets(ctx context.Context, state *keybase1.TeamData) {
 	onChainGen := keybase1.PerTeamKeyGeneration(len(state.Chain.PerTeamKeys))
-	offChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeeds))
+	offChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
 	if onChainGen != offChainGen {
 		l.G().Log.CDebugf(ctx, "TeamLoader unsynced secrets local:%v != chain:%v ", offChainGen, onChainGen)
 	}
@@ -1193,8 +1194,10 @@ func (l *TeamLoader) lows(ctx context.Context, state *keybase1.TeamData) getLink
 	if state != nil {
 		chain := TeamSigChainState{inner: state.Chain}
 		lows.Seqno = chain.GetLatestSeqno()
-		lows.PerTeamKey = keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeeds))
+		lows.PerTeamKey = keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
 		// Use an arbitrary application to get the number of known RKMs.
+		// TODO: using an arbitrary RKM is wrong and could lead to stuck caches.
+		//       See CORE-8445
 		rkms, ok := state.ReaderKeyMasks[keybase1.TeamApplication_CHAT]
 		if ok {
 			lows.ReaderKeyMask = keybase1.PerTeamKeyGeneration(len(rkms))
