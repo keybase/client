@@ -18,6 +18,9 @@ const promptContainerStyle = {
 
 class FilePickerPopup extends React.Component<Props> {
   render() {
+    // TODO: Have separate menu items for Take Photo, Take Video,
+    // Photo from Library, and Video from Library when launchCamera
+    // and launchImageLibrary Android bugs are fixed.
     const items = isIOS
       ? [
           {
@@ -36,27 +39,15 @@ class FilePickerPopup extends React.Component<Props> {
       : [
           {
             onClick: () => {
-              this.props.onSelect('photo', 'camera')
+              this.props.onSelect('photo', 'pick')
             },
-            title: 'Take Photo',
+            title: 'Photo',
           },
           {
             onClick: () => {
-              this.props.onSelect('video', 'camera')
+              this.props.onSelect('video', 'pick')
             },
-            title: 'Take Video',
-          },
-          {
-            onClick: () => {
-              this.props.onSelect('photo', 'library')
-            },
-            title: 'Photo from Library',
-          },
-          {
-            onClick: () => {
-              this.props.onSelect('video', 'library')
-            },
-            title: 'Video from Library',
+            title: 'Video',
           },
         ]
     const header = {

@@ -54,7 +54,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
 
   _launchNativeImagePicker = (
     mediaType: 'photo' | 'video' | 'mixed',
-    location: 'camera' | 'library' | 'pick'
+    location: 'pick' | 'camera' | 'library'
   ) => {
     let title = 'Select a Photo'
     let takePhotoButtonTitle = 'Take Photo...'
