@@ -158,8 +158,7 @@ func defaultMetadataVersion(ctx Context) kbfsmd.MetadataVer {
 	case libkb.StagingRunMode:
 		return kbfsmd.ImplicitTeamsVer
 	case libkb.ProductionRunMode:
-		// TODO(KBFS-2652): flip this.
-		return kbfsmd.SegregatedKeyBundlesVer
+		return kbfsmd.ImplicitTeamsVer
 	default:
 		return kbfsmd.ImplicitTeamsVer
 	}
