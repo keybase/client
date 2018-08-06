@@ -20,6 +20,11 @@ const notificationProps = {
   _updateNotifications: Sb.action('_updateNotifications'),
 }
 
+const minWriterRoleProps = {
+  canSetMinWriterRole: false,
+  minWriterRole: 'reader',
+}
+
 const retentionPickerPropSelector = props => ({
   _loadTeamPolicy: Sb.action('_loadTeamPolicy'),
   _loadTeamOperations: Sb.unexpected('_loadTeamOperations'),
@@ -44,6 +49,7 @@ const retentionPickerPropSelector = props => ({
 const provider = Sb.createPropProviderWithCommon({
   ...Sb.PropProviders.TeamDropdownMenu(),
   InfoPanel: (props: InfoPanelProps) => props,
+  MinWriterRole: () => minWriterRoleProps,
   OnlyValidConversations: () => onlyValidConversationsProps,
   LifecycleNotifications: () => notificationProps,
   RetentionPicker: retentionPickerPropSelector,
@@ -68,6 +74,7 @@ const commonProps = {
   onBack: Sb.unexpected('onBack'),
   onShowProfile: (username: string) => Sb.action(`onShowProfile(${username})`),
   canDeleteHistory: true,
+  canSetMinWriterRole: false,
 }
 
 const conversationProps = {

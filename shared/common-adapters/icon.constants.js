@@ -946,6 +946,16 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-onboarding-team-48.png'),
   },
+  'icon-onboarding-team-avatar-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-team-avatar-32.png'),
+  },
+  'icon-onboarding-team-avatar-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-team-avatar-48.png'),
+  },
   'icon-onboarding-team-publicity-32': {
     isFont: false,
     extension: 'png',
@@ -955,6 +965,16 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-onboarding-team-publicity-48.png'),
+  },
+  'icon-onboarding-user-avatar-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-user-avatar-32.png'),
+  },
+  'icon-onboarding-user-avatar-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-user-avatar-48.png'),
   },
   'icon-onboarding-user-info-32': {
     isFont: false,

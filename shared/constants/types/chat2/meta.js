@@ -2,6 +2,7 @@
 // @flow
 import * as I from 'immutable'
 import * as Common from './common'
+import * as TeamsTypes from '../teams'
 import type {RetentionPolicy} from '../teams'
 
 type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset'
@@ -18,11 +19,13 @@ export type _ConversationMeta = {
   isMuted: boolean,
   wasFinalizedBy: string, // a conversation can be finalized but not superseded
   membershipType: MembershipType,
+  minWriterRole: TeamsTypes.TeamRoleType, // minimum role to be able to write into a channel
   notificationsDesktop: NotificationsType,
   notificationsMobile: NotificationsType,
   notificationsGlobalIgnoreMentions: boolean,
   offline: boolean,
   participants: I.List<string>, // was OrderedSet but is quite slow
+  maxMsgID: number,
   readMsgID: number,
   rekeyers: I.Set<string>,
   resetParticipants: I.Set<string>,

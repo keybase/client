@@ -516,6 +516,9 @@ protocol teams {
   record TeamRefreshers {
     // Load at least up to the keygen. Returns an error if the keygen is not loaded.
     PerTeamKeyGeneration needKeyGeneration;
+    // Load the reader key mask for the given applications and the given
+    // generations. Returns an error if any of the RKMs are not loaded.
+    map<PerTeamKeyGeneration,array<TeamApplication>> needApplicationsAtGenerations;
     // Refresh if the cached version does not have these members at the minimum role `wantMembersRole`.
     // Does not guarantee these members will be present in the returned team. This is especially
     // relevant in the case of deleted users, who won't be there after the refresh.
