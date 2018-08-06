@@ -208,6 +208,17 @@ const setupEngineListeners = () => {
   })
 }
 
+function* loadStartupDetails() {
+  yield Saga.put(
+    ConfigGen.createSetStartupDetails({
+      startupConversation: null,
+      startupLink: '',
+      startupTab: null,
+      startupWasFromPush: false,
+    })
+  )
+}
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
   yield Saga.actionToAction(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
@@ -218,6 +229,8 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 
   yield Saga.fork(initializeAppSettingsState)
+  // Start this immediately
+  yield Saga.fork(loadStartupDetails)
 }
 
 export {

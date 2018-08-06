@@ -98,8 +98,15 @@ const loadDaemonAccounts = () =>
     Saga.call(function*() {
       try {
         const loadedAction = yield RPCTypes.configGetExtendedStatusRpcPromise().then(extendedConfig => {
-          const usernames = extendedConfig.provisionedUsernames || []
+          let usernames = extendedConfig.provisionedUsernames || []
           let defaultUsername = extendedConfig.defaultUsername || ''
+          // TODO likely goes away with CORE-8507, currently get extended will remove the user from the list
+          if (!usernames.includes(defaultUsername)) {
+            usernames.push(defaultUsername)
+          }
+          usernames = usernames.sort()
+
+          // Select one if it doesn't exist
           if (usernames.length && !usernames.includes(defaultUsername)) {
             defaultUsername = usernames[0]
           }
@@ -188,12 +195,9 @@ const routeToInitialScreen = (state: TypedState) => {
     ])
   } else {
     // Show a login screen
-    //
-    const loginScreen = state.config.configuredAccounts.size ? ['relogin'] : []
-    //
     return Saga.sequentially([
       Saga.put(RouteTree.switchRouteDef(loginRouteTree)),
-      Saga.put(RouteTree.navigateTo(loginScreen, [Tabs.loginTab])),
+      Saga.put(RouteTree.navigateTo([], [Tabs.loginTab])),
     ])
   }
 }

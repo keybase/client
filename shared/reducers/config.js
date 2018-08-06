@@ -15,9 +15,15 @@ export default function(
   switch (action.type) {
     case ConfigGen.resetStore:
       return initialState.merge({
+        appFocused: state.appFocused,
+        appFocusedCount: state.appFocusedCount,
+        configuredAccounts: state.configuredAccounts,
+        daemonHandshakeState: state.daemonHandshakeState,
         daemonHandshakeWaiters: state.daemonHandshakeWaiters,
+        defaultUsername: state.defaultUsername,
         logoutHandshakeWaiters: state.logoutHandshakeWaiters,
         menubarWindowID: state.menubarWindowID,
+        pushLoaded: state.pushLoaded,
         startupDetailsLoaded: state.startupDetailsLoaded,
       })
     case ConfigGen.restartHandshake:
@@ -25,12 +31,14 @@ export default function(
         daemonError: null,
         daemonHandshakeFailedReason: '',
         daemonHandshakeRetriesLeft: Math.max(state.daemonHandshakeRetriesLeft - 1, 0),
+        daemonHandshakeState: 'starting',
       })
     case ConfigGen.startHandshake:
       return state.merge({
         daemonError: null,
         daemonHandshakeFailedReason: '',
         daemonHandshakeRetriesLeft: Constants.maxHandshakeTries,
+        daemonHandshakeState: 'starting',
       })
     case ConfigGen.logoutHandshake:
       return state.merge({logoutHandshakeWaiters: I.Map()})
@@ -41,6 +49,7 @@ export default function(
         newCount === 0
           ? state.deleteIn(['daemonHandshakeWaiters', action.payload.name])
           : state.setIn(['daemonHandshakeWaiters', action.payload.name], newCount)
+
       // Keep the first error
       if (state.daemonHandshakeFailedReason) {
         return newState
@@ -133,7 +142,8 @@ export default function(
       })
     case ConfigGen.setDeletedSelf:
       return state.merge({justDeletedSelf: action.payload.deletedUsername})
-
+    case ConfigGen.daemonHandshakeDone:
+      return state.set('daemonHandshakeState', 'done')
     // Saga only actions
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:
@@ -145,7 +155,6 @@ export default function(
     case ConfigGen.setupEngineListeners:
     case ConfigGen.daemonHandshake:
     case ConfigGen.installerRan:
-    case ConfigGen.daemonHandshakeDone:
     case ConfigGen.logout:
       return state
     default:

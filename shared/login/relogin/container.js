@@ -7,9 +7,9 @@ import HiddenString from '../../util/hidden-string'
 import Login, {type Props} from '.'
 import {connect, type TypedState, type Dispatch} from '../../util/container'
 
-import {type RouteProps} from '../../route-tree/render-route'
-
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = {|
+  navigateAppend: (...Array<any>) => any,
+|}
 
 const mapStateToProps = (state: TypedState) => ({
   _users: state.config.configuredAccounts,
@@ -17,8 +17,8 @@ const mapStateToProps = (state: TypedState) => ({
   selectedUser: state.config.defaultUsername,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}: OwnProps) => ({
-  onFeedback: () => dispatch(navigateAppend(['feedback'])),
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+  onFeedback: () => dispatch(ownProps.navigateAppend(['feedback'])),
   onForgotPassphrase: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
   onLogin: (user: string, passphrase: string) =>
     dispatch(LoginGen.createLogin({passphrase: new HiddenString(passphrase), usernameOrEmail: user})),
@@ -26,10 +26,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}: OwnProps) => (
   onSomeoneElse: () => dispatch(ProvisionGen.createStartProvision()),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+const mergeProps = (stateProps, dispatchProps) => {
   const users = stateProps._users.sort().toArray()
 
   return {
+    error: stateProps.error,
     onFeedback: dispatchProps.onFeedback,
     onForgotPassphrase: dispatchProps.onForgotPassphrase,
     onLogin: dispatchProps.onLogin,

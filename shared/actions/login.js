@@ -50,18 +50,11 @@ export function setupLoginHMR(cb: () => void) {
       }
 */
 
-function* navigateToLoginRoot(): Generator<any, void, any> {
-  const state: TypedState = yield Saga.select()
-  const numAccounts = state.config.configuredAccounts.size
-  const route = numAccounts ? ['relogin'] : []
-  yield Saga.put(RouteTree.navigateTo(route, [Tabs.loginTab]))
-}
-
 const maybeNavigateToLoginRoot = (state: TypedState) =>
   // naving but not on login
   state.routeTree.routeState && state.routeTree.routeState.selected !== Tabs.loginTab
     ? null
-    : Saga.call(navigateToLoginRoot)
+    : Saga.put(RouteTree.navigateTo([], [Tabs.loginTab]))
 
 const cancelDesc = 'Canceling RPC'
 const cancelOnCallback = (params, response, state) => {

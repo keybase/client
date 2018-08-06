@@ -25,6 +25,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   daemonError: null,
   daemonHandshakeFailedReason: '',
   daemonHandshakeRetriesLeft: maxHandshakeTries,
+  daemonHandshakeState: 'starting',
   daemonHandshakeWaiters: I.Map(),
   debugDump: [],
   defaultUsername: '',

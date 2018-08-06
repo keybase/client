@@ -10,24 +10,31 @@ import signupRoutes from './signup/routes'
 import {connect, type TypedState} from '../util/container'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 
-const mapStateToProps = (state: TypedState) => ({
-  showLoading:
-    state.config.daemonHandshakeWaiters.size > 0 ||
-    (state.config.daemonHandshakeWaiters.size === 0 && state.config.daemonHandshakeFailedReason),
-})
+const mapStateToProps = (state: TypedState) => {
+  const showLoading = state.config.daemonHandshakeState !== 'done'
+  const showRelogin = !showLoading && state.config.configuredAccounts.size > 0
+  return {showLoading, showRelogin}
+}
 
-const Switcher = ({showLoading, navigateAppend}) =>
-  showLoading ? <Loading navigateAppend={navigateAppend} /> : <JoinOrLogin navigateAppend={navigateAppend} />
+const _RootLogin = ({showLoading, showRelogin, navigateAppend}) => {
+  if (showLoading) {
+    return <Loading navigateAppend={navigateAppend} />
+  }
+  if (showRelogin) {
+    // $FlowIssue not sure
+    return <Relogin navigateAppend={navigateAppend} />
+  }
+  return <JoinOrLogin navigateAppend={navigateAppend} />
+}
 
-const LoadingOrJoin = connect(mapStateToProps)(Switcher)
+const RootLogin = connect(mapStateToProps)(_RootLogin)
 
 const addTags = component => ({component, tags: makeLeafTags({underStatusBar: true})})
 
 // $FlowIssue
 const recursiveLazyRoutes = I.Seq({
   feedback: addTags(Feedback),
-  login: addTags(LoadingOrJoin),
-  relogin: addTags(Relogin),
+  login: addTags(RootLogin),
   ...provisonRoutes,
   ...signupRoutes,
 })

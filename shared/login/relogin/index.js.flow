@@ -7,7 +7,6 @@ export type Props = {|
   onSignup: () => void,
   onSomeoneElse: () => void,
   error: string,
-  waitingForResponse: boolean,
   passphrase: string,
   showTyping: boolean,
   selectedUser: string,

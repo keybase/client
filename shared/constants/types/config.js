@@ -17,6 +17,7 @@ export type _State = {
   avatars: {[username: string]: AvatarSizes}, // MUST be a plain object for remotes to work correctly
   configuredAccounts: I.List<string>,
   daemonError: ?Error,
+  daemonHandshakeState: 'starting' | 'waitingForWaiters' | 'done',
   daemonHandshakeFailedReason: string,
   daemonHandshakeRetriesLeft: number,
   daemonHandshakeWaiters: I.Map<string, number>,

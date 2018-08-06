@@ -18,7 +18,6 @@ const commonProps: Props = {
   showTyping: false,
   showTypingChange: Sb.action('showTypingChange'),
   users: ['awendland'],
-  waitingForResponse: false,
 }
 
 const load = () => {
