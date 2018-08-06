@@ -78,7 +78,7 @@ func (r *AttachmentHTTPSrv) monitorAppState() {
 		switch state {
 		case keybase1.AppState_FOREGROUND:
 			r.startHTTPSrv()
-		case keybase1.AppState_BACKGROUND:
+		case keybase1.AppState_BACKGROUND, keybase1.AppState_INACTIVE:
 			r.httpSrv.Stop()
 		}
 	}
