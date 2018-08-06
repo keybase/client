@@ -451,17 +451,24 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	// Determine whether to repoll merkle.
-	tracer.Stage("merkle")
 	discardCache, repoll := l.load2DecideRepoll(ctx, arg, ret)
 	if discardCache {
 		ret = nil
 		repoll = true
 	}
 
+	tracer.Stage("deepcopy")
 	if ret != nil {
 		l.G().Log.CDebugf(ctx, "TeamLoader found cached snapshot")
+		// If we're pulling from a previous snapshot (that, let's say, we got from a shared cache),
+		// then make sure to DeepCopy() data out of it before we start mutating it below. We used
+		// to do this every step through the new links, but that was very expensive in terms of CPU
+		// for big teams, since it was hidden quadratic behavior.
+		tmp := ret.DeepCopy()
+		ret = &tmp
 	}
 
+	tracer.Stage("merkle")
 	var lastSeqno keybase1.Seqno
 	var lastLinkID keybase1.LinkID
 	if (ret == nil) || repoll {
@@ -562,15 +569,6 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		}
 	}
 
-	// If we're pulling from a previous snapshot (that, let's say, we got from a shared cache),
-	// then make sure to DeepCopy() data out of it before we start mutating it below. We used
-	// to do this every step through the new links, but that was very expensive in terms of CPU
-	// for big teams, since it was hidden quadratic behavior.
-	if ret != nil {
-		tmp := ret.DeepCopy()
-		ret = &tmp
-	}
-
 	// A link which was signed by an admin. Sloppily the latest such link.
 	// Sloppy because this calculation misses out on e.g. a rotate_key signed by an admin.
 	// This value is used for skipping fullVerify on team.leave links, see `verifyLink`.
@@ -669,13 +667,13 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			// Add the secrets.
 			// If it's a public team, there might not be secrets. (If we're not in the team)
 			if !ret.Chain.Public || (teamUpdate.Box != nil) {
-				ret, err = l.addSecrets(ctx, ret, arg.me, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
+				err = l.addSecrets(ctx, ret, arg.me, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
 				if err != nil {
 					return nil, fmt.Errorf("loading team secrets: %v", err)
 				}
 
 				if teamUpdate.LegacyTLFUpgrade != nil {
-					ret, err = l.addKBFSCryptKeys(ctx, ret, teamUpdate.LegacyTLFUpgrade)
+					err = l.addKBFSCryptKeys(ctx, ret, teamUpdate.LegacyTLFUpgrade)
 					if err != nil {
 						return nil, fmt.Errorf("loading KBFS crypt keys: %v", err)
 					}
