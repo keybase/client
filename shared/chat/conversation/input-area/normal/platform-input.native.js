@@ -100,6 +100,8 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
       this.props.onAttach([filename])
     }
 
+    // TODO: Remove 'pick' case when launchCamera and
+    // launchImageLibrary Android bugs are fixed.
     const options = {mediaType, title, takePhotoButtonTitle, permissionDenied}
     switch (location) {
       case 'pick':
