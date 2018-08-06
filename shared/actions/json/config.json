@@ -39,7 +39,6 @@
       "name": "string",
       "increment": "boolean",
     },
-    "configuredAccounts": { "accounts": "Array<string>", },
     "installerRan": {
       "_description": "desktop only: the installer ran and we can start up"
     },
@@ -66,7 +65,10 @@
       "username": "string"
     },
     "daemonError": { "daemonError": "?Error" },
-    "extendedConfigLoaded": { "extendedConfig": "RPCTypes.ExtendedStatus" },
+    "setAccounts": {
+      "defaultUsername": "string",
+      "usernames": "Array<string>"
+    },
     "globalError": { "globalError": "null | Error | RPCError" },
     "updateFollowing": {
       "username": "string",

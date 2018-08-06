@@ -22,36 +22,6 @@ export function setupLoginHMR(cb: () => void) {
 
 // TODO entirely change how this works
 /*
-function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
-  const state = yield Saga.select()
-  const {loggedIn, registered, startedDueToPush} = state.config
-  // ignore initial state if we're here due to push
-  const initialState = startedDueToPush ? null : state.config.initialState
-  const {justDeletedSelf, loginError} = state.login
-  const {loggedInUserNavigated} = state.routeTree
-  logger.info(
-    '[RouteState] navBasedOnLoginAndInitialState:',
-    loggedIn,
-    registered,
-    initialState,
-    justDeletedSelf,
-    loginError,
-    loggedInUserNavigated
-  )
-
-  // All branches except for when loggedIn is true,
-  // loggedInUserNavigated is false, and and initialState is null
-  // yield a RouteTree.switchRouteDef action with appRouteTree or
-  // loginRouteTree, and must finish by yielding an action which sets
-  // state.routeTree.loggedInUserNavigated to true; see
-  // loggedInUserNavigatedReducer.
-  if (justDeletedSelf) {
-  } else if (loggedIn) {
-    // If the user has already performed a navigation action, or if
-    // we've already applied the initialState, do nothing.
-    if (loggedInUserNavigated) {
-      return
-    }
 
     if (initialState) {
       const {url, tab, conversation} = (initialState: InitialState)
@@ -78,34 +48,12 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
       } else {
         yield Saga.put(RouteTree.navigateTo([Tabs.peopleTab], null, 'initial-restore'))
       }
-    } else {
-      // If the initial state is not set yet, navigate to the people
-      // tab without setting state.routeTree.loggedInUserNavigated to true.
-      yield Saga.put(RouteTree.navigateTo([Tabs.peopleTab], null, 'initial-default'))
-    }
-  } else if (registered) {
-    // We may have logged successfully in by now, check before trying to navigate
-    const state = yield Saga.select()
-    if (state.config.loggedIn) {
-      return
-    }
-    yield Saga.put(RouteTree.navigateTo(['login'], [Tabs.loginTab]))
-  } else if (loginError) {
-    // show error on login screen
-    yield Saga.put(RouteTree.switchRouteDef(loginRouteTree))
-    yield Saga.put(RouteTree.navigateTo(['login'], [Tabs.loginTab]))
-  } else {
-    // no idea
-    yield Saga.put(RouteTree.switchRouteDef(loginRouteTree))
-    yield Saga.put(RouteTree.navigateTo([Tabs.loginTab]))
-  }
-}
 */
 
 function* navigateToLoginRoot(): Generator<any, void, any> {
   const state: TypedState = yield Saga.select()
   const numAccounts = state.config.configuredAccounts.size
-  const route = numAccounts ? ['login'] : []
+  const route = numAccounts ? ['relogin'] : []
   yield Saga.put(RouteTree.navigateTo(route, [Tabs.loginTab]))
 }
 

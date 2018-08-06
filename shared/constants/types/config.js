@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import {type ConversationIDKey} from './chat2'
 import {type Tab} from '../tabs'
-import {type DeviceID, type ExtendedStatus} from './rpc-gen'
+import {type DeviceID} from './rpc-gen'
 import {RPCError} from '../../util/errors'
 
 export type AvatarSizes = {
@@ -24,7 +24,7 @@ export type _State = {
   deviceID: DeviceID,
   deviceName: ?string,
   error: any,
-  extendedConfig: ?ExtendedStatus,
+  defaultUsername: string,
   followers: I.Set<string>,
   following: I.Set<string>,
   globalError: null | Error | RPCError,

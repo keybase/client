@@ -14,14 +14,12 @@ export const resetStore = 'common:resetStore' // not a part of config but is han
 export const bootstrapStatusLoaded = 'config:bootstrapStatusLoaded'
 export const changedActive = 'config:changedActive'
 export const changedFocus = 'config:changedFocus'
-export const configuredAccounts = 'config:configuredAccounts'
 export const daemonError = 'config:daemonError'
 export const daemonHandshake = 'config:daemonHandshake'
 export const daemonHandshakeDone = 'config:daemonHandshakeDone'
 export const daemonHandshakeWait = 'config:daemonHandshakeWait'
 export const debugDump = 'config:debugDump'
 export const dumpLogs = 'config:dumpLogs'
-export const extendedConfigLoaded = 'config:extendedConfigLoaded'
 export const globalError = 'config:globalError'
 export const installerRan = 'config:installerRan'
 export const link = 'config:link'
@@ -37,6 +35,7 @@ export const mobileAppState = 'config:mobileAppState'
 export const openAppSettings = 'config:openAppSettings'
 export const pushLoaded = 'config:pushLoaded'
 export const restartHandshake = 'config:restartHandshake'
+export const setAccounts = 'config:setAccounts'
 export const setDeletedSelf = 'config:setDeletedSelf'
 export const setNotifySound = 'config:setNotifySound'
 export const setOpenAtLogin = 'config:setOpenAtLogin'
@@ -59,7 +58,6 @@ type _BootstrapStatusLoadedPayload = $ReadOnly<{|
 |}>
 type _ChangedActivePayload = $ReadOnly<{|userActive: boolean|}>
 type _ChangedFocusPayload = $ReadOnly<{|appFocused: boolean|}>
-type _ConfiguredAccountsPayload = $ReadOnly<{|accounts: Array<string>|}>
 type _DaemonErrorPayload = $ReadOnly<{|daemonError: ?Error|}>
 type _DaemonHandshakeDonePayload = void
 type _DaemonHandshakePayload = $ReadOnly<{|firstTimeConnecting: boolean|}>
@@ -70,7 +68,6 @@ type _DaemonHandshakeWaitPayload = $ReadOnly<{|
 |}>
 type _DebugDumpPayload = $ReadOnly<{|items: Array<string>|}>
 type _DumpLogsPayload = $ReadOnly<{|reason: 'quitting through menu'|}>
-type _ExtendedConfigLoadedPayload = $ReadOnly<{|extendedConfig: RPCTypes.ExtendedStatus|}>
 type _GlobalErrorPayload = $ReadOnly<{|globalError: null | Error | RPCError|}>
 type _InstallerRanPayload = void
 type _LinkPayload = $ReadOnly<{|link: string|}>
@@ -89,6 +86,10 @@ type _MobileAppStatePayload = $ReadOnly<{|nextAppState: 'active' | 'background' 
 type _OpenAppSettingsPayload = void
 type _PushLoadedPayload = $ReadOnly<{|pushLoaded: boolean|}>
 type _RestartHandshakePayload = void
+type _SetAccountsPayload = $ReadOnly<{|
+  defaultUsername: string,
+  usernames: Array<string>,
+|}>
 type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
 type _SetNotifySoundPayload = $ReadOnly<{|
   sound: boolean,
@@ -160,11 +161,9 @@ export const createSetupEngineListeners = (payload: _SetupEngineListenersPayload
 export const createBootstrapStatusLoaded = (payload: _BootstrapStatusLoadedPayload) => ({error: false, payload, type: bootstrapStatusLoaded})
 export const createChangedActive = (payload: _ChangedActivePayload) => ({error: false, payload, type: changedActive})
 export const createChangedFocus = (payload: _ChangedFocusPayload) => ({error: false, payload, type: changedFocus})
-export const createConfiguredAccounts = (payload: _ConfiguredAccountsPayload) => ({error: false, payload, type: configuredAccounts})
 export const createDaemonError = (payload: _DaemonErrorPayload) => ({error: false, payload, type: daemonError})
 export const createDebugDump = (payload: _DebugDumpPayload) => ({error: false, payload, type: debugDump})
 export const createDumpLogs = (payload: _DumpLogsPayload) => ({error: false, payload, type: dumpLogs})
-export const createExtendedConfigLoaded = (payload: _ExtendedConfigLoadedPayload) => ({error: false, payload, type: extendedConfigLoaded})
 export const createGlobalError = (payload: _GlobalErrorPayload) => ({error: false, payload, type: globalError})
 export const createLink = (payload: _LinkPayload) => ({error: false, payload, type: link})
 export const createLoadAvatars = (payload: _LoadAvatarsPayload) => ({error: false, payload, type: loadAvatars})
@@ -174,6 +173,7 @@ export const createLoggedIn = (payload: _LoggedInPayload) => ({error: false, pay
 export const createLoggedOut = (payload: _LoggedOutPayload) => ({error: false, payload, type: loggedOut})
 export const createMobileAppState = (payload: _MobileAppStatePayload) => ({error: false, payload, type: mobileAppState})
 export const createPushLoaded = (payload: _PushLoadedPayload) => ({error: false, payload, type: pushLoaded})
+export const createSetAccounts = (payload: _SetAccountsPayload) => ({error: false, payload, type: setAccounts})
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error: false, payload, type: setDeletedSelf})
 export const createSetNotifySound = (payload: _SetNotifySoundPayload) => ({error: false, payload, type: setNotifySound})
 export const createSetOpenAtLogin = (payload: _SetOpenAtLoginPayload) => ({error: false, payload, type: setOpenAtLogin})
@@ -185,14 +185,12 @@ export const createUpdateFollowing = (payload: _UpdateFollowingPayload) => ({err
 export type BootstrapStatusLoadedPayload = $Call<typeof createBootstrapStatusLoaded, _BootstrapStatusLoadedPayload>
 export type ChangedActivePayload = $Call<typeof createChangedActive, _ChangedActivePayload>
 export type ChangedFocusPayload = $Call<typeof createChangedFocus, _ChangedFocusPayload>
-export type ConfiguredAccountsPayload = $Call<typeof createConfiguredAccounts, _ConfiguredAccountsPayload>
 export type DaemonErrorPayload = $Call<typeof createDaemonError, _DaemonErrorPayload>
 export type DaemonHandshakeDonePayload = $Call<typeof createDaemonHandshakeDone, _DaemonHandshakeDonePayload>
 export type DaemonHandshakePayload = $Call<typeof createDaemonHandshake, _DaemonHandshakePayload>
 export type DaemonHandshakeWaitPayload = $Call<typeof createDaemonHandshakeWait, _DaemonHandshakeWaitPayload>
 export type DebugDumpPayload = $Call<typeof createDebugDump, _DebugDumpPayload>
 export type DumpLogsPayload = $Call<typeof createDumpLogs, _DumpLogsPayload>
-export type ExtendedConfigLoadedPayload = $Call<typeof createExtendedConfigLoaded, _ExtendedConfigLoadedPayload>
 export type GlobalErrorPayload = $Call<typeof createGlobalError, _GlobalErrorPayload>
 export type InstallerRanPayload = $Call<typeof createInstallerRan, _InstallerRanPayload>
 export type LinkPayload = $Call<typeof createLink, _LinkPayload>
@@ -208,6 +206,7 @@ export type MobileAppStatePayload = $Call<typeof createMobileAppState, _MobileAp
 export type OpenAppSettingsPayload = $Call<typeof createOpenAppSettings, _OpenAppSettingsPayload>
 export type PushLoadedPayload = $Call<typeof createPushLoaded, _PushLoadedPayload>
 export type RestartHandshakePayload = $Call<typeof createRestartHandshake, _RestartHandshakePayload>
+export type SetAccountsPayload = $Call<typeof createSetAccounts, _SetAccountsPayload>
 export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDeletedSelfPayload>
 export type SetNotifySoundPayload = $Call<typeof createSetNotifySound, _SetNotifySoundPayload>
 export type SetOpenAtLoginPayload = $Call<typeof createSetOpenAtLogin, _SetOpenAtLoginPayload>
@@ -223,14 +222,12 @@ export type Actions =
   | BootstrapStatusLoadedPayload
   | ChangedActivePayload
   | ChangedFocusPayload
-  | ConfiguredAccountsPayload
   | DaemonErrorPayload
   | DaemonHandshakeDonePayload
   | DaemonHandshakePayload
   | DaemonHandshakeWaitPayload
   | DebugDumpPayload
   | DumpLogsPayload
-  | ExtendedConfigLoadedPayload
   | GlobalErrorPayload
   | InstallerRanPayload
   | LinkPayload
@@ -246,6 +243,7 @@ export type Actions =
   | OpenAppSettingsPayload
   | PushLoadedPayload
   | RestartHandshakePayload
+  | SetAccountsPayload
   | SetDeletedSelfPayload
   | SetNotifySoundPayload
   | SetOpenAtLoginPayload

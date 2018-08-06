@@ -3,7 +3,6 @@
 import * as Types from '../../constants/types/signup'
 import * as Constants from '../../constants/signup'
 import * as SignupGen from '../signup-gen'
-import * as LoginGen from '../login-gen'
 import * as Saga from '../../util/saga'
 import type {TypedState} from '../../constants/reducer'
 import {loginTab} from '../../constants/tabs'

@@ -17,11 +17,6 @@ import avatarSaga from './avatar'
 import {getEngine} from '../../engine'
 import {type TypedState} from '../../constants/reducer'
 
-const getExtendedStatus = () =>
-  RPCTypes.configGetExtendedStatusRpcPromise().then(extendedConfig =>
-    ConfigGen.createExtendedConfigLoaded({extendedConfig})
-  )
-
 const setupEngineListeners = () => {
   getEngine().setIncomingActionCreators(
     'keybase.1.NotifyTracking.trackingChanged',
@@ -96,13 +91,21 @@ const maybeDoneWithDaemonHandshake = (state: TypedState) => {
   }
 }
 
+// TODO switch to new faster rpc when core is done (CORE-8507)
 const loadDaemonAccounts = () =>
   Saga.sequentially([
     Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: 'config.getAccounts'})),
     Saga.call(function*() {
       try {
-        const accounts = yield Saga.call(RPCTypes.loginGetConfiguredAccountsRpcPromise)
-        yield Saga.put(ConfigGen.createConfiguredAccounts({accounts: (accounts || []).map(a => a.username)}))
+        const loadedAction = yield RPCTypes.configGetExtendedStatusRpcPromise().then(extendedConfig => {
+          const usernames = extendedConfig.provisionedUsernames || []
+          let defaultUsername = extendedConfig.defaultUsername || ''
+          if (usernames.length && !usernames.includes(defaultUsername)) {
+            defaultUsername = usernames[0]
+          }
+          return ConfigGen.createSetAccounts({defaultUsername, usernames})
+        })
+        yield Saga.put(loadedAction)
         yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name: 'config.getAccounts'}))
       } catch (error) {
         yield Saga.put(
@@ -184,10 +187,13 @@ const routeToInitialScreen = (state: TypedState) => {
       Saga.put(RouteTree.navigateTo([state.config.startupTab || Tabs.peopleTab])),
     ])
   } else {
-    // Show login root
+    // Show a login screen
+    //
+    const loginScreen = state.config.configuredAccounts.size ? ['relogin'] : []
+    //
     return Saga.sequentially([
       Saga.put(RouteTree.switchRouteDef(loginRouteTree)),
-      Saga.put(RouteTree.navigateTo([Tabs.loginTab])),
+      Saga.put(RouteTree.navigateTo(loginScreen, [Tabs.loginTab])),
     ])
   }
 }
@@ -203,7 +209,6 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.daemonHandshakeWait, maybeDoneWithDaemonHandshake)
   yield Saga.actionToAction(ConfigGen.daemonHandshake, loadDaemonBootstrapStatus)
   yield Saga.actionToAction(ConfigGen.daemonHandshake, loadDaemonAccounts)
-  yield Saga.actionToPromise(ConfigGen.loggedIn, getExtendedStatus)
   yield Saga.actionToAction([ConfigGen.loggedIn, ConfigGen.loggedOut], switchRouteDef)
   yield Saga.actionToAction(ConfigGen.daemonHandshakeDone, routeToInitialScreen)
   yield Saga.actionToAction(ConfigGen.daemonHandshakeDone, emitInitialLoggedIn)
