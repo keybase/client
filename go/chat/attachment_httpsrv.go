@@ -201,6 +201,26 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 	return false
 }
 
+type fakeSeeker struct {
+	io.Reader
+	size int64
+	log  utils.DebugLabeler
+}
+
+func (s fakeSeeker) Read(b []byte) (int, error) {
+	n, err := s.Reader.Read(b)
+	s.log.Debug(context.TODO(), "fakeSeeker: read: n: %d err: %s", n, err)
+	return n, err
+}
+
+func (s fakeSeeker) Seek(offset int64, whence int) (int64, error) {
+	s.log.Debug(context.TODO(), "fakeSeeker: seek: offset: %d whence: %v", offset, whence)
+	if offset == 0 && whence == io.SeekEnd {
+		return s.size, nil
+	}
+	return 0, nil
+}
+
 func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
@@ -238,18 +258,18 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 			// if we served the host page, just bail out
 			return
 		}
-		fw, err := r.getContentStash(ctx)
-		if err != nil {
-			r.makeError(ctx, w, http.StatusInternalServerError, "failed to get content stash file: %s", err)
-			return
-		}
-		defer fw.Close()
-		if err := r.fetcher.FetchAttachment(ctx, fw, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
-			r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
-			return
-		}
-		http.ServeContent(w, req, asset.Filename, time.Time{}, fw)
-		os.Remove(fw.Name())
+		pipeReader, pipeWriter := io.Pipe()
+		go func() {
+			if err := r.fetcher.FetchAttachment(ctx, pipeWriter, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
+				r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
+				return
+			}
+		}()
+		http.ServeContent(w, req, asset.Filename, time.Time{}, fakeSeeker{
+			Reader: pipeReader,
+			log:    r.DebugLabeler,
+			size:   asset.Size,
+		})
 	} else {
 		if err := r.fetcher.FetchAttachment(ctx, w, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
 			r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
