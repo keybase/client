@@ -16,20 +16,25 @@ type ConfirmSendProps = {|
   amount: string,
   bannerText?: string,
   bannerBackground?: Background,
-  // onClick: () => void,
+  encryptedMemo?: string,
+  publicMemo?: string,
+  onSendClick: () => void,
 |}
 
 export default function ConfirmSend(props: ConfirmSendProps) {
   return (
     <Kb.MaybePopup onClose={props.onClose}>
       <Kb.Box2 direction="vertical" style={styles.container}>
-        <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.header}>
-          <Kb.Text type="BodySmall" style={styles.headerText}>
-            Sending lumens worth
-          </Kb.Text>
-          <Kb.Text type="HeaderBigExtrabold" style={styles.headerText}>
-            $1
-          </Kb.Text>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
+          <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
+          <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
+            <Kb.Text type="BodySmall" style={styles.headerText}>
+              Sending lumens worth
+            </Kb.Text>
+            <Kb.Text type="HeaderBigExtrabold" style={styles.headerText}>
+              $1
+            </Kb.Text>
+          </Kb.Box2>
         </Kb.Box2>
         <Kb.ScrollView>
           {!!props.bannerText &&
@@ -37,7 +42,7 @@ export default function ConfirmSend(props: ConfirmSendProps) {
               <Banner background={props.bannerBackground} text={props.bannerText} />
             )}
           <Participants receivingUsername="nathunsmitty" receivingFullName="Nathan Smith" />
-          <Memo />
+          <Memo encryptedMemo={props.encryptedMemo} publicMemo={props.publicMemo} />
         </Kb.ScrollView>
         <Kb.Box2
           direction="horizontal"
@@ -50,7 +55,7 @@ export default function ConfirmSend(props: ConfirmSendProps) {
         >
           <Kb.Button
             type="PrimaryGreen"
-            onClick={() => {}}
+            onClick={props.onSendClick}
             disabled={false}
             fullWidth={true}
             style={styles.button}
@@ -80,6 +85,7 @@ const styles = Styles.styleSheetCreate({
   icon: {
     marginRight: Styles.globalMargins.tiny,
   },
+  backButton: {color: Styles.globalColors.white},
   buttonText: {color: Styles.globalColors.white},
   container: Styles.platformStyles({
     isElectron: {

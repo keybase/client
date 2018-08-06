@@ -14,15 +14,22 @@ const provider = Sb.createPropProviderWithCommon({
   Body: props => ({}),
   Footer: props => ({}),
   Header: props => ({}),
-  Memo: props => ({}),
-  Note: props => ({}),
+  NoteAndMemo: props => ({
+    encryptedNote: `
+      Lorem ipsum dolor sit amet consectetur, adipisicing elit. Soluta, officia tenetur nobis eveniet a consectetur at laboriosam et necessitatibus provident in eos perferendis?
+
+      Optio dolor inventore esse vel, explicabo non molestias autem perspiciatis facilis pariatur illum. Quia suscipit tenetur enim.
+    `,
+    publicMemo: '💩',
+  }),
   Participants: props => ({}),
 })
 
 const confirmProps = {
-  onClose: Sb.action('onClose'),
-  onBack: Sb.action('onClose'),
   amount: '1.234 XLM',
+  onClose: Sb.action('onClose'),
+  onBack: Sb.action('onBack'),
+  onSendClick: Sb.action('onSendClick'),
 }
 
 const load = () => {
