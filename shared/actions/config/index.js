@@ -39,27 +39,48 @@ const setupEngineListeners = () => {
   })
 }
 
-const loadDaemonBootstrapStatus = (state: TypedState, action: ConfigGen.DaemonHandshakePayload) =>
-  Saga.sequentially([
-    Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: 'config.getBootstrapStatus'})),
-    Saga.call(function*() {
-      const loadedAction = yield RPCTypes.configGetBootstrapStatusRpcPromise().then(
-        (s: RPCTypes.BootstrapStatus) =>
-          ConfigGen.createBootstrapStatusLoaded({
-            deviceID: s.deviceID,
-            deviceName: s.deviceName,
-            followers: s.followers || [],
-            following: s.following || [],
-            loggedIn: s.loggedIn,
-            registered: s.registered,
-            uid: s.uid,
-            username: s.username,
-          })
-      )
-      yield Saga.put(loadedAction)
-    }),
-    Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name: 'config.getBootstrapStatus'})),
-  ])
+const loadDaemonBootstrapStatus = (
+  state: TypedState,
+  action: ConfigGen.DaemonHandshakePayload | ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload
+) => {
+  const makeCall = Saga.call(function*() {
+    const loadedAction = yield RPCTypes.configGetBootstrapStatusRpcPromise().then(
+      (s: RPCTypes.BootstrapStatus) =>
+        ConfigGen.createBootstrapStatusLoaded({
+          deviceID: s.deviceID,
+          deviceName: s.deviceName,
+          followers: s.followers || [],
+          following: s.following || [],
+          loggedIn: s.loggedIn,
+          registered: s.registered,
+          uid: s.uid,
+          username: s.username,
+        })
+    )
+    yield Saga.put(loadedAction)
+  })
+
+  switch (action.type) {
+    case ConfigGen.daemonHandshake:
+      return Saga.sequentially([
+        Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: 'config.getBootstrapStatus'})),
+        makeCall,
+        Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name: 'config.getBootstrapStatus'})),
+      ])
+    case ConfigGen.loggedIn:
+      // only call it if we don't think we're logged in
+      return state.config.loggedIn ? null : makeCall
+    case ConfigGen.loggedOut:
+      // only call it if we don't think we're logged out
+      return state.config.loggedIn ? makeCall : null
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (action: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(action);
+      */
+      return undefined
+  }
+}
 
 let dispatchSetupEngineListenersOnce = false
 const dispatchSetupEngineListeners = () => {
@@ -211,7 +232,10 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.installerRan, dispatchSetupEngineListeners)
   yield Saga.actionToAction([ConfigGen.restartHandshake, ConfigGen.startHandshake], startHandshake)
   yield Saga.actionToAction(ConfigGen.daemonHandshakeWait, maybeDoneWithDaemonHandshake)
-  yield Saga.actionToAction(ConfigGen.daemonHandshake, loadDaemonBootstrapStatus)
+  yield Saga.actionToAction(
+    [ConfigGen.loggedIn, ConfigGen.loggedOut, ConfigGen.daemonHandshake],
+    loadDaemonBootstrapStatus
+  )
   yield Saga.actionToAction(ConfigGen.daemonHandshake, loadDaemonAccounts)
   yield Saga.actionToAction([ConfigGen.loggedIn, ConfigGen.loggedOut], switchRouteDef)
   yield Saga.actionToAction(ConfigGen.daemonHandshakeDone, routeToInitialScreen)

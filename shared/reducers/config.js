@@ -42,7 +42,13 @@ export default function(
       })
     case ConfigGen.logoutHandshake:
       return state.merge({logoutHandshakeWaiters: I.Map()})
+    case ConfigGen.daemonHandshake:
+      return state.set('daemonHandshakeState', 'waitingForWaiters')
     case ConfigGen.daemonHandshakeWait: {
+      if (state.daemonHandshakeState !== 'waitingForWaiters') {
+        throw new Error("Should only get a wait while we're waiting")
+      }
+
       const oldCount = state.daemonHandshakeWaiters.get(action.payload.name, 0)
       const newCount = oldCount + (action.payload.increment ? 1 : -1)
       const newState =
@@ -153,7 +159,6 @@ export default function(
     case ConfigGen.openAppSettings:
     case ConfigGen.showMain:
     case ConfigGen.setupEngineListeners:
-    case ConfigGen.daemonHandshake:
     case ConfigGen.installerRan:
     case ConfigGen.logout:
       return state
