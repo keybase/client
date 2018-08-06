@@ -20,56 +20,44 @@ class FilePickerPopup extends React.Component<Props> {
   render() {
     const items = isIOS
       ? [
-          ...[
-            {
-              onClick: () => {
-                this.props.onSelect('photo', 'camera')
-              },
-              title: 'Take Photo',
+          {
+            onClick: () => {
+              this.props.onSelect('photo', 'camera')
             },
-          ],
-          ...[
-            {
-              onClick: () => {
-                this.props.onSelect('mixed', 'library')
-              },
-              title: 'Photo or Video from Library',
+            title: 'Take Photo',
+          },
+          {
+            onClick: () => {
+              this.props.onSelect('mixed', 'library')
             },
-          ],
+            title: 'Photo or Video from Library',
+          },
         ]
       : [
-          ...[
-            {
-              onClick: () => {
-                this.props.onSelect('photo', 'camera')
-              },
-              title: 'Take Photo',
+          {
+            onClick: () => {
+              this.props.onSelect('photo', 'camera')
             },
-          ],
-          ...[
-            {
-              onClick: () => {
-                this.props.onSelect('video', 'camera')
-              },
-              title: 'Take Video',
+            title: 'Take Photo',
+          },
+          {
+            onClick: () => {
+              this.props.onSelect('video', 'camera')
             },
-          ],
-          ...[
-            {
-              onClick: () => {
-                this.props.onSelect('photo', 'library')
-              },
-              title: 'Photo from Library',
+            title: 'Take Video',
+          },
+          {
+            onClick: () => {
+              this.props.onSelect('photo', 'library')
             },
-          ],
-          ...[
-            {
-              onClick: () => {
-                this.props.onSelect('video', 'library')
-              },
-              title: 'Video from Library',
+            title: 'Photo from Library',
+          },
+          {
+            onClick: () => {
+              this.props.onSelect('video', 'library')
             },
-          ],
+            title: 'Video from Library',
+          },
         ]
     const header = {
       title: 'header',
