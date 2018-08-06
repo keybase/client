@@ -132,7 +132,7 @@ export const TeamMemberRow = (props: Props) => {
           props.youCanManageMembers && (
             <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
               <ButtonBar>
-                {!props.status === 'deleted' && (
+                {props.status !== 'deleted' && (
                   <Button
                     small={true}
                     label="Re-Admit"
