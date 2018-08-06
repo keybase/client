@@ -24,12 +24,12 @@ const mapStateToProps = (state: TypedState) => ({myUsername: state.config.userna
 const avatarTeamConnector = connect(
   mapStateToProps,
   (dispatch: Dispatch) => ({
-    _onConfirm: () => dispatch(switchTo([Tabs.teamsTab])),
+    onConfirm: () => dispatch(switchTo([Tabs.teamsTab])),
     onDismiss: () => {},
   }),
   (stateProps, dispatchProps, ownProps) => ({
     ...ownProps,
-    onConfirm: () => dispatchProps._onConfirm(),
+    onConfirm: () => dispatchProps.onConfirm(),
     onDismiss: dispatchProps.onDismiss,
   })
 )
@@ -38,7 +38,7 @@ const avatarTeamConnector = connect(
 const avatarUserConnector = connect(
   mapStateToProps,
   (dispatch: Dispatch) => ({
-    _onConfirm: () => {
+    onConfirm: () => {
       // make sure we have tracker state & profile is up to date
       dispatch(createGetMyProfile({}))
       dispatch(switchTo([Tabs.profileTab, 'editAvatar']))
@@ -47,7 +47,7 @@ const avatarUserConnector = connect(
   }),
   (stateProps, dispatchProps, ownProps) => ({
     ...ownProps,
-    onConfirm: () => dispatchProps._onConfirm(),
+    onConfirm: () => dispatchProps.onConfirm(),
     onDismiss: dispatchProps.onDismiss,
   })
 )
@@ -182,7 +182,7 @@ const teamShowcaseConnector = connect(
 )
 
 export default compose(
-  // TODO maybe have an object
+  // TODO remove all this branch and just make a component
   branch(props => props.todoType === todoTypes.avatarTeam, avatarTeamConnector),
   branch(props => props.todoType === todoTypes.avatarUser, avatarUserConnector),
   branch(props => props.todoType === todoTypes.bio, bioConnector),
