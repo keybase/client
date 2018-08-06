@@ -2218,7 +2218,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
-			consumeNewMsgRemote(t, listener, chat1.MessageType_DELETE)
+			consumeNewMsgLocal(t, listener, chat1.MessageType_DELETE)
 			switch mt {
 			case chat1.ConversationMembersType_KBFS:
 			default:
