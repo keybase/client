@@ -2,7 +2,6 @@
 import React, {Component} from 'react'
 import {globalMargins} from '../../styles'
 import {Button, Checkbox, Input, StandardScreen, Text} from '../../common-adapters'
-import HiddenString from '../../util/hidden-string'
 
 type Props = {
   error?: ?Error,
