@@ -122,10 +122,24 @@ func (h ConfigHandler) GetAllProvisionedUsernames(ctx context.Context, sessionID
 	if err != nil {
 		return res, err
 	}
-	provisionedUsernames := make([]string, len(all))
-	for i, u := range all {
-		provisionedUsernames[i] = u.String()
+
+	// If the default is missing, fill it in from the first provisioned.
+	if defaultUsername.IsNil() && len(all) > 0 {
+		defaultUsername = all[0]
 	}
+
+	// Callers expect ProvisionedUsernames to contain the DefaultUsername, so
+	// we ensure it is here as a final sanity check before returning.
+	hasDefaultUsername := false
+	provisionedUsernames := []string{}
+	for _, username := range all {
+		provisionedUsernames = append(provisionedUsernames, username.String())
+		hasDefaultUsername = hasDefaultUsername || username.Eq(defaultUsername)
+	}
+	if !hasDefaultUsername {
+		provisionedUsernames = append(provisionedUsernames, defaultUsername.String())
+	}
+
 	return keybase1.AllProvisionedUsernames{
 		DefaultUsername:      defaultUsername.String(),
 		ProvisionedUsernames: provisionedUsernames,
