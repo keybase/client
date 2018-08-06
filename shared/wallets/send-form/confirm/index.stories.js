@@ -27,6 +27,8 @@ const provider = Sb.createPropProviderWithCommon({
 
 const confirmProps = {
   amount: '1.234 XLM',
+  assetType: 'lumens',
+  assetConversion: '$3',
   onClose: Sb.action('onClose'),
   onBack: Sb.action('onBack'),
   onSendClick: Sb.action('onSendClick'),

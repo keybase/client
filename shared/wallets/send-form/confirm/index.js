@@ -14,70 +14,68 @@ type ConfirmSendProps = {|
   onClose: () => void,
   onBack: () => void,
   amount: string,
+  assetType: string,
+  assetConversion?: string,
   bannerText?: string,
   bannerBackground?: Background,
   onSendClick: () => void,
 |}
 
-export default function ConfirmSend(props: ConfirmSendProps) {
-  return (
-    <Kb.MaybePopup onClose={props.onClose}>
-      <Kb.Box2 direction="vertical" style={styles.container}>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
-          <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
-          <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
-            <Kb.Text type="BodySmall" style={styles.headerText}>
-              Sending lumens worth
-            </Kb.Text>
-            <Kb.Text type="HeaderBigExtrabold" style={styles.headerText}>
-              $1
-            </Kb.Text>
-          </Kb.Box2>
-        </Kb.Box2>
-        <Kb.ScrollView>
-          {!!props.bannerText &&
-            !!props.bannerBackground && (
-              <Banner background={props.bannerBackground} text={props.bannerText} />
-            )}
-          <Participants receivingUsername="nathunsmitty" receivingFullName="Nathan Smith" />
-          <Memo />
-        </Kb.ScrollView>
-        <Kb.Box2
-          direction="horizontal"
-          fullWidth={true}
-          centerChildren={true}
-          gap="small"
-          gapStart={true}
-          gapEnd={true}
-          style={styles.buttonContainer}
-        >
-          <Kb.Button
-            type="PrimaryGreen"
-            onClick={props.onSendClick}
-            disabled={false}
-            fullWidth={true}
-            style={styles.button}
-            children={
-              <React.Fragment>
-                <Kb.Icon
-                  type="iconfont-stellar-send"
-                  style={Kb.iconCastPlatformStyles(styles.icon)}
-                  color={Styles.globalColors.white}
-                />
-                <Kb.Text type="BodySemibold" style={styles.buttonText}>
-                  Send{' '}
-                  <Kb.Text type="BodyExtrabold" style={styles.buttonText}>
-                    {props.amount}
-                  </Kb.Text>
-                </Kb.Text>
-              </React.Fragment>
-            }
-          />
+const ConfirmSend = (props: ConfirmSendProps) => (
+  <Kb.MaybePopup onClose={props.onClose}>
+    <Kb.Box2 direction="vertical" style={styles.container}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
+        <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
+          <Kb.Text type="BodySmall" style={styles.headerText}>
+            Sending{!!props.assetConversion && ` ${props.assetType} worth`}
+          </Kb.Text>
+          <Kb.Text type="HeaderBigExtrabold" style={styles.headerText}>
+            {props.assetConversion ? props.assetConversion : props.amount}
+          </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.MaybePopup>
-  )
-}
+      <Kb.ScrollView>
+        {!!props.bannerText &&
+          !!props.bannerBackground && <Banner background={props.bannerBackground} text={props.bannerText} />}
+        <Participants receivingUsername="nathunsmitty" receivingFullName="Nathan Smith" />
+        <Memo />
+      </Kb.ScrollView>
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        centerChildren={true}
+        gap="small"
+        gapStart={true}
+        gapEnd={true}
+        style={styles.buttonContainer}
+      >
+        <Kb.Button
+          type="PrimaryGreen"
+          onClick={props.onSendClick}
+          disabled={false}
+          fullWidth={true}
+          style={styles.button}
+          children={
+            <React.Fragment>
+              <Kb.Icon
+                type="iconfont-stellar-send"
+                style={Kb.iconCastPlatformStyles(styles.icon)}
+                color={Styles.globalColors.white}
+              />
+              <Kb.Text type="BodySemibold" style={styles.buttonText}>
+                Send{' '}
+                <Kb.Text type="BodyExtrabold" style={styles.buttonText}>
+                  {props.amount}
+                </Kb.Text>
+              </Kb.Text>
+            </React.Fragment>
+          }
+        />
+      </Kb.Box2>
+    </Kb.Box2>
+  </Kb.MaybePopup>
+)
 
 const styles = Styles.styleSheetCreate({
   icon: {
@@ -115,3 +113,5 @@ const styles = Styles.styleSheetCreate({
     },
   }),
 })
+
+export default ConfirmSend
