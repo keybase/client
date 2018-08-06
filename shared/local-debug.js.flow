@@ -20,4 +20,5 @@ declare export var reduxSagaLoggerMasked: boolean
 declare export var setup: (store: any) => void
 declare export var showDevTools: boolean
 declare export var skipSecondaryDevtools: boolean
+declare export var skipAppFocusActions: boolean
 declare export var userTimings: boolean

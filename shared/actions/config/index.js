@@ -67,12 +67,9 @@ const loadDaemonBootstrapStatus = (
         makeCall,
         Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name: 'config.getBootstrapStatus'})),
       ])
-    case ConfigGen.loggedIn:
-      // only call it if we don't think we're logged in
-      return state.config.loggedIn ? null : makeCall
+    case ConfigGen.loggedIn: // fallthrough
     case ConfigGen.loggedOut:
-      // only call it if we don't think we're logged out
-      return state.config.loggedIn ? makeCall : null
+      return makeCall
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (action: empty) => any

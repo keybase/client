@@ -42,6 +42,7 @@ let config = {
   reduxSagaLogger: false, // Print saga debug info
   reduxSagaLoggerMasked: true, // Print saga debug info masked out
   showDevTools: false,
+  skipAppFocusActions: false,
   skipSecondaryDevtools: false,
   userTimings: false, // Add user timings api to timeline in chrome
 }

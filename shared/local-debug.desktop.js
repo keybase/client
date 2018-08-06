@@ -25,6 +25,7 @@ let config = {
   reduxSagaLogger: false, // Print saga debug info
   reduxSagaLoggerMasked: true, // Print saga debug info masked out
   showDevTools: false, // Show devtools on start
+  skipAppFocusActions: false, // dont emit actions when going foreground/background, helpful while working on other actions stuff
   skipSecondaryDevtools: true, // Don't show devtools for menubar/trackers etc
   userTimings: false, // Add user timings api to timeline in chrome
 }
@@ -109,6 +110,7 @@ export const {
   reduxSagaLogger,
   reduxSagaLoggerMasked,
   showDevTools,
+  skipAppFocusActions,
   skipSecondaryDevtools,
   userTimings,
 } = config
