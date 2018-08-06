@@ -1479,6 +1479,7 @@ func TestTeamBustResolverCacheOnSubteamRename(t *testing.T) {
 	err = teams.RenameSubteam(context.TODO(), tc.G, subteamName, subteamRename)
 	require.NoError(t, err)
 	user.waitForTeamChangeRenamed(*subteamID)
+	user.waitForTeamChangeRenamed(*subteamID)
 
 	subteamRenameActual, err := teams.ResolveIDToName(context.TODO(), tc.G, *subteamID)
 	require.NoError(t, err)
