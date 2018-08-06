@@ -23,7 +23,12 @@ const ConfirmSend = (props: ConfirmSendProps) => (
   <Kb.MaybePopup onClose={props.onClose}>
     <Kb.Box2 direction="vertical" style={styles.container}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
-        <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
+        <Kb.BackButton
+          onClick={props.onBack}
+          style={styles.backButton}
+          iconColor={Styles.globalColors.white}
+          textStyle={styles.backButtonText}
+        />
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
           <Kb.Text type="BodySmall" style={styles.headerText}>
             Sending{!!props.assetConversion && ` ${props.assetType} worth`}
@@ -78,7 +83,14 @@ const styles = Styles.styleSheetCreate({
   icon: {
     marginRight: Styles.globalMargins.tiny,
   },
-  backButton: {color: Styles.globalColors.white},
+  backButton: {
+    position: 'absolute',
+    top: Styles.globalMargins.small,
+    left: Styles.globalMargins.small,
+  },
+  backButtonText: {
+    color: Styles.globalColors.white,
+  },
   buttonText: {color: Styles.globalColors.white},
   container: Styles.platformStyles({
     isElectron: {
