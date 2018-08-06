@@ -50,11 +50,11 @@ export function setupLoginHMR(cb: () => void) {
       }
 */
 
-const maybeNavigateToLoginRoot = (state: TypedState) =>
-  // naving but not on login
-  state.routeTree.routeState && state.routeTree.routeState.selected !== Tabs.loginTab
-    ? null
-    : Saga.put(RouteTree.navigateTo([], [Tabs.loginTab]))
+// const maybeNavigateToLoginRoot = (state: TypedState) =>
+// // naving but not on login
+// state.routeTree.routeState && state.routeTree.routeState.selected !== Tabs.loginTab
+// ? null
+// : Saga.put(RouteTree.navigateTo([], [Tabs.loginTab]))
 
 const cancelDesc = 'Canceling RPC'
 const cancelOnCallback = (params, response, state) => {
@@ -133,7 +133,7 @@ function* loginSaga(): Saga.SagaGenerator<any, any> {
   // Actually log in
   yield Saga.actionToAction(LoginGen.login, login)
 
-  yield Saga.actionToAction(RouteConstants.navigateUp, maybeNavigateToLoginRoot)
+  // yield Saga.actionToAction(RouteConstants.navigateUp, maybeNavigateToLoginRoot)
 
   yield Saga.actionToAction(LoginGen.launchForgotPasswordWebPage, launchForgotPasswordWebPage)
   yield Saga.actionToAction(LoginGen.launchAccountResetWebPage, launchAccountResetWebPage)

@@ -27,23 +27,25 @@ const noErrors = (state: TypedState) =>
 const goBackAndClearErrors = () => Saga.put(navigateUp())
 
 const showUserEmailOnNoErrors = (state: TypedState) =>
-  noErrors(state) && Saga.put(navigateTo([loginTab, 'signup', 'usernameAndEmail']))
+  noErrors(state) && Saga.put(navigateAppend(['usernameAndEmail'], [loginTab]))
 
-const showInviteScreen = () => navigateTo([loginTab, 'signup', 'inviteCode'])
+const showInviteScreen = () => navigateAppend(['inviteCode'], [loginTab])
 
 const showInviteSuccessOnNoErrors = (state: TypedState) =>
-  noErrors(state) && navigateAppend(['requestInviteSuccess'], [loginTab, 'signup'])
+  noErrors(state) && navigateAppend(['requestInviteSuccess'], [loginTab])
+
+const goToLoginRoot = () => Saga.put(navigateTo([], [loginTab]))
 
 const showPassphraseOnNoErrors = (state: TypedState) =>
-  noErrors(state) && Saga.put(navigateAppend(['passphraseSignup'], [loginTab, 'signup']))
+  noErrors(state) && Saga.put(navigateAppend(['passphraseSignup'], [loginTab]))
 
 const showDeviceScreenOnNoErrors = (state: TypedState) =>
-  noErrors(state) && Saga.put(navigateAppend(['deviceName'], [loginTab, 'signup']))
+  noErrors(state) && Saga.put(navigateAppend(['deviceName'], [loginTab]))
 
 const showErrorOrCleanupAfterSignup = (state: TypedState) =>
   noErrors(state)
     ? Saga.put(SignupGen.createRestartSignup())
-    : Saga.put(navigateAppend(['signupError'], [loginTab, 'signup']))
+    : Saga.put(navigateAppend(['signupError'], [loginTab]))
 
 // Validation side effects ///////////////////////////////////////////////////////////
 const checkInviteCode = (state: TypedState) =>
@@ -174,6 +176,7 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(SignupGen.checkDevicename, checkDevicename)
 
   // move to next screen actions
+  yield Saga.actionToAction(SignupGen.restartSignup, goToLoginRoot)
   yield Saga.actionToAction(SignupGen.requestedInvite, showInviteSuccessOnNoErrors)
   yield Saga.actionToAction(SignupGen.checkedUsernameEmail, showPassphraseOnNoErrors)
   yield Saga.actionToAction(SignupGen.requestedAutoInvite, showInviteScreen)

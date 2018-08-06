@@ -402,7 +402,7 @@ const showFinalErrorPage = (state: TypedState) => {
   }
 }
 
-const showUsernameEmailPage = () => Saga.put(RouteTree.navigateTo(['usernameOrEmail'], [Tabs.loginTab]))
+const showUsernameEmailPage = () => Saga.put(RouteTree.navigateAppend(['usernameOrEmail'], [Tabs.loginTab]))
 
 function* provisionSaga(): Saga.SagaGenerator<any, any> {
   // Always ensure we have one live

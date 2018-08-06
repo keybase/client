@@ -29,13 +29,22 @@ const setupEngineListeners = () => {
   })
   getEngine().actionOnConnect('handshake', () => ConfigGen.createStartHandshake())
 
-  getEngine().setIncomingActionCreators('keybase.1.NotifySession.loggedIn', ({username}, response) => {
-    response && response.result()
-    return [ConfigGen.createLoggedIn()]
-  })
+  getEngine().setIncomingActionCreators(
+    'keybase.1.NotifySession.loggedIn',
+    ({username}, response, _, getState) => {
+      response && response.result()
+      // only send this if we think we're not logged in
+      if (!getState().config.loggedIn) {
+        return [ConfigGen.createLoggedIn()]
+      }
+    }
+  )
 
   getEngine().setIncomingActionCreators('keybase.1.NotifySession.loggedOut', (_, __, ___, getState) => {
-    return [ConfigGen.createLoggedOut()]
+    // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
+    if (getState().config.loggedIn) {
+      return [ConfigGen.createLoggedOut()]
+    }
   })
 }
 
