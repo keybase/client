@@ -5,7 +5,7 @@ import * as Styles from '../../../styles'
 // import Body from '../body/container'
 // import Header from '../header'
 import Banner from '../banner/container'
-import Memo from '../memo/container'
+// import Memo from '../memo/container'
 // import Note from '../note/container'
 import Participants from '../participants'
 
@@ -29,7 +29,19 @@ const ConfirmSend = (props: ConfirmSendProps) => (
           iconColor={Styles.globalColors.white}
           textStyle={styles.backButtonText}
         />
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          // fullHeight={true}
+          centerChildren={true}
+          style={styles.headerContent}
+        >
+          <Kb.Icon
+            type={
+              Styles.isMobile ? 'icon-fancy-stellar-sending-desktop' : 'icon-fancy-stellar-sending-mobile'
+            }
+            style={Kb.iconCastPlatformStyles(styles.headerIcon)}
+          />
           <Kb.Text type="BodySmall" style={styles.headerText}>
             Sending{!!props.assetConversion && ` ${props.assetType} worth`}
           </Kb.Text>
@@ -41,7 +53,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
       <Kb.ScrollView>
         <Banner />
         <Participants receivingUsername="nathunsmitty" receivingFullName="Nathan Smith" />
-        <Memo />
+        {/* <Memo /> */}
       </Kb.ScrollView>
       <Kb.Box2
         direction="horizontal"
@@ -80,9 +92,6 @@ const ConfirmSend = (props: ConfirmSendProps) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  icon: {
-    marginRight: Styles.globalMargins.tiny,
-  },
   backButton: {
     position: 'absolute',
     top: Styles.globalMargins.small,
@@ -92,6 +101,9 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.white,
   },
   buttonText: {color: Styles.globalColors.white},
+  buttonIcon: {
+    marginRight: Styles.globalMargins.tiny,
+  },
   container: Styles.platformStyles({
     isElectron: {
       height: 525,
@@ -105,22 +117,34 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.purple,
     },
   }),
+  headerContent: {
+    position: 'relative',
+    height: 'calc(100% + 20px)',
+    top: -20,
+  },
   headerText: Styles.platformStyles({
     isElectron: {
       color: Styles.globalColors.white,
       textTransform: 'uppercase',
     },
   }),
+  headerIcon: {
+    width: 100,
+    marginBottom: Styles.globalMargins.small,
+  },
   buttonContainer: Styles.platformStyles({
     isElectron: {
       borderTopStyle: 'solid',
       borderTopWidth: 1,
       borderTopColor: Styles.globalColors.black_05,
-      height: 72.5,
       flexShrink: 0,
       alignSelf: 'flex-end',
     },
   }),
+  button: {
+    marginTop: Styles.globalMargins.small,
+    marginBottom: Styles.globalMargins.small,
+  },
 })
 
 export default ConfirmSend

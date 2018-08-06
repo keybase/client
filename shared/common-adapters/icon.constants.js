@@ -11,6 +11,16 @@ type IconMeta = {
 }
 
 const iconMeta_ = {
+  'icon-fancy-stellar-sending-desktop': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-stellar-sending-desktop.png'),
+  },
+  'icon-fancy-stellar-sending-mobile': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-stellar-sending-mobile.png'),
+  },
   'icon-GPG-export': {
     isFont: false,
     extension: 'png',
