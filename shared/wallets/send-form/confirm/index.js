@@ -4,21 +4,19 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 // import Body from '../body/container'
 // import Header from '../header'
-import Banner from '../banner'
+import Banner from '../banner/container'
 import Memo from '../memo/container'
 // import Note from '../note/container'
 import Participants from '../participants'
-import type {Background} from '../../../common-adapters/text'
 
 type ConfirmSendProps = {|
   onClose: () => void,
   onBack: () => void,
+  onSendClick: () => void,
   amount: string,
   assetType: string,
   assetConversion?: string,
-  bannerText?: string,
-  bannerBackground?: Background,
-  onSendClick: () => void,
+  waiting?: boolean,
 |}
 
 const ConfirmSend = (props: ConfirmSendProps) => (
@@ -36,8 +34,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         </Kb.Box2>
       </Kb.Box2>
       <Kb.ScrollView>
-        {!!props.bannerText &&
-          !!props.bannerBackground && <Banner background={props.bannerBackground} text={props.bannerText} />}
+        <Banner />
         <Participants receivingUsername="nathunsmitty" receivingFullName="Nathan Smith" />
         <Memo />
       </Kb.ScrollView>
@@ -53,7 +50,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         <Kb.Button
           type="PrimaryGreen"
           onClick={props.onSendClick}
-          disabled={false}
+          waiting={props.waiting}
           fullWidth={true}
           style={styles.button}
           children={

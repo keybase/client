@@ -10,7 +10,10 @@ import ConfirmSend from '.'
 const provider = Sb.createPropProviderWithCommon({
   // TODO mock out meaningful values once type `OwnProps` is defined
   Available: props => ({}),
-  Banner: props => ({}),
+  Banner: props => ({
+    background: 'Announcements',
+    text: 'The conversion rate has changed since you got to this screen.',
+  }),
   Body: props => ({}),
   Footer: props => ({}),
   Header: props => ({}),
@@ -32,19 +35,14 @@ const confirmProps = {
   onClose: Sb.action('onClose'),
   onBack: Sb.action('onBack'),
   onSendClick: Sb.action('onSendClick'),
+  waiting: true,
 }
 
 const load = () => {
   Sb.storiesOf('Wallets/SendForm/Confirm', module)
     .addDecorator(provider)
     .add('Normal', () => <ConfirmSend {...confirmProps} />)
-    .add('With a banner', () => (
-      <ConfirmSend
-        {...confirmProps}
-        bannerBackground="Announcements"
-        bannerText="The conversion rate has changed since you got to this screen."
-      />
-    ))
+    .add('With a banner', () => <ConfirmSend {...confirmProps} />)
 }
 
 export default load
