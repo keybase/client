@@ -126,7 +126,7 @@ func (e *Kex2Provisionee) Run(m libkb.MetaContext) error {
 	karg := kex2.KexBaseArg{
 		Ctx:           m.Ctx(),
 		LogCtx:        newKex2LogContext(m.G()),
-		Mr:            libkb.NewKexRouter(m.G()),
+		Mr:            libkb.NewKexRouter(m),
 		DeviceID:      e.device.ID,
 		Secret:        e.secret,
 		SecretChannel: e.secretCh,
