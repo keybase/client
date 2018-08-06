@@ -62,18 +62,22 @@ func (pr PrevRevisions) addRevision(
 	// Then the next block of code will trim it appropriately.
 	for i, prc := range ret {
 		if prc.Count == 255 {
-			// This should never happen, as the largest max count is
-			// approximated by the sum of all the min slots.  Test of
-			// this hypothesis is at
-			// https://play.golang.org/p/ltVzr1PH-MG, which shows a
-			// max count of 178 seen over 100,000 revisions.
-			panic("Previous revision count is about to overflow")
+			// This count on this revision is too large, so remove it
+			// before it overflows.  This may happen when revisions
+			// are repeatedly overwritten when on an unmerged branch,
+			// as in the case below.
+			ret[i] = PrevRevisionAndCount{
+				Revision: kbfsmd.RevisionUninitialized,
+				Count:    0,
+			}
+			numDropped++
+			continue
 		} else if prc.Revision >= r {
 			if numDropped > 0 {
 				panic("Revision too large after dropping one")
 			}
 			// The revision number is bigger than expected (e.g. it
-			// was made on an unmerged branch)
+			// was made on an unmerged branch).
 			ret[i] = PrevRevisionAndCount{
 				Revision: kbfsmd.RevisionUninitialized,
 				Count:    0,
