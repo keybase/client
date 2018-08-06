@@ -6,6 +6,7 @@ import chooseAsset from './choose-asset/index.stories'
 import banner from './banner/index.stories'
 import footers from './footer/index.stories'
 import SendForm from '.'
+import Participants from './participants/index.stories'
 
 // TODO some of the state of these child components
 // may be held completely by the parent form. Figure out a
@@ -30,6 +31,7 @@ const load = () => {
   banner()
   chooseAsset()
   footers()
+  Participants()
   // full component
   Sb.storiesOf('Wallets/SendForm', module)
     .addDecorator(provider)
