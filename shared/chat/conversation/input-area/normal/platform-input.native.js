@@ -1,6 +1,6 @@
 // @flow
 /* eslint-env browser */
-import {showImagePicker} from 'react-native-image-picker'
+import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
 import React, {Component} from 'react'
 import {
   Box,
@@ -49,16 +49,10 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
   }
 
   _openFilePicker = () => {
-    if (isIOS) {
-      this._showNativeImagePicker('mixed')
-    } else {
-      // On Android "mixed" mode doesn't work with our library, so we have to ask the user
-      // if they want photo or video
-      this._toggleShowingMenu('filepickerpopup')
-    }
+    this._toggleShowingMenu('filepickerpopup')
   }
 
-  _showNativeImagePicker = (mediaType: string) => {
+  _launchNativeImagePicker = (mediaType: string, location: string) => {
     let title = 'Select a Photo'
     let takePhotoButtonTitle = 'Take Photo...'
     let permDeniedText = 'Allow Keybase to take photos and choose images from your library?'
@@ -85,7 +79,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
       reTryTitle: 'allow in settings',
       okTitle: 'deny',
     }
-    showImagePicker({mediaType, title, takePhotoButtonTitle, permissionDenied}, response => {
+    const handleSelection = response => {
       if (response.didCancel || !this.props.conversationIDKey) {
         return
       }
@@ -95,7 +89,16 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
       }
       const filename = isIOS ? response.uri.replace('file://', '') : response.path
       this.props.onAttach([filename])
-    })
+    }
+
+    switch (location) {
+      case 'camera':
+        launchCamera({mediaType, title, takePhotoButtonTitle, permissionDenied}, handleSelection)
+        break
+      case 'library':
+        launchImageLibrary({mediaType, title, takePhotoButtonTitle, permissionDenied}, handleSelection)
+        break
+    }
   }
 
   _getText = () => {
@@ -159,7 +162,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             attachTo={this.props.attachmentRef}
             visible={this.props.showingMenu}
             onHidden={this.props.toggleShowingMenu}
-            onSelect={this._showNativeImagePicker}
+            onSelect={this._launchNativeImagePicker}
           />
         ) : (
           <SetExplodingMessagePicker
