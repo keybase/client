@@ -1447,13 +1447,13 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 		return res, err
 	}
 	// Start upload
-	uresChan, err := h.G().AttachmentUploader.Register(ctx, uid, arg.Arg.ConversationID,
+	uresCb, err := h.G().AttachmentUploader.Register(ctx, uid, arg.Arg.ConversationID,
 		outboxID, arg.Arg.Title, arg.Arg.Filename, arg.Arg.Metadata, arg.Arg.CallerPreview)
 	if err != nil {
 		return res, err
 	}
 	// Wait for upload
-	ures := <-uresChan
+	ures := <-uresCb.Wait()
 	if ures.Error != nil {
 		h.Debug(ctx, "postAttachmentLocal: upload failed, bailing out: %s", *ures.Error)
 		return res, errors.New(*ures.Error)
@@ -1606,10 +1606,13 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return err
 	}
-
 	uid := h.G().Env.GetUID()
 	outbox := storage.NewOutbox(h.G(), uid.ToBytes())
-	return outbox.RemoveMessage(ctx, outboxID)
+	if err := outbox.RemoveMessage(ctx, outboxID); err != nil {
+		return err
+	}
+	// Alert the attachment uploader as well, in case this outboxID corresponds to an attachment upload
+	return h.G().AttachmentUploader.Cancel(ctx, outboxID)
 }
 
 func (h *Server) RetryPost(ctx context.Context, arg chat1.RetryPostArg) (err error) {
