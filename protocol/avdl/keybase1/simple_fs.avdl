@@ -16,9 +16,11 @@ protocol SimpleFS {
     simpleFSOpen
     simpleFSMove
     simpleFSRemove
+    simpleFSGetRevisions
   then calls one of the following until status is no longer pending
   or operation is cancelled:
     simpleFSReadList (after list, listRecursive, or listRecursiveToDepth)
+    simpleFSGetRevisions (after getRevisions)
     simpleFSRead (after open)
     simpleFSWrite (after open)
     simpleFSCheck (after copy, move or remove)
@@ -81,6 +83,16 @@ protocol SimpleFS {
     boolean writable;
   }
 
+  record DirentWithRevision {
+    Dirent entry;
+    KBFSRevision revision;
+  }
+
+  enum RevisionSpanType {
+    DEFAULT_0, // scattered revisions across different time intervals
+    LAST_FIVE_1 // the five most recent revisions
+  }
+
   @typedef("int")
   record ErrorNum {}
 
@@ -114,7 +126,8 @@ protocol SimpleFS {
     COPY_4,
     MOVE_5,
     REMOVE_6,
-    LIST_RECURSIVE_TO_DEPTH_7
+    LIST_RECURSIVE_TO_DEPTH_7,
+    GET_REVISIONS_8
   }
 
   enum ListFilter {
@@ -165,6 +178,12 @@ protocol SimpleFS {
     Path dest;
   }
 
+  record GetRevisionsArgs {
+    OpID opID;
+    Path path;
+    RevisionSpanType spanType;
+  }
+
   variant OpDescription switch (AsyncOps asyncOp) {
     case LIST: ListArgs;
     case LIST_RECURSIVE: ListArgs;
@@ -174,6 +193,12 @@ protocol SimpleFS {
     case COPY: CopyArgs;
     case MOVE: MoveArgs;
     case REMOVE: RemoveArgs;
+    case GET_REVISIONS: GetRevisionsArgs;
+  }
+
+  record GetRevisionsResult {
+    array<DirentWithRevision> revisions;
+    Progress progress;
   }
 
   record OpProgress {
@@ -274,6 +299,17 @@ protocol SimpleFS {
    Get info about file
    */
   Dirent simpleFSStat(Path path);
+
+  /**
+   Get revision info for a directory entry
+   */
+  void simpleFSGetRevisions(OpID opID, Path path, RevisionSpanType spanType);
+
+  /**
+   Get list of revisions in progress. Can indicate status of pending
+   to get more revisions.
+   */
+  GetRevisionsResult simpleFSReadRevisions(OpID opID);
 
   /**
    Convenience helper for generating new random value

@@ -21,6 +21,7 @@ type ChatContext struct {
 	EphemeralPurger     types.EphemeralPurger     // triggers background purges of ephemeral chats
 	ActivityNotifier    types.ActivityNotifier    // notify clients of chat of new activity
 	AttachmentUploader  types.AttachmentUploader  // upload attachments
+	NativeVideoHelper   types.NativeVideoHelper   // connection to native for doing things with video
 }
 
 type Context struct {

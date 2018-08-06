@@ -1,37 +1,51 @@
 // @flow
 import * as React from 'react'
-import {Box2, Text} from '../../common-adapters'
-import {styleSheetCreate} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import Body from './body/container'
 import Header from './header'
 
-type Props = {
+type Props = {|
   bannerInfo?: string,
   isProcessing?: boolean,
-  onClick: Function,
-}
+  onClick: () => void,
+  onClose: () => void,
+|}
 
-const SendForm = ({bannerInfo, isProcessing, onClick}: Props) => (
-  <Box2 direction="vertical" style={styles.container}>
-    <Header />
-    <Body bannerInfo={bannerInfo} isProcessing={isProcessing} onClick={onClick} />
-    <Text type="BodySmallSemibold" style={styles.text}>
+const SendForm = (props: Props) => (
+  <Kb.MaybePopup onClose={props.onClose}>
+    <Kb.Box2 direction="vertical" style={styles.container}>
+      <Header />
+      <Body bannerInfo={props.bannerInfo} isProcessing={props.isProcessing} onClick={props.onClick} />
+    </Kb.Box2>
+    <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.text, styles.textColor])}>
       Powered by{' '}
-      <Text type="BodySmallSemiboldInlineLink" isLink={true} onClickURL="https://stellar.org">
+      <Kb.Text
+        type="BodySmallSemiboldInlineLink"
+        isLink={true}
+        onClickURL="https://stellar.org"
+        style={styles.textColor}
+      >
         stellar
-      </Text>
-    </Text>
-  </Box2>
+      </Kb.Text>
+    </Kb.Text>
+  </Kb.MaybePopup>
 )
 
-const styles = styleSheetCreate({
-  container: {
-    maxWidth: 360,
-  },
+const styles = Styles.styleSheetCreate({
+  container: Styles.platformStyles({
+    isElectron: {
+      height: 525,
+      width: 360,
+    },
+  }),
   text: {
     position: 'relative',
     textAlign: 'center',
     top: 20,
+  },
+  textColor: {
+    color: Styles.globalColors.white_40,
   },
 })
 

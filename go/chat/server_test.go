@@ -239,6 +239,14 @@ func runWithEphemeral(t *testing.T, mt chat1.ConversationMembersType, f func(eph
 	}
 }
 
+func runWithRetentionPolicyTypes(t *testing.T, f func(policy chat1.RetentionPolicy, ephemeralLifetime *gregor1.DurationSec)) {
+	age := gregor1.DurationSec(1)
+	t.Logf("using EXPIRE retention policy")
+	f(chat1.NewRetentionPolicyWithExpire(chat1.RpExpire{Age: age}), nil)
+	t.Logf("using EPHEMERAL retention policy")
+	f(chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{Age: age}), &age)
+}
+
 type chatTestUserContext struct {
 	startCtx context.Context
 	u        *kbtest.FakeUser
@@ -1884,7 +1892,7 @@ type serverChatListener struct {
 	teamType                chan chat1.TeamTypeInfo
 	expunge                 chan chat1.ExpungeInfo
 	ephemeralPurge          chan chat1.EphemeralPurgeNotifInfo
-	reactionDelete          chan chat1.ReactionDeleteNotif
+	reactionUpdate          chan chat1.ReactionUpdateNotif
 
 	threadsStale     chan []chat1.ConversationStaleUpdate
 	inboxStale       chan struct{}
@@ -1934,8 +1942,8 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.expunge <- activity.Expunge()
 	case chat1.ChatActivityType_EPHEMERAL_PURGE:
 		n.ephemeralPurge <- activity.EphemeralPurge()
-	case chat1.ChatActivityType_REACTION_DELETE:
-		n.reactionDelete <- activity.ReactionDelete()
+	case chat1.ChatActivityType_REACTION_UPDATE:
+		n.reactionUpdate <- activity.ReactionUpdate()
 	}
 }
 func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, convID chat1.ConversationID,
@@ -1976,7 +1984,7 @@ func newServerChatListener() *serverChatListener {
 		teamType:                make(chan chat1.TeamTypeInfo, buf),
 		expunge:                 make(chan chat1.ExpungeInfo, buf),
 		ephemeralPurge:          make(chan chat1.EphemeralPurgeNotifInfo, buf),
-		reactionDelete:          make(chan chat1.ReactionDeleteNotif, buf),
+		reactionUpdate:          make(chan chat1.ReactionUpdateNotif, buf),
 
 		threadsStale:     make(chan []chat1.ConversationStaleUpdate, buf),
 		inboxStale:       make(chan struct{}, buf),
@@ -2030,6 +2038,22 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				require.EqualValues(t, valid.Etime, 0)
 				require.Nil(t, valid.ExplodedBy)
 				require.False(t, valid.MessageBody.IsNil())
+			}
+
+			assertReactionUpdate := func(convID chat1.ConversationID, targetMsgID chat1.MessageID, reactionMap chat1.ReactionMap) {
+				info := consumeReactionUpdate(t, listener)
+				require.Equal(t, convID, info.ConvID)
+				require.Len(t, info.ReactionUpdates, 1)
+				reactionUpdate := info.ReactionUpdates[0]
+				require.Equal(t, targetMsgID, reactionUpdate.TargetMsgID)
+				for _, reactions := range reactionUpdate.Reactions.Reactions {
+					for k, r := range reactions {
+						require.NotZero(t, r.Ctime)
+						r.Ctime = 0
+						reactions[k] = r
+					}
+				}
+				require.Equal(t, reactionMap, reactionUpdate.Reactions)
 			}
 
 			var err error
@@ -2138,6 +2162,16 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 			consumeNewMsg(t, listener, chat1.MessageType_REACTION)
 			reactionUnboxed := unboxed
+			expectedReactionMap := chat1.ReactionMap{
+				Reactions: map[string]map[string]chat1.Reaction{
+					":+1:": map[string]chat1.Reaction{
+						users[0].Username: chat1.Reaction{
+							ReactionMsgID: reactionUnboxed.GetMessageID(),
+						},
+					},
+				},
+			}
+			assertReactionUpdate(created.Id, textUnboxed.GetMessageID(), expectedReactionMap)
 
 			t.Logf("edit the message")
 			// An ephemeralLifetime is added if we are editing an ephemeral message
@@ -2180,14 +2214,12 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				require.Fail(t, "no event received")
 			}
 			consumeNewMsg(t, listener, chat1.MessageType_DELETE)
-			// Make sure we get the ReactionDelete notify as well.
-			info := consumeReactionDelete(t, listener)
-			require.Equal(t, info.ConvID, created.Id)
-			require.Len(t, info.ReactionDeletes, 1)
-			reactionDelete := info.ReactionDeletes[0]
-			require.Equal(t, reactionUnboxed.GetMessageID(), reactionDelete.ReactionMsgID)
-			require.Equal(t, textUnboxed.GetMessageID(), reactionDelete.TargetMsgID)
-			require.Equal(t, reactionKey, reactionDelete.ReactionKey)
+			switch mt {
+			case chat1.ConversationMembersType_KBFS:
+			default:
+				assertReactionUpdate(created.Id, textUnboxed.GetMessageID(), expectedReactionMap)
+			}
+			assertReactionUpdate(created.Id, textUnboxed.GetMessageID(), chat1.ReactionMap{})
 
 			t.Logf("delete the message")
 			darg := chat1.PostDeleteNonblockArg{
@@ -3297,13 +3329,13 @@ func consumeEphemeralPurge(t *testing.T, listener *serverChatListener) chat1.Eph
 	}
 }
 
-func consumeReactionDelete(t *testing.T, listener *serverChatListener) chat1.ReactionDeleteNotif {
+func consumeReactionUpdate(t *testing.T, listener *serverChatListener) chat1.ReactionUpdateNotif {
 	select {
-	case x := <-listener.reactionDelete:
+	case x := <-listener.reactionUpdate:
 		return x
 	case <-time.After(20 * time.Second):
-		require.Fail(t, "failed to get reactionDelete notification")
-		return chat1.ReactionDeleteNotif{}
+		require.Fail(t, "failed to get reactionUpdate notification")
+		return chat1.ReactionUpdateNotif{}
 	}
 }
 
@@ -3730,41 +3762,56 @@ func TestChatSrvRetentionSweepConv(t *testing.T) {
 	sweepChannel := randSweepChannel()
 	t.Logf("sweepChannel: %v", sweepChannel)
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		switch mt {
-		case chat1.ConversationMembersType_KBFS:
-			t.Logf("skipping kbfs stage")
-			return
-		}
+		runWithRetentionPolicyTypes(t, func(policy chat1.RetentionPolicy, ephemeralLifetime *gregor1.DurationSec) {
+			switch mt {
+			case chat1.ConversationMembersType_KBFS:
+				t.Logf("skipping kbfs stage")
+				return
+			}
 
-		ctc := makeChatTestContext(t, "TestChatSrvRetention", 2)
-		defer ctc.cleanup()
-		users := ctc.users()
-		ctx := ctc.as(t, users[0]).startCtx
+			ctc := makeChatTestContext(t, "TestChatSrvRetention", 2)
+			defer ctc.cleanup()
+			users := ctc.users()
+			ctx := ctc.as(t, users[0]).startCtx
 
-		listener := newServerChatListener()
-		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener)
+			listener := newServerChatListener()
+			ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener)
 
-		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-			mt, ctc.as(t, users[1]).user())
+			conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+				mt, ctc.as(t, users[1]).user())
 
-		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+			mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+			consumeNewMsg(t, listener, chat1.MessageType_TEXT)
 
-		p1 := chat1.NewRetentionPolicyWithExpire(chat1.RpExpire{Age: gregor1.DurationSec(1)})
-		mustSetConvRetentionPolicy(t, ctc, users[0], created.Id, p1, sweepChannel)
-		require.True(t, consumeSetConvRetention(t, listener).Eq(created.Id))
+			mustPostLocalForTest(t, ctc, users[1], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+			consumeNewMsg(t, listener, chat1.MessageType_TEXT)
 
-		mustPostLocalForTest(t, ctc, users[1], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+			mustSetConvRetentionPolicy(t, ctc, users[0], conv.Id, policy, sweepChannel)
+			require.True(t, consumeSetConvRetention(t, listener).Eq(conv.Id))
 
-		// This will take at least 1 second. For the deletable message to get old enough.
-		expungeInfo := sweepPollForDeletion(t, ctc, users[1], listener, created.Id, 4)
-		require.True(t, expungeInfo.ConvID.Eq(created.Id))
-		require.Equal(t, chat1.Expunge{Upto: 4}, expungeInfo.Expunge, "expunge upto")
+			// This will take at least 1 second. For the deletable message to get old enough.
+			expungeInfo := sweepPollForDeletion(t, ctc, users[1], listener, conv.Id, 4)
+			require.True(t, expungeInfo.ConvID.Eq(conv.Id))
+			require.Equal(t, chat1.Expunge{Upto: 4}, expungeInfo.Expunge, "expunge upto")
 
-		tvres, err := ctc.as(t, users[1]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{ConversationID: created.Id})
-		require.NoError(t, err)
-		require.Len(t, tvres.Thread.Messages, 1, "the TEXTs should be deleted")
+			tvres, err := ctc.as(t, users[1]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{ConversationID: conv.Id})
+			require.NoError(t, err)
+			require.Len(t, tvres.Thread.Messages, 1, "the TEXTs should be deleted")
+
+			// If we are using an ephemeral policy make sure non-ephemeral
+			// messages and message with a lifetime exceeding the policy age
+			// are blocked.
+			if ephemeralLifetime != nil {
+				_, err := postLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+				require.Error(t, err)
+				badLifetime := *ephemeralLifetime + 1
+				_, err = postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &badLifetime)
+				require.Error(t, err)
+
+				_, err = postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), ephemeralLifetime)
+				require.NoError(t, err)
+			}
+		})
 	})
 }
 
@@ -3772,101 +3819,119 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 	sweepChannel := randSweepChannel()
 	t.Logf("sweepChannel: %v", sweepChannel)
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		switch mt {
-		case chat1.ConversationMembersType_TEAM:
-		default:
-			t.Logf("skipping %v stage", mt)
-			return
-		}
-
-		ctc := makeChatTestContext(t, "TestChatSrvTeamRetention", 2)
-		defer ctc.cleanup()
-		users := ctc.users()
-		ctx := ctc.as(t, users[0]).startCtx
-		_ = ctc.as(t, users[1]).startCtx
-		for i, u := range users {
-			t.Logf("user[%v] %v %v", i, u.Username, u.User.GetUID())
-			ctc.world.Tcs[u.Username].ChatG.Syncer.(*Syncer).isConnected = true
-		}
-
-		listener := newServerChatListener()
-		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener)
-
-		// 3 convs
-		// convA: inherit team expire policy (default)
-		// convB: expire policy
-		// convC: retain policy
-		var convs []chat1.ConversationInfoLocal
-		for i := 0; i < 3; i++ {
-			t.Logf("creating conv %v", i)
-			var topicName *string
-			if i > 0 {
-				s := fmt.Sprintf("regarding-%v-gons", i)
-				topicName = &s
+		runWithRetentionPolicyTypes(t, func(policy chat1.RetentionPolicy, ephemeralLifetime *gregor1.DurationSec) {
+			switch mt {
+			case chat1.ConversationMembersType_TEAM:
+			default:
+				t.Logf("skipping %v stage", mt)
+				return
 			}
-			conv := mustCreateChannelForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-				topicName, mt, ctc.as(t, users[1]).user())
-			convs = append(convs, conv)
-			if i > 0 {
-				mustJoinConversationByID(t, ctc, users[1], conv.Id)
-				consumeJoinConv(t, listener)
+			ctc := makeChatTestContext(t, "TestChatSrvTeamRetention", 2)
+			defer ctc.cleanup()
+			users := ctc.users()
+			ctx := ctc.as(t, users[0]).startCtx
+			_ = ctc.as(t, users[1]).startCtx
+			for i, u := range users {
+				t.Logf("user[%v] %v %v", i, u.Username, u.User.GetUID())
+				ctc.world.Tcs[u.Username].ChatG.Syncer.(*Syncer).isConnected = true
 			}
-		}
-		convA := convs[0]
-		convB := convs[1]
-		convC := convs[2]
-		teamID := tlfIDToTeamIDForce(t, convA.Triple.Tlfid)
 
-		teamPolicy := chat1.NewRetentionPolicyWithExpire(chat1.RpExpire{Age: gregor1.DurationSec(1)})
-		convExpirePolicy := chat1.NewRetentionPolicyWithExpire(chat1.RpExpire{Age: gregor1.DurationSec(1)})
-		convRetainPolicy := chat1.NewRetentionPolicyWithRetain(chat1.RpRetain{})
+			listener := newServerChatListener()
+			ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener)
 
-		latestMsgMap := make(map[string] /*convID*/ chat1.MessageID)
-		latestMsg := func(convID chat1.ConversationID) chat1.MessageID {
-			return latestMsgMap[convID.String()]
-		}
-		for i, conv := range convs {
-			t.Logf("conv (%v/%v) %v in team %v", i+1, len(convs), conv.Id, tlfIDToTeamIDForce(t, conv.Triple.Tlfid))
-			msgID := mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-			latestMsgMap[conv.Id.String()] = msgID
-
-			ignoreTypes := []chat1.MessageType{chat1.MessageType_SYSTEM, chat1.MessageType_JOIN}
-			consumeNewMsgWhileIgnoring(t, listener, chat1.MessageType_TEXT, ignoreTypes)
-		}
-
-		mustSetConvRetentionPolicy(t, ctc, users[0], convB.Id, convExpirePolicy, sweepChannel)
-		require.True(t, consumeSetConvRetention(t, listener).Eq(convB.Id))
-		mustSetTeamRetentionPolicy(t, ctc, users[0], teamID, teamPolicy, sweepChannel)
-		require.True(t, consumeSetTeamRetention(t, listener).Eq(teamID))
-		mustSetConvRetentionPolicy(t, ctc, users[0], convC.Id, convRetainPolicy, sweepChannel)
-		require.True(t, consumeSetConvRetention(t, listener).Eq(convC.Id))
-
-		// This will take at least 1 second.
-		sweepPollForDeletion(t, ctc, users[0], listener, convB.Id, latestMsg(convB.Id)+1)
-		sweepPollForDeletion(t, ctc, users[0], listener, convA.Id, latestMsg(convA.Id)+1)
-		sweepNoDeletion(t, ctc, users[0], convC.Id)
-
-		checkThread := func(convID chat1.ConversationID, expectDeleted bool) {
-			tvres, err := ctc.as(t, users[1]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{ConversationID: convID})
-			require.NoError(t, err)
-			var nText int
-			for _, msg := range tvres.Thread.Messages {
-				require.True(t, msg.IsValidFull())
-				require.Equal(t, chat1.MessageID(0), msg.Valid().ServerHeader.SupersededBy)
-				if msg.GetMessageType() == chat1.MessageType_TEXT {
-					nText++
+			// 3 convs
+			// convA: inherit team expire policy (default)
+			// convB: expire policy
+			// convC: retain policy
+			var convs []chat1.ConversationInfoLocal
+			for i := 0; i < 3; i++ {
+				t.Logf("creating conv %v", i)
+				var topicName *string
+				if i > 0 {
+					s := fmt.Sprintf("regarding-%v-gons", i)
+					topicName = &s
+				}
+				conv := mustCreateChannelForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+					topicName, mt, ctc.as(t, users[1]).user())
+				convs = append(convs, conv)
+				if i > 0 {
+					mustJoinConversationByID(t, ctc, users[1], conv.Id)
+					consumeJoinConv(t, listener)
 				}
 			}
-			if expectDeleted {
-				require.Equal(t, 0, nText, "conv contents should be deleted: %v", convID.DbShortFormString())
-			} else {
-				require.Equal(t, 1, nText)
-			}
-		}
+			convA := convs[0]
+			convB := convs[1]
+			convC := convs[2]
+			teamID := tlfIDToTeamIDForce(t, convA.Triple.Tlfid)
 
-		checkThread(convA.Id, true)
-		checkThread(convB.Id, true)
-		checkThread(convC.Id, false)
+			// policy can be EXPIRE or EPHEMERAL here.
+			teamPolicy := policy
+			convExpirePolicy := policy
+			convRetainPolicy := chat1.NewRetentionPolicyWithRetain(chat1.RpRetain{})
+
+			latestMsgMap := make(map[string] /*convID*/ chat1.MessageID)
+			latestMsg := func(convID chat1.ConversationID) chat1.MessageID {
+				return latestMsgMap[convID.String()]
+			}
+			for i, conv := range convs {
+				t.Logf("conv (%v/%v) %v in team %v", i+1, len(convs), conv.Id, tlfIDToTeamIDForce(t, conv.Triple.Tlfid))
+				msgID := mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+				latestMsgMap[conv.Id.String()] = msgID
+
+				ignoreTypes := []chat1.MessageType{chat1.MessageType_SYSTEM, chat1.MessageType_JOIN}
+				consumeNewMsgWhileIgnoring(t, listener, chat1.MessageType_TEXT, ignoreTypes)
+			}
+
+			mustSetConvRetentionPolicy(t, ctc, users[0], convB.Id, convExpirePolicy, sweepChannel)
+			require.True(t, consumeSetConvRetention(t, listener).Eq(convB.Id))
+			mustSetTeamRetentionPolicy(t, ctc, users[0], teamID, teamPolicy, sweepChannel)
+			require.True(t, consumeSetTeamRetention(t, listener).Eq(teamID))
+			mustSetConvRetentionPolicy(t, ctc, users[0], convC.Id, convRetainPolicy, sweepChannel)
+			require.True(t, consumeSetConvRetention(t, listener).Eq(convC.Id))
+
+			// This will take at least 1 second.
+			sweepPollForDeletion(t, ctc, users[0], listener, convB.Id, latestMsg(convB.Id)+1)
+			sweepPollForDeletion(t, ctc, users[0], listener, convA.Id, latestMsg(convA.Id)+1)
+			sweepNoDeletion(t, ctc, users[0], convC.Id)
+
+			checkThread := func(convID chat1.ConversationID, expectDeleted bool) {
+				tvres, err := ctc.as(t, users[1]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{ConversationID: convID})
+				require.NoError(t, err)
+				var nText int
+				for _, msg := range tvres.Thread.Messages {
+					require.True(t, msg.IsValidFull())
+					require.Equal(t, chat1.MessageID(0), msg.Valid().ServerHeader.SupersededBy)
+					if msg.GetMessageType() == chat1.MessageType_TEXT {
+						nText++
+					}
+				}
+				if expectDeleted {
+					require.Equal(t, 0, nText, "conv contents should be deleted: %v", convID.DbShortFormString())
+				} else {
+					require.Equal(t, 1, nText)
+				}
+			}
+
+			checkThread(convA.Id, true)
+			checkThread(convB.Id, true)
+			checkThread(convC.Id, false)
+			if ephemeralLifetime != nil {
+				for _, conv := range []chat1.ConversationInfoLocal{convA, convB} {
+					// If we are using an ephemeral policy make sure non-ephemeral
+					// messages and message with a lifetime exceeding the policy age
+					// are blocked.
+					_, err := postLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+					require.Error(t, err)
+
+					badLifetime := *ephemeralLifetime + 1
+					_, err = postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &badLifetime)
+					require.Error(t, err)
+
+					_, err = postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), ephemeralLifetime)
+					require.NoError(t, err)
+				}
+			}
+		})
 	})
 }
 
@@ -4973,6 +5038,12 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 			msgID := mustPostLocalForTest(t, ctc, user, conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: msgBody}))
 			consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
 			consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
+			switch user.Username {
+			case u1.Username:
+				consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
+			case u2.Username:
+				consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
+			}
 			return msgID
 		}
 
@@ -5146,7 +5217,7 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 }
 
 func TestChatSrvGetStaticConfig(t *testing.T) {
-	ctc := makeChatTestContext(t, "GetSearchRegexp", 2)
+	ctc := makeChatTestContext(t, "GetStaticConfig", 2)
 	defer ctc.cleanup()
 	tc := ctc.as(t, ctc.users()[0])
 	res, err := tc.chatLocalHandler().GetStaticConfig(tc.startCtx)

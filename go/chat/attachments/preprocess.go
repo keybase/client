@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 
 	"github.com/keybase/client/go/protocol/chat1"
@@ -176,7 +177,7 @@ func processCallerPreview(ctx context.Context, callerPreview chat1.MakePreviewRe
 	return p, nil
 }
 
-func PreprocessAsset(ctx context.Context, log utils.DebugLabeler, filename string,
+func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLabeler, filename string,
 	callerPreview *chat1.MakePreviewRes) (p Preprocess, err error) {
 	if callerPreview != nil && callerPreview.Location != nil {
 		log.Debug(ctx, "preprocessAsset: caller provided preview, using that")
@@ -209,7 +210,7 @@ func PreprocessAsset(ctx context.Context, log utils.DebugLabeler, filename strin
 	}
 	log.Debug(ctx, "preprocessAsset: detected attachment content type %s", p.ContentType)
 
-	previewRes, err := Preview(ctx, log, src, p.ContentType, filename)
+	previewRes, err := Preview(ctx, g, log, src, p.ContentType, filename)
 	if err != nil {
 		log.Debug(ctx, "preprocessAsset: error making preview: %s", err)
 		return p, err

@@ -21,7 +21,7 @@ protocol NotifyChat {
     TEAMTYPE_8,
     EXPUNGE_9,
     EPHEMERAL_PURGE_10,
-    REACTION_DELETE_11
+    REACTION_UPDATE_11
   }
 
   record IncomingMessage {
@@ -88,15 +88,14 @@ protocol NotifyChat {
     union { null, InboxUIItem } conv;
   }
 
-  record ReactionDelete {
-    string reactionKey;
-    MessageID reactionMsgID;
+  record ReactionUpdate {
+    ReactionMap reactions;
     MessageID targetMsgID;
   }
 
-  record ReactionDeleteNotif {
+  record ReactionUpdateNotif {
     ConversationID convID;
-    array<ReactionDelete> reactionDeletes;
+    array<ReactionUpdate> reactionUpdates;
   }
 
   variant ChatActivity switch (ChatActivityType activityType) {
@@ -110,7 +109,7 @@ protocol NotifyChat {
     case TEAMTYPE: TeamTypeInfo;
     case EXPUNGE: ExpungeInfo;
     case EPHEMERAL_PURGE: EphemeralPurgeNotifInfo;
-    case REACTION_DELETE: ReactionDeleteNotif;
+    case REACTION_UPDATE: ReactionUpdateNotif;
   }
 
   record TyperInfo {

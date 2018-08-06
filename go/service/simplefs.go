@@ -170,6 +170,28 @@ func (s *SimpleFSHandler) SimpleFSStat(ctx context.Context, arg keybase1.Path) (
 	return cli.SimpleFSStat(ctx, arg)
 }
 
+// SimpleFSGetRevisions - Get revision info for a directory entry
+func (s *SimpleFSHandler) SimpleFSGetRevisions(
+	ctx context.Context, arg keybase1.SimpleFSGetRevisionsArg) error {
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSGetRevisions(ctx, arg)
+}
+
+// SimpleFSReadRevisions - Get list of revisions in progress. Can
+// indicate status of pending to get more entries.
+func (s *SimpleFSHandler) SimpleFSReadRevisions(
+	ctx context.Context, opID keybase1.OpID) (
+	keybase1.GetRevisionsResult, error) {
+	cli, err := s.client()
+	if err != nil {
+		return keybase1.GetRevisionsResult{}, err
+	}
+	return cli.SimpleFSReadRevisions(ctx, opID)
+}
+
 // SimpleFSMakeOpid - Convenience helper for generating new random value
 func (s *SimpleFSHandler) SimpleFSMakeOpid(ctx context.Context) (keybase1.OpID, error) {
 	cli, err := s.client()

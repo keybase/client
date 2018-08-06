@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box} from '../../../common-adapters'
-import {action, storiesOf, createPropProvider} from '../../../stories/storybook'
+import * as Sb from '../../../stories/storybook'
 import {makeRetentionPolicy} from '../../../constants/teams'
 import {globalStyles} from '../../../styles'
 import {Settings} from './'
@@ -14,8 +14,8 @@ const commonProps = {
   publicityTeam: true,
   openTeam: true,
   openTeamRole: 'admin',
-  savePublicity: action('savePublicity'),
-  setOpenTeamRole: action('setOpenTeamRole'),
+  savePublicity: Sb.action('savePublicity'),
+  setOpenTeamRole: Sb.action('setOpenTeamRole'),
   teamname: 'myteam',
   yourOperations: {
     manageMembers: true,
@@ -40,13 +40,13 @@ const commonProps = {
   waitingForSavePublicity: false,
 }
 
-const provider = createPropProvider({
+const provider = Sb.createPropProviderWithCommon({
   RetentionPicker: () => ({
     // TODO: Add this to RetentionPicker's props, or remove the need
     // for these.
-    _loadTeamPolicy: action('_loadTeamPolicy'),
-    _loadTeamOperations: action('_loadTeamOperations'),
-    _onShowWarning: action('_onShowWarning'),
+    _loadTeamPolicy: Sb.action('_loadTeamPolicy'),
+    _loadTeamOperations: Sb.action('_loadTeamOperations'),
+    _onShowWarning: Sb.action('_onShowWarning'),
 
     canSetPolicy: true,
     policy: makeRetentionPolicy({type: 'retain'}),
@@ -55,15 +55,16 @@ const provider = createPropProvider({
     showOverrideNotice: true,
     showSaveIndicator: true,
     type: 'auto',
-    saveRetentionPolicy: action('saveRetentionPolicy'),
-    onSelect: action('onSelect'),
-    onShowWarning: action('onShowWarning'),
+    saveRetentionPolicy: Sb.action('saveRetentionPolicy'),
+    onSelect: Sb.action('onSelect'),
+    onShowWarning: Sb.action('onShowWarning'),
   }),
 })
 
 const load = () => {
-  storiesOf('Teams/Settings', module)
+  Sb.storiesOf('Teams/Settings', module)
     .addDecorator(provider)
+    .addDecorator(Sb.scrollViewDecorator)
     .addDecorator(story => (
       <Box style={{...globalStyles.flexBoxCenter, ...globalStyles.fillAbsolute}}>{story()}</Box>
     ))

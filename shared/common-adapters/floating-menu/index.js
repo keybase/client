@@ -21,6 +21,7 @@ export type Props = {|
   visible: boolean,
   attachTo?: ?React.Component<any, any>,
   position?: Position,
+  positionFallbacks?: Position[],
   propagateOutsideClicks?: boolean,
 |}
 
@@ -31,6 +32,7 @@ export default (props: Props) => {
   return (
     <Overlay
       position={props.position}
+      positionFallbacks={props.positionFallbacks}
       onHidden={props.onHidden}
       visible={props.visible}
       attachTo={props.attachTo}

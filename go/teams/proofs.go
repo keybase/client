@@ -12,6 +12,8 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+// newProofTerm creates a new proof term.
+// `lm` can be nil (it is for teams since SetTeamLinkMap is used)
 func newProofTerm(i keybase1.UserOrTeamID, s keybase1.SignatureMetadata, lm linkMapT) proofTerm {
 	return proofTerm{leafID: i, sigMeta: s, linkMap: lm}
 }

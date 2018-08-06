@@ -2564,3 +2564,20 @@ func (i Identify2ResUPK2) ExportToV1() Identify2Res {
 		TrackBreaks:  i.TrackBreaks,
 	}
 }
+
+func (path Path) String() string {
+	pathType, err := path.PathType()
+	if err != nil {
+		return ""
+	}
+	switch pathType {
+	case PathType_KBFS:
+		return path.Kbfs()
+	case PathType_KBFS_ARCHIVED:
+		return path.KbfsArchived().Path
+	case PathType_LOCAL:
+		return path.Local()
+	default:
+		return ""
+	}
+}

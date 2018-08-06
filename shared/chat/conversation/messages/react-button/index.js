@@ -4,12 +4,12 @@ import * as Types from '../../../../constants/types/chat2'
 import {
   Box2,
   ClickableBox,
-  Emoji,
   FloatingBox,
   Icon,
   iconCastPlatformStyles,
   Text,
 } from '../../../../common-adapters'
+import {EmojiIfExists} from '../../../../common-adapters/markdown.shared'
 import {
   collapseStyles,
   glamorous,
@@ -57,9 +57,9 @@ const ReactButton = (props: Props) => (
     onClick={props.onClick}
     style={collapseStyles([styles.buttonBox, props.active && styles.active, props.style])}
   >
-    <Box2 centerChildren={true} direction="horizontal" gap="xtiny" style={styles.container}>
+    <Box2 centerChildren={true} fullHeight={true} direction="horizontal" gap="xtiny" style={styles.container}>
       <Box2 direction="horizontal" style={styles.emojiWrapper}>
-        <Emoji size={isMobile ? 14 : 16} emojiName={props.emoji} />
+        <EmojiIfExists size={16} lineClamp={1} emojiName={props.emoji} />
       </Box2>
       <Text type="BodyTinyBold" style={{color: props.active ? globalColors.blue : globalColors.black_40}}>
         {props.count}
@@ -83,11 +83,12 @@ export type NewReactionButtonProps = {|
 |}
 type NewReactionButtonState = {|
   attachmentRef: ?React.Component<any, any>,
+  hovering: boolean,
   iconIndex: number,
   showingPicker: boolean,
 |}
 export class NewReactionButton extends React.Component<NewReactionButtonProps, NewReactionButtonState> {
-  state = {attachmentRef: null, iconIndex: 0, showingPicker: false}
+  state = {attachmentRef: null, hovering: false, iconIndex: 0, showingPicker: false}
   _intervalID: ?IntervalID
 
   _setShowingPicker = (showingPicker: boolean) =>
@@ -112,13 +113,14 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
   _startCycle = () => {
     if (!this._intervalID) {
       this._intervalID = setInterval(this._nextIcon, 1000)
+      this.setState(s => (s.hovering ? null : {hovering: true}))
     }
   }
 
   _stopCycle = () => {
     this._intervalID && clearInterval(this._intervalID)
     this._intervalID = null
-    this.setState(s => (s.iconIndex === 0 ? null : {iconIndex: 0}))
+    this.setState(s => (s.iconIndex === 0 && !s.hovering ? null : {hovering: false, iconIndex: 0}))
   }
 
   _nextIcon = () => this.setState(s => ({iconIndex: (s.iconIndex + 1) % iconCycle.length}))
@@ -144,11 +146,13 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
         <Box2
           ref={attachmentRef => this.setState(s => (s.attachmentRef ? null : {attachmentRef}))}
           centerChildren={true}
+          fullHeight={true}
           direction="horizontal"
           style={this.props.showBorder ? styles.container : null}
         >
           <Icon
             type={iconCycle[this.state.iconIndex]}
+            color={this.state.hovering ? globalColors.black_60 : globalColors.black_40}
             fontSize={16}
             style={iconCastPlatformStyles(styles.emojiIconWrapper)}
           />
@@ -180,10 +184,10 @@ const styles = styleSheetCreate({
     borderColor: globalColors.blue,
   },
   buttonBox: {
-    borderRadius: 12,
+    borderRadius: isMobile ? 15 : 12,
     borderStyle: 'solid',
     borderWidth: 2,
-    height: 24,
+    height: isMobile ? 30 : 24,
     ...transition('border-color', 'background-color'),
   },
   container: platformStyles({

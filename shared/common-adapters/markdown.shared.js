@@ -83,7 +83,7 @@ export function parseMarkdown(
 }
 
 export class EmojiIfExists extends PureComponent<
-  EmojiProps & {style?: any, allowFontScaling?: boolean},
+  EmojiProps & {style?: any, allowFontScaling?: boolean, lineClamp?: number},
   void
 > {
   render() {
@@ -96,7 +96,12 @@ export class EmojiIfExists extends PureComponent<
         allowFontScaling={this.props.allowFontScaling}
       />
     ) : (
-      <Text type="Body" style={this.props.style} allowFontScaling={this.props.allowFontScaling}>
+      <Text
+        type="Body"
+        style={this.props.style}
+        lineClamp={this.props.lineClamp}
+        allowFontScaling={this.props.allowFontScaling}
+      >
         {this.props.emojiName}
       </Text>
     )

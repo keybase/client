@@ -3,6 +3,7 @@ import * as React from 'react'
 import {categories, emojiIndex, emojiNameMap, type EmojiData} from './data'
 import {ClickableBox, Box2, Emoji, SectionList, Text} from '../../../../../common-adapters'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../../../../styles'
+import {isAndroid} from '../../../../../constants/platform'
 import {chunk} from 'lodash-es'
 
 // SectionList data is mostly static, map categories here
@@ -138,7 +139,7 @@ const EmojiRow = ({
 
 const EmojiRender = ({emoji, onChoose}: {emoji: EmojiData, onChoose: EmojiData => void}) => (
   <ClickableBox onClick={() => onChoose(emoji)} style={styles.emoji} key={emoji.short_name}>
-    <Emoji size={singleEmojiWidth} emojiName={`:${emoji.short_name}:`} />
+    <Emoji size={isAndroid ? singleEmojiWidth - 5 : singleEmojiWidth} emojiName={`:${emoji.short_name}:`} />
   </ClickableBox>
 )
 

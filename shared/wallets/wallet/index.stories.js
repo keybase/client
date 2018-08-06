@@ -1,59 +1,58 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
+import * as Sb from '../../stories/storybook'
 import {Box2} from '../../common-adapters'
-import {storiesOf, action, PropProviders} from '../../stories/storybook'
 import Header from './header'
 import SettingsPopup from './settings-popup'
 
 const defaultWalletMock = {
   isDefaultWallet: true,
   keybaseUser: 'cecileb',
-  walletName: "cecileb's wallet",
+  walletName: "cecileb's account",
 }
 
 const secondWalletMock = {
   isDefaultWallet: false,
-  walletName: 'Second wallet',
+  walletName: 'Second account',
 }
 
 const commonActions = {
-  navigateAppend: action('navigateAppend'),
-  onDeposit: action('onDeposit'),
-  onReceive: action('onReceive'),
-  onSendToAnotherWallet: action('onSendToAnotherWallet'),
-  onSendToKeybaseUser: action('onSendToKeybaseUser'),
-  onSendToStellarAddress: action('onSendToStellarAddress'),
-  onSettings: action('onSettings'),
-  onShowSecretKey: action('onShowSecretKey'),
+  navigateAppend: Sb.action('navigateAppend'),
+  onDeposit: Sb.action('onDeposit'),
+  onReceive: Sb.action('onReceive'),
+  onSendToAnotherWallet: Sb.action('onSendToAnotherWallet'),
+  onSendToKeybaseUser: Sb.action('onSendToKeybaseUser'),
+  onSendToStellarAddress: Sb.action('onSendToStellarAddress'),
+  onSettings: Sb.action('onSettings'),
+  onShowSecretKey: Sb.action('onShowSecretKey'),
 }
 
 const defaultSettingsProps = {
-  name: 'awesome wallet',
+  name: 'awesome account',
   user: 'testuser',
   isDefault: true,
   currency: 'USD ($)',
   currencies: ['USD ($)', 'XLM', 'CAD ($)', 'EUR (€)', 'GBP (£)'],
-  onDelete: action('onDelete'),
-  onSetDefault: action('setDefault'),
-  onEditName: action('onEditName'),
-  onCurrencyChange: action('onCurrencyChange'),
+  onDelete: Sb.action('onDelete'),
+  onSetDefault: Sb.action('setDefault'),
+  onEditName: Sb.action('onEditName'),
+  onCurrencyChange: Sb.action('onCurrencyChange'),
 }
 
 const secondarySettingsProps = {
-  name: 'some other wallet',
+  name: 'some other account',
   user: 'testuser',
   isDefault: false,
   currency: 'XLM',
   currencies: ['USD ($)', 'XLM', 'CAD ($)', 'EUR (€)', 'GBP (£)'],
-  onDelete: action('onDelete'),
-  onSetDefault: action('setDefault'),
-  onEditName: action('onEditName'),
-  onCurrencyChange: action('onCurrencyChange'),
+  onDelete: Sb.action('onDelete'),
+  onSetDefault: Sb.action('setDefault'),
+  onEditName: Sb.action('onEditName'),
+  onCurrencyChange: Sb.action('onCurrencyChange'),
 }
 
 const load = () => {
-  storiesOf('Wallets/Wallet', module)
-    .addDecorator(PropProviders.createPropProviderWithCommon())
+  Sb.storiesOf('Wallets/Wallet', module)
     .add('Default wallet', () => (
       <Box2 direction="horizontal" style={styleWidth}>
         <Header {...commonActions} {...defaultWalletMock} />

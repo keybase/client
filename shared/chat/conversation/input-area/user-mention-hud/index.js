@@ -14,22 +14,7 @@ import {
 } from '../../../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles, isMobile, collapseStyles} from '../../../../styles'
 import {isSpecialMention} from '../../../../constants/chat2'
-
-type Props<D: {key: string, selected: boolean}> = {
-  rowRenderer: (i: number, d: D) => React$Element<any>,
-  data: Array<D>,
-  loading: boolean,
-  style: Object,
-  selectedIndex: number,
-}
-
-type MentionDatum = {
-  username: string,
-  fullName: string,
-  selected: boolean,
-  onClick: () => void,
-  onHover: () => void,
-}
+import type {MentionDatum, HudProps} from '.'
 
 const MentionRowRenderer = ({username, fullName, selected, onClick, onHover}: MentionDatum) => (
   <ClickableBox
@@ -69,7 +54,7 @@ const MentionRowRenderer = ({username, fullName, selected, onClick, onHover}: Me
 // We want to render Hud even if there's no data so we can still have lifecycle methods so we can still do things
 // This is important if you type a filter that gives you no results and you press enter for instance
 // $FlowIssue doens't like star now
-const Hud = ({style, data, loading, rowRenderer, selectedIndex}: Props<*>) =>
+const Hud = ({style, data, loading, rowRenderer, selectedIndex}: HudProps<*>) =>
   data.length ? (
     <Box style={collapseStyles([hudStyle, style])}>
       {loading ? (
@@ -91,18 +76,31 @@ const hudStyle = {
   backgroundColor: globalColors.white,
 }
 
-const _withProps = ({users, filter, selectedIndex}) => {
-  const fullList = users
-    .map((u, i) => ({
-      fullName: u.fullName,
-      key: u.username,
-      username: u.username,
-    }))
-    .concat({
-      fullName: 'Everyone in this channel',
-      key: 'channel',
-      username: 'channel',
-    })
+const _withProps = ({users, teamType, selectedIndex, filter}) => {
+  const usersList = users.map((u, i) => ({
+    fullName: u.fullName,
+    key: u.username,
+    username: u.username,
+  }))
+
+  const bigList =
+    teamType === 'big'
+      ? [
+          {fullName: 'Everyone in this channel', key: 'channel', username: 'channel'},
+          {fullName: 'Everyone in this channel', key: 'here', username: 'here'},
+        ]
+      : []
+
+  const smallList =
+    teamType === 'small'
+      ? [
+          {fullName: 'Everyone in this team', key: 'channel', username: 'channel'},
+          {fullName: 'Everyone in this team', key: 'here', username: 'here'},
+        ]
+      : []
+
+  const fullList = [...usersList, ...bigList, ...smallList]
+
   return {
     data: fullList
       .filter(u => {

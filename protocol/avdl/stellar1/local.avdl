@@ -393,4 +393,10 @@ protocol local {
 
   KeybaseRequestID makeRequestCLILocal(string recipient, union { null, Asset } asset, 
     union { null, OutsideCurrencyCode } currency, string amount, string note);
+
+  record LookupResultCLILocal {
+    AccountID accountID;
+    union { null, string } username;
+  }
+  LookupResultCLILocal lookupCLILocal(string name);
 }
