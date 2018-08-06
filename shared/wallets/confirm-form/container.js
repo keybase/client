@@ -1,6 +1,6 @@
 // @flow
 import ConfirmSend from '.'
-import {connect, type TypedState, type Dispatch} from '../../../util/container'
+import {connect, type TypedState, type Dispatch} from '../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({})
 

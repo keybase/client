@@ -1,13 +1,10 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-// import Body from '../body/container'
-// import Header from '../header'
-import Banner from '../banner/container'
-// import Memo from '../memo/container'
-// import Note from '../note/container'
-import Participants from '../participants'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
+import Banner from '../send-form/banner/container'
+import Participants from '../send-form/participants'
+import NoteAndMemo from './note-and-memo'
 
 type ConfirmSendProps = {|
   onClose: () => void,
@@ -17,6 +14,12 @@ type ConfirmSendProps = {|
   assetType: string,
   assetConversion?: string,
   waiting?: boolean,
+
+  encryptedNote?: string,
+  publicMemo?: string,
+
+  bannerBackground?: string,
+  bannerText?: string,
 |}
 
 const ConfirmSend = (props: ConfirmSendProps) => (
@@ -51,9 +54,12 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         </Kb.Box2>
       </Kb.Box2>
       <Kb.ScrollView>
-        <Banner />
+        {!!props.bannerBackground &&
+          !!props.bannerText && <Banner background={props.bannerBackground} text={props.bannerText} />}
         <Participants receivingUsername="nathunsmitty" receivingFullName="Nathan Smith" />
-        {/* <Memo /> */}
+        {(!!props.encryptedNote || !!props.publicMemo) && (
+          <NoteAndMemo encryptedNote={props.encryptedNote} publicMemo={props.publicMemo} />
+        )}
       </Kb.ScrollView>
       <Kb.Box2
         direction="horizontal"
