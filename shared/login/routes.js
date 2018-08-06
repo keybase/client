@@ -39,6 +39,6 @@ const recursiveLazyRoutes = I.Seq({
   )
   .toMap()
 
-const routeTree = recursiveLazyRoutes.get('relogin')
+const routeTree = recursiveLazyRoutes.get('login')
 
 export default routeTree

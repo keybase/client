@@ -10,7 +10,7 @@ export type Props = {|
   waitingForResponse: boolean,
   passphrase: string,
   showTyping: boolean,
-  selectedUser: ?string,
+  selectedUser: string,
   selectedUserChange: (selectedUser: string) => void,
   passphraseChange: (passphrase: string) => void,
   showTypingChange: (typingChange: boolean) => void,

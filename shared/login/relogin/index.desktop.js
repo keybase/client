@@ -62,7 +62,7 @@ class Login extends Component<Props, State> {
       onEnterKeyDown: () => this.props.onSubmit(),
       errorText: this.props.error,
       autoFocus: true,
-      value: this.props.passphrase,
+      uncontrolled: true,
     }
 
     const checkboxProps = [

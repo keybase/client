@@ -1,34 +1,23 @@
 // @flow
+import * as React from 'react'
 import * as LoginGen from '../../actions/login-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
-import * as Constants from '../../constants/login'
-import * as WaitingConstants from '../../constants/waiting'
 import * as SignupGen from '../../actions/signup-gen'
 import HiddenString from '../../util/hidden-string'
 import Login, {type Props} from '.'
-import {
-  compose,
-  lifecycle,
-  withStateHandlers,
-  withHandlers,
-  connect,
-  type TypedState,
-  type Dispatch,
-} from '../../util/container'
+import {connect, type TypedState, type Dispatch} from '../../util/container'
 
 import {type RouteProps} from '../../route-tree/render-route'
 
 type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = (state: TypedState) => ({
-  _accounts: state.config.configuredAccounts,
-  _defaultUsername: state.config.defaultUsername,
+  _users: state.config.configuredAccounts,
   error: state.login.error.stringValue(),
-  waitingForResponse: WaitingConstants.anyWaiting(state, Constants.waitingKey),
+  selectedUser: state.config.defaultUsername,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}: OwnProps) => ({
-  _resetError: () => dispatch(LoginGen.createLoginError({error: new HiddenString('')})),
   onFeedback: () => dispatch(navigateAppend(['feedback'])),
   onForgotPassphrase: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
   onLogin: (user: string, passphrase: string) =>
@@ -38,47 +27,55 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}: OwnProps) => (
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const users = stateProps._accounts.sort()
-  const lastUser = users.contains(stateProps._defaultUsername) ? stateProps._defaultUsername : users.first()
+  const users = stateProps._users.sort().toArray()
 
   return {
-    ...stateProps,
-    ...dispatchProps,
-    lastUser,
-    serverURI: 'https://keybase.io',
-    users: users.toArray(),
+    onFeedback: dispatchProps.onFeedback,
+    onForgotPassphrase: dispatchProps.onForgotPassphrase,
+    onLogin: dispatchProps.onLogin,
+    onSignup: dispatchProps.onSignup,
+    onSomeoneElse: dispatchProps.onSomeoneElse,
+    selectedUser: stateProps.selectedUser,
+    users,
   }
 }
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  withStateHandlers(props => ({selectedUser: props.lastUser, showTyping: false, passphrase: ''}), {
-    setSelectedUser: () => selectedUser => ({selectedUser}),
-    showTypingChange: () => showTyping => ({showTyping}),
-    passphraseChange: () => passphrase => ({passphrase}),
-  }),
-  // TODO remove withHandlers
-  withHandlers({
-    onSubmit: props => () => {
-      if (props.selectedUser) {
-        props.onLogin(props.selectedUser, props.passphrase)
-      }
-    },
-    selectedUserChange: props => user => props.setSelectedUser(user),
-  }),
-  // TODO remove lifecycle
-  lifecycle({
-    componentDidUpdate(prevProps: Props) {
-      // Clear the passphrase when there's an error.
-      // We’re doing this here because passphrase isn’t in the store.
-      // Otherwise, we’d use a saga.
-      if (this.props.error !== prevProps.error) {
-        this.props.passphraseChange()
-      }
-      // Same here but for clearing the error.
-      if (this.props.selectedUser !== prevProps.selectedUser) {
-        this.props._resetError()
-      }
-    },
-  })
-)(Login)
+type State = {
+  passphrase: string,
+  showTyping: boolean,
+  selectedUser: string,
+}
+
+class LoginWrapper extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props)
+    this.state = {
+      passphrase: '',
+      selectedUser: props.selectedUser,
+      showTyping: false,
+    }
+  }
+
+  componentDidUpdate(prevProps: Props, prevState: State) {
+    // Clear the passphrase when there's an error.
+    if (this.props.error !== prevProps.error) {
+      this.setState({passphrase: ''})
+    }
+  }
+
+  render() {
+    return (
+      <Login
+        {...this.props}
+        error={this.state.selectedUser === this.props.selectedUser ? this.props.error : ''}
+        selectedUser={this.state.selectedUser}
+        selectedUserChange={selectedUser => this.setState({selectedUser})}
+        showTypingChange={showTyping => this.setState({showTyping})}
+        passphraseChange={passphrase => this.setState({passphrase})}
+        onSubmit={() => this.props.onLogin(this.state.selectedUser, this.state.passphrase)}
+      />
+    )
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(LoginWrapper)
