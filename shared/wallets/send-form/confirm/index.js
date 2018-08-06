@@ -16,8 +16,6 @@ type ConfirmSendProps = {|
   amount: string,
   bannerText?: string,
   bannerBackground?: Background,
-  encryptedMemo?: string,
-  publicMemo?: string,
   onSendClick: () => void,
 |}
 
@@ -42,7 +40,7 @@ export default function ConfirmSend(props: ConfirmSendProps) {
               <Banner background={props.bannerBackground} text={props.bannerText} />
             )}
           <Participants receivingUsername="nathunsmitty" receivingFullName="Nathan Smith" />
-          <Memo encryptedMemo={props.encryptedMemo} publicMemo={props.publicMemo} />
+          <Memo />
         </Kb.ScrollView>
         <Kb.Box2
           direction="horizontal"
