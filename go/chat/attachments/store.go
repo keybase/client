@@ -29,7 +29,7 @@ type ReadResetter interface {
 type UploadTask struct {
 	S3Params       chat1.S3Params
 	Filename       string
-	FileSize       int
+	FileSize       int64
 	Plaintext      ReadResetter
 	plaintextHash  []byte
 	S3Signer       s3.Signer

@@ -292,7 +292,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		task := UploadTask{
 			S3Params:       s3params,
 			Filename:       filename,
-			FileSize:       int(finfo.Size()),
+			FileSize:       finfo.Size(),
 			Plaintext:      src,
 			S3Signer:       u.s3signer,
 			ConversationID: convID,
@@ -336,7 +336,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 			task := UploadTask{
 				S3Params:       previewParams,
 				Filename:       filename,
-				FileSize:       len(pre.Preview),
+				FileSize:       int64(len(pre.Preview)),
 				Plaintext:      newBufReadResetter(pre.Preview),
 				S3Signer:       u.s3signer,
 				ConversationID: convID,

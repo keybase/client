@@ -177,7 +177,7 @@ func makeSignatureInput(plaintext []byte, encKey SecretboxKey, signaturePrefix l
 	return ret
 }
 
-func getPacketLen(plaintextChunkLen int) int {
+func getPacketLen(plaintextChunkLen int64) int64 {
 	return plaintextChunkLen + secretbox.Overhead + ed25519.SignatureSize
 }
 
@@ -290,7 +290,7 @@ type Decoder struct {
 	buf             []byte
 	chunkNum        uint64
 	err             error
-	packetLen       int
+	packetLen       int64
 }
 
 func NewDecoder(encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix libkb.SignaturePrefix, nonce Nonce) *Decoder {
@@ -306,8 +306,8 @@ func NewDecoder(encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix libkb.
 	}
 }
 
-func (d *Decoder) openOnePacket(packetLen int) ([]byte, error) {
-	if packetLen > len(d.buf) {
+func (d *Decoder) openOnePacket(packetLen int64) ([]byte, error) {
+	if packetLen > int64(len(d.buf)) {
 		panic("decoder tried to open a packet that was too big")
 	}
 	packet := d.buf[0:packetLen]
@@ -337,7 +337,7 @@ func (d *Decoder) Write(ciphertext []byte) ([]byte, error) {
 	// We assume that every packet other than the last (which we handle in
 	// Finish) is the same length, which makes this loop very simple.
 	var output []byte
-	for len(d.buf) >= d.packetLen {
+	for int64(len(d.buf)) >= d.packetLen {
 		var plaintext []byte
 		plaintext, d.err = d.openOnePacket(d.packetLen)
 		if d.err != nil {
@@ -357,18 +357,18 @@ func (d *Decoder) Finish() ([]byte, error) {
 	if d.err != nil {
 		return nil, d.err
 	}
-	if len(d.buf) >= d.packetLen {
+	if int64(len(d.buf)) >= d.packetLen {
 		panic("decoder buffer has more bytes than expected")
 	}
 	// If we've been truncated at a packet boundary, this open will fail on a
 	// simple length check. If we've been truncated in the middle of a packet,
 	// this open will fail to validate.
 	var plaintext []byte
-	plaintext, d.err = d.openOnePacket(len(d.buf))
+	plaintext, d.err = d.openOnePacket(int64(len(d.buf)))
 	return plaintext, d.err
 }
 
-func (d *Decoder) ChangePlaintextChunkLenForTesting(plaintextChunkLen int) {
+func (d *Decoder) ChangePlaintextChunkLenForTesting(plaintextChunkLen int64) {
 	d.packetLen = getPacketLen(plaintextChunkLen)
 }
 
@@ -483,7 +483,7 @@ func NewDecodingReader(encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix
 // all-at-once wrapper functions
 // =============================
 
-func GetSealedSize(plaintextLen int) int {
+func GetSealedSize(plaintextLen int64) int64 {
 	// All the full packets.
 	fullChunks := plaintextLen / DefaultPlaintextChunkLength
 	totalLen := fullChunks * getPacketLen(DefaultPlaintextChunkLength)
