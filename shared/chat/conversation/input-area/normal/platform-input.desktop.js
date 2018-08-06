@@ -18,7 +18,7 @@ import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-conta
 import flags from '../../../../util/feature-flags'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import type {PlatformInputProps} from './types'
-import {ExplodingMeta} from './shared'
+import {formatDurationShort} from '../../../../util/timestamp'
 
 const MentionCatcher = ({onClick}) => (
   <Box
@@ -202,6 +202,8 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
   }
 
   _toggleShowingMenu = () => {
+    if (this.props.isEditing) return
+
     this.props.onSeenExplodingMessages()
     this.props.toggleShowingMenu()
   }
@@ -218,18 +220,9 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
       <Box
         style={{
           ...globalStyles.flexBoxRow,
-          borderTop: `solid 1px ${globalColors.black_05}`,
           width: '100%',
         }}
       >
-        {this.props.isEditing && (
-          <Box style={editingTabStyle}>
-            <Text type="BodySmall">Edit:</Text>
-            <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing}>
-              Cancel
-            </Text>
-          </Box>
-        )}
         <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.white, width: '100%'}}>
           {this.props.mentionPopupOpen && <MentionCatcher onClick={this._mentionCatcherClick} />}
           {this.props.mentionPopupOpen && (
@@ -257,7 +250,70 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
               filter={this.props.channelMentionFilter}
             />
           )}
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}>
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+              alignItems: 'flex-end',
+              backgroundColor: this.props.isEditing ? globalColors.yellow3 : globalColors.white,
+              borderColor: this.props.explodingModeSeconds
+                ? globalColors.black_75
+                : this.props.isEditing
+                  ? globalColors.orange
+                  : globalColors.black_20,
+              borderRadius: 4,
+              borderStyle: 'solid',
+              borderWidth: 1,
+              marginLeft: globalMargins.small,
+              marginRight: globalMargins.small,
+            }}
+          >
+            <HoverBox
+              className={this.props.isEditing ? 'editing' : ''}
+              onClick={this._toggleShowingMenu}
+              ref={this.props.setAttachmentRef}
+              style={collapseStyles([
+                styles.explodingIconContainer,
+                {
+                  backgroundColor: this.props.explodingModeSeconds
+                    ? globalColors.black_75
+                    : this.props.isEditing
+                      ? globalColors.yellow3
+                      : globalColors.white,
+                },
+                platformStyles({
+                  isElectron: {
+                    borderRight: `1px solid ${
+                      this.props.isEditing ? globalColors.orange : globalColors.black_20
+                    }`,
+                    cursor: this.props.isEditing ? 'not-allowed' : 'pointer',
+                  },
+                }),
+              ])}
+            >
+              {this.props.explodingModeSeconds ? (
+                <Text
+                  type="BodyTinyBold"
+                  style={{bottom: globalMargins.tiny, color: globalColors.white, position: 'relative'}}
+                >
+                  {formatDurationShort(this.props.explodingModeSeconds * 1000)}
+                </Text>
+              ) : (
+                <Icon
+                  className="timer"
+                  onClick={this.props.isEditing ? undefined : this._toggleShowingMenu}
+                  style={platformStyles({
+                    common: {
+                      bottom: 6,
+                      position: 'relative',
+                    },
+                    isElectron: {
+                      cursor: 'inherit',
+                    },
+                  })}
+                  type="iconfont-timer"
+                />
+              )}
+            </HoverBox>
             <input
               type="file"
               style={{display: 'none'}}
@@ -269,7 +325,12 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
               className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
               autoFocus={false}
               small={true}
-              style={styleInput}
+              style={collapseStyles([
+                styleInput,
+                {
+                  backgroundColor: this.props.isEditing ? globalColors.yellow3 : globalColors.white,
+                },
+              ])}
               ref={this._inputSetRef}
               hintText={hintText}
               hideUnderline={true}
@@ -277,7 +338,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
               uncontrolled={true}
               multiline={true}
               rowsMin={1}
-              rowsMax={5}
+              rowsMax={10}
               onKeyDown={this._onKeyDown}
               onEnterKeyDown={this._onEnterKeyDown}
             />
@@ -304,30 +365,6 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
                   visible={this.props.showingMenu}
                 />
               )}
-            {flags.explodingMessagesEnabled && (
-              <HoverBox
-                onClick={this._toggleShowingMenu}
-                ref={this.props.setAttachmentRef}
-                style={collapseStyles([
-                  styles.explodingIconContainer,
-                  !!(this.props.isExplodingNew || this.props.explodingModeSeconds) && {
-                    marginRight: globalMargins.tiny,
-                  },
-                ])}
-              >
-                <Icon
-                  className="bomb"
-                  color={this.props.explodingModeSeconds === 0 ? null : globalColors.black_75}
-                  onClick={this._toggleShowingMenu}
-                  style={styleIcon}
-                  type="iconfont-bomb"
-                />
-                <ExplodingMeta
-                  explodingModeSeconds={this.props.explodingModeSeconds}
-                  isNew={this.props.isExplodingNew}
-                />
-              </HoverBox>
-            )}
             {this.state.emojiPickerOpen && (
               <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
             )}
@@ -340,7 +377,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
               style={{
                 flexGrow: 1,
                 marginBottom: globalMargins.xtiny,
-                marginLeft: globalMargins.tiny,
+                marginLeft: 58,
                 textAlign: 'left',
               }}
             >
@@ -429,14 +466,6 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
   </Box>
 )
 
-const editingTabStyle = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'flex-start',
-  backgroundColor: globalColors.yellow3,
-  maxWidth: 48,
-  padding: globalMargins.tiny,
-}
-
 const styleMentionHud = {
   borderRadius: 4,
   boxShadow: '0 0 8px 0 rgba(0, 0, 0, 0.2)',
@@ -447,22 +476,23 @@ const styleMentionHud = {
 }
 
 const styleInput = {
-  backgroundColor: globalColors.white,
   flex: 1,
-  marginLeft: globalMargins.tiny,
-  marginRight: globalMargins.tiny,
-  marginTop: globalMargins.tiny,
+  paddingBottom: globalMargins.xxtiny,
+  paddingLeft: 6,
+  paddingRight: 6,
+  paddingTop: globalMargins.tiny,
   textAlign: 'left',
 }
 const styleIcon = {
-  paddingRight: globalMargins.tiny,
-  paddingTop: globalMargins.tiny,
+  bottom: 6,
+  marginRight: globalMargins.tiny,
+  position: 'relative',
 }
 
 const styleBoomIcon = platformStyles({
   common: {
-    left: 183,
-    marginTop: -27,
+    left: 231,
+    marginTop: -30,
     position: 'absolute',
   },
   isElectron: {
@@ -473,24 +503,26 @@ const styleBoomIcon = platformStyles({
 const styleFooter = {
   color: globalColors.black_20,
   marginBottom: globalMargins.xtiny,
-  marginLeft: globalMargins.tiny,
-  marginRight: globalMargins.tiny,
-  marginTop: 0,
+  marginRight: globalMargins.medium + 2,
   textAlign: 'right',
 }
 
 const styles = styleSheetCreate({
-  explodingIconContainer: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'stretch',
-    alignSelf: 'flex-end',
-    justifyContent: 'flex-start',
-    marginTop: 13,
-  },
+  explodingIconContainer: platformStyles({
+    common: {
+      ...globalStyles.flexBoxColumn,
+      alignSelf: 'stretch',
+      borderBottomLeftRadius: 3,
+      borderTopLeftRadius: 3,
+      justifyContent: 'flex-end',
+      textAlign: 'center',
+      width: 32,
+    },
+  }),
 })
 
 const HoverBox = glamorous(Box)({
-  ':hover .bomb': {
+  '&:not(.editing):hover .timer': {
     color: globalColors.black_75,
   },
 })
