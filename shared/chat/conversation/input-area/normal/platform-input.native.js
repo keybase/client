@@ -1,6 +1,6 @@
 // @flow
 /* eslint-env browser */
-import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
+import {launchCamera, launchImageLibrary, showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
 import {
   Box,
@@ -52,7 +52,10 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
     this._toggleShowingMenu('filepickerpopup')
   }
 
-  _launchNativeImagePicker = (mediaType: 'photo' | 'video' | 'mixed', location: 'camera' | 'library') => {
+  _launchNativeImagePicker = (
+    mediaType: 'photo' | 'video' | 'mixed',
+    location: 'camera' | 'library' | 'pick'
+  ) => {
     let title = 'Select a Photo'
     let takePhotoButtonTitle = 'Take Photo...'
     let permDeniedText = 'Allow Keybase to take photos and choose images from your library?'
@@ -91,12 +94,16 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
       this.props.onAttach([filename])
     }
 
+    const options = {mediaType, title, takePhotoButtonTitle, permissionDenied}
     switch (location) {
+      case 'pick':
+        showImagePicker(options, handleSelection)
+        break
       case 'camera':
-        launchCamera({mediaType, title, takePhotoButtonTitle, permissionDenied}, handleSelection)
+        launchCamera(options, handleSelection)
         break
       case 'library':
-        launchImageLibrary({mediaType, title, takePhotoButtonTitle, permissionDenied}, handleSelection)
+        launchImageLibrary(options, handleSelection)
         break
     }
   }
