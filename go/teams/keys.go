@@ -338,7 +338,6 @@ func newSharedSecret() (ret keybase1.PerTeamKeySeed, err error) {
 }
 
 func derivedSecret(secret keybase1.PerTeamKeySeed, context string) []byte {
-	// xxx suspect
 	if secret.IsZero() {
 		panic("Should never be using a zero key in derivedSecret; something went terribly wrong")
 	}
