@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Box2, ClickableBox, ConnectedUsernames, Icon, iconCastPlatformStyles, NameWithIcon, NewInput, Text} from '../../../common-adapters'
-import {collapseStyles, isMobile, globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 
 type Props = {
   onChangeAddress?: string => void,
@@ -12,73 +12,71 @@ type Props = {
 }
 
 const Participants = (props: Props) => (
-  <Box2 direction="vertical">
-    <Box2 direction="horizontal" style={styles.container} fullWidth={true}>
-      <Text type="BodySmall" style={styles.text}>
+  <Kb.Box2 direction="vertical" fullWidth={true}>
+    <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
+      <Kb.Text type="BodySmall" style={styles.text}>
         To:
-      </Text>
+      </Kb.Text>
     {!!props.username && (
-      <NameWithIcon colorFollowing={true} horizontal={true} username={props.username} metaOne={props.fullname} onClick={props.onSHowProfile}/>
+      <Kb.NameWithIcon colorFollowing={true} horizontal={true} username={props.username} metaOne={props.fullname} onClick={props.onSHowProfile}/>
     )}
     {!props.username && (
-      <Box2 direction="vertical" fullWidh={true} style={{flexGrow: 1}}>
-        <Box2 direction="horizontal" fullWidth={true}>
-          <Icon
+      <Kb.Box2 direction="vertical" fullWidh={true} style={styles.inputBox}>
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
+          <Kb.Icon
             type={props.incorrect ? 'iconfont-stellar-request' : 'iconfont-stellar-request'}
-            style={iconCastPlatformStyles(styles.icon)}
+            style={Kb.iconCastPlatformStyles(styles.icon)}
           />
-          <NewInput
+          <Kb.NewInput
             type="text"
             onChangeText={props.onChangeAddress}
             textType="BodySemibold"
             placeholder="Stellar address"
-            placeholderColor={globalColors.grey}
+            placeholderColor={Styles.globalColors.grey}
             hideBorder={true}
             style={styles.input}
             multiline={true}
           />
-        </Box2>
+        </Kb.Box2>
         {props.incorrect && (
-            <Text type="BodySmall" style={styles.error}>
+            <Kb.Text type="BodySmall" style={styles.error}>
               This Stellar address is incorrect
-            </Text>
+            </Kb.Text>
         )}
-      </Box2>
+      </Kb.Box2>
     )}
-    </Box2>
+    </Kb.Box2>
     {props.incorrect && (
-      <Box style={styles.redline} />
+      <Kb.Box style={styles.redline} />
     )}
-  </Box2>
+  </Kb.Box2>
 )
 
-const styles = styleSheetCreate({
-  avatarName: {
-    flexDirection: 'row',
-  },
+const styles = Styles.styleSheetCreate({
   text: {
-    color: globalColors.blue,
-    marginRight: globalMargins.xsmall,
-    marginTop: globalMargins.xtiny,
+    color: Styles.globalColors.blue,
+    marginRight: Styles.globalMargins.xsmall,
+    marginTop: Styles.globalMargins.xtiny,
     alignSelf: 'flex-start',
   },
   container: {
-    margin: globalMargins.xsmall,
+    margin: Styles.globalMargins.xsmall,
     alignItems: 'flex-start',
   },
-  error: platformStyles({
+  error: Styles.platformStyles({
     common: {
-      color: globalColors.red,
+      color: Styles.globalColors.red,
       width: '100%',
     },
     isElectron: {
       wordWrap: 'break-word',
     },
   }),
-  icon: {},
-  input: {},
+  inputBox: {flexGrow: 1},
+  // NewInput with icon hangs over the edge at 100%
+  input: {width: '90%'},
   redline: {
-    backgroundColor: globalColors.red,
+    backgroundColor: Styles.globalColors.red,
     height: 1,
     width: '100%'
   },
