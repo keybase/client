@@ -1662,15 +1662,20 @@ func (k *KeyFinderMock) Find(ctx context.Context, tlfName string,
 
 func (k *KeyFinderMock) FindForEncryption(ctx context.Context,
 	tlfName string, teamID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (res *types.NameInfo, err error) {
-	return k.Find(ctx, tlfName, membersType, public)
+	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, err error) {
+	return k.cryptKeys[len(k.cryptKeys)-1], nil
 }
 
 func (k *KeyFinderMock) FindForDecryption(ctx context.Context,
 	tlfName string, teamID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int, kbfsEncrypted bool) (res *types.NameInfo, err error) {
-	return k.Find(ctx, tlfName, membersType, public)
+	keyGeneration int, kbfsEncrypted bool) (res types.CryptKey, err error) {
+	for _, key := range k.cryptKeys {
+		if key.Generation() == keyGeneration {
+			return key, nil
+		}
+	}
+	return res, NewDecryptionKeyNotFoundError(keyGeneration, public, kbfsEncrypted)
 }
 
 func (k *KeyFinderMock) EphemeralKeyForEncryption(ctx context.Context, tlfName string, tlfID chat1.TLFID,

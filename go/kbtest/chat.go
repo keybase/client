@@ -249,15 +249,30 @@ func (m *TlfMock) Lookup(ctx context.Context, tlfName string, public bool) (res 
 	return res, nil
 }
 
-func (m *TlfMock) EncryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error) {
-	return m.Lookup(ctx, tlfName, public)
+func (m *TlfMock) EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (types.CryptKey, error) {
+	ni, err := m.Lookup(ctx, tlfName, public)
+	if err != nil {
+		return nil, err
+	}
+	keys := ni.CryptKeys[chat1.ConversationMembersType_KBFS]
+	return keys[len(keys)-1], nil
 }
 
-func (m *TlfMock) DecryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+func (m *TlfMock) DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int, kbfsEncrypted bool) (*types.NameInfo, error) {
-	return m.Lookup(ctx, tlfName, public)
+	keyGeneration int, kbfsEncrypted bool) (types.CryptKey, error) {
+	ni, err := m.Lookup(ctx, tlfName, public)
+	if err != nil {
+		return nil, err
+	}
+	keys := ni.CryptKeys[chat1.ConversationMembersType_KBFS]
+	for _, key := range keys {
+		if key.Generation() == keyGeneration {
+			return key, nil
+		}
+	}
+	return nil, errors.New("no mock key found")
 }
 
 func (m *TlfMock) EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,

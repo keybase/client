@@ -734,15 +734,17 @@ func (f failingTlf) Lookup(context.Context, string, bool) (*types.NameInfo, erro
 	return nil, nil
 }
 
-func (f failingTlf) EncryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error) {
-	return f.Lookup(ctx, tlfName, public)
+func (f failingTlf) EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (types.CryptKey, error) {
+	require.Fail(f.t, "EncryptionKey call")
+	return nil, nil
 }
 
-func (f failingTlf) DecryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+func (f failingTlf) DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int, kbfsEncrypted bool) (*types.NameInfo, error) {
-	return f.Lookup(ctx, tlfName, public)
+	keyGeneration int, kbfsEncrypted bool) (types.CryptKey, error) {
+	require.Fail(f.t, "DecryptionKey call")
+	return nil, nil
 }
 
 func (f failingTlf) EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
