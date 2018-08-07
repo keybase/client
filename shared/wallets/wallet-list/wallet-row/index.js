@@ -16,8 +16,6 @@ import {
   isMobile,
   platformStyles,
   styleSheetCreate,
-  collapseStyles,
-  type StylesCrossPlatform,
 } from '../../../styles'
 
 type Props = {
@@ -26,7 +24,6 @@ type Props = {
   keybaseUser: string,
   contents: string,
   onSelect: () => void,
-  style?: StylesCrossPlatform,
 }
 
 const rightColumnStyle = platformStyles({
@@ -94,10 +91,7 @@ const WalletRow = (props: Props) => {
   return (
     <ClickableBox onClick={props.onSelect} style={(props.isSelected && styles.containerSelected) || null}>
       <Box2
-        style={collapseStyles([
-          props.isSelected ? styles.containerBoxSelected : styles.containerBox,
-          props.style,
-        ])}
+        style={props.isSelected ? styles.containerBoxSelected : styles.containerBox}
         direction="horizontal"
         fullWidth={true}
       >

@@ -2,8 +2,8 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import {WalletList} from '.'
-import {stringToAccountID} from '../../constants/types/wallets'
 import walletRow from './wallet-row/index.stories'
+import {stringToAccountID} from '../../constants/types/wallets'
 
 const onSelect = Sb.action('onSelect')
 
@@ -50,6 +50,7 @@ const accountIDs = Object.keys(mockWallets).map(s => stringToAccountID(s))
 
 const load = () => {
   walletRow()
+
   Sb.storiesOf('Wallets', module)
     .addDecorator(Sb.createPropProviderWithCommon(WalletRowProvider(mockWallets)))
     .add('Wallet List', () => (
