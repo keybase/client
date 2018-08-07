@@ -2,7 +2,8 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import Banner from '../banner/container'
+import Banner from '../banner'
+import type {Background} from '../../common-adapters/text'
 import Header from './header'
 import Participants from './participants'
 import NoteAndMemo from './note-and-memo'
@@ -17,7 +18,7 @@ type ConfirmSendProps = {|
   waiting?: boolean,
   encryptedNote?: string,
   publicMemo?: string,
-  bannerBackground?: string,
+  bannerBackground?: Background,
   bannerText?: string,
 |}
 

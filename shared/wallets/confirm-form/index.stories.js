@@ -32,6 +32,10 @@ const encryptedNote = `
 
   Lorem ipsum dolor sit amet, consectetur adipisicing elit.
 `
+const banner = {
+  bannerBackground: 'Announcements',
+  bannerText: 'The conversion rate has changed since you got to this screen.',
+}
 
 const load = () => {
   Sb.storiesOf('Wallets/ConfirmForm', module)
@@ -43,8 +47,10 @@ const load = () => {
     .add('With a public memo and encrypted note', () => (
       <ConfirmSend {...confirmProps} publicMemo={publicMemo} encryptedNote={encryptedNote} />
     ))
-    .add('With a banner', () => <ConfirmSend {...confirmProps} />)
-    .add('With a public memo, encrypted note, and banner', () => <ConfirmSend {...confirmProps} />)
+    .add('With a banner', () => <ConfirmSend {...confirmProps} {...banner} />)
+    .add('With a public memo, encrypted note, and banner', () => (
+      <ConfirmSend {...confirmProps} publicMemo={publicMemo} encryptedNote={encryptedNote} {...banner} />
+    ))
 }
 
 export default load

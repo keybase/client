@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {WalletRow} from '../wallet-row'
+import WalletEntry from './wallet-entry'
 
 type Props = {|
   receivingUsername: string,
@@ -15,13 +15,11 @@ const Participants = (props: Props) => (
       <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
         From:
       </Kb.Text>
-      <WalletRow
-        isSelected={false}
+      <WalletEntry
         accountID="G43289XXXXX34OPL"
         keybaseUser="cecileb"
         name="cecileb's wallet"
-        contents="280.0871234 XLM + more"
-        onSelect={() => {}}
+        contents="280.0871234 XLM"
         style={styles.walletRow}
       />
     </Kb.Box2>

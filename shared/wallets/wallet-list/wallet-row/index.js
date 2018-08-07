@@ -8,7 +8,7 @@ import {
   Icon,
   iconCastPlatformStyles,
   avatarCastPlatformStyles,
-} from '../../common-adapters'
+} from '../../../common-adapters'
 import {
   globalStyles,
   globalMargins,
@@ -18,7 +18,7 @@ import {
   styleSheetCreate,
   collapseStyles,
   type StylesCrossPlatform,
-} from '../../styles'
+} from '../../../styles'
 
 type Props = {
   isSelected: boolean,

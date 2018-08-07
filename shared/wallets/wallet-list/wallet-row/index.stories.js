@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import * as Sb from '../../stories/storybook'
-import {Box2} from '../../common-adapters'
+import * as Sb from '../../../stories/storybook'
+import {Box2} from '../../../common-adapters'
 import {WalletRow} from '.'
 
 const onSelect = Sb.action('onSelect')
