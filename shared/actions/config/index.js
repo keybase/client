@@ -2,6 +2,7 @@
 import logger from '../../logger'
 import * as ConfigGen from '../config-gen'
 import * as ChatGen from '../chat2-gen'
+import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as ProfileConstants from '../../constants/profile'
@@ -119,29 +120,30 @@ const maybeDoneWithDaemonHandshake = (state: TypedState) => {
 }
 
 // TODO switch to new faster rpc when core is done (CORE-8507)
-const loadDaemonAccounts = () =>
-  Saga.sequentially([
-    Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: 'config.getAccounts'})),
-    Saga.call(function*() {
-      try {
-        const loadedAction = yield RPCTypes.configGetExtendedStatusRpcPromise().then(extendedConfig => {
-          let usernames = extendedConfig.provisionedUsernames || []
-          let defaultUsername = extendedConfig.defaultUsername || ''
-          // TODO likely goes away with CORE-8507, currently get extended will remove the user from the list
-          if (defaultUsername && !usernames.includes(defaultUsername)) {
-            usernames.push(defaultUsername)
-          }
-          usernames = usernames.sort()
+const loadDaemonAccounts = (_: any, action: DevicesGen.RevokedPayload | ConfigGen.DaemonHandshakePayload) => {
+  const makeCall = Saga.call(function*() {
+    try {
+      const loadedAction = yield RPCTypes.configGetExtendedStatusRpcPromise().then(extendedConfig => {
+        let usernames = extendedConfig.provisionedUsernames || []
+        let defaultUsername = extendedConfig.defaultUsername || ''
+        // TODO likely goes away with CORE-8507, currently get extended will remove the user from the list
+        if (defaultUsername && !usernames.includes(defaultUsername)) {
+          usernames.push(defaultUsername)
+        }
+        usernames = usernames.sort()
 
-          // Select one if it doesn't exist
-          if (usernames.length && !usernames.includes(defaultUsername)) {
-            defaultUsername = usernames[0]
-          }
-          return ConfigGen.createSetAccounts({defaultUsername, usernames})
-        })
-        yield Saga.put(loadedAction)
+        // Select one if it doesn't exist
+        if (usernames.length && !usernames.includes(defaultUsername)) {
+          defaultUsername = usernames[0]
+        }
+        return ConfigGen.createSetAccounts({defaultUsername, usernames})
+      })
+      yield Saga.put(loadedAction)
+      if (action.type === ConfigGen.daemonHandshake) {
         yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name: 'config.getAccounts'}))
-      } catch (error) {
+      }
+    } catch (error) {
+      if (action.type === ConfigGen.daemonHandshake) {
         yield Saga.put(
           ConfigGen.createDaemonHandshakeWait({
             failedReason: "Can't get accounts",
@@ -150,8 +152,25 @@ const loadDaemonAccounts = () =>
           })
         )
       }
-    }),
-  ])
+    }
+  })
+
+  switch (action.type) {
+    case ConfigGen.daemonHandshake:
+      return Saga.sequentially([
+        Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: 'config.getAccounts'})),
+        makeCall,
+      ])
+    case DevicesGen.RevokedPayload:
+      return makeCall
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (action: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(action.type);
+      */
+      return undefined
+  }
+}
 
 const showDeletedSelfRootPage = () =>
   Saga.sequentially([
@@ -242,7 +261,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
     [ConfigGen.loggedIn, ConfigGen.loggedOut, ConfigGen.daemonHandshake],
     loadDaemonBootstrapStatus
   )
-  yield Saga.actionToAction(ConfigGen.daemonHandshake, loadDaemonAccounts)
+  yield Saga.actionToAction([DevicesGen.revoked, ConfigGen.daemonHandshake], loadDaemonAccounts)
   yield Saga.actionToAction([ConfigGen.loggedIn, ConfigGen.loggedOut], switchRouteDef)
   yield Saga.actionToAction(ConfigGen.daemonHandshakeDone, routeToInitialScreen)
   yield Saga.actionToAction(ConfigGen.daemonHandshakeDone, emitInitialLoggedIn)
