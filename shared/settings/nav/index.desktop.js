@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/settings'
-import flags from '../../util/feature-flags'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box} from '../../common-adapters'
 import SettingsItem from './settings-item'

@@ -4,7 +4,6 @@ import chatRoutes from '../chat/routes'
 import devicesRoutes from '../devices/routes'
 import fsRoutes from '../fs/routes'
 import gitRoutes from '../git/routes'
-import foldersRoutes from '../folders/routes'
 import peopleRoutes from '../people/routes'
 import profileRoutes from '../profile/routes'
 import settingsRoutes from '../settings/routes'
@@ -15,7 +14,6 @@ import {isMobile} from '../constants/platform'
 import {
   chatTab,
   devicesTab,
-  folderTab,
   peopleTab,
   profileTab,
   settingsTab,
