@@ -69,8 +69,8 @@ func (k *KeyFinderImpl) encCacheKey(name string, tlfID chat1.TLFID, membersType 
 }
 
 func (k *KeyFinderImpl) decCacheKey(name string, tlfID chat1.TLFID, membersType chat1.ConversationMembersType,
-	public bool, kbfsEncrypted bool) string {
-	return fmt.Sprintf("_dec:%s|%s|%v|%v|%v", name, tlfID, membersType, public, kbfsEncrypted)
+	generation int, public bool, kbfsEncrypted bool) string {
+	return fmt.Sprintf("_dec:%s|%s|%v|%v|%v|%d", name, tlfID, membersType, public, kbfsEncrypted, generation)
 }
 
 func (k *KeyFinderImpl) createNameInfoSource(ctx context.Context,
@@ -169,11 +169,7 @@ func (k *KeyFinderImpl) FindForDecryption(ctx context.Context,
 	tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
 	keyGeneration int, kbfsEncrypted bool) (res types.CryptKey, err error) {
-	effectiveMt := membersType
-	if kbfsEncrypted {
-		effectiveMt = chat1.ConversationMembersType_KBFS
-	}
-	ckey := k.decCacheKey(tlfName, tlfID, effectiveMt, public, kbfsEncrypted)
+	ckey := k.decCacheKey(tlfName, tlfID, membersType, keyGeneration, public, kbfsEncrypted)
 	existing, ok := k.decKeys[ckey]
 	if ok {
 		return existing, nil
