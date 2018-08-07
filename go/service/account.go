@@ -104,3 +104,42 @@ func (h *AccountHandler) ResetAccount(ctx context.Context, arg keybase1.ResetAcc
 
 	return h.G().Logout()
 }
+
+type GetLockdownResponse struct {
+	Enabled bool                       `json:"enabled"`
+	Status  libkb.AppStatus            `json:"status"`
+	History []keybase1.LockdownHistory `json:"history"`
+}
+
+func (r *GetLockdownResponse) GetAppStatus() *libkb.AppStatus {
+	return &r.Status
+}
+
+func (h *AccountHandler) GetLockdownMode(ctx context.Context, sessionID int) (ret keybase1.GetLockdownResponse, err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "account/lockdown",
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+	var response GetLockdownResponse
+	err = h.G().API.GetDecode(apiArg, &response)
+	if err != nil {
+		return ret, err
+	}
+	ret = keybase1.GetLockdownResponse{
+		Status:  response.Enabled,
+		History: response.History,
+	}
+	return ret, nil
+}
+
+func (h *AccountHandler) SetLockdownMode(ctx context.Context, arg keybase1.SetLockdownModeArg) (err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "account/lockdown",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"enabled": libkb.B{Val: arg.Enabled},
+		},
+	}
+	_, err = h.G().API.Post(apiArg)
+	return err
+}
