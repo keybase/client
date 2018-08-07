@@ -18,20 +18,13 @@ const Header = (props: HeaderProps) => (
       iconColor={Styles.globalColors.white}
       textStyle={styles.backButtonText}
     />
-    <Kb.Box2
-      direction="vertical"
-      // fullHeight={true}
-      fullWidth={true}
-      centerChildren={true}
-      style={styles.headerContent}
-    >
+    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.headerContent}>
       <Kb.Icon
         type={Styles.isMobile ? 'icon-fancy-stellar-sending-desktop' : 'icon-fancy-stellar-sending-mobile'}
         style={Kb.iconCastPlatformStyles(styles.headerIcon)}
       />
       <Kb.Text type="BodySmall" style={styles.headerText}>
-        {/* {`Sending ${!!props.assetConversion && props.assetType} worth`.toUpperCase()} */}
-        {`Sending`.toUpperCase()}
+        {`Sending${props.assetConversion ? ' ' + props.assetType + ' worth' : ''}`.toUpperCase()}
       </Kb.Text>
       <Kb.Text type="HeaderBigExtrabold" style={styles.headerText}>
         {props.assetConversion ? props.assetConversion : props.amount}
@@ -53,7 +46,7 @@ const styles = Styles.styleSheetCreate({
       flexGrow: 1,
       flexShrink: 1,
       flexBasis: 'auto',
-      minHeight: 300,
+      minHeight: 200,
     },
   }),
   headerContent: Styles.platformStyles({

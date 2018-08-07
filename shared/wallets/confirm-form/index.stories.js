@@ -27,10 +27,9 @@ const confirmProps = {
 }
 
 const publicMemo = "Here's some lumens!"
-const encryptedNote = `
-  Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex, dolorem commodi? Qui ullam accusantium perferendis mollitia fugit quas nobis tenetur expedita enim a molestias eligendi voluptas perspiciatis, earum vero tempore explicabo placeat, repellendus fugiat ducimus sed! Architecto, rem, distinctio similique, velit in sapiente eius nesciunt dolores asperiores dolorem quos vel.
+const encryptedNote = `Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex, dolorem commodi? Qui ullam accusantium perferendis mollitia fugit quas nobis tenetur expedita enim a molestias eligendi voluptas perspiciatis, earum vero tempore explicabo placeat, repellendus fugiat ducimus sed! Architecto, rem, distinctio similique, velit in sapiente eius nesciunt dolores asperiores dolorem quos vel.
 
-  Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+Lorem ipsum dolor sit amet, consectetur adipisicing elit.
 `
 const banner = {
   bannerBackground: 'Announcements',

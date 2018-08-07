@@ -23,11 +23,11 @@ const Participants = (props: Props) => (
       />
     </Kb.Box2>
     <Kb.Divider />
-    <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.row}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
       <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
         To:
       </Kb.Text>
-      <Kb.Avatar size={32} />
+      <Kb.Avatar size={32} style={Kb.avatarCastPlatformStyles(styles.avatar)} />
       <Kb.Box2 direction="vertical">
         <Kb.ConnectedUsernames type="BodySmall" usernames={[props.receivingUsername]} />
         <Kb.Text type="BodyTiny">{props.receivingFullName}</Kb.Text>
@@ -43,13 +43,26 @@ const styles = Styles.styleSheetCreate({
   row: {
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
-    paddingTop: 7.5,
-    paddingBottom: 7.5,
+    paddingTop: Styles.globalMargins.tiny,
+    paddingBottom: Styles.globalMargins.tiny,
     alignItems: 'center',
   },
-  headingText: {
-    color: Styles.globalColors.blue,
+  avatar: {
+    marginRight: Styles.globalMargins.tiny,
   },
+  headingText: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.blue,
+    },
+    isElectron: {
+      marginRight: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      width: 40,
+      textAlign: 'right',
+      marginRight: Styles.globalMargins.small,
+    },
+  }),
 })
 
 export default Participants

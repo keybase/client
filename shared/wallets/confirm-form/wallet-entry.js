@@ -17,15 +17,16 @@ const WalletEntry = (props: WalletEntryProps) => {
     <Kb.Box2
       style={Styles.collapseStyles([styles.containerBox, props.style])}
       direction="horizontal"
+      gap="tiny"
       fullWidth={true}
     >
       <Kb.Icon
-        type="icon-wallet-64"
+        type={Styles.isMobile ? 'icon-wallet-32' : 'icon-wallet-64'}
         color={Styles.globalColors.darkBlue}
         style={Kb.iconCastPlatformStyles(styles.icon)}
       />
       <Kb.Box2 direction="vertical" style={styles.rightColumn}>
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.user}>
           {props.keybaseUser && (
             <Kb.Avatar
               size={16}
@@ -55,26 +56,23 @@ const rightColumnStyle = Styles.platformStyles({
 
 const styles = Styles.styleSheetCreate({
   avatar: {marginRight: Styles.globalMargins.xtiny},
-
   icon: {
     alignSelf: 'center',
     height: 32,
-    marginLeft: Styles.globalMargins.tiny,
-    marginRight: Styles.globalMargins.tiny,
   },
-
   rightColumn: rightColumnStyle,
-
   title: {
     ...Styles.globalStyles.fontSemibold,
     ...rightColumnStyle,
     color: Styles.globalColors.darkBlue,
   },
-
   amount: {
     ...rightColumnStyle,
     color: Styles.globalColors.black_40,
     fontSize: 11,
+  },
+  user: {
+    alignItems: 'center',
   },
 })
 
