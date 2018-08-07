@@ -185,7 +185,7 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	useRemoteMock = false
 	tc := ctc.world.Tcs[users[0].Username]
 	store := attachments.NewStoreTesting(logger.NewTestLogger(t), nil)
-	fetcher := NewCachingAttachmentFetcher(tc.Context(), store, 1)
+	fetcher := NewCachingAttachmentFetcher(tc.Context(), store, 5)
 	ri := ctc.as(t, users[0]).ri
 	d, err := libkb.RandHexString("", 8)
 	require.NoError(t, err)
@@ -223,7 +223,14 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	body := msgRes.Messages[0].Valid().MessageBody
 	require.NotNil(t, body.Attachment().Preview)
 
+	t.Logf("remote preview path: %s", body.Attachment().Preview.Path)
+	t.Logf("remote object path: %s", body.Attachment().Object.Path)
 	found, path, err := fetcher.localAssetPath(context.TODO(), *body.Attachment().Preview)
+	require.NoError(t, err)
+	require.True(t, found)
+	t.Logf("found path: %s", path)
+
+	found, path, err = fetcher.localAssetPath(context.TODO(), body.Attachment().Object)
 	require.NoError(t, err)
 	require.True(t, found)
 	t.Logf("found path: %s", path)
