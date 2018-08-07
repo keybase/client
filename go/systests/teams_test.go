@@ -80,7 +80,7 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	if before.Generation() != 1 {
 		t.Errorf("generation before rotate: %d, expected 1", before.Generation())
 	}
-	secretBefore := before.Data.PerTeamKeySeeds[before.Generation()].Seed.ToBytes()
+	secretBefore := before.Data.PerTeamKeySeedsUnverified[before.Generation()].Seed.ToBytes()
 
 	// User1 should get a gregor that the team he was just added to changed.
 	tt.users[1].waitForTeamChangedGregor(teamID, keybase1.Seqno(2))
@@ -99,7 +99,7 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	if after.Generation() != 2 {
 		t.Errorf("generation after rotate: %d, expected 2", after.Generation())
 	}
-	secretAfter := after.Data.PerTeamKeySeeds[after.Generation()].Seed.ToBytes()
+	secretAfter := after.Data.PerTeamKeySeedsUnverified[after.Generation()].Seed.ToBytes()
 	if libkb.SecureByteArrayEq(secretAfter, secretBefore) {
 		t.Fatal("team secret did not change when rotated")
 	}

@@ -114,7 +114,7 @@ func TestLoaderKeyGen(t *testing.T) {
 	// Require that a team is at this key generation
 	requireGen := func(team *keybase1.TeamData, generation int) {
 		require.NotNil(t, team)
-		require.Len(t, team.PerTeamKeySeeds, generation)
+		require.Len(t, team.PerTeamKeySeedsUnverified, generation)
 		require.Len(t, team.Chain.PerTeamKeys, generation)
 	}
 
@@ -915,8 +915,8 @@ func TestLoaderCORE_8445(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, subBStale.Data)
 	require.False(t, subBStale.Data.Secretless)
-	require.NotNil(t, subBStale.Data.PerTeamKeySeeds)
-	_, ok := subBStale.Data.PerTeamKeySeeds[1]
+	require.NotNil(t, subBStale.Data.PerTeamKeySeedsUnverified)
+	_, ok := subBStale.Data.PerTeamKeySeedsUnverified[1]
 	require.True(t, ok)
 	require.NotNil(t, subBStale.Data.ReaderKeyMasks)
 	require.Len(t, subBStale.Data.ReaderKeyMasks[keybase1.TeamApplication_CHAT], 0, "missing rkms")
@@ -933,8 +933,8 @@ func TestLoaderCORE_8445(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, subB.Data)
 	require.False(t, subB.Data.Secretless)
-	require.NotNil(t, subB.Data.PerTeamKeySeeds)
-	_, ok = subB.Data.PerTeamKeySeeds[1]
+	require.NotNil(t, subB.Data.PerTeamKeySeedsUnverified)
+	_, ok = subB.Data.PerTeamKeySeedsUnverified[1]
 	require.True(t, ok)
 	require.NotNil(t, subB.Data.ReaderKeyMasks)
 	require.Len(t, subB.Data.ReaderKeyMasks[keybase1.TeamApplication_CHAT], 1, "number of chat rkms")
