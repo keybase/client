@@ -200,8 +200,6 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             rowsMax={3}
             rowsMin={1}
           />
-
-          {this.props.typing.size > 0 && <Typing />}
           <Action
             hasText={this.state.hasText}
             onSubmit={this._onSubmit}
@@ -214,6 +212,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             explodingModeSeconds={this.props.explodingModeSeconds}
           />
         </Box>
+        {this.props.typing.size > 0 && <Typing />}
       </Box>
     )
   }
@@ -369,18 +368,13 @@ const styles = styleSheetCreate({
     width: '100%',
   },
   typing: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    alignSelf: 'center',
-    borderRadius: 10,
-    height: 20,
-    justifyContent: 'center',
-    marginRight: globalMargins.tiny,
-    paddingLeft: globalMargins.tiny,
-    paddingRight: globalMargins.tiny,
+    bottom: 0,
+    left: 6,
+    position: 'absolute',
   },
   typingIcon: {
-    width: 20,
+    height: 15,
+    width: 15,
   },
 })
 
