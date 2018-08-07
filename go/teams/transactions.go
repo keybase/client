@@ -417,7 +417,7 @@ func (tx *AddMemberTx) AddMemberByAssertion(ctx context.Context, assertion strin
 	if err != nil {
 		return "", uv, false, err
 	}
-	g.Log.Debug("team %s invite sbs member %s/%s", team.Name(), typ, name)
+	g.Log.CDebugf(ctx, "team %s invite sbs member %s/%s", team.Name(), typ, name)
 	if role.IsOrAbove(keybase1.TeamRole_OWNER) {
 		return "", uv, false, NewAttemptedInviteSocialOwnerError(assertion)
 	}
