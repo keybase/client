@@ -258,7 +258,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
               borderColor: this.props.explodingModeSeconds
                 ? globalColors.black_75
                 : this.props.isEditing
-                  ? globalColors.orange
+                  ? globalColors.black_20
                   : globalColors.black_20,
               borderRadius: 4,
               borderStyle: 'solid',
@@ -267,53 +267,62 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
               marginRight: globalMargins.small,
             }}
           >
-            <HoverBox
-              className={this.props.isEditing ? 'editing' : ''}
-              onClick={this._toggleShowingMenu}
-              ref={this.props.setAttachmentRef}
-              style={collapseStyles([
-                styles.explodingIconContainer,
-                {
-                  backgroundColor: this.props.explodingModeSeconds
-                    ? globalColors.black_75
-                    : this.props.isEditing
-                      ? globalColors.yellow3
-                      : globalColors.white,
-                },
-                platformStyles({
-                  isElectron: {
-                    borderRight: `1px solid ${
-                      this.props.isEditing ? globalColors.orange : globalColors.black_20
-                    }`,
-                    cursor: this.props.isEditing ? 'not-allowed' : 'pointer',
+            {!this.props.isEditing && (
+              <HoverBox
+                className={this.props.isEditing ? 'editing' : ''}
+                onClick={this._toggleShowingMenu}
+                ref={this.props.setAttachmentRef}
+                style={collapseStyles([
+                  styles.explodingIconContainer,
+                  {
+                    backgroundColor: this.props.explodingModeSeconds
+                      ? globalColors.black_75
+                      : this.props.isEditing
+                        ? globalColors.yellow3
+                        : globalColors.white,
                   },
-                }),
-              ])}
-            >
-              {this.props.explodingModeSeconds ? (
-                <Text
-                  type="BodyTinyBold"
-                  style={{bottom: globalMargins.tiny, color: globalColors.white, position: 'relative'}}
-                >
-                  {formatDurationShort(this.props.explodingModeSeconds * 1000)}
-                </Text>
-              ) : (
-                <Icon
-                  className="timer"
-                  onClick={this.props.isEditing ? undefined : this._toggleShowingMenu}
-                  style={platformStyles({
-                    common: {
-                      bottom: 6,
-                      position: 'relative',
-                    },
+                  platformStyles({
                     isElectron: {
-                      cursor: 'inherit',
+                      borderRight: `1px solid ${
+                        this.props.isEditing ? globalColors.orange : globalColors.black_20
+                      }`,
+                      cursor: this.props.isEditing ? 'not-allowed' : 'pointer',
                     },
-                  })}
-                  type="iconfont-timer"
-                />
-              )}
-            </HoverBox>
+                  }),
+                ])}
+              >
+                {this.props.explodingModeSeconds ? (
+                  <Text
+                    type="BodyTinyBold"
+                    style={{bottom: globalMargins.tiny, color: globalColors.white, position: 'relative'}}
+                  >
+                    {formatDurationShort(this.props.explodingModeSeconds * 1000)}
+                  </Text>
+                ) : (
+                  <Icon
+                    className="timer"
+                    onClick={this.props.isEditing ? undefined : this._toggleShowingMenu}
+                    style={platformStyles({
+                      common: {
+                        bottom: 6,
+                        position: 'relative',
+                      },
+                      isElectron: {
+                        cursor: 'inherit',
+                      },
+                    })}
+                    type="iconfont-timer"
+                  />
+                )}
+              </HoverBox>
+            )}
+            {this.props.isEditing && (
+              <Box onClick={this.props.onCancelEditing} style={styles.cancelEditing}>
+                <Text style={styles.cancelEditingText} type="BodySmallSemibold">
+                  Cancel
+                </Text>
+              </Box>
+            )}
             <input
               type="file"
               style={{display: 'none'}}
@@ -470,7 +479,7 @@ const styleMentionHud = {
   borderRadius: 4,
   boxShadow: '0 0 8px 0 rgba(0, 0, 0, 0.2)',
   height: 224,
-  marginLeft: globalMargins.tiny,
+  marginLeft: globalMargins.small,
   marginRight: globalMargins.small,
   width: '100%',
 }
@@ -508,6 +517,26 @@ const styleFooter = {
 }
 
 const styles = styleSheetCreate({
+  cancelEditing: platformStyles({
+    common: {
+      ...globalStyles.flexBoxColumn,
+      alignItems: 'center',
+      alignSelf: 'stretch',
+      backgroundColor: globalColors.lightGrey2,
+      borderRadius: 2,
+      justifyContent: 'center',
+      margin: 2,
+      marginRight: 0,
+      paddingLeft: globalMargins.tiny,
+      paddingRight: globalMargins.tiny,
+    },
+    isElectron: {
+      cursor: 'pointer',
+    },
+  }),
+  cancelEditingText: {
+    color: globalColors.black_75,
+  },
   explodingIconContainer: platformStyles({
     common: {
       ...globalStyles.flexBoxColumn,
