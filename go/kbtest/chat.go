@@ -251,6 +251,13 @@ func (m *TlfMock) Lookup(ctx context.Context, tlfName string, public bool) (res 
 
 func (m *TlfMock) EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool) (types.CryptKey, error) {
+	if public {
+		var zero [libkb.NaclDHKeySecretSize]byte
+		return keybase1.CryptKey{
+			KeyGeneration: 1,
+			Key:           keybase1.Bytes32(zero),
+		}, nil
+	}
 	ni, err := m.Lookup(ctx, tlfName, public)
 	if err != nil {
 		return nil, err
@@ -262,6 +269,13 @@ func (m *TlfMock) EncryptionKey(ctx context.Context, tlfName string, tlfID chat1
 func (m *TlfMock) DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
 	keyGeneration int, kbfsEncrypted bool) (types.CryptKey, error) {
+	if public {
+		var zero [libkb.NaclDHKeySecretSize]byte
+		return keybase1.CryptKey{
+			KeyGeneration: 1,
+			Key:           keybase1.Bytes32(zero),
+		}, nil
+	}
 	ni, err := m.Lookup(ctx, tlfName, public)
 	if err != nil {
 		return nil, err
