@@ -3,14 +3,10 @@
 import * as WaitingGen from './waiting-gen'
 import * as LoginGen from './login-gen'
 import * as Constants from '../constants/login'
-import * as RouteConstants from '../constants/route-tree'
-import * as RouteTree from './route-tree'
 import * as Saga from '../util/saga'
-import * as Tabs from '../constants/tabs'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
-import {type TypedState} from '../constants/reducer'
 import {niceError} from '../util/errors'
 import HiddenString from '../util/hidden-string'
 
@@ -19,42 +15,6 @@ import HiddenString from '../util/hidden-string'
 export function setupLoginHMR(cb: () => void) {
   module.hot && module.hot.accept(['../app/routes-app', '../app/routes-login'], cb)
 }
-
-// TODO entirely change how this works
-/*
-
-    if (initialState) {
-      const {url, tab, conversation} = (initialState: InitialState)
-      if (url) {
-        yield Saga.put(ConfigGen.createLink({link: url}))
-      } else if (tab && Tabs.isValidInitialTab(tab)) {
-        if (tab === Tabs.chatTab && conversation && ChatConstants.isValidConversationIDKey(conversation)) {
-          yield Saga.put(
-            Chat2Gen.createSelectConversation({
-              conversationIDKey: ChatTypes.stringToConversationIDKey(conversation),
-              reason: 'savedLastState',
-            })
-          )
-          yield Saga.put(
-            RouteTree.navigateTo(
-              isMobile ? [Tabs.chatTab, 'conversation'] : [Tabs.chatTab],
-              null,
-              'initial-restore'
-            )
-          )
-        } else {
-          yield Saga.put(RouteTree.navigateTo([tab], null, 'initial-restore'))
-        }
-      } else {
-        yield Saga.put(RouteTree.navigateTo([Tabs.peopleTab], null, 'initial-restore'))
-      }
-*/
-
-// const maybeNavigateToLoginRoot = (state: TypedState) =>
-// // naving but not on login
-// state.routeTree.routeState && state.routeTree.routeState.selected !== Tabs.loginTab
-// ? null
-// : Saga.put(RouteTree.navigateTo([], [Tabs.loginTab]))
 
 const cancelDesc = 'Canceling RPC'
 const cancelOnCallback = (params, response, state) => {

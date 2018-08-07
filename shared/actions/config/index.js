@@ -220,7 +220,7 @@ const routeToInitialScreen = (state: TypedState) => {
         Saga.put(
           ChatGen.createSelectConversation({
             conversationIDKey: state.config.startupConversation,
-            reason: 'push',
+            reason: state.config.startupWasFromPush ? 'push' : 'savedLastState',
           })
         ),
         Saga.put(ChatGen.createNavigateToThread()),
