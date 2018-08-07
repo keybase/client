@@ -100,14 +100,16 @@ const TeamTabs = (props: TeamTabsProps) => {
 
   const selected = tabs.find(tab => tab.key === props.selectedTab)
   return (
-    <Tabs
-      clickableBoxStyle={styles.clickableBox}
-      tabs={tabs}
-      selected={selected}
-      onSelect={onSelect}
-      style={styles.tabContainer}
-      tabStyle={styles.tab}
-    />
+    <Box style={styles.container}>
+      <Tabs
+        clickableBoxStyle={styles.clickableBox}
+        tabs={tabs}
+        selected={selected}
+        onSelect={onSelect}
+        style={styles.tabContainer}
+        tabStyle={styles.tab}
+      />
+    </Box>
   )
 }
 
@@ -121,6 +123,9 @@ const styles = styleSheetCreate({
       flexGrow: 1,
     },
   }),
+  container: {
+    backgroundColor: globalColors.white,
+  },
   icon: {
     alignSelf: 'center',
   },
