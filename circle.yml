@@ -134,7 +134,8 @@ jobs:
     - save_cache:
         key: v1-dep-{{ .Branch }}-{{ epoch }}
         paths:
-        - ~/.gradle
+        # We used to cache ~/.gradle, but that would cache every new
+        # Android build. Probably doesn't help that much anyway.
         - ~/downloads
         - ~/.cache/yarn
         - /tmp/go-android/bin
