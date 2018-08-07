@@ -81,12 +81,14 @@ const styles = Styles.styleSheetCreate({
     marginRight: Styles.globalMargins.tiny,
   },
   buttonContainer: Styles.platformStyles({
+    common: {
+      flexShrink: 0,
+      alignSelf: 'flex-end',
+    },
     isElectron: {
       borderTopStyle: 'solid',
       borderTopWidth: 1,
       borderTopColor: Styles.globalColors.black_05,
-      flexShrink: 0,
-      alignSelf: 'flex-end',
     },
   }),
   button: {
