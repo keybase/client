@@ -50,9 +50,6 @@ const styles = Styles.styleSheetCreate({
   headingText: {
     color: Styles.globalColors.blue,
   },
-  walletRow: {
-    height: undefined,
-  },
 })
 
 export default Participants
