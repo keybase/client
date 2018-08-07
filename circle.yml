@@ -53,16 +53,6 @@ jobs:
     - run: nvm install $NODE_VERSION && nvm alias default $NODE_VERSION
     - run: sudo update-alternatives --set java /usr/lib/jvm/jdk1.8.0/bin/java; sudo update-alternatives --set javac /usr/lib/jvm/jdk1.8.0/bin/javac; echo -e "export JAVA_HOME=/usr/lib/jvm/jdk1.8.0" >> $BASH_ENV
 
-    # Restore the dependency cache
-    - restore_cache:
-        keys:
-        # This branch if available
-        - v1-dep-{{ .Branch }}-
-        # Default branch if not
-        - v1-dep-master-
-        # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
-        - v1-dep-
-
     # - run: nvm ls-remote
     - run: sudo apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg
     - run: echo "deb http://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
@@ -129,15 +119,6 @@ jobs:
           _JAVA_OPTIONS: -Xms512m -Xmx2048m
           GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"
         command: ./gradlew assembleReleaseUnsigned -x bundleReleaseUnsignedJsAndAssets
-
-    # Save dependency cache
-    - save_cache:
-        key: v1-dep-{{ .Branch }}-{{ epoch }}
-        paths:
-        - ~/downloads
-        - ~/.cache/yarn
-        - /tmp/go-android/bin
-        - /tmp/go-android/pkg
 
     # TODO: Run device tests (see old versions of this file).
 
