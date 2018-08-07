@@ -161,7 +161,7 @@ const loadDaemonAccounts = (_: any, action: DevicesGen.RevokedPayload | ConfigGe
         Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: 'config.getAccounts'})),
         makeCall,
       ])
-    case DevicesGen.RevokedPayload:
+    case DevicesGen.revoked:
       return makeCall
     default:
       /*::

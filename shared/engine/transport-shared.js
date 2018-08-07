@@ -61,7 +61,7 @@ function rpcLog(info: {method: string, reason?: string, extra?: Object, type: st
   requestIdleCallback(
     () => {
       const params = [info.reason, info.method, info.extra].filter(Boolean)
-      LocalConsole.green(prefix, info.method, ...params)
+      LocalConsole.green(prefix, info.method, info.reason, ...params)
     },
     {timeout: 1e3}
   )

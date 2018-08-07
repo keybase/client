@@ -31,7 +31,6 @@ const RootLogin = connect(mapStateToProps)(_RootLogin)
 
 const addTags = component => ({component, tags: makeLeafTags({underStatusBar: true})})
 
-// $FlowIssue
 const recursiveLazyRoutes = I.Seq({
   feedback: addTags(Feedback),
   login: addTags(RootLogin),

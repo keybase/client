@@ -45,6 +45,9 @@ class Keybase extends Component<any> {
       setupLocalDebug(this.store)
       this.store.dispatch(setInitialRouteDef(loginRouteTree))
       makeEngine(this.store.dispatch, this.store.getState)
+
+      // On mobile there is no installer
+      this.store.dispatch(ConfigGen.createInstallerRan())
     } else {
       this.store = global.store
     }
