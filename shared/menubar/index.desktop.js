@@ -3,7 +3,17 @@ import Folders, {type FolderType, type Props as FolderProps} from '../folders/in
 import React, {Component} from 'react'
 import UserAdd from './user-add.desktop'
 import flags from '../util/feature-flags'
-import {Box, Box2, Icon, Text, Button, FloatingMenu, Badge, ButtonBar, type IconType} from '../common-adapters'
+import {
+  Box,
+  Box2,
+  Icon,
+  Text,
+  Button,
+  FloatingMenu,
+  Badge,
+  ButtonBar,
+  type IconType,
+} from '../common-adapters'
 import {
   fsTab,
   peopleTab,
@@ -15,7 +25,14 @@ import {
   settingsTab,
   type Tab,
 } from '../constants/tabs'
-import {globalStyles, globalColors, globalMargins, desktopStyles, collapseStyles, platformStyles} from '../styles'
+import {
+  globalStyles,
+  globalColors,
+  globalMargins,
+  desktopStyles,
+  collapseStyles,
+  platformStyles,
+} from '../styles'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash-es'
@@ -116,11 +133,7 @@ class MenubarRender extends Component<Props, State> {
           <Icon type={iconType} color={globalColors.black_20} fontSize={20} />
           {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', left: 14, top: -2}} />}
         </Box>
-        <Text
-          className="title"
-          type="Body"
-          style={collapseStyles([{color: undefined}])}
-        >
+        <Text className="title" type="Body" style={collapseStyles([{color: undefined}])}>
           {title}
         </Text>
       </Box2>
@@ -129,10 +142,30 @@ class MenubarRender extends Component<Props, State> {
 
   _menuItems(countMap: Object) {
     return [
-      ...(flags.walletsEnabled ? [{title: 'Wallet', view: this._menuView('Wallet', 'iconfont-nav-wallets', countMap[walletsTab] || 0), onClick: () => this.props.openApp(walletsTab)}] : []),
-      {title: 'Git', view: this._menuView('Git', 'iconfont-nav-git', countMap[gitTab] || 0), onClick: () => this.props.openApp(gitTab)},
-      {title: 'Devices', view: this._menuView('Devices', 'iconfont-nav-devices', countMap[devicesTab] || 0), onClick: () => this.props.openApp(devicesTab)},
-      {title: 'Settings', view: this._menuView('Settings', 'iconfont-nav-settings', countMap[settingsTab] || 0), onClick: () => this.props.openApp(settingsTab)},
+      ...(flags.walletsEnabled
+        ? [
+            {
+              title: 'Wallet',
+              view: this._menuView('Wallet', 'iconfont-nav-wallets', countMap[walletsTab] || 0),
+              onClick: () => this.props.openApp(walletsTab),
+            },
+          ]
+        : []),
+      {
+        title: 'Git',
+        view: this._menuView('Git', 'iconfont-nav-git', countMap[gitTab] || 0),
+        onClick: () => this.props.openApp(gitTab),
+      },
+      {
+        title: 'Devices',
+        view: this._menuView('Devices', 'iconfont-nav-devices', countMap[devicesTab] || 0),
+        onClick: () => this.props.openApp(devicesTab),
+      },
+      {
+        title: 'Settings',
+        view: this._menuView('Settings', 'iconfont-nav-settings', countMap[settingsTab] || 0),
+        onClick: () => this.props.openApp(settingsTab),
+      },
       'Divider',
       ...(this.props.loggedIn ? [{title: 'Open main app', onClick: () => this.props.openApp()}] : []),
       {title: 'Open folders', onClick: () => this.props.openApp(fsTab)},
@@ -189,14 +222,9 @@ class MenubarRender extends Component<Props, State> {
     }
 
     const badgeTypesInHeader: Array<Tab> = [peopleTab, chatTab, fsTab, teamsTab]
-    const badgesInMenu = [
-      ...(flags.walletsEnabled ? [walletsTab] : []),
-      gitTab,
-      devicesTab,
-      settingsTab,
-    ]
+    const badgesInMenu = [...(flags.walletsEnabled ? [walletsTab] : []), gitTab, devicesTab, settingsTab]
     const badgeCountInMenu = badgesInMenu.reduce(
-      (acc, val) => this.props.badgeInfo[val] ? acc + this.props.badgeInfo[val] : acc,
+      (acc, val) => (this.props.badgeInfo[val] ? acc + this.props.badgeInfo[val] : acc),
       0
     )
 
@@ -234,9 +262,9 @@ class MenubarRender extends Component<Props, State> {
               type="iconfont-nav-more"
               ref={this.attachmentRef}
             />
-            {!!badgeCountInMenu && <Badge
-              badgeNumber={badgeCountInMenu}
-              badgeStyle={{position: 'absolute', left: 14, top: -2}} />}
+            {!!badgeCountInMenu && (
+              <Badge badgeNumber={badgeCountInMenu} badgeStyle={{position: 'absolute', left: 14, top: -2}} />
+            )}
           </Box>
           <FloatingMenu
             items={this._menuItems(this.props.badgeInfo || {})}
@@ -330,7 +358,7 @@ const BadgeIcon = ({
       onClick={() => openApp(tab)}
     >
       <Icon color={globalColors.darkBlue4} hoverColor={globalColors.black_75} fontSize={22} type={iconType} />
-      {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', left: 14, top: -2}} />}
+      {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', top: -6, right: -8}} />}
     </Box>
   )
 }
