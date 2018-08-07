@@ -428,6 +428,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	var err error
 	var didRepoll bool
+	lkc := newLoadKeyCache()
 
 	// Fetch from cache
 	tracer.Stage("cache load")
@@ -498,7 +499,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	tracer.Stage("backfill")
 	if ret != nil && len(arg.needSeqnos) > 0 {
 		ret, proofSet, parentChildOperations, err = l.fillInStubbedLinks(
-			ctx, arg.me, arg.teamID, ret, arg.needSeqnos, readSubteamID, proofSet, parentChildOperations)
+			ctx, arg.me, arg.teamID, ret, arg.needSeqnos, readSubteamID, proofSet, parentChildOperations, lkc)
 		if err != nil {
 			return nil, err
 		}
@@ -609,7 +610,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		}
 
 		var signer *signerX
-		signer, err = l.verifyLink(ctx, arg.teamID, ret, arg.me, link, fullVerifyCutoff, readSubteamID, proofSet)
+		signer, err = l.verifyLink(ctx, arg.teamID, ret, arg.me, link, fullVerifyCutoff, readSubteamID, proofSet, lkc)
 		if err != nil {
 			return nil, err
 		}
@@ -629,11 +630,17 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		prev = link.LinkID()
 	}
 	preloadCancel()
-	tbs.Log(ctx, "CachedUPAKLoader.LoadV2")
-	tbs.Log(ctx, "CachedUPAKLoader.LoadKeyV2") // note LoadKeyV2 calls Load2
-	tbs.Log(ctx, "SigChain.LoadFromServer.ReadAll")
 	tbs.Log(ctx, "TeamLoader.verifyLink")
 	tbs.Log(ctx, "TeamLoader.applyNewLink")
+	tbs.Log(ctx, "SigChain.LoadFromServer.ReadAll")
+	tbs.Log(ctx, "loadKeyCache.loadKeyV2")
+	if teamEnv.Profile {
+		tbs.Log(ctx, "LoaderContextG.loadKeyV2")
+		tbs.Log(ctx, "CachedUPAKLoader.LoadKeyV2") // note LoadKeyV2 calls Load2
+		tbs.Log(ctx, "CachedUPAKLoader.LoadV2")
+		tbs.Log(ctx, "CachedUPAKLoader.DeepCopy")
+		l.G().Log.CDebugf(ctx, "TeamLoader lkc cache hits: %v", lkc.cacheHits)
+	}
 
 	if ret == nil {
 		return nil, fmt.Errorf("team loader fault: got nil from load2")

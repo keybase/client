@@ -266,6 +266,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 
 	// Shorthands
 	m := arg.MetaContext()
+	m, tbs := arg.m.WithTimeBuckets()
 	g := m.G()
 	ctx := m.Ctx()
 
@@ -308,8 +309,10 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 			return nil, user, err
 		}
 		if needCopy {
+			fin := tbs.Record("CachedUPAKLoader.DeepCopy")
 			tmp := upak.DeepCopy()
 			upak = &tmp
+			fin()
 		}
 		return upak, user, nil
 	}
