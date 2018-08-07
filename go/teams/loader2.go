@@ -25,7 +25,7 @@ import (
 func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 	me keybase1.UserVersion, teamID keybase1.TeamID, state *keybase1.TeamData,
 	needSeqnos []keybase1.Seqno, readSubteamID keybase1.TeamID,
-	proofSet *proofSetT, parentChildOperations []*parentChildOperation) (
+	proofSet *proofSetT, parentChildOperations []*parentChildOperation, lkc *loadKeyCache) (
 	*keybase1.TeamData, *proofSetT, []*parentChildOperation, error) {
 
 	upperLimit := keybase1.Seqno(0)
@@ -63,7 +63,7 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 
 		var signer *signerX
 		var fullVerifyCutoff keybase1.Seqno // Always fullVerify when inflating. No reasoning has been done on whether it could be skipped.
-		signer, err = l.verifyLink(ctx, teamID, state, me, link, fullVerifyCutoff, readSubteamID, proofSet)
+		signer, err = l.verifyLink(ctx, teamID, state, me, link, fullVerifyCutoff, readSubteamID, proofSet, lkc)
 		if err != nil {
 			return state, proofSet, parentChildOperations, err
 		}
@@ -114,7 +114,7 @@ func (l *TeamLoader) checkStubbed(ctx context.Context, arg load2ArgT, link *chai
 }
 
 func (l *TeamLoader) loadUserAndKeyFromLinkInner(ctx context.Context,
-	inner SCChainLinkPayload) (
+	inner SCChainLinkPayload, lkc *loadKeyCache) (
 	signerUV keybase1.UserVersion, key *keybase1.PublicKeyV2NaCl, linkMap linkMapT, err error) {
 	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#loadUserForSigVerification(%d)", int(inner.Seqno)), func() error { return err })()
 	keySection := inner.Body.Key
@@ -123,7 +123,7 @@ func (l *TeamLoader) loadUserAndKeyFromLinkInner(ctx context.Context,
 	}
 	uid := keySection.UID
 	kid := keySection.KID
-	signerUV, key, linkMap, err = l.world.loadKeyV2(ctx, uid, kid)
+	signerUV, key, linkMap, err = lkc.loadKeyV2(l.MetaContext(ctx), l.world, uid, kid)
 	if err != nil {
 		return signerUV, nil, nil, err
 	}
@@ -189,7 +189,7 @@ func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID k
 // Returns the signer, or nil if the link was stubbed
 func (l *TeamLoader) verifyLink(ctx context.Context,
 	teamID keybase1.TeamID, state *keybase1.TeamData, me keybase1.UserVersion, link *chainLinkUnpacked,
-	fullVerifyCutoff keybase1.Seqno, readSubteamID keybase1.TeamID, proofSet *proofSetT) (*signerX, error) {
+	fullVerifyCutoff keybase1.Seqno, readSubteamID keybase1.TeamID, proofSet *proofSetT, lkc *loadKeyCache) (*signerX, error) {
 	ctx, tbs := l.G().CTimeBuckets(ctx)
 	defer tbs.Record("TeamLoader.verifyLink")()
 
@@ -221,7 +221,7 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 
 	var signerUV keybase1.UserVersion
 	if fullVerify {
-		signerUV, err = l.loadUserAndKeyFromLinkInnerAndVerify(ctx, teamID, state, link, signedByKID, proofSet)
+		signerUV, err = l.loadUserAndKeyFromLinkInnerAndVerify(ctx, teamID, state, link, signedByKID, proofSet, lkc)
 		if err != nil {
 			return nil, err
 		}
@@ -277,8 +277,8 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 }
 
 func (l *TeamLoader) loadUserAndKeyFromLinkInnerAndVerify(ctx context.Context, teamID keybase1.TeamID, state *keybase1.TeamData,
-	link *chainLinkUnpacked, signedByKID keybase1.KID, proofSet *proofSetT) (signer keybase1.UserVersion, err error) {
-	signer, key, linkMap, err := l.loadUserAndKeyFromLinkInner(ctx, *link.inner)
+	link *chainLinkUnpacked, signedByKID keybase1.KID, proofSet *proofSetT, lkc *loadKeyCache) (signer keybase1.UserVersion, err error) {
+	signer, key, linkMap, err := l.loadUserAndKeyFromLinkInner(ctx, *link.inner, lkc)
 	if err != nil {
 		return keybase1.UserVersion{}, err
 	}
