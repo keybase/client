@@ -102,6 +102,9 @@ func (t *KBFSNameInfoSource) Lookup(ctx context.Context, tlfName string, public 
 
 func (t *KBFSNameInfoSource) EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool) (types.CryptKey, error) {
+	if public {
+		return publicCryptKey, nil
+	}
 	ni, err := t.Lookup(ctx, tlfName, public)
 	if err != nil {
 		return nil, err
@@ -116,6 +119,9 @@ func (t *KBFSNameInfoSource) EncryptionKey(ctx context.Context, tlfName string, 
 func (t *KBFSNameInfoSource) DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
 	keyGeneration int, kbfsEncrypted bool) (types.CryptKey, error) {
+	if public {
+		return publicCryptKey, nil
+	}
 	ni, err := t.Lookup(ctx, tlfName, public)
 	if err != nil {
 		return nil, err
