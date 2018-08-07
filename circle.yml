@@ -134,16 +134,10 @@ jobs:
     - save_cache:
         key: v1-dep-{{ .Branch }}-{{ epoch }}
         paths:
-        # We used to cache ~/.gradle, but that would cache every new
-        # Android build. Probably doesn't help that much anyway.
         - ~/downloads
         - ~/.cache/yarn
         - /tmp/go-android/bin
         - /tmp/go-android/pkg
-        - /usr/local/android-sdk-linux/tools
-        - /usr/local/android-sdk-linux/ndk-bundle
-        - /usr/local/android-sdk-linux/build-tools/23.0.2
-        - /usr/local/android-sdk-linux/extras/android/m2repository
 
     # TODO: Run device tests (see old versions of this file).
 
