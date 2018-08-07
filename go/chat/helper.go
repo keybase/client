@@ -198,8 +198,7 @@ func (h *Helper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID
 	defer h.Trace(ctx, func() error { return err }, "ChatHelper.UpgradeKBFSToImpteam(%s,%s,%v)",
 		tlfID, tlfName, public)()
 	var cryptKeys []keybase1.CryptKey
-	ni, err := CtxKeyFinder(ctx, h.G()).FindForEncryption(ctx, tlfName, tlfID,
-		chat1.ConversationMembersType_KBFS, public)
+	ni, err := NewKBFSNameInfoSource(h.G()).Lookup(ctx, tlfName, public)
 	if err != nil {
 		return err
 	}

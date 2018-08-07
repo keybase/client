@@ -275,25 +275,12 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 				boxed.ClientHeader.TlfPublic))), nil
 	}
 	keyMembersType := b.getEffectiveMembersType(ctx, boxed, conv.GetMembersType())
-	nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForDecryption(ctx,
+	encryptionKey, err := CtxKeyFinder(ctx, b.G()).FindForDecryption(ctx,
 		tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
 		conv.IsPublic(), boxed.KeyGeneration, keyMembersType == chat1.ConversationMembersType_KBFS)
 	if err != nil {
 		// Check to see if this is a permanent error from the server
 		return chat1.MessageUnboxed{}, b.detectKBFSPermanentServerError(err, tlfName)
-	}
-	var encryptionKey types.CryptKey
-	keys := nameInfo.CryptKeys[keyMembersType]
-	for _, key := range keys {
-		if key.Generation() == boxed.KeyGeneration {
-			encryptionKey = key
-			break
-		}
-	}
-
-	if encryptionKey == nil {
-		err := fmt.Errorf("no key found for generation %d (%d keys checked)", boxed.KeyGeneration, len(keys))
-		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
 	}
 
 	// If the message is exploding, load the ephemeral key.
@@ -1261,8 +1248,6 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 	signingKeyPair libkb.NaclSigningKeyPair) (res *chat1.MessageBoxed, err error) {
 	defer b.Trace(ctx, func() error { return err }, "BoxMessage")()
 	tlfName := msg.ClientHeader.TlfName
-	var encryptionKey types.CryptKey
-
 	if len(tlfName) == 0 {
 		return nil, NewBoxingError("blank TLF name given", true)
 	}
@@ -1276,27 +1261,11 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 		return nil, fmt.Errorf("cannot use exploding messages with V1")
 	}
 
-	nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForEncryption(ctx,
+	encryptionKey, err := CtxKeyFinder(ctx, b.G()).FindForEncryption(ctx,
 		tlfName, msg.ClientHeader.Conv.Tlfid, membersType,
 		msg.ClientHeader.TlfPublic)
-
 	if err != nil {
 		return nil, NewBoxingCryptKeysError(err)
-	}
-	msg.ClientHeader.TlfName = nameInfo.CanonicalName
-	if msg.ClientHeader.TlfPublic {
-		encryptionKey = &publicCryptKey
-	} else {
-		for _, key := range nameInfo.CryptKeys[membersType] {
-			if encryptionKey == nil || key.Generation() > encryptionKey.Generation() {
-				encryptionKey = key
-			}
-		}
-	}
-
-	if encryptionKey == nil {
-		msg := fmt.Sprintf("no key found for tlf %q (public: %v)", tlfName, msg.ClientHeader.TlfPublic)
-		return nil, NewBoxingError(msg, false)
 	}
 
 	// If the message is exploding, load the ephemeral key, and tweak the

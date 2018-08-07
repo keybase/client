@@ -17,10 +17,10 @@ type KeyFinder interface {
 	FindUntrusted(ctx context.Context, name string, membersType chat1.ConversationMembersType, public bool) (*types.NameInfoUntrusted, error)
 	Find(ctx context.Context, name string, membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error)
 	FindForEncryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error)
+		membersType chat1.ConversationMembersType, public bool) (types.CryptKey, error)
 	FindForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool, keyGeneration int,
-		kbfsEncrypted bool) (*types.NameInfo, error)
+		kbfsEncrypted bool) (types.CryptKey, error)
 	EphemeralKeyForEncryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error)
 	EphemeralKeyForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
@@ -36,7 +36,9 @@ type KeyFinderImpl struct {
 	utils.DebugLabeler
 	sync.Mutex
 
-	keys map[string]*types.NameInfo
+	keys    map[string]*types.NameInfo
+	decKeys map[string]types.CryptKey
+	encKeys map[string]types.CryptKey
 
 	// Testing
 	testingNameInfoSource types.NameInfoSource
@@ -48,6 +50,8 @@ func NewKeyFinder(g *globals.Context) KeyFinder {
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "KeyFinder", false),
 		keys:         make(map[string]*types.NameInfo),
+		decKeys:      make(map[string]types.CryptKey),
+		encKeys:      make(map[string]types.CryptKey),
 	}
 }
 
@@ -143,61 +147,44 @@ func (k *KeyFinderImpl) Find(ctx context.Context, name string,
 // FindForEncryption finds keys up-to-date enough for encrypting.
 // Ignores tlfName or teamID based on membersType.
 func (k *KeyFinderImpl) FindForEncryption(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (res *types.NameInfo, err error) {
+	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, err error) {
 
 	ckey := k.encCacheKey(tlfName, tlfID, membersType, public)
-	existing, ok := k.lookupKey(ckey)
+	existing, ok := k.encKeys[ckey]
 	if ok {
 		return existing, nil
 	}
 	defer func() {
 		if err == nil {
-			k.writeKey(ckey, res)
+			k.encKeys[ckey] = res
 		}
 	}()
 
-	if res, err = k.createNameInfoSource(ctx, membersType).EncryptionKeys(ctx, tlfName, tlfID,
-		membersType, public); err != nil {
-		return nil, err
-	}
-	if public {
-		res.CryptKeys[membersType] = append(res.CryptKeys[membersType], publicCryptKey)
-	}
-	return res, nil
+	return k.createNameInfoSource(ctx, membersType).EncryptionKey(ctx, tlfName, tlfID,
+		membersType, public)
 }
 
 // FindForDecryption ignores tlfName or teamID based on membersType.
 func (k *KeyFinderImpl) FindForDecryption(ctx context.Context,
 	tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int, kbfsEncrypted bool) (res *types.NameInfo, err error) {
-
-	ckey := k.decCacheKey(tlfName, tlfID, membersType, public, kbfsEncrypted)
-	existing, ok := k.lookupKey(ckey)
+	keyGeneration int, kbfsEncrypted bool) (res types.CryptKey, err error) {
+	effectiveMt := membersType
+	if kbfsEncrypted {
+		effectiveMt = chat1.ConversationMembersType_KBFS
+	}
+	ckey := k.decCacheKey(tlfName, tlfID, effectiveMt, public, kbfsEncrypted)
+	existing, ok := k.decKeys[ckey]
 	if ok {
-		effectiveMt := membersType
-		if kbfsEncrypted {
-			effectiveMt = chat1.ConversationMembersType_KBFS
-		}
-		storedKeys := existing.CryptKeys[effectiveMt]
-		if len(storedKeys) > 0 && storedKeys[len(storedKeys)-1].Generation() >= keyGeneration {
-			return existing, nil
-		}
+		return existing, nil
 	}
 	defer func() {
 		if err == nil {
-			k.writeKey(ckey, res)
+			k.decKeys[ckey] = res
 		}
 	}()
-
-	if res, err = k.createNameInfoSource(ctx, membersType).DecryptionKeys(ctx, tlfName, tlfID,
-		membersType, public, keyGeneration, kbfsEncrypted); err != nil {
-		return nil, err
-	}
-	if public {
-		res.CryptKeys[membersType] = append(res.CryptKeys[membersType], publicCryptKey)
-	}
-	return res, nil
+	return k.createNameInfoSource(ctx, membersType).DecryptionKey(ctx, tlfName, tlfID,
+		membersType, public, keyGeneration, kbfsEncrypted)
 }
 
 func (k *KeyFinderImpl) EphemeralKeyForEncryption(ctx context.Context, tlfName string, tlfID chat1.TLFID,

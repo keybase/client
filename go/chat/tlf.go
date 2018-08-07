@@ -100,15 +100,31 @@ func (t *KBFSNameInfoSource) Lookup(ctx context.Context, tlfName string, public 
 	return res, lastErr
 }
 
-func (t *KBFSNameInfoSource) EncryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error) {
-	return t.Lookup(ctx, tlfName, public)
+func (t *KBFSNameInfoSource) EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (types.CryptKey, error) {
+	ni, err := t.Lookup(ctx, tlfName, public)
+	if err != nil {
+		return nil, err
+	}
+	if len(ni.CryptKeys[chat1.ConversationMembersType_KBFS]) == 0 {
+		return nil, errors.New("no encryption keys for tlf")
+	}
+	return ni.CryptKeys[chat1.ConversationMembersType_KBFS][0], nil
 }
 
-func (t *KBFSNameInfoSource) DecryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+func (t *KBFSNameInfoSource) DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int, kbfsEncrypted bool) (*types.NameInfo, error) {
-	return t.Lookup(ctx, tlfName, public)
+	keyGeneration int, kbfsEncrypted bool) (types.CryptKey, error) {
+	ni, err := t.Lookup(ctx, tlfName, public)
+	if err != nil {
+		return nil, err
+	}
+	for _, key := range ni.CryptKeys[chat1.ConversationMembersType_KBFS] {
+		if key.Generation() == keyGeneration {
+			return key, nil
+		}
+	}
+	return nil, NewDecryptionKeyNotFoundError(keyGeneration, public, kbfsEncrypted)
 }
 
 func (t *KBFSNameInfoSource) EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
