@@ -8,7 +8,7 @@ import {
   globalStyles,
   styleSheetCreate,
   isMobile,
-  isIOS,
+  isAndroid,
   platformStyles,
 } from '../../styles'
 
@@ -28,7 +28,7 @@ const PaperKey = (props: Props) => (
     <Box2
       direction="vertical"
       style={styles.contents}
-      centerChildren={isIOS /* android keyboardAvoiding doesnt work well */}
+      centerChildren={!isAndroid /* android keyboardAvoiding doesnt work well */}
       gap={isMobile ? 'tiny' : 'medium'}
     >
       <Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
