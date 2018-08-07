@@ -823,12 +823,9 @@ func (e *loginProvision) chooseGPGKeyAndMethod(m libkb.MetaContext) (*libkb.GpgP
 	matches, err := e.matchingGPGKeys(m)
 	if err != nil {
 		if _, ok := err.(libkb.NoSecretKeyError); ok {
-			// no match found
-			// tell the user they need to get a gpg
-			// key onto this device.
-			m.G().Log.Error("There was no GPG private key found on this device, so Keybase is " +
-				"unable to login using the keypair. Choose another method or add the associated" +
-				"private key to the local GPG keyring.")
+			m.G().Log.Error("The GPG keypair associated with your account was not found on " +
+				"this device, so Keybase is unable to login. Please add your keypair to the " +
+				"GPG keyring or reset your account.")
 		}
 		return nil, nilMethod, err
 	}
