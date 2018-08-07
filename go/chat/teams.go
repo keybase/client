@@ -45,7 +45,7 @@ func getTeamCryptKey(ctx context.Context, team *teams.Team, generation keybase1.
 	return team.ApplicationKeyAtGeneration(ctx, keybase1.TeamApplication_CHAT, generation)
 }
 
-func getTeamKeys(ctx context.Context, team *teams.Team, public bool) (res types.AllCryptKeys, err error) {
+func getTeamCryptKeys(ctx context.Context, team *teams.Team, public bool) (res types.AllCryptKeys, err error) {
 	res = types.NewAllCryptKeys()
 	if !public {
 		chatKeys, err := team.AllApplicationKeys(ctx, keybase1.TeamApplication_CHAT)
@@ -213,7 +213,7 @@ func (t *TeamsNameInfoSource) makeNameInfo(ctx context.Context, team *teams.Team
 		return res, err
 	}
 	res.CanonicalName = team.Name().String()
-	if res.CryptKeys, err = getTeamKeys(ctx, team, public); err != nil {
+	if res.CryptKeys, err = getTeamCryptKeys(ctx, team, public); err != nil {
 		return res, err
 	}
 	return res, nil
@@ -432,7 +432,7 @@ func (t *ImplicitTeamsNameInfoSource) makeNameInfo(ctx context.Context, team *te
 		return res, errors.New("blank TLF ID given")
 	}
 	res.CanonicalName = impTeamName.String()
-	if res.CryptKeys, err = getTeamKeys(ctx, team, public); err != nil {
+	if res.CryptKeys, err = getTeamCryptKeys(ctx, team, public); err != nil {
 		return res, err
 	}
 	if res.IdentifyFailures, err = t.identify(ctx, tlfID, impTeamName); err != nil {
@@ -592,7 +592,7 @@ func (t *ImplicitTeamsNameInfoSource) lookupInternalName(ctx context.Context, na
 	if err != nil {
 		return res, err
 	}
-	if res.CryptKeys, err = getTeamKeys(ctx, team, public); err != nil {
+	if res.CryptKeys, err = getTeamCryptKeys(ctx, team, public); err != nil {
 		return res, err
 	}
 	return res, nil

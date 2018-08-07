@@ -106,10 +106,11 @@ func (t *KBFSNameInfoSource) EncryptionKey(ctx context.Context, tlfName string, 
 	if err != nil {
 		return nil, err
 	}
-	if len(ni.CryptKeys[chat1.ConversationMembersType_KBFS]) == 0 {
+	keys := ni.CryptKeys[chat1.ConversationMembersType_KBFS]
+	if len(keys) == 0 {
 		return nil, errors.New("no encryption keys for tlf")
 	}
-	return ni.CryptKeys[chat1.ConversationMembersType_KBFS][0], nil
+	return keys[len(keys)-1], nil
 }
 
 func (t *KBFSNameInfoSource) DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
