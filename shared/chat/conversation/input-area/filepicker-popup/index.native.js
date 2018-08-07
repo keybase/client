@@ -22,15 +22,15 @@ class FilePickerPopup extends React.Component<Props> {
       ? [
           {
             onClick: () => {
-              this.props.onSelect('photo', 'camera')
+              this.props.onSelect('mixed', 'camera')
             },
-            title: 'Take Photo',
+            title: 'Take Photo or Video',
           },
           {
             onClick: () => {
               this.props.onSelect('mixed', 'library')
             },
-            title: 'Photo or Video from Library',
+            title: 'Choose from Library',
           },
         ]
       : [
