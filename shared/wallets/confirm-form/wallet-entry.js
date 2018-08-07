@@ -10,6 +10,8 @@ type WalletEntryProps = {
   style?: Styles.StylesCrossPlatform,
 }
 
+// TODO WalletEntry is mostly copied from WalletRow, with some row specific
+// properties removed. WalletRow could probably be a wrapper around WalletEntry.
 const WalletEntry = (props: WalletEntryProps) => {
   return (
     <Kb.Box2
