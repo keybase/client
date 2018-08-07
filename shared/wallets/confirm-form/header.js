@@ -42,10 +42,7 @@ class Header extends React.Component<HeaderProps, HeaderState> {
           iconColor={Styles.globalColors.white}
           textStyle={styles.backButtonText}
         />
-        <div
-          style={Styles.collapseStyles([styles.headerContent, this.state.coinOffset])}
-          ref={this._headerContentRef}
-        >
+        <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true} style={styles.headerContent}>
           <Kb.Icon
             type={
               Styles.isMobile ? 'icon-fancy-stellar-sending-desktop' : 'icon-fancy-stellar-sending-mobile'
@@ -58,7 +55,7 @@ class Header extends React.Component<HeaderProps, HeaderState> {
           <Kb.Text type="HeaderBigExtrabold" style={styles.headerText}>
             {this.props.assetConversion ? this.props.assetConversion : this.props.amount}
           </Kb.Text>
-        </div>
+        </Kb.Box2>
       </Kb.Box2>
     )
   }
@@ -73,9 +70,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   headerContent: {
-    ...Styles.globalStyles.flexBoxColumn,
-    ...Styles.globalStyles.fullHeight,
-    ...Styles.globalStyles.flexBoxCenter,
+    marginTop: -20,
   },
   headerText: Styles.platformStyles({
     isElectron: {
