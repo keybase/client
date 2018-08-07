@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Icon, Box, ClickableBox, LoadingLine, Input, Text} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins, isMobile} from '../../../../styles'
+import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../styles'
 
 let KeyHandler = c => c
 if (!isMobile) {
@@ -106,10 +106,7 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
       ]
     } else {
       children = (
-        <ClickableBox
-          style={isMobile ? styleFilterContainerMobile : styleFilterContainer}
-          onClick={this._startEditing}
-        >
+        <ClickableBox style={styleFilterContainer} onClick={this._startEditing}>
           <Icon
             type="iconfont-search"
             style={{
@@ -162,22 +159,25 @@ const styleContainer = {
   position: 'relative',
 }
 
-const styleFilterContainer = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  backgroundColor: globalColors.black_05,
-  borderRadius: 19,
-  flexGrow: 1,
-  height: 24,
-  justifyContent: 'center',
-  marginRight: globalMargins.small,
-}
-
-const styleFilterContainerMobile = {
-  ...styleFilterContainer,
-  height: 32,
-  marginRight: globalMargins.small,
-}
+const styleFilterContainer = platformStyles({
+  common: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    backgroundColor: globalColors.black_05,
+    borderRadius: 19,
+    flexGrow: 1,
+    height: 24,
+    justifyContent: 'center',
+    marginRight: globalMargins.small,
+  },
+  isElectron: {
+    cursor: 'text',
+  },
+  isMobile: {
+    height: 32,
+    marginRight: globalMargins.small,
+  },
+})
 
 const propsIconCompose = {
   color: globalColors.blue,
