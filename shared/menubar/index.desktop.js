@@ -189,15 +189,14 @@ class MenubarRender extends Component<Props, State> {
     }
 
     const badgeTypesInHeader: Array<Tab> = [peopleTab, chatTab, fsTab, teamsTab]
-    const badgesInMenu: Set<string> = new Set([
+    const badgesInMenu = [
       ...(flags.walletsEnabled ? [walletsTab] : []),
       gitTab,
       devicesTab,
       settingsTab,
-    ])
-    const badgeCountInMenu = Object.entries(this.props.badgeInfo).reduce(
-      // $FlowIssue can't figure out mixed -> number in val[1].
-      (acc, val) => badgesInMenu.has(val[0]) ? acc + val[1] : acc,
+    ]
+    const badgeCountInMenu = badgesInMenu.reduce(
+      (acc, val) => this.props.badgeInfo[val] ? acc + this.props.badgeInfo[val] : acc,
       0
     )
 
