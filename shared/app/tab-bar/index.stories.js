@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import {Box} from '../../common-adapters'
-import {globalStyles} from '../../styles'
+import {globalStyles, platformStyles} from '../../styles'
 import TabBarRender from '.'
 
 const defaultProps = {
@@ -25,18 +25,22 @@ const defaultProps = {
   },
 }
 
-const container = storyFn => (
-  <Box
-    style={{
-      ...globalStyles.flexBoxColumn,
-      alignItems: 'stretch',
-      width: '100%',
-      height: '100%',
-    }}
-  >
-    {storyFn()}
-  </Box>
-)
+const containerStyle = platformStyles({
+  common: {
+    alignContent: 'stretch',
+    height: '100%',
+    width: '100%',
+  },
+  isElectron: {
+    ...globalStyles.flexBoxRow,
+  },
+  isMobile: {
+    marginTop: 40, // Avoid the notch on iPhoneX
+    ...globalStyles.flexBoxColumn,
+  },
+})
+
+const container = storyFn => <Box style={containerStyle}>{storyFn()}</Box>
 
 const load = () => {
   Sb.storiesOf('Tab Bar', module)
