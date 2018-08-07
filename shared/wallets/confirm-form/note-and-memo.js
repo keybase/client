@@ -40,14 +40,12 @@ const NoteAndMemo = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  memoContainer: Styles.platformStyles({
-    isElectron: {
-      paddingTop: Styles.globalMargins.tiny,
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-    },
-  }),
+  memoContainer: {
+    paddingTop: Styles.globalMargins.tiny,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+  },
   headingText: {
     color: Styles.globalColors.blue,
     marginBottom: Styles.globalMargins.xtiny,

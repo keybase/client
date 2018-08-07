@@ -24,14 +24,14 @@ type ConfirmSendProps = {|
 
 const ConfirmSend = (props: ConfirmSendProps) => (
   <Kb.MaybePopup onClose={props.onClose}>
-    <Kb.Box2 direction="vertical" style={styles.container}>
+    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
       <Header
         amount={props.amount}
         assetType={props.assetType}
         assetConversion={props.assetConversion}
         onBack={props.onBack}
       />
-      <Kb.ScrollView>
+      <Kb.ScrollView style={styles.scrollView}>
         {!!props.bannerBackground &&
           !!props.bannerText && <Banner background={props.bannerBackground} text={props.bannerText} />}
         <Participants receivingUsername="nathunsmitty" receivingFullName="Nathan Smith" />
@@ -80,12 +80,6 @@ const styles = Styles.styleSheetCreate({
   buttonIcon: {
     marginRight: Styles.globalMargins.tiny,
   },
-  container: Styles.platformStyles({
-    isElectron: {
-      height: 525,
-      width: 360,
-    },
-  }),
   buttonContainer: Styles.platformStyles({
     isElectron: {
       borderTopStyle: 'solid',
@@ -98,6 +92,17 @@ const styles = Styles.styleSheetCreate({
   button: {
     marginTop: Styles.globalMargins.small,
     marginBottom: Styles.globalMargins.small,
+  },
+  container: Styles.platformStyles({
+    isElectron: {
+      height: 525,
+      width: 360,
+    },
+  }),
+  scrollView: {
+    flexGrow: 0,
+    flexShrink: 1,
+    flexBasis: 'auto',
   },
 })
 

@@ -20,7 +20,7 @@ const Header = (props: HeaderProps) => (
     />
     <Kb.Box2
       direction="vertical"
-      fullHeight={true}
+      // fullHeight={true}
       fullWidth={true}
       centerChildren={true}
       style={styles.headerContent}
@@ -43,11 +43,17 @@ const Header = (props: HeaderProps) => (
 const styles = Styles.styleSheetCreate({
   header: Styles.platformStyles({
     common: {
-      flex: 1,
       backgroundColor: Styles.globalColors.purple,
     },
     isElectron: {
+      flex: 1,
       minHeight: 144,
+    },
+    isMobile: {
+      flexGrow: 1,
+      flexShrink: 1,
+      flexBasis: 'auto',
+      minHeight: 300,
     },
   }),
   headerContent: Styles.platformStyles({
@@ -62,11 +68,19 @@ const styles = Styles.styleSheetCreate({
     width: 100,
     marginBottom: Styles.globalMargins.small,
   },
-  backButton: {
-    position: 'absolute',
-    top: Styles.globalMargins.small,
-    left: Styles.globalMargins.small,
-  },
+  backButton: Styles.platformStyles({
+    common: {
+      position: 'absolute',
+    },
+    isElectron: {
+      top: Styles.globalMargins.small,
+      left: Styles.globalMargins.small,
+    },
+    isMobile: {
+      top: Styles.globalMargins.tiny,
+      left: Styles.globalMargins.tiny,
+    },
+  }),
   backButtonText: {
     color: Styles.globalColors.white,
   },
