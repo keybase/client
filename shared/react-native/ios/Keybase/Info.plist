@@ -41,6 +41,8 @@
 	<string>Saving images from chat messages</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Attaching images to chat messages</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Recording audio when taking a video</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>OpenSans_bold.ttf</string>
