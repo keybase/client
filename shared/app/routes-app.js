@@ -31,7 +31,7 @@ const appRouteTree = makeRouteDefNode({
   tags: makeLeafTags({title: appRouteTreeTitle}),
   children: {
     [chatTab]: chatRoutes,
-    ...(flags.fsEnabled ? {[fsTab]: fsRoutes} : {[folderTab]: foldersRoutes}),
+    [fsTab]: fsRoutes,
     [gitTab]: gitRoutes,
     [peopleTab]: peopleRoutes,
     [profileTab]: profileRoutes,

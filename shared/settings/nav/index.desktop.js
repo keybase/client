@@ -31,13 +31,11 @@ function SettingsNav(props: Props) {
         selected={props.selectedTab === Constants.advancedTab}
         onClick={() => props.onTabChange(Constants.advancedTab)}
       />
-      {flags.fsEnabled && (
-        <SettingsItem
-          text="Files"
-          selected={props.selectedTab === Constants.fsTab}
-          onClick={() => props.onTabChange(Constants.fsTab)}
-        />
-      )}
+      <SettingsItem
+        text="Files"
+        selected={props.selectedTab === Constants.fsTab}
+        onClick={() => props.onTabChange(Constants.fsTab)}
+      />
       <SettingsItem
         text="Delete me"
         selected={props.selectedTab === Constants.deleteMeTab}
