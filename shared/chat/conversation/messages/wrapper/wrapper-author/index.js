@@ -9,6 +9,7 @@ import {
   type OverlayParentProps,
 } from '../../../../../common-adapters'
 import {
+  desktopStyles,
   globalStyles,
   globalMargins,
   globalColors,
@@ -44,12 +45,19 @@ const UserAvatar = ({author, onAuthorClick}) => (
 
 const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
   const style = collapseStyles([
+    desktopStyles.clickable,
     styles.username,
     isYou && styles.usernameYou,
     {color: colorForAuthor(username, isYou, isFollowing, isBroken)},
   ])
   return (
-    <Text type="BodySmallSemibold" onClick={onClick} className="hover-underline" style={style}>
+    <Text
+      type="BodySmallSemibold"
+      onClick={onClick}
+      className="hover-underline"
+      selectable={true}
+      style={style}
+    >
       {username}
     </Text>
   )
