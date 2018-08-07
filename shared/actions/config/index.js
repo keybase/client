@@ -178,10 +178,19 @@ const showDeletedSelfRootPage = () =>
     Saga.put(RouteTree.navigateTo([Tabs.loginTab])),
   ])
 
-const switchRouteDef = (state: TypedState) =>
-  state.config.loggedIn
-    ? Saga.put(RouteTree.switchRouteDef(appRouteTree))
-    : Saga.put(RouteTree.switchRouteDef(loginRouteTree))
+const switchRouteDef = (
+  state: TypedState,
+  action: ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload
+) => {
+  if (state.config.loggedIn) {
+    if (action.type === ConfigGen.loggedIn && !action.payload.startedUpLoggedIn) {
+      // only do this if we're not handling the initial loggedIn event, cause its handled by routeToInitialScreenOnce
+      return Saga.put(RouteTree.switchRouteDef(appRouteTree))
+    }
+  } else {
+    return Saga.put(RouteTree.switchRouteDef(loginRouteTree))
+  }
+}
 
 const resetGlobalStore = () => Saga.put({payload: undefined, type: ConfigGen.resetStore})
 
@@ -193,7 +202,6 @@ const maybeDoneWithLogoutHandshake = (state: TypedState) =>
   state.config.logoutHandshakeWaiters.size <= 0 && Saga.call(RPCTypes.loginLogoutRpcPromise)
 
 let routeToInitialScreenOnce = false
-
 // We figure out where to go (push, link, saved state, etc) once ever in a session
 const routeToInitialScreen = (state: TypedState) => {
   if (routeToInitialScreenOnce) {
@@ -203,22 +211,20 @@ const routeToInitialScreen = (state: TypedState) => {
 
   if (state.config.loggedIn) {
     const actions = [Saga.put(RouteTree.switchRouteDef(appRouteTree))]
-    if (state.config.startupWasFromPush) {
-      if (
-        state.config.startupConversation &&
-        state.config.startupConversation !== ChatConstants.noConversationIDKey
-      ) {
-        return Saga.sequentially([
-          ...actions,
-          Saga.put(
-            ChatGen.createSelectConversation({
-              conversationIDKey: state.config.startupConversation,
-              reason: 'push',
-            })
-          ),
-          Saga.put(ChatGen.createNavigateToThread()),
-        ])
-      }
+    if (
+      state.config.startupConversation &&
+      state.config.startupConversation !== ChatConstants.noConversationIDKey
+    ) {
+      return Saga.sequentially([
+        ...actions,
+        Saga.put(
+          ChatGen.createSelectConversation({
+            conversationIDKey: state.config.startupConversation,
+            reason: 'push',
+          })
+        ),
+        Saga.put(ChatGen.createNavigateToThread()),
+      ])
     }
 
     if (state.config.startupLink) {
@@ -250,7 +256,7 @@ const routeToInitialScreen = (state: TypedState) => {
 
 // We don't get the initial logged in by the server
 const emitInitialLoggedIn = (state: TypedState) =>
-  state.config.loggedIn && Saga.put(ConfigGen.createLoggedIn())
+  state.config.loggedIn && Saga.put(ConfigGen.createLoggedIn({startedUpLoggedIn: true}))
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // TODO handle logout stuff also

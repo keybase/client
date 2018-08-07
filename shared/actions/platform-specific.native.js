@@ -7,10 +7,11 @@ import * as GregorGen from '../actions/gregor-gen'
 import * as NotificationsGen from '../actions/notifications-gen'
 import * as PushTypes from '../constants/types/push'
 import * as PushConstants from '../constants/push'
+import * as Chat2Gen from './chat2-gen'
 import * as PushGen from './push-gen'
 import * as PushNotifications from 'react-native-push-notification'
 import * as Tabs from '../constants/tabs'
-import * as RouteTree from '../route-tree'
+import * as RouteTree from '../constants/route-tree'
 import * as mime from 'react-native-mime-types'
 import * as Saga from '../util/saga'
 // this CANNOT be an import *, totally screws up the packager
@@ -25,6 +26,7 @@ import {
   PermissionsAndroid,
   PushNotificationIOS,
 } from 'react-native'
+import {getPath} from '../route-tree'
 import RNFetchBlob from 'react-native-fetch-blob'
 import {eventChannel} from 'redux-saga'
 import {isDevApplePushToken} from '../local-debug'
@@ -359,7 +361,7 @@ const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
 const clearRouteState = () => Saga.call(AsyncStorage.removeItem, 'routeState')
 
 const persistRouteState = (state: TypedState) => {
-  const routePath = RouteTree.getPath(state.routeTree.routeState)
+  const routePath = getPath(state.routeTree.routeState)
   const selectedTab = routePath.first()
   if (Tabs.isValidInitialTabString(selectedTab)) {
     const item = {
@@ -369,9 +371,9 @@ const persistRouteState = (state: TypedState) => {
       tab: selectedTab,
     }
 
-    return Saga.call(AsyncStorage.setItem, 'routeState', item)
+    return Saga.spawn(AsyncStorage.setItem, 'routeState', JSON.stringify(item))
   } else {
-    return Saga.call(AsyncStorage.removeItem, 'routeState')
+    return Saga.spawn(AsyncStorage.removeItem, 'routeState')
   }
 }
 
@@ -454,16 +456,34 @@ function* loadStartupDetails() {
   )
 }
 
+const waitForStartupDetails = (state: TypedState) => {
+  // loadStartupDetails finished already
+  if (state.config.startupDetailsLoaded) {
+    return
+  }
+  // Else we have to wait for the loadStartupDetails to finish
+  return Saga.call(function*() {
+    yield Saga.put(
+      ConfigGen.createDaemonHandshakeWait({increment: true, name: 'platform.native-waitStartupDetails'})
+    )
+    yield Saga.take(ConfigGen.setStartupDetails)
+    yield Saga.put(
+      ConfigGen.createDaemonHandshakeWait({increment: false, name: 'platform.native-waitStartupDetails'})
+    )
+  })
+}
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
   // yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, setStartedDueToPush)
   yield Saga.actionToAction(ConfigGen.loggedOut, clearRouteState)
-  // TODO watch routing and do this
-  // yield Saga.safeTakeEveryPure(ConfigGen.persistRouteState, persistRouteState)
+  yield Saga.actionToAction([RouteTree.switchTo, Chat2Gen.selectConversation], persistRouteState)
   yield Saga.actionToAction(ConfigGen.openAppSettings, openAppSettings)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupNetInfoWatcher)
   yield Saga.actionToAction(NotificationsGen.receivedBadgeState, updateAppBadge)
-  // Start this immediately
+
+  yield Saga.actionToAction(ConfigGen.daemonHandshake, waitForStartupDetails)
+  // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.fork(loadStartupDetails)
 }
 
