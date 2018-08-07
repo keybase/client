@@ -125,7 +125,7 @@ func (l *TeamLoader) loadUserAndKeyFromLinkInner(ctx context.Context,
 	}
 	uid := keySection.UID
 	kid := keySection.KID
-	signerUV, key, linkMap, err = lkc.loadKeyV2(l.MetaContext(ctx), l.world, uid, kid)
+	signerUV, key, linkMap, err = l.world.loadKeyV2(ctx, uid, kid, lkc)
 	if err != nil {
 		return signerUV, nil, nil, err
 	}
