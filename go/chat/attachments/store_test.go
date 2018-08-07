@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/signencrypt"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/net/context"
@@ -179,6 +180,7 @@ func (b *bytesReadResetter) Reset() error {
 
 func makeUploadTask(t *testing.T, size int) (plaintext []byte, task *UploadTask) {
 	plaintext = randBytes(t, size)
+	outboxID, _ := storage.NewOutboxID()
 	task = &UploadTask{
 		S3Params: chat1.S3Params{
 			Bucket:    "upload-test",
@@ -189,6 +191,7 @@ func makeUploadTask(t *testing.T, size int) (plaintext []byte, task *UploadTask)
 		Plaintext:      newBytesReadResetter(plaintext),
 		S3Signer:       &ptsigner{},
 		ConversationID: randBytes(t, 16),
+		OutboxID:       outboxID,
 	}
 	return plaintext, task
 }
@@ -305,7 +308,7 @@ func (u *uploader) ResetReader() {
 }
 
 func (u *uploader) ResetHash() {
-	u.task.plaintextHash = nil
+	u.task.taskHash = nil
 }
 
 func (u *uploader) DownloadAndMatch(a chat1.Asset) {
@@ -378,8 +381,8 @@ func TestUploadAssetResumeOK(t *testing.T) {
 	// keys should be reused
 	u.AssertKeysReused()
 
-	// 1 reset for plaintext hash calc in UploadResume
-	u.AssertNumResets(1)
+	// no resets happen here
+	u.AssertNumResets(0)
 
 	// there should have been no aborts
 	u.AssertNumAborts(0)
@@ -411,8 +414,8 @@ func TestUploadAssetResumeChange(t *testing.T) {
 	// only reset of second attempt should be after plaintext hash
 	u.AssertNumResets(1)
 
-	// there should have been no aborts
-	u.AssertNumAborts(0)
+	// we get one abort since outboxID doesn't change with the file
+	u.AssertNumAborts(1)
 }
 
 // Test uploading part of an asset, then resuming at a later point in time.
@@ -438,8 +441,8 @@ func TestUploadAssetResumeRestart(t *testing.T) {
 	// keys should not be reused
 	u.AssertKeysChanged()
 
-	// make sure the stream is reset due to abort (once for plaintext hash, once to get to beginning):
-	u.AssertNumResets(2)
+	// one reset on the abort
+	u.AssertNumResets(1)
 
 	// there should have been one abort
 	u.AssertNumAborts(1)

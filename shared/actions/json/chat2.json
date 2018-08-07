@@ -2,6 +2,7 @@
   "prelude": [
     "import * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
     "import * as Types from '../constants/types/chat2'",
+    "import * as TeamsTypes from '../constants/types/teams'",
     "import HiddenString from '../util/hidden-string'",
     "import type {RetentionPolicy} from '../constants/types/teams'"
   ],
@@ -229,26 +230,23 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString"
     },
+    "toggleLocalReaction": {
+      "_description": "Toggle a reaction in the store.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "emoji": "string",
+      "targetOrdinal": "Types.Ordinal",
+      "username": "string"
+    },
     "toggleMessageReaction": {
-      "_description": "Toggle a reaction on a message.",
+      "_description": "Tell the service to toggle a reaction on a message.",
       "conversationIDKey": "Types.ConversationIDKey",
       "emoji": "string",
       "ordinal": "Types.Ordinal"
     },
-    "messageWasReactedTo": {
-      "_description": "A reaction was added to a message.",
+    "updateReactions": {
+      "_description": "The service sent us an update for the reaction map of a message.",
       "conversationIDKey": "Types.ConversationIDKey",
-      "emoji": "string",
-      "reactionMsgID": "RPCChatTypes.MessageID",
-      "sender": "string",
-      "targetMsgID": "RPCChatTypes.MessageID",
-      "timestamp": "number"
-    },
-    "reactionsWereDeleted": {
-      "_description": "Reactions were removed from a message.",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "deletions":
-        "Array<{emoji: string, reactionMsgID: RPCChatTypes.MessageID, targetMsgID: RPCChatTypes.MessageID}>"
+      "updates": "Array<{targetMsgID: RPCChatTypes.MessageID, reactions: Types.Reactions}>"
     },
     // Resend a message
     "messageRetry": {
@@ -429,6 +427,17 @@
     "filePickerError": {
       "_description": "Sent whenever the mobile file picker encounters an error.",
       "error": "Error"
+    },
+    "setMinWriterRole": {
+      "_description":
+        "Set the minimum role required to write into a conversation. Valid only for team conversations.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "role": "TeamsTypes.TeamRoleType"
+    },
+    "saveMinWriterRole": {
+      "_description": "Update the minWriterRole stored with the conversation metadata.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "role": "TeamsTypes.TeamRoleType"
     }
   }
 }

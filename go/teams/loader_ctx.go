@@ -189,8 +189,9 @@ func (l *LoaderContextG) forceLinkMapRefreshForUser(ctx context.Context, uid key
 }
 
 func (l *LoaderContextG) loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (
-	uv keybase1.UserVersion, pubKey *keybase1.PublicKeyV2NaCl, linkMap linkMapT,
-	err error) {
+	uv keybase1.UserVersion, pubKey *keybase1.PublicKeyV2NaCl, linkMap linkMapT, err error) {
+	ctx, tbs := l.G().CTimeBuckets(ctx)
+	defer tbs.Record("LoaderContextG.loadKeyV2")()
 
 	user, pubKey, linkMap, err := l.G().GetUPAKLoader().LoadKeyV2(ctx, uid, kid)
 	if err != nil {
@@ -199,6 +200,5 @@ func (l *LoaderContextG) loadKeyV2(ctx context.Context, uid keybase1.UID, kid ke
 	if user == nil {
 		return uv, pubKey, linkMap, libkb.NotFoundError{}
 	}
-
 	return user.ToUserVersion(), pubKey, linkMap, nil
 }

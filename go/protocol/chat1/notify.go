@@ -50,7 +50,7 @@ const (
 	ChatActivityType_TEAMTYPE                      ChatActivityType = 8
 	ChatActivityType_EXPUNGE                       ChatActivityType = 9
 	ChatActivityType_EPHEMERAL_PURGE               ChatActivityType = 10
-	ChatActivityType_REACTION_DELETE               ChatActivityType = 11
+	ChatActivityType_REACTION_UPDATE               ChatActivityType = 11
 )
 
 func (o ChatActivityType) DeepCopy() ChatActivityType { return o }
@@ -67,7 +67,7 @@ var ChatActivityTypeMap = map[string]ChatActivityType{
 	"TEAMTYPE":                      8,
 	"EXPUNGE":                       9,
 	"EPHEMERAL_PURGE":               10,
-	"REACTION_DELETE":               11,
+	"REACTION_UPDATE":               11,
 }
 
 var ChatActivityTypeRevMap = map[ChatActivityType]string{
@@ -82,7 +82,7 @@ var ChatActivityTypeRevMap = map[ChatActivityType]string{
 	8:  "TEAMTYPE",
 	9:  "EXPUNGE",
 	10: "EPHEMERAL_PURGE",
-	11: "REACTION_DELETE",
+	11: "REACTION_UPDATE",
 }
 
 func (e ChatActivityType) String() string {
@@ -320,39 +320,37 @@ func (o EphemeralPurgeNotifInfo) DeepCopy() EphemeralPurgeNotifInfo {
 	}
 }
 
-type ReactionDelete struct {
-	ReactionKey   string    `codec:"reactionKey" json:"reactionKey"`
-	ReactionMsgID MessageID `codec:"reactionMsgID" json:"reactionMsgID"`
-	TargetMsgID   MessageID `codec:"targetMsgID" json:"targetMsgID"`
+type ReactionUpdate struct {
+	Reactions   ReactionMap `codec:"reactions" json:"reactions"`
+	TargetMsgID MessageID   `codec:"targetMsgID" json:"targetMsgID"`
 }
 
-func (o ReactionDelete) DeepCopy() ReactionDelete {
-	return ReactionDelete{
-		ReactionKey:   o.ReactionKey,
-		ReactionMsgID: o.ReactionMsgID.DeepCopy(),
-		TargetMsgID:   o.TargetMsgID.DeepCopy(),
+func (o ReactionUpdate) DeepCopy() ReactionUpdate {
+	return ReactionUpdate{
+		Reactions:   o.Reactions.DeepCopy(),
+		TargetMsgID: o.TargetMsgID.DeepCopy(),
 	}
 }
 
-type ReactionDeleteNotif struct {
+type ReactionUpdateNotif struct {
 	ConvID          ConversationID   `codec:"convID" json:"convID"`
-	ReactionDeletes []ReactionDelete `codec:"reactionDeletes" json:"reactionDeletes"`
+	ReactionUpdates []ReactionUpdate `codec:"reactionUpdates" json:"reactionUpdates"`
 }
 
-func (o ReactionDeleteNotif) DeepCopy() ReactionDeleteNotif {
-	return ReactionDeleteNotif{
+func (o ReactionUpdateNotif) DeepCopy() ReactionUpdateNotif {
+	return ReactionUpdateNotif{
 		ConvID: o.ConvID.DeepCopy(),
-		ReactionDeletes: (func(x []ReactionDelete) []ReactionDelete {
+		ReactionUpdates: (func(x []ReactionUpdate) []ReactionUpdate {
 			if x == nil {
 				return nil
 			}
-			ret := make([]ReactionDelete, len(x))
+			ret := make([]ReactionUpdate, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
 			}
 			return ret
-		})(o.ReactionDeletes),
+		})(o.ReactionUpdates),
 	}
 }
 
@@ -368,7 +366,7 @@ type ChatActivity struct {
 	Teamtype__                   *TeamTypeInfo                   `codec:"teamtype,omitempty" json:"teamtype,omitempty"`
 	Expunge__                    *ExpungeInfo                    `codec:"expunge,omitempty" json:"expunge,omitempty"`
 	EphemeralPurge__             *EphemeralPurgeNotifInfo        `codec:"ephemeralPurge,omitempty" json:"ephemeralPurge,omitempty"`
-	ReactionDelete__             *ReactionDeleteNotif            `codec:"reactionDelete,omitempty" json:"reactionDelete,omitempty"`
+	ReactionUpdate__             *ReactionUpdateNotif            `codec:"reactionUpdate,omitempty" json:"reactionUpdate,omitempty"`
 }
 
 func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
@@ -423,9 +421,9 @@ func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
 			err = errors.New("unexpected nil value for EphemeralPurge__")
 			return ret, err
 		}
-	case ChatActivityType_REACTION_DELETE:
-		if o.ReactionDelete__ == nil {
-			err = errors.New("unexpected nil value for ReactionDelete__")
+	case ChatActivityType_REACTION_UPDATE:
+		if o.ReactionUpdate__ == nil {
+			err = errors.New("unexpected nil value for ReactionUpdate__")
 			return ret, err
 		}
 	}
@@ -532,14 +530,14 @@ func (o ChatActivity) EphemeralPurge() (res EphemeralPurgeNotifInfo) {
 	return *o.EphemeralPurge__
 }
 
-func (o ChatActivity) ReactionDelete() (res ReactionDeleteNotif) {
-	if o.ActivityType__ != ChatActivityType_REACTION_DELETE {
+func (o ChatActivity) ReactionUpdate() (res ReactionUpdateNotif) {
+	if o.ActivityType__ != ChatActivityType_REACTION_UPDATE {
 		panic("wrong case accessed")
 	}
-	if o.ReactionDelete__ == nil {
+	if o.ReactionUpdate__ == nil {
 		return
 	}
-	return *o.ReactionDelete__
+	return *o.ReactionUpdate__
 }
 
 func NewChatActivityWithIncomingMessage(v IncomingMessage) ChatActivity {
@@ -612,10 +610,10 @@ func NewChatActivityWithEphemeralPurge(v EphemeralPurgeNotifInfo) ChatActivity {
 	}
 }
 
-func NewChatActivityWithReactionDelete(v ReactionDeleteNotif) ChatActivity {
+func NewChatActivityWithReactionUpdate(v ReactionUpdateNotif) ChatActivity {
 	return ChatActivity{
-		ActivityType__:   ChatActivityType_REACTION_DELETE,
-		ReactionDelete__: &v,
+		ActivityType__:   ChatActivityType_REACTION_UPDATE,
+		ReactionUpdate__: &v,
 	}
 }
 
@@ -692,13 +690,13 @@ func (o ChatActivity) DeepCopy() ChatActivity {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.EphemeralPurge__),
-		ReactionDelete__: (func(x *ReactionDeleteNotif) *ReactionDeleteNotif {
+		ReactionUpdate__: (func(x *ReactionUpdateNotif) *ReactionUpdateNotif {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.ReactionDelete__),
+		})(o.ReactionUpdate__),
 	}
 }
 

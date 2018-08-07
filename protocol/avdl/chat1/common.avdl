@@ -512,7 +512,7 @@
   record RpInherit {}
 
   record RpEphemeral {
-    // Messages must be exploding at have at most this lifetime.
+    // Messages must be exploding and have at most this lifetime.
     gregor1.DurationSec age;
   }
 

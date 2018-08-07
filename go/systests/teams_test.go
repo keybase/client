@@ -80,7 +80,7 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	if before.Generation() != 1 {
 		t.Errorf("generation before rotate: %d, expected 1", before.Generation())
 	}
-	secretBefore := before.Data.PerTeamKeySeeds[before.Generation()].Seed.ToBytes()
+	secretBefore := before.Data.PerTeamKeySeedsUnverified[before.Generation()].Seed.ToBytes()
 
 	// User1 should get a gregor that the team he was just added to changed.
 	tt.users[1].waitForTeamChangedGregor(teamID, keybase1.Seqno(2))
@@ -99,7 +99,7 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	if after.Generation() != 2 {
 		t.Errorf("generation after rotate: %d, expected 2", after.Generation())
 	}
-	secretAfter := after.Data.PerTeamKeySeeds[after.Generation()].Seed.ToBytes()
+	secretAfter := after.Data.PerTeamKeySeedsUnverified[after.Generation()].Seed.ToBytes()
 	if libkb.SecureByteArrayEq(secretAfter, secretBefore) {
 		t.Fatal("team secret did not change when rotated")
 	}
@@ -579,6 +579,27 @@ func (u *userPlusDevice) waitForTeamChangedAndRotated(teamID keybase1.TeamID, to
 		}
 	}
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
+}
+
+func (u *userPlusDevice) waitForTeamChangeRenamed(teamID keybase1.TeamID) {
+	// Process any number of badge state updates, but bail out after 10
+	// seconds.
+	timeout := time.After(10 * time.Second * libkb.CITimeMultiplier(u.tc.G))
+	i := 0
+	for {
+		select {
+		case arg := <-u.notifications.changeCh:
+			u.tc.T.Logf("membership change received: %+v", arg)
+			if arg.TeamID.Eq(teamID) && !arg.Changes.MembershipChanged && !arg.Changes.KeyRotated && arg.Changes.Renamed {
+				u.tc.T.Logf("change matched!")
+				return
+			}
+			u.tc.T.Logf("ignoring change message attempt %d (expected team = %v, renamed = true)", i, teamID)
+		case <-timeout:
+			u.tc.T.Fatalf("timed out waiting for team changes %s", teamID)
+		}
+		i++
+	}
 }
 
 func (u *userPlusDevice) pollForTeamSeqnoLink(team string, toSeqno keybase1.Seqno) {
@@ -1431,4 +1452,60 @@ func TestBatchAddMembers(t *testing.T) {
 		}
 	}
 	require.Equal(t, 2, sbsCount, "sbs count")
+}
+
+func TestTeamBustResolverCacheOnSubteamRename(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	al := tt.addUser("al")
+	bob := tt.addUser("bob")
+	eve := tt.addUser("eve")
+
+	_, teamName := al.createTeam2()
+
+	// Verify subteams that have been renamed resolve correctly
+	subteamBasename := "bb1"
+	subteamID, err := teams.CreateSubteam(context.TODO(), al.tc.G, subteamBasename, teamName, keybase1.TeamRole_NONE /* addSelfAs */)
+	require.NoError(t, err)
+	subteamName, err := teamName.Append(subteamBasename)
+	require.NoError(t, err)
+
+	al.addTeamMember(subteamName.String(), bob.username, keybase1.TeamRole_READER)
+	al.addTeamMember(teamName.String(), eve.username, keybase1.TeamRole_ADMIN)
+
+	subteamRename, err := teamName.Append("bb2")
+	require.NoError(t, err)
+
+	subteamNameActual, err := teams.ResolveIDToName(context.TODO(), al.tc.G, *subteamID)
+	require.NoError(t, err)
+	require.True(t, subteamName.Eq(subteamNameActual))
+
+	err = teams.RenameSubteam(context.TODO(), al.tc.G, subteamName, subteamRename)
+	require.NoError(t, err)
+
+	// While this may not be ideal, admin that posts the rename will
+	// get two notifications.
+	// - First notification comes from `RenameSubteam` func itself,
+	//   where `g.GetTeamLoader().NotifyTeamRename` is called.
+	// - Second one is the regular gregor team.rename notification.
+	t.Logf("Waiting for team notifications for %s", al.username)
+	al.waitForTeamChangeRenamed(*subteamID)
+	al.waitForTeamChangeRenamed(*subteamID)
+
+	// Members of subteam, and other admins from parent teams, will
+	// get just one.
+	for _, user := range []*userPlusDevice{bob, eve} {
+		t.Logf("Waiting for team notifications for %s", user.username)
+		user.waitForTeamChangeRenamed(*subteamID)
+	}
+
+	for _, user := range tt.users {
+		subteamRenameActual, err := teams.ResolveIDToName(context.TODO(), user.tc.G, *subteamID)
+		require.NoError(t, err)
+		require.True(t, subteamRename.Eq(subteamRenameActual))
+
+		_, err = teams.ResolveNameToID(context.TODO(), user.tc.G, subteamName)
+		require.Error(t, err)
+	}
 }

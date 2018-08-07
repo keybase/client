@@ -57,13 +57,15 @@ func getKeyForDecryption(ctx context.Context, g *libkb.GlobalContext,
 		ID:      teamID,
 		StaleOK: true,
 		Refreshers: keybase1.TeamRefreshers{
-			NeedKeyGeneration: generation,
+			NeedApplicationsAtGenerations: map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
+				generation: []keybase1.TeamApplication{keybase1.TeamApplication_STELLAR_RELAY},
+			},
 		},
 	})
 	if err != nil {
 		return res, err
 	}
-	return team.ApplicationKeyAtGeneration(keybase1.TeamApplication_STELLAR_RELAY, generation)
+	return team.ApplicationKeyAtGeneration(ctx, keybase1.TeamApplication_STELLAR_RELAY, generation)
 }
 
 type Input struct {

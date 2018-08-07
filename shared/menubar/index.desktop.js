@@ -2,9 +2,37 @@
 import Folders, {type FolderType, type Props as FolderProps} from '../folders/index.desktop'
 import React, {Component} from 'react'
 import UserAdd from './user-add.desktop'
-import {Box, Icon, Text, Button, FloatingMenu, Badge, ButtonBar, type IconType} from '../common-adapters'
-import {fsTab, peopleTab, chatTab, devicesTab, type Tab} from '../constants/tabs'
-import {globalStyles, globalColors, desktopStyles, collapseStyles, platformStyles} from '../styles'
+import flags from '../util/feature-flags'
+import {
+  Box,
+  Box2,
+  Icon,
+  Text,
+  Button,
+  FloatingMenu,
+  Badge,
+  ButtonBar,
+  type IconType,
+} from '../common-adapters'
+import {
+  fsTab,
+  peopleTab,
+  chatTab,
+  devicesTab,
+  teamsTab,
+  walletsTab,
+  gitTab,
+  settingsTab,
+  type Tab,
+} from '../constants/tabs'
+import {
+  globalStyles,
+  globalColors,
+  globalMargins,
+  desktopStyles,
+  collapseStyles,
+  platformStyles,
+} from '../styles'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash-es'
@@ -16,14 +44,14 @@ export type Props = {
   loggedIn: boolean,
   onFolderClick: (path: ?string) => void,
   onRekey: (path: string) => void,
-  openApp: () => void,
+  openApp: (tab: ?string) => void,
   quit: () => void,
   refresh: () => void,
   showBug: () => void,
   showHelp: () => void,
   showUser: (username: ?string) => void,
   username: ?string,
-  badgeInfo: Object,
+  badgeInfo: {[string]: number},
 }
 
 type State = {|
@@ -74,14 +102,14 @@ class MenubarRender extends Component<Props, State> {
             style={menuStyle}
             color={menuColor}
             hoverColor={menuColor}
-            type="iconfont-hamburger"
+            type="iconfont-nav-more"
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
             ref={this.attachmentRef}
           />
           <FloatingMenu
             visible={this.state.showingMenu}
             attachTo={this.attachmentRef.current}
-            items={this._menuItems()}
+            items={this._menuItems(this.props.badgeInfo || {})}
             onHidden={() => this.setState({showingMenu: false})}
           />
         </Box>
@@ -98,14 +126,54 @@ class MenubarRender extends Component<Props, State> {
     )
   }
 
-  _menuItems() {
+  _menuView(title: string, iconType: IconType, count: number) {
+    return (
+      <Box2 direction="horizontal" style={{width: '100%'}}>
+        <Box style={{marginRight: globalMargins.xsmall, position: 'relative'}}>
+          <Icon type={iconType} color={globalColors.black_20} fontSize={20} />
+          {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', left: 14, top: -2}} />}
+        </Box>
+        <Text className="title" type="Body" style={collapseStyles([{color: undefined}])}>
+          {title}
+        </Text>
+      </Box2>
+    )
+  }
+
+  _menuItems(countMap: Object) {
     return [
-      ...(this.props.loggedIn ? [{title: 'Open Keybase', onClick: () => this.props.openApp()}] : []),
-      {title: 'Open folders', onClick: () => this.props.onFolderClick()},
+      ...(flags.walletsEnabled
+        ? [
+            {
+              title: 'Wallet',
+              view: this._menuView('Wallet', 'iconfont-nav-wallets', countMap[walletsTab] || 0),
+              onClick: () => this.props.openApp(walletsTab),
+            },
+          ]
+        : []),
+      {
+        title: 'Git',
+        view: this._menuView('Git', 'iconfont-nav-git', countMap[gitTab] || 0),
+        onClick: () => this.props.openApp(gitTab),
+      },
+      {
+        title: 'Devices',
+        view: this._menuView('Devices', 'iconfont-nav-devices', countMap[devicesTab] || 0),
+        onClick: () => this.props.openApp(devicesTab),
+      },
+      {
+        title: 'Settings',
+        view: this._menuView('Settings', 'iconfont-nav-settings', countMap[settingsTab] || 0),
+        onClick: () => this.props.openApp(settingsTab),
+      },
+      'Divider',
+      ...(this.props.loggedIn ? [{title: 'Open main app', onClick: () => this.props.openApp()}] : []),
+      {title: 'Open folders', onClick: () => this.props.openApp(fsTab)},
+      'Divider',
       {title: 'Keybase.io', onClick: () => this.props.showUser()},
       {title: 'Report a bug', onClick: this.props.showBug},
-      {title: 'Help/Doc', onClick: this.props.showHelp},
-      {title: 'Quit', onClick: this.props.quit},
+      {title: 'Help', onClick: this.props.showHelp},
+      {title: 'Quit app', onClick: this.props.quit},
     ]
   }
 
@@ -153,7 +221,12 @@ class MenubarRender extends Component<Props, State> {
       onRekey: this.props.onRekey,
     }
 
-    const badgeTypes: Array<Tab> = [fsTab, peopleTab, chatTab, devicesTab]
+    const badgeTypesInHeader: Array<Tab> = [peopleTab, chatTab, fsTab, teamsTab]
+    const badgesInMenu = [...(flags.walletsEnabled ? [walletsTab] : []), gitTab, devicesTab, settingsTab]
+    const badgeCountInMenu = badgesInMenu.reduce(
+      (acc, val) => (this.props.badgeInfo[val] ? acc + this.props.badgeInfo[val] : acc),
+      0
+    )
 
     return (
       <Box style={styles.container}>
@@ -169,26 +242,32 @@ class MenubarRender extends Component<Props, State> {
               marginLeft: 24 + 8,
             }}
           >
-            {badgeTypes.map(tab => (
+            {badgeTypesInHeader.map(tab => (
               <BadgeIcon key={tab} tab={tab} countMap={this.props.badgeInfo} openApp={this.props.openApp} />
             ))}
           </Box>
-          <Icon
+          <Box
             style={collapseStyles([
               desktopStyles.clickable,
               {
-                width: 16,
-                marginLeft: 8,
+                marginRight: globalMargins.tiny,
+                position: 'relative',
               },
             ])}
-            color={globalColors.black_40}
-            hoverColor={globalColors.black}
-            type="iconfont-hamburger"
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
-            ref={this.attachmentRef}
-          />
+          >
+            <Icon
+              color={globalColors.darkBlue4}
+              hoverColor={globalColors.black_75}
+              type="iconfont-nav-more"
+              ref={this.attachmentRef}
+            />
+            {!!badgeCountInMenu && (
+              <Badge badgeNumber={badgeCountInMenu} badgeStyle={{position: 'absolute', left: 14, top: -2}} />
+            )}
+          </Box>
           <FloatingMenu
-            items={this._menuItems()}
+            items={this._menuItems(this.props.badgeInfo || {})}
             visible={this.state.showingMenu}
             onHidden={() =>
               this.setState({
@@ -196,6 +275,7 @@ class MenubarRender extends Component<Props, State> {
               })
             }
             attachTo={this.attachmentRef.current}
+            position="bottom right"
           />
         </Box>
         <Folders {...mergedProps} />
@@ -260,10 +340,11 @@ const BadgeIcon = ({
   }
 
   const iconMap: {[key: Tab]: IconType} = {
+    [peopleTab]: 'iconfont-nav-people',
     [chatTab]: 'iconfont-nav-chat',
     [devicesTab]: 'iconfont-nav-devices',
     [fsTab]: 'iconfont-nav-files',
-    [peopleTab]: 'iconfont-nav-people',
+    [teamsTab]: 'iconfont-nav-teams',
   }
   const iconType: ?IconType = iconMap[tab]
 
@@ -276,7 +357,7 @@ const BadgeIcon = ({
       style={{...desktopStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}
       onClick={() => openApp(tab)}
     >
-      <Icon color={count ? globalColors.blue : globalColors.lightGrey2} fontSize={20} type={iconType} />
+      <Icon color={globalColors.darkBlue4} hoverColor={globalColors.black_75} fontSize={22} type={iconType} />
       {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', top: -6, right: -8}} />}
     </Box>
   )
@@ -296,10 +377,10 @@ const stylesContainer = {
 const stylesTopRow = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  backgroundColor: globalColors.white,
+  backgroundColor: globalColors.darkBlue2,
   flex: 1,
-  minHeight: 32,
-  maxHeight: 32,
+  minHeight: 40,
+  maxHeight: 40,
   paddingLeft: 8,
   paddingRight: 8,
   borderTopLeftRadius: borderRadius,

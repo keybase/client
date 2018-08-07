@@ -25,6 +25,7 @@ import java.security.cert.CertificateException;
 
 import io.keybase.ossifrage.util.ContactsPermissionsWrapper;
 import io.keybase.ossifrage.util.DNSNSFetcher;
+import io.keybase.ossifrage.util.VideoHelper;
 import keybase.Keybase;
 
 import static keybase.Keybase.initOnce;
@@ -63,7 +64,7 @@ public class MainActivity extends ReactActivity {
 
         createDummyFile();
         initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
-                new DNSNSFetcher());
+                new DNSNSFetcher(), new VideoHelper());
 
         super.onCreate(savedInstanceState);
 

@@ -240,6 +240,10 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 	if err != nil {
 		return msg, nil, err
 	}
+	if deleteTarget.ClientHeader.MessageType == chat1.MessageType_REACTION {
+		// Don't do anything here for reactions, they can't be edited
+		return msg, nil, nil
+	}
 
 	// Delete all assets on the deleted message.
 	// assetsForMessage logs instead of failing.
@@ -350,24 +354,28 @@ func (s *BlockingSender) getSupersederEphemeralMetadata(ctx context.Context, uid
 // chat1.MessageType_REACTION, which is considered a chat1.MessageType_DELETE
 // and updates the send appropriately.
 func (s *BlockingSender) processReactionMessage(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msg chat1.MessagePlaintext) (clientHeader chat1.MessageClientHeader, err error) {
+	convID chat1.ConversationID, msg chat1.MessagePlaintext) (clientHeader chat1.MessageClientHeader, body chat1.MessageBody, err error) {
 	if msg.ClientHeader.MessageType != chat1.MessageType_REACTION {
 		// nothing to do here
-		return msg.ClientHeader, nil
+		return msg.ClientHeader, msg.MessageBody, nil
 	}
 
 	// We could either be posting a reaction or removing one that we already posted.
 	supersededMsg, err := s.getMessage(ctx, uid, convID, msg.ClientHeader.Supersedes, true /* resolveSupersedes */)
 	if err != nil {
-		return clientHeader, err
+		return clientHeader, body, err
 	}
 	found, reactionMsgID := supersededMsg.Reactions.HasReactionFromUser(msg.MessageBody.Reaction().Body, s.G().Env.GetUsername().String())
 	if found {
 		msg.ClientHeader.Supersedes = reactionMsgID
 		msg.ClientHeader.MessageType = chat1.MessageType_DELETE
+		msg.ClientHeader.Deletes = []chat1.MessageID{reactionMsgID}
+		msg.MessageBody = chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
+			MessageIDs: []chat1.MessageID{reactionMsgID},
+		})
 	}
 
-	return msg.ClientHeader, nil
+	return msg.ClientHeader, msg.MessageBody, nil
 }
 
 func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat1.MessagePlaintext,
@@ -429,11 +437,12 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	if conv != nil {
 		convID := (*conv).GetConvID()
 		// First process the reactionMessage in case we convert it to a delete
-		header, err := s.processReactionMessage(ctx, uid, convID, msg)
+		header, body, err := s.processReactionMessage(ctx, uid, convID, msg)
 		if err != nil {
 			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 		}
 		msg.ClientHeader = header
+		msg.MessageBody = body
 
 		// Be careful not to shadow (msg, pendingAssetDeletes) with this assignment.
 		msg, pendingAssetDeletes, err = s.getAllDeletedEdits(ctx, uid, convID, msg)
@@ -866,6 +875,12 @@ func (s *Deliverer) IsOffline(ctx context.Context) bool {
 	return !s.connected
 }
 
+func (s *Deliverer) IsDelivering() bool {
+	s.Lock()
+	defer s.Unlock()
+	return s.delivering
+}
+
 func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
 	outboxID *chat1.OutboxID,
 	identifyBehavior keybase1.TLFIdentifyBehavior) (obr chat1.OutboxRecord, err error) {
@@ -887,6 +902,10 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 
 func (s *Deliverer) ActiveDeliveries(ctx context.Context) (res []chat1.ConversationID, err error) {
 	defer s.Trace(ctx, func() error { return err }, "ActiveDeliveries")()
+	if !s.IsDelivering() {
+		s.Debug(ctx, "ActiveDeliveries: not delivering, returning empty")
+		return nil, nil
+	}
 	recs, err := s.outbox.PullAllConversations(ctx, false, false)
 	cmap := make(map[string]chat1.ConversationID)
 	if err != nil {

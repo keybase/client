@@ -33,7 +33,7 @@ const load = () => {
   // full component
   Sb.storiesOf('Wallets/SendForm', module)
     .addDecorator(provider)
-    .add('Send', () => <SendForm onClick={Sb.action('onClick')} />)
+    .add('Send', () => <SendForm onClick={Sb.action('onClick')} onClose={Sb.action('onClose')} />)
 }
 
 export default load

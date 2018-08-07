@@ -1,6 +1,6 @@
 // @flow
 /* eslint-env browser */
-import {showImagePicker} from 'react-native-image-picker'
+import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
 import React, {Component} from 'react'
 import {
   Box,
@@ -24,6 +24,9 @@ import SetExplodingMessagePicker from '../../messages/set-explode-popup/containe
 import {ExplodingMeta} from './shared'
 import type {PlatformInputProps} from './types'
 import flags from '../../../../util/feature-flags'
+import FilePickerPopup from '../filepicker-popup'
+
+type menuType = 'exploding' | 'filepickerpopup'
 
 type State = {
   hasText: boolean,
@@ -31,6 +34,7 @@ type State = {
 
 class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, State> {
   _input: ?Input
+  _whichMenu: menuType
 
   constructor(props: PlatformInputProps & OverlayParentProps) {
     super(props)
@@ -45,7 +49,37 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
   }
 
   _openFilePicker = () => {
-    showImagePicker({mediaType: isIOS ? 'mixed' : 'photo'}, response => {
+    this._toggleShowingMenu('filepickerpopup')
+  }
+
+  _launchNativeImagePicker = (mediaType: string, location: string) => {
+    let title = 'Select a Photo'
+    let takePhotoButtonTitle = 'Take Photo...'
+    let permDeniedText = 'Allow Keybase to take photos and choose images from your library?'
+    switch (mediaType) {
+      case 'photo':
+        break
+      case 'mixed':
+        title = 'Select a Photo or Video'
+        takePhotoButtonTitle = 'Take Photo or Video...'
+        // 'mixed' never happens on Android, which is when the
+        // permissions denied dialog box is shown, but fill it out
+        // anyway.
+        permDeniedText = 'Allow Keybase to take photos/video and choose images/videos from your library?'
+        break
+      case 'video':
+        title = 'Select a Video'
+        takePhotoButtonTitle = 'Take Video...'
+        permDeniedText = 'Allow Keybase to take video and choose videos from your library?'
+        break
+    }
+    const permissionDenied = {
+      title: 'Permissions needed',
+      text: permDeniedText,
+      reTryTitle: 'allow in settings',
+      okTitle: 'deny',
+    }
+    const handleSelection = response => {
       if (response.didCancel || !this.props.conversationIDKey) {
         return
       }
@@ -55,7 +89,16 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
       }
       const filename = isIOS ? response.uri.replace('file://', '') : response.path
       this.props.onAttach([filename])
-    })
+    }
+
+    switch (location) {
+      case 'camera':
+        launchCamera({mediaType, title, takePhotoButtonTitle, permissionDenied}, handleSelection)
+        break
+      case 'library':
+        launchImageLibrary({mediaType, title, takePhotoButtonTitle, permissionDenied}, handleSelection)
+        break
+    }
   }
 
   _getText = () => {
@@ -74,9 +117,10 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
     }
   }
 
-  _toggleShowingMenu = () => {
+  _toggleShowingMenu = (menu: menuType) => {
     // Hide the keyboard on mobile when showing the menu.
     NativeKeyboard.dismiss()
+    this._whichMenu = menu
     this.props.onSeenExplodingMessages()
     this.props.toggleShowingMenu()
   }
@@ -113,7 +157,14 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             filter={this.props.channelMentionFilter}
           />
         )}
-        {this.props.showingMenu && (
+        {this.props.showingMenu && this._whichMenu === 'filepickerpopup' ? (
+          <FilePickerPopup
+            attachTo={this.props.attachmentRef}
+            visible={this.props.showingMenu}
+            onHidden={this.props.toggleShowingMenu}
+            onSelect={this._launchNativeImagePicker}
+          />
+        ) : (
           <SetExplodingMessagePicker
             attachTo={this.props.attachmentRef}
             conversationIDKey={this.props.conversationIDKey}
@@ -155,7 +206,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             hasText={this.state.hasText}
             onSubmit={this._onSubmit}
             isEditing={this.props.isEditing}
-            openExplodingPicker={this._toggleShowingMenu}
+            openExplodingPicker={() => this._toggleShowingMenu('exploding')}
             openFilePicker={this._openFilePicker}
             insertMentionMarker={this.props.insertMentionMarker}
             isExploding={this.props.isExploding}

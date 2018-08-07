@@ -24,12 +24,14 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 
   let admin = false
   let canEditChannel = false
+  let canSetMinWriterRole = false
   let canSetRetention = false
   let canDeleteHistory = false
   if (meta.teamname) {
     const yourOperations = getCanPerform(state, meta.teamname)
     admin = yourOperations.manageMembers
     canEditChannel = yourOperations.editChannelDescription
+    canSetMinWriterRole = yourOperations.setMinWriterRole
     canSetRetention = yourOperations.setRetentionPolicy
     canDeleteHistory = yourOperations.deleteChatHistory
   }
@@ -39,6 +41,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     _infoMap: state.users.infoMap,
     admin,
     canEditChannel,
+    canSetMinWriterRole,
     canSetRetention,
     canDeleteHistory,
     channelname: meta.channelname,
