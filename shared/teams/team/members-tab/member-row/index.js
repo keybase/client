@@ -196,7 +196,7 @@ export const TeamMemberRow = (props: Props) => {
               />
             </ButtonBar>
             {!isLargeScreen && (
-              // Mobile small screens - for inactive user 
+              // Mobile small screens - for inactive user
               // display next to reset / deleted controls
               <Icon
                 onClick={props.onChat}
