@@ -688,15 +688,10 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 	state *keybase1.TeamData, me keybase1.UserVersion, box *TeamBox, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded,
 	readerKeyMasks []keybase1.ReaderKeyMask) error {
 
-	tracer := l.G().CTimeTracer(ctx, "TeamLoader.addSecrets", teamEnv.Profile)
-	defer tracer.Finish()
-
-	tracer.Stage("unbox")
 	latestReceivedGen, seeds, err := l.unboxPerTeamSecrets(ctx, box, prevs)
 	if err != nil {
 		return err
 	}
-	tracer.Stage("misc")
 	// Earliest generation received.
 	earliestReceivedGen := latestReceivedGen - keybase1.PerTeamKeyGeneration(len(seeds)-1)
 	// Latest generation from the sigchain
@@ -711,7 +706,6 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 	}
 
 	// Check that each key matches the chain.
-	tracer.Stage("match")
 	var gotOldKeys bool
 	for i, seed := range seeds {
 		gen := int(latestReceivedGen) + i + 1 - len(seeds)
@@ -741,7 +735,6 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 	}
 
 	// Make sure there is not a gap between the latest local key and the earliest received key.
-	tracer.Stage("gap")
 	if earliestReceivedGen > keybase1.PerTeamKeyGeneration(1) {
 		// We should have the seed for the generation preceeding the earliest received.
 		checkGen := earliestReceivedGen - 1
@@ -751,7 +744,6 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 		}
 	}
 
-	tracer.Stage("rkm")
 	chain := TeamSigChainState{inner: state.Chain}
 	role, err := chain.GetUserRole(me)
 	if err != nil {
