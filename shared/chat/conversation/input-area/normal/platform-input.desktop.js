@@ -1,9 +1,18 @@
 // @flow
 /* eslint-env browser */
 import React, {Component} from 'react'
-import {Box, Icon, Input, Text, OverlayParentHOC, type OverlayParentProps} from '../../../../common-adapters'
+import {
+  Box,
+  Icon,
+  Input,
+  Text,
+  OverlayParentHOC,
+  iconCastPlatformStyles,
+  type OverlayParentProps,
+} from '../../../../common-adapters'
 import {
   collapseStyles,
+  desktopStyles,
   glamorous,
   globalColors,
   globalMargins,
@@ -269,7 +278,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
           >
             {!this.props.isEditing && (
               <HoverBox
-                className={this.props.isEditing ? 'editing' : ''}
+                className={this.props.showingMenu ? 'expanded' : ''}
                 onClick={this._toggleShowingMenu}
                 ref={this.props.setAttachmentRef}
                 style={collapseStyles([
@@ -277,40 +286,19 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
                   {
                     backgroundColor: this.props.explodingModeSeconds
                       ? globalColors.black_75
-                      : this.props.isEditing
-                        ? globalColors.yellow3
-                        : globalColors.white,
+                      : globalColors.white,
                   },
-                  platformStyles({
-                    isElectron: {
-                      borderRight: `1px solid ${
-                        this.props.isEditing ? globalColors.orange : globalColors.black_20
-                      }`,
-                      cursor: this.props.isEditing ? 'not-allowed' : 'pointer',
-                    },
-                  }),
                 ])}
               >
                 {this.props.explodingModeSeconds ? (
-                  <Text
-                    type="BodyTinyBold"
-                    style={{bottom: globalMargins.tiny, color: globalColors.white, position: 'relative'}}
-                  >
+                  <Text type="BodyTinyBold" style={styles.time}>
                     {formatDurationShort(this.props.explodingModeSeconds * 1000)}
                   </Text>
                 ) : (
                   <Icon
                     className="timer"
                     onClick={this.props.isEditing ? undefined : this._toggleShowingMenu}
-                    style={platformStyles({
-                      common: {
-                        bottom: 6,
-                        position: 'relative',
-                      },
-                      isElectron: {
-                        cursor: 'inherit',
-                      },
-                    })}
+                    style={iconCastPlatformStyles(styles.timerIcon)}
                     type="iconfont-timer"
                   />
                 )}
@@ -377,19 +365,16 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             {this.state.emojiPickerOpen && (
               <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
             )}
-            <Icon onClick={this._emojiPickerToggle} style={styleIcon} type="iconfont-emoji" />
+            <Icon
+              color={this.state.emojiPickerOpen ? globalColors.black_75 : null}
+              onClick={this._emojiPickerToggle}
+              style={styleIcon}
+              type="iconfont-emoji"
+            />
             <Icon onClick={this._filePickerOpen} style={styleIcon} type="iconfont-attachment" />
           </Box>
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
-            <Text
-              type="BodySmall"
-              style={{
-                flexGrow: 1,
-                marginBottom: globalMargins.xtiny,
-                marginLeft: 58,
-                textAlign: 'left',
-              }}
-            >
+            <Text type="BodySmall" style={styles.isTyping}>
               {isTyping(this.props.typing)}
             </Text>
             <Text type="BodySmall" style={styleFooter} onClick={this._inputFocus} selectable={true}>
@@ -462,7 +447,7 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
   <Box>
     <Box style={{bottom: 0, left: 0, position: 'absolute', right: 0, top: 0}} onClick={emojiPickerToggle} />
     <Box style={{position: 'relative'}}>
-      <Box style={{bottom: 0, position: 'absolute', right: 0}}>
+      <Box style={styles.emojiPickerContainer}>
         <Picker
           autoFocus={true}
           onClick={onClick}
@@ -477,7 +462,7 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
 
 const styleMentionHud = {
   borderRadius: 4,
-  boxShadow: '0 0 8px 0 rgba(0, 0, 0, 0.2)',
+  boxShadow: `0 0 8px 0 ${globalColors.black_20}`,
   height: 224,
   marginLeft: globalMargins.small,
   marginRight: globalMargins.small,
@@ -520,9 +505,8 @@ const styles = styleSheetCreate({
   cancelEditing: platformStyles({
     common: {
       ...globalStyles.flexBoxColumn,
-      alignItems: 'center',
       alignSelf: 'stretch',
-      backgroundColor: globalColors.lightGrey2,
+      backgroundColor: globalColors.black_75,
       borderRadius: 2,
       justifyContent: 'center',
       margin: 2,
@@ -531,12 +515,23 @@ const styles = styleSheetCreate({
       paddingRight: globalMargins.tiny,
     },
     isElectron: {
-      cursor: 'pointer',
+      ...desktopStyles.clickable,
     },
   }),
   cancelEditingText: {
-    color: globalColors.black_75,
+    color: globalColors.white,
   },
+  emojiPickerContainer: platformStyles({
+    common: {
+      borderRadius: 4,
+      bottom: 34,
+      position: 'absolute',
+      right: -22,
+    },
+    isElectron: {
+      boxShadow: `0 0 8px 0 ${globalColors.black_20}`,
+    },
+  }),
   explodingIconContainer: platformStyles({
     common: {
       ...globalStyles.flexBoxColumn,
@@ -547,11 +542,30 @@ const styles = styleSheetCreate({
       textAlign: 'center',
       width: 32,
     },
+    isElectron: {
+      ...desktopStyles.clickable,
+      borderRight: `1px solid ${globalColors.black_20}`,
+    },
   }),
+  isTyping: {
+    flexGrow: 1,
+    marginBottom: globalMargins.xtiny,
+    marginLeft: 58,
+    textAlign: 'left',
+  },
+  time: {
+    bottom: globalMargins.tiny,
+    color: globalColors.white,
+    position: 'relative',
+  },
+  timerIcon: {
+    bottom: 6,
+    position: 'relative',
+  },
 })
 
 const HoverBox = glamorous(Box)({
-  '&:not(.editing):hover .timer': {
+  ':hover .timer, &.expanded .timer': {
     color: globalColors.black_75,
   },
 })

@@ -110,6 +110,10 @@ const SetExplodePopup = (props: Props) => {
       closeOnSelect={true}
       onHidden={props.onHidden}
       items={listItems}
+      containerStyle={{
+        bottom: 3,
+        position: 'relative',
+      }}
     />
   )
 }
