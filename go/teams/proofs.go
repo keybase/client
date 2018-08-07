@@ -113,7 +113,9 @@ func (p *proofSetT) AddNeededHappensBeforeProof(ctx context.Context, a proofTerm
 
 	var action string
 	defer func() {
-		p.G().Log.CDebugf(ctx, "proofSet add(%v --> %v) [%v] '%v'", a.shortForm(), b.shortForm(), action, reason)
+		if action != "discard-easy" && !ShouldSuppressLogging(ctx) {
+			p.G().Log.CDebugf(ctx, "proofSet add(%v --> %v) [%v] '%v'", a.shortForm(), b.shortForm(), action, reason)
+		}
 	}()
 
 	idx := newProofIndex(a.leafID, b.leafID)

@@ -588,8 +588,20 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	defer preloadCancel()
 
 	tracer.Stage("linkloop (%v)", len(links))
+	// Don't log in the middle links if there are a great many links.
+	suppressLoggingStart := 5
+	suppressLoggingUpto := len(links) - 5
 	for i, link := range links {
-		l.G().Log.CDebugf(ctx, "TeamLoader processing link seqno:%v", link.Seqno())
+		ctx := ctx // Shadow for log suppression scope
+		if suppressLoggingStart <= i && i < suppressLoggingUpto {
+			if i == suppressLoggingStart {
+				l.G().Log.CDebugf(ctx, "TeamLoader suppressing logs until %v", suppressLoggingUpto)
+			}
+			ctx = WithSuppressLogging(ctx, true)
+		}
+		if !ShouldSuppressLogging(ctx) {
+			l.G().Log.CDebugf(ctx, "TeamLoader processing link seqno:%v", link.Seqno())
+		}
 
 		if link.Seqno() > lastSeqno {
 			// This link came from a point in the chain after when we checked the merkle leaf.
