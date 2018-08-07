@@ -597,6 +597,9 @@ func (l *TeamLoader) checkProofs(ctx context.Context,
 	// Without this it would fail in some cases when the team is on the left.
 	// Because the team linkmap in the proof objects is stale.
 	proofSet.SetTeamLinkMap(ctx, state.Chain.Id, state.Chain.LinkIDs)
+	if !proofSet.checkRequired() {
+		return nil
+	}
 	return proofSet.check(ctx, l.world, teamEnv.ProofSetParallel)
 }
 

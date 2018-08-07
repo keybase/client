@@ -278,6 +278,10 @@ func (p proof) findLink(ctx context.Context, g *libkb.GlobalContext, world Loade
 	return linkID, nil
 }
 
+func (p *proofSetT) checkRequired() bool {
+	return len(p.proofs) > 0
+}
+
 // check the entire proof set, failing if any one proof fails.
 func (p *proofSetT) check(ctx context.Context, world LoaderContext, parallel bool) (err error) {
 	defer p.G().CTrace(ctx, "TeamLoader proofSet check", func() error { return err })()

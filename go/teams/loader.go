@@ -424,7 +424,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	tracer := l.G().CTimeTracer(ctx, "TeamLoader.load2ILR", teamEnv.Profile)
 	defer tracer.Finish()
 
-	defer tbs.Log(ctx, "API.request")
+	defer tbs.LogIfNonZero(ctx, "API.request")
 
 	var err error
 	var didRepoll bool
@@ -460,13 +460,14 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	tracer.Stage("deepcopy")
 	if ret != nil {
-		l.G().Log.CDebugf(ctx, "TeamLoader found cached snapshot")
 		// If we're pulling from a previous snapshot (that, let's say, we got from a shared cache),
 		// then make sure to DeepCopy() data out of it before we start mutating it below. We used
 		// to do this every step through the new links, but that was very expensive in terms of CPU
 		// for big teams, since it was hidden quadratic behavior.
 		tmp := ret.DeepCopy()
 		ret = &tmp
+	} else {
+		l.G().Log.CDebugf(ctx, "TeamLoader not using snapshot")
 	}
 
 	tracer.Stage("merkle")
@@ -580,7 +581,9 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			break
 		}
 	}
-	l.G().Log.CDebugf(ctx, "fullVerifyCutoff: %v", fullVerifyCutoff)
+	if fullVerifyCutoff > 0 {
+		l.G().Log.CDebugf(ctx, "fullVerifyCutoff: %v", fullVerifyCutoff)
+	}
 
 	tracer.Stage("userPreload enable:%v parallel:%v wait:%v",
 		teamEnv.UserPreloadEnable, teamEnv.UserPreloadParallel, teamEnv.UserPreloadWait)
@@ -642,16 +645,18 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		prev = link.LinkID()
 	}
 	preloadCancel()
-	tbs.Log(ctx, "TeamLoader.verifyLink")
-	tbs.Log(ctx, "TeamLoader.applyNewLink")
-	tbs.Log(ctx, "SigChain.LoadFromServer.ReadAll")
-	tbs.Log(ctx, "loadKeyCache.loadKeyV2")
-	if teamEnv.Profile {
-		tbs.Log(ctx, "LoaderContextG.loadKeyV2")
-		tbs.Log(ctx, "CachedUPAKLoader.LoadKeyV2") // note LoadKeyV2 calls Load2
-		tbs.Log(ctx, "CachedUPAKLoader.LoadV2")
-		tbs.Log(ctx, "CachedUPAKLoader.DeepCopy")
-		l.G().Log.CDebugf(ctx, "TeamLoader lkc cache hits: %v", lkc.cacheHits)
+	if len(links) > 0 {
+		tbs.Log(ctx, "TeamLoader.verifyLink")
+		tbs.Log(ctx, "TeamLoader.applyNewLink")
+		tbs.Log(ctx, "SigChain.LoadFromServer.ReadAll")
+		tbs.Log(ctx, "loadKeyCache.loadKeyV2")
+		if teamEnv.Profile {
+			tbs.Log(ctx, "LoaderContextG.loadKeyV2")
+			tbs.Log(ctx, "CachedUPAKLoader.LoadKeyV2") // note LoadKeyV2 calls Load2
+			tbs.Log(ctx, "CachedUPAKLoader.LoadV2")
+			tbs.Log(ctx, "CachedUPAKLoader.DeepCopy")
+			l.G().Log.CDebugf(ctx, "TeamLoader lkc cache hits: %v", lkc.cacheHits)
+		}
 	}
 
 	if ret == nil {
