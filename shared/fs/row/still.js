@@ -31,13 +31,7 @@ const RowMeta = ({isDownloading}) => {
 }
 
 const Still = (props: StillProps) => (
-  <StillCommon
-    itemStyles={props.itemStyles}
-    name={props.name}
-    path={props.path}
-    onOpen={props.onOpen}
-    openInFileUI={props.openInFileUI}
-  >
+  <StillCommon itemStyles={props.itemStyles} name={props.name} path={props.path} onOpen={props.onOpen}>
     <RowMeta isDownloading={props.isDownloading} />
     <Box style={rowStyles.itemBox}>
       <Box2 direction="horizontal" fullWidth={true}>

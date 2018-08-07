@@ -23,13 +23,7 @@ const RowMeta = ({badgeCount}) => {
 }
 
 const TlfType = (props: TlfTypeProps) => (
-  <StillCommon
-    itemStyles={props.itemStyles}
-    name={props.name}
-    path={props.path}
-    onOpen={props.onOpen}
-    openInFileUI={props.openInFileUI}
-  >
+  <StillCommon itemStyles={props.itemStyles} name={props.name} path={props.path} onOpen={props.onOpen}>
     <RowMeta badgeCount={props.badgeCount} />
     <Box style={rowStyles.itemBox}>
       <Box2 direction="horizontal" fullWidth={true}>

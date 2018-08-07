@@ -35,13 +35,7 @@ const RowMeta = ({isNew, isIgnored, needsRekey}) => {
 }
 
 const Tlf = (props: TlfProps) => (
-  <StillCommon
-    itemStyles={props.itemStyles}
-    name={props.name}
-    path={props.path}
-    onOpen={props.onOpen}
-    openInFileUI={props.openInFileUI}
-  >
+  <StillCommon itemStyles={props.itemStyles} name={props.name} path={props.path} onOpen={props.onOpen}>
     <RowMeta isIgnored={props.isIgnored} isNew={props.isNew} needsRekey={props.needsRekey} />
     <Box style={rowStyles.itemBox}>
       <Box2 direction="horizontal" fullWidth={true}>

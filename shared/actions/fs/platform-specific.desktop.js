@@ -15,7 +15,7 @@ import {fsTab} from '../../constants/tabs'
 import logger from '../../logger'
 import {spawn, execFileSync} from 'child_process'
 import path from 'path'
-import {putActionIfOnPath, navigateTo, navigateAppend, navigateUp} from '../route-tree'
+import {navigateTo} from '../route-tree'
 import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
 
 type pathType = 'file' | 'directory'
@@ -303,26 +303,6 @@ function installDokanSaga() {
   return Saga.call(installCachedDokan)
 }
 
-function openFinderPopup(action: FsGen.OpenFinderPopupPayload) {
-  const {targetRect, routePath} = action.payload
-  return Saga.put(
-    putActionIfOnPath(
-      routePath,
-      navigateAppend([
-        {
-          props: {
-            targetRect,
-            position: 'bottom right',
-            onHidden: () => Saga.put(navigateUp()),
-            onInstall: () => Saga.put(FsGen.createInstallFuse()),
-          },
-          selected: 'finderAction',
-        },
-      ])
-    )
-  )
-}
-
 function platformSpecificIntentEffect(
   intent: Types.DownloadIntent,
   localPath: string,
@@ -385,9 +365,6 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
     yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
   }
   yield Saga.safeTakeEveryPure(FsGen.openSecurityPreferences, openSecurityPreferences)
-
-  // These are saga tasks that may use actions above.
-  yield Saga.safeTakeEveryPure(FsGen.openFinderPopup, openFinderPopup)
 }
 
 export {platformSpecificIntentEffect, platformSpecificSaga}
