@@ -13,6 +13,7 @@ import {
 import {globalMargins, globalStyles, globalColors, isMobile} from '../../../../styles'
 import {roleIconColorMap} from '../../../role-picker/index.meta'
 import {typeToLabel} from '../../../../constants/teams'
+import {isLargeScreen} from '../../../../constants/platform'
 import type {BoolTypeMap, MemberStatus, TeamRoleType} from '../../../../constants/types/teams'
 
 export type Props = {
@@ -38,6 +39,10 @@ const showCrown: BoolTypeMap = {
   reader: false,
   writer: false,
 }
+
+// NOTE the controls for reset and deleted users (and the chat button) are
+// duplicated here because the desktop & mobile layouts differ significantly. If
+// you're changing one remember to change the other.
 
 export const TeamMemberRow = (props: Props) => {
   let crown, fullNameLabel, resetLabel
@@ -89,7 +94,7 @@ export const TeamMemberRow = (props: Props) => {
             flexGrow: 1,
             alignItems: 'center',
           }}
-          onClick={active || isMobile ? props.onClick : props.onShowTracker}
+          onClick={active ? props.onClick : props.status === 'deleted' ? null : props.onShowTracker}
         >
           <Avatar username={props.username} size={isMobile ? 48 : 32} />
           <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
@@ -132,7 +137,7 @@ export const TeamMemberRow = (props: Props) => {
           props.youCanManageMembers && (
             <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
               <ButtonBar>
-                {!props.status === 'deleted' && (
+                {props.status !== 'deleted' && (
                   <Button
                     small={true}
                     label="Re-Admit"
@@ -153,17 +158,17 @@ export const TeamMemberRow = (props: Props) => {
               </ButtonBar>
             </Box>
           )}
-        <Box style={{...globalStyles.flexBoxRow, flexShrink: 1, height: '100%'}}>
-          <Icon
-            onClick={props.onChat}
-            style={{
-              marginLeft: globalMargins.small,
-              marginRight: globalMargins.tiny,
-              padding: globalMargins.tiny,
-            }}
-            fontSize={isMobile ? 20 : 16}
-            type="iconfont-chat"
-          />
+        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flexShrink: 1, height: '100%'}}>
+          {(active || isLargeScreen) && (
+            // Desktop & mobile large screen - display on the far right of the first row
+            // Also when user is active
+            <Icon
+              onClick={props.onChat}
+              style={isMobile ? stylesChatButtonMobile(active) : stylesChatButtonDesktop}
+              fontSize={isMobile ? 20 : 16}
+              type="iconfont-chat"
+            />
+          )}
         </Box>
       </Box>
       {!active &&
@@ -171,14 +176,16 @@ export const TeamMemberRow = (props: Props) => {
         props.youCanManageMembers && (
           <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
             <ButtonBar direction="row">
-              <Button
-                small={true}
-                label="Re-Admit"
-                onClick={props.onReAddToTeam}
-                type="PrimaryGreen"
-                waiting={props.waitingForAdd}
-                disabled={props.waitingForRemove}
-              />
+              {props.status !== 'deleted' && (
+                <Button
+                  small={true}
+                  label="Re-Admit"
+                  onClick={props.onReAddToTeam}
+                  type="PrimaryGreen"
+                  waiting={props.waitingForAdd}
+                  disabled={props.waitingForRemove}
+                />
+              )}
               <Button
                 small={true}
                 label="Remove"
@@ -188,6 +195,16 @@ export const TeamMemberRow = (props: Props) => {
                 disabled={props.waitingForAdd}
               />
             </ButtonBar>
+            {!isLargeScreen && (
+              // Mobile small screens - for inactive user
+              // display next to reset / deleted controls
+              <Icon
+                onClick={props.onChat}
+                style={stylesChatButtonMobile(active)}
+                fontSize={20}
+                type="iconfont-chat"
+              />
+            )}
           </Box>
         )}
     </Box>
@@ -207,3 +224,15 @@ const stylesContainerReset = {
   ...stylesContainer,
   backgroundColor: globalColors.blue4,
 }
+
+const stylesChatButtonDesktop = {
+  marginLeft: globalMargins.small,
+  marginRight: globalMargins.tiny,
+  padding: globalMargins.tiny,
+}
+
+const stylesChatButtonMobile = (active: boolean) => ({
+  position: 'absolute',
+  right: 16,
+  top: isLargeScreen || active ? 12 : 24,
+})

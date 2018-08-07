@@ -1066,7 +1066,7 @@ const getIdentifyBehavior = (state: TypedState, conversationIDKey: Types.Convers
     : RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
-const messageReplyPrivately = (action: Chat2Gen.MessageReplyPrivatelyPayload, state: TypedState) => {
+const messageReplyPrivately = (state: TypedState, action: Chat2Gen.MessageReplyPrivatelyPayload) => {
   const {sourceConversationIDKey, ordinal} = action.payload
   const message = Constants.getMessage(state, sourceConversationIDKey, ordinal)
   if (!message) {
@@ -1074,22 +1074,23 @@ const messageReplyPrivately = (action: Chat2Gen.MessageReplyPrivatelyPayload, st
     return
   }
 
-  return createConversation(Chat2Gen.createCreateConversation({participants: [message.author]}), state)
-}
-
-const messageReplyPrivatelySuccess = (results: Array<any>, action: Chat2Gen.MessageReplyPrivatelyPayload) => {
-  const result: RPCChatTypes.NewConversationLocalRes = results[1]
-  const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
-  return Saga.sequentially([
-    Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'})),
-    Saga.put(
-      Chat2Gen.createMessageSetQuoting({
-        ordinal: action.payload.ordinal,
-        sourceConversationIDKey: action.payload.sourceConversationIDKey,
-        targetConversationIDKey: conversationIDKey,
-      })
-    ),
-  ])
+  return Saga.call(function*() {
+    const result: RPCChatTypes.NewConversationLocalRes = yield createConversation(
+      Chat2Gen.createCreateConversation({participants: [message.author]}),
+      state
+    )
+    const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
+    yield Saga.sequentially([
+      Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'})),
+      Saga.put(
+        Chat2Gen.createMessageSetQuoting({
+          ordinal: action.payload.ordinal,
+          sourceConversationIDKey: action.payload.sourceConversationIDKey,
+          targetConversationIDKey: conversationIDKey,
+        })
+      ),
+    ])
+  })
 }
 
 const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => {
@@ -2100,25 +2101,22 @@ const createConversation = (action: Chat2Gen.CreateConversationPayload, state: T
   if (!username) {
     throw new Error('Making a convo while logged out?')
   }
-  return Saga.sequentially([
-    Saga.call(
-      RPCChatTypes.localNewConversationLocalRpcPromise,
-      {
-        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-        membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
-        tlfName: I.Set([username])
-          .concat(action.payload.participants)
-          .join(','),
-        tlfVisibility: RPCTypes.commonTLFVisibility.private,
-        topicType: RPCChatTypes.commonTopicType.chat,
-      },
-      Constants.waitingKeyCreating
-    ),
-  ])
+  return Saga.call(
+    RPCChatTypes.localNewConversationLocalRpcPromise,
+    {
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
+      tlfName: I.Set([username])
+        .concat(action.payload.participants)
+        .join(','),
+      tlfVisibility: RPCTypes.commonTLFVisibility.private,
+      topicType: RPCChatTypes.commonTopicType.chat,
+    },
+    Constants.waitingKeyCreating
+  )
 }
 
-const createConversationSelectIt = (results: Array<any>) => {
-  const result: RPCChatTypes.NewConversationLocalRes = results[0]
+const createConversationSelectIt = (result: RPCChatTypes.NewConversationLocalRes) => {
   const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
   if (!conversationIDKey) {
     logger.warn("Couldn't make a new conversation?")
@@ -2423,11 +2421,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.blockConversation, blockConversation)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
-  yield Saga.safeTakeEveryPure(
-    Chat2Gen.messageReplyPrivately,
-    messageReplyPrivately,
-    messageReplyPrivatelySuccess
-  )
+  yield Saga.actionToAction(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
   yield Saga.safeTakeEveryPure(Chat2Gen.createConversation, createConversation, createConversationSelectIt)
   yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.previewConversation], changePendingMode)
 

@@ -1458,32 +1458,54 @@ func TestTeamBustResolverCacheOnSubteamRename(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
-	tt.addUser("onr")
-	user := tt.users[0]
-	tc := user.tc
-	_, teamName := user.createTeam2()
+	al := tt.addUser("al")
+	bob := tt.addUser("bob")
+	eve := tt.addUser("eve")
+
+	_, teamName := al.createTeam2()
 
 	// Verify subteams that have been renamed resolve correctly
 	subteamBasename := "bb1"
-	subteamID, err := teams.CreateSubteam(context.TODO(), tc.G, subteamBasename, teamName, keybase1.TeamRole_NONE /* addSelfAs */)
+	subteamID, err := teams.CreateSubteam(context.TODO(), al.tc.G, subteamBasename, teamName, keybase1.TeamRole_NONE /* addSelfAs */)
 	require.NoError(t, err)
 	subteamName, err := teamName.Append(subteamBasename)
 	require.NoError(t, err)
+
+	al.addTeamMember(subteamName.String(), bob.username, keybase1.TeamRole_READER)
+	al.addTeamMember(teamName.String(), eve.username, keybase1.TeamRole_ADMIN)
+
 	subteamRename, err := teamName.Append("bb2")
 	require.NoError(t, err)
 
-	subteamNameActual, err := teams.ResolveIDToName(context.TODO(), tc.G, *subteamID)
+	subteamNameActual, err := teams.ResolveIDToName(context.TODO(), al.tc.G, *subteamID)
 	require.NoError(t, err)
 	require.True(t, subteamName.Eq(subteamNameActual))
 
-	err = teams.RenameSubteam(context.TODO(), tc.G, subteamName, subteamRename)
+	err = teams.RenameSubteam(context.TODO(), al.tc.G, subteamName, subteamRename)
 	require.NoError(t, err)
-	user.waitForTeamChangeRenamed(*subteamID)
 
-	subteamRenameActual, err := teams.ResolveIDToName(context.TODO(), tc.G, *subteamID)
-	require.NoError(t, err)
-	require.True(t, subteamRename.Eq(subteamRenameActual))
+	// While this may not be ideal, admin that posts the rename will
+	// get two notifications.
+	// - First notification comes from `RenameSubteam` func itself,
+	//   where `g.GetTeamLoader().NotifyTeamRename` is called.
+	// - Second one is the regular gregor team.rename notification.
+	t.Logf("Waiting for team notifications for %s", al.username)
+	al.waitForTeamChangeRenamed(*subteamID)
+	al.waitForTeamChangeRenamed(*subteamID)
 
-	_, err = teams.ResolveNameToID(context.TODO(), tc.G, subteamName)
-	require.Error(t, err)
+	// Members of subteam, and other admins from parent teams, will
+	// get just one.
+	for _, user := range []*userPlusDevice{bob, eve} {
+		t.Logf("Waiting for team notifications for %s", user.username)
+		user.waitForTeamChangeRenamed(*subteamID)
+	}
+
+	for _, user := range tt.users {
+		subteamRenameActual, err := teams.ResolveIDToName(context.TODO(), user.tc.G, *subteamID)
+		require.NoError(t, err)
+		require.True(t, subteamRename.Eq(subteamRenameActual))
+
+		_, err = teams.ResolveNameToID(context.TODO(), user.tc.G, subteamName)
+		require.Error(t, err)
+	}
 }

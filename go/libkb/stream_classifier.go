@@ -4,58 +4,15 @@
 package libkb
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/base64"
-	"errors"
 	"io"
-	"regexp"
 	"strings"
 
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/saltpack"
 )
-
-// StreamPeeker is a reader that takes another reader and allow you to
-// peek at the beginning of the stream without consuming it.
-type StreamPeeker struct {
-	r       io.Reader
-	buf     []byte
-	didRead bool
-}
-
-var _ io.Reader = (*StreamPeeker)(nil)
-
-// NewStreamPeeker makes a new Reader from the given Reader, but also
-// allows you to Peek at the first N bytes.
-func NewStreamPeeker(r io.Reader) *StreamPeeker {
-	return &StreamPeeker{r: r}
-}
-
-// Read is the standard read, that either reads the buffered peek region
-// or reads directly from the stream.
-func (p *StreamPeeker) Read(buf []byte) (n int, err error) {
-	p.didRead = true
-	if len(p.buf) > 0 {
-		n = copy(buf, p.buf)
-		p.buf = p.buf[n:]
-		return n, nil
-	}
-	return p.r.Read(buf)
-}
-
-// ErrCannotPeek is returned if you try to Peek, then Read, then Peek from
-// a stream, which isn't allowed. You can only Peek, peek, peek, read, read, read, &c.
-var ErrCannotPeek = errors.New("Cannot peek after read")
-
-// Peek at the first N bytes of the stream.
-func (p *StreamPeeker) Peek(buf []byte) (n int, err error) {
-	if p.didRead {
-		return 0, ErrCannotPeek
-	}
-	n, err = io.ReadFull(p.r, buf)
-	p.buf = append(p.buf, buf[:n]...)
-	return n, err
-}
 
 // CryptoMessageFormat is one of the known crypto message formats that we admit
 type CryptoMessageFormat string
@@ -127,47 +84,15 @@ type saltpackHeaderPrefix struct {
 	Type       saltpack.MessageType `codec:"type"`
 }
 
-func isSaltpackBinary(b []byte, sc *StreamClassification) bool {
-	if len(b) < 6 {
+func isSaltpackMessage(stream *bufio.Reader, sc *StreamClassification) bool {
+	isArmored, _, messageType, _, err := saltpack.ClassifyStream(stream)
+	if err != nil {
 		return false
 	}
 
-	// The encryption header is double-encoded. (And signing will be in the
-	// future.) For these headers we need to skip the "bin" tag at the front to
-	// get at the encoded header array.
-	var binTagBytesToSkip int
-	if b[0] == 0xc4 {
-		binTagBytesToSkip = 2
-	} else if b[0] == 0xc5 {
-		binTagBytesToSkip = 3
-	} else if b[0] == 0xc6 {
-		binTagBytesToSkip = 5
-	} else {
-		return false
-	}
+	sc.Armored = isArmored
 
-	// Verify the type of the array and its minimum length, and copy the array
-	// bytes to a scratch buffer.
-	arrayTagByte := b[binTagBytesToSkip]
-	if arrayTagByte <= 0x93 || arrayTagByte >= 0x9f {
-		// TODO: We should allow arrays of more than 15 elements here.
-		return false
-	}
-	tmp := make([]byte, len(b))
-	copy(tmp, b[binTagBytesToSkip:])
-
-	// Hack -- make this a 3-value Msgpack Array, since we only care about the
-	// first 3 fields, and don't want to bother slurping in more than that.
-	tmp[0] = 0x93
-	var mh codec.MsgpackHandle
-	var sphp saltpackHeaderPrefix
-	if err := codec.NewDecoderBytes(tmp, &mh).Decode(&sphp); err != nil {
-		return false
-	}
-	if sphp.FormatName != saltpack.FormatName {
-		return false
-	}
-	switch sphp.Type {
+	switch messageType {
 	case saltpack.MessageTypeEncryption, saltpack.MessageTypeSigncryption:
 		sc.Type = CryptoMessageTypeEncryption
 	case saltpack.MessageTypeAttachedSignature:
@@ -216,12 +141,6 @@ func isPGPBinary(b []byte, sc *StreamClassification) bool {
 	return true
 }
 
-func matchesSaltpackType(messageStart string, typeString string) bool {
-	exp := "^\\s*BEGIN ([a-zA-Z0-9]+ )?SALTPACK " + typeString + "."
-	match, err := regexp.MatchString(exp, messageStart)
-	return match && (err == nil)
-}
-
 func isUTF16Mark(b []byte) bool {
 	if len(b) < 2 {
 		return false
@@ -229,28 +148,26 @@ func isUTF16Mark(b []byte) bool {
 	return ((b[0] == 0xFE && b[1] == 0xFF) || (b[0] == 0xFF && b[1] == 0xFE))
 }
 
-var encryptionArmorHeader = saltpack.MakeArmorHeader(saltpack.MessageTypeEncryption, KeybaseSaltpackBrand)
-var signedArmorHeader = saltpack.MakeArmorHeader(saltpack.MessageTypeAttachedSignature, KeybaseSaltpackBrand)
-var detachedArmorHeader = saltpack.MakeArmorHeader(saltpack.MessageTypeDetachedSignature, KeybaseSaltpackBrand)
-
 // ClassifyStream takes a stream reader in, and returns a likely classification
 // of that stream without consuming any data from it. It returns a reader that you
 // should read from instead, in addition to the classification. If classification
 // fails, there will be a `UnknownStreamError`, or additional EOF errors if the
 // stream ended before classification could go.
 func ClassifyStream(r io.Reader) (sc StreamClassification, out io.Reader, err error) {
-	peeker := NewStreamPeeker(r)
-	var buf [100]byte
-	var n int
-	if n, err = peeker.Peek(buf[:]); err != nil {
-		// ErrUnexpectedEOF might just mean we read less than 100 bytes
-		if err == io.ErrUnexpectedEOF && len(buf) > 0 {
-			err = nil
-		} else {
-			return sc, peeker, err
+	// 4096 is currently the default buffer size. It is specified explicitly because go 1.9 does not
+	// expose the size of a bufio.Reader (go 1.10 does).
+	stream := bufio.NewReaderSize(r, 4096)
+
+	buf, err := stream.Peek(4096)
+	if err != nil {
+		// If we had a short peek (for example, due to a short stream), we can still continue and ignore the error
+		if len(buf) == 0 {
+			return sc, stream, err
 		}
+		err = nil
 	}
-	sb := string(buf[:n])
+
+	sb := string(buf)
 	switch {
 	case strings.HasPrefix(sb, "-----BEGIN PGP MESSAGE-----"):
 		sc.Format = CryptoMessageFormatPGP
@@ -264,30 +181,18 @@ func ClassifyStream(r io.Reader) (sc StreamClassification, out io.Reader, err er
 		sc.Format = CryptoMessageFormatPGP
 		sc.Armored = true
 		sc.Type = CryptoMessageTypeClearSignature
-	case matchesSaltpackType(sb, saltpack.EncryptionArmorString):
-		sc.Format = CryptoMessageFormatSaltpack
-		sc.Armored = true
-		sc.Type = CryptoMessageTypeEncryption
-	case matchesSaltpackType(sb, saltpack.SignedArmorString):
-		sc.Format = CryptoMessageFormatSaltpack
-		sc.Armored = true
-		sc.Type = CryptoMessageTypeSignature
-	case matchesSaltpackType(sb, saltpack.DetachedSignatureArmorString):
-		sc.Format = CryptoMessageFormatSaltpack
-		sc.Armored = true
-		sc.Type = CryptoMessageTypeDetachedSignature
+	case isSaltpackMessage(stream, &sc):
+		// Format etc. set by isSaltpackBinary().
 	case isBase64KeybaseV0Sig(sb):
 		sc.Format = CryptoMessageFormatKeybaseV0
 		sc.Armored = true
 		sc.Type = CryptoMessageTypeAttachedSignature
-	case isSaltpackBinary(buf[:n], &sc):
-		// Format etc. set by isSaltpackBinary().
-	case isPGPBinary(buf[:n], &sc):
+	case isPGPBinary(buf, &sc):
 		// Format etc. set by isPGPBinary().
-	case isUTF16Mark(buf[:n]):
+	case isUTF16Mark(buf):
 		err = UTF16UnsupportedError{}
 	default:
 		err = UnknownStreamError{}
 	}
-	return sc, peeker, err
+	return sc, stream, err
 }

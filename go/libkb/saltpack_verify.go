@@ -35,9 +35,9 @@ func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteClos
 
 	var skey saltpack.SigningPublicKey
 	var vs io.Reader
-	var frame saltpack.Frame
+	var brand string
 	if sc.Armored {
-		skey, vs, frame, err = saltpack.NewDearmor62VerifyStream(saltpack.CheckKnownMajorVersion, source, kr)
+		skey, vs, brand, err = saltpack.NewDearmor62VerifyStream(saltpack.CheckKnownMajorVersion, source, kr)
 	} else {
 		skey, vs, err = saltpack.NewVerifyStream(saltpack.CheckKnownMajorVersion, source, kr)
 	}
@@ -58,9 +58,7 @@ func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteClos
 	}
 
 	if sc.Armored {
-		if brand, err := saltpack.CheckArmor62Frame(frame, saltpack.MessageTypeAttachedSignature); err != nil {
-			return err
-		} else if err = checkSaltpackBrand(brand); err != nil {
+		if err = checkSaltpackBrand(brand); err != nil {
 			return err
 		}
 	}

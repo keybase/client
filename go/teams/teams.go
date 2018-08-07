@@ -199,7 +199,7 @@ func (t *Team) encryptionKeyAtGen(gen keybase1.PerTeamKeyGeneration) (key libkb.
 func (t *Team) IsMember(ctx context.Context, uv keybase1.UserVersion) bool {
 	role, err := t.MemberRole(ctx, uv)
 	if err != nil {
-		t.G().Log.Debug("error getting user role: %s", err)
+		t.G().Log.CDebugf(ctx, "error getting user role: %s", err)
 		return false
 	}
 	if role == keybase1.TeamRole_NONE {
@@ -805,7 +805,7 @@ func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.
 }
 
 func (t *Team) InviteEmailMember(ctx context.Context, email string, role keybase1.TeamRole) error {
-	t.G().Log.Debug("team %s invite email member %s", t.Name(), email)
+	t.G().Log.CDebugf(ctx, "team %s invite email member %s", t.Name(), email)
 
 	if role == keybase1.TeamRole_OWNER {
 		return errors.New("You cannot invite an owner to a team over email.")
@@ -820,7 +820,7 @@ func (t *Team) InviteEmailMember(ctx context.Context, email string, role keybase
 }
 
 func (t *Team) inviteKeybaseMember(ctx context.Context, uv keybase1.UserVersion, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername) (res keybase1.TeamAddMemberResult, err error) {
-	t.G().Log.Debug("team %s invite keybase member %s", t.Name(), uv)
+	t.G().Log.CDebugf(ctx, "team %s invite keybase member %s", t.Name(), uv)
 
 	invite := SCTeamInvite{
 		Type: "keybase",
@@ -904,7 +904,7 @@ func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybas
 	if err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}
-	t.G().Log.Debug("team %s invite sbs member %s/%s", t.Name(), typ, name)
+	t.G().Log.CDebugf(ctx, "team %s invite sbs member %s/%s", t.Name(), typ, name)
 
 	invite := SCTeamInvite{
 		Type: typ,
@@ -920,7 +920,7 @@ func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybas
 }
 
 func (t *Team) InviteSeitan(ctx context.Context, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (ikey SeitanIKey, err error) {
-	t.G().Log.Debug("team %s invite seitan %v", t.Name(), role)
+	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteSeitan: team: %v, role: %v", t.Name(), role), func() error { return err })()
 
 	ikey, err = GenerateIKey()
 	if err != nil {
@@ -956,7 +956,7 @@ func (t *Team) InviteSeitan(ctx context.Context, role keybase1.TeamRole, label k
 }
 
 func (t *Team) InviteSeitanV2(ctx context.Context, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (ikey SeitanIKeyV2, err error) {
-	t.G().Log.Debug("team %s invite seitan %v", t.Name(), role)
+	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteSeitanV2: team: %v, role: %v", t.Name(), role), func() error { return err })()
 
 	ikey, err = GenerateIKeyV2()
 	if err != nil {
@@ -1351,18 +1351,18 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet, skipKeyRot
 			// key is rotating, so recipients needs to be all the remaining members
 			// of the team after the removal (and including any new members in this
 			// change)
-			t.G().Log.Debug("recipientBoxes: Team change request contains removal, rotating team key")
+			t.G().Log.CDebugf(ctx, "recipientBoxes: Team change request contains removal, rotating team key")
 			boxes, perTeamKey, teamEKPayload, err := t.rotateBoxes(ctx, memSet)
 			return boxes, implicitAdminBoxes, perTeamKey, teamEKPayload, err
 		}
 
 		// If we don't rotate key, continue with the usual boxing.
-		t.G().Log.Debug("recipientBoxes: Skipping key rotation")
+		t.G().Log.CDebugf(ctx, "recipientBoxes: Skipping key rotation")
 	}
 
 	// don't need keys for existing members, so remove them from the set
 	memSet.removeExistingMembers(ctx, t)
-	t.G().Log.Debug("team change request: %d new members", len(memSet.recipients))
+	t.G().Log.CDebugf(ctx, "team change request: %d new members", len(memSet.recipients))
 	if len(memSet.recipients) == 0 {
 		return nil, implicitAdminBoxes, nil, nil, nil
 	}

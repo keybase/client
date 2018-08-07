@@ -3,7 +3,7 @@ import Folders, {type FolderType, type Props as FolderProps} from '../folders/in
 import React, {Component} from 'react'
 import UserAdd from './user-add.desktop'
 import {Box, Icon, Text, Button, FloatingMenu, Badge, ButtonBar, type IconType} from '../common-adapters'
-import {fsTab, peopleTab, chatTab, devicesTab, type Tab} from '../constants/tabs'
+import {fsTab, peopleTab, chatTab, devicesTab, teamsTab, type Tab} from '../constants/tabs'
 import {globalStyles, globalColors, desktopStyles, collapseStyles, platformStyles} from '../styles'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
@@ -153,7 +153,7 @@ class MenubarRender extends Component<Props, State> {
       onRekey: this.props.onRekey,
     }
 
-    const badgeTypes: Array<Tab> = [fsTab, peopleTab, chatTab, devicesTab]
+    const badgeTypes: Array<Tab> = [peopleTab, chatTab, fsTab, teamsTab]
 
     return (
       <Box style={styles.container}>
@@ -183,7 +183,7 @@ class MenubarRender extends Component<Props, State> {
             ])}
             color={globalColors.black_40}
             hoverColor={globalColors.black}
-            type="iconfont-hamburger"
+            type="iconfont-nav-more"
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
             ref={this.attachmentRef}
           />
@@ -260,10 +260,11 @@ const BadgeIcon = ({
   }
 
   const iconMap: {[key: Tab]: IconType} = {
+    [peopleTab]: 'iconfont-nav-people',
     [chatTab]: 'iconfont-nav-chat',
     [devicesTab]: 'iconfont-nav-devices',
     [fsTab]: 'iconfont-nav-files',
-    [peopleTab]: 'iconfont-nav-people',
+    [teamsTab]: 'iconfont-nav-teams',
   }
   const iconType: ?IconType = iconMap[tab]
 
@@ -276,8 +277,8 @@ const BadgeIcon = ({
       style={{...desktopStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}
       onClick={() => openApp(tab)}
     >
-      <Icon color={count ? globalColors.blue : globalColors.lightGrey2} fontSize={20} type={iconType} />
-      {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', left: 18, top: 0}} />}
+      <Icon color={globalColors.darkBlue4} fontSize={22} type={iconType} />
+      {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', left: 14, top: -2}} />}
     </Box>
   )
 }
@@ -296,10 +297,10 @@ const stylesContainer = {
 const stylesTopRow = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  backgroundColor: globalColors.white,
+  backgroundColor: globalColors.darkBlue2,
   flex: 1,
-  minHeight: 32,
-  maxHeight: 32,
+  minHeight: 40,
+  maxHeight: 40,
   paddingLeft: 8,
   paddingRight: 8,
   borderTopLeftRadius: borderRadius,
