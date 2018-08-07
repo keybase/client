@@ -22,6 +22,7 @@ const Participants = (props: Props) => (
         name="cecileb's wallet"
         contents="280.0871234 XLM + more"
         onSelect={() => {}}
+        style={styles.walletRow}
       />
     </Kb.Box2>
     <Kb.Divider />
@@ -51,6 +52,9 @@ const styles = Styles.styleSheetCreate({
   },
   headingText: {
     color: Styles.globalColors.blue,
+  },
+  walletRow: {
+    height: undefined,
   },
 })
 

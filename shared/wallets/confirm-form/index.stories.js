@@ -29,6 +29,8 @@ const confirmProps = {
 const publicMemo = "Here's some lumens!"
 const encryptedNote = `
   Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex, dolorem commodi? Qui ullam accusantium perferendis mollitia fugit quas nobis tenetur expedita enim a molestias eligendi voluptas perspiciatis, earum vero tempore explicabo placeat, repellendus fugiat ducimus sed! Architecto, rem, distinctio similique, velit in sapiente eius nesciunt dolores asperiores dolorem quos vel.
+
+  Lorem ipsum dolor sit amet, consectetur adipisicing elit.
 `
 
 const load = () => {
@@ -39,7 +41,7 @@ const load = () => {
     .add('With a public memo', () => <ConfirmSend {...confirmProps} publicMemo={publicMemo} />)
     .add('With an encrypted note', () => <ConfirmSend {...confirmProps} encryptedNote={encryptedNote} />)
     .add('With a public memo and encrypted note', () => (
-      <ConfirmSend {...confirmProps} publicMemo="Here's some lumens!" encryptedNote="Yup" />
+      <ConfirmSend {...confirmProps} publicMemo={publicMemo} encryptedNote={encryptedNote} />
     ))
     .add('With a banner', () => <ConfirmSend {...confirmProps} />)
     .add('With a public memo, encrypted note, and banner', () => <ConfirmSend {...confirmProps} />)

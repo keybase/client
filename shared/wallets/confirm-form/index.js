@@ -3,13 +3,14 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import Banner from '../banner/container'
+import Header from './header'
 import Participants from './participants'
 import NoteAndMemo from './note-and-memo'
 
 type ConfirmSendProps = {|
   onClose: () => void,
-  onBack: () => void,
   onSendClick: () => void,
+  onBack: () => void,
   amount: string,
   assetType: string,
   assetConversion?: string,
@@ -23,34 +24,12 @@ type ConfirmSendProps = {|
 const ConfirmSend = (props: ConfirmSendProps) => (
   <Kb.MaybePopup onClose={props.onClose}>
     <Kb.Box2 direction="vertical" style={styles.container}>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
-        <Kb.BackButton
-          onClick={props.onBack}
-          style={styles.backButton}
-          iconColor={Styles.globalColors.white}
-          textStyle={styles.backButtonText}
-        />
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          // fullHeight={true}
-          centerChildren={true}
-          style={styles.headerContent}
-        >
-          <Kb.Icon
-            type={
-              Styles.isMobile ? 'icon-fancy-stellar-sending-desktop' : 'icon-fancy-stellar-sending-mobile'
-            }
-            style={Kb.iconCastPlatformStyles(styles.headerIcon)}
-          />
-          <Kb.Text type="BodySmall" style={styles.headerText}>
-            Sending{!!props.assetConversion && ` ${props.assetType} worth`}
-          </Kb.Text>
-          <Kb.Text type="HeaderBigExtrabold" style={styles.headerText}>
-            {props.assetConversion ? props.assetConversion : props.amount}
-          </Kb.Text>
-        </Kb.Box2>
-      </Kb.Box2>
+      <Header
+        amount={props.amount}
+        assetType={props.assetType}
+        assetConversion={props.assetConversion}
+        onBack={props.onBack}
+      />
       <Kb.ScrollView>
         {!!props.bannerBackground &&
           !!props.bannerText && <Banner background={props.bannerBackground} text={props.bannerText} />}
@@ -96,14 +75,6 @@ const ConfirmSend = (props: ConfirmSendProps) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  backButton: {
-    position: 'absolute',
-    top: Styles.globalMargins.small,
-    left: Styles.globalMargins.small,
-  },
-  backButtonText: {
-    color: Styles.globalColors.white,
-  },
   buttonText: {color: Styles.globalColors.white},
   buttonIcon: {
     marginRight: Styles.globalMargins.tiny,
@@ -114,28 +85,6 @@ const styles = Styles.styleSheetCreate({
       width: 360,
     },
   }),
-  header: Styles.platformStyles({
-    isElectron: {
-      minHeight: 144,
-      flex: 1,
-      backgroundColor: Styles.globalColors.purple,
-    },
-  }),
-  headerContent: {
-    position: 'relative',
-    height: 'calc(100% + 20px)',
-    top: -20,
-  },
-  headerText: Styles.platformStyles({
-    isElectron: {
-      color: Styles.globalColors.white,
-      textTransform: 'uppercase',
-    },
-  }),
-  headerIcon: {
-    width: 100,
-    marginBottom: Styles.globalMargins.small,
-  },
   buttonContainer: Styles.platformStyles({
     isElectron: {
       borderTopStyle: 'solid',
