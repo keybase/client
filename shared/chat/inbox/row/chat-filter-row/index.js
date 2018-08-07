@@ -1,7 +1,15 @@
 // @flow
 import * as React from 'react'
 import {Icon, Box, ClickableBox, LoadingLine, Input, Text} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../styles'
+import {
+  collapseStyles,
+  desktopStyles,
+  globalStyles,
+  globalColors,
+  globalMargins,
+  isMobile,
+  platformStyles,
+} from '../../../../styles'
 
 let KeyHandler = c => c
 if (!isMobile) {
@@ -159,25 +167,25 @@ const styleContainer = {
   position: 'relative',
 }
 
-const styleFilterContainer = platformStyles({
-  common: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    backgroundColor: globalColors.black_05,
-    borderRadius: 19,
-    flexGrow: 1,
-    height: 24,
-    justifyContent: 'center',
-    marginRight: globalMargins.small,
-  },
-  isElectron: {
-    cursor: 'text',
-  },
-  isMobile: {
-    height: 32,
-    marginRight: globalMargins.small,
-  },
-})
+const styleFilterContainer = collapseStyles([
+  platformStyles({
+    common: {
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
+      backgroundColor: globalColors.black_05,
+      borderRadius: 19,
+      flexGrow: 1,
+      height: 24,
+      justifyContent: 'center',
+      marginRight: globalMargins.small,
+    },
+    isMobile: {
+      height: 32,
+      marginRight: globalMargins.small,
+    },
+  }),
+  desktopStyles.editable,
+])
 
 const propsIconCompose = {
   color: globalColors.blue,
