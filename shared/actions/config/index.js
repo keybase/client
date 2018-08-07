@@ -36,7 +36,7 @@ const setupEngineListeners = () => {
       response && response.result()
       // only send this if we think we're not logged in
       if (!getState().config.loggedIn) {
-        return [ConfigGen.createLoggedIn()]
+        return [ConfigGen.createLoggedIn({causedByStartup: false})]
       }
     }
   )
@@ -183,7 +183,7 @@ const switchRouteDef = (
   action: ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload
 ) => {
   if (state.config.loggedIn) {
-    if (action.type === ConfigGen.loggedIn && !action.payload.startedUpLoggedIn) {
+    if (action.type === ConfigGen.loggedIn && !action.payload.causedByStartup) {
       // only do this if we're not handling the initial loggedIn event, cause its handled by routeToInitialScreenOnce
       return Saga.put(RouteTree.switchRouteDef(appRouteTree))
     }
@@ -256,7 +256,7 @@ const routeToInitialScreen = (state: TypedState) => {
 
 // We don't get the initial logged in by the server
 const emitInitialLoggedIn = (state: TypedState) =>
-  state.config.loggedIn && Saga.put(ConfigGen.createLoggedIn({startedUpLoggedIn: true}))
+  state.config.loggedIn && Saga.put(ConfigGen.createLoggedIn({causedByStartup: true}))
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // TODO handle logout stuff also

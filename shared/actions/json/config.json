@@ -92,6 +92,6 @@
     "debugDump": { "items": "Array<string>" },
     "setDeletedSelf": { "deletedUsername": "string" },
     "loggedOut": {},
-    "loggedIn": { "startedUpLoggedIn": "boolean" },
+    "loggedIn": { "causedByStartup": "boolean" },
   }
 }
