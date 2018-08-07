@@ -2,6 +2,7 @@ package attachments
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -384,12 +385,13 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		}
 
 		// set up file to write out encrypted preview to
-		encryptedOut, err := u.uploadFullFile(ctx, pre.BaseMetadata())
+		var encryptedOut io.Writer
+		uf, err := u.uploadFullFile(ctx, pre.BaseMetadata())
 		if err != nil {
 			u.Debug(bgctx, "upload: failed to create uploaded full file: %s", err)
-			encryptedOut = nil
 		} else {
-			defer encryptedOut.Close()
+			defer uf.Close()
+			encryptedOut = uf
 		}
 
 		u.Debug(bgctx, "upload: uploading assets")
@@ -414,7 +416,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 			ures.Object.Metadata = pre.BaseMetadata()
 			if encryptedOut != nil {
 				if err := u.G().AttachmentURLSrv.GetAttachmentFetcher().PutUploadedAsset(ctx,
-					encryptedOut.Name(), ures.Object); err != nil {
+					uf.Name(), ures.Object); err != nil {
 					u.Debug(bgctx, "upload: failed to put uploaded asset into fetcher: %s", err)
 				}
 			}
@@ -433,12 +435,13 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 			previewParams := s3params
 
 			// set up file to write out encrypted preview to
-			encryptedOut, err := u.uploadPreviewFile(ctx)
+			var encryptedOut io.Writer
+			up, err := u.uploadPreviewFile(ctx)
 			if err != nil {
 				u.Debug(bgctx, "upload: failed to create uploaded preview file: %s", err)
-				encryptedOut = nil
 			} else {
-				defer encryptedOut.Close()
+				defer up.Close()
+				encryptedOut = up
 			}
 
 			// add preview suffix to object key (P in hex)
@@ -463,7 +466,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 				ures.Preview.Tag = chat1.AssetTag_PRIMARY
 				if encryptedOut != nil {
 					if err := u.G().AttachmentURLSrv.GetAttachmentFetcher().PutUploadedAsset(ctx,
-						encryptedOut.Name(), preview); err != nil {
+						up.Name(), preview); err != nil {
 						u.Debug(bgctx, "upload: failed to put uploaded preview asset into fetcher: %s", err)
 					}
 				}

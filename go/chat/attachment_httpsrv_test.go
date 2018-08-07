@@ -234,4 +234,30 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, found)
 	t.Logf("found path: %s", path)
+
+	// Try with an attachment with no preview
+	res, err = ctc.as(t, users[0]).chatLocalHandler().PostFileAttachmentLocal(context.TODO(),
+		chat1.PostFileAttachmentLocalArg{
+			Arg: chat1.PostFileAttachmentArg{
+				ConversationID: conv.Id,
+				TlfName:        conv.TlfName,
+				Visibility:     keybase1.TLFVisibility_PRIVATE,
+				Filename:       "testdata/weather.pdf",
+				Title:          "WEATHER",
+			},
+		})
+	require.NoError(t, err)
+	msgRes, err = ctc.as(t, users[0]).chatLocalHandler().GetMessagesLocal(context.TODO(),
+		chat1.GetMessagesLocalArg{
+			ConversationID: conv.Id,
+			MessageIDs:     []chat1.MessageID{res.MessageID},
+		})
+	require.NoError(t, err)
+	require.Equal(t, 1, len(msgRes.Messages))
+	require.True(t, msgRes.Messages[0].IsValid())
+	body = msgRes.Messages[0].Valid().MessageBody
+	require.Nil(t, body.Attachment().Preview)
+	found, path, err = fetcher.localAssetPath(context.TODO(), body.Attachment().Object)
+	require.NoError(t, err)
+	require.False(t, found)
 }
