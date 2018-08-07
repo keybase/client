@@ -20,7 +20,6 @@ const Participants = (props: Props) => (
         keybaseUser="cecileb"
         name="cecileb's wallet"
         contents="280.0871234 XLM"
-        style={styles.walletRow}
       />
     </Kb.Box2>
     <Kb.Divider />
