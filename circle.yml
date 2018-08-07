@@ -42,17 +42,6 @@ jobs:
     # Configure java.
     - run: sudo update-alternatives --set java /usr/lib/jvm/jdk1.8.0/bin/java; sudo update-alternatives --set javac /usr/lib/jvm/jdk1.8.0/bin/javac; echo -e "export JAVA_HOME=/usr/lib/jvm/jdk1.8.0" >> $BASH_ENV
 
-    # Restore the dependency cache
-    - restore_cache:
-        keys:
-        # This branch if available
-        - v1-dep-{{ .Branch }}-
-        # Default branch if not
-        - v1-dep-master-
-        # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
-        - v1-dep-
-
-    - run: sudo rm -rf /usr/local/go*
     - run: mkdir -p ~/downloads ~/go-path
     - run: ls "$HOME/downloads"
     - run: ls "$ANDROID_HOME"
@@ -68,7 +57,7 @@ jobs:
 
     # Accept android licenses
     - run: mkdir -p /usr/local/android-sdk-linux/licenses
-    - run: if [[ ! -e "$ANDROID_HOME/ndk-bundle" ]]; then wget -nv http://dl.google.com/android/repository/android-ndk-r11c-linux-x86_64.zip -O android-ndk-r11c-linux-x86_64.zip && unzip -o android-ndk-r11c-linux-x86_64.zip -d "$ANDROID_HOME" && mv "$ANDROID_HOME/android-ndk-r11c" "$ANDROID_HOME/ndk-bundle"; fi
+    - run: if [[ ! -e "$ANDROID_HOME/ndk-bundle" ]]; then wget -nv http://dl.google.com/android/repository/android-ndk-r11c-linux-x86_64.zip -O $HOME/downloads/android-ndk-r11c-linux-x86_64.zip && unzip -o $HOME/downloads/android-ndk-r11c-linux-x86_64.zip -d "$ANDROID_HOME" && mv "$ANDROID_HOME/android-ndk-r11c" "$ANDROID_HOME/ndk-bundle"; fi
     - run: echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > /usr/local/android-sdk-linux/licenses/android-sdk-license
     - run: echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> /usr/local/android-sdk-linux/licenses/android-sdk-license
 
@@ -91,15 +80,3 @@ jobs:
         command: ./react-native/gobuild.sh android
 
     - run: ls -la $GOPATH/src/github.com/keybase/client/shared/react-native/android/keybaselib/keybaselib.aar
-
-    # Save dependency cache
-    - save_cache:
-        key: v1-dep-{{ .Branch }}-{{ epoch }}
-        paths:
-        - ~/downloads
-        - /tmp/go-android/bin
-        - /tmp/go-android/pkg
-        - /usr/local/android-sdk-linux/tools
-        - /usr/local/android-sdk-linux/ndk-bundle
-        - /usr/local/android-sdk-linux/build-tools/23.0.2
-        - /usr/local/android-sdk-linux/extras/android/m2repository
