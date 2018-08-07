@@ -390,6 +390,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		if err != nil {
 			u.Debug(bgctx, "upload: failed to create uploaded full file: %s", err)
 			encryptedOut = ioutil.Discard
+			uf = nil
 		} else {
 			defer uf.Close()
 			encryptedOut = uf
@@ -441,6 +442,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 			if err != nil {
 				u.Debug(bgctx, "upload: failed to create uploaded preview file: %s", err)
 				encryptedOut = ioutil.Discard
+				up = nil
 			} else {
 				defer up.Close()
 				encryptedOut = up
