@@ -2,7 +2,6 @@
 import * as React from 'react'
 import {Icon, Box, ClickableBox, LoadingLine, Input, Text} from '../../../../common-adapters'
 import {
-  collapseStyles,
   desktopStyles,
   globalStyles,
   globalColors,
@@ -167,25 +166,23 @@ const styleContainer = {
   position: 'relative',
 }
 
-const styleFilterContainer = collapseStyles([
-  platformStyles({
-    common: {
-      ...globalStyles.flexBoxRow,
-      alignItems: 'center',
-      backgroundColor: globalColors.black_05,
-      borderRadius: 19,
-      flexGrow: 1,
-      height: 24,
-      justifyContent: 'center',
-      marginRight: globalMargins.small,
-    },
-    isMobile: {
-      height: 32,
-      marginRight: globalMargins.small,
-    },
-  }),
-  desktopStyles.editable,
-])
+const styleFilterContainer = platformStyles({
+  common: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    backgroundColor: globalColors.black_05,
+    borderRadius: 19,
+    flexGrow: 1,
+    height: 24,
+    justifyContent: 'center',
+    marginRight: globalMargins.small,
+  },
+  isElectron: desktopStyles.editable,
+  isMobile: {
+    height: 32,
+    marginRight: globalMargins.small,
+  },
+})
 
 const propsIconCompose = {
   color: globalColors.blue,
