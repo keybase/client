@@ -85,18 +85,12 @@ func TestLoginActiveDevice(t *testing.T) {
 	u1.LoginOrBust(tc)
 
 	assertDeviceKeysCached(tc)
-
-	if tc.G.ActiveDevice.Name() != defaultDeviceName {
-		t.Errorf("active device name: %q, expected %q", tc.G.ActiveDevice.Name(), defaultDeviceName)
-	}
+	require.Equalt(t, tc.G.ActiveDevice.Name(), defaultDeviceName)
 
 	simulateServiceRestart(t, tc, u1)
 
 	assertDeviceKeysCached(tc)
-
-	if tc.G.ActiveDevice.Name() != defaultDeviceName {
-		t.Errorf("after restart, active device name: %q, expected %q", tc.G.ActiveDevice.Name(), defaultDeviceName)
-	}
+	require.Equalt(t, tc.G.ActiveDevice.Name(), defaultDeviceName)
 }
 
 func TestCreateFakeUserNoKeys(t *testing.T) {
@@ -1054,17 +1048,13 @@ func TestProvisionPaperCommandLine(t *testing.T) {
 	}
 	s := NewSignupEngine(tc.G, &arg)
 	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	assertNumDevicesAndKeys(tc, fu, 2, 4)
 
 	Logout(tc)
 
-	if len(loginUI.PaperPhrase) == 0 {
-		t.Fatal("login ui has no paper key phrase")
-	}
+	require.True(t, len(loginUI.PaperPhrase) > 0)
 
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
 	tc2 := SetupEngineTest(t, "login")
@@ -1083,25 +1073,74 @@ func TestProvisionPaperCommandLine(t *testing.T) {
 
 	m := NewMetaContextForTest(tc2).WithUIs(uis)
 	eng := NewPaperProvisionEngine(tc2.G, fu.Username, "fakedevice", loginUI.PaperPhrase)
-	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
-	}
+	err = RunEngine2(m, eng)
+	require.NoError(t, err)
 
 	testUserHasDeviceKey(tc2)
 
 	assertNumDevicesAndKeys(tc, fu, 3, 6)
+	err = AssertProvisioned(tc2)
+	require.NoError(t, err)
 
-	if err := AssertProvisioned(tc2); err != nil {
-		t.Fatal(err)
+	require.Equal(t, provUI.calledChooseDeviceType, 0)
+	require.Equal(t, provLoginUI.CalledGetEmailOrUsername, 0)
+}
+
+func TestProvisionSelfCommandLine(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	user := CreateAndSignupFakeUser(tc, "clone")
+	// TODO setup clone
+
+	secUI := user.NewSecretUI()
+	provUI := newTestProvisionUIPaper()
+	provLoginUI := &libkb.TestLoginUI{Username: user.Username}
+	uis := libkb.UIs{
+		ProvisionUI: provUI,
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    secUI,
+		LoginUI:     provLoginUI,
+		GPGUI:       &gpgtestui{},
 	}
 
-	if provUI.calledChooseDeviceType != 0 {
-		t.Errorf("expected 0 calls to ChooseDeviceType, got %d", provUI.calledChooseDeviceType)
-	}
-	if provLoginUI.CalledGetEmailOrUsername != 0 {
-		t.Errorf("expected 0 calls to GetEmailOrUsername, got %d", provLoginUI.CalledGetEmailOrUsername)
-	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	newName := "uncloneme"
+	eng := NewSelfProvisionEngine(tc.G, newName)
+	err := RunEngine2(m, eng)
+	require.NoError(t, err)
 
+	require.Equal(t, provUI.calledChooseDeviceType, 0)
+	require.Equal(t, provLoginUI.CalledGetEmailOrUsername, 0)
+
+	testUserHasDeviceKey(tc)
+	assertNumDevicesAndKeys(tc, user, 2, 4)
+	err = AssertProvisioned(tc)
+	require.NoError(t, err)
+	assertPassphraseStreamCache(tc)
+	assertDeviceKeysCached(tc)
+	require.Equalt(t, tc.G.ActiveDevice.Name(), newName)
+	assertSecretStored(tc, user.Username)
+
+	// GetBootstrapStatus should return without error and with LoggedIn set to
+	// true.
+	beng := NewBootstrap(tc.G)
+	err = RunEngine2(m, beng)
+	require.NoError(t, err)
+	status := beng.Status()
+	require.True(t, status.LoggedIn)
+	require.True(t, status.Registered)
+
+	t.Logf("test tracks")
+	testTrack("t_alice")
+
+	// Make sure that we can still track without a passphrase
+	// after a simulated service restart.  In other words, that
+	// the full LKSec secret was written to the secret store.
+	simulateServiceRestart(t, tcY, userX)
+	testTrack("t_bob")
+	assertDeviceKeysCached(tc)
+	require.Equal(t, tc.G.ActiveDevice.Name(), newName)
 }
 
 // Provision device using a private GPG key (not synced to keybase
@@ -3369,7 +3408,8 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 			t.Fatalf("LoginOffline failed after gpg sign + svc restart: %s", oerr)
 		}
 
-		// GetBootstrapStatus should return without error and with LoggedIn set to true.
+		// GetBootstrapStatus should return without error and with LoggedIn set
+		// to true.
 		beng := NewBootstrap(tc2.G)
 		m = NewMetaContextForTest(tc2)
 		if err := RunEngine2(m, beng); err != nil {

@@ -21,14 +21,15 @@ type DeviceWrap struct {
 }
 
 type DeviceWrapArgs struct {
-	Me             *libkb.User
-	DeviceName     string
-	DeviceType     string
-	Lks            *libkb.LKSec
-	IsEldest       bool
-	Signer         libkb.GenericKey
-	EldestKID      keybase1.KID
-	PerUserKeyring *libkb.PerUserKeyring
+	Me              *libkb.User
+	DeviceName      string
+	DeviceType      string
+	Lks             *libkb.LKSec
+	IsEldest        bool
+	IsSelfProvision bool
+	Signer          libkb.GenericKey
+	EldestKID       keybase1.KID
+	PerUserKeyring  *libkb.PerUserKeyring
 }
 
 // NewDeviceWrap creates a DeviceWrap engine.
@@ -65,7 +66,7 @@ func (e *DeviceWrap) registerDevice(m libkb.MetaContext) (err error) {
 	defer m.CTrace("DeviceWrap#registerDevice", func() error { return err })()
 	var salt []byte
 
-	if e.args.Me.HasCurrentDeviceInCurrentInstall() {
+	if e.args.Me.HasCurrentDeviceInCurrentInstall() && !e.args.IsSelfProvision {
 		return libkb.DeviceAlreadyProvisionedError{}
 	}
 
@@ -124,10 +125,10 @@ func (e *DeviceWrap) genKeys(m libkb.MetaContext) (err error) {
 
 func (e *DeviceWrap) refreshMe(m libkb.MetaContext) (err error) {
 	defer m.CTrace("DeviceWrap#refreshMe", func() error { return err })()
-	if !e.args.IsEldest {
+	if !e.args.IsEldest && !e.args.IsSelfProvision {
 		return nil
 	}
-	m.CDebugf("reloading Me because we just bumped eldest seqno")
+	m.CDebugf("reloading Me because we just bumped eldest seqno or self provisioned")
 	e.args.Me, err = libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m))
 	return err
 }
@@ -135,8 +136,7 @@ func (e *DeviceWrap) refreshMe(m libkb.MetaContext) (err error) {
 func (e *DeviceWrap) setActiveDevice(m libkb.MetaContext) (err error) {
 	defer m.CTrace("DeviceWrap#setActiveDevice", func() error { return err })()
 
-	err = e.refreshMe(m)
-	if err != nil {
+	if err = e.refreshMe(m); err != nil {
 		return err
 	}
 

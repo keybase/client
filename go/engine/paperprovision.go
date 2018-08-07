@@ -6,6 +6,7 @@ package engine
 import (
 	"errors"
 	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 )
 
@@ -116,8 +117,7 @@ func (e *PaperProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	}
 
 	// Make new device keys and sign them with this paper key
-	err = e.paper(m, keys)
-	if err != nil {
+	if err = e.paper(m, keys); err != nil {
 		return err
 	}
 

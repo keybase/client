@@ -317,11 +317,13 @@ func NewMetaContextified(m MetaContext) MetaContextified {
 	return MetaContextified{m: m}
 }
 
-// SwitchUserNewConfig switches the global active "user" as far as the global config file is concerned.
-// It switches the user to a new user, and therefore you should specify the username, salt, and device ID
-// for this user on this device. It will take out the global `switchUserMu` and also clear out the
-// global ActiveDevice at the same time. We follow the same pattern here and elsewhere: atomically
-// mutate the `current_user` of the config file as we set the global ActiveDevice.
+// SwitchUserNewConfig switches the global active "user" as far as the global
+// config file is concerned.  It switches the user to a new user, and therefore
+// you should specify the username, salt, and device ID for this user on this
+// device. It will take out the global `switchUserMu` and also clear out the
+// global ActiveDevice at the same time. We follow the same pattern here and
+// elsewhere: atomically mutate the `current_user` of the config file as we set
+// the global ActiveDevice.
 func (m MetaContext) SwitchUserNewConfig(u keybase1.UID, n NormalizedUsername, salt []byte, d keybase1.DeviceID) error {
 	return m.switchUserNewConfig(u, n, salt, d, nil)
 }

@@ -26,7 +26,7 @@ type ActiveDevice struct {
 
 func (a *ActiveDevice) Dump(m MetaContext, prefix string) {
 	m.CDebugf("%sActiveDevice: %p", prefix, a)
-	m.CDebugf("%sUserVerstion: %+v", prefix, a.uv)
+	m.CDebugf("%sUserVersion: %+v", prefix, a.uv)
 	m.CDebugf("%sUsername (via env): %s", prefix, a.Username(m))
 	m.CDebugf("%sDeviceID: %s", prefix, a.deviceID)
 	m.CDebugf("%sDeviceName: %s", prefix, a.deviceName)
@@ -40,10 +40,10 @@ func (a *ActiveDevice) Dump(m MetaContext, prefix string) {
 	m.CDebugf("%sPaperKeyCache: %v", prefix, (a.paperKey != nil && a.paperKey.DeviceWithKeys() != nil))
 }
 
-// NewProvisionalActiveDevice creates an ActiveDevice that is "provisional", in that it
-// should not be considered the global ActiveDevice. Instead, it should reside in thread-local
-// context, and can be weaved through the login machinery without trampling the actual global
-// ActiveDevice.
+// NewProvisionalActiveDevice creates an ActiveDevice that is "provisional", in
+// that it should not be considered the global ActiveDevice. Instead, it should
+// reside in thread-local context, and can be weaved through the login
+// machinery without trampling the actual global ActiveDevice.
 func NewProvisionalActiveDevice(m MetaContext, uv keybase1.UserVersion, d keybase1.DeviceID, sigKey GenericKey, encKey GenericKey, deviceName string) *ActiveDevice {
 	return &ActiveDevice{
 		uv:            uv,
