@@ -5,5 +5,5 @@ export type Props = {
   attachTo: ?React.Component<any, any>,
   visible: boolean,
   onHidden: () => void,
-  onSelect: (mediaType: 'photo' | 'video' | 'mixed', location: 'camera' | 'library') => void,
+  onSelect: (mediaType: 'photo' | 'video' | 'mixed', location: 'pick' | 'camera' | 'library') => void,
 }

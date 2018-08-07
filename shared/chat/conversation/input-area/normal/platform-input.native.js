@@ -1,6 +1,6 @@
 // @flow
 /* eslint-env browser */
-import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
+import {launchCamera, launchImageLibrary, showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
 import {
   Box,
@@ -52,7 +52,10 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
     this._toggleShowingMenu('filepickerpopup')
   }
 
-  _launchNativeImagePicker = (mediaType: string, location: string) => {
+  _launchNativeImagePicker = (
+    mediaType: 'photo' | 'video' | 'mixed',
+    location: 'pick' | 'camera' | 'library'
+  ) => {
     let title = 'Select a Photo'
     let takePhotoButtonTitle = 'Take Photo...'
     let permDeniedText = 'Allow Keybase to take photos and choose images from your library?'
@@ -72,6 +75,12 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
         takePhotoButtonTitle = 'Take Video...'
         permDeniedText = 'Allow Keybase to take video and choose videos from your library?'
         break
+      default:
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (view: empty) => any
+        ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(mediaType);
+        */
+        throw new Error(`Impossible mediaType encountered: ${mediaType}`)
     }
     const permissionDenied = {
       title: 'Permissions needed',
@@ -91,13 +100,25 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
       this.props.onAttach([filename])
     }
 
+    // TODO: Remove 'pick' case when launchCamera and
+    // launchImageLibrary Android bugs are fixed.
+    const options = {mediaType, title, takePhotoButtonTitle, permissionDenied}
     switch (location) {
+      case 'pick':
+        showImagePicker(options, handleSelection)
+        break
       case 'camera':
-        launchCamera({mediaType, title, takePhotoButtonTitle, permissionDenied}, handleSelection)
+        launchCamera(options, handleSelection)
         break
       case 'library':
-        launchImageLibrary({mediaType, title, takePhotoButtonTitle, permissionDenied}, handleSelection)
+        launchImageLibrary(options, handleSelection)
         break
+      default:
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (view: empty) => any
+        ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(location);
+        */
+        throw new Error(`Impossible location encountered: ${location}`)
     }
   }
 
