@@ -93,7 +93,7 @@ func (c *Crypto) Unbox(ctx context.Context, teamSpec keybase1.TeamIDWithVisibili
 
 	key := publicCryptKey
 	if !public {
-		key, err = team.ApplicationKeyAtGeneration(keybase1.TeamApplication_GIT_METADATA, metadata.Gen)
+		key, err = team.ApplicationKeyAtGeneration(ctx, keybase1.TeamApplication_GIT_METADATA, metadata.Gen)
 		if err != nil {
 			return nil, err
 		}

@@ -549,14 +549,14 @@ func (o TeamPlusApplicationKeys) DeepCopy() TeamPlusApplicationKeys {
 }
 
 type TeamData struct {
-	Secretless      bool                                                 `codec:"secretless" json:"secretless"`
-	Name            TeamName                                             `codec:"name" json:"name"`
-	Chain           TeamSigChainState                                    `codec:"chain" json:"chain"`
-	PerTeamKeySeeds map[PerTeamKeyGeneration]PerTeamKeySeedItem          `codec:"perTeamKeySeeds" json:"perTeamKeySeeds"`
-	ReaderKeyMasks  map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 `codec:"readerKeyMasks" json:"readerKeyMasks"`
-	LatestSeqnoHint Seqno                                                `codec:"latestSeqnoHint" json:"latestSeqnoHint"`
-	CachedAt        Time                                                 `codec:"cachedAt" json:"cachedAt"`
-	TlfCryptKeys    map[TeamApplication][]CryptKey                       `codec:"tlfCryptKeys" json:"tlfCryptKeys"`
+	Secretless                bool                                                 `codec:"secretless" json:"secretless"`
+	Name                      TeamName                                             `codec:"name" json:"name"`
+	Chain                     TeamSigChainState                                    `codec:"chain" json:"chain"`
+	PerTeamKeySeedsUnverified map[PerTeamKeyGeneration]PerTeamKeySeedItem          `codec:"perTeamKeySeeds" json:"perTeamKeySeedsUnverified"`
+	ReaderKeyMasks            map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 `codec:"readerKeyMasks" json:"readerKeyMasks"`
+	LatestSeqnoHint           Seqno                                                `codec:"latestSeqnoHint" json:"latestSeqnoHint"`
+	CachedAt                  Time                                                 `codec:"cachedAt" json:"cachedAt"`
+	TlfCryptKeys              map[TeamApplication][]CryptKey                       `codec:"tlfCryptKeys" json:"tlfCryptKeys"`
 }
 
 func (o TeamData) DeepCopy() TeamData {
@@ -564,7 +564,7 @@ func (o TeamData) DeepCopy() TeamData {
 		Secretless: o.Secretless,
 		Name:       o.Name.DeepCopy(),
 		Chain:      o.Chain.DeepCopy(),
-		PerTeamKeySeeds: (func(x map[PerTeamKeyGeneration]PerTeamKeySeedItem) map[PerTeamKeyGeneration]PerTeamKeySeedItem {
+		PerTeamKeySeedsUnverified: (func(x map[PerTeamKeyGeneration]PerTeamKeySeedItem) map[PerTeamKeyGeneration]PerTeamKeySeedItem {
 			if x == nil {
 				return nil
 			}
@@ -575,7 +575,7 @@ func (o TeamData) DeepCopy() TeamData {
 				ret[kCopy] = vCopy
 			}
 			return ret
-		})(o.PerTeamKeySeeds),
+		})(o.PerTeamKeySeedsUnverified),
 		ReaderKeyMasks: (func(x map[TeamApplication]map[PerTeamKeyGeneration]MaskB64) map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 {
 			if x == nil {
 				return nil
