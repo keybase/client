@@ -1,15 +1,7 @@
 // @flow
 /* eslint-env browser */
 import React, {Component} from 'react'
-import {
-  Box,
-  Icon,
-  Input,
-  Text,
-  OverlayParentHOC,
-  iconCastPlatformStyles,
-  type OverlayParentProps,
-} from '../../../../common-adapters'
+import * as Kb from '../../../../common-adapters'
 import {
   collapseStyles,
   desktopStyles,
@@ -30,7 +22,7 @@ import type {PlatformInputProps} from './types'
 import {formatDurationShort} from '../../../../util/timestamp'
 
 const MentionCatcher = ({onClick}) => (
-  <Box
+  <Kb.Box
     onClick={onClick}
     style={{
       ...globalStyles.fillAbsolute,
@@ -44,11 +36,11 @@ type State = {
   hasText: boolean,
 }
 
-class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, State> {
-  _input: ?Input
+class PlatformInput extends Component<PlatformInputProps & Kb.OverlayParentProps, State> {
+  _input: ?Kb.Input
   _fileInput: ?HTMLInputElement
 
-  constructor(props: PlatformInputProps & OverlayParentProps) {
+  constructor(props: PlatformInputProps & Kb.OverlayParentProps) {
     super(props)
     this.state = {
       emojiPickerOpen: false,
@@ -56,7 +48,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
     }
   }
 
-  _inputSetRef = (ref: ?Input) => {
+  _inputSetRef = (ref: ?Kb.Input) => {
     this._input = ref
     this.props.inputSetRef(ref)
   }
@@ -226,13 +218,13 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
     }
 
     return (
-      <Box
+      <Kb.Box
         style={{
           ...globalStyles.flexBoxRow,
           width: '100%',
         }}
       >
-        <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.white, width: '100%'}}>
+        <Kb.Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.white, width: '100%'}}>
           {this.props.mentionPopupOpen && <MentionCatcher onClick={this._mentionCatcherClick} />}
           {this.props.mentionPopupOpen && (
             <MentionHud
@@ -259,7 +251,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
               filter={this.props.channelMentionFilter}
             />
           )}
-          <Box
+          <Kb.Box
             style={{
               ...globalStyles.flexBoxRow,
               alignItems: 'flex-end',
@@ -291,25 +283,25 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
                 ])}
               >
                 {this.props.explodingModeSeconds ? (
-                  <Text type="BodyTinyBold" style={styles.time}>
+                  <Kb.Text type="BodyTinyBold" style={styles.time}>
                     {formatDurationShort(this.props.explodingModeSeconds * 1000)}
-                  </Text>
+                  </Kb.Text>
                 ) : (
-                  <Icon
+                  <Kb.Icon
                     className="timer"
                     onClick={this.props.isEditing ? undefined : this._toggleShowingMenu}
-                    style={iconCastPlatformStyles(styles.timerIcon)}
+                    style={Kb.iconCastPlatformStyles(styles.timerIcon)}
                     type="iconfont-timer"
                   />
                 )}
               </HoverBox>
             )}
             {this.props.isEditing && (
-              <Box onClick={this.props.onCancelEditing} style={styles.cancelEditing}>
-                <Text style={styles.cancelEditingText} type="BodySmallSemibold">
+              <Kb.Box onClick={this.props.onCancelEditing} style={styles.cancelEditing}>
+                <Kb.Text style={styles.cancelEditingText} type="BodySmallSemibold">
                   Cancel
-                </Text>
-              </Box>
+                </Kb.Text>
+              </Kb.Box>
             )}
             <input
               type="file"
@@ -318,7 +310,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
               onChange={this._pickFile}
               multiple={true}
             />
-            <Input
+            <Kb.Input
               className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
               autoFocus={false}
               small={true}
@@ -343,7 +335,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
               this.props.isExploding &&
               !this.props.isEditing &&
               !this.state.hasText && (
-                <Icon
+                <Kb.Icon
                   color={globalColors.black_20}
                   fontSize={34}
                   hoverColor={globalColors.black_20}
@@ -365,24 +357,24 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             {this.state.emojiPickerOpen && (
               <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
             )}
-            <Icon
+            <Kb.Icon
               color={this.state.emojiPickerOpen ? globalColors.black_75 : null}
               onClick={this._emojiPickerToggle}
               style={styleIcon}
               type="iconfont-emoji"
             />
-            <Icon onClick={this._filePickerOpen} style={styleIcon} type="iconfont-attachment" />
-          </Box>
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
-            <Text type="BodySmall" style={styles.isTyping}>
+            <Kb.Icon onClick={this._filePickerOpen} style={styleIcon} type="iconfont-attachment" />
+          </Kb.Box>
+          <Kb.Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
+            <Kb.Text type="BodySmall" style={styles.isTyping}>
               {isTyping(this.props.typing)}
-            </Text>
-            <Text type="BodySmall" style={styleFooter} onClick={this._inputFocus} selectable={true}>
+            </Kb.Text>
+            <Kb.Text type="BodySmall" style={styleFooter} onClick={this._inputFocus} selectable={true}>
               *bold*, _italics_, `code`, >quote
-            </Text>
-          </Box>
-        </Box>
-      </Box>
+            </Kb.Text>
+          </Kb.Box>
+        </Kb.Box>
+      </Kb.Box>
     )
   }
 }
@@ -393,35 +385,35 @@ const isTyping = typing => {
       return ''
     case 1:
       return [
-        <Text key={0} type="BodySmallSemibold">
+        <Kb.Text key={0} type="BodySmallSemibold">
           {typing.first()}
-        </Text>,
+        </Kb.Text>,
         ` is typing`,
       ]
     case 2:
       return [
-        <Text key={0} type="BodySmallSemibold">
+        <Kb.Text key={0} type="BodySmallSemibold">
           {typing.first()}
-        </Text>,
+        </Kb.Text>,
         ` and `,
-        <Text key={1} type="BodySmallSemibold">
+        <Kb.Text key={1} type="BodySmallSemibold">
           {typing.skip(1).first()}
-        </Text>,
+        </Kb.Text>,
         ` are typing`,
       ]
     default:
       return [
-        <Text key={0} type="BodySmallSemibold">
+        <Kb.Text key={0} type="BodySmallSemibold">
           {typing.join(', ')}
-        </Text>,
+        </Kb.Text>,
         ` are typing`,
       ]
   }
 }
 
 const InputAccessory = Component => props => (
-  <Box style={{position: 'relative', width: '100%'}}>
-    <Box
+  <Kb.Box style={{position: 'relative', width: '100%'}}>
+    <Kb.Box
       style={{
         bottom: 1,
         display: 'flex',
@@ -431,8 +423,8 @@ const InputAccessory = Component => props => (
       }}
     >
       <Component {...props} />
-    </Box>
-  </Box>
+    </Kb.Box>
+  </Kb.Box>
 )
 
 const MentionHud = InputAccessory(props => (
@@ -444,10 +436,13 @@ const ChannelMentionHud = InputAccessory(props => (
 ))
 
 const EmojiPicker = ({emojiPickerToggle, onClick}) => (
-  <Box>
-    <Box style={{bottom: 0, left: 0, position: 'absolute', right: 0, top: 0}} onClick={emojiPickerToggle} />
-    <Box style={{position: 'relative'}}>
-      <Box style={styles.emojiPickerContainer}>
+  <Kb.Box>
+    <Kb.Box
+      style={{bottom: 0, left: 0, position: 'absolute', right: 0, top: 0}}
+      onClick={emojiPickerToggle}
+    />
+    <Kb.Box style={{position: 'relative'}}>
+      <Kb.Box style={styles.emojiPickerContainer}>
         <Picker
           autoFocus={true}
           onClick={onClick}
@@ -455,9 +450,9 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
           title={'emojibase'}
           backgroundImageFn={backgroundImageFn}
         />
-      </Box>
-    </Box>
-  </Box>
+      </Kb.Box>
+    </Kb.Box>
+  </Kb.Box>
 )
 
 const styleMentionHud = {
@@ -564,10 +559,10 @@ const styles = styleSheetCreate({
   },
 })
 
-const HoverBox = glamorous(Box)({
+const HoverBox = glamorous(Kb.Box)({
   ':hover .timer, &.expanded .timer': {
     color: globalColors.black_75,
   },
 })
 
-export default OverlayParentHOC(PlatformInput)
+export default Kb.OverlayParentHOC(PlatformInput)
