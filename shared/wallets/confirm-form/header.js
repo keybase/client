@@ -11,20 +11,27 @@ type HeaderProps = {|
 |}
 
 const Header = (props: HeaderProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
     <Kb.BackButton
       onClick={props.onBack}
       style={styles.backButton}
       iconColor={Styles.globalColors.white}
       textStyle={styles.backButtonText}
     />
-    <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true} style={styles.headerContent}>
+    <Kb.Box2
+      direction="vertical"
+      fullHeight={true}
+      fullWidth={true}
+      centerChildren={true}
+      style={styles.headerContent}
+    >
       <Kb.Icon
         type={Styles.isMobile ? 'icon-fancy-stellar-sending-desktop' : 'icon-fancy-stellar-sending-mobile'}
         style={Kb.iconCastPlatformStyles(styles.headerIcon)}
       />
       <Kb.Text type="BodySmall" style={styles.headerText}>
-        Sending{!!props.assetConversion && ` ${props.assetType} worth`}
+        {/* {`Sending ${!!props.assetConversion && props.assetType} worth`.toUpperCase()} */}
+        {`Sending`.toUpperCase()}
       </Kb.Text>
       <Kb.Text type="HeaderBigExtrabold" style={styles.headerText}>
         {props.assetConversion ? props.assetConversion : props.amount}
@@ -35,21 +42,22 @@ const Header = (props: HeaderProps) => (
 
 const styles = Styles.styleSheetCreate({
   header: Styles.platformStyles({
-    isElectron: {
-      minHeight: 144,
+    common: {
       flex: 1,
       backgroundColor: Styles.globalColors.purple,
     },
-  }),
-  headerContent: {
-    marginTop: -20,
-  },
-  headerText: Styles.platformStyles({
     isElectron: {
-      color: Styles.globalColors.white,
-      textTransform: 'uppercase',
+      minHeight: 144,
     },
   }),
+  headerContent: Styles.platformStyles({
+    isElectron: {
+      marginTop: -20,
+    },
+  }),
+  headerText: {
+    color: Styles.globalColors.white,
+  },
   headerIcon: {
     width: 100,
     marginBottom: Styles.globalMargins.small,
