@@ -160,6 +160,8 @@ export const TeamMemberRow = (props: Props) => {
           )}
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flexShrink: 1, height: '100%'}}>
           {(active || isLargeScreen) && (
+            // Desktop & mobile large screen - display on the far right of the first row
+            // Also when user is active
             <Icon
               onClick={props.onChat}
               style={isMobile ? stylesChatButtonMobile(active) : stylesChatButtonDesktop}
@@ -193,16 +195,16 @@ export const TeamMemberRow = (props: Props) => {
                 disabled={props.waitingForAdd}
               />
             </ButtonBar>
-            {!active &&
-              !isLargeScreen && (
-                // !isLargeScreen implies this is mobile
-                <Icon
-                  onClick={props.onChat}
-                  style={stylesChatButtonMobile(active)}
-                  fontSize={20}
-                  type="iconfont-chat"
-                />
-              )}
+            {!isLargeScreen && (
+              // Mobile small screens - for inactive user 
+              // display next to reset / deleted controls
+              <Icon
+                onClick={props.onChat}
+                style={stylesChatButtonMobile(active)}
+                fontSize={20}
+                type="iconfont-chat"
+              />
+            )}
           </Box>
         )}
     </Box>
