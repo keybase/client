@@ -222,10 +222,10 @@
 			"revisionTime": "2017-01-27T01:24:59Z"
 		},
 		{
-			"checksumSHA1": "McCzdqKUm23RPlSx/gMaIi81XYg=",
+			"checksumSHA1": "6ZY7OPH1dlleun/jMHixi1M3SaY=",
 			"path": "github.com/keybase/go-crypto/curve25519",
-			"revision": "9e6372b80561bdcd1a72e5b480c6e7d922b86169",
-			"revisionTime": "2017-01-27T01:24:59Z"
+			"revision": "c84d7cbef16bcd1cd873e1d5793b18865f443ba0",
+			"revisionTime": "2018-08-07T16:30:25Z"
 		},
 		{
 			"checksumSHA1": "idJx0ckgd1LwSffToTmxF+bvCk8=",
@@ -242,8 +242,8 @@
 		{
 			"checksumSHA1": "1TZ1Ym1XrMztVJB6ZvkWgxpY4w0=",
 			"path": "github.com/keybase/go-crypto/openpgp",
-			"revision": "9e6372b80561bdcd1a72e5b480c6e7d922b86169",
-			"revisionTime": "2017-01-27T01:24:59Z"
+			"revision": "c84d7cbef16bcd1cd873e1d5793b18865f443ba0",
+			"revisionTime": "2018-08-07T16:30:25Z"
 		},
 		{
 			"checksumSHA1": "tin/wcIHur1IM0n5f5u8nlZ/J6U=",
@@ -373,10 +373,10 @@
 			"revisionTime": "2018-04-24T15:46:34Z"
 		},
 		{
-			"checksumSHA1": "iNzXtwV7AOu1hMQXNZGvw3JMrlw=",
+			"checksumSHA1": "78N5vY4VNa3agM5pNowP5hgJNwE=",
 			"path": "github.com/keybase/keybase-test-vectors/teamchains",
-			"revision": "8ffdd73430a190762ea77511f3ed47d9795b942b",
-			"revisionTime": "2018-01-10T20:05:33Z"
+			"revision": "84ebf93577bf48141063f7842bc137c3d40c4b82",
+			"revisionTime": "2018-08-06T20:08:11Z"
 		},
 		{
 			"path": "github.com/keybase/npipe",

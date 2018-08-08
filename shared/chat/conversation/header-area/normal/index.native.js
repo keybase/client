@@ -28,8 +28,13 @@ const Wrapper = (props: {
 }) => (
   <Box2 direction="horizontal" style={styles.container}>
     <ClickableBox onClick={props.onBack} style={styles.leftMargin}>
-      <Icon type="iconfont-arrow-left" fontSize={24} color={globalColors.black_40} />
-      {!!props.badgeNumber && <Badge badgeNumber={props.badgeNumber} badgeStyle={styles.badge} />}
+      <Icon
+        type="iconfont-arrow-left"
+        fontSize={24}
+        color={globalColors.black_40}
+        style={iconCastPlatformStyles(styles.arrow)}
+      />
+      {!!props.badgeNumber && <Badge badgeNumber={props.badgeNumber} />}
     </ClickableBox>
     <Box2
       direction="vertical"
@@ -102,7 +107,7 @@ const marginStyle = {
 }
 
 const styles = styleSheetCreate({
-  badge: {marginLeft: -5, marginTop: -3},
+  arrow: {marginTop: 3, marginRight: -3},
   center: {
     justifyContent: 'center',
     textAlign: 'center',

@@ -28,7 +28,7 @@ type LoaderContext interface {
 	merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error)
 	merkleLookupTripleAtHashMeta(ctx context.Context, isPublic bool, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error)
 	forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap linkMapT, err error)
-	loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (keybase1.UserVersion, *keybase1.PublicKeyV2NaCl, linkMapT, error)
+	loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID, lkc *loadKeyCache) (keybase1.UserVersion, *keybase1.PublicKeyV2NaCl, linkMapT, error)
 }
 
 // The main LoaderContext is G.
@@ -188,17 +188,10 @@ func (l *LoaderContextG) forceLinkMapRefreshForUser(ctx context.Context, uid key
 	return upak.SeqnoLinkIDs, nil
 }
 
-func (l *LoaderContextG) loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (
-	uv keybase1.UserVersion, pubKey *keybase1.PublicKeyV2NaCl, linkMap linkMapT,
-	err error) {
+func (l *LoaderContextG) loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID, lkc *loadKeyCache) (
+	uv keybase1.UserVersion, pubKey *keybase1.PublicKeyV2NaCl, linkMap linkMapT, err error) {
+	ctx, tbs := l.G().CTimeBuckets(ctx)
+	defer tbs.Record("LoaderContextG.loadKeyV2")()
 
-	user, pubKey, linkMap, err := l.G().GetUPAKLoader().LoadKeyV2(ctx, uid, kid)
-	if err != nil {
-		return
-	}
-	if user == nil {
-		return uv, pubKey, linkMap, libkb.NotFoundError{}
-	}
-
-	return user.ToUserVersion(), pubKey, linkMap, nil
+	return lkc.loadKeyV2(l.MetaContext(ctx), uid, kid)
 }

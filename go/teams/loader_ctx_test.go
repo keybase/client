@@ -261,7 +261,7 @@ func (l *MockLoaderContext) forceLinkMapRefreshForUser(ctx context.Context, uid 
 	// return linkMap, nil
 }
 
-func (l *MockLoaderContext) loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (
+func (l *MockLoaderContext) loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID, _lkc *loadKeyCache) (
 	uv keybase1.UserVersion, pubKey *keybase1.PublicKeyV2NaCl, linkMap linkMapT,
 	err error) {
 

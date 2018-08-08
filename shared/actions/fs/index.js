@@ -16,22 +16,19 @@ import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../util/container'
 import {putActionIfOnPath, navigateAppend} from '../route-tree'
 
-function* listFavoritesSaga(): Saga.SagaGenerator<any, any> {
-  const state: TypedState = yield Saga.select()
-  try {
-    const results = yield Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
-      args: [{key: 'problems', value: '1'}],
-      endpoint: 'kbfs/favorite/list',
-    })
-    const username = state.config.username || ''
-    const loggedIn = state.config.loggedIn
-    const folders = Constants.folderToFavoriteItems(results && results.body, username, loggedIn)
-
-    yield Saga.put(FsGen.createFavoritesLoaded({folders}))
-  } catch (e) {
-    logger.warn('Error listing favorites:', e)
-  }
-}
+const loadFavorites = (state: TypedState) =>
+  RPCTypes.apiserverGetWithSessionRpcPromise({
+    args: [{key: 'problems', value: '1'}],
+    endpoint: 'kbfs/favorite/list',
+  })
+    .then(results =>
+      Constants.createFavoritesLoadedFromJSONResults(
+        results && results.body,
+        state.config.username || '',
+        state.config.loggedIn
+      )
+    )
+    .catch(e => logger.warn('Error listing favorites:', e))
 
 const direntToMetadata = (d: RPCTypes.Dirent) => ({
   name: d.name.split('/').pop(),
@@ -52,20 +49,13 @@ const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
     case RPCTypes.simpleFSDirentType.sym:
       return Constants.makeSymlink({
         ...direntToMetadata(d),
-        progress: 'loaded',
         // TODO: plumb link target
       })
     case RPCTypes.simpleFSDirentType.file:
     case RPCTypes.simpleFSDirentType.exec:
-      return Constants.makeFile({
-        ...direntToMetadata(d),
-        progress: 'loaded',
-      })
+      return Constants.makeFile(direntToMetadata(d))
     default:
-      return Constants.makeUnknownPathItem({
-        ...direntToMetadata(d),
-        progress: 'loaded',
-      })
+      return Constants.makeUnknownPathItem(direntToMetadata(d))
   }
 }
 
@@ -158,30 +148,28 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   // Get metadata fields of the directory that we just loaded from state to
   // avoid overriding them.
   const state = yield Saga.select()
-  const {
-    lastModifiedTimestamp,
-    lastWriter,
-    size,
-    writable,
-    favoriteChildren,
-    tlfMeta,
-  }: Types.FolderPathItem = state.fs.pathItems.get(rootPath)
+  const {lastModifiedTimestamp, lastWriter, size, writable}: Types.FolderPathItem = state.fs.pathItems.get(
+    rootPath,
+    Constants.makeFolder({name: Types.getPathName(rootPath)})
+  )
 
   const pathItems = [
-    [
-      rootPath,
-      Constants.makeFolder({
-        lastModifiedTimestamp,
-        lastWriter,
-        size,
-        name: Types.getPathName(rootPath),
-        writable,
-        children: I.Set(childMap.get(rootPath)),
-        progress: 'loaded',
-        tlfMeta,
-        favoriteChildren,
-      }),
-    ],
+    ...(Types.getPathLevel(rootPath) > 2
+      ? [
+          [
+            rootPath,
+            Constants.makeFolder({
+              lastModifiedTimestamp,
+              lastWriter,
+              size,
+              name: Types.getPathName(rootPath),
+              writable,
+              children: I.Set(childMap.get(rootPath)),
+              progress: 'loaded',
+            }),
+          ],
+        ]
+      : []),
     ...entries.map(direntToPathAndPathItem),
   ]
   yield Saga.put(FsGen.createFolderListLoaded({pathItems: I.Map(pathItems), path: rootPath}))
@@ -353,7 +341,10 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
         suppressDurationSec: 8,
       })
       let {syncingPaths, totalSyncingBytes, endEstimate}: RPCTypes.FSSyncStatus = yield Saga.call(
-        RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise
+        RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise,
+        {
+          filter: RPCTypes.simpleFSListFilter.filterAllHidden,
+        }
       )
       yield Saga.sequentially([
         Saga.put(
@@ -548,8 +539,8 @@ const editFailed = (res, {payload: {editID}}) => Saga.put(FsGen.createEditFailed
 function* openPathItem(action: FsGen.OpenPathItemPayload): Saga.SagaGenerator<any, any> {
   const {path, routePath} = action.payload
   const state: TypedState = yield Saga.select()
-  const pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
-  if (pathItem.type === 'folder') {
+  const pathItem = state.fs.pathItems.get(path)
+  if (!pathItem || pathItem.type === 'folder') {
     yield Saga.put(
       putActionIfOnPath(
         routePath,
@@ -602,7 +593,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.upload, upload)
   yield Saga.safeTakeEvery(FsGen.folderListLoad, folderList)
   yield Saga.safeTakeEvery(FsGen.filePreviewLoad, filePreview)
-  yield Saga.safeTakeEvery(FsGen.favoritesLoad, listFavoritesSaga)
+  yield Saga.actionToPromise(FsGen.favoritesLoad, loadFavorites)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield Saga.safeTakeEveryPure(FsGen.mimeTypeLoad, loadMimeType)
   yield Saga.safeTakeEveryPure(FsGen.letResetUserBackIn, letResetUserBackIn, letResetUserBackInResult)

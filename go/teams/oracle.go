@@ -28,7 +28,7 @@ func TryDecryptWithTeamKey(mctx libkb.MetaContext, arg keybase1.TryDecryptWithTe
 			min = 1
 		}
 		for gen := min; gen <= team.Generation(); gen++ {
-			key, err := team.encryptionKeyAtGen(gen)
+			key, err := team.encryptionKeyAtGen(mctx.Ctx(), gen)
 			if err != nil {
 				mctx.CDebugf("Failed to get key gen %d: %v", gen, err)
 				switch err.(type) {

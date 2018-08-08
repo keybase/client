@@ -350,7 +350,7 @@ protocol SimpleFS {
   /**
    Get sync status.
    */
-  FSSyncStatus simpleFSSyncStatus();
+  FSSyncStatus simpleFSSyncStatus(ListFilter filter);
 
   @lint("ignore")
   record SimpleFSGetHTTPAddressAndTokenResponse {
