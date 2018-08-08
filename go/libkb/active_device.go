@@ -105,11 +105,11 @@ func (a *ActiveDevice) Copy(m MetaContext, src *ActiveDevice) error {
 }
 
 func (a *ActiveDevice) SetOrClear(m MetaContext, a2 *ActiveDevice) error {
+	// Always clear, if we are also setting we set all new values.
+	a.Clear()
 	if a2 == nil {
-		a.Clear()
 		return nil
 	}
-	a.Clear()
 	return a.Copy(m, a2)
 }
 

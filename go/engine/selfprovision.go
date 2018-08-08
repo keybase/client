@@ -46,6 +46,8 @@ func (e *SelfProvisionEngine) RequiredUIs() []libkb.UIKind {
 }
 
 func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
+	m.G().LocalSigchainGuard().Set(m.Ctx(), "loginProvision")
+	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "loginProvision")
 	defer m.CTrace("SelfProvisionEngine#Run", func() error { return err })()
 
 	if d, err := libkb.GetDeviceCloneState(m); err != nil {
@@ -94,7 +96,6 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	if err = RunEngine2(m, ueng); err != nil {
 		return err
 	}
-
 	e.User = ueng.User()
 
 	activeDevice := e.G().ActiveDevice
@@ -119,18 +120,17 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	if err = e.provision(m, keys); err != nil {
 		return err
 	}
-
-	verifyLocalStorage(m, e.User.GetNormalizedName().String(), e.User.GetUID())
-
 	// commit the config changes
 	if err := tx.Commit(); err != nil {
 		return err
 	}
-
 	// Zero out the TX so that we don't abort it in the defer()
 	// exit.
 	tx = nil
 
+	verifyLocalStorage(m, e.User.GetNormalizedName().String(), e.User.GetUID())
+
+	e.clearCaches(m)
 	e.sendNotification()
 	return nil
 }
@@ -162,6 +162,7 @@ func (e *SelfProvisionEngine) provision(m libkb.MetaContext, keys *libkb.DeviceW
 		return err
 	}
 
+	// store the secrets for our new device
 	if err := e.fetchLKS(m, encKey); err != nil {
 		return err
 	}
@@ -193,7 +194,19 @@ func (e *SelfProvisionEngine) provision(m libkb.MetaContext, keys *libkb.DeviceW
 	return nil
 }
 
+func (e *SelfProvisionEngine) clearCaches(m libkb.MetaContext) {
+	// Any caches that are encrypted with the old device key should be cleared
+	// out here so we can re-populate and encrypt with the new key.
+	if _, err := e.G().LocalChatDb.Nuke(); err != nil {
+		m.CDebugf("unable to nuke LocalChatDb: %v", err)
+	}
+	if ekLib := e.G().GetEKLib(); ekLib != nil {
+		ekLib.ClearCaches()
+	}
+}
+
 func (e *SelfProvisionEngine) sendNotification() {
+	e.G().KeyfamilyChanged(e.User.GetUID())
 	e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
 }
 
