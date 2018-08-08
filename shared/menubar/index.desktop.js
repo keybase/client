@@ -2,17 +2,7 @@
 import ChatBox from './chat.desktop'
 import React, {Component} from 'react'
 import flags from '../util/feature-flags'
-import {
-  Box,
-  Box2,
-  Icon,
-  Text,
-  Button,
-  FloatingMenu,
-  Badge,
-  ButtonBar,
-  type IconType,
-} from '../common-adapters'
+import * as Kb from '../common-adapters'
 import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
 import {isDarwin} from '../constants/platform'
@@ -71,11 +61,11 @@ class MenubarRender extends Component<Props, State> {
     })
 
     return (
-      <Box style={Styles.collapseStyles([styles.widgetContainer, styles.public])}>
+      <Kb.Box style={Styles.collapseStyles([styles.widgetContainer, styles.public])}>
         {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
-        <Box style={{...stylesTopRow, justifyContent: 'flex-end'}}>
-          <Icon
+        <Kb.Box style={{...stylesTopRow, justifyContent: 'flex-end'}}>
+          <Kb.Icon
             style={menuStyle}
             color={menuColor}
             hoverColor={menuColor}
@@ -83,37 +73,37 @@ class MenubarRender extends Component<Props, State> {
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
             ref={this.attachmentRef}
           />
-          <FloatingMenu
+          <Kb.FloatingMenu
             visible={this.state.showingMenu}
             attachTo={this.attachmentRef.current}
             items={this._menuItems(this.props.badgeInfo || {})}
             onHidden={() => this.setState({showingMenu: false})}
           />
-        </Box>
-        <Box style={{...Styles.globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          <Icon type="icon-keybase-logo-logged-out-64" style={stylesLogo} color={Styles.globalColors.yellow} />
-          <Text type="Body" small={true} style={{alignSelf: 'center', marginTop: 6}}>
+        </Kb.Box>
+        <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+          <Kb.Icon type="icon-keybase-logo-logged-out-64" style={stylesLogo} color={Styles.globalColors.yellow} />
+          <Kb.Text type="Body" small={true} style={{alignSelf: 'center', marginTop: 6}}>
             You're logged out of Keybase!
-          </Text>
-          <ButtonBar direction="row">
-            <Button type="Primary" label="Log In" onClick={this.props.logIn} />
-          </ButtonBar>
-        </Box>
-      </Box>
+          </Kb.Text>
+          <Kb.ButtonBar direction="row">
+            <Kb.Button type="Primary" label="Log In" onClick={this.props.logIn} />
+          </Kb.ButtonBar>
+        </Kb.Box>
+      </Kb.Box>
     )
   }
 
-  _menuView(title: string, iconType: IconType, count: number) {
+  _menuView(title: string, iconType: Kb.IconType, count: number) {
     return (
-      <Box2 direction="horizontal" style={{width: '100%'}}>
-        <Box style={{marginRight: Styles.globalMargins.xsmall, position: 'relative'}}>
-          <Icon type={iconType} color={Styles.globalColors.black_20} fontSize={20} />
-          {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', left: 14, top: -2}} />}
-        </Box>
-        <Text className="title" type="Body" style={Styles.collapseStyles([{color: undefined}])}>
+      <Kb.Box2 direction="horizontal" style={{width: '100%'}}>
+        <Kb.Box style={{marginRight: Styles.globalMargins.xsmall, position: 'relative'}}>
+          <Kb.Icon type={iconType} color={Styles.globalColors.black_20} fontSize={20} />
+          {!!count && <Kb.Badge badgeNumber={count} badgeStyle={{position: 'absolute', left: 14, top: -2}} />}
+        </Kb.Box>
+        <Kb.Text className="title" type="Body" style={Styles.collapseStyles([{color: undefined}])}>
           {title}
-        </Text>
-      </Box2>
+        </Kb.Text>
+      </Kb.Box2>
     )
   }
 
@@ -168,11 +158,11 @@ class MenubarRender extends Component<Props, State> {
     )
 
     return (
-      <Box style={styles.widgetContainer}>
+      <Kb.Box style={styles.widgetContainer}>
         {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
-        <Box style={{...stylesTopRow, borderBottom: `1px solid ${Styles.globalColors.black_05}`}}>
-          <Box
+        <Kb.Box style={{...stylesTopRow, borderBottom: `1px solid ${Styles.globalColors.black_05}`}}>
+          <Kb.Box
             style={{
               ...Styles.globalStyles.flexBoxRow,
               flex: 1,
@@ -184,8 +174,8 @@ class MenubarRender extends Component<Props, State> {
             {badgeTypesInHeader.map(tab => (
               <BadgeIcon key={tab} tab={tab} countMap={this.props.badgeInfo} openApp={this.props.openApp} />
             ))}
-          </Box>
-          <Box
+          </Kb.Box>
+          <Kb.Box
             style={Styles.collapseStyles([
               Styles.desktopStyles.clickable,
               {
@@ -195,17 +185,17 @@ class MenubarRender extends Component<Props, State> {
             ])}
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
           >
-            <Icon
+            <Kb.Icon
               color={Styles.globalColors.darkBlue4}
               hoverColor={Styles.globalColors.black_75}
               type="iconfont-nav-more"
               ref={this.attachmentRef}
             />
             {!!badgeCountInMenu && (
-              <Badge badgeNumber={badgeCountInMenu} badgeStyle={{position: 'absolute', left: 14, top: -2}} />
+              <Kb.Badge badgeNumber={badgeCountInMenu} badgeStyle={{position: 'absolute', left: 14, top: -2}} />
             )}
-          </Box>
-          <FloatingMenu
+          </Kb.Box>
+          <Kb.FloatingMenu
             items={this._menuItems(this.props.badgeInfo || {})}
             visible={this.state.showingMenu}
             onHidden={() =>
@@ -216,10 +206,10 @@ class MenubarRender extends Component<Props, State> {
             attachTo={this.attachmentRef.current}
             position="bottom right"
           />
-        </Box>
+        </Kb.Box>
         <ChatBox />
         {this.props.isAsyncWriteHappening && (
-          <Box
+          <Kb.Box
             style={{
               ...Styles.globalStyles.flexBoxColumn,
               justifyContent: 'center',
@@ -229,11 +219,11 @@ class MenubarRender extends Component<Props, State> {
               padding: 8,
             }}
           >
-            <Icon type="icon-loader-uploading-16" />
-            <Text type="BodySmall">UPLOADING CHANGES...</Text>
-          </Box>
+            <Kb.Icon type="icon-loader-uploading-16" />
+            <Kb.Text type="BodySmall">UPLOADING CHANGES...</Kb.Text>
+          </Kb.Box>
         )}
-      </Box>
+      </Kb.Box>
     )
   }
 }
@@ -246,7 +236,7 @@ body {
 
 const ArrowTick = () => (
   // Css triangle!
-  <Box
+  <Kb.Box
     style={{
       height: 0,
       width: 0,
@@ -278,27 +268,27 @@ const BadgeIcon = ({
     return null
   }
 
-  const iconMap: {[key: Tabs.Tab]: IconType} = {
+  const iconMap: {[key: Tabs.Tab]: Kb.IconType} = {
     [Tabs.peopleTab]: 'iconfont-nav-people',
     [Tabs.chatTab]: 'iconfont-nav-chat',
     [Tabs.devicesTab]: 'iconfont-nav-devices',
     [Tabs.fsTab]: 'iconfont-nav-files',
     [Tabs.teamsTab]: 'iconfont-nav-teams',
   }
-  const iconType: ?IconType = iconMap[tab]
+  const iconType: ?Kb.IconType = iconMap[tab]
 
   if (!iconType) {
     return null
   }
 
   return (
-    <Box
+    <Kb.Box
       style={{...Styles.desktopStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}
       onClick={() => openApp(tab)}
     >
-      <Icon color={Styles.globalColors.darkBlue4} hoverColor={Styles.globalColors.black_75} fontSize={22} type={iconType} />
-      {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', top: -6, right: -8}} />}
-    </Box>
+      <Kb.Icon color={Styles.globalColors.darkBlue4} hoverColor={Styles.globalColors.black_75} fontSize={22} type={iconType} />
+      {!!count && <Kb.Badge badgeNumber={count} badgeStyle={{position: 'absolute', top: -6, right: -8}} />}
+    </Kb.Box>
   )
 }
 
