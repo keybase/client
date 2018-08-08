@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import assetInput, {props3 as assetInputProps} from './asset-input/index.stories'
 import chooseAsset from './choose-asset/index.stories'
-import banner from './banner/index.stories'
 import footers from './footer/index.stories'
 import SendForm from '.'
 
@@ -27,7 +26,6 @@ const provider = Sb.createPropProviderWithCommon({
 const load = () => {
   // dumb component stories
   assetInput()
-  banner()
   chooseAsset()
   footers()
   // full component
