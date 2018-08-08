@@ -41,12 +41,12 @@ let bounceIn, bounceOut
 if (!isMobile) {
   const glamor = require('glamor')
   bounceIn = glamor.css.keyframes({
-    from: {left: -30},
-    to: {left: 8},
+    from: {transform: 'translateX(-30px)'},
+    to: {transform: 'translateX(-8px)'},
   })
   bounceOut = glamor.css.keyframes({
-    from: {left: 8},
-    to: {left: 46},
+    from: {transform: 'translateX(-8px)'},
+    to: {transform: 'translateX(22px)'},
   })
 }
 
