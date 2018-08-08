@@ -616,10 +616,13 @@ func (k *KeybaseServiceBase) checkForRevokedVerifyingKey(
 						Prev: info.MerkleRoot,
 					})
 			}
-			if err != nil {
+			if m, ok := err.(libkb.MerkleClientError); ok && m.IsOldTree() {
+				k.log.CDebugf(ctx, "Merkle root is too old for checking "+
+					"the revoked key: %+v", err)
+				info.MerkleRoot.Seqno = 0
+			} else if err != nil {
 				return UserInfo{}, false, err
-			}
-			if res.Res != nil {
+			} else if res.Res != nil {
 				info.MerkleRoot = *res.Res
 			}
 		}
