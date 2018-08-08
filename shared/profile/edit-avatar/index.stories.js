@@ -1,16 +1,15 @@
 // @flow
 import * as React from 'react'
-import {action, storiesOf, PropProviders} from '../../stories/storybook'
+import * as Sb from '../../stories/storybook'
 import EditAvatar from '.'
 
 const props = {
-  onClose: action('onClose'),
-  onSave: action('onSave'),
+  onClose: Sb.action('onClose'),
+  onSave: Sb.action('onSave'),
 }
 
 const load = () => {
-  storiesOf('Profile/EditAvatar', module)
-    .addDecorator(PropProviders.createPropProviderWithCommon())
+  Sb.storiesOf('Profile/EditAvatar', module)
     .add('Has', () => <EditAvatar {...props} />)
     .add('Missing', () => <EditAvatar {...props} />)
 }

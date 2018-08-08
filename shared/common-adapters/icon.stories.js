@@ -1,17 +1,17 @@
 // @flow
+import * as React from 'react'
+import * as Sb from '../stories/storybook'
 import Box from './box'
 import Icon, {type IconType} from './icon'
-import * as React from 'react'
 import Text from './text'
 import {globalStyles, globalColors, isMobile} from '../styles'
 import {iconMeta} from './icon.constants'
-import {storiesOf, action} from '../stories/storybook'
 
 const commonProps = {
   hint: 'hint text',
-  onClick: action('onClick'),
-  onMouseEnter: action('onMouseEnter'),
-  onMouseLeave: action('onMouseLeave'),
+  onClick: Sb.action('onClick'),
+  onMouseEnter: Sb.action('onMouseEnter'),
+  onMouseLeave: Sb.action('onMouseLeave'),
   style: {
     borderColor: globalColors.black_05,
     borderWidth: 1,
@@ -39,25 +39,27 @@ const load = () => {
     sizes[size].push(type)
   })
 
-  storiesOf('Common', module).add('Icon', () =>
-    Object.keys(sizes).map(size => (
-      <Box key={size}>
-        <Text type="Body">{size}</Text>
-        <Box
-          style={{
-            ...globalStyles.flexBoxRow,
-            alignItems: 'flex-start',
-            flexWrap: 'wrap',
-            justifyContent: 'flex-start',
-          }}
-        >
-          {sizes[size].map(type => (
-            <Icon key={type} type={type} {...commonProps} onClick={() => commonProps.onClick(type)} />
-          ))}
+  Sb.storiesOf('Common', module)
+    .addDecorator(Sb.scrollViewDecorator)
+    .add('Icon', () =>
+      Object.keys(sizes).map(size => (
+        <Box key={size}>
+          <Text type="Body">{size}</Text>
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+              alignItems: 'flex-start',
+              flexWrap: 'wrap',
+              justifyContent: 'flex-start',
+            }}
+          >
+            {sizes[size].map(type => (
+              <Icon key={type} type={type} {...commonProps} onClick={() => commonProps.onClick(type)} />
+            ))}
+          </Box>
         </Box>
-      </Box>
-    ))
-  )
+      ))
+    )
 }
 
 export default load

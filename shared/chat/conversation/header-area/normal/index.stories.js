@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {action, storiesOf, PropProviders} from '../../../../stories/storybook'
+import * as Sb from '../../../../stories/storybook'
 import {UsernameHeader, ChannelHeader} from '.'
 
 const defaultProps = {
@@ -9,11 +9,11 @@ const defaultProps = {
   channelName: 'nyc',
   infoPanelOpen: false,
   muted: false,
-  onBack: action('onBack'),
+  onBack: Sb.action('onBack'),
   onCancelPending: null,
-  onOpenFolder: action('onOpenFolder'),
-  onShowProfile: action('onShowProfile'),
-  onToggleInfoPanel: action('onToggleInfoPanel'),
+  onOpenFolder: Sb.action('onOpenFolder'),
+  onShowProfile: Sb.action('onShowProfile'),
+  onToggleInfoPanel: Sb.action('onToggleInfoPanel'),
   participants: ['joshblum', 'ayoubd'],
   smallTeam: true,
   teamName: 'keybase',
@@ -21,13 +21,12 @@ const defaultProps = {
 
 const isPendingProps = {
   canOpenInfoPanel: false,
-  onCancelPending: action('onCancelPending'),
+  onCancelPending: Sb.action('onCancelPending'),
   onOpenFolder: null,
 }
 
 const load = () => {
-  storiesOf('Chat/Header', module)
-    .addDecorator(PropProviders.createPropProviderWithCommon())
+  Sb.storiesOf('Chat/Header', module)
     .add('Username Header', () => <UsernameHeader {...defaultProps} />)
     .add('Username Header with info panel open', () => (
       <UsernameHeader {...defaultProps} infoPanelOpen={true} />

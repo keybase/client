@@ -3,8 +3,8 @@ import * as I from 'immutable'
 import React from 'react'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
+import * as Sb from '../stories/storybook'
 import {type ConnectedProps as ConnectedUsernamesProps} from '../common-adapters/usernames'
-import {action, storiesOf, PropProviders} from '../stories/storybook'
 import {globalColors, globalMargins} from '../styles'
 import Files, {WrapRow} from '.'
 import ConnectedStillRow from './row/still-container'
@@ -57,7 +57,7 @@ const rowProviders = {
       name: Types.getPathName(path),
       type: 'folder',
       itemStyles: folderItemStyles,
-      onAction: action('onAction'),
+      onAction: Sb.action('onAction'),
       isEmpty: pathStr.includes('empty'),
     }
   },
@@ -68,12 +68,12 @@ const rowProviders = {
   }),
 }
 
-const provider = PropProviders.createPropProviderWithCommon({
+const provider = Sb.createPropProviderWithCommon({
   ...rowProviders,
   ConnectedDownloads: () => ({
     downloadKeys: ['file 1', 'blah 2', 'yo 3'],
     thereAreMore: true,
-    openDownloadFolder: action('openDownloadFolder'),
+    openDownloadFolder: Sb.action('openDownloadFolder'),
   }),
   ConnectedUpload: () => ({
     files: 0,
@@ -83,9 +83,9 @@ const provider = PropProviders.createPropProviderWithCommon({
     completePortion: downloadKey.split('').reduce((num, char) => (num + char.charCodeAt(0)) % 100, 0) / 100,
     progressText: '42 s',
     isDone: false,
-    open: action('open'),
-    dismiss: action('dismiss'),
-    cancel: action('cancel'),
+    open: Sb.action('open'),
+    dismiss: Sb.action('dismiss'),
+    cancel: Sb.action('cancel'),
   }),
   FolderHeader: () => ({
     breadcrumbItems: [
@@ -97,9 +97,9 @@ const provider = PropProviders.createPropProviderWithCommon({
     dropdownItems: [],
     isTeamPath: false,
     path: Types.stringToPath('/keybase'),
-    onBack: action('onBack'),
-    onOpenBreadcrumb: action('onOpenBreadcrumb'),
-    onOpenBreadcrumbDropdown: action('onOpenBreadcrumbDropdown'),
+    onBack: Sb.action('onBack'),
+    onOpenBreadcrumb: Sb.action('onOpenBreadcrumb'),
+    onOpenBreadcrumbDropdown: Sb.action('onOpenBreadcrumbDropdown'),
   }),
   ConnectedBreadcrumb: () => ({
     dropdownItems: undefined,
@@ -119,10 +119,10 @@ const provider = PropProviders.createPropProviderWithCommon({
     showBanner: false,
     inProgress: false,
     showSecurityPrefs: false,
-    getFuseStatus: action('getFuseStatus'),
-    onDismiss: action('onDismiss'),
-    onInstall: action('onInstall'),
-    onUninstall: action('onUninstall'),
+    getFuseStatus: Sb.action('getFuseStatus'),
+    onDismiss: Sb.action('onDismiss'),
+    onInstall: Sb.action('onInstall'),
+    onUninstall: Sb.action('onUninstall'),
   }),
   FilePreviewDefaultView: () => ({
     fileUIEnabled: false,
@@ -154,8 +154,8 @@ const provider = PropProviders.createPropProviderWithCommon({
     mimeType: 'jpg',
     isSymlink: false,
     path: '/keybase/private/foo/bar.jpg',
-    onInvalidToken: action('onInvalidToken'),
-    loadMimeType: action('loadMimeType'),
+    onInvalidToken: Sb.action('onInvalidToken'),
+    loadMimeType: Sb.action('loadMimeType'),
   }),
   ResetBanner: ({path}: {path: Types.Path}) => ({
     isUserReset: Types.pathToString(path) === '/keybase/private/me,reset',
@@ -180,9 +180,9 @@ const provider = PropProviders.createPropProviderWithCommon({
 })
 
 const downloadCommonActions = {
-  open: action('open'),
-  dismiss: action('dismiss'),
-  cancel: action('cancel'),
+  open: Sb.action('open'),
+  dismiss: Sb.action('dismiss'),
+  cancel: Sb.action('cancel'),
 }
 
 const pathItemActionPopupProps = (path: Types.Path) => {
@@ -200,10 +200,10 @@ const pathItemActionPopupProps = (path: Types.Path) => {
     menuItems: [
       {
         title: 'menu item',
-        onClick: action('onClick'),
+        onClick: Sb.action('onClick'),
       },
     ],
-    onHidden: action('onHidden'),
+    onHidden: Sb.action('onHidden'),
   }
 }
 
@@ -214,7 +214,7 @@ const breadcrumbProps = (names: Array<string>) => {
     name: name,
     path: Types.stringToPath('/' + names.slice(0, idx + 1).join('/')),
     iconSpec: Constants.getItemStyles(names.slice(0, idx + 1), 'folder', 'foo').iconSpec,
-    onClick: action('onClick'),
+    onClick: Sb.action('onClick'),
   }))
   return items.length > 3
     ? {
@@ -228,14 +228,15 @@ const breadcrumbProps = (names: Array<string>) => {
 }
 
 const commonRowProps = {
-  onSubmit: action('onSubmit'),
-  onUpdate: action('onUpdate'),
-  onCancel: action('onCancel'),
+  onSubmit: Sb.action('onSubmit'),
+  onUpdate: Sb.action('onUpdate'),
+  onCancel: Sb.action('onCancel'),
 }
 
 const load = () => {
-  storiesOf('Files', module)
+  Sb.storiesOf('Files', module)
     .addDecorator(provider)
+    .addDecorator(Sb.scrollViewDecorator)
     .add('Root', () => (
       <Files
         path={Types.stringToPath('/keybase')}
@@ -372,9 +373,9 @@ const load = () => {
             lastWriter="alice"
             itemStyles={fileItemStyles}
             isDownloading={true}
-            onOpen={action('onOpen')}
-            openInFileUI={action('openInFileUI')}
-            onAction={action('onAction')}
+            onOpen={Sb.action('onOpen')}
+            openInFileUI={Sb.action('openInFileUI')}
+            onAction={Sb.action('onAction')}
             isEmpty={false}
           />
         </WrapRow>
@@ -401,9 +402,9 @@ const load = () => {
             lastWriter="bob"
             itemStyles={fileItemStyles}
             isDownloading={false}
-            onOpen={action('onOpen')}
-            openInFileUI={action('openInFileUI')}
-            onAction={action('onAction')}
+            onOpen={Sb.action('onOpen')}
+            openInFileUI={Sb.action('openInFileUI')}
+            onAction={Sb.action('onAction')}
             isEmpty={false}
           />
         </WrapRow>
@@ -413,9 +414,9 @@ const load = () => {
             path={Types.stringToPath('/keybase/private')}
             itemStyles={folderItemStyles}
             badgeCount={0}
-            onOpen={action('onOpen')}
-            openInFileUI={action('openInFileUI')}
-            onAction={action('onAction')}
+            onOpen={Sb.action('onOpen')}
+            openInFileUI={Sb.action('openInFileUI')}
+            onAction={Sb.action('onAction')}
           />
         </WrapRow>
         <WrapRow key="18">
@@ -424,9 +425,9 @@ const load = () => {
             path={Types.stringToPath('/keybase/private')}
             itemStyles={folderItemStyles}
             badgeCount={3}
-            onOpen={action('onOpen')}
-            openInFileUI={action('openInFileUI')}
-            onAction={action('onAction')}
+            onOpen={Sb.action('onOpen')}
+            openInFileUI={Sb.action('openInFileUI')}
+            onAction={Sb.action('onAction')}
           />
         </WrapRow>
         <WrapRow key="19">
@@ -439,9 +440,9 @@ const load = () => {
             isNew={true}
             isUserReset={false}
             resetParticipants={[]}
-            onOpen={action('onOpen')}
-            openInFileUI={action('openInFileUI')}
-            onAction={action('onAction')}
+            onOpen={Sb.action('onOpen')}
+            openInFileUI={Sb.action('openInFileUI')}
+            onAction={Sb.action('onAction')}
           />
         </WrapRow>
         <WrapRow key="20">
@@ -454,9 +455,9 @@ const load = () => {
             isNew={true}
             isUserReset={true}
             resetParticipants={['charlie']}
-            onOpen={action('onOpen')}
-            openInFileUI={action('openInFileUI')}
-            onAction={action('onAction')}
+            onOpen={Sb.action('onOpen')}
+            openInFileUI={Sb.action('openInFileUI')}
+            onAction={Sb.action('onAction')}
           />
         </WrapRow>
         <WrapRow key="21">
@@ -469,9 +470,9 @@ const load = () => {
             isNew={true}
             isUserReset={false}
             resetParticipants={['alice', 'bob']}
-            onOpen={action('onOpen')}
-            openInFileUI={action('openInFileUI')}
-            onAction={action('onAction')}
+            onOpen={Sb.action('onOpen')}
+            openInFileUI={Sb.action('openInFileUI')}
+            onAction={Sb.action('onAction')}
           />
         </WrapRow>
         <WrapRow key="22">
@@ -484,9 +485,9 @@ const load = () => {
             isNew={true}
             isUserReset={false}
             resetParticipants={[]}
-            onOpen={action('onOpen')}
-            openInFileUI={action('openInFileUI')}
-            onAction={action('onAction')}
+            onOpen={Sb.action('onOpen')}
+            openInFileUI={Sb.action('openInFileUI')}
+            onAction={Sb.action('onAction')}
           />
         </WrapRow>
       </Box>
@@ -497,25 +498,25 @@ const load = () => {
         <Downloads
           downloadKeys={['file 1']}
           thereAreMore={false}
-          openDownloadFolder={action('openDownloadFolder')}
+          openDownloadFolder={Sb.action('openDownloadFolder')}
         />
         <Text type="Header">2 items</Text>
         <Downloads
           downloadKeys={['file 1', 'blah 2']}
           thereAreMore={false}
-          openDownloadFolder={action('openDownloadFolder')}
+          openDownloadFolder={Sb.action('openDownloadFolder')}
         />
         <Text type="Header">3 items</Text>
         <Downloads
           downloadKeys={['file 1', 'blah 2', 'yo 3']}
           thereAreMore={false}
-          openDownloadFolder={action('openDownloadFolder')}
+          openDownloadFolder={Sb.action('openDownloadFolder')}
         />
         <Text type="Header">4+ items</Text>
         <Downloads
           downloadKeys={['file 1', 'blah 2', 'yo 3']}
           thereAreMore={true}
-          openDownloadFolder={action('openDownloadFolder')}
+          openDownloadFolder={Sb.action('openDownloadFolder')}
         />
       </Box2>
     ))

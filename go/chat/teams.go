@@ -59,7 +59,9 @@ func loadTeamForDecryption(ctx context.Context, loader *TeamLoader, name string,
 	if !public {
 		// Only need keys for private teams.
 		if !kbfsEncrypted {
-			refreshers.NeedKeyGeneration = keybase1.PerTeamKeyGeneration(keyGeneration)
+			refreshers.NeedApplicationsAtGenerations = map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
+				keybase1.PerTeamKeyGeneration(keyGeneration): []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+			}
 		} else {
 			refreshers.NeedKBFSKeyGeneration = keybase1.TeamKBFSKeyRefresher{
 				Generation: keyGeneration,

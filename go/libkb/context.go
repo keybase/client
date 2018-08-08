@@ -74,6 +74,9 @@ func (m MetaContext) CTrace(msg string, f func() error) func() {
 func (m MetaContext) CVTrace(lev VDebugLevel, msg string, f func() error) func() {
 	return m.g.CVTrace(m.ctx, lev, msg, f)
 }
+func (m MetaContext) CVTraceOK(lev VDebugLevel, msg string, f func() bool) func() {
+	return m.g.CVTraceOK(m.ctx, lev, msg, f)
+}
 
 func (m MetaContext) VLogf(lev VDebugLevel, msg string, args ...interface{}) {
 	m.g.VDL.CLogfWithAddedDepth(m.ctx, lev, 1, msg, args...)

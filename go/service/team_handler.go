@@ -52,9 +52,9 @@ func (r *teamHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 	case "team.openreq":
 		return true, r.openTeamAccessRequest(ctx, cli, item)
 	case "team.change":
-		return true, r.changeTeam(ctx, cli, item, keybase1.TeamChangeSet{})
+		return true, r.changeTeam(ctx, cli, category, item, keybase1.TeamChangeSet{})
 	case "team.rename":
-		return true, r.changeTeam(ctx, cli, item, keybase1.TeamChangeSet{Renamed: true})
+		return true, r.changeTeam(ctx, cli, category, item, keybase1.TeamChangeSet{Renamed: true})
 	case "team.delete":
 		return true, r.deleteTeam(ctx, cli, item)
 	case "team.exit":
@@ -206,14 +206,15 @@ func (r *teamHandler) findAndDismissResetBadges(ctx context.Context, cli gregor1
 	return nil
 }
 
-func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item, changes keybase1.TeamChangeSet) error {
+func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterface, category string,
+	item gregor.Item, changes keybase1.TeamChangeSet) error {
 	var rows []keybase1.TeamChangeRow
 	r.G().Log.CDebugf(ctx, "teamHandler: changeTeam received")
 	if err := json.Unmarshal(item.Body().Bytes(), &rows); err != nil {
-		r.G().Log.CDebugf(ctx, "error unmarshaling team.(change|rename) item: %s", err)
+		r.G().Log.CDebugf(ctx, "error unmarshaling %s item: %s", category, err)
 		return err
 	}
-	r.G().Log.CDebugf(ctx, "team.(change|rename) unmarshaled: %+v", rows)
+	r.G().Log.CDebugf(ctx, "%s unmarshaled: %+v", category, rows)
 	if err := teams.HandleChangeNotification(ctx, r.G(), rows, changes); err != nil {
 		return err
 	}

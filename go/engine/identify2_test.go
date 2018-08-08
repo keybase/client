@@ -11,7 +11,6 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 	require "github.com/stretchr/testify/require"
-	context "golang.org/x/net/context"
 )
 
 func importTrackingLink(t *testing.T, g *libkb.GlobalContext) *libkb.TrackChainLink {
@@ -440,7 +439,7 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 		if len(res.Upk.Current.DeviceKeys) != 4 {
 			t.Fatal("wrong # of device keys for tracy")
 		}
-		if len(res.TrackBreaks.Proofs) != 1 {
+		if res.TrackBreaks == nil || len(res.TrackBreaks.Proofs) != 1 {
 			t.Fatal("Expected to get back 1 broken proof")
 		}
 		if res.TrackBreaks.Proofs[0].RemoteProof.Key != "twitter" {
@@ -452,20 +451,15 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 	}
 
 	runChatGUI := func() {
-		// Now run the engine again, but in normal mode, and check that we don't hit
-		// the cached broken gy.
+		// Now run the engine again, but in gui mode, and check that we don't hit
+		// the cached broken guy.
 		eng := NewIdentify2WithUID(tc.G, &keybase1.Identify2Arg{Uid: tracyUID, IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI})
 
 		eng.testArgs = &Identify2WithUIDTestArgs{
 			noMe:  true,
 			cache: tester,
 			tcl:   importTrackingLink(t, tc.G),
-			// MK 2018-07-20 BUG BUG BUG! This test originally wanted to
-			// set allowUntrackedFastPath:true, but because noMe was
-			// set, that flag had no effect. So I think there's a bug of
-			// some sort here, that the intention of the test isn't captured
-			// in the test itself. To fix. See: CORE-8352
-			// allowUntrackedFastPath: true,  // THIS IS BuggY!
+			allowUntrackedFastPath: true,
 		}
 
 		waiter := launchWaiter(t, tester.finishCh)
@@ -489,7 +483,7 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 
 	runStandard := func() {
 		// Now run the engine again, but in normal mode, and check that we don't hit
-		// the cached broken gy.
+		// the cached broken guy.
 		eng := NewIdentify2WithUID(tc.G, &keybase1.Identify2Arg{Uid: tracyUID, IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI})
 
 		eng.testArgs = &Identify2WithUIDTestArgs{
@@ -1088,8 +1082,8 @@ type evilResolver struct {
 	badUID    keybase1.UID
 }
 
-func (e *evilResolver) ResolveFullExpressionWithBody(ctx context.Context, s string) libkb.ResolveResult {
-	ret := e.ResolverImpl.ResolveFullExpressionWithBody(ctx, s)
+func (e *evilResolver) ResolveFullExpressionWithBody(m libkb.MetaContext, s string) libkb.ResolveResult {
+	ret := e.ResolverImpl.ResolveFullExpressionWithBody(m, s)
 	if strings.HasPrefix(s, e.badPrefix) {
 		ret.SetUIDForTesting(e.badUID)
 	}

@@ -119,6 +119,8 @@ func (a *S3Store) putMultiPipeline(ctx context.Context, r io.Reader, size int64,
 		list, err := multi.ListParts(ctx)
 		if err != nil {
 			a.Debug(ctx, "putMultiPipeline: ignoring multi.ListParts error: %s", err)
+			// dump previous since we can't check it anymore
+			previous = nil
 		} else {
 			for _, p := range list {
 				previousParts[p.N] = p

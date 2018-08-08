@@ -70,16 +70,17 @@ const styleFolderHeaderEnd = {
 
 const styleFolderHeaderContainer = {
   ...stylesCommonRow,
+  width: '100%',
+  height: 48,
+  alignItems: 'center',
   position: 'relative',
-  marginTop: 15,
-  marginBottom: 15,
-  alignItems: 'flex-start',
 }
 
 const styleAddNew = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  padding: globalMargins.tiny,
+  paddingTop: globalMargins.tiny,
+  paddingBottom: globalMargins.tiny,
   paddingRight: globalMargins.small - 4,
   paddingLeft: globalMargins.small,
 }

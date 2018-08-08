@@ -21,7 +21,7 @@ type Props = {
 
 const ReceiveModal = (props: Props) => (
   <MaybePopup onClose={props.onClose}>
-    <Box2 direction="vertical" style={containerStyle}>
+    <Box2 direction="vertical" style={containerStyle} centerChildren={true}>
       <Icon
         type={isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
         style={iconCastPlatformStyles(styles.icon)}
@@ -88,11 +88,12 @@ const styles = styleSheetCreate({
 const containerStyle = platformStyles({
   common: {
     alignItems: 'center',
-    maxWidth: 360,
     paddingLeft: globalMargins.medium,
     paddingRight: globalMargins.medium,
   },
   isElectron: {
+    height: 525,
+    width: 360,
     paddingBottom: globalMargins.xlarge,
     paddingTop: globalMargins.xlarge,
     textAlign: 'center',

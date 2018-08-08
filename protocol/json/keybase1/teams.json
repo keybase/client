@@ -415,7 +415,8 @@
             "values": "PerTeamKeySeedItem",
             "keys": "PerTeamKeyGeneration"
           },
-          "name": "perTeamKeySeeds"
+          "name": "perTeamKeySeedsUnverified",
+          "mpackkey": "perTeamKeySeeds"
         },
         {
           "type": {
@@ -1269,6 +1270,17 @@
         {
           "type": "PerTeamKeyGeneration",
           "name": "needKeyGeneration"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "TeamApplication"
+            },
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "needApplicationsAtGenerations"
         },
         {
           "type": {

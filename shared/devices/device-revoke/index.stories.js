@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Constants from '../../constants/devices'
 import * as Types from '../../constants/types/devices'
-import {action, storiesOf, PropProviders} from '../../stories/storybook'
+import * as Sb from '../../stories/storybook'
 import DeviceRevoke, {type Props} from '.'
 
 const props: Props = {
@@ -13,14 +13,13 @@ const props: Props = {
     type: 'desktop',
   }),
   endangeredTLFs: [],
-  onCancel: action('oncancel'),
-  onSubmit: action('onsubmit'),
+  onCancel: Sb.action('oncancel'),
+  onSubmit: Sb.action('onsubmit'),
   waiting: false,
 }
 
 const load = () => {
-  storiesOf('Devices/Revoke', module)
-    .addDecorator(PropProviders.createPropProviderWithCommon())
+  Sb.storiesOf('Devices/Revoke', module)
     .add('Paper key', () => (
       <DeviceRevoke {...props} device={props.device.merge({name: 'my paper key', type: 'backup'})} />
     ))
@@ -45,9 +44,9 @@ const load = () => {
         ]}
       />
     ))
-  storiesOf('Devices/Revoke', module)
+  Sb.storiesOf('Devices/Revoke', module)
     .addDecorator(
-      PropProviders.createPropProviderWithCommon({
+      Sb.createPropProviderWithCommon({
         WaitingButton: p => ({...p, storeWaiting: true}),
       })
     )

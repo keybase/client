@@ -239,6 +239,14 @@ func runWithEphemeral(t *testing.T, mt chat1.ConversationMembersType, f func(eph
 	}
 }
 
+func runWithRetentionPolicyTypes(t *testing.T, f func(policy chat1.RetentionPolicy, ephemeralLifetime *gregor1.DurationSec)) {
+	age := gregor1.DurationSec(1)
+	t.Logf("using EXPIRE retention policy")
+	f(chat1.NewRetentionPolicyWithExpire(chat1.RpExpire{Age: age}), nil)
+	t.Logf("using EPHEMERAL retention policy")
+	f(chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{Age: age}), &age)
+}
+
 type chatTestUserContext struct {
 	startCtx context.Context
 	u        *kbtest.FakeUser
@@ -1174,7 +1182,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 			chat1.NewMessageBodyWithText(chat1.MessageText{Body: text}))
 
 		select {
-		case info := <-listener.newMessage:
+		case info := <-listener.newMessageRemote:
 			require.True(t, info.Message.IsValid())
 			require.Equal(t, chat1.MessageType_TEXT, info.Message.GetMessageType())
 			require.Equal(t, 1, len(info.Message.Valid().AtMentions))
@@ -1201,7 +1209,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})
 		require.NoError(t, err)
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
 		_, err = ctc.as(t, users[0]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
 			ConversationID: created.Id,
 			Msg: chat1.MessagePlaintext{
@@ -1219,7 +1227,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 		})
 		require.NoError(t, err)
 		select {
-		case info := <-listener.newMessage:
+		case info := <-listener.newMessageRemote:
 			require.True(t, info.Message.IsValid())
 			require.Equal(t, chat1.MessageType_EDIT, info.Message.GetMessageType())
 			require.Equal(t, 1, len(info.Message.Valid().AtMentions))
@@ -1243,7 +1251,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 		mustPostLocalForTest(t, ctc, users[0], created,
 			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "@channel"}))
 		select {
-		case info := <-listener.newMessage:
+		case info := <-listener.newMessageRemote:
 			require.True(t, info.Message.IsValid())
 			require.Equal(t, chat1.MessageType_TEXT, info.Message.GetMessageType())
 			require.Zero(t, len(info.Message.Valid().AtMentions))
@@ -1260,7 +1268,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 		})
 		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithSystem(subBody))
 		select {
-		case info := <-listener.newMessage:
+		case info := <-listener.newMessageRemote:
 			require.True(t, info.Message.IsValid())
 			require.Equal(t, chat1.MessageType_SYSTEM, info.Message.GetMessageType())
 			require.Equal(t, 1, len(info.Message.Valid().AtMentions))
@@ -1535,10 +1543,8 @@ func TestChatSrvGracefulUnboxing(t *testing.T) {
 		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "innocent hello"}))
 		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "evil hello"}))
 
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
 
 		// make evil hello evil
 		tc := ctc.world.Tcs[users[0].Username]
@@ -1878,13 +1884,14 @@ type serverChatListener struct {
 	libkb.NoopNotifyListener
 
 	// ChatActivity channels
-	newMessage              chan chat1.IncomingMessage
+	newMessageLocal         chan chat1.IncomingMessage
+	newMessageRemote        chan chat1.IncomingMessage
 	membersUpdate           chan chat1.MembersUpdateInfo
 	appNotificationSettings chan chat1.SetAppNotificationSettingsInfo
 	teamType                chan chat1.TeamTypeInfo
 	expunge                 chan chat1.ExpungeInfo
 	ephemeralPurge          chan chat1.EphemeralPurgeNotifInfo
-	reactionDelete          chan chat1.ReactionDeleteNotif
+	reactionUpdate          chan chat1.ReactionUpdateNotif
 
 	threadsStale     chan []chat1.ConversationStaleUpdate
 	inboxStale       chan struct{}
@@ -1923,7 +1930,12 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 	typ, _ := activity.ActivityType()
 	switch typ {
 	case chat1.ChatActivityType_INCOMING_MESSAGE:
-		n.newMessage <- activity.IncomingMessage()
+		switch source {
+		case chat1.ChatActivitySource_LOCAL:
+			n.newMessageLocal <- activity.IncomingMessage()
+		case chat1.ChatActivitySource_REMOTE:
+			n.newMessageRemote <- activity.IncomingMessage()
+		}
 	case chat1.ChatActivityType_MEMBERS_UPDATE:
 		n.membersUpdate <- activity.MembersUpdate()
 	case chat1.ChatActivityType_SET_APP_NOTIFICATION_SETTINGS:
@@ -1934,8 +1946,8 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.expunge <- activity.Expunge()
 	case chat1.ChatActivityType_EPHEMERAL_PURGE:
 		n.ephemeralPurge <- activity.EphemeralPurge()
-	case chat1.ChatActivityType_REACTION_DELETE:
-		n.reactionDelete <- activity.ReactionDelete()
+	case chat1.ChatActivityType_REACTION_UPDATE:
+		n.reactionUpdate <- activity.ReactionUpdate()
 	}
 }
 func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, convID chat1.ConversationID,
@@ -1970,13 +1982,14 @@ func (n *serverChatListener) ChatKBFSToImpteamUpgrade(uid keybase1.UID, convID c
 func newServerChatListener() *serverChatListener {
 	buf := 100
 	return &serverChatListener{
-		newMessage:              make(chan chat1.IncomingMessage, buf),
+		newMessageLocal:         make(chan chat1.IncomingMessage, buf),
+		newMessageRemote:        make(chan chat1.IncomingMessage, buf),
 		membersUpdate:           make(chan chat1.MembersUpdateInfo, buf),
 		appNotificationSettings: make(chan chat1.SetAppNotificationSettingsInfo, buf),
 		teamType:                make(chan chat1.TeamTypeInfo, buf),
 		expunge:                 make(chan chat1.ExpungeInfo, buf),
 		ephemeralPurge:          make(chan chat1.EphemeralPurgeNotifInfo, buf),
-		reactionDelete:          make(chan chat1.ReactionDeleteNotif, buf),
+		reactionUpdate:          make(chan chat1.ReactionUpdateNotif, buf),
 
 		threadsStale:     make(chan []chat1.ConversationStaleUpdate, buf),
 		inboxStale:       make(chan struct{}, buf),
@@ -2032,6 +2045,22 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				require.False(t, valid.MessageBody.IsNil())
 			}
 
+			assertReactionUpdate := func(convID chat1.ConversationID, targetMsgID chat1.MessageID, reactionMap chat1.ReactionMap) {
+				info := consumeReactionUpdate(t, listener)
+				require.Equal(t, convID, info.ConvID)
+				require.Len(t, info.ReactionUpdates, 1)
+				reactionUpdate := info.ReactionUpdates[0]
+				require.Equal(t, targetMsgID, reactionUpdate.TargetMsgID)
+				for _, reactions := range reactionUpdate.Reactions.Reactions {
+					for k, r := range reactions {
+						require.NotZero(t, r.Ctime)
+						r.Ctime = 0
+						reactions[k] = r
+					}
+				}
+				require.Equal(t, reactionMap, reactionUpdate.Reactions)
+			}
+
 			var err error
 			var created chat1.ConversationInfoLocal
 			switch mt {
@@ -2049,10 +2078,10 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 					})
 				require.NoError(t, err)
 				created = ncres.Conv.Info
-				consumeNewMsg(t, listener, chat1.MessageType_JOIN)
-				consumeNewMsg(t, listener, chat1.MessageType_JOIN)
-				consumeNewMsg(t, listener, chat1.MessageType_SYSTEM)
-				consumeNewMsg(t, listener, chat1.MessageType_SYSTEM)
+				consumeNewMsgLocal(t, listener, chat1.MessageType_JOIN)
+				consumeNewMsgRemote(t, listener, chat1.MessageType_JOIN)
+				consumeNewMsgLocal(t, listener, chat1.MessageType_SYSTEM)
+				consumeNewMsgRemote(t, listener, chat1.MessageType_SYSTEM)
 			default:
 				created = mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 					mt, ctc.as(t, users[1]).user())
@@ -2070,7 +2099,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			require.NoError(t, err)
 			var unboxed chat1.UIMessage
 			select {
-			case info := <-listener.newMessage:
+			case info := <-listener.newMessageRemote:
 				unboxed = info.Message
 				require.True(t, unboxed.IsValid(), "invalid message")
 				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
@@ -2079,7 +2108,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
-			consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+			consumeNewMsgLocal(t, listener, chat1.MessageType_TEXT)
 
 			t.Logf("post text message with prefetched outbox ID")
 			genOutboxID, err := ctc.as(t, users[0]).chatLocalHandler().GenerateOutboxID(context.TODO())
@@ -2097,7 +2126,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			require.NoError(t, err)
 
 			select {
-			case info := <-listener.newMessage:
+			case info := <-listener.newMessageRemote:
 				unboxed = info.Message
 				require.True(t, unboxed.IsValid(), "invalid message")
 				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
@@ -2108,7 +2137,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
-			consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+			consumeNewMsgLocal(t, listener, chat1.MessageType_TEXT)
 
 			textUnboxed := unboxed
 
@@ -2126,7 +2155,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostReactionNonblock(tc.startCtx, rarg)
 			require.NoError(t, err)
 			select {
-			case info := <-listener.newMessage:
+			case info := <-listener.newMessageRemote:
 				unboxed = info.Message
 				require.True(t, unboxed.IsValid(), "invalid message")
 				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
@@ -2136,8 +2165,18 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
-			consumeNewMsg(t, listener, chat1.MessageType_REACTION)
+			consumeNewMsgLocal(t, listener, chat1.MessageType_REACTION)
 			reactionUnboxed := unboxed
+			expectedReactionMap := chat1.ReactionMap{
+				Reactions: map[string]map[string]chat1.Reaction{
+					":+1:": map[string]chat1.Reaction{
+						users[0].Username: chat1.Reaction{
+							ReactionMsgID: reactionUnboxed.GetMessageID(),
+						},
+					},
+				},
+			}
+			assertReactionUpdate(created.Id, textUnboxed.GetMessageID(), expectedReactionMap)
 
 			t.Logf("edit the message")
 			// An ephemeralLifetime is added if we are editing an ephemeral message
@@ -2152,7 +2191,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostEditNonblock(tc.startCtx, earg)
 			require.NoError(t, err)
 			select {
-			case info := <-listener.newMessage:
+			case info := <-listener.newMessageRemote:
 				unboxed = info.Message
 				require.True(t, unboxed.IsValid(), "invalid message")
 				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
@@ -2162,14 +2201,14 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
-			consumeNewMsg(t, listener, chat1.MessageType_EDIT)
+			consumeNewMsgLocal(t, listener, chat1.MessageType_EDIT)
 
 			// Repost a reaction and ensure it is deleted
 			t.Logf("repost reaction = delete reaction")
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostReactionNonblock(tc.startCtx, rarg)
 			require.NoError(t, err)
 			select {
-			case info := <-listener.newMessage:
+			case info := <-listener.newMessageRemote:
 				unboxed = info.Message
 				require.True(t, unboxed.IsValid(), "invalid message")
 				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
@@ -2179,15 +2218,13 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
-			consumeNewMsg(t, listener, chat1.MessageType_DELETE)
-			// Make sure we get the ReactionDelete notify as well.
-			info := consumeReactionDelete(t, listener)
-			require.Equal(t, info.ConvID, created.Id)
-			require.Len(t, info.ReactionDeletes, 1)
-			reactionDelete := info.ReactionDeletes[0]
-			require.Equal(t, reactionUnboxed.GetMessageID(), reactionDelete.ReactionMsgID)
-			require.Equal(t, textUnboxed.GetMessageID(), reactionDelete.TargetMsgID)
-			require.Equal(t, reactionKey, reactionDelete.ReactionKey)
+			consumeNewMsgLocal(t, listener, chat1.MessageType_DELETE)
+			switch mt {
+			case chat1.ConversationMembersType_KBFS:
+			default:
+				assertReactionUpdate(created.Id, textUnboxed.GetMessageID(), expectedReactionMap)
+			}
+			assertReactionUpdate(created.Id, textUnboxed.GetMessageID(), chat1.ReactionMap{})
 
 			t.Logf("delete the message")
 			darg := chat1.PostDeleteNonblockArg{
@@ -2200,7 +2237,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostDeleteNonblock(tc.startCtx, darg)
 			require.NoError(t, err)
 			select {
-			case info := <-listener.newMessage:
+			case info := <-listener.newMessageRemote:
 				unboxed = info.Message
 				require.True(t, unboxed.IsValid(), "invalid message")
 				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
@@ -2210,7 +2247,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
-			consumeNewMsg(t, listener, chat1.MessageType_DELETE)
+			consumeNewMsgLocal(t, listener, chat1.MessageType_DELETE)
 
 			t.Logf("post headline")
 			headline := "SILENCE!"
@@ -2224,7 +2261,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostHeadlineNonblock(tc.startCtx, harg)
 			require.NoError(t, err)
 			select {
-			case info := <-listener.newMessage:
+			case info := <-listener.newMessageRemote:
 				unboxed = info.Message
 				require.True(t, unboxed.IsValid(), "invalid message")
 				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
@@ -2238,7 +2275,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
-			consumeNewMsg(t, listener, chat1.MessageType_HEADLINE)
+			consumeNewMsgLocal(t, listener, chat1.MessageType_HEADLINE)
 
 			t.Logf("change name")
 			topicName := "NEWNAME"
@@ -2252,7 +2289,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostMetadataNonblock(tc.startCtx, marg)
 			require.NoError(t, err)
 			select {
-			case info := <-listener.newMessage:
+			case info := <-listener.newMessageRemote:
 				unboxed = info.Message
 				require.True(t, unboxed.IsValid(), "invalid message")
 				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
@@ -2266,7 +2303,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
-			consumeNewMsg(t, listener, chat1.MessageType_METADATA)
+			consumeNewMsgLocal(t, listener, chat1.MessageType_METADATA)
 		})
 	})
 }
@@ -2671,20 +2708,15 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 		cs := ctc.world.Tcs[users[0].Username].ChatG.ConvSource
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
 		msgID1 := mustPostLocalForTest(t, ctc, users[0], conv, msg)
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
 		editMsgID1 := editMsg(ctx, conv, msgID1)
-		consumeNewMsg(t, listener, chat1.MessageType_EDIT)
-		consumeNewMsg(t, listener, chat1.MessageType_EDIT)
+		consumeNewMsgRemote(t, listener, chat1.MessageType_EDIT)
 		msgID2 := mustPostLocalForTest(t, ctc, users[0], conv, msg)
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
 		editMsgID2 := editMsg(ctx, conv, msgID2)
-		consumeNewMsg(t, listener, chat1.MessageType_EDIT)
-		consumeNewMsg(t, listener, chat1.MessageType_EDIT)
+		consumeNewMsgRemote(t, listener, chat1.MessageType_EDIT)
 		msgID3 := mustPostLocalForTest(t, ctc, users[0], conv, msg)
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
 		msgRes, err := ctc.as(t, users[0]).chatLocalHandler().GetMessagesLocal(ctx, chat1.GetMessagesLocalArg{
 			ConversationID: conv.Id,
 			MessageIDs:     []chat1.MessageID{msgID3},
@@ -2773,11 +2805,9 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 		cs := tc.ChatG.ConvSource
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
 		msgID1 := mustPostLocalForTest(t, ctc, users[0], conv, msg)
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
 		msgID2 := mustPostLocalForTest(t, ctc, users[0], conv, msg)
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
 		msgRes, err := ctc.as(t, users[0]).chatLocalHandler().GetMessagesLocal(ctx, chat1.GetMessagesLocalArg{
 			ConversationID: conv.Id,
 			MessageIDs:     []chat1.MessageID{msgID1},
@@ -3187,29 +3217,40 @@ func inMessageTypes(x chat1.MessageType, ys []chat1.MessageType) bool {
 	return false
 }
 
-func consumeNewMsg(t *testing.T, listener *serverChatListener, typ chat1.MessageType) {
-	consumeNewMsgWhileIgnoring(t, listener, typ, nil)
+func consumeNewMsgLocal(t *testing.T, listener *serverChatListener, typ chat1.MessageType) {
+	consumeNewMsgWhileIgnoring(t, listener, typ, nil, chat1.ChatActivitySource_LOCAL)
 }
 
-func consumeNewMsgWhileIgnoring(t *testing.T, listener *serverChatListener, typ chat1.MessageType, ignoreTypes []chat1.MessageType) {
+func consumeNewMsgRemote(t *testing.T, listener *serverChatListener, typ chat1.MessageType) {
+	consumeNewMsgWhileIgnoring(t, listener, typ, nil, chat1.ChatActivitySource_REMOTE)
+}
+
+func consumeNewMsgWhileIgnoring(t *testing.T, listener *serverChatListener, typ chat1.MessageType, ignoreTypes []chat1.MessageType, source chat1.ChatActivitySource) {
 	require.False(t, inMessageTypes(typ, ignoreTypes), "can't ignore the hunted")
 	timeoutCh := time.After(20 * time.Second)
+	var newMsgCh chan chat1.IncomingMessage
+	switch source {
+	case chat1.ChatActivitySource_LOCAL:
+		newMsgCh = listener.newMessageLocal
+	case chat1.ChatActivitySource_REMOTE:
+		newMsgCh = listener.newMessageRemote
+	}
 	for {
 		select {
-		case msg := <-listener.newMessage:
+		case msg := <-newMsgCh:
 			rtyp := msg.Message.GetMessageType()
 			ignore := inMessageTypes(rtyp, ignoreTypes)
 			ignoredStr := ""
 			if ignore {
 				ignoredStr = " (ignored)"
 			}
-			t.Logf("consumed newMessage: %v%v", msg.Message.GetMessageType(), ignoredStr)
+			t.Logf("consumed newMessage(%v): %v%v", source, msg.Message.GetMessageType(), ignoredStr)
 			if !ignore {
 				require.Equal(t, typ, msg.Message.GetMessageType())
 				return
 			}
 		case <-timeoutCh:
-			require.Fail(t, fmt.Sprintf("failed to get newMessage notification: %v", typ))
+			require.Fail(t, fmt.Sprintf("failed to get newMessage %v notification: %v", source, typ))
 			return
 		}
 	}
@@ -3297,13 +3338,13 @@ func consumeEphemeralPurge(t *testing.T, listener *serverChatListener) chat1.Eph
 	}
 }
 
-func consumeReactionDelete(t *testing.T, listener *serverChatListener) chat1.ReactionDeleteNotif {
+func consumeReactionUpdate(t *testing.T, listener *serverChatListener) chat1.ReactionUpdateNotif {
 	select {
-	case x := <-listener.reactionDelete:
+	case x := <-listener.reactionUpdate:
 		return x
 	case <-time.After(20 * time.Second):
-		require.Fail(t, "failed to get reactionDelete notification")
-		return chat1.ReactionDeleteNotif{}
+		require.Fail(t, "failed to get reactionUpdate notification")
+		return chat1.ReactionUpdateNotif{}
 	}
 }
 
@@ -3351,25 +3392,20 @@ func TestChatSrvTeamChannels(t *testing.T) {
 				MembersType:   chat1.ConversationMembersType_TEAM,
 			})
 		require.NoError(t, err)
-		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
-		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
-		consumeNewMsg(t, listener0, chat1.MessageType_SYSTEM)
-		consumeNewMsg(t, listener0, chat1.MessageType_SYSTEM)
-		consumeNewMsg(t, listener1, chat1.MessageType_SYSTEM)
-		consumeNewMsg(t, listener2, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: fmt.Sprintf("JOINME"),
 		}))
 		require.NoError(t, err)
-		consumeAllMsgJoins := func(listener *serverChatListener, sender bool) {
+		consumeAllMsgJoins := func(listener *serverChatListener) {
 			msgMap := make(map[chat1.MessageType]bool)
 			rounds := 2
-			if sender {
-				rounds = 4
-			}
 			for i := 0; i < rounds; i++ {
 				select {
-				case msg := <-listener.newMessage:
+				case msg := <-listener.newMessageRemote:
 					t.Logf("recvd: %v convID: %s", msg.Message.GetMessageType(), msg.ConvID)
 					msgMap[msg.Message.GetMessageType()] = true
 				case <-time.After(20 * time.Second):
@@ -3379,8 +3415,8 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			require.True(t, msgMap[chat1.MessageType_TEXT])
 			require.True(t, msgMap[chat1.MessageType_JOIN])
 		}
-		consumeAllMsgJoins(listener0, false)
-		consumeAllMsgJoins(listener1, true)
+		consumeAllMsgJoins(listener0)
+		consumeAllMsgJoins(listener1)
 		select {
 		case conv := <-listener1.joinedConv:
 			require.Equal(t, conv.GetConvID(), ncres.Conv.GetConvID())
@@ -3402,9 +3438,8 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		headline := "The headline is foobar!"
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: headline}))
 		require.NoError(t, err)
-		consumeNewMsg(t, listener0, chat1.MessageType_HEADLINE)
-		consumeNewMsg(t, listener1, chat1.MessageType_HEADLINE)
-		consumeNewMsg(t, listener1, chat1.MessageType_HEADLINE)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_HEADLINE)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_HEADLINE)
 
 		t.Logf("create a new channel, and check GetTLFConversation result")
 		topicName = "miketime"
@@ -3417,8 +3452,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 				MembersType:   chat1.ConversationMembersType_TEAM,
 			})
 		require.NoError(t, err)
-		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
-		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		getTLFRes, err := ctc.as(t, users[1]).chatLocalHandler().GetTLFConversationsLocal(ctx1,
 			chat1.GetTLFConversationsLocalArg{
 				TlfName:     conv.TlfName,
@@ -3446,9 +3480,8 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			TopicName:  topicName,
 		})
 		require.NoError(t, err)
-		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
-		consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
-		consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
 		select {
 		case conv := <-listener1.joinedConv:
 			require.Equal(t, conv.GetConvID(), getTLFRes.Convs[1].GetConvID())
@@ -3472,17 +3505,16 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		}))
 		require.NoError(t, err)
 		consumeJoinConv(t, listener2)
-		consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
-		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
-		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
-		consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_TEXT)
 
 		t.Logf("user1 leaves: %s", ncres.Conv.GetConvID())
 		_, err = ctc.as(t, users[1]).chatLocalHandler().LeaveConversationLocal(ctx1,
 			ncres.Conv.GetConvID())
 		require.NoError(t, err)
-		consumeNewMsg(t, listener0, chat1.MessageType_LEAVE)
-		consumeNewMsg(t, listener2, chat1.MessageType_LEAVE)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_LEAVE)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_LEAVE)
 		select {
 		case convID := <-listener1.leftConv:
 			require.Equal(t, convID, getTLFRes.Convs[1].GetConvID())
@@ -3503,8 +3535,8 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			Body: "FAIL",
 		}))
 		require.NoError(t, err)
-		consumeAllMsgJoins(listener0, false)
-		consumeAllMsgJoins(listener2, true)
+		consumeAllMsgJoins(listener0)
+		consumeAllMsgJoins(listener2)
 		select {
 		case conv := <-listener2.joinedConv:
 			require.Equal(t, conv.GetConvID(), getTLFRes.Convs[1].GetConvID())
@@ -3529,10 +3561,9 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			TopicName:  topicName,
 		})
 		require.NoError(t, err)
-		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
-		consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
-		consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
-		consumeNewMsg(t, listener2, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_JOIN)
 
 		t.Logf("u2 gets messages and looks for u1's LEAVE message")
 		tvres, err = ctc.as(t, users[2]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
@@ -3548,8 +3579,8 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		_, err = ctc.as(t, users[2]).chatLocalHandler().LeaveConversationLocal(ctx1,
 			ncres.Conv.GetConvID())
 		require.NoError(t, err)
-		consumeNewMsg(t, listener0, chat1.MessageType_LEAVE)
-		consumeNewMsg(t, listener1, chat1.MessageType_LEAVE)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_LEAVE)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_LEAVE)
 		consumeLeaveConv(t, listener2)
 		_, err = ctc.as(t, users[2]).chatLocalHandler().PreviewConversationByIDLocal(ctx2, ncres.Conv.Info.Id)
 		require.NoError(t, err)
@@ -3605,7 +3636,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		mustPostLocalForTest(t, ctc, users[1], conv,
 			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 		select {
-		case info := <-listener0.newMessage:
+		case info := <-listener0.newMessageRemote:
 			require.Equal(t, chat1.MessageType_TEXT, info.Message.GetMessageType())
 			require.True(t, info.DisplayDesktopNotification)
 			require.NotEqual(t, "", info.DesktopNotificationSnippet)
@@ -3634,7 +3665,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		mustPostLocalForTest(t, ctc, users[1], conv,
 			chat1.NewMessageBodyWithText(chat1.MessageText{Body: fmt.Sprintf("@%s", users[0].Username)}))
 		select {
-		case info := <-listener0.newMessage:
+		case info := <-listener0.newMessageRemote:
 			require.Equal(t, chat1.MessageType_TEXT, info.Message.GetMessageType())
 			require.True(t, info.DisplayDesktopNotification)
 			require.NotEqual(t, "", info.DesktopNotificationSnippet)
@@ -3685,7 +3716,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		mustPostLocalForTest(t, ctc, users[1], conv,
 			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 		select {
-		case info := <-listener0.newMessage:
+		case info := <-listener0.newMessageRemote:
 			require.False(t, info.DisplayDesktopNotification)
 			require.NotEqual(t, "", info.DesktopNotificationSnippet)
 		case <-time.After(20 * time.Second):
@@ -3697,7 +3728,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 			mustPostLocalForTest(t, ctc, users[1], conv,
 				chat1.NewMessageBodyWithText(chat1.MessageText{Body: text}))
 			select {
-			case info := <-listener0.newMessage:
+			case info := <-listener0.newMessageRemote:
 				require.True(t, info.DisplayDesktopNotification)
 				require.NotEqual(t, "", info.DesktopNotificationSnippet)
 			case <-time.After(20 * time.Second):
@@ -3730,41 +3761,56 @@ func TestChatSrvRetentionSweepConv(t *testing.T) {
 	sweepChannel := randSweepChannel()
 	t.Logf("sweepChannel: %v", sweepChannel)
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		switch mt {
-		case chat1.ConversationMembersType_KBFS:
-			t.Logf("skipping kbfs stage")
-			return
-		}
+		runWithRetentionPolicyTypes(t, func(policy chat1.RetentionPolicy, ephemeralLifetime *gregor1.DurationSec) {
+			switch mt {
+			case chat1.ConversationMembersType_KBFS:
+				t.Logf("skipping kbfs stage")
+				return
+			}
 
-		ctc := makeChatTestContext(t, "TestChatSrvRetention", 2)
-		defer ctc.cleanup()
-		users := ctc.users()
-		ctx := ctc.as(t, users[0]).startCtx
+			ctc := makeChatTestContext(t, "TestChatSrvRetention", 2)
+			defer ctc.cleanup()
+			users := ctc.users()
+			ctx := ctc.as(t, users[0]).startCtx
 
-		listener := newServerChatListener()
-		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener)
+			listener := newServerChatListener()
+			ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener)
 
-		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-			mt, ctc.as(t, users[1]).user())
+			conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+				mt, ctc.as(t, users[1]).user())
 
-		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+			mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+			consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
 
-		p1 := chat1.NewRetentionPolicyWithExpire(chat1.RpExpire{Age: gregor1.DurationSec(1)})
-		mustSetConvRetentionPolicy(t, ctc, users[0], created.Id, p1, sweepChannel)
-		require.True(t, consumeSetConvRetention(t, listener).Eq(created.Id))
+			mustPostLocalForTest(t, ctc, users[1], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+			consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
 
-		mustPostLocalForTest(t, ctc, users[1], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+			mustSetConvRetentionPolicy(t, ctc, users[0], conv.Id, policy, sweepChannel)
+			require.True(t, consumeSetConvRetention(t, listener).Eq(conv.Id))
 
-		// This will take at least 1 second. For the deletable message to get old enough.
-		expungeInfo := sweepPollForDeletion(t, ctc, users[1], listener, created.Id, 4)
-		require.True(t, expungeInfo.ConvID.Eq(created.Id))
-		require.Equal(t, chat1.Expunge{Upto: 4}, expungeInfo.Expunge, "expunge upto")
+			// This will take at least 1 second. For the deletable message to get old enough.
+			expungeInfo := sweepPollForDeletion(t, ctc, users[1], listener, conv.Id, 4)
+			require.True(t, expungeInfo.ConvID.Eq(conv.Id))
+			require.Equal(t, chat1.Expunge{Upto: 4}, expungeInfo.Expunge, "expunge upto")
 
-		tvres, err := ctc.as(t, users[1]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{ConversationID: created.Id})
-		require.NoError(t, err)
-		require.Len(t, tvres.Thread.Messages, 1, "the TEXTs should be deleted")
+			tvres, err := ctc.as(t, users[1]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{ConversationID: conv.Id})
+			require.NoError(t, err)
+			require.Len(t, tvres.Thread.Messages, 1, "the TEXTs should be deleted")
+
+			// If we are using an ephemeral policy make sure non-ephemeral
+			// messages and message with a lifetime exceeding the policy age
+			// are blocked.
+			if ephemeralLifetime != nil {
+				_, err := postLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+				require.Error(t, err)
+				badLifetime := *ephemeralLifetime + 1
+				_, err = postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &badLifetime)
+				require.Error(t, err)
+
+				_, err = postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), ephemeralLifetime)
+				require.NoError(t, err)
+			}
+		})
 	})
 }
 
@@ -3772,106 +3818,123 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 	sweepChannel := randSweepChannel()
 	t.Logf("sweepChannel: %v", sweepChannel)
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		switch mt {
-		case chat1.ConversationMembersType_TEAM:
-		default:
-			t.Logf("skipping %v stage", mt)
-			return
-		}
-
-		ctc := makeChatTestContext(t, "TestChatSrvTeamRetention", 2)
-		defer ctc.cleanup()
-		users := ctc.users()
-		ctx := ctc.as(t, users[0]).startCtx
-		_ = ctc.as(t, users[1]).startCtx
-		for i, u := range users {
-			t.Logf("user[%v] %v %v", i, u.Username, u.User.GetUID())
-			ctc.world.Tcs[u.Username].ChatG.Syncer.(*Syncer).isConnected = true
-		}
-
-		listener := newServerChatListener()
-		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener)
-
-		// 3 convs
-		// convA: inherit team expire policy (default)
-		// convB: expire policy
-		// convC: retain policy
-		var convs []chat1.ConversationInfoLocal
-		for i := 0; i < 3; i++ {
-			t.Logf("creating conv %v", i)
-			var topicName *string
-			if i > 0 {
-				s := fmt.Sprintf("regarding-%v-gons", i)
-				topicName = &s
+		runWithRetentionPolicyTypes(t, func(policy chat1.RetentionPolicy, ephemeralLifetime *gregor1.DurationSec) {
+			switch mt {
+			case chat1.ConversationMembersType_TEAM:
+			default:
+				t.Logf("skipping %v stage", mt)
+				return
 			}
-			conv := mustCreateChannelForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-				topicName, mt, ctc.as(t, users[1]).user())
-			convs = append(convs, conv)
-			if i > 0 {
-				mustJoinConversationByID(t, ctc, users[1], conv.Id)
-				consumeJoinConv(t, listener)
+			ctc := makeChatTestContext(t, "TestChatSrvTeamRetention", 2)
+			defer ctc.cleanup()
+			users := ctc.users()
+			ctx := ctc.as(t, users[0]).startCtx
+			_ = ctc.as(t, users[1]).startCtx
+			for i, u := range users {
+				t.Logf("user[%v] %v %v", i, u.Username, u.User.GetUID())
+				ctc.world.Tcs[u.Username].ChatG.Syncer.(*Syncer).isConnected = true
 			}
-		}
-		convA := convs[0]
-		convB := convs[1]
-		convC := convs[2]
-		teamID := tlfIDToTeamIDForce(t, convA.Triple.Tlfid)
 
-		teamPolicy := chat1.NewRetentionPolicyWithExpire(chat1.RpExpire{Age: gregor1.DurationSec(1)})
-		convExpirePolicy := chat1.NewRetentionPolicyWithExpire(chat1.RpExpire{Age: gregor1.DurationSec(1)})
-		convRetainPolicy := chat1.NewRetentionPolicyWithRetain(chat1.RpRetain{})
+			listener := newServerChatListener()
+			ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener)
 
-		latestMsgMap := make(map[string] /*convID*/ chat1.MessageID)
-		latestMsg := func(convID chat1.ConversationID) chat1.MessageID {
-			return latestMsgMap[convID.String()]
-		}
-		for i, conv := range convs {
-			t.Logf("conv (%v/%v) %v in team %v", i+1, len(convs), conv.Id, tlfIDToTeamIDForce(t, conv.Triple.Tlfid))
-			msgID := mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-			latestMsgMap[conv.Id.String()] = msgID
-
-			ignoreTypes := []chat1.MessageType{chat1.MessageType_SYSTEM, chat1.MessageType_JOIN}
-			consumeNewMsgWhileIgnoring(t, listener, chat1.MessageType_TEXT, ignoreTypes)
-		}
-
-		mustSetConvRetentionPolicy(t, ctc, users[0], convB.Id, convExpirePolicy, sweepChannel)
-		require.True(t, consumeSetConvRetention(t, listener).Eq(convB.Id))
-		mustSetTeamRetentionPolicy(t, ctc, users[0], teamID, teamPolicy, sweepChannel)
-		require.True(t, consumeSetTeamRetention(t, listener).Eq(teamID))
-		mustSetConvRetentionPolicy(t, ctc, users[0], convC.Id, convRetainPolicy, sweepChannel)
-		require.True(t, consumeSetConvRetention(t, listener).Eq(convC.Id))
-
-		// This will take at least 1 second.
-		sweepPollForDeletion(t, ctc, users[0], listener, convB.Id, latestMsg(convB.Id)+1)
-		sweepPollForDeletion(t, ctc, users[0], listener, convA.Id, latestMsg(convA.Id)+1)
-		sweepNoDeletion(t, ctc, users[0], convC.Id)
-
-		checkThread := func(convID chat1.ConversationID, expectDeleted bool) {
-			tvres, err := ctc.as(t, users[1]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{ConversationID: convID})
-			require.NoError(t, err)
-			var nText int
-			for _, msg := range tvres.Thread.Messages {
-				require.True(t, msg.IsValidFull())
-				require.Equal(t, chat1.MessageID(0), msg.Valid().ServerHeader.SupersededBy)
-				if msg.GetMessageType() == chat1.MessageType_TEXT {
-					nText++
+			// 3 convs
+			// convA: inherit team expire policy (default)
+			// convB: expire policy
+			// convC: retain policy
+			var convs []chat1.ConversationInfoLocal
+			for i := 0; i < 3; i++ {
+				t.Logf("creating conv %v", i)
+				var topicName *string
+				if i > 0 {
+					s := fmt.Sprintf("regarding-%v-gons", i)
+					topicName = &s
+				}
+				conv := mustCreateChannelForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+					topicName, mt, ctc.as(t, users[1]).user())
+				convs = append(convs, conv)
+				if i > 0 {
+					mustJoinConversationByID(t, ctc, users[1], conv.Id)
+					consumeJoinConv(t, listener)
 				}
 			}
-			if expectDeleted {
-				require.Equal(t, 0, nText, "conv contents should be deleted: %v", convID.DbShortFormString())
-			} else {
-				require.Equal(t, 1, nText)
-			}
-		}
+			convA := convs[0]
+			convB := convs[1]
+			convC := convs[2]
+			teamID := tlfIDToTeamIDForce(t, convA.Triple.Tlfid)
 
-		checkThread(convA.Id, true)
-		checkThread(convB.Id, true)
-		checkThread(convC.Id, false)
+			// policy can be EXPIRE or EPHEMERAL here.
+			teamPolicy := policy
+			convExpirePolicy := policy
+			convRetainPolicy := chat1.NewRetentionPolicyWithRetain(chat1.RpRetain{})
+
+			latestMsgMap := make(map[string] /*convID*/ chat1.MessageID)
+			latestMsg := func(convID chat1.ConversationID) chat1.MessageID {
+				return latestMsgMap[convID.String()]
+			}
+			for i, conv := range convs {
+				t.Logf("conv (%v/%v) %v in team %v", i+1, len(convs), conv.Id, tlfIDToTeamIDForce(t, conv.Triple.Tlfid))
+				msgID := mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+				latestMsgMap[conv.Id.String()] = msgID
+
+				ignoreTypes := []chat1.MessageType{chat1.MessageType_SYSTEM, chat1.MessageType_JOIN}
+				consumeNewMsgWhileIgnoring(t, listener, chat1.MessageType_TEXT, ignoreTypes, chat1.ChatActivitySource_REMOTE)
+			}
+
+			mustSetConvRetentionPolicy(t, ctc, users[0], convB.Id, convExpirePolicy, sweepChannel)
+			require.True(t, consumeSetConvRetention(t, listener).Eq(convB.Id))
+			mustSetTeamRetentionPolicy(t, ctc, users[0], teamID, teamPolicy, sweepChannel)
+			require.True(t, consumeSetTeamRetention(t, listener).Eq(teamID))
+			mustSetConvRetentionPolicy(t, ctc, users[0], convC.Id, convRetainPolicy, sweepChannel)
+			require.True(t, consumeSetConvRetention(t, listener).Eq(convC.Id))
+
+			// This will take at least 1 second.
+			sweepPollForDeletion(t, ctc, users[0], listener, convB.Id, latestMsg(convB.Id)+1)
+			sweepPollForDeletion(t, ctc, users[0], listener, convA.Id, latestMsg(convA.Id)+1)
+			sweepNoDeletion(t, ctc, users[0], convC.Id)
+
+			checkThread := func(convID chat1.ConversationID, expectDeleted bool) {
+				tvres, err := ctc.as(t, users[1]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{ConversationID: convID})
+				require.NoError(t, err)
+				var nText int
+				for _, msg := range tvres.Thread.Messages {
+					require.True(t, msg.IsValidFull())
+					require.Equal(t, chat1.MessageID(0), msg.Valid().ServerHeader.SupersededBy)
+					if msg.GetMessageType() == chat1.MessageType_TEXT {
+						nText++
+					}
+				}
+				if expectDeleted {
+					require.Equal(t, 0, nText, "conv contents should be deleted: %v", convID.DbShortFormString())
+				} else {
+					require.Equal(t, 1, nText)
+				}
+			}
+
+			checkThread(convA.Id, true)
+			checkThread(convB.Id, true)
+			checkThread(convC.Id, false)
+			if ephemeralLifetime != nil {
+				for _, conv := range []chat1.ConversationInfoLocal{convA, convB} {
+					// If we are using an ephemeral policy make sure non-ephemeral
+					// messages and message with a lifetime exceeding the policy age
+					// are blocked.
+					_, err := postLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+					require.Error(t, err)
+
+					badLifetime := *ephemeralLifetime + 1
+					_, err = postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &badLifetime)
+					require.Error(t, err)
+
+					_, err = postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), ephemeralLifetime)
+					require.NoError(t, err)
+				}
+			}
+		})
 	})
 }
 
 func TestChatSrvSetConvMinWriterRole(t *testing.T) {
-	t.Skip("not passing locally")
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		// Only run this test for teams
 		switch mt {
@@ -3942,8 +4005,8 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 		}
 
 		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
-		consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_TEXT)
 		verifyMinWriterRoleInfoOnConv(users[0], nil)
 		verifyMinWriterRoleInfoOnConv(users[1], nil)
 
@@ -3971,8 +4034,8 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 		require.Error(t, err)
 
 		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
-		consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_TEXT)
 
 		// Both users can fully ready without issue
 		for _, user := range users {
@@ -3998,11 +4061,11 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 
 		// Both users can write again
 		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
-		consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_TEXT)
 		mustPostLocalForTest(t, ctc, users[1], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
-		consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_TEXT)
 
 		for _, user := range users {
 			tvres, err := ctc.as(t, user).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
@@ -4364,7 +4427,7 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 			})
 		t.Logf("conv: %s chan: %s", conv.Id, channel.Conv.GetConvID())
 		require.NoError(t, err)
-		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		select {
 		case info := <-listener1.teamType:
 			require.Equal(t, conv.Id, info.ConvID)
@@ -4451,20 +4514,17 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 			})
 		t.Logf("conv: %s chan: %s", conv.Id, channel.Conv.GetConvID())
 		require.NoError(t, err)
-		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
-		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeTeamType(t, listener0)
 		consumeTeamType(t, listener1)
-		consumeNewMsg(t, listener0, chat1.MessageType_SYSTEM)
-		consumeNewMsg(t, listener0, chat1.MessageType_SYSTEM)
-		consumeNewMsg(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 
 		_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationByIDLocal(ctx1,
 			channel.Conv.GetConvID())
 		require.NoError(t, err)
-		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
-		consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
-		consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
 		consumeMembersUpdate(t, listener0)
 		consumeJoinConv(t, listener1)
 
@@ -4886,20 +4946,17 @@ func TestChatSrvTeamChannelNameMentions(t *testing.T) {
 				})
 			t.Logf("conv: %s chan: %s", conv.Id, channel.Conv.GetConvID())
 			require.NoError(t, err)
-			consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
-			consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
+			consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
 			if index == 0 {
-				consumeNewMsg(t, listener0, chat1.MessageType_SYSTEM)
-				consumeNewMsg(t, listener1, chat1.MessageType_SYSTEM)
-				consumeNewMsg(t, listener1, chat1.MessageType_SYSTEM)
+				consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+				consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 			}
 
 			_, err = ctc.as(t, users[0]).chatLocalHandler().JoinConversationByIDLocal(ctx1,
 				channel.Conv.GetConvID())
 			require.NoError(t, err)
-			consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
-			consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
-			consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
+			consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+			consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
 
 			_, err = ctc.as(t, users[1]).chatLocalHandler().PostLocal(ctx1, chat1.PostLocalArg{
 				ConversationID: channel.Conv.GetConvID(),
@@ -4915,9 +4972,8 @@ func TestChatSrvTeamChannelNameMentions(t *testing.T) {
 				},
 			})
 			require.NoError(t, err)
-			consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
-			consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
-			consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
+			consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+			consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
 
 			tv, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
 				ConversationID: channel.Conv.GetConvID(),
@@ -4971,8 +5027,8 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 
 		sendMessage := func(msgBody string, user *kbtest.FakeUser) chat1.MessageID {
 			msgID := mustPostLocalForTest(t, ctc, user, conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: msgBody}))
-			consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
-			consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
+			consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
+			consumeNewMsgRemote(t, listener2, chat1.MessageType_TEXT)
 			return msgID
 		}
 
@@ -5146,7 +5202,7 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 }
 
 func TestChatSrvGetStaticConfig(t *testing.T) {
-	ctc := makeChatTestContext(t, "GetSearchRegexp", 2)
+	ctc := makeChatTestContext(t, "GetStaticConfig", 2)
 	defer ctc.cleanup()
 	tc := ctc.as(t, ctc.users()[0])
 	res, err := tc.chatLocalHandler().GetStaticConfig(tc.startCtx)

@@ -1,14 +1,13 @@
 // @flow
 import * as React from 'react'
 import Box from './box'
-import {globalStyles, isMobile, globalMargins, collapseStyles} from '../styles'
+import {globalStyles, isMobile, collapseStyles} from '../styles'
 
 type Props = {
   direction: 'row' | 'column',
   align?: 'flex-start' | 'flex-end' | 'center', // ignored by column
   children: React.Node,
   fullWidth?: boolean,
-  noPadding?: boolean,
   small?: boolean, // ignored by column
   style?: any,
 }
@@ -18,7 +17,6 @@ class ButtonBar extends React.PureComponent<Props> {
     align: 'center',
     direction: 'row',
     fullWidth: false,
-    noPadding: false,
     small: false,
   }
 
@@ -49,17 +47,13 @@ class ButtonBar extends React.PureComponent<Props> {
       return arr
     }, [])
 
-    let minHeight = {}
-    if (!this.props.noPadding) {
-      minHeight = {
-        minHeight: isMobile ? (this.props.small ? 64 : 72) : this.props.small ? 44 : 64,
-      }
+    const minHeight = {
+      minHeight: isMobile ? (this.props.small ? 64 : 72) : this.props.small ? 44 : 64,
     }
 
     const style = collapseStyles([
       {
         alignItems: this.props.fullWidth ? 'stretch' : 'center',
-        padding: this.props.fullWidth && !this.props.noPadding ? globalMargins.small : 0,
         width: '100%',
         ...(this.props.direction === 'column'
           ? {...globalStyles.flexBoxColumn}

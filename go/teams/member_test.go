@@ -410,8 +410,8 @@ func TestMemberRemoveRotatesKeys(t *testing.T) {
 		t.Errorf("after member remove: team generation: %d, expected 2", after.Generation())
 	}
 
-	secretAfter := after.Data.PerTeamKeySeeds[after.Generation()].Seed.ToBytes()
-	secretBefore := before.Data.PerTeamKeySeeds[before.Generation()].Seed.ToBytes()
+	secretAfter := after.Data.PerTeamKeySeedsUnverified[after.Generation()].Seed.ToBytes()
+	secretBefore := before.Data.PerTeamKeySeedsUnverified[before.Generation()].Seed.ToBytes()
 	if libkb.SecureByteArrayEq(secretAfter, secretBefore) {
 		t.Error("Team secret did not change when member removed")
 	}
@@ -923,7 +923,7 @@ func TestMemberAddResolveCache(t *testing.T) {
 	}
 
 	// clear the memory cache so it will come from disk
-	tc.G.Resolver.EnableCaching()
+	tc.G.Resolver.EnableCaching(libkb.NewMetaContextForTest(tc))
 
 	// add the member
 	res, err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_READER)

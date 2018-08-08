@@ -1,11 +1,11 @@
 // @flow
 import * as React from 'react'
+import * as Sb from '../../stories/storybook'
 import ResultRow, {type Props} from '.'
 import ConnectedResultRow, {type OwnProps} from './container'
 import {type SearchResultId} from '../../constants/types/search'
 import {Box} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
-import {storiesOf, action, createPropProvider, PropProviders} from '../../stories/storybook'
 
 export type ConnectProps = $Exact<$Diff<Props, OwnProps>>
 
@@ -64,24 +64,24 @@ const defaultOwnProps: OwnProps = {
   id: 'jzila',
   searchKey: 'search key',
   selected: false,
-  onClick: action('On click'),
-  onMouseOver: action('On mouse over'),
+  onClick: Sb.action('On click'),
+  onMouseOver: Sb.action('On mouse over'),
 }
 
 const defaultProps = mockOwnPropsToProps(defaultConnectPropsMap, defaultOwnProps)
 
 export const makeSelectorMap = (connectPropsMap: ConnectPropsMap = defaultConnectPropsMap) => ({
-  ...PropProviders.Common(),
   SearchResultRow: (ownProps: OwnProps): Props => mockOwnPropsToProps(connectPropsMap, ownProps),
 })
 
-const provider = createPropProvider(makeSelectorMap())
+const provider = Sb.createPropProviderWithCommon(makeSelectorMap())
 
-const onShowTracker = action('Show tracker')
+const onShowTracker = Sb.action('Show tracker')
 
 const load = () => {
-  storiesOf('Search', module)
+  Sb.storiesOf('Search', module)
     .addDecorator(provider)
+    .addDecorator(Sb.scrollViewDecorator)
     .addDecorator(story => <Box style={isMobile ? {} : {width: 480}}>{story()}</Box>)
 
     .add('Result row', () => (

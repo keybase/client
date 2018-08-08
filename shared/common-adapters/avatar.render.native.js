@@ -65,7 +65,7 @@ class UserImage extends React.PureComponent<ImageProps> {
 }
 
 const borderOffset = -1
-const borderSize = 2
+const borderSize = 1
 // Layer on top to extend outside of the image
 class Border extends React.PureComponent<{borderColor: any, borderRadius: number}> {
   render() {

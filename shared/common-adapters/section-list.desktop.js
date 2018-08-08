@@ -4,7 +4,7 @@ import ReactList from 'react-list'
 import Box from './box'
 import ScrollView from './scroll-view'
 import type {Props} from './section-list'
-import {platformStyles, styleSheetCreate} from '../styles'
+import {collapseStyles, platformStyles, styleSheetCreate} from '../styles'
 
 // NOTE: this ReactList is of type `simple` (by default)
 // setting it to `variable` or something more complex
@@ -74,7 +74,7 @@ class SectionList extends React.Component<Props, State> {
 
   render() {
     return (
-      <ScrollView style={styles.fullHeight}>
+      <ScrollView style={collapseStyles([styles.fullHeight, this.props.style])}>
         <ReactList itemRenderer={this._itemRenderer} length={this.state.items.length} />
       </ScrollView>
     )
