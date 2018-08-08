@@ -207,7 +207,7 @@ class MenubarRender extends React.Component<Props, State> {
             position="bottom right"
           />
         </Kb.Box>
-        <ChatContainer />
+        <ChatContainer onViewAll={() => this.props.openApp(Tabs.chatTab)} />
         {this.props.isAsyncWriteHappening && (
           <Kb.Box
             style={{
