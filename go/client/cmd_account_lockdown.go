@@ -56,6 +56,14 @@ func NewCmdAccountLockdown(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 }
 
 func (c *CmdAccountLockdown) ParseArgv(ctx *cli.Context) error {
+	if len(ctx.Args()) > 0 {
+		args0 := ctx.Args()[0]
+		if args0 == "enable" || args0 == "disable" {
+			return fmt.Errorf("did you mean: keybase account lockdown --%s", args0)
+		}
+		return errors.New("this command does not take any positional arguments, only flags")
+	}
+
 	enable := ctx.Bool("enable")
 	disable := ctx.Bool("disable")
 	if enable && disable {
