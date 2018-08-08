@@ -57,17 +57,15 @@ const warningProps = {
   name: 'awesome account',
   currency: '0.00 XLM',
   keys: '2 keys',
-  onDelete: action('onDelete'),
-  onClose: action('onClose'),
+  onDelete: Sb.action('onDelete'),
+  onClose: Sb.action('onClose'),
 }
 
 const reallyProps = {
   name: 'awesome account',
-  onCopyKey: action('onCopyKey'),
-  onClose: action('onClose'),
+  onCopyKey: Sb.action('onCopyKey'),
+  onClose: Sb.action('onClose'),
 }
-
-const provider = PropProviders.CommonProvider()
 
 const load = () => {
   Sb.storiesOf('Wallets/Wallet', module)

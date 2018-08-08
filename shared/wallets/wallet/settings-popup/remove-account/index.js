@@ -34,8 +34,8 @@ const RemoveAccountDialog = (props: Props) => (
         from Keybase?
       </Text>
       <Text type="BodySmall">Balance:</Text>
-      <Text type="BodySmallBold">{props.currency}</Text>
-      <Text type="BodySmallBold">{props.keys}</Text>
+      <Text type="BodySmallSemibold">{props.currency}</Text>
+      <Text type="BodySmallSemibold">{props.keys}</Text>
       <ButtonBar style={styles.buttonbar}>
         <Button label="Cancel" onClick={props.onClose} type="Secondary" />
         <Button label="Yes, remove" onClick={props.onDelete} type="Danger" />
