@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 
-const ChatBox = () => (
+const ChatContainer = () => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
     hello
   </Kb.Box2>
@@ -18,4 +18,4 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export default ChatBox
+export default ChatContainer

@@ -4,7 +4,7 @@ import * as Kb from '../common-adapters'
 import Flags from '../util/feature-flags'
 import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
-import ChatBox from './chat.desktop'
+import ChatContainer from './chat.desktop'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash-es'
@@ -207,7 +207,7 @@ class MenubarRender extends React.Component<Props, State> {
             position="bottom right"
           />
         </Kb.Box>
-        <ChatBox />
+        <ChatContainer />
         {this.props.isAsyncWriteHappening && (
           <Kb.Box
             style={{
