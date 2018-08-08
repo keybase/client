@@ -626,6 +626,168 @@ func (o TeamData) DeepCopy() TeamData {
 	}
 }
 
+type FastTeamData struct {
+	Name                      TeamName                                             `codec:"name" json:"name"`
+	Chain                     FastTeamSigChainState                                `codec:"chain" json:"chain"`
+	PerTeamKeySeedsUnverified map[PerTeamKeyGeneration]PerTeamKeySeedItem          `codec:"perTeamKeySeeds" json:"perTeamKeySeedsUnverified"`
+	ReaderKeyMasks            map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 `codec:"readerKeyMasks" json:"readerKeyMasks"`
+	LatestSeqnoHint           Seqno                                                `codec:"latestSeqnoHint" json:"latestSeqnoHint"`
+	CachedAt                  Time                                                 `codec:"cachedAt" json:"cachedAt"`
+}
+
+func (o FastTeamData) DeepCopy() FastTeamData {
+	return FastTeamData{
+		Name:  o.Name.DeepCopy(),
+		Chain: o.Chain.DeepCopy(),
+		PerTeamKeySeedsUnverified: (func(x map[PerTeamKeyGeneration]PerTeamKeySeedItem) map[PerTeamKeyGeneration]PerTeamKeySeedItem {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[PerTeamKeyGeneration]PerTeamKeySeedItem, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.PerTeamKeySeedsUnverified),
+		ReaderKeyMasks: (func(x map[TeamApplication]map[PerTeamKeyGeneration]MaskB64) map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[TeamApplication]map[PerTeamKeyGeneration]MaskB64, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := (func(x map[PerTeamKeyGeneration]MaskB64) map[PerTeamKeyGeneration]MaskB64 {
+					if x == nil {
+						return nil
+					}
+					ret := make(map[PerTeamKeyGeneration]MaskB64, len(x))
+					for k, v := range x {
+						kCopy := k.DeepCopy()
+						vCopy := v.DeepCopy()
+						ret[kCopy] = vCopy
+					}
+					return ret
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.ReaderKeyMasks),
+		LatestSeqnoHint: o.LatestSeqnoHint.DeepCopy(),
+		CachedAt:        o.CachedAt.DeepCopy(),
+	}
+}
+
+type LinkPair struct {
+	Seqno  Seqno  `codec:"seqno" json:"seqno"`
+	LinkID LinkID `codec:"linkID" json:"linkID"`
+}
+
+func (o LinkPair) DeepCopy() LinkPair {
+	return LinkPair{
+		Seqno:  o.Seqno.DeepCopy(),
+		LinkID: o.LinkID.DeepCopy(),
+	}
+}
+
+type LinkTriple struct {
+	Id   TeamID   `codec:"id" json:"id"`
+	Pair LinkPair `codec:"pair" json:"pair"`
+}
+
+func (o LinkTriple) DeepCopy() LinkTriple {
+	return LinkTriple{
+		Id:   o.Id.DeepCopy(),
+		Pair: o.Pair.DeepCopy(),
+	}
+}
+
+type DownPointer struct {
+	Id            TeamID `codec:"id" json:"id"`
+	NameComponent string `codec:"nameComponent" json:"nameComponent"`
+	IsDeleted     bool   `codec:"isDeleted" json:"isDeleted"`
+}
+
+func (o DownPointer) DeepCopy() DownPointer {
+	return DownPointer{
+		Id:            o.Id.DeepCopy(),
+		NameComponent: o.NameComponent,
+		IsDeleted:     o.IsDeleted,
+	}
+}
+
+type FastTeamSigChainState struct {
+	Id              TeamID                              `codec:"id" json:"id"`
+	Public          bool                                `codec:"public" json:"public"`
+	RootAncestor    TeamName                            `codec:"rootAncestor" json:"rootAncestor"`
+	NameDepth       int                                 `codec:"nameDepth" json:"nameDepth"`
+	Last            LinkPair                            `codec:"last" json:"last"`
+	ParentID        *TeamID                             `codec:"parentID,omitempty" json:"parentID,omitempty"`
+	PerTeamKeys     map[PerTeamKeyGeneration]PerTeamKey `codec:"perTeamKeys" json:"perTeamKeys"`
+	DownPointers    map[Seqno]DownPointer               `codec:"downPointers" json:"downPointers"`
+	LastUpPointer   LinkPair                            `codec:"lastUpPointer" json:"lastUpPointer"`
+	IsDeleted       bool                                `codec:"isDeleted" json:"isDeleted"`
+	PerTeamKeyCTime UnixTime                            `codec:"perTeamKeyCTime" json:"perTeamKeyCTime"`
+	LinkIDs         map[Seqno]LinkID                    `codec:"linkIDs" json:"linkIDs"`
+}
+
+func (o FastTeamSigChainState) DeepCopy() FastTeamSigChainState {
+	return FastTeamSigChainState{
+		Id:           o.Id.DeepCopy(),
+		Public:       o.Public,
+		RootAncestor: o.RootAncestor.DeepCopy(),
+		NameDepth:    o.NameDepth,
+		Last:         o.Last.DeepCopy(),
+		ParentID: (func(x *TeamID) *TeamID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ParentID),
+		PerTeamKeys: (func(x map[PerTeamKeyGeneration]PerTeamKey) map[PerTeamKeyGeneration]PerTeamKey {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[PerTeamKeyGeneration]PerTeamKey, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.PerTeamKeys),
+		DownPointers: (func(x map[Seqno]DownPointer) map[Seqno]DownPointer {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[Seqno]DownPointer, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.DownPointers),
+		LastUpPointer:   o.LastUpPointer.DeepCopy(),
+		IsDeleted:       o.IsDeleted,
+		PerTeamKeyCTime: o.PerTeamKeyCTime.DeepCopy(),
+		LinkIDs: (func(x map[Seqno]LinkID) map[Seqno]LinkID {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[Seqno]LinkID, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.LinkIDs),
+	}
+}
+
 type TeamInviteCategory int
 
 const (
@@ -1649,6 +1811,78 @@ func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 		ForceRepoll:               o.ForceRepoll,
 		StaleOK:                   o.StaleOK,
 		AllowNameLookupBurstCache: o.AllowNameLookupBurstCache,
+	}
+}
+
+type FastLoadTeamArg struct {
+	Id                   TeamID                 `codec:"id" json:"id"`
+	Public               bool                   `codec:"public" json:"public"`
+	Applications         []TeamApplication      `codec:"applications" json:"applications"`
+	KeyGenerationsNeeded []PerTeamKeyGeneration `codec:"keyGenerationsNeeded" json:"keyGenerationsNeeded"`
+	NeedLatestGeneration bool                   `codec:"needLatestGeneration" json:"needLatestGeneration"`
+	SeqnosNeeded         []Seqno                `codec:"seqnosNeeded" json:"seqnosNeeded"`
+}
+
+func (o FastLoadTeamArg) DeepCopy() FastLoadTeamArg {
+	return FastLoadTeamArg{
+		Id:     o.Id.DeepCopy(),
+		Public: o.Public,
+		Applications: (func(x []TeamApplication) []TeamApplication {
+			if x == nil {
+				return nil
+			}
+			ret := make([]TeamApplication, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Applications),
+		KeyGenerationsNeeded: (func(x []PerTeamKeyGeneration) []PerTeamKeyGeneration {
+			if x == nil {
+				return nil
+			}
+			ret := make([]PerTeamKeyGeneration, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.KeyGenerationsNeeded),
+		NeedLatestGeneration: o.NeedLatestGeneration,
+		SeqnosNeeded: (func(x []Seqno) []Seqno {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Seqno, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.SeqnosNeeded),
+	}
+}
+
+type FastLoadTeamRes struct {
+	Name            TeamName             `codec:"name" json:"name"`
+	ApplicationKeys []TeamApplicationKey `codec:"applicationKeys" json:"applicationKeys"`
+}
+
+func (o FastLoadTeamRes) DeepCopy() FastLoadTeamRes {
+	return FastLoadTeamRes{
+		Name: o.Name.DeepCopy(),
+		ApplicationKeys: (func(x []TeamApplicationKey) []TeamApplicationKey {
+			if x == nil {
+				return nil
+			}
+			ret := make([]TeamApplicationKey, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.ApplicationKeys),
 	}
 }
 

@@ -90,7 +90,11 @@ type _FavoriteIgnoreErrorPayload = $ReadOnly<{|
 |}>
 type _FavoriteIgnorePayload = $ReadOnly<{|path: Types.Path|}>
 type _FavoritesLoadPayload = void
-type _FavoritesLoadedPayload = $ReadOnly<{|folders: I.Map<Types.Path, Types.FavoriteItem>|}>
+type _FavoritesLoadedPayload = $ReadOnly<{|
+  private: I.Map<string, Types.Tlf>,
+  public: I.Map<string, Types.Tlf>,
+  team: I.Map<string, Types.Tlf>,
+|}>
 type _FilePreviewLoadPayload = $ReadOnly<{|path: Types.Path|}>
 type _FilePreviewLoadedPayload = $ReadOnly<{|
   path: Types.Path,

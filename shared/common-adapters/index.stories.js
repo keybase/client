@@ -2,6 +2,7 @@
 import avatar from './avatar.stories'
 import backButton from './back-button.stories'
 import badge from './badge.stories'
+import banner from './banner.stories'
 import box from './box.stories'
 import button from './button.stories'
 import buttonBar from './button-bar.stories'
@@ -33,6 +34,7 @@ const load = () => {
     avatar,
     backButton,
     badge,
+    banner,
     box,
     button,
     buttonBar,

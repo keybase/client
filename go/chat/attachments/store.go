@@ -174,10 +174,7 @@ func (a *S3Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEn
 
 	// compute ciphertext hash
 	hash := sha256.New()
-	tee := io.TeeReader(encReader, hash)
-	if encryptedOut != nil {
-		tee = io.TeeReader(tee, encryptedOut)
-	}
+	tee := io.TeeReader(io.TeeReader(encReader, hash), encryptedOut)
 
 	// post to s3
 	length := int64(enc.EncryptedLen(task.FileSize))

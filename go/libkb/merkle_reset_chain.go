@@ -4,6 +4,7 @@ import (
 	sha512 "crypto/sha512"
 	json "encoding/json"
 	fmt "fmt"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -31,7 +32,7 @@ func importResetLinkAndHash(s string) (ret *resetLinkAndHash, err error) {
 }
 
 func importResetChainFromServer(m MetaContext, jw *jsonw.Wrapper) (urc unverifiedResetChain, err error) {
-	defer m.CVTrace(VLog0, "importResetChainFromServer", func() error { return err })()
+	defer m.CVTrace(VLog1, "importResetChainFromServer", func() error { return err })()
 	if jw == nil || jw.IsNil() {
 		return nil, nil
 	}
@@ -96,7 +97,7 @@ func (mr *MerkleResets) verifyAndLoad(m MetaContext, urc unverifiedResetChain) (
 		return nil
 	}
 
-	defer m.CVTrace(VLog0, "MerkleResets#verifyAndLoad", func() error { return err })()
+	defer m.CVTrace(VLog1, "MerkleResets#verifyAndLoad", func() error { return err })()
 
 	mkerr := func(f string, a ...interface{}) error {
 		return MerkleClientError{m: fmt.Sprintf(f, a...), t: merkleErrorBadResetChain}
