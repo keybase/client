@@ -36,6 +36,7 @@ let config = {
   maskStrings: false, // Replace all hiddenstrings w/ fake values
   printBridgeB64: false, // Print raw b64 going over the wire
   printRPCStats: false, // print detailed info on stats
+  printRPCWaitingSession: false,
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
   printOutstandingTimerListeners: false, // Periodically print listeners to the second clock
   printRPC: false, // Print rpc traffic
@@ -57,6 +58,7 @@ if (__DEV__) {
   config.isDevApplePushToken = true
   config.printOutstandingRPCs = true
   config.printOutstandingTimerListeners = true
+  config.printRPCWaitingSession = false
   config.printRPC = true
   config.printRPCStats = true
   config.reduxSagaLoggerMasked = false

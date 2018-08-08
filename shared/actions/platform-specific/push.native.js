@@ -1,23 +1,19 @@
 // @flow
-import logger from '../../logger'
-import * as Constants from '../../constants/push'
-import * as NotificationsGen from '../../actions/notifications-gen'
-import * as PushTypes from '../../constants/types/push'
+import * as Chat2Gen from '../chat2-gen'
 import * as ChatConstants from '../../constants/chat2'
 import * as ConfigGen from '../config-gen'
-import * as Chat2Gen from '../chat2-gen'
+import * as Constants from '../../constants/push'
+import * as NotificationsGen from '../../actions/notifications-gen'
+import * as ProfileGen from '../profile-gen'
 import * as PushGen from '../push-gen'
-import * as WaitingGen from '../waiting-gen'
-import * as ChatTypes from '../../constants/types/chat2'
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
-import * as Saga from '../../util/saga'
-import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as PushNotifications from 'react-native-push-notification'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as Saga from '../../util/saga'
+import * as WaitingGen from '../waiting-gen'
+import logger from '../../logger'
+import {NativeModules} from 'react-native'
 import {isIOS} from '../../constants/platform'
-import {chatTab} from '../../constants/tabs'
-import {switchTo} from '../route-tree'
-import {createShowUserProfile} from '../profile-gen'
-import {NativeEventEmitter, NativeModules, PushNotificationIOS} from 'react-native'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -37,73 +33,40 @@ const updateAppBadge = (_: any, action: NotificationsGen.ReceivedBadgeStatePaylo
   }
 }
 
-function displayNewMessageNotification(
-  text: string,
-  convID: ?string,
-  badgeCount: ?number,
-  myMsgID: ?number,
-  soundName: ?string
-) {
-  // Dismiss any non-plaintext notifications for the same message ID
-  if (isIOS) {
-    PushNotificationIOS.getDeliveredNotifications(param => {
-      PushNotificationIOS.removeDeliveredNotifications(
-        param.filter(p => p.userInfo && p.userInfo.msgID === myMsgID).map(p => p.identifier)
-      )
-    })
-  }
-
-  logger.info(`Got push notification with soundName '${soundName || ''}'`)
-  PushNotifications.localNotification({
-    message: text,
-    soundName,
-    userInfo: {
-      convID: convID,
-      type: 'chat.newmessage',
-    },
-    number: badgeCount,
-  })
-}
-
 // Used to listen to the java intent for notifications
-let RNEmitter
-// Push notifications on android are very messy. It works differently if we're entirely killed or if we're in the background
-// If we're killed it all works. clicking on the notification launches us and we get the onNotify callback and it all works
-// If we're backgrounded we get the silent or the silent and real. To work around this we:
-// 1. Plumb through the intent from the java side if we relaunch due to push
-// 2. We store the last push and re-use it when this event is emitted to just 'rerun' the push
-if (!isIOS) {
-  RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
-}
+// let RNEmitter
+// // Push notifications on android are very messy. It works differently if we're entirely killed or if we're in the background
+// // If we're killed it all works. clicking on the notification launches us and we get the onNotify callback and it all works
+// // If we're backgrounded we get the silent or the silent and real. To work around this we:
+// // 1. Plumb through the intent from the java side if we relaunch due to push
+// // 2. We store the last push and re-use it when this event is emitted to just 'rerun' the push
+// if (!isIOS) {
+// RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
+// }
 
-let lastPushForAndroid = null
-const listenForNativeAndroidIntentNotifications = emitter => {
-  if (!RNEmitter) {
-    return
-  }
-
-  // If android launched due to push
-  RNEmitter.addListener('androidIntentNotification', () => {
-    if (!lastPushForAndroid) {
-      return
-    }
-
-    // if plaintext is on we get this but not the real message if we're backgrounded, so convert it to a non-silent type
-    if (lastPushForAndroid.type === 'chat.newmessageSilent_2') {
-      lastPushForAndroid.type = 'chat.newmessage'
-      // grab convo id
-      lastPushForAndroid.convID = lastPushForAndroid.c
-    }
-    // emulate like the user clicked it while we're killed
-    lastPushForAndroid.userInteraction = true // force this true
-    emitter(
-      PushGen.createNotification({
-        notification: lastPushForAndroid,
-      })
-    )
-    lastPushForAndroid = null
-  })
-}
+// let lastPushForAndroid = null
+// const listenForNativeAndroidIntentNotifications = emitter => {
+// TODO
+// if (!RNEmitter) {
+// return
+// }
+// // If android launched due to push
+// RNEmitter.addListener('androidIntentNotification', () => {
+// if (!lastPushForAndroid) {
+// return
+// }
+// // if plaintext is on we get this but not the real message if we're backgrounded, so convert it to a non-silent type
+// if (lastPushForAndroid.type === 'chat.newmessageSilent_2') {
+// lastPushForAndroid.type = 'chat.newmessage'
+// // grab convo id
+// lastPushForAndroid.convID = lastPushForAndroid.c
+// }
+// // emulate like the user clicked it while we're killed
+// lastPushForAndroid.userInteraction = true // force this true
+// emitter(PushGen.createNotification({notification: lastPushForAndroid}))
+// lastPushForAndroid = null
+// })
+// }
 
 const listenForPushNotificationsFromJS = emitter => {
   const onRegister = token => {
@@ -112,28 +75,13 @@ const listenForPushNotificationsFromJS = emitter => {
   }
 
   const onNotification = n => {
-    // On iOS, some fields are in notification.data. Also, the
-    // userInfo field from the local notification spawned in
-    // displayNewMessageNotification gets renamed to
-    // data. However, on Android, all fields are in the top level,
-    // but the userInfo field is not renamed.
-    //
-    // Therefore, just pull out all fields from data and userInfo.
-    const notification = {
-      ...n,
-      ...(n.data || {}),
-      ...(n.userInfo || {}),
-      data: undefined,
-      userInfo: undefined,
+    const notification = Constants.normalizePush(n)
+    if (!notification) {
+      return
     }
-
     // bookkeep for android special handling
-    lastPushForAndroid = notification
-    emitter(
-      PushGen.createNotification({
-        notification,
-      })
-    )
+    // lastPushForAndroid = notification
+    emitter(PushGen.createNotification({notification}))
   }
 
   const onError = error => {
@@ -144,6 +92,7 @@ const listenForPushNotificationsFromJS = emitter => {
     onError,
     onNotification,
     onRegister,
+    popInitialNotification: false,
     // Don't request permissions for ios, we'll ask later, after showing UI
     requestPermissions: !isIOS,
     senderID: Constants.androidSenderID,
@@ -153,7 +102,7 @@ const listenForPushNotificationsFromJS = emitter => {
 const listenForPushNotifications = () =>
   Saga.call(function*() {
     const pushChannel = yield Saga.eventChannel(emitter => {
-      listenForNativeAndroidIntentNotifications(emitter)
+      // listenForNativeAndroidIntentNotifications(emitter)
       listenForPushNotificationsFromJS(emitter)
 
       // we never unsubscribe
@@ -199,67 +148,46 @@ const requestPermissions = () =>
 
 const handleReadMessage = notification => {
   logger.info('Push notification: read message notification received')
-  const badges = typeof notification.b === 'string' ? parseInt(notification.b) : notification.b
-  if (badges === 0) {
+  if (notification.badges === 0) {
     PushNotifications.cancelAllLocalNotifications()
   }
 }
 
 const handleLoudMessage = notification => {
-  console.log('aaa', notification)
-  // if (!n.userInteraction) {
-  // // ignore it
-  // return
-  // }
+  // We only care if the user clicked while in session
+  if (!notification.userInteraction) {
+    return
+  }
 
-  // const {convID, m} = notification
-  // // Check for conversation ID so we know where to navigate to
-  // if (!convID) {
-  // logger.error('Push chat notification payload missing conversation ID')
-  // }
-  // const conversationIDKey = ChatTypes.stringToConversationIDKey(convID)
-  // yield Saga.put(
-  // Chat2Gen.createSelectConversation({
-  // conversationIDKey,
-  // reason: 'push',
-  // })
-  // )
+  const {conversationIDKey, unboxPayload, membersType} = notification
 
-  // yield Saga.put(
-  // WaitingGen.createIncrementWaiting({key: ChatConstants.waitingKeyPushLoad(conversationIDKey)})
-  // )
-  // yield Saga.put(switchTo([chatTab, 'conversation']))
-  // // If a boxed message is attached to the notification, unbox.
-  // if (m) {
-  // logger.info('Push notification: unboxing notification message')
-  // yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
-  // convID,
-  // membersType,
-  // payload: m,
-  // shouldAck: false,
-  // })
-  // }
-
-  /* catch (err) {
-        logger.error('failed to handle new message push', err)
-        handledPushThisSession = false
-      } */
+  return Saga.call(function*() {
+    yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'push'}))
+    yield Saga.put(Chat2Gen.createNavigateToThread())
+    if (unboxPayload && membersType) {
+      logger.info('Push notification: unboxing notification message')
+      yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
+        convID: conversationIDKey,
+        membersType,
+        payload: unboxPayload,
+        shouldAck: false,
+      })
+    }
+  })
 }
 
 const handleFollow = notification => {
+  // We only care if the user clicked while in session
   if (!notification.userInteraction) {
-    // ignore it
     return
   }
   const {username} = notification
-  if (!username) {
-    logger.error('Follow notification payload missing username', JSON.stringify(notification))
-    return
-  }
   logger.info('Push notification: follow received, follower= ', username)
-  return Saga.put(createShowUserProfile({username}))
+  return Saga.put(ProfileGen.createShowUserProfile({username}))
 }
 
+// on iOS the go side handles a lot of push details. We currently only handle readmessage to clear badges
+// TODO android
 const handlePush = (_: any, action: PushGen.NotificationPayload) => {
   try {
     const notification = action.payload.notification
@@ -272,11 +200,7 @@ const handlePush = (_: any, action: PushGen.NotificationPayload) => {
         // entirely handled by go on ios and not being sent on android. TODO eventually make android like ios and plumb this through native land
         break
       case 'chat.newmessage':
-
-        break
-        // console.log('aaa nojima', notification)
-      // ? this isonly for the first push? debug this
-      // return handleLoudMessage(n)
+        return handleLoudMessage(notification)
       case 'follow':
         return handleFollow(notification)
       default:
@@ -381,10 +305,45 @@ const recheckPermissions = (_: any, action: ConfigGen.MobileAppStatePayload) => 
   })
 }
 
+type InitialNotificationData =
+  | {
+      type: 'follow',
+      username: ?string,
+    }
+  | {
+      type: 'chat.newmessage',
+      convID: ?string,
+    }
+
+const getStartupDetailsFromInitialPush = () =>
+  new Promise(resolve => {
+    PushNotifications.popInitialNotification(n => {
+      console.log('aaaa INITAIl push', n)
+      if (!n) {
+        resolve(null)
+        return
+      }
+      const data: InitialNotificationData = n._data
+      if (data.type === 'follow') {
+        if (data.username) {
+          resolve({startupFollowUser: data.username})
+          return
+        }
+      } else if (data.type === 'chat.newmessage') {
+        if (data.convID) {
+          resolve({startupConversation: data.convID})
+          return
+        }
+      }
+      resolve(null)
+    })
+  })
+
 function* pushSaga(): Saga.SagaGenerator<any, any> {
   // TODO
   yield Saga.actionToAction(PushGen.requestPermissions, requestPermissions)
   yield Saga.actionToPromise([PushGen.updatePushToken, ConfigGen.bootstrapStatusLoaded], uploadPushToken)
+  // TODO maye only adnroid
   yield Saga.actionToAction(PushGen.notification, handlePush)
   yield Saga.actionToAction(ConfigGen.logoutHandshake, deletePushToken)
   yield Saga.actionToAction(NotificationsGen.receivedBadgeState, updateAppBadge)
@@ -395,3 +354,4 @@ function* pushSaga(): Saga.SagaGenerator<any, any> {
 }
 
 export default pushSaga
+export {getStartupDetailsFromInitialPush}

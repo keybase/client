@@ -75,6 +75,7 @@ export default function(
         : state.merge({
             startupConversation: action.payload.startupConversation || ChatConstants.noConversationIDKey,
             startupDetailsLoaded: true,
+            startupFollowUser: action.payload.startupFollowUser,
             startupLink: action.payload.startupLink,
             startupTab: action.payload.startupTab,
             startupWasFromPush: action.payload.startupWasFromPush,

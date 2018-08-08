@@ -211,6 +211,7 @@ const routeToInitialScreen = (state: TypedState) => {
 
   if (state.config.loggedIn) {
     const actions = [Saga.put(RouteTree.switchRouteDef(appRouteTree))]
+    // A chat
     if (
       state.config.startupConversation &&
       state.config.startupConversation !== ChatConstants.noConversationIDKey
@@ -227,8 +228,16 @@ const routeToInitialScreen = (state: TypedState) => {
       ])
     }
 
+    // A follow
+    if (state.config.startupFollowUser) {
+      return Saga.sequentially([
+        ...actions,
+        Saga.put(ProfileGen.createShowUserProfile({username: state.config.startupFollowUser})),
+      ])
+    }
+
+    // A deep link
     if (state.config.startupLink) {
-      // A user page?
       try {
         const url = new URL(state.config.startupLink)
         const username = ProfileConstants.urlToUsername(url)
@@ -241,6 +250,7 @@ const routeToInitialScreen = (state: TypedState) => {
       }
     }
 
+    // Just a saved tab
     return Saga.sequentially([
       ...actions,
       Saga.put(RouteTree.navigateTo([state.config.startupTab || Tabs.peopleTab])),

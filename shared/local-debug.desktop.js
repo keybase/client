@@ -22,6 +22,7 @@ let config = {
   printOutstandingTimerListeners: false, // Periodically print listeners to the second clock
   printRPC: false, // Print rpc traffic
   printRPCStats: false, // Print more detailed stats about rpcs
+  printRPCWaitingSession: false, // session / waiting info
   reduxSagaLogger: false, // Print saga debug info
   reduxSagaLoggerMasked: true, // Print saga debug info masked out
   showDevTools: false, // Show devtools on start
@@ -39,6 +40,7 @@ if (__DEV__) {
   config.printOutstandingRPCs = true
   config.printOutstandingTimerListeners = true
   config.printRPC = true
+  config.printRPCWaitingSession = false
   config.printRPCStats = true
   config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
@@ -106,6 +108,7 @@ export const {
   printOutstandingRPCs,
   printOutstandingTimerListeners,
   printRPC,
+  printRPCWaitingSession,
   printRPCStats,
   reduxSagaLogger,
   reduxSagaLoggerMasked,

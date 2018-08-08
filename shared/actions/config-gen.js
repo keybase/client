@@ -104,6 +104,7 @@ type _SetStartupDetailsPayload = $ReadOnly<{|
   startupConversation: ?ChatTypes.ConversationIDKey,
   startupLink: string,
   startupTab: ?Tabs.Tab,
+  startupFollowUser: string,
 |}>
 type _SetupEngineListenersPayload = void
 type _ShowMainPayload = void

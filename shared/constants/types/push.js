@@ -1,24 +1,29 @@
 // @flow
 import * as I from 'immutable'
+import * as ChatTypes from './chat2'
+import * as RPCChatTypes from './rpc-chat-gen'
 export type TokenType = 'apple' | 'appledev' | 'androidplay'
-// FIXME: these types diverge because of react-native-push-notification. In the
-// future it would be nice to make the Android push notification data structure
-// resemble iOS more closely.
-export type PushNotification = {
-  b?: number,
-  c?: string,
-  convID?: string,
-  m?: string,
-  p?: Array<string>,
-  s?: string, // soundName
-  n?: boolean, // displayPlaintext
-  t?: number,
-  d?: number,
-  x?: number,
-  type?: string,
-  userInteraction: boolean,
-  username?: string,
-}
+
+export type PushNotification =
+  | {
+      type: 'chat.readmessage',
+      badges: number,
+    }
+  | {
+      type: 'chat.newmessageSilent_2',
+    }
+  | {
+      type: 'chat.newmessage',
+      conversationIDKey: ChatTypes.ConversationIDKey,
+      userInteraction: boolean,
+      membersType: RPCChatTypes.ConversationMembersType,
+      unboxPayload: string,
+    }
+  | {
+      type: 'follow',
+      userInteraction: boolean,
+      username: string,
+    }
 
 export type _State = {
   token: string,

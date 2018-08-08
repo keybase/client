@@ -22,7 +22,7 @@ import {
 import {getPath} from '../../route-tree'
 import RNFetchBlob from 'react-native-fetch-blob'
 import {isIOS, isAndroid} from '../../constants/platform'
-import pushSaga from './push.native'
+import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 
 function showShareActionSheet(options: {
   url?: ?any,
@@ -225,19 +225,29 @@ const setupNetInfoWatcher = () =>
 function* loadStartupDetails() {
   let startupWasFromPush = false
   let startupConversation = null
+  let startupFollowUser = ''
   let startupLink = ''
   let startupTab = null
 
   const routeStateTask = yield Saga.fork(AsyncStorage.getItem, 'routeState')
   const linkTask = yield Saga.fork(Linking.getInitialURL)
-  const [routeState, link] = yield Saga.join(routeStateTask, linkTask)
+  const initialPush = yield Saga.fork(getStartupDetailsFromInitialPush)
+  const [routeState, link, push] = yield Saga.join(routeStateTask, linkTask, initialPush)
 
-  if (link) {
+  console.log('aaaa from push', push)
+  // Top priority, push
+  if (push) {
+    startupWasFromPush = true
+    startupConversation = push.startupConversation
+    startupFollowUser = push.startupFollowUser
+  }
+
+  // Second priority, deep link
+  if (!startupWasFromPush && link) {
     startupLink = link
   }
 
-  // ignore if we're coming from a link
-  // also ignore if from push
+  // Third priority, saved from last session
   if (!startupWasFromPush && !startupLink && routeState) {
     try {
       const item = JSON.parse(routeState)
@@ -254,6 +264,7 @@ function* loadStartupDetails() {
   yield Saga.put(
     ConfigGen.createSetStartupDetails({
       startupConversation,
+      startupFollowUser,
       startupLink,
       startupTab,
       startupWasFromPush,

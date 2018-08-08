@@ -1,7 +1,7 @@
 // @flow
 // Classes used to handle RPCs. Ability to inject delays into calls to/from server
 import rpc from 'framed-msgpack-rpc'
-import {printRPC} from '../local-debug'
+import {printRPC, printRPCWaitingSession} from '../local-debug'
 import {requestIdleCallback} from '../util/idle-callback'
 import * as LocalConsole from '../util/local-console'
 import * as Stats from './stats'
@@ -49,6 +49,10 @@ function _wrap<A1, A2, A3, A4, A5, F: (A1, A2, A3, A4, A5) => void>(options: {|
 // Logging for rpcs
 function rpcLog(info: {method: string, reason?: string, extra?: Object, type: string}): void {
   if (!printRPC) {
+    return
+  }
+
+  if (!printRPCWaitingSession && info.type === 'engineInternal') {
     return
   }
 

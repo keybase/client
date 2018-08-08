@@ -196,6 +196,7 @@ function* loadStartupDetails() {
   yield Saga.put(
     ConfigGen.createSetStartupDetails({
       startupConversation: null,
+      startupFollowUser: '',
       startupLink: '',
       startupTab: null,
       startupWasFromPush: false,

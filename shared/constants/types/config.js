@@ -40,6 +40,7 @@ export type _State = {
   startupDetailsLoaded: boolean,
   startupWasFromPush: boolean,
   startupConversation: ConversationIDKey,
+  startupFollowUser: string,
   startupLink: string,
   startupTab: ?Tab,
   uid: string,

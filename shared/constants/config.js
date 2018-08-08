@@ -46,6 +46,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   registered: false,
   startupConversation: ChatConstants.noConversationIDKey,
   startupDetailsLoaded: false,
+  startupFollowUser: '',
   startupLink: '',
   startupTab: null,
   startupWasFromPush: false,

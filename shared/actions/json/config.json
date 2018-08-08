@@ -80,6 +80,7 @@
       "startupConversation": "?ChatTypes.ConversationIDKey",
       "startupLink": "string",
       "startupTab": "?Tabs.Tab",
+      "startupFollowUser": "string",
     },
     "setOpenAtLogin": {
       "open": "boolean",
