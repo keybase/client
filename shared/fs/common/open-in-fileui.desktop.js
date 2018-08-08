@@ -6,8 +6,9 @@ import {
   Button,
   ClickableBox,
   Icon,
+  iconCastPlatformStyles,
   Text,
-  FloatingMenu,
+  Overlay,
   OverlayParentHOC,
   type OverlayParentProps,
 } from '../../common-adapters'
@@ -29,7 +30,7 @@ type Props = {
 const OpenInFileUI = ({openInFileUI}: OpenInFileUIProps) => (
   <Icon
     type="iconfont-finder"
-    style={styles.pathItemActionIcon}
+    style={iconCastPlatformStyles(styles.pathItemActionIcon)}
     fontSize={16}
     onClick={openInFileUI}
     className="fs-path-item-hover-icon"
@@ -41,43 +42,36 @@ const FinderPopup = OverlayParentHOC((props: FinderPopupProps & OverlayParentPro
     <ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
       <Icon
         type="iconfont-finder"
-        style={styles.pathItemActionIcon}
+        style={iconCastPlatformStyles(styles.pathItemActionIcon)}
         fontSize={16}
         className="fs-path-item-hover-icon"
       />
     </ClickableBox>
-    <FloatingMenu
-      containerStyle={styles.popup}
+    <Overlay
+      style={styles.popup}
       attachTo={props.attachmentRef}
       visible={props.showingMenu}
       onHidden={props.toggleShowingMenu}
       position="bottom right"
-      closeOnSelect={true}
-      header={{
-        title: 'unused',
-        view: (
-          <Box style={styles.header}>
-            <Icon type="icon-fancy-finder-132-96" style={styles.fancyFinderIcon} />
-            <Text type="BodyBig" style={styles.text}>
-              Enable Keybase in {fileUIName}?
-            </Text>
-            <Text type="BodySmall" style={styles.text}>
-              Get access to your files and folders just like you normally do with your local files. It's
-              encrypted and secure.
-            </Text>
-            <Box style={styles.buttonBox}>
-              <Button type="PrimaryGreen" label="Yes, enable" onClick={props.installFuse} />
-            </Box>
-          </Box>
-        ),
-      }}
-      items={[]}
-    />
+    >
+      <Box style={styles.header}>
+        <Icon type="icon-fancy-finder-132-96" style={iconCastPlatformStyles(styles.fancyFinderIcon)} />
+        <Text type="BodyBig" style={styles.text}>
+          Enable Keybase in {fileUIName}?
+        </Text>
+        <Text type="BodySmall" style={styles.text}>
+          Get access to your files and folders just like you normally do with your local files. It's encrypted
+          and secure.
+        </Text>
+        <Box style={styles.buttonBox}>
+          <Button type="PrimaryGreen" label="Yes, enable" onClick={props.installFuse} />
+        </Box>
+      </Box>
+    </Overlay>
   </Box>
 ))
 
-// TODO: somehow Styles.styleSheetCreate doesn't work with Icon
-const styles = {
+const styles = Styles.styleSheetCreate({
   pathItemActionIcon: {
     padding: Styles.globalMargins.tiny,
   },
@@ -106,8 +100,9 @@ const styles = {
     marginTop: Styles.globalMargins.tiny,
     width: 220,
     overflow: 'visible',
+    backgroundColor: Styles.globalColors.white,
   },
-}
+})
 
 export default (props: Props) =>
   props.kbfsEnabled ? (

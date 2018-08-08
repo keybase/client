@@ -3,13 +3,11 @@ import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
-import {type OpenInFileUIProps} from './open-in-fileui-container'
+import {type OpenInFileUIProps as OwnProps} from './open-in-fileui-container'
 import OpenInFileUI from './open-in-fileui.desktop'
 
-type OwnProps = OpenInFileUIProps
-
 const mapStateToProps = (state: TypedState, {path}: OwnProps) => ({
-  kbfsEnabled: Constants.kbfsEnabled(state),
+  kbfsEnabled: false && Constants.kbfsEnabled(state),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => ({

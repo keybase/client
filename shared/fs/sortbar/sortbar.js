@@ -8,6 +8,7 @@ import {
   Divider,
   Text,
   Icon,
+  iconCastPlatformStyles,
   FloatingMenu,
   OverlayParentHOC,
   type OverlayParentProps,
@@ -38,7 +39,7 @@ const getPopupItems = sortSettingToAction =>
           <Box style={styles.iconBox}>
             <Icon
               type={sortSettingIconType}
-              style={styles.icon}
+              style={iconCastPlatformStyles(styles.icon)}
               color={Styles.isMobile ? Styles.globalColors.blue : Styles.globalColors.black_75}
               fontSize={Styles.isMobile ? 17 : 13}
             />
@@ -57,18 +58,21 @@ const SortBar = (props: SortBarProps & OverlayParentProps) => {
     <Box>
       <Divider />
       <Box style={styles.sortBar}>
-        <ClickableBox onClick={props.toggleShowingMenu} style={styles.sortSetting}>
+        <ClickableBox
+          onClick={props.toggleShowingMenu}
+          style={styles.sortSetting}
+          ref={props.setAttachmentRef}
+        >
           <Box style={styles.iconBox}>
-            <Icon type={sortSettingIconType} style={styles.icon} fontSize={11} />
+            <Icon type={sortSettingIconType} style={iconCastPlatformStyles(styles.icon)} fontSize={11} />
           </Box>
           <Text type="BodySmallSemibold">{sortSettingText}</Text>
         </ClickableBox>
         <FloatingMenu
-          containerStyle={styles.popup}
           attachTo={props.attachmentRef}
           visible={props.showingMenu}
           onHidden={props.toggleShowingMenu}
-          position="bottom right"
+          position="bottom left"
           closeOnSelect={true}
           items={getPopupItems(props.sortSettingToAction)}
         />
@@ -82,18 +86,7 @@ const SortBar = (props: SortBarProps & OverlayParentProps) => {
   )
 }
 
-// TODO Styles.styleSheetCreate doesn't work with icon
-const styles = {
-  popup: Styles.platformStyles({
-    isMobile: {
-      width: '100%',
-    },
-    isElectron: {
-      position: 'absolute',
-      left: 88,
-      top: 80,
-    },
-  }),
+const styles = Styles.styleSheetCreate({
   sortBar: {
     ...Styles.globalStyles.flexBoxRow,
     backgroundColor: Styles.globalColors.blue5,
@@ -124,6 +117,6 @@ const styles = {
       color: Styles.globalColors.blue,
     },
   }),
-}
+})
 
 export default OverlayParentHOC(SortBar)
