@@ -374,34 +374,34 @@ func (e *DeviceKeygen) preparePerUserKeyBoxFromProvisioningKey(m libkb.MetaConte
 		return nil, errors.New("missing PerUserKeyring")
 	}
 
-	paperKey := m.ActiveDevice().ProvisioningKey(m)
-	var paperSigKey, paperEncKeyGeneric libkb.GenericKey
-	if paperKey != nil {
-		paperSigKey = paperKey.SigningKey()
-		paperEncKeyGeneric = paperKey.EncryptionKey()
+	provisioningKey := m.ActiveDevice().ProvisioningKey(m)
+	var provisioningSigKey, provisioningEncKeyGeneric libkb.GenericKey
+	if provisioningKey != nil {
+		provisioningSigKey = provisioningKey.SigningKey()
+		provisioningEncKeyGeneric = provisioningKey.EncryptionKey()
 	}
 
-	if paperSigKey == nil && paperEncKeyGeneric == nil {
+	if provisioningSigKey == nil && provisioningEncKeyGeneric == nil {
 		// GPG provisioning is not supported when the user has per-user-keys.
 		// This is the error that manifests. See CORE-4960
-		return nil, errors.New("missing paper key in login context")
+		return nil, errors.New("missing provisioning key in login context")
 	}
-	if paperSigKey == nil {
-		return nil, errors.New("missing paper sig key")
+	if provisioningSigKey == nil {
+		return nil, errors.New("missing provisioning sig key")
 	}
-	if paperEncKeyGeneric == nil {
-		return nil, errors.New("missing paper enc key")
+	if provisioningEncKeyGeneric == nil {
+		return nil, errors.New("missing provisioning enc key")
 	}
-	paperEncKey, ok := paperEncKeyGeneric.(libkb.NaclDHKeyPair)
+	provisioningEncKey, ok := provisioningEncKeyGeneric.(libkb.NaclDHKeyPair)
 	if !ok {
 		return nil, errors.New("Unexpected encryption key type")
 	}
 
-	paperDeviceID, err := upak.GetDeviceID(paperSigKey.GetKID())
+	provisioningDeviceID, err := upak.GetDeviceID(provisioningSigKey.GetKID())
 	if err != nil {
 		return nil, err
 	}
-	err = pukring.SyncAsProvisioningKey(m, &upak, paperDeviceID, paperEncKey)
+	err = pukring.SyncAsProvisioningKey(m, &upak, provisioningDeviceID, provisioningEncKey)
 	if err != nil {
 		return nil, err
 	}
@@ -409,8 +409,8 @@ func (e *DeviceKeygen) preparePerUserKeyBoxFromProvisioningKey(m libkb.MetaConte
 		return nil, nil
 	}
 	pukBox, err := pukring.PrepareBoxForNewDevice(m,
-		e.EncryptionKey(), // receiver key: provisionee enc
-		paperEncKey,       // sender key: paper key enc
+		e.EncryptionKey(),  // receiver key: provisionee enc
+		provisioningEncKey, // sender key: provisioning key enc
 	)
 	return []keybase1.PerUserKeyBox{pukBox}, err
 }

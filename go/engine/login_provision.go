@@ -142,7 +142,7 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 	m.G().KeyfamilyChanged(e.arg.User.GetUID())
 
 	// check to make sure local files stored correctly
-	e.verifyLocalStorage(m)
+	verifyLocalStorage(m, e.username, e.arg.User.GetUID())
 
 	// initialize a stellar wallet for the user if they don't already have one.
 	m.G().LocalSigchainGuard().Clear(m.Ctx(), "loginProvision")
@@ -1063,50 +1063,6 @@ func (e *loginProvision) cleanup(m libkb.MetaContext) {
 	m.G().Logout()
 }
 
-func (e *loginProvision) verifyLocalStorage(m libkb.MetaContext) {
-	m.CDebugf("loginProvision: verifying local storage")
-	defer m.CDebugf("loginProvision: done verifying local storage")
-	normUsername := libkb.NewNormalizedUsername(e.username)
-
-	// check config.json looks ok
-	e.verifyRegularFile(m, "config", m.G().Env.GetConfigFilename())
-	cr := m.G().Env.GetConfig()
-	if cr.GetUsername() != normUsername {
-		m.CDebugf("loginProvision(verify): config username %q doesn't match engine username %q", cr.GetUsername(), normUsername)
-	}
-	if cr.GetUID().NotEqual(e.arg.User.GetUID()) {
-		m.CDebugf("loginProvision(verify): config uid %q doesn't match engine uid %q", cr.GetUID(), e.arg.User.GetUID())
-	}
-
-	// check session.json is valid
-	e.verifyRegularFile(m, "session", m.G().Env.GetSessionFilename())
-
-	// check keys in secretkeys.mpack
-	e.verifyRegularFile(m, "secretkeys", m.G().SKBFilenameForUser(normUsername))
-
-	// check secret stored
-	secret, err := m.G().SecretStore().RetrieveSecret(m, normUsername)
-	if err != nil {
-		m.CDebugf("loginProvision(verify): failed to retrieve secret for %s: %s", e.username, err)
-	}
-	if secret.IsNil() || len(secret.Bytes()) == 0 {
-		m.CDebugf("loginProvision(verify): retrieved nil/empty secret for %s", e.username)
-	}
-}
-
-func (e *loginProvision) verifyRegularFile(m libkb.MetaContext, name, filename string) {
-	info, err := os.Stat(filename)
-	if err != nil {
-		m.CDebugf("loginProvision(verify): stat %s file %q error: %s", name, filename, err)
-		return
-	}
-
-	m.CDebugf("loginProvision(verify): %s file %q size: %d", name, filename, info.Size())
-	if !info.Mode().IsRegular() {
-		m.CDebugf("loginProvision(verify): %s file %q not regular: %s", name, filename, info.Mode())
-	}
-}
-
 var devtypeSortOrder = map[string]int{libkb.DeviceTypeMobile: 0, libkb.DeviceTypeDesktop: 1, libkb.DeviceTypePaper: 2}
 
 type partitionDeviceList []*libkb.Device
@@ -1124,4 +1080,48 @@ func (p partitionDeviceList) Less(a, b int) bool {
 
 func (p partitionDeviceList) Swap(a, b int) {
 	p[a], p[b] = p[b], p[a]
+}
+
+func verifyLocalStorage(m libkb.MetaContext, username string, uid keybase1.UID) {
+	m.CDebugf("verifying local storage")
+	defer m.CDebugf("done verifying local storage")
+	normUsername := libkb.NewNormalizedUsername(username)
+
+	// check config.json looks ok
+	verifyRegularFile(m, "config", m.G().Env.GetConfigFilename())
+	cr := m.G().Env.GetConfig()
+	if cr.GetUsername() != normUsername {
+		m.CDebugf("config username %q doesn't match engine username %q", cr.GetUsername(), normUsername)
+	}
+	if cr.GetUID().NotEqual(uid) {
+		m.CDebugf("config uid %q doesn't match engine uid %q", cr.GetUID(), uid)
+	}
+
+	// check session.json is valid
+	verifyRegularFile(m, "session", m.G().Env.GetSessionFilename())
+
+	// check keys in secretkeys.mpack
+	verifyRegularFile(m, "secretkeys", m.G().SKBFilenameForUser(normUsername))
+
+	// check secret stored
+	secret, err := m.G().SecretStore().RetrieveSecret(m, normUsername)
+	if err != nil {
+		m.CDebugf("failed to retrieve secret for %s: %s", username, err)
+	}
+	if secret.IsNil() || len(secret.Bytes()) == 0 {
+		m.CDebugf("retrieved nil/empty secret for %s", username)
+	}
+}
+
+func verifyRegularFile(m libkb.MetaContext, name, filename string) {
+	info, err := os.Stat(filename)
+	if err != nil {
+		m.CDebugf("stat %s file %q error: %s", name, filename, err)
+		return
+	}
+
+	m.CDebugf("%s file %q size: %d", name, filename, info.Size())
+	if !info.Mode().IsRegular() {
+		m.CDebugf("%s file %q not regular: %s", name, filename, info.Mode())
+	}
 }

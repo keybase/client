@@ -1062,7 +1062,7 @@ func TestProvisionPaperCommandLine(t *testing.T) {
 	require.Equal(t, provLoginUI.CalledGetEmailOrUsername, 0)
 }
 
-func TestProvisionSelfCommandLine(t *testing.T) {
+func TestSelfProvisionCommandLine(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 

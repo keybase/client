@@ -449,7 +449,7 @@ func TestEphemeralSelfProvision(t *testing.T) {
 	annG.GetUserEKBoxStorage().ClearCache()
 	annG.GetTeamEKBoxStorage().ClearCache()
 
+	// TODO We could rebox the latest userEK as in kex during self provision.
 	annTeamEK, annErr = getTeamEK(annG, teamID, expectedGeneration)
-	require.NoError(t, annErr)
-	require.Equal(t, annTeamEK.Metadata, expectedMetadata)
+	require.Error(t, annErr)
 }

@@ -3,7 +3,6 @@ package engine
 import (
 	"errors"
 	"fmt"
-	"os"
 
 	"github.com/keybase/client/go/libkb"
 )
@@ -107,6 +106,8 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
+	verifyLocalStorage(m, e.User.GetNormalizedName().String(), e.User.GetUID())
+
 	// commit the config changes
 	if err := tx.Commit(); err != nil {
 		return err
@@ -183,7 +184,6 @@ func (e *SelfProvisionEngine) makeDeviceKeysWithSigner(m libkb.MetaContext, sign
 	return e.makeDeviceKeys(m, args)
 }
 
-// copied from loginProvision
 // makeDeviceWrapArgs creates a base set of args for DeviceWrap.
 // It ensures that LKSec is created.  It also gets a new device
 // name for this device.
@@ -213,7 +213,6 @@ func (e *SelfProvisionEngine) makeDeviceWrapArgs(m libkb.MetaContext) (*DeviceWr
 	}, nil
 }
 
-// copied from loginProvision
 // makeDeviceKeys uses DeviceWrap to generate device keys.
 func (e *SelfProvisionEngine) makeDeviceKeys(m libkb.MetaContext, args *DeviceWrapArgs) error {
 	eng := NewDeviceWrap(m.G(), args)
@@ -258,48 +257,4 @@ func (e *SelfProvisionEngine) ppStream(m libkb.MetaContext) (*libkb.PassphraseSt
 	}
 	pps, tsec := cached.PassphraseStreamAndTriplesec()
 	return pps, tsec, nil
-}
-
-func (e *SelfProvisionEngine) verifyLocalStorage(m libkb.MetaContext) {
-	m.CDebugf("loginProvision: verifying local storage")
-	defer m.CDebugf("loginProvision: done verifying local storage")
-	normUsername := e.G().Env.GetUsername()
-
-	// check config.json looks ok
-	e.verifyRegularFile(m, "config", m.G().Env.GetConfigFilename())
-	cr := m.G().Env.GetConfig()
-	if cr.GetUsername() != normUsername {
-		m.CDebugf("loginProvision(verify): config username %q doesn't match engine username %q", cr.GetUsername(), normUsername)
-	}
-	if cr.GetUID().NotEqual(e.User.GetUID()) {
-		m.CDebugf("loginProvision(verify): config uid %q doesn't match engine uid %q", cr.GetUID(), e.User.GetUID())
-	}
-
-	// check session.json is valid
-	e.verifyRegularFile(m, "session", m.G().Env.GetSessionFilename())
-
-	// check keys in secretkeys.mpack
-	e.verifyRegularFile(m, "secretkeys", m.G().SKBFilenameForUser(normUsername))
-
-	// check secret stored
-	secret, err := m.G().SecretStore().RetrieveSecret(m, normUsername)
-	if err != nil {
-		m.CDebugf("loginProvision(verify): failed to retrieve secret for %s: %s", normUsername, err)
-	}
-	if secret.IsNil() || len(secret.Bytes()) == 0 {
-		m.CDebugf("loginProvision(verify): retrieved nil/empty secret for %s", normUsername)
-	}
-}
-
-func (e *SelfProvisionEngine) verifyRegularFile(m libkb.MetaContext, name, filename string) {
-	info, err := os.Stat(filename)
-	if err != nil {
-		m.CDebugf("loginProvision(verify): stat %s file %q error: %s", name, filename, err)
-		return
-	}
-
-	m.CDebugf("loginProvision(verify): %s file %q size: %d", name, filename, info.Size())
-	if !info.Mode().IsRegular() {
-		m.CDebugf("loginProvision(verify): %s file %q not regular: %s", name, filename, info.Mode())
-	}
 }
