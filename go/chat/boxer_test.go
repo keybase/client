@@ -497,7 +497,12 @@ func TestChatMessageMismatchMessageType(t *testing.T) {
 		tlf := kbtest.NewTlfMock(world)
 		ctx := newTestContextWithTlfMock(tc, tlf)
 
+		ni, err := tlf.LookupID(ctx, u.Username, false)
+		require.NoError(t, err)
 		header := chat1.MessageClientHeader{
+			Conv: chat1.ConversationIDTriple{
+				Tlfid: ni.ID,
+			},
 			Sender:      uid,
 			TlfPublic:   false,
 			TlfName:     u.Username,
@@ -538,7 +543,12 @@ func TestChatMessageUnboxInvalidBodyHash(t *testing.T) {
 		tlf := kbtest.NewTlfMock(world)
 		ctx := newTestContextWithTlfMock(tc, tlf)
 
+		ni, err := tlf.LookupID(ctx, u.Username, false)
+		require.NoError(t, err)
 		header := chat1.MessageClientHeader{
+			Conv: chat1.ConversationIDTriple{
+				Tlfid: ni.ID,
+			},
 			Sender:    uid,
 			TlfPublic: false,
 			TlfName:   u.Username,
@@ -849,7 +859,12 @@ func TestChatMessagePublic(t *testing.T) {
 		tlf := kbtest.NewTlfMock(world)
 		ctx := newTestContextWithTlfMock(tc, tlf)
 
+		ni, err := tlf.LookupID(ctx, u.Username, true)
+		require.NoError(t, err)
 		header := chat1.MessageClientHeader{
+			Conv: chat1.ConversationIDTriple{
+				Tlfid: ni.ID,
+			},
 			Sender:      uid,
 			TlfPublic:   true,
 			TlfName:     u.Username,

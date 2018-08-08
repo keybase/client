@@ -56,6 +56,8 @@ func NewKeyFinder(g *globals.Context) KeyFinder {
 
 func (k *KeyFinderImpl) Reset() {
 	k.keys = make(map[string]*types.NameInfo)
+	k.decKeys = make(map[string]types.CryptKey)
+	k.encKeys = make(map[string]encItem)
 }
 
 func (k *KeyFinderImpl) cacheKey(name string, membersType chat1.ConversationMembersType, public bool) string {
