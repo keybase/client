@@ -5,7 +5,6 @@ import {BarePreview, NormalPreview} from './filepreview'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
 import SecurityPrefs from './common/security-prefs-container'
-import SortBarPopupMenu from './sortbar/sort-setting-popup'
 import DownloadPopup from './popups/download-container'
 
 const _commonChildren = {
@@ -40,10 +39,6 @@ const _folderRoute = {
   children: {
     ..._commonChildren,
     folder: () => makeRouteDefNode(_folderRoute),
-    sortbarAction: {
-      component: RelativePopupHoc(SortBarPopupMenu),
-      tags: makeLeafTags({layerOnTop: true}),
-    },
   },
   component: Files,
 }
