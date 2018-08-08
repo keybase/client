@@ -4277,13 +4277,6 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			CtxIdentifyNotifier(ctx).Reset()
 			CtxKeyFinder(ctx, tc.Context()).Reset()
 		}
-		noIdentify := func(listener *serverChatListener) {
-			select {
-			case <-listener.identifyUpdate:
-				require.Fail(t, "no identify expected")
-			default:
-			}
-		}
 
 		ctx := ctc.as(t, users[0]).startCtx
 		ctx = CtxModifyIdentifyNotifier(ctx, NewSimpleIdentifyNotifier(tc.Context()))
@@ -4313,7 +4306,6 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		require.NoError(t, err)
 		consumeIdentify(ctx, listener0) //impteam
 		consumeIdentify(ctx, listener0) //encrypt for first message
-		noIdentify(listener0)
 
 		uid := users[0].User.GetUID().ToBytes()
 		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, ncres.Conv.Info.Id, false)
@@ -4342,7 +4334,6 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		require.NoError(t, err)
 		consumeIdentify(ctx, listener0) // EncryptionKeys
 		consumeIdentify(ctx, listener0) // DecryptionKeys
-		noIdentify(listener0)
 
 		// user 1 sends a message to conv
 		ctx = ctc.as(t, users[1]).startCtx
@@ -4363,7 +4354,6 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		require.NoError(t, err)
 		consumeIdentify(ctx, listener1) // EncryptionKeys
 		consumeIdentify(ctx, listener1) // DecryptionKeys
-		noIdentify(listener1)
 
 		// user 1 finds the conversation
 		res, err = ctc.as(t, users[1]).chatLocalHandler().FindConversationsLocal(ctx,
