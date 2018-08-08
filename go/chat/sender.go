@@ -405,22 +405,6 @@ func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat
 	return topicNameState, nil
 }
 
-func (s *BlockingSender) canonicalizeName(ctx context.Context, msg *chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType) error {
-	nis := CreateNameInfoSource(ctx, s.G(), membersType)
-	public := msg.ClientHeader.TlfPublic
-	headerInfo, err := nis.LookupID(ctx, msg.ClientHeader.TlfName, public)
-	if err != nil {
-		return err
-	}
-	if !headerInfo.ID.Eq(msg.ClientHeader.Conv.Tlfid) {
-		return fmt.Errorf("incorrect TLFID on message in Prepare: %s != %s", headerInfo.ID,
-			msg.ClientHeader.Conv.Tlfid)
-	}
-	msg.ClientHeader.TlfName = headerInfo.CanonicalName
-	return nil
-}
-
 // Prepare a message to be sent.
 // Returns (boxedMessage, pendingAssetDeletes, error)
 func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext,
