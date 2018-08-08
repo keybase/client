@@ -4,7 +4,7 @@ import * as Types from '../../../../constants/types/chat2'
 import {Box, Box2} from '../../../../common-adapters'
 import ReactButton from '../react-button/container'
 import ReactionTooltip from '../reaction-tooltip/container'
-import {collapseStyles, globalMargins, isMobile, styleSheetCreate} from '../../../../styles'
+import {collapseStyles, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../../styles'
 
 export type Props = {|
   conversationIDKey: Types.ConversationIDKey,
@@ -78,7 +78,7 @@ class ReactionsRow extends React.Component<Props, State> {
           showBorder={true}
           style={collapseStyles([
             styles.button,
-            !this.state.showAddReaction && !isMobile && styles.displayNone,
+            !this.state.showAddReaction && !isMobile && styles.visibilityHidden,
           ])}
         />
         <ReactionTooltip
@@ -101,7 +101,7 @@ const styles = styleSheetCreate({
     marginLeft: 32 + globalMargins.tiny + (isMobile ? globalMargins.tiny : globalMargins.small),
     paddingRight: 66,
   },
-  displayNone: {display: 'none'},
+  visibilityHidden: platformStyles({isElectron: {visibility: 'hidden'}}),
 })
 
 export default ReactionsRow
