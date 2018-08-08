@@ -487,12 +487,8 @@ func (t *ImplicitTeamsNameInfoSource) EncryptionKey(ctx context.Context, name st
 	if res, err = getTeamCryptKey(ctx, team, team.Generation(), public, false); err != nil {
 		return res, ni, err
 	}
-	tlfID, err := chat1.TeamIDToTLFID(team.ID)
-	if err != nil {
-		return res, ni, err
-	}
 	return res, &types.NameInfo{
-		ID:               tlfID,
+		ID:               teamID,
 		CanonicalName:    impTeamName.String(),
 		IdentifyFailures: idFailures,
 	}, nil
