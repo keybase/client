@@ -91,6 +91,13 @@ type blockRetrieverGetter interface {
 	BlockRetriever() BlockRetriever
 }
 
+// Offset is a generic representation of an offset to an indirect
+// pointer within an indirect Block.
+type Offset interface {
+	Equals(other Offset) bool
+	Less(other Offset) bool
+}
+
 // Block just needs to be (de)serialized using msgpack
 type Block interface {
 	dataVersioner
@@ -106,6 +113,25 @@ type Block interface {
 	Set(other Block)
 	// ToCommonBlock retrieves this block as a *CommonBlock.
 	ToCommonBlock() *CommonBlock
+	// IsIndirect indicates whether this block contains indirect pointers.
+	IsIndirect() bool
+	// FirstOffset returns the offset of the indirect pointer that
+	// points to the first (left-most) block in a block tree.
+	FirstOffset() Offset
+	// NumIndirectPtrs returns the number of indirect pointers in this
+	// block.  The behavior is undefined when called on a non-indirect
+	// block.
+	NumIndirectPtrs() int
+	// IndirectPtr returns the block info and offset for the indirect
+	// pointer at index `i`. The behavior is undefined when called on
+	// a non-indirect block.
+	IndirectPtr(i int) (BlockInfo, Offset)
+	// OffsetExceedsData returns true if `off` is greater than the
+	// data contained in a direct block, assuming it starts at
+	// `startOff`.  Note that the offset of the next block isn't
+	// relevant; this function should only indicate whether the offset
+	// is greater than what currently could be stored in this block.
+	OffsetExceedsData(startOff, off Offset) bool
 }
 
 // NodeID is a unique but transient ID for a Node. That is, two Node
@@ -1722,7 +1748,7 @@ type blockServerLocal interface {
 		map[kbfsblock.ID]blockRefMap, error)
 }
 
-// BlockSplitter decides when a file or directory block needs to be split
+// BlockSplitter decides when a file block needs to be split
 type BlockSplitter interface {
 	// CopyUntilSplit copies data into the block until we reach the
 	// point where we should split, but only if writing to the end of

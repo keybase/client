@@ -629,6 +629,53 @@ func (mr *MockblockRetrieverGetterMockRecorder) BlockRetriever() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockRetriever", reflect.TypeOf((*MockblockRetrieverGetter)(nil).BlockRetriever))
 }
 
+// MockOffset is a mock of Offset interface
+type MockOffset struct {
+	ctrl     *gomock.Controller
+	recorder *MockOffsetMockRecorder
+}
+
+// MockOffsetMockRecorder is the mock recorder for MockOffset
+type MockOffsetMockRecorder struct {
+	mock *MockOffset
+}
+
+// NewMockOffset creates a new mock instance
+func NewMockOffset(ctrl *gomock.Controller) *MockOffset {
+	mock := &MockOffset{ctrl: ctrl}
+	mock.recorder = &MockOffsetMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockOffset) EXPECT() *MockOffsetMockRecorder {
+	return m.recorder
+}
+
+// Equals mocks base method
+func (m *MockOffset) Equals(other Offset) bool {
+	ret := m.ctrl.Call(m, "Equals", other)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// Equals indicates an expected call of Equals
+func (mr *MockOffsetMockRecorder) Equals(other interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Equals", reflect.TypeOf((*MockOffset)(nil).Equals), other)
+}
+
+// Less mocks base method
+func (m *MockOffset) Less(other Offset) bool {
+	ret := m.ctrl.Call(m, "Less", other)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// Less indicates an expected call of Less
+func (mr *MockOffsetMockRecorder) Less(other interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Less", reflect.TypeOf((*MockOffset)(nil).Less), other)
+}
+
 // MockBlock is a mock of Block interface
 type MockBlock struct {
 	ctrl     *gomock.Controller
@@ -718,6 +765,67 @@ func (m *MockBlock) ToCommonBlock() *CommonBlock {
 // ToCommonBlock indicates an expected call of ToCommonBlock
 func (mr *MockBlockMockRecorder) ToCommonBlock() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToCommonBlock", reflect.TypeOf((*MockBlock)(nil).ToCommonBlock))
+}
+
+// IsIndirect mocks base method
+func (m *MockBlock) IsIndirect() bool {
+	ret := m.ctrl.Call(m, "IsIndirect")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsIndirect indicates an expected call of IsIndirect
+func (mr *MockBlockMockRecorder) IsIndirect() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsIndirect", reflect.TypeOf((*MockBlock)(nil).IsIndirect))
+}
+
+// FirstOffset mocks base method
+func (m *MockBlock) FirstOffset() Offset {
+	ret := m.ctrl.Call(m, "FirstOffset")
+	ret0, _ := ret[0].(Offset)
+	return ret0
+}
+
+// FirstOffset indicates an expected call of FirstOffset
+func (mr *MockBlockMockRecorder) FirstOffset() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FirstOffset", reflect.TypeOf((*MockBlock)(nil).FirstOffset))
+}
+
+// NumIndirectPtrs mocks base method
+func (m *MockBlock) NumIndirectPtrs() int {
+	ret := m.ctrl.Call(m, "NumIndirectPtrs")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// NumIndirectPtrs indicates an expected call of NumIndirectPtrs
+func (mr *MockBlockMockRecorder) NumIndirectPtrs() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NumIndirectPtrs", reflect.TypeOf((*MockBlock)(nil).NumIndirectPtrs))
+}
+
+// IndirectPtr mocks base method
+func (m *MockBlock) IndirectPtr(i int) (BlockInfo, Offset) {
+	ret := m.ctrl.Call(m, "IndirectPtr", i)
+	ret0, _ := ret[0].(BlockInfo)
+	ret1, _ := ret[1].(Offset)
+	return ret0, ret1
+}
+
+// IndirectPtr indicates an expected call of IndirectPtr
+func (mr *MockBlockMockRecorder) IndirectPtr(i interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IndirectPtr", reflect.TypeOf((*MockBlock)(nil).IndirectPtr), i)
+}
+
+// OffsetExceedsData mocks base method
+func (m *MockBlock) OffsetExceedsData(startOff, off Offset) bool {
+	ret := m.ctrl.Call(m, "OffsetExceedsData", startOff, off)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// OffsetExceedsData indicates an expected call of OffsetExceedsData
+func (mr *MockBlockMockRecorder) OffsetExceedsData(startOff, off interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OffsetExceedsData", reflect.TypeOf((*MockBlock)(nil).OffsetExceedsData), startOff, off)
 }
 
 // MockNodeID is a mock of NodeID interface

@@ -5,11 +5,58 @@
 package libkbfs
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfshash"
 )
+
+// Int64Offset represents the offset of a block within a file.
+type Int64Offset int64
+
+var _ Offset = Int64Offset(0)
+
+// Equals implements the Offset interface for Int64Offset.
+func (i Int64Offset) Equals(other Offset) bool {
+	otherI, ok := other.(Int64Offset)
+	if !ok {
+		return false
+	}
+	return int64(i) == int64(otherI)
+}
+
+// Less implements the Offset interface for Int64Offset.
+func (i Int64Offset) Less(other Offset) bool {
+	otherI, ok := other.(Int64Offset)
+	if !ok {
+		return false
+	}
+	return int64(i) < int64(otherI)
+}
+
+// StringOffset represents the offset of a block within a directory.
+type StringOffset string
+
+var _ Offset = StringOffset("")
+
+// Equals implements the Offset interface for StringOffset.
+func (s StringOffset) Equals(other Offset) bool {
+	otherS, ok := other.(StringOffset)
+	if !ok {
+		return false
+	}
+	return string(s) == string(otherS)
+}
+
+// Less implements the Offset interface for StringOffset.
+func (s StringOffset) Less(other Offset) bool {
+	otherS, ok := other.(StringOffset)
+	if !ok {
+		return false
+	}
+	return string(s) < string(otherS)
+}
 
 // IndirectDirPtr pairs an indirect dir block with the start of that
 // block's range of directory entries (inclusive)
@@ -17,7 +64,7 @@ type IndirectDirPtr struct {
 	// TODO: Make sure that the block is not dirty when the EncodedSize
 	// field is non-zero.
 	BlockInfo
-	Off string `codec:"o"`
+	Off StringOffset `codec:"o"`
 
 	codec.UnknownFieldSetHandler
 }
@@ -33,7 +80,7 @@ type IndirectFilePtr struct {
 	// When the EncodedSize field is non-zero, the block must not
 	// be dirty.
 	BlockInfo
-	Off int64 `codec:"o"`
+	Off Int64Offset `codec:"o"`
 	// Marker for files with holes.  This is here for historical
 	// reasons; a `FileBlock` should be treated as having a `HasHoles`
 	// flag set to true if any of its IPtrs have `Holes` set to true.
@@ -83,6 +130,31 @@ func (cb *CommonBlock) NewEmpty() Block {
 // ToCommonBlock implements the Block interface for CommonBlock.
 func (cb *CommonBlock) ToCommonBlock() *CommonBlock {
 	return cb
+}
+
+// IsIndirect implements the Block interface for CommonBlock.
+func (cb *CommonBlock) IsIndirect() bool {
+	return cb.IsInd
+}
+
+// FirstOffset implements the Block interface for CommonBlock.
+func (cb *CommonBlock) FirstOffset() Offset {
+	panic("CommonBlock doesn't implement indirect pointer methods")
+}
+
+// NumIndirectPtrs implements the Block interface for CommonBlock.
+func (cb *CommonBlock) NumIndirectPtrs() int {
+	panic("CommonBlock doesn't implement indirect pointer methods")
+}
+
+// IndirectPtr implements the Block interface for CommonBlock.
+func (cb *CommonBlock) IndirectPtr(_ int) (BlockInfo, Offset) {
+	panic("CommonBlock doesn't implement indirect pointer methods")
+}
+
+// OffsetExceedsData implements the Block interface for CommonBlock.
+func (cb *CommonBlock) OffsetExceedsData(_, _ Offset) bool {
+	panic("CommonBlock doesn't implement data methods")
 }
 
 // Set implements the Block interface for CommonBlock.
@@ -165,6 +237,36 @@ func (db *DirBlock) DeepCopy() *DirBlock {
 		Children:    childrenCopy,
 		IPtrs:       db.IPtrs,
 	}
+}
+
+// FirstOffset implements the Block interface for DirBlock.
+func (db *DirBlock) FirstOffset() Offset {
+	return StringOffset("")
+}
+
+// NumIndirectPtrs implements the Block interface for DirBlock.
+func (db *DirBlock) NumIndirectPtrs() int {
+	if !db.IsInd {
+		panic("NumIndirectPtrs called on a direct directory block")
+	}
+	return len(db.IPtrs)
+}
+
+// IndirectPtr implements the Block interface for DirBlock.
+func (db *DirBlock) IndirectPtr(i int) (BlockInfo, Offset) {
+	if !db.IsInd {
+		panic("IndirectPtr called on a direct directory block")
+	}
+	iptr := db.IPtrs[i]
+	return iptr.BlockInfo, iptr.Off
+}
+
+// OffsetExceedsData implements the Block interface for DirBlock.
+func (db *DirBlock) OffsetExceedsData(startOff, off Offset) bool {
+	// DirBlocks have open-ended children maps, so theoretically this
+	// block could have children all the way to the end of the
+	// alphabet.
+	return false
 }
 
 // FileBlock is the contents of a file
@@ -302,6 +404,50 @@ func (fb *FileBlock) GetHash() kbfshash.RawDefaultHash {
 	defer fb.cacheMtx.Unlock()
 	fb.hash = &hash
 	return *fb.hash
+}
+
+// FirstOffset implements the Block interface for FileBlock.
+func (fb *FileBlock) FirstOffset() Offset {
+	return Int64Offset(0)
+}
+
+// NumIndirectPtrs implements the Block interface for FileBlock.
+func (fb *FileBlock) NumIndirectPtrs() int {
+	if !fb.IsInd {
+		panic("NumIndirectPtrs called on a direct file block")
+	}
+	return len(fb.IPtrs)
+}
+
+// IndirectPtr implements the Block interface for FileBlock.
+func (fb *FileBlock) IndirectPtr(i int) (BlockInfo, Offset) {
+	if !fb.IsInd {
+		panic("IndirectPtr called on a direct file block")
+	}
+	iptr := fb.IPtrs[i]
+	return iptr.BlockInfo, iptr.Off
+}
+
+// OffsetExceedsData implements the Block interface for FileBlock.
+func (fb *FileBlock) OffsetExceedsData(startOff, off Offset) bool {
+	if fb.IsInd {
+		panic("OffsetExceedsData called on an indirect file block")
+	}
+
+	if len(fb.Contents) == 0 {
+		return false
+	}
+
+	offI, ok := off.(Int64Offset)
+	if !ok {
+		panic(fmt.Sprintf("Bad offset of type %T passed to FileBlock", off))
+	}
+	startOffI, ok := startOff.(Int64Offset)
+	if !ok {
+		panic(fmt.Sprintf("Bad offset of type %T passed to FileBlock",
+			startOff))
+	}
+	return int64(offI) >= int64(startOffI)+int64(len(fb.Contents))
 }
 
 // DefaultNewBlockDataVersion returns the default data version for new blocks.

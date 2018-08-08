@@ -1811,7 +1811,7 @@ func (fbo *folderBlockOps) Read(
 
 	var id keybase1.UserOrTeamID // Data reads don't depend on the id.
 	fd := fbo.newFileData(lState, filePath, id, kmd)
-	return fd.read(ctx, dest, off)
+	return fd.read(ctx, dest, Int64Offset(off))
 }
 
 func (fbo *folderBlockOps) maybeWaitOnDeferredWrites(
@@ -1987,7 +1987,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 	}
 
 	newDe, dirtyPtrs, unrefs, newlyDirtiedChildBytes, bytesExtended, err :=
-		fd.write(ctx, data, off, fblock, de, df)
+		fd.write(ctx, data, Int64Offset(off), fblock, de, df)
 	// Record the unrefs before checking the error so we remember the
 	// state of newly dirtied blocks.
 	si.unrefs = append(si.unrefs, unrefs...)
@@ -2173,7 +2173,7 @@ func (fbo *folderBlockOps) truncateLocked(
 	// find the block where the file should now end
 	iSize := int64(size) // TODO: deal with overflow
 	_, parentBlocks, block, nextBlockOff, startOff, _, err :=
-		fd.getFileBlockAtOffset(ctx, fblock, iSize, blockWrite)
+		fd.getFileBlockAtOffset(ctx, fblock, Int64Offset(iSize), blockWrite)
 	if err != nil {
 		return &WriteRange{}, nil, 0, err
 	}

@@ -87,6 +87,26 @@ func (tb *TestBlock) ToCommonBlock() *CommonBlock {
 	return nil
 }
 
+func (tb *TestBlock) IsIndirect() bool {
+	return false
+}
+
+func (tb *TestBlock) FirstOffset() Offset {
+	return nil
+}
+
+func (tb *TestBlock) NumIndirectPtrs() int {
+	panic("No indirect pointers for the test block")
+}
+
+func (tb *TestBlock) IndirectPtr(_ int) (BlockInfo, Offset) {
+	panic("No indirect pointers for the test block")
+}
+
+func (tb TestBlock) OffsetExceedsData(_, _ Offset) bool {
+	return false
+}
+
 func TestCryptoCommonEncryptDecryptBlock(t *testing.T) {
 	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
@@ -347,6 +367,26 @@ func (tba testBlockArray) ToCommonBlock() *CommonBlock {
 func (tba *testBlockArray) Set(other Block) {
 	otherTba := other.(*testBlockArray)
 	*tba = *otherTba
+}
+
+func (tba testBlockArray) IsIndirect() bool {
+	return false
+}
+
+func (tba testBlockArray) FirstOffset() Offset {
+	return nil
+}
+
+func (tba testBlockArray) NumIndirectPtrs() int {
+	panic("No indirect pointers for the test block array")
+}
+
+func (tba testBlockArray) IndirectPtr(_ int) (BlockInfo, Offset) {
+	panic("No indirect pointers for the test block array")
+}
+
+func (tba testBlockArray) OffsetExceedsData(_, _ Offset) bool {
+	return false
 }
 
 // Test that block encrypted data length is the same for data

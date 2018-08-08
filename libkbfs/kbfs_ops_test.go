@@ -665,7 +665,8 @@ func makeBI(id kbfsblock.ID, kmd KeyMetadata, config Config,
 }
 
 func makeIFP(id kbfsblock.ID, kmd KeyMetadata, config Config,
-	u keybase1.UserOrTeamID, encodedSize uint32, off int64) IndirectFilePtr {
+	u keybase1.UserOrTeamID, encodedSize uint32,
+	off Int64Offset) IndirectFilePtr {
 	return IndirectFilePtr{
 		BlockInfo{
 			BlockPointer: makeBP(id, kmd, config, u),

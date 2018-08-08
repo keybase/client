@@ -37,7 +37,7 @@ func makeRandomDirEntry(
 		codec.UnknownFieldSetHandler{},
 	}
 }
-func makeFakeIndirectFilePtr(t *testing.T, off int64) IndirectFilePtr {
+func makeFakeIndirectFilePtr(t *testing.T, off Int64Offset) IndirectFilePtr {
 	return IndirectFilePtr{
 		makeRandomBlockInfo(t),
 		off,
@@ -46,7 +46,7 @@ func makeFakeIndirectFilePtr(t *testing.T, off int64) IndirectFilePtr {
 	}
 }
 
-func makeFakeIndirectDirPtr(t *testing.T, off string) IndirectDirPtr {
+func makeFakeIndirectDirPtr(t *testing.T, off StringOffset) IndirectDirPtr {
 	return IndirectDirPtr{
 		makeRandomBlockInfo(t),
 		off,
