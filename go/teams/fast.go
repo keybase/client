@@ -27,9 +27,9 @@ func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastLoadTea
 	return res, err
 }
 
-// ResolveIDToNameViaMerkelTree takes a team ID, and a pointer to a parent team's sigchain, and computes
+// resolveIDToNameViaMerkelTree takes a team ID, and a pointer to a parent team's sigchain, and computes
 // the full resolved team name. If the pointer is null, we'll assume this is a root team and do the
 // verification via hash-comparison.
-func (f *FastTeamChainLoader) ResolveIDToNameViaMerkleTree(m libkb.MetaContext, arg keybase1.FastResolveIDToNameArg) (res keybase1.TeamName, err error) {
+func (f *FastTeamChainLoader) resolveIDToNameViaParentLoad(m libkb.MetaContext, id keybase1.TeamID, parent *keybase1.LinkTriple) (res keybase1.TeamName, err error) {
 	return res, err
 }

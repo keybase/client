@@ -670,11 +670,6 @@ protocol teams {
     array<Seqno> seqnosNeeded;
   }
 
-  record FastResolveIDToNameArg {
-    TeamID id;
-    union { null, LinkTriple } parent;
-  }
-
   record FastLoadTeamRes {
     TeamName name;
     array<TeamApplicationKey> applicationKeys;

@@ -1864,24 +1864,6 @@ func (o FastLoadTeamArg) DeepCopy() FastLoadTeamArg {
 	}
 }
 
-type FastResolveIDToNameArg struct {
-	Id     TeamID      `codec:"id" json:"id"`
-	Parent *LinkTriple `codec:"parent,omitempty" json:"parent,omitempty"`
-}
-
-func (o FastResolveIDToNameArg) DeepCopy() FastResolveIDToNameArg {
-	return FastResolveIDToNameArg{
-		Id: o.Id.DeepCopy(),
-		Parent: (func(x *LinkTriple) *LinkTriple {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Parent),
-	}
-}
-
 type FastLoadTeamRes struct {
 	Name            TeamName             `codec:"name" json:"name"`
 	ApplicationKeys []TeamApplicationKey `codec:"applicationKeys" json:"applicationKeys"`

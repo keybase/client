@@ -1546,23 +1546,6 @@
     },
     {
       "type": "record",
-      "name": "FastResolveIDToNameArg",
-      "fields": [
-        {
-          "type": "TeamID",
-          "name": "id"
-        },
-        {
-          "type": [
-            null,
-            "LinkTriple"
-          ],
-          "name": "parent"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "FastLoadTeamRes",
       "fields": [
         {
