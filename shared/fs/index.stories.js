@@ -8,6 +8,8 @@ import {type ConnectedProps as ConnectedUsernamesProps} from '../common-adapters
 import {globalColors, globalMargins} from '../styles'
 import Files, {WrapRow} from '.'
 import ConnectedStillRow from './row/still-container'
+import TlfTypeRow from './row/tlf-type'
+import TlfRow from './row/tlf'
 import StillRow from './row/still'
 import EditingRow from './row/editing'
 import PlaceholderRow from './row/placeholder'
@@ -51,22 +53,19 @@ const rowProviders = {
   }),
   ConnectedStillRow: ({path}: {path: Types.Path}) => {
     const pathStr = Types.pathToString(path)
-    const hasAbc = pathStr.includes('abc')
-    const hasDef = pathStr.includes('def')
-    const hasGhi = pathStr.includes('ghi')
     return {
       name: Types.getPathName(path),
-      onOpen: () => {},
-      openInFileUI: () => {},
       type: 'folder',
-      shouldShowMenu: true,
       itemStyles: folderItemStyles,
       onAction: Sb.action('onAction'),
-      resetParticipants: [...(hasAbc ? ['abc'] : []), ...(hasDef ? ['def'] : []), ...(hasGhi ? ['ghi'] : [])],
-      isUserReset: false,
       isEmpty: pathStr.includes('empty'),
     }
   },
+  ConnectedOpenHOC: ownProps => ({
+    ...ownProps,
+    onOpen: () => {},
+    openInFileUI: () => {},
+  }),
 }
 
 const provider = Sb.createPropProviderWithCommon({
@@ -265,8 +264,9 @@ const load = () => {
       <Box>
         <WrapRow key="1">
           <ConnectedStillRow
+            name="a"
             path={Types.stringToPath('/keybase/private/a')}
-            routeProps={I.Map({path: '/keybase/private/foo'})}
+            routeProps={I.Map({path: '/keybase/private/a'})}
             routePath={I.List([])}
           />
         </WrapRow>
@@ -371,12 +371,8 @@ const load = () => {
             type="file"
             lastModifiedTimestamp={Date.now()}
             lastWriter="alice"
-            shouldShowMenu={true}
             itemStyles={fileItemStyles}
-            badgeCount={0}
             isDownloading={true}
-            isUserReset={false}
-            resetParticipants={[]}
             onOpen={Sb.action('onOpen')}
             openInFileUI={Sb.action('openInFileUI')}
             onAction={Sb.action('onAction')}
@@ -391,6 +387,7 @@ const load = () => {
         </WrapRow>
         <WrapRow key="15">
           <ConnectedStillRow
+            name="empty"
             path={Types.stringToPath('/keybase/private/empty')}
             routeProps={I.Map({path: '/keybase/private/empty'})}
             routePath={I.List([])}
@@ -403,16 +400,94 @@ const load = () => {
             type="file"
             lastModifiedTimestamp={Date.now()}
             lastWriter="bob"
-            shouldShowMenu={true}
             itemStyles={fileItemStyles}
-            badgeCount={3}
             isDownloading={false}
+            onOpen={Sb.action('onOpen')}
+            openInFileUI={Sb.action('openInFileUI')}
+            onAction={Sb.action('onAction')}
+            isEmpty={false}
+          />
+        </WrapRow>
+        <WrapRow key="17">
+          <TlfTypeRow
+            name="private"
+            path={Types.stringToPath('/keybase/private')}
+            itemStyles={folderItemStyles}
+            badgeCount={0}
+            onOpen={Sb.action('onOpen')}
+            openInFileUI={Sb.action('openInFileUI')}
+            onAction={Sb.action('onAction')}
+          />
+        </WrapRow>
+        <WrapRow key="18">
+          <TlfTypeRow
+            name="private"
+            path={Types.stringToPath('/keybase/private')}
+            itemStyles={folderItemStyles}
+            badgeCount={3}
+            onOpen={Sb.action('onOpen')}
+            openInFileUI={Sb.action('openInFileUI')}
+            onAction={Sb.action('onAction')}
+          />
+        </WrapRow>
+        <WrapRow key="19">
+          <TlfRow
+            name="alice,bob,charlie"
+            path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
+            itemStyles={folderItemStyles}
+            needsRekey={false}
+            isIgnored={false}
+            isNew={true}
             isUserReset={false}
             resetParticipants={[]}
             onOpen={Sb.action('onOpen')}
             openInFileUI={Sb.action('openInFileUI')}
             onAction={Sb.action('onAction')}
-            isEmpty={false}
+          />
+        </WrapRow>
+        <WrapRow key="20">
+          <TlfRow
+            name="alice,bob,charlie"
+            path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
+            itemStyles={folderItemStyles}
+            needsRekey={false}
+            isIgnored={false}
+            isNew={true}
+            isUserReset={true}
+            resetParticipants={['charlie']}
+            onOpen={Sb.action('onOpen')}
+            openInFileUI={Sb.action('openInFileUI')}
+            onAction={Sb.action('onAction')}
+          />
+        </WrapRow>
+        <WrapRow key="21">
+          <TlfRow
+            name="alice,bob,charlie"
+            path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
+            itemStyles={folderItemStyles}
+            needsRekey={false}
+            isIgnored={false}
+            isNew={true}
+            isUserReset={false}
+            resetParticipants={['alice', 'bob']}
+            onOpen={Sb.action('onOpen')}
+            openInFileUI={Sb.action('openInFileUI')}
+            onAction={Sb.action('onAction')}
+          />
+        </WrapRow>
+        <WrapRow key="22">
+          <TlfRow
+            name="alice,bob,charlie"
+            path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
+            itemStyles={folderItemStyles}
+            needsRekey={false}
+            isIgnored={false}
+            isNew={true}
+            isUserReset={false}
+            resetParticipants={[]}
+            onOpen={Sb.action('onOpen')}
+            openInFileUI={Sb.action('openInFileUI')}
+            onAction={Sb.action('onAction')}
           />
         </WrapRow>
       </Box>

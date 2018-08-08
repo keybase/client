@@ -65,7 +65,7 @@ func getKeyForDecryption(ctx context.Context, g *libkb.GlobalContext,
 	if err != nil {
 		return res, err
 	}
-	return team.ApplicationKeyAtGeneration(keybase1.TeamApplication_STELLAR_RELAY, generation)
+	return team.ApplicationKeyAtGeneration(ctx, keybase1.TeamApplication_STELLAR_RELAY, generation)
 }
 
 type Input struct {

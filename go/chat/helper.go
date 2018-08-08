@@ -846,6 +846,11 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 
 func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
 	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (err error) {
+	if err := g.ConvSource.AcquireConversationLock(ctx, uid, convID); err != nil {
+		return err
+	}
+	defer g.ConvSource.ReleaseConversationLock(ctx, uid, convID)
+
 	alreadyIn, err := g.InboxSource.IsMember(ctx, uid, convID)
 	if err != nil {
 		debugger.Debug(ctx, "JoinConversation: IsMember err: %s", err.Error())

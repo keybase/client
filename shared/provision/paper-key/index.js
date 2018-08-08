@@ -8,6 +8,7 @@ import {
   globalStyles,
   styleSheetCreate,
   isMobile,
+  isAndroid,
   platformStyles,
 } from '../../styles'
 
@@ -27,7 +28,7 @@ const PaperKey = (props: Props) => (
     <Box2
       direction="vertical"
       style={styles.contents}
-      centerChildren={true}
+      centerChildren={!isAndroid /* android keyboardAvoiding doesnt work well */}
       gap={isMobile ? 'tiny' : 'medium'}
     >
       <Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
@@ -76,9 +77,9 @@ const styles = styleSheetCreate({
     },
   }),
   contents: {
+    flexGrow: 1,
     maxWidth: isMobile ? 300 : 460,
     width: '100%',
-    flexGrow: 1,
   },
   hint: {
     ...globalStyles.italic,

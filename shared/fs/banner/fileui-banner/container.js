@@ -2,8 +2,8 @@
 import Banner from './index'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Types from '../../../constants/types/fs'
+import * as Constants from '../../../constants/fs'
 import {connect, compose, lifecycle, setDisplayName, type TypedState} from '../../../util/container'
-import * as StateMappers from '../../utils/state-mappers'
 import {isMobile} from '../../../constants/platform'
 
 type OwnProps = {
@@ -11,7 +11,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState) => {
-  const kbfsEnabled = StateMappers.mapStateToKBFSEnabled(state)
+  const kbfsEnabled = Constants.kbfsEnabled(state)
   return {
     kbfsEnabled,
     showBanner: !kbfsEnabled && state.fs.flags.showBanner,
