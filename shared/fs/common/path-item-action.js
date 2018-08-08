@@ -145,20 +145,23 @@ const stylesNameText = memoize(color =>
   platformStyles({
     common: {
       color,
-      textAlign: 'center',
     },
     isElectron: {
       overflowWrap: 'break-word',
+      textAlign: 'center',
     },
   })
 )
 
-const stylesNameTextBox = {
-  paddingLeft: globalMargins.small,
-  paddingRight: globalMargins.small,
-  width: '100%',
-  textAlign: 'center',
-}
+const stylesNameTextBox = platformStyles({
+  common: {
+    paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small,
+  },
+  isElectron: {
+    textAlign: 'center',
+  },
+})
 
 const pathItemIconStyle = {
   marginBottom: globalMargins.xtiny,
