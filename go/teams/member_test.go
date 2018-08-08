@@ -410,8 +410,8 @@ func TestMemberRemoveRotatesKeys(t *testing.T) {
 		t.Errorf("after member remove: team generation: %d, expected 2", after.Generation())
 	}
 
-	secretAfter := after.Data.PerTeamKeySeeds[after.Generation()].Seed.ToBytes()
-	secretBefore := before.Data.PerTeamKeySeeds[before.Generation()].Seed.ToBytes()
+	secretAfter := after.Data.PerTeamKeySeedsUnverified[after.Generation()].Seed.ToBytes()
+	secretBefore := before.Data.PerTeamKeySeedsUnverified[before.Generation()].Seed.ToBytes()
 	if libkb.SecureByteArrayEq(secretAfter, secretBefore) {
 		t.Error("Team secret did not change when member removed")
 	}

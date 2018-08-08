@@ -549,14 +549,14 @@ func (o TeamPlusApplicationKeys) DeepCopy() TeamPlusApplicationKeys {
 }
 
 type TeamData struct {
-	Secretless      bool                                                 `codec:"secretless" json:"secretless"`
-	Name            TeamName                                             `codec:"name" json:"name"`
-	Chain           TeamSigChainState                                    `codec:"chain" json:"chain"`
-	PerTeamKeySeeds map[PerTeamKeyGeneration]PerTeamKeySeedItem          `codec:"perTeamKeySeeds" json:"perTeamKeySeeds"`
-	ReaderKeyMasks  map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 `codec:"readerKeyMasks" json:"readerKeyMasks"`
-	LatestSeqnoHint Seqno                                                `codec:"latestSeqnoHint" json:"latestSeqnoHint"`
-	CachedAt        Time                                                 `codec:"cachedAt" json:"cachedAt"`
-	TlfCryptKeys    map[TeamApplication][]CryptKey                       `codec:"tlfCryptKeys" json:"tlfCryptKeys"`
+	Secretless                bool                                                 `codec:"secretless" json:"secretless"`
+	Name                      TeamName                                             `codec:"name" json:"name"`
+	Chain                     TeamSigChainState                                    `codec:"chain" json:"chain"`
+	PerTeamKeySeedsUnverified map[PerTeamKeyGeneration]PerTeamKeySeedItem          `codec:"perTeamKeySeeds" json:"perTeamKeySeedsUnverified"`
+	ReaderKeyMasks            map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 `codec:"readerKeyMasks" json:"readerKeyMasks"`
+	LatestSeqnoHint           Seqno                                                `codec:"latestSeqnoHint" json:"latestSeqnoHint"`
+	CachedAt                  Time                                                 `codec:"cachedAt" json:"cachedAt"`
+	TlfCryptKeys              map[TeamApplication][]CryptKey                       `codec:"tlfCryptKeys" json:"tlfCryptKeys"`
 }
 
 func (o TeamData) DeepCopy() TeamData {
@@ -564,7 +564,7 @@ func (o TeamData) DeepCopy() TeamData {
 		Secretless: o.Secretless,
 		Name:       o.Name.DeepCopy(),
 		Chain:      o.Chain.DeepCopy(),
-		PerTeamKeySeeds: (func(x map[PerTeamKeyGeneration]PerTeamKeySeedItem) map[PerTeamKeyGeneration]PerTeamKeySeedItem {
+		PerTeamKeySeedsUnverified: (func(x map[PerTeamKeyGeneration]PerTeamKeySeedItem) map[PerTeamKeyGeneration]PerTeamKeySeedItem {
 			if x == nil {
 				return nil
 			}
@@ -575,7 +575,7 @@ func (o TeamData) DeepCopy() TeamData {
 				ret[kCopy] = vCopy
 			}
 			return ret
-		})(o.PerTeamKeySeeds),
+		})(o.PerTeamKeySeedsUnverified),
 		ReaderKeyMasks: (func(x map[TeamApplication]map[PerTeamKeyGeneration]MaskB64) map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 {
 			if x == nil {
 				return nil
@@ -1576,15 +1576,38 @@ func (o TeamKBFSKeyRefresher) DeepCopy() TeamKBFSKeyRefresher {
 // * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
 // * a refresh of the cache.
 type TeamRefreshers struct {
-	NeedKeyGeneration     PerTeamKeyGeneration `codec:"needKeyGeneration" json:"needKeyGeneration"`
-	WantMembers           []UserVersion        `codec:"wantMembers" json:"wantMembers"`
-	WantMembersRole       TeamRole             `codec:"wantMembersRole" json:"wantMembersRole"`
-	NeedKBFSKeyGeneration TeamKBFSKeyRefresher `codec:"needKBFSKeyGeneration" json:"needKBFSKeyGeneration"`
+	NeedKeyGeneration             PerTeamKeyGeneration                       `codec:"needKeyGeneration" json:"needKeyGeneration"`
+	NeedApplicationsAtGenerations map[PerTeamKeyGeneration][]TeamApplication `codec:"needApplicationsAtGenerations" json:"needApplicationsAtGenerations"`
+	WantMembers                   []UserVersion                              `codec:"wantMembers" json:"wantMembers"`
+	WantMembersRole               TeamRole                                   `codec:"wantMembersRole" json:"wantMembersRole"`
+	NeedKBFSKeyGeneration         TeamKBFSKeyRefresher                       `codec:"needKBFSKeyGeneration" json:"needKBFSKeyGeneration"`
 }
 
 func (o TeamRefreshers) DeepCopy() TeamRefreshers {
 	return TeamRefreshers{
 		NeedKeyGeneration: o.NeedKeyGeneration.DeepCopy(),
+		NeedApplicationsAtGenerations: (func(x map[PerTeamKeyGeneration][]TeamApplication) map[PerTeamKeyGeneration][]TeamApplication {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[PerTeamKeyGeneration][]TeamApplication, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := (func(x []TeamApplication) []TeamApplication {
+					if x == nil {
+						return nil
+					}
+					ret := make([]TeamApplication, len(x))
+					for i, v := range x {
+						vCopy := v.DeepCopy()
+						ret[i] = vCopy
+					}
+					return ret
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.NeedApplicationsAtGenerations),
 		WantMembers: (func(x []UserVersion) []UserVersion {
 			if x == nil {
 				return nil

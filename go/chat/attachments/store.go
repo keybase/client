@@ -1,6 +1,7 @@
 package attachments
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"errors"
@@ -31,29 +32,33 @@ type UploadTask struct {
 	Filename       string
 	FileSize       int
 	Plaintext      ReadResetter
-	plaintextHash  []byte
+	taskHash       []byte
 	S3Signer       s3.Signer
 	ConversationID chat1.ConversationID
 	UserID         gregor1.UID
+	OutboxID       chat1.OutboxID
+	Preview        bool
 	Progress       types.ProgressReporter
 }
 
-func (u *UploadTask) computePlaintextHash() error {
-	plaintextHasher := sha256.New()
-	io.Copy(plaintextHasher, u.Plaintext)
-	u.plaintextHash = plaintextHasher.Sum(nil)
+func (u *UploadTask) computeHash() {
+	hasher := sha256.New()
+	seed := fmt.Sprintf("%s:%v", u.OutboxID, u.Preview)
+	io.Copy(hasher, bytes.NewReader([]byte(seed)))
+	u.taskHash = hasher.Sum(nil)
+}
 
-	// reset the stream to the beginning of the file
-	return u.Plaintext.Reset()
+func (u *UploadTask) hash() []byte {
+	return u.taskHash
 }
 
 func (u *UploadTask) stashKey() StashKey {
-	return NewStashKey(u.plaintextHash, u.ConversationID, u.UserID)
+	return NewStashKey(u.OutboxID, u.Preview)
 }
 
 func (u *UploadTask) Nonce() signencrypt.Nonce {
 	var n [signencrypt.NonceSize]byte
-	copy(n[:], u.plaintextHash)
+	copy(n[:], u.taskHash)
 	return &n
 }
 
@@ -106,10 +111,8 @@ func NewStoreTesting(logger logger.Logger, kt func(enc, sig []byte)) *S3Store {
 func (a *S3Store) UploadAsset(ctx context.Context, task *UploadTask, encryptedOut io.Writer) (res chat1.Asset, err error) {
 	defer a.Trace(ctx, func() error { return err }, "UploadAsset")()
 	// compute plaintext hash
-	if task.plaintextHash == nil {
-		if err := task.computePlaintextHash(); err != nil {
-			return res, err
-		}
+	if task.hash() == nil {
+		task.computeHash()
 	} else {
 		if !a.testing {
 			return res, errors.New("task.plaintextHash not nil")
@@ -136,10 +139,7 @@ func (a *S3Store) UploadAsset(ctx context.Context, task *UploadTask, encryptedOu
 		a.aborts++
 		previous = nil
 		task.Plaintext.Reset()
-		// recompute plaintext hash:
-		if err := task.computePlaintextHash(); err != nil {
-			return res, err
-		}
+		task.computeHash()
 		return a.uploadAsset(ctx, task, enc, nil, resumable, encryptedOut)
 	}
 
@@ -174,10 +174,7 @@ func (a *S3Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEn
 
 	// compute ciphertext hash
 	hash := sha256.New()
-	tee := io.TeeReader(encReader, hash)
-	if encryptedOut != nil {
-		tee = io.TeeReader(tee, encryptedOut)
-	}
+	tee := io.TeeReader(io.TeeReader(encReader, hash), encryptedOut)
 
 	// post to s3
 	length := int64(enc.EncryptedLen(task.FileSize))

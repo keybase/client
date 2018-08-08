@@ -875,6 +875,12 @@ func (s *Deliverer) IsOffline(ctx context.Context) bool {
 	return !s.connected
 }
 
+func (s *Deliverer) IsDelivering() bool {
+	s.Lock()
+	defer s.Unlock()
+	return s.delivering
+}
+
 func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
 	outboxID *chat1.OutboxID,
 	identifyBehavior keybase1.TLFIdentifyBehavior) (obr chat1.OutboxRecord, err error) {
@@ -896,6 +902,10 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 
 func (s *Deliverer) ActiveDeliveries(ctx context.Context) (res []chat1.ConversationID, err error) {
 	defer s.Trace(ctx, func() error { return err }, "ActiveDeliveries")()
+	if !s.IsDelivering() {
+		s.Debug(ctx, "ActiveDeliveries: not delivering, returning empty")
+		return nil, nil
+	}
 	recs, err := s.outbox.PullAllConversations(ctx, false, false)
 	cmap := make(map[string]chat1.ConversationID)
 	if err != nil {

@@ -6,6 +6,7 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
+import * as TeamsTypes from '../constants/types/teams'
 import HiddenString from '../util/hidden-string'
 import type {RetentionPolicy} from '../constants/types/teams'
 
@@ -61,6 +62,7 @@ export const openFolder = 'chat2:openFolder'
 export const previewConversation = 'chat2:previewConversation'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
+export const saveMinWriterRole = 'chat2:saveMinWriterRole'
 export const selectConversation = 'chat2:selectConversation'
 export const sendTyping = 'chat2:sendTyping'
 export const setConvExplodingMode = 'chat2:setConvExplodingMode'
@@ -69,6 +71,7 @@ export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingMessagesNew = 'chat2:setExplodingMessagesNew'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
 export const setInboxFilter = 'chat2:setInboxFilter'
+export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setPendingConversationExistingConversationIDKey = 'chat2:setPendingConversationExistingConversationIDKey'
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setPendingMode = 'chat2:setPendingMode'
@@ -267,6 +270,10 @@ type _ResetLetThemInPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   username: string,
 |}>
+type _SaveMinWriterRolePayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  role: TeamsTypes.TeamRoleType,
+|}>
 type _SelectConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   reason: 'clearSelected' | 'desktopNotification' | 'setPendingMode' | 'sendingToPending' | 'createdMessagePrivately' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'previewResolved' | 'pendingModeChange' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
@@ -293,6 +300,10 @@ type _SetExplodingModeLockPayload = $ReadOnly<{|
   unset?: boolean,
 |}>
 type _SetInboxFilterPayload = $ReadOnly<{|filter: string|}>
+type _SetMinWriterRolePayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  role: TeamsTypes.TeamRoleType,
+|}>
 type _SetPendingConversationExistingConversationIDKeyPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _SetPendingConversationUsersPayload = $ReadOnly<{|
   users: Array<string>,
@@ -364,6 +375,10 @@ export const createFilePickerError = (payload: _FilePickerErrorPayload) => ({err
  */
 export const createSetExplodingModeLock = (payload: _SetExplodingModeLockPayload) => ({error: false, payload, type: setExplodingModeLock})
 /**
+ * Set the minimum role required to write into a conversation. Valid only for team conversations.
+ */
+export const createSetMinWriterRole = (payload: _SetMinWriterRolePayload) => ({error: false, payload, type: setMinWriterRole})
+/**
  * Set the remote exploding mode for a conversation.
  */
 export const createSetConvExplodingMode = (payload: _SetConvExplodingModePayload) => ({error: false, payload, type: setConvExplodingMode})
@@ -395,6 +410,10 @@ export const createUpdateReactions = (payload: _UpdateReactionsPayload) => ({err
  * Toggle a reaction in the store.
  */
 export const createToggleLocalReaction = (payload: _ToggleLocalReactionPayload) => ({error: false, payload, type: toggleLocalReaction})
+/**
+ * Update the minWriterRole stored with the conversation metadata.
+ */
+export const createSaveMinWriterRole = (payload: _SaveMinWriterRolePayload) => ({error: false, payload, type: saveMinWriterRole})
 /**
  * When the search changes we need to find any existing conversations to stash into the metaMap
  */
@@ -507,6 +526,7 @@ export type OpenFolderPayload = $Call<typeof createOpenFolder, _OpenFolderPayloa
 export type PreviewConversationPayload = $Call<typeof createPreviewConversation, _PreviewConversationPayload>
 export type ResetChatWithoutThemPayload = $Call<typeof createResetChatWithoutThem, _ResetChatWithoutThemPayload>
 export type ResetLetThemInPayload = $Call<typeof createResetLetThemIn, _ResetLetThemInPayload>
+export type SaveMinWriterRolePayload = $Call<typeof createSaveMinWriterRole, _SaveMinWriterRolePayload>
 export type SelectConversationPayload = $Call<typeof createSelectConversation, _SelectConversationPayload>
 export type SendTypingPayload = $Call<typeof createSendTyping, _SendTypingPayload>
 export type SetConvExplodingModePayload = $Call<typeof createSetConvExplodingMode, _SetConvExplodingModePayload>
@@ -515,6 +535,7 @@ export type SetConversationOfflinePayload = $Call<typeof createSetConversationOf
 export type SetExplodingMessagesNewPayload = $Call<typeof createSetExplodingMessagesNew, _SetExplodingMessagesNewPayload>
 export type SetExplodingModeLockPayload = $Call<typeof createSetExplodingModeLock, _SetExplodingModeLockPayload>
 export type SetInboxFilterPayload = $Call<typeof createSetInboxFilter, _SetInboxFilterPayload>
+export type SetMinWriterRolePayload = $Call<typeof createSetMinWriterRole, _SetMinWriterRolePayload>
 export type SetPendingConversationExistingConversationIDKeyPayload = $Call<typeof createSetPendingConversationExistingConversationIDKey, _SetPendingConversationExistingConversationIDKeyPayload>
 export type SetPendingConversationUsersPayload = $Call<typeof createSetPendingConversationUsers, _SetPendingConversationUsersPayload>
 export type SetPendingModePayload = $Call<typeof createSetPendingMode, _SetPendingModePayload>
@@ -583,6 +604,7 @@ export type Actions =
   | PreviewConversationPayload
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload
+  | SaveMinWriterRolePayload
   | SelectConversationPayload
   | SendTypingPayload
   | SetConvExplodingModePayload
@@ -591,6 +613,7 @@ export type Actions =
   | SetExplodingMessagesNewPayload
   | SetExplodingModeLockPayload
   | SetInboxFilterPayload
+  | SetMinWriterRolePayload
   | SetPendingConversationExistingConversationIDKeyPayload
   | SetPendingConversationUsersPayload
   | SetPendingModePayload

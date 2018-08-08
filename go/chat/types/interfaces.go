@@ -304,11 +304,20 @@ type EphemeralPurger interface {
 	Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) error
 }
 
+type AttachmentUploaderResultCb interface {
+	Wait() chan AttachmentUploadResult
+}
+
 type AttachmentUploader interface {
 	Register(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		outboxID chat1.OutboxID, title, filename string, metadata []byte,
-		callerPreview *chat1.MakePreviewRes) (chan AttachmentUploadResult, error)
+		callerPreview *chat1.MakePreviewRes) (AttachmentUploaderResultCb, error)
 	Status(ctx context.Context, outboxID chat1.OutboxID) (AttachmentUploaderTaskStatus, AttachmentUploadResult, error)
-	Retry(ctx context.Context, outboxID chat1.OutboxID) (chan AttachmentUploadResult, error)
+	Retry(ctx context.Context, outboxID chat1.OutboxID) (AttachmentUploaderResultCb, error)
+	Cancel(ctx context.Context, outboxID chat1.OutboxID) error
 	Complete(ctx context.Context, outboxID chat1.OutboxID)
+}
+
+type NativeVideoHelper interface {
+	ThumbnailAndDuration(ctx context.Context, filename string) ([]byte, int, error)
 }

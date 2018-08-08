@@ -246,15 +246,16 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	ret, err := l.load2(ctx, load2ArgT{
 		teamID: teamID,
 
-		needAdmin:             lArg.NeedAdmin,
-		needKeyGeneration:     lArg.Refreshers.NeedKeyGeneration,
-		needKBFSKeyGeneration: lArg.Refreshers.NeedKBFSKeyGeneration,
-		wantMembers:           mungedWantMembers,
-		wantMembersRole:       lArg.Refreshers.WantMembersRole,
-		forceFullReload:       lArg.ForceFullReload,
-		forceRepoll:           mungedForceRepoll,
-		staleOK:               lArg.StaleOK,
-		public:                lArg.Public,
+		needAdmin:                     lArg.NeedAdmin,
+		needKeyGeneration:             lArg.Refreshers.NeedKeyGeneration,
+		needApplicationsAtGenerations: lArg.Refreshers.NeedApplicationsAtGenerations,
+		needKBFSKeyGeneration:         lArg.Refreshers.NeedKBFSKeyGeneration,
+		wantMembers:                   mungedWantMembers,
+		wantMembersRole:               lArg.Refreshers.WantMembersRole,
+		forceFullReload:               lArg.ForceFullReload,
+		forceRepoll:                   mungedForceRepoll,
+		staleOK:                       lArg.StaleOK,
+		public:                        lArg.Public,
 
 		needSeqnos:    nil,
 		readSubteamID: nil,
@@ -325,9 +326,10 @@ type load2ArgT struct {
 
 	reason string // optional tag for debugging why this load is happening
 
-	needAdmin             bool
-	needKeyGeneration     keybase1.PerTeamKeyGeneration
-	needKBFSKeyGeneration keybase1.TeamKBFSKeyRefresher
+	needAdmin                     bool
+	needKeyGeneration             keybase1.PerTeamKeyGeneration
+	needApplicationsAtGenerations map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication
+	needKBFSKeyGeneration         keybase1.TeamKBFSKeyRefresher
 	// wantMembers here is different from wantMembers on LoadTeamArg:
 	// The EldestSeqno's should not be 0.
 	wantMembers     []keybase1.UserVersion
@@ -422,10 +424,11 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	tracer := l.G().CTimeTracer(ctx, "TeamLoader.load2ILR", teamEnv.Profile)
 	defer tracer.Finish()
 
-	defer tbs.Log(ctx, "API.request")
+	defer tbs.LogIfNonZero(ctx, "API.request")
 
 	var err error
 	var didRepoll bool
+	lkc := newLoadKeyCache()
 
 	// Fetch from cache
 	tracer.Stage("cache load")
@@ -449,17 +452,25 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	// Determine whether to repoll merkle.
-	tracer.Stage("merkle")
 	discardCache, repoll := l.load2DecideRepoll(ctx, arg, ret)
 	if discardCache {
 		ret = nil
 		repoll = true
 	}
 
+	tracer.Stage("deepcopy")
 	if ret != nil {
-		l.G().Log.CDebugf(ctx, "TeamLoader found cached snapshot")
+		// If we're pulling from a previous snapshot (that, let's say, we got from a shared cache),
+		// then make sure to DeepCopy() data out of it before we start mutating it below. We used
+		// to do this every step through the new links, but that was very expensive in terms of CPU
+		// for big teams, since it was hidden quadratic behavior.
+		tmp := ret.DeepCopy()
+		ret = &tmp
+	} else {
+		l.G().Log.CDebugf(ctx, "TeamLoader not using snapshot")
 	}
 
+	tracer.Stage("merkle")
 	var lastSeqno keybase1.Seqno
 	var lastLinkID keybase1.LinkID
 	if (ret == nil) || repoll {
@@ -489,7 +500,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	tracer.Stage("backfill")
 	if ret != nil && len(arg.needSeqnos) > 0 {
 		ret, proofSet, parentChildOperations, err = l.fillInStubbedLinks(
-			ctx, arg.me, arg.teamID, ret, arg.needSeqnos, readSubteamID, proofSet, parentChildOperations)
+			ctx, arg.me, arg.teamID, ret, arg.needSeqnos, readSubteamID, proofSet, parentChildOperations, lkc)
 		if err != nil {
 			return nil, err
 		}
@@ -513,8 +524,8 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			// Admins should always have up-to-date secrets
 			fetchLinksAndOrSecrets = true
 		}
-		if err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, ret); err != nil {
-			l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedKeyGeneration: %v", err)
+		if err := l.satisfiesNeedApplicationsAtGenerations(ctx, arg.needApplicationsAtGenerations, ret); err != nil {
+			l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedApplicationsAtGenerations: %v", err)
 			fetchLinksAndOrSecrets = true
 		}
 		if err := l.satisfiesNeedsKBFSKeyGeneration(ctx, arg.needKBFSKeyGeneration, ret); err != nil {
@@ -527,6 +538,11 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			l.G().Log.CDebugf(ctx, "TeamLoader fetching: primary load")
 			fetchLinksAndOrSecrets = true
 		}
+	}
+	// hasSyncedSecrets does not account for RKMs so we verify it separately.
+	if err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, ret); err != nil {
+		l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedKeyGeneration: %v", err)
+		fetchLinksAndOrSecrets = true
 	}
 
 	// Pull new links from the server
@@ -555,15 +571,6 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		}
 	}
 
-	// If we're pulling from a previous snapshot (that, let's say, we got from a shared cache),
-	// then make sure to DeepCopy() data out of it before we start mutating it below. We used
-	// to do this every step through the new links, but that was very expensive in terms of CPU
-	// for big teams, since it was hidden quadratic behavior.
-	if ret != nil {
-		tmp := ret.DeepCopy()
-		ret = &tmp
-	}
-
 	// A link which was signed by an admin. Sloppily the latest such link.
 	// Sloppy because this calculation misses out on e.g. a rotate_key signed by an admin.
 	// This value is used for skipping fullVerify on team.leave links, see `verifyLink`.
@@ -574,7 +581,9 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			break
 		}
 	}
-	l.G().Log.CDebugf(ctx, "fullVerifyCutoff: %v", fullVerifyCutoff)
+	if fullVerifyCutoff > 0 {
+		l.G().Log.CDebugf(ctx, "fullVerifyCutoff: %v", fullVerifyCutoff)
+	}
 
 	tracer.Stage("userPreload enable:%v parallel:%v wait:%v",
 		teamEnv.UserPreloadEnable, teamEnv.UserPreloadParallel, teamEnv.UserPreloadWait)
@@ -582,8 +591,20 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	defer preloadCancel()
 
 	tracer.Stage("linkloop (%v)", len(links))
+	// Don't log in the middle links if there are a great many links.
+	suppressLoggingStart := 5
+	suppressLoggingUpto := len(links) - 5
 	for i, link := range links {
-		l.G().Log.CDebugf(ctx, "TeamLoader processing link seqno:%v", link.Seqno())
+		ctx := ctx // Shadow for log suppression scope
+		if suppressLoggingStart <= i && i < suppressLoggingUpto {
+			if i == suppressLoggingStart {
+				l.G().Log.CDebugf(ctx, "TeamLoader suppressing logs until %v", suppressLoggingUpto)
+			}
+			ctx = WithSuppressLogging(ctx, true)
+		}
+		if !ShouldSuppressLogging(ctx) {
+			l.G().Log.CDebugf(ctx, "TeamLoader processing link seqno:%v", link.Seqno())
+		}
 
 		if link.Seqno() > lastSeqno {
 			// This link came from a point in the chain after when we checked the merkle leaf.
@@ -604,7 +625,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		}
 
 		var signer *signerX
-		signer, err = l.verifyLink(ctx, arg.teamID, ret, arg.me, link, fullVerifyCutoff, readSubteamID, proofSet)
+		signer, err = l.verifyLink(ctx, arg.teamID, ret, arg.me, link, fullVerifyCutoff, readSubteamID, proofSet, lkc)
 		if err != nil {
 			return nil, err
 		}
@@ -624,10 +645,19 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		prev = link.LinkID()
 	}
 	preloadCancel()
-	tbs.Log(ctx, "CachedUPAKLoader.LoadV2")
-	tbs.Log(ctx, "CachedUPAKLoader.LoadKeyV2") // note LoadKeyV2 calls Load2
-	tbs.Log(ctx, "TeamLoader.verifyLink")
-	tbs.Log(ctx, "TeamLoader.applyNewLink")
+	if len(links) > 0 {
+		tbs.Log(ctx, "TeamLoader.verifyLink")
+		tbs.Log(ctx, "TeamLoader.applyNewLink")
+		tbs.Log(ctx, "SigChain.LoadFromServer.ReadAll")
+		tbs.Log(ctx, "loadKeyCache.loadKeyV2")
+		if teamEnv.Profile {
+			tbs.Log(ctx, "LoaderContextG.loadKeyV2")
+			tbs.Log(ctx, "CachedUPAKLoader.LoadKeyV2") // note LoadKeyV2 calls Load2
+			tbs.Log(ctx, "CachedUPAKLoader.LoadV2")
+			tbs.Log(ctx, "CachedUPAKLoader.DeepCopy")
+			l.G().Log.CDebugf(ctx, "TeamLoader lkc cache hits: %v", lkc.cacheHits)
+		}
+	}
 
 	if ret == nil {
 		return nil, fmt.Errorf("team loader fault: got nil from load2")
@@ -662,13 +692,13 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			// Add the secrets.
 			// If it's a public team, there might not be secrets. (If we're not in the team)
 			if !ret.Chain.Public || (teamUpdate.Box != nil) {
-				ret, err = l.addSecrets(ctx, ret, arg.me, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
+				err = l.addSecrets(ctx, ret, arg.me, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
 				if err != nil {
 					return nil, fmt.Errorf("loading team secrets: %v", err)
 				}
 
 				if teamUpdate.LegacyTLFUpgrade != nil {
-					ret, err = l.addKBFSCryptKeys(ctx, ret, teamUpdate.LegacyTLFUpgrade)
+					err = l.addKBFSCryptKeys(ctx, ret, teamUpdate.LegacyTLFUpgrade)
 					if err != nil {
 						return nil, fmt.Errorf("loading KBFS crypt keys: %v", err)
 					}
@@ -798,6 +828,7 @@ func (l *TeamLoader) userPreload(ctx context.Context, links []*chainLinkUnpacked
 // Considers:
 // - NeedAdmin
 // - NeedKeyGeneration
+// - NeedApplicationsAtGenerations
 // - WantMembers
 // - ForceRepoll
 // - Cache freshness / StaleOK
@@ -828,6 +859,12 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 	// Repoll to get a new key generation
 	if arg.needKeyGeneration > 0 {
 		if l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, fromCache) != nil {
+			repoll = true
+		}
+	}
+	// Repoll to get new applications at generations
+	if len(arg.needApplicationsAtGenerations) > 0 {
+		if l.satisfiesNeedApplicationsAtGenerations(ctx, arg.needApplicationsAtGenerations, fromCache) != nil {
 			repoll = true
 		}
 	}
@@ -888,21 +925,23 @@ func (l *TeamLoader) load2CheckReturn(ctx context.Context, arg load2ArgT, res *k
 
 	// Repoll to get a new key generation
 	if arg.needKeyGeneration > 0 {
-		err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, res)
-		if err != nil {
+		if err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, res); err != nil {
+			return err
+		}
+	}
+	if len(arg.needApplicationsAtGenerations) > 0 {
+		if err := l.satisfiesNeedApplicationsAtGenerations(ctx, arg.needApplicationsAtGenerations, res); err != nil {
 			return err
 		}
 	}
 	if arg.needKBFSKeyGeneration.Generation > 0 {
-		err := l.satisfiesNeedsKBFSKeyGeneration(ctx, arg.needKBFSKeyGeneration, res)
-		if err != nil {
+		if err := l.satisfiesNeedsKBFSKeyGeneration(ctx, arg.needKBFSKeyGeneration, res); err != nil {
 			return err
 		}
 	}
 
 	if len(arg.needSeqnos) > 0 {
-		err := l.checkNeededSeqnos(ctx, res, arg.needSeqnos)
-		if err != nil {
+		if err := l.checkNeededSeqnos(ctx, res, arg.needSeqnos); err != nil {
 			return err
 		}
 	}
@@ -1054,9 +1093,29 @@ func (l *TeamLoader) satisfiesNeedKeyGeneration(ctx context.Context, needKeyGene
 	if needKeyGeneration > key.Gen {
 		return fmt.Errorf("team key generation too low: %v < %v", key.Gen, needKeyGeneration)
 	}
-	_, ok := state.PerTeamKeySeeds[needKeyGeneration]
+	_, ok := state.PerTeamKeySeedsUnverified[needKeyGeneration]
 	if !ok {
 		return fmt.Errorf("team key secret missing for generation: %v", needKeyGeneration)
+	}
+	return nil
+}
+
+// Whether the snapshot has loaded the reader key masks and key generations we
+// need.
+func (l *TeamLoader) satisfiesNeedApplicationsAtGenerations(ctx context.Context,
+	needApplicationsAtGenerations map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication, state *keybase1.TeamData) error {
+	if len(needApplicationsAtGenerations) == 0 {
+		return nil
+	}
+	if state == nil {
+		return fmt.Errorf("nil team does not contain applications: %v", needApplicationsAtGenerations)
+	}
+	for ptkGen, apps := range needApplicationsAtGenerations {
+		for _, app := range apps {
+			if _, err := ApplicationKeyAtGeneration(libkb.NewMetaContext(ctx, l.G()), state, app, ptkGen); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
@@ -1142,13 +1201,13 @@ func (l *TeamLoader) isFresh(ctx context.Context, cachedAt keybase1.Time) bool {
 // Whether the teams secrets are synced to the same point as its sigchain
 func (l *TeamLoader) hasSyncedSecrets(state *keybase1.TeamData) bool {
 	onChainGen := keybase1.PerTeamKeyGeneration(len(state.Chain.PerTeamKeys))
-	offChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeeds))
+	offChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
 	return onChainGen == offChainGen
 }
 
 func (l *TeamLoader) logIfUnsyncedSecrets(ctx context.Context, state *keybase1.TeamData) {
 	onChainGen := keybase1.PerTeamKeyGeneration(len(state.Chain.PerTeamKeys))
-	offChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeeds))
+	offChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
 	if onChainGen != offChainGen {
 		l.G().Log.CDebugf(ctx, "TeamLoader unsynced secrets local:%v != chain:%v ", offChainGen, onChainGen)
 	}
@@ -1159,8 +1218,10 @@ func (l *TeamLoader) lows(ctx context.Context, state *keybase1.TeamData) getLink
 	if state != nil {
 		chain := TeamSigChainState{inner: state.Chain}
 		lows.Seqno = chain.GetLatestSeqno()
-		lows.PerTeamKey = keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeeds))
+		lows.PerTeamKey = keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
 		// Use an arbitrary application to get the number of known RKMs.
+		// TODO: using an arbitrary RKM is wrong and could lead to stuck caches.
+		//       See CORE-8445
 		rkms, ok := state.ReaderKeyMasks[keybase1.TeamApplication_CHAT]
 		if ok {
 			lows.ReaderKeyMask = keybase1.PerTeamKeyGeneration(len(rkms))

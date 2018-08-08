@@ -1,10 +1,12 @@
-Files:
-    • Create folders
-    • Upload files / images
+• You can now upload custom user and team avatars from inside the app
+
 Chat:
-    • Show overlay on gifs that have a static preview image
-    • Copy text of exploding messages
-    • Better feedback of images while uploading
-    • Correctly orient images in full screen view
-Other:
-    • Better handling of signup / log out flows
+    • React to chat messages with emojis
+    • Better image orientation on attachment
+    • Better 'new messages' line handling
+    • Improve attachment upload experience
+Other stuff:
+    • New hotkeys to switch application tabs. Just hit command (or control) and the numbers 1-7
+    • Simplified some social proof flows
+    • Simplified provisioning process
+    • Better revoke device page

@@ -47,15 +47,16 @@ func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (acc
 			Name:      account.Name,
 		}
 
-		balances, err := s.remoter.Balances(ctx, acct.AccountID)
+		details, err := s.remoter.Details(ctx, acct.AccountID)
 		if err != nil {
-			s.G().Log.CDebugf(ctx, "remote.Balances failed for %q: %s", acct.AccountID, err)
+			s.G().Log.CDebugf(ctx, "remote.Details failed for %q: %s", acct.AccountID, err)
 			return nil, err
 		}
-		acct.BalanceDescription, err = balanceList(balances).balanceDescription()
+		acct.BalanceDescription, err = balanceList(details.Balances).balanceDescription()
 		if err != nil {
 			return nil, err
 		}
+		acct.Seqno = details.Seqno
 
 		accts = append(accts, acct)
 	}

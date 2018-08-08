@@ -153,10 +153,12 @@ protocol teams {
     TeamName name;
     TeamSigChainState chain;
 
+    // These secrets may not match the team chain, always verify before use.
     // These secrets may be behind or missing if this is a public team.
     // generation -> seed
     // generations _must_ start from 1 with no gaps
-    map<PerTeamKeyGeneration,PerTeamKeySeedItem> perTeamKeySeeds;
+    @mpackkey("perTeamKeySeeds")
+    map<PerTeamKeyGeneration,PerTeamKeySeedItem> perTeamKeySeedsUnverified;
     // application -> generation -> mask
     // in each slot generations _must_ start from 1 with no gaps
     map<TeamApplication,map<PerTeamKeyGeneration,MaskB64>> readerKeyMasks;
@@ -516,6 +518,9 @@ protocol teams {
   record TeamRefreshers {
     // Load at least up to the keygen. Returns an error if the keygen is not loaded.
     PerTeamKeyGeneration needKeyGeneration;
+    // Load the reader key mask for the given applications and the given
+    // generations. Returns an error if any of the RKMs are not loaded.
+    map<PerTeamKeyGeneration,array<TeamApplication>> needApplicationsAtGenerations;
     // Refresh if the cached version does not have these members at the minimum role `wantMembersRole`.
     // Does not guarantee these members will be present in the returned team. This is especially
     // relevant in the case of deleted users, who won't be there after the refresh.

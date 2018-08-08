@@ -279,7 +279,7 @@ func (g *gregorHandler) monitorAppState() {
 					g.chatLog.Debug(context.Background(), "error reconnecting: %s", err)
 				}
 			}
-		case keybase1.AppState_BACKGROUND:
+		case keybase1.AppState_BACKGROUND, keybase1.AppState_INACTIVE:
 			g.chatLog.Debug(context.Background(), "backgrounded, shutting down connection")
 			g.Shutdown()
 		}

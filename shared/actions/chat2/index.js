@@ -15,7 +15,7 @@ import * as SearchGen from '../search-gen'
 import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as UsersGen from '../users-gen'
-import {hasCanPerform, retentionPolicyToServiceRetentionPolicy} from '../../constants/teams'
+import {hasCanPerform, retentionPolicyToServiceRetentionPolicy, teamRoleByEnum} from '../../constants/teams'
 import type {NavigateActions} from '../../constants/types/route-tree'
 import engine from '../../engine'
 import logger from '../../logger'
@@ -715,6 +715,22 @@ const setupChatHandlers = () => {
       'ChatHandler: got NotifyChat.ChatSetTeamRetention with no attached InboxUIItems. The local version may be out of date'
     )
   })
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatSetConvSettings', update => {
+    const conversationIDKey = Types.conversationIDToKey(update.convID)
+    const newRole =
+      update.conv &&
+      update.conv.convSettings &&
+      update.conv.convSettings.minWriterRoleInfo &&
+      update.conv.convSettings.minWriterRoleInfo.role
+    const role = newRole && teamRoleByEnum[newRole]
+    logger.info(`ChatHandler: got new minWriterRole ${role} for convID ${conversationIDKey}`)
+    if (role && role !== 'none') {
+      return [Chat2Gen.createSaveMinWriterRole({conversationIDKey, role})]
+    }
+    logger.warn(
+      `ChatHandler: got NotifyChat.ChatSetConvSettings with no valid minWriterRole for convID ${conversationIDKey}. The local version may be out of date.`
+    )
+  })
 }
 
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduce((arr, key) => {
@@ -1049,7 +1065,7 @@ const getIdentifyBehavior = (state: TypedState, conversationIDKey: Types.Convers
     : RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
-const messageReplyPrivately = (action: Chat2Gen.MessageReplyPrivatelyPayload, state: TypedState) => {
+const messageReplyPrivately = (state: TypedState, action: Chat2Gen.MessageReplyPrivatelyPayload) => {
   const {sourceConversationIDKey, ordinal} = action.payload
   const message = Constants.getMessage(state, sourceConversationIDKey, ordinal)
   if (!message) {
@@ -1057,22 +1073,23 @@ const messageReplyPrivately = (action: Chat2Gen.MessageReplyPrivatelyPayload, st
     return
   }
 
-  return createConversation(Chat2Gen.createCreateConversation({participants: [message.author]}), state)
-}
-
-const messageReplyPrivatelySuccess = (results: Array<any>, action: Chat2Gen.MessageReplyPrivatelyPayload) => {
-  const result: RPCChatTypes.NewConversationLocalRes = results[1]
-  const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
-  return Saga.sequentially([
-    Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'})),
-    Saga.put(
-      Chat2Gen.createMessageSetQuoting({
-        ordinal: action.payload.ordinal,
-        sourceConversationIDKey: action.payload.sourceConversationIDKey,
-        targetConversationIDKey: conversationIDKey,
-      })
-    ),
-  ])
+  return Saga.call(function*() {
+    const result: RPCChatTypes.NewConversationLocalRes = yield createConversation(
+      Chat2Gen.createCreateConversation({participants: [message.author]}),
+      state
+    )
+    const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
+    yield Saga.sequentially([
+      Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'})),
+      Saga.put(
+        Chat2Gen.createMessageSetQuoting({
+          ordinal: action.payload.ordinal,
+          sourceConversationIDKey: action.payload.sourceConversationIDKey,
+          targetConversationIDKey: conversationIDKey,
+        })
+      ),
+    ])
+  })
 }
 
 const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => {
@@ -1159,36 +1176,52 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
 
   // Inject pending message and make the call
-  return Saga.sequentially([
-    Saga.put(
-      Chat2Gen.createMessagesAdd({
-        context: {type: 'sent'},
-        messages: [
-          Constants.makePendingTextMessage(
-            state,
-            conversationIDKey,
-            text,
-            Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
-            ephemeralLifetime
-          ),
-        ],
-      })
-    ),
-    Saga.call(
-      RPCChatTypes.localPostTextNonblockRpcPromise,
-      {
-        ...ephemeralData,
-        body: text.stringValue(),
-        clientPrev,
-        conversationID: Types.keyToConversationID(conversationIDKey),
-        identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-        outboxID,
-        tlfName,
-        tlfPublic: false,
-      },
-      Constants.waitingKeyPost
-    ),
-  ])
+
+  const addMessage = Saga.put(
+    Chat2Gen.createMessagesAdd({
+      context: {type: 'sent'},
+      messages: [
+        Constants.makePendingTextMessage(
+          state,
+          conversationIDKey,
+          text,
+          Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
+          ephemeralLifetime
+        ),
+      ],
+    })
+  )
+
+  const postText = Saga.call(
+    RPCChatTypes.localPostTextNonblockRpcPromise,
+    {
+      ...ephemeralData,
+      body: text.stringValue(),
+      clientPrev,
+      conversationID: Types.keyToConversationID(conversationIDKey),
+      identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
+      outboxID,
+      tlfName,
+      tlfPublic: false,
+    },
+    Constants.waitingKeyPost
+  )
+
+  // Do some logging to track down the root cause of a bug causing
+  // messages to not send. Do this after creating the objects above to
+  // narrow down the places where the action can possibly stop.
+
+  logger.info('[MessageSend]', 'non-empty text?', text.stringValue().length > 0)
+
+  return Saga.sequentially([addMessage, postText])
+}
+
+const messageSendWithResult = (result, action) => {
+  logger.info('[MessageSend] success')
+}
+
+const messageSendWithError = (result, action) => {
+  logger.info('[MessageSend] error')
 }
 
 const previewConversationAfterFindExisting = (
@@ -2067,25 +2100,22 @@ const createConversation = (action: Chat2Gen.CreateConversationPayload, state: T
   if (!username) {
     throw new Error('Making a convo while logged out?')
   }
-  return Saga.sequentially([
-    Saga.call(
-      RPCChatTypes.localNewConversationLocalRpcPromise,
-      {
-        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-        membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
-        tlfName: I.Set([username])
-          .concat(action.payload.participants)
-          .join(','),
-        tlfVisibility: RPCTypes.commonTLFVisibility.private,
-        topicType: RPCChatTypes.commonTopicType.chat,
-      },
-      Constants.waitingKeyCreating
-    ),
-  ])
+  return Saga.call(
+    RPCChatTypes.localNewConversationLocalRpcPromise,
+    {
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
+      tlfName: I.Set([username])
+        .concat(action.payload.participants)
+        .join(','),
+      tlfVisibility: RPCTypes.commonTLFVisibility.private,
+      topicType: RPCChatTypes.commonTopicType.chat,
+    },
+    Constants.waitingKeyCreating
+  )
 }
 
-const createConversationSelectIt = (results: Array<any>) => {
-  const result: RPCChatTypes.NewConversationLocalRes = results[0]
+const createConversationSelectIt = (result: RPCChatTypes.NewConversationLocalRes) => {
   const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
   if (!conversationIDKey) {
     logger.warn("Couldn't make a new conversation?")
@@ -2249,6 +2279,15 @@ const handleFilePickerError = (action: Chat2Gen.FilePickerErrorPayload) => {
   throw action.payload.error
 }
 
+const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
+  const {conversationIDKey, role} = action.payload
+  logger.info(`Setting minWriterRole to ${role} for convID ${conversationIDKey}`)
+  return Saga.call(RPCChatTypes.localSetConvMinWriterRoleLocalRpcPromise, {
+    convID: Types.keyToConversationID(conversationIDKey),
+    role: RPCTypes.teamsTeamRole[role],
+  })
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -2306,7 +2345,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
 
   yield Saga.safeTakeEveryPure(Chat2Gen.messageRetry, messageRetry)
-  yield Saga.safeTakeEveryPure(Chat2Gen.messageSend, messageSend)
+  yield Saga.safeTakeEveryPure(Chat2Gen.messageSend, messageSend, messageSendWithResult, messageSendWithError)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageEdit, messageEdit)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageEdit, clearMessageSetEditing)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageDelete, messageDelete)
@@ -2367,11 +2406,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.blockConversation, blockConversation)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
-  yield Saga.safeTakeEveryPure(
-    Chat2Gen.messageReplyPrivately,
-    messageReplyPrivately,
-    messageReplyPrivatelySuccess
-  )
+  yield Saga.actionToAction(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
   yield Saga.safeTakeEveryPure(Chat2Gen.createConversation, createConversation, createConversationSelectIt)
   yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.previewConversation], changePendingMode)
 
@@ -2386,6 +2421,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
   yield Saga.actionToPromise(ConfigGen.bootstrapSuccess, loadStaticConfig)
   yield Saga.safeTakeEveryPure(Chat2Gen.filePickerError, handleFilePickerError)
+  yield Saga.safeTakeEveryPure(Chat2Gen.setMinWriterRole, setMinWriterRole)
 }
 
 export default chat2Saga

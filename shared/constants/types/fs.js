@@ -28,41 +28,45 @@ export type ResetMember = {
   uid: string,
 }
 
-export type FavoriteMetadata = {|
-  folderType: RPCTypes.FolderType,
+// TODO: make structs above immutable
+
+export type TlfType = 'private' | 'public' | 'team'
+
+export type _Tlf = {
+  name: string,
+  isFavorite: boolean,
   isIgnored: boolean,
   isNew: boolean,
   needsRekey: boolean,
-  waitingForParticipantUnlock?: Array<ParticipantUnlock>,
-  youCanUnlock?: Array<Device>,
-  resetParticipants: Array<ResetMember>,
+  resetParticipants: I.List<ResetMember>,
   teamId: RPCTypes.TeamID,
-|}
-
-export type _FavoriteItem = {
-  badgeCount: number,
-  name: string,
-  tlfMeta?: FavoriteMetadata,
-  favoriteChildren?: I.Set<string>,
+  waitingForParticipantUnlock?: I.List<ParticipantUnlock>,
+  youCanUnlock?: I.List<Device>,
 }
+export type Tlf = I.RecordOf<_Tlf>
 
-export type FavoriteItem = I.RecordOf<_FavoriteItem>
+// name -> Tlf
+export type TlfList = I.Map<string, Tlf>
+
+export type _Tlfs = {
+  private: TlfList,
+  public: TlfList,
+  team: TlfList,
+}
+export type Tlfs = I.RecordOf<_Tlfs>
 
 export type PathItemMetadata = {
   name: string,
   lastModifiedTimestamp: number,
   size: number,
   lastWriter: RPCTypes.User,
-  progress: ProgressType,
-  badgeCount: number,
   writable: boolean,
-  tlfMeta?: FavoriteMetadata,
 }
 
 export type _FolderPathItem = {
   type: 'folder',
   children: I.Set<string>,
-  favoriteChildren: I.Set<string>,
+  progress: ProgressType,
 } & PathItemMetadata
 export type FolderPathItem = I.RecordOf<_FolderPathItem>
 
@@ -176,6 +180,7 @@ export type LocalHTTPServer = I.RecordOf<_LocalHTTPServer>
 
 export type _State = {
   pathItems: I.Map<Path, PathItem>,
+  tlfs: Tlfs,
   edits: I.Map<EditID, Edit>,
   pathUserSettings: I.Map<Path, PathUserSetting>,
   loadingPaths: I.Set<Path>,
@@ -187,7 +192,7 @@ export type _State = {
 }
 export type State = I.RecordOf<_State>
 
-export type Visibility = 'private' | 'public' | 'team' | null
+export type Visibility = TlfType | null
 
 export const direntToPathType = (d: RPCTypes.Dirent): PathType => {
   switch (d.direntType) {
@@ -280,7 +285,8 @@ export const getLocalPathName = (localPath: LocalPath): string => {
   return ''
 }
 export const getLocalPathDir = (p: LocalPath): string => p.slice(0, p.lastIndexOf(localSep))
-export const getNormalizedLocalPath = (p: LocalPath): LocalPath => localSep === '\\' ? p.replace(/\\/g, '/') : p
+export const getNormalizedLocalPath = (p: LocalPath): LocalPath =>
+  localSep === '\\' ? p.replace(/\\/g, '/') : p
 
 type sortSettingDisplayParams = {
   sortSettingText: string,
@@ -382,6 +388,17 @@ export type ResetMetadata = {
   resetParticipants: Array<string>,
 }
 
+export type TlfTypeRowItem = {
+  rowType: 'tlf-type',
+  name: TlfType,
+}
+
+export type TlfRowItem = {
+  rowType: 'tlf',
+  tlfType: TlfType,
+  name: string,
+}
+
 export type StillRowItem = {
   rowType: 'still',
   path: Path,
@@ -406,7 +423,13 @@ export type PlaceholderRowItem = {
   type: 'folder' | 'file',
 }
 
-export type RowItem = StillRowItem | EditingRowItem | UploadingRowItem | PlaceholderRowItem
+export type RowItem =
+  | TlfTypeRowItem
+  | TlfRowItem
+  | StillRowItem
+  | EditingRowItem
+  | UploadingRowItem
+  | PlaceholderRowItem
 
 // RefreshTag is used by components in FsGen.folderListLoad and
 // FsGen.mimeTypeLoad actions, to indicate that it's interested in refreshing

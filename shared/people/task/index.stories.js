@@ -8,6 +8,24 @@ const actionProps = {
   onDismiss: action('onDismiss'),
 }
 
+const avatarTeamTaskProps: Props = {
+  badged: true,
+  confirmLabel: 'Edit team avatar',
+  instructions: 'NEW! Change your team’s avatar from within the Keybase app.',
+  dismissable: false,
+  icon: 'icon-onboarding-team-avatar-32',
+  ...actionProps,
+}
+
+const avatarUserTaskProps: Props = {
+  badged: true,
+  confirmLabel: 'Edit avatar',
+  instructions: 'NEW! Change your photo from within the Keybase app.',
+  dismissable: false,
+  icon: 'icon-onboarding-user-avatar-32',
+  ...actionProps,
+}
+
 const bioTaskProps: Props = {
   badged: true,
   confirmLabel: 'Edit profile',
@@ -106,6 +124,8 @@ const publicityTaskProps: Props = {
 
 const load = () => {
   storiesOf('People/Todos', module)
+    .add('Edit team avatar', () => <Task {...avatarTeamTaskProps} />)
+    .add('Edit avatar', () => <Task {...avatarUserTaskProps} />)
     .add('Fill out bio', () => <Task {...bioTaskProps} />)
     .add('Prove something', () => <Task {...proofTaskProps} />)
     .add('Install on phone', () => <Task {...installTaskProps} />)

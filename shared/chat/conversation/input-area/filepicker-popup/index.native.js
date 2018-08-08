@@ -3,6 +3,7 @@ import * as React from 'react'
 import {FloatingMenu} from '../../../../common-adapters'
 import {Box2, Text} from '../../../../common-adapters/mobile.native'
 import type {Props} from './index.types'
+import {isIOS} from '../../../../constants/platform'
 
 const Prompt = () => (
   <Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={promptContainerStyle}>
@@ -16,16 +17,48 @@ const promptContainerStyle = {
 }
 
 class FilePickerPopup extends React.Component<Props> {
-  onImage = () => {
-    this.props.onSelect('photo')
-  }
-
-  onVideo = () => {
-    this.props.onSelect('video')
-  }
-
   render() {
-    const items = [...[{onClick: this.onImage, title: 'Photo'}], ...[{onClick: this.onVideo, title: 'Video'}]]
+    const items = isIOS
+      ? [
+          {
+            onClick: () => {
+              this.props.onSelect('mixed', 'camera')
+            },
+            title: 'Take Photo or Video',
+          },
+          {
+            onClick: () => {
+              this.props.onSelect('mixed', 'library')
+            },
+            title: 'Choose from Library',
+          },
+        ]
+      : [
+          {
+            onClick: () => {
+              this.props.onSelect('photo', 'camera')
+            },
+            title: 'Take Photo',
+          },
+          {
+            onClick: () => {
+              this.props.onSelect('video', 'camera')
+            },
+            title: 'Take Video',
+          },
+          {
+            onClick: () => {
+              this.props.onSelect('photo', 'library')
+            },
+            title: 'Photo from Library',
+          },
+          {
+            onClick: () => {
+              this.props.onSelect('video', 'library')
+            },
+            title: 'Video from Library',
+          },
+        ]
     const header = {
       title: 'header',
       view: <Prompt />,

@@ -1353,7 +1353,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 // MakePreview implements chat1.LocalInterface.MakePreview.
 func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res chat1.MakePreviewRes, err error) {
 	defer h.Trace(ctx, func() error { return err }, "MakePreview")()
-	pre, err := attachments.PreprocessAsset(ctx, h.DebugLabeler, arg.Filename, nil)
+	pre, err := attachments.PreprocessAsset(ctx, h.G(), h.DebugLabeler, arg.Filename, nil)
 	if err != nil {
 		return chat1.MakePreviewRes{}, err
 	}
@@ -1447,13 +1447,13 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 		return res, err
 	}
 	// Start upload
-	uresChan, err := h.G().AttachmentUploader.Register(ctx, uid, arg.Arg.ConversationID,
+	uresCb, err := h.G().AttachmentUploader.Register(ctx, uid, arg.Arg.ConversationID,
 		outboxID, arg.Arg.Title, arg.Arg.Filename, arg.Arg.Metadata, arg.Arg.CallerPreview)
 	if err != nil {
 		return res, err
 	}
 	// Wait for upload
-	ures := <-uresChan
+	ures := <-uresCb.Wait()
 	if ures.Error != nil {
 		h.Debug(ctx, "postAttachmentLocal: upload failed, bailing out: %s", *ures.Error)
 		return res, errors.New(*ures.Error)
@@ -1510,6 +1510,16 @@ func (h *Server) DownloadAttachmentLocal(ctx context.Context, arg chat1.Download
 	return h.downloadAttachmentLocal(ctx, uid, darg)
 }
 
+type discardWriterCloser struct{}
+
+func (discardWriterCloser) Write(b []byte) (int, error) {
+	return len(b), nil
+}
+
+func (discardWriterCloser) Close() error {
+	return nil
+}
+
 // DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
 func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (res chat1.DownloadAttachmentLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -1528,9 +1538,15 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 		Preview:          arg.Preview,
 		IdentifyBehavior: arg.IdentifyBehavior,
 	}
-	sink, err := os.OpenFile(arg.Filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		return chat1.DownloadAttachmentLocalRes{}, err
+	var sink io.WriteCloser
+	if h.G().GetAppType() == libkb.MobileAppType {
+		// We never want to actually download anything on mobile, just get it in our cache
+		sink = discardWriterCloser{}
+	} else {
+		sink, err = os.OpenFile(arg.Filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+		if err != nil {
+			return chat1.DownloadAttachmentLocalRes{}, err
+		}
 	}
 	darg.Sink = sink
 
@@ -1590,10 +1606,13 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return err
 	}
-
 	uid := h.G().Env.GetUID()
 	outbox := storage.NewOutbox(h.G(), uid.ToBytes())
-	return outbox.RemoveMessage(ctx, outboxID)
+	if err := outbox.RemoveMessage(ctx, outboxID); err != nil {
+		return err
+	}
+	// Alert the attachment uploader as well, in case this outboxID corresponds to an attachment upload
+	return h.G().AttachmentUploader.Cancel(ctx, outboxID)
 }
 
 func (h *Server) RetryPost(ctx context.Context, arg chat1.RetryPostArg) (err error) {
