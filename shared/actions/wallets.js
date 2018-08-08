@@ -57,6 +57,14 @@ const loadPayments = (
     })
   )
 
+const loadDisplayCurrencies = (state: TypedState, action: WalletsGen.LoadDisplayCurrenciesPayload) =>
+  RPCTypes.localGetDisplayCurrenciesLocalRpcPromise({
+  }).then(res =>
+    WalletsGen.createDisplayCurrenciesReceived({
+      currencies: (res || []).map(currencies => Constants.currenciesResultToCurrencies(currencies)),
+    })
+  )
+
 const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDetailPayload) =>
   RPCTypes.localGetPaymentDetailsLocalRpcPromise({
     accountID: action.payload.accountID,
@@ -153,6 +161,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.validateAccountName, validateAccountName)
   yield Saga.actionToPromise(WalletsGen.validateSecretKey, validateSecretKey)
   yield Saga.actionToPromise(WalletsGen.exportSecretKey, exportSecretKey)
+  yield Saga.actionToPromise(WalletsGen.loadDisplayCurrencies, loadDisplayCurrencies)
   yield Saga.safeTakeEveryPure(
     [WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
     navigateToAccount

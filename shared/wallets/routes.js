@@ -6,6 +6,7 @@ import Container from './container'
 import ReceiveModal from './receive-modal/container'
 import ExportSecretKey from './export-secret-key/container'
 import TransactionDetails from './transaction-details/container'
+import SettingsPopup from './wallet/settings-popup/container'
 
 const routeTree = makeRouteDefNode({
   children: {
@@ -23,6 +24,9 @@ const routeTree = makeRouteDefNode({
       children: {},
       component: ReceiveModal,
       tags: makeLeafTags({layerOnTop: !isMobile}),
+    },
+    settings: {
+      component: SettingsPopup,
     },
     transactionDetails: {
       component: TransactionDetails,

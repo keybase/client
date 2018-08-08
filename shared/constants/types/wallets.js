@@ -50,6 +50,13 @@ export type _Assets = {
   reserves: I.List<Reserve>,
 }
 
+export type _LocalCurrency = {
+  description: string,
+  code: string,
+  symbol: string,
+  name: string,
+}
+
 export type StatusSimplified = 'none' | 'pending' | 'claimable' | 'completed' | 'error' | 'unknown'
 
 export type _Payment = {
@@ -80,6 +87,8 @@ export type Assets = I.RecordOf<_Assets>
 
 export type Payment = I.RecordOf<_Payment>
 
+export type Currency = I.RecordOf<_LocalCurrency>
+
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
 export type _State = {
@@ -97,5 +106,6 @@ export type _State = {
   paymentsMap: I.Map<AccountID, I.List<Payment>>,
   secretKeyMap: I.Map<AccountID, HiddenString>,
   selectedAccount: AccountID,
+  currencies: I.List<Currency>,
 }
 export type State = I.RecordOf<_State>

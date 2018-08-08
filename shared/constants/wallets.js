@@ -29,6 +29,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   secretKeyMap: I.Map(),
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
+  currencies: I.List(),
 })
 
 const makeAccount: I.RecordFactory<Types._Account> = I.Record({
@@ -71,6 +72,21 @@ const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     worthCurrency: w.worthCurrency,
     availableToSendWorth: w.availableToSendWorth,
     reserves: I.List((w.reserves || []).map(makeReserve)),
+  })
+
+const makeCurrencies: I.RecordFactory<Types._LocalCurrency> = I.Record({
+  description: '',
+  code: '',
+  symbol: '',
+  name: '',
+})
+
+const currenciesResultToCurrencies = (w: RPCTypes.LocalCurrency) =>
+  makeCurrencies({
+    description: w.description,
+    code: w.code,
+    symbol: w.symbol,
+    name: w.name,
   })
 
 const makePayment: I.RecordFactory<Types._Payment> = I.Record({
@@ -173,6 +189,7 @@ const getSecretKey = (state: TypedState, accountID: Types.AccountID) => state.wa
 export {
   accountResultToAccount,
   assetsResultToAssets,
+  currenciesResultToCurrencies,
   getAccountIDs,
   getAccount,
   getAssets,

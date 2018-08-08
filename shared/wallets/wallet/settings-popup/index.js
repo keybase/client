@@ -29,6 +29,7 @@ export type Props = {
   onSetDefault: () => void,
   onEditName: () => void,
   onCurrencyChange: (currency: string) => void,
+  refresh: () => void,
 }
 
 const makeDropdownItems = (props: Props) => {

@@ -38,7 +38,15 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps) => ({
   onSendToAnotherWallet: nyi,
   onSendToKeybaseUser: nyi,
   onSendToStellarAddress: nyi,
-  onSettings: nyi,
+  _onSettings: (accountID: Types.AccountID) =>
+    dispatch(
+      ownProps.navigateAppend([
+        {
+          props: {accountID},
+          selected: 'settings',
+        },
+      ])
+    ),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -46,6 +54,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...dispatchProps,
   onReceive: () => dispatchProps._onReceive(stateProps.accountID),
   onShowSecretKey: () => dispatchProps._onShowSecretKey(stateProps.accountID),
+  onSettings: () => dispatchProps._onSettings(stateProps.accountID),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Header)
