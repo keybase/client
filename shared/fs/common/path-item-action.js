@@ -157,7 +157,6 @@ const stylesNameTextBox = platformStyles({
   common: {
     paddingLeft: globalMargins.small,
     paddingRight: globalMargins.small,
-    width: '100%',
   },
   isElectron: {
     textAlign: 'center',
