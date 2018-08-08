@@ -351,8 +351,8 @@ const handlePush = (_: any, action: PushGen.NotificationPayload) => {
 }
 
 const uploadPushToken = (state: TypedState) =>
-  state.push.token &&
-  state.config.deviceID &&
+  !!state.push.token &&
+  !!state.config.deviceID &&
   RPCTypes.apiserverPostRpcPromise({
     args: [
       {key: 'push_token', value: state.push.token},
