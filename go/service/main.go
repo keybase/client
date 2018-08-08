@@ -673,6 +673,10 @@ func (d *Service) slowChecks() {
 		ticker.Stop()
 		return nil
 	})
+	// Do this once fast
+	if err := d.deviceCloneSelfCheck(); err != nil {
+		d.G().Log.Debug("deviceCloneSelfCheck error: %s", err)
+	}
 	go func() {
 		for {
 			<-ticker.C
