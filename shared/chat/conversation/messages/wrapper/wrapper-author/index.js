@@ -70,6 +70,7 @@ const MenuButtons = ({conversationIDKey, onClick, ordinal, setRef}) => (
       ordinal={ordinal}
       showBorder={false}
       tooltipEnabled={false}
+      style={styles.reactButton}
     />
     <Box ref={setRef}>
       <Icon
@@ -281,6 +282,11 @@ const styles = styleSheetCreate({
     position: 'relative',
     top: 1,
   },
+  reactButton: platformStyles({
+    isElectron: {
+      marginTop: -3,
+    },
+  }),
   rightSide: {
     ...globalStyles.flexBoxColumn,
     flex: 1,
