@@ -33,11 +33,3 @@ func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastLoadTea
 func (f *FastTeamChainLoader) ResolveIDToNameViaMerkleTree(m libkb.MetaContext, arg keybase1.FastResolveIDToNameArg) (res keybase1.TeamName, err error) {
 	return res, err
 }
-
-// ProbabilisticMerkleTeamAudit runs an audit on the links of the given team chain (or subchain).
-// The security factor of the audit is a function of the platform type, and the amount of time
-// since the last audit. This method should use some sort of long-lived cache (via local DB) so that
-// previous audits can be combined with the current one.
-func ProbabilisticMerkleTeamAudit(m libkb.MetaContext, id keybase1.TeamID, chain []SCChainLink) (err error) {
-	return nil
-}
