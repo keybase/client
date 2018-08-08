@@ -192,8 +192,7 @@ function updatedFonts() {
         svg: {
           center: true,
           normalize: true,
-          fontHeight: 200,
-          // round: 10e18, // precision to round svg paths
+          fontHeight: 1024,
         },
       },
     },
