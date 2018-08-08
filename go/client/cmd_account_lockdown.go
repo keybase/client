@@ -52,6 +52,22 @@ func NewCmdAccountLockdown(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "lockdown", c)
 		},
+		Description: `Lockdown mode can be enabled for any Keybase account with one of
+   provisioned devices. Enabling lockdown mode does not add a link to
+   user's sigchain. Lockdown mode is an extension of Keybase API
+   server access control.
+
+   When lockdown mode is enabled, some operations are blocked for
+   website sessions, including (but not limited to):
+       - account delete or reset,
+       - posting signatures,
+       - changing password or e-mail address,
+       - changing profile information or profile picture.
+
+   These actions are still possible using the Keybase client.
+
+   Lockdown mode offers account protection in case of someone stealing
+   your browser session or account password.`,
 	}
 }
 
@@ -131,6 +147,8 @@ func (c *CmdAccountLockdown) Run() error {
 		if err != nil {
 			return err
 		}
+	} else {
+		fmt.Fprintf(tui.ErrorWriter(), "Learn more about lockdown mode: `%s`\n", ColorString(c.G(), "bold", "keybase account lockdown -h"))
 	}
 
 	res, err := cli.GetLockdownMode(context.Background(), 0)
