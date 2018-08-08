@@ -9,6 +9,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"fmt"
 	"net/http"
 	"os"
 	"path"
@@ -97,6 +98,16 @@ func followSymlink(parentPath, link string) (newPath string, err error) {
 	return newPath, nil
 }
 
+// ErrNotADirectory is returned when a non-final path element exists but is not
+// a directory.
+type ErrNotADirectory struct {
+	Name string
+}
+
+func (e ErrNotADirectory) Error() string {
+	return fmt.Sprintf("%s is not a directory", e.Name)
+}
+
 // NewFS returns a new FS instance, chroot'd to the given TLF and
 // subdir within that TLF.  `subdir` must exist, and point to a
 // directory, before this function is called.  `uniqID` needs to
@@ -154,8 +165,7 @@ outer:
 				n = rootNode
 				continue outer
 			default:
-				return nil, errors.Errorf("%s is not a directory",
-					path.Join(parts[:i]...))
+				return nil, ErrNotADirectory{Name: path.Join(parts[:i+1]...)}
 			}
 		}
 		// Successfully looked up all directories.
@@ -286,8 +296,7 @@ func (fs *FS) lookupParentWithDepth(
 		case libkbfs.Dir:
 			continue
 		default:
-			return nil, "", "", errors.Errorf("%s is not a directory",
-				path.Join(parts[:i]...))
+			return nil, "", "", ErrNotADirectory{Name: path.Join(parts[:i+1]...)}
 		}
 	}
 
@@ -341,7 +350,7 @@ func (fs *FS) lookupOrCreateEntry(
 
 func translateErr(err error) error {
 	switch errors.Cause(err).(type) {
-	case libkbfs.NoSuchNameError:
+	case libkbfs.NoSuchNameError, ErrNotADirectory:
 		return os.ErrNotExist
 	case libkbfs.TlfAccessError, libkbfs.ReadAccessError:
 		return os.ErrPermission
