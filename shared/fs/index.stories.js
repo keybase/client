@@ -65,6 +65,11 @@ const rowProviders = {
     ...ownProps,
     onOpen: () => {},
   }),
+  ConnectedOpenInFileUI: () => ({
+    kbfsEnabled: false,
+    openInFileUI: Sb.action('openInFileUI'),
+    installFuse: Sb.action('installFuse'),
+  }),
 }
 
 const provider = Sb.createPropProviderWithCommon({
@@ -109,8 +114,8 @@ const provider = Sb.createPropProviderWithCommon({
       sortBy: 'name',
       sortOrder: 'asc',
     },
-    onOpenSortSettingPopup: () => {},
     folderIsPending: true,
+    sortSettingToAction: sortSetting => Sb.action(`sortSettingToAction${sortSetting}`),
   }),
   FilesBanner: () => ({
     path: Types.stringToPath('/keybase'),
