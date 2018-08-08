@@ -1,10 +1,10 @@
 // @flow
-import ChatBox from './chat.desktop'
-import React, {Component} from 'react'
-import flags from '../util/feature-flags'
+import * as React from 'react'
 import * as Kb from '../common-adapters'
+import Flags from '../util/feature-flags'
 import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
+import ChatBox from './chat.desktop'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash-es'
@@ -29,7 +29,7 @@ type State = {|
   showingMenu: boolean,
 |}
 
-class MenubarRender extends Component<Props, State> {
+class MenubarRender extends React.Component<Props, State> {
   state: State = {
     showingMenu: false,
   }
@@ -109,7 +109,7 @@ class MenubarRender extends Component<Props, State> {
 
   _menuItems(countMap: Object) {
     return [
-      ...(flags.walletsEnabled
+      ...(Flags.walletsEnabled
         ? [
             {
               title: 'Wallet',
@@ -151,7 +151,7 @@ class MenubarRender extends Component<Props, State> {
 
   _renderLoggedIn() {
     const badgeTypesInHeader: Array<Tabs.Tab> = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsTab]
-    const badgesInMenu = [...(flags.walletsEnabled ? [Tabs.walletsTab] : []), Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab]
+    const badgesInMenu = [...(Flags.walletsEnabled ? [Tabs.walletsTab] : []), Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab]
     const badgeCountInMenu = badgesInMenu.reduce(
       (acc, val) => (this.props.badgeInfo[val] ? acc + this.props.badgeInfo[val] : acc),
       0
