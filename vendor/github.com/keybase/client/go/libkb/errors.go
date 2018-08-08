@@ -279,6 +279,11 @@ func (e NotFoundError) Error() string {
 	return e.Msg
 }
 
+func IsNotFoundError(err error) bool {
+	_, ok := err.(NotFoundError)
+	return ok
+}
+
 //=============================================================================
 
 type MissingDelegationTypeError struct{}
@@ -298,6 +303,11 @@ func (u NoKeyError) Error() string {
 		return u.Msg
 	}
 	return "No public key found"
+}
+
+func IsNoKeyError(err error) bool {
+	_, ok := err.(NoKeyError)
+	return ok
 }
 
 type NoSyncedPGPKeyError struct{}
@@ -431,6 +441,18 @@ type AppStatusError struct {
 	Name   string
 	Desc   string
 	Fields map[string]string
+}
+
+// If the error is an AppStatusError, returns its code.
+// Otherwise returns (SCGeneric, false).
+func GetAppStatusCode(err error) (code keybase1.StatusCode, ok bool) {
+	code = keybase1.StatusCode_SCGeneric
+	switch err := err.(type) {
+	case AppStatusError:
+		return keybase1.StatusCode(err.Code), true
+	default:
+		return code, false
+	}
 }
 
 func (a AppStatusError) IsBadField(s string) bool {
@@ -766,29 +788,55 @@ func (k KeyUnimplementedError) Error() string {
 }
 
 type NoPGPEncryptionKeyError struct {
-	User         string
-	HasDeviceKey bool
+	User                    string
+	HasKeybaseEncryptionKey bool
 }
 
 func (e NoPGPEncryptionKeyError) Error() string {
 	var other string
-	if e.HasDeviceKey {
-		other = "; they do have a device key, so you can `keybase encrypt` to them instead"
+	if e.HasKeybaseEncryptionKey {
+		other = "; they do have a keybase key, so you can `keybase encrypt` to them instead"
 	}
 	return fmt.Sprintf("User %s doesn't have a PGP key%s", e.User, other)
 }
 
 type NoNaClEncryptionKeyError struct {
-	User      string
-	HasPGPKey bool
+	Username     string
+	HasPGPKey    bool
+	HasPUK       bool
+	HasDeviceKey bool
+	HasPaperKey  bool
 }
 
 func (e NoNaClEncryptionKeyError) Error() string {
 	var other string
-	if e.HasPGPKey {
-		other = "; they do have a PGP key, so you can `keybase pgp encrypt` to them instead"
+	switch {
+	case e.HasPUK:
+		other = "; they have a per user key, so you can encrypt without the `--no-entity-keys` flag to them instead"
+	case e.HasDeviceKey:
+		other = "; they do have a device key, so you can encrypt without the `--no-device-keys` flag to them instead"
+	case e.HasPaperKey:
+		other = "; they do have a paper key, so you can encrypt without the `--no-paper-keys` flag to them instead"
+	case e.HasPGPKey:
+		other = "; they do have a PGP key, so you can `keybase pgp encrypt` to encrypt for them instead"
 	}
-	return fmt.Sprintf("User %s doesn't have a device key%s", e.User, other)
+
+	return fmt.Sprintf("User %s doesn't have the necessary key type(s)%s", e.Username, other)
+}
+
+type KeyPseudonymError struct {
+	message string
+}
+
+func (e KeyPseudonymError) Error() string {
+	if e.message != "" {
+		return e.message
+	}
+	return "Bad Key Pseydonym or Nonce"
+}
+
+func NewKeyPseudonymError(message string) KeyPseudonymError {
+	return KeyPseudonymError{message: message}
 }
 
 //=============================================================================
@@ -1163,6 +1211,7 @@ const (
 	merkleErrorKBFSMismatch
 	merkleErrorBadRoot
 	merkleErrorOldTree
+	merkleErrorOutOfOrderCtime
 )
 
 type MerkleClientError struct {
@@ -1605,6 +1654,11 @@ type ResolutionError struct {
 
 func (e ResolutionError) Error() string {
 	return fmt.Sprintf("In resolving '%s': %s", e.Input, e.Msg)
+}
+
+func IsResolutionError(err error) bool {
+	_, ok := err.(ResolutionError)
+	return ok
 }
 
 //=============================================================================
@@ -2086,6 +2140,22 @@ var _ error = (*PseudonymGetError)(nil)
 
 //=============================================================================
 
+// PseudonymGetError is sometimes written by unmarshaling (some fields of) a server response.
+type KeyPseudonymGetError struct {
+	msg string
+}
+
+func (e KeyPseudonymGetError) Error() string {
+	if e.msg == "" {
+		return "Pseudonym could not be resolved"
+	}
+	return e.msg
+}
+
+var _ error = (*KeyPseudonymGetError)(nil)
+
+//=============================================================================
+
 type PerUserKeyImportError struct {
 	msg string
 }
@@ -2390,3 +2460,13 @@ func (e EphemeralPairwiseMACsMissingUIDsError) Error() string {
 }
 
 //=============================================================================
+
+type RecipientNotFoundError struct {
+	error
+}
+
+func NewRecipientNotFoundError(message string) error {
+	return RecipientNotFoundError{
+		error: fmt.Errorf(message),
+	}
+}

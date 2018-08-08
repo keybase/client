@@ -6,6 +6,7 @@ package openpgp
 
 import (
 	"crypto/hmac"
+	"crypto/rsa"
 	"encoding/binary"
 	"io"
 	"time"
@@ -13,7 +14,6 @@ import (
 	"github.com/keybase/go-crypto/openpgp/armor"
 	"github.com/keybase/go-crypto/openpgp/errors"
 	"github.com/keybase/go-crypto/openpgp/packet"
-	"github.com/keybase/go-crypto/rsa"
 )
 
 // PublicKeyType is the armor type for a PGP public key.
@@ -72,6 +72,7 @@ type Key struct {
 	PublicKey     *packet.PublicKey
 	PrivateKey    *packet.PrivateKey
 	SelfSignature *packet.Signature
+	KeyFlags      packet.KeyFlagBits
 }
 
 // A KeyRing provides access to public and private keys.
@@ -117,7 +118,8 @@ func (e *Entity) primaryIdentity() *Identity {
 func (e *Entity) encryptionKey(now time.Time) (Key, bool) {
 	candidateSubkey := -1
 
-	// Iterate the keys to find the newest key
+	// Iterate the keys to find the newest, non-revoked key that can
+	// encrypt.
 	var maxTime time.Time
 	for i, subkey := range e.Subkeys {
 
@@ -145,7 +147,7 @@ func (e *Entity) encryptionKey(now time.Time) (Key, bool) {
 
 	if candidateSubkey != -1 {
 		subkey := e.Subkeys[candidateSubkey]
-		return Key{e, subkey.PublicKey, subkey.PrivateKey, subkey.Sig}, true
+		return Key{e, subkey.PublicKey, subkey.PrivateKey, subkey.Sig, subkey.Sig.GetKeyFlags()}, true
 	}
 
 	// If we don't have any candidate subkeys for encryption and
@@ -159,7 +161,7 @@ func (e *Entity) encryptionKey(now time.Time) (Key, bool) {
 	if (!i.SelfSignature.FlagsValid || i.SelfSignature.FlagEncryptCommunications) &&
 		e.PrimaryKey.PubKeyAlgo.CanEncrypt() &&
 		!i.SelfSignature.KeyExpired(now) {
-		return Key{e, e.PrimaryKey, e.PrivateKey, i.SelfSignature}, true
+		return Key{e, e.PrimaryKey, e.PrivateKey, i.SelfSignature, i.SelfSignature.GetKeyFlags()}, true
 	}
 
 	// This Entity appears to be signing only.
@@ -171,20 +173,25 @@ func (e *Entity) encryptionKey(now time.Time) (Key, bool) {
 func (e *Entity) signingKey(now time.Time) (Key, bool) {
 	candidateSubkey := -1
 
+	// Iterate the keys to find the newest, non-revoked key that can
+	// sign.
+	var maxTime time.Time
 	for i, subkey := range e.Subkeys {
 		if (!subkey.Sig.FlagsValid || subkey.Sig.FlagSign) &&
 			subkey.PrivateKey.PrivateKey != nil &&
 			subkey.PublicKey.PubKeyAlgo.CanSign() &&
+			!subkey.Sig.KeyExpired(now) &&
 			subkey.Revocation == nil &&
-			!subkey.Sig.KeyExpired(now) {
+			(maxTime.IsZero() || subkey.Sig.CreationTime.After(maxTime)) {
 			candidateSubkey = i
+			maxTime = subkey.Sig.CreationTime
 			break
 		}
 	}
 
 	if candidateSubkey != -1 {
 		subkey := e.Subkeys[candidateSubkey]
-		return Key{e, subkey.PublicKey, subkey.PrivateKey, subkey.Sig}, true
+		return Key{e, subkey.PublicKey, subkey.PrivateKey, subkey.Sig, subkey.Sig.GetKeyFlags()}, true
 	}
 
 	// If we have no candidate subkey then we assume that it's ok to sign
@@ -194,7 +201,7 @@ func (e *Entity) signingKey(now time.Time) (Key, bool) {
 		e.PrimaryKey.PubKeyAlgo.CanSign() &&
 		!i.SelfSignature.KeyExpired(now) &&
 		e.PrivateKey.PrivateKey != nil {
-		return Key{e, e.PrimaryKey, e.PrivateKey, i.SelfSignature}, true
+		return Key{e, e.PrimaryKey, e.PrivateKey, i.SelfSignature, i.SelfSignature.GetKeyFlags()}, true
 	}
 
 	return Key{}, false
@@ -229,7 +236,13 @@ func (el EntityList) KeysById(id uint64, fp []byte) (keys []Key) {
 					break
 				}
 			}
-			keys = append(keys, Key{e, e.PrimaryKey, e.PrivateKey, selfSig})
+
+			var keyFlags packet.KeyFlagBits
+			for _, ident := range e.Identities {
+				keyFlags.Merge(ident.SelfSignature.GetKeyFlags())
+			}
+
+			keys = append(keys, Key{e, e.PrimaryKey, e.PrivateKey, selfSig, keyFlags})
 		}
 
 		for _, subKey := range e.Subkeys {
@@ -242,7 +255,7 @@ func (el EntityList) KeysById(id uint64, fp []byte) (keys []Key) {
 					sig = subKey.Sig
 				}
 
-				keys = append(keys, Key{e, subKey.PublicKey, subKey.PrivateKey, sig})
+				keys = append(keys, Key{e, subKey.PublicKey, subKey.PrivateKey, sig, sig.GetKeyFlags()})
 			}
 		}
 	}
@@ -269,19 +282,8 @@ func (el EntityList) KeysByIdUsage(id uint64, fp []byte, requiredUsage byte) (ke
 			var usage byte
 
 			switch {
-			case key.SelfSignature.FlagsValid:
-				if key.SelfSignature.FlagCertify {
-					usage |= packet.KeyFlagCertify
-				}
-				if key.SelfSignature.FlagSign {
-					usage |= packet.KeyFlagSign
-				}
-				if key.SelfSignature.FlagEncryptCommunications {
-					usage |= packet.KeyFlagEncryptCommunications
-				}
-				if key.SelfSignature.FlagEncryptStorage {
-					usage |= packet.KeyFlagEncryptStorage
-				}
+			case key.KeyFlags.Valid:
+				usage = key.KeyFlags.BitField
 
 			case key.PublicKey.PubKeyAlgo == packet.PubKeyAlgoElGamal:
 				// We also need to handle the case where, although the sig's
@@ -319,7 +321,7 @@ func (el EntityList) DecryptionKeys() (keys []Key) {
 	for _, e := range el {
 		for _, subKey := range e.Subkeys {
 			if subKey.PrivateKey != nil && subKey.PrivateKey.PrivateKey != nil && (!subKey.Sig.FlagsValid || subKey.Sig.FlagEncryptStorage || subKey.Sig.FlagEncryptCommunications) {
-				keys = append(keys, Key{e, subKey.PublicKey, subKey.PrivateKey, subKey.Sig})
+				keys = append(keys, Key{e, subKey.PublicKey, subKey.PrivateKey, subKey.Sig, subKey.Sig.GetKeyFlags()})
 			}
 		}
 	}
@@ -649,6 +651,15 @@ func addSubkey(e *Entity, packets *packet.Reader, pub *packet.PublicKey, priv *p
 			}
 		}
 	}
+
+	if subKey.Sig != nil {
+		if err := subKey.PublicKey.ErrorIfDeprecated(); err != nil {
+			// Key passed signature check but is deprecated.
+			subKey.Sig = nil
+			lastErr = err
+		}
+	}
+
 	if subKey.Sig != nil {
 		e.Subkeys = append(e.Subkeys, subKey)
 	} else {

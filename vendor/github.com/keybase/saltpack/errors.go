@@ -71,6 +71,14 @@ var (
 	// encountered that isn't both the last one and the first one
 	// (for V2 and higher), or isn't the last one (for V1).
 	ErrUnexpectedEmptyBlock = errors.New("unexpected empty block")
+
+	// ErrShortSliceOrBuffer is returned when the input slice or buffer provided
+	// is too short to determine if it is the beginning of a binary saltpack message
+	ErrShortSliceOrBuffer = errors.New("the slice or buffer is too short to tell if it is the beginning of a saltpack message")
+
+	// ErrNotASaltpackMessage is returned when the message given as input is not
+	// a valid  saltpack message
+	ErrNotASaltpackMessage = errors.New("not a saltpack message")
 )
 
 // ErrBadTag is generated when a payload hash doesn't match the hash

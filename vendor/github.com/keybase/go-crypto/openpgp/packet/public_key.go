@@ -10,6 +10,7 @@ import (
 	"crypto/dsa"
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"crypto/rsa"
 	"crypto/sha1"
 	_ "crypto/sha256"
 	_ "crypto/sha512"
@@ -27,7 +28,7 @@ import (
 	"github.com/keybase/go-crypto/openpgp/ecdh"
 	"github.com/keybase/go-crypto/openpgp/elgamal"
 	"github.com/keybase/go-crypto/openpgp/errors"
-	"github.com/keybase/go-crypto/rsa"
+	"github.com/keybase/go-crypto/openpgp/s2k"
 )
 
 var (
@@ -66,7 +67,7 @@ type edDSAkey struct {
 
 func copyFrontFill(dst, src []byte, length int) int {
 	if srcLen := len(src); srcLen < length {
-		return copy(dst[length - srcLen:], src[:])
+		return copy(dst[length-srcLen:], src[:])
 	} else {
 		return copy(dst[:], src[:])
 	}
@@ -324,6 +325,28 @@ func NewElGamalPublicKey(creationTime time.Time, pub *elgamal.PublicKey) *Public
 	return pk
 }
 
+func getCurveOid(curve elliptic.Curve) (res []byte, err error) {
+	switch curve {
+	case elliptic.P256():
+		res = oidCurveP256
+	case elliptic.P384():
+		res = oidCurveP384
+	case elliptic.P521():
+		res = oidCurveP521
+	case brainpool.P256r1():
+		res = oidCurveP256r1
+	case brainpool.P384r1():
+		res = oidCurveP384r1
+	case brainpool.P512r1():
+		res = oidCurveP512r1
+	case curve25519.Cv25519():
+		res = oidCurve25519
+	default:
+		err = errors.UnsupportedError("unknown curve")
+	}
+	return
+}
+
 func NewECDSAPublicKey(creationTime time.Time, pub *ecdsa.PublicKey) *PublicKey {
 	pk := &PublicKey{
 		CreationTime: creationTime,
@@ -331,22 +354,34 @@ func NewECDSAPublicKey(creationTime time.Time, pub *ecdsa.PublicKey) *PublicKey 
 		PublicKey:    pub,
 		ec:           new(ecdsaKey),
 	}
-	switch pub.Curve {
-	case elliptic.P256():
-		pk.ec.oid = oidCurveP256
-	case elliptic.P384():
-		pk.ec.oid = oidCurveP384
-	case elliptic.P521():
-		pk.ec.oid = oidCurveP521
-	case brainpool.P256r1():
-		pk.ec.oid = oidCurveP256r1
-	case brainpool.P384r1():
-		pk.ec.oid = oidCurveP384r1
-	case brainpool.P512r1():
-		pk.ec.oid = oidCurveP512r1
+	oid, _ := getCurveOid(pub.Curve)
+	pk.ec.oid = oid
+	bs, bitLen := ecdh.Marshal(pub.Curve, pub.X, pub.Y)
+	pk.ec.p.bytes = bs
+	pk.ec.p.bitLength = uint16(bitLen)
+
+	pk.setFingerPrintAndKeyId()
+	return pk
+}
+
+func NewECDHPublicKey(creationTime time.Time, pub *ecdh.PublicKey) *PublicKey {
+	pk := &PublicKey{
+		CreationTime: creationTime,
+		PubKeyAlgo:   PubKeyAlgoECDH,
+		PublicKey:    pub,
+		ec:           new(ecdsaKey),
 	}
-	pk.ec.p.bytes = elliptic.Marshal(pub.Curve, pub.X, pub.Y)
-	pk.ec.p.bitLength = uint16(8 * len(pk.ec.p.bytes))
+	oid, _ := getCurveOid(pub.Curve)
+	pk.ec.oid = oid
+	bs, bitLen := ecdh.Marshal(pub.Curve, pub.X, pub.Y)
+	pk.ec.p.bytes = bs
+	pk.ec.p.bitLength = uint16(bitLen)
+
+	hashbyte, _ := s2k.HashToHashId(crypto.SHA512)
+	pk.ecdh = &ecdhKdf{
+		KdfHash: kdfHashFunction(hashbyte),
+		KdfAlgo: kdfAlgorithm(CipherAES256),
+	}
 
 	pk.setFingerPrintAndKeyId()
 	return pk
@@ -393,6 +428,14 @@ func (pk *PublicKey) parse(r io.Reader) (err error) {
 			return
 		}
 		pk.PublicKey, err = pk.ec.newECDH()
+	case PubKeyAlgoBadElGamal:
+		// Key has ElGamal format but nil-implementation - it will
+		// load but it's not possible to do any operations using this
+		// key.
+		err = pk.parseElGamal(r)
+		if err != nil {
+			pk.PublicKey = nil
+		}
 	default:
 		err = errors.UnsupportedError("public key type: " + strconv.Itoa(int(pk.PubKeyAlgo)))
 	}
@@ -435,7 +478,7 @@ func (pk *PublicKey) parseRSA(r io.Reader) (err error) {
 	}
 	for i := 0; i < len(pk.e.bytes); i++ {
 		rsa.E <<= 8
-		rsa.E |= int64(pk.e.bytes[i])
+		rsa.E |= int(pk.e.bytes[i])
 	}
 	pk.PublicKey = rsa
 	return
@@ -508,7 +551,7 @@ func (pk *PublicKey) SerializeSignaturePrefix(h io.Writer) {
 		pLength += 2 + uint16(len(pk.q.bytes))
 		pLength += 2 + uint16(len(pk.g.bytes))
 		pLength += 2 + uint16(len(pk.y.bytes))
-	case PubKeyAlgoElGamal:
+	case PubKeyAlgoElGamal, PubKeyAlgoBadElGamal:
 		pLength += 2 + uint16(len(pk.p.bytes))
 		pLength += 2 + uint16(len(pk.g.bytes))
 		pLength += 2 + uint16(len(pk.y.bytes))
@@ -539,7 +582,7 @@ func (pk *PublicKey) Serialize(w io.Writer) (err error) {
 		length += 2 + len(pk.q.bytes)
 		length += 2 + len(pk.g.bytes)
 		length += 2 + len(pk.y.bytes)
-	case PubKeyAlgoElGamal:
+	case PubKeyAlgoElGamal, PubKeyAlgoBadElGamal:
 		length += 2 + len(pk.p.bytes)
 		length += 2 + len(pk.g.bytes)
 		length += 2 + len(pk.y.bytes)
@@ -587,7 +630,7 @@ func (pk *PublicKey) serializeWithoutHeaders(w io.Writer) (err error) {
 		return writeMPIs(w, pk.n, pk.e)
 	case PubKeyAlgoDSA:
 		return writeMPIs(w, pk.p, pk.q, pk.g, pk.y)
-	case PubKeyAlgoElGamal:
+	case PubKeyAlgoElGamal, PubKeyAlgoBadElGamal:
 		return writeMPIs(w, pk.p, pk.g, pk.y)
 	case PubKeyAlgoECDSA:
 		return pk.ec.serialize(w)
@@ -637,7 +680,7 @@ func (pk *PublicKey) VerifySignature(signed hash.Hash, sig *Signature) (err erro
 	switch pk.PubKeyAlgo {
 	case PubKeyAlgoRSA, PubKeyAlgoRSASignOnly:
 		rsaPublicKey, _ := pk.PublicKey.(*rsa.PublicKey)
-		err = rsa.VerifyPKCS1v15(rsaPublicKey, sig.Hash, hashBytes, sig.RSASignature.bytes)
+		err = rsa.VerifyPKCS1v15(rsaPublicKey, sig.Hash, hashBytes, padToKeySize(rsaPublicKey, sig.RSASignature.bytes))
 		if err != nil {
 			return errors.SignatureError("RSA verification failure")
 		}
@@ -694,7 +737,7 @@ func (pk *PublicKey) VerifySignatureV3(signed hash.Hash, sig *SignatureV3) (err 
 	switch pk.PubKeyAlgo {
 	case PubKeyAlgoRSA, PubKeyAlgoRSASignOnly:
 		rsaPublicKey := pk.PublicKey.(*rsa.PublicKey)
-		if err = rsa.VerifyPKCS1v15(rsaPublicKey, sig.Hash, hashBytes, sig.RSASignature.bytes); err != nil {
+		if err = rsa.VerifyPKCS1v15(rsaPublicKey, sig.Hash, hashBytes, padToKeySize(rsaPublicKey, sig.RSASignature.bytes)); err != nil {
 			return errors.SignatureError("RSA verification failure")
 		}
 		return
@@ -910,7 +953,7 @@ func (pk *PublicKey) BitLength() (bitLength uint16, err error) {
 		bitLength = pk.n.bitLength
 	case PubKeyAlgoDSA:
 		bitLength = pk.p.bitLength
-	case PubKeyAlgoElGamal:
+	case PubKeyAlgoElGamal, PubKeyAlgoBadElGamal:
 		bitLength = pk.p.bitLength
 	case PubKeyAlgoECDH:
 		ecdhPublicKey := pk.PublicKey.(*ecdh.PublicKey)
@@ -927,4 +970,13 @@ func (pk *PublicKey) BitLength() (bitLength uint16, err error) {
 		err = errors.InvalidArgumentError("bad public-key algorithm")
 	}
 	return
+}
+
+func (pk *PublicKey) ErrorIfDeprecated() error {
+	switch pk.PubKeyAlgo {
+	case PubKeyAlgoBadElGamal:
+		return errors.DeprecatedKeyError("ElGamal Encrypt or Sign (algo 20) is deprecated")
+	default:
+		return nil
+	}
 }
