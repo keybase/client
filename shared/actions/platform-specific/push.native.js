@@ -272,7 +272,9 @@ const handlePush = (_: any, action: PushGen.NotificationPayload) => {
         // entirely handled by go on ios and not being sent on android. TODO eventually make android like ios and plumb this through native land
         break
       case 'chat.newmessage':
-        console.log('aaa nojima', notification)
+
+        break
+        // console.log('aaa nojima', notification)
       // ? this isonly for the first push? debug this
       // return handleLoudMessage(n)
       case 'follow':
