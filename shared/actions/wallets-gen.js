@@ -12,6 +12,7 @@ import HiddenString from '../util/hidden-string'
 export const resetStore = 'common:resetStore' // not a part of wallets but is handled by every reducer
 export const accountsReceived = 'wallets:accountsReceived'
 export const assetsReceived = 'wallets:assetsReceived'
+export const buildPayment = 'wallets:buildPayment'
 export const clearErrors = 'wallets:clearErrors'
 export const exportSecretKey = 'wallets:exportSecretKey'
 export const linkExistingAccount = 'wallets:linkExistingAccount'
@@ -35,6 +36,12 @@ type _AccountsReceivedPayload = $ReadOnly<{|accounts: Array<Types.Account>|}>
 type _AssetsReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   assets: Array<Types.Assets>,
+|}>
+type _BuildPaymentPayload = $ReadOnly<{|
+  amount: number,
+  currency: string,
+  fromAccountID: Types.AccountID,
+  to: string,
 |}>
 type _ClearErrorsPayload = void
 type _ExportSecretKeyPayload = $ReadOnly<{|accountID: Types.AccountID|}>
@@ -118,6 +125,10 @@ export const createLinkExistingAccount = (payload: _LinkExistingAccountPayload) 
  */
 export const createLoadPaymentDetail = (payload: _LoadPaymentDetailPayload) => ({error: false, payload, type: loadPaymentDetail})
 /**
+ * Prepare a payment for ssnding
+ */
+export const createBuildPayment = (payload: _BuildPaymentPayload) => ({error: false, payload, type: buildPayment})
+/**
  * Refresh our list of accounts
  */
 export const createLoadAccounts = (payload: _LoadAccountsPayload) => ({error: false, payload, type: loadAccounts})
@@ -172,6 +183,7 @@ export const createSecretKeyReceived = (payload: _SecretKeyReceivedPayload) => (
 // Action Payloads
 export type AccountsReceivedPayload = $Call<typeof createAccountsReceived, _AccountsReceivedPayload>
 export type AssetsReceivedPayload = $Call<typeof createAssetsReceived, _AssetsReceivedPayload>
+export type BuildPaymentPayload = $Call<typeof createBuildPayment, _BuildPaymentPayload>
 export type ClearErrorsPayload = $Call<typeof createClearErrors, _ClearErrorsPayload>
 export type ExportSecretKeyPayload = $Call<typeof createExportSecretKey, _ExportSecretKeyPayload>
 export type LinkExistingAccountPayload = $Call<typeof createLinkExistingAccount, _LinkExistingAccountPayload>
@@ -198,6 +210,7 @@ export type ValidatedSecretKeyPayloadError = $Call<typeof createValidatedSecretK
 export type Actions =
   | AccountsReceivedPayload
   | AssetsReceivedPayload
+  | BuildPaymentPayload
   | ClearErrorsPayload
   | ExportSecretKeyPayload
   | LinkExistingAccountPayload

@@ -10,13 +10,14 @@ type Props = {|
   isProcessing?: boolean,
   onClick: () => void,
   onClose: () => void,
+  targetType?: 'keybaseUser' | 'anotherWallet' | 'stellarAddress',
 |}
 
 const SendForm = (props: Props) => (
   <Kb.MaybePopup onClose={props.onClose}>
     <Kb.Box2 direction="vertical" style={styles.container}>
       <Header />
-      <Body bannerInfo={props.bannerInfo} isProcessing={props.isProcessing} onClick={props.onClick} />
+      <Body bannerInfo={props.bannerInfo} isProcessing={props.isProcessing} onClick={props.onClick} targetType={props.targetType} />
     </Kb.Box2>
     <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.text, styles.textColor])}>
       Powered by{' '}

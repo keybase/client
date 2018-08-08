@@ -13,6 +13,7 @@ type Props = {
   bannerInfo?: string,
   isProcessing?: boolean,
   onClick: Function,
+  targetType?: 'keybaseUser' | 'anotherWallet' | 'stellarAddress',
 }
 
 const Spinner = () => (
@@ -21,11 +22,13 @@ const Spinner = () => (
   </Box2>
 )
 
-const Body = ({bannerInfo, isProcessing, onClick}: Props) => (
+const Body = ({bannerInfo, isProcessing, onClick, targetType}: Props) => {
+  console.warn('in Body', targetType)
+  return (
   <Box2 fullWidth={true} direction="vertical">
     {isProcessing && <Spinner />}
     {bannerInfo && <Banner />}
-    <Participants />
+    <Participants targetType={targetType} />
     <Divider />
     <AssetInput />
     <Memo />
@@ -33,7 +36,7 @@ const Body = ({bannerInfo, isProcessing, onClick}: Props) => (
     <Footer onClick={onClick} />
   </Box2>
 )
-
+}
 const styles = styleSheetCreate({
   spinnerContainer: {...globalStyles.fillAbsolute},
 })

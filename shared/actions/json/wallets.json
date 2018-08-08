@@ -14,6 +14,13 @@
       "accountID": "Types.AccountID",
       "assets": "Array<Types.Assets>",
     },
+    "buildPayment": {
+      "_description": "Prepare a payment for ssnding",
+      "amount": "number",
+      "currency": "string",
+      "fromAccountID": "Types.AccountID",
+      "to": "string",
+    },
     "exportSecretKey": {
       "_description": "Export a Stellar account's secret key",
       "accountID": "Types.AccountID",

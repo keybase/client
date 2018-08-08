@@ -10,7 +10,22 @@ import logger from '../logger'
 import type {TypedState} from '../constants/reducer'
 import {walletsTab} from '../constants/tabs'
 
-const loadAccounts = (
+const buildPayment = (
+  state: TypedState,
+  action: WalletsGen.BuildPaymentPayload
+) =>
+  RPCTypes.localBuildPaymentLocalRpcPromise({
+    amount: '2',
+    // currency: 'XLM',
+    from: 'GDWI3UBI4WFSFYNZ3ABHIFSEQYK34KBPGZZCEJYBNQCIMGKPE2PHCLAQ',
+    fromSeqno: '',
+    publicMemo: '',
+    secretNote: '',
+    to: 'GDLQ22P6VKMUYW3HULI2F5KDY7Q63SION65M7I3HHIVUXOFZVG3FEK2F',
+    toIsAccountID: true,
+  }).then(res => console.warn(res))
+
+  const loadAccounts = (
   state: TypedState,
   action: WalletsGen.LoadAccountsPayload | WalletsGen.LinkedExistingAccountPayload
 ) =>
@@ -158,6 +173,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     navigateToAccount
   )
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
+  yield Saga.actionToPromise(WalletsGen.buildPayment, buildPayment)
 }
 
 export default walletsSaga

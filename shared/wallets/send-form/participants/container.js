@@ -6,7 +6,9 @@ const mapStateToProps = (state: TypedState) => ({})
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({})
 
-const mergeProps = (stateProps, dispatchProps) => ({})
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...ownProps,
+})
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),

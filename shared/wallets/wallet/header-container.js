@@ -2,6 +2,7 @@
 import {connect, type TypedState} from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
+import * as WalletsGen from '../../actions/wallets-gen'
 import Header from './header'
 
 const mapStateToProps = (state: TypedState) => {
@@ -35,9 +36,24 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps) => ({
       ])
     ),
   onDeposit: nyi,
-  onSendToAnotherWallet: nyi,
-  onSendToKeybaseUser: nyi,
-  onSendToStellarAddress: nyi,
+  onSendToAnotherWallet: () => dispatch(ownProps.navigateAppend([[
+    {
+      props: {targetType: 'anotherWallet'},
+      selected: 'sendForm',
+    },
+  ]])),
+  onSendToKeybaseUser: () => dispatch(ownProps.navigateAppend([
+    {
+      props: {targetType: 'keybaseUser'},
+      selected: 'sendForm',
+    },
+  ])),
+  onSendToStellarAddress: () => dispatch(ownProps.navigateAppend([
+    {
+      props: {targetType: 'stellarAddress'},
+      selected: 'sendForm',
+    },
+  ])),
   onSettings: nyi,
 })
 
