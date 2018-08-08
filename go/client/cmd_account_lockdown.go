@@ -4,6 +4,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 	"text/tabwriter"
 
@@ -27,8 +28,12 @@ func NewCmdAccountLockdown(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 	}
 	flags := []cli.Flag{
 		cli.BoolFlag{
-			Name:  "set",
-			Usage: "Change account lockdown mode.",
+			Name:  "enable",
+			Usage: "Enable account lockdown mode.",
+		},
+		cli.BoolFlag{
+			Name:  "disable",
+			Usage: "Disable account lockdown mode.",
 		},
 		cli.BoolFlag{
 			Name:  "history",
@@ -46,15 +51,19 @@ func NewCmdAccountLockdown(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 }
 
 func (c *CmdAccountLockdown) ParseArgv(ctx *cli.Context) error {
-	if ctx.IsSet("set") {
-		val, err := ctx.BoolStrict("set")
-		if err != nil {
-			return err
-		}
+	enable := ctx.Bool("enable")
+	disable := ctx.Bool("disable")
+	if enable && disable {
+		return errors.New("Both --enable and --disable flags are passed which is invalid")
+	} else if enable {
+		val := true
 		c.SetLockdownMode = &val
-	} else {
-		c.History = ctx.Bool("history")
+	} else if disable {
+		val := false
+		c.SetLockdownMode = &val
 	}
+
+	c.History = ctx.Bool("history")
 	return nil
 }
 
@@ -84,9 +93,14 @@ func (c *CmdAccountLockdown) Run() error {
 			if res.Status {
 				dui.PrintfUnescaped("Lockdown mode is already %s. Nothing to do.\n", enabledGreen())
 			} else {
-				dui.Printf("Lockdown mode is already %s. Nothing to do.\n", disabledYellow())
+				dui.PrintfUnescaped("Lockdown mode is already %s. Nothing to do.\n", disabledYellow())
 			}
 			return nil
+		}
+		if *c.SetLockdownMode {
+			dui.Printf("Enabling lockdown mode...\n")
+		} else {
+			dui.Printf("Disabling lockdown mode...\n")
 		}
 		err = cli.SetLockdownMode(context.Background(), keybase1.SetLockdownModeArg{
 			Enabled: *c.SetLockdownMode,
