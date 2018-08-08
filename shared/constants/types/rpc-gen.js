@@ -1056,6 +1056,7 @@ export type DismissReasonType =
   | 0 // NONE_0
   | 1 // HANDLED_ELSEWHERE_1
 
+export type DownPointer = $ReadOnly<{id: TeamID, nameComponent: String, isDeleted: Boolean}>
 export type DowngradeReferenceRes = $ReadOnly<{completed?: ?Array<BlockReferenceCount>, failed: BlockReference}>
 export type DurationSec = Double
 export type ED25519PublicKey = any
@@ -1116,6 +1117,10 @@ export type FSStatusCode =
 
 export type FSSyncStatus = $ReadOnly<{totalSyncingBytes: Int64, syncingPaths?: ?Array<String>, endEstimate?: ?Time}>
 export type FSSyncStatusRequest = $ReadOnly<{requestID: Int}>
+export type FastLoadTeamArg = $ReadOnly<{id: TeamID, public: Boolean, applications?: ?Array<TeamApplication>, keyGenerationsNeeded?: ?Array<PerTeamKeyGeneration>, needLatestGeneration: Boolean, seqnosNeeded?: ?Array<Seqno>}>
+export type FastLoadTeamRes = $ReadOnly<{name: TeamName, applicationKeys?: ?Array<TeamApplicationKey>}>
+export type FastTeamData = $ReadOnly<{name: TeamName, chain: FastTeamSigChainState, perTeamKeySeeds /* perTeamKeySeedsUnverified */: {[key: string]: PerTeamKeySeedItem}, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time}>
+export type FastTeamSigChainState = $ReadOnly<{id: TeamID, public: Boolean, rootAncestor: TeamName, nameDepth: Int, last: LinkPair, parentID?: ?TeamID, perTeamKeys: {[key: string]: PerTeamKey}, downPointers: {[key: string]: DownPointer}, lastUpPointer: LinkPair, isDeleted: Boolean, perTeamKeyCTime: UnixTime, linkIDs: {[key: string]: LinkID}}>
 export type FavoriteFavoriteAddRpcParam = $ReadOnly<{folder: Folder}>
 export type FavoriteFavoriteIgnoreRpcParam = $ReadOnly<{folder: Folder}>
 export type FavoriteGetFavoritesRpcParam = void
@@ -1371,6 +1376,8 @@ export type KeybaseTime = $ReadOnly<{unix: Time, chain: Seqno}>
 export type LeaseID = String
 export type LinkCheckResult = $ReadOnly<{proofId: Int, proofResult: ProofResult, snoozedResult: ProofResult, torWarning: Boolean, tmpTrackExpireTime: Time, cached?: ?CheckResult, diff?: ?TrackDiff, remoteDiff?: ?TrackDiff, hint?: ?SigHint, breaksTracking: Boolean}>
 export type LinkID = String
+export type LinkPair = $ReadOnly<{seqno: Seqno, linkID: LinkID}>
+export type LinkTriple = $ReadOnly<{id: TeamID, pair: LinkPair}>
 export type ListArgs = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter}>
 export type ListFilter =
   | 0 // NO_FILTER_0
