@@ -64,7 +64,11 @@ const rowProviders = {
   ConnectedOpenHOC: ownProps => ({
     ...ownProps,
     onOpen: () => {},
-    openInFileUI: () => {},
+  }),
+  ConnectedOpenInFileUI: () => ({
+    kbfsEnabled: false,
+    openInFileUI: Sb.action('openInFileUI'),
+    installFuse: Sb.action('installFuse'),
   }),
 }
 
@@ -110,8 +114,8 @@ const provider = Sb.createPropProviderWithCommon({
       sortBy: 'name',
       sortOrder: 'asc',
     },
-    onOpenSortSettingPopup: () => {},
     folderIsPending: true,
+    sortSettingToAction: sortSetting => Sb.action(`sortSettingToAction${sortSetting}`),
   }),
   FilesBanner: () => ({
     path: Types.stringToPath('/keybase'),
@@ -374,7 +378,6 @@ const load = () => {
             itemStyles={fileItemStyles}
             isDownloading={true}
             onOpen={Sb.action('onOpen')}
-            openInFileUI={Sb.action('openInFileUI')}
             onAction={Sb.action('onAction')}
             isEmpty={false}
           />
@@ -403,7 +406,6 @@ const load = () => {
             itemStyles={fileItemStyles}
             isDownloading={false}
             onOpen={Sb.action('onOpen')}
-            openInFileUI={Sb.action('openInFileUI')}
             onAction={Sb.action('onAction')}
             isEmpty={false}
           />
@@ -415,7 +417,6 @@ const load = () => {
             itemStyles={folderItemStyles}
             badgeCount={0}
             onOpen={Sb.action('onOpen')}
-            openInFileUI={Sb.action('openInFileUI')}
             onAction={Sb.action('onAction')}
           />
         </WrapRow>
@@ -426,7 +427,6 @@ const load = () => {
             itemStyles={folderItemStyles}
             badgeCount={3}
             onOpen={Sb.action('onOpen')}
-            openInFileUI={Sb.action('openInFileUI')}
             onAction={Sb.action('onAction')}
           />
         </WrapRow>
@@ -441,7 +441,6 @@ const load = () => {
             isUserReset={false}
             resetParticipants={[]}
             onOpen={Sb.action('onOpen')}
-            openInFileUI={Sb.action('openInFileUI')}
             onAction={Sb.action('onAction')}
           />
         </WrapRow>
@@ -456,7 +455,6 @@ const load = () => {
             isUserReset={true}
             resetParticipants={['charlie']}
             onOpen={Sb.action('onOpen')}
-            openInFileUI={Sb.action('openInFileUI')}
             onAction={Sb.action('onAction')}
           />
         </WrapRow>
@@ -471,7 +469,6 @@ const load = () => {
             isUserReset={false}
             resetParticipants={['alice', 'bob']}
             onOpen={Sb.action('onOpen')}
-            openInFileUI={Sb.action('openInFileUI')}
             onAction={Sb.action('onAction')}
           />
         </WrapRow>
@@ -486,7 +483,6 @@ const load = () => {
             isUserReset={false}
             resetParticipants={[]}
             onOpen={Sb.action('onOpen')}
-            openInFileUI={Sb.action('openInFileUI')}
             onAction={Sb.action('onAction')}
           />
         </WrapRow>

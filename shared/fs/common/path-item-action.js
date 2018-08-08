@@ -32,7 +32,6 @@ type Props = {
 }
 
 const makeMenuItems = (props: Props) => {
-  console.log({props})
   return [
     ...(props.showInFileUI
       ? [
