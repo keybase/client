@@ -12,13 +12,14 @@ import (
 )
 
 type DeviceKeygenArgs struct {
-	Me             *libkb.User
-	DeviceID       keybase1.DeviceID
-	DeviceName     string
-	DeviceType     string
-	Lks            *libkb.LKSec
-	IsEldest       bool
-	PerUserKeyring *libkb.PerUserKeyring
+	Me              *libkb.User
+	DeviceID        keybase1.DeviceID
+	DeviceName      string
+	DeviceType      string
+	Lks             *libkb.LKSec
+	IsEldest        bool
+	IsSelfProvision bool
+	PerUserKeyring  *libkb.PerUserKeyring
 }
 
 // DeviceKeygenPushArgs determines how the push will run.  There are
@@ -145,8 +146,8 @@ func (e *DeviceKeygen) Push(m libkb.MetaContext, pargs *DeviceKeygenPushArgs) er
 		}
 		pukBoxes = append(pukBoxes, pukBox)
 	}
-	if !e.args.IsEldest {
-		boxes, err := e.preparePerUserKeyBoxFromPaperkey(m)
+	if !e.args.IsEldest || e.args.IsSelfProvision {
+		boxes, err := e.preparePerUserKeyBoxFromProvisioningKey(m)
 		if err != nil {
 			return err
 		}
@@ -359,8 +360,8 @@ func (e *DeviceKeygen) device() *libkb.Device {
 }
 
 // Can return no boxes if there are no per-user-keys.
-func (e *DeviceKeygen) preparePerUserKeyBoxFromPaperkey(m libkb.MetaContext) ([]keybase1.PerUserKeyBox, error) {
-	// Assuming this is a paperkey provision.
+func (e *DeviceKeygen) preparePerUserKeyBoxFromProvisioningKey(m libkb.MetaContext) ([]keybase1.PerUserKeyBox, error) {
+	// Assuming this is a paperkey or self provision.
 
 	upak := e.args.Me.ExportToUserPlusAllKeys()
 	if len(upak.Base.PerUserKeys) == 0 {

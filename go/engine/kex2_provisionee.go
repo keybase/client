@@ -301,8 +301,7 @@ func (e *Kex2Provisionee) handleDidCounterSign(m libkb.MetaContext, sig []byte, 
 	}
 
 	// logged in, so update our temporary session to say so
-	err = e.updateTemporarySession(m, uv)
-	if err != nil {
+	if err = e.updateTemporarySession(m, uv); err != nil {
 		return err
 	}
 
@@ -576,8 +575,7 @@ func (e *Kex2Provisionee) pushLKSServerHalf(m libkb.MetaContext) (err error) {
 
 	// Sync the LKS stuff back from the server, so that subsequent
 	// attempts to use public key login will work.
-	err = m.LoginContext().RunSecretSyncer(m, e.uid)
-	if err != nil {
+	if err = m.LoginContext().RunSecretSyncer(m, e.uid); err != nil {
 		return err
 	}
 

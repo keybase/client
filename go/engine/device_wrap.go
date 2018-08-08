@@ -95,13 +95,14 @@ func (e *DeviceWrap) genKeys(m libkb.MetaContext) (err error) {
 	defer m.CTrace("DeviceWrap#genKeys", func() error { return err })()
 
 	kgArgs := &DeviceKeygenArgs{
-		Me:             e.args.Me,
-		DeviceID:       e.deviceID,
-		DeviceName:     e.args.DeviceName,
-		DeviceType:     e.args.DeviceType,
-		Lks:            e.args.Lks,
-		IsEldest:       e.args.IsEldest,
-		PerUserKeyring: e.args.PerUserKeyring,
+		Me:              e.args.Me,
+		DeviceID:        e.deviceID,
+		DeviceName:      e.args.DeviceName,
+		DeviceType:      e.args.DeviceType,
+		Lks:             e.args.Lks,
+		IsEldest:        e.args.IsEldest,
+		IsSelfProvision: e.args.IsSelfProvision,
+		PerUserKeyring:  e.args.PerUserKeyring,
 	}
 	kgEng := NewDeviceKeygen(m.G(), kgArgs)
 	if err = RunEngine2(m, kgEng); err != nil {

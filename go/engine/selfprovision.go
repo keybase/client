@@ -15,6 +15,8 @@ type SelfProvisionEngine struct {
 	lks            *libkb.LKSec
 	User           *libkb.User
 	perUserKeyring *libkb.PerUserKeyring
+	pps            *libkb.PassphraseStream
+	tsec           libkb.Triplesec
 }
 
 // If a device is cloned, we can provision a new device from the current device
@@ -215,7 +217,16 @@ func (e *SelfProvisionEngine) makeDeviceWrapArgs(m libkb.MetaContext) (*DeviceWr
 // makeDeviceKeys uses DeviceWrap to generate device keys.
 func (e *SelfProvisionEngine) makeDeviceKeys(m libkb.MetaContext, args *DeviceWrapArgs) error {
 	eng := NewDeviceWrap(m.G(), args)
-	return RunEngine2(m, eng)
+	if err := RunEngine2(m, eng); err != nil {
+		return err
+	}
+
+	// Sync the LKS stuff back from the server, so that subsequent
+	// attempts to use public key login will work.
+	if err := m.LoginContext().RunSecretSyncer(m, e.User.GetUID()); err != nil {
+		return err
+	}
+	return nil
 }
 
 // copied from loginProvision
@@ -225,26 +236,28 @@ func (e *SelfProvisionEngine) ensureLKSec(m libkb.MetaContext) error {
 		return nil
 	}
 
-	pps, err := e.ppStream(m)
+	var err error
+	e.pps, e.tsec, err = e.ppStream(m)
 	if err != nil {
 		return err
 	}
 
-	e.lks = libkb.NewLKSec(pps, e.User.GetUID())
+	e.lks = libkb.NewLKSec(e.pps, e.User.GetUID())
 	return nil
 }
 
 // copied from loginProvision
 // ppStream gets the passphrase stream from the cache
-func (e *SelfProvisionEngine) ppStream(m libkb.MetaContext) (*libkb.PassphraseStream, error) {
+func (e *SelfProvisionEngine) ppStream(m libkb.MetaContext) (*libkb.PassphraseStream, libkb.Triplesec, error) {
 	if m.LoginContext() == nil {
-		return nil, errors.New("loginProvision: ppStream() -> nil ctx.LoginContext")
+		return nil, nil, errors.New("loginProvision: ppStream() -> nil ctx.LoginContext")
 	}
 	cached := m.LoginContext().PassphraseStreamCache()
 	if cached == nil {
-		return nil, errors.New("loginProvision: ppStream() -> nil PassphraseStreamCache")
+		return nil, nil, errors.New("loginProvision: ppStream() -> nil PassphraseStreamCache")
 	}
-	return cached.PassphraseStream(), nil
+	pps, tsec := cached.PassphraseStreamAndTriplesec()
+	return pps, tsec, nil
 }
 
 func (e *SelfProvisionEngine) verifyLocalStorage(m libkb.MetaContext) {
