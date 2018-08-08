@@ -15,7 +15,7 @@ import (
 // KeyFinder remembers results from previous calls to CryptKeys().
 type KeyFinder interface {
 	FindForEncryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool) (types.CryptKey, error)
+		membersType chat1.ConversationMembersType, public bool) (types.CryptKey, *types.NameInfo, error)
 	FindForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool, keyGeneration int,
 		kbfsEncrypted bool) (types.CryptKey, error)
@@ -26,7 +26,11 @@ type KeyFinder interface {
 	ShouldPairwiseMAC(ctx context.Context, tlfName string, teamID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error)
 	Reset()
-	SetNameInfoSourceOverride(types.NameInfoSource)
+}
+
+type encItem struct {
+	key types.CryptKey
+	ni  *types.NameInfo
 }
 
 type KeyFinderImpl struct {
@@ -36,10 +40,7 @@ type KeyFinderImpl struct {
 
 	keys    map[string]*types.NameInfo
 	decKeys map[string]types.CryptKey
-	encKeys map[string]types.CryptKey
-
-	// Testing
-	testingNameInfoSource types.NameInfoSource
+	encKeys map[string]encItem
 }
 
 // NewKeyFinder creates a KeyFinder.
@@ -49,7 +50,7 @@ func NewKeyFinder(g *globals.Context) KeyFinder {
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "KeyFinder", false),
 		keys:         make(map[string]*types.NameInfo),
 		decKeys:      make(map[string]types.CryptKey),
-		encKeys:      make(map[string]types.CryptKey),
+		encKeys:      make(map[string]encItem),
 	}
 }
 
@@ -73,10 +74,6 @@ func (k *KeyFinderImpl) decCacheKey(name string, tlfID chat1.TLFID, membersType 
 
 func (k *KeyFinderImpl) createNameInfoSource(ctx context.Context,
 	membersType chat1.ConversationMembersType) types.NameInfoSource {
-	if k.testingNameInfoSource != nil {
-		k.Debug(ctx, "createNameInfoSource: warning: using overridden name info source")
-		return k.testingNameInfoSource
-	}
 	return CreateNameInfoSource(ctx, k.G(), membersType)
 }
 
@@ -96,16 +93,19 @@ func (k *KeyFinderImpl) writeKey(key string, v *types.NameInfo) {
 // FindForEncryption finds keys up-to-date enough for encrypting.
 // Ignores tlfName or teamID based on membersType.
 func (k *KeyFinderImpl) FindForEncryption(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, err error) {
+	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, ni *types.NameInfo, err error) {
 
 	ckey := k.encCacheKey(tlfName, tlfID, membersType, public)
 	existing, ok := k.encKeys[ckey]
 	if ok {
-		return existing, nil
+		return existing.key, existing.ni, nil
 	}
 	defer func() {
 		if err == nil {
-			k.encKeys[ckey] = res
+			k.encKeys[ckey] = encItem{
+				key: res,
+				ni:  ni,
+			}
 		}
 	}()
 
@@ -145,10 +145,6 @@ func (k *KeyFinderImpl) EphemeralKeyForDecryption(ctx context.Context, tlfName s
 func (k *KeyFinderImpl) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error) {
 	return k.createNameInfoSource(ctx, membersType).ShouldPairwiseMAC(ctx, tlfName, tlfID, membersType, public)
-}
-
-func (k *KeyFinderImpl) SetNameInfoSourceOverride(ni types.NameInfoSource) {
-	k.testingNameInfoSource = ni
 }
 
 func tlfIDToTeamdID(tlfID chat1.TLFID) (keybase1.TeamID, error) {

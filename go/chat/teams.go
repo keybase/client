@@ -212,14 +212,24 @@ func (t *TeamsNameInfoSource) AllCryptKeys(ctx context.Context, name string, pub
 }
 
 func (t *TeamsNameInfoSource) EncryptionKey(ctx context.Context, name string, teamID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, err error) {
+	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, ni *types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err },
 		fmt.Sprintf("EncryptionKeys(%s,%s,%v)", name, teamID, public))()
 	team, err := t.loader.loadTeam(ctx, teamID, name, membersType, public, nil)
 	if err != nil {
-		return res, err
+		return res, ni, err
 	}
-	return getTeamCryptKey(ctx, team, team.Generation(), public, false)
+	if res, err = getTeamCryptKey(ctx, team, team.Generation(), public, false); err != nil {
+		return res, ni, err
+	}
+	tlfID, err := chat1.TeamIDToTLFID(team.ID)
+	if err != nil {
+		return res, ni, err
+	}
+	return res, &types.NameInfo{
+		ID:            tlfID,
+		CanonicalName: team.Name().String(),
+	}, nil
 }
 
 func (t *TeamsNameInfoSource) DecryptionKey(ctx context.Context, name string, teamID chat1.TLFID,
@@ -459,21 +469,33 @@ func (t *ImplicitTeamsNameInfoSource) AllCryptKeys(ctx context.Context, name str
 }
 
 func (t *ImplicitTeamsNameInfoSource) EncryptionKey(ctx context.Context, name string, teamID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, err error) {
+	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, ni *types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err },
 		fmt.Sprintf("EncryptionKey(%s,%s,%v)", name, teamID, public))()
 	team, err := t.loader.loadTeam(ctx, teamID, name, membersType, public, nil)
 	if err != nil {
-		return res, err
+		return res, ni, err
 	}
 	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
 	if err != nil {
-		return res, err
+		return res, ni, err
 	}
-	if _, err = t.identify(ctx, teamID, impTeamName); err != nil {
-		return res, err
+	idFailures, err := t.identify(ctx, teamID, impTeamName)
+	if err != nil {
+		return res, ni, err
 	}
-	return getTeamCryptKey(ctx, team, team.Generation(), public, false)
+	if res, err = getTeamCryptKey(ctx, team, team.Generation(), public, false); err != nil {
+		return res, ni, err
+	}
+	tlfID, err := chat1.TeamIDToTLFID(team.ID)
+	if err != nil {
+		return res, ni, err
+	}
+	return res, &types.NameInfo{
+		ID:               tlfID,
+		CanonicalName:    impTeamName.String(),
+		IdentifyFailures: idFailures,
+	}, nil
 }
 
 func (t *ImplicitTeamsNameInfoSource) DecryptionKey(ctx context.Context, name string, teamID chat1.TLFID,

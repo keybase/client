@@ -1267,12 +1267,18 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 		return nil, fmt.Errorf("cannot use exploding messages with V1")
 	}
 
-	encryptionKey, err := CtxKeyFinder(ctx, b.G()).FindForEncryption(ctx,
+	encryptionKey, nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForEncryption(ctx,
 		tlfName, msg.ClientHeader.Conv.Tlfid, membersType,
 		msg.ClientHeader.TlfPublic)
 	if err != nil {
 		return nil, NewBoxingCryptKeysError(err)
 	}
+	// Make sure the ID we get back matches what has been put on the message
+	if !nameInfo.ID.Eq(msg.ClientHeader.Conv.Tlfid) {
+		return nil, NewBoxingError(fmt.Sprintf("invalid TLFID for name in header, %s != %s", nameInfo.ID,
+			msg.ClientHeader.Conv.Tlfid), true)
+	}
+	msg.ClientHeader.TlfName = nameInfo.CanonicalName
 
 	// If the message is exploding, load the ephemeral key, and tweak the
 	// version. Make sure we're not using MessageBoxedVersion_V1, since that
