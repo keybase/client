@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import type {SettingsItemProps} from './index'
-import {Badge2, ClickableBox, Text, Icon} from '../../common-adapters'
+import {Badge, ClickableBox, Text, Icon} from '../../common-adapters'
 import * as Style from '../../styles'
 
 export default function SettingsItem(props: SettingsItemProps) {
@@ -36,9 +36,7 @@ export default function SettingsItem(props: SettingsItemProps) {
         {props.text}
       </Text>
       {!!props.badgeNumber &&
-        props.badgeNumber > 0 && (
-          <Badge2 badgeNumber={props.badgeNumber} fontSize={12} height={20} badgeStyle={styles.badge} />
-        )}
+        props.badgeNumber > 0 && <Badge badgeNumber={props.badgeNumber} badgeStyle={styles.badge} />}
     </ClickableBox>
   )
 }

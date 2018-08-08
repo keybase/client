@@ -1,9 +1,7 @@
 // @flow
-import {Badge} from './badge'
 import * as React from 'react'
+import {Badge, Box, Box2, Text} from '.'
 import * as Sb from '../stories/storybook'
-import {Box, Box2} from './box'
-import Text from './text'
 import {isMobile} from '../styles'
 
 const numbers = [3, 77, 108, 4536, 23876, 1000000000]

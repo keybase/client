@@ -153,10 +153,12 @@ protocol teams {
     TeamName name;
     TeamSigChainState chain;
 
+    // These secrets may not match the team chain, always verify before use.
     // These secrets may be behind or missing if this is a public team.
     // generation -> seed
     // generations _must_ start from 1 with no gaps
-    map<PerTeamKeyGeneration,PerTeamKeySeedItem> perTeamKeySeeds;
+    @mpackkey("perTeamKeySeeds")
+    map<PerTeamKeyGeneration,PerTeamKeySeedItem> perTeamKeySeedsUnverified;
     // application -> generation -> mask
     // in each slot generations _must_ start from 1 with no gaps
     map<TeamApplication,map<PerTeamKeyGeneration,MaskB64>> readerKeyMasks;
