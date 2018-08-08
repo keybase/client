@@ -3,7 +3,10 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
-type Props = {}
+type Props = {
+  encryptedNoteError?: string,
+  publicMemoError?: string,
+}
 
 const NoteAndMemo = (props: Props) => (
   <React.Fragment>
@@ -13,14 +16,24 @@ const NoteAndMemo = (props: Props) => (
       placeholderColor={placeholderColor}
       style={styles.encryptedNote}
     />
-    <Kb.Divider />
+    {!!props.encryptedNoteError && (
+      <Kb.Text type="Body" style={styles.errorMessage}>
+        {props.encryptedNoteError}
+      </Kb.Text>
+    )}
+    <Kb.Divider style={props.encryptedNoteError ? styles.dividerError : undefined} />
     <Kb.PlainInput
       multiline={true}
       placeholder="Add a public memo"
       placeholderColor={placeholderColor}
       style={styles.publicMemo}
     />
-    <Kb.Divider />
+    {!!props.publicMemoError && (
+      <Kb.Text type="Body" style={styles.errorMessage}>
+        {props.publicMemoError}
+      </Kb.Text>
+    )}
+    <Kb.Divider style={props.publicMemoError ? styles.dividerError : undefined} />
   </React.Fragment>
 )
 
@@ -36,6 +49,13 @@ const sharedStyles = {
 }
 
 const styles = Styles.styleSheetCreate({
+  errorMessage: {
+    ...sharedStyles,
+    color: Styles.globalColors.red,
+  },
+  dividerError: {
+    backgroundColor: Styles.globalColors.red,
+  },
   encryptedNote: {
     ...sharedStyles,
     minHeight: 68,
