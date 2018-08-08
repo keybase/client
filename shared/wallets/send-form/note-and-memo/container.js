@@ -1,5 +1,5 @@
 // @flow
-import Memo from '.'
+import NoteAndMemo from '.'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({})
@@ -8,4 +8,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({})
 
 const mergeProps = (stateProps, dispatchProps) => ({})
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Memo'))(Memo)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('NoteAndMemo')
+)(NoteAndMemo)

@@ -19,8 +19,7 @@ const provider = Sb.createPropProviderWithCommon({
   Body: props => ({}),
   Footer: props => ({}),
   Header: props => ({}),
-  Memo: props => ({}),
-  Note: props => ({}),
+  NoteAndMemo: props => ({}),
   Participants: props => ({}),
 })
 
