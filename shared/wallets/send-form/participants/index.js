@@ -18,10 +18,10 @@ const Participants = (props: Props) => (
         To:
       </Kb.Text>
     {!!props.username && (
-      <Kb.NameWithIcon colorFollowing={true} horizontal={true} username={props.username} metaOne={props.fullname} onClick={props.onShowProfile}/>
+      <Kb.NameWithIcon colorFollowing={true} horizontal={true} username={props.username} metaOne={props.fullname} onClick={props.onShowProfile} />
     )}
     {!props.username && (
-      <Kb.Box2 direction="vertical" fullWidh={true} style={styles.inputBox}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.Icon
             type={props.incorrect ? 'iconfont-stellar-request' : 'iconfont-stellar-request'}
@@ -78,7 +78,7 @@ const styles = Styles.styleSheetCreate({
   redline: {
     backgroundColor: Styles.globalColors.red,
     height: 1,
-    width: '100%'
+    width: '100%',
   },
 })
 

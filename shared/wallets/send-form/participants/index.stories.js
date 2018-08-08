@@ -14,12 +14,12 @@ const load = () => {
     <Box style={{maxWidth: 360}}>{story()}</Box>
   ))
   story.addDecorator(provider)
-  story.add('Normal', () => <Participants incorrect={false}/>)
+  story.add('Normal', () => <Participants incorrect={false} />)
   story.add('Address Error', () => (
     <Participants incorrect={true} />
   ))
   story.add('User match', () => (
-    <Participants username="yen" fullname="Addie Stokes" onShowProfile={Sb.action('onShowProfile')}/>
+    <Participants username="yen" fullname="Addie Stokes" onShowProfile={Sb.action('onShowProfile')} />
   ))
 }
 
