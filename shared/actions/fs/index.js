@@ -340,7 +340,10 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
         suppressDurationSec: 8,
       })
       let {syncingPaths, totalSyncingBytes, endEstimate}: RPCTypes.FSSyncStatus = yield Saga.call(
-        RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise
+        RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise,
+        {
+          filter: RPCTypes.simpleFSListFilter.filterAllHidden,
+        }
       )
       yield Saga.sequentially([
         Saga.put(
