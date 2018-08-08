@@ -20,6 +20,7 @@ type CmdAccountLockdown struct {
 	libkb.Contextified
 	SetLockdownMode *bool
 	History         bool
+	Force           bool
 }
 
 func NewCmdAccountLockdown(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -38,6 +39,10 @@ func NewCmdAccountLockdown(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 		cli.BoolFlag{
 			Name:  "history",
 			Usage: "Print history of lockdown mode changes.",
+		},
+		cli.BoolFlag{
+			Name:  "force, f",
+			Usage: "Don't prompt.",
 		},
 	}
 	return cli.Command{
@@ -64,22 +69,17 @@ func (c *CmdAccountLockdown) ParseArgv(ctx *cli.Context) error {
 	}
 
 	c.History = ctx.Bool("history")
+	c.Force = ctx.Bool("force")
 	return nil
 }
 
 func (c *CmdAccountLockdown) Run() error {
-	// protocols := []rpc.Protocol{
-	//     NewSecretUIProtocol(c.G()),
-	// }
-	// if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
-	//     return err
-	// }
 	cli, err := GetAccountClient(c.G())
 	if err != nil {
 		return err
 	}
 
-	dui := c.G().UI.GetTerminalUI()
+	tui := c.G().UI.GetTerminalUI()
 
 	enabledGreen := func() string { return ColorString(c.G(), "green", "enabled") }
 	disabledYellow := func() string { return ColorString(c.G(), "yellow", "disabled") }
@@ -89,19 +89,34 @@ func (c *CmdAccountLockdown) Run() error {
 		if err != nil {
 			return err
 		}
+
 		if res.Status == *c.SetLockdownMode {
 			if res.Status {
-				dui.PrintfUnescaped("Lockdown mode is already %s. Nothing to do.\n", enabledGreen())
+				tui.PrintfUnescaped("Lockdown mode is already %s. Nothing to do.\n", enabledGreen())
 			} else {
-				dui.PrintfUnescaped("Lockdown mode is already %s. Nothing to do.\n", disabledYellow())
+				tui.PrintfUnescaped("Lockdown mode is already %s. Nothing to do.\n", disabledYellow())
 			}
 			return nil
 		}
-		if *c.SetLockdownMode {
-			dui.Printf("Enabling lockdown mode...\n")
-		} else {
-			dui.Printf("Disabling lockdown mode...\n")
+
+		if !c.Force {
+			var prompt string
+			if *c.SetLockdownMode {
+				prompt = fmt.Sprintf("Do you want to %s lockdown mode?", ColorString(c.G(), "green", "ENABLE"))
+			} else {
+				prompt = fmt.Sprintf("Do you want to %s lockdown mode?", ColorString(c.G(), "red", "DISABLE"))
+			}
+
+			ok, err := tui.PromptYesNo(PromptDescriptorChangeLockdownMode, prompt, libkb.PromptDefaultNo)
+			if err != nil {
+				return err
+			}
+			if !ok {
+				c.G().Log.CDebugf(context.TODO(), "CmdAccountLockdown: user aborted via prompt")
+				return NotConfirmedError{}
+			}
 		}
+
 		err = cli.SetLockdownMode(context.Background(), keybase1.SetLockdownModeArg{
 			Enabled: *c.SetLockdownMode,
 		})
@@ -114,16 +129,16 @@ func (c *CmdAccountLockdown) Run() error {
 	if err != nil {
 		return err
 	}
-	dui.Printf("Lockdown mode is: ")
+	tui.Printf("Lockdown mode is: ")
 	if res.Status {
-		dui.PrintfUnescaped("%s\n", ColorString(c.G(), "green", enabledGreen()))
+		tui.PrintfUnescaped("%s\n", ColorString(c.G(), "green", enabledGreen()))
 	} else {
-		dui.PrintfUnescaped("%s\n", ColorString(c.G(), "yellow", disabledYellow()))
+		tui.PrintfUnescaped("%s\n", ColorString(c.G(), "yellow", disabledYellow()))
 	}
 
 	if c.History {
 		tabw := new(tabwriter.Writer)
-		tabw.Init(dui.OutputWriter(), 0, 8, 4, ' ', 0)
+		tabw.Init(tui.OutputWriter(), 0, 8, 4, ' ', 0)
 		fmt.Fprintf(tabw, "Changed to:\tChange time:\tDevice:\n")
 		for _, v := range res.History {
 			var status string
