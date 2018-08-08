@@ -240,11 +240,7 @@ class PlatformInput extends Component<PlatformInputProps & Kb.OverlayParentProps
             styles.inputWrapper,
             {
               backgroundColor: this.props.isEditing ? globalColors.yellow3 : globalColors.white,
-              borderColor: this.props.explodingModeSeconds
-                ? globalColors.black_75
-                : this.props.isEditing
-                  ? globalColors.black_20
-                  : globalColors.black_20,
+              borderColor: this.props.explodingModeSeconds ? globalColors.black_75 : globalColors.black_20,
             },
           ])}
         >
@@ -269,7 +265,7 @@ class PlatformInput extends Component<PlatformInputProps & Kb.OverlayParentProps
               ) : (
                 <Kb.Icon
                   className="timer"
-                  onClick={this.props.isEditing ? undefined : this._toggleShowingMenu}
+                  onClick={this._toggleShowingMenu}
                   style={Kb.iconCastPlatformStyles(styles.timerIcon)}
                   type="iconfont-timer"
                 />
@@ -315,6 +311,7 @@ class PlatformInput extends Component<PlatformInputProps & Kb.OverlayParentProps
             this.props.isExploding &&
             !this.props.isEditing &&
             !this.state.hasText && (
+              // This is the `boom!` icon in the placeholder: “Write an exploding message boom!”
               <Kb.Icon
                 color={globalColors.black_20}
                 fontSize={34}
