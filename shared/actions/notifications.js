@@ -36,6 +36,7 @@ function* _listenSaga(): Saga.SagaGenerator<any, any> {
     team: true,
     tracking: true,
     wallet: true,
+    unverifiedteamlist: true,
     users: true,
   }
 

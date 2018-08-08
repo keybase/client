@@ -75,6 +75,7 @@ type NotifyListener interface {
 	AvatarUpdated(name string, formats []keybase1.AvatarFormat)
 	DeviceCloneCountChanged(newClones int)
 	WalletPaymentNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID)
+	TeamListUnverifiedChanged(teamName string)
 }
 
 type NoopNotifyListener struct{}
@@ -146,6 +147,7 @@ func (n *NoopNotifyListener) AvatarUpdated(name string, formats []keybase1.Avata
 func (n *NoopNotifyListener) DeviceCloneCountChanged(newClones int)                              {}
 func (n *NoopNotifyListener) WalletPaymentNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID) {
 }
+func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string) {}
 
 // NotifyRouter routes notifications to the various active RPC
 // connections. It's careful only to route to those who are interested
@@ -1383,6 +1385,35 @@ func (n *NotifyRouter) HandleTeamChangedByName(ctx context.Context,
 		n.listener.TeamChangedByName(teamName, latestSeqno, implicitTeam, changes)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent TeamChanged notification")
+}
+
+// HandleTeamListUnverifiedChanged is called when a notification is received from gregor that
+// we think might be of interest to the UI, specifically the parts of the UI that update using
+// the TeamListUnverified rpc.
+func (n *NotifyRouter) HandleTeamListUnverifiedChanged(ctx context.Context, teamName string) {
+	if n == nil {
+		return
+	}
+
+	n.G().Log.Debug("+ Sending team list unverified changed notification for %s", teamName)
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `UnverifiedTeamList` notification type
+		if n.getNotificationChannels(id).Unverifiedteamlist {
+			// In the background do...
+			go func() {
+				// A send of a `TeamListUnverifiedChanged` RPC
+				(keybase1.NotifyUnverifiedTeamListClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).TeamListUnverifiedChanged(context.Background(), teamName)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.TeamListUnverifiedChanged(teamName)
+	}
+	n.G().Log.Debug("- Sent team list unverified changed notification for %s", teamName)
 }
 
 func (n *NotifyRouter) HandleTeamDeleted(ctx context.Context, teamID keybase1.TeamID) {

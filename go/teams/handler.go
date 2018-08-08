@@ -184,6 +184,7 @@ func sweepOpenTeamResetAndDeletedMembers(ctx context.Context, g *libkb.GlobalCon
 func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) (err error) {
 	change.KeyRotated = row.KeyRotated
 	change.MembershipChanged = row.MembershipChanged
+	change.Misc = row.Misc
 
 	defer g.CTrace(ctx, fmt.Sprintf("team.handleChangeSingle(%+v, %+v)", row, change), func() error { return err })()
 
@@ -199,6 +200,10 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 	// server-trust that they are the same team.
 	g.NotifyRouter.HandleTeamChangedByBothKeys(ctx, row.Id, row.Name, row.LatestSeqno, row.ImplicitTeam, change)
 
+	if change.Renamed || change.MembershipChanged || change.Misc {
+		// this notification is specifically for the UI
+		g.NotifyRouter.HandleTeamListUnverifiedChanged(ctx, row.Name)
+	}
 	return nil
 }
 
