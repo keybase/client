@@ -7,7 +7,7 @@ import {type OpenInFileUIProps as OwnProps} from './open-in-fileui-container'
 import OpenInFileUI from './open-in-fileui.desktop'
 
 const mapStateToProps = (state: TypedState, {path}: OwnProps) => ({
-  kbfsEnabled: false && Constants.kbfsEnabled(state),
+  kbfsEnabled: Constants.kbfsEnabled(state),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => ({
