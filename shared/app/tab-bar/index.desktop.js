@@ -10,7 +10,6 @@ import type {Props} from './index.types'
 const _icons = {
   [Tabs.chatTab]: 'iconfont-nav-chat',
   [Tabs.devicesTab]: 'iconfont-nav-devices',
-  [Tabs.folderTab]: 'iconfont-nav-folders',
   [Tabs.peopleTab]: 'iconfont-nav-people',
   [Tabs.profileTab]: 'iconfont-nav-people',
   [Tabs.settingsTab]: 'iconfont-nav-settings',
@@ -23,7 +22,6 @@ const _icons = {
 const _labels = {
   [Tabs.chatTab]: 'Chat',
   [Tabs.devicesTab]: 'Devices',
-  [Tabs.folderTab]: 'Folders',
   [Tabs.peopleTab]: 'People',
   [Tabs.profileTab]: 'People',
   [Tabs.settingsTab]: 'Settings',

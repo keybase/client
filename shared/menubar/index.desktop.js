@@ -1,7 +1,6 @@
 // @flow
-import Folders, {type FolderType, type Props as FolderProps} from '../folders/index.desktop'
+import ChatBox from './chat.desktop'
 import React, {Component} from 'react'
-import UserAdd from './user-add.desktop'
 import flags from '../util/feature-flags'
 import {
   Box,
@@ -14,31 +13,13 @@ import {
   ButtonBar,
   type IconType,
 } from '../common-adapters'
-import {
-  fsTab,
-  peopleTab,
-  chatTab,
-  devicesTab,
-  teamsTab,
-  walletsTab,
-  gitTab,
-  settingsTab,
-  type Tab,
-} from '../constants/tabs'
-import {
-  globalStyles,
-  globalColors,
-  globalMargins,
-  desktopStyles,
-  collapseStyles,
-  platformStyles,
-} from '../styles'
+import * as Tabs from '../constants/tabs'
+import * as Styles from '../styles'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash-es'
 
 export type Props = {
-  folderProps: ?FolderProps,
   isAsyncWriteHappening: boolean,
   logIn: () => void,
   loggedIn: boolean,
@@ -55,13 +36,11 @@ export type Props = {
 }
 
 type State = {|
-  selected: FolderType,
   showingMenu: boolean,
 |}
 
 class MenubarRender extends Component<Props, State> {
   state: State = {
-    selected: 'private',
     showingMenu: false,
   }
 
@@ -80,21 +59,19 @@ class MenubarRender extends Component<Props, State> {
 
   render() {
     // TODO: refactor all this duplicated code!
-    return this.props.loggedIn ? this._renderFolders() : this._renderLoggedOut()
+    return this.props.loggedIn ? this._renderLoggedIn() : this._renderLoggedOut()
   }
 
   _renderLoggedOut() {
-    const styles = stylesPublic
-
-    const menuColor = this.state.showingMenu ? globalColors.black_60 : globalColors.black_40
-    const menuStyle = platformStyles({
+    const menuColor = this.state.showingMenu ? Styles.globalColors.black_60 : Styles.globalColors.black_40
+    const menuStyle = Styles.platformStyles({
       isElectron: {
-        ...desktopStyles.clickable,
+        ...Styles.desktopStyles.clickable,
       },
     })
 
     return (
-      <Box style={styles.container}>
+      <Box style={Styles.collapseStyles([styles.widgetContainer, styles.public])}>
         {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
         <Box style={{...stylesTopRow, justifyContent: 'flex-end'}}>
@@ -113,8 +90,8 @@ class MenubarRender extends Component<Props, State> {
             onHidden={() => this.setState({showingMenu: false})}
           />
         </Box>
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          <Icon type="icon-keybase-logo-logged-out-64" style={stylesLogo} color={globalColors.yellow} />
+        <Box style={{...Styles.globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+          <Icon type="icon-keybase-logo-logged-out-64" style={stylesLogo} color={Styles.globalColors.yellow} />
           <Text type="Body" small={true} style={{alignSelf: 'center', marginTop: 6}}>
             You're logged out of Keybase!
           </Text>
@@ -129,11 +106,11 @@ class MenubarRender extends Component<Props, State> {
   _menuView(title: string, iconType: IconType, count: number) {
     return (
       <Box2 direction="horizontal" style={{width: '100%'}}>
-        <Box style={{marginRight: globalMargins.xsmall, position: 'relative'}}>
-          <Icon type={iconType} color={globalColors.black_20} fontSize={20} />
+        <Box style={{marginRight: Styles.globalMargins.xsmall, position: 'relative'}}>
+          <Icon type={iconType} color={Styles.globalColors.black_20} fontSize={20} />
           {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', left: 14, top: -2}} />}
         </Box>
-        <Text className="title" type="Body" style={collapseStyles([{color: undefined}])}>
+        <Text className="title" type="Body" style={Styles.collapseStyles([{color: undefined}])}>
           {title}
         </Text>
       </Box2>
@@ -146,29 +123,29 @@ class MenubarRender extends Component<Props, State> {
         ? [
             {
               title: 'Wallet',
-              view: this._menuView('Wallet', 'iconfont-nav-wallets', countMap[walletsTab] || 0),
-              onClick: () => this.props.openApp(walletsTab),
+              view: this._menuView('Wallet', 'iconfont-nav-wallets', countMap[Tabs.walletsTab] || 0),
+              onClick: () => this.props.openApp(Tabs.walletsTab),
             },
           ]
         : []),
       {
         title: 'Git',
-        view: this._menuView('Git', 'iconfont-nav-git', countMap[gitTab] || 0),
-        onClick: () => this.props.openApp(gitTab),
+        view: this._menuView('Git', 'iconfont-nav-git', countMap[Tabs.gitTab] || 0),
+        onClick: () => this.props.openApp(Tabs.gitTab),
       },
       {
         title: 'Devices',
-        view: this._menuView('Devices', 'iconfont-nav-devices', countMap[devicesTab] || 0),
-        onClick: () => this.props.openApp(devicesTab),
+        view: this._menuView('Devices', 'iconfont-nav-devices', countMap[Tabs.devicesTab] || 0),
+        onClick: () => this.props.openApp(Tabs.devicesTab),
       },
       {
         title: 'Settings',
-        view: this._menuView('Settings', 'iconfont-nav-settings', countMap[settingsTab] || 0),
-        onClick: () => this.props.openApp(settingsTab),
+        view: this._menuView('Settings', 'iconfont-nav-settings', countMap[Tabs.settingsTab] || 0),
+        onClick: () => this.props.openApp(Tabs.settingsTab),
       },
       'Divider',
       ...(this.props.loggedIn ? [{title: 'Open main app', onClick: () => this.props.openApp()}] : []),
-      {title: 'Open folders', onClick: () => this.props.openApp(fsTab)},
+      {title: 'Open folders', onClick: () => this.props.openApp(Tabs.fsTab)},
       'Divider',
       {title: 'Keybase.io', onClick: () => this.props.showUser()},
       {title: 'Report a bug', onClick: this.props.showBug},
@@ -182,60 +159,22 @@ class MenubarRender extends Component<Props, State> {
     this.props.refresh()
   }
 
-  _renderFolders() {
-    const newPrivate = {
-      ...(this.props.folderProps && this.props.folderProps.private),
-      ignored: [],
-      extraRows: [
-        <UserAdd
-          key="useraddPriv"
-          isPublic={false}
-          onAdded={path => this._onAdd(path)}
-          username={this.props.username}
-        />,
-      ],
-    }
-
-    const newPublic = {
-      ...(this.props.folderProps && this.props.folderProps.public),
-      ignored: [],
-      extraRows: [
-        <UserAdd
-          key="useraddPub"
-          isPublic={true}
-          onAdded={path => this._onAdd(path)}
-          username={this.props.username}
-        />,
-      ],
-    }
-
-    const styles = this.state.selected === 'private' ? stylesPrivate : stylesPublic
-
-    const mergedProps = {
-      ...this.props.folderProps,
-      onClick: this.props.onFolderClick,
-      private: newPrivate,
-      public: newPublic,
-      onSwitchTab: selected => this.setState({selected}),
-      selected: this.state.selected,
-      onRekey: this.props.onRekey,
-    }
-
-    const badgeTypesInHeader: Array<Tab> = [peopleTab, chatTab, fsTab, teamsTab]
-    const badgesInMenu = [...(flags.walletsEnabled ? [walletsTab] : []), gitTab, devicesTab, settingsTab]
+  _renderLoggedIn() {
+    const badgeTypesInHeader: Array<Tabs.Tab> = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsTab]
+    const badgesInMenu = [...(flags.walletsEnabled ? [Tabs.walletsTab] : []), Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab]
     const badgeCountInMenu = badgesInMenu.reduce(
       (acc, val) => (this.props.badgeInfo[val] ? acc + this.props.badgeInfo[val] : acc),
       0
     )
 
     return (
-      <Box style={styles.container}>
+      <Box style={styles.widgetContainer}>
         {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
-        <Box style={{...stylesTopRow, borderBottom: `1px solid ${globalColors.black_05}`}}>
+        <Box style={{...stylesTopRow, borderBottom: `1px solid ${Styles.globalColors.black_05}`}}>
           <Box
             style={{
-              ...globalStyles.flexBoxRow,
+              ...Styles.globalStyles.flexBoxRow,
               flex: 1,
               justifyContent: 'center',
               alignItems: 'center',
@@ -247,18 +186,18 @@ class MenubarRender extends Component<Props, State> {
             ))}
           </Box>
           <Box
-            style={collapseStyles([
-              desktopStyles.clickable,
+            style={Styles.collapseStyles([
+              Styles.desktopStyles.clickable,
               {
-                marginRight: globalMargins.tiny,
+                marginRight: Styles.globalMargins.tiny,
                 position: 'relative',
               },
             ])}
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
           >
             <Icon
-              color={globalColors.darkBlue4}
-              hoverColor={globalColors.black_75}
+              color={Styles.globalColors.darkBlue4}
+              hoverColor={Styles.globalColors.black_75}
               type="iconfont-nav-more"
               ref={this.attachmentRef}
             />
@@ -278,15 +217,15 @@ class MenubarRender extends Component<Props, State> {
             position="bottom right"
           />
         </Box>
-        <Folders {...mergedProps} />
+        <ChatBox />
         {this.props.isAsyncWriteHappening && (
           <Box
             style={{
-              ...globalStyles.flexBoxColumn,
+              ...Styles.globalStyles.flexBoxColumn,
               justifyContent: 'center',
               alignItems: 'center',
               minHeight: 32,
-              backgroundColor: globalColors.white,
+              backgroundColor: Styles.globalColors.white,
               padding: 8,
             }}
           >
@@ -301,7 +240,7 @@ class MenubarRender extends Component<Props, State> {
 
 const _realCSS = `
 body {
-  background-color: ${globalColors.transparent};
+  background-color: ${Styles.globalColors.transparent};
 }
 `
 
@@ -319,7 +258,7 @@ const ArrowTick = () => (
       top: -6,
       borderLeft: '6px solid transparent',
       borderRight: '6px solid transparent',
-      borderBottom: `6px solid ${globalColors.white}`,
+      borderBottom: `6px solid ${Styles.globalColors.white}`,
     }}
   />
 )
@@ -329,22 +268,22 @@ const BadgeIcon = ({
   countMap,
   openApp,
 }: {
-  tab: Tab,
+  tab: Tabs.Tab,
   countMap: Object,
   openApp: (tab: ?string) => void,
 }) => {
   const count = countMap[tab]
 
-  if (tab === devicesTab && !count) {
+  if (tab === Tabs.devicesTab && !count) {
     return null
   }
 
-  const iconMap: {[key: Tab]: IconType} = {
-    [peopleTab]: 'iconfont-nav-people',
-    [chatTab]: 'iconfont-nav-chat',
-    [devicesTab]: 'iconfont-nav-devices',
-    [fsTab]: 'iconfont-nav-files',
-    [teamsTab]: 'iconfont-nav-teams',
+  const iconMap: {[key: Tabs.Tab]: IconType} = {
+    [Tabs.peopleTab]: 'iconfont-nav-people',
+    [Tabs.chatTab]: 'iconfont-nav-chat',
+    [Tabs.devicesTab]: 'iconfont-nav-devices',
+    [Tabs.fsTab]: 'iconfont-nav-files',
+    [Tabs.teamsTab]: 'iconfont-nav-teams',
   }
   const iconType: ?IconType = iconMap[tab]
 
@@ -354,10 +293,10 @@ const BadgeIcon = ({
 
   return (
     <Box
-      style={{...desktopStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}
+      style={{...Styles.desktopStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}
       onClick={() => openApp(tab)}
     >
-      <Icon color={globalColors.darkBlue4} hoverColor={globalColors.black_75} fontSize={22} type={iconType} />
+      <Icon color={Styles.globalColors.darkBlue4} hoverColor={Styles.globalColors.black_75} fontSize={22} type={iconType} />
       {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', top: -6, right: -8}} />}
     </Box>
   )
@@ -365,19 +304,10 @@ const BadgeIcon = ({
 
 const borderRadius = 4
 
-const stylesContainer = {
-  ...globalStyles.flexBoxColumn,
-  flex: 1,
-  position: 'relative',
-  marginTop: 13,
-  borderTopLeftRadius: borderRadius,
-  borderTopRightRadius: borderRadius,
-}
-
 const stylesTopRow = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
-  backgroundColor: globalColors.darkBlue2,
+  backgroundColor: Styles.globalColors.darkBlue2,
   flex: 1,
   minHeight: 40,
   maxHeight: 40,
@@ -387,23 +317,28 @@ const stylesTopRow = {
   borderTopRightRadius: borderRadius,
 }
 
-const stylesPrivate = {
-  container: {
-    ...stylesContainer,
-    backgroundColor: globalColors.darkBlue,
-  },
-}
-
-const stylesPublic = {
-  container: {
-    ...stylesContainer,
-    backgroundColor: globalColors.white,
-  },
-}
-
 const stylesLogo = {
   alignSelf: 'center',
   marginBottom: 12,
 }
+
+const styles = Styles.styleSheetCreate({
+  widgetContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      flex: 1,
+      position: 'relative',
+      marginTop: 13,
+      borderTopLeftRadius: Styles.globalMargins.xtiny,
+      borderTopRightRadius: Styles.globalMargins.xtiny,
+      backgroundColor: Styles.globalColors.darkBlue,
+    },
+  }),
+  public: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.white,
+    },
+  }),
+})
 
 export default MenubarRender
