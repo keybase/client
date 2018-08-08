@@ -47,8 +47,11 @@ func (e *SelfProvisionEngine) RequiredUIs() []libkb.UIKind {
 func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	defer m.CTrace("SelfProvisionEngine#Run", func() error { return err })()
 
-	// Make sure we are in the cloned state.
-	// TODO
+	if d, err := libkb.GetDeviceCloneState(m); err != nil {
+		return err
+	} else if !d.IsClone() {
+		return fmt.Errorf("to self provision, you must be a cloned device")
+	}
 
 	// transaction around config file
 	tx, err := e.G().Env.GetConfigWriter().BeginTransaction()

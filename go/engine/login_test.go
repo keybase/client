@@ -120,35 +120,21 @@ func TestCreateFakeUserNoKeys(t *testing.T) {
 
 func testUserHasDeviceKey(tc libkb.TestContext) {
 	me, err := libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tc.G))
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 
 	kf := me.GetKeyFamily()
-	if kf == nil {
-		tc.T.Fatal("user has a nil key family")
-	}
-	if me.GetEldestKID().IsNil() {
-		tc.T.Fatal("user has no eldest key")
-	}
+	require.NotNil(tc.T, kf)
+	require.False(tc.T, me.GetEldestKID().IsNil())
 
 	ckf := me.GetComputedKeyFamily()
-	if ckf == nil {
-		tc.T.Fatalf("user has no computed key family")
-	}
+	require.NotNil(tc.T, ckf)
 
 	active := ckf.HasActiveKey()
-	if !active {
-		tc.T.Errorf("user has no active key")
-	}
+	require.True(tc.T, active)
 
 	subkey, err := me.GetDeviceSubkey()
-	if err != nil {
-		tc.T.Fatal(err)
-	}
-	if subkey == nil {
-		tc.T.Fatal("nil subkey")
-	}
+	require.NoError(tc.T, err)
+	require.NotNil(tc.T, subkey)
 }
 
 func TestUserEmails(t *testing.T) {
@@ -1062,13 +1048,28 @@ func TestProvisionPaperCommandLine(t *testing.T) {
 	require.Equal(t, provLoginUI.CalledGetEmailOrUsername, 0)
 }
 
+func createDeviceClone(t *testing.T, m libkb.MetaContext) {
+	// setup: perform two runs, and then manually persist the earlier
+	// prior token to simulate a subsequent run by a cloned device
+	d0, err := runAndGetDeviceCloneState(m)
+	require.NoError(t, err)
+	_, err = runAndGetDeviceCloneState(m)
+	require.NoError(t, err)
+	err = persistDeviceCloneState(m, d0)
+	require.NoError(t, err)
+
+	_, _, err = libkb.UpdateDeviceCloneState(m)
+	require.NoError(t, err)
+	d, err := libkb.GetDeviceCloneState(m)
+	require.NoError(t, err)
+	require.True(t, d.IsClone())
+}
+
 func TestSelfProvisionCommandLine(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
 	user := CreateAndSignupFakeUser(tc, "clone")
-	// TODO setup clone
-
 	secUI := user.NewSecretUI()
 	provUI := newTestProvisionUIPaper()
 	provLoginUI := &libkb.TestLoginUI{Username: user.Username}
@@ -1081,6 +1082,8 @@ func TestSelfProvisionCommandLine(t *testing.T) {
 	}
 
 	m := NewMetaContextForTest(tc).WithUIs(uis)
+	createDeviceClone(t, m)
+
 	newName := "uncloneme"
 	eng := NewSelfProvisionEngine(tc.G, newName)
 	err := RunEngine2(m, eng)
@@ -1129,7 +1132,6 @@ func TestSelfProvisionCommandLineFailure(t *testing.T) {
 	defer tc.Cleanup()
 
 	user := CreateAndSignupFakeUser(tc, "clone")
-	// TODO setup clone
 
 	secUI := user.NewSecretUI()
 	provUI := newTestProvisionUIPaper()
@@ -1141,34 +1143,42 @@ func TestSelfProvisionCommandLineFailure(t *testing.T) {
 		LoginUI:     provLoginUI,
 		GPGUI:       &gpgtestui{},
 	}
-
 	m := NewMetaContextForTest(tc).WithUIs(uis)
-	newName := defaultDeviceName
-	eng := NewSelfProvisionEngine(tc.G, newName)
-	err := RunEngine2(m, eng)
-	require.Error(t, err)
 
-	// Since provisioning failed, we still just have a single device.
-	testUserHasDeviceKey(tc)
-	assertNumDevicesAndKeys(tc, user, 1, 2)
-	require.Equal(t, tc.G.ActiveDevice.Name(), newName)
+	assertSelfProvisionFailure := func(oldName, newName string) {
+		eng := NewSelfProvisionEngine(tc.G, newName)
+		err := RunEngine2(m, eng)
+		require.Error(t, err)
 
-	assertDeviceKeysCached(tc)
-	// TODO
-	//	assertPassphraseStreamCache(tc)
-	// assertSecretStored(tc, user.Username)
+		testUserHasDeviceKey(tc)
+		// Since provisioning failed, we still just have a single device.
+		assertNumDevicesAndKeys(tc, user, 1, 2)
+		require.Equal(t, tc.G.ActiveDevice.Name(), oldName)
 
-	// GetBootstrapStatus should return without error and with LoggedIn set to
-	// true.
-	beng := NewBootstrap(tc.G)
-	err = RunEngine2(m, beng)
-	require.NoError(t, err)
-	status := beng.Status()
-	require.True(t, status.LoggedIn)
-	require.True(t, status.Registered)
+		assertDeviceKeysCached(tc)
+		// TODO
+		//	assertPassphraseStreamCache(tc)
+		// assertSecretStored(tc, user.Username)
 
-	Logout(tc)
-	user.LoginOrBust(tc)
+		// GetBootstrapStatus should return without error and with LoggedIn set to
+		// true.
+		beng := NewBootstrap(tc.G)
+		err = RunEngine2(m, beng)
+		require.NoError(t, err)
+		status := beng.Status()
+		require.True(t, status.LoggedIn)
+		require.True(t, status.Registered)
+
+		Logout(tc)
+		user.LoginOrBust(tc)
+	}
+
+	// If we don't have a clone, we can't run this engine
+	assertSelfProvisionFailure(defaultDeviceName, "new device name")
+
+	// Use the default name so we get an error when provisioning.
+	createDeviceClone(t, m)
+	assertSelfProvisionFailure(defaultDeviceName, defaultDeviceName)
 }
 
 // Provision device using a private GPG key (not synced to keybase
