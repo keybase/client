@@ -40,7 +40,6 @@ func TestDeviceCloneStateFirstRun(t *testing.T) {
 	m := NewMetaContextForTest(tc)
 
 	d, err := runAndGetDeviceCloneState(m)
-
 	assertSuccessfulRun(tc, d, err)
 	require.Equal(tc.T, d.Clones, 1)
 }
@@ -55,7 +54,6 @@ func TestDeviceCloneStateSuccessfulUpdate(t *testing.T) {
 	require.NoError(tc.T, err)
 
 	d, err := runAndGetDeviceCloneState(m)
-
 	assertSuccessfulRun(tc, d, err)
 	require.NotEqual(tc.T, d.Prior, d0.Prior)
 	require.Equal(tc.T, d.Clones, 1)
@@ -77,7 +75,6 @@ func TestDeviceCloneStateRecoveryFromFailureBeforeServer(t *testing.T) {
 	require.NoError(t, err)
 
 	d, err := runAndGetDeviceCloneState(m)
-
 	assertSuccessfulRun(tc, d, err)
 	require.Equal(tc.T, d.Prior, d0.Stage)
 	require.Equal(tc.T, d.Clones, 1)
@@ -91,13 +88,14 @@ func TestDeviceCloneStateRecoveryFromFailureAfterServer(t *testing.T) {
 	// setup: run twice. then reset the persistence to where it would have been
 	// if the server got the second update but did not ack it successfully to the client.
 	d0, err := runAndGetDeviceCloneState(m)
+	require.NoError(t, err)
 	d1, err := runAndGetDeviceCloneState(m)
+	require.NoError(t, err)
 	tmp := libkb.DeviceCloneState{Prior: d0.Prior, Stage: d1.Prior, Clones: 1}
 	err = persistDeviceCloneState(m, tmp)
 	require.NoError(t, err)
 
 	d, err := runAndGetDeviceCloneState(m)
-
 	assertSuccessfulRun(tc, d, err)
 	require.Equal(tc.T, d.Prior, d1.Prior)
 	require.Equal(tc.T, d.Clones, 1)
@@ -119,8 +117,8 @@ func TestDeviceCloneStateCloneDetected(t *testing.T) {
 
 	before, after, err := libkb.UpdateDeviceCloneState(m)
 	require.NoError(t, err)
-	d, err := libkb.GetDeviceCloneState(m)
 
+	d, err := libkb.GetDeviceCloneState(m)
 	assertSuccessfulRun(tc, d, err)
 	require.NotEqual(tc.T, d.Prior, d0.Stage, "despite there being a clone, the prior still needs to change")
 	require.Equal(tc.T, d.Clones, 2)
@@ -135,7 +133,6 @@ func TestDeviceCloneStateBeforeAndAfterOnFirstRun(t *testing.T) {
 	m := NewMetaContextForTest(tc)
 
 	before, after, err := libkb.UpdateDeviceCloneState(m)
-
 	require.NoError(tc.T, err)
 	require.Equal(tc.T, before, 1, "there was one clone before the test run")
 	require.Equal(tc.T, after, 1, "there was one clone after the test run")

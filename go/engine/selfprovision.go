@@ -14,8 +14,9 @@ type SelfProvisionEngine struct {
 	lks            *libkb.LKSec
 	User           *libkb.User
 	perUserKeyring *libkb.PerUserKeyring
-	pps            *libkb.PassphraseStream
-	tsec           libkb.Triplesec
+	// TODO what is the right way to get the passphrase stream cache setup?
+	pps  *libkb.PassphraseStream
+	tsec libkb.Triplesec
 }
 
 // If a device is cloned, we can provision a new device from the current device
@@ -107,14 +108,8 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 	keys := libkb.NewDeviceWithKeysOnly(sigKey, encKey)
-	uid, err := keys.Populate(m)
-	if err != nil {
+	if _, err := keys.Populate(m); err != nil {
 		return err
-	}
-
-	if uid.NotEqual(e.User.GetUID()) {
-		e.G().Log.Debug("paper key entered was for a different user")
-		return fmt.Errorf("paper key valid, but for %s, not %s", uid, e.User.GetUID())
 	}
 
 	e.perUserKeyring, err = libkb.NewPerUserKeyring(e.G(), e.User.GetUID())
@@ -163,7 +158,6 @@ func (e *SelfProvisionEngine) provision(m libkb.MetaContext, keys *libkb.DeviceW
 	}
 	m = m.WithGlobalActiveDevice()
 	m.ActiveDevice().CacheProvisioningKey(m, keys)
-	// sync secrets?
 	return nil
 }
 
@@ -191,9 +185,7 @@ func (e *SelfProvisionEngine) fetchLKS(m libkb.MetaContext, encKey libkb.Generic
 	return nil
 }
 
-// copied from loginProvision
-// makeDeviceKeysWithSigner creates device keys given a signing
-// key.
+// makeDeviceKeysWithSigner creates device keys given a signing key.
 func (e *SelfProvisionEngine) makeDeviceKeysWithSigner(m libkb.MetaContext, signer libkb.GenericKey) error {
 	args, err := e.makeDeviceWrapArgs(m)
 	if err != nil {
@@ -204,9 +196,8 @@ func (e *SelfProvisionEngine) makeDeviceKeysWithSigner(m libkb.MetaContext, sign
 	return e.makeDeviceKeys(m, args)
 }
 
-// makeDeviceWrapArgs creates a base set of args for DeviceWrap.
-// It ensures that LKSec is created.  It also gets a new device
-// name for this device.
+// makeDeviceWrapArgs creates a base set of args for DeviceWrap.  It ensures
+// that LKSec is created.  It also gets a new device name for this device.
 func (e *SelfProvisionEngine) makeDeviceWrapArgs(m libkb.MetaContext) (*DeviceWrapArgs, error) {
 	if err := e.ensureLKSec(m); err != nil {
 		return nil, err

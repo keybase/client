@@ -147,6 +147,7 @@ func (e *DeviceKeygen) Push(m libkb.MetaContext, pargs *DeviceKeygenPushArgs) er
 		pukBoxes = append(pukBoxes, pukBox)
 	}
 	if !e.args.IsEldest || e.args.IsSelfProvision {
+		// TODO on self provision we should also setup EK boxes here.
 		boxes, err := e.preparePerUserKeyBoxFromProvisioningKey(m)
 		if err != nil {
 			return err

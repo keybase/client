@@ -51,13 +51,11 @@ func (c *CmdSelfProvision) Run() (err error) {
 		return err
 	}
 
-	err = client.SelfProvision(context.TODO(),
+	return client.SelfProvision(context.TODO(),
 		keybase1.SelfProvisionArg{
 			DeviceName: c.deviceName,
 			SessionID:  c.SessionID,
 		})
-
-	return
 }
 
 func (c *CmdSelfProvision) ParseArgv(ctx *cli.Context) error {

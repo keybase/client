@@ -1065,7 +1065,7 @@ func createDeviceClone(t *testing.T, m libkb.MetaContext) {
 	require.True(t, d.IsClone())
 }
 
-func TestSelfProvisionCommandLine(t *testing.T) {
+func TestSelfProvision(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
@@ -1127,7 +1127,7 @@ func TestSelfProvisionCommandLine(t *testing.T) {
 	user.LoginOrBust(tc)
 }
 
-func TestSelfProvisionCommandLineFailure(t *testing.T) {
+func TestFailSelfProvision(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
