@@ -491,11 +491,7 @@ func (m MetaContext) SetActiveDevice(uv keybase1.UserVersion, deviceID keybase1.
 	if !g.Env.GetUID().Equal(uv.Uid) {
 		return NewUIDMismatchError("UID switched out from underneath provisioning process")
 	}
-	err := g.ActiveDevice.Set(m, uv, deviceID, sigKey, encKey, deviceName)
-	if err != nil {
-		return err
-	}
-	return nil
+	return g.ActiveDevice.Set(m, uv, deviceID, sigKey, encKey, deviceName)
 }
 
 func (m MetaContext) SetSigningKey(uv keybase1.UserVersion, deviceID keybase1.DeviceID, sigKey GenericKey, deviceName string) error {

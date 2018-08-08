@@ -56,16 +56,33 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
+	uvOld, deviceIDOld, deviceNameOld, sigKeyOld, encKeyOld := e.G().ActiveDevice.AllFields()
 	m = m.WithNewProvisionalLoginContext()
 
-	// From this point on, if there's an error, we abort the
-	// transaction.
+	// From this point on, if there's an error, we abort
+	// the transaction.
 	defer func() {
 		if tx != nil {
 			tx.Abort()
 		}
-		if err == nil {
+		if err != nil {
+			m.CDebugf("Error in self provision, reverting to original active device: %v", err)
+			m = m.WithGlobalActiveDevice()
+			salt, err := e.User.GetSalt()
+			if err != nil {
+				m.CDebugf("unable to GetSalt: %v", err)
+				return
+			}
+			if err = m.SwitchUserNewConfig(e.User.GetUID(), e.User.GetNormalizedName(), salt, deviceIDOld); err != nil {
+				m.CDebugf("unable to SwitchUserNewConfig: %v", err)
+				return
+			}
+			if err := m.SetActiveDevice(uvOld, deviceIDOld, sigKeyOld, encKeyOld, deviceNameOld); err != nil {
+				m.CDebugf("unable to SetActiveDevice: %v", err)
+			}
+		} else {
 			m = m.CommitProvisionalLogin()
+
 		}
 	}()
 
@@ -119,7 +136,6 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 
 	e.sendNotification()
 	return nil
-
 }
 
 func (e *SelfProvisionEngine) provision(m libkb.MetaContext, keys *libkb.DeviceWithKeys) error {
@@ -144,6 +160,7 @@ func (e *SelfProvisionEngine) provision(m libkb.MetaContext, keys *libkb.DeviceW
 	}
 	m = m.WithGlobalActiveDevice()
 	m.ActiveDevice().CacheProvisioningKey(m, keys)
+	// sync secrets?
 	return nil
 }
 

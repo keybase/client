@@ -1086,9 +1086,6 @@ func TestSelfProvisionCommandLine(t *testing.T) {
 	err := RunEngine2(m, eng)
 	require.NoError(t, err)
 
-	require.Equal(t, provUI.calledChooseDeviceType, 0)
-	require.Equal(t, provLoginUI.CalledGetEmailOrUsername, 0)
-
 	testUserHasDeviceKey(tc)
 	assertNumDevicesAndKeys(tc, user, 2, 4)
 	err = AssertProvisioned(tc)
@@ -1122,6 +1119,53 @@ func TestSelfProvisionCommandLine(t *testing.T) {
 	//testTrack(t, tc, libkb.KeybaseNullSigVersion, "t_bob")
 	//assertDeviceKeysCached(tc)
 	//require.Equal(t, tc.G.ActiveDevice.Name(), newName)
+
+	Logout(tc)
+	user.LoginOrBust(tc)
+}
+
+func TestSelfProvisionCommandLineFailure(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	user := CreateAndSignupFakeUser(tc, "clone")
+	// TODO setup clone
+
+	secUI := user.NewSecretUI()
+	provUI := newTestProvisionUIPaper()
+	provLoginUI := &libkb.TestLoginUI{Username: user.Username}
+	uis := libkb.UIs{
+		ProvisionUI: provUI,
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    secUI,
+		LoginUI:     provLoginUI,
+		GPGUI:       &gpgtestui{},
+	}
+
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	newName := defaultDeviceName
+	eng := NewSelfProvisionEngine(tc.G, newName)
+	err := RunEngine2(m, eng)
+	require.Error(t, err)
+
+	// Since provisioning failed, we still just have a single device.
+	testUserHasDeviceKey(tc)
+	assertNumDevicesAndKeys(tc, user, 1, 2)
+	require.Equal(t, tc.G.ActiveDevice.Name(), newName)
+
+	assertDeviceKeysCached(tc)
+	// TODO
+	//	assertPassphraseStreamCache(tc)
+	// assertSecretStored(tc, user.Username)
+
+	// GetBootstrapStatus should return without error and with LoggedIn set to
+	// true.
+	beng := NewBootstrap(tc.G)
+	err = RunEngine2(m, beng)
+	require.NoError(t, err)
+	status := beng.Status()
+	require.True(t, status.LoggedIn)
+	require.True(t, status.Registered)
 
 	Logout(tc)
 	user.LoginOrBust(tc)
