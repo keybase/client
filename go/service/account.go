@@ -124,24 +124,21 @@ func (h *AccountHandler) GetLockdownMode(ctx context.Context, sessionID int) (re
 	}
 
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	ss, err := mctx.ActiveDevice().SyncSecrets(mctx)
-	if err != nil {
-		return ret, err
-	}
-	devs, err := ss.ActiveDevices(libkb.AllDeviceTypes)
+	upak, _, err := mctx.G().GetUPAKLoader().Load(
+		libkb.NewLoadUserArgWithMetaContext(mctx).WithPublicKeyOptional().WithUID(mctx.G().ActiveDevice.UID()))
 	if err != nil {
 		return ret, err
 	}
 
 	// Fill device names from ActiveDevices list.
 	for i, v := range response.History {
-		dev, ok := devs[v.DeviceID]
-		if !ok {
-			mctx.CDebugf("GetLockdownMode: Could not find device id in device list: %s", v.DeviceID)
+		dev := upak.FindDevice(v.DeviceID)
+		if dev == nil {
+			mctx.CDebugf("GetLockdownMode: Could not find device in UserPlusAllKeys: %s", v.DeviceID)
 			continue
 		}
 
-		v.DeviceName = dev.Display()
+		v.DeviceName = dev.DeviceDescription
 		response.History[i] = v
 	}
 
