@@ -47,8 +47,8 @@ func (t *KBFSNameInfoSource) tlfKeysClient() (*keybase1.TlfKeysClient, error) {
 	}, nil
 }
 
-func (t *KBFSNameInfoSource) LookupUntrusted(ctx context.Context, name string, public bool) (res *types.NameInfoUntrusted, err error) {
-	ni, err := t.Lookup(ctx, name, public)
+func (t *KBFSNameInfoSource) LookupIDUntrusted(ctx context.Context, name string, public bool) (res *types.NameInfoUntrusted, err error) {
+	ni, err := t.LookupID(ctx, name, public)
 	if err != nil {
 		return res, err
 	}
@@ -58,7 +58,7 @@ func (t *KBFSNameInfoSource) LookupUntrusted(ctx context.Context, name string, p
 	}, nil
 }
 
-func (t *KBFSNameInfoSource) Lookup(ctx context.Context, tlfName string, public bool) (res *types.NameInfo, err error) {
+func (t *KBFSNameInfoSource) LookupID(ctx context.Context, tlfName string, public bool) (res *types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Lookup(%s)", tlfName))()
 	var lastErr error
 	res = types.NewNameInfo()
@@ -79,10 +79,6 @@ func (t *KBFSNameInfoSource) Lookup(ctx context.Context, tlfName string, public 
 			res.CanonicalName = cres.NameIDBreaks.CanonicalName.String()
 			res.ID = chat1.TLFID(cres.NameIDBreaks.TlfID.ToBytes())
 			res.IdentifyFailures = cres.NameIDBreaks.Breaks.Breaks
-			for _, key := range cres.CryptKeys {
-				res.CryptKeys[chat1.ConversationMembersType_KBFS] =
-					append(res.CryptKeys[chat1.ConversationMembersType_KBFS], key)
-			}
 		}
 		if err != nil {
 			if _, ok := err.(auth.BadKeyError); ok {
@@ -100,16 +96,34 @@ func (t *KBFSNameInfoSource) Lookup(ctx context.Context, tlfName string, public 
 	return res, lastErr
 }
 
+func (t *KBFSNameInfoSource) AllCryptKeys(ctx context.Context, tlfName string, public bool) (res types.AllCryptKeys, err error) {
+	defer t.Trace(ctx, func() error { return err }, "AllCryptKeys(%s,%v)", tlfName, public)()
+	res = types.NewAllCryptKeys()
+	if public {
+		res[chat1.ConversationMembersType_KBFS] =
+			append(res[chat1.ConversationMembersType_KBFS], publicCryptKey)
+	} else {
+		cres, err := t.CryptKeys(ctx, tlfName)
+		if err != nil {
+			return res, err
+		}
+		for _, key := range cres.CryptKeys {
+			res[chat1.ConversationMembersType_KBFS] = append(res[chat1.ConversationMembersType_KBFS], key)
+		}
+	}
+	return res, nil
+}
+
 func (t *KBFSNameInfoSource) EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool) (types.CryptKey, error) {
 	if public {
 		return publicCryptKey, nil
 	}
-	ni, err := t.Lookup(ctx, tlfName, public)
+	ni, err := t.AllCryptKeys(ctx, tlfName, public)
 	if err != nil {
 		return nil, err
 	}
-	keys := ni.CryptKeys[chat1.ConversationMembersType_KBFS]
+	keys := ni[chat1.ConversationMembersType_KBFS]
 	if len(keys) == 0 {
 		return nil, errors.New("no encryption keys for tlf")
 	}
@@ -122,11 +136,11 @@ func (t *KBFSNameInfoSource) DecryptionKey(ctx context.Context, tlfName string, 
 	if public {
 		return publicCryptKey, nil
 	}
-	ni, err := t.Lookup(ctx, tlfName, public)
+	ni, err := t.AllCryptKeys(ctx, tlfName, public)
 	if err != nil {
 		return nil, err
 	}
-	for _, key := range ni.CryptKeys[chat1.ConversationMembersType_KBFS] {
+	for _, key := range ni[chat1.ConversationMembersType_KBFS] {
 		if key.Generation() == keyGeneration {
 			return key, nil
 		}

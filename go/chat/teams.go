@@ -16,18 +16,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-func addNameInfoCryptKey(keys types.AllCryptKeys, key types.CryptKey, implicit bool) {
-	if implicit {
-		keys[chat1.ConversationMembersType_IMPTEAMNATIVE] =
-			append(keys[chat1.ConversationMembersType_IMPTEAMNATIVE], key)
-		keys[chat1.ConversationMembersType_IMPTEAMUPGRADE] =
-			append(keys[chat1.ConversationMembersType_IMPTEAMUPGRADE], key)
-	} else {
-		keys[chat1.ConversationMembersType_TEAM] =
-			append(keys[chat1.ConversationMembersType_TEAM], key)
-	}
-}
-
 func getTeamCryptKey(ctx context.Context, team *teams.Team, generation keybase1.PerTeamKeyGeneration,
 	public, kbfsEncrypted bool) (res types.CryptKey, err error) {
 	if public {
@@ -43,28 +31,6 @@ func getTeamCryptKey(ctx context.Context, team *teams.Team, generation keybase1.
 		return res, NewDecryptionKeyNotFoundError(int(generation), kbfsEncrypted, public)
 	}
 	return team.ApplicationKeyAtGeneration(ctx, keybase1.TeamApplication_CHAT, generation)
-}
-
-func getTeamCryptKeys(ctx context.Context, team *teams.Team, public bool) (res types.AllCryptKeys, err error) {
-	res = types.NewAllCryptKeys()
-	if !public {
-		chatKeys, err := team.AllApplicationKeys(ctx, keybase1.TeamApplication_CHAT)
-		if err != nil {
-			return res, err
-		}
-		for _, key := range chatKeys {
-			addNameInfoCryptKey(res, key, team.IsImplicit())
-		}
-		kbfsKeys := team.KBFSCryptKeys(ctx, keybase1.TeamApplication_CHAT)
-		for _, key := range kbfsKeys {
-			res[chat1.ConversationMembersType_KBFS] =
-				append(res[chat1.ConversationMembersType_KBFS], key)
-		}
-	} else {
-		addNameInfoCryptKey(res, publicCryptKey, team.IsImplicit())
-		res[chat1.ConversationMembersType_KBFS] = []types.CryptKey{publicCryptKey}
-	}
-	return res, nil
 }
 
 func loadTeamForDecryption(ctx context.Context, loader *TeamLoader, name string, teamID chat1.TLFID,
@@ -205,21 +171,7 @@ func NewTeamsNameInfoSource(g *globals.Context) *TeamsNameInfoSource {
 	}
 }
 
-func (t *TeamsNameInfoSource) makeNameInfo(ctx context.Context, team *teams.Team,
-	generation *keybase1.PerTeamKeyGeneration, public bool) (res *types.NameInfo, err error) {
-	res = types.NewNameInfo()
-	res.ID, err = chat1.TeamIDToTLFID(team.ID)
-	if err != nil {
-		return res, err
-	}
-	res.CanonicalName = team.Name().String()
-	if res.CryptKeys, err = getTeamCryptKeys(ctx, team, public); err != nil {
-		return res, err
-	}
-	return res, nil
-}
-
-func (t *TeamsNameInfoSource) LookupUntrusted(ctx context.Context, name string, public bool) (res *types.NameInfoUntrusted, err error) {
+func (t *TeamsNameInfoSource) LookupIDUntrusted(ctx context.Context, name string, public bool) (res *types.NameInfoUntrusted, err error) {
 	teamName, err := keybase1.TeamNameFromString(name)
 	if err != nil {
 		return res, err
@@ -234,7 +186,7 @@ func (t *TeamsNameInfoSource) LookupUntrusted(ctx context.Context, name string, 
 	}, nil
 }
 
-func (t *TeamsNameInfoSource) Lookup(ctx context.Context, name string, public bool) (res *types.NameInfo, err error) {
+func (t *TeamsNameInfoSource) LookupID(ctx context.Context, name string, public bool) (res *types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Lookup(%s)", name))()
 	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
 		Name:        name, // Loading by name is a last resort and will always cause an extra roundtrip.
@@ -244,7 +196,19 @@ func (t *TeamsNameInfoSource) Lookup(ctx context.Context, name string, public bo
 	if err != nil {
 		return res, err
 	}
-	return t.makeNameInfo(ctx, team, nil, public)
+	tlfID, err := chat1.TeamIDToTLFID(team.ID)
+	if err != nil {
+		return res, err
+	}
+	return &types.NameInfo{
+		ID:            tlfID,
+		CanonicalName: team.Name().String(),
+	}, nil
+}
+
+func (t *TeamsNameInfoSource) AllCryptKeys(ctx context.Context, name string, public bool) (res types.AllCryptKeys, err error) {
+	defer t.Trace(ctx, func() error { return err }, "AllCryptKeys")()
+	return res, errors.New("unable to list all crypt keys on teams name info source")
 }
 
 func (t *TeamsNameInfoSource) EncryptionKey(ctx context.Context, name string, teamID chat1.TLFID,
@@ -424,23 +388,6 @@ func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, tlfID chat1.
 	return res, nil
 }
 
-func (t *ImplicitTeamsNameInfoSource) makeNameInfo(ctx context.Context, team *teams.Team,
-	tlfID chat1.TLFID, impTeamName keybase1.ImplicitTeamDisplayName, public bool) (res *types.NameInfo, err error) {
-	res = types.NewNameInfo()
-	res.ID = tlfID
-	if res.ID.IsNil() {
-		return res, errors.New("blank TLF ID given")
-	}
-	res.CanonicalName = impTeamName.String()
-	if res.CryptKeys, err = getTeamCryptKeys(ctx, team, public); err != nil {
-		return res, err
-	}
-	if res.IdentifyFailures, err = t.identify(ctx, tlfID, impTeamName); err != nil {
-		return res, err
-	}
-	return res, nil
-}
-
 func (t *ImplicitTeamsNameInfoSource) transformTeamDoesNotExist(ctx context.Context, err error, name string) error {
 	switch err.(type) {
 	case teams.TeamDoesNotExistError:
@@ -450,7 +397,7 @@ func (t *ImplicitTeamsNameInfoSource) transformTeamDoesNotExist(ctx context.Cont
 	return err
 }
 
-func (t *ImplicitTeamsNameInfoSource) LookupUntrusted(ctx context.Context, name string, public bool) (res *types.NameInfoUntrusted, err error) {
+func (t *ImplicitTeamsNameInfoSource) LookupIDUntrusted(ctx context.Context, name string, public bool) (res *types.NameInfoUntrusted, err error) {
 	defer func() { err = t.transformTeamDoesNotExist(ctx, err, name) }()
 	impTeamName, err := teams.ResolveImplicitTeamDisplayName(ctx, t.G().ExternalG(), name, public)
 	if err != nil {
@@ -472,7 +419,7 @@ func (t *ImplicitTeamsNameInfoSource) LookupUntrusted(ctx context.Context, name 
 	}, nil
 }
 
-func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, public bool) (res *types.NameInfo, err error) {
+func (t *ImplicitTeamsNameInfoSource) LookupID(ctx context.Context, name string, public bool) (res *types.NameInfo, err error) {
 	// check if name is prefixed
 	if strings.HasPrefix(name, keybase1.ImplicitTeamPrefix) {
 		return t.lookupInternalName(ctx, name, public)
@@ -496,7 +443,19 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, p
 			return res, err
 		}
 	}
-	return t.makeNameInfo(ctx, team, tlfID, impTeamName, public)
+	res = &types.NameInfo{
+		ID:            tlfID,
+		CanonicalName: impTeamName.String(),
+	}
+	if res.IdentifyFailures, err = t.identify(ctx, tlfID, impTeamName); err != nil {
+		return res, err
+	}
+	return res, nil
+}
+
+func (t *ImplicitTeamsNameInfoSource) AllCryptKeys(ctx context.Context, name string, public bool) (res types.AllCryptKeys, err error) {
+	defer t.Trace(ctx, func() error { return err }, "AllCryptKeys")()
+	return res, errors.New("unable to list all crypt keys in implicit team name info source")
 }
 
 func (t *ImplicitTeamsNameInfoSource) EncryptionKey(ctx context.Context, name string, teamID chat1.TLFID,
@@ -505,6 +464,13 @@ func (t *ImplicitTeamsNameInfoSource) EncryptionKey(ctx context.Context, name st
 		fmt.Sprintf("EncryptionKey(%s,%s,%v)", name, teamID, public))()
 	team, err := t.loader.loadTeam(ctx, teamID, name, membersType, public, nil)
 	if err != nil {
+		return res, err
+	}
+	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
+	if err != nil {
+		return res, err
+	}
+	if _, err = t.identify(ctx, teamID, impTeamName); err != nil {
 		return res, err
 	}
 	return getTeamCryptKey(ctx, team, team.Generation(), public, false)
@@ -518,6 +484,13 @@ func (t *ImplicitTeamsNameInfoSource) DecryptionKey(ctx context.Context, name st
 	team, err := loadTeamForDecryption(ctx, t.loader, name, teamID, membersType, public,
 		keyGeneration, kbfsEncrypted)
 	if err != nil {
+		return res, err
+	}
+	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
+	if err != nil {
+		return res, err
+	}
+	if _, err = t.identify(ctx, teamID, impTeamName); err != nil {
 		return res, err
 	}
 	return getTeamCryptKey(ctx, team, keybase1.PerTeamKeyGeneration(keyGeneration), public,
@@ -575,16 +548,7 @@ func (t *ImplicitTeamsNameInfoSource) ShouldPairwiseMAC(ctx context.Context, tlf
 }
 
 func (t *ImplicitTeamsNameInfoSource) lookupInternalName(ctx context.Context, name string, public bool) (res *types.NameInfo, err error) {
-	teamName, err := keybase1.TeamNameFromString(name)
-	if err != nil {
-		return res, err
-	}
 	res = types.NewNameInfo()
-	res.ID, err = chat1.TeamIDToTLFID(teamName.ToTeamID(public))
-	if err != nil {
-		return res, err
-	}
-	res.CanonicalName = name
 	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
 		Name:   name,
 		Public: public,
@@ -592,7 +556,8 @@ func (t *ImplicitTeamsNameInfoSource) lookupInternalName(ctx context.Context, na
 	if err != nil {
 		return res, err
 	}
-	if res.CryptKeys, err = getTeamCryptKeys(ctx, team, public); err != nil {
+	res.CanonicalName = team.Name().String()
+	if res.ID, err = chat1.TeamIDToTLFID(team.ID); err != nil {
 		return res, err
 	}
 	return res, nil

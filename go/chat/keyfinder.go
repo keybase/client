@@ -14,8 +14,6 @@ import (
 
 // KeyFinder remembers results from previous calls to CryptKeys().
 type KeyFinder interface {
-	FindUntrusted(ctx context.Context, name string, membersType chat1.ConversationMembersType, public bool) (*types.NameInfoUntrusted, error)
-	Find(ctx context.Context, name string, membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error)
 	FindForEncryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (types.CryptKey, error)
 	FindForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
@@ -79,18 +77,7 @@ func (k *KeyFinderImpl) createNameInfoSource(ctx context.Context,
 		k.Debug(ctx, "createNameInfoSource: warning: using overridden name info source")
 		return k.testingNameInfoSource
 	}
-	switch membersType {
-	case chat1.ConversationMembersType_KBFS:
-		return NewKBFSNameInfoSource(k.G())
-	case chat1.ConversationMembersType_TEAM:
-		return NewTeamsNameInfoSource(k.G())
-	case chat1.ConversationMembersType_IMPTEAMNATIVE:
-		return NewImplicitTeamsNameInfoSource(k.G(), false)
-	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		return NewImplicitTeamsNameInfoSource(k.G(), true)
-	}
-	k.Debug(ctx, "createNameInfoSource: unknown members type, using KBFS: %v", membersType)
-	return NewKBFSNameInfoSource(k.G())
+	return CreateNameInfoSource(ctx, k.G(), membersType)
 }
 
 func (k *KeyFinderImpl) lookupKey(key string) (*types.NameInfo, bool) {
@@ -104,44 +91,6 @@ func (k *KeyFinderImpl) writeKey(key string, v *types.NameInfo) {
 	k.Lock()
 	defer k.Unlock()
 	k.keys[key] = v
-}
-
-func (k *KeyFinderImpl) FindUntrusted(ctx context.Context, name string, membersType chat1.ConversationMembersType,
-	public bool) (res *types.NameInfoUntrusted, err error) {
-	ckey := k.cacheKey(name, membersType, public)
-	if existing, ok := k.lookupKey(ckey); ok {
-		return &types.NameInfoUntrusted{
-			ID:            existing.ID,
-			CanonicalName: existing.CanonicalName,
-		}, nil
-	}
-	return k.createNameInfoSource(ctx, membersType).LookupUntrusted(ctx, name, public)
-}
-
-// Find finds keybase1.TLFCryptKeys for tlfName, checking for existing
-// results.
-func (k *KeyFinderImpl) Find(ctx context.Context, name string,
-	membersType chat1.ConversationMembersType, public bool) (res *types.NameInfo, err error) {
-
-	ckey := k.cacheKey(name, membersType, public)
-	existing, ok := k.lookupKey(ckey)
-	if ok {
-		return existing, nil
-	}
-	defer func() {
-		if err == nil {
-			k.writeKey(ckey, res)
-		}
-	}()
-
-	res, err = k.createNameInfoSource(ctx, membersType).Lookup(ctx, name, public)
-	if err != nil {
-		return nil, err
-	}
-	if public {
-		res.CryptKeys[membersType] = append(res.CryptKeys[membersType], publicCryptKey)
-	}
-	return res, nil
 }
 
 // FindForEncryption finds keys up-to-date enough for encrypting.

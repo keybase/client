@@ -32,8 +32,9 @@ type CryptKey interface {
 type AllCryptKeys map[chat1.ConversationMembersType][]CryptKey
 
 type NameInfoSource interface {
-	LookupUntrusted(ctx context.Context, name string, public bool) (*NameInfoUntrusted, error)
-	Lookup(ctx context.Context, name string, public bool) (*NameInfo, error)
+	LookupIDUntrusted(ctx context.Context, name string, public bool) (*NameInfoUntrusted, error)
+	LookupID(ctx context.Context, name string, public bool) (*NameInfo, error)
+	AllCryptKeys(ctx context.Context, name string, public bool) (AllCryptKeys, error)
 	EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (CryptKey, error)
 	DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,

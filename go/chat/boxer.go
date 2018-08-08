@@ -138,6 +138,8 @@ func (b *Boxer) detectKBFSPermanentServerError(err error, tlfName string) Unboxi
 		return NewPermanentUnboxingError(err)
 	case teams.TeamDoesNotExistError:
 		return NewPermanentUnboxingError(err)
+	case DecryptionKeyNotFoundError:
+		return NewPermanentUnboxingError(err)
 	}
 
 	// Check for no space left on device errors
@@ -279,8 +281,12 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 		tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
 		conv.IsPublic(), boxed.KeyGeneration, keyMembersType == chat1.ConversationMembersType_KBFS)
 	if err != nil {
-		// Check to see if this is a permanent error from the server
-		return chat1.MessageUnboxed{}, b.detectKBFSPermanentServerError(err, tlfName)
+		// Post-process error from this
+		uberr = b.detectKBFSPermanentServerError(err, tlfName)
+		if uberr.IsPermanent() {
+			return b.makeErrorMessage(ctx, boxed, uberr), nil
+		}
+		return chat1.MessageUnboxed{}, uberr
 	}
 
 	// If the message is exploding, load the ephemeral key.
@@ -1980,7 +1986,8 @@ func (b *Boxer) compareHeadersMBV1(ctx context.Context, hServer chat1.MessageCli
 func (b *Boxer) CompareTlfNames(ctx context.Context, tlfName1, tlfName2 string,
 	conv chat1.Conversation, tlfPublic bool) (bool, error) {
 	get1 := func(tlfName string, tlfPublic bool) (string, error) {
-		nameInfo, err := CtxKeyFinder(ctx, b.G()).Find(ctx, tlfName, conv.GetMembersType(), tlfPublic)
+		nameInfo, err := CreateNameInfoSource(ctx, b.G(), conv.GetMembersType()).LookupID(ctx, tlfName,
+			tlfPublic)
 		if err != nil {
 			return "", err
 		}
