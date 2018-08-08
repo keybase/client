@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 export type TokenType = 'apple' | 'appledev' | 'androidplay'
 // FIXME: these types diverge because of react-native-push-notification. In the
 // future it would be nice to make the Android push notification data structure
@@ -19,9 +20,11 @@ export type PushNotification = {
   username?: string,
 }
 
-export type State = {
+export type _State = {
   token: string,
   tokenType: ?TokenType,
-  permissionsPrompt: boolean,
+  showPushPrompt: boolean,
   hasPermissions: boolean,
 }
+
+export type State = I.RecordOf<_State>

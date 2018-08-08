@@ -1,6 +1,6 @@
 // @flow
 import * as ConfigGen from '../actions/config-gen'
-import Main from './main'
+import Main from './main.native'
 import React, {Component} from 'react'
 import configureStore from '../store/configure-store'
 import loginRouteTree from './routes-login'

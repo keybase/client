@@ -36,14 +36,6 @@ async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): P
   throw new Error('Save Attachment to camera roll - unsupported on this platform')
 }
 
-function requestPushPermissions() {
-  throw new Error('Push permissions unsupported on this platform')
-}
-
-function configurePush() {
-  throw new Error('Configure Push not needed on this platform')
-}
-
 const showMainWindow = () => {
   const mw = getMainWindow()
   mw && mw.show()
@@ -62,14 +54,6 @@ function displayNewMessageNotification(
 
 function clearAllNotifications() {
   throw new Error('Clear all notifications not available on this platform')
-}
-
-function checkPermissions() {
-  throw new Error('Push permissions unsupported on this platform')
-}
-
-function getShownPushPrompt(): Promise<string> {
-  throw new Error('Push permissions unsupported on this platform')
 }
 
 const getContentTypeFromURL = (
@@ -234,10 +218,6 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
 }
 
 export {
-  checkPermissions,
-  getShownPushPrompt,
-  requestPushPermissions,
-  configurePush,
   saveAttachmentDialog,
   saveAttachmentToCameraRoll,
   showShareActionSheet,

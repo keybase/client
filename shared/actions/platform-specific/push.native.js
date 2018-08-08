@@ -13,7 +13,6 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as PushNotifications from 'react-native-push-notification'
-import {isDevApplePushToken} from '../../local-debug'
 import {isIOS} from '../../constants/platform'
 import {chatTab} from '../../constants/tabs'
 import {switchTo} from '../route-tree'
@@ -25,14 +24,6 @@ import type {TypedState} from '../../constants/reducer'
 const requestPushPermissions = () => (isIOS ? PushNotifications.requestPermissions() : Promise.resolve())
 const getShownPushPrompt = () => NativeModules.PushPrompt.getHasShownPushPrompt()
 const checkPermissions = () => new Promise((resolve, reject) => PushNotifications.checkPermissions(resolve))
-
-// TODO
-// function permissionsNoSaga() {
-// return Saga.sequentially([
-// Saga.put(PushGen.createPermissionsRequesting({requesting: false})),
-// Saga.put(PushGen.createPermissionsPrompt({prompt: false})),
-// ])
-// }
 
 const updateAppBadge = (_: any, action: NotificationsGen.ReceivedBadgeStatePayload) => {
   const count = (action.payload.badgeState.conversations || []).reduce(
@@ -115,32 +106,9 @@ const listenForNativeAndroidIntentNotifications = emitter => {
 }
 
 const listenForPushNotificationsFromJS = emitter => {
-  // It doesn't look like there is a registrationError being set for iOS.
-  // https://github.com/zo0r/react-native-push-notification/issues/261
-  PushNotificationIOS.addEventListener('registrationError', error => {
-    emitter(
-      PushGen.createRegistrationError({
-        error,
-      })
-    )
-  })
-
   const onRegister = token => {
-    let tokenType: ?PushTypes.TokenType
     console.log('PUSH TOKEN', token)
-    switch (token.os) {
-      case 'ios':
-        tokenType = isDevApplePushToken ? Constants.tokenTypeAppleDev : Constants.tokenTypeApple
-        break
-      case 'android':
-        tokenType = Constants.tokenTypeAndroidPlay
-        break
-    }
-    if (tokenType) {
-      emitter(PushGen.createPushToken({token: token.token, tokenType}))
-    } else {
-      emitter(PushGen.createRegistrationError({error: new Error(`Unrecognized OS for token: ${token}`)}))
-    }
+    emitter(PushGen.createUpdatePushToken({token: token.token}))
   }
 
   const onNotification = n => {
@@ -169,7 +137,7 @@ const listenForPushNotificationsFromJS = emitter => {
   }
 
   const onError = error => {
-    emitter(PushGen.createError({error}))
+    logger.error('push error:', error)
   }
 
   PushNotifications.configure({
@@ -198,37 +166,36 @@ const listenForPushNotifications = () =>
     }
   })
 
-function* permissionsRequestSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.permissionsRequestingWaitingKey}))
-  if (isIOS) {
-    const shownPushPrompt = yield Saga.call(getShownPushPrompt)
-    if (shownPushPrompt) {
-      // we've already shown the prompt, take them to settings
-      yield Saga.all([
-        Saga.put(ConfigGen.createOpenAppSettings()),
-        Saga.put(PushGen.createPermissionsRequesting({requesting: false})),
-        Saga.put(PushGen.createPermissionsPrompt({prompt: false})),
-      ])
-      return
+const requestPermissions = () =>
+  Saga.call(function*() {
+    if (isIOS) {
+      const shownPushPrompt = yield Saga.call(getShownPushPrompt)
+      if (shownPushPrompt) {
+        // we've already shown the prompt, take them to settings
+        yield Saga.all([
+          Saga.put(ConfigGen.createOpenAppSettings()),
+          Saga.put(PushGen.createShowPermissionsPrompt({show: false})),
+        ])
+        return
+      }
     }
-  }
-  try {
-    logger.info('Requesting permissions')
-    const permissions = yield Saga.call(requestPushPermissions)
-    logger.info('Permissions:', permissions)
-    if (permissions.alert || permissions.badge) {
-      logger.info('Badge or alert push permissions are enabled')
-      yield Saga.put(PushGen.createSetHasPermissions({hasPermissions: true}))
-    } else {
-      logger.info('Badge or alert push permissions are disabled')
-      yield Saga.put(PushGen.createSetHasPermissions({hasPermissions: false}))
+    try {
+      yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.permissionsRequestingWaitingKey}))
+      logger.info('Requesting permissions')
+      const permissions = yield Saga.call(requestPushPermissions)
+      logger.info('Permissions:', permissions)
+      if (permissions.alert || permissions.badge) {
+        logger.info('Badge or alert push permissions are enabled')
+        yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: true}))
+      } else {
+        logger.info('Badge or alert push permissions are disabled')
+        yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: false}))
+      }
+    } finally {
+      yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.permissionsRequestingWaitingKey}))
+      yield Saga.put(PushGen.createShowPermissionsPrompt({show: false}))
     }
-    // TODO(gabriel): Set permissions we have in store, might want it at some point?
-  } finally {
-    yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.permissionsRequestingWaitingKey}))
-    yield Saga.put(PushGen.createPermissionsPrompt({prompt: false}))
-  }
-}
+  })
 
 const handleReadMessage = notification => {
   logger.info('Push notification: read message notification received')
@@ -366,7 +333,7 @@ const handlePush = (_: any, action: PushGen.NotificationPayload) => {
       case 'chat.newmessageSilent_2':
         return handleSilentMessage(notification)
       case 'chat.newmessage':
-        console.error('aaa nojima', notification)
+        console.log('aaa nojima', notification)
       // ? this isonly for the first push? debug this
       // return handleLoudMessage(n)
       case 'follow':
@@ -383,43 +350,23 @@ const handlePush = (_: any, action: PushGen.NotificationPayload) => {
   }
 }
 
-function pushTokenSaga(action: PushGen.PushTokenPayload) {
-  const {token, tokenType} = action.payload
-  return Saga.sequentially([
-    Saga.put(PushGen.createUpdatePushToken({token, tokenType})),
-    Saga.put(PushGen.createSavePushToken()),
-  ])
-}
-
-function* savePushTokenSaga(): Saga.SagaGenerator<any, any> {
-  try {
-    const state: TypedState = yield Saga.select()
-    const token = state.push.token
-    const tokenType = state.push.tokenType
-    const deviceID = state.config.deviceID
-    if (!deviceID) {
-      throw new Error('No device available for saving push token')
-    }
-    if (!token) {
-      throw new Error('No push token available to save')
-    }
-
-    const args = [
-      {key: 'push_token', value: token},
-      {key: 'device_id', value: deviceID},
-      {key: 'token_type', value: tokenType || ''},
-    ]
-
-    yield Saga.call(RPCTypes.apiserverPostRpcPromise, {
-      args,
-      endpoint: 'device/push_token',
+const uploadPushToken = (state: TypedState) =>
+  state.push.token &&
+  state.config.deviceID &&
+  RPCTypes.apiserverPostRpcPromise({
+    args: [
+      {key: 'push_token', value: state.push.token},
+      {key: 'device_id', value: state.config.deviceID},
+      {key: 'token_type', value: Constants.tokenType},
+    ],
+    endpoint: 'device/push_token',
+  })
+    .then(() => false)
+    .catch(e => {
+      logger.error("Couldn't save a push token")
     })
-  } catch (err) {
-    logger.warn('Error trying to save push token:', err)
-  }
-}
 
-function* checkIOSPushSaga(): Saga.SagaGenerator<any, any> {
+function* initialPermissionsCheck(): Saga.SagaGenerator<any, any> {
   const permissions = yield Saga.call(checkPermissions)
   logger.debug('Got push notification permissions:', JSON.stringify(permissions, null, 2))
   const shownPushPrompt = yield Saga.call(getShownPushPrompt)
@@ -430,21 +377,13 @@ function* checkIOSPushSaga(): Saga.SagaGenerator<any, any> {
   )
   if (!permissions.alert && !permissions.badge) {
     logger.info('Badge and alert permissions are disabled; showing prompt')
-    yield Saga.all([
-      Saga.put(PushGen.createSetHasPermissions({hasPermissions: false})),
-      Saga.put(
-        PushGen.createPermissionsPrompt({
-          prompt: true,
-        })
-      ),
-    ])
+    yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: false}))
+    yield Saga.put(PushGen.createShowPermissionsPrompt({show: true}))
   } else {
     // badge or alert permissions are enabled
     logger.info('Badge or alert permissions are enabled. Getting token.')
-    yield Saga.all([
-      Saga.put(PushGen.createSetHasPermissions({hasPermissions: true})),
-      Saga.call(requestPushPermissions),
-    ])
+    yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: true}))
+    yield Saga.call(requestPushPermissions)
   }
 }
 
@@ -493,30 +432,25 @@ const recheckPermissions = (_: any, action: ConfigGen.MobileAppStatePayload) => 
         logger.info('Had no permissions before, requesting permissions to get token')
         yield Saga.call(requestPushPermissions)
       }
-      yield Saga.put(PushGen.createSetHasPermissions({hasPermissions: true}))
+      yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: true}))
     } else {
       logger.info('Found push permissions DISABLED on app focus')
-      yield Saga.put(PushGen.createSetHasPermissions({hasPermissions: false}))
+      yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: false}))
     }
   })
 }
 
 function* pushSaga(): Saga.SagaGenerator<any, any> {
-  // yield Saga.safeTakeLatest(PushGen.permissionsRequest, permissionsRequestSaga)
-  // yield Saga.safeTakeLatestPure(PushGen.permissionsNo, permissionsNoSaga)
-  // yield Saga.safeTakeLatestPure(PushGen.pushToken, pushTokenSaga)
-  // yield Saga.safeTakeLatest(PushGen.savePushToken, savePushTokenSaga)
-  // yield Saga.safeTakeLatest(PushGen.configurePush, configurePushSaga)
-  // yield Saga.safeTakeEvery(PushGen.checkIOSPush, checkIOSPushSaga)
+  // TODO
+  yield Saga.actionToAction(PushGen.requestPermissions, requestPermissions)
+  yield Saga.actionToPromise([PushGen.updatePushToken, ConfigGen.bootstrapStatusLoaded], uploadPushToken)
   yield Saga.actionToAction(PushGen.notification, handlePush)
   yield Saga.actionToAction(ConfigGen.logoutHandshake, deletePushToken)
   yield Saga.actionToAction(NotificationsGen.receivedBadgeState, updateAppBadge)
 
   yield Saga.actionToAction(ConfigGen.daemonHandshake, listenForPushNotifications)
-
-  if (isIOS) {
-    yield Saga.actionToAction(ConfigGen.mobileAppState, recheckPermissions)
-  }
+  yield Saga.actionToAction(ConfigGen.mobileAppState, recheckPermissions)
+  yield Saga.fork(initialPermissionsCheck)
 }
 
 export default pushSaga

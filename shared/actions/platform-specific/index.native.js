@@ -210,19 +210,6 @@ const persistRouteState = (state: TypedState) => {
   }
 }
 
-// TODO nojima
-// const onBootstrapped = (state: TypedState) => {
-// TODO coordinate loading of push state and routestate
-// Saga.sequentially([
-// ...(!state.config.pushLoaded && state.config.loggedIn && !isSimulator
-// ? [Saga.put(PushGen.createConfigurePush())]
-// : []),
-// ...(!state.config.pushLoaded && state.config.loggedIn
-// ? [Saga.put(ConfigGen.createPushLoaded({pushLoaded: true}))]
-// : []),
-// ])
-// }
-//
 const setupNetInfoWatcher = () =>
   Saga.call(function*() {
     const channel = Saga.eventChannel(emitter => {
