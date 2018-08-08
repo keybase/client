@@ -146,7 +146,7 @@ func (e *PaperProvisionEngine) paper(m libkb.MetaContext, keys *libkb.DeviceWith
 	// Set the active device to be a special paper key active device, which keeps
 	// a cached copy around for DeviceKeyGen, which requires it to be in memory.
 	// It also will establish a NIST so that API calls can proceed on behalf of the user.
-	m = m.WithPaperKeyActiveDevice(keys, uv)
+	m = m.WithProvisioningKeyActiveDevice(keys, uv)
 	m.LoginContext().SetUsernameUserVersion(nn, uv)
 
 	// need lksec to store device keys locally
@@ -160,7 +160,7 @@ func (e *PaperProvisionEngine) paper(m libkb.MetaContext, keys *libkb.DeviceWith
 
 	// Cache the paper keys globally now that we're logged in
 	m = m.WithGlobalActiveDevice()
-	m.ActiveDevice().CachePaperKey(m, keys)
+	m.ActiveDevice().CacheProvisioningKey(m, keys)
 
 	return nil
 }

@@ -210,8 +210,8 @@ func (m MetaContext) WithActiveDevice(a *ActiveDevice) MetaContext {
 	return m
 }
 
-func (m MetaContext) WithPaperKeyActiveDevice(d *DeviceWithKeys, uv keybase1.UserVersion) MetaContext {
-	return m.WithActiveDevice(d.ToPaperKeyActiveDevice(m, uv))
+func (m MetaContext) WithProvisioningKeyActiveDevice(d *DeviceWithKeys, uv keybase1.UserVersion) MetaContext {
+	return m.WithActiveDevice(d.ToProvisioningKeyActiveDevice(m, uv))
 }
 
 func (m MetaContext) WithGlobalActiveDevice() MetaContext {
@@ -448,7 +448,7 @@ func (m MetaContext) SwitchUserToActiveOneshotDevice(uv keybase1.UserVersion, nu
 	if cw == nil {
 		return NoConfigWriterError{}
 	}
-	ad := d.ToPaperKeyActiveDevice(m, uv)
+	ad := d.ToProvisioningKeyActiveDevice(m, uv)
 	err = g.ActiveDevice.Copy(m, ad)
 	if err != nil {
 		return err

@@ -373,7 +373,7 @@ func (e *DeviceKeygen) preparePerUserKeyBoxFromPaperkey(m libkb.MetaContext) ([]
 		return nil, errors.New("missing PerUserKeyring")
 	}
 
-	paperKey := m.ActiveDevice().PaperKey(m)
+	paperKey := m.ActiveDevice().ProvisioningKey(m)
 	var paperSigKey, paperEncKeyGeneric libkb.GenericKey
 	if paperKey != nil {
 		paperSigKey = paperKey.SigningKey()
@@ -400,7 +400,7 @@ func (e *DeviceKeygen) preparePerUserKeyBoxFromPaperkey(m libkb.MetaContext) ([]
 	if err != nil {
 		return nil, err
 	}
-	err = pukring.SyncAsPaperKey(m, &upak, paperDeviceID, paperEncKey)
+	err = pukring.SyncAsProvisioningKey(m, &upak, paperDeviceID, paperEncKey)
 	if err != nil {
 		return nil, err
 	}

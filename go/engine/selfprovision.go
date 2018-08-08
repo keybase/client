@@ -129,7 +129,7 @@ func (e *SelfProvisionEngine) provision(m libkb.MetaContext, keys *libkb.DeviceW
 	// Set the active device to be a special paper key active device, which keeps
 	// a cached copy around for DeviceKeyGen, which requires it to be in memory.
 	// It also will establish a NIST so that API calls can proceed on behalf of the user.
-	m = m.WithPaperKeyActiveDevice(keys, uv)
+	m = m.WithProvisioningKeyActiveDevice(keys, uv)
 	m.LoginContext().SetUsernameUserVersion(nn, uv)
 
 	// need lksec to store device keys locally
@@ -140,7 +140,7 @@ func (e *SelfProvisionEngine) provision(m libkb.MetaContext, keys *libkb.DeviceW
 		return err
 	}
 	m = m.WithGlobalActiveDevice()
-	m.ActiveDevice().CachePaperKey(m, keys)
+	m.ActiveDevice().CacheProvisioningKey(m, keys)
 	return nil
 }
 
