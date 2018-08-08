@@ -52,7 +52,6 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       marginLeft: Styles.globalMargins.tiny,
       marginRight: Styles.globalMargins.tiny,
-
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
     },
