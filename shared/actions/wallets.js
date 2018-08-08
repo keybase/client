@@ -23,7 +23,12 @@ const buildPayment = (
     secretNote: '',
     to: 'GDLQ22P6VKMUYW3HULI2F5KDY7Q63SION65M7I3HHIVUXOFZVG3FEK2F',
     toIsAccountID: true,
-  }).then(res => console.warn(res))
+  }).then(build => {
+    console.warn(build)
+    return WalletsGen.createBuiltPaymentReceived({
+      build: Constants.sendFormBuildResultToBuild(build)
+    })
+  })
 
   const loadAccounts = (
   state: TypedState,

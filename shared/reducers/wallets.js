@@ -16,6 +16,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.set('accountMap', accountMap)
     case WalletsGen.assetsReceived:
       return state.setIn(['assetsMap', action.payload.accountID], I.List(action.payload.assets))
+    case WalletsGen.builtPaymentReceived:
+      return state.setIn(['sendFormMap', action.payload.accountID], I.Map(action.payload.build))
     case WalletsGen.paymentDetailReceived:
       // $FlowIssue state.updateIn not found?
       return state.updateIn(['paymentsMap', action.payload.accountID], payments =>
@@ -91,6 +93,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             selectedAccount: action.payload.accountID,
           })
     // Saga only actions
+    case WalletsGen.buildPayment:
     case WalletsGen.exportSecretKey:
     case WalletsGen.linkExistingAccount:
     case WalletsGen.loadAssets:

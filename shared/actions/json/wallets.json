@@ -21,6 +21,10 @@
       "fromAccountID": "Types.AccountID",
       "to": "string",
     },
+    "builtPaymentReceived": {
+      "_description": "Update our store with a prepared payment",
+
+    },
     "exportSecretKey": {
       "_description": "Export a Stellar account's secret key",
       "accountID": "Types.AccountID",

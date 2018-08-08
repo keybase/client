@@ -10,7 +10,9 @@ type Props = {
   disabled?: boolean,
 }
 
-const Footer = ({onClickSend, onClickRequest, disabled}: Props) => (
+const Footer = ({onClickSend, onClickRequest, disabled}: Props) => {
+  console.warn('in footer', onClickSend)
+  return (
   <Box2 direction="vertical" fullWidth={true} style={styles.background}>
     <Box2 direction="horizontal" style={styles.buttonBox} fullWidth={true}>
       {!!onClickRequest && (
@@ -49,6 +51,7 @@ const Footer = ({onClickSend, onClickRequest, disabled}: Props) => (
     <Available />
   </Box2>
 )
+}
 
 const styles = styleSheetCreate({
   buttonBox: {

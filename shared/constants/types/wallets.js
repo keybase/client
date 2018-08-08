@@ -74,11 +74,25 @@ export type _Payment = {
   worthCurrency: string,
 }
 
+export type _SendFormBuild = {
+  amountErrMsg: string,
+  banners: ?Array<StellarRPCTypes.SendBannerLocal>,
+  publicMemoErrMsg: string,
+  readyToSend: boolean,
+  secretNoteErrMsg: string,
+  toErrMsg: string,
+  toUsername: string,
+  worthDescription: string,
+  worthInfo: string,
+  
+}
 export type Account = I.RecordOf<_Account>
 
 export type Assets = I.RecordOf<_Assets>
 
 export type Payment = I.RecordOf<_Payment>
+
+export type SendFormBuild = I.RecordOf<_SendFormBuild>
 
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
@@ -97,5 +111,6 @@ export type _State = {
   paymentsMap: I.Map<AccountID, I.List<Payment>>,
   secretKeyMap: I.Map<AccountID, HiddenString>,
   selectedAccount: AccountID,
+  sendFormMap: I.Map<AccountID, SendFormBuild>,
 }
 export type State = I.RecordOf<_State>

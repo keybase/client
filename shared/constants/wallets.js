@@ -29,6 +29,34 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   secretKeyMap: I.Map(),
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
+  sendFormMap: I.Map(),
+})
+
+const sendFormBuildResultToBuild = (b: RPCTypes.BuildPaymentResLocal) => {
+  const {amountErrMsg, banners, publicMemoErrMsg, readyToSend, secretNoteErrMsg, toErrMsg, toUsername, worthDescription, worthInfo} = b
+  return makeSendForm({
+    amountErrMsg,
+    banners,
+    publicMemoErrMsg,
+    readyToSend,
+    secretNoteErrMsg,
+    toErrMsg,
+    toUsername,
+    worthDescription,
+    worthInfo,
+  })
+}
+
+const makeSendForm: I.RecordFactory<Types._SendFormBuild> = I.Record({
+  amountErrMsg: '',
+  banners: null,
+  publicMemoErrMsg: '',
+  readyToSend: false,
+  secretNoteErrMsg: '',
+  toErrMsg: '',
+  toUsername: '',
+  worthDescription: '',
+  worthInfo: '',
 })
 
 const makeAccount: I.RecordFactory<Types._Account> = I.Record({
@@ -191,4 +219,5 @@ export {
   paymentResultToPayment,
   paymentToCounterpartyType,
   paymentToYourRole,
+  sendFormBuildResultToBuild,
 }

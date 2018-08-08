@@ -17,11 +17,9 @@ const Participants = (props: Props) => (
       <Kb.Text type="BodySmall" style={styles.text}>
         To:
       </Kb.Text>
-    {!!props.username && (
-      <Kb.NameWithIcon colorFollowing={true} horizontal={true} username={props.username} metaOne={props.fullname} onClick={props.onShowProfile}/>
-    )}
-    {!props.username && (
-      <Kb.Box2 direction="vertical" fullWidh={true} style={styles.inputBox}>
+    {props.username
+      ? <Kb.NameWithIcon colorFollowing={true} horizontal={true} username={props.username} metaOne={props.fullname} onClick={props.onShowProfile} />
+      : (<Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.Icon
             type={props.incorrect ? 'iconfont-stellar-request' : 'iconfont-stellar-request'}

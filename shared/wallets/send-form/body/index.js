@@ -2,9 +2,9 @@
 import * as React from 'react'
 import {Box2, Divider, ProgressIndicator} from '../../../common-adapters'
 import {globalStyles, styleSheetCreate} from '../../../styles'
-import AssetInput from '../asset-input/container'
+import AssetInput from '../asset-input/index'
 import Banner from '../../banner/container'
-import Footer from '../footer/container'
+import Footer from '../footer/index'
 import Memo from '../memo/container'
 import Note from '../note/container'
 import Participants from '../participants/container'
@@ -12,7 +12,9 @@ import Participants from '../participants/container'
 type Props = {
   bannerInfo?: string,
   isProcessing?: boolean,
-  onClick: Function,
+  onChangeAddress: () => void,
+  onChangeAmount: () => void,
+  onClickSend: () => void,
   targetType?: 'keybaseUser' | 'anotherWallet' | 'stellarAddress',
 }
 
@@ -22,18 +24,18 @@ const Spinner = () => (
   </Box2>
 )
 
-const Body = ({bannerInfo, isProcessing, onClick, targetType}: Props) => {
-  console.warn('in Body', targetType)
+const Body = (props: Props) => {
+  console.warn('in Body', props)
   return (
   <Box2 fullWidth={true} direction="vertical">
-    {isProcessing && <Spinner />}
-    {bannerInfo && <Banner />}
-    <Participants targetType={targetType} />
+    {props.isProcessing && <Spinner />}
+    {props.bannerInfo && <Banner />}
+    <Participants onChangeAddress={props.onChangeAddress} targetType={props.targetType} />
     <Divider />
-    <AssetInput />
+    <AssetInput displayUnit='XLM' inputPlaceholder='0.00' onChangeAmount={props.onChangeAmount} />
     <Memo />
     <Note />
-    <Footer onClick={onClick} />
+    <Footer onClickSend={props.onClickSend} />
   </Box2>
 )
 }
