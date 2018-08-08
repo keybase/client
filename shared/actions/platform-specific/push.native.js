@@ -205,68 +205,6 @@ const handleReadMessage = notification => {
   }
 }
 
-const handleSilentMessage = notification => {
-  const {c, m} = notification
-  if (!c || !m) {
-    logger.error('Push chat notification payload missing conversation ID or msgBoxed')
-    return
-  }
-
-  let displayPlaintext = notification.n === 'true'
-
-  if (displayPlaintext && notification.x && notification.x > 0) {
-    const num = notification.x
-    const ageMS = Date.now() - num * 1000
-    if (ageMS > 15000) {
-      logger.info('Push notification: silent notification is stale:', ageMS)
-      displayPlaintext = false
-    }
-  }
-
-  let membersType: RPCChatTypes.ConversationMembersType
-  const membersTypeNumber: number =
-    typeof notification.t === 'string' ? parseInt(notification.t, 10) : notification.t || -1
-  switch (membersTypeNumber) {
-    case RPCChatTypes.commonConversationMembersType.kbfs:
-      membersType = RPCChatTypes.commonConversationMembersType.kbfs
-      break
-    case RPCChatTypes.commonConversationMembersType.team:
-      membersType = RPCChatTypes.commonConversationMembersType.team
-      break
-    case RPCChatTypes.commonConversationMembersType.impteamnative:
-      membersType = RPCChatTypes.commonConversationMembersType.impteamnative
-      break
-    case RPCChatTypes.commonConversationMembersType.impteamupgrade:
-      membersType = RPCChatTypes.commonConversationMembersType.impteamupgrade
-      break
-    default:
-      membersType = RPCChatTypes.commonConversationMembersType.kbfs
-  }
-
-  return Saga.call(function*() {
-    const unboxRes = yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
-      convID: c,
-      membersType,
-      payload: m,
-      pushIDs: typeof notification.p === 'string' ? JSON.parse(notification.p) : notification.p,
-      shouldAck: displayPlaintext,
-    })
-
-    if (unboxRes) {
-      const state: TypedState = yield Saga.select()
-      if (!state.config.appFocused) {
-        displayNewMessageNotification(
-          unboxRes,
-          notification.c,
-          notification.b,
-          notification.d,
-          notification.s
-        )
-      }
-    }
-  })
-}
-
 const handleLoudMessage = notification => {
   console.log('aaa', notification)
   // if (!n.userInteraction) {
@@ -331,7 +269,8 @@ const handlePush = (_: any, action: PushGen.NotificationPayload) => {
       case 'chat.readmessage':
         return handleReadMessage(notification)
       case 'chat.newmessageSilent_2':
-        return handleSilentMessage(notification)
+        // entirely handled by go on ios and not being sent on android. TODO eventually make android like ios and plumb this through native land
+        break
       case 'chat.newmessage':
         console.log('aaa nojima', notification)
       // ? this isonly for the first push? debug this
