@@ -1,21 +1,30 @@
 // @flow
 import * as React from 'react'
-import {Box2, Text} from '../../../common-adapters'
-import {styleSheetCreate} from '../../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 
 type Props = {}
 
 const Note = (props: Props) => (
-  <Box2 direction="vertical">
-    <Text type="Body" style={styles.text}>
-      Note
-    </Text>
-  </Box2>
+  <React.Fragment>
+    <Kb.PlainInput
+      multiline={true}
+      placeholder="Add a public memo"
+      placeholderColor={Styles.globalColors.black_20}
+      style={styles.input}
+    />
+    <Kb.Divider />
+  </React.Fragment>
 )
 
-const styles = styleSheetCreate({
-  text: {
-    textAlign: 'center',
+const styles = Styles.styleSheetCreate({
+  input: {
+    width: '100%',
+    color: Styles.globalColors.black_75,
+    paddingTop: Styles.globalMargins.xsmall,
+    paddingBottom: Styles.globalMargins.xsmall,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
   },
 })
 
