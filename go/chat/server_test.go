@@ -4270,7 +4270,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			select {
 			case update = <-listener.identifyUpdate:
 				t.Logf("identify update: %+v", update)
-			case <-time.After(2 * time.Second):
+			case <-time.After(20 * time.Second):
 				require.Fail(t, "no identify")
 			}
 			require.Empty(t, update.Breaks.Breaks)
@@ -4317,7 +4317,6 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		t.Logf("ncres tlf name: %s", ncres.Conv.Info.TlfName)
 
 		// user 0 sends a message to conv
-		CtxKeyFinder(ctx, tc.Context()).Reset()
 		_, err = ctc.as(t, users[0]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
 			ConversationID: ncres.Conv.Info.Id,
 			Msg: chat1.MessagePlaintext{
