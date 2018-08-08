@@ -61,7 +61,7 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	}
 
 	uvOld, deviceIDOld, deviceNameOld, sigKeyOld, encKeyOld := e.G().ActiveDevice.AllFields()
-	m = m.WithNewProvisionalLoginContext()
+	m = m.WithNewProvisionalLoginContextForUserVersionAndUsername(uvOld, e.G().Env.GetUsername())
 
 	// From this point on, if there's an error, we abort
 	// the transaction.
@@ -69,7 +69,7 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		if tx != nil {
 			tx.Abort()
 		}
-		if err != nil {
+		if err != nil && e.User != nil {
 			m.CDebugf("Error in self provision, reverting to original active device: %v", err)
 			m = m.WithGlobalActiveDevice()
 			salt, err := e.User.GetSalt()
@@ -86,7 +86,6 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 			}
 		} else {
 			m = m.CommitProvisionalLogin()
-
 		}
 	}()
 
@@ -143,9 +142,10 @@ func (e *SelfProvisionEngine) provision(m libkb.MetaContext, keys *libkb.DeviceW
 	nn := u.GetNormalizedName()
 	uv := u.ToUserVersion()
 
-	// Set the active device to be a special paper key active device, which keeps
-	// a cached copy around for DeviceKeyGen, which requires it to be in memory.
-	// It also will establish a NIST so that API calls can proceed on behalf of the user.
+	// Set the active device to be a special provisional key active device,
+	// which keeps a cached copy around for DeviceKeyGen, which requires it to
+	// be in memory.  It also will establish a NIST so that API calls can
+	// proceed on behalf of the user.
 	m = m.WithProvisioningKeyActiveDevice(keys, uv)
 	m.LoginContext().SetUsernameUserVersion(nn, uv)
 
@@ -156,6 +156,38 @@ func (e *SelfProvisionEngine) provision(m libkb.MetaContext, keys *libkb.DeviceW
 	if err := e.makeDeviceKeysWithSigner(m, keys.SigningKey()); err != nil {
 		return err
 	}
+
+	encKey, err := m.ActiveDevice().EncryptionKey()
+	if err != nil {
+		return err
+	}
+
+	if err := e.fetchLKS(m, encKey); err != nil {
+		return err
+	}
+
+	// Get the LKS server half.
+	if err := e.lks.Load(m); err != nil {
+		return err
+	}
+	m.CDebugf("Got LKS full")
+
+	secretStore := libkb.NewSecretStore(m.G(), e.User.GetNormalizedName())
+	m.CDebugf("Got secret store")
+
+	// Extract the LKS secret
+	secret, err := e.lks.GetSecret(m)
+	if err != nil {
+		return err
+	}
+	m.CDebugf("Got LKS secret")
+
+	if err = secretStore.StoreSecret(m, secret); err != nil {
+		return err
+	}
+	m.CDebugf("Stored secret with LKS from new device key")
+
+	// Remove our provisional active device, and fall back to global device
 	m = m.WithGlobalActiveDevice()
 	m.ActiveDevice().CacheProvisioningKey(m, keys)
 	return nil

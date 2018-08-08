@@ -64,7 +64,6 @@ func (e *DeviceWrap) SubConsumers() []libkb.UIConsumer {
 
 func (e *DeviceWrap) registerDevice(m libkb.MetaContext) (err error) {
 	defer m.CTrace("DeviceWrap#registerDevice", func() error { return err })()
-	var salt []byte
 
 	if e.args.Me.HasCurrentDeviceInCurrentInstall() && !e.args.IsSelfProvision {
 		return libkb.DeviceAlreadyProvisionedError{}
@@ -73,21 +72,12 @@ func (e *DeviceWrap) registerDevice(m libkb.MetaContext) (err error) {
 	if e.deviceID, err = libkb.NewDeviceID(); err != nil {
 		return err
 	}
-
+	m.CDebugf("Device name: %s", e.args.DeviceName)
+	m.CDebugf("Device ID: %s", e.deviceID)
 	if err = e.args.Lks.GenerateServerHalf(); err != nil {
 		return err
 	}
 
-	m.CDebugf("Device name: %s", e.args.DeviceName)
-	m.CDebugf("Device ID: %s", e.deviceID)
-
-	m.UIs().LogUI.Debug("Setting Device ID to %s", e.deviceID)
-	if salt, err = e.args.Me.GetSalt(); err != nil {
-		return err
-	}
-	if err = m.SwitchUserNewConfig(e.args.Me.GetUID(), e.args.Me.GetNormalizedName(), salt, e.deviceID); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -126,7 +116,7 @@ func (e *DeviceWrap) genKeys(m libkb.MetaContext) (err error) {
 
 func (e *DeviceWrap) refreshMe(m libkb.MetaContext) (err error) {
 	defer m.CTrace("DeviceWrap#refreshMe", func() error { return err })()
-	if !e.args.IsEldest && !e.args.IsSelfProvision {
+	if !(e.args.IsEldest || e.args.IsSelfProvision) {
 		return nil
 	}
 	m.CDebugf("reloading Me because we just bumped eldest seqno or self provisioned")
@@ -141,7 +131,13 @@ func (e *DeviceWrap) setActiveDevice(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	if err := m.SetActiveDevice(e.args.Me.ToUserVersion(), e.deviceID, e.signingKey, e.encryptionKey, e.args.DeviceName); err != nil {
+	salt, err := e.args.Me.GetSalt()
+	if err != nil {
+		return err
+	}
+	me := e.args.Me
+	if err := m.SwitchUserNewConfigActiveDevice(me.ToUserVersion(), me.GetNormalizedName(), salt,
+		e.deviceID, e.signingKey, e.encryptionKey, e.args.DeviceName); err != nil {
 		return err
 	}
 
@@ -168,9 +164,13 @@ func (e *DeviceWrap) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
+	m.CDebugf("devicewrap#run, before setactivedevice")
+	m.Dump()
 	if err = e.setActiveDevice(m); err != nil {
 		return err
 	}
+	m.CDebugf("devicewrap#run, after setactivedevice")
+	m.Dump()
 
 	return nil
 }

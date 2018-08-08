@@ -1095,10 +1095,9 @@ func TestSelfProvision(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, tc.G.ActiveDevice.Name(), newName)
 
-	// TODO
 	assertDeviceKeysCached(tc)
-	//assertPassphraseStreamCache(tc)
-	//assertSecretStored(tc, user.Username)
+	assertPassphraseStreamCache(tc)
+	assertSecretStored(tc, user.Username)
 
 	// GetBootstrapStatus should return without error and with LoggedIn set to
 	// true.
@@ -1116,18 +1115,33 @@ func TestSelfProvision(t *testing.T) {
 	// Make sure that we can still track without a passphrase
 	// after a simulated service restart.  In other words, that
 	// the full LKSec secret was written to the secret store.
-	// TODO
-	//simulateServiceRestart(t, tc, user)
-	//testSign(t, tc)
-	//testTrack(t, tc, libkb.KeybaseNullSigVersion, "t_bob")
-	//assertDeviceKeysCached(tc)
-	//require.Equal(t, tc.G.ActiveDevice.Name(), newName)
+	simulateServiceRestart(t, tc, user)
+	testSign(t, tc)
+	testTrack(t, tc, libkb.KeybaseNullSigVersion, "t_bob")
+	assertDeviceKeysCached(tc)
+	require.Equal(t, tc.G.ActiveDevice.Name(), newName)
 
 	Logout(tc)
 	user.LoginOrBust(tc)
 }
 
-func TestFailSelfProvision(t *testing.T) {
+func TestFailSelfProvisionNoClone(t *testing.T) {
+	// If we don't have a clone, we can't run this engine
+	testFailSelfProvision(t, func(m libkb.MetaContext) (oldName, newName string) {
+		return defaultDeviceName, defaultDeviceName + "new"
+	})
+}
+
+func TestFailSelfProvisionDuplicateName(t *testing.T) {
+	testFailSelfProvision(t, func(m libkb.MetaContext) (oldName, newName string) {
+		createDeviceClone(t, m)
+		// Use the default name so we get an error when provisioning.
+		return defaultDeviceName, defaultDeviceName
+	})
+}
+
+func testFailSelfProvision(t *testing.T, fn func(m libkb.MetaContext) (string, string)) {
+
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
@@ -1145,40 +1159,30 @@ func TestFailSelfProvision(t *testing.T) {
 	}
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 
-	assertSelfProvisionFailure := func(oldName, newName string) {
-		eng := NewSelfProvisionEngine(tc.G, newName)
-		err := RunEngine2(m, eng)
-		require.Error(t, err)
+	oldName, newName := fn(m)
 
-		testUserHasDeviceKey(tc)
-		// Since provisioning failed, we still just have a single device.
-		assertNumDevicesAndKeys(tc, user, 1, 2)
-		require.Equal(t, tc.G.ActiveDevice.Name(), oldName)
+	t.Logf("self provision running %v %v", oldName, newName)
+	eng := NewSelfProvisionEngine(tc.G, newName)
+	err := RunEngine2(m, eng)
+	require.Error(t, err)
+	t.Logf("self provision failed successfully %v %v", oldName, newName)
 
-		assertDeviceKeysCached(tc)
-		// TODO
-		//	assertPassphraseStreamCache(tc)
-		// assertSecretStored(tc, user.Username)
+	testUserHasDeviceKey(tc)
+	// Since provisioning failed, we still just have a single device.
+	assertNumDevicesAndKeys(tc, user, 1, 2)
+	require.Equal(t, tc.G.ActiveDevice.Name(), oldName)
 
-		// GetBootstrapStatus should return without error and with LoggedIn set to
-		// true.
-		beng := NewBootstrap(tc.G)
-		err = RunEngine2(m, beng)
-		require.NoError(t, err)
-		status := beng.Status()
-		require.True(t, status.LoggedIn)
-		require.True(t, status.Registered)
+	// GetBootstrapStatus should return without error and with LoggedIn set
+	// to true.
+	beng := NewBootstrap(tc.G)
+	err = RunEngine2(m, beng)
+	require.NoError(t, err)
+	status := beng.Status()
+	require.True(t, status.LoggedIn)
+	require.True(t, status.Registered)
 
-		Logout(tc)
-		user.LoginOrBust(tc)
-	}
-
-	// If we don't have a clone, we can't run this engine
-	assertSelfProvisionFailure(defaultDeviceName, "new device name")
-
-	// Use the default name so we get an error when provisioning.
-	createDeviceClone(t, m)
-	assertSelfProvisionFailure(defaultDeviceName, defaultDeviceName)
+	Logout(tc)
+	user.LoginOrBust(tc)
 }
 
 // Provision device using a private GPG key (not synced to keybase

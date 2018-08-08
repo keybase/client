@@ -109,6 +109,7 @@ func (a *ActiveDevice) SetOrClear(m MetaContext, a2 *ActiveDevice) error {
 		a.Clear()
 		return nil
 	}
+	a.Clear()
 	return a.Copy(m, a2)
 }
 
@@ -249,14 +250,14 @@ func (a *ActiveDevice) UserVersion() keybase1.UserVersion {
 }
 
 // Username tries to get the active user's username by looking into the current
-// environment and mapping an UID to a username based on our config file. It won't
-// work halfway through a provisioning.
+// environment and mapping an UID to a username based on our config file. It
+// won't work halfway through a provisioning.
 func (a *ActiveDevice) Username(m MetaContext) NormalizedUsername {
 	return m.G().Env.GetUsernameForUID(a.UID())
 }
 
-// DeviceID returns the device ID that was provided when the device keys were cached.
-// Safe for use by concurrent goroutines.
+// DeviceID returns the device ID that was provided when the device keys were
+// cached.  Safe for use by concurrent goroutines.
 func (a *ActiveDevice) DeviceID() keybase1.DeviceID {
 	a.RLock()
 	defer a.RUnlock()

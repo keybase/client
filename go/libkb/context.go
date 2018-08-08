@@ -346,16 +346,16 @@ func (m MetaContext) switchUserNewConfig(u keybase1.UID, n NormalizedUsername, s
 	return nil
 }
 
-// SwitchUserNewConfigActiveDevice creates a new config file stanza and an active device
-// for the given user, all while holding the switchUserMu lock.
+// SwitchUserNewConfigActiveDevice creates a new config file stanza and an
+// active device for the given user, all while holding the switchUserMu lock.
 func (m MetaContext) SwitchUserNewConfigActiveDevice(uv keybase1.UserVersion, n NormalizedUsername, salt []byte, d keybase1.DeviceID, sigKey GenericKey, encKey GenericKey, deviceName string) error {
 	ad := NewProvisionalActiveDevice(m, uv, d, sigKey, encKey, deviceName)
 	return m.switchUserNewConfig(uv.Uid, n, salt, d, ad)
 }
 
-// SwitchUserNukeConfig removes the given username from the config file, and then switches
-// to not having a current user (by clearing the ActiveDevice, etc). It does this in a critical
-// section, holding switchUserMu.
+// SwitchUserNukeConfig removes the given username from the config file, and
+// then switches to not having a current user (by clearing the ActiveDevice,
+// etc). It does this in a critical section, holding switchUserMu.
 func (m MetaContext) SwitchUserNukeConfig(n NormalizedUsername) error {
 	g := m.G()
 	g.switchUserMu.Lock()
