@@ -110,7 +110,7 @@ func (c *CmdAccountLockdown) Run() error {
 	if c.History {
 		tabw := new(tabwriter.Writer)
 		tabw.Init(dui.OutputWriter(), 0, 8, 4, ' ', 0)
-		fmt.Fprintf(tabw, "Changed to:\tChange time:\tDevice ID:\n")
+		fmt.Fprintf(tabw, "Changed to:\tChange time:\tDevice:\n")
 		for _, v := range res.History {
 			var status string
 			if v.Status {
@@ -118,7 +118,7 @@ func (c *CmdAccountLockdown) Run() error {
 			} else {
 				status = "disabled"
 			}
-			fmt.Fprintf(tabw, "%s\t%s\t%s\n", status, keybase1.FormatTime(v.CreationTime), v.DeviceID)
+			fmt.Fprintf(tabw, "%s\t%s\t%s (%s)\n", status, keybase1.FormatTime(v.CreationTime), v.DeviceName, v.DeviceID)
 		}
 		tabw.Flush()
 	}

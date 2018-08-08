@@ -39,6 +39,7 @@ protocol account {
     Time creationTime;
     @jsonkey("device_id")
     DeviceID deviceID;
+    string deviceName;
   }
 
   record GetLockdownResponse {

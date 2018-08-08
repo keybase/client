@@ -35,6 +35,10 @@
           "type": "DeviceID",
           "name": "deviceID",
           "jsonkey": "device_id"
+        },
+        {
+          "type": "string",
+          "name": "deviceName"
         }
       ]
     },

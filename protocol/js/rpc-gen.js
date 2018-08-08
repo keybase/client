@@ -1395,7 +1395,7 @@ export type LoadDeviceErr = $ReadOnly<{where: String, desc: String}>
 export type LoadTeamArg = $ReadOnly<{ID: TeamID, name: String, public: Boolean, needAdmin: Boolean, refreshUIDMapper: Boolean, refreshers: TeamRefreshers, forceFullReload: Boolean, forceRepoll: Boolean, staleOK: Boolean, allowNameLookupBurstCache: Boolean}>
 export type LockContext = $ReadOnly<{requireLockID: LockID, releaseAfterSuccess: Boolean}>
 export type LockID = Long
-export type LockdownHistory = $ReadOnly<{status: Boolean, creationTime: Time, deviceID: DeviceID}>
+export type LockdownHistory = $ReadOnly<{status: Boolean, creationTime: Time, deviceID: DeviceID, deviceName: String}>
 export type LogLevel =
   | 0 // NONE_0
   | 1 // DEBUG_1

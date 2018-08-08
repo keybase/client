@@ -22,6 +22,7 @@ type LockdownHistory struct {
 	Status       bool     `codec:"status" json:"status"`
 	CreationTime Time     `codec:"creationTime" json:"ctime"`
 	DeviceID     DeviceID `codec:"deviceID" json:"device_id"`
+	DeviceName   string   `codec:"deviceName" json:"deviceName"`
 }
 
 func (o LockdownHistory) DeepCopy() LockdownHistory {
@@ -29,6 +30,7 @@ func (o LockdownHistory) DeepCopy() LockdownHistory {
 		Status:       o.Status,
 		CreationTime: o.CreationTime.DeepCopy(),
 		DeviceID:     o.DeviceID.DeepCopy(),
+		DeviceName:   o.DeviceName,
 	}
 }
 
