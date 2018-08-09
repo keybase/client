@@ -59,12 +59,7 @@ func NewCmdAccountLockdown(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
        - changing password or e-mail address,
        - changing profile information or profile picture.
 
-   These actions are still possible using the Keybase client.
-
-   Enabling lockdown mode does not add a link to user's sigchain, it
-   is an extension of Keybase API server access control. Lockdown mode
-   offers protection in case of someone stealing your browser session
-   or account password.`,
+   These actions are still possible using the Keybase client.`,
 	}
 }
 
