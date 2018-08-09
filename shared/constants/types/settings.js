@@ -64,6 +64,7 @@ export type State = {
   notifications: NotificationsState,
   email: EmailState,
   passphrase: PassphraseState,
+  lockdownModeEnabled: ?boolean,
 }
 
 type AboutTab = 'settingsTabs:aboutTab'

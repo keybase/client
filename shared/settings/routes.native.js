@@ -36,9 +36,7 @@ const routeTree = makeRouteDefNode({
         terms: {component: WebLinks},
       },
     },
-    [Constants.passphraseTab]: {
-      component: Passphrase,
-    },
+    [Constants.passphraseTab]: {component: Passphrase},
     [Constants.feedbackTab]: {component: Feedback},
     [Constants.landingTab]: {component: About},
     [Constants.screenprotectorTab]: {component: Screenprotector},

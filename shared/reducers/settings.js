@@ -141,6 +141,12 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
           newPassphrase: passphrase,
         },
       }
+    case SettingsGen.loadedLockdownMode:
+      const {status} = action.payload
+      return {
+        ...state,
+        lockdownModeEnabled: status,
+      }
     case SettingsGen.onChangeNewPassphraseConfirm: {
       const {passphrase} = action.payload
       return {
@@ -205,11 +211,13 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
     case SettingsGen.invitesSend:
     case SettingsGen.loadRememberPassphrase:
     case SettingsGen.loadSettings:
+    case SettingsGen.loadLockdownMode:
     case SettingsGen.notificationsRefresh:
     case SettingsGen.onChangeShowPassphrase:
     case SettingsGen.onSubmitNewEmail:
     case SettingsGen.onSubmitNewPassphrase:
     case SettingsGen.onUpdatePGPSettings:
+    case SettingsGen.onChangeLockdownMode:
     case SettingsGen.trace:
     case SettingsGen.processorProfile:
       return state

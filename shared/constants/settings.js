@@ -25,6 +25,7 @@ const initialState: Types.State = {
       },
     },
   },
+  lockdownModeEnabled: null,
   passphrase: {
     error: null,
     hasPGPKeyOnServer: null,
@@ -63,6 +64,7 @@ export const screenprotectorTab = 'settingsTabs:screenprotector'
 export const updatePaymentTab = 'settingsTabs:updatePaymentTab'
 export const securityGroup = 'security'
 export const walletsTab = 'settingsTabs:walletsTab'
+export const waitingKey = 'settings:settingsPage'
 export {
   initialState,
   traceInProgressKey,
