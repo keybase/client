@@ -161,6 +161,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
           !isMobile && (
             <FloatingBox
               attachTo={this.state.attachmentRef}
+              containerStyle={styles.emojiContainer}
               position="bottom left"
               onHidden={() => this._setShowingPicker(false)}
             >
@@ -198,6 +199,12 @@ const styles = styleSheetCreate({
     isElectron: {
       paddingBottom: globalMargins.tiny,
       paddingTop: globalMargins.tiny,
+    },
+  }),
+  emojiContainer: platformStyles({
+    isElectron: {
+      borderRadius: 4,
+      boxShadow: `0 0 8px 0 ${globalColors.black_20}`,
     },
   }),
   emojiIconWrapper: platformStyles({
