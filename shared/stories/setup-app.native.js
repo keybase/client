@@ -7,7 +7,7 @@ const load = () => {
   loadStories()
 
   const StorybookUI = getStorybookUI({
-    host: 'localhost',
+    host: '127.0.0.1',
     // set this to true to show the in-app UI or just use the web ui
     onDeviceUI: false,
     port: 7007,
