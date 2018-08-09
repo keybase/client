@@ -1507,7 +1507,7 @@
     },
     {
       "type": "record",
-      "name": "FastLoadTeamArg",
+      "name": "FastTeamLoadArg",
       "fields": [
         {
           "type": "TeamID",
@@ -1546,7 +1546,7 @@
     },
     {
       "type": "record",
-      "name": "FastLoadTeamRes",
+      "name": "FastTeamLoadRes",
       "fields": [
         {
           "type": "TeamName",
