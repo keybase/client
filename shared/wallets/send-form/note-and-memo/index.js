@@ -67,9 +67,9 @@ class NoteAndMemo extends React.Component<Props, State> {
           )}
           {this.state.emojiPickerOpen &&
             !Styles.isMobile && (
-              <Kb.FloatingBox
+              <Kb.Overlay
                 attachTo={this._emojiIcon.current}
-                position="bottom left"
+                position="bottom right"
                 onHidden={() => this.setState({emojiPickerOpen: false})}
               >
                 <Picker
@@ -79,7 +79,7 @@ class NoteAndMemo extends React.Component<Props, State> {
                   onClick={this._emojiPickerOnClick}
                   backgroundImageFn={backgroundImageFn}
                 />
-              </Kb.FloatingBox>
+              </Kb.Overlay>
             )}
         </Kb.Box2>
         {!!this.props.encryptedNoteError && (
