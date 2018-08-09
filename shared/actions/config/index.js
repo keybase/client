@@ -261,6 +261,13 @@ const routeToInitialScreen = (state: TypedState) => {
 const emitInitialLoggedIn = (state: TypedState) =>
   state.config.loggedIn && Saga.put(ConfigGen.createLoggedIn({causedByStartup: true}))
 
+const allowLogoutWaiters = () =>
+  Saga.sequentially([
+    Saga.put(ConfigGen.createLogoutHandshakeWait({increment: true, name: 'nullhandshake'})),
+    Saga.call(Saga.delay, 10),
+    Saga.put(ConfigGen.createLogoutHandshakeWait({increment: false, name: 'nullhandshake'})),
+  ])
+
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // Tell all other sagas to register for incoming engine calls
   yield Saga.actionToAction(ConfigGen.installerRan, dispatchSetupEngineListeners)
@@ -285,6 +292,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
 
   // Like handshake but in reverse, ask sagas to do stuff before we tell the server to log us out
   yield Saga.actionToAction(ConfigGen.logout, startLogoutHandshake)
+  // Give time for all waiters to register and allow no waiters
+  yield Saga.actionToAction(ConfigGen.logoutHandshake, allowLogoutWaiters)
   yield Saga.actionToAction(ConfigGen.logoutHandshakeWait, maybeDoneWithLogoutHandshake)
   // When we're all done lets clean up
   yield Saga.actionToAction(ConfigGen.loggedOut, resetGlobalStore)

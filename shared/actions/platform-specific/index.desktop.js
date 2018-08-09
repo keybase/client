@@ -212,7 +212,6 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, checkRPCOwnership)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupReachabilityWatcher)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
-
   yield Saga.fork(initializeAppSettingsState)
   // Start this immediately
   yield Saga.fork(loadStartupDetails)
