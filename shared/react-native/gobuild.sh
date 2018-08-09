@@ -83,11 +83,15 @@ gomobile_path="$vendor_path/golang.org/x/mobile/cmd/gomobile"
 rsync -pr --ignore-times "$vendor_path/" "$GOPATH/src/"
 package="github.com/keybase/client/go/bind"
 
-## TODO(mm) consolidate this with packaging/prerelease/
-current_date=`date -u +%Y%m%d%H%M%S` # UTC
-commit_short=`git log -1 --pretty=format:%h`
-build="$current_date+$commit_short"
-keybase_build=${KEYBASE_BUILD:-$build}
+if [[ -n ${KEYBASE_BUILD+x} && "$KEYBASE_BUILD" ]]; then
+    keybase_build="$KEYBASE_BUILD"
+else
+    ## TODO(mm) consolidate this with packaging/prerelease/
+    current_date=`date -u +%Y%m%d%H%M%S` # UTC
+    commit_short=`git log -1 --pretty=format:%h`
+    keybase_build="$current_date+$commit_short"
+fi
+
 tags=${TAGS:-"prerelease production"}
 ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build"
 
