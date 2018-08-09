@@ -204,6 +204,9 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 		// this notification is specifically for the UI
 		g.NotifyRouter.HandleTeamListUnverifiedChanged(ctx, row.Name)
 	}
+	if change.MembershipChanged {
+		g.NotifyRouter.HandleCanUserPerformChanged(ctx, row.Name)
+	}
 	return nil
 }
 

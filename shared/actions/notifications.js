@@ -18,6 +18,7 @@ function* _listenSaga(): Saga.SagaGenerator<any, any> {
   const channels = {
     app: true,
     badges: true,
+    canuserperform: true,
     chat: true,
     chatattachments: true,
     chatdev: false,

@@ -31,6 +31,7 @@ type NotificationChannels struct {
 	Chatattachments    bool `codec:"chatattachments" json:"chatattachments"`
 	Wallet             bool `codec:"wallet" json:"wallet"`
 	Unverifiedteamlist bool `codec:"unverifiedteamlist" json:"unverifiedteamlist"`
+	Canuserperform     bool `codec:"canuserperform" json:"canuserperform"`
 }
 
 func (o NotificationChannels) DeepCopy() NotificationChannels {
@@ -57,6 +58,7 @@ func (o NotificationChannels) DeepCopy() NotificationChannels {
 		Chatattachments:    o.Chatattachments,
 		Wallet:             o.Wallet,
 		Unverifiedteamlist: o.Unverifiedteamlist,
+		Canuserperform:     o.Canuserperform,
 	}
 }
 
