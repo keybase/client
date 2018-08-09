@@ -15,12 +15,6 @@ import Placeholder from './placeholder/container'
 import WrapperTimestamp from './wrapper/wrapper-timestamp/container'
 import {setDisplayName, connect, compose, lifecycle, type TypedState} from '../../../util/container'
 
-/**
- * TODO: Refactor to not pass `message` into these components, instead pass
- * conversationIDKey and ordinal and have sub containers pull out needed
- * properties
- */
-
 type Props = {
   message: Types.Message,
   previous: ?Types.Message,
