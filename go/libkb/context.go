@@ -460,7 +460,7 @@ func (m MetaContext) SwitchUserToActiveOneshotDevice(uv keybase1.UserVersion, nu
 	return nil
 }
 
-// SiwtchUserLoggedOut clears the active device and the current_user stanza of
+// SwitchUserLoggedOut clears the active device and the current_user stanza of
 // the config file, all while holding the switchUserMu
 func (m MetaContext) SwitchUserLoggedOut() (err error) {
 	defer m.CTrace("MetaContext#SwitchUserLoggedOut", func() error { return err })()

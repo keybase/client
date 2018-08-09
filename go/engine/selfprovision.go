@@ -53,8 +53,8 @@ func (e *SelfProvisionEngine) Result() error {
 }
 
 func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
-	m.G().LocalSigchainGuard().Set(m.Ctx(), "selfProvision")
-	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "selfProvision")
+	m.G().LocalSigchainGuard().Set(m.Ctx(), "SelfProvisionEngine")
+	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "SelfProvisionEngine")
 	defer m.CTrace("SelfProvisionEngine#Run", func() error { return err })()
 
 	if d, err := libkb.GetDeviceCloneState(m); err != nil {
@@ -103,7 +103,8 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	// Zero out the TX so that we don't abort it in the defer() exit.
 	tx = nil
 
-	// logs any errors with local storage
+	// TODO we should error out here if this fails once we have the active
+	// device setting in a transaction.
 	verifyLocalStorage(m, e.User.GetNormalizedName().String(), e.User.GetUID())
 	if err := e.syncSecretStore(m); err != nil {
 		m.CDebugf("unable to syncSecretStore: %v", err)
@@ -243,18 +244,7 @@ func (e *SelfProvisionEngine) syncSecretStore(m libkb.MetaContext) error {
 		return err
 	}
 
-	secretStore := libkb.NewSecretStore(m.G(), e.User.GetNormalizedName())
-
-	// Extract the LKS secret
-	secret, err := e.lks.GetSecret(m)
-	if err != nil {
-		return err
-	}
-
-	if err = secretStore.StoreSecret(m, secret); err != nil {
-		return err
-	}
-	return nil
+	return libkb.StoreSecretAfterLoginWithLKS(m, e.User.GetNormalizedName(), e.lks)
 }
 
 func (e *SelfProvisionEngine) clearCaches(m libkb.MetaContext) {

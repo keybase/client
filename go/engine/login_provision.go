@@ -142,6 +142,8 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 	m.G().KeyfamilyChanged(e.arg.User.GetUID())
 
 	// check to make sure local files stored correctly
+	// TODO we should error out here if this fails once we have the active
+	// device setting in a transaction.
 	verifyLocalStorage(m, e.username, e.arg.User.GetUID())
 
 	// initialize a stellar wallet for the user if they don't already have one.
@@ -333,7 +335,7 @@ func (e *loginProvision) paper(m libkb.MetaContext, device *libkb.Device) (err e
 	m = m.WithGlobalActiveDevice()
 
 	// Cache the paper keys globally now that we're logged in. Note we must call
-	// thie after the m.WithGlobalActiveDevice() above, since we want to cache
+	// this after the m.WithGlobalActiveDevice() above, since we want to cache
 	// the paper key on the global and not thread-local active device.
 	m.ActiveDevice().CacheProvisioningKey(m, keys)
 
@@ -1096,9 +1098,6 @@ func verifyLocalStorage(m libkb.MetaContext, username string, uid keybase1.UID) 
 	if cr.GetUID().NotEqual(uid) {
 		m.CDebugf("config uid %q doesn't match engine uid %q", cr.GetUID(), uid)
 	}
-
-	// check session.json is valid
-	verifyRegularFile(m, "session", m.G().Env.GetSessionFilename())
 
 	// check keys in secretkeys.mpack
 	verifyRegularFile(m, "secretkeys", m.G().SKBFilenameForUser(normUsername))
