@@ -12,6 +12,13 @@ if [[ "$arg" != "ios" && "$arg" != "android" ]]; then
   exit 1
 fi
 
+# For CI, this is run like
+#
+#  env KEYBASE_BUILD=kbfsci DEST_DIR=/tmp /path/to/gobuild.sh android
+#
+# so make sure doing so doesn't assume anything about where this file
+# is.
+
 # If KEYBASE_BUILD is set and non-empty (e.g., for CI), use it.
 if [[ -n ${KEYBASE_BUILD+x} && "$KEYBASE_BUILD" ]]; then
     keybase_build="$KEYBASE_BUILD"
