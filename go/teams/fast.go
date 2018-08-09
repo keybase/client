@@ -50,19 +50,19 @@ func (f *FastTeamChainLoader) resolveIDToNameViaParentLoad(m libkb.MetaContext, 
 	return res, err
 }
 
-type loadRes struct {
+type fastLoadRes struct {
 	keybase1.FastTeamLoadRes
 	downPointers map[keybase1.Seqno]keybase1.DownPointer
 }
 
-type loadArg struct {
+type fastLoadArg struct {
 	keybase1.FastTeamLoadArg
 	seqnosNeeded []keybase1.Seqno
 }
 
-func (f *FastTeamChainLoader) load(m libkb.MetaContext, arg loadArg) (res *loadRes, err error) {
+func (f *FastTeamChainLoader) load(m libkb.MetaContext, arg fastLoadArg) (res *fastLoadRes, err error) {
 
-	// this should be meat.
+	// this should be the meat.
 
 	return nil, nil
 }
