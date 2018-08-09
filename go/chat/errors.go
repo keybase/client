@@ -138,6 +138,22 @@ func (e TransientUnboxingError) InternalError() string {
 
 //=============================================================================
 
+type EphemeralUnboxingExpiredError struct{ inner error }
+
+func NewEphemeralUnboxingExpiredError() EphemeralUnboxingExpiredError {
+	return EphemeralUnboxingExpiredError{}
+}
+
+func (e EphemeralUnboxingError) Error() string {
+	return "Unable to decrypt already exploded message"
+}
+
+func (e EphemeralUnboxingError) InternalError() string {
+	return e.Error()
+}
+
+//=============================================================================
+
 type EphemeralUnboxingError struct{ inner error }
 
 func NewEphemeralUnboxingError(inner error) EphemeralUnboxingError {

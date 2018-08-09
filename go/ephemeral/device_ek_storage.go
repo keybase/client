@@ -18,13 +18,19 @@ import (
 const deviceEKSubDir = "device-eks"
 const deviceEKPrefix = "deviceEphemeralKey"
 
+type cacheItem struct {
+	deviceEK keybase1.DeviceEk
+	err      error
+}
+
+type storageCache map[keybase1.EkGeneration]cacheItem
 type DeviceEKMap map[keybase1.EkGeneration]keybase1.DeviceEk
 
 type DeviceEKStorage struct {
 	libkb.Contextified
 	sync.Mutex
 	storage erasablekv.ErasableKVStore
-	cache   DeviceEKMap
+	cache   storageCache
 	indexed bool
 }
 
@@ -32,7 +38,7 @@ func NewDeviceEKStorage(g *libkb.GlobalContext) *DeviceEKStorage {
 	return &DeviceEKStorage{
 		Contextified: libkb.NewContextified(g),
 		storage:      erasablekv.NewFileErasableKVStore(g, deviceEKSubDir),
-		cache:        make(DeviceEKMap),
+		cache:        make(storageCache),
 	}
 }
 
@@ -110,8 +116,7 @@ func (s *DeviceEKStorage) Put(ctx context.Context, generation keybase1.EkGenerat
 	if deviceEK.Metadata.DeviceCtime == 0 {
 		deviceEK.Metadata.DeviceCtime = keybase1.ToTime(time.Now())
 	}
-	err = s.storage.Put(ctx, key, deviceEK)
-	if err != nil {
+	if err = s.storage.Put(ctx, key, deviceEK); err != nil {
 		return err
 	}
 
@@ -120,7 +125,10 @@ func (s *DeviceEKStorage) Put(ctx context.Context, generation keybase1.EkGenerat
 	if err != nil {
 		return err
 	}
-	cache[generation] = deviceEK
+	cache[generation] = cacheItem{
+		deviceEK: deviceEK,
+		err:      nil,
+	}
 	return nil
 }
 
@@ -133,9 +141,12 @@ func (s *DeviceEKStorage) Get(ctx context.Context, generation keybase1.EkGenerat
 	if err != nil {
 		return deviceEK, err
 	}
-	deviceEK, ok := cache[generation]
+	item, ok := cache[generation]
 	if ok {
-		return deviceEK, nil
+		if item.err != nil {
+			return deviceEK, item.err
+		}
+		return item.deviceEK, nil
 	}
 	// Try persistent storage.
 	deviceEK, err = s.get(ctx, generation)
@@ -143,7 +154,10 @@ func (s *DeviceEKStorage) Get(ctx context.Context, generation keybase1.EkGenerat
 		return deviceEK, err
 	}
 	// cache the result
-	cache[generation] = deviceEK
+	cache[generation] = cacheItem{
+		deviceEK: deviceEK,
+		err:      nil,
+	}
 	return deviceEK, nil
 }
 
@@ -190,7 +204,7 @@ func (s *DeviceEKStorage) delete(ctx context.Context, generation keybase1.EkGene
 	return s.storage.Erase(ctx, key)
 }
 
-func (s *DeviceEKStorage) getCache(ctx context.Context) (cache DeviceEKMap, err error) {
+func (s *DeviceEKStorage) getCache(ctx context.Context) (cache storageCache, err error) {
 	defer s.G().CTraceTimed(ctx, "DeviceEKStorage#getCache", func() error { return err })()
 
 	if !s.indexed {
@@ -204,7 +218,7 @@ func (s *DeviceEKStorage) getCache(ctx context.Context) (cache DeviceEKMap, err 
 				return nil, err
 			}
 			if generation < 0 {
-				s.G().Log.CDebugf(ctx, "getCache: invalid generation: %s -> %s", key, generation)
+				s.G().Log.CDebugf(ctx, "DeviceEKStorage#getCache: invalid generation: %s -> %s", key, generation)
 				continue
 			}
 			deviceEK, err := s.get(ctx, generation)
@@ -212,12 +226,14 @@ func (s *DeviceEKStorage) getCache(ctx context.Context) (cache DeviceEKMap, err 
 				switch err.(type) {
 				case erasablekv.UnboxError:
 					s.G().Log.Debug("DeviceEKStorage#getCache failed to get item from storage: %v", err)
-					continue
 				default:
 					return nil, err
 				}
 			}
-			s.cache[generation] = deviceEK
+			s.cache[generation] = cacheItem{
+				deviceEK: deviceEK,
+				err:      err,
+			}
 		}
 		s.indexed = true
 	}
@@ -231,7 +247,7 @@ func (s *DeviceEKStorage) ClearCache() {
 }
 
 func (s *DeviceEKStorage) clearCache() {
-	s.cache = make(DeviceEKMap)
+	s.cache = make(storageCache)
 	s.indexed = false
 }
 
@@ -241,7 +257,18 @@ func (s *DeviceEKStorage) GetAll(ctx context.Context) (deviceEKs DeviceEKMap, er
 	s.Lock()
 	defer s.Unlock()
 
-	return s.getCache(ctx)
+	cache, err := s.getCache(ctx)
+	if err != nil {
+		return nil, err
+	}
+	deviceEKs = make(DeviceEKMap)
+	for gen, item := range cache {
+		if item.err != nil {
+			continue
+		}
+		deviceEKs[gen] = item.deviceEK
+	}
+	return deviceEKs, nil
 }
 
 func (s *DeviceEKStorage) GetAllActive(ctx context.Context, merkleRoot libkb.MerkleRoot) (metadatas []keybase1.DeviceEkMetadata, err error) {
@@ -256,7 +283,11 @@ func (s *DeviceEKStorage) GetAllActive(ctx context.Context, merkleRoot libkb.Mer
 	}
 
 	activeKeysInOrder := []keybase1.DeviceEkMetadata{}
-	for _, deviceEK := range cache {
+	for _, item := range cache {
+		if item.err != nil {
+			continue
+		}
+		deviceEK := item.deviceEK
 		// Skip expired keys. Expired keys are spared from deletion past for a
 		// window past their expiry date, in case they're needed for
 		// decryption, but they're never signed over or used for encryption.
@@ -337,7 +368,11 @@ func (s *DeviceEKStorage) DeleteExpired(ctx context.Context, merkleRoot libkb.Me
 	}
 
 	keyMap := make(keyExpiryMap)
-	for generation, deviceEK := range cache {
+	for generation, item := range cache {
+		if item.err != nil {
+			continue
+		}
+		deviceEK := item.deviceEK
 		var ctime keybase1.Time
 		// If we have a nil root _and_ a valid DeviceCtime, use that. If we're
 		// missing a DeviceCtime it's better to use the slightly off
