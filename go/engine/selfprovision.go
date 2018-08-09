@@ -175,11 +175,7 @@ func (e *SelfProvisionEngine) makeDeviceKeysWithSigner(m libkb.MetaContext, sign
 		return err
 	}
 
-	ss, err := m.ActiveDevice().SyncSecrets(m)
-	if err != nil {
-		return err
-	}
-	dev, err := ss.FindDevice(m.ActiveDevice().DeviceID())
+	_, _, deviceType, err := m.G().GetUPAKLoader().LookupUsernameAndDevice(m.Ctx(), e.User.GetUID(), e.G().ActiveDevice.DeviceID())
 	if err != nil {
 		return err
 	}
@@ -187,7 +183,7 @@ func (e *SelfProvisionEngine) makeDeviceKeysWithSigner(m libkb.MetaContext, sign
 	args := &DeviceWrapArgs{
 		Me:              e.User,
 		DeviceName:      e.DeviceName,
-		DeviceType:      dev.Type,
+		DeviceType:      deviceType,
 		Lks:             e.lks,
 		IsEldest:        false, // just to be explicit
 		IsSelfProvision: true,
