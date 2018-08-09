@@ -127,7 +127,9 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	// exit.
 	tx = nil
 
-	verifyLocalStorage(m, e.User.GetNormalizedName().String(), e.User.GetUID())
+	if err := verifyLocalStorage(m, e.User.GetNormalizedName().String(), e.User.GetUID()); err != nil {
+		return err
+	}
 
 	e.clearCaches(m)
 	e.sendNotification()
