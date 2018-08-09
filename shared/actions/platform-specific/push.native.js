@@ -1,6 +1,6 @@
 // @flow
 import * as Chat2Gen from '../chat2-gen'
-import * as ChatConstants from '../../constants/chat2'
+// import * as ChatConstants from '../../constants/chat2'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/push'
 import * as NotificationsGen from '../../actions/notifications-gen'
@@ -18,7 +18,8 @@ import {isIOS} from '../../constants/platform'
 import type {TypedState} from '../../constants/reducer'
 
 const requestPushPermissions = () => (isIOS ? PushNotifications.requestPermissions() : Promise.resolve())
-const getShownPushPrompt = () => NativeModules.PushPrompt.getHasShownPushPrompt()
+const getShownPushPrompt = () =>
+  isIOS ? NativeModules.PushPrompt.getHasShownPushPrompt() : Promise.resolve(false)
 const checkPermissions = () => new Promise((resolve, reject) => PushNotifications.checkPermissions(resolve))
 
 const updateAppBadge = (_: any, action: NotificationsGen.ReceivedBadgeStatePayload) => {
