@@ -142,9 +142,7 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 	m.G().KeyfamilyChanged(e.arg.User.GetUID())
 
 	// check to make sure local files stored correctly
-	if err := verifyLocalStorage(m, e.username, e.arg.User.GetUID()); err != nil {
-		return err
-	}
+	verifyLocalStorage(m, e.username, e.arg.User.GetUID())
 
 	// initialize a stellar wallet for the user if they don't already have one.
 	m.G().LocalSigchainGuard().Clear(m.Ctx(), "loginProvision")
@@ -1084,7 +1082,7 @@ func (p partitionDeviceList) Swap(a, b int) {
 	p[a], p[b] = p[b], p[a]
 }
 
-func verifyLocalStorage(m libkb.MetaContext, username string, uid keybase1.UID) error {
+func verifyLocalStorage(m libkb.MetaContext, username string, uid keybase1.UID) {
 	m.CDebugf("verifying local storage")
 	defer m.CDebugf("done verifying local storage")
 	normUsername := libkb.NewNormalizedUsername(username)
@@ -1093,37 +1091,37 @@ func verifyLocalStorage(m libkb.MetaContext, username string, uid keybase1.UID) 
 	verifyRegularFile(m, "config", m.G().Env.GetConfigFilename())
 	cr := m.G().Env.GetConfig()
 	if cr.GetUsername() != normUsername {
-		return fmt.Errorf("config username %q doesn't match engine username %q", cr.GetUsername(), normUsername)
+		m.CDebugf("config username %q doesn't match engine username %q", cr.GetUsername(), normUsername)
 	}
 	if cr.GetUID().NotEqual(uid) {
-		return fmt.Errorf("config uid %q doesn't match engine uid %q", cr.GetUID(), uid)
+		m.CDebugf("config uid %q doesn't match engine uid %q", cr.GetUID(), uid)
 	}
 
+	// check session.json is valid
+	verifyRegularFile(m, "session", m.G().Env.GetSessionFilename())
+
 	// check keys in secretkeys.mpack
-	if err := verifyRegularFile(m, "secretkeys", m.G().SKBFilenameForUser(normUsername)); err != nil {
-		return err
-	}
+	verifyRegularFile(m, "secretkeys", m.G().SKBFilenameForUser(normUsername))
 
 	// check secret stored
 	secret, err := m.G().SecretStore().RetrieveSecret(m, normUsername)
 	if err != nil {
-		return err
+		m.CDebugf("failed to retrieve secret for %s: %s", username, err)
 	}
 	if secret.IsNil() || len(secret.Bytes()) == 0 {
-		return fmt.Errorf("retrieved nil/empty secret for %s", username)
+		m.CDebugf("retrieved nil/empty secret for %s", username)
 	}
-	return nil
 }
 
-func verifyRegularFile(m libkb.MetaContext, name, filename string) error {
+func verifyRegularFile(m libkb.MetaContext, name, filename string) {
 	info, err := os.Stat(filename)
 	if err != nil {
-		return err
+		m.CDebugf("stat %s file %q error: %s", name, filename, err)
+		return
 	}
 
 	m.CDebugf("%s file %q size: %d", name, filename, info.Size())
 	if !info.Mode().IsRegular() {
-		return fmt.Errorf("%s file %q not regular: %s", name, filename, info.Mode())
+		m.CDebugf("%s file %q not regular: %s", name, filename, info.Mode())
 	}
-	return nil
 }
