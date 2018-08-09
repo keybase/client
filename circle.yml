@@ -7,64 +7,16 @@
 version: 2
 jobs:
   build:
-    working_directory: ~/kbfs
+    working_directory: ~/go-path/src/github.com/keybase/kbfs
     parallelism: 1
-    shell: /bin/bash --login
-    environment:
-      GOVERSION: 1.10.3
 
-    # TODO: Consider picking a better docker image.
-    #
-    # For more information on choosing an image (or alternatively
-    # using a VM instead of a container) see
-    # https://circleci.com/docs/2.0/executor-types/ To see the list of
-    # pre-built images that CircleCI provides for most common
-    # languages see https://circleci.com/docs/2.0/circleci-images/
     docker:
-    - image: circleci/build-image:ubuntu-14.04-XXL-upstart-1189-5614f37
+    - image: keybaseprivate/circleci-kbfs@sha256:e2209da475784da8e5c748ecfd564360aac517b23ab136c4083b5080b2bddfef
       command: /sbin/init
 
     steps:
-    ##
-    ## Install prereqs.
-    ##
-
-    - run:
-        name: Update PATH and Define Environment Variables at Runtime
-        command: |
-          echo 'export GOROOT=$HOME/go' >> $BASH_ENV
-          echo 'export GOPATH=$HOME/go-path' >> $BASH_ENV
-          # Clear out a bunch of cruft from PATH.
-          echo 'export PATH=/bin:/usr/bin:$GOROOT/bin' >> $BASH_ENV
-
-          source $BASH_ENV
-
-    # Configure java.
-    - run: sudo update-alternatives --set java /usr/lib/jvm/jdk1.8.0/bin/java; sudo update-alternatives --set javac /usr/lib/jvm/jdk1.8.0/bin/javac; echo -e "export JAVA_HOME=/usr/lib/jvm/jdk1.8.0" >> $BASH_ENV
-
-    - run: mkdir -p ~/downloads ~/go-path
-    - run: ls "$HOME/downloads"
-    - run: ls "$ANDROID_HOME"
-
-    - run: if [[ ! -e "$HOME/downloads/go.$GOVERSION.tar.gz" ]]; then wget -nv https://storage.googleapis.com/golang/go$GOVERSION.linux-amd64.tar.gz -O $HOME/downloads/go.$GOVERSION.tar.gz ; fi
-    - run: cd $HOME && tar -xzvf downloads/go.$GOVERSION.tar.gz
-
-    - run: if ! $(grep -q "Revision=24.4.1" $ANDROID_HOME/tools/source.properties); then echo y | android update sdk -u -a -t "tools"; fi
-    - run: if [ ! -e $ANDROID_HOME/build-tools/23.0.2 ]; then echo y | android update sdk -u -a -t "build-tools-23.0.2"; fi
-
-    # Android Support Repository, revision 35 / Local Maven repository for Support Libraries
-    - run: if [ ! -d "/usr/local/android-sdk-linux/extras/android/m2repository/com/android/support/design/24.1.0" ]; then echo y | android update sdk --no-ui --all --filter "extra-android-m2repository"; fi
-
-    # Accept android licenses
-    - run: mkdir -p /usr/local/android-sdk-linux/licenses
-    - run: if [[ ! -e "$ANDROID_HOME/ndk-bundle" ]]; then wget -nv http://dl.google.com/android/repository/android-ndk-r11c-linux-x86_64.zip -O $HOME/downloads/android-ndk-r11c-linux-x86_64.zip && unzip -o $HOME/downloads/android-ndk-r11c-linux-x86_64.zip -d "$ANDROID_HOME" && mv "$ANDROID_HOME/android-ndk-r11c" "$ANDROID_HOME/ndk-bundle"; fi
-    - run: echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > /usr/local/android-sdk-linux/licenses/android-sdk-license
-    - run: echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> /usr/local/android-sdk-linux/licenses/android-sdk-license
-
     # Clone client.
-    - run: mkdir -p $GOPATH/src/github.com/keybase
-    - run: git clone https://github.com/keybase/client.git $HOME/client
-    - run: ln -s $HOME/client $GOPATH/src/github.com/keybase/client
+    - run: git clone https://github.com/keybase/client.git $GOPATH/src/github.com/keybase/client
 
     ##
     ## Build.
@@ -72,7 +24,8 @@ jobs:
 
     - checkout
 
-    - run: ln -s $HOME/kbfs $GOPATH/src/github.com/keybase/kbfs
+    # TODO: Investigate whether we can do some caching to speed up
+    # this step, e.g. of /tmp/go-android/pkg.
     - run:
         working_directory: ../client/shared
         environment:
