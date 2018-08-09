@@ -14,9 +14,6 @@ type SelfProvisionEngine struct {
 	lks            *libkb.LKSec
 	User           *libkb.User
 	perUserKeyring *libkb.PerUserKeyring
-	// TODO what is the right way to get the passphrase stream cache setup?
-	pps  *libkb.PassphraseStream
-	tsec libkb.Triplesec
 }
 
 // If a device is cloned, we can provision a new device from the current device
@@ -62,7 +59,9 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
+	// If we abort, we need to revert to the old active device and user config state
 	uvOld, deviceIDOld, deviceNameOld, sigKeyOld, encKeyOld := e.G().ActiveDevice.AllFields()
+	// Pass the UV here so the passphrase stream is cached on the provisional login context
 	m = m.WithNewProvisionalLoginContextForUserVersionAndUsername(uvOld, e.G().Env.GetUsername())
 
 	// From this point on, if there's an error, we abort
@@ -71,20 +70,20 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		if tx != nil {
 			tx.Abort()
 		}
-		if err != nil && e.User != nil {
-			m.CDebugf("Error in self provision, reverting to original active device: %v", err)
-			m = m.WithGlobalActiveDevice()
-			salt, err := e.User.GetSalt()
-			if err != nil {
-				m.CDebugf("unable to GetSalt: %v", err)
-				return
-			}
-			if err = m.SwitchUserNewConfig(e.User.GetUID(), e.User.GetNormalizedName(), salt, deviceIDOld); err != nil {
-				m.CDebugf("unable to SwitchUserNewConfig: %v", err)
-				return
-			}
-			if err := m.SetActiveDevice(uvOld, deviceIDOld, sigKeyOld, encKeyOld, deviceNameOld); err != nil {
-				m.CDebugf("unable to SetActiveDevice: %v", err)
+		if err != nil {
+			if e.User != nil {
+				m.CDebugf("Error in self provision, reverting to original active device: %v", err)
+				m = m.WithGlobalActiveDevice()
+				salt, err := e.User.GetSalt()
+				if err != nil {
+					m.CDebugf("unable to GetSalt: %v", err)
+					return
+				}
+				// Atomically swap to the new config and active device
+				if err := m.SwitchUserNewConfigActiveDevice(uvOld, e.User.GetNormalizedName(), salt,
+					deviceIDOld, sigKeyOld, encKeyOld, deviceNameOld); err != nil {
+					return
+				}
 			}
 		} else {
 			m = m.CommitProvisionalLogin()
@@ -136,10 +135,9 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 }
 
 func (e *SelfProvisionEngine) provision(m libkb.MetaContext, keys *libkb.DeviceWithKeys) error {
-	// After obtaining login session, this will be called before the login state is released.
-	// It signs this new device with the current device.
+	// After obtaining login session, this will be called before the login
+	// state is released.  It signs this new device with the current device.
 	u := e.User
-	nn := u.GetNormalizedName()
 	uv := u.ToUserVersion()
 
 	// Set the active device to be a special provisional key active device,
@@ -147,7 +145,6 @@ func (e *SelfProvisionEngine) provision(m libkb.MetaContext, keys *libkb.DeviceW
 	// be in memory.  It also will establish a NIST so that API calls can
 	// proceed on behalf of the user.
 	m = m.WithProvisioningKeyActiveDevice(keys, uv)
-	m.LoginContext().SetUsernameUserVersion(nn, uv)
 
 	// need lksec to store device keys locally
 	if err := e.fetchLKS(m, keys.EncryptionKey()); err != nil {
@@ -157,12 +154,11 @@ func (e *SelfProvisionEngine) provision(m libkb.MetaContext, keys *libkb.DeviceW
 		return err
 	}
 
+	// now store the secrets for our new device
 	encKey, err := m.ActiveDevice().EncryptionKey()
 	if err != nil {
 		return err
 	}
-
-	// store the secrets for our new device
 	if err := e.fetchLKS(m, encKey); err != nil {
 		return err
 	}
@@ -190,7 +186,6 @@ func (e *SelfProvisionEngine) provision(m libkb.MetaContext, keys *libkb.DeviceW
 
 	// Remove our provisional active device, and fall back to global device
 	m = m.WithGlobalActiveDevice()
-	m.ActiveDevice().CacheProvisioningKey(m, keys)
 	return nil
 }
 
@@ -238,7 +233,8 @@ func (e *SelfProvisionEngine) makeDeviceKeysWithSigner(m libkb.MetaContext, sign
 	}
 	args.Signer = signer
 
-	return e.makeDeviceKeys(m, args)
+	eng := NewDeviceWrap(m.G(), args)
+	return RunEngine2(m, eng)
 }
 
 // makeDeviceWrapArgs creates a base set of args for DeviceWrap.  It ensures
@@ -269,21 +265,6 @@ func (e *SelfProvisionEngine) makeDeviceWrapArgs(m libkb.MetaContext) (*DeviceWr
 	}, nil
 }
 
-// makeDeviceKeys uses DeviceWrap to generate device keys.
-func (e *SelfProvisionEngine) makeDeviceKeys(m libkb.MetaContext, args *DeviceWrapArgs) error {
-	eng := NewDeviceWrap(m.G(), args)
-	if err := RunEngine2(m, eng); err != nil {
-		return err
-	}
-
-	// Sync the LKS stuff back from the server, so that subsequent
-	// attempts to use public key login will work.
-	if err := m.LoginContext().RunSecretSyncer(m, e.User.GetUID()); err != nil {
-		return err
-	}
-	return nil
-}
-
 // copied from loginProvision
 // ensureLKSec ensures we have LKSec for saving device keys.
 func (e *SelfProvisionEngine) ensureLKSec(m libkb.MetaContext) error {
@@ -291,26 +272,24 @@ func (e *SelfProvisionEngine) ensureLKSec(m libkb.MetaContext) error {
 		return nil
 	}
 
-	var err error
-	e.pps, e.tsec, err = e.ppStream(m)
+	pps, err := e.ppStream(m)
 	if err != nil {
 		return err
 	}
 
-	e.lks = libkb.NewLKSec(e.pps, e.User.GetUID())
+	e.lks = libkb.NewLKSec(pps, e.User.GetUID())
 	return nil
 }
 
 // copied from loginProvision
 // ppStream gets the passphrase stream from the cache
-func (e *SelfProvisionEngine) ppStream(m libkb.MetaContext) (*libkb.PassphraseStream, libkb.Triplesec, error) {
+func (e *SelfProvisionEngine) ppStream(m libkb.MetaContext) (*libkb.PassphraseStream, error) {
 	if m.LoginContext() == nil {
-		return nil, nil, errors.New("loginProvision: ppStream() -> nil ctx.LoginContext")
+		return nil, errors.New("loginProvision: ppStream() -> nil ctx.LoginContext")
 	}
 	cached := m.LoginContext().PassphraseStreamCache()
 	if cached == nil {
-		return nil, nil, errors.New("loginProvision: ppStream() -> nil PassphraseStreamCache")
+		return nil, errors.New("loginProvision: ppStream() -> nil PassphraseStreamCache")
 	}
-	pps, tsec := cached.PassphraseStreamAndTriplesec()
-	return pps, tsec, nil
+	return cached.PassphraseStream(), nil
 }

@@ -74,11 +74,7 @@ func (e *DeviceWrap) registerDevice(m libkb.MetaContext) (err error) {
 	}
 	m.CDebugf("Device name: %s", e.args.DeviceName)
 	m.CDebugf("Device ID: %s", e.deviceID)
-	if err = e.args.Lks.GenerateServerHalf(); err != nil {
-		return err
-	}
-
-	return nil
+	return e.args.Lks.GenerateServerHalf()
 }
 
 func (e *DeviceWrap) genKeys(m libkb.MetaContext) (err error) {
@@ -136,6 +132,7 @@ func (e *DeviceWrap) setActiveDevice(m libkb.MetaContext) (err error) {
 		return err
 	}
 	me := e.args.Me
+	// Atomically swap to the new config and active device
 	if err := m.SwitchUserNewConfigActiveDevice(me.ToUserVersion(), me.GetNormalizedName(), salt,
 		e.deviceID, e.signingKey, e.encryptionKey, e.args.DeviceName); err != nil {
 		return err
@@ -164,15 +161,7 @@ func (e *DeviceWrap) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	m.CDebugf("devicewrap#run, before setactivedevice")
-	m.Dump()
-	if err = e.setActiveDevice(m); err != nil {
-		return err
-	}
-	m.CDebugf("devicewrap#run, after setactivedevice")
-	m.Dump()
-
-	return nil
+	return e.setActiveDevice(m)
 }
 
 func (e *DeviceWrap) SigningKey() libkb.GenericKey {
