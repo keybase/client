@@ -1070,7 +1070,7 @@ func TestSelfProvision(t *testing.T) {
 }
 
 func assertValidSelfProvision(t *testing.T, tc libkb.TestContext, m libkb.MetaContext, user *FakeUser) {
-	libkb.CreateClonedDevice(t, m)
+	libkb.CreateClonedDevice(tc, m)
 	newName := tc.G.ActiveDevice.Name() + "uncloneme"
 	eng := NewSelfProvisionEngine(tc.G, newName)
 	err := RunEngine2(m, eng)
@@ -1114,20 +1114,20 @@ func assertValidSelfProvision(t *testing.T, tc libkb.TestContext, m libkb.MetaCo
 
 func TestFailSelfProvisionNoClone(t *testing.T) {
 	// If we don't have a clone, we can't run this engine
-	testFailSelfProvision(t, func(m libkb.MetaContext) string {
+	testFailSelfProvision(t, func(tc libkb.TestContext, m libkb.MetaContext) string {
 		return "new"
 	})
 }
 
 func TestSelfProvisionFailDuplicateName(t *testing.T) {
-	testFailSelfProvision(t, func(m libkb.MetaContext) string {
-		libkb.CreateClonedDevice(t, m)
+	testFailSelfProvision(t, func(tc libkb.TestContext, m libkb.MetaContext) string {
+		libkb.CreateClonedDevice(tc, m)
 		// Use the default name so we get an error when provisioning.
 		return ""
 	})
 }
 
-func testFailSelfProvision(t *testing.T, fn func(m libkb.MetaContext) string) {
+func testFailSelfProvision(t *testing.T, fn func(tc libkb.TestContext, m libkb.MetaContext) string) {
 
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
@@ -1146,7 +1146,7 @@ func testFailSelfProvision(t *testing.T, fn func(m libkb.MetaContext) string) {
 	}
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 
-	suffix := fn(m)
+	suffix := fn(tc, m)
 	oldName := tc.G.ActiveDevice.Name()
 	newName := oldName + suffix
 

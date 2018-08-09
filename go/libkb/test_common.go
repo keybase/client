@@ -16,7 +16,6 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"testing"
 	"time"
 
 	"golang.org/x/net/context"
@@ -518,12 +517,12 @@ func NewMetaContextForTestWithLogUI(tc TestContext) MetaContext {
 	})
 }
 
-func CreateClonedDevice(t *testing.T, m MetaContext) {
+func CreateClonedDevice(tc TestContext, m MetaContext) {
 	runAndGetDeviceCloneState := func() DeviceCloneState {
 		_, _, err := UpdateDeviceCloneState(m)
-		require.NoError(t, err)
+		require.NoError(tc.T, err)
 		d, err := GetDeviceCloneState(m)
-		require.NoError(t, err)
+		require.NoError(tc.T, err)
 		return d
 	}
 	// setup: perform two runs, and then manually persist the earlier
@@ -531,8 +530,8 @@ func CreateClonedDevice(t *testing.T, m MetaContext) {
 	d0 := runAndGetDeviceCloneState()
 	runAndGetDeviceCloneState()
 	err := SetDeviceCloneState(m, d0)
-	require.NoError(t, err)
+	require.NoError(tc.T, err)
 
 	d := runAndGetDeviceCloneState()
-	require.True(t, d.IsClone())
+	require.True(tc.T, d.IsClone())
 }

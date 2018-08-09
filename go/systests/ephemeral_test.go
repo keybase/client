@@ -440,7 +440,7 @@ func TestEphemeralSelfProvision(t *testing.T) {
 	}
 
 	m := libkb.NewMetaContextForTest(*ann.primaryDevice().tctx).WithUIs(uis)
-	libkb.CreateClonedDevice(t, m)
+	libkb.CreateClonedDevice(*ann.primaryDevice().tctx, m)
 	newName := "uncloneme"
 	eng := engine.NewSelfProvisionEngine(annG, newName)
 	err = engine.RunEngine2(m, eng)

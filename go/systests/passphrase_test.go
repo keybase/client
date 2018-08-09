@@ -152,7 +152,7 @@ func testPassphraseRecover(t *testing.T, createDeviceClone bool) {
 	// clone the device on tc1
 	m1 := libkb.NewMetaContextForTest(*tc1)
 	if createDeviceClone {
-		libkb.CreateClonedDevice(t, m1)
+		libkb.CreateClonedDevice(*tc1, m1)
 	}
 
 	t.Logf("Login on tc2")
