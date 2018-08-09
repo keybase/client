@@ -2,8 +2,8 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import {backgroundImageFn} from '../../../common-adapters/emoji'
-import {Picker} from 'emoji-mart'
+// import {backgroundImageFn} from '../../../common-adapters/emoji'
+// import {Picker} from 'emoji-mart'
 
 type Props = {
   encryptedNoteError?: string,
@@ -16,27 +16,27 @@ type State = {
 }
 
 class NoteAndMemo extends React.Component<Props, State> {
-  state = {
-    emojiPickerOpen: false,
-  }
-  _emojiIcon = React.createRef()
-  _note = React.createRef()
+  // state = {
+  //   emojiPickerOpen: false,
+  // }
+  // _emojiIcon = React.createRef()
+  // _note = React.createRef()
 
-  _insertEmoji = (emoji: string) => {
-    console.log(this._note)
-    if (this._note.current !== null) {
-      this._note.current.setValue(this._note.current.getValue() + emoji)
-    }
-  }
+  // _insertEmoji = (emoji: string) => {
+  //   console.log(this._note)
+  //   if (this._note.current !== null) {
+  //     this._note.current.setValue(this._note.current.getValue() + emoji)
+  //   }
+  // }
 
-  _emojiPickerToggle = () => {
-    this.setState(({emojiPickerOpen}) => ({emojiPickerOpen: !emojiPickerOpen}))
-  }
+  // _emojiPickerToggle = () => {
+  //   this.setState(({emojiPickerOpen}) => ({emojiPickerOpen: !emojiPickerOpen}))
+  // }
 
-  _emojiPickerOnClick = emoji => {
-    this._insertEmoji(emoji.native)
-    this._emojiPickerToggle()
-  }
+  // _emojiPickerOnClick = emoji => {
+  //   this._insertEmoji(emoji.native)
+  //   this._emojiPickerToggle()
+  // }
 
   render() {
     return (
@@ -49,16 +49,16 @@ class NoteAndMemo extends React.Component<Props, State> {
             style={sharedStyles}
             rowsMin={1}
             rowsMax={12}
-            ref={this._note}
+            // ref={this._note}
           />
           <Kb.Icon
-            onClick={this._emojiPickerToggle}
+            // onClick={this._emojiPickerToggle}
             boxStyle={styles.emojiIconContainer}
             style={Kb.iconCastPlatformStyles(styles.emojiIcon)}
             type="iconfont-emoji"
-            ref={this._emojiIcon}
+            // ref={this._emojiIcon}
           />
-          {this.state.emojiPickerOpen &&
+          {/* {this.state.emojiPickerOpen &&
             !Styles.isMobile && (
               <Kb.FloatingBox
                 attachTo={this._emojiIcon.current}
@@ -73,7 +73,7 @@ class NoteAndMemo extends React.Component<Props, State> {
                   backgroundImageFn={backgroundImageFn}
                 />
               </Kb.FloatingBox>
-            )}
+            )} */}
         </Kb.Box2>
         {!!this.props.encryptedNoteError && (
           <Kb.Text type="Body" style={styles.errorMessage}>
