@@ -27,6 +27,7 @@ export const paymentsReceived = 'wallets:paymentsReceived'
 export const secretKeyReceived = 'wallets:secretKeyReceived'
 export const secretKeySeen = 'wallets:secretKeySeen'
 export const selectAccount = 'wallets:selectAccount'
+export const sendPayment = 'wallets:sendPayment'
 export const validateAccountName = 'wallets:validateAccountName'
 export const validateSecretKey = 'wallets:validateSecretKey'
 export const validatedAccountName = 'wallets:validatedAccountName'
@@ -84,6 +85,11 @@ type _SelectAccountPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   show?: boolean,
 |}>
+type _SendPaymentPayload = $ReadOnly<{|
+  amount: number,
+  from: string,
+  to: string,
+|}>
 type _ValidateAccountNamePayload = $ReadOnly<{|name: string|}>
 type _ValidateSecretKeyPayload = $ReadOnly<{|secretKey: HiddenString|}>
 type _ValidatedAccountNamePayload = $ReadOnly<{|name: string|}>
@@ -126,6 +132,10 @@ export const createLinkExistingAccount = (payload: _LinkExistingAccountPayload) 
  * Load extra detail for one given payment
  */
 export const createLoadPaymentDetail = (payload: _LoadPaymentDetailPayload) => ({error: false, payload, type: loadPaymentDetail})
+/**
+ * Perform sending a payment.
+ */
+export const createSendPayment = (payload: _SendPaymentPayload) => ({error: false, payload, type: sendPayment})
 /**
  * Prepare a payment for ssnding
  */
@@ -205,6 +215,7 @@ export type PaymentsReceivedPayload = $Call<typeof createPaymentsReceived, _Paym
 export type SecretKeyReceivedPayload = $Call<typeof createSecretKeyReceived, _SecretKeyReceivedPayload>
 export type SecretKeySeenPayload = $Call<typeof createSecretKeySeen, _SecretKeySeenPayload>
 export type SelectAccountPayload = $Call<typeof createSelectAccount, _SelectAccountPayload>
+export type SendPaymentPayload = $Call<typeof createSendPayment, _SendPaymentPayload>
 export type ValidateAccountNamePayload = $Call<typeof createValidateAccountName, _ValidateAccountNamePayload>
 export type ValidateSecretKeyPayload = $Call<typeof createValidateSecretKey, _ValidateSecretKeyPayload>
 export type ValidatedAccountNamePayload = $Call<typeof createValidatedAccountName, _ValidatedAccountNamePayload>
@@ -233,6 +244,7 @@ export type Actions =
   | SecretKeyReceivedPayload
   | SecretKeySeenPayload
   | SelectAccountPayload
+  | SendPaymentPayload
   | ValidateAccountNamePayload
   | ValidateSecretKeyPayload
   | ValidatedAccountNamePayload

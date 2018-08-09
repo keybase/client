@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button, Icon, iconCastPlatformStyles} from '../../../common-adapters'
+import {Box2, Button, Icon, iconCastPlatformStyles, Text} from '../../../common-adapters'
 import Available from '../available/container'
 import {globalColors, globalMargins, styleSheetCreate} from '../../../styles'
 
@@ -8,12 +8,14 @@ type Props = {
   onClickSend: Function,
   onClickRequest?: Function,
   disabled?: boolean,
+  worthDescription: string,
 }
 
-const Footer = ({onClickSend, onClickRequest, disabled}: Props) => {
-  console.warn('in footer', onClickSend)
+const Footer = ({onClickSend, onClickRequest, disabled, onConfirmSend, readyToSend, worthDescription}: Props) => {
+  console.warn('in footer', onClickSend, worthDescription)
   return (
   <Box2 direction="vertical" fullWidth={true} style={styles.background}>
+    {!!worthDescription && <Text style={{textAlign: 'center'}} type="Body">{worthDescription}</Text>}
     <Box2 direction="horizontal" style={styles.buttonBox} fullWidth={true}>
       {!!onClickRequest && (
         <Button
@@ -32,7 +34,7 @@ const Footer = ({onClickSend, onClickRequest, disabled}: Props) => {
           }
         />
       )}
-      <Button
+      {readyToSend ? <Button type="Danger" label="REALLY SEND" onClick={onConfirmSend} fullWidth={true} /> : <Button
         type="Wallet"
         label="Send"
         onClick={onClickSend}
@@ -46,7 +48,7 @@ const Footer = ({onClickSend, onClickRequest, disabled}: Props) => {
             color={globalColors.white}
           />
         }
-      />
+      />}
     </Box2>
     <Available />
   </Box2>

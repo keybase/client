@@ -72,6 +72,12 @@
       "accountID": "Types.AccountID",
       "show?": "boolean",
     },
+    "sendPayment": {
+      "_description": "Perform sending a payment.",
+      "amount": "number",
+      "from": "string",
+      "to": "string",
+    },
     "linkExistingAccount": {
       "_description": "Link an existing Stellar account with this Keybase user.",
       "name": "string",

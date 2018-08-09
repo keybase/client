@@ -9,6 +9,7 @@ type Props = {
   username?: string,
   fullname?: string,
   onShowProfile?: string => void,
+  toErrMsg?: string,
 }
 
 const Participants = (props: Props) => (
@@ -36,9 +37,9 @@ const Participants = (props: Props) => (
             multiline={true}
           />
         </Kb.Box2>
-        {props.incorrect && (
+        {props.toErrMsg && (
             <Kb.Text type="BodySmall" style={styles.error}>
-              This Stellar address is incorrect
+              {props.toErrMsg}
             </Kb.Text>
         )}
       </Kb.Box2>

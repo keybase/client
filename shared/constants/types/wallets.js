@@ -84,8 +84,8 @@ export type _SendFormBuild = {
   toUsername: string,
   worthDescription: string,
   worthInfo: string,
-  
 }
+
 export type Account = I.RecordOf<_Account>
 
 export type Assets = I.RecordOf<_Assets>

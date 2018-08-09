@@ -15,20 +15,40 @@ const buildPayment = (
   action: WalletsGen.BuildPaymentPayload
 ) =>
   RPCTypes.localBuildPaymentLocalRpcPromise({
-    amount: '2',
+    amount: action.payload.amount,
     // currency: 'XLM',
-    from: 'GDWI3UBI4WFSFYNZ3ABHIFSEQYK34KBPGZZCEJYBNQCIMGKPE2PHCLAQ',
+    from: state.wallets.selectedAccount, // action.payload.from
     fromSeqno: '',
     publicMemo: '',
     secretNote: '',
-    to: 'GDLQ22P6VKMUYW3HULI2F5KDY7Q63SION65M7I3HHIVUXOFZVG3FEK2F',
+    to: action.payload.to, // 'GDLQ22P6VKMUYW3HULI2F5KDY7Q63SION65M7I3HHIVUXOFZVG3FEK2F',
     toIsAccountID: true,
   }).then(build => {
     console.warn(build)
     return WalletsGen.createBuiltPaymentReceived({
-      build: Constants.sendFormBuildResultToBuild(build)
+      accountID: state.wallets.selectedAccount,
+      build: Constants.sendFormBuildResultToBuild(build),
     })
   })
+
+  const sendPayment = (
+    state: TypedState,
+    action: WalletsGen.SendPaymentPayload
+  ) =>
+    RPCTypes.localSendPaymentLocalRpcPromise({
+      amount: action.payload.amount,
+      asset: {type: 'native', code: '', issuer: ''},
+      // currency: 'XLM',
+      from: state.wallets.selectedAccount, // action.payload.from
+      fromSeqno: '',
+      publicMemo: '',
+      secretNote: '',
+      to: action.payload.to, // 'GDLQ22P6VKMUYW3HULI2F5KDY7Q63SION65M7I3HHIVUXOFZVG3FEK2F',
+      toIsAccountID: true,
+    }).then(res => {
+      const accountID = state.wallets.selectedAccount
+      console.warn(res)
+    })
 
   const loadAccounts = (
   state: TypedState,
@@ -179,6 +199,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   )
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
   yield Saga.actionToPromise(WalletsGen.buildPayment, buildPayment)
+  yield Saga.actionToPromise(WalletsGen.sendPayment, sendPayment)
 }
 
 export default walletsSaga

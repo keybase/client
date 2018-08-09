@@ -7,7 +7,7 @@ import Banner from '../../banner/container'
 import Footer from '../footer/index'
 import Memo from '../memo/container'
 import Note from '../note/container'
-import Participants from '../participants/container'
+import Participants from '../participants'
 
 type Props = {
   bannerInfo?: string,
@@ -16,6 +16,7 @@ type Props = {
   onChangeAmount: () => void,
   onClickSend: () => void,
   targetType?: 'keybaseUser' | 'anotherWallet' | 'stellarAddress',
+  warningAsset?: string,
 }
 
 const Spinner = () => (
@@ -25,17 +26,17 @@ const Spinner = () => (
 )
 
 const Body = (props: Props) => {
-  console.warn('in Body', props)
+  console.warn('in Bodyyy', props)
   return (
   <Box2 fullWidth={true} direction="vertical">
     {props.isProcessing && <Spinner />}
     {props.bannerInfo && <Banner />}
-    <Participants onChangeAddress={props.onChangeAddress} targetType={props.targetType} />
+    <Participants onChangeAddress={props.onChangeAddress} targetType={props.targetType} toErrMsg={props.toErrMsg} username={props.username} />
     <Divider />
-    <AssetInput displayUnit='XLM' inputPlaceholder='0.00' onChangeAmount={props.onChangeAmount} />
+    <AssetInput displayUnit='XLM' inputPlaceholder='0.00' onChangeAmount={props.onChangeAmount} warningAsset={props.warningAsset} />
     <Memo />
     <Note />
-    <Footer onClickSend={props.onClickSend} />
+    <Footer onConfirmSend={props.onConfirmSend} onClickSend={props.onClickSend} readyToSend={props.readyToSend} worthDescription={props.worthDescription} />
   </Box2>
 )
 }
