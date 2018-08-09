@@ -28,6 +28,7 @@ const Wrapper = (props: WrapperProps) =>
       onAddReaction={props.onAddReaction}
       onLongPress={props.onLongPress}
       onOpenEmojiPicker={props.onOpenEmojiPicker}
+      onShowPicker={props.onShowPicker}
       showBorder={props.showBorder}
       style={props.style}
     />
@@ -39,6 +40,7 @@ export type OwnProps = {
   onMouseLeave?: (evt: SyntheticEvent<Element>) => void,
   onMouseOver?: (evt: SyntheticEvent<Element>) => void,
   onLongPress?: () => void,
+  onShowPicker?: (showing: boolean) => void,
   ordinal: Types.Ordinal,
   showBorder?: boolean,
   style?: StylesCrossPlatform,

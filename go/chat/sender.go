@@ -1146,7 +1146,7 @@ func (s *Deliverer) deliverLoop() {
 			bctx := Context(context.Background(), s.G(), obr.IdentifyBehavior, &breaks,
 				s.identNotifier)
 			if s.testingNameInfoSource != nil {
-				CtxKeyFinder(bctx, s.G()).SetNameInfoSourceOverride(s.testingNameInfoSource)
+				bctx = CtxAddTestingNameInfoSource(bctx, s.testingNameInfoSource)
 			}
 			if !s.connected {
 				err = errors.New("disconnected from chat server")
