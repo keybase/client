@@ -2218,11 +2218,6 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				require.Fail(t, "no event received")
 			}
 			consumeNewMsgLocal(t, listener, chat1.MessageType_DELETE)
-			switch mt {
-			case chat1.ConversationMembersType_KBFS:
-			default:
-				assertReactionUpdate(created.Id, textUnboxed.GetMessageID(), expectedReactionMap)
-			}
 			assertReactionUpdate(created.Id, textUnboxed.GetMessageID(), chat1.ReactionMap{})
 
 			t.Logf("delete the message")
