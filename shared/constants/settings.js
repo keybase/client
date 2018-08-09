@@ -34,12 +34,6 @@ const initialState: Types.State = {
     newPassphraseError: null,
     rememberPassphrase: true,
   },
-  push: {
-    permissionsPrompt: false,
-    permissionsRequesting: false,
-    token: '',
-    tokenType: '',
-  },
   waitingForResponse: false,
 }
 
