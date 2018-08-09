@@ -129,12 +129,6 @@ const _onTabChange = (action: RouteTypes.SwitchTo, state: TypedState) => {
     return Saga.put(PeopleGen.createMarkViewed())
   } else if (root === peopleTab && !_wasOnPeopleTab) {
     _wasOnPeopleTab = true
-    return Saga.put(
-      PeopleGen.createGetPeopleData({
-        markViewed: false,
-        numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
-      })
-    )
   }
 }
 
@@ -145,7 +139,7 @@ const networkErrors = [
 ]
 
 const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
-  yield Saga.actionToPromise([ConfigGen.loggedIn, PeopleGen.getPeopleData], getPeopleData)
+  yield Saga.actionToPromise(PeopleGen.getPeopleData, getPeopleData)
   yield Saga.safeTakeEveryPure(PeopleGen.markViewed, _markViewed, null, err => {
     if (networkErrors.includes(err.code)) {
       logger.warn('Network error calling homeMarkViewed')

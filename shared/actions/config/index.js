@@ -124,23 +124,13 @@ const maybeDoneWithDaemonHandshake = (state: TypedState) => {
   }
 }
 
-// TODO switch to new faster rpc when core is done (CORE-8507)
 const loadDaemonAccounts = (_: any, action: DevicesGen.RevokedPayload | ConfigGen.DaemonHandshakePayload) => {
   const makeCall = Saga.call(function*() {
     try {
-      const loadedAction = yield RPCTypes.configGetExtendedStatusRpcPromise().then(extendedConfig => {
-        let usernames = extendedConfig.provisionedUsernames || []
-        let defaultUsername = extendedConfig.defaultUsername || ''
-        // TODO likely goes away with CORE-8507, currently get extended will remove the user from the list
-        if (defaultUsername && !usernames.includes(defaultUsername)) {
-          usernames.push(defaultUsername)
-        }
+      const loadedAction = yield RPCTypes.configGetAllProvisionedUsernamesRpcPromise().then(result => {
+        let usernames = result.provisionedUsernames || []
+        let defaultUsername = result.defaultUsername
         usernames = usernames.sort()
-
-        // Select one if it doesn't exist
-        if (usernames.length && !usernames.includes(defaultUsername)) {
-          defaultUsername = usernames[0]
-        }
         return ConfigGen.createSetAccounts({defaultUsername, usernames})
       })
       yield Saga.put(loadedAction)
@@ -215,28 +205,27 @@ const routeToInitialScreen = (state: TypedState) => {
   routeToInitialScreenOnce = true
 
   if (state.config.loggedIn) {
-    const actions = [Saga.put(RouteTree.switchRouteDef(appRouteTree))]
     // A chat
     if (
       state.config.startupConversation &&
       state.config.startupConversation !== ChatConstants.noConversationIDKey
     ) {
       return Saga.sequentially([
-        ...actions,
+        // $FlowIssue
+        Saga.put(RouteTree.switchRouteDef(appRouteTree, ChatConstants.threadRoute)),
         Saga.put(
           ChatGen.createSelectConversation({
             conversationIDKey: state.config.startupConversation,
             reason: state.config.startupWasFromPush ? 'push' : 'savedLastState',
           })
         ),
-        Saga.put(ChatGen.createNavigateToThread()),
       ])
     }
 
     // A follow
     if (state.config.startupFollowUser) {
       return Saga.sequentially([
-        ...actions,
+        Saga.put(RouteTree.switchRouteDef(appRouteTree, [Tabs.profileTab])),
         Saga.put(ProfileGen.createShowUserProfile({username: state.config.startupFollowUser})),
       ])
     }
@@ -248,7 +237,10 @@ const routeToInitialScreen = (state: TypedState) => {
         const username = ProfileConstants.urlToUsername(url)
         logger.info('AppLink: url', url.href, 'username', username)
         if (username) {
-          return Saga.sequentially([...actions, Saga.put(ProfileGen.createShowUserProfile({username}))])
+          return Saga.sequentially([
+            Saga.put(RouteTree.switchRouteDef(appRouteTree, [Tabs.profileTab])),
+            Saga.put(ProfileGen.createShowUserProfile({username})),
+          ])
         }
       } catch (e) {
         logger.info('AppLink: could not parse link', state.config.startupLink)
@@ -256,10 +248,7 @@ const routeToInitialScreen = (state: TypedState) => {
     }
 
     // Just a saved tab
-    return Saga.sequentially([
-      ...actions,
-      Saga.put(RouteTree.navigateTo([state.config.startupTab || Tabs.peopleTab])),
-    ])
+    return Saga.put(RouteTree.switchRouteDef(appRouteTree, [state.config.startupTab || Tabs.peopleTab]))
   } else {
     // Show a login screen
     return Saga.sequentially([
@@ -274,7 +263,6 @@ const emitInitialLoggedIn = (state: TypedState) =>
   state.config.loggedIn && Saga.put(ConfigGen.createLoggedIn({causedByStartup: true}))
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
-  // TODO handle logout stuff also
   yield Saga.actionToAction(ConfigGen.installerRan, dispatchSetupEngineListeners)
   yield Saga.actionToAction([ConfigGen.restartHandshake, ConfigGen.startHandshake], startHandshake)
   yield Saga.actionToAction(ConfigGen.daemonHandshakeWait, maybeDoneWithDaemonHandshake)

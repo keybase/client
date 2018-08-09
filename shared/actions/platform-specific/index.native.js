@@ -234,7 +234,6 @@ function* loadStartupDetails() {
   const initialPush = yield Saga.fork(getStartupDetailsFromInitialPush)
   const [routeState, link, push] = yield Saga.join(routeStateTask, linkTask, initialPush)
 
-  console.log('aaaa from push', push)
   // Top priority, push
   if (push) {
     startupWasFromPush = true

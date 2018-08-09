@@ -202,6 +202,10 @@ export const anyToConversationMembersType = (a: any): ?RPCChatTypes.Conversation
   }
 }
 
+export const threadRoute = isMobile
+  ? [chatTab, 'conversation']
+  : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
+
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = isMobile ? 100 : 100
 
