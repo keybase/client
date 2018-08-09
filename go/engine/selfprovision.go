@@ -43,8 +43,8 @@ func (e *SelfProvisionEngine) RequiredUIs() []libkb.UIKind {
 }
 
 func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
-	m.G().LocalSigchainGuard().Set(m.Ctx(), "loginProvision")
-	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "loginProvision")
+	m.G().LocalSigchainGuard().Set(m.Ctx(), "selfProvision")
+	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "selfProvision")
 	defer m.CTrace("SelfProvisionEngine#Run", func() error { return err })()
 
 	if d, err := libkb.GetDeviceCloneState(m); err != nil {
@@ -59,9 +59,11 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	// If we abort, we need to revert to the old active device and user config state
+	// If we abort, we need to revert to the old active device and user config
+	// state
 	uvOld, deviceIDOld, deviceNameOld, sigKeyOld, encKeyOld := e.G().ActiveDevice.AllFields()
-	// Pass the UV here so the passphrase stream is cached on the provisional login context
+	// Pass the UV here so the passphrase stream is cached on the provisional
+	// login context
 	m = m.WithNewProvisionalLoginContextForUserVersionAndUsername(uvOld, e.G().Env.GetUsername())
 
 	// From this point on, if there's an error, we abort
@@ -70,23 +72,21 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		if tx != nil {
 			tx.Abort()
 		}
-		if err != nil {
-			if e.User != nil {
-				m.CDebugf("Error in self provision, reverting to original active device: %v", err)
-				m = m.WithGlobalActiveDevice()
-				salt, err := e.User.GetSalt()
-				if err != nil {
-					m.CDebugf("unable to GetSalt: %v", err)
-					return
-				}
-				// Atomically swap to the new config and active device
-				if err := m.SwitchUserNewConfigActiveDevice(uvOld, e.User.GetNormalizedName(), salt,
-					deviceIDOld, sigKeyOld, encKeyOld, deviceNameOld); err != nil {
-					return
-				}
-			}
-		} else {
+		if err == nil {
 			m = m.CommitProvisionalLogin()
+		} else if e.User != nil {
+			m.CDebugf("Error in self provision, reverting to original active device: %v", err)
+			m = m.WithGlobalActiveDevice()
+			salt, err := e.User.GetSalt()
+			if err != nil {
+				m.CDebugf("unable to GetSalt: %v", err)
+				return
+			}
+			// Atomically swap to the new config and active device
+			if err := m.SwitchUserNewConfigActiveDevice(uvOld, e.User.GetNormalizedName(), salt,
+				deviceIDOld, sigKeyOld, encKeyOld, deviceNameOld); err != nil {
+				return
+			}
 		}
 	}()
 
