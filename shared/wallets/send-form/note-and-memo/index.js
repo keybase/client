@@ -13,27 +13,11 @@ type State = {
   emojiPickerOpen: boolean,
 }
 
-const EmojiPicker = ({emojiPickerToggle, onClick}) => (
-  <Kb.Box>
-    <Kb.Box style={styles.emojiPickerContainerWrapper} onClick={emojiPickerToggle} />
-    <Kb.Box style={styles.emojiPickerRelative}>
-      <Kb.Box style={styles.emojiPickerContainer}>
-        <Picker
-          autoFocus={true}
-          onClick={onClick}
-          emoji={'ghost'}
-          title={'emojibase'}
-          // backgroundImageFn={backgroundImageFn}
-        />
-      </Kb.Box>
-    </Kb.Box>
-  </Kb.Box>
-)
-
 class NoteAndMemo extends React.Component<Props, State> {
   state = {
     emojiPickerOpen: false,
   }
+  _emojiIcon = React.createRef()
 
   _emojiPickerToggle = () => {
     this.setState(({emojiPickerOpen}) => ({emojiPickerOpen: !emojiPickerOpen}))
@@ -51,15 +35,29 @@ class NoteAndMemo extends React.Component<Props, State> {
             rowsMin={1}
             rowsMax={12}
           />
-          {this.state.emojiPickerOpen && (
-            <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._emojiPickerToggle} />
-          )}
           <Kb.Icon
             onClick={this._emojiPickerToggle}
             boxStyle={styles.emojiIconContainer}
             style={Kb.iconCastPlatformStyles(styles.emojiIcon)}
             type="iconfont-emoji"
+            ref={this._emojiIcon}
           />
+          {this.state.emojiPickerOpen &&
+            !Styles.isMobile && (
+              <Kb.FloatingBox
+                attachTo={this._emojiIcon.current}
+                position="bottom left"
+                onHidden={() => this.setState({emojiPickerOpen: false})}
+              >
+                <Picker
+                  autoFocus={true}
+                  emoji="star-struck"
+                  title="reacjibase"
+                  onClick={() => console.log('clicked!')}
+                  // backgroundImageFn={backgroundImageFn}
+                />
+              </Kb.FloatingBox>
+            )}
         </Kb.Box2>
         {!!this.props.encryptedNoteError && (
           <Kb.Text type="Body" style={styles.errorMessage}>
