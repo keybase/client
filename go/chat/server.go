@@ -482,28 +482,26 @@ func (h *Server) mergeLocalRemoteThread(ctx context.Context, remoteThread, local
 			if state == chat1.MessageUnboxedState_PLACEHOLDER && !rm[m.GetMessageID()] {
 				h.Debug(ctx, "mergeLocalRemoteThread: subbing in dead placeholder: msgID: %d",
 					m.GetMessageID())
-				res.Messages = append(res.Messages, chat1.NewMessageUnboxedWithPlaceholder(
-					chat1.MessageUnboxedPlaceholder{
-						MessageID: m.GetMessageID(),
-						Hidden:    true,
-					},
-				))
+				res.Messages = append(res.Messages, utils.CreateHiddenPlaceholder(m.GetMessageID()))
 			}
 		}
 		sort.Sort(utils.ByMsgUnboxedMsgID(res.Messages))
 	}()
 
-	shouldAppend := func(oldMsg chat1.MessageUnboxed) bool {
-		state, err := oldMsg.State()
-		if err != nil {
+	shouldAppend := func(newMsg chat1.MessageUnboxed, oldMsgs map[chat1.MessageID]chat1.MessageUnboxed) bool {
+		oldMsg, ok := oldMsgs[newMsg.GetMessageID()]
+		if !ok {
 			return true
 		}
-		switch state {
-		case chat1.MessageUnboxedState_VALID:
-			return false
-		default:
+		// If either message is not valid, return the new one, something weird might be going on
+		if !oldMsg.IsValid() || !newMsg.IsValid() {
 			return true
 		}
+		// If newMsg is now superseded by something different than what we sent, then let's include it
+		if newMsg.Valid().ServerHeader.SupersededBy != oldMsg.Valid().ServerHeader.SupersededBy {
+			return true
+		}
+		return false
 	}
 	switch mode {
 	case chat1.GetThreadNonblockCbMode_FULL:
@@ -516,8 +514,7 @@ func (h *Server) mergeLocalRemoteThread(ctx context.Context, remoteThread, local
 			}
 			res.Pagination = remoteThread.Pagination
 			for _, m := range remoteThread.Messages {
-				oldMsg, ok := lm[m.GetMessageID()]
-				if !ok || shouldAppend(oldMsg) {
+				if shouldAppend(m, lm) {
 					res.Messages = append(res.Messages, m)
 				}
 			}

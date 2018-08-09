@@ -223,6 +223,7 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 	for i, msg := range originalMsgs {
 		if msg.IsValid() {
 			newMsg := &originalMsgs[i]
+			hidden := utils.CreateHiddenPlaceholder(newMsg.GetMessageID())
 			// If the message is superseded, then transform it and add that
 			if superMsgs, ok := smap[msg.GetMessageID()]; ok {
 				newMsg = t.transform(ctx, msg, superMsgs)
@@ -230,9 +231,12 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 			if newMsg == nil {
 				// Transform might return nil in case of a delete.
 				t.Debug(ctx, "skipping: %d because it was deleted", msg.GetMessageID())
+				newMsgs = append(newMsgs, hidden)
 				continue
 			}
-			if newMsg.GetMessageID() < deleteHistoryUpto && chat1.IsDeletableByDeleteHistory(newMsg.GetMessageType()) {
+			if newMsg.GetMessageID() < deleteHistoryUpto &&
+				chat1.IsDeletableByDeleteHistory(newMsg.GetMessageType()) {
+				newMsgs = append(newMsgs, hidden)
 				continue
 			}
 			if !newMsg.IsValidFull() {
@@ -243,6 +247,7 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 				mvalid := newMsg.Valid()
 				if !mvalid.IsEphemeral() || mvalid.HideExplosion(conv.GetExpunge(), time.Now()) {
 					t.Debug(ctx, "skipping: %d because not valid full", msg.GetMessageID())
+					newMsgs = append(newMsgs, hidden)
 					continue
 				}
 			}
