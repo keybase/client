@@ -9,7 +9,7 @@ type Props = {
 }
 
 const NoteAndMemo = (props: Props) => (
-  <React.Fragment>
+  <Kb.ScrollView style={styles.container}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.encryptedNoteContainer}>
       <Kb.PlainInput
         multiline={true}
@@ -43,7 +43,7 @@ const NoteAndMemo = (props: Props) => (
       </Kb.Text>
     )}
     <Kb.Divider style={props.publicMemoError ? styles.dividerError : undefined} />
-  </React.Fragment>
+  </Kb.ScrollView>
 )
 
 const placeholderColor = Styles.globalColors.black_20
@@ -54,18 +54,19 @@ const sharedStyles = {
   paddingTop: Styles.globalMargins.xsmall,
   paddingBottom: Styles.globalMargins.xsmall,
   paddingLeft: Styles.globalMargins.small,
-  paddingRight: Styles.globalMargins.small,
+  paddingRight: Styles.globalMargins.xtiny,
 }
 
 const styles = Styles.styleSheetCreate({
-  emojiIconContainer: {
-    alignSelf: 'flex-end',
+  container: {
+    flex: 1,
   },
-  emojiIcon: {
+  emojiIconContainer: {
     alignSelf: 'flex-end',
     marginBottom: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,
   },
+
   errorMessage: {
     ...sharedStyles,
     color: Styles.globalColors.red,

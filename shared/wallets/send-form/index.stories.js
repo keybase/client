@@ -20,7 +20,7 @@ const provider = Sb.createPropProviderWithCommon({
   Footer: props => ({}),
   Header: props => ({}),
   NoteAndMemo: props => ({
-    encryptedNoteError: 'Error Message',
+    // encryptedNoteError: 'Error Message',
   }),
   Participants: props => ({}),
 })
