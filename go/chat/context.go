@@ -21,6 +21,7 @@ type chatTrace int
 type identifyModeKey int
 type upakfinderKey int
 type rateLimitKey int
+type nameInfoOverride int
 
 var kfKey keyfinderKey
 var inKey identifyNotifierKey
@@ -28,6 +29,7 @@ var chatTraceKey chatTrace
 var identModeKey identifyModeKey
 var upKey upakfinderKey
 var rlKey rateLimitKey
+var nameInfoOverrideKey nameInfoOverride
 
 type identModeData struct {
 	mode   keybase1.TLFIdentifyBehavior
@@ -114,6 +116,18 @@ func CtxTrace(ctx context.Context) (string, bool) {
 	return "", false
 }
 
+func CtxTestingNameInfoSource(ctx context.Context) (types.NameInfoSource, bool) {
+	val := ctx.Value(nameInfoOverrideKey)
+	if ni, ok := val.(types.NameInfoSource); ok {
+		return ni, true
+	}
+	return nil, false
+}
+
+func CtxAddTestingNameInfoSource(ctx context.Context, ni types.NameInfoSource) context.Context {
+	return context.WithValue(ctx, nameInfoOverrideKey, ni)
+}
+
 func CtxAddLogTags(ctx context.Context, env appTypeSource) context.Context {
 
 	// Add trace context value
@@ -176,6 +190,10 @@ func BackgroundContext(sourceCtx context.Context, g *globals.Context) context.Co
 	// Overwrite trace tag
 	if tr, ok := sourceCtx.Value(chatTraceKey).(string); ok {
 		rctx = context.WithValue(rctx, chatTraceKey, tr)
+	}
+
+	if ni, ok := CtxTestingNameInfoSource(sourceCtx); ok {
+		rctx = CtxAddTestingNameInfoSource(rctx, ni)
 	}
 
 	rctx = context.WithValue(rctx, kfKey, CtxKeyFinder(sourceCtx, g))
