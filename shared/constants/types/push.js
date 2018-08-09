@@ -27,7 +27,6 @@ export type PushNotification =
 
 export type _State = {
   token: string,
-  tokenType: ?TokenType,
   showPushPrompt: boolean,
   hasPermissions: boolean,
 }

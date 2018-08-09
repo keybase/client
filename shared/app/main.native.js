@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import Push from './push.native'
+import PushPrompt from './push-prompt.native'
 import RenderRoute from '../route-tree/render-route'
 import {connect, type TypedState} from '../util/container'
 import {navigateUp, setRouteState} from '../actions/route-tree'
@@ -35,7 +35,7 @@ class Main extends React.Component<Props> {
 
   render() {
     if (this.props.showPushPrompt) {
-      return <Push />
+      return <PushPrompt />
     }
 
     return (

@@ -50,9 +50,9 @@ let config = {
 
 // Developer settings
 if (__DEV__) {
-  config.enableActionLogging = true
-  config.enableStoreLogging = false
-  config.immediateStateLogging = false
+  config.enableActionLogging = false
+  config.enableStoreLogging = true
+  config.immediateStateLogging = true
   // Move this outside the if statement to get notifications working
   // with a "Profile" build on a phone.
   config.isDevApplePushToken = true

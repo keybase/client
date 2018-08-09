@@ -6,7 +6,7 @@ import Settings from './'
 import InvitationsContainer from './invites/container'
 import InviteGenerated from './invite-generated/container'
 import Feedback from './feedback-container'
-import Push from '../app/push.native'
+import PushPrompt from '../app/push-prompt.native'
 import DevicesRoute from '../devices/routes'
 import WalletsRoute from '../wallets/routes'
 import GitRoute from '../git/routes'
@@ -75,7 +75,7 @@ const routeTree = makeRouteDefNode({
       component: DevMenu,
       children: {
         push: {
-          component: () => <Push prompt={true} />,
+          component: () => <PushPrompt />,
         },
         testPopup: {
           component: TestPopup,
