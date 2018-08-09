@@ -31,4 +31,22 @@ protocol account {
    passphrase is optional and will be prompted for if not supplied.
   */
   void resetAccount(int sessionID, string passphrase);
+
+  record LockdownHistory {
+    @jsonkey("status")
+    boolean status;
+    @jsonkey("ctime")
+    Time creationTime;
+    @jsonkey("device_id")
+    DeviceID deviceID;
+    string deviceName;
+  }
+
+  record GetLockdownResponse {
+    array<LockdownHistory> history;
+    boolean status;
+  }
+  
+  GetLockdownResponse getLockdownMode(int sessionID);
+  void setLockdownMode(int sessionID, boolean enabled);
 }
