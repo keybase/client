@@ -1,6 +1,5 @@
 // @flow
 import * as FsGen from '../fs-gen'
-import * as ConfigGen from '../config-gen'
 import * as Saga from '../../util/saga'
 import {downloadFolder} from '../../util/file.desktop'
 import * as Config from '../../constants/config'
@@ -120,19 +119,10 @@ function* openWithCurrentMountDir(openPath: string): Saga.SagaGenerator<any, any
     .slice(2)
     .join(path.sep)
 
-  const state: TypedState = yield Saga.select()
-  let {
-    config: {kbfsPath},
-  } = state
+  const kbfsPath = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
 
   if (!kbfsPath) {
-    kbfsPath = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
-
-    if (!kbfsPath) {
-      throw new Error('No kbfsPath (RPC)')
-    }
-
-    yield Saga.put(ConfigGen.createChangeKBFSPath({kbfsPath}))
+    throw new Error('No kbfsPath (RPC)')
   }
 
   const resolvedPath = path.resolve(kbfsPath, subPath)

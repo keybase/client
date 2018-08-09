@@ -23,7 +23,8 @@ import {refreshRouteDef, setInitialRouteDef} from '../../actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper.desktop'
 import flags from '../../util/feature-flags'
 import InputMonitor from './input-monitor.desktop'
-import {dumpLogs} from '../../actions/platform-specific.desktop'
+import {dumpLogs} from '../../actions/platform-specific/index.desktop'
+import {skipAppFocusActions} from '../../local-debug.desktop'
 
 let _store
 function setupStore() {
@@ -85,8 +86,7 @@ function setupApp(store) {
 
   // Run installer
   SafeElectron.getIpcRenderer().on('installed', (event, message) => {
-    store.dispatch(ConfigGen.createReadyForBootstrap())
-    store.dispatch(ConfigGen.createBootstrap({}))
+    store.dispatch(ConfigGen.createInstallerRan())
   })
   SafeElectron.getIpcRenderer().send('install-check')
 
@@ -98,10 +98,18 @@ function setupApp(store) {
 
   window.addEventListener('focus', () => {
     inputMonitor.goActive()
-    store.dispatch(ConfigGen.createChangedFocus({appFocused: true}))
+    if (skipAppFocusActions) {
+      console.log('Skipping app focus actions!')
+    } else {
+      store.dispatch(ConfigGen.createChangedFocus({appFocused: true}))
+    }
   })
   window.addEventListener('blur', () => {
-    store.dispatch(ConfigGen.createChangedFocus({appFocused: false}))
+    if (skipAppFocusActions) {
+      console.log('Skipping app focus actions!')
+    } else {
+      store.dispatch(ConfigGen.createChangedFocus({appFocused: false}))
+    }
   })
 
   const subsetsRemotesCareAbout = store => {

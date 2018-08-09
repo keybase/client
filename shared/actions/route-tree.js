@@ -36,10 +36,10 @@ export function refreshRouteDef(
 
 // Switch the tree of route definitions. Dispatched when switching
 // from logged out to logged in and vice versa.
-export function switchRouteDef(routeDef: RouteDefParams): Types.SwitchRouteDef {
+export function switchRouteDef(routeDef: RouteDefParams, path?: Path): Types.SwitchRouteDef {
   return {
     type: Constants.switchRouteDef,
-    payload: {routeDef},
+    payload: {path, routeDef},
   }
 }
 

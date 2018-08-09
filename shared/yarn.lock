@@ -11100,9 +11100,9 @@ react-native-mime-types@^2.2.1:
   dependencies:
     mime-db "~1.25.0"
 
-"react-native-push-notification@git://github.com/keybase/react-native-push-notification#keybase-fixes-off-302":
-  version "3.0.2"
-  resolved "git://github.com/keybase/react-native-push-notification#add2393eb774af85bdce71e8d5ffb83e89a3f19a"
+"react-native-push-notification@git://github.com/keybase/react-native-push-notification#keybase-fixes-off-311":
+  version "3.1.1"
+  resolved "git://github.com/keybase/react-native-push-notification#9bdf1f0e50a5cef86740c3f52e8ff74b1b80a5e3"
 
 react-native-tab-view@^0.0.67:
   version "0.0.67"

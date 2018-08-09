@@ -2,7 +2,7 @@
 // Send helloIAm message to service
 
 import logger from '../logger'
-import engine from '../engine'
+import getEngine from '../engine'
 import {commonClientType, configHelloIAmRpcPromise} from '../constants/types/rpc-gen'
 
 export default function(
@@ -21,7 +21,7 @@ export default function(
   }
 
   return new Promise((resolve, reject) => {
-    engine().listenOnConnect('hello', () => {
+    getEngine().actionOnConnect('hello', () => {
       configHelloIAmRpcPromise({details})
         .then(reps => {
           resolve()

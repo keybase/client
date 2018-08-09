@@ -13,8 +13,6 @@ import * as Saga from '../util/saga'
 import * as ChatConstants from '../constants/chat2/'
 import engine from '../engine'
 import {folderFromPath} from '../constants/favorite'
-import {nativeReachabilityEvents} from '../util/reachability'
-import {type Dispatch} from '../constants/types/flux'
 import {type State as GregorState, type OutOfBandMessage} from '../constants/types/rpc-gregor-gen'
 import {type TypedState} from '../constants/reducer'
 import {isMobile} from '../constants/platform'
@@ -35,57 +33,37 @@ function toNonNullGregorItems(state: GregorState): Array<Types.NonNullGregorItem
   }, [])
 }
 
-// TODO: DESKTOP-6661 - Refactor `registerReachability` out of `actions/config.js`
-function registerReachability() {
-  return (dispatch: Dispatch, getState: () => TypedState) => {
-    engine().setIncomingActionCreators(
-      'keybase.1.reachability.reachabilityChanged',
-      ({reachability}, response) => {
-        const actions = []
+const setupEngineListeners = () => {
+  // we get this with sessionID == 0 if we call openDialog
+  engine().setIncomingActionCreators('keybase.1.gregorUI.pushState', ({reason, state}, response) => {
+    response && response.result()
+    return [GregorGen.createPushState({reason, state})]
+  })
 
-        // Gregor reachability is only valid if we're logged in
-        // TODO remove this when core stops sending us these when we're logged out
-        if (getState().config.loggedIn) {
-          actions.push(GregorGen.createUpdateReachability({reachability}))
-
-          if (reachability.reachable === RPCTypes.reachabilityReachable.yes) {
-            // TODO: We should be able to recover from connection problems
-            // without re-bootstrapping. Originally we used to do this on HTML5
-            // 'online' event, but reachability is more precise.
-            actions.push(ConfigGen.createBootstrap({isReconnect: true}))
-          }
-        }
-
-        return actions
+  engine().setIncomingActionCreators('keybase.1.gregorUI.pushOutOfBandMessages', ({oobm}, response) => {
+    response && response.result()
+    const actions = []
+    if (oobm && oobm.length) {
+      const filteredOOBM = oobm.filter(oobm => !!oobm)
+      if (filteredOOBM.length) {
+        actions.push(GregorGen.createPushOOBM({messages: filteredOOBM}))
       }
-    )
+    }
+    return actions
+  })
 
-    dispatch(checkReachabilityOnConnect())
-  }
-}
+  engine().setIncomingActionCreators(
+    'keybase.1.reachability.reachabilityChanged',
+    ({reachability}, response, _, getState) => {
+      // Gregor reachability is only valid if we're logged in
+      // TODO remove this when core stops sending us these when we're logged out
+      if (getState().config.loggedIn) {
+        return [GregorGen.createUpdateReachability({reachability})]
+      }
+      return []
+    }
+  )
 
-function listenForNativeReachabilityEvents(dispatch: Dispatch) {
-  return dispatch(nativeReachabilityEvents)
-}
-
-function checkReachabilityOnConnect() {
-  return (dispatch: Dispatch) => {
-    // The startReachibility RPC call both starts and returns the current
-    // reachability state. Then we'll get updates of changes from this state
-    // via reachabilityChanged.
-    // This should be run on app start and service re-connect in case the
-    // service somehow crashed or was restarted manually.
-    RPCTypes.reachabilityStartReachabilityRpcPromise()
-      .then(reachability => {
-        dispatch(GregorGen.createUpdateReachability({reachability}))
-      })
-      .catch(err => {
-        logger.warn('error bootstrapping reachability: ', err)
-      })
-  }
-}
-
-function registerGregorListeners() {
   // Filter this firehose down to the two systems we care about: "git", and "kbfs.favorites"
   // If ever you want to get OOBMs for a different system, then you need to enter it here.
   RPCTypes.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({systems: ['git', 'kbfs.favorites']})
@@ -96,23 +74,20 @@ function registerGregorListeners() {
       logger.warn('error in registering gregor listener: ', error)
     })
 
-  // we get this with sessionID == 0 if we call openDialog
-  engine().setIncomingActionCreators('keybase.1.gregorUI.pushState', ({reason, state}, response) => {
-    const actions = [GregorGen.createPushState({reason, state})]
-    response && response.result()
-    return actions
-  })
-
-  engine().setIncomingActionCreators('keybase.1.gregorUI.pushOutOfBandMessages', ({oobm}, response) => {
-    const actions = []
-    if (oobm && oobm.length) {
-      const filteredOOBM = oobm.filter(oobm => !!oobm)
-      if (filteredOOBM.length) {
-        actions.push(GregorGen.createPushOOBM({messages: filteredOOBM}))
-      }
+  // The startReachibility RPC call both starts and returns the current
+  // reachability state. Then we'll get updates of changes from this state
+  // via reachabilityChanged.
+  // This should be run on app start and service re-connect in case the
+  // service somehow crashed or was restarted manually.
+  return Saga.call(function*() {
+    const action = yield RPCTypes.reachabilityStartReachabilityRpcPromise()
+      .then(reachability => GregorGen.createUpdateReachability({reachability}))
+      .catch(err => {
+        logger.warn('error bootstrapping reachability: ', err)
+      })
+    if (action) {
+      yield Saga.put(action)
     }
-    response && response.result()
-    return actions
   })
 }
 
@@ -267,10 +242,7 @@ function _updateCategory(action: GregorGen.UpdateCategoryPayload) {
   return Saga.call(RPCTypes.gregorUpdateCategoryRpcPromise, {
     body,
     category,
-    dtime: dtime || {
-      time: 0,
-      offset: 0,
-    },
+    dtime: dtime || {time: 0, offset: 0},
   })
 }
 
@@ -283,13 +255,8 @@ function* gregorSaga(): Saga.SagaGenerator<any, any> {
     _handleCheckReachability,
     _handleCheckReachabilitySuccess
   )
-}
 
-export {
-  checkReachabilityOnConnect,
-  registerGregorListeners,
-  registerReachability,
-  listenForNativeReachabilityEvents,
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 }
 
 export default gregorSaga

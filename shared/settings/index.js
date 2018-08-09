@@ -1,5 +1,5 @@
 // @flow
-import * as LoginGen from '../actions/login-gen'
+import * as ConfigGen from '../actions/config-gen'
 import SettingsContainer from './render'
 import {connect, type TypedState} from '../util/container'
 import {switchTo} from '../actions/route-tree'
@@ -16,7 +16,7 @@ const mapStateToProps = (state: TypedState, {routeLeafTags, routeSelected}: OwnP
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {routePath}: OwnProps) => ({
-  onLogout: () => dispatch(LoginGen.createLogout()),
+  onLogout: () => dispatch(ConfigGen.createLogout()),
   onTabChange: tab => dispatch(switchTo(routePath.push(tab))),
 })
 

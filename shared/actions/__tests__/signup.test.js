@@ -3,7 +3,6 @@
 import * as Types from '../../constants/types/signup'
 import * as Constants from '../../constants/signup'
 import * as SignupGen from '../signup-gen'
-import * as LoginGen from '../login-gen'
 import * as Saga from '../../util/saga'
 import type {TypedState} from '../../constants/reducer'
 import {loginTab} from '../../constants/tabs'
@@ -15,12 +14,6 @@ import reducer from '../../reducers/signup'
 jest.unmock('immutable')
 
 const makeTypedState = (signupState: Types.State): TypedState => ({signup: signupState}: any)
-
-describe('resetNav works', () => {
-  it('nav based on login', () => {
-    expect(_testing.resetNav()).toEqual(Saga.put(LoginGen.createNavBasedOnLoginAndInitialState()))
-  })
-})
 
 describe('goBackAndClearErrors', () => {
   it('errors get cleaned and we go back a level', () => {

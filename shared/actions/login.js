@@ -1,27 +1,12 @@
 // @flow
 // Look at this doc: https://goo.gl/7B6p4H
-import logger from '../logger'
-import * as Chat2Gen from './chat2-gen'
-import * as ConfigGen from './config-gen'
-import * as DevicesConstants from '../constants/devices'
 import * as WaitingGen from './waiting-gen'
 import * as LoginGen from './login-gen'
-import * as ChatTypes from '../constants/types/chat2'
-import * as ChatConstants from '../constants/chat2'
 import * as Constants from '../constants/login'
-import * as RouteTypes from '../constants/types/route-tree'
-import * as RouteConstants from '../constants/route-tree'
-import * as RouteTree from './route-tree'
 import * as Saga from '../util/saga'
-import * as Tabs from '../constants/tabs'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import openURL from '../util/open-url'
-import {getExtendedStatus} from './config'
 import {isMobile} from '../constants/platform'
-import appRouteTree from '../app/routes-app'
-import loginRouteTree from '../app/routes-login'
-import {type InitialState} from '../constants/types/config'
-import {type TypedState} from '../constants/reducer'
 import {niceError} from '../util/errors'
 import HiddenString from '../util/hidden-string'
 
@@ -29,125 +14,6 @@ import HiddenString from '../util/hidden-string'
 // webpack that we can still handle updates that propagate to here.
 export function setupLoginHMR(cb: () => void) {
   module.hot && module.hot.accept(['../app/routes-app', '../app/routes-login'], cb)
-}
-
-function* getAccounts(): Generator<any, void, any> {
-  try {
-    const accounts = yield Saga.call(
-      RPCTypes.loginGetConfiguredAccountsRpcPromise,
-      undefined,
-      DevicesConstants.waitingKey
-    )
-    yield Saga.put(LoginGen.createConfiguredAccounts({accounts}))
-  } catch (error) {
-    yield Saga.put(LoginGen.createConfiguredAccountsError({error}))
-  }
-}
-
-// TODO entirely change how this works
-function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
-  const state = yield Saga.select()
-  const {loggedIn, registered, startedDueToPush} = state.config
-  // ignore initial state if we're here due to push
-  const initialState = startedDueToPush ? null : state.config.initialState
-  const {justDeletedSelf, loginError} = state.login
-  const {loggedInUserNavigated} = state.routeTree
-  logger.info(
-    '[RouteState] navBasedOnLoginAndInitialState:',
-    loggedIn,
-    registered,
-    initialState,
-    justDeletedSelf,
-    loginError,
-    loggedInUserNavigated
-  )
-
-  // All branches except for when loggedIn is true,
-  // loggedInUserNavigated is false, and and initialState is null
-  // yield a RouteTree.switchRouteDef action with appRouteTree or
-  // loginRouteTree, and must finish by yielding an action which sets
-  // state.routeTree.loggedInUserNavigated to true; see
-  // loggedInUserNavigatedReducer.
-  if (justDeletedSelf) {
-    yield Saga.put(RouteTree.switchRouteDef(loginRouteTree))
-    yield Saga.put(RouteTree.navigateTo([Tabs.loginTab]))
-  } else if (loggedIn) {
-    // If the user has already performed a navigation action, or if
-    // we've already applied the initialState, do nothing.
-    if (loggedInUserNavigated) {
-      return
-    }
-
-    yield Saga.put(RouteTree.switchRouteDef(appRouteTree))
-
-    if (initialState) {
-      const {url, tab, conversation} = (initialState: InitialState)
-      if (url) {
-        yield Saga.put(ConfigGen.createLink({link: url}))
-      } else if (tab && Tabs.isValidInitialTab(tab)) {
-        if (tab === Tabs.chatTab && conversation && ChatConstants.isValidConversationIDKey(conversation)) {
-          yield Saga.put(
-            Chat2Gen.createSelectConversation({
-              conversationIDKey: ChatTypes.stringToConversationIDKey(conversation),
-              reason: 'savedLastState',
-            })
-          )
-          yield Saga.put(
-            RouteTree.navigateTo(
-              isMobile ? [Tabs.chatTab, 'conversation'] : [Tabs.chatTab],
-              null,
-              'initial-restore'
-            )
-          )
-        } else {
-          yield Saga.put(RouteTree.navigateTo([tab], null, 'initial-restore'))
-        }
-      } else {
-        yield Saga.put(RouteTree.navigateTo([Tabs.peopleTab], null, 'initial-restore'))
-      }
-    } else {
-      // If the initial state is not set yet, navigate to the people
-      // tab without setting state.routeTree.loggedInUserNavigated to true.
-      yield Saga.put(RouteTree.navigateTo([Tabs.peopleTab], null, 'initial-default'))
-    }
-  } else if (registered) {
-    // relogging in
-    try {
-      yield Saga.put.resolve(getExtendedStatus())
-    } catch (e) {} // keep going
-
-    yield Saga.put(RouteTree.switchRouteDef(loginRouteTree))
-    // We may have logged successfully in by now, check before trying to navigate
-    const state = yield Saga.select()
-    if (state.config.loggedIn) {
-      return
-    }
-    yield Saga.put(RouteTree.navigateTo(['login'], [Tabs.loginTab]))
-  } else if (loginError) {
-    // show error on login screen
-    yield Saga.put(RouteTree.switchRouteDef(loginRouteTree))
-    yield Saga.put(RouteTree.navigateTo(['login'], [Tabs.loginTab]))
-  } else {
-    // no idea
-    yield Saga.put(RouteTree.switchRouteDef(loginRouteTree))
-    yield Saga.put(RouteTree.navigateTo([Tabs.loginTab]))
-  }
-}
-
-function* navigateToLoginRoot(): Generator<any, void, any> {
-  const state: TypedState = yield Saga.select()
-  const numAccounts = state.login.configuredAccounts ? state.login.configuredAccounts.size : 0
-  const route = numAccounts ? ['login'] : []
-  yield Saga.put(RouteTree.navigateTo(route, [Tabs.loginTab]))
-}
-
-const maybeNavigateToLoginRoot = (action: RouteTypes.NavigateUp, state: TypedState) => {
-  if (state.routeTree.routeState && state.routeTree.routeState.selected !== Tabs.loginTab) {
-    // naving but not on login
-    return
-  }
-
-  return Saga.call(navigateToLoginRoot)
 }
 
 const cancelDesc = 'Canceling RPC'
@@ -223,34 +89,9 @@ const login = (_: any, action: LoginGen.LoginPayload) =>
 const launchForgotPasswordWebPage = () => Saga.call(openURL, 'https://keybase.io/#password-reset')
 const launchAccountResetWebPage = () => Saga.call(openURL, 'https://keybase.io/#account-reset')
 
-const loggedout = () =>
-  Saga.sequentially([
-    Saga.put({payload: undefined, type: LoginGen.resetStore}),
-    Saga.call(navBasedOnLoginAndInitialState),
-    Saga.put(ConfigGen.createBootstrap({})),
-  ])
-
-const logout = () =>
-  Saga.sequentially([
-    Saga.put(ConfigGen.createClearRouteState()),
-    // Let push deregister work, TODO make this a real dependency or something, this is a short term fix
-    Saga.delay(1000),
-    Saga.call(RPCTypes.loginLogoutRpcPromise, undefined, Constants.waitingKey),
-    Saga.put(LoginGen.createLoggedout()),
-  ])
-
-// TODO more pure functions
 function* loginSaga(): Saga.SagaGenerator<any, any> {
   // Actually log in
   yield Saga.actionToAction(LoginGen.login, login)
-
-  // Screen sagas
-  yield Saga.safeTakeLatest(LoginGen.navBasedOnLoginAndInitialState, navBasedOnLoginAndInitialState)
-  yield Saga.actionToAction(LoginGen.loggedout, loggedout)
-  yield Saga.actionToAction(LoginGen.logout, logout)
-  yield Saga.actionToAction([ConfigGen.readyForBootstrap, LoginGen.loggedout], getAccounts)
-
-  yield Saga.safeTakeEveryPure(RouteConstants.navigateUp, maybeNavigateToLoginRoot)
 
   yield Saga.actionToAction(LoginGen.launchForgotPasswordWebPage, launchForgotPasswordWebPage)
   yield Saga.actionToAction(LoginGen.launchAccountResetWebPage, launchAccountResetWebPage)
