@@ -258,31 +258,42 @@ const routeToInitialScreen = (state: TypedState) => {
   }
 }
 
-// We don't get the initial logged in by the server
 const emitInitialLoggedIn = (state: TypedState) =>
   state.config.loggedIn && Saga.put(ConfigGen.createLoggedIn({causedByStartup: true}))
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
+  // Tell all other sagas to register for incoming engine calls
   yield Saga.actionToAction(ConfigGen.installerRan, dispatchSetupEngineListeners)
+  // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
+  // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
   yield Saga.actionToAction([ConfigGen.restartHandshake, ConfigGen.startHandshake], startHandshake)
+  // When there are no more waiters, we can show the actual app
   yield Saga.actionToAction(ConfigGen.daemonHandshakeWait, maybeDoneWithDaemonHandshake)
+  // Re-get info about our account if you log in/out/we're done handshaking
   yield Saga.actionToAction(
     [ConfigGen.loggedIn, ConfigGen.loggedOut, ConfigGen.daemonHandshake],
     loadDaemonBootstrapStatus
   )
+  // Load the known accounts if you revoke or we handshake
   yield Saga.actionToAction([DevicesGen.revoked, ConfigGen.daemonHandshake], loadDaemonAccounts)
+  // Switch between login or app routes
   yield Saga.actionToAction([ConfigGen.loggedIn, ConfigGen.loggedOut], switchRouteDef)
+  // Go to the correct starting screen
   yield Saga.actionToAction(ConfigGen.daemonHandshakeDone, routeToInitialScreen)
+  // If you start logged in we don't get the incoming call from the daemon so we generate our own here
   yield Saga.actionToAction(ConfigGen.daemonHandshakeDone, emitInitialLoggedIn)
 
+  // Like handshake but in reverse, ask sagas to do stuff before we tell the server to log us out
   yield Saga.actionToAction(ConfigGen.logout, startLogoutHandshake)
   yield Saga.actionToAction(ConfigGen.logoutHandshakeWait, maybeDoneWithLogoutHandshake)
+  // When we're all done lets clean up
   yield Saga.actionToAction(ConfigGen.loggedOut, resetGlobalStore)
 
   yield Saga.actionToAction(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
 
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 
+  // Kick off platform specific stuff
   yield Saga.fork(PlatformSpecific.platformConfigSaga)
   yield Saga.fork(avatarSaga)
 }

@@ -160,8 +160,7 @@ const handleFollow = notification => {
   return Saga.put(ProfileGen.createShowUserProfile({username}))
 }
 
-// on iOS the go side handles a lot of push details. We currently only handle readmessage to clear badges
-// TODO android
+// on iOS the go side handles a lot of push details
 const handlePush = (_: any, action: PushGen.NotificationPayload) => {
   try {
     const notification = action.payload.notification
