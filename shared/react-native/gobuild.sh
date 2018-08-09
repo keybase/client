@@ -12,6 +12,16 @@ if [[ "$arg" != "ios" && "$arg" != "android" ]]; then
   exit 1
 fi
 
+# If KEYBASE_BUILD is set and non-empty (e.g., for CI), use it.
+if [[ -n ${KEYBASE_BUILD+x} && "$KEYBASE_BUILD" ]]; then
+    keybase_build="$KEYBASE_BUILD"
+else
+    ## TODO(mm) consolidate this with packaging/prerelease/
+    current_date=`date -u +%Y%m%d%H%M%S` # UTC
+    commit_short=`git log -1 --pretty=format:%h`
+    keybase_build="$current_date+$commit_short"
+fi
+
 local_client=${LOCAL_CLIENT:-"1"}
 local_kbfs=${LOCAL_KBFS:-}
 skip_gomobile_init=${SKIP_GOMOBILE_INIT:-}
@@ -87,16 +97,6 @@ vendor_path="$GOPATH/src/github.com/keybase/vendor"
 gomobile_path="$vendor_path/golang.org/x/mobile/cmd/gomobile"
 rsync -pr --ignore-times "$vendor_path/" "$GOPATH/src/"
 package="github.com/keybase/client/go/bind"
-
-if [[ -n ${KEYBASE_BUILD+x} && "$KEYBASE_BUILD" ]]; then
-    keybase_build="$KEYBASE_BUILD"
-else
-    ## TODO(mm) consolidate this with packaging/prerelease/
-    current_date=`date -u +%Y%m%d%H%M%S` # UTC
-    commit_short=`git log -1 --pretty=format:%h`
-    keybase_build="$current_date+$commit_short"
-fi
-
 tags=${TAGS:-"prerelease production"}
 ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build"
 
