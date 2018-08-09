@@ -29,6 +29,11 @@ type State = {|
   showingMenu: boolean,
 |}
 
+const ArrowTick = () => (
+  // Css triangle!
+  <Kb.Box style={styles.arrowTick} />
+)
+
 class MenubarRender extends React.Component<Props, State> {
   state: State = {
     showingMenu: false,
@@ -61,10 +66,10 @@ class MenubarRender extends React.Component<Props, State> {
     })
 
     return (
-      <Kb.Box style={Styles.collapseStyles([styles.widgetContainer, styles.public])}>
+      <Kb.Box style={styles.widgetContainer}>
         {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
-        <Kb.Box style={{...stylesTopRow, justifyContent: 'flex-end'}}>
+        <Kb.Box style={Styles.collapseStyles([styles.topRow, {justifyContent: 'flex-end'}])}>
           <Kb.Icon
             style={menuStyle}
             color={menuColor}
@@ -81,7 +86,7 @@ class MenubarRender extends React.Component<Props, State> {
           />
         </Kb.Box>
         <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          <Kb.Icon type="icon-keybase-logo-logged-out-64" style={stylesLogo} color={Styles.globalColors.yellow} />
+          <Kb.Icon type="icon-keybase-logo-logged-out-64" style={Styles.collapseStyles([styles.logo])} color={Styles.globalColors.yellow} />
           <Kb.Text type="Body" small={true} style={{alignSelf: 'center', marginTop: 6}}>
             You're logged out of Keybase!
           </Kb.Text>
@@ -161,16 +166,8 @@ class MenubarRender extends React.Component<Props, State> {
       <Kb.Box style={styles.widgetContainer}>
         {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
-        <Kb.Box style={{...stylesTopRow, borderBottom: `1px solid ${Styles.globalColors.black_05}`}}>
-          <Kb.Box
-            style={{
-              ...Styles.globalStyles.flexBoxRow,
-              flex: 1,
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginLeft: 24 + 8,
-            }}
-          >
+        <Kb.Box style={Styles.collapseStyles([styles.topRow, {borderBottom: `1px solid ${Styles.globalColors.black_05}`}])}>
+          <Kb.Box style={styles.headerBadgesContainer}>
             {badgeTypesInHeader.map(tab => (
               <BadgeIcon key={tab} tab={tab} countMap={this.props.badgeInfo} openApp={this.props.openApp} />
             ))}
@@ -209,16 +206,7 @@ class MenubarRender extends React.Component<Props, State> {
         </Kb.Box>
         <ChatContainer onViewAll={() => this.props.openApp(Tabs.chatTab)} />
         {this.props.isAsyncWriteHappening && (
-          <Kb.Box
-            style={{
-              ...Styles.globalStyles.flexBoxColumn,
-              justifyContent: 'center',
-              alignItems: 'center',
-              minHeight: 32,
-              backgroundColor: Styles.globalColors.white,
-              padding: 8,
-            }}
-          >
+          <Kb.Box style={styles.uploadingContainer}>
             <Kb.Icon type="icon-loader-uploading-16" />
             <Kb.Text type="BodySmall">UPLOADING CHANGES...</Kb.Text>
           </Kb.Box>
@@ -233,25 +221,6 @@ body {
   background-color: ${Styles.globalColors.transparent};
 }
 `
-
-const ArrowTick = () => (
-  // Css triangle!
-  <Kb.Box
-    style={{
-      height: 0,
-      width: 0,
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      marginLeft: 'auto',
-      marginRight: 'auto',
-      top: -6,
-      borderLeft: '6px solid transparent',
-      borderRight: '6px solid transparent',
-      borderBottom: `6px solid ${Styles.globalColors.white}`,
-    }}
-  />
-)
 
 const BadgeIcon = ({
   tab,
@@ -292,41 +261,72 @@ const BadgeIcon = ({
   )
 }
 
-const borderRadius = 4
-
-const stylesTopRow = {
-  ...Styles.globalStyles.flexBoxRow,
-  alignItems: 'center',
-  backgroundColor: Styles.globalColors.darkBlue2,
-  flex: 1,
-  minHeight: 40,
-  maxHeight: 40,
-  paddingLeft: 8,
-  paddingRight: 8,
-  borderTopLeftRadius: borderRadius,
-  borderTopRightRadius: borderRadius,
-}
-
-const stylesLogo = {
-  alignSelf: 'center',
-  marginBottom: 12,
-}
-
 const styles = Styles.styleSheetCreate({
   widgetContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       flex: 1,
       position: 'relative',
-      marginTop: 13,
+      marginTop: isDarwin ? 13 : 0,
       borderTopLeftRadius: Styles.globalMargins.xtiny,
       borderTopRightRadius: Styles.globalMargins.xtiny,
       backgroundColor: Styles.globalColors.darkBlue,
     },
   }),
-  public: Styles.platformStyles({
+  topRow: Styles.platformStyles({
     common: {
+      ...Styles.globalStyles.flexBoxRow,
+      alignItems: 'center',
+      backgroundColor: Styles.globalColors.darkBlue2,
+      flex: 1,
+      minHeight: 40,
+      maxHeight: 40,
+      paddingLeft: 8,
+      paddingRight: 8,
+      borderTopLeftRadius: Styles.globalMargins.xtiny,
+      borderTopRightRadius: Styles.globalMargins.xtiny,
+    },
+  }),
+  logo: Styles.platformStyles({
+    common: {
+      alignSelf: 'center',
+      marginBottom: 12,
+    },
+  }),
+  headerBadgesContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxRow,
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginLeft: 24 + 8,
+    },
+  }),
+  arrowTick: Styles.platformStyles({
+    common: {
+      height: 0,
+      width: 0,
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      marginLeft: 'auto',
+      marginRight: 'auto',
+      top: -6,
+    },
+    isElectron: {
+      borderLeft: '6px solid transparent',
+      borderRight: '6px solid transparent',
+      borderBottom: `6px solid ${Styles.globalColors.darkBlue2}`,
+    },
+  }),
+  uploadingContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: 32,
       backgroundColor: Styles.globalColors.white,
+      padding: 8,
     },
   }),
 })
