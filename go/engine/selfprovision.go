@@ -61,10 +61,10 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 
 	// If we abort, we need to revert to the old active device and user config
 	// state
-	uvOld, deviceIDOld, deviceNameOld, sigKeyOld, encKeyOld := e.G().ActiveDevice.AllFields()
+	uv, _ := e.G().ActiveDevice.GetUsernameAndUserVersionIfValid(m)
 	// Pass the UV here so the passphrase stream is cached on the provisional
 	// login context
-	m = m.WithNewProvisionalLoginContextForUserVersionAndUsername(uvOld, e.G().Env.GetUsername())
+	m = m.WithNewProvisionalLoginContextForUserVersionAndUsername(uv, e.G().Env.GetUsername())
 
 	// From this point on, if there's an error, we abort
 	// the transaction.
@@ -74,19 +74,6 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		}
 		if err == nil {
 			m = m.CommitProvisionalLogin()
-		} else if e.User != nil {
-			m.CDebugf("Error in self provision, reverting to original active device: %v", err)
-			m = m.WithGlobalActiveDevice()
-			salt, err := e.User.GetSalt()
-			if err != nil {
-				m.CDebugf("unable to GetSalt: %v", err)
-				return
-			}
-			// Atomically swap to the new config and active device
-			if err := m.SwitchUserNewConfigActiveDevice(uvOld, e.User.GetNormalizedName(), salt,
-				deviceIDOld, sigKeyOld, encKeyOld, deviceNameOld); err != nil {
-				return
-			}
 		}
 	}()
 
@@ -155,7 +142,7 @@ func (e *SelfProvisionEngine) provision(m libkb.MetaContext, keys *libkb.DeviceW
 	if err := e.makeDeviceKeysWithSigner(m, keys.SigningKey()); err != nil {
 		return err
 	}
-
+	/// to helper
 	// now store the secrets for our new device
 	encKey, err := m.ActiveDevice().EncryptionKey()
 	if err != nil {

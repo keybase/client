@@ -1127,6 +1127,14 @@ func TestFailSelfProvisionDuplicateName(t *testing.T) {
 	})
 }
 
+func TestFailSelfProvisionDuplicateNameXX(t *testing.T) {
+	testFailSelfProvision(t, func(m libkb.MetaContext) string {
+		libkb.CreateClonedDevice(t, m)
+		// Use the default name so we get an error when provisioning.
+		return "new"
+	})
+}
+
 func testFailSelfProvision(t *testing.T, fn func(m libkb.MetaContext) string) {
 
 	tc := SetupEngineTest(t, "login")

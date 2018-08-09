@@ -338,8 +338,7 @@ func (m MetaContext) switchUserNewConfig(u keybase1.UID, n NormalizedUsername, s
 	}
 	// Note that `true` here means that an existing user config entry will
 	// be overwritten.
-	err := cw.SetUserConfig(NewUserConfig(u, n, salt, d), true /* overwrite */)
-	if err != nil {
+	if err := cw.SetUserConfig(NewUserConfig(u, n, salt, d), true /* overwrite */); err != nil {
 		return err
 	}
 	g.ActiveDevice.SetOrClear(m, ad)
@@ -434,10 +433,10 @@ func (m MetaContext) SwitchUserDeprovisionNukeConfig(username NormalizedUsername
 	return cw.SetUserConfig(nil, true /* overwrite; ignored */)
 }
 
-// SetActiveOneshotDevice acquires the switchUserMu mutex, setting the active device
-// to one that corresponds to the given UID and DeviceWithKeys, and also sets the config
-// file to a temporary in-memory config (not writing to disk) to satisfy local requests for
-// g.Env.*
+// SetActiveOneshotDevice acquires the switchUserMu mutex, setting the active
+// device to one that corresponds to the given UID and DeviceWithKeys, and also
+// sets the config file to a temporary in-memory config (not writing to disk)
+// to satisfy local requests for g.Env.*
 func (m MetaContext) SwitchUserToActiveOneshotDevice(uv keybase1.UserVersion, nun NormalizedUsername, d *DeviceWithKeys) (err error) {
 	defer m.CTrace("MetaContext#SwitchUserToActiveOneshotDevice", func() error { return err })()
 
@@ -461,8 +460,8 @@ func (m MetaContext) SwitchUserToActiveOneshotDevice(uv keybase1.UserVersion, nu
 	return nil
 }
 
-// SiwtchUserLoggedOut clears the active device and the current_user stanza
-// of the config file, all while holding the switchUserMu
+// SiwtchUserLoggedOut clears the active device and the current_user stanza of
+// the config file, all while holding the switchUserMu
 func (m MetaContext) SwitchUserLoggedOut() (err error) {
 	defer m.CTrace("MetaContext#SwitchUserLoggedOut", func() error { return err })()
 	g := m.G()
@@ -480,10 +479,12 @@ func (m MetaContext) SwitchUserLoggedOut() (err error) {
 	return nil
 }
 
-// SetActiveDevice sets the active device to have the UserVersion, deviceID, sigKey, encKey and deviceName
-// as specified, and does so while grabbing the global switchUser lock, since it should be sycnhronized
-// with attempts to switch the global logged in user. It does not, however, change the `current_user`
-// in the config file, or edit the global config file in any way.
+// SetActiveDevice sets the active device to have the UserVersion, deviceID,
+// sigKey, encKey and deviceName as specified, and does so while grabbing the
+// global switchUser lock, since it should be sycnhronized with attempts to
+// switch the global logged in user. It does not, however, change the
+// `current_user` in the config file, or edit the global config file in any
+// way.
 func (m MetaContext) SetActiveDevice(uv keybase1.UserVersion, deviceID keybase1.DeviceID, sigKey, encKey GenericKey, deviceName string) error {
 	g := m.G()
 	g.switchUserMu.Lock()
