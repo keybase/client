@@ -1232,7 +1232,6 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 }
 
 func CreateNameInfoSource(ctx context.Context, g *globals.Context, membersType chat1.ConversationMembersType) types.NameInfoSource {
-	g.GetLog().CDebugf(ctx, "createNameInfoSource: hi")
 	if override := ctx.Value(nameInfoOverrideKey); override != nil {
 		g.GetLog().CDebugf(ctx, "createNameInfoSource: using override: %T", override)
 		return override.(types.NameInfoSource)

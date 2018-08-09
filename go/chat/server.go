@@ -62,15 +62,17 @@ type Server struct {
 var _ chat1.LocalInterface = (*Server)(nil)
 
 func NewServer(g *globals.Context, serverConn ServerConnection, uiSource UISource) *Server {
+	delay := 5 * time.Second
 	return &Server{
-		Contextified:   globals.NewContextified(g),
-		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "Server", false),
-		serverConn:     serverConn,
-		uiSource:       uiSource,
-		boxer:          NewBoxer(g),
-		identNotifier:  NewCachingIdentifyNotifier(g),
-		clock:          clockwork.NewRealClock(),
-		convPageStatus: make(map[string]chat1.Pagination),
+		Contextified:      globals.NewContextified(g),
+		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "Server", false),
+		serverConn:        serverConn,
+		uiSource:          uiSource,
+		boxer:             NewBoxer(g),
+		identNotifier:     NewCachingIdentifyNotifier(g),
+		clock:             clockwork.NewRealClock(),
+		convPageStatus:    make(map[string]chat1.Pagination),
+		remoteThreadDelay: &delay,
 	}
 }
 
@@ -498,6 +500,8 @@ func (h *Server) mergeLocalRemoteThread(ctx context.Context, remoteThread, local
 			return true
 		}
 		// If newMsg is now superseded by something different than what we sent, then let's include it
+		h.Debug(ctx, "mergeLocalRemoteThread: new: %v old: %v newSupersededBy: %v oldSupersededy: %v",
+			newMsg.GetMessageID(), oldMsg.GetMessageID(), newMsg.Valid().ServerHeader.SupersededBy, oldMsg.Valid().ServerHeader.SupersededBy)
 		if newMsg.Valid().ServerHeader.SupersededBy != oldMsg.Valid().ServerHeader.SupersededBy {
 			h.Debug(ctx, "mergeLocalRemoteThread: including supersededBy change: msgID: %d",
 				newMsg.GetMessageID())

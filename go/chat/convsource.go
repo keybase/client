@@ -702,7 +702,8 @@ func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1
 		if err != nil {
 			continue
 		}
-		if state == chat1.MessageUnboxedState_PLACEHOLDER {
+		switch state {
+		case chat1.MessageUnboxedState_PLACEHOLDER:
 			if msg, ok := msgLookup[threadMsg.GetMessageID()]; ok {
 				thread.Messages[i] = msg
 			} else {
