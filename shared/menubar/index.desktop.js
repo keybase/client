@@ -11,6 +11,7 @@ import {throttle} from 'lodash-es'
 
 export type Props = {
   isAsyncWriteHappening: boolean,
+  convIDs: Array<string>,
   logIn: () => void,
   loggedIn: boolean,
   onFolderClick: (path: ?string) => void,
@@ -204,7 +205,7 @@ class MenubarRender extends React.Component<Props, State> {
             position="bottom right"
           />
         </Kb.Box>
-        <ChatContainer onViewAll={() => this.props.openApp(Tabs.chatTab)} />
+        <ChatContainer onViewAll={() => this.props.openApp(Tabs.chatTab)} convIDs={this.props.convIDs} />
         {this.props.isAsyncWriteHappening && (
           <Kb.Box style={styles.uploadingContainer}>
             <Kb.Icon type="icon-loader-uploading-16" />

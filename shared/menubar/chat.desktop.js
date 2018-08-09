@@ -19,11 +19,16 @@ const ChatViewAll = ({onViewAll}: {onViewAll: () => void}) => (
   </Kb.Box2>
 )
 
-const ChatContainer = ({onViewAll}: {onViewAll: () => void}) => (
+type ChatContainerProps = {
+  onViewAll: () => void,
+  convIDs: Array<string>,
+}
+
+const ChatContainer = ({onViewAll, convIDs}: ChatContainerProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
-    <ChatRow name="one" />
-    <ChatRow name="two" />
-    <ChatRow name="three" />
+    {convIDs.slice(0, 3).map(id => (
+      <ChatRow key={id} name={id.substr(0, 30)} />
+    ))}
     <ChatViewAll onViewAll={onViewAll} />
   </Kb.Box2>
 )
