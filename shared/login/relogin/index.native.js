@@ -1,17 +1,10 @@
 // @flow
-import React, {Component} from 'react'
-import {
-  Box,
-  UserCard,
-  Text,
-  Button,
-  FormWithCheckbox,
-  NativeScrollView,
-} from '../../common-adapters/mobile.native'
-import {isDeviceSecureAndroid, isAndroidNewerThanM, isAndroid} from '../../constants/platform'
+import * as Constants from '../../constants/login'
+import * as Kb from '../../common-adapters/mobile.native'
+import * as Styles from '../../styles'
 import Dropdown from './dropdown.native'
-import {globalStyles, globalMargins, globalColors} from '../../styles'
-
+import React, {Component} from 'react'
+import {isDeviceSecureAndroid, isAndroidNewerThanM, isAndroid} from '../../constants/platform'
 import type {Props} from '.'
 
 class LoginRender extends Component<Props> {
@@ -40,18 +33,18 @@ class LoginRender extends Component<Props> {
     ]
 
     return (
-      <NativeScrollView>
-        <Box style={styles.container}>
+      <Kb.NativeScrollView>
+        <Kb.Box style={styles.container}>
           {isAndroid &&
             !isDeviceSecureAndroid &&
             !isAndroidNewerThanM && (
-              <Box style={deviceNotSecureStyle}>
-                <Text type="Body" backgroundMode="Information" style={{flex: 1, textAlign: 'center'}}>
+              <Kb.Box style={deviceNotSecureStyle}>
+                <Kb.Text type="Body" backgroundMode="Information" style={{flex: 1, textAlign: 'center'}}>
                   Since you don't have a lock screen, you'll have to type your passphrase everytime.
-                </Text>
-              </Box>
+                </Kb.Text>
+              </Kb.Box>
             )}
-          <UserCard username={this.props.selectedUser} outerStyle={styles.card}>
+          <Kb.UserCard username={this.props.selectedUser} outerStyle={styles.card}>
             <Dropdown
               type="Username"
               value={this.props.selectedUser}
@@ -59,62 +52,70 @@ class LoginRender extends Component<Props> {
               onOther={this.props.onSomeoneElse}
               options={this.props.users}
             />
-            <FormWithCheckbox
+            <Kb.FormWithCheckbox
               style={{alignSelf: 'stretch'}}
               inputProps={inputProps}
               checkboxesProps={checkboxProps}
             />
-            <Button
-              waiting={this.props.waitingForResponse}
+            <Kb.WaitingButton
+              waitingKey={Constants.waitingKey}
               style={{marginTop: 0}}
               fullWidth={true}
               type="Primary"
               label="Log in"
               onClick={this.props.onSubmit}
             />
-            <Text
+            <Kb.Text
               link={true}
               type="BodySmallSecondaryLink"
               onClick={this.props.onForgotPassphrase}
-              style={{marginTop: globalMargins.medium, textAlign: 'center'}}
+              style={{marginTop: Styles.globalMargins.medium, textAlign: 'center'}}
             >
               Forgot passphrase?
-            </Text>
-          </UserCard>
-          <Text style={{marginTop: globalMargins.xlarge}} type="BodyBigLink" onClick={this.props.onSignup}>
+            </Kb.Text>
+          </Kb.UserCard>
+          <Kb.Text
+            style={{marginTop: Styles.globalMargins.xlarge}}
+            type="BodyBigLink"
+            onClick={this.props.onSignup}
+          >
             Create an account
-          </Text>
-          <Text
-            style={{margin: globalMargins.small, marginTop: globalMargins.large, alignSelf: 'center'}}
+          </Kb.Text>
+          <Kb.Text
+            style={{
+              margin: Styles.globalMargins.small,
+              marginTop: Styles.globalMargins.large,
+              alignSelf: 'center',
+            }}
             type="BodySmallSecondaryLink"
             onClick={this.props.onFeedback}
           >
             Problems logging in?
-          </Text>
-        </Box>
-      </NativeScrollView>
+          </Kb.Text>
+        </Kb.Box>
+      </Kb.NativeScrollView>
     )
   }
 }
 
 const styles = {
   container: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     flex: 1,
-    backgroundColor: globalColors.white,
+    backgroundColor: Styles.globalColors.white,
   },
   card: {
-    marginTop: globalMargins.medium,
+    marginTop: Styles.globalMargins.medium,
     width: '100%',
   },
 }
 
 const deviceNotSecureStyle = {
   alignSelf: 'stretch',
-  backgroundColor: globalColors.yellow,
-  paddingTop: globalMargins.tiny,
-  paddingBottom: globalMargins.tiny,
+  backgroundColor: Styles.globalColors.yellow,
+  paddingTop: Styles.globalMargins.tiny,
+  paddingBottom: Styles.globalMargins.tiny,
 }
 
 export default LoginRender
