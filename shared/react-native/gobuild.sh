@@ -14,7 +14,7 @@ fi
 
 # For CI, this is run like
 #
-#  env KEYBASE_BUILD=kbfsci DEST_DIR=/tmp /path/to/gobuild.sh android
+#  env KEYBASE_BUILD=ci DEST_DIR=/tmp /path/to/gobuild.sh android-or-ios
 #
 # so make sure doing so doesn't assume anything about where this file
 # is.
