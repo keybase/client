@@ -263,7 +263,10 @@ const requestPermissions = () =>
 
 function* initialPermissionsCheck(): Saga.SagaGenerator<any, any> {
   const hasPermissions = yield checkPermissions(null, null)
-  if (!hasPermissions) {
+  if (hasPermissions) {
+    // Get the token
+    yield Saga.fork(requestPermissionsFromNative)
+  } else {
     const shownNativePushPromptTask = yield Saga.fork(askNativeIfSystemPushPromptHasBeenShown)
     const shownMonsterPushPromptTask = yield Saga.fork(AsyncStorage.getItem, monsterStorageKey)
     const [shownNativePushPrompt, shownMonsterPushPrompt] = yield Saga.join(
@@ -295,9 +298,14 @@ const checkPermissions = (_: any, action: ConfigGen.MobileAppStatePayload | null
     console.log('[PushCheck] checking ', action ? 'on foreground' : 'on startup')
     const permissions = yield Saga.call(checkPermissionsFromNative)
     if (permissions.alert || permissions.badge) {
-      logger.info('[PushCheck] enabled: getting token')
-      yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: true}))
-      yield Saga.call(requestPermissionsFromNative)
+      const state: TypedState = yield Saga.select()
+      if (!state.push.hasPermissions) {
+        logger.info('[PushCheck] enabled: getting token')
+        yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: true}))
+        yield Saga.call(requestPermissionsFromNative)
+      } else {
+        logger.info('[PushCheck] enabled already')
+      }
       return true
     } else {
       logger.info('[PushCheck] disabled')
