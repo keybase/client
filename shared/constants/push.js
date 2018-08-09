@@ -23,37 +23,49 @@ export const normalizePush = (n: any): ?Types.PushNotification => {
     if (!n) {
       return null
     }
-    if (isIOS) {
-      const data = n.data
-      if (!data) {
-        return null
-      }
-      if (data.type === 'chat.readmessage') {
-        const badges = typeof data.b === 'string' ? parseInt(data.b) : data.b
-        return {
-          badges,
-          type: 'chat.readmessage',
-        }
-      } else if (data.type === 'chat.newmessage' && data.convID) {
-        const membersType = ChatConstants.anyToConversationMembersType(data.t)
-        if (membersType) {
-          return {
-            conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
-            membersType,
-            type: 'chat.newmessage',
-            unboxPayload: n.m || '',
-            userInteraction: !!n.userInteraction,
-          }
-        }
-      } else if (data.type === 'follow' && data.username) {
-        return {
-          type: 'follow',
-          userInteraction: !!n.userInteraction,
-          username: data.username,
-        }
-      }
-    } else {
+
+    const userInteraction = !!n.userInteraction
+    const data = isIOS ? n.data || n._data : n
+
+    if (!data) {
+      return null
     }
+
+    if (data.type === 'chat.readmessage') {
+      const badges = typeof data.b === 'string' ? parseInt(data.b) : data.b
+      return {
+        badges,
+        type: 'chat.readmessage',
+      }
+    } else if (data.type === 'chat.newmessage' && data.convID) {
+      const membersType = ChatConstants.anyToConversationMembersType(data.t)
+      if (membersType) {
+        return {
+          conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
+          membersType,
+          type: 'chat.newmessage',
+          unboxPayload: n.m || '',
+          userInteraction,
+        }
+      }
+    } else if (data.type === 'chat.newmessageSilent_2' && data.c) {
+      const membersType = ChatConstants.anyToConversationMembersType(data.t)
+      if (membersType) {
+        return {
+          conversationIDKey: ChatTypes.stringToConversationIDKey(data.c),
+          membersType,
+          type: 'chat.newmessageSilent_2',
+          unboxPayload: n.m || '',
+        }
+      }
+    } else if (data.type === 'follow' && data.username) {
+      return {
+        type: 'follow',
+        userInteraction,
+        username: data.username,
+      }
+    }
+
     return null
   } catch (e) {
     logger.error('Error handling push', e)

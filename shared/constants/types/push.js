@@ -6,18 +6,21 @@ export type TokenType = 'apple' | 'appledev' | 'androidplay'
 
 export type PushNotification =
   | {
-      type: 'chat.readmessage',
       badges: number,
+      type: 'chat.readmessage',
     }
   | {
-      type: 'chat.newmessageSilent_2',
-    }
-  | {
-      type: 'chat.newmessage',
       conversationIDKey: ChatTypes.ConversationIDKey,
-      userInteraction: boolean,
       membersType: RPCChatTypes.ConversationMembersType,
+      type: 'chat.newmessageSilent_2',
       unboxPayload: string,
+    }
+  | {
+      conversationIDKey: ChatTypes.ConversationIDKey,
+      membersType: RPCChatTypes.ConversationMembersType,
+      type: 'chat.newmessage',
+      unboxPayload: string,
+      userInteraction: boolean,
     }
   | {
       type: 'follow',

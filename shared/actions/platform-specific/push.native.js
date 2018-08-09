@@ -12,7 +12,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as WaitingGen from '../waiting-gen'
 import logger from '../../logger'
-import {NativeModules, AsyncStorage} from 'react-native'
+import {NativeModules, AsyncStorage, NativeEventEmitter} from 'react-native'
 import {isIOS} from '../../constants/platform'
 
 import type {TypedState} from '../../constants/reducer'
@@ -29,40 +29,47 @@ const updateAppBadge = (_: any, action: NotificationsGen.ReceivedBadgeStatePaylo
   }
 }
 
-// Used to listen to the java intent for notifications
-// let RNEmitter
-// // Push notifications on android are very messy. It works differently if we're entirely killed or if we're in the background
-// // If we're killed it all works. clicking on the notification launches us and we get the onNotify callback and it all works
-// // If we're backgrounded we get the silent or the silent and real. To work around this we:
-// // 1. Plumb through the intent from the java side if we relaunch due to push
-// // 2. We store the last push and re-use it when this event is emitted to just 'rerun' the push
-// if (!isIOS) {
-// RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
-// }
+// Push notifications on android are very messy. It works differently if we're entirely killed or if we're in the background
+// If we're killed it all works. clicking on the notification launches us and we get the onNotify callback and it all works
+// If we're backgrounded we get the silent or the silent and real. To work around this we:
+// 1. Plumb through the intent from the java side if we relaunch due to push
+// 2. We store the last push and re-use it when this event is emitted to just 'rerun' the push
+let lastPushForAndroid = null
+const listenForNativeAndroidIntentNotifications = emitter => {
+  const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
+  // If android launched due to push
+  RNEmitter.addListener('androidIntentNotification', () => {
+    logger.info('[PushAndroidIntent]', lastPushForAndroid && lastPushForAndroid.type)
+    if (!lastPushForAndroid) {
+      return
+    }
 
-// let lastPushForAndroid = null
-// const listenForNativeAndroidIntentNotifications = emitter => {
-// TODO
-// if (!RNEmitter) {
-// return
-// }
-// // If android launched due to push
-// RNEmitter.addListener('androidIntentNotification', () => {
-// if (!lastPushForAndroid) {
-// return
-// }
-// // if plaintext is on we get this but not the real message if we're backgrounded, so convert it to a non-silent type
-// if (lastPushForAndroid.type === 'chat.newmessageSilent_2') {
-// lastPushForAndroid.type = 'chat.newmessage'
-// // grab convo id
-// lastPushForAndroid.convID = lastPushForAndroid.c
-// }
-// // emulate like the user clicked it while we're killed
-// lastPushForAndroid.userInteraction = true // force this true
-// emitter(PushGen.createNotification({notification: lastPushForAndroid}))
-// lastPushForAndroid = null
-// })
-// }
+    switch (lastPushForAndroid.type) {
+      // treat this like a loud message
+      case 'chat.newmessageSilent_2':
+        lastPushForAndroid = {
+          conversationIDKey: lastPushForAndroid.conversationIDKey,
+          membersType: lastPushForAndroid.membersType,
+          type: 'chat.newmessage',
+          unboxPayload: lastPushForAndroid.unboxPayload,
+          userInteraction: true,
+        }
+        break
+      case 'chat.newmessage':
+        lastPushForAndroid.userInteraction = true
+        break
+      case 'follow':
+        lastPushForAndroid.userInteraction = true
+        break
+      default:
+        lastPushForAndroid = null
+        return
+    }
+
+    emitter(PushGen.createNotification({notification: lastPushForAndroid}))
+    lastPushForAndroid = null
+  })
+}
 
 const listenForPushNotificationsFromJS = emitter => {
   const onRegister = token => {
@@ -76,7 +83,7 @@ const listenForPushNotificationsFromJS = emitter => {
       return
     }
     // bookkeep for android special handling
-    // lastPushForAndroid = notification
+    lastPushForAndroid = notification
     emitter(PushGen.createNotification({notification}))
   }
 
@@ -98,7 +105,9 @@ const listenForPushNotificationsFromJS = emitter => {
 const setupPushEventLoop = () =>
   Saga.call(function*() {
     const pushChannel = yield Saga.eventChannel(emitter => {
-      // listenForNativeAndroidIntentNotifications(emitter)
+      if (!isIOS) {
+        listenForNativeAndroidIntentNotifications(emitter)
+      }
       listenForPushNotificationsFromJS(emitter)
 
       // we never unsubscribe
@@ -315,33 +324,22 @@ const checkPermissions = (_: any, action: ConfigGen.MobileAppStatePayload | null
   })
 }
 
-type InitialNotificationData =
-  | {
-      type: 'follow',
-      username: ?string,
-    }
-  | {
-      type: 'chat.newmessage',
-      convID: ?string,
-    }
-
 const getStartupDetailsFromInitialPush = () =>
   new Promise(resolve => {
     PushNotifications.popInitialNotification(n => {
-      console.log('aaaa TEMP INITAIl push', n)
-      if (!n) {
+      const notification = Constants.normalizePush(n)
+      if (!notification) {
         resolve(null)
         return
       }
-      const data: InitialNotificationData = n._data
-      if (data.type === 'follow') {
-        if (data.username) {
-          resolve({startupFollowUser: data.username})
+      if (notification.type === 'follow') {
+        if (notification.username) {
+          resolve({startupFollowUser: notification.username})
           return
         }
-      } else if (data.type === 'chat.newmessage') {
-        if (data.convID) {
-          resolve({startupConversation: data.convID})
+      } else if (notification.type === 'chat.newmessage') {
+        if (notification.conversationIDKey) {
+          resolve({startupConversation: notification.conversationIDKey})
           return
         }
       }
