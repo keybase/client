@@ -658,6 +658,12 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		return res, err
 	}
 
+	// Enable delete placeholders for supersede transform
+	if arg.Query == nil {
+		arg.Query = new(chat1.GetThreadQuery)
+	}
+	arg.Query.EnableDeletePlaceholders = true
+
 	// Xlate pager control into pagination if given
 	if arg.Query != nil && arg.Query.MessageIDControl != nil {
 		pagination = utils.XlateMessageIDControlToPagination(arg.Query.MessageIDControl)

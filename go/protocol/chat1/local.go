@@ -3074,6 +3074,7 @@ type GetThreadQuery struct {
 	MarkAsRead               bool              `codec:"markAsRead" json:"markAsRead"`
 	MessageTypes             []MessageType     `codec:"messageTypes" json:"messageTypes"`
 	DisableResolveSupersedes bool              `codec:"disableResolveSupersedes" json:"disableResolveSupersedes"`
+	EnableDeletePlaceholders bool              `codec:"enableDeletePlaceholders" json:"enableDeletePlaceholders"`
 	Before                   *gregor1.Time     `codec:"before,omitempty" json:"before,omitempty"`
 	After                    *gregor1.Time     `codec:"after,omitempty" json:"after,omitempty"`
 	MessageIDControl         *MessageIDControl `codec:"messageIDControl,omitempty" json:"messageIDControl,omitempty"`
@@ -3094,6 +3095,7 @@ func (o GetThreadQuery) DeepCopy() GetThreadQuery {
 			return ret
 		})(o.MessageTypes),
 		DisableResolveSupersedes: o.DisableResolveSupersedes,
+		EnableDeletePlaceholders: o.EnableDeletePlaceholders,
 		Before: (func(x *gregor1.Time) *gregor1.Time {
 			if x == nil {
 				return nil

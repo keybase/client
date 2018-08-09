@@ -133,8 +133,9 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 
 	// Resolve supersedes
 	if q == nil || !q.DisableResolveSupersedes {
+		deletePlaceholders := q != nil && q.EnableDeletePlaceholders
 		if superXform == nil {
-			superXform = newBasicSupersedesTransform(s.G())
+			superXform = newBasicSupersedesTransform(s.G(), deletePlaceholders)
 		}
 		if thread.Messages, err = superXform.Run(ctx, conv, uid, thread.Messages); err != nil {
 			return err
@@ -165,7 +166,7 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 
 func (s *baseConversationSource) TransformSupersedes(ctx context.Context,
 	unboxInfo types.UnboxConversationInfo, uid gregor1.UID, msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error) {
-	transform := newBasicSupersedesTransform(s.G())
+	transform := newBasicSupersedesTransform(s.G(), false)
 	return transform.Run(ctx, unboxInfo, uid, msgs)
 }
 
@@ -871,7 +872,7 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	// Post process thread before returning
 	defer func() {
 		if err == nil {
-			superXform := newBasicSupersedesTransform(s.G())
+			superXform := newBasicSupersedesTransform(s.G(), false)
 			superXform.SetMessagesFunc(func(ctx context.Context, conv types.UnboxConversationInfo,
 				uid gregor1.UID, msgIDs []chat1.MessageID,
 				_ *chat1.GetThreadReason) (res []chat1.MessageUnboxed, err error) {
