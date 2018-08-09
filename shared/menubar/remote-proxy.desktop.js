@@ -1,12 +1,13 @@
 // @flow
 // A mirror of the remote menubar windows.
 import * as React from 'react'
+import * as ChatTypes from '../constants/types/chat2'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import {sendLoad} from '../desktop/remote/sync-browser-window.desktop'
 import {NullComponent, connect, type TypedState, compose, renderNothing, branch} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
-import GetNewestConversationIDs from '../chat/inbox/container/remote'
+import GetNewestConvMetas from '../chat/inbox/container/remote'
 
 const windowOpts = {}
 
@@ -55,7 +56,7 @@ const mapStateToProps = (state: TypedState) => ({
   isAsyncWriteHappening: state.fs.flags.syncing,
   loggedIn: state.config.loggedIn,
   username: state.config.username,
-  convIDs: GetNewestConversationIDs(state),
+  _convMetas: GetNewestConvMetas(state),
 })
 
 const mergeProps = stateProps => ({
@@ -66,7 +67,7 @@ const mergeProps = stateProps => ({
   isAsyncWriteHappening: stateProps.isAsyncWriteHappening,
   loggedIn: stateProps.loggedIn,
   username: stateProps.username,
-  convIDs: stateProps.convIDs,
+  convIDs: stateProps._convMetas.map(meta => ChatTypes.conversationIDKeyToString(meta.conversationIDKey)),
   windowComponent: 'menubar',
   windowOpts,
   windowParam: '',

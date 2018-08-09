@@ -14,15 +14,15 @@ const getMetas = Container.createSelector([getMetaMap], metaMap =>
 )
 
 // Sort by timestamp
-const getSortedIDs = Container.createSelector([getMetas], map =>
+const getSortedConvMetas = Container.createSelector([getMetas], map =>
   map
     .sort((a, b) => b.timestamp - a.timestamp)
     .slice(0, maxShownConversations)
-    .keySeq()
-    .toArray()
+    .toList()
+    .toJS()
 )
 
 // Just to cache the sorted values
-const GetNewestConversationIDs = createShallowEqualSelector([getSortedIDs], smallMap => smallMap)
+const GetNewestConvMetas = createShallowEqualSelector([getSortedConvMetas], map => map)
 
-export default GetNewestConversationIDs
+export default GetNewestConvMetas
