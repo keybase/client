@@ -49,15 +49,15 @@ const HoverBox = isMobile
         opacity: 0,
         visibility: 'hidden',
       },
-      '&:hover': props.decorate
-        ? {
-            backgroundColor: globalColors.blue4,
-          }
-        : {},
-      '&:hover .menu-button': {
+      '&.active .menu-button, &:hover .menu-button': {
         opacity: 1,
         visibility: 'visible',
       },
+      '&.active, &:hover': props.decorate
+        ? {
+            backgroundColor: globalColors.blue5,
+          }
+        : {},
     }))
 
 class _WrapperTimestamp extends React.PureComponent<Props & OverlayParentProps> {
@@ -78,8 +78,9 @@ class _WrapperTimestamp extends React.PureComponent<Props & OverlayParentProps> 
         {props.orangeLineAbove && <Box style={styles.orangeLine} />}
         {props.timestamp && <Timestamp timestamp={props.timestamp} />}
         <HoverBox
+          className={props.showingMenu ? 'active' : ''}
           {...(isMobile && props.decorate
-            ? {onLongPress: props.toggleShowingMenu, underlayColor: globalColors.blue4}
+            ? {onLongPress: props.toggleShowingMenu, underlayColor: globalColors.blue5}
             : {})}
           direction="column"
           decorate={props.decorate}
@@ -166,10 +167,13 @@ const styles = styleSheetCreate({
   controls: platformStyles({
     common: {
       alignItems: 'center',
-      alignSelf: 'flex-end',
-      marginBottom: 1,
+      alignSelf: 'flex-start',
+      marginTop: 2,
     },
   }),
+  highlighted: {
+    backgroundColor: globalColors.blue5,
+  },
   menuButtons: platformStyles({
     isElectron: {
       ...globalStyles.flexBoxRow,
