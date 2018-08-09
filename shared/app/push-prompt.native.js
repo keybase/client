@@ -12,8 +12,9 @@ type Props = {
 }
 
 const PushPrompt = (props: Props) => (
-  <Kb.ScrollView>
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.container}>
+  <Kb.ScrollView contentContainerStyle={styles.scrollContent}>
+    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
+      <Kb.Box style={styles.spacer} />
       <Kb.Text type="Header" style={styles.text}>
         Please turn on notifications!
       </Kb.Text>
@@ -38,13 +39,22 @@ const PushPrompt = (props: Props) => (
         onClick={props.onRequestPermissions}
         label="Got it"
         waitingKey={Constants.permissionsRequestingWaitingKey}
+        style={styles.button}
       />
-      <Kb.Button type="Secondary" fullWidth={true} onClick={props.onNoPermissions} label="No thanks" />
+      <Kb.Button
+        type="Secondary"
+        fullWidth={true}
+        onClick={props.onNoPermissions}
+        label="No thanks"
+        style={styles.button}
+      />
+      <Kb.Box style={styles.spacer} />
     </Kb.Box2>
   </Kb.ScrollView>
 )
 
 const styles = Styles.styleSheetCreate({
+  button: {maxHeight: 40},
   container: {padding: Styles.globalMargins.small},
   image: Styles.platformStyles({
     isMobile: {
@@ -53,6 +63,8 @@ const styles = Styles.styleSheetCreate({
       width: '170%',
     },
   }),
+  scrollContent: {minHeight: '100%'},
+  spacer: {flexGrow: 1},
   text: {
     color: Styles.globalColors.black,
     textAlign: 'center',
