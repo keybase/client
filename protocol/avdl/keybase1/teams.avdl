@@ -666,9 +666,6 @@ protocol teams {
     // Specify this flag if you need the latest generation, which will maybe
     // trigger a poll of the team.
     boolean needLatestGeneration;
-
-    // In addition, these sequence numbers from the teamchain should be fetched.
-    array<Seqno> seqnosNeeded;
   }
 
   record FastTeamLoadRes {
