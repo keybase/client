@@ -499,6 +499,8 @@ func (h *Server) mergeLocalRemoteThread(ctx context.Context, remoteThread, local
 		}
 		// If newMsg is now superseded by something different than what we sent, then let's include it
 		if newMsg.Valid().ServerHeader.SupersededBy != oldMsg.Valid().ServerHeader.SupersededBy {
+			h.Debug(ctx, "mergeLocalRemoteThread: including supersededBy change: msgID: %d",
+				newMsg.GetMessageID())
 			return true
 		}
 		return false
