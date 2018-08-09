@@ -11,8 +11,7 @@ import {globalColors, isMobile, styleSheetCreate} from '../styles'
 /**
  * Users - get generic information about users to use in your view. Passes in
  * various information (`Args`) to a function child. Renders arbitrary return
- * value with no added markup. If children returns an array, it must be of
- * either primitives or components with a `key` supplied.
+ * value with no added markup.
  */
 
 type Args = {
