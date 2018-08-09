@@ -8,6 +8,7 @@ import {Picker} from 'emoji-mart'
 type Props = {
   encryptedNoteError?: string,
   publicMemoError?: string,
+  toSelf: boolean,
 }
 
 type State = {
@@ -43,7 +44,7 @@ class NoteAndMemo extends React.Component<Props, State> {
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.encryptedNoteContainer}>
           <Kb.PlainInput
             multiline={true}
-            placeholder="Add an encrypted note"
+            placeholder={this.props.toSelf ? 'Add a note to yourself' : 'Add an encrypted note'}
             placeholderColor={placeholderColor}
             style={sharedStyles}
             rowsMin={1}
