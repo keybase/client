@@ -46,6 +46,7 @@ const ButtonBox = glamorous(ClickableBox)({
           borderColor: globalColors.blue,
         },
       }),
+  backgroundColor: globalColors.white,
   borderColor: globalColors.black_10,
 })
 const ReactButton = (props: Props) => (
@@ -77,6 +78,7 @@ export type NewReactionButtonProps = {|
   onAddReaction: (emoji: string) => void,
   onLongPress?: () => void,
   onOpenEmojiPicker: () => void,
+  onShowPicker?: (showing: boolean) => void,
   showBorder: boolean,
   style?: StylesCrossPlatform,
 |}
@@ -90,8 +92,10 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
   state = {attachmentRef: null, hovering: false, iconIndex: 0, showingPicker: false}
   _intervalID: ?IntervalID
 
-  _setShowingPicker = (showingPicker: boolean) =>
+  _setShowingPicker = (showingPicker: boolean) => {
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
+    this.props.onShowPicker && this.props.onShowPicker(showingPicker)
+  }
 
   _onAddReaction = ({colons}: {colons: string}, evt: Event) => {
     evt.stopPropagation()
@@ -160,6 +164,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
           !isMobile && (
             <FloatingBox
               attachTo={this.state.attachmentRef}
+              containerStyle={styles.emojiContainer}
               position="bottom left"
               onHidden={() => this._setShowingPicker(false)}
             >
@@ -197,6 +202,12 @@ const styles = styleSheetCreate({
     isElectron: {
       paddingBottom: globalMargins.tiny,
       paddingTop: globalMargins.tiny,
+    },
+  }),
+  emojiContainer: platformStyles({
+    isElectron: {
+      borderRadius: 4,
+      boxShadow: `0 0 8px 0 ${globalColors.black_20}`,
     },
   }),
   emojiIconWrapper: platformStyles({

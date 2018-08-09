@@ -39,7 +39,6 @@ export const mimeTypeLoad = 'fs:mimeTypeLoad'
 export const mimeTypeLoaded = 'fs:mimeTypeLoaded'
 export const newFolderName = 'fs:newFolderName'
 export const newFolderRow = 'fs:newFolderRow'
-export const openFinderPopup = 'fs:openFinderPopup'
 export const openInFileUI = 'fs:openInFileUI'
 export const openPathItem = 'fs:openPathItem'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
@@ -142,10 +141,6 @@ type _NewFolderNamePayload = $ReadOnly<{|
   name: string,
 |}>
 type _NewFolderRowPayload = $ReadOnly<{|parentPath: Types.Path|}>
-type _OpenFinderPopupPayload = $ReadOnly<{|
-  targetRect: ?ClientRect,
-  routePath: I.List<string>,
-|}>
 type _OpenInFileUIPayload = $ReadOnly<{|path?: string|}>
 type _OpenPathItemPayload = $ReadOnly<{|
   path: Types.Path,
@@ -221,7 +216,6 @@ export const createMimeTypeLoad = (payload: _MimeTypeLoadPayload) => ({error: fa
 export const createMimeTypeLoaded = (payload: _MimeTypeLoadedPayload) => ({error: false, payload, type: mimeTypeLoaded})
 export const createNewFolderName = (payload: _NewFolderNamePayload) => ({error: false, payload, type: newFolderName})
 export const createNewFolderRow = (payload: _NewFolderRowPayload) => ({error: false, payload, type: newFolderRow})
-export const createOpenFinderPopup = (payload: _OpenFinderPopupPayload) => ({error: false, payload, type: openFinderPopup})
 export const createOpenInFileUI = (payload: _OpenInFileUIPayload) => ({error: false, payload, type: openInFileUI})
 export const createOpenPathItem = (payload: _OpenPathItemPayload) => ({error: false, payload, type: openPathItem})
 export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({error: false, payload, type: openSecurityPreferences})
@@ -268,7 +262,6 @@ export type MimeTypeLoadPayload = $Call<typeof createMimeTypeLoad, _MimeTypeLoad
 export type MimeTypeLoadedPayload = $Call<typeof createMimeTypeLoaded, _MimeTypeLoadedPayload>
 export type NewFolderNamePayload = $Call<typeof createNewFolderName, _NewFolderNamePayload>
 export type NewFolderRowPayload = $Call<typeof createNewFolderRow, _NewFolderRowPayload>
-export type OpenFinderPopupPayload = $Call<typeof createOpenFinderPopup, _OpenFinderPopupPayload>
 export type OpenInFileUIPayload = $Call<typeof createOpenInFileUI, _OpenInFileUIPayload>
 export type OpenPathItemPayload = $Call<typeof createOpenPathItem, _OpenPathItemPayload>
 export type OpenSecurityPreferencesPayload = $Call<typeof createOpenSecurityPreferences, _OpenSecurityPreferencesPayload>
@@ -317,7 +310,6 @@ export type Actions =
   | MimeTypeLoadedPayload
   | NewFolderNamePayload
   | NewFolderRowPayload
-  | OpenFinderPopupPayload
   | OpenInFileUIPayload
   | OpenPathItemPayload
   | OpenSecurityPreferencesPayload

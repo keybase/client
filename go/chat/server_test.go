@@ -146,8 +146,7 @@ func newTestContext(tc *kbtest.ChatTestContext) context.Context {
 
 func newTestContextWithTlfMock(tc *kbtest.ChatTestContext, tlfMock types.NameInfoSource) context.Context {
 	ctx := newTestContext(tc)
-	CtxKeyFinder(ctx, tc.Context()).SetNameInfoSourceOverride(tlfMock)
-	return ctx
+	return CtxAddTestingNameInfoSource(ctx, tlfMock)
 }
 
 type testUISource struct {

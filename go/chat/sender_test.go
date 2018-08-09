@@ -144,7 +144,7 @@ func newConvTriple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext
 
 func newConvTripleWithMembersType(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
 	username string, membersType chat1.ConversationMembersType) chat1.ConversationIDTriple {
-	nameInfo, err := CtxKeyFinder(ctx, tc.Context()).Find(ctx, username, membersType, false)
+	nameInfo, err := CreateNameInfoSource(ctx, tc.Context(), membersType).LookupID(ctx, username, false)
 	require.NoError(t, err)
 	topicID, err := utils.NewChatTopicID()
 	require.NoError(t, err)

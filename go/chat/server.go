@@ -1766,8 +1766,8 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 	}
 
 	// Fetch the TLF ID from specified name
-	nameInfo, err := CtxKeyFinder(ctx, h.G()).Find(ctx, arg.TlfName, chat1.ConversationMembersType_TEAM,
-		arg.Visibility == keybase1.TLFVisibility_PUBLIC)
+	nameInfo, err := CreateNameInfoSource(ctx, h.G(), chat1.ConversationMembersType_TEAM).LookupID(ctx,
+		arg.TlfName, arg.Visibility == keybase1.TLFVisibility_PUBLIC)
 	if err != nil {
 		h.Debug(ctx, "JoinConversationLocal: failed to get TLFID from name: %s", err.Error())
 		return res, err
@@ -1928,7 +1928,7 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 
 	// Fetch the TLF ID from specified name
-	nameInfo, err := CtxKeyFinder(ctx, h.G()).Find(ctx, arg.TlfName, arg.MembersType, false)
+	nameInfo, err := CreateNameInfoSource(ctx, h.G(), arg.MembersType).LookupID(ctx, arg.TlfName, false)
 	if err != nil {
 		h.Debug(ctx, "GetTLFConversationsLocal: failed to get TLFID from name: %s", err.Error())
 		return res, err

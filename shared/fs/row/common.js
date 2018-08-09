@@ -2,9 +2,10 @@
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import * as React from 'react'
-import {Box, Box2, ClickableBox, Icon} from '../../common-adapters'
+import {Box, Box2, ClickableBox} from '../../common-adapters'
 import PathItemIcon from '../common/path-item-icon'
 import PathItemAction from '../common/path-item-action-container'
+import OpenInFileUI from '../common/open-in-fileui-container'
 
 const rowBox = {
   ...Styles.globalStyles.flexBoxRow,
@@ -136,7 +137,6 @@ export type StillCommonProps = {
   name: string,
   path: Types.Path,
   onOpen: () => void,
-  openInFileUI: () => void,
 }
 
 export const StillCommon = (
@@ -152,15 +152,7 @@ export const StillCommon = (
       {props.children}
     </ClickableBox>
     <Box style={rowStyles.rightBox}>
-      {!Styles.isMobile && (
-        <Icon
-          type="iconfont-finder"
-          style={rowStyles.pathItemActionIcon}
-          fontSize={16}
-          onClick={props.openInFileUI}
-          className="fs-path-item-hover-icon"
-        />
-      )}
+      <OpenInFileUI path={props.path} />
       <PathItemAction path={props.path} actionIconClassName="fs-path-item-hover-icon" />
     </Box>
   </HoverBox>

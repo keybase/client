@@ -104,7 +104,7 @@ func GetExtendedStatus(m MetaContext) (res keybase1.ExtendedStatus, err error) {
 
 	current, all, err := GetAllProvisionedUsernames(m)
 	if err != nil {
-		m.CDebugf("| died in GetAllUseranmes()")
+		m.CDebugf("| died in GetAllUsernames()")
 		return res, err
 	}
 	res.DefaultUsername = current.String()

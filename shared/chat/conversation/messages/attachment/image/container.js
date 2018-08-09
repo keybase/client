@@ -9,7 +9,7 @@ import {imgMaxWidth} from './image-render'
 
 type OwnProps = {
   message: Types.MessageAttachment,
-  toggleShowingMenu: () => void,
+  toggleMessageMenu: () => void,
 }
 
 const mapStateToProps = (state: TypedState) => ({})
@@ -67,7 +67,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     showButton: buttonType,
     videoDuration: message.videoDuration || '',
     title: message.title || message.fileName,
-    toggleShowingMenu: ownProps.toggleShowingMenu,
+    toggleMessageMenu: ownProps.toggleMessageMenu,
     width: Math.min(message.previewWidth, imgMaxWidth()),
     hasProgress,
   }

@@ -21,7 +21,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {path, routePath}) => ({
     ),
 })
 
-const mergeProps = (_, {onBack, onChat, _openInFileUI, _openFinderPopup}, {path}) => {
+const mergeProps = (_, {onBack, onChat}, {path}) => {
   const elems = Types.getPathElements(path)
   return {
     path,

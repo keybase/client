@@ -60,6 +60,8 @@ export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKe
   state.chat2.messageOrdinals.get(id, I.SortedSet())
 export const getMessage = (state: TypedState, id: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
   state.chat2.messageMap.getIn([id, ordinal])
+export const getMessageKey = (message: Types.Message) =>
+  `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`
 export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.badgeMap.get(id, 0) > 0
 export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>

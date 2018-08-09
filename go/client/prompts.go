@@ -64,6 +64,7 @@ const (
 	PromptDescriptorImportStellarSecretKey
 	PromptDescriptorConfirmStellarImport
 	PromptDescriptorChatSetConvMinWriterRole
+	PromptDescriptorChangeLockdownMode
 )
 
 const (

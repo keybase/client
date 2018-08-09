@@ -441,6 +441,26 @@ func (e SenderTestImmediateFailError) IsImmediateFail() (chat1.OutboxErrorType, 
 
 //=============================================================================
 
+type DecryptionKeyNotFoundError struct {
+	generation            int
+	kbfsEncrypted, public bool
+}
+
+func NewDecryptionKeyNotFoundError(generation int, public, kbfsEncrypted bool) DecryptionKeyNotFoundError {
+	return DecryptionKeyNotFoundError{
+		generation:    generation,
+		kbfsEncrypted: kbfsEncrypted,
+		public:        public,
+	}
+}
+
+func (e DecryptionKeyNotFoundError) Error() string {
+	return fmt.Sprintf("decryption key not found for generation: %v kbfsEncrypted: %v public: %v",
+		e.generation, e.kbfsEncrypted, e.public)
+}
+
+//=============================================================================
+
 type OfflineErrorKind int
 
 const (

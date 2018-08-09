@@ -32,7 +32,7 @@ type Props = {
   progressLabel: string,
   showButton: null | 'play' | 'film',
   title: string,
-  toggleShowingMenu: () => void,
+  toggleMessageMenu: () => void,
   videoDuration: string,
   width: number,
 }
@@ -49,7 +49,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
       <ClickableBox
         style={styles.imageContainer}
         onClick={this.props.onClick}
-        onLongPress={this.props.toggleShowingMenu}
+        onLongPress={this.props.toggleMessageMenu}
       >
         <Text type="BodySemibold" style={styles.title}>
           {this.props.title}
@@ -203,9 +203,6 @@ const styles = styleSheetCreate({
   title: platformStyles({
     isElectron: {
       wordBreak: 'break-word',
-    },
-    isMobile: {
-      backgroundColor: globalColors.fastBlank,
     },
   }),
   progress: platformStyles({

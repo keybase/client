@@ -53,7 +53,7 @@ class MenuLayout extends Component<MenuLayoutProps> {
                 {...mi}
                 index={idx}
                 numItems={menuItemsWithHeader.length}
-                onHidden={this.props.onHidden}
+                onHidden={this.props.closeOnClick ? this.props.onHidden : undefined}
               />
             ))}
           </Box>
