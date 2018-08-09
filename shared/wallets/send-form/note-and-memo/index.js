@@ -10,12 +10,21 @@ type Props = {
 
 const NoteAndMemo = (props: Props) => (
   <React.Fragment>
-    <Kb.PlainInput
-      multiline={true}
-      placeholder="Add an encrypted note"
-      placeholderColor={placeholderColor}
-      style={styles.encryptedNote}
-    />
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.encryptedNoteContainer}>
+      <Kb.PlainInput
+        multiline={true}
+        placeholder="Add an encrypted note"
+        placeholderColor={placeholderColor}
+        style={sharedStyles}
+      />
+      <Kb.Icon
+        // color={this.state.emojiPickerOpen ? globalColors.black_75 : null}
+        onClick={() => {}}
+        boxStyle={styles.emojiIconContainer}
+        style={Kb.iconCastPlatformStyles(styles.emojiIcon)}
+        type="iconfont-emoji"
+      />
+    </Kb.Box2>
     {!!props.encryptedNoteError && (
       <Kb.Text type="Body" style={styles.errorMessage}>
         {props.encryptedNoteError}
@@ -49,6 +58,14 @@ const sharedStyles = {
 }
 
 const styles = Styles.styleSheetCreate({
+  emojiIconContainer: {
+    alignSelf: 'flex-end',
+  },
+  emojiIcon: {
+    alignSelf: 'flex-end',
+    marginBottom: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
+  },
   errorMessage: {
     ...sharedStyles,
     color: Styles.globalColors.red,
@@ -56,8 +73,7 @@ const styles = Styles.styleSheetCreate({
   dividerError: {
     backgroundColor: Styles.globalColors.red,
   },
-  encryptedNote: {
-    ...sharedStyles,
+  encryptedNoteContainer: {
     minHeight: 68,
   },
   publicMemo: {
