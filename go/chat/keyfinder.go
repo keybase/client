@@ -92,22 +92,48 @@ func (k *KeyFinderImpl) writeKey(key string, v *types.NameInfo) {
 	k.keys[key] = v
 }
 
+func (k *KeyFinderImpl) lookupEncKey(key string) (encItem, bool) {
+	k.Lock()
+	defer k.Unlock()
+	existing, ok := k.encKeys[key]
+	return existing, ok
+}
+
+func (k *KeyFinderImpl) writeEncKey(key string, v encItem) {
+	k.Lock()
+	defer k.Unlock()
+	k.encKeys[key] = v
+}
+
+func (k *KeyFinderImpl) lookupDecKey(key string) (types.CryptKey, bool) {
+	k.Lock()
+	defer k.Unlock()
+	existing, ok := k.decKeys[key]
+	return existing, ok
+}
+
+func (k *KeyFinderImpl) writeDecKey(key string, v types.CryptKey) {
+	k.Lock()
+	defer k.Unlock()
+	k.decKeys[key] = v
+}
+
 // FindForEncryption finds keys up-to-date enough for encrypting.
 // Ignores tlfName or teamID based on membersType.
 func (k *KeyFinderImpl) FindForEncryption(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, ni *types.NameInfo, err error) {
 
 	ckey := k.encCacheKey(tlfName, tlfID, membersType, public)
-	existing, ok := k.encKeys[ckey]
+	existing, ok := k.lookupEncKey(ckey)
 	if ok {
 		return existing.key, existing.ni, nil
 	}
 	defer func() {
 		if err == nil {
-			k.encKeys[ckey] = encItem{
+			k.writeEncKey(ckey, encItem{
 				key: res,
 				ni:  ni,
-			}
+			})
 		}
 	}()
 
@@ -121,13 +147,13 @@ func (k *KeyFinderImpl) FindForDecryption(ctx context.Context,
 	membersType chat1.ConversationMembersType, public bool,
 	keyGeneration int, kbfsEncrypted bool) (res types.CryptKey, err error) {
 	ckey := k.decCacheKey(tlfName, tlfID, membersType, keyGeneration, public, kbfsEncrypted)
-	existing, ok := k.decKeys[ckey]
+	existing, ok := k.lookupDecKey(ckey)
 	if ok {
 		return existing, nil
 	}
 	defer func() {
 		if err == nil {
-			k.decKeys[ckey] = res
+			k.writeDecKey(ckey, res)
 		}
 	}()
 	return k.createNameInfoSource(ctx, membersType).DecryptionKey(ctx, tlfName, tlfID,
