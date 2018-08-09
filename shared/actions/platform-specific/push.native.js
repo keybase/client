@@ -227,6 +227,10 @@ const askNativeIfSystemPushPromptHasBeenShown = () =>
   isIOS ? NativeModules.PushPrompt.getHasShownPushPrompt() : Promise.resolve(false)
 const checkPermissionsFromNative = () =>
   new Promise((resolve, reject) => PushNotifications.checkPermissions(resolve))
+const monsterStorageKey = 'shownMonsterPushPrompt'
+
+const neverShowMonsterAgain = (state: TypedState) =>
+  !state.push.showPushPrompt && Saga.fork(AsyncStorage.setItem, monsterStorageKey, 'true')
 
 const requestPermissions = () =>
   Saga.call(function*() {
@@ -261,8 +265,7 @@ function* initialPermissionsCheck(): Saga.SagaGenerator<any, any> {
   const hasPermissions = yield checkPermissions(null, null)
   if (!hasPermissions) {
     const shownNativePushPromptTask = yield Saga.fork(askNativeIfSystemPushPromptHasBeenShown)
-    const storageKey = 'shownMonsterPushPrompt'
-    const shownMonsterPushPromptTask = yield Saga.fork(AsyncStorage.getItem, storageKey)
+    const shownMonsterPushPromptTask = yield Saga.fork(AsyncStorage.getItem, monsterStorageKey)
     const [shownNativePushPrompt, shownMonsterPushPrompt] = yield Saga.join(
       shownNativePushPromptTask,
       shownMonsterPushPromptTask
@@ -276,7 +279,6 @@ function* initialPermissionsCheck(): Saga.SagaGenerator<any, any> {
     if (!shownNativePushPrompt && !shownMonsterPushPrompt) {
       logger.info('[PushInitialCheck] no permissions, never shown prompt, now show prompt')
       yield Saga.put(PushGen.createShowPermissionsPrompt({show: true}))
-      yield Saga.fork(AsyncStorage.setItem, storageKey, 'true')
     }
   }
 }
@@ -342,6 +344,7 @@ const getStartupDetailsFromInitialPush = () =>
 function* pushSaga(): Saga.SagaGenerator<any, any> {
   // Permissions
   yield Saga.actionToAction(PushGen.requestPermissions, requestPermissions)
+  yield Saga.actionToAction([PushGen.showPermissionsPrompt, PushGen.rejectPermissions], neverShowMonsterAgain)
   yield Saga.actionToAction(ConfigGen.mobileAppState, checkPermissions)
 
   // Token handling
