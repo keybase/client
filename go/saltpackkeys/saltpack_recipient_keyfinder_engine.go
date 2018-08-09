@@ -239,7 +239,7 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddTeam(m libkb.MetaContext,
 				m.CDebugf("skipping device and paper keys for %v as part of team %v because of NoSelfEncrypt", uid, teamName)
 				continue
 			}
-			arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(uid).WithForcePoll(true)
+			arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(uid).WithForcePoll(true).WithPublicKeyOptional()
 			upak, _, err := upakLoader.LoadV2(arg)
 			if err != nil {
 				return err

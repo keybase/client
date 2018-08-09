@@ -919,7 +919,12 @@
       "doc": "Instructs KBFS to dump debugging info into its logs."
     },
     "simpleFSSyncStatus": {
-      "request": [],
+      "request": [
+        {
+          "name": "filter",
+          "type": "ListFilter"
+        }
+      ],
       "response": "FSSyncStatus",
       "doc": "Get sync status."
     },

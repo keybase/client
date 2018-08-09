@@ -18,6 +18,7 @@ import {debounce, throttle, chunk} from 'lodash-es'
 import {globalStyles} from '../../../../styles'
 import type {Props} from './index.types'
 import shallowEqual from 'shallowequal'
+import {globalMargins} from '../../../../styles/shared'
 
 // hot reload isn't supported with debouncing currently so just ignore hot here
 if (module.hot) {
@@ -517,6 +518,7 @@ const listStyle = {
   outline: 'none',
   overflowX: 'hidden',
   overflowY: 'auto',
+  paddingBottom: globalMargins.tiny,
   // get our own layer so we can scroll faster
   willChange: 'transform',
 }

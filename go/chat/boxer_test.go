@@ -497,7 +497,12 @@ func TestChatMessageMismatchMessageType(t *testing.T) {
 		tlf := kbtest.NewTlfMock(world)
 		ctx := newTestContextWithTlfMock(tc, tlf)
 
+		ni, err := tlf.LookupID(ctx, u.Username, false)
+		require.NoError(t, err)
 		header := chat1.MessageClientHeader{
+			Conv: chat1.ConversationIDTriple{
+				Tlfid: ni.ID,
+			},
 			Sender:      uid,
 			TlfPublic:   false,
 			TlfName:     u.Username,
@@ -538,7 +543,12 @@ func TestChatMessageUnboxInvalidBodyHash(t *testing.T) {
 		tlf := kbtest.NewTlfMock(world)
 		ctx := newTestContextWithTlfMock(tc, tlf)
 
+		ni, err := tlf.LookupID(ctx, u.Username, false)
+		require.NoError(t, err)
 		header := chat1.MessageClientHeader{
+			Conv: chat1.ConversationIDTriple{
+				Tlfid: ni.ID,
+			},
 			Sender:    uid,
 			TlfPublic: false,
 			TlfName:   u.Username,
@@ -849,7 +859,12 @@ func TestChatMessagePublic(t *testing.T) {
 		tlf := kbtest.NewTlfMock(world)
 		ctx := newTestContextWithTlfMock(tc, tlf)
 
+		ni, err := tlf.LookupID(ctx, u.Username, true)
+		require.NoError(t, err)
 		header := chat1.MessageClientHeader{
+			Conv: chat1.ConversationIDTriple{
+				Tlfid: ni.ID,
+			},
 			Sender:      uid,
 			TlfPublic:   true,
 			TlfName:     u.Username,
@@ -1639,38 +1654,22 @@ func NewKeyFinderMock(cryptKeys []keybase1.CryptKey) KeyFinder {
 
 func (k *KeyFinderMock) Reset() {}
 
-func (k *KeyFinderMock) FindUntrusted(ctx context.Context, tlfName string,
-	membersType chat1.ConversationMembersType, public bool) (*types.NameInfoUntrusted, error) {
-	ni, err := k.Find(ctx, tlfName, membersType, public)
-	if err != nil {
-		return nil, err
-	}
-	return &types.NameInfoUntrusted{
-		ID:            ni.ID,
-		CanonicalName: ni.CanonicalName,
-	}, nil
-}
-
-func (k *KeyFinderMock) Find(ctx context.Context, tlfName string,
-	membersType chat1.ConversationMembersType, tlfPublic bool) (res *types.NameInfo, err error) {
-	res = types.NewNameInfo()
-	for _, key := range k.cryptKeys {
-		res.CryptKeys[membersType] = append(res.CryptKeys[membersType], key)
-	}
-	return res, nil
-}
-
 func (k *KeyFinderMock) FindForEncryption(ctx context.Context,
 	tlfName string, teamID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (res *types.NameInfo, err error) {
-	return k.Find(ctx, tlfName, membersType, public)
+	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, ni *types.NameInfo, err error) {
+	return k.cryptKeys[len(k.cryptKeys)-1], types.NewNameInfo(), nil
 }
 
 func (k *KeyFinderMock) FindForDecryption(ctx context.Context,
 	tlfName string, teamID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int, kbfsEncrypted bool) (res *types.NameInfo, err error) {
-	return k.Find(ctx, tlfName, membersType, public)
+	keyGeneration int, kbfsEncrypted bool) (res types.CryptKey, err error) {
+	for _, key := range k.cryptKeys {
+		if key.Generation() == keyGeneration {
+			return key, nil
+		}
+	}
+	return res, NewDecryptionKeyNotFoundError(keyGeneration, public, kbfsEncrypted)
 }
 
 func (k *KeyFinderMock) EphemeralKeyForEncryption(ctx context.Context, tlfName string, tlfID chat1.TLFID,

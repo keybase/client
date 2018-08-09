@@ -202,6 +202,28 @@ func (o ExtendedStatus) DeepCopy() ExtendedStatus {
 	}
 }
 
+type AllProvisionedUsernames struct {
+	DefaultUsername      string   `codec:"defaultUsername" json:"defaultUsername"`
+	ProvisionedUsernames []string `codec:"provisionedUsernames" json:"provisionedUsernames"`
+}
+
+func (o AllProvisionedUsernames) DeepCopy() AllProvisionedUsernames {
+	return AllProvisionedUsernames{
+		DefaultUsername: o.DefaultUsername,
+		ProvisionedUsernames: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.ProvisionedUsernames),
+	}
+}
+
 type ForkType int
 
 const (
@@ -383,6 +405,10 @@ type GetExtendedStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type GetAllProvisionedUsernamesArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type GetConfigArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -440,6 +466,7 @@ type SetRememberPassphraseArg struct {
 type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (GetCurrentStatusRes, error)
 	GetExtendedStatus(context.Context, int) (ExtendedStatus, error)
+	GetAllProvisionedUsernames(context.Context, int) (AllProvisionedUsernames, error)
 	GetConfig(context.Context, int) (Config, error)
 	// Change user config.
 	// For example, to update primary picture source:
@@ -491,6 +518,22 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetExtendedStatus(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getAllProvisionedUsernames": {
+				MakeArg: func() interface{} {
+					ret := make([]GetAllProvisionedUsernamesArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetAllProvisionedUsernamesArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetAllProvisionedUsernamesArg)(nil), args)
+						return
+					}
+					ret, err = i.GetAllProvisionedUsernames(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -699,6 +742,12 @@ func (c ConfigClient) GetCurrentStatus(ctx context.Context, sessionID int) (res 
 func (c ConfigClient) GetExtendedStatus(ctx context.Context, sessionID int) (res ExtendedStatus, err error) {
 	__arg := GetExtendedStatusArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.config.getExtendedStatus", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ConfigClient) GetAllProvisionedUsernames(ctx context.Context, sessionID int) (res AllProvisionedUsernames, err error) {
+	__arg := GetAllProvisionedUsernamesArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.config.getAllProvisionedUsernames", []interface{}{__arg}, &res)
 	return
 }
 

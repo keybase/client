@@ -40,7 +40,7 @@ class Divider extends React.PureComponent<Props> {
               </Text>
               {this.props.hiddenCount > 0 &&
                 this.props.badgeCount > 0 && (
-                  <Badge badgeStyle={styles.badgeToggle} badgeNumber={this.props.badgeCount} />
+                  <Badge badgeStyle={styles.badge} badgeNumber={this.props.badgeCount} />
                 )}
             </Box2>
           </ClickableBox>
@@ -60,12 +60,6 @@ const styles = styleSheetCreate({
   badge: {
     marginLeft: globalMargins.xtiny,
     marginRight: 0,
-    position: 'relative',
-  },
-  badgeToggle: {
-    marginLeft: globalMargins.xtiny,
-    marginRight: 0,
-    position: 'relative',
   },
   buttonText: {color: globalColors.black_60},
   containerButton: platformStyles({

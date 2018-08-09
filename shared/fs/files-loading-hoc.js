@@ -39,17 +39,21 @@ type FilesLoadingHocProps = {
 
 const FilesLoadingHoc = (ComposedComponent: React.ComponentType<any>) =>
   class extends React.PureComponent<FilesLoadingHocProps> {
-    componentDidMount() {
+    _load = () => {
+      const pathLevel = Types.getPathLevel(this.props.path)
+      if (pathLevel < 2) {
+        return
+      }
+      pathLevel === 2 && this.props.loadFavorites()
       this.props.loadFolderList()
-      this.props.loadFavorites()
+    }
+    componentDidMount() {
+      this._load()
     }
     componentDidUpdate(prevProps) {
       // This gets called on route changes too, e.g. when user clicks the
       // action menu. So only load folder list when path changes.
-      if (this.props.path !== prevProps.path) {
-        this.props.loadFolderList()
-        Types.getPathLevel(this.props.path) === 2 && this.props.loadFavorites()
-      }
+      this.props.path !== prevProps.path && this._load()
     }
     render() {
       return <ComposedComponent {...this.props} />
