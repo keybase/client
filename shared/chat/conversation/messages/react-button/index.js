@@ -53,10 +53,10 @@ const ButtonBox = Styles.glamorous(ClickableBox)(props => ({
             }
           : {}),
         '& .centered': {
-          animation: `${bounceIn} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`,
+          animation: `${bounceIn} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) -300ms forwards`,
         },
         '& .offscreen': {
-          animation: `${bounceOut} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`,
+          animation: `${bounceOut} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) -300ms forwards`,
         },
       }),
   borderColor: Styles.globalColors.black_10,
@@ -217,6 +217,10 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
     )
   }
 }
+
+// The first emoji should stay on screen for less time so the user has a better chance of seeing it.
+// Set the interval after a shorter initial delay.
+// Convenience wrapper around interval + timeout
 
 const styles = Styles.styleSheetCreate({
   active: {
