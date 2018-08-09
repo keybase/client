@@ -9,13 +9,15 @@ type Props = {
 }
 
 const NoteAndMemo = (props: Props) => (
-  <Kb.ScrollView style={styles.container}>
+  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.encryptedNoteContainer}>
       <Kb.PlainInput
         multiline={true}
         placeholder="Add an encrypted note"
         placeholderColor={placeholderColor}
         style={sharedStyles}
+        rowsMin={1}
+        rowsMax={12}
       />
       <Kb.Icon
         // color={this.state.emojiPickerOpen ? globalColors.black_75 : null}
@@ -36,6 +38,8 @@ const NoteAndMemo = (props: Props) => (
       placeholder="Add a public memo"
       placeholderColor={placeholderColor}
       style={styles.publicMemo}
+      rowsMin={1}
+      rowsMax={6}
     />
     {!!props.publicMemoError && (
       <Kb.Text type="Body" style={styles.errorMessage}>
@@ -43,7 +47,7 @@ const NoteAndMemo = (props: Props) => (
       </Kb.Text>
     )}
     <Kb.Divider style={props.publicMemoError ? styles.dividerError : undefined} />
-  </Kb.ScrollView>
+  </Kb.Box2>
 )
 
 const placeholderColor = Styles.globalColors.black_20
@@ -66,7 +70,6 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,
   },
-
   errorMessage: {
     ...sharedStyles,
     color: Styles.globalColors.red,
