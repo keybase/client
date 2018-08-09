@@ -41,22 +41,21 @@ class NoteAndMemo extends React.Component<Props, State> {
   render() {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.encryptedNoteContainer}>
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.PlainInput
             multiline={true}
             placeholder={this.props.toSelf ? 'Add a note to yourself' : 'Add an encrypted note'}
             placeholderColor={placeholderColor}
-            style={sharedStyles}
             rowsMin={1}
             rowsMax={12}
-            // ref={this._note}
+            style={styles.encryptedNote}
           />
           <Kb.Icon
-            // onClick={this._emojiPickerToggle}
-            boxStyle={styles.emojiIconContainer}
+            boxStyle={
+              styles.emojiIcon // onClick={this._emojiPickerToggle}
+            }
             style={Kb.iconCastPlatformStyles(styles.emojiIcon)}
             type="iconfont-emoji"
-            // ref={this._emojiIcon}
           />
           {/* {this.state.emojiPickerOpen &&
             !Styles.isMobile && (
@@ -81,19 +80,22 @@ class NoteAndMemo extends React.Component<Props, State> {
           </Kb.Text>
         )}
         <Kb.Divider style={this.props.encryptedNoteError ? styles.dividerError : undefined} />
-        <Kb.PlainInput
-          multiline={true}
-          placeholder="Add a public memo"
-          placeholderColor={placeholderColor}
-          style={styles.publicMemo}
-          rowsMin={1}
-          rowsMax={6}
-        />
-        {!!this.props.publicMemoError && (
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
+          <Kb.PlainInput
+            multiline={true}
+            placeholder="Add a public memo"
+            placeholderColor={placeholderColor}
+            style={styles.publicMemo}
+            // rowsMin={1}
+            // rowsMax={6}
+          />
+        </Kb.Box2>
+
+        {/* {!!this.props.publicMemoError && (
           <Kb.Text type="Body" style={styles.errorMessage}>
             {this.props.publicMemoError}
           </Kb.Text>
-        )}
+        )} */}
         <Kb.Divider style={this.props.publicMemoError ? styles.dividerError : undefined} />
       </Kb.Box2>
     )
@@ -103,7 +105,6 @@ class NoteAndMemo extends React.Component<Props, State> {
 const placeholderColor = Styles.globalColors.black_20
 
 const sharedStyles = {
-  width: '100%',
   color: Styles.globalColors.black_75,
   paddingTop: Styles.globalMargins.xsmall,
   paddingBottom: Styles.globalMargins.xsmall,
@@ -113,9 +114,9 @@ const sharedStyles = {
 
 const styles = Styles.styleSheetCreate({
   container: {
-    flex: 1,
+    // flex: 1,
   },
-  emojiIconContainer: {
+  emojiIcon: {
     alignSelf: 'flex-end',
     marginBottom: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,
@@ -127,12 +128,13 @@ const styles = Styles.styleSheetCreate({
   dividerError: {
     backgroundColor: Styles.globalColors.red,
   },
-  encryptedNoteContainer: {
+  encryptedNote: {
+    ...sharedStyles,
     minHeight: 68,
   },
   publicMemo: {
     ...sharedStyles,
-    minHeight: 40,
+    minHeight: 48,
   },
 
   emojiPickerContainer: Styles.platformStyles({
