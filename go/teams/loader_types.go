@@ -43,7 +43,16 @@ type chainLinkUnpacked struct {
 }
 
 func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
-	outerLink, err := libkb.DecodeOuterLinkV2(link.Sig)
+	var outerLink *libkb.OuterLinkV2WithMetadata
+	var err error
+	switch {
+	case link.Sig != "":
+		outerLink, err = libkb.DecodeOuterLinkV2(link.Sig)
+	case link.SigV2Payload != "":
+		outerLink, err = libkb.DecodeStubbedOuterLinkV2(link.SigV2Payload)
+	default:
+		return nil, fmt.Errorf("cannot decode chain link, no sig v2 payload")
+	}
 	if err != nil {
 		return nil, fmt.Errorf("unpack outer: %v", err)
 	}
@@ -83,6 +92,10 @@ func (l *chainLinkUnpacked) Seqno() keybase1.Seqno {
 	return l.outerLink.Seqno
 }
 
+func (l *chainLinkUnpacked) SeqType() keybase1.SeqType {
+	return l.outerLink.SeqType
+}
+
 func (l *chainLinkUnpacked) Prev() libkb.LinkID {
 	return l.outerLink.Prev
 }
@@ -109,6 +122,14 @@ func (l chainLinkUnpacked) SignatureMetadata() keybase1.SignatureMetadata {
 
 func (l chainLinkUnpacked) SigChainLocation() keybase1.SigChainLocation {
 	return l.inner.SigChainLocation()
+}
+
+func (l chainLinkUnpacked) LinkTriple() keybase1.LinkTriple {
+	return keybase1.LinkTriple{
+		Seqno:   l.Seqno(),
+		SeqType: l.SeqType(),
+		LinkID:  l.LinkID().Export(),
+	}
 }
 
 func (i *SCChainLinkPayload) SignatureMetadata() keybase1.SignatureMetadata {

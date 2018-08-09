@@ -396,3 +396,15 @@ func (b BadNameError) Error() string {
 func NewBadNameError(s string) BadNameError {
 	return BadNameError{Msg: s}
 }
+
+type FastLoadError struct {
+	Msg string
+}
+
+func (f FastLoadError) Error() string {
+	return fmt.Sprintf("fast load error: %s", f.Msg)
+}
+
+func NewFastLoadError(format string, args ...interface{}) error {
+	return FastLoadError{Msg: fmt.Sprintf(format, args...)}
+}

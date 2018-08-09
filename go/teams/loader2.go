@@ -50,7 +50,7 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 	if err != nil {
 		return state, proofSet, parentChildOperations, err
 	}
-	newLinks, err := l.unpackLinks(ctx, teamUpdate)
+	newLinks, err := teamUpdate.unpackLinks(ctx)
 	if err != nil {
 		return state, proofSet, parentChildOperations, err
 	}
@@ -824,15 +824,20 @@ func (l *TeamLoader) checkReaderKeyMaskCoverage(ctx context.Context,
 func (l *TeamLoader) unboxPerTeamSecrets(ctx context.Context,
 	box *TeamBox, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded) (keybase1.PerTeamKeyGeneration, []keybase1.PerTeamKeySeed, error) {
 
+	return unboxPerTeamSecrets(libkb.NewMetaContext(ctx, l.G()), box, prevs)
+}
+
+func unboxPerTeamSecrets(m libkb.MetaContext, box *TeamBox, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded) (keybase1.PerTeamKeyGeneration, []keybase1.PerTeamKeySeed, error) {
+
 	if box == nil {
 		return 0, nil, fmt.Errorf("no key box from server")
 	}
 
-	userKey, err := l.perUserEncryptionKey(ctx, box.PerUserKeySeqno)
+	userKey, err := perUserEncryptionKey(m, box.PerUserKeySeqno)
+
 	if err != nil {
 		return 0, nil, err
 	}
-
 	secret1, err := box.Open(userKey)
 	if err != nil {
 		return 0, nil, fmt.Errorf("opening key box: %v", err)
@@ -857,7 +862,7 @@ func (l *TeamLoader) unboxPerTeamSecrets(ctx context.Context,
 		if !ok {
 			break
 		}
-		secret, err := decryptPrevSingle(ctx, prev, secrets[len(secrets)-1])
+		secret, err := decryptPrevSingle(m.Ctx(), prev, secrets[len(secrets)-1])
 		if err != nil {
 			return box.Generation, nil, fmt.Errorf("opening prev gen %v: %v", openGeneration, err)
 		}
@@ -879,32 +884,6 @@ func (l *TeamLoader) unboxPerTeamSecrets(ctx context.Context,
 
 func (l *TeamLoader) perUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error) {
 	return l.world.perUserEncryptionKey(ctx, userSeqno)
-}
-
-func (l *TeamLoader) unpackLinks(ctx context.Context, teamUpdate *rawTeam) ([]*chainLinkUnpacked, error) {
-	if teamUpdate == nil {
-		return nil, nil
-	}
-	parsedLinks, err := teamUpdate.parseLinks(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var links []*chainLinkUnpacked
-	for _, pLink := range parsedLinks {
-		pLink2 := pLink
-		link, err := unpackChainLink(&pLink2)
-		if err != nil {
-			return nil, err
-		}
-		if !link.isStubbed() {
-			if !link.innerTeamID.Eq(teamUpdate.ID) {
-				return nil, fmt.Errorf("link has wrong team ID in response: %v != %v",
-					link.innerTeamID, teamUpdate.ID)
-			}
-		}
-		links = append(links, link)
-	}
-	return links, nil
 }
 
 // Whether the snapshot has fully loaded, non-stubbed, all of the links.
