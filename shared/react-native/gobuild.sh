@@ -109,7 +109,8 @@ gomobileinit ()
 }
 
 if [ "$arg" = "ios" ]; then
-  ios_dest="$dir/ios/keybase.framework"
+  ios_dir=${DEST_DIR:-"$dir/ios"}
+  ios_dest="$ios_dir/keybase.framework"
   echo "Building for iOS ($ios_dest)..."
   set +e
   OUTPUT="$("$GOPATH/bin/gomobile" bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package" 2>&1)"
@@ -122,7 +123,8 @@ if [ "$arg" = "ios" ]; then
     echo $OUTPUT
   fi
 elif [ "$arg" = "android" ]; then
-  android_dest="$dir/android/keybaselib/keybaselib.aar"
+  android_dir=${DEST_DIR:-"$dir/android/keybaselib"}
+  android_dest="$android_dir/keybaselib.aar"
   echo "Building for Android ($android_dest)..."
   set +e
   OUTPUT="$("$GOPATH/bin/gomobile" bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package" 2>&1)"
