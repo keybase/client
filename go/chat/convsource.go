@@ -660,7 +660,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv types.U
 }
 
 func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1.UID,
-	thread *chat1.ThreadView, conv chat1.Conversation, reason chat1.GetThreadReason) (err error) {
+	thread *chat1.ThreadView, conv chat1.Conversation, reason chat1.GetThreadReason) (holesFilled int, err error) {
 	defer s.Trace(ctx, func() error { return err }, "resolveHoles")()
 	var msgIDs []chat1.MessageID
 	// Gather all placeholder messages so we can go fetch them
@@ -673,48 +673,28 @@ func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1
 			if index == len(thread.Messages)-1 {
 				// If the last message is a hole, we might not have fetched everything,
 				// so fail this case like a normal miss
-				return storage.MissError{}
+				return 0, storage.MissError{}
 			}
 			msgIDs = append(msgIDs, msg.GetMessageID())
 		}
 	}
 	if len(msgIDs) == 0 {
 		// Nothing to do
-		return nil
+		return 0, nil
 	}
 	if s.IsOffline(ctx) {
 		// Don't attempt if we are offline
-		return OfflineError{}
+		return 0, OfflineError{}
 	}
 
 	// Fetch all missing messages from server, and sub in the real ones into the placeholder slots
 	msgs, err := s.GetMessages(ctx, conv, uid, msgIDs, &reason)
 	if err != nil {
 		s.Debug(ctx, "resolveHoles: failed to get missing messages: %s", err.Error())
-		return err
-	}
-	msgLookup := make(map[chat1.MessageID]chat1.MessageUnboxed)
-	for _, msg := range msgs {
-		msgLookup[msg.GetMessageID()] = msg
-	}
-	for i, threadMsg := range thread.Messages {
-		state, err := threadMsg.State()
-		if err != nil {
-			continue
-		}
-		switch state {
-		case chat1.MessageUnboxedState_PLACEHOLDER:
-			if msg, ok := msgLookup[threadMsg.GetMessageID()]; ok {
-				thread.Messages[i] = msg
-			} else {
-				s.Debug(ctx, "resolveHoles: did not fetch all placeholder messages, missing msgID: %d",
-					threadMsg.GetMessageID())
-				return fmt.Errorf("did not fetch all placeholder messages")
-			}
-		}
+		return 0, err
 	}
 	s.Debug(ctx, "resolveHoles: success: filled %d holes", len(msgs))
-	return nil
+	return len(msgs), nil
 }
 
 // maxHolesForPull is the number of misses in the body storage cache we will tolerate missing. A good
@@ -739,6 +719,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	if err == nil {
 		unboxConv = conv
 		// Try locally first
+		var holesFilled int
 		rc := storage.NewHoleyResultCollector(maxHolesForPull,
 			s.storage.ResultCollectorFromQuery(ctx, query, pagination))
 		thread, err = s.fetchMaybeNotify(ctx, conv.GetConvID(), uid, rc, conv.ReaderInfo.MaxMsgid,
@@ -746,9 +727,15 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		if err == nil {
 			// Since we are using the "holey" collector, we need to resolve any placeholder
 			// messages that may have been fetched.
-			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s holes: %d msgs: %d", unboxConv.GetConvID(), uid,
-				rc.Holes(), len(thread.Messages))
-			err = s.resolveHoles(ctx, uid, &thread, conv, reason)
+			s.Debug(ctx, "Pull: (holey) cache hit: convID: %s uid: %s holes: %d msgs: %d",
+				unboxConv.GetConvID(), uid, rc.Holes(), len(thread.Messages))
+			holesFilled, err = s.resolveHoles(ctx, uid, &thread, conv, reason)
+		}
+		if err == nil && holesFilled > 0 {
+			s.Debug(ctx, "Pull: %d holes filled, refetching from storage")
+			rc := s.storage.ResultCollectorFromQuery(ctx, query, pagination)
+			thread, err = s.fetchMaybeNotify(ctx, conv.GetConvID(), uid, rc, conv.ReaderInfo.MaxMsgid,
+				query, pagination)
 		}
 		if err == nil {
 			// Do online only things
