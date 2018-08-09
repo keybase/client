@@ -1082,9 +1082,13 @@ func TestSelfProvision(t *testing.T) {
 	}
 
 	m := NewMetaContextForTest(tc).WithUIs(uis)
-	createDeviceClone(t, m)
+	// Test the happy case of successfully self provisioning.
+	assertValidSelfProvision(t, tc, m, user)
+}
 
-	newName := "uncloneme"
+func assertValidSelfProvision(t *testing.T, tc libkb.TestContext, m libkb.MetaContext, user *FakeUser) {
+	createDeviceClone(t, m)
+	newName := tc.G.ActiveDevice.Name() + "uncloneme"
 	eng := NewSelfProvisionEngine(tc.G, newName)
 	err := RunEngine2(m, eng)
 	require.NoError(t, err)
@@ -1127,20 +1131,20 @@ func TestSelfProvision(t *testing.T) {
 
 func TestFailSelfProvisionNoClone(t *testing.T) {
 	// If we don't have a clone, we can't run this engine
-	testFailSelfProvision(t, func(m libkb.MetaContext) (oldName, newName string) {
-		return defaultDeviceName, defaultDeviceName + "new"
+	testFailSelfProvision(t, func(m libkb.MetaContext) string {
+		return "new"
 	})
 }
 
 func TestFailSelfProvisionDuplicateName(t *testing.T) {
-	testFailSelfProvision(t, func(m libkb.MetaContext) (oldName, newName string) {
+	testFailSelfProvision(t, func(m libkb.MetaContext) string {
 		createDeviceClone(t, m)
 		// Use the default name so we get an error when provisioning.
-		return defaultDeviceName, defaultDeviceName
+		return ""
 	})
 }
 
-func testFailSelfProvision(t *testing.T, fn func(m libkb.MetaContext) (string, string)) {
+func testFailSelfProvision(t *testing.T, fn func(m libkb.MetaContext) string) {
 
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
@@ -1159,7 +1163,9 @@ func testFailSelfProvision(t *testing.T, fn func(m libkb.MetaContext) (string, s
 	}
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 
-	oldName, newName := fn(m)
+	suffix := fn(m)
+	oldName := tc.G.ActiveDevice.Name()
+	newName := oldName + suffix
 
 	t.Logf("self provision running %v %v", oldName, newName)
 	eng := NewSelfProvisionEngine(tc.G, newName)
@@ -1183,6 +1189,9 @@ func testFailSelfProvision(t *testing.T, fn func(m libkb.MetaContext) (string, s
 
 	Logout(tc)
 	user.LoginOrBust(tc)
+
+	// Make sure we can successfully self provision after we've failed.
+	assertValidSelfProvision(t, tc, m, user)
 }
 
 // Provision device using a private GPG key (not synced to keybase
