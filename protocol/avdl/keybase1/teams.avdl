@@ -222,6 +222,7 @@ protocol teams {
     boolean isDeleted;
   }
 
+
   // FastTeamSigChainState is the state computed by doing a fast reply of the
   // team's sigchain, ignoring all but the key rotation links.
   record FastTeamSigChainState {
@@ -654,7 +655,7 @@ protocol teams {
     boolean allowNameLookupBurstCache; // If it's ok to hit the nameLookup burst cache
   }
 
-  record FastLoadTeamArg {
+  record FastTeamLoadArg {
     TeamID id;
     boolean public;
 
@@ -665,12 +666,9 @@ protocol teams {
     // Specify this flag if you need the latest generation, which will maybe
     // trigger a poll of the team.
     boolean needLatestGeneration;
-
-    // In addition, these sequence numbers from the teamchain should be fetched.
-    array<Seqno> seqnosNeeded;
   }
 
-  record FastLoadTeamRes {
+  record FastTeamLoadRes {
     TeamName name;
     array<TeamApplicationKey> applicationKeys;
   }

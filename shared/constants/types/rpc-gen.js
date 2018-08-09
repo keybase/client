@@ -1121,9 +1121,9 @@ export type FSStatusCode =
 
 export type FSSyncStatus = $ReadOnly<{totalSyncingBytes: Int64, syncingPaths?: ?Array<String>, endEstimate?: ?Time}>
 export type FSSyncStatusRequest = $ReadOnly<{requestID: Int}>
-export type FastLoadTeamArg = $ReadOnly<{id: TeamID, public: Boolean, applications?: ?Array<TeamApplication>, keyGenerationsNeeded?: ?Array<PerTeamKeyGeneration>, needLatestGeneration: Boolean, seqnosNeeded?: ?Array<Seqno>}>
-export type FastLoadTeamRes = $ReadOnly<{name: TeamName, applicationKeys?: ?Array<TeamApplicationKey>}>
 export type FastTeamData = $ReadOnly<{name: TeamName, chain: FastTeamSigChainState, perTeamKeySeeds /* perTeamKeySeedsUnverified */: {[key: string]: PerTeamKeySeedItem}, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time}>
+export type FastTeamLoadArg = $ReadOnly<{id: TeamID, public: Boolean, applications?: ?Array<TeamApplication>, keyGenerationsNeeded?: ?Array<PerTeamKeyGeneration>, needLatestGeneration: Boolean}>
+export type FastTeamLoadRes = $ReadOnly<{name: TeamName, applicationKeys?: ?Array<TeamApplicationKey>}>
 export type FastTeamSigChainState = $ReadOnly<{id: TeamID, public: Boolean, rootAncestor: TeamName, nameDepth: Int, last: LinkPair, parentID?: ?TeamID, perTeamKeys: {[key: string]: PerTeamKey}, downPointers: {[key: string]: DownPointer}, lastUpPointer: LinkPair, isDeleted: Boolean, perTeamKeyCTime: UnixTime, linkIDs: {[key: string]: LinkID}}>
 export type FavoriteFavoriteAddRpcParam = $ReadOnly<{folder: Folder}>
 export type FavoriteFavoriteIgnoreRpcParam = $ReadOnly<{folder: Folder}>
