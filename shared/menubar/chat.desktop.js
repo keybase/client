@@ -3,9 +3,14 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 
-const ChatRow = ({name}: {name: string}) => (
+const ChatRow = (props: ChatRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.chatRowContainer}>
-    {name}
+    <Kb.Text type="BodySmallSemibold" style={styles.conversationName}>
+      {props.teamname ? `${props.teamname}#${props.channelname}` : props.participants[0]}:
+    </Kb.Text>
+    <Kb.Text type="BodySmall">
+      {props.snippet}
+    </Kb.Text>
   </Kb.Box2>
 )
 
@@ -19,15 +24,23 @@ const ChatViewAll = ({onViewAll}: {onViewAll: () => void}) => (
   </Kb.Box2>
 )
 
-type ChatContainerProps = {
-  onViewAll: () => void,
-  convIDs: Array<string>,
+export type ChatRowProps = {
+  conversationIDKey: string,
+  snippet: string,
+  participants: Array<string>,
+  channelname: string,
+  teamname: string,
 }
 
-const ChatContainer = ({onViewAll, convIDs}: ChatContainerProps) => (
+export type ChatContainerProps = {
+  onViewAll: () => void,
+  conversations: Array<ChatRowProps>,
+}
+
+export const ChatContainer = ({onViewAll, conversations}: ChatContainerProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
-    {convIDs.slice(0, 3).map(id => (
-      <ChatRow key={id} name={id.substr(0, 30)} />
+    {conversations.slice(0, 3).map(c => (
+      <ChatRow key={c.conversationIDKey} {...c} />
     ))}
     <ChatViewAll onViewAll={onViewAll} />
   </Kb.Box2>
@@ -42,7 +55,11 @@ const styles = Styles.styleSheetCreate({
   }),
   chatRowContainer: Styles.platformStyles({
     common: {
-      minHeight: 56,
+      height: 56,
+      overflow: 'hidden',
+    },
+    isElectron: {
+      textOverflow: 'ellipsis',
     },
   }),
   toggleButton: Styles.platformStyles({
@@ -62,6 +79,9 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   buttonText: {color: Styles.globalColors.black_60},
+  conversationName: Styles.platformStyles({
+    common: {
+      marginRight: Styles.globalMargins.xtiny,
+    },
+  }),
 })
-
-export default ChatContainer

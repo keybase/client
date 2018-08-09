@@ -19,7 +19,6 @@ const getSortedConvMetas = Container.createSelector([getMetas], map =>
     .sort((a, b) => b.timestamp - a.timestamp)
     .slice(0, maxShownConversations)
     .toList()
-    .toJS()
 )
 
 // Just to cache the sorted values

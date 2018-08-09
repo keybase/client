@@ -67,7 +67,7 @@ const mergeProps = stateProps => ({
   isAsyncWriteHappening: stateProps.isAsyncWriteHappening,
   loggedIn: stateProps.loggedIn,
   username: stateProps.username,
-  convIDs: stateProps._convMetas.map(meta => ChatTypes.conversationIDKeyToString(meta.conversationIDKey)),
+  conversations: stateProps._convMetas.toJS(),
   windowComponent: 'menubar',
   windowOpts,
   windowParam: '',
