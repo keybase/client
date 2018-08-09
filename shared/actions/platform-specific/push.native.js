@@ -1,6 +1,5 @@
 // @flow
 import * as Chat2Gen from '../chat2-gen'
-// import * as ChatConstants from '../../constants/chat2'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/push'
 import * as NotificationsGen from '../../actions/notifications-gen'
