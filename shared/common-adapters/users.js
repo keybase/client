@@ -1,14 +1,24 @@
 // @flow
 import * as React from 'react'
+import * as I from 'immutable'
 import * as ProfileGen from '../actions/profile-gen'
 import * as TrackerGen from '../actions/tracker-gen'
+import * as UsersTypes from '../constants/types/users'
 import {connect, type TypedState} from '../util/container'
 import Text, {type TextType} from './text'
 import {globalColors, isMobile, styleSheetCreate} from '../styles'
 
+/**
+ * Users - get generic information about users to use in your view. Passes in
+ * various information (`Args`) to a function child. Renders arbitrary return
+ * value with no added markup. If children returns an array, it must be of
+ * either primitives or components with a `key` supplied.
+ */
+
 type Args = {
   color: string,
   following: boolean,
+  fullName: string,
   index: number,
   last: boolean,
   onClick: () => void,
@@ -24,7 +34,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  return {following: state.config.following}
+  return {following: state.config.following, usersInfo: state.users.infoMap}
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {tracker, usernames}: OwnProps) => ({
@@ -40,6 +50,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   onClick: dispatchProps.onClick,
   textType: ownProps.textType,
   usernames: ownProps.usernames,
+  usersInfo: stateProps.usersInfo,
 })
 
 const styles = styleSheetCreate({
@@ -57,6 +68,7 @@ type Props = {
   onClick: (username: string) => void,
   textType?: TextType,
   usernames: string[],
+  usersInfo: I.Map<string, UsersTypes.UserInfo>,
 }
 const Users = (props: Props) => {
   return (
@@ -65,6 +77,7 @@ const Users = (props: Props) => {
       return props.children({
         color: following ? globalColors.green2 : globalColors.blue,
         following,
+        fullName: props.usersInfo.get(username, {fullname: ''}).fullname,
         index: i,
         last: i === usernames.length - 1,
         onClick: () => props.onClick(username),

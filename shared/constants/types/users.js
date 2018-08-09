@@ -6,7 +6,7 @@ export type _UserInfo = {
   broken: boolean,
   fullname: string,
 }
-type UserInfo = I.RecordOf<_UserInfo>
+export type UserInfo = I.RecordOf<_UserInfo>
 
 export type _State = {
   infoMap: I.Map<string, UserInfo>,
