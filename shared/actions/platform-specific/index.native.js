@@ -62,8 +62,8 @@ async function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Pr
     const permissionStatus = await PermissionsAndroid.request(
       PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
       {
-        title: 'Keybase Storage Permission',
         message: 'Keybase needs access to your storage so we can download an attachment.',
+        title: 'Keybase Storage Permission',
       }
     )
     if (permissionStatus !== 'granted') {
@@ -94,10 +94,7 @@ async function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Pr
 // Downloads a file, shows the shareactionsheet, and deletes the file afterwards
 function downloadAndShowShareActionSheet(fileURL: string, mimeType: string): Promise<void> {
   const extension = mime.extension(mimeType)
-  return RNFetchBlob.config({
-    fileCache: true,
-    appendExt: extension,
-  })
+  return RNFetchBlob.config({appendExt: extension, fileCache: true})
     .fetch('GET', fileURL)
     .then(res => res.path())
     .then(path => Promise.all([showShareActionSheet({url: path}), Promise.resolve(path)]))
@@ -186,10 +183,6 @@ const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
   logger.info(`setting app state on service to: ${logState}`)
   return Saga.put(ConfigGen.createChangedFocus({appFocused}))
 }
-
-// TODO
-// const setStartedDueToPush = (action: Chat2Gen.SelectConversationPayload) =>
-// action.payload.reason === 'push' ? Saga.put(ConfigGen.createSetStartedDueToPush()) : undefined
 
 const clearRouteState = () => Saga.call(AsyncStorage.removeItem, 'routeState')
 
@@ -290,7 +283,6 @@ const waitForStartupDetails = (state: TypedState) => {
 
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
-  // yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, setStartedDueToPush)
   yield Saga.actionToAction(ConfigGen.loggedOut, clearRouteState)
   yield Saga.actionToAction([RouteTree.switchTo, Chat2Gen.selectConversation], persistRouteState)
   yield Saga.actionToAction(ConfigGen.openAppSettings, openAppSettings)
