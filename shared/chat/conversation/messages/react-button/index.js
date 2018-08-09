@@ -78,6 +78,7 @@ export type NewReactionButtonProps = {|
   onAddReaction: (emoji: string) => void,
   onLongPress?: () => void,
   onOpenEmojiPicker: () => void,
+  onShowPicker?: (showing: boolean) => void,
   showBorder: boolean,
   style?: StylesCrossPlatform,
 |}
@@ -91,8 +92,10 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
   state = {attachmentRef: null, hovering: false, iconIndex: 0, showingPicker: false}
   _intervalID: ?IntervalID
 
-  _setShowingPicker = (showingPicker: boolean) =>
+  _setShowingPicker = (showingPicker: boolean) => {
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
+    this.props.onShowPicker && this.props.onShowPicker(showingPicker)
+  }
 
   _onAddReaction = ({colons}: {colons: string}, evt: Event) => {
     evt.stopPropagation()

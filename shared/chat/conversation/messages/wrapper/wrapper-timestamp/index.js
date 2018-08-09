@@ -60,7 +60,11 @@ const HoverBox = isMobile
         : {},
     }))
 
-class _WrapperTimestamp extends React.PureComponent<Props & OverlayParentProps> {
+type State = {
+  showingPicker: boolean,
+}
+class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, State> {
+  state = {showingPicker: false}
   componentDidUpdate(prevProps: Props) {
     if (this.props.measure) {
       if (
@@ -71,6 +75,8 @@ class _WrapperTimestamp extends React.PureComponent<Props & OverlayParentProps> 
       }
     }
   }
+  _setShowingPicker = (showingPicker: boolean) =>
+    this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
   render() {
     const props = this.props
     return (
@@ -78,7 +84,7 @@ class _WrapperTimestamp extends React.PureComponent<Props & OverlayParentProps> 
         {props.orangeLineAbove && <Box style={styles.orangeLine} />}
         {props.timestamp && <Timestamp timestamp={props.timestamp} />}
         <HoverBox
-          className={props.showingMenu ? 'active' : ''}
+          className={props.showingMenu || this.state.showingPicker ? 'active' : ''}
           {...(isMobile && props.decorate
             ? {onLongPress: props.toggleShowingMenu, underlayColor: globalColors.blue5}
             : {})}
@@ -108,6 +114,7 @@ class _WrapperTimestamp extends React.PureComponent<Props & OverlayParentProps> 
                     message={props.message}
                     ordinal={props.ordinal}
                     setAttachmentRef={props.setAttachmentRef}
+                    setShowingPicker={this._setShowingPicker}
                     toggleShowingMenu={props.toggleShowingMenu}
                   />
                 )}
@@ -135,6 +142,7 @@ type MenuButtonsProps = {
   message: Types.Message,
   ordinal: Types.Ordinal,
   setAttachmentRef: ?(ref: ?React.Component<any, any>) => void,
+  setShowingPicker: boolean => void,
   toggleShowingMenu: () => void,
 }
 const MenuButtons = (props: MenuButtonsProps) => (
@@ -144,6 +152,7 @@ const MenuButtons = (props: MenuButtonsProps) => (
         <ReactButton
           conversationIDKey={props.conversationIDKey}
           ordinal={props.ordinal}
+          onShowPicker={props.setShowingPicker}
           showBorder={false}
           tooltipEnabled={false}
         />
