@@ -171,9 +171,6 @@ const styles = styleSheetCreate({
       marginTop: 2,
     },
   }),
-  highlighted: {
-    backgroundColor: globalColors.blue5,
-  },
   menuButtons: platformStyles({
     isElectron: {
       ...globalStyles.flexBoxRow,
