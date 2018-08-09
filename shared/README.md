@@ -420,6 +420,8 @@ the app:
 ```sh
 # Enable loopback
 adb reverse tcp:8081 tcp:8081
+# Additionally, if running storybook
+adb reverse tcp:7007 tcp:7007
 ```
 
 Then open the [react native debug

@@ -100,13 +100,13 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
   }
 }
 
-const AshBox = glamorous.div(props => ({
+const AshBox = glamorous.div({
   '&.full-width': {
     overflow: 'visible',
     transition: `width ${animationDuration}ms linear`,
     width: '100%',
   },
-  backgroundColor: globalColors.white,
+  backgroundColor: globalColors.white, // exploded messages don't have hover effects and we need to cover the message
   backgroundImage: explodedIllustrationUrl,
   backgroundRepeat: 'repeat',
   backgroundSize: '400px 68px',
@@ -117,7 +117,7 @@ const AshBox = glamorous.div(props => ({
   top: 0,
   transition: `width 0s`,
   width: 0,
-}))
+})
 const Ashes = (props: {doneExploding: boolean, exploded: boolean, explodedBy: ?string, height: number}) => {
   let explodedTag = null
   if (props.doneExploding) {

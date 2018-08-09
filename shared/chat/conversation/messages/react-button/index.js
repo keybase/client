@@ -99,6 +99,7 @@ export type NewReactionButtonProps = {|
   onAddReaction: (emoji: string) => void,
   onLongPress?: () => void,
   onOpenEmojiPicker: () => void,
+  onShowPicker?: (showing: boolean) => void,
   showBorder: boolean,
   style?: Styles.StylesCrossPlatform,
 |}
@@ -114,8 +115,10 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
   _delayInterval = new DelayInterval(1000, 400)
   _intervalID: ?IntervalID
 
-  _setShowingPicker = (showingPicker: boolean) =>
+  _setShowingPicker = (showingPicker: boolean) => {
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
+    this.props.onShowPicker && this.props.onShowPicker(showingPicker)
+  }
 
   _onAddReaction = ({colons}: {colons: string}, evt: Event) => {
     evt.stopPropagation()
@@ -217,6 +220,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
           !Styles.isMobile && (
             <FloatingBox
               attachTo={this.state.attachmentRef}
+              containerStyle={styles.emojiContainer}
               position="bottom left"
               onHidden={() => this._setShowingPicker(false)}
             >
@@ -244,6 +248,7 @@ const styles = Styles.styleSheetCreate({
     borderStyle: 'solid',
   },
   buttonBox: {
+    backgroundColor: Styles.globalColors.white,
     borderWidth: 2,
     height: Styles.isMobile ? 30 : 24,
     ...Styles.transition('border-color', 'background-color'),
@@ -256,6 +261,12 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       paddingBottom: Styles.globalMargins.tiny,
       paddingTop: Styles.globalMargins.tiny,
+    },
+  }),
+  emojiContainer: Styles.platformStyles({
+    isElectron: {
+      borderRadius: 4,
+      boxShadow: `0 0 8px 0 ${Styles.globalColors.black_20}`,
     },
   }),
   emojiIconWrapper: Styles.platformStyles({

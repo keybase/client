@@ -1040,7 +1040,7 @@ func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, u
 }
 
 func (s *localizerPipeline) needsCanonicalize(name string) bool {
-	return strings.Contains(name, "@") || strings.Contains(name, ":")
+	return strings.Contains(name, "@") || strings.Contains(name, ":") || strings.Contains(name, ".")
 }
 
 func (s *localizerPipeline) isErrPermanent(err error) bool {
