@@ -1814,7 +1814,7 @@ func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 	}
 }
 
-type FastLoadTeamArg struct {
+type FastTeamLoadArg struct {
 	Id                   TeamID                 `codec:"id" json:"id"`
 	Public               bool                   `codec:"public" json:"public"`
 	Applications         []TeamApplication      `codec:"applications" json:"applications"`
@@ -1823,8 +1823,8 @@ type FastLoadTeamArg struct {
 	SeqnosNeeded         []Seqno                `codec:"seqnosNeeded" json:"seqnosNeeded"`
 }
 
-func (o FastLoadTeamArg) DeepCopy() FastLoadTeamArg {
-	return FastLoadTeamArg{
+func (o FastTeamLoadArg) DeepCopy() FastTeamLoadArg {
+	return FastTeamLoadArg{
 		Id:     o.Id.DeepCopy(),
 		Public: o.Public,
 		Applications: (func(x []TeamApplication) []TeamApplication {
@@ -1864,13 +1864,13 @@ func (o FastLoadTeamArg) DeepCopy() FastLoadTeamArg {
 	}
 }
 
-type FastLoadTeamRes struct {
+type FastTeamLoadRes struct {
 	Name            TeamName             `codec:"name" json:"name"`
 	ApplicationKeys []TeamApplicationKey `codec:"applicationKeys" json:"applicationKeys"`
 }
 
-func (o FastLoadTeamRes) DeepCopy() FastLoadTeamRes {
-	return FastLoadTeamRes{
+func (o FastTeamLoadRes) DeepCopy() FastTeamLoadRes {
+	return FastTeamLoadRes{
 		Name: o.Name.DeepCopy(),
 		ApplicationKeys: (func(x []TeamApplicationKey) []TeamApplicationKey {
 			if x == nil {
