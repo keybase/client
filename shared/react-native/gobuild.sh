@@ -7,6 +7,11 @@ cd $dir
 
 arg=${1:-}
 
+if [[ "$arg" != "ios" && "$arg" != "android" ]]; then
+  echo "Nothing to build, you need to specify 'ios' or 'android'"
+  exit 1
+fi
+
 local_client=${LOCAL_CLIENT:-"1"}
 local_kbfs=${LOCAL_KBFS:-}
 skip_gomobile_init=${SKIP_GOMOBILE_INIT:-}
@@ -137,5 +142,7 @@ elif [ "$arg" = "android" ]; then
     echo $OUTPUT
   fi
 else
+  # Shouldn't get here.
   echo "Nothing to build, you need to specify 'ios' or 'android'"
+  exit 1
 fi
