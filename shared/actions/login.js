@@ -93,8 +93,6 @@ function* loginSaga(): Saga.SagaGenerator<any, any> {
   // Actually log in
   yield Saga.actionToAction(LoginGen.login, login)
 
-  // yield Saga.actionToAction(RouteConstants.navigateUp, maybeNavigateToLoginRoot)
-
   yield Saga.actionToAction(LoginGen.launchForgotPasswordWebPage, launchForgotPasswordWebPage)
   yield Saga.actionToAction(LoginGen.launchAccountResetWebPage, launchAccountResetWebPage)
 }
