@@ -1119,19 +1119,11 @@ func TestFailSelfProvisionNoClone(t *testing.T) {
 	})
 }
 
-func TestFailSelfProvisionDuplicateName(t *testing.T) {
+func TestSelfProvisionFailDuplicateName(t *testing.T) {
 	testFailSelfProvision(t, func(m libkb.MetaContext) string {
 		libkb.CreateClonedDevice(t, m)
 		// Use the default name so we get an error when provisioning.
 		return ""
-	})
-}
-
-func TestFailSelfProvisionDuplicateNameXX(t *testing.T) {
-	testFailSelfProvision(t, func(m libkb.MetaContext) string {
-		libkb.CreateClonedDevice(t, m)
-		// Use the default name so we get an error when provisioning.
-		return "new"
 	})
 }
 

@@ -42,6 +42,16 @@ func (e *SelfProvisionEngine) RequiredUIs() []libkb.UIKind {
 	}
 }
 
+func (e *SelfProvisionEngine) SubConsumers() []libkb.UIConsumer {
+	return []libkb.UIConsumer{
+		&loginLoadUser{},
+	}
+}
+
+func (e *SelfProvisionEngine) Result() error {
+	return e.result
+}
+
 func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	m.G().LocalSigchainGuard().Set(m.Ctx(), "selfProvision")
 	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "selfProvision")
@@ -59,15 +69,12 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	// If we abort, we need to revert to the old active device and user config
-	// state
 	uv, _ := e.G().ActiveDevice.GetUsernameAndUserVersionIfValid(m)
 	// Pass the UV here so the passphrase stream is cached on the provisional
 	// login context
 	m = m.WithNewProvisionalLoginContextForUserVersionAndUsername(uv, e.G().Env.GetUsername())
 
-	// From this point on, if there's an error, we abort
-	// the transaction.
+	// From this point on, if there's an error, we abort the transaction.
 	defer func() {
 		if tx != nil {
 			tx.Abort()
@@ -77,129 +84,78 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		}
 	}()
 
-	// run the LoginLoadUser sub-engine to load a user
-	ueng := newLoginLoadUser(e.G(), e.G().Env.GetUsername().String())
-	if err = RunEngine2(m, ueng); err != nil {
-		return err
-	}
-	e.User = ueng.User()
-
-	activeDevice := e.G().ActiveDevice
-	encKey, err := activeDevice.EncryptionKey()
+	keys, err := e.loadUserAndActiveDeviceKeys(m)
 	if err != nil {
-		return err
-	}
-	sigKey, err := activeDevice.SigningKey()
-	if err != nil {
-		return err
-	}
-	keys := libkb.NewDeviceWithKeysOnly(sigKey, encKey)
-	if _, err := keys.Populate(m); err != nil {
 		return err
 	}
 
-	e.perUserKeyring, err = libkb.NewPerUserKeyring(e.G(), e.User.GetUID())
-	if err != nil {
-		return err
-	}
 	// Make new device keys and sign them with current device keys
 	if err = e.provision(m, keys); err != nil {
 		return err
 	}
+
 	// commit the config changes
+	// NOTE we should wrap the Active device change in a transaction as well.
 	if err := tx.Commit(); err != nil {
 		return err
 	}
-	// Zero out the TX so that we don't abort it in the defer()
-	// exit.
+
+	// Zero out the TX so that we don't abort it in the defer() exit.
 	tx = nil
 
+	// logs any errors with local storage
 	verifyLocalStorage(m, e.User.GetNormalizedName().String(), e.User.GetUID())
+	if err := e.syncSecretStore(m); err != nil {
+		m.CDebugf("unable to syncSecretStore: %v", err)
+	}
 
 	e.clearCaches(m)
 	e.sendNotification()
 	return nil
 }
 
-func (e *SelfProvisionEngine) provision(m libkb.MetaContext, keys *libkb.DeviceWithKeys) error {
-	// After obtaining login session, this will be called before the login
-	// state is released.  It signs this new device with the current device.
-	u := e.User
-	uv := u.ToUserVersion()
+func (e *SelfProvisionEngine) loadUserAndActiveDeviceKeys(m libkb.MetaContext) (*libkb.DeviceWithKeys, error) {
+	// run the LoginLoadUser sub-engine to load a user
+	ueng := newLoginLoadUser(e.G(), e.G().Env.GetUsername().String())
+	if err := RunEngine2(m, ueng); err != nil {
+		return nil, err
+	}
+	e.User = ueng.User()
+	pukRing, err := libkb.NewPerUserKeyring(e.G(), e.User.GetUID())
+	if err != nil {
+		return nil, err
+	}
+	e.perUserKeyring = pukRing
 
+	activeDevice := e.G().ActiveDevice
+	encKey, err := activeDevice.EncryptionKey()
+	if err != nil {
+		return nil, err
+	}
+	sigKey, err := activeDevice.SigningKey()
+	if err != nil {
+		return nil, err
+	}
+	keys := libkb.NewDeviceWithKeysOnly(sigKey, encKey)
+	if _, err := keys.Populate(m); err != nil {
+		return nil, err
+	}
+
+	return keys, nil
+}
+
+func (e *SelfProvisionEngine) provision(m libkb.MetaContext, keys *libkb.DeviceWithKeys) error {
 	// Set the active device to be a special provisional key active device,
 	// which keeps a cached copy around for DeviceKeyGen, which requires it to
 	// be in memory.  It also will establish a NIST so that API calls can
 	// proceed on behalf of the user.
-	m = m.WithProvisioningKeyActiveDevice(keys, uv)
+	m = m.WithProvisioningKeyActiveDevice(keys, e.User.ToUserVersion())
 
 	// need lksec to store device keys locally
 	if err := e.fetchLKS(m, keys.EncryptionKey()); err != nil {
 		return err
 	}
-	if err := e.makeDeviceKeysWithSigner(m, keys.SigningKey()); err != nil {
-		return err
-	}
-	/// to helper
-	// now store the secrets for our new device
-	encKey, err := m.ActiveDevice().EncryptionKey()
-	if err != nil {
-		return err
-	}
-	if err := e.fetchLKS(m, encKey); err != nil {
-		return err
-	}
-
-	// Get the LKS server half.
-	if err := e.lks.Load(m); err != nil {
-		return err
-	}
-	m.CDebugf("Got LKS full")
-
-	secretStore := libkb.NewSecretStore(m.G(), e.User.GetNormalizedName())
-	m.CDebugf("Got secret store")
-
-	// Extract the LKS secret
-	secret, err := e.lks.GetSecret(m)
-	if err != nil {
-		return err
-	}
-	m.CDebugf("Got LKS secret")
-
-	if err = secretStore.StoreSecret(m, secret); err != nil {
-		return err
-	}
-	m.CDebugf("Stored secret with LKS from new device key")
-
-	// Remove our provisional active device, and fall back to global device
-	m = m.WithGlobalActiveDevice()
-	return nil
-}
-
-func (e *SelfProvisionEngine) clearCaches(m libkb.MetaContext) {
-	// Any caches that are encrypted with the old device key should be cleared
-	// out here so we can re-populate and encrypt with the new key.
-	if _, err := e.G().LocalChatDb.Nuke(); err != nil {
-		m.CDebugf("unable to nuke LocalChatDb: %v", err)
-	}
-	if ekLib := e.G().GetEKLib(); ekLib != nil {
-		ekLib.ClearCaches()
-	}
-}
-
-func (e *SelfProvisionEngine) sendNotification() {
-	e.G().KeyfamilyChanged(e.User.GetUID())
-	e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
-}
-
-func (e *SelfProvisionEngine) SubConsumers() []libkb.UIConsumer {
-	return []libkb.UIConsumer{
-		&loginLoadUser{},
-	}
-}
-
-func (e *SelfProvisionEngine) Result() error {
-	return e.result
+	return e.makeDeviceKeysWithSigner(m, keys.SigningKey())
 }
 
 // copied from loginProvision
@@ -214,33 +170,20 @@ func (e *SelfProvisionEngine) fetchLKS(m libkb.MetaContext, encKey libkb.Generic
 
 // makeDeviceKeysWithSigner creates device keys given a signing key.
 func (e *SelfProvisionEngine) makeDeviceKeysWithSigner(m libkb.MetaContext, signer libkb.GenericKey) error {
-	args, err := e.makeDeviceWrapArgs(m)
-	if err != nil {
-		return err
-	}
-	args.Signer = signer
-
-	eng := NewDeviceWrap(m.G(), args)
-	return RunEngine2(m, eng)
-}
-
-// makeDeviceWrapArgs creates a base set of args for DeviceWrap.  It ensures
-// that LKSec is created.  It also gets a new device name for this device.
-func (e *SelfProvisionEngine) makeDeviceWrapArgs(m libkb.MetaContext) (*DeviceWrapArgs, error) {
 	if err := e.ensureLKSec(m); err != nil {
-		return nil, err
+		return err
 	}
 
 	ss, err := m.ActiveDevice().SyncSecrets(m)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	dev, err := ss.FindDevice(m.ActiveDevice().DeviceID())
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &DeviceWrapArgs{
+	args := &DeviceWrapArgs{
 		Me:              e.User,
 		DeviceName:      e.DeviceName,
 		DeviceType:      dev.Type,
@@ -249,7 +192,11 @@ func (e *SelfProvisionEngine) makeDeviceWrapArgs(m libkb.MetaContext) (*DeviceWr
 		IsSelfProvision: true,
 		PerUserKeyring:  e.perUserKeyring,
 		EldestKID:       e.User.GetEldestKID(),
-	}, nil
+		Signer:          signer,
+	}
+
+	eng := NewDeviceWrap(m.G(), args)
+	return RunEngine2(m, eng)
 }
 
 // copied from loginProvision
@@ -272,11 +219,56 @@ func (e *SelfProvisionEngine) ensureLKSec(m libkb.MetaContext) error {
 // ppStream gets the passphrase stream from the cache
 func (e *SelfProvisionEngine) ppStream(m libkb.MetaContext) (*libkb.PassphraseStream, error) {
 	if m.LoginContext() == nil {
-		return nil, errors.New("loginProvision: ppStream() -> nil ctx.LoginContext")
+		return nil, errors.New("SelfProvisionEngine: ppStream() -> nil ctx.LoginContext")
 	}
 	cached := m.LoginContext().PassphraseStreamCache()
 	if cached == nil {
-		return nil, errors.New("loginProvision: ppStream() -> nil PassphraseStreamCache")
+		return nil, errors.New("SelfProvisionEngine: ppStream() -> nil PassphraseStreamCache")
 	}
 	return cached.PassphraseStream(), nil
+}
+
+func (e *SelfProvisionEngine) syncSecretStore(m libkb.MetaContext) error {
+	// now store the secrets for our new device
+	encKey, err := m.ActiveDevice().EncryptionKey()
+	if err != nil {
+		return err
+	}
+	if err := e.fetchLKS(m, encKey); err != nil {
+		return err
+	}
+
+	// Get the LKS server half.
+	if err := e.lks.Load(m); err != nil {
+		return err
+	}
+
+	secretStore := libkb.NewSecretStore(m.G(), e.User.GetNormalizedName())
+
+	// Extract the LKS secret
+	secret, err := e.lks.GetSecret(m)
+	if err != nil {
+		return err
+	}
+
+	if err = secretStore.StoreSecret(m, secret); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *SelfProvisionEngine) clearCaches(m libkb.MetaContext) {
+	// Any caches that are encrypted with the old device key should be cleared
+	// out here so we can re-populate and encrypt with the new key.
+	if _, err := e.G().LocalChatDb.Nuke(); err != nil {
+		m.CDebugf("unable to nuke LocalChatDb: %v", err)
+	}
+	if ekLib := e.G().GetEKLib(); ekLib != nil {
+		ekLib.ClearCaches()
+	}
+}
+
+func (e *SelfProvisionEngine) sendNotification() {
+	e.G().KeyfamilyChanged(e.User.GetUID())
+	e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
 }
