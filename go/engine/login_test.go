@@ -1048,23 +1048,6 @@ func TestProvisionPaperCommandLine(t *testing.T) {
 	require.Equal(t, provLoginUI.CalledGetEmailOrUsername, 0)
 }
 
-func createDeviceClone(t *testing.T, m libkb.MetaContext) {
-	// setup: perform two runs, and then manually persist the earlier
-	// prior token to simulate a subsequent run by a cloned device
-	d0, err := runAndGetDeviceCloneState(m)
-	require.NoError(t, err)
-	_, err = runAndGetDeviceCloneState(m)
-	require.NoError(t, err)
-	err = persistDeviceCloneState(m, d0)
-	require.NoError(t, err)
-
-	_, _, err = libkb.UpdateDeviceCloneState(m)
-	require.NoError(t, err)
-	d, err := libkb.GetDeviceCloneState(m)
-	require.NoError(t, err)
-	require.True(t, d.IsClone())
-}
-
 func TestSelfProvision(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
@@ -1087,7 +1070,7 @@ func TestSelfProvision(t *testing.T) {
 }
 
 func assertValidSelfProvision(t *testing.T, tc libkb.TestContext, m libkb.MetaContext, user *FakeUser) {
-	createDeviceClone(t, m)
+	libkb.CreateClonedDevice(t, m)
 	newName := tc.G.ActiveDevice.Name() + "uncloneme"
 	eng := NewSelfProvisionEngine(tc.G, newName)
 	err := RunEngine2(m, eng)
@@ -1138,7 +1121,7 @@ func TestFailSelfProvisionNoClone(t *testing.T) {
 
 func TestFailSelfProvisionDuplicateName(t *testing.T) {
 	testFailSelfProvision(t, func(m libkb.MetaContext) string {
-		createDeviceClone(t, m)
+		libkb.CreateClonedDevice(t, m)
 		// Use the default name so we get an error when provisioning.
 		return ""
 	})

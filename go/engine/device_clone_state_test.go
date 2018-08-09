@@ -17,6 +17,9 @@ func persistDeviceCloneState(m libkb.MetaContext, d libkb.DeviceCloneState) erro
 
 func runAndGetDeviceCloneState(m libkb.MetaContext) (d libkb.DeviceCloneState, err error) {
 	_, _, err = libkb.UpdateDeviceCloneState(m)
+	if err != nil {
+		return d, err
+	}
 	d, _ = libkb.GetDeviceCloneState(m)
 	return d, err
 }
