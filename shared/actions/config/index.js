@@ -53,6 +53,11 @@ const loadDaemonBootstrapStatus = (
   state: TypedState,
   action: ConfigGen.DaemonHandshakePayload | ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload
 ) => {
+  // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
+  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
+    return
+  }
+
   const makeCall = Saga.call(function*() {
     const loadedAction = yield RPCTypes.configGetBootstrapStatusRpcPromise().then(
       (s: RPCTypes.BootstrapStatus) =>

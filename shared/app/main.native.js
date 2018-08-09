@@ -60,7 +60,7 @@ const mapStateToProps = (state: TypedState) => ({
   folderBadge: state.favorite.folderState.privateBadge + state.favorite.folderState.publicBadge,
   routeDef: state.routeTree.routeDef,
   routeState: state.routeTree.routeState,
-  showPushPrompt: state.push.showPushPrompt,
+  showPushPrompt: state.config.loggedIn && state.push.showPushPrompt,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

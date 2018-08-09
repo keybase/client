@@ -8,7 +8,12 @@ const initialState = Constants.makeInitialState()
 function reducer(state: Types.State = initialState, action: PushGen.Actions): Types.State {
   switch (action.type) {
     case PushGen.resetStore:
-      return initialState
+      // when you sign out we need to keep all this info as its per device
+      return initialState.merge({
+        hasPermissions: state.hasPermissions,
+        showPushPrompt: state.showPushPrompt,
+        token: state.token,
+      })
     case PushGen.rejectPermissions:
       return state.merge({hasPermissions: false, showPushPrompt: false})
     case PushGen.updateHasPermissions:

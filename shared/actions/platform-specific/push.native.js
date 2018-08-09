@@ -12,7 +12,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as WaitingGen from '../waiting-gen'
 import logger from '../../logger'
-import {NativeModules} from 'react-native'
+import {NativeModules, AsyncStorage} from 'react-native'
 import {isIOS} from '../../constants/platform'
 
 import type {TypedState} from '../../constants/reducer'
@@ -189,7 +189,10 @@ const uploadPushToken = (state: TypedState) =>
     ],
     endpoint: 'device/push_token',
   })
-    .then(() => false)
+    .then(() => {
+      logger.info('[PushToken] Uploaded to server')
+      return false
+    })
     .catch(e => {
       logger.error("[PushToken] Couldn't save a push token", e)
     })
@@ -210,6 +213,7 @@ const deletePushToken = (state: TypedState) =>
         args: [{key: 'device_id', value: deviceID}, {key: 'token_type', value: Constants.tokenType}],
         endpoint: 'device/push_token',
       })
+      logger.info('[PushToken] deleted from server')
     } catch (e) {
       logger.error('[PushToken] delete failed', e)
     } finally {
@@ -256,10 +260,23 @@ const requestPermissions = () =>
 function* initialPermissionsCheck(): Saga.SagaGenerator<any, any> {
   const hasPermissions = yield checkPermissions(null, null)
   if (!hasPermissions) {
-    const shownPushPrompt = yield Saga.call(askNativeIfSystemPushPromptHasBeenShown)
-    if (!shownPushPrompt) {
+    const shownNativePushPromptTask = yield Saga.fork(askNativeIfSystemPushPromptHasBeenShown)
+    const storageKey = 'shownMonsterPushPrompt'
+    const shownMonsterPushPromptTask = yield Saga.fork(AsyncStorage.getItem, storageKey)
+    const [shownNativePushPrompt, shownMonsterPushPrompt] = yield Saga.join(
+      shownNativePushPromptTask,
+      shownMonsterPushPromptTask
+    )
+    logger.info(
+      '[PushInitialCheck] shownNativePushPrompt:',
+      shownNativePushPrompt,
+      'shownMonsterPushPrompt:',
+      shownMonsterPushPrompt
+    )
+    if (!shownNativePushPrompt && !shownMonsterPushPrompt) {
       logger.info('[PushInitialCheck] no permissions, never shown prompt, now show prompt')
       yield Saga.put(PushGen.createShowPermissionsPrompt({show: true}))
+      yield Saga.fork(AsyncStorage.setItem, storageKey, 'true')
     }
   }
 }

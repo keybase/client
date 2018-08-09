@@ -26,9 +26,9 @@ export type PushNotification =
     }
 
 export type _State = {
-  token: string,
-  showPushPrompt: boolean,
   hasPermissions: boolean,
+  showPushPrompt: boolean,
+  token: string,
 }
 
 export type State = I.RecordOf<_State>
