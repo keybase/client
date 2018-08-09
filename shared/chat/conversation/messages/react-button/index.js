@@ -53,10 +53,10 @@ const ButtonBox = Styles.glamorous(ClickableBox)(props => ({
             }
           : {}),
         '& .centered': {
-          animation: `${bounceIn} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) -300ms forwards`,
+          animation: `${bounceIn} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`,
         },
         '& .offscreen': {
-          animation: `${bounceOut} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) -300ms forwards`,
+          animation: `${bounceOut} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`,
         },
       }),
   borderColor: Styles.globalColors.black_10,
@@ -102,13 +102,14 @@ export type NewReactionButtonProps = {|
   style?: Styles.StylesCrossPlatform,
 |}
 type NewReactionButtonState = {|
+  applyClasses: boolean, // don't use classes on first mount. Saves on performance and prevents animation thrashing
   attachmentRef: ?React.Component<any, any>,
   hovering: boolean,
   iconIndex: number,
   showingPicker: boolean,
 |}
 export class NewReactionButton extends React.Component<NewReactionButtonProps, NewReactionButtonState> {
-  state = {attachmentRef: null, hovering: false, iconIndex: 0, showingPicker: false}
+  state = {applyClasses: false, attachmentRef: null, hovering: false, iconIndex: 0, showingPicker: false}
   _intervalID: ?IntervalID
 
   _setShowingPicker = (showingPicker: boolean) =>
@@ -144,7 +145,18 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
     this.setState(s => (s.iconIndex === 0 && !s.hovering ? null : {hovering: false, iconIndex: 0}))
   }
 
-  _nextIcon = () => this.setState(s => ({iconIndex: (s.iconIndex + 1) % iconCycle.length}))
+  _nextIcon = () =>
+    this.setState(s => ({applyClasses: true, iconIndex: (s.iconIndex + 1) % iconCycle.length}))
+
+  _getClass = iconIndex => {
+    if (!this.state.applyClasses) {
+      return ''
+    }
+    if (iconIndex !== this.state.iconIndex) {
+      return 'offscreen'
+    }
+    return 'centered'
+  }
 
   componentWillUnmount() {
     this._stopCycle()
@@ -190,9 +202,13 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
                   Styles.collapseStyles([
                     styles.emojiIconWrapper,
                     !Styles.isMobile && (this.props.showBorder ? {top: 3} : {top: 1}),
+                    !this.state.applyClasses &&
+                      (iconIndex === this.state.iconIndex
+                        ? {transform: 'translateX(-8px)'}
+                        : {transform: 'translateX(22px)'}),
                   ])
                 )}
-                className={this.state.iconIndex === iconIndex ? 'centered' : 'offscreen'}
+                className={this._getClass(iconIndex)}
               />
             ))
           )}
