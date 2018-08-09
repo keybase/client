@@ -818,8 +818,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 }
 
 type pullLocalResultCollector struct {
-	*storage.SimpleResultCollector
-	num int
+	storage.ResultCollector
 }
 
 func (p *pullLocalResultCollector) Name() string {
@@ -827,7 +826,7 @@ func (p *pullLocalResultCollector) Name() string {
 }
 
 func (p *pullLocalResultCollector) String() string {
-	return fmt.Sprintf("[ %s: t: %d ]", p.Name(), p.num)
+	return fmt.Sprintf("[ %s: base: %s ]", p.Name(), p.ResultCollector)
 }
 
 func (p *pullLocalResultCollector) hasRealResults() bool {
@@ -855,10 +854,9 @@ func (p *pullLocalResultCollector) Error(err storage.Error) storage.Error {
 	return err
 }
 
-func newPullLocalResultCollector(num int) *pullLocalResultCollector {
+func newPullLocalResultCollector(baseRC storage.ResultCollector) *pullLocalResultCollector {
 	return &pullLocalResultCollector{
-		num: num,
-		SimpleResultCollector: storage.NewSimpleResultCollector(num),
+		ResultCollector: baseRC,
 	}
 }
 
@@ -916,7 +914,9 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	if pagination != nil {
 		num = pagination.Num
 	}
-	rc := storage.NewHoleyResultCollector(maxPlaceholders, newPullLocalResultCollector(num))
+	baseRC := s.storage.ResultCollectorFromQuery(ctx, query, pagination)
+	baseRC.SetTarget(num)
+	rc := storage.NewHoleyResultCollector(maxPlaceholders, newPullLocalResultCollector(baseRC))
 	tv, err = s.fetchMaybeNotify(ctx, convID, uid, rc, iboxMaxMsgID, query, pagination)
 	if err != nil {
 		s.Debug(ctx, "PullLocalOnly: failed to fetch local messages: %s", err.Error())

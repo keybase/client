@@ -62,17 +62,15 @@ type Server struct {
 var _ chat1.LocalInterface = (*Server)(nil)
 
 func NewServer(g *globals.Context, serverConn ServerConnection, uiSource UISource) *Server {
-	delay := 5 * time.Second
 	return &Server{
-		Contextified:      globals.NewContextified(g),
-		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "Server", false),
-		serverConn:        serverConn,
-		uiSource:          uiSource,
-		boxer:             NewBoxer(g),
-		identNotifier:     NewCachingIdentifyNotifier(g),
-		clock:             clockwork.NewRealClock(),
-		convPageStatus:    make(map[string]chat1.Pagination),
-		remoteThreadDelay: &delay,
+		Contextified:   globals.NewContextified(g),
+		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "Server", false),
+		serverConn:     serverConn,
+		uiSource:       uiSource,
+		boxer:          NewBoxer(g),
+		identNotifier:  NewCachingIdentifyNotifier(g),
+		clock:          clockwork.NewRealClock(),
+		convPageStatus: make(map[string]chat1.Pagination),
 	}
 }
 
