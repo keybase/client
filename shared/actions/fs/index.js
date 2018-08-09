@@ -267,13 +267,19 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
     // Kick off any post-download actions, now that the file is available locally.
     const intentEffect = platformSpecificIntentEffect(intent, localPath, mimeType)
     intentEffect && (yield intentEffect)
+    yield Saga.put(FsGen.createDownloadFinished({key}))
   } catch (error) {
     console.log(`Download for intent[${intent}] error: ${error}`)
     yield Saga.put(FsGen.createDownloadFinished({key, error}))
-    return
+  } finally {
+    if (intent !== 'none') {
+      // If the intent is not 'none', we don't need to wait for user to
+      // dismiss. So just clear them out when we're done.
+      // TODO: errors would be swallowen here, so need to figure out if there
+      // are errors here that we should bring user's attention to.
+      yield Saga.put(FsGen.createDismissDownload({key}))
+    }
   }
-
-  yield Saga.put(FsGen.createDownloadFinished({key}))
 }
 
 function* upload(action: FsGen.UploadPayload) {

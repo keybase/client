@@ -200,6 +200,7 @@ const pathItemActionPopupProps = (path: Types.Path) => {
     childrenFiles: 0,
     itemStyles: Constants.getItemStyles(pathElements, 'folder', 'meatball'),
     name: Types.getPathNameFromElems(pathElements),
+    path,
     pathElements,
     menuItems: [
       {

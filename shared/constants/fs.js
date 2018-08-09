@@ -634,3 +634,6 @@ export const kbfsEnabled = (state: TypedState) =>
       state.fs.fuseStatus.kextStarted &&
       // on Windows, check that the driver is up to date too
       !(isWindows && state.fs.fuseStatus.installAction === 2)))
+
+export const isPendingDownload = (download: Types.Download, path: Types.Path, intent: Types.DownloadIntent) =>
+  download.meta.path === path && download.meta.intent === intent && !download.state.isDone
