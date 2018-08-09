@@ -64,7 +64,8 @@ const coverStyle = {
   paddingRight: globalMargins.large,
   paddingTop: globalMargins.small,
   paddingBottom: globalMargins.small,
-  zIndex: 1, // Put the popup on top of any sticky section headers.
+  // TODO: This is temporary, fix zIndex of popup dialog and overlay
+  // zIndex: 1, // Put the popup on top of any sticky section headers.
 }
 
 const containerStyle = {

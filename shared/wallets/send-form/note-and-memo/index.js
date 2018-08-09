@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import {backgroundImageFn} from '../../../common-adapters/emoji'
 import {Picker} from 'emoji-mart'
 
 type Props = {
@@ -18,9 +19,22 @@ class NoteAndMemo extends React.Component<Props, State> {
     emojiPickerOpen: false,
   }
   _emojiIcon = React.createRef()
+  _note = React.createRef()
+
+  _insertEmoji = (emoji: string) => {
+    console.log(this._note)
+    if (this._note.current !== null) {
+      this._note.current.setValue(this._note.current.getValue() + emoji)
+    }
+  }
 
   _emojiPickerToggle = () => {
     this.setState(({emojiPickerOpen}) => ({emojiPickerOpen: !emojiPickerOpen}))
+  }
+
+  _emojiPickerOnClick = emoji => {
+    this._insertEmoji(emoji.native)
+    this._emojiPickerToggle()
   }
 
   render() {
@@ -34,6 +48,7 @@ class NoteAndMemo extends React.Component<Props, State> {
             style={sharedStyles}
             rowsMin={1}
             rowsMax={12}
+            ref={this._note}
           />
           <Kb.Icon
             onClick={this._emojiPickerToggle}
@@ -53,8 +68,8 @@ class NoteAndMemo extends React.Component<Props, State> {
                   autoFocus={true}
                   emoji="star-struck"
                   title="reacjibase"
-                  onClick={() => console.log('clicked!')}
-                  // backgroundImageFn={backgroundImageFn}
+                  onClick={this._emojiPickerOnClick}
+                  backgroundImageFn={backgroundImageFn}
                 />
               </Kb.FloatingBox>
             )}

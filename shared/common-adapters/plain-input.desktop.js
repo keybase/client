@@ -63,6 +63,20 @@ class PlainInput extends React.PureComponent<InternalProps> {
     }
   }
 
+  getValue = () => {
+    if (this._input) {
+      return this._input.value
+    }
+    return ''
+  }
+
+  setValue = (newValue: string) => {
+    if (this._input) {
+      this._input.value = newValue
+      this._autoResize()
+    }
+  }
+
   focus = () => {
     this._input && this._input.focus()
   }
