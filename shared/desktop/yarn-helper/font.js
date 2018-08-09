@@ -26,11 +26,22 @@ const paths = {
 
 const baseCharCode = 0xe900
 const iconfontRegex = /^(\d+)-kb-iconfont-(.*)-(\d+).svg$/
-const getSvgFiles = () =>
+const getSvgFilenames = () =>
   fs
     .readdirSync(paths.iconfont)
     .filter(i => i.match(iconfontRegex))
-    .map(i => path.resolve(paths.iconfont, i))
+    // Need to force Node to interpret the counter as a Number so we don't get 1, 10, 100
+    .sort((x, y) => {
+      const matchX = x.match(iconfontRegex)
+      const matchY = y.match(iconfontRegex)
+      if (!matchX || !matchY || matchX.length !== 4 || matchY.length !== 4) return 0
+      const countX = Number(matchX[1])
+      const countY = Number(matchY[1])
+      if (countX < countY) return -1
+      if (countX > countY) return 1
+      return 0
+    })
+const getSvgFilePaths = () => getSvgFilenames().map(i => path.resolve(paths.iconfont, i))
 
 /*
  * This function will read all of the SVG files specified above, and generate a single ttf iconfont from the svgs.
@@ -40,11 +51,12 @@ const getSvgFiles = () =>
  */
 function updatedFonts() {
   console.log('Created new webfont')
+  const svgFiles = getSvgFilePaths()
   webfontsGenerator(
     {
       // An intermediate svgfont will be generated and then converted to TTF by webfonts-generator
       types: ['ttf'],
-      files: getSvgFiles(),
+      files: svgFiles,
       dest: paths.font,
       startCodepoint: baseCharCode,
       fontName: 'kb',
@@ -100,18 +112,20 @@ function updateConstants() {
     })
 
   // Build constants for iconfont svgs
-  fs.readdirSync(paths.iconfont).forEach(path => {
+  const svgFiles = getSvgFilenames()
+  console.log(svgFiles)
+  svgFiles.forEach(path => {
     const match = path.match(iconfontRegex)
     if (!match || match.length !== 4) return
 
-    const index = Number(match[1])
+    const counter = Number(match[1])
     const name = match[2]
     const size = match[3]
 
     icons[`iconfont-${name}`] = {
       isFont: true,
       gridSize: size,
-      charCode: baseCharCode + index,
+      charCode: baseCharCode + counter - 1,
     }
   })
 
