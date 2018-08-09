@@ -14,10 +14,9 @@ fi
 
 # For CI, this is run like
 #
-#  env KEYBASE_BUILD=ci DEST_DIR=/tmp /path/to/gobuild.sh android-or-ios
+#  env KEYBASE_BUILD=ci DEST_DIR=/tmp ... /path/to/gobuild.sh android|ios
 #
-# so make sure doing so doesn't assume anything about where this file
-# is.
+# so make sure doing so doesn't assume anything about where this file is.
 
 # If KEYBASE_BUILD is set and non-empty (e.g., for CI), use it.
 if [[ -n ${KEYBASE_BUILD+x} && "$KEYBASE_BUILD" ]]; then
