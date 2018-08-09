@@ -4,7 +4,7 @@ import {getStyle as getTextStyle} from './text.desktop'
 import {collapseStyles, globalColors, styleSheetCreate, platformStyles} from '../styles'
 
 import type {_StylesDesktop} from '../styles/css'
-import type {InternalProps} from './plain-input'
+import type {InternalProps, TextInfo} from './plain-input'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
@@ -63,26 +63,39 @@ class PlainInput extends React.PureComponent<InternalProps> {
     }
   }
 
-  getValue = () => {
-    if (this._input) {
-      return this._input.value
-    }
-    return ''
-  }
-
-  setValue = (newValue: string) => {
-    if (this._input) {
-      this._input.value = newValue
-      this._autoResize()
-    }
-  }
-
   focus = () => {
     this._input && this._input.focus()
   }
 
   blur = () => {
     this._input && this._input.blur()
+  }
+
+  _transformText = (fn: TextInfo => TextInfo, reflectChange?: boolean) => {
+    const n = this._input
+    if (n) {
+      const textInfo: TextInfo = {
+        text: n.value,
+        selection: {
+          start: n.selectionStart,
+          end: n.selectionEnd,
+        },
+      }
+      const newTextInfo = fn(textInfo)
+      n.value = newTextInfo.text
+      n.selectionStart = newTextInfo.selection.start
+      n.selectionEnd = newTextInfo.selection.end
+
+      if (reflectChange && this._input) {
+        this._onChange({target: this._input})
+      }
+
+      this._autoResize()
+    }
+  }
+
+  transformText = (fn: TextInfo => TextInfo, reflectChange?: boolean) => {
+    this._transformText(fn, reflectChange)
   }
 
   _onCompositionStart = () => {
