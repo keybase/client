@@ -13,6 +13,7 @@ import {EmojiIfExists} from '../../../../common-adapters/markdown.shared'
 import * as Styles from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
+import DelayInterval from './delay-interval'
 
 export type Props = {|
   active: boolean,
@@ -110,6 +111,7 @@ type NewReactionButtonState = {|
 |}
 export class NewReactionButton extends React.Component<NewReactionButtonProps, NewReactionButtonState> {
   state = {applyClasses: false, attachmentRef: null, hovering: false, iconIndex: 0, showingPicker: false}
+  _delayInterval = new DelayInterval(1000, 400)
   _intervalID: ?IntervalID
 
   _setShowingPicker = (showingPicker: boolean) =>
@@ -132,16 +134,14 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
   }
 
   _startCycle = () => {
-    if (!this._intervalID) {
-      this._nextIcon()
-      this._intervalID = setInterval(this._nextIcon, 1000)
+    if (!this._delayInterval.running) {
+      this._delayInterval.start(this._nextIcon)
       this.setState(s => (s.hovering ? null : {hovering: true}))
     }
   }
 
   _stopCycle = () => {
-    this._intervalID && clearInterval(this._intervalID)
-    this._intervalID = null
+    this._delayInterval.stop()
     this.setState(s => (s.iconIndex === 0 && !s.hovering ? null : {hovering: false, iconIndex: 0}))
   }
 
@@ -233,10 +233,6 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
     )
   }
 }
-
-// The first emoji should stay on screen for less time so the user has a better chance of seeing it.
-// Set the interval after a shorter initial delay.
-// Convenience wrapper around interval + timeout
 
 const styles = Styles.styleSheetCreate({
   active: {
