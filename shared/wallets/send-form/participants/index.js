@@ -2,8 +2,29 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import WalletEntry from './wallet-entry'
 
-type Props = {
+type FromFieldProps = {|
+  username: string,
+  walletName: string,
+  walletContents: string,
+|}
+
+const FromField = (props: FromFieldProps) => (
+  <React.Fragment>
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
+      <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
+        From:
+      </Kb.Text>
+      <WalletEntry keybaseUser={props.username} name={props.walletName} contents={props.walletContents} />
+    </Kb.Box2>
+    <Kb.Divider />
+  </React.Fragment>
+)
+
+type ParticipantsProps = {
+  recipientType?: 'keybaseUser' | 'stellarAddress' | 'anotherWallet',
+  isConfirm?: boolean,
   fromWallet?: string,
   fromWalletUser?: string,
   fromWalletContents?: string,
@@ -17,10 +38,20 @@ type Props = {
   onRemoveProfile?: () => void,
 }
 
-const Participants = (props: Props) => (
+const Participants = (props: ParticipantsProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-      <Kb.Text type="BodyTinySemibold" style={styles.text}>
+    {props.isConfirm &&
+      props.fromWallet &&
+      props.fromWalletUser &&
+      props.fromWalletContents && (
+        <FromField
+          walletName={props.fromWallet}
+          username={props.fromWalletUser}
+          walletContents={props.fromWalletContents}
+        />
+      )}
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
+      <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
         To:
       </Kb.Text>
       {!!props.username && (
@@ -63,13 +94,13 @@ const Participants = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  text: {
+  headingText: {
     color: Styles.globalColors.blue,
     marginRight: Styles.globalMargins.tiny,
     // marginTop: Styles.globalMargins.xtiny,
     // alignSelf: 'flex-start',
   },
-  container: {
+  row: {
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.tiny,
