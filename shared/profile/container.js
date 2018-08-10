@@ -15,8 +15,8 @@ import Profile from './index'
 import * as React from 'react'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {isTesting} from '../local-debug'
-import {navigateAppend, navigateUp} from '../actions/route-tree'
-import {peopleTab} from '../constants/tabs'
+import {navigateAppend, navigateUp, navigateTo} from '../actions/route-tree'
+import {peopleTab, walletsTab} from '../constants/tabs'
 import {connect, type TypedState} from '../util/container'
 import flags from '../util/feature-flags'
 
@@ -122,6 +122,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
     dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
     dispatch(navigateAppend([{props: {}, selected: 'search'}]))
   },
+  onSendOrRequestLumens: () => dispatch(navigateTo([walletsTab])),
   onUnfollow: (username: string) => dispatch(TrackerGen.createUnfollow({username})),
   onUserClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
   onViewProof: (proof: TrackerTypes.Proof) => dispatch(TrackerGen.createOpenProofUrl({proof})),
