@@ -146,6 +146,6 @@ func TestTeamEKStorageKeyFormat(t *testing.T) {
 
 	key, err := s.dbKey(context.Background(), teamID)
 	require.NoError(t, err)
-	expected := fmt.Sprintf("teamEphemeralKeyBox-%s-%s-%s", teamID, s.G().Env.GetUsername(), uv.EldestSeqno)
+	expected := fmt.Sprintf("teamEphemeralKeyBox-%s-%s-%s-%d", teamID, s.G().Env.GetUsername(), uv.EldestSeqno, teamEKBoxStorageDBVersion)
 	require.Equal(t, expected, key.Key)
 }

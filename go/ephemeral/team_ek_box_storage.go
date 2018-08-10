@@ -11,8 +11,16 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type TeamEKMap map[keybase1.EkGeneration]keybase1.TeamEk
+type teamEKBoxCacheItem struct {
+	TeamEKBoxed keybase1.TeamEkBoxed
+	Err         error
+}
+
+type teamEKBoxCache map[keybase1.EkGeneration]teamEKBoxCacheItem
 type TeamEKBoxMap map[keybase1.EkGeneration]keybase1.TeamEkBoxed
+type TeamEKMap map[keybase1.EkGeneration]keybase1.TeamEk
+
+const teamEKBoxStorageDBVersion = 2
 
 func teamKey(teamID keybase1.TeamID, g *libkb.GlobalContext) string {
 	return fmt.Sprintf("teamEphemeralKeyBox-%s-%s", teamID, g.Env.GetUsername())
@@ -23,13 +31,13 @@ func teamKey(teamID keybase1.TeamID, g *libkb.GlobalContext) string {
 type TeamEKBoxStorage struct {
 	libkb.Contextified
 	sync.Mutex
-	cache *MemoryStorage
+	cache *teamEKCache
 }
 
 func NewTeamEKBoxStorage(g *libkb.GlobalContext) *TeamEKBoxStorage {
 	return &TeamEKBoxStorage{
 		Contextified: libkb.NewContextified(g),
-		cache:        NewMemoryStorage(g),
+		cache:        newTeamEKCache(g),
 	}
 }
 
@@ -38,7 +46,7 @@ func (s *TeamEKBoxStorage) dbKey(ctx context.Context, teamID keybase1.TeamID) (d
 	if err != nil {
 		return dbKey, err
 	}
-	key := fmt.Sprintf("%s-%s", teamKey(teamID, s.G()), uv.EldestSeqno)
+	key := fmt.Sprintf("%s-%s-%d", teamKey(teamID, s.G()), uv.EldestSeqno, teamEKBoxStorageDBVersion)
 	return libkb.DbKey{
 		Typ: libkb.DBTeamEKBox,
 		Key: key,
@@ -50,7 +58,7 @@ func (s *TeamEKBoxStorage) Get(ctx context.Context, teamID keybase1.TeamID, gene
 
 	s.Lock()
 
-	teamEKBoxes, found, err := s.getMap(ctx, teamID)
+	cache, found, err := s.getCacheForTeamID(ctx, teamID)
 	if err != nil {
 		s.Unlock()
 		return teamEK, err
@@ -59,35 +67,38 @@ func (s *TeamEKBoxStorage) Get(ctx context.Context, teamID keybase1.TeamID, gene
 		return s.fetchAndStore(ctx, teamID, generation)
 	}
 
-	teamEKBoxed, ok := teamEKBoxes[generation]
+	cacheItem, ok := cache[generation]
 	if !ok {
 		s.Unlock() // release the lock while we fetch
 		return s.fetchAndStore(ctx, teamID, generation)
 	}
 	defer s.Unlock() // release the lock after we unbox
-	return s.unbox(ctx, generation, teamEKBoxed)
+	if cacheItem.Err != nil {
+		return teamEK, err
+	}
+	return s.unbox(ctx, generation, cacheItem.TeamEKBoxed)
 }
 
-func (s *TeamEKBoxStorage) getMap(ctx context.Context, teamID keybase1.TeamID) (teamEKBoxes TeamEKBoxMap, found bool, err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("TeamEKBoxStorage#getMap: teamID:%v", teamID), func() error { return err })()
+func (s *TeamEKBoxStorage) getCacheForTeamID(ctx context.Context, teamID keybase1.TeamID) (cache teamEKBoxCache, found bool, err error) {
+	defer s.G().CTraceTimed(ctx, fmt.Sprintf("TeamEKBoxStorage#getCacheForTeamID: teamID:%v", teamID), func() error { return err })()
 
-	teamEKBoxes, found = s.cache.GetMap(teamID)
+	cache, found = s.cache.GetMap(teamID)
 	if found {
-		return teamEKBoxes, found, nil
+		return cache, found, nil
 	}
 
 	key, err := s.dbKey(ctx, teamID)
 	if err != nil {
 		return nil, false, err
 	}
-	teamEKBoxes = make(TeamEKBoxMap)
-	found, err = s.G().GetKVStore().GetInto(&teamEKBoxes, key)
+	cache = make(teamEKBoxCache)
+	found, err = s.G().GetKVStore().GetInto(&cache, key)
 	if err != nil {
 		return nil, found, err
 	} else if found {
-		s.cache.PutMap(teamID, teamEKBoxes)
+		s.cache.PutMap(teamID, cache)
 	}
-	return teamEKBoxes, found, err
+	return cache, found, err
 }
 
 type TeamEKBoxedResponse struct {
@@ -148,6 +159,12 @@ func (s *TeamEKBoxStorage) fetchAndStore(ctx context.Context, teamID keybase1.Te
 
 	teamEK, err = s.unbox(ctx, generation, teamEKBoxed)
 	if err != nil {
+		switch err.(type) {
+		case EKUnboxErr, EKMissingBoxErr:
+			if perr := s.put(ctx, teamID, generation, teamEKBoxed, err); perr != nil {
+				s.G().Log.CDebugf(ctx, "unable to store unboxing error %v", perr)
+			}
+		}
 		return teamEK, err
 	}
 
@@ -169,7 +186,7 @@ func (s *TeamEKBoxStorage) unbox(ctx context.Context, teamEKGeneration keybase1.
 	userEKBoxStorage := s.G().GetUserEKBoxStorage()
 	userEK, err := userEKBoxStorage.Get(ctx, teamEKBoxed.UserEkGeneration)
 	if err != nil {
-		s.G().Log.CDebugf(ctx, "%v", err)
+		s.G().Log.CDebugf(ctx, "unable to get from userEKStorage %v", err)
 		return teamEK, newEKUnboxErr(TeamEKStr, teamEKGeneration, UserEKStr, teamEKBoxed.UserEkGeneration)
 	}
 
@@ -178,7 +195,7 @@ func (s *TeamEKBoxStorage) unbox(ctx context.Context, teamEKGeneration keybase1.
 
 	msg, _, err := userKeypair.DecryptFromString(teamEKBoxed.Box)
 	if err != nil {
-		s.G().Log.CDebugf(ctx, "%v", err)
+		s.G().Log.CDebugf(ctx, "unable to decrypt teamEKBoxed %v", err)
 		return teamEK, newEKUnboxErr(TeamEKStr, teamEKGeneration, UserEKStr, teamEKBoxed.UserEkGeneration)
 	}
 
@@ -194,25 +211,32 @@ func (s *TeamEKBoxStorage) unbox(ctx context.Context, teamEKGeneration keybase1.
 }
 
 func (s *TeamEKBoxStorage) Put(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed) (err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("TeamEKBoxStorage#Put: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
+	return s.put(ctx, teamID, generation, teamEKBoxed, nil /* unboxingErr */)
+}
 
+func (s *TeamEKBoxStorage) put(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration,
+	teamEKBoxed keybase1.TeamEkBoxed, unboxingErr error) (err error) {
 	s.Lock()
 	defer s.Unlock()
+	defer s.G().CTraceTimed(ctx, fmt.Sprintf("TeamEKBoxStorage#putWithErr: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
 
 	key, err := s.dbKey(ctx, teamID)
 	if err != nil {
 		return err
 	}
-	teamEKBoxes, _, err := s.getMap(ctx, teamID)
+	cache, _, err := s.getCacheForTeamID(ctx, teamID)
 	if err != nil {
 		return err
 	}
-	teamEKBoxes[generation] = teamEKBoxed
-	err = s.G().GetKVStore().PutObj(key, nil, teamEKBoxes)
+	cache[generation] = teamEKBoxCacheItem{
+		TeamEKBoxed: teamEKBoxed,
+		Err:         unboxingErr,
+	}
+	err = s.G().GetKVStore().PutObj(key, nil, cache)
 	if err != nil {
 		return err
 	}
-	s.cache.PutMap(teamID, teamEKBoxes)
+	s.cache.PutMap(teamID, cache)
 	return nil
 }
 
@@ -225,7 +249,7 @@ func (s *TeamEKBoxStorage) Delete(ctx context.Context, teamID keybase1.TeamID, g
 func (s *TeamEKBoxStorage) deleteMany(ctx context.Context, teamID keybase1.TeamID, generations []keybase1.EkGeneration) (err error) {
 	defer s.G().CTraceTimed(ctx, fmt.Sprintf("TeamEKBoxStorage#delete: teamID:%v, generations:%v", teamID, generations), func() error { return err })()
 
-	teamEKBoxes, found, err := s.getMap(ctx, teamID)
+	cache, found, err := s.getCacheForTeamID(ctx, teamID)
 	if err != nil {
 		return err
 	} else if !found {
@@ -233,18 +257,18 @@ func (s *TeamEKBoxStorage) deleteMany(ctx context.Context, teamID keybase1.TeamI
 	}
 
 	for _, generation := range generations {
-		delete(teamEKBoxes, generation)
+		delete(cache, generation)
 	}
 
 	key, err := s.dbKey(ctx, teamID)
 	if err != nil {
 		return err
 	}
-	err = s.G().GetKVStore().PutObj(key, nil, teamEKBoxes)
+	err = s.G().GetKVStore().PutObj(key, nil, cache)
 	if err != nil {
 		return err
 	}
-	s.cache.PutMap(teamID, teamEKBoxes)
+	s.cache.PutMap(teamID, cache)
 	return nil
 }
 
@@ -254,7 +278,7 @@ func (s *TeamEKBoxStorage) DeleteExpired(ctx context.Context, teamID keybase1.Te
 	s.Lock()
 	defer s.Unlock()
 
-	teamEKBoxes, found, err := s.getMap(ctx, teamID)
+	cache, found, err := s.getCacheForTeamID(ctx, teamID)
 	if err != nil {
 		return nil, err
 	} else if !found {
@@ -262,8 +286,11 @@ func (s *TeamEKBoxStorage) DeleteExpired(ctx context.Context, teamID keybase1.Te
 	}
 
 	merkleCtime := keybase1.TimeFromSeconds(merkleRoot.Ctime()).Time()
-	for gen, teamEKBox := range teamEKBoxes {
-		keyAge := merkleCtime.Sub(teamEKBox.Metadata.Ctime.Time())
+	for gen, cacheItem := range cache {
+		if cacheItem.Err != nil {
+			continue
+		}
+		keyAge := merkleCtime.Sub(cacheItem.TeamEKBoxed.Metadata.Ctime.Time())
 		// TeamEKs will never encrypt new data if the current key is older than
 		// libkb.EphemeralKeyGenInterval, thus the maximum lifetime of
 		// ephemeral content will not exceed libkb.MinEphemeralKeyLifetime =
@@ -282,15 +309,18 @@ func (s *TeamEKBoxStorage) GetAll(ctx context.Context, teamID keybase1.TeamID) (
 	defer s.Unlock()
 
 	teamEKs = make(TeamEKMap)
-	teamEKBoxes, found, err := s.getMap(ctx, teamID)
+	cache, found, err := s.getCacheForTeamID(ctx, teamID)
 	if err != nil {
 		return nil, err
 	} else if !found {
 		return nil, nil
 	}
 
-	for generation, teamEKBoxed := range teamEKBoxes {
-		teamEK, err := s.unbox(ctx, generation, teamEKBoxed)
+	for generation, cacheItem := range cache {
+		if cacheItem.Err != nil {
+			continue
+		}
+		teamEK, err := s.unbox(ctx, generation, cacheItem.TeamEKBoxed)
 		if err != nil {
 			return nil, err
 		}
@@ -312,12 +342,15 @@ func (s *TeamEKBoxStorage) MaxGeneration(ctx context.Context, teamID keybase1.Te
 	defer s.Unlock()
 
 	maxGeneration = -1
-	teamEKBoxes, _, err := s.getMap(ctx, teamID)
+	cache, _, err := s.getCacheForTeamID(ctx, teamID)
 	if err != nil {
 		return maxGeneration, err
 	}
 
-	for generation := range teamEKBoxes {
+	for generation, cacheItem := range cache {
+		if cacheItem.Err != nil {
+			continue
+		}
 		if generation > maxGeneration {
 			maxGeneration = generation
 		}
@@ -330,25 +363,25 @@ func (s *TeamEKBoxStorage) MaxGeneration(ctx context.Context, teamID keybase1.Te
 const MemCacheLRUSize = 200
 
 // Store some TeamEKBoxes's in memory. Threadsafe.
-type MemoryStorage struct {
+type teamEKCache struct {
 	libkb.Contextified
 	lru *lru.Cache
 	sync.Mutex
 }
 
-func NewMemoryStorage(g *libkb.GlobalContext) *MemoryStorage {
+func newTeamEKCache(g *libkb.GlobalContext) *teamEKCache {
 	nlru, err := lru.New(MemCacheLRUSize)
 	if err != nil {
 		// lru.New only panics if size <= 0
 		log.Panicf("Could not create lru cache: %v", err)
 	}
-	return &MemoryStorage{
+	return &teamEKCache{
 		Contextified: libkb.NewContextified(g),
 		lru:          nlru,
 	}
 }
 
-func (s *MemoryStorage) GetMap(teamID keybase1.TeamID) (teamEKBoxes TeamEKBoxMap, found bool) {
+func (s *teamEKCache) GetMap(teamID keybase1.TeamID) (cache teamEKBoxCache, found bool) {
 	s.Lock()
 	defer s.Unlock()
 
@@ -356,22 +389,22 @@ func (s *MemoryStorage) GetMap(teamID keybase1.TeamID) (teamEKBoxes TeamEKBoxMap
 	if !found {
 		return nil, found
 	}
-	teamEKBoxes, ok := untyped.(TeamEKBoxMap)
+	cache, ok := untyped.(teamEKBoxCache)
 	if !ok {
-		s.G().Log.CDebugf(context.TODO(), "TeamEK MemoryStorage got bad type from lru: %T", untyped)
-		return teamEKBoxes, found
+		s.G().Log.CDebugf(context.TODO(), "TeamEK teamEKCache got bad type from lru: %T", untyped)
+		return nil, found
 	}
-	return teamEKBoxes, found
+	return cache, found
 }
 
-func (s *MemoryStorage) PutMap(teamID keybase1.TeamID, teamEKBoxes TeamEKBoxMap) {
-	s.lru.Add(s.key(teamID), teamEKBoxes)
+func (s *teamEKCache) PutMap(teamID keybase1.TeamID, cache teamEKBoxCache) {
+	s.lru.Add(s.key(teamID), cache)
 }
 
-func (s *MemoryStorage) Clear() {
+func (s *teamEKCache) Clear() {
 	s.lru.Purge()
 }
 
-func (s *MemoryStorage) key(teamID keybase1.TeamID) (key string) {
+func (s *teamEKCache) key(teamID keybase1.TeamID) (key string) {
 	return teamKey(teamID, s.G())
 }
