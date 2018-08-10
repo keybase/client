@@ -39,12 +39,12 @@
     },
     "displayCurrenciesReceived": {
       "_description": "Update valid display currencies to choose from",
-      "currencies": "Array<Types.CurrencyLocal>",
+      "currencies": "Array<Types.Currency>",
     },
     "changeAccountName": {
       "_description": "Change the name of an account",
       "accountID": "Types.AccountID",
-      "name": "Types.OutsideCurrencyCode",
+      "name": "string",
     },
     "setAccountAsDefault": {
       "_description": "Change the default account",
@@ -54,14 +54,19 @@
       "_description": "Delete an account",
       "accountID": "Types.AccountID",
     },
-    "getDisplayCurrency": {
+    "loadDisplayCurrency": {
       "_description": "Load display currency for an account",
       "accountID": "Types.AccountID",
+    },
+    "displayCurrencyReceived": {
+      "_description": "Update display currency for a certain account",
+      "accountID": "Types.AccountID",
+      "currency": "Types.Currency",
     },
     "changeDisplayCurrency": {
       "_description": "Change display currency for an account",
       "accountID": "Types.AccountID",
-      "currency": "string"
+      "code": "Types.CurrencyCode"
     },
     "paymentDetailReceived": {
       "_description": "Update a payment with additional detail",

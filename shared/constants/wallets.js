@@ -30,6 +30,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
   currencies: I.List(),
+  currencyMap: I.Map(),
 })
 
 const makeAccount: I.RecordFactory<Types._Account> = I.Record({
@@ -81,7 +82,7 @@ const makeCurrencies: I.RecordFactory<Types._LocalCurrency> = I.Record({
   name: '',
 })
 
-const currenciesResultToCurrencies = (w: RPCTypes.LocalCurrency) =>
+const currenciesResultToCurrencies = (w: RPCTypes.Currency) =>
   makeCurrencies({
     description: w.description,
     code: w.code,
@@ -109,6 +110,13 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   txID: '',
   worth: '',
   worthCurrency: '',
+})
+
+const makeCurrency: I.RecordFactory<Types._LocalCurrency> = I.Record({
+  description: '',
+  code: '',
+  symbol: '' ,
+  name: '',
 })
 
 const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
@@ -164,6 +172,11 @@ const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().t
 
 const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 
+const getDisplayCurrencies = (state: TypedState) => state.wallets.currencies
+
+const getDisplayCurrency =  (state: TypedState, accountID?: Types.AccountID) =>
+  state.wallets.currencyMap.get(accountID || getSelectedAccount(state), makeCurrency())
+
 const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), I.List())
 
@@ -175,6 +188,7 @@ const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
 
 const getAssets = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.assetsMap.get(accountID || getSelectedAccount(state), I.List())
+
 
 const linkExistingWaitingKey = 'wallets:linkExisting'
 
@@ -193,6 +207,8 @@ export {
   getAccountIDs,
   getAccount,
   getAssets,
+  getDisplayCurrencies,
+  getDisplayCurrency,
   getFederatedAddress,
   getPayment,
   getPayments,
@@ -202,6 +218,7 @@ export {
   loadEverythingWaitingKey,
   makeAccount,
   makeAssets,
+  makeCurrencies,
   makePayment,
   makeReserve,
   makeState,

@@ -17,13 +17,14 @@ export const changeDisplayCurrency = 'wallets:changeDisplayCurrency'
 export const clearErrors = 'wallets:clearErrors'
 export const deleteAccount = 'wallets:deleteAccount'
 export const displayCurrenciesReceived = 'wallets:displayCurrenciesReceived'
+export const displayCurrencyReceived = 'wallets:displayCurrencyReceived'
 export const exportSecretKey = 'wallets:exportSecretKey'
-export const getDisplayCurrency = 'wallets:getDisplayCurrency'
 export const linkExistingAccount = 'wallets:linkExistingAccount'
 export const linkedExistingAccount = 'wallets:linkedExistingAccount'
 export const loadAccounts = 'wallets:loadAccounts'
 export const loadAssets = 'wallets:loadAssets'
 export const loadDisplayCurrencies = 'wallets:loadDisplayCurrencies'
+export const loadDisplayCurrency = 'wallets:loadDisplayCurrency'
 export const loadPaymentDetail = 'wallets:loadPaymentDetail'
 export const loadPayments = 'wallets:loadPayments'
 export const paymentDetailReceived = 'wallets:paymentDetailReceived'
@@ -45,17 +46,20 @@ type _AssetsReceivedPayload = $ReadOnly<{|
 |}>
 type _ChangeAccountNamePayload = $ReadOnly<{|
   accountID: Types.AccountID,
-  name: Types.OutsideCurrencyCode,
+  name: string,
 |}>
 type _ChangeDisplayCurrencyPayload = $ReadOnly<{|
   accountID: Types.AccountID,
-  currency: string,
+  code: Types.CurrencyCode,
 |}>
 type _ClearErrorsPayload = void
 type _DeleteAccountPayload = $ReadOnly<{|accountID: Types.AccountID|}>
-type _DisplayCurrenciesReceivedPayload = $ReadOnly<{|currencies: Array<Types.CurrencyLocal>|}>
+type _DisplayCurrenciesReceivedPayload = $ReadOnly<{|currencies: Array<Types.Currency>|}>
+type _DisplayCurrencyReceivedPayload = $ReadOnly<{|
+  accountID: Types.AccountID,
+  currency: Types.Currency,
+|}>
 type _ExportSecretKeyPayload = $ReadOnly<{|accountID: Types.AccountID|}>
-type _GetDisplayCurrencyPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LinkExistingAccountPayload = $ReadOnly<{|
   name: string,
   secretKey: HiddenString,
@@ -69,6 +73,7 @@ type _LinkedExistingAccountPayloadError = $ReadOnly<{|
 type _LoadAccountsPayload = void
 type _LoadAssetsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadDisplayCurrenciesPayload = void
+type _LoadDisplayCurrencyPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadPaymentDetailPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   paymentID: StellarRPCTypes.PaymentID,
@@ -152,7 +157,7 @@ export const createLinkExistingAccount = (payload: _LinkExistingAccountPayload) 
 /**
  * Load display currency for an account
  */
-export const createGetDisplayCurrency = (payload: _GetDisplayCurrencyPayload) => ({error: false, payload, type: getDisplayCurrency})
+export const createLoadDisplayCurrency = (payload: _LoadDisplayCurrencyPayload) => ({error: false, payload, type: loadDisplayCurrency})
 /**
  * Load extra detail for one given payment
  */
@@ -197,6 +202,10 @@ export const createValidatedSecretKeyError = (payload: _ValidatedSecretKeyPayloa
  */
 export const createPaymentDetailReceived = (payload: _PaymentDetailReceivedPayload) => ({error: false, payload, type: paymentDetailReceived})
 /**
+ * Update display currency for a certain account
+ */
+export const createDisplayCurrencyReceived = (payload: _DisplayCurrencyReceivedPayload) => ({error: false, payload, type: displayCurrencyReceived})
+/**
  * Update our store of account data
  */
 export const createAccountsReceived = (payload: _AccountsReceivedPayload) => ({error: false, payload, type: accountsReceived})
@@ -225,14 +234,15 @@ export type ChangeDisplayCurrencyPayload = $Call<typeof createChangeDisplayCurre
 export type ClearErrorsPayload = $Call<typeof createClearErrors, _ClearErrorsPayload>
 export type DeleteAccountPayload = $Call<typeof createDeleteAccount, _DeleteAccountPayload>
 export type DisplayCurrenciesReceivedPayload = $Call<typeof createDisplayCurrenciesReceived, _DisplayCurrenciesReceivedPayload>
+export type DisplayCurrencyReceivedPayload = $Call<typeof createDisplayCurrencyReceived, _DisplayCurrencyReceivedPayload>
 export type ExportSecretKeyPayload = $Call<typeof createExportSecretKey, _ExportSecretKeyPayload>
-export type GetDisplayCurrencyPayload = $Call<typeof createGetDisplayCurrency, _GetDisplayCurrencyPayload>
 export type LinkExistingAccountPayload = $Call<typeof createLinkExistingAccount, _LinkExistingAccountPayload>
 export type LinkedExistingAccountPayload = $Call<typeof createLinkedExistingAccount, _LinkedExistingAccountPayload>
 export type LinkedExistingAccountPayloadError = $Call<typeof createLinkedExistingAccountError, _LinkedExistingAccountPayloadError>
 export type LoadAccountsPayload = $Call<typeof createLoadAccounts, _LoadAccountsPayload>
 export type LoadAssetsPayload = $Call<typeof createLoadAssets, _LoadAssetsPayload>
 export type LoadDisplayCurrenciesPayload = $Call<typeof createLoadDisplayCurrencies, _LoadDisplayCurrenciesPayload>
+export type LoadDisplayCurrencyPayload = $Call<typeof createLoadDisplayCurrency, _LoadDisplayCurrencyPayload>
 export type LoadPaymentDetailPayload = $Call<typeof createLoadPaymentDetail, _LoadPaymentDetailPayload>
 export type LoadPaymentsPayload = $Call<typeof createLoadPayments, _LoadPaymentsPayload>
 export type PaymentDetailReceivedPayload = $Call<typeof createPaymentDetailReceived, _PaymentDetailReceivedPayload>
@@ -258,14 +268,15 @@ export type Actions =
   | ClearErrorsPayload
   | DeleteAccountPayload
   | DisplayCurrenciesReceivedPayload
+  | DisplayCurrencyReceivedPayload
   | ExportSecretKeyPayload
-  | GetDisplayCurrencyPayload
   | LinkExistingAccountPayload
   | LinkedExistingAccountPayload
   | LinkedExistingAccountPayloadError
   | LoadAccountsPayload
   | LoadAssetsPayload
   | LoadDisplayCurrenciesPayload
+  | LoadDisplayCurrencyPayload
   | LoadPaymentDetailPayload
   | LoadPaymentsPayload
   | PaymentDetailReceivedPayload

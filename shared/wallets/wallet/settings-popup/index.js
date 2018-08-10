@@ -18,17 +18,19 @@ import {
   platformStyles,
   styleSheetCreate,
 } from '../../../styles'
+import * as Types from '../../../constants/types/wallets'
 
 export type Props = {
+  accountId:  Types.AccountID,
   name: string,
   user: string,
   isDefault: boolean,
-  currency: string,
-  currencies: Array<string>,
+  currency: Types.Currency,
+  currencies: Array<Types.Currency>,
   onDelete: () => void,
   onSetDefault: () => void,
   onEditName: () => void,
-  onCurrencyChange: (currency: string) => void,
+  onCurrencyChange: (currency: Types.CurrencyCode) => void,
   refresh: () => void,
 }
 
@@ -40,13 +42,14 @@ const makeDropdownItems = (props: Props) => {
       </Text>
     </Box2>,
   ]
-  return items.concat(props.currencies.map(s => makeDropdownItem(s, s === props.currency)))
+  // spread the List into an array with [...]
+  return items.concat([...props.currencies].map(s => makeDropdownItem(s, s.code === props.currency.code)))
 }
 
-const makeDropdownItem = (item: string, isSelected: boolean) => (
-  <Box2 centerChildren={true} direction="vertical" fullWidth={true} key={item}>
+const makeDropdownItem = (item: Types.Currency, isSelected: boolean) => (
+  <Box2 centerChildren={true} direction="vertical" fullWidth={true} key={item.code}>
     <Text type="Header" style={collapseStyles([styles.centerText, isSelected && styles.itemSelected])}>
-      {item}
+      {item.description}
     </Text>
   </Box2>
 )
@@ -93,8 +96,10 @@ const SettingsPopup = (props: Props) => {
         selected={makeDropdownItem(props.currency, false)}
         onChanged={(node: React.Node) => {
           // $ForceType doesn't understand key will be string
-          const selectedCurrency: string = node.key
-          props.onCurrencyChange(selectedCurrency)
+          const selectedCode: Types.Currency = node.key
+          if (selectedCode !== props.currency.code) {
+            props.onCurrencyChange(selectedCode)
+          }
         }}
         style={styles.dropdown}
       />

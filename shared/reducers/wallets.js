@@ -31,6 +31,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.setIn(['paymentsMap', action.payload.accountID], I.List(action.payload.payments))
     case WalletsGen.displayCurrenciesReceived:
       return state.set('currencies', I.List(action.payload.currencies))
+    case WalletsGen.displayCurrencyReceived:
+      return state.setIn(['currencyMap', action.payload.accountID], action.payload.currency)
     case WalletsGen.secretKeyReceived:
       return state.set('exportedSecretKey', action.payload.secretKey)
     case WalletsGen.secretKeySeen:
@@ -99,6 +101,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadPaymentDetail:
     case WalletsGen.loadPayments:
     case WalletsGen.loadDisplayCurrencies:
+    case WalletsGen.loadDisplayCurrency:
+    case WalletsGen.changeDisplayCurrency:
     case WalletsGen.loadAccounts:
       return state
     default:

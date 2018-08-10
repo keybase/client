@@ -4,6 +4,7 @@ import * as Sb from '../../stories/storybook'
 import {Box2} from '../../common-adapters'
 import Header from './header'
 import SettingsPopup from './settings-popup'
+import * as Types from '../../constants/types/wallets'
 
 const defaultWalletMock = {
   isDefaultWallet: true,
@@ -27,12 +28,45 @@ const commonActions = {
   onShowSecretKey: Sb.action('onShowSecretKey'),
 }
 
+const testCurrencies = [
+  {
+    description: 'USD ($)',
+    code: 'USD',
+    symbol: '$' ,
+    name: 'US Dollar',
+  },
+  {
+    description: 'XLM',
+    code: 'XLLM',
+    symbol: 'XLM' ,
+    name: 'Lumens',
+  },
+  {
+    description: 'CAD ($)',
+    code: 'CAD',
+    symbol: '$' ,
+    name: 'Canadian Dollar',
+  },
+  {
+    description: 'EUR (€)',
+    code: 'EUR',
+    symbol: '€' ,
+    name: 'Euro',
+  },
+  {
+    description: 'GBP (£)',
+    code: 'GPB',
+    symbol: '£' ,
+    name: 'British Pount',
+  },
+]
+
 const defaultSettingsProps = {
   name: 'awesome account',
   user: 'testuser',
   isDefault: true,
-  currency: 'USD ($)',
-  currencies: ['USD ($)', 'XLM', 'CAD ($)', 'EUR (€)', 'GBP (£)'],
+  currency: testCurrencies[1],
+  currencies: testCurrencies,
   onDelete: Sb.action('onDelete'),
   onSetDefault: Sb.action('setDefault'),
   onEditName: Sb.action('onEditName'),
@@ -43,8 +77,8 @@ const secondarySettingsProps = {
   name: 'some other account',
   user: 'testuser',
   isDefault: false,
-  currency: 'XLM',
-  currencies: ['USD ($)', 'XLM', 'CAD ($)', 'EUR (€)', 'GBP (£)'],
+  currency: testCurrencies[0],
+  currencies: testCurrencies,
   onDelete: Sb.action('onDelete'),
   onSetDefault: Sb.action('setDefault'),
   onEditName: Sb.action('onEditName'),

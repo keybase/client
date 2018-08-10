@@ -10,7 +10,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
   refresh: () => {
     dispatch(WalletsGen.createLoadAccounts())
-    dispatch(WalletsGen.createLoadDisplayCurrencies())
   },
 })
 

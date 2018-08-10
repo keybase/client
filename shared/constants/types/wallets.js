@@ -57,6 +57,8 @@ export type _LocalCurrency = {
   name: string,
 }
 
+export type CurrencyCode = StellarRPCTypes.OutsideCurrencyCode
+
 export type StatusSimplified = 'none' | 'pending' | 'claimable' | 'completed' | 'error' | 'unknown'
 
 export type _Payment = {
@@ -107,5 +109,6 @@ export type _State = {
   secretKeyMap: I.Map<AccountID, HiddenString>,
   selectedAccount: AccountID,
   currencies: I.List<Currency>,
+  currencyMap: I.Map<AccountID, Currency>,
 }
 export type State = I.RecordOf<_State>
