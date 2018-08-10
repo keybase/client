@@ -2,6 +2,7 @@
 import shallowEqual from 'shallowequal'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/chat2'
+import * as Styles from '../../../styles'
 
 const getMetaMap = (state: Container.TypedState) => [state.chat2.metaMap, state]
 const maxShownConversations = 5
@@ -29,7 +30,7 @@ const getSortedConvMetas = Container.createSelector([getMetas], ([map, state]) =
       const youNeedToRekey = !!participantNeedToRekey && m.rekeyers.has(_username)
       return {
         conversationIDKey: m.conversationIDKey,
-        backgroundColor: styles.backgroundColor,
+        backgroundColor: Styles.globalColors.white,
         hasBadge: Constants.getHasBadge(state, m.conversationIDKey),
         hasResetUsers: !!m.resetParticipants && m.resetParticipants.size > 0,
         hasUnread,
