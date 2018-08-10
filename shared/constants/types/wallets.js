@@ -50,14 +50,14 @@ export type _Assets = {
   reserves: I.List<Reserve>,
 }
 
+export type CurrencyCode = StellarRPCTypes.OutsideCurrencyCode
+
 export type _LocalCurrency = {
   description: string,
-  code: string,
+  code: CurrencyCode,
   symbol: string,
   name: string,
 }
-
-export type CurrencyCode = StellarRPCTypes.OutsideCurrencyCode
 
 export type StatusSimplified = 'none' | 'pending' | 'claimable' | 'completed' | 'error' | 'unknown'
 

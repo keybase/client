@@ -103,6 +103,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadDisplayCurrencies:
     case WalletsGen.loadDisplayCurrency:
     case WalletsGen.changeDisplayCurrency:
+    case WalletsGen.changeAccountName:
+    case WalletsGen.deleteAccount:
+    case WalletsGen.deleteAccount:
     case WalletsGen.loadAccounts:
       return state
     default:

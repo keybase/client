@@ -1,5 +1,5 @@
 // @flow
-import SettingsPopup from '.'
+import {SettingsPopup, type Props} from '.'
 import {compose, connect, lifecycle, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
@@ -26,7 +26,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     isDefault: account.isDefault,
     currency,
     currencies,
-    onEditName: () => {},
+    onSetName: () => {},
   }
 }
 
@@ -38,7 +38,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => {
     },
     _onDelete: (accountID: Types.AccountID) => dispatch(WalletsGen.createDeleteAccount({accountID})),
     _onSetDefault: (accountID: Types.AccountID) => dispatch(WalletsGen.createSetAccountAsDefault({accountID})),
-    //_onSetName: (accountID: Types.AccountID, name: string) => dispatch(WalletsGen.setName(accountID, name)),
     _onSetDisplayCurrency: (accountID: Types.AccountID, code: Types.CurrencyCode) => dispatch(WalletsGen.createChangeDisplayCurrency({accountID, code})),
   }
 }
@@ -48,7 +47,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
   refresh: () => dispatchProps._refresh(),
   onDelete: () => dispatchProps._onDelete(stateProps.accountID),
   onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
-  onSetName: (name: string) => dispatchProps._onEditName(stateProps.accountID, name),
   onCurrencyChange: (code: Types.CurrencyCode) => dispatchProps._onSetDisplayCurrency(stateProps.accountID, code),
 })
 

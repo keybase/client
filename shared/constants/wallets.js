@@ -82,7 +82,7 @@ const makeCurrencies: I.RecordFactory<Types._LocalCurrency> = I.Record({
   name: '',
 })
 
-const currenciesResultToCurrencies = (w: RPCTypes.Currency) =>
+const currenciesResultToCurrencies = (w: RPCTypes.CurrencyLocal) =>
   makeCurrencies({
     description: w.description,
     code: w.code,

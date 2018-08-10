@@ -20,7 +20,7 @@ import {
 } from '../../../styles'
 import * as Types from '../../../constants/types/wallets'
 
-export type Props = {
+type Props = {
   accountId:  Types.AccountID,
   name: string,
   user: string,
@@ -199,4 +199,5 @@ const styles = styleSheetCreate({
   },
 })
 
+export type {Props}
 export default SettingsPopup
