@@ -559,6 +559,7 @@ export const shouldUseOldMimeType = (oldItem: Types.FilePathItem, newItem: Types
 }
 
 export const invalidTokenError = new Error('invalid token')
+export const notFoundError = new Error('not found')
 
 export const makeEditID = (): Types.EditID => Types.stringToEditID(uuidv1())
 

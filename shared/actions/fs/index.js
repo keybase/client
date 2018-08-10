@@ -442,6 +442,9 @@ const getMimeTypePromise = (path: Types.Path, serverInfo: Types._LocalHTTPServer
         case 403:
           reject(Constants.invalidTokenError)
           return
+        case 404:
+          reject(Constants.notFoundError)
+          return
         default:
           reject(new Error(`unexpected HTTP status code: ${statusCode || ''}`))
       }
@@ -471,10 +474,18 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
       yield Saga.put(FsGen.createMimeTypeLoaded({path, mimeType}))
       return mimeType
     } catch (err) {
-      if (err !== Constants.invalidTokenError) {
-        throw err
+      if (err === Constants.invalidTokenError) {
+        token = '' // Set token to '' to trigger the refresh in next iteration.
+        continue
       }
-      token = '' // Set token to '' to trigger the refresh in next iteration.
+      if (err === Constants.notFoundError) {
+        // This file or its parent folder has been removed. So just stop here.
+        // This could happen when there are KBFS updates if user has previously
+        // inspected mime type, and we tracked the path through a refresh tag,
+        // but the path has been removed since then.
+        return
+      }
+      throw err
     }
   }
   throw new Error('failed to load mime type')
