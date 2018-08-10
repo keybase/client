@@ -32,7 +32,10 @@ function genEmojiData() {
 
     const fullName = `:${name}:` + (skinTone ? `:skin-tone-${skinTone}:` : '')
     const char = chars.join('')
-    emojiIndexByChar[char] = fullName
+    if (!emojiIndexByChar[char]) {
+      // Don’t overwrite existing emoji in the index.
+      emojiIndexByChar[char] = fullName
+    }
     if (!emojiIndexByName[fullName]) {
       // For display. Only adds the first supplied code points,
       // so make sure that is the fully qualified one
@@ -48,9 +51,18 @@ function genEmojiData() {
         addEmojiLiteral(emoji.skin_variations[k].unified, emoji.short_name, idx + 1)
       )
     }
-    emoji.short_names.forEach(name => addEmojiLiteral(emoji.unified, name))
+    addEmojiLiteral(emoji.unified, emoji.short_name)
     if (emoji.non_qualified) {
       addEmojiLiteral(emoji.non_qualified, emoji.short_name)
+    }
+  })
+
+  // Add aliases after all default short names have been added. Otherwise, :man-woman-boy:’s
+  // :family: alias will take the place of the default :family: emoji, and they are not the same.
+  emojiData.forEach(emoji => {
+    emoji.short_names.forEach(name => addEmojiLiteral(emoji.unified, name))
+    if (emoji.non_qualified) {
+      emoji.short_names.forEach(name => addEmojiLiteral(emoji.non_qualified, name))
     }
   })
 
