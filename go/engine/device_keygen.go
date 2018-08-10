@@ -20,6 +20,7 @@ type DeviceKeygenArgs struct {
 	IsEldest        bool
 	IsSelfProvision bool
 	PerUserKeyring  *libkb.PerUserKeyring
+	EkReboxer       *ephemeralKeyReboxer
 }
 
 // DeviceKeygenPushArgs determines how the push will run.  There are
@@ -122,7 +123,7 @@ func (e *DeviceKeygen) EncryptionKey() libkb.NaclDHKeyPair {
 
 // Push pushes the generated keys to the api server and stores the
 // local key security server half on the api server as well.
-func (e *DeviceKeygen) Push(m libkb.MetaContext, pargs *DeviceKeygenPushArgs) error {
+func (e *DeviceKeygen) Push(m libkb.MetaContext, pargs *DeviceKeygenPushArgs) (err error) {
 	var encSigner libkb.GenericKey
 	eldestKID := pargs.EldestKID
 
@@ -147,7 +148,6 @@ func (e *DeviceKeygen) Push(m libkb.MetaContext, pargs *DeviceKeygenPushArgs) er
 		pukBoxes = append(pukBoxes, pukBox)
 	}
 	if !e.args.IsEldest || e.args.IsSelfProvision {
-		// TODO on self provision we should also setup EK boxes here.
 		boxes, err := e.preparePerUserKeyBoxFromProvisioningKey(m)
 		if err != nil {
 			return err
@@ -169,8 +169,15 @@ func (e *DeviceKeygen) Push(m libkb.MetaContext, pargs *DeviceKeygenPushArgs) er
 
 	ds = e.appendEncKey(m, ds, encSigner, eldestKID, pargs.User)
 
-	var pukSigProducer libkb.AggSigProducer // = nil
+	var userEKReboxArg *keybase1.UserEkReboxArg
+	if e.args.IsSelfProvision {
+		userEKReboxArg, err = e.reboxUserEK(m, encSigner)
+		if err != nil {
+			return err
+		}
+	}
 
+	var pukSigProducer libkb.AggSigProducer // = nil
 	// PerUserKey does not use Delegator.
 	if e.G().Env.GetUpgradePerUserKey() && e.args.IsEldest {
 		// Sign in the new per-user-key
@@ -184,7 +191,7 @@ func (e *DeviceKeygen) Push(m libkb.MetaContext, pargs *DeviceKeygenPushArgs) er
 		}
 	}
 
-	e.pushErr = libkb.DelegatorAggregator(m, ds, pukSigProducer, pukBoxes, nil)
+	e.pushErr = libkb.DelegatorAggregator(m, ds, pukSigProducer, pukBoxes, nil, userEKReboxArg)
 
 	// push the LKS server half
 	e.pushLKS(m)
@@ -252,6 +259,19 @@ func (e *DeviceKeygen) localSave(m libkb.MetaContext) {
 	if e.runErr = e.naclEncGen.SaveLKS(m, e.args.Lks); e.runErr != nil {
 		return
 	}
+}
+
+func (e *DeviceKeygen) reboxUserEK(m libkb.MetaContext, signingKey libkb.GenericKey) (reboxArg *keybase1.UserEkReboxArg, err error) {
+	defer m.CTrace("DeviceKeygen#reboxUserEK", func() error { return err })()
+	ekKID, err := e.args.EkReboxer.getDeviceEKKID()
+	if err != nil {
+		return nil, err
+	}
+	userEKBox, err := makeUserEKBoxForProvisionee(m, ekKID)
+	if err != nil {
+		return nil, err
+	}
+	return e.args.EkReboxer.getReboxArg(userEKBox, e.args.DeviceID, signingKey)
 }
 
 func (e *DeviceKeygen) appendEldest(m libkb.MetaContext, ds []libkb.Delegator, pargs *DeviceKeygenPushArgs) []libkb.Delegator {

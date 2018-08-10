@@ -666,11 +666,10 @@ func (e *Kex2Provisionee) storeEKs(m libkb.MetaContext, deviceEKStatement keybas
 
 	deviceEKStorage := m.G().GetDeviceEKStorage()
 	metadata := deviceEKStatement.CurrentDeviceEkMetadata
-	err = deviceEKStorage.Put(m.Ctx(), metadata.Generation, keybase1.DeviceEk{
+	if err = deviceEKStorage.Put(m.Ctx(), metadata.Generation, keybase1.DeviceEk{
 		Seed:     e.deviceEKSeed,
 		Metadata: metadata,
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
 

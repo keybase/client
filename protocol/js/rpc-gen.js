@@ -2327,6 +2327,7 @@ export type UserEk = $ReadOnly<{seed: Bytes32, metadata: UserEkMetadata}>
 export type UserEkBoxMetadata = $ReadOnly<{box: String, recipientGeneration: EkGeneration, recipientDeviceID: DeviceID}>
 export type UserEkBoxed = $ReadOnly<{box: String, deviceEkGeneration: EkGeneration, metadata: UserEkMetadata}>
 export type UserEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
+export type UserEkReboxArg = $ReadOnly<{userEkBoxMetadata: UserEkBoxMetadata, deviceID: DeviceID, deviceEkStatementSig: String}>
 export type UserEkStatement = $ReadOnly<{currentUserEkMetadata: UserEkMetadata}>
 export type UserFindNextMerkleRootAfterResetRpcParam = $ReadOnly<{uid: UID, resetSeqno: Seqno, prev: ResetMerkleRoot}>
 export type UserFindNextMerkleRootAfterRevokeRpcParam = $ReadOnly<{uid: UID, kid: KID, loc: SigChainLocation, prev: MerkleRootV2}>
