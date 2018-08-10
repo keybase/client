@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as I from 'immutable'
 import {
   Avatar,
   Box2,
@@ -21,12 +22,12 @@ import {
 import * as Types from '../../../constants/types/wallets'
 
 type Props = {
-  accountId:  Types.AccountID,
+  accountID: Types.AccountID,
   name: string,
   user: string,
   isDefault: boolean,
   currency: Types.Currency,
-  currencies: Array<Types.Currency>,
+  currencies: I.List<Types.Currency>,
   onDelete: () => void,
   onSetDefault: () => void,
   onEditName: () => void,
@@ -96,7 +97,7 @@ const SettingsPopup = (props: Props) => {
         selected={makeDropdownItem(props.currency, false)}
         onChanged={(node: React.Node) => {
           // $ForceType doesn't understand key will be string
-          const selectedCode: Types.Currency = node.key
+          const selectedCode: Types.CurrencyCode = node.key
           if (selectedCode !== props.currency.code) {
             props.onCurrencyChange(selectedCode)
           }
@@ -200,4 +201,4 @@ const styles = styleSheetCreate({
 })
 
 export type {Props}
-export default SettingsPopup
+export {SettingsPopup}

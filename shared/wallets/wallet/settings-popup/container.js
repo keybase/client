@@ -26,7 +26,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     isDefault: account.isDefault,
     currency,
     currencies,
-    onSetName: () => {},
+    onEditName: () => {},
   }
 }
 
