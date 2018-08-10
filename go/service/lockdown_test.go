@@ -63,3 +63,52 @@ func TestLockdownReset(t *testing.T) {
 	})
 	require.NoError(t, err)
 }
+
+func TestLockdownLogin(t *testing.T) {
+	tc := libkb.SetupTest(t, "lockdown", 3)
+	defer tc.Cleanup()
+
+	user, err := kbtest.CreateAndSignupFakeUser("lmu", tc.G)
+	require.NoError(t, err)
+
+	handler := NewAccountHandler(nil, tc.G)
+	ctx := context.Background()
+
+	err = handler.SetLockdownMode(ctx, keybase1.SetLockdownModeArg{
+		Enabled: true,
+	})
+	require.NoError(t, err)
+
+	m := libkb.NewMetaContextForTest(tc)
+	_, err = tc.G.ActiveDevice.SyncSecretsForce(m)
+	require.NoError(t, err)
+
+	kbtest.Logout(tc)
+	err = user.Login(tc.G)
+	require.NoError(t, err)
+}
+
+func TestLockdownProvisionAndLogin(t *testing.T) {
+	tc := libkb.SetupTest(t, "lockdown", 3)
+	defer tc.Cleanup()
+
+	user, err := kbtest.CreateAndSignupFakeUserPaper("lmu", tc.G)
+	require.NoError(t, err)
+
+	handler := NewAccountHandler(nil, tc.G)
+	ctx := context.Background()
+
+	err = handler.SetLockdownMode(ctx, keybase1.SetLockdownModeArg{
+		Enabled: true,
+	})
+	require.NoError(t, err)
+
+	tc2 := libkb.SetupTest(t, "lockdown_second", 3)
+	defer tc2.Cleanup()
+	kbtest.ProvisionNewDeviceKex(&tc, &tc2, user)
+
+	kbtest.Logout(tc)
+
+	err = user.Login(tc.G)
+	require.NoError(t, err)
+}
