@@ -289,8 +289,7 @@ func (s *TeamEKBoxStorage) deleteMany(ctx context.Context, teamID keybase1.TeamI
 	if err != nil {
 		return err
 	}
-	err = s.G().GetKVStore().PutObj(key, nil, cache)
-	if err != nil {
+	if err = s.G().GetKVStore().PutObj(key, nil, cache); err != nil {
 		return err
 	}
 	s.cache.PutMap(teamID, cache)

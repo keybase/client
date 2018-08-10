@@ -227,7 +227,7 @@ func (s *UserEKBoxStorage) unbox(ctx context.Context, userEKGeneration keybase1.
 	deviceEKStorage := s.G().GetDeviceEKStorage()
 	deviceEK, err := deviceEKStorage.Get(ctx, userEKBoxed.DeviceEkGeneration)
 	if err != nil {
-		s.G().Log.CDebugf(ctx, "%v", err)
+		s.G().Log.CDebugf(ctx, "unable to get from deviceEKStorage %v", err)
 		return userEK, newEKUnboxErr(UserEKStr, userEKGeneration, DeviceEKStr, userEKBoxed.DeviceEkGeneration)
 	}
 
@@ -236,7 +236,7 @@ func (s *UserEKBoxStorage) unbox(ctx context.Context, userEKGeneration keybase1.
 
 	msg, _, err := deviceKeypair.DecryptFromString(userEKBoxed.Box)
 	if err != nil {
-		s.G().Log.CDebugf(ctx, "%v", err)
+		s.G().Log.CDebugf(ctx, "unable to decrypt userEKBoxed %v", err)
 		return userEK, newEKUnboxErr(UserEKStr, userEKGeneration, DeviceEKStr, userEKBoxed.DeviceEkGeneration)
 	}
 

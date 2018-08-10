@@ -221,17 +221,14 @@ func (s *DeviceEKStorage) getCache(ctx context.Context) (cache deviceEKCache, er
 				continue
 			}
 			deviceEK, err := s.get(ctx, generation)
-			if err != nil {
-				switch err.(type) {
-				case erasablekv.UnboxError:
-					s.G().Log.Debug("DeviceEKStorage#getCache failed to get item from storage: %v", err)
-				default:
-					return nil, err
+			switch err.(type) {
+			case nil, erasablekv.UnboxError:
+				s.cache[generation] = deviceEKCacheItem{
+					DeviceEK: deviceEK,
+					Err:      err,
 				}
-			}
-			s.cache[generation] = deviceEKCacheItem{
-				DeviceEK: deviceEK,
-				Err:      err,
+			default:
+				return nil, err
 			}
 		}
 		s.indexed = true
