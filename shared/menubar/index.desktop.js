@@ -6,6 +6,7 @@ import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
 import * as Chat from './chat.desktop'
 import * as ChatTypes from '../constants/types/chat2'
+import * as RemoteContainer from '../chat/inbox/container/remote'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash-es'
@@ -13,7 +14,7 @@ import {throttle} from 'lodash-es'
 export type Props = {
   isAsyncWriteHappening: boolean,
   onSelectConversation: (ChatTypes.ConversationIDKey) => void,
-  conversations: Array<Chat.ChatRowProps>,
+  conversations: Array<RemoteContainer.RemoteConvMeta>,
   logIn: () => void,
   loggedIn: boolean,
   onFolderClick: (path: ?string) => void,
@@ -33,7 +34,6 @@ type State = {|
 |}
 
 const ArrowTick = () => (
-  // Css triangle!
   <Kb.Box style={styles.arrowTick} />
 )
 

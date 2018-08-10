@@ -3,6 +3,8 @@ import shallowEqual from 'shallowequal'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
+import * as SmallTeam from '../row/small-team'
+import * as ChatTypes from '../../../constants/types/chat2'
 
 const getMetaMap = (state: Container.TypedState) => [state.chat2.metaMap, state]
 const maxShownConversations = 5
@@ -15,6 +17,11 @@ const getMetas = Container.createSelector([getMetaMap], ([metaMap, state]) => [
   state,
 ])
 
+export type RemoteConvMeta = {
+  ...SmallTeam.Props,
+  conversationIDKey: ChatTypes.ConversationIDKey,
+}
+
 // Sort by timestamp
 const getSortedConvMetas = Container.createSelector([getMetas], ([map, state]) =>
   map
@@ -22,7 +29,7 @@ const getSortedConvMetas = Container.createSelector([getMetas], ([map, state]) =
     .slice(0, maxShownConversations)
     .toList()
     .toJS()
-    .map(m => {
+    .map((m): RemoteConvMeta => {
       const hasUnread = Constants.getHasUnread(state, m.conversationIDKey)
       const styles = Constants.getRowStyles(m, false, hasUnread)
       const participantNeedToRekey = m.rekeyers.size > 0
@@ -38,10 +45,9 @@ const getSortedConvMetas = Container.createSelector([getMetas], ([map, state]) =
         isFinalized: !!m.wasFinalizedBy,
         isMuted: m.isMuted,
         isSelected: false,
-        // TODO: fix this: we need to navigate to the app here.
-        onSelectConversation: () => {},
+        // excluding onSelectConversation
         participantNeedToRekey,
-        participants: Constants.getRowParticipants(m, _username),
+        participants: Constants.getRowParticipants(m, _username).toArray(),
         showBold: styles.showBold,
         snippet: m.snippet,
         snippetDecoration: m.snippetDecoration,

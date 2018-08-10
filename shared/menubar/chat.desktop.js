@@ -4,6 +4,7 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as ChatTypes from '../constants/types/chat2'
 import * as SmallTeam from '../chat/inbox/row/small-team'
+import * as RemoteContainer from '../chat/inbox/container/remote'
 
 const ChatViewAll = ({onViewAll}: {onViewAll: () => void}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
@@ -15,22 +16,21 @@ const ChatViewAll = ({onViewAll}: {onViewAll: () => void}) => (
   </Kb.Box2>
 )
 
-export type ChatRowProps = {
-  ...SmallTeam.Props,
-  conversationIDKey: ChatTypes.ConversationIDKey,
-}
-
 export type ChatContainerProps = {
   onViewAll: () => void,
   onSelectConversation: (ChatTypes.ConversationIDKey) => void,
-  conversations: Array<ChatRowProps>,
+  conversations: Array<RemoteContainer.RemoteConvMeta>,
 }
 
 export const ChatContainer = ({onViewAll, onSelectConversation, conversations}: ChatContainerProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
-    {conversations.slice(0, 3).map(c => (
-      <SmallTeam.SmallTeam key={c.conversationIDKey} {...c} onSelectConversation={() => onSelectConversation(c.conversationIDKey)} />
-    ))}
+    {conversations.slice(0, 3).map(c => {
+      // $FlowIssue y u so dumb, Flow? It can't figure out what's going on here. Something about "inexact" props below.
+      const smallTeamProps: SmallTeam.Props = c
+      return (
+        <SmallTeam.SmallTeam key={c.conversationIDKey} {...smallTeamProps} onSelectConversation={() => onSelectConversation(c.conversationIDKey)} />
+      )
+    })}
     <ChatViewAll onViewAll={onViewAll} />
   </Kb.Box2>
 )
