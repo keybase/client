@@ -475,7 +475,7 @@ export type GetThreadNonblockPgMode =
   | 0 // DEFAULT_0
   | 1 // SERVER_1
 
-export type GetThreadQuery = $ReadOnly<{markAsRead: Boolean, messageTypes?: ?Array<MessageType>, disableResolveSupersedes: Boolean, before?: ?Gregor1.Time, after?: ?Gregor1.Time, messageIDControl?: ?MessageIDControl}>
+export type GetThreadQuery = $ReadOnly<{markAsRead: Boolean, messageTypes?: ?Array<MessageType>, disableResolveSupersedes: Boolean, enableDeletePlaceholders: Boolean, before?: ?Gregor1.Time, after?: ?Gregor1.Time, messageIDControl?: ?MessageIDControl}>
 export type GetThreadReason =
   | 0 // GENERAL_0
   | 1 // PUSH_1

@@ -367,7 +367,7 @@ func (f *FetchRetrier) Force(ctx context.Context) {
 
 func (f *FetchRetrier) Rekey(ctx context.Context, name string, membersType chat1.ConversationMembersType,
 	public bool) {
-	nameInfo, err := CtxKeyFinder(ctx, f.G()).Find(ctx, name, membersType, public)
+	nameInfo, err := CreateNameInfoSource(ctx, f.G(), membersType).LookupID(ctx, name, public)
 	if err != nil {
 		f.Debug(ctx, "Rekey: failed to load name info for: %s msg %s", name, err)
 		return

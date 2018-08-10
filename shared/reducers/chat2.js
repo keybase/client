@@ -275,6 +275,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
       return messageMap
     case Chat2Gen.messagesExploded:
       const {conversationIDKey, messageIDs} = action.payload
+      logger.info(`messagesExploded: exploding ${messageIDs.length} messages`)
       const ordinals = messageIDs
         .map(mid => messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, mid))
         .filter(Boolean)

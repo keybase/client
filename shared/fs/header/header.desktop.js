@@ -6,8 +6,9 @@ import AddNew from './add-new-container'
 import ConnectedFilesBanner from '../banner/fileui-banner/container'
 import Breadcrumb from './breadcrumb-container.desktop'
 import {type FolderHeaderProps} from './header'
+import OpenInFileUI from '../common/open-in-fileui-container'
 
-const FolderHeader = ({path, openInFileUI, onChat}: FolderHeaderProps) => (
+const FolderHeader = ({path, onChat}: FolderHeaderProps) => (
   <Box style={styleHeaderContainer}>
     <Box style={styleFolderHeader}>
       {path === '/keybase' ? (
@@ -19,7 +20,7 @@ const FolderHeader = ({path, openInFileUI, onChat}: FolderHeaderProps) => (
           <Breadcrumb path={path} />
           <Box style={styleFolderHeaderEnd}>
             <AddNew path={path} style={styleAddNew} />
-            <Icon type="iconfont-finder" color={globalColors.black_40} fontSize={16} onClick={openInFileUI} />
+            <OpenInFileUI path={path} />
             {onChat && (
               <Icon
                 type="iconfont-chat"

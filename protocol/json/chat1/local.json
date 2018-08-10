@@ -1728,6 +1728,10 @@
           "name": "disableResolveSupersedes"
         },
         {
+          "type": "boolean",
+          "name": "enableDeletePlaceholders"
+        },
+        {
           "type": [
             null,
             "gregor1.Time"
