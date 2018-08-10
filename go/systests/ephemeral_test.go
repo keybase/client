@@ -383,6 +383,7 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 	require.Error(t, err)
 
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
+	user2.waitForNewlyAddedToTeamByID(teamID)
 
 	// Test that user1 and user2 both have access to the currentTeamEK
 	// (whether we recreated or reboxed)

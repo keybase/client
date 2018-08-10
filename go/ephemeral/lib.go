@@ -392,7 +392,14 @@ func (e *EKLib) isEntryExpired(val interface{}) (*teamEKGenCacheEntry, bool) {
 	return cacheEntry, e.clock.Now().Sub(cacheEntry.Ctime.Time()) >= cacheEntryLifetime
 }
 
-func (e *EKLib) PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.EkGeneration) {
+func (e *EKLib) PurgeCachesForTeamID(ctx context.Context, teamID keybase1.TeamID) {
+	e.teamEKGenCache.Remove(e.cacheKey(teamID))
+	if err := e.G().GetTeamEKBoxStorage().PurgeCacheForTeamID(ctx, teamID); err != nil {
+		e.G().Log.CDebugf(ctx, "unable to PurgeCacheForTeamID: %v", err)
+	}
+}
+
+func (e *EKLib) PurgeCachesForTeamIDAndGeneration(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) {
 
 	cacheKey := e.cacheKey(teamID)
 	val, ok := e.teamEKGenCache.Get(cacheKey)
@@ -400,6 +407,9 @@ func (e *EKLib) PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.
 		if cacheEntry, _ := e.isEntryExpired(val); cacheEntry != nil && cacheEntry.Generation != generation {
 			e.teamEKGenCache.Remove(cacheKey)
 		}
+	}
+	if err := e.G().GetTeamEKBoxStorage().Delete(ctx, teamID, generation); err != nil {
+		e.G().Log.CDebugf(ctx, "unable to PurgeCacheForTeamIDAndGeneration: %v", err)
 	}
 }
 

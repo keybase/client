@@ -105,6 +105,16 @@
       "response": null,
       "oneway": true
     },
+    "newlyAddedToTeam": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
     "avatarUpdated": {
       "request": [
         {

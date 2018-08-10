@@ -296,6 +296,23 @@ func (s *TeamEKBoxStorage) deleteMany(ctx context.Context, teamID keybase1.TeamI
 	return nil
 }
 
+func (s *TeamEKBoxStorage) PurgeCacheForTeamID(ctx context.Context, teamID keybase1.TeamID) (err error) {
+	s.Lock()
+	defer s.Unlock()
+	defer s.G().CTraceTimed(ctx, fmt.Sprintf("TeamEKBoxStorage#PurgeCacheForTeamID: teamID:%v", teamID), func() error { return err })()
+
+	key, err := s.dbKey(ctx, teamID)
+	if err != nil {
+		return err
+	}
+	cache := make(teamEKBoxCache)
+	if err = s.G().GetKVStore().PutObj(key, nil, cache); err != nil {
+		return err
+	}
+	s.cache.PutMap(teamID, cache)
+	return nil
+}
+
 func (s *TeamEKBoxStorage) DeleteExpired(ctx context.Context, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot) (expired []keybase1.EkGeneration, err error) {
 	defer s.G().CTraceTimed(ctx, fmt.Sprintf("TeamEKBoxStorage#DeleteExpired: teamID:%v", teamID), func() error { return err })()
 
