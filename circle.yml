@@ -51,7 +51,7 @@ jobs:
           # Limit memory usage of gradle
           _JAVA_OPTIONS: -Xms512m -Xmx2048m
           GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"
-        command: ./gradlew assembleReleaseUnsigned -x bundleReleaseUnsignedJsAndAssets
+        command: ./gradlew --no-daemon --stacktrace assembleReleaseUnsigned -x bundleReleaseUnsignedJsAndAssets
 
     # TODO: Run device tests (see old versions of this file).
 
