@@ -80,7 +80,7 @@ const ToField = (props: any) => (
         </Kb.Box2>
       )}
     </Kb.Box2>
-    {props.incorrect && <Kb.Box style={styles.redline} />}
+    <Kb.Divider style={props.incorrect ? styles.redline : {}} />
   </React.Fragment>
 )
 
@@ -142,8 +142,6 @@ const styles = Styles.styleSheetCreate({
   input: {width: '90%'},
   redline: {
     backgroundColor: Styles.globalColors.red,
-    height: 1,
-    width: '100%',
   },
 })
 
