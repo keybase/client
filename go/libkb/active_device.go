@@ -39,7 +39,7 @@ func (a *ActiveDevice) Dump(m MetaContext, prefix string) {
 		m.CDebugf("%sEncKey: %s", prefix, a.encryptionKey.GetKID())
 	}
 	m.CDebugf("%sPassphraseCache: cacheObj=%v; valid=%v", prefix, (a.passphrase != nil), (a.passphrase != nil && a.passphrase.ValidPassphraseStream()))
-	m.CDebugf("%ProvisioningKeyCache: %v", prefix, (a.provisioningKey != nil && a.provisioningKey.DeviceWithKeys() != nil))
+	m.CDebugf("%sProvisioningKeyCache: %v", prefix, (a.provisioningKey != nil && a.provisioningKey.DeviceWithKeys() != nil))
 }
 
 // NewProvisionalActiveDevice creates an ActiveDevice that is "provisional", in
