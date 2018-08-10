@@ -17,7 +17,7 @@ import {normal as proofNormal} from '../constants/tracker'
 import {globalColors, isMobile, platformStyles, styleSheetCreate} from '../styles'
 import type {SimpleProofState} from '../constants/types/tracker'
 
-type Props = {
+type Props = {|
   trackerState: SimpleProofState,
   currentlyFollowing: boolean,
   style: Object,
@@ -27,10 +27,11 @@ type Props = {
   onFollow: () => void,
   onOpenPrivateFolder: () => void,
   onRefresh: () => void,
+  onSendOrRequestLumens: () => void,
   onUnfollow: () => void,
   onAcceptProofs: () => void,
   waiting: boolean,
-}
+|}
 
 function UserActions({
   trackerState,
@@ -42,6 +43,7 @@ function UserActions({
   onFollow,
   onOpenPrivateFolder,
   onRefresh,
+  onSendOrRequestLumens,
   onUnfollow,
   onAcceptProofs,
   waiting,
@@ -52,18 +54,13 @@ function UserActions({
         <ButtonBar style={style}>
           <FollowButton following={true} onUnfollow={onUnfollow} waiting={waiting} />
           <Button type="Primary" label="Chat" onClick={onChat}>
-            <Icon
-              type="iconfont-chat"
-              style={{
-                marginRight: 8,
-              }}
-              color={globalColors.white}
-            />
+            <Icon type="iconfont-chat" style={{marginRight: 8}} color={globalColors.white} />
           </Button>
           <DropdownButton
             onAddToTeam={onAddToTeam}
             onOpenPrivateFolder={onOpenPrivateFolder}
             onBrowsePublicFolder={onBrowsePublicFolder}
+            onSendOrRequestLumens={onSendOrRequestLumens}
           />
         </ButtonBar>
       )
@@ -77,6 +74,7 @@ function UserActions({
             onOpenPrivateFolder={onOpenPrivateFolder}
             onBrowsePublicFolder={onBrowsePublicFolder}
             onUnfollow={onUnfollow}
+            onSendOrRequestLumens={onSendOrRequestLumens}
           />
         </ButtonBar>
       )
@@ -86,18 +84,13 @@ function UserActions({
       <ButtonBar style={style}>
         <FollowButton following={false} onFollow={onFollow} waiting={waiting} />
         <Button label="Chat" type="Primary" onClick={onChat} style={{marginRight: 0}}>
-          <Icon
-            type="iconfont-chat"
-            style={{
-              marginRight: 8,
-            }}
-            color={globalColors.white}
-          />
+          <Icon type="iconfont-chat" style={{marginRight: 8}} color={globalColors.white} />
         </Button>
         <DropdownButton
           onAddToTeam={onAddToTeam}
           onOpenPrivateFolder={onOpenPrivateFolder}
           onBrowsePublicFolder={onBrowsePublicFolder}
+          onSendOrRequestLumens={onSendOrRequestLumens}
         />
       </ButtonBar>
     )
@@ -108,6 +101,7 @@ type DropdownProps = {
   onAddToTeam: () => void,
   onBrowsePublicFolder: () => void,
   onOpenPrivateFolder: () => void,
+  onSendOrRequestLumens: () => void,
   onUnfollow?: () => void,
 }
 
@@ -118,7 +112,7 @@ class _DropdownButton extends React.PureComponent<DropdownProps & OverlayParentP
       title: 'Add to team...',
     },
     {
-      onClick: () => this.props.onAddToTeam(),
+      onClick: () => this.props.onSendOrRequestLumens(),
       title: 'Send or request Lumens (XLM)',
       view: (
         <Box2 direction="horizontal" centerChildren={true} gap="xtiny">
