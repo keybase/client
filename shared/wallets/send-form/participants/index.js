@@ -4,10 +4,13 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import WalletEntry from './wallet-entry'
 
+type Recipient = 'keybaseUser' | 'stellarAddress' | 'anotherWallet'
+
 type FromFieldProps = {|
   username: string,
   walletName: string,
   walletContents: string,
+  isConfirm?: boolean,
 |}
 
 const FromField = (props: FromFieldProps) => (
@@ -16,7 +19,10 @@ const FromField = (props: FromFieldProps) => (
       <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
         From:
       </Kb.Text>
-      <WalletEntry keybaseUser={props.username} name={props.walletName} contents={props.walletContents} />
+      {props.isConfirm && (
+        <WalletEntry keybaseUser={props.username} name={props.walletName} contents={props.walletContents} />
+      )}
+      {/* TODO: Add wallet dropdown for wallet->wallet */}
     </Kb.Box2>
     <Kb.Divider />
   </React.Fragment>
@@ -25,7 +31,18 @@ const FromField = (props: FromFieldProps) => (
 const ToField = (props: any) => (
   <React.Fragment>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
-      <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
+      <Kb.Text
+        type="BodyTinySemibold"
+        style={Styles.collapseStyles([
+          styles.headingText,
+          props.recipientType === 'stellarAddress'
+            ? {
+                alignSelf: 'flex-start',
+                marginTop: Styles.globalMargins.xtiny,
+              }
+            : {},
+        ])}
+      >
         To:
       </Kb.Text>
       {!!props.username && (
@@ -68,7 +85,7 @@ const ToField = (props: any) => (
 )
 
 type ParticipantsProps = {
-  recipientType?: 'keybaseUser' | 'stellarAddress' | 'anotherWallet',
+  recipientType: Recipient,
   isConfirm?: boolean,
   fromWallet?: string,
   fromWalletUser?: string,
@@ -95,7 +112,7 @@ const Participants = (props: ParticipantsProps) => (
           walletContents={props.fromWalletContents}
         />
       )}
-    <ToField />
+    <ToField recipientType={props.recipientType} incorrect={props.incorrect} />
   </Kb.Box2>
 )
 
@@ -103,8 +120,6 @@ const styles = Styles.styleSheetCreate({
   headingText: {
     color: Styles.globalColors.blue,
     marginRight: Styles.globalMargins.tiny,
-    // marginTop: Styles.globalMargins.xtiny,
-    // alignSelf: 'flex-start',
   },
   row: {
     paddingLeft: Styles.globalMargins.small,
