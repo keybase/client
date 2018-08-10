@@ -24,6 +24,7 @@ type ResultCollector interface {
 	Result() []chat1.MessageUnboxed
 	Error(err Error) Error
 	Name() string
+	SetTarget(num int)
 
 	String() string
 }
@@ -161,6 +162,10 @@ func (s *SimpleResultCollector) PushPlaceholder(chat1.MessageID) bool {
 	return false
 }
 
+func (s *SimpleResultCollector) SetTarget(num int) {
+	s.target = num
+}
+
 func NewSimpleResultCollector(num int) *SimpleResultCollector {
 	return &SimpleResultCollector{
 		target: num,
@@ -202,6 +207,8 @@ func (s *InsatiableResultCollector) String() string {
 func (s *InsatiableResultCollector) Error(err Error) Error {
 	return err
 }
+
+func (s *InsatiableResultCollector) SetTarget(num int) {}
 
 func (s *InsatiableResultCollector) PushPlaceholder(chat1.MessageID) bool {
 	// Missing messages are a-ok
@@ -266,6 +273,10 @@ func (t *TypedResultCollector) Error(err Error) Error {
 
 func (t *TypedResultCollector) PushPlaceholder(msgID chat1.MessageID) bool {
 	return false
+}
+
+func (t *TypedResultCollector) SetTarget(num int) {
+	t.target = num
 }
 
 type HoleyResultCollector struct {
