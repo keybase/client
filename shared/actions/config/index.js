@@ -73,6 +73,14 @@ const loadDaemonBootstrapStatus = (
         })
     )
     yield Saga.put(loadedAction)
+
+    // if we're logged in act like getAccounts is done already
+    if (action.type === ConfigGen.daemonHandshake && loadedAction.payload.loggedIn) {
+      const newState = yield Saga.select()
+      if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
+        yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name: getAccountsWaitKey}))
+      }
+    }
   })
 
   switch (action.type) {
@@ -124,9 +132,28 @@ const maybeDoneWithDaemonHandshake = (state: TypedState) => {
   }
 }
 
-const loadDaemonAccounts = (_: any, action: DevicesGen.RevokedPayload | ConfigGen.DaemonHandshakePayload) => {
-  const makeCall = Saga.call(function*() {
+// Load accounts, this call can be slow so we attempt to continue w/o waiting if we determine we're logged in
+// normally this wouldn't be worth it but this is startup
+const getAccountsWaitKey = 'config.getAccounts'
+
+const loadDaemonAccounts = (
+  state: TypedState,
+  action: DevicesGen.RevokedPayload | ConfigGen.DaemonHandshakePayload
+) => {
+  let handshakeWait = false
+
+  if (action.type === ConfigGen.daemonHandshake) {
+    // did we beat getBootstrapStatus?
+    if (!state.config.loggedIn) {
+      handshakeWait = true
+    }
+  }
+
+  return Saga.call(function*() {
     try {
+      if (handshakeWait) {
+        yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: getAccountsWaitKey}))
+      }
       const loadedAction = yield RPCTypes.configGetAllProvisionedUsernamesRpcPromise().then(result => {
         let usernames = result.provisionedUsernames || []
         let defaultUsername = result.defaultUsername
@@ -134,37 +161,29 @@ const loadDaemonAccounts = (_: any, action: DevicesGen.RevokedPayload | ConfigGe
         return ConfigGen.createSetAccounts({defaultUsername, usernames})
       })
       yield Saga.put(loadedAction)
-      if (action.type === ConfigGen.daemonHandshake) {
-        yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name: 'config.getAccounts'}))
+      if (handshakeWait) {
+        // someone dismissed this already?
+        const newState: TypedState = yield Saga.select()
+        if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
+          yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name: getAccountsWaitKey}))
+        }
       }
     } catch (error) {
-      if (action.type === ConfigGen.daemonHandshake) {
-        yield Saga.put(
-          ConfigGen.createDaemonHandshakeWait({
-            failedReason: "Can't get accounts",
-            increment: false,
-            name: 'config.getAccounts',
-          })
-        )
+      if (handshakeWait) {
+        // someone dismissed this already?
+        const newState: TypedState = yield Saga.select()
+        if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
+          yield Saga.put(
+            ConfigGen.createDaemonHandshakeWait({
+              failedReason: "Can't get accounts",
+              increment: false,
+              name: getAccountsWaitKey,
+            })
+          )
+        }
       }
     }
   })
-
-  switch (action.type) {
-    case ConfigGen.daemonHandshake:
-      return Saga.sequentially([
-        Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: 'config.getAccounts'})),
-        makeCall,
-      ])
-    case DevicesGen.revoked:
-      return makeCall
-    default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(action.type);
-      */
-      return undefined
-  }
 }
 
 const showDeletedSelfRootPage = () =>
