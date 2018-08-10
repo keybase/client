@@ -104,12 +104,16 @@ const SetExplodePopup = (props: Props) => {
   return (
     <FloatingMenu
       attachTo={props.attachTo}
-      position="top center"
+      position="top left"
       visible={props.visible}
       header={{title: 'announcement-header', view: <Header isNew={props.isNew} />}}
       closeOnSelect={true}
       onHidden={props.onHidden}
       items={listItems}
+      containerStyle={{
+        bottom: 3,
+        position: 'relative',
+      }}
     />
   )
 }

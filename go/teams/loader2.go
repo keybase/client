@@ -116,14 +116,16 @@ func (l *TeamLoader) checkStubbed(ctx context.Context, arg load2ArgT, link *chai
 func (l *TeamLoader) loadUserAndKeyFromLinkInner(ctx context.Context,
 	inner SCChainLinkPayload, lkc *loadKeyCache) (
 	signerUV keybase1.UserVersion, key *keybase1.PublicKeyV2NaCl, linkMap linkMapT, err error) {
-	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#loadUserForSigVerification(%d)", int(inner.Seqno)), func() error { return err })()
+	if !ShouldSuppressLogging(ctx) {
+		defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#loadUserForSigVerification(%d)", int(inner.Seqno)), func() error { return err })()
+	}
 	keySection := inner.Body.Key
 	if keySection == nil {
 		return signerUV, nil, nil, libkb.NoUIDError{}
 	}
 	uid := keySection.UID
 	kid := keySection.KID
-	signerUV, key, linkMap, err = lkc.loadKeyV2(l.MetaContext(ctx), l.world, uid, kid)
+	signerUV, key, linkMap, err = l.world.loadKeyV2(ctx, uid, kid, lkc)
 	if err != nil {
 		return signerUV, nil, nil, err
 	}
@@ -133,7 +135,9 @@ func (l *TeamLoader) loadUserAndKeyFromLinkInner(ctx context.Context,
 // Get the UV from a link but using server-trust and without verifying anything.
 func (l *TeamLoader) loadUserAndKeyFromLinkInnerNoVerify(ctx context.Context,
 	link *chainLinkUnpacked) (signerUV keybase1.UserVersion, err error) {
-	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#loadUserAndKeyFromLinkInnerNoVerify(%d)", int(link.inner.Seqno)), func() error { return err })()
+	if !ShouldSuppressLogging(ctx) {
+		defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#loadUserAndKeyFromLinkInnerNoVerify(%d)", int(link.inner.Seqno)), func() error { return err })()
+	}
 	keySection := link.inner.Body.Key
 	if keySection == nil {
 		return signerUV, libkb.NoUIDError{}
@@ -242,7 +246,9 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 
 	minRole := link.outerLink.LinkType.RequiresAtLeastRole()
 	// Note: If minRole is OWNER it will be treated as ADMIN here (weaker check).
-	l.G().Log.CDebugf(ctx, "verifyLink minRole:%v", minRole)
+	if !ShouldSuppressLogging(ctx) {
+		l.G().Log.CDebugf(ctx, "verifyLink minRole:%v", minRole)
+	}
 
 	switch minRole {
 	case keybase1.TeamRole_NONE:
@@ -253,7 +259,9 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		if err == nil {
 			return &signer, err
 		}
-		l.G().Log.CDebugf(ctx, "verifyLink: not a %v: %v", keybase1.TeamRole_READER, err)
+		if !ShouldSuppressLogging(ctx) {
+			l.G().Log.CDebugf(ctx, "verifyLink: not a %v: %v", keybase1.TeamRole_READER, err)
+		}
 		// Fall through to a higher role check
 		fallthrough
 	case keybase1.TeamRole_WRITER:
@@ -261,7 +269,9 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		if err == nil {
 			return &signer, err
 		}
-		l.G().Log.CDebugf(ctx, "verifyLink: not a %v: %v", keybase1.TeamRole_WRITER, err)
+		if !ShouldSuppressLogging(ctx) {
+			l.G().Log.CDebugf(ctx, "verifyLink: not a %v: %v", keybase1.TeamRole_WRITER, err)
+		}
 		// Fall through to a higher role check
 		fallthrough
 	case keybase1.TeamRole_OWNER, keybase1.TeamRole_ADMIN:
@@ -269,7 +279,9 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		// because they might be an implicit admin.
 		// Reassigns signer, might set implicitAdmin.
 		signer, err = l.verifyAdminPermissions(ctx, state, me, link, readSubteamID, signerUV, proofSet)
-		l.G().Log.CDebugf(ctx, "verifyLink: not a %v: %v", minRole, err)
+		if !ShouldSuppressLogging(ctx) {
+			l.G().Log.CDebugf(ctx, "verifyLink: not a %v: %v", minRole, err)
+		}
 		return &signer, err
 	default:
 		return nil, fmt.Errorf("unrecognized role %v required for link", minRole)
@@ -452,7 +464,9 @@ func (l *TeamLoader) applyNewLink(ctx context.Context,
 	ctx, tbs := l.G().CTimeBuckets(ctx)
 	defer tbs.Record("TeamLoader.applyNewLink")()
 
-	l.G().Log.CDebugf(ctx, "TeamLoader applying link seqno:%v", link.Seqno())
+	if !ShouldSuppressLogging(ctx) {
+		l.G().Log.CDebugf(ctx, "TeamLoader applying link seqno:%v", link.Seqno())
+	}
 
 	var chainState *TeamSigChainState
 	var newState *keybase1.TeamData
@@ -583,6 +597,9 @@ func (l *TeamLoader) checkProofs(ctx context.Context,
 	// Without this it would fail in some cases when the team is on the left.
 	// Because the team linkmap in the proof objects is stale.
 	proofSet.SetTeamLinkMap(ctx, state.Chain.Id, state.Chain.LinkIDs)
+	if !proofSet.checkRequired() {
+		return nil
+	}
 	return proofSet.check(ctx, l.world, teamEnv.ProofSetParallel)
 }
 
@@ -674,15 +691,10 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 	state *keybase1.TeamData, me keybase1.UserVersion, box *TeamBox, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded,
 	readerKeyMasks []keybase1.ReaderKeyMask) error {
 
-	tracer := l.G().CTimeTracer(ctx, "TeamLoader.addSecrets", teamEnv.Profile)
-	defer tracer.Finish()
-
-	tracer.Stage("unbox")
 	latestReceivedGen, seeds, err := l.unboxPerTeamSecrets(ctx, box, prevs)
 	if err != nil {
 		return err
 	}
-	tracer.Stage("misc")
 	// Earliest generation received.
 	earliestReceivedGen := latestReceivedGen - keybase1.PerTeamKeyGeneration(len(seeds)-1)
 	// Latest generation from the sigchain
@@ -697,7 +709,6 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 	}
 
 	// Check that each key matches the chain.
-	tracer.Stage("match")
 	var gotOldKeys bool
 	for i, seed := range seeds {
 		gen := int(latestReceivedGen) + i + 1 - len(seeds)
@@ -727,7 +738,6 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 	}
 
 	// Make sure there is not a gap between the latest local key and the earliest received key.
-	tracer.Stage("gap")
 	if earliestReceivedGen > keybase1.PerTeamKeyGeneration(1) {
 		// We should have the seed for the generation preceeding the earliest received.
 		checkGen := earliestReceivedGen - 1
@@ -737,7 +747,6 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 		}
 	}
 
-	tracer.Stage("rkm")
 	chain := TeamSigChainState{inner: state.Chain}
 	role, err := chain.GetUserRole(me)
 	if err != nil {

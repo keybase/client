@@ -234,6 +234,7 @@ const styles = styleSheetCreate({
   description: {
     maxWidth: 560,
     paddingTop: globalMargins.tiny,
+    textAlign: 'center',
   },
   meta: {
     alignSelf: 'center',

@@ -11,6 +11,7 @@ protocol local {
     boolean isDefault;          // true if this is the default sending/receiving account
     string name;                // the user-given name for the account
     string balanceDescription;  // example: "56.0227002 XLM + more"
+    string seqno;               // the stellar sequence number for this account 
   }
   array<WalletAccountLocal> getWalletAccountsLocal(int sessionID);
 

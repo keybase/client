@@ -8,8 +8,8 @@ import {
   HOCTimers,
   ProgressIndicator,
   type PropsWithTimer,
-} from '../../../../common-adapters'
-import {castPlatformStyles} from '../../../../common-adapters/icon'
+} from '../../../../../common-adapters'
+import {castPlatformStyles} from '../../../../../common-adapters/icon'
 import {
   collapseStyles,
   globalColors,
@@ -17,23 +17,26 @@ import {
   isMobile,
   platformStyles,
   styleSheetCreate,
-} from '../../../../styles'
-import {type TickerID, addTicker, removeTicker} from '../../../../util/second-timer'
-import {formatDurationShort} from '../../../../util/timestamp'
-import SharedTimer, {type SharedTimerID} from '../../../../util/shared-timers'
-import {animationDuration} from './exploding-height-retainer'
+  type StylesCrossPlatform,
+} from '../../../../../styles'
+import {type TickerID, addTicker, removeTicker} from '../../../../../util/second-timer'
+import {formatDurationShort} from '../../../../../util/timestamp'
+import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
+import {animationDuration} from '../exploding-height-retainer'
 
 const oneMinuteInMs = 60 * 1000
 const oneHourInMs = oneMinuteInMs * 60
 const oneDayInMs = oneHourInMs * 24
 
-type Props = PropsWithTimer<{
+export type _Props = {|
   exploded: boolean,
   explodesAt: number,
   messageKey: string,
   onClick: ?() => void,
   pending: boolean,
-}>
+  style?: StylesCrossPlatform,
+|}
+type Props = PropsWithTimer<_Props>
 
 // 'none' is functionally 'unset', used to detect a fresh mount
 // and hide self if the message already exploded
@@ -149,7 +152,7 @@ class ExplodingMeta extends React.Component<Props, State> {
         )
     }
     return (
-      <ClickableBox onClick={this.props.onClick} style={styles.container}>
+      <ClickableBox onClick={this.props.onClick} style={collapseStyles([styles.container, this.props.style])}>
         {children}
       </ClickableBox>
     )
@@ -218,21 +221,10 @@ const styles = styleSheetCreate({
       ...globalStyles.flexBoxRow,
       alignSelf: 'flex-end',
       position: 'relative',
-      width: isMobile ? 50 : 40,
       height: isMobile ? 22 : 19,
-      marginLeft: isMobile ? 4 : 12,
-      marginRight: isMobile ? 8 : 16,
     },
     isMobile: {
       height: 22,
-      marginLeft: 4,
-      marginRight: 8,
-    },
-    isIOS: {
-      width: 50,
-    },
-    isAndroid: {
-      width: 55,
     },
   }),
   countdown: platformStyles({

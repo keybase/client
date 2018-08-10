@@ -4,6 +4,7 @@ import * as Sb from '../../stories/storybook'
 import {Box2} from '../../common-adapters'
 import Header from './header'
 import SettingsPopup from './settings-popup'
+import confirmDefaultAccount from './settings-popup/set-default/index.stories'
 
 const defaultWalletMock = {
   isDefaultWallet: true,
@@ -65,6 +66,7 @@ const load = () => {
     ))
     .add('Settings, default', () => <SettingsPopup {...defaultSettingsProps} />)
     .add('Settings, secondary', () => <SettingsPopup {...secondarySettingsProps} />)
+  confirmDefaultAccount()
 }
 
 const styleWidth = {width: 520}
