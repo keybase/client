@@ -112,7 +112,12 @@ const Participants = (props: ParticipantsProps) => (
           walletContents={props.fromWalletContents}
         />
       )}
-    <ToField recipientType={props.recipientType} incorrect={props.incorrect} />
+    <ToField
+      recipientType={props.recipientType}
+      incorrect={props.incorrect}
+      username={props.username}
+      fullname={props.fullname}
+    />
   </Kb.Box2>
 )
 
