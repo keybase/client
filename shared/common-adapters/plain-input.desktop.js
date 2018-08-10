@@ -5,6 +5,7 @@ import {collapseStyles, globalColors, styleSheetCreate, platformStyles} from '..
 
 import type {_StylesDesktop} from '../styles/css'
 import type {InternalProps, TextInfo} from './plain-input'
+import {checkTextInfo} from './input.shared'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
@@ -71,7 +72,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     this._input && this._input.blur()
   }
 
-  _transformText = (fn: TextInfo => TextInfo, reflectChange?: boolean) => {
+  transformText = (fn: TextInfo => TextInfo, reflectChange?: boolean) => {
     const n = this._input
     if (n) {
       const textInfo: TextInfo = {
@@ -82,6 +83,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
         },
       }
       const newTextInfo = fn(textInfo)
+      checkTextInfo(newTextInfo)
       n.value = newTextInfo.text
       n.selectionStart = newTextInfo.selection.start
       n.selectionEnd = newTextInfo.selection.end
@@ -92,10 +94,6 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
       this._autoResize()
     }
-  }
-
-  transformText = (fn: TextInfo => TextInfo, reflectChange?: boolean) => {
-    this._transformText(fn, reflectChange)
   }
 
   _onCompositionStart = () => {
