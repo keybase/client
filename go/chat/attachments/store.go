@@ -258,8 +258,8 @@ func (a *S3Store) DecryptAsset(ctx context.Context, w io.Writer, body io.Reader,
 }
 
 // DownloadAsset gets an object from S3 as described in asset.
-func (a *S3Store) DownloadAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset, w io.Writer,
-	signer s3.Signer, progress types.ProgressReporter) error {
+func (a *S3Store) DownloadAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
+	signer s3.Signer, progress types.ProgressReporter) (io.ReadSeeker, error) {
 	if asset.Key == nil || asset.VerifyKey == nil || asset.EncHash == nil {
 		return fmt.Errorf("unencrypted attachments not supported: asset: %#v", asset)
 	}
