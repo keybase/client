@@ -48,7 +48,7 @@ function genEmojiData() {
         addEmojiLiteral(emoji.skin_variations[k].unified, emoji.short_name, idx + 1)
       )
     }
-    addEmojiLiteral(emoji.unified, emoji.short_name)
+    emoji.short_names.forEach(name => addEmojiLiteral(emoji.unified, name))
     if (emoji.non_qualified) {
       addEmojiLiteral(emoji.non_qualified, emoji.short_name)
     }
