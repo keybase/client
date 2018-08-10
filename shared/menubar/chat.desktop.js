@@ -24,7 +24,7 @@ export type ChatContainerProps = {
 
 export const ChatContainer = ({onViewAll, onSelectConversation, conversations}: ChatContainerProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
-    {conversations.slice(0, 3).map(c => {
+    {conversations.slice(0, RemoteContainer.maxShownConversations).map(c => {
       // $FlowIssue y u so dumb, Flow? It can't figure out what's going on here. Something about "inexact" props below.
       const smallTeamProps: SmallTeam.Props = c
       return (
