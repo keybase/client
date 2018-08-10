@@ -13,7 +13,6 @@ import (
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
-	"golang.org/x/sync/errgroup"
 )
 
 // fileBlockGetter is a function that gets a block suitable for
@@ -69,198 +68,40 @@ func (fd *fileData) blockGetter(
 	return fd.getter(ctx, kmd, ptr, file, rtype)
 }
 
-// getBlocksForOffsetRange fetches all the blocks making up paths down
-// the file tree to leaf ("direct") blocks that encompass the given
-// offset range (half-inclusive) in the file.  If `endOff` is -1, it
-// returns blocks until reaching the end of the file.  Note the range
-// could be made up of holes, meaning that the last byte of a direct
-// block doesn't immediately precede the first byte of the subsequent
-// block.  If `prefixOk` is true, the function will ignore context
-// deadline errors and return whatever prefix of the data it could
-// fetch within the deadine.  Return params:
-//
-//   * pathsFromRoot is a slice, ordered by file offset, of paths from
-//     the root to each block that makes up the range.  If the path is
-//     empty, it indicates that pblock is a direct block and has no
-//     children.
-//   * blocks: a map from block pointer to a data-containing leaf node
-//     in the given range of offsets, if `getDirect` is true.
-//   * nextBlockOff is the offset of the block that follows the last
-//     block given in `pathsFromRoot`.  If `pathsFromRoot` contains
-//     the last block among the children, nextBlockOff is -1.
-func (fd *fileData) getBlocksForOffsetRange(ctx context.Context,
-	ptr BlockPointer, pblock *FileBlock, startOff, endOff Int64Offset,
-	prefixOk bool, getDirect bool) (pathsFromRoot [][]parentBlockAndChildIndex,
-	blocks map[BlockPointer]*FileBlock, nextBlockOffset Int64Offset,
-	err error) {
-	if !pblock.IsInd {
-		// Return a single empty path, under the assumption that the
-		// caller already checked the range for this block.
-		if getDirect {
-			// Return a child map with only this block in it.
-			return [][]parentBlockAndChildIndex{nil},
-				map[BlockPointer]*FileBlock{ptr: pblock}, -1, nil
-		}
-		// Return an empty child map with no blocks in it (since
-		// getDirect is false).
-		return [][]parentBlockAndChildIndex{nil}, nil, -1, nil
-	}
-
-	type resp struct {
-		pathsFromRoot   [][]parentBlockAndChildIndex
-		blocks          map[BlockPointer]*FileBlock
-		nextBlockOffset Int64Offset
-	}
-
-	// Search all of the in-range child blocks, and their child
-	// blocks, etc, in parallel.
-	respChans := make([]<-chan resp, 0, len(pblock.IPtrs))
-	eg, groupCtx := errgroup.WithContext(ctx)
-	nextBlockOffsetThisLevel := Int64Offset(-1)
-	for i, iptr := range pblock.IPtrs {
-		// Some byte of this block is included in the left side of the
-		// range if `startOff` is less than the largest byte offset in
-		// the block.
-		inRangeLeft := true
-		if i < len(pblock.IPtrs)-1 {
-			inRangeLeft = startOff < pblock.IPtrs[i+1].Off
-		}
-		if !inRangeLeft {
-			continue
-		}
-		// Some byte of this block is included in the right side of
-		// the range if `endOff` is bigger than the smallest byte
-		// offset in the block (or if we're explicitly reading all the
-		// data to the end).
-		inRangeRight := endOff == -1 || endOff > iptr.Off
-		if !inRangeRight {
-			// This block is the first one past the offset range
-			// amount the children.
-			nextBlockOffsetThisLevel = iptr.Off
-			break
-		}
-
-		childPtr := iptr.BlockPointer
-		childIndex := i
-		respCh := make(chan resp, 1)
-		respChans = append(respChans, respCh)
-		// Don't reference the uncaptured `i` or `iptr` variables below.
-		eg.Go(func() error {
-			var pfr [][]parentBlockAndChildIndex
-			var blocks map[BlockPointer]*FileBlock
-			var nextBlockOffset Int64Offset
-			// We only need to fetch direct blocks if we've been asked
-			// to do so.  If the direct type of the pointer is
-			// unknown, we can assume all the children are direct
-			// blocks, since there weren't multiple levels of
-			// indirection before the introduction of the flag.
-			if getDirect || childPtr.DirectType == IndirectBlock {
-				block, _, err := fd.getter(
-					groupCtx, fd.kmd, childPtr, fd.file, blockReadParallel)
-				if err != nil {
-					return err
-				}
-
-				// Recurse down to the level of the child.
-				pfr, blocks, nextBlockOffset, err = fd.getBlocksForOffsetRange(
-					groupCtx, childPtr, block, startOff, endOff, prefixOk,
-					getDirect)
-				if err != nil {
-					return err
-				}
-			} else {
-				// We don't care about direct blocks, so leave the
-				// `blocks` map `nil`.
-				pfr = [][]parentBlockAndChildIndex{nil}
-				nextBlockOffset = -1
-			}
-
-			// Append self to the front of every path.
-			var r resp
-			for _, p := range pfr {
-				newPath := append([]parentBlockAndChildIndex{{
-					pblock:     pblock,
-					childIndex: childIndex,
-				}}, p...)
-				r.pathsFromRoot = append(r.pathsFromRoot, newPath)
-			}
-			r.blocks = blocks
-			r.nextBlockOffset = nextBlockOffset
-			respCh <- r
-			return nil
-		})
-	}
-
-	err = eg.Wait()
-	// If we are ok with just getting the prefix, don't treat a
-	// deadline exceeded error as fatal.
-	if prefixOk && err == context.DeadlineExceeded {
-		err = nil
-	}
-	if err != nil {
-		return nil, nil, 0, err
-	}
-
-	blocks = make(map[BlockPointer]*FileBlock)
-	minNextBlockOffsetChild := Int64Offset(-1)
-outer:
-	for _, respCh := range respChans {
-		select {
-		case r := <-respCh:
-			pathsFromRoot = append(pathsFromRoot, r.pathsFromRoot...)
-			for ptr, block := range r.blocks {
-				blocks[ptr] = block
-			}
-			// We want to find the leftmost block offset that's to the
-			// right of the range, the one immediately following the
-			// end of the range.
-			if r.nextBlockOffset != -1 &&
-				(minNextBlockOffsetChild == -1 ||
-					r.nextBlockOffset < minNextBlockOffsetChild) {
-				minNextBlockOffsetChild = r.nextBlockOffset
-			}
-		default:
-			// There should always be a response ready in every
-			// channel, unless prefixOk is true.
-			if prefixOk {
-				break outer
-			} else {
-				panic("No response ready when !prefixOk")
-			}
-		}
-	}
-
-	// If this level has no offset, or one of the children has an
-	// offset that's smaller than the one at this level, use the child
-	// offset instead.
-	if nextBlockOffsetThisLevel == -1 {
-		nextBlockOffset = minNextBlockOffsetChild
-	} else if minNextBlockOffsetChild != -1 &&
-		minNextBlockOffsetChild < nextBlockOffsetThisLevel {
-		nextBlockOffset = minNextBlockOffsetChild
-	} else {
-		nextBlockOffset = nextBlockOffsetThisLevel
-	}
-
-	return pathsFromRoot, blocks, nextBlockOffset, nil
-}
-
 func (fd *fileData) getLeafBlocksForOffsetRange(ctx context.Context,
 	ptr BlockPointer, pblock *FileBlock, startOff, endOff Int64Offset,
 	prefixOk bool) (pathsFromRoot [][]parentBlockAndChildIndex,
-	blocks map[BlockPointer]*FileBlock, nextBlockOffset Int64Offset,
+	blocks map[BlockPointer]Block, nextBlockOffset Int64Offset,
 	err error) {
-	return fd.getBlocksForOffsetRange(
-		ctx, ptr, pblock, startOff, endOff, prefixOk, true)
+	var eo Offset
+	if endOff >= 0 {
+		eo = endOff
+	}
+	pathsFromRoot, blocks, nbo, err := fd.tree.getBlocksForOffsetRange(
+		ctx, ptr, pblock, startOff, eo, prefixOk, true)
+	if err != nil {
+		return nil, nil, 0, err
+	}
+	if nbo != nil {
+		nextBlockOffset = nbo.(Int64Offset)
+	} else {
+		nextBlockOffset = -1
+	}
+	return pathsFromRoot, blocks, nextBlockOffset, nil
 }
 
 func (fd *fileData) getIndirectBlocksForOffsetRange(ctx context.Context,
 	pblock *FileBlock, startOff, endOff Int64Offset) (
 	pathsFromRoot [][]parentBlockAndChildIndex, err error) {
+	var eo Offset
+	if endOff >= 0 {
+		eo = endOff
+	}
+
 	// Fetch the paths of indirect blocks, without getting the direct
 	// blocks.
-	pfr, _, _, err := fd.getBlocksForOffsetRange(
-		ctx, fd.rootBlockPointer(), pblock, startOff, endOff, false,
+	pfr, _, _, err := fd.tree.getBlocksForOffsetRange(
+		ctx, fd.rootBlockPointer(), pblock, startOff, eo, false,
 		false /* no direct blocks */)
 	if err != nil {
 		return nil, err
@@ -300,7 +141,7 @@ func (fd *fileData) getByteSlicesInOffsetRange(ctx context.Context,
 	firstBlockOff := Int64Offset(-1)
 	endBlockOff := Int64Offset(-1)
 	nextBlockOff := Int64Offset(-1)
-	var blockMap map[BlockPointer]*FileBlock
+	var blockMap map[BlockPointer]Block
 	if topBlock.IsInd {
 		var pfr [][]parentBlockAndChildIndex
 		pfr, blockMap, nextBlockOff, err = fd.getLeafBlocksForOffsetRange(
@@ -321,7 +162,7 @@ func (fd *fileData) getByteSlicesInOffsetRange(ctx context.Context,
 				firstBlockOff = iptr.Off
 			}
 			if i == len(pfr)-1 {
-				leafBlock := blockMap[iptr.BlockPointer]
+				leafBlock := blockMap[iptr.BlockPointer].(*FileBlock)
 				endBlockOff = iptr.Off + Int64Offset(len(leafBlock.Contents))
 			}
 		}
@@ -332,7 +173,7 @@ func (fd *fileData) getByteSlicesInOffsetRange(ctx context.Context,
 		}}
 		firstBlockOff = 0
 		endBlockOff = Int64Offset(len(topBlock.Contents))
-		blockMap = map[BlockPointer]*FileBlock{fd.rootBlockPointer(): topBlock}
+		blockMap = map[BlockPointer]Block{fd.rootBlockPointer(): topBlock}
 	}
 
 	if len(iptrs) == 0 {
@@ -349,7 +190,7 @@ func (fd *fileData) getByteSlicesInOffsetRange(ctx context.Context,
 	// indirect pointer, filling in holes as needed.
 	var bytes [][]byte
 	for i, iptr := range iptrs {
-		block := blockMap[iptr.BlockPointer]
+		block := blockMap[iptr.BlockPointer].(*FileBlock)
 		blockLen := int64(len(block.Contents))
 		nextByte := nRead + int64(startOff)
 		toRead := n - nRead

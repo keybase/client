@@ -4,7 +4,11 @@
 
 package libkbfs
 
-import "context"
+import (
+	"context"
+
+	"golang.org/x/sync/errgroup"
+)
 
 // blockGetterFn is a function that gets a block suitable for reading
 // or writing, and also returns whether the block was already dirty.
@@ -245,4 +249,181 @@ func (bt *blockTree) getNextDirtyBlockAtOffset(ctx context.Context,
 	}
 
 	return ptr, parentBlocks, block, nextBlockStartOff, startOff, nil
+}
+
+// getBlocksForOffsetRange fetches all the blocks making up paths down
+// the block tree to leaf ("direct") blocks that encompass the given
+// offset range (half-inclusive) in the data.  If `endOff` is nil, it
+// returns blocks until reaching the end of the data.  If `prefixOk`
+// is true, the function will ignore context deadline errors and
+// return whatever prefix of the data it could fetch within the
+// deadine.  Return params:
+//
+//   * pathsFromRoot is a slice, ordered by offset, of paths from
+//     the root to each block that makes up the range.  If the path is
+//     empty, it indicates that pblock is a direct block and has no
+//     children.
+//   * blocks: a map from block pointer to a data-containing leaf node
+//     in the given range of offsets, if `getDirect` is true.
+//   * nextBlockOff is the offset of the block that follows the last
+//     block given in `pathsFromRoot`.  If `pathsFromRoot` contains
+//     the last block among the children, nextBlockOff is nil.
+func (bt *blockTree) getBlocksForOffsetRange(ctx context.Context,
+	ptr BlockPointer, pblock Block, startOff, endOff Offset,
+	prefixOk bool, getDirect bool) (pathsFromRoot [][]parentBlockAndChildIndex,
+	blocks map[BlockPointer]Block, nextBlockOffset Offset,
+	err error) {
+	nextBlockOffset = pblock.FirstOffset()
+	if !pblock.IsIndirect() {
+		// Return a single empty path, under the assumption that the
+		// caller already checked the range for this block.
+		if getDirect {
+			// Return a child map with only this block in it.
+			return [][]parentBlockAndChildIndex{nil},
+				map[BlockPointer]Block{ptr: pblock}, nil, nil
+		}
+		// Return an empty child map with no blocks in it (since
+		// getDirect is false).
+		return [][]parentBlockAndChildIndex{nil}, nil, nil, nil
+	}
+
+	type resp struct {
+		pathsFromRoot   [][]parentBlockAndChildIndex
+		blocks          map[BlockPointer]Block
+		nextBlockOffset Offset
+	}
+
+	// Search all of the in-range child blocks, and their child
+	// blocks, etc, in parallel.
+	respChans := make([]<-chan resp, 0, pblock.NumIndirectPtrs())
+	eg, groupCtx := errgroup.WithContext(ctx)
+	var nextBlockOffsetThisLevel Offset
+	for i := 0; i < pblock.NumIndirectPtrs(); i++ {
+		info, iptrOff := pblock.IndirectPtr(i)
+		// Some byte of this block is included in the left side of the
+		// range if `startOff` is less than the largest byte offset in
+		// the block.
+		inRangeLeft := true
+		if i < pblock.NumIndirectPtrs()-1 {
+			_, off := pblock.IndirectPtr(i + 1)
+			inRangeLeft = startOff.Less(off)
+		}
+		if !inRangeLeft {
+			continue
+		}
+		// Some byte of this block is included in the right side of
+		// the range if `endOff` is bigger than the smallest byte
+		// offset in the block (or if we're explicitly reading all the
+		// data to the end).
+		inRangeRight := endOff == nil || iptrOff.Less(endOff)
+		if !inRangeRight {
+			// This block is the first one past the offset range
+			// amount the children.
+			nextBlockOffsetThisLevel = iptrOff
+			break
+		}
+
+		childPtr := info.BlockPointer
+		childIndex := i
+		respCh := make(chan resp, 1)
+		respChans = append(respChans, respCh)
+		// Don't reference the uncaptured `i` variable below.
+		eg.Go(func() error {
+			var pfr [][]parentBlockAndChildIndex
+			var blocks map[BlockPointer]Block
+			var nextBlockOffset Offset
+			// We only need to fetch direct blocks if we've been asked
+			// to do so.  If the direct type of the pointer is
+			// unknown, we can assume all the children are direct
+			// blocks, since there weren't multiple levels of
+			// indirection before the introduction of the flag.
+			if getDirect || childPtr.DirectType == IndirectBlock {
+				block, _, err := bt.getter(
+					groupCtx, bt.kmd, childPtr, bt.file, blockReadParallel)
+				if err != nil {
+					return err
+				}
+
+				// Recurse down to the level of the child.
+				pfr, blocks, nextBlockOffset, err = bt.getBlocksForOffsetRange(
+					groupCtx, childPtr, block, startOff, endOff, prefixOk,
+					getDirect)
+				if err != nil {
+					return err
+				}
+			} else {
+				// We don't care about direct blocks, so leave the
+				// `blocks` map `nil`.
+				pfr = [][]parentBlockAndChildIndex{nil}
+				nextBlockOffset = nil
+			}
+
+			// Append self to the front of every path.
+			var r resp
+			for _, p := range pfr {
+				newPath := append([]parentBlockAndChildIndex{{
+					pblock:     pblock,
+					childIndex: childIndex,
+				}}, p...)
+				r.pathsFromRoot = append(r.pathsFromRoot, newPath)
+			}
+			r.blocks = blocks
+			r.nextBlockOffset = nextBlockOffset
+			respCh <- r
+			return nil
+		})
+	}
+
+	err = eg.Wait()
+	// If we are ok with just getting the prefix, don't treat a
+	// deadline exceeded error as fatal.
+	if prefixOk && err == context.DeadlineExceeded {
+		err = nil
+	}
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	blocks = make(map[BlockPointer]Block)
+	var minNextBlockOffsetChild Offset
+outer:
+	for _, respCh := range respChans {
+		select {
+		case r := <-respCh:
+			pathsFromRoot = append(pathsFromRoot, r.pathsFromRoot...)
+			for ptr, block := range r.blocks {
+				blocks[ptr] = block
+			}
+			// We want to find the leftmost block offset that's to the
+			// right of the range, the one immediately following the
+			// end of the range.
+			if r.nextBlockOffset != nil &&
+				(minNextBlockOffsetChild == nil ||
+					r.nextBlockOffset.Less(minNextBlockOffsetChild)) {
+				minNextBlockOffsetChild = r.nextBlockOffset
+			}
+		default:
+			// There should always be a response ready in every
+			// channel, unless prefixOk is true.
+			if prefixOk {
+				break outer
+			} else {
+				panic("No response ready when !prefixOk")
+			}
+		}
+	}
+
+	// If this level has no offset, or one of the children has an
+	// offset that's smaller than the one at this level, use the child
+	// offset instead.
+	if nextBlockOffsetThisLevel == nil {
+		nextBlockOffset = minNextBlockOffsetChild
+	} else if minNextBlockOffsetChild != nil &&
+		minNextBlockOffsetChild.Less(nextBlockOffsetThisLevel) {
+		nextBlockOffset = minNextBlockOffsetChild
+	} else {
+		nextBlockOffset = nextBlockOffsetThisLevel
+	}
+
+	return pathsFromRoot, blocks, nextBlockOffset, nil
 }
