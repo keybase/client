@@ -88,7 +88,7 @@ func GetExtendedStatus(m MetaContext) (res keybase1.ExtendedStatus, err error) {
 
 	ad := m.ActiveDevice()
 	// cached paper key status
-	if pk := ad.PaperKey(m); pk != nil {
+	if pk := ad.ProvisioningKey(m); pk != nil {
 		if pk.EncryptionKey() != nil {
 			res.PaperEncKeyCached = true
 		}
