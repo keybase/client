@@ -129,6 +129,15 @@ func (db *DirBlock) NewEmpty() Block {
 	return NewDirBlock()
 }
 
+// DataVersion returns data version for this block, which is assumed
+// to have been modified locally.
+func (db *DirBlock) DataVersion() DataVer {
+	if db.IsInd {
+		return IndirectDirsDataVer
+	}
+	return FirstValidDataVer
+}
+
 // ToCommonBlock implements the Block interface for DirBlock.
 func (db *DirBlock) ToCommonBlock() *CommonBlock {
 	return &db.CommonBlock

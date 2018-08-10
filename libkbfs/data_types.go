@@ -159,6 +159,9 @@ const (
 	// blocks that have multiple levels of indirection below them
 	// (i.e., indirect blocks that point to other indirect blocks).
 	AtLeastTwoLevelsOfChildrenDataVer DataVer = 3
+	// IndirectDirsDataVer is the data version for a directory block
+	// that contains indirect pointers.
+	IndirectDirsDataVer DataVer = 4
 )
 
 // BlockRef is a block ID/ref nonce pair, which defines a unique
