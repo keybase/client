@@ -52,6 +52,7 @@ const getSortedConvMetas = Container.createSelector([getMetas], ([map, state]) =
         snippet: m.snippet,
         snippetDecoration: m.snippetDecoration,
         subColor: styles.subColor,
+        channelname: m.channelname,
         teamname: m.teamname,
         timestamp: Constants.timestampToString(m),
         usernameColor: styles.usernameColor,

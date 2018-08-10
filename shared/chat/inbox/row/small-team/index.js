@@ -18,6 +18,7 @@ import * as RowSizes from '../sizes'
 
 export type Props = {
   backgroundColor: string,
+  channelname?: string,
   hasBadge: boolean,
   hasResetUsers: boolean,
   hasUnread: boolean,
@@ -109,6 +110,8 @@ class SmallTeam extends React.PureComponent<Props, State> {
               subColor={props.subColor}
               timestamp={props.timestamp}
               usernameColor={props.usernameColor}
+              teamname={props.teamname}
+              {...(props.channelname ? {channelname: props.channelname} : {})}
             />
 
             <BottomLine
