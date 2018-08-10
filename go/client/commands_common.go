@@ -53,6 +53,7 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdRekey(cl, g),
 		NewCmdRIIT(cl, g),
 		NewCmdSearch(cl, g),
+		NewCmdSelfProvision(cl, g),
 		NewCmdSign(cl, g),
 		NewCmdSigs(cl, g),
 		NewCmdSignup(cl, g),

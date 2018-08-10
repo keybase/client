@@ -176,7 +176,7 @@ const (
 	SubkeyExpireIn         = OneYearInSeconds * 16 // 16 years
 	AuthExpireIn           = OneYearInSeconds      // 1 year
 
-	PaperKeyMemoryTimeout = time.Hour
+	ProvisioningKeyMemoryTimeout = time.Hour
 )
 
 // Status codes.  This list should match keybase/lib/status_codes.iced.

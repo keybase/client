@@ -244,7 +244,7 @@ func matchingCachedKey(m libkb.MetaContext, arg keybase1.UnboxBytes32AnyArg) (ke
 		}
 	}
 
-	device := m.ActiveDevice().PaperKey(m)
+	device := m.ActiveDevice().ProvisioningKey(m)
 	if device != nil {
 		pkey := device.EncryptionKey()
 		if n, ok := kidMatch(pkey, arg.Bundles); ok {
@@ -327,7 +327,7 @@ func matchingPaperKey(m libkb.MetaContext, secretUI libkb.SecretUI, arg keybase1
 
 	// find the index for the key they entered (and make sure the key they entered matches)
 	if n, ok := kidMatch(bkeng.EncKey(), arg.Bundles); ok {
-		m.ActiveDevice().CachePaperKey(m, bkeng.DeviceWithKeys())
+		m.ActiveDevice().CacheProvisioningKey(m, bkeng.DeviceWithKeys())
 		return bkeng.EncKey(), n, nil
 	}
 

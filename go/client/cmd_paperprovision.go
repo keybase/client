@@ -58,15 +58,13 @@ func (c *CmdPaperProvision) Run() (err error) {
 		return err
 	}
 
-	err = client.PaperProvision(context.TODO(),
+	return client.PaperProvision(context.TODO(),
 		keybase1.PaperProvisionArg{
 			Username:   c.username,
 			DeviceName: c.deviceName,
 			PaperKey:   c.paperKey,
 			SessionID:  c.SessionID,
 		})
-
-	return
 }
 
 func (c *CmdPaperProvision) ParseArgv(ctx *cli.Context) error {
