@@ -80,7 +80,9 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 			tx.Abort()
 		}
 		if err == nil {
-			m = m.CommitProvisionalLogin()
+			// cache the passphrase stream from the login context to the active
+			// device.
+			m.CommitProvisionalLogin()
 		}
 	}()
 
