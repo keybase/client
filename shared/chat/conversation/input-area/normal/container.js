@@ -71,6 +71,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         text: new HiddenString(body),
       })
     ),
+  _onInsertEmoji: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(RouteTree.navigateAppend([{props: {conversationIDKey}, selected: 'chooseEmoji'}])),
   _onPostMessage: (conversationIDKey: Types.ConversationIDKey, text: string) =>
     dispatch(Chat2Gen.createMessageSend({conversationIDKey, text: new HiddenString(text)})),
   _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
@@ -98,6 +100,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
   onFilePickerError: dispatchProps.onFilePickerError,
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
+  onInsertEmoji: () => dispatchProps._onInsertEmoji(stateProps.conversationIDKey),
   onSeenExplodingMessages: dispatchProps.onSeenExplodingMessages,
   onSubmit: (text: string) => {
     if (stateProps._editOrdinal) {

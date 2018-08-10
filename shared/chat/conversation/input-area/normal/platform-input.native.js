@@ -5,6 +5,7 @@ import React, {Component} from 'react'
 import {
   Box,
   Box2,
+  FloatingMenu,
   Icon,
   Input,
   Text,
@@ -12,7 +13,7 @@ import {
   OverlayParentHOC,
   type OverlayParentProps,
 } from '../../../../common-adapters'
-import {globalMargins, globalStyles, globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
+import {collapseStyles, globalMargins, globalStyles, globalColors, styleSheetCreate} from '../../../../styles'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
@@ -21,12 +22,11 @@ import {
   NativeTouchableWithoutFeedback,
 } from '../../../../common-adapters/native-wrappers.native'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
-import {ExplodingMeta} from './shared'
 import type {PlatformInputProps} from './types'
-import flags from '../../../../util/feature-flags'
 import FilePickerPopup from '../filepicker-popup'
+import {formatDurationShort} from '../../../../util/timestamp'
 
-type menuType = 'exploding' | 'filepickerpopup'
+type menuType = 'exploding' | 'filepickerpopup' | 'insert'
 
 type State = {
   hasText: boolean,
@@ -46,10 +46,6 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
   _inputSetRef = (ref: ?Input) => {
     this._input = ref
     this.props.inputSetRef(ref)
-  }
-
-  _openFilePicker = () => {
-    this._toggleShowingMenu('filepickerpopup')
   }
 
   _launchNativeImagePicker = (mediaType: string, location: string) => {
@@ -164,15 +160,47 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             onHidden={this.props.toggleShowingMenu}
             onSelect={this._launchNativeImagePicker}
           />
-        ) : (
+        ) : this._whichMenu === 'exploding' ? (
           <SetExplodingMessagePicker
             attachTo={this.props.attachmentRef}
             conversationIDKey={this.props.conversationIDKey}
             onHidden={this.props.toggleShowingMenu}
             visible={this.props.showingMenu}
           />
+        ) : (
+          <FloatingMenu
+            attachTo={this.props.attachmentRef}
+            closeOnSelect={true}
+            items={[
+              {
+                onClick: this.props.insertMentionMarker,
+                title: '@mention someone',
+              },
+              {
+                onClick: this.props.onInsertEmoji,
+                title: 'Insert emoji',
+              },
+            ]}
+            onHidden={this.props.toggleShowingMenu}
+            visible={this.props.showingMenu}
+          />
         )}
-        <Box style={styles.container}>
+        <Box
+          style={collapseStyles([
+            styles.container,
+            {
+              borderTopColor: this.props.isExploding ? globalColors.black_75 : globalColors.black_05,
+            },
+          ])}
+        >
+          {!this.props.isEditing && (
+            <ExplodingIcon
+              explodingModeSeconds={this.props.explodingModeSeconds}
+              isExploding={this.props.isExploding}
+              isExplodingNew={this.props.isExplodingNew}
+              openExplodingPicker={() => this._toggleShowingMenu('exploding')}
+            />
+          )}
           {this.props.isEditing && (
             <Box style={styles.editingTabStyle}>
               <Text type="BodySmall">Edit:</Text>
@@ -206,12 +234,8 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             hasText={this.state.hasText}
             onSubmit={this._onSubmit}
             isEditing={this.props.isEditing}
-            openExplodingPicker={() => this._toggleShowingMenu('exploding')}
-            openFilePicker={this._openFilePicker}
-            insertMentionMarker={this.props.insertMentionMarker}
-            isExploding={this.props.isExploding}
-            isExplodingNew={this.props.isExplodingNew}
-            explodingModeSeconds={this.props.explodingModeSeconds}
+            openFilePicker={() => this._toggleShowingMenu('filepickerpopup')}
+            openInsertMenu={() => this._toggleShowingMenu('insert')}
           />
         </Box>
       </Box>
@@ -241,52 +265,24 @@ const Typing = () => (
   </Box>
 )
 
-const Action = ({
-  hasText,
-  onSubmit,
-  isEditing,
-  openExplodingPicker,
-  openFilePicker,
-  insertMentionMarker,
-  isExploding,
-  isExplodingNew,
-  explodingModeSeconds,
-}) =>
+const Action = ({hasText, onSubmit, isEditing, openFilePicker, openInsertMenu}) =>
   hasText ? (
     <Box2 direction="horizontal" gap="small" style={styles.actionText}>
-      {flags.explodingMessagesEnabled &&
-        isExploding &&
-        !isEditing && (
-          <ExplodingIcon
-            explodingModeSeconds={explodingModeSeconds}
-            isExploding={isExploding}
-            isExplodingNew={isExplodingNew}
-            openExplodingPicker={openExplodingPicker}
-          />
-        )}
       <Text type="BodyBigLink" onClick={onSubmit}>
         {isEditing ? 'Save' : 'Send'}
       </Text>
     </Box2>
   ) : (
     <Box2 direction="horizontal" gap="small" style={styles.actionIconsContainer}>
-      {flags.explodingMessagesEnabled && (
-        <ExplodingIcon
-          explodingModeSeconds={explodingModeSeconds}
-          isExploding={isExploding}
-          isExplodingNew={isExplodingNew}
-          openExplodingPicker={openExplodingPicker}
-        />
-      )}
       <Icon
-        onClick={insertMentionMarker}
-        type="iconfont-mention"
+        onClick={openFilePicker}
+        type="iconfont-camera"
         style={iconCastPlatformStyles(styles.actionButton)}
         fontSize={22}
       />
       <Icon
-        onClick={openFilePicker}
-        type="iconfont-camera"
+        onClick={openInsertMenu}
+        type="iconfont-add"
         style={iconCastPlatformStyles(styles.actionButton)}
         fontSize={22}
       />
@@ -295,14 +291,18 @@ const Action = ({
 
 const ExplodingIcon = ({explodingModeSeconds, isExploding, isExplodingNew, openExplodingPicker}) => (
   <NativeTouchableWithoutFeedback onPress={openExplodingPicker}>
-    <Box style={explodingIconContainer}>
-      <Icon
-        color={isExploding ? globalColors.black_75 : null}
-        style={iconCastPlatformStyles(styles.actionButton)}
-        type="iconfont-bomb"
-        fontSize={22}
-      />
-      <ExplodingMeta explodingModeSeconds={explodingModeSeconds} isNew={isExplodingNew} />
+    <Box style={collapseStyles([styles.timerContainer, isExploding && styles.timerContainerWithText])}>
+      {isExploding ? (
+        <Text style={collapseStyles([styles.timer, styles.timerText])} type="BodySmallSemibold">
+          {formatDurationShort(explodingModeSeconds * 1000)}
+        </Text>
+      ) : (
+        <Icon
+          style={iconCastPlatformStyles(collapseStyles([styles.timer, styles.timerIcon]))}
+          type="iconfont-timer"
+          fontSize={22}
+        />
+      )}
     </Box>
   </NativeTouchableWithoutFeedback>
 )
@@ -335,7 +335,6 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxRow,
     alignItems: 'flex-end',
     backgroundColor: globalColors.fastBlank,
-    borderTopColor: globalColors.black_05,
     borderTopWidth: 1,
     flexShrink: 0,
     minHeight: 48,
@@ -368,6 +367,25 @@ const styles = styleSheetCreate({
     height: 160,
     width: '100%',
   },
+  timer: {
+    alignSelf: 'center',
+    position: 'absolute',
+  },
+  timerContainer: {
+    height: '100%',
+    width: 40,
+  },
+  timerContainerWithText: {
+    backgroundColor: globalColors.black_75,
+  },
+  timerIcon: {
+    bottom: 12,
+    paddingLeft: globalMargins.tiny,
+  },
+  timerText: {
+    bottom: 13,
+    color: globalColors.white,
+  },
   typing: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -381,13 +399,6 @@ const styles = styleSheetCreate({
   },
   typingIcon: {
     width: 20,
-  },
-})
-
-const explodingIconContainer = platformStyles({
-  common: {
-    ...globalStyles.flexBoxRow,
-    marginRight: -3,
   },
 })
 

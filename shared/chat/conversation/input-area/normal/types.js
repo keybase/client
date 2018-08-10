@@ -22,6 +22,7 @@ type CommonProps = {
   onEditLastMessage: () => void,
   onCancelEditing: () => void,
   onFilePickerError: (error: Error) => void,
+  onInsertEmoji?: () => void,
   onSeenExplodingMessages: () => void,
   onSubmit: (text: string) => void,
   typing: I.Set<string>,
