@@ -60,9 +60,11 @@ function genEmojiData() {
   // Add aliases after all default short names have been added. Otherwise, :man-woman-boy:’s
   // :family: alias will take the place of the default :family: emoji, and they are not the same.
   emojiData.forEach(emoji => {
-    emoji.short_names.forEach(name => addEmojiLiteral(emoji.unified, name))
+    const short_names = emoji.short_names
+    short_names.shift() // remove the first, we already have it
+    short_names.forEach(name => addEmojiLiteral(emoji.unified, name))
     if (emoji.non_qualified) {
-      emoji.short_names.forEach(name => addEmojiLiteral(emoji.non_qualified, name))
+      short_names.forEach(name => addEmojiLiteral(emoji.non_qualified, name))
     }
   })
 
