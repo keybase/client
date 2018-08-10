@@ -294,7 +294,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	if boxed.IsEphemeral() {
 		// Don't bother if the message is already expired.
 		if boxed.IsEphemeralExpired(b.clock.Now()) {
-			return b.makeErrorMessage(ctx, boxed, NewPermanentUnboxingError(NewEphemeralUnboxingExpiredError())), nil
+			return b.makeErrorMessage(ctx, boxed, NewPermanentUnboxingError(NewEphemeralAlreadyExpiredError())), nil
 		}
 		ek, ekErr := CtxKeyFinder(ctx, b.G()).EphemeralKeyForDecryption(
 			ctx, tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(), boxed.ClientHeader.TlfPublic,
