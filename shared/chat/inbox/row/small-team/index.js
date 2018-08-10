@@ -37,6 +37,7 @@ export type Props = {
   usernameColor: string,
   youAreReset: boolean,
   youNeedToRekey: boolean,
+  isInWidget?: boolean,
 }
 
 type State = {
@@ -104,8 +105,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
               iconHoverColor={props.iconHoverColor}
               participants={props.teamname ? [props.teamname] : props.participants}
               showBold={props.showBold}
-              // TODO: fix this--it's messing shit up in the widget
-              showGear={!!props.teamname && !isMobile}
+              showGear={!!props.teamname && !isMobile && !props.isInWidget}
               subColor={props.subColor}
               timestamp={props.timestamp}
               usernameColor={props.usernameColor}

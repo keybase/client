@@ -28,7 +28,6 @@ const getSortedConvMetas = Container.createSelector([getMetas], ([map, state]) =
     .sort((a, b) => b.timestamp - a.timestamp)
     .slice(0, maxShownConversations)
     .toList()
-    .toJS()
     .map((m): RemoteConvMeta => {
       const hasUnread = Constants.getHasUnread(state, m.conversationIDKey)
       const styles = Constants.getRowStyles(m, false, hasUnread)
@@ -43,6 +42,7 @@ const getSortedConvMetas = Container.createSelector([getMetas], ([map, state]) =
         hasUnread,
         iconHoverColor: styles.iconHoverColor,
         isFinalized: !!m.wasFinalizedBy,
+        isInWidget: true,
         isMuted: m.isMuted,
         isSelected: false,
         // excluding onSelectConversation
@@ -59,6 +59,7 @@ const getSortedConvMetas = Container.createSelector([getMetas], ([map, state]) =
         youNeedToRekey,
       }
     })
+    .toJS()
 )
 
 // Just to cache the sorted values
