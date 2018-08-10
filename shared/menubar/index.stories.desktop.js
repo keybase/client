@@ -32,6 +32,10 @@ const props = {
   username: 'nathunsmitty',
   windowComponent: 'menubar',
   windowParam: '',
+  onSelectConversation: () => {},
+  conversations: [
+    // TODO: fill in a few.
+  ],
 }
 
 const load = () => {
