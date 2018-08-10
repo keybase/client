@@ -20,22 +20,26 @@ type supersedesTransform interface {
 type getMessagesFunc func(context.Context, types.UnboxConversationInfo, gregor1.UID, []chat1.MessageID,
 	*chat1.GetThreadReason) ([]chat1.MessageUnboxed, error)
 
+type basicSupersedesTransformOpts struct {
+	UseDeletePlaceholders bool
+}
+
 type basicSupersedesTransform struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	messagesFunc          getMessagesFunc
-	useDeletePlaceholders bool
+	messagesFunc getMessagesFunc
+	opts         basicSupersedesTransformOpts
 }
 
 var _ supersedesTransform = (*basicSupersedesTransform)(nil)
 
-func newBasicSupersedesTransform(g *globals.Context, useDeletePlaceholders bool) *basicSupersedesTransform {
+func newBasicSupersedesTransform(g *globals.Context, opts basicSupersedesTransformOpts) *basicSupersedesTransform {
 	return &basicSupersedesTransform{
-		Contextified:          globals.NewContextified(g),
-		DebugLabeler:          utils.NewDebugLabeler(g.GetLog(), "supersedesTransform", false),
-		messagesFunc:          g.ConvSource.GetMessages,
-		useDeletePlaceholders: useDeletePlaceholders,
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "supersedesTransform", false),
+		messagesFunc: g.ConvSource.GetMessages,
+		opts:         opts,
 	}
 }
 
@@ -223,7 +227,7 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 	// Run through all messages and transform superseded messages into final state
 	var newMsgs []chat1.MessageUnboxed
 	xformDelete := func(msgID chat1.MessageID) {
-		if t.useDeletePlaceholders {
+		if t.opts.UseDeletePlaceholders {
 			newMsgs = append(newMsgs, utils.CreateHiddenPlaceholder(msgID))
 		}
 	}
