@@ -20,6 +20,14 @@ type ConfirmSendProps = {|
   publicMemo?: string,
   bannerBackground?: Background,
   bannerText?: string,
+
+  // TODO: these props are probably one level too high, and should be in Participants' container.
+  yourUsername: string,
+  yourWalletName: string,
+  yourWalletContents: string,
+  receiverUsername: string,
+  receiverFullName: string,
+  // receiverType: 'keybaseUser' | 'stellarAddress' | 'anotherWallet',
 |}
 
 const ConfirmSend = (props: ConfirmSendProps) => (
@@ -34,7 +42,13 @@ const ConfirmSend = (props: ConfirmSendProps) => (
       <Kb.ScrollView style={styles.scrollView}>
         {!!props.bannerBackground &&
           !!props.bannerText && <Banner background={props.bannerBackground} text={props.bannerText} />}
-        <Participants receivingUsername="nathunsmitty" receivingFullName="Nathan Smith" />
+        <Participants
+          receiverUsername={props.receiverUsername}
+          receiverFullName={props.receiverFullName}
+          yourUsername={props.yourUsername}
+          yourWalletName={props.yourWalletName}
+          yourWalletContents={props.yourWalletContents}
+        />
         {(!!props.encryptedNote || !!props.publicMemo) && (
           <NoteAndMemo encryptedNote={props.encryptedNote} publicMemo={props.publicMemo} />
         )}

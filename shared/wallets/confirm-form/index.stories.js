@@ -24,6 +24,11 @@ const confirmProps = {
   onBack: Sb.action('onBack'),
   onSendClick: Sb.action('onSendClick'),
   waiting: false,
+  yourUsername: 'cecileb',
+  yourWalletName: "cecileb's wallet",
+  yourWalletContents: '280.0871234 XLM',
+  receiverUsername: 'nathunsmitty',
+  receiverFullName: 'Nathan Smith',
 }
 
 const publicMemo = "Here's some lumens!"

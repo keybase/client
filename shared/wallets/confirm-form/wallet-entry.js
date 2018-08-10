@@ -3,15 +3,16 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
-type WalletEntryProps = {
+type WalletEntryProps = {|
   name: string,
   keybaseUser: string,
   contents: string,
   style?: Styles.StylesCrossPlatform,
-}
+|}
 
-// TODO WalletEntry is mostly copied from WalletRow, with some row specific
+// WalletEntry is mostly copied from WalletRow, with some row specific
 // properties removed. WalletRow could probably be a wrapper around WalletEntry.
+// TODO Refactor WalletEntry and WalletRow
 const WalletEntry = (props: WalletEntryProps) => {
   return (
     <Kb.Box2
