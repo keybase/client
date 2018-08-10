@@ -11,7 +11,7 @@ jobs:
     parallelism: 1
 
     docker:
-    - image: keybaseprivate/circleci-client@sha256:9a3882339dd4342ff44e5c0d2735017fc4bf4bc263cb3e6c7a98c71050725365
+    - image: keybaseprivate/circleci-client@sha256:87c264e388ed84a2465918e5d1dfb8f394c3e09bf91e386af417c5217908c167
       command: /sbin/init
 
     steps:
