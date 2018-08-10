@@ -826,29 +826,30 @@ func (fbo *folderBlockOps) ReadyNonLeafBlocksInCopy(ctx context.Context,
 // operations do need to copy dir blocks for modifications.
 func (fbo *folderBlockOps) getDirLocked(ctx context.Context,
 	lState *lockState, kmd KeyMetadata, dir path, rtype blockReqType) (
-	*DirBlock, error) {
+	*DirBlock, bool, error) {
 	fbo.blockLock.AssertAnyLocked(lState)
 
 	// Callers should have already done this check, but it doesn't
 	// hurt to do it again.
 	if !dir.isValid() {
-		return nil, InvalidPathError{dir}
+		return nil, false, InvalidPathError{dir}
 	}
 
 	// Get the block for the last element in the path.
 	dblock, err := fbo.getDirBlockHelperLocked(
 		ctx, lState, kmd, dir.tailPointer(), dir.Branch, dir, rtype)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	if rtype == blockWrite && !fbo.config.DirtyBlockCache().IsDirty(
-		fbo.id(), dir.tailPointer(), dir.Branch) {
+	wasDirty := fbo.config.DirtyBlockCache().IsDirty(
+		fbo.id(), dir.tailPointer(), dir.Branch)
+	if rtype == blockWrite && !wasDirty {
 		// Copy the block if it's for writing and the block is
 		// not yet dirty.
 		dblock = dblock.DeepCopy()
 	}
-	return dblock, nil
+	return dblock, wasDirty, nil
 }
 
 // GetDir retrieves the block pointed to by the tail pointer of the
@@ -870,7 +871,8 @@ func (fbo *folderBlockOps) GetDir(
 	rtype blockReqType) (*DirBlock, error) {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
-	return fbo.getDirLocked(ctx, lState, kmd, dir, rtype)
+	dblock, _, err := fbo.getDirLocked(ctx, lState, kmd, dir, rtype)
+	return dblock, err
 }
 
 type dirCacheUndoFn func(lState *lockState)
@@ -1333,7 +1335,7 @@ func (fbo *folderBlockOps) getDirtyDirLocked(ctx context.Context,
 	*DirBlock, error) {
 	fbo.blockLock.AssertAnyLocked(lState)
 
-	dblock, err := fbo.getDirLocked(ctx, lState, kmd, dir, rtype)
+	dblock, _, err := fbo.getDirLocked(ctx, lState, kmd, dir, rtype)
 	if err != nil {
 		return nil, err
 	}
@@ -2665,7 +2667,7 @@ func (fbo *folderBlockOps) makeLocalBcache(ctx context.Context,
 
 	parentPath := file.parentPath()
 
-	dblock, err := fbo.getDirLocked(
+	dblock, _, err := fbo.getDirLocked(
 		ctx, lState, md.ReadOnly(), *parentPath, blockWrite)
 	if err != nil {
 		return nil, err
@@ -3003,7 +3005,7 @@ func (fbo *folderBlockOps) searchForNodesInDirLocked(ctx context.Context,
 	numNodesFoundSoFar int) (int, error) {
 	fbo.blockLock.AssertAnyLocked(lState)
 
-	dirBlock, err := fbo.getDirLocked(
+	dirBlock, _, err := fbo.getDirLocked(
 		ctx, lState, kmd, currDir, blockRead)
 	if err != nil {
 		return 0, err
@@ -3260,7 +3262,7 @@ func (fbo *folderBlockOps) getUndirtiedEntry(
 	}
 
 	// Get the undirtied dir block.
-	dblock, err := fbo.getDirLocked(
+	dblock, _, err := fbo.getDirLocked(
 		ctx, lState, kmd, *file.parentPath(), blockRead)
 	if err != nil {
 		return nil, err
@@ -3422,7 +3424,7 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 	kmd KeyMetadata) (
 	changes []NodeChange, affectedNodeIDs []NodeID, err error) {
 	fbo.blockLock.AssertLocked(lState)
-	dirBlock, err := fbo.getDirLocked(ctx, lState, kmd, currDir, blockRead)
+	dirBlock, _, err := fbo.getDirLocked(ctx, lState, kmd, currDir, blockRead)
 	if err != nil {
 		return nil, nil, err
 	}
