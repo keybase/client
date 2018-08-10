@@ -22,34 +22,8 @@ const FromField = (props: FromFieldProps) => (
   </React.Fragment>
 )
 
-type ParticipantsProps = {
-  recipientType?: 'keybaseUser' | 'stellarAddress' | 'anotherWallet',
-  isConfirm?: boolean,
-  fromWallet?: string,
-  fromWalletUser?: string,
-  fromWalletContents?: string,
-  onChangeAddress?: string => void,
-  incorrect?: boolean,
-  username?: string,
-  fullname?: string,
-  onShowProfile?: string => void,
-
-  displayX?: boolean,
-  onRemoveProfile?: () => void,
-}
-
-const Participants = (props: ParticipantsProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true}>
-    {props.isConfirm &&
-      props.fromWallet &&
-      props.fromWalletUser &&
-      props.fromWalletContents && (
-        <FromField
-          walletName={props.fromWallet}
-          username={props.fromWalletUser}
-          walletContents={props.fromWalletContents}
-        />
-      )}
+const ToField = (props: any) => (
+  <React.Fragment>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
       <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
         To:
@@ -90,6 +64,38 @@ const Participants = (props: ParticipantsProps) => (
       )}
     </Kb.Box2>
     {props.incorrect && <Kb.Box style={styles.redline} />}
+  </React.Fragment>
+)
+
+type ParticipantsProps = {
+  recipientType?: 'keybaseUser' | 'stellarAddress' | 'anotherWallet',
+  isConfirm?: boolean,
+  fromWallet?: string,
+  fromWalletUser?: string,
+  fromWalletContents?: string,
+  onChangeAddress?: string => void,
+  incorrect?: boolean,
+  username?: string,
+  fullname?: string,
+  onShowProfile?: string => void,
+
+  displayX?: boolean,
+  onRemoveProfile?: () => void,
+}
+
+const Participants = (props: ParticipantsProps) => (
+  <Kb.Box2 direction="vertical" fullWidth={true}>
+    {props.isConfirm &&
+      props.fromWallet &&
+      props.fromWalletUser &&
+      props.fromWalletContents && (
+        <FromField
+          walletName={props.fromWallet}
+          username={props.fromWalletUser}
+          walletContents={props.fromWalletContents}
+        />
+      )}
+    <ToField />
   </Kb.Box2>
 )
 
