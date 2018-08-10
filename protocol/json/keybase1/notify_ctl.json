@@ -94,14 +94,6 @@
         {
           "type": "boolean",
           "name": "wallet"
-        },
-        {
-          "type": "boolean",
-          "name": "unverifiedteamlist"
-        },
-        {
-          "type": "boolean",
-          "name": "canuserperform"
         }
       ]
     }

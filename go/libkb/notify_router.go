@@ -1397,11 +1397,11 @@ func (n *NotifyRouter) HandleTeamListUnverifiedChanged(ctx context.Context, team
 		return
 	}
 
-	n.G().Log.Debug("+ Sending team list unverified changed notification for %s", teamName)
+	n.G().Log.Debug("+ Sending TeamListUnverifiedChanged notification (team:%v)", teamName)
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `UnverifiedTeamList` notification type
-		if n.getNotificationChannels(id).Unverifiedteamlist {
+		// If the connection wants the `Team` notifications
+		if n.getNotificationChannels(id).Team {
 			// In the background do...
 			go func() {
 				// A send of a `TeamListUnverifiedChanged` RPC
@@ -1415,7 +1415,7 @@ func (n *NotifyRouter) HandleTeamListUnverifiedChanged(ctx context.Context, team
 	if n.listener != nil {
 		n.listener.TeamListUnverifiedChanged(teamName)
 	}
-	n.G().Log.Debug("- Sent team list unverified changed notification for %s", teamName)
+	n.G().Log.Debug("- Sent TeamListUnverifiedChanged notification (team:%v)", teamName)
 }
 
 // HandleCanUserPerformChanged is called when a notification is received from gregor that
@@ -1426,11 +1426,11 @@ func (n *NotifyRouter) HandleCanUserPerformChanged(ctx context.Context, teamName
 		return
 	}
 
-	n.G().Log.Debug("+ Sending can user perform changed notification for %s", teamName)
+	n.G().Log.Debug("+ Sending CanUserPerformChanged notification (team:%v)", teamName)
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Canuserperform` notification type
-		if n.getNotificationChannels(id).Canuserperform {
+		// If the connection wants the `Team` notification type
+		if n.getNotificationChannels(id).Team {
 			// In the background do...
 			go func() {
 				// A send of a `CanUserPerformChanged` RPC
@@ -1444,7 +1444,7 @@ func (n *NotifyRouter) HandleCanUserPerformChanged(ctx context.Context, teamName
 	if n.listener != nil {
 		n.listener.CanUserPerformChanged(teamName)
 	}
-	n.G().Log.Debug("- Sent can user perform changed notification for %s", teamName)
+	n.G().Log.Debug("- Sent CanUserPerformChanged notification (team:%v)", teamName)
 }
 
 func (n *NotifyRouter) HandleTeamDeleted(ctx context.Context, teamID keybase1.TeamID) {
