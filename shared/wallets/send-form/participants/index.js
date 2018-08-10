@@ -38,7 +38,6 @@ const ToField = (props: any) => (
           props.recipientType === 'stellarAddress'
             ? {
                 alignSelf: 'flex-start',
-                marginTop: Styles.globalMargins.xtiny,
               }
             : {},
         ])}
@@ -56,19 +55,22 @@ const ToField = (props: any) => (
       )}
       {!props.username && (
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
-          <Kb.Box2 direction="horizontal" fullWidth={true}>
-            <Kb.Icon
-              type={props.incorrect ? 'iconfont-stellar-request' : 'iconfont-stellar-request'}
-              style={Kb.iconCastPlatformStyles(styles.icon)}
-            />
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
+            {props.recipientType === 'stellarAddress' && (
+              <Kb.Icon
+                type={props.incorrect ? 'icon-stellar-logo-grey-16' : 'icon-stellar-logo-16'}
+                style={Kb.iconCastPlatformStyles(styles.icon)}
+              />
+            )}
             <Kb.NewInput
               type="text"
               onChangeText={props.onChangeAddress}
               textType="BodySemibold"
-              placeholder="Stellar address"
+              placeholder={props.recipientType === 'stellarAddress' ? 'Stellar address' : 'Search Keybase'}
               placeholderColor={Styles.globalColors.grey}
               hideBorder={true}
-              style={styles.input}
+              // style={styles.input}
+              containerStyle={styles.input}
               multiline={true}
             />
           </Kb.Box2>
@@ -142,9 +144,15 @@ const styles = Styles.styleSheetCreate({
       wordWrap: 'break-word',
     },
   }),
+  inputInner: {
+    alignItems: 'flex-start',
+  },
   inputBox: {flexGrow: 1},
   // NewInput with icon hangs over the edge at 100%
-  input: {width: '90%'},
+  input: {
+    padding: 0,
+    marginLeft: Styles.globalMargins.xxtiny,
+  },
   redline: {
     backgroundColor: Styles.globalColors.red,
   },
