@@ -3,22 +3,55 @@ import shallowEqual from 'shallowequal'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/chat2'
 
-const getMetaMap = (state: Container.TypedState) => state.chat2.metaMap
+const getMetaMap = (state: Container.TypedState) => [state.chat2.metaMap, state]
 const maxShownConversations = 5
 
 const createShallowEqualSelector = Container.createSelectorCreator(Container.defaultMemoize, shallowEqual)
 
 // Get conversations
-const getMetas = Container.createSelector([getMetaMap], metaMap =>
-  metaMap.filter((meta, id) => Constants.isValidConversationIDKey(id))
-)
+const getMetas = Container.createSelector([getMetaMap], ([metaMap, state]) => [
+  metaMap.filter((meta, id) => Constants.isValidConversationIDKey(id)),
+  state,
+])
 
 // Sort by timestamp
-const getSortedConvMetas = Container.createSelector([getMetas], map =>
+const getSortedConvMetas = Container.createSelector([getMetas], ([map, state]) =>
   map
     .sort((a, b) => b.timestamp - a.timestamp)
     .slice(0, maxShownConversations)
     .toList()
+    .toJS()
+    .map(m => {
+      const hasUnread = Constants.getHasUnread(state, m.conversationIDKey)
+      const styles = Constants.getRowStyles(m, false, hasUnread)
+      const participantNeedToRekey = m.rekeyers.size > 0
+      const _username = state.config.username || ''
+      const youNeedToRekey = !!participantNeedToRekey && m.rekeyers.has(_username)
+      return {
+        conversationIDKey: m.conversationIDKey,
+        backgroundColor: styles.backgroundColor,
+        hasBadge: Constants.getHasBadge(state, m.conversationIDKey),
+        hasResetUsers: !!m.resetParticipants && m.resetParticipants.size > 0,
+        hasUnread,
+        iconHoverColor: styles.iconHoverColor,
+        isFinalized: !!m.wasFinalizedBy,
+        isMuted: m.isMuted,
+        isSelected: false,
+        // TODO: fix this: we need to navigate to the app here.
+        onSelectConversation: () => {},
+        participantNeedToRekey,
+        participants: Constants.getRowParticipants(m, _username),
+        showBold: styles.showBold,
+        snippet: m.snippet,
+        snippetDecoration: m.snippetDecoration,
+        subColor: styles.subColor,
+        teamname: m.teamname,
+        timestamp: Constants.timestampToString(m),
+        usernameColor: styles.usernameColor,
+        youAreReset: m.membershipType === 'youAreReset',
+        youNeedToRekey,
+      }
+    })
 )
 
 // Just to cache the sorted values

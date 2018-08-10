@@ -56,7 +56,7 @@ const mapStateToProps = (state: TypedState) => ({
   isAsyncWriteHappening: state.fs.flags.syncing,
   loggedIn: state.config.loggedIn,
   username: state.config.username,
-  _convMetas: GetNewestConvMetas(state),
+  conversations: GetNewestConvMetas(state),
 })
 
 const mergeProps = stateProps => ({
@@ -67,7 +67,7 @@ const mergeProps = stateProps => ({
   isAsyncWriteHappening: stateProps.isAsyncWriteHappening,
   loggedIn: stateProps.loggedIn,
   username: stateProps.username,
-  conversations: stateProps._convMetas.toJS(),
+  conversations: stateProps.conversations,
   windowComponent: 'menubar',
   windowOpts,
   windowParam: '',

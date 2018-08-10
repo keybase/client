@@ -9,8 +9,10 @@ import {
   OverlayParentHOC,
   type OverlayParentProps,
 } from '../../../../common-adapters'
-import TeamMenu from '../../../conversation/info-panel/menu/container'
 import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../styles'
+// TODO: Fix this--it's messing up the widget
+// import TeamMenu from '../../../conversation/info-panel/menu/container'
+const TeamMenu = () => <Box />
 
 type Props = {
   hasUnread: boolean,

@@ -2,17 +2,8 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-
-const ChatRow = (props: ChatRowProps) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.chatRowContainer}>
-    <Kb.Text type="BodySmallSemibold" style={styles.conversationName}>
-      {props.teamname ? `${props.teamname}#${props.channelname}` : props.participants[0]}:
-    </Kb.Text>
-    <Kb.Text type="BodySmall">
-      {props.snippet}
-    </Kb.Text>
-  </Kb.Box2>
-)
+import * as ChatTypes from '../constants/types/chat2'
+import * as SmallTeam from '../chat/inbox/row/small-team'
 
 const ChatViewAll = ({onViewAll}: {onViewAll: () => void}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
@@ -25,22 +16,20 @@ const ChatViewAll = ({onViewAll}: {onViewAll: () => void}) => (
 )
 
 export type ChatRowProps = {
-  conversationIDKey: string,
-  snippet: string,
-  participants: Array<string>,
-  channelname: string,
-  teamname: string,
+  ...SmallTeam.Props,
+  conversationIDKey: ChatTypes.ConversationIDKey,
 }
 
 export type ChatContainerProps = {
   onViewAll: () => void,
+  onSelectConversation: (ChatTypes.ConversationIDKey) => void,
   conversations: Array<ChatRowProps>,
 }
 
-export const ChatContainer = ({onViewAll, conversations}: ChatContainerProps) => (
+export const ChatContainer = ({onViewAll, onSelectConversation, conversations}: ChatContainerProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
     {conversations.slice(0, 3).map(c => (
-      <ChatRow key={c.conversationIDKey} {...c} />
+      <SmallTeam.SmallTeam key={c.conversationIDKey} {...c} onSelectConversation={() => onSelectConversation(c.conversationIDKey)} />
     ))}
     <ChatViewAll onViewAll={onViewAll} />
   </Kb.Box2>

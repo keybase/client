@@ -5,12 +5,14 @@ import Flags from '../util/feature-flags'
 import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
 import * as Chat from './chat.desktop'
+import * as ChatTypes from '../constants/types/chat2'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash-es'
 
 export type Props = {
   isAsyncWriteHappening: boolean,
+  onSelectConversation: (ChatTypes.ConversationIDKey) => void,
   conversations: Array<Chat.ChatRowProps>,
   logIn: () => void,
   loggedIn: boolean,
@@ -205,7 +207,7 @@ class MenubarRender extends React.Component<Props, State> {
             position="bottom right"
           />
         </Kb.Box>
-        <Chat.ChatContainer onViewAll={() => this.props.openApp(Tabs.chatTab)} conversations={this.props.conversations} />
+        <Chat.ChatContainer onViewAll={() => this.props.openApp(Tabs.chatTab)} conversations={this.props.conversations} onSelectConversation={this.props.onSelectConversation} />
         {this.props.isAsyncWriteHappening && (
           <Kb.Box style={styles.uploadingContainer}>
             <Kb.Icon type="icon-loader-uploading-16" />

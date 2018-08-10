@@ -16,7 +16,7 @@ import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../avatars'
 import * as RowSizes from '../sizes'
 
-type Props = {
+export type Props = {
   backgroundColor: string,
   hasBadge: boolean,
   hasResetUsers: boolean,
@@ -104,6 +104,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
               iconHoverColor={props.iconHoverColor}
               participants={props.teamname ? [props.teamname] : props.participants}
               showBold={props.showBold}
+              // TODO: fix this--it's messing shit up in the widget
               showGear={!!props.teamname && !isMobile}
               subColor={props.subColor}
               timestamp={props.timestamp}
