@@ -13,7 +13,29 @@ import (
 
 type teamEKBoxCacheItem struct {
 	TeamEKBoxed keybase1.TeamEkBoxed
-	Err         error
+	ErrMsg      string
+}
+
+func newTeamEKBoxCacheItem(teamEKBoxed keybase1.TeamEkBoxed, err error) teamEKBoxCacheItem {
+	errMsg := ""
+	if err != nil {
+		errMsg = err.Error()
+	}
+	return teamEKBoxCacheItem{
+		TeamEKBoxed: teamEKBoxed,
+		ErrMsg:      errMsg,
+	}
+}
+
+func (c teamEKBoxCacheItem) HasError() bool {
+	return c.ErrMsg != ""
+}
+
+func (c teamEKBoxCacheItem) Error() error {
+	if c.HasError() {
+		return newEphemeralKeyError(c.ErrMsg)
+	}
+	return nil
 }
 
 type teamEKBoxCache map[keybase1.EkGeneration]teamEKBoxCacheItem
@@ -73,8 +95,8 @@ func (s *TeamEKBoxStorage) Get(ctx context.Context, teamID keybase1.TeamID, gene
 		return s.fetchAndStore(ctx, teamID, generation)
 	}
 	defer s.Unlock() // release the lock after we unbox
-	if cacheItem.Err != nil {
-		return teamEK, err
+	if cacheItem.HasError() {
+		return teamEK, cacheItem.Error()
 	}
 	return s.unbox(ctx, generation, cacheItem.TeamEKBoxed)
 }
@@ -160,7 +182,9 @@ func (s *TeamEKBoxStorage) fetchAndStore(ctx context.Context, teamID keybase1.Te
 	teamEK, err = s.unbox(ctx, generation, teamEKBoxed)
 	if err != nil {
 		switch err.(type) {
-		case EKUnboxErr, EKMissingBoxErr:
+		// cache unboxing/missing box errors so we don't continually try to
+		// fetch something nonexistent.
+		case EphemeralKeyError:
 			if perr := s.put(ctx, teamID, generation, teamEKBoxed, err); perr != nil {
 				s.G().Log.CDebugf(ctx, "unable to store unboxing error %v", perr)
 			}
@@ -211,11 +235,11 @@ func (s *TeamEKBoxStorage) unbox(ctx context.Context, teamEKGeneration keybase1.
 }
 
 func (s *TeamEKBoxStorage) Put(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed) (err error) {
-	return s.put(ctx, teamID, generation, teamEKBoxed, nil /* unboxingErr */)
+	return s.put(ctx, teamID, generation, teamEKBoxed, nil /* ekErr */)
 }
 
 func (s *TeamEKBoxStorage) put(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration,
-	teamEKBoxed keybase1.TeamEkBoxed, unboxingErr error) (err error) {
+	teamEKBoxed keybase1.TeamEkBoxed, ekErr error) (err error) {
 	s.Lock()
 	defer s.Unlock()
 	defer s.G().CTraceTimed(ctx, fmt.Sprintf("TeamEKBoxStorage#putWithErr: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
@@ -228,10 +252,7 @@ func (s *TeamEKBoxStorage) put(ctx context.Context, teamID keybase1.TeamID, gene
 	if err != nil {
 		return err
 	}
-	cache[generation] = teamEKBoxCacheItem{
-		TeamEKBoxed: teamEKBoxed,
-		Err:         unboxingErr,
-	}
+	cache[generation] = newTeamEKBoxCacheItem(teamEKBoxed, ekErr)
 	err = s.G().GetKVStore().PutObj(key, nil, cache)
 	if err != nil {
 		return err
@@ -286,20 +307,25 @@ func (s *TeamEKBoxStorage) DeleteExpired(ctx context.Context, teamID keybase1.Te
 	}
 
 	merkleCtime := keybase1.TimeFromSeconds(merkleRoot.Ctime()).Time()
-	for gen, cacheItem := range cache {
-		if cacheItem.Err != nil {
-			continue
-		}
-		keyAge := merkleCtime.Sub(cacheItem.TeamEKBoxed.Metadata.Ctime.Time())
-		// TeamEKs will never encrypt new data if the current key is older than
-		// libkb.EphemeralKeyGenInterval, thus the maximum lifetime of
-		// ephemeral content will not exceed libkb.MinEphemeralKeyLifetime =
-		// libkb.MaxEphemeralContentLifetime + libkb.EphemeralKeyGenInterval
-		if keyAge >= libkb.MinEphemeralKeyLifetime {
-			expired = append(expired, gen)
+	// We delete expired and invalid cache entries but only return the expired.
+	toDelete := []keybase1.EkGeneration{}
+	for generation, cacheItem := range cache {
+		// purge any cached errors here so they don't stick around forever.
+		if cacheItem.HasError() {
+			toDelete = append(toDelete, generation)
+		} else {
+			keyAge := merkleCtime.Sub(cacheItem.TeamEKBoxed.Metadata.Ctime.Time())
+			// TeamEKs will never encrypt new data if the current key is older than
+			// libkb.EphemeralKeyGenInterval, thus the maximum lifetime of
+			// ephemeral content will not exceed libkb.MinEphemeralKeyLifetime =
+			// libkb.MaxEphemeralContentLifetime + libkb.EphemeralKeyGenInterval
+			if keyAge >= libkb.MinEphemeralKeyLifetime {
+				expired = append(expired, generation)
+			}
 		}
 	}
-	return expired, s.deleteMany(ctx, teamID, expired)
+	toDelete = append(toDelete, expired...)
+	return expired, s.deleteMany(ctx, teamID, toDelete)
 }
 
 func (s *TeamEKBoxStorage) GetAll(ctx context.Context, teamID keybase1.TeamID) (teamEKs TeamEKMap, err error) {
@@ -317,7 +343,7 @@ func (s *TeamEKBoxStorage) GetAll(ctx context.Context, teamID keybase1.TeamID) (
 	}
 
 	for generation, cacheItem := range cache {
-		if cacheItem.Err != nil {
+		if cacheItem.HasError() {
 			continue
 		}
 		teamEK, err := s.unbox(ctx, generation, cacheItem.TeamEKBoxed)
@@ -348,7 +374,7 @@ func (s *TeamEKBoxStorage) MaxGeneration(ctx context.Context, teamID keybase1.Te
 	}
 
 	for generation, cacheItem := range cache {
-		if cacheItem.Err != nil {
+		if cacheItem.HasError() {
 			continue
 		}
 		if generation > maxGeneration {

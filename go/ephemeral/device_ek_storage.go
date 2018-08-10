@@ -147,15 +147,17 @@ func (s *DeviceEKStorage) Get(ctx context.Context, generation keybase1.EkGenerat
 	}
 	// Try persistent storage.
 	deviceEK, err = s.get(ctx, generation)
-	if err != nil {
+	switch err.(type) {
+	case nil, erasablekv.UnboxError:
+		// cache the result
+		cache[generation] = deviceEKCacheItem{
+			DeviceEK: deviceEK,
+			Err:      err,
+		}
+		return deviceEK, err
+	default:
 		return deviceEK, err
 	}
-	// cache the result
-	cache[generation] = deviceEKCacheItem{
-		DeviceEK: deviceEK,
-		Err:      nil,
-	}
-	return deviceEK, nil
 }
 
 func (s *DeviceEKStorage) get(ctx context.Context, generation keybase1.EkGeneration) (deviceEK keybase1.DeviceEk, err error) {
@@ -368,27 +370,38 @@ func (s *DeviceEKStorage) DeleteExpired(ctx context.Context, merkleRoot libkb.Me
 	}
 
 	keyMap := make(keyExpiryMap)
+	// We delete expired and invalid cache entries but only return the expired.
+	toDelete := []keybase1.EkGeneration{}
 	for generation, cacheItem := range cache {
 		if cacheItem.Err != nil {
-			continue
-		}
-		deviceEK := cacheItem.DeviceEK
-		var ctime keybase1.Time
-		// If we have a nil root _and_ a valid DeviceCtime, use that. If we're
-		// missing a DeviceCtime it's better to use the slightly off
-		// merkleCtime than a 0
-		if merkleRoot.IsNil() && deviceEK.Metadata.DeviceCtime > 0 {
-			ctime = deviceEK.Metadata.DeviceCtime
+			toDelete = append(toDelete, generation)
 		} else {
-			ctime = deviceEK.Metadata.Ctime
+			deviceEK := cacheItem.DeviceEK
+			var ctime keybase1.Time
+			// If we have a nil root _and_ a valid DeviceCtime, use that. If we're
+			// missing a DeviceCtime it's better to use the slightly off
+			// merkleCtime than a 0
+			if merkleRoot.IsNil() && deviceEK.Metadata.DeviceCtime > 0 {
+				ctime = deviceEK.Metadata.DeviceCtime
+			} else {
+				ctime = deviceEK.Metadata.Ctime
+			}
+			keyMap[generation] = ctime
 		}
-		keyMap[generation] = ctime
 	}
 
 	expired = s.getExpiredGenerations(context.Background(), keyMap, now)
 	epick := libkb.FirstErrorPicker{}
 	for _, generation := range expired {
 		epick.Push(s.delete(ctx, generation))
+	}
+
+	// Delete any invalid cache entries we were harboring but don't return the
+	// error to the caller.
+	for _, generation := range toDelete {
+		if err := s.delete(ctx, generation); err != nil {
+			s.G().Log.CDebugf(ctx, "unable to delete generation (with cache err) %v: %v", generation, err)
+		}
 	}
 
 	epick.Push(s.deletedWrongEldestSeqno(ctx))

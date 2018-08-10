@@ -261,7 +261,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 		require.True(t, found)
 		cacheItem, ok := cache[generation]
 		require.True(t, ok)
-		require.Nil(t, cacheItem.Err)
+		require.Equal(t, "", cacheItem.ErrMsg)
 		teamEKBoxed := cacheItem.TeamEKBoxed
 		teamEKBoxed.Metadata.Ctime = keybase1.ToTime(teamEKBoxed.Metadata.Ctime.Time().Add(d))
 		err = teamEKBoxStorage.Put(context.Background(), teamID, generation, teamEKBoxed)
