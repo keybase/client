@@ -246,7 +246,7 @@ func (s *TeamEKBoxStorage) put(ctx context.Context, teamID keybase1.TeamID, gene
 	teamEKBoxed keybase1.TeamEkBoxed, ekErr error) (err error) {
 	s.Lock()
 	defer s.Unlock()
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("TeamEKBoxStorage#putWithErr: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
+	defer s.G().CTraceTimed(ctx, fmt.Sprintf("TeamEKBoxStorage#put: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
 
 	key, err := s.dbKey(ctx, teamID)
 	if err != nil {
