@@ -35,8 +35,9 @@ const getSortedConvMetas = Container.createSelector([getMetas], ([map, state]) =
       const _username = state.config.username || ''
       const youNeedToRekey = !!participantNeedToRekey && m.rekeyers.has(_username)
       return {
-        conversationIDKey: m.conversationIDKey,
         backgroundColor: Styles.globalColors.white,
+        channelname: m.channelname,
+        conversationIDKey: m.conversationIDKey,
         hasBadge: Constants.getHasBadge(state, m.conversationIDKey),
         hasResetUsers: !!m.resetParticipants && m.resetParticipants.size > 0,
         hasUnread,
@@ -52,7 +53,6 @@ const getSortedConvMetas = Container.createSelector([getMetas], ([map, state]) =
         snippet: m.snippet,
         snippetDecoration: m.snippetDecoration,
         subColor: styles.subColor,
-        channelname: m.channelname,
         teamname: m.teamname,
         timestamp: Constants.timestampToString(m),
         usernameColor: styles.usernameColor,
