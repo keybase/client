@@ -56,11 +56,18 @@ export default function(
           ? state.deleteIn(['daemonHandshakeWaiters', action.payload.name])
           : state.setIn(['daemonHandshakeWaiters', action.payload.name], newCount)
 
-      // Keep the first error
-      if (state.daemonHandshakeFailedReason) {
-        return newState
+      if (action.payload.failedFatal) {
+        return newState.merge({
+          daemonHandshakeFailedReason: action.payload.failedReason || '',
+          daemonHandshakeRetriesLeft: 0,
+        })
+      } else {
+        // Keep the first error
+        if (state.daemonHandshakeFailedReason) {
+          return newState
+        }
+        return newState.set('daemonHandshakeFailedReason', action.payload.failedReason || '')
       }
-      return newState.set('daemonHandshakeFailedReason', action.payload.failedReason || '')
     }
     case ConfigGen.logoutHandshakeWait: {
       const oldCount = state.logoutHandshakeWaiters.get(action.payload.name, 0)

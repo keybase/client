@@ -5,6 +5,7 @@
 import '../../dev/user-timings'
 import Main from '../../app/main.desktop'
 import * as DevGen from '../../actions/dev-gen'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as NotificationsGen from '../../actions/notifications-gen'
 import * as React from 'react'
 import * as ConfigGen from '../../actions/config-gen'
@@ -14,8 +15,7 @@ import RemoteProxies from '../remote/proxies.desktop'
 import Root from './container.desktop'
 import configureStore from '../../store/configure-store'
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import {makeEngine} from '../../engine'
-import hello from '../../util/hello'
+import {makeEngine, getEngine} from '../../engine'
 import loginRouteTree from '../../app/routes-login'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {throttle, merge} from 'lodash-es'
@@ -134,7 +134,17 @@ function setupApp(store) {
   store.dispatch(NotificationsGen.createListenForNotifications())
 
   // Introduce ourselves to the service
-  hello(process.pid, 'Main Renderer', process.argv, __VERSION__, true) // eslint-disable-line no-undef
+  getEngine().actionOnConnect('hello', () => {
+    RPCTypes.configHelloIAmRpcPromise({
+      details: {
+        argv: process.argv,
+        clientType: RPCTypes.commonClientType.guiMain,
+        desc: 'Main Renderer',
+        pid: process.pid,
+        version: __VERSION__, // eslint-disable-line no-undef
+      },
+    }).catch(_ => {})
+  })
 
   // $FlowIssue doesn't like the require
   store.dispatch(DevGen.createUpdateDebugConfig({config: require('../../local-debug-live')}))

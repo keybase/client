@@ -112,32 +112,46 @@ export const dumpLogs = (_: any, action: ?ConfigGen.DumpLogsPayload) =>
     })
 
 const checkRPCOwnership = () =>
-  new Promise((resolve, reject) => {
-    if (!isWindows) {
-      return resolve()
-    }
-    logger.info('Checking RPC ownership')
+  Saga.call(function*() {
+    const waitKey = 'pipeCheckFail'
+    yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: waitKey}))
+    try {
+      logger.info('Checking RPC ownership')
 
-    const localAppData = String(process.env.LOCALAPPDATA)
-    var binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
-    const args = ['pipeowner', socketPath]
-    execFile(binPath, args, {windowsHide: true}, (error, stdout, stderr) => {
-      if (error) {
-        logger.info(`pipeowner check result: ${stdout.toString()}`)
-        // error will be logged in bootstrap check
-        getEngine().reset()
-        reject(error)
-        return
-      }
-      const result = JSON.parse(stdout.toString())
-      if (result.isOwner) {
-        resolve()
-        return
-      }
-      logger.info(`pipeowner check result: ${stdout.toString()}`)
-      getEngine().reset()
-      reject(new Error(`pipeowner check failed`))
-    })
+      const localAppData = String(process.env.LOCALAPPDATA)
+      var binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
+      const args = ['pipeowner', socketPath]
+      yield Saga.call(
+        () =>
+          new Promise((resolve, reject) => {
+            execFile(binPath, args, {windowsHide: true}, (error, stdout, stderr) => {
+              if (error) {
+                logger.info(`pipeowner check result: ${stdout.toString()}`)
+                // error will be logged in bootstrap check
+                getEngine().reset()
+                reject(error)
+                return
+              }
+              const result = JSON.parse(stdout.toString())
+              if (result.isOwner) {
+                resolve()
+                return
+              }
+              logger.info(`pipeowner check result: ${stdout.toString()}`)
+              reject(new Error('pipeowner check failed'))
+            })
+          })
+      )
+    } catch (e) {
+      yield Saga.put(
+        ConfigGen.createDaemonHandshakeWait({
+          failedFatal: true,
+          failedReason: e.message,
+          increment: false,
+          name: waitKey,
+        })
+      )
+    }
   })
 
 const setupReachabilityWatcher = () =>
@@ -209,10 +223,14 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
   yield Saga.actionToAction(ConfigGen.showMain, showMainWindow)
   yield Saga.actionToAction(ConfigGen.dumpLogs, dumpLogs)
-  yield Saga.actionToAction(ConfigGen.setupEngineListeners, checkRPCOwnership)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupReachabilityWatcher)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
   yield Saga.fork(initializeAppSettingsState)
+
+  if (isWindows) {
+    yield Saga.actionToAction(ConfigGen.daemonHandshake, checkRPCOwnership)
+  }
+
   // Start this immediately
   yield Saga.fork(loadStartupDetails)
 }

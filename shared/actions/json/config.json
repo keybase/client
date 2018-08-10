@@ -24,6 +24,7 @@
       "name": "string",
       "increment": "boolean",
       "failedReason?": "?string",
+      "failedFatal?": "true",
     },
     "daemonHandshakeDone": {
       "_description": "ready to show the app"

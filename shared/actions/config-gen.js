@@ -65,6 +65,7 @@ type _DaemonHandshakeWaitPayload = $ReadOnly<{|
   name: string,
   increment: boolean,
   failedReason?: ?string,
+  failedFatal?: true,
 |}>
 type _DebugDumpPayload = $ReadOnly<{|items: Array<string>|}>
 type _DumpLogsPayload = $ReadOnly<{|reason: 'quitting through menu'|}>

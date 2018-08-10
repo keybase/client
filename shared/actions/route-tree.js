@@ -39,6 +39,7 @@ export function refreshRouteDef(
 export function switchRouteDef(routeDef: RouteDefParams, path?: Path): Types.SwitchRouteDef {
   return {
     type: Constants.switchRouteDef,
+    // $FlowIssue
     payload: {path, routeDef},
   }
 }
