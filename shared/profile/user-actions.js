@@ -8,6 +8,8 @@ import {
   FollowButton,
   ButtonBar,
   Icon,
+  Meta,
+  Text,
   OverlayParentHOC,
   type OverlayParentProps,
 } from '../common-adapters'
@@ -114,6 +116,16 @@ class _DropdownButton extends React.PureComponent<DropdownProps & OverlayParentP
     {
       onClick: () => this.props.onAddToTeam(),
       title: 'Add to team...',
+    },
+    {
+      onClick: () => this.props.onAddToTeam(),
+      title: 'Send or request Lumens (XLM)',
+      view: (
+        <Box2 direction="horizontal" centerChildren={true} gap="xtiny">
+          <Text type="Body">Send or request Lumens (XLM)</Text>
+          <Meta title="New" backgroundColor={globalColors.blue} style={{alignSelf: undefined}} />
+        </Box2>
+      ),
     },
   ]
 
