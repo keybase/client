@@ -4,64 +4,77 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
 type Props = {
+  fromWallet?: string,
+  fromWalletUser?: string,
+  fromWalletContents?: string,
   onChangeAddress?: string => void,
   incorrect?: boolean,
   username?: string,
   fullname?: string,
   onShowProfile?: string => void,
+
+  displayX?: boolean,
+  onRemoveProfile?: () => void,
 }
 
 const Participants = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
-      <Kb.Text type="BodySmall" style={styles.text}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+      <Kb.Text type="BodyTinySemibold" style={styles.text}>
         To:
       </Kb.Text>
-    {!!props.username && (
-      <Kb.NameWithIcon colorFollowing={true} horizontal={true} username={props.username} metaOne={props.fullname} onClick={props.onShowProfile} />
-    )}
-    {!props.username && (
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
-          <Kb.Icon
-            type={props.incorrect ? 'iconfont-stellar-request' : 'iconfont-stellar-request'}
-            style={Kb.iconCastPlatformStyles(styles.icon)}
-          />
-          <Kb.NewInput
-            type="text"
-            onChangeText={props.onChangeAddress}
-            textType="BodySemibold"
-            placeholder="Stellar address"
-            placeholderColor={Styles.globalColors.grey}
-            hideBorder={true}
-            style={styles.input}
-            multiline={true}
-          />
-        </Kb.Box2>
-        {props.incorrect && (
+      {!!props.username && (
+        <Kb.NameWithIcon
+          colorFollowing={true}
+          horizontal={true}
+          username={props.username}
+          metaOne={props.fullname}
+          onClick={props.onShowProfile}
+        />
+      )}
+      {!props.username && (
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
+            <Kb.Icon
+              type={props.incorrect ? 'iconfont-stellar-request' : 'iconfont-stellar-request'}
+              style={Kb.iconCastPlatformStyles(styles.icon)}
+            />
+            <Kb.NewInput
+              type="text"
+              onChangeText={props.onChangeAddress}
+              textType="BodySemibold"
+              placeholder="Stellar address"
+              placeholderColor={Styles.globalColors.grey}
+              hideBorder={true}
+              style={styles.input}
+              multiline={true}
+            />
+          </Kb.Box2>
+          {props.incorrect && (
             <Kb.Text type="BodySmall" style={styles.error}>
               This Stellar address is incorrect
             </Kb.Text>
-        )}
-      </Kb.Box2>
-    )}
+          )}
+        </Kb.Box2>
+      )}
     </Kb.Box2>
-    {props.incorrect && (
-      <Kb.Box style={styles.redline} />
-    )}
+    {props.incorrect && <Kb.Box style={styles.redline} />}
   </Kb.Box2>
 )
 
 const styles = Styles.styleSheetCreate({
   text: {
     color: Styles.globalColors.blue,
-    marginRight: Styles.globalMargins.xsmall,
-    marginTop: Styles.globalMargins.xtiny,
-    alignSelf: 'flex-start',
+    marginRight: Styles.globalMargins.tiny,
+    // marginTop: Styles.globalMargins.xtiny,
+    // alignSelf: 'flex-start',
   },
   container: {
-    margin: Styles.globalMargins.xsmall,
-    alignItems: 'flex-start',
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.tiny,
+    paddingBottom: Styles.globalMargins.tiny,
+    alignItems: 'center',
   },
   error: Styles.platformStyles({
     common: {
