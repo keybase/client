@@ -834,6 +834,7 @@ func (r *BackendMock) addAccountRandom(funded bool) stellar1.AccountID {
 	}
 	require.Nil(r.T, r.accounts[a.accountID], "attempt to re-add account %v", a.accountID)
 	r.accounts[a.accountID] = a
+	r.seqnos[a.accountID] = uint64(time.Now().UnixNano())
 	return a.accountID
 }
 
@@ -852,6 +853,7 @@ func (r *BackendMock) addAccountByID(accountID stellar1.AccountID, funded bool) 
 	}
 	require.Nil(r.T, r.accounts[a.accountID], "attempt to re-add account %v", a.accountID)
 	r.accounts[a.accountID] = a
+	r.seqnos[a.accountID] = uint64(time.Now().UnixNano())
 	return a
 }
 

@@ -97,8 +97,7 @@ func (f *JSONFile) BeginTransaction() (ConfigWriterTransacter, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = f.setTx(tx)
-	if err != nil {
+	if err = f.setTx(tx); err != nil {
 		return nil, err
 	}
 	return tx, nil

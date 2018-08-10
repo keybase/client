@@ -11,8 +11,10 @@ import (
 type headerOrFooterMarker string
 
 const (
-	headerMarker headerOrFooterMarker = "BEGIN"
-	footerMarker headerOrFooterMarker = "END"
+	headerMarker   headerOrFooterMarker = "BEGIN"
+	footerMarker   headerOrFooterMarker = "END"
+	maxFrameLength int                  = 512 // applies to header and footer
+	maxBrandLength int                  = 128
 )
 
 func pop(v *([]string), n int) (ret []string) {
@@ -67,6 +69,11 @@ func getStringForType(typ MessageType) string {
 
 func parseFrame(m string, typ MessageType, hof headerOrFooterMarker) (brand string, err error) {
 
+	if len(m) > maxFrameLength {
+		err = makeErrBadFrame("Frame is too long")
+		return
+	}
+
 	// replace blocks of characters in the set [>\n\r\t ] with a single space, so that Go
 	// can easily parse each piece
 	re := regexp.MustCompile("[>\n\r\t ]+")
@@ -103,6 +110,10 @@ func parseFrame(m string, typ MessageType, hof headerOrFooterMarker) (brand stri
 	}
 	if len(v) > 0 {
 		brand = v[0]
+		if len(brand) > maxBrandLength {
+			err = makeErrBadFrame("Brand is too long")
+			return
+		}
 	}
 	return brand, err
 }

@@ -574,6 +574,7 @@ protocol local {
     boolean markAsRead;
     array<MessageType> messageTypes;
     boolean disableResolveSupersedes;
+    boolean enableDeletePlaceholders;
 
     union { null, gregor1.Time } before;
     union { null, gregor1.Time } after;

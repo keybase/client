@@ -451,8 +451,6 @@ func (v conversationView) headline(g *libkb.GlobalContext) (string, error) {
 	return "", nil
 }
 
-const deletedTextCLI = "[deleted]"
-
 // Everything you need to show a message.
 // Takes into account superseding edits and deletions.
 type messageView struct {
