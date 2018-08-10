@@ -6,7 +6,11 @@ import flags from '../../util/feature-flags'
 function setupDevToolsExtensions() {
   if (process.env.KEYBASE_DEV_TOOL_EXTENSIONS) {
     process.env.KEYBASE_DEV_TOOL_EXTENSIONS.split(',').forEach(p => {
-      SafeElectron.BrowserWindow.addDevToolsExtension(p)
+      try {
+        SafeElectron.BrowserWindow.addDevToolsExtension(p)
+      } catch (e) {
+        console.error('Dev tool loading crash', p, e)
+      }
     })
   }
 }

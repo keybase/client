@@ -4,23 +4,31 @@ import * as ProfileGen from '../../../../../actions/profile-gen'
 import * as TrackerGen from '../../../../../actions/tracker-gen'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Constants from '../../../../../constants/chat2'
-import {WrapperAuthor} from '../'
+import * as MessageConstants from '../../../../../constants/chat2/message'
+import WrapperAuthor from '.'
 import {setDisplayName, compose, connect, type TypedState} from '../../../../../util/container'
 import {isMobile} from '../../../../../constants/platform'
 
-const mapStateToProps = (state: TypedState, {message, previous, innerClass, isEditing}) => {
+type OwnProps = {|
+  isEditing: boolean,
+  measure: null | (() => void),
+  message: Types.MessageText | Types.MessageAttachment,
+  previous: ?Types.Message,
+  toggleMessageMenu: () => void,
+|}
+
+const mapStateToProps = (state: TypedState, {message, previous, isEditing}: OwnProps) => {
   const isYou = state.config.username === message.author
   const isFollowing = state.config.following.has(message.author)
   const isBroken = state.users.infoMap.getIn([message.author, 'broken'], false)
-  const {readMsgID, maxMsgID} = Constants.getMeta(state, message.conversationIDKey)
-  const lastPositionExists = maxMsgID > readMsgID
+  const orangeLineMessageID = state.chat2.orangeLineMap.get(message.conversationIDKey)
+  const lastPositionExists = orangeLineMessageID === message.id
   const messageSent = !message.submitState
   const messageFailed = message.submitState === 'failed'
   const messagePending = message.submitState === 'pending'
   const isExplodingUnreadable = message.explodingUnreadable
 
   return {
-    innerClass,
     isBroken,
     isEditing,
     isExplodingUnreadable,
@@ -48,7 +56,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID})),
 })
 
-const mergeProps = (stateProps, dispatchProps, {measure}) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {message, previous} = stateProps
 
   const sequentialUserMessages =
@@ -56,7 +64,7 @@ const mergeProps = (stateProps, dispatchProps, {measure}) => {
     previous.author === message.author &&
     (previous.type === 'text' || previous.type === 'deleted' || previous.type === 'attachment')
 
-  const showAuthor = Constants.enoughTimeBetweenMessages(message, previous)
+  const showAuthor = MessageConstants.enoughTimeBetweenMessages(message, previous)
 
   const timestamp = stateProps.lastPositionExists || !previous || showAuthor ? message.timestamp : null
 
@@ -76,7 +84,6 @@ const mergeProps = (stateProps, dispatchProps, {measure}) => {
     exploding: message.exploding,
     failureDescription,
     includeHeader,
-    innerClass: stateProps.innerClass,
     isBroken: stateProps.isBroken,
     isEdited: message.hasBeenEdited,
     isEditing: stateProps.isEditing,
@@ -84,12 +91,12 @@ const mergeProps = (stateProps, dispatchProps, {measure}) => {
     isFollowing: stateProps.isFollowing,
     isRevoked: !!message.deviceRevokedAt,
     isYou: stateProps.isYou,
-    measure,
+    measure: ownProps.measure,
     message,
     messageFailed: stateProps.messageFailed,
     // `messageKey` should be unique for the message as long
     // as threads aren't switched
-    messageKey: `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`,
+    messageKey: Constants.getMessageKey(message),
     messagePending: stateProps.messagePending,
     messageSent: stateProps.messageSent,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
@@ -102,6 +109,8 @@ const mergeProps = (stateProps, dispatchProps, {measure}) => {
       : null,
     ordinal: message.ordinal,
     timestamp: message.timestamp,
+    toggleMessageMenu: ownProps.toggleMessageMenu,
+    type: message.type,
   }
 }
 

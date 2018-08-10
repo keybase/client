@@ -3,11 +3,12 @@ import * as React from 'react'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Icon, Text} from '../../common-adapters'
 import AddNew from './add-new-container'
-import ConnectedBanner from '../banner/container'
+import ConnectedFilesBanner from '../banner/fileui-banner/container'
 import Breadcrumb from './breadcrumb-container.desktop'
 import {type FolderHeaderProps} from './header'
+import OpenInFileUI from '../common/open-in-fileui-container'
 
-const FolderHeader = ({path, openInFileUI, onChat}: FolderHeaderProps) => (
+const FolderHeader = ({path, onChat}: FolderHeaderProps) => (
   <Box style={styleHeaderContainer}>
     <Box style={styleFolderHeader}>
       {path === '/keybase' ? (
@@ -19,7 +20,7 @@ const FolderHeader = ({path, openInFileUI, onChat}: FolderHeaderProps) => (
           <Breadcrumb path={path} />
           <Box style={styleFolderHeaderEnd}>
             <AddNew path={path} style={styleAddNew} />
-            <Icon type="iconfont-finder" color={globalColors.black_40} fontSize={16} onClick={openInFileUI} />
+            <OpenInFileUI path={path} />
             {onChat && (
               <Icon
                 type="iconfont-chat"
@@ -35,7 +36,7 @@ const FolderHeader = ({path, openInFileUI, onChat}: FolderHeaderProps) => (
         </Box>
       )}
     </Box>
-    <ConnectedBanner path={path} />
+    <ConnectedFilesBanner path={path} />
   </Box>
 )
 
@@ -70,16 +71,17 @@ const styleFolderHeaderEnd = {
 
 const styleFolderHeaderContainer = {
   ...stylesCommonRow,
+  width: '100%',
+  height: 48,
+  alignItems: 'center',
   position: 'relative',
-  marginTop: 15,
-  marginBottom: 15,
-  alignItems: 'flex-start',
 }
 
 const styleAddNew = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  padding: globalMargins.tiny,
+  paddingTop: globalMargins.tiny,
+  paddingBottom: globalMargins.tiny,
   paddingRight: globalMargins.small - 4,
   paddingLeft: globalMargins.small,
 }

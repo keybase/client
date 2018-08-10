@@ -105,10 +105,8 @@ const styles = styleSheetCreate({
       top: globalMargins.tiny,
     },
     isMobile: {
-      height: 14,
       right: globalMargins.small,
       top: globalMargins.small,
-      width: 14,
     },
   }),
   iconClose: {

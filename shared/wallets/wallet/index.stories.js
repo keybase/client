@@ -7,6 +7,7 @@ import {SettingsPopup} from './settings-popup'
 import * as Types from '../../constants/types/wallets'
 import * as Constants from '../../constants/wallets'
 import * as I from 'immutable'
+import confirmDefaultAccount from './settings-popup/set-default/index.stories'
 
 const defaultWalletMock = {
   isDefaultWallet: true,
@@ -105,6 +106,7 @@ const load = () => {
     ))
     .add('Settings, default', () => <SettingsPopup {...defaultSettingsProps} />)
     .add('Settings, secondary', () => <SettingsPopup {...secondarySettingsProps} />)
+  confirmDefaultAccount()
 }
 
 const styleWidth = {width: 520}

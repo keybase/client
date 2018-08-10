@@ -384,3 +384,15 @@ func NewAddMembersError(a string, e error) AddMembersError {
 func (a AddMembersError) Error() string {
 	return fmt.Sprintf("Error adding user '%v': %v", a.Assertion, a.Err)
 }
+
+type BadNameError struct {
+	Msg string
+}
+
+func (b BadNameError) Error() string {
+	return fmt.Sprintf("bad name error: %s", b.Msg)
+}
+
+func NewBadNameError(s string) BadNameError {
+	return BadNameError{Msg: s}
+}

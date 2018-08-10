@@ -306,6 +306,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-files-public-delete-64.png'),
   },
+  'icon-film-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-film-64.png'),
+  },
   'icon-folder-placeholder-32': {
     isFont: false,
     extension: 'png',
@@ -1141,11 +1146,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-play-64.png'),
   },
-  'icon-film-64': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-film-64.png'),
-  },
   'icon-progress-grey-animated': {
     isFont: false,
     extension: 'gif',
@@ -1525,6 +1525,11 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-user-add-32.png'),
+  },
+  'icon-wallet-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-wallet-48.png'),
   },
   'icon-wallet-64': {
     isFont: false,

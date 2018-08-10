@@ -1395,3 +1395,11 @@ func ForceReloadUPAKsForUIDs(ctx context.Context, g *globals.Context, uids []key
 	}
 	return g.GetUPAKLoader().Batcher(ctx, getArg, nil, 0)
 }
+
+func CreateHiddenPlaceholder(msgID chat1.MessageID) chat1.MessageUnboxed {
+	return chat1.NewMessageUnboxedWithPlaceholder(
+		chat1.MessageUnboxedPlaceholder{
+			MessageID: msgID,
+			Hidden:    true,
+		})
+}

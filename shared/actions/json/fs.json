@@ -11,7 +11,9 @@
     },
     "favoritesLoad": {},
     "favoritesLoaded": {
-      "folders": "I.Map<Types.Path, Types.FavoriteItem>"
+      "private": "I.Map<string, Types.Tlf>",
+      "public": "I.Map<string, Types.Tlf>",
+      "team": "I.Map<string, Types.Tlf>"
     },
     "filePreviewLoad": {
       "path": "Types.Path"
@@ -140,10 +142,6 @@
     "saveMedia": {
       "path": "Types.Path",
       "routePath?": "I.List<string>"
-    },
-    "openFinderPopup": {
-      "targetRect": "?ClientRect",
-      "routePath": "I.List<string>"
     },
     "openPathItem": {
       "path": "Types.Path",

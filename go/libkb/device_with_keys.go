@@ -1,9 +1,10 @@
 package libkb
 
 import (
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"sync"
 	"time"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type DeviceWithKeys struct {
@@ -108,6 +109,6 @@ func (d *DeviceWithKeys) Populate(m MetaContext) (uid keybase1.UID, err error) {
 	return res.UID, nil
 }
 
-func (d *DeviceWithKeys) ToPaperKeyActiveDevice(m MetaContext, uv keybase1.UserVersion) *ActiveDevice {
-	return NewPaperKeyActiveDevice(m, uv, d)
+func (d *DeviceWithKeys) ToProvisioningKeyActiveDevice(m MetaContext, uv keybase1.UserVersion) *ActiveDevice {
+	return NewProvisioningKeyActiveDevice(m, uv, d)
 }

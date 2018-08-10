@@ -724,25 +724,32 @@ func (f failingTlf) CompleteAndCanonicalizePrivateTlfName(context.Context, strin
 	return keybase1.CanonicalTLFNameAndIDWithBreaks{}, nil
 }
 
-func (f failingTlf) LookupUntrusted(context.Context, string, bool) (*types.NameInfoUntrusted, error) {
+func (f failingTlf) LookupIDUntrusted(context.Context, string, bool) (*types.NameInfoUntrusted, error) {
 	require.Fail(f.t, "LookupUnstrusted call")
 	return nil, nil
 }
 
-func (f failingTlf) Lookup(context.Context, string, bool) (*types.NameInfo, error) {
+func (f failingTlf) LookupID(context.Context, string, bool) (*types.NameInfo, error) {
 	require.Fail(f.t, "Lookup call")
 	return nil, nil
 }
 
-func (f failingTlf) EncryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error) {
-	return f.Lookup(ctx, tlfName, public)
+func (f failingTlf) AllCryptKeys(context.Context, string, bool) (types.AllCryptKeys, error) {
+	require.Fail(f.t, "AllCryptKeys call")
+	return nil, nil
 }
 
-func (f failingTlf) DecryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+func (f failingTlf) EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (types.CryptKey, *types.NameInfo, error) {
+	require.Fail(f.t, "EncryptionKey call")
+	return nil, nil, nil
+}
+
+func (f failingTlf) DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int, kbfsEncrypted bool) (*types.NameInfo, error) {
-	return f.Lookup(ctx, tlfName, public)
+	keyGeneration int, kbfsEncrypted bool) (types.CryptKey, error) {
+	require.Fail(f.t, "DecryptionKey call")
+	return nil, nil
 }
 
 func (f failingTlf) EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
@@ -765,6 +772,8 @@ type failingUpak struct {
 	t *testing.T
 }
 
+var _ libkb.UPAKLoader = (*failingUpak)(nil)
+
 func newFailingUpak(t *testing.T) failingUpak {
 	return failingUpak{
 		t: t,
@@ -782,7 +791,7 @@ func (f failingUpak) LoadV2(arg libkb.LoadUserArg) (ret *keybase1.UserPlusKeysV2
 	require.Fail(f.t, "LoadV2 call")
 	return nil, nil, nil
 }
-func (f failingUpak) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2, *keybase1.PublicKeyV2NaCl, map[keybase1.Seqno]keybase1.LinkID, error) {
+func (f failingUpak) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2, *keybase1.UserPlusKeysV2AllIncarnations, *keybase1.PublicKeyV2NaCl, error) {
 	require.Fail(f.t, "LoadKeyV2")
 	return nil, nil, nil, nil
 }

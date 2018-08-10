@@ -200,7 +200,7 @@ func TestUploadAssetSmall(t *testing.T) {
 	s := makeTestStore(t, nil)
 	ctx := context.Background()
 	plaintext, task := makeUploadTask(t, 1*MB)
-	a, err := s.UploadAsset(ctx, task, nil)
+	a, err := s.UploadAsset(ctx, task, ioutil.Discard)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -221,7 +221,7 @@ func TestUploadAssetLarge(t *testing.T) {
 	s := makeTestStore(t, nil)
 	ctx := context.Background()
 	plaintext, task := makeUploadTask(t, 12*MB)
-	a, err := s.UploadAsset(ctx, task, nil)
+	a, err := s.UploadAsset(ctx, task, ioutil.Discard)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -266,7 +266,7 @@ func (u *uploader) keyTracker(e, s []byte) {
 
 func (u *uploader) UploadResume() chat1.Asset {
 	u.s.blockLimit = 0
-	a, err := u.s.UploadAsset(context.Background(), u.task, nil)
+	a, err := u.s.UploadAsset(context.Background(), u.task, ioutil.Discard)
 	if err != nil {
 		u.t.Fatalf("expected second UploadAsset call to work, got: %s", err)
 	}
@@ -289,7 +289,7 @@ func (u *uploader) UploadResume() chat1.Asset {
 func (u *uploader) UploadPartial(blocks int) {
 	u.s.blockLimit = blocks
 
-	_, err := u.s.UploadAsset(context.Background(), u.task, nil)
+	_, err := u.s.UploadAsset(context.Background(), u.task, ioutil.Discard)
 	if err == nil {
 		u.t.Fatal("expected incomplete upload to have error")
 	}

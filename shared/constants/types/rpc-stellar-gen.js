@@ -264,7 +264,7 @@ export type TransactionStatus =
   | 3 // ERROR_TRANSIENT_3
   | 4 // ERROR_PERMANENT_4
 
-export type WalletAccountLocal = $ReadOnly<{accountID: AccountID, isDefault: Boolean, name: String, balanceDescription: String}>
+export type WalletAccountLocal = $ReadOnly<{accountID: AccountID, isDefault: Boolean, name: String, balanceDescription: String, seqno: String}>
 export type WalletSettings = $ReadOnly<{acceptedDisclaimer: Boolean}>
 type LocalBalancesLocalResult = ?Array<Balance>
 type LocalBuildPaymentLocalResult = BuildPaymentResLocal

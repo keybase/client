@@ -26,6 +26,10 @@
         {
           "type": "string",
           "name": "balanceDescription"
+        },
+        {
+          "type": "string",
+          "name": "seqno"
         }
       ]
     },

@@ -104,3 +104,59 @@ func (h *AccountHandler) ResetAccount(ctx context.Context, arg keybase1.ResetAcc
 
 	return h.G().Logout()
 }
+
+type GetLockdownResponse struct {
+	libkb.AppStatusEmbed
+	Enabled bool                       `json:"enabled"`
+	Status  libkb.AppStatus            `json:"status"`
+	History []keybase1.LockdownHistory `json:"history"`
+}
+
+func (h *AccountHandler) GetLockdownMode(ctx context.Context, sessionID int) (ret keybase1.GetLockdownResponse, err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "account/lockdown",
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+	var response GetLockdownResponse
+	err = h.G().API.GetDecode(apiArg, &response)
+	if err != nil {
+		return ret, err
+	}
+
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	upak, _, err := mctx.G().GetUPAKLoader().Load(
+		libkb.NewLoadUserArgWithMetaContext(mctx).WithPublicKeyOptional().WithUID(mctx.G().ActiveDevice.UID()))
+	if err != nil {
+		return ret, err
+	}
+
+	// Fill device names from ActiveDevices list.
+	for i, v := range response.History {
+		dev := upak.FindDevice(v.DeviceID)
+		if dev == nil {
+			mctx.CDebugf("GetLockdownMode: Could not find device in UserPlusAllKeys: %s", v.DeviceID)
+			continue
+		}
+
+		v.DeviceName = dev.DeviceDescription
+		response.History[i] = v
+	}
+
+	ret = keybase1.GetLockdownResponse{
+		Status:  response.Enabled,
+		History: response.History,
+	}
+	return ret, nil
+}
+
+func (h *AccountHandler) SetLockdownMode(ctx context.Context, arg keybase1.SetLockdownModeArg) (err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "account/lockdown",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"enabled": libkb.B{Val: arg.Enabled},
+		},
+	}
+	_, err = h.G().API.Post(apiArg)
+	return err
+}

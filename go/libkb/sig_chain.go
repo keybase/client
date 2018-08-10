@@ -219,6 +219,7 @@ func (sc *SigChain) Bump(mt MerkleTriple) {
 }
 
 func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
+	m, tbs := m.WithTimeBuckets()
 	low := sc.GetLastLoadedSeqno()
 	sc.loadedFromLinkOne = (low == keybase1.Seqno(0) || low == keybase1.Seqno(-1))
 
@@ -245,10 +246,13 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 		defer finisher()
 	}
 
+	recordFin := tbs.Record("SigChain.LoadFromServer.ReadAll")
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		recordFin()
 		return nil, err
 	}
+	recordFin()
 	return sc.LoadServerBody(m, body, low, t, selfUID)
 }
 

@@ -130,6 +130,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.UserProtocol(NewUserHandler(xp, g, d.ChatG())),
 		CancellingProtocol(g, keybase1.ApiserverProtocol(NewAPIServerHandler(xp, g))),
 		keybase1.PaperprovisionProtocol(NewPaperProvisionHandler(xp, g)),
+		keybase1.SelfprovisionProtocol(NewSelfProvisionHandler(xp, g)),
 		keybase1.RekeyProtocol(NewRekeyHandler2(xp, g, d.rekeyMaster)),
 		keybase1.NotifyFSRequestProtocol(newNotifyFSRequestHandler(xp, g)),
 		keybase1.GregorProtocol(newGregorRPCHandler(xp, g, d.gregor)),
@@ -673,6 +674,10 @@ func (d *Service) slowChecks() {
 		ticker.Stop()
 		return nil
 	})
+	// Do this once fast
+	if err := d.deviceCloneSelfCheck(); err != nil {
+		d.G().Log.Debug("deviceCloneSelfCheck error: %s", err)
+	}
 	go func() {
 		for {
 			<-ticker.C

@@ -115,15 +115,14 @@ func (t *Team) KBFSCryptKeys(ctx context.Context, appType keybase1.TeamApplicati
 	return t.Data.TlfCryptKeys[appType]
 }
 
-func (t *Team) getKeyManager() (km *TeamKeyManager, err error) {
+func (t *Team) getKeyManager(ctx context.Context) (km *TeamKeyManager, err error) {
 	if t.keyManager == nil {
 		gen := t.chain().GetLatestGeneration()
-		item, ok := t.Data.PerTeamKeySeeds[gen]
-		if !ok {
-			return nil, fmt.Errorf("missing team secret for generation: %v", gen)
+		item, err := GetAndVerifyPerTeamKey(libkb.NewMetaContext(ctx, t.G()), t.Data, gen)
+		if err != nil {
+			return nil, err
 		}
-
-		t.keyManager, err = NewTeamKeyManagerWithSecret(t.G(), item.Seed, gen)
+		t.keyManager, err = NewTeamKeyManagerWithSecret(item.Seed, gen)
 		if err != nil {
 			return nil, err
 		}
@@ -133,7 +132,7 @@ func (t *Team) getKeyManager() (km *TeamKeyManager, err error) {
 
 func (t *Team) SharedSecret(ctx context.Context) (ret keybase1.PerTeamKeySeed, err error) {
 	defer t.G().CTrace(ctx, "Team#SharedSecret", func() error { return err })()
-	km, err := t.getKeyManager()
+	km, err := t.getKeyManager(ctx)
 	if err != nil {
 		return ret, err
 	}
@@ -161,35 +160,35 @@ func (t *Team) SaltpackEncryptionKeyLatest(ctx context.Context) (keybase1.TeamAp
 }
 
 func (t *Team) SaltpackEncryptionKeyAtGeneration(ctx context.Context, generation keybase1.PerTeamKeyGeneration) (keybase1.TeamApplicationKey, error) {
-	return t.ApplicationKeyAtGeneration(keybase1.TeamApplication_SALTPACK, generation)
+	return t.ApplicationKeyAtGeneration(ctx, keybase1.TeamApplication_SALTPACK, generation)
 }
 
 func (t *Team) SeitanInviteTokenKeyAtGeneration(ctx context.Context, generation keybase1.PerTeamKeyGeneration) (keybase1.TeamApplicationKey, error) {
-	return t.ApplicationKeyAtGeneration(keybase1.TeamApplication_SEITAN_INVITE_TOKEN, generation)
+	return t.ApplicationKeyAtGeneration(ctx, keybase1.TeamApplication_SEITAN_INVITE_TOKEN, generation)
 }
 
-func (t *Team) SigningKey() (key libkb.NaclSigningKeyPair, err error) {
-	km, err := t.getKeyManager()
+func (t *Team) SigningKey(ctx context.Context) (key libkb.NaclSigningKeyPair, err error) {
+	km, err := t.getKeyManager(ctx)
 	if err != nil {
 		return key, err
 	}
 	return km.SigningKey()
 }
 
-func (t *Team) EncryptionKey() (key libkb.NaclDHKeyPair, err error) {
-	km, err := t.getKeyManager()
+func (t *Team) EncryptionKey(ctx context.Context) (key libkb.NaclDHKeyPair, err error) {
+	km, err := t.getKeyManager(ctx)
 	if err != nil {
 		return key, err
 	}
 	return km.EncryptionKey()
 }
 
-func (t *Team) encryptionKeyAtGen(gen keybase1.PerTeamKeyGeneration) (key libkb.NaclDHKeyPair, err error) {
-	item, ok := t.Data.PerTeamKeySeeds[gen]
-	if !ok {
-		return key, libkb.NotFoundError{Msg: fmt.Sprintf("Key at gen %v not found", gen)}
+func (t *Team) encryptionKeyAtGen(ctx context.Context, gen keybase1.PerTeamKeyGeneration) (key libkb.NaclDHKeyPair, err error) {
+	item, err := GetAndVerifyPerTeamKey(libkb.NewMetaContext(ctx, t.G()), t.Data, gen)
+	if err != nil {
+		return key, err
 	}
-	keyManager, err := NewTeamKeyManagerWithSecret(t.G(), item.Seed, gen)
+	keyManager, err := NewTeamKeyManagerWithSecret(item.Seed, gen)
 	if err != nil {
 		return key, err
 	}
@@ -199,7 +198,7 @@ func (t *Team) encryptionKeyAtGen(gen keybase1.PerTeamKeyGeneration) (key libkb.
 func (t *Team) IsMember(ctx context.Context, uv keybase1.UserVersion) bool {
 	role, err := t.MemberRole(ctx, uv)
 	if err != nil {
-		t.G().Log.Debug("error getting user role: %s", err)
+		t.G().Log.CDebugf(ctx, "error getting user role: %s", err)
 		return false
 	}
 	if role == keybase1.TeamRole_NONE {
@@ -374,18 +373,18 @@ func (t *Team) CurrentSeqno() keybase1.Seqno {
 }
 
 func (t *Team) AllApplicationKeys(ctx context.Context, application keybase1.TeamApplication) (res []keybase1.TeamApplicationKey, err error) {
-	return AllApplicationKeys(ctx, t.Data, application, t.chain().GetLatestGeneration())
+	return AllApplicationKeys(t.MetaContext(ctx), t.Data, application, t.chain().GetLatestGeneration())
 }
 
 // ApplicationKey returns the most recent key for an application.
 func (t *Team) ApplicationKey(ctx context.Context, application keybase1.TeamApplication) (keybase1.TeamApplicationKey, error) {
 	latestGen := t.chain().GetLatestGeneration()
-	return t.ApplicationKeyAtGeneration(application, latestGen)
+	return t.ApplicationKeyAtGeneration(ctx, application, latestGen)
 }
 
-func (t *Team) ApplicationKeyAtGeneration(
+func (t *Team) ApplicationKeyAtGeneration(ctx context.Context,
 	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
-	return ApplicationKeyAtGeneration(t.Data, application, generation)
+	return ApplicationKeyAtGeneration(t.MetaContext(ctx), t.Data, application, generation)
 }
 
 func (t *Team) Rotate(ctx context.Context) error {
@@ -805,7 +804,7 @@ func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.
 }
 
 func (t *Team) InviteEmailMember(ctx context.Context, email string, role keybase1.TeamRole) error {
-	t.G().Log.Debug("team %s invite email member %s", t.Name(), email)
+	t.G().Log.CDebugf(ctx, "team %s invite email member %s", t.Name(), email)
 
 	if role == keybase1.TeamRole_OWNER {
 		return errors.New("You cannot invite an owner to a team over email.")
@@ -820,7 +819,7 @@ func (t *Team) InviteEmailMember(ctx context.Context, email string, role keybase
 }
 
 func (t *Team) inviteKeybaseMember(ctx context.Context, uv keybase1.UserVersion, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername) (res keybase1.TeamAddMemberResult, err error) {
-	t.G().Log.Debug("team %s invite keybase member %s", t.Name(), uv)
+	t.G().Log.CDebugf(ctx, "team %s invite keybase member %s", t.Name(), uv)
 
 	invite := SCTeamInvite{
 		Type: "keybase",
@@ -904,7 +903,7 @@ func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybas
 	if err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}
-	t.G().Log.Debug("team %s invite sbs member %s/%s", t.Name(), typ, name)
+	t.G().Log.CDebugf(ctx, "team %s invite sbs member %s/%s", t.Name(), typ, name)
 
 	invite := SCTeamInvite{
 		Type: typ,
@@ -920,7 +919,7 @@ func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybas
 }
 
 func (t *Team) InviteSeitan(ctx context.Context, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (ikey SeitanIKey, err error) {
-	t.G().Log.Debug("team %s invite seitan %v", t.Name(), role)
+	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteSeitan: team: %v, role: %v", t.Name(), role), func() error { return err })()
 
 	ikey, err = GenerateIKey()
 	if err != nil {
@@ -956,7 +955,7 @@ func (t *Team) InviteSeitan(ctx context.Context, role keybase1.TeamRole, label k
 }
 
 func (t *Team) InviteSeitanV2(ctx context.Context, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (ikey SeitanIKeyV2, err error) {
-	t.G().Log.Debug("team %s invite seitan %v", t.Name(), role)
+	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteSeitanV2: team: %v, role: %v", t.Name(), role), func() error { return err })()
 
 	ikey, err = GenerateIKeyV2()
 	if err != nil {
@@ -1335,7 +1334,7 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet, skipKeyRot
 			return nil, nil, nil, nil, err
 		}
 		for _, subteam := range subteams {
-			subteamBoxes, err := subteam.keyManager.SharedSecretBoxes(ctx, deviceEncryptionKey, adminAndOwnerRecipients)
+			subteamBoxes, err := subteam.keyManager.SharedSecretBoxes(t.MetaContext(ctx), deviceEncryptionKey, adminAndOwnerRecipients)
 			if err != nil {
 				return nil, nil, nil, nil, err
 			}
@@ -1351,23 +1350,23 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet, skipKeyRot
 			// key is rotating, so recipients needs to be all the remaining members
 			// of the team after the removal (and including any new members in this
 			// change)
-			t.G().Log.Debug("recipientBoxes: Team change request contains removal, rotating team key")
+			t.G().Log.CDebugf(ctx, "recipientBoxes: Team change request contains removal, rotating team key")
 			boxes, perTeamKey, teamEKPayload, err := t.rotateBoxes(ctx, memSet)
 			return boxes, implicitAdminBoxes, perTeamKey, teamEKPayload, err
 		}
 
 		// If we don't rotate key, continue with the usual boxing.
-		t.G().Log.Debug("recipientBoxes: Skipping key rotation")
+		t.G().Log.CDebugf(ctx, "recipientBoxes: Skipping key rotation")
 	}
 
 	// don't need keys for existing members, so remove them from the set
 	memSet.removeExistingMembers(ctx, t)
-	t.G().Log.Debug("team change request: %d new members", len(memSet.recipients))
+	t.G().Log.CDebugf(ctx, "team change request: %d new members", len(memSet.recipients))
 	if len(memSet.recipients) == 0 {
 		return nil, implicitAdminBoxes, nil, nil, nil
 	}
 
-	boxes, err := t.keyManager.SharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)
+	boxes, err := t.keyManager.SharedSecretBoxes(t.MetaContext(ctx), deviceEncryptionKey, memSet.recipients)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -1408,7 +1407,7 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 
 	t.rotated = true
 
-	boxes, key, err := t.keyManager.RotateSharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)
+	boxes, key, err := t.keyManager.RotateSharedSecretBoxes(t.MetaContext(ctx), deviceEncryptionKey, memSet.recipients)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -1431,7 +1430,7 @@ func (t *Team) teamEKPayload(ctx context.Context, recipients []keybase1.UID) (*t
 		return nil, nil
 	}
 
-	sigKey, err := t.SigningKey()
+	sigKey, err := t.SigningKey(ctx)
 	if err != nil {
 		return nil, err
 	}
