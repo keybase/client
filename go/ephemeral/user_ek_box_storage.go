@@ -146,7 +146,11 @@ func (s *UserEKBoxStorage) fetchAndStore(ctx context.Context, generation keybase
 	}
 
 	if result.Result == nil {
-		return userEK, newEKMissingBoxErr(UserEKStr, generation)
+		err = newEKMissingBoxErr(UserEKStr, generation)
+		if perr := s.put(ctx, generation, keybase1.UserEkBoxed{}, err); perr != nil {
+			s.G().Log.CDebugf(ctx, "unable to store unboxing error %v", perr)
+		}
+		return userEK, err
 	}
 
 	// Although we verify the signature is valid, it's possible that this key
