@@ -42,4 +42,4 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
     showTeamOffer: isSearching && meta.participants.size > 1,
   }
 }
-export default connect(mapStateToProps)(HeaderArea)
+export default connect(mapStateToProps, () => ({}))(HeaderArea)

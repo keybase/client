@@ -6,7 +6,7 @@ import * as ConfigGen from '../config-gen'
 import * as GregorGen from '../../actions/gregor-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as Tabs from '../../constants/tabs'
-import * as RouteTree from '../../constants/route-tree'
+import * as RouteTreeGen from '../route-tree-gen'
 import * as mime from 'react-native-mime-types'
 import * as Saga from '../../util/saga'
 // this CANNOT be an import *, totally screws up the packager
@@ -284,7 +284,7 @@ const waitForStartupDetails = (state: TypedState) => {
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
   yield Saga.actionToAction(ConfigGen.loggedOut, clearRouteState)
-  yield Saga.actionToAction([RouteTree.switchTo, Chat2Gen.selectConversation], persistRouteState)
+  yield Saga.actionToAction([RouteTreeGen.switchTo, Chat2Gen.selectConversation], persistRouteState)
   yield Saga.actionToAction(ConfigGen.openAppSettings, openAppSettings)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupNetInfoWatcher)
 

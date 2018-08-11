@@ -1,0 +1,36 @@
+// @flow
+import type {TypedActions} from '../actions/typed-actions-gen'
+import type {TypedState} from '../constants/reducer'
+import type {ComponentType} from 'react'
+
+declare type MapStateToProps<A, B> = (state: TypedState, ownProps: A) => B
+
+declare type MapDispatchToProps<A, B> = (dispatch: (action: TypedActions) => void, ownProps: A) => B
+
+declare type MergeProps<A, B, C, D> = (stateProps: A, dispatchProps: B, ownProps: C) => D
+
+declare export default function connect<RMP, Com: ComponentType<RMP>, DP, SP: TypedState, RSP, RDP, MP, OP>(
+  mapStateToProps: MapStateToProps<OP, RSP>,
+  mapDispatchToProps: MapDispatchToProps<OP, RDP>,
+  mergeProps?: MergeProps<RSP, RDP, OP, RMP>
+): (component: Com) => ComponentType<OP>
+//
+// maybe reversed!
+// declare export default function connect<Com: ComponentType<OP>, DP, SP: TypedState, RSP, RDP, MP, OP, RMP>(
+// mapStateToProps: MapStateToProps<OP, RSP>,
+// mapDispatchToProps: MapDispatchToProps<OP, RDP>,
+// mergeProps?: MergeProps<RSP, RDP, OP, RMP>
+// ): (component: Com) => ComponentType<RMP>
+
+// ST: $Subtype<{[_: $Keys<Com>]: any}>
+// & $Shape<ST>
+
+// CP: $Diff<ElementConfig<Com>, RMP>
+// ): (component: ComponentType<OP>) => ComponentType<RMP> & $Shape<ST>
+// DP: Object,
+// SP: TypedState,
+// RSP: Object,
+// RDP: Object,
+// MP: Object,
+// OP: Object,
+// RMP: Object,

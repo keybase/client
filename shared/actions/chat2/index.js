@@ -9,7 +9,7 @@ import * as KBFSGen from '../kbfs-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as NotificationsGen from '../notifications-gen'
-import * as Route from '../route-tree'
+import * as RouteTreeGen from '../route-tree-gen'
 import * as Saga from '../../util/saga'
 import * as SearchConstants from '../../constants/search'
 import * as SearchGen from '../search-gen'
@@ -17,10 +17,9 @@ import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as UsersGen from '../users-gen'
 import {hasCanPerform, retentionPolicyToServiceRetentionPolicy, teamRoleByEnum} from '../../constants/teams'
-import type {NavigateActions} from '../../constants/types/route-tree'
 import engine from '../../engine'
 import logger from '../../logger'
-import type {TypedState, Dispatch} from '../../util/container'
+import type {TypedState} from '../../util/container'
 import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
@@ -153,7 +152,7 @@ const unboxRows = (
     return
   }
 
-  const onUnboxed = function({conv}: RPCChatTypes.ChatUiChatInboxConversationRpcParam, state: TypedState) {
+  const onUnboxed = function({conv}: RPCChatTypes.ChatUiChatInboxConversationRpcParam) {
     const inboxUIItem: RPCChatTypes.InboxUIItem = JSON.parse(conv)
     // We allow empty conversations now since we create them and they're empty now
     const allowEmpty = action.type === Chat2Gen.selectConversation
@@ -196,7 +195,7 @@ const unboxRows = (
     return Saga.all(actions)
   }
 
-  const onFailed = ({convID, error}: RPCChatTypes.ChatUiChatInboxFailedRpcParam, state: TypedState) => {
+  const onFailed = ({convID, error}: RPCChatTypes.ChatUiChatInboxFailedRpcParam) => {
     const conversationIDKey = Types.conversationIDToKey(convID)
     switch (error.typ) {
       case RPCChatTypes.localConversationErrorType.transient:
@@ -206,13 +205,16 @@ const unboxRows = (
         break
       default:
         logger.info(`onFailed: displaying error for convID: ${conversationIDKey} error: ${error.message}`)
-        return Saga.put(
-          Chat2Gen.createMetaReceivedError({
-            conversationIDKey: conversationIDKey,
-            error,
-            username: state.config.username || '',
-          })
-        )
+        return Saga.call(function*() {
+          const state: TypedState = yield Saga.select()
+          yield Saga.put(
+            Chat2Gen.createMetaReceivedError({
+              conversationIDKey: conversationIDKey,
+              error,
+              username: state.config.username || '',
+            })
+          )
+        })
     }
   }
 
@@ -970,7 +972,7 @@ const clearInboxFilter = (
 }
 
 // Show a desktop notification
-const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: TypedState) => {
+const desktopNotify = (state: TypedState, action: Chat2Gen.DesktopNotificationPayload) => {
   const {conversationIDKey, author, body} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
 
@@ -979,22 +981,27 @@ const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: Typed
     !meta.isMuted // ignore muted convos
   ) {
     logger.info('Sending Chat notification')
-    return Saga.put((dispatch: Dispatch) => {
-      let title = ['small', 'big'].includes(meta.teamType) ? meta.teamname : author
-      if (meta.teamType === 'big') {
-        title += `#${meta.channelname}`
-      }
-      NotifyPopup(title, {body, sound: state.config.notifySound}, -1, author, () => {
-        dispatch(
-          Chat2Gen.createSelectConversation({
-            conversationIDKey,
-            reason: 'desktopNotification',
-          })
-        )
-        dispatch(Route.switchTo([chatTab]))
-        dispatch(ConfigGen.createShowMain())
-      })
-    })
+    let title = ['small', 'big'].includes(meta.teamType) ? meta.teamname : author
+    if (meta.teamType === 'big') {
+      title += `#${meta.channelname}`
+    }
+
+    return new Promise((resolve, reject) =>
+      NotifyPopup(title, {body, sound: state.config.notifySound}, -1, author, resolve, reject)
+    )
+      .then(() =>
+        Saga.sequentially([
+          Saga.put(
+            Chat2Gen.createSelectConversation({
+              conversationIDKey,
+              reason: 'desktopNotification',
+            })
+          ),
+          Saga.put(RouteTreeGen.createSwitchTo({path: [chatTab]})),
+          Saga.put(ConfigGen.createShowMain()),
+        ])
+      )
+      .catch(_ => {})
   }
 }
 
@@ -1622,12 +1629,14 @@ function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayloa
     // Start up the fullscreen video view only on iOS, and only if we have the file downloaded
     if (isMobile && message.fileURLCached) {
       yield Saga.put(
-        Route.navigateAppend([
-          {
-            props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
-            selected: 'attachmentVideoFullscreen',
-          },
-        ])
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+              selected: 'attachmentVideoFullscreen',
+            },
+          ],
+        })
       )
       // If we are on desktop, or if we are on mobile and we haven't downloaded the video, let's do that
       // here
@@ -1643,12 +1652,14 @@ function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayloa
     // doesn't seem to work there.
   } else {
     yield Saga.put(
-      Route.navigateAppend([
-        {
-          props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
-          selected: 'attachmentFullscreen',
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+            selected: 'attachmentFullscreen',
+          },
+        ],
+      })
     )
   }
 }
@@ -1801,7 +1812,7 @@ const markThreadAsRead = (
     | Chat2Gen.MessagesAddPayload
     | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload
     | ConfigGen.ChangedFocusPayload
-    | NavigateActions,
+    | RouteTreeGen.Actions,
   state: TypedState
 ) => {
   const conversationIDKey = Constants.getSelectedConversation(state)
@@ -1892,7 +1903,11 @@ const navigateToInbox = (
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
   }
-  const actions = [Saga.put(Route.navigateTo([{props: {}, selected: chatTab}, {props: {}, selected: null}]))]
+  const actions = [
+    Saga.put(
+      RouteTreeGen.createNavigateTo({path: [{props: {}, selected: chatTab}, {props: {}, selected: null}]})
+    ),
+  ]
   if (action.payload.findNewConversation && !isMobile) {
     actions.push(_maybeAutoselectNewestConversation(action, state))
   }
@@ -1902,7 +1917,7 @@ const navigateToInbox = (
 // Unchecked version of Chat2Gen.createNavigateToThread() --
 // Saga.put() this if you want to select the pending conversation
 // (which doesn't count as valid).
-const navigateToThreadRoute = Route.navigateTo(Constants.threadRoute)
+const navigateToThreadRoute = RouteTreeGen.createNavigateTo({path: Constants.threadRoute})
 
 const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload, state: TypedState) => {
   if (!Constants.isValidConversationIDKey(state.chat2.selectedConversation)) {
@@ -2311,11 +2326,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeSave, mobileMessageAttachmentSave)
     // Unselect the conversation when we go to the inbox
     yield Saga.safeTakeEveryPure(
-      a => typeof a.type === 'string' && a.type.startsWith('routeTree:'),
+      a => typeof a.type === 'string' && a.type.startsWith('route-tree:'),
       mobileChangeSelection
     )
   } else {
-    yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)
+    yield Saga.actionToPromise(Chat2Gen.desktopNotification, desktopNotify)
   }
 
   // Sometimes change the selection
@@ -2403,7 +2418,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.selectConversation,
       Chat2Gen.markInitiallyLoadedThreadAsRead,
       ConfigGen.changedFocus,
-      a => typeof a.type === 'string' && a.type.startsWith('routeTree:'),
+      a => typeof a.type === 'string' && a.type.startsWith('route-tree:'),
     ],
     markThreadAsRead
   )

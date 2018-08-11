@@ -12,19 +12,18 @@ import * as SearchConstants from '../constants/search'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
-import * as RouteTypes from '../constants/types/route-tree'
-import * as RouteConstants from '../constants/route-tree'
+import * as RouteTreeGen from './route-tree-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as WaitingGen from './waiting-gen'
 import engine from '../engine'
 import {isMobile} from '../constants/platform'
-import {putActionIfOnPath, navigateAppend, navigateTo, navigateUp} from './route-tree'
 import {chatTab, teamsTab} from '../constants/tabs'
 import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
 
+import type {RetentionPolicy} from '../constants/types/retention-policy'
 import type {TypedState} from '../constants/reducer'
 
 const _createNewTeam = function*(action: TeamsGen.CreateNewTeamPayload) {
@@ -39,15 +38,30 @@ const _createNewTeam = function*(action: TeamsGen.CreateNewTeamPayload) {
 
     // Dismiss the create team dialog.
     yield Saga.put(
-      putActionIfOnPath(rootPath.concat(sourceSubPath), navigateTo(destSubPath, rootPath), rootPath)
+      RouteTreeGen.createPutActionIfOnPath({
+        expectedPath: rootPath.concat(sourceSubPath),
+        otherAction: RouteTreeGen.createNavigateTo({path: destSubPath, parentPath: rootPath}),
+        parentPath: rootPath,
+      })
     )
 
     // No error if we get here.
     yield Saga.all([
-      Saga.put(navigateTo(isMobile ? [chatTab] : [{props: {teamname}, selected: 'team'}], [teamsTab])),
+      Saga.put(
+        RouteTreeGen.createNavigateTo({
+          path: isMobile ? [chatTab] : [{props: {teamname}, selected: 'team'}],
+          parentPath: [teamsTab],
+        })
+      ),
       // Show the avatar editor on desktop.
       ...(!isMobile
-        ? [Saga.put(navigateAppend([{props: {createdTeam: true, teamname}, selected: 'editTeamAvatar'}]))]
+        ? [
+            Saga.put(
+              RouteTreeGen.createNavigateAppend({
+                path: [{props: {createdTeam: true, teamname}, selected: 'editTeamAvatar'}],
+              })
+            ),
+          ]
         : []),
     ])
   } catch (error) {
@@ -112,7 +126,11 @@ const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
     // Success, dismiss the create team dialog and clear out search results
     logger.info(`Successfully added ${ids.length} users to ${teamname}`)
     yield Saga.put(
-      putActionIfOnPath(rootPath.concat(sourceSubPath), navigateTo(destSubPath, rootPath), rootPath)
+      RouteTreeGen.createPutActionIfOnPath({
+        expectedPath: rootPath.concat(sourceSubPath),
+        otherAction: RouteTreeGen.createNavigateTo({path: destSubPath, parentPath: rootPath}),
+        parentPath: rootPath,
+      })
     )
     yield Saga.put(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
     yield Saga.put(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
@@ -139,7 +157,7 @@ const _getTeamRetentionPolicy = function*(action: TeamsGen.GetTeamRetentionPolic
     RPCChatTypes.localGetTeamRetentionLocalRpcPromise,
     {teamID, waitingKey: Constants.teamWaitingKey(teamname)}
   )
-  let retentionPolicy: Types.RetentionPolicy = Constants.makeRetentionPolicy()
+  let retentionPolicy: RetentionPolicy = Constants.makeRetentionPolicy()
   try {
     retentionPolicy = Constants.serviceRetentionPolicyToRetentionPolicy(policy)
     if (retentionPolicy.type === 'inherit') {
@@ -279,7 +297,7 @@ function _uploadAvatar(action: TeamsGen.UploadTeamAvatarPayload) {
       sendChatNotification,
       teamname,
     }),
-    Saga.put(navigateUp()),
+    Saga.put(RouteTreeGen.createNavigateUp()),
   ])
 }
 
@@ -886,7 +904,11 @@ function* _createChannel(action: TeamsGen.CreateChannelPayload) {
 
     // Dismiss the create channel dialog.
     yield Saga.put(
-      putActionIfOnPath(rootPath.concat(sourceSubPath), navigateTo(destSubPath, rootPath), rootPath)
+      RouteTreeGen.createPutActionIfOnPath({
+        expectedPath: rootPath.concat(sourceSubPath),
+        otherAction: RouteTreeGen.createNavigateTo({path: destSubPath, parentPath: rootPath}),
+        parentPath: rootPath,
+      })
     )
 
     // Select the new channel, and switch to the chat tab.
@@ -1020,7 +1042,7 @@ const setupEngineListeners = () => {
       const {teamID} = args
       const selectedTeamNames = Constants.getSelectedTeamNames(state)
       if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
-        return [navigateTo([], [teamsTab]), ...getLoadCalls()]
+        return [RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}), ...getLoadCalls()]
       }
       return getLoadCalls()
     }
@@ -1032,7 +1054,7 @@ const setupEngineListeners = () => {
       const {teamID} = args
       const selectedTeamNames = Constants.getSelectedTeamNames(state)
       if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
-        return [navigateTo([], [teamsTab]), ...getLoadCalls()]
+        return [RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}), ...getLoadCalls()]
       }
       return getLoadCalls()
     }
@@ -1226,7 +1248,7 @@ function _badgeAppForTeams(action: TeamsGen.BadgeAppForTeamsPayload, state: Type
 }
 
 let _wasOnTeamsTab = false
-const _onTabChange = (action: RouteTypes.SwitchTo) => {
+const _onTabChange = (action: RouteTreeGen.SwitchToPayload) => {
   const list = I.List(action.payload.path)
   const root = list.first()
 
@@ -1283,7 +1305,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.updateChannelName, _updateChannelname, last)
   yield Saga.safeTakeEveryPure(TeamsGen.deleteChannelConfirmed, _deleteChannelConfirmed)
   yield Saga.safeTakeEveryPure(TeamsGen.badgeAppForTeams, _badgeAppForTeams)
-  yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange, null, logError)
+  yield Saga.safeTakeEveryPure(RouteTreeGen.switchTo, _onTabChange, null, logError)
   yield Saga.safeTakeEvery(TeamsGen.inviteToTeamByPhone, _inviteToTeamByPhone)
   yield Saga.safeTakeEveryPure(TeamsGen.setPublicity, _setPublicity, _afterSaveCalls)
   yield Saga.safeTakeEveryPure(

@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
-import type {IconType} from '../../common-adapters'
+import type {IconType} from '../../common-adapters/icon.constants'
 
 export type ItemTypeEnum = RPCTypes.HomeScreenItemType
 export type ItemType = $Keys<typeof RPCTypes.homeHomeScreenItemType>

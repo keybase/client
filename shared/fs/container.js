@@ -179,6 +179,6 @@ const mergeProps = (stateProps, dispatchProps, {path, routePath}) => {
 export default compose(
   SecurityPrefsPromptingHoc,
   FilesLoadingHoc,
-  connect(mapStateToProps, undefined, mergeProps),
+  connect(mapStateToProps, () => ({}), mergeProps),
   setDisplayName('Files')
 )(Files)

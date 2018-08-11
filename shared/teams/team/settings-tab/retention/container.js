@@ -17,14 +17,12 @@ import {
   hasCanPerform,
 } from '../../../../constants/teams'
 import {getConversationRetentionPolicy} from '../../../../constants/chat2/meta'
-import {type RetentionPolicy} from '../../../../constants/types/teams'
+import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import {navigateTo, pathSelector} from '../../../../actions/route-tree'
 import {type Path} from '../../../../route-tree'
 import type {ConversationIDKey} from '../../../../constants/types/chat2'
 import type {StylesCrossPlatform} from '../../../../styles'
-import RetentionPicker from './'
-
-export type RetentionEntityType = 'adhoc' | 'channel' | 'small team' | 'big team'
+import RetentionPicker, {type RetentionEntityType} from './'
 
 export type OwnProps = {
   conversationIDKey?: ConversationIDKey,

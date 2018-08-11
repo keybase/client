@@ -1,5 +1,5 @@
 // @flow
-import type {State as Billing} from '../constants/types/plan-billing'
+// import type {State as Billing} from '../constants/types/plan-billing'
 import type {State as Chat2} from '../constants/types/chat2'
 import type {State as Config} from '../constants/types/config'
 import type {State as Dev} from '../constants/types/dev'
@@ -39,7 +39,7 @@ export type TypedState = $ReadOnly<{|
   notifications: Notification,
   people: People,
   pinentry: Pinentry,
-  planBilling: Billing,
+  // planBilling: Billing,
   profile: Profile,
   push: Push,
   routeTree: RouteTree,

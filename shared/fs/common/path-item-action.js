@@ -8,7 +8,7 @@ import {Box, ClickableBox, Icon, Text, FloatingMenu, type OverlayParentProps} fr
 import PathItemIcon from '../common/path-item-icon'
 import PathItemInfo from '../common/path-item-info'
 import StaticBreadcrumb from '../common/static-breadcrumb'
-import {memoize} from 'lodash'
+import {memoize} from 'lodash-es'
 
 type Props = {
   name: string,

@@ -4,7 +4,7 @@
     "import * as Types from '../constants/types/chat2'",
     "import * as TeamsTypes from '../constants/types/teams'",
     "import HiddenString from '../util/hidden-string'",
-    "import type {RetentionPolicy} from '../constants/types/teams'"
+    "import type {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
   "actions": {
     // Select a conversation (or leave nothing selected)

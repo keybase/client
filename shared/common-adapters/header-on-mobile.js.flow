@@ -1,8 +1,10 @@
 // @flow
 import * as React from 'react'
 
-type Props = {}
+type HeaderProps = {|
+  title?: ?string,
+|}
 
-declare export default function HeaderOnMobile<P: {}>(
+declare export default function HeaderOnMobile<P>(
   WrappedComponent: React.ComponentType<P>
-): React.ComponentType<P & Props>
+): React.ComponentType<$Exact<{...P, ...HeaderProps}>>

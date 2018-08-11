@@ -14,16 +14,13 @@ type OwnProps = RouteProps<
   {}
 >
 
-const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
-  const teamname = routeProps.get('teamname')
-  return {
-    teamname,
-  }
-}
+const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
+  teamname: routeProps.get('teamname'),
+})
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}: OwnProps) => ({
-  onCancel: () => dispatch(navigateUp()),
   onBack: isMobile ? null : () => dispatch(navigateUp()),
+  onCancel: () => dispatch(navigateUp()),
   onDeleteHistory: () => {
     const conversationIDKey = routeProps.get('conversationIDKey')
     dispatch(navigateUp())
@@ -32,8 +29,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}: OwnPro
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
-  ...stateProps,
-  ...dispatchProps,
+  onBack: dispatchProps.onBack,
+  onCancel: dispatchProps.onCancel,
+  onDeleteHistory: dispatchProps.onDeleteHistory,
+  teamname: stateProps.teamname,
 })
 
 export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(DeleteHistoryWarning)

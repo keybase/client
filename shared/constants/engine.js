@@ -5,7 +5,6 @@ import logger from '../logger'
 import * as Saga from '../util/saga'
 import {getEngine, EngineChannel} from '../engine'
 import {mapValues, forEach} from 'lodash-es'
-import * as FluxTypes from './types/flux'
 
 export type Buffer<T> = {
   isEmpty: () => boolean,
@@ -32,9 +31,7 @@ export type SagaMap = {
   [key: string]: Generator<*, *, *>,
 }
 
-type RpcRunResult =
-  | FluxTypes.NoErrorTypedAction<'@@engineRPCCall:finished', {error: ?any, params: ?any}>
-  | FluxTypes.NoErrorTypedAction<'@@engineRPCCall:bailedEarly', void>
+type RpcRunResult = any
 
 // If a sub saga returns bail early, then the rpc will bail early
 const BailedEarly = {type: '@@engineRPCCall:bailedEarly', payload: undefined}

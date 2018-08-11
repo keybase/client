@@ -27,7 +27,7 @@ const _RootLogin = ({showLoading, showRelogin, navigateAppend}) => {
   return <JoinOrLogin navigateAppend={navigateAppend} />
 }
 
-const RootLogin = connect(mapStateToProps)(_RootLogin)
+const RootLogin = connect(mapStateToProps, () => ({}))(_RootLogin)
 
 const addTags = component => ({component, tags: makeLeafTags({underStatusBar: true})})
 

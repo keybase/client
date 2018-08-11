@@ -51,6 +51,6 @@ const Wrapper = (props: WrapperProps) =>
   )
 
 export default Container.compose(
-  Container.connect(mapStateToProps),
+  Container.connect(mapStateToProps, () => ({})),
   Container.setDisplayName('ExplodingMeta')
 )(Wrapper)

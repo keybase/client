@@ -1,9 +1,10 @@
 // @flow
-import {action, createPropProvider} from './storybook'
 import * as _Avatar from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
 import * as _WaitingButton from '../common-adapters/waiting-button'
 import * as _TeamDropdownMenu from '../chat/conversation/info-panel/menu/container'
+import {action} from '@storybook/addon-actions'
+import {createPropProvider} from './storybook.shared'
 
 /*
  * Some common prop factory creators.

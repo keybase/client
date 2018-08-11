@@ -4,8 +4,8 @@ import * as RS from 'redux-saga'
 import * as Effects from 'redux-saga/effects'
 import * as ConfigGen from '../actions/config-gen'
 import {convertToError} from '../util/errors'
-import type {Action} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
+import type {TypedActions} from '../actions/typed-actions-gen'
 
 export type SagaGenerator<Yield, Actions> = Generator<Yield, void, Actions>
 
@@ -13,7 +13,7 @@ function safeTakeEvery(
   pattern: RS.Pattern,
   worker: Function
 ): RS.ForkEffect<null, Function, $ReadOnlyArray<any>> {
-  const safeTakeEveryWorker = function* safeTakeEveryWorker(action: Action): RS.Saga<void> {
+  const safeTakeEveryWorker = function* safeTakeEveryWorker(action: TypedActions): RS.Saga<void> {
     try {
       yield Effects.call(worker, action)
     } catch (error) {
@@ -45,7 +45,7 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
 // Helper that expects a function which returns a promise that resolves to a put
 function actionToPromise<A, RA>(
   pattern: RS.Pattern,
-  f: (state: TypedState, action: A) => null | false | Promise<RA>
+  f: (state: TypedState, action: A) => null | false | void | Promise<RA>
 ) {
   return safeTakeEvery(pattern, function*(action: A) {
     const state: TypedState = yield Effects.select()

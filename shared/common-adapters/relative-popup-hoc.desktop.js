@@ -295,7 +295,7 @@ const RelativePopupHoc: RelativePopupHocType<any> = PopupComponent => {
   )
 
   const C: React.ComponentType<Props<any>> = connect(
-    undefined,
+    () => ({}),
     (dispatch: Dispatch, {navigateUp, routeProps}) => ({
       onClosePopup: () => {
         dispatch(navigateUp())

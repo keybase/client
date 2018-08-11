@@ -8,7 +8,7 @@ import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
 import * as TeamsTypes from '../constants/types/teams'
 import HiddenString from '../util/hidden-string'
-import type {RetentionPolicy} from '../constants/types/teams'
+import type {RetentionPolicy} from '../constants/types/retention-policy'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer

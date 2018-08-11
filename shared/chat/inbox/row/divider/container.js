@@ -23,4 +23,4 @@ const dividerSelector = createSelector([getBadges, getOwnProps], (badgeMap, ownP
   }
 })
 
-export default connect(dividerSelector)(Divider)
+export default connect(dividerSelector, () => ({}))(Divider)

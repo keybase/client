@@ -13,4 +13,4 @@ const dividerSelector = createSelector([getBadges, getMetaMap], (badgeMap, metaM
   return {badgeCount}
 })
 
-export default connect(dividerSelector)(BigTeamsDivider)
+export default connect(dividerSelector, () => ({}))(BigTeamsDivider)

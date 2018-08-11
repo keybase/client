@@ -84,4 +84,4 @@ deprecated-type=error
 sketchy-number-and=off
 
 [version]
-^0.77.0
+^0.78.0

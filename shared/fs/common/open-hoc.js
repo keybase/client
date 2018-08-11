@@ -13,4 +13,4 @@ const mapDispatchToProps = (dispatch: Dispatch, {path, routePath}: OwnProps) => 
   onOpen: () => dispatch(FsGen.createOpenPathItem({path, routePath})),
 })
 
-export default compose(connect(undefined, mapDispatchToProps), setDisplayName('ConnectedOpenHOC'))
+export default compose(connect(() => ({}), mapDispatchToProps), setDisplayName('ConnectedOpenHOC'))

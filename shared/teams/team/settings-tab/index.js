@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
+import type {RetentionPolicy} from '../../../constants/types/retention-policy'
 import {retentionPolicies} from '../../../constants/teams'
 import {Box, Button, Checkbox, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
@@ -17,7 +18,7 @@ type Props = {|
   publicityTeam: boolean,
   openTeam: boolean,
   openTeamRole: Types.TeamRoleType,
-  savePublicity: (Types.PublicitySettings, boolean, Types.RetentionPolicy) => void,
+  savePublicity: (Types.PublicitySettings, boolean, RetentionPolicy) => void,
   setOpenTeamRole: (
     newOpenTeamRole: Types.TeamRoleType,
     setNewOpenTeamRole: (Types.TeamRoleType) => void
@@ -34,7 +35,7 @@ type NewSettings = {|
   newPublicityTeam: boolean,
   newOpenTeam: boolean,
   newOpenTeamRole: Types.TeamRoleType,
-  newRetentionPolicy: Types.RetentionPolicy,
+  newRetentionPolicy: RetentionPolicy,
 |}
 
 // new settings
@@ -253,7 +254,7 @@ export class Settings extends React.Component<Props, State> {
   }
 
   _onSelectRetentionPolicy = (
-    newRetentionPolicy: Types.RetentionPolicy,
+    newRetentionPolicy: RetentionPolicy,
     retentionPolicyChanged: boolean,
     retentionPolicyDecreased: boolean
   ) => {
