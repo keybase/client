@@ -115,7 +115,7 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
 const makeCurrency: I.RecordFactory<Types._LocalCurrency> = I.Record({
   description: '',
   code: '',
-  symbol: '' ,
+  symbol: '',
   name: '',
 })
 
@@ -174,7 +174,7 @@ const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 
 const getDisplayCurrencies = (state: TypedState) => state.wallets.currencies
 
-const getDisplayCurrency =  (state: TypedState, accountID?: Types.AccountID) =>
+const getDisplayCurrency = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.currencyMap.get(accountID || getSelectedAccount(state), makeCurrency())
 
 const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
@@ -188,7 +188,6 @@ const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
 
 const getAssets = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.assetsMap.get(accountID || getSelectedAccount(state), I.List())
-
 
 const linkExistingWaitingKey = 'wallets:linkExisting'
 

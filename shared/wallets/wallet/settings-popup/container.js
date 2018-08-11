@@ -5,15 +5,9 @@ import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 
-
-type OwnProps = {
-  accountID: Types.AccountID,
-}
-
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const accountID = routeProps.get('accountID')
   const account = Constants.getAccount(state, accountID)
-  const asset = Constants.getAssets(state, accountID).get(0)
   const name = account.name || accountID || account.accountID
   const me = state.config.username || ''
   const user = account.isDefault ? me : ''

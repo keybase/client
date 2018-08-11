@@ -65,7 +65,7 @@ const loadDisplayCurrencies = (state: TypedState, action: WalletsGen.LoadDisplay
   )
 
 const loadDisplayCurrency = (state: TypedState, action: WalletsGen.LoadDisplayCurrencyPayload) =>
-  RPCTypes.localGetDisplayCurrencyLocalRpcPromise({accountID: action.payload.accountID
+  RPCTypes.localGetDisplayCurrencyLocalRpcPromise({accountID: action.payload.accountID,
   }).then(res =>
     WalletsGen.createDisplayCurrencyReceived({
       accountID: action.payload.accountID,
@@ -76,7 +76,7 @@ const loadDisplayCurrency = (state: TypedState, action: WalletsGen.LoadDisplayCu
 const changeDisplayCurrency = (state: TypedState, action: WalletsGen.ChangeDisplayCurrencyPayload) =>
   RPCTypes.localChangeDisplayCurrencyLocalRpcPromise({
     accountID: action.payload.accountID,
-    currency: action.payload.code,  // called currency, though it is a code
+    currency: action.payload.code, // called currency, though it is a code
   }).then(res =>
     WalletsGen.createLoadDisplayCurrency({accountID: action.payload.accountID})
   )

@@ -31,35 +31,35 @@ const commonActions = {
   onShowSecretKey: Sb.action('onShowSecretKey'),
 }
 
-const testCurrencies =I.List([
+const testCurrencies = I.List([
   {
     description: 'USD ($)',
     code: 'USD',
-    symbol: '$' ,
+    symbol: '$',
     name: 'US Dollar',
   },
   {
     description: 'XLM',
     code: 'XLLM',
-    symbol: 'XLM' ,
+    symbol: 'XLM',
     name: 'Lumens',
   },
   {
     description: 'CAD ($)',
     code: 'CAD',
-    symbol: '$' ,
+    symbol: '$',
     name: 'Canadian Dollar',
   },
   {
     description: 'EUR (€)',
     code: 'EUR',
-    symbol: '€' ,
+    symbol: '€',
     name: 'Euro',
   },
   {
     description: 'GBP (£)',
     code: 'GPB',
-    symbol: '£' ,
+    symbol: '£',
     name: 'British Pount',
   },
 ]).map(c => Constants.currenciesResultToCurrencies(c))
@@ -75,7 +75,7 @@ const defaultSettingsProps = {
   onSetDefault: Sb.action('setDefault'),
   onEditName: Sb.action('onEditName'),
   onCurrencyChange: Sb.action('onCurrencyChange'),
-  refresh: () => {}
+  refresh: () => {},
 }
 
 const secondarySettingsProps = {
@@ -89,7 +89,7 @@ const secondarySettingsProps = {
   onSetDefault: Sb.action('setDefault'),
   onEditName: Sb.action('onEditName'),
   onCurrencyChange: Sb.action('onCurrencyChange'),
-  refresh: () => {}
+  refresh: () => {},
 }
 
 const load = () => {
