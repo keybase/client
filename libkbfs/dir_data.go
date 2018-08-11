@@ -87,3 +87,24 @@ func (dd *dirData) getChildren(ctx context.Context) (
 	}
 	return children, nil
 }
+
+func (dd *dirData) lookup(ctx context.Context, name string) (DirEntry, error) {
+	topBlock, _, err := dd.getter(
+		ctx, dd.kmd, dd.rootBlockPointer(), dd.dir, blockRead)
+	if err != nil {
+		return DirEntry{}, err
+	}
+
+	off := StringOffset(name)
+	_, _, block, _, _, _, err := dd.tree.getBlockAtOffset(
+		ctx, topBlock, &off, blockRead)
+	if err != nil {
+		return DirEntry{}, err
+	}
+
+	de, ok := block.(*DirBlock).Children[name]
+	if !ok {
+		return DirEntry{}, NoSuchNameError{name}
+	}
+	return de, nil
+}

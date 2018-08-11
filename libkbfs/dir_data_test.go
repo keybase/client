@@ -126,3 +126,60 @@ func TestDirDataGetChildren(t *testing.T) {
 	require.Equal(t, uint64(4), children["z2"].Size)
 
 }
+
+func TestDirDataLookup(t *testing.T) {
+	dd, cleanBcache, _ := setupDirDataTest(t)
+	ctx := context.Background()
+	topBlock := NewDirBlock().(*DirBlock)
+	cleanBcache.Put(
+		dd.rootBlockPointer(), dd.dir.Tlf, topBlock, TransientEntry)
+
+	t.Log("No entries, direct block")
+	_, err := dd.lookup(ctx, "a")
+	require.Equal(t, NoSuchNameError{"a"}, err)
+
+	t.Log("Single entry, direct block")
+	addFakeDirDataEntry(topBlock, "a", 1)
+	checkLookup := func(name string, size uint64) {
+		de, err := dd.lookup(ctx, name)
+		require.NoError(t, err)
+		require.Equal(t, size, de.Size)
+	}
+	checkLookup("a", 1)
+	_, err = dd.lookup(ctx, "b")
+	require.Equal(t, NoSuchNameError{"b"}, err)
+
+	t.Log("Indirect blocks")
+	addFakeDirDataEntry(topBlock, "b", 2)
+	dd.dir.path[len(dd.dir.path)-1].DirectType = IndirectBlock
+	newTopBlock := NewDirBlock().(*DirBlock)
+	newTopBlock.IsInd = true
+	ptr1 := BlockPointer{
+		ID:         kbfsblock.FakeID(43),
+		DirectType: DirectBlock,
+	}
+	newTopBlock.IPtrs = append(newTopBlock.IPtrs, IndirectDirPtr{
+		BlockInfo: BlockInfo{ptr1, 0},
+		Off:       "",
+	})
+	ptr2 := BlockPointer{
+		ID:         kbfsblock.FakeID(44),
+		DirectType: DirectBlock,
+	}
+	newTopBlock.IPtrs = append(newTopBlock.IPtrs, IndirectDirPtr{
+		BlockInfo: BlockInfo{ptr2, 0},
+		Off:       "m",
+	})
+	block2 := NewDirBlock().(*DirBlock)
+	addFakeDirDataEntry(block2, "z1", 3)
+	addFakeDirDataEntry(block2, "z2", 4)
+	cleanBcache.Put(
+		dd.rootBlockPointer(), dd.dir.Tlf, newTopBlock, TransientEntry)
+	cleanBcache.Put(ptr1, dd.dir.Tlf, topBlock, TransientEntry)
+	cleanBcache.Put(ptr2, dd.dir.Tlf, block2, TransientEntry)
+
+	checkLookup("a", 1)
+	checkLookup("b", 2)
+	checkLookup("z1", 3)
+	checkLookup("z2", 4)
+}
