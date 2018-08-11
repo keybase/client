@@ -38,24 +38,34 @@ func (i Int64Offset) Less(other Offset) bool {
 // StringOffset represents the offset of a block within a directory.
 type StringOffset string
 
-var _ Offset = StringOffset("")
+var _ Offset = (*StringOffset)(nil)
 
 // Equals implements the Offset interface for StringOffset.
-func (s StringOffset) Equals(other Offset) bool {
-	otherS, ok := other.(StringOffset)
+func (s *StringOffset) Equals(other Offset) bool {
+	if s == nil {
+		return other == nil
+	} else if other == nil {
+		return false
+	}
+	otherS, ok := other.(*StringOffset)
 	if !ok {
 		panic(fmt.Sprintf("Can't compare against non-string offset: %T", other))
 	}
-	return string(s) == string(otherS)
+	return string(*s) == string(*otherS)
 }
 
 // Less implements the Offset interface for StringOffset.
-func (s StringOffset) Less(other Offset) bool {
-	otherS, ok := other.(StringOffset)
+func (s *StringOffset) Less(other Offset) bool {
+	if s == nil {
+		return other != nil
+	} else if other == nil {
+		return false
+	}
+	otherS, ok := other.(*StringOffset)
 	if !ok {
 		panic(fmt.Sprintf("Can't compare against non-string offset: %T", other))
 	}
-	return string(s) < string(otherS)
+	return string(*s) < string(*otherS)
 }
 
 // IndirectDirPtr pairs an indirect dir block with the start of that
@@ -241,7 +251,8 @@ func (db *DirBlock) DeepCopy() *DirBlock {
 
 // FirstOffset implements the Block interface for DirBlock.
 func (db *DirBlock) FirstOffset() Offset {
-	return StringOffset("")
+	firstString := StringOffset("")
+	return &firstString
 }
 
 // NumIndirectPtrs implements the Block interface for DirBlock.
@@ -258,7 +269,8 @@ func (db *DirBlock) IndirectPtr(i int) (BlockInfo, Offset) {
 		panic("IndirectPtr called on a direct directory block")
 	}
 	iptr := db.IPtrs[i]
-	return iptr.BlockInfo, iptr.Off
+	off := StringOffset(iptr.Off)
+	return iptr.BlockInfo, &off
 }
 
 // OffsetExceedsData implements the Block interface for DirBlock.

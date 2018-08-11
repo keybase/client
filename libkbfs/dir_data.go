@@ -54,3 +54,36 @@ func (dd *dirData) blockGetter(
 	dir path, rtype blockReqType) (block Block, wasDirty bool, err error) {
 	return dd.getter(ctx, kmd, ptr, dir, rtype)
 }
+
+func (dd *dirData) getChildren(ctx context.Context) (
+	children map[string]EntryInfo, err error) {
+	topBlock, _, err := dd.getter(
+		ctx, dd.kmd, dd.rootBlockPointer(), dd.dir, blockRead)
+	if err != nil {
+		return nil, err
+	}
+
+	_, blocks, _, err := dd.tree.getBlocksForOffsetRange(
+		ctx, dd.rootBlockPointer(), topBlock, topBlock.FirstOffset(), nil,
+		false, true)
+	if err != nil {
+		return nil, err
+	}
+
+	numEntries := 0
+	for _, b := range blocks {
+		numEntries += len(b.(*DirBlock).Children)
+	}
+	children = make(map[string]EntryInfo, numEntries)
+	for _, b := range blocks {
+		for k, de := range b.(*DirBlock).Children {
+			// TODO(KBFS-3302): move `hidden` into this file once
+			// `folderBlockOps` uses this function.
+			if hiddenEntries[k] {
+				continue
+			}
+			children[k] = de.EntryInfo
+		}
+	}
+	return children, nil
+}
