@@ -66,6 +66,11 @@ type Store interface {
 	UploadAsset(ctx context.Context, task *UploadTask, encryptedOut io.Writer) (chat1.Asset, error)
 	DownloadAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset, w io.Writer,
 		signer s3.Signer, progress types.ProgressReporter) error
+	GetAssetReader(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
+		signer s3.Signer) (io.ReadCloser, error)
+	StreamAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset, signer s3.Signer) (io.ReadSeeker, error)
+	DecryptAsset(ctx context.Context, w io.Writer, body io.Reader, asset chat1.Asset,
+		progress types.ProgressReporter) error
 	DeleteAsset(ctx context.Context, params chat1.S3Params, signer s3.Signer, asset chat1.Asset) error
 	DeleteAssets(ctx context.Context, params chat1.S3Params, signer s3.Signer, assets []chat1.Asset) error
 }
@@ -212,11 +217,14 @@ func (a *S3Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEn
 	return asset, nil
 }
 
+func (a *S3Store) getAssetBucket(asset chat1.Asset, params chat1.S3Params, signer s3.Signer) s3.BucketInt {
+	region := a.regionFromAsset(asset)
+	return a.s3Conn(signer, region, params.AccessKey).Bucket(asset.Bucket)
+}
+
 func (a *S3Store) GetAssetReader(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
 	signer s3.Signer) (io.ReadCloser, error) {
-	region := a.regionFromAsset(asset)
-	b := a.s3Conn(signer, region, params.AccessKey).Bucket(asset.Bucket)
-
+	b := a.getAssetBucket(asset, params, signer)
 	return b.GetReader(ctx, asset.Path)
 }
 
@@ -274,6 +282,31 @@ func (a *S3Store) DownloadAsset(ctx context.Context, params chat1.S3Params, asse
 	}
 	a.Debug(ctx, "DownloadAsset: downloading %s from s3", asset.Path)
 	return a.DecryptAsset(ctx, w, body, asset, progress)
+}
+
+func (a *S3Store) StreamAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
+	signer s3.Signer) (io.ReadSeeker, error) {
+	if asset.Key == nil || asset.VerifyKey == nil || asset.EncHash == nil {
+		return nil, fmt.Errorf("unencrypted attachments not supported: asset: %#v", asset)
+	}
+	b := a.getAssetBucket(asset, params, signer)
+	var nonce [signencrypt.NonceSize]byte
+	if asset.Nonce != nil {
+		copy(nonce[:], asset.Nonce)
+	}
+	return newRemoteAssetReader(ctx, b, asset, func(ctx context.Context, w io.Writer, r io.Reader) error {
+		dec := NewSignDecrypter()
+		var decBody io.Reader
+		if asset.Nonce != nil {
+			decBody = dec.DecryptWithNonce(r, &nonce, asset.Key, asset.VerifyKey)
+		} else {
+			decBody = dec.Decrypt(r, asset.Key, asset.VerifyKey)
+		}
+		if _, err := io.Copy(w, decBody); err != nil {
+			return err
+		}
+		return nil
+	}), nil
 }
 
 func (a *S3Store) startUpload(ctx context.Context, task *UploadTask, encrypter *SignEncrypter) {

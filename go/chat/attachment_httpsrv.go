@@ -201,26 +201,6 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 	return false
 }
 
-type fakeSeeker struct {
-	io.Reader
-	size int64
-	log  utils.DebugLabeler
-}
-
-func (s fakeSeeker) Read(b []byte) (int, error) {
-	n, err := s.Reader.Read(b)
-	s.log.Debug(context.TODO(), "fakeSeeker: read: n: %d err: %s", n, err)
-	return n, err
-}
-
-func (s fakeSeeker) Seek(offset int64, whence int) (int64, error) {
-	s.log.Debug(context.TODO(), "fakeSeeker: seek: offset: %d whence: %v", offset, whence)
-	if offset == 0 && whence == io.SeekEnd {
-		return s.size, nil
-	}
-	return 0, nil
-}
-
 func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
@@ -258,18 +238,12 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 			// if we served the host page, just bail out
 			return
 		}
-		pipeReader, pipeWriter := io.Pipe()
-		go func() {
-			if err := r.fetcher.FetchAttachment(ctx, pipeWriter, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
-				r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
-				return
-			}
-		}()
-		http.ServeContent(w, req, asset.Filename, time.Time{}, fakeSeeker{
-			Reader: pipeReader,
-			log:    r.DebugLabeler,
-			size:   asset.Size,
-		})
+		rs, err := r.fetcher.StreamAttachment(ctx, pair.ConvID, asset, r.ri, r)
+		if err != nil {
+			r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
+			return
+		}
+		http.ServeContent(w, req, asset.Filename, time.Time{}, rs)
 	} else {
 		if err := r.fetcher.FetchAttachment(ctx, w, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
 			r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
@@ -301,6 +275,17 @@ func NewRemoteAttachmentFetcher(g *globals.Context, store attachments.Store) *Re
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "RemoteAttachmentFetcher", false),
 		store:        store,
 	}
+}
+
+func (r *RemoteAttachmentFetcher) StreamAttachment(ctx context.Context, convID chat1.ConversationID,
+	asset chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (res io.ReadSeeker, err error) {
+	defer r.Trace(ctx, func() error { return err }, "StreamAttachment")()
+	// Grab S3 params for the conversation
+	s3params, err := ri().GetS3Params(ctx, convID)
+	if err != nil {
+		return nil, err
+	}
+	return r.store.StreamAsset(ctx, s3params, asset, signer)
 }
 
 func (r *RemoteAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer,
@@ -349,19 +334,11 @@ func (r *RemoteAttachmentFetcher) IsAssetLocal(ctx context.Context, asset chat1.
 	return false, nil
 }
 
-type attachmentRemoteStore interface {
-	DecryptAsset(ctx context.Context, w io.Writer, body io.Reader, asset chat1.Asset,
-		progress types.ProgressReporter) error
-	GetAssetReader(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
-		signer s3.Signer) (io.ReadCloser, error)
-	DeleteAssets(ctx context.Context, params chat1.S3Params, signer s3.Signer, assets []chat1.Asset) error
-}
-
 type CachingAttachmentFetcher struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	store   attachmentRemoteStore
+	store   attachments.Store
 	diskLRU *disklru.DiskLRU
 
 	// testing
@@ -370,7 +347,7 @@ type CachingAttachmentFetcher struct {
 
 var _ types.AttachmentFetcher = (*CachingAttachmentFetcher)(nil)
 
-func NewCachingAttachmentFetcher(g *globals.Context, store attachmentRemoteStore, size int) *CachingAttachmentFetcher {
+func NewCachingAttachmentFetcher(g *globals.Context, store attachments.Store, size int) *CachingAttachmentFetcher {
 	return &CachingAttachmentFetcher{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "CachingAttachmentFetcher", false),
@@ -423,6 +400,12 @@ func (c *CachingAttachmentFetcher) localAssetPath(ctx context.Context, asset cha
 		path = entry.Value.(string)
 	}
 	return found, path, nil
+}
+
+func (c *CachingAttachmentFetcher) StreamAttachment(ctx context.Context, convID chat1.ConversationID,
+	asset chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (res io.ReadSeeker, err error) {
+	defer c.Trace(ctx, func() error { return err }, "StreamAttachment")()
+	return NewRemoteAttachmentFetcher(c.G(), c.store).StreamAttachment(ctx, convID, asset, ri, signer)
 }
 
 func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer,

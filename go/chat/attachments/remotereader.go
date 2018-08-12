@@ -10,7 +10,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-type decryptorFn func(io.Writer, io.Reader) error
+type decryptorFn func(context.Context, io.Writer, io.Reader) error
 
 type remoteAssetReader struct {
 	bucket    s3.BucketInt
@@ -62,7 +62,7 @@ func (r *remoteAssetReader) Read(res []byte) (n int, err error) {
 		return n, err
 	}
 	plainTextBuf := bytes.NewBuffer(nil)
-	if err := r.decryptor(plainTextBuf, bytes.NewReader(cipherText)); err != nil {
+	if err := r.decryptor(r.ctx, plainTextBuf, bytes.NewReader(cipherText)); err != nil {
 		return n, err
 	}
 	plainText := r.extractPlaintext(plainTextBuf.Bytes(), int64(num), chunks)
