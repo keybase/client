@@ -398,6 +398,10 @@ func NewDebugLabeler(log logger.Logger, label string, verbose bool) DebugLabeler
 	}
 }
 
+func (d DebugLabeler) GetLog() logger.Logger {
+	return d.log
+}
+
 func (d DebugLabeler) showVerbose() bool {
 	return false
 }

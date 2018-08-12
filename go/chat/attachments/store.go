@@ -290,23 +290,7 @@ func (a *S3Store) StreamAsset(ctx context.Context, params chat1.S3Params, asset 
 		return nil, fmt.Errorf("unencrypted attachments not supported: asset: %#v", asset)
 	}
 	b := a.getAssetBucket(asset, params, signer)
-	var nonce [signencrypt.NonceSize]byte
-	if asset.Nonce != nil {
-		copy(nonce[:], asset.Nonce)
-	}
-	return newRemoteAssetReader(ctx, b, asset, func(ctx context.Context, w io.Writer, r io.Reader) error {
-		dec := NewSignDecrypter()
-		var decBody io.Reader
-		if asset.Nonce != nil {
-			decBody = dec.DecryptWithNonce(r, &nonce, asset.Key, asset.VerifyKey)
-		} else {
-			decBody = dec.Decrypt(r, asset.Key, asset.VerifyKey)
-		}
-		if _, err := io.Copy(w, decBody); err != nil {
-			return err
-		}
-		return nil
-	}), nil
+	return newRemoteAssetStreamer(ctx, a.DebugLabeler.GetLog(), b, asset), nil
 }
 
 func (a *S3Store) startUpload(ctx context.Context, task *UploadTask, encrypter *SignEncrypter) {

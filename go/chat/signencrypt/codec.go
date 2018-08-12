@@ -181,6 +181,10 @@ func getPacketLen(plaintextChunkLen int64) int64 {
 	return plaintextChunkLen + secretbox.Overhead + ed25519.SignatureSize
 }
 
+func getPlaintextPacketLen(cipherChunkLen int64) int64 {
+	return cipherChunkLen - (secretbox.Overhead + ed25519.SignatureSize)
+}
+
 func sealPacket(plaintext []byte, encKey SecretboxKey, signKey SignKey, signaturePrefix libkb.SignaturePrefix, nonce SecretboxNonce) []byte {
 	signatureInput := makeSignatureInput(plaintext, encKey, signaturePrefix, nonce)
 	signature := ed25519.Sign(signKey[:], signatureInput)
@@ -304,6 +308,10 @@ func NewDecoder(encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix libkb.
 		err:             nil,
 		packetLen:       getPacketLen(DefaultPlaintextChunkLength),
 	}
+}
+
+func (d *Decoder) SetChunkNum(num uint64) {
+	d.chunkNum = num
 }
 
 func (d *Decoder) openOnePacket(packetLen int64) ([]byte, error) {
@@ -526,6 +534,14 @@ func GetSealedSize(plaintextLen int64) int64 {
 	// Exactly one short packet, even if it's empty.
 	remainingPlaintext := plaintextLen % DefaultPlaintextChunkLength
 	totalLen += getPacketLen(remainingPlaintext)
+	return totalLen
+}
+
+func GetPlaintextSize(cipherLen int64) int64 {
+	fullChunks := cipherLen / getPacketLen(DefaultPlaintextChunkLength)
+	totalLen := fullChunks * DefaultPlaintextChunkLength
+	remainingCiphertext := cipherLen % getPacketLen(DefaultPlaintextChunkLength)
+	totalLen += getPlaintextPacketLen(remainingCiphertext)
 	return totalLen
 }
 

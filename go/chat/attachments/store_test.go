@@ -15,10 +15,11 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
-const MB = 1024 * 1024
+const MB int64 = 1024 * 1024
 
 func TestSignEncrypter(t *testing.T) {
 	e := NewSignEncrypter()
@@ -178,8 +179,8 @@ func (b *bytesReadResetter) Reset() error {
 	return nil
 }
 
-func makeUploadTask(t *testing.T, size int) (plaintext []byte, task *UploadTask) {
-	plaintext = randBytes(t, size)
+func makeUploadTask(t *testing.T, size int64) (plaintext []byte, task *UploadTask) {
+	plaintext = randBytes(t, int(size))
 	outboxID, _ := storage.NewOutboxID()
 	task = &UploadTask{
 		S3Params: chat1.S3Params{
@@ -238,6 +239,22 @@ func TestUploadAssetLarge(t *testing.T) {
 	assertNumMultis(t, s, 1)
 }
 
+func TestStreamAsset(t *testing.T) {
+	s := makeTestStore(t, nil)
+	ctx := context.Background()
+	plaintext, task := makeUploadTask(t, 2*MB)
+	a, err := s.UploadAsset(ctx, task, ioutil.Discard)
+	require.NoError(t, err)
+
+	rs, err := s.StreamAsset(ctx, task.S3Params, a, task.S3Signer)
+	require.NoError(t, err)
+
+	var buf bytes.Buffer
+	_, err = io.Copy(&buf, rs)
+	require.NoError(t, err)
+	require.True(t, bytes.Equal(plaintext, buf.Bytes()))
+}
+
 type uploader struct {
 	t             *testing.T
 	s             *S3Store
@@ -252,7 +269,7 @@ type uploader struct {
 	fullSigKey    []byte
 }
 
-func newUploader(t *testing.T, size int) *uploader {
+func newUploader(t *testing.T, size int64) *uploader {
 	u := &uploader{t: t}
 	u.s = makeTestStore(t, u.keyTracker)
 	u.plaintext, u.task = makeUploadTask(t, size)
@@ -270,8 +287,9 @@ func (u *uploader) UploadResume() chat1.Asset {
 	if err != nil {
 		u.t.Fatalf("expected second UploadAsset call to work, got: %s", err)
 	}
-	if a.Size != int64(signencrypt.GetSealedSize(len(u.plaintext))) {
-		u.t.Errorf("uploaded asset size: %d, expected %d", a.Size, signencrypt.GetSealedSize(len(u.plaintext)))
+	if a.Size != int64(signencrypt.GetSealedSize(int64(len(u.plaintext)))) {
+		u.t.Errorf("uploaded asset size: %d, expected %d", a.Size,
+			signencrypt.GetSealedSize(int64(len(u.plaintext))))
 	}
 	u.fullEncKey = u.encKey
 	u.fullSigKey = u.sigKey
@@ -280,8 +298,8 @@ func (u *uploader) UploadResume() chat1.Asset {
 	assertNumMultis(u.t, u.s, 1)
 
 	// after resumed upload, all parts should have been uploaded
-	numParts := (len(u.plaintext) / (5 * MB)) + 1
-	assertNumParts(u.t, u.s, 0, numParts)
+	numParts := (int64(len(u.plaintext)) / (5 * MB)) + 1
+	assertNumParts(u.t, u.s, 0, int(numParts))
 
 	return a
 }
@@ -399,7 +417,7 @@ func TestUploadAssetResumeChange(t *testing.T) {
 
 	// try again, changing the file and the hash (but same destination on s3):
 	// this simulates the file changing between upload attempt 1 and this attempt.
-	u.plaintext = randBytes(t, size)
+	u.plaintext = randBytes(t, int(size))
 	u.ResetReader()
 	u.ResetHash()
 	a := u.UploadResume()

@@ -102,6 +102,9 @@ func (b *MemBucket) GetReaderWithRange(ctx context.Context, path string, begin, 
 	if !ok {
 		return nil, fmt.Errorf("bucket %q, path %q does not exist", b.name, path)
 	}
+	if end >= int64(len(obj)) {
+		end = int64(len(obj))
+	}
 	return ioutil.NopCloser(bytes.NewBuffer(obj[begin:end])), nil
 }
 
