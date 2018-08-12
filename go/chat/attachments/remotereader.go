@@ -2,11 +2,10 @@ package attachments
 
 import (
 	"bytes"
-	"fmt"
 	"io"
-	"net/http"
 
 	"github.com/keybase/client/go/chat/s3"
+	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/net/context"
 )
@@ -32,21 +31,44 @@ func newRemoteAssetReader(ctx context.Context, bucket s3.BucketInt, asset chat1.
 	}
 }
 
-func (r *remoteAssetReader) Read(res []byte) (n int, err error) {
-	num := len(res)
-	header := make(http.Header)
-	header.Add("Range", fmt.Sprintf("bytes=%d-%d", offset, num))
-	resp, err := r.bucket.GetResponseWithHeaders(ctx, r.asset.Path, header)
+func (r *remoteAssetReader) fetchChunks(chunks []signencrypt.ChunkSpec) ([]byte, error) {
+	begin := chunks[0].CipherStart
+	end := chunks[len(chunks)-1].CipherEnd
+	rc, err := r.bucket.GetReaderWithRange(r.ctx, r.asset.Path, begin, end)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	defer resp.Close()
-	out := bytes.NewBuffer(res)
-	if err := r.decryptor(out, resp.Body); err != nil {
-		return 0, err
+	defer rc.Close()
+	res := bytes.NewBuffer(nil)
+	if _, err := io.Copy(res, rc); err != nil {
+		return nil, err
 	}
+	return res.Bytes(), nil
+}
+
+func (r *remoteAssetReader) extractPlaintext(plainText []byte, num int64, chunks []signencrypt.ChunkSpec) []byte {
+	datBegin := chunks[0].PTStart
+	ptBegin := r.offset
+	ptEnd := r.offset + num
+	return plainText[ptBegin-datBegin : ptEnd-datBegin]
+}
+
+func (r *remoteAssetReader) Read(res []byte) (n int, err error) {
+	num := int64(len(res))
+	end := r.offset + num
+	chunks := signencrypt.GetChunksInRange(r.offset, end)
+	cipherText, err := r.fetchChunks(chunks)
+	if err != nil {
+		return n, err
+	}
+	plainTextBuf := bytes.NewBuffer(nil)
+	if err := r.decryptor(plainTextBuf, bytes.NewReader(cipherText)); err != nil {
+		return n, err
+	}
+	plainText := r.extractPlaintext(plainTextBuf.Bytes(), int64(num), chunks)
+	copy(res, plainText)
 	r.offset += num
-	return num, nil
+	return int(num), nil
 }
 
 func (r *remoteAssetReader) Seek(offset int64, whence int) (int64, error) {
@@ -56,7 +78,7 @@ func (r *remoteAssetReader) Seek(offset int64, whence int) (int64, error) {
 	case io.SeekCurrent:
 		r.offset += offset
 	case io.SeekEnd:
-
+		r.offset = r.asset.Size - offset
 	}
 	return r.offset, nil
 }

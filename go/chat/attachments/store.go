@@ -30,7 +30,7 @@ type ReadResetter interface {
 type UploadTask struct {
 	S3Params       chat1.S3Params
 	Filename       string
-	FileSize       int
+	FileSize       int64
 	Plaintext      ReadResetter
 	taskHash       []byte
 	S3Signer       s3.Signer
@@ -259,7 +259,7 @@ func (a *S3Store) DecryptAsset(ctx context.Context, w io.Writer, body io.Reader,
 
 // DownloadAsset gets an object from S3 as described in asset.
 func (a *S3Store) DownloadAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
-	signer s3.Signer, progress types.ProgressReporter) (io.ReadSeeker, error) {
+	w io.Writer, signer s3.Signer, progress types.ProgressReporter) error {
 	if asset.Key == nil || asset.VerifyKey == nil || asset.EncHash == nil {
 		return fmt.Errorf("unencrypted attachments not supported: asset: %#v", asset)
 	}
