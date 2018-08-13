@@ -64,7 +64,7 @@ const ButtonBox = Styles.glamorous(ClickableBox)(props => ({
 }))
 const ReactButton = (props: Props) => (
   <ButtonBox
-    {...(Styles.isMobile ? {onLongPress: props.onLongPress} : null)} // or else desktop will complain
+    onLongPress={props.onLongPress}
     onMouseLeave={props.onMouseLeave}
     onMouseOver={props.onMouseOver}
     onClick={props.onClick}
@@ -168,7 +168,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
   render() {
     return (
       <ButtonBox
-        {...(Styles.isMobile ? {onLongPress: this.props.onLongPress} : null)} // or else desktop will complain
+        onLongPress={this.props.onLongPress}
         border={this.props.showBorder ? 1 : 0}
         onClick={this._onShowPicker}
         onMouseLeave={this._stopCycle}
