@@ -71,7 +71,7 @@ const ToField = (props: ToFieldProps) => (
             {!props.isConfirm && (
               <Kb.Icon
                 type="iconfont-remove"
-                boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserX)}
+                boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
                 fontSize={16}
                 color={Styles.globalColors.black_20}
                 onClick={props.onRemoveProfile}
@@ -164,7 +164,7 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.tiny,
     alignItems: 'center',
   },
-  keybaseUserX: {
+  keybaseUserRemoveButton: {
     flex: 1,
     textAlign: 'right',
   },
