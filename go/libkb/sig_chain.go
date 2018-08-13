@@ -234,8 +234,8 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 		Args: HTTPArgs{
 			"uid":           UIDArg(sc.uid),
 			"low":           I{int(low)},
-			"v2_compressed": B{true},   // TODO: Change the server to honor this flag
-			"self":          B{isSelf}, // TODO: Change the server to honor this flag
+			"v2_compressed": B{true},
+			"self":          B{isSelf},
 		},
 		MetaContext: m,
 	})
