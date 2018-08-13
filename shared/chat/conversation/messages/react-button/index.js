@@ -137,7 +137,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
   }
 
   _startCycle = () => {
-    if (!this._delayInterval.running) {
+    if (!this._delayInterval.running()) {
       this._delayInterval.start(this._nextIcon)
       this.setState(s => (s.hovering ? null : {hovering: true}))
     }

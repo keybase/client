@@ -10,26 +10,27 @@ class DelayInterval {
   _intervalID: IntervalID
   _delayID: TimeoutID
 
-  running: boolean
-
   constructor(intervalMS: number, delayMS: number) {
     this._intervalMS = intervalMS
     this._delayMS = delayMS
   }
   start(fcn: () => void) {
-    if (this.running) {
+    if (this.running()) {
       return
     }
-    this.running = true
     this._delayID = setTimeout(() => {
       fcn()
       this._intervalID = setInterval(fcn, this._intervalMS)
     }, this._delayMS)
   }
   stop() {
-    this.running = false
     clearTimeout(this._delayID)
+    this._delayID = null
     clearInterval(this._intervalID)
+    this._intervalID = null
+  }
+  running() {
+    return !!(this._delayID || this._intervalID)
   }
 }
 
