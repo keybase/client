@@ -299,15 +299,20 @@ func newS3Seeker(asset chat1.Asset, bucket s3.BucketInt) *s3Seeker {
 }
 
 func (s *s3Seeker) Read(b []byte) (n int, err error) {
+	if s.offset >= s.asset.Size {
+		return 0, io.EOF
+	}
+	fmt.Printf("S3: Read: offset: %v len: %v\n", s.offset, len(b))
 	rc, err := s.bucket.GetReaderWithRange(context.TODO(), s.asset.Path, s.offset, s.offset+int64(len(b)))
 	if err != nil {
 		return 0, err
 	}
 	defer rc.Close()
-	buf := bytes.NewBuffer(b)
-	if _, err := io.Copy(buf, rc); err != nil {
+	var buf bytes.Buffer
+	if _, err := io.Copy(&buf, rc); err != nil {
 		return 0, err
 	}
+	copy(b, buf.Bytes())
 	return len(b), nil
 }
 

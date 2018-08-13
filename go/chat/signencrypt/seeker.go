@@ -1,6 +1,7 @@
 package signencrypt
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
@@ -69,6 +70,7 @@ func (r *decodingReadSeeker) Read(res []byte) (n int, err error) {
 	if r.offset >= r.size {
 		return 0, io.EOF
 	}
+	fmt.Printf("Read: offset: %v: len: %v\n", r.offset, len(res))
 	num := int64(len(res))
 	end := r.offset + num
 	chunks := GetChunksInRange(r.offset, end)
@@ -84,6 +86,7 @@ func (r *decodingReadSeeker) Read(res []byte) (n int, err error) {
 	plainText := r.extractPlaintext(chunkPlainText, int64(num), chunks)
 	copy(res, plainText)
 	numRead := int64(len(plainText))
+	fmt.Printf("Read: len(pt): %v\n", len(plainText))
 	r.offset += numRead
 	return int(numRead), nil
 }
