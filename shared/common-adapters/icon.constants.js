@@ -236,6 +236,16 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-fancy-revoked-phone-183-x-96.png'),
   },
+  'icon-fancy-stellar-receiving-desktop': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-stellar-receiving-desktop.png'),
+  },
+  'icon-fancy-stellar-receiving-mobile': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-stellar-receiving-mobile.png'),
+  },
   'icon-fancy-stellar-sending-desktop': {
     isFont: false,
     extension: 'png',
