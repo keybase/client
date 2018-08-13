@@ -91,20 +91,12 @@ func (tb *TestBlock) IsIndirect() bool {
 	return false
 }
 
-func (tb *TestBlock) FirstOffset() Offset {
-	return nil
-}
-
-func (tb *TestBlock) NumIndirectPtrs() int {
-	panic("No indirect pointers for the test block")
-}
-
-func (tb *TestBlock) IndirectPtr(_ int) (BlockInfo, Offset) {
-	panic("No indirect pointers for the test block")
-}
-
 func (tb TestBlock) OffsetExceedsData(_, _ Offset) bool {
 	return false
+}
+
+func (tb TestBlock) BytesCanBeDirtied() int64 {
+	return 0
 }
 
 func TestCryptoCommonEncryptDecryptBlock(t *testing.T) {
@@ -373,20 +365,12 @@ func (tba testBlockArray) IsIndirect() bool {
 	return false
 }
 
-func (tba testBlockArray) FirstOffset() Offset {
-	return nil
-}
-
-func (tba testBlockArray) NumIndirectPtrs() int {
-	panic("No indirect pointers for the test block array")
-}
-
-func (tba testBlockArray) IndirectPtr(_ int) (BlockInfo, Offset) {
-	panic("No indirect pointers for the test block array")
-}
-
 func (tba testBlockArray) OffsetExceedsData(_, _ Offset) bool {
 	return false
+}
+
+func (tba testBlockArray) BytesCanBeDirtied() int64 {
+	return 0
 }
 
 // Test that block encrypted data length is the same for data

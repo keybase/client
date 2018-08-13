@@ -26,45 +26,37 @@ type fileBlockGetter func(context.Context, KeyMetadata, BlockPointer,
 // within a file.  It's meant for use within a single scope, not for
 // long-term storage.  The caller must ensure goroutine-safety.
 type fileData struct {
-	file      path
-	chargedTo keybase1.UserOrTeamID
-	crypto    cryptoPure
-	kmd       KeyMetadata
-	bsplit    BlockSplitter
-	getter    fileBlockGetter
-	cacher    dirtyBlockCacher
-	log       logger.Logger
-	tree      *blockTree
+	getter fileBlockGetter
+	tree   *blockTree
 }
 
 func newFileData(file path, chargedTo keybase1.UserOrTeamID, crypto cryptoPure,
 	bsplit BlockSplitter, kmd KeyMetadata, getter fileBlockGetter,
 	cacher dirtyBlockCacher, log logger.Logger) *fileData {
 	fd := &fileData{
+		getter: getter,
+	}
+	fd.tree = &blockTree{
 		file:      file,
 		chargedTo: chargedTo,
 		crypto:    crypto,
-		bsplit:    bsplit,
 		kmd:       kmd,
-		getter:    getter,
+		bsplit:    bsplit,
+		getter:    fd.blockGetter,
 		cacher:    cacher,
 		log:       log,
-	}
-	fd.tree = &blockTree{
-		file:   file,
-		kmd:    kmd,
-		getter: fd.blockGetter,
 	}
 	return fd
 }
 
 func (fd *fileData) rootBlockPointer() BlockPointer {
-	return fd.file.tailPointer()
+	return fd.tree.file.tailPointer()
 }
 
 func (fd *fileData) blockGetter(
 	ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
-	file path, rtype blockReqType) (block Block, wasDirty bool, err error) {
+	file path, rtype blockReqType) (
+	block BlockWithPtrs, wasDirty bool, err error) {
 	return fd.getter(ctx, kmd, ptr, file, rtype)
 }
 
@@ -130,8 +122,8 @@ func (fd *fileData) getByteSlicesInOffsetRange(ctx context.Context,
 		return nil, nil
 	}
 
-	topBlock, _, err := fd.getter(ctx, fd.kmd, fd.rootBlockPointer(),
-		fd.file, blockRead)
+	topBlock, _, err := fd.getter(ctx, fd.tree.kmd, fd.rootBlockPointer(),
+		fd.tree.file, blockRead)
 	if err != nil {
 		return nil, err
 	}
@@ -208,11 +200,11 @@ func (fd *fileData) getByteSlicesInOffsetRange(ctx context.Context,
 				if fill > toRead {
 					fill = toRead
 				}
-				fd.log.CDebugf(ctx, "Read from hole: nextByte=%d "+
+				fd.tree.log.CDebugf(ctx, "Read from hole: nextByte=%d "+
 					"lastByteInBlock=%d fill=%d", nextByte, lastByteInBlock,
 					fill)
 				if fill <= 0 {
-					fd.log.CErrorf(ctx,
+					fd.tree.log.CErrorf(ctx,
 						"Read invalid file fill <= 0 while reading hole")
 					return nil, BadSplitError{}
 				}
@@ -249,10 +241,10 @@ func (fd *fileData) getByteSlicesInOffsetRange(ctx context.Context,
 		if fill > toRead {
 			fill = toRead
 		}
-		fd.log.CDebugf(ctx, "Read from hole at end of file: nextByte=%d "+
+		fd.tree.log.CDebugf(ctx, "Read from hole at end of file: nextByte=%d "+
 			"fill=%d", nextByte, fill)
 		if fill <= 0 {
-			fd.log.CErrorf(ctx,
+			fd.tree.log.CErrorf(ctx,
 				"Read invalid file fill <= 0 while reading hole")
 			return nil, BadSplitError{}
 		}
@@ -332,7 +324,7 @@ func (fd *fileData) getBytes(ctx context.Context,
 // indirect block that becomes the parent.
 func (fd *fileData) createIndirectBlock(
 	ctx context.Context, df *dirtyFile, dver DataVer) (*FileBlock, error) {
-	newID, err := fd.crypto.MakeTemporaryBlockID()
+	newID, err := fd.tree.crypto.MakeTemporaryBlockID()
 	if err != nil {
 		return nil, err
 	}
@@ -345,10 +337,11 @@ func (fd *fileData) createIndirectBlock(
 				BlockInfo: BlockInfo{
 					BlockPointer: BlockPointer{
 						ID:      newID,
-						KeyGen:  fd.kmd.LatestKeyGeneration(),
+						KeyGen:  fd.tree.kmd.LatestKeyGeneration(),
 						DataVer: dver,
 						Context: kbfsblock.MakeFirstContext(
-							fd.chargedTo, fd.rootBlockPointer().GetBlockType()),
+							fd.tree.chargedTo,
+							fd.rootBlockPointer().GetBlockType()),
 						DirectType: fd.rootBlockPointer().DirectType,
 					},
 					EncodedSize: 0,
@@ -358,355 +351,18 @@ func (fd *fileData) createIndirectBlock(
 		},
 	}
 
-	fd.log.CDebugf(ctx, "Creating new level of indirection for file %v, "+
+	fd.tree.log.CDebugf(ctx, "Creating new level of indirection for file %v, "+
 		"new block id for old top level is %v", fd.rootBlockPointer(), newID)
 
 	// Mark the old block ID as not dirty, so that we will treat the
 	// old block ID as newly dirtied in cacheBlockIfNotYetDirtyLocked.
 	df.setBlockNotDirty(fd.rootBlockPointer())
-	err = fd.cacher(fd.rootBlockPointer(), fblock)
+	err = fd.tree.cacher(fd.rootBlockPointer(), fblock)
 	if err != nil {
 		return nil, err
 	}
 
 	return fblock, nil
-}
-
-// newRightBlock creates space for a new rightmost block, creating
-// parent blocks and a new level of indirection in the tree as needed.
-// If there's no new level of indirection, it modifies the blocks in
-// `parentBlocks` to include the new right-most pointers
-// (`parentBlocks` must consist of blocks copied for writing).  It
-// also returns the set of parents pointing to the new block (whether
-// or not there is a new level of indirection), and also returns any
-// newly-dirtied block pointers.
-//
-// The new block is pointed to using offset `off`, and doesn't have to
-// represent an append to the end of the file.  In particular, if
-// `off` is less than the offset of its leftmost neighbor, it's the
-// caller's responsibility to move the new right block into the
-// correct place in the tree (e.g., using `shiftBlocksToFillHole()`).
-func (fd *fileData) newRightBlock(
-	ctx context.Context, parentBlocks []parentBlockAndChildIndex,
-	off Int64Offset, df *dirtyFile, dver DataVer) (
-	[]parentBlockAndChildIndex, []BlockPointer, error) {
-	// Find the lowest block that can accommodate a new right block.
-	lowestAncestorWithRoom := -1
-	for i := len(parentBlocks) - 1; i >= 0; i-- {
-		pb := parentBlocks[i]
-		if pb.pblock.NumIndirectPtrs() < fd.bsplit.MaxPtrsPerBlock() {
-			lowestAncestorWithRoom = i
-			break
-		}
-	}
-
-	var newTopBlock *FileBlock
-	var newDirtyPtrs []BlockPointer
-	if lowestAncestorWithRoom < 0 {
-		// Create a new level of indirection at the top.
-		var err error
-		newTopBlock, err = fd.createIndirectBlock(ctx, df, dver)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		// The old top block needs to be cached under its new ID if it
-		// was indirect.
-		if len(parentBlocks) > 0 {
-			dType := DirectBlock
-			if parentBlocks[0].pblock.IsIndirect() {
-				dType = IndirectBlock
-			}
-			newTopBlock.IPtrs[0].DirectType = dType
-			ptr := newTopBlock.IPtrs[0].BlockPointer
-			err = fd.cacher(ptr, parentBlocks[0].pblock)
-			if err != nil {
-				return nil, nil, err
-			}
-			newDirtyPtrs = append(newDirtyPtrs, ptr)
-		}
-
-		parentBlocks = append([]parentBlockAndChildIndex{{newTopBlock, 0}},
-			parentBlocks...)
-		lowestAncestorWithRoom = 0
-	}
-	rightParentBlocks := make([]parentBlockAndChildIndex, len(parentBlocks))
-
-	fd.log.CDebugf(ctx, "Making new right block at off %d for file %v, "+
-		"lowestAncestor at level %d", off, fd.rootBlockPointer(),
-		lowestAncestorWithRoom)
-
-	// Make a new right block for every parent, starting with the
-	// lowest ancestor with room.  Note that we're not iterating over
-	// the actual parent blocks here; we're only using its length to
-	// figure out how many levels need new blocks.
-	pblock := parentBlocks[lowestAncestorWithRoom].pblock.(*FileBlock)
-	for i := lowestAncestorWithRoom; i < len(parentBlocks); i++ {
-		newRID, err := fd.crypto.MakeTemporaryBlockID()
-		if err != nil {
-			return nil, nil, err
-		}
-
-		newPtr := BlockPointer{
-			ID:      newRID,
-			KeyGen:  fd.kmd.LatestKeyGeneration(),
-			DataVer: dver,
-			Context: kbfsblock.MakeFirstContext(
-				fd.chargedTo, fd.rootBlockPointer().GetBlockType()),
-			DirectType: IndirectBlock,
-		}
-
-		if i == len(parentBlocks)-1 {
-			newPtr.DirectType = DirectBlock
-		}
-
-		fd.log.CDebugf(ctx, "New right block for file %v, level %d, ptr %v",
-			fd.rootBlockPointer(), i, newPtr)
-
-		pblock.IPtrs = append(pblock.IPtrs, IndirectFilePtr{
-			BlockInfo: BlockInfo{
-				BlockPointer: newPtr,
-				EncodedSize:  0,
-			},
-			Off: off,
-		})
-		rightParentBlocks[i].pblock = pblock
-		rightParentBlocks[i].childIndex = len(pblock.IPtrs) - 1
-
-		rblock := &FileBlock{}
-		if i != len(parentBlocks)-1 {
-			rblock.IsInd = true
-			pblock = rblock
-		}
-
-		err = fd.cacher(newPtr, rblock)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		newDirtyPtrs = append(newDirtyPtrs, newPtr)
-	}
-
-	// All parents up to and including the lowest ancestor with room
-	// will have to change, so mark them as dirty.
-	ptr := fd.rootBlockPointer()
-	for i := 0; i <= lowestAncestorWithRoom; i++ {
-		pb := parentBlocks[i]
-		if err := fd.cacher(ptr, pb.pblock); err != nil {
-			return nil, nil, err
-		}
-		newDirtyPtrs = append(newDirtyPtrs, ptr)
-		ptr = pb.childBlockPtr()
-		rightParentBlocks[i].pblock = pb.pblock
-		rightParentBlocks[i].childIndex = pb.pblock.NumIndirectPtrs() - 1
-	}
-
-	return rightParentBlocks, newDirtyPtrs, nil
-}
-
-// shiftBlocksToFillHole should be called after newRightBlock when the
-// offset for the new block is smaller than the size of the file.
-// This happens when there is a hole in the file, and the user is now
-// writing data into that hole.  This function moves the new block
-// into the correct place, and rearranges all the indirect pointers in
-// the file as needed.  It returns any block pointers that were
-// dirtied in the process.
-func (fd *fileData) shiftBlocksToFillHole(
-	ctx context.Context, newTopBlock *FileBlock,
-	parents []parentBlockAndChildIndex) (
-	newDirtyPtrs []BlockPointer, newUnrefs []BlockInfo,
-	newlyDirtiedChildBytes int64, err error) {
-	// `parents` should represent the right side of the tree down to
-	// the new rightmost indirect pointer, the offset of which should
-	// match `newHoleStartOff`.  Keep swapping it with its sibling on
-	// the left until its offset would be lower than that child's
-	// offset.  If there are no children to the left, continue on with
-	// the children in the cousin block to the left.  If we swap a
-	// child between cousin blocks, we must update the offset in the
-	// right cousin's parent block.  If *that* updated pointer is the
-	// leftmost pointer in its parent block, update that one as well,
-	// up to the root.
-	//
-	// We are guaranteed at least one level of indirection because
-	// `newRightBlock` should have been called before
-	// `shiftBlocksToFillHole`.
-	immedParent := parents[len(parents)-1]
-	currIndex := immedParent.childIndex
-	_, newBlockStartOff := immedParent.childIPtr()
-
-	fd.log.CDebugf(ctx, "Shifting block with offset %d for file %v into "+
-		"position", newBlockStartOff, fd.rootBlockPointer())
-
-	// Swap left as needed.
-	for {
-		var leftOff Offset
-		var newParents []parentBlockAndChildIndex
-		immedPblock := immedParent.pblock.(*FileBlock)
-		if currIndex > 0 {
-			_, leftOff = immedPblock.IndirectPtr(currIndex - 1)
-		} else {
-			// Construct the new set of parents for the shifted block,
-			// by looking for the next left cousin.
-			newParents = make([]parentBlockAndChildIndex, len(parents))
-			copy(newParents, parents)
-			var level int
-			for level = len(newParents) - 2; level >= 0; level-- {
-				// The parent at the level being evaluated has a left
-				// sibling, so we use that sibling.
-				if newParents[level].childIndex > 0 {
-					break
-				}
-				// Keep going up until we find a way back down a left branch.
-			}
-
-			if level < 0 {
-				// We are already all the way on the left, we're done!
-				return newDirtyPtrs, newUnrefs, newlyDirtiedChildBytes, nil
-			}
-			newParents[level].childIndex--
-
-			// Walk back down, shifting the new parents into position.
-			for ; level < len(newParents)-1; level++ {
-				nextPtr := newParents[level].childBlockPtr()
-				childBlock, _, err := fd.getter(
-					ctx, fd.kmd, nextPtr, fd.file, blockWrite)
-				if err != nil {
-					return nil, nil, 0, err
-				}
-
-				newParents[level+1].pblock = childBlock
-				newParents[level+1].childIndex =
-					childBlock.NumIndirectPtrs() - 1
-				_, leftOff = childBlock.IndirectPtr(
-					childBlock.NumIndirectPtrs() - 1)
-			}
-		}
-
-		// We're done!
-		if leftOff.Less(newBlockStartOff) {
-			return newDirtyPtrs, newUnrefs, newlyDirtiedChildBytes, nil
-		}
-
-		// Otherwise, we need to swap the indirect file pointers.
-		if currIndex > 0 {
-			immedPblock.IPtrs[currIndex-1],
-				immedPblock.IPtrs[currIndex] =
-				immedPblock.IPtrs[currIndex],
-				immedPblock.IPtrs[currIndex-1]
-			currIndex--
-			continue
-		}
-
-		// Swap block pointers across cousins at the lowest level of
-		// indirection.
-		newImmedParent := newParents[len(newParents)-1]
-		newImmedPblock := newImmedParent.pblock.(*FileBlock)
-		newCurrIndex := len(newImmedPblock.IPtrs) - 1
-		newImmedPblock.IPtrs[newCurrIndex],
-			immedPblock.IPtrs[currIndex] =
-			immedPblock.IPtrs[currIndex],
-			newImmedPblock.IPtrs[newCurrIndex]
-
-		// Cache the new immediate parent as dirty.  Also cache the
-		// old immediate parent's right-most leaf child as dirty, to
-		// make sure this path is captured in
-		// getNextDirtyFileBlockAtOffset calls.  TODO: this is
-		// inefficient since it might end up re-encoding and
-		// re-uploading a leaf block that wasn't actually dirty; we
-		// should find a better way to make sure ready() sees these
-		// parent blocks.
-		if len(newParents) > 1 {
-			i := len(newParents) - 2
-			childPtr := newParents[i].childBlockPtr()
-			if err := fd.cacher(
-				childPtr, newImmedPblock); err != nil {
-				return nil, nil, 0, err
-			}
-			newDirtyPtrs = append(newDirtyPtrs, childPtr)
-
-			// Fetch the old parent's right leaf for writing, and mark
-			// it as dirty.
-			rightLeafIPtr :=
-				immedPblock.IPtrs[len(immedPblock.IPtrs)-1]
-			leafBlock, _, err := fd.getter(
-				ctx, fd.kmd, rightLeafIPtr.BlockPointer, fd.file, blockWrite)
-			if err != nil {
-				return nil, nil, 0, err
-			}
-			if err := fd.cacher(
-				rightLeafIPtr.BlockPointer, leafBlock); err != nil {
-				return nil, nil, 0, err
-			}
-			newDirtyPtrs = append(newDirtyPtrs, rightLeafIPtr.BlockPointer)
-			// Remember the size of the dirtied leaf.
-			if rightLeafIPtr.EncodedSize != 0 {
-				newlyDirtiedChildBytes += int64(len(leafBlock.Contents))
-				newUnrefs = append(newUnrefs, rightLeafIPtr.BlockInfo)
-				immedPblock.IPtrs[len(immedPblock.IPtrs)-1].EncodedSize = 0
-			}
-		}
-
-		// Now we need to update the parent offsets on the right side,
-		// all the way up to the common ancestor (which is the one
-		// with the one that doesn't have a childIndex of 0).  (We
-		// don't need to update the left side, since the offset of the
-		// new right-most block on that side doesn't affect the
-		// incoming indirect pointer offset, which already points to
-		// the left side of that branch.)
-		newRightOff := immedPblock.IPtrs[currIndex].Off
-		for level := len(parents) - 2; level >= 0; level-- {
-			// Cache the block below this level, which was just
-			// modified.
-			childInfo, _ := parents[level].childIPtr()
-			if err := fd.cacher(childInfo.BlockPointer,
-				parents[level+1].pblock); err != nil {
-				return nil, nil, 0, err
-			}
-			newDirtyPtrs = append(newDirtyPtrs, childInfo.BlockPointer)
-			// Remember the size of the dirtied child.
-			index := parents[level].childIndex
-			if childInfo.EncodedSize != 0 {
-				newUnrefs = append(newUnrefs, childInfo)
-				parents[level].pblock.(*FileBlock).IPtrs[index].EncodedSize = 0
-			}
-
-			// If we've reached a level where the child indirect
-			// offset wasn't affected, we're done.  If not, update the
-			// offset at this level and move up the tree.
-			if parents[level+1].childIndex > 0 {
-				break
-			}
-			parents[level].pblock.(*FileBlock).IPtrs[index].Off = newRightOff
-		}
-		immedParent = newImmedParent
-		currIndex = newCurrIndex
-		parents = newParents
-	}
-	// The loop above must exit via one of the returns.
-}
-
-// markParentsDirty caches all the blocks in `parentBlocks` as dirty,
-// and returns the dirtied block pointers as well as any block infos
-// with non-zero encoded sizes that will now need to be unreferenced.
-func (fd *fileData) markParentsDirty(ctx context.Context,
-	parentBlocks []parentBlockAndChildIndex) (
-	dirtyPtrs []BlockPointer, unrefs []BlockInfo, err error) {
-	parentPtr := fd.rootBlockPointer()
-	for _, pb := range parentBlocks {
-		if err := fd.cacher(parentPtr, pb.pblock); err != nil {
-			return nil, unrefs, err
-		}
-		dirtyPtrs = append(dirtyPtrs, parentPtr)
-		childInfo, _ := pb.childIPtr()
-		parentPtr = childInfo.BlockPointer
-
-		// Remember the size of each newly-dirtied child.
-		if childInfo.EncodedSize != 0 {
-			unrefs = append(unrefs, childInfo)
-			pb.pblock.(*FileBlock).IPtrs[pb.childIndex].EncodedSize = 0
-		}
-	}
-	return dirtyPtrs, unrefs, nil
 }
 
 func (fd *fileData) getFileBlockAtOffset(ctx context.Context,
@@ -731,6 +387,12 @@ func (fd *fileData) getFileBlockAtOffset(ctx context.Context,
 		startOff = so.(Int64Offset)
 	}
 	return ptr, parentBlocks, block, nextBlockStartOff, startOff, wasDirty, nil
+}
+
+func (fd *fileData) fileTopBlocker(df *dirtyFile) createTopBlockFn {
+	return func(ctx context.Context, dv DataVer) (BlockWithPtrs, error) {
+		return fd.createIndirectBlock(ctx, df, dv)
+	}
 }
 
 // write sets the given data and the given offset within the file,
@@ -758,7 +420,7 @@ func (fd *fileData) write(ctx context.Context, data []byte, off Int64Offset,
 	oldSizeWithoutHoles := oldDe.Size
 	newDe = oldDe
 
-	fd.log.CDebugf(ctx, "Writing %d bytes at off %d", n, off)
+	fd.tree.log.CDebugf(ctx, "Writing %d bytes at off %d", n, off)
 
 	dirtyMap := make(map[BlockPointer]bool)
 	for nCopied < n {
@@ -780,7 +442,7 @@ func (fd *fileData) write(ctx context.Context, data []byte, off Int64Offset,
 			}
 		}
 		oldNCopied := nCopied
-		nCopied += fd.bsplit.CopyUntilSplit(
+		nCopied += fd.tree.bsplit.CopyUntilSplit(
 			block, nextBlockOff < 0, data[nCopied:max],
 			int64(off+Int64Offset(nCopied)-startOff))
 
@@ -815,12 +477,14 @@ func (fd *fileData) write(ctx context.Context, data []byte, off Int64Offset,
 				// and its offset will be smaller than the block to
 				// its left -- we'll fix that up below.
 				var newDirtyPtrs []BlockPointer
-				fd.log.CDebugf(ctx, "Making new right block at nCopied=%d, "+
-					"newBlockOff=%d", nCopied, newBlockOff)
+				fd.tree.log.CDebugf(ctx, "Making new right block at "+
+					"nCopied=%d, newBlockOff=%d", nCopied, newBlockOff)
 				wasIndirect := topBlock.IsInd
-				rightParents, newDirtyPtrs, err = fd.newRightBlock(
-					ctx, parentBlocks, newBlockOff, df,
-					DefaultNewBlockDataVersion(false))
+				rightParents, newDirtyPtrs, err = fd.tree.newRightBlock(
+					ctx, parentBlocks, newBlockOff,
+					DefaultNewBlockDataVersion(false), NewFileBlockWithPtrs,
+					fd.fileTopBlocker(df),
+				)
 				if err != nil {
 					return newDe, nil, unrefs, newlyDirtiedChildBytes, 0, err
 				}
@@ -842,8 +506,8 @@ func (fd *fileData) write(ctx context.Context, data []byte, off Int64Offset,
 			// If we're filling a hole, swap the new right block into
 			// the hole and shift everything else over.
 			if needFillHole {
-				newDirtyPtrs, newUnrefs, bytes, err := fd.shiftBlocksToFillHole(
-					ctx, topBlock, rightParents)
+				newDirtyPtrs, newUnrefs, bytes, err :=
+					fd.tree.shiftBlocksToFillHole(ctx, topBlock, rightParents)
 				if err != nil {
 					return newDe, nil, unrefs, newlyDirtiedChildBytes, 0, err
 				}
@@ -885,7 +549,7 @@ func (fd *fileData) write(ctx context.Context, data []byte, off Int64Offset,
 			newlyDirtiedChildBytes -= int64(oldLen)
 		}
 
-		newDirtyPtrs, newUnrefs, err := fd.markParentsDirty(ctx, parentBlocks)
+		newDirtyPtrs, newUnrefs, err := fd.tree.markParentsDirty(parentBlocks)
 		unrefs = append(unrefs, newUnrefs...)
 		if err != nil {
 			return newDe, nil, unrefs, newlyDirtiedChildBytes, 0, err
@@ -895,7 +559,7 @@ func (fd *fileData) write(ctx context.Context, data []byte, off Int64Offset,
 		}
 
 		// keep the old block ID while it's dirty
-		if err = fd.cacher(ptr, block); err != nil {
+		if err = fd.tree.cacher(ptr, block); err != nil {
 			return newDe, nil, unrefs, newlyDirtiedChildBytes, 0, err
 		}
 		dirtyMap[ptr] = true
@@ -907,7 +571,7 @@ func (fd *fileData) write(ctx context.Context, data []byte, off Int64Offset,
 	// it's to a block that's not currently being sync'd, since this
 	// top-most block will always be in the dirtyFiles map.  We do
 	// this even for 0-byte writes, which indicate a forced sync.
-	if err = fd.cacher(fd.rootBlockPointer(), topBlock); err != nil {
+	if err = fd.tree.cacher(fd.rootBlockPointer(), topBlock); err != nil {
 		return newDe, nil, unrefs, newlyDirtiedChildBytes, 0, err
 	}
 	dirtyMap[fd.rootBlockPointer()] = true
@@ -935,18 +599,19 @@ func (fd *fileData) truncateExtend(ctx context.Context, size uint64,
 	topBlock *FileBlock, parentBlocks []parentBlockAndChildIndex,
 	oldDe DirEntry, df *dirtyFile) (
 	newDe DirEntry, dirtyPtrs []BlockPointer, err error) {
-	fd.log.CDebugf(ctx, "truncateExtend: extending file %v to size %d",
+	fd.tree.log.CDebugf(ctx, "truncateExtend: extending file %v to size %d",
 		fd.rootBlockPointer(), size)
 	switchToIndirect := !topBlock.IsInd
 	oldTopBlock := topBlock
 	if switchToIndirect {
-		fd.log.CDebugf(ctx, "truncateExtend: making block indirect %v",
+		fd.tree.log.CDebugf(ctx, "truncateExtend: making block indirect %v",
 			fd.rootBlockPointer())
 	}
 
-	rightParents, newDirtyPtrs, err := fd.newRightBlock(
-		ctx, parentBlocks, Int64Offset(size), df,
-		DefaultNewBlockDataVersion(true))
+	rightParents, newDirtyPtrs, err := fd.tree.newRightBlock(
+		ctx, parentBlocks, Int64Offset(size),
+		DefaultNewBlockDataVersion(true), NewFileBlockWithPtrs,
+		fd.fileTopBlocker(df))
 	if err != nil {
 		return DirEntry{}, nil, err
 	}
@@ -954,12 +619,12 @@ func (fd *fileData) truncateExtend(ctx context.Context, size uint64,
 
 	if switchToIndirect {
 		topBlock.IPtrs[0].Holes = true
-		err = fd.cacher(topBlock.IPtrs[0].BlockPointer, oldTopBlock)
+		err = fd.tree.cacher(topBlock.IPtrs[0].BlockPointer, oldTopBlock)
 		if err != nil {
 			return DirEntry{}, nil, err
 		}
 		dirtyPtrs = append(dirtyPtrs, topBlock.IPtrs[0].BlockPointer)
-		fd.log.CDebugf(ctx, "truncateExtend: new zero data block %v",
+		fd.tree.log.CDebugf(ctx, "truncateExtend: new zero data block %v",
 			topBlock.IPtrs[0].BlockPointer)
 	}
 	dirtyPtrs = append(dirtyPtrs, newDirtyPtrs...)
@@ -979,7 +644,7 @@ func (fd *fileData) truncateExtend(ctx context.Context, size uint64,
 	// deferred, even if it's to a block that's not currently
 	// being sync'd, since this top-most block will always be in
 	// the fileBlockStates map.
-	err = fd.cacher(fd.rootBlockPointer(), topBlock)
+	err = fd.tree.cacher(fd.rootBlockPointer(), topBlock)
 	if err != nil {
 		return DirEntry{}, nil, err
 	}
@@ -1025,7 +690,7 @@ func (fd *fileData) truncateShrink(ctx context.Context, size uint64,
 	// Need to mark the parents dirty before calling
 	// `getIndirectBlocksForOffsetRange`, so that function will see
 	// the new copies when fetching the blocks.
-	newDirtyPtrs, newUnrefs, err := fd.markParentsDirty(ctx, parentBlocks)
+	newDirtyPtrs, newUnrefs, err := fd.tree.markParentsDirty(parentBlocks)
 	unrefs = append(unrefs, newUnrefs...)
 	if err != nil {
 		return DirEntry{}, nil, unrefs, newlyDirtiedChildBytes, err
@@ -1099,14 +764,14 @@ func (fd *fileData) truncateShrink(ctx context.Context, size uint64,
 						// cache. (e.g., in a previous iteration of
 						// this loop).
 						pblock, _, err = fd.getter(
-							ctx, fd.kmd, parentInfo.BlockPointer, fd.file,
-							blockWrite)
+							ctx, fd.tree.kmd, parentInfo.BlockPointer,
+							fd.tree.file, blockWrite)
 						if err != nil {
 							return DirEntry{}, nil, nil,
 								newlyDirtiedChildBytes, err
 						}
 						pblock.IPtrs = pblock.IPtrs[:removeStartingFromIndex]
-						err = fd.cacher(parentInfo.BlockPointer, pblock)
+						err = fd.tree.cacher(parentInfo.BlockPointer, pblock)
 						if err != nil {
 							return DirEntry{}, nil, nil,
 								newlyDirtiedChildBytes, err
@@ -1134,7 +799,7 @@ func (fd *fileData) truncateShrink(ctx context.Context, size uint64,
 		// deferred, even if it's to a block that's not currently
 		// being sync'd, since this top-most block will always be in
 		// the dirtyFiles map.
-		if err = fd.cacher(fd.rootBlockPointer(), topBlock); err != nil {
+		if err = fd.tree.cacher(fd.rootBlockPointer(), topBlock); err != nil {
 			return DirEntry{}, nil, nil, newlyDirtiedChildBytes, err
 		}
 		dirtyMap[fd.rootBlockPointer()] = true
@@ -1145,7 +810,7 @@ func (fd *fileData) truncateShrink(ctx context.Context, size uint64,
 	newDe.Size = size
 
 	// Keep the old block ID while it's dirty.
-	if err = fd.cacher(ptr, block); err != nil {
+	if err = fd.tree.cacher(ptr, block); err != nil {
 		return DirEntry{}, nil, nil, newlyDirtiedChildBytes, err
 	}
 	dirtyMap[ptr] = true
@@ -1219,7 +884,7 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 		}
 		off = nextBlockOff // Will be -1 if there are no more blocks.
 
-		splitAt := fd.bsplit.CheckSplit(block)
+		splitAt := fd.tree.bsplit.CheckSplit(block)
 		switch {
 		case splitAt == 0:
 			continue
@@ -1230,9 +895,10 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 			// put the extra bytes in front of the next block
 			if nextBlockOff < 0 {
 				// Need to make a new block.
-				if _, _, err := fd.newRightBlock(
-					ctx, parentBlocks, endOfBlock, df,
-					DefaultNewBlockDataVersion(false)); err != nil {
+				if _, _, err := fd.tree.newRightBlock(
+					ctx, parentBlocks, endOfBlock,
+					DefaultNewBlockDataVersion(false), NewFileBlockWithPtrs,
+					fd.fileTopBlocker(df)); err != nil {
 					return unrefs, err
 				}
 			}
@@ -1243,17 +909,16 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 				return unrefs, err
 			}
 			rblock.Contents = append(extraBytes, rblock.Contents...)
-			if err = fd.cacher(rPtr, rblock); err != nil {
+			if err = fd.tree.cacher(rPtr, rblock); err != nil {
 				return unrefs, err
 			}
 			endOfBlock = startOff + Int64Offset(len(block.Contents))
 
 			// Mark the old rblock as unref'd.
 			pb := rParentBlocks[len(rParentBlocks)-1]
-			pblock := pb.pblock.(*FileBlock)
 			childInfo, _ := pb.childIPtr()
 			unrefs = append(unrefs, childInfo)
-			pblock.IPtrs[pb.childIndex].EncodedSize = 0
+			pb.clearEncodedSize()
 
 			// Update parent pointer offsets as needed.
 			for i := len(rParentBlocks) - 1; i >= 0; i-- {
@@ -1266,7 +931,7 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 				}
 			}
 
-			_, newUnrefs, err := fd.markParentsDirty(ctx, rParentBlocks)
+			_, newUnrefs, err := fd.tree.markParentsDirty(rParentBlocks)
 			unrefs = append(unrefs, newUnrefs...)
 			if err != nil {
 				return unrefs, err
@@ -1286,7 +951,7 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 				return unrefs, err
 			}
 			// Copy some of that block's data into this block.
-			nCopied := fd.bsplit.CopyUntilSplit(block, false,
+			nCopied := fd.tree.bsplit.CopyUntilSplit(block, false,
 				rblock.Contents, int64(len(block.Contents)))
 			rblock.Contents = rblock.Contents[nCopied:]
 			endOfBlock = startOff + Int64Offset(len(block.Contents))
@@ -1296,11 +961,11 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 			pblock := pb.pblock.(*FileBlock)
 			childInfo, _ := pb.childIPtr()
 			unrefs = append(unrefs, childInfo)
-			pblock.IPtrs[pb.childIndex].EncodedSize = 0
+			pb.clearEncodedSize()
 
 			// For the right block, adjust offset or delete as needed.
 			if len(rblock.Contents) > 0 {
-				if err = fd.cacher(rPtr, rblock); err != nil {
+				if err = fd.tree.cacher(rPtr, rblock); err != nil {
 					return unrefs, err
 				}
 
@@ -1323,7 +988,7 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 			}
 
 			// Mark all parents as dirty.
-			_, newUnrefs, err := fd.markParentsDirty(ctx, rParentBlocks)
+			_, newUnrefs, err := fd.tree.markParentsDirty(rParentBlocks)
 			unrefs = append(unrefs, newUnrefs...)
 			if err != nil {
 				return unrefs, err
@@ -1368,8 +1033,8 @@ func (fd *fileData) readyHelper(ctx context.Context, id tlf.ID,
 			}
 
 			newInfo, _, readyBlockData, err := ReadyBlock(
-				ctx, bcache, bops, fd.crypto, fd.kmd, pb.pblock, fd.chargedTo,
-				fd.rootBlockPointer().GetBlockType())
+				ctx, bcache, bops, fd.tree.crypto, fd.tree.kmd, pb.pblock,
+				fd.tree.chargedTo, fd.rootBlockPointer().GetBlockType())
 			if err != nil {
 				return nil, err
 			}
@@ -1481,7 +1146,7 @@ func (fd *fileData) getIndirectFileBlockInfos(ctx context.Context) (
 	}
 
 	topBlock, _, err := fd.getter(
-		ctx, fd.kmd, fd.rootBlockPointer(), fd.file, blockRead)
+		ctx, fd.tree.kmd, fd.rootBlockPointer(), fd.tree.file, blockRead)
 	if err != nil {
 		return nil, err
 	}
@@ -1524,14 +1189,15 @@ func (fd *fileData) findIPtrsAndClearSize(
 					for i := 0; i <= level; i++ {
 						// Get a writeable copy for each block.
 						pblock, _, err := fd.getter(
-							ctx, fd.kmd, parentPtr, fd.file, blockWrite)
+							ctx, fd.tree.kmd, parentPtr, fd.tree.file,
+							blockWrite)
 						if err != nil {
 							return nil, err
 						}
 						path[i].pblock = pblock
 						parentPtr = path[i].childBlockPtr()
 					}
-					_, _, err = fd.markParentsDirty(ctx, path[:level+1])
+					_, _, err = fd.tree.markParentsDirty(path[:level+1])
 					if err != nil {
 						return nil, err
 					}
@@ -1554,8 +1220,8 @@ func (fd *fileData) findIPtrsAndClearSize(
 // pointers in the copy.
 func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 	newTopPtr BlockPointer, allChildPtrs []BlockPointer, err error) {
-	topBlock, _, err := fd.getter(ctx, fd.kmd, fd.rootBlockPointer(),
-		fd.file, blockRead)
+	topBlock, _, err := fd.getter(ctx, fd.tree.kmd, fd.rootBlockPointer(),
+		fd.tree.file, blockRead)
 	if err != nil {
 		return zeroPtr, nil, err
 	}
@@ -1568,18 +1234,18 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 		}
 
 		newTopPtr = fd.rootBlockPointer()
-		newTopPtr.RefNonce, err = fd.crypto.MakeBlockRefNonce()
+		newTopPtr.RefNonce, err = fd.tree.crypto.MakeBlockRefNonce()
 		if err != nil {
 			return zeroPtr, nil, err
 		}
-		newTopPtr.SetWriter(fd.chargedTo)
+		newTopPtr.SetWriter(fd.tree.chargedTo)
 
-		if err = fd.cacher(newTopPtr, newTopBlock); err != nil {
+		if err = fd.tree.cacher(newTopPtr, newTopBlock); err != nil {
 			return zeroPtr, nil, err
 		}
 
-		fd.log.CDebugf(ctx, "Deep copied file %s: %v -> %v",
-			fd.file.tailName(), fd.rootBlockPointer(), newTopPtr)
+		fd.tree.log.CDebugf(ctx, "Deep copied file %s: %v -> %v",
+			fd.tree.file.tailName(), fd.rootBlockPointer(), newTopPtr)
 
 		return newTopPtr, nil, nil
 	}
@@ -1621,17 +1287,17 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 				if level == leafLevel {
 					// Generate a new nonce for each indirect pointer
 					// to a leaf.
-					iptr.RefNonce, err = fd.crypto.MakeBlockRefNonce()
+					iptr.RefNonce, err = fd.tree.crypto.MakeBlockRefNonce()
 					if err != nil {
 						return zeroPtr, nil, err
 					}
-					iptr.SetWriter(fd.chargedTo)
+					iptr.SetWriter(fd.tree.chargedTo)
 					pblock.IPtrs[i] = iptr
 					allChildPtrs = append(allChildPtrs, iptr.BlockPointer)
 				} else {
 					// Generate a new random ID for each indirect
 					// pointer to an indirect block.
-					newID, err := fd.crypto.MakeTemporaryBlockID()
+					newID, err := fd.tree.crypto.MakeTemporaryBlockID()
 					if err != nil {
 						return zeroPtr, nil, err
 					}
@@ -1641,10 +1307,10 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 					// will have changed.
 					newPtr := BlockPointer{
 						ID:      newID,
-						KeyGen:  fd.kmd.LatestKeyGeneration(),
+						KeyGen:  fd.tree.kmd.LatestKeyGeneration(),
 						DataVer: dataVer,
 						Context: kbfsblock.MakeFirstContext(
-							fd.chargedTo,
+							fd.tree.chargedTo,
 							fd.rootBlockPointer().GetBlockType()),
 						DirectType: IndirectBlock,
 					}
@@ -1656,7 +1322,7 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 							"No copied child block found for ptr %v",
 							iptr.BlockPointer)
 					}
-					if err = fd.cacher(newPtr, childBlock); err != nil {
+					if err = fd.tree.cacher(newPtr, childBlock); err != nil {
 						return zeroPtr, nil, err
 					}
 				}
@@ -1666,20 +1332,20 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 
 	// Finally, make a new ID for the top block and cache it.
 	newTopPtr = fd.rootBlockPointer()
-	newID, err := fd.crypto.MakeTemporaryBlockID()
+	newID, err := fd.tree.crypto.MakeTemporaryBlockID()
 	if err != nil {
 		return zeroPtr, nil, err
 	}
 	newTopPtr = BlockPointer{
 		ID:      newID,
-		KeyGen:  fd.kmd.LatestKeyGeneration(),
+		KeyGen:  fd.tree.kmd.LatestKeyGeneration(),
 		DataVer: dataVer,
 		Context: kbfsblock.MakeFirstContext(
-			fd.chargedTo, fd.rootBlockPointer().GetBlockType()),
+			fd.tree.chargedTo, fd.rootBlockPointer().GetBlockType()),
 		DirectType: IndirectBlock,
 	}
-	fd.log.CDebugf(ctx, "Deep copied indirect file %s: %v -> %v",
-		fd.file.tailName(), fd.rootBlockPointer(), newTopPtr)
+	fd.tree.log.CDebugf(ctx, "Deep copied indirect file %s: %v -> %v",
+		fd.tree.file.tailName(), fd.rootBlockPointer(), newTopPtr)
 
 	newTopBlock, ok := copiedBlocks[fd.rootBlockPointer()]
 	if !ok {
@@ -1687,7 +1353,7 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 			"No copied root block found for ptr %v",
 			fd.rootBlockPointer())
 	}
-	if err = fd.cacher(newTopPtr, newTopBlock); err != nil {
+	if err = fd.tree.cacher(newTopPtr, newTopBlock); err != nil {
 		return zeroPtr, nil, err
 	}
 
@@ -1729,7 +1395,7 @@ func (fd *fileData) undupChildrenInCopy(ctx context.Context,
 	// multiple devices modifying the same large file or set of files.
 	// And then remove this check.
 	if len(pfr) > (2*1024*1024*1024)/MaxBlockSizeBytesDefault {
-		return nil, FileTooBigForCRError{fd.file}
+		return nil, FileTooBigForCRError{fd.tree.file}
 	}
 
 	// Append the leaf block to each path, since readyHelper expects it.
@@ -1737,7 +1403,7 @@ func (fd *fileData) undupChildrenInCopy(ctx context.Context,
 	for i, path := range pfr {
 		leafPtr := path[len(path)-1].childBlockPtr()
 		leafBlock, _, err := fd.getter(
-			ctx, fd.kmd, leafPtr, fd.file, blockWrite)
+			ctx, fd.tree.kmd, leafPtr, fd.tree.file, blockWrite)
 		if err != nil {
 			return nil, err
 		}
@@ -1746,7 +1412,7 @@ func (fd *fileData) undupChildrenInCopy(ctx context.Context,
 	}
 
 	newInfos, err := fd.readyHelper(
-		ctx, fd.file.Tlf, bcache, bops, bps, pfr, nil)
+		ctx, fd.tree.file.Tlf, bcache, bops, bps, pfr, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1782,7 +1448,7 @@ func (fd *fileData) readyNonLeafBlocksInCopy(ctx context.Context,
 	}
 
 	newInfos, err := fd.readyHelper(
-		ctx, fd.file.Tlf, bcache, bops, bps, pfr, nil)
+		ctx, fd.tree.file.Tlf, bcache, bops, bps, pfr, nil)
 	if err != nil {
 		return nil, err
 	}

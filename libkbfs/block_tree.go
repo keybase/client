@@ -7,6 +7,9 @@ package libkbfs
 import (
 	"context"
 
+	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfsblock"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -15,15 +18,20 @@ import (
 // It may be called from new goroutines, and must handle any required
 // locks accordingly.
 type blockGetterFn func(context.Context, KeyMetadata, BlockPointer,
-	path, blockReqType) (block Block, wasDirty bool, err error)
+	path, blockReqType) (block BlockWithPtrs, wasDirty bool, err error)
 
 // dirtyBlockCacher writes dirty blocks to a cache.
 type dirtyBlockCacher func(ptr BlockPointer, block Block) error
 
 type blockTree struct {
-	file   path
-	kmd    KeyMetadata
-	getter blockGetterFn
+	file      path
+	chargedTo keybase1.UserOrTeamID
+	crypto    cryptoPure
+	kmd       KeyMetadata
+	bsplit    BlockSplitter
+	getter    blockGetterFn
+	cacher    dirtyBlockCacher
+	log       logger.Logger
 }
 
 // parentBlockAndChildIndex is a node on a path down the tree to a
@@ -31,7 +39,7 @@ type blockTree struct {
 // to one of that leaf node's parents, and `childIndex` is an index
 // into `pblock.IPtrs` to the next node along the path.
 type parentBlockAndChildIndex struct {
-	pblock     Block
+	pblock     BlockWithPtrs
 	childIndex int
 }
 
@@ -44,6 +52,10 @@ func (pbci parentBlockAndChildIndex) childBlockPtr() BlockPointer {
 	return info.BlockPointer
 }
 
+func (pbci parentBlockAndChildIndex) clearEncodedSize() {
+	pbci.pblock.ClearIndirectPtrSize(pbci.childIndex)
+}
+
 func (bt *blockTree) rootBlockPointer() BlockPointer {
 	return bt.file.tailPointer()
 }
@@ -52,9 +64,9 @@ func (bt *blockTree) rootBlockPointer() BlockPointer {
 // `off`, along with the set of indirect blocks leading to that leaf
 // (if any).
 func (bt *blockTree) getBlockAtOffset(ctx context.Context,
-	topBlock Block, off Offset, rtype blockReqType) (
+	topBlock BlockWithPtrs, off Offset, rtype blockReqType) (
 	ptr BlockPointer, parentBlocks []parentBlockAndChildIndex,
-	block Block, nextBlockStartOff, startOff Offset,
+	block BlockWithPtrs, nextBlockStartOff, startOff Offset,
 	wasDirty bool, err error) {
 	// Find the block matching the offset, if it exists.
 	ptr = bt.rootBlockPointer()
@@ -114,10 +126,10 @@ func (bt *blockTree) getBlockAtOffset(ctx context.Context,
 // on a subsection of the block tree (not necessarily starting from
 // the top block).
 func (bt *blockTree) getNextDirtyBlockAtOffsetAtLevel(ctx context.Context,
-	pblock Block, off Offset, rtype blockReqType,
+	pblock BlockWithPtrs, off Offset, rtype blockReqType,
 	dirtyBcache DirtyBlockCache, parentBlocks []parentBlockAndChildIndex) (
 	ptr BlockPointer, newParentBlocks []parentBlockAndChildIndex,
-	block Block, nextBlockStartOff, startOff Offset, err error) {
+	block BlockWithPtrs, nextBlockStartOff, startOff Offset, err error) {
 	// Search along paths of dirty blocks until we find a dirty leaf
 	// block with an offset equal or greater than `off`.
 	checkedPrevBlock := false
@@ -213,10 +225,10 @@ func (bt *blockTree) getNextDirtyBlockAtOffsetAtLevel(ctx context.Context,
 // parallelize that process, since all the dirty blocks are guaranteed
 // to be local.  `nextBlockStartOff` is `nil` if there's no next block.
 func (bt *blockTree) getNextDirtyBlockAtOffset(ctx context.Context,
-	topBlock Block, off Offset, rtype blockReqType,
+	topBlock BlockWithPtrs, off Offset, rtype blockReqType,
 	dirtyBcache DirtyBlockCache) (
 	ptr BlockPointer, parentBlocks []parentBlockAndChildIndex,
-	block Block, nextBlockStartOff, startOff Offset, err error) {
+	block BlockWithPtrs, nextBlockStartOff, startOff Offset, err error) {
 	// Find the block matching the offset, if it exists.
 	ptr = bt.rootBlockPointer()
 	if !dirtyBcache.IsDirty(bt.file.Tlf, ptr, bt.file.Branch) {
@@ -269,7 +281,7 @@ func (bt *blockTree) getNextDirtyBlockAtOffset(ctx context.Context,
 //     block given in `pathsFromRoot`.  If `pathsFromRoot` contains
 //     the last block among the children, nextBlockOff is nil.
 func (bt *blockTree) getBlocksForOffsetRange(ctx context.Context,
-	ptr BlockPointer, pblock Block, startOff, endOff Offset,
+	ptr BlockPointer, pblock BlockWithPtrs, startOff, endOff Offset,
 	prefixOk bool, getDirect bool) (pathsFromRoot [][]parentBlockAndChildIndex,
 	blocks map[BlockPointer]Block, nextBlockOffset Offset,
 	err error) {
@@ -426,4 +438,333 @@ outer:
 	}
 
 	return pathsFromRoot, blocks, nextBlockOffset, nil
+}
+
+type createTopBlockFn func(context.Context, DataVer) (BlockWithPtrs, error)
+type makeNewBlockWithPtrs func(isIndirect bool) BlockWithPtrs
+
+// newRightBlock creates space for a new rightmost block, creating
+// parent blocks and a new level of indirection in the tree as needed.
+// If there's no new level of indirection, it modifies the blocks in
+// `parentBlocks` to include the new right-most pointers
+// (`parentBlocks` must consist of blocks copied for writing).  It
+// also returns the set of parents pointing to the new block (whether
+// or not there is a new level of indirection), and also returns any
+// newly-dirtied block pointers.
+//
+// The new block is pointed to using offset `off`, and doesn't have to
+// represent the right-most block in a tree.  In particular, if `off`
+// is less than the offset of its leftmost neighbor, it's the caller's
+// responsibility to move the new right block into the correct place
+// in the tree (e.g., using `shiftBlocksToFillHole()`).
+func (bt *blockTree) newRightBlock(
+	ctx context.Context, parentBlocks []parentBlockAndChildIndex, off Offset,
+	dver DataVer, newBlock makeNewBlockWithPtrs, topBlocker createTopBlockFn) (
+	[]parentBlockAndChildIndex, []BlockPointer, error) {
+	// Find the lowest block that can accommodate a new right block.
+	lowestAncestorWithRoom := -1
+	for i := len(parentBlocks) - 1; i >= 0; i-- {
+		pb := parentBlocks[i]
+		if pb.pblock.NumIndirectPtrs() < bt.bsplit.MaxPtrsPerBlock() {
+			lowestAncestorWithRoom = i
+			break
+		}
+	}
+
+	var newTopBlock BlockWithPtrs
+	var newDirtyPtrs []BlockPointer
+	if lowestAncestorWithRoom < 0 {
+		// Create a new level of indirection at the top.
+		var err error
+		newTopBlock, err = topBlocker(ctx, dver)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		// The old top block needs to be cached under its new ID if it
+		// was indirect.
+		if len(parentBlocks) > 0 {
+			dType := DirectBlock
+			if parentBlocks[0].pblock.IsIndirect() {
+				dType = IndirectBlock
+			}
+			newTopBlock.SetIndirectPtrType(0, dType)
+			info, _ := newTopBlock.IndirectPtr(0)
+			ptr := info.BlockPointer
+			err = bt.cacher(ptr, parentBlocks[0].pblock)
+			if err != nil {
+				return nil, nil, err
+			}
+			newDirtyPtrs = append(newDirtyPtrs, ptr)
+		}
+
+		parentBlocks = append([]parentBlockAndChildIndex{{newTopBlock, 0}},
+			parentBlocks...)
+		lowestAncestorWithRoom = 0
+	}
+	rightParentBlocks := make([]parentBlockAndChildIndex, len(parentBlocks))
+
+	bt.log.CDebugf(ctx, "Making new right block at off %d for entry %v, "+
+		"lowestAncestor at level %d", off, bt.rootBlockPointer(),
+		lowestAncestorWithRoom)
+
+	// Make a new right block for every parent, starting with the
+	// lowest ancestor with room.  Note that we're not iterating over
+	// the actual parent blocks here; we're only using its length to
+	// figure out how many levels need new blocks.
+	pblock := parentBlocks[lowestAncestorWithRoom].pblock
+	for i := lowestAncestorWithRoom; i < len(parentBlocks); i++ {
+		newRID, err := bt.crypto.MakeTemporaryBlockID()
+		if err != nil {
+			return nil, nil, err
+		}
+
+		newPtr := BlockPointer{
+			ID:      newRID,
+			KeyGen:  bt.kmd.LatestKeyGeneration(),
+			DataVer: dver,
+			Context: kbfsblock.MakeFirstContext(
+				bt.chargedTo, bt.rootBlockPointer().GetBlockType()),
+			DirectType: IndirectBlock,
+		}
+
+		if i == len(parentBlocks)-1 {
+			newPtr.DirectType = DirectBlock
+		}
+
+		bt.log.CDebugf(ctx, "New right block for entry %v, level %d, ptr %v",
+			bt.rootBlockPointer(), i, newPtr)
+
+		pblock.AppendNewIndirectPtr(newPtr, off)
+		rightParentBlocks[i].pblock = pblock
+		rightParentBlocks[i].childIndex = pblock.NumIndirectPtrs() - 1
+
+		isInd := i != len(parentBlocks)-1
+		rblock := newBlock(isInd)
+		if isInd {
+			pblock = rblock
+		}
+
+		err = bt.cacher(newPtr, rblock)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		newDirtyPtrs = append(newDirtyPtrs, newPtr)
+	}
+
+	// All parents up to and including the lowest ancestor with room
+	// will have to change, so mark them as dirty.
+	ptr := bt.rootBlockPointer()
+	for i := 0; i <= lowestAncestorWithRoom; i++ {
+		pb := parentBlocks[i]
+		if err := bt.cacher(ptr, pb.pblock); err != nil {
+			return nil, nil, err
+		}
+		newDirtyPtrs = append(newDirtyPtrs, ptr)
+		ptr = pb.childBlockPtr()
+		rightParentBlocks[i].pblock = pb.pblock
+		rightParentBlocks[i].childIndex = pb.pblock.NumIndirectPtrs() - 1
+	}
+
+	return rightParentBlocks, newDirtyPtrs, nil
+}
+
+// shiftBlocksToFillHole should be called after newRightBlock when the
+// offset for the new block is smaller than the final offset of the
+// tree.  This happens when there is a hole in the file, or when
+// expanding an internal leaf for a directory, and the user is now
+// writing data into that expanded area.  This function moves the new
+// block into the correct place, and rearranges all the indirect
+// pointers in the file as needed.  It returns any block pointers that
+// were dirtied in the process.
+func (bt *blockTree) shiftBlocksToFillHole(
+	ctx context.Context, newTopBlock BlockWithPtrs,
+	parents []parentBlockAndChildIndex) (
+	newDirtyPtrs []BlockPointer, newUnrefs []BlockInfo,
+	newlyDirtiedChildBytes int64, err error) {
+	// `parents` should represent the right side of the tree down to
+	// the new rightmost indirect pointer, the offset of which should
+	// match `newHoleStartOff`.  Keep swapping it with its sibling on
+	// the left until its offset would be lower than that child's
+	// offset.  If there are no children to the left, continue on with
+	// the children in the cousin block to the left.  If we swap a
+	// child between cousin blocks, we must update the offset in the
+	// right cousin's parent block.  If *that* updated pointer is the
+	// leftmost pointer in its parent block, update that one as well,
+	// up to the root.
+	//
+	// We are guaranteed at least one level of indirection because
+	// `newRightBlock` should have been called before
+	// `shiftBlocksToFillHole`.
+	immedParent := parents[len(parents)-1]
+	currIndex := immedParent.childIndex
+	_, newBlockStartOff := immedParent.childIPtr()
+
+	bt.log.CDebugf(ctx, "Shifting block with offset %d for entry %v into "+
+		"position", newBlockStartOff, bt.rootBlockPointer())
+
+	// Swap left as needed.
+	for {
+		var leftOff Offset
+		var newParents []parentBlockAndChildIndex
+		immedPblock := immedParent.pblock
+		if currIndex > 0 {
+			_, leftOff = immedPblock.IndirectPtr(currIndex - 1)
+		} else {
+			// Construct the new set of parents for the shifted block,
+			// by looking for the next left cousin.
+			newParents = make([]parentBlockAndChildIndex, len(parents))
+			copy(newParents, parents)
+			var level int
+			for level = len(newParents) - 2; level >= 0; level-- {
+				// The parent at the level being evaluated has a left
+				// sibling, so we use that sibling.
+				if newParents[level].childIndex > 0 {
+					break
+				}
+				// Keep going up until we find a way back down a left branch.
+			}
+
+			if level < 0 {
+				// We are already all the way on the left, we're done!
+				return newDirtyPtrs, newUnrefs, newlyDirtiedChildBytes, nil
+			}
+			newParents[level].childIndex--
+
+			// Walk back down, shifting the new parents into position.
+			for ; level < len(newParents)-1; level++ {
+				nextPtr := newParents[level].childBlockPtr()
+				childBlock, _, err := bt.getter(
+					ctx, bt.kmd, nextPtr, bt.file, blockWrite)
+				if err != nil {
+					return nil, nil, 0, err
+				}
+
+				newParents[level+1].pblock = childBlock
+				newParents[level+1].childIndex =
+					childBlock.NumIndirectPtrs() - 1
+				_, leftOff = childBlock.IndirectPtr(
+					childBlock.NumIndirectPtrs() - 1)
+			}
+		}
+
+		// We're done!
+		if leftOff.Less(newBlockStartOff) {
+			return newDirtyPtrs, newUnrefs, newlyDirtiedChildBytes, nil
+		}
+
+		// Otherwise, we need to swap the indirect file pointers.
+		if currIndex > 0 {
+			immedPblock.SwapIndirectPtrs(currIndex-1, immedPblock, currIndex)
+			currIndex--
+			continue
+		}
+
+		// Swap block pointers across cousins at the lowest level of
+		// indirection.
+		newImmedParent := newParents[len(newParents)-1]
+		newImmedPblock := newImmedParent.pblock
+		newCurrIndex := newImmedPblock.NumIndirectPtrs() - 1
+		newImmedPblock.SwapIndirectPtrs(newCurrIndex, immedPblock, currIndex)
+
+		// Cache the new immediate parent as dirty.  Also cache the
+		// old immediate parent's right-most leaf child as dirty, to
+		// make sure this path is captured in
+		// getNextDirtyBlockAtOffset calls.  TODO: this is inefficient
+		// since it might end up re-encoding and re-uploading a leaf
+		// block that wasn't actually dirty; we should find a better
+		// way to make sure ready() sees these parent blocks.
+		if len(newParents) > 1 {
+			i := len(newParents) - 2
+			childPtr := newParents[i].childBlockPtr()
+			if err := bt.cacher(
+				childPtr, newImmedPblock); err != nil {
+				return nil, nil, 0, err
+			}
+			newDirtyPtrs = append(newDirtyPtrs, childPtr)
+
+			// Fetch the old parent's right leaf for writing, and mark
+			// it as dirty.
+			rightLeafInfo, _ := immedPblock.IndirectPtr(
+				immedPblock.NumIndirectPtrs() - 1)
+			leafBlock, _, err := bt.getter(
+				ctx, bt.kmd, rightLeafInfo.BlockPointer, bt.file, blockWrite)
+			if err != nil {
+				return nil, nil, 0, err
+			}
+			if err := bt.cacher(
+				rightLeafInfo.BlockPointer, leafBlock); err != nil {
+				return nil, nil, 0, err
+			}
+			newDirtyPtrs = append(newDirtyPtrs, rightLeafInfo.BlockPointer)
+			// Remember the size of the dirtied leaf.
+			if rightLeafInfo.EncodedSize != 0 {
+				newlyDirtiedChildBytes += leafBlock.BytesCanBeDirtied()
+				newUnrefs = append(newUnrefs, rightLeafInfo)
+				immedPblock.ClearIndirectPtrSize(
+					immedPblock.NumIndirectPtrs() - 1)
+			}
+		}
+
+		// Now we need to update the parent offsets on the right side,
+		// all the way up to the common ancestor (which is the one
+		// with the one that doesn't have a childIndex of 0).  (We
+		// don't need to update the left side, since the offset of the
+		// new right-most block on that side doesn't affect the
+		// incoming indirect pointer offset, which already points to
+		// the left side of that branch.)
+		_, newRightOff := immedPblock.IndirectPtr(currIndex)
+		for level := len(parents) - 2; level >= 0; level-- {
+			// Cache the block below this level, which was just
+			// modified.
+			childInfo, _ := parents[level].childIPtr()
+			if err := bt.cacher(
+				childInfo.BlockPointer, parents[level+1].pblock); err != nil {
+				return nil, nil, 0, err
+			}
+			newDirtyPtrs = append(newDirtyPtrs, childInfo.BlockPointer)
+			// Remember the size of the dirtied child.
+			if childInfo.EncodedSize != 0 {
+				newUnrefs = append(newUnrefs, childInfo)
+				parents[level].clearEncodedSize()
+			}
+
+			// If we've reached a level where the child indirect
+			// offset wasn't affected, we're done.  If not, update the
+			// offset at this level and move up the tree.
+			if parents[level+1].childIndex > 0 {
+				break
+			}
+			index := parents[level].childIndex
+			parents[level].pblock.SetIndirectPtrOff(index, newRightOff)
+		}
+		immedParent = newImmedParent
+		currIndex = newCurrIndex
+		parents = newParents
+	}
+	// The loop above must exit via one of the returns.
+}
+
+// markParentsDirty caches all the blocks in `parentBlocks` as dirty,
+// and returns the dirtied block pointers as well as any block infos
+// with non-zero encoded sizes that will now need to be unreferenced.
+func (bt *blockTree) markParentsDirty(parentBlocks []parentBlockAndChildIndex) (
+	dirtyPtrs []BlockPointer, unrefs []BlockInfo, err error) {
+	parentPtr := bt.rootBlockPointer()
+	for _, pb := range parentBlocks {
+		if err := bt.cacher(parentPtr, pb.pblock); err != nil {
+			return nil, unrefs, err
+		}
+		dirtyPtrs = append(dirtyPtrs, parentPtr)
+		childInfo, _ := pb.childIPtr()
+		parentPtr = childInfo.BlockPointer
+
+		// Remember the size of each newly-dirtied child.
+		if childInfo.EncodedSize != 0 {
+			unrefs = append(unrefs, childInfo)
+			pb.clearEncodedSize()
+		}
+	}
+	return dirtyPtrs, unrefs, nil
 }

@@ -115,6 +115,22 @@ type Block interface {
 	ToCommonBlock() *CommonBlock
 	// IsIndirect indicates whether this block contains indirect pointers.
 	IsIndirect() bool
+	// OffsetExceedsData returns true if `off` is greater than the
+	// data contained in a direct block, assuming it starts at
+	// `startOff`.  Note that the offset of the next block isn't
+	// relevant; this function should only indicate whether the offset
+	// is greater than what currently could be stored in this block.
+	OffsetExceedsData(startOff, off Offset) bool
+	// BytesCanBeDirtied returns the number of bytes that should be
+	// marked as dirtied if this block is dirtied.
+	BytesCanBeDirtied() int64
+}
+
+// BlockWithPtrs defines methods needed for interacting with indirect
+// pointers.
+type BlockWithPtrs interface {
+	Block
+
 	// FirstOffset returns the offset of the indirect pointer that
 	// points to the first (left-most) block in a block tree.
 	FirstOffset() Offset
@@ -126,12 +142,21 @@ type Block interface {
 	// pointer at index `i`. The behavior is undefined when called on
 	// a non-indirect block.
 	IndirectPtr(i int) (BlockInfo, Offset)
-	// OffsetExceedsData returns true if `off` is greater than the
-	// data contained in a direct block, assuming it starts at
-	// `startOff`.  Note that the offset of the next block isn't
-	// relevant; this function should only indicate whether the offset
-	// is greater than what currently could be stored in this block.
-	OffsetExceedsData(startOff, off Offset) bool
+	// AppendNewIndirectPtr appends a new indirect pointer at the
+	// given offset.
+	AppendNewIndirectPtr(ptr BlockPointer, off Offset)
+	// ClearIndirectPtrSize clears the encoded size of the indirect
+	// pointer stored at index `i`.
+	ClearIndirectPtrSize(i int)
+	// SetIndirectPtrType set the type of the indirect pointer stored
+	// at index `i`.
+	SetIndirectPtrType(i int, dt BlockDirectType)
+	// SetIndirectPtrOff set the offset of the indirect pointer stored
+	// at index `i`.
+	SetIndirectPtrOff(i int, off Offset)
+	// SwapIndirectPtrs swaps the indirect ptr at `i` in this block
+	// with the one at `otherI` in `other`.
+	SwapIndirectPtrs(i int, other BlockWithPtrs, otherI int)
 }
 
 // NodeID is a unique but transient ID for a Node. That is, two Node

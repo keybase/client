@@ -9,7 +9,9 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -23,6 +25,9 @@ func setupDirDataTest(t *testing.T) (*dirData, BlockCache, DirtyBlockCache) {
 	}
 	id := tlf.FakeID(1, tlf.Private)
 	dir := path{FolderBranch{Tlf: id}, []pathNode{{ptr, "dir"}}}
+	chargedTo := keybase1.MakeTestUID(1).AsUserOrTeam()
+	crypto := MakeCryptoCommon(kbfscodec.NewMsgpack())
+	bsplit := &BlockSplitterSimple{10, 10, 10}
 	kmd := emptyKeyMetadata{id, 1}
 
 	cleanCache := NewBlockCacheStandard(1<<10, 1<<20)
@@ -39,19 +44,20 @@ func setupDirDataTest(t *testing.T) (*dirData, BlockCache, DirtyBlockCache) {
 			}
 			isDirty = false
 		}
-		fblock, ok := block.(*DirBlock)
+		dblock, ok := block.(*DirBlock)
 		if !ok {
 			return nil, false,
 				fmt.Errorf("Block for %s is not a dir block", ptr)
 		}
-		return fblock, isDirty, nil
+		return dblock, isDirty, nil
 	}
 	cacher := func(ptr BlockPointer, block Block) error {
 		return dirtyBcache.Put(id, ptr, MasterBranch, block)
 	}
 
 	dd := newDirData(
-		dir, kmd, getter, cacher, logger.NewTestLogger(t))
+		dir, chargedTo, crypto, kmd, bsplit, getter, cacher,
+		logger.NewTestLogger(t))
 	return dd, cleanCache, dirtyBcache
 }
 
@@ -68,7 +74,7 @@ func TestDirDataGetChildren(t *testing.T) {
 	ctx := context.Background()
 	topBlock := NewDirBlock().(*DirBlock)
 	cleanBcache.Put(
-		dd.rootBlockPointer(), dd.dir.Tlf, topBlock, TransientEntry)
+		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry)
 
 	t.Log("No entries, direct block")
 	children, err := dd.getChildren(ctx)
@@ -91,7 +97,7 @@ func TestDirDataGetChildren(t *testing.T) {
 	require.Equal(t, uint64(2), children["b"].Size)
 
 	t.Log("Indirect blocks")
-	dd.dir.path[len(dd.dir.path)-1].DirectType = IndirectBlock
+	dd.tree.file.path[len(dd.tree.file.path)-1].DirectType = IndirectBlock
 	newTopBlock := NewDirBlock().(*DirBlock)
 	newTopBlock.IsInd = true
 	ptr1 := BlockPointer{
@@ -114,9 +120,9 @@ func TestDirDataGetChildren(t *testing.T) {
 	addFakeDirDataEntry(block2, "z1", 3)
 	addFakeDirDataEntry(block2, "z2", 4)
 	cleanBcache.Put(
-		dd.rootBlockPointer(), dd.dir.Tlf, newTopBlock, TransientEntry)
-	cleanBcache.Put(ptr1, dd.dir.Tlf, topBlock, TransientEntry)
-	cleanBcache.Put(ptr2, dd.dir.Tlf, block2, TransientEntry)
+		dd.rootBlockPointer(), dd.tree.file.Tlf, newTopBlock, TransientEntry)
+	cleanBcache.Put(ptr1, dd.tree.file.Tlf, topBlock, TransientEntry)
+	cleanBcache.Put(ptr2, dd.tree.file.Tlf, block2, TransientEntry)
 	children, err = dd.getChildren(ctx)
 	require.NoError(t, err)
 	require.Len(t, children, 4)
@@ -132,7 +138,7 @@ func TestDirDataLookup(t *testing.T) {
 	ctx := context.Background()
 	topBlock := NewDirBlock().(*DirBlock)
 	cleanBcache.Put(
-		dd.rootBlockPointer(), dd.dir.Tlf, topBlock, TransientEntry)
+		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry)
 
 	t.Log("No entries, direct block")
 	_, err := dd.lookup(ctx, "a")
@@ -151,7 +157,7 @@ func TestDirDataLookup(t *testing.T) {
 
 	t.Log("Indirect blocks")
 	addFakeDirDataEntry(topBlock, "b", 2)
-	dd.dir.path[len(dd.dir.path)-1].DirectType = IndirectBlock
+	dd.tree.file.path[len(dd.tree.file.path)-1].DirectType = IndirectBlock
 	newTopBlock := NewDirBlock().(*DirBlock)
 	newTopBlock.IsInd = true
 	ptr1 := BlockPointer{
@@ -174,9 +180,9 @@ func TestDirDataLookup(t *testing.T) {
 	addFakeDirDataEntry(block2, "z1", 3)
 	addFakeDirDataEntry(block2, "z2", 4)
 	cleanBcache.Put(
-		dd.rootBlockPointer(), dd.dir.Tlf, newTopBlock, TransientEntry)
-	cleanBcache.Put(ptr1, dd.dir.Tlf, topBlock, TransientEntry)
-	cleanBcache.Put(ptr2, dd.dir.Tlf, block2, TransientEntry)
+		dd.rootBlockPointer(), dd.tree.file.Tlf, newTopBlock, TransientEntry)
+	cleanBcache.Put(ptr1, dd.tree.file.Tlf, topBlock, TransientEntry)
+	cleanBcache.Put(ptr2, dd.tree.file.Tlf, block2, TransientEntry)
 
 	checkLookup("a", 1)
 	checkLookup("b", 2)

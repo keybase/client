@@ -779,43 +779,6 @@ func (mr *MockBlockMockRecorder) IsIndirect() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsIndirect", reflect.TypeOf((*MockBlock)(nil).IsIndirect))
 }
 
-// FirstOffset mocks base method
-func (m *MockBlock) FirstOffset() Offset {
-	ret := m.ctrl.Call(m, "FirstOffset")
-	ret0, _ := ret[0].(Offset)
-	return ret0
-}
-
-// FirstOffset indicates an expected call of FirstOffset
-func (mr *MockBlockMockRecorder) FirstOffset() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FirstOffset", reflect.TypeOf((*MockBlock)(nil).FirstOffset))
-}
-
-// NumIndirectPtrs mocks base method
-func (m *MockBlock) NumIndirectPtrs() int {
-	ret := m.ctrl.Call(m, "NumIndirectPtrs")
-	ret0, _ := ret[0].(int)
-	return ret0
-}
-
-// NumIndirectPtrs indicates an expected call of NumIndirectPtrs
-func (mr *MockBlockMockRecorder) NumIndirectPtrs() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NumIndirectPtrs", reflect.TypeOf((*MockBlock)(nil).NumIndirectPtrs))
-}
-
-// IndirectPtr mocks base method
-func (m *MockBlock) IndirectPtr(i int) (BlockInfo, Offset) {
-	ret := m.ctrl.Call(m, "IndirectPtr", i)
-	ret0, _ := ret[0].(BlockInfo)
-	ret1, _ := ret[1].(Offset)
-	return ret0, ret1
-}
-
-// IndirectPtr indicates an expected call of IndirectPtr
-func (mr *MockBlockMockRecorder) IndirectPtr(i interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IndirectPtr", reflect.TypeOf((*MockBlock)(nil).IndirectPtr), i)
-}
-
 // OffsetExceedsData mocks base method
 func (m *MockBlock) OffsetExceedsData(startOff, off Offset) bool {
 	ret := m.ctrl.Call(m, "OffsetExceedsData", startOff, off)
@@ -826,6 +789,232 @@ func (m *MockBlock) OffsetExceedsData(startOff, off Offset) bool {
 // OffsetExceedsData indicates an expected call of OffsetExceedsData
 func (mr *MockBlockMockRecorder) OffsetExceedsData(startOff, off interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OffsetExceedsData", reflect.TypeOf((*MockBlock)(nil).OffsetExceedsData), startOff, off)
+}
+
+// BytesCanBeDirtied mocks base method
+func (m *MockBlock) BytesCanBeDirtied() int64 {
+	ret := m.ctrl.Call(m, "BytesCanBeDirtied")
+	ret0, _ := ret[0].(int64)
+	return ret0
+}
+
+// BytesCanBeDirtied indicates an expected call of BytesCanBeDirtied
+func (mr *MockBlockMockRecorder) BytesCanBeDirtied() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BytesCanBeDirtied", reflect.TypeOf((*MockBlock)(nil).BytesCanBeDirtied))
+}
+
+// MockBlockWithPtrs is a mock of BlockWithPtrs interface
+type MockBlockWithPtrs struct {
+	ctrl     *gomock.Controller
+	recorder *MockBlockWithPtrsMockRecorder
+}
+
+// MockBlockWithPtrsMockRecorder is the mock recorder for MockBlockWithPtrs
+type MockBlockWithPtrsMockRecorder struct {
+	mock *MockBlockWithPtrs
+}
+
+// NewMockBlockWithPtrs creates a new mock instance
+func NewMockBlockWithPtrs(ctrl *gomock.Controller) *MockBlockWithPtrs {
+	mock := &MockBlockWithPtrs{ctrl: ctrl}
+	mock.recorder = &MockBlockWithPtrsMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockBlockWithPtrs) EXPECT() *MockBlockWithPtrsMockRecorder {
+	return m.recorder
+}
+
+// DataVersion mocks base method
+func (m *MockBlockWithPtrs) DataVersion() DataVer {
+	ret := m.ctrl.Call(m, "DataVersion")
+	ret0, _ := ret[0].(DataVer)
+	return ret0
+}
+
+// DataVersion indicates an expected call of DataVersion
+func (mr *MockBlockWithPtrsMockRecorder) DataVersion() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DataVersion", reflect.TypeOf((*MockBlockWithPtrs)(nil).DataVersion))
+}
+
+// GetEncodedSize mocks base method
+func (m *MockBlockWithPtrs) GetEncodedSize() uint32 {
+	ret := m.ctrl.Call(m, "GetEncodedSize")
+	ret0, _ := ret[0].(uint32)
+	return ret0
+}
+
+// GetEncodedSize indicates an expected call of GetEncodedSize
+func (mr *MockBlockWithPtrsMockRecorder) GetEncodedSize() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEncodedSize", reflect.TypeOf((*MockBlockWithPtrs)(nil).GetEncodedSize))
+}
+
+// SetEncodedSize mocks base method
+func (m *MockBlockWithPtrs) SetEncodedSize(size uint32) {
+	m.ctrl.Call(m, "SetEncodedSize", size)
+}
+
+// SetEncodedSize indicates an expected call of SetEncodedSize
+func (mr *MockBlockWithPtrsMockRecorder) SetEncodedSize(size interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetEncodedSize", reflect.TypeOf((*MockBlockWithPtrs)(nil).SetEncodedSize), size)
+}
+
+// NewEmpty mocks base method
+func (m *MockBlockWithPtrs) NewEmpty() Block {
+	ret := m.ctrl.Call(m, "NewEmpty")
+	ret0, _ := ret[0].(Block)
+	return ret0
+}
+
+// NewEmpty indicates an expected call of NewEmpty
+func (mr *MockBlockWithPtrsMockRecorder) NewEmpty() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewEmpty", reflect.TypeOf((*MockBlockWithPtrs)(nil).NewEmpty))
+}
+
+// Set mocks base method
+func (m *MockBlockWithPtrs) Set(other Block) {
+	m.ctrl.Call(m, "Set", other)
+}
+
+// Set indicates an expected call of Set
+func (mr *MockBlockWithPtrsMockRecorder) Set(other interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockBlockWithPtrs)(nil).Set), other)
+}
+
+// ToCommonBlock mocks base method
+func (m *MockBlockWithPtrs) ToCommonBlock() *CommonBlock {
+	ret := m.ctrl.Call(m, "ToCommonBlock")
+	ret0, _ := ret[0].(*CommonBlock)
+	return ret0
+}
+
+// ToCommonBlock indicates an expected call of ToCommonBlock
+func (mr *MockBlockWithPtrsMockRecorder) ToCommonBlock() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToCommonBlock", reflect.TypeOf((*MockBlockWithPtrs)(nil).ToCommonBlock))
+}
+
+// IsIndirect mocks base method
+func (m *MockBlockWithPtrs) IsIndirect() bool {
+	ret := m.ctrl.Call(m, "IsIndirect")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsIndirect indicates an expected call of IsIndirect
+func (mr *MockBlockWithPtrsMockRecorder) IsIndirect() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsIndirect", reflect.TypeOf((*MockBlockWithPtrs)(nil).IsIndirect))
+}
+
+// OffsetExceedsData mocks base method
+func (m *MockBlockWithPtrs) OffsetExceedsData(startOff, off Offset) bool {
+	ret := m.ctrl.Call(m, "OffsetExceedsData", startOff, off)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// OffsetExceedsData indicates an expected call of OffsetExceedsData
+func (mr *MockBlockWithPtrsMockRecorder) OffsetExceedsData(startOff, off interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OffsetExceedsData", reflect.TypeOf((*MockBlockWithPtrs)(nil).OffsetExceedsData), startOff, off)
+}
+
+// BytesCanBeDirtied mocks base method
+func (m *MockBlockWithPtrs) BytesCanBeDirtied() int64 {
+	ret := m.ctrl.Call(m, "BytesCanBeDirtied")
+	ret0, _ := ret[0].(int64)
+	return ret0
+}
+
+// BytesCanBeDirtied indicates an expected call of BytesCanBeDirtied
+func (mr *MockBlockWithPtrsMockRecorder) BytesCanBeDirtied() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BytesCanBeDirtied", reflect.TypeOf((*MockBlockWithPtrs)(nil).BytesCanBeDirtied))
+}
+
+// FirstOffset mocks base method
+func (m *MockBlockWithPtrs) FirstOffset() Offset {
+	ret := m.ctrl.Call(m, "FirstOffset")
+	ret0, _ := ret[0].(Offset)
+	return ret0
+}
+
+// FirstOffset indicates an expected call of FirstOffset
+func (mr *MockBlockWithPtrsMockRecorder) FirstOffset() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FirstOffset", reflect.TypeOf((*MockBlockWithPtrs)(nil).FirstOffset))
+}
+
+// NumIndirectPtrs mocks base method
+func (m *MockBlockWithPtrs) NumIndirectPtrs() int {
+	ret := m.ctrl.Call(m, "NumIndirectPtrs")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// NumIndirectPtrs indicates an expected call of NumIndirectPtrs
+func (mr *MockBlockWithPtrsMockRecorder) NumIndirectPtrs() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NumIndirectPtrs", reflect.TypeOf((*MockBlockWithPtrs)(nil).NumIndirectPtrs))
+}
+
+// IndirectPtr mocks base method
+func (m *MockBlockWithPtrs) IndirectPtr(i int) (BlockInfo, Offset) {
+	ret := m.ctrl.Call(m, "IndirectPtr", i)
+	ret0, _ := ret[0].(BlockInfo)
+	ret1, _ := ret[1].(Offset)
+	return ret0, ret1
+}
+
+// IndirectPtr indicates an expected call of IndirectPtr
+func (mr *MockBlockWithPtrsMockRecorder) IndirectPtr(i interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IndirectPtr", reflect.TypeOf((*MockBlockWithPtrs)(nil).IndirectPtr), i)
+}
+
+// AppendNewIndirectPtr mocks base method
+func (m *MockBlockWithPtrs) AppendNewIndirectPtr(ptr BlockPointer, off Offset) {
+	m.ctrl.Call(m, "AppendNewIndirectPtr", ptr, off)
+}
+
+// AppendNewIndirectPtr indicates an expected call of AppendNewIndirectPtr
+func (mr *MockBlockWithPtrsMockRecorder) AppendNewIndirectPtr(ptr, off interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppendNewIndirectPtr", reflect.TypeOf((*MockBlockWithPtrs)(nil).AppendNewIndirectPtr), ptr, off)
+}
+
+// ClearIndirectPtrSize mocks base method
+func (m *MockBlockWithPtrs) ClearIndirectPtrSize(i int) {
+	m.ctrl.Call(m, "ClearIndirectPtrSize", i)
+}
+
+// ClearIndirectPtrSize indicates an expected call of ClearIndirectPtrSize
+func (mr *MockBlockWithPtrsMockRecorder) ClearIndirectPtrSize(i interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearIndirectPtrSize", reflect.TypeOf((*MockBlockWithPtrs)(nil).ClearIndirectPtrSize), i)
+}
+
+// SetIndirectPtrType mocks base method
+func (m *MockBlockWithPtrs) SetIndirectPtrType(i int, dt BlockDirectType) {
+	m.ctrl.Call(m, "SetIndirectPtrType", i, dt)
+}
+
+// SetIndirectPtrType indicates an expected call of SetIndirectPtrType
+func (mr *MockBlockWithPtrsMockRecorder) SetIndirectPtrType(i, dt interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetIndirectPtrType", reflect.TypeOf((*MockBlockWithPtrs)(nil).SetIndirectPtrType), i, dt)
+}
+
+// SetIndirectPtrOff mocks base method
+func (m *MockBlockWithPtrs) SetIndirectPtrOff(i int, off Offset) {
+	m.ctrl.Call(m, "SetIndirectPtrOff", i, off)
+}
+
+// SetIndirectPtrOff indicates an expected call of SetIndirectPtrOff
+func (mr *MockBlockWithPtrsMockRecorder) SetIndirectPtrOff(i, off interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetIndirectPtrOff", reflect.TypeOf((*MockBlockWithPtrs)(nil).SetIndirectPtrOff), i, off)
+}
+
+// SwapIndirectPtrs mocks base method
+func (m *MockBlockWithPtrs) SwapIndirectPtrs(i int, other BlockWithPtrs, otherI int) {
+	m.ctrl.Call(m, "SwapIndirectPtrs", i, other, otherI)
+}
+
+// SwapIndirectPtrs indicates an expected call of SwapIndirectPtrs
+func (mr *MockBlockWithPtrsMockRecorder) SwapIndirectPtrs(i, other, otherI interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SwapIndirectPtrs", reflect.TypeOf((*MockBlockWithPtrs)(nil).SwapIndirectPtrs), i, other, otherI)
 }
 
 // MockNodeID is a mock of NodeID interface

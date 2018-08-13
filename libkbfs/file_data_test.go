@@ -209,7 +209,8 @@ func (tfdl testFileDataLevel) check(t *testing.T, fd *fileData,
 	if tfdl.dirty {
 		dirtyPtrs[ptr] = true
 		require.True(
-			t, dirtyBcache.IsDirty(fd.file.Tlf, ptr, MasterBranch), levelString)
+			t, dirtyBcache.IsDirty(fd.tree.file.Tlf, ptr, MasterBranch),
+			levelString)
 	}
 
 	fblock, isDirty, err := fd.getter(nil, nil, ptr, path{}, blockRead)
@@ -277,7 +278,7 @@ func testFileDataWriteExtendEmptyFile(t *testing.T, maxBlockSize Int64Offset,
 		t, int64(maxBlockSize), maxPtrsPerBlock)
 	topBlock := NewFileBlock().(*FileBlock)
 	cleanBcache.Put(
-		fd.rootBlockPointer(), fd.file.Tlf, topBlock, TransientEntry)
+		fd.rootBlockPointer(), fd.tree.file.Tlf, topBlock, TransientEntry)
 	de := DirEntry{}
 	data := make([]byte, fullDataLen)
 	for i := 0; i < int(fullDataLen); i++ {
@@ -406,7 +407,7 @@ func testFileDataLevelExistingBlocks(t *testing.T, fd *fileData,
 					BlockInfo: BlockInfo{ptr, 0},
 					Off:       off,
 				})
-				cleanBcache.Put(ptr, fd.file.Tlf, child, TransientEntry)
+				cleanBcache.Put(ptr, fd.tree.file.Tlf, child, TransientEntry)
 			}
 			prevChildIndex = newIndex
 			level = append(level, fblock)
@@ -416,11 +417,12 @@ func testFileDataLevelExistingBlocks(t *testing.T, fd *fileData,
 	}
 
 	if numLevels > 1 {
-		fd.file.path[len(fd.file.path)-1].DirectType = IndirectBlock
+		fd.tree.file.path[len(fd.tree.file.path)-1].DirectType = IndirectBlock
 	}
 
 	cleanBcache.Put(
-		fd.rootBlockPointer(), fd.file.Tlf, prevChildren[0], TransientEntry)
+		fd.rootBlockPointer(), fd.tree.file.Tlf, prevChildren[0],
+		TransientEntry)
 	return prevChildren[0], numLevels
 }
 
