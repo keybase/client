@@ -5,7 +5,7 @@ import * as Styles from '../../styles'
 import Banner from '../banner'
 import type {Background} from '../../common-adapters/text'
 import Header from './header'
-import Participants from './participants'
+import Participants, {type Recipient} from '../participants'
 import NoteAndMemo from './note-and-memo'
 
 type ConfirmSendProps = {|
@@ -27,7 +27,7 @@ type ConfirmSendProps = {|
   yourWalletContents: string,
   receiverUsername: string,
   receiverFullName: string,
-  // receiverType: 'keybaseUser' | 'stellarAddress' | 'anotherWallet',
+  recipientType: Recipient,
 |}
 
 const ConfirmSend = (props: ConfirmSendProps) => (
@@ -43,11 +43,13 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         {!!props.bannerBackground &&
           !!props.bannerText && <Banner background={props.bannerBackground} text={props.bannerText} />}
         <Participants
-          receiverUsername={props.receiverUsername}
-          receiverFullName={props.receiverFullName}
-          yourUsername={props.yourUsername}
-          yourWalletName={props.yourWalletName}
-          yourWalletContents={props.yourWalletContents}
+          recipientType={props.recipientType}
+          isConfirm={true}
+          recipientUsername={props.receiverUsername}
+          recipientFullName={props.receiverFullName}
+          fromWalletUser={props.yourUsername}
+          fromWallet={props.yourWalletName}
+          fromWalletContents={props.yourWalletContents}
         />
         {(!!props.encryptedNote || !!props.publicMemo) && (
           <NoteAndMemo encryptedNote={props.encryptedNote} publicMemo={props.publicMemo} />

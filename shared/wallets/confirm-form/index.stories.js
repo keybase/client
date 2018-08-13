@@ -29,6 +29,7 @@ const confirmProps = {
   yourWalletContents: '280.0871234 XLM',
   receiverUsername: 'nathunsmitty',
   receiverFullName: 'Nathan Smith',
+  recipientType: 'keybaseUser',
 }
 
 const publicMemo = "Here's some lumens!"

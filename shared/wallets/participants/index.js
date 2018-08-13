@@ -4,7 +4,8 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import WalletEntry from './wallet-entry'
 import Row from './row'
-type Recipient = 'keybaseUser' | 'stellarAddress' | 'otherWallet'
+
+export type Recipient = 'keybaseUser' | 'stellarAddress' | 'otherWallet'
 
 type FromFieldProps = {|
   username: string,
@@ -115,6 +116,7 @@ const ToField = (props: ToFieldProps) => {
         props.recipientType === 'stellarAddress' && !props.username ? {alignSelf: 'flex-start'} : {}
       }
       dividerColor={props.incorrect ? Styles.globalColors.red : ''}
+      noBottomDivider={true}
     >
       {component}
     </Row>
