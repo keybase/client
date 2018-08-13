@@ -25,10 +25,8 @@ type ChatContainerProps = {
 export default ({onViewAll, onSelectConversation, conversations}: ChatContainerProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
     {conversations.map(c => {
-      // $FlowIssue y u so dumb, Flow? It can't figure out what's going on here. Something about "inexact" props below.
-      const smallTeamProps: SmallTeam.Props = c
       return (
-        <SmallTeam.SmallTeam key={c.conversationIDKey} {...smallTeamProps} onSelectConversation={() => onSelectConversation(c.conversationIDKey)} />
+        <SmallTeam.SmallTeam key={c.conversationIDKey} {...c} onSelectConversation={() => onSelectConversation(c.conversationIDKey)} />
       )
     })}
     <ChatViewAll onViewAll={onViewAll} />
