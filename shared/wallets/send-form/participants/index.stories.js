@@ -10,20 +10,29 @@ const provider = Sb.createPropProviderWithCommon({
 })
 
 const load = () => {
-  const story = Sb.storiesOf('Wallets/SendForm/Participants', module).addDecorator(story => (
-    <Box style={{maxWidth: 360}}>{story()}</Box>
-  ))
-  story.addDecorator(provider)
-  story.add('Normal', () => <Participants recipientType="stellarAddress" />)
-  story.add('Address Error', () => <Participants incorrect={true} recipientType="stellarAddress" />)
-  story.add('User match', () => (
-    <Participants
-      recipientType="keybaseUser"
-      username="yen"
-      fullname="Addie Stokes"
-      onShowProfile={Sb.action('onShowProfile')}
-    />
-  ))
+  Sb.storiesOf('Wallets/SendForm/Participants', module)
+    .addDecorator(provider)
+    .addDecorator(story => <Box style={{maxWidth: 360}}>{story()}</Box>)
+    .add('To Keybase User', () => <Participants recipientType="keybaseUser" />)
+    .add('To other wallet', () => (
+      <Participants
+        recipientType="otherWallet"
+        fromWallet="Primary Wallet"
+        fromWalletUser="cjb"
+        fromWalletContents="2000 XLM"
+      />
+    ))
+    .add('To stellar address', () => <Participants recipientType="stellarAddress" />)
+    .add('Stellar address Error', () => <Participants incorrect={true} recipientType="stellarAddress" />)
+    .add('User match', () => (
+      <Participants
+        recipientType="keybaseUser"
+        username="yen"
+        fullname="Addie Stokes"
+        onShowProfile={Sb.action('onShowProfile')}
+        onRemoveProfile={Sb.action('onRemoveUser')}
+      />
+    ))
 }
 
 export default load

@@ -4,7 +4,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import WalletEntry from './wallet-entry'
 
-type Recipient = 'keybaseUser' | 'stellarAddress' | 'anotherWallet'
+type Recipient = 'keybaseUser' | 'stellarAddress' | 'otherWallet'
 
 type FromFieldProps = {|
   username: string,
@@ -35,7 +35,7 @@ const ToField = (props: any) => (
         type="BodyTinySemibold"
         style={Styles.collapseStyles([
           styles.headingText,
-          props.recipientType === 'stellarAddress'
+          props.recipientType !== 'otherWallet'
             ? {
                 alignSelf: 'flex-start',
               }
@@ -44,27 +44,28 @@ const ToField = (props: any) => (
       >
         To:
       </Kb.Text>
-      {!!props.username && (
-        <React.Fragment>
-          <Kb.NameWithIcon
-            colorFollowing={true}
-            horizontal={true}
-            username={props.username}
-            metaOne={props.fullname}
-            onClick={props.onShowProfile}
-          />
-          {!props.isConfirm && (
-            <Kb.Icon
-              type="iconfont-remove"
-              boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserX)}
-              fontSize={16}
-              color={Styles.globalColors.black_20}
-              onClick={props.onRemoveUser}
+      {props.recipientType === 'keybaseUser' &&
+        !!props.username && (
+          <React.Fragment>
+            <Kb.NameWithIcon
+              colorFollowing={true}
+              horizontal={true}
+              username={props.username}
+              metaOne={props.fullname}
+              onClick={props.onShowProfile}
             />
-          )}
-        </React.Fragment>
-      )}
-      {!props.username && (
+            {!props.isConfirm && (
+              <Kb.Icon
+                type="iconfont-remove"
+                boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserX)}
+                fontSize={16}
+                color={Styles.globalColors.black_20}
+                onClick={props.onRemoveUser}
+              />
+            )}
+          </React.Fragment>
+        )}
+      {props.recipientType === 'stellarAddress' && (
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
             {props.recipientType === 'stellarAddress' && (
@@ -117,7 +118,7 @@ type ParticipantsProps = {|
 
 const Participants = (props: ParticipantsProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    {props.isConfirm &&
+    {(props.isConfirm || props.recipientType === 'otherWallet') &&
       props.fromWallet &&
       props.fromWalletUser &&
       props.fromWalletContents && (
