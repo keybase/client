@@ -52,22 +52,22 @@ func (e *ephemeralKeyReboxer) getDeviceEKKID() (kid keybase1.KID, err error) {
 	return "", nil
 }
 
-func (e *ephemeralKeyReboxer) getReboxArg(userEKBox *keybase1.UserEkBoxed,
+func (e *ephemeralKeyReboxer) getReboxArg(m libkb.MetaContext, userEKBox *keybase1.UserEkBoxed,
 	deviceID keybase1.DeviceID, signingKey libkb.GenericKey) (userEKReboxArg *keybase1.UserEkReboxArg, err error) {
-	defer e.M().CTrace("ephemeralKeyReboxer#getReboxArg", func() error { return err })()
+	defer m.CTrace("ephemeralKeyReboxer#getReboxArg", func() error { return err })()
 
-	ekLib := e.G().GetEKLib()
+	ekLib := m.G().GetEKLib()
 	if ekLib == nil {
 		return nil, nil
 	}
 
 	if userEKBox == nil { // We will create EKs after provisioning in the normal way
-		e.M().CDebugf("userEKBox nil, no ephemeral keys created during provisioning")
+		m.CDebugf("userEKBox nil, no ephemeral keys created during provisioning")
 		return nil, nil
 	}
 
 	deviceEKStatement, deviceEKStatementSig, err := ekLib.SignedDeviceEKStatementFromSeed(
-		e.M().Ctx(), userEKBox.DeviceEkGeneration, e.deviceEKSeed, signingKey)
+		m.Ctx(), userEKBox.DeviceEkGeneration, e.deviceEKSeed, signingKey)
 	if err != nil {
 		return nil, err
 	}
@@ -88,14 +88,14 @@ func (e *ephemeralKeyReboxer) getReboxArg(userEKBox *keybase1.UserEkBoxed,
 	return userEKReboxArg, nil
 }
 
-func (e *ephemeralKeyReboxer) storeEKs() (err error) {
-	defer e.M().CTrace("ephemeralKeyReboxer#storeEKs", func() error { return err })()
-	ekLib := e.G().GetEKLib()
+func (e *ephemeralKeyReboxer) storeEKs(m libkb.MetaContext) (err error) {
+	defer m.CTrace("ephemeralKeyReboxer#storeEKs", func() error { return err })()
+	ekLib := m.G().GetEKLib()
 	if ekLib == nil {
 		return nil
 	}
 	if e.userEKBox == nil {
-		e.M().CDebugf("userEKBox nil, no ephemeral keys to store")
+		m.CDebugf("userEKBox nil, no ephemeral keys to store")
 		return nil
 	}
 
@@ -103,17 +103,17 @@ func (e *ephemeralKeyReboxer) storeEKs() (err error) {
 		return fmt.Errorf("Unable to store EKs with out generating a seed first")
 	}
 
-	deviceEKStorage := e.G().GetDeviceEKStorage()
+	deviceEKStorage := m.G().GetDeviceEKStorage()
 	metadata := e.deviceEKStatement.CurrentDeviceEkMetadata
-	if err = deviceEKStorage.Put(e.M().Ctx(), metadata.Generation, keybase1.DeviceEk{
+	if err = deviceEKStorage.Put(m.Ctx(), metadata.Generation, keybase1.DeviceEk{
 		Seed:     e.deviceEKSeed,
 		Metadata: metadata,
 	}); err != nil {
 		return err
 	}
 
-	userEKBoxStorage := e.G().GetUserEKBoxStorage()
-	return userEKBoxStorage.Put(e.M().Ctx(), e.userEKBox.Metadata.Generation, *e.userEKBox)
+	userEKBoxStorage := m.G().GetUserEKBoxStorage()
+	return userEKBoxStorage.Put(m.Ctx(), e.userEKBox.Metadata.Generation, *e.userEKBox)
 }
 
 func makeUserEKBoxForProvisionee(m libkb.MetaContext, KID keybase1.KID) (*keybase1.UserEkBoxed, error) {

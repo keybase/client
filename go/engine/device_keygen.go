@@ -271,7 +271,7 @@ func (e *DeviceKeygen) reboxUserEK(m libkb.MetaContext, signingKey libkb.Generic
 	if err != nil {
 		return nil, err
 	}
-	return e.args.EkReboxer.getReboxArg(userEKBox, e.args.DeviceID, signingKey)
+	return e.args.EkReboxer.getReboxArg(m, userEKBox, e.args.DeviceID, signingKey)
 }
 
 func (e *DeviceKeygen) appendEldest(m libkb.MetaContext, ds []libkb.Delegator, pargs *DeviceKeygenPushArgs) []libkb.Delegator {
