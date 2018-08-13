@@ -13,11 +13,22 @@ type Props = {
   sections: any[],
 }
 
+const HistoryPlaceholder = () => (
+  <Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.historyPlaceholder}>
+    <Text type="BodyTiny" style={styles.historyPlaceholderText}>
+      You don’t have any history with this account.
+    </Text>
+  </Box2>
+)
+
 export default (props: Props) => {
   const renderItem = ({item, index, section}) => {
     const children = []
+    console.log('nathan test', section.title, index, item)
     if (section.title === 'Your assets') {
       children.push(<Asset accountID={props.accountID} index={item} key={`${props.accountID}:${item}`} />)
+    } else if (item === 'historyPlaceholder') {
+      children.push(<HistoryPlaceholder />)
     } else if (section.title === 'History' || section.title === 'Pending') {
       children.push(
         // $FlowIssue thinks these props aren't in `Transaction`
@@ -58,5 +69,11 @@ const styles = styleSheetCreate({
   assetHeader: {
     backgroundColor: globalColors.blue5,
     padding: globalMargins.xtiny,
+  },
+  historyPlaceholder: {
+    marginTop: 36,
+  },
+  historyPlaceholderText: {
+    color: globalColors.black_40,
   },
 })
