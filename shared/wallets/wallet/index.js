@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
 import {Box2, Divider, SectionList, Text} from '../../common-adapters'
-import Header from './header-container'
+import Header from './header/container'
 import Asset from '../asset/container'
 import Transaction from '../transaction/container'
 import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
