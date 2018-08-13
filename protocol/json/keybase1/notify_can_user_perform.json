@@ -1,0 +1,24 @@
+{
+  "protocol": "NotifyCanUserPerform",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "canUserPerformChanged": {
+      "request": [
+        {
+          "name": "teamName",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "oneway": true,
+      "notify": ""
+    }
+  },
+  "namespace": "keybase.1"
+}

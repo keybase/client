@@ -10,6 +10,7 @@ import {
   type PropsWithTimer,
 } from '../../../../../common-adapters'
 import {castPlatformStyles} from '../../../../../common-adapters/icon'
+import {isAndroid} from '../../../../../constants/platform'
 import {
   collapseStyles,
   globalColors,
@@ -114,6 +115,11 @@ class ExplodingMeta extends React.Component<Props, State> {
     let children
     switch (this.state.mode) {
       case 'countdown':
+        let bombIconSize = isMobile ? 22 : 16
+        if (isAndroid) {
+          // icon is 24 high and clips edge of container on android. workaround
+          bombIconSize = 21
+        }
         children = (
           <Box2 direction="horizontal" gap="xtiny">
             {this.props.pending ? (
@@ -135,7 +141,7 @@ class ExplodingMeta extends React.Component<Props, State> {
                 </Text>
               </Box2>
             )}
-            <Icon type="iconfont-bomb" fontSize={isMobile ? 22 : 16} color={globalColors.black_75} />
+            <Icon type="iconfont-bomb" fontSize={bombIconSize} color={globalColors.black_75} />
           </Box2>
         )
         break
@@ -220,8 +226,8 @@ const styles = styleSheetCreate({
     common: {
       ...globalStyles.flexBoxRow,
       alignSelf: 'flex-end',
+      height: 19,
       position: 'relative',
-      height: isMobile ? 22 : 19,
     },
     isMobile: {
       height: 22,
@@ -229,8 +235,10 @@ const styles = styleSheetCreate({
   }),
   countdown: platformStyles({
     common: {color: globalColors.white, fontWeight: 'bold'},
+    isAndroid: {fontSize: 11},
     isElectron: {fontSize: 10, lineHeight: '14px'},
-    isMobile: {fontSize: 12, lineHeight: 17},
+    isIOS: {fontSize: 12},
+    isMobile: {lineHeight: 17},
   }),
   countdownContainer: platformStyles({
     common: {

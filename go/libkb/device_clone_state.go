@@ -20,10 +20,15 @@ type DeviceCloneState struct {
 type DeviceCloneStateJSONFile struct {
 	*JSONFile
 }
+
 type cloneDetectionResponse struct {
 	AppStatusEmbed
 	Token  string `json:"token"`
 	Clones int    `json:"clones"`
+}
+
+func (d DeviceCloneState) IsClone() bool {
+	return d.Clones > 1
 }
 
 func UpdateDeviceCloneState(m MetaContext) (before int, after int, err error) {

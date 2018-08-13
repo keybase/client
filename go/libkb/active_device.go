@@ -11,22 +11,24 @@ import (
 )
 
 type ActiveDevice struct {
-	uv                      keybase1.UserVersion
-	deviceID                keybase1.DeviceID
-	deviceName              string
-	signingKey              GenericKey   // cached secret signing key
-	encryptionKey           GenericKey   // cached secret encryption key
-	nistFactory             *NISTFactory // Non-Interactive Session Token
-	secretSyncer            *SecretSyncer
-	passphrase              *PassphraseStreamCache
-	paperKey                *SelfDestructingDeviceWithKeys
+	uv            keybase1.UserVersion
+	deviceID      keybase1.DeviceID
+	deviceName    string
+	signingKey    GenericKey   // cached secret signing key
+	encryptionKey GenericKey   // cached secret encryption key
+	nistFactory   *NISTFactory // Non-Interactive Session Token
+	secretSyncer  *SecretSyncer
+	passphrase    *PassphraseStreamCache
+	// This can be a paper key or a regular device key if we are self
+	// provisioning.
+	provisioningKey         *SelfDestructingDeviceWithKeys
 	secretPromptCancelTimer CancelTimer
 	sync.RWMutex
 }
 
 func (a *ActiveDevice) Dump(m MetaContext, prefix string) {
 	m.CDebugf("%sActiveDevice: %p", prefix, a)
-	m.CDebugf("%sUserVerstion: %+v", prefix, a.uv)
+	m.CDebugf("%sUserVersion: %+v", prefix, a.uv)
 	m.CDebugf("%sUsername (via env): %s", prefix, a.Username(m))
 	m.CDebugf("%sDeviceID: %s", prefix, a.deviceID)
 	m.CDebugf("%sDeviceName: %s", prefix, a.deviceName)
@@ -37,13 +39,13 @@ func (a *ActiveDevice) Dump(m MetaContext, prefix string) {
 		m.CDebugf("%sEncKey: %s", prefix, a.encryptionKey.GetKID())
 	}
 	m.CDebugf("%sPassphraseCache: cacheObj=%v; valid=%v", prefix, (a.passphrase != nil), (a.passphrase != nil && a.passphrase.ValidPassphraseStream()))
-	m.CDebugf("%sPaperKeyCache: %v", prefix, (a.paperKey != nil && a.paperKey.DeviceWithKeys() != nil))
+	m.CDebugf("%sProvisioningKeyCache: %v", prefix, (a.provisioningKey != nil && a.provisioningKey.DeviceWithKeys() != nil))
 }
 
-// NewProvisionalActiveDevice creates an ActiveDevice that is "provisional", in that it
-// should not be considered the global ActiveDevice. Instead, it should reside in thread-local
-// context, and can be weaved through the login machinery without trampling the actual global
-// ActiveDevice.
+// NewProvisionalActiveDevice creates an ActiveDevice that is "provisional", in
+// that it should not be considered the global ActiveDevice. Instead, it should
+// reside in thread-local context, and can be weaved through the login
+// machinery without trampling the actual global ActiveDevice.
 func NewProvisionalActiveDevice(m MetaContext, uv keybase1.UserVersion, d keybase1.DeviceID, sigKey GenericKey, encKey GenericKey, deviceName string) *ActiveDevice {
 	return &ActiveDevice{
 		uv:            uv,
@@ -60,9 +62,9 @@ func NewActiveDevice() *ActiveDevice {
 	return &ActiveDevice{}
 }
 
-func NewPaperKeyActiveDevice(m MetaContext, uv keybase1.UserVersion, d *DeviceWithKeys) *ActiveDevice {
+func NewProvisioningKeyActiveDevice(m MetaContext, uv keybase1.UserVersion, d *DeviceWithKeys) *ActiveDevice {
 	ret := NewActiveDeviceWithDeviceWithKeys(m, uv, d)
-	ret.paperKey = NewSelfDestructingDeviceWithKeys(m, d, PaperKeyMemoryTimeout)
+	ret.provisioningKey = NewSelfDestructingDeviceWithKeys(m, d, ProvisioningKeyMemoryTimeout)
 	return ret
 }
 
@@ -82,7 +84,7 @@ func (a *ActiveDevice) ClearCaches() {
 	a.Lock()
 	defer a.Unlock()
 	a.passphrase = nil
-	a.paperKey = nil
+	a.provisioningKey = nil
 	a.secretPromptCancelTimer.Reset()
 }
 
@@ -103,8 +105,9 @@ func (a *ActiveDevice) Copy(m MetaContext, src *ActiveDevice) error {
 }
 
 func (a *ActiveDevice) SetOrClear(m MetaContext, a2 *ActiveDevice) error {
+	// Always clear, if we are also setting we set all new values.
+	a.Clear()
 	if a2 == nil {
-		a.Clear()
 		return nil
 	}
 	return a.Copy(m, a2)
@@ -220,7 +223,7 @@ func (a *ActiveDevice) clear() error {
 	a.encryptionKey = nil
 	a.nistFactory = nil
 	a.passphrase = nil
-	a.paperKey = nil
+	a.provisioningKey = nil
 	a.secretPromptCancelTimer.Reset()
 
 	return nil
@@ -247,14 +250,14 @@ func (a *ActiveDevice) UserVersion() keybase1.UserVersion {
 }
 
 // Username tries to get the active user's username by looking into the current
-// environment and mapping an UID to a username based on our config file. It won't
-// work halfway through a provisioning.
+// environment and mapping an UID to a username based on our config file. It
+// won't work halfway through a provisioning.
 func (a *ActiveDevice) Username(m MetaContext) NormalizedUsername {
 	return m.G().Env.GetUsernameForUID(a.UID())
 }
 
-// DeviceID returns the device ID that was provided when the device keys were cached.
-// Safe for use by concurrent goroutines.
+// DeviceID returns the device ID that was provided when the device keys were
+// cached.  Safe for use by concurrent goroutines.
 func (a *ActiveDevice) DeviceID() keybase1.DeviceID {
 	a.RLock()
 	defer a.RUnlock()
@@ -394,8 +397,7 @@ func (a *ActiveDevice) SyncSecretsForUID(m MetaContext, u keybase1.UID, force bo
 	if uid.IsNil() {
 		return nil, fmt.Errorf("can't run secret syncer without a UID")
 	}
-	err = RunSyncer(m, s, uid, true, force)
-	if err != nil {
+	if err = RunSyncer(m, s, uid, true, force); err != nil {
 		return nil, err
 	}
 	return s, nil
@@ -425,31 +427,31 @@ func (a *ActiveDevice) CheckForUsername(m MetaContext, n NormalizedUsername) (er
 	return m.G().GetUPAKLoader().CheckDeviceForUIDAndUsername(m.Ctx(), uid, deviceID, n)
 }
 
-func (a *ActiveDevice) PaperKeyWrapper(m MetaContext) *SelfDestructingDeviceWithKeys {
+func (a *ActiveDevice) ProvisioningKeyWrapper(m MetaContext) *SelfDestructingDeviceWithKeys {
 	a.RLock()
 	defer a.RUnlock()
-	return a.paperKey
+	return a.provisioningKey
 }
 
-func (a *ActiveDevice) PaperKey(m MetaContext) *DeviceWithKeys {
+func (a *ActiveDevice) ProvisioningKey(m MetaContext) *DeviceWithKeys {
 	a.RLock()
 	defer a.RUnlock()
-	if a.paperKey == nil {
+	if a.provisioningKey == nil {
 		return nil
 	}
-	return a.paperKey.DeviceWithKeys()
+	return a.provisioningKey.DeviceWithKeys()
 }
 
-func (a *ActiveDevice) ClearPaperKey(m MetaContext) {
+func (a *ActiveDevice) ClearProvisioningKey(m MetaContext) {
 	a.Lock()
 	defer a.Unlock()
-	a.paperKey = nil
+	a.provisioningKey = nil
 }
 
-func (a *ActiveDevice) CachePaperKey(m MetaContext, k *DeviceWithKeys) {
+func (a *ActiveDevice) CacheProvisioningKey(m MetaContext, k *DeviceWithKeys) {
 	a.Lock()
 	defer a.Unlock()
-	a.paperKey = NewSelfDestructingDeviceWithKeys(m, k, PaperKeyMemoryTimeout)
+	a.provisioningKey = NewSelfDestructingDeviceWithKeys(m, k, ProvisioningKeyMemoryTimeout)
 }
 
 func (a *ActiveDevice) PassphraseStreamCache() *PassphraseStreamCache {

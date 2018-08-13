@@ -20,20 +20,26 @@ type supersedesTransform interface {
 type getMessagesFunc func(context.Context, types.UnboxConversationInfo, gregor1.UID, []chat1.MessageID,
 	*chat1.GetThreadReason) ([]chat1.MessageUnboxed, error)
 
+type basicSupersedesTransformOpts struct {
+	UseDeletePlaceholders bool
+}
+
 type basicSupersedesTransform struct {
 	globals.Contextified
 	utils.DebugLabeler
 
 	messagesFunc getMessagesFunc
+	opts         basicSupersedesTransformOpts
 }
 
 var _ supersedesTransform = (*basicSupersedesTransform)(nil)
 
-func newBasicSupersedesTransform(g *globals.Context) *basicSupersedesTransform {
+func newBasicSupersedesTransform(g *globals.Context, opts basicSupersedesTransformOpts) *basicSupersedesTransform {
 	return &basicSupersedesTransform{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "supersedesTransform", false),
 		messagesFunc: g.ConvSource.GetMessages,
+		opts:         opts,
 	}
 }
 
@@ -220,6 +226,11 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 
 	// Run through all messages and transform superseded messages into final state
 	var newMsgs []chat1.MessageUnboxed
+	xformDelete := func(msgID chat1.MessageID) {
+		if t.opts.UseDeletePlaceholders {
+			newMsgs = append(newMsgs, utils.CreateHiddenPlaceholder(msgID))
+		}
+	}
 	for i, msg := range originalMsgs {
 		if msg.IsValid() {
 			newMsg := &originalMsgs[i]
@@ -230,9 +241,12 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 			if newMsg == nil {
 				// Transform might return nil in case of a delete.
 				t.Debug(ctx, "skipping: %d because it was deleted", msg.GetMessageID())
+				xformDelete(msg.GetMessageID())
 				continue
 			}
-			if newMsg.GetMessageID() < deleteHistoryUpto && chat1.IsDeletableByDeleteHistory(newMsg.GetMessageType()) {
+			if newMsg.GetMessageID() < deleteHistoryUpto &&
+				chat1.IsDeletableByDeleteHistory(newMsg.GetMessageType()) {
+				xformDelete(msg.GetMessageID())
 				continue
 			}
 			if !newMsg.IsValidFull() {
@@ -243,6 +257,7 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 				mvalid := newMsg.Valid()
 				if !mvalid.IsEphemeral() || mvalid.HideExplosion(conv.GetExpunge(), time.Now()) {
 					t.Debug(ctx, "skipping: %d because not valid full", msg.GetMessageID())
+					xformDelete(msg.GetMessageID())
 					continue
 				}
 			}

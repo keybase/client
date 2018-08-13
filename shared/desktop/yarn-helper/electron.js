@@ -4,6 +4,8 @@ import http from 'http'
 import path from 'path'
 import {spawn} from 'child_process'
 
+const isLinux = process.platform === 'linux'
+
 const commands = {
   'inject-code-prod': {
     help: 'Copy current code into currently installed Keybase app',
@@ -63,7 +65,7 @@ function startHot() {
       // require in case we're trying to yarn install electron!
       const electron = require('electron')
       // $FlowIssue
-      spawn(electron, params, {env, stdio: 'inherit'})
+      spawn(electron, [...params, ...(isLinux ? ['--disable-gpu'] : [])], {env, stdio: 'inherit'})
     })
     req.on('error', e => {
       console.log('Error: ', e)
