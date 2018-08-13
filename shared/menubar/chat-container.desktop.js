@@ -16,13 +16,22 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(ConfigGen.createShowMain())
     dispatch(switchTo([Tabs.chatTab]))
   },
-  onSelectConversation: (conversationIDKey: ChatTypes.ConversationIDKey) => {
+  _onSelectConversation: (conversationIDKey: ChatTypes.ConversationIDKey) => {
     dispatch(ConfigGen.createShowMain())
     dispatch(switchTo([Tabs.chatTab]))
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'}))
   },
 })
 
+const mergeProps = (stateProps, dispatchProps) => ({
+  onViewAll: dispatchProps.onViewAll,
+  convRows: stateProps.conversations.map(c => ({
+    conversationIDKey: c.conversationIDKey,
+    onSelectConversation: () => dispatchProps._onSelectConversation(c.conversationIDKey),
+    ...c,
+  })),
+})
+
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps)
+  connect(mapStateToProps, mapDispatchToProps, mergeProps)
 )(Chat)

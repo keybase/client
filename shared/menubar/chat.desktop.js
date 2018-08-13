@@ -16,17 +16,22 @@ const ChatViewAll = ({onViewAll}: {onViewAll: () => void}) => (
   </Kb.Box2>
 )
 
+type ConvRow = {|
+  ...$Exact<RemoteContainer.RemoteConvMeta>,
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  onSelectConversation: () => void,
+|}
+
 type ChatContainerProps = {
   onViewAll: () => void,
-  onSelectConversation: (ChatTypes.ConversationIDKey) => void,
-  conversations: Array<RemoteContainer.RemoteConvMeta>,
+  convRows: Array<ConvRow>,
 }
 
-export default ({onViewAll, onSelectConversation, conversations}: ChatContainerProps) => (
+export default ({onViewAll, onSelectConversation, convRows}: ChatContainerProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
-    {conversations.map(c => {
+    {convRows.map(r => {
       return (
-        <SmallTeam.SmallTeam key={c.conversationIDKey} {...c} onSelectConversation={() => onSelectConversation(c.conversationIDKey)} />
+        <SmallTeam.SmallTeam key={r.conversationIDKey} {...r} />
       )
     })}
     <ChatViewAll onViewAll={onViewAll} />

@@ -26,7 +26,7 @@ export type Props = {
   isFinalized: boolean,
   isMuted: boolean,
   isSelected: boolean,
-  onSelectConversation?: () => void,
+  onSelectConversation: () => void,
   participantNeedToRekey: boolean,
   participants: Array<string>,
   showBold: boolean,

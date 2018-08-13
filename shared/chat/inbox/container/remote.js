@@ -17,10 +17,13 @@ const getMetas = Container.createSelector([getMetaMap], ([metaMap, state]) => [
   state,
 ])
 
-export type RemoteConvMeta = {|
-  ...$Exact<SmallTeam.Props>,
-  conversationIDKey: ChatTypes.ConversationIDKey,
-|}
+export type RemoteConvMeta = $Diff<
+  {|
+    ...$Exact<SmallTeam.Props>,
+    conversationIDKey: ChatTypes.ConversationIDKey,
+  |},
+  {onSelectConversation: () => void}
+>
 
 // Sort by timestamp
 const getSortedConvMetas = Container.createSelector([getMetas], ([map, state]) =>
