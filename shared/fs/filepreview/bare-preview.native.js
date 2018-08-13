@@ -44,10 +44,8 @@ class BarePreview extends React.PureComponent<ConnectedBarePreviewProps, State> 
   state = {
     loading: false,
   }
-  _onLoadingStateChange = (loading: boolean) => {
-    this.setState({loading})
-    console.log({songgao: '_onLoadingStateChange', loading})
-  }
+  _onLoadingStateChange = (loading: boolean) => this.setState({loading})
+
   render() {
     return (
       <Box style={styles.container}>

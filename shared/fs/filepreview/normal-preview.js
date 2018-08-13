@@ -24,10 +24,7 @@ class NormalPreview extends React.PureComponent<NormalPreviewProps, State> {
     loading: false,
   }
 
-  _onLoadingStateChange = (loading: boolean) => {
-    this.setState({loading})
-    console.log({songgao: '_onLoadingStateChange', loading})
-  }
+  _onLoadingStateChange = (loading: boolean) => this.setState({loading})
 
   render() {
     return (
