@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import WalletEntry from './wallet-entry'
-
+import Row from './row'
 type Recipient = 'keybaseUser' | 'stellarAddress' | 'otherWallet'
 
 type FromFieldProps = {|
@@ -14,18 +14,12 @@ type FromFieldProps = {|
 |}
 
 const FromField = (props: FromFieldProps) => (
-  <React.Fragment>
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
-      <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
-        From:
-      </Kb.Text>
-      {props.isConfirm && (
-        <WalletEntry keybaseUser={props.username} name={props.walletName} contents={props.walletContents} />
-      )}
-      {/* TODO: Add wallet dropdown for wallet->wallet */}
-    </Kb.Box2>
-    <Kb.Divider />
-  </React.Fragment>
+  <Row heading="From:">
+    {props.isConfirm && (
+      <WalletEntry keybaseUser={props.username} name={props.walletName} contents={props.walletContents} />
+    )}
+    {/* TODO: Add wallet dropdown for wallet->wallet */}
+  </Row>
 )
 
 type ToFieldProps = {|
@@ -115,25 +109,15 @@ const ToField = (props: ToFieldProps) => {
   }
 
   return (
-    <React.Fragment>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
-        <Kb.Text
-          type="BodyTinySemibold"
-          style={Styles.collapseStyles([
-            styles.headingText,
-            props.recipientType === 'stellarAddress' && !props.username
-              ? {
-                  alignSelf: 'flex-start',
-                }
-              : {},
-          ])}
-        >
-          To:
-        </Kb.Text>
-        {component}
-      </Kb.Box2>
-      <Kb.Divider style={props.incorrect ? styles.redline : {}} />
-    </React.Fragment>
+    <Row
+      heading="To:"
+      headingStyle={
+        props.recipientType === 'stellarAddress' && !props.username ? {alignSelf: 'flex-start'} : {}
+      }
+      dividerColor={props.incorrect ? Styles.globalColors.red : ''}
+    >
+      {component}
+    </Row>
   )
 }
 
@@ -183,17 +167,6 @@ const Participants = (props: ParticipantsProps) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  headingText: {
-    color: Styles.globalColors.blue,
-    marginRight: Styles.globalMargins.tiny,
-  },
-  row: {
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.tiny,
-    paddingBottom: Styles.globalMargins.tiny,
-    alignItems: 'center',
-  },
   keybaseUserRemoveButton: {
     flex: 1,
     textAlign: 'right',
@@ -222,9 +195,6 @@ const styles = Styles.styleSheetCreate({
   inputBox: {flexGrow: 1},
   input: {
     padding: 0,
-  },
-  redline: {
-    backgroundColor: Styles.globalColors.red,
   },
 })
 
