@@ -28,7 +28,21 @@ const FromField = (props: FromFieldProps) => (
   </React.Fragment>
 )
 
-const ToField = (props: any) => (
+type ToFieldProps = {|
+  recipientType: Recipient,
+  /* Used for the confirm screen */
+  isConfirm?: boolean,
+  /* Used for send to stellar address */
+  incorrect?: boolean,
+  onChangeAddress?: string => void,
+  /* Used to display a keybase profile */
+  username?: string,
+  fullname?: string,
+  onShowProfile?: string => void,
+  onRemoveProfile?: () => void,
+|}
+
+const ToField = (props: ToFieldProps) => (
   <React.Fragment>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
       <Kb.Text
@@ -60,7 +74,7 @@ const ToField = (props: any) => (
                 boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserX)}
                 fontSize={16}
                 color={Styles.globalColors.black_20}
-                onClick={props.onRemoveUser}
+                onClick={props.onRemoveProfile}
               />
             )}
           </React.Fragment>
@@ -109,10 +123,11 @@ type ParticipantsProps = {|
   fromWalletContents?: string,
   /* Used for send to stellar address */
   incorrect?: boolean,
+  onChangeAddress?: string => void,
+  /* Used to display a keybase profile */
   username?: string,
   fullname?: string,
   onShowProfile?: string => void,
-  onChangeAddress?: string => void,
   onRemoveProfile?: () => void,
 |}
 
