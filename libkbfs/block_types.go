@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"strconv"
 	"sync"
 
 	"github.com/keybase/go-codec/codec"
@@ -33,6 +34,10 @@ func (i Int64Offset) Less(other Offset) bool {
 		panic(fmt.Sprintf("Can't compare against non-int offset: %T", other))
 	}
 	return int64(i) < int64(otherI)
+}
+
+func (i Int64Offset) String() string {
+	return strconv.FormatInt(int64(i), 10)
 }
 
 // StringOffset represents the offset of a block within a directory.
@@ -66,6 +71,10 @@ func (s *StringOffset) Less(other Offset) bool {
 		panic(fmt.Sprintf("Can't compare against non-string offset: %T", other))
 	}
 	return string(*s) < string(*otherS)
+}
+
+func (s *StringOffset) String() string {
+	return string(*s)
 }
 
 // IndirectDirPtr pairs an indirect dir block with the start of that

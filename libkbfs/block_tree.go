@@ -504,7 +504,7 @@ func (bt *blockTree) newRightBlock(
 	}
 	rightParentBlocks := make([]parentBlockAndChildIndex, len(parentBlocks))
 
-	bt.log.CDebugf(ctx, "Making new right block at off %d for entry %v, "+
+	bt.log.CDebugf(ctx, "Making new right block at off %s for entry %v, "+
 		"lowestAncestor at level %d", off, bt.rootBlockPointer(),
 		lowestAncestorWithRoom)
 
@@ -570,6 +570,40 @@ func (bt *blockTree) newRightBlock(
 	return rightParentBlocks, newDirtyPtrs, nil
 }
 
+// setParentOffsets updates the parent offsets for a newly-moved
+// block, all the way up to its common ancestor (which is the one with
+// the one that doesn't have a childIndex of 0).
+func (bt *blockTree) setParentOffsets(
+	ctx context.Context, newOff Offset,
+	parents []parentBlockAndChildIndex, currIndex int) (
+	newDirtyPtrs []BlockPointer, newUnrefs []BlockInfo, err error) {
+	for level := len(parents) - 2; level >= 0; level-- {
+		// Cache the block below this level, which was just
+		// modified.
+		childInfo, _ := parents[level].childIPtr()
+		if err := bt.cacher(
+			childInfo.BlockPointer, parents[level+1].pblock); err != nil {
+			return nil, nil, err
+		}
+		newDirtyPtrs = append(newDirtyPtrs, childInfo.BlockPointer)
+		// Remember the size of the dirtied child.
+		if childInfo.EncodedSize != 0 {
+			newUnrefs = append(newUnrefs, childInfo)
+			parents[level].clearEncodedSize()
+		}
+
+		// If we've reached a level where the child indirect
+		// offset wasn't affected, we're done.  If not, update the
+		// offset at this level and move up the tree.
+		if currIndex > 0 {
+			break
+		}
+		currIndex = parents[level].childIndex
+		parents[level].pblock.SetIndirectPtrOff(currIndex, newOff)
+	}
+	return newDirtyPtrs, newUnrefs, nil
+}
+
 // shiftBlocksToFillHole should be called after newRightBlock when the
 // offset for the new block is smaller than the final offset of the
 // tree.  This happens when there is a hole in the file, or when
@@ -601,7 +635,7 @@ func (bt *blockTree) shiftBlocksToFillHole(
 	currIndex := immedParent.childIndex
 	_, newBlockStartOff := immedParent.childIPtr()
 
-	bt.log.CDebugf(ctx, "Shifting block with offset %d for entry %v into "+
+	bt.log.CDebugf(ctx, "Shifting block with offset %s for entry %v into "+
 		"position", newBlockStartOff, bt.rootBlockPointer())
 
 	// Swap left as needed.
@@ -709,36 +743,28 @@ func (bt *blockTree) shiftBlocksToFillHole(
 
 		// Now we need to update the parent offsets on the right side,
 		// all the way up to the common ancestor (which is the one
-		// with the one that doesn't have a childIndex of 0).  (We
-		// don't need to update the left side, since the offset of the
-		// new right-most block on that side doesn't affect the
-		// incoming indirect pointer offset, which already points to
-		// the left side of that branch.)
+		// with the one that doesn't have a childIndex of 0).
 		_, newRightOff := immedPblock.IndirectPtr(currIndex)
-		for level := len(parents) - 2; level >= 0; level-- {
-			// Cache the block below this level, which was just
-			// modified.
-			childInfo, _ := parents[level].childIPtr()
-			if err := bt.cacher(
-				childInfo.BlockPointer, parents[level+1].pblock); err != nil {
+		ndp, nu, err := bt.setParentOffsets(
+			ctx, newRightOff, parents, currIndex)
+		if err != nil {
+			return nil, nil, 0, err
+		}
+		newDirtyPtrs = append(newDirtyPtrs, ndp...)
+		nu = append(newUnrefs, nu...)
+		// Now update the left side, if it was the only block on that
+		// side.
+		if newCurrIndex == 0 {
+			_, newOff := newImmedPblock.IndirectPtr(newCurrIndex)
+			ndp, nu, err := bt.setParentOffsets(
+				ctx, newOff, newParents, newCurrIndex)
+			if err != nil {
 				return nil, nil, 0, err
 			}
-			newDirtyPtrs = append(newDirtyPtrs, childInfo.BlockPointer)
-			// Remember the size of the dirtied child.
-			if childInfo.EncodedSize != 0 {
-				newUnrefs = append(newUnrefs, childInfo)
-				parents[level].clearEncodedSize()
-			}
-
-			// If we've reached a level where the child indirect
-			// offset wasn't affected, we're done.  If not, update the
-			// offset at this level and move up the tree.
-			if parents[level+1].childIndex > 0 {
-				break
-			}
-			index := parents[level].childIndex
-			parents[level].pblock.SetIndirectPtrOff(index, newRightOff)
+			newDirtyPtrs = append(newDirtyPtrs, ndp...)
+			nu = append(newUnrefs, nu...)
 		}
+
 		immedParent = newImmedParent
 		currIndex = newCurrIndex
 		parents = newParents
