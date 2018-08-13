@@ -11,8 +11,11 @@ import (
 
 type decodingReadSeeker struct {
 	source                   io.ReadSeeker
+	encKey                   SecretboxKey
+	verifyKey                VerifyKey
+	sigPrefix                libkb.SignaturePrefix
+	nonce                    Nonce
 	size, sealedSize, offset int64
-	decoder                  *Decoder
 	chunks                   *lru.Cache
 }
 
@@ -20,14 +23,16 @@ var _ io.ReadSeeker = (*decodingReadSeeker)(nil)
 
 func NewDecodingReadSeeker(source io.ReadSeeker, size int64, encKey SecretboxKey, verifyKey VerifyKey,
 	signaturePrefix libkb.SignaturePrefix, nonce Nonce) io.ReadSeeker {
-	decoder := NewDecoder(encKey, verifyKey, libkb.SignaturePrefixChatAttachment, nonce)
 	c, _ := lru.New(16)
 	return &decodingReadSeeker{
 		source:     source,
 		size:       size,
 		sealedSize: GetSealedSize(size),
-		decoder:    decoder,
 		chunks:     c,
+		encKey:     encKey,
+		verifyKey:  verifyKey,
+		sigPrefix:  signaturePrefix,
+		nonce:      nonce,
 	}
 }
 
@@ -67,6 +72,7 @@ func (r *decodingReadSeeker) extractPlaintext(plainText []byte, num int64, chunk
 	if ptEnd >= r.size {
 		ptEnd = r.size
 	}
+	fmt.Printf("extractPlaintext: datBegin: %v ptBegin: %v ptEnd: %v\n", datBegin, ptBegin, ptEnd)
 	return plainText[ptBegin-datBegin : ptEnd-datBegin]
 }
 
@@ -88,11 +94,18 @@ func (r *decodingReadSeeker) Read(res []byte) (n int, err error) {
 	for _, c := range chunks {
 		fmt.Printf("chunk: index: %v ptstart: %v ptend: %v cstart: %v cend: %v\n", c.Index, c.PTStart, c.PTEnd, c.CipherStart, c.CipherEnd)
 	}
-	r.decoder.SetChunkNum(uint64(chunks[0].Index))
-	chunkPlainText, err := r.decoder.Write(cipherText)
+	decoder := NewDecoder(r.encKey, r.verifyKey, r.sigPrefix, r.nonce)
+	decoder.SetChunkNum(uint64(chunks[0].Index))
+	chunkPlainText, err := decoder.Write(cipherText)
 	if err != nil {
 		return n, err
 	}
+	finishPlaintext, err := decoder.Finish()
+	if err == nil {
+		chunkPlainText = append(chunkPlainText, finishPlaintext...)
+	}
+
+	fmt.Printf("Read: len(chunkPlainText): %v\n", len(chunkPlainText))
 	plainText := r.extractPlaintext(chunkPlainText, int64(num), chunks)
 	copy(res, plainText)
 	numRead := int64(len(plainText))

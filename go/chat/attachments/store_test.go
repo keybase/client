@@ -242,17 +242,24 @@ func TestUploadAssetLarge(t *testing.T) {
 func TestStreamAsset(t *testing.T) {
 	s := makeTestStore(t, nil)
 	ctx := context.Background()
-	plaintext, task := makeUploadTask(t, 2*MB)
-	a, err := s.UploadAsset(ctx, task, ioutil.Discard)
-	require.NoError(t, err)
 
-	rs, err := s.StreamAsset(ctx, task.S3Params, a, task.S3Signer)
-	require.NoError(t, err)
+	testCase := func(mb, kb int64) {
+		plaintext, task := makeUploadTask(t, mb*MB+kb)
+		a, err := s.UploadAsset(ctx, task, ioutil.Discard)
+		require.NoError(t, err)
 
-	var buf bytes.Buffer
-	_, err = io.Copy(&buf, rs)
-	require.NoError(t, err)
-	require.True(t, bytes.Equal(plaintext, buf.Bytes()))
+		rs, err := s.StreamAsset(ctx, task.S3Params, a, task.S3Signer)
+		require.NoError(t, err)
+
+		var buf bytes.Buffer
+		_, err = io.Copy(&buf, rs)
+		require.NoError(t, err)
+		require.True(t, bytes.Equal(plaintext, buf.Bytes()))
+	}
+	testCase(2, 0)
+	testCase(2, 400)
+	testCase(12, 0)
+	testCase(12, 543)
 }
 
 type uploader struct {
