@@ -56,18 +56,43 @@ const Header = (props: HeaderProps) => (
       <Kb.Text type="BodyTiny">using device {props.senderDeviceName}</Kb.Text>
       <Kb.Text type="BodyTiny">{props.timestamp}</Kb.Text>
     </Kb.Box2>
+    {!!props.balanceChange && (
+      <Kb.Text
+        type="BodyExtrabold"
+        style={S.collapseStyles([styles.textAlignCenter, {color: props.balanceChangeColor}])}
+      >
+        {props.balanceChange}
+      </Kb.Text>
+    )}
   </Kb.Box2>
 )
 
 const PaymentPopup = (props: Props) => {
-  const header = {title: 'header', view: <Header {...props} />}
+  const items = props.onCancel
+    ? [
+        {
+          danger: true,
+          onClick: props.onCancel,
+          title: 'Cancel request',
+        },
+      ]
+    : []
+  const header = {
+    title: 'header',
+    view: (
+      <React.Fragment>
+        <Header {...props} />
+        {!!items.length && <Kb.Divider />}
+      </React.Fragment>
+    ),
+  }
   return (
     <Kb.FloatingMenu
       attachTo={props.attachTo}
       onHidden={props.onHidden}
       position={props.position}
       header={header}
-      items={[]}
+      items={items}
       visible={props.visible}
     />
   )
@@ -84,6 +109,9 @@ const styles = S.styleSheetCreate({
   },
   icon: {
     marginTop: -15,
+  },
+  textAlignCenter: {
+    textAlign: 'center',
   },
 })
 
