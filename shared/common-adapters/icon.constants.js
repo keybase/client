@@ -11,6 +11,16 @@ type IconMeta = {
 }
 
 const iconMeta_ = {
+  'icon-stellar-logo-grey-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-stellar-logo-grey-16.png'),
+  },
+  'icon-stellar-logo-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-stellar-logo-16.png'),
+  },
   'icon-GPG-export': {
     isFont: false,
     extension: 'png',
@@ -1525,6 +1535,11 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-user-add-32.png'),
+  },
+  'icon-wallet-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-wallet-32.png'),
   },
   'icon-wallet-48': {
     isFont: false,
