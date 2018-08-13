@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/go-crypto/ed25519"
 
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/signencrypt"
@@ -284,13 +285,61 @@ func (a *S3Store) DownloadAsset(ctx context.Context, params chat1.S3Params, asse
 	return a.DecryptAsset(ctx, w, body, asset, progress)
 }
 
+type s3Seeker struct {
+	asset  chat1.Asset
+	bucket s3.BucketInt
+	offset int64
+}
+
+func newS3Seeker(asset chat1.Asset, bucket s3.BucketInt) *s3Seeker {
+	return &s3Seeker{
+		asset:  asset,
+		bucket: bucket,
+	}
+}
+
+func (s *s3Seeker) Read(b []byte) (n int, err error) {
+	rc, err := s.bucket.GetReaderWithRange(context.TODO(), s.asset.Path, s.offset, s.offset+int64(len(b)))
+	if err != nil {
+		return 0, err
+	}
+	defer rc.Close()
+	buf := bytes.NewBuffer(b)
+	if _, err := io.Copy(buf, rc); err != nil {
+		return 0, err
+	}
+	return len(b), nil
+}
+
+func (s *s3Seeker) Seek(offset int64, whence int) (res int64, err error) {
+	switch whence {
+	case io.SeekStart:
+		s.offset = offset
+	case io.SeekCurrent:
+		s.offset += offset
+	case io.SeekEnd:
+		s.offset = s.asset.Size - offset
+	}
+	return s.offset, nil
+}
+
 func (a *S3Store) StreamAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
 	signer s3.Signer) (io.ReadSeeker, error) {
 	if asset.Key == nil || asset.VerifyKey == nil || asset.EncHash == nil {
 		return nil, fmt.Errorf("unencrypted attachments not supported: asset: %#v", asset)
 	}
 	b := a.getAssetBucket(asset, params, signer)
-	return newRemoteAssetStreamer(ctx, a.DebugLabeler.GetLog(), b, asset), nil
+	ptsize := signencrypt.GetPlaintextSize(asset.Size)
+	var xencKey [signencrypt.SecretboxKeySize]byte
+	copy(xencKey[:], asset.Key)
+	var xverifyKey [ed25519.PublicKeySize]byte
+	copy(xverifyKey[:], asset.VerifyKey)
+	var nonce [signencrypt.NonceSize]byte
+	if asset.Nonce != nil {
+		copy(nonce[:], asset.Nonce)
+	}
+	return signencrypt.NewDecodingReadSeeker(newS3Seeker(asset, b), ptsize, &xencKey, &xverifyKey,
+		libkb.SignaturePrefixChatAttachment, &nonce), nil
 }
 
 func (a *S3Store) startUpload(ctx context.Context, task *UploadTask, encrypter *SignEncrypter) {
