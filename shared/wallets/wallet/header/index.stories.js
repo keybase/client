@@ -26,18 +26,17 @@ const commonActions = {
   onShowSecretKey: Sb.action('onShowSecretKey'),
 }
 
+export const Container = (storyFn: any) => (
+  <Box2 direction="horizontal" style={styleWidth}>
+    {storyFn()}
+  </Box2>
+)
+
 const load = () => {
-  Sb.storiesOf('Wallets/Wallet', module)
-    .add('Default wallet', () => (
-      <Box2 direction="horizontal" style={styleWidth}>
-        <Header {...commonActions} {...defaultWalletMock} />
-      </Box2>
-    ))
-    .add('Second wallet', () => (
-      <Box2 direction="horizontal" style={styleWidth}>
-        <Header {...commonActions} {...secondWalletMock} />
-      </Box2>
-    ))
+  Sb.storiesOf('Wallets/Wallet/Header', module)
+    .addDecorator(Container)
+    .add('Default wallet', () => <Header {...commonActions} {...defaultWalletMock} />)
+    .add('Second wallet', () => <Header {...commonActions} {...secondWalletMock} />)
 }
 
 const styleWidth = {width: 520}
