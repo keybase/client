@@ -31,7 +31,7 @@ func setupFileDataTest(t *testing.T, maxBlockSize int64,
 	file := path{FolderBranch{Tlf: id}, []pathNode{{ptr, "file"}}}
 	chargedTo := keybase1.MakeTestUID(1).AsUserOrTeam()
 	crypto := MakeCryptoCommon(kbfscodec.NewMsgpack())
-	bsplit := &BlockSplitterSimple{maxBlockSize, maxPtrsPerBlock, 10}
+	bsplit := &BlockSplitterSimple{maxBlockSize, maxPtrsPerBlock, 10, 0}
 	kmd := emptyKeyMetadata{id, 1}
 
 	cleanCache := NewBlockCacheStandard(1<<10, 1<<20)

@@ -75,7 +75,8 @@ func setupMDJournalTest(t testing.TB, ver kbfsmd.MetadataVer) (
 		tlfID, ver, tempdir, log)
 	require.NoError(t, err)
 
-	bsplit = &BlockSplitterSimple{64 * 1024, int(64 * 1024 / bpSize), 8 * 1024}
+	bsplit = &BlockSplitterSimple{
+		64 * 1024, int(64 * 1024 / bpSize), 8 * 1024, 0}
 
 	return codec, crypto, tlfID, signer, ekg, bsplit, tempdir, j
 }

@@ -1797,6 +1797,12 @@ type BlockSplitter interface {
 	// ShouldEmbedBlockChanges decides whether we should keep the
 	// block changes embedded in the MD or not.
 	ShouldEmbedBlockChanges(bc *BlockChanges) bool
+
+	// SplitDirIfNeeded splits a direct DirBlock into multiple blocks
+	// if needed.  It may modify `block`.  If a split isn't needed, it
+	// returns a one-element slice containing `block`.  If a split is
+	// needed, it returns a non-nil offset for the new block.
+	SplitDirIfNeeded(block *DirBlock) ([]*DirBlock, *StringOffset)
 }
 
 // KeyServer fetches/writes server-side key halves from/to the key server.

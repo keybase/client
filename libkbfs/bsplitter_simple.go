@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/keybase/kbfs/kbfscodec"
 )
@@ -16,6 +17,7 @@ type BlockSplitterSimple struct {
 	maxSize                 int64
 	maxPtrsPerBlock         int
 	blockChangeEmbedMaxSize uint64
+	maxDirEntriesPerBlock   int
 }
 
 // NewBlockSplitterSimple creates a new BlockSplittleSimple and
@@ -87,6 +89,7 @@ func NewBlockSplitterSimple(desiredBlockSize int64,
 		maxSize:                 maxSize,
 		maxPtrsPerBlock:         maxPtrs,
 		blockChangeEmbedMaxSize: blockChangeEmbedMaxSize,
+		maxDirEntriesPerBlock:   0, // disabled for now
 	}, nil
 }
 
@@ -146,4 +149,37 @@ func (b *BlockSplitterSimple) MaxPtrsPerBlock() int {
 func (b *BlockSplitterSimple) ShouldEmbedBlockChanges(
 	bc *BlockChanges) bool {
 	return bc.SizeEstimate() <= b.blockChangeEmbedMaxSize
+}
+
+// SplitDirIfNeeded implements the BlockSplitter interface for
+// BlockSplitterSimple.
+func (b *BlockSplitterSimple) SplitDirIfNeeded(block *DirBlock) (
+	[]*DirBlock, *StringOffset) {
+	if block.IsIndirect() {
+		panic("SplitDirIfNeeded must be given only a direct block")
+	}
+
+	if b.maxDirEntriesPerBlock == 0 ||
+		len(block.Children) <= b.maxDirEntriesPerBlock {
+		return []*DirBlock{block}, nil
+	}
+
+	// Sort the entries and split them down the middle.
+	names := make([]string, 0, len(block.Children))
+	for name := range block.Children {
+		names = append(names, name)
+	}
+
+	sort.Strings(names)
+	// Delete the second half of the names from the original block,
+	// and add to the new block.
+	newBlock := NewDirBlock().(*DirBlock)
+	startOff := int(len(names) / 2)
+	for i := startOff; i < len(names); i++ {
+		name := names[i]
+		newBlock.Children[name] = block.Children[name]
+		delete(block.Children, name)
+	}
+	newOffset := StringOffset(names[startOff])
+	return []*DirBlock{block, newBlock}, &newOffset
 }

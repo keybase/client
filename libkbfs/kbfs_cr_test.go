@@ -1300,7 +1300,7 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	// make the unembedded size large, so we don't create thousands of
 	// unembedded block change blocks.
 	blockSize := int64(5)
-	bsplit := &BlockSplitterSimple{blockSize, 2, 100 * 1024}
+	bsplit := &BlockSplitterSimple{blockSize, 2, 100 * 1024, 0}
 	config1.SetBlockSplitter(bsplit)
 
 	// create and write to a file

@@ -5997,6 +5997,19 @@ func (mr *MockBlockSplitterMockRecorder) ShouldEmbedBlockChanges(bc interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ShouldEmbedBlockChanges", reflect.TypeOf((*MockBlockSplitter)(nil).ShouldEmbedBlockChanges), bc)
 }
 
+// SplitDirIfNeeded mocks base method
+func (m *MockBlockSplitter) SplitDirIfNeeded(block *DirBlock) ([]*DirBlock, *StringOffset) {
+	ret := m.ctrl.Call(m, "SplitDirIfNeeded", block)
+	ret0, _ := ret[0].([]*DirBlock)
+	ret1, _ := ret[1].(*StringOffset)
+	return ret0, ret1
+}
+
+// SplitDirIfNeeded indicates an expected call of SplitDirIfNeeded
+func (mr *MockBlockSplitterMockRecorder) SplitDirIfNeeded(block interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SplitDirIfNeeded", reflect.TypeOf((*MockBlockSplitter)(nil).SplitDirIfNeeded), block)
+}
+
 // MockKeyServer is a mock of KeyServer interface
 type MockKeyServer struct {
 	ctrl     *gomock.Controller

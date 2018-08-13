@@ -9,10 +9,11 @@ import (
 	"testing"
 
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBsplitterEmptyCopyAll(t *testing.T) {
-	bsplit := &BlockSplitterSimple{10, 5, 10}
+	bsplit := &BlockSplitterSimple{10, 5, 10, 0}
 	fblock := NewFileBlock().(*FileBlock)
 	data := []byte{1, 2, 3, 4, 5}
 
@@ -24,7 +25,7 @@ func TestBsplitterEmptyCopyAll(t *testing.T) {
 }
 
 func TestBsplitterNonemptyCopyAll(t *testing.T) {
-	bsplit := &BlockSplitterSimple{10, 5, 10}
+	bsplit := &BlockSplitterSimple{10, 5, 10, 0}
 	fblock := NewFileBlock().(*FileBlock)
 	fblock.Contents = []byte{10, 9}
 	data := []byte{1, 2, 3, 4, 5}
@@ -37,7 +38,7 @@ func TestBsplitterNonemptyCopyAll(t *testing.T) {
 }
 
 func TestBsplitterAppendAll(t *testing.T) {
-	bsplit := &BlockSplitterSimple{10, 5, 10}
+	bsplit := &BlockSplitterSimple{10, 5, 10, 0}
 	fblock := NewFileBlock().(*FileBlock)
 	fblock.Contents = []byte{10, 9}
 	data := []byte{1, 2, 3, 4, 5}
@@ -50,7 +51,7 @@ func TestBsplitterAppendAll(t *testing.T) {
 }
 
 func TestBsplitterAppendExact(t *testing.T) {
-	bsplit := &BlockSplitterSimple{10, 5, 10}
+	bsplit := &BlockSplitterSimple{10, 5, 10, 0}
 	fblock := NewFileBlock().(*FileBlock)
 	fblock.Contents = []byte{10, 9, 8, 7, 6}
 	data := []byte{1, 2, 3, 4, 5}
@@ -64,7 +65,7 @@ func TestBsplitterAppendExact(t *testing.T) {
 }
 
 func TestBsplitterSplitOne(t *testing.T) {
-	bsplit := &BlockSplitterSimple{10, 5, 10}
+	bsplit := &BlockSplitterSimple{10, 5, 10, 0}
 	fblock := NewFileBlock().(*FileBlock)
 	fblock.Contents = []byte{10, 9, 8, 7, 6}
 	data := []byte{1, 2, 3, 4, 5, 6}
@@ -78,7 +79,7 @@ func TestBsplitterSplitOne(t *testing.T) {
 }
 
 func TestBsplitterOverwriteMaxSizeBlock(t *testing.T) {
-	bsplit := &BlockSplitterSimple{5, 5, 10}
+	bsplit := &BlockSplitterSimple{5, 5, 10, 0}
 	fblock := NewFileBlock().(*FileBlock)
 	fblock.Contents = []byte{10, 9, 8, 7, 6}
 	data := []byte{1, 2, 3, 4, 5, 6, 7, 8}
@@ -91,7 +92,7 @@ func TestBsplitterOverwriteMaxSizeBlock(t *testing.T) {
 }
 
 func TestBsplitterBlockTooBig(t *testing.T) {
-	bsplit := &BlockSplitterSimple{3, 5, 10}
+	bsplit := &BlockSplitterSimple{3, 5, 10, 0}
 	fblock := NewFileBlock().(*FileBlock)
 	fblock.Contents = []byte{10, 9, 8, 7, 6}
 	data := []byte{1, 2, 3, 4, 5, 6}
@@ -104,7 +105,7 @@ func TestBsplitterBlockTooBig(t *testing.T) {
 }
 
 func TestBsplitterOffTooBig(t *testing.T) {
-	bsplit := &BlockSplitterSimple{10, 5, 10}
+	bsplit := &BlockSplitterSimple{10, 5, 10, 0}
 	fblock := NewFileBlock().(*FileBlock)
 	fblock.Contents = []byte{10, 9, 8, 7, 6}
 	data := []byte{1, 2, 3, 4, 5, 6}
@@ -118,7 +119,7 @@ func TestBsplitterOffTooBig(t *testing.T) {
 }
 
 func TestBsplitterShouldEmbed(t *testing.T) {
-	bsplit := &BlockSplitterSimple{10, 5, 10}
+	bsplit := &BlockSplitterSimple{10, 5, 10, 0}
 	bc := &BlockChanges{}
 	bc.sizeEstimate = 1
 	if !bsplit.ShouldEmbedBlockChanges(bc) {
@@ -131,7 +132,7 @@ func TestBsplitterShouldEmbed(t *testing.T) {
 }
 
 func TestBsplitterShouldNotEmbed(t *testing.T) {
-	bsplit := &BlockSplitterSimple{10, 5, 10}
+	bsplit := &BlockSplitterSimple{10, 5, 10, 0}
 	bc := &BlockChanges{}
 	bc.sizeEstimate = 11
 	if bsplit.ShouldEmbedBlockChanges(bc) {
@@ -167,4 +168,56 @@ func TestBsplitterOverhead(t *testing.T) {
 		t.Fatalf("Padded block size %d doesn't match desired block size %d",
 			g, e)
 	}
+}
+
+func TestBsplitterSplitDir(t *testing.T) {
+	bsplit := &BlockSplitterSimple{10, 5, 10, 2}
+	dblock := NewDirBlock().(*DirBlock)
+	dblock.Children["a"] = DirEntry{}
+	dblock.Children["b"] = DirEntry{}
+	dblock.Children["c"] = DirEntry{}
+	dblock.Children["d"] = DirEntry{}
+	dblock.Children["e"] = DirEntry{}
+	dblock.Children["f"] = DirEntry{}
+
+	t.Log("Split an even block")
+	blocks, newOffset := bsplit.SplitDirIfNeeded(dblock)
+	require.Len(t, blocks, 2)
+	require.Equal(t, StringOffset("d"), *newOffset)
+	require.Len(t, blocks[0].Children, 3)
+	require.Contains(t, blocks[0].Children, "a")
+	require.Contains(t, blocks[0].Children, "b")
+	require.Contains(t, blocks[0].Children, "c")
+	require.Len(t, blocks[1].Children, 3)
+	require.Contains(t, blocks[1].Children, "d")
+	require.Contains(t, blocks[1].Children, "e")
+	require.Contains(t, blocks[1].Children, "f")
+
+	t.Log("Split odd blocks")
+	smallerBlocks, newOffset := bsplit.SplitDirIfNeeded(blocks[0])
+	require.Len(t, smallerBlocks, 2)
+	require.Equal(t, StringOffset("b"), *newOffset)
+	require.Len(t, smallerBlocks[0].Children, 1)
+	require.Contains(t, smallerBlocks[0].Children, "a")
+	require.Len(t, smallerBlocks[1].Children, 2)
+	require.Contains(t, smallerBlocks[1].Children, "b")
+	require.Contains(t, smallerBlocks[1].Children, "c")
+	smallerBlocks, newOffset = bsplit.SplitDirIfNeeded(blocks[1])
+	require.Len(t, smallerBlocks, 2)
+	require.Equal(t, StringOffset("e"), *newOffset)
+	require.Len(t, smallerBlocks[0].Children, 1)
+	require.Contains(t, smallerBlocks[0].Children, "d")
+	require.Len(t, smallerBlocks[1].Children, 2)
+	require.Contains(t, smallerBlocks[1].Children, "e")
+	require.Contains(t, smallerBlocks[1].Children, "f")
+
+	t.Log("Don't split small blocks")
+	noSplits, newOffset := bsplit.SplitDirIfNeeded(smallerBlocks[0])
+	require.Len(t, noSplits, 1)
+	require.Nil(t, newOffset)
+	require.Equal(t, smallerBlocks[0], noSplits[0])
+	noSplits, newOffset = bsplit.SplitDirIfNeeded(smallerBlocks[1])
+	require.Len(t, noSplits, 1)
+	require.Nil(t, newOffset)
+	require.Equal(t, smallerBlocks[1], noSplits[0])
 }
