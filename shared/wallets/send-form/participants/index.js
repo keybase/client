@@ -35,6 +35,7 @@ type ToFieldProps = {|
   /* Used for send to stellar address */
   incorrect?: boolean,
   onChangeAddress?: string => void,
+  stellarAddress?: string,
   /* Used to display a keybase profile */
   username?: string,
   fullName?: string,
@@ -42,14 +43,84 @@ type ToFieldProps = {|
   onRemoveProfile?: () => void,
 |}
 
-const ToField = (props: ToFieldProps) => (
-  <React.Fragment>
+const ToField = (props: ToFieldProps) => {
+  const stellarIcon = (
+    <Kb.Icon
+      type={props.incorrect ? 'icon-stellar-logo-grey-16' : 'icon-stellar-logo-16'}
+      style={Kb.iconCastPlatformStyles(styles.stellarIcon)}
+    />
+  )
+
+  let component
+
+  if (props.username) {
+    component = (
+      <React.Fragment>
+        <Kb.NameWithIcon
+          colorFollowing={true}
+          horizontal={true}
+          username={props.username}
+          metaOne={props.fullName}
+          onClick={props.onShowProfile}
+        />
+        {!props.isConfirm && (
+          <Kb.Icon
+            type="iconfont-remove"
+            boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
+            fontSize={16}
+            color={Styles.globalColors.black_20}
+            onClick={props.onRemoveProfile}
+          />
+        )}
+      </React.Fragment>
+    )
+  } else if (props.isConfirm && props.recipientType === 'stellarAddress') {
+    component = (
+      <React.Fragment>
+        {stellarIcon}
+        <Kb.Text type="BodySemibold" style={styles.stellarAddressConfirmText}>
+          {props.stellarAddress}
+        </Kb.Text>
+      </React.Fragment>
+    )
+  } else if (props.isConfirm && props.recipientType === 'otherWallet') {
+    // TODO: Implement this
+  } else if (!props.isConfirm && props.recipientType === 'otherWallet') {
+    // TODO: Implement this
+  } else {
+    component = (
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
+          {props.recipientType === 'stellarAddress' && stellarIcon}
+          <Kb.NewInput
+            type="text"
+            onChangeText={props.onChangeAddress}
+            textType="BodySemibold"
+            placeholder={props.recipientType === 'stellarAddress' ? 'Stellar address' : 'Search Keybase'}
+            placeholderColor={Styles.globalColors.black_20}
+            hideBorder={true}
+            containerStyle={styles.input}
+            multiline={true}
+            rowsMin={props.recipientType === 'stellarAddress' ? 2 : 1}
+            rowsMax={3}
+          />
+        </Kb.Box2>
+        {props.incorrect && (
+          <Kb.Text type="BodySmall" style={styles.error}>
+            This Stellar address is incorrect
+          </Kb.Text>
+        )}
+      </Kb.Box2>
+    )
+  }
+
+  return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
       <Kb.Text
         type="BodyTinySemibold"
         style={Styles.collapseStyles([
           styles.headingText,
-          props.recipientType === 'stellarAddress'
+          props.recipientType === 'stellarAddress' && !props.username
             ? {
                 alignSelf: 'flex-start',
               }
@@ -58,62 +129,10 @@ const ToField = (props: ToFieldProps) => (
       >
         To:
       </Kb.Text>
-      {props.recipientType === 'keybaseUser' &&
-        !!props.username && (
-          <React.Fragment>
-            <Kb.NameWithIcon
-              colorFollowing={true}
-              horizontal={true}
-              username={props.username}
-              metaOne={props.fullName}
-              onClick={props.onShowProfile}
-            />
-            {!props.isConfirm && (
-              <Kb.Icon
-                type="iconfont-remove"
-                boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
-                fontSize={16}
-                color={Styles.globalColors.black_20}
-                onClick={props.onRemoveProfile}
-              />
-            )}
-          </React.Fragment>
-        )}
-      {props.recipientType !== 'otherWallet' && (
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
-            {props.recipientType === 'stellarAddress' &&
-              !props.isConfirm && (
-                <Kb.Icon
-                  type={props.incorrect ? 'icon-stellar-logo-grey-16' : 'icon-stellar-logo-16'}
-                  style={Kb.iconCastPlatformStyles(styles.icon)}
-                />
-              )}
-            <Kb.NewInput
-              type="text"
-              onChangeText={props.onChangeAddress}
-              textType="BodySemibold"
-              placeholder={props.recipientType === 'stellarAddress' ? 'Stellar address' : 'Search Keybase'}
-              placeholderColor={Styles.globalColors.black_20}
-              hideBorder={true}
-              containerStyle={styles.input}
-              multiline={true}
-              rowsMin={props.recipientType === 'stellarAddress' ? 2 : 1}
-              rowsMax={3}
-            />
-          </Kb.Box2>
-          {props.incorrect && (
-            <Kb.Text type="BodySmall" style={styles.error}>
-              This Stellar address is incorrect
-            </Kb.Text>
-          )}
-        </Kb.Box2>
-      )}
-      {/* TODO: Add other wallet dropdown/create new wallet for wallet->wallet */}
+      {component}
     </Kb.Box2>
-    <Kb.Divider style={props.incorrect ? styles.redline : {}} />
-  </React.Fragment>
-)
+  )
+}
 
 type ParticipantsProps = {|
   recipientType: Recipient,
@@ -128,6 +147,7 @@ type ParticipantsProps = {|
   /* Used to display a keybase profile */
   recipientUsername?: string,
   recipientFullName?: string,
+  recipientStellarAddress?: string,
   onShowProfile?: string => void,
   onRemoveProfile?: () => void,
 |}
@@ -151,6 +171,10 @@ const Participants = (props: ParticipantsProps) => (
       incorrect={props.incorrect}
       username={props.recipientUsername}
       fullName={props.recipientFullName}
+      stellarAddress={props.recipientStellarAddress}
+      onRemoveProfile={props.onRemoveProfile}
+      onShowProfile={props.onShowProfile}
+      onChangeAddress={props.onChangeAddress}
     />
   </Kb.Box2>
 )
@@ -171,6 +195,15 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
     textAlign: 'right',
   },
+  stellarIcon: {
+    alignSelf: 'flex-start',
+    marginRight: Styles.globalMargins.xxtiny,
+  },
+  stellarAddressConfirmText: Styles.platformStyles({
+    isElectron: {
+      wordBreak: 'break-all',
+    },
+  }),
   error: Styles.platformStyles({
     common: {
       color: Styles.globalColors.red,
@@ -186,7 +219,6 @@ const styles = Styles.styleSheetCreate({
   inputBox: {flexGrow: 1},
   input: {
     padding: 0,
-    marginLeft: Styles.globalMargins.xxtiny,
   },
   redline: {
     backgroundColor: Styles.globalColors.red,

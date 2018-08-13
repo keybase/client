@@ -16,6 +16,7 @@ const confirmCommonProps = {
   fromWalletContents: '2000 XLM',
   recipientUsername: 'zanderz',
   recipientFullName: 'Steve Sanders',
+  recipientStellarAddress: 'GBQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I46',
   onShowProfile: Sb.action('onShowProfile'),
 }
 
@@ -40,7 +41,7 @@ const load = () => {
         recipientUsername="yen"
         recipientFullName="Addie Stokes"
         onShowProfile={Sb.action('onShowProfile')}
-        onRemoveProfile={Sb.action('onRemoveUser')}
+        onRemoveProfile={Sb.action('onRemoveProfile')}
       />
     ))
     .add('Confirm to Keybase user', () => (
