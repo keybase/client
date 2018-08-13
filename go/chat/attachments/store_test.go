@@ -244,7 +244,8 @@ func TestStreamAsset(t *testing.T) {
 	ctx := context.Background()
 
 	testCase := func(mb, kb int64) {
-		plaintext, task := makeUploadTask(t, mb*MB+kb)
+		total := mb*MB + kb
+		plaintext, task := makeUploadTask(t, total)
 		a, err := s.UploadAsset(ctx, task, ioutil.Discard)
 		require.NoError(t, err)
 
@@ -255,7 +256,17 @@ func TestStreamAsset(t *testing.T) {
 		_, err = io.Copy(&buf, rs)
 		require.NoError(t, err)
 		require.True(t, bytes.Equal(plaintext, buf.Bytes()))
+
+		rs, err = s.StreamAsset(ctx, task.S3Params, a, task.S3Signer)
+		require.NoError(t, err)
+		_, err = rs.Seek(total/2, io.SeekStart)
+		require.NoError(t, err)
+		buf.Reset()
+		_, err = io.Copy(&buf, rs)
+		require.NoError(t, err)
+		require.True(t, bytes.Equal(plaintext[total/2:], buf.Bytes()))
 	}
+
 	testCase(2, 0)
 	testCase(2, 400)
 	testCase(12, 0)

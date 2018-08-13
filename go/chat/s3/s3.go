@@ -259,7 +259,7 @@ func (b *Bucket) GetReader(ctx context.Context, path string) (rc io.ReadCloser, 
 // finished reading.
 func (b *Bucket) GetReaderWithRange(ctx context.Context, path string, begin, end int64) (rc io.ReadCloser, err error) {
 	header := make(http.Header)
-	header.Add("Range", fmt.Sprintf("bytes=%d-%d", begin, end))
+	header.Add("Range", fmt.Sprintf("bytes=%d-%d", begin, end-1))
 	resp, err := b.GetResponseWithHeaders(ctx, path, header)
 	if resp != nil {
 		return resp.Body, err

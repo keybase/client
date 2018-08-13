@@ -310,7 +310,7 @@ func NewDecoder(encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix libkb.
 	}
 }
 
-func (d *Decoder) SetChunkNum(num uint64) {
+func (d *Decoder) setChunkNum(num uint64) {
 	d.chunkNum = num
 }
 
@@ -488,38 +488,45 @@ func NewDecodingReader(encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix
 	}
 }
 
-type ChunkSpec struct {
-	Index                  int64
-	PTStart, PTEnd         int64
-	CipherStart, CipherEnd int64
+type chunkSpec struct {
+	index                  int64
+	ptStart, ptEnd         int64
+	cipherStart, cipherEnd int64
 }
 
-func chunkFromIndex(index int64) (res ChunkSpec) {
-	res.Index = index
-	res.PTStart = res.Index * DefaultPlaintextChunkLength
-	res.PTEnd = res.PTStart + DefaultPlaintextChunkLength
-	res.CipherStart = res.Index * getPacketLen(DefaultPlaintextChunkLength)
-	res.CipherEnd = res.CipherStart + getPacketLen(DefaultPlaintextChunkLength)
+func chunkFromIndex(index int64) (res chunkSpec) {
+	res.index = index
+	res.ptStart = res.index * DefaultPlaintextChunkLength
+	res.ptEnd = res.ptStart + DefaultPlaintextChunkLength
+	res.cipherStart = res.index * getPacketLen(DefaultPlaintextChunkLength)
+	res.cipherEnd = res.cipherStart + getPacketLen(DefaultPlaintextChunkLength)
 	return res
 }
 
-func GetChunkAtOffset(plaintextOffset, plaintextLen int64) (res ChunkSpec) {
+func getChunkAtOffset(plaintextOffset, plaintextLen int64) (res chunkSpec) {
 	cipherLen := GetSealedSize(plaintextLen)
 	res = chunkFromIndex(plaintextOffset / DefaultPlaintextChunkLength)
-	if res.PTEnd >= plaintextLen {
-		res.PTEnd = plaintextLen
+	if res.ptEnd >= plaintextLen {
+		res.ptEnd = plaintextLen
 	}
-	if res.CipherEnd >= cipherLen {
-		res.CipherEnd = cipherLen
+	if res.cipherEnd >= cipherLen {
+		res.cipherEnd = cipherLen
 	}
 	return res
 }
 
-func GetChunksInRange(plaintextBegin, plaintextEnd int64) (res []ChunkSpec) {
+func getChunksInRange(plaintextBegin, plaintextEnd, plaintextLen int64) (res []chunkSpec) {
 	beginChunk := chunkFromIndex(plaintextBegin / DefaultPlaintextChunkLength)
 	endChunk := chunkFromIndex(plaintextEnd / DefaultPlaintextChunkLength)
-	for i := beginChunk.Index; i <= endChunk.Index; i++ {
+	cipherLen := GetSealedSize(plaintextLen)
+	for i := beginChunk.index; i <= endChunk.index; i++ {
 		res = append(res, chunkFromIndex(i))
+	}
+	if res[len(res)-1].ptEnd >= plaintextLen {
+		res[len(res)-1].ptEnd = plaintextLen
+	}
+	if res[len(res)-1].cipherEnd >= cipherLen {
+		res[len(res)-1].cipherEnd = cipherLen
 	}
 	return res
 }
