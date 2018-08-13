@@ -18,6 +18,8 @@ const commonProps = {
   visible: true,
 }
 
+const onCancel = Sb.action('onCancel')
+
 const theyRequestProps = {
   ...commonProps,
   amountNominal: '$34',
@@ -49,10 +51,59 @@ const youRequestProps = {
   balanceChangeColor: '',
   bottomLine: '',
   icon: receiveIcon,
-  onCancel: Sb.action('onCancel'),
+  onCancel,
   sender: 'cecileb',
   topLine: 'you requested lumens worth',
   txVerb: 'requested',
+}
+
+const youSendProps = {
+  ...commonProps,
+  amountNominal: '$1',
+  balanceChange: '-170.6827309 XLM',
+  balanceChangeColor: S.globalColors.red,
+  bottomLine: '',
+  icon: sendIcon,
+  sender: 'cecileb',
+  topLine: 'you sent lumens worth',
+  txVerb: 'sent',
+}
+
+const youRequestBTCProps = {
+  ...commonProps,
+  amountNominal: '3 BTC',
+  balanceChange: '',
+  balanceChangeColor: '',
+  bottomLine: 'stronghold.com',
+  icon: receiveIcon,
+  onCancel,
+  sender: 'cecileb',
+  topLine: 'you requested',
+  txVerb: 'requested',
+}
+
+const youReceiveBTCProps = {
+  ...commonProps,
+  amountNominal: '1 BTC',
+  balanceChange: '+1 BTC',
+  balanceChangeColor: S.globalColors.green2,
+  bottomLine: 'stronghold.com',
+  icon: receiveIcon,
+  sender: 'kamel',
+  topLine: 'you received',
+  txVerb: 'sent',
+}
+
+const youSendBTCProps = {
+  ...commonProps,
+  amountNominal: '1 BTC',
+  balanceChange: '-1 BTC',
+  balanceChangeColor: S.globalColors.red,
+  bottomLine: 'stronghold.com',
+  icon: sendIcon,
+  sender: 'cecileb',
+  topLine: 'you sent',
+  txVerb: 'sent',
 }
 
 const load = () => {
@@ -60,6 +111,10 @@ const load = () => {
     .add('They request lumens', () => <PaymentPopup {...theyRequestProps} />)
     .add('You receive lumens', () => <PaymentPopup {...youReceiveProps} />)
     .add('You request lumens', () => <PaymentPopup {...youRequestProps} />)
+    .add('You send lumens', () => <PaymentPopup {...youSendProps} />)
+    .add('You request BTC', () => <PaymentPopup {...youRequestBTCProps} />)
+    .add('You receive BTC', () => <PaymentPopup {...youReceiveBTCProps} />)
+    .add('You send BTC', () => <PaymentPopup {...youSendBTCProps} />)
 }
 
 export default load
