@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfsblock"
 	"golang.org/x/net/context"
 )
 
@@ -108,4 +109,45 @@ func (dd *dirData) lookup(ctx context.Context, name string) (DirEntry, error) {
 		return DirEntry{}, NoSuchNameError{name}
 	}
 	return de, nil
+}
+
+// createIndirectBlock creates a new indirect block and pick a new id
+// for the existing block, and use the existing block's ID for the new
+// indirect block that becomes the parent.
+func (dd *dirData) createIndirectBlock(ctx context.Context) (*DirBlock, error) {
+	newID, err := dd.crypto.MakeTemporaryBlockID()
+	if err != nil {
+		return nil, err
+	}
+	dblock := &DirBlock{
+		CommonBlock: CommonBlock{
+			IsInd: true,
+		},
+		IPtrs: []IndirectDirPtr{
+			{
+				BlockInfo: BlockInfo{
+					BlockPointer: BlockPointer{
+						ID:      newID,
+						KeyGen:  dd.kmd.LatestKeyGeneration(),
+						DataVer: IndirectDirsDataVer,
+						Context: kbfsblock.MakeFirstContext(
+							dd.chargedTo, dd.rootBlockPointer().GetBlockType()),
+						DirectType: dd.rootBlockPointer().DirectType,
+					},
+					EncodedSize: 0,
+				},
+				Off: "",
+			},
+		},
+	}
+
+	dd.log.CDebugf(ctx, "Creating new level of indirection for dir %v, "+
+		"new block id for old top level is %v", dd.rootBlockPointer(), newID)
+
+	err = dd.cacher(dd.rootBlockPointer(), dblock)
+	if err != nil {
+		return nil, err
+	}
+
+	return dblock, nil
 }

@@ -30,6 +30,9 @@ func setupDirDataTest(t *testing.T) (*dirData, BlockCache, DirtyBlockCache) {
 	bsplit := &BlockSplitterSimple{10, 10, 10}
 	kmd := emptyKeyMetadata{id, 1}
 
+	chargedTo := keybase1.MakeTestUID(1).AsUserOrTeam()
+	crypto := MakeCryptoCommon(kbfscodec.NewMsgpack())
+
 	cleanCache := NewBlockCacheStandard(1<<10, 1<<20)
 	dirtyBcache := simpleDirtyBlockCacheStandard()
 	getter := func(_ context.Context, _ KeyMetadata, ptr BlockPointer,
