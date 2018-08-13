@@ -7,7 +7,7 @@ import Banner from '../../banner/container'
 import Footer from '../footer/container'
 import Memo from '../memo/container'
 import Note from '../note/container'
-import Participants from '../participants/container'
+import Participants from '../../participants/container'
 
 type Props = {
   bannerInfo?: string,

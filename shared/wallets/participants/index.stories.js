@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import * as Sb from '../../../stories/storybook'
-import {Box} from '../../../common-adapters'
+import * as Sb from '../../stories/storybook'
+import {Box} from '../../common-adapters'
 import Participants from '.'
 
 const provider = Sb.createPropProviderWithCommon({

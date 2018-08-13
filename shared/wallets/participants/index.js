@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import WalletEntry from './wallet-entry'
 import Row from './row'
 type Recipient = 'keybaseUser' | 'stellarAddress' | 'otherWallet'
