@@ -6,9 +6,9 @@ package libkbfs
 
 import "context"
 
-// blockGetter is a function that gets a block suitable for reading or
-// writing, and also returns whether the block was already dirty.  It
-// may be called from new goroutines, and must handle any required
+// blockGetterFn is a function that gets a block suitable for reading
+// or writing, and also returns whether the block was already dirty.
+// It may be called from new goroutines, and must handle any required
 // locks accordingly.
 type blockGetterFn func(context.Context, KeyMetadata, BlockPointer,
 	path, blockReqType) (block Block, wasDirty bool, err error)
@@ -119,13 +119,14 @@ func (bt *blockTree) getNextDirtyBlockAtOffsetAtLevel(ctx context.Context,
 	checkedPrevBlock := false
 	for i := 0; i < pblock.NumIndirectPtrs(); i++ {
 		info, iptrOff := pblock.IndirectPtr(i)
-		if iptrOff.Less(off) && i != pblock.NumIndirectPtrs()-1 {
+		iptrLess := iptrOff.Less(off)
+		if iptrLess && i != pblock.NumIndirectPtrs()-1 {
 			continue
 		}
 
 		// No need to check the previous block if we align exactly
 		// with `off`, or this is the right-most leaf block.
-		if iptrOff.Less(off) || iptrOff.Equals(off) {
+		if iptrLess || iptrOff.Equals(off) {
 			checkedPrevBlock = true
 		}
 

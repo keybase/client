@@ -21,7 +21,7 @@ var _ Offset = Int64Offset(0)
 func (i Int64Offset) Equals(other Offset) bool {
 	otherI, ok := other.(Int64Offset)
 	if !ok {
-		return false
+		panic(fmt.Sprintf("Can't compare against non-int offset: %T", other))
 	}
 	return int64(i) == int64(otherI)
 }
@@ -30,7 +30,7 @@ func (i Int64Offset) Equals(other Offset) bool {
 func (i Int64Offset) Less(other Offset) bool {
 	otherI, ok := other.(Int64Offset)
 	if !ok {
-		return false
+		panic(fmt.Sprintf("Can't compare against non-int offset: %T", other))
 	}
 	return int64(i) < int64(otherI)
 }
@@ -44,7 +44,7 @@ var _ Offset = StringOffset("")
 func (s StringOffset) Equals(other Offset) bool {
 	otherS, ok := other.(StringOffset)
 	if !ok {
-		return false
+		panic(fmt.Sprintf("Can't compare against non-string offset: %T", other))
 	}
 	return string(s) == string(otherS)
 }
@@ -53,7 +53,7 @@ func (s StringOffset) Equals(other Offset) bool {
 func (s StringOffset) Less(other Offset) bool {
 	otherS, ok := other.(StringOffset)
 	if !ok {
-		return false
+		panic(fmt.Sprintf("Can't compare against non-string offset: %T", other))
 	}
 	return string(s) < string(otherS)
 }
