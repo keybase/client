@@ -39,10 +39,9 @@ const props = {
 }
 
 const providers = Storybook.createPropProviderWithCommon({
-  ChatContainer: () => ({
-    conversations: [],
+  ChatRow: () => ({
+    convRows: [],
     onViewAll: () => {},
-    onSelectConversation: () => {},
   }),
 })
 

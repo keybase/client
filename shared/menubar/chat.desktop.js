@@ -27,7 +27,7 @@ type ChatContainerProps = {
   convRows: Array<ConvRow>,
 }
 
-export default ({onViewAll, onSelectConversation, convRows}: ChatContainerProps) => (
+export const ChatRow = ({onViewAll, onSelectConversation, convRows}: ChatContainerProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
     {convRows.map(r => {
       return (
