@@ -7,6 +7,7 @@ import (
 	"errors"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -800,23 +801,23 @@ func (o MessageReaction) DeepCopy() MessageReaction {
 }
 
 type MessageSendPayment struct {
-	KbTxID string `codec:"kbTxID" json:"kbTxID"`
+	PaymentID stellar1.PaymentID `codec:"paymentID" json:"paymentID"`
 }
 
 func (o MessageSendPayment) DeepCopy() MessageSendPayment {
 	return MessageSendPayment{
-		KbTxID: o.KbTxID,
+		PaymentID: o.PaymentID.DeepCopy(),
 	}
 }
 
 type MessageRequestPayment struct {
-	RequestID string `codec:"requestID" json:"requestID"`
-	Note      string `codec:"note" json:"note"`
+	RequestID stellar1.KeybaseRequestID `codec:"requestID" json:"requestID"`
+	Note      string                    `codec:"note" json:"note"`
 }
 
 func (o MessageRequestPayment) DeepCopy() MessageRequestPayment {
 	return MessageRequestPayment{
-		RequestID: o.RequestID,
+		RequestID: o.RequestID.DeepCopy(),
 		Note:      o.Note,
 	}
 }
