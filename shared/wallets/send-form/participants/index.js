@@ -95,7 +95,6 @@ const ToField = (props: ToFieldProps) => (
               placeholder={props.recipientType === 'stellarAddress' ? 'Stellar address' : 'Search Keybase'}
               placeholderColor={Styles.globalColors.black_20}
               hideBorder={true}
-              // style={styles.input}
               containerStyle={styles.input}
               multiline={true}
               rowsMin={props.recipientType === 'stellarAddress' ? 2 : 1}
@@ -109,6 +108,7 @@ const ToField = (props: ToFieldProps) => (
           )}
         </Kb.Box2>
       )}
+      {/* TODO: Add other wallet dropdown/create new wallet for wallet->wallet */}
     </Kb.Box2>
     <Kb.Divider style={props.incorrect ? styles.redline : {}} />
   </React.Fragment>
@@ -181,7 +181,6 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'flex-start',
   },
   inputBox: {flexGrow: 1},
-  // NewInput with icon hangs over the edge at 100%
   input: {
     padding: 0,
     marginLeft: Styles.globalMargins.xxtiny,
