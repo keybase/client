@@ -24,7 +24,6 @@ const HistoryPlaceholder = () => (
 export default (props: Props) => {
   const renderItem = ({item, index, section}) => {
     const children = []
-    console.log('nathan test', section.title, index, item)
     if (section.title === 'Your assets') {
       children.push(<Asset accountID={props.accountID} index={item} key={`${props.accountID}:${item}`} />)
     } else if (item === 'historyPlaceholder') {
