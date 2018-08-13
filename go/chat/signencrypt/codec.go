@@ -351,7 +351,6 @@ func (d *Decoder) Write(ciphertext []byte) ([]byte, error) {
 		if d.err != nil {
 			return nil, d.err
 		}
-		fmt.Printf("Write: decoded: len(plaintext): %v len(d.buf): %v\n", len(plaintext), len(d.buf))
 		output = append(output, plaintext...)
 	}
 	return output, nil
@@ -487,6 +486,10 @@ func NewDecodingReader(encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix
 		codec:       NewDecoder(encKey, verifyKey, signaturePrefix, nonce),
 	}
 }
+
+// =============================
+// chunk helpers
+// =============================
 
 type chunkSpec struct {
 	index                  int64

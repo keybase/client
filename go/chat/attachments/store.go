@@ -9,12 +9,14 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/go-crypto/ed25519"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/chat/utils"
@@ -76,12 +78,20 @@ type Store interface {
 	DeleteAssets(ctx context.Context, params chat1.S3Params, signer s3.Signer, assets []chat1.Asset) error
 }
 
+type streamCache struct {
+	path  string
+	cache *lru.Cache
+}
+
 type S3Store struct {
 	utils.DebugLabeler
 
 	s3signer s3.Signer
 	s3c      s3.Root
 	stash    AttachmentStash
+
+	scMutex     sync.Mutex
+	streamCache *streamCache
 
 	// testing hooks
 	testing    bool                        // true if we're in a test
@@ -286,24 +296,28 @@ func (a *S3Store) DownloadAsset(ctx context.Context, params chat1.S3Params, asse
 }
 
 type s3Seeker struct {
+	utils.DebugLabeler
+	ctx    context.Context
 	asset  chat1.Asset
 	bucket s3.BucketInt
 	offset int64
 }
 
-func newS3Seeker(asset chat1.Asset, bucket s3.BucketInt) *s3Seeker {
+func newS3Seeker(ctx context.Context, log logger.Logger, asset chat1.Asset, bucket s3.BucketInt) *s3Seeker {
 	return &s3Seeker{
-		asset:  asset,
-		bucket: bucket,
+		DebugLabeler: utils.NewDebugLabeler(log, "s3Seeker", false),
+		ctx:          ctx,
+		asset:        asset,
+		bucket:       bucket,
 	}
 }
 
 func (s *s3Seeker) Read(b []byte) (n int, err error) {
+	defer s.Trace(s.ctx, func() error { return err }, "Read(%v,%v)", s.offset, len(b))()
 	if s.offset >= s.asset.Size {
 		return 0, io.EOF
 	}
-	fmt.Printf("S3: Read: offset: %v len: %v\n", s.offset, len(b))
-	rc, err := s.bucket.GetReaderWithRange(context.TODO(), s.asset.Path, s.offset, s.offset+int64(len(b)))
+	rc, err := s.bucket.GetReaderWithRange(s.ctx, s.asset.Path, s.offset, s.offset+int64(len(b)))
 	if err != nil {
 		return 0, err
 	}
@@ -317,6 +331,7 @@ func (s *s3Seeker) Read(b []byte) (n int, err error) {
 }
 
 func (s *s3Seeker) Seek(offset int64, whence int) (res int64, err error) {
+	defer s.Trace(s.ctx, func() error { return err }, "Seek(%v,%v)", s.offset, whence)()
 	switch whence {
 	case io.SeekStart:
 		s.offset = offset
@@ -326,6 +341,20 @@ func (s *s3Seeker) Seek(offset int64, whence int) (res int64, err error) {
 		s.offset = s.asset.Size - offset
 	}
 	return s.offset, nil
+}
+
+func (s *S3Store) getStreamerCache(asset chat1.Asset) *lru.Cache {
+	s.scMutex.Lock()
+	defer s.scMutex.Unlock()
+	if s.streamCache != nil && s.streamCache.path == asset.Path {
+		return s.streamCache.cache
+	}
+	c, _ := lru.New(20)
+	s.streamCache = &streamCache{
+		path:  asset.Path,
+		cache: c,
+	}
+	return c
 }
 
 func (a *S3Store) StreamAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
@@ -343,8 +372,9 @@ func (a *S3Store) StreamAsset(ctx context.Context, params chat1.S3Params, asset 
 	if asset.Nonce != nil {
 		copy(nonce[:], asset.Nonce)
 	}
-	return signencrypt.NewDecodingReadSeeker(newS3Seeker(asset, b), ptsize, &xencKey, &xverifyKey,
-		libkb.SignaturePrefixChatAttachment, &nonce), nil
+	source := newS3Seeker(ctx, a.GetLog(), asset, b)
+	return signencrypt.NewDecodingReadSeeker(ctx, a.GetLog(), source, ptsize, &xencKey, &xverifyKey,
+		libkb.SignaturePrefixChatAttachment, &nonce, a.getStreamerCache(asset)), nil
 }
 
 func (a *S3Store) startUpload(ctx context.Context, task *UploadTask, encrypter *SignEncrypter) {

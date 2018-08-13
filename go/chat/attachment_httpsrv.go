@@ -233,14 +233,14 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	r.Debug(ctx, "serve: setting content-type: %s sz: %d", asset.MimeType, size)
 	w.Header().Set("Content-Type", asset.MimeType)
 	if r.shouldServeContent(ctx, asset) {
-		r.Debug(ctx, "serve: using content stash file")
 		if r.serveVideoHostPage(ctx, w, req) {
 			// if we served the host page, just bail out
 			return
 		}
+		r.Debug(ctx, "serve: streaming: req: method: %s range: %s", req.Method, req.Header.Get("Range"))
 		rs, err := r.fetcher.StreamAttachment(ctx, pair.ConvID, asset, r.ri, r)
 		if err != nil {
-			r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
+			r.makeError(ctx, w, http.StatusInternalServerError, "failed to get streamer: %s", err)
 			return
 		}
 		http.ServeContent(w, req, asset.Filename, time.Time{}, rs)
