@@ -1,14 +1,18 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../../../../stories/storybook'
+import {isMobile} from '../../../../../constants/platform'
 import PaymentPopup from '.'
+
+const sendIcon = isMobile ? 'icon-fancy-stellar-sending-mobile' : 'icon-fancy-stellar-sending-desktop'
+const receiveIcon = isMobile ? 'icon-fancy-stellar-receiving-mobile' : 'icon-fancy-stellar-receiving-desktop'
 
 const commonProps = {
   attachTo: null,
-  device: 'iPhone 6',
   onCancel: null,
   onHidden: Sb.action('onHidden'),
   position: 'top right',
+  senderDeviceName: 'iPhone 6',
   timestamp: 'Yesterday 8:11 PM',
   visible: true,
 }
@@ -19,7 +23,8 @@ const theyRequestProps = {
   balanceChange: '',
   balanceChangeColor: '',
   bottomLine: '',
-  icon: '',
+  icon: receiveIcon,
+  sender: 'kamel',
   topLine: 'requested lumens worth',
   txVerb: 'requested',
 }
