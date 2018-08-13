@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
@@ -432,13 +433,20 @@ func (s *Storage) MergeHelper(ctx context.Context,
 }
 
 func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, Error) {
-	s.Debug(ctx, "updateSupersededBy: num msgs: %d", len(msgs))
+	uid gregor1.UID, inMsgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, Error) {
+	s.Debug(ctx, "updateSupersededBy: num msgs: %d", len(inMsgs))
 	// Do a pass over all the messages and update supersededBy pointers
 	var allAssets []chat1.Asset
 	// We return a set of reaction targets that have been updated
 	updatedReactionTargets := map[chat1.MessageID]chat1.MessageUnboxed{}
 
+	// Sort in reverse order so this playback works as it would have if we received these
+	// in real-time
+	msgs := make([]chat1.MessageUnboxed, len(inMsgs))
+	copy(msgs, inMsgs)
+	sort.Slice(msgs, func(i, j int) bool {
+		return msgs[i].GetMessageID() < msgs[j].GetMessageID()
+	})
 	for _, msg := range msgs {
 		msgid := msg.GetMessageID()
 		if !msg.IsValid() {

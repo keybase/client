@@ -234,7 +234,7 @@ func LookupSender(ctx context.Context, g *libkb.GlobalContext, accountID stellar
 	return entry, nil
 }
 
-func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res stellarcommon.Recipient, err error) {
+func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI bool) (res stellarcommon.Recipient, err error) {
 	defer m.CTraceTimed("Stellar.LookupRecipient", func() error { return err })()
 	res = stellarcommon.Recipient{
 		Input: to,
@@ -304,19 +304,19 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res 
 		case libkb.NotFoundError:
 			// common case
 		default:
-			m.CDebugf("identifyRecipient: lookup accountID->user accountID:%v err:%v", res.AccountID, err)
+			m.CDebugf("LookupRecipient: lookup accountID->user accountID:%v err:%v", res.AccountID, err)
 			// log and ignore
 		}
 		return res, nil
 	}
 
-	idRes, err := identifyRecipient(m, string(to))
+	idRes, err := identifyRecipient(m, string(to), isCLI)
 	if err != nil {
 		return res, err
 	}
-	m.CDebugf("identifyRecipient: identify result for %s: %+v", to, idRes)
+	m.CDebugf("LookupRecipient: identify result for %s: %+v", to, idRes)
 	if idRes.Breaks != nil {
-		m.CDebugf("identifyRecipient: TrackBreaks = %+v", idRes.Breaks)
+		m.CDebugf("LookupRecipient: TrackBreaks = %+v", idRes.Breaks)
 		return res, libkb.TrackingBrokeError{}
 	}
 
@@ -391,13 +391,23 @@ type SendPaymentResult struct {
 	RelayTeamID *keybase1.TeamID
 }
 
-// SendPayment sends XLM.
+// SendPaymentCLI sends XLM from CLI.
+func SendPaymentCLI(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymentArg) (res SendPaymentResult, err error) {
+	return sendPayment(m, remoter, sendArg, true)
+}
+
+// SendPaymentGUI sends XLM from GUI.
+func SendPaymentGUI(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymentArg) (res SendPaymentResult, err error) {
+	return sendPayment(m, remoter, sendArg, false)
+}
+
+// sendPayment sends XLM.
 // Recipient:
 // Stellar address        : Standard payment
 // User with wallet ready : Standard payment
 // User without a wallet  : Relay payment
 // Unresolved assertion   : Relay payment
-func SendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymentArg) (res SendPaymentResult, err error) {
+func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymentArg, isCLI bool) (res SendPaymentResult, err error) {
 	defer m.CTraceTimed("Stellar.SendPayment", func() error { return err })()
 
 	// look up sender account
@@ -408,7 +418,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 	senderSeed := senderEntry.Signers[0]
 
 	// look up recipient
-	recipient, err := LookupRecipient(m, sendArg.To)
+	recipient, err := LookupRecipient(m, sendArg.To, isCLI)
 	if err != nil {
 		return res, err
 	}
@@ -830,13 +840,17 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 	}
 }
 
-func identifyRecipient(m libkb.MetaContext, assertion string) (keybase1.TLFIdentifyFailure, error) {
+func identifyRecipient(m libkb.MetaContext, assertion string, isCLI bool) (keybase1.TLFIdentifyFailure, error) {
 	reason := fmt.Sprintf("Find transaction recipient for %s", assertion)
+	// gui will use RESOLVE_AND_CHECK behavior
 	arg := keybase1.Identify2Arg{
 		UserAssertion:    assertion,
 		UseDelegateUI:    true,
 		Reason:           keybase1.IdentifyReason{Reason: reason},
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI, // XXX needs adjusting?
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_RESOLVE_AND_CHECK,
+	}
+	if isCLI {
+		arg.IdentifyBehavior = keybase1.TLFIdentifyBehavior_CLI
 	}
 
 	eng := engine.NewResolveThenIdentify2(m.G(), &arg)
@@ -1137,7 +1151,15 @@ type MakeRequestArg struct {
 	Note     string
 }
 
-func MakeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg) (ret stellar1.KeybaseRequestID, err error) {
+func MakeRequestGUI(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg) (ret stellar1.KeybaseRequestID, err error) {
+	return makeRequest(m, remoter, arg, false /* isCLI */)
+}
+
+func MakeRequestCLI(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg) (ret stellar1.KeybaseRequestID, err error) {
+	return makeRequest(m, remoter, arg, true /* isCLI */)
+}
+
+func makeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg, isCLI bool) (ret stellar1.KeybaseRequestID, err error) {
 	defer m.CTraceTimed("Stellar.MakeRequest", func() error { return err })()
 
 	if arg.Asset == nil && arg.Currency == nil {
@@ -1169,7 +1191,7 @@ func MakeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 		return ret, errors.New("cannot send RequestPayment message: chat helper is nil")
 	}
 
-	recipient, err := LookupRecipient(m, arg.To)
+	recipient, err := LookupRecipient(m, arg.To, isCLI)
 	if err != nil {
 		return ret, err
 	}

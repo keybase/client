@@ -42,7 +42,6 @@ const MessagePopupHeader = (props: {
         ...globalStyles.flexBoxColumn,
         alignItems: 'center',
         maxWidth: isMobile ? '100%' : 240,
-        textAlign: 'center',
         width: '100%',
       }}
     >
