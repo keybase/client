@@ -2,15 +2,13 @@
 import * as ConfigGen from '../actions/config-gen'
 import * as FavoriteGen from '../actions/favorite-gen'
 import * as KBFSGen from '../actions/kbfs-gen'
-import * as ChatTypes from '../constants/types/chat2'
-import * as Chat2Gen from '../actions/chat2-gen'
 import Menubar from './index.desktop'
 import openUrl from '../util/open-url'
 import {connect, compose, type Dispatch} from '../util/container'
 import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
 import {defaultKBFSPath} from '../constants/config'
 import {executeActionsForContext} from '../util/quit-helper.desktop'
-import {loginTab, chatTab, type Tab} from '../constants/tabs'
+import {loginTab, type Tab} from '../constants/tabs'
 import {navigateTo, switchTo} from '../actions/route-tree'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {urlHelper} from '../util/url-helper'
@@ -66,11 +64,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     const link = urlHelper('help')
     link && openUrl(link)
     closeWindow()
-  },
-  onSelectConversation: (conversationIDKey: ChatTypes.ConversationIDKey) => {
-    dispatch(ConfigGen.createShowMain())
-    dispatch(switchTo([chatTab]))
-    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'}))
   },
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
