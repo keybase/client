@@ -10,7 +10,7 @@ type FromFieldProps = {|
   username: string,
   walletName: string,
   walletContents: string,
-  isConfirm?: boolean,
+  isConfirm: boolean,
 |}
 
 const FromField = (props: FromFieldProps) => (
@@ -31,13 +31,13 @@ const FromField = (props: FromFieldProps) => (
 type ToFieldProps = {|
   recipientType: Recipient,
   /* Used for the confirm screen */
-  isConfirm?: boolean,
+  isConfirm: boolean,
   /* Used for send to stellar address */
   incorrect?: boolean,
   onChangeAddress?: string => void,
   /* Used to display a keybase profile */
   username?: string,
-  fullname?: string,
+  fullName?: string,
   onShowProfile?: string => void,
   onRemoveProfile?: () => void,
 |}
@@ -49,7 +49,7 @@ const ToField = (props: ToFieldProps) => (
         type="BodyTinySemibold"
         style={Styles.collapseStyles([
           styles.headingText,
-          props.recipientType !== 'otherWallet'
+          props.recipientType === 'stellarAddress'
             ? {
                 alignSelf: 'flex-start',
               }
@@ -65,7 +65,7 @@ const ToField = (props: ToFieldProps) => (
               colorFollowing={true}
               horizontal={true}
               username={props.username}
-              metaOne={props.fullname}
+              metaOne={props.fullName}
               onClick={props.onShowProfile}
             />
             {!props.isConfirm && (
@@ -79,15 +79,16 @@ const ToField = (props: ToFieldProps) => (
             )}
           </React.Fragment>
         )}
-      {props.recipientType === 'stellarAddress' && (
+      {props.recipientType !== 'otherWallet' && (
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
-            {props.recipientType === 'stellarAddress' && (
-              <Kb.Icon
-                type={props.incorrect ? 'icon-stellar-logo-grey-16' : 'icon-stellar-logo-16'}
-                style={Kb.iconCastPlatformStyles(styles.icon)}
-              />
-            )}
+            {props.recipientType === 'stellarAddress' &&
+              !props.isConfirm && (
+                <Kb.Icon
+                  type={props.incorrect ? 'icon-stellar-logo-grey-16' : 'icon-stellar-logo-16'}
+                  style={Kb.iconCastPlatformStyles(styles.icon)}
+                />
+              )}
             <Kb.NewInput
               type="text"
               onChangeText={props.onChangeAddress}
@@ -125,8 +126,8 @@ type ParticipantsProps = {|
   incorrect?: boolean,
   onChangeAddress?: string => void,
   /* Used to display a keybase profile */
-  username?: string,
-  fullname?: string,
+  recipientUsername?: string,
+  recipientFullName?: string,
   onShowProfile?: string => void,
   onRemoveProfile?: () => void,
 |}
@@ -138,16 +139,18 @@ const Participants = (props: ParticipantsProps) => (
       props.fromWalletUser &&
       props.fromWalletContents && (
         <FromField
+          isConfirm={props.isConfirm || false}
           walletName={props.fromWallet}
           username={props.fromWalletUser}
           walletContents={props.fromWalletContents}
         />
       )}
     <ToField
+      isConfirm={props.isConfirm || false}
       recipientType={props.recipientType}
       incorrect={props.incorrect}
-      username={props.username}
-      fullname={props.fullname}
+      username={props.recipientUsername}
+      fullName={props.recipientFullName}
     />
   </Kb.Box2>
 )

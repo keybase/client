@@ -9,11 +9,21 @@ const provider = Sb.createPropProviderWithCommon({
   Participants: props => ({}),
 })
 
+const confirmCommonProps = {
+  isConfirm: true,
+  fromWallet: 'Primary Wallet',
+  fromWalletUser: 'cjb',
+  fromWalletContents: '2000 XLM',
+  recipientUsername: 'zanderz',
+  recipientFullName: 'Steve Sanders',
+  onShowProfile: Sb.action('onShowProfile'),
+}
+
 const load = () => {
   Sb.storiesOf('Wallets/SendForm/Participants', module)
     .addDecorator(provider)
     .addDecorator(story => <Box style={{maxWidth: 360}}>{story()}</Box>)
-    .add('To Keybase User', () => <Participants recipientType="keybaseUser" />)
+    .add('To Keybase user', () => <Participants recipientType="keybaseUser" />)
     .add('To other wallet', () => (
       <Participants
         recipientType="otherWallet"
@@ -27,11 +37,18 @@ const load = () => {
     .add('User match', () => (
       <Participants
         recipientType="keybaseUser"
-        username="yen"
-        fullname="Addie Stokes"
+        recipientUsername="yen"
+        recipientFullName="Addie Stokes"
         onShowProfile={Sb.action('onShowProfile')}
         onRemoveProfile={Sb.action('onRemoveUser')}
       />
+    ))
+    .add('Confirm to Keybase user', () => (
+      <Participants recipientType="keybaseUser" {...confirmCommonProps} />
+    ))
+    .add('Confirm to other wallet', () => <Participants recipientType="otherWallet" isConfirm={true} />)
+    .add('Confirm to stellar address', () => (
+      <Participants recipientType="stellarAddress" {...confirmCommonProps} />
     ))
 }
 
