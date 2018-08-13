@@ -67,11 +67,13 @@ const ToField = (props: any) => (
               onChangeText={props.onChangeAddress}
               textType="BodySemibold"
               placeholder={props.recipientType === 'stellarAddress' ? 'Stellar address' : 'Search Keybase'}
-              placeholderColor={Styles.globalColors.grey}
+              placeholderColor={Styles.globalColors.red}
               hideBorder={true}
               // style={styles.input}
               containerStyle={styles.input}
               multiline={true}
+              rowsMin={props.recipientType === 'stellarAddress' ? 2 : 1}
+              rowsMax={3}
             />
           </Kb.Box2>
           {props.incorrect && (

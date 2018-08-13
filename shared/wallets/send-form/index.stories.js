@@ -23,9 +23,9 @@ const provider = Sb.createPropProviderWithCommon({
   Memo: props => ({}),
   Note: props => ({}),
   Participants: props => ({
-    username: 'yen',
-    fullname: 'Addie Stokes',
-    onShowProfile: Sb.action('onShowProfile'),
+    // username: 'yen',
+    // fullname: 'Addie Stokes',
+    // onShowProfile: Sb.action('onShowProfile'),
   }),
 })
 
