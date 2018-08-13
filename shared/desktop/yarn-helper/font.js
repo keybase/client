@@ -44,8 +44,9 @@ const getSvgFilenames = () =>
 const getSvgFilePaths = () => getSvgFilenames().map(i => path.resolve(paths.iconfont, i))
 
 /*
- * This function will read all of the SVG files specified above, and generate a single ttf iconfont from the svgs.
- * webfonts-generator will write the file to `dest`
+ * This function will read all of the SVG files specified above, and generate a
+ * single ttf iconfont from the svgs. webfonts-generator will write the file to
+ * `dest`
  *
  * For config options: https://github.com/sunflowerdeath/webfonts-generator
  */
@@ -66,10 +67,15 @@ function updatedFonts() {
         ttf: {
           ts: Date.now(),
         },
+        /*
+         * Important: Align to text font baseline
+         * Descent: fontHeight * 0.0625
+         * source: https://icomoon.io/#docs/font-metrics
+         */
         svg: {
-          center: true,
-          normalize: true,
+          centerHorizontally: true,
           fontHeight: 1024,
+          descent: 64,
         },
       },
     },
@@ -113,7 +119,6 @@ function updateConstants() {
 
   // Build constants for iconfont svgs
   const svgFiles = getSvgFilenames()
-  console.log(svgFiles)
   svgFiles.forEach(path => {
     const match = path.match(iconfontRegex)
     if (!match || match.length !== 4) return
