@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import {toUpper, upperFirst} from 'lodash-es'
 import * as Kb from '../../../../../common-adapters'
 import * as S from '../../../../../styles'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
@@ -31,20 +32,20 @@ const Header = (props: HeaderProps) => (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerTop}>
       <Kb.Icon type={props.icon} style={Kb.iconCastPlatformStyles(styles.icon)} />
       <Kb.Text type="Body" style={styles.colorWhite}>
-        {props.topLine}
+        {toUpper(props.topLine)}
       </Kb.Text>
       <Kb.Text type="HeaderExtrabold" style={styles.colorWhite}>
         {props.amountNominal}
       </Kb.Text>
       {props.bottomLine && (
         <Kb.Text type="Body" style={styles.colorWhite}>
-          {props.bottomLine}
+          {toUpper(props.bottomLine)}
         </Kb.Text>
       )}
     </Kb.Box2>
     <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
       <Kb.Text type="BodyTiny">
-        {props.txVerb} by{' '}
+        {upperFirst(props.txVerb)} by{' '}
         <Kb.ConnectedUsernames
           clickable={true}
           colorFollowing={true}
@@ -108,6 +109,7 @@ const styles = S.styleSheetCreate({
     paddingBottom: S.globalMargins.tiny,
   },
   icon: {
+    marginBottom: 6,
     marginTop: -15,
   },
   textAlignCenter: {
