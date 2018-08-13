@@ -4,7 +4,7 @@ import * as Tabs from '../constants/tabs'
 import * as ChatTypes from '../constants/types/chat2'
 import * as Chat2Gen from '../actions/chat2-gen'
 import {switchTo} from '../actions/route-tree'
-import {ChatRow} from './chat.desktop'
+import {ChatPreview} from './chat.desktop'
 import {remoteConnect, compose} from '../util/container'
 
 const mapStateToProps = state => ({
@@ -32,4 +32,6 @@ const mergeProps = (stateProps, dispatchProps) => ({
   })),
 })
 
-export default compose(remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps))(ChatRow)
+export default compose(
+  remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps)
+)(ChatPreview)
