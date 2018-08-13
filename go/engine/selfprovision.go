@@ -99,8 +99,8 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	// commit the config changes NOTE we should wrap the Active device change
-	// in a transaction as well.
+	// commit the config changes
+	// NOTE we should wrap the Active device change in a transaction as well.
 	if err := tx.Commit(); err != nil {
 		return err
 	}

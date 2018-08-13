@@ -84,10 +84,8 @@ func AddPerUserKeyServerArg(serverArg JSONPayload, generation keybase1.PerUserKe
 	serverArg["per_user_key"] = section
 }
 
-// Make the "per_user_key" section of an API arg.
-// Requires one or more `pukBoxes`
-// `pukPrev` is optional.
-// Modifies `serverArg`.
+// Make the "user_ek_rebox" and "device_eks" section of an API arg.  Modifies
+// `serverArg` unless arg is nil.
 func AddUserEKReBoxServerArg(serverArg JSONPayload, arg *keybase1.UserEkReboxArg) {
 	if arg == nil {
 		return
