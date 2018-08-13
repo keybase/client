@@ -106,7 +106,7 @@ const ToField = (props: ToFieldProps) => {
           />
         </Kb.Box2>
         {props.incorrect && (
-          <Kb.Text type="BodySmall" style={styles.error}>
+          <Kb.Text type="BodySmall" style={styles.errorText}>
             This Stellar address is incorrect
           </Kb.Text>
         )}
@@ -115,22 +115,25 @@ const ToField = (props: ToFieldProps) => {
   }
 
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
-      <Kb.Text
-        type="BodyTinySemibold"
-        style={Styles.collapseStyles([
-          styles.headingText,
-          props.recipientType === 'stellarAddress' && !props.username
-            ? {
-                alignSelf: 'flex-start',
-              }
-            : {},
-        ])}
-      >
-        To:
-      </Kb.Text>
-      {component}
-    </Kb.Box2>
+    <React.Fragment>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
+        <Kb.Text
+          type="BodyTinySemibold"
+          style={Styles.collapseStyles([
+            styles.headingText,
+            props.recipientType === 'stellarAddress' && !props.username
+              ? {
+                  alignSelf: 'flex-start',
+                }
+              : {},
+          ])}
+        >
+          To:
+        </Kb.Text>
+        {component}
+      </Kb.Box2>
+      <Kb.Divider style={props.incorrect ? styles.redline : {}} />
+    </React.Fragment>
   )
 }
 
@@ -204,7 +207,7 @@ const styles = Styles.styleSheetCreate({
       wordBreak: 'break-all',
     },
   }),
-  error: Styles.platformStyles({
+  errorText: Styles.platformStyles({
     common: {
       color: Styles.globalColors.red,
       width: '100%',
