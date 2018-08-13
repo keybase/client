@@ -14,7 +14,7 @@ const load = () => {
     <Box style={{maxWidth: 360}}>{story()}</Box>
   ))
   story.addDecorator(provider)
-  story.add('Normal', () => <Participants incorrect={false} recipientType="stellarAddress" />)
+  story.add('Normal', () => <Participants recipientType="stellarAddress" />)
   story.add('Address Error', () => <Participants incorrect={true} recipientType="stellarAddress" />)
   story.add('User match', () => (
     <Participants
