@@ -680,6 +680,13 @@ func (u *userPlusDevice) track(username string) {
 	require.NoError(u.tc.T, err)
 }
 
+func (u *userPlusDevice) untrack(username string) {
+	untrackCmd := client.NewCmdUntrackRunner(u.tc.G)
+	untrackCmd.SetUser(username)
+	err := untrackCmd.Run()
+	require.NoError(u.tc.T, err)
+}
+
 func (u *userPlusDevice) getTeamSeqno(teamID keybase1.TeamID) keybase1.Seqno {
 	team, err := teams.Load(context.Background(), u.tc.G, keybase1.LoadTeamArg{
 		ID:          teamID,

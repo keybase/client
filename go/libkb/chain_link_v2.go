@@ -62,6 +62,8 @@ const (
 // be stubbed, that means we potentially won't get to verify its signature,
 // since we need the full link to verify signatures. However, in some cases,
 // signature verification is required, and hence stubbing is disallowed.
+// NOTE when modifying this function ensure that web/sig.iced#_allow_stubbing
+// is updated as well.
 func (t SigchainV2Type) AllowStubbing() bool {
 
 	// Unsupported types don't need signatures. Otherwise we can't
@@ -80,6 +82,8 @@ func (t SigchainV2Type) AllowStubbing() bool {
 	}
 }
 
+// NOTE when modifying this function ensure that web/sig.iced#_is_supported_user_type
+// is updated as well.
 func (t SigchainV2Type) IsSupportedUserType() bool {
 	switch t {
 	case SigchainV2TypeNone,
