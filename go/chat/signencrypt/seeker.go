@@ -10,10 +10,10 @@ import (
 )
 
 type decodingReadSeeker struct {
-	source       io.ReadSeeker
-	size, offset int64
-	decoder      *Decoder
-	chunks       *lru.Cache
+	source                   io.ReadSeeker
+	size, sealedSize, offset int64
+	decoder                  *Decoder
+	chunks                   *lru.Cache
 }
 
 var _ io.ReadSeeker = (*decodingReadSeeker)(nil)
@@ -23,16 +23,20 @@ func NewDecodingReadSeeker(source io.ReadSeeker, size int64, encKey SecretboxKey
 	decoder := NewDecoder(encKey, verifyKey, libkb.SignaturePrefixChatAttachment, nonce)
 	c, _ := lru.New(16)
 	return &decodingReadSeeker{
-		source:  source,
-		size:    size,
-		decoder: decoder,
-		chunks:  c,
+		source:     source,
+		size:       size,
+		sealedSize: GetSealedSize(size),
+		decoder:    decoder,
+		chunks:     c,
 	}
 }
 
 func (r *decodingReadSeeker) fetchChunks(chunks []ChunkSpec) (res []byte, err error) {
 	begin := chunks[0].CipherStart
 	end := chunks[len(chunks)-1].CipherEnd
+	if end >= r.sealedSize {
+		end = r.sealedSize
+	}
 	num := end - begin
 
 	// Check for a full hit on all the chunks first
@@ -70,13 +74,19 @@ func (r *decodingReadSeeker) Read(res []byte) (n int, err error) {
 	if r.offset >= r.size {
 		return 0, io.EOF
 	}
-	fmt.Printf("Read: offset: %v: len: %v\n", r.offset, len(res))
 	num := int64(len(res))
 	end := r.offset + num
+	if end >= r.size {
+		end = r.size
+	}
+	fmt.Printf("Read: offset: %v: len: %v end: %v\n", r.offset, len(res), end)
 	chunks := GetChunksInRange(r.offset, end)
 	cipherText, err := r.fetchChunks(chunks)
 	if err != nil {
 		return n, err
+	}
+	for _, c := range chunks {
+		fmt.Printf("chunk: index: %v ptstart: %v ptend: %v cstart: %v cend: %v\n", c.Index, c.PTStart, c.PTEnd, c.CipherStart, c.CipherEnd)
 	}
 	r.decoder.SetChunkNum(uint64(chunks[0].Index))
 	chunkPlainText, err := r.decoder.Write(cipherText)

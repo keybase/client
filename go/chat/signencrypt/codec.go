@@ -351,6 +351,7 @@ func (d *Decoder) Write(ciphertext []byte) ([]byte, error) {
 		if d.err != nil {
 			return nil, d.err
 		}
+		fmt.Printf("Write: decoded: len(plaintext): %v len(d.buf): %v\n", len(plaintext), len(d.buf))
 		output = append(output, plaintext...)
 	}
 	return output, nil
