@@ -162,6 +162,19 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   videoDuration: null,
 })
 
+export const makeMessageRequestPayment: I.RecordFactory<MessageTypes._MessageRequestPayment> = I.Record({
+  ...makeMessageCommon,
+  note: '',
+  requestID: '',
+  type: 'requestPayment',
+})
+
+export const makeMessageSendPayment: I.RecordFactory<MessageTypes._MessageSendPayment> = I.Record({
+  ...makeMessageCommon,
+  paymentID: '',
+  type: 'sendPayment',
+})
+
 const makeMessageSystemJoined: I.RecordFactory<MessageTypes._MessageSystemJoined> = I.Record({
   ...makeMessageMinimum,
   reactions: I.Map(),
