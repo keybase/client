@@ -7,8 +7,8 @@ class DelayInterval {
   _intervalMS: number
   _delayMS: number
 
-  _intervalID: IntervalID
-  _delayID: TimeoutID
+  _intervalID: ?IntervalID
+  _delayID: ?TimeoutID
 
   constructor(intervalMS: number, delayMS: number) {
     this._intervalMS = intervalMS
@@ -24,9 +24,9 @@ class DelayInterval {
     }, this._delayMS)
   }
   stop() {
-    clearTimeout(this._delayID)
+    this._delayID && clearTimeout(this._delayID)
     this._delayID = null
-    clearInterval(this._intervalID)
+    this._intervalID && clearInterval(this._intervalID)
     this._intervalID = null
   }
   running() {
