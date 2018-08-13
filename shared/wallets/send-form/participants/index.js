@@ -45,13 +45,24 @@ const ToField = (props: any) => (
         To:
       </Kb.Text>
       {!!props.username && (
-        <Kb.NameWithIcon
-          colorFollowing={true}
-          horizontal={true}
-          username={props.username}
-          metaOne={props.fullname}
-          onClick={props.onShowProfile}
-        />
+        <React.Fragment>
+          <Kb.NameWithIcon
+            colorFollowing={true}
+            horizontal={true}
+            username={props.username}
+            metaOne={props.fullname}
+            onClick={props.onShowProfile}
+          />
+          {!props.isConfirm && (
+            <Kb.Icon
+              type="iconfont-remove"
+              boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserX)}
+              fontSize={16}
+              color={Styles.globalColors.black_20}
+              onClick={props.onRemoveUser}
+            />
+          )}
+        </React.Fragment>
       )}
       {!props.username && (
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
@@ -67,7 +78,7 @@ const ToField = (props: any) => (
               onChangeText={props.onChangeAddress}
               textType="BodySemibold"
               placeholder={props.recipientType === 'stellarAddress' ? 'Stellar address' : 'Search Keybase'}
-              placeholderColor={Styles.globalColors.red}
+              placeholderColor={Styles.globalColors.black_20}
               hideBorder={true}
               // style={styles.input}
               containerStyle={styles.input}
@@ -100,7 +111,7 @@ type ParticipantsProps = {
   fullname?: string,
   onShowProfile?: string => void,
 
-  displayX?: boolean,
+  displayRemove?: boolean,
   onRemoveProfile?: () => void,
 }
 
@@ -136,6 +147,10 @@ const styles = Styles.styleSheetCreate({
     paddingTop: Styles.globalMargins.tiny,
     paddingBottom: Styles.globalMargins.tiny,
     alignItems: 'center',
+  },
+  keybaseUserX: {
+    flex: 1,
+    textAlign: 'right',
   },
   error: Styles.platformStyles({
     common: {
