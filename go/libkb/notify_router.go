@@ -75,6 +75,8 @@ type NotifyListener interface {
 	AvatarUpdated(name string, formats []keybase1.AvatarFormat)
 	DeviceCloneCountChanged(newClones int)
 	WalletPaymentNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID)
+	TeamListUnverifiedChanged(teamName string)
+	CanUserPerformChanged(teamName string)
 }
 
 type NoopNotifyListener struct{}
@@ -146,6 +148,8 @@ func (n *NoopNotifyListener) AvatarUpdated(name string, formats []keybase1.Avata
 func (n *NoopNotifyListener) DeviceCloneCountChanged(newClones int)                              {}
 func (n *NoopNotifyListener) WalletPaymentNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID) {
 }
+func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string) {}
+func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)     {}
 
 // NotifyRouter routes notifications to the various active RPC
 // connections. It's careful only to route to those who are interested
@@ -1383,6 +1387,64 @@ func (n *NotifyRouter) HandleTeamChangedByName(ctx context.Context,
 		n.listener.TeamChangedByName(teamName, latestSeqno, implicitTeam, changes)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent TeamChanged notification")
+}
+
+// HandleTeamListUnverifiedChanged is called when a notification is received from gregor that
+// we think might be of interest to the UI, specifically the parts of the UI that update using
+// the TeamListUnverified rpc.
+func (n *NotifyRouter) HandleTeamListUnverifiedChanged(ctx context.Context, teamName string) {
+	if n == nil {
+		return
+	}
+
+	n.G().Log.Debug("+ Sending TeamListUnverifiedChanged notification (team:%v)", teamName)
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Team` notifications
+		if n.getNotificationChannels(id).Team {
+			// In the background do...
+			go func() {
+				// A send of a `TeamListUnverifiedChanged` RPC
+				(keybase1.NotifyUnverifiedTeamListClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).TeamListUnverifiedChanged(context.Background(), teamName)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.TeamListUnverifiedChanged(teamName)
+	}
+	n.G().Log.Debug("- Sent TeamListUnverifiedChanged notification (team:%v)", teamName)
+}
+
+// HandleCanUserPerformChanged is called when a notification is received from gregor that
+// we think might be of interest to the UI, specifically the parts of the UI that update
+// permissions for a user in a team.
+func (n *NotifyRouter) HandleCanUserPerformChanged(ctx context.Context, teamName string) {
+	if n == nil {
+		return
+	}
+
+	n.G().Log.Debug("+ Sending CanUserPerformChanged notification (team:%v)", teamName)
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Team` notification type
+		if n.getNotificationChannels(id).Team {
+			// In the background do...
+			go func() {
+				// A send of a `CanUserPerformChanged` RPC
+				(keybase1.NotifyCanUserPerformClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).CanUserPerformChanged(context.Background(), teamName)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.CanUserPerformChanged(teamName)
+	}
+	n.G().Log.Debug("- Sent CanUserPerformChanged notification (team:%v)", teamName)
 }
 
 func (n *NotifyRouter) HandleTeamDeleted(ctx context.Context, teamID keybase1.TeamID) {

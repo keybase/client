@@ -655,7 +655,10 @@ func (e *EKLib) OnLogin() error {
 	return nil
 }
 
-func (e *EKLib) OnLogout() error {
+func (e *EKLib) ClearCaches() {
+	e.Lock()
+	defer e.Unlock()
+
 	e.teamEKGenCache.Purge()
 	if deviceEKStorage := e.G().GetDeviceEKStorage(); deviceEKStorage != nil {
 		deviceEKStorage.ClearCache()
@@ -666,5 +669,9 @@ func (e *EKLib) OnLogout() error {
 	if teamEKBoxStorage := e.G().GetTeamEKBoxStorage(); teamEKBoxStorage != nil {
 		teamEKBoxStorage.ClearCache()
 	}
+}
+
+func (e *EKLib) OnLogout() error {
+	e.ClearCaches()
 	return nil
 }

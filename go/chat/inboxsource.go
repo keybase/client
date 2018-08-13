@@ -78,7 +78,8 @@ func NewBlockingLocalizer(g *globals.Context) *BlockingLocalizer {
 	return &BlockingLocalizer{
 		Contextified:  globals.NewContextified(g),
 		baseLocalizer: newBaseLocalizer(g),
-		pipeline:      newLocalizerPipeline(g, newBasicSupersedesTransform(g)),
+		pipeline: newLocalizerPipeline(g,
+			newBasicSupersedesTransform(g, basicSupersedesTransformOpts{})),
 	}
 }
 
@@ -124,9 +125,10 @@ func NewNonblockingLocalizer(g *globals.Context, localizeCb chan NonblockInboxRe
 		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "NonblockingLocalizer", false),
 		baseLocalizer: newBaseLocalizer(g),
-		pipeline:      newLocalizerPipeline(g, newBasicSupersedesTransform(g)),
-		localizeCb:    localizeCb,
-		maxUnbox:      maxUnbox,
+		pipeline: newLocalizerPipeline(g,
+			newBasicSupersedesTransform(g, basicSupersedesTransformOpts{})),
+		localizeCb: localizeCb,
+		maxUnbox:   maxUnbox,
 	}
 }
 

@@ -933,6 +933,7 @@ const loadMoreMessages = (
           },
           pgmode: RPCChatTypes.localGetThreadNonblockPgMode.server,
           query: {
+            enableDeletePlaceholders: true,
             disableResolveSupersedes: false,
             markAsRead: false,
             messageTypes: loadThreadMessageTypes,

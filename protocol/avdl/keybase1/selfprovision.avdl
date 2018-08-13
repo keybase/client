@@ -1,0 +1,13 @@
+
+@namespace("keybase.1")
+protocol selfprovision {
+
+  import idl "common.avdl";
+
+  /**
+    Performs self provision. If the current device is clone, this function
+    will provision it as a new device.
+    */
+  void selfProvision(int sessionID, string deviceName);
+
+}

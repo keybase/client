@@ -67,7 +67,7 @@ func TestPaperKeySubmit(t *testing.T) {
 }
 
 func assertPaperKeyCached(m libkb.MetaContext, t *testing.T, wantCached bool) {
-	device := m.ActiveDevice().PaperKey(m)
+	device := m.ActiveDevice().ProvisioningKey(m)
 	var isCached bool
 	if device != nil {
 		isCached = device.HasBothKeys()
