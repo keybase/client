@@ -31,14 +31,14 @@ const Header = (props: HeaderProps) => (
   <Kb.Box2 fullWidth={true} gap="small" gapEnd={true} direction="vertical">
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerTop}>
       <Kb.Icon type={props.icon} style={Kb.iconCastPlatformStyles(styles.icon)} />
-      <Kb.Text type="Body" style={styles.colorWhite}>
+      <Kb.Text type="BodyTiny" style={styles.colorWhite}>
         {toUpper(props.topLine)}
       </Kb.Text>
       <Kb.Text type="HeaderExtrabold" style={styles.colorWhite}>
         {props.amountNominal}
       </Kb.Text>
       {props.bottomLine && (
-        <Kb.Text type="Body" style={styles.colorWhite}>
+        <Kb.Text type="BodyTiny" style={styles.colorWhite}>
           {toUpper(props.bottomLine)}
         </Kb.Text>
       )}
@@ -78,11 +78,14 @@ const PaymentPopup = (props: Props) => {
         },
       ]
     : []
+
+  // separate out header props
+  const {attachTo, onCancel, onHidden, position, visible, ...headerProps} = props
   const header = {
     title: 'header',
     view: (
       <React.Fragment>
-        <Header {...props} />
+        <Header {...headerProps} />
         {!!items.length && <Kb.Divider />}
       </React.Fragment>
     ),
