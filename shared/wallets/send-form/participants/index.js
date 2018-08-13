@@ -99,21 +99,21 @@ const ToField = (props: any) => (
   </React.Fragment>
 )
 
-type ParticipantsProps = {
+type ParticipantsProps = {|
   recipientType: Recipient,
+  /* Used for the confirm screen */
   isConfirm?: boolean,
   fromWallet?: string,
   fromWalletUser?: string,
   fromWalletContents?: string,
-  onChangeAddress?: string => void,
+  /* Used for send to stellar address */
   incorrect?: boolean,
   username?: string,
   fullname?: string,
   onShowProfile?: string => void,
-
-  displayRemove?: boolean,
+  onChangeAddress?: string => void,
   onRemoveProfile?: () => void,
-}
+|}
 
 const Participants = (props: ParticipantsProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
