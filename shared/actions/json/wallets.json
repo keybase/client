@@ -21,6 +21,9 @@
       "_description": "Update our store with a prepared payment",
       "build": "Types.BuiltPayment",
     },
+    "clearBuildingPayment": {
+      "_description": "Clear a payment that was being prepared",
+    },
     "clearBuiltPayment": {
       "_description": "Clear a prepared payment once it has been sent or canceled",
     },

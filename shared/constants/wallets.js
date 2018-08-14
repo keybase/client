@@ -20,6 +20,7 @@ const makeBuildingPayment: I.RecordFactory<Types._BuildingPayment> = I.Record({
   currency: '',
   from: '',
   publicMemo: '',
+  recipientType: null,
   secretNote: new HiddenString(''),
   to: '',
 })
@@ -177,7 +178,7 @@ const paymentToCounterpartyType = (p: Types.Payment): Types.CounterpartyType => 
     case 'sbs':
     case 'keybase':
       if (p.source === p.target) {
-        return 'account'
+        return 'otherAccount'
       }
       return 'keybaseUser'
     case 'stellar':

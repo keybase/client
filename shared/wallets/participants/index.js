@@ -4,8 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import WalletEntry from './wallet-entry'
 import Row from './row'
-
-export type Recipient = 'keybaseUser' | 'stellarAddress' | 'otherWallet'
+import type {CounterpartyType} from '../../constants/types/wallets'
 
 type FromFieldProps = {|
   username: string,
@@ -24,7 +23,7 @@ const FromField = (props: FromFieldProps) => (
 )
 
 type ToFieldProps = {|
-  recipientType: Recipient,
+  recipientType: CounterpartyType,
   /* Used for the confirm screen */
   isConfirm: boolean,
   /* Used for send to stellar address */
@@ -70,7 +69,7 @@ const ToField = (props: ToFieldProps) => {
         )}
       </React.Fragment>
     )
-  } else if (props.isConfirm && props.recipientType === 'stellarAddress') {
+  } else if (props.isConfirm && props.recipientType === 'stellarPublicKey') {
     component = (
       <React.Fragment>
         {stellarIcon}
@@ -79,25 +78,25 @@ const ToField = (props: ToFieldProps) => {
         </Kb.Text>
       </React.Fragment>
     )
-  } else if (props.isConfirm && props.recipientType === 'otherWallet') {
+  } else if (props.isConfirm && props.recipientType === 'otherAccount') {
     // TODO: Implement this
-  } else if (!props.isConfirm && props.recipientType === 'otherWallet') {
+  } else if (!props.isConfirm && props.recipientType === 'otherAccount') {
     // TODO: Implement this
   } else {
     component = (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
-          {props.recipientType === 'stellarAddress' && stellarIcon}
+          {props.recipientType === 'stellarPublicKey' && stellarIcon}
           <Kb.NewInput
             type="text"
             onChangeText={props.onChangeAddress}
             textType="BodySemibold"
-            placeholder={props.recipientType === 'stellarAddress' ? 'Stellar address' : 'Search Keybase'}
+            placeholder={props.recipientType === 'stellarPublicKey' ? 'Stellar address' : 'Search Keybase'}
             placeholderColor={Styles.globalColors.black_20}
             hideBorder={true}
             containerStyle={styles.input}
             multiline={true}
-            rowsMin={props.recipientType === 'stellarAddress' ? 2 : 1}
+            rowsMin={props.recipientType === 'stellarPublicKey' ? 2 : 1}
             rowsMax={3}
           />
         </Kb.Box2>
@@ -114,7 +113,7 @@ const ToField = (props: ToFieldProps) => {
     <Row
       heading="To:"
       headingStyle={
-        props.recipientType === 'stellarAddress' && !props.username ? {alignSelf: 'flex-start'} : {}
+        props.recipientType === 'stellarPublicKey' && !props.username ? {alignSelf: 'flex-start'} : {}
       }
       dividerColor={props.incorrect ? Styles.globalColors.red : ''}
       noBottomDivider={true}
@@ -125,7 +124,7 @@ const ToField = (props: ToFieldProps) => {
 }
 
 type ParticipantsProps = {|
-  recipientType: Recipient,
+  recipientType: CounterpartyType,
   /* Used for the confirm screen */
   isConfirm?: boolean,
   fromWallet?: string,
@@ -144,7 +143,7 @@ type ParticipantsProps = {|
 
 const Participants = (props: ParticipantsProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    {(props.isConfirm || props.recipientType === 'otherWallet') &&
+    {(props.isConfirm || props.recipientType === 'otherAccount') &&
       props.fromWallet &&
       props.fromWalletUser &&
       props.fromWalletContents && (

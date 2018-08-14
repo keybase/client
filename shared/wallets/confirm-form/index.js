@@ -5,8 +5,9 @@ import * as Styles from '../../styles'
 import Banner from '../banner'
 import type {Background} from '../../common-adapters/text'
 import Header from './header'
-import Participants, {type Recipient} from '../participants'
+import Participants from '../participants'
 import NoteAndMemo from './note-and-memo'
+import type {CounterpartyType} from '../../constants/types/wallets'
 
 type ConfirmSendProps = {|
   onClose: () => void,
@@ -27,7 +28,7 @@ type ConfirmSendProps = {|
   yourWalletContents: string,
   receiverUsername: string,
   receiverFullName: string,
-  recipientType: Recipient,
+  recipientType: CounterpartyType,
 |}
 
 const ConfirmSend = (props: ConfirmSendProps) => (

@@ -4,7 +4,7 @@ import HiddenString from '../../util/hidden-string'
 import * as StellarRPCTypes from './rpc-stellar-gen'
 
 // Possible 'types' of things you can send or receive transactions with
-export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'account'
+export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'otherAccount'
 
 // Reserves held against an account's XLM balance
 export type _Reserve = {
@@ -55,6 +55,7 @@ export type _BuildingPayment = {
   currency: string,
   from: string,
   publicMemo: string,
+  recipientType: ?CounterpartyType,
   secretNote: HiddenString,
   to: string,
 }

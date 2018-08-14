@@ -27,14 +27,14 @@ const load = () => {
     .add('To Keybase user', () => <Participants recipientType="keybaseUser" />)
     .add('To other wallet', () => (
       <Participants
-        recipientType="otherWallet"
+        recipientType="otherAccount"
         fromWallet="Primary Wallet"
         fromWalletUser="cjb"
         fromWalletContents="2000 XLM"
       />
     ))
-    .add('To stellar address', () => <Participants recipientType="stellarAddress" />)
-    .add('Stellar address Error', () => <Participants incorrect={true} recipientType="stellarAddress" />)
+    .add('To stellar address', () => <Participants recipientType="stellarPublicKey" />)
+    .add('Stellar address Error', () => <Participants incorrect={true} recipientType="stellarPublicKey" />)
     .add('User match', () => (
       <Participants
         recipientType="keybaseUser"
@@ -47,9 +47,9 @@ const load = () => {
     .add('Confirm to Keybase user', () => (
       <Participants recipientType="keybaseUser" {...confirmCommonProps} />
     ))
-    .add('Confirm to other wallet', () => <Participants recipientType="otherWallet" isConfirm={true} />)
+    .add('Confirm to other wallet', () => <Participants recipientType="otherAccount" isConfirm={true} />)
     .add('Confirm to stellar address', () => (
-      <Participants recipientType="stellarAddress" {...confirmCommonProps} />
+      <Participants recipientType="stellarPublicKey" {...confirmCommonProps} />
     ))
 }
 
