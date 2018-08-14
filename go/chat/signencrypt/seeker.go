@@ -11,6 +11,7 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 )
 
+// decodingReadSeeker provies an io.ReadSeeker interface to playing back a signencrypt'd payload
 type decodingReadSeeker struct {
 	utils.DebugLabeler
 
@@ -30,6 +31,7 @@ func NewDecodingReadSeeker(ctx context.Context, log logger.Logger, source io.Rea
 	encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix libkb.SignaturePrefix, nonce Nonce,
 	c *lru.Cache) io.ReadSeeker {
 	if c == nil {
+		// If the caller didn't give us a cache, then let's just make one
 		c, _ = lru.New(20)
 	}
 	return &decodingReadSeeker{
@@ -44,6 +46,8 @@ func NewDecodingReadSeeker(ctx context.Context, log logger.Logger, source io.Rea
 	}
 }
 
+// getChunksFromCache returns the plaintext bytes for a set of chunks iff we have each chunk
+// in our cache
 func (r *decodingReadSeeker) getChunksFromCache(chunks []chunkSpec) (res []byte, ok bool) {
 	for _, c := range chunks {
 		if pt, ok := r.chunks.Get(c.index); ok {
@@ -62,11 +66,13 @@ func (r *decodingReadSeeker) writeChunksToCache(pt []byte, chunks []chunkSpec) {
 	for _, c := range chunks {
 		r.Debug(r.ctx, "writeChunksToCache: adding index: %d len: %d", c.index,
 			len(pt[c.ptStart-start:c.ptEnd-start]))
+		// need to pull the specific chunk out of the plaintext bytes
 		r.chunks.Add(c.index, pt[c.ptStart-start:c.ptEnd-start])
 	}
 }
 
 func (r *decodingReadSeeker) fetchChunks(chunks []chunkSpec) (res []byte, err error) {
+	// we want to fetch enough data for all the chunks in one hit on the source ReadSeeker
 	begin := chunks[0].cipherStart
 	end := chunks[len(chunks)-1].cipherEnd
 	num := end - begin
@@ -118,6 +124,9 @@ func (r *decodingReadSeeker) Read(res []byte) (n int, err error) {
 	// Check for a full hit on all the chunks first
 	var ok bool
 	if chunkPlaintext, ok = r.getChunksFromCache(chunks); !ok {
+		// if we miss, then we need to fetch the data from our underlying source. Given that this
+		// source is usually on the network, then fetch at least 4 chunks so we aren't making
+		// too many requests.
 		minChunkEnd := r.clamp(r.offset + 4*DefaultPlaintextChunkLength)
 		if minChunkEnd > chunkEnd {
 			chunkEnd = minChunkEnd
@@ -131,11 +140,14 @@ func (r *decodingReadSeeker) Read(res []byte) (n int, err error) {
 			r.Debug(r.ctx, "Read: chunk: index: %v ptstart: %v ptend: %v cstart: %v cend: %v", c.index,
 				c.ptStart, c.ptEnd, c.cipherStart, c.cipherEnd)
 		}
+		// Decrypt all the chunks and write out to the cache
 		decoder := NewDecoder(r.encKey, r.verifyKey, r.sigPrefix, r.nonce)
 		decoder.setChunkNum(uint64(prefetchChunks[0].index))
 		if chunkPlaintext, err = decoder.Write(cipherText); err != nil {
 			return n, err
 		}
+		// We might have some straggling data, so just hit Finish here to potentially pick it up. If it
+		// returns an error, then we just ignore it.
 		if finishPlaintext, err := decoder.Finish(); err == nil {
 			chunkPlaintext = append(chunkPlaintext, finishPlaintext...)
 		}

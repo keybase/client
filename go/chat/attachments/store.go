@@ -343,14 +343,14 @@ func (s *s3Seeker) Seek(offset int64, whence int) (res int64, err error) {
 	return s.offset, nil
 }
 
-func (s *S3Store) getStreamerCache(asset chat1.Asset) *lru.Cache {
-	s.scMutex.Lock()
-	defer s.scMutex.Unlock()
-	if s.streamCache != nil && s.streamCache.path == asset.Path {
-		return s.streamCache.cache
+func (a *S3Store) getStreamerCache(asset chat1.Asset) *lru.Cache {
+	a.scMutex.Lock()
+	defer a.scMutex.Unlock()
+	if a.streamCache != nil && a.streamCache.path == asset.Path {
+		return a.streamCache.cache
 	}
 	c, _ := lru.New(20)
-	s.streamCache = &streamCache{
+	a.streamCache = &streamCache{
 		path:  asset.Path,
 		cache: c,
 	}
@@ -372,6 +372,8 @@ func (a *S3Store) StreamAsset(ctx context.Context, params chat1.S3Params, asset 
 	if asset.Nonce != nil {
 		copy(nonce[:], asset.Nonce)
 	}
+	// Make a ReadSeeker, and pass along the cache if we hit for the given path. We may get
+	// a bunch of these calls for a given playback session.
 	source := newS3Seeker(ctx, a.GetLog(), asset, b)
 	return signencrypt.NewDecodingReadSeeker(ctx, a.GetLog(), source, ptsize, &xencKey, &xverifyKey,
 		libkb.SignaturePrefixChatAttachment, &nonce, a.getStreamerCache(asset)), nil
