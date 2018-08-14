@@ -57,6 +57,7 @@ const ToField = (props: ToFieldProps) => {
           username={props.username}
           metaOne={props.fullName}
           onClick={props.onShowProfile}
+          avatarStyle={styles.avatar}
         />
         {!props.isConfirm && (
           <Kb.Icon
@@ -182,6 +183,9 @@ const styles = Styles.styleSheetCreate({
       wordBreak: 'break-all',
     },
   }),
+  avatar: {
+    marginRight: 8,
+  },
   errorText: Styles.platformStyles({
     common: {
       color: Styles.globalColors.red,
