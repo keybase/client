@@ -16,6 +16,16 @@
 5. Generate the iconfont and update constants on both apps
   1. font: `client/shared/fonts/kb.ttf`
   2. constants: `client/shared/common-adapters/icon.constants`
+6. Fix vertical metrics (ascent and descent values) by uploading to FontSquirrel
+  1. Upload `client/shared/fonts/kb.ttf`
+  2. Expert Mode
+  3. Font Formats: `TrueType`
+  4. Truetype Hinting: `Keep Existing`
+  5. Vertical Metrics: `Custom Adjustment`
+    1. Ascent: `2048`
+    2. Descent: `128`
+  6. Fix Missing Glyphs: `None (delselect all)`
+  7. Download and replace `client/shared/fonts/kb.ttf`
 
 ### Notes on SVG output
 

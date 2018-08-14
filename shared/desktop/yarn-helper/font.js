@@ -75,18 +75,8 @@ function updatedFonts() {
         ttf: {
           ts: Date.now(),
         },
-        /*
-         * Important: Align to text font baseline
-         * Descent: fontHeight * 0.0625
-         * source: https://icomoon.io/#docs/font-metrics
-         *
-         * For mysterious reasons, the descent being set to 1/2 the font height
-         * seesm to align the icon with the text baseline as well as making
-         * sure it snaps to pixels.
-         */
         svg: {
-          fontHeight: 1024,
-          descent: 64,
+          fontHeight: 2048,
         },
       },
     },
