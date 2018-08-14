@@ -6,6 +6,8 @@ import Container from './container'
 import ReceiveModal from './receive-modal/container'
 import ExportSecretKey from './export-secret-key/container'
 import TransactionDetails from './transaction-details/container'
+import SendForm from './send-form/container'
+import ConfirmForm from './confirm-form/container'
 
 const routeTree = makeRouteDefNode({
   children: {
@@ -22,6 +24,11 @@ const routeTree = makeRouteDefNode({
     receive: {
       children: {},
       component: ReceiveModal,
+      tags: makeLeafTags({layerOnTop: !isMobile}),
+    },
+    sendForm: {
+      children: {ConfirmForm},
+      component: SendForm,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
     transactionDetails: {

@@ -35,9 +35,24 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps) => ({
       ])
     ),
   onDeposit: nyi,
-  onSendToAnotherWallet: nyi,
-  onSendToKeybaseUser: nyi,
-  onSendToStellarAddress: nyi,
+  onSendToAnotherWallet: () => dispatch(ownProps.navigateAppend([[
+    {
+      props: {targetType: 'anotherWallet'},
+      selected: 'sendForm',
+    },
+  ]])),
+  onSendToKeybaseUser: () => dispatch(ownProps.navigateAppend([
+    {
+      props: {targetType: 'keybaseUser'},
+      selected: 'sendForm',
+    },
+  ])),
+  onSendToStellarAddress: () => dispatch(ownProps.navigateAppend([
+    {
+      props: {targetType: 'stellarAddress'},
+      selected: 'sendForm',
+    },
+  ])),
   onSettings: nyi,
 })
 
