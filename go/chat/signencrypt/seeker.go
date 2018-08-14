@@ -118,7 +118,10 @@ func (r *decodingReadSeeker) Read(res []byte) (n int, err error) {
 	// Check for a full hit on all the chunks first
 	var ok bool
 	if chunkPlaintext, ok = r.getChunksFromCache(chunks); !ok {
-		chunkEnd = r.clamp(r.offset + 4*DefaultPlaintextChunkLength)
+		minChunkEnd := r.clamp(r.offset + 4*DefaultPlaintextChunkLength)
+		if minChunkEnd > chunkEnd {
+			chunkEnd = minChunkEnd
+		}
 		prefetchChunks := getChunksInRange(r.offset, chunkEnd, r.size)
 		cipherText, err := r.fetchChunks(prefetchChunks)
 		if err != nil {
