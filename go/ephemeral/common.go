@@ -16,40 +16,28 @@ const (
 	TeamEKStr   EKType = "teamEK"
 )
 
-type EKUnboxErr struct {
-	boxType           EKType
-	boxGeneration     keybase1.EkGeneration
-	missingType       EKType
-	missingGeneration keybase1.EkGeneration
+type EphemeralKeyError struct {
+	Msg string
 }
 
-func newEKUnboxErr(boxType EKType, boxGeneration keybase1.EkGeneration, missingType EKType, missingGeneration keybase1.EkGeneration) EKUnboxErr {
-	return EKUnboxErr{
-		missingType:       missingType,
-		boxType:           boxType,
-		missingGeneration: missingGeneration,
-		boxGeneration:     boxGeneration,
+func newEKUnboxErr(boxType EKType, boxGeneration keybase1.EkGeneration, missingType EKType, missingGeneration keybase1.EkGeneration) EphemeralKeyError {
+	msg := fmt.Sprintf("Error unboxing %s@generation:%v missing %s@generation:%v", boxType, boxGeneration, missingType, missingGeneration)
+	return newEphemeralKeyError(msg)
+}
+
+func newEKMissingBoxErr(boxType EKType, boxGeneration keybase1.EkGeneration) EphemeralKeyError {
+	msg := fmt.Sprintf("Missing box for %s@generation:%v", boxType, boxGeneration)
+	return newEphemeralKeyError(msg)
+}
+
+func newEphemeralKeyError(msg string) EphemeralKeyError {
+	return EphemeralKeyError{
+		Msg: msg,
 	}
 }
 
-func (e EKUnboxErr) Error() string {
-	return fmt.Sprintf("Error unboxing %s@generation:%v missing %s@generation:%v", e.boxType, e.boxGeneration, e.missingType, e.missingGeneration)
-}
-
-type EKMissingBoxErr struct {
-	boxType       EKType
-	boxGeneration keybase1.EkGeneration
-}
-
-func newEKMissingBoxErr(boxType EKType, boxGeneration keybase1.EkGeneration) EKMissingBoxErr {
-	return EKMissingBoxErr{
-		boxType:       boxType,
-		boxGeneration: boxGeneration,
-	}
-}
-
-func (e EKMissingBoxErr) Error() string {
-	return fmt.Sprintf("Missing box for %s@generation:%v", e.boxType, e.boxGeneration)
+func (e EphemeralKeyError) Error() string {
+	return e.Msg
 }
 
 func ctimeIsStale(ctime time.Time, currentMerkleRoot libkb.MerkleRoot) bool {

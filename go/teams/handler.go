@@ -240,11 +240,25 @@ func HandleExitNotification(ctx context.Context, g *libkb.GlobalContext, rows []
 
 	for _, row := range rows {
 		g.Log.CDebugf(ctx, "team.HandleExitNotification: (%+v)", row)
-		err := g.GetTeamLoader().Delete(ctx, row.Id)
-		if err != nil {
+		if err := g.GetTeamLoader().Delete(ctx, row.Id); err != nil {
 			g.Log.CDebugf(ctx, "team.HandleExitNotification: error deleting team cache: %v", err)
 		}
+		if ekLib := g.GetEKLib(); ekLib != nil {
+			ekLib.PurgeCachesForTeamID(ctx, row.Id)
+		}
 		g.NotifyRouter.HandleTeamExit(ctx, row.Id)
+	}
+	return nil
+}
+
+func HandleNewlyAddedToTeamNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamNewlyAddedRow) (err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("team.HandleNewlyAddedToTeamNotification(%v)", len(rows)), func() error { return err })()
+	for _, row := range rows {
+		g.Log.CDebugf(ctx, "team.HandleNewlyAddedToTeamNotification: (%+v)", row)
+		if ekLib := g.GetEKLib(); ekLib != nil {
+			ekLib.PurgeCachesForTeamID(ctx, row.Id)
+		}
+		g.NotifyRouter.HandleNewlyAddedToTeam(ctx, row.Id)
 	}
 	return nil
 }

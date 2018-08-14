@@ -71,6 +71,7 @@ type NotifyListener interface {
 	TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet)
 	TeamDeleted(teamID keybase1.TeamID)
 	TeamExit(teamID keybase1.TeamID)
+	NewlyAddedToTeam(teamID keybase1.TeamID)
 	NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	AvatarUpdated(name string, formats []keybase1.AvatarFormat)
 	DeviceCloneCountChanged(newClones int)
@@ -146,6 +147,7 @@ func (n *NoopNotifyListener) TeamChangedByName(teamName string, latestSeqno keyb
 func (n *NoopNotifyListener) TeamDeleted(teamID keybase1.TeamID)                                 {}
 func (n *NoopNotifyListener) TeamExit(teamID keybase1.TeamID)                                    {}
 func (n *NoopNotifyListener) NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration) {}
+func (n *NoopNotifyListener) NewlyAddedToTeam(teamID keybase1.TeamID)                            {}
 func (n *NoopNotifyListener) AvatarUpdated(name string, formats []keybase1.AvatarFormat)         {}
 func (n *NoopNotifyListener) DeviceCloneCountChanged(newClones int)                              {}
 func (n *NoopNotifyListener) WalletPaymentNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID) {
@@ -1560,7 +1562,7 @@ func (n *NotifyRouter) HandleTeamAbandoned(ctx context.Context, teamID keybase1.
 	}
 
 	var wg sync.WaitGroup
-	n.G().Log.CDebugf(ctx, "+ Sending TeamExit notification")
+	n.G().Log.CDebugf(ctx, "+ Sending TeamAbandoned notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Team {
 			wg.Add(1)
@@ -1578,6 +1580,32 @@ func (n *NotifyRouter) HandleTeamAbandoned(ctx context.Context, teamID keybase1.
 		n.listener.TeamExit(teamID)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent TeamAbandoned notification")
+}
+
+func (n *NotifyRouter) HandleNewlyAddedToTeam(ctx context.Context, teamID keybase1.TeamID) {
+	if n == nil {
+		return
+	}
+
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending NewlyAddedToTeam notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			wg.Add(1)
+			go func() {
+				(keybase1.NotifyTeamClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).NewlyAddedToTeam(context.Background(), teamID)
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.NewlyAddedToTeam(teamID)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent NewlyAddedToTeam notification")
 }
 
 func (n *NotifyRouter) HandleNewTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) {
