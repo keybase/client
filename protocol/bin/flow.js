@@ -12,7 +12,7 @@ const enabledCalls = json5.parse(fs.readFileSync(path.join(__dirname, 'enabled-c
 var projects = {
   chat1: {
     root: './json/chat1',
-    import: "import * as Gregor1 from './rpc-gregor-gen'\nimport * as Keybase1 from './rpc-gen'",
+    import: "import * as Gregor1 from './rpc-gregor-gen'\nimport * as Keybase1 from './rpc-gen'\nimport * as Stellar1 from './rpc-stellar-gen'",
     out: 'js/rpc-chat-gen.js',
     incomingMaps: {},
     seenTypes: {},

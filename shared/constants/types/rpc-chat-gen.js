@@ -5,6 +5,7 @@
 // Not enabled: calls need to be turned on in enabled-calls.json
 import * as Gregor1 from './rpc-gregor-gen'
 import * as Keybase1 from './rpc-gen'
+import * as Stellar1 from './rpc-stellar-gen'
 import engine, {EngineChannel} from '../../engine'
 import engineSaga from '../../engine/saga'
 import * as Saga from '../../util/saga'
