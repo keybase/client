@@ -110,6 +110,20 @@ func (r *decodingReadSeeker) extractPlaintext(plainText []byte, num int64, chunk
 	return plainText[ptBegin-datBegin : ptEnd-datBegin]
 }
 
+// getReadaheadFactor gives the number of chunks we should read at minimum from the source. For larger
+// files we try to read more so we don't make too many underlying requests.
+func (r *decodingReadSeeker) getReadaheadFactor() int64 {
+	mb := int64(1 << 20)
+	switch {
+	case r.size >= 1000*mb:
+		return 16
+	case r.size >= 500*mb:
+		return 8
+	default:
+		return 4
+	}
+}
+
 func (r *decodingReadSeeker) Read(res []byte) (n int, err error) {
 	defer r.Trace(r.ctx, func() error { return err }, "Read(%v,%v)", r.offset, len(res))()
 	if r.offset >= r.size {
@@ -125,9 +139,9 @@ func (r *decodingReadSeeker) Read(res []byte) (n int, err error) {
 	var ok bool
 	if chunkPlaintext, ok = r.getChunksFromCache(chunks); !ok {
 		// if we miss, then we need to fetch the data from our underlying source. Given that this
-		// source is usually on the network, then fetch at least 4 chunks so we aren't making
+		// source is usually on the network, then fetch at least K chunks so we aren't making
 		// too many requests.
-		minChunkEnd := r.clamp(r.offset + 4*DefaultPlaintextChunkLength)
+		minChunkEnd := r.clamp(r.offset + r.getReadaheadFactor()*DefaultPlaintextChunkLength)
 		if minChunkEnd > chunkEnd {
 			chunkEnd = minChunkEnd
 		}
