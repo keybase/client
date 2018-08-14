@@ -1011,6 +1011,37 @@ func formatVideoDuration(ms int) string {
 	return fmt.Sprintf("%d:%02d", minutes, seconds)
 }
 
+func formatVideoSize(bytes int64) string {
+	const (
+		BYTE = 1.0 << (10 * iota)
+		KILOBYTE
+		MEGABYTE
+		GIGABYTE
+		TERABYTE
+	)
+	unit := ""
+	value := float64(bytes)
+	switch {
+	case bytes >= TERABYTE:
+		unit = "TB"
+		value = value / TERABYTE
+	case bytes >= GIGABYTE:
+		unit = "GB"
+		value = value / GIGABYTE
+	case bytes >= MEGABYTE:
+		unit = "MB"
+		value = value / MEGABYTE
+	case bytes >= KILOBYTE:
+		unit = "KB"
+		value = value / KILOBYTE
+	case bytes >= BYTE:
+		unit = "B"
+	case bytes == 0:
+		return "0"
+	}
+	return fmt.Sprintf("%.02f%s", value, unit)
+}
+
 func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg chat1.MessageUnboxed,
 	convID chat1.ConversationID) *chat1.UIAssetUrlInfo {
 	body := msg.Valid().MessageBody
@@ -1051,7 +1082,8 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 		atyp, err := asset.Metadata.AssetType()
 		if err == nil && atyp == chat1.AssetMetadataType_VIDEO && asset.Metadata.Video().DurationMs > 1 {
 			info.VideoDuration = new(string)
-			*info.VideoDuration = formatVideoDuration(asset.Metadata.Video().DurationMs)
+			*info.VideoDuration = formatVideoDuration(asset.Metadata.Video().DurationMs) + ", " +
+				formatVideoSize(asset.Size)
 		}
 		if info.FullUrl == "" && info.PreviewUrl == "" && info.MimeType == "" {
 			return nil
