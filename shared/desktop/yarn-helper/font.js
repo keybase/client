@@ -86,7 +86,7 @@ function updatedFonts() {
          */
         svg: {
           fontHeight: 1024,
-          descent: 512,
+          descent: 64,
         },
       },
     },
