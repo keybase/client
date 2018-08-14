@@ -47,7 +47,7 @@ class ImageView extends React.Component<
             },
           ])}
           onLoadStart={onLoadingStateChange && (() => onLoadingStateChange(true))}
-          onLoadEnd={onLoadingStateChange && (() => onLoadingStateChange(true))}
+          onLoadEnd={onLoadingStateChange && (() => onLoadingStateChange(false))}
           resizeMode="contain"
         />
       </ZoomableBox>
