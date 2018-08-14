@@ -81,9 +81,11 @@ class _CopyText extends React.Component<Props, State> {
             Reveal
           </Text>
         )}
-        <Button type="Primary" style={styles.button} onClick={this.copy}>
-          <Icon type="iconfont-clipboard" color={globalColors.white} fontSize={isMobile ? 20 : 16} />
-        </Button>
+        <Box2 direction="horizontal" style={{flexGrow: 1, justifyContent: 'flex-end'}}>
+          <Button type="Primary" style={styles.button} onClick={this.copy}>
+            <Icon type="iconfont-clipboard" color={globalColors.white} fontSize={isMobile ? 20 : 16} />
+          </Button>
+        </Box2>
       </Box2>
     )
   }
@@ -96,15 +98,18 @@ const styles = styleSheetCreate({
     common: {
       paddingLeft: 17,
       paddingRight: 17,
-      position: 'absolute',
-      right: 0,
+      height: '100%',
+      // position: 'absolute',
+      // right: 0,
+      // top: 0,
     },
     isElectron: {
-      height: '100%',
+      paddingBottom: 6,
+      paddingTop: 6,
     },
     isMobile: {
-      bottom: 0,
-      top: 0,
+      paddingBottom: 10,
+      paddingTop: 10,
     },
   }),
   container: platformStyles({
@@ -112,21 +117,17 @@ const styles = styleSheetCreate({
       alignItems: 'center',
       backgroundColor: globalColors.blue4,
       borderRadius: 100,
-      flex: 1,
+      flexGrow: 1,
       paddingLeft: 16,
       position: 'relative',
     },
     isElectron: {
       maxWidth: 460,
       overflow: 'hidden',
-      paddingBottom: 6,
-      paddingTop: 6,
       width: '100%',
     },
     isMobile: {
       height: 40,
-      paddingBottom: 10,
-      paddingTop: 10,
     },
   }),
   reveal: {
@@ -138,7 +139,7 @@ const styles = styleSheetCreate({
       color: globalColors.blue,
       fontSize: isMobile ? 15 : 13,
       textAlign: 'left',
-      width: '100%',
+      // width: '100%',
     },
     isAndroid: {
       position: 'relative',
