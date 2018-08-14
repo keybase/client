@@ -8,14 +8,15 @@ import * as Styles from '../styles'
 type TlfRow = {|
   // TODO: uncomment once we make this.
   // ...$Exact<RemoteContainer.RemoteTlfMeta>,
+  name: string,
 |}
 
-type FilesPreviewProps = {
+type FilesPreviewProps = {|
   onViewAll: () => void,
   tlfRows: Array<TlfRow>,
-}
+|}
 
-export const FilesPreview = ({onViewAll, onSelectConversation, tlfRows}: FilesPreviewProps) => (
+export const FilesPreview = ({onViewAll, tlfRows}: FilesPreviewProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfContainer}>
     {tlfRows.map((r, i) => {
       return (

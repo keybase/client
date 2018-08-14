@@ -5,6 +5,7 @@ import Flags from '../util/feature-flags'
 import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
 import ChatContainer from './chat-container.desktop'
+import FilesPreview from './files-container.desktop'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash-es'
@@ -223,6 +224,7 @@ class MenubarRender extends React.Component<Props, State> {
           />
         </Kb.Box>
         <ChatContainer />
+        <FilesPreview />
         {this.props.isAsyncWriteHappening && (
           <Kb.Box style={styles.uploadingContainer}>
             <Kb.Icon type="icon-loader-uploading-16" />
