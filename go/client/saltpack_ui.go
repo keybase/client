@@ -114,8 +114,11 @@ func (s *SaltpackUI) SaltpackVerifySuccess(_ context.Context, arg keybase1.Saltp
 	switch arg.Sender.SenderType {
 	case keybase1.SaltpackSenderType_UNKNOWN:
 		un = fmt.Sprintf("The signer of this message is unknown to Keybase.\nSigning key ID: %s", arg.SigningKID)
-	case keybase1.SaltpackSenderType_TRACKING_OK, keybase1.SaltpackSenderType_NOT_TRACKED:
+	case keybase1.SaltpackSenderType_TRACKING_OK:
 		un = fmt.Sprintf("Signed by %s", ColorString(s.G(), "bold", arg.Sender.Username))
+	case keybase1.SaltpackSenderType_NOT_TRACKED:
+		un = fmt.Sprintf("Signed by %s (which you do not follow)", ColorString(s.G(), "bold", arg.Sender.Username))
+		s.G().Log.Warning("The sender of this message is a Keybase user you don't follow. Consider doing so for even stronger security!")
 	case keybase1.SaltpackSenderType_SELF:
 		un = fmt.Sprintf("Signed by %s (you)", ColorString(s.G(), "bold", arg.Sender.Username))
 	default:
