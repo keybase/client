@@ -9,13 +9,15 @@ import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import Measure from 'react-measure'
 import Waypoint from 'react-waypoint'
+import Confetti from 'react-confetti'
+import sizeMe from 'react-sizeme'
 import Message from '../../messages'
 import SpecialTopMessage from '../../messages/special-top-message'
 import SpecialBottomMessage from '../../messages/special-bottom-message'
-import {ErrorBoundary} from '../../../../common-adapters'
+import {Box, ErrorBoundary} from '../../../../common-adapters'
 import {copyToClipboard} from '../../../../util/clipboard'
 import {debounce, throttle, chunk} from 'lodash-es'
-import {globalStyles} from '../../../../styles'
+import {globalColors, globalStyles} from '../../../../styles'
 import type {Props} from './index.types'
 import shallowEqual from 'shallowequal'
 import {globalMargins} from '../../../../styles/shared'
@@ -296,9 +298,9 @@ class Thread extends React.PureComponent<Props, State> {
 
   render() {
     const items = this._makeItems()
-
     return (
       <ErrorBoundary>
+        {items.length === 2 && <Tada />} // top item and bottom item make the empty state 2
         <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
           <style>{realCSS}</style>
           <div
@@ -320,6 +322,38 @@ class Thread extends React.PureComponent<Props, State> {
     )
   }
 }
+
+const Tada = sizeMe({
+  monitorHeight: true,
+  monitorWidth: true,
+})(
+  class Tada extends React.PureComponent<{
+    size: {|
+      height: number,
+      width: number,
+    |},
+  }> {
+    render() {
+      return (
+        <Box style={{...globalStyles.fillAbsolute}}>
+          <Confetti
+            colors={[
+              globalColors.blue,
+              globalColors.green,
+              globalColors.red,
+              globalColors.orange,
+              globalColors.purple,
+            ]}
+            gravity={0.5}
+            numberOfPieces={50}
+            recycle={false}
+            {...this.props.size}
+          />
+        </Box>
+      )
+    }
+  }
+)
 
 // All the waypoints keep a key to re-render if we get a measure callback
 type TopBottomItemProps = {
@@ -473,6 +507,8 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
         const previous = idx ? this.props.ordinals[idx - 1] : this.props.previous
         return this.props.rowRenderer(o, previous, this._measure)
       })
+      console.log('SPOONER', messages.length)
+
       content = (
         <Measure bounds={true} onResize={this._onResize}>
           {({measureRef}) => (

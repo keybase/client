@@ -16,7 +16,13 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const isSearching =
     state.chat2.pendingMode === 'searchingForUsers' &&
     conversationIDKey === Constants.pendingConversationIDKey
-  return {conversationIDKey, infoPanelOpen, isSearching, showLoader, threadLoadedOffline: meta.offline}
+  return {
+    conversationIDKey,
+    infoPanelOpen,
+    isSearching,
+    showLoader,
+    threadLoadedOffline: meta.offline,
+  }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
