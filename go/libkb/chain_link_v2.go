@@ -279,8 +279,7 @@ func DecodeStubbedOuterLinkV2(b64encoded string) (*OuterLinkV2WithMetadata, erro
 		return nil, err
 	}
 	var ol OuterLinkV2
-	err = MsgpackDecode(&ol, payload)
-	if err != nil {
+	if err = MsgpackDecode(&ol, payload); err != nil {
 		return nil, err
 	}
 	return &OuterLinkV2WithMetadata{OuterLinkV2: ol, raw: payload}, nil
@@ -320,8 +319,7 @@ func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 		return nil, err
 	}
 	var ol OuterLinkV2
-	err = MsgpackDecode(&ol, payload)
-	if err != nil {
+	if err := MsgpackDecode(&ol, payload); err != nil {
 		return nil, err
 	}
 	ret := OuterLinkV2WithMetadata{
