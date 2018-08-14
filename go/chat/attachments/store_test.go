@@ -276,6 +276,13 @@ func TestStreamAsset(t *testing.T) {
 		_, err = io.Copy(buf, rs)
 		require.NoError(t, err)
 		require.True(t, bytes.Equal(plaintext, buf.Bytes()))
+		// use the cache
+		buf = newDumbBuffer()
+		rs, err = s.StreamAsset(ctx, task.S3Params, a, task.S3Signer)
+		require.NoError(t, err)
+		_, err = io.Copy(buf, rs)
+		require.NoError(t, err)
+		require.True(t, bytes.Equal(plaintext, buf.Bytes()))
 
 		// seek to half and copy
 		t.Logf("half")
