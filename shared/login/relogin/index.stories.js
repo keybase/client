@@ -5,6 +5,7 @@ import Login, {type Props} from '.'
 
 const commonProps: Props = {
   error: '',
+  inputKey: '0',
   onFeedback: Sb.action('onFeedback'),
   onForgotPassphrase: Sb.action('onForgotPassphrase'),
   onLogin: Sb.action('onLogin'),

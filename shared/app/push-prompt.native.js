@@ -24,7 +24,7 @@ const PushPrompt = (props: Props) => (
       />
       <Kb.Text type="BodySmallSemibold" style={styles.text}>
         It's{' '}
-        <Kb.Text type="BodySmallSemiboldItalic" style={{color: Styles.globalColors.black}}>
+        <Kb.Text type="BodySmallSemiboldItalic" style={styles.text}>
           very
         </Kb.Text>{' '}
         important you enable notifications.

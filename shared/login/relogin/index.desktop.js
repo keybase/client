@@ -58,14 +58,15 @@ class Login extends React.Component<Props, State> {
 
   render() {
     const inputProps = {
-      hintText: 'Passphrase',
-      floatingHintTextOverride: '',
-      style: {marginBottom: 0},
-      onChangeText: passphrase => this.props.passphraseChange(passphrase),
-      type: this.props.showTyping ? 'passwordVisible' : 'password',
-      onEnterKeyDown: () => this.props.onSubmit(),
-      errorText: this.props.error,
       autoFocus: true,
+      errorText: this.props.error,
+      floatingHintTextOverride: '',
+      hintText: 'Passphrase',
+      key: this.props.inputKey,
+      onChangeText: passphrase => this.props.passphraseChange(passphrase),
+      onEnterKeyDown: () => this.props.onSubmit(),
+      style: {marginBottom: 0},
+      type: this.props.showTyping ? 'passwordVisible' : 'password',
       uncontrolled: true,
     }
 
