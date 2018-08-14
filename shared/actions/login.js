@@ -1,6 +1,5 @@
 // @flow
 // Look at this doc: https://goo.gl/7B6p4H
-import * as WaitingGen from './waiting-gen'
 import * as LoginGen from './login-gen'
 import * as Constants from '../constants/login'
 import * as Saga from '../util/saga'
