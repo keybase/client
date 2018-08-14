@@ -79,7 +79,8 @@ func (e *SaltpackDecrypt) promptForDecrypt(m libkb.MetaContext, publicKey keybas
 	}
 
 	arg := keybase1.SaltpackPromptForDecryptArg{
-		Sender: spsiEng.Result(),
+		Sender:     spsiEng.Result(),
+		SigningKID: publicKey,
 	}
 	e.res.Sender = arg.Sender
 
