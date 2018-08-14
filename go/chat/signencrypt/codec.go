@@ -506,18 +506,6 @@ func chunkFromIndex(index int64) (res chunkSpec) {
 	return res
 }
 
-func getChunkAtOffset(plaintextOffset, plaintextLen int64) (res chunkSpec) {
-	cipherLen := GetSealedSize(plaintextLen)
-	res = chunkFromIndex(plaintextOffset / DefaultPlaintextChunkLength)
-	if res.ptEnd >= plaintextLen {
-		res.ptEnd = plaintextLen
-	}
-	if res.cipherEnd >= cipherLen {
-		res.cipherEnd = cipherLen
-	}
-	return res
-}
-
 func getChunksInRange(plaintextBegin, plaintextEnd, plaintextLen int64) (res []chunkSpec) {
 	beginChunk := chunkFromIndex(plaintextBegin / DefaultPlaintextChunkLength)
 	endChunk := chunkFromIndex(plaintextEnd / DefaultPlaintextChunkLength)

@@ -268,44 +268,44 @@ func TestStreamAsset(t *testing.T) {
 		require.NoError(t, err)
 
 		// basic
-		buf := newDumbBuffer()
+		var buf bytes.Buffer
 		t.Logf("basic")
 		s.streamCache = nil
 		rs, err := s.StreamAsset(ctx, task.S3Params, a, task.S3Signer)
 		require.NoError(t, err)
-		_, err = io.Copy(buf, rs)
+		_, err = io.Copy(&buf, rs)
 		require.NoError(t, err)
 		require.True(t, bytes.Equal(plaintext, buf.Bytes()))
 		// use the cache
-		buf = newDumbBuffer()
+		buf.Reset()
 		rs, err = s.StreamAsset(ctx, task.S3Params, a, task.S3Signer)
 		require.NoError(t, err)
-		_, err = io.Copy(buf, rs)
+		_, err = io.Copy(&buf, rs)
 		require.NoError(t, err)
 		require.True(t, bytes.Equal(plaintext, buf.Bytes()))
 
 		// seek to half and copy
 		t.Logf("half")
-		buf = newDumbBuffer()
+		dbuf := newDumbBuffer()
 		s.streamCache = nil
 		rs, err = s.StreamAsset(ctx, task.S3Params, a, task.S3Signer)
 		require.NoError(t, err)
 		_, err = rs.Seek(total/2, io.SeekStart)
 		require.NoError(t, err)
-		_, err = io.Copy(buf, rs)
+		_, err = io.Copy(dbuf, rs)
 		require.NoError(t, err)
-		require.True(t, bytes.Equal(plaintext[total/2:], buf.Bytes()))
+		require.True(t, bytes.Equal(plaintext[total/2:], dbuf.Bytes()))
 
 		// use a fixed size buffer (like video playback)
 		t.Logf("buffer")
-		buf = newDumbBuffer()
+		dbuf = newDumbBuffer()
 		s.streamCache = nil
 		scratch := make([]byte, 64*1024)
 		rs, err = s.StreamAsset(ctx, task.S3Params, a, task.S3Signer)
 		require.NoError(t, err)
-		_, err = io.CopyBuffer(buf, rs, scratch)
+		_, err = io.CopyBuffer(dbuf, rs, scratch)
 		require.NoError(t, err)
-		require.True(t, bytes.Equal(plaintext, buf.Bytes()))
+		require.True(t, bytes.Equal(plaintext, dbuf.Bytes()))
 	}
 
 	testCase(2, 0)
