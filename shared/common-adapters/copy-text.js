@@ -81,7 +81,7 @@ class _CopyText extends React.Component<Props, State> {
             Reveal
           </Text>
         )}
-        <Box2 direction="horizontal" style={{flexGrow: 1, justifyContent: 'flex-end'}}>
+        <Box2 direction="horizontal" style={styles.buttonContainer}>
           <Button type="Primary" style={styles.button} onClick={this.copy}>
             <Icon type="iconfont-clipboard" color={globalColors.white} fontSize={isMobile ? 20 : 16} />
           </Button>
@@ -94,14 +94,15 @@ const CopyText = HOCTimers(_CopyText)
 
 // border radii aren't literally so big, just sets it to maximum
 const styles = styleSheetCreate({
+  buttonContainer: {
+    flexGrow: 1,
+    justifyContent: 'flex-end',
+  },
   button: platformStyles({
     common: {
       paddingLeft: 17,
       paddingRight: 17,
       height: '100%',
-      // position: 'absolute',
-      // right: 0,
-      // top: 0,
     },
     isElectron: {
       paddingBottom: 6,
@@ -139,7 +140,6 @@ const styles = styleSheetCreate({
       color: globalColors.blue,
       fontSize: isMobile ? 15 : 13,
       textAlign: 'left',
-      // width: '100%',
     },
     isAndroid: {
       position: 'relative',
