@@ -1,7 +1,6 @@
 // @flow
 // A mirror of the remote menubar windows.
 import * as React from 'react'
-import * as ChatTypes from '../constants/types/chat2'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import {sendLoad} from '../desktop/remote/sync-browser-window.desktop'
