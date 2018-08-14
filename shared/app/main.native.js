@@ -12,7 +12,6 @@ import {isAndroid} from '../constants/platform'
 import {getPath} from '../route-tree'
 
 type Props = {
-  folderBadge: number,
   routeDef: any,
   routeState: any,
   showPushPrompt: any,
@@ -57,7 +56,6 @@ class Main extends React.Component<Props> {
 }
 
 const mapStateToProps = (state: TypedState) => ({
-  folderBadge: state.favorite.folderState.privateBadge + state.favorite.folderState.publicBadge,
   routeDef: state.routeTree.routeDef,
   routeState: state.routeTree.routeState,
   showPushPrompt: state.config.loggedIn && state.push.showPushPrompt,
