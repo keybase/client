@@ -257,8 +257,7 @@ func (s *TeamEKBoxStorage) put(ctx context.Context, teamID keybase1.TeamID, gene
 		return err
 	}
 	cache[generation] = newTeamEKBoxCacheItem(teamEKBoxed, ekErr)
-	err = s.G().GetKVStore().PutObj(key, nil, cache)
-	if err != nil {
+	if err = s.G().GetKVStore().PutObj(key, nil, cache); err != nil {
 		return err
 	}
 	s.cache.PutMap(teamID, cache)
