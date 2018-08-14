@@ -30,6 +30,7 @@ type DeviceWrapArgs struct {
 	Signer          libkb.GenericKey
 	EldestKID       keybase1.KID
 	PerUserKeyring  *libkb.PerUserKeyring
+	EkReboxer       *ephemeralKeyReboxer
 }
 
 // NewDeviceWrap creates a DeviceWrap engine.
@@ -89,6 +90,7 @@ func (e *DeviceWrap) genKeys(m libkb.MetaContext) (err error) {
 		IsEldest:        e.args.IsEldest,
 		IsSelfProvision: e.args.IsSelfProvision,
 		PerUserKeyring:  e.args.PerUserKeyring,
+		EkReboxer:       e.args.EkReboxer,
 	}
 	kgEng := NewDeviceKeygen(m.G(), kgArgs)
 	if err = RunEngine2(m, kgEng); err != nil {
