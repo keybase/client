@@ -1,0 +1,7 @@
+@namespace("keybase.1")
+protocol NotifyCanUserPerform {
+  import idl "common.avdl";
+
+  @notify("")
+  void canUserPerformChanged(string teamName) oneway;
+}

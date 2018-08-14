@@ -1,0 +1,7 @@
+@namespace("keybase.1")
+protocol NotifyUnverifiedTeamList {
+  import idl "common.avdl";
+
+  @notify("")
+  void teamListUnverifiedChanged(string teamName) oneway;
+}

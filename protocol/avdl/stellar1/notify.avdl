@@ -5,4 +5,10 @@ protocol notify {
 
   @notify("")
   void paymentNotification(AccountID accountID, PaymentID paymentID);
+
+  @notify("")
+  void paymentStatusNotification(KeybaseTransactionID kbTxID, TransactionID txID);
+
+  @notify("")
+  void requestStatusNotification(KeybaseRequestID reqID);
 }

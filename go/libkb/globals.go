@@ -1073,7 +1073,6 @@ func (g *GlobalContext) KeyfamilyChanged(u keybase1.UID) {
 		// TODO: remove this when KBFS handles KeyfamilyChanged
 		g.NotifyRouter.HandleUserChanged(u)
 	}
-
 }
 
 func (g *GlobalContext) UserChanged(u keybase1.UID) {

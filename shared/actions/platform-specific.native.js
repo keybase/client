@@ -76,7 +76,7 @@ function saveAttachmentDialog(filePath: string): Promise<NextURI> {
 
 async function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<void> {
   const logPrefix = '[saveAttachmentToCameraRoll] '
-  const saveType = mimeType.startsWith('video') ? 'video' : 'image'
+  const saveType = mimeType.startsWith('video') ? 'video' : 'photo'
   if (isIOS && saveType !== 'video') {
     // iOS cannot save a video from a URL, so we can only do images here. Fallback to temp file
     // method for videos.
