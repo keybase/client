@@ -6,6 +6,7 @@ import SyncProps from '../desktop/remote/sync-props.desktop'
 import {sendLoad} from '../desktop/remote/sync-browser-window.desktop'
 import {NullComponent, connect, type TypedState, compose, renderNothing, branch} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
+import GetNewestConvMetas from '../chat/inbox/container/remote'
 
 const windowOpts = {}
 
@@ -54,6 +55,7 @@ const mapStateToProps = (state: TypedState) => ({
   isAsyncWriteHappening: state.fs.flags.syncing,
   loggedIn: state.config.loggedIn,
   username: state.config.username,
+  conversations: GetNewestConvMetas(state),
 })
 
 const mergeProps = stateProps => ({
@@ -64,6 +66,7 @@ const mergeProps = stateProps => ({
   isAsyncWriteHappening: stateProps.isAsyncWriteHappening,
   loggedIn: stateProps.loggedIn,
   username: stateProps.username,
+  conversations: stateProps.conversations,
   windowComponent: 'menubar',
   windowOpts,
   windowParam: '',

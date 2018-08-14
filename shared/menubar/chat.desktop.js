@@ -2,12 +2,9 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-
-const ChatRow = ({name}: {name: string}) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.chatRowContainer}>
-    {name}
-  </Kb.Box2>
-)
+import * as ChatTypes from '../constants/types/chat2'
+import * as SmallTeam from '../chat/inbox/row/small-team'
+import * as RemoteContainer from '../chat/inbox/container/remote'
 
 const ChatViewAll = ({onViewAll}: {onViewAll: () => void}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
@@ -19,11 +16,24 @@ const ChatViewAll = ({onViewAll}: {onViewAll: () => void}) => (
   </Kb.Box2>
 )
 
-const ChatContainer = ({onViewAll}: {onViewAll: () => void}) => (
+type ConvRow = {|
+  ...$Exact<RemoteContainer.RemoteConvMeta>,
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  onSelectConversation: () => void,
+|}
+
+type ChatContainerProps = {
+  onViewAll: () => void,
+  convRows: Array<ConvRow>,
+}
+
+export const ChatRow = ({onViewAll, onSelectConversation, convRows}: ChatContainerProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
-    <ChatRow name="one" />
-    <ChatRow name="two" />
-    <ChatRow name="three" />
+    {convRows.map(r => {
+      return (
+        <SmallTeam.SmallTeam key={r.conversationIDKey} {...r} />
+      )
+    })}
     <ChatViewAll onViewAll={onViewAll} />
   </Kb.Box2>
 )
@@ -37,7 +47,11 @@ const styles = Styles.styleSheetCreate({
   }),
   chatRowContainer: Styles.platformStyles({
     common: {
-      minHeight: 56,
+      height: 56,
+      overflow: 'hidden',
+    },
+    isElectron: {
+      textOverflow: 'ellipsis',
     },
   }),
   toggleButton: Styles.platformStyles({
@@ -57,6 +71,9 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   buttonText: {color: Styles.globalColors.black_60},
+  conversationName: Styles.platformStyles({
+    common: {
+      marginRight: Styles.globalMargins.xtiny,
+    },
+  }),
 })
-
-export default ChatContainer

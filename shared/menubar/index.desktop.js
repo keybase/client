@@ -4,7 +4,7 @@ import * as Kb from '../common-adapters'
 import Flags from '../util/feature-flags'
 import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
-import ChatContainer from './chat.desktop'
+import ChatContainer from './chat-container.desktop'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash-es'
@@ -30,7 +30,6 @@ type State = {|
 |}
 
 const ArrowTick = () => (
-  // Css triangle!
   <Kb.Box style={styles.arrowTick} />
 )
 
@@ -204,7 +203,7 @@ class MenubarRender extends React.Component<Props, State> {
             position="bottom right"
           />
         </Kb.Box>
-        <ChatContainer onViewAll={() => this.props.openApp(Tabs.chatTab)} />
+        <ChatContainer />
         {this.props.isAsyncWriteHappening && (
           <Kb.Box style={styles.uploadingContainer}>
             <Kb.Icon type="icon-loader-uploading-16" />
