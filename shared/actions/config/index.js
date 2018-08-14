@@ -277,6 +277,17 @@ const routeToInitialScreen = (state: TypedState) => {
   }
 }
 
+const handleAppLink = (_: any, action: ConfigGen.LinkPayload) => {
+  const url = new URL(action.payload.link)
+  const username = ProfileConstants.urlToUsername(url)
+  if (username) {
+    return Saga.sequentially([
+      Saga.put(RouteTree.switchTo([Tabs.profileTab])),
+      Saga.put(ProfileGen.createShowUserProfile({username})),
+    ])
+  }
+}
+
 const emitInitialLoggedIn = (state: TypedState) =>
   state.config.loggedIn && Saga.put(ConfigGen.createLoggedIn({causedByStartup: true}))
 
@@ -320,6 +331,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
 
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+
+  yield Saga.actionToAction(ConfigGen.link, handleAppLink)
 
   // Kick off platform specific stuff
   yield Saga.fork(PlatformSpecific.platformConfigSaga)
