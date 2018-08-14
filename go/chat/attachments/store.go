@@ -349,7 +349,7 @@ func (a *S3Store) getStreamerCache(asset chat1.Asset) *lru.Cache {
 	if a.streamCache != nil && a.streamCache.path == asset.Path {
 		return a.streamCache.cache
 	}
-	c, _ := lru.New(20)
+	c, _ := lru.New(20) // store 20MB in memory while streaming
 	a.streamCache = &streamCache{
 		path:  asset.Path,
 		cache: c,

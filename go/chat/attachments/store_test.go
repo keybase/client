@@ -239,32 +239,66 @@ func TestUploadAssetLarge(t *testing.T) {
 	assertNumMultis(t, s, 1)
 }
 
+// dumbBuffer wraps a bytes.Buffer so io.Copy doesn't use WriteTo and we get a better test
+type dumbBuffer struct {
+	buf bytes.Buffer
+}
+
+func (d *dumbBuffer) Write(b []byte) (n int, err error) {
+	return d.buf.Write(b)
+}
+
+func (d *dumbBuffer) Bytes() []byte {
+	return d.buf.Bytes()
+}
+
+func newDumbBuffer() *dumbBuffer {
+	return &dumbBuffer{}
+}
+
 func TestStreamAsset(t *testing.T) {
 	s := makeTestStore(t, nil)
 	ctx := context.Background()
 
 	testCase := func(mb, kb int64) {
 		total := mb*MB + kb
+		t.Logf("total: %d mb: %d kb: %d", total, mb, kb)
 		plaintext, task := makeUploadTask(t, total)
 		a, err := s.UploadAsset(ctx, task, ioutil.Discard)
 		require.NoError(t, err)
 
+		// basic
+		buf := newDumbBuffer()
+		t.Logf("basic")
+		s.streamCache = nil
 		rs, err := s.StreamAsset(ctx, task.S3Params, a, task.S3Signer)
 		require.NoError(t, err)
-
-		var buf bytes.Buffer
-		_, err = io.Copy(&buf, rs)
+		_, err = io.Copy(buf, rs)
 		require.NoError(t, err)
 		require.True(t, bytes.Equal(plaintext, buf.Bytes()))
 
+		// seek to half and copy
+		t.Logf("half")
+		buf = newDumbBuffer()
+		s.streamCache = nil
 		rs, err = s.StreamAsset(ctx, task.S3Params, a, task.S3Signer)
 		require.NoError(t, err)
 		_, err = rs.Seek(total/2, io.SeekStart)
 		require.NoError(t, err)
-		buf.Reset()
-		_, err = io.Copy(&buf, rs)
+		_, err = io.Copy(buf, rs)
 		require.NoError(t, err)
 		require.True(t, bytes.Equal(plaintext[total/2:], buf.Bytes()))
+
+		// use a fixed size buffer (like video playback)
+		t.Logf("buffer")
+		buf = newDumbBuffer()
+		s.streamCache = nil
+		scratch := make([]byte, 64*1024)
+		rs, err = s.StreamAsset(ctx, task.S3Params, a, task.S3Signer)
+		require.NoError(t, err)
+		_, err = io.CopyBuffer(buf, rs, scratch)
+		require.NoError(t, err)
+		require.True(t, bytes.Equal(plaintext, buf.Bytes()))
 	}
 
 	testCase(2, 0)
