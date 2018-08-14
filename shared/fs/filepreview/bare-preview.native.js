@@ -79,9 +79,6 @@ const styles = Styles.styleSheetCreate({
       ...Styles.globalStyles.flexGrow,
       backgroundColor: Styles.globalColors.black,
     },
-    isIOS: {
-      marginTop: -20, // top status bar
-    },
   }),
   text: {
     color: Styles.globalColors.white,
