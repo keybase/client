@@ -50,16 +50,21 @@ export type _Assets = {
   reserves: I.List<Reserve>,
 }
 
+export type _BuildingPayment = {
+  amount: number,
+  currency: string,
+  from: string,
+  publicMemo: string,
+  secretNote: HiddenString,
+  to: string,
+}
+
 export type _BuiltPayment = {
   amountErrMsg: string,
   banners: ?Array<StellarRPCTypes.SendBannerLocal>,
-  from: string,
-  publicMemo: string,
   publicMemoErrMsg: string,
   readyToSend: boolean,
-  secretNote: HiddenString,
   secretNoteErrMsg: string,
-  to: string,
   toErrMsg: string,
   toUsername: string,
   worthDescription: string,
@@ -94,6 +99,8 @@ export type Account = I.RecordOf<_Account>
 
 export type Assets = I.RecordOf<_Assets>
 
+export type BuildingPayment = I.RecordOf<_BuildingPayment>
+
 export type BuiltPayment = I.RecordOf<_BuiltPayment>
 
 export type Payment = I.RecordOf<_Payment>
@@ -105,6 +112,7 @@ export type _State = {
   accountName: string,
   accountNameError: string,
   accountNameValidationState: ValidationState,
+  buildingPayment: BuildingPayment,
   builtPayment: BuiltPayment,
   exportedSecretKey: HiddenString,
   linkExistingAccountError: string,
@@ -117,4 +125,5 @@ export type _State = {
   secretKeyMap: I.Map<AccountID, HiddenString>,
   selectedAccount: AccountID,
 }
+
 export type State = I.RecordOf<_State>

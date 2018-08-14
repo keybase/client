@@ -16,12 +16,6 @@
     },
     "buildPayment": {
       "_description": "Prepare a payment for sending",
-      "amount": "number",
-      "currency": "string",
-      "fromAccountID": "Types.AccountID",
-      "publicNote": "string",
-      "secretNote": "HiddenString",
-      "to": "string",
     },
     "builtPaymentReceived": {
       "_description": "Update our store with a prepared payment",

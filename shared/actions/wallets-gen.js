@@ -39,12 +39,7 @@ type _AssetsReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   assets: Array<Types.Assets>,
 |}>
-type _BuildPaymentPayload = $ReadOnly<{|
-  amount: number,
-  currency: string,
-  fromAccountID: Types.AccountID,
-  to: string,
-|}>
+type _BuildPaymentPayload = void
 type _BuiltPaymentReceivedPayload = $ReadOnly<{|build: Types.BuiltPayment|}>
 type _ClearBuiltPaymentPayload = void
 type _ClearErrorsPayload = void

@@ -21,6 +21,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         'builtPayment',
         state.get('builtPayment').merge(Constants.makeBuiltPayment(action.payload.build))
       )
+    case WalletsGen.clearBuildingPayment:
+      return state.set('buildingPayment', Constants.makeBuildingPayment())
     case WalletsGen.clearBuiltPayment:
       return state.set('builtPayment', Constants.makeBuiltPayment())
     case WalletsGen.paymentDetailReceived:

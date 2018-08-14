@@ -15,16 +15,21 @@ const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
   description: '',
 })
 
+const makeBuildingPayment: I.RecordFactory<Types._BuildingPayment> = I.Record({
+  amount: 0,
+  currency: '',
+  from: '',
+  publicMemo: '',
+  secretNote: new HiddenString(''),
+  to: '',
+})
+
 const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   amountErrMsg: '',
   banners: null,
-  from: '',
-  publicMemo: '',
   publicMemoErrMsg: '',
   readyToSend: false,
-  secretNote: new HiddenString(''),
   secretNoteErrMsg: '',
-  to: '',
   toErrMsg: '',
   toUsername: '',
   worthDescription: '',
@@ -37,6 +42,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   accountNameError: '',
   accountNameValidationState: 'none',
   assetsMap: I.Map(),
+  buildingPayment: makeBuildingPayment(),
   builtPayment: makeBuiltPayment(),
   exportedSecretKey: new HiddenString(''),
   linkExistingAccountError: '',
@@ -228,6 +234,7 @@ export {
   loadEverythingWaitingKey,
   makeAccount,
   makeAssets,
+  makeBuildingPayment,
   makeBuiltPayment,
   makePayment,
   makeReserve,
