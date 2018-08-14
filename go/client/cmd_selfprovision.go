@@ -51,11 +51,17 @@ func (c *CmdSelfProvision) Run() (err error) {
 		return err
 	}
 
-	return client.SelfProvision(context.TODO(),
+	if err := client.SelfProvision(context.TODO(),
 		keybase1.SelfProvisionArg{
 			DeviceName: c.deviceName,
 			SessionID:  c.SessionID,
-		})
+		}); err != nil {
+		return err
+	}
+
+	dui := c.G().UI.GetDumbOutputUI()
+	dui.Printf("Self-provisioning successful.\n")
+	return nil
 }
 
 func (c *CmdSelfProvision) ParseArgv(ctx *cli.Context) error {
