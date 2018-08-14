@@ -111,10 +111,10 @@ const dispatchSetupEngineListeners = () => {
   return Saga.put(ConfigGen.createSetupEngineListeners())
 }
 
-let createDaemonHandshakeOnce = false
+let _firstTimeConnecting = true
 const startHandshake = () => {
-  const firstTimeConnecting = !createDaemonHandshakeOnce
-  createDaemonHandshakeOnce = true
+  const firstTimeConnecting = _firstTimeConnecting
+  _firstTimeConnecting = false
   return Saga.put(ConfigGen.createDaemonHandshake({firstTimeConnecting}))
 }
 
@@ -325,7 +325,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
 
   // Like handshake but in reverse, ask sagas to do stuff before we tell the server to log us out
   yield Saga.actionToAction(ConfigGen.logout, startLogoutHandshake)
-  // Give time for all waiters to register and allow no waiters
+  // Give time for all waiters to register and allow the case where there are no waiters
   yield Saga.actionToAction(ConfigGen.logoutHandshake, allowLogoutWaiters)
   yield Saga.actionToAction(ConfigGen.logoutHandshakeWait, maybeDoneWithLogoutHandshake)
   // When we're all done lets clean up

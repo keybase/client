@@ -48,7 +48,7 @@ export default function(
     case ConfigGen.logoutHandshake:
       return state.merge({logoutHandshakeWaiters: I.Map()})
     case ConfigGen.daemonHandshake:
-      return state.set('daemonHandshakeState', 'waitingForWaiters')
+      return state.merge({daemonHandshakeState: 'waitingForWaiters'})
     case ConfigGen.daemonHandshakeWait: {
       if (state.daemonHandshakeState !== 'waitingForWaiters') {
         throw new Error("Should only get a wait while we're waiting")
@@ -71,7 +71,7 @@ export default function(
         if (state.daemonHandshakeFailedReason) {
           return newState
         }
-        return newState.set('daemonHandshakeFailedReason', action.payload.failedReason || '')
+        return newState.merge({daemonHandshakeFailedReason: action.payload.failedReason || ''})
       }
     }
     case ConfigGen.logoutHandshakeWait: {
@@ -162,7 +162,7 @@ export default function(
     case ConfigGen.setDeletedSelf:
       return state.merge({justDeletedSelf: action.payload.deletedUsername})
     case ConfigGen.daemonHandshakeDone:
-      return state.set('daemonHandshakeState', 'done')
+      return state.merge({daemonHandshakeState: 'done'})
     // Saga only actions
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:
@@ -173,6 +173,7 @@ export default function(
     case ConfigGen.showMain:
     case ConfigGen.setupEngineListeners:
     case ConfigGen.installerRan:
+      return state
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
