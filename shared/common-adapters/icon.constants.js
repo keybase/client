@@ -11,16 +11,6 @@ type IconMeta = {
 }
 
 const iconMeta_ = {
-  'icon-stellar-logo-grey-16': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-stellar-logo-grey-16.png'),
-  },
-  'icon-stellar-logo-16': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-stellar-logo-16.png'),
-  },
   'icon-GPG-export': {
     isFont: false,
     extension: 'png',
@@ -245,6 +235,16 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-fancy-revoked-phone-183-x-96.png'),
+  },
+  'icon-fancy-stellar-sending-desktop': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-stellar-sending-desktop.png'),
+  },
+  'icon-fancy-stellar-sending-mobile': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-stellar-sending-mobile.png'),
   },
   'icon-file-24': {
     isFont: false,
@@ -1420,6 +1420,16 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-stellar-coins-flying-48.png'),
+  },
+  'icon-stellar-logo-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-stellar-logo-16.png'),
+  },
+  'icon-stellar-logo-grey-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-stellar-logo-grey-16.png'),
   },
   'icon-team-git-16': {
     isFont: false,

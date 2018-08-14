@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
-import {Box2, Text} from '../../../common-adapters'
-import type {Background} from '../../../common-adapters/text'
-import {backgroundModeToColor, collapseStyles, globalMargins, styleSheetCreate} from '../../../styles'
+import {Box2, Text} from '../../common-adapters'
+import type {Background} from '../../common-adapters/text'
+import {backgroundModeToColor, collapseStyles, globalMargins, styleSheetCreate} from '../../styles'
 
 type Props = {
   background: Background,

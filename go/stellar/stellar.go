@@ -498,7 +498,7 @@ func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 		return res, err
 	}
 
-	if err := ChatSendPaymentMessage(m, recipient, rres.KeybaseID); err != nil {
+	if err := ChatSendPaymentMessage(m, recipient, rres.StellarID); err != nil {
 		// if the chat message fails to send, just log the error
 		m.CDebugf("failed to send chat SendPayment message: %s", err)
 	}
@@ -558,7 +558,7 @@ func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
 		return res, err
 	}
 
-	if err := ChatSendPaymentMessage(m, recipient, rres.KeybaseID); err != nil {
+	if err := ChatSendPaymentMessage(m, recipient, rres.StellarID); err != nil {
 		// if the chat message fails to send, just log the error
 		m.CDebugf("failed to send chat SendPayment message: %s", err)
 	}
@@ -1120,7 +1120,7 @@ func CreateNewAccount(m libkb.MetaContext, accountName string) (ret stellar1.Acc
 	return ret, remote.Post(m.Ctx(), m.G(), nextBundle)
 }
 
-func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipient, kbTxID stellar1.KeybaseTransactionID) error {
+func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipient, txID stellar1.TransactionID) error {
 	if recipient.User == nil {
 		// only send if recipient is keybase username
 		return nil
@@ -1134,7 +1134,7 @@ func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipie
 	name := strings.Join([]string{m.CurrentUsername().String(), recipient.User.Username.String()}, ",")
 
 	msg := chat1.MessageSendPayment{
-		KbTxID: kbTxID.String(),
+		PaymentID: stellar1.PaymentID{TxID: txID},
 	}
 
 	body := chat1.NewMessageBodyWithSendpayment(msg)
@@ -1217,7 +1217,7 @@ func makeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 	}
 
 	body := chat1.NewMessageBodyWithRequestpayment(chat1.MessageRequestPayment{
-		RequestID: requestID.String(),
+		RequestID: requestID,
 		Note:      arg.Note,
 	})
 

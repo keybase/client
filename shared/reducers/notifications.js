@@ -47,19 +47,19 @@ export default function(state: Types.State = initialState, action: Notifications
         (newTeamAccessRequests || []).length +
         (teamsWithResetUsers || []).length
 
-      const navBadges = state.get('navBadges').withMutations(n => {
+      const navBadges = state.get('navBadges').withMutations(n =>
         n.set(Tabs.chatTab, totalMessages)
-        n.set(Tabs.folderTab, newTlfs + rekeysNeeded)
-        n.set(Tabs.fsTab, newTlfs + rekeysNeeded)
-        n.set(Tabs.gitTab, newGit)
-        n.set(Tabs.teamsTab, newTeams)
-        n.set(Tabs.peopleTab, homeTodoItems)
-      })
-      let newState = state.withMutations(s => {
+         .set(Tabs.folderTab, newTlfs + rekeysNeeded)
+         .set(Tabs.fsTab, newTlfs + rekeysNeeded)
+         .set(Tabs.gitTab, newGit)
+         .set(Tabs.teamsTab, newTeams)
+         .set(Tabs.peopleTab, homeTodoItems)
+      )
+      let newState = state.withMutations(s =>
         s.set('navBadges', navBadges)
-        s.set('desktopAppBadgeCount', navBadges.reduce((total, val) => total + val, 0))
-        s.set('mobileAppBadgeCount', totalMessages)
-      })
+         .set('desktopAppBadgeCount', navBadges.reduce((total, val) => total + val, 0))
+         .set('mobileAppBadgeCount', totalMessages)
+      )
 
       newState = _updateWidgetBadge(newState)
       return newState

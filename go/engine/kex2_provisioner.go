@@ -292,10 +292,10 @@ func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase
 	}
 
 	userEKBoxStorage := m.G().GetUserEKBoxStorage()
-	if len(string(input.DeviceEkKID)) != 0 && userEKBoxStorage != nil {
+	if input.DeviceEkKID.Exists() && userEKBoxStorage != nil {
 		// If we error out here the provisionee will create it's own keys later
 		// but we shouldn't fail kex.
-		userEKBox, ekErr := e.makeUserEKBox(m, input.DeviceEkKID)
+		userEKBox, ekErr := makeUserEKBoxForProvisionee(m, input.DeviceEkKID)
 		if ekErr != nil {
 			userEKBox = nil
 			m.CDebugf("Unable to makeUserEKBox %v", ekErr)
@@ -442,22 +442,6 @@ func (e *Kex2Provisioner) makePukBox(m libkb.MetaContext, pukring *libkb.PerUser
 		receiverKey,     // receiver key: provisionee enc
 		e.encryptionKey) // sender key: this device enc
 	return &pukBox, err
-}
-
-// Returns nil box if there are no userEKs.
-func (e *Kex2Provisioner) makeUserEKBox(m libkb.MetaContext, KID keybase1.KID) (*keybase1.UserEkBoxed, error) {
-	ekPair, err := libkb.ImportKeypairFromKID(KID)
-	if err != nil {
-		return nil, err
-	}
-	receiverKey, ok := ekPair.(libkb.NaclDHKeyPair)
-	if !ok {
-		return nil, fmt.Errorf("Unexpected receiver key type")
-	}
-	ekLib := e.G().GetEKLib()
-	// This is hardcoded to 1 since we're provisioning a new device.
-	deviceEKGeneration := keybase1.EkGeneration(1)
-	return ekLib.BoxLatestUserEK(m.Ctx(), receiverKey, deviceEKGeneration)
 }
 
 func (e *Kex2Provisioner) loadMe() error {

@@ -1,10 +1,11 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 
 type Props = {|
   heading: string,
+  noBottomDivider?: boolean,
   dividerColor?: string,
   headingStyle?: Styles.StylesCrossPlatform,
   children?: React.Node,
@@ -21,7 +22,9 @@ const Row = (props: Props) => (
       </Kb.Text>
       {props.children}
     </Kb.Box2>
-    <Kb.Divider style={props.dividerColor ? {backgroundColor: props.dividerColor} : {}} />
+    {!props.noBottomDivider && (
+      <Kb.Divider style={props.dividerColor ? {backgroundColor: props.dividerColor} : {}} />
+    )}
   </React.Fragment>
 )
 

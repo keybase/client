@@ -108,8 +108,8 @@ func TestPacketRoundtrips(t *testing.T) {
 			t.Fatal("opened bytes don't equal the input")
 		}
 
-		if len(sealed) != getPacketLen(len(input)) {
-			t.Fatalf("Expected len %d but found %d", getPacketLen(len(input)), len(sealed))
+		if int64(len(sealed)) != getPacketLen(int64(len(input))) {
+			t.Fatalf("Expected len %d but found %d", getPacketLen(int64(len(input))), len(sealed))
 		}
 	}
 }
@@ -125,8 +125,8 @@ func TestWholeRoundtrips(t *testing.T) {
 			t.Fatal("opened bytes don't equal the input")
 		}
 
-		if len(sealed) != GetSealedSize(len(input)) {
-			t.Fatalf("Expected len %d but found %d", GetSealedSize(len(input)), len(sealed))
+		if int64(len(sealed)) != GetSealedSize(int64(len(input))) {
+			t.Fatalf("Expected len %d but found %d", GetSealedSize(int64(len(input))), len(sealed))
 		}
 	}
 }
@@ -160,8 +160,8 @@ func TestByteAtATimeRoundtrips(t *testing.T) {
 			t.Fatal("opened bytes don't equal the input")
 		}
 
-		if len(sealed) != GetSealedSize(len(input)) {
-			t.Fatalf("Expected len %d but found %d", GetSealedSize(len(input)), len(sealed))
+		if int64(len(sealed)) != GetSealedSize(int64(len(input))) {
+			t.Fatalf("Expected len %d but found %d", GetSealedSize(int64(len(input))), len(sealed))
 		}
 	}
 }
@@ -193,8 +193,8 @@ func TestReaderWrapperRoundtrips(t *testing.T) {
 		if !bytes.Equal([]byte(input), decoded) {
 			t.Fatal("decoded bytes don't equal the input")
 		}
-		if len(encoded) != GetSealedSize(len(input)) {
-			t.Fatalf("Expected encoded len %d but found %d", GetSealedSize(len(input)), len(encoded))
+		if int64(len(encoded)) != GetSealedSize(int64(len(input))) {
+			t.Fatalf("Expected encoded len %d but found %d", GetSealedSize(int64(len(input))), len(encoded))
 		}
 	}
 }
@@ -247,7 +247,7 @@ func TestInvalidSignature(t *testing.T) {
 func TestErrorsReturnedFromDecoder(t *testing.T) {
 	// We need bad bytes long enough to trigger an open. This indirectly tests
 	// that the exact packet length is enough for that.
-	badPacket := bytes.Repeat([]byte{0}, getPacketLen(DefaultPlaintextChunkLength))
+	badPacket := bytes.Repeat([]byte{0}, int(getPacketLen(DefaultPlaintextChunkLength)))
 	decoder := zeroDecoder()
 	_, err := decoder.Write(badPacket)
 	assertErrorType(t, err, BadSecretbox)
@@ -284,7 +284,7 @@ func throwawayBuffer() []byte {
 
 // Similar to TestErrorsReturnedFromDecoder above, but for the reader.
 func TestErrorsReturnedFromDecodingReader(t *testing.T) {
-	badPacket := bytes.Repeat([]byte{0}, getPacketLen(DefaultPlaintextChunkLength))
+	badPacket := bytes.Repeat([]byte{0}, int(getPacketLen(DefaultPlaintextChunkLength)))
 	reader := NewDecodingReader(
 		zeroSecretboxKey(),
 		zeroVerifyKey(),
@@ -378,7 +378,7 @@ func TestTruncatedFails(t *testing.T) {
 	// detectable, but it exercises the simplest cases.
 
 	// One full packet's worth and then a little bit more.
-	plaintext := bytes.Repeat([]byte{0}, DefaultPlaintextChunkLength+42)
+	plaintext := bytes.Repeat([]byte{0}, int(DefaultPlaintextChunkLength+42))
 	sealed := zeroSealWhole(plaintext)
 
 	// Try truncating in the middle of a packet.
@@ -399,7 +399,7 @@ func TestPacketSwapInOneMessageFails(t *testing.T) {
 	// detectable, but it exercises the simplest cases.
 
 	// Two full packets' worth.
-	plaintext := bytes.Repeat([]byte{0}, DefaultPlaintextChunkLength*2)
+	plaintext := bytes.Repeat([]byte{0}, int(DefaultPlaintextChunkLength*2))
 	sealed := zeroSealWhole(plaintext)
 
 	// Swap the first two packets. Make sure to make *copies* of both packets,
@@ -420,13 +420,13 @@ func TestPacketSwapBetweenMessagesFails(t *testing.T) {
 	// detectable, but it exercises the simplest cases.
 
 	// One full packet's worth and then a little bit more.
-	plaintext1 := bytes.Repeat([]byte{1}, DefaultPlaintextChunkLength+42)
+	plaintext1 := bytes.Repeat([]byte{1}, int(DefaultPlaintextChunkLength+42))
 	sealed1 := zeroSealWhole(plaintext1)
 
 	// Encrypt another same plaintext with a different nonce. (If we used the
 	// same nonce, packet swapping *would* be possible, not to mention all the
 	// crypto would be ruined.)
-	plaintext2 := bytes.Repeat([]byte{2}, DefaultPlaintextChunkLength+42)
+	plaintext2 := bytes.Repeat([]byte{2}, int(DefaultPlaintextChunkLength+42))
 	var nonce2 [16]byte
 	nonce2[0] = 42
 	sealed2 := SealWhole(plaintext2, zeroSecretboxKey(), zeroSignKey(), testingPrefix(), &nonce2)

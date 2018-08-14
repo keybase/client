@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import Avatar from './avatar'
+import Avatar, {castPlatformStyles as avatarCastPlatformStyles} from './avatar'
 import Box from './box'
 import ClickableBox from './clickable-box'
 import Icon, {castPlatformStyles, type IconType} from './icon'
@@ -32,6 +32,7 @@ type Props = {
   size?: Size,
   containerStyle?: StylesCrossPlatform,
   metaStyle?: StylesCrossPlatform,
+  avatarStyle?: StylesCrossPlatform,
   isYou?: boolean,
   teamname?: string,
   username?: string,
@@ -55,17 +56,14 @@ const NameWithIconVertical = (props: Props) => {
           size={adapterProps.iconSize}
           username={props.username}
           teamname={props.teamname}
+          style={props.avatarStyle ? avatarCastPlatformStyles(props.avatarStyle) : {}}
         />
       )}
       {!isAvatar &&
-        !!props.icon && (
-          // TODO switch this to collapseStyles when Icon is fixed
+      !!props.icon && ( // TODO switch this to collapseStyles when Icon is fixed
           <Icon
             type={props.icon || ''}
-            style={{
-              height: adapterProps.iconSize,
-              width: adapterProps.iconSize,
-            }}
+            style={{height: adapterProps.iconSize, width: adapterProps.iconSize}}
             fontSize={adapterProps.iconSize}
           />
         )}
@@ -119,7 +117,7 @@ const NameWithIconHorizontal = (props: Props) => {
           size={commonHeight}
           username={props.username}
           teamname={props.teamname}
-          style={{marginRight: 16}}
+          style={collapseStyles([styles.hAvatarStyle, props.avatarStyle])}
         />
       )}
       {!isAvatar &&

@@ -1,10 +1,11 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import WalletEntry from './wallet-entry'
 import Row from './row'
-type Recipient = 'keybaseUser' | 'stellarAddress' | 'otherWallet'
+
+export type Recipient = 'keybaseUser' | 'stellarAddress' | 'otherWallet'
 
 type FromFieldProps = {|
   username: string,
@@ -56,6 +57,7 @@ const ToField = (props: ToFieldProps) => {
           username={props.username}
           metaOne={props.fullName}
           onClick={props.onShowProfile}
+          avatarStyle={styles.avatar}
         />
         {!props.isConfirm && (
           <Kb.Icon
@@ -115,6 +117,7 @@ const ToField = (props: ToFieldProps) => {
         props.recipientType === 'stellarAddress' && !props.username ? {alignSelf: 'flex-start'} : {}
       }
       dividerColor={props.incorrect ? Styles.globalColors.red : ''}
+      noBottomDivider={true}
     >
       {component}
     </Row>
@@ -180,6 +183,9 @@ const styles = Styles.styleSheetCreate({
       wordBreak: 'break-all',
     },
   }),
+  avatar: {
+    marginRight: 8,
+  },
   errorText: Styles.platformStyles({
     common: {
       color: Styles.globalColors.red,
