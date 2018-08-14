@@ -2,9 +2,7 @@
 import * as ConfigGen from '../actions/config-gen'
 import * as Tabs from '../constants/tabs'
 import * as FsTypes from '../constants/types/fs'
-// TODO: uncomment when we have the right thing
-// import * as FsGen from '../actions/fs-gen'
-import {switchTo} from '../actions/route-tree'
+import {switchTo, navigateTo} from '../actions/route-tree'
 import {FilesPreview} from './files.desktop'
 import {connect, compose, type Dispatch} from '../util/container'
 
@@ -23,8 +21,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onSelectPath: (path: FsTypes.Path) => {
     dispatch(ConfigGen.createShowMain())
     dispatch(switchTo([Tabs.fsTab]))
-    // TODO: uncomment when we have the right thing
-    // dispatch(FsGen)
+    // TODO: This should work even when the path isn't a folder.
+    dispatch(navigateTo([{
+      props: {path},
+      selected: 'folder',
+    }]))
   },
 })
 
