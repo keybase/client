@@ -311,8 +311,11 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
     [ConfigGen.loggedIn, ConfigGen.loggedOut, ConfigGen.daemonHandshake],
     loadDaemonBootstrapStatus
   )
-  // Load the known accounts if you revoke or we handshake
-  yield Saga.actionToAction([DevicesGen.revoked, ConfigGen.daemonHandshake], loadDaemonAccounts)
+  // Load the known accounts if you revoke / handshake / logout
+  yield Saga.actionToAction(
+    [DevicesGen.revoked, ConfigGen.daemonHandshake, ConfigGen.loggedOut],
+    loadDaemonAccounts
+  )
   // Switch between login or app routes
   yield Saga.actionToAction([ConfigGen.loggedIn, ConfigGen.loggedOut], switchRouteDef)
   // Go to the correct starting screen

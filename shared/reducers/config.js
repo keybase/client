@@ -26,6 +26,11 @@ export default function(
         pushLoaded: state.pushLoaded,
         startupDetailsLoaded: state.startupDetailsLoaded,
       })
+    // keep current user as default before we make the service call
+    case ConfigGen.logout:
+      return state.merge({
+        defaultUsername: state.username || state.defaultUsername,
+      })
     case ConfigGen.restartHandshake:
       return state.merge({
         daemonError: null,
@@ -168,8 +173,6 @@ export default function(
     case ConfigGen.showMain:
     case ConfigGen.setupEngineListeners:
     case ConfigGen.installerRan:
-    case ConfigGen.logout:
-      return state
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
