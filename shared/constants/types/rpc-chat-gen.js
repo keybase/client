@@ -5,6 +5,7 @@
 // Not enabled: calls need to be turned on in enabled-calls.json
 import * as Gregor1 from './rpc-gregor-gen'
 import * as Keybase1 from './rpc-gen'
+import * as Stellar1 from './rpc-stellar-gen'
 import engine, {EngineChannel} from '../../engine'
 import engineSaga from '../../engine/saga'
 import * as Saga from '../../util/saga'
@@ -475,7 +476,7 @@ export type GetThreadNonblockPgMode =
   | 0 // DEFAULT_0
   | 1 // SERVER_1
 
-export type GetThreadQuery = $ReadOnly<{markAsRead: Boolean, messageTypes?: ?Array<MessageType>, disableResolveSupersedes: Boolean, before?: ?Gregor1.Time, after?: ?Gregor1.Time, messageIDControl?: ?MessageIDControl}>
+export type GetThreadQuery = $ReadOnly<{markAsRead: Boolean, messageTypes?: ?Array<MessageType>, disableResolveSupersedes: Boolean, enableDeletePlaceholders: Boolean, before?: ?Gregor1.Time, after?: ?Gregor1.Time, messageIDControl?: ?MessageIDControl}>
 export type GetThreadReason =
   | 0 // GENERAL_0
   | 1 // PUSH_1
@@ -610,8 +611,8 @@ export type MessageLeave = $ReadOnly<{}>
 export type MessagePlaintext = $ReadOnly<{clientHeader: MessageClientHeader, messageBody: MessageBody}>
 export type MessagePreviousPointer = $ReadOnly<{id: MessageID, hash: Hash}>
 export type MessageReaction = $ReadOnly<{m /* messageID */: MessageID, b /* body */: String}>
-export type MessageRequestPayment = $ReadOnly<{requestID: String, note: String}>
-export type MessageSendPayment = $ReadOnly<{kbTxID: String}>
+export type MessageRequestPayment = $ReadOnly<{requestID: Stellar1.KeybaseRequestID, note: String}>
+export type MessageSendPayment = $ReadOnly<{paymentID: Stellar1.PaymentID}>
 export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy: MessageID, r /* reactionIDs */?: ?Array<MessageID>, ctime: Gregor1.Time, n /* now */: Gregor1.Time, rt /* rtime */?: ?Gregor1.Time}>
 export type MessageSummary = $ReadOnly<{msgID: MessageID, messageType: MessageType, tlfName: String, tlfPublic: Boolean, ctime: Gregor1.Time}>
 export type MessageSystem = {systemType: 0, addedtoteam: ?MessageSystemAddedToTeam} | {systemType: 1, inviteaddedtoteam: ?MessageSystemInviteAddedToTeam} | {systemType: 2, complexteam: ?MessageSystemComplexTeam} | {systemType: 3, createteam: ?MessageSystemCreateTeam} | {systemType: 4, gitpush: ?MessageSystemGitPush} | {systemType: 5, changeavatar: ?MessageSystemChangeAvatar}

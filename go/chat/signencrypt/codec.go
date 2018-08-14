@@ -144,7 +144,7 @@ type VerifyKey *[ed25519.PublicKeySize]byte
 const NonceSize = 16
 const SecretboxKeySize = 32
 const SecretboxNonceSize = 24
-const DefaultPlaintextChunkLength = 1 << 20
+const DefaultPlaintextChunkLength int64 = 1 << 20
 
 // ===================================
 // single packet encoding and decoding
@@ -177,8 +177,12 @@ func makeSignatureInput(plaintext []byte, encKey SecretboxKey, signaturePrefix l
 	return ret
 }
 
-func getPacketLen(plaintextChunkLen int) int {
+func getPacketLen(plaintextChunkLen int64) int64 {
 	return plaintextChunkLen + secretbox.Overhead + ed25519.SignatureSize
+}
+
+func getPlaintextPacketLen(cipherChunkLen int64) int64 {
+	return cipherChunkLen - (secretbox.Overhead + ed25519.SignatureSize)
 }
 
 func sealPacket(plaintext []byte, encKey SecretboxKey, signKey SignKey, signaturePrefix libkb.SignaturePrefix, nonce SecretboxNonce) []byte {
@@ -219,7 +223,7 @@ type Encoder struct {
 	nonce             Nonce
 	buf               []byte
 	chunkNum          uint64
-	plaintextChunkLen int
+	plaintextChunkLen int64
 }
 
 func NewEncoder(encKey SecretboxKey, signKey SignKey, signaturePrefix libkb.SignaturePrefix, nonce Nonce) *Encoder {
@@ -234,9 +238,9 @@ func NewEncoder(encKey SecretboxKey, signKey SignKey, signaturePrefix libkb.Sign
 	}
 }
 
-func (e *Encoder) sealOnePacket(plaintextChunkLen int) []byte {
+func (e *Encoder) sealOnePacket(plaintextChunkLen int64) []byte {
 	// Note that this function handles the `plaintextChunkLen == 0` case.
-	if plaintextChunkLen > len(e.buf) {
+	if plaintextChunkLen > int64(len(e.buf)) {
 		panic("encoder tried to seal a packet that was too big")
 	}
 	plaintextChunk := e.buf[0:plaintextChunkLen]
@@ -256,7 +260,7 @@ func (e *Encoder) Write(plaintext []byte) []byte {
 	e.buf = append(e.buf, plaintext...)
 	var output []byte
 	// If buf is big enough to make new packets, make as many as we can.
-	for len(e.buf) >= e.plaintextChunkLen {
+	for int64(len(e.buf)) >= e.plaintextChunkLen {
 		packet := e.sealOnePacket(e.plaintextChunkLen)
 		output = append(output, packet...)
 	}
@@ -267,14 +271,14 @@ func (e *Encoder) Write(plaintext []byte) []byte {
 // as a short chunk. This should only be called once, and after that you can't
 // use this encoder again.
 func (e *Encoder) Finish() []byte {
-	if len(e.buf) >= e.plaintextChunkLen {
+	if int64(len(e.buf)) >= e.plaintextChunkLen {
 		panic("encoder buffer has more bytes than expected")
 	}
-	packet := e.sealOnePacket(len(e.buf))
+	packet := e.sealOnePacket(int64(len(e.buf)))
 	return packet
 }
 
-func (e *Encoder) ChangePlaintextChunkLenForTesting(plaintextChunkLen int) {
+func (e *Encoder) ChangePlaintextChunkLenForTesting(plaintextChunkLen int64) {
 	e.plaintextChunkLen = plaintextChunkLen
 }
 
@@ -290,7 +294,7 @@ type Decoder struct {
 	buf             []byte
 	chunkNum        uint64
 	err             error
-	packetLen       int
+	packetLen       int64
 }
 
 func NewDecoder(encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix libkb.SignaturePrefix, nonce Nonce) *Decoder {
@@ -306,8 +310,12 @@ func NewDecoder(encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix libkb.
 	}
 }
 
-func (d *Decoder) openOnePacket(packetLen int) ([]byte, error) {
-	if packetLen > len(d.buf) {
+func (d *Decoder) setChunkNum(num uint64) {
+	d.chunkNum = num
+}
+
+func (d *Decoder) openOnePacket(packetLen int64) ([]byte, error) {
+	if packetLen > int64(len(d.buf)) {
 		panic("decoder tried to open a packet that was too big")
 	}
 	packet := d.buf[0:packetLen]
@@ -337,7 +345,7 @@ func (d *Decoder) Write(ciphertext []byte) ([]byte, error) {
 	// We assume that every packet other than the last (which we handle in
 	// Finish) is the same length, which makes this loop very simple.
 	var output []byte
-	for len(d.buf) >= d.packetLen {
+	for int64(len(d.buf)) >= d.packetLen {
 		var plaintext []byte
 		plaintext, d.err = d.openOnePacket(d.packetLen)
 		if d.err != nil {
@@ -357,18 +365,18 @@ func (d *Decoder) Finish() ([]byte, error) {
 	if d.err != nil {
 		return nil, d.err
 	}
-	if len(d.buf) >= d.packetLen {
+	if int64(len(d.buf)) >= d.packetLen {
 		panic("decoder buffer has more bytes than expected")
 	}
 	// If we've been truncated at a packet boundary, this open will fail on a
 	// simple length check. If we've been truncated in the middle of a packet,
 	// this open will fail to validate.
 	var plaintext []byte
-	plaintext, d.err = d.openOnePacket(len(d.buf))
+	plaintext, d.err = d.openOnePacket(int64(len(d.buf)))
 	return plaintext, d.err
 }
 
-func (d *Decoder) ChangePlaintextChunkLenForTesting(plaintextChunkLen int) {
+func (d *Decoder) ChangePlaintextChunkLenForTesting(plaintextChunkLen int64) {
 	d.packetLen = getPacketLen(plaintextChunkLen)
 }
 
@@ -480,16 +488,59 @@ func NewDecodingReader(encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix
 }
 
 // =============================
+// chunk helpers
+// =============================
+
+type chunkSpec struct {
+	index                  int64
+	ptStart, ptEnd         int64
+	cipherStart, cipherEnd int64
+}
+
+func chunkFromIndex(index int64) (res chunkSpec) {
+	res.index = index
+	res.ptStart = res.index * DefaultPlaintextChunkLength
+	res.ptEnd = res.ptStart + DefaultPlaintextChunkLength
+	res.cipherStart = res.index * getPacketLen(DefaultPlaintextChunkLength)
+	res.cipherEnd = res.cipherStart + getPacketLen(DefaultPlaintextChunkLength)
+	return res
+}
+
+func getChunksInRange(plaintextBegin, plaintextEnd, plaintextLen int64) (res []chunkSpec) {
+	beginChunk := chunkFromIndex(plaintextBegin / DefaultPlaintextChunkLength)
+	endChunk := chunkFromIndex(plaintextEnd / DefaultPlaintextChunkLength)
+	cipherLen := GetSealedSize(plaintextLen)
+	for i := beginChunk.index; i <= endChunk.index; i++ {
+		res = append(res, chunkFromIndex(i))
+	}
+	if res[len(res)-1].ptEnd >= plaintextLen {
+		res[len(res)-1].ptEnd = plaintextLen
+	}
+	if res[len(res)-1].cipherEnd >= cipherLen {
+		res[len(res)-1].cipherEnd = cipherLen
+	}
+	return res
+}
+
+// =============================
 // all-at-once wrapper functions
 // =============================
 
-func GetSealedSize(plaintextLen int) int {
+func GetSealedSize(plaintextLen int64) int64 {
 	// All the full packets.
 	fullChunks := plaintextLen / DefaultPlaintextChunkLength
 	totalLen := fullChunks * getPacketLen(DefaultPlaintextChunkLength)
 	// Exactly one short packet, even if it's empty.
 	remainingPlaintext := plaintextLen % DefaultPlaintextChunkLength
 	totalLen += getPacketLen(remainingPlaintext)
+	return totalLen
+}
+
+func GetPlaintextSize(cipherLen int64) int64 {
+	fullChunks := cipherLen / getPacketLen(DefaultPlaintextChunkLength)
+	totalLen := fullChunks * DefaultPlaintextChunkLength
+	remainingCiphertext := cipherLen % getPacketLen(DefaultPlaintextChunkLength)
+	totalLen += getPlaintextPacketLen(remainingCiphertext)
 	return totalLen
 }
 

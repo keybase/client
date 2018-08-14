@@ -447,7 +447,7 @@ func (r *rekeyMaster) currentDeviceSolvesProblemSet(me *libkb.User, ps keybase1.
 	}
 
 	m := libkb.NewMetaContextBackground(r.G())
-	if d := m.ActiveDevice().PaperKey(m); d != nil {
+	if d := m.ActiveDevice().ProvisioningKey(m); d != nil {
 		paperKey = d.EncryptionKey()
 	}
 

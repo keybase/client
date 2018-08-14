@@ -26,6 +26,7 @@ const mapStateToProps = (state: TypedState) => ({
   _tlfs: state.fs.tlfs,
   _username: state.config.username,
   _fileUIEnabled: state.favorite.fuseStatus ? state.favorite.fuseStatus.kextStarted : false,
+  _downloads: state.fs.downloads,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => ({
@@ -52,8 +53,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => ({
 type actions = {
   showInFileUI?: () => void,
   ignoreFolder?: () => void,
-  saveMedia?: () => void,
-  shareNative?: () => void,
+  saveMedia?: (() => void) | 'disabled',
+  shareNative?: (() => void) | 'disabled',
   download?: () => void,
   copyPath?: () => void,
 }
@@ -83,13 +84,21 @@ const aIgnore: MenuItemAppender = (menuActions, stateProps, dispatchProps, path)
 const aSave: MenuItemAppender = (menuActions, stateProps, dispatchProps, path) => {
   const pathItem = stateProps._pathItems.get(path, Constants.unknownPathItem)
   if (isMobile && pathItem.type !== 'folder' && Constants.isMedia(pathItem)) {
-    menuActions.saveMedia = dispatchProps._saveMedia
+    if (stateProps._downloads.find(download => Constants.isPendingDownload(download, path, 'camera-roll'))) {
+      menuActions.saveMedia = 'disabled'
+    } else {
+      menuActions.saveMedia = dispatchProps._saveMedia
+    }
   }
 }
 
 const aShareNative: MenuItemAppender = (menuActions, stateProps, dispatchProps, path) => {
   if (isMobile && stateProps._pathItems.get(path, Constants.unknownPathItem).type === 'file') {
-    menuActions.shareNative = dispatchProps._shareNative
+    if (stateProps._downloads.find(download => Constants.isPendingDownload(download, path, 'share'))) {
+      menuActions.shareNative = 'disabled'
+    } else {
+      menuActions.shareNative = dispatchProps._shareNative
+    }
   }
 }
 
@@ -181,6 +190,7 @@ const mergeProps = (stateProps, dispatchProps, {path, actionIconClassName, actio
     needFolderList: type === 'folder' && pathElements.length >= 3,
     childrenFolders,
     childrenFiles,
+    path,
     pathElements,
     itemStyles,
     loadMimeType,

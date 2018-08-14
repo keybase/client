@@ -106,6 +106,14 @@ func startNewService(tc *libkb.TestContext) (*serviceHandle, error) {
 
 // Tests recovering a passphrase on a second machine by logging in with paperkey.
 func TestPassphraseRecover(t *testing.T) {
+	testPassphraseRecover(t, false /* createDeviceClone */)
+}
+
+func TestPassphraseRecoverWithDeviceClone(t *testing.T) {
+	testPassphraseRecover(t, true /* createDeviceClone */)
+}
+
+func testPassphraseRecover(t *testing.T, createDeviceClone bool) {
 	t.Logf("Start")
 
 	// Service contexts.
@@ -141,6 +149,12 @@ func TestPassphraseRecover(t *testing.T) {
 	// the paper key displayed during signup is in userInfo now
 	tc2.G.Log.Debug("signup paper key: %s", userInfo.displayedPaperKey)
 
+	// clone the device on tc1
+	m1 := libkb.NewMetaContextForTest(*tc1)
+	if createDeviceClone {
+		libkb.CreateClonedDevice(*tc1, m1)
+	}
+
 	t.Logf("Login on tc2")
 	tcClient = cloneContext(tc2)
 	aProvisionUI := &testRecoverUIProvision{
@@ -159,8 +173,6 @@ func TestPassphraseRecover(t *testing.T) {
 	err = login.Run()
 	require.NoError(t, err)
 	tcClient = nil
-
-	m1 := libkb.NewMetaContextForTest(*tc1)
 
 	t.Logf("Verify on tc1")
 	_, err = libkb.VerifyPassphraseForLoggedInUser(m1, userInfo.passphrase)

@@ -160,6 +160,11 @@ func (d DummyAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer
 	return nil
 }
 
+func (d DummyAttachmentFetcher) StreamAttachment(ctx context.Context, convID chat1.ConversationID,
+	asset chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (io.ReadSeeker, error) {
+	return nil, nil
+}
+
 func (d DummyAttachmentFetcher) DeleteAssets(ctx context.Context,
 	convID chat1.ConversationID, assets []chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (err error) {
 	return nil

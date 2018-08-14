@@ -934,6 +934,7 @@ const loadMoreMessages = (
           },
           pgmode: RPCChatTypes.localGetThreadNonblockPgMode.server,
           query: {
+            enableDeletePlaceholders: true,
             disableResolveSupersedes: false,
             markAsRead: false,
             messageTypes: loadThreadMessageTypes,
@@ -1620,7 +1621,7 @@ function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayloa
   const message = action.payload.message
   if (Constants.isVideoAttachment(message)) {
     // Start up the fullscreen video view only on iOS, and only if we have the file downloaded
-    if (isMobile && message.fileURLCached) {
+    if (isMobile) {
       yield Saga.put(
         Route.navigateAppend([
           {
@@ -1939,6 +1940,14 @@ function* mobileMessageAttachmentShare(action: Chat2Gen.MessageAttachmentNativeS
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
+  if (!message.fileURLCached) {
+    yield Saga.put(
+      Chat2Gen.createAttachmentDownload({
+        conversationIDKey: message.conversationIDKey,
+        ordinal: message.ordinal,
+      })
+    )
+  }
   yield Saga.sequentially([
     Saga.put(Chat2Gen.createAttachmentDownload({conversationIDKey, ordinal, forShare: true})),
     Saga.call(downloadAndShowShareActionSheet, message.fileURL, message.fileType),
@@ -1953,6 +1962,14 @@ function* mobileMessageAttachmentSave(action: Chat2Gen.MessageAttachmentNativeSa
   let message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
+  }
+  if (!message.fileURLCached) {
+    yield Saga.put(
+      Chat2Gen.createAttachmentDownload({
+        conversationIDKey: message.conversationIDKey,
+        ordinal: message.ordinal,
+      })
+    )
   }
   try {
     logger.info('Trying to save chat attachment to camera roll')
