@@ -15,12 +15,29 @@ const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
   description: '',
 })
 
+const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
+  amountErrMsg: '',
+  banners: null,
+  from: '',
+  publicMemo: '',
+  publicMemoErrMsg: '',
+  readyToSend: false,
+  secretNote: new HiddenString(''),
+  secretNoteErrMsg: '',
+  to: '',
+  toErrMsg: '',
+  toUsername: '',
+  worthDescription: '',
+  worthInfo: '',
+})
+
 const makeState: I.RecordFactory<Types._State> = I.Record({
   accountMap: I.Map(),
   accountName: '',
   accountNameError: '',
   accountNameValidationState: 'none',
   assetsMap: I.Map(),
+  builtPayment: makeBuiltPayment(),
   exportedSecretKey: new HiddenString(''),
   linkExistingAccountError: '',
   paymentsMap: I.Map(),
@@ -30,6 +47,31 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
 })
+
+const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) => {
+  const {
+    amountErrMsg,
+    banners,
+    publicMemoErrMsg,
+    readyToSend,
+    secretNoteErrMsg,
+    toErrMsg,
+    toUsername,
+    worthDescription,
+    worthInfo,
+  } = b
+  return makeBuiltPayment({
+    amountErrMsg,
+    banners,
+    publicMemoErrMsg,
+    readyToSend,
+    secretNoteErrMsg,
+    toErrMsg,
+    toUsername,
+    worthDescription,
+    worthInfo,
+  })
+}
 
 const makeAccount: I.RecordFactory<Types._Account> = I.Record({
   accountID: Types.noAccountID,
@@ -173,6 +215,7 @@ const getSecretKey = (state: TypedState, accountID: Types.AccountID) => state.wa
 export {
   accountResultToAccount,
   assetsResultToAssets,
+  buildPaymentResultToBuiltPayment,
   getAccountIDs,
   getAccount,
   getAssets,
@@ -185,6 +228,7 @@ export {
   loadEverythingWaitingKey,
   makeAccount,
   makeAssets,
+  makeBuiltPayment,
   makePayment,
   makeReserve,
   makeState,

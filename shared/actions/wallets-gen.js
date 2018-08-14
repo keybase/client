@@ -12,6 +12,9 @@ import HiddenString from '../util/hidden-string'
 export const resetStore = 'common:resetStore' // not a part of wallets but is handled by every reducer
 export const accountsReceived = 'wallets:accountsReceived'
 export const assetsReceived = 'wallets:assetsReceived'
+export const buildPayment = 'wallets:buildPayment'
+export const builtPaymentReceived = 'wallets:builtPaymentReceived'
+export const clearBuiltPayment = 'wallets:clearBuiltPayment'
 export const clearErrors = 'wallets:clearErrors'
 export const exportSecretKey = 'wallets:exportSecretKey'
 export const linkExistingAccount = 'wallets:linkExistingAccount'
@@ -36,6 +39,14 @@ type _AssetsReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   assets: Array<Types.Assets>,
 |}>
+type _BuildPaymentPayload = $ReadOnly<{|
+  amount: number,
+  currency: string,
+  fromAccountID: Types.AccountID,
+  to: string,
+|}>
+type _BuiltPaymentReceivedPayload = $ReadOnly<{|build: Types.BuiltPayment|}>
+type _ClearBuiltPaymentPayload = void
 type _ClearErrorsPayload = void
 type _ExportSecretKeyPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LinkExistingAccountPayload = $ReadOnly<{|
@@ -98,6 +109,10 @@ export const createValidateAccountName = (payload: _ValidateAccountNamePayload) 
  */
 export const createValidateSecretKey = (payload: _ValidateSecretKeyPayload) => ({error: false, payload, type: validateSecretKey})
 /**
+ * Clear a prepared payment once it has been sent or canceled
+ */
+export const createClearBuiltPayment = (payload: _ClearBuiltPaymentPayload) => ({error: false, payload, type: clearBuiltPayment})
+/**
  * Clear errors from the store at times like opening or closing a form dialog.
  */
 export const createClearErrors = (payload: _ClearErrorsPayload) => ({error: false, payload, type: clearErrors})
@@ -117,6 +132,10 @@ export const createLinkExistingAccount = (payload: _LinkExistingAccountPayload) 
  * Load extra detail for one given payment
  */
 export const createLoadPaymentDetail = (payload: _LoadPaymentDetailPayload) => ({error: false, payload, type: loadPaymentDetail})
+/**
+ * Prepare a payment for sending
+ */
+export const createBuildPayment = (payload: _BuildPaymentPayload) => ({error: false, payload, type: buildPayment})
 /**
  * Refresh our list of accounts
  */
@@ -165,6 +184,10 @@ export const createAssetsReceived = (payload: _AssetsReceivedPayload) => ({error
  */
 export const createPaymentsReceived = (payload: _PaymentsReceivedPayload) => ({error: false, payload, type: paymentsReceived})
 /**
+ * Update our store with a prepared payment
+ */
+export const createBuiltPaymentReceived = (payload: _BuiltPaymentReceivedPayload) => ({error: false, payload, type: builtPaymentReceived})
+/**
  * Update our store with an exported secret key
  */
 export const createSecretKeyReceived = (payload: _SecretKeyReceivedPayload) => ({error: false, payload, type: secretKeyReceived})
@@ -172,6 +195,9 @@ export const createSecretKeyReceived = (payload: _SecretKeyReceivedPayload) => (
 // Action Payloads
 export type AccountsReceivedPayload = $Call<typeof createAccountsReceived, _AccountsReceivedPayload>
 export type AssetsReceivedPayload = $Call<typeof createAssetsReceived, _AssetsReceivedPayload>
+export type BuildPaymentPayload = $Call<typeof createBuildPayment, _BuildPaymentPayload>
+export type BuiltPaymentReceivedPayload = $Call<typeof createBuiltPaymentReceived, _BuiltPaymentReceivedPayload>
+export type ClearBuiltPaymentPayload = $Call<typeof createClearBuiltPayment, _ClearBuiltPaymentPayload>
 export type ClearErrorsPayload = $Call<typeof createClearErrors, _ClearErrorsPayload>
 export type ExportSecretKeyPayload = $Call<typeof createExportSecretKey, _ExportSecretKeyPayload>
 export type LinkExistingAccountPayload = $Call<typeof createLinkExistingAccount, _LinkExistingAccountPayload>
@@ -198,6 +224,9 @@ export type ValidatedSecretKeyPayloadError = $Call<typeof createValidatedSecretK
 export type Actions =
   | AccountsReceivedPayload
   | AssetsReceivedPayload
+  | BuildPaymentPayload
+  | BuiltPaymentReceivedPayload
+  | ClearBuiltPaymentPayload
   | ClearErrorsPayload
   | ExportSecretKeyPayload
   | LinkExistingAccountPayload

@@ -16,6 +16,13 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.set('accountMap', accountMap)
     case WalletsGen.assetsReceived:
       return state.setIn(['assetsMap', action.payload.accountID], I.List(action.payload.assets))
+    case WalletsGen.builtPaymentReceived:
+      return state.set(
+        'builtPayment',
+        state.get('builtPayment').merge(Constants.makeBuiltPayment(action.payload.build))
+      )
+    case WalletsGen.clearBuiltPayment:
+      return state.set('builtPayment', Constants.makeBuiltPayment())
     case WalletsGen.paymentDetailReceived:
       // $FlowIssue state.updateIn not found?
       return state.updateIn(['paymentsMap', action.payload.accountID], payments =>
@@ -91,6 +98,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             selectedAccount: action.payload.accountID,
           })
     // Saga only actions
+    case WalletsGen.buildPayment:
     case WalletsGen.exportSecretKey:
     case WalletsGen.linkExistingAccount:
     case WalletsGen.loadAssets:

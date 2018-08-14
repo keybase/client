@@ -2,7 +2,7 @@
   "prelude": [
     "import * as Types from '../constants/types/wallets'",
     "import * as StellarRPCTypes from '../constants/types/rpc-stellar-gen'",
-    "import HiddenString from '../util/hidden-string'",
+    "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
     "accountsReceived": {
@@ -14,13 +14,29 @@
       "accountID": "Types.AccountID",
       "assets": "Array<Types.Assets>",
     },
+    "buildPayment": {
+      "_description": "Prepare a payment for sending",
+      "amount": "number",
+      "currency": "string",
+      "fromAccountID": "Types.AccountID",
+      "publicNote": "string",
+      "secretNote": "HiddenString",
+      "to": "string",
+    },
+    "builtPaymentReceived": {
+      "_description": "Update our store with a prepared payment",
+      "build": "Types.BuiltPayment",
+    },
+    "clearBuiltPayment": {
+      "_description": "Clear a prepared payment once it has been sent or canceled",
+    },
     "exportSecretKey": {
       "_description": "Export a Stellar account's secret key",
       "accountID": "Types.AccountID",
     },
     "loadAssets": {
       "_description": "Refresh our list of assets for a given account",
-      "accountID": "Types.AccountID"
+      "accountID": "Types.AccountID",
     },
     "loadAccounts": {
       "_description": "Refresh our list of accounts",
