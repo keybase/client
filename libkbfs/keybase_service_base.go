@@ -1248,6 +1248,12 @@ func (k *KeybaseDaemonRPC) TeamExit(context.Context, keybase1.TeamID) error {
 	return nil
 }
 
+// NewlyAddedToTeam implements keybase1.NotifyTeamInterface for
+// KeybaseServiceBase.
+func (k *KeybaseDaemonRPC) NewlyAddedToTeam(context.Context, keybase1.TeamID) error {
+	return nil
+}
+
 // TeamAbandoned implements keybase1.NotifyTeamInterface for KeybaseServiceBase.
 func (k *KeybaseDaemonRPC) TeamAbandoned(
 	ctx context.Context, tid keybase1.TeamID) error {

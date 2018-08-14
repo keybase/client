@@ -119,6 +119,20 @@ func (o UserEk) DeepCopy() UserEk {
 	}
 }
 
+type UserEkReboxArg struct {
+	UserEkBoxMetadata    UserEkBoxMetadata `codec:"userEkBoxMetadata" json:"userEkBoxMetadata"`
+	DeviceID             DeviceID          `codec:"deviceID" json:"deviceID"`
+	DeviceEkStatementSig string            `codec:"deviceEkStatementSig" json:"deviceEkStatementSig"`
+}
+
+func (o UserEkReboxArg) DeepCopy() UserEkReboxArg {
+	return UserEkReboxArg{
+		UserEkBoxMetadata:    o.UserEkBoxMetadata.DeepCopy(),
+		DeviceID:             o.DeviceID.DeepCopy(),
+		DeviceEkStatementSig: o.DeviceEkStatementSig,
+	}
+}
+
 type TeamEkMetadata struct {
 	Kid        KID          `codec:"kid" json:"team_ephemeral_dh_public"`
 	HashMeta   HashMeta     `codec:"hashMeta" json:"hash_meta"`
