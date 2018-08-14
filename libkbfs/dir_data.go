@@ -235,3 +235,30 @@ func (dd *dirData) addEntry(
 
 	return dd.processModifiedBlock(ctx, ptr, parentBlocks, dblock)
 }
+
+func (dd *dirData) removeEntry(ctx context.Context, name string) error {
+	topBlock, _, err := dd.getter(
+		ctx, dd.tree.kmd, dd.rootBlockPointer(), dd.tree.file, blockRead)
+	if err != nil {
+		return err
+	}
+
+	off := StringOffset(name)
+	ptr, parentBlocks, block, _, _, _, err := dd.tree.getBlockAtOffset(
+		ctx, topBlock, &off, blockRead)
+	if err != nil {
+		return err
+	}
+	dblock := block.(*DirBlock)
+
+	if _, exists := dblock.Children[name]; !exists {
+		// Nothing to do.
+		return nil
+	}
+	delete(dblock.Children, name)
+
+	// For now, just leave the block empty, at its current place in
+	// the tree.  TODO: remove empty blocks all the way up the tree
+	// and shift parent pointers around as needed.
+	return dd.processModifiedBlock(ctx, ptr, parentBlocks, dblock)
+}
