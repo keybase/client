@@ -116,7 +116,7 @@ class NoteAndMemo extends React.Component<Props, State> {
         <Kb.Divider
           style={Styles.collapseStyles([
             styles.divider,
-            this.props.noteError ? {backgroundColor: Styles.globalColors.red} : {},
+            this.props.memoError ? {backgroundColor: Styles.globalColors.red} : {},
           ])}
         />
       </Kb.Box2>
