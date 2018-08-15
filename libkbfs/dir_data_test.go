@@ -59,7 +59,7 @@ func setupDirDataTest(t *testing.T, maxPtrsPerBlock, numDirEntries int) (
 	}
 
 	dd := newDirData(
-		dir, chargedTo, crypto, kmd, bsplit, getter, cacher,
+		dir, chargedTo, crypto, bsplit, kmd, getter, cacher,
 		logger.NewTestLogger(t))
 	return dd, cleanCache, dirtyBcache
 }

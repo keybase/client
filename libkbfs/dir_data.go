@@ -27,7 +27,7 @@ type dirData struct {
 }
 
 func newDirData(dir path, chargedTo keybase1.UserOrTeamID,
-	crypto cryptoPure, kmd KeyMetadata, bsplit BlockSplitter,
+	crypto cryptoPure, bsplit BlockSplitter, kmd KeyMetadata,
 	getter dirBlockGetter, cacher dirtyBlockCacher,
 	log logger.Logger) *dirData {
 	dd := &dirData{
@@ -57,6 +57,11 @@ func (dd *dirData) blockGetter(
 	return dd.getter(ctx, kmd, ptr, dir, rtype)
 }
 
+var hiddenEntries = map[string]bool{
+	".kbfs_git":     true,
+	".kbfs_autogit": true,
+}
+
 func (dd *dirData) getChildren(ctx context.Context) (
 	children map[string]EntryInfo, err error) {
 	topBlock, _, err := dd.getter(
@@ -79,8 +84,6 @@ func (dd *dirData) getChildren(ctx context.Context) (
 	children = make(map[string]EntryInfo, numEntries)
 	for _, b := range blocks {
 		for k, de := range b.(*DirBlock).Children {
-			// TODO(KBFS-3302): move `hidden` into this file once
-			// `folderBlockOps` uses this function.
 			if hiddenEntries[k] {
 				continue
 			}
@@ -216,23 +219,24 @@ func (dd *dirData) addEntryHelper(
 	ctx context.Context, name string, newDe DirEntry,
 	errorIfExists bool) error {
 	topBlock, _, err := dd.getter(
-		ctx, dd.tree.kmd, dd.rootBlockPointer(), dd.tree.file, blockRead)
+		ctx, dd.tree.kmd, dd.rootBlockPointer(), dd.tree.file, blockWrite)
 	if err != nil {
 		return err
 	}
 
 	off := StringOffset(name)
 	ptr, parentBlocks, block, _, _, _, err := dd.tree.getBlockAtOffset(
-		ctx, topBlock, &off, blockRead)
+		ctx, topBlock, &off, blockWrite)
 	if err != nil {
 		return err
 	}
 	dblock := block.(*DirBlock)
 
-	_, exists := dblock.Children[name]
+	de, exists := dblock.Children[name]
 	if errorIfExists && exists {
 		return NameExistsError{name}
-	} else if !errorIfExists && !exists {
+	} else if !errorIfExists &&
+		(!exists || de.BlockPointer != newDe.BlockPointer) {
 		return NoSuchNameError{name}
 	}
 	dblock.Children[name] = newDe
@@ -252,14 +256,14 @@ func (dd *dirData) updateEntry(
 
 func (dd *dirData) removeEntry(ctx context.Context, name string) error {
 	topBlock, _, err := dd.getter(
-		ctx, dd.tree.kmd, dd.rootBlockPointer(), dd.tree.file, blockRead)
+		ctx, dd.tree.kmd, dd.rootBlockPointer(), dd.tree.file, blockWrite)
 	if err != nil {
 		return err
 	}
 
 	off := StringOffset(name)
 	ptr, parentBlocks, block, _, _, _, err := dd.tree.getBlockAtOffset(
-		ctx, topBlock, &off, blockRead)
+		ctx, topBlock, &off, blockWrite)
 	if err != nil {
 		return err
 	}

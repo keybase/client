@@ -107,6 +107,12 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config.mockBsplit.EXPECT().MaxPtrsPerBlock().
 		Return(int((^uint(0)) >> 1)).AnyTimes()
 
+	// Never split dir blocks.
+	config.mockBsplit.EXPECT().SplitDirIfNeeded(gomock.Any()).DoAndReturn(
+		func(block *DirBlock) ([]*DirBlock, *StringOffset) {
+			return []*DirBlock{block}, nil
+		}).AnyTimes()
+
 	// Ignore Archive calls for now
 	config.mockBops.EXPECT().Archive(gomock.Any(), gomock.Any(),
 		gomock.Any()).AnyTimes().Return(nil)
@@ -1911,13 +1917,6 @@ func checkSyncOpInCache(t *testing.T, codec kbfscodec.Codec,
 	checkSyncOp(t, codec, si.op, filePtr, writes)
 }
 
-func updateWithDirtyEntries(ctx context.Context, ops *folderBranchOps,
-	lState *lockState, dir path, block *DirBlock) (*DirBlock, error) {
-	ops.blocks.blockLock.RLock(lState)
-	defer ops.blocks.blockLock.RUnlock(lState)
-	return ops.blocks.updateWithDirtyEntriesLocked(ctx, lState, dir, block)
-}
-
 func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
 	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
@@ -1960,10 +1959,6 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 		p.Branch)
 	newRootBlock := getDirBlockFromCache(
 		t, config, id, node.BlockPointer, p.Branch)
-	lState := makeFBOLockState()
-	newRootBlock, err := updateWithDirtyEntries(
-		ctx, ops, lState, *p.parentPath(), newRootBlock)
-	require.NoError(t, err)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
 		len(p.path) {
@@ -1983,6 +1978,7 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	}
 	checkBlockCache(t, config, id, []kbfsblock.ID{rootID, fileID},
 		map[BlockPointer]BranchName{
+			node.BlockPointer:     p.Branch,
 			fileNode.BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, config.Codec(), ops, fileNode.BlockPointer,
@@ -2044,6 +2040,7 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 	}
 	checkBlockCache(t, config, id, []kbfsblock.ID{rootID, fileID},
 		map[BlockPointer]BranchName{
+			node.BlockPointer:     p.Branch,
 			fileNode.BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, config.Codec(), ops, fileNode.BlockPointer,
@@ -2105,6 +2102,7 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 	}
 	checkBlockCache(t, config, id, []kbfsblock.ID{rootID, fileID},
 		map[BlockPointer]BranchName{
+			node.BlockPointer:     p.Branch,
 			fileNode.BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, config.Codec(), ops, fileNode.BlockPointer,
@@ -2167,12 +2165,8 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	if err := config.KBFSOps().Write(ctx, n, newData, 1); err != nil {
 		t.Errorf("Got error on write: %+v", err)
 	}
-	b, _ := config.BlockCache().Get(node.BlockPointer)
+	b, _ := config.DirtyBlockCache().Get(id, node.BlockPointer, p.Branch)
 	newRootBlock := b.(*DirBlock)
-	lState := makeFBOLockState()
-	newRootBlock, err := updateWithDirtyEntries(
-		ctx, ops, lState, *p.parentPath(), newRootBlock)
-	require.NoError(t, err)
 
 	b, _ = config.DirtyBlockCache().Get(id, fileNode.BlockPointer, p.Branch)
 	pblock := b.(*FileBlock)
@@ -2217,6 +2211,7 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 
 	checkBlockCache(t, config, id, []kbfsblock.ID{rootID, fileID},
 		map[BlockPointer]BranchName{
+			node.BlockPointer:            p.Branch,
 			fileNode.BlockPointer:        p.Branch,
 			pblock.IPtrs[0].BlockPointer: p.Branch,
 			pblock.IPtrs[1].BlockPointer: p.Branch,
@@ -2328,6 +2323,7 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	mergeUnrefCache(ops, lState, p, rmd)
 	checkBlockCache(t, config, id, []kbfsblock.ID{rootID, fileID, id1, id2},
 		map[BlockPointer]BranchName{
+			node.BlockPointer:               p.Branch,
 			fileNode.BlockPointer:           p.Branch,
 			fileBlock.IPtrs[0].BlockPointer: p.Branch,
 			fileBlock.IPtrs[1].BlockPointer: p.Branch,
@@ -2375,10 +2371,6 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 		p.Branch)
 	newRootBlock := getDirBlockFromCache(
 		t, config, id, node.BlockPointer, p.Branch)
-	lState := makeFBOLockState()
-	newRootBlock, err := updateWithDirtyEntries(
-		ctx, ops, lState, *p.parentPath(), newRootBlock)
-	require.NoError(t, err)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
 		len(p.path) {
@@ -2398,6 +2390,7 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	}
 	checkBlockCache(t, config, id, []kbfsblock.ID{rootID, fileID},
 		map[BlockPointer]BranchName{
+			node.BlockPointer:     p.Branch,
 			fileNode.BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, config.Codec(), ops, fileNode.BlockPointer,
@@ -2491,6 +2484,7 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	}
 	checkBlockCache(t, config, id, []kbfsblock.ID{rootID, fileID},
 		map[BlockPointer]BranchName{
+			node.BlockPointer:     p.Branch,
 			fileNode.BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, config.Codec(), ops, fileNode.BlockPointer,
@@ -2578,6 +2572,7 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 	}
 	checkBlockCache(t, config, id, []kbfsblock.ID{rootID, fileID, id1, id2},
 		map[BlockPointer]BranchName{
+			node.BlockPointer:               p.Branch,
 			fileNode.BlockPointer:           p.Branch,
 			fileBlock.IPtrs[1].BlockPointer: p.Branch,
 		})
@@ -2660,6 +2655,7 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	}
 	checkBlockCache(t, config, id, []kbfsblock.ID{rootID, fileID, id1, id2},
 		map[BlockPointer]BranchName{
+			node.BlockPointer:               p.Branch,
 			fileNode.BlockPointer:           p.Branch,
 			fileBlock.IPtrs[0].BlockPointer: p.Branch,
 		})
@@ -2719,6 +2715,7 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	}
 	checkBlockCache(t, config, id, []kbfsblock.ID{rootID, fileID},
 		map[BlockPointer]BranchName{
+			node.BlockPointer:     p.Branch,
 			fileNode.BlockPointer: p.Branch,
 		})
 	// A truncate past the end of the file actually translates into a

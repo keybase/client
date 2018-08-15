@@ -2193,10 +2193,12 @@ type NodeCache interface {
 	// IsUnlinked returns whether `Unlink` has been called for the
 	// reference behind this node.
 	IsUnlinked(node Node) bool
-	// UnlinkedDirEntry returns a pointer to a modifiable directory
-	// entry if `Unlink` has been called for the reference behind this
-	// node.
+	// UnlinkedDirEntry returns a directory entry if `Unlink` has been
+	// called for the reference behind this node.
 	UnlinkedDirEntry(node Node) DirEntry
+	// UpdateUnlinkedDirEntry modifies a cached directory entry for a
+	// node that has already been unlinked.
+	UpdateUnlinkedDirEntry(node Node, newDe DirEntry)
 	// PathFromNode creates the path up to a given Node.
 	PathFromNode(node Node) path
 	// AllNodes returns the complete set of nodes currently in the cache.

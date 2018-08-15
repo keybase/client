@@ -298,6 +298,21 @@ func (ncs *nodeCacheStandard) UnlinkedDirEntry(node Node) DirEntry {
 	return ns.core.cachedDe
 }
 
+// UpdateUnlinkedDirEntry implements the NodeCache interface for
+// nodeCacheStandard.
+func (ncs *nodeCacheStandard) UpdateUnlinkedDirEntry(
+	node Node, newDe DirEntry) {
+	ncs.lock.Lock()
+	defer ncs.lock.Unlock()
+
+	ns, ok := node.Unwrap().(*nodeStandard)
+	if !ok {
+		return
+	}
+
+	ns.core.cachedDe = newDe
+}
+
 // PathFromNode implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) PathFromNode(node Node) (p path) {
 	ncs.lock.RLock()

@@ -846,8 +846,8 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 				"%v; skipping rm removal", parentOriginal)
 		}
 
-		de, err := cr.fbo.blocks.GetDirtyEntry(ctx, lState,
-			unmergedChains.mostRecentChainMDInfo, currPath)
+		de, err := cr.fbo.blocks.GetEntry(
+			ctx, lState, unmergedChains.mostRecentChainMDInfo, currPath)
 		if err != nil {
 			return path{}, BlockPointer{}, nil, err
 		}

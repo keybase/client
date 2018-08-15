@@ -8000,6 +8000,16 @@ func (mr *MockNodeCacheMockRecorder) UnlinkedDirEntry(node interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnlinkedDirEntry", reflect.TypeOf((*MockNodeCache)(nil).UnlinkedDirEntry), node)
 }
 
+// UpdateUnlinkedDirEntry mocks base method
+func (m *MockNodeCache) UpdateUnlinkedDirEntry(node Node, newDe DirEntry) {
+	m.ctrl.Call(m, "UpdateUnlinkedDirEntry", node, newDe)
+}
+
+// UpdateUnlinkedDirEntry indicates an expected call of UpdateUnlinkedDirEntry
+func (mr *MockNodeCacheMockRecorder) UpdateUnlinkedDirEntry(node, newDe interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUnlinkedDirEntry", reflect.TypeOf((*MockNodeCache)(nil).UpdateUnlinkedDirEntry), node, newDe)
+}
+
 // PathFromNode mocks base method
 func (m *MockNodeCache) PathFromNode(node Node) path {
 	ret := m.ctrl.Call(m, "PathFromNode", node)
