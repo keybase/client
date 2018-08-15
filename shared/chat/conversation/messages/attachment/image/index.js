@@ -35,7 +35,7 @@ type Props = {
   title: string,
   toggleMessageMenu: () => void,
   videoDuration: string,
-  isVideo: boolean,
+  inlineVideoPlayable: boolean,
   width: number,
 }
 
@@ -56,7 +56,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
   _setLoaded = () => this.setState({loaded: true})
 
   _onClick = () => {
-    if (!isMobile && this.props.isVideo) {
+    if (this.props.inlineVideoPlayable) {
       this.imageRef.current.onVideoClick()
       this.setState({playingVideo: !this.state.playingVideo})
     } else {
@@ -64,12 +64,12 @@ class ImageAttachment extends React.PureComponent<Props, State> {
     }
   }
   _onMouseEnter = () => {
-    if (!isMobile && this.props.isVideo) {
+    if (this.props.inlineVideoPlayable) {
       this.imageRef.current.onVideoMouseEnter()
     }
   }
   _onMouseLeave = () => {
-    if (!isMobile && this.props.isVideo) {
+    if (this.props.inlineVideoPlayable) {
       this.imageRef.current.onVideoMouseLeave()
     }
   }
@@ -99,10 +99,10 @@ class ImageAttachment extends React.PureComponent<Props, State> {
           {!!this.props.path && (
             <ImageRender
               ref={this.imageRef}
-              src={this.props.isVideo ? this.props.fullPath : this.props.path}
+              src={this.props.inlineVideoPlayable ? this.props.fullPath : this.props.path}
               onLoad={this._setLoaded}
               loaded={this.state.loaded}
-              isVideo={this.props.isVideo}
+              inlineVideoPlayable={this.props.inlineVideoPlayable}
               style={collapseStyles([
                 styles.image,
                 {
@@ -117,7 +117,11 @@ class ImageAttachment extends React.PureComponent<Props, State> {
           {!!this.props.showButton &&
             !this.state.playingVideo && (
               <Icon
-                type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
+                type={
+                  this.props.showButton === (this.props.inlineVideoPlayable || isMobile ? 'play' : 'film')
+                    ? 'icon-play-64'
+                    : 'icon-film-64'
+                }
                 style={iconCastPlatformStyles(styles.playButton)}
               />
             )}

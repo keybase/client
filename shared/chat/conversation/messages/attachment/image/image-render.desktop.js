@@ -39,7 +39,7 @@ export class ImageRender extends React.Component<Props> {
   }
 
   render() {
-    return this.props.isVideo ? (
+    return this.props.inlineVideoPlayable ? (
       <video
         ref={this.videoRef}
         onLoadedMetadata={this.props.onLoad}

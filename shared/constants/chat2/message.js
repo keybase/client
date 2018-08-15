@@ -147,6 +147,7 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   fileType: '',
   fileURL: '',
   fileURLCached: false,
+  inlineVideoPlayable: false,
   previewHeight: 0,
   previewTransferState: null,
   previewURL: '',
@@ -518,12 +519,14 @@ const validUIMessagetoMessage = (
       let fileType = ''
       let fileURLCached = false
       let videoDuration = null
+      let inlineVideoPlayable = false
       if (m.assetUrlInfo) {
         previewURL = m.assetUrlInfo.previewUrl
         fileURL = m.assetUrlInfo.fullUrl
         fileType = m.assetUrlInfo.mimeType
         fileURLCached = m.assetUrlInfo.fullUrlCached
         videoDuration = m.assetUrlInfo.videoDuration
+        inlineVideoPlayable = m.assetUrlInfo.inlineVideoPlayable
       }
 
       return makeMessageAttachment({
@@ -534,6 +537,7 @@ const validUIMessagetoMessage = (
         fileType,
         fileURL,
         fileURLCached,
+        inlineVideoPlayable,
         previewHeight: pre.height,
         previewURL,
         previewWidth: pre.width,

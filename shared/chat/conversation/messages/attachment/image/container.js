@@ -6,7 +6,6 @@ import {connect, type TypedState, type Dispatch, isMobile} from '../../../../../
 import {globalColors} from '../../../../../styles'
 import ImageAttachment from '.'
 import {imgMaxWidth} from './image-render'
-import * as Constants from '../../../../../constants/chat2'
 
 type OwnProps = {
   message: Types.MessageAttachment,
@@ -68,7 +67,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     progressLabel,
     showButton: buttonType,
     videoDuration: message.videoDuration || '',
-    isVideo: Constants.isVideoAttachment(message),
+    inlineVideoPlayable: !isMobile && message.inlineVideoPlayable,
     title: message.title || message.fileName,
     toggleMessageMenu: ownProps.toggleMessageMenu,
     width: Math.min(message.previewWidth, imgMaxWidth()),

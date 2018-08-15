@@ -4,5 +4,5 @@ export type Props = {
   src: string,
   style: Object,
   loaded: boolean,
-  isVideo: boolean,
+  inlineVideoPlayable: boolean,
 }
