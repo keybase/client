@@ -14,6 +14,9 @@ export class ImageRender extends React.Component<Props> {
   }
 
   onVideoClick = () => {
+    if (!(this.videoRef && this.videoRef.current)) {
+      return
+    }
     if (!this.playingVideo) {
       this.videoRef.current.play()
     } else {
@@ -24,13 +27,13 @@ export class ImageRender extends React.Component<Props> {
   }
 
   onVideoMouseEnter = () => {
-    if (this.playingVideo) {
+    if (this.playingVideo && this.videoRef && this.videoRef.current) {
       this.videoRef.current.setAttribute('controls', 'controls')
     }
   }
 
   onVideoMouseLeave = () => {
-    if (this.playingVideo) {
+    if (this.playingVideo && this.videoRef && this.videoRef.current) {
       this.videoRef.current.removeAttribute('controls')
     }
   }

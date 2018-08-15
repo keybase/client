@@ -55,20 +55,20 @@ class ImageAttachment extends React.PureComponent<Props, State> {
   _setLoaded = () => this.setState({loaded: true})
 
   _onClick = () => {
-    if (this.props.inlineVideoPlayable) {
+    if (this.props.inlineVideoPlayable && this.imageRef && this.imageRef.current) {
       this.imageRef.current.onVideoClick()
-      this.setState({playingVideo: !this.state.playingVideo})
+      this.setState(p => ({playingVideo: !p.playingVideo}))
     } else {
       this.props.onClick()
     }
   }
   _onMouseEnter = () => {
-    if (this.props.inlineVideoPlayable) {
+    if (this.props.inlineVideoPlayable && this.imageRef && this.imageRef.current) {
       this.imageRef.current.onVideoMouseEnter()
     }
   }
   _onMouseLeave = () => {
-    if (this.props.inlineVideoPlayable) {
+    if (this.props.inlineVideoPlayable && this.imageRef && this.imageRef.current) {
       this.imageRef.current.onVideoMouseLeave()
     }
   }
