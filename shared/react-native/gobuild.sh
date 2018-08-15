@@ -42,9 +42,12 @@ client_dir="$GOPATH0/src/github.com/keybase/client"
 client_go_dir="$client_dir/go"
 kbfs_dir="$GOPATH0/src/github.com/keybase/kbfs"
 
-# Our custom gopath for iOS build
+# Our custom GOPATH for mobile build.
 GOPATH="$tmp_gopath"
 echo "Using temp GOPATH: $GOPATH"
+
+# gomobile looks for gobind in $PATH.
+PATH="$PATH:$GOPATH/bin"
 
 # if we don't set this gomobile init get confused
 GOMOBILE="$GOPATH/pkg/gomobile"
