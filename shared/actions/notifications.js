@@ -48,10 +48,9 @@ const setupEngineListeners = () => {
     ({badgeState}, _: any, getState) => [NotificationsGen.createReceivedBadgeState({badgeState})]
   )
 
-
   getEngine().setIncomingActionCreators(
     'stellar.1.notify.paymentNotification',
-    ({accountID}, _: any, getState) => [  
+    ({accountID}, _: any, getState) => [
       // Need to reload the account fully so that assets update
       WalletsGen.createLoadAccounts(),
       WalletsGen.createLoadAssets({accountID}),
