@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Kb from '../../../../../common-adapters'
 import * as Sb from '../../../../../stories/storybook'
 import * as S from '../../../../../styles'
 import {isMobile} from '../../../../../constants/platform'
@@ -9,10 +10,9 @@ const sendIcon = isMobile ? 'icon-fancy-stellar-sending-mobile' : 'icon-fancy-st
 const receiveIcon = isMobile ? 'icon-fancy-stellar-receiving-mobile' : 'icon-fancy-stellar-receiving-desktop'
 
 const commonProps = {
-  attachTo: null,
   onCancel: null,
   onHidden: Sb.action('onHidden'),
-  position: 'top right',
+  position: 'bottom left',
   senderDeviceName: 'iPhone 6',
   timestamp: 'Yesterday 8:11 PM',
   visible: true,
@@ -108,13 +108,31 @@ const youSendBTCProps = {
 
 const load = () => {
   Sb.storiesOf('Chat/Conversation/Message popup/Payments', module)
-    .add('They request lumens', () => <PaymentPopup {...theyRequestProps} />)
-    .add('You receive lumens', () => <PaymentPopup {...youReceiveProps} />)
-    .add('You request lumens', () => <PaymentPopup {...youRequestProps} />)
-    .add('You send lumens', () => <PaymentPopup {...youSendProps} />)
-    .add('You request BTC', () => <PaymentPopup {...youRequestBTCProps} />)
-    .add('You receive BTC', () => <PaymentPopup {...youReceiveBTCProps} />)
-    .add('You send BTC', () => <PaymentPopup {...youSendBTCProps} />)
+    .add('They request lumens', () => <PaymentPopupMoved {...theyRequestProps} />)
+    .add('You receive lumens', () => <PaymentPopupMoved {...youReceiveProps} />)
+    .add('You request lumens', () => <PaymentPopupMoved {...youRequestProps} />)
+    .add('You send lumens', () => <PaymentPopupMoved {...youSendProps} />)
+    .add('You request BTC', () => <PaymentPopupMoved {...youRequestBTCProps} />)
+    .add('You receive BTC', () => <PaymentPopupMoved {...youReceiveBTCProps} />)
+    .add('You send BTC', () => <PaymentPopupMoved {...youSendBTCProps} />)
+}
+
+type State = {
+  ref: ?Kb.Box,
+}
+class PaymentPopupMoved extends React.Component<React.ElementProps<typeof PaymentPopup>, State> {
+  state = {ref: null}
+  render() {
+    return (
+      <React.Fragment>
+        <Kb.Box
+          style={{left: 20, position: 'absolute', top: 20}}
+          ref={ref => this.setState(s => (s.ref ? null : {ref}))}
+        />
+        <PaymentPopup {...this.props} attachTo={this.state.ref} />
+      </React.Fragment>
+    )
+  }
 }
 
 export default load
