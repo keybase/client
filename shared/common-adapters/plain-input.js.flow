@@ -38,7 +38,6 @@ export type Props = {
   style?: StylesCrossPlatform,
   textType?: TextType,
   type?: 'password' | 'text' | 'number',
-  value?: any,
 
   /* Platform discrepancies */
   // Maps to onSubmitEditing on native

@@ -5,8 +5,6 @@ import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '
 
 const mapStateToProps = (state: TypedState) => ({
   displayUnit: state.wallets.get('buildingPayment').get('currency'),
-  // warningAsset
-  // warningPayee
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
