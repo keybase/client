@@ -3,6 +3,7 @@ import React, {Component} from 'react'
 import {TouchableOpacity} from 'react-native'
 import {Box, Text} from '../..'
 import {globalColors, globalMargins, globalStyles, styleSheetCreate, collapseStyles} from '../../../styles'
+import {isIPhoneX} from '../../../constants/platform'
 import type {MenuItem, MenuLayoutProps} from '.'
 
 type MenuRowProps = {
@@ -94,6 +95,7 @@ const styles = styleSheetCreate({
     alignItems: 'stretch',
     borderColor: globalColors.black_05,
     borderTopWidth: 1,
+    paddingBottom: isIPhoneX ? globalMargins.medium : 0, // otherwise too close to the gesture bar
   },
   row: {
     ...globalStyles.flexBoxColumn,
