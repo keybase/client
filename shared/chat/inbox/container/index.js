@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
   const smallTeamsExpanded = routeState.get('smallTeamsExpanded')
   const rowMetadata = filter ? filteredRowData(state) : normalRowData(state, smallTeamsExpanded)
   const _selectedConversationIDKey = Constants.getSelectedConversation(state)
-  const neverLoaded = !state.chat2.metaMap.keySeq().some(k => Constants.isValidConversationIDKey(k))
+  const neverLoaded = !state.chat2.inboxHasLoaded
 
   return {
     ...rowMetadata,
