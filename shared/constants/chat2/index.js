@@ -186,6 +186,26 @@ export const makeInboxQuery = (
   }
 }
 
+export const anyToConversationMembersType = (a: any): ?RPCChatTypes.ConversationMembersType => {
+  const membersTypeNumber: number = typeof a === 'string' ? parseInt(a, 10) : a || -1
+  switch (membersTypeNumber) {
+    case RPCChatTypes.commonConversationMembersType.kbfs:
+      return RPCChatTypes.commonConversationMembersType.kbfs
+    case RPCChatTypes.commonConversationMembersType.team:
+      return RPCChatTypes.commonConversationMembersType.team
+    case RPCChatTypes.commonConversationMembersType.impteamnative:
+      return RPCChatTypes.commonConversationMembersType.impteamnative
+    case RPCChatTypes.commonConversationMembersType.impteamupgrade:
+      return RPCChatTypes.commonConversationMembersType.impteamupgrade
+    default:
+      return null
+  }
+}
+
+export const threadRoute = isMobile
+  ? [chatTab, 'conversation']
+  : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
+
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = isMobile ? 100 : 100
 

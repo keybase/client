@@ -1,8 +1,8 @@
 // @flow
-import * as ProvisionGen from '../../../actions/provision-gen'
-import * as SignupGen from '../../../actions/signup-gen'
+import * as ProvisionGen from '../../actions/provision-gen'
+import * as SignupGen from '../../actions/signup-gen'
 import Intro from '.'
-import {connect, type TypedState, type Dispatch, isMobile} from '../../../util/container'
+import {connect, type TypedState, type Dispatch, isMobile} from '../../util/container'
 
 type OwnProps = {
   navigateAppend: (...Array<any>) => any,
@@ -11,10 +11,10 @@ type OwnProps = {
 const mapStateToProps = (state: TypedState) => {
   let bannerMessage = null
 
-  if (state.login.justDeletedSelf) {
-    bannerMessage = `Your Keybase account ${state.login.justDeletedSelf}" has been deleted. Au revoir!`
-  } else if (state.login.justRevokedSelf) {
-    bannerMessage = `${state.login.justRevokedSelf} was revoked successfully`
+  if (state.config.justDeletedSelf) {
+    bannerMessage = `Your Keybase account ${state.config.justDeletedSelf}" has been deleted. Au revoir!`
+  } else if (state.devices.justRevokedSelf) {
+    bannerMessage = `${state.devices.justRevokedSelf} was revoked successfully`
   }
 
   return {bannerMessage}

@@ -7,10 +7,10 @@ export type Props = {|
   onSignup: () => void,
   onSomeoneElse: () => void,
   error: string,
-  waitingForResponse: boolean,
+  inputKey: string, // used to reset the uncontrolled input
   passphrase: string,
   showTyping: boolean,
-  selectedUser: ?string,
+  selectedUser: string,
   selectedUserChange: (selectedUser: string) => void,
   passphraseChange: (passphrase: string) => void,
   showTypingChange: (typingChange: boolean) => void,

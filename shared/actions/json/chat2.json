@@ -69,8 +69,6 @@
     "badgesUpdated": {
       "conversations": "Array<RPCTypes.BadgeConversationInfo>"
     },
-    // Setup sagas
-    "setupChatHandlers": {},
     // Refresh the inbox
     "inboxRefresh": {
       "reason": [

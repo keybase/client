@@ -1,6 +1,6 @@
 // @flow
 import * as ConfigGen from '../actions/config-gen'
-import Main from './main'
+import Main from './main.native'
 import React, {Component} from 'react'
 import configureStore from '../store/configure-store'
 import loginRouteTree from './routes-login'
@@ -45,6 +45,9 @@ class Keybase extends Component<any> {
       setupLocalDebug(this.store)
       this.store.dispatch(setInitialRouteDef(loginRouteTree))
       makeEngine(this.store.dispatch, this.store.getState)
+
+      // On mobile there is no installer
+      this.store.dispatch(ConfigGen.createInstallerRan())
     } else {
       this.store = global.store
     }

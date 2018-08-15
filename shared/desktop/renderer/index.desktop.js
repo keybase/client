@@ -5,6 +5,7 @@
 import '../../dev/user-timings'
 import Main from '../../app/main.desktop'
 import * as DevGen from '../../actions/dev-gen'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as NotificationsGen from '../../actions/notifications-gen'
 import * as React from 'react'
 import * as ConfigGen from '../../actions/config-gen'
@@ -14,8 +15,7 @@ import RemoteProxies from '../remote/proxies.desktop'
 import Root from './container.desktop'
 import configureStore from '../../store/configure-store'
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import {makeEngine} from '../../engine'
-import hello from '../../util/hello'
+import {makeEngine, getEngine} from '../../engine'
 import loginRouteTree from '../../app/routes-login'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {throttle, merge} from 'lodash-es'
@@ -23,7 +23,8 @@ import {refreshRouteDef, setInitialRouteDef} from '../../actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper.desktop'
 import flags from '../../util/feature-flags'
 import InputMonitor from './input-monitor.desktop'
-import {dumpLogs} from '../../actions/platform-specific.desktop'
+import {dumpLogs} from '../../actions/platform-specific/index.desktop'
+import {skipAppFocusActions} from '../../local-debug.desktop'
 
 let _store
 function setupStore() {
@@ -85,8 +86,7 @@ function setupApp(store) {
 
   // Run installer
   SafeElectron.getIpcRenderer().on('installed', (event, message) => {
-    store.dispatch(ConfigGen.createReadyForBootstrap())
-    store.dispatch(ConfigGen.createBootstrap({}))
+    store.dispatch(ConfigGen.createInstallerRan())
   })
   SafeElectron.getIpcRenderer().send('install-check')
 
@@ -98,10 +98,18 @@ function setupApp(store) {
 
   window.addEventListener('focus', () => {
     inputMonitor.goActive()
-    store.dispatch(ConfigGen.createChangedFocus({appFocused: true}))
+    if (skipAppFocusActions) {
+      console.log('Skipping app focus actions!')
+    } else {
+      store.dispatch(ConfigGen.createChangedFocus({appFocused: true}))
+    }
   })
   window.addEventListener('blur', () => {
-    store.dispatch(ConfigGen.createChangedFocus({appFocused: false}))
+    if (skipAppFocusActions) {
+      console.log('Skipping app focus actions!')
+    } else {
+      store.dispatch(ConfigGen.createChangedFocus({appFocused: false}))
+    }
   })
 
   const subsetsRemotesCareAbout = store => {
@@ -126,7 +134,17 @@ function setupApp(store) {
   store.dispatch(NotificationsGen.createListenForNotifications())
 
   // Introduce ourselves to the service
-  hello(process.pid, 'Main Renderer', process.argv, __VERSION__, true) // eslint-disable-line no-undef
+  getEngine().actionOnConnect('hello', () => {
+    RPCTypes.configHelloIAmRpcPromise({
+      details: {
+        argv: process.argv,
+        clientType: RPCTypes.commonClientType.guiMain,
+        desc: 'Main Renderer',
+        pid: process.pid,
+        version: __VERSION__, // eslint-disable-line no-undef
+      },
+    }).catch(_ => {})
+  })
 
   // $FlowIssue doesn't like the require
   store.dispatch(DevGen.createUpdateDebugConfig({config: require('../../local-debug-live')}))

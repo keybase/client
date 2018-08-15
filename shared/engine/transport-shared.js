@@ -1,9 +1,9 @@
 // @flow
 // Classes used to handle RPCs. Ability to inject delays into calls to/from server
 import rpc from 'framed-msgpack-rpc'
-import {localLog} from '../util/forward-logs'
-import {printRPC} from '../local-debug'
+import {printRPC, printRPCWaitingSession} from '../local-debug'
 import {requestIdleCallback} from '../util/idle-callback'
+import * as LocalConsole from '../util/local-console'
 import * as Stats from './stats'
 
 const RobustTransport = rpc.transport.RobustTransport
@@ -52,16 +52,20 @@ function rpcLog(info: {method: string, reason?: string, extra?: Object, type: st
     return
   }
 
+  if (!printRPCWaitingSession && info.type === 'engineInternal') {
+    return
+  }
+
   const prefix = {
-    engineInternal: '🏎 ℹ️',
-    engineToServer: '🏎 ↗️',
-    serverToEngine: '🏎 ⤵️',
+    engineInternal: '=',
+    engineToServer: '<< OUT',
+    serverToEngine: 'IN >>',
   }[info.type]
 
   requestIdleCallback(
     () => {
       const params = [info.reason, info.method, info.extra].filter(Boolean)
-      localLog(prefix, ...params)
+      LocalConsole.green(prefix, info.method, info.reason, ...params)
     },
     {timeout: 1e3}
   )

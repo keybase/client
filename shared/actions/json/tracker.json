@@ -15,7 +15,6 @@
         "error": "string"
       }
     },
-    "setupTrackerHandlers": {},
     "openProofUrl": {
       "proof": "Types.Proof"
     },

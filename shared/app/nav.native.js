@@ -155,17 +155,22 @@ function renderStackRoute(route, shouldRender) {
   )
 }
 
-class MainNavStack extends Component<any, any> {
+class MainNavStack extends Component<any, {verticalOffset: number}> {
   _listener: EmitterListener
+  _mounted = true
   state = {
     verticalOffset: 0,
   }
 
   componentDidMount() {
+    this._mounted = true
     this._listener = addSizeListener(this.statusBarListener)
   }
 
   componentWillUnmount() {
+    this._mounted = false
+    // turns out remove() doesn't guarantee that the callback doesn't happen. This comes from native
+    // so there's a race, so we need _mounted to really protect ourself. i could 100% repro statusBarListener being called AFTEr remove() is called :(
     this._listener && this._listener.remove()
   }
 
@@ -174,7 +179,9 @@ class MainNavStack extends Component<any, any> {
     // and it doesn't increase in height like earlier devices.
     // (so this should always be 0 on an iPhone X, but this should still
     // be correct if it expands)
-    this.setState({verticalOffset: frameData.height - (isIPhoneX ? 45 : 20)})
+    if (this._mounted) {
+      this.setState({verticalOffset: frameData.height - (isIPhoneX ? 45 : 20)})
+    }
   }
 
   _switchTab = tab => {
