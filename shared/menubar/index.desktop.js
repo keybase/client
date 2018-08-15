@@ -29,9 +29,7 @@ type State = {|
   showingMenu: boolean,
 |}
 
-const ArrowTick = () => (
-  <Kb.Box style={styles.arrowTick} />
-)
+const ArrowTick = () => <Kb.Box style={styles.arrowTick} />
 
 class MenubarRender extends React.Component<Props, State> {
   state: State = {
@@ -84,8 +82,19 @@ class MenubarRender extends React.Component<Props, State> {
             onHidden={() => this.setState({showingMenu: false})}
           />
         </Kb.Box>
-        <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          <Kb.Icon type="icon-keybase-logo-logged-out-64" style={Styles.collapseStyles([styles.logo])} color={Styles.globalColors.yellow} />
+        <Kb.Box
+          style={{
+            ...Styles.globalStyles.flexBoxColumn,
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Kb.Icon
+            type="icon-keybase-logo-logged-out-64"
+            style={Styles.collapseStyles([styles.logo])}
+            color={Styles.globalColors.yellow}
+          />
           <Kb.Text type="Body" small={true} style={{alignSelf: 'center', marginTop: 6}}>
             You're logged out of Keybase!
           </Kb.Text>
@@ -155,7 +164,12 @@ class MenubarRender extends React.Component<Props, State> {
 
   _renderLoggedIn() {
     const badgeTypesInHeader: Array<Tabs.Tab> = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsTab]
-    const badgesInMenu = [...(Flags.walletsEnabled ? [Tabs.walletsTab] : []), Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab]
+    const badgesInMenu = [
+      ...(Flags.walletsEnabled ? [Tabs.walletsTab] : []),
+      Tabs.gitTab,
+      Tabs.devicesTab,
+      Tabs.settingsTab,
+    ]
     const badgeCountInMenu = badgesInMenu.reduce(
       (acc, val) => (this.props.badgeInfo[val] ? acc + this.props.badgeInfo[val] : acc),
       0
@@ -165,7 +179,7 @@ class MenubarRender extends React.Component<Props, State> {
       <Kb.Box style={styles.widgetContainer}>
         {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
-        <Kb.Box style={Styles.collapseStyles([styles.topRow, {borderBottom: `1px solid ${Styles.globalColors.black_05}`}])}>
+        <Kb.Box style={styles.topRow}>
           <Kb.Box style={styles.headerBadgesContainer}>
             {badgeTypesInHeader.map(tab => (
               <BadgeIcon key={tab} tab={tab} countMap={this.props.badgeInfo} openApp={this.props.openApp} />
@@ -188,7 +202,10 @@ class MenubarRender extends React.Component<Props, State> {
               ref={this.attachmentRef}
             />
             {!!badgeCountInMenu && (
-              <Kb.Badge badgeNumber={badgeCountInMenu} badgeStyle={{position: 'absolute', left: 14, top: -2}} />
+              <Kb.Badge
+                badgeNumber={badgeCountInMenu}
+                badgeStyle={{position: 'absolute', left: 14, top: -2}}
+              />
             )}
           </Kb.Box>
           <Kb.FloatingMenu
@@ -254,7 +271,12 @@ const BadgeIcon = ({
       style={{...Styles.desktopStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}
       onClick={() => openApp(tab)}
     >
-      <Kb.Icon color={Styles.globalColors.darkBlue4} hoverColor={Styles.globalColors.black_75} fontSize={22} type={iconType} />
+      <Kb.Icon
+        color={Styles.globalColors.darkBlue4}
+        hoverColor={Styles.globalColors.black_75}
+        fontSize={22}
+        type={iconType}
+      />
       {!!count && <Kb.Badge badgeNumber={count} badgeStyle={{position: 'absolute', top: -6, right: -8}} />}
     </Kb.Box>
   )
