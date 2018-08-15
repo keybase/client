@@ -98,7 +98,6 @@ const ToField = (props: ToFieldProps) => {
             multiline={true}
             rowsMin={props.recipientType === 'stellarPublicKey' ? 2 : 1}
             rowsMax={3}
-            value={props.recipientType === 'stellarPublicKey' ? props.stellarAddress : undefined}
           />
         </Kb.Box2>
         {!!props.incorrect && (
