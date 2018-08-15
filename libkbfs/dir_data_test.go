@@ -414,6 +414,14 @@ func TestDirDataAddEntry(t *testing.T) {
 	testDirDataCheckLookup(t, ctx, dd, "q", 12)
 	testDirDataCheckLookup(t, ctx, dd, "b2", 13)
 	testDirDataCheckLookup(t, ctx, dd, " 1", 14)
+
+	t.Log("Adding an existing name should error")
+	err := dd.addEntry(ctx, "a", DirEntry{
+		EntryInfo: EntryInfo{
+			Size: 100,
+		},
+	})
+	require.Equal(t, NameExistsError{"a"}, err)
 }
 
 func TestDirDataRemoveEntry(t *testing.T) {
@@ -463,4 +471,66 @@ func TestDirDataRemoveEntry(t *testing.T) {
 		{"q", 2, false},   // "q" and "z"
 	}
 	testDirDataCheckLeafs(t, dd, cleanBcache, dirtyBcache, expectedLeafs, 2, 2)
+}
+
+func TestDirDataUpdateEntry(t *testing.T) {
+	dd, cleanBcache, dirtyBcache := setupDirDataTest(t, 2, 2)
+	ctx := context.Background()
+	topBlock := NewDirBlock().(*DirBlock)
+	cleanBcache.Put(
+		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry)
+
+	t.Log("Make a simple dir and update one entry")
+	addFakeDirDataEntry(t, ctx, dd, "a", 1)
+	err := dd.updateEntry(ctx, "a", DirEntry{
+		EntryInfo: EntryInfo{
+			Size: 100,
+		},
+	})
+	require.NoError(t, err)
+	testDirDataCheckLookup(t, ctx, dd, "a", 100)
+
+	t.Log("Make a big complicated tree and update an entry")
+	addFakeDirDataEntry(t, ctx, dd, "b", 2)
+	addFakeDirDataEntry(t, ctx, dd, "c", 3)
+	addFakeDirDataEntry(t, ctx, dd, "a1", 4)
+	addFakeDirDataEntry(t, ctx, dd, "a2", 5)
+	addFakeDirDataEntry(t, ctx, dd, "a0", 6)
+	addFakeDirDataEntry(t, ctx, dd, "a00", 7)
+	addFakeDirDataEntry(t, ctx, dd, "b1", 8)
+	addFakeDirDataEntry(t, ctx, dd, "d", 9)
+	addFakeDirDataEntry(t, ctx, dd, "a000", 10)
+	addFakeDirDataEntry(t, ctx, dd, "z", 11)
+	addFakeDirDataEntry(t, ctx, dd, "q", 12)
+	addFakeDirDataEntry(t, ctx, dd, "b2", 13)
+	addFakeDirDataEntry(t, ctx, dd, " 1", 14)
+	testDirDataCleanCache(dd, cleanBcache, dirtyBcache)
+
+	err = dd.updateEntry(ctx, "c", DirEntry{
+		EntryInfo: EntryInfo{
+			Size: 1000,
+		},
+	})
+	require.NoError(t, err)
+	testDirDataCheckLookup(t, ctx, dd, "c", 1000)
+	expectedLeafs := []testDirDataLeaf{
+		{"", 2, false},    // " 1" and "a"
+		{"a0", 1, false},  // "a0"
+		{"a00", 2, false}, // "a00" and "a000"
+		{"a1", 2, false},  // "a1" and "a2"
+		{"b", 1, false},   // "b"
+		{"b1", 2, false},  // "b1" and "b2"
+		{"c", 1, true},    // "c"
+		{"d", 1, false},   // "d"
+		{"q", 2, false},   // "q" and "z"
+	}
+	testDirDataCheckLeafs(t, dd, cleanBcache, dirtyBcache, expectedLeafs, 2, 2)
+	t.Log("Updating an non-existing name should error")
+	err = dd.updateEntry(ctx, "foo", DirEntry{
+		EntryInfo: EntryInfo{
+			Size: 100,
+		},
+	})
+	require.Equal(t, NoSuchNameError{"foo"}, err)
+
 }

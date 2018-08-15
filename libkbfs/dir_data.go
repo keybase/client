@@ -212,15 +212,16 @@ func (dd *dirData) processModifiedBlock(
 	return nil
 }
 
-func (dd *dirData) addEntry(
-	ctx context.Context, newName string, newDe DirEntry) error {
+func (dd *dirData) addEntryHelper(
+	ctx context.Context, name string, newDe DirEntry,
+	errorIfExists bool) error {
 	topBlock, _, err := dd.getter(
 		ctx, dd.tree.kmd, dd.rootBlockPointer(), dd.tree.file, blockRead)
 	if err != nil {
 		return err
 	}
 
-	off := StringOffset(newName)
+	off := StringOffset(name)
 	ptr, parentBlocks, block, _, _, _, err := dd.tree.getBlockAtOffset(
 		ctx, topBlock, &off, blockRead)
 	if err != nil {
@@ -228,12 +229,25 @@ func (dd *dirData) addEntry(
 	}
 	dblock := block.(*DirBlock)
 
-	if _, exists := dblock.Children[newName]; exists {
-		return NameExistsError{newName}
+	_, exists := dblock.Children[name]
+	if errorIfExists && exists {
+		return NameExistsError{name}
+	} else if !errorIfExists && !exists {
+		return NoSuchNameError{name}
 	}
-	dblock.Children[newName] = newDe
+	dblock.Children[name] = newDe
 
 	return dd.processModifiedBlock(ctx, ptr, parentBlocks, dblock)
+}
+
+func (dd *dirData) addEntry(
+	ctx context.Context, newName string, newDe DirEntry) error {
+	return dd.addEntryHelper(ctx, newName, newDe, true)
+}
+
+func (dd *dirData) updateEntry(
+	ctx context.Context, name string, newDe DirEntry) error {
+	return dd.addEntryHelper(ctx, name, newDe, false)
 }
 
 func (dd *dirData) removeEntry(ctx context.Context, name string) error {
