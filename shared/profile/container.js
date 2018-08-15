@@ -122,7 +122,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
     dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
     dispatch(navigateAppend([{props: {}, selected: 'search'}]))
   },
-  onSendOrRequestLumens: () => dispatch(navigateTo([walletsTab])),
+  onSendOrRequestLumens: () => dispatch(navigateTo([walletsTab, 'sendReceiveForm'])),
   onUnfollow: (username: string) => dispatch(TrackerGen.createUnfollow({username})),
   onUserClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
   onViewProof: (proof: TrackerTypes.Proof) => dispatch(TrackerGen.createOpenProofUrl({proof})),
