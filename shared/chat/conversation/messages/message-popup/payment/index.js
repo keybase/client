@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {toUpper, upperFirst} from 'lodash-es'
 import * as Kb from '../../../../../common-adapters'
-import * as S from '../../../../../styles'
+import * as Styles from '../../../../../styles'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 
 type HeaderProps = {|
@@ -61,7 +61,7 @@ const Header = (props: HeaderProps) => (
     {!!props.balanceChange && (
       <Kb.Text
         type="BodyExtrabold"
-        style={S.collapseStyles([styles.textAlignCenter, {color: props.balanceChangeColor}])}
+        style={Styles.collapseStyles([styles.textAlignCenter, {color: props.balanceChangeColor}])}
       >
         {props.balanceChange}
       </Kb.Text>
@@ -103,14 +103,14 @@ const PaymentPopup = (props: Props) => {
   )
 }
 
-const styles = S.styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   colorWhite: {
-    color: S.globalColors.white,
+    color: Styles.globalColors.white,
   },
   headerTop: {
     alignItems: 'center',
-    backgroundColor: S.globalColors.purple,
-    paddingBottom: S.globalMargins.tiny,
+    backgroundColor: Styles.globalColors.purple,
+    paddingBottom: Styles.globalMargins.tiny,
   },
   icon: {
     marginBottom: 6,
