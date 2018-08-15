@@ -874,6 +874,12 @@
 			"revisionTime": "2016-12-08T01:05:43Z"
 		},
 		{
+			"checksumSHA1": "EwEjrKk6j9lvSMrcklf7rmWFiOg=",
+			"path": "golang.org/x/mobile/cmd/gobind",
+			"revision": "bceb7ef27cc623473a5b664d2a3450576dddff0f",
+			"revisionTime": "2018-08-07T10:09:57Z"
+		},
+		{
 			"checksumSHA1": "2Fk4509KezbD/X96/xobUPzXDec=",
 			"path": "golang.org/x/mobile/cmd/gomobile",
 			"revision": "bceb7ef27cc623473a5b664d2a3450576dddff0f",
