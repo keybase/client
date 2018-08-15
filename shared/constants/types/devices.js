@@ -24,6 +24,7 @@ export type _State = {
   endangeredTLFMap: I.Map<DeviceID, I.Set<string>>,
   newPaperkey: HiddenString,
   selectedDeviceID: ?DeviceID,
+  justRevokedSelf: string,
 }
 export type State = I.RecordOf<_State>
 

@@ -25,6 +25,5 @@ declare function createClient(
 ): createClientType
 declare function resetClient(client: createClientType): void
 declare function rpcLog({method: string, reason?: string, extra?: Object, type: string}): void
-declare export function checkRPCOwnership(): Promise<void>
 
-export {createClient, resetClient, rpcLog, checkRPCOwnership}
+export {createClient, resetClient, rpcLog}
