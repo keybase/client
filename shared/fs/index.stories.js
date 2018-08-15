@@ -22,6 +22,7 @@ import Upload from './footer/upload'
 import PathItemAction from './common/path-item-action'
 import Breadcrumb from './header/breadcrumb.desktop'
 import Banner from './banner'
+import Errs from './footer/errs'
 
 const FloatingPathItemAction = OverlayParentHOC(PathItemAction)
 
@@ -653,6 +654,36 @@ const load = () => {
         <Box style={{height: 8}} />
         <Banner path={Types.stringToPath('/keybase/private/me,reset')} shouldShowReset={true} />
       </Box>
+    ))
+    .add('Errs', () => (
+      <Errs
+        errs={[
+          {
+            key: '1',
+            time: 1534362428795,
+            error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
+            msg: 'Error when downloading file blah 1.jpg',
+            dismiss: Sb.action('dismiss'),
+          },
+          {
+            key: '2',
+            time: 1534362428795,
+            error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
+            msg: 'Error when downloading file blah 2.jpg',
+            retry: Sb.action('retry'),
+            dismiss: Sb.action('dismiss'),
+          },
+          {
+            key: '3',
+            time: 1534362428795,
+            error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
+            msg: 'Error when downloading file blah 99.jpg',
+            retry: Sb.action('retry'),
+            dismiss: Sb.action('dismiss'),
+          },
+        ]}
+        more={2}
+      />
     ))
 }
 
