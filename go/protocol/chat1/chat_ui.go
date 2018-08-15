@@ -395,19 +395,21 @@ func (o UIChannelNameMention) DeepCopy() UIChannelNameMention {
 }
 
 type UIAssetUrlInfo struct {
-	PreviewUrl    string  `codec:"previewUrl" json:"previewUrl"`
-	FullUrl       string  `codec:"fullUrl" json:"fullUrl"`
-	FullUrlCached bool    `codec:"fullUrlCached" json:"fullUrlCached"`
-	MimeType      string  `codec:"mimeType" json:"mimeType"`
-	VideoDuration *string `codec:"videoDuration,omitempty" json:"videoDuration,omitempty"`
+	PreviewUrl          string  `codec:"previewUrl" json:"previewUrl"`
+	FullUrl             string  `codec:"fullUrl" json:"fullUrl"`
+	FullUrlCached       bool    `codec:"fullUrlCached" json:"fullUrlCached"`
+	InlineVideoPlayable bool    `codec:"inlineVideoPlayable" json:"inlineVideoPlayable"`
+	MimeType            string  `codec:"mimeType" json:"mimeType"`
+	VideoDuration       *string `codec:"videoDuration,omitempty" json:"videoDuration,omitempty"`
 }
 
 func (o UIAssetUrlInfo) DeepCopy() UIAssetUrlInfo {
 	return UIAssetUrlInfo{
-		PreviewUrl:    o.PreviewUrl,
-		FullUrl:       o.FullUrl,
-		FullUrlCached: o.FullUrlCached,
-		MimeType:      o.MimeType,
+		PreviewUrl:          o.PreviewUrl,
+		FullUrl:             o.FullUrl,
+		FullUrlCached:       o.FullUrlCached,
+		InlineVideoPlayable: o.InlineVideoPlayable,
+		MimeType:            o.MimeType,
 		VideoDuration: (func(x *string) *string {
 			if x == nil {
 				return nil
