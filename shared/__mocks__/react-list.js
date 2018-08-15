@@ -4,11 +4,6 @@ if (!__STORYBOOK__) {
   throw new Error('Invalid load of mock')
 }
 
-/*
-react-list
-
-*/
-
 type Props = {
   length: number,
   itemRenderer: (index: number, key: number) => React.Node,
