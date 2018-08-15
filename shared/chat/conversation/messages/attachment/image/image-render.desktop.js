@@ -3,8 +3,12 @@ import * as React from 'react'
 import type {Props} from './image-render.types'
 import {collapseStyles} from '../../../../../styles'
 
-export function ImageRender({onLoad, style, src, loaded}: Props) {
-  return (
+export function ImageRender({onLoad, style, src, loaded, playingVideo}: Props) {
+  return playingVideo ? (
+    <video controls="true" controlsList="nodownload nofullscreen" style={style}>
+      <source src={src} />
+    </video>
+  ) : (
     <img
       onLoad={onLoad}
       draggable="false"

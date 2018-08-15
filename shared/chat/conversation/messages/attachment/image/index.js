@@ -28,27 +28,37 @@ type Props = {
   onClick: () => void,
   onShowInFinder: null | (() => void),
   path: string,
+  fullPath: string,
   progress: number,
   progressLabel: string,
   showButton: null | 'play' | 'film',
   title: string,
   toggleMessageMenu: () => void,
   videoDuration: string,
+  isVideo: boolean,
   width: number,
 }
 
 type State = {
   loaded: boolean,
+  playingVideo: boolean,
 }
 
 class ImageAttachment extends React.PureComponent<Props, State> {
-  state = {loaded: false}
+  state = {loaded: false, playingVideo: false}
   _setLoaded = () => this.setState({loaded: true})
+  _onClick = () => {
+    if (!isMobile && this.props.isVideo) {
+      this.setState({playingVideo: true})
+    } else {
+      this.props.onClick()
+    }
+  }
   render() {
     return (
       <ClickableBox
         style={styles.imageContainer}
-        onClick={this.props.onClick}
+        onClick={this._onClick}
         onLongPress={this.props.toggleMessageMenu}
       >
         <Text type="BodySemibold" style={styles.title}>
@@ -66,9 +76,10 @@ class ImageAttachment extends React.PureComponent<Props, State> {
         >
           {!!this.props.path && (
             <ImageRender
-              src={this.props.path}
+              src={this.state.playingVideo ? this.props.fullPath : this.props.path}
               onLoad={this._setLoaded}
               loaded={this.state.loaded}
+              playingVideo={this.state.playingVideo}
               style={collapseStyles([
                 styles.image,
                 {
@@ -80,13 +91,15 @@ class ImageAttachment extends React.PureComponent<Props, State> {
             />
           )}
           {!this.state.loaded && <ProgressIndicator style={styles.progress} />}
-          {!!this.props.showButton && (
-            <Icon
-              type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
-              style={iconCastPlatformStyles(styles.playButton)}
-            />
-          )}
+          {!!this.props.showButton &&
+            !this.state.playingVideo && (
+              <Icon
+                type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
+                style={iconCastPlatformStyles(styles.playButton)}
+              />
+            )}
           {this.props.videoDuration.length > 0 &&
+            !this.state.playingVideo &&
             this.state.loaded && (
               <Box style={styles.durationContainer}>
                 <Text type={'BodySmall'} style={styles.durationText}>

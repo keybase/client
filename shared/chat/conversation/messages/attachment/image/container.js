@@ -6,6 +6,7 @@ import {connect, type TypedState, type Dispatch, isMobile} from '../../../../../
 import {globalColors} from '../../../../../styles'
 import ImageAttachment from '.'
 import {imgMaxWidth} from './image-render'
+import * as Constants from '../../../../../constants/chat2'
 
 type OwnProps = {
   message: Types.MessageAttachment,
@@ -46,7 +47,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
         : message.transferState === 'remoteUploading'
           ? 'waiting...'
           : null
-  const buttonType = message.showPlayButton ? (isMobile ? 'play' : 'film') : null
+  const buttonType = message.showPlayButton ? 'play' : null
   const hasProgress = message.transferState && message.transferState !== 'remoteUploading'
   return {
     arrowColor,
@@ -62,10 +63,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
           }
         : null,
     path: message.previewURL,
+    fullPath: message.fileURL,
     progress: message.transferProgress,
     progressLabel,
     showButton: buttonType,
     videoDuration: message.videoDuration || '',
+    isVideo: Constants.isVideoAttachment(message),
     title: message.title || message.fileName,
     toggleMessageMenu: ownProps.toggleMessageMenu,
     width: Math.min(message.previewWidth, imgMaxWidth()),
