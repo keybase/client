@@ -26,8 +26,15 @@ const mergeProps = (stateProps, dispatchProps) => {
 
   const [completed, pending] = partition(payments, {status: 'completed'})
 
-  sections.push({data: pending, title: 'Pending'})
-  sections.push({data: completed, title: 'History'})
+  if (pending.length > 0) {
+    sections.push({data: pending, title: 'Pending'})
+  }
+
+  if (completed.length === 0) {
+    sections.push({data: ['historyPlaceholder'], title: 'History'})
+  } else {
+    sections.push({data: completed, title: 'History'})
+  }
 
   return {
     accountID: stateProps.accountID,

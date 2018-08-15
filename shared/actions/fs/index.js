@@ -1,6 +1,7 @@
 // @flow
 import logger from '../../logger'
 import * as Constants from '../../constants/fs'
+import * as ConfigGen from '../config-gen'
 import * as FsGen from '../fs-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -390,7 +391,7 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
   }
 }
 
-function _setupFSHandlers() {
+const setupEngineListeners = () => {
   engine().setIncomingActionCreators('keybase.1.NotifyFS.FSSyncActivity', () => [FsGen.createFsActivity()])
   engine().setIncomingActionCreators('keybase.1.NotifyFS.FSActivity', () => [FsGen.createFsActivity()])
 }
@@ -618,12 +619,12 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   }
 
   yield Saga.safeTakeEvery(FsGen.fsActivity, pollSyncStatusUntilDone)
-  yield Saga.safeTakeEveryPure(FsGen.setupFSHandlers, _setupFSHandlers)
 
   yield Saga.fork(platformSpecificSaga)
 
   // These are saga tasks that may use actions above.
   yield Saga.safeTakeEvery(FsGen.openPathItem, openPathItem)
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 }
 
 export default fsSaga

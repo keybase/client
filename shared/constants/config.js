@@ -1,18 +1,15 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from './types/config'
+import * as ChatConstants from './chat2'
 import {uniq} from 'lodash-es'
-import {isMobile, runMode} from './platform'
+import {runMode} from './platform'
 
-export const maxBootstrapTries = 3
-export const bootstrapRetryDelay = 10 * 1000
+export const maxHandshakeTries = 3
 export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
 export const defaultPrivatePrefix = '/private/'
 export const defaultPublicPrefix = '/public/'
 const defaultTeamPrefix = '/team/'
-// Mobile is ready for bootstrap automatically, desktop needs to wait for
-// the installer.
-const readyForBootstrap = isMobile
 
 export const privateFolderWithUsers = (users: Array<string>) =>
   `${defaultKBFSPath}${defaultPrivatePrefix}${uniq(users).join(',')}`
@@ -24,31 +21,36 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   appFocused: true,
   appFocusedCount: 0,
   avatars: {}, // Can't be an I.Map since it's used by remotes
-  bootStatus: 'bootStatusLoading',
-  bootstrapTriesRemaining: maxBootstrapTries,
+  configuredAccounts: I.List(),
   daemonError: null,
-  deviceID: null,
-  deviceName: null,
+  daemonHandshakeFailedReason: '',
+  daemonHandshakeRetriesLeft: maxHandshakeTries,
+  daemonHandshakeState: 'starting',
+  daemonHandshakeWaiters: I.Map(),
   debugDump: [],
+  defaultUsername: '',
+  deviceID: '',
+  deviceName: '',
   error: null,
-  extendedConfig: null,
   followers: I.Set(),
   following: I.Set(),
   globalError: null,
-  initialState: null,
-  kbfsPath: '',
+  justDeletedSelf: '',
   loggedIn: false,
+  logoutHandshakeWaiters: I.Map(),
   menubarWindowID: 0,
   notifySound: false,
   openAtLogin: true,
   pgpPopupOpen: false,
   pushLoaded: false,
-  readyForBootstrap,
   registered: false,
-  startedDueToPush: false,
-  uid: null,
+  startupConversation: ChatConstants.noConversationIDKey,
+  startupDetailsLoaded: false,
+  startupFollowUser: '',
+  startupLink: '',
+  startupTab: null,
+  startupWasFromPush: false,
+  uid: '',
   userActive: true,
-  username: null,
-  version: '',
-  versionShort: '',
+  username: '',
 })

@@ -286,7 +286,7 @@ class ProvisioningManager {
   showCodePage = () =>
     this._addingANewDevice
       ? Saga.put(RouteTree.navigateAppend(['codePage'], devicesRoot))
-      : Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.loginTab, 'login']))
+      : Saga.put(RouteTree.navigateAppend(['codePage'], [Tabs.loginTab]))
 
   maybeCancelProvision = (state: TypedState) => {
     // We're not waiting on anything
@@ -376,37 +376,33 @@ const maybeCancelProvision = (state: TypedState) =>
 
 const showDeviceListPage = (state: TypedState) =>
   !state.provision.error.stringValue() &&
-  Saga.put(RouteTree.navigateAppend(['selectOtherDevice'], [Tabs.loginTab, 'login']))
+  Saga.put(RouteTree.navigateAppend(['selectOtherDevice'], [Tabs.loginTab]))
 
 const showNewDeviceNamePage = (state: TypedState) =>
   !state.provision.error.stringValue() &&
-  Saga.put(RouteTree.navigateAppend(['setPublicName'], [Tabs.loginTab, 'login']))
+  Saga.put(RouteTree.navigateAppend(['setPublicName'], [Tabs.loginTab]))
 
 const showCodePage = (state: TypedState) =>
   !state.provision.error.stringValue() && ProvisioningManager.getSingleton().showCodePage()
 
 const showGPGPage = (state: TypedState) =>
-  !state.provision.error.stringValue() &&
-  Saga.put(RouteTree.navigateAppend(['gpgSign'], [Tabs.loginTab, 'login']))
+  !state.provision.error.stringValue() && Saga.put(RouteTree.navigateAppend(['gpgSign'], [Tabs.loginTab]))
 
 const showPassphrasePage = (state: TypedState) =>
-  !state.provision.error.stringValue() &&
-  Saga.put(RouteTree.navigateAppend(['passphrase'], [Tabs.loginTab, 'login']))
+  !state.provision.error.stringValue() && Saga.put(RouteTree.navigateAppend(['passphrase'], [Tabs.loginTab]))
 
 const showPaperkeyPage = (state: TypedState) =>
-  !state.provision.error.stringValue() &&
-  Saga.put(RouteTree.navigateAppend(['paperkey'], [Tabs.loginTab, 'login']))
+  !state.provision.error.stringValue() && Saga.put(RouteTree.navigateAppend(['paperkey'], [Tabs.loginTab]))
 
 const showFinalErrorPage = (state: TypedState) => {
   if (state.provision.finalError && state.provision.finalError.desc !== Constants.cancelDesc) {
-    return Saga.put(RouteTree.navigateAppend(['error'], [Tabs.loginTab, 'login']))
+    return Saga.put(RouteTree.navigateAppend(['error'], [Tabs.loginTab]))
   } else {
-    return Saga.put(RouteTree.navigateTo([], [Tabs.loginTab, 'login']))
+    return Saga.put(RouteTree.navigateTo([], [Tabs.loginTab]))
   }
 }
 
-const showUsernameEmailPage = () =>
-  Saga.put(RouteTree.navigateTo(['login', 'usernameOrEmail'], [Tabs.loginTab]))
+const showUsernameEmailPage = () => Saga.put(RouteTree.navigateAppend(['usernameOrEmail'], [Tabs.loginTab]))
 
 function* provisionSaga(): Saga.SagaGenerator<any, any> {
   // Always ensure we have one live

@@ -123,7 +123,7 @@ function routeStateReducer(routeDef, routeState, action) {
     }
 
     case Constants.switchRouteDef: {
-      return routeNavigate(action.payload.routeDef, routeState, [])
+      return routeNavigate(action.payload.routeDef, routeState, action.payload.path || [])
     }
 
     case Constants.switchTo:
@@ -174,7 +174,7 @@ export default function routeTreeReducer(state: Types.State = initialState, acti
   let newRouteState
   try {
     newRouteDef = routeDefReducer(routeDef, action)
-    newRouteState = routeStateReducer(routeDef, routeState, action)
+    newRouteState = routeStateReducer(newRouteDef, routeState, action)
     newLoggedInUserNavigated = loggedInUserNavigatedReducer(
       loggedInUserNavigated,
       newRouteState && newRouteState.selected,

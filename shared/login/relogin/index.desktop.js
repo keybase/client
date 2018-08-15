@@ -1,7 +1,8 @@
 // @flow
-import React, {Component} from 'react'
-import {Box, UserCard, Text, Button, FormWithCheckbox, Icon, PopupDialog} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, glamorous, isMobile, desktopStyles} from '../../styles'
+import * as React from 'react'
+import * as Constants from '../../constants/login'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 
 import type {Props} from '.'
 
@@ -9,27 +10,27 @@ type State = {
   open: boolean,
 }
 
-const ItemBox = glamorous(Box)({
-  ...globalStyles.flexBoxCenter,
+const ItemBox = Styles.glamorous(Kb.Box)({
+  ...Styles.globalStyles.flexBoxCenter,
   ':hover': {
-    backgroundColor: globalColors.blue3_40,
+    backgroundColor: Styles.globalColors.blue3_40,
   },
-  borderBottom: `1px solid ${globalColors.lightGrey2}`,
+  borderBottom: `1px solid ${Styles.globalColors.lightGrey2}`,
   minHeight: 40,
   width: '100%',
 })
 
-const ButtonBox = glamorous(Box)({
-  ...globalStyles.flexBoxRow,
+const ButtonBox = Styles.glamorous(Kb.Box)({
+  ...Styles.globalStyles.flexBoxRow,
   ':hover': {
-    border: `solid 1px ${globalColors.blue2}`,
-    color: globalColors.blue2,
+    border: `solid 1px ${Styles.globalColors.blue2}`,
+    color: Styles.globalColors.blue2,
   },
   alignItems: 'center',
-  color: !isMobile ? globalColors.lightGrey2 : undefined,
-  border: `solid 1px ${globalColors.lightGrey2}`,
+  color: Styles.globalColors.lightGrey2,
+  border: `solid 1px ${Styles.globalColors.lightGrey2}`,
   borderRadius: 100,
-  paddingRight: globalMargins.small,
+  paddingRight: Styles.globalMargins.small,
   width: 270,
 })
 
@@ -37,13 +38,16 @@ const other = 'Someone else...'
 
 const UserRow = ({user, onClick}) => (
   <ItemBox onClick={onClick}>
-    <Text type="Header" style={{color: user === other ? globalColors.black_75 : globalColors.orange}}>
+    <Kb.Text
+      type="Header"
+      style={{color: user === other ? Styles.globalColors.black_75 : Styles.globalColors.orange}}
+    >
       {user}
-    </Text>
+    </Kb.Text>
   </ItemBox>
 )
 
-class Login extends Component<Props, State> {
+class Login extends React.Component<Props, State> {
   state = {
     open: false,
   }
@@ -54,15 +58,16 @@ class Login extends Component<Props, State> {
 
   render() {
     const inputProps = {
-      hintText: 'Passphrase',
-      floatingHintTextOverride: '',
-      style: {marginBottom: 0},
-      onChangeText: passphrase => this.props.passphraseChange(passphrase),
-      type: this.props.showTyping ? 'passwordVisible' : 'password',
-      onEnterKeyDown: () => this.props.onSubmit(),
-      errorText: this.props.error,
       autoFocus: true,
-      value: this.props.passphrase,
+      errorText: this.props.error,
+      floatingHintTextOverride: '',
+      hintText: 'Passphrase',
+      key: this.props.inputKey,
+      onChangeText: passphrase => this.props.passphraseChange(passphrase),
+      onEnterKeyDown: () => this.props.onSubmit(),
+      style: {marginBottom: 0},
+      type: this.props.showTyping ? 'passwordVisible' : 'password',
+      uncontrolled: true,
     }
 
     const checkboxProps = [
@@ -76,33 +81,37 @@ class Login extends Component<Props, State> {
     ]
 
     return (
-      <Box style={stylesContainer}>
-        <UserCard username={this.props.selectedUser}>
+      <Kb.Box style={stylesContainer}>
+        <Kb.UserCard username={this.props.selectedUser}>
           <ButtonBox onClick={this._toggleOpen}>
-            <Button
+            <Kb.Button
               type="Primary"
               label={this.props.selectedUser}
-              labelStyle={{color: globalColors.orange, fontSize: 16, paddingLeft: 18}}
+              labelStyle={{color: Styles.globalColors.orange, fontSize: 16, paddingLeft: 18}}
               onClick={() => {
                 /* handled by the ButtonBox */
               }}
-              style={{backgroundColor: globalColors.white, flex: 1}}
+              style={{backgroundColor: Styles.globalColors.transparent, flex: 1}}
             />
-            <Icon type="iconfont-caret-down" color={globalColors.black_40} style={{marginBottom: 4}} />
+            <Kb.Icon
+              type="iconfont-caret-down"
+              color={Styles.globalColors.black_40}
+              style={{marginBottom: 4}}
+            />
           </ButtonBox>
           {this.state.open && (
-            <PopupDialog
+            <Kb.PopupDialog
               onClose={this._toggleOpen}
-              styleCover={{backgroundColor: globalColors.transparent, zIndex: 999}}
+              styleCover={{backgroundColor: Styles.globalColors.transparent, zIndex: 999}}
               styleClose={{opacity: 0}}
               styleClipContainer={{borderRadius: 0, marginTop: 100}}
             >
-              <Box style={{height: '100%', width: '100%'}}>
-                <Box
+              <Kb.Box style={{height: '100%', width: '100%'}}>
+                <Kb.Box
                   style={{
-                    ...globalStyles.flexBoxColumn,
-                    ...desktopStyles.scrollable,
-                    border: `1px solid ${globalColors.blue}`,
+                    ...Styles.globalStyles.flexBoxColumn,
+                    ...Styles.desktopStyles.scrollable,
+                    border: `1px solid ${Styles.globalColors.blue}`,
                     borderRadius: 4,
                     maxHeight: 300,
                     width: 270,
@@ -123,45 +132,45 @@ class Login extends Component<Props, State> {
                       }}
                     />
                   ))}
-                </Box>
-              </Box>
-            </PopupDialog>
+                </Kb.Box>
+              </Kb.Box>
+            </Kb.PopupDialog>
           )}
-          <FormWithCheckbox
+          <Kb.FormWithCheckbox
             style={{alignSelf: 'stretch'}}
             inputProps={inputProps}
             checkboxesProps={checkboxProps}
           />
-          <Button
-            waiting={this.props.waitingForResponse}
+          <Kb.WaitingButton
+            waitingKey={Constants.waitingKey}
             style={{marginTop: 0}}
             type="Primary"
             label="Log in"
             onClick={() => this.props.onSubmit()}
           />
-          <Text
+          <Kb.Text
             link={true}
             type="BodySmallSecondaryLink"
             onClick={this.props.onForgotPassphrase}
             style={{marginTop: 24}}
           >
             Forgot passphrase?
-          </Text>
-        </UserCard>
-        <Text style={{marginTop: 30}} type="BodyPrimaryLink" onClick={this.props.onSignup}>
+          </Kb.Text>
+        </Kb.UserCard>
+        <Kb.Text style={{marginTop: 30}} type="BodyPrimaryLink" onClick={this.props.onSignup}>
           Create an account
-        </Text>
-      </Box>
+        </Kb.Text>
+      </Kb.Box>
     )
   }
 }
 
 const stylesContainer = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'center',
   justifyContent: 'center',
   flex: 1,
-  backgroundColor: globalColors.white,
+  backgroundColor: Styles.globalColors.white,
 }
 
 export default Login

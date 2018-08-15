@@ -1,9 +1,9 @@
 // @flow
-import {connect, type TypedState} from '../../util/container'
-import * as WalletsGen from '../../actions/wallets-gen'
-import * as Constants from '../../constants/wallets'
-import * as Types from '../../constants/types/wallets'
-import Header from './header'
+import {connect, type TypedState} from '../../../util/container'
+import * as Constants from '../../../constants/wallets'
+import * as Types from '../../../constants/types/wallets'
+import * as WalletsGen from '../../../actions/wallets-gen'
+import Header from '.'
 
 const mapStateToProps = (state: TypedState) => {
   const selectedAccount = Constants.getAccount(state)

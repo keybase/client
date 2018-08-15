@@ -5,6 +5,7 @@ import Login, {type Props} from '.'
 
 const commonProps: Props = {
   error: '',
+  inputKey: '0',
   onFeedback: Sb.action('onFeedback'),
   onForgotPassphrase: Sb.action('onForgotPassphrase'),
   onLogin: Sb.action('onLogin'),
@@ -13,12 +14,11 @@ const commonProps: Props = {
   onSubmit: Sb.action('onSubmit'),
   passphrase: '',
   passphraseChange: Sb.action('passphraseChange'),
-  selectedUser: null,
+  selectedUser: '',
   selectedUserChange: Sb.action('selectedUserChange'),
   showTyping: false,
   showTypingChange: Sb.action('showTypingChange'),
   users: ['awendland'],
-  waitingForResponse: false,
 }
 
 const load = () => {
