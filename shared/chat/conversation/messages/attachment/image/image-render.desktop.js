@@ -10,9 +10,6 @@ export class ImageRender extends React.Component<Props> {
   constructor(props: Props) {
     super(props)
     this.videoRef = React.createRef()
-    this.onVideoClick = this.onVideoClick.bind(this)
-    this.onVideoMouseEnter = this.onVideoMouseEnter.bind(this)
-    this.onVideoMouseLeave = this.onVideoMouseLeave.bind(this)
     this.playingVideo = false
   }
 

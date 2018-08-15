@@ -50,7 +50,6 @@ class ImageAttachment extends React.PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
     this.imageRef = React.createRef()
-    this._onClick = this._onClick.bind(this)
   }
   state = {loaded: false, playingVideo: false}
   _setLoaded = () => this.setState({loaded: true})
