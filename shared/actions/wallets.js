@@ -19,14 +19,34 @@ const buildPayment = (state: TypedState) =>
     fromSeqno: '',
     publicMemo: state.wallets.get('buildingPayment').get('publicMemo'),
     secretNote: state.wallets.get('buildingPayment').get('secretNote').stringValue(),
-    to: state.wallets.get('buildingPayment').get('to'), // 'GDLQ22P6VKMUYW3HULI2F5KDY7Q63SION65M7I3HHIVUXOFZVG3FEK2F',
+    to: state.wallets.get('buildingPayment').get('to'),
     toIsAccountID: true,
-  }).then(build => {
-    console.warn(build)
-    return WalletsGen.createBuiltPaymentReceived({
+  }).then(build => WalletsGen.createBuiltPaymentReceived({
       build: Constants.buildPaymentResultToBuiltPayment(build),
     })
-  })
+  )
+
+const sendPayment = (state: TypedState) =>
+  RPCTypes.localSendPaymentLocalRpcPromise({
+    amount: state.wallets.get('buildingPayment').get('amount'),
+    // FIXME -- support other assets.
+    asset: {type: 'native', code: '', issuer: ''},
+    from: state.wallets.get('buildingPayment').get('from'),
+    fromSeqno: '',
+    publicMemo: state.wallets.get('buildingPayment').get('publicMemo'),
+    quickReturn: false,
+    secretNote: state.wallets.get('buildingPayment').get('secretNote').stringValue(),
+    to: state.wallets.get('buildingPayment').get('to'),
+    toIsAccountID: !!state.wallets.get('builtPayment').get('toUsername'),
+    worthAmount: '',
+  }, Constants.sendPaymentWaitingKey).then(res =>
+    WalletsGen.createClearBuildingPayment()
+  ).then(res =>
+    WalletsGen.createClearBuiltPayment()
+  ).then(res =>
+    Route.navigateTo([{props: {}, selected: walletsTab}, {props: {}, selected: null}])
+  )
+
 const loadAccounts = (
   state: TypedState,
   action: WalletsGen.LoadAccountsPayload | WalletsGen.LinkedExistingAccountPayload
@@ -82,8 +102,8 @@ const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDeta
     WalletsGen.createPaymentDetailReceived({
       accountID: action.payload.accountID,
       paymentID: action.payload.paymentID,
-      publicNote: res.publicNote,
-      publicNoteType: res.publicNoteType,
+      publicMemo: res.publicNote,
+      publicMemoType: res.publicNoteType,
       txID: res.txID,
     })
   )
@@ -181,6 +201,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.setBuildingPublicMemo, buildPayment)
   yield Saga.actionToPromise(WalletsGen.setBuildingSecretNote, buildPayment)
   yield Saga.actionToPromise(WalletsGen.setBuildingTo, buildPayment)
+  yield Saga.actionToPromise(WalletsGen.sendPayment, sendPayment)
 }
 
 export default walletsSaga

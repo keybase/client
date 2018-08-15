@@ -18,10 +18,11 @@ const mapStateToProps = (state: TypedState) => {
 const nyi = () => console.log('Not yet implemented')
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps) => ({
-  _onGoToSendReceive: (recipientType: Types.CounterpartyType) => {
+  _onGoToSendReceive: (from: string, recipientType: Types.CounterpartyType) => {
     dispatch(WalletsGen.createClearBuildingPayment())
     dispatch(WalletsGen.createClearBuiltPayment())
     dispatch(WalletsGen.createSetBuildingRecipientType({recipientType}))
+    dispatch(WalletsGen.createSetBuildingFrom({from}))
     dispatch(
       ownProps.navigateAppend([
         {
@@ -56,9 +57,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   ...dispatchProps,
   onReceive: () => dispatchProps._onReceive(stateProps.accountID),
-  onSendToAnotherAccount: () => dispatchProps._onGoToSendReceive('otherAccount'),
-  onSendToKeybaseUser: () => dispatchProps._onGoToSendReceive('keybaseUser'),
-  onSendToStellarAddress: () => dispatchProps._onGoToSendReceive('stellarPublicKey'),
+  onSendToAnotherAccount: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'otherAccount'),
+  onSendToKeybaseUser: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'keybaseUser'),
+  onSendToStellarAddress: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'stellarPublicKey'),
   onShowSecretKey: () => dispatchProps._onShowSecretKey(stateProps.accountID),
 })
 

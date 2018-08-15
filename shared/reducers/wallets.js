@@ -26,12 +26,11 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.clearBuiltPayment:
       return state.set('builtPayment', Constants.makeBuiltPayment())
     case WalletsGen.paymentDetailReceived:
-      // $FlowIssue state.updateIn not found?
       return state.updateIn(['paymentsMap', action.payload.accountID], payments =>
         payments.update(payments.findIndex(p => p.id === action.payload.paymentID), payment =>
           payment.merge({
-            publicNote: action.payload.publicNote,
-            publicNoteType: action.payload.publicNoteType,
+            publicMemo: action.payload.publicMemo,
+            publicMemoType: action.payload.publicMemoType,
             txID: action.payload.txID,
           })
         )
@@ -128,6 +127,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadPaymentDetail:
     case WalletsGen.loadPayments:
     case WalletsGen.loadAccounts:
+    case WalletsGen.sendPayment:
       return state
     default:
       /*::

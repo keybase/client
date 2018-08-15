@@ -29,6 +29,7 @@ export const paymentsReceived = 'wallets:paymentsReceived'
 export const secretKeyReceived = 'wallets:secretKeyReceived'
 export const secretKeySeen = 'wallets:secretKeySeen'
 export const selectAccount = 'wallets:selectAccount'
+export const sendPayment = 'wallets:sendPayment'
 export const setBuildingAmount = 'wallets:setBuildingAmount'
 export const setBuildingCurrency = 'wallets:setBuildingCurrency'
 export const setBuildingFrom = 'wallets:setBuildingFrom'
@@ -73,8 +74,8 @@ type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _PaymentDetailReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   paymentID: StellarRPCTypes.PaymentID,
-  publicNote: string,
-  publicNoteType: string,
+  publicMemo: string,
+  publicMemoType: string,
   txID: string,
 |}>
 type _PaymentsReceivedPayload = $ReadOnly<{|
@@ -90,6 +91,7 @@ type _SelectAccountPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   show?: boolean,
 |}>
+type _SendPaymentPayload = void
 type _SetBuildingAmountPayload = $ReadOnly<{|amount: string|}>
 type _SetBuildingCurrencyPayload = $ReadOnly<{|currency: string|}>
 type _SetBuildingFromPayload = $ReadOnly<{|from: string|}>
@@ -147,6 +149,10 @@ export const createLinkExistingAccount = (payload: _LinkExistingAccountPayload) 
  * Load extra detail for one given payment
  */
 export const createLoadPaymentDetail = (payload: _LoadPaymentDetailPayload) => ({error: false, payload, type: loadPaymentDetail})
+/**
+ * Perform sending a payment.
+ */
+export const createSendPayment = (payload: _SendPaymentPayload) => ({error: false, payload, type: sendPayment})
 /**
  * Prepare a payment for sending
  */
@@ -256,6 +262,7 @@ export type PaymentsReceivedPayload = $Call<typeof createPaymentsReceived, _Paym
 export type SecretKeyReceivedPayload = $Call<typeof createSecretKeyReceived, _SecretKeyReceivedPayload>
 export type SecretKeySeenPayload = $Call<typeof createSecretKeySeen, _SecretKeySeenPayload>
 export type SelectAccountPayload = $Call<typeof createSelectAccount, _SelectAccountPayload>
+export type SendPaymentPayload = $Call<typeof createSendPayment, _SendPaymentPayload>
 export type SetBuildingAmountPayload = $Call<typeof createSetBuildingAmount, _SetBuildingAmountPayload>
 export type SetBuildingCurrencyPayload = $Call<typeof createSetBuildingCurrency, _SetBuildingCurrencyPayload>
 export type SetBuildingFromPayload = $Call<typeof createSetBuildingFrom, _SetBuildingFromPayload>
@@ -293,6 +300,7 @@ export type Actions =
   | SecretKeyReceivedPayload
   | SecretKeySeenPayload
   | SelectAccountPayload
+  | SendPaymentPayload
   | SetBuildingAmountPayload
   | SetBuildingCurrencyPayload
   | SetBuildingFromPayload

@@ -51,8 +51,8 @@
       "_description": "Update a payment with additional detail",
       "accountID": "Types.AccountID",
       "paymentID": "StellarRPCTypes.PaymentID",
-      "publicNote": "string",
-      "publicNoteType": "string",
+      "publicMemo": "string",
+      "publicMemoType": "string",
       "txID": "string",
     },
     "paymentsReceived": {
@@ -73,6 +73,9 @@
       "_description": "Select an account. Optionally navigate to the account page.",
       "accountID": "Types.AccountID",
       "show?": "boolean",
+    },
+    "sendPayment": {
+      "_description": "Perform sending a payment.",
     },
     "setBuildingAmount": {
       "_description": "Set building amount",

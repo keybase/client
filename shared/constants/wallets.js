@@ -193,6 +193,8 @@ const paymentToYourRole = (p: Types.Payment, username: string): 'sender' | 'rece
 
 const loadEverythingWaitingKey = 'wallets:loadEverything'
 
+const sendPaymentWaitingKey = 'wallets:stellarSend'
+
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
 const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
@@ -243,4 +245,5 @@ export {
   paymentResultToPayment,
   paymentToCounterpartyType,
   paymentToYourRole,
+  sendPaymentWaitingKey,
 }
