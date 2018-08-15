@@ -90,7 +90,7 @@ const styles = styleSheetCreate({
   },
   input: {
     borderBottomWidth: 1,
-    borderColor: globalColors.black_05,
+    borderColor: globalColors.black_10,
     borderRadius: 0,
     borderWidth: 0,
     padding: globalMargins.small,

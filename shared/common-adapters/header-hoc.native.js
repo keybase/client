@@ -97,7 +97,7 @@ const _buttonStyle = {
 const _headerStyle = {
   ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
-  borderBottomColor: Styles.globalColors.black_05,
+  borderBottomColor: Styles.globalColors.black_10,
   borderBottomWidth: StyleSheet.hairlineWidth,
   justifyContent: 'flex-start',
   minHeight: Styles.globalMargins.xlarge - Styles.statusBarHeight,
