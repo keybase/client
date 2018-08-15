@@ -928,6 +928,12 @@
 			"revisionTime": "2018-08-07T10:09:57Z"
 		},
 		{
+			"checksumSHA1": "olpjcYrE7wvX6PwAU8uNSCUcXxA=",
+			"path": "golang.org/x/mobile/internal/mobileinit",
+			"revision": "bceb7ef27cc623473a5b664d2a3450576dddff0f",
+			"revisionTime": "2018-08-07T10:09:57Z"
+		},
+		{
 			"checksumSHA1": "dr5+PfIRzXeN+l1VG+s0lea9qz8=",
 			"path": "golang.org/x/net/context",
 			"revision": "0a9397675ba34b2845f758fe3cd68828369c6517",
