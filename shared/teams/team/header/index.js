@@ -207,7 +207,7 @@ const styles = styleSheetCreate({
     paddingRight: globalMargins.tiny,
   },
   cliIconLine: {
-    backgroundColor: globalColors.black_05,
+    backgroundColor: globalColors.black_10,
     height: 1,
     width: 24,
   },
