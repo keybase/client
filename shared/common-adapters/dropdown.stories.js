@@ -16,7 +16,7 @@ const load = () => {
         height: 400,
         borderStyle: 'solid',
         borderWidth: 1,
-        borderColor: globalColors.black_05,
+        borderColor: globalColors.black_10,
       }}
     >
       <Dropdown

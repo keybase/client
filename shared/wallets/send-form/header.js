@@ -56,7 +56,7 @@ const styles = styleSheetCreate({
   whiteBackground: platformStyles({
     common: {
       backgroundColor: globalColors.white,
-      borderBottomColor: globalColors.black_05,
+      borderBottomColor: globalColors.black_10,
       borderBottomWidth: 2,
     },
     isElectron: {
