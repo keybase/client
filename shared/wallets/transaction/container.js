@@ -8,19 +8,23 @@ import {navigateAppend} from '../../actions/route-tree'
 export type OwnProps = {
   accountID: Types.AccountID,
   paymentID: string,
+  status: Types.StatusSimplified,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
-  _transaction: Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
+  _transaction:
+    ownProps.status === 'pending'
+      ? Constants.getPendingPayment(state, ownProps.accountID, ownProps.paymentID)
+      : Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
   _you: state.config.username,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onSelectTransaction: (paymentID: string, accountID: Types.AccountID) =>
+  _onSelectTransaction: (paymentID: string, accountID: Types.AccountID, status: Types.StatusSimplified) =>
     dispatch(
       navigateAppend([
         {
-          props: {accountID, paymentID},
+          props: {accountID, paymentID, status},
           selected: 'transactionDetails',
         },
       ])
@@ -43,7 +47,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onCancelPayment: undefined,
     onRetryPayment: undefined,
     // $FlowIssue undefined is incompatible with function
-    onSelectTransaction: () => dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID),
+    onSelectTransaction: () =>
+      dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID, tx.statusSimplified),
     status: tx.statusSimplified,
     statusDetail: tx.statusDetail,
     timestamp: tx.time,

@@ -46,6 +46,7 @@
       "_description": "Update our store of payments data",
       "accountID": "Types.AccountID",
       "payments": "Array<Types.Payment>",
+      "pending": "Array<Types.Payment>",
     },
     "secretKeyReceived": {
       "_description": "Update our store with an exported secret key",

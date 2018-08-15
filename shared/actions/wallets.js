@@ -51,7 +51,9 @@ const loadPayments = (
     WalletsGen.createPaymentsReceived({
       accountID: action.payload.accountID,
       payments: (payments.payments || [])
-        .concat(pending || [])
+        .map(elem => Constants.paymentResultToPayment(elem))
+        .filter(Boolean),
+      pending: (pending || [])
         .map(elem => Constants.paymentResultToPayment(elem))
         .filter(Boolean),
     })

@@ -24,6 +24,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   exportedSecretKey: new HiddenString(''),
   linkExistingAccountError: '',
   paymentsMap: I.Map(),
+  pendingMap: I.Map(),
   secretKey: new HiddenString(''),
   secretKeyError: '',
   secretKeyMap: I.Map(),
@@ -151,8 +152,14 @@ const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), I.List())
 
+const getPendingPayments = (state: TypedState, accountID?: Types.AccountID) =>
+  state.wallets.pendingMap.get(accountID || getSelectedAccount(state), I.List())
+
 const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: string) =>
   state.wallets.paymentsMap.get(accountID, I.List()).find(p => p.id === paymentID) || makePayment()
+
+const getPendingPayment = (state: TypedState, accountID: Types.AccountID, paymentID: string) =>
+  state.wallets.pendingMap.get(accountID, I.List()).find(p => p.id === paymentID) || makePayment()
 
 const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
@@ -179,6 +186,8 @@ export {
   getFederatedAddress,
   getPayment,
   getPayments,
+  getPendingPayment,
+  getPendingPayments,
   getSecretKey,
   getSelectedAccount,
   linkExistingWaitingKey,
