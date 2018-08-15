@@ -47,7 +47,7 @@ GOPATH="$tmp_gopath"
 echo "Using temp GOPATH: $GOPATH"
 
 # gomobile looks for gobind in $PATH.
-PATH="$PATH:$GOPATH/bin"
+PATH="$GOPATH/bin:$PATH"
 
 # if we don't set this gomobile init get confused
 GOMOBILE="$GOPATH/pkg/gomobile"
@@ -111,7 +111,7 @@ ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build"
 gomobileinit ()
 {
   echo "Build gomobile..."
-  go install golang.org/x/mobile/cmd/gomobile
+  go install golang.org/x/mobile/cmd/{gomobile,gobind}
   if [ "$arg" = "android" ]; then
     echo "Doing gomobile init"
     gomobile init -ndk $ANDROID_HOME/ndk-bundle
