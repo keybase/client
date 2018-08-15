@@ -7,7 +7,7 @@ import * as Saga from '../../util/saga'
 import type {TypedState} from '../../constants/reducer'
 import {loginTab} from '../../constants/tabs'
 import HiddenString from '../../util/hidden-string'
-import {navigateUp, navigateTo, navigateAppend} from '../route-tree'
+import {navigateUp, navigateAppend} from '../route-tree'
 import {_testing} from '../signup'
 import reducer from '../../reducers/signup'
 
