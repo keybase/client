@@ -3,11 +3,10 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Sb from '../../../../../stories/storybook'
 import * as S from '../../../../../styles'
-import {isMobile} from '../../../../../constants/platform'
 import PaymentPopup from '.'
 
-const sendIcon = isMobile ? 'icon-fancy-stellar-sending-mobile' : 'icon-fancy-stellar-sending-desktop'
-const receiveIcon = isMobile ? 'icon-fancy-stellar-receiving-mobile' : 'icon-fancy-stellar-receiving-desktop'
+const receiveIcon = 'receiving'
+const sendIcon = 'sending'
 
 const commonProps = {
   onCancel: null,

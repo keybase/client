@@ -236,25 +236,25 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-fancy-revoked-phone-183-x-96.png'),
   },
-  'icon-fancy-stellar-receiving-desktop': {
+  'icon-fancy-stellar-receiving-desktop-98-86': {
     isFont: false,
     extension: 'png',
-    require: require('../images/icons/icon-fancy-stellar-receiving-desktop.png'),
+    require: require('../images/icons/icon-fancy-stellar-receiving-desktop-98-86.png'),
   },
-  'icon-fancy-stellar-receiving-mobile': {
+  'icon-fancy-stellar-receiving-mobile-149-129': {
     isFont: false,
     extension: 'png',
-    require: require('../images/icons/icon-fancy-stellar-receiving-mobile.png'),
+    require: require('../images/icons/icon-fancy-stellar-receiving-mobile-149-129.png'),
   },
-  'icon-fancy-stellar-sending-desktop': {
+  'icon-fancy-stellar-sending-desktop-98-86': {
     isFont: false,
     extension: 'png',
-    require: require('../images/icons/icon-fancy-stellar-sending-desktop.png'),
+    require: require('../images/icons/icon-fancy-stellar-sending-desktop-98-86.png'),
   },
-  'icon-fancy-stellar-sending-mobile': {
+  'icon-fancy-stellar-sending-mobile-149-129': {
     isFont: false,
     extension: 'png',
-    require: require('../images/icons/icon-fancy-stellar-sending-mobile.png'),
+    require: require('../images/icons/icon-fancy-stellar-sending-mobile-149-129.png'),
   },
   'icon-file-24': {
     isFont: false,

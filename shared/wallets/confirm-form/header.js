@@ -20,7 +20,11 @@ const Header = (props: HeaderProps) => (
     />
     <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.headerContent}>
       <Kb.Icon
-        type={Styles.isMobile ? 'icon-fancy-stellar-sending-desktop' : 'icon-fancy-stellar-sending-mobile'}
+        type={
+          Styles.isMobile
+            ? 'icon-fancy-stellar-sending-desktop-98-86'
+            : 'icon-fancy-stellar-sending-mobile-149-129'
+        }
         style={Kb.iconCastPlatformStyles(styles.headerIcon)}
       />
       <Kb.Text type="BodySmall" style={styles.headerText}>

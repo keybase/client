@@ -5,12 +5,21 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 
+const sendIcon = Styles.isMobile
+  ? 'icon-fancy-stellar-sending-mobile-149-129'
+  : 'icon-fancy-stellar-sending-desktop-98-86'
+const receiveIcon = Styles.isMobile
+  ? 'icon-fancy-stellar-receiving-mobile-149-129'
+  : 'icon-fancy-stellar-receiving-desktop-98-86'
+
+const iconHeight = Styles.isMobile ? 129 : 86
+
 type HeaderProps = {|
   amountNominal: string,
   balanceChange: string, // may be empty
   balanceChangeColor: string,
   bottomLine: string, // may be empty
-  icon: Kb.IconType,
+  icon: 'sending' | 'receiving',
   sender: string,
   senderDeviceName: string,
   timestamp: string,
@@ -30,7 +39,10 @@ type Props = {|
 const Header = (props: HeaderProps) => (
   <Kb.Box2 fullWidth={true} gap="small" gapEnd={true} direction="vertical">
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerTop}>
-      <Kb.Icon type={props.icon} style={Kb.iconCastPlatformStyles(styles.icon)} />
+      <Kb.Icon
+        type={props.icon === 'sending' ? sendIcon : receiveIcon}
+        style={Kb.iconCastPlatformStyles(styles.icon)}
+      />
       <Kb.Text type="BodyTiny" style={styles.colorWhite}>
         {toUpper(props.topLine)}
       </Kb.Text>
@@ -107,15 +119,26 @@ const styles = Styles.styleSheetCreate({
   colorWhite: {
     color: Styles.globalColors.white,
   },
-  headerTop: {
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.purple,
-    paddingBottom: Styles.globalMargins.tiny,
-  },
-  icon: {
-    marginBottom: 6,
-    marginTop: -15,
-  },
+  headerTop: Styles.platformStyles({
+    common: {
+      alignItems: 'center',
+      backgroundColor: Styles.globalColors.purple,
+      paddingBottom: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      paddingTop: iconHeight - 6,
+    },
+  }),
+  icon: Styles.platformStyles({
+    isElectron: {
+      position: 'absolute',
+      top: -12,
+    },
+    isMobile: {
+      marginBottom: 6,
+      marginTop: -15,
+    },
+  }),
   textAlignCenter: {
     textAlign: 'center',
   },
