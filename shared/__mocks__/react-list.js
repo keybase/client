@@ -12,7 +12,7 @@ type Props = {
 
 class ReactListMock extends React.Component<Props, {}> {
   render() {
-    // It can take a while to render each item, so we clamp it at 10
+    // It can take a while to render each item and some list stories have 100+ items, so we clamp them at 10
     const length = clamp(this.props.length, 10)
 
     return (
