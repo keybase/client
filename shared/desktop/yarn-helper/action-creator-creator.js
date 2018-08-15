@@ -35,7 +35,8 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 ${prelude.join('\n')}
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of ${ns} but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of ${ns} but is handled by every reducer. NEVER dispatch this
+export const typePrefix = '${ns}:'
 ${compileActions(ns, actions, compileReduxTypeConstant)}
 
 // Payload Types
@@ -75,10 +76,6 @@ function compileActions(ns: ActionNS, actions: Actions, compileActionFn: Compile
 
 function capitalize(s: string): string {
   return s[0].toUpperCase() + s.slice(1)
-}
-
-function actionReduxTypeName(ns: ActionNS, actionName: ActionName): string {
-  return `'${ns}:${actionName}'`
 }
 
 function payloadKeys(p: Object) {
@@ -139,7 +136,7 @@ function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: Action
 }
 
 function compileReduxTypeConstant(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
-  return `export const ${actionName} = ${actionReduxTypeName(ns, actionName)}`
+  return `export const ${actionName} = typePrefix + '${actionName}'`
 }
 
 const cleanName = c => c.replace(/-/g, '')

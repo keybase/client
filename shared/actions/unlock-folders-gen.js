@@ -7,17 +7,18 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Constants from '../constants/unlock-folders'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of unlock-folders but is handled by every reducer
-export const checkPaperKey = 'unlock-folders:checkPaperKey'
-export const checkPaperKeyDone = 'unlock-folders:checkPaperKeyDone'
-export const closeDone = 'unlock-folders:closeDone'
-export const closePopup = 'unlock-folders:closePopup'
-export const finish = 'unlock-folders:finish'
-export const newRekeyPopup = 'unlock-folders:newRekeyPopup'
-export const onBackFromPaperKey = 'unlock-folders:onBackFromPaperKey'
-export const openPopup = 'unlock-folders:openPopup'
-export const toPaperKeyInput = 'unlock-folders:toPaperKeyInput'
-export const waiting = 'unlock-folders:waiting'
+export const resetStore = 'common:resetStore' // not a part of unlock-folders but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'unlock-folders:'
+export const checkPaperKey = typePrefix + 'checkPaperKey'
+export const checkPaperKeyDone = typePrefix + 'checkPaperKeyDone'
+export const closeDone = typePrefix + 'closeDone'
+export const closePopup = typePrefix + 'closePopup'
+export const finish = typePrefix + 'finish'
+export const newRekeyPopup = typePrefix + 'newRekeyPopup'
+export const onBackFromPaperKey = typePrefix + 'onBackFromPaperKey'
+export const openPopup = typePrefix + 'openPopup'
+export const toPaperKeyInput = typePrefix + 'toPaperKeyInput'
+export const waiting = typePrefix + 'waiting'
 
 // Payload Types
 type _CheckPaperKeyDonePayload = void

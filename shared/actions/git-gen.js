@@ -7,18 +7,19 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of git but is handled by every reducer
-export const badgeAppForGit = 'git:badgeAppForGit'
-export const createPersonalRepo = 'git:createPersonalRepo'
-export const createTeamRepo = 'git:createTeamRepo'
-export const deletePersonalRepo = 'git:deletePersonalRepo'
-export const deleteTeamRepo = 'git:deleteTeamRepo'
-export const handleIncomingGregor = 'git:handleIncomingGregor'
-export const loadGit = 'git:loadGit'
-export const loadGitRepo = 'git:loadGitRepo'
-export const navigateToTeamRepo = 'git:navigateToTeamRepo'
-export const setError = 'git:setError'
-export const setTeamRepoSettings = 'git:setTeamRepoSettings'
+export const resetStore = 'common:resetStore' // not a part of git but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'git:'
+export const badgeAppForGit = typePrefix + 'badgeAppForGit'
+export const createPersonalRepo = typePrefix + 'createPersonalRepo'
+export const createTeamRepo = typePrefix + 'createTeamRepo'
+export const deletePersonalRepo = typePrefix + 'deletePersonalRepo'
+export const deleteTeamRepo = typePrefix + 'deleteTeamRepo'
+export const handleIncomingGregor = typePrefix + 'handleIncomingGregor'
+export const loadGit = typePrefix + 'loadGit'
+export const loadGitRepo = typePrefix + 'loadGitRepo'
+export const navigateToTeamRepo = typePrefix + 'navigateToTeamRepo'
+export const setError = typePrefix + 'setError'
+export const setTeamRepoSettings = typePrefix + 'setTeamRepoSettings'
 
 // Payload Types
 type _BadgeAppForGitPayload = $ReadOnly<{|ids: Array<string>|}>

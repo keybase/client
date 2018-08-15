@@ -8,16 +8,17 @@ import * as Types from '../constants/types/favorite'
 import * as Folders from '../constants/types/folders'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of favorite but is handled by every reducer
-export const favoriteAdd = 'favorite:favoriteAdd'
-export const favoriteAdded = 'favorite:favoriteAdded'
-export const favoriteIgnore = 'favorite:favoriteIgnore'
-export const favoriteIgnored = 'favorite:favoriteIgnored'
-export const favoriteList = 'favorite:favoriteList'
-export const favoriteListed = 'favorite:favoriteListed'
-export const favoriteSwitchTab = 'favorite:favoriteSwitchTab'
-export const favoriteToggleIgnored = 'favorite:favoriteToggleIgnored'
-export const markTLFCreated = 'favorite:markTLFCreated'
+export const resetStore = 'common:resetStore' // not a part of favorite but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'favorite:'
+export const favoriteAdd = typePrefix + 'favoriteAdd'
+export const favoriteAdded = typePrefix + 'favoriteAdded'
+export const favoriteIgnore = typePrefix + 'favoriteIgnore'
+export const favoriteIgnored = typePrefix + 'favoriteIgnored'
+export const favoriteList = typePrefix + 'favoriteList'
+export const favoriteListed = typePrefix + 'favoriteListed'
+export const favoriteSwitchTab = typePrefix + 'favoriteSwitchTab'
+export const favoriteToggleIgnored = typePrefix + 'favoriteToggleIgnored'
+export const markTLFCreated = typePrefix + 'markTLFCreated'
 
 // Payload Types
 type _FavoriteAddPayload = $ReadOnly<{|path: string|}>

@@ -1,22 +1,21 @@
 // @flow
 import * as Chat2Gen from '../chat2-gen'
-import * as WaitingGen from '../waiting-gen'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/chat2'
-import * as RPCGregorTypes from '../../constants/types/rpc-gregor-gen'
 import * as I from 'immutable'
 import * as KBFSGen from '../kbfs-gen'
+import * as NotificationsGen from '../notifications-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as RPCGregorTypes from '../../constants/types/rpc-gregor-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as NotificationsGen from '../notifications-gen'
 import * as RouteTreeGen from '../route-tree-gen'
-import * as NotificationsGen from '../notifications-gen'
 import * as Saga from '../../util/saga'
 import * as SearchConstants from '../../constants/search'
 import * as SearchGen from '../search-gen'
 import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as UsersGen from '../users-gen'
+import * as WaitingGen from '../waiting-gen'
 import {hasCanPerform, retentionPolicyToServiceRetentionPolicy, teamRoleByEnum} from '../../constants/teams'
 import engine from '../../engine'
 import logger from '../../logger'
@@ -2344,7 +2343,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeSave, mobileMessageAttachmentSave)
     // Unselect the conversation when we go to the inbox
     yield Saga.safeTakeEveryPure(
-      a => typeof a.type === 'string' && a.type.startsWith('route-tree:'),
+      a => typeof a.type === 'string' && a.type.startsWith(RouteTreeGen.typePrefix),
       mobileChangeSelection
     )
   } else {
@@ -2436,7 +2435,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.selectConversation,
       Chat2Gen.markInitiallyLoadedThreadAsRead,
       ConfigGen.changedFocus,
-      a => typeof a.type === 'string' && a.type.startsWith('route-tree:'),
+      a => typeof a.type === 'string' && a.type.startsWith(RouteTreeGen.typePrefix),
     ],
     markThreadAsRead
   )

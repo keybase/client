@@ -7,11 +7,12 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/people'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of people but is handled by every reducer
-export const getPeopleData = 'people:getPeopleData'
-export const markViewed = 'people:markViewed'
-export const peopleDataProcessed = 'people:peopleDataProcessed'
-export const skipTodo = 'people:skipTodo'
+export const resetStore = 'common:resetStore' // not a part of people but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'people:'
+export const getPeopleData = typePrefix + 'getPeopleData'
+export const markViewed = typePrefix + 'markViewed'
+export const peopleDataProcessed = typePrefix + 'peopleDataProcessed'
+export const skipTodo = typePrefix + 'skipTodo'
 
 // Payload Types
 type _GetPeopleDataPayload = $ReadOnly<{|

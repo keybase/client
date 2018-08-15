@@ -8,13 +8,14 @@ import * as Types from '../constants/types/gregor'
 import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of gregor but is handled by every reducer
-export const checkReachability = 'gregor:checkReachability'
-export const pushOOBM = 'gregor:pushOOBM'
-export const pushState = 'gregor:pushState'
-export const updateCategory = 'gregor:updateCategory'
-export const updateReachability = 'gregor:updateReachability'
-export const updateSeenMsgs = 'gregor:updateSeenMsgs'
+export const resetStore = 'common:resetStore' // not a part of gregor but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'gregor:'
+export const checkReachability = typePrefix + 'checkReachability'
+export const pushOOBM = typePrefix + 'pushOOBM'
+export const pushState = typePrefix + 'pushState'
+export const updateCategory = typePrefix + 'updateCategory'
+export const updateReachability = typePrefix + 'updateReachability'
+export const updateSeenMsgs = typePrefix + 'updateSeenMsgs'
 
 // Payload Types
 type _CheckReachabilityPayload = void

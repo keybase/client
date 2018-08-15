@@ -7,9 +7,10 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/dev'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of dev but is handled by every reducer
-export const debugCount = 'dev:debugCount'
-export const updateDebugConfig = 'dev:updateDebugConfig'
+export const resetStore = 'common:resetStore' // not a part of dev but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'dev:'
+export const debugCount = typePrefix + 'debugCount'
+export const updateDebugConfig = typePrefix + 'updateDebugConfig'
 
 // Payload Types
 type _DebugCountPayload = void

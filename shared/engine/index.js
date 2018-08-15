@@ -271,6 +271,7 @@ class Engine {
         // General incoming
         const creator = this._incomingActionCreators[method]
         rpcLog({reason: '[incoming]', type: 'engineInternal', method})
+        // TODO remove dispatch and getState, these callbacks should just dispatch actions
         const rawActions = creator(param, response, Engine._dispatch, Engine._getState)
         const actions = (rawActions || []).reduce((arr, a) => {
           if (a) {

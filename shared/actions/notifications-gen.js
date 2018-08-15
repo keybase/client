@@ -8,12 +8,13 @@ import * as Types from '../constants/types/notifications'
 import * as Tabs from '../constants/tabs'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of notifications but is handled by every reducer
-export const badgeApp = 'notifications:badgeApp'
-export const listenForKBFSNotifications = 'notifications:listenForKBFSNotifications'
-export const listenForNotifications = 'notifications:listenForNotifications'
-export const receivedBadgeState = 'notifications:receivedBadgeState'
-export const setAppBadgeState = 'notifications:setAppBadgeState'
+export const resetStore = 'common:resetStore' // not a part of notifications but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'notifications:'
+export const badgeApp = typePrefix + 'badgeApp'
+export const listenForKBFSNotifications = typePrefix + 'listenForKBFSNotifications'
+export const listenForNotifications = typePrefix + 'listenForNotifications'
+export const receivedBadgeState = typePrefix + 'receivedBadgeState'
+export const setAppBadgeState = typePrefix + 'setAppBadgeState'
 
 // Payload Types
 type _BadgeAppPayload = $ReadOnly<{|

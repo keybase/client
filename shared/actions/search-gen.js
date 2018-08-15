@@ -7,16 +7,17 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/search'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of search but is handled by every reducer
-export const addResultsToUserInput = 'search:addResultsToUserInput'
-export const clearSearchResults = 'search:clearSearchResults'
-export const finishedSearch = 'search:finishedSearch'
-export const removeResultsToUserInput = 'search:removeResultsToUserInput'
-export const search = 'search:search'
-export const searchSuggestions = 'search:searchSuggestions'
-export const setUserInputItems = 'search:setUserInputItems'
-export const updateSelectedSearchResult = 'search:updateSelectedSearchResult'
-export const userInputItemsUpdated = 'search:userInputItemsUpdated'
+export const resetStore = 'common:resetStore' // not a part of search but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'search:'
+export const addResultsToUserInput = typePrefix + 'addResultsToUserInput'
+export const clearSearchResults = typePrefix + 'clearSearchResults'
+export const finishedSearch = typePrefix + 'finishedSearch'
+export const removeResultsToUserInput = typePrefix + 'removeResultsToUserInput'
+export const search = typePrefix + 'search'
+export const searchSuggestions = typePrefix + 'searchSuggestions'
+export const setUserInputItems = typePrefix + 'setUserInputItems'
+export const updateSelectedSearchResult = typePrefix + 'updateSelectedSearchResult'
+export const userInputItemsUpdated = typePrefix + 'userInputItemsUpdated'
 
 // Payload Types
 type _AddResultsToUserInputPayload = $ReadOnly<{|

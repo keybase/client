@@ -148,25 +148,6 @@ export default function(
     case ConfigGen.setOpenAtLogin:
       return state.merge({openAtLogin: action.payload.open})
     case 'remote:updateMenubarWindowID':
-<<<<<<< HEAD
-      return state.merge({menubarWindowID: action.payload.id})
-    case ConfigGen.setAccounts:
-      return state.merge({
-        configuredAccounts: I.List(action.payload.usernames),
-        defaultUsername: action.payload.defaultUsername,
-      })
-    case ConfigGen.setDeletedSelf:
-      return state.merge({justDeletedSelf: action.payload.deletedUsername})
-    case ConfigGen.daemonHandshakeDone:
-      return state.set('daemonHandshakeState', 'done')
-||||||| merged common ancestors
-      return state.set('menubarWindowID', action.payload.id)
-    case ConfigGen.setStartedDueToPush:
-      return state.set('startedDueToPush', true)
-    case ConfigGen.configLoaded:
-      const {config} = action.payload
-      return state.set('version', config.version).set('versionShort', config.versionShort)
-=======
       return state.merge({menubarWindowID: action.payload.id})
     case ConfigGen.setAccounts:
       return state.merge({
@@ -177,7 +158,6 @@ export default function(
       return state.merge({justDeletedSelf: action.payload.deletedUsername})
     case ConfigGen.daemonHandshakeDone:
       return state.merge({daemonHandshakeState: 'done'})
->>>>>>> origin/master
     // Saga only actions
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:
@@ -186,15 +166,8 @@ export default function(
     case ConfigGen.mobileAppState:
     case ConfigGen.openAppSettings:
     case ConfigGen.showMain:
-<<<<<<< HEAD
     case ConfigGen.setupEngineListeners:
     case ConfigGen.installerRan:
-    case ConfigGen.logout:
-||||||| merged common ancestors
-=======
-    case ConfigGen.setupEngineListeners:
-    case ConfigGen.installerRan:
->>>>>>> origin/master
       return state
     default:
       /*::
