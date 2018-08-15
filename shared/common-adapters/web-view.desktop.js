@@ -23,6 +23,11 @@ class WebView extends React.PureComponent<WebViewProps> {
       ref.insertCSS(css)
       ref.executeJavaScript(javaScript)
     })
+    const {onLoadingStateChange} = this.props
+    if (onLoadingStateChange) {
+      ref.addEventListener('did-start-loading', () => onLoadingStateChange(true))
+      ref.addEventListener('did-stop-loading', () => onLoadingStateChange(false))
+    }
   }
   render() {
     return <webview ref={this._setWebviewRef} style={this.props.style} src={this.props.url} />

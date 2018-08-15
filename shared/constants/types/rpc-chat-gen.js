@@ -849,7 +849,7 @@ export type TopicType =
   | 3 // KBFSFILEEDIT_3
 
 export type TyperInfo = $ReadOnly<{uid: Keybase1.UID, username: String, deviceID: Keybase1.DeviceID, deviceName: String, deviceType: String}>
-export type UIAssetUrlInfo = $ReadOnly<{previewUrl: String, fullUrl: String, fullUrlCached: Boolean, mimeType: String, videoDuration?: ?String}>
+export type UIAssetUrlInfo = $ReadOnly<{previewUrl: String, fullUrl: String, fullUrlCached: Boolean, inlineVideoPlayable: Boolean, mimeType: String, videoDuration?: ?String}>
 export type UIChannelNameMention = $ReadOnly<{name: String, convID: String}>
 export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?UIMessageOutbox} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
 export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, ctime: Gregor1.Time, ordinal: Double, preview?: ?MakePreviewRes}>
