@@ -2,42 +2,52 @@
 import * as React from 'react'
 import type {Props} from './image-render.types'
 import {collapseStyles} from '../../../../../styles'
-import {
-  Box,
-  Text,
-  ClickableBox,
-  Icon,
-  ProgressBar,
-  ProgressIndicator,
-  iconCastPlatformStyles,
-} from '../../../../../common-adapters'
 
 export class ImageRender extends React.Component<Props> {
+  videoRef: any
+  playingVideo: boolean
+
   constructor(props: Props) {
     super(props)
-    this.video = React.createRef()
+    this.videoRef = React.createRef()
     this.onVideoClick = this.onVideoClick.bind(this)
+    this.onVideoMouseEnter = this.onVideoMouseEnter.bind(this)
+    this.onVideoMouseLeave = this.onVideoMouseLeave.bind(this)
     this.playingVideo = false
   }
 
-  onVideoClick() {
+  onVideoClick = () => {
     if (!this.playingVideo) {
-      this.video.current.play()
+      this.videoRef.current.play()
     } else {
-      this.video.current.pause()
+      this.videoRef.current.pause()
+      this.videoRef.current.removeAttribute('controls')
     }
     this.playingVideo = !this.playingVideo
+  }
+
+  onVideoMouseEnter = () => {
+    if (this.playingVideo) {
+      this.videoRef.current.setAttribute('controls', 'controls')
+    }
+  }
+
+  onVideoMouseLeave = () => {
+    if (this.playingVideo) {
+      this.videoRef.current.removeAttribute('controls')
+    }
   }
 
   render() {
     return this.props.isVideo ? (
       <video
-        ref={this.video}
-        onLoadStart={this.props.onLoad}
-        controlsList="nodownload nofullscreen noremoteplay"
-        style={this.props.style}
+        ref={this.videoRef}
+        onLoadedMetadata={this.props.onLoad}
+        controlsList="nodownload nofullscreen noremoteplayback"
+        style={collapseStyles([this.props.style, !this.props.loaded && {display: 'none'}])}
       >
         <source src={this.props.src} />
+        <style>{hidePlayButton}</style>
       </video>
     ) : (
       <img
@@ -53,3 +63,9 @@ export class ImageRender extends React.Component<Props> {
 export function imgMaxWidth() {
   return 320
 }
+
+const hidePlayButton = `
+video::-webkit-media-controls-play-button {
+  display: none;
+}
+`

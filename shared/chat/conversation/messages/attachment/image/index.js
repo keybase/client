@@ -45,6 +45,8 @@ type State = {
 }
 
 class ImageAttachment extends React.PureComponent<Props, State> {
+  imageRef: any
+
   constructor(props: Props) {
     super(props)
     this.imageRef = React.createRef()
@@ -52,6 +54,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
   }
   state = {loaded: false, playingVideo: false}
   _setLoaded = () => this.setState({loaded: true})
+
   _onClick = () => {
     if (!isMobile && this.props.isVideo) {
       this.imageRef.current.onVideoClick()
@@ -60,12 +63,25 @@ class ImageAttachment extends React.PureComponent<Props, State> {
       this.props.onClick()
     }
   }
+  _onMouseEnter = () => {
+    if (!isMobile && this.props.isVideo) {
+      this.imageRef.current.onVideoMouseEnter()
+    }
+  }
+  _onMouseLeave = () => {
+    if (!isMobile && this.props.isVideo) {
+      this.imageRef.current.onVideoMouseLeave()
+    }
+  }
+
   render() {
     return (
       <ClickableBox
         style={styles.imageContainer}
         onClick={this._onClick}
         onLongPress={this.props.toggleMessageMenu}
+        onMouseEnter={this._onMouseEnter}
+        onMouseLeave={this._onMouseLeave}
       >
         <Text type="BodySemibold" style={styles.title}>
           {this.props.title}
