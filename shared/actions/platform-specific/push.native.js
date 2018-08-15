@@ -128,7 +128,7 @@ const handleReadMessage = notification => {
 
 const handleLoudMessage = notification => {
   // We only care if the user clicked while in session
-  if (!notification.userInteraction) {
+  if (!isIOS && !notification.userInteraction) {
     return
   }
 
