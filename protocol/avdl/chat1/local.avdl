@@ -3,6 +3,7 @@
 protocol local {
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
   import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+  import idl "github.com/keybase/client/go/protocol/stellar1" as stellar1;
   import idl "common.avdl";
   import idl "chat_ui.avdl";
 
@@ -172,11 +173,11 @@ protocol local {
   }
 
   record MessageSendPayment {
-    string kbTxID;
+    stellar1.PaymentID paymentID;
   }
 
   record MessageRequestPayment {
-    string requestID;
+    stellar1.KeybaseRequestID requestID;
     string note;
   }
 

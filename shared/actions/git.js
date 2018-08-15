@@ -3,6 +3,7 @@ import * as ConfigGen from './config-gen'
 import * as Constants from '../constants/git'
 import * as GitGen from './git-gen'
 import * as WaitingGen from './waiting-gen'
+import * as NotificationsGen from './notifications-gen'
 import * as Entities from './entities'
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -255,6 +256,9 @@ function _processNavigateToTeamRepo(results: any[]) {
   ])
 }
 
+const receivedBadgeState = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) =>
+  Saga.put(GitGen.createBadgeAppForGit({ids: action.payload.badgeState.newGitRepoGlobalUniqueIDs || []}))
+
 function* gitSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(GitGen.loadGit, _loadGit)
   yield Saga.safeTakeEveryPure(GitGen.createPersonalRepo, _createPersonalRepo)
@@ -268,6 +272,7 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(GitGen.setTeamRepoSettings, _setTeamRepoSettings)
   yield Saga.safeTakeEveryPure(GitGen.loadGitRepo, _loadGitRepo, _processGitRepo)
   yield Saga.safeTakeEveryPure(GitGen.navigateToTeamRepo, _navigateToTeamRepo, _processNavigateToTeamRepo)
+  yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
 }
 
 export default gitSaga

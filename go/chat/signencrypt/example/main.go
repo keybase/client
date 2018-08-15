@@ -51,7 +51,7 @@ func zeroSignKey() signencrypt.SignKey {
 	return &key
 }
 
-func seal(enckey signencrypt.SecretboxKey, signkey signencrypt.SignKey, signaturePrefix libkb.SignaturePrefix, nonce signencrypt.Nonce, chunklen int) error {
+func seal(enckey signencrypt.SecretboxKey, signkey signencrypt.SignKey, signaturePrefix libkb.SignaturePrefix, nonce signencrypt.Nonce, chunklen int64) error {
 	encoder := signencrypt.NewEncoder(enckey, signkey, signaturePrefix, nonce)
 	if chunklen != 0 {
 		encoder.ChangePlaintextChunkLenForTesting(chunklen)
@@ -78,7 +78,7 @@ func seal(enckey signencrypt.SecretboxKey, signkey signencrypt.SignKey, signatur
 	return nil
 }
 
-func open(enckey signencrypt.SecretboxKey, verifykey signencrypt.VerifyKey, signaturePrefix libkb.SignaturePrefix, nonce signencrypt.Nonce, chunklen int) error {
+func open(enckey signencrypt.SecretboxKey, verifykey signencrypt.VerifyKey, signaturePrefix libkb.SignaturePrefix, nonce signencrypt.Nonce, chunklen int64) error {
 	decoder := signencrypt.NewDecoder(enckey, verifykey, signaturePrefix, nonce)
 	if chunklen != 0 {
 		decoder.ChangePlaintextChunkLenForTesting(chunklen)
@@ -154,13 +154,13 @@ Options:
 		copy(nonce[:], decodeHexArg(arguments["--nonce"].(string)))
 	}
 
-	chunklen := 0
+	var chunklen int64
 	if arguments["--chunklen"] != nil {
 		parsed, err := strconv.Atoi(arguments["--chunklen"].(string))
 		if err != nil {
 			fail(err)
 		}
-		chunklen = parsed
+		chunklen = int64(parsed)
 	}
 
 	var err error

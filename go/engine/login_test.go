@@ -1112,7 +1112,7 @@ func assertValidSelfProvision(t *testing.T, tc libkb.TestContext, m libkb.MetaCo
 	user.LoginOrBust(tc)
 }
 
-func TestFailSelfProvisionNoClone(t *testing.T) {
+func TestSelfProvisionFailNoClone(t *testing.T) {
 	// If we don't have a clone, we can't run this engine
 	testFailSelfProvision(t, func(tc libkb.TestContext, m libkb.MetaContext) string {
 		return "new"

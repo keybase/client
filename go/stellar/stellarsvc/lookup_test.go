@@ -5,7 +5,6 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/stellar/go/address"
@@ -77,18 +76,18 @@ func TestLookupRecipientFederation(t *testing.T) {
 
 	// Test if we are correctly rewriting stellar-org errors. Instead
 	// of "error (404)" we'd rather see "record not found".
-	_, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput("m*example.com"))
+	_, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput("m*example.com"), false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "example.com")
 	require.Contains(t, err.Error(), "does not respond to federation requests")
 
-	_, err = stellar.LookupRecipient(mctx, stellarcommon.RecipientInput("test1*stellar.org"))
+	_, err = stellar.LookupRecipient(mctx, stellarcommon.RecipientInput("test1*stellar.org"), false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "stellar.org")
 	require.Contains(t, err.Error(), "test1")
 	require.Contains(t, err.Error(), "did not find record")
 
-	res, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput("j*stellar.org"))
+	res, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput("j*stellar.org"), false)
 	require.NoError(t, err)
 	require.Nil(t, res.User)
 	require.Nil(t, res.Assertion)
@@ -98,7 +97,7 @@ func TestLookupRecipientFederation(t *testing.T) {
 	// We ask external server about federation address, we get account
 	// id back, but we also discover that this account is owned by
 	// Keybase user.
-	res, err = stellar.LookupRecipient(mctx, stellarcommon.RecipientInput(tcsAtStellar))
+	res, err = stellar.LookupRecipient(mctx, stellarcommon.RecipientInput(tcsAtStellar), false)
 	require.NoError(t, err)
 	require.NotNil(t, res.AccountID)
 	require.EqualValues(t, fAccounts[0].accountID, *res.AccountID)
@@ -119,19 +118,15 @@ func TestLookupRecipientKeybaseFederation(t *testing.T) {
 		},
 	}
 
-	uis := libkb.UIs{
-		IdentifyUI: tcs[0].Srv.uiSource.IdentifyUI(tcs[0].G, 0),
-	}
-
 	tcs[0].G.GetStellar().(*stellar.Stellar).SetFederationClientForTest(testClient)
-	mctx := tcs[0].MetaContext().WithUIs(uis)
+	mctx := tcs[0].MetaContext()
 
 	// *keybase.io lookups should go directly to Keybase username
 	// lookups, because that's what our federation server does anyway,
 	// with the exception of federation server being server trust. So
 	// we skip fed lookup entirely and go with Keybase identify.
 	fedAddr := fmt.Sprintf("%s*keybase.io", tcs[0].Fu.Username)
-	res, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput(fedAddr))
+	res, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput(fedAddr), false)
 	require.NoError(t, err)
 	require.NotNil(t, res.User)
 	require.EqualValues(t, tcs[0].Fu.Username, res.User.Username)

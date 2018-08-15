@@ -1,6 +1,5 @@
 // @flow
 import logger from '../../logger'
-import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/profile'
 import * as TrackerGen from '../tracker-gen'
 import * as ProfileGen from '../profile-gen'
@@ -8,13 +7,11 @@ import * as Saga from '../../util/saga'
 import * as SearchConstants from '../../constants/search'
 import * as Selectors from '../../constants/selectors'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import URL from 'url-parse'
 import keybaseUrl from '../../constants/urls'
 import openURL from '../../util/open-url'
 import {getPathProps} from '../../route-tree'
-import loginRouteTree from '../../app/routes-login'
-import {navigateTo, navigateUp, switchRouteDef} from '../../actions/route-tree'
-import {loginTab, peopleTab} from '../../constants/tabs'
+import {navigateTo, navigateUp} from '../../actions/route-tree'
+import {peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
 
@@ -115,33 +112,6 @@ function _openURLIfNotNull(nullableThing, url, metaText): void {
   openURL(url)
 }
 
-function _onAppLink(action: ConfigGen.LinkPayload, state: TypedState) {
-  const {loggedIn} = state.config
-  if (!loggedIn) {
-    logger.info('AppLink: not logged in')
-    // TODO: Ideally, we'd then navigate to the desired link once
-    // login successfully completes.
-    return Saga.sequentially([
-      Saga.put(switchRouteDef(loginRouteTree)),
-      Saga.put(navigateTo(['login'], [loginTab])),
-    ])
-  }
-
-  const link = action.payload.link
-  let url
-  try {
-    url = new URL(link)
-  } catch (e) {
-    logger.info('AppLink: could not parse link', link)
-    return
-  }
-  const username = Constants.urlToUsername(url)
-  logger.info('AppLink: url', url.href, 'username', username)
-  if (username) {
-    return Saga.put(ProfileGen.createShowUserProfile({username}))
-  }
-}
-
 function _outputInstructionsActionLink(
   action: ProfileGen.OutputInstructionsActionLinkPayload,
   state: TypedState
@@ -188,7 +158,6 @@ function* _profileSaga(): Saga.SagaGenerator<any, any> {
   )
   yield Saga.safeTakeEveryPure(ProfileGen.outputInstructionsActionLink, _outputInstructionsActionLink)
   yield Saga.safeTakeEveryPure(ProfileGen.showUserProfile, _showUserProfile)
-  yield Saga.safeTakeEveryPure(ConfigGen.link, _onAppLink)
 }
 
 function* profileSaga(): Saga.SagaGenerator<any, any> {

@@ -10,6 +10,7 @@ export type _State = {
   keyState: I.Map<NotificationKeys, boolean>,
   mobileAppBadgeCount: number,
   navBadges: I.Map<Tab, number>,
+  badgeVersion: number,
   widgetBadge: BadgeType,
 }
 export type State = I.RecordOf<_State>

@@ -19,7 +19,6 @@
       "problemSet": "RPCTypes.ProblemSet"
     },
     "onBackFromPaperKey": {},
-    "registerRekeyListener": {},
     "toPaperKeyInput": {},
     "waiting": {
       "waiting": "boolean"

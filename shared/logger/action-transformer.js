@@ -53,9 +53,9 @@ const actionTransformMap = {
 
   _loadAvatarHelper: nullTransform,
   [ConfigGen.loadAvatars]: nullTransform,
+  [ConfigGen.daemonHandshakeWait]: fullOutput,
   [ConfigGen.loadTeamAvatars]: nullTransform,
   [ConfigGen.loadedAvatars]: nullTransform,
-  [ConfigGen.persistRouteState]: nullTransform,
   [GregorGen.pushOOBM]: nullTransform,
   [ConfigGen.changedFocus]: nullTransform,
   [Chat2Gen.updateTypers]: nullTransform,
@@ -64,7 +64,6 @@ const actionTransformMap = {
   [Chat2Gen.metaNeedsUpdating]: fullOutput,
   [Chat2Gen.updateMoreToLoad]: fullOutput,
   [Chat2Gen.setConversationOffline]: fullOutput,
-  [ConfigGen.bootstrap]: fullOutput,
   [ConfigGen.globalError]: a => {
     let err = {}
     const ge = a.payload.globalError

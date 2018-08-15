@@ -5,6 +5,7 @@
 // Not enabled: calls need to be turned on in enabled-calls.json
 import * as Gregor1 from './rpc-gregor-gen'
 import * as Keybase1 from './rpc-gen'
+import * as Stellar1 from './rpc-stellar-gen'
 import engine, {EngineChannel} from '../../engine'
 import engineSaga from '../../engine/saga'
 import * as Saga from '../../util/saga'
@@ -610,8 +611,8 @@ export type MessageLeave = $ReadOnly<{}>
 export type MessagePlaintext = $ReadOnly<{clientHeader: MessageClientHeader, messageBody: MessageBody}>
 export type MessagePreviousPointer = $ReadOnly<{id: MessageID, hash: Hash}>
 export type MessageReaction = $ReadOnly<{m /* messageID */: MessageID, b /* body */: String}>
-export type MessageRequestPayment = $ReadOnly<{requestID: String, note: String}>
-export type MessageSendPayment = $ReadOnly<{kbTxID: String}>
+export type MessageRequestPayment = $ReadOnly<{requestID: Stellar1.KeybaseRequestID, note: String}>
+export type MessageSendPayment = $ReadOnly<{paymentID: Stellar1.PaymentID}>
 export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy: MessageID, r /* reactionIDs */?: ?Array<MessageID>, ctime: Gregor1.Time, n /* now */: Gregor1.Time, rt /* rtime */?: ?Gregor1.Time}>
 export type MessageSummary = $ReadOnly<{msgID: MessageID, messageType: MessageType, tlfName: String, tlfPublic: Boolean, ctime: Gregor1.Time}>
 export type MessageSystem = {systemType: 0, addedtoteam: ?MessageSystemAddedToTeam} | {systemType: 1, inviteaddedtoteam: ?MessageSystemInviteAddedToTeam} | {systemType: 2, complexteam: ?MessageSystemComplexTeam} | {systemType: 3, createteam: ?MessageSystemCreateTeam} | {systemType: 4, gitpush: ?MessageSystemGitPush} | {systemType: 5, changeavatar: ?MessageSystemChangeAvatar}
@@ -848,7 +849,7 @@ export type TopicType =
   | 3 // KBFSFILEEDIT_3
 
 export type TyperInfo = $ReadOnly<{uid: Keybase1.UID, username: String, deviceID: Keybase1.DeviceID, deviceName: String, deviceType: String}>
-export type UIAssetUrlInfo = $ReadOnly<{previewUrl: String, fullUrl: String, fullUrlCached: Boolean, mimeType: String, videoDuration?: ?String}>
+export type UIAssetUrlInfo = $ReadOnly<{previewUrl: String, fullUrl: String, fullUrlCached: Boolean, inlineVideoPlayable: Boolean, mimeType: String, videoDuration?: ?String}>
 export type UIChannelNameMention = $ReadOnly<{name: String, convID: String}>
 export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?UIMessageOutbox} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
 export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, ctime: Gregor1.Time, ordinal: Double, preview?: ?MakePreviewRes}>
