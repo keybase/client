@@ -6,7 +6,12 @@ import {WebView} from '../../common-adapters'
 import type {WebViewInjections} from '../../common-adapters'
 
 const TextView = (props: TextViewProps) => (
-  <WebView url={props.url} style={globalStyles.flexGrow} injections={injections} />
+  <WebView
+    url={props.url}
+    style={globalStyles.flexGrow}
+    injections={injections}
+    onLoadingStateChange={props.onLoadingStateChange}
+  />
 )
 
 // We need to do the spacing in the guest content of the webView rather than
