@@ -45,11 +45,17 @@ type State = {
 }
 
 class ImageAttachment extends React.PureComponent<Props, State> {
+  constructor(props: Props) {
+    super(props)
+    this.imageRef = React.createRef()
+    this._onClick = this._onClick.bind(this)
+  }
   state = {loaded: false, playingVideo: false}
   _setLoaded = () => this.setState({loaded: true})
   _onClick = () => {
     if (!isMobile && this.props.isVideo) {
-      this.setState({playingVideo: true})
+      this.imageRef.current.onVideoClick()
+      this.setState({playingVideo: !this.state.playingVideo})
     } else {
       this.props.onClick()
     }
@@ -76,10 +82,11 @@ class ImageAttachment extends React.PureComponent<Props, State> {
         >
           {!!this.props.path && (
             <ImageRender
-              src={this.state.playingVideo ? this.props.fullPath : this.props.path}
+              ref={this.imageRef}
+              src={this.props.isVideo ? this.props.fullPath : this.props.path}
               onLoad={this._setLoaded}
               loaded={this.state.loaded}
-              playingVideo={this.state.playingVideo}
+              isVideo={this.props.isVideo}
               style={collapseStyles([
                 styles.image,
                 {
