@@ -37,15 +37,16 @@ const Header = (props: HeaderProps) => (
       <Kb.Text type="HeaderExtrabold" style={styles.colorWhite}>
         {props.amountNominal}
       </Kb.Text>
-      {props.bottomLine && (
+      {!!props.bottomLine && (
         <Kb.Text type="BodyTiny" style={styles.colorWhite}>
           {toUpper(props.bottomLine)}
         </Kb.Text>
       )}
     </Kb.Box2>
     <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-      <Kb.Text type="BodyTiny">
-        {upperFirst(props.txVerb)} by{' '}
+      <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} centerChildren={true}>
+        <Kb.Text type="BodyTiny">{upperFirst(props.txVerb)} by</Kb.Text>
+        <Kb.Avatar size={16} username={props.sender} clickToProfile="tracker" />
         <Kb.ConnectedUsernames
           clickable={true}
           colorFollowing={true}
@@ -53,7 +54,7 @@ const Header = (props: HeaderProps) => (
           usernames={[props.sender]}
           type="BodyTiny"
         />
-      </Kb.Text>
+      </Kb.Box2>
       <Kb.Text type="BodyTiny">using device {props.senderDeviceName}</Kb.Text>
       <Kb.Text type="BodyTiny">{props.timestamp}</Kb.Text>
     </Kb.Box2>
