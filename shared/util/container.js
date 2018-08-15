@@ -48,4 +48,4 @@ export {
 }
 export {isMobile} from '../constants/platform'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'
-export type {TypedState, TypedDispatch, Dispatch}
+export type {TypedActions, TypedState, TypedDispatch, Dispatch}

@@ -12,25 +12,19 @@ declare type MergeProps<A, B, C, D> = (stateProps: A, dispatchProps: B, ownProps
 declare export default function connect<RMP, Com: ComponentType<RMP>, DP, SP: TypedState, RSP, RDP, MP, OP>(
   mapStateToProps: MapStateToProps<OP, RSP>,
   mapDispatchToProps: MapDispatchToProps<OP, RDP>,
-  mergeProps?: MergeProps<RSP, RDP, OP, RMP>
+  mergeProps: MergeProps<RSP, RDP, OP, RMP>
 ): (component: Com) => ComponentType<OP>
-//
-// maybe reversed!
-// declare export default function connect<Com: ComponentType<OP>, DP, SP: TypedState, RSP, RDP, MP, OP, RMP>(
-// mapStateToProps: MapStateToProps<OP, RSP>,
-// mapDispatchToProps: MapDispatchToProps<OP, RDP>,
-// mergeProps?: MergeProps<RSP, RDP, OP, RMP>
-// ): (component: Com) => ComponentType<RMP>
 
-// ST: $Subtype<{[_: $Keys<Com>]: any}>
-// & $Shape<ST>
-
-// CP: $Diff<ElementConfig<Com>, RMP>
-// ): (component: ComponentType<OP>) => ComponentType<RMP> & $Shape<ST>
-// DP: Object,
-// SP: TypedState,
-// RSP: Object,
-// RDP: Object,
-// MP: Object,
-// OP: Object,
-// RMP: Object,
+// eslint-disable-next-line no-redeclare
+declare export default function connect<
+  Com: ComponentType<RSP & RDP & OP>,
+  DP,
+  SP: TypedState,
+  RSP,
+  RDP,
+  MP,
+  OP
+>(
+  mapStateToProps: MapStateToProps<OP, RSP>,
+  mapDispatchToProps: MapDispatchToProps<OP, RDP>
+): (component: Com) => ComponentType<OP>

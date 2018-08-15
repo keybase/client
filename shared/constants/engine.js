@@ -3,8 +3,10 @@
 // Handles sending requests to the daemon
 import logger from '../logger'
 import * as Saga from '../util/saga'
-import {getEngine, EngineChannel} from '../engine'
+import {getEngine} from '../engine'
 import {mapValues, forEach} from 'lodash-es'
+
+type EngineChannel = any
 
 export type Buffer<T> = {
   isEmpty: () => boolean,

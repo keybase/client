@@ -1,8 +1,17 @@
 // @flow
 import * as React from 'react'
+import {type StylesCrossPlatform} from '../styles'
 
 type HeaderProps = {|
-  title?: ?string,
+  title?: string,
+  onBack?: ?() => void,
+  onCancel?: ?() => void,
+  hideBackLabel?: boolean,
+  headerStyle?: StylesCrossPlatform,
+  customComponent?: ?React.Node,
+  theme?: 'light' | 'dark', // defaults to light
+  rightActionLabel?: string,
+  onRightAction?: ?() => void,
 |}
 
 declare export default function HeaderOnMobile<P>(

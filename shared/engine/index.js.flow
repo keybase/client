@@ -18,7 +18,7 @@ declare export class Engine {
       response: ?Object,
       dispatch: Dispatch,
       getState: () => TypedState
-    ) => ?TypedActions
+    ) => ?Array<TypedActions | null | false | void>
   ): void;
   createSession({incomingCallMap?: any, waitingKey?: string, cancelHandler?: any, dangling?: boolean}): any;
   _rpcOutgoing({

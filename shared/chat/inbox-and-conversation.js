@@ -5,7 +5,7 @@ import Inbox from './inbox/container'
 import {globalStyles} from '../styles'
 import {type RouteProps} from '../route-tree/render-route'
 
-type Props = RouteProps<{}, {}> & {children: React.Node}
+type Props = RouteProps<{}, {smallTeamsExpanded: boolean}> & {children: React.Node}
 
 class Render extends React.PureComponent<Props> {
   render() {
