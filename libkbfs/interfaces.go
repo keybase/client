@@ -853,6 +853,16 @@ type KeyMetadata interface {
 		kbfscrypto.TLFCryptKey, error)
 }
 
+// KeyMetadataWithRootDirEntry is like KeyMetadata, but can also
+// return the root dir entry for the associated MD update.
+type KeyMetadataWithRootDirEntry interface {
+	KeyMetadata
+
+	// GetRootDirEntry returns the root directory entry for the
+	// associated MD.
+	GetRootDirEntry() DirEntry
+}
+
 type encryptionKeyGetter interface {
 	// GetTLFCryptKeyForEncryption gets the crypt key to use for
 	// encryption (i.e., with the latest key generation) for the

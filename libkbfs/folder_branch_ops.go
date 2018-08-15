@@ -4582,8 +4582,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 	syncChains.doNotUnrefPointers = syncChains.createdOriginals
 	head, _ := fbo.getHead(lState)
 	dummyHeadChains := newCRChainsEmpty()
-	dummyHeadChains.mostRecentChainMDInfo = mostRecentChainMetadataInfo{
-		head, head.Data().Dir.BlockInfo}
+	dummyHeadChains.mostRecentChainMDInfo = head
 
 	// Squash the batch of updates together into a set of blocks and
 	// ready `md` for putting to the server.

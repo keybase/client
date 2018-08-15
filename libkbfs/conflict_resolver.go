@@ -520,14 +520,14 @@ func (cr *ConflictResolver) createdFileWithNonzeroSizes(
 	unmergedChain *crChain, mergedChain *crChain,
 	unmergedCop, mergedCop *createOp) (bool, error) {
 	lState := makeFBOLockState()
-	kmd := mergedChains.mostRecentChainMDInfo.kmd
+	kmd := mergedChains.mostRecentChainMDInfo
 	mergedDirBlock, err := cr.fbo.blocks.GetDirBlockForReading(
 		ctx, lState, kmd, mergedChain.mostRecent,
 		mergedCop.getFinalPath().Branch, path{})
 	if err != nil {
 		return false, err
 	}
-	kmd = unmergedChains.mostRecentChainMDInfo.kmd
+	kmd = unmergedChains.mostRecentChainMDInfo
 	unmergedDirBlock, err := cr.fbo.blocks.GetDirBlockForReading(
 		ctx, lState, kmd, unmergedChain.mostRecent,
 		unmergedCop.getFinalPath().Branch, path{})
@@ -727,7 +727,7 @@ func (cr *ConflictResolver) addChildBlocksIfIndirectFile(ctx context.Context,
 	// For files with indirect pointers, add all child blocks
 	// as refblocks for the re-created file.
 	infos, err := cr.fbo.blocks.GetIndirectFileBlockInfos(
-		ctx, lState, unmergedChains.mostRecentChainMDInfo.kmd, currPath)
+		ctx, lState, unmergedChains.mostRecentChainMDInfo, currPath)
 	if err != nil {
 		return err
 	}
@@ -847,8 +847,7 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 		}
 
 		de, err := cr.fbo.blocks.GetDirtyEntry(ctx, lState,
-			unmergedChains.mostRecentChainMDInfo.kmd,
-			currPath)
+			unmergedChains.mostRecentChainMDInfo, currPath)
 		if err != nil {
 			return path{}, BlockPointer{}, nil, err
 		}
@@ -1124,8 +1123,8 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 	mergedNodeCache := newNodeCacheStandard(cr.fbo.folderBranch)
 	nodeMap, _, err := cr.fbo.blocks.SearchForNodes(
 		ctx, mergedNodeCache, ptrs, newPtrs,
-		mergedChains.mostRecentChainMDInfo.kmd,
-		mergedChains.mostRecentChainMDInfo.rootInfo.BlockPointer)
+		mergedChains.mostRecentChainMDInfo,
+		mergedChains.mostRecentChainMDInfo.GetRootDirEntry().BlockPointer)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -1802,8 +1801,8 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 	mergedNodeCache := newNodeCacheStandard(cr.fbo.folderBranch)
 	nodeMap, _, err := cr.fbo.blocks.SearchForNodes(
 		ctx, mergedNodeCache, ptrs, newPtrs,
-		mergedChains.mostRecentChainMDInfo.kmd,
-		mergedChains.mostRecentChainMDInfo.rootInfo.BlockPointer)
+		mergedChains.mostRecentChainMDInfo,
+		mergedChains.mostRecentChainMDInfo.GetRootDirEntry().BlockPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -2226,7 +2225,7 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	lState *lockState, chains *crChains, mergedMostRecent BlockPointer,
 	parentPath path, name string, ptr BlockPointer, blocks fileBlockMap,
 	dirtyBcache DirtyBlockCache) (BlockPointer, error) {
-	kmd := chains.mostRecentChainMDInfo.kmd
+	kmd := chains.mostRecentChainMDInfo
 
 	file := parentPath.ChildPath(name, ptr)
 	oldInfos, err := cr.fbo.blocks.GetIndirectFileBlockInfos(
@@ -2327,8 +2326,7 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 		actions := actionMap[mergedPath.tailPointer()]
 		// Now get the directory blocks.
 		unmergedBlock, err := cr.fetchDirBlockCopy(ctx, lState,
-			unmergedChains.mostRecentChainMDInfo.kmd,
-			unmergedPath, lbc)
+			unmergedChains.mostRecentChainMDInfo, unmergedPath, lbc)
 		if err != nil {
 			return err
 		}
@@ -2355,8 +2353,7 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 			lbc[mergedPath.tailPointer()] = mergedBlock
 		} else {
 			mergedBlock, err = cr.fetchDirBlockCopy(ctx, lState,
-				mergedChains.mostRecentChainMDInfo.kmd,
-				mergedPath, lbc)
+				mergedChains.mostRecentChainMDInfo, mergedPath, lbc)
 			if err != nil {
 				return err
 			}
@@ -2400,9 +2397,9 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 						// Fetch the specified one. Don't need to make
 						// a copy since this will just be a source
 						// block.
-						dBlock, err := cr.fbo.blocks.GetDirBlockForReading(ctx, lState,
-							mergedChains.mostRecentChainMDInfo.kmd, newPtr,
-							mergedPath.Branch, path{})
+						dBlock, err := cr.fbo.blocks.GetDirBlockForReading(
+							ctx, lState, mergedChains.mostRecentChainMDInfo,
+							newPtr, mergedPath.Branch, path{})
 						if err != nil {
 							return err
 						}
@@ -2714,8 +2711,9 @@ func (cr *ConflictResolver) resolveOnePath(ctx context.Context,
 
 			nodeMap, cache, err := cr.fbo.blocks.SearchForNodes(
 				ctx, cr.fbo.nodeCache, ptrs, newPtrs,
-				unmergedChains.mostRecentChainMDInfo.kmd,
-				unmergedChains.mostRecentChainMDInfo.rootInfo.BlockPointer)
+				unmergedChains.mostRecentChainMDInfo,
+				unmergedChains.mostRecentChainMDInfo.GetRootDirEntry().
+					BlockPointer)
 			if err != nil {
 				return path{}, err
 			}

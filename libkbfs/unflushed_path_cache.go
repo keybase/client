@@ -146,7 +146,7 @@ func (upc *unflushedPathCache) abortInitialization() {
 // unflushedPathCache.
 type unflushedPathMDInfo struct {
 	revision       kbfsmd.Revision
-	kmd            KeyMetadata
+	kmd            KeyMetadataWithRootDirEntry
 	pmd            PrivateMetadata
 	localTimestamp time.Time
 }
@@ -186,10 +186,7 @@ func addUnflushedPaths(ctx context.Context,
 	}
 
 	mostRecentMDInfo := mdInfos[len(mdInfos)-1]
-	chains.mostRecentChainMDInfo = mostRecentChainMetadataInfo{
-		kmd:      mostRecentMDInfo.kmd,
-		rootInfo: mostRecentMDInfo.pmd.Dir.BlockInfo,
-	}
+	chains.mostRecentChainMDInfo = mostRecentMDInfo.kmd
 
 	// Does the last op already have a valid path in each chain?  If
 	// so, we don't need to bother populating the paths, which can

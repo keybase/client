@@ -2983,6 +2983,156 @@ func (mr *MockKeyMetadataMockRecorder) GetHistoricTLFCryptKey(codec, keyGen, cur
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHistoricTLFCryptKey", reflect.TypeOf((*MockKeyMetadata)(nil).GetHistoricTLFCryptKey), codec, keyGen, currentKey)
 }
 
+// MockKeyMetadataWithRootDirEntry is a mock of KeyMetadataWithRootDirEntry interface
+type MockKeyMetadataWithRootDirEntry struct {
+	ctrl     *gomock.Controller
+	recorder *MockKeyMetadataWithRootDirEntryMockRecorder
+}
+
+// MockKeyMetadataWithRootDirEntryMockRecorder is the mock recorder for MockKeyMetadataWithRootDirEntry
+type MockKeyMetadataWithRootDirEntryMockRecorder struct {
+	mock *MockKeyMetadataWithRootDirEntry
+}
+
+// NewMockKeyMetadataWithRootDirEntry creates a new mock instance
+func NewMockKeyMetadataWithRootDirEntry(ctrl *gomock.Controller) *MockKeyMetadataWithRootDirEntry {
+	mock := &MockKeyMetadataWithRootDirEntry{ctrl: ctrl}
+	mock.recorder = &MockKeyMetadataWithRootDirEntryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockKeyMetadataWithRootDirEntry) EXPECT() *MockKeyMetadataWithRootDirEntryMockRecorder {
+	return m.recorder
+}
+
+// TlfID mocks base method
+func (m *MockKeyMetadataWithRootDirEntry) TlfID() tlf.ID {
+	ret := m.ctrl.Call(m, "TlfID")
+	ret0, _ := ret[0].(tlf.ID)
+	return ret0
+}
+
+// TlfID indicates an expected call of TlfID
+func (mr *MockKeyMetadataWithRootDirEntryMockRecorder) TlfID() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TlfID", reflect.TypeOf((*MockKeyMetadataWithRootDirEntry)(nil).TlfID))
+}
+
+// TypeForKeying mocks base method
+func (m *MockKeyMetadataWithRootDirEntry) TypeForKeying() tlf.KeyingType {
+	ret := m.ctrl.Call(m, "TypeForKeying")
+	ret0, _ := ret[0].(tlf.KeyingType)
+	return ret0
+}
+
+// TypeForKeying indicates an expected call of TypeForKeying
+func (mr *MockKeyMetadataWithRootDirEntryMockRecorder) TypeForKeying() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TypeForKeying", reflect.TypeOf((*MockKeyMetadataWithRootDirEntry)(nil).TypeForKeying))
+}
+
+// LatestKeyGeneration mocks base method
+func (m *MockKeyMetadataWithRootDirEntry) LatestKeyGeneration() kbfsmd.KeyGen {
+	ret := m.ctrl.Call(m, "LatestKeyGeneration")
+	ret0, _ := ret[0].(kbfsmd.KeyGen)
+	return ret0
+}
+
+// LatestKeyGeneration indicates an expected call of LatestKeyGeneration
+func (mr *MockKeyMetadataWithRootDirEntryMockRecorder) LatestKeyGeneration() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LatestKeyGeneration", reflect.TypeOf((*MockKeyMetadataWithRootDirEntry)(nil).LatestKeyGeneration))
+}
+
+// GetTlfHandle mocks base method
+func (m *MockKeyMetadataWithRootDirEntry) GetTlfHandle() *TlfHandle {
+	ret := m.ctrl.Call(m, "GetTlfHandle")
+	ret0, _ := ret[0].(*TlfHandle)
+	return ret0
+}
+
+// GetTlfHandle indicates an expected call of GetTlfHandle
+func (mr *MockKeyMetadataWithRootDirEntryMockRecorder) GetTlfHandle() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTlfHandle", reflect.TypeOf((*MockKeyMetadataWithRootDirEntry)(nil).GetTlfHandle))
+}
+
+// IsWriter mocks base method
+func (m *MockKeyMetadataWithRootDirEntry) IsWriter(ctx context.Context, checker kbfsmd.TeamMembershipChecker, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
+	ret := m.ctrl.Call(m, "IsWriter", ctx, checker, uid, verifyingKey)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsWriter indicates an expected call of IsWriter
+func (mr *MockKeyMetadataWithRootDirEntryMockRecorder) IsWriter(ctx, checker, uid, verifyingKey interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsWriter", reflect.TypeOf((*MockKeyMetadataWithRootDirEntry)(nil).IsWriter), ctx, checker, uid, verifyingKey)
+}
+
+// HasKeyForUser mocks base method
+func (m *MockKeyMetadataWithRootDirEntry) HasKeyForUser(user keybase1.UID) (bool, error) {
+	ret := m.ctrl.Call(m, "HasKeyForUser", user)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// HasKeyForUser indicates an expected call of HasKeyForUser
+func (mr *MockKeyMetadataWithRootDirEntryMockRecorder) HasKeyForUser(user interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasKeyForUser", reflect.TypeOf((*MockKeyMetadataWithRootDirEntry)(nil).HasKeyForUser), user)
+}
+
+// GetTLFCryptKeyParams mocks base method
+func (m *MockKeyMetadataWithRootDirEntry) GetTLFCryptKeyParams(keyGen kbfsmd.KeyGen, user keybase1.UID, key kbfscrypto.CryptPublicKey) (kbfscrypto.TLFEphemeralPublicKey, kbfscrypto.EncryptedTLFCryptKeyClientHalf, kbfscrypto.TLFCryptKeyServerHalfID, bool, error) {
+	ret := m.ctrl.Call(m, "GetTLFCryptKeyParams", keyGen, user, key)
+	ret0, _ := ret[0].(kbfscrypto.TLFEphemeralPublicKey)
+	ret1, _ := ret[1].(kbfscrypto.EncryptedTLFCryptKeyClientHalf)
+	ret2, _ := ret[2].(kbfscrypto.TLFCryptKeyServerHalfID)
+	ret3, _ := ret[3].(bool)
+	ret4, _ := ret[4].(error)
+	return ret0, ret1, ret2, ret3, ret4
+}
+
+// GetTLFCryptKeyParams indicates an expected call of GetTLFCryptKeyParams
+func (mr *MockKeyMetadataWithRootDirEntryMockRecorder) GetTLFCryptKeyParams(keyGen, user, key interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTLFCryptKeyParams", reflect.TypeOf((*MockKeyMetadataWithRootDirEntry)(nil).GetTLFCryptKeyParams), keyGen, user, key)
+}
+
+// StoresHistoricTLFCryptKeys mocks base method
+func (m *MockKeyMetadataWithRootDirEntry) StoresHistoricTLFCryptKeys() bool {
+	ret := m.ctrl.Call(m, "StoresHistoricTLFCryptKeys")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// StoresHistoricTLFCryptKeys indicates an expected call of StoresHistoricTLFCryptKeys
+func (mr *MockKeyMetadataWithRootDirEntryMockRecorder) StoresHistoricTLFCryptKeys() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StoresHistoricTLFCryptKeys", reflect.TypeOf((*MockKeyMetadataWithRootDirEntry)(nil).StoresHistoricTLFCryptKeys))
+}
+
+// GetHistoricTLFCryptKey mocks base method
+func (m *MockKeyMetadataWithRootDirEntry) GetHistoricTLFCryptKey(codec kbfscodec.Codec, keyGen kbfsmd.KeyGen, currentKey kbfscrypto.TLFCryptKey) (kbfscrypto.TLFCryptKey, error) {
+	ret := m.ctrl.Call(m, "GetHistoricTLFCryptKey", codec, keyGen, currentKey)
+	ret0, _ := ret[0].(kbfscrypto.TLFCryptKey)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetHistoricTLFCryptKey indicates an expected call of GetHistoricTLFCryptKey
+func (mr *MockKeyMetadataWithRootDirEntryMockRecorder) GetHistoricTLFCryptKey(codec, keyGen, currentKey interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHistoricTLFCryptKey", reflect.TypeOf((*MockKeyMetadataWithRootDirEntry)(nil).GetHistoricTLFCryptKey), codec, keyGen, currentKey)
+}
+
+// GetRootDirEntry mocks base method
+func (m *MockKeyMetadataWithRootDirEntry) GetRootDirEntry() DirEntry {
+	ret := m.ctrl.Call(m, "GetRootDirEntry")
+	ret0, _ := ret[0].(DirEntry)
+	return ret0
+}
+
+// GetRootDirEntry indicates an expected call of GetRootDirEntry
+func (mr *MockKeyMetadataWithRootDirEntryMockRecorder) GetRootDirEntry() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRootDirEntry", reflect.TypeOf((*MockKeyMetadataWithRootDirEntry)(nil).GetRootDirEntry))
+}
+
 // MockencryptionKeyGetter is a mock of encryptionKeyGetter interface
 type MockencryptionKeyGetter struct {
 	ctrl     *gomock.Controller

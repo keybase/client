@@ -1750,6 +1750,7 @@ func (j *tlfJournal) getUnflushedPathMDInfos(ctx context.Context,
 		if err != nil {
 			return nil, err
 		}
+		rmd.data = pmd
 
 		mdInfo := unflushedPathMDInfo{
 			revision:       ibrmd.RevisionNumber(),

@@ -1008,15 +1008,23 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 			oldOps[len(oldOps)-1])
 	}
 
-	isSquash := mostRecentMergedMD.data.Dir.BlockPointer !=
-		mergedChains.mostRecentChainMDInfo.rootInfo.BlockPointer
+	var mergedRoot BlockPointer
+	if mergedChains.mostRecentChainMDInfo != nil {
+		// This can happen when we are squashing and there weren't any
+		// merged MD updates at all.
+		mergedRoot =
+			mergedChains.mostRecentChainMDInfo.GetRootDirEntry().BlockPointer
+	}
+	isSquash := mostRecentMergedMD.data.Dir.BlockPointer != mergedRoot
+
 	if isSquash {
 		// Squashes don't need to sync anything new.  Just set the
 		// root pointer to the most recent root pointer, and fill up
 		// the resolution op with all the known chain updates for this
 		// branch.
 		bps = newBlockPutState(0)
-		md.data.Dir.BlockInfo = unmergedChains.mostRecentChainMDInfo.rootInfo
+		md.data.Dir.BlockInfo =
+			unmergedChains.mostRecentChainMDInfo.GetRootDirEntry().BlockInfo
 		for original, chain := range unmergedChains.byOriginal {
 			if unmergedChains.isCreated(original) ||
 				unmergedChains.isDeleted(original) ||
@@ -1215,7 +1223,7 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 		// blocks that aren't the most recent blocks on their chains.
 		currMDPtr := md.data.Dir.BlockPointer
 		unmergedMDPtr :=
-			unmergedChains.mostRecentChainMDInfo.rootInfo.BlockPointer
+			unmergedChains.mostRecentChainMDInfo.GetRootDirEntry().BlockPointer
 		for _, unmergedResOp := range unmergedChains.resOps {
 			// Updates go in the first one.
 			for _, update := range unmergedResOp.allUpdates() {
@@ -1242,7 +1250,8 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 							"%v to %v based on unmerged update",
 							currMDPtr, unmergedMDPtr)
 						md.data.Dir.BlockInfo =
-							unmergedChains.mostRecentChainMDInfo.rootInfo
+							unmergedChains.mostRecentChainMDInfo.
+								GetRootDirEntry().BlockInfo
 					}
 				} else if !isMostRecent {
 					fup.log.CDebugf(ctx, "Unrefing an update from old resOp: "+

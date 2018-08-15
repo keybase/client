@@ -166,6 +166,12 @@ func (md *RootMetadata) Data() *PrivateMetadata {
 	return &md.data
 }
 
+// GetRootDirEntry implements the KeyMetadataWithRootDirEntry
+// interface for RootMetadata.
+func (md *RootMetadata) GetRootDirEntry() DirEntry {
+	return md.data.Dir
+}
+
 // Extra returns the extra metadata of this RootMetadata.
 func (md *RootMetadata) Extra() kbfsmd.ExtraMetadata {
 	return md.extra
