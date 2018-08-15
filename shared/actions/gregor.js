@@ -44,7 +44,7 @@ const setupEngineListeners = () => {
     response && response.result()
     const actions = []
     if (oobm && oobm.length) {
-      const filteredOOBM = oobm.filter(oobm => !!oobm)
+      const filteredOOBM = oobm.filter(Boolean)
       if (filteredOOBM.length) {
         actions.push(GregorGen.createPushOOBM({messages: filteredOOBM}))
       }

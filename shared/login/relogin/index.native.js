@@ -16,6 +16,7 @@ class LoginRender extends Component<Props> {
       type: this.props.showTyping ? 'passwordVisible' : 'password',
       onEnterKeyDown: () => this.props.onSubmit(),
       errorText: this.props.error,
+      key: this.props.inputKey,
       autoFocus: true,
       // There is a weird bug with RN 0.54+ where if this is controlled it somehow causes a race which causes a crash
       // making this uncontrolled fixes this

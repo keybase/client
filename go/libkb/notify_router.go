@@ -71,10 +71,15 @@ type NotifyListener interface {
 	TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet)
 	TeamDeleted(teamID keybase1.TeamID)
 	TeamExit(teamID keybase1.TeamID)
+	NewlyAddedToTeam(teamID keybase1.TeamID)
 	NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	AvatarUpdated(name string, formats []keybase1.AvatarFormat)
 	DeviceCloneCountChanged(newClones int)
 	WalletPaymentNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID)
+	WalletPaymentStatusNotification(kbTxID stellar1.KeybaseTransactionID, txID stellar1.TransactionID)
+	WalletRequestStatusNotification(reqID stellar1.KeybaseRequestID)
+	TeamListUnverifiedChanged(teamName string)
+	CanUserPerformChanged(teamName string)
 }
 
 type NoopNotifyListener struct{}
@@ -142,10 +147,16 @@ func (n *NoopNotifyListener) TeamChangedByName(teamName string, latestSeqno keyb
 func (n *NoopNotifyListener) TeamDeleted(teamID keybase1.TeamID)                                 {}
 func (n *NoopNotifyListener) TeamExit(teamID keybase1.TeamID)                                    {}
 func (n *NoopNotifyListener) NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration) {}
+func (n *NoopNotifyListener) NewlyAddedToTeam(teamID keybase1.TeamID)                            {}
 func (n *NoopNotifyListener) AvatarUpdated(name string, formats []keybase1.AvatarFormat)         {}
 func (n *NoopNotifyListener) DeviceCloneCountChanged(newClones int)                              {}
 func (n *NoopNotifyListener) WalletPaymentNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID) {
 }
+func (n *NoopNotifyListener) WalletPaymentStatusNotification(kbTxID stellar1.KeybaseTransactionID, txID stellar1.TransactionID) {
+}
+func (n *NoopNotifyListener) WalletRequestStatusNotification(reqID stellar1.KeybaseRequestID) {}
+func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string)                       {}
+func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)                           {}
 
 // NotifyRouter routes notifications to the various active RPC
 // connections. It's careful only to route to those who are interested
@@ -1146,6 +1157,56 @@ func (n *NotifyRouter) HandleWalletPaymentNotification(ctx context.Context, acco
 	n.G().Log.CDebugf(ctx, "- Sent wallet PaymentNotification")
 }
 
+func (n *NotifyRouter) HandleWalletPaymentStatusNotification(ctx context.Context, kbTxID stellar1.KeybaseTransactionID, txID stellar1.TransactionID) {
+	if n == nil {
+		return
+	}
+	n.G().Log.CDebugf(ctx, "+ Sending wallet PaymentStatusNotification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Wallet` notification type
+		if n.getNotificationChannels(id).Wallet {
+			// In the background do...
+			go func() {
+				arg := stellar1.PaymentStatusNotificationArg{
+					KbTxID: kbTxID,
+					TxID:   txID,
+				}
+				(stellar1.NotifyClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).PaymentStatusNotification(context.Background(), arg)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.WalletPaymentStatusNotification(kbTxID, txID)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent wallet PaymentStatusNotification")
+}
+
+func (n *NotifyRouter) HandleWalletRequestStatusNotification(ctx context.Context, reqID stellar1.KeybaseRequestID) {
+	if n == nil {
+		return
+	}
+	n.G().Log.CDebugf(ctx, "+ Sending wallet RequestStatusNotification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Wallet` notification type
+		if n.getNotificationChannels(id).Wallet {
+			// In the background do...
+			go func() {
+				(stellar1.NotifyClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).RequestStatusNotification(context.Background(), reqID)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.WalletRequestStatusNotification(reqID)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent wallet RequestStatusNotification")
+}
+
 // HandlePaperKeyCached is called whenever a paper key is cached
 // in response to a rekey harassment.
 func (n *NotifyRouter) HandlePaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID) {
@@ -1385,6 +1446,64 @@ func (n *NotifyRouter) HandleTeamChangedByName(ctx context.Context,
 	n.G().Log.CDebugf(ctx, "- Sent TeamChanged notification")
 }
 
+// HandleTeamListUnverifiedChanged is called when a notification is received from gregor that
+// we think might be of interest to the UI, specifically the parts of the UI that update using
+// the TeamListUnverified rpc.
+func (n *NotifyRouter) HandleTeamListUnverifiedChanged(ctx context.Context, teamName string) {
+	if n == nil {
+		return
+	}
+
+	n.G().Log.Debug("+ Sending TeamListUnverifiedChanged notification (team:%v)", teamName)
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Team` notifications
+		if n.getNotificationChannels(id).Team {
+			// In the background do...
+			go func() {
+				// A send of a `TeamListUnverifiedChanged` RPC
+				(keybase1.NotifyUnverifiedTeamListClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).TeamListUnverifiedChanged(context.Background(), teamName)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.TeamListUnverifiedChanged(teamName)
+	}
+	n.G().Log.Debug("- Sent TeamListUnverifiedChanged notification (team:%v)", teamName)
+}
+
+// HandleCanUserPerformChanged is called when a notification is received from gregor that
+// we think might be of interest to the UI, specifically the parts of the UI that update
+// permissions for a user in a team.
+func (n *NotifyRouter) HandleCanUserPerformChanged(ctx context.Context, teamName string) {
+	if n == nil {
+		return
+	}
+
+	n.G().Log.Debug("+ Sending CanUserPerformChanged notification (team:%v)", teamName)
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Team` notification type
+		if n.getNotificationChannels(id).Team {
+			// In the background do...
+			go func() {
+				// A send of a `CanUserPerformChanged` RPC
+				(keybase1.NotifyCanUserPerformClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).CanUserPerformChanged(context.Background(), teamName)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.CanUserPerformChanged(teamName)
+	}
+	n.G().Log.Debug("- Sent CanUserPerformChanged notification (team:%v)", teamName)
+}
+
 func (n *NotifyRouter) HandleTeamDeleted(ctx context.Context, teamID keybase1.TeamID) {
 	if n == nil {
 		return
@@ -1443,7 +1562,7 @@ func (n *NotifyRouter) HandleTeamAbandoned(ctx context.Context, teamID keybase1.
 	}
 
 	var wg sync.WaitGroup
-	n.G().Log.CDebugf(ctx, "+ Sending TeamExit notification")
+	n.G().Log.CDebugf(ctx, "+ Sending TeamAbandoned notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Team {
 			wg.Add(1)
@@ -1461,6 +1580,32 @@ func (n *NotifyRouter) HandleTeamAbandoned(ctx context.Context, teamID keybase1.
 		n.listener.TeamExit(teamID)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent TeamAbandoned notification")
+}
+
+func (n *NotifyRouter) HandleNewlyAddedToTeam(ctx context.Context, teamID keybase1.TeamID) {
+	if n == nil {
+		return
+	}
+
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending NewlyAddedToTeam notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			wg.Add(1)
+			go func() {
+				(keybase1.NotifyTeamClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).NewlyAddedToTeam(context.Background(), teamID)
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.NewlyAddedToTeam(teamID)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent NewlyAddedToTeam notification")
 }
 
 func (n *NotifyRouter) HandleNewTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) {

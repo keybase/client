@@ -3,11 +3,10 @@ import * as React from 'react'
 import {Box2, Divider, ProgressIndicator} from '../../../common-adapters'
 import {globalStyles, styleSheetCreate} from '../../../styles'
 import AssetInput from '../asset-input/container'
-import Banner from '../banner/container'
+import Banner from '../../banner/container'
 import Footer from '../footer/container'
-import Memo from '../memo/container'
-import Note from '../note/container'
-import Participants from '../participants/container'
+import NoteAndMemo from '../note-and-memo/container'
+import Participants from '../../participants/container'
 
 type Props = {
   bannerInfo?: string,
@@ -22,14 +21,13 @@ const Spinner = () => (
 )
 
 const Body = ({bannerInfo, isProcessing, onClick}: Props) => (
-  <Box2 fullWidth={true} direction="vertical">
+  <Box2 fullWidth={true} fullHeight={true} direction="vertical">
     {isProcessing && <Spinner />}
     {bannerInfo && <Banner />}
     <Participants />
     <Divider />
     <AssetInput />
-    <Memo />
-    <Note />
+    <NoteAndMemo />
     <Footer onClick={onClick} />
   </Box2>
 )

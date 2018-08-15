@@ -111,10 +111,10 @@ const dispatchSetupEngineListeners = () => {
   return Saga.put(ConfigGen.createSetupEngineListeners())
 }
 
-let createDaemonHandshakeOnce = false
+let _firstTimeConnecting = true
 const startHandshake = () => {
-  const firstTimeConnecting = !createDaemonHandshakeOnce
-  createDaemonHandshakeOnce = true
+  const firstTimeConnecting = _firstTimeConnecting
+  _firstTimeConnecting = false
   return Saga.put(ConfigGen.createDaemonHandshake({firstTimeConnecting}))
 }
 
@@ -277,6 +277,17 @@ const routeToInitialScreen = (state: TypedState) => {
   }
 }
 
+const handleAppLink = (_: any, action: ConfigGen.LinkPayload) => {
+  const url = new URL(action.payload.link)
+  const username = ProfileConstants.urlToUsername(url)
+  if (username) {
+    return Saga.sequentially([
+      Saga.put(RouteTree.switchTo([Tabs.profileTab])),
+      Saga.put(ProfileGen.createShowUserProfile({username})),
+    ])
+  }
+}
+
 const emitInitialLoggedIn = (state: TypedState) =>
   state.config.loggedIn && Saga.put(ConfigGen.createLoggedIn({causedByStartup: true}))
 
@@ -300,8 +311,11 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
     [ConfigGen.loggedIn, ConfigGen.loggedOut, ConfigGen.daemonHandshake],
     loadDaemonBootstrapStatus
   )
-  // Load the known accounts if you revoke or we handshake
-  yield Saga.actionToAction([DevicesGen.revoked, ConfigGen.daemonHandshake], loadDaemonAccounts)
+  // Load the known accounts if you revoke / handshake / logout
+  yield Saga.actionToAction(
+    [DevicesGen.revoked, ConfigGen.daemonHandshake, ConfigGen.loggedOut],
+    loadDaemonAccounts
+  )
   // Switch between login or app routes
   yield Saga.actionToAction([ConfigGen.loggedIn, ConfigGen.loggedOut], switchRouteDef)
   // Go to the correct starting screen
@@ -311,7 +325,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
 
   // Like handshake but in reverse, ask sagas to do stuff before we tell the server to log us out
   yield Saga.actionToAction(ConfigGen.logout, startLogoutHandshake)
-  // Give time for all waiters to register and allow no waiters
+  // Give time for all waiters to register and allow the case where there are no waiters
   yield Saga.actionToAction(ConfigGen.logoutHandshake, allowLogoutWaiters)
   yield Saga.actionToAction(ConfigGen.logoutHandshakeWait, maybeDoneWithLogoutHandshake)
   // When we're all done lets clean up
@@ -320,6 +334,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
 
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+
+  yield Saga.actionToAction(ConfigGen.link, handleAppLink)
 
   // Kick off platform specific stuff
   yield Saga.fork(PlatformSpecific.platformConfigSaga)

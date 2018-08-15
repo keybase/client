@@ -45,12 +45,14 @@ type State = {
   passphrase: string,
   showTyping: boolean,
   selectedUser: string,
+  inputKey: number,
 }
 
 class LoginWrapper extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
+      inputKey: 1,
       passphrase: '',
       selectedUser: props.selectedUser,
       showTyping: false,
@@ -60,7 +62,10 @@ class LoginWrapper extends React.Component<Props, State> {
   componentDidUpdate(prevProps: Props, prevState: State) {
     // Clear the passphrase when there's an error.
     if (this.props.error !== prevProps.error) {
-      this.setState({passphrase: ''})
+      this.setState(p => ({inputKey: p.inputKey + 1, passphrase: ''}))
+    }
+    if (this.props.selectedUser !== prevProps.selectedUser) {
+      this.setState({selectedUser: this.props.selectedUser})
     }
   }
 
@@ -68,11 +73,12 @@ class LoginWrapper extends React.Component<Props, State> {
     return (
       <Login
         {...this.props}
-        error={this.state.selectedUser === this.props.selectedUser ? this.props.error : ''}
+        error={this.props.error}
         selectedUser={this.state.selectedUser}
         selectedUserChange={selectedUser => this.setState({selectedUser})}
         showTypingChange={showTyping => this.setState({showTyping})}
         passphraseChange={passphrase => this.setState({passphrase})}
+        inputKey={String(this.state.inputKey)}
         onSubmit={() => this.props.onLogin(this.state.selectedUser, this.state.passphrase)}
       />
     )

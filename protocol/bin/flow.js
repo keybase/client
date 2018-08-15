@@ -12,7 +12,7 @@ const enabledCalls = json5.parse(fs.readFileSync(path.join(__dirname, 'enabled-c
 var projects = {
   chat1: {
     root: './json/chat1',
-    import: ['Gregor1', 'Keybase1'],
+    import: ['Gregor1', 'Keybase1', 'Stellar1'],
     out: 'rpc-chat-gen',
     incomingMaps: {},
     seenTypes: {},
@@ -401,6 +401,7 @@ function writeFlow(typeDefs, project) {
   const importMap = {
     Gregor1: "import * as Gregor1 from './rpc-gregor-gen'",
     Keybase1: "import * as Keybase1 from './rpc-gen'",
+    Stellar1: "import * as Stellar1 from './rpc-stellar-gen'",
   }
   const typePrelude = `// @flow
 /* eslint-disable */

@@ -5,6 +5,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -113,6 +114,7 @@ type GetLockdownResponse struct {
 }
 
 func (h *AccountHandler) GetLockdownMode(ctx context.Context, sessionID int) (ret keybase1.GetLockdownResponse, err error) {
+	defer h.G().CTraceTimed(ctx, "GetLockdownMode", func() error { return err })()
 	apiArg := libkb.APIArg{
 		Endpoint:    "account/lockdown",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -146,10 +148,12 @@ func (h *AccountHandler) GetLockdownMode(ctx context.Context, sessionID int) (re
 		Status:  response.Enabled,
 		History: response.History,
 	}
+	h.G().Log.CDebugf(ctx, "GetLockdownMode -> %v", ret.Status)
 	return ret, nil
 }
 
 func (h *AccountHandler) SetLockdownMode(ctx context.Context, arg keybase1.SetLockdownModeArg) (err error) {
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("SetLockdownMode(%v)", arg.Enabled), func() error { return err })()
 	apiArg := libkb.APIArg{
 		Endpoint:    "account/lockdown",
 		SessionType: libkb.APISessionTypeREQUIRED,

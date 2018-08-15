@@ -1,6 +1,5 @@
 // @flow
 // Look at this doc: https://goo.gl/7B6p4H
-import * as WaitingGen from './waiting-gen'
 import * as LoginGen from './login-gen'
 import * as Constants from '../constants/login'
 import * as Saga from '../util/saga'
@@ -46,9 +45,6 @@ const getPassphraseHandler = passphrase => (params: RPCTypes.SecretUiGetPassphra
 const login = (_: any, action: LoginGen.LoginPayload) =>
   Saga.call(function*() {
     try {
-      // We don't want the waiting key to be positive during this whole process so we do a decrement first so its not going 1,2,1,2,1,2
-      yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.waitingKey}))
-
       yield RPCTypes.loginLoginRpcSaga({
         // cancel if we get any of these callbacks, we're logging in, not provisioning
         incomingCallMap: {
@@ -76,9 +72,6 @@ const login = (_: any, action: LoginGen.LoginPayload) =>
       if (e.desc !== cancelDesc) {
         yield Saga.put(LoginGen.createLoginError({error: new HiddenString(niceError(e))}))
       }
-    } finally {
-      // Reset us to zero
-      yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.waitingKey}))
     }
   })
 

@@ -6,7 +6,7 @@ import * as ConfigGen from '../config-gen'
 import * as GregorGen from '../../actions/gregor-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as Tabs from '../../constants/tabs'
-import * as RouteTreeGen from '../route-tree-gen'
+import * as RouteTree from '../../constants/route-tree'
 import * as mime from 'react-native-mime-types'
 import * as Saga from '../../util/saga'
 // this CANNOT be an import *, totally screws up the packager
@@ -50,7 +50,7 @@ function saveAttachmentDialog(filePath: string): Promise<NextURI> {
 
 async function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<void> {
   const logPrefix = '[saveAttachmentToCameraRoll] '
-  const saveType = mimeType.startsWith('video') ? 'video' : 'image'
+  const saveType = mimeType.startsWith('video') ? 'video' : 'photo'
   if (isIOS && saveType !== 'video') {
     // iOS cannot save a video from a URL, so we can only do images here. Fallback to temp file
     // method for videos.
@@ -284,7 +284,7 @@ const waitForStartupDetails = (state: TypedState) => {
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
   yield Saga.actionToAction(ConfigGen.loggedOut, clearRouteState)
-  yield Saga.actionToAction([RouteTreeGen.switchTo, Chat2Gen.selectConversation], persistRouteState)
+  yield Saga.actionToAction([RouteTree.switchTo, Chat2Gen.selectConversation], persistRouteState)
   yield Saga.actionToAction(ConfigGen.openAppSettings, openAppSettings)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupNetInfoWatcher)
 
