@@ -3,6 +3,7 @@ import logger from '../logger'
 import * as ConfigGen from '../actions/config-gen'
 import * as LoginGen from '../actions/login-gen'
 import * as NotificationsGen from '../actions/notifications-gen'
+import * as WalletsGen from '../actions/wallets-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {throttle} from 'lodash-es'
 import engine from '../engine'
@@ -74,5 +75,12 @@ export default (cb: ?Function): void => {
 
   engine().setIncomingActionCreators('keybase.1.NotifyTracking.trackingChanged', ({isTracking, username}) => [
     ConfigGen.createUpdateFollowing({isTracking, username}),
+  ])
+
+  engine().setIncomingActionCreators('stellar.1.notify.paymentNotification', ({accountID}) => [
+    // Need to reload the account fully so that assets update
+    WalletsGen.createLoadAccounts(),
+    WalletsGen.createLoadAssets({accountID}),
+    WalletsGen.createLoadPayments({accountID}),
   ])
 }
