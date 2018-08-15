@@ -46,7 +46,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
         : message.transferState === 'remoteUploading'
           ? 'waiting...'
           : null
-  const buttonType = message.showPlayButton ? 'play' : null
+  const buttonType = message.showPlayButton
+    ? isMobile || message.inlineVideoPlayable
+      ? 'play'
+      : 'film'
+    : null
   const hasProgress = message.transferState && message.transferState !== 'remoteUploading'
   return {
     arrowColor,

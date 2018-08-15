@@ -117,11 +117,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
           {!!this.props.showButton &&
             !this.state.playingVideo && (
               <Icon
-                type={
-                  this.props.showButton === (this.props.inlineVideoPlayable || isMobile ? 'play' : 'film')
-                    ? 'icon-play-64'
-                    : 'icon-film-64'
-                }
+                type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
                 style={iconCastPlatformStyles(styles.playButton)}
               />
             )}
