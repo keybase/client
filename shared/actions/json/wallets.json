@@ -74,6 +74,34 @@
       "accountID": "Types.AccountID",
       "show?": "boolean",
     },
+    "setBuildingAmount": {
+      "_description": "Set building amount",
+      "amount": "number",
+    },
+    "setBuildingCurrency": {
+      "_description": "Set building currency",
+      "currency": "string",
+    },
+    "setBuildingFrom": {
+      "_description": "Set building from",
+      "from": "string",
+    },
+    "setBuildingPublicMemo": {
+      "_description": "Set building public memo",
+      "publicMemo": "string",
+    },
+    "setBuildingRecipientType": {
+      "_description": "Set building recipient type",
+      "recipientType": "Types.CounterpartyType",
+    },
+    "setBuildingSecretNote": {
+      "_description": "Set building secret note",
+      "secretNote": "HiddenString",
+    },
+    "setBuildingTo": {
+      "_description": "Set building to -- depends on recipientType",
+      "to": "string",
+    },
     "linkExistingAccount": {
       "_description": "Link an existing Stellar account with this Keybase user.",
       "name": "string",

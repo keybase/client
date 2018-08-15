@@ -1,5 +1,6 @@
 // @flow
 import {connect, type TypedState} from '../../util/container'
+import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 import Header from './header'
@@ -15,7 +16,20 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const nyi = () => console.log('Not yet implemented')
+
 const mapDispatchToProps = (dispatch: Dispatch, ownProps) => ({
+  _onGoToSendReceive: (recipientType: Types.CounterpartyType) => {
+    dispatch(WalletsGen.createClearBuildingPayment())
+    dispatch(WalletsGen.createClearBuiltPayment())
+    dispatch(WalletsGen.createSetBuildingRecipientType({recipientType}))
+    dispatch(
+      ownProps.navigateAppend([
+        {
+          selected: 'sendReceiveForm',
+        },
+      ])
+    )
+  },
   _onReceive: (accountID: Types.AccountID) =>
     dispatch(
       ownProps.navigateAppend([
@@ -35,24 +49,6 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps) => ({
       ])
     ),
   onDeposit: nyi,
-  onSendToAnotherAccount: () => dispatch(ownProps.navigateAppend([
-    {
-      props: {recipientType: 'otherAccount'},
-      selected: 'sendForm',
-    },
-  ])),
-  onSendToKeybaseUser: () => dispatch(ownProps.navigateAppend([
-    {
-      props: {recipientType: 'keybaseUser'},
-      selected: 'sendForm',
-    },
-  ])),
-  onSendToStellarAddress: () => dispatch(ownProps.navigateAppend([
-    {
-      props: {recipientType: 'stellarPublicKey'},
-      selected: 'sendForm',
-    },
-  ])),
   onSettings: nyi,
 })
 
@@ -60,6 +56,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   ...dispatchProps,
   onReceive: () => dispatchProps._onReceive(stateProps.accountID),
+  onSendToAnotherAccount: () => dispatchProps._onGoToSendReceive('otherAccount'),
+  onSendToKeybaseUser: () => dispatchProps._onGoToSendReceive('keybaseUser'),
+  onSendToStellarAddress: () => dispatchProps._onGoToSendReceive('stellarPublicKey'),
   onShowSecretKey: () => dispatchProps._onShowSecretKey(stateProps.accountID),
 })
 

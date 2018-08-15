@@ -46,6 +46,27 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state
         .set('exportedSecretKey', new HiddenString(''))
         .set('selectedAccount', action.payload.accountID)
+    case WalletsGen.setBuildingAmount:
+      const {amount} = action.payload
+      return state.set('buildingPayment', state.get('buildingPayment').merge({amount}))
+    case WalletsGen.setBuildingCurrency:
+      const {currency} = action.payload
+      return state.set('buildingPayment', state.get('buildingPayment').merge({currency}))
+    case WalletsGen.setBuildingFrom:
+      const {from} = action.payload
+      return state.set('buildingPayment', state.get('buildingPayment').merge({from}))
+    case WalletsGen.setBuildingPublicMemo:
+      const {publicMemo} = action.payload
+      return state.set('buildingPayment', state.get('buildingPayment').merge({publicMemo}))
+    case WalletsGen.setBuildingRecipientType:
+      const {recipientType} = action.payload
+      return state.set('buildingPayment', state.get('buildingPayment').merge({recipientType}))
+    case WalletsGen.setBuildingSecretNote:
+      const {secretNote} = action.payload
+      return state.set('buildingPayment', state.get('buildingPayment').merge({secretNote}))
+    case WalletsGen.setBuildingTo:
+      const {to} = action.payload
+      return state.set('buildingPayment', state.get('buildingPayment').merge({to}))
     case WalletsGen.validateAccountName:
       return state.merge({
         accountName: action.payload.name,

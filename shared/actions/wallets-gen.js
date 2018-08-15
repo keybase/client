@@ -29,6 +29,13 @@ export const paymentsReceived = 'wallets:paymentsReceived'
 export const secretKeyReceived = 'wallets:secretKeyReceived'
 export const secretKeySeen = 'wallets:secretKeySeen'
 export const selectAccount = 'wallets:selectAccount'
+export const setBuildingAmount = 'wallets:setBuildingAmount'
+export const setBuildingCurrency = 'wallets:setBuildingCurrency'
+export const setBuildingFrom = 'wallets:setBuildingFrom'
+export const setBuildingPublicMemo = 'wallets:setBuildingPublicMemo'
+export const setBuildingRecipientType = 'wallets:setBuildingRecipientType'
+export const setBuildingSecretNote = 'wallets:setBuildingSecretNote'
+export const setBuildingTo = 'wallets:setBuildingTo'
 export const validateAccountName = 'wallets:validateAccountName'
 export const validateSecretKey = 'wallets:validateSecretKey'
 export const validatedAccountName = 'wallets:validatedAccountName'
@@ -83,6 +90,13 @@ type _SelectAccountPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   show?: boolean,
 |}>
+type _SetBuildingAmountPayload = $ReadOnly<{|amount: number|}>
+type _SetBuildingCurrencyPayload = $ReadOnly<{|currency: string|}>
+type _SetBuildingFromPayload = $ReadOnly<{|from: string|}>
+type _SetBuildingPublicMemoPayload = $ReadOnly<{|publicMemo: string|}>
+type _SetBuildingRecipientTypePayload = $ReadOnly<{|recipientType: Types.CounterpartyType|}>
+type _SetBuildingSecretNotePayload = $ReadOnly<{|secretNote: HiddenString|}>
+type _SetBuildingToPayload = $ReadOnly<{|to: string|}>
 type _ValidateAccountNamePayload = $ReadOnly<{|name: string|}>
 type _ValidateSecretKeyPayload = $ReadOnly<{|secretKey: HiddenString|}>
 type _ValidatedAccountNamePayload = $ReadOnly<{|name: string|}>
@@ -154,6 +168,34 @@ export const createLoadPayments = (payload: _LoadPaymentsPayload) => ({error: fa
  */
 export const createSelectAccount = (payload: _SelectAccountPayload) => ({error: false, payload, type: selectAccount})
 /**
+ * Set building amount
+ */
+export const createSetBuildingAmount = (payload: _SetBuildingAmountPayload) => ({error: false, payload, type: setBuildingAmount})
+/**
+ * Set building currency
+ */
+export const createSetBuildingCurrency = (payload: _SetBuildingCurrencyPayload) => ({error: false, payload, type: setBuildingCurrency})
+/**
+ * Set building from
+ */
+export const createSetBuildingFrom = (payload: _SetBuildingFromPayload) => ({error: false, payload, type: setBuildingFrom})
+/**
+ * Set building public memo
+ */
+export const createSetBuildingPublicMemo = (payload: _SetBuildingPublicMemoPayload) => ({error: false, payload, type: setBuildingPublicMemo})
+/**
+ * Set building recipient type
+ */
+export const createSetBuildingRecipientType = (payload: _SetBuildingRecipientTypePayload) => ({error: false, payload, type: setBuildingRecipientType})
+/**
+ * Set building secret note
+ */
+export const createSetBuildingSecretNote = (payload: _SetBuildingSecretNotePayload) => ({error: false, payload, type: setBuildingSecretNote})
+/**
+ * Set building to -- depends on recipientType
+ */
+export const createSetBuildingTo = (payload: _SetBuildingToPayload) => ({error: false, payload, type: setBuildingTo})
+/**
  * The service responded with an error or that the account name is valid.
  */
 export const createValidatedAccountName = (payload: _ValidatedAccountNamePayload) => ({error: false, payload, type: validatedAccountName})
@@ -214,6 +256,13 @@ export type PaymentsReceivedPayload = $Call<typeof createPaymentsReceived, _Paym
 export type SecretKeyReceivedPayload = $Call<typeof createSecretKeyReceived, _SecretKeyReceivedPayload>
 export type SecretKeySeenPayload = $Call<typeof createSecretKeySeen, _SecretKeySeenPayload>
 export type SelectAccountPayload = $Call<typeof createSelectAccount, _SelectAccountPayload>
+export type SetBuildingAmountPayload = $Call<typeof createSetBuildingAmount, _SetBuildingAmountPayload>
+export type SetBuildingCurrencyPayload = $Call<typeof createSetBuildingCurrency, _SetBuildingCurrencyPayload>
+export type SetBuildingFromPayload = $Call<typeof createSetBuildingFrom, _SetBuildingFromPayload>
+export type SetBuildingPublicMemoPayload = $Call<typeof createSetBuildingPublicMemo, _SetBuildingPublicMemoPayload>
+export type SetBuildingRecipientTypePayload = $Call<typeof createSetBuildingRecipientType, _SetBuildingRecipientTypePayload>
+export type SetBuildingSecretNotePayload = $Call<typeof createSetBuildingSecretNote, _SetBuildingSecretNotePayload>
+export type SetBuildingToPayload = $Call<typeof createSetBuildingTo, _SetBuildingToPayload>
 export type ValidateAccountNamePayload = $Call<typeof createValidateAccountName, _ValidateAccountNamePayload>
 export type ValidateSecretKeyPayload = $Call<typeof createValidateSecretKey, _ValidateSecretKeyPayload>
 export type ValidatedAccountNamePayload = $Call<typeof createValidatedAccountName, _ValidatedAccountNamePayload>
@@ -244,6 +293,13 @@ export type Actions =
   | SecretKeyReceivedPayload
   | SecretKeySeenPayload
   | SelectAccountPayload
+  | SetBuildingAmountPayload
+  | SetBuildingCurrencyPayload
+  | SetBuildingFromPayload
+  | SetBuildingPublicMemoPayload
+  | SetBuildingRecipientTypePayload
+  | SetBuildingSecretNotePayload
+  | SetBuildingToPayload
   | ValidateAccountNamePayload
   | ValidateSecretKeyPayload
   | ValidatedAccountNamePayload

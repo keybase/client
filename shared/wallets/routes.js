@@ -26,7 +26,7 @@ const routeTree = makeRouteDefNode({
       component: ReceiveModal,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
-    sendForm: {
+    sendReceiveForm: {
       children: {ConfirmForm},
       component: SendForm,
       tags: makeLeafTags({layerOnTop: !isMobile}),
