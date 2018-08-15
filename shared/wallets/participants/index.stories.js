@@ -34,7 +34,7 @@ const load = () => {
       />
     ))
     .add('To stellar address', () => <Participants recipientType="stellarPublicKey" />)
-    .add('Stellar address Error', () => <Participants incorrect={true} recipientType="stellarPublicKey" />)
+    .add('Stellar address Error', () => <Participants incorrect="Stellar address incorrect" recipientType="stellarPublicKey" />)
     .add('User match', () => (
       <Participants
         recipientType="keybaseUser"

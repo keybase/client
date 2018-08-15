@@ -11,7 +11,7 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   inputPlaceholder: '0.00',
-  onChangeAmount: (amount: number) => dispatch(WalletsGen.createSetBuildingAmount({amount})),
+  onChangeAmount: (amount: string) => dispatch(WalletsGen.createSetBuildingAmount({amount})),
 })
 
 export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('AssetInput'))(AssetInput)

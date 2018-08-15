@@ -90,7 +90,7 @@ type _SelectAccountPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   show?: boolean,
 |}>
-type _SetBuildingAmountPayload = $ReadOnly<{|amount: number|}>
+type _SetBuildingAmountPayload = $ReadOnly<{|amount: string|}>
 type _SetBuildingCurrencyPayload = $ReadOnly<{|currency: string|}>
 type _SetBuildingFromPayload = $ReadOnly<{|from: string|}>
 type _SetBuildingPublicMemoPayload = $ReadOnly<{|publicMemo: string|}>

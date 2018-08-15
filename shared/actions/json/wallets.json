@@ -76,7 +76,7 @@
     },
     "setBuildingAmount": {
       "_description": "Set building amount",
-      "amount": "number",
+      "amount": "string",
     },
     "setBuildingCurrency": {
       "_description": "Set building currency",

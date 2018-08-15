@@ -27,7 +27,7 @@ type ToFieldProps = {|
   /* Used for the confirm screen */
   isConfirm: boolean,
   /* Used for send to stellar address */
-  incorrect?: boolean,
+  incorrect?: string,
   onChangeAddress?: string => void,
   stellarAddress?: string,
   /* Used to display a keybase profile */
@@ -83,7 +83,6 @@ const ToField = (props: ToFieldProps) => {
   } else if (!props.isConfirm && props.recipientType === 'otherAccount') {
     // TODO: Implement this
   } else {
-    console.warn('in participants, stellaraddress is', props.stellarAddress)
     component = (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
@@ -102,9 +101,9 @@ const ToField = (props: ToFieldProps) => {
             value={props.recipientType === 'stellarPublicKey' ? props.stellarAddress : undefined}
           />
         </Kb.Box2>
-        {props.incorrect && (
+        {!!props.incorrect && (
           <Kb.Text type="BodySmall" style={styles.errorText}>
-            This Stellar address is incorrect
+            {props.incorrect}
           </Kb.Text>
         )}
       </Kb.Box2>
@@ -133,7 +132,7 @@ type ParticipantsProps = {|
   fromWalletUser?: string,
   fromWalletContents?: string,
   /* Used for send to stellar address */
-  incorrect?: boolean,
+  incorrect?: string,
   onChangeAddress?: string => void,
   /* Used to display a keybase profile */
   recipientUsername?: string,

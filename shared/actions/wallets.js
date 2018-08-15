@@ -10,6 +10,23 @@ import logger from '../logger'
 import type {TypedState} from '../constants/reducer'
 import {walletsTab} from '../constants/tabs'
 
+const buildPayment = (state: TypedState) =>
+  RPCTypes.localBuildPaymentLocalRpcPromise({
+    amount: state.wallets.get('buildingPayment').get('amount'),
+    // FIXME: Assumes XLM.
+    // currency: state.wallets.get('buildingPayment').get('currency'),
+    from: state.wallets.selectedAccount,
+    fromSeqno: '',
+    publicMemo: state.wallets.get('buildingPayment').get('publicMemo'),
+    secretNote: state.wallets.get('buildingPayment').get('secretNote').stringValue(),
+    to: state.wallets.get('buildingPayment').get('to'), // 'GDLQ22P6VKMUYW3HULI2F5KDY7Q63SION65M7I3HHIVUXOFZVG3FEK2F',
+    toIsAccountID: true,
+  }).then(build => {
+    console.warn(build)
+    return WalletsGen.createBuiltPaymentReceived({
+      build: Constants.buildPaymentResultToBuiltPayment(build),
+    })
+  })
 const loadAccounts = (
   state: TypedState,
   action: WalletsGen.LoadAccountsPayload | WalletsGen.LinkedExistingAccountPayload
@@ -158,6 +175,12 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     navigateToAccount
   )
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
+  yield Saga.actionToPromise(WalletsGen.setBuildingAmount, buildPayment)
+  yield Saga.actionToPromise(WalletsGen.setBuildingCurrency, buildPayment)
+  yield Saga.actionToPromise(WalletsGen.setBuildingFrom, buildPayment)
+  yield Saga.actionToPromise(WalletsGen.setBuildingPublicMemo, buildPayment)
+  yield Saga.actionToPromise(WalletsGen.setBuildingSecretNote, buildPayment)
+  yield Saga.actionToPromise(WalletsGen.setBuildingTo, buildPayment)
 }
 
 export default walletsSaga

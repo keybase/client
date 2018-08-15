@@ -51,7 +51,7 @@ export type _Assets = {
 }
 
 export type _BuildingPayment = {
-  amount: number,
+  amount: string,
   currency: string,
   from: string,
   publicMemo: string,

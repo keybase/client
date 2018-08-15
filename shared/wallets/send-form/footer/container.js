@@ -2,12 +2,11 @@
 import Footer from '.'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({})
+const mapStateToProps = (state: TypedState) => ({
+  disabled: !state.wallets.get('builtPayment').get('readyToSend'),
+  worthDescription: state.wallets.get('builtPayment').get('worthDescription'),
+})
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({})
 
-const mergeProps = (stateProps, dispatchProps) => ({})
-
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Footer'))(
-  Footer
-)
+export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('Footer'))(Footer)
