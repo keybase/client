@@ -17,7 +17,7 @@ const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
 
 const makeBuildingPayment: I.RecordFactory<Types._BuildingPayment> = I.Record({
   amount: 0,
-  currency: '',
+  currency: 'XLM', // FIXME: Use default currency?
   from: '',
   publicMemo: '',
   recipientType: null,

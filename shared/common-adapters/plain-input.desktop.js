@@ -148,6 +148,9 @@ class PlainInput extends React.PureComponent<InternalProps> {
     if (this.props.maxLength) {
       commonProps.maxlength = this.props.maxLength
     }
+    if (this.props.value) {
+      commonProps.value = this.props.value
+    }
     return commonProps
   }
 

@@ -83,6 +83,7 @@ const ToField = (props: ToFieldProps) => {
   } else if (!props.isConfirm && props.recipientType === 'otherAccount') {
     // TODO: Implement this
   } else {
+    console.warn('in participants, stellaraddress is', props.stellarAddress)
     component = (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
@@ -98,6 +99,7 @@ const ToField = (props: ToFieldProps) => {
             multiline={true}
             rowsMin={props.recipientType === 'stellarPublicKey' ? 2 : 1}
             rowsMax={3}
+            value={props.recipientType === 'stellarPublicKey' ? props.stellarAddress : undefined}
           />
         </Kb.Box2>
         {props.incorrect && (
