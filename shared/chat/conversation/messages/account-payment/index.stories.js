@@ -59,7 +59,7 @@ const sentAssetProps = {
 }
 
 const load = () => {
-  storiesOf('Chat/Conversation/Wallet payments', module)
+  storiesOf('Chat/Conversation/Account payments', module)
     .addDecorator(story => <Box style={{maxWidth: 420}}>{story()}</Box>)
     .add('Sent', () => <Payment {...sentProps} />)
     .add('Sending', () => <Payment {...sendingProps} />)
