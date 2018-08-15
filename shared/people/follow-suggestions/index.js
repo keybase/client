@@ -14,7 +14,7 @@ export type Props = {
 
 export default (props: Props) => (
   <Box style={styles.container}>
-    <Text type="BodySmallSemibold" style={{marginBottom: globalMargins.tiny, marginLeft: globalMargins.tiny}}>
+    <Text type="BodySmallSemibold" style={styles.text}>
       Consider following...
     </Text>
     <ScrollView
@@ -26,7 +26,7 @@ export default (props: Props) => (
           key={suggestion.username}
           username={suggestion.username}
           metaOne={suggestion.fullName}
-          metaStyle={{paddingLeft: 2, paddingRight: 2}}
+          metaStyle={styles.meta}
           onClick={() => props.onClickUser(suggestion.username)}
           colorFollowing={true}
           size="small"
@@ -42,6 +42,10 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxColumn,
     paddingTop: globalMargins.tiny,
     position: 'relative',
+  },
+  meta: {
+    paddingLeft: 2,
+    paddingRight: 2,
   },
   scrollViewContainer: platformStyles({
     common: {
@@ -64,5 +68,9 @@ const styles = styleSheetCreate({
     flexShrink: 0,
     height: 106,
     width: 112,
+  },
+  text: {
+    marginBottom: globalMargins.tiny,
+    marginLeft: globalMargins.tiny,
   },
 })
