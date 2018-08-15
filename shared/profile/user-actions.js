@@ -16,6 +16,7 @@ import {
 import {normal as proofNormal} from '../constants/tracker'
 import {globalColors, isMobile, platformStyles, styleSheetCreate} from '../styles'
 import type {SimpleProofState} from '../constants/types/tracker'
+import flags from '../util/feature-flags'
 
 type Props = {|
   trackerState: SimpleProofState,
@@ -111,19 +112,22 @@ class _DropdownButton extends React.PureComponent<DropdownProps & OverlayParentP
       onClick: () => this.props.onAddToTeam(),
       title: 'Add to team...',
     },
-    {
-      onClick: () => this.props.onSendOrRequestLumens(),
-      title: 'Send or request Lumens (XLM)',
-      view: (
-        <Box2 direction="horizontal" centerChildren={true} gap="xtiny">
-          <Text type="Body">Send or request Lumens (XLM)</Text>
-          <Meta title="New" backgroundColor={globalColors.blue} style={{alignSelf: undefined}} />
-        </Box2>
-      ),
-    },
   ]
 
   componentDidMount() {
+    if (flags.walletsEnabled) {
+      this._menuItems.push({
+        onClick: () => this.props.onSendOrRequestLumens(),
+        title: 'Send or request Lumens (XLM)',
+        view: (
+          <Box2 direction="horizontal" centerChildren={true} gap="xtiny">
+            <Text type="Body">Send or request Lumens (XLM)</Text>
+            <Meta title="New" backgroundColor={globalColors.blue} style={{alignSelf: undefined}} />
+          </Box2>
+        ),
+      })
+    }
+
     if (!isMobile) {
       this._menuItems = this._menuItems.concat([
         {
