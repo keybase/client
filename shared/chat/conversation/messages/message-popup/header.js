@@ -4,6 +4,7 @@ import {Avatar, Box, Box2, ConnectedUsernames, Icon, Text, type IconType} from '
 import {PopupHeaderText} from '../../../../common-adapters/popup-menu'
 import {globalStyles, globalMargins, globalColors, isMobile} from '../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../../util/timestamp'
+import {isAndroid} from '../../../../constants/platform'
 import type {DeviceType} from '../../../../constants/types/devices'
 
 const iconNameForDeviceType = isMobile
@@ -36,6 +37,8 @@ const MessagePopupHeader = (props: {
   const {author, deviceName, deviceRevokedAt, deviceType, isLast, timestamp, yourMessage} = props
   const iconName = iconNameForDeviceType(deviceType, !!deviceRevokedAt)
   const whoRevoked = yourMessage ? 'You' : author
+  // The mobile special casing below is because RN doesn't support overflow on Android
+  const iconSpacing = isMobile ? 96 - (isAndroid ? 16 : 30) : 64
   return (
     <Box
       style={{
@@ -43,9 +46,9 @@ const MessagePopupHeader = (props: {
         ...(isMobile
           ? {
               paddingBottom: globalMargins.medium,
-              paddingTop: globalMargins.medium,
+              paddingTop: globalMargins.medium + iconSpacing,
             }
-          : {}),
+          : {paddingTop: iconSpacing}),
         alignItems: 'center',
         maxWidth: isMobile ? '100%' : 240,
         width: '100%',
@@ -56,6 +59,8 @@ const MessagePopupHeader = (props: {
         style={{
           marginBottom: globalMargins.tiny,
           marginTop: !isMobile ? globalMargins.small : 0,
+          position: 'absolute',
+          top: isMobile ? (isAndroid ? 0 : -15) : -25,
         }}
       />
       <Box
