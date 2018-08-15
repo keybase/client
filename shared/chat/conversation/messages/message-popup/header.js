@@ -40,6 +40,12 @@ const MessagePopupHeader = (props: {
     <Box
       style={{
         ...globalStyles.flexBoxColumn,
+        ...(isMobile
+          ? {
+              paddingBottom: globalMargins.medium,
+              paddingTop: globalMargins.medium,
+            }
+          : {}),
         alignItems: 'center',
         maxWidth: isMobile ? '100%' : 240,
         width: '100%',

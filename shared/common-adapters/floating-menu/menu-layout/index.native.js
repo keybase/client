@@ -20,7 +20,7 @@ const MenuRow = (props: MenuRowProps) => (
       props.onHidden && props.onHidden() // auto hide after a selection
       props.onClick && props.onClick()
     }}
-    style={styleRow(props)}
+    style={styles.row}
   >
     {props.view || (
       <Text type={'BodyBig'} style={styleRowText(props)}>
@@ -38,21 +38,19 @@ class MenuLayout extends Component<MenuLayoutProps> {
       }
       return arr
     }, [])
-    const menuItemsWithHeader = [
-      ...(this.props.header ? [{...this.props.header, isHeader: true}] : []),
-      ...menuItemsNoDividers,
-    ]
 
     return (
       <Box style={styles.overlay}>
         <Box style={collapseStyles([styles.menuBox, this.props.style])}>
+          {/* Display header if there is one */}
+          {this.props.header && this.props.header.view}
           <Box style={styles.menuGroup}>
-            {menuItemsWithHeader.map((mi, idx) => (
+            {menuItemsNoDividers.map((mi, idx) => (
               <MenuRow
                 key={mi.title}
                 {...mi}
                 index={idx}
-                numItems={menuItemsWithHeader.length}
+                numItems={menuItemsNoDividers.length}
                 onHidden={this.props.closeOnClick ? this.props.onHidden : undefined}
               />
             ))}
@@ -72,29 +70,13 @@ class MenuLayout extends Component<MenuLayoutProps> {
   }
 }
 
-const styleRow = (props: {isHeader?: boolean, danger?: boolean, index: number, numItems: number}) => {
-  let rowStyle
-  if (props.isHeader) {
-    rowStyle = collapseStyles([
-      styles.rowHeader,
-      {backgroundColor: props.danger ? globalColors.red : globalColors.white},
-    ])
-  } else {
-    rowStyle = styles.row
-  }
-  return rowStyle
-}
-
 const styleRowText = (props: {isHeader?: boolean, danger?: boolean, disabled?: boolean}) => {
   const dangerColor = props.danger ? globalColors.red : globalColors.blue
   const color = props.isHeader ? globalColors.white : dangerColor
-  return {color, ...(props.disabled ? {opacity: 0.6} : {}), ...(props.isHeader ? {textAlign: 'center'} : {})}
+  return {color, ...(props.disabled ? {opacity: 0.6} : {}), textAlign: 'center'}
 }
 
 const styles = styleSheetCreate({
-  notMenuBox: {
-    flex: 1,
-  },
   menuBox: {
     ...globalStyles.flexBoxColumn,
     justifyContent: 'flex-end',
@@ -112,13 +94,6 @@ const styles = styleSheetCreate({
     alignItems: 'stretch',
     borderColor: globalColors.black_05,
     borderTopWidth: 1,
-  },
-  rowHeader: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: globalMargins.medium,
-    paddingTop: globalMargins.medium,
   },
   row: {
     ...globalStyles.flexBoxColumn,

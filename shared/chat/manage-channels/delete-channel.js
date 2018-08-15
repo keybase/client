@@ -1,17 +1,22 @@
 // @flow
 import * as React from 'react'
 import {Text, Box, Icon, FloatingMenu, type OverlayParentProps, OverlayParentHOC} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
+import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../styles'
 
 const PopupHeader = ({channelName}: {channelName: string}) => {
   return (
     <Box
       style={{
         ...globalStyles.flexBoxColumn,
+        ...(isMobile
+          ? {
+              paddingBottom: globalMargins.medium,
+              paddingTop: globalMargins.large,
+            }
+          : {paddingTop: globalMargins.small}),
         alignItems: 'center',
         paddingLeft: globalMargins.tiny,
         paddingRight: globalMargins.tiny,
-        paddingTop: globalMargins.small,
         width: '100%',
       }}
     >

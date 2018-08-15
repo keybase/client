@@ -22,7 +22,13 @@ export type Props = {
 }
 
 const Header = ({teamname, memberCount}: {teamname: string, memberCount: number}) => (
-  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', paddingTop: 16}}>
+  <Box
+    style={{
+      ...globalStyles.flexBoxColumn,
+      alignItems: 'center',
+      ...(isMobile ? {paddingBottom: 24, paddingTop: 40} : {paddingTop: 16}),
+    }}
+  >
     <Avatar size={isMobile ? 64 : 48} teamname={teamname} style={{marginBottom: isMobile ? 4 : 2}} />
     <Text type="BodySemibold">{teamname}</Text>
     <Text type="BodySmall">{`${memberCount} member${memberCount !== 1 ? 's' : ''}`}</Text>
