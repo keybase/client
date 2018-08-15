@@ -8,6 +8,7 @@ import * as I from 'immutable'
 import * as KBFSGen from '../kbfs-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as NotificationsGen from '../notifications-gen'
 import * as Route from '../route-tree'
 import * as Saga from '../../util/saga'
 import * as SearchConstants from '../../constants/search'
@@ -559,7 +560,7 @@ const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif) => {
 }
 
 // Handle calls that come from the service
-const setupChatHandlers = () => {
+const setupEngineListeners = () => {
   engine().setIncomingActionCreators(
     'chat.1.NotifyChat.NewChatActivity',
     (payload: {activity: RPCChatTypes.ChatActivity}, ignore1, ignore2, getState) => {
@@ -1379,7 +1380,7 @@ const previewConversationFindExisting = (
   return Saga.sequentially([markPendingWaiting, setUsers, makeCall, passUsersDown])
 }
 
-const bootstrapSuccess = (_, state: TypedState) =>
+const startupInboxLoad = (_, state: TypedState) =>
   state.config.username && Saga.put(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
 
 const changeSelectedConversation = (
@@ -1902,9 +1903,7 @@ const navigateToInbox = (
 // Unchecked version of Chat2Gen.createNavigateToThread() --
 // Saga.put() this if you want to select the pending conversation
 // (which doesn't count as valid).
-const navigateToThreadRoute = Route.navigateTo(
-  isMobile ? [chatTab, 'conversation'] : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
-)
+const navigateToThreadRoute = Route.navigateTo(Constants.threadRoute)
 
 const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload, state: TypedState) => {
   if (!Constants.isValidConversationIDKey(state.chat2.selectedConversation)) {
@@ -2231,26 +2230,38 @@ function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMe
   })
 }
 
-const loadStaticConfig = (state: TypedState, action: ConfigGen.BootstrapPayload) =>
+const loadStaticConfig = (state: TypedState) =>
   !state.chat2.staticConfig &&
-  RPCChatTypes.localGetStaticConfigRpcPromise().then((res: RPCChatTypes.StaticConfig) => {
-    if (!res.deletableByDeleteHistory) {
-      logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
-      return
-    }
-    const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce((res, type) => {
-      const ourTypes = Constants.serviceMessageTypeToMessageTypes(type)
-      if (ourTypes) {
-        res.push(...ourTypes)
+  Saga.sequentially([
+    Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: 'chat.loadStatic'})),
+    Saga.call(function*() {
+      const loadAction = yield RPCChatTypes.localGetStaticConfigRpcPromise().then(
+        (res: RPCChatTypes.StaticConfig) => {
+          if (!res.deletableByDeleteHistory) {
+            logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
+            return
+          }
+          const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce((res, type) => {
+            const ourTypes = Constants.serviceMessageTypeToMessageTypes(type)
+            if (ourTypes) {
+              res.push(...ourTypes)
+            }
+            return res
+          }, [])
+          return Chat2Gen.createStaticConfigLoaded({
+            staticConfig: Constants.makeStaticConfig({
+              deletableByDeleteHistory: I.Set(deletableByDeleteHistory),
+            }),
+          })
+        }
+      )
+
+      if (loadAction) {
+        yield Saga.put(loadAction)
       }
-      return res
-    }, [])
-    return Chat2Gen.createStaticConfigLoaded({
-      staticConfig: Constants.makeStaticConfig({
-        deletableByDeleteHistory: I.Set(deletableByDeleteHistory),
-      }),
-    })
-  })
+    }),
+    Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name: 'chat.loadStatic'})),
+  ])
 
 const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, state: TypedState) => {
   // The service translates this to a delete if an identical reaction already exists
@@ -2295,6 +2306,9 @@ const handleFilePickerError = (action: Chat2Gen.FilePickerErrorPayload) => {
   // Just show a black bar for now.
   throw action.payload.error
 }
+
+const receivedBadgeState = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) =>
+  Saga.put(Chat2Gen.createBadgesUpdated({conversations: action.payload.badgeState.conversations || []}))
 
 const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
   const {conversationIDKey, role} = action.payload
@@ -2368,7 +2382,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.messageDelete, messageDelete)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageDeleteHistory, deleteMessageHistory)
 
-  yield Saga.safeTakeEveryPure(Chat2Gen.setupChatHandlers, setupChatHandlers)
   yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.messageSend], clearInboxFilter)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, loadCanUserPerform)
 
@@ -2380,7 +2393,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.openFolder, openFolder)
 
   // On bootstrap lets load the untrusted inbox. This helps make some flows easier
-  yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, bootstrapSuccess)
+  yield Saga.safeTakeEveryPure(ConfigGen.daemonHandshakeDone, startupInboxLoad)
 
   // Search handling
   yield Saga.safeTakeEveryPure(
@@ -2436,8 +2449,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
   yield Saga.safeTakeEvery(Chat2Gen.handleSeeingExplodingMessages, handleSeeingExplodingMessages)
   yield Saga.safeTakeEveryPure(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
-  yield Saga.actionToPromise(ConfigGen.bootstrapSuccess, loadStaticConfig)
+  yield Saga.actionToAction(ConfigGen.daemonHandshake, loadStaticConfig)
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
   yield Saga.safeTakeEveryPure(Chat2Gen.filePickerError, handleFilePickerError)
+  yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   yield Saga.safeTakeEveryPure(Chat2Gen.setMinWriterRole, setMinWriterRole)
 }
 

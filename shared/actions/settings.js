@@ -3,7 +3,7 @@ import logger from '../logger'
 import * as ChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
-import * as LoginGen from '../actions/login-gen'
+import * as ConfigGen from '../actions/config-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
@@ -356,7 +356,7 @@ function _deleteAccountForeverSaga(action: SettingsGen.DeleteAccountForeverPaylo
 
   return Saga.sequentially([
     Saga.call(RPCTypes.loginAccountDeleteRpcPromise),
-    Saga.put(LoginGen.createSetDeletedSelf({deletedUsername: username})),
+    Saga.put(ConfigGen.createSetDeletedSelf({deletedUsername: username})),
   ])
 }
 
@@ -400,6 +400,27 @@ const _rememberPassphraseSaga = (action: SettingsGen.OnChangeRememberPassphraseP
   })
 }
 
+const loadLockdownMode = (state: TypedState) =>
+  state.config.loggedIn &&
+  RPCTypes.accountGetLockdownModeRpcPromise(undefined, Constants.waitingKey)
+    .then((result: RPCTypes.GetLockdownResponse) => {
+      const status = result.status
+      return SettingsGen.createLoadedLockdownMode({status})
+    })
+    .catch(() => {
+      return SettingsGen.createLoadedLockdownMode({status: null})
+    })
+
+const setLockdownMode = (state: TypedState, action: SettingsGen.OnChangeLockdownModePayload) =>
+  state.config.loggedIn &&
+  RPCTypes.accountSetLockdownModeRpcPromise({enabled: action.payload.enabled}, Constants.waitingKey)
+    .then(() => {
+      return SettingsGen.createLoadedLockdownMode({status: action.payload.enabled})
+    })
+    .catch(() => {
+      return SettingsGen.createLoadLockdownMode()
+    })
+
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(SettingsGen.invitesReclaim, _reclaimInviteSaga)
   yield Saga.safeTakeLatest(SettingsGen.invitesRefresh, _refreshInvitesSaga)
@@ -420,6 +441,8 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     _getRememberPassphraseSuccess
   )
   yield Saga.safeTakeEveryPure(SettingsGen.onChangeRememberPassphrase, _rememberPassphraseSaga)
+  yield Saga.actionToPromise(SettingsGen.loadLockdownMode, loadLockdownMode)
+  yield Saga.actionToPromise(SettingsGen.onChangeLockdownMode, setLockdownMode)
 }
 
 export default settingsSaga
