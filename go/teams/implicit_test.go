@@ -453,10 +453,22 @@ func TestTeamListImplicit(t *testing.T) {
 	list, err = ListTeamsUnverified(context.Background(), tcs[0].G, keybase1.TeamListUnverifiedArg{IncludeImplicitTeams: false})
 	require.NoError(t, err)
 	require.Len(t, list.Teams, 1)
+	// verify that we cache this call
+	var cachedList []keybase1.MemberInfo
+	cacheKey := listTeamsUnverifiedCacheKey(fus[0].User.GetUID(), "" /* userAssertion */, false /* includeImplicitTeams */)
+	found, err := tcs[0].G.GetKVStore().GetInto(&cachedList, cacheKey)
+	require.NoError(t, err)
+	require.True(t, found)
+	require.Equal(t, len(list.Teams), len(cachedList))
 
 	list, err = ListTeamsUnverified(context.Background(), tcs[0].G, keybase1.TeamListUnverifiedArg{IncludeImplicitTeams: true})
 	require.NoError(t, err)
 	require.Len(t, list.Teams, 2)
+	cacheKey = listTeamsUnverifiedCacheKey(fus[0].User.GetUID(), "" /* userAssertion */, true /* includeImplicitTeams */)
+	found, err = tcs[0].G.GetKVStore().GetInto(&cachedList, cacheKey)
+	require.NoError(t, err)
+	require.True(t, found)
+	require.Equal(t, len(list.Teams), len(cachedList))
 
 	list, err = ListAll(context.Background(), tcs[0].G, keybase1.TeamListTeammatesArg{
 		IncludeImplicitTeams: false,
