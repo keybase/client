@@ -15,11 +15,7 @@ class ReactListMock extends React.Component<Props, {}> {
 
     return (
       <div className="ReactListMock">
-        {[...Array(length).keys()].map(index => (
-          <div className="ReactListItem" key={index}>
-            {this.props.itemRenderer(index, index)}
-          </div>
-        ))}
+        {[...Array(length).keys()].map(index => this.props.itemRenderer(index, index))}
       </div>
     )
   }
