@@ -136,7 +136,7 @@ function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: Action
 }
 
 function compileReduxTypeConstant(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
-  return `export const ${actionName} = typePrefix + '${actionName}'`
+  return `export const ${actionName} = '${ns}:${actionName}'`
 }
 
 const cleanName = c => c.replace(/-/g, '')

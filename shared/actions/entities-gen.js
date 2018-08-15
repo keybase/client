@@ -9,10 +9,10 @@ import * as Constants from '../constants/entities'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of entities but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'entities:'
-export const deleteEntity = typePrefix + 'deleteEntity'
-export const mergeEntity = typePrefix + 'mergeEntity'
-export const replaceEntity = typePrefix + 'replaceEntity'
-export const subtractEntity = typePrefix + 'subtractEntity'
+export const deleteEntity = 'entities:deleteEntity'
+export const mergeEntity = 'entities:mergeEntity'
+export const replaceEntity = 'entities:replaceEntity'
+export const subtractEntity = 'entities:subtractEntity'
 
 // Payload Types
 type _DeleteEntityPayload = $ReadOnly<{|

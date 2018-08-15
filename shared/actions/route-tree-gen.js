@@ -11,16 +11,16 @@ import * as RCConstants from '../route-tree'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of route-tree but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'route-tree:'
-export const navigateAppend = typePrefix + 'navigateAppend'
-export const navigateTo = typePrefix + 'navigateTo'
-export const navigateUp = typePrefix + 'navigateUp'
-export const putActionIfOnPath = typePrefix + 'putActionIfOnPath'
-export const refreshRouteDef = typePrefix + 'refreshRouteDef'
-export const resetRoute = typePrefix + 'resetRoute'
-export const setInitialRouteDef = typePrefix + 'setInitialRouteDef'
-export const setRouteState = typePrefix + 'setRouteState'
-export const switchRouteDef = typePrefix + 'switchRouteDef'
-export const switchTo = typePrefix + 'switchTo'
+export const navigateAppend = 'route-tree:navigateAppend'
+export const navigateTo = 'route-tree:navigateTo'
+export const navigateUp = 'route-tree:navigateUp'
+export const putActionIfOnPath = 'route-tree:putActionIfOnPath'
+export const refreshRouteDef = 'route-tree:refreshRouteDef'
+export const resetRoute = 'route-tree:resetRoute'
+export const setInitialRouteDef = 'route-tree:setInitialRouteDef'
+export const setRouteState = 'route-tree:setRouteState'
+export const switchRouteDef = 'route-tree:switchRouteDef'
+export const switchTo = 'route-tree:switchTo'
 
 // Payload Types
 type _NavigateAppendPayload = $ReadOnly<{|

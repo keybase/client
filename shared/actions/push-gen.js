@@ -9,12 +9,12 @@ import * as Types from '../constants/types/push'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of push but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'push:'
-export const notification = typePrefix + 'notification'
-export const rejectPermissions = typePrefix + 'rejectPermissions'
-export const requestPermissions = typePrefix + 'requestPermissions'
-export const showPermissionsPrompt = typePrefix + 'showPermissionsPrompt'
-export const updateHasPermissions = typePrefix + 'updateHasPermissions'
-export const updatePushToken = typePrefix + 'updatePushToken'
+export const notification = 'push:notification'
+export const rejectPermissions = 'push:rejectPermissions'
+export const requestPermissions = 'push:requestPermissions'
+export const showPermissionsPrompt = 'push:showPermissionsPrompt'
+export const updateHasPermissions = 'push:updateHasPermissions'
+export const updatePushToken = 'push:updatePushToken'
 
 // Payload Types
 type _NotificationPayload = $ReadOnly<{|notification: Types.PushNotification|}>

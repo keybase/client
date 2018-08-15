@@ -11,15 +11,15 @@ import HiddenString from '../util/hidden-string'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of devices but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'devices:'
-export const endangeredTLFsLoaded = typePrefix + 'endangeredTLFsLoaded'
-export const load = typePrefix + 'load'
-export const loaded = typePrefix + 'loaded'
-export const paperKeyCreated = typePrefix + 'paperKeyCreated'
-export const revoke = typePrefix + 'revoke'
-export const revoked = typePrefix + 'revoked'
-export const showDevicePage = typePrefix + 'showDevicePage'
-export const showPaperKeyPage = typePrefix + 'showPaperKeyPage'
-export const showRevokePage = typePrefix + 'showRevokePage'
+export const endangeredTLFsLoaded = 'devices:endangeredTLFsLoaded'
+export const load = 'devices:load'
+export const loaded = 'devices:loaded'
+export const paperKeyCreated = 'devices:paperKeyCreated'
+export const revoke = 'devices:revoke'
+export const revoked = 'devices:revoked'
+export const showDevicePage = 'devices:showDevicePage'
+export const showPaperKeyPage = 'devices:showPaperKeyPage'
+export const showRevokePage = 'devices:showRevokePage'
 
 // Payload Types
 type _EndangeredTLFsLoadedPayload = $ReadOnly<{|

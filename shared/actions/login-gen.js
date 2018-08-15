@@ -10,10 +10,10 @@ import HiddenString from '../util/hidden-string'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of login but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'login:'
-export const launchAccountResetWebPage = typePrefix + 'launchAccountResetWebPage'
-export const launchForgotPasswordWebPage = typePrefix + 'launchForgotPasswordWebPage'
-export const login = typePrefix + 'login'
-export const loginError = typePrefix + 'loginError'
+export const launchAccountResetWebPage = 'login:launchAccountResetWebPage'
+export const launchForgotPasswordWebPage = 'login:launchForgotPasswordWebPage'
+export const login = 'login:login'
+export const loginError = 'login:loginError'
 
 // Payload Types
 type _LaunchAccountResetWebPagePayload = void

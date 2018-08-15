@@ -8,8 +8,8 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of users but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'users:'
-export const updateBrokenState = typePrefix + 'updateBrokenState'
-export const updateFullnames = typePrefix + 'updateFullnames'
+export const updateBrokenState = 'users:updateBrokenState'
+export const updateFullnames = 'users:updateFullnames'
 
 // Payload Types
 type _UpdateBrokenStatePayload = $ReadOnly<{|

@@ -9,13 +9,13 @@ import * as Constants from '../constants/pinentry'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of pinentry but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'pinentry:'
-export const deleteEntity = typePrefix + 'deleteEntity'
-export const mergeEntity = typePrefix + 'mergeEntity'
-export const newPinentry = typePrefix + 'newPinentry'
-export const onCancel = typePrefix + 'onCancel'
-export const onSubmit = typePrefix + 'onSubmit'
-export const replaceEntity = typePrefix + 'replaceEntity'
-export const subtractEntity = typePrefix + 'subtractEntity'
+export const deleteEntity = 'pinentry:deleteEntity'
+export const mergeEntity = 'pinentry:mergeEntity'
+export const newPinentry = 'pinentry:newPinentry'
+export const onCancel = 'pinentry:onCancel'
+export const onSubmit = 'pinentry:onSubmit'
+export const replaceEntity = 'pinentry:replaceEntity'
+export const subtractEntity = 'pinentry:subtractEntity'
 
 // Payload Types
 type _DeleteEntityPayload = $ReadOnly<{|

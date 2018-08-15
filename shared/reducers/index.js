@@ -13,7 +13,6 @@ import provision from './provision'
 import notifications from './notifications'
 import people from './people'
 import pinentry from './pinentry'
-// import planBilling from './plan-billing'
 import profile from './profile'
 import push from './push'
 import routeTree from './route-tree'
@@ -43,7 +42,6 @@ const reducers = {
   notifications,
   people,
   pinentry,
-  // planBilling,
   profile,
   provision,
   push,
