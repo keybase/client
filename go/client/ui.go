@@ -522,7 +522,6 @@ func (ui *BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1
 func (ui *BaseIdentifyUI) DisplayCryptocurrency(l keybase1.Cryptocurrency) error {
 	msg := (BTC + " " + " " + l.Family + " " + ColorString(ui.G(), "green", l.Address))
 	ui.ReportHook(msg)
-	ui.displayedProofs = true
 	return nil
 }
 

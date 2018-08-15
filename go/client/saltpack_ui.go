@@ -84,7 +84,7 @@ func (s *SaltpackUI) SaltpackPromptForDecrypt(_ context.Context, arg keybase1.Sa
 	case keybase1.SaltpackSenderType_TRACKING_OK:
 		fmt.Fprintf(w, ColorString(s.G(), "green", fmt.Sprintf("Authored by %s.\n", ColorString(s.G(), "bold", arg.Sender.Username))))
 	case keybase1.SaltpackSenderType_NOT_TRACKED:
-		fmt.Fprintf(w, ColorString(s.G(), "green", fmt.Sprintf("Authored by %s (which you do not follow).\n", ColorString(s.G(), "bold", arg.Sender.Username))))
+		fmt.Fprintf(w, ColorString(s.G(), "green", fmt.Sprintf("Authored by %s (whom you do not follow).\n", ColorString(s.G(), "bold", arg.Sender.Username))))
 	case keybase1.SaltpackSenderType_UNKNOWN:
 		fmt.Fprintf(w, ColorString(s.G(), "green", fmt.Sprintf("The author of this message is unknown to Keybase (key ID: %s).\n", arg.SigningKID)))
 	case keybase1.SaltpackSenderType_SELF:
@@ -117,7 +117,7 @@ func (s *SaltpackUI) SaltpackVerifySuccess(_ context.Context, arg keybase1.Saltp
 	case keybase1.SaltpackSenderType_TRACKING_OK:
 		un = fmt.Sprintf("Signed by %s", ColorString(s.G(), "bold", arg.Sender.Username))
 	case keybase1.SaltpackSenderType_NOT_TRACKED:
-		un = fmt.Sprintf("Signed by %s (which you do not follow)", ColorString(s.G(), "bold", arg.Sender.Username))
+		un = fmt.Sprintf("Signed by %s (whom you do not follow)", ColorString(s.G(), "bold", arg.Sender.Username))
 		s.G().Log.Warning("The sender of this message is a Keybase user you don't follow. Consider doing so for even stronger security!")
 	case keybase1.SaltpackSenderType_SELF:
 		un = fmt.Sprintf("Signed by %s (you)", ColorString(s.G(), "bold", arg.Sender.Username))
