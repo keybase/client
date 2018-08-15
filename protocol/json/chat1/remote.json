@@ -959,6 +959,19 @@
       ],
       "response": null
     },
+    "publishTLFConvChange": {
+      "request": [
+        {
+          "name": "tlfID",
+          "type": "TLFID"
+        },
+        {
+          "name": "topicType",
+          "type": "TopicType"
+        }
+      ],
+      "response": null
+    },
     "updateTypingRemote": {
       "request": [
         {
@@ -1041,6 +1054,10 @@
         },
         {
           "name": "summarizeMaxMsgs",
+          "type": "boolean"
+        },
+        {
+          "name": "useCache",
           "type": "boolean"
         }
       ],

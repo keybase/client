@@ -672,6 +672,10 @@ func (m *ChatRemoteMock) PublishSetConversationStatus(ctx context.Context,
 	return nil
 }
 
+func (m *ChatRemoteMock) PublishTLFConvChange(ctx context.Context, arg chat1.PublishTLFConvChangeArg) error {
+	return nil
+}
+
 func (m *ChatRemoteMock) NewConversationRemote(ctx context.Context, arg chat1.ConversationIDTriple) (res chat1.NewConversationRemoteRes, err error) {
 	return res, errors.New("not implemented anymore")
 }

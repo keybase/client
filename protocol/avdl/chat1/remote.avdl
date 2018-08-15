@@ -236,6 +236,7 @@ protocol remote {
   // Pubsub endpoints
   void publishReadMessage(gregor1.UID uid, ConversationID convID, MessageID msgID);
   void publishSetConversationStatus(gregor1.UID uid, ConversationID convID, ConversationStatus status);
+  void publishTLFConvChange(TLFID tlfID, TopicType topicType);
 
   // Typing endpoints
   void updateTypingRemote(gregor1.UID uid, gregor1.DeviceID deviceID, ConversationID convID, boolean typing);
@@ -262,7 +263,7 @@ protocol remote {
     array<Conversation> conversations;
     union { null, RateLimit } rateLimit;
   }
-  GetTLFConversationsRes getTLFConversations(TLFID tlfID, TopicType topicType, boolean summarizeMaxMsgs);
+  GetTLFConversationsRes getTLFConversations(TLFID tlfID, TopicType topicType, boolean summarizeMaxMsgs, boolean useCache);
 
   // Chat notification configuration endpoint. Does not need to be complete, just a delta on the
   // currently configured settings.

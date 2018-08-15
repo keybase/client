@@ -901,6 +901,11 @@ type PublishSetConversationStatusArg struct {
 	Status ConversationStatus `codec:"status" json:"status"`
 }
 
+type PublishTLFConvChangeArg struct {
+	TlfID     TLFID     `codec:"tlfID" json:"tlfID"`
+	TopicType TopicType `codec:"topicType" json:"topicType"`
+}
+
 type UpdateTypingRemoteArg struct {
 	Uid      gregor1.UID      `codec:"uid" json:"uid"`
 	DeviceID gregor1.DeviceID `codec:"deviceID" json:"deviceID"`
@@ -933,6 +938,7 @@ type GetTLFConversationsArg struct {
 	TlfID            TLFID     `codec:"tlfID" json:"tlfID"`
 	TopicType        TopicType `codec:"topicType" json:"topicType"`
 	SummarizeMaxMsgs bool      `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
+	UseCache         bool      `codec:"useCache" json:"useCache"`
 }
 
 type SetAppNotificationSettingsArg struct {
@@ -998,6 +1004,7 @@ type RemoteInterface interface {
 	TlfResolve(context.Context, TlfResolveArg) error
 	PublishReadMessage(context.Context, PublishReadMessageArg) error
 	PublishSetConversationStatus(context.Context, PublishSetConversationStatusArg) error
+	PublishTLFConvChange(context.Context, PublishTLFConvChangeArg) error
 	UpdateTypingRemote(context.Context, UpdateTypingRemoteArg) error
 	JoinConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes, error)
 	LeaveConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes, error)
@@ -1336,6 +1343,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						return
 					}
 					err = i.PublishSetConversationStatus(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"publishTLFConvChange": {
+				MakeArg: func() interface{} {
+					ret := make([]PublishTLFConvChangeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PublishTLFConvChangeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PublishTLFConvChangeArg)(nil), args)
+						return
+					}
+					err = i.PublishTLFConvChange(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1702,6 +1725,11 @@ func (c RemoteClient) PublishReadMessage(ctx context.Context, __arg PublishReadM
 
 func (c RemoteClient) PublishSetConversationStatus(ctx context.Context, __arg PublishSetConversationStatusArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.publishSetConversationStatus", []interface{}{__arg}, nil)
+	return
+}
+
+func (c RemoteClient) PublishTLFConvChange(ctx context.Context, __arg PublishTLFConvChangeArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.publishTLFConvChange", []interface{}{__arg}, nil)
 	return
 }
 
