@@ -127,6 +127,11 @@ const handleReadMessage = notification => {
 }
 
 const handleLoudMessage = notification => {
+  // We only care if the user clicked while in session
+  if (!isIOS && !notification.userInteraction) {
+    return
+  }
+
   const {conversationIDKey, unboxPayload, membersType} = notification
 
   return Saga.call(function*() {
