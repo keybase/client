@@ -71,10 +71,9 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState, routePath}:
 
 const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
   getProfile: (username: string) => dispatch(TrackerGen.createGetProfile({username})),
-  onAcceptProofs: (username: string) => dispatch(TrackerGen.createFollow({localIgnore: false, username})),
-  onAddToTeam: (username: string) => dispatch(navigateAppend([{props: {username}, selected: 'addToTeam'}])),
+  _onAddToTeam: (username: string) => dispatch(navigateAppend([{props: {username}, selected: 'addToTeam'}])),
   onBack: () => dispatch(navigateUp()),
-  onBrowsePublicFolder: (username: string) =>
+  _onBrowsePublicFolder: (username: string) =>
     dispatch(
       KBFSGen.createOpen({path: pathFromFolder({isPublic: true, isTeam: false, users: [{username}]}).path})
     ),
@@ -155,21 +154,22 @@ const mergeProps = (stateProps, dispatchProps) => {
     }
   }
 
+  // TODO entirely change how this works
   const okProps = {
     ...stateProps.trackerState,
     ...dispatchProps,
     addUserToTeamsResults: stateProps.addUserToTeamsResults,
     bioEditFns,
     currentFriendshipsTab: stateProps.currentFriendshipsTab,
-    followersLoaded: stateProps.trackerState ? stateProps.trackerState.trackersLoaded : false,
+    followersLoaded: (stateProps.trackerState ? stateProps.trackerState.trackersLoaded : false) || false,
     followers: stateProps.trackerState ? stateProps.trackerState.trackers : [],
     following: stateProps.trackerState ? stateProps.trackerState.tracking : [],
     isYou,
     loading: Constants.isLoading(stateProps.trackerState) && !isTesting,
     onAcceptProofs: () => dispatchProps.onFollow(username),
-    onAddToTeam: () => dispatchProps.onAddToTeam(username),
+    onAddToTeam: () => dispatchProps._onAddToTeam(username),
     onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
-    onBrowsePublicFolder: () => dispatchProps.onBrowsePublicFolder(username),
+    onBrowsePublicFolder: () => dispatchProps._onBrowsePublicFolder(username),
     onChat: () => dispatchProps.onChat(username),
     onClearAddUserToTeamsResults: () => dispatchProps.onClearAddUserToTeamsResults(),
     onClickAvatar: () => dispatchProps.onClickAvatar(username),

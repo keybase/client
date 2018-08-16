@@ -42,7 +42,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     // TODO -- waiting on CORE integration for these two
     onCancelPayment: undefined,
     onRetryPayment: undefined,
-    // $FlowIssue undefined is incompatible with function
     onSelectTransaction: () => dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID),
     status: tx.statusSimplified,
     statusDetail: tx.statusDetail,

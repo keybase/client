@@ -11,7 +11,6 @@ class Render extends React.PureComponent<Props> {
   render() {
     return (
       <div style={style}>
-        {/* $FlowIssue */}
         <Inbox
           routeState={this.props.routeState}
           setRouteState={this.props.setRouteState}

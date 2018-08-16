@@ -12,9 +12,9 @@ import openURL from '../../util/open-url'
 import {isMobile} from '../../constants/platform'
 
 const mapStateToProps = (state: TypedState, {id, expanded}) => {
-  const git = state.entities.getIn(['git', 'idToInfo', id], Constants.makeGitInfo()).toObject()
+  const git = state.entities.getIn(['git', 'idToInfo', id], Constants.makeGitInfo())
   return {
-    ...git,
+    git,
     expanded,
     isNew: state.entities.getIn(['git', 'isNew', id], false),
     lastEditUserFollowing: state.config.following.has(git.lastEditUser),
@@ -37,35 +37,46 @@ const mapDispatchToProps = (dispatch: any) => ({
     ),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...stateProps,
-  canEdit: stateProps.canDelete && !!stateProps.teamname,
-  onClickDevice: () => {
-    stateProps.lastEditUser && openURL(`https://keybase.io/${stateProps.lastEditUser}/devices`)
-  },
-  onCopy: () => copyToClipboard(stateProps.url),
-  onShowDelete: () => ownProps.onShowDelete(stateProps.id),
-  openUserTracker: dispatchProps.openUserTracker,
-  onOpenChannelSelection: () =>
-    dispatchProps._onOpenChannelSelection(
-      stateProps.repoID,
-      stateProps.teamname,
-      stateProps.channelName || 'general'
-    ),
-  onToggleChatEnabled: () =>
-    dispatchProps._setDisableChat(!stateProps.chatDisabled, stateProps.repoID, stateProps.teamname),
-  onToggleExpand: () => ownProps.onToggleExpand(stateProps.id),
-})
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const {id, ...git} = stateProps.git
+
+  return {
+    canDelete: git.canDelete,
+    canEdit: git.canDelete && !!git.teamname,
+    channelName: git.channelName,
+    chatDisabled: git.chatDisabled,
+    devicename: git.devicename,
+    expanded: stateProps.expanded,
+    isNew: git.isNew,
+    lastEditTime: git.lastEditTime,
+    lastEditUser: git.lastEditUser,
+    lastEditUserFollowing: stateProps.lastEditUserFollowing,
+    name: git.name,
+    teamname: git.teamname,
+    url: git.url,
+    you: stateProps.you,
+    onClickDevice: () => {
+      git.lastEditUser && openURL(`https://keybase.io/${git.lastEditUser}/devices`)
+    },
+    onCopy: () => copyToClipboard(git.url),
+    onShowDelete: () => ownProps.onShowDelete(git.id),
+    openUserTracker: git.openUserTracker,
+    _onOpenChannelSelection: () =>
+      dispatchProps._onOpenChannelSelection(git.repoID, git.teamname, git.channelName || 'general'),
+    onToggleChatEnabled: () => dispatchProps._setDisableChat(!git.chatDisabled, git.repoID, git.teamname),
+    onToggleExpand: () => ownProps.onToggleExpand(git.id),
+  }
+}
 
 const ConnectedRow = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   withHandlers({
-    onChannelClick: ({chatDisabled, onOpenChannelSelection}) => e => {
+    onChannelClick: ({chatDisabled, _onOpenChannelSelection}) => e => {
       if (chatDisabled) {
         return
       }
       e.preventDefault()
-      onOpenChannelSelection()
+      _onOpenChannelSelection()
     },
   })
 )(Row)

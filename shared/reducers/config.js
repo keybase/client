@@ -8,10 +8,7 @@ import * as ConfigGen from '../actions/config-gen'
 
 const initialState = Constants.makeState()
 
-export default function(
-  state: Types.State = initialState,
-  action: ConfigGen.Actions | {type: 'remote:updateMenubarWindowID', payload: {id: number}}
-): Types.State {
+export default function(state: Types.State = initialState, action: ConfigGen.Actions): Types.State {
   switch (action.type) {
     case ConfigGen.resetStore:
       return initialState.merge({
@@ -147,7 +144,7 @@ export default function(
       return state.merge({notifySound: action.payload.sound})
     case ConfigGen.setOpenAtLogin:
       return state.merge({openAtLogin: action.payload.open})
-    case 'remote:updateMenubarWindowID':
+    case ConfigGen.updateMenubarWindowID:
       return state.merge({menubarWindowID: action.payload.id})
     case ConfigGen.setAccounts:
       return state.merge({
@@ -162,6 +159,7 @@ export default function(
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:
     case ConfigGen.dumpLogs:
+    case ConfigGen.logout:
     case ConfigGen.link:
     case ConfigGen.mobileAppState:
     case ConfigGen.openAppSettings:
@@ -177,3 +175,6 @@ export default function(
       return state
   }
 }
+
+
+

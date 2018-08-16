@@ -7,11 +7,12 @@ import LastOwnerDialog from './last-owner'
 import {getCanPerform, hasCanPerform} from '../../constants/teams'
 import {type Teamname} from '../../constants/types/teams'
 
-type Props = RenderProps & {
+type Props = {|
+  ...$Exact<RenderProps>,
   _canLeaveTeam: boolean,
   _loadOperations: (teamname: Teamname) => void,
   _loaded: boolean,
-}
+|}
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const name = routeProps.get('teamname')

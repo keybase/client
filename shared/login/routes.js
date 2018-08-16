@@ -21,7 +21,6 @@ const _RootLogin = ({showLoading, showRelogin, navigateAppend}) => {
     return <Loading navigateAppend={navigateAppend} />
   }
   if (showRelogin) {
-    // $FlowIssue not sure
     return <Relogin navigateAppend={navigateAppend} />
   }
   return <JoinOrLogin navigateAppend={navigateAppend} />

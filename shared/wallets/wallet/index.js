@@ -20,7 +20,6 @@ export default (props: Props) => {
       children.push(<Asset accountID={props.accountID} index={item} key={`${props.accountID}:${item}`} />)
     } else if (section.title === 'History' || section.title === 'Pending') {
       children.push(
-        // $FlowIssue thinks these props aren't in `Transaction`
         <Transaction
           accountID={props.accountID}
           paymentID={item.paymentID}
