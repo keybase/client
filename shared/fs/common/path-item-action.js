@@ -241,12 +241,18 @@ const styles = Styles.styleSheetCreate({
       marginTop: undefined,
     },
   }),
-  header: {
-    ...Styles.globalStyles.flexBoxColumn,
-    width: '100%',
-    alignItems: 'center',
-    paddingTop: Styles.globalMargins.small,
-  },
+  header: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      width: '100%',
+      alignItems: 'center',
+      paddingTop: Styles.globalMargins.small,
+    },
+    isMobile: {
+      paddingBottom: Styles.globalMargins.medium,
+      paddingTop: Styles.globalMargins.large,
+    },
+  }),
   actionIcon: {
     padding: Styles.globalMargins.tiny,
   },

@@ -138,6 +138,9 @@ const styles = Styles.styleSheetCreate({
       marginBottom: 6,
       marginTop: -15,
     },
+    isAndroid: {
+      marginTop: Styles.globalMargins.tiny,
+    },
   }),
   textAlignCenter: {
     textAlign: 'center',
