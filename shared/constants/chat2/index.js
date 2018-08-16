@@ -23,6 +23,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
+  inboxHasLoaded: false,
   inboxFilter: '',
   isExplodingNew: true,
   messageMap: I.Map(),

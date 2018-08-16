@@ -50,7 +50,9 @@ const inboxRefresh = (
       ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
     const clearExistingMessages =
       action.type === Chat2Gen.inboxRefresh && action.payload.reason === 'inboxSyncedClear'
-    return Saga.put(Chat2Gen.createMetasReceived({clearExistingMessages, clearExistingMetas, metas}))
+    return Saga.put(
+      Chat2Gen.createMetasReceived({clearExistingMessages, clearExistingMetas, fromInboxRefresh: true, metas})
+    )
   }
 
   return RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
