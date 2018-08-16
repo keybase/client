@@ -92,7 +92,7 @@ class Icon extends Component<Props, void> {
           fontWeight: 'normal',
           fontVariant: 'normal',
           textTransform: 'none',
-          lineHeight: 'initial', // NOT 1px, just 1
+          lineHeight: 'initial',
           WebkitFontSmoothing: 'antialiased',
         },
         this.props.style,
