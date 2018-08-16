@@ -122,7 +122,7 @@ func (h *SaltpackHandler) SaltpackSign(ctx context.Context, arg keybase1.Saltpac
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *SaltpackHandler) SaltpackVerify(ctx context.Context, arg keybase1.SaltpackVerifyArg) error {
+func (h *SaltpackHandler) SaltpackVerify(ctx context.Context, arg keybase1.SaltpackVerifyArg) (sender keybase1.SaltpackSender, err error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
@@ -141,5 +141,12 @@ func (h *SaltpackHandler) SaltpackVerify(ctx context.Context, arg keybase1.Saltp
 	}
 	eng := engine.NewSaltpackVerify(h.G(), earg)
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
-	return engine.RunEngine2(m, eng)
+	err = engine.RunEngine2(m, eng)
+	sender = eng.Sender()
+	return sender, err
+}
+
+func (h *SaltpackHandler) NotifySaltpackSuccess(ctx context.Context, arg keybase1.NotifySaltpackSuccessArg) error {
+	h.G().NotifyRouter.HandleSaltpackSuccess(arg.Typ, arg.Message)
+	return nil
 }

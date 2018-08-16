@@ -139,7 +139,45 @@ func (c *CmdDecrypt) Run() error {
 	}
 
 	cerr := c.filter.Close(err)
-	return libkb.PickFirstError(err, cerr)
+
+	if err = libkb.PickFirstError(err, cerr); err != nil {
+		return err
+	}
+
+	var what string
+	if c.filter.msg != "" {
+		what = "message"
+	} else {
+		what = c.filter.infile
+	}
+	var who string
+	switch info.Sender.SenderType {
+	case keybase1.SaltpackSenderType_NOT_TRACKED:
+		who = fmt.Sprintf("authored by %s, who you do not follow", info.Sender.Username)
+	case keybase1.SaltpackSenderType_UNKNOWN:
+		who = "author is unknown to keybase"
+	case keybase1.SaltpackSenderType_ANONYMOUS:
+		who = "author chose tho remain anonymous"
+	case keybase1.SaltpackSenderType_TRACKING_OK:
+		who = fmt.Sprintf("authored by %s", info.Sender.Username)
+	case keybase1.SaltpackSenderType_TRACKING_BROKE:
+		who = fmt.Sprintf("authored by %s, but review their identity", info.Sender.Username)
+	case keybase1.SaltpackSenderType_SELF:
+		who = fmt.Sprintf("authored by you: %s", info.Sender.Username)
+	case keybase1.SaltpackSenderType_REVOKED:
+		who = fmt.Sprintf("authored by %s, but the key was revoked", info.Sender.Username)
+	case keybase1.SaltpackSenderType_EXPIRED:
+		who = fmt.Sprintf("authored by %s, but the key expired", info.Sender.Username)
+	default:
+		panic("cmd_decrypt: unexpected sender type.")
+	}
+
+	err = cli.NotifySaltpackSuccess(context.TODO(), keybase1.NotifySaltpackSuccessArg{
+		Typ:     keybase1.SaltpackOperationType_DECRYPT,
+		Message: fmt.Sprintf("Successfully decrypted %s (%s)", what, who),
+	})
+
+	return err
 }
 
 func (c *CmdDecrypt) GetUsage() libkb.Usage {

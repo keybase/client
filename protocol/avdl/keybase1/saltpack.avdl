@@ -52,5 +52,12 @@ protocol saltpack {
 
   SaltpackEncryptedMessageInfo saltpackDecrypt(int sessionID, Stream source, Stream sink, SaltpackDecryptOptions opts);
   void saltpackSign(int sessionID, Stream source, Stream sink, SaltpackSignOptions opts);
-  void saltpackVerify(int sessionID, Stream source, Stream sink, SaltpackVerifyOptions opts);
+  SaltpackSender saltpackVerify(int sessionID, Stream source, Stream sink, SaltpackVerifyOptions opts);
+  
+  enum SaltpackOperationType {
+    DECRYPT_0,
+    VERIFY_1
+  }
+
+  void notifySaltpackSuccess(int sessionID, SaltpackOperationType typ, string message);
 }

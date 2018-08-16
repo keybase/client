@@ -1,0 +1,28 @@
+{
+  "protocol": "NotifySaltpack",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "saltpack.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "saltpackSuccess": {
+      "request": [
+        {
+          "name": "arg",
+          "type": "NotifySaltpackSuccessArg"
+        }
+      ],
+      "response": null,
+      "oneway": true,
+      "notify": ""
+    }
+  },
+  "namespace": "keybase.1"
+}

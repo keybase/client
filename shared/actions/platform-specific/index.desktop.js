@@ -201,6 +201,22 @@ const setupEngineListeners = () => {
     }
   )
 
+  getEngine().setIncomingActionCreators('keybase.1.NotifySaltpack.saltpackSuccess', ({arg}) => {
+    const body = arg.message || `Operation succeeded`
+    var optype
+    switch (arg.typ) {
+      case 0:
+        optype = 'decrypt'
+        break
+      case 1:
+        optype = 'verify'
+        break
+      default:
+        optype = 'operation'
+    }
+    return [NotifyPopup('Keybase ' + optype + ' succeeded', {body}, 60 * 60)]
+  })
+
   getEngine().setIncomingActionCreators('keybase.1.logsend.prepareLogsend', (_, response) => {
     dumpLogs().then(() => response && response.result())
   })

@@ -146,6 +146,14 @@
           "name": "sender"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "SaltpackOperationType",
+      "symbols": [
+        "DECRYPT_0",
+        "VERIFY_1"
+      ]
     }
   ],
   "messages": {
@@ -229,6 +237,23 @@
         {
           "name": "opts",
           "type": "SaltpackVerifyOptions"
+        }
+      ],
+      "response": "SaltpackSender"
+    },
+    "notifySaltpackSuccess": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "typ",
+          "type": "SaltpackOperationType"
+        },
+        {
+          "name": "message",
+          "type": "string"
         }
       ],
       "response": null

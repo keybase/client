@@ -80,6 +80,7 @@ type NotifyListener interface {
 	WalletRequestStatusNotification(reqID stellar1.KeybaseRequestID)
 	TeamListUnverifiedChanged(teamName string)
 	CanUserPerformChanged(teamName string)
+	SaltpackSuccess(message string)
 }
 
 type NoopNotifyListener struct{}
@@ -157,6 +158,7 @@ func (n *NoopNotifyListener) WalletPaymentStatusNotification(kbTxID stellar1.Key
 func (n *NoopNotifyListener) WalletRequestStatusNotification(reqID stellar1.KeybaseRequestID) {}
 func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string)                       {}
 func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)                           {}
+func (n *NoopNotifyListener) SaltpackSuccess(message string)                                  {}
 
 // NotifyRouter routes notifications to the various active RPC
 // connections. It's careful only to route to those who are interested
@@ -1662,4 +1664,34 @@ func (n *NotifyRouter) HandleAvatarUpdated(ctx context.Context, name string, for
 	if n.listener != nil {
 		n.listener.AvatarUpdated(name, formats)
 	}
+}
+
+// HandleSaltpackSuccess is called when a saltpack message is successfully decrypted/verified, in
+// order to alert the user with a notofication.
+func (n *NotifyRouter) HandleSaltpackSuccess(typ keybase1.SaltpackOperationType, message string) {
+	if n == nil {
+		return
+	}
+	n.G().Log.Debug("+ Sending saltpack-success notification")
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Saltpack` notification type
+		if n.getNotificationChannels(id).Saltpack {
+			// In the background do...
+			go func() {
+				// A send of a `SaltpackSuccess` RPC
+				(keybase1.NotifySaltpackClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).SaltpackSuccess(context.Background(), keybase1.NotifySaltpackSuccessArg{
+					Message: message,
+					Typ:     typ,
+				})
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.SaltpackSuccess(message)
+	}
+	n.G().Log.Debug("- saltpack-success notification sent")
 }

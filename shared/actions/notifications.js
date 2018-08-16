@@ -32,6 +32,7 @@ const setupEngineListeners = () => {
     tracking: true,
     users: true,
     wallet: true,
+    saltpack: true,
   }
 
   getEngine().actionOnConnect('setNotifications', () => {

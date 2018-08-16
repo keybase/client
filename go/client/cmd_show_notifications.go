@@ -5,6 +5,7 @@ package client
 
 import (
 	"encoding/base64"
+	"fmt"
 	"time"
 
 	"golang.org/x/net/context"
@@ -38,12 +39,14 @@ func (c *CmdShowNotifications) Run() error {
 		keybase1.NotifyUsersProtocol(display),
 		keybase1.NotifyFSProtocol(display),
 		keybase1.NotifyTrackingProtocol(display),
+		keybase1.NotifySaltpackProtocol(display),
 	}
 	channels := keybase1.NotificationChannels{
 		Session:  true,
 		Users:    true,
 		Kbfs:     true,
 		Tracking: true,
+		Saltpack: true,
 	}
 
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
@@ -145,4 +148,13 @@ func (d *notificationDisplay) FSSyncStatusResponse(
 
 func (d *notificationDisplay) TrackingChanged(_ context.Context, arg keybase1.TrackingChangedArg) error {
 	return d.printf("Tracking changed for %s (%s)\n", arg.Username, arg.Uid)
+}
+
+func (d *notificationDisplay) SaltpackSuccess(_ context.Context, arg keybase1.NotifySaltpackSuccessArg) (err error) {
+	var msg string
+	if arg.Message != "" {
+		msg = fmt.Sprintf(": %s", arg.Message)
+	}
+	d.printf("Keybase %s succeded%s\n", arg.Typ.String(), msg)
+	return
 }

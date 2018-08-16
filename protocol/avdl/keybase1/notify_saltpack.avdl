@@ -1,0 +1,10 @@
+@namespace("keybase.1")
+protocol NotifySaltpack {
+  import idl "common.avdl";
+
+  import idl "saltpack.avdl";
+
+
+  @notify("")
+  void saltpackSuccess(NotifySaltpackSuccessArg arg) oneway;
+}

@@ -156,6 +156,32 @@ func (o SaltpackEncryptedMessageInfo) DeepCopy() SaltpackEncryptedMessageInfo {
 	}
 }
 
+type SaltpackOperationType int
+
+const (
+	SaltpackOperationType_DECRYPT SaltpackOperationType = 0
+	SaltpackOperationType_VERIFY  SaltpackOperationType = 1
+)
+
+func (o SaltpackOperationType) DeepCopy() SaltpackOperationType { return o }
+
+var SaltpackOperationTypeMap = map[string]SaltpackOperationType{
+	"DECRYPT": 0,
+	"VERIFY":  1,
+}
+
+var SaltpackOperationTypeRevMap = map[SaltpackOperationType]string{
+	0: "DECRYPT",
+	1: "VERIFY",
+}
+
+func (e SaltpackOperationType) String() string {
+	if v, ok := SaltpackOperationTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type SaltpackEncryptArg struct {
 	SessionID int                    `codec:"sessionID" json:"sessionID"`
 	Source    Stream                 `codec:"source" json:"source"`
@@ -184,11 +210,18 @@ type SaltpackVerifyArg struct {
 	Opts      SaltpackVerifyOptions `codec:"opts" json:"opts"`
 }
 
+type NotifySaltpackSuccessArg struct {
+	SessionID int                   `codec:"sessionID" json:"sessionID"`
+	Typ       SaltpackOperationType `codec:"typ" json:"typ"`
+	Message   string                `codec:"message" json:"message"`
+}
+
 type SaltpackInterface interface {
 	SaltpackEncrypt(context.Context, SaltpackEncryptArg) error
 	SaltpackDecrypt(context.Context, SaltpackDecryptArg) (SaltpackEncryptedMessageInfo, error)
 	SaltpackSign(context.Context, SaltpackSignArg) error
-	SaltpackVerify(context.Context, SaltpackVerifyArg) error
+	SaltpackVerify(context.Context, SaltpackVerifyArg) (SaltpackSender, error)
+	NotifySaltpackSuccess(context.Context, NotifySaltpackSuccessArg) error
 }
 
 func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
@@ -254,7 +287,23 @@ func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]SaltpackVerifyArg)(nil), args)
 						return
 					}
-					err = i.SaltpackVerify(ctx, (*typedArgs)[0])
+					ret, err = i.SaltpackVerify(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"notifySaltpackSuccess": {
+				MakeArg: func() interface{} {
+					ret := make([]NotifySaltpackSuccessArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]NotifySaltpackSuccessArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]NotifySaltpackSuccessArg)(nil), args)
+						return
+					}
+					err = i.NotifySaltpackSuccess(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -282,7 +331,12 @@ func (c SaltpackClient) SaltpackSign(ctx context.Context, __arg SaltpackSignArg)
 	return
 }
 
-func (c SaltpackClient) SaltpackVerify(ctx context.Context, __arg SaltpackVerifyArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackVerify", []interface{}{__arg}, nil)
+func (c SaltpackClient) SaltpackVerify(ctx context.Context, __arg SaltpackVerifyArg) (res SaltpackSender, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackVerify", []interface{}{__arg}, &res)
+	return
+}
+
+func (c SaltpackClient) NotifySaltpackSuccess(ctx context.Context, __arg NotifySaltpackSuccessArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.notifySaltpackSuccess", []interface{}{__arg}, nil)
 	return
 }
