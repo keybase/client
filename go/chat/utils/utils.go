@@ -1085,7 +1085,7 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 			info.VideoDuration = new(string)
 			*info.VideoDuration = formatVideoDuration(asset.Metadata.Video().DurationMs) + ", " +
 				formatVideoSize(asset.Size)
-			info.InlineVideoPlayable = asset.Size < (1<<20)*500
+			info.InlineVideoPlayable = true
 		}
 		if info.FullUrl == "" && info.PreviewUrl == "" && info.MimeType == "" {
 			return nil
