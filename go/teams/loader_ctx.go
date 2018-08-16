@@ -64,11 +64,11 @@ func (r *rawTeam) GetAppStatus() *libkb.AppStatus {
 	return &r.Status
 }
 
-func (t *rawTeam) unpackLinks(ctx context.Context) ([]*chainLinkUnpacked, error) {
-	if t == nil {
+func (r *rawTeam) unpackLinks(ctx context.Context) ([]*chainLinkUnpacked, error) {
+	if r == nil {
 		return nil, nil
 	}
-	parsedLinks, err := t.parseLinks(ctx)
+	parsedLinks, err := r.parseLinks(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -80,8 +80,8 @@ func (t *rawTeam) unpackLinks(ctx context.Context) ([]*chainLinkUnpacked, error)
 			return nil, err
 		}
 		if !link.isStubbed() {
-			if !link.innerTeamID.Eq(t.ID) {
-				return nil, fmt.Errorf("link has wrong team ID in response: %v != %v", link.innerTeamID, t.ID)
+			if !link.innerTeamID.Eq(r.ID) {
+				return nil, fmt.Errorf("link has wrong team ID in response: %v != %v", link.innerTeamID, r.ID)
 			}
 		}
 		links = append(links, link)
