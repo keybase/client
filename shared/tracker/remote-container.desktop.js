@@ -17,11 +17,6 @@ import {
   type Dispatch,
 } from '../util/container'
 
-const mapStateToProps = state => {
-  console.log('nathan test', state)
-  return {...state}
-}
-
 // Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = (dispatch: Dispatch, {teamname}) => ({
   _checkRequestedAccess: (teamname: string) => dispatch(TeamsGen.createCheckRequestedAccess({teamname})),
@@ -70,7 +65,7 @@ export default compose(
     {selectedTeamRect: null},
     {onSetSelectedTeamRect: () => selectedTeamRect => ({selectedTeamRect})}
   ),
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(s => s, mapDispatchToProps, mergeProps),
   branch(props => !props.username, renderNothing),
   lifecycle({
     componentDidMount() {
