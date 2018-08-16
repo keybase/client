@@ -46,29 +46,25 @@ type State = {
 class ImageAttachment extends React.PureComponent<Props, State> {
   imageRef: any
 
-  constructor(props: Props) {
-    super(props)
-    this.imageRef = React.createRef()
-  }
   state = {loaded: false, playingVideo: false}
   _setLoaded = () => this.setState({loaded: true})
 
   _onClick = () => {
-    if (this.props.inlineVideoPlayable && this.imageRef && this.imageRef.current) {
-      this.imageRef.current.onVideoClick()
+    if (this.props.inlineVideoPlayable && this.imageRef) {
+      this.imageRef.onVideoClick()
       this.setState(p => ({playingVideo: !p.playingVideo}))
     } else {
       this.props.onClick()
     }
   }
   _onMouseEnter = () => {
-    if (this.props.inlineVideoPlayable && this.imageRef && this.imageRef.current) {
-      this.imageRef.current.onVideoMouseEnter()
+    if (this.props.inlineVideoPlayable && this.imageRef) {
+      this.imageRef.onVideoMouseEnter()
     }
   }
   _onMouseLeave = () => {
-    if (this.props.inlineVideoPlayable && this.imageRef && this.imageRef.current) {
-      this.imageRef.current.onVideoMouseLeave()
+    if (this.props.inlineVideoPlayable && this.imageRef) {
+      this.imageRef.onVideoMouseLeave()
     }
   }
 
@@ -96,7 +92,9 @@ class ImageAttachment extends React.PureComponent<Props, State> {
         >
           {!!this.props.path && (
             <ImageRender
-              ref={this.imageRef}
+              ref={ref => {
+                this.imageRef = ref
+              }}
               src={this.props.path}
               onLoad={this._setLoaded}
               loaded={this.state.loaded}

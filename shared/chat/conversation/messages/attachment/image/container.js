@@ -65,12 +65,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
             dispatchProps._onShowInFinder(message)
           }
         : null,
-    path: !isMobile && message.inlineVideoPlayable ? message.fileURL : message.previewURL,
+    path: message.inlineVideoPlayable ? message.fileURL : message.previewURL,
     progress: message.transferProgress,
     progressLabel,
     showButton: buttonType,
     videoDuration: message.videoDuration || '',
-    inlineVideoPlayable: !isMobile && message.inlineVideoPlayable,
+    inlineVideoPlayable: message.inlineVideoPlayable,
     title: message.title || message.fileName,
     toggleMessageMenu: ownProps.toggleMessageMenu,
     width: Math.min(message.previewWidth, imgMaxWidth()),
