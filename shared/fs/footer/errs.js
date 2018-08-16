@@ -51,7 +51,16 @@ type ErrsProps = {
 
 const Errs = (props: ErrsProps) => (
   <Box2 fullWidth={true} direction="vertical">
-    {props.errs.map(errProp => <Err key={errProp.key} {...errProp} />)}
+    {props.errs.map(err => (
+      <Err
+        key={err.key}
+        time={err.time}
+        error={err.error}
+        msg={err.msg}
+        retry={err.retry}
+        dismiss={err.dismiss}
+      />
+    ))}
     {!!props.more && (
       <Box2 fullWidth={true} direction="horizontal" style={styles.moreContainer}>
         <Text type="BodySmall">

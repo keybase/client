@@ -75,6 +75,9 @@ const rowProviders = {
 
 const provider = Sb.createPropProviderWithCommon({
   ...rowProviders,
+  ConnectedErrs: () => ({
+    errs: [],
+  }),
   ConnectedDownloads: () => ({
     downloadKeys: ['file 1', 'blah 2', 'yo 3'],
     thereAreMore: true,
