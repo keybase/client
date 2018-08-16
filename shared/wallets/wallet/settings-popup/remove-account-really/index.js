@@ -1,19 +1,9 @@
 // @flow
 import React from 'react'
-import {
-  Box,
-  Button,
-  MaybePopup,
-  Text,
-  ButtonBar,
-  Icon,
-  iconCastPlatformStyles,
-} from '../../../../common-adapters'
-import HOCTimers, {type PropsWithTimer} from '../../../../common-adapters/hoc-timers'
-import Toast from '../../../../common-adapters/toast'
+import * as Kb from '../../../../common-adapters'
 import {globalColors, globalStyles, globalMargins, isMobile, styleSheetCreate} from '../../../../styles'
 
-type Props = PropsWithTimer<{
+type Props = Kb.PropsWithTimer<{
   name: string,
   onCopyKey: () => void,
   onClose: () => void,
@@ -38,46 +28,46 @@ class _RemoveAccountReally extends React.Component<Props, State> {
 
   render() {
     return (
-      <MaybePopup onClose={this.props.onClose}>
-        <Box style={styles.box}>
-          <Icon
+      <Kb.MaybePopup onClose={this.props.onClose}>
+        <Kb.Box style={styles.box}>
+          <Kb.Icon
             type={isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
-            style={iconCastPlatformStyles(styles.icon)}
+            style={Kb.iconCastPlatformStyles(styles.icon)}
           />
-          <Text style={styles.warning} type="Header">
+          <Kb.Text style={styles.warning} type="Header">
             One last thing! Make sure you keep a copy of your secret key before removing{' '}
-            <Text type="Header" style={styles.italic}>
+            <Kb.Text type="Header" style={styles.italic}>
               {this.props.name}
-            </Text>.
-          </Text>
-          <Text type="BodySmall">Paste it in a 100% safe place.</Text>
-          <ButtonBar style={styles.buttonbar}>
-            <Button
+            </Kb.Text>.
+          </Kb.Text>
+          <Kb.Text type="BodySmall">Paste it in a 100% safe place.</Kb.Text>
+          <Kb.ButtonBar style={styles.buttonbar}>
+            <Kb.Button
               label="Copy secret key"
               onClick={this.copy}
               type="Wallet"
               ref={r => (this._attachmentRef = r)}
             >
               {this.state.showingToast && (
-                <Toast
+                <Kb.Toast
                   visible={this.state.showingToast}
                   attachTo={this._attachmentRef}
                   position={'top center'}
                 >
-                  <Text type="BodySmall" style={styles.text}>
+                  <Kb.Text type="BodySmall" style={styles.text}>
                     Copied to clipboard
-                  </Text>
-                </Toast>
+                  </Kb.Text>
+                </Kb.Toast>
               )}
-            </Button>
-            <Button label="Cancel" onClick={this.props.onClose} type="Secondary" />
-          </ButtonBar>
-        </Box>
-      </MaybePopup>
+            </Kb.Button>
+            <Kb.Button label="Cancel" onClick={this.props.onClose} type="Secondary" />
+          </Kb.ButtonBar>
+        </Kb.Box>
+      </Kb.MaybePopup>
     )
   }
 }
-const RemoveAccountReally = HOCTimers(_RemoveAccountReally)
+const RemoveAccountReally = Kb.HOCTimers(_RemoveAccountReally)
 
 const styles = styleSheetCreate({
   icon: {
