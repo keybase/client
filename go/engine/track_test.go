@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func runTrack(tc libkb.TestContext, fu *FakeUser, username string, sigVersion libkb.SigVersion) (idUI *FakeIdentifyUI, them *libkb.User, err error) {
@@ -149,21 +150,17 @@ func _testTrack(t *testing.T, sigVersion libkb.SigVersion) {
 	// Assert that we gracefully handle the case of no login
 	Logout(tc)
 	_, _, err := runTrack(tc, fu, "t_bob", sigVersion)
-	if err == nil {
-		t.Fatal("expected logout error; got no error")
-	} else if _, ok := err.(libkb.DeviceRequiredError); !ok {
-		t.Fatalf("expected a DeviceRequireError; got %s", err)
-	}
+	require.Error(t, err)
+	_, ok := err.(libkb.DeviceRequiredError)
+	require.True(t, ok)
+
 	fu.LoginOrBust(tc)
 	trackBob(tc, fu)
 	defer untrackBob(tc, fu, sigVersion)
 
 	// try tracking a user with no keys (which is now allowed)
 	_, _, err = runTrack(tc, fu, "t_ellen", sigVersion)
-	if err != nil {
-		t.Errorf("expected no error tracking t_ellen (user with no keys), got %s", err)
-	}
-	return
+	require.NoError(t, err)
 }
 
 // tests tracking a user that doesn't have a public key (#386)
