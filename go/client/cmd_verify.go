@@ -5,6 +5,7 @@ package client
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 
 	"golang.org/x/net/context"
@@ -121,6 +122,7 @@ func (c *CmdVerify) Run() (err error) {
 		return err
 	}
 	snk, src, err := c.ClientFilterOpen(c.G())
+	var sender keybase1.SaltpackSender
 	if err == nil {
 		arg := keybase1.SaltpackVerifyArg{
 			Source: src,
@@ -130,10 +132,49 @@ func (c *CmdVerify) Run() (err error) {
 				SignedBy:  c.signedBy,
 			},
 		}
-		err = cli.SaltpackVerify(context.TODO(), arg)
+		sender, err = cli.SaltpackVerify(context.TODO(), arg)
 	}
 	cerr := c.Close(err)
-	return libkb.PickFirstError(err, cerr)
+
+	if err = libkb.PickFirstError(err, cerr); err != nil {
+		return err
+	}
+
+	var what string
+	if c.UnixFilter.msg != "" {
+		what = "message"
+	} else {
+		what = c.UnixFilter.infile
+	}
+	var who string
+	switch sender.SenderType {
+	case keybase1.SaltpackSenderType_NOT_TRACKED:
+		who = fmt.Sprintf("authored by %s, who you do not follow", sender.Username)
+	case keybase1.SaltpackSenderType_UNKNOWN:
+		who = "author is unknown to keybase"
+	case keybase1.SaltpackSenderType_ANONYMOUS:
+		who = "author chose tho remain anonymous"
+	case keybase1.SaltpackSenderType_TRACKING_OK:
+		who = fmt.Sprintf("authored by %s", sender.Username)
+	case keybase1.SaltpackSenderType_TRACKING_BROKE:
+		who = fmt.Sprintf("authored by %s, but review their identity", sender.Username)
+	case keybase1.SaltpackSenderType_SELF:
+		who = fmt.Sprintf("authored by you: %s", sender.Username)
+	case keybase1.SaltpackSenderType_REVOKED:
+		who = fmt.Sprintf("authored by %s, but the key was revoked", sender.Username)
+	case keybase1.SaltpackSenderType_EXPIRED:
+		who = fmt.Sprintf("authored by %s, but the key expired", sender.Username)
+	default:
+		panic("cmd_decrypt: unexpected sender type.")
+	}
+
+	err = cli.NotifySaltpackSuccess(context.TODO(), keybase1.NotifySaltpackSuccessArg{
+		Typ:     keybase1.SaltpackOperationType_VERIFY,
+		Message: fmt.Sprintf("Successfully verified %s (%s)", what, who),
+	})
+
+	return err
+
 }
 
 func (c *CmdVerify) GetUsage() libkb.Usage {

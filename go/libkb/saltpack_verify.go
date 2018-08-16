@@ -9,6 +9,7 @@ import (
 	"io"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/saltpack"
 )
 
@@ -17,13 +18,13 @@ type SaltpackVerifyContext interface {
 	GetLog() logger.Logger
 }
 
-func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteCloser, checkSender func(saltpack.SigningPublicKey) error) error {
+func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteCloser, checkSender func(saltpack.SigningPublicKey) error) (sender keybase1.SaltpackSender, err error) {
 	sc, newSource, err := ClassifyStream(source)
 	if err != nil {
-		return err
+		return keybase1.SaltpackSender{}, err
 	}
 	if sc.Format != CryptoMessageFormatSaltpack {
-		return WrongCryptoFormatError{
+		return keybase1.SaltpackSender{}, WrongCryptoFormatError{
 			Wanted:    CryptoMessageFormatSaltpack,
 			Received:  sc.Format,
 			Operation: "verify",
@@ -43,41 +44,41 @@ func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteClos
 	}
 	if err != nil {
 		g.GetLog().Debug("saltpack.NewDearmor62VerifyStream error: %s", err)
-		return VerificationError{Cause: err}
+		return keybase1.SaltpackSender{}, VerificationError{Cause: err}
 	}
 
 	if checkSender != nil {
 		if err = checkSender(skey); err != nil {
-			return VerificationError{Cause: err}
+			return keybase1.SaltpackSender{}, VerificationError{Cause: err}
 		}
 	}
 
 	n, err := io.Copy(sink, vs)
 	if err != nil {
-		return VerificationError{Cause: err}
+		return keybase1.SaltpackSender{}, VerificationError{Cause: err}
 	}
 
 	if sc.Armored {
 		if err = checkSaltpackBrand(brand); err != nil {
-			return VerificationError{Cause: err}
+			return keybase1.SaltpackSender{}, VerificationError{Cause: err}
 		}
 	}
 
 	g.GetLog().Debug("Verify: read %d bytes", n)
 
 	if err := sink.Close(); err != nil {
-		return VerificationError{Cause: err}
+		return keybase1.SaltpackSender{}, VerificationError{Cause: err}
 	}
-	return nil
+	return sender, nil
 }
 
-func SaltpackVerifyDetached(g SaltpackVerifyContext, message io.Reader, signature []byte, checkSender func(saltpack.SigningPublicKey) error) error {
+func SaltpackVerifyDetached(g SaltpackVerifyContext, message io.Reader, signature []byte, checkSender func(saltpack.SigningPublicKey) error) (sender keybase1.SaltpackSender, err error) {
 	sc, _, err := ClassifyStream(bytes.NewReader(signature))
 	if err != nil {
-		return err
+		return keybase1.SaltpackSender{}, err
 	}
 	if sc.Format != CryptoMessageFormatSaltpack {
-		return WrongCryptoFormatError{
+		return keybase1.SaltpackSender{}, WrongCryptoFormatError{
 			Wanted:    CryptoMessageFormatSaltpack,
 			Received:  sc.Format,
 			Operation: "verify detached",
@@ -92,26 +93,26 @@ func SaltpackVerifyDetached(g SaltpackVerifyContext, message io.Reader, signatur
 		skey, brand, err = saltpack.Dearmor62VerifyDetachedReader(saltpack.CheckKnownMajorVersion, message, string(signature), kr)
 		if err != nil {
 			g.GetLog().Debug("saltpack.Dearmor62VerifyDetachedReader error: %s", err)
-			return VerificationError{Cause: err}
+			return keybase1.SaltpackSender{}, VerificationError{Cause: err}
 		}
 		if err = checkSaltpackBrand(brand); err != nil {
-			return VerificationError{Cause: err}
+			return keybase1.SaltpackSender{}, VerificationError{Cause: err}
 		}
 	} else {
 		skey, err = saltpack.VerifyDetachedReader(saltpack.CheckKnownMajorVersion, message, signature, kr)
 		if err != nil {
 			g.GetLog().Debug("saltpack.VerifyDetachedReader error: %s", err)
-			return VerificationError{Cause: err}
+			return keybase1.SaltpackSender{}, VerificationError{Cause: err}
 		}
 	}
 
 	if checkSender != nil {
 		if err = checkSender(skey); err != nil {
-			return VerificationError{Cause: err}
+			return keybase1.SaltpackSender{}, VerificationError{Cause: err}
 		}
 	}
 
-	return nil
+	return sender, nil
 }
 
 type echoKeyring struct {
