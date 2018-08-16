@@ -3,7 +3,7 @@ import * as ConfigGen from '../actions/config-gen'
 import * as Tabs from '../constants/tabs'
 import * as FsTypes from '../constants/types/fs'
 import * as FsGen from '../actions/fs-gen'
-import {switchTo, navigateTo} from '../actions/route-tree'
+import {switchTo} from '../actions/route-tree'
 import {FilesPreview} from './files.desktop'
 import {connect, compose, type Dispatch} from '../util/container'
 
@@ -15,10 +15,6 @@ const mapStateToProps = (state) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onViewAll: () => {
-    dispatch(ConfigGen.createShowMain())
-    dispatch(switchTo([Tabs.fsTab]))
-  },
   _onSelectPath: (path: FsTypes.Path) => {
     dispatch(ConfigGen.createShowMain())
     dispatch(switchTo([Tabs.fsTab]))
@@ -26,19 +22,18 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       openDirectly: true,
       path,
     }))
-    // TODO: This should work even when the path isn't a folder.
-    dispatch(navigateTo([{
-      props: {path},
-      selected: 'folder',
-    }]))
+  },
+  onViewAll: () => {
+    dispatch(ConfigGen.createShowMain())
+    dispatch(switchTo([Tabs.fsTab]))
   },
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
   onViewAll: dispatchProps.onViewAll,
   tlfRows: stateProps._tlfRows.map(c => ({
-    onSelectConversation: () => dispatchProps._onSelectPath(c.path),
-    ...c,
+    onSelectPath: () => dispatchProps._onSelectPath(c.path),
+    path: FsTypes.pathToString(c.path),
   })),
 })
 

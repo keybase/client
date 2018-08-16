@@ -8,7 +8,8 @@ import * as Styles from '../styles'
 type TlfRow = {|
   // TODO: uncomment once we make this.
   // ...$Exact<RemoteContainer.RemoteTlfMeta>,
-  name: string,
+  path: string,
+  onSelectPath: () => void,
 |}
 
 type FilesPreviewProps = {|
@@ -18,11 +19,13 @@ type FilesPreviewProps = {|
 
 export const FilesPreview = ({onViewAll, tlfRows}: FilesPreviewProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfContainer}>
-    {tlfRows.map((r, i) => {
+    {tlfRows.map(r => {
       return (
-        <Kb.Text key={i} type="Body">
-          Hello
-        </Kb.Text>
+        <Kb.ClickableBox key={r.path} onClick={r.onSelectPath}>
+          <Kb.Text type="Body">
+            {r.path}
+          </Kb.Text>
+        </Kb.ClickableBox>
       )
     })}
   </Kb.Box2>
