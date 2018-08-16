@@ -10,5 +10,6 @@ const mergeProps = (stateProps, dispatchProps) => ({})
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  // $FlowIssue TODO
   setDisplayName('AssetInput')
 )(AssetInput)

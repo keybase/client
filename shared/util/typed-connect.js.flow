@@ -17,13 +17,13 @@ declare export default function connect<RMP, Com: ComponentType<RMP>, DP, SP: Ty
 
 // eslint-disable-next-line no-redeclare
 declare export default function connect<
+  OP,
+  RSP,
+  RDP,
   Com: ComponentType<RSP & RDP & OP>,
   DP,
   SP: TypedState,
-  RSP,
-  RDP,
-  MP,
-  OP
+  MP
 >(
   mapStateToProps: MapStateToProps<OP, RSP>,
   mapDispatchToProps: MapDispatchToProps<OP, RDP>

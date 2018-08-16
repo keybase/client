@@ -5,4 +5,4 @@ import type {Props} from './header-hoc.types'
 declare export class HeaderHocHeader extends React.Component<Props> {}
 declare export default function HeaderHoc<P: {}>(
   WrappedComponent: React.ComponentType<P>
-): React.ComponentType<P & Props>
+): React.ComponentType<{...P, ...Props}>

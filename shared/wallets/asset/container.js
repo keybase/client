@@ -24,7 +24,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     issuerAccountID: asset.issuerAccountID,
     issuerName: asset.issuerName || 'Unknown',
     name: asset.name,
-    reserves: asset.reserves,
+    reserves: asset.reserves.toArray(),
   }
 }
 

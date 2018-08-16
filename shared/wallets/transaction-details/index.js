@@ -91,7 +91,8 @@ const colorForStatus = (status: Types.StatusSimplified) => {
 const descriptionForStatus = (status: Types.StatusSimplified) =>
   status === 'completed' ? 'Sent' : capitalize(status)
 
-export default class extends React.Component<Props> {
+
+class TransactionDetails extends React.Component<Props> {
   componentWillMount() {
     this.props.onLoadPaymentDetail()
   }
@@ -190,6 +191,8 @@ export default class extends React.Component<Props> {
     )
   }
 }
+
+export default TransactionDetails
 
 const styles = styleSheetCreate({
   container: {

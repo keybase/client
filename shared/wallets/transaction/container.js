@@ -45,7 +45,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onSelectTransaction: () => dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID),
     status: tx.statusSimplified,
     statusDetail: tx.statusDetail,
-    timestamp: tx.time,
+    timestamp: tx.time ? new Date(tx.time) : null,
     yourRole,
   }
 }

@@ -44,6 +44,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     title: 'Transaction details',
     transactionID: tx.txID,
     yourRole,
+    you: stateProps._you,
   }
 }
 

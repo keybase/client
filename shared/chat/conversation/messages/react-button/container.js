@@ -8,8 +8,7 @@ import * as RouteTree from '../../../../actions/route-tree'
 import type {StylesCrossPlatform} from '../../../../styles'
 import ReactButton, {NewReactionButton, type Props, type NewReactionButtonProps} from '.'
 
-export type WrapperProps = {...Props, ...NewReactionButtonProps}
-const Wrapper = (props: WrapperProps) =>
+const Wrapper = (props: OwnProps) =>
   props.emoji ? (
     <ReactButton
       active={props.active}
