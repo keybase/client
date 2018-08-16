@@ -50,6 +50,10 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
         'systemSimpleToComplex',
         'systemText',
       ]
+    case RPCChatTypes.commonMessageType.sendpayment:
+      return ['sendPayment']
+    case RPCChatTypes.commonMessageType.requestpayment:
+      return ['requestPayment']
     // mutations and other types we don't store directly
     case RPCChatTypes.commonMessageType.none:
     case RPCChatTypes.commonMessageType.edit:
@@ -57,8 +61,6 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
     case RPCChatTypes.commonMessageType.tlfname:
     case RPCChatTypes.commonMessageType.deletehistory:
     case RPCChatTypes.commonMessageType.reaction:
-    case RPCChatTypes.commonMessageType.sendpayment:
-    case RPCChatTypes.commonMessageType.requestpayment:
       return []
     default:
       /*::
@@ -473,17 +475,19 @@ const validUIMessagetoMessage = (
     deviceName: m.senderDeviceName,
     deviceRevokedAt: m.senderDeviceRevokedAt,
     deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),
+    outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
+    reactions: reactionMapToReactions(m.reactions),
+  }
+  const explodable = {
     exploded: m.isEphemeralExpired,
     explodedBy: m.explodedBy || '',
     exploding: m.isEphemeral,
     explodingTime: m.etime,
-    outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
-    reactions: reactionMapToReactions(m.reactions),
   }
 
   if (m.isEphemeralExpired) {
     // This message already exploded. Make it an empty text message.
-    return makeMessageText({...common})
+    return makeMessageText({...common, ...explodable})
   }
 
   switch (m.messageBody.messageType) {
@@ -491,6 +495,7 @@ const validUIMessagetoMessage = (
       const rawText: string = (m.messageBody.text && m.messageBody.text.body) || ''
       return makeMessageText({
         ...common,
+        ...explodable,
         hasBeenEdited: m.superseded,
         mentionsAt: I.Set(m.atMentions || []),
         mentionsChannel: channelMentionToMentionsChannel(m.channelMention),
@@ -546,6 +551,7 @@ const validUIMessagetoMessage = (
 
       return makeMessageAttachment({
         ...common,
+        ...explodable,
         attachmentType: pre.attachmentType,
         fileName: filename,
         fileSize: size,
@@ -578,6 +584,21 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.commonMessageType.metadata:
       return m.messageBody.metadata
         ? makeMessageSetChannelname({...minimum, newChannelname: m.messageBody.metadata.conversationTitle})
+        : null
+    case RPCChatTypes.commonMessageType.sendpayment:
+      return m.messageBody.sendpayment
+        ? makeMessageSendPayment({
+            ...common,
+            paymentID: m.messageBody.sendpayment.paymentID,
+          })
+        : null
+    case RPCChatTypes.commonMessageType.requestpayment:
+      return m.messageBody.requestpayment
+        ? makeMessageRequestPayment({
+            ...common,
+            note: m.messageBody.requestpayment.note,
+            requestID: m.messageBody.requestpayment.requestID,
+          })
         : null
     case RPCChatTypes.commonMessageType.none:
       return null
