@@ -32,6 +32,7 @@ export class ImageRender extends React.Component<Props> {
         styles={this.props.style}
         onLoadEnd={this.props.onLoad}
         source={source}
+        scrollEnabled={false}
       />
     ) : (
       <NativeImage onLoad={this.props.onLoad} source={source} style={this.props.style} resizeMode="contain" />

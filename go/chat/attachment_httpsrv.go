@@ -207,7 +207,7 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 					<video id="vid" class="cover" src="%s" preload="metadata" playsinline webkit-playsinline />
 				</body>
 			</html>
-		`, req.URL.String()+"&contentforce=true#t=0.5"))); err != nil {
+		`, req.URL.String()+"&contentforce=true#t=0.1"))); err != nil {
 			r.Debug(ctx, "serve: failed to write HTML video player: %s", err)
 		}
 		return true
