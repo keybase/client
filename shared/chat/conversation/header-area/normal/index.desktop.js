@@ -78,7 +78,7 @@ const UsernameHeader = (props: Props) => (
 const containerStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  borderBottomColor: globalColors.black_05,
+  borderBottomColor: globalColors.black_10,
   borderBottomWidth: 1,
   borderStyle: 'solid',
   justifyContent: 'center',

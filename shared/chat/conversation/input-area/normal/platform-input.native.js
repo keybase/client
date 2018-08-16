@@ -335,7 +335,7 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxRow,
     alignItems: 'flex-end',
     backgroundColor: globalColors.fastBlank,
-    borderTopColor: globalColors.black_05,
+    borderTopColor: globalColors.black_10,
     borderTopWidth: 1,
     flexShrink: 0,
     minHeight: 48,

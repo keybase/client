@@ -15,7 +15,7 @@ class Divider extends Component<Props> {
 
 const styles = {
   divider: {
-    backgroundColor: globalColors.black_05,
+    backgroundColor: globalColors.black_10,
     flex: 1,
   },
 }
