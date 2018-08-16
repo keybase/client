@@ -135,7 +135,7 @@ class AvatarRender extends React.PureComponent<Props, State> {
           )}
           {(!!this.props.borderColor || this.props.isTeam) && (
             <Border
-              borderColor={this.props.borderColor || globalColors.black_05}
+              borderColor={this.props.borderColor || globalColors.black_10}
               borderRadius={borderRadius}
             />
           )}

@@ -285,7 +285,8 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 		}
 		return errTrackingBroke
 	}
-	if err = RunEngine2(m, dec); err != errTrackingBroke {
+	err = RunEngine2(m, dec)
+	if decErr, ok := err.(libkb.DecryptionError); ok && decErr.Cause != errTrackingBroke {
 		t.Fatalf("Expected an error %v; but got %v", errTrackingBroke, err)
 	}
 }

@@ -144,6 +144,7 @@ export const constantsStatusCode = {
   sckeysyncedpgpnotfound: 929,
   sckeynomatchinggpg: 930,
   sckeyrevoked: 931,
+  scsigcannotverify: 1002,
   scsigwrongkey: 1008,
   scsigoldseqno: 1010,
   scbadtracksession: 1301,
@@ -1794,7 +1795,7 @@ export type SaltpackSenderType =
   | 7 // EXPIRED_7
 
 export type SaltpackSignOptions = $ReadOnly<{detached: Boolean, binary: Boolean, saltpackVersion: Int}>
-export type SaltpackUiSaltpackPromptForDecryptRpcParam = $ReadOnly<{sender: SaltpackSender, usedDelegateUI: Boolean}>
+export type SaltpackUiSaltpackPromptForDecryptRpcParam = $ReadOnly<{signingKID: KID, sender: SaltpackSender, usedDelegateUI: Boolean}>
 export type SaltpackUiSaltpackVerifyBadSenderRpcParam = $ReadOnly<{signingKID: KID, sender: SaltpackSender}>
 export type SaltpackUiSaltpackVerifySuccessRpcParam = $ReadOnly<{signingKID: KID, sender: SaltpackSender}>
 export type SaltpackVerifyOptions = $ReadOnly<{signedBy: String, signature: Bytes}>
@@ -1945,6 +1946,7 @@ export type StatusCode =
   | 929 // SCKeySyncedPGPNotFound_929
   | 930 // SCKeyNoMatchingGPG_930
   | 931 // SCKeyRevoked_931
+  | 1002 // SCSigCannotVerify_1002
   | 1008 // SCSigWrongKey_1008
   | 1010 // SCSigOldSeqno_1010
   | 1301 // SCBadTrackSession_1301
@@ -2677,7 +2679,7 @@ export type IncomingCallMapType = {|
   'keybase.1.rekeyUI.delegateRekeyUI'?: (params: $ReadOnly<{}>, response: {error: RPCErrorHandler, result: (result: RekeyUIDelegateRekeyUIResult) => void}, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.rekeyUI.refresh'?: (params: $ReadOnly<{sessionID: Int, problemSetDevices: ProblemSetDevices}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.rekeyUI.rekeySendEvent'?: (params: $ReadOnly<{sessionID: Int, event: RekeyEvent}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
-  'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (params: $ReadOnly<{sessionID: Int, sender: SaltpackSender, usedDelegateUI: Boolean}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
+  'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (params: $ReadOnly<{sessionID: Int, signingKID: KID, sender: SaltpackSender, usedDelegateUI: Boolean}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.saltpackUi.saltpackVerifySuccess'?: (params: $ReadOnly<{sessionID: Int, signingKID: KID, sender: SaltpackSender}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.saltpackUi.saltpackVerifyBadSender'?: (params: $ReadOnly<{sessionID: Int, signingKID: KID, sender: SaltpackSender}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.secretUi.getPassphrase'?: (params: $ReadOnly<{sessionID: Int, pinentry: GUIEntryArg, terminal?: ?SecretEntryArg}>, response: {error: RPCErrorHandler, result: (result: SecretUiGetPassphraseResult) => void}, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,

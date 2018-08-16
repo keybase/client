@@ -72,7 +72,7 @@ class Row extends React.Component<Props> {
               ? {
                   backgroundColor: globalColors.white,
                   borderBottomWidth: 1,
-                  borderColor: globalColors.black_05,
+                  borderColor: globalColors.black_10,
                   borderStyle: 'solid',
                   borderTopWidth: 1,
                   paddingBottom: globalMargins.tiny,

@@ -68,6 +68,7 @@ func (o SaltpackSender) DeepCopy() SaltpackSender {
 
 type SaltpackPromptForDecryptArg struct {
 	SessionID      int            `codec:"sessionID" json:"sessionID"`
+	SigningKID     KID            `codec:"signingKID" json:"signingKID"`
 	Sender         SaltpackSender `codec:"sender" json:"sender"`
 	UsedDelegateUI bool           `codec:"usedDelegateUI" json:"usedDelegateUI"`
 }

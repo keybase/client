@@ -173,7 +173,7 @@ const stylesPublic = {
     ...stylesIgnoreDivider,
     backgroundColor: globalColors.white,
     color: globalColors.black_40,
-    borderBottom: 'solid 1px rgba(0, 0, 0, 0.05)',
+    borderBottom: `solid 1px ${globalColors.black_10}`,
   },
   bottomBox: {
     ...stylesIgnoreDesc,

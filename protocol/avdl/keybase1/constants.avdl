@@ -52,6 +52,7 @@ protocol constants {
     SCKeySyncedPGPNotFound_929,
     SCKeyNoMatchingGPG_930,
     SCKeyRevoked_931,
+    SCSigCannotVerify_1002,
     SCSigWrongKey_1008,
     SCSigOldSeqno_1010,
     SCBadTrackSession_1301,
