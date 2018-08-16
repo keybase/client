@@ -48,7 +48,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
     if (this.props.malformedEmails !== prevState.malformedEmails) {
       if (this.props.malformedEmails.size > 0) {
         this._setMalformedEmails(this.props.malformedEmails)
-      } else {
+      } else if (!this.props.errorMessage) {
         // we just invited successfully
         this.props.onClose()
       }
