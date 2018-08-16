@@ -13,7 +13,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.filePreviewLoaded:
       return state.updateIn(['pathItems', action.payload.path], (original: Types.PathItem) => {
         const {meta} = action.payload
-        if (original.type !== 'file' || meta.type !== 'file') {
+        if (!original || original.type !== 'file' || meta.type !== 'file') {
           return meta
         }
 
@@ -105,14 +105,17 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     }
     case FsGen.downloadProgress: {
       const {key, completePortion, endEstimate} = action.payload
-      return state.updateIn(['downloads', key, 'state'], (original: Types.DownloadState) =>
-        original.set('completePortion', completePortion).set('endEstimate', endEstimate)
+      return state.updateIn(
+        ['downloads', key, 'state'],
+        original =>
+          original && original.set('completePortion', completePortion).set('endEstimate', endEstimate)
       )
     }
     case FsGen.downloadFinished: {
       const {key, error} = action.payload
-      return state.updateIn(['downloads', key, 'state'], (original: Types.DownloadState) =>
-        original.set('isDone', true).set('error', error)
+      return state.updateIn(
+        ['downloads', key, 'state'],
+        original => original && original.set('isDone', true).set('error', error)
       )
     }
     case FsGen.dismissDownload: {
@@ -163,7 +166,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.mimeTypeLoaded:
       return state.updateIn(
         ['pathItems', action.payload.path],
-        pathItem => (pathItem.type === 'file' ? pathItem.set('mimeType', action.payload.mimeType) : pathItem)
+        pathItem =>
+          pathItem && pathItem.type === 'file' ? pathItem.set('mimeType', action.payload.mimeType) : pathItem
       )
     case FsGen.newFolderRow:
       const {parentPath} = action.payload
@@ -211,12 +215,10 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.fuseStatus:
     case FsGen.uninstallKBFSConfirm:
     case FsGen.fsActivity:
-    case FsGen.setupFSHandlers:
     case FsGen.openSecurityPreferences:
     case FsGen.refreshLocalHTTPServerInfo:
     case FsGen.shareNative:
     case FsGen.saveMedia:
-    case FsGen.openFinderPopup:
     case FsGen.mimeTypeLoad:
     case FsGen.openPathItem:
     case FsGen.commitEdit:

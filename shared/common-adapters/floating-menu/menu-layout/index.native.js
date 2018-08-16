@@ -53,7 +53,7 @@ class MenuLayout extends Component<MenuLayoutProps> {
                 {...mi}
                 index={idx}
                 numItems={menuItemsWithHeader.length}
-                onHidden={this.props.onHidden}
+                onHidden={this.props.closeOnClick ? this.props.onHidden : undefined}
               />
             ))}
           </Box>
@@ -110,7 +110,7 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxColumn,
     justifyContent: 'flex-end',
     alignItems: 'stretch',
-    borderColor: globalColors.black_05,
+    borderColor: globalColors.black_10,
     borderTopWidth: 1,
   },
   rowHeader: {
@@ -128,7 +128,7 @@ const styles = styleSheetCreate({
     paddingLeft: globalMargins.medium,
     paddingRight: globalMargins.medium,
     backgroundColor: globalColors.white,
-    borderColor: globalColors.black_05,
+    borderColor: globalColors.black_10,
   },
 })
 

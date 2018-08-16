@@ -39,7 +39,6 @@ export const mimeTypeLoad = 'fs:mimeTypeLoad'
 export const mimeTypeLoaded = 'fs:mimeTypeLoaded'
 export const newFolderName = 'fs:newFolderName'
 export const newFolderRow = 'fs:newFolderRow'
-export const openFinderPopup = 'fs:openFinderPopup'
 export const openInFileUI = 'fs:openInFileUI'
 export const openPathItem = 'fs:openPathItem'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
@@ -47,7 +46,6 @@ export const pickAndUpload = 'fs:pickAndUpload'
 export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
 export const saveMedia = 'fs:saveMedia'
 export const setFlags = 'fs:setFlags'
-export const setupFSHandlers = 'fs:setupFSHandlers'
 export const shareNative = 'fs:shareNative'
 export const sortSetting = 'fs:sortSetting'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
@@ -143,10 +141,6 @@ type _NewFolderNamePayload = $ReadOnly<{|
   name: string,
 |}>
 type _NewFolderRowPayload = $ReadOnly<{|parentPath: Types.Path|}>
-type _OpenFinderPopupPayload = $ReadOnly<{|
-  targetRect: ?ClientRect,
-  routePath: I.List<string>,
-|}>
 type _OpenInFileUIPayload = $ReadOnly<{|path?: string|}>
 type _OpenPathItemPayload = $ReadOnly<{|
   path: Types.Path,
@@ -171,7 +165,6 @@ type _SetFlagsPayload = $ReadOnly<{|
   showBanner?: boolean,
   syncing?: boolean,
 |}>
-type _SetupFSHandlersPayload = void
 type _ShareNativePayload = $ReadOnly<{|
   path: Types.Path,
   routePath?: I.List<string>,
@@ -223,7 +216,6 @@ export const createMimeTypeLoad = (payload: _MimeTypeLoadPayload) => ({error: fa
 export const createMimeTypeLoaded = (payload: _MimeTypeLoadedPayload) => ({error: false, payload, type: mimeTypeLoaded})
 export const createNewFolderName = (payload: _NewFolderNamePayload) => ({error: false, payload, type: newFolderName})
 export const createNewFolderRow = (payload: _NewFolderRowPayload) => ({error: false, payload, type: newFolderRow})
-export const createOpenFinderPopup = (payload: _OpenFinderPopupPayload) => ({error: false, payload, type: openFinderPopup})
 export const createOpenInFileUI = (payload: _OpenInFileUIPayload) => ({error: false, payload, type: openInFileUI})
 export const createOpenPathItem = (payload: _OpenPathItemPayload) => ({error: false, payload, type: openPathItem})
 export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({error: false, payload, type: openSecurityPreferences})
@@ -231,7 +223,6 @@ export const createPickAndUpload = (payload: _PickAndUploadPayload) => ({error: 
 export const createRefreshLocalHTTPServerInfo = (payload: _RefreshLocalHTTPServerInfoPayload) => ({error: false, payload, type: refreshLocalHTTPServerInfo})
 export const createSaveMedia = (payload: _SaveMediaPayload) => ({error: false, payload, type: saveMedia})
 export const createSetFlags = (payload: _SetFlagsPayload) => ({error: false, payload, type: setFlags})
-export const createSetupFSHandlers = (payload: _SetupFSHandlersPayload) => ({error: false, payload, type: setupFSHandlers})
 export const createShareNative = (payload: _ShareNativePayload) => ({error: false, payload, type: shareNative})
 export const createSortSetting = (payload: _SortSettingPayload) => ({error: false, payload, type: sortSetting})
 export const createUninstallKBFSConfirm = (payload: _UninstallKBFSConfirmPayload) => ({error: false, payload, type: uninstallKBFSConfirm})
@@ -271,7 +262,6 @@ export type MimeTypeLoadPayload = $Call<typeof createMimeTypeLoad, _MimeTypeLoad
 export type MimeTypeLoadedPayload = $Call<typeof createMimeTypeLoaded, _MimeTypeLoadedPayload>
 export type NewFolderNamePayload = $Call<typeof createNewFolderName, _NewFolderNamePayload>
 export type NewFolderRowPayload = $Call<typeof createNewFolderRow, _NewFolderRowPayload>
-export type OpenFinderPopupPayload = $Call<typeof createOpenFinderPopup, _OpenFinderPopupPayload>
 export type OpenInFileUIPayload = $Call<typeof createOpenInFileUI, _OpenInFileUIPayload>
 export type OpenPathItemPayload = $Call<typeof createOpenPathItem, _OpenPathItemPayload>
 export type OpenSecurityPreferencesPayload = $Call<typeof createOpenSecurityPreferences, _OpenSecurityPreferencesPayload>
@@ -279,7 +269,6 @@ export type PickAndUploadPayload = $Call<typeof createPickAndUpload, _PickAndUpl
 export type RefreshLocalHTTPServerInfoPayload = $Call<typeof createRefreshLocalHTTPServerInfo, _RefreshLocalHTTPServerInfoPayload>
 export type SaveMediaPayload = $Call<typeof createSaveMedia, _SaveMediaPayload>
 export type SetFlagsPayload = $Call<typeof createSetFlags, _SetFlagsPayload>
-export type SetupFSHandlersPayload = $Call<typeof createSetupFSHandlers, _SetupFSHandlersPayload>
 export type ShareNativePayload = $Call<typeof createShareNative, _ShareNativePayload>
 export type SortSettingPayload = $Call<typeof createSortSetting, _SortSettingPayload>
 export type UninstallKBFSConfirmPayload = $Call<typeof createUninstallKBFSConfirm, _UninstallKBFSConfirmPayload>
@@ -321,7 +310,6 @@ export type Actions =
   | MimeTypeLoadedPayload
   | NewFolderNamePayload
   | NewFolderRowPayload
-  | OpenFinderPopupPayload
   | OpenInFileUIPayload
   | OpenPathItemPayload
   | OpenSecurityPreferencesPayload
@@ -329,7 +317,6 @@ export type Actions =
   | RefreshLocalHTTPServerInfoPayload
   | SaveMediaPayload
   | SetFlagsPayload
-  | SetupFSHandlersPayload
   | ShareNativePayload
   | SortSettingPayload
   | UninstallKBFSConfirmPayload

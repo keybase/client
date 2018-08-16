@@ -398,6 +398,10 @@ func NewDebugLabeler(log logger.Logger, label string, verbose bool) DebugLabeler
 	}
 }
 
+func (d DebugLabeler) GetLog() logger.Logger {
+	return d.log
+}
+
 func (d DebugLabeler) showVerbose() bool {
 	return false
 }
@@ -1007,6 +1011,37 @@ func formatVideoDuration(ms int) string {
 	return fmt.Sprintf("%d:%02d", minutes, seconds)
 }
 
+func formatVideoSize(bytes int64) string {
+	const (
+		BYTE = 1.0 << (10 * iota)
+		KILOBYTE
+		MEGABYTE
+		GIGABYTE
+		TERABYTE
+	)
+	unit := ""
+	value := float64(bytes)
+	switch {
+	case bytes >= TERABYTE:
+		unit = "TB"
+		value = value / TERABYTE
+	case bytes >= GIGABYTE:
+		unit = "GB"
+		value = value / GIGABYTE
+	case bytes >= MEGABYTE:
+		unit = "MB"
+		value = value / MEGABYTE
+	case bytes >= KILOBYTE:
+		unit = "KB"
+		value = value / KILOBYTE
+	case bytes >= BYTE:
+		unit = "B"
+	case bytes == 0:
+		return "0"
+	}
+	return fmt.Sprintf("%.02f%s", value, unit)
+}
+
 func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg chat1.MessageUnboxed,
 	convID chat1.ConversationID) *chat1.UIAssetUrlInfo {
 	body := msg.Valid().MessageBody
@@ -1045,9 +1080,12 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 			info.PreviewUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), true)
 		}
 		atyp, err := asset.Metadata.AssetType()
-		if err == nil && atyp == chat1.AssetMetadataType_VIDEO && asset.Metadata.Video().DurationMs > 1 {
+		if err == nil && atyp == chat1.AssetMetadataType_VIDEO && asset.Metadata.Video().DurationMs > 1 &&
+			strings.HasPrefix(info.MimeType, "video") {
 			info.VideoDuration = new(string)
-			*info.VideoDuration = formatVideoDuration(asset.Metadata.Video().DurationMs)
+			*info.VideoDuration = formatVideoDuration(asset.Metadata.Video().DurationMs) + ", " +
+				formatVideoSize(asset.Size)
+			info.InlineVideoPlayable = asset.Size < (1<<20)*500
 		}
 		if info.FullUrl == "" && info.PreviewUrl == "" && info.MimeType == "" {
 			return nil
@@ -1394,4 +1432,12 @@ func ForceReloadUPAKsForUIDs(ctx context.Context, g *globals.Context, uids []key
 		return &tmp
 	}
 	return g.GetUPAKLoader().Batcher(ctx, getArg, nil, 0)
+}
+
+func CreateHiddenPlaceholder(msgID chat1.MessageID) chat1.MessageUnboxed {
+	return chat1.NewMessageUnboxedWithPlaceholder(
+		chat1.MessageUnboxedPlaceholder{
+			MessageID: msgID,
+			Hidden:    true,
+		})
 }

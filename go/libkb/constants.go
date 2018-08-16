@@ -41,7 +41,7 @@ var ServerLookup = map[RunMode]string{
 
 const (
 	DevelGregorServerURI      = "fmprpc://localhost:9911"
-	StagingGregorServerURI    = "fmprpc+tls://gregord.dev.keybase.io:443"
+	StagingGregorServerURI    = "fmprpc+tls://gregord.dev.keybase.io:4443"
 	ProductionGregorServerURI = "fmprpc+tls://chat-0.core.keybaseapi.com:443"
 )
 
@@ -176,7 +176,7 @@ const (
 	SubkeyExpireIn         = OneYearInSeconds * 16 // 16 years
 	AuthExpireIn           = OneYearInSeconds      // 1 year
 
-	PaperKeyMemoryTimeout = time.Hour
+	ProvisioningKeyMemoryTimeout = time.Hour
 )
 
 // Status codes.  This list should match keybase/lib/status_codes.iced.
@@ -218,6 +218,7 @@ const (
 	SCKeySyncedPGPNotFound             = int(keybase1.StatusCode_SCKeySyncedPGPNotFound)
 	SCKeyNoMatchingGPG                 = int(keybase1.StatusCode_SCKeyNoMatchingGPG)
 	SCKeyRevoked                       = int(keybase1.StatusCode_SCKeyRevoked)
+	SCSigCannotVerify                  = int(keybase1.StatusCode_SCSigCannotVerify)
 	SCSibkeyAlreadyExists              = int(keybase1.StatusCode_SCSibkeyAlreadyExists)
 	SCDecryptionKeyNotFound            = int(keybase1.StatusCode_SCDecryptionKeyNotFound)
 	SCBadTrackSession                  = int(keybase1.StatusCode_SCBadTrackSession)

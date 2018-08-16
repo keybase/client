@@ -724,25 +724,32 @@ func (f failingTlf) CompleteAndCanonicalizePrivateTlfName(context.Context, strin
 	return keybase1.CanonicalTLFNameAndIDWithBreaks{}, nil
 }
 
-func (f failingTlf) LookupUntrusted(context.Context, string, bool) (*types.NameInfoUntrusted, error) {
+func (f failingTlf) LookupIDUntrusted(context.Context, string, bool) (*types.NameInfoUntrusted, error) {
 	require.Fail(f.t, "LookupUnstrusted call")
 	return nil, nil
 }
 
-func (f failingTlf) Lookup(context.Context, string, bool) (*types.NameInfo, error) {
+func (f failingTlf) LookupID(context.Context, string, bool) (*types.NameInfo, error) {
 	require.Fail(f.t, "Lookup call")
 	return nil, nil
 }
 
-func (f failingTlf) EncryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error) {
-	return f.Lookup(ctx, tlfName, public)
+func (f failingTlf) AllCryptKeys(context.Context, string, bool) (types.AllCryptKeys, error) {
+	require.Fail(f.t, "AllCryptKeys call")
+	return nil, nil
 }
 
-func (f failingTlf) DecryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+func (f failingTlf) EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (types.CryptKey, *types.NameInfo, error) {
+	require.Fail(f.t, "EncryptionKey call")
+	return nil, nil, nil
+}
+
+func (f failingTlf) DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int, kbfsEncrypted bool) (*types.NameInfo, error) {
-	return f.Lookup(ctx, tlfName, public)
+	keyGeneration int, kbfsEncrypted bool) (types.CryptKey, error) {
+	require.Fail(f.t, "DecryptionKey call")
+	return nil, nil
 }
 
 func (f failingTlf) EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,

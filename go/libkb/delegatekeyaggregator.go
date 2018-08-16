@@ -9,15 +9,15 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-// DelegatorAggregator manages delegating multiple keys in one post to the server
-
-// When run produces a map which goes into the 'key/multi' 'sigs' list.
+// DelegatorAggregator manages delegating multiple keys in one post to the
+// server When run produces a map which goes into the 'key/multi' 'sigs' list.
 type AggSigProducer func() (JSONPayload, error)
 
-// Run posts an array of delegations to the server. Keeping this simple as we don't need any state (yet)
-// `extra` is optional and adds an extra sig, produced by something other than a Delegator, after the others.
+// Run posts an array of delegations to the server. Keeping this simple as we
+// don't need any state (yet) `extra` is optional and adds an extra sig,
+// produced by something other than a Delegator, after the others.
 func DelegatorAggregator(m MetaContext, ds []Delegator, extra AggSigProducer,
-	pukBoxes []keybase1.PerUserKeyBox, pukPrev *PerUserKeyPrev) (err error) {
+	pukBoxes []keybase1.PerUserKeyBox, pukPrev *PerUserKeyPrev, userEKReboxArg *keybase1.UserEkReboxArg) (err error) {
 	if len(ds) == 0 {
 		return errors.New("Empty delegators to aggregator")
 	}
@@ -54,6 +54,7 @@ func DelegatorAggregator(m MetaContext, ds []Delegator, extra AggSigProducer,
 	} else if pukPrev != nil {
 		return errors.New("cannot delegate per-user-key with prev but no boxes")
 	}
+	AddUserEKReBoxServerArg(payload, userEKReboxArg)
 
 	// Adopt most parameters from the first item
 	var apiArgBase = ds[0]
@@ -81,6 +82,16 @@ func AddPerUserKeyServerArg(serverArg JSONPayload, generation keybase1.PerUserKe
 		section["prev"] = *pukPrev
 	}
 	serverArg["per_user_key"] = section
+}
+
+// Make the "user_ek_rebox" and "device_eks" section of an API arg.  Modifies
+// `serverArg` unless arg is nil.
+func AddUserEKReBoxServerArg(serverArg JSONPayload, arg *keybase1.UserEkReboxArg) {
+	if arg == nil {
+		return
+	}
+	serverArg["device_eks"] = map[string]string{string(arg.DeviceID): arg.DeviceEkStatementSig}
+	serverArg["user_ek_rebox"] = arg.UserEkBoxMetadata
 }
 
 func convertStringMapToJSONPayload(in map[string]string) JSONPayload {

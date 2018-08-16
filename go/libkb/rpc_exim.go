@@ -413,7 +413,23 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCDeleted:
 		return UserDeletedError{Msg: s.Desc}
 	case SCDecryptionError:
-		return DecryptionError{}
+		ret := DecryptionError{}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "Cause":
+				ret.Cause = fmt.Errorf(field.Value)
+			}
+		}
+		return ret
+	case SCSigCannotVerify:
+		ret := VerificationError{}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "Cause":
+				ret.Cause = fmt.Errorf(field.Value)
+			}
+		}
+		return ret
 	case SCKeyRevoked:
 		return KeyRevokedError{msg: s.Desc}
 	case SCDeviceNameInUse:
@@ -1890,7 +1906,19 @@ func (e DecryptionError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCDecryptionError,
 		Name: "SC_DECRYPTION_ERROR",
-		Desc: e.Error(),
+		Fields: []keybase1.StringKVPair{
+			{Key: "Cause", Value: e.Cause.Error()},
+		},
+	}
+}
+
+func (e VerificationError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCSigCannotVerify,
+		Name: "SC_SIG_CANNOT_VERIFY",
+		Fields: []keybase1.StringKVPair{
+			{Key: "Cause", Value: e.Cause.Error()},
+		},
 	}
 }
 

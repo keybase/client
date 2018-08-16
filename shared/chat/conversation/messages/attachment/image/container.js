@@ -9,7 +9,7 @@ import {imgMaxWidth} from './image-render'
 
 type OwnProps = {
   message: Types.MessageAttachment,
-  toggleShowingMenu: () => void,
+  toggleMessageMenu: () => void,
 }
 
 const mapStateToProps = (state: TypedState) => ({})
@@ -46,7 +46,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
         : message.transferState === 'remoteUploading'
           ? 'waiting...'
           : null
-  const buttonType = message.showPlayButton ? (message.fileURLCached && isMobile ? 'play' : 'film') : null
+  const buttonType = message.showPlayButton
+    ? isMobile || message.inlineVideoPlayable
+      ? 'play'
+      : 'film'
+    : null
   const hasProgress = message.transferState && message.transferState !== 'remoteUploading'
   return {
     arrowColor,
@@ -61,13 +65,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
             dispatchProps._onShowInFinder(message)
           }
         : null,
-    path: message.previewURL,
+    path: !isMobile && message.inlineVideoPlayable ? message.fileURL : message.previewURL,
     progress: message.transferProgress,
     progressLabel,
     showButton: buttonType,
     videoDuration: message.videoDuration || '',
+    inlineVideoPlayable: !isMobile && message.inlineVideoPlayable,
     title: message.title || message.fileName,
-    toggleShowingMenu: ownProps.toggleShowingMenu,
+    toggleMessageMenu: ownProps.toggleMessageMenu,
     width: Math.min(message.previewWidth, imgMaxWidth()),
     hasProgress,
   }

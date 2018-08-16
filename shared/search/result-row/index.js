@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../../constants/types/search'
 import * as React from 'react'
-import {Box, Icon, ClickableBox, Text} from '../../common-adapters/index'
+import {Box, Icon, ClickableBox, Divider, Text} from '../../common-adapters/index'
 import {
   globalColors,
   globalStyles,
@@ -9,6 +9,7 @@ import {
   hairlineWidth,
   isMobile,
   platformStyles,
+  styleSheetCreate,
 } from '../../styles'
 import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
@@ -119,19 +120,6 @@ const RightEdge = ({showCheckmark}) => {
   ) : null
 }
 
-const Line = () => (
-  <Box
-    style={{
-      ...globalStyles.fillAbsolute,
-      backgroundColor: globalColors.black_05,
-      left: 56,
-      top: undefined,
-      maxHeight: hairlineWidth,
-      minHeight: hairlineWidth,
-    }}
-  />
-)
-
 export type Props = Types.RowProps
 
 const SearchResultRow = (props: Props) => (
@@ -159,7 +147,7 @@ const SearchResultRow = (props: Props) => (
       />
       <Right onShowTracker={props.onShowTracker} />
       <RightEdge showCheckmark={props.userAlreadySelected} />
-      <Line />
+      <Divider style={styles.divider} />
     </Box>
   </ClickableBox>
 )
@@ -193,5 +181,15 @@ const _rowStyle = {
   justifyContent: 'flex-start',
   position: 'relative',
 }
+
+const styles = styleSheetCreate({
+  divider: {
+    ...globalStyles.fillAbsolute,
+    left: isMobile ? 68 : 56,
+    maxHeight: hairlineWidth,
+    minHeight: hairlineWidth,
+    top: undefined,
+  },
+})
 
 export default SearchResultRow

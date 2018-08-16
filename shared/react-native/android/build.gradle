@@ -42,7 +42,7 @@ ext {
      compileSdkVersion = 28
      targetSdkVersion = 28
      supportLibVersion = "26.1.0"
-     googlePlayServicesVersion = "10.0.0"
+     googlePlayServicesVersion = "15.0.1"
  }
 
 subprojects {

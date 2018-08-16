@@ -301,7 +301,7 @@ func (e *PaperKeyGen) push(m libkb.MetaContext) (err error) {
 	}
 
 	m.CDebugf("PaperKeyGen#push running delegators")
-	return libkb.DelegatorAggregator(m, []libkb.Delegator{sigDel, sigEnc}, nil, pukBoxes, nil)
+	return libkb.DelegatorAggregator(m, []libkb.Delegator{sigDel, sigEnc}, nil, pukBoxes, nil, nil)
 }
 
 func (e *PaperKeyGen) makePerUserKeyBoxes(m libkb.MetaContext) ([]keybase1.PerUserKeyBox, error) {

@@ -29,7 +29,7 @@ const DividerBox = glamorous(Box)({
       }),
   alignItems: 'center',
   borderStyle: 'solid',
-  borderTopColor: globalColors.black_05,
+  borderTopColor: globalColors.black_10,
   borderTopWidth: 1,
   height: '100%',
   justifyContent: 'flex-start',

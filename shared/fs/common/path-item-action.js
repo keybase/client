@@ -2,12 +2,23 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../styles'
+import * as Styles from '../../styles'
 import {fileUIName} from '../../constants/platform'
-import {Box, ClickableBox, Icon, Text, FloatingMenu, type OverlayParentProps} from '../../common-adapters'
-import PathItemIcon from '../common/path-item-icon'
-import PathItemInfo from '../common/path-item-info'
-import StaticBreadcrumb from '../common/static-breadcrumb'
+import {
+  Box,
+  Box2,
+  ClickableBox,
+  Icon,
+  iconCastPlatformStyles,
+  Text,
+  FloatingMenu,
+  ProgressIndicator,
+  type OverlayParentProps,
+} from '../../common-adapters'
+import PathItemIcon from './path-item-icon'
+import PathItemInfo from './path-item-info'
+import StaticBreadcrumb from './static-breadcrumb'
+import DownloadTrackingHoc from './download-tracking-hoc'
 import {memoize} from 'lodash'
 
 type Props = {
@@ -21,24 +32,64 @@ type Props = {
   itemStyles: Types.ItemStyles,
   actionIconClassName?: string,
   actionIconFontSize?: number,
+  actionIconWhite?: boolean,
+  path: Types.Path,
   pathElements: Array<string>,
   // Menu items
   showInFileUI?: () => void,
   ignoreFolder?: () => void,
-  saveMedia?: () => void,
-  shareNative?: () => void,
+  saveMedia?: (() => void) | 'disabled',
+  shareNative?: (() => void) | 'disabled',
   download?: () => void,
   copyPath?: () => void,
 }
 
-const makeMenuItems = (props: Props) => {
-  console.log({props})
+const hideMenuOnClick = (onClick: (evt?: SyntheticEvent<>) => void, hideMenu: () => void) => (
+  evt?: SyntheticEvent<>
+) => {
+  onClick(evt)
+  hideMenu()
+}
+
+const ShareNative = DownloadTrackingHoc(
+  ({downloading}) =>
+    downloading ? (
+      <Box2 direction="horizontal">
+        <ProgressIndicator style={styles.progressIndicator} />
+        <Text type="BodyBig" style={styles.menuRowTextDisabled}>
+          Send to other app
+        </Text>
+      </Box2>
+    ) : (
+      <Text type="BodyBig" style={styles.menuRowText}>
+        Send to other app
+      </Text>
+    )
+)
+
+const Save = DownloadTrackingHoc(
+  ({downloading}) =>
+    downloading ? (
+      <Box2 direction="horizontal">
+        <ProgressIndicator style={styles.progressIndicator} />
+        <Text type="BodyBig" style={styles.menuRowTextDisabled}>
+          Save
+        </Text>
+      </Box2>
+    ) : (
+      <Text type="BodyBig" style={styles.menuRowText}>
+        Save
+      </Text>
+    )
+)
+
+const makeMenuItems = (props: Props, hideMenu: () => void) => {
   return [
     ...(props.showInFileUI
       ? [
           {
             title: 'Show in ' + fileUIName,
-            onClick: props.showInFileUI,
+            onClick: hideMenuOnClick(props.showInFileUI, hideMenu),
           },
         ]
       : []),
@@ -46,7 +97,7 @@ const makeMenuItems = (props: Props) => {
       ? [
           {
             title: 'Ignore this folder',
-            onClick: props.ignoreFolder,
+            onClick: hideMenuOnClick(props.ignoreFolder, hideMenu),
             subTitle: 'The folder will no longer appear in your folders list.',
             danger: true,
           },
@@ -56,7 +107,9 @@ const makeMenuItems = (props: Props) => {
       ? [
           {
             title: 'Save',
-            onClick: props.saveMedia,
+            view: <Save trackingPath={props.path} trackingIntent="camera-roll" />,
+            onClick: props.saveMedia !== 'disabled' ? hideMenuOnClick(props.saveMedia, hideMenu) : undefined,
+            disabled: props.saveMedia === 'disabled',
           },
         ]
       : []),
@@ -64,7 +117,16 @@ const makeMenuItems = (props: Props) => {
       ? [
           {
             title: 'Send to other app',
-            onClick: props.shareNative,
+            view: (
+              <ShareNative
+                trackingPath={props.path}
+                trackingIntent="share"
+                onFinish={hideMenu}
+                cancelOnUnmount={true}
+              />
+            ),
+            onClick: props.shareNative !== 'disabled' ? props.shareNative : undefined,
+            disabled: props.shareNative === 'disabled',
           },
         ]
       : []),
@@ -72,7 +134,7 @@ const makeMenuItems = (props: Props) => {
       ? [
           {
             title: 'Download a copy',
-            onClick: props.download,
+            onClick: hideMenuOnClick(props.download, hideMenu),
           },
         ]
       : []),
@@ -80,7 +142,7 @@ const makeMenuItems = (props: Props) => {
       ? [
           {
             title: 'Copy path',
-            onClick: props.copyPath,
+            onClick: hideMenuOnClick(props.copyPath, hideMenu),
           },
         ]
       : []),
@@ -88,10 +150,10 @@ const makeMenuItems = (props: Props) => {
 }
 
 const PathItemActionHeader = (props: Props) => (
-  <Box style={stylesHeader}>
-    <PathItemIcon spec={props.itemStyles.iconSpec} style={pathItemIconStyle} />
+  <Box style={styles.header}>
+    <PathItemIcon spec={props.itemStyles.iconSpec} style={styles.pathItemIcon} />
     <StaticBreadcrumb pathElements={props.pathElements} />
-    <Box style={stylesNameTextBox}>
+    <Box style={styles.nameTextBox}>
       <Text selectable={true} type="BodySmallSemibold" style={stylesNameText(props.itemStyles.textColor)}>
         {props.name}
       </Text>
@@ -115,71 +177,102 @@ const PathItemActionHeader = (props: Props) => (
   </Box>
 )
 
-const PathItemAction = (props: Props & OverlayParentProps) => (
-  <Box>
-    <ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
-      <Icon
-        type="iconfont-ellipsis"
-        color={globalColors.black_40}
-        style={actionIconStyle}
-        fontSize={props.actionIconFontSize}
-        className={props.actionIconClassName}
+const PathItemAction = (props: Props & OverlayParentProps) => {
+  const hideMenuOnce = (() => {
+    let hideMenuCalled = false
+    return () => {
+      if (hideMenuCalled) {
+        return
+      }
+      hideMenuCalled = true
+      props.toggleShowingMenu()
+    }
+  })()
+
+  return (
+    <Box>
+      <ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
+        <Icon
+          type="iconfont-ellipsis"
+          color={props.actionIconWhite ? Styles.globalColors.white : Styles.globalColors.black_40}
+          style={iconCastPlatformStyles(styles.actionIcon)}
+          fontSize={props.actionIconFontSize}
+          className={props.actionIconClassName}
+        />
+      </ClickableBox>
+      <FloatingMenu
+        containerStyle={styles.floatingContainer}
+        attachTo={props.attachmentRef}
+        visible={props.showingMenu}
+        onHidden={hideMenuOnce}
+        position="bottom right"
+        header={{
+          title: 'unused',
+          view: <PathItemActionHeader {...props} />,
+        }}
+        items={makeMenuItems(props, hideMenuOnce)}
       />
-    </ClickableBox>
-    <FloatingMenu
-      containerStyle={stylesFloatingContainer}
-      attachTo={props.attachmentRef}
-      visible={props.showingMenu}
-      onHidden={props.toggleShowingMenu}
-      position="bottom right"
-      closeOnSelect={true}
-      header={{
-        title: 'unused',
-        view: <PathItemActionHeader {...props} />,
-      }}
-      items={makeMenuItems(props)}
-    />
-  </Box>
-)
+    </Box>
+  )
+}
+
+const styles = Styles.styleSheetCreate({
+  nameTextBox: Styles.platformStyles({
+    common: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
+    isElectron: {
+      textAlign: 'center',
+    },
+  }),
+  pathItemIcon: {
+    marginBottom: Styles.globalMargins.xtiny,
+  },
+  floatingContainer: Styles.platformStyles({
+    common: {
+      overflow: 'visible',
+    },
+    isElectron: {
+      width: 220,
+      marginTop: 12,
+    },
+    isMobile: {
+      width: '100%',
+      marginTop: undefined,
+    },
+  }),
+  header: {
+    ...Styles.globalStyles.flexBoxColumn,
+    width: '100%',
+    alignItems: 'center',
+    paddingTop: Styles.globalMargins.small,
+  },
+  actionIcon: {
+    padding: Styles.globalMargins.tiny,
+  },
+  menuRowText: {
+    color: Styles.globalColors.blue,
+  },
+  menuRowTextDisabled: {
+    color: Styles.globalColors.blue,
+    opacity: 0.6,
+  },
+  progressIndicator: {
+    marginRight: Styles.globalMargins.xtiny,
+  },
+})
 
 const stylesNameText = memoize(color =>
-  platformStyles({
+  Styles.platformStyles({
     common: {
       color,
-      textAlign: 'center',
     },
     isElectron: {
       overflowWrap: 'break-word',
+      textAlign: 'center',
     },
   })
 )
-
-const stylesNameTextBox = {
-  paddingLeft: globalMargins.small,
-  paddingRight: globalMargins.small,
-  width: '100%',
-  textAlign: 'center',
-}
-
-const pathItemIconStyle = {
-  marginBottom: globalMargins.xtiny,
-}
-
-const stylesFloatingContainer = {
-  width: isMobile ? '100%' : 220,
-  overflow: 'visible',
-  marginTop: isMobile ? undefined : 12,
-}
-
-const stylesHeader = {
-  ...globalStyles.flexBoxColumn,
-  width: '100%',
-  alignItems: 'center',
-  paddingTop: globalMargins.small,
-}
-
-const actionIconStyle = {
-  padding: globalMargins.tiny,
-}
 
 export default PathItemAction
