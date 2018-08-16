@@ -1,6 +1,7 @@
 // @flow
 export type Props = {
   onLoad: () => void,
+  onLoadedVideo: () => void,
   src: string,
   videoSrc: string,
   style: Object,
