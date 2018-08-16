@@ -190,8 +190,10 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 							var vid = document.getElementById("vid");
 							if (data === "play") {
 								vid.play();
+								vid.setAttribute('controls', 'controls');
 							} else {
 								vid.pause();
+								vid.removeAttribute('controls');
 							}
 					  	}
 					</script>
