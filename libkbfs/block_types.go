@@ -270,7 +270,7 @@ func (db *DirBlock) FirstOffset() Offset {
 	return &firstString
 }
 
-// NumIndirectPtrs implements the Block interface for DirBlock.
+// NumIndirectPtrs implements the BlockWithPtrs interface for DirBlock.
 func (db *DirBlock) NumIndirectPtrs() int {
 	if !db.IsInd {
 		panic("NumIndirectPtrs called on a direct directory block")
@@ -278,7 +278,7 @@ func (db *DirBlock) NumIndirectPtrs() int {
 	return len(db.IPtrs)
 }
 
-// IndirectPtr implements the Block interface for DirBlock.
+// IndirectPtr implements the BlockWithPtrs interface for DirBlock.
 func (db *DirBlock) IndirectPtr(i int) (BlockInfo, Offset) {
 	if !db.IsInd {
 		panic("IndirectPtr called on a direct directory block")
@@ -288,7 +288,7 @@ func (db *DirBlock) IndirectPtr(i int) (BlockInfo, Offset) {
 	return iptr.BlockInfo, &off
 }
 
-// AppendNewIndirectPtr implements the Block interface for FileBlock.
+// AppendNewIndirectPtr implements the BlockWithPtrs interface for FileBlock.
 func (db *DirBlock) AppendNewIndirectPtr(ptr BlockPointer, off Offset) {
 	if !db.IsInd {
 		panic("AppendNewIndirectPtr called on a direct directory block")
@@ -307,7 +307,7 @@ func (db *DirBlock) AppendNewIndirectPtr(ptr BlockPointer, off Offset) {
 	})
 }
 
-// ClearIndirectPtrSize implements the Block interface for DirBlock.
+// ClearIndirectPtrSize implements the BlockWithPtrs interface for DirBlock.
 func (db *DirBlock) ClearIndirectPtrSize(i int) {
 	if !db.IsInd {
 		panic("ClearIndirectPtrSize called on a direct directory block")
@@ -315,7 +315,7 @@ func (db *DirBlock) ClearIndirectPtrSize(i int) {
 	db.IPtrs[i].EncodedSize = 0
 }
 
-// SetIndirectPtrType implements the Block interface for DirBlock.
+// SetIndirectPtrType implements the BlockWithPtrs interface for DirBlock.
 func (db *DirBlock) SetIndirectPtrType(i int, dt BlockDirectType) {
 	if !db.IsInd {
 		panic("SetIndirectPtrType called on a direct directory block")
@@ -323,7 +323,7 @@ func (db *DirBlock) SetIndirectPtrType(i int, dt BlockDirectType) {
 	db.IPtrs[i].DirectType = dt
 }
 
-// SwapIndirectPtrs implements the Block interface for DirBlock.
+// SwapIndirectPtrs implements the BlockWithPtrs interface for DirBlock.
 func (db *DirBlock) SwapIndirectPtrs(i int, other BlockWithPtrs, otherI int) {
 	otherDB, ok := other.(*DirBlock)
 	if !ok {
@@ -334,7 +334,7 @@ func (db *DirBlock) SwapIndirectPtrs(i int, other BlockWithPtrs, otherI int) {
 	db.IPtrs[i], otherDB.IPtrs[otherI] = otherDB.IPtrs[otherI], db.IPtrs[i]
 }
 
-// SetIndirectPtrOff implements the Block interface for DirBlock.
+// SetIndirectPtrOff implements the BlockWithPtrs interface for DirBlock.
 func (db *DirBlock) SetIndirectPtrOff(i int, off Offset) {
 	if !db.IsInd {
 		panic("SetIndirectPtrOff called on a direct file block")
@@ -525,7 +525,7 @@ func (fb *FileBlock) FirstOffset() Offset {
 	return Int64Offset(0)
 }
 
-// NumIndirectPtrs implements the Block interface for FileBlock.
+// NumIndirectPtrs implements the BlockWithPtrs interface for FileBlock.
 func (fb *FileBlock) NumIndirectPtrs() int {
 	if !fb.IsInd {
 		panic("NumIndirectPtrs called on a direct file block")
@@ -533,7 +533,7 @@ func (fb *FileBlock) NumIndirectPtrs() int {
 	return len(fb.IPtrs)
 }
 
-// IndirectPtr implements the Block interface for FileBlock.
+// IndirectPtr implements the BlockWithPtrs interface for FileBlock.
 func (fb *FileBlock) IndirectPtr(i int) (BlockInfo, Offset) {
 	if !fb.IsInd {
 		panic("IndirectPtr called on a direct file block")
@@ -542,7 +542,7 @@ func (fb *FileBlock) IndirectPtr(i int) (BlockInfo, Offset) {
 	return iptr.BlockInfo, iptr.Off
 }
 
-// AppendNewIndirectPtr implements the Block interface for FileBlock.
+// AppendNewIndirectPtr implements the BlockWithPtrs interface for FileBlock.
 func (fb *FileBlock) AppendNewIndirectPtr(ptr BlockPointer, off Offset) {
 	if !fb.IsInd {
 		panic("AppendNewIndirectPtr called on a direct file block")
@@ -561,7 +561,7 @@ func (fb *FileBlock) AppendNewIndirectPtr(ptr BlockPointer, off Offset) {
 	})
 }
 
-// ClearIndirectPtrSize implements the Block interface for FileBlock.
+// ClearIndirectPtrSize implements the BlockWithPtrs interface for FileBlock.
 func (fb *FileBlock) ClearIndirectPtrSize(i int) {
 	if !fb.IsInd {
 		panic("ClearIndirectPtrSize called on a direct file block")
@@ -569,7 +569,7 @@ func (fb *FileBlock) ClearIndirectPtrSize(i int) {
 	fb.IPtrs[i].EncodedSize = 0
 }
 
-// SetIndirectPtrType implements the Block interface for FileBlock.
+// SetIndirectPtrType implements the BlockWithPtrs interface for FileBlock.
 func (fb *FileBlock) SetIndirectPtrType(i int, dt BlockDirectType) {
 	if !fb.IsInd {
 		panic("SetIndirectPtrType called on a direct file block")
@@ -577,7 +577,7 @@ func (fb *FileBlock) SetIndirectPtrType(i int, dt BlockDirectType) {
 	fb.IPtrs[i].DirectType = dt
 }
 
-// SwapIndirectPtrs implements the Block interface for FileBlock.
+// SwapIndirectPtrs implements the BlockWithPtrs interface for FileBlock.
 func (fb *FileBlock) SwapIndirectPtrs(i int, other BlockWithPtrs, otherI int) {
 	otherFB, ok := other.(*FileBlock)
 	if !ok {
@@ -588,7 +588,7 @@ func (fb *FileBlock) SwapIndirectPtrs(i int, other BlockWithPtrs, otherI int) {
 	fb.IPtrs[i], otherFB.IPtrs[otherI] = otherFB.IPtrs[otherI], fb.IPtrs[i]
 }
 
-// SetIndirectPtrOff implements the Block interface for FileBlock.
+// SetIndirectPtrOff implements the BlockWithPtrs interface for FileBlock.
 func (fb *FileBlock) SetIndirectPtrOff(i int, off Offset) {
 	if !fb.IsInd {
 		panic("SetIndirectPtrOff called on a direct file block")
