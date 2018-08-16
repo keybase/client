@@ -425,7 +425,7 @@ func (d DebugLabeler) Trace(ctx context.Context, f func() error, format string, 
 		start := time.Now()
 		d.log.CDebugf(ctx, "++Chat: + %s: %s", d.label, msg)
 		return func() {
-			d.log.CDebugf(ctx, "++Chat: - %s: %s -> %s (%v)", d.label, msg,
+			d.log.CDebugf(ctx, "++Chat: - %s: %s -> %s [time=%v]", d.label, msg,
 				libkb.ErrToOk(f()), time.Since(start))
 		}
 	}
