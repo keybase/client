@@ -75,7 +75,6 @@ export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setPendingConversationExistingConversationIDKey = 'chat2:setPendingConversationExistingConversationIDKey'
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setPendingMode = 'chat2:setPendingMode'
-export const setupChatHandlers = 'chat2:setupChatHandlers'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
@@ -313,7 +312,6 @@ type _SetPendingModePayload = $ReadOnly<{|
   pendingMode: Types.PendingMode,
   noneDestination?: 'inbox' | 'thread',
 |}>
-type _SetupChatHandlersPayload = void
 type _StaticConfigLoadedPayload = $ReadOnly<{|staticConfig: Types.StaticConfig|}>
 type _ToggleLocalReactionPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -470,7 +468,6 @@ export const createSetConversationOffline = (payload: _SetConversationOfflinePay
 export const createSetInboxFilter = (payload: _SetInboxFilterPayload) => ({error: false, payload, type: setInboxFilter})
 export const createSetPendingConversationUsers = (payload: _SetPendingConversationUsersPayload) => ({error: false, payload, type: setPendingConversationUsers})
 export const createSetPendingMode = (payload: _SetPendingModePayload) => ({error: false, payload, type: setPendingMode})
-export const createSetupChatHandlers = (payload: _SetupChatHandlersPayload) => ({error: false, payload, type: setupChatHandlers})
 export const createUpdateMoreToLoad = (payload: _UpdateMoreToLoadPayload) => ({error: false, payload, type: updateMoreToLoad})
 export const createUpdateNotificationSettings = (payload: _UpdateNotificationSettingsPayload) => ({error: false, payload, type: updateNotificationSettings})
 export const createUpdateTypers = (payload: _UpdateTypersPayload) => ({error: false, payload, type: updateTypers})
@@ -539,7 +536,6 @@ export type SetMinWriterRolePayload = $Call<typeof createSetMinWriterRole, _SetM
 export type SetPendingConversationExistingConversationIDKeyPayload = $Call<typeof createSetPendingConversationExistingConversationIDKey, _SetPendingConversationExistingConversationIDKeyPayload>
 export type SetPendingConversationUsersPayload = $Call<typeof createSetPendingConversationUsers, _SetPendingConversationUsersPayload>
 export type SetPendingModePayload = $Call<typeof createSetPendingMode, _SetPendingModePayload>
-export type SetupChatHandlersPayload = $Call<typeof createSetupChatHandlers, _SetupChatHandlersPayload>
 export type StaticConfigLoadedPayload = $Call<typeof createStaticConfigLoaded, _StaticConfigLoadedPayload>
 export type ToggleLocalReactionPayload = $Call<typeof createToggleLocalReaction, _ToggleLocalReactionPayload>
 export type ToggleMessageReactionPayload = $Call<typeof createToggleMessageReaction, _ToggleMessageReactionPayload>
@@ -617,7 +613,6 @@ export type Actions =
   | SetPendingConversationExistingConversationIDKeyPayload
   | SetPendingConversationUsersPayload
   | SetPendingModePayload
-  | SetupChatHandlersPayload
   | StaticConfigLoadedPayload
   | ToggleLocalReactionPayload
   | ToggleMessageReactionPayload

@@ -67,7 +67,6 @@ export const setTeamSawSubteamsBanner = 'teams:setTeamSawSubteamsBanner'
 export const setTeamsWithChosenChannels = 'teams:setTeamsWithChosenChannels'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
-export const setupTeamHandlers = 'teams:setupTeamHandlers'
 export const updateChannelName = 'teams:updateChannelName'
 export const updateTopic = 'teams:updateTopic'
 export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
@@ -275,7 +274,6 @@ type _SetUpdatedTopicPayload = $ReadOnly<{|
   conversationIDKey: ChatTypes.ConversationIDKey,
   newTopic: string,
 |}>
-type _SetupTeamHandlersPayload = void
 type _UpdateChannelNamePayload = $ReadOnly<{|
   teamname: Types.Teamname,
   conversationIDKey: ChatTypes.ConversationIDKey,
@@ -364,7 +362,6 @@ export const createSetTeamSawSubteamsBanner = (payload: _SetTeamSawSubteamsBanne
 export const createSetTeamsWithChosenChannels = (payload: _SetTeamsWithChosenChannelsPayload) => ({error: false, payload, type: setTeamsWithChosenChannels})
 export const createSetUpdatedChannelName = (payload: _SetUpdatedChannelNamePayload) => ({error: false, payload, type: setUpdatedChannelName})
 export const createSetUpdatedTopic = (payload: _SetUpdatedTopicPayload) => ({error: false, payload, type: setUpdatedTopic})
-export const createSetupTeamHandlers = (payload: _SetupTeamHandlersPayload) => ({error: false, payload, type: setupTeamHandlers})
 export const createUpdateChannelName = (payload: _UpdateChannelNamePayload) => ({error: false, payload, type: updateChannelName})
 export const createUpdateTopic = (payload: _UpdateTopicPayload) => ({error: false, payload, type: updateTopic})
 export const createUploadTeamAvatar = (payload: _UploadTeamAvatarPayload) => ({error: false, payload, type: uploadTeamAvatar})
@@ -428,7 +425,6 @@ export type SetTeamSawSubteamsBannerPayload = $Call<typeof createSetTeamSawSubte
 export type SetTeamsWithChosenChannelsPayload = $Call<typeof createSetTeamsWithChosenChannels, _SetTeamsWithChosenChannelsPayload>
 export type SetUpdatedChannelNamePayload = $Call<typeof createSetUpdatedChannelName, _SetUpdatedChannelNamePayload>
 export type SetUpdatedTopicPayload = $Call<typeof createSetUpdatedTopic, _SetUpdatedTopicPayload>
-export type SetupTeamHandlersPayload = $Call<typeof createSetupTeamHandlers, _SetupTeamHandlersPayload>
 export type UpdateChannelNamePayload = $Call<typeof createUpdateChannelName, _UpdateChannelNamePayload>
 export type UpdateTopicPayload = $Call<typeof createUpdateTopic, _UpdateTopicPayload>
 export type UploadTeamAvatarPayload = $Call<typeof createUploadTeamAvatar, _UploadTeamAvatarPayload>
@@ -494,7 +490,6 @@ export type Actions =
   | SetTeamsWithChosenChannelsPayload
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload
-  | SetupTeamHandlersPayload
   | UpdateChannelNamePayload
   | UpdateTopicPayload
   | UploadTeamAvatarPayload

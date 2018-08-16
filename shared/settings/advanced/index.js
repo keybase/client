@@ -6,6 +6,8 @@ import {isLinux} from '../../constants/platform'
 
 type Props = {
   openAtLogin: boolean,
+  lockdownModeEnabled: ?boolean,
+  onChangeLockdownMode: boolean => void,
   onSetOpenAtLogin: (open: boolean) => void,
   onDBNuke: () => void,
   onTrace: (durationSeconds: number) => void,
@@ -20,9 +22,20 @@ const Advanced = (props: Props) => (
     style={{
       ...globalStyles.flexBoxColumn,
       flex: 1,
-      padding: globalMargins.medium,
+      paddingLeft: globalMargins.medium,
+      paddingRight: globalMargins.medium,
+      paddingBottom: globalMargins.medium,
     }}
   >
+    <Box style={{...globalStyles.flexBoxRow, minHeight: 48, alignItems: 'center'}}>
+      <Checkbox
+        checked={!!props.lockdownModeEnabled}
+        disabled={props.lockdownModeEnabled == null}
+        label="Forbid account changes from the website"
+        onCheck={props.onChangeLockdownMode}
+        style={{paddingTop: globalMargins.small, paddingBottom: globalMargins.small, flex: 1}}
+      />
+    </Box>
     {!isMobile &&
       !isLinux && (
         <Box

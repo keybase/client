@@ -200,7 +200,7 @@ func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.E
 	// If we are starting the queue or get an earlier expiration time, reset or start the timer
 	head := b.pq.Peek()
 	if head == nil || purgeInfo.NextPurgeTime < head.purgeInfo.NextPurgeTime {
-		b.resetTimer(purgeInfo)
+		b.resetTimer(ctx, purgeInfo)
 	}
 	b.updateQueue(purgeInfo)
 	return nil
@@ -296,12 +296,13 @@ func (b *BackgroundEphemeralPurger) queuePurges(ctx context.Context) bool {
 		return true
 	}
 	// Reset our time for the next min item of the queue.
-	b.resetTimer(nextItem.purgeInfo)
+	b.resetTimer(ctx, nextItem.purgeInfo)
 	return false
 }
 
-func (b *BackgroundEphemeralPurger) resetTimer(purgeInfo chat1.EphemeralPurgeInfo) {
+func (b *BackgroundEphemeralPurger) resetTimer(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) {
 	duration := purgeInfo.NextPurgeTime.Time().Sub(b.clock.Now())
+	b.Debug(ctx, "resetTimer nextPurgeTime: %v, now: %v, duration: %v", purgeInfo.NextPurgeTime.Time(), b.clock.Now(), duration)
 	b.purgeTimer.Stop()
 	b.purgeTimer.Reset(duration)
 }

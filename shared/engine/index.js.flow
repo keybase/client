@@ -15,8 +15,8 @@ declare export class Engine {
   cancelSession(sessionID: any): void;
   rpc(): void;
   setFailOnError(): void;
-  listenOnConnect(key: string, f: () => void): void;
-  listenOnDisconnect(key: string, f: () => void): void;
+  actionOnConnect(key: string, f: () => any): void;
+  actionOnDisconnect(key: string, f: () => any): void;
   hasEverConnected(): void;
   setIncomingActionCreators(
     method: string,

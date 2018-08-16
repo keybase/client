@@ -494,6 +494,11 @@ protocol teams {
     TeamID id;
   }
 
+  record TeamNewlyAddedRow {
+    TeamID id;
+    string name;
+  }
+
   record TeamInvitee {
     @jsonkey("invite_id")
     TeamInviteID inviteID;

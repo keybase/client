@@ -1364,6 +1364,18 @@ func (o TeamExitRow) DeepCopy() TeamExitRow {
 	}
 }
 
+type TeamNewlyAddedRow struct {
+	Id   TeamID `codec:"id" json:"id"`
+	Name string `codec:"name" json:"name"`
+}
+
+func (o TeamNewlyAddedRow) DeepCopy() TeamNewlyAddedRow {
+	return TeamNewlyAddedRow{
+		Id:   o.Id.DeepCopy(),
+		Name: o.Name,
+	}
+}
+
 type TeamInvitee struct {
 	InviteID    TeamInviteID `codec:"inviteID" json:"invite_id"`
 	Uid         UID          `codec:"uid" json:"uid"`

@@ -157,6 +157,24 @@
     },
     {
       "type": "record",
+      "name": "UserEkReboxArg",
+      "fields": [
+        {
+          "type": "UserEkBoxMetadata",
+          "name": "userEkBoxMetadata"
+        },
+        {
+          "type": "DeviceID",
+          "name": "deviceID"
+        },
+        {
+          "type": "string",
+          "name": "deviceEkStatementSig"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamEkMetadata",
       "fields": [
         {

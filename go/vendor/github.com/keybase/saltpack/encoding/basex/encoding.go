@@ -154,7 +154,7 @@ func (enc *Encoding) decode(dst []byte, src []byte) (n int, err error) {
 	for sp < len(src) {
 		di, si, err := enc.decodeBlock(dst[dp:], src[sp:], sp)
 		if err != nil {
-			return 0, err
+			return dp, err
 		}
 		sp += si
 		dp += di

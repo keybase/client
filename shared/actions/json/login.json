@@ -11,16 +11,5 @@
     "launchAccountResetWebPage": {},
     "launchForgotPasswordWebPage": {},
     "loginError": { "error": "?HiddenString" },
-    "logout": {},
-    "loggedout": {},
-
-    // TODO remove
-    "onFinish": {},
-    "navBasedOnLoginAndInitialState": {},
-    "setDeletedSelf": { "deletedUsername": "string" },
-    "configuredAccounts": {
-      "accounts": "?Array<{|hasStoredSecret: boolean, username: string|}>",
-      "canError": { "error": "Error" }
-    }
   }
 }
