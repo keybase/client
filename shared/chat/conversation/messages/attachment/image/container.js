@@ -65,7 +65,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
             dispatchProps._onShowInFinder(message)
           }
         : null,
-    path: message.inlineVideoPlayable ? message.fileURL : message.previewURL,
+    path: message.previewURL,
+    fullPath: message.fileURL,
     progress: message.transferProgress,
     progressLabel,
     showButton: buttonType,
