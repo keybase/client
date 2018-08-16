@@ -45,32 +45,34 @@ type Server struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	serverConn     ServerConnection
-	uiSource       UISource
-	boxer          *Boxer
-	identNotifier  types.IdentifyNotifier
-	clock          clockwork.Clock
-	convPageStatus map[string]chat1.Pagination
+	serverConn        ServerConnection
+	uiSource          UISource
+	boxer             *Boxer
+	identNotifier     types.IdentifyNotifier
+	clock             clockwork.Clock
+	convPageStatus    map[string]chat1.Pagination
+	cachedThreadDelay *time.Duration
 
 	// Only for testing
 	rc                chat1.RemoteInterface
 	mockChatUI        libkb.ChatUI
-	cachedThreadDelay *time.Duration
 	remoteThreadDelay *time.Duration
 }
 
 var _ chat1.LocalInterface = (*Server)(nil)
 
 func NewServer(g *globals.Context, serverConn ServerConnection, uiSource UISource) *Server {
+	cachedThreadDelay := 30 * time.Millisecond
 	return &Server{
-		Contextified:   globals.NewContextified(g),
-		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "Server", false),
-		serverConn:     serverConn,
-		uiSource:       uiSource,
-		boxer:          NewBoxer(g),
-		identNotifier:  NewCachingIdentifyNotifier(g),
-		clock:          clockwork.NewRealClock(),
-		convPageStatus: make(map[string]chat1.Pagination),
+		Contextified:      globals.NewContextified(g),
+		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "Server", false),
+		serverConn:        serverConn,
+		uiSource:          uiSource,
+		boxer:             NewBoxer(g),
+		identNotifier:     NewCachingIdentifyNotifier(g),
+		clock:             clockwork.NewRealClock(),
+		convPageStatus:    make(map[string]chat1.Pagination),
+		cachedThreadDelay: &cachedThreadDelay,
 	}
 }
 
