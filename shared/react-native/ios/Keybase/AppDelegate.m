@@ -135,11 +135,8 @@ const BOOL isDebug = NO;
 }
 #endif
 
-void SigPipeHandler(int s) { }
-
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-  signal(SIGPIPE, SigPipeHandler);
   
   self.fileLogger = [[DDFileLogger alloc] init];
   self.fileLogger.rollingFrequency = 60 * 60 * 24; // 24 hour rolling

@@ -178,6 +178,7 @@ func (r *AttachmentHTTPSrv) getContentStash(ctx context.Context) (*os.File, erro
 func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.ResponseWriter, req *http.Request) bool {
 	contentForce := "true" == req.URL.Query().Get("contentforce")
 	// Hack for Android video to work
+
 	if r.G().GetAppType() == libkb.MobileAppType && !contentForce {
 		r.Debug(ctx, "serve: mobile client detected, showing the HTML video viewer")
 		w.Header().Set("Content-Type", "text/html")
@@ -198,16 +199,16 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 					  	}
 					</script>
 					<style>
-						.cover {
+						.contain {
 							object-fit: cover;
 						}
 					</style>
 				</head>
 				<body>
-					<video id="vid" class="cover" src="%s" preload="metadata" playsinline webkit-playsinline />
+					<video id="vid" class="contain" poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
 				</body>
 			</html>
-		`, req.URL.String()+"&contentforce=true#t=0.1"))); err != nil {
+		`, req.URL.Query().Get("poster"), req.URL.String()+"&contentforce=true"))); err != nil {
 			r.Debug(ctx, "serve: failed to write HTML video player: %s", err)
 		}
 		return true

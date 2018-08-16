@@ -6,6 +6,7 @@ import {connect, type TypedState, type Dispatch, isMobile} from '../../../../../
 import {globalColors} from '../../../../../styles'
 import ImageAttachment from '.'
 import {imgMaxWidth} from './image-render'
+import {isIOS} from '../../../../../constants/platform'
 
 type OwnProps = {
   message: Types.MessageAttachment,
@@ -71,7 +72,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     progressLabel,
     showButton: buttonType,
     videoDuration: message.videoDuration || '',
-    inlineVideoPlayable: message.inlineVideoPlayable,
+    inlineVideoPlayable: (!isMobile || isIOS) && message.inlineVideoPlayable,
     title: message.title || message.fileName,
     toggleMessageMenu: ownProps.toggleMessageMenu,
     width: Math.min(message.previewWidth, imgMaxWidth()),

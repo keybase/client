@@ -23,7 +23,8 @@ export class ImageRender extends React.Component<Props> {
   }
 
   render() {
-    const source = typeof this.props.src === 'string' ? {uri: this.props.src} : this.props.src
+    const uri = this.props.videoSrc + '&poster=' + encodeURIComponent(this.props.src)
+    const source = {uri}
     return this.props.inlineVideoPlayable ? (
       <WKWebView
         ref={ref => {
