@@ -42,11 +42,13 @@ export class ImageRender extends React.Component<Props> {
     return this.props.inlineVideoPlayable ? (
       <video
         ref={this.videoRef}
-        onLoadedMetadata={this.props.onLoad}
+        poster={this.props.src}
+        preload="none"
+        onLoadStart={this.props.onLoad}
         controlsList="nodownload nofullscreen noremoteplayback"
         style={collapseStyles([this.props.style, !this.props.loaded && {display: 'none'}])}
       >
-        <source src={this.props.src} />
+        <source src={this.props.videoSrc} />
         <style>{hidePlayButton}</style>
       </video>
     ) : (

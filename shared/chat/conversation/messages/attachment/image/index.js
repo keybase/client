@@ -28,6 +28,7 @@ type Props = {
   onClick: () => void,
   onShowInFinder: null | (() => void),
   path: string,
+  fullPath: string,
   progress: number,
   progressLabel: string,
   showButton: null | 'play' | 'film',
@@ -98,6 +99,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
             <ImageRender
               ref={this.imageRef}
               src={this.props.path}
+              videoSrc={this.props.fullPath}
               onLoad={this._setLoaded}
               loaded={this.state.loaded}
               inlineVideoPlayable={this.props.inlineVideoPlayable}

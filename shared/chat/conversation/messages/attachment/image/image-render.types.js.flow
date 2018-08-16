@@ -2,6 +2,7 @@
 export type Props = {
   onLoad: () => void,
   src: string,
+  videoSrc: string,
   style: Object,
   loaded: boolean,
   inlineVideoPlayable: boolean,
