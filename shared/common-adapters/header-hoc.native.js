@@ -21,7 +21,7 @@ export const HeaderHocHeader = ({
   <Box style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
     {customComponent}
     {!!title && (
-      <Box pointerEvents="none" style={_titleStyle}>
+      <Box style={_titleStyle}>
         <Text type="BodyBig">{title}</Text>
       </Box>
     )}
