@@ -292,8 +292,8 @@ func (f *FastTeamChainLoader) toResult(m libkb.MetaContext, arg fastLoadArg, sta
 }
 
 // findState in cache finds the team ID's state in an in-memory cache.
-func (f *FastTeamChainLoader) findStateInCache(m libkb.MetaContext, arg fastLoadArg) (state *keybase1.FastTeamData) {
-	tmp, found := f.getLRU().Get(arg.ID)
+func (f *FastTeamChainLoader) findStateInCache(m libkb.MetaContext, arg fastLoadArg, lru *lru.Cache) (state *keybase1.FastTeamData) {
+	tmp, found := lru.Get(arg.ID)
 	if !found {
 		return nil
 	}
@@ -976,15 +976,16 @@ func (f *FastTeamChainLoader) refresh(m libkb.MetaContext, arg fastLoadArg, stat
 }
 
 // updateCache puts the new version of the state into the cache on the team's ID.
-func (f *FastTeamChainLoader) updateCache(m libkb.MetaContext, state *keybase1.FastTeamData) {
-	f.getLRU().Add(state.Chain.ID, state)
+func (f *FastTeamChainLoader) updateCache(m libkb.MetaContext, state *keybase1.FastTeamData, lru *lru.Cache) {
+	lru.Add(state.Chain.ID, state)
 }
 
 // loadLocked is the inner loop for loading team. Should be called when holding the lock
 // this teamID.
 func (f *FastTeamChainLoader) loadLocked(m libkb.MetaContext, arg fastLoadArg) (res *fastLoadRes, err error) {
+	lru := f.getLRU()
 
-	state := f.findStateInCache(m, arg)
+	state := f.findStateInCache(m, arg, lru)
 
 	var shoppingList shoppingList
 	if state != nil {
@@ -1002,7 +1003,7 @@ func (f *FastTeamChainLoader) loadLocked(m libkb.MetaContext, arg fastLoadArg) (
 	if err != nil {
 		return nil, err
 	}
-	f.updateCache(m, state)
+	f.updateCache(m, state, lru)
 
 	return f.toResult(m, arg, state)
 }
