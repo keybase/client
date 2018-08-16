@@ -156,10 +156,10 @@ func (cb *CommonBlock) OffsetExceedsData(_, _ Offset) bool {
 
 // Set implements the Block interface for CommonBlock.
 func (cb *CommonBlock) Set(other Block) {
-	otherCopy := other.ToCommonBlock()
-	cb.IsInd = otherCopy.IsInd
-	cb.UnknownFieldSetHandler = otherCopy.UnknownFieldSetHandler
-	cb.SetEncodedSize(otherCopy.GetEncodedSize())
+	otherCommon := other.ToCommonBlock()
+	cb.IsInd = otherCommon.IsInd
+	cb.UnknownFieldSetHandler = otherCommon.UnknownFieldSetHandler
+	cb.SetEncodedSize(otherCommon.GetEncodedSize())
 }
 
 // BytesCanBeDirtied implements the Block interface for CommonBlock.
