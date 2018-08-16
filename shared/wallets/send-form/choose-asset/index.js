@@ -45,7 +45,7 @@ class ChooseAsset extends React.Component<Props, State> {
   _renderItem = ({
     item,
   }: {
-    item: (DisplayItem & {key: string}) | (OtherItem & {key: string}) | ExpanderItem,
+    item: (DisplayItem & {key: string}) | (OtherItem & {key: string}) | (ExpanderItem & {key: string}),
   }) => {
     switch (item.type) {
       case 'display choice':
@@ -71,7 +71,7 @@ class ChooseAsset extends React.Component<Props, State> {
         )
       case 'expander':
         return (
-          <ClickableBox onClick={item.onClick}>
+          <ClickableBox key={item.key} onClick={item.onClick}>
             <Box2 direction="horizontal" style={styles.choiceContainer}>
               <Box2 direction="horizontal" centerChildren={true} style={styles.expanderContainer}>
                 <Text type="BodySmallSemibold" style={styles.expanderText}>
