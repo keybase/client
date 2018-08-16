@@ -20,12 +20,14 @@ const commands = {
 const paths = {
   iconfont: path.resolve(__dirname, '../../images/iconfont'),
   iconpng: path.resolve(__dirname, '../../images/icons'),
-  font: path.resolve(__dirname, '../../fonts'),
+  fonts: path.resolve(__dirname, '../../fonts'),
   iconConstants: path.resolve(__dirname, '../../common-adapters/icon.constants.js'),
 }
 
 const fontHeight = 2048
-const descent = 0
+const descentFraction = 16 // Source: https://icomoon.io/#docs/font-metrics
+const ascent = fontHeight
+const descent = fontHeight / descentFraction
 const baseCharCode = 0xe900
 
 const iconfontRegex = /^(\d+)-kb-iconfont-(.*)-(\d+).svg$/
@@ -58,19 +60,19 @@ const getSvgPaths = shouldPrintSkipped =>
 /*
  * This function will read all of the SVG files specified above, and generate a
  * single ttf iconfont from the svgs. webfonts-generator will write the file to
- * `dest`
+ * `dest`.
  *
  * For config options: https://github.com/sunflowerdeath/webfonts-generator
  */
 function updatedFonts() {
   console.log('Created new webfont')
-  const svgFilePaths = getSvgPaths()
+  const svgFilePaths = getSvgPaths(true /* print skipped */)
   webfontsGenerator(
     {
       // An intermediate svgfont will be generated and then converted to TTF by webfonts-generator
       types: ['ttf'],
       files: svgFilePaths,
-      dest: paths.font,
+      dest: paths.fonts,
       startCodepoint: baseCharCode,
       fontName: 'kb',
       css: false,
@@ -79,9 +81,11 @@ function updatedFonts() {
         ttf: {
           ts: Date.now(),
         },
+        // Setting descent to zero on font generation will prevent the final
+        // glyphs from being shifted down
         svg: {
           fontHeight,
-          descent,
+          descent: 0,
         },
       },
     },
@@ -92,10 +96,11 @@ function updatedFonts() {
 const fontsGeneratedSuccess = () => {
   console.log('Webfont generated successfully... updating constants and flow types')
   // Webfonts generator seems always produce an svg fontfile regardless of the `type` option set above.
-  const svgFont = path.resolve(paths.font, 'kb.svg')
+  const svgFont = path.resolve(paths.fonts, 'kb.svg')
   if (fs.existsSync(svgFont)) {
     fs.unlinkSync(svgFont)
   }
+  setFontMetrics()
   updateConstants()
 }
 
@@ -171,13 +176,80 @@ const updateConstants = () => {
   export const iconMeta: {[key: IconType]: IconMeta} = iconMeta_
   `
 
-  fs.writeFileSync(
-    paths.iconConstants,
-    //$FlowIssue
-    prettier.format(iconConstants, prettier.resolveConfig.sync(paths.iconConstants)),
-    'utf8'
-  )
+  try {
+    fs.writeFileSync(
+      paths.iconConstants,
+      //$FlowIssue
+      prettier.format(iconConstants, prettier.resolveConfig.sync(paths.iconConstants)),
+      'utf8'
+    )
+  } catch (e) {
+    console.error(e)
+  }
 }
+
+/*
+ * The final ttf output from webfonts-generator will not set the GASP or OS2/Metrics table in TTF metadata correctly.
+ * GASP will help with pixel alignment and antialiasing
+ * OS2/Metrics will set the ascent and descent values in metadata (rather than on the glyphs)
+ * To fix this, we need to force the following values using fontforge.
+ *
+ * ---
+ * OS/2 Table
+ * Documentation: https://docs.microsoft.com/en-us/typography/opentype/spec/os2ver1
+ * ---
+ * WinAscent: ${fontHeight}
+ * WinDescent: ${descent}
+ * TypoAscent: ${fontHeight}
+ * TypoDescent: 0
+ * HHeadAscent: ${fontHeight}
+ * HHeadDescent: -${descent}
+ *
+ * ---
+ * GASP Table
+ * This is *super* important for anti-aliasing and grid snapping.
+ * If this is not set successfully then the icons will be visually blurry.
+ * Documentation: https://docs.microsoft.com/en-us/typography/opentype/spec/gasp#sample-gasp-table
+ * ---
+ * PixelSize: 65535
+ * FlagValue:
+ *  0 means neither grid-fit nor anti-alias
+ *  1 means grid-fit but no anti-alias.
+ *  2 means no grid-fit but anti-alias.
+ *  3 means both grid-fit and anti-alias.
+ *
+ */
+const setFontMetrics = () => {
+  /*
+   * Arguments:
+   * $1: path to kb.ttf
+   * $2: ascent value
+   * $3: descent value
+   */
+  const kbTtf = path.resolve(paths.fonts, 'kb.ttf')
+  let script = `
+  Open('${kbTtf}');
+  SetOS2Value('WinAscent', ${ascent});
+  SetOS2Value('WinDescent', ${descent});
+  SetOS2Value('TypoAscent', ${ascent});
+  SetOS2Value('TypoDescent', ${0});
+  SetOS2Value('HHeadAscent', ${ascent});
+  SetOS2Value('HHeadDescent', ${-descent});
+  SetGasp(65535, 3);
+  Generate('${kbTtf}');
+  `
+  script = script
+    .split('\n')
+    .map(x => x.trim())
+    .join(' ')
+  const command = `fontforge -lang ff -c "${script}"`
+  try {
+    execSync(command, {encoding: 'utf8', env: process.env})
+  } catch (e) {
+    console.error(e)
+  }
+}
+
 function unusedAssetes() {
   const allFiles = fs.readdirSync(paths.iconpng)
 
