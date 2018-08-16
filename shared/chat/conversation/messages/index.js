@@ -102,6 +102,10 @@ class MessageFactory extends React.PureComponent<Props> {
         )
       // case 'error':
       // return <Error message={this.props.message} />
+      case 'requestPayment':
+        return null // TODO
+      case 'sendPayment':
+        return null // TODO
       case 'deleted':
         return null
       default:

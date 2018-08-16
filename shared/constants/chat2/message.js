@@ -165,13 +165,15 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
 export const makeMessageRequestPayment: I.RecordFactory<MessageTypes._MessageRequestPayment> = I.Record({
   ...makeMessageCommon,
   note: '',
+  reactions: I.Map(),
   requestID: '',
   type: 'requestPayment',
 })
 
 export const makeMessageSendPayment: I.RecordFactory<MessageTypes._MessageSendPayment> = I.Record({
   ...makeMessageCommon,
-  paymentID: '',
+  paymentID: {txID: ''}, // TODO see if this is an appropriate default value
+  reactions: I.Map(),
   type: 'sendPayment',
 })
 

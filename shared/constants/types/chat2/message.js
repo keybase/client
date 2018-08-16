@@ -2,11 +2,11 @@
 // @flow strict
 import * as Common from './common'
 import * as RPCTypes from '../rpc-gen'
+import * as RPCStellarTypes from '../rpc-stellar-gen'
 // $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import HiddenString from '../../../util/hidden-string'
 import type {DeviceType} from '../devices'
-import type {PaymentID} from '../wallets'
 
 // The actual ID the server uses for operations (edit, delete etc)
 export opaque type MessageID: number = number
@@ -163,7 +163,8 @@ export type _MessageRequestPayment = {
   id: MessageID,
   note: string,
   ordinal: Ordinal,
-  requestID: string,
+  reactions: Reactions,
+  requestID: RPCStellarTypes.KeybaseRequestID,
   timestamp: number,
   type: 'requestPayment',
 }
@@ -178,7 +179,8 @@ export type _MessageSendPayment = {
   errorReason: ?string,
   id: MessageID,
   ordinal: Ordinal,
-  paymentID: PaymentID,
+  reactions: Reactions,
+  paymentID: RPCStellarTypes.PaymentID,
   timestamp: number,
   type: 'sendPayment',
 }
