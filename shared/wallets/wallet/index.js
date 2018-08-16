@@ -21,7 +21,7 @@ const HistoryPlaceholder = () => (
   </Box2>
 )
 
-export default (props: Props) => {
+const Wallet = (props: Props) => {
   const renderItem = ({item, index, section}) => {
     const children = []
     if (section.title === 'Your assets') {
@@ -76,3 +76,5 @@ const styles = styleSheetCreate({
     color: globalColors.black_40,
   },
 })
+
+export default Wallet
