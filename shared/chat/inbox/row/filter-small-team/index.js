@@ -4,11 +4,8 @@ import {Box, ClickableBox} from '../../../../common-adapters'
 import {FilteredTopLine} from './top-line'
 import {Avatars, TeamAvatar} from '../avatars'
 import {
-  glamorous,
-  globalColors,
   globalStyles,
   desktopStyles,
-  isMobile,
   styleSheetCreate,
   platformStyles,
   collapseStyles,
@@ -27,12 +24,6 @@ type Props = {
   usernameColor: string,
 }
 
-const HoverBox = isMobile
-  ? Box
-  : glamorous(Box)({
-      ':hover': {backgroundColor: globalColors.blue3},
-    })
-
 class FilterSmallTeam extends PureComponent<Props> {
   render() {
     const props = this.props
@@ -41,7 +32,7 @@ class FilterSmallTeam extends PureComponent<Props> {
         onClick={props.onSelectConversation}
         style={collapseStyles([styles.container, {backgroundColor: props.backgroundColor}])}
       >
-        <HoverBox style={collapseStyles([styles.rowContainer, {backgroundColor: props.backgroundColor}])}>
+        <Box style={collapseStyles([styles.rowContainer, {backgroundColor: props.backgroundColor}])}>
           {props.teamname ? (
             <TeamAvatar
               teamname={props.teamname}
@@ -64,7 +55,7 @@ class FilterSmallTeam extends PureComponent<Props> {
               usernameColor={props.usernameColor}
             />
           </Box>
-        </HoverBox>
+        </Box>
       </ClickableBox>
     )
   }
