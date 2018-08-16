@@ -22,7 +22,8 @@ const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
     isBigTeam: Constants.isBigTeam(state, teamname),
     ignoreAccessRequests: publicitySettings.ignoreAccessRequests,
     openTeam: settings.open,
-    openTeamRole: Constants.teamRoleByEnum[settings.joinAs],
+    // TODO this is really a maybe team rolettype
+    openTeamRole: ((Constants.teamRoleByEnum[settings.joinAs]: any): Types.TeamRoleType),
     publicityAnyMember,
     publicityMember,
     publicityTeam,
