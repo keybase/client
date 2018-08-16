@@ -63,7 +63,6 @@ type _FollowPayload = $ReadOnly<{|
 type _GetMyProfilePayload = $ReadOnly<{|ignoreCache?: boolean|}>
 type _GetProfilePayload = $ReadOnly<{|
   username: string,
-  fromKBFS?: boolean,
   ignoreCache?: boolean,
   forceDisplay?: boolean,
 |}>
