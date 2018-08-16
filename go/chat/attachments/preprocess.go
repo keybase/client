@@ -181,7 +181,11 @@ func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLab
 	callerPreview *chat1.MakePreviewRes) (p Preprocess, err error) {
 	if callerPreview != nil && callerPreview.Location != nil {
 		log.Debug(ctx, "preprocessAsset: caller provided preview, using that")
-		return processCallerPreview(ctx, *callerPreview)
+		if p, err = processCallerPreview(ctx, *callerPreview); err != nil {
+			log.Debug(ctx, "preprocessAsset: failed to process caller preview, making fresh one: %s", err)
+		} else {
+			return p, nil
+		}
 	}
 	src, err := os.Open(filename)
 	if err != nil {
