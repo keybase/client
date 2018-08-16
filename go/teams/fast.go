@@ -62,6 +62,10 @@ func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoa
 	m = m.WithLogTag("FTL")
 	defer m.CTrace(fmt.Sprintf("FastTeamChainLoader#Load(%+v)", arg), func() error { return err })()
 
+	if arg.ID.IsPublic() != arg.Public {
+		return res, NewBadPublicError(arg.ID, arg.Public)
+	}
+
 	flr, err := f.load(m, fastLoadArg{FastTeamLoadArg: arg})
 	if err != nil {
 		return res, err
@@ -91,6 +95,10 @@ func (f *FastTeamChainLoader) verifyTeamNameViaParentLoad(m libkb.MetaContext, i
 			return res, NewBadNameError("root team v. team ID mismatch")
 		}
 		return unverifiedName, nil
+	}
+
+	if parent.ParentID.IsPublic() != isPublic {
+		return res, NewBadPublicError(parent.ParentID, isPublic)
 	}
 
 	parentRes, err := f.load(m, fastLoadArg{

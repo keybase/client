@@ -408,3 +408,16 @@ func (f FastLoadError) Error() string {
 func NewFastLoadError(format string, args ...interface{}) error {
 	return FastLoadError{Msg: fmt.Sprintf(format, args...)}
 }
+
+type BadPublicError struct {
+	id       keybase1.TeamID
+	isPublic bool
+}
+
+func NewBadPublicError(id keybase1.TeamID, isPublic bool) error {
+	return BadPublicError{id, isPublic}
+}
+
+func (e BadPublicError) Error() string {
+	return fmt.Sprintf("Public bit for team %s is wrong (%v)", e.id, e.isPublic)
+}
