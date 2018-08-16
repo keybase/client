@@ -178,7 +178,7 @@ func TestFastLoaderUpPointerUnstub(t *testing.T) {
 		Applications:  []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
 		NeedLatestKey: true,
 	}
-	_, err = tcs[1].G.GetFastTeamLoader().Load(m[0], arg)
+	_, err = tcs[0].G.GetFastTeamLoader().Load(m[0], arg)
 	require.NoError(t, err)
 
 	t.Logf("load the subteam")
@@ -187,7 +187,7 @@ func TestFastLoaderUpPointerUnstub(t *testing.T) {
 		Applications:  []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
 		NeedLatestKey: true,
 	}
-	team, err := tcs[1].G.GetFastTeamLoader().Load(m[0], arg)
+	team, err := tcs[0].G.GetFastTeamLoader().Load(m[0], arg)
 	require.NoError(t, err)
 	require.True(t, expectedSubTeamName.Eq(team.Name))
 }
