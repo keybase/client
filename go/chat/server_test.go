@@ -2478,6 +2478,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 			require.NoError(t, err)
 			close(cb)
 		}()
+		clock.Advance(50 * time.Millisecond)
 		select {
 		case res := <-threadCb:
 			require.False(t, res.Full)
@@ -2517,6 +2518,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 			require.NoError(t, err)
 			close(cb)
 		}()
+		clock.Advance(50 * time.Millisecond)
 		select {
 		case res := <-threadCb:
 			require.False(t, res.Full)
@@ -2582,6 +2584,7 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 			require.NoError(t, err)
 			close(cb)
 		}()
+		clock.Advance(50 * time.Millisecond)
 		select {
 		case res := <-threadCb:
 			require.False(t, res.Full)
@@ -2617,6 +2620,7 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 			require.NoError(t, err)
 			close(cb)
 		}()
+		clock.Advance(50 * time.Millisecond)
 		select {
 		case res := <-threadCb:
 			require.False(t, res.Full)
@@ -2718,6 +2722,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 			require.NoError(t, err)
 			close(cb)
 		}()
+		clock.Advance(50 * time.Millisecond)
 		select {
 		case res := <-threadCb:
 			require.False(t, res.Full)
@@ -2765,6 +2770,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 			require.NoError(t, err)
 			close(cb)
 		}()
+		clock.Advance(50 * time.Millisecond)
 		select {
 		case res := <-threadCb:
 			require.False(t, res.Full)
@@ -2988,6 +2994,7 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 			require.NoError(t, err)
 			close(cb)
 		}()
+		clock.Advance(50 * time.Millisecond)
 		select {
 		case res := <-threadCb:
 			require.False(t, res.Full)
