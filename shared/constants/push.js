@@ -38,15 +38,12 @@ export const normalizePush = (n: any): ?Types.PushNotification => {
         type: 'chat.readmessage',
       }
     } else if (data.type === 'chat.newmessage' && data.convID) {
-      const membersType = ChatConstants.anyToConversationMembersType(data.t)
-      if (membersType) {
-        return {
-          conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
-          membersType,
-          type: 'chat.newmessage',
-          unboxPayload: n.m || '',
-          userInteraction,
-        }
+      return {
+        conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
+        membersType: ChatConstants.anyToConversationMembersType(data.t),
+        type: 'chat.newmessage',
+        unboxPayload: n.m || '',
+        userInteraction,
       }
     } else if (data.type === 'chat.newmessageSilent_2' && data.c) {
       const membersType = ChatConstants.anyToConversationMembersType(data.t)

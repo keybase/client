@@ -17,7 +17,7 @@ export type PushNotification =
     }
   | {
       conversationIDKey: ChatTypes.ConversationIDKey,
-      membersType: RPCChatTypes.ConversationMembersType,
+      membersType: ?RPCChatTypes.ConversationMembersType,
       type: 'chat.newmessage',
       unboxPayload: string,
       userInteraction: boolean,
