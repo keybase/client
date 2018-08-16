@@ -223,8 +223,6 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 	low := sc.GetLastLoadedSeqno()
 	sc.loadedFromLinkOne = (low == keybase1.Seqno(0) || low == keybase1.Seqno(-1))
 
-	isSelf := selfUID.Equal(sc.uid)
-
 	m.CDebugf("+ Load SigChain from server (uid=%s, low=%d)", sc.uid, low)
 	defer func() { m.CDebugf("- Loaded SigChain -> %s", ErrToOk(err)) }()
 
@@ -235,7 +233,6 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 			"uid":           UIDArg(sc.uid),
 			"low":           I{int(low)},
 			"v2_compressed": B{true},
-			"self":          B{isSelf},
 		},
 		MetaContext: m,
 	})
