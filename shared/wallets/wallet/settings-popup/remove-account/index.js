@@ -1,14 +1,6 @@
 // @flow
 import React from 'react'
-import {
-  Box,
-  Button,
-  MaybePopup,
-  Text,
-  ButtonBar,
-  Icon,
-  iconCastPlatformStyles,
-} from '../../../../common-adapters'
+import * as Kb from '../../../../common-adapters'
 import {globalStyles, globalMargins, isMobile, styleSheetCreate} from '../../../../styles'
 
 export type Props = {
@@ -20,28 +12,28 @@ export type Props = {
 }
 
 const RemoveAccountDialog = (props: Props) => (
-  <MaybePopup onClose={props.onClose}>
-    <Box style={styles.box}>
-      <Icon
+  <Kb.MaybePopup onClose={props.onClose}>
+    <Kb.Box style={styles.box}>
+      <Kb.Icon
         type={isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
-        style={iconCastPlatformStyles(styles.icon)}
+        style={Kb.iconCastPlatformStyles(styles.icon)}
       />
-      <Text style={styles.warning} type="Header">
+      <Kb.Text style={styles.warning} type="Header">
         Are you sure you want to remove{' '}
-        <Text type="Header" style={styles.italic}>
+        <Kb.Text type="Header" style={styles.italic}>
           {props.name}
-        </Text>{' '}
+        </Kb.Text>{' '}
         from Keybase?
-      </Text>
-      <Text type="BodySmall">Balance:</Text>
-      <Text type="BodySmallSemibold">{props.currency}</Text>
-      <Text type="BodySmallSemibold">{props.keys}</Text>
-      <ButtonBar style={styles.buttonbar}>
-        <Button label="Cancel" onClick={props.onClose} type="Secondary" />
-        <Button label="Yes, remove" onClick={props.onDelete} type="Danger" />
-      </ButtonBar>
-    </Box>
-  </MaybePopup>
+      </Kb.Text>
+      <Kb.Text type="BodySmall">Balance:</Kb.Text>
+      <Kb.Text type="BodySmallSemibold">{props.currency}</Kb.Text>
+      <Kb.Text type="BodySmallSemibold">{props.keys}</Kb.Text>
+      <Kb.ButtonBar style={styles.buttonbar}>
+        <Kb.Button label="Cancel" onClick={props.onClose} type="Secondary" />
+        <Kb.Button label="Yes, remove" onClick={props.onDelete} type="Danger" />
+      </Kb.ButtonBar>
+    </Kb.Box>
+  </Kb.MaybePopup>
 )
 
 const styles = styleSheetCreate({
