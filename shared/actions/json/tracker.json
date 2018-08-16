@@ -24,6 +24,7 @@
     },
     "getProfile": {
       "username": "string",
+      "fromKBFS?": "boolean",
       "ignoreCache?": "boolean",
       "forceDisplay?": "boolean"
     },
