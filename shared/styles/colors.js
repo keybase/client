@@ -13,6 +13,8 @@ const colors = {
   black_20_on_white: 'rgb(204,204,204)',
   black_40: 'rgba(0, 0, 0, 0.40)',
   black_40_on_white: 'rgb(153,153,153)',
+  black_50: 'rgba(0, 0, 0, 0.50)',
+  black_50_on_white: 'rgb(127,127,127)',
   black_60: 'rgba(0, 0, 0, 0.60)',
   black_60_on_white: 'rgb(102,102,102)',
   black_75: 'rgba(0, 0, 0, 0.75)',

@@ -159,7 +159,7 @@ const styles = styleSheetCreate({
   container: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
-    backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blue5,
+    backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blue4,
     justifyContent: 'space-between',
     minHeight: 48,
     paddingLeft: globalMargins.small,
