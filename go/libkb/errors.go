@@ -741,10 +741,15 @@ func (u UnmarshalError) Error() string {
 	return "Bad " + u.T + " packet"
 }
 
-type VerificationError struct{}
+type VerificationError struct {
+	Cause error
+}
 
-func (v VerificationError) Error() string {
-	return "Verification failed"
+func (e VerificationError) Error() string {
+	if e.Cause == nil {
+		return "Verification failed"
+	}
+	return fmt.Sprintf("Verification failed: %v", e.Cause)
 }
 
 //=============================================================================
@@ -1380,10 +1385,15 @@ func (e NoDecryptionKeyError) Error() string {
 
 //=============================================================================
 
-type DecryptionError struct{}
+type DecryptionError struct {
+	Cause error
+}
 
 func (e DecryptionError) Error() string {
-	return "Decryption error"
+	if e.Cause == nil {
+		return "Decryption error"
+	}
+	return fmt.Sprintf("Decryption error: %v", e.Cause)
 }
 
 //=============================================================================

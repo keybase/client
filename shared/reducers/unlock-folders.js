@@ -47,7 +47,6 @@ export default function(state: Types.State = initialState, action: UnlockFolders
     case UnlockFoldersGen.checkPaperKey:
     case UnlockFoldersGen.closePopup:
     case UnlockFoldersGen.openPopup:
-    case UnlockFoldersGen.registerRekeyListener:
       return state
     default:
       /*::

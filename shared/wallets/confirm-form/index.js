@@ -104,7 +104,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       borderTopStyle: 'solid',
       borderTopWidth: 1,
-      borderTopColor: Styles.globalColors.black_05,
+      borderTopColor: Styles.globalColors.black_10,
     },
   }),
   button: {

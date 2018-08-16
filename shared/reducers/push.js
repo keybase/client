@@ -3,45 +3,28 @@ import * as PushGen from '../actions/push-gen'
 import * as Types from '../constants/types/push'
 import * as Constants from '../constants/push'
 
-function reducer(state: Types.State = Constants.initialState, action: PushGen.Actions): Types.State {
+const initialState = Constants.makeInitialState()
+
+function reducer(state: Types.State = initialState, action: PushGen.Actions): Types.State {
   switch (action.type) {
     case PushGen.resetStore:
-      return {...Constants.initialState}
-    case PushGen.permissionsRequesting:
-      const {requesting} = action.payload
-      return {
-        ...state,
-        permissionsRequesting: requesting,
-      }
-    case PushGen.permissionsPrompt:
-      const {prompt} = action.payload
-      return {
-        ...state,
-        permissionsPrompt: prompt,
-      }
+      // when you sign out we need to keep all this info as its per device
+      return initialState.merge({
+        hasPermissions: state.hasPermissions,
+        showPushPrompt: state.showPushPrompt,
+        token: state.token,
+      })
+    case PushGen.rejectPermissions:
+      return state.merge({hasPermissions: false, showPushPrompt: false})
+    case PushGen.updateHasPermissions:
+      return state.merge({hasPermissions: action.payload.hasPermissions})
+    case PushGen.showPermissionsPrompt:
+      return state.merge({showPushPrompt: action.payload.show})
     case PushGen.updatePushToken:
-      const {token, tokenType} = action.payload
-      return {
-        ...state,
-        token,
-        tokenType,
-      }
-    case PushGen.setHasPermissions:
-      const {hasPermissions} = action.payload
-      return {
-        ...state,
-        hasPermissions,
-      }
+      return state.merge({token: action.payload.token})
     // Saga only actions
-    case PushGen.checkIOSPush:
-    case PushGen.configurePush:
-    case PushGen.error:
+    case PushGen.requestPermissions:
     case PushGen.notification:
-    case PushGen.permissionsNo:
-    case PushGen.permissionsRequest:
-    case PushGen.pushToken:
-    case PushGen.registrationError:
-    case PushGen.savePushToken:
       return state
     default:
       /*::

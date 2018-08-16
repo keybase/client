@@ -113,7 +113,7 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignContent: 'center',
-      borderColor: Styles.globalColors.black_05,
+      borderColor: Styles.globalColors.black_10,
       borderRadius: 4,
       borderStyle: 'solid',
       borderWidth: 1,

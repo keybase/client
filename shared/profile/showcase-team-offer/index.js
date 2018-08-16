@@ -7,7 +7,7 @@ import {
   Button,
   ClickableBox,
   Divider,
-  Icon,
+  InfoNote,
   Meta,
   PopupDialog,
   ScrollView,
@@ -80,55 +80,40 @@ const ShowcaseTeamOffer = (props: Props) => (
     <Text style={{paddingBottom: globalMargins.small}} type="Header">
       Publish the teams you're in
     </Text>
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginBottom: globalMargins.tiny}}>
-      <Box style={{backgroundColor: globalColors.black_05, height: 1, width: 24}} />
-      <Icon
+    <InfoNote>
+      <Text
         style={{
-          paddingLeft: globalMargins.tiny,
-          paddingRight: globalMargins.tiny,
+          paddingBottom: globalMargins.small,
+          paddingLeft: globalMargins.large,
+          paddingRight: globalMargins.large,
+          paddingTop: globalMargins.tiny,
+          textAlign: 'center',
         }}
-        color={globalColors.black_10}
-        type="iconfont-info"
-      />
-      <Box style={{backgroundColor: globalColors.black_05, height: 1, width: 24}} />
-    </Box>
+        type="BodySmall"
+      >
+        Promoting a team will encourage others to ask to join. The team's description and number of members
+        will be public.
+      </Text>
+    </InfoNote>
 
-    <ScrollView>
-      <Box style={{...globalStyles.flexBoxRow, flexShrink: 1, width: '100%'}}>
-        <Text
-          style={{
-            color: globalColors.black_40,
-            paddingBottom: globalMargins.small,
-            paddingLeft: globalMargins.large,
-            paddingRight: globalMargins.large,
-            paddingTop: globalMargins.tiny,
-            textAlign: 'center',
-          }}
-          type="BodySmall"
-        >
-          Promoting a team will encourage others to ask to join. The team's description and number of members
-          will be public.
-        </Text>
-      </Box>
-      <Box style={{flexShrink: 1, width: '100%'}}>
-        {props.teamnames &&
-          props.teamnames.map(name => (
-            <TeamRow
-              canShowcase={
-                (props.teamNameToRole[name] !== 'none' && props.teamNameToAllowPromote[name]) ||
-                ['admin', 'owner'].indexOf(props.teamNameToRole[name]) !== -1
-              }
-              isExplicitMember={props.teamNameToRole[name] !== 'none'}
-              key={name}
-              name={name}
-              isOpen={props.teamNameToIsOpen[name]}
-              membercount={props.teammembercounts[name]}
-              onPromote={promoted => props.onPromote(name, promoted)}
-              showcased={props.teamNameToIsShowcasing[name]}
-              waiting={!!props.waiting[teamWaitingKey(name)]}
-            />
-          ))}
-      </Box>
+    <ScrollView style={{flexShrink: 1, width: '100%'}}>
+      {props.teamnames &&
+        props.teamnames.map(name => (
+          <TeamRow
+            canShowcase={
+              (props.teamNameToRole[name] !== 'none' && props.teamNameToAllowPromote[name]) ||
+              ['admin', 'owner'].indexOf(props.teamNameToRole[name]) !== -1
+            }
+            isExplicitMember={props.teamNameToRole[name] !== 'none'}
+            key={name}
+            name={name}
+            isOpen={props.teamNameToIsOpen[name]}
+            membercount={props.teammembercounts[name]}
+            onPromote={promoted => props.onPromote(name, promoted)}
+            showcased={props.teamNameToIsShowcasing[name]}
+            waiting={!!props.waiting[teamWaitingKey(name)]}
+          />
+        ))}
     </ScrollView>
     <ClickableBox onClick={props.onBack} style={{flexGrow: 1}}>
       <Button style={{margin: globalMargins.small}} type="Secondary" onClick={props.onBack} label="Close" />

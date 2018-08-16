@@ -19,6 +19,7 @@ type OwnProps = {
   path: Types.Path,
   actionIconClassName?: string,
   actionIconFontSize?: number,
+  actionIconWhite?: boolean,
 }
 
 const mapStateToProps = (state: TypedState) => ({
@@ -151,10 +152,11 @@ const getRootMenuActionsByPathLevel = (pathLevel: number, stateProps, dispatchPr
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, {path, actionIconClassName, actionIconFontSize}) => {
-  const pathElements = Types.getPathElements(path)
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const {_pathItems, _username} = stateProps
   const {loadFolderList, loadMimeType} = dispatchProps
+  const {path, actionIconClassName, actionIconFontSize, actionIconWhite} = ownProps
+  const pathElements = Types.getPathElements(path)
   const pathItem = _pathItems.get(path, Constants.unknownPathItem)
   const type = pathElements.length <= 3 ? 'folder' : pathItem.type
   const {childrenFolders, childrenFiles} =
@@ -197,6 +199,7 @@ const mergeProps = (stateProps, dispatchProps, {path, actionIconClassName, actio
     loadFolderList,
     actionIconClassName,
     actionIconFontSize,
+    actionIconWhite,
     // menu actions
     showInFileUI,
     ignoreFolder,
