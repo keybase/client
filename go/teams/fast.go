@@ -569,7 +569,7 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 	}
 
 	if teamUpdate.Box != nil {
-		lastSecretGen, seeds, err = unboxPerTeamSecrets(m, teamUpdate.Box, teamUpdate.Prevs)
+		lastSecretGen, seeds, err = unboxPerTeamSecrets(m, f.world, teamUpdate.Box, teamUpdate.Prevs)
 		if err != nil {
 			return nil, err
 		}

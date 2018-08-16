@@ -824,16 +824,16 @@ func (l *TeamLoader) checkReaderKeyMaskCoverage(ctx context.Context,
 func (l *TeamLoader) unboxPerTeamSecrets(ctx context.Context,
 	box *TeamBox, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded) (keybase1.PerTeamKeyGeneration, []keybase1.PerTeamKeySeed, error) {
 
-	return unboxPerTeamSecrets(libkb.NewMetaContext(ctx, l.G()), box, prevs)
+	return unboxPerTeamSecrets(libkb.NewMetaContext(ctx, l.G()), l.world, box, prevs)
 }
 
-func unboxPerTeamSecrets(m libkb.MetaContext, box *TeamBox, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded) (keybase1.PerTeamKeyGeneration, []keybase1.PerTeamKeySeed, error) {
+func unboxPerTeamSecrets(m libkb.MetaContext, world LoaderContext, box *TeamBox, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded) (keybase1.PerTeamKeyGeneration, []keybase1.PerTeamKeySeed, error) {
 
 	if box == nil {
 		return 0, nil, fmt.Errorf("no key box from server")
 	}
 
-	userKey, err := perUserEncryptionKey(m, box.PerUserKeySeqno)
+	userKey, err := world.perUserEncryptionKey(m.Ctx(), box.PerUserKeySeqno)
 
 	if err != nil {
 		return 0, nil, err
