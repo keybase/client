@@ -21,50 +21,6 @@ export type Props = {
   onViewTeam: () => void,
 }
 
-const styles = Styles.styleSheetCreate({
-  badge: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blue,
-      borderRadius: 6,
-      height: 8,
-      margin: 6,
-      width: 8,
-    },
-    isElectron: {
-      margin: 4,
-      marginTop: 5,
-      right: Styles.globalMargins.tiny,
-      position: 'absolute',
-    },
-  }),
-  headerAvatar: Styles.platformStyles({
-    isElectron: {
-      marginBottom: 2,
-    },
-    isMobile: {
-      marginBottom: 4,
-    },
-  }),
-  headerContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
-    },
-    isElectron: {
-      paddingTop: 16,
-    },
-    isMobile: {paddingBottom: 24, paddingTop: 40},
-  }),
-  noTopborder: {
-    borderTopWidth: 0,
-  },
-  text: Styles.platformStyles({
-    isMobile: {
-      color: Styles.globalColors.blue,
-    },
-  }),
-})
-
 const Header = ({teamname, memberCount}: {teamname: string, memberCount: number}) => (
   <Kb.Box style={styles.headerContainer}>
     <Kb.Avatar
@@ -133,5 +89,49 @@ const InfoPanelMenu = (props: Props) => {
     />
   )
 }
+
+const styles = Styles.styleSheetCreate({
+  badge: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.blue,
+      borderRadius: 6,
+      height: 8,
+      margin: 6,
+      width: 8,
+    },
+    isElectron: {
+      margin: 4,
+      marginTop: 5,
+      right: Styles.globalMargins.tiny,
+      position: 'absolute',
+    },
+  }),
+  headerAvatar: Styles.platformStyles({
+    isElectron: {
+      marginBottom: 2,
+    },
+    isMobile: {
+      marginBottom: 4,
+    },
+  }),
+  headerContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'center',
+    },
+    isElectron: {
+      paddingTop: 16,
+    },
+    isMobile: {paddingBottom: 24, paddingTop: 40},
+  }),
+  noTopborder: {
+    borderTopWidth: 0,
+  },
+  text: Styles.platformStyles({
+    isMobile: {
+      color: Styles.globalColors.blue,
+    },
+  }),
+})
 
 export {InfoPanelMenu}
