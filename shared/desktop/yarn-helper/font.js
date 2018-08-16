@@ -11,6 +11,10 @@ const commands = {
     code: updatedFonts,
     help: 'Update our font sizes automatically',
   },
+  'update-icon-constants': {
+    code: updateConstants,
+    help: 'Update icon.constants.js with new/removed files',
+  },
   'unused-assets': {
     code: unusedAssetes,
     help: 'Find unused assets',
@@ -110,7 +114,7 @@ const fontsGeneratedError = error => {
   )
 }
 
-const updateConstants = () => {
+function updateConstants() {
   console.log('Generating icon constants')
 
   const icons = {}
