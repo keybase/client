@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
-import {Text, Box, Box2, WithTooltip, Icon, iconCastPlatformStyles} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 
 type ErrProps = {
@@ -13,35 +13,35 @@ type ErrProps = {
 }
 
 const Err = (props: ErrProps) => (
-  <Box2 fullWidth={true} direction="horizontal" style={styles.container} gap="tiny">
+  <Kb.Box2 fullWidth={true} direction="horizontal" style={styles.container} gap="tiny">
     {!isMobile && (
-      <WithTooltip text={props.error} multiline={true} position="top center">
-        <Icon
+      <Kb.WithTooltip text={props.error} multiline={true} position="top center">
+        <Kb.Icon
           type="iconfont-exclamation"
-          style={iconCastPlatformStyles(styles.icon)}
+          style={Kb.iconCastPlatformStyles(styles.icon)}
           color={Styles.globalColors.white_90}
           hoverColor={Styles.globalColors.white}
         />
-      </WithTooltip>
+      </Kb.WithTooltip>
     )}
-    <Text type="BodySmall" style={styles.text}>
+    <Kb.Text type="BodySmall" style={styles.text}>
       {props.msg}
-    </Text>
-    <Box style={Styles.globalStyles.flexGrow} />
+    </Kb.Text>
+    <Kb.Box style={Styles.globalStyles.flexGrow} />
     {!!props.retry && (
-      <Text type="BodySmallSemibold" onClick={props.retry} style={styles.text} underline={true}>
+      <Kb.Text type="BodySmallSemibold" onClick={props.retry} style={styles.text} underline={true}>
         Retry
-      </Text>
+      </Kb.Text>
     )}
-    <Icon
+    <Kb.Icon
       type="iconfont-close"
-      style={iconCastPlatformStyles(styles.icon)}
+      style={Kb.iconCastPlatformStyles(styles.icon)}
       color={Styles.globalColors.white_90}
       hoverColor={Styles.globalColors.white}
       onClick={props.dismiss}
     />
     {/* TODO: display timestamp? Would need to refresh on second though. */}
-  </Box2>
+  </Kb.Box2>
 )
 
 type ErrsProps = {
@@ -50,7 +50,7 @@ type ErrsProps = {
 }
 
 const Errs = (props: ErrsProps) => (
-  <Box2 fullWidth={true} direction="vertical">
+  <Kb.Box2 fullWidth={true} direction="vertical">
     {props.errs.map(err => (
       <Err
         key={err.key}
@@ -62,13 +62,13 @@ const Errs = (props: ErrsProps) => (
       />
     ))}
     {!!props.more && (
-      <Box2 fullWidth={true} direction="horizontal" style={styles.moreContainer}>
-        <Text type="BodySmall">
+      <Kb.Box2 fullWidth={true} direction="horizontal" style={styles.moreContainer}>
+        <Kb.Text type="BodySmall">
           {props.more.toString()} more {props.more && props.more > 1 ? 'errors' : 'error'} ...
-        </Text>
-      </Box2>
+        </Kb.Text>
+      </Kb.Box2>
     )}
-  </Box2>
+  </Kb.Box2>
 )
 
 const styles = Styles.styleSheetCreate({
