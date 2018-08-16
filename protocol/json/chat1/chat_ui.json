@@ -424,10 +424,6 @@
           "name": "fullUrlCached"
         },
         {
-          "type": "boolean",
-          "name": "inlineVideoPlayable"
-        },
-        {
           "type": "string",
           "name": "mimeType"
         },

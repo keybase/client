@@ -106,7 +106,6 @@ protocol chatUi {
     string previewUrl;
     string fullUrl;
     boolean fullUrlCached;
-    boolean inlineVideoPlayable;
     string mimeType;
     union { null, string } videoDuration;
   }
