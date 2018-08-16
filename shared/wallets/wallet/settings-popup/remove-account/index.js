@@ -13,7 +13,13 @@ export type Props = {
 
 const RemoveAccountDialog = (props: Props) => (
   <Kb.MaybePopup onClose={props.onClose}>
-    <Kb.Box style={styles.box}>
+    <Kb.Box2
+      direction="vertical"
+      fullHeight={true}
+      fullWidth={true}
+      centerChildren={true}
+      style={styles.container}
+    >
       <Kb.Icon
         type={Styles.isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
         style={Kb.iconCastPlatformStyles(styles.icon)}
@@ -26,35 +32,47 @@ const RemoveAccountDialog = (props: Props) => (
         from Keybase?
       </Kb.Text>
       <Kb.Text type="BodySmall">Balance:</Kb.Text>
-      <Kb.Text type="BodySmallSemibold">{props.currency}</Kb.Text>
-      <Kb.Text type="BodySmallSemibold">{props.keys}</Kb.Text>
+      <Kb.Text type="BodySmallExtrabold">{props.currency}</Kb.Text>
+      <Kb.Text type="BodySmallExtrabold">{props.keys}</Kb.Text>
       <Kb.ButtonBar style={styles.buttonbar}>
-        <Kb.Button label="Cancel" onClick={props.onClose} type="Secondary" />
-        <Kb.Button label="Yes, remove" onClick={props.onDelete} type="Danger" />
+        <Kb.Button label="Cancel" onClick={props.onClose} type="Secondary" style={styles.button} />
+        <Kb.Button label="Yes, remove" onClick={props.onDelete} type="Danger" style={styles.button} />
       </Kb.ButtonBar>
-    </Kb.Box>
+    </Kb.Box2>
   </Kb.MaybePopup>
 )
 
 const styles = Styles.styleSheetCreate({
+  container: Styles.platformStyles({
+    common: {
+      padding: 24,
+      paddingTop: Styles.globalMargins.xlarge,
+      paddingBottom: Styles.globalMargins.xlarge,
+    },
+    isElectron: {
+      height: 525,
+      width: 360,
+    },
+  }),
   icon: {
-    marginBottom: Styles.globalMargins.small,
+    marginBottom: Styles.globalMargins.large,
   },
   italic: {
     fontStyle: 'italic',
   },
-  box: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    padding: Styles.globalMargins.large,
-  },
   warning: {
-    paddingBottom: Styles.globalMargins.medium,
-    paddingTop: Styles.globalMargins.xtiny,
+    marginBottom: Styles.globalMargins.tiny,
     textAlign: 'center',
   },
   buttonbar: {
-    paddingTop: Styles.globalMargins.large,
+    width: 'auto',
+    flexGrow: 1,
+    marginLeft: Styles.globalMargins.large,
+    marginRight: Styles.globalMargins.large,
+    alignItems: 'flex-end',
+  },
+  button: {
+    alignSelf: 'flex-end',
   },
 })
 
