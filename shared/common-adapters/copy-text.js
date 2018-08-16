@@ -1,11 +1,8 @@
 // @flow
 import * as React from 'react'
-import {Box2} from './box'
-import Button from './button'
-import Text from './text'
-import Icon from './icon'
-import HOCTimers, {type PropsWithTimer} from './hoc-timers'
+import * as Kb from '.'
 import Toast from './toast'
+import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import {copyToClipboard} from '../util/clipboard'
 import {
   collapseStyles,
@@ -57,34 +54,36 @@ class _CopyText extends React.Component<Props, State> {
 
   render() {
     return (
-      <Box2
+      <Kb.Box2
         ref={r => (this._attachmentRef = r)}
         direction="horizontal"
         style={collapseStyles([styles.container, this.props.containerStyle])}
       >
         <Toast position="top center" attachTo={this._attachmentRef} visible={this.state.showingToast}>
-          {isMobile && <Icon type="iconfont-clipboard" color="white" fontSize={22} />}
-          <Text type={isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
+          {isMobile && <Kb.Icon type="iconfont-clipboard" color="white" fontSize={22} />}
+          <Kb.Text type={isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
             Copied to clipboard
-          </Text>
+          </Kb.Text>
         </Toast>
-        <Text
+        <Kb.Text
           lineClamp={1}
           type="Body"
           selectable={true}
           style={collapseStyles([styles.text, !this._isRevealed() && {width: 'auto'}])}
         >
           {this._isRevealed() ? this.props.text : '••••••••••••'}
-        </Text>
+        </Kb.Text>
         {!this._isRevealed() && (
-          <Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={this.reveal}>
+          <Kb.Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={this.reveal}>
             Reveal
-          </Text>
+          </Kb.Text>
         )}
-        <Button type="Primary" style={styles.button} onClick={this.copy}>
-          <Icon type="iconfont-clipboard" color={globalColors.white} fontSize={isMobile ? 20 : 16} />
-        </Button>
-      </Box2>
+        <Kb.ButtonBar direction="row" align="flex-end" style={styles.buttonContainer}>
+          <Kb.Button type="Primary" style={styles.button} onClick={this.copy}>
+            <Kb.Icon type="iconfont-clipboard" color={globalColors.white} fontSize={isMobile ? 20 : 16} />
+          </Kb.Button>
+        </Kb.ButtonBar>
+      </Kb.Box2>
     )
   }
 }
@@ -92,19 +91,24 @@ const CopyText = HOCTimers(_CopyText)
 
 // border radii aren't literally so big, just sets it to maximum
 const styles = styleSheetCreate({
+  buttonContainer: {
+    flexGrow: 1,
+    minHeight: 0,
+    width: 'initial',
+  },
   button: platformStyles({
     common: {
       paddingLeft: 17,
       paddingRight: 17,
-      position: 'absolute',
-      right: 0,
-    },
-    isElectron: {
       height: '100%',
     },
+    isElectron: {
+      paddingBottom: 6,
+      paddingTop: 6,
+    },
     isMobile: {
-      bottom: 0,
-      top: 0,
+      paddingBottom: 10,
+      paddingTop: 10,
     },
   }),
   container: platformStyles({
@@ -112,21 +116,17 @@ const styles = styleSheetCreate({
       alignItems: 'center',
       backgroundColor: globalColors.blue4,
       borderRadius: 100,
-      flex: 1,
+      flexGrow: 1,
       paddingLeft: 16,
       position: 'relative',
     },
     isElectron: {
       maxWidth: 460,
       overflow: 'hidden',
-      paddingBottom: 6,
-      paddingTop: 6,
       width: '100%',
     },
     isMobile: {
       height: 40,
-      paddingBottom: 10,
-      paddingTop: 10,
     },
   }),
   reveal: {
@@ -138,7 +138,6 @@ const styles = styleSheetCreate({
       color: globalColors.blue,
       fontSize: isMobile ? 15 : 13,
       textAlign: 'left',
-      width: '100%',
     },
     isAndroid: {
       position: 'relative',
