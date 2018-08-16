@@ -92,7 +92,7 @@ class MenubarRender extends React.Component<Props, State> {
         >
           <Kb.Icon
             type="icon-keybase-logo-logged-out-64"
-            style={Styles.collapseStyles([styles.logo])}
+            style={Kb.iconCastPlatformStyles(styles.logo)}
             color={Styles.globalColors.yellow}
           />
           <Kb.Text type="Body" small={true} style={{alignSelf: 'center', marginTop: 6}}>
