@@ -118,7 +118,7 @@ class EmojiPicker extends React.Component<Props, State> {
         initialNumToRender={14}
         sections={this.state.sections}
         stickySectionHeadersEnabled={true}
-        renderItem={item => <EmojiRow {...item} onChoose={this.props.onChoose} />}
+        renderItem={item => <EmojiRow key={item.index} {...item} onChoose={this.props.onChoose} />}
         renderSectionHeader={HeaderRow}
       />
     ) : null
