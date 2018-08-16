@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import * as Kb from '../../../../common-adapters'
-import {globalStyles, globalMargins, isMobile, styleSheetCreate} from '../../../../styles'
+import * as Styles from '../../../../styles'
 
 export type Props = {
   name: string,
@@ -15,7 +15,7 @@ const RemoveAccountDialog = (props: Props) => (
   <Kb.MaybePopup onClose={props.onClose}>
     <Kb.Box style={styles.box}>
       <Kb.Icon
-        type={isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
+        type={Styles.isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
         style={Kb.iconCastPlatformStyles(styles.icon)}
       />
       <Kb.Text style={styles.warning} type="Header">
@@ -36,25 +36,25 @@ const RemoveAccountDialog = (props: Props) => (
   </Kb.MaybePopup>
 )
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   icon: {
-    marginBottom: globalMargins.small,
+    marginBottom: Styles.globalMargins.small,
   },
   italic: {
     fontStyle: 'italic',
   },
   box: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
-    padding: globalMargins.large,
+    padding: Styles.globalMargins.large,
   },
   warning: {
-    paddingBottom: globalMargins.medium,
-    paddingTop: globalMargins.xtiny,
+    paddingBottom: Styles.globalMargins.medium,
+    paddingTop: Styles.globalMargins.xtiny,
     textAlign: 'center',
   },
   buttonbar: {
-    paddingTop: globalMargins.large,
+    paddingTop: Styles.globalMargins.large,
   },
 })
 
