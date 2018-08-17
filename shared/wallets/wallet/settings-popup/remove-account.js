@@ -1,0 +1,72 @@
+// @flow
+import React from 'react'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
+import WalletModal from '../../wallet-modal'
+
+export type Props = {
+  name: string,
+  currency: string,
+  keys: string,
+  onDelete: () => void,
+  onClose: () => void,
+}
+
+const RemoveAccountDialog = (props: Props) => (
+  <WalletModal onClose={props.onClose}>
+    <Kb.Icon
+      type={Styles.isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
+      style={Kb.iconCastPlatformStyles(styles.icon)}
+    />
+    <Kb.Text style={styles.warning} type="Header">
+      Are you sure you want to remove{' '}
+      <Kb.Text type="Header" style={styles.italic}>
+        {props.name}
+      </Kb.Text>{' '}
+      from Keybase?
+    </Kb.Text>
+    <Kb.Text type="BodySmall">Balance:</Kb.Text>
+    <Kb.Text type="BodySmallExtrabold">{props.currency}</Kb.Text>
+    <Kb.Text type="BodySmallExtrabold">{props.keys}</Kb.Text>
+    <Kb.ButtonBar style={styles.buttonbar}>
+      <Kb.Button label="Cancel" onClick={props.onClose} type="Secondary" style={styles.button} />
+      <Kb.Button label="Yes, remove" onClick={props.onDelete} type="Danger" style={styles.button} />
+    </Kb.ButtonBar>
+  </WalletModal>
+)
+
+const styles = Styles.styleSheetCreate({
+  container: Styles.platformStyles({
+    common: {
+      padding: 24,
+      paddingTop: Styles.globalMargins.xlarge,
+      paddingBottom: Styles.globalMargins.xlarge,
+    },
+    isElectron: {
+      height: 525,
+      width: 360,
+    },
+  }),
+  icon: {
+    marginBottom: Styles.globalMargins.large,
+  },
+  italic: {
+    fontStyle: 'italic',
+  },
+  warning: {
+    marginBottom: Styles.globalMargins.tiny,
+    textAlign: 'center',
+  },
+  buttonbar: {
+    width: 'auto',
+    flexGrow: 1,
+    marginLeft: Styles.globalMargins.large,
+    marginRight: Styles.globalMargins.large,
+    alignItems: 'flex-end',
+  },
+  button: {
+    alignSelf: 'flex-end',
+  },
+})
+
+export default RemoveAccountDialog

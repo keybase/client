@@ -4,7 +4,7 @@ import * as Sb from '../../../stories/storybook'
 import SettingsPopup from '.'
 import confirmDefaultAccount from './set-default/index.stories'
 import RemoveAccountDialog from './remove-account'
-import ReallyRemoveDialog from './remove-account-really'
+import ReallyRemoveDialog from './really-remove-account'
 
 const defaultSettingsProps = {
   name: 'awesome account',
