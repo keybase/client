@@ -45,7 +45,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
         ? 'Uploading'
         : message.transferState === 'remoteUploading'
           ? 'waiting...'
-          : null
+          : ''
   const buttonType = message.showPlayButton ? 'play' : null
   const hasProgress = !!message.transferState && message.transferState !== 'remoteUploading'
 

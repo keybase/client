@@ -7,17 +7,17 @@ import ConversationHeader from './normal/container'
 import Search from './search'
 import CreateTeamHeader from '../create-team-header/container'
 
-type OwnProps = {
+type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   onToggleInfoPanel: () => void,
   infoPanelOpen: boolean,
-}
+|}
 
-type Props = {
+type Props = {|
   ...OwnProps,
   isSearching: boolean,
   showTeamOffer: boolean,
-}
+|}
 
 class HeaderArea extends React.PureComponent<Props> {
   render() {

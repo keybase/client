@@ -7,16 +7,16 @@ import Preview from './preview/container'
 import {connect} from '../../../util/container'
 import type {TypedState} from '../../../util/container'
 
-type OwnProps = {
+type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   focusInputCounter: number,
   onScrollDown: () => void,
-}
-type Props = {
+|}
+type Props = {|
   ...OwnProps,
   isPreview: boolean,
   noInput: boolean,
-}
+|}
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
   const meta = Constants.getMeta(state, conversationIDKey)

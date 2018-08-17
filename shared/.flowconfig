@@ -16,16 +16,8 @@
 <PROJECT_ROOT>/desktop/release/.*
 <PROJECT_ROOT>/react-native/react-native-contacts
 <PROJECT_ROOT>/node_modules/immutable/type-definitions/tests
-# all this BS is cause this uses ocaml regexp for some reason and doesnt' include negative lookaheads. we want to ignore node_modules outside of these
-# immutable
-# recompose
-# .*/node_modules/[abcdefghjklmnopqstuvwxyzA-Z@-].*
-# .*/node_modules/i[abcdefghijklnopqrstuvwxyzA-Z@-].*
-# .*/node_modules/im[abcdefghijklnopqrstuvwxyzA-Z@-].*
-# .*/node_modules/r[abcdfghijklmnopqrstuvwxyzA-Z@-].*
-# .*/node_modules/re[abdefghijklmnopqrstuvwxyzA-Z@-].*
-# .*/node_modules/rec[abcdefghijklmnpqrstuvwxyzA-Z@-].*
-# .*/node_modules/reco[abcdefghijklnopqrstuvwxyzA-Z@-].*
+<PROJECT_ROOT>/node_modules/react-native/Libraries/EventEmitter/__mocks__
+<PROJECT_ROOT>/node_modules/react-navigation/src/views/CardStack/CardStackTransitioner.js
 .*[.]gif$
 .*[.]png$
 
@@ -50,7 +42,7 @@ module.system=haste
 module.system.haste.use_name_reducers=true
 # strip .js or .js.flow suffix
 module.system.haste.name_reducers='^\(.*\)\.js\(\.flow\)?$' -> '\1'
-module.system.haste.paths.blacklist=.*/__mocks__/.*
+module.system.haste.paths.blacklist=.*__mocks__.*
 module.system.haste.paths.blacklist=<PROJECT_ROOT>/node_modules/react-native/Libraries/Animated/src/polyfills/.*
 module.system.haste.paths.whitelist=<PROJECT_ROOT>/node_modules/react-native/Libraries/.*
 # strip .mobile suffix
