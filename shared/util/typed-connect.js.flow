@@ -1,29 +1,34 @@
 // @flow
+// prettier-ignore
 import type {TypedActions} from '../actions/typed-actions-gen'
 import type {TypedState} from '../constants/reducer'
 import type {ComponentType} from 'react'
 
 declare type MapStateToProps<A, B> = (state: TypedState, ownProps: A) => B
-
 declare type MapDispatchToProps<A, B> = (dispatch: (action: TypedActions) => void, ownProps: A) => B
-
 declare type MergeProps<A, B, C, D> = (stateProps: A, dispatchProps: B, ownProps: C) => D
 
-declare export default function connect<RMP, Com: ComponentType<RMP>, DP, SP: TypedState, RSP, RDP, MP, OP>(
+// OP = OwnProps
+// RMP = Return from mergeProps
+// RSP = Return from mapStateToProps
+// RDP = Return from mapDispatchToProps
+// Com: Wrapped component
+declare export default function connect<RMP, Com: ComponentType<RMP>, RSP, RDP, OP>(
   mapStateToProps: MapStateToProps<OP, RSP>,
   mapDispatchToProps: MapDispatchToProps<OP, RDP>,
   mergeProps: MergeProps<RSP, RDP, OP, RMP>
 ): (component: Com) => ComponentType<OP>
 
+// OP = OwnProps
+// RSP = Return from mapStateToProps
+// RDP = Return from mapDispatchToProps
+// Com = Wrapped component
 // eslint-disable-next-line no-redeclare
 declare export default function connect<
   OP,
   RSP,
   RDP,
-  Com: ComponentType<RSP & RDP & OP>,
-  DP,
-  SP: TypedState,
-  MP
+  Com: ComponentType<{...RSP, ...RDP, ...OP}> // Flow errors here mean you didn't pass a needed prop into your wrapped component. Pass --show-all-branches
 >(
   mapStateToProps: MapStateToProps<OP, RSP>,
   mapDispatchToProps: MapDispatchToProps<OP, RDP>

@@ -365,6 +365,12 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   navigateUp: () => dispatch(navigateUp()),
 })
 
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  hideNav: stateProps.hideNav,
+  navigateUp: dispatchProps.navigateUp,
+  ...ownProps,
+})
+
 const styles = styleSheetCreate({
   container: {...globalStyles.fullHeight},
   content: {...globalStyles.flexGrow},
@@ -396,4 +402,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Nav)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Nav)
