@@ -24,7 +24,7 @@ jobs:
     - run: mkdir -p /tmp/flow-coverage
     - run:
         working_directory: shared
-        command: if [ $(git rev-parse HEAD) == $(git log -1 --format=format:%H --full-diff .) ]; then yarn flow-coverage-report -t json -o /tmp/flow-coverage && bash <(curl -s https://codecov.io/bash) -f /tmp/flow-coverage/flow-coverage.json; fi
+        command: yarn flow-coverage-report -t json -o /tmp/flow-coverage && bash <(curl -s https://codecov.io/bash) -f /tmp/flow-coverage/flow-coverage.json
 
     # Install JS dependencies.
     - run:
