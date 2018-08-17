@@ -35,7 +35,8 @@ const DispatchNavUpHoc: any = connect(
   () => ({}),
   (dispatch: Dispatch, {navigateUp}) => ({
     connectedNavigateUp: () => dispatch(navigateUp()),
-  })
+  }),
+  (s, d, o) => ({...s, ...d, ...o})
 )
 
 // TODO properly type this

@@ -2,9 +2,6 @@
 import type {TypedActions} from '../actions/typed-actions-gen'
 import type {TypedState} from '../constants/reducer'
 import type {ComponentType} from 'react'
-// TEMP to test
-// import * as React from 'react'
-// import * as ConfigGen from '../actions/config-gen'
 
 declare type MapStateToProps<A, B> = (state: TypedState, ownProps: A) => B
 declare type MapDispatchToProps<A, B> = (dispatch: (action: TypedActions) => void, ownProps: A) => B
@@ -28,48 +25,25 @@ declare export default function connect<
 ): (component: Com) => ComponentType<OP>
 
 // See how spread is currently broken https://github.com/facebook/flow/issues/6526
-type SpreadWorkaround<A, B> = $Rest<A, B> & B
-
+// type SpreadWorkaround<A, B> = $Rest<A, B> & B
+//
+//
+// So. Ideally we could type this form of connect BUT flow is REALLY messed up in regards to definitions that are in different modules.
+// The above definition works fine so lets just use that for now
+//
+//
 // OP = OwnProps
 // RSP = Return from mapStateToProps
 // RDP = Return from mapDispatchToProps
 // Com = Wrapped component
 // eslint-disable-next-line no-redeclare
-declare export default function connect<
-  OP,
-  RSP,
-  RDP,
-  RMP: SpreadWorkaround<SpreadWorkaround<RSP, RDP>, OP>,
-  Com: ComponentType<RMP>
->(
-  mapStateToProps: MapStateToProps<OP, RSP>,
-  mapDispatchToProps: MapDispatchToProps<OP, RDP>
-): (component: Com) => ComponentType<OP>
-
-// TEMP just to test both work
-// type OwnProps = {|
-// other: string,
-// |}
-
-// type Props = {|
-// other: string,
-// age: number,
-// onClick: () => void,
-// |}
-
-// const mapStateToProps = s => ({age: s.config.username.length})
-// const mapDispatchToProps = d => ({onClick: d(ConfigGen.createStartHandshake())})
-// const mergeProps = (s, d, o: OwnProps) => ({...s, ...d, ...o})
-
-// const F = (p: Props) => (
-// <div>
-// {p.age} {p.other}
-// </div>
-// )
-
-// const ConnectedFull = connect(mapStateToProps, mapDispatchToProps, mergeProps)(F)
-
-// console.log(<ConnectedFull other="hi" />)
-
-// const ConnectedHalf = connect(mapStateToProps, mapDispatchToProps)(F)
-// console.log(<ConnectedHalf other="hi" whu="nothin" />)
+// declare export default function connect<
+// OP,
+// RSP,
+// RDP,
+// RMP: SpreadWorkaround<SpreadWorkaround<RSP, RDP>, OP>,
+// Com: ComponentType<RMP>
+// >(
+// mapStateToProps: MapStateToProps<OP, RSP>,
+// mapDispatchToProps: MapDispatchToProps<OP, RDP>
+// ): (component: Com) => ComponentType<OP>

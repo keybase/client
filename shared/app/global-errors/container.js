@@ -1,18 +1,18 @@
 // @flow
-import GlobalError from './index'
-import {connect, type TypedState, type TypedDispatch} from '../../util/container'
+import GlobalError from '.'
+import {connect} from '../../util/container'
 import * as ConfigGen from '../../actions/config-gen'
 import {settingsTab} from '../../constants/tabs'
 import {feedbackTab} from '../../constants/settings'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   daemonError: state.config.daemonError,
   debugDump: state.config.debugDump,
   error: state.config.globalError,
 })
 
-const mapDispatchToProps = (dispatch: TypedDispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onDismiss: () => {
     dispatch(ConfigGen.createGlobalError({globalError: null}))
     dispatch(ConfigGen.createDebugDump({items: []}))
@@ -34,4 +34,5 @@ const mapDispatchToProps = (dispatch: TypedDispatch) => ({
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(GlobalError)
+const Connected = connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o}))(GlobalError)
+export default Connected

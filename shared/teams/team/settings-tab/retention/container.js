@@ -163,7 +163,7 @@ const mapDispatchToProps = (
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o})),
   setDisplayName('RetentionPicker'),
   withStateHandlers({_parentPath: null}, {_setParentPath: () => _parentPath => ({_parentPath})}),
   lifecycle({

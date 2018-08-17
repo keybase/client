@@ -14,7 +14,8 @@ const RelativePopupHoc: RelativePopupHocType<any> = PopupComponent => {
       },
       position: routeProps.get('position'),
       targetRect: routeProps.get('targetRect'),
-    })
+    }),
+    (s, d, o) => ({...s, ...d, ...o})
   )((props: Props<any> & {onClosePopup: () => void}) => {
     // $FlowIssue
     return <PopupComponent {...(props: Props<any>)} onClosePopup={props.onClosePopup} />

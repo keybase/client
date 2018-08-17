@@ -34,7 +34,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 // Actions are handled by remote-container
 const UnlockFolder = compose(
-  connect(unlockFolderMapPropsToState, () => ({}), mergeProps),
+  connect(unlockFolderMapPropsToState, () => ({}), mergeProps, (s, d, o) => ({...s, ...d, ...o})),
   SyncBrowserWindow,
   SyncProps
 )(NullComponent)
@@ -52,4 +52,4 @@ const mapStateToProps = (state: TypedState) => ({
   show: state.unlockFolders.popupOpen,
 })
 
-export default connect(mapStateToProps, () => ({}))(UnlockFolders)
+export default connect(mapStateToProps, () => ({}), (s, d, o) => ({...s, ...d, ...o}))(UnlockFolders)

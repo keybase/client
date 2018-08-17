@@ -26,7 +26,7 @@ const mapDispatchToProps = (dispatch: Container.Dispatch, {navigateUp, navigateA
 })
 
 const connectedHeaderHoc = Container.compose(
-  Container.connect(mapStateToProps, mapDispatchToProps),
+  Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o})),
   HeaderHoc
 )(About)
 

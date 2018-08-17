@@ -12,4 +12,7 @@ const mapStateToProps = (state: TypedState, {path}) => {
   }
 }
 
-export default compose(connect(mapStateToProps, () => ({})), setDisplayName('Banner'))(Banner)
+export default compose(
+  connect(mapStateToProps, () => ({}), (s, d, o) => ({...s, ...d, ...o})),
+  setDisplayName('Banner')
+)(Banner)

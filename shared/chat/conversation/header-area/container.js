@@ -47,4 +47,4 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
   }
 }
 
-export default connect(mapStateToProps, () => ({}))(HeaderArea)
+export default connect(mapStateToProps, () => ({}), (s, d, o) => ({...s, ...d, ...o}))(HeaderArea)

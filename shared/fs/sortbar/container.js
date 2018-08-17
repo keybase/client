@@ -20,4 +20,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {path}) => ({
   },
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('SortBar'))(SortBar)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o})),
+  setDisplayName('SortBar')
+)(SortBar)
