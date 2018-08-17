@@ -12,6 +12,7 @@ export const cancelDownload = 'fs:cancelDownload'
 export const commitEdit = 'fs:commitEdit'
 export const discardEdit = 'fs:discardEdit'
 export const dismissDownload = 'fs:dismissDownload'
+export const dismissFsError = 'fs:dismissFsError'
 export const download = 'fs:download'
 export const downloadFinished = 'fs:downloadFinished'
 export const downloadProgress = 'fs:downloadProgress'
@@ -27,6 +28,7 @@ export const filePreviewLoaded = 'fs:filePreviewLoaded'
 export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
 export const fsActivity = 'fs:fsActivity'
+export const fsError = 'fs:fsError'
 export const fuseStatus = 'fs:fuseStatus'
 export const fuseStatusResult = 'fs:fuseStatusResult'
 export const installFuse = 'fs:installFuse'
@@ -43,6 +45,7 @@ export const openInFileUI = 'fs:openInFileUI'
 export const openPathItem = 'fs:openPathItem'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
 export const pickAndUpload = 'fs:pickAndUpload'
+export const placeholderAction = 'fs:placeholderAction'
 export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
 export const saveMedia = 'fs:saveMedia'
 export const setFlags = 'fs:setFlags'
@@ -58,9 +61,10 @@ type _CancelDownloadPayload = $ReadOnly<{|key: string|}>
 type _CommitEditPayload = $ReadOnly<{|editID: Types.EditID|}>
 type _DiscardEditPayload = $ReadOnly<{|editID: Types.EditID|}>
 type _DismissDownloadPayload = $ReadOnly<{|key: string|}>
+type _DismissFsErrorPayload = $ReadOnly<{|key: string|}>
 type _DownloadFinishedPayload = $ReadOnly<{|
   key: string,
-  error?: string,
+  error?: Types.FsError,
 |}>
 type _DownloadPayload = $ReadOnly<{|
   intent: Types.DownloadIntent,
@@ -84,7 +88,7 @@ type _EditFailedPayload = $ReadOnly<{|editID: Types.EditID|}>
 type _EditSuccessPayload = $ReadOnly<{|editID: Types.EditID|}>
 type _FavoriteIgnoreErrorPayload = $ReadOnly<{|
   path: Types.Path,
-  errorText: string,
+  error: Types.FsError,
 |}>
 type _FavoriteIgnorePayload = $ReadOnly<{|path: Types.Path|}>
 type _FavoritesLoadPayload = void
@@ -107,6 +111,7 @@ type _FolderListLoadedPayload = $ReadOnly<{|
   pathItems: I.Map<Types.Path, Types.PathItem>,
 |}>
 type _FsActivityPayload = void
+type _FsErrorPayload = $ReadOnly<{|error: Types.FsError|}>
 type _FuseStatusPayload = void
 type _FuseStatusResultPayload = $ReadOnly<{|
   prevStatus: ?RPCTypes.FuseStatus,
@@ -151,6 +156,7 @@ type _PickAndUploadPayload = $ReadOnly<{|
   type: Types.OpenDialogType,
   parentPath: Types.Path,
 |}>
+type _PlaceholderActionPayload = void
 type _RefreshLocalHTTPServerInfoPayload = void
 type _SaveMediaPayload = $ReadOnly<{|
   path: Types.Path,
@@ -181,7 +187,7 @@ type _UploadPayload = $ReadOnly<{|
 type _UploadStartedPayload = $ReadOnly<{|path: Types.Path|}>
 type _UploadWritingFinishedPayload = $ReadOnly<{|
   path: Types.Path,
-  error?: string,
+  error?: Types.FsError,
 |}>
 
 // Action Creators
@@ -189,6 +195,7 @@ export const createCancelDownload = (payload: _CancelDownloadPayload) => ({error
 export const createCommitEdit = (payload: _CommitEditPayload) => ({error: false, payload, type: commitEdit})
 export const createDiscardEdit = (payload: _DiscardEditPayload) => ({error: false, payload, type: discardEdit})
 export const createDismissDownload = (payload: _DismissDownloadPayload) => ({error: false, payload, type: dismissDownload})
+export const createDismissFsError = (payload: _DismissFsErrorPayload) => ({error: false, payload, type: dismissFsError})
 export const createDownload = (payload: _DownloadPayload) => ({error: false, payload, type: download})
 export const createDownloadFinished = (payload: _DownloadFinishedPayload) => ({error: false, payload, type: downloadFinished})
 export const createDownloadProgress = (payload: _DownloadProgressPayload) => ({error: false, payload, type: downloadProgress})
@@ -204,6 +211,7 @@ export const createFilePreviewLoaded = (payload: _FilePreviewLoadedPayload) => (
 export const createFolderListLoad = (payload: _FolderListLoadPayload) => ({error: false, payload, type: folderListLoad})
 export const createFolderListLoaded = (payload: _FolderListLoadedPayload) => ({error: false, payload, type: folderListLoaded})
 export const createFsActivity = (payload: _FsActivityPayload) => ({error: false, payload, type: fsActivity})
+export const createFsError = (payload: _FsErrorPayload) => ({error: false, payload, type: fsError})
 export const createFuseStatus = (payload: _FuseStatusPayload) => ({error: false, payload, type: fuseStatus})
 export const createFuseStatusResult = (payload: _FuseStatusResultPayload) => ({error: false, payload, type: fuseStatusResult})
 export const createInstallFuse = (payload: _InstallFusePayload) => ({error: false, payload, type: installFuse})
@@ -220,6 +228,7 @@ export const createOpenInFileUI = (payload: _OpenInFileUIPayload) => ({error: fa
 export const createOpenPathItem = (payload: _OpenPathItemPayload) => ({error: false, payload, type: openPathItem})
 export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({error: false, payload, type: openSecurityPreferences})
 export const createPickAndUpload = (payload: _PickAndUploadPayload) => ({error: false, payload, type: pickAndUpload})
+export const createPlaceholderAction = (payload: _PlaceholderActionPayload) => ({error: false, payload, type: placeholderAction})
 export const createRefreshLocalHTTPServerInfo = (payload: _RefreshLocalHTTPServerInfoPayload) => ({error: false, payload, type: refreshLocalHTTPServerInfo})
 export const createSaveMedia = (payload: _SaveMediaPayload) => ({error: false, payload, type: saveMedia})
 export const createSetFlags = (payload: _SetFlagsPayload) => ({error: false, payload, type: setFlags})
@@ -235,6 +244,7 @@ export type CancelDownloadPayload = $Call<typeof createCancelDownload, _CancelDo
 export type CommitEditPayload = $Call<typeof createCommitEdit, _CommitEditPayload>
 export type DiscardEditPayload = $Call<typeof createDiscardEdit, _DiscardEditPayload>
 export type DismissDownloadPayload = $Call<typeof createDismissDownload, _DismissDownloadPayload>
+export type DismissFsErrorPayload = $Call<typeof createDismissFsError, _DismissFsErrorPayload>
 export type DownloadFinishedPayload = $Call<typeof createDownloadFinished, _DownloadFinishedPayload>
 export type DownloadPayload = $Call<typeof createDownload, _DownloadPayload>
 export type DownloadProgressPayload = $Call<typeof createDownloadProgress, _DownloadProgressPayload>
@@ -250,6 +260,7 @@ export type FilePreviewLoadedPayload = $Call<typeof createFilePreviewLoaded, _Fi
 export type FolderListLoadPayload = $Call<typeof createFolderListLoad, _FolderListLoadPayload>
 export type FolderListLoadedPayload = $Call<typeof createFolderListLoaded, _FolderListLoadedPayload>
 export type FsActivityPayload = $Call<typeof createFsActivity, _FsActivityPayload>
+export type FsErrorPayload = $Call<typeof createFsError, _FsErrorPayload>
 export type FuseStatusPayload = $Call<typeof createFuseStatus, _FuseStatusPayload>
 export type FuseStatusResultPayload = $Call<typeof createFuseStatusResult, _FuseStatusResultPayload>
 export type InstallFusePayload = $Call<typeof createInstallFuse, _InstallFusePayload>
@@ -266,6 +277,7 @@ export type OpenInFileUIPayload = $Call<typeof createOpenInFileUI, _OpenInFileUI
 export type OpenPathItemPayload = $Call<typeof createOpenPathItem, _OpenPathItemPayload>
 export type OpenSecurityPreferencesPayload = $Call<typeof createOpenSecurityPreferences, _OpenSecurityPreferencesPayload>
 export type PickAndUploadPayload = $Call<typeof createPickAndUpload, _PickAndUploadPayload>
+export type PlaceholderActionPayload = $Call<typeof createPlaceholderAction, _PlaceholderActionPayload>
 export type RefreshLocalHTTPServerInfoPayload = $Call<typeof createRefreshLocalHTTPServerInfo, _RefreshLocalHTTPServerInfoPayload>
 export type SaveMediaPayload = $Call<typeof createSaveMedia, _SaveMediaPayload>
 export type SetFlagsPayload = $Call<typeof createSetFlags, _SetFlagsPayload>
@@ -283,6 +295,7 @@ export type Actions =
   | CommitEditPayload
   | DiscardEditPayload
   | DismissDownloadPayload
+  | DismissFsErrorPayload
   | DownloadFinishedPayload
   | DownloadPayload
   | DownloadProgressPayload
@@ -298,6 +311,7 @@ export type Actions =
   | FolderListLoadPayload
   | FolderListLoadedPayload
   | FsActivityPayload
+  | FsErrorPayload
   | FuseStatusPayload
   | FuseStatusResultPayload
   | InstallFusePayload
@@ -314,6 +328,7 @@ export type Actions =
   | OpenPathItemPayload
   | OpenSecurityPreferencesPayload
   | PickAndUploadPayload
+  | PlaceholderActionPayload
   | RefreshLocalHTTPServerInfoPayload
   | SaveMediaPayload
   | SetFlagsPayload

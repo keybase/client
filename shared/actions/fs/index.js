@@ -271,7 +271,16 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
     yield Saga.put(FsGen.createDownloadFinished({key}))
   } catch (error) {
     console.log(`Download for intent[${intent}] error: ${error}`)
-    yield Saga.put(FsGen.createDownloadFinished({key, error}))
+    yield Saga.put(
+      FsGen.createDownloadFinished({
+        key,
+        error: Constants.makeError({
+          error,
+          erroredAction: action,
+          retriableAction: action,
+        }),
+      })
+    )
   } finally {
     if (intent !== 'none') {
       // If the intent is not 'none', we don't need to wait for user to
@@ -310,7 +319,16 @@ function* upload(action: FsGen.UploadPayload) {
     yield Saga.put(FsGen.createUploadWritingFinished({path}))
   } catch (error) {
     console.log(`Upload error: ${error}`)
-    yield Saga.put(FsGen.createUploadWritingFinished({path, error}))
+    yield Saga.put(
+      FsGen.createUploadWritingFinished({
+        path,
+        error: Constants.makeError({
+          error,
+          erroredAction: action,
+          retriableAction: action,
+        }),
+      })
+    )
   }
 }
 
@@ -410,7 +428,10 @@ function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGene
     yield Saga.put(
       FsGen.createFavoriteIgnoreError({
         path: action.payload.path,
-        errorText: 'No folder specified',
+        error: Constants.makeError({
+          error: 'No folder specified',
+          erroredAction: action,
+        }),
       })
     )
   } else {

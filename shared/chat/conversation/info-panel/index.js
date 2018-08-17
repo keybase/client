@@ -12,7 +12,7 @@ import {CaptionedButton, CaptionedDangerIcon} from './channel-utils'
 import RetentionPicker from '../../../teams/team/settings-tab/retention/container'
 import MinWriterRole from './min-writer-role/container'
 
-const border = `1px solid ${globalColors.black_05}`
+const border = `1px solid ${globalColors.black_10}`
 const listStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'stretch',

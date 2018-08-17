@@ -52,7 +52,7 @@ const styles = styleSheetCreate({
   container: {
     ...globalStyles.flexBoxRow,
     alignItems: 'flex-start',
-    borderBottomColor: globalColors.black_05,
+    borderBottomColor: globalColors.black_10,
     borderBottomWidth: 1,
     borderStyle: 'solid',
     flex: 1,

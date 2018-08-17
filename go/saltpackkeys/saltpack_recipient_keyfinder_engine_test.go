@@ -1004,3 +1004,71 @@ func TestSaltpackRecipientKeyfinderImplicitTeam(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, bytes.Equal(teamSaltpackKey.Key[:], symKeys[0].Key[:]))
 }
+
+func TestSaltpackRecipientKeyfinderImplicitTeamNoSelfEncrypt(t *testing.T) {
+	tc := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine")
+	defer tc.Cleanup()
+
+	teams.ServiceInit(tc.G)
+
+	// First, try to get keys for a non existing user assertion with NoSelfEncrypt, which should fail
+	u1, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
+	require.NoError(t, err)
+	u1.Login(tc.G)
+
+	b, err := libkb.RandBytes(4)
+	require.NoError(tc.T, err)
+	nonExistingUserAssertion := "u_" + hex.EncodeToString(b) + "@rooter"
+
+	trackUI := &kbtest.FakeIdentifyUI{
+		Proofs: make(map[string]string),
+	}
+
+	uis := libkb.UIs{IdentifyUI: trackUI}
+	arg := libkb.SaltpackRecipientKeyfinderArg{
+		Recipients:    []string{nonExistingUserAssertion},
+		UseEntityKeys: true,
+		NoSelfEncrypt: true,
+	}
+	eng := NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
+	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	err = engine.RunEngine2(m, eng) // Should fail
+	if _, ok := err.(libkb.RecipientNotFoundError); !ok {
+		t.Fatalf("expected error type libkb.RecipientNotFoundError, got %T (%s)", err, err)
+	}
+
+	// Now, try again without NoSelfEncrypt, which should succeed
+	arg = libkb.SaltpackRecipientKeyfinderArg{
+		Recipients:    []string{nonExistingUserAssertion},
+		UseEntityKeys: true,
+	}
+	eng = NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
+	m = libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	err = engine.RunEngine2(m, eng)
+	require.NoError(t, err)
+
+	fDHKeys := eng.GetPublicKIDs()
+	if len(fDHKeys) != 1 { // This is the sender's own PUK
+		t.Errorf("number of DH keys found: %d, expected 1", len(fDHKeys))
+	}
+	fDHKeyset := make(map[keybase1.KID]struct{})
+	for _, fPUK := range fDHKeys {
+		fDHKeyset[fPUK] = struct{}{}
+	}
+
+	u1PUK := u1.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
+	if _, ok := fDHKeyset[u1PUK]; !ok {
+		t.Errorf("expected to find key %v, which was not retrieved", u1PUK)
+	}
+
+	symKeys := eng.GetSymmetricKeys()
+	if len(symKeys) != 1 {
+		t.Errorf("number of symmetric keys found: %d, expected 1", len(symKeys))
+	}
+
+	team, _, _, err := teams.LookupImplicitTeam(m.Ctx(), m.G(), u1.Username+","+nonExistingUserAssertion, false)
+	require.NoError(t, err)
+	teamSaltpackKey, err := team.SaltpackEncryptionKeyLatest(m.Ctx())
+	require.NoError(t, err)
+	require.True(t, bytes.Equal(teamSaltpackKey.Key[:], symKeys[0].Key[:]))
+}

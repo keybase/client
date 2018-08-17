@@ -93,7 +93,7 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxColumn,
     justifyContent: 'flex-end',
     alignItems: 'stretch',
-    borderColor: globalColors.black_05,
+    borderColor: globalColors.black_10,
     borderTopWidth: 1,
     paddingBottom: isIPhoneX ? globalMargins.medium : 0, // otherwise too close to the gesture bar
   },
@@ -105,7 +105,7 @@ const styles = styleSheetCreate({
     paddingLeft: globalMargins.medium,
     paddingRight: globalMargins.medium,
     backgroundColor: globalColors.white,
-    borderColor: globalColors.black_05,
+    borderColor: globalColors.black_10,
   },
 })
 

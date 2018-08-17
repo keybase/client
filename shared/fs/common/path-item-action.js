@@ -32,6 +32,7 @@ type Props = {
   itemStyles: Types.ItemStyles,
   actionIconClassName?: string,
   actionIconFontSize?: number,
+  actionIconWhite?: boolean,
   path: Types.Path,
   pathElements: Array<string>,
   // Menu items
@@ -193,7 +194,7 @@ const PathItemAction = (props: Props & OverlayParentProps) => {
       <ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
         <Icon
           type="iconfont-ellipsis"
-          color={Styles.globalColors.black_40}
+          color={props.actionIconWhite ? Styles.globalColors.white : Styles.globalColors.black_40}
           style={iconCastPlatformStyles(styles.actionIcon)}
           fontSize={props.actionIconFontSize}
           className={props.actionIconClassName}

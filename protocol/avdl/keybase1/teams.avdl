@@ -192,7 +192,10 @@ protocol teams {
     // generation -> seed
     // generations _must_ start from 1 with no gaps
     @mpackkey("perTeamKeySeeds")
-    map<PerTeamKeyGeneration,PerTeamKeySeedItem> perTeamKeySeedsUnverified;
+    map<PerTeamKeyGeneration,PerTeamKeySeed> perTeamKeySeedsUnverified;
+
+    PerTeamKeyGeneration latestKeyGeneration;
+
     // application -> generation -> mask
     // in each slot generations _must_ start from 1 with no gaps
     map<TeamApplication,map<PerTeamKeyGeneration,MaskB64>> readerKeyMasks;
@@ -206,14 +209,17 @@ protocol teams {
     Time cachedAt;
   }
 
-  record LinkPair {
+  record LinkTriple {
     Seqno seqno;
+    SeqType seqType;
     LinkID linkID;
   }
 
-  record LinkTriple {
-    TeamID id;
-    LinkPair pair;
+  record UpPointer {
+    Seqno ourSeqno;
+    TeamID parentID;
+    Seqno parentSeqno;
+    boolean deletion;
   }
 
   record DownPointer {
@@ -222,12 +228,12 @@ protocol teams {
     boolean isDeleted;
   }
 
-
   // FastTeamSigChainState is the state computed by doing a fast reply of the
   // team's sigchain, ignoring all but the key rotation links.
   record FastTeamSigChainState {
 
-    TeamID id;
+    @lint("ignore")
+    TeamID ID;
 
     // Whether this is a public team.
     boolean public;
@@ -237,24 +243,22 @@ protocol teams {
     // Depth of the name.
     int nameDepth;
 
-    // The last link procesed
-    LinkPair last;
-
-    // Present if a subteam
-    union { null, TeamID } parentID;
+    union { null, LinkTriple } last;
 
     // Keyed by per-team-key generation
     map<PerTeamKeyGeneration, PerTeamKey> perTeamKeys;
+
+    // Once we derive and check these seeds, we enter them here (as a cache of work).
+    map<PerTeamKeyGeneration,PerTeamKeySeed> perTeamKeySeedsVerified;
 
     // Down pointers will be filled in too, on the team, as they are needed to
     // construct the name of subteams.
     map<Seqno, DownPointer> downPointers;
 
     // The LastUpPointer we received, either a deleted pointer, or a rename pointer.
-    LinkPair lastUpPointer;
-
-    // If we've had a deleted up pointer, then we're deleted.
-    boolean isDeleted;
+    // Or nil if a root team. If lastUpPointer is non-nil and deleted is true, then
+    // this team is deleted.
+    union { null, UpPointer } lastUpPointer;
 
     // Creation time of latest PerTeamKey, based on CTime from the
     // link key appeared in.
@@ -661,7 +665,8 @@ protocol teams {
   }
 
   record FastTeamLoadArg {
-    TeamID id;
+    @lint("ignore")
+    TeamID ID;
     boolean public;
 
     // All (applications X keyGenerationsNeeded) should be loaded
@@ -670,7 +675,7 @@ protocol teams {
 
     // Specify this flag if you need the latest generation, which will maybe
     // trigger a poll of the team.
-    boolean needLatestGeneration;
+    boolean needLatestKey;
   }
 
   record FastTeamLoadRes {
