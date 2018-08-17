@@ -39,9 +39,10 @@ const rwPermissions = {
   reader: ['Write and read in chats', 'Read in folders'],
 }
 
-export const permissionMap = {
+export const permissionMap: {[string]: {can: string[], cannot: string[]}} = {
   owner: {
     can: [...rwPermissions['owner'], ...permissions],
+    cannot: [],
   },
   admin: {
     can: [...rwPermissions['admin'], ...permissions.slice(0, 4)],
@@ -49,7 +50,7 @@ export const permissionMap = {
   },
   writer: {
     can: [...rwPermissions['writer'], permissions[0]],
-    cannot: [permissions[1], permissions[2], permissions[3], permissions[4]],
+    cannot: permissions.slice(1, 5),
   },
   reader: {
     can: rwPermissions['reader'],
