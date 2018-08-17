@@ -160,6 +160,7 @@ const (
 	StatusCode_SCTeamShowcasePermDenied           StatusCode = 2711
 	StatusCode_SCTeamProvisionalCanKey            StatusCode = 2721
 	StatusCode_SCTeamProvisionalCannotKey         StatusCode = 2722
+	StatusCode_SCTeamFTLOutdated                  StatusCode = 2736
 	StatusCode_SCEphemeralKeyBadGeneration        StatusCode = 2900
 	StatusCode_SCEphemeralKeyUnexpectedBox        StatusCode = 2901
 	StatusCode_SCEphemeralKeyMissingBox           StatusCode = 2902
@@ -351,6 +352,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTeamShowcasePermDenied":           2711,
 	"SCTeamProvisionalCanKey":            2721,
 	"SCTeamProvisionalCannotKey":         2722,
+	"SCTeamFTLOutdated":                  2736,
 	"SCEphemeralKeyBadGeneration":        2900,
 	"SCEphemeralKeyUnexpectedBox":        2901,
 	"SCEphemeralKeyMissingBox":           2902,
@@ -540,6 +542,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2711: "SCTeamShowcasePermDenied",
 	2721: "SCTeamProvisionalCanKey",
 	2722: "SCTeamProvisionalCannotKey",
+	2736: "SCTeamFTLOutdated",
 	2900: "SCEphemeralKeyBadGeneration",
 	2901: "SCEphemeralKeyUnexpectedBox",
 	2902: "SCEphemeralKeyMissingBox",

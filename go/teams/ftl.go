@@ -11,7 +11,9 @@ import (
 )
 
 //
-// fast.go
+// ftl.go
+//
+// Fast Team chain Loader
 //
 // Routines for fast-team loading. In fast team loading, we ignore most signatures
 // and use the Merkle Tree as a source of truth. This is good enough for getting
@@ -36,6 +38,8 @@ type FastTeamChainLoader struct {
 	lruMutex sync.Mutex
 	lru      *lru.Cache
 }
+
+const FTLVersion = 1
 
 // NewFastLoader makes a new fast loader and initializes it.
 func NewFastTeamLoader(g *libkb.GlobalContext) *FastTeamChainLoader {
@@ -478,16 +482,17 @@ func generationsToString(generations []keybase1.PerTeamKeyGeneration) string {
 // in the (apps X gens) cartesian product.
 func (a fastLoadArg) toHTTPArgs(s shoppingList) libkb.HTTPArgs {
 	ret := libkb.HTTPArgs{
-		"id":                   libkb.S{Val: a.ID.String()},
-		"public":               libkb.B{Val: a.Public},
-		"fast":                 libkb.B{Val: true},
-		"fast_low":             libkb.I{Val: int(s.linksSince)},
-		"fast_seqnos":          libkb.S{Val: seqnosToString(s.downPointers)},
-		"fast_key_generations": libkb.S{Val: generationsToString(s.generations)},
+		"id":                  libkb.S{Val: a.ID.String()},
+		"public":              libkb.B{Val: a.Public},
+		"ftl":                 libkb.B{Val: true},
+		"ftl_low":             libkb.I{Val: int(s.linksSince)},
+		"ftl_seqnos":          libkb.S{Val: seqnosToString(s.downPointers)},
+		"ftl_key_generations": libkb.S{Val: generationsToString(s.generations)},
+		"ftl_version":         libkb.I{Val: FTLVersion},
 	}
 	if len(s.applications) > 0 {
-		ret["fast_include_applications"] = libkb.S{Val: applicationsToString(s.applications)}
-		ret["fast_n_newest_key_generations"] = libkb.I{Val: int(3)}
+		ret["ftl_include_applications"] = libkb.S{Val: applicationsToString(s.applications)}
+		ret["ftl_n_newest_key_generations"] = libkb.I{Val: int(3)}
 	}
 	if !a.readSubteamID.IsNil() {
 		ret["read_subteam_id"] = libkb.S{Val: a.readSubteamID.String()}
@@ -542,6 +547,8 @@ func (f *FastTeamChainLoader) makeHTTPRequest(m libkb.MetaContext, args libkb.HT
 // decrypted.
 func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLoadArg, shoppingList shoppingList) (ret *groceries, err error) {
 
+	defer m.CTrace("FastTeamChainLoader#loadFromServerOnce", func() error { return err })()
+
 	var lastSeqno keybase1.Seqno
 	var lastLinkID keybase1.LinkID
 	var teamUpdate rawTeam
@@ -582,6 +589,8 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 			return nil, err
 		}
 	}
+
+	m.CDebugf("#loadFromServerOnce: got back %d new links", len(links))
 
 	return &groceries{
 		newLinks:     links,

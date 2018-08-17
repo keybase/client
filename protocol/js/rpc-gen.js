@@ -244,6 +244,7 @@ export const constantsStatusCode = {
   scteamshowcasepermdenied: 2711,
   scteamprovisionalcankey: 2721,
   scteamprovisionalcannotkey: 2722,
+  scteamftloutdated: 2736,
   scephemeralkeybadgeneration: 2900,
   scephemeralkeyunexpectedbox: 2901,
   scephemeralkeymissingbox: 2902,
@@ -2045,6 +2046,7 @@ export type StatusCode =
   | 2711 // SCTeamShowcasePermDenied_2711
   | 2721 // SCTeamProvisionalCanKey_2721
   | 2722 // SCTeamProvisionalCannotKey_2722
+  | 2736 // SCTeamFTLOutdated_2736
   | 2900 // SCEphemeralKeyBadGeneration_2900
   | 2901 // SCEphemeralKeyUnexpectedBox_2901
   | 2902 // SCEphemeralKeyMissingBox_2902
