@@ -45,7 +45,7 @@ const styles = styleSheetCreate({
     backgroundColor: globalColors.blue5,
     borderStyle: 'solid',
     borderTopWidth: 1,
-    borderTopColor: globalColors.black_05,
+    borderTopColor: globalColors.black_10,
   },
   iconBoxOpenDownload: {
     padding: globalMargins.tiny,

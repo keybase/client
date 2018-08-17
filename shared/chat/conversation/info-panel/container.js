@@ -156,7 +156,7 @@ class InfoPanelSelector extends React.PureComponent<Props> {
   }
 }
 
-const clickCatcherStyle = {position: 'absolute', top: 35, right: 0, bottom: 0, left: 80}
+const clickCatcherStyle = {position: 'absolute', top: 38, right: 0, bottom: 0, left: 80}
 const panelContainerStyle = {
   position: 'absolute',
   right: 0,

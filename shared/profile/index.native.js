@@ -440,7 +440,7 @@ class Profile extends Component<Props, State> {
             backgroundColor: globalColors.white,
             paddingTop: globalMargins.tiny + statusBarHeight,
             borderBottomWidth: 1,
-            borderBottomColor: globalColors.black_05,
+            borderBottomColor: globalColors.black_10,
             borderStyle: 'solid',
           }}
         >

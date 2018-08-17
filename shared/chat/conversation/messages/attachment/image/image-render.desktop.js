@@ -45,6 +45,7 @@ export class ImageRender extends React.Component<Props> {
         poster={this.props.src}
         preload="none"
         onLoadStart={this.props.onLoad}
+        onLoadedMetadata={this.props.onLoadedVideo}
         controlsList="nodownload nofullscreen noremoteplayback"
         style={collapseStyles([this.props.style, !this.props.loaded && {display: 'none'}])}
       >

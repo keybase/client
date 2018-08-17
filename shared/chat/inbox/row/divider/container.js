@@ -1,5 +1,5 @@
 // @flow
-import {Divider} from '.'
+import {TeamsDivider} from '.'
 import * as Types from '../../../../constants/types/chat2'
 import {createSelector, connect, type TypedState} from '../../../../util/container'
 import type {StylesCrossPlatform} from '../../../../styles'
@@ -23,4 +23,4 @@ const dividerSelector = createSelector([getBadges, getOwnProps], (badgeMap, ownP
   }
 })
 
-export default connect(dividerSelector)(Divider)
+export default connect(dividerSelector)(TeamsDivider)

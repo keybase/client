@@ -383,8 +383,13 @@ func TestSaltpackEncryptNoSelf(t *testing.T) {
 	}
 	dec := NewSaltpackDecrypt(decarg, saltpackkeystest.NewMockPseudonymResolver(t))
 	err := RunEngine2(m, dec)
-	if _, ok := err.(libkb.NoDecryptionKeyError); !ok {
-		t.Fatalf("Expected err type %T, but got %T", libkb.NoDecryptionKeyError{}, err)
+
+	decErr, ok := err.(libkb.DecryptionError)
+	if !ok {
+		t.Fatalf("Expected err type %T, but got %T", libkb.DecryptionError{}, err)
+	}
+	if _, ok = decErr.Cause.(libkb.NoDecryptionKeyError); !ok {
+		t.Fatalf("Expected err Cause of type %T, but got %T", libkb.NoDecryptionKeyError{}, decErr.Cause)
 	}
 
 	Logout(tc)
