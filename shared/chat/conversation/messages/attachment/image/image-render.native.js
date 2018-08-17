@@ -1,8 +1,11 @@
 // @flow
 import * as React from 'react'
-import {WebView} from 'react-native'
 import WKWebView from 'react-native-wkwebview-reborn'
-import {NativeImage, NativeDimensions} from '../../../../../common-adapters/native-wrappers.native'
+import {
+  NativeImage,
+  NativeDimensions,
+  NativeWebView,
+} from '../../../../../common-adapters/native-wrappers.native'
 import type {Props} from './image-render.types'
 import {isIOS} from '../../../../../constants/platform'
 
@@ -19,19 +22,21 @@ export class ImageRender extends React.Component<Props> {
     if (!this.webview) {
       return
     }
-    const arg = !this.playingVideo ? 'play' : 'pause'
-    const js = `togglePlay("${arg}")`
-    ;(isIOS ? this.webview.evaluateJavaScript : this.webview.injectJavaScript)(js)
+    const arg = this.playingVideo ? 'pause' : 'play'
+    const runJS = isIOS ? this.webview.evaluateJavaScript : this.webview.injectJavaScript
+    runJS(`togglePlay("${arg}")`)
     this.playingVideo = !this.playingVideo
+  }
+
+  _allLoads = () => {
+    this.props.onLoad()
+    this.props.onLoadedVideo()
   }
 
   render() {
     if (this.props.inlineVideoPlayable && this.props.videoSrc.length > 0) {
-      const uri = this.props.videoSrc + '&poster=' + encodeURIComponent(this.props.src)
-      const source = {uri}
-      const allLoads = () => {
-        this.props.onLoad()
-        this.props.onLoadedVideo()
+      const source = {
+        uri: `${this.props.videoSrc}&poster=${encodeURIComponent(this.props.src)}`,
       }
       return isIOS ? (
         <WKWebView
@@ -39,18 +44,18 @@ export class ImageRender extends React.Component<Props> {
             this.webview = ref
           }}
           styles={this.props.style}
-          onLoadEnd={allLoads}
+          onLoadEnd={this._allLoads}
           source={source}
           scrollEnabled={false}
         />
       ) : (
-        <WebView
+        <NativeWebView
           ref={ref => {
             this.webview = ref
           }}
           source={source}
           style={this.props.style}
-          onLoadEnd={allLoads}
+          onLoadEnd={this._allLoads}
           scrollEnabled={false}
         />
       )
