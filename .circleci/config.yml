@@ -92,6 +92,4 @@ workflows:
   build_and_test:
     jobs:
       - checkout2
-      - build_js_deps:
-        requires:
-          - checkout2
+      - build_js_deps
