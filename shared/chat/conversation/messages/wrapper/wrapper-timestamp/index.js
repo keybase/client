@@ -98,7 +98,10 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
               {props.type === 'children' && props.children}
               {/* Additional checks on props.message.type to appease flow */}
               {props.type === 'wrapper-author' &&
-                (props.message.type === 'attachment' || props.message.type === 'text') && (
+                (props.message.type === 'attachment' ||
+                  props.message.type === 'text' ||
+                  props.message.type === 'sendPayment' ||
+                  props.message.type === 'requestPayment') && (
                   <WrapperAuthor
                     message={props.message}
                     previous={props.previous}

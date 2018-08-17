@@ -12,7 +12,11 @@ import {isMobile} from '../../../../../constants/platform'
 type OwnProps = {|
   isEditing: boolean,
   measure: null | (() => void),
-  message: Types.MessageText | Types.MessageAttachment,
+  message:
+    | Types.MessageText
+    | Types.MessageAttachment
+    | Types.MessageRequestPayment
+    | Types.MessageSendPayment,
   previous: ?Types.Message,
   toggleMessageMenu: () => void,
 |}
@@ -23,10 +27,21 @@ const mapStateToProps = (state: TypedState, {message, previous, isEditing}: OwnP
   const isBroken = state.users.infoMap.getIn([message.author, 'broken'], false)
   const orangeLineMessageID = state.chat2.orangeLineMap.get(message.conversationIDKey)
   const lastPositionExists = orangeLineMessageID === message.id
-  const messageSent = !message.submitState
-  const messageFailed = message.submitState === 'failed'
-  const messagePending = message.submitState === 'pending'
-  const isExplodingUnreadable = message.explodingUnreadable
+
+  // text and attachment messages hae a bunch of info about the status.
+  // payments don't.
+  let messageSent, messageFailed, messagePending, isExplodingUnreadable
+  if (message.type === 'text' || message.type === 'attachment') {
+    messageSent = !message.submitState
+    messageFailed = message.submitState === 'failed'
+    messagePending = message.submitState === 'pending'
+    isExplodingUnreadable = message.explodingUnreadable
+  } else {
+    messageSent = true
+    messageFailed = false
+    messagePending = false
+    isExplodingUnreadable = false
+  }
 
   return {
     isBroken,
@@ -75,17 +90,31 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     failureDescription = stateProps.isYou ? `Failed to send: ${message.errorReason}` : message.errorReason
   }
 
+  // Properties that are different between request/payment and text/attachment
+  let exploded = false
+  let explodedBy = ''
+  let explodesAt = 0
+  let exploding = false
+  let isEdited = false
+  if (message.type === 'text' || message.type === 'attachment') {
+    exploded = message.exploded
+    explodedBy = message.explodedBy
+    explodesAt = message.explodingTime
+    exploding = message.exploding
+    isEdited = message.hasBeenEdited
+  }
+
   return {
     author: message.author,
     conversationIDKey: message.conversationIDKey,
-    exploded: message.exploded,
-    explodedBy: message.explodedBy,
-    explodesAt: message.explodingTime,
-    exploding: message.exploding,
+    exploded,
+    explodedBy,
+    explodesAt,
+    exploding,
     failureDescription,
     includeHeader,
     isBroken: stateProps.isBroken,
-    isEdited: message.hasBeenEdited,
+    isEdited,
     isEditing: stateProps.isEditing,
     isExplodingUnreadable: stateProps.isExplodingUnreadable,
     isFollowing: stateProps.isFollowing,
@@ -112,7 +141,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     ordinal: message.ordinal,
     timestamp: message.timestamp,
     toggleMessageMenu: ownProps.toggleMessageMenu,
-    type: message.type,
   }
 }
 

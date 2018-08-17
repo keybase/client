@@ -13,6 +13,7 @@ import {
 } from '../../../../../styles'
 import TextMessage from '../../text/container'
 import AttachmentMessage from '../../attachment/container'
+import PaymentMessage from '../../account-payment/container'
 import SendIndicator from '../chat-send'
 import ExplodingHeightRetainer from '../exploding-height-retainer'
 
@@ -45,7 +46,6 @@ export type Props = {|
   ordinal: Types.Ordinal,
   timestamp: number,
   toggleMessageMenu: () => void,
-  type: 'text' | 'attachment',
 |}
 
 const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBroken: boolean) => {
@@ -157,15 +157,15 @@ const RightSide = props => (
           style={styles.flexOneColumn}
           retainHeight={props.exploded || props.isExplodingUnreadable}
         >
-          {/* Additional checks on `props.message.type` here to satisfy flow */}
-          {props.type === 'text' &&
-            props.message.type === 'text' && (
-              <TextMessage message={props.message} isEditing={props.isEditing} />
-            )}
-          {props.type === 'attachment' &&
-            props.message.type === 'attachment' && (
-              <AttachmentMessage message={props.message} toggleMessageMenu={props.toggleMessageMenu} />
-            )}
+          {props.message.type === 'text' && (
+            <TextMessage message={props.message} isEditing={props.isEditing} />
+          )}
+          {props.message.type === 'attachment' && (
+            <AttachmentMessage message={props.message} toggleMessageMenu={props.toggleMessageMenu} />
+          )}
+          {(props.message.type === 'sendPayment' || props.message.type === 'requestPayment') && (
+            <PaymentMessage message={props.message} />
+          )}
           {props.isEdited && <EditedMark />}
         </ExplodingHeightRetainer>
         {props.isRevoked && (

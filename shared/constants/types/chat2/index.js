@@ -78,6 +78,8 @@ export type {
   MessageAttachment,
   MessageExplodeDescription,
   MessageID,
+  MessageRequestPayment,
+  MessageSendPayment,
   MessageSystemAddedToTeam,
   MessageSystemGitPush,
   MessageSystemInviteAccepted,

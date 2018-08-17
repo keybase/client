@@ -15,7 +15,7 @@ export type Props = {
   sendButtonLabel?: string,
 }
 
-export default (props: Props) => {
+const AccountPayment = (props: Props) => {
   return (
     <Box2 direction="vertical" gap="xtiny" fullWidth={true}>
       <Box2 direction="horizontal" fullWidth={true} style={styles.headingContainer}>
@@ -62,3 +62,5 @@ const styles = styleSheetCreate({
   purple: {color: globalColors.purple2},
   quoteMarker: {maxWidth: 3, minWidth: 3},
 })
+
+export default AccountPayment
