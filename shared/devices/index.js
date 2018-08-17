@@ -23,6 +23,7 @@ type Props = {|
   onBack: () => void,
   revokedItems: Array<Item>,
   waiting: boolean,
+  title: string,
   ...$Exact<Kb.OverlayParentProps>,
 |}
 
