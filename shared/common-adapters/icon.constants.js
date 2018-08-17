@@ -1586,6 +1586,26 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-wallet-receive-64.png'),
   },
+  'icon-wallet-remove-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-wallet-remove-48.png'),
+  },
+  'icon-wallet-remove-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-wallet-remove-64.png'),
+  },
+  'icon-wallet-secret-key-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-wallet-secret-key-48.png'),
+  },
+  'icon-wallet-secret-key-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-wallet-secret-key-64.png'),
+  },
   'icon-website-16': {
     isFont: false,
     extension: 'png',
