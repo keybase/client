@@ -92,3 +92,6 @@ workflows:
   build_and_test:
     jobs:
       - checkout
+      - build_js_deps:
+        requires:
+          - checkout
