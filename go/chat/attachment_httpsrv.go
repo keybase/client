@@ -197,10 +197,16 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 								vid.removeAttribute('controls');
 							}
 						  }
+						window.addEventListener("DOMContentLoaded", function () {
+							setTimeout(function(){
+								vid = document.getElementById("vid");
+								vid.style = "height: 100vh; width: 100vw";
+							}, 200);
+						}, false);
 					</script>
 				</head>
 				<body>
-					<video id="vid" style="height: 100vh; width: 100vw" poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
+					<video id="vid"  poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
 				</body>
 			</html>
 		`, req.URL.Query().Get("poster"), req.URL.String()+"&contentforce=true"))); err != nil {
