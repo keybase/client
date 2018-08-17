@@ -29,6 +29,10 @@ type signerX struct {
 	implicitAdmin bool
 }
 
+func NewSignerX() signerX {
+	return signerX{}
+}
+
 // --------------------------------------------------
 
 type ChainLinkUnpacked struct {
@@ -40,6 +44,10 @@ type ChainLinkUnpacked struct {
 	innerLinkID libkb.LinkID
 	// nil if the link is stubbed
 	innerTeamID keybase1.TeamID
+}
+
+func UnpackChainLink(link *SCChainLink) (*ChainLinkUnpacked, error) {
+	return unpackChainLink(link)
 }
 
 func unpackChainLink(link *SCChainLink) (*ChainLinkUnpacked, error) {
