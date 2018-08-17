@@ -925,40 +925,6 @@
       ],
       "response": null
     },
-    "publishReadMessage": {
-      "request": [
-        {
-          "name": "uid",
-          "type": "gregor1.UID"
-        },
-        {
-          "name": "convID",
-          "type": "ConversationID"
-        },
-        {
-          "name": "msgID",
-          "type": "MessageID"
-        }
-      ],
-      "response": null
-    },
-    "publishSetConversationStatus": {
-      "request": [
-        {
-          "name": "uid",
-          "type": "gregor1.UID"
-        },
-        {
-          "name": "convID",
-          "type": "ConversationID"
-        },
-        {
-          "name": "status",
-          "type": "ConversationStatus"
-        }
-      ],
-      "response": null
-    },
     "updateTypingRemote": {
       "request": [
         {
@@ -1041,6 +1007,10 @@
         },
         {
           "name": "summarizeMaxMsgs",
+          "type": "boolean"
+        },
+        {
+          "name": "useCache",
           "type": "boolean"
         }
       ],
