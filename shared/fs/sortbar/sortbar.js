@@ -90,7 +90,7 @@ const styles = Styles.styleSheetCreate({
   sortBar: {
     ...Styles.globalStyles.flexBoxRow,
     backgroundColor: Styles.globalColors.blue5,
-    borderTopColor: Styles.globalColors.black_05,
+    borderTopColor: Styles.globalColors.black_10,
     borderTopWidth: 1,
     paddingLeft: 16,
   },

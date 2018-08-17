@@ -1,7 +1,7 @@
 // @flow
-import {Divider} from '.'
+import {TeamsDivider} from '.'
 import * as Types from '../../../../constants/types/chat2'
-import {connect, type TypedState} from '../../../../util/container'
+import {connect} from '../../../../util/container'
 import type {StylesCrossPlatform} from '../../../../styles'
 
 type OwnProps = {
@@ -11,9 +11,9 @@ type OwnProps = {
   style: StylesCrossPlatform,
 }
 
-const mapStateToProps = state => ({ _badges: state.chat2.badgeMap, })
+const mapStateToProps = state => ({_badges: state.chat2.badgeMap})
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   badgeCount: (ownProps.smallIDsHidden || []).reduce((total, id) => total + stateProps._badges.get(id, 0), 0),
   hiddenCount: ownProps.smallIDsHidden.length,
   showButton: ownProps.showButton,
@@ -21,4 +21,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   toggle: ownProps.toggle,
 })
 
-export default connect(mapStateToProps, () => ({}), mergeProps)(Divider)
+export default connect(mapStateToProps, () => ({}), mergeProps)(TeamsDivider)

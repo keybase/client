@@ -207,6 +207,11 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.editFailed:
       // $FlowFixMe
       return state.setIn(['edits', action.payload.editID, 'status'], 'failed')
+    case FsGen.fsError:
+      return state.setIn(['errors', Constants.makeUUID()], action.payload.error)
+    case FsGen.dismissFsError:
+      return state.removeIn(['errors', action.payload.key])
+    case FsGen.placeholderAction:
     case FsGen.filePreviewLoad:
     case FsGen.cancelDownload:
     case FsGen.download:

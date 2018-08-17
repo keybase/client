@@ -59,7 +59,7 @@ const styles = Style.styleSheetCreate({
       width: '100%',
     },
     isMobile: {
-      borderBottomColor: Style.globalColors.black_05,
+      borderBottomColor: Style.globalColors.black_10,
       borderBottomWidth: Style.hairlineWidth,
       height: 56,
     },

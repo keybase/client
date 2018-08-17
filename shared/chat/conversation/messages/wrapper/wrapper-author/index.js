@@ -126,8 +126,6 @@ const Failure = ({failureDescription, isExplodingUnreadable, onEdit, onRetry, on
   )
 }
 
-const sendIndicatorWidth = 32
-
 const LeftSide = props => (
   <Box style={styles.leftSide}>
     {props.includeHeader && <UserAvatar author={props.author} onAuthorClick={props.onAuthorClick} />}
@@ -190,12 +188,11 @@ const RightSide = props => (
             onCancel={props.onCancel}
           />
         )}
-      <Box style={styles.sendIndicatorContainer}>
+      <Box style={styles.sendIndicator}>
         {props.isYou && (
           <SendIndicator
             sent={props.messageSent || props.exploded}
             failed={props.messageFailed}
-            style={{marginBottom: 2}}
             id={props.timestamp}
           />
         )}
@@ -261,20 +258,23 @@ const styles = styleSheetCreate({
     paddingBottom: 2,
     paddingRight: globalMargins.tiny,
   },
-  sendIndicator: {marginBottom: 2},
-  sendIndicatorContainer: platformStyles({
+  sendIndicator: platformStyles({
     common: {
-      alignItems: 'flex-start',
-      bottom: -2,
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
       height: 21,
       justifyContent: 'center',
       position: 'absolute',
-      right: 0,
-      width: sendIndicatorWidth,
+      top: 2,
     },
-    isElectron: {pointerEvents: 'none'},
+    isElectron: {
+      pointerEvents: 'none',
+      right: 0,
+      top: -1,
+    },
     isMobile: {
       right: -14,
+      top: 2,
     },
   }),
   textContainer: {

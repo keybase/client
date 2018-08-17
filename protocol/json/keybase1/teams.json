@@ -466,11 +466,15 @@
         {
           "type": {
             "type": "map",
-            "values": "PerTeamKeySeedItem",
+            "values": "PerTeamKeySeed",
             "keys": "PerTeamKeyGeneration"
           },
           "name": "perTeamKeySeedsUnverified",
           "mpackkey": "perTeamKeySeeds"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "latestKeyGeneration"
         },
         {
           "type": {
@@ -496,11 +500,15 @@
     },
     {
       "type": "record",
-      "name": "LinkPair",
+      "name": "LinkTriple",
       "fields": [
         {
           "type": "Seqno",
           "name": "seqno"
+        },
+        {
+          "type": "SeqType",
+          "name": "seqType"
         },
         {
           "type": "LinkID",
@@ -510,15 +518,23 @@
     },
     {
       "type": "record",
-      "name": "LinkTriple",
+      "name": "UpPointer",
       "fields": [
         {
-          "type": "TeamID",
-          "name": "id"
+          "type": "Seqno",
+          "name": "ourSeqno"
         },
         {
-          "type": "LinkPair",
-          "name": "pair"
+          "type": "TeamID",
+          "name": "parentID"
+        },
+        {
+          "type": "Seqno",
+          "name": "parentSeqno"
+        },
+        {
+          "type": "boolean",
+          "name": "deletion"
         }
       ]
     },
@@ -546,7 +562,8 @@
       "fields": [
         {
           "type": "TeamID",
-          "name": "id"
+          "name": "ID",
+          "lint": "ignore"
         },
         {
           "type": "boolean",
@@ -561,15 +578,11 @@
           "name": "nameDepth"
         },
         {
-          "type": "LinkPair",
-          "name": "last"
-        },
-        {
           "type": [
             null,
-            "TeamID"
+            "LinkTriple"
           ],
-          "name": "parentID"
+          "name": "last"
         },
         {
           "type": {
@@ -582,18 +595,25 @@
         {
           "type": {
             "type": "map",
+            "values": "PerTeamKeySeed",
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "perTeamKeySeedsVerified"
+        },
+        {
+          "type": {
+            "type": "map",
             "values": "DownPointer",
             "keys": "Seqno"
           },
           "name": "downPointers"
         },
         {
-          "type": "LinkPair",
+          "type": [
+            null,
+            "UpPointer"
+          ],
           "name": "lastUpPointer"
-        },
-        {
-          "type": "boolean",
-          "name": "isDeleted"
         },
         {
           "type": "UnixTime",
@@ -1525,7 +1545,8 @@
       "fields": [
         {
           "type": "TeamID",
-          "name": "id"
+          "name": "ID",
+          "lint": "ignore"
         },
         {
           "type": "boolean",
@@ -1547,7 +1568,7 @@
         },
         {
           "type": "boolean",
-          "name": "needLatestGeneration"
+          "name": "needLatestKey"
         }
       ]
     },

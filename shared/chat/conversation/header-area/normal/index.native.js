@@ -117,7 +117,7 @@ const styles = styleSheetCreate({
   container: {
     alignItems: 'stretch',
     backgroundColor: globalColors.fastBlank,
-    borderBottomColor: globalColors.black_05,
+    borderBottomColor: globalColors.black_10,
     borderBottomWidth: 1,
     minHeight: 44,
   },

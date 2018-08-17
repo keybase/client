@@ -248,7 +248,18 @@ const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
             : `There was an error parsing ${malformed.length} address${malformed.length > 1 ? 'es' : ''}.`,
         })
       )
+    } else {
+      // no malformed emails, assume everything went swimmingly
+      yield Saga.put(
+        TeamsGen.createSetEmailInviteError({
+          malformed: [],
+          message: '',
+        })
+      )
     }
+  } catch (err) {
+    // other error. display messages and leave all emails in input box
+    yield Saga.put(TeamsGen.createSetEmailInviteError({malformed: [], message: err.desc}))
   } finally {
     yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
     yield Saga.put(TeamsGen.createSetTeamLoadingInvites({teamname, invitees, loadingInvites: false}))

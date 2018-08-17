@@ -16,6 +16,7 @@ const _commonChildren = {
       tags: makeLeafTags({
         hideStatusBar: true,
         fullscreen: true,
+        underStatusBar: true,
         title: 'Preview',
       }),
     }),

@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import type {MenuLayoutProps, MenuItem} from '.'
-import {Box, Text} from '../..'
+import {Box, Divider, Text} from '../..'
 import {
   globalColors,
   globalMargins,
@@ -13,7 +13,7 @@ import {
 } from '../../../styles'
 
 class MenuLayout extends Component<MenuLayoutProps> {
-  _renderDivider = (index: number) => <Box style={styles.divider} key={index} />
+  _renderDivider = (index: number) => <Divider style={styles.divider} key={index} />
 
   _renderMenuItem = (item: MenuItem, index: number) => {
     let hoverClassName
@@ -103,7 +103,10 @@ class MenuLayout extends Component<MenuLayoutProps> {
 }
 
 const styles = styleSheetCreate({
-  divider: {height: 1, backgroundColor: globalColors.black_05, marginTop: 8, marginBottom: 8},
+  divider: {
+    marginBottom: 8,
+    marginTop: 8,
+  },
   menuContainer: platformStyles({
     isElectron: {
       ...globalStyles.flexBoxColumn,

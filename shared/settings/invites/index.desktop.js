@@ -116,7 +116,7 @@ class Invites extends Component<Props, State> {
 }
 
 function intersperseDividers(arr) {
-  return intersperseFn(i => <Divider key={i} style={{backgroundColor: globalColors.black_05}} />, arr)
+  return intersperseFn(i => <Divider key={i} />, arr)
 }
 
 function PendingInviteItem({

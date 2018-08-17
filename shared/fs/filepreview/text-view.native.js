@@ -5,7 +5,9 @@ import {WebView} from '../../common-adapters'
 import {type TextViewProps} from './text-view'
 import type {WebViewInjections} from '../../common-adapters'
 
-const TextView = ({url, onInvalidToken}: TextViewProps) => <WebView url={url} injections={injections} />
+const TextView = ({url, onInvalidToken, onLoadingStateChange}: TextViewProps) => (
+  <WebView url={url} injections={injections} onLoadingStateChange={onLoadingStateChange} />
+)
 
 // We need to do the spacing in the guest content of the webView rather than
 // the component's styles, to make it feel like the whole "view" is
