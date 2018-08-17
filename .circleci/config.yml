@@ -8,11 +8,9 @@ version: 2
 jobs:
   build:
     working_directory: ~/go-path/src/github.com/keybase/client
-    parallelism: 1
 
     docker:
     - image: keybaseprivate/circleci-client@sha256:d0766bb0c294bee3731b32aeaa3d7f2812e9bb5d80eb4d58ee7d5545818c38e9
-      command: /sbin/init
 
     steps:
     ##
