@@ -92,16 +92,3 @@ workflows:
   build_and_test:
     jobs:
       - checkout
-      - build_js_deps:
-        requires:
-          - checkout
-      - run_flow_coverage:
-        requires:
-          - build_js_deps
-      - build_aar:
-        requires:
-          - checkout
-      - build_app:
-        requires:
-          - build_js_deps
-          - build_aar
