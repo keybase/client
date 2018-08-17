@@ -68,7 +68,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     progressLabel,
     showButton: buttonType,
     videoDuration: message.videoDuration || '',
-    inlineVideoPlayable: !isMobile,
+    inlineVideoPlayable: !isMobile && message.videoDuration,
     title: message.title || message.fileName,
     toggleMessageMenu: ownProps.toggleMessageMenu,
     width: Math.min(message.previewWidth, imgMaxWidth()),
