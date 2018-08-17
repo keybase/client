@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 #
 #   REMINDER: If you edit this file, you'll most likely also want to edit
-#   circle.yml in the kbfs repository!
+#   .circleci/config.yml in the kbfs repository!
 #
 # -----------------------------------------------------------------------------
 version: 2
