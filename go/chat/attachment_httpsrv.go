@@ -196,16 +196,11 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 								vid.pause();
 								vid.removeAttribute('controls');
 							}
-					  	}
+						  }
 					</script>
-					<style>
-						.contain {
-							object-fit: cover;
-						}
-					</style>
 				</head>
 				<body>
-					<video id="vid" class="contain" poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
+					<video id="vid" style="height: 100vh; width: 100vw" poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
 				</body>
 			</html>
 		`, req.URL.Query().Get("poster"), req.URL.String()+"&contentforce=true"))); err != nil {
