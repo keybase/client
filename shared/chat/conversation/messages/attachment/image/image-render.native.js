@@ -23,24 +23,32 @@ export class ImageRender extends React.Component<Props> {
   }
 
   render() {
-    const uri = this.props.videoSrc + '&poster=' + encodeURIComponent(this.props.src)
-    const source = {uri}
-    const allLoads = () => {
-      this.props.onLoad()
-      this.props.onLoadedVideo()
+    if (this.props.inlineVideoPlayable && this.props.videoSrc.length > 0) {
+      const uri = this.props.videoSrc + '&poster=' + encodeURIComponent(this.props.src)
+      const source = {uri}
+      const allLoads = () => {
+        this.props.onLoad()
+        this.props.onLoadedVideo()
+      }
+      return (
+        <WKWebView
+          ref={ref => {
+            this.webview = ref
+          }}
+          styles={this.props.style}
+          onLoadEnd={allLoads}
+          source={source}
+          scrollEnabled={false}
+        />
+      )
     }
-    return this.props.inlineVideoPlayable ? (
-      <WKWebView
-        ref={ref => {
-          this.webview = ref
-        }}
-        styles={this.props.style}
-        onLoadEnd={allLoads}
-        source={source}
-        scrollEnabled={false}
+    return (
+      <NativeImage
+        onLoad={this.props.onLoad}
+        source={{uri: this.props.src}}
+        style={this.props.style}
+        resizeMode="contain"
       />
-    ) : (
-      <NativeImage onLoad={this.props.onLoad} source={source} style={this.props.style} resizeMode="contain" />
     )
   }
 }
