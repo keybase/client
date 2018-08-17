@@ -14,6 +14,8 @@ const Prompt = () => (
 const promptContainerStyle = {
   alignItems: 'center',
   justifyContent: 'center',
+  paddingBottom: 24,
+  paddingTop: 24,
 }
 
 class FilePickerPopup extends React.Component<Props> {

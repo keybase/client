@@ -604,7 +604,7 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 // pattern. The rules are: the most recent "up pointer" should be unstubbed. The first link should be
 // unstubbed. The last key rotation should be unstubbed (though we can't really check this now).
 // And any links we ask for should be unstubbed too.
-func (f *FastTeamChainLoader) checkStubs(m libkb.MetaContext, shoppingList shoppingList, newLinks []*chainLinkUnpacked) (err error) {
+func (f *FastTeamChainLoader) checkStubs(m libkb.MetaContext, shoppingList shoppingList, newLinks []*chainLinkUnpacked, canReadTeam bool) (err error) {
 
 	if len(newLinks) == 0 {
 		return nil
@@ -651,8 +651,8 @@ func (f *FastTeamChainLoader) checkStubs(m libkb.MetaContext, shoppingList shopp
 		}
 	}
 
-	if newLinks[0].isStubbed() {
-		return NewInvalidLink(newLinks[0], "expected first link to be unstubbed")
+	if newLinks[0].isStubbed() && canReadTeam {
+		return NewInvalidLink(newLinks[0], "expected first link to be unstubbed (if we can read the team)")
 	}
 
 	return nil
@@ -974,7 +974,7 @@ func (f *FastTeamChainLoader) refresh(m libkb.MetaContext, arg fastLoadArg, stat
 	}
 
 	// check that the server stubbed properly.
-	err = f.checkStubs(m, shoppingList, groceries.newLinks)
+	err = f.checkStubs(m, shoppingList, groceries.newLinks, arg.readSubteamID.IsNil() /* canReadTeam */)
 	if err != nil {
 		return nil, err
 	}
