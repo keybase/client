@@ -10,7 +10,7 @@ export const shareNative = ({payload: {path, routePath}}: FsGen.ShareNativePaylo
 export const saveMedia = ({payload: {path, routePath}}: FsGen.SaveMediaPayload) =>
   Saga.put(FsGen.createDownload({intent: 'camera-roll', path}))
 
-export const pickAndUpload = ({payload: {type}}: FsGen.PickAndUploadPayload) =>
+export const pickAndUpload = ({payload: {type}}: FsGen.PickAndUploadPayload): Promise<any> =>
   new Promise((resolve, reject) =>
     showImagePicker(
       {
