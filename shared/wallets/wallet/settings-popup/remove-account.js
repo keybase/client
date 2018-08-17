@@ -24,12 +24,8 @@ const RemoveAccountDialog = (props: Props) => (
       type={Styles.isMobile ? 'icon-wallet-remove-64' : 'icon-wallet-remove-48'}
       style={Kb.iconCastPlatformStyles(styles.icon)}
     />
-    <Kb.Text style={styles.warning} type="Header">
-      Are you sure you want to remove{' '}
-      <Kb.Text type="Header" style={styles.italic}>
-        {props.name}
-      </Kb.Text>{' '}
-      from Keybase?
+    <Kb.Text style={styles.warningText} type="Header">
+      Are you sure you want to remove <Kb.Text type="HeaderItalic">{props.name}</Kb.Text> from Keybase?
     </Kb.Text>
     <Kb.Text type="BodySmall">Balance:</Kb.Text>
     <Kb.Text type="BodySmallExtrabold">{props.currency}</Kb.Text>
@@ -38,36 +34,12 @@ const RemoveAccountDialog = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  container: Styles.platformStyles({
-    common: {
-      padding: 24,
-      paddingTop: Styles.globalMargins.xlarge,
-      paddingBottom: Styles.globalMargins.xlarge,
-    },
-    isElectron: {
-      height: 525,
-      width: 360,
-    },
-  }),
   icon: {
     marginBottom: Styles.globalMargins.large,
   },
-  italic: {
-    fontStyle: 'italic',
-  },
-  warning: {
+  warningText: {
     marginBottom: Styles.globalMargins.tiny,
     textAlign: 'center',
-  },
-  buttonbar: {
-    width: 'auto',
-    flexGrow: 1,
-    marginLeft: Styles.globalMargins.large,
-    marginRight: Styles.globalMargins.large,
-    alignItems: 'flex-end',
-  },
-  button: {
-    alignSelf: 'flex-end',
   },
 })
 

@@ -21,7 +21,7 @@ const WalletModal = (props: WalletModalProps) => (
       {props.bottomButtons &&
         props.bottomButtons.length > 0 && (
           <Kb.Box2 direction="vertical" style={styles.buttonBarContainer} fullWidth={true}>
-            <Kb.ButtonBar>{props.bottomButtons}</Kb.ButtonBar>
+            <Kb.ButtonBar style={styles.buttonBar}>{props.bottomButtons}</Kb.ButtonBar>
           </Kb.Box2>
         )}
     </Kb.Box2>
@@ -50,6 +50,9 @@ const styles = Styles.styleSheetCreate({
   buttonBarContainer: {
     flex: 1,
     justifyContent: 'flex-end',
+  },
+  buttonBar: {
+    minHeight: 0,
   },
 })
 
