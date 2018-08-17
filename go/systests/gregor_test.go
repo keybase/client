@@ -111,7 +111,8 @@ func TestGregorForwardToElectron(t *testing.T) {
 
 	svc.SetGregorPushStateFilter(func(m gregor.Message) bool {
 		cat := m.ToInBandMessage().ToStateUpdateMessage().Creation().Category()
-		return cat.String() != "user.identity_change" && cat.String() != "user.key_change"
+		return cat.String() != "user.identity_change" && cat.String() != "user.key_change" &&
+			!strings.HasPrefix(cat.String(), "home.") && !strings.HasPrefix(cat.String(), "stellar.")
 	})
 	require.NoError(t, ncli.RegisterGregorFirehose(context.TODO()))
 
