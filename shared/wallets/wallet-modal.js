@@ -6,11 +6,16 @@ import * as Styles from '../styles'
 type Props = {|
   children: React.Node,
   onClose: () => void,
+  containerStyle?: Styles.StylesCrossPlatform,
 |}
 
 const WalletModal = (props: Props) => (
   <Kb.MaybePopup onClose={props.onClose}>
-    <Kb.Box2 direction="vertical" style={styles.container} centerChildren={true}>
+    <Kb.Box2
+      direction="vertical"
+      centerChildren={true}
+      style={Styles.collapseStyles([styles.container, props.containerStyle])}
+    >
       {props.children}
     </Kb.Box2>
   </Kb.MaybePopup>

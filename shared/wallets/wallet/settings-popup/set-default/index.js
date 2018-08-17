@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import WalletModal from '../../../wallet-modal'
 
 type Props = {|
   accountName: string,
@@ -11,47 +12,40 @@ type Props = {|
 |}
 
 const SetDefaultAccount = (props: Props) => (
-  <Kb.MaybePopup onClose={props.onClose}>
-    <Kb.Box2
-      gap="mediumLarge"
-      centerChildren={Styles.isMobile}
-      gapStart={!Styles.isMobile}
-      direction="vertical"
-      fullHeight={true}
-      fullWidth={true}
-      style={styles.container}
+  <WalletModal onClose={props.onClose} containerStyle={{justifyContent: 'flex-start'}}>
+    {Styles.isMobile && <Kb.HeaderHocHeader onCancel={props.onClose} headerStyle={styles.header} />}
+    <Kb.Box style={{position: 'relative', marginBottom: Styles.globalMargins.mediumLarge}}>
+      <Kb.Icon type="icon-wallet-48" />
+      <Kb.Avatar size={32} username={props.username} style={Kb.avatarCastPlatformStyles(styles.avatar)} />
+    </Kb.Box>
+    <Kb.Text
+      type="Header"
+      style={Styles.collapseStyles([styles.textAlignCenter, {marginBottom: Styles.globalMargins.medium}])}
     >
-      {Styles.isMobile && <Kb.HeaderHocHeader onCancel={props.onClose} headerStyle={styles.header} />}
-      <Kb.Box style={{position: 'relative'}}>
-        <Kb.Icon type="icon-wallet-48" />
-        <Kb.Avatar size={32} username={props.username} style={Kb.avatarCastPlatformStyles(styles.avatar)} />
-      </Kb.Box>
-      <Kb.Text type="Header" style={styles.textAlignCenter}>
-        Set{' '}
-        <Kb.Text type="Header" style={styles.textItalic}>
-          {props.accountName}
-        </Kb.Text>{' '}
-        as your default Keybase account?
-      </Kb.Text>
-      <Kb.Text type="Body" style={styles.textAlignCenter}>
-        All transactions and overall activity with{' '}
-        <Kb.Text type="Body" style={styles.textItalic}>
-          {props.accountName}
-        </Kb.Text>{' '}
-        will now be tied to your Keybase identity. Your account's name remains encrypted and only visible to
-        you.
-      </Kb.Text>
-      <Kb.ButtonBar direction={Styles.isMobile ? 'column' : 'row'} style={styles.buttonBar}>
-        <Kb.Button type="Secondary" style={styles.button} onClick={props.onClose} label="Cancel" />
-        <Kb.Button
-          type="Wallet"
-          style={styles.button}
-          onClick={props.onAccept}
-          label="Set as default account"
-        />
-      </Kb.ButtonBar>
-    </Kb.Box2>
-  </Kb.MaybePopup>
+      Set{' '}
+      <Kb.Text type="Header" style={styles.textItalic}>
+        {props.accountName}
+      </Kb.Text>{' '}
+      as your default Keybase account?
+    </Kb.Text>
+    <Kb.Text type="Body" style={styles.textAlignCenter}>
+      All transactions and overall activity with{' '}
+      <Kb.Text type="Body" style={styles.textItalic}>
+        {props.accountName}
+      </Kb.Text>{' '}
+      will now be tied to your Keybase identity. Your account's name remains encrypted and only visible to
+      you.
+    </Kb.Text>
+    <Kb.ButtonBar direction={Styles.isMobile ? 'column' : 'row'} style={styles.buttonBar}>
+      <Kb.Button type="Secondary" style={styles.button} onClick={props.onClose} label="Cancel" />
+      <Kb.Button
+        type="Wallet"
+        style={styles.button}
+        onClick={props.onAccept}
+        label="Set as default account"
+      />
+    </Kb.ButtonBar>
+  </WalletModal>
 )
 
 const styles = Styles.styleSheetCreate({
@@ -83,17 +77,6 @@ const styles = Styles.styleSheetCreate({
       left: 16,
       position: 'absolute',
       right: 1,
-    },
-  }),
-  container: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      padding: Styles.globalMargins.medium,
-      position: 'relative',
-    },
-    isElectron: {
-      height: 525,
-      width: 360,
     },
   }),
   header: {
