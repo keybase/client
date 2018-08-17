@@ -21,7 +21,9 @@ jobs:
 
     - run:
         working_directory: shared
-        command: yarn run rn-gobuild-android
+        command: |
+          yarn run rn-gobuild-android
+          false
         background: true
 
     # Install JS dependencies.
