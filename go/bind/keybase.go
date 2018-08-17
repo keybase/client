@@ -374,13 +374,14 @@ func waitForInit(maxDur time.Duration) error {
 	if isInited() {
 		return nil
 	}
+	maxCh := time.After(maxDur)
 	for {
 		select {
 		case <-time.After(200 * time.Millisecond):
 			if isInited() {
 				return nil
 			}
-		case <-time.After(maxDur):
+		case <-maxCh:
 			return errors.New("waitForInit timeout")
 		}
 	}
