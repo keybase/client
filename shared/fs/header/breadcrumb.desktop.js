@@ -15,12 +15,7 @@ const Breadcrumb = ({dropdownItems, shownItems}: Props) => (
     {!!dropdownItems && (
       <Kb.Box style={styles.folderBreadcrumb}>
         <BreadcrumbPopup items={dropdownItems} />
-        <Kb.Icon
-          type="iconfont-arrow-right"
-          style={Kb.iconCastPlatformStyles(styles.icon)}
-          fontSize={11}
-          boxStyle={styles.iconBox}
-        />
+        <Kb.Icon type="iconfont-arrow-right" style={Kb.iconCastPlatformStyles(styles.icon)} fontSize={11} />
       </Kb.Box>
     )}
     {shownItems.map((item, idxItem) => (
@@ -78,7 +73,6 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
     paddingLeft: 16,
     paddingRight: 16,
-    height: 24,
   },
   folderBreadcrumb: {
     ...Styles.globalStyles.flexBoxRow,
@@ -94,9 +88,6 @@ const styles = Styles.styleSheetCreate({
   icon: {
     marginLeft: Styles.globalMargins.xtiny,
     marginRight: Styles.globalMargins.xtiny,
-  },
-  iconBox: {
-    height: 24,
   },
   breadcrumbNonLastItemBox: Styles.platformStyles({
     isElectron: {
