@@ -6,7 +6,7 @@
 # -----------------------------------------------------------------------------
 version: 2
 jobs:
-  checkout:
+  checkout2:
     working_directory: ~/go-path/src/github.com/keybase/client
 
     docker:
@@ -91,7 +91,7 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - checkout
+      - checkout2
       - build_js_deps:
         requires:
-          - checkout
+          - checkout2
