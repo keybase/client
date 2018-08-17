@@ -1,6 +1,7 @@
 // @flow
 
 import {globalColors} from '../../styles'
+import {type TeamRoleType} from '../../constants/types/teams'
 
 export const roleDescMap = {
   reader: 'Can write in chats but read only in folders.',
@@ -39,7 +40,7 @@ const rwPermissions = {
   reader: ['Write and read in chats', 'Read in folders'],
 }
 
-export const permissionMap: {[string]: {can: string[], cannot: string[]}} = {
+export const permissionMap: {[TeamRoleType]: {can: string[], cannot: string[]}} = {
   owner: {
     can: [...rwPermissions['owner'], ...permissions],
     cannot: [],
