@@ -1010,6 +1010,50 @@ func (g *PushHandler) SetConvSettings(ctx context.Context, m gregor.OutOfBandMes
 	return nil
 }
 
+func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
+	defer g.Trace(ctx, func() error { return err }, "SubteamRename")()
+	if m.Body() == nil {
+		return errors.New("gregor handler for chat.subteamRename: nil message body")
+	}
+
+	var update chat1.SubteamRenameUpdate
+	reader := bytes.NewReader(m.Body().Bytes())
+	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
+	if err = dec.Decode(&update); err != nil {
+		return err
+	}
+	uid := gregor1.UID(m.UID().Bytes())
+
+	// Order updates based on inbox version of the update from the server
+	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
+	bctx := BackgroundContext(ctx, g.G())
+	go func(ctx context.Context) {
+		defer g.Trace(ctx, func() error { return nil }, "SubteamRename(goroutine)")()
+		<-cb
+		g.Lock()
+		defer g.Unlock()
+		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
+		// Get and localize the conversation to get the new tlfname.
+		inbox, err := g.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
+			ConvIDs: update.ConvIDs,
+		}, nil)
+		if err != nil {
+			g.Debug(ctx, "resolve: unable to read conversation: %s", err.Error())
+			return
+		}
+		if len(inbox.Convs) != len(update.ConvIDs) {
+			g.Debug(ctx, "resolve: unable to find all conversations")
+		}
+
+		for _, conv := range inbox.Convs {
+			g.G().ActivityNotifier.SubteamRename(ctx, uid,
+				conv.GetConvID(), conv.GetTopicType(), g.presentUIItem(ctx, &conv, uid))
+		}
+	}(bctx)
+
+	return nil
+}
+
 func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (bool, error) {
 	if obm.System() == nil {
 		return false, errors.New("nil system in out of band message")
@@ -1036,6 +1080,8 @@ func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessag
 		return true, g.SetConvSettings(ctx, obm)
 	case types.PushKBFSUpgrade:
 		return true, g.UpgradeKBFSToImpteam(ctx, obm)
+	case types.PushSubteamRename:
+		return true, g.SubteamRename(ctx, obm)
 	}
 
 	return false, nil

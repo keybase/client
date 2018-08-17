@@ -935,6 +935,12 @@ type ChatSetConvSettingsArg struct {
 	Conv   *InboxUIItem   `codec:"conv,omitempty" json:"conv,omitempty"`
 }
 
+type ChatSubteamRenameArg struct {
+	Uid    keybase1.UID   `codec:"uid" json:"uid"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	Conv   *InboxUIItem   `codec:"conv,omitempty" json:"conv,omitempty"`
+}
+
 type ChatKBFSToImpteamUpgradeArg struct {
 	Uid    keybase1.UID   `codec:"uid" json:"uid"`
 	ConvID ConversationID `codec:"convID" json:"convID"`
@@ -970,6 +976,7 @@ type NotifyChatInterface interface {
 	ChatSetConvRetention(context.Context, ChatSetConvRetentionArg) error
 	ChatSetTeamRetention(context.Context, ChatSetTeamRetentionArg) error
 	ChatSetConvSettings(context.Context, ChatSetConvSettingsArg) error
+	ChatSubteamRename(context.Context, ChatSubteamRenameArg) error
 	ChatKBFSToImpteamUpgrade(context.Context, ChatKBFSToImpteamUpgradeArg) error
 	ChatAttachmentUploadStart(context.Context, ChatAttachmentUploadStartArg) error
 	ChatAttachmentUploadProgress(context.Context, ChatAttachmentUploadProgressArg) error
@@ -1219,6 +1226,22 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"ChatSubteamRename": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatSubteamRenameArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatSubteamRenameArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatSubteamRenameArg)(nil), args)
+						return
+					}
+					err = i.ChatSubteamRename(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 			"ChatKBFSToImpteamUpgrade": {
 				MakeArg: func() interface{} {
 					ret := make([]ChatKBFSToImpteamUpgradeArg, 1)
@@ -1351,6 +1374,11 @@ func (c NotifyChatClient) ChatSetTeamRetention(ctx context.Context, __arg ChatSe
 
 func (c NotifyChatClient) ChatSetConvSettings(ctx context.Context, __arg ChatSetConvSettingsArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSetConvSettings", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) ChatSubteamRename(ctx context.Context, __arg ChatSubteamRenameArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSubteamRename", []interface{}{__arg})
 	return
 }
 

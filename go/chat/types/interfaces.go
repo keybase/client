@@ -249,6 +249,8 @@ type ActivityNotifier interface {
 		convs []chat1.InboxUIItem)
 	SetConvSettings(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		topicType chat1.TopicType, conv *chat1.InboxUIItem)
+	SubteamRename(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		topicType chat1.TopicType, conv *chat1.InboxUIItem)
 
 	InboxSyncStarted(ctx context.Context, uid gregor1.UID)
 	InboxSynced(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType, syncRes chat1.ChatSyncResult)

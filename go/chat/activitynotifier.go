@@ -123,6 +123,14 @@ func (n *NotifyRouterActivityRouter) SetConvSettings(ctx context.Context, uid gr
 	}
 }
 
+func (n *NotifyRouterActivityRouter) SubteamRename(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
+	defer n.Trace(ctx, func() error { return nil }, "SubteamRename(%s,%v)", convID, topicType)()
+	ctx = BackgroundContext(ctx, n.G())
+	n.notifyCh <- func() {
+		n.G().NotifyRouter.HandleChatSubteamRename(ctx, n.kuid(uid), convID, topicType, conv)
+	}
+}
+
 func (n *NotifyRouterActivityRouter) InboxSyncStarted(ctx context.Context, uid gregor1.UID) {
 	defer n.Trace(ctx, func() error { return nil }, "InboxSyncStarted")()
 	ctx = BackgroundContext(ctx, n.G())

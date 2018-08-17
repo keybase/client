@@ -208,6 +208,10 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
+  void ChatSubteamRename(keybase1.UID uid, ConversationID convID, union { null, InboxUIItem } conv);
+
+  @notify("")
+  @lint("ignore")
   void ChatKBFSToImpteamUpgrade(keybase1.UID uid, ConversationID convID);
 
   @notify("")
