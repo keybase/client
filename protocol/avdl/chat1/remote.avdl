@@ -233,11 +233,6 @@ protocol remote {
 
   void tlfResolve(TLFID tlfID, array<gregor1.UID> resolvedWriters, array<gregor1.UID> resolvedReaders);
 
-  // Pubsub endpoints
-  void publishReadMessage(gregor1.UID uid, ConversationID convID, MessageID msgID);
-  void publishSetConversationStatus(gregor1.UID uid, ConversationID convID, ConversationStatus status);
-  void publishTLFConvChange(TLFID tlfID, TopicType topicType);
-
   // Typing endpoints
   void updateTypingRemote(gregor1.UID uid, gregor1.DeviceID deviceID, ConversationID convID, boolean typing);
 

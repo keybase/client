@@ -925,53 +925,6 @@
       ],
       "response": null
     },
-    "publishReadMessage": {
-      "request": [
-        {
-          "name": "uid",
-          "type": "gregor1.UID"
-        },
-        {
-          "name": "convID",
-          "type": "ConversationID"
-        },
-        {
-          "name": "msgID",
-          "type": "MessageID"
-        }
-      ],
-      "response": null
-    },
-    "publishSetConversationStatus": {
-      "request": [
-        {
-          "name": "uid",
-          "type": "gregor1.UID"
-        },
-        {
-          "name": "convID",
-          "type": "ConversationID"
-        },
-        {
-          "name": "status",
-          "type": "ConversationStatus"
-        }
-      ],
-      "response": null
-    },
-    "publishTLFConvChange": {
-      "request": [
-        {
-          "name": "tlfID",
-          "type": "TLFID"
-        },
-        {
-          "name": "topicType",
-          "type": "TopicType"
-        }
-      ],
-      "response": null
-    },
     "updateTypingRemote": {
       "request": [
         {

@@ -598,21 +598,6 @@ func (f failingRemote) TlfResolve(context.Context, chat1.TlfResolveArg) error {
 	require.Fail(f.t, "TlfResolve call")
 	return nil
 }
-func (f failingRemote) PublishReadMessage(context.Context, chat1.PublishReadMessageArg) error {
-
-	require.Fail(f.t, "PublishReadMessage call")
-	return nil
-}
-func (f failingRemote) PublishSetConversationStatus(context.Context, chat1.PublishSetConversationStatusArg) error {
-
-	require.Fail(f.t, "PublicSetConversationStatus call")
-	return nil
-}
-func (f failingRemote) PublishTLFConvChange(context.Context, chat1.PublishTLFConvChangeArg) error {
-
-	require.Fail(f.t, "PublishTLFConvChangeArg call")
-	return nil
-}
 func (f failingRemote) SyncInbox(ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
 	require.Fail(f.t, "SyncInbox")
 	return chat1.SyncInboxRes{}, nil
