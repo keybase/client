@@ -559,7 +559,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	tracer.Stage("unpack")
-	links, err := l.unpackLinks(ctx, teamUpdate)
+	links, err := teamUpdate.unpackLinks(ctx)
 	if err != nil {
 		return nil, err
 	}

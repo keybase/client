@@ -244,6 +244,7 @@ export const constantsStatusCode = {
   scteamshowcasepermdenied: 2711,
   scteamprovisionalcankey: 2721,
   scteamprovisionalcannotkey: 2722,
+  scteamftloutdated: 2736,
   scephemeralkeybadgeneration: 2900,
   scephemeralkeyunexpectedbox: 2901,
   scephemeralkeymissingbox: 2902,
@@ -1124,10 +1125,10 @@ export type FSStatusCode =
 
 export type FSSyncStatus = $ReadOnly<{totalSyncingBytes: Int64, syncingPaths?: ?Array<String>, endEstimate?: ?Time}>
 export type FSSyncStatusRequest = $ReadOnly<{requestID: Int}>
-export type FastTeamData = $ReadOnly<{name: TeamName, chain: FastTeamSigChainState, perTeamKeySeeds /* perTeamKeySeedsUnverified */: {[key: string]: PerTeamKeySeedItem}, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time}>
-export type FastTeamLoadArg = $ReadOnly<{id: TeamID, public: Boolean, applications?: ?Array<TeamApplication>, keyGenerationsNeeded?: ?Array<PerTeamKeyGeneration>, needLatestGeneration: Boolean}>
+export type FastTeamData = $ReadOnly<{name: TeamName, chain: FastTeamSigChainState, perTeamKeySeeds /* perTeamKeySeedsUnverified */: {[key: string]: PerTeamKeySeed}, latestKeyGeneration: PerTeamKeyGeneration, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time}>
+export type FastTeamLoadArg = $ReadOnly<{ID: TeamID, public: Boolean, applications?: ?Array<TeamApplication>, keyGenerationsNeeded?: ?Array<PerTeamKeyGeneration>, needLatestKey: Boolean}>
 export type FastTeamLoadRes = $ReadOnly<{name: TeamName, applicationKeys?: ?Array<TeamApplicationKey>}>
-export type FastTeamSigChainState = $ReadOnly<{id: TeamID, public: Boolean, rootAncestor: TeamName, nameDepth: Int, last: LinkPair, parentID?: ?TeamID, perTeamKeys: {[key: string]: PerTeamKey}, downPointers: {[key: string]: DownPointer}, lastUpPointer: LinkPair, isDeleted: Boolean, perTeamKeyCTime: UnixTime, linkIDs: {[key: string]: LinkID}}>
+export type FastTeamSigChainState = $ReadOnly<{ID: TeamID, public: Boolean, rootAncestor: TeamName, nameDepth: Int, last?: ?LinkTriple, perTeamKeys: {[key: string]: PerTeamKey}, perTeamKeySeedsVerified: {[key: string]: PerTeamKeySeed}, downPointers: {[key: string]: DownPointer}, lastUpPointer?: ?UpPointer, perTeamKeyCTime: UnixTime, linkIDs: {[key: string]: LinkID}}>
 export type FavoriteFavoriteAddRpcParam = $ReadOnly<{folder: Folder}>
 export type FavoriteFavoriteIgnoreRpcParam = $ReadOnly<{folder: Folder}>
 export type FavoriteGetFavoritesRpcParam = void
@@ -1384,8 +1385,7 @@ export type KeybaseTime = $ReadOnly<{unix: Time, chain: Seqno}>
 export type LeaseID = String
 export type LinkCheckResult = $ReadOnly<{proofId: Int, proofResult: ProofResult, snoozedResult: ProofResult, torWarning: Boolean, tmpTrackExpireTime: Time, cached?: ?CheckResult, diff?: ?TrackDiff, remoteDiff?: ?TrackDiff, hint?: ?SigHint, breaksTracking: Boolean}>
 export type LinkID = String
-export type LinkPair = $ReadOnly<{seqno: Seqno, linkID: LinkID}>
-export type LinkTriple = $ReadOnly<{id: TeamID, pair: LinkPair}>
+export type LinkTriple = $ReadOnly<{seqno: Seqno, seqType: SeqType, linkID: LinkID}>
 export type ListArgs = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter}>
 export type ListFilter =
   | 0 // NO_FILTER_0
@@ -2046,6 +2046,7 @@ export type StatusCode =
   | 2711 // SCTeamShowcasePermDenied_2711
   | 2721 // SCTeamProvisionalCanKey_2721
   | 2722 // SCTeamProvisionalCannotKey_2722
+  | 2736 // SCTeamFTLOutdated_2736
   | 2900 // SCEphemeralKeyBadGeneration_2900
   | 2901 // SCEphemeralKeyUnexpectedBox_2901
   | 2902 // SCEphemeralKeyMissingBox_2902
@@ -2327,6 +2328,7 @@ export type UiPromptYesNoRpcParam = $ReadOnly<{text: Text, promptDefault: Prompt
 export type UnboxAnyRes = $ReadOnly<{kid: KID, plaintext: Bytes32, index: Int}>
 export type UninstallResult = $ReadOnly<{componentResults?: ?Array<ComponentResult>, status: Status}>
 export type UnixTime = Long
+export type UpPointer = $ReadOnly<{ourSeqno: Seqno, parentID: TeamID, parentSeqno: Seqno, deletion: Boolean}>
 export type User = $ReadOnly<{uid: UID, username: String}>
 export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
 export type UserEk = $ReadOnly<{seed: Bytes32, metadata: UserEkMetadata}>
