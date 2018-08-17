@@ -29,20 +29,12 @@ class RemoveAccountReally extends React.Component<Props, State> {
 
   render() {
     return (
-      <WalletModal onClose={this.props.onClose}>
-        <Kb.Icon
-          type={isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
-          style={Kb.iconCastPlatformStyles(styles.icon)}
-        />
-        <Kb.Text style={styles.warning} type="Header">
-          One last thing! Make sure you keep a copy of your secret key before removing{' '}
-          <Kb.Text type="Header" style={styles.italic}>
-            {this.props.name}
-          </Kb.Text>.
-        </Kb.Text>
-        <Kb.Text type="BodySmall">Paste it in a 100% safe place.</Kb.Text>
-        <Kb.ButtonBar style={styles.buttonbar}>
+      <WalletModal
+        onClose={this.props.onClose}
+        containerStyle={styles.container}
+        bottomButtons={[
           <Kb.Button
+            key={0}
             label="Copy secret key"
             onClick={this.copy}
             type="Wallet"
@@ -57,15 +49,30 @@ class RemoveAccountReally extends React.Component<Props, State> {
                 Copied to clipboard
               </Kb.Text>
             </Kb.Toast>
-          </Kb.Button>
-          <Kb.Button label="Cancel" onClick={this.props.onClose} type="Secondary" />
-        </Kb.ButtonBar>
+          </Kb.Button>,
+          <Kb.Button key={1} label="Cancel" onClick={this.props.onClose} type="Secondary" />,
+        ]}
+      >
+        <Kb.Icon
+          type={isMobile ? 'icon-wallet-secret-key-64' : 'icon-wallet-secret-key-48'}
+          style={Kb.iconCastPlatformStyles(styles.icon)}
+        />
+        <Kb.Text style={styles.warning} type="Header">
+          One last thing! Make sure you keep a copy of your secret key before removing{' '}
+          <Kb.Text type="Header" style={styles.italic}>
+            {this.props.name}
+          </Kb.Text>.
+        </Kb.Text>
+        <Kb.Text type="BodySmall">Paste it in a 100% safe place.</Kb.Text>
       </WalletModal>
     )
   }
 }
 
 const styles = styleSheetCreate({
+  container: {
+    backgroundColor: globalColors.yellow,
+  },
   icon: {
     marginBottom: globalMargins.small,
   },

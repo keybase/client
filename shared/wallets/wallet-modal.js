@@ -3,13 +3,14 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 
-type Props = {|
+type WalletModalProps = {|
   children: React.Node,
   onClose: () => void,
   containerStyle?: Styles.StylesCrossPlatform,
+  bottomButtons?: Array<React.Node>, // Buttons to be placed in the bottom Button Bar
 |}
 
-const WalletModal = (props: Props) => (
+const WalletModal = (props: WalletModalProps) => (
   <Kb.MaybePopup onClose={props.onClose}>
     <Kb.Box2
       direction="vertical"
@@ -17,6 +18,12 @@ const WalletModal = (props: Props) => (
       style={Styles.collapseStyles([styles.container, props.containerStyle])}
     >
       {props.children}
+      {props.bottomButtons &&
+        props.bottomButtons.length > 0 && (
+          <Kb.Box2 direction="vertical" style={styles.buttonBarContainer} fullWidth={true}>
+            <Kb.ButtonBar>{props.bottomButtons}</Kb.ButtonBar>
+          </Kb.Box2>
+        )}
     </Kb.Box2>
   </Kb.MaybePopup>
 )
@@ -40,6 +47,10 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.medium,
     },
   }),
+  buttonBarContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
 })
 
 export default WalletModal

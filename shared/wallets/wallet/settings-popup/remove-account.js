@@ -13,9 +13,15 @@ export type Props = {
 }
 
 const RemoveAccountDialog = (props: Props) => (
-  <WalletModal onClose={props.onClose}>
+  <WalletModal
+    onClose={props.onClose}
+    bottomButtons={[
+      <Kb.Button key={0} label="Cancel" onClick={props.onClose} type="Secondary" style={styles.button} />,
+      <Kb.Button key={1} label="Yes, remove" onClick={props.onDelete} type="Danger" style={styles.button} />,
+    ]}
+  >
     <Kb.Icon
-      type={Styles.isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
+      type={Styles.isMobile ? 'icon-wallet-remove-64' : 'icon-wallet-remove-48'}
       style={Kb.iconCastPlatformStyles(styles.icon)}
     />
     <Kb.Text style={styles.warning} type="Header">
@@ -28,10 +34,6 @@ const RemoveAccountDialog = (props: Props) => (
     <Kb.Text type="BodySmall">Balance:</Kb.Text>
     <Kb.Text type="BodySmallExtrabold">{props.currency}</Kb.Text>
     <Kb.Text type="BodySmallExtrabold">{props.keys}</Kb.Text>
-    <Kb.ButtonBar style={styles.buttonbar}>
-      <Kb.Button label="Cancel" onClick={props.onClose} type="Secondary" style={styles.button} />
-      <Kb.Button label="Yes, remove" onClick={props.onDelete} type="Danger" style={styles.button} />
-    </Kb.ButtonBar>
   </WalletModal>
 )
 
