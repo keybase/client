@@ -8,7 +8,7 @@ import * as RouteTree from '../../../../actions/route-tree'
 import type {StylesCrossPlatform} from '../../../../styles'
 import ReactButton, {NewReactionButton, type Props, type NewReactionButtonProps} from '.'
 
-const Wrapper = (props: OwnProps) =>
+const Wrapper = (props) =>
   props.emoji ? (
     <ReactButton
       active={props.active}
@@ -28,7 +28,7 @@ const Wrapper = (props: OwnProps) =>
       onLongPress={props.onLongPress}
       onOpenEmojiPicker={props.onOpenEmojiPicker}
       onShowPicker={props.onShowPicker}
-      showBorder={props.showBorder}
+      showBorder={props.showBorder || false}
       style={props.style}
     />
   )
