@@ -370,7 +370,7 @@ func SetAppStateBackgroundActive() {
 	kbCtx.AppState.Update(keybase1.AppState_BACKGROUNDACTIVE)
 }
 
-func waitForInit() error {
+func waitForInit(maxDur time.Duration) error {
 	if isInited() {
 		return nil
 	}
@@ -380,7 +380,7 @@ func waitForInit() error {
 			if isInited() {
 				return nil
 			}
-		case <-time.After(5 * time.Second):
+		case <-time.After(maxDur):
 			return errors.New("waitForInit timeout")
 		}
 	}
@@ -389,7 +389,7 @@ func waitForInit() error {
 func BackgroundSync() {
 	// On Android there is a race where this function can be called before Init when starting up in the
 	// background. Let's wait a little bit here for Init to get run, and bail out if it never does.
-	if err := waitForInit(); err != nil {
+	if err := waitForInit(5 * time.Second); err != nil {
 		return
 	}
 	defer kbCtx.Trace("BackgroundSync", func() error { return nil })()
