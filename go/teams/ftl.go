@@ -2,12 +2,13 @@ package teams
 
 import (
 	"fmt"
-	lru "github.com/hashicorp/golang-lru"
-	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"strings"
 	"sync"
 	"time"
+
+	lru "github.com/hashicorp/golang-lru"
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 //
@@ -408,7 +409,7 @@ type shoppingList struct {
 
 // groceries are what we get back from the server.
 type groceries struct {
-	newLinks     []*chainLinkUnpacked
+	newLinks     []*ChainLinkUnpacked
 	rkms         []keybase1.ReaderKeyMask
 	latestKeyGen keybase1.PerTeamKeyGeneration
 	seeds        []keybase1.PerTeamKeySeed
@@ -552,7 +553,7 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 	var lastSeqno keybase1.Seqno
 	var lastLinkID keybase1.LinkID
 	var teamUpdate rawTeam
-	var links []*chainLinkUnpacked
+	var links []*ChainLinkUnpacked
 	var lastSecretGen keybase1.PerTeamKeyGeneration
 	var seeds []keybase1.PerTeamKeySeed
 
@@ -604,7 +605,7 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 // pattern. The rules are: the most recent "up pointer" should be unstubbed. The first link should be
 // unstubbed. The last key rotation should be unstubbed (though we can't really check this now).
 // And any links we ask for should be unstubbed too.
-func (f *FastTeamChainLoader) checkStubs(m libkb.MetaContext, shoppingList shoppingList, newLinks []*chainLinkUnpacked, canReadTeam bool) (err error) {
+func (f *FastTeamChainLoader) checkStubs(m libkb.MetaContext, shoppingList shoppingList, newLinks []*ChainLinkUnpacked, canReadTeam bool) (err error) {
 
 	if len(newLinks) == 0 {
 		return nil
@@ -614,7 +615,7 @@ func (f *FastTeamChainLoader) checkStubs(m libkb.MetaContext, shoppingList shopp
 		return (t == libkb.SigchainV2TypeTeamRenameUpPointer) || (t == libkb.SigchainV2TypeTeamDeleteUpPointer)
 	}
 
-	isKeyRotation := func(link *chainLinkUnpacked) bool {
+	isKeyRotation := func(link *ChainLinkUnpacked) bool {
 		return (link.LinkType() == libkb.SigchainV2TypeTeamRotateKey) || (!link.isStubbed() && link.inner != nil && link.inner.Body.Key != nil)
 	}
 
@@ -661,7 +662,7 @@ func (f *FastTeamChainLoader) checkStubs(m libkb.MetaContext, shoppingList shopp
 // checkPrevs checks the previous pointers on the new links that came down from the server. It
 // only checks prevs for links that are newer than the last link gotten in this chain.
 // We assume the rest are expanding hashes for links we've previously downloaded.
-func (f *FastTeamChainLoader) checkPrevs(m libkb.MetaContext, last *keybase1.LinkTriple, newLinks []*chainLinkUnpacked) (err error) {
+func (f *FastTeamChainLoader) checkPrevs(m libkb.MetaContext, last *keybase1.LinkTriple, newLinks []*ChainLinkUnpacked) (err error) {
 	if len(newLinks) == 0 {
 		return nil
 	}
@@ -671,7 +672,7 @@ func (f *FastTeamChainLoader) checkPrevs(m libkb.MetaContext, last *keybase1.Lin
 		prev = *last
 	}
 
-	cmpHash := func(prev keybase1.LinkTriple, link *chainLinkUnpacked) (err error) {
+	cmpHash := func(prev keybase1.LinkTriple, link *ChainLinkUnpacked) (err error) {
 
 		// not ideal to have to export here, but it simplifies the code.
 		prevex := link.Prev().Export()
@@ -690,7 +691,7 @@ func (f *FastTeamChainLoader) checkPrevs(m libkb.MetaContext, last *keybase1.Lin
 		return nil
 	}
 
-	cmpSeqnos := func(prev keybase1.LinkTriple, link *chainLinkUnpacked) (err error) {
+	cmpSeqnos := func(prev keybase1.LinkTriple, link *ChainLinkUnpacked) (err error) {
 		if prev.Seqno+1 != link.Seqno() {
 			m.CDebugf("Bad sequence violation: %d+1 != %d", prev.Seqno, link.Seqno())
 			return NewInvalidLink(link, "seqno violation")
@@ -702,7 +703,7 @@ func (f *FastTeamChainLoader) checkPrevs(m libkb.MetaContext, last *keybase1.Lin
 		return nil
 	}
 
-	cmp := func(prev keybase1.LinkTriple, link *chainLinkUnpacked) (err error) {
+	cmp := func(prev keybase1.LinkTriple, link *ChainLinkUnpacked) (err error) {
 		err = cmpHash(prev, link)
 		if err != nil {
 			return err
@@ -729,14 +730,14 @@ func (f *FastTeamChainLoader) checkPrevs(m libkb.MetaContext, last *keybase1.Lin
 // audit runs probabilistic merkle tree audit on the new links, to make sure that the server isn't
 // running odd-even-style attacks against members in a group.
 // TODO, see CORE-8466
-func (f *FastTeamChainLoader) audit(m libkb.MetaContext, id keybase1.TeamID, isPublic bool, newLinks []*chainLinkUnpacked) (err error) {
+func (f *FastTeamChainLoader) audit(m libkb.MetaContext, id keybase1.TeamID, isPublic bool, newLinks []*ChainLinkUnpacked) (err error) {
 	return nil
 }
 
 // readDownPointer reads a down pointer out of a given link, if it's unstubbed. Down pointers
 // are (1) new_subteams; (2) subteam rename down pointers; and (3) subteam delete down pointers.
 // Will return (nil, non-nil) if there is an error.
-func readDownPointer(m libkb.MetaContext, link *chainLinkUnpacked) (*keybase1.DownPointer, error) {
+func readDownPointer(m libkb.MetaContext, link *ChainLinkUnpacked) (*keybase1.DownPointer, error) {
 	if link.inner == nil || link.inner.Body.Team == nil || link.inner.Body.Team.Subteam == nil {
 		return nil, nil
 	}
@@ -767,7 +768,7 @@ func readDownPointer(m libkb.MetaContext, link *chainLinkUnpacked) (*keybase1.Do
 // readUpPointer reads an up pointer out the given link, if it's unstubbed. Up pointers are
 // (1) subteam heads; (2) subteam rename up pointers; and (3) subteam delete up pointers.
 // Will return (nil, non-nil) if we hit any error condition.
-func readUpPointer(m libkb.MetaContext, link *chainLinkUnpacked) (*keybase1.UpPointer, error) {
+func readUpPointer(m libkb.MetaContext, link *ChainLinkUnpacked) (*keybase1.UpPointer, error) {
 	if link.inner == nil || link.inner.Body.Team == nil || link.inner.Body.Team.Parent == nil {
 		return nil, nil
 	}
@@ -794,7 +795,7 @@ func readUpPointer(m libkb.MetaContext, link *chainLinkUnpacked) (*keybase1.UpPo
 // putName takes the name out of the team (or subteam) head and stores it to state.
 // In the case of a subteam, this name has not been verified, and we should
 // verify it ourselves against the merkle tree.
-func (f *FastTeamChainLoader) putName(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, newLinks []*chainLinkUnpacked) (err error) {
+func (f *FastTeamChainLoader) putName(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, newLinks []*ChainLinkUnpacked) (err error) {
 	if len(newLinks) == 0 || newLinks[0].Seqno() != keybase1.Seqno(1) {
 		return nil
 	}
@@ -818,7 +819,7 @@ func (f *FastTeamChainLoader) putName(m libkb.MetaContext, arg fastLoadArg, stat
 }
 
 // readPerTeamKey reads a PerTeamKey section, if it exists, out of the given unpacked chainlink.
-func readPerTeamKey(m libkb.MetaContext, link *chainLinkUnpacked) (ret *keybase1.PerTeamKey, err error) {
+func readPerTeamKey(m libkb.MetaContext, link *ChainLinkUnpacked) (ret *keybase1.PerTeamKey, err error) {
 
 	if link.inner == nil || link.inner.Body.Team == nil || link.inner.Body.Team.PerTeamKey == nil {
 		return nil, nil
@@ -836,7 +837,7 @@ func readPerTeamKey(m libkb.MetaContext, link *chainLinkUnpacked) (ret *keybase1
 // It also fills in unstubbed fields for those links that have come back with payloads that
 // were previously stubbed. There are several error cases that can come up, when reading down
 // or up pointers from the reply.
-func (f *FastTeamChainLoader) putLinks(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, newLinks []*chainLinkUnpacked) (err error) {
+func (f *FastTeamChainLoader) putLinks(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, newLinks []*ChainLinkUnpacked) (err error) {
 	if len(newLinks) == 0 {
 		return nil
 	}

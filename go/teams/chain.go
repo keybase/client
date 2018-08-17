@@ -568,7 +568,7 @@ func (t *TeamSigChainState) FindActiveKeybaseInvite(uid keybase1.UID) (keybase1.
 // If `state` is nil this is the first link of the chain.
 // `signer` may be nil iff link is stubbed.
 func AppendChainLink(ctx context.Context, g *libkb.GlobalContext, reader keybase1.UserVersion, state *TeamSigChainState,
-	link *chainLinkUnpacked, signer *signerX) (res TeamSigChainState, err error) {
+	link *ChainLinkUnpacked, signer *signerX) (res TeamSigChainState, err error) {
 	t := &teamSigchainPlayer{
 		Contextified: libkb.NewContextified(g),
 		reader:       reader,
@@ -587,7 +587,7 @@ func AppendChainLink(ctx context.Context, g *libkb.GlobalContext, reader keybase
 // InflateLink adds the full inner link for a link that has already been added in stubbed form.
 // `state` is moved into this function. There must exist no live references into it from now on.
 func InflateLink(ctx context.Context, g *libkb.GlobalContext, reader keybase1.UserVersion, state TeamSigChainState,
-	link *chainLinkUnpacked, signer signerX) (res TeamSigChainState, err error) {
+	link *ChainLinkUnpacked, signer signerX) (res TeamSigChainState, err error) {
 	if link.isStubbed() {
 		return TeamSigChainState{}, NewStubbedError(link)
 	}
@@ -637,7 +637,7 @@ type teamSigchainPlayer struct {
 // `signer` may be nil iff link is stubbed.
 // If `prevState` is nil this is the first chain link.
 func (t *teamSigchainPlayer) appendChainLinkHelper(
-	ctx context.Context, prevState *TeamSigChainState, link *chainLinkUnpacked, signer *signerX) (
+	ctx context.Context, prevState *TeamSigChainState, link *ChainLinkUnpacked, signer *signerX) (
 	res TeamSigChainState, err error) {
 
 	err = t.checkOuterLink(ctx, prevState, link)
@@ -674,7 +674,7 @@ func (t *teamSigchainPlayer) appendChainLinkHelper(
 	return *newState, nil
 }
 
-func (t *teamSigchainPlayer) checkOuterLink(ctx context.Context, prevState *TeamSigChainState, link *chainLinkUnpacked) (err error) {
+func (t *teamSigchainPlayer) checkOuterLink(ctx context.Context, prevState *TeamSigChainState, link *ChainLinkUnpacked) (err error) {
 	if prevState == nil {
 		if link.Seqno() != 1 {
 			return NewUnexpectedSeqnoError(keybase1.Seqno(1), link.Seqno())
@@ -710,7 +710,7 @@ type checkInnerLinkResult struct {
 // `isInflate` is false if this is a new link and true if it is a link which has already been added as stubbed.
 // Does not modify `prevState` but returns a new state.
 func (t *teamSigchainPlayer) addInnerLink(
-	prevState *TeamSigChainState, link *chainLinkUnpacked, signer signerX,
+	prevState *TeamSigChainState, link *ChainLinkUnpacked, signer signerX,
 	isInflate bool) (
 	res checkInnerLinkResult, err error) {
 

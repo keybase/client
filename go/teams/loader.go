@@ -778,7 +778,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 // userPreload warms the upak cache with users who will probably need to be loaded to verify the chain.
 // Uses teamEnv and may be disabled.
-func (l *TeamLoader) userPreload(ctx context.Context, links []*chainLinkUnpacked, fullVerifyCutoff keybase1.Seqno) (cancel func()) {
+func (l *TeamLoader) userPreload(ctx context.Context, links []*ChainLinkUnpacked, fullVerifyCutoff keybase1.Seqno) (cancel func()) {
 	ctx, cancel = context.WithCancel(ctx)
 	if teamEnv.UserPreloadEnable {
 		uidSet := make(map[keybase1.UID]struct{})
