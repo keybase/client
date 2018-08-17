@@ -27,7 +27,7 @@ window.spellCheckHandler = new SpellCheckHandler()
 window.spellCheckHandler.attachToInput()
 
 // Start off as "US English, America"
-window.spellCheckHandler.switchLanguage('en-US')
+window.spellCheckHandler.switchLanguage(navigator.language || 'en-US')
 
 // Create the builder with the configured spellhandler
 let contextMenuBuilder = new ContextMenuBuilder(window.spellCheckHandler)
