@@ -11,24 +11,27 @@ import (
 	context "golang.org/x/net/context"
 )
 
-var ActionNewConversation = "newConversation"
-var ActionNewMessage = "newMessage"
-var ActionReadMessage = "readMessage"
-var ActionSetStatus = "setStatus"
-var ActionSetAppNotificationSettings = "setAppNotificationSettings"
-var ActionTeamType = "teamType"
-var ActionExpunge = "expunge"
+const (
+	ActionNewConversation            = "newConversation"
+	ActionNewMessage                 = "newMessage"
+	ActionReadMessage                = "readMessage"
+	ActionSetStatus                  = "setStatus"
+	ActionSetAppNotificationSettings = "setAppNotificationSettings"
+	ActionTeamType                   = "teamType"
+	ActionExpunge                    = "expunge"
 
-var PushActivity = "chat.activity"
-var PushTyping = "chat.typing"
-var PushMembershipUpdate = "chat.membershipUpdate"
-var PushTLFFinalize = "chat.tlffinalize"
-var PushTLFResolve = "chat.tlfresolve"
-var PushTeamChannels = "chat.teamchannels"
-var PushKBFSUpgrade = "chat.kbfsupgrade"
-var PushConvRetention = "chat.convretention"
-var PushTeamRetention = "chat.teamretention"
-var PushConvSettings = "chat.convsettings"
+	PushActivity         = "chat.activity"
+	PushTyping           = "chat.typing"
+	PushMembershipUpdate = "chat.membershipUpdate"
+	PushTLFFinalize      = "chat.tlffinalize"
+	PushTLFResolve       = "chat.tlfresolve"
+	PushTeamChannels     = "chat.teamchannels"
+	PushKBFSUpgrade      = "chat.kbfsupgrade"
+	PushConvRetention    = "chat.convretention"
+	PushTeamRetention    = "chat.teamretention"
+	PushConvSettings     = "chat.convsettings"
+	PushSubteamRename    = "chat.subteamrename"
+)
 
 func NewAllCryptKeys() AllCryptKeys {
 	return make(AllCryptKeys)
