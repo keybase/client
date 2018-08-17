@@ -11170,7 +11170,7 @@ react-native-tab-view@^0.0.67:
 
 "react-native-wkwebview-reborn@git://github.com/keybase/react-native-wkwebview#keybase-changes-off-121":
   version "1.21.0"
-  resolved "git://github.com/keybase/react-native-wkwebview#keybase-changes-off-121"
+  resolved "git://github.com/keybase/react-native-wkwebview#8812e8cfec2a6959d1df0869b4112769f493c62e"
   dependencies:
     fbjs "^0.8.3"
 
