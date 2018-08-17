@@ -49,7 +49,7 @@ export const permissionMap = {
   },
   writer: {
     can: [...rwPermissions['writer'], permissions[0]],
-    cannot: permissions.slice(1, 5),
+    cannot: [permissions[1], permissions[2], permissions[3], permissions[4]],
   },
   reader: {
     can: rwPermissions['reader'],
