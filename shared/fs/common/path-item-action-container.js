@@ -46,7 +46,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => ({
 
   ...(!isIOS
     ? {
-        _download: () => dispatch(FsGen.createDownload({path, intent: 'none'})),
+        _download: () => dispatch(Constants.createDownload({path, intent: 'none'})),
       }
     : {}),
 })

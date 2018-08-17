@@ -1,14 +1,15 @@
 // @flow
 import * as Saga from '../../util/saga'
 import * as FsGen from '../fs-gen'
+import * as Constants from '../../constants/fs'
 import {showImagePicker} from 'react-native-image-picker'
 import {isIOS} from '../../constants/platform'
 
 export const shareNative = ({payload: {path, routePath}}: FsGen.ShareNativePayload) =>
-  Saga.put(FsGen.createDownload({intent: 'share', path}))
+  Saga.put(Constants.createDownload({intent: 'share', path}))
 
 export const saveMedia = ({payload: {path, routePath}}: FsGen.SaveMediaPayload) =>
-  Saga.put(FsGen.createDownload({intent: 'camera-roll', path}))
+  Saga.put(Constants.createDownload({intent: 'camera-roll', path}))
 
 export const pickAndUpload = ({payload: {type}}: FsGen.PickAndUploadPayload) =>
   new Promise((resolve, reject) =>
