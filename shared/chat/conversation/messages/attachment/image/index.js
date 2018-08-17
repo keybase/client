@@ -48,17 +48,13 @@ type State = {
 class ImageAttachment extends React.PureComponent<Props, State> {
   imageRef: any
 
-  constructor(props: Props) {
-    super(props)
-    this.imageRef = React.createRef()
-  }
   state = {loaded: false, playingVideo: false, loadingVideo: 'notloaded'}
   _setLoaded = () => this.setState({loaded: true})
   _setVideoLoaded = () => this.setState({loadingVideo: 'loaded'})
 
   _onClick = () => {
-    if (this.props.inlineVideoPlayable && this.imageRef && this.imageRef.current) {
-      this.imageRef.current.onVideoClick()
+    if (this.props.inlineVideoPlayable && this.imageRef) {
+      this.imageRef.onVideoClick()
       this.setState(p => ({
         playingVideo: !p.playingVideo,
         loadingVideo: p.loadingVideo === 'notloaded' ? 'loading' : p.loadingVideo,
@@ -68,13 +64,13 @@ class ImageAttachment extends React.PureComponent<Props, State> {
     }
   }
   _onMouseEnter = () => {
-    if (this.props.inlineVideoPlayable && this.imageRef && this.imageRef.current) {
-      this.imageRef.current.onVideoMouseEnter()
+    if (this.props.inlineVideoPlayable && this.imageRef) {
+      this.imageRef.onVideoMouseEnter()
     }
   }
   _onMouseLeave = () => {
-    if (this.props.inlineVideoPlayable && this.imageRef && this.imageRef.current) {
-      this.imageRef.current.onVideoMouseLeave()
+    if (this.props.inlineVideoPlayable && this.imageRef) {
+      this.imageRef.onVideoMouseLeave()
     }
   }
 
@@ -102,7 +98,9 @@ class ImageAttachment extends React.PureComponent<Props, State> {
         >
           {!!this.props.path && (
             <ImageRender
-              ref={this.imageRef}
+              ref={ref => {
+                this.imageRef = ref
+              }}
               src={this.props.path}
               videoSrc={this.props.fullPath}
               onLoad={this._setLoaded}
@@ -224,13 +222,22 @@ const styles = styleSheetCreate({
     right: '50%',
     top: '50%',
   },
-  durationContainer: {
-    bottom: '5%',
-    position: 'absolute',
-    right: '3%',
-    backgroundColor: globalColors.black_75,
-    alignSelf: 'flex-start',
-  },
+  durationContainer: platformStyles({
+    isElectron: {
+      bottom: '5%',
+      position: 'absolute',
+      right: '3%',
+      backgroundColor: globalColors.black_75,
+      alignSelf: 'flex-start',
+    },
+    isMobile: {
+      bottom: '7%',
+      position: 'absolute',
+      right: '3%',
+      backgroundColor: globalColors.black_75,
+      alignSelf: 'flex-start',
+    },
+  }),
   durationText: {
     color: globalColors.white,
     paddingLeft: 5,
