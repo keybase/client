@@ -396,3 +396,28 @@ func (b BadNameError) Error() string {
 func NewBadNameError(s string) BadNameError {
 	return BadNameError{Msg: s}
 }
+
+type FastLoadError struct {
+	Msg string
+}
+
+func (f FastLoadError) Error() string {
+	return fmt.Sprintf("fast load error: %s", f.Msg)
+}
+
+func NewFastLoadError(format string, args ...interface{}) error {
+	return FastLoadError{Msg: fmt.Sprintf(format, args...)}
+}
+
+type BadPublicError struct {
+	id       keybase1.TeamID
+	isPublic bool
+}
+
+func NewBadPublicError(id keybase1.TeamID, isPublic bool) error {
+	return BadPublicError{id, isPublic}
+}
+
+func (e BadPublicError) Error() string {
+	return fmt.Sprintf("Public bit for team %s is wrong (%v)", e.id, e.isPublic)
+}
