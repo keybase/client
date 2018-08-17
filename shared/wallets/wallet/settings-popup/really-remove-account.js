@@ -34,13 +34,20 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
         containerStyle={styles.container}
         bottomButtons={[
           <Kb.Button
+            fullWidth={Styles.isMobile}
             key={0}
             label="Copy secret key"
             onClick={this.copy}
             type="Wallet"
             ref={r => (this._attachmentRef = r)}
           />,
-          <Kb.Button key={1} label="Cancel" onClick={this.props.onClose} type="Secondary" />,
+          <Kb.Button
+            fullWidth={Styles.isMobile}
+            key={1}
+            label="Cancel"
+            onClick={this.props.onClose}
+            type="Secondary"
+          />,
         ]}
       >
         <Kb.Icon
@@ -71,10 +78,17 @@ const styles = Styles.styleSheetCreate({
   container: {
     backgroundColor: Styles.globalColors.yellow,
   },
-  icon: {
-    marginTop: Styles.globalMargins.medium,
-    marginBottom: Styles.globalMargins.large,
-  },
+  icon: Styles.platformStyles({
+    common: {
+      marginBottom: Styles.globalMargins.large,
+    },
+    isElectron: {
+      marginTop: Styles.globalMargins.medium,
+    },
+    isMobile: {
+      marginTop: Styles.globalMargins.xlarge,
+    },
+  }),
   headerText: {
     paddingBottom: Styles.globalMargins.small,
   },
