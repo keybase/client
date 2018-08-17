@@ -28,9 +28,8 @@ const paths = {
   iconConstants: path.resolve(__dirname, '../../common-adapters/icon.constants.js'),
 }
 
-const fontHeight = 2048
+const fontHeight = 1024
 const descentFraction = 16 // Source: https://icomoon.io/#docs/font-metrics
-const ascent = fontHeight
 const descent = fontHeight / descentFraction
 const baseCharCode = 0xe900
 
@@ -202,12 +201,12 @@ function updateConstants() {
  * OS/2 Table
  * Documentation: https://docs.microsoft.com/en-us/typography/opentype/spec/os2ver1
  * ---
- * WinAscent: ${fontHeight}
- * WinDescent: ${descent}
- * TypoAscent: ${fontHeight}
- * TypoDescent: 0
- * HHeadAscent: ${fontHeight}
- * HHeadDescent: -${descent}
+ * WinAscent: ${fontHeight - descent + 2}
+ * WinDescent: ${descent * 2 + 20}
+ * TypoAscent: ${fontHeight - descent}
+ * TypoDescent: -${descent}
+ * HHeadAscent: ${fontHeight - descent + 2}
+ * HHeadDescent: -${descent * 2 + 20}
  *
  * ---
  * GASP Table
@@ -233,13 +232,15 @@ const setFontMetrics = () => {
   const kbTtf = path.resolve(paths.fonts, 'kb.ttf')
   let script = `
   Open('${kbTtf}');
-  SetOS2Value('WinAscent', ${ascent});
-  SetOS2Value('WinDescent', ${descent});
-  SetOS2Value('TypoAscent', ${ascent});
-  SetOS2Value('TypoDescent', ${0});
-  SetOS2Value('HHeadAscent', ${ascent});
-  SetOS2Value('HHeadDescent', ${-descent});
+  SetOS2Value('WinAscent', ${fontHeight - descent + 2});
+  SetOS2Value('WinDescent', ${descent * 2 + 20});
+  SetOS2Value('TypoAscent', ${fontHeight - descent});
+  SetOS2Value('TypoLineGap', ${0});
+  SetOS2Value('TypoDescent', ${-descent});
+  SetOS2Value('HHeadAscent', ${fontHeight - descent + 2});
+  SetOS2Value('HHeadDescent', ${-(descent * 2 + 20)});
   SetGasp(65535, 3);
+  ScaleToEm(${fontHeight - descent}, ${descent});
   Generate('${kbTtf}');
   `
   script = script
