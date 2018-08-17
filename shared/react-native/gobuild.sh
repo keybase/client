@@ -114,6 +114,7 @@ gomobileinit ()
 {
   echo "Build gomobile..."
   go install golang.org/x/mobile/cmd/{gomobile,gobind}
+  # iOS doesn't need gomobile init.
   if [ "$arg" = "android" ]; then
     echo "Doing gomobile init"
     gomobile init -ndk $ANDROID_HOME/ndk-bundle
