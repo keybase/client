@@ -20,6 +20,12 @@ jobs:
 
     - checkout
 
+    # Only run coverage if there were changes to the shared folder
+    - run: mkdir -p /tmp/flow-coverage
+    - run:
+        working_directory: shared
+        command: if [ $(git rev-parse HEAD) == $(git log -1 --format=format:%H --full-diff .) ]; then yarn flow-coverage-report -t json -o /tmp/flow-coverage && bash <(curl -s https://codecov.io/bash) -f /tmp/flow-coverage/flow-coverage.json; fi
+
     # Install JS dependencies.
     - run:
         working_directory: shared
@@ -53,9 +59,3 @@ jobs:
         command: ./gradlew --no-daemon --stacktrace assembleReleaseUnsigned -x bundleReleaseUnsignedJsAndAssets
 
     # TODO: Run device tests (see old versions of this file).
-
-    # Only run coverage if there were changes to the shared folder
-    - run: mkdir -p /tmp/flow-coverage
-    - run:
-        working_directory: shared
-        command: if [ $(git rev-parse HEAD) == $(git log -1 --format=format:%H --full-diff .) ]; then yarn flow-coverage-report -t json -o /tmp/flow-coverage && bash <(curl -s https://codecov.io/bash) -f /tmp/flow-coverage/flow-coverage.json; fi
