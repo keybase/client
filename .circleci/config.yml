@@ -20,16 +20,16 @@ jobs:
 
     - checkout
 
-    # Only run coverage if there were changes to the shared folder
+    # Install JS dependencies.
+    - run:
+        working_directory: shared
+        command: yarn install --pure-lockfile --ignore-engines --prefer-offline
+
     - run: mkdir -p /tmp/flow-coverage
     - run:
         working_directory: shared
         command: yarn flow-coverage-report -t json -o /tmp/flow-coverage && bash <(curl -s https://codecov.io/bash) -f /tmp/flow-coverage/flow-coverage.json
 
-    # Install JS dependencies.
-    - run:
-        working_directory: shared
-        command: yarn install --pure-lockfile --ignore-engines --prefer-offline
     - run:
         working_directory: shared
         command: yarn global add react-native-cli
