@@ -516,7 +516,7 @@ func AppWillExit(pusher PushNotifier) {
 // [iOS] returning true will request about ~3mins from iOS to continue execution
 func AppDidEnterBackground() bool {
 	if !isInited() {
-		return
+		return false
 	}
 	defer kbCtx.Trace("AppDidEnterBackground", func() error { return nil })()
 	ctx := context.Background()
