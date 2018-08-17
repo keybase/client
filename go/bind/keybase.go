@@ -47,6 +47,9 @@ var startOnce sync.Once
 var logSendContext libkb.LogSendContext
 var kbfsConfig libkbfs.Config
 
+var initMutex sync.Mutex
+var initComplete bool
+
 type PushNotifier interface {
 	LocalNotification(ident string, msg string, badgeCount int, soundName string, convID string, typ string)
 }
@@ -104,6 +107,18 @@ func flattenError(err error) error {
 	return err
 }
 
+func isInited() bool {
+	initMutex.Lock()
+	defer initMutex.Unlock()
+	return initComplete
+}
+
+func setInited() {
+	initMutex.Lock()
+	defer initMutex.Unlock()
+	initComplete = true
+}
+
 // InitOnce runs the Keybase services (only runs one time)
 func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
 	dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) {
@@ -117,7 +132,12 @@ func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOver
 // Init runs the Keybase services
 func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
 	externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) (err error) {
-	defer func() { err = flattenError(err) }()
+	defer func() {
+		err = flattenError(err)
+		if err == nil {
+			setInited()
+		}
+	}()
 
 	fmt.Println("Go: Initializing")
 	if logFile != "" {
@@ -350,7 +370,28 @@ func SetAppStateBackgroundActive() {
 	kbCtx.AppState.Update(keybase1.AppState_BACKGROUNDACTIVE)
 }
 
+func waitForInit() error {
+	if isInited() {
+		return nil
+	}
+	for {
+		select {
+		case <-time.After(200 * time.Millisecond):
+			if isInited() {
+				return nil
+			}
+		case <-time.After(5 * time.Second):
+			return errors.New("waitForInit timeout")
+		}
+	}
+}
+
 func BackgroundSync() {
+	// On Android there is a race where this function can be called before Init when starting up in the
+	// background. Let's wait a little bit here for Init to get run, and bail out if it never does.
+	if err := waitForInit(); err != nil {
+		return
+	}
 	defer kbCtx.Trace("BackgroundSync", func() error { return nil })()
 
 	// Skip the sync if we aren't in the background
