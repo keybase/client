@@ -199,7 +199,7 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 						  }
 					</script>
 				</head>
-				<body>
+				<body style="margin: 0px">
 					<video id="vid" style="width: 100%%" poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
 				</body>
 			</html>

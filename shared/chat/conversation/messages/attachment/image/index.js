@@ -222,13 +222,22 @@ const styles = styleSheetCreate({
     right: '50%',
     top: '50%',
   },
-  durationContainer: {
-    bottom: '5%',
-    position: 'absolute',
-    right: '3%',
-    backgroundColor: globalColors.black_75,
-    alignSelf: 'flex-start',
-  },
+  durationContainer: platformStyles({
+    isElectron: {
+      bottom: '5%',
+      position: 'absolute',
+      right: '3%',
+      backgroundColor: globalColors.black_75,
+      alignSelf: 'flex-start',
+    },
+    isMobile: {
+      bottom: '7%',
+      position: 'absolute',
+      right: '3%',
+      backgroundColor: globalColors.black_75,
+      alignSelf: 'flex-start',
+    },
+  }),
   durationText: {
     color: globalColors.white,
     paddingLeft: 5,
