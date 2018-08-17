@@ -1,8 +1,10 @@
 // @flow
+import * as React from 'react'
 import * as Container from '../../../../util/container'
 import * as Types from '../../../../constants/types/chat2'
+import * as WalletsGen from '../../../../actions/wallets-gen'
 import * as Styles from '../../../../styles'
-import AccountPayment from '.'
+import AccountPayment, {type Props as AccountPaymentProps} from '.'
 
 type OwnProps = {
   message: Types.MessageSendPayment | Types.MessageRequestPayment,
@@ -44,7 +46,26 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Container.Dispatch, ownProps: OwnProps) => ({})
+const mapDispatchToProps = (dispatch: Container.Dispatch, ownProps: OwnProps) => ({
+  loadTxData: () => {
+    if (ownProps.message.type === 'requestPayment') {
+      dispatch(WalletsGen.createLoadRequestDetail({requestID: ownProps.message.requestID}))
+    }
+  },
+})
 
-const ConnectedAccountPayment = Container.connect(mapStateToProps, mapDispatchToProps)(AccountPayment)
+type LoadCalls = {|
+  loadTxData: () => void,
+|}
+
+class LoadWrapper extends React.Component<AccountPaymentProps & LoadCalls> {
+  componentDidMount() {
+    this.props.loadTxData()
+  }
+  render() {
+    return <AccountPayment {...this.props} />
+  }
+}
+
+const ConnectedAccountPayment = Container.connect(mapStateToProps, mapDispatchToProps)(LoadWrapper)
 export default ConnectedAccountPayment

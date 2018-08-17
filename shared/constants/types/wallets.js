@@ -97,6 +97,26 @@ export type _Payment = {
   worthCurrency: string,
 }
 
+export type _AssetDescription = {
+  code: string,
+  issuerAccountID: AccountID,
+  issuerName: ?string,
+}
+
+export type AssetDescription = I.RecordOf<_AssetDescription>
+
+export type _Request = {
+  amountDescription: string, // The amount the request was made in (XLM, asset, or equivalent fiat)
+  asset: 'native' | 'currency' | AssetDescription,
+  completed: boolean,
+  completedTransactionID: ?StellarRPCTypes.KeybaseTransactionID,
+  id: StellarRPCTypes.KeybaseRequestID,
+  requestee: string, // username or assertion
+  requesteeType: string,
+  sender: string,
+  status: 'ok' | 'canceled',
+}
+
 export type Account = I.RecordOf<_Account>
 
 export type Assets = I.RecordOf<_Assets>
@@ -106,6 +126,8 @@ export type BuildingPayment = I.RecordOf<_BuildingPayment>
 export type BuiltPayment = I.RecordOf<_BuiltPayment>
 
 export type Payment = I.RecordOf<_Payment>
+
+export type Request = I.RecordOf<_Request>
 
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
@@ -118,6 +140,7 @@ export type _State = {
   builtPayment: BuiltPayment,
   exportedSecretKey: HiddenString,
   linkExistingAccountError: string,
+  requests: I.Map<StellarRPCTypes.KeybaseRequestID, Request>,
   secretKey: HiddenString,
   secretKeyError: string,
   secretKeyValidationState: ValidationState,

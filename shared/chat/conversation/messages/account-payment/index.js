@@ -3,7 +3,7 @@ import * as React from 'react'
 import {Box2, Button, Divider, Icon, Markdown, Text, type IconType} from '../../../../common-adapters'
 import {globalColors, styleSheetCreate} from '../../../../styles'
 
-export type Props = {
+export type Props = {|
   action: string,
   amount: string,
   balanceChange: string,
@@ -13,7 +13,7 @@ export type Props = {
   onSend?: () => void,
   pending: boolean,
   sendButtonLabel?: string,
-}
+|}
 
 const AccountPayment = (props: Props) => {
   return (

@@ -291,8 +291,9 @@ protocol local {
     ParticipantType toUserType; // keybase or SBS
     string toAssertion; // keybase username or sbs assertion.
 
-    string amount;
-    union { null, Asset } asset;
+    // Exactly one of asset or currency below is filled
+    string amount; // numerical value of user intent, i.e. "123.23"
+    union { null, Asset } asset; //
     union { null, OutsideCurrencyCode } currency;
 
     // Formatted amount of either outside currency or stellar lumens.

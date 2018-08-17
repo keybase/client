@@ -96,12 +96,8 @@ const loadPayments = (
   ]).then(([pending, payments]) =>
     WalletsGen.createPaymentsReceived({
       accountID: action.payload.accountID,
-      payments: (payments.payments || [])
-        .map(elem => Constants.paymentResultToPayment(elem))
-        .filter(Boolean),
-      pending: (pending || [])
-        .map(elem => Constants.paymentResultToPayment(elem))
-        .filter(Boolean),
+      payments: (payments.payments || []).map(elem => Constants.paymentResultToPayment(elem)).filter(Boolean),
+      pending: (pending || []).map(elem => Constants.paymentResultToPayment(elem)).filter(Boolean),
     })
   )
 
@@ -186,6 +182,11 @@ const maybeSelectDefaultAccount = (action: WalletsGen.AccountsReceivedPayload, s
     })
   )
 
+const loadRequestDetail = (state: TypedState, action: WalletsGen.LoadRequestDetailPayload) =>
+  RPCTypes.localGetRequestDetailsLocalRpcPromise({reqID: action.payload.requestID}).then(request =>
+    WalletsGen.createRequestDetailReceived({request})
+  )
+
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(
     [WalletsGen.loadAccounts, WalletsGen.linkedExistingAccount, WalletsGen.refreshPayments],
@@ -234,6 +235,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuildingPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuiltPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, navigateToTop)
+  yield Saga.actionToPromise(WalletsGen.loadRequestDetail, loadRequestDetail)
 }
 
 export default walletsSaga
