@@ -624,7 +624,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 				i, link.Prev(), prev)
 		}
 
-		var signer *signerX
+		var signer *SignerX
 		signer, err = l.verifyLink(ctx, arg.teamID, ret, arg.me, link, fullVerifyCutoff, readSubteamID, proofSet, lkc)
 		if err != nil {
 			return nil, err

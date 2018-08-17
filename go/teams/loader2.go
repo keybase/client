@@ -61,7 +61,7 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 				link, "filling stubbed link")
 		}
 
-		var signer *signerX
+		var signer *SignerX
 		var fullVerifyCutoff keybase1.Seqno // Always fullVerify when inflating. No reasoning has been done on whether it could be skipped.
 		signer, err = l.verifyLink(ctx, teamID, state, me, link, fullVerifyCutoff, readSubteamID, proofSet, lkc)
 		if err != nil {
@@ -193,7 +193,7 @@ func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID k
 // Returns the signer, or nil if the link was stubbed
 func (l *TeamLoader) verifyLink(ctx context.Context,
 	teamID keybase1.TeamID, state *keybase1.TeamData, me keybase1.UserVersion, link *ChainLinkUnpacked,
-	fullVerifyCutoff keybase1.Seqno, readSubteamID keybase1.TeamID, proofSet *proofSetT, lkc *loadKeyCache) (*signerX, error) {
+	fullVerifyCutoff keybase1.Seqno, readSubteamID keybase1.TeamID, proofSet *proofSetT, lkc *loadKeyCache) (*SignerX, error) {
 	ctx, tbs := l.G().CTimeBuckets(ctx)
 	defer tbs.Record("TeamLoader.verifyLink")()
 
@@ -236,7 +236,7 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		}
 	}
 
-	signer := signerX{signer: signerUV}
+	signer := SignerX{signer: signerUV}
 
 	// For a root team link, or a subteam_head, there is no reason to check adminship
 	// or writership (or readership) for the team.
@@ -359,9 +359,9 @@ func (l *TeamLoader) addProofsForAdminPermission(ctx context.Context, teamID key
 // Because this uses the proofSet, if it is called may return success and fail later.
 func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 	state *keybase1.TeamData, me keybase1.UserVersion, link *ChainLinkUnpacked, readSubteamID keybase1.TeamID,
-	uv keybase1.UserVersion, proofSet *proofSetT) (signerX, error) {
+	uv keybase1.UserVersion, proofSet *proofSetT) (SignerX, error) {
 
-	signer := signerX{signer: uv}
+	signer := SignerX{signer: uv}
 	explicitAdmin := link.inner.TeamAdmin()
 	teamChain := TeamSigChainState{inner: state.Chain}
 
@@ -460,7 +460,7 @@ func (l *TeamLoader) toParentChildOperation(ctx context.Context,
 // `signer` may be nil iff link is stubbed.
 func (l *TeamLoader) applyNewLink(ctx context.Context,
 	state *keybase1.TeamData, link *ChainLinkUnpacked,
-	signer *signerX, me keybase1.UserVersion) (*keybase1.TeamData, error) {
+	signer *SignerX, me keybase1.UserVersion) (*keybase1.TeamData, error) {
 	ctx, tbs := l.G().CTimeBuckets(ctx)
 	defer tbs.Record("TeamLoader.applyNewLink")()
 
@@ -496,7 +496,7 @@ func (l *TeamLoader) applyNewLink(ctx context.Context,
 // Inflate a link that was stubbed with its non-stubbed data.
 func (l *TeamLoader) inflateLink(ctx context.Context,
 	state *keybase1.TeamData, link *ChainLinkUnpacked,
-	signer signerX, me keybase1.UserVersion) (
+	signer SignerX, me keybase1.UserVersion) (
 	*keybase1.TeamData, error) {
 
 	l.G().Log.CDebugf(ctx, "TeamLoader inflating link seqno:%v", link.Seqno())

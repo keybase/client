@@ -23,14 +23,14 @@ type parentChildOperation struct {
 
 // --------------------------------------------------
 
-type signerX struct {
+type SignerX struct {
 	signer keybase1.UserVersion
 	// Whether the user is definitely an implicit admin
 	implicitAdmin bool
 }
 
-func NewSignerX() signerX {
-	return signerX{}
+func NewSignerX(signer keybase1.UserVersion, implicitAdmin bool) SignerX {
+	return SignerX{signer, implicitAdmin}
 }
 
 // --------------------------------------------------
