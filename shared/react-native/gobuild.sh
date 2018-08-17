@@ -46,7 +46,9 @@ kbfs_dir="$GOPATH0/src/github.com/keybase/kbfs"
 GOPATH="$tmp_gopath"
 echo "Using temp GOPATH: $GOPATH"
 
-# gomobile looks for gobind in $PATH.
+# gomobile looks for gobind in $PATH, so put $GOPATH/bin in $PATH. We
+# also want executables from our own GOPATH to override anything
+# already in $PATH (like the old GOPATH), so put $GOPATH/bin first.
 PATH="$GOPATH/bin:$PATH"
 
 # if we don't set this gomobile init get confused
