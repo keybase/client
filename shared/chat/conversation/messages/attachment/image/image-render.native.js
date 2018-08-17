@@ -25,13 +25,17 @@ export class ImageRender extends React.Component<Props> {
   render() {
     const uri = this.props.videoSrc + '&poster=' + encodeURIComponent(this.props.src)
     const source = {uri}
+    const allLoads = () => {
+      this.props.onLoad()
+      this.props.onLoadedVideo()
+    }
     return this.props.inlineVideoPlayable ? (
       <WKWebView
         ref={ref => {
           this.webview = ref
         }}
         styles={this.props.style}
-        onLoadEnd={this.props.onLoad}
+        onLoadEnd={allLoads}
         source={source}
         scrollEnabled={false}
       />

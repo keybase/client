@@ -54,7 +54,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
 
   _onClick = () => {
     if (this.props.inlineVideoPlayable && this.imageRef) {
-      this.imageRef.current.onVideoClick()
+      this.imageRef.onVideoClick()
       this.setState(p => ({
         playingVideo: !p.playingVideo,
         loadingVideo: p.loadingVideo === 'notloaded' ? 'loading' : p.loadingVideo,
