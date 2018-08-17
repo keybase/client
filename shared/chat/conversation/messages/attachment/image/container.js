@@ -46,11 +46,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
         : message.transferState === 'remoteUploading'
           ? 'waiting...'
           : null
-  const buttonType = message.showPlayButton
-    ? isMobile || message.inlineVideoPlayable
-      ? 'play'
-      : 'film'
-    : null
+  const buttonType = message.showPlayButton ? 'play' : null
   const hasProgress = message.transferState && message.transferState !== 'remoteUploading'
   return {
     arrowColor,
@@ -65,12 +61,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
             dispatchProps._onShowInFinder(message)
           }
         : null,
-    path: !isMobile && message.inlineVideoPlayable ? message.fileURL : message.previewURL,
+    path: message.previewURL,
+    fullPath: message.fileURL,
     progress: message.transferProgress,
     progressLabel,
     showButton: buttonType,
     videoDuration: message.videoDuration || '',
-    inlineVideoPlayable: !isMobile && message.inlineVideoPlayable,
+    inlineVideoPlayable: !isMobile,
     title: message.title || message.fileName,
     toggleMessageMenu: ownProps.toggleMessageMenu,
     width: Math.min(message.previewWidth, imgMaxWidth()),

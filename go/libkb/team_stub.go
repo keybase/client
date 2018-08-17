@@ -60,3 +60,15 @@ func (n *nullTeamLoader) ResolveNameToIDUntrusted(ctx context.Context, teamName 
 func (n nullTeamLoader) OnLogout() {}
 
 func (n nullTeamLoader) ClearMem() {}
+
+type nullFastTeamLoader struct{}
+
+var _ FastTeamLoader = nullFastTeamLoader{}
+
+func (n nullFastTeamLoader) Load(MetaContext, keybase1.FastTeamLoadArg) (keybase1.FastTeamLoadRes, error) {
+	return keybase1.FastTeamLoadRes{}, fmt.Errorf("null fast team loader")
+}
+
+func (n nullFastTeamLoader) OnLogout() {}
+
+func newNullFastTeamLoader() nullFastTeamLoader { return nullFastTeamLoader{} }

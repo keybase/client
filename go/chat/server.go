@@ -45,17 +45,17 @@ type Server struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	serverConn     ServerConnection
-	uiSource       UISource
-	boxer          *Boxer
-	identNotifier  types.IdentifyNotifier
-	clock          clockwork.Clock
-	convPageStatus map[string]chat1.Pagination
+	serverConn        ServerConnection
+	uiSource          UISource
+	boxer             *Boxer
+	identNotifier     types.IdentifyNotifier
+	clock             clockwork.Clock
+	convPageStatus    map[string]chat1.Pagination
+	cachedThreadDelay *time.Duration
 
 	// Only for testing
 	rc                chat1.RemoteInterface
 	mockChatUI        libkb.ChatUI
-	cachedThreadDelay *time.Duration
 	remoteThreadDelay *time.Duration
 }
 

@@ -143,6 +143,7 @@ const BOOL isDebug = NO;
   [DDLog addLogger:self.fileLogger];
 
   [self setupGo];
+  [self notifyAppState:application];
 
   NSURL *jsCodeLocation;
 
@@ -320,11 +321,6 @@ const BOOL isDebug = NO;
 - (void)applicationWillEnterForeground:(UIApplication *)application {
   NSLog(@"applicationWillEnterForeground: hiding keyz screen.");
   [self hideCover];
-}
-
-- (void)applicationDidFinishLaunching:(UIApplication *)application {
-  NSLog(@"applicationDidFinishLaunching: notifying service.");
-  [self notifyAppState:application];
 }
 
 - (void)notifyAppState:(UIApplication *)application {

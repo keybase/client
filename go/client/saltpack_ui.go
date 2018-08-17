@@ -30,13 +30,13 @@ func (s *SaltpackUI) doNonInteractive(arg keybase1.SaltpackPromptForDecryptArg) 
 		err = libkb.IdentifyFailedError{Assertion: arg.Sender.Username, Reason: "sender identity failed"}
 	case keybase1.SaltpackSenderType_REVOKED:
 		if s.force {
-			s.G().Log.Warning("The key that signed this message is revoked, but forcing through.")
+			s.G().Log.Warning("The key that authenticated this message is revoked, but forcing through.")
 			return nil
 		}
 		err = libkb.IdentifyFailedError{Assertion: arg.Sender.Username, Reason: "sender key revoked"}
 	case keybase1.SaltpackSenderType_EXPIRED:
 		if s.force {
-			s.G().Log.Warning("The key that signed this message is expired, but forcing through.")
+			s.G().Log.Warning("The key that authenticated this message is expired, but forcing through.")
 			return nil
 		}
 		err = libkb.IdentifyFailedError{Assertion: arg.Sender.Username, Reason: "sender key expired"}
@@ -94,9 +94,9 @@ func (s *SaltpackUI) SaltpackPromptForDecrypt(_ context.Context, arg keybase1.Sa
 	case keybase1.SaltpackSenderType_TRACKING_BROKE:
 		fmt.Fprintf(w, ColorString(s.G(), "red", fmt.Sprintf("Authored by %s.\nYou follow the sender of this message, but your view of them is broken.\n", ColorString(s.G(), "bold", arg.Sender.Username))))
 	case keybase1.SaltpackSenderType_REVOKED:
-		fmt.Fprintf(w, ColorString(s.G(), "red", fmt.Sprintf("Authored by %s, however the key that signed this message has been revoked (key ID: %s).\n", ColorString(s.G(), "bold", arg.Sender.Username), arg.SigningKID)))
+		fmt.Fprintf(w, ColorString(s.G(), "red", fmt.Sprintf("Authored by %s, however the key that authenticated this message has been revoked (key ID: %s).\n", ColorString(s.G(), "bold", arg.Sender.Username), arg.SigningKID)))
 	case keybase1.SaltpackSenderType_EXPIRED:
-		fmt.Fprintf(w, ColorString(s.G(), "red", fmt.Sprintf("Authored by %s, however the key that signed this message has expired (key ID: %s).\n", ColorString(s.G(), "bold", arg.Sender.Username), arg.SigningKID)))
+		fmt.Fprintf(w, ColorString(s.G(), "red", fmt.Sprintf("Authored by %s, however the key that authenticated this message has expired (key ID: %s).\n", ColorString(s.G(), "bold", arg.Sender.Username), arg.SigningKID)))
 	default:
 		return fmt.Errorf("Unexpected sender type: %s", arg.Sender.SenderType)
 	}
