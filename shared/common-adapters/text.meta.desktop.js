@@ -65,6 +65,14 @@ const metaData: {[key: TextType]: MetaType} = {
     fontSize: 16,
     styleOverride: globalStyles.fontSemibold,
   },
+  HeaderItalic: {
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    fontSize: 16,
+    styleOverride: {
+      ...globalStyles.fontSemibold,
+      fontStyle: 'italic',
+    },
+  },
   HeaderExtrabold: {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
     fontSize: 16,

@@ -41,6 +41,7 @@ type TextType =
   | 'BodyTinySemibold'
   | 'BodyTinyBold'
   | 'Header'
+  | 'HeaderItalic'
   | 'HeaderExtrabold'
   | 'HeaderBig'
   | 'HeaderBigExtrabold'
