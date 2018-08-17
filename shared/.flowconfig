@@ -1,4 +1,4 @@
-# desktop VERSION
+# desktop VERSION. TODO flow supports multiple config files now
 # TODO: work on splitting out the .js.flow files into types.js.flow files
 # To test the future desktop version uncomment lines w/ D1 in front
 [ignore]
@@ -19,13 +19,13 @@
 # all this BS is cause this uses ocaml regexp for some reason and doesnt' include negative lookaheads. we want to ignore node_modules outside of these
 # immutable
 # recompose
-.*/node_modules/[abcdefghjklmnopqstuvwxyzA-Z@-].*
-.*/node_modules/i[abcdefghijklnopqrstuvwxyzA-Z@-].*
-.*/node_modules/im[abcdefghijklnopqrstuvwxyzA-Z@-].*
-.*/node_modules/r[abcdfghijklmnopqrstuvwxyzA-Z@-].*
-.*/node_modules/re[abdefghijklmnopqrstuvwxyzA-Z@-].*
-.*/node_modules/rec[abcdefghijklmnpqrstuvwxyzA-Z@-].*
-.*/node_modules/reco[abcdefghijklnopqrstuvwxyzA-Z@-].*
+# .*/node_modules/[abcdefghjklmnopqstuvwxyzA-Z@-].*
+# .*/node_modules/i[abcdefghijklnopqrstuvwxyzA-Z@-].*
+# .*/node_modules/im[abcdefghijklnopqrstuvwxyzA-Z@-].*
+# .*/node_modules/r[abcdfghijklmnopqrstuvwxyzA-Z@-].*
+# .*/node_modules/re[abdefghijklmnopqrstuvwxyzA-Z@-].*
+# .*/node_modules/rec[abcdefghijklmnpqrstuvwxyzA-Z@-].*
+# .*/node_modules/reco[abcdefghijklnopqrstuvwxyzA-Z@-].*
 .*[.]gif$
 .*[.]png$
 
@@ -84,4 +84,4 @@ deprecated-type=error
 sketchy-number-and=off
 
 [version]
-^0.78.0
+^0.79.0

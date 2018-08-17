@@ -214,7 +214,7 @@
     "eslint-plugin-react": "7.10.0",
     "eslint-plugin-standard": "3.1.0",
     "file-loader": "1.1.11",
-    "flow-bin": "0.78.0",
+    "flow-bin": "0.79.0",
     "flow-typed": "^2.5.1",
     "fs-extra": "6.0.1",
     "jest": "23.1.0",
