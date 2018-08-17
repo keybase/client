@@ -8,7 +8,7 @@ type OwnProps = {
   showButton: boolean,
   toggle: () => void,
   smallIDsHidden: Array<Types.ConversationIDKey>,
-  style: StylesCrossPlatform,
+  style?: StylesCrossPlatform,
 }
 
 const mapStateToProps = state => ({_badges: state.chat2.badgeMap})

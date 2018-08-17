@@ -6,17 +6,9 @@ import {type RouteProps} from '../../route-tree/render-route'
 import {compose, connect, type TypedState, type Dispatch} from '../../util/container'
 import {isMobile} from '../../constants/platform'
 
-type OwnProps = RouteProps<
-  {
-    conversationIDKey: Types.ConversationIDKey,
-    teamname: string,
-  },
-  {}
->
+type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey}, {}>
 
-const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
-  teamname: routeProps.get('teamname'),
-})
+const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({})
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}: OwnProps) => ({
   onBack: isMobile ? null : () => dispatch(navigateUp()),
@@ -32,7 +24,6 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onBack: dispatchProps.onBack,
   onCancel: dispatchProps.onCancel,
   onDeleteHistory: dispatchProps.onDeleteHistory,
-  teamname: stateProps.teamname,
 })
 
 export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(DeleteHistoryWarning)

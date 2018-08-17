@@ -8,14 +8,14 @@ import {
   globalStyles,
   globalColors,
   globalMargins,
-  type StylesCrossPlatform
+  type StylesCrossPlatform,
 } from '../../../../styles'
 import * as RowSizes from '../sizes'
 
 type Props = {
   badgeCount: number,
   hiddenCount: number,
-  style?: StylesCrossPlatform,
+  style: ?StylesCrossPlatform,
   showButton: boolean,
   toggle: () => void,
 }
