@@ -14,7 +14,7 @@ type State = {
   showingToast: boolean,
 }
 
-class _RemoveAccountReally extends React.Component<Props, State> {
+class RemoveAccountReally extends React.Component<Props, State> {
   state = {
     showingToast: false,
   }
@@ -29,7 +29,7 @@ class _RemoveAccountReally extends React.Component<Props, State> {
 
   render() {
     return (
-      <WalletModal>
+      <WalletModal onClose={this.props.onClose}>
         <Kb.Icon
           type={isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
           style={Kb.iconCastPlatformStyles(styles.icon)}
@@ -64,7 +64,6 @@ class _RemoveAccountReally extends React.Component<Props, State> {
     )
   }
 }
-const RemoveAccountReally = Kb.HOCTimers(_RemoveAccountReally)
 
 const styles = styleSheetCreate({
   icon: {
@@ -95,4 +94,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default RemoveAccountReally
+export default Kb.HOCTimers(RemoveAccountReally)
