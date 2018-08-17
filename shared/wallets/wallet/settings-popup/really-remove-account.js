@@ -44,7 +44,7 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
           <Kb.Button
             fullWidth={Styles.isMobile}
             key={1}
-            label="Cancel"
+            label="Finish"
             onClick={this.props.onClose}
             type="Secondary"
           />,

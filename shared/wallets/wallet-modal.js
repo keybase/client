@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import {compose, renameProp} from 'recompose'
 
 type WalletModalProps = {|
   children: React.Node,
@@ -11,21 +12,27 @@ type WalletModalProps = {|
 |}
 
 const WalletModal = (props: WalletModalProps) => (
-  <Kb.MaybePopup onClose={props.onClose}>
-    <Kb.Box2
-      direction="vertical"
-      centerChildren={true}
-      style={Styles.collapseStyles([styles.container, props.containerStyle])}
-    >
-      {props.children}
-      {props.bottomButtons &&
-        props.bottomButtons.length > 0 && (
-          <Kb.Box2 direction="vertical" style={styles.buttonBarContainer} fullWidth={true}>
-            <Kb.ButtonBar style={styles.buttonBar}>{props.bottomButtons}</Kb.ButtonBar>
-          </Kb.Box2>
-        )}
-    </Kb.Box2>
-  </Kb.MaybePopup>
+  <Kb.Box2
+    direction="vertical"
+    fullHeight={true}
+    fullWidth={true}
+    centerChildren={true}
+    style={Styles.collapseStyles([styles.container, props.containerStyle])}
+  >
+    {props.children}
+    {props.bottomButtons &&
+      props.bottomButtons.length > 0 && (
+        <Kb.Box2 direction="vertical" style={styles.buttonBarContainer} fullWidth={true}>
+          <Kb.ButtonBar
+            direction={Styles.isMobile ? 'column' : 'row'}
+            fullWidth={Styles.isMobile}
+            style={styles.buttonBar}
+          >
+            {props.bottomButtons}
+          </Kb.ButtonBar>
+        </Kb.Box2>
+      )}
+  </Kb.Box2>
 )
 
 const styles = Styles.styleSheetCreate({
@@ -44,16 +51,18 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       paddingBottom: Styles.globalMargins.medium,
-      paddingTop: Styles.globalMargins.medium,
+      paddingTop: Styles.globalMargins.xlarge,
     },
   }),
   buttonBarContainer: {
     flex: 1,
     justifyContent: 'flex-end',
   },
-  buttonBar: {
-    minHeight: 0,
-  },
+  buttonBar: Styles.platformStyles({
+    isElectron: {
+      minHeight: 0,
+    },
+  }),
 })
 
-export default WalletModal
+export default compose(renameProp('onClose', 'onCancel'), Kb.HeaderOrPopup)(WalletModal)
