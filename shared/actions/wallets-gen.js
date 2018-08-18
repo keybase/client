@@ -26,6 +26,7 @@ export const loadPaymentDetail = 'wallets:loadPaymentDetail'
 export const loadPayments = 'wallets:loadPayments'
 export const paymentDetailReceived = 'wallets:paymentDetailReceived'
 export const paymentsReceived = 'wallets:paymentsReceived'
+export const refreshPayments = 'wallets:refreshPayments'
 export const secretKeyReceived = 'wallets:secretKeyReceived'
 export const secretKeySeen = 'wallets:secretKeySeen'
 export const selectAccount = 'wallets:selectAccount'
@@ -82,6 +83,7 @@ type _PaymentsReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   payments: Array<Types.Payment>,
 |}>
+type _RefreshPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _SecretKeyReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   secretKey: HiddenString,
@@ -141,6 +143,10 @@ export const createSecretKeySeen = (payload: _SecretKeySeenPayload) => ({error: 
  * Export a Stellar account's secret key
  */
 export const createExportSecretKey = (payload: _ExportSecretKeyPayload) => ({error: false, payload, type: exportSecretKey})
+/**
+ * In response to a notification, resync payment info
+ */
+export const createRefreshPayments = (payload: _RefreshPaymentsPayload) => ({error: false, payload, type: refreshPayments})
 /**
  * Link an existing Stellar account with this Keybase user.
  */
@@ -259,6 +265,7 @@ export type LoadPaymentDetailPayload = $Call<typeof createLoadPaymentDetail, _Lo
 export type LoadPaymentsPayload = $Call<typeof createLoadPayments, _LoadPaymentsPayload>
 export type PaymentDetailReceivedPayload = $Call<typeof createPaymentDetailReceived, _PaymentDetailReceivedPayload>
 export type PaymentsReceivedPayload = $Call<typeof createPaymentsReceived, _PaymentsReceivedPayload>
+export type RefreshPaymentsPayload = $Call<typeof createRefreshPayments, _RefreshPaymentsPayload>
 export type SecretKeyReceivedPayload = $Call<typeof createSecretKeyReceived, _SecretKeyReceivedPayload>
 export type SecretKeySeenPayload = $Call<typeof createSecretKeySeen, _SecretKeySeenPayload>
 export type SelectAccountPayload = $Call<typeof createSelectAccount, _SelectAccountPayload>
@@ -297,6 +304,7 @@ export type Actions =
   | LoadPaymentsPayload
   | PaymentDetailReceivedPayload
   | PaymentsReceivedPayload
+  | RefreshPaymentsPayload
   | SecretKeyReceivedPayload
   | SecretKeySeenPayload
   | SelectAccountPayload

@@ -17,38 +17,48 @@ const buildPayment = (state: TypedState) =>
     from: state.wallets.selectedAccount,
     fromSeqno: '',
     publicMemo: state.wallets.get('buildingPayment').get('publicMemo'),
-    secretNote: state.wallets.get('buildingPayment').get('secretNote').stringValue(),
+    secretNote: state.wallets
+      .get('buildingPayment')
+      .get('secretNote')
+      .stringValue(),
     to: state.wallets.get('buildingPayment').get('to'),
     toIsAccountID: true,
-  }).then(build => WalletsGen.createBuiltPaymentReceived({
+  }).then(build =>
+    WalletsGen.createBuiltPaymentReceived({
       build: Constants.buildPaymentResultToBuiltPayment(build),
     })
   )
 
 const sendPayment = (state: TypedState) =>
-  RPCTypes.localSendPaymentLocalRpcPromise({
-    amount: state.wallets.get('buildingPayment').get('amount'),
-    // FIXME -- support other assets.
-    asset: {type: 'native', code: '', issuer: ''},
-    from: state.wallets.get('buildingPayment').get('from'),
-    fromSeqno: '',
-    publicMemo: state.wallets.get('buildingPayment').get('publicMemo'),
-    quickReturn: false,
-    secretNote: state.wallets.get('buildingPayment').get('secretNote').stringValue(),
-    to: state.wallets.get('buildingPayment').get('to'),
-    toIsAccountID: !!state.wallets.get('builtPayment').get('toUsername'),
-    worthAmount: '',
-  }, Constants.sendPaymentWaitingKey).then(res =>
-    WalletsGen.createClearBuildingPayment()
-  ).then(res =>
-    WalletsGen.createClearBuiltPayment()
-  ).then(res =>
-    Route.navigateTo([{props: {}, selected: walletsTab}, {props: {}, selected: null}])
+  RPCTypes.localSendPaymentLocalRpcPromise(
+    {
+      amount: state.wallets.get('buildingPayment').get('amount'),
+      // FIXME -- support other assets.
+      asset: {type: 'native', code: '', issuer: ''},
+      from: state.wallets.get('buildingPayment').get('from'),
+      fromSeqno: '',
+      publicMemo: state.wallets.get('buildingPayment').get('publicMemo'),
+      quickReturn: false,
+      secretNote: state.wallets
+        .get('buildingPayment')
+        .get('secretNote')
+        .stringValue(),
+      to: state.wallets.get('buildingPayment').get('to'),
+      toIsAccountID: !!state.wallets.get('builtPayment').get('toUsername'),
+      worthAmount: '',
+    },
+    Constants.sendPaymentWaitingKey
   )
+    .then(res => WalletsGen.createClearBuildingPayment())
+    .then(res => WalletsGen.createClearBuiltPayment())
+    .then(res => Route.navigateTo([{props: {}, selected: walletsTab}, {props: {}, selected: null}]))
 
 const loadAccounts = (
   state: TypedState,
-  action: WalletsGen.LoadAccountsPayload | WalletsGen.LinkedExistingAccountPayload
+  action:
+    | WalletsGen.LoadAccountsPayload
+    | WalletsGen.LinkedExistingAccountPayload
+    | WalletsGen.RefreshPaymentsPayload
 ) =>
   !action.error &&
   RPCTypes.localGetWalletAccountsLocalRpcPromise().then(res =>
@@ -63,6 +73,7 @@ const loadAssets = (
     | WalletsGen.LoadAssetsPayload
     | WalletsGen.SelectAccountPayload
     | WalletsGen.LinkedExistingAccountPayload
+    | WalletsGen.RefreshPaymentsPayload
 ) =>
   !action.error &&
   RPCTypes.localGetAccountAssetsLocalRpcPromise({accountID: action.payload.accountID}).then(res =>
@@ -78,6 +89,7 @@ const loadPayments = (
     | WalletsGen.LoadPaymentsPayload
     | WalletsGen.SelectAccountPayload
     | WalletsGen.LinkedExistingAccountPayload
+    | WalletsGen.RefreshPaymentsPayload
 ) =>
   !action.error &&
   Promise.all([
@@ -194,6 +206,9 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     navigateToAccount
   )
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
+  yield Saga.actionToPromise(WalletsGen.refreshPayments, loadAccounts)
+  yield Saga.actionToPromise(WalletsGen.refreshPayments, loadAssets)
+  yield Saga.actionToPromise(WalletsGen.refreshPayments, loadPayments)
   yield Saga.actionToPromise(WalletsGen.setBuildingAmount, buildPayment)
   yield Saga.actionToPromise(WalletsGen.setBuildingCurrency, buildPayment)
   yield Saga.actionToPromise(WalletsGen.setBuildingFrom, buildPayment)
