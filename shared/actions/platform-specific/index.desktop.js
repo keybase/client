@@ -178,11 +178,11 @@ const setupEngineListeners = () => {
     ({notification}, _, __, getState) => [kbfsNotification(notification, NotifyPopup, getState)]
   )
 
-  getEngine().setIncomingActionCreators('keybase.1.NotifyPGP.pgpKeyInSecretStoreFile', () => [
+  getEngine().setIncomingActionCreators('keybase.1.NotifyPGP.pgpKeyInSecretStoreFile', () => {
     RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
       console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
-    }),
-  ])
+    })
+  })
 
   getEngine().setIncomingActionCreators('keybase.1.NotifyService.shutdown', ({code}, response) => {
     response && response.result()

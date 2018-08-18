@@ -570,6 +570,7 @@ function _userChanged(action: {payload: {uid: string}}, state: TypedState) {
 
 const setupEngineListeners = () => {
   engine().setIncomingActionCreators('keybase.1.NotifyUsers.userChanged', ({uid}) => {
+    // $FlowIssue we don't allow non generated actions anymore, plus how this works needs to change
     return [{payload: {uid}, type: 'tracker:_userChanged'}]
   })
 

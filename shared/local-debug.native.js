@@ -33,7 +33,6 @@ let config = {
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false, // Use a dev push token
   isTesting: nativeBridge.test === '1' || (NativeModules.Storybook && NativeModules.Storybook.isStorybook), // Is running a unit test
-  maskStrings: false, // Replace all hiddenstrings w/ fake values
   printBridgeB64: false, // Print raw b64 going over the wire
   printRPCStats: false, // print detailed info on stats
   printRPCWaitingSession: false,
@@ -100,7 +99,6 @@ export const {
   immediateStateLogging,
   isDevApplePushToken,
   isTesting,
-  maskStrings,
   printBridgeB64,
   printOutstandingRPCs,
   printOutstandingTimerListeners,

@@ -1,5 +1,4 @@
 // @flow
-import {Component} from 'react' // eslint-disable-line
 
 const provablePlatformsMap = {
   twitter: true,

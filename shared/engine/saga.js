@@ -5,9 +5,8 @@ import * as RS from 'redux-saga'
 import * as RSE from 'redux-saga/effects'
 import {sequentially} from '../util/saga'
 import type {CommonResponseHandler, RPCError} from './types'
-import type {TypedState} from '../constants/reducer'
 import {printOutstandingRPCs} from '../local-debug'
-import {isArray} from 'lodash'
+import {isArray} from 'lodash-es'
 
 type EmittedCall = {
   method: string,
@@ -21,8 +20,8 @@ type EmittedFinished = {
   error: ?RPCError,
 }
 
-type CallbackWithResponse = (any, CommonResponseHandler, TypedState) => ?RS.Effect | ?Generator<any, any, any>
-type CallbackNoResponse = (any, TypedState) => ?RS.Effect | ?Generator<any, any, any>
+type CallbackWithResponse = (any, CommonResponseHandler) => ?RS.Effect | ?Generator<any, any, any>
+type CallbackNoResponse = any => ?RS.Effect | ?Generator<any, any, any>
 
 // Wraps a response to update the waiting state
 const makeWaitingResponse = (r, waitingKey) => {
@@ -85,7 +84,7 @@ function* call(p: {
         const response = makeWaitingResponse(_response, waitingKey)
 
         // If we need a custom reply we pass it down to the action handler to deal with, otherwise by default we handle it immediately
-        const customResponseNeeded = incomingCallMap[method].length === 3
+        const customResponseNeeded = incomingCallMap[method].length === 2
         if (!customResponseNeeded && response) {
           response.result()
         }
@@ -154,15 +153,14 @@ function* call(p: {
         // See if its handled
         const cb = incomingCallMap[res.method]
         if (cb) {
-          const state: TypedState = yield RSE.select()
           let actions
 
           if (res.response) {
             const c: CallbackWithResponse = (cb: CallbackWithResponse)
-            actions = yield RSE.call(c, res.params, res.response, state)
+            actions = yield RSE.call(c, res.params, res.response)
           } else {
             const c: CallbackNoResponse = (cb: CallbackNoResponse)
-            actions = yield RSE.call(c, res.params, state)
+            actions = yield RSE.call(c, res.params)
           }
 
           if (actions) {
