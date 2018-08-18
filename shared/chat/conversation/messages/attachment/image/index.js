@@ -64,6 +64,14 @@ class ImageAttachment extends React.PureComponent<Props, State> {
       this.props.onClick()
     }
   }
+  _onDoubleClick = () => {
+    if (this.props.inlineVideoPlayable && this.imageRef) {
+      if (this.state.playingVideo) {
+        this._onClick()
+      }
+    }
+    this.props.onDoubleClick()
+  }
   _onMouseEnter = () => {
     if (this.props.inlineVideoPlayable && this.imageRef) {
       this.imageRef.onVideoMouseEnter()
@@ -80,7 +88,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
       <ClickableBox
         style={styles.imageContainer}
         onClick={this._onClick}
-        onDoubleClick={this.props.onDoubleClick}
+        onDoubleClick={this._onDoubleClick}
         onLongPress={this.props.toggleMessageMenu}
         onMouseEnter={this._onMouseEnter}
         onMouseLeave={this._onMouseLeave}
