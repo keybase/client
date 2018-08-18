@@ -96,14 +96,14 @@ const PostProof = (props: Props) => {
                     onAllowProofCheck(true)
                     proofAction()
                   }}
-                  label={proofActionText}
+                  label={proofActionText || ''}
                 />
               )}
             {allowProofCheck && (
               <Button
                 type="Primary"
                 onClick={() => onComplete()}
-                label={onCompleteText}
+                label={onCompleteText || ''}
                 waiting={isOnCompleteWaiting}
               />
             )}

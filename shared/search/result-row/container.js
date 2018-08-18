@@ -81,6 +81,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
   }
 }
 
-export default compose(connect(mapStateToProps, null, mergeProps), setDisplayName('SearchResultRow'))(
+export default compose(connect(mapStateToProps, () => ({}), mergeProps), setDisplayName('SearchResultRow'))(
   SearchResultRow
 )
