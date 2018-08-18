@@ -12,4 +12,4 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onRestart: () => dispatch(SignupGen.createRestartSignup()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Error)
+export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o}))(Error)

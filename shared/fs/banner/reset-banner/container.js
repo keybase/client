@@ -34,7 +34,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = (stateProps, {_onReAddToTeam, _onOpenWithoutResetUsers, onViewProfile}, {path}) => {
-  const resetParticipants = stateProps._tlf.resetParticipants.map(i => i.username)
+  const resetParticipants = stateProps._tlf.resetParticipants.map(i => i.username).toArray()
   return {
     isUserReset: !!stateProps._username && resetParticipants.includes(stateProps._username),
     onReAddToTeam: (username: string) => () =>

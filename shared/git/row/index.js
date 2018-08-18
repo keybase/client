@@ -45,6 +45,7 @@ type Props = {
   onToggleChatEnabled: () => void,
   onToggleExpand: () => void,
   openUserTracker: (username: string) => void,
+  _onOpenChannelSelection: () => void,
 }
 
 class Row extends React.Component<Props> {
