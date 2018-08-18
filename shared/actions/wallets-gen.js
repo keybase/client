@@ -65,6 +65,7 @@ type _PaymentDetailReceivedPayload = $ReadOnly<{|
 type _PaymentsReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   payments: Array<Types.Payment>,
+  pending: Array<Types.Payment>,
 |}>
 type _SecretKeyReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
