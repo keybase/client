@@ -55,30 +55,18 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   selectedAccount: Types.noAccountID,
 })
 
-const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) => {
-  const {
-    amountErrMsg,
-    banners,
-    publicMemoErrMsg,
-    readyToSend,
-    secretNoteErrMsg,
-    toErrMsg,
-    toUsername,
-    worthDescription,
-    worthInfo,
-  } = b
-  return makeBuiltPayment({
-    amountErrMsg,
-    banners,
-    publicMemoErrMsg,
-    readyToSend,
-    secretNoteErrMsg,
-    toErrMsg,
-    toUsername,
-    worthDescription,
-    worthInfo,
+const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
+  makeBuiltPayment({
+    amountErrMsg: b.amountErrMsg,
+    banners: b.banners,
+    publicMemoErrMsg: b.publicMemoErrMsg,
+    readyToSend: b.readyToSend,
+    secretNoteErrMsg: b.secretNoteErrMsg,
+    toErrMsg: b.toErrMsg,
+    toUsername: b.toUsername,
+    worthDescription: b.worthDescription,
+    worthInfo: b.worthInfo,
   })
-}
 
 const makeAccount: I.RecordFactory<Types._Account> = I.Record({
   accountID: Types.noAccountID,
