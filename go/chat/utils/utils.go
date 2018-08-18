@@ -1080,11 +1080,13 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 			info.PreviewUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), true)
 		}
 		atyp, err := asset.Metadata.AssetType()
-		if err == nil && atyp == chat1.AssetMetadataType_VIDEO && asset.Metadata.Video().DurationMs > 1 &&
-			strings.HasPrefix(info.MimeType, "video") {
-			info.VideoDuration = new(string)
-			*info.VideoDuration = formatVideoDuration(asset.Metadata.Video().DurationMs) + ", " +
-				formatVideoSize(asset.Size)
+		if err == nil && atyp == chat1.AssetMetadataType_VIDEO && strings.HasPrefix(info.MimeType, "video") {
+			if asset.Metadata.Video().DurationMs > 1 {
+				info.VideoDuration = new(string)
+				*info.VideoDuration = formatVideoDuration(asset.Metadata.Video().DurationMs) + ", " +
+					formatVideoSize(asset.Size)
+			}
+			info.InlineVideoPlayable = true
 		}
 		if info.FullUrl == "" && info.PreviewUrl == "" && info.MimeType == "" {
 			return nil
