@@ -41,7 +41,7 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
       <PopupDialog
         onClose={this.props.onClose}
         onMouseDown={this._onMouseDown}
-        styleContainer={{width: '100%', height: null}}
+        styleContainer={{width: '100%', height: null, maxHeight: '100%'}}
       >
         <Box style={containerStyle}>
           <Box style={headerFooterStyle}>
@@ -88,7 +88,9 @@ const headerFooterStyle = {
 const styleImageFit = {
   display: 'block',
   objectFit: 'scale-down',
-  width: '100%',
+  maxWidth: '100%',
+  margin: 'auto',
+  padding: '5px',
 }
 
 const VideoFullscreen = OverlayParentHOC(_Fullscreen)
