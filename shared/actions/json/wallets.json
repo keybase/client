@@ -2,50 +2,50 @@
   "prelude": [
     "import * as Types from '../constants/types/wallets'",
     "import * as StellarRPCTypes from '../constants/types/rpc-stellar-gen'",
-    "import HiddenString from '../util/hidden-string'"
+    "import HiddenString from '../util/hidden-string'",
   ],
   "actions": {
     "accountsReceived": {
       "_description": "Update our store of account data",
-      "accounts": "Array<Types.Account>"
+      "accounts": "Array<Types.Account>",
     },
     "assetsReceived": {
       "_description": "Update our store of assets data",
       "accountID": "Types.AccountID",
-      "assets": "Array<Types.Assets>"
+      "assets": "Array<Types.Assets>",
     },
     "buildPayment": {
-      "_description": "Prepare a payment for sending"
+      "_description": "Prepare a payment for sending",
     },
     "builtPaymentReceived": {
       "_description": "Update our store with a prepared payment",
-      "build": "Types.BuiltPayment"
+      "build": "Types.BuiltPayment",
     },
     "clearBuildingPayment": {
-      "_description": "Clear a payment that was being prepared"
+      "_description": "Clear a payment that was being prepared",
     },
     "clearBuiltPayment": {
-      "_description": "Clear a prepared payment once it has been sent or canceled"
+      "_description": "Clear a prepared payment once it has been sent or canceled",
     },
     "exportSecretKey": {
       "_description": "Export a Stellar account's secret key",
-      "accountID": "Types.AccountID"
+      "accountID": "Types.AccountID",
     },
     "loadAssets": {
       "_description": "Refresh our list of assets for a given account",
-      "accountID": "Types.AccountID"
+      "accountID": "Types.AccountID",
     },
     "loadAccounts": {
-      "_description": "Refresh our list of accounts"
+      "_description": "Refresh our list of accounts",
     },
     "loadPayments": {
       "_description": "Refresh our list of payments for a given account",
-      "accountID": "Types.AccountID"
+      "accountID": "Types.AccountID",
     },
     "loadPaymentDetail": {
       "_description": "Load extra detail for one given payment",
       "accountID": "Types.AccountID",
-      "paymentID": "StellarRPCTypes.PaymentID"
+      "paymentID": "StellarRPCTypes.PaymentID",
     },
     "paymentDetailReceived": {
       "_description": "Update a payment with additional detail",
@@ -53,66 +53,70 @@
       "paymentID": "StellarRPCTypes.PaymentID",
       "publicMemo": "HiddenString",
       "publicMemoType": "string",
-      "txID": "string"
+      "txID": "string",
     },
     "paymentsReceived": {
       "_description": "Update our store of payments data",
       "accountID": "Types.AccountID",
-      "payments": "Array<Types.Payment>"
+      "payments": "Array<Types.Payment>",
     },
     "secretKeyReceived": {
       "_description": "Update our store with an exported secret key",
       "accountID": "Types.AccountID",
-      "secretKey": "HiddenString"
+      "secretKey": "HiddenString",
     },
     "secretKeySeen": {
       "_description": "Clear exported secret keys from our store once they've been seen",
-      "accountID": "Types.AccountID"
+      "accountID": "Types.AccountID",
     },
     "selectAccount": {
       "_description": "Select an account. Optionally navigate to the account page.",
       "accountID": "Types.AccountID",
-      "show?": "boolean"
+      "show?": "boolean",
     },
     "refreshPayments": {
       "_description": "In response to a notification, resync payment info",
-      "accountID": "Types.AccountID"
+      "accountID": "Types.AccountID",
     },
     "sendPayment": {
-      "_description": "Perform sending a payment."
+      "_description": "Perform sending a payment",
+    },
+    "sentPayment": {
+      "_description": "Successfully sent a payment",
+      "kbTxID": "HiddenString",
     },
     "setBuildingAmount": {
       "_description": "Set building amount",
-      "amount": "string"
+      "amount": "string",
     },
     "setBuildingCurrency": {
       "_description": "Set building currency",
-      "currency": "string"
+      "currency": "string",
     },
     "setBuildingFrom": {
       "_description": "Set building from",
-      "from": "string"
+      "from": "string",
     },
     "setBuildingPublicMemo": {
       "_description": "Set building public memo",
-      "publicMemo": "HiddenString"
+      "publicMemo": "HiddenString",
     },
     "setBuildingRecipientType": {
       "_description": "Set building recipient type",
-      "recipientType": "Types.CounterpartyType"
+      "recipientType": "Types.CounterpartyType",
     },
     "setBuildingSecretNote": {
       "_description": "Set building secret note",
-      "secretNote": "HiddenString"
+      "secretNote": "HiddenString",
     },
     "setBuildingTo": {
       "_description": "Set building to -- depends on recipientType",
-      "to": "string"
+      "to": "string",
     },
     "linkExistingAccount": {
       "_description": "Link an existing Stellar account with this Keybase user.",
       "name": "string",
-      "secretKey": "HiddenString"
+      "secretKey": "HiddenString",
     },
     "linkedExistingAccount": {
       "_description":
@@ -121,35 +125,35 @@
       "canError": {
         "name": "string",
         "secretKey": "HiddenString",
-        "error": "string"
+        "error": "string",
       }
     },
     "validateAccountName": {
       "_description": "Ask the service to validate an account name.",
-      "name": "string"
+      "name": "string",
     },
     "validatedAccountName": {
       "_description": "The service responded with an error or that the account name is valid.",
       "name": "string",
       "canError": {
         "name": "string",
-        "error": "string"
+        "error": "string",
       }
     },
     "validateSecretKey": {
       "_description": "Ask the service to validate an account secret key.",
-      "secretKey": "HiddenString"
+      "secretKey": "HiddenString",
     },
     "validatedSecretKey": {
       "_description": "The service responded with an error or that the secret key is valid.",
       "secretKey": "HiddenString",
       "canError": {
         "secretKey": "HiddenString",
-        "error": "string"
+        "error": "string",
       }
     },
     "clearErrors": {
-      "_description": "Clear errors from the store at times like opening or closing a form dialog."
+      "_description": "Clear errors from the store at times like opening or closing a form dialog.",
     }
   }
 }

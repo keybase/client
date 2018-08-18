@@ -42,10 +42,14 @@ const sendPayment = (state: TypedState) =>
       worthAmount: '',
     },
     Constants.sendPaymentWaitingKey
-  )
-    .then(res => WalletsGen.createClearBuildingPayment())
-    .then(res => WalletsGen.createClearBuiltPayment())
-    .then(res => Route.navigateTo([{props: {}, selected: walletsTab}, {props: {}, selected: null}]))
+  ).then(res => WalletsGen.createSentPayment({kbTxID: new HiddenString(res.kbTxID)}))
+
+const clearBuiltPayment = () => Saga.put(WalletsGen.createClearBuiltPayment())
+
+const clearBuildingPayment = () => Saga.put(WalletsGen.createClearBuildingPayment())
+
+const navigateToTop = () =>
+  Saga.put(Route.navigateTo([{props: {}, selected: walletsTab}, {props: {}, selected: null}]))
 
 const loadAccounts = (
   state: TypedState,
@@ -181,13 +185,26 @@ const maybeSelectDefaultAccount = (action: WalletsGen.AccountsReceivedPayload, s
   )
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.actionToPromise([WalletsGen.loadAccounts, WalletsGen.linkedExistingAccount], loadAccounts)
   yield Saga.actionToPromise(
-    [WalletsGen.loadAssets, WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
+    [WalletsGen.loadAccounts, WalletsGen.linkedExistingAccount, WalletsGen.refreshPayments],
+    loadAccounts
+  )
+  yield Saga.actionToPromise(
+    [
+      WalletsGen.loadAssets,
+      WalletsGen.refreshPayments,
+      WalletsGen.selectAccount,
+      WalletsGen.linkedExistingAccount,
+    ],
     loadAssets
   )
   yield Saga.actionToPromise(
-    [WalletsGen.loadPayments, WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
+    [
+      WalletsGen.loadPayments,
+      WalletsGen.refreshPayments,
+      WalletsGen.selectAccount,
+      WalletsGen.linkedExistingAccount,
+    ],
     loadPayments
   )
   yield Saga.actionToPromise(WalletsGen.loadPaymentDetail, loadPaymentDetail)
@@ -200,16 +217,21 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     navigateToAccount
   )
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
-  yield Saga.actionToPromise(WalletsGen.refreshPayments, loadAccounts)
-  yield Saga.actionToPromise(WalletsGen.refreshPayments, loadAssets)
-  yield Saga.actionToPromise(WalletsGen.refreshPayments, loadPayments)
-  yield Saga.actionToPromise(WalletsGen.setBuildingAmount, buildPayment)
-  yield Saga.actionToPromise(WalletsGen.setBuildingCurrency, buildPayment)
-  yield Saga.actionToPromise(WalletsGen.setBuildingFrom, buildPayment)
-  yield Saga.actionToPromise(WalletsGen.setBuildingPublicMemo, buildPayment)
-  yield Saga.actionToPromise(WalletsGen.setBuildingSecretNote, buildPayment)
-  yield Saga.actionToPromise(WalletsGen.setBuildingTo, buildPayment)
+  yield Saga.actionToPromise(
+    [
+      WalletsGen.setBuildingAmount,
+      WalletsGen.setBuildingCurrency,
+      WalletsGen.setBuildingFrom,
+      WalletsGen.setBuildingPublicMemo,
+      WalletsGen.setBuildingSecretNote,
+      WalletsGen.setBuildingTo,
+    ],
+    buildPayment
+  )
   yield Saga.actionToPromise(WalletsGen.sendPayment, sendPayment)
+  yield Saga.actionToAction(WalletsGen.sentPayment, clearBuildingPayment)
+  yield Saga.actionToAction(WalletsGen.sentPayment, clearBuiltPayment)
+  yield Saga.actionToAction(WalletsGen.sentPayment, navigateToTop)
 }
 
 export default walletsSaga
