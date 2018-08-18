@@ -38,7 +38,7 @@ const mapDispatchToProps = (dispatch: any) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const {id, ...git} = stateProps.git
+  const {id, ...git} = stateProps.git.toObject()
 
   return {
     canDelete: git.canDelete,
@@ -64,7 +64,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     _onOpenChannelSelection: () =>
       dispatchProps._onOpenChannelSelection(git.repoID, git.teamname, git.channelName || 'general'),
     onToggleChatEnabled: () => dispatchProps._setDisableChat(!git.chatDisabled, git.repoID, git.teamname),
-    onToggleExpand: () => ownProps.onToggleExpand(git.id),
+    onToggleExpand: () => ownProps.onToggleExpand(id),
   }
 }
 
