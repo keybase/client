@@ -4,6 +4,11 @@
 
 [webfont-generator](https://github.com/sunflowerdeath/webfonts-generator)
 
+[fontforge](https://fontforge.github.io/en-US/downloadsj)
+- Mac: `brew install fontforge`
+- Window: Install the GUI application and the executable should be available via
+  the command line.
+
 ### Instructions
 
 1. Delete all icons from this folder
