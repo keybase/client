@@ -16,7 +16,7 @@ const mapStateToProps = (state: TypedState, {id, expanded}) => {
   return {
     git,
     expanded,
-    isNew: state.entities.getIn(['git', 'isNew', id], false),
+    isNew: !!state.entities.getIn(['git', 'isNew', id], false),
     lastEditUserFollowing: state.config.following.has(git.lastEditUser),
     you: state.config.username,
   }
@@ -38,7 +38,7 @@ const mapDispatchToProps = (dispatch: any) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const {id, ...git} = stateProps.git.toObject()
+  const git = stateProps.git
 
   return {
     canDelete: git.canDelete,
@@ -47,7 +47,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     chatDisabled: git.chatDisabled,
     devicename: git.devicename,
     expanded: stateProps.expanded,
-    isNew: git.isNew,
+    isNew: stateProps.isNew,
     lastEditTime: git.lastEditTime,
     lastEditUser: git.lastEditUser,
     lastEditUserFollowing: stateProps.lastEditUserFollowing,
@@ -60,11 +60,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     },
     onCopy: () => copyToClipboard(git.url),
     onShowDelete: () => ownProps.onShowDelete(git.id),
-    openUserTracker: git.openUserTracker,
+    openUserTracker: dispatchProps.openUserTracker,
     _onOpenChannelSelection: () =>
       dispatchProps._onOpenChannelSelection(git.repoID, git.teamname, git.channelName || 'general'),
     onToggleChatEnabled: () => dispatchProps._setDisableChat(!git.chatDisabled, git.repoID, git.teamname),
-    onToggleExpand: () => ownProps.onToggleExpand(id),
+    onToggleExpand: () => ownProps.onToggleExpand(git.id),
   }
 }
 
