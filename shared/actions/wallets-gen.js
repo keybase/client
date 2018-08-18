@@ -9,7 +9,8 @@ import * as StellarRPCTypes from '../constants/types/rpc-stellar-gen'
 import HiddenString from '../util/hidden-string'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of wallets but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of wallets but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'wallets:'
 export const accountsReceived = 'wallets:accountsReceived'
 export const assetsReceived = 'wallets:assetsReceived'
 export const clearErrors = 'wallets:clearErrors'

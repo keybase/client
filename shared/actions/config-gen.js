@@ -10,7 +10,8 @@ import * as ChatTypes from '../constants/types/chat2'
 import {RPCError} from '../util/errors'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'config:'
 export const bootstrapStatusLoaded = 'config:bootstrapStatusLoaded'
 export const changedActive = 'config:changedActive'
 export const changedFocus = 'config:changedFocus'
@@ -44,6 +45,7 @@ export const setupEngineListeners = 'config:setupEngineListeners'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
 export const updateFollowing = 'config:updateFollowing'
+export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 
 // Payload Types
 type _BootstrapStatusLoadedPayload = $ReadOnly<{|
@@ -114,6 +116,7 @@ type _UpdateFollowingPayload = $ReadOnly<{|
   username: string,
   isTracking: boolean,
 |}>
+type _UpdateMenubarWindowIDPayload = $ReadOnly<{|id: number|}>
 
 // Action Creators
 /**
@@ -182,6 +185,7 @@ export const createSetOpenAtLogin = (payload: _SetOpenAtLoginPayload) => ({error
 export const createSetStartupDetails = (payload: _SetStartupDetailsPayload) => ({error: false, payload, type: setStartupDetails})
 export const createShowMain = (payload: _ShowMainPayload) => ({error: false, payload, type: showMain})
 export const createUpdateFollowing = (payload: _UpdateFollowingPayload) => ({error: false, payload, type: updateFollowing})
+export const createUpdateMenubarWindowID = (payload: _UpdateMenubarWindowIDPayload) => ({error: false, payload, type: updateMenubarWindowID})
 
 // Action Payloads
 export type BootstrapStatusLoadedPayload = $Call<typeof createBootstrapStatusLoaded, _BootstrapStatusLoadedPayload>
@@ -217,6 +221,7 @@ export type SetupEngineListenersPayload = $Call<typeof createSetupEngineListener
 export type ShowMainPayload = $Call<typeof createShowMain, _ShowMainPayload>
 export type StartHandshakePayload = $Call<typeof createStartHandshake, _StartHandshakePayload>
 export type UpdateFollowingPayload = $Call<typeof createUpdateFollowing, _UpdateFollowingPayload>
+export type UpdateMenubarWindowIDPayload = $Call<typeof createUpdateMenubarWindowID, _UpdateMenubarWindowIDPayload>
 
 // All Actions
 // prettier-ignore
@@ -254,4 +259,5 @@ export type Actions =
   | ShowMainPayload
   | StartHandshakePayload
   | UpdateFollowingPayload
+  | UpdateMenubarWindowIDPayload
   | {type: 'common:resetStore', payload: void}
