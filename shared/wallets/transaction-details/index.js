@@ -14,10 +14,12 @@ export type Props = {|
   counterparty: string,
   counterpartyMeta?: string,
   counterpartyType: Types.CounterpartyType,
-  delta: 'increase' | 'decrease',
+  delta: 'none' | 'increase' | 'decrease',
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
   memo: string,
+  onBack: () => void,
+  title: string,
   onLoadPaymentDetail: () => void,
   onViewTransaction?: () => void,
   publicMemo?: string,
@@ -90,7 +92,6 @@ const colorForStatus = (status: Types.StatusSimplified) => {
 
 const descriptionForStatus = (status: Types.StatusSimplified) =>
   status === 'completed' ? 'Sent' : capitalize(status)
-
 
 class TransactionDetails extends React.Component<Props> {
   componentWillMount() {

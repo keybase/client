@@ -34,7 +34,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 // Actions are handled by remote-container
 const UnlockFolder = compose(
-  connect(unlockFolderMapPropsToState, () => ({}), mergeProps, (s, d, o) => ({...s, ...d, ...o})),
+  connect(unlockFolderMapPropsToState, () => ({}), mergeProps),
   SyncBrowserWindow,
   SyncProps
 )(NullComponent)

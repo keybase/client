@@ -6,13 +6,14 @@ import SearchResultsList, {type Props as _Props} from '.'
 import * as SearchGen from '../../actions/search-gen'
 import {globalMargins} from '../../styles'
 
-export type OwnProps = {
+export type OwnProps = {|
   searchKey: string,
   onShowTracker?: (id: string) => void,
   onClick?: (id: string) => void,
   disableListBuilding?: boolean,
   disableIfInTeamName?: ?string,
-}
+  style?: any,
+|}
 
 const mapStateToProps = ({entities}: TypedState, {disableIfInTeamName, searchKey}: OwnProps) => {
   const searchResultIds = entities.search.searchKeyToResults.get(searchKey)
@@ -51,8 +52,11 @@ const styleSpinner = {
 
 export type Props = _Props & {pending: boolean}
 
-const Chooser = props => (props.pending ? <Progress style={props.style} /> : <SearchResultsList {...props} />)
+const Chooser = (props: any) =>
+  props.pending ? <Progress style={props.style} /> : <SearchResultsList {...props} />
+
 export default compose(
+  // $FlowIssue
   connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o})),
   setDisplayName('ResultsList')
 )(Chooser)

@@ -30,4 +30,5 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   selectedTab: stateProps.selectedTab,
 })
 
+// $FlowIssue fix badgeNumbers
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SettingsContainer)
