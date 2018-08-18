@@ -75,7 +75,7 @@ type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _PaymentDetailReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   paymentID: StellarRPCTypes.PaymentID,
-  publicMemo: string,
+  publicMemo: HiddenString,
   publicMemoType: string,
   txID: string,
 |}>
@@ -97,7 +97,7 @@ type _SendPaymentPayload = void
 type _SetBuildingAmountPayload = $ReadOnly<{|amount: string|}>
 type _SetBuildingCurrencyPayload = $ReadOnly<{|currency: string|}>
 type _SetBuildingFromPayload = $ReadOnly<{|from: string|}>
-type _SetBuildingPublicMemoPayload = $ReadOnly<{|publicMemo: string|}>
+type _SetBuildingPublicMemoPayload = $ReadOnly<{|publicMemo: HiddenString|}>
 type _SetBuildingRecipientTypePayload = $ReadOnly<{|recipientType: Types.CounterpartyType|}>
 type _SetBuildingSecretNotePayload = $ReadOnly<{|secretNote: HiddenString|}>
 type _SetBuildingToPayload = $ReadOnly<{|to: string|}>

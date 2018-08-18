@@ -16,7 +16,10 @@ const buildPayment = (state: TypedState) =>
     // FIXME: Assumes XLM.
     from: state.wallets.selectedAccount,
     fromSeqno: '',
-    publicMemo: state.wallets.get('buildingPayment').get('publicMemo'),
+    publicMemo: state.wallets
+      .get('buildingPayment')
+      .get('publicMemo')
+      .stringValue(),
     secretNote: state.wallets
       .get('buildingPayment')
       .get('secretNote')
@@ -37,7 +40,10 @@ const sendPayment = (state: TypedState) =>
       asset: {type: 'native', code: '', issuer: ''},
       from: state.wallets.get('buildingPayment').get('from'),
       fromSeqno: '',
-      publicMemo: state.wallets.get('buildingPayment').get('publicMemo'),
+      publicMemo: state.wallets
+        .get('buildingPayment')
+        .get('publicMemo')
+        .stringValue(),
       quickReturn: false,
       secretNote: state.wallets
         .get('buildingPayment')
@@ -113,7 +119,7 @@ const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDeta
     WalletsGen.createPaymentDetailReceived({
       accountID: action.payload.accountID,
       paymentID: action.payload.paymentID,
-      publicMemo: res.publicNote,
+      publicMemo: new HiddenString(res.publicNote),
       publicMemoType: res.publicNoteType,
       txID: res.txID,
     })

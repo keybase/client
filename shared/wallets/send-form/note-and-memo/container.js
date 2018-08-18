@@ -7,7 +7,12 @@ import HiddenString from '../../../util/hidden-string'
 const mapStateToProps = (state: TypedState) => ({})
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onChangePublicMemo: (publicMemo: string) => dispatch(WalletsGen.createSetBuildingPublicMemo({publicMemo})),
+  onChangePublicMemo: (publicMemo: string) =>
+    dispatch(
+      WalletsGen.createSetBuildingPublicMemo({
+        publicMemo: new HiddenString(publicMemo),
+      })
+    ),
   onChangeSecretNote: (secretNote: string) =>
     dispatch(WalletsGen.createSetBuildingSecretNote({secretNote: new HiddenString(secretNote)})),
 })

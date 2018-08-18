@@ -12,7 +12,10 @@ const mapStateToProps = (state: TypedState) => ({
     .get('buildingPayment')
     .get('secretNote')
     .stringValue(),
-  publicMemo: state.wallets.get('buildingPayment').get('publicMemo'),
+  publicMemo: state.wallets
+    .get('buildingPayment')
+    .get('publicMemo')
+    .stringValue(),
   receiverUsername: state.wallets.get('builtPayment').get('toUsername'),
   recipientType: state.wallets.get('buildingPayment').get('recipientType'),
   waitingKey: Constants.sendPaymentWaitingKey,

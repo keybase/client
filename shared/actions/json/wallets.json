@@ -51,7 +51,7 @@
       "_description": "Update a payment with additional detail",
       "accountID": "Types.AccountID",
       "paymentID": "StellarRPCTypes.PaymentID",
-      "publicMemo": "string",
+      "publicMemo": "HiddenString",
       "publicMemoType": "string",
       "txID": "string"
     },
@@ -95,7 +95,7 @@
     },
     "setBuildingPublicMemo": {
       "_description": "Set building public memo",
-      "publicMemo": "string"
+      "publicMemo": "HiddenString"
     },
     "setBuildingRecipientType": {
       "_description": "Set building recipient type",
