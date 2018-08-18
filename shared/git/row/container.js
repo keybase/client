@@ -11,7 +11,14 @@ import {copyToClipboard} from '../../util/clipboard'
 import openURL from '../../util/open-url'
 import {isMobile} from '../../constants/platform'
 
-const mapStateToProps = (state: TypedState, {id, expanded}) => {
+type OwnProps = {
+  id: string,
+  expanded: boolean,
+  onShowDelete: string => void,
+  onToggleExpand: string => void,
+}
+
+const mapStateToProps = (state: TypedState, {id, expanded}: OwnProps) => {
   const git = state.entities.getIn(['git', 'idToInfo', id], Constants.makeGitInfo())
   return {
     git,
@@ -22,7 +29,7 @@ const mapStateToProps = (state: TypedState, {id, expanded}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: any) => ({
+const mapDispatchToProps = dispatch => ({
   openUserTracker: (username: string) => dispatch(createGetProfile({username, forceDisplay: true})),
   _setDisableChat: (disabled: boolean, repoID: string, teamname: ?string) =>
     dispatch(
@@ -37,7 +44,7 @@ const mapDispatchToProps = (dispatch: any) => ({
     ),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const git = stateProps.git
 
   return {
