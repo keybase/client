@@ -8,4 +8,5 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({})
 
 const mergeProps = (stateProps, dispatchProps) => ({})
 
+// $FlowIssue TODO
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ConfirmSend)

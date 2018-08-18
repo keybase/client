@@ -25,6 +25,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp}) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o})),
   withStateHandlers({enabled: false}, {setEnabled: () => (enabled: boolean) => ({enabled})})
 )(RetentionWarning)
