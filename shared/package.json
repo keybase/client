@@ -60,6 +60,11 @@
     "excludeGlob": [
       "node_modules/**",
       "markdown/parser.js",
+      "__mocks__/**",
+      "constants/types/rpc-*-gen.js",
+      "desktop/webpack.config.babel.js",
+      "libs/flow-interface.js.flow",
+      "setupTestFrameworkScriptFile.js",
       "flow-typed/**",
       "desktop/dist/**",
       "coverage/**",
