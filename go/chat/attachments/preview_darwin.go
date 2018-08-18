@@ -70,6 +70,7 @@ int VideoDuration() {
 import "C"
 import (
 	"bytes"
+	"errors"
 	"io"
 	"unsafe"
 
@@ -90,6 +91,9 @@ func previewVideo(ctx context.Context, g *globals.Context, log utils.DebugLabele
 		duration *= 1000
 	}
 	log.Debug(ctx, "previewVideo: length: %d duration: %ds", C.ImageLength(), duration)
+	if C.ImageLength() == 0 {
+		return res, errors.New("no data returned from native")
+	}
 	localDat := make([]byte, C.ImageLength())
 	copy(localDat, (*[1 << 30]byte)(unsafe.Pointer(C.ImageData()))[0:C.ImageLength()])
 	C.ImageFree()
