@@ -49,14 +49,9 @@ function setupApp(store) {
 
   setupContextMenu(SafeElectron.getRemote().getCurrentWindow())
 
-  // Tell the main window some remote window needs its props
-  SafeElectron.getIpcRenderer().on('remoteWindowWantsProps', (event, windowComponent, windowParam) => {
-    store.dispatch({type: 'remote:needProps', payload: {windowComponent, windowParam}})
-  })
-
   // Listen for the menubarWindowID
   SafeElectron.getIpcRenderer().on('updateMenubarWindowID', (event, id) => {
-    store.dispatch({type: 'remote:updateMenubarWindowID', payload: {id}})
+    store.dispatch(ConfigGen.createUpdateMenubarWindowID({id}))
   })
 
   SafeElectron.getIpcRenderer().on('dispatchAction', (event, action) => {
