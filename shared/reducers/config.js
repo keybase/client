@@ -175,6 +175,3 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       return state
   }
 }
-
-
-
