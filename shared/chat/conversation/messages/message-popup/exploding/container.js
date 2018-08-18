@@ -93,10 +93,11 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
         ordinal: ownProps.message.ordinal,
       })
     ),
-  _onShowInFinder: () =>
+  _onShowInFinder: () => {
     ownProps.message.type === 'attachment' &&
-    ownProps.message.downloadPath &&
-    dispatch(KBFSGen.createOpenInFileUI({path: ownProps.message.downloadPath})),
+      ownProps.message.downloadPath &&
+      dispatch(KBFSGen.createOpenInFileUI({path: ownProps.message.downloadPath}))
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {

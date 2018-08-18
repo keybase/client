@@ -30,7 +30,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o})),
   withStateHandlers(
     {name: ''},
     {

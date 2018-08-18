@@ -64,7 +64,7 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   withStateHandlers(
     {
-      _conversationIDKey: null,
+      _conversationIDKey: Constants.noConversationIDKey,
       _lastLoadMoreOrdinalTime: Date.now(),
       lastLoadMoreOrdinal: null,
     },

@@ -26,7 +26,7 @@ type Props = {
   hasProgress: boolean,
   height: number,
   onClick: () => void,
-  onShowInFinder: null | (() => void),
+  onShowInFinder: null | ((e: SyntheticEvent<any>) => void),
   path: string,
   fullPath: string,
   progress: number,
