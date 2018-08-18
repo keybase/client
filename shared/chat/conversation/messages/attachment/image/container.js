@@ -22,6 +22,13 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       })
     )
   },
+  _onDoubleClick: (message: Types.MessageAttachment) => {
+    dispatch(
+      Chat2Gen.createAttachmentPreviewSelect({
+        message,
+      })
+    )
+  },
   _onShowInFinder: (message: Types.MessageAttachment) => {
     message.downloadPath && dispatch(KBFSGen.createOpenInFileUI({path: message.downloadPath}))
   },
@@ -53,6 +60,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     height: message.previewHeight,
     message,
     onClick: () => dispatchProps._onClick(message),
+    onDoubleClick: () => dispatchProps._onDoubleClick(message),
     onShowInFinder:
       !isMobile && message.downloadPath
         ? (e: SyntheticEvent<any>) => {

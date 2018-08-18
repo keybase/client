@@ -26,6 +26,7 @@ type Props = {
   hasProgress: boolean,
   height: number,
   onClick: () => void,
+  onDoubleClick: () => void,
   onShowInFinder: null | (() => void),
   path: string,
   fullPath: string,
@@ -79,6 +80,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
       <ClickableBox
         style={styles.imageContainer}
         onClick={this._onClick}
+        onDoubleClick={this.props.onDoubleClick}
         onLongPress={this.props.toggleMessageMenu}
         onMouseEnter={this._onMouseEnter}
         onMouseLeave={this._onMouseLeave}
