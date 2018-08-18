@@ -12,11 +12,11 @@ import openURL from '../../util/open-url'
 import {isMobile} from '../../constants/platform'
 
 const mapStateToProps = (state: TypedState, {id, expanded}) => {
-  const git = state.entities.getIn(['git', 'idToInfo', id], Constants.makeGitInfo()).toObject()
+  const git = state.git.getIn(['idToInfo', id], Constants.makeGitInfo()).toObject()
   return {
     ...git,
     expanded,
-    isNew: state.entities.getIn(['git', 'isNew', id], false),
+    isNew: state.git.getIn(['isNew', id], false),
     lastEditUserFollowing: state.config.following.has(git.lastEditUser),
     you: state.config.username,
   }

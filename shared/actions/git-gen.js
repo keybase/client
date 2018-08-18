@@ -5,6 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'
+import * as Types from '../constants/types/git'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of git but is handled by every reducer
@@ -16,6 +17,8 @@ export const deleteTeamRepo = 'git:deleteTeamRepo'
 export const handleIncomingGregor = 'git:handleIncomingGregor'
 export const loadGit = 'git:loadGit'
 export const loadGitRepo = 'git:loadGitRepo'
+export const loaded = 'git:loaded'
+export const navToGit = 'git:navToGit'
 export const navigateToTeamRepo = 'git:navigateToTeamRepo'
 export const setError = 'git:setError'
 export const setTeamRepoSettings = 'git:setTeamRepoSettings'
@@ -40,6 +43,11 @@ type _LoadGitRepoPayload = $ReadOnly<{|
   username: ?string,
   teamname: ?string,
 |}>
+type _LoadedPayload = $ReadOnly<{|
+  repos: {'[key: string]': Types.GitInfo},
+  errors: Array<Error>,
+|}>
+type _NavToGitPayload = $ReadOnly<{|routeState: ?{expandedSet: I.Set<string>}|}>
 type _NavigateToTeamRepoPayload = $ReadOnly<{|
   repoID: string,
   teamname: string,
@@ -61,6 +69,8 @@ export const createDeleteTeamRepo = (payload: _DeleteTeamRepoPayload) => ({error
 export const createHandleIncomingGregor = (payload: _HandleIncomingGregorPayload) => ({error: false, payload, type: handleIncomingGregor})
 export const createLoadGit = (payload: _LoadGitPayload) => ({error: false, payload, type: loadGit})
 export const createLoadGitRepo = (payload: _LoadGitRepoPayload) => ({error: false, payload, type: loadGitRepo})
+export const createLoaded = (payload: _LoadedPayload) => ({error: false, payload, type: loaded})
+export const createNavToGit = (payload: _NavToGitPayload) => ({error: false, payload, type: navToGit})
 export const createNavigateToTeamRepo = (payload: _NavigateToTeamRepoPayload) => ({error: false, payload, type: navigateToTeamRepo})
 export const createSetError = (payload: _SetErrorPayload) => ({error: false, payload, type: setError})
 export const createSetTeamRepoSettings = (payload: _SetTeamRepoSettingsPayload) => ({error: false, payload, type: setTeamRepoSettings})
@@ -74,6 +84,8 @@ export type DeleteTeamRepoPayload = $Call<typeof createDeleteTeamRepo, _DeleteTe
 export type HandleIncomingGregorPayload = $Call<typeof createHandleIncomingGregor, _HandleIncomingGregorPayload>
 export type LoadGitPayload = $Call<typeof createLoadGit, _LoadGitPayload>
 export type LoadGitRepoPayload = $Call<typeof createLoadGitRepo, _LoadGitRepoPayload>
+export type LoadedPayload = $Call<typeof createLoaded, _LoadedPayload>
+export type NavToGitPayload = $Call<typeof createNavToGit, _NavToGitPayload>
 export type NavigateToTeamRepoPayload = $Call<typeof createNavigateToTeamRepo, _NavigateToTeamRepoPayload>
 export type SetErrorPayload = $Call<typeof createSetError, _SetErrorPayload>
 export type SetTeamRepoSettingsPayload = $Call<typeof createSetTeamRepoSettings, _SetTeamRepoSettingsPayload>
@@ -89,6 +101,8 @@ export type Actions =
   | HandleIncomingGregorPayload
   | LoadGitPayload
   | LoadGitRepoPayload
+  | LoadedPayload
+  | NavToGitPayload
   | NavigateToTeamRepoPayload
   | SetErrorPayload
   | SetTeamRepoSettingsPayload
