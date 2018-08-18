@@ -5,19 +5,13 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import {connect, type TypedState, type Dispatch} from '../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
-  amount: state.wallets.get('buildingPayment').get('amount'),
-  assetConversion: state.wallets.get('builtPayment').get('worthDescription'),
-  assetType: state.wallets.get('buildingPayment').get('currency'),
-  encryptedNote: state.wallets
-    .get('buildingPayment')
-    .get('secretNote')
-    .stringValue(),
-  publicMemo: state.wallets
-    .get('buildingPayment')
-    .get('publicMemo')
-    .stringValue(),
-  receiverUsername: state.wallets.get('builtPayment').get('toUsername'),
-  recipientType: state.wallets.get('buildingPayment').get('recipientType'),
+  amount: state.wallets.buildingPayment.amount,
+  assetConversion: state.wallets.builtPayment.worthDescription,
+  assetType: state.wallets.buildingPayment.currency,
+  encryptedNote: state.wallets.buildingPayment.secretNote.stringValue(),
+  publicMemo: state.wallets.buildingPayment.publicMemo.stringValue(),
+  receiverUsername: state.wallets.builtPayment.toUsername,
+  recipientType: state.wallets.buildingPayment.recipientType,
   waitingKey: Constants.sendPaymentWaitingKey,
   yourUsername: state.config.username,
 })

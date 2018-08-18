@@ -12,19 +12,13 @@ import {walletsTab} from '../constants/tabs'
 
 const buildPayment = (state: TypedState) =>
   RPCTypes.localBuildPaymentLocalRpcPromise({
-    amount: state.wallets.get('buildingPayment').get('amount'),
+    amount: state.wallets.buildingPayment.amount,
     // FIXME: Assumes XLM.
     from: state.wallets.selectedAccount,
     fromSeqno: '',
-    publicMemo: state.wallets
-      .get('buildingPayment')
-      .get('publicMemo')
-      .stringValue(),
-    secretNote: state.wallets
-      .get('buildingPayment')
-      .get('secretNote')
-      .stringValue(),
-    to: state.wallets.get('buildingPayment').get('to'),
+    publicMemo: state.wallets.buildingPayment.publicMemo.stringValue(),
+    secretNote: state.wallets.buildingPayment.secretNote.stringValue(),
+    to: state.wallets.buildingPayment.to,
     toIsAccountID: true,
   }).then(build =>
     WalletsGen.createBuiltPaymentReceived({
@@ -35,22 +29,16 @@ const buildPayment = (state: TypedState) =>
 const sendPayment = (state: TypedState) =>
   RPCTypes.localSendPaymentLocalRpcPromise(
     {
-      amount: state.wallets.get('buildingPayment').get('amount'),
+      amount: state.wallets.buildingPayment.amount,
       // FIXME -- support other assets.
       asset: {type: 'native', code: '', issuer: ''},
-      from: state.wallets.get('buildingPayment').get('from'),
+      from: state.wallets.buildingPayment.from,
       fromSeqno: '',
-      publicMemo: state.wallets
-        .get('buildingPayment')
-        .get('publicMemo')
-        .stringValue(),
+      publicMemo: state.wallets.buildingPayment.publicMemo.stringValue(),
       quickReturn: false,
-      secretNote: state.wallets
-        .get('buildingPayment')
-        .get('secretNote')
-        .stringValue(),
-      to: state.wallets.get('buildingPayment').get('to'),
-      toIsAccountID: !!state.wallets.get('builtPayment').get('toUsername'),
+      secretNote: state.wallets.buildingPayment.secretNote.stringValue(),
+      to: state.wallets.buildingPayment.to,
+      toIsAccountID: !!state.wallets.builtPayment.toUsername,
       worthAmount: '',
     },
     Constants.sendPaymentWaitingKey
@@ -185,7 +173,7 @@ const exportSecretKey = (state: TypedState, action: WalletsGen.ExportSecretKeyPa
   )
 
 const maybeSelectDefaultAccount = (action: WalletsGen.AccountsReceivedPayload, state: TypedState) =>
-  state.wallets.get('selectedAccount') === Types.noAccountID &&
+  state.wallets.selectedAccount === Types.noAccountID &&
   Saga.put(
     WalletsGen.createSelectAccount({
       accountID: state.wallets.accountMap.find(account => account.isDefault).accountID,

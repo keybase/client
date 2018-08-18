@@ -5,14 +5,15 @@ import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '
 
 const mapStateToProps = (state: TypedState) => {
   // Building section
-  const recipientType = state.wallets.get('buildingPayment').get('recipientType')
-  const to = state.wallets.get('buildingPayment').get('to')
+  const recipientType = state.wallets.buildingPayment.recipientType
+  const to = state.wallets.buildingPayment.to
   const recipientStellarAddress = recipientType === 'stellarPublicKey' && to
 
   // Built section
-  const incorrect = state.wallets.get('builtPayment').get('toErrMsg')
-  const recipientUsername = state.wallets.get('builtPayment').get('toUsername')
-  const worthDescription = state.wallets.get('builtPayment').get('worthDescription')
+  const incorrect = state.wallets.builtPayment.toErrMsg
+  const recipientUsername = state.wallets.builtPayment.toUsername
+  const worthDescription = state.wallets.builtPayment.worthDescription
+
   return {
     incorrect,
     recipientStellarAddress,

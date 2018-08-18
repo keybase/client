@@ -4,7 +4,7 @@ import * as WalletsGen from '../../../actions/wallets-gen'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
-  displayUnit: state.wallets.get('buildingPayment').get('currency'),
+  displayUnit: state.wallets.buildingPayment.currency,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

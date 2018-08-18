@@ -4,8 +4,8 @@ import * as Route from '../../../actions/route-tree'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
-  disabled: !state.wallets.get('builtPayment').get('readyToSend'),
-  worthDescription: state.wallets.get('builtPayment').get('worthDescription'),
+  disabled: !state.wallets.builtPayment.readyToSend,
+  worthDescription: state.wallets.builtPayment.worthDescription,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
