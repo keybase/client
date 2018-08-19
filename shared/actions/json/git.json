@@ -1,7 +1,15 @@
 {
-  "prelude": ["import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'"],
+  "prelude": [
+    "import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'",
+    "import * as Types from '../constants/types/git'"
+  ],
   "actions": {
     "loadGit": {},
+    "loaded": {
+      "repos": "{\"[key: string]\": Types.GitInfo}",
+      "errors": "Array<Error>"
+    },
+    "navToGit": {routeState: "?{\"expandedSet\": I.Set<string>}"},
     "createTeamRepo": {
       "name": "string",
       "teamname": "string",
