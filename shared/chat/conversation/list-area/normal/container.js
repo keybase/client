@@ -4,14 +4,7 @@ import * as Constants from '../../../../constants/chat2'
 import * as ConfigGen from '../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import ListComponent from '.'
-import {
-  connect,
-  type TypedState,
-  type Dispatch,
-  compose,
-  lifecycle,
-  withStateHandlers,
-} from '../../../../util/container'
+import {connect, type TypedState, compose, lifecycle, withStateHandlers} from '../../../../util/container'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
