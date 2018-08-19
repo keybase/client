@@ -910,15 +910,15 @@ export type IncomingCallMapType = {|'chat.1.chatUi.chatAttachmentDownloadStart'?
 declare export function localAddTeamMemberAfterResetRpcPromise(params: LocalAddTeamMemberAfterResetRpcParam, waitingKey?: string): Promise<void>
 declare export function localCancelPostRpcPromise(params: LocalCancelPostRpcParam, waitingKey?: string): Promise<void>
 declare export function localDeleteConversationLocalRpcPromise(params: LocalDeleteConversationLocalRpcParam, waitingKey?: string): Promise<LocalDeleteConversationLocalResult>
-declare export function localDownloadFileAttachmentLocalRpcSaga(p: {params: LocalDownloadFileAttachmentLocalRpcParam, incomingCallMap: IncomingCallMapType, waitingKey?: string}): CallEffect<void, any, any>
+declare export function localDownloadFileAttachmentLocalRpcSaga(p: {params: LocalDownloadFileAttachmentLocalRpcParam, incomingCallMap: IncomingCallMapType, waitingKey?: string}): CallEffect<void>
 declare export function localFindConversationsLocalRpcPromise(params: LocalFindConversationsLocalRpcParam, waitingKey?: string): Promise<LocalFindConversationsLocalResult>
 declare export function localGetGlobalAppNotificationSettingsLocalRpcPromise(params: LocalGetGlobalAppNotificationSettingsLocalRpcParam, waitingKey?: string): Promise<LocalGetGlobalAppNotificationSettingsLocalResult>
 declare export function localGetInboxAndUnboxUILocalRpcPromise(params: LocalGetInboxAndUnboxUILocalRpcParam, waitingKey?: string): Promise<LocalGetInboxAndUnboxUILocalResult>
-declare export function localGetInboxNonblockLocalRpcSaga(p: {params: LocalGetInboxNonblockLocalRpcParam, incomingCallMap: IncomingCallMapType, waitingKey?: string}): CallEffect<void, any, any>
+declare export function localGetInboxNonblockLocalRpcSaga(p: {params: LocalGetInboxNonblockLocalRpcParam, incomingCallMap: IncomingCallMapType, waitingKey?: string}): CallEffect<void>
 declare export function localGetStaticConfigRpcPromise(params: LocalGetStaticConfigRpcParam, waitingKey?: string): Promise<LocalGetStaticConfigResult>
 declare export function localGetTLFConversationsLocalRpcPromise(params: LocalGetTLFConversationsLocalRpcParam, waitingKey?: string): Promise<LocalGetTLFConversationsLocalResult>
 declare export function localGetTeamRetentionLocalRpcPromise(params: LocalGetTeamRetentionLocalRpcParam, waitingKey?: string): Promise<LocalGetTeamRetentionLocalResult>
-declare export function localGetThreadNonblockRpcSaga(p: {params: LocalGetThreadNonblockRpcParam, incomingCallMap: IncomingCallMapType, waitingKey?: string}): CallEffect<void, any, any>
+declare export function localGetThreadNonblockRpcSaga(p: {params: LocalGetThreadNonblockRpcParam, incomingCallMap: IncomingCallMapType, waitingKey?: string}): CallEffect<void>
 declare export function localJoinConversationByIDLocalRpcPromise(params: LocalJoinConversationByIDLocalRpcParam, waitingKey?: string): Promise<LocalJoinConversationByIDLocalResult>
 declare export function localLeaveConversationLocalRpcPromise(params: LocalLeaveConversationLocalRpcParam, waitingKey?: string): Promise<LocalLeaveConversationLocalResult>
 declare export function localMakePreviewRpcPromise(params: LocalMakePreviewRpcParam, waitingKey?: string): Promise<LocalMakePreviewResult>

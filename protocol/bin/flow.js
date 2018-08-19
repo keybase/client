@@ -137,10 +137,15 @@ function analyzeTypes(json, project) {
         map[t.name] = `export type ${t.name} =${parseEnum(t)}`
         break
       case 'variant':
-        map[t.name] = `export type ${t.name} =${parseVariant(t, project)}`
+        {
+          const parsed = parseVariant(t, project)
+          if (parsed) {
+            map[t.name] = `export type ${t.name} =${parsed}`
+          }
+        }
         break
       case 'fixed':
-        map[t.name] = `export type ${t.name} = any`
+        map[t.name] = `export type ${t.name} = ?string`
         break
     }
     return map
@@ -288,7 +293,7 @@ function engineSagaGen(methodName, name, response, requestType, responseType, ju
   }
 
   return justType
-    ? `declare export function ${name}RpcSaga (p: {params: ${requestType}, incomingCallMap: IncomingCallMapType, waitingKey?: string}): CallEffect<void, any, any>`
+    ? `declare export function ${name}RpcSaga (p: {params: ${requestType}, incomingCallMap: IncomingCallMapType, waitingKey?: string}): CallEffect<void>`
     : `export const ${name}RpcSaga = (p, incomingCallMap, waitingKey) => Saga.call(engineSaga, {method: ${methodName}, params: p.params, incomingCallMap: p.incomingCallMap, waitingKey: p.waitingKey})`
 }
 
@@ -297,7 +302,7 @@ function rpcChannelMapGen(methodName, name, response, requestType, responseType,
     return ''
   }
   return justType
-    ? `declare export function ${name}RpcChannelMap (configKeys: Array<string>, request: ${requestType}): any`
+    ? `declare export function ${name}RpcChannelMap (configKeys: Array<string>, request: ${requestType}): void /* not void but this is deprecated */`
     : `export const ${name}RpcChannelMap = (configKeys, request) => engine()._channelMapRpcHelper(configKeys, ${methodName}, request)`
 }
 
@@ -383,18 +388,21 @@ function parseVariant(t, project) {
   }
 
   var type = parts.shift()
-  return t.cases
+  const cases = t.cases
     .map(c => {
       if (c.label.def) {
-        const bodyStr = c.body ? `, 'default': ?${c.body}` : ''
-        return `{ ${t.switch.name}: any${bodyStr} }`
+        return null
+        // const bodyStr = c.body ? `, 'default': ?${c.body}` : ''
+        // return `{ ${t.switch.name}: any${bodyStr} }`
       } else {
         var label = fixCase(c.label.name)
         const bodyStr = c.body ? `, ${label}: ?${capitalize(c.body)}` : ''
         return `{ ${t.switch.name}: ${project.enums[type][label]}${bodyStr} }`
       }
     })
+    .filter(Boolean)
     .join(' | ')
+  return cases || 'void'
 }
 
 function writeFlow(typeDefs, project) {
@@ -428,7 +436,7 @@ export type Uint64 = number
   const messagePromise = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].rpcPromiseType)
   const messageChannelMap = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].rpcChannelMapType)
   const messageEngineSaga = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].engineSagaType)
-  const callMapType = Object.keys(project.incomingMaps).length ? 'IncomingCallMapType' : 'any'
+  const callMapType = Object.keys(project.incomingMaps).length ? 'IncomingCallMapType' : 'void'
   const incomingMap =
     `\nexport type IncomingCallMapType = {|` +
     Object.keys(project.incomingMaps)
@@ -457,7 +465,7 @@ export type Uint64 = number
 function write(typeDefs, project) {
   // Need any for weird flow issue where it gets confused by multiple
   // incoming call map types
-  const callMapType = Object.keys(project.incomingMaps).length ? 'IncomingCallMapType' : 'any'
+  const callMapType = Object.keys(project.incomingMaps).length ? 'IncomingCallMapType' : 'void'
 
   const typePrelude = `// @noflow // not using flow at all
 /* eslint-disable */

@@ -810,7 +810,7 @@ export type BlockGetTeamQuotaInfoResult = Bytes
 export type BlockGetUserQuotaInfoResult = Bytes
 export type BlockIdCombo = $ReadOnly<{blockHash: String, chargedTo: UserOrTeamID, blockType: BlockType}>
 export type BlockPingResponse = $ReadOnly<{}>
-export type BlockRefNonce = any
+export type BlockRefNonce = ?string
 export type BlockReference = $ReadOnly<{bid: BlockIdCombo, nonce: BlockRefNonce, chargedTo: UserOrTeamID}>
 export type BlockReferenceCount = $ReadOnly<{ref: BlockReference, liveCount: Int}>
 export type BlockType =
@@ -819,10 +819,10 @@ export type BlockType =
   | 2 // GIT_2
 
 export type BootstrapStatus = $ReadOnly<{registered: Boolean, loggedIn: Boolean, uid: UID, username: String, deviceID: DeviceID, deviceName: String, following?: ?Array<String>, followers?: ?Array<String>}>
-export type BoxNonce = any
-export type BoxPublicKey = any
+export type BoxNonce = ?string
+export type BoxPublicKey = ?string
 export type BulkRes = $ReadOnly<{invited?: ?Array<String>, alreadyInvited?: ?Array<String>, malformed?: ?Array<String>}>
-export type Bytes32 = any
+export type Bytes32 = ?string
 export type CanonicalTLFNameAndIDWithBreaks = $ReadOnly<{tlfID: TLFID, CanonicalName: CanonicalTlfName, breaks: TLFBreak}>
 export type CanonicalTlfName = String
 export type ChallengeInfo = $ReadOnly<{now: Long, challenge: String}>
@@ -913,12 +913,12 @@ export type DismissReasonType =
 export type DownPointer = $ReadOnly<{id: TeamID, nameComponent: String, isDeleted: Boolean}>
 export type DowngradeReferenceRes = $ReadOnly<{completed?: ?Array<BlockReferenceCount>, failed: BlockReference}>
 export type DurationSec = Double
-export type ED25519PublicKey = any
-export type ED25519Signature = any
+export type ED25519PublicKey = ?string
+export type ED25519Signature = ?string
 export type ED25519SignatureInfo = $ReadOnly<{sig: ED25519Signature, publicKey: ED25519PublicKey}>
 export type EkGeneration = Int64
 export type Email = $ReadOnly<{email: String, isVerified: Boolean}>
-export type EncryptedBytes32 = any
+export type EncryptedBytes32 = ?string
 export type EncryptedGitMetadata = $ReadOnly<{v: Int, e: Bytes, n: BoxNonce, gen: PerTeamKeyGeneration}>
 export type ErrorNum = Int
 export type ExitCode =
@@ -1085,7 +1085,7 @@ export type HomeScreenPeopleNotificationType =
   | 1 // FOLLOWED_1
   | 2 // FOLLOWED_MULTI_2
 
-export type HomeScreenTodo = {t: any}
+export type HomeScreenTodo = void
 export type HomeScreenTodoType =
   | 0 // NONE_0
   | 1 // BIO_1
@@ -1247,14 +1247,14 @@ export type MetadataResponse = $ReadOnly<{folderID: String, mdBlocks?: ?Array<MD
 export type MetadataTruncateLockResult = Boolean
 export type MetadataTruncateUnlockResult = Boolean
 export type MoveArgs = $ReadOnly<{opID: OpID, src: Path, dest: Path}>
-export type NaclDHKeyPrivate = any
-export type NaclDHKeyPublic = any
-export type NaclSigningKeyPrivate = any
-export type NaclSigningKeyPublic = any
+export type NaclDHKeyPrivate = ?string
+export type NaclDHKeyPublic = ?string
+export type NaclSigningKeyPrivate = ?string
+export type NaclSigningKeyPublic = ?string
 export type NextMerkleRootRes = $ReadOnly<{res?: ?MerkleRootV2}>
 export type NotificationChannels = $ReadOnly<{session: Boolean, users: Boolean, kbfs: Boolean, tracking: Boolean, favorites: Boolean, paperkeys: Boolean, keyfamily: Boolean, service: Boolean, app: Boolean, chat: Boolean, pgp: Boolean, kbfsrequest: Boolean, badges: Boolean, reachability: Boolean, team: Boolean, ephemeral: Boolean, chatkbfsedits: Boolean, chatdev: Boolean, deviceclone: Boolean, chatattachments: Boolean, wallet: Boolean}>
 export type OpDescription = {asyncOp: 0, list: ?ListArgs} | {asyncOp: 1, listRecursive: ?ListArgs} | {asyncOp: 7, listRecursiveToDepth: ?ListToDepthArgs} | {asyncOp: 2, read: ?ReadArgs} | {asyncOp: 3, write: ?WriteArgs} | {asyncOp: 4, copy: ?CopyArgs} | {asyncOp: 5, move: ?MoveArgs} | {asyncOp: 6, remove: ?RemoveArgs} | {asyncOp: 8, getRevisions: ?GetRevisionsArgs}
-export type OpID = any
+export type OpID = ?string
 export type OpProgress = $ReadOnly<{start: Time, endEstimate: Time, opType: AsyncOps, bytesTotal: Int64, bytesRead: Int64, bytesWritten: Int64, filesTotal: Int64, filesRead: Int64, filesWritten: Int64}>
 export type OpenFlags =
   | 0 // READ_0
@@ -1273,7 +1273,7 @@ export type Outcome =
 export type PGPCreateUids = $ReadOnly<{useDefault: Boolean, ids?: ?Array<PGPIdentity>}>
 export type PGPDecryptOptions = $ReadOnly<{assertSigned: Boolean, signedBy: String}>
 export type PGPEncryptOptions = $ReadOnly<{recipients?: ?Array<String>, noSign: Boolean, noSelf: Boolean, binaryOut: Boolean, keyQuery: String}>
-export type PGPFingerprint = any
+export type PGPFingerprint = ?string
 export type PGPIdentity = $ReadOnly<{username: String, comment: String, email: String}>
 export type PGPPurgeRes = $ReadOnly<{filenames?: ?Array<String>}>
 export type PGPQuery = $ReadOnly<{secret: Boolean, query: String, exactMatch: Boolean}>
@@ -1295,7 +1295,7 @@ export type PathType =
 
 export type PerTeamKey = $ReadOnly<{gen: PerTeamKeyGeneration, seqno: Seqno, sigKID: KID, encKID: KID}>
 export type PerTeamKeyGeneration = Int
-export type PerTeamKeySeed = any
+export type PerTeamKeySeed = ?string
 export type PerTeamKeySeedItem = $ReadOnly<{seed: PerTeamKeySeed, generation: PerTeamKeyGeneration, seqno: Seqno}>
 export type PerUserKey = $ReadOnly<{gen: Int, seqno: Seqno, sigKID: KID, encKID: KID, signedByKID: KID}>
 export type PerUserKeyBox = $ReadOnly<{generation: PerUserKeyGeneration, box: String, receiverKID: KID}>
@@ -1418,7 +1418,7 @@ export type ProvisionUiDisplayAndPromptSecretResult = SecretResponse
 export type ProvisionUiPromptNewDeviceNameResult = String
 export type ProvisionUiSwitchToGPGSignOKResult = Boolean
 export type PublicKey = $ReadOnly<{KID: KID, PGPFingerprint: String, PGPIdentities?: ?Array<PGPIdentity>, isSibkey: Boolean, isEldest: Boolean, parentID: String, deviceID: DeviceID, deviceDescription: String, deviceType: String, cTime: Time, eTime: Time, isRevoked: Boolean}>
-export type PublicKeyV2 = {keyType: 1, nacl: ?PublicKeyV2NaCl} | {keyType: 2, pgp: ?PublicKeyV2PGPSummary} | {keyType: any}
+export type PublicKeyV2 = {keyType: 1, nacl: ?PublicKeyV2NaCl} | {keyType: 2, pgp: ?PublicKeyV2PGPSummary}
 export type PublicKeyV2Base = $ReadOnly<{kid: KID, isSibkey: Boolean, isEldest: Boolean, cTime: Time, eTime: Time, provisioning: SignatureMetadata, revocation?: ?SignatureMetadata}>
 export type PublicKeyV2NaCl = $ReadOnly<{base: PublicKeyV2Base, parent?: ?KID, deviceID: DeviceID, deviceDescription: String, deviceType: String}>
 export type PublicKeyV2PGPSummary = $ReadOnly<{base: PublicKeyV2Base, fingerprint: PGPFingerprint, identities?: ?Array<PGPIdentity>}>
@@ -1506,14 +1506,14 @@ export type SecretUiGetPassphraseResult = GetPassphraseRes
 export type SeitanAKey = String
 export type SeitanIKey = String
 export type SeitanIKeyV2 = String
-export type SeitanKeyAndLabel = {v: 1, v1: ?SeitanKeyAndLabelVersion1} | {v: 2, v2: ?SeitanKeyAndLabelVersion2} | {v: any}
+export type SeitanKeyAndLabel = {v: 1, v1: ?SeitanKeyAndLabelVersion1} | {v: 2, v2: ?SeitanKeyAndLabelVersion2}
 export type SeitanKeyAndLabelVersion =
   | 1 // V1_1
   | 2 // V2_2
 
 export type SeitanKeyAndLabelVersion1 = $ReadOnly<{i: SeitanIKey, l: SeitanKeyLabel}>
 export type SeitanKeyAndLabelVersion2 = $ReadOnly<{k: SeitanPubKey, l: SeitanKeyLabel}>
-export type SeitanKeyLabel = {t: 1, sms: ?SeitanKeyLabelSms} | {t: any}
+export type SeitanKeyLabel = {t: 1, sms: ?SeitanKeyLabelSms}
 export type SeitanKeyLabelSms = $ReadOnly<{f: String, n: String}>
 export type SeitanKeyLabelType = 1 // SMS_1
 
@@ -1833,7 +1833,7 @@ export type TeamInviteCategory =
 export type TeamInviteID = String
 export type TeamInviteName = String
 export type TeamInviteSocialNetwork = String
-export type TeamInviteType = {c: 1, unknown: ?String} | {c: 4, sbs: ?TeamInviteSocialNetwork} | {c: any}
+export type TeamInviteType = {c: 1, unknown: ?String} | {c: 4, sbs: ?TeamInviteSocialNetwork}
 export type TeamInvitee = $ReadOnly<{inviteID: TeamInviteID, uid: UID, eldestSeqno: Seqno, role: TeamRole}>
 export type TeamJoinRequest = $ReadOnly<{name: String, username: String}>
 export type TeamKBFSKeyRefresher = $ReadOnly<{generation: Int, appType: TeamApplication}>
@@ -2611,7 +2611,7 @@ declare export function delegateUiCtlRegisterIdentifyUIRpcPromise(params: Delega
 declare export function delegateUiCtlRegisterRekeyUIRpcPromise(params: DelegateUiCtlRegisterRekeyUIRpcParam, waitingKey?: string): Promise<void>
 declare export function delegateUiCtlRegisterSecretUIRpcPromise(params: DelegateUiCtlRegisterSecretUIRpcParam, waitingKey?: string): Promise<void>
 declare export function deviceCheckDeviceNameFormatRpcPromise(params: DeviceCheckDeviceNameFormatRpcParam, waitingKey?: string): Promise<DeviceCheckDeviceNameFormatResult>
-declare export function deviceDeviceAddRpcSaga(p: {params: DeviceDeviceAddRpcParam, incomingCallMap: IncomingCallMapType, waitingKey?: string}): CallEffect<void, any, any>
+declare export function deviceDeviceAddRpcSaga(p: {params: DeviceDeviceAddRpcParam, incomingCallMap: IncomingCallMapType, waitingKey?: string}): CallEffect<void>
 declare export function deviceDeviceHistoryListRpcPromise(params: DeviceDeviceHistoryListRpcParam, waitingKey?: string): Promise<DeviceDeviceHistoryListResult>
 declare export function favoriteFavoriteAddRpcPromise(params: FavoriteFavoriteAddRpcParam, waitingKey?: string): Promise<void>
 declare export function favoriteFavoriteIgnoreRpcPromise(params: FavoriteFavoriteIgnoreRpcParam, waitingKey?: string): Promise<void>
@@ -2640,17 +2640,17 @@ declare export function kbfsMountGetCurrentMountDirRpcPromise(params: KbfsMountG
 declare export function loginAccountDeleteRpcPromise(params: LoginAccountDeleteRpcParam, waitingKey?: string): Promise<void>
 declare export function loginDeprovisionRpcPromise(params: LoginDeprovisionRpcParam, waitingKey?: string): Promise<void>
 declare export function loginGetConfiguredAccountsRpcPromise(params: LoginGetConfiguredAccountsRpcParam, waitingKey?: string): Promise<LoginGetConfiguredAccountsResult>
-declare export function loginLoginRpcSaga(p: {params: LoginLoginRpcParam, incomingCallMap: IncomingCallMapType, waitingKey?: string}): CallEffect<void, any, any>
+declare export function loginLoginRpcSaga(p: {params: LoginLoginRpcParam, incomingCallMap: IncomingCallMapType, waitingKey?: string}): CallEffect<void>
 declare export function loginLogoutRpcPromise(params: LoginLogoutRpcParam, waitingKey?: string): Promise<void>
-declare export function loginPaperKeyRpcSaga(p: {params: LoginPaperKeyRpcParam, incomingCallMap: IncomingCallMapType, waitingKey?: string}): CallEffect<void, any, any>
+declare export function loginPaperKeyRpcSaga(p: {params: LoginPaperKeyRpcParam, incomingCallMap: IncomingCallMapType, waitingKey?: string}): CallEffect<void>
 declare export function loginPaperKeySubmitRpcPromise(params: LoginPaperKeySubmitRpcParam, waitingKey?: string): Promise<void>
 declare export function notifyCtlSetNotificationsRpcPromise(params: NotifyCtlSetNotificationsRpcParam, waitingKey?: string): Promise<void>
-declare export function pgpPgpKeyGenDefaultRpcChannelMap(configKeys: Array<string>, request: PgpPgpKeyGenDefaultRpcParam): any
+declare export function pgpPgpKeyGenDefaultRpcChannelMap(configKeys: Array<string>, request: PgpPgpKeyGenDefaultRpcParam): void /* not void but this is deprecated */
 declare export function pgpPgpStorageDismissRpcPromise(params: PgpPgpStorageDismissRpcParam, waitingKey?: string): Promise<void>
 declare export function pprofLogProcessorProfileRpcPromise(params: PprofLogProcessorProfileRpcParam, waitingKey?: string): Promise<void>
 declare export function pprofLogTraceRpcPromise(params: PprofLogTraceRpcParam, waitingKey?: string): Promise<void>
 declare export function proveCheckProofRpcPromise(params: ProveCheckProofRpcParam, waitingKey?: string): Promise<ProveCheckProofResult>
-declare export function proveStartProofRpcChannelMap(configKeys: Array<string>, request: ProveStartProofRpcParam): any
+declare export function proveStartProofRpcChannelMap(configKeys: Array<string>, request: ProveStartProofRpcParam): void /* not void but this is deprecated */
 declare export function reachabilityCheckReachabilityRpcPromise(params: ReachabilityCheckReachabilityRpcParam, waitingKey?: string): Promise<ReachabilityCheckReachabilityResult>
 declare export function reachabilityStartReachabilityRpcPromise(params: ReachabilityStartReachabilityRpcParam, waitingKey?: string): Promise<ReachabilityStartReachabilityResult>
 declare export function rekeyGetRevokeWarningRpcPromise(params: RekeyGetRevokeWarningRpcParam, waitingKey?: string): Promise<RekeyGetRevokeWarningResult>
@@ -2663,7 +2663,7 @@ declare export function signupCheckInvitationCodeRpcPromise(params: SignupCheckI
 declare export function signupCheckUsernameAvailableRpcPromise(params: SignupCheckUsernameAvailableRpcParam, waitingKey?: string): Promise<void>
 declare export function signupGetInvitationCodeRpcPromise(params: SignupGetInvitationCodeRpcParam, waitingKey?: string): Promise<SignupGetInvitationCodeResult>
 declare export function signupInviteRequestRpcPromise(params: SignupInviteRequestRpcParam, waitingKey?: string): Promise<void>
-declare export function signupSignupRpcSaga(p: {params: SignupSignupRpcParam, incomingCallMap: IncomingCallMapType, waitingKey?: string}): CallEffect<void, any, any>
+declare export function signupSignupRpcSaga(p: {params: SignupSignupRpcParam, incomingCallMap: IncomingCallMapType, waitingKey?: string}): CallEffect<void>
 declare export function teamsCanUserPerformRpcPromise(params: TeamsCanUserPerformRpcParam, waitingKey?: string): Promise<TeamsCanUserPerformResult>
 declare export function teamsGetTarsDisabledRpcPromise(params: TeamsGetTarsDisabledRpcParam, waitingKey?: string): Promise<TeamsGetTarsDisabledResult>
 declare export function teamsGetTeamAndMemberShowcaseRpcPromise(params: TeamsGetTeamAndMemberShowcaseRpcParam, waitingKey?: string): Promise<TeamsGetTeamAndMemberShowcaseResult>
