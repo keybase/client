@@ -1,7 +1,7 @@
 // @flow
 
 // Like intersperse but takes a function to define the separator
-export function <A, B> intersperseFn(
+export function intersperseFn<A, B>(
   separatorFn: (index: number, x: A, a: Array<A>) => B,
   arr: Array<A>
 ): Array<A | B> {
