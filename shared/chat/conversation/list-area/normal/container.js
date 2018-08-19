@@ -1,6 +1,7 @@
 // @flow
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
+import * as ConfigGen from '../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import ListComponent from '.'
 import {
@@ -35,17 +36,15 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
   }
 }
 
-type DispatchProps = {
-  _loadMoreMessages: () => void,
-  _markInitiallyLoadedThreadAsRead: () => void,
-}
-const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}: OwnProps): DispatchProps => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
+  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
   _loadMoreMessages: () => dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey})),
   _markInitiallyLoadedThreadAsRead: () =>
     dispatch(Chat2Gen.createMarkInitiallyLoadedThreadAsRead({conversationIDKey})),
 })
 
-const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  copyToClipboard: dispatchProps.copyToClipboard,
   _loadMoreMessages: dispatchProps._loadMoreMessages,
   conversationIDKey: stateProps.conversationIDKey,
   editingOrdinal: stateProps.editingOrdinal,

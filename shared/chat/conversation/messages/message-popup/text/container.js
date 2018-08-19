@@ -1,5 +1,6 @@
 // @flow
 import type {Component} from 'react'
+import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
@@ -7,7 +8,6 @@ import * as Route from '../../../../../actions/route-tree'
 import * as Container from '../../../../../util/container'
 import {createShowUserProfile} from '../../../../../actions/profile-gen'
 import {getCanPerform} from '../../../../../constants/teams'
-import {copyToClipboard} from '../../../../../util/clipboard'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import Text from '.'
 
@@ -43,7 +43,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
   _onCopy: (message: Types.Message) => {
     if (message.type === 'text') {
-      copyToClipboard(message.text.stringValue())
+      dispatch(ConfigGen.createCopyToClipboard({text: message.text.stringValue()}))
     }
   },
   _onDelete: (message: Types.Message) =>
