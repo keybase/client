@@ -48,7 +48,6 @@ const loadGitRepo = (state: TypedState, action: GitGen.LoadGitRepoPayload) =>
 const surfaceGlobalErrors = (_, {payload: {errors}}: GitGen.LoadedPayload) =>
   Saga.all(errors.map(globalError => Saga.put(ConfigGen.createGlobalError({globalError}))))
 
-// Do we have to call loadgit?
 const createPersonalRepo = (_, action: GitGen.CreatePersonalRepoPayload) =>
   RPCTypes.gitCreatePersonalRepoRpcPromise(
     {

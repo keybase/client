@@ -199,7 +199,7 @@ describe('load', () => {
     rpc.mockImplementation(() => new Promise(resolve => resolve()))
     dispatch(GitGen.createLoadGit())
     return Testing.flushPromises().then(() => {
-      expect(getState().devices.deviceMap).toEqual(I.Map())
+      expect(getState().git.idToInfo).toEqual(I.Map())
       expect(rpc).toHaveBeenCalled()
     })
   })
