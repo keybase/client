@@ -26,6 +26,7 @@ export type _State = {
   usernameOrEmail: string,
   deviceName: string,
   devices: I.List<Device>,
+  gpgImportError: ?string,
   existingDevices: I.List<string>,
 }
 

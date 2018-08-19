@@ -1,10 +1,16 @@
 // @flow
 import * as React from 'react'
-import {Text} from '../../common-adapters'
-import {storiesOf} from '../../stories/storybook'
+import GPGSign from './index'
+import {storiesOf, action} from '../../stories/storybook'
 
 const load = () => {
-  storiesOf('Provision/GPGSign', module).add('GPGSign', () => <Text type="Body">TODO</Text>)
+  storiesOf('Provision/GPGSign', module)
+    .add('GPGSign', () => (
+      <GPGSign importError={null} onSubmit={action('onSubmit')} onBack={action('onBack')} />
+    ))
+    .add('GPGSign with import error', () => (
+      <GPGSign importError={'Too many failures'} onSubmit={action('onSubmit')} onBack={action('onBack')} />
+    ))
 }
 
 export default load

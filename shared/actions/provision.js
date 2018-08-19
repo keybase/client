@@ -27,6 +27,7 @@ type ValidCallback =
   | 'keybase.1.provisionUi.ProvisionerSuccess'
   | 'keybase.1.provisionUi.chooseDevice'
   | 'keybase.1.provisionUi.chooseGPGMethod'
+  | 'keybase.1.provisionUi.switchToGPGSignOK'
   | 'keybase.1.secretUi.getPassphrase'
 
 const cancelOnCallback = (_: any, response: CommonResponseHandler, __: any) => {
@@ -195,6 +196,7 @@ class ProvisioningManager {
     this._stashResponse('keybase.1.provisionUi.chooseGPGMethod', response)
     return Saga.put(ProvisionGen.createShowGPGPage())
   }
+
   submitGPGMethod = (state: TypedState, action: ProvisionGen.SubmitGPGMethodPayload) => {
     // local error, ignore
     if (state.provision.error.stringValue()) {
@@ -211,6 +213,27 @@ class ProvisioningManager {
         ? RPCTypes.provisionUiGPGMethod.gpgImport
         : RPCTypes.provisionUiGPGMethod.gpgSign
     )
+  }
+
+  switchToGPGSignOKHandler = (
+    params: RPCTypes.ProvisionUiSwitchToGPGSignOKRpcParam,
+    response: CommonResponseHandler,
+    state: TypedState
+  ) => {
+    this._stashResponse('keybase.1.provisionUi.switchToGPGSignOK', response)
+    return Saga.all([
+      Saga.put(ProvisionGen.createSwitchToGPGSignOnly({importError: params.importError})),
+      Saga.put(ProvisionGen.createShowGPGPage()),
+    ])
+  }
+
+  submitGPGSignOK = (state: TypedState, action: ProvisionGen.SubmitGPGSignOKPayload) => {
+    const response = this._getAndClearResponse('keybase.1.provisionUi.switchToGPGSignOK')
+    if (!response || !response.result) {
+      throw new Error('Tried to respond to gpg sign ok but missing callback')
+    }
+
+    response.result(action.payload.accepted)
   }
 
   // User has an uploaded key so we can use a passphrase OR they selected a paperkey
@@ -280,6 +303,7 @@ class ProvisioningManager {
           'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
           'keybase.1.provisionUi.chooseDevice': this.chooseDeviceHandler,
           'keybase.1.provisionUi.chooseGPGMethod': this.chooseGPGMethodHandler,
+          'keybase.1.provisionUi.switchToGPGSignOK': this.switchToGPGSignOKHandler,
           'keybase.1.secretUi.getPassphrase': this.getPassphraseHandler,
         }
 
@@ -367,6 +391,8 @@ const submitDeviceName = (state: TypedState) => ProvisioningManager.getSingleton
 const submitTextCode = (state: TypedState) => ProvisioningManager.getSingleton().submitTextCode(state)
 const submitGPGMethod = (state: TypedState, action: ProvisionGen.SubmitGPGMethodPayload) =>
   ProvisioningManager.getSingleton().submitGPGMethod(state, action)
+const submitGPGSignOK = (state: TypedState, action: ProvisionGen.SubmitGPGSignOKPayload) =>
+  ProvisioningManager.getSingleton().submitGPGSignOK(state, action)
 const submitPassphraseOrPaperkey = (
   state: TypedState,
   action: ProvisionGen.SubmitPassphrasePayload | ProvisionGen.SubmitPaperkeyPayload
@@ -417,6 +443,7 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ProvisionGen.submitDeviceName, submitDeviceName)
   yield Saga.actionToAction(ProvisionGen.submitTextCode, submitTextCode)
   yield Saga.actionToAction(ProvisionGen.submitGPGMethod, submitGPGMethod)
+  yield Saga.actionToAction(ProvisionGen.submitGPGSignOK, submitGPGSignOK)
   yield Saga.actionToAction(
     [ProvisionGen.submitPassphrase, ProvisionGen.submitPaperkey],
     submitPassphraseOrPaperkey
