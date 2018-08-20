@@ -32,14 +32,19 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
         return loadingProps
       }
       const payment = Constants.getPayment(state, accountID, paymentID)
+      if (payment.statusSimplified === 'none') {
+        // no payment
+        return loadingProps
+      }
       return {
-        action: 'sent lumens worth',
-        amount: '$35',
-        balanceChange: '-90.5700999 XLM',
-        balanceChangeColor: Styles.globalColors.red,
+        action: payment.worth ? 'sent lumens worth' : 'sent',
+        amount: payment.worth ? payment.worth : payment.amountDescription,
+        balanceChange: `${payment.delta === 'increase' ? '+' : '-'}${payment.amountDescription}`,
+        balanceChangeColor:
+          payment.delta === 'increase' ? Styles.globalColors.green2 : Styles.globalColors.red,
         icon: 'iconfont-stellar-send',
         loading: false,
-        memo: ':beer:',
+        memo: payment.note,
         pending: false,
       }
     }

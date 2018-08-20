@@ -4,6 +4,10 @@ import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
 import * as StellarRPCTypes from './rpc-stellar-gen'
 
+// We treat PaymentIDs from the service as opaque
+export const paymentIDIsEqual = (p1: StellarRPCTypes.PaymentID, p2: StellarRPCTypes.PaymentID) =>
+  p1.txID === p2.txID
+
 // Possible 'types' of things you can send or receive transactions with
 export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'otherAccount'
 

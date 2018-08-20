@@ -240,10 +240,12 @@ const getPendingPayments = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.pendingMap.get(accountID || getSelectedAccount(state), I.List())
 
 const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: RPCTypes.PaymentID) =>
-  state.wallets.paymentsMap.get(accountID, I.List()).find(p => p.id === paymentID) || makePayment()
+  state.wallets.paymentsMap.get(accountID, I.List()).find(p => Types.paymentIDIsEqual(p.id, paymentID)) ||
+  makePayment()
 
 const getPendingPayment = (state: TypedState, accountID: Types.AccountID, paymentID: RPCTypes.PaymentID) =>
-  state.wallets.pendingMap.get(accountID, I.List()).find(p => p.id === paymentID) || makePayment()
+  state.wallets.pendingMap.get(accountID, I.List()).find(p => Types.paymentIDIsEqual(p.id, paymentID)) ||
+  makePayment()
 
 const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
