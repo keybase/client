@@ -515,49 +515,42 @@ func (t *ImplicitTeamsNameInfoSource) DecryptionKey(ctx context.Context, name st
 		kbfsEncrypted)
 }
 
+func (t *ImplicitTeamsNameInfoSource) ephemeralLoadAndIdentify(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (teamID keybase1.TeamID, err error) {
+	if public {
+		return teamID, NewPublicTeamEphemeralKeyError()
+	}
+	team, err := t.loader.loadTeam(ctx, tlfID, tlfName, membersType, public, nil)
+	if err != nil {
+		return teamID, err
+	}
+	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
+	if err != nil {
+		return teamID, err
+	}
+	if _, err := t.identify(ctx, tlfID, impTeamName); err != nil {
+		return teamID, err
+	}
+	return team.ID, nil
+}
+
 func (t *ImplicitTeamsNameInfoSource) EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool) (teamEK keybase1.TeamEk, err error) {
-	if public {
-		return teamEK, NewPublicTeamEphemeralKeyError()
-	}
-
-	// The native case is the same as regular teams.
-	if membersType == chat1.ConversationMembersType_IMPTEAMNATIVE {
-		teamID, err := keybase1.TeamIDFromString(tlfID.String())
-		if err != nil {
-			return teamEK, err
-		}
-		return t.G().GetEKLib().GetOrCreateLatestTeamEK(ctx, teamID)
-	}
-	// Otherwise for implicit teams, we have to load the team to get its ID.
-	team, err := t.loader.loadTeam(ctx, tlfID, tlfName, membersType, public, nil)
+	teamID, err := t.ephemeralLoadAndIdentify(ctx, tlfName, tlfID, membersType, public)
 	if err != nil {
 		return teamEK, err
 	}
-	return t.G().GetEKLib().GetOrCreateLatestTeamEK(ctx, team.ID)
+	return t.G().GetEKLib().GetOrCreateLatestTeamEK(ctx, teamID)
 }
 
 func (t *ImplicitTeamsNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
 	generation keybase1.EkGeneration) (teamEK keybase1.TeamEk, err error) {
-	if public {
-		return teamEK, NewPublicTeamEphemeralKeyError()
-	}
-
-	// The native case is the same as regular teams.
-	if membersType == chat1.ConversationMembersType_IMPTEAMNATIVE {
-		teamID, err := keybase1.TeamIDFromString(tlfID.String())
-		if err != nil {
-			return teamEK, err
-		}
-		return t.G().GetEKLib().GetTeamEK(ctx, teamID, generation)
-	}
-	// Otherwise for implicit teams, we have to load the team to get its ID.
-	team, err := t.loader.loadTeam(ctx, tlfID, tlfName, membersType, public, nil)
+	teamID, err := t.ephemeralLoadAndIdentify(ctx, tlfName, tlfID, membersType, public)
 	if err != nil {
 		return teamEK, err
 	}
-	return t.G().GetEKLib().GetTeamEK(ctx, team.ID, generation)
+	return t.G().GetEKLib().GetTeamEK(ctx, teamID, generation)
 }
 
 func (t *ImplicitTeamsNameInfoSource) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,

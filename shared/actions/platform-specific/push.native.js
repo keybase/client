@@ -8,6 +8,7 @@ import * as PushGen from '../push-gen'
 import * as PushNotifications from 'react-native-push-notification'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as ChatTypes from '../../constants/types/chat2'
 import * as Saga from '../../util/saga'
 import * as WaitingGen from '../waiting-gen'
 import logger from '../../logger'
@@ -322,7 +323,9 @@ const checkPermissions = (_: any, action: ConfigGen.MobileAppStatePayload | null
   })
 }
 
-const getStartupDetailsFromInitialPush = () =>
+const getStartupDetailsFromInitialPush = (): Promise<
+  null | {startupFollowUser: string} | {startupConversation: ChatTypes.ConversationIDKey}
+> =>
   new Promise(resolve => {
     PushNotifications.popInitialNotification(n => {
       const notification = Constants.normalizePush(n)

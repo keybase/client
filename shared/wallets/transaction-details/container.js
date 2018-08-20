@@ -7,14 +7,18 @@ import * as StellarRPCTypes from '../../constants/types/rpc-stellar-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import TransactionDetails from '.'
 
-const mapStateToProps = (state: TypedState, ownProps) => ({
-  _transaction: Constants.getPayment(
-    state,
-    ownProps.routeProps.get('accountID'),
-    ownProps.routeProps.get('paymentID')
-  ),
-  _you: state.config.username || '',
-})
+const mapStateToProps = (state: TypedState, ownProps) => {
+  const accountID = ownProps.routeProps.get('accountID')
+  const paymentID = ownProps.routeProps.get('paymentID')
+  const status = ownProps.routeProps.get('status')
+  return {
+    _transaction:
+      status === 'pending'
+        ? Constants.getPendingPayment(state, accountID, paymentID)
+        : Constants.getPayment(state, accountID, paymentID),
+    _you: state.config.username || '',
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   _onLoadPaymentDetail: (accountID: Types.AccountID, paymentID: StellarRPCTypes.PaymentID) =>

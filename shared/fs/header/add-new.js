@@ -60,11 +60,13 @@ const AddNew = (props: AddNewProps & OverlayParentProps) => {
               ? {
                   title: 'header',
                   view: (
-                    <StaticBreadcrumb
-                      pathElements={props.pathElements}
-                      showTlfTypeIcon={true}
-                      includeLast={true}
-                    />
+                    <Box style={styles.stylesPadBreadcrumbHeader}>
+                      <StaticBreadcrumb
+                        pathElements={props.pathElements}
+                        showTlfTypeIcon={true}
+                        includeLast={true}
+                      />
+                    </Box>
                   ),
                 }
               : undefined
@@ -103,6 +105,7 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
   },
+  stylesPadBreadcrumbHeader: {paddingBottom: globalMargins.medium, paddingTop: globalMargins.medium},
   stylesText: platformStyles({
     common: {
       marginLeft: globalMargins.tiny,

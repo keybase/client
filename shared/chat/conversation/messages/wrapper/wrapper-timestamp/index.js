@@ -155,6 +155,7 @@ const MenuButtons = (props: MenuButtonsProps) => (
           onShowPicker={props.setShowingPicker}
           showBorder={false}
           tooltipEnabled={false}
+          style={styles.reactButton}
         />
         <Box ref={props.setAttachmentRef}>
           {(props.message.type === 'attachment' || props.message.type === 'text') && (
@@ -187,6 +188,9 @@ const styles = styleSheetCreate({
     },
   }),
   orangeLine: {backgroundColor: globalColors.orange, height: 1, width: '100%'},
+  reactButton: {
+    marginTop: -3,
+  },
 })
 
 export default WrapperTimestamp

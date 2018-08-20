@@ -15,6 +15,7 @@ import {collapseStyles, globalColors, globalMargins, isMobile, platformStyles} f
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
 import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
 import {PopupHeaderText, type MenuItem} from '../../../../../common-adapters/popup-menu'
+import {isAndroid} from '../../../../../constants/platform'
 import type {DeviceType} from '../../../../../constants/types/devices'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 
@@ -70,7 +71,8 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
   render() {
     const {author, deviceName, deviceRevokedAt, hideTimer, timestamp, yourMessage} = this.props
     const whoRevoked = yourMessage ? 'You' : author
-    const bombVerticalOffset = isMobile ? 0 : -20
+    // Android overflow doesn't work
+    const bombVerticalOffset = isMobile ? (isAndroid ? 10 : -30) : -20
     return (
       <Box2
         direction="vertical"
