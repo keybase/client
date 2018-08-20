@@ -5,7 +5,13 @@ import {Box} from '../../../../common-adapters'
 import {globalColors} from '../../../../styles'
 import Payment from '.'
 
+const sendCommon = {
+  onSend: action('onSend'),
+  sendButtonLabel: '',
+}
+
 const sentProps = {
+  ...sendCommon,
   action: 'sent lumens worth',
   amount: '$35',
   balanceChange: '-90.5700999 XLM',
@@ -17,6 +23,7 @@ const sentProps = {
 }
 
 const sendingProps = {
+  ...sendCommon,
   action: 'sending lumens worth',
   amount: '$35',
   balanceChange: '-90.5700999 XLM',
@@ -28,6 +35,7 @@ const sendingProps = {
 }
 
 const requestCommon = {
+  ...sendCommon,
   action: 'requested lumens worth',
   balanceChange: '',
   balanceChangeColor: '',
@@ -52,6 +60,7 @@ const theyRequestProps = {
 }
 
 const sentAssetProps = {
+  ...sendCommon,
   action: 'sent',
   amount: '1 BTC/Abc.def',
   balanceChange: '-1 BTC',
@@ -63,6 +72,7 @@ const sentAssetProps = {
 }
 
 const loadingProps = {
+  ...sendCommon,
   action: '',
   amount: '',
   balanceChange: '',

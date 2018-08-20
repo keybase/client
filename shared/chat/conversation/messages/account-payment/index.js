@@ -20,9 +20,9 @@ export type Props = {|
   icon: IconType,
   loading: boolean,
   memo: string,
-  onSend?: () => void,
+  onSend: () => void,
   pending: boolean,
-  sendButtonLabel?: string,
+  sendButtonLabel: string,
 |}
 
 const AccountPayment = (props: Props) => {

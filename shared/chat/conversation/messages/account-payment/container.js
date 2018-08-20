@@ -46,6 +46,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
         loading: false,
         memo: payment.note,
         pending: false,
+        sendButtonLabel: '',
       }
     }
     case 'requestPayment': {
@@ -55,7 +56,18 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
       if (!request) {
         return loadingProps
       }
+
+      const sendProps =
+        ownProps.message.author === state.config.username
+          ? {}
+          : {
+              sendButtonLabel: `Send${request.asset === 'currency' ? ' lumens worth ' : ' '}${
+                request.amountDescription
+              }`,
+            }
+
       return {
+        ...sendProps,
         action: request.asset === 'currency' ? 'requested lumens worth' : 'requested',
         amount: request.amountDescription,
         balanceChange: '',
@@ -76,6 +88,10 @@ const mapDispatchToProps = (dispatch: Container.Dispatch, ownProps: OwnProps) =>
     if (ownProps.message.type === 'requestPayment') {
       dispatch(WalletsGen.createLoadRequestDetail({requestID: ownProps.message.requestID}))
     }
+  },
+  onSend: () => {
+    // TODO navigate to dialog
+    console.log('TODO')
   },
 })
 
