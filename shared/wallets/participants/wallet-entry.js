@@ -8,6 +8,8 @@ type WalletEntryProps = {
   keybaseUser: string,
   contents: string,
   style?: Styles.StylesCrossPlatform,
+  center?: boolean,
+  showWalletIcon: boolean,
 }
 
 // TODO WalletEntry is mostly copied from WalletRow, with some row specific
@@ -18,13 +20,16 @@ const WalletEntry = (props: WalletEntryProps) => {
       style={Styles.collapseStyles([styles.containerBox, props.style])}
       direction="horizontal"
       gap="tiny"
+      centerChildren={props.center}
       fullWidth={true}
     >
-      <Kb.Icon
-        type={Styles.isMobile ? 'icon-wallet-32' : 'icon-wallet-64'}
-        color={Styles.globalColors.darkBlue}
-        style={Kb.iconCastPlatformStyles(styles.icon)}
-      />
+      {props.showWalletIcon && (
+        <Kb.Icon
+          type={Styles.isMobile ? 'icon-wallet-32' : 'icon-wallet-64'}
+          color={Styles.globalColors.darkBlue}
+          style={Kb.iconCastPlatformStyles(styles.icon)}
+        />
+      )}
       <Kb.Box2 direction="vertical" style={styles.rightColumn}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.user}>
           {props.keybaseUser && (
@@ -38,12 +43,19 @@ const WalletEntry = (props: WalletEntryProps) => {
             {props.name}
           </Kb.Text>
         </Kb.Box2>
-        <Kb.Text type="BodySmall" style={styles.amount}>
+        <Kb.Text
+          type="BodySmall"
+          style={Styles.collapseStyles([styles.amount, props.center ? {textAlign: 'center'} : {}])}
+        >
           {props.contents}
         </Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
   )
+}
+
+WalletEntry.defaultProps = {
+  showWalletIcon: true,
 }
 
 const rightColumnStyle = Styles.platformStyles({
