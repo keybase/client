@@ -32,7 +32,7 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
       <WalletPopup
         onClose={this.props.onClose}
         containerStyle={styles.backgroundColor}
-        headerStyle={styles.backgroundColor}
+        headerStyle={Styles.collapseStyles([styles.backgroundColor, styles.header])}
         bottomButtons={[
           <Kb.Button
             fullWidth={Styles.isMobile}
@@ -55,7 +55,7 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
           type={Styles.isMobile ? 'icon-wallet-secret-key-64' : 'icon-wallet-secret-key-48'}
           style={Kb.iconCastPlatformStyles(styles.icon)}
         />
-        <Kb.Text style={Styles.collapseStyles([styles.warningText, styles.headerText])} type="Header">
+        <Kb.Text style={Styles.collapseStyles([styles.warningText, styles.mainText])} type="Header">
           One last thing! Make sure you keep a copy of your secret key before removing{' '}
           <Kb.Text type="HeaderItalic" style={styles.warningText}>
             {this.props.name}
@@ -79,6 +79,9 @@ const styles = Styles.styleSheetCreate({
   backgroundColor: {
     backgroundColor: Styles.globalColors.yellow,
   },
+  header: {
+    borderBottomWidth: 0,
+  },
   icon: Styles.platformStyles({
     common: {
       marginBottom: Styles.globalMargins.large,
@@ -90,7 +93,7 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.xlarge,
     },
   }),
-  headerText: {
+  mainText: {
     paddingBottom: Styles.globalMargins.small,
   },
   warningText: {

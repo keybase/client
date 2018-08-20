@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import {compose, renameProp, withProps} from 'recompose'
+import {compose, renameProp} from 'recompose'
 
 type WalletModalProps = {|
   children: React.Node,
@@ -69,10 +69,4 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export default compose(
-  renameProp('onClose', 'onCancel'),
-  withProps(ownProps => ({
-    headerStyle: Styles.collapseStyles([{borderBottomWidth: 0}, ownProps.headerStyle]),
-  })),
-  Kb.HeaderOrPopup
-)(WalletPopup)
+export default compose(renameProp('onClose', 'onCancel'), Kb.HeaderOrPopup)(WalletPopup)

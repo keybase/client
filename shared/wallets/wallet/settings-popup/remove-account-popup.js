@@ -33,7 +33,11 @@ const RemoveAccountPopup = (props: Props) => {
   ]
 
   return (
-    <WalletPopup onClose={props.onClose} bottomButtons={Styles.isMobile ? buttons.reverse() : buttons}>
+    <WalletPopup
+      onClose={props.onClose}
+      headerStyle={styles.header}
+      bottomButtons={Styles.isMobile ? buttons.reverse() : buttons}
+    >
       <Kb.Icon
         type={Styles.isMobile ? 'icon-wallet-remove-64' : 'icon-wallet-remove-48'}
         style={Kb.iconCastPlatformStyles(styles.icon)}
@@ -49,6 +53,9 @@ const RemoveAccountPopup = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate({
+  header: {
+    borderBottomWidth: 0,
+  },
   icon: Styles.platformStyles({
     common: {
       marginBottom: Styles.globalMargins.large,
@@ -60,10 +67,16 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.xlarge,
     },
   }),
-  warningText: {
-    marginBottom: Styles.globalMargins.tiny,
-    textAlign: 'center',
-  },
+  warningText: Styles.platformStyles({
+    common: {
+      marginBottom: Styles.globalMargins.tiny,
+      textAlign: 'center',
+    },
+    isMobile: {
+      marginLeft: Styles.globalMargins.small,
+      marginRight: Styles.globalMargins.small,
+    },
+  }),
 })
 
 export default RemoveAccountPopup
