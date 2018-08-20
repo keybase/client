@@ -14,25 +14,16 @@ require('electron').ipcRenderer.once('load', (event, options) => {
   })
 })
 
-// Require the electron spellchecker
 const electronSpellchecker = require('electron-spellchecker')
-
-// Retrieve required properties
 const SpellCheckHandler = electronSpellchecker.SpellCheckHandler
 const ContextMenuListener = electronSpellchecker.ContextMenuListener
 const ContextMenuBuilder = electronSpellchecker.ContextMenuBuilder
 
-// Configure the spellcheckhandler
 window.spellCheckHandler = new SpellCheckHandler()
 window.spellCheckHandler.attachToInput()
-
-// Start off as "US English, America"
 window.spellCheckHandler.switchLanguage(navigator.language || 'en-US')
 
-// Create the builder with the configured spellhandler
-let contextMenuBuilder = new ContextMenuBuilder(window.spellCheckHandler)
-
-// Add context menu listener
+const contextMenuBuilder = new ContextMenuBuilder(window.spellCheckHandler)
 new ContextMenuListener(info => {
   contextMenuBuilder.showPopupMenu(info)
 })
