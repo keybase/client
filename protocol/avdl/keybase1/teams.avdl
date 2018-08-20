@@ -664,6 +664,13 @@ protocol teams {
     boolean allowNameLookupBurstCache; // If it's ok to hit the nameLookup burst cache
   }
 
+  record ChatInfo {
+      @lint("ignore")
+      TeamID ID;
+      TeamName name;
+      array<TeamApplicationKey> chatKeys;
+  }
+
   record FastTeamLoadArg {
     @lint("ignore")
     TeamID ID;

@@ -959,6 +959,7 @@ export type CanonicalTLFNameAndIDWithBreaks = $ReadOnly<{tlfID: TLFID, Canonical
 export type CanonicalTlfName = String
 export type ChallengeInfo = $ReadOnly<{now: Long, challenge: String}>
 export type ChatConversationID = Bytes
+export type ChatInfo = $ReadOnly<{ID: TeamID, name: TeamName, chatKeys?: ?Array<TeamApplicationKey>}>
 export type CheckProofStatus = $ReadOnly<{found: Boolean, status: ProofStatus, proofText: String, state: ProofState}>
 export type CheckResult = $ReadOnly<{proofResult: ProofResult, time: Time, freshness: CheckResultFreshness}>
 export type CheckResultFreshness =

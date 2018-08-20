@@ -58,6 +58,22 @@ func NewFastTeamLoaderAndInstall(g *libkb.GlobalContext) *FastTeamChainLoader {
 	return l
 }
 
+func (f *FastTeamChainLoader) FastLoadForChat(m libkb.MetaContext, arg keybase1.FastTeamLoadArg) (res keybase1.ChatInfo, err error) {
+	arg.Applications = []keybase1.TeamApplication{keybase1.TeamApplication_CHAT}
+	arg.NeedLatestKey = true
+
+	loadRes, err := f.Load(m, arg)
+	if err != nil {
+		return keybase1.ChatInfo{}, err
+	}
+
+	return keybase1.ChatInfo{
+		ID:       arg.ID,
+		Name:     loadRes.Name,
+		ChatKeys: loadRes.ApplicationKeys,
+	}, nil
+}
+
 var _ libkb.FastTeamLoader = (*FastTeamChainLoader)(nil)
 
 // Load fast-loads the given team. Provide some hints as to how to load it. You can specify an application

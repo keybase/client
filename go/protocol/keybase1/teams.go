@@ -1849,6 +1849,30 @@ func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 	}
 }
 
+type ChatInfo struct {
+	ID       TeamID               `codec:"ID" json:"ID"`
+	Name     TeamName             `codec:"name" json:"name"`
+	ChatKeys []TeamApplicationKey `codec:"chatKeys" json:"chatKeys"`
+}
+
+func (o ChatInfo) DeepCopy() ChatInfo {
+	return ChatInfo{
+		ID:   o.ID.DeepCopy(),
+		Name: o.Name.DeepCopy(),
+		ChatKeys: (func(x []TeamApplicationKey) []TeamApplicationKey {
+			if x == nil {
+				return nil
+			}
+			ret := make([]TeamApplicationKey, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.ChatKeys),
+	}
+}
+
 type FastTeamLoadArg struct {
 	ID                   TeamID                 `codec:"ID" json:"ID"`
 	Public               bool                   `codec:"public" json:"public"`

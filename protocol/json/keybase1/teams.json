@@ -1541,6 +1541,28 @@
     },
     {
       "type": "record",
+      "name": "ChatInfo",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "ID",
+          "lint": "ignore"
+        },
+        {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamApplicationKey"
+          },
+          "name": "chatKeys"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "FastTeamLoadArg",
       "fields": [
         {
