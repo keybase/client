@@ -6931,15 +6931,18 @@ func (fbo *folderBranchOps) ClearPrivateFolderMD(ctx context.Context) {
 		fbo.convID = nil
 	}()
 
-	if fbo.folderBranch.Tlf.Type() == tlf.Public {
-		return
-	}
-
 	lState := makeFBOLockState()
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
+
+	fbo.blocks.ClearChargedTo(lState)
+
+	if fbo.folderBranch.Tlf.Type() == tlf.Public {
+		return
+	}
+
 	if fbo.head == (ImmutableRootMetadata{}) {
 		// Nothing to clear.
 		return

@@ -732,6 +732,13 @@ func (fbo *folderBlockOps) getChargedToLocked(
 	return chargedTo, nil
 }
 
+// ClearChargedTo clears out the cached chargedTo UID for this FBO.
+func (fbo *folderBlockOps) ClearChargedTo(lState *lockState) {
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+	fbo.chargedTo = keybase1.UserOrTeamID("")
+}
+
 // DeepCopyFile makes a complete copy of the given file, deduping leaf
 // blocks and making new random BlockPointers for all indirect blocks.
 // It returns the new top pointer of the copy, and all the new child
