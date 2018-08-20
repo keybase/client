@@ -37,9 +37,10 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
         onClose={this.props.onClose}
         customCancelText="Close"
         customComponent={isMobile && mobileHeaderWrapper}
+        containerStyle={styles.container}
       >
         <Icon
-          type={isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
+          type={isMobile ? 'icon-wallet-secret-key-64' : 'icon-wallet-secret-key-48'}
           style={iconCastPlatformStyles(styles.icon)}
         />
         {!isMobile && header}
@@ -60,6 +61,12 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
 }
 
 const styles = styleSheetCreate({
+  container: platformStyles({
+    isMobile: {
+      paddingTop: globalMargins.medium,
+      paddingBottom: globalMargins.xlarge,
+    },
+  }),
   header: platformStyles({
     isMobile: {
       position: 'absolute',
